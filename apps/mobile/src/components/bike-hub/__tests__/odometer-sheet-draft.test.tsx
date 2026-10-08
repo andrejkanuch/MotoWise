@@ -123,6 +123,7 @@ function Route() {
       onDirtyChange={setDirty}
       onSavingChange={setSaving}
       exit={guard.exit}
+      isMounted={guard.isMounted}
       now={TODAY}
     />
   );
@@ -168,7 +169,11 @@ async function leaveTypedReading() {
   await dragDown(view);
 }
 
-const parked = () => useSheetDraftStore.getState().readings[BIKE_A.id]?.draft;
+/** Every parked reading for the bike, newest first. */
+const parkedAll = () =>
+  (useSheetDraftStore.getState().readings[BIKE_A.id] ?? []).map((entry) => entry.draft.digits);
+/** The newest parked reading — the one the next sheet restores. */
+const parked = () => useSheetDraftStore.getState().readings[BIKE_A.id]?.[0]?.draft;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -298,7 +303,7 @@ describe('Odometer sheet — Android drag-down keeps the reading', () => {
     expect(parked()?.digits).toBe('1');
   });
 
-  it('reopened while the save is pending, then it fails: a later draft is not overwritten', async () => {
+  it('reopened and dragged away while the save is pending, then it fails: both readings are kept, newest first', async () => {
     const settle = await dragAwayMidSave();
     const second = await renderRoute();
     await fireEvent.press(screen.getByTestId('key-1'));
@@ -306,7 +311,79 @@ describe('Odometer sheet — Android drag-down keeps the reading', () => {
 
     await act(async () => settle(false));
     expect(logs()).toHaveLength(1);
-    expect(parked()?.digits).toBe('1');
+    // The failed save parked last: it is offered first, the other one next.
+    await waitFor(() => expect(parkedAll()).toEqual(['999999', '1']));
+    await expectOfferedInTurn(['999,999', '1']);
+  });
+
+  it('reopened, the save fails, then the reopened sheet is dragged away: both readings are kept', async () => {
+    const settle = await dragAwayMidSave();
+    const second = await renderRoute();
+    await act(async () => settle(false));
+    await waitFor(() => expect(parkedAll()).toEqual(['999999']));
+    // The reopened sheet started empty (it opened before the failure).
+    expect(screen.getByTestId('odometer-entry')).toHaveTextContent('— — —');
+    await fireEvent.press(screen.getByTestId('key-1'));
+    await dragDown(second);
+
+    expect(logs()).toHaveLength(1);
+    expect(parkedAll()).toEqual(['1', '999999']);
+    await expectOfferedInTurn(['1', '999,999']);
+  });
+
+  /** Opens the sheet once per parked reading: each restores the newest, then clears it. */
+  async function expectOfferedInTurn(entries: string[]) {
+    for (const entry of entries) {
+      const view = await renderRoute();
+      expect(screen.getByTestId('odometer-restored')).toBeTruthy();
+      expect(screen.getByTestId('odometer-entry')).toHaveTextContent(entry);
+      await fireEvent.press(screen.getByTestId('odometer-restored-clear'));
+      await act(async () => view.unmount());
+    }
+    expect(parkedAll()).toEqual([]);
+  }
+
+  it('a reopened sheet that restores the newest reading and saves it removes only that one', async () => {
+    const settle = await dragAwayMidSave();
+    const second = await renderRoute();
+    await fireEvent.press(screen.getByTestId('key-1'));
+    await dragDown(second);
+    await act(async () => settle(false));
+    await waitFor(() => expect(parkedAll()).toEqual(['999999', '1']));
+
+    // The next sheet restores 999,999; logging it leaves "1" parked.
+    mockFetcher.mockImplementation((document: unknown) =>
+      document === LogOdometerReadingDocument
+        ? Promise.resolve({ logOdometerReading: { id: 'reading-2' } })
+        : document === OdometerReadingsDocument
+          ? Promise.resolve({ odometerReadings: [] })
+          : Promise.resolve({ pendingRideDistance: { rideCount: 0, distance: 0 } }),
+    );
+    const third = await renderRoute();
+    expect(screen.getByTestId('odometer-entry')).toHaveTextContent('999,999');
+    await waitFor(() => expect(screen.getByTestId('odometer-save')).toBeEnabled());
+    await fireEvent.press(screen.getByTestId('odometer-save'));
+    await waitFor(() => expect(mockRouter.back).toHaveBeenCalledTimes(1));
+    await act(async () => third.unmount());
+    expect(parkedAll()).toEqual(['1']);
+  });
+
+  it('Save pressed and the sheet dragged away in the same frame: nothing is parked while it saves', async () => {
+    const view = await renderRoute();
+    const settle = holdLog();
+    await typeReading();
+    // No render between the tap and the drag-down: only a synchronous flag sees
+    // the save. The press handler is called directly (`fireEvent` would flush a
+    // render of its own), and the sheet unmounts in the same act.
+    const save = screen.getByTestId('odometer-save');
+    await act(async () => {
+      save.props.onClick({ nativeEvent: {} });
+      mockPreventRemove.callback?.({ data: { action: POP } });
+      view.unmount();
+    });
+    expect(parked()).toBeUndefined();
+    await act(async () => settle(true));
+    expect(parked()).toBeUndefined();
   });
 
   it('a mounted sheet whose save fails keeps the entry and parks nothing', async () => {

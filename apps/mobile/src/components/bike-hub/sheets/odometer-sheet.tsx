@@ -151,9 +151,17 @@ interface OdometerSheetProps {
    * sheet neither parks nor restores.
    */
   exit?: () => SheetExit;
+  /**
+   * False once the route has unmounted (the route's discard guard). A save that
+   * fails after that parks the reading. Required with `exit`.
+   */
+  isMounted?: () => boolean;
   /** Tests pin the date; the screen omits it. */
   now?: Date;
 }
+
+/** A sheet rendered without the route's guard never parks, so it never "leaves". */
+const alwaysMounted = () => true;
 
 /**
  * Odometer sheet: the only place the bike's odometer is edited, on both
@@ -169,6 +177,7 @@ export function OdometerSheet({
   onDirtyChange,
   onSavingChange,
   exit,
+  isMounted = alwaysMounted,
   now,
 }: OdometerSheetProps) {
   const { t, i18n } = useTranslation();
@@ -200,14 +209,9 @@ export function OdometerSheet({
   // saved must be the value shown.
   const saving = logOdometer.isPending;
   useEffect(() => onSavingChange?.(saving), [saving, onSavingChange]);
-
-  const mounted = useRef(true);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
+  // `saving` lands a render later: a drag-down in the same frame as Save (or a
+  // second tap) must already see the save in flight.
+  const savingRef = useRef(false);
   const reading = (): OdometerDraft => ({
     digits,
     pickedDate: pickedDate?.getTime() ?? null,
@@ -219,7 +223,7 @@ export function OdometerSheet({
   const draftSlot = useParkDraftOnExit({
     restoredToken: parkedDraft?.token,
     exit: exit ?? (() => SHEET_EXIT.OPEN),
-    pending: () => parksDrafts && dirty && !saving,
+    pending: () => parksDrafts && dirty && !savingRef.current,
     park: (token) => useSheetDraftStore.getState().parkReading(bike.id, reading(), token),
     clear: (token) => useSheetDraftStore.getState().clearReading(bike.id, token),
   });
@@ -304,7 +308,8 @@ export function OdometerSheet({
   };
 
   const save = () => {
-    if (value === null) return;
+    if (value === null || savingRef.current) return;
+    savingRef.current = true;
     setSaveFailed(false);
     logOdometer.mutate(
       {
@@ -315,7 +320,7 @@ export function OdometerSheet({
         backdated,
         usedQuickAdd,
         draft: parksDrafts
-          ? { reading: reading(), token: draftSlot.token, sheetGone: () => !mounted.current }
+          ? { reading: reading(), token: draftSlot.token, sheetGone: () => !isMounted() }
           : undefined,
       },
       {
@@ -325,6 +330,9 @@ export function OdometerSheet({
         },
         // The sheet stays open and the entry is kept.
         onError: () => setSaveFailed(true),
+        onSettled: () => {
+          savingRef.current = false;
+        },
       },
     );
   };

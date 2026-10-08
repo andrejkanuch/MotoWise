@@ -46,6 +46,7 @@ import {
 } from '../../../lib/image-upload';
 import { queryKeys } from '../../../lib/query-keys';
 import { useAuthStore } from '../../../stores/auth.store';
+import { type ParkedPhotoUpload, parkedPhotoPaths } from '../../../stores/sheet-draft.store';
 import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact, triggerNotification, triggerSelection } from '../../../utils/haptics';
 import { NativeToggle } from '../../ui/native-toggle';
@@ -85,16 +86,8 @@ const CARET_MARGIN = 8;
 /** Controls that cannot be used while the note saves (or after it saved) are dimmed to this. */
 const LOCKED_OPACITY = SHEET_LOCKED_OPACITY;
 
-interface UploadedPhoto {
-  storagePath: string;
-  fileSizeBytes: number;
-}
-
 /** An uploaded object whose `addNotePhoto` has not been confirmed. */
-export interface PendingNotePhoto extends UploadedPhoto {
-  /** Bike of the note — the notes query that lists the note's attached photos. */
-  motorcycleId: string;
-}
+export type PendingNotePhoto = ParkedPhotoUpload;
 
 /**
  * Deletes uploaded objects that never got a `note_photos` row. An unconfirmed
@@ -346,32 +339,36 @@ export function NoteForm({
   const [saved, setSaved] = useState<SavedState | null>(null);
   /**
    * Photos whose file is already in storage but whose `addNotePhoto` failed, by
-   * local uri. A retry only re-sends `addNotePhoto` for the same object (no new
-   * upload, no second orphan); objects still unattached when the sheet closes
-   * are removed.
+   * local uri — seeded from a restored draft that carried them. A retry only
+   * re-sends `addNotePhoto` for the same object (no new upload, no second
+   * orphan); objects still unattached when the sheet is done are removed
+   * (`releaseUnattached`), unless a parked draft carries them.
    */
-  const uploadedPaths = useRef(new Map<string, PendingNotePhoto>());
+  const uploadedPaths = useRef<Map<string, PendingNotePhoto> | null>(null);
+  uploadedPaths.current ??= new Map(Object.entries(restored?.uploaded ?? {}));
+  const storedPhotos = uploadedPaths.current;
   /**
-   * The photo upload/attach run in progress, if any. The sheet can be dismissed
-   * mid-save (an Android drag-down cannot be held back) while `addNotePhoto` is
-   * still in flight; the unmount cleanup waits for it, so it never removes a file
-   * that is about to be attached, and still collects uploads that finish after
-   * the sheet is gone.
+   * Removes every uploaded object that never attached and is not carried by a
+   * parked draft (that draft re-attaches it), and forgets them all.
    */
-  const photosInFlight = useRef<Promise<unknown>>(Promise.resolve());
-  // Cleanup runs on unmount, so it covers every way out — Cancel, Done and a
-  // swipe-down of the sheet — exactly once.
-  useEffect(() => {
-    const pendingPhotos = uploadedPaths.current;
-    const inFlight = photosInFlight;
-    return () => {
-      void inFlight.current.then(() => {
-        const pending = [...pendingPhotos.values()];
-        pendingPhotos.clear();
-        if (pending.length > 0) return removeUnattachedNotePhotos(pending);
-      });
-    };
-  }, []);
+  const releaseUnattached = () => {
+    const carried = parkedPhotoPaths();
+    const orphans = [...storedPhotos.values()].filter((photo) => !carried.has(photo.storagePath));
+    storedPhotos.clear();
+    if (orphans.length > 0) void removeUnattachedNotePhotos(orphans);
+  };
+  // On unmount — Cancel, Done or a swipe-down — exactly once. Deferred a tick so
+  // the draft the sheet parks on leaving is in the store first. A save still in
+  // flight is left to settle it: once it ends with the sheet gone, it parks what
+  // did not attach and releases the rest itself (`finish`).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs once, on unmount
+  useEffect(
+    () => () => {
+      if (savingRef.current) return;
+      void Promise.resolve().then(releaseUnattached);
+    },
+    [],
+  );
 
   // The bike the sheet was opened for comes first (and is preselected).
   const attachChoices = [bike, ...bikes.filter((candidate) => candidate.id !== bike.id)];
@@ -448,17 +445,6 @@ export function NoteForm({
     uris: readonly string[],
     owner: string,
   ): Promise<string[]> => {
-    const run = uploadPhotosNow(noteId, motorcycleId, uris, owner);
-    photosInFlight.current = run.catch(() => undefined);
-    return run;
-  };
-
-  const uploadPhotosNow = async (
-    noteId: string,
-    motorcycleId: string,
-    uris: readonly string[],
-    owner: string,
-  ): Promise<string[]> => {
     if (uris.length === 0) return [];
     // Progress counts photos ATTACHED to the note, never mere uploads: the label
     // must not read "2 of 2" while the last one is still being attached.
@@ -468,11 +454,11 @@ export function NoteForm({
     // its own, so one failure never holds the others back.
     const uploads = await Promise.allSettled(
       uris.map(async (uri) => {
-        const uploaded = uploadedPaths.current.get(uri) ?? {
+        const uploaded = storedPhotos.get(uri) ?? {
           ...(await uploadNotePhoto(uri, owner, noteId)),
           motorcycleId,
         };
-        uploadedPaths.current.set(uri, uploaded);
+        storedPhotos.set(uri, uploaded);
         rememberLocalNotePhoto(uploaded.storagePath, uri);
         return uploaded;
       }),
@@ -495,7 +481,7 @@ export function NoteForm({
             fileSizeBytes: upload.value.fileSizeBytes,
           },
         });
-        uploadedPaths.current.delete(uri);
+        storedPhotos.delete(uri);
         attachedCount += 1;
         setPhotoProgress({ attached: attachedCount, total: uris.length });
       } catch (_error) {
@@ -526,6 +512,14 @@ export function NoteForm({
    * fails (`saveFailedAfterLeaving`). Once the note is on the server (`saved`)
    * nothing is parked — a Retry only re-attaches photos.
    */
+  /** The uploaded-but-unattached objects of these photos, by local uri. */
+  const uploadedOf = (uris: readonly string[]): Record<string, ParkedPhotoUpload> =>
+    Object.fromEntries(
+      uris.flatMap((uri) => {
+        const upload = storedPhotos.get(uri);
+        return upload ? [[uri, upload]] : [];
+      }),
+    );
   const pendingWork = () => !saved && !savingRef.current && dirty;
   const noteDraft = useNoteDraft({
     key: draftKey,
@@ -535,7 +529,15 @@ export function NoteForm({
     exit: guard.exit,
     pending: pendingWork,
     saving: () => savingRef.current,
-    snapshot: () => ({ text, stampOn, alsoTask, targetId, newPhotos, removedPhotoIds }),
+    snapshot: () => ({
+      text,
+      stampOn,
+      alsoTask,
+      targetId,
+      newPhotos,
+      removedPhotoIds,
+      uploaded: uploadedOf(newPhotos),
+    }),
   });
 
   /** "Clear" on the restored line: back to how the sheet would have opened. */
@@ -565,8 +567,12 @@ export function NoteForm({
         text: cleanText ?? text,
         stampOn: stampOn && stampValue != null,
         photos: next.failedPhotos,
+        uploaded: uploadedOf(next.failedPhotos),
         removals: next.failedRemovals,
       });
+      // The unmount cleanup left this to the save: the parked photos keep their
+      // objects, anything else uploaded and never attached is removed.
+      releaseUnattached();
       return;
     }
     if (next.failedPhotos.length === 0 && next.failedRemovals.length === 0 && !next.taskMissing) {
@@ -630,7 +636,10 @@ export function NoteForm({
       // Dismissed mid-save and the note was not saved: park the work now (the
       // hand-off stays pending — the restored draft, saved later, still clears
       // the field that handed it off).
-      if (!guard.isMounted()) noteDraft.saveFailedAfterLeaving();
+      if (!guard.isMounted()) {
+        noteDraft.saveFailedAfterLeaving();
+        releaseUnattached();
+      }
       setSaveFailed(true);
     } finally {
       savingRef.current = false;

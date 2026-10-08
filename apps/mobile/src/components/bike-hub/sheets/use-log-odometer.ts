@@ -62,9 +62,10 @@ export interface LogOdometerVariables {
   /**
    * The sheet's parked-draft slot. Mutation-level, so it is honoured after the
    * sheet is gone: a save that fails once its sheet was dismissed parks the
-   * reading (a save in flight is never parked — a sheet reopened meanwhile must
-   * not offer a reading that may already be logged), and one that lands clears
-   * only the slot `token` holds, never a reading a later sheet parked.
+   * reading as the bike's newest draft, beside any a sheet reopened meanwhile
+   * parked (a save in flight is never parked — a reopened sheet must not offer
+   * a reading that may already be logged), and one that lands removes only the
+   * entry `token` parked, never a reading a later sheet parked.
    */
   draft?: {
     reading: OdometerDraft;
@@ -154,5 +155,7 @@ export function useDiscardReadingGuard(dirty: boolean, saving = false) {
     },
     /** How the sheet was left — the sheet parks or clears its draft on it. */
     exit: guard.exit,
+    /** False once the sheet has unmounted: a save settling then parks a failed reading. */
+    isMounted: guard.isMounted,
   };
 }

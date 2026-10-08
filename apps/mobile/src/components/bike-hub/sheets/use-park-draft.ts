@@ -13,11 +13,11 @@ interface ParkDraftOptions {
   /**
    * Work a dismissal now would lose: typed and unsaved. A save still in flight
    * is NOT pending work — a later sheet must never restore what may already be
-   * on the server; the save parks it itself if it fails (`parkUnlessTaken`).
+   * on the server; the save parks it itself if it fails (`parkAfterFailedSave`).
    */
   pending: () => boolean;
-  /** Writes the sheet's current work under `token`; false when another sheet holds the slot. */
-  park: (token: string) => boolean;
+  /** Writes the sheet's current work as the slot's newest draft, under `token`. */
+  park: (token: string) => void;
   /** Empties the slot if `token` holds it. */
   clear: (token: string) => void;
   /** Runs once on unmount, after the exit was handled: whether the work was parked. */
@@ -26,20 +26,23 @@ interface ParkDraftOptions {
 
 interface ExitContext {
   pending: () => boolean;
-  park: () => boolean;
+  park: () => void;
   clear: () => void;
 }
 
 /**
  * What leaving does to the parked draft, by how the sheet was left; returns
- * whether the work was parked. `park` and `clear` act only on a slot this sheet
- * holds (or a free one, for `park`), so a draft it chose not to restore — or one
- * a later sheet parked — is never lost to it.
+ * whether the work was parked. `park` and `clear` act only on this sheet's own
+ * entry of the slot, so a draft it chose not to restore — or one another sheet
+ * parked — is never lost to it.
  */
 const ON_EXIT: Record<SheetExit, (context: ExitContext) => boolean> = {
   // A native dismissal nobody could ask about (Android drag-down): keep the work.
   [SHEET_EXIT.OPEN]: (context) => {
-    if (context.pending()) return context.park();
+    if (context.pending()) {
+      context.park();
+      return true;
+    }
     // Closed clean after restoring (the rider emptied it), or mid-save: nothing to keep.
     context.clear();
     return false;
@@ -60,11 +63,11 @@ const ON_EXIT: Record<SheetExit, (context: ExitContext) => boolean> = {
  * what was typed for the next time the sheet opens. An explicit Discard or a
  * save clears it.
  *
- * Ownership is a token: the restored draft's, or a fresh one. The store only
- * lets the token that holds a slot overwrite or clear it, so a save that lands
- * after its sheet is gone clears only its own draft, and a sheet that did not
- * restore the parked draft (a different quick-add hand-off) never parks over it
- * — its work is then dropped (`onLeave(false)`), the older draft kept.
+ * Ownership is a token: the restored draft's, or a fresh one. A slot is a
+ * newest-first stack (`DRAFT_STACK_MAX`) and each token touches only its own
+ * entry, so a save that lands after its sheet is gone clears only its own
+ * draft, and a sheet that did not restore a parked draft (a different quick-add
+ * hand-off, or one reopened mid-save) parks beside it — nothing is refused.
  *
  * On iOS a dirty sheet cannot leave without Discard or Save, so this only ever
  * clears there (a parked draft cannot arise, but would be harmless).
@@ -97,8 +100,8 @@ export function useParkDraftOnExit(options: ParkDraftOptions) {
     clearOwned: () => latest.current.clear(token),
     /**
      * A save failed after the sheet was dismissed mid-save: parks the work now,
-     * unless another sheet has parked in the slot since. Returns whether it did.
+     * as the slot's newest draft (beside any a later sheet parked meanwhile).
      */
-    parkUnlessTaken: () => latest.current.park(token),
+    parkAfterFailedSave: () => latest.current.park(token),
   };
 }

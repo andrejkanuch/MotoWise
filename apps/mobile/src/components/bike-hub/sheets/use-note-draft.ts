@@ -5,6 +5,7 @@ import {
   newDraftToken,
   noteDraftKey,
   type ParkedDraft,
+  type ParkedPhotoUpload,
   restorableNoteDraft,
   useSheetDraftStore,
 } from '../../../stores/sheet-draft.store';
@@ -62,8 +63,8 @@ interface NoteDraftOptions {
  * the hand-off pending, so a restored draft saved later still clears the field.
  * Leaving while a save is in flight parks nothing — the save settles it: SAVED
  * when the note lands, or, when it fails, the work is parked then (`saveFailed
- * AfterLeaving`). Work that could not be parked (another sheet holds the slot)
- * is reported DISCARDED: the field keeps its text.
+ * AfterLeaving`) — beside any draft a sheet reopened meanwhile parked, so
+ * parked work never reports DISCARDED.
  */
 export function useNoteDraft(options: NoteDraftOptions) {
   const { key, restored, isEdit, draft } = options;
@@ -98,10 +99,8 @@ export function useNoteDraft(options: NoteDraftOptions) {
     settle,
     /** The note is on the server: empties the slot if this sheet holds it. */
     clearOwned: slot.clearOwned,
-    /** The save failed after the sheet was dismissed mid-save: park it, or let the hand-off go. */
-    saveFailedAfterLeaving: () => {
-      if (!slot.parkUnlessTaken()) settle(DRAFT_OUTCOME.DISCARDED);
-    },
+    /** The save failed after the sheet was dismissed mid-save: park it (the hand-off stays pending). */
+    saveFailedAfterLeaving: slot.parkAfterFailedSave,
     /**
      * "Clear" on the restored line: drops the parked draft. A hand-off known
      * only from it is dropped too — the field that handed it off keeps its text
@@ -123,6 +122,8 @@ interface UnattachedPhotos {
   stampOn: boolean;
   /** Local uris of photos that never attached. */
   photos: readonly string[];
+  /** By local uri: the photos among them whose file is already in storage. */
+  uploaded: Readonly<Record<string, ParkedPhotoUpload>>;
   /** Ids of photos the rider removed that are still attached. */
   removals: readonly string[];
 }
@@ -131,8 +132,9 @@ interface UnattachedPhotos {
  * The note was saved after its sheet was dismissed mid-save, but some photos
  * (or removals) did not go through and there is no sheet left to offer Retry.
  * They are parked as an edit draft of that note, so opening the note again
- * offers them back under the restored notice. Nothing is parked over a draft
- * already waiting in that note's slot.
+ * offers them back under the restored notice — beside any draft already
+ * waiting in that note's slot. A photo whose file is already in storage keeps
+ * its object, so the restored sheet attaches it without a second upload.
  */
 export function parkUnattachedPhotos(input: UnattachedPhotos): void {
   if (input.photos.length === 0 && input.removals.length === 0) return;
@@ -145,6 +147,7 @@ export function parkUnattachedPhotos(input: UnattachedPhotos): void {
       targetId: input.motorcycleId,
       newPhotos: [...input.photos],
       removedPhotoIds: [...input.removals],
+      uploaded: { ...input.uploaded },
     },
     newDraftToken(),
   );

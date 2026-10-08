@@ -107,12 +107,17 @@ const asIos = () => {
   mockGuardPlatforms.add(process.env.EXPO_OS ?? 'ios');
 };
 
-import { CreateNoteDocument, UpdateNoteDocument } from '@motovault/graphql';
+import {
+  AddNotePhotoDocument,
+  CreateNoteDocument,
+  NotesByMotorcycleDocument,
+  UpdateNoteDocument,
+} from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { Alert, type AlertButton } from 'react-native';
 import '../../../i18n';
-import { noteDraftKey, useSheetDraftStore } from '../../../stores/sheet-draft.store';
+import { newDraftToken, noteDraftKey, useSheetDraftStore } from '../../../stores/sheet-draft.store';
 import { BIKE_A, BIKE_B, NOTES } from '../../../test/bike-hub-fixtures';
 import {
   DRAFT_OUTCOME,
@@ -170,7 +175,11 @@ async function dragDown(view: { unmount: () => void }) {
 }
 
 const NEW_KEY = noteDraftKey(BIKE_A.id);
-const parked = (key = NEW_KEY) => useSheetDraftStore.getState().notes[key]?.draft;
+/** The newest parked draft of the slot — the one the next sheet restores. */
+const parked = (key = NEW_KEY) => useSheetDraftStore.getState().notes[key]?.[0]?.draft;
+/** The texts of every parked draft of the slot, newest first. */
+const parkedTexts = (key = NEW_KEY) =>
+  (useSheetDraftStore.getState().notes[key] ?? []).map((entry) => entry.draft.text);
 const textValue = () => screen.getByTestId('note-text').props.value;
 
 /** Writes "Chain is loud", picks two photos (one of which a cache purge will remove), and so on. */
@@ -214,6 +223,7 @@ describe('Note sheet — Android drag-down keeps the note', () => {
       newPhotos: ['file:///kept.jpg', 'file:///gone.jpg'],
       removedPhotoIds: [],
       handoff: undefined,
+      uploaded: {},
     });
 
     await renderForm();
@@ -404,19 +414,18 @@ describe('Note sheet — a quick-add hand-off and a parked draft', () => {
     expect(parked()).toBeUndefined();
   });
 
-  it('a different hand-off dragged away while another draft is parked: the parked one is kept', async () => {
+  it('a different hand-off dragged away while another draft is parked: both are kept', async () => {
     await parkFromHandoff();
     const view = await renderForm({ draft: 'Bought oil' });
     await fireEvent.changeText(screen.getByTestId('note-text'), 'Bought oil and filter');
     await dragDown(view);
-    // Not parked over: the older draft stays, and the field that handed off
-    // "Bought oil" keeps its text and stops waiting.
-    expect(parked()).toMatchObject({
-      text: 'Check chain and sprockets',
-      handoff: 'Check chain',
-    });
-    expect(outcomes).toEqual([['Bought oil', DRAFT_OUTCOME.DISCARDED]]);
-    // The kept draft is still the one the original hand-off restores.
+    // Parked beside the older draft, never over it: both hand-offs stay pending.
+    expect(parkedTexts()).toEqual(['Bought oil and filter', 'Check chain and sprockets']);
+    expect(outcomes).toEqual([]);
+    // Each hand-off restores the draft that grew from it.
+    const oil = await renderForm({ draft: 'Bought oil' });
+    expect(textValue()).toBe('Bought oil and filter');
+    await act(async () => oil.unmount());
     await renderForm({ draft: 'Check chain' });
     expect(textValue()).toBe('Check chain and sprockets');
   });
@@ -440,8 +449,8 @@ describe('Note sheet — reopened while the dismissed sheet still saves', () => 
     return (ok: boolean) => settle(ok);
   }
 
-  async function dragAwayMidSave() {
-    const first = await renderForm();
+  async function dragAwayMidSave(scenario: Scenario = {}) {
+    const first = await renderForm(scenario);
     await fireEvent.changeText(screen.getByTestId('note-text'), 'Chain is loud');
     const settle = holdCreate();
     const saving = fireEvent.press(screen.getByTestId('note-save'));
@@ -486,15 +495,101 @@ describe('Note sheet — reopened while the dismissed sheet still saves', () => 
     expect(screen.getByTestId('note-restored')).toBeTruthy();
   });
 
-  it('fails while a later sheet has parked its own draft: that draft is not overwritten', async () => {
-    const { settle, saving } = await dragAwayMidSave();
+  /** Opens the sheet once per parked draft: each restores the newest, then clears it. */
+  async function expectOfferedInTurn(texts: string[]) {
+    for (const text of texts) {
+      const view = await renderForm();
+      expect(screen.getByTestId('note-restored')).toBeTruthy();
+      expect(textValue()).toBe(text);
+      await fireEvent.press(screen.getByTestId('note-restored-clear'));
+      await act(async () => view.unmount());
+    }
+    expect(parkedTexts()).toEqual([]);
+  }
+
+  it('reopened and dragged away, then the first save fails: both notes are kept, newest first', async () => {
+    const outcomes: Array<[string, DraftOutcome]> = [];
+    const unsubscribe = subscribeDraftOutcome((text, outcome) => outcomes.push([text, outcome]));
+    const { settle, saving } = await dragAwayMidSave({ draft: 'Bought oil' });
     const second = await renderForm();
     await fireEvent.changeText(screen.getByTestId('note-text'), 'Front tyre at 2.1 bar');
     await dragDown(second);
 
     await act(async () => settle(false));
     await saving;
-    expect(parked()?.text).toBe('Front tyre at 2.1 bar');
+    unsubscribe();
+    expect(creates()).toHaveLength(1);
+    // The failed save parked last, so it is offered first.
+    expect(parkedTexts()).toEqual(['Chain is loud', 'Front tyre at 2.1 bar']);
+    // Its work is parked: the hand-off stays pending, never DISCARDED.
+    expect(outcomes).toEqual([]);
+    expect(parked()?.handoff).toBe('Bought oil');
+    await expectOfferedInTurn(['Chain is loud', 'Front tyre at 2.1 bar']);
+  });
+
+  it('reopened, the first save fails, then the reopened sheet is dragged away: both notes are kept', async () => {
+    const { settle, saving } = await dragAwayMidSave();
+    const second = await renderForm();
+    await act(async () => settle(false));
+    await saving;
+    expect(parkedTexts()).toEqual(['Chain is loud']);
+    // The reopened sheet opened before the failure: it is still empty.
+    expect(textValue()).toBe('');
+    await fireEvent.changeText(screen.getByTestId('note-text'), 'Front tyre at 2.1 bar');
+    await dragDown(second);
+
+    expect(creates()).toHaveLength(1);
+    expect(parkedTexts()).toEqual(['Front tyre at 2.1 bar', 'Chain is loud']);
+    await expectOfferedInTurn(['Front tyre at 2.1 bar', 'Chain is loud']);
+  });
+
+  it('a reopened sheet that restores the newest note and saves it removes only that one', async () => {
+    const { settle, saving } = await dragAwayMidSave();
+    const second = await renderForm();
+    await fireEvent.changeText(screen.getByTestId('note-text'), 'Front tyre at 2.1 bar');
+    await dragDown(second);
+    await act(async () => settle(false));
+    await saving;
+    expect(parkedTexts()).toEqual(['Chain is loud', 'Front tyre at 2.1 bar']);
+
+    const third = await renderForm();
+    expect(textValue()).toBe('Chain is loud');
+    mockFetcher.mockImplementation((document: unknown) =>
+      document === CreateNoteDocument
+        ? Promise.resolve({ createNote: { ...NOTES[0], id: 'note-new', linkedTaskId: null } })
+        : Promise.resolve({ notes: [] }),
+    );
+    await fireEvent.press(screen.getByTestId('note-save'));
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+    await act(async () => third.unmount());
+    expect(parkedTexts()).toEqual(['Front tyre at 2.1 bar']);
+  });
+
+  it('an edit whose save fails after the sheet was dragged away is parked under the note', async () => {
+    const view = await renderForm({ note: EDITED });
+    await fireEvent.changeText(screen.getByTestId('note-text'), 'Edited text');
+    let fail: () => void = () => {};
+    const answer = mockFetcher.getMockImplementation();
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
+      document === UpdateNoteDocument
+        ? new Promise((_resolve, reject) => {
+            fail = () => reject(new Error('offline'));
+          })
+        : answer?.(document, variables),
+    );
+    const saving = fireEvent.press(screen.getByTestId('note-save'));
+    await screen.findByText('Saving…');
+    await dragDown(view);
+    const editKey = noteDraftKey(BIKE_A.id, EDITED.id);
+    expect(parked(editKey)).toBeUndefined();
+
+    await act(async () => fail());
+    await saving;
+    expect(parked()).toBeUndefined();
+    expect(parked(editKey)?.text).toBe('Edited text');
+    await renderForm({ note: EDITED });
+    expect(screen.getByTestId('note-restored')).toBeTruthy();
+    expect(textValue()).toBe('Edited text');
   });
 
   it('a restored draft dragged away mid-save is not offered again while it saves', async () => {
@@ -553,6 +648,124 @@ describe('Note sheet — photos of a note saved after its sheet was dragged away
     await renderForm({ note: { ...EDITED, id: 'note-new', text: 'Chain is loud' } });
     expect(screen.getByTestId('note-restored')).toBeTruthy();
     expect(screen.getAllByLabelText('Remove photo')).toHaveLength(EDITED.photos.length + 1);
+  });
+});
+
+describe('Note sheet — a stored photo parked after its sheet was dragged away', () => {
+  beforeEach(asAndroid);
+
+  const STORED = 'user-1/notes/note-new/1.webp';
+
+  it('the restored edit attaches the same stored object: no second upload, nothing removed', async () => {
+    const first = await renderForm();
+    await fireEvent.changeText(screen.getByTestId('note-text'), 'Chain is loud');
+    mockPick.mockResolvedValueOnce('file:///kept.jpg');
+    await fireEvent.press(screen.getByTestId('note-add-photo'));
+    mockUpload.mockResolvedValue({ storagePath: STORED, fileSizeBytes: 1234 });
+    let settle: () => void = () => {};
+    let attachOk = false;
+    const answer = mockFetcher.getMockImplementation();
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) => {
+      if (document === CreateNoteDocument) {
+        return new Promise((resolve) => {
+          settle = () => resolve(answer?.(document, variables));
+        });
+      }
+      if (document === AddNotePhotoDocument) {
+        return attachOk
+          ? Promise.resolve({ addNotePhoto: { id: 'p1', storagePath: STORED } })
+          : Promise.reject(new Error('api down'));
+      }
+      if (document === NotesByMotorcycleDocument) return Promise.resolve({ notes: [] });
+      return answer?.(document, variables);
+    });
+    const saving = fireEvent.press(screen.getByTestId('note-save'));
+    await screen.findByText('Saving…');
+    await dragDown(first);
+    await act(async () => settle());
+    await saving;
+    await act(async () => {});
+
+    const savedNoteKey = noteDraftKey(BIKE_A.id, 'note-new');
+    expect(parked(savedNoteKey)).toMatchObject({
+      newPhotos: ['file:///kept.jpg'],
+      uploaded: {
+        'file:///kept.jpg': { storagePath: STORED, fileSizeBytes: 1234, motorcycleId: BIKE_A.id },
+      },
+    });
+    // The parked draft carries the object: it is not cleaned up as an orphan.
+    expect(mockRemoveObject).not.toHaveBeenCalled();
+    expect(mockUpload).toHaveBeenCalledTimes(1);
+
+    attachOk = true;
+    const edit = await renderForm({ note: { ...EDITED, id: 'note-new', text: 'Chain is loud' } });
+    mockFetcher.mockImplementation((document: unknown) => {
+      if (document === UpdateNoteDocument) return Promise.resolve({ updateNote: NOTES[0] });
+      if (document === AddNotePhotoDocument) {
+        return Promise.resolve({ addNotePhoto: { id: 'p1', storagePath: STORED } });
+      }
+      return Promise.resolve({ notes: [] });
+    });
+    await fireEvent.press(screen.getByTestId('note-save'));
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+    await act(async () => edit.unmount());
+    await act(async () => {});
+
+    expect(mockUpload).toHaveBeenCalledTimes(1);
+    const attaches = mockFetcher.mock.calls.filter(
+      ([document]) => document === AddNotePhotoDocument,
+    );
+    expect(attaches.at(-1)?.[1]).toEqual({
+      input: { noteId: 'note-new', storagePath: STORED, fileSizeBytes: 1234 },
+    });
+    expect(mockRemoveObject).not.toHaveBeenCalled();
+    expect(parked(savedNoteKey)).toBeUndefined();
+  });
+
+  it('a stored object nothing parked points at any more is removed once the save ends', async () => {
+    const editKey = noteDraftKey(BIKE_A.id, EDITED.id);
+    useSheetDraftStore.getState().parkNote(
+      editKey,
+      {
+        text: EDITED.text,
+        stampOn: EDITED.odometer != null,
+        alsoTask: false,
+        targetId: BIKE_A.id,
+        newPhotos: ['file:///kept.jpg'],
+        removedPhotoIds: [],
+        uploaded: {
+          'file:///kept.jpg': { storagePath: STORED, fileSizeBytes: 1234, motorcycleId: BIKE_A.id },
+        },
+      },
+      newDraftToken(),
+    );
+    const view = await renderForm({ note: EDITED });
+    expect(screen.getByTestId('note-restored')).toBeTruthy();
+    // The rider drops the restored photo and saves the text instead.
+    const removeButtons = screen.getAllByLabelText('Remove photo');
+    await fireEvent.press(removeButtons[removeButtons.length - 1] as never);
+    await fireEvent.changeText(screen.getByTestId('note-text'), 'Edited text');
+    let settle: () => void = () => {};
+    const answer = mockFetcher.getMockImplementation();
+    mockFetcher.mockImplementation((document: unknown, variables: unknown) =>
+      document === UpdateNoteDocument
+        ? new Promise((resolve) => {
+            settle = () => resolve(answer?.(document, variables));
+          })
+        : answer?.(document, variables),
+    );
+    const saving = fireEvent.press(screen.getByTestId('note-save'));
+    await screen.findByText('Saving…');
+    await dragDown(view);
+    // Mid-save: the unmount leaves the stored object to the save.
+    await act(async () => {});
+    expect(mockRemoveObject).not.toHaveBeenCalled();
+
+    await act(async () => settle());
+    await saving;
+    await waitFor(() => expect(mockRemoveObject).toHaveBeenCalledWith(STORED));
+    expect(mockUpload).not.toHaveBeenCalled();
+    expect(parked(editKey)).toBeUndefined();
   });
 });
 

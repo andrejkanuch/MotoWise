@@ -996,9 +996,11 @@ describe('NoteForm — reports the handed-off draft (#3)', () => {
     // Not discarded: the failed save parked the work, so the hand-off stays
     // pending — the restored draft, saved later, still clears the field.
     expect(outcomes).toEqual([]);
-    expect(Object.values(useSheetDraftStore.getState().notes).map((slot) => slot.draft)).toEqual([
-      expect.objectContaining({ text: 'Bought oil', handoff: 'Bought oil' }),
-    ]);
+    expect(
+      Object.values(useSheetDraftStore.getState().notes).flatMap((stack) =>
+        stack.map((entry) => entry.draft),
+      ),
+    ).toEqual([expect.objectContaining({ text: 'Bought oil', handoff: 'Bought oil' })]);
   });
 
   it('an edit, or a sheet opened without a draft, reports nothing', async () => {

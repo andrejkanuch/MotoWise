@@ -46,6 +46,7 @@ export default function OdometerScreen() {
       onDirtyChange={setDirty}
       onSavingChange={setSaving}
       exit={guard.exit}
+      isMounted={guard.isMounted}
     />
   );
 }
