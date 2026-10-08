@@ -23,6 +23,7 @@ import { QUERY_META } from '../../lib/query-meta';
 import { triggerImpact } from '../../utils/haptics';
 import { SwipeableExpense } from '../shared/swipeable-expense';
 import { LoadError } from './load-error';
+import { useSegmentInteractive } from './shell/segment-interactive';
 import { HubCard } from './ui/hub-card';
 import { SectionHeader } from './ui/section-header';
 import {
@@ -73,6 +74,8 @@ export function ExpensesSection({
 }: ExpensesSectionProps) {
   const { t } = useTranslation();
   const { currency: displayCurrency } = useCurrency();
+  // Off while the Costs segment is hidden or the hub is covered — see useSegmentInteractive.
+  const rowsInteractive = useSegmentInteractive();
   const currentYear = new Date().getFullYear();
 
   const [year, setYear] = useState(currentYear);
@@ -425,6 +428,7 @@ export function ExpensesSection({
                 onDelete={handleDelete}
                 index={index}
                 divider={index < displayedExpenses.length - 1}
+                enabled={rowsInteractive}
                 hasServiceRecord={
                   !!expense.maintenanceTaskId && liveTaskIds.has(expense.maintenanceTaskId)
                 }

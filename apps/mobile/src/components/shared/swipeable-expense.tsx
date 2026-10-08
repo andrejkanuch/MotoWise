@@ -1,7 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { type Href, router } from 'expo-router';
 import { ChevronRight, Trash2, Wrench } from 'lucide-react-native';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, type TextStyle, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -44,6 +44,14 @@ export interface SwipeableExpenseProps {
   hasServiceRecord?: boolean;
   /** Dark rows sit flush in one hub card: a hairline under every row but the last. */
   divider?: boolean;
+  /**
+   * False while the row cannot be seen or touched (a hidden hub segment, a
+   * sheet or screen over the hub). Switches the swipe / long-press / tap
+   * recognisers off natively and refuses navigation: on iOS Fabric a hidden
+   * row's recogniser can outlive its view on a recycled UIView elsewhere on
+   * screen (see `useSegmentInteractive`).
+   */
+  enabled?: boolean;
 }
 
 interface RowLook {
@@ -98,6 +106,7 @@ export function SwipeableExpense({
   index,
   hasServiceRecord = false,
   divider = false,
+  enabled = true,
 }: SwipeableExpenseProps) {
   const look = LOOK[isDark ? 'dark' : 'light'];
   const { t } = useTranslation();
@@ -114,7 +123,13 @@ export function SwipeableExpense({
 
   // Tapping the row opens expense-detail, which hydrates from the expenses cache
   // by id — only pass ids (no spoofable amount/title params).
+  // Read at call time: a gesture's JS callback can land after the row was
+  // hidden, before the native `enabled` update reached the recogniser.
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
+
   const openDetail = useCallback(() => {
+    if (!enabledRef.current) return;
     triggerImpact();
     const href: Href = {
       pathname: '/(tabs)/(garage)/expense-detail',
@@ -127,6 +142,10 @@ export function SwipeableExpense({
   }, [expense.id, motorcycleId]);
 
   const confirmDelete = useCallback(() => {
+    if (!enabledRef.current) {
+      translateX.value = withSpring(0);
+      return;
+    }
     confirmDeleteExpenseAlert(t, {
       onCancel: () => {
         translateX.value = withSpring(0);
@@ -139,6 +158,7 @@ export function SwipeableExpense({
   }, [expense.id, onDelete, t, translateX]);
 
   const panGesture = Gesture.Pan()
+    .enabled(enabled)
     .activeOffsetX([-10, 10])
     .failOffsetY([-5, 5])
     .onUpdate((event) => {
@@ -155,6 +175,7 @@ export function SwipeableExpense({
     });
 
   const longPressGesture = Gesture.LongPress()
+    .enabled(enabled)
     .minDuration(500)
     .onEnd((_event, success) => {
       if (success) {
@@ -162,9 +183,12 @@ export function SwipeableExpense({
       }
     });
 
-  const tapGesture = Gesture.Tap().onEnd(() => {
-    runOnJS(openDetail)();
-  });
+  const tapGesture = Gesture.Tap()
+    .enabled(enabled)
+    .withTestId(`expense-row-tap-${expense.id}`)
+    .onEnd((_event, success) => {
+      if (success) runOnJS(openDetail)();
+    });
 
   const composedGesture = Gesture.Race(panGesture, longPressGesture, tapGesture);
 

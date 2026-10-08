@@ -205,6 +205,7 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
           onSelectSegment={selectSegment}
           onOpenTask={openTask}
           navigationRef={setNavigation}
+          focused={isFocused}
         />
       ) : data.isLoading ? (
         <CentredState>
@@ -266,6 +267,8 @@ interface LoadedHubProps {
   onSelectSegment: (segment: BikeSegment) => void;
   onOpenTask: (taskId: string) => void;
   navigationRef: (navigation: BikeHubNavigation) => void;
+  /** False while a leaf or sheet sits over the hub: segment gestures switch off. */
+  focused: boolean;
 }
 
 function LoadedHub({
@@ -281,6 +284,7 @@ function LoadedHub({
   onSelectSegment,
   onOpenTask,
   navigationRef,
+  focused,
 }: LoadedHubProps) {
   const { t } = useTranslation();
   const actions = useBikeActions(bike, onRemoved);
@@ -356,6 +360,7 @@ function LoadedHub({
         refreshing={data.isRefreshing}
         onRefresh={() => void data.refresh()}
         bottomInset={bottomInset}
+        focused={focused}
       />
       {/* Out of the way while typing a quick note. */}
       {keyboardVisible ? null : (
