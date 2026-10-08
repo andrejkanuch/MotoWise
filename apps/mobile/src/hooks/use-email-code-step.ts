@@ -30,6 +30,11 @@ export interface EmailCodeStepControls {
   /** Back to the form: closes the step and clears the password. */
   close: () => void;
   /**
+   * Back from an on-screen button or hardware back: closes the step unless a
+   * verify or recovery is in flight or `backLocked` is set.
+   */
+  back: () => void;
+  /**
    * Pass to `EmailCodeStep`'s `onBusyChange`: while a verify or recovery is in
    * flight, Android hardware back is swallowed instead of closing the step.
    */
@@ -73,15 +78,19 @@ export function useEmailCodeStep({
     clearPasswordRef.current();
   }, []);
 
+  const back = useCallback(() => {
+    if (!backLocked && !busyRef.current) close();
+  }, [backLocked, close]);
+
   const hasCodeStep = codeStep !== null;
   useEffect(() => {
     if (!hasCodeStep) return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (!backLocked && !busyRef.current) close();
+      back();
       return true;
     });
     return () => sub.remove();
-  }, [hasCodeStep, backLocked, close]);
+  }, [hasCodeStep, back]);
 
-  return { codeStep, open, openRateLimited, close, onBusyChange };
+  return { codeStep, open, openRateLimited, close, back, onBusyChange };
 }

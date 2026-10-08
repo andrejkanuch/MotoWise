@@ -255,6 +255,21 @@ describe('EmailCodeStep', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith('EMAIL_CODE_VERIFIED', { source: 'signup' });
   });
 
+  it('a resend after a throttled verify drops the superseded code instead of offering to retry it', async () => {
+    mockVerifySignupCode.mockResolvedValue({ error: throttled() });
+    mockSendSignupCode.mockResolvedValue(ok);
+    await renderStep();
+
+    await fireEvent.changeText(codeInput(), '482913');
+    await flush();
+    await act(async () => jest.advanceTimersByTime(60_000));
+    await fireEvent.press(screen.getByText(t('auth.codeResend')));
+    await flush();
+
+    expect(codeInput().props.value).toBe('');
+    expect(screen.queryByText(t('common.tryAgain'))).toBeNull();
+  });
+
   it('network failure on verify keeps the digits and is not reported as a wrong code', async () => {
     mockVerifySignupCode.mockResolvedValue({ error: networkError() });
     await renderStep();

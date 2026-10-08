@@ -80,7 +80,7 @@ export default function AccountScreen() {
   const handleBack = () => {
     // From the code step, Back means "change email", never leaving onboarding.
     if (codeStep) {
-      closeCodeStep();
+      backFromCodeStep();
       return;
     }
     const previous = getPreviousRoute(variant, OB_SCREEN.ACCOUNT);
@@ -102,6 +102,7 @@ export default function AccountScreen() {
     open: openCodeStep,
     openRateLimited: openCodeStepRateLimited,
     close: closeCodeStep,
+    back: backFromCodeStep,
     onBusyChange: onCodeStepBusyChange,
   } = useEmailCodeStep({ clearPassword: () => setPassword(''), backLocked: !!session });
 

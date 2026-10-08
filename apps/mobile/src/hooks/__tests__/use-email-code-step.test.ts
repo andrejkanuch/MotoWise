@@ -123,4 +123,28 @@ describe('useEmailCodeStep', () => {
     expect(handled).toBe(true);
     expect(result.current.codeStep).toBeNull();
   });
+
+  it('back() from an on-screen button is ignored while busy or locked, and closes otherwise', async () => {
+    const clearPassword = jest.fn();
+    const { result, rerender } = await renderHook(
+      ({ locked }: { locked: boolean }) => useEmailCodeStep({ clearPassword, backLocked: locked }),
+      { initialProps: { locked: false } },
+    );
+
+    await act(async () => result.current.open({ ...STEP }));
+    await act(async () => result.current.onBusyChange(true));
+    await act(async () => result.current.back());
+    expect(result.current.codeStep).toEqual(STEP);
+
+    await act(async () => result.current.onBusyChange(false));
+    await rerender({ locked: true });
+    await act(async () => result.current.back());
+    expect(result.current.codeStep).toEqual(STEP);
+    expect(clearPassword).not.toHaveBeenCalled();
+
+    await rerender({ locked: false });
+    await act(async () => result.current.back());
+    expect(result.current.codeStep).toBeNull();
+    expect(clearPassword).toHaveBeenCalledTimes(1);
+  });
 });

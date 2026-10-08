@@ -59,6 +59,7 @@ export default function OnboardingSignInScreen() {
     open: openCodeStep,
     openRateLimited: openCodeStepRateLimited,
     close: closeCodeStep,
+    back: backFromCodeStep,
     onBusyChange: onCodeStepBusyChange,
   } = useEmailCodeStep({ clearPassword: () => setPassword('') });
 
@@ -153,7 +154,7 @@ export default function OnboardingSignInScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingBackButton
-        onPress={codeStep ? closeCodeStep : () => router.back()}
+        onPress={codeStep ? backFromCodeStep : () => router.back()}
         style={{ position: 'absolute', top: insets.top + 12, left: 16, zIndex: 10 }}
       />
 

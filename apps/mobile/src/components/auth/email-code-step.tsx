@@ -272,6 +272,9 @@ export function EmailCodeStep({
     }
     setSending(false);
     if (!error) {
+      // The new code replaces the old one, so kept digits can no longer verify.
+      setCode('');
+      setVerifyThrottled(false);
       resendCooldown.start();
       trackEvent(AnalyticsEvent.EMAIL_CODE_SENT, { source: EMAIL_CODE_SOURCE.RESEND });
       show(MESSAGE.RESENT, TONE.INFO);
