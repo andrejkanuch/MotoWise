@@ -183,7 +183,7 @@ export default function LoginScreen() {
             <Text
               style={{
                 fontSize: 17,
-                color: 'rgba(255, 255, 255, 0.5)',
+                color: palette.whiteAlpha50,
                 textAlign: 'center',
               }}
             >
@@ -221,7 +221,7 @@ export default function LoginScreen() {
                       transform: [{ scale: pressed ? 0.98 : 1 }],
                     })}
                   >
-                    <Text style={{ fontSize: 16, fontWeight: '600', color: '#000000' }}>
+                    <Text style={{ fontSize: 16, fontWeight: '600', color: palette.black }}>
                       {t('auth.continueWithApple')}
                     </Text>
                   </Pressable>
@@ -233,9 +233,9 @@ export default function LoginScreen() {
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    backgroundColor: palette.whiteAlpha08,
                     borderWidth: 1,
-                    borderColor: 'rgba(255, 255, 255, 0.12)',
+                    borderColor: palette.whiteAlpha12,
                     borderRadius: 16,
                     borderCurve: 'continuous',
                     paddingVertical: 16,
@@ -256,17 +256,11 @@ export default function LoginScreen() {
                 entering={FadeIn.delay(300).duration(400)}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}
               >
-                <View
-                  style={{ flex: 1, height: 1, backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                />
-                <Text
-                  style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.35)', fontWeight: '500' }}
-                >
+                <View style={{ flex: 1, height: 1, backgroundColor: palette.whiteAlpha08 }} />
+                <Text style={{ fontSize: 13, color: palette.whiteAlpha35, fontWeight: '500' }}>
                   {t('auth.orContinueWithEmail')}
                 </Text>
-                <View
-                  style={{ flex: 1, height: 1, backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                />
+                <View style={{ flex: 1, height: 1, backgroundColor: palette.whiteAlpha08 }} />
               </Animated.View>
 
               {/* Email form */}
@@ -275,14 +269,14 @@ export default function LoginScreen() {
                   value={email}
                   onChangeText={setEmail}
                   placeholder={t('auth.email')}
-                  placeholderTextColor="rgba(255, 255, 255, 0.3)"
+                  placeholderTextColor={palette.whiteAlpha30}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   autoComplete="email"
                   style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                    backgroundColor: palette.whiteAlpha06,
                     borderWidth: 1,
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderColor: palette.whiteAlpha10,
                     borderRadius: 14,
                     borderCurve: 'continuous',
                     paddingHorizontal: 18,
@@ -295,13 +289,13 @@ export default function LoginScreen() {
                   value={password}
                   onChangeText={setPassword}
                   placeholder={t('auth.password')}
-                  placeholderTextColor="rgba(255, 255, 255, 0.3)"
+                  placeholderTextColor={palette.whiteAlpha30}
                   secureTextEntry
                   autoComplete="password"
                   style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                    backgroundColor: palette.whiteAlpha06,
                     borderWidth: 1,
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderColor: palette.whiteAlpha10,
                     borderRadius: 14,
                     borderCurve: 'continuous',
                     paddingHorizontal: 18,
@@ -314,7 +308,7 @@ export default function LoginScreen() {
                   onPress={handleLogin}
                   disabled={!canSubmit}
                   style={({ pressed }) => ({
-                    backgroundColor: canSubmit ? palette.white : 'rgba(255, 255, 255, 0.12)',
+                    backgroundColor: canSubmit ? palette.white : palette.whiteAlpha12,
                     borderRadius: 14,
                     borderCurve: 'continuous',
                     paddingVertical: 18,
@@ -331,7 +325,7 @@ export default function LoginScreen() {
                     style={{
                       fontSize: 17,
                       fontWeight: '700',
-                      color: canSubmit ? palette.surfaceDark : 'rgba(255, 255, 255, 0.3)',
+                      color: canSubmit ? palette.surfaceDark : palette.whiteAlpha30,
                     }}
                   >
                     {loading ? t('auth.signingIn') : t('auth.signIn')}
