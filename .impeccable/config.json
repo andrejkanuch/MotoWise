@@ -10,5 +10,6 @@
         "reason": "Project design system: CLAUDE.md Design Context designates 'Geist Mono for data/code' alongside Plus Jakarta Sans (UI) and Instrument Serif (editorial). Flagged line renders a numeric map-pin index (String(i+1)) = data, the prescribed use. Pre-existing code, not introduced by current work."
       }
     ]
-  }
+  },
+  "buildPath": "code"
 }
