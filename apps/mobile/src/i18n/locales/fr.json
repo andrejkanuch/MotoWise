@@ -46,7 +46,22 @@
     "accountExistsTitle": "Le compte existe déjà",
     "accountExistsMessage": "Cet e-mail est déjà enregistré. Connecte-toi à la place.",
     "restoringSession": "Restauration de votre session…",
-    "signInInstead": "Se connecter"
+    "signInInstead": "Se connecter",
+    "codeTitle": "Saisis ton code",
+    "codeSentTo": "Nous avons envoyé un code à {{digits}} chiffres à {{email}}",
+    "codeInputLabel": "Code de confirmation",
+    "codeVerifying": "Vérification…",
+    "codeResend": "Renvoyer le code",
+    "codeResendIn": "Renvoyer dans {{seconds}} s",
+    "codeResent": "Nouveau code envoyé : utilise l'e-mail le plus récent.",
+    "codeWrongOrExpired": "Ce code est incorrect ou a expiré. Vérifie l'e-mail le plus récent ou renvoie un code.",
+    "codeTooManyAttempts": "Trop de tentatives. Patiente un instant et réessaie.",
+    "codeConnectionError": "Connexion impossible. Vérifie ta connexion et réessaie.",
+    "codeGenericError": "Un problème est survenu. Réessaie.",
+    "codeNotConfirmedYet": "Ton e-mail n'est pas encore confirmé. Saisis le code de l'e-mail le plus récent.",
+    "codeAlreadyConfirmed": "J'ai déjà confirmé via le lien",
+    "codeChangeEmail": "Modifier l'e-mail",
+    "codeSendFailed": "Impossible d'envoyer le code. Vérifie ta connexion et réessaie."
   },
   "tabs": {
     "home": "Accueil",

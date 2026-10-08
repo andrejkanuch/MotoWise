@@ -617,7 +617,7 @@ function RootLayout() {
       });
 
       if (sessionUserId) {
-        loginRevenueCat(sessionUserId);
+        loginRevenueCat(sessionUserId, session?.user?.email);
         if (decision.shouldIdentify) {
           // identify() merges the current anonymous distinct_id onto the user,
           // so pre-signup events (install, /login views) attach to the person.

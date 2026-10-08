@@ -46,7 +46,22 @@
     "accountExistsTitle": "Konto existiert bereits",
     "accountExistsMessage": "Diese E-Mail ist bereits registriert. Bitte melde dich stattdessen an.",
     "restoringSession": "Sitzung wird wiederhergestellt…",
-    "signInInstead": "Stattdessen anmelden"
+    "signInInstead": "Stattdessen anmelden",
+    "codeTitle": "Code eingeben",
+    "codeSentTo": "Wir haben einen {{digits}}-stelligen Code an {{email}} gesendet",
+    "codeInputLabel": "Bestätigungscode",
+    "codeVerifying": "Wird geprüft…",
+    "codeResend": "Code erneut senden",
+    "codeResendIn": "Erneut senden in {{seconds}} s",
+    "codeResent": "Neuer Code gesendet – nutze die neueste E-Mail.",
+    "codeWrongOrExpired": "Der Code ist falsch oder abgelaufen. Prüfe die neueste E-Mail oder fordere einen neuen an.",
+    "codeTooManyAttempts": "Zu viele Versuche. Warte kurz und versuche es erneut.",
+    "codeConnectionError": "Keine Verbindung. Prüfe deine Verbindung und versuche es erneut.",
+    "codeGenericError": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    "codeNotConfirmedYet": "Deine E-Mail ist noch nicht bestätigt. Gib den Code aus der neuesten E-Mail ein.",
+    "codeAlreadyConfirmed": "Ich habe schon über den Link bestätigt",
+    "codeChangeEmail": "E-Mail ändern",
+    "codeSendFailed": "Wir konnten den Code nicht senden. Prüfe deine Verbindung und versuche es erneut."
   },
   "tabs": {
     "home": "Start",

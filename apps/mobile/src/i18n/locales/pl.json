@@ -46,7 +46,22 @@
     "accountExistsTitle": "Konto już istnieje",
     "accountExistsMessage": "Ten adres e-mail jest już zarejestrowany. Zaloguj się zamiast tego.",
     "restoringSession": "Przywracanie sesji…",
-    "signInInstead": "Zaloguj się"
+    "signInInstead": "Zaloguj się",
+    "codeTitle": "Wpisz kod",
+    "codeSentTo": "Wysłaliśmy {{digits}}-cyfrowy kod na adres {{email}}",
+    "codeInputLabel": "Kod potwierdzający",
+    "codeVerifying": "Sprawdzanie…",
+    "codeResend": "Wyślij kod ponownie",
+    "codeResendIn": "Wyślij ponownie za {{seconds}} s",
+    "codeResent": "Wysłano nowy kod — użyj najnowszego e-maila.",
+    "codeWrongOrExpired": "Kod jest nieprawidłowy lub wygasł. Sprawdź najnowszy e-mail albo wyślij kod ponownie.",
+    "codeTooManyAttempts": "Zbyt wiele prób. Odczekaj chwilę i spróbuj ponownie.",
+    "codeConnectionError": "Brak połączenia. Sprawdź połączenie i spróbuj ponownie.",
+    "codeGenericError": "Coś poszło nie tak. Spróbuj ponownie.",
+    "codeNotConfirmedYet": "Twój e-mail nie jest jeszcze potwierdzony. Wpisz kod z najnowszego e-maila.",
+    "codeAlreadyConfirmed": "E-mail już potwierdzony przez link",
+    "codeChangeEmail": "Zmień e-mail",
+    "codeSendFailed": "Nie udało się wysłać kodu. Sprawdź połączenie i spróbuj ponownie."
   },
   "tabs": {
     "home": "Glowna",

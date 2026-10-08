@@ -46,7 +46,22 @@
     "accountExistsTitle": "アカウントは既に存在します",
     "accountExistsMessage": "このメールアドレスは既に登録されています。代わりにサインインしてください。",
     "restoringSession": "セッションを復元しています…",
-    "signInInstead": "ログインする"
+    "signInInstead": "ログインする",
+    "codeTitle": "コードを入力",
+    "codeSentTo": "{{email}} に{{digits}}桁のコードを送信しました",
+    "codeInputLabel": "確認コード",
+    "codeVerifying": "確認中…",
+    "codeResend": "コードを再送信",
+    "codeResendIn": "{{seconds}}秒後に再送信",
+    "codeResent": "新しいコードを送信しました。最新のメールをご確認ください。",
+    "codeWrongOrExpired": "コードが正しくないか、有効期限が切れています。最新のメールを確認するか、再送信してください。",
+    "codeTooManyAttempts": "試行回数が多すぎます。しばらく待ってから再度お試しください。",
+    "codeConnectionError": "接続できません。通信環境を確認して再度お試しください。",
+    "codeGenericError": "問題が発生しました。再度お試しください。",
+    "codeNotConfirmedYet": "メールアドレスはまだ確認されていません。最新のメールに記載されたコードを入力してください。",
+    "codeAlreadyConfirmed": "リンクから確認済みです",
+    "codeChangeEmail": "メールアドレスを変更",
+    "codeSendFailed": "コードを送信できませんでした。通信環境を確認して再度お試しください。"
   },
   "tabs": {
     "home": "ホーム",

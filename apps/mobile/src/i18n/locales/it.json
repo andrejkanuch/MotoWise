@@ -46,7 +46,22 @@
     "accountExistsTitle": "L'account esiste già",
     "accountExistsMessage": "Questa email è già registrata. Accedi invece.",
     "restoringSession": "Ripristino della sessione…",
-    "signInInstead": "Accedi"
+    "signInInstead": "Accedi",
+    "codeTitle": "Inserisci il codice",
+    "codeSentTo": "Abbiamo inviato un codice di {{digits}} cifre a {{email}}",
+    "codeInputLabel": "Codice di conferma",
+    "codeVerifying": "Verifica in corso…",
+    "codeResend": "Invia di nuovo il codice",
+    "codeResendIn": "Invia di nuovo tra {{seconds}} s",
+    "codeResent": "Nuovo codice inviato: usa l'email più recente.",
+    "codeWrongOrExpired": "Il codice è errato o scaduto. Controlla l'email più recente o richiedine uno nuovo.",
+    "codeTooManyAttempts": "Troppi tentativi. Attendi un momento e riprova.",
+    "codeConnectionError": "Connessione assente. Controlla la connessione e riprova.",
+    "codeGenericError": "Qualcosa è andato storto. Riprova.",
+    "codeNotConfirmedYet": "La tua email non è ancora confermata. Inserisci il codice dell'email più recente.",
+    "codeAlreadyConfirmed": "Ho già confermato tramite il link",
+    "codeChangeEmail": "Cambia email",
+    "codeSendFailed": "Non siamo riusciti a inviare il codice. Controlla la connessione e riprova."
   },
   "tabs": {
     "home": "Home",

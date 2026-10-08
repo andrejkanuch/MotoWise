@@ -46,7 +46,22 @@
     "accountExistsTitle": "Akun sudah ada",
     "accountExistsMessage": "Email ini sudah terdaftar. Silakan masuk saja.",
     "restoringSession": "Memulihkan sesi Anda…",
-    "signInInstead": "Masuk saja"
+    "signInInstead": "Masuk saja",
+    "codeTitle": "Masukkan kode kamu",
+    "codeSentTo": "Kami mengirim kode {{digits}} digit ke {{email}}",
+    "codeInputLabel": "Kode konfirmasi",
+    "codeVerifying": "Memverifikasi…",
+    "codeResend": "Kirim ulang kode",
+    "codeResendIn": "Kirim ulang dalam {{seconds}} dtk",
+    "codeResent": "Kode baru terkirim — gunakan email terbaru.",
+    "codeWrongOrExpired": "Kode salah atau sudah kedaluwarsa. Cek email terbaru atau kirim ulang.",
+    "codeTooManyAttempts": "Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.",
+    "codeConnectionError": "Tidak dapat terhubung. Cek koneksi kamu lalu coba lagi.",
+    "codeGenericError": "Terjadi kesalahan. Silakan coba lagi.",
+    "codeNotConfirmedYet": "Email kamu belum dikonfirmasi. Masukkan kode dari email terbaru.",
+    "codeAlreadyConfirmed": "Saya sudah konfirmasi lewat link",
+    "codeChangeEmail": "Ganti email",
+    "codeSendFailed": "Kami tidak bisa mengirim kode. Cek koneksi kamu lalu coba lagi."
   },
   "tabs": {
     "home": "Beranda",

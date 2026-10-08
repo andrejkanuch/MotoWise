@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, Modal, Pressable, Text, TextInput, View } fro
 import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+import { AUTH_EMAIL_REDIRECT_TO } from '../config/auth';
 import { captureException } from '../lib/analytics';
 import { signUpConsentMetadata } from '../lib/analytics-consent';
 import { userFriendlyError } from '../lib/graphql-errors';
@@ -120,7 +121,7 @@ export function AccountPromptSheet({
         options: {
           // The rider's analytics decision, for the server-side signup event.
           data: signUpConsentMetadata(),
-          emailRedirectTo: 'https://motovault.app/auth/callback?redirect=motovault://auth/callback',
+          emailRedirectTo: AUTH_EMAIL_REDIRECT_TO,
         },
       });
       if (error) {
