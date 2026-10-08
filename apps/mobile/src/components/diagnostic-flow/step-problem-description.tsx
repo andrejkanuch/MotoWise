@@ -228,8 +228,17 @@ export function StepProblemDescription() {
   const isBeginner = experienceLevel === 'beginner';
 
   // Set default mode based on experience
+  // Default advanced riders to free text only before they have answered anything: coming
+  // back to this step (from review or from step 3) keeps the mode they answered in.
   useEffect(() => {
-    if (experienceLevel === 'advanced') setInputMode('freetext');
+    if (experienceLevel !== 'advanced') return;
+    const { wizardAnswers: answers, wizardSubStep: subStep } = useDiagnosticFlowStore.getState();
+    const hasWizardProgress =
+      subStep > 0 ||
+      answers.symptoms.length > 0 ||
+      answers.location.length > 0 ||
+      answers.timing.length > 0;
+    if (!hasWizardProgress) setInputMode('freetext');
   }, [experienceLevel, setInputMode]);
 
   const currentStep = WIZARD_STEPS[wizardSubStep];
@@ -245,7 +254,15 @@ export function StepProblemDescription() {
 
   const [customInput, setCustomInput] = useState('');
 
+  // Step 2 is where the problem is collected, so it is the step that refuses to move on
+  // without one (MOTO-VAULT-REACT-NATIVE-3Q). An answer from either mode counts — both are
+  // sent — so switching modes never strands a rider. In the wizard the symptoms answer is
+  // the requirement ("I'm not sure" counts); location and timing add to it but never
+  // replace it.
+  const canContinue = wizardAnswers.symptoms.length > 0 || freeTextDescription.trim().length > 0;
+
   const handleWizardNext = () => {
+    if (!canContinue) return;
     if (wizardSubStep < WIZARD_STEPS.length - 1) {
       setWizardSubStep((wizardSubStep + 1) as 0 | 1 | 2);
     } else if (editingFromReview) {
@@ -261,6 +278,7 @@ export function StepProblemDescription() {
   };
 
   const handleFreeTextNext = () => {
+    if (!canContinue) return;
     if (editingFromReview) backToReview();
     else goNext();
   };
@@ -625,15 +643,32 @@ export function StepProblemDescription() {
             <Text style={{ fontSize: 14, color: colors.textMuted }}>{t('diagnoseV2.back')}</Text>
           </Pressable>
         )}
+        {!canContinue && (
+          <Text
+            style={{
+              fontSize: 14,
+              color: colors.textMuted,
+              textAlign: 'center',
+              marginBottom: 8,
+            }}
+          >
+            {inputMode === 'wizard'
+              ? t('diagnoseV2.symptomsRequired')
+              : t('diagnoseV2.descriptionRequired')}
+          </Text>
+        )}
         <Pressable
           style={{
-            backgroundColor: colors.accent,
+            backgroundColor: canContinue ? colors.accent : colors.submittingBg,
             borderRadius: 16,
             paddingVertical: 16,
             alignItems: 'center',
             borderCurve: 'continuous',
           }}
           onPress={inputMode === 'wizard' ? handleWizardNext : handleFreeTextNext}
+          disabled={!canContinue}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !canContinue }}
         >
           <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
             {editingFromReview ? t('diagnoseV2.backToReview') : t('diagnoseV2.next')}
