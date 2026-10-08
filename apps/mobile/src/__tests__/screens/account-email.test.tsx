@@ -1,3 +1,6 @@
+// Lives outside src/app on purpose: expo-router turns every file under src/app
+// into a route (its context regex only skips +api/+html), so a test there would
+// be bundled into the app as a screen.
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 jest.mock('expo-localization', () => ({
@@ -17,7 +20,7 @@ const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn() };
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
 
 const mockGoNext = jest.fn();
-jest.mock('../../../hooks/use-onboarding-flow', () => ({
+jest.mock('../../hooks/use-onboarding-flow', () => ({
   useOnboardingStep: () => ({ variant: 'shipped', stepIndex: 9, totalScreens: 11 }),
   useOnboardingNext: () => mockGoNext,
   useOnboardingVariant: () => 'shipped',
@@ -30,33 +33,33 @@ jest.mock('@tanstack/react-query', () => ({
     data: { me: { preferences: { onboardingCompleted: false } } },
   }),
 }));
-jest.mock('../../../lib/query-options', () => ({ meOptions: () => ({}) }));
+jest.mock('../../lib/query-options', () => ({ meOptions: () => ({}) }));
 
 const mockTrackEvent = jest.fn();
 const mockResetUser = jest.fn();
-jest.mock('../../../lib/analytics', () => ({
+jest.mock('../../lib/analytics', () => ({
   captureException: jest.fn(),
   trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
   resetUser: (...args: unknown[]) => mockResetUser(...args),
   AnalyticsEvent: new Proxy({}, { get: (_t, prop) => String(prop) }),
 }));
-jest.mock('../../../lib/onboarding-analytics', () => ({ trackOnboardingEvent: jest.fn() }));
-jest.mock('../../../lib/analytics-consent', () => ({
+jest.mock('../../lib/onboarding-analytics', () => ({ trackOnboardingEvent: jest.fn() }));
+jest.mock('../../lib/analytics-consent', () => ({
   signUpConsentMetadata: () => ({ analytics_consent: 'granted' }),
 }));
-jest.mock('../../../lib/oauth', () => ({
+jest.mock('../../lib/oauth', () => ({
   reportUnexpectedAuthError: jest.fn(),
   signInWithApple: jest.fn(),
   signInWithGoogle: jest.fn(),
 }));
-jest.mock('../../../lib/oauth-error-alert', () => ({ presentOAuthError: jest.fn() }));
-jest.mock('../../../components/onboarding/oauth-glyphs', () => ({
+jest.mock('../../lib/oauth-error-alert', () => ({ presentOAuthError: jest.fn() }));
+jest.mock('../../components/onboarding/oauth-glyphs', () => ({
   AppleGlyph: () => null,
   GoogleGlyph: () => null,
 }));
 
 const mockLogoutRevenueCat = jest.fn();
-jest.mock('../../../lib/subscription', () => ({
+jest.mock('../../lib/subscription', () => ({
   logoutRevenueCat: (...args: unknown[]) => mockLogoutRevenueCat(...args),
 }));
 
@@ -65,7 +68,7 @@ const mockVerifyOtp = jest.fn();
 const mockResend = jest.fn();
 const mockSignInWithPassword = jest.fn();
 const mockSignOut = jest.fn();
-jest.mock('../../../lib/supabase', () => ({
+jest.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
       signUp: (...args: unknown[]) => mockSignUp(...args),
@@ -77,11 +80,11 @@ jest.mock('../../../lib/supabase', () => ({
   },
 }));
 
-jest.mock('../../../stores/auth.store', () => {
+jest.mock('../../stores/auth.store', () => {
   const { create } = require('zustand');
   return { useAuthStore: create(() => ({ session: null })) };
 });
-jest.mock('../../../stores/subscription.store', () => {
+jest.mock('../../stores/subscription.store', () => {
   const { create } = require('zustand');
   return { useSubscriptionStore: create(() => ({ isPro: false })) };
 });
@@ -89,10 +92,10 @@ jest.mock('../../../stores/subscription.store', () => {
 import { AuthApiError } from '@supabase/supabase-js';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Alert, BackHandler } from 'react-native';
-import { OB_ROUTE } from '../../../config/onboarding';
-import i18n from '../../../i18n';
-import { useAuthStore } from '../../../stores/auth.store';
-import AccountScreen from '../account';
+import { OB_ROUTE } from '../../config/onboarding';
+import i18n from '../../i18n';
+import { useAuthStore } from '../../stores/auth.store';
+import AccountScreen from '../../app/(onboarding)/account';
 
 const EMAIL = 'rider@example.com';
 const PASSWORD = 'hunter22';
