@@ -110,6 +110,28 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
   const origin = parseOrigin(from);
   const goBack = useBikeBack(origin);
   const data = useBikeHubData(id);
+
+  // Leaves at most once: the hub's own delete (`onRemoved`) and the redirect
+  // below can both see the bike go.
+  const left = useRef(false);
+  const leave = useCallback(() => {
+    if (left.current) return;
+    left.current = true;
+    goBack();
+  }, [goBack]);
+
+  // The bike was here and the garage list no longer has it (deleted from Edit
+  // Motorcycle, whose sheet may have closed before its own navigation ran, or
+  // from another device): go back instead of showing "not found". A bike that
+  // never loaded (a stale deep link) keeps the not-found state.
+  const hadBike = useRef(false);
+  useEffect(() => {
+    if (data.bike) {
+      hadBike.current = true;
+      return;
+    }
+    if (hadBike.current && isFocused && !data.isLoading && !data.isError) leave();
+  }, [data.bike, data.isLoading, data.isError, isFocused, leave]);
   const setLastSegment = useBikeHubStore((state) => state.setLastSegment);
   const collapse = useSharedValue(0);
 
@@ -211,7 +233,7 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
           collapse={collapse}
           bottomInset={bottomLayout.contentInset}
           pillBottom={bottomLayout.pillBottom}
-          onRemoved={goBack}
+          onRemoved={leave}
           onShowSegment={setActive}
           onSelectSegment={selectSegment}
           onOpenTask={openTask}

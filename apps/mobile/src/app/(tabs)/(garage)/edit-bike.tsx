@@ -346,6 +346,8 @@ export default function EditBikeScreen() {
       // Soft-deleting a bike hides its documents — stop their expiry reminders.
       void cancelDocumentNotificationsForBike(id);
       triggerNotification(Haptics.NotificationFeedbackType.Warning);
+      // A no-op if the sheet is already gone; the bike screen then leaves on its
+      // own once the refetched garage list no longer has the bike.
       setExit(EXIT.DELETED);
     },
   });
@@ -356,9 +358,21 @@ export default function EditBikeScreen() {
     if (exit) EXIT_NAVIGATION[exit]();
   }, [exit]);
 
+  // A delete in flight holds the sheet: swiped away mid-request, it unmounted
+  // before `dismiss(2)` and left the bike screen open on a deleted bike. Lifted
+  // by `exit`, which the success handler sets in the same update.
+  const deleting = deleteMutation.isPending && exit === null;
+
+  useEffect(() => {
+    navigation.setOptions({ gestureEnabled: !deleting });
+  }, [navigation, deleting]);
+
   usePreventRemove(
-    isDirty && exit === null && !updateMutation.isPending && !deleteMutation.isPending,
+    deleting ||
+      (isDirty && exit === null && !updateMutation.isPending && !deleteMutation.isPending),
     ({ data }) => {
+      // Back / swipe while deleting: stay; the delete's own exit closes the sheet.
+      if (deleting) return;
       Alert.alert(
         t('garage.discardChangesTitle', { defaultValue: 'Discard changes?' }),
         t('garage.discardChangesMessage', {
@@ -894,7 +908,7 @@ export default function EditBikeScreen() {
         }
         onPrimary={handleSave}
         onCancel={() => router.back()}
-        cancelDisabled={updateMutation.isPending}
+        cancelDisabled={updateMutation.isPending || deleting}
       />
     </View>
   );
