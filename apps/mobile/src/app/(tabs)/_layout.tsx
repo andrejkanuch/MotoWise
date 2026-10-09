@@ -116,7 +116,13 @@ function RideFAB() {
   return (
     <Animated.View
       style={[
-        { position: 'relative', alignItems: 'center', justifyContent: 'center', flex: 1 },
+        {
+          position: 'relative',
+          alignItems: 'center',
+          justifyContent: 'center',
+          alignSelf: 'stretch',
+          flex: 1,
+        },
         animatedStyle,
       ]}
     >
@@ -275,8 +281,9 @@ function IslandTabBarContent({ state, navigation }: BottomTabBarProps) {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-around',
-        paddingTop: space.xs,
-        paddingBottom: space.xxs,
+        // Symmetric so the Ride button, centred on the island, sits optically
+        // centred (owner report: it read low).
+        paddingVertical: space.xs,
         paddingHorizontal: space.xs,
         borderCurve: 'continuous',
       }}
