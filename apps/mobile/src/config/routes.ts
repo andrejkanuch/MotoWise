@@ -11,6 +11,11 @@ export const TAB_ROUTE = {
   PROFILE: '/(tabs)/(profile)',
 } as const;
 
+/** Home sub-routes: Home's own copies of garage sheets, so they close back to Home. */
+export const HOME_ROUTE = {
+  ADD_BIKE: '/(tabs)/(home)/add-bike',
+} as const;
+
 /** Garage sub-routes */
 export const GARAGE_ROUTE = {
   EXPENSE_DASHBOARD: '/(tabs)/(garage)/expense-dashboard',
@@ -37,6 +42,8 @@ export const PROFILE_ROUTE = {
   SUPPORT: '/(tabs)/(profile)/support',
   PRIVACY: '/(tabs)/(profile)/privacy',
   EDIT_PROFILE: '/(tabs)/(profile)/edit-profile',
+  /** Profile's own copy of the garage add-bike sheet (closes back to Profile). */
+  ADD_BIKE: '/(tabs)/(profile)/add-bike',
   /** Rider's public profile; pass `{ username }`. */
   RIDER: '/(tabs)/(profile)/rider/[username]',
   /** Follower / following lists; pass `{ userId, tab?: FollowListTab }`. */

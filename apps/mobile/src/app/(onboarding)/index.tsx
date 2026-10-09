@@ -2,7 +2,7 @@ import { withAlpha } from '@motovault/design-system';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useIsFocused, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -37,6 +37,8 @@ export default function WelcomeScreen() {
   const reduceMotion = useReducedMotion();
   const { t } = useTranslation();
   const router = useRouter();
+  // Only while welcome is on top: later steps get the scheme-aware root bar.
+  const isFocused = useIsFocused();
 
   // Freeze the resume decision at mount. Reading the store imperatively keeps it
   // non-reactive, so later step screens writing `lastCompletedScreen` cannot
@@ -111,7 +113,7 @@ export default function WelcomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: oc.background }}>
-      <StatusBar style="light" />
+      {isFocused ? <StatusBar style="light" /> : null}
       {/* Hero image — full bleed (dark atmospheric motorcycle shot) */}
       <View
         style={{

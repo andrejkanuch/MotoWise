@@ -782,7 +782,7 @@ export default function RidesScreen() {
               if (hasBikes) {
                 router.push('/(modals)/start-ride');
               } else {
-                router.push('/(tabs)/(garage)/add-bike');
+                router.push(PROFILE_ROUTE.ADD_BIKE);
               }
             }}
             accessibilityRole="button"

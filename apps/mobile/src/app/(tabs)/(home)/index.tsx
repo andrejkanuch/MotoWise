@@ -23,6 +23,7 @@ import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider
 import { BikePlate, PLATE_SIZE } from '../../../components/ui/bike-plate';
 import { ESettingsGroup, ESettingsRow } from '../../../components/ui/editorial';
 import { ThemedSegmentedControl } from '../../../components/ui/themed-segmented-control';
+import { HOME_ROUTE } from '../../../config/routes';
 import { ReceiptScanRecoveryCard } from '../../../features/receipt-scan/receipt-scan-recovery-card';
 import { SCAN_ENTRY_SURFACE } from '../../../features/receipt-scan/scan-flow-constants';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
@@ -357,7 +358,7 @@ export default function HomeScreen() {
         {!hasMotorcycles && (
           <View style={{ paddingHorizontal: GUTTER }}>
             <EmptyState
-              onAddBike={() => router.push('/(tabs)/(garage)/add-bike')}
+              onAddBike={() => router.push(HOME_ROUTE.ADD_BIKE)}
               onExplore={() => router.push('/(tabs)/(learn)')}
             />
           </View>
@@ -372,7 +373,7 @@ export default function HomeScreen() {
               // Same gate as the Garage button: a free rider at the bike limit sees the
               // paywall now, not after filling in the whole form (MOTO-VAULT-REACT-NATIVE-2Y).
               if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
-              router.push('/(tabs)/(garage)/add-bike');
+              router.push(HOME_ROUTE.ADD_BIKE);
             }}
           />
         )}

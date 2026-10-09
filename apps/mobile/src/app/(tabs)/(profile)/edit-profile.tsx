@@ -156,17 +156,9 @@ export default function EditProfileScreen() {
     for (const field of PUBLIC_FIELDS) {
       if (form[field] !== initial[field]) Object.assign(publicInput, { [field]: form[field] });
     }
-    // A public profile with no public name shows the rider's name (the field's
-    // placeholder) — save that so other riders see what this screen showed.
-    const fallbackPublicName = form.fullName.trim();
-    if (form.isPublic && !form.displayName.trim() && !initial.displayName && fallbackPublicName) {
-      if (form.isPublic !== initial.isPublic || Object.keys(publicInput).length > 0) {
-        publicInput.displayName = fallbackPublicName;
-      }
-    }
     const userInput: { fullName?: string; preferences?: Record<string, unknown> } = {};
     const trimmedName = form.fullName.trim();
-    if (trimmedName && trimmedName !== initial.fullName) userInput.fullName = trimmedName;
+    if (trimmedName && trimmedName !== initial.fullName.trim()) userInput.fullName = trimmedName;
     const ridingChanged =
       form.experienceLevel !== initial.experienceLevel ||
       !sameGoals(form.ridingGoals, initial.ridingGoals);
@@ -203,14 +195,18 @@ export default function EditProfileScreen() {
     onSuccess: () => {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
       if (Object.keys(changes.publicInput).length > 0) trackEvent(AnalyticsEvent.PROFILE_EDITED);
-      if (changes.ridingChanged && form) {
+      if (Object.keys(changes.userInput).length > 0 && form) {
         trackEvent(AnalyticsEvent.SETTINGS_CHANGED, {
           experience_level: form.experienceLevel,
           goals_count: form.ridingGoals.length,
         });
       }
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
-      setInitial(form);
+      // The saved name is trimmed server-side; trim the baseline to match so a
+      // trailing space does not leave the form dirty after save.
+      const saved = form ? { ...form, fullName: form.fullName.trim() } : form;
+      setInitial(saved);
+      setForm(saved);
       setLeaveAfterSave(true);
     },
     onError: (error) => {
@@ -394,7 +390,7 @@ export default function EditProfileScreen() {
                   <TextInput
                     value={form.displayName}
                     onChangeText={(text) => set('displayName', text)}
-                    placeholder={form.fullName.trim() || t('community.displayNamePlaceholder')}
+                    placeholder={t('community.displayNamePlaceholder')}
                     placeholderTextColor={theme.ink4}
                     maxLength={50}
                     accessibilityLabel={t('profile.publicNameLabel')}

@@ -22,6 +22,7 @@ import { triggerImpact } from '../../utils/haptics';
 import { TaskPhotoGallery } from '../task-photo-gallery';
 import { EPriority } from '../ui/editorial';
 import { effectiveTaskTotal } from './service/group-tasks';
+import { useHubTheme } from './ui/tokens';
 
 export const PRIORITY_ORDER: Record<string, number> = {
   critical: 0,
@@ -55,6 +56,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
   mileageUnit: string;
 }) {
   const { t: et } = useEditorialTheme();
+  const hub = useHubTheme();
   const { t } = useTranslation();
   // Task money renders in the task's own stored currency; legacy null-currency
   // tasks fall back to the user's display currency.
@@ -126,11 +128,11 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
               )}
               {relative && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                  <Calendar size={12} color={relative.isOverdue ? et.overdueInk : et.ink3} />
+                  <Calendar size={12} color={relative.isOverdue ? hub.late : et.ink3} />
                   <Text
                     style={{
                       fontSize: 12,
-                      color: relative.isOverdue ? et.overdueInk : et.ink3,
+                      color: relative.isOverdue ? hub.late : et.ink3,
                     }}
                   >
                     {String(t(relative.key as never, relative.params as never))}
@@ -163,7 +165,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                     style={{
                       fontSize: 11,
                       fontWeight: '700',
-                      color: et.overdueInk,
+                      color: hub.late,
                       letterSpacing: 0.3,
                     }}
                   >
@@ -429,8 +431,8 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                     paddingVertical: 10,
                   }}
                 >
-                  <Trash2 size={14} color={et.overdueInk} strokeWidth={2} />
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: et.overdueInk }}>
+                  <Trash2 size={14} color={hub.late} strokeWidth={2} />
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: hub.late }}>
                     {t('common.delete', { defaultValue: 'Delete' })}
                   </Text>
                 </Pressable>

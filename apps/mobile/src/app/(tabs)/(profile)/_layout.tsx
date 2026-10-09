@@ -59,6 +59,21 @@ export default function ProfileLayout() {
         name="edit-profile"
         options={{ title: t('community.editProfile'), headerLargeTitle: false }}
       />
+      {/* Same options as the garage stack's add-bike sheet. */}
+      <Stack.Screen
+        name="add-bike"
+        options={{
+          title: t('garage.addBike', { defaultValue: 'Add Bike' }),
+          presentation: 'formSheet',
+          headerLargeTitle: false,
+          headerTransparent: false,
+          headerBlurEffect: undefined,
+          headerStyle: { backgroundColor: theme.bg },
+          sheetGrabberVisible: true,
+          sheetAllowedDetents: [0.85, 1.0],
+          contentStyle: { backgroundColor: theme.bg },
+        }}
+      />
       <Stack.Screen name="rider/[username]" options={{ headerLargeTitle: false }} />
       <Stack.Screen
         name="rider/followers"

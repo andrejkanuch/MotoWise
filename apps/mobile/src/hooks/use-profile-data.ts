@@ -9,7 +9,7 @@ import { router } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { Alert } from 'react-native';
 import { releaseSheetDraftsForSignOut } from '../components/bike-hub/notes/unattached-note-photos';
-import { GARAGE_ROUTE } from '../config/routes';
+import { PROFILE_ROUTE } from '../config/routes';
 import { gqlFetcher } from '../lib/graphql-client';
 import { isAccountAlreadyDeleted, userFriendlyError } from '../lib/graphql-errors';
 import { queryKeys } from '../lib/query-keys';
@@ -135,7 +135,7 @@ export function useProfileData({ t, isPro }: UseProfileDataParams) {
       if (result !== 'purchased' && result !== 'restored') return;
     }
     triggerImpact();
-    router.push(GARAGE_ROUTE.ADD_BIKE);
+    router.push(PROFILE_ROUTE.ADD_BIKE);
   };
 
   const handleLogout = async () => {

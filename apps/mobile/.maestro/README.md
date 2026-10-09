@@ -142,8 +142,8 @@ visible text verbatim.
 
 See `.claude/skills/write-tests/E2E.md` for the full convention set. Screenshots from
 `takeScreenshot:` land in `~/.maestro/tests/<run>/` under `maestro test`, but when driving
-via the Maestro **MCP** `run` tool they're written to the **cwd** (`apps/mobile/*.png`) — clean
-those up, they're not meant to be committed.
+via the Maestro **MCP** `run` tool they're written to the **cwd** (`apps/mobile/*.png`), which
+`apps/mobile/.gitignore` ignores — they're debug output, never commit them.
 
 ## App-specific gotchas (learned from live runs)
 

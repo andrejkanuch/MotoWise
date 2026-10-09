@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutDown, ZoomIn } from 'react-native-reanimated';
 import { useShallow } from 'zustand/react/shallow';
-import { GARAGE_ROUTE, TAB_ROUTE } from '../../config/routes';
+import { GARAGE_ROUTE, HOME_ROUTE, TAB_ROUTE } from '../../config/routes';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { QUERY_META } from '../../lib/query-meta';
@@ -164,7 +164,7 @@ export function OnboardingChecklist() {
                       params: { motorcycleId: firstBikeId },
                     });
                   } else if (bikesData) {
-                    router.push(GARAGE_ROUTE.ADD_BIKE as Href);
+                    router.push(HOME_ROUTE.ADD_BIKE as Href);
                   } else {
                     router.push(TAB_ROUTE.GARAGE as Href);
                   }

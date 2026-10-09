@@ -1,4 +1,5 @@
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { ErrorFallback } from '../../../components/error-fallback';
 import { FORM_SHEET_DETENTS } from '../../../config/sheet-detents';
 import { captureException } from '../../../lib/analytics';
@@ -10,6 +11,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 export default function HomeLayout() {
+  const { t } = useTranslation();
   const { t: theme } = useEditorialTheme();
   // Same presentation as the garage stack's copies of these sheets.
   const sheetOptions = {
@@ -29,6 +31,21 @@ export default function HomeLayout() {
       <Stack.Screen
         name="add-expense"
         options={{ ...sheetOptions, sheetAllowedDetents: FORM_SHEET_DETENTS.EXPENSE }}
+      />
+      {/* Same options as the garage stack's add-bike sheet. */}
+      <Stack.Screen
+        name="add-bike"
+        options={{
+          title: t('garage.addBike', { defaultValue: 'Add Bike' }),
+          presentation: 'formSheet',
+          headerShown: true,
+          headerLargeTitle: false,
+          headerTransparent: false,
+          headerStyle: { backgroundColor: theme.bg },
+          sheetGrabberVisible: true,
+          sheetAllowedDetents: [0.85, 1.0],
+          contentStyle: { backgroundColor: theme.bg },
+        }}
       />
     </Stack>
   );

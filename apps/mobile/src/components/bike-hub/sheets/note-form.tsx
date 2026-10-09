@@ -712,7 +712,7 @@ export function NoteForm({
           />
         ) : null}
         <TextInput
-          keyboardAppearance="dark"
+          keyboardAppearance={isDark ? 'dark' : 'light'}
           selectionColor={hub.copper}
           testID="note-text"
           value={text}
