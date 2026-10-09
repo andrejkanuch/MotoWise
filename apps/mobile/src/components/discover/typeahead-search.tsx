@@ -10,6 +10,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 
 interface TypeaheadSearchProps {
   onRouteSelect: (routeId: string) => void;
@@ -138,7 +139,7 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
           onBlur={() => setTimeout(() => setIsFocused(false), 150)}
           placeholder={t('discoverSearch.searchPlaceholder')}
           placeholderTextColor={placeholderColor}
-          accessibilityLabel="Search routes and places"
+          accessibilityLabel={t('discoverSearch.searchA11y')}
           accessibilityHint="Type to search for motorcycle routes or locations"
           style={{
             flex: 1,
@@ -153,7 +154,7 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
           <Pressable
             onPress={handleClear}
             accessibilityRole="button"
-            accessibilityLabel="Clear search"
+            accessibilityLabel={t('discoverSearch.clearA11y')}
             hitSlop={8}
           >
             <X size={18} color={placeholderColor} />
@@ -186,7 +187,9 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
         >
           {!hasResults && !isLoading && (
             <View style={{ padding: 16, alignItems: 'center' }}>
-              <Text style={{ fontSize: 14, color: sectionColor }}>No results found</Text>
+              <Text style={[type.subhead, { color: sectionColor }]}>
+                {t('discoverSearch.noResults')}
+              </Text>
             </View>
           )}
 
@@ -194,25 +197,19 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
           {routes.length > 0 && (
             <View>
               <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '700',
-                  color: sectionColor,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  paddingHorizontal: 14,
-                  paddingTop: 12,
-                  paddingBottom: 6,
-                }}
+                style={[
+                  type.label,
+                  { color: sectionColor, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 },
+                ]}
               >
-                Routes
+                {t('discoverSearch.routesSection')}
               </Text>
               {routes.map((route) => (
                 <Pressable
                   key={route.id}
                   onPress={() => handleRoutePress(route)}
                   accessibilityRole="button"
-                  accessibilityLabel={`Route: ${route.name}`}
+                  accessibilityLabel={t('discoverSearch.routeA11y', { name: route.name })}
                   style={({ pressed }) => ({
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -225,7 +222,7 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
                   <Route size={16} color={theme.warm} />
                   <Text
                     numberOfLines={1}
-                    style={{ flex: 1, fontSize: 14, color: itemColor, fontWeight: '500' }}
+                    style={[type.subhead, SYSTEM_WEIGHT.medium, { flex: 1, color: itemColor }]}
                   >
                     {route.name}
                   </Text>
@@ -238,18 +235,12 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
           {places.length > 0 && (
             <View>
               <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '700',
-                  color: sectionColor,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  paddingHorizontal: 14,
-                  paddingTop: 12,
-                  paddingBottom: 6,
-                }}
+                style={[
+                  type.label,
+                  { color: sectionColor, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 },
+                ]}
               >
-                Locations
+                {t('discoverSearch.locationsSection')}
               </Text>
               {places.map((place) => {
                 const PlaceIcon = placeIcon(place.kind);
@@ -258,7 +249,7 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
                     key={place.id}
                     onPress={() => handlePlacePress(place)}
                     accessibilityRole="button"
-                    accessibilityLabel={`Location: ${place.name}`}
+                    accessibilityLabel={t('discoverSearch.locationA11y', { name: place.name })}
                     style={({ pressed }) => ({
                       flexDirection: 'row',
                       alignItems: 'center',
@@ -271,7 +262,7 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
                     <PlaceIcon size={16} color={theme.ink3} />
                     <Text
                       numberOfLines={1}
-                      style={{ flex: 1, fontSize: 14, color: itemColor, fontWeight: '500' }}
+                      style={[type.subhead, SYSTEM_WEIGHT.medium, { flex: 1, color: itemColor }]}
                     >
                       {place.name}
                     </Text>

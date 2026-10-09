@@ -1,11 +1,14 @@
 import { palette } from '@motovault/design-system';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { tint } from '../../../theme/editorial';
 import {
   distanceUnitLabel,
+  elevationUnitLabel,
   formatDistanceValue,
   formatDuration,
+  formatElevationValue,
   formatSpeedValue,
   speedUnitLabel,
 } from '../../../utils/ride-formatters';
@@ -13,6 +16,7 @@ import type { RideSharePayload } from '../share-card-types';
 import { CARD_INK, CARD_TYPE, RouteSilhouette } from './card-elements';
 
 export const PbSpotlightCard = memo(function PbSpotlightCard({ data }: { data: RideSharePayload }) {
+  const { t } = useTranslation();
   if (!data.isPB) return null;
 
   const sys = data.measurementSystem;
@@ -22,7 +26,7 @@ export const PbSpotlightCard = memo(function PbSpotlightCard({ data }: { data: R
       : data.pbType === 'longestRide'
         ? formatDistanceValue(data.distanceM, sys)
         : data.elevationGainM != null
-          ? String(Math.round(data.elevationGainM))
+          ? String(formatElevationValue(data.elevationGainM, sys))
           : '—';
 
   const heroUnit =
@@ -30,14 +34,14 @@ export const PbSpotlightCard = memo(function PbSpotlightCard({ data }: { data: R
       ? speedUnitLabel(sys)
       : data.pbType === 'longestRide'
         ? distanceUnitLabel(sys)
-        : 'm';
+        : elevationUnitLabel(sys);
 
   const heroLabel =
     data.pbType === 'topSpeed'
-      ? 'Top speed'
+      ? t('shareSheet.topSpeed')
       : data.pbType === 'longestRide'
-        ? 'Longest ride'
-        : 'Most elevation';
+        ? t('shareSheet.longestRide')
+        : t('shareSheet.mostElevation');
 
   const diff =
     data.prevPbValue != null && data.maxSpeedMps != null && data.pbType === 'topSpeed'
@@ -69,7 +73,7 @@ export const PbSpotlightCard = memo(function PbSpotlightCard({ data }: { data: R
           }}
         >
           <Text style={{ ...CARD_TYPE.label, fontSize: 10, color: palette.plateOnPlate }}>
-            Personal record
+            {t('shareSheet.personalRecord')}
           </Text>
         </View>
       </View>
@@ -110,7 +114,11 @@ export const PbSpotlightCard = memo(function PbSpotlightCard({ data }: { data: R
               marginTop: 14,
             }}
           >
-            +{diff} {heroUnit} · prev. {formatSpeedValue(data.prevPbValue, sys)} {heroUnit}
+            {t('shareSheet.prevRecord', {
+              diff,
+              unit: heroUnit,
+              previous: formatSpeedValue(data.prevPbValue, sys),
+            })}
           </Text>
         )}
       </View>

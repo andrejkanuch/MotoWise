@@ -143,7 +143,7 @@ export const RideCard = memo(function RideCard({ ride, onPress, recordTypes }: R
 
             {avgSpeed > 0 && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text style={[type.caption, { color: t.ink3 }]}>Avg</Text>
+                <Text style={[type.caption, { color: t.ink3 }]}>{i18n('myRides.avg')}</Text>
                 <Text style={[type.label, { color: t.ink, fontVariant: ['tabular-nums'] }]}>
                   {formatSpeedValue(avgSpeed, system)} {speedUnitLabel(system)}
                 </Text>
@@ -163,7 +163,7 @@ export const RideCard = memo(function RideCard({ ride, onPress, recordTypes }: R
 
             {elevation > 0 && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text style={[type.caption, { color: t.ink3 }]}>Elev</Text>
+                <Text style={[type.caption, { color: t.ink3 }]}>{i18n('shareSheet.elev')}</Text>
                 <Text style={[type.label, { color: t.ink, fontVariant: ['tabular-nums'] }]}>
                   {formatElevationValue(elevation, system)} {elevationUnitLabel(system)}
                 </Text>

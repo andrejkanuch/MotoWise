@@ -2252,7 +2252,11 @@
     "participants": "Participantes",
     "joinRide": "Unirse al viaje",
     "leaveRide": "Abandonar el viaje",
-    "cancelRide": "Cancelar el viaje"
+    "cancelRide": "Cancelar el viaje",
+    "createTitle": "Crear salida en grupo",
+    "dateTimeLabel": "Fecha y hora",
+    "meetingPointLabel": "Punto de encuentro",
+    "createError": "No se pudo crear la salida. Inténtalo de nuevo."
   },
   "rideHud": {
     "forgotToStopTitle": "¿Sigues rodando?",
@@ -2287,7 +2291,11 @@
     "serviceTitle": "MotoVault está grabando tu ruta",
     "serviceBody": "Toca para volver a tu ruta. Termínala cuando te bajes de la moto.",
     "noGpsTitle": "No pudimos registrar esta ruta",
-    "noGpsBody": "{{minutes}} min grabados, pero casi sin distancia. Puede que el GPS estuviera bloqueado, apagado o en ubicación aproximada."
+    "noGpsBody": "{{minutes}} min grabados, pero casi sin distancia. Puede que el GPS estuviera bloqueado, apagado o en ubicación aproximada.",
+    "currentSpeedA11y": "Velocidad actual: {{speed}} {{unit}}",
+    "elapsedA11y": "Tiempo transcurrido: {{time}}",
+    "statusRecording": "Grabando",
+    "statusPaused": "En pausa"
   },
   "rideSummary": {
     "namePlaceholder": "Nombra tu ruta...",
@@ -2325,7 +2333,14 @@
     "couldNotOpenTitle": "No se pudo abrir",
     "connectionError": "Verifica tu conexion e intentalo de nuevo",
     "searchPlaceholder": "Buscar rutas o lugares...",
-    "reviewPlaceholder": "Comparte tu experiencia (opcional)"
+    "reviewPlaceholder": "Comparte tu experiencia (opcional)",
+    "noResults": "No se encontraron resultados",
+    "routesSection": "Rutas",
+    "locationsSection": "Lugares",
+    "searchA11y": "Buscar rutas y lugares",
+    "clearA11y": "Borrar búsqueda",
+    "routeA11y": "Ruta: {{name}}",
+    "locationA11y": "Lugar: {{name}}"
   },
   "discoverFilters": {
     "surfacePaved": "Pavimentado",
@@ -2352,7 +2367,9 @@
   },
   "mapPicker": {
     "title": "Estilo de mapa",
-    "searchPlaceholder": "Buscar un lugar..."
+    "searchPlaceholder": "Buscar un lugar...",
+    "freeSection": "Gratis",
+    "proSection": "Pro"
   },
   "survey": {
     "feedbackPlaceholder": "Comparte tus opiniones (sin datos personales, por favor)"
@@ -2404,7 +2421,8 @@
     "ride_one": "{{count}} ride",
     "ride_other": "{{count}} rides",
     "elev": "elev.",
-    "dur": "Dur"
+    "dur": "Dur",
+    "avg": "Media"
   },
   "rideDetail": {
     "unavailable": "Esta ruta ya no está disponible. Puede que se haya eliminado o que ahora sea privada.",
@@ -2511,16 +2529,18 @@
     "appStore": "App Store",
     "open": "Open",
     "cancel": "Cancel",
-    "distance": "Distance",
-    "time": "Time",
-    "elev": "Elev",
-    "gain": "Gain",
-    "peak": "Peak",
+    "distance": "Distancia",
+    "time": "Tiempo",
+    "elev": "Desn.",
+    "gain": "Desnivel",
+    "peak": "Cima",
     "elevProfile": "Elev profile",
-    "personalRecord": "Personal Record",
-    "topSpeed": "Top speed",
-    "longestRide": "Longest ride",
-    "mostElevation": "Most elevation"
+    "personalRecord": "Récord personal",
+    "topSpeed": "Velocidad máxima",
+    "longestRide": "Ruta más larga",
+    "mostElevation": "Mayor desnivel",
+    "rideNumber": "Ruta n.º {{number}}",
+    "prevRecord": "+{{diff}} {{unit}} · antes {{previous}} {{unit}}"
   },
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
@@ -2852,5 +2872,115 @@
     "pointChange": "Puedes cambiarlo cuando quieras en Perfil → Privacidad.",
     "allow": "Permitir",
     "decline": "No permitir"
+  },
+  "tripDrafts": {
+    "continuePlanning": "Seguir planificando",
+    "newDraft": "Nuevo borrador",
+    "newDraftA11y": "Crear un viaje nuevo",
+    "cardA11y": "Borrador de viaje: {{title}}",
+    "dayUnit": "d",
+    "count_one": "{{count}} borrador",
+    "count_few": "{{count}} borradores",
+    "count_many": "{{count}} borradores",
+    "count_other": "{{count}} borradores"
+  },
+  "tripShare": {
+    "title": "Compartir viaje",
+    "closeA11y": "Cerrar",
+    "archived": "Desarchiva este viaje para compartirlo.",
+    "generateTitle": "Crea un enlace para compartir",
+    "generateBody": "Cualquiera con este enlace puede ver y reenviar el viaje.",
+    "generateCta": "Crear enlace",
+    "urlLabel": "URL para compartir",
+    "info": "Cualquiera con este enlace puede ver tu viaje",
+    "copy": "Copiar enlace",
+    "copied": "Copiado",
+    "shareSystem": "Compartir…",
+    "regenerate": "Regenerar enlace",
+    "warning": "Cualquiera con este enlace puede ver y reenviar el viaje. Regenera el enlace si se filtra.",
+    "stop": "Dejar de compartir",
+    "createErrorTitle": "No se pudo crear el enlace",
+    "createErrorBody": "Algo salió mal. Inténtalo de nuevo en un momento.",
+    "updateErrorTitle": "No se pudo actualizar el viaje",
+    "updateErrorBody": "Inténtalo de nuevo.",
+    "regenerateConfirmTitle": "¿Regenerar el enlace?",
+    "regenerateConfirmBody": "El enlace anterior dejará de funcionar de inmediato. Quien lo use necesitará uno nuevo.",
+    "regenerateConfirmCta": "Regenerar",
+    "stopConfirmTitle": "¿Dejar de compartir este viaje?",
+    "stopConfirmBody": "El enlace dejará de funcionar de inmediato y el viaje pasará a ser privado.",
+    "shareMessage": "Viaje en MotoVault"
+  },
+  "offlinePack": {
+    "downloading": "Descargando paquete sin conexión…",
+    "progress": "{{percent}}% · {{size}}",
+    "ready": "Disponible sin conexión",
+    "readyMeta": "{{size}} · descargado el {{date}}",
+    "removeA11y": "Eliminar descarga sin conexión",
+    "removeTitle": "¿Eliminar la descarga sin conexión?",
+    "removeBody": "Libera los mosaicos de mapa que este viaje guardó para usar sin conexión.",
+    "keep": "Conservar",
+    "remove": "Eliminar",
+    "downloadA11y": "Descargar para usar sin conexión",
+    "downloadHint": "Guarda mosaicos y datos del viaje para usarlos sin cobertura",
+    "downloadPro": "Descarga para usar sin conexión con Pro",
+    "downloadBody": "Guarda mosaicos de mapa y datos del viaje antes de rutas con poca cobertura."
+  },
+  "rideThis": {
+    "title": "Rodar esta ruta",
+    "close": "Cerrar",
+    "segmentOpened": "Tramo {{index}} de {{total}} abierto",
+    "openSegmentA11y": "Abrir tramo {{index}} de {{total}}",
+    "openSegment": "Abrir tramo {{index}}",
+    "openFinalSegment": "Abrir el último tramo",
+    "bodyDay": "Envía las paradas del día {{day}} a tu app de navegación.",
+    "bodyAll": "Envía la ruta a la app con la que ruedas.",
+    "allDays": "Todos los días",
+    "gpx": "GPX para apps sin conexión",
+    "disclaimer": "No navegamos por ti: tu ruta sigue en la app que ya conoces. MotoVault solo crea el plan y lo entrega limpio."
+  },
+  "tripReadiness": {
+    "nearlyReady": "Casi listo",
+    "somePending": "Algunas comprobaciones pendientes",
+    "needsAttention": "Requiere atención",
+    "checksPass": "{{passed}}/{{total}} comprobaciones superadas",
+    "a11y": "{{headline}}. Listo al {{percent}} por ciento. Toca para ver la lista.",
+    "shareBrief": "Compartir resumen para la bolsa de depósito"
+  },
+  "tripSuggestions": {
+    "title": "Sugerencias",
+    "status": {
+      "pending": "Pendiente",
+      "accepted": "Aceptada",
+      "rejected": "Rechazada",
+      "withdrawn": "Retirada"
+    },
+    "suggestedBy": "Sugerido por {{name}}",
+    "period": {
+      "morning": "Mañana",
+      "afternoon": "Tarde",
+      "evening": "Noche"
+    },
+    "note": "Nota: {{note}}",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "withdraw": "Retirar",
+    "pending_one": "{{count}} pendiente",
+    "pending_few": "{{count}} pendientes",
+    "pending_many": "{{count}} pendientes",
+    "pending_other": "{{count}} pendientes"
+  },
+  "tripAssistant": {
+    "title": "Asistente de viaje",
+    "subtitle": "Conoce tu moto, tus paradas y tus días.",
+    "reset": "Restablecer",
+    "tryAsking": "Prueba a preguntar:",
+    "thinking": "Pensando…",
+    "sendA11y": "Enviar mensaje",
+    "prompts": {
+      "coffee": "Parada para café entre la parada 2 y la 3, máximo 5 min de desvío",
+      "curvier": "Alternativa con más curvas para mañana por la tarde",
+      "hotel": "Hotel para motoristas cerca de la última parada",
+      "rain": "Mejor desvío si llueve mañana por la tarde"
+    }
   }
 }

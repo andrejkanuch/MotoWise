@@ -196,7 +196,7 @@ export const MapPickerSheet = memo(function MapPickerSheet({
 
         {/* Free section */}
         <View style={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 8 }}>
-          <Text style={sectionLabelStyle}>Free</Text>
+          <Text style={sectionLabelStyle}>{t('mapPicker.freeSection')}</Text>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             {FREE_STYLES.map(({ key, label }) => (
               <StyleTile
@@ -214,7 +214,7 @@ export const MapPickerSheet = memo(function MapPickerSheet({
 
         {/* Pro section */}
         <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8 }}>
-          <Text style={sectionLabelStyle}>Pro</Text>
+          <Text style={sectionLabelStyle}>{t('mapPicker.proSection')}</Text>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             {PRO_STYLES.map(({ key, label }) => (
               <StyleTile

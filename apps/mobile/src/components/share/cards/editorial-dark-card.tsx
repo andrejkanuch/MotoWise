@@ -1,5 +1,6 @@
 import { palette } from '@motovault/design-system';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import type { RideSharePayload } from '../share-card-types';
 import {
@@ -17,6 +18,7 @@ export const EditorialDarkCard = memo(function EditorialDarkCard({
 }: {
   data: RideSharePayload;
 }) {
+  const { t } = useTranslation();
   const rideNum = data.rideNumber != null ? String(data.rideNumber).padStart(3, '0') : '—';
 
   return (
@@ -61,7 +63,7 @@ export const EditorialDarkCard = memo(function EditorialDarkCard({
           {data.rideName}
         </Text>
         <Text style={{ ...CARD_TYPE.label, color: CARD_INK.faint, marginTop: 10 }}>
-          Ride no. {rideNum}
+          {t('shareSheet.rideNumber', { number: rideNum })}
         </Text>
       </View>
 

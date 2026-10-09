@@ -6,8 +6,11 @@
  * suggestions happens via the MapPicker flow the organiser already uses —
  * we piggy-back on that instead of duplicating an input here.
  */
+
+import type { TFunction } from 'i18next';
 import { Check, CheckCircle2, Clock, X, XCircle } from 'lucide-react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import type { TripSuggestion } from '../../hooks/use-trip-suggestions';
@@ -28,15 +31,37 @@ interface SuggestionsSectionProps {
   respondingIds: ReadonlySet<string>;
 }
 
-function formatRelative(iso: string): string {
+const STATUS_KEY = {
+  pending: 'tripSuggestions.status.pending',
+  accepted: 'tripSuggestions.status.accepted',
+  rejected: 'tripSuggestions.status.rejected',
+  withdrawn: 'tripSuggestions.status.withdrawn',
+} as const;
+
+const PERIOD_KEY = {
+  morning: 'tripSuggestions.period.morning',
+  afternoon: 'tripSuggestions.period.afternoon',
+  evening: 'tripSuggestions.period.evening',
+} as const;
+
+function formatRelative(iso: string, tr: TFunction): string {
   const delta = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(delta / 60_000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return tr('home.justNow');
+  if (mins < 60) return tr('home.minutesAgo', { count: mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return tr('home.hoursAgo', { count: hours });
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return tr('home.daysAgo', { count: days });
+}
+
+function suggestionMeta(s: TripSuggestion, tr: TFunction): string {
+  const parts = [tr('tripSuggestions.suggestedBy', { name: s.author.displayName })];
+  if (typeof s.dayIndex === 'number')
+    parts.push(tr('trips.dayHeaderShort', { day: s.dayIndex + 1 }));
+  const period = s.periodOfDay ? PERIOD_KEY[s.periodOfDay as keyof typeof PERIOD_KEY] : undefined;
+  if (period) parts.push(tr(period));
+  return parts.join(' · ');
 }
 
 export function SuggestionsSection({
@@ -48,6 +73,7 @@ export function SuggestionsSection({
   respondingIds,
 }: SuggestionsSectionProps) {
   const { t } = useEditorialTheme();
+  const { t: tr } = useTranslation();
 
   const sectionBg = t.surface;
   const borderColor = t.line;
@@ -71,10 +97,12 @@ export function SuggestionsSection({
   return (
     <View style={{ marginTop: 20, gap: 10 }}>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-        <Text style={[type.sectionTitle, { color: headingColor }]}>Suggestions</Text>
+        <Text style={[type.sectionTitle, { color: headingColor }]}>
+          {tr('tripSuggestions.title')}
+        </Text>
         {pendingCount > 0 && (
           <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: t.plateDue }]}>
-            {pendingCount} pending
+            {tr('tripSuggestions.pending', { count: pendingCount })}
           </Text>
         )}
       </View>
@@ -118,18 +146,14 @@ export function SuggestionsSection({
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <StatusIcon size={14} color={statusTint} />
-                  <Text
-                    style={[
-                      type.caption,
-                      SYSTEM_WEIGHT.semibold,
-                      { color: statusTint, textTransform: 'capitalize' },
-                    ]}
-                  >
-                    {s.status}
+                  <Text style={[type.caption, SYSTEM_WEIGHT.semibold, { color: statusTint }]}>
+                    {STATUS_KEY[s.status as keyof typeof STATUS_KEY]
+                      ? tr(STATUS_KEY[s.status as keyof typeof STATUS_KEY])
+                      : s.status}
                   </Text>
                   <View style={{ flex: 1 }} />
                   <Text style={[type.caption, { color: metaColor }]}>
-                    {formatRelative(s.createdAt)}
+                    {formatRelative(s.createdAt, tr)}
                   </Text>
                 </View>
                 <Text style={[type.bodyStrong, { color: headingColor }]} numberOfLines={2}>
@@ -138,18 +162,14 @@ export function SuggestionsSection({
                 {s.notes ? (
                   <Text style={[type.subhead, { color: bodyColor }]}>{s.notes}</Text>
                 ) : null}
-                <Text style={[type.caption, { color: metaColor }]}>
-                  Suggested by {s.author.displayName}
-                  {typeof s.dayIndex === 'number' ? ` · Day ${s.dayIndex + 1}` : ''}
-                  {s.periodOfDay ? ` · ${s.periodOfDay}` : ''}
-                </Text>
+                <Text style={[type.caption, { color: metaColor }]}>{suggestionMeta(s, tr)}</Text>
 
                 {isPending && (
                   <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
                     {canDecide && (
                       <>
                         <ActionButton
-                          label="Accept"
+                          label={tr('tripSuggestions.accept')}
                           tint={t.success}
                           Icon={Check}
                           disabled={rowResponding}
@@ -161,7 +181,7 @@ export function SuggestionsSection({
                           }
                         />
                         <ActionButton
-                          label="Reject"
+                          label={tr('tripSuggestions.reject')}
                           tint={t.danger}
                           Icon={X}
                           disabled={rowResponding}
@@ -176,7 +196,7 @@ export function SuggestionsSection({
                     )}
                     {isAuthor && (
                       <ActionButton
-                        label="Withdraw"
+                        label={tr('tripSuggestions.withdraw')}
                         tint={t.ink3}
                         Icon={X}
                         disabled={rowResponding}
@@ -192,7 +212,9 @@ export function SuggestionsSection({
                 )}
 
                 {decided && s.decidedNote ? (
-                  <Text style={[type.caption, { color: metaColor }]}>Note: {s.decidedNote}</Text>
+                  <Text style={[type.caption, { color: metaColor }]}>
+                    {tr('tripSuggestions.note', { note: s.decidedNote })}
+                  </Text>
                 ) : null}
               </Animated.View>
             );

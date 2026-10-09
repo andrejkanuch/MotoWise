@@ -2257,7 +2257,11 @@
     "participants": "Participants",
     "joinRide": "Join Ride",
     "leaveRide": "Leave Ride",
-    "cancelRide": "Cancel Ride"
+    "cancelRide": "Cancel Ride",
+    "createTitle": "Create group ride",
+    "dateTimeLabel": "Date and time",
+    "meetingPointLabel": "Meeting point",
+    "createError": "Couldn't create the ride. Try again."
   },
   "myRides": {
     "title": "My rides",
@@ -2288,7 +2292,8 @@
     "ride_one": "{{count}} ride",
     "ride_other": "{{count}} rides",
     "elev": "elev.",
-    "dur": "Dur"
+    "dur": "Dur",
+    "avg": "Avg"
   },
   "rideDetail": {
     "unavailable": "This ride is no longer available. It may have been deleted or made private.",
@@ -2400,7 +2405,11 @@
     "serviceTitle": "MotoVault is recording your ride",
     "serviceBody": "Tap to return to your ride. End it when you get off the bike.",
     "noGpsTitle": "We couldn't track this ride",
-    "noGpsBody": "{{minutes}} min recorded, but almost no distance. GPS may have been blocked, switched off or set to approximate location."
+    "noGpsBody": "{{minutes}} min recorded, but almost no distance. GPS may have been blocked, switched off or set to approximate location.",
+    "currentSpeedA11y": "Current speed: {{speed}} {{unit}}",
+    "elapsedA11y": "Elapsed time: {{time}}",
+    "statusRecording": "Recording",
+    "statusPaused": "Paused"
   },
   "rideSummary": {
     "namePlaceholder": "Name your ride...",
@@ -2437,7 +2446,14 @@
     "couldNotOpenTitle": "Could not open",
     "connectionError": "Check your connection and try again",
     "searchPlaceholder": "Search routes or places...",
-    "reviewPlaceholder": "Share your experience (optional)"
+    "reviewPlaceholder": "Share your experience (optional)",
+    "noResults": "No results found",
+    "routesSection": "Routes",
+    "locationsSection": "Locations",
+    "searchA11y": "Search routes and places",
+    "clearA11y": "Clear search",
+    "routeA11y": "Route: {{name}}",
+    "locationA11y": "Location: {{name}}"
   },
   "discoverFilters": {
     "surfacePaved": "Paved",
@@ -2464,7 +2480,9 @@
   },
   "mapPicker": {
     "title": "Map Style",
-    "searchPlaceholder": "Search for a location..."
+    "searchPlaceholder": "Search for a location...",
+    "freeSection": "Free",
+    "proSection": "Pro"
   },
   "survey": {
     "feedbackPlaceholder": "Share your thoughts (no personal info please)"
@@ -2510,10 +2528,12 @@
     "gain": "Gain",
     "peak": "Peak",
     "elevProfile": "Elev profile",
-    "personalRecord": "Personal Record",
+    "personalRecord": "Personal record",
     "topSpeed": "Top speed",
     "longestRide": "Longest ride",
-    "mostElevation": "Most elevation"
+    "mostElevation": "Most elevation",
+    "rideNumber": "Ride no. {{number}}",
+    "prevRecord": "+{{diff}} {{unit}} · prev. {{previous}} {{unit}}"
   },
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
@@ -2844,5 +2864,115 @@
     "pointChange": "Change it anytime in Profile → Privacy.",
     "allow": "Allow",
     "decline": "Don't allow"
+  },
+  "tripDrafts": {
+    "continuePlanning": "Continue planning",
+    "newDraft": "New draft",
+    "newDraftA11y": "Create a new trip",
+    "cardA11y": "Draft trip: {{title}}",
+    "dayUnit": "d",
+    "count_one": "{{count}} draft",
+    "count_few": "{{count}} drafts",
+    "count_many": "{{count}} drafts",
+    "count_other": "{{count}} drafts"
+  },
+  "tripShare": {
+    "title": "Share trip",
+    "closeA11y": "Close",
+    "archived": "Unarchive this trip to share it.",
+    "generateTitle": "Generate a share link",
+    "generateBody": "Anyone with this link can view and forward the trip.",
+    "generateCta": "Generate link",
+    "urlLabel": "Share URL",
+    "info": "Anyone with this link can view your trip",
+    "copy": "Copy link",
+    "copied": "Copied",
+    "shareSystem": "Share…",
+    "regenerate": "Regenerate link",
+    "warning": "Anyone with this link can view and forward the trip. Rotate the link if it leaks.",
+    "stop": "Stop sharing",
+    "createErrorTitle": "Could not create link",
+    "createErrorBody": "Something went wrong. Please try again in a moment.",
+    "updateErrorTitle": "Could not update trip",
+    "updateErrorBody": "Please try again.",
+    "regenerateConfirmTitle": "Regenerate link?",
+    "regenerateConfirmBody": "The previous link will stop working immediately. Anyone using it will need a new link.",
+    "regenerateConfirmCta": "Regenerate",
+    "stopConfirmTitle": "Stop sharing this trip?",
+    "stopConfirmBody": "The link will stop working immediately and the trip becomes private.",
+    "shareMessage": "Trip on MotoVault"
+  },
+  "offlinePack": {
+    "downloading": "Downloading offline pack…",
+    "progress": "{{percent}}% · {{size}}",
+    "ready": "Available offline",
+    "readyMeta": "{{size}} · downloaded {{date}}",
+    "removeA11y": "Remove offline download",
+    "removeTitle": "Remove offline download?",
+    "removeBody": "Frees up the tiles this trip saved for offline use.",
+    "keep": "Keep",
+    "remove": "Remove",
+    "downloadA11y": "Download for offline",
+    "downloadHint": "Caches tiles and trip data so you can use it without signal",
+    "downloadPro": "Download for offline with Pro",
+    "downloadBody": "Save map tiles and trip data before weak-signal rides."
+  },
+  "rideThis": {
+    "title": "Ride this",
+    "close": "Close",
+    "segmentOpened": "Segment {{index}} of {{total}} opened",
+    "openSegmentA11y": "Open segment {{index}} of {{total}}",
+    "openSegment": "Open segment {{index}}",
+    "openFinalSegment": "Open final segment",
+    "bodyDay": "Hand off Day {{day}} stops to your nav app.",
+    "bodyAll": "Hand the route off to the app you ride with.",
+    "allDays": "All days",
+    "gpx": "GPX for offline apps",
+    "disclaimer": "We don't navigate for you — your ride stays on the app you know. MotoVault just builds the plan and hands it over cleanly."
+  },
+  "tripReadiness": {
+    "nearlyReady": "Nearly ready",
+    "somePending": "Some checks pending",
+    "needsAttention": "Needs attention",
+    "checksPass": "{{passed}}/{{total}} checks pass",
+    "a11y": "{{headline}}. {{percent}} percent ready. Tap to see the checklist.",
+    "shareBrief": "Share tank-bag brief"
+  },
+  "tripSuggestions": {
+    "title": "Suggestions",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn"
+    },
+    "suggestedBy": "Suggested by {{name}}",
+    "period": {
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening"
+    },
+    "note": "Note: {{note}}",
+    "accept": "Accept",
+    "reject": "Reject",
+    "withdraw": "Withdraw",
+    "pending_one": "{{count}} pending",
+    "pending_few": "{{count}} pending",
+    "pending_many": "{{count}} pending",
+    "pending_other": "{{count}} pending"
+  },
+  "tripAssistant": {
+    "title": "Trip assistant",
+    "subtitle": "Knows your bike, waypoints, and days.",
+    "reset": "Reset",
+    "tryAsking": "Try asking:",
+    "thinking": "Thinking…",
+    "sendA11y": "Send message",
+    "prompts": {
+      "coffee": "Coffee stop between stop 2 and 3, max 5 min off-route",
+      "curvier": "Curvier alternative to tomorrow afternoon",
+      "hotel": "Motorcycle-friendly hotel near the last stop",
+      "rain": "Best detour if it rains tomorrow PM"
+    }
   }
 }

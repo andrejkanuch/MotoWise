@@ -1,8 +1,10 @@
 import { CheckCircle, CloudDownload, Loader, Trash2 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, View } from 'react-native';
 import type { OfflineStatus } from '../../hooks/use-offline-trip';
 import { formatBytes } from '../../lib/offline-trips';
 import { useEditorialTheme } from '../../theme/editorial';
+import { type } from '../../theme/type';
 
 interface OfflinePackButtonProps {
   status: OfflineStatus;
@@ -20,14 +22,15 @@ export function OfflinePackButton({
   onRemove,
 }: OfflinePackButtonProps) {
   const { t: theme } = useEditorialTheme();
+  const { t, i18n } = useTranslation();
   const titleColor = theme.ink;
   const subColor = theme.ink3;
   const cardBg = theme.surface2;
 
   const confirmRemove = () => {
-    Alert.alert('Remove offline download?', 'Frees up the tiles this trip saved for offline use.', [
-      { text: 'Keep', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: onRemove },
+    Alert.alert(t('offlinePack.removeTitle'), t('offlinePack.removeBody'), [
+      { text: t('offlinePack.keep'), style: 'cancel' },
+      { text: t('offlinePack.remove'), style: 'destructive', onPress: onRemove },
     ]);
   };
 
@@ -48,12 +51,14 @@ export function OfflinePackButton({
       >
         <Loader size={18} color={theme.warm} />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 14, fontWeight: '700', color: titleColor }}>
-            Downloading offline pack…
+          <Text style={[type.bodyStrong, { color: titleColor }]}>
+            {t('offlinePack.downloading')}
           </Text>
-          <Text style={{ fontSize: 12, color: subColor, marginTop: 2 }}>
-            {Math.round(progress?.percentage ?? 0)}% ·{' '}
-            {formatBytes(progress?.completedResourceSize ?? 0)}
+          <Text style={[type.caption, { color: subColor, marginTop: 2 }]}>
+            {t('offlinePack.progress', {
+              percent: Math.round(progress?.percentage ?? 0),
+              size: formatBytes(progress?.completedResourceSize ?? 0),
+            })}
           </Text>
           {/* Progress bar */}
           <View
@@ -96,18 +101,19 @@ export function OfflinePackButton({
       >
         <CheckCircle size={18} color={theme.success} />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 14, fontWeight: '700', color: titleColor }}>
-            Available offline
-          </Text>
-          <Text style={{ fontSize: 12, color: subColor, marginTop: 2 }}>
-            {formatBytes(meta.sizeBytes)} · downloaded {dl.toLocaleDateString()}
+          <Text style={[type.bodyStrong, { color: titleColor }]}>{t('offlinePack.ready')}</Text>
+          <Text style={[type.caption, { color: subColor, marginTop: 2 }]}>
+            {t('offlinePack.readyMeta', {
+              size: formatBytes(meta.sizeBytes),
+              date: dl.toLocaleDateString(i18n.language),
+            })}
           </Text>
         </View>
         <Pressable
           onPress={confirmRemove}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel="Remove offline download"
+          accessibilityLabel={t('offlinePack.removeA11y')}
           style={{ padding: 6 }}
         >
           <Trash2 size={16} color={theme.danger} />
@@ -120,8 +126,8 @@ export function OfflinePackButton({
     <Pressable
       onPress={onDownload}
       accessibilityRole="button"
-      accessibilityLabel="Download for offline"
-      accessibilityHint="Caches tiles and trip data so you can use it without signal"
+      accessibilityLabel={t('offlinePack.downloadA11y')}
+      accessibilityHint={t('offlinePack.downloadHint')}
       style={{
         backgroundColor: cardBg,
         borderRadius: 12,
@@ -136,11 +142,9 @@ export function OfflinePackButton({
     >
       <CloudDownload size={18} color={theme.warm} />
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 14, fontWeight: '700', color: titleColor }}>
-          Download for offline with Pro
-        </Text>
-        <Text style={{ fontSize: 12, color: subColor, marginTop: 2 }}>
-          Save map tiles and trip data before weak-signal rides.
+        <Text style={[type.bodyStrong, { color: titleColor }]}>{t('offlinePack.downloadPro')}</Text>
+        <Text style={[type.caption, { color: subColor, marginTop: 2 }]}>
+          {t('offlinePack.downloadBody')}
         </Text>
       </View>
     </Pressable>

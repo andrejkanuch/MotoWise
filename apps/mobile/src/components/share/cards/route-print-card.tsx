@@ -1,5 +1,6 @@
 import { palette } from '@motovault/design-system';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import {
   distanceUnitLabel,
@@ -15,6 +16,7 @@ const STAT_UNIT = { ...CARD_TYPE.label, fontSize: 10, color: CARD_INK_CREAM.mute
 const STAT_VALUE = { ...CARD_TYPE.figure, fontSize: 17, color: CARD_INK_CREAM.strong } as const;
 
 export const RoutePrintCard = memo(function RoutePrintCard({ data }: { data: RideSharePayload }) {
+  const { t } = useTranslation();
   const sys = data.measurementSystem;
   const rideNum = data.rideNumber != null ? String(data.rideNumber).padStart(3, '0') : '—';
 
@@ -93,7 +95,7 @@ export const RoutePrintCard = memo(function RoutePrintCard({ data }: { data: Rid
           {data.rideName}
         </Text>
         <Text style={{ ...CARD_TYPE.label, color: CARD_INK_CREAM.faint, marginTop: 2 }}>
-          Ride no. {rideNum}
+          {t('shareSheet.rideNumber', { number: rideNum })}
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 14, marginTop: 10 }}>
           <Text style={STAT_UNIT}>

@@ -10,6 +10,7 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import type { AssistantMessage } from '../../hooks/use-trip-assistant';
 import { tint, useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 
 interface TripAssistantSheetProps {
   visible: boolean;
@@ -20,12 +21,13 @@ interface TripAssistantSheetProps {
   onReset: () => void;
 }
 
-const SUGGESTIONS = [
-  'Coffee stop between stop 2 and 3, max 5 min off-route',
-  'Curvier alternative to tomorrow afternoon',
-  'Motorcycle-friendly hotel near the last stop',
-  'Best detour if it rains tomorrow PM',
-];
+/** Starter prompts, sent to the assistant in the rider's language. */
+const SUGGESTION_KEYS = [
+  'tripAssistant.prompts.coffee',
+  'tripAssistant.prompts.curvier',
+  'tripAssistant.prompts.hotel',
+  'tripAssistant.prompts.rain',
+] as const;
 
 export function TripAssistantSheet({
   visible,
@@ -102,21 +104,23 @@ export function TripAssistantSheet({
           <Sparkles size={16} color={theme.warm} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: titleColor }}>Trip assistant</Text>
-          <Text style={{ fontSize: 12, color: subColor, marginTop: 1 }}>
-            Knows your bike, waypoints, and days.
+          <Text style={[type.bodyStrong, { color: titleColor }]}>{t('tripAssistant.title')}</Text>
+          <Text style={[type.caption, { color: subColor, marginTop: 1 }]}>
+            {t('tripAssistant.subtitle')}
           </Text>
         </View>
         {messages.length > 0 && (
           <Pressable onPress={onReset} hitSlop={8} accessibilityRole="button">
-            <Text style={{ fontSize: 13, color: theme.warm, fontWeight: '600' }}>Reset</Text>
+            <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: theme.warm2 }]}>
+              {t('tripAssistant.reset')}
+            </Text>
           </Pressable>
         )}
         <Pressable
           onPress={onClose}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel="Close"
+          accessibilityLabel={t('tripShare.closeA11y')}
         >
           <X size={20} color={subColor} />
         </Pressable>
@@ -129,11 +133,11 @@ export function TripAssistantSheet({
       >
         {messages.length === 0 && (
           <View style={{ gap: 10, marginTop: 4 }}>
-            <Text style={{ fontSize: 13, color: subColor }}>Try asking:</Text>
-            {SUGGESTIONS.map((s) => (
+            <Text style={[type.label, { color: subColor }]}>{t('tripAssistant.tryAsking')}</Text>
+            {SUGGESTION_KEYS.map((key) => (
               <Pressable
-                key={s}
-                onPress={() => onAsk(s)}
+                key={key}
+                onPress={() => onAsk(t(key))}
                 style={{
                   paddingVertical: 10,
                   paddingHorizontal: 14,
@@ -142,7 +146,7 @@ export function TripAssistantSheet({
                   backgroundColor: aiBg,
                 }}
               >
-                <Text style={{ fontSize: 14, color: aiTextColor, lineHeight: 20 }}>{s}</Text>
+                <Text style={[type.subhead, { color: aiTextColor }]}>{t(key)}</Text>
               </Pressable>
             ))}
           </View>
@@ -162,13 +166,7 @@ export function TripAssistantSheet({
               backgroundColor: m.role === 'user' ? userBg : aiBg,
             }}
           >
-            <Text
-              style={{
-                fontSize: 14,
-                lineHeight: 20,
-                color: m.role === 'user' ? theme.bg : aiTextColor,
-              }}
-            >
+            <Text style={[type.subhead, { color: m.role === 'user' ? theme.bg : aiTextColor }]}>
               {m.content}
             </Text>
           </Animated.View>
@@ -189,7 +187,7 @@ export function TripAssistantSheet({
             }}
           >
             <ActivityIndicator size="small" color={theme.warm} />
-            <Text style={{ fontSize: 13, color: subColor }}>Thinking…</Text>
+            <Text style={[type.label, { color: subColor }]}>{t('tripAssistant.thinking')}</Text>
           </View>
         )}
       </BottomSheetScrollView>
@@ -237,7 +235,7 @@ export function TripAssistantSheet({
           onPress={handleSend}
           disabled={!draft.trim() || isPending}
           accessibilityRole="button"
-          accessibilityLabel="Send message"
+          accessibilityLabel={t('tripAssistant.sendA11y')}
           style={{
             width: 40,
             height: 40,

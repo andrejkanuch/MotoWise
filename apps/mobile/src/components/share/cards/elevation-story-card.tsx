@@ -1,6 +1,8 @@
 import { palette } from '@motovault/design-system';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
+import { elevationUnitLabel, formatElevationValue } from '../../../utils/ride-formatters';
 import type { RideSharePayload } from '../share-card-types';
 import {
   buildElevStats,
@@ -16,6 +18,8 @@ export const ElevationStoryCard = memo(function ElevationStoryCard({
 }: {
   data: RideSharePayload;
 }) {
+  const { t } = useTranslation();
+  const sys = data.measurementSystem;
   return (
     <View
       style={{
@@ -40,7 +44,9 @@ export const ElevationStoryCard = memo(function ElevationStoryCard({
         }}
       >
         <Wordmark />
-        <Text style={{ ...CARD_TYPE.label, color: CARD_INK.muted }}>Elevation profile</Text>
+        <Text style={{ ...CARD_TYPE.label, color: CARD_INK.muted }}>
+          {t('rideDetail.elevationProfile')}
+        </Text>
       </View>
 
       {/* Elevation chart */}
@@ -50,7 +56,7 @@ export const ElevationStoryCard = memo(function ElevationStoryCard({
         {data.elevationPeakM != null && (
           <View style={{ position: 'absolute', top: 8, right: 14 }}>
             <Text style={{ ...CARD_TYPE.figure, fontSize: 13, color: CARD_INK.body }}>
-              {Math.round(data.elevationPeakM)} m
+              {`${formatElevationValue(data.elevationPeakM, sys)} ${elevationUnitLabel(sys)}`}
             </Text>
           </View>
         )}

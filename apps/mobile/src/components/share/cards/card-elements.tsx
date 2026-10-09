@@ -1,5 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { format } from 'date-fns';
+import type { ParseKeys } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { Image, Text, type TextStyle, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { tint } from '../../../theme/editorial';
@@ -71,7 +73,8 @@ export function Wordmark({ color = CARD_INK.muted }: { color?: string }) {
           color,
         }}
       >
-        MotoVault
+        {/* Brand name — not localized */}
+        {'MotoVault'}
       </Text>
     </View>
   );
@@ -97,7 +100,7 @@ export function DateCompact({ date, color = CARD_INK.faint }: { date: string; co
 // ── Stat Footer ─────────────────────────────────────────────────────────────
 
 interface StatItem {
-  label: string;
+  labelKey: ParseKeys;
   value: string;
   unit: string;
 }
@@ -115,6 +118,7 @@ export function StatFooter({
   valueColor?: string;
   unitColor?: string;
 }) {
+  const { t } = useTranslation();
   return (
     <View
       style={{
@@ -130,14 +134,14 @@ export function StatFooter({
       }}
     >
       {stats.map((s) => (
-        <View key={s.label} style={{ flex: 1 }}>
+        <View key={s.labelKey} style={{ flex: 1 }}>
           <Text
             style={{
               ...CARD_TYPE.label,
               color: labelColor,
             }}
           >
-            {s.label}
+            {t(s.labelKey)}
           </Text>
           <Text
             style={{
@@ -165,13 +169,13 @@ export function buildDefaultStats(p: RideSharePayload): StatItem[] {
   const sys = p.measurementSystem;
   return [
     {
-      label: 'Distance',
+      labelKey: 'shareSheet.distance',
       value: formatDistanceValue(p.distanceM, sys),
       unit: distanceUnitLabel(sys),
     },
-    { label: 'Time', value: formatDuration(p.durationS), unit: '' },
+    { labelKey: 'shareSheet.time', value: formatDuration(p.durationS), unit: '' },
     {
-      label: 'Elev',
+      labelKey: 'shareSheet.elev',
       value: p.elevationGainM != null ? String(formatElevationValue(p.elevationGainM, sys)) : '—',
       unit: p.elevationGainM != null ? elevationUnitLabel(sys) : '',
     },
@@ -182,17 +186,17 @@ export function buildElevStats(p: RideSharePayload): StatItem[] {
   const sys = p.measurementSystem;
   return [
     {
-      label: 'Gain',
+      labelKey: 'shareSheet.gain',
       value: p.elevationGainM != null ? String(formatElevationValue(p.elevationGainM, sys)) : '—',
       unit: elevationUnitLabel(sys),
     },
     {
-      label: 'Peak',
+      labelKey: 'shareSheet.peak',
       value: p.elevationPeakM != null ? String(formatElevationValue(p.elevationPeakM, sys)) : '—',
       unit: elevationUnitLabel(sys),
     },
     {
-      label: 'Distance',
+      labelKey: 'shareSheet.distance',
       value: formatDistanceValue(p.distanceM, sys),
       unit: distanceUnitLabel(sys),
     },

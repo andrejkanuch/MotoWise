@@ -2251,7 +2251,11 @@
     "participants": "Participants",
     "joinRide": "Join Ride",
     "leaveRide": "Leave Ride",
-    "cancelRide": "Cancel Ride"
+    "cancelRide": "Cancel Ride",
+    "createTitle": "Grup sürüşü oluştur",
+    "dateTimeLabel": "Tarih ve saat",
+    "meetingPointLabel": "Buluşma noktası",
+    "createError": "Sürüş oluşturulamadı. Tekrar dene."
   },
   "rideHud": {
     "forgotToStopTitle": "Hâlâ yolda mısın?",
@@ -2286,7 +2290,11 @@
     "serviceTitle": "MotoVault sürüşünü kaydediyor",
     "serviceBody": "Sürüşe dönmek için dokun. Motordan inince bitir.",
     "noGpsTitle": "Bu sürüş takip edilemedi",
-    "noGpsBody": "{{minutes}} dk kaydedildi ama neredeyse hiç mesafe yok. GPS engellenmiş, kapalı ya da yaklaşık konuma ayarlı olabilir."
+    "noGpsBody": "{{minutes}} dk kaydedildi ama neredeyse hiç mesafe yok. GPS engellenmiş, kapalı ya da yaklaşık konuma ayarlı olabilir.",
+    "currentSpeedA11y": "Anlık hız: {{speed}} {{unit}}",
+    "elapsedA11y": "Geçen süre: {{time}}",
+    "statusRecording": "Kaydediliyor",
+    "statusPaused": "Duraklatıldı"
   },
   "rideSummary": {
     "namePlaceholder": "Surusune isim ver...",
@@ -2323,7 +2331,14 @@
     "couldNotOpenTitle": "Acilamadi",
     "connectionError": "Baglantiyi kontrol et ve tekrar dene",
     "searchPlaceholder": "Rota veya yer ara...",
-    "reviewPlaceholder": "Deneyimini paylas (istege bagli)"
+    "reviewPlaceholder": "Deneyimini paylas (istege bagli)",
+    "noResults": "Sonuç bulunamadı",
+    "routesSection": "Rotalar",
+    "locationsSection": "Konumlar",
+    "searchA11y": "Rota ve yer ara",
+    "clearA11y": "Aramayı temizle",
+    "routeA11y": "Rota: {{name}}",
+    "locationA11y": "Konum: {{name}}"
   },
   "discoverFilters": {
     "surfacePaved": "Asfalt",
@@ -2350,7 +2365,9 @@
   },
   "mapPicker": {
     "title": "Harita Stili",
-    "searchPlaceholder": "Konum ara..."
+    "searchPlaceholder": "Konum ara...",
+    "freeSection": "Ücretsiz",
+    "proSection": "Pro"
   },
   "survey": {
     "feedbackPlaceholder": "Dusuncelerini paylas (kisisel bilgi olmasin lutfen)"
@@ -2402,7 +2419,8 @@
     "ride_one": "{{count}} ride",
     "ride_other": "{{count}} rides",
     "elev": "elev.",
-    "dur": "Dur"
+    "dur": "Dur",
+    "avg": "Ort."
   },
   "rideDetail": {
     "unavailable": "Bu sürüş artık mevcut değil. Silinmiş veya gizli yapılmış olabilir.",
@@ -2509,16 +2527,18 @@
     "appStore": "App Store",
     "open": "Open",
     "cancel": "Cancel",
-    "distance": "Distance",
-    "time": "Time",
-    "elev": "Elev",
-    "gain": "Gain",
-    "peak": "Peak",
+    "distance": "Mesafe",
+    "time": "Süre",
+    "elev": "Tırmanış",
+    "gain": "Tırmanış",
+    "peak": "Zirve",
     "elevProfile": "Elev profile",
-    "personalRecord": "Personal Record",
-    "topSpeed": "Top speed",
-    "longestRide": "Longest ride",
-    "mostElevation": "Most elevation"
+    "personalRecord": "Kişisel rekor",
+    "topSpeed": "En yüksek hız",
+    "longestRide": "En uzun sürüş",
+    "mostElevation": "En fazla tırmanış",
+    "rideNumber": "Sürüş no. {{number}}",
+    "prevRecord": "+{{diff}} {{unit}} · önceki {{previous}} {{unit}}"
   },
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
@@ -2849,5 +2869,115 @@
     "pointChange": "Profil → Gizlilik bölümünden istediğin zaman değiştir.",
     "allow": "İzin ver",
     "decline": "İzin verme"
+  },
+  "tripDrafts": {
+    "continuePlanning": "Planlamaya devam et",
+    "newDraft": "Yeni taslak",
+    "newDraftA11y": "Yeni gezi oluştur",
+    "cardA11y": "Taslak gezi: {{title}}",
+    "dayUnit": "g",
+    "count_one": "{{count}} taslak",
+    "count_few": "{{count}} taslak",
+    "count_many": "{{count}} taslak",
+    "count_other": "{{count}} taslak"
+  },
+  "tripShare": {
+    "title": "Geziyi paylaş",
+    "closeA11y": "Kapat",
+    "archived": "Paylaşmak için bu geziyi arşivden çıkar.",
+    "generateTitle": "Paylaşım bağlantısı oluştur",
+    "generateBody": "Bu bağlantıya sahip herkes geziyi görüntüleyip iletebilir.",
+    "generateCta": "Bağlantı oluştur",
+    "urlLabel": "Paylaşım URL'si",
+    "info": "Bu bağlantıya sahip herkes gezini görüntüleyebilir",
+    "copy": "Bağlantıyı kopyala",
+    "copied": "Kopyalandı",
+    "shareSystem": "Paylaş…",
+    "regenerate": "Bağlantıyı yeniden oluştur",
+    "warning": "Bu bağlantıya sahip herkes geziyi görüntüleyip iletebilir. Bağlantı sızarsa yenisini oluştur.",
+    "stop": "Paylaşımı durdur",
+    "createErrorTitle": "Bağlantı oluşturulamadı",
+    "createErrorBody": "Bir şeyler ters gitti. Lütfen birazdan tekrar dene.",
+    "updateErrorTitle": "Gezi güncellenemedi",
+    "updateErrorBody": "Lütfen tekrar dene.",
+    "regenerateConfirmTitle": "Bağlantı yeniden oluşturulsun mu?",
+    "regenerateConfirmBody": "Önceki bağlantı hemen çalışmayı durduracak. Onu kullanan herkesin yeni bir bağlantıya ihtiyacı olacak.",
+    "regenerateConfirmCta": "Yeniden oluştur",
+    "stopConfirmTitle": "Bu gezinin paylaşımı durdurulsun mu?",
+    "stopConfirmBody": "Bağlantı hemen çalışmayı durduracak ve gezi gizli olacak.",
+    "shareMessage": "MotoVault'ta gezi"
+  },
+  "offlinePack": {
+    "downloading": "Çevrimdışı paket indiriliyor…",
+    "progress": "{{percent}}% · {{size}}",
+    "ready": "Çevrimdışı kullanılabilir",
+    "readyMeta": "{{size}} · {{date}} tarihinde indirildi",
+    "removeA11y": "Çevrimdışı indirmeyi kaldır",
+    "removeTitle": "Çevrimdışı indirme kaldırılsın mı?",
+    "removeBody": "Bu gezinin çevrimdışı kullanım için kaydettiği harita karolarını siler.",
+    "keep": "Sakla",
+    "remove": "Kaldır",
+    "downloadA11y": "Çevrimdışı için indir",
+    "downloadHint": "Harita karolarını ve gezi verilerini önbelleğe alır, böylece sinyal olmadan kullanabilirsin",
+    "downloadPro": "Pro ile çevrimdışı için indir",
+    "downloadBody": "Zayıf sinyalli sürüşlerden önce harita karolarını ve gezi verilerini kaydet."
+  },
+  "rideThis": {
+    "title": "Bu rotayı sür",
+    "close": "Kapat",
+    "segmentOpened": "{{total}} bölümden {{index}}. bölüm açıldı",
+    "openSegmentA11y": "{{total}} bölümden {{index}}. bölümü aç",
+    "openSegment": "{{index}}. bölümü aç",
+    "openFinalSegment": "Son bölümü aç",
+    "bodyDay": "{{day}}. günün duraklarını navigasyon uygulamana aktar.",
+    "bodyAll": "Rotayı sürüşte kullandığın uygulamaya aktar.",
+    "allDays": "Tüm günler",
+    "gpx": "Çevrimdışı uygulamalar için GPX",
+    "disclaimer": "Senin yerine navigasyon yapmıyoruz; sürüşün bildiğin uygulamada kalır. MotoVault yalnızca planı hazırlar ve düzgünce aktarır."
+  },
+  "tripReadiness": {
+    "nearlyReady": "Neredeyse hazır",
+    "somePending": "Bazı kontroller bekliyor",
+    "needsAttention": "Dikkat gerekiyor",
+    "checksPass": "{{passed}}/{{total}} kontrol geçti",
+    "a11y": "{{headline}}. Yüzde {{percent}} hazır. Kontrol listesini görmek için dokunun.",
+    "shareBrief": "Depo çantası özetini paylaş"
+  },
+  "tripSuggestions": {
+    "title": "Öneriler",
+    "status": {
+      "pending": "Bekliyor",
+      "accepted": "Kabul edildi",
+      "rejected": "Reddedildi",
+      "withdrawn": "Geri çekildi"
+    },
+    "suggestedBy": "{{name}} önerdi",
+    "period": {
+      "morning": "Sabah",
+      "afternoon": "Öğleden sonra",
+      "evening": "Akşam"
+    },
+    "note": "Not: {{note}}",
+    "accept": "Kabul et",
+    "reject": "Reddet",
+    "withdraw": "Geri çek",
+    "pending_one": "{{count}} bekliyor",
+    "pending_few": "{{count}} bekliyor",
+    "pending_many": "{{count}} bekliyor",
+    "pending_other": "{{count}} bekliyor"
+  },
+  "tripAssistant": {
+    "title": "Gezi asistanı",
+    "subtitle": "Motosikletini, duraklarını ve günlerini bilir.",
+    "reset": "Sıfırla",
+    "tryAsking": "Şunu sormayı dene:",
+    "thinking": "Düşünüyor…",
+    "sendA11y": "Mesaj gönder",
+    "prompts": {
+      "coffee": "2. ve 3. durak arasında kahve molası, rotadan en fazla 5 dk sapma",
+      "curvier": "Yarın öğleden sonra için daha virajlı bir alternatif",
+      "hotel": "Son durağa yakın motosiklet dostu otel",
+      "rain": "Yarın öğleden sonra yağmur yağarsa en iyi sapma"
+    }
   }
 }

@@ -785,7 +785,9 @@ export default function RideFlyoverScreen() {
             <Text style={[type.figureSmall, { color: palette.whiteAlpha85, lineHeight: 34 }]}>
               {currentTimeStr}
             </Text>
-            <Text style={[type.caption, { color: palette.whiteAlpha50, marginTop: 2 }]}>Time</Text>
+            <Text style={[type.caption, { color: palette.whiteAlpha50, marginTop: 2 }]}>
+              {t('shareSheet.time')}
+            </Text>
           </View>
         </View>
       </View>

@@ -2251,7 +2251,11 @@
     "participants": "Teilnehmer",
     "joinRide": "Fahrt beitreten",
     "leaveRide": "Fahrt verlassen",
-    "cancelRide": "Fahrt absagen"
+    "cancelRide": "Fahrt absagen",
+    "createTitle": "Gruppenfahrt erstellen",
+    "dateTimeLabel": "Datum und Uhrzeit",
+    "meetingPointLabel": "Treffpunkt",
+    "createError": "Die Fahrt konnte nicht erstellt werden. Versuche es erneut."
   },
   "rideHud": {
     "forgotToStopTitle": "Noch unterwegs?",
@@ -2286,7 +2290,11 @@
     "serviceTitle": "MotoVault zeichnet deine Fahrt auf",
     "serviceBody": "Tippe, um zur Fahrt zurückzukehren. Beende sie, wenn du absteigst.",
     "noGpsTitle": "Diese Fahrt konnte nicht aufgezeichnet werden",
-    "noGpsBody": "{{minutes}} Min. aufgezeichnet, aber kaum Strecke. GPS war vielleicht blockiert, ausgeschaltet oder auf ungefähren Standort gestellt."
+    "noGpsBody": "{{minutes}} Min. aufgezeichnet, aber kaum Strecke. GPS war vielleicht blockiert, ausgeschaltet oder auf ungefähren Standort gestellt.",
+    "currentSpeedA11y": "Aktuelle Geschwindigkeit: {{speed}} {{unit}}",
+    "elapsedA11y": "Verstrichene Zeit: {{time}}",
+    "statusRecording": "Aufnahme läuft",
+    "statusPaused": "Pausiert"
   },
   "rideSummary": {
     "namePlaceholder": "Benenne deine Fahrt...",
@@ -2323,7 +2331,14 @@
     "couldNotOpenTitle": "Konnte nicht geoeffnet werden",
     "connectionError": "Pruefe deine Verbindung und versuche es erneut",
     "searchPlaceholder": "Routen oder Orte suchen...",
-    "reviewPlaceholder": "Teile deine Erfahrung (optional)"
+    "reviewPlaceholder": "Teile deine Erfahrung (optional)",
+    "noResults": "Keine Ergebnisse gefunden",
+    "routesSection": "Routen",
+    "locationsSection": "Orte",
+    "searchA11y": "Routen und Orte suchen",
+    "clearA11y": "Suche löschen",
+    "routeA11y": "Route: {{name}}",
+    "locationA11y": "Ort: {{name}}"
   },
   "discoverFilters": {
     "surfacePaved": "Asphalt",
@@ -2350,7 +2365,9 @@
   },
   "mapPicker": {
     "title": "Kartenstil",
-    "searchPlaceholder": "Ort suchen..."
+    "searchPlaceholder": "Ort suchen...",
+    "freeSection": "Kostenlos",
+    "proSection": "Pro"
   },
   "survey": {
     "feedbackPlaceholder": "Teile deine Gedanken (bitte keine persoenlichen Daten)"
@@ -2402,7 +2419,8 @@
     "ride_one": "{{count}} ride",
     "ride_other": "{{count}} rides",
     "elev": "elev.",
-    "dur": "Dur"
+    "dur": "Dur",
+    "avg": "Ø"
   },
   "rideDetail": {
     "unavailable": "Diese Fahrt ist nicht mehr verfügbar. Sie wurde möglicherweise gelöscht oder auf privat gestellt.",
@@ -2509,16 +2527,18 @@
     "appStore": "App Store",
     "open": "Open",
     "cancel": "Cancel",
-    "distance": "Distance",
-    "time": "Time",
-    "elev": "Elev",
-    "gain": "Gain",
-    "peak": "Peak",
+    "distance": "Strecke",
+    "time": "Zeit",
+    "elev": "Höhe",
+    "gain": "Anstieg",
+    "peak": "Höchster Punkt",
     "elevProfile": "Elev profile",
-    "personalRecord": "Personal Record",
-    "topSpeed": "Top speed",
-    "longestRide": "Longest ride",
-    "mostElevation": "Most elevation"
+    "personalRecord": "Persönlicher Rekord",
+    "topSpeed": "Höchstgeschwindigkeit",
+    "longestRide": "Längste Fahrt",
+    "mostElevation": "Meiste Höhenmeter",
+    "rideNumber": "Fahrt Nr. {{number}}",
+    "prevRecord": "+{{diff}} {{unit}} · vorher {{previous}} {{unit}}"
   },
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
@@ -2849,5 +2869,115 @@
     "pointChange": "Jederzeit änderbar unter Profil → Datenschutz.",
     "allow": "Erlauben",
     "decline": "Nicht erlauben"
+  },
+  "tripDrafts": {
+    "continuePlanning": "Weiter planen",
+    "newDraft": "Neuer Entwurf",
+    "newDraftA11y": "Neue Tour erstellen",
+    "cardA11y": "Tourentwurf: {{title}}",
+    "dayUnit": "T",
+    "count_one": "{{count}} Entwurf",
+    "count_few": "{{count}} Entwürfe",
+    "count_many": "{{count}} Entwürfe",
+    "count_other": "{{count}} Entwürfe"
+  },
+  "tripShare": {
+    "title": "Tour teilen",
+    "closeA11y": "Schließen",
+    "archived": "Hole diese Tour aus dem Archiv, um sie zu teilen.",
+    "generateTitle": "Link zum Teilen erstellen",
+    "generateBody": "Jeder mit diesem Link kann die Tour ansehen und weiterleiten.",
+    "generateCta": "Link erstellen",
+    "urlLabel": "Link zum Teilen",
+    "info": "Jeder mit diesem Link kann deine Tour ansehen",
+    "copy": "Link kopieren",
+    "copied": "Kopiert",
+    "shareSystem": "Teilen…",
+    "regenerate": "Link neu erstellen",
+    "warning": "Jeder mit diesem Link kann die Tour ansehen und weiterleiten. Erstelle einen neuen Link, falls er in falsche Hände gerät.",
+    "stop": "Teilen beenden",
+    "createErrorTitle": "Link konnte nicht erstellt werden",
+    "createErrorBody": "Etwas ist schiefgelaufen. Bitte versuche es gleich noch einmal.",
+    "updateErrorTitle": "Tour konnte nicht aktualisiert werden",
+    "updateErrorBody": "Bitte versuche es noch einmal.",
+    "regenerateConfirmTitle": "Link neu erstellen?",
+    "regenerateConfirmBody": "Der bisherige Link funktioniert sofort nicht mehr. Wer ihn nutzt, braucht einen neuen Link.",
+    "regenerateConfirmCta": "Neu erstellen",
+    "stopConfirmTitle": "Teilen dieser Tour beenden?",
+    "stopConfirmBody": "Der Link funktioniert sofort nicht mehr und die Tour wird privat.",
+    "shareMessage": "Tour auf MotoVault"
+  },
+  "offlinePack": {
+    "downloading": "Offline-Paket wird geladen…",
+    "progress": "{{percent}}% · {{size}}",
+    "ready": "Offline verfügbar",
+    "readyMeta": "{{size}} · geladen am {{date}}",
+    "removeA11y": "Offline-Download entfernen",
+    "removeTitle": "Offline-Download entfernen?",
+    "removeBody": "Gibt die Kartenkacheln frei, die diese Tour für die Offline-Nutzung gespeichert hat.",
+    "keep": "Behalten",
+    "remove": "Entfernen",
+    "downloadA11y": "Für offline herunterladen",
+    "downloadHint": "Speichert Kartenkacheln und Tourdaten, damit du sie ohne Empfang nutzen kannst",
+    "downloadPro": "Mit Pro für offline herunterladen",
+    "downloadBody": "Speichere Kartenkacheln und Tourdaten vor Fahrten mit schwachem Empfang."
+  },
+  "rideThis": {
+    "title": "Losfahren",
+    "close": "Schließen",
+    "segmentOpened": "Abschnitt {{index}} von {{total}} geöffnet",
+    "openSegmentA11y": "Abschnitt {{index}} von {{total}} öffnen",
+    "openSegment": "Abschnitt {{index}} öffnen",
+    "openFinalSegment": "Letzten Abschnitt öffnen",
+    "bodyDay": "Übergib die Stopps von Tag {{day}} an deine Navi-App.",
+    "bodyAll": "Übergib die Route an die App, mit der du fährst.",
+    "allDays": "Alle Tage",
+    "gpx": "GPX für Offline-Apps",
+    "disclaimer": "Wir navigieren nicht für dich – du fährst mit der App, die du kennst. MotoVault erstellt nur den Plan und übergibt ihn sauber."
+  },
+  "tripReadiness": {
+    "nearlyReady": "Fast bereit",
+    "somePending": "Einige Checks offen",
+    "needsAttention": "Braucht Aufmerksamkeit",
+    "checksPass": "{{passed}}/{{total}} Checks bestanden",
+    "a11y": "{{headline}}. Zu {{percent}} Prozent bereit. Tippen, um die Checkliste zu sehen.",
+    "shareBrief": "Tankrucksack-Briefing teilen"
+  },
+  "tripSuggestions": {
+    "title": "Vorschläge",
+    "status": {
+      "pending": "Offen",
+      "accepted": "Angenommen",
+      "rejected": "Abgelehnt",
+      "withdrawn": "Zurückgezogen"
+    },
+    "suggestedBy": "Vorgeschlagen von {{name}}",
+    "period": {
+      "morning": "Vormittag",
+      "afternoon": "Nachmittag",
+      "evening": "Abend"
+    },
+    "note": "Notiz: {{note}}",
+    "accept": "Annehmen",
+    "reject": "Ablehnen",
+    "withdraw": "Zurückziehen",
+    "pending_one": "{{count}} offen",
+    "pending_few": "{{count}} offen",
+    "pending_many": "{{count}} offen",
+    "pending_other": "{{count}} offen"
+  },
+  "tripAssistant": {
+    "title": "Reiseassistent",
+    "subtitle": "Kennt dein Motorrad, deine Wegpunkte und Tage.",
+    "reset": "Zurücksetzen",
+    "tryAsking": "Frag zum Beispiel:",
+    "thinking": "Denke nach…",
+    "sendA11y": "Nachricht senden",
+    "prompts": {
+      "coffee": "Kaffeepause zwischen Stopp 2 und 3, max. 5 Min. Umweg",
+      "curvier": "Kurvigere Alternative für morgen Nachmittag",
+      "hotel": "Motorradfreundliches Hotel nahe dem letzten Stopp",
+      "rain": "Beste Umleitung, falls es morgen Nachmittag regnet"
+    }
   }
 }

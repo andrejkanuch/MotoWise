@@ -2251,7 +2251,11 @@
     "participants": "Participants",
     "joinRide": "Join Ride",
     "leaveRide": "Leave Ride",
-    "cancelRide": "Cancel Ride"
+    "cancelRide": "Cancel Ride",
+    "createTitle": "สร้างทริปขี่กลุ่ม",
+    "dateTimeLabel": "วันที่และเวลา",
+    "meetingPointLabel": "จุดนัดพบ",
+    "createError": "สร้างทริปไม่สำเร็จ ลองอีกครั้ง"
   },
   "rideHud": {
     "forgotToStopTitle": "ยังขี่อยู่ไหม?",
@@ -2286,7 +2290,11 @@
     "serviceTitle": "MotoVault กำลังบันทึกการขับขี่ของคุณ",
     "serviceBody": "แตะเพื่อกลับไปที่การขับขี่ จบเมื่อคุณลงจากรถ",
     "noGpsTitle": "เราไม่สามารถติดตามการขับขี่นี้ได้",
-    "noGpsBody": "บันทึกได้ {{minutes}} นาที แต่แทบไม่มีระยะทาง GPS อาจถูกบัง ปิดอยู่ หรือตั้งเป็นตำแหน่งโดยประมาณ"
+    "noGpsBody": "บันทึกได้ {{minutes}} นาที แต่แทบไม่มีระยะทาง GPS อาจถูกบัง ปิดอยู่ หรือตั้งเป็นตำแหน่งโดยประมาณ",
+    "currentSpeedA11y": "ความเร็วปัจจุบัน: {{speed}} {{unit}}",
+    "elapsedA11y": "เวลาที่ผ่านไป: {{time}}",
+    "statusRecording": "กำลังบันทึก",
+    "statusPaused": "หยุดชั่วคราว"
   },
   "rideSummary": {
     "namePlaceholder": "ตั้งชื่อการขับขี่...",
@@ -2323,7 +2331,14 @@
     "couldNotOpenTitle": "ไม่สามารถเปิดได้",
     "connectionError": "ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง",
     "searchPlaceholder": "ค้นหาเส้นทางหรือสถานที่...",
-    "reviewPlaceholder": "แบ่งปันประสบการณ์ของคุณ (ไม่บังคับ)"
+    "reviewPlaceholder": "แบ่งปันประสบการณ์ของคุณ (ไม่บังคับ)",
+    "noResults": "ไม่พบผลลัพธ์",
+    "routesSection": "เส้นทาง",
+    "locationsSection": "สถานที่",
+    "searchA11y": "ค้นหาเส้นทางและสถานที่",
+    "clearA11y": "ล้างการค้นหา",
+    "routeA11y": "เส้นทาง: {{name}}",
+    "locationA11y": "สถานที่: {{name}}"
   },
   "discoverFilters": {
     "surfacePaved": "ถนนลาดยาง",
@@ -2350,7 +2365,9 @@
   },
   "mapPicker": {
     "title": "รูปแบบแผนที่",
-    "searchPlaceholder": "ค้นหาสถานที่..."
+    "searchPlaceholder": "ค้นหาสถานที่...",
+    "freeSection": "ฟรี",
+    "proSection": "Pro"
   },
   "survey": {
     "feedbackPlaceholder": "แบ่งปันความคิดเห็นของคุณ (กรุณาอย่าใส่ข้อมูลส่วนตัว)"
@@ -2402,7 +2419,8 @@
     "ride_one": "{{count}} ride",
     "ride_other": "{{count}} rides",
     "elev": "elev.",
-    "dur": "Dur"
+    "dur": "Dur",
+    "avg": "เฉลี่ย"
   },
   "rideDetail": {
     "unavailable": "การขับขี่นี้ไม่พร้อมใช้งานแล้ว อาจถูกลบหรือตั้งเป็นส่วนตัว",
@@ -2509,16 +2527,18 @@
     "appStore": "App Store",
     "open": "Open",
     "cancel": "Cancel",
-    "distance": "Distance",
-    "time": "Time",
-    "elev": "Elev",
-    "gain": "Gain",
-    "peak": "Peak",
+    "distance": "ระยะทาง",
+    "time": "เวลา",
+    "elev": "ความสูง",
+    "gain": "ไต่ขึ้น",
+    "peak": "จุดสูงสุด",
     "elevProfile": "Elev profile",
-    "personalRecord": "Personal Record",
-    "topSpeed": "Top speed",
-    "longestRide": "Longest ride",
-    "mostElevation": "Most elevation"
+    "personalRecord": "สถิติส่วนตัว",
+    "topSpeed": "ความเร็วสูงสุด",
+    "longestRide": "การขี่ที่ไกลที่สุด",
+    "mostElevation": "ไต่ระดับมากที่สุด",
+    "rideNumber": "การขี่ครั้งที่ {{number}}",
+    "prevRecord": "+{{diff}} {{unit}} · ก่อนหน้า {{previous}} {{unit}}"
   },
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
@@ -2849,5 +2869,115 @@
     "pointChange": "เปลี่ยนได้ทุกเมื่อที่ โปรไฟล์ → ความเป็นส่วนตัว",
     "allow": "อนุญาต",
     "decline": "ไม่อนุญาต"
+  },
+  "tripDrafts": {
+    "continuePlanning": "วางแผนต่อ",
+    "newDraft": "ร่างใหม่",
+    "newDraftA11y": "สร้างทริปใหม่",
+    "cardA11y": "ทริปฉบับร่าง: {{title}}",
+    "dayUnit": "วัน",
+    "count_one": "ร่าง {{count}} รายการ",
+    "count_few": "ร่าง {{count}} รายการ",
+    "count_many": "ร่าง {{count}} รายการ",
+    "count_other": "ร่าง {{count}} รายการ"
+  },
+  "tripShare": {
+    "title": "แชร์ทริป",
+    "closeA11y": "ปิด",
+    "archived": "นำทริปนี้ออกจากที่เก็บถาวรเพื่อแชร์",
+    "generateTitle": "สร้างลิงก์สำหรับแชร์",
+    "generateBody": "ทุกคนที่มีลิงก์นี้สามารถดูและส่งต่อทริปได้",
+    "generateCta": "สร้างลิงก์",
+    "urlLabel": "URL สำหรับแชร์",
+    "info": "ทุกคนที่มีลิงก์นี้สามารถดูทริปของคุณได้",
+    "copy": "คัดลอกลิงก์",
+    "copied": "คัดลอกแล้ว",
+    "shareSystem": "แชร์…",
+    "regenerate": "สร้างลิงก์ใหม่",
+    "warning": "ทุกคนที่มีลิงก์นี้สามารถดูและส่งต่อทริปได้ หากลิงก์รั่วไหล ให้สร้างลิงก์ใหม่",
+    "stop": "หยุดแชร์",
+    "createErrorTitle": "ไม่สามารถสร้างลิงก์ได้",
+    "createErrorBody": "เกิดข้อผิดพลาด โปรดลองอีกครั้งในอีกสักครู่",
+    "updateErrorTitle": "ไม่สามารถอัปเดตทริปได้",
+    "updateErrorBody": "โปรดลองอีกครั้ง",
+    "regenerateConfirmTitle": "สร้างลิงก์ใหม่ใช่ไหม",
+    "regenerateConfirmBody": "ลิงก์เดิมจะใช้ไม่ได้ทันที ผู้ที่ใช้ลิงก์นั้นจะต้องได้รับลิงก์ใหม่",
+    "regenerateConfirmCta": "สร้างใหม่",
+    "stopConfirmTitle": "หยุดแชร์ทริปนี้ใช่ไหม",
+    "stopConfirmBody": "ลิงก์จะใช้ไม่ได้ทันทีและทริปจะเป็นแบบส่วนตัว",
+    "shareMessage": "ทริปบน MotoVault"
+  },
+  "offlinePack": {
+    "downloading": "กำลังดาวน์โหลดแพ็กออฟไลน์…",
+    "progress": "{{percent}}% · {{size}}",
+    "ready": "ใช้งานออฟไลน์ได้",
+    "readyMeta": "{{size}} · ดาวน์โหลดเมื่อ {{date}}",
+    "removeA11y": "ลบข้อมูลออฟไลน์ที่ดาวน์โหลด",
+    "removeTitle": "ลบข้อมูลออฟไลน์ที่ดาวน์โหลดใช่ไหม",
+    "removeBody": "ลบไทล์แผนที่ที่ทริปนี้บันทึกไว้ใช้แบบออฟไลน์เพื่อเพิ่มพื้นที่",
+    "keep": "เก็บไว้",
+    "remove": "ลบ",
+    "downloadA11y": "ดาวน์โหลดไว้ใช้ออฟไลน์",
+    "downloadHint": "แคชไทล์แผนที่และข้อมูลทริปเพื่อใช้งานได้แม้ไม่มีสัญญาณ",
+    "downloadPro": "ดาวน์โหลดไว้ใช้ออฟไลน์ด้วย Pro",
+    "downloadBody": "บันทึกไทล์แผนที่และข้อมูลทริปก่อนขี่ในพื้นที่สัญญาณอ่อน"
+  },
+  "rideThis": {
+    "title": "ขี่เส้นทางนี้",
+    "close": "ปิด",
+    "segmentOpened": "เปิดช่วงที่ {{index}} จาก {{total}} แล้ว",
+    "openSegmentA11y": "เปิดช่วงที่ {{index}} จาก {{total}}",
+    "openSegment": "เปิดช่วงที่ {{index}}",
+    "openFinalSegment": "เปิดช่วงสุดท้าย",
+    "bodyDay": "ส่งจุดแวะของวันที่ {{day}} ไปยังแอปนำทางของคุณ",
+    "bodyAll": "ส่งเส้นทางไปยังแอปที่คุณใช้ขณะขี่",
+    "allDays": "ทุกวัน",
+    "gpx": "GPX สำหรับแอปออฟไลน์",
+    "disclaimer": "เราไม่ได้นำทางให้คุณ — คุณขี่ด้วยแอปที่คุณคุ้นเคย MotoVault แค่สร้างแผนและส่งต่อให้อย่างเรียบร้อย"
+  },
+  "tripReadiness": {
+    "nearlyReady": "เกือบพร้อมแล้ว",
+    "somePending": "ยังมีบางรายการที่ต้องตรวจ",
+    "needsAttention": "ต้องตรวจสอบ",
+    "checksPass": "ผ่าน {{passed}}/{{total}} รายการ",
+    "a11y": "{{headline}} พร้อม {{percent}} เปอร์เซ็นต์ แตะเพื่อดูรายการตรวจ",
+    "shareBrief": "แชร์สรุปสำหรับกระเป๋าถัง"
+  },
+  "tripSuggestions": {
+    "title": "ข้อเสนอแนะ",
+    "status": {
+      "pending": "รอดำเนินการ",
+      "accepted": "ยอมรับแล้ว",
+      "rejected": "ปฏิเสธแล้ว",
+      "withdrawn": "ถอนแล้ว"
+    },
+    "suggestedBy": "เสนอโดย {{name}}",
+    "period": {
+      "morning": "ช่วงเช้า",
+      "afternoon": "ช่วงบ่าย",
+      "evening": "ช่วงเย็น"
+    },
+    "note": "หมายเหตุ: {{note}}",
+    "accept": "ยอมรับ",
+    "reject": "ปฏิเสธ",
+    "withdraw": "ถอน",
+    "pending_one": "รอดำเนินการ {{count}} รายการ",
+    "pending_few": "รอดำเนินการ {{count}} รายการ",
+    "pending_many": "รอดำเนินการ {{count}} รายการ",
+    "pending_other": "รอดำเนินการ {{count}} รายการ"
+  },
+  "tripAssistant": {
+    "title": "ผู้ช่วยทริป",
+    "subtitle": "รู้จักรถ จุดแวะ และวันของคุณ",
+    "reset": "รีเซ็ต",
+    "tryAsking": "ลองถาม:",
+    "thinking": "กำลังคิด…",
+    "sendA11y": "ส่งข้อความ",
+    "prompts": {
+      "coffee": "แวะกาแฟระหว่างจุดที่ 2 และ 3 ออกนอกเส้นทางไม่เกิน 5 นาที",
+      "curvier": "ทางเลือกที่โค้งมากขึ้นสำหรับบ่ายพรุ่งนี้",
+      "hotel": "โรงแรมที่เป็นมิตรกับไบค์เกอร์ใกล้จุดสุดท้าย",
+      "rain": "ทางเลี่ยงที่ดีที่สุดถ้าบ่ายพรุ่งนี้ฝนตก"
+    }
   }
 }

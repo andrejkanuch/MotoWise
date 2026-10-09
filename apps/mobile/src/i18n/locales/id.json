@@ -2251,7 +2251,11 @@
     "participants": "Participants",
     "joinRide": "Join Ride",
     "leaveRide": "Leave Ride",
-    "cancelRide": "Cancel Ride"
+    "cancelRide": "Cancel Ride",
+    "createTitle": "Buat touring grup",
+    "dateTimeLabel": "Tanggal dan waktu",
+    "meetingPointLabel": "Titik kumpul",
+    "createError": "Gagal membuat touring. Coba lagi."
   },
   "rideHud": {
     "forgotToStopTitle": "Masih berkendara?",
@@ -2286,7 +2290,11 @@
     "serviceTitle": "MotoVault sedang merekam perjalanan Anda",
     "serviceBody": "Ketuk untuk kembali ke perjalanan. Akhiri saat Anda turun dari motor.",
     "noGpsTitle": "Kami tidak dapat melacak perjalanan ini",
-    "noGpsBody": "{{minutes}} menit terekam, tetapi hampir tanpa jarak. GPS mungkin terhalang, mati, atau diatur ke lokasi perkiraan."
+    "noGpsBody": "{{minutes}} menit terekam, tetapi hampir tanpa jarak. GPS mungkin terhalang, mati, atau diatur ke lokasi perkiraan.",
+    "currentSpeedA11y": "Kecepatan saat ini: {{speed}} {{unit}}",
+    "elapsedA11y": "Waktu berjalan: {{time}}",
+    "statusRecording": "Merekam",
+    "statusPaused": "Dijeda"
   },
   "rideSummary": {
     "namePlaceholder": "Beri nama perjalananmu...",
@@ -2323,7 +2331,14 @@
     "couldNotOpenTitle": "Tidak bisa dibuka",
     "connectionError": "Periksa koneksi dan coba lagi",
     "searchPlaceholder": "Cari rute atau tempat...",
-    "reviewPlaceholder": "Bagikan pengalamanmu (opsional)"
+    "reviewPlaceholder": "Bagikan pengalamanmu (opsional)",
+    "noResults": "Tidak ada hasil",
+    "routesSection": "Rute",
+    "locationsSection": "Lokasi",
+    "searchA11y": "Cari rute dan tempat",
+    "clearA11y": "Hapus pencarian",
+    "routeA11y": "Rute: {{name}}",
+    "locationA11y": "Lokasi: {{name}}"
   },
   "discoverFilters": {
     "surfacePaved": "Beraspal",
@@ -2350,7 +2365,9 @@
   },
   "mapPicker": {
     "title": "Gaya Peta",
-    "searchPlaceholder": "Cari lokasi..."
+    "searchPlaceholder": "Cari lokasi...",
+    "freeSection": "Gratis",
+    "proSection": "Pro"
   },
   "survey": {
     "feedbackPlaceholder": "Bagikan pemikiranmu (jangan sertakan info pribadi)"
@@ -2402,7 +2419,8 @@
     "ride_one": "{{count}} ride",
     "ride_other": "{{count}} rides",
     "elev": "elev.",
-    "dur": "Dur"
+    "dur": "Dur",
+    "avg": "Rata-rata"
   },
   "rideDetail": {
     "unavailable": "Perjalanan ini tidak lagi tersedia. Mungkin sudah dihapus atau dijadikan pribadi.",
@@ -2509,16 +2527,18 @@
     "appStore": "App Store",
     "open": "Open",
     "cancel": "Cancel",
-    "distance": "Distance",
-    "time": "Time",
+    "distance": "Jarak",
+    "time": "Waktu",
     "elev": "Elev",
-    "gain": "Gain",
-    "peak": "Peak",
+    "gain": "Tanjakan",
+    "peak": "Puncak",
     "elevProfile": "Elev profile",
-    "personalRecord": "Personal Record",
-    "topSpeed": "Top speed",
-    "longestRide": "Longest ride",
-    "mostElevation": "Most elevation"
+    "personalRecord": "Rekor pribadi",
+    "topSpeed": "Kecepatan tertinggi",
+    "longestRide": "Perjalanan terjauh",
+    "mostElevation": "Tanjakan terbanyak",
+    "rideNumber": "Perjalanan no. {{number}}",
+    "prevRecord": "+{{diff}} {{unit}} · sebelumnya {{previous}} {{unit}}"
   },
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
@@ -2849,5 +2869,115 @@
     "pointChange": "Ubah kapan saja di Profil → Privasi.",
     "allow": "Izinkan",
     "decline": "Jangan izinkan"
+  },
+  "tripDrafts": {
+    "continuePlanning": "Lanjutkan perencanaan",
+    "newDraft": "Draf baru",
+    "newDraftA11y": "Buat perjalanan baru",
+    "cardA11y": "Draf perjalanan: {{title}}",
+    "dayUnit": "h",
+    "count_one": "{{count}} draf",
+    "count_few": "{{count}} draf",
+    "count_many": "{{count}} draf",
+    "count_other": "{{count}} draf"
+  },
+  "tripShare": {
+    "title": "Bagikan perjalanan",
+    "closeA11y": "Tutup",
+    "archived": "Keluarkan perjalanan ini dari arsip untuk membagikannya.",
+    "generateTitle": "Buat tautan berbagi",
+    "generateBody": "Siapa pun yang memiliki tautan ini dapat melihat dan meneruskan perjalanan.",
+    "generateCta": "Buat tautan",
+    "urlLabel": "URL berbagi",
+    "info": "Siapa pun yang memiliki tautan ini dapat melihat perjalananmu",
+    "copy": "Salin tautan",
+    "copied": "Disalin",
+    "shareSystem": "Bagikan…",
+    "regenerate": "Buat ulang tautan",
+    "warning": "Siapa pun yang memiliki tautan ini dapat melihat dan meneruskan perjalanan. Buat ulang tautan jika bocor.",
+    "stop": "Berhenti berbagi",
+    "createErrorTitle": "Tidak dapat membuat tautan",
+    "createErrorBody": "Terjadi kesalahan. Coba lagi sebentar lagi.",
+    "updateErrorTitle": "Tidak dapat memperbarui perjalanan",
+    "updateErrorBody": "Silakan coba lagi.",
+    "regenerateConfirmTitle": "Buat ulang tautan?",
+    "regenerateConfirmBody": "Tautan sebelumnya akan langsung berhenti berfungsi. Siapa pun yang memakainya perlu tautan baru.",
+    "regenerateConfirmCta": "Buat ulang",
+    "stopConfirmTitle": "Berhenti membagikan perjalanan ini?",
+    "stopConfirmBody": "Tautan akan langsung berhenti berfungsi dan perjalanan menjadi privat.",
+    "shareMessage": "Perjalanan di MotoVault"
+  },
+  "offlinePack": {
+    "downloading": "Mengunduh paket offline…",
+    "progress": "{{percent}}% · {{size}}",
+    "ready": "Tersedia offline",
+    "readyMeta": "{{size}} · diunduh {{date}}",
+    "removeA11y": "Hapus unduhan offline",
+    "removeTitle": "Hapus unduhan offline?",
+    "removeBody": "Mengosongkan petak peta yang disimpan perjalanan ini untuk penggunaan offline.",
+    "keep": "Simpan",
+    "remove": "Hapus",
+    "downloadA11y": "Unduh untuk offline",
+    "downloadHint": "Menyimpan petak peta dan data perjalanan agar bisa dipakai tanpa sinyal",
+    "downloadPro": "Unduh untuk offline dengan Pro",
+    "downloadBody": "Simpan petak peta dan data perjalanan sebelum berkendara di area sinyal lemah."
+  },
+  "rideThis": {
+    "title": "Kendarai rute ini",
+    "close": "Tutup",
+    "segmentOpened": "Segmen {{index}} dari {{total}} dibuka",
+    "openSegmentA11y": "Buka segmen {{index}} dari {{total}}",
+    "openSegment": "Buka segmen {{index}}",
+    "openFinalSegment": "Buka segmen terakhir",
+    "bodyDay": "Kirim perhentian Hari {{day}} ke aplikasi navigasimu.",
+    "bodyAll": "Kirim rute ke aplikasi yang kamu pakai saat berkendara.",
+    "allDays": "Semua hari",
+    "gpx": "GPX untuk aplikasi offline",
+    "disclaimer": "Kami tidak menavigasi untukmu — perjalananmu tetap di aplikasi yang kamu kenal. MotoVault hanya menyusun rencana dan menyerahkannya dengan rapi."
+  },
+  "tripReadiness": {
+    "nearlyReady": "Hampir siap",
+    "somePending": "Beberapa pemeriksaan tertunda",
+    "needsAttention": "Perlu perhatian",
+    "checksPass": "{{passed}}/{{total}} pemeriksaan lolos",
+    "a11y": "{{headline}}. {{percent}} persen siap. Ketuk untuk melihat daftar periksa.",
+    "shareBrief": "Bagikan ringkasan tank bag"
+  },
+  "tripSuggestions": {
+    "title": "Saran",
+    "status": {
+      "pending": "Tertunda",
+      "accepted": "Diterima",
+      "rejected": "Ditolak",
+      "withdrawn": "Ditarik"
+    },
+    "suggestedBy": "Disarankan oleh {{name}}",
+    "period": {
+      "morning": "Pagi",
+      "afternoon": "Siang",
+      "evening": "Malam"
+    },
+    "note": "Catatan: {{note}}",
+    "accept": "Terima",
+    "reject": "Tolak",
+    "withdraw": "Tarik",
+    "pending_one": "{{count}} tertunda",
+    "pending_few": "{{count}} tertunda",
+    "pending_many": "{{count}} tertunda",
+    "pending_other": "{{count}} tertunda"
+  },
+  "tripAssistant": {
+    "title": "Asisten perjalanan",
+    "subtitle": "Mengenal motor, titik rute, dan hari perjalananmu.",
+    "reset": "Atur ulang",
+    "tryAsking": "Coba tanyakan:",
+    "thinking": "Sedang berpikir…",
+    "sendA11y": "Kirim pesan",
+    "prompts": {
+      "coffee": "Mampir ngopi antara titik 2 dan 3, maksimal 5 menit dari rute",
+      "curvier": "Alternatif lebih berkelok untuk besok siang",
+      "hotel": "Hotel ramah motor dekat titik terakhir",
+      "rain": "Jalan memutar terbaik jika besok sore hujan"
+    }
   }
 }

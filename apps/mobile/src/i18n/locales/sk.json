@@ -2291,7 +2291,11 @@
     "participants": "Účastníci",
     "joinRide": "Pripojiť sa k jazde",
     "leaveRide": "Opustiť jazdu",
-    "cancelRide": "Zrušiť jazdu"
+    "cancelRide": "Zrušiť jazdu",
+    "createTitle": "Vytvoriť skupinovú jazdu",
+    "dateTimeLabel": "Dátum a čas",
+    "meetingPointLabel": "Miesto stretnutia",
+    "createError": "Jazdu sa nepodarilo vytvoriť. Skúste to znova."
   },
   "rideHud": {
     "forgotToStopTitle": "Stále na cestách?",
@@ -2326,7 +2330,11 @@
     "serviceTitle": "MotoVault nahráva tvoju jazdu",
     "serviceBody": "Ťukni pre návrat k jazde. Ukonči ju, keď zosadneš z motorky.",
     "noGpsTitle": "Túto jazdu sa nepodarilo zaznamenať",
-    "noGpsBody": "Nahraných {{minutes}} min, ale takmer žiadna vzdialenosť. GPS mohlo byť zatienené, vypnuté alebo nastavené na približnú polohu."
+    "noGpsBody": "Nahraných {{minutes}} min, ale takmer žiadna vzdialenosť. GPS mohlo byť zatienené, vypnuté alebo nastavené na približnú polohu.",
+    "currentSpeedA11y": "Aktuálna rýchlosť: {{speed}} {{unit}}",
+    "elapsedA11y": "Uplynulý čas: {{time}}",
+    "statusRecording": "Nahráva sa",
+    "statusPaused": "Pozastavené"
   },
   "rideSummary": {
     "namePlaceholder": "Pomenuj svoju jazdu...",
@@ -2365,7 +2373,14 @@
     "couldNotOpenTitle": "Nepodarilo sa otvoriť",
     "connectionError": "Skontroluj pripojenie a skús znova",
     "searchPlaceholder": "Hľadať trasy alebo miesta...",
-    "reviewPlaceholder": "Podeľ sa o svoj zážitok (voliteľné)"
+    "reviewPlaceholder": "Podeľ sa o svoj zážitok (voliteľné)",
+    "noResults": "Žiadne výsledky",
+    "routesSection": "Trasy",
+    "locationsSection": "Miesta",
+    "searchA11y": "Hľadať trasy a miesta",
+    "clearA11y": "Vymazať hľadanie",
+    "routeA11y": "Trasa: {{name}}",
+    "locationA11y": "Miesto: {{name}}"
   },
   "discoverFilters": {
     "surfacePaved": "Asfalt",
@@ -2392,7 +2407,9 @@
   },
   "mapPicker": {
     "title": "Štýl mapy",
-    "searchPlaceholder": "Hľadať miesto..."
+    "searchPlaceholder": "Hľadať miesto...",
+    "freeSection": "Zadarmo",
+    "proSection": "Pro"
   },
   "survey": {
     "feedbackPlaceholder": "Podeľ sa o svoje myšlienky (bez osobných údajov prosím)"
@@ -2444,7 +2461,8 @@
     "ride_one": "{{count}} ride",
     "ride_other": "{{count}} rides",
     "elev": "elev.",
-    "dur": "Dur"
+    "dur": "Dur",
+    "avg": "Priem."
   },
   "rideDetail": {
     "unavailable": "Táto jazda už nie je dostupná. Možno bola odstránená alebo nastavená ako súkromná.",
@@ -2551,16 +2569,18 @@
     "appStore": "App Store",
     "open": "Open",
     "cancel": "Cancel",
-    "distance": "Distance",
-    "time": "Time",
-    "elev": "Elev",
-    "gain": "Gain",
-    "peak": "Peak",
+    "distance": "Vzdialenosť",
+    "time": "Čas",
+    "elev": "Prevýš.",
+    "gain": "Stúpanie",
+    "peak": "Vrchol",
     "elevProfile": "Elev profile",
-    "personalRecord": "Personal Record",
-    "topSpeed": "Top speed",
-    "longestRide": "Longest ride",
-    "mostElevation": "Most elevation"
+    "personalRecord": "Osobný rekord",
+    "topSpeed": "Max. rýchlosť",
+    "longestRide": "Najdlhšia jazda",
+    "mostElevation": "Najväčšie prevýšenie",
+    "rideNumber": "Jazda č. {{number}}",
+    "prevRecord": "+{{diff}} {{unit}} · predtým {{previous}} {{unit}}"
   },
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
@@ -2893,5 +2913,115 @@
     "pointChange": "Zmeníš to kedykoľvek v Profil → Súkromie.",
     "allow": "Povoliť",
     "decline": "Nepovoliť"
+  },
+  "tripDrafts": {
+    "continuePlanning": "Pokračovať v plánovaní",
+    "newDraft": "Nový koncept",
+    "newDraftA11y": "Vytvoriť nový výlet",
+    "cardA11y": "Koncept výletu: {{title}}",
+    "dayUnit": "d",
+    "count_one": "{{count}} koncept",
+    "count_few": "{{count}} koncepty",
+    "count_many": "{{count}} konceptov",
+    "count_other": "{{count}} konceptu"
+  },
+  "tripShare": {
+    "title": "Zdieľať výlet",
+    "closeA11y": "Zavrieť",
+    "archived": "Ak chcete výlet zdieľať, obnovte ho z archívu.",
+    "generateTitle": "Vytvoriť odkaz na zdieľanie",
+    "generateBody": "Ktokoľvek s týmto odkazom môže výlet zobraziť a preposlať.",
+    "generateCta": "Vytvoriť odkaz",
+    "urlLabel": "Odkaz na zdieľanie",
+    "info": "Ktokoľvek s týmto odkazom môže vidieť váš výlet",
+    "copy": "Kopírovať odkaz",
+    "copied": "Skopírované",
+    "shareSystem": "Zdieľať…",
+    "regenerate": "Vytvoriť nový odkaz",
+    "warning": "Ktokoľvek s týmto odkazom môže výlet zobraziť a preposlať. Ak odkaz unikne, vytvorte nový.",
+    "stop": "Zastaviť zdieľanie",
+    "createErrorTitle": "Odkaz sa nepodarilo vytvoriť",
+    "createErrorBody": "Niečo sa pokazilo. Skúste to znova o chvíľu.",
+    "updateErrorTitle": "Výlet sa nepodarilo aktualizovať",
+    "updateErrorBody": "Skúste to znova.",
+    "regenerateConfirmTitle": "Vytvoriť nový odkaz?",
+    "regenerateConfirmBody": "Predchádzajúci odkaz okamžite prestane fungovať. Kto ho používa, bude potrebovať nový.",
+    "regenerateConfirmCta": "Vytvoriť nový",
+    "stopConfirmTitle": "Zastaviť zdieľanie tohto výletu?",
+    "stopConfirmBody": "Odkaz okamžite prestane fungovať a výlet sa stane súkromným.",
+    "shareMessage": "Výlet v MotoVault"
+  },
+  "offlinePack": {
+    "downloading": "Sťahuje sa offline balík…",
+    "progress": "{{percent}}% · {{size}}",
+    "ready": "Dostupné offline",
+    "readyMeta": "{{size}} · stiahnuté {{date}}",
+    "removeA11y": "Odstrániť offline stiahnutie",
+    "removeTitle": "Odstrániť offline stiahnutie?",
+    "removeBody": "Uvoľní dlaždice mapy, ktoré tento výlet uložil na použitie offline.",
+    "keep": "Ponechať",
+    "remove": "Odstrániť",
+    "downloadA11y": "Stiahnuť na offline použitie",
+    "downloadHint": "Uloží dlaždice mapy a údaje výletu, aby ste ich mohli používať bez signálu",
+    "downloadPro": "Stiahnuť na offline použitie s Pro",
+    "downloadBody": "Uložte si dlaždice mapy a údaje výletu pred jazdou so slabým signálom."
+  },
+  "rideThis": {
+    "title": "Jazdiť túto trasu",
+    "close": "Zavrieť",
+    "segmentOpened": "Úsek {{index}} z {{total}} otvorený",
+    "openSegmentA11y": "Otvoriť úsek {{index}} z {{total}}",
+    "openSegment": "Otvoriť úsek {{index}}",
+    "openFinalSegment": "Otvoriť posledný úsek",
+    "bodyDay": "Odovzdaj zastávky dňa {{day}} svojej navigačnej aplikácii.",
+    "bodyAll": "Odovzdaj trasu aplikácii, s ktorou jazdíš.",
+    "allDays": "Všetky dni",
+    "gpx": "GPX pre offline aplikácie",
+    "disclaimer": "Nenavigujeme za teba — jazdíš s aplikáciou, ktorú poznáš. MotoVault len pripraví plán a čisto ho odovzdá."
+  },
+  "tripReadiness": {
+    "nearlyReady": "Takmer pripravené",
+    "somePending": "Niektoré kontroly čakajú",
+    "needsAttention": "Vyžaduje pozornosť",
+    "checksPass": "{{passed}}/{{total}} kontrol splnených",
+    "a11y": "{{headline}}. Pripravené na {{percent}} percent. Klepnutím zobrazíte zoznam.",
+    "shareBrief": "Zdieľať prehľad do tankvaku"
+  },
+  "tripSuggestions": {
+    "title": "Návrhy",
+    "status": {
+      "pending": "Čaká",
+      "accepted": "Prijaté",
+      "rejected": "Zamietnuté",
+      "withdrawn": "Stiahnuté"
+    },
+    "suggestedBy": "Navrhol(a) {{name}}",
+    "period": {
+      "morning": "Ráno",
+      "afternoon": "Popoludnie",
+      "evening": "Večer"
+    },
+    "note": "Poznámka: {{note}}",
+    "accept": "Prijať",
+    "reject": "Zamietnuť",
+    "withdraw": "Stiahnuť",
+    "pending_one": "{{count}} čaká",
+    "pending_few": "{{count}} čakajú",
+    "pending_many": "{{count}} čaká",
+    "pending_other": "{{count}} čaká"
+  },
+  "tripAssistant": {
+    "title": "Asistent výletu",
+    "subtitle": "Pozná tvoju motorku, zastávky aj dni.",
+    "reset": "Obnoviť",
+    "tryAsking": "Skús sa opýtať:",
+    "thinking": "Premýšľam…",
+    "sendA11y": "Odoslať správu",
+    "prompts": {
+      "coffee": "Zastávka na kávu medzi zastávkou 2 a 3, max. 5 min od trasy",
+      "curvier": "Kľukatejšia alternatíva na zajtra poobede",
+      "hotel": "Hotel pre motorkárov pri poslednej zastávke",
+      "rain": "Najlepšia obchádzka, ak bude zajtra poobede pršať"
+    }
   }
 }

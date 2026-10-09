@@ -22,6 +22,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../theme/editorial';
+import { type } from '../../theme/type';
 
 type Difficulty = 'easy' | 'moderate' | 'challenging';
 
@@ -128,8 +129,8 @@ export default function CreateGroupRideScreen() {
           >
             <ArrowLeft size={18} color={titleColor} />
           </Pressable>
-          <Text style={{ flex: 1, fontSize: 18, fontWeight: '700', color: titleColor }}>
-            Create Group Ride
+          <Text style={[type.sheetTitle, { flex: 1, color: titleColor }]}>
+            {t('groupRide.createTitle')}
           </Text>
         </View>
 
@@ -143,7 +144,7 @@ export default function CreateGroupRideScreen() {
         >
           {/* Title */}
           <Animated.View entering={FadeInUp.delay(0).duration(250)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
+            <Text style={[type.label, { color: labelColor, marginBottom: 6 }]}>
               {t('groupRide.titleLabel')} *
             </Text>
             <TextInput
@@ -168,7 +169,7 @@ export default function CreateGroupRideScreen() {
 
           {/* Description */}
           <Animated.View entering={FadeInUp.delay(50).duration(250)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
+            <Text style={[type.label, { color: labelColor, marginBottom: 6 }]}>
               {t('groupRide.descriptionLabel')} *
             </Text>
             <TextInput
@@ -197,8 +198,8 @@ export default function CreateGroupRideScreen() {
 
           {/* Date & Time */}
           <Animated.View entering={FadeInUp.delay(100).duration(250)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-              Date & Time
+            <Text style={[type.label, { color: labelColor, marginBottom: 6 }]}>
+              {t('groupRide.dateTimeLabel')}
             </Text>
             <View
               style={{
@@ -229,8 +230,8 @@ export default function CreateGroupRideScreen() {
 
           {/* Meeting Point */}
           <Animated.View entering={FadeInUp.delay(150).duration(250)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-              Meeting Point
+            <Text style={[type.label, { color: labelColor, marginBottom: 6 }]}>
+              {t('groupRide.meetingPointLabel')}
             </Text>
             {showMapPicker ? (
               <View
@@ -285,8 +286,8 @@ export default function CreateGroupRideScreen() {
 
           {/* Difficulty */}
           <Animated.View entering={FadeInUp.delay(200).duration(250)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-              Difficulty
+            <Text style={[type.label, { color: labelColor, marginBottom: 6 }]}>
+              {t('trips.difficultyLabel')}
             </Text>
             <View style={{ flexDirection: 'row', gap: 10 }}>
               {DIFFICULTIES.map((d) => {
@@ -323,7 +324,7 @@ export default function CreateGroupRideScreen() {
 
           {/* Max Riders */}
           <Animated.View entering={FadeInUp.delay(250).duration(250)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
+            <Text style={[type.label, { color: labelColor, marginBottom: 6 }]}>
               {t('groupRide.maxRidersLabel')}
             </Text>
             <TextInput
@@ -350,8 +351,8 @@ export default function CreateGroupRideScreen() {
 
           {/* Error message */}
           {createMutation.isError && (
-            <Text style={{ fontSize: 13, color: theme.overdueInk, textAlign: 'center' }}>
-              Failed to create ride. Please try again.
+            <Text style={[type.subhead, { color: theme.overdueInk, textAlign: 'center' }]}>
+              {t('groupRide.createError')}
             </Text>
           )}
         </ScrollView>
@@ -391,14 +392,8 @@ export default function CreateGroupRideScreen() {
             ) : (
               <>
                 <Plus size={18} color={isValid ? theme.onWarm : theme.ink3} />
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '700',
-                    color: isValid ? theme.onWarm : theme.ink3,
-                  }}
-                >
-                  Create Group Ride
+                <Text style={[type.bodyStrong, { color: isValid ? theme.onWarm : theme.ink3 }]}>
+                  {t('groupRide.createTitle')}
                 </Text>
               </>
             )}

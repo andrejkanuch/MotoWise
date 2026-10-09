@@ -4,6 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Calendar, MapPin, Plus, Users } from 'lucide-react-native';
 import { memo, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -17,12 +18,12 @@ import { DIFFICULTY_TOKEN } from '../discover-trip-card';
 
 type TripNode = MyTripsQuery['myTrips']['edges'][number]['node'];
 
-const DIFFICULTY_LABELS: Record<string, string> = {
-  easy: 'Chill',
-  moderate: 'Spirited',
-  challenging: 'Technical',
-  expert: 'Expert',
-};
+const DIFFICULTY_LABEL_KEYS = {
+  easy: 'trips.difficultyEasy',
+  moderate: 'trips.difficultyModerate',
+  challenging: 'trips.difficultyChallenging',
+  expert: 'trips.difficultyExpert',
+} as const;
 
 function dayCount(start: string, end: string): number {
   const ms = new Date(end).getTime() - new Date(start).getTime();
@@ -39,6 +40,7 @@ function formatDateRange(start: string, end: string): string {
 
 function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void }) {
   const { t } = useEditorialTheme();
+  const { t: tr } = useTranslation();
 
   const waypointCount = trip.waypoints?.length ?? 0;
   const days = dayCount(trip.startDate, trip.endDate);
@@ -48,7 +50,10 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
   const diffKey = (trip.difficulty || 'easy').toLowerCase();
   const diffToken = DIFFICULTY_TOKEN[diffKey as keyof typeof DIFFICULTY_TOKEN];
   const diffColor = diffToken ? t[diffToken] : t.ink3;
-  const diffLabel = DIFFICULTY_LABELS[diffKey] ?? 'Chill';
+  const diffLabel = tr(
+    DIFFICULTY_LABEL_KEYS[diffKey as keyof typeof DIFFICULTY_LABEL_KEYS] ??
+      DIFFICULTY_LABEL_KEYS.easy,
+  );
 
   const completeness = useMemo(
     () =>
@@ -66,7 +71,9 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`Draft trip: ${trip.title}`}
+      accessibilityLabel={tr('tripDrafts.cardA11y', {
+        title: trip.title || tr('trips.untitledTrip'),
+      })}
       style={({ pressed }) => ({
         width: 280,
         backgroundColor: pressed ? t.surface2 : t.surface,
@@ -89,7 +96,9 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
             borderCurve: 'continuous',
           }}
         >
-          <Text style={[type.caption, SYSTEM_WEIGHT.semibold, { color: t.onPlate }]}>Draft</Text>
+          <Text style={[type.caption, SYSTEM_WEIGHT.semibold, { color: t.onPlate }]}>
+            {tr('trips.draftLabel')}
+          </Text>
         </View>
 
         <View style={{ flex: 1 }} />
@@ -115,7 +124,7 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
 
       {/* Title */}
       <Text style={[type.bodyStrong, { color: t.ink }]} numberOfLines={1}>
-        {trip.title || 'Untitled trip'}
+        {trip.title || tr('trips.untitledTrip')}
       </Text>
 
       {/* Stats strip: days + stops + riders */}
@@ -124,7 +133,7 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
           <Calendar size={12} color={t.ink3} />
           <Text style={[type.figureSmall, { color: t.ink }]}>
             {days}
-            <Text style={[type.caption, { color: t.ink3 }]}>d</Text>
+            <Text style={[type.caption, { color: t.ink3 }]}>{tr('tripDrafts.dayUnit')}</Text>
           </Text>
         </View>
         {waypointCount > 0 && (
@@ -133,7 +142,8 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
             <Text style={[type.figureSmall, { color: t.ink }]}>
               {waypointCount}
               <Text style={[type.caption, { color: t.ink3 }]}>
-                {waypointCount === 1 ? ' stop' : ' stops'}
+                {' '}
+                {waypointCount === 1 ? tr('trips.stopSingular') : tr('trips.stopPlural')}
               </Text>
             </Text>
           </View>
@@ -181,12 +191,13 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
 
 function NewDraftCard({ onPress }: { onPress: () => void }) {
   const { t } = useEditorialTheme();
+  const { t: tr } = useTranslation();
 
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel="Create a new trip"
+      accessibilityLabel={tr('tripDrafts.newDraftA11y')}
       style={{
         width: 110,
         borderWidth: 1.5,
@@ -213,15 +224,8 @@ function NewDraftCard({ onPress }: { onPress: () => void }) {
       >
         <Plus size={14} color={t.ink2} />
       </View>
-      <Text
-        style={{
-          fontSize: 11,
-          fontWeight: '500',
-          color: t.ink2,
-          textAlign: 'center',
-        }}
-      >
-        New draft
+      <Text style={[type.caption, SYSTEM_WEIGHT.medium, { color: t.ink2, textAlign: 'center' }]}>
+        {tr('tripDrafts.newDraft')}
       </Text>
     </Pressable>
   );
@@ -229,6 +233,7 @@ function NewDraftCard({ onPress }: { onPress: () => void }) {
 
 export const DraftTripStrip = memo(function DraftTripStrip() {
   const { t } = useEditorialTheme();
+  const { t: tr } = useTranslation();
   const router = useRouter();
   const reducedMotion = useReducedMotion();
 
@@ -274,11 +279,11 @@ export const DraftTripStrip = memo(function DraftTripStrip() {
         style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}
       >
         <Text style={[type.sectionTitle, { color: t.ink }]} accessibilityRole="header">
-          Continue planning
+          {tr('tripDrafts.continuePlanning')}
         </Text>
         {!isLoading && (
           <Text style={[type.caption, { color: t.ink3 }]}>
-            {drafts.length} {drafts.length === 1 ? 'draft' : 'drafts'}
+            {tr('tripDrafts.count', { count: drafts.length })}
           </Text>
         )}
       </View>

@@ -15,7 +15,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { editorialThemes } from '../../theme/editorial';
-import { PLATE_FONT, type } from '../../theme/type';
+import { PLATE_FONT, SYSTEM_WEIGHT, type } from '../../theme/type';
 
 /** Layout A is always dark (night mode aside), so status uses the dark tokens. */
 const HUD_THEME = editorialThemes.dark;
@@ -98,7 +98,7 @@ export function HudLayoutA({
   const mutedColor = isNightMode ? palette.nightText : palette.neutral400;
 
   // Status badge colors
-  const statusLabel = isPaused ? 'PAUSED' : 'RECORDING';
+  const statusLabel = isPaused ? t('rideHud.statusPaused') : t('rideHud.statusRecording');
   const statusColor = isPaused ? HUD_THEME.dueInk : HUD_THEME.success;
   const statusBg = isPaused ? palette.warningBgDark : palette.successBgDark;
 
@@ -166,7 +166,7 @@ export function HudLayoutA({
               backgroundColor: statusColor,
             }}
           />
-          <Text style={{ fontSize: 13, fontWeight: '800', color: statusColor, letterSpacing: 1 }}>
+          <Text style={[type.label, SYSTEM_WEIGHT.bold, { color: statusColor }]}>
             {statusLabel}
           </Text>
         </Animated.View>
@@ -175,7 +175,7 @@ export function HudLayoutA({
         <Text
           style={[type.figureSmall, { color: textColor }]}
           accessibilityRole="text"
-          accessibilityLabel={`Elapsed time: ${formatElapsed(elapsedSeconds)}`}
+          accessibilityLabel={t('rideHud.elapsedA11y', { time: formatElapsed(elapsedSeconds) })}
         >
           {formatElapsed(elapsedSeconds)}
         </Text>
@@ -282,14 +282,17 @@ export function HudLayoutA({
                 opacity: isPaused ? 0.35 : 1,
               }}
               accessibilityRole="text"
-              accessibilityLabel={`Current speed: ${displaySpeed} ${unitLabel}`}
+              accessibilityLabel={t('rideHud.currentSpeedA11y', {
+                speed: displaySpeed,
+                unit: unitLabel,
+              })}
             >
               {displaySpeed}
             </Text>
 
             {/* Max speed */}
             <View style={{ marginBottom: 16 }}>
-              <Text style={[type.label, { color: mutedColor }]}>Max</Text>
+              <Text style={[type.label, { color: mutedColor }]}>{t('myRides.max')}</Text>
               <Text
                 style={[
                   type.figure,

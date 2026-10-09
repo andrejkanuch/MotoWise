@@ -2251,7 +2251,11 @@
     "participants": "参加者",
     "joinRide": "ライドに参加",
     "leaveRide": "ライドから退出",
-    "cancelRide": "ライドをキャンセル"
+    "cancelRide": "ライドをキャンセル",
+    "createTitle": "グループライドを作成",
+    "dateTimeLabel": "日時",
+    "meetingPointLabel": "集合場所",
+    "createError": "ライドを作成できませんでした。もう一度お試しください。"
   },
   "rideHud": {
     "forgotToStopTitle": "まだ走行中ですか？",
@@ -2286,7 +2290,11 @@
     "serviceTitle": "MotoVaultがライドを記録中",
     "serviceBody": "タップしてライドに戻ります。バイクを降りたら終了してください。",
     "noGpsTitle": "このライドを記録できませんでした",
-    "noGpsBody": "{{minutes}}分記録されましたが、距離がほとんどありません。GPSが遮られていたか、オフ、またはおおよその位置情報に設定されていた可能性があります。"
+    "noGpsBody": "{{minutes}}分記録されましたが、距離がほとんどありません。GPSが遮られていたか、オフ、またはおおよその位置情報に設定されていた可能性があります。",
+    "currentSpeedA11y": "現在の速度：{{speed}} {{unit}}",
+    "elapsedA11y": "経過時間：{{time}}",
+    "statusRecording": "記録中",
+    "statusPaused": "一時停止中"
   },
   "rideSummary": {
     "namePlaceholder": "ライドに名前をつける...",
@@ -2323,7 +2331,14 @@
     "couldNotOpenTitle": "開けませんでした",
     "connectionError": "接続を確認してもう一度お試しください",
     "searchPlaceholder": "ルートや場所を検索...",
-    "reviewPlaceholder": "体験をシェア（任意）"
+    "reviewPlaceholder": "体験をシェア（任意）",
+    "noResults": "結果が見つかりません",
+    "routesSection": "ルート",
+    "locationsSection": "場所",
+    "searchA11y": "ルートと場所を検索",
+    "clearA11y": "検索をクリア",
+    "routeA11y": "ルート：{{name}}",
+    "locationA11y": "場所：{{name}}"
   },
   "discoverFilters": {
     "surfacePaved": "舗装",
@@ -2350,7 +2365,9 @@
   },
   "mapPicker": {
     "title": "地図スタイル",
-    "searchPlaceholder": "場所を検索..."
+    "searchPlaceholder": "場所を検索...",
+    "freeSection": "無料",
+    "proSection": "Pro"
   },
   "survey": {
     "feedbackPlaceholder": "ご意見をお聞かせください（個人情報はご記入しないでください）"
@@ -2402,7 +2419,8 @@
     "ride_one": "{{count}} ride",
     "ride_other": "{{count}} rides",
     "elev": "elev.",
-    "dur": "Dur"
+    "dur": "Dur",
+    "avg": "平均"
   },
   "rideDetail": {
     "unavailable": "このライドは利用できなくなりました。削除されたか、非公開に設定された可能性があります。",
@@ -2509,16 +2527,18 @@
     "appStore": "App Store",
     "open": "Open",
     "cancel": "Cancel",
-    "distance": "Distance",
-    "time": "Time",
-    "elev": "Elev",
-    "gain": "Gain",
-    "peak": "Peak",
+    "distance": "距離",
+    "time": "時間",
+    "elev": "獲得標高",
+    "gain": "獲得標高",
+    "peak": "最高地点",
     "elevProfile": "Elev profile",
-    "personalRecord": "Personal Record",
-    "topSpeed": "Top speed",
-    "longestRide": "Longest ride",
-    "mostElevation": "Most elevation"
+    "personalRecord": "自己ベスト",
+    "topSpeed": "最高速度",
+    "longestRide": "最長ライド",
+    "mostElevation": "最大獲得標高",
+    "rideNumber": "ライド No. {{number}}",
+    "prevRecord": "+{{diff}} {{unit}} · 前回 {{previous}} {{unit}}"
   },
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
@@ -2849,5 +2869,115 @@
     "pointChange": "プロフィール → プライバシーでいつでも変更できます。",
     "allow": "許可する",
     "decline": "許可しない"
+  },
+  "tripDrafts": {
+    "continuePlanning": "計画を続ける",
+    "newDraft": "新しい下書き",
+    "newDraftA11y": "新しいトリップを作成",
+    "cardA11y": "下書きのトリップ：{{title}}",
+    "dayUnit": "日",
+    "count_one": "下書き {{count}} 件",
+    "count_few": "下書き {{count}} 件",
+    "count_many": "下書き {{count}} 件",
+    "count_other": "下書き {{count}} 件"
+  },
+  "tripShare": {
+    "title": "旅程を共有",
+    "closeA11y": "閉じる",
+    "archived": "共有するには、この旅程のアーカイブを解除してください。",
+    "generateTitle": "共有リンクを作成",
+    "generateBody": "このリンクを知っている人は誰でも旅程を表示・転送できます。",
+    "generateCta": "リンクを作成",
+    "urlLabel": "共有URL",
+    "info": "このリンクを知っている人は誰でもあなたの旅程を表示できます",
+    "copy": "リンクをコピー",
+    "copied": "コピーしました",
+    "shareSystem": "共有…",
+    "regenerate": "リンクを再作成",
+    "warning": "このリンクを知っている人は誰でも旅程を表示・転送できます。漏れた場合はリンクを再作成してください。",
+    "stop": "共有を停止",
+    "createErrorTitle": "リンクを作成できませんでした",
+    "createErrorBody": "問題が発生しました。しばらくしてからもう一度お試しください。",
+    "updateErrorTitle": "旅程を更新できませんでした",
+    "updateErrorBody": "もう一度お試しください。",
+    "regenerateConfirmTitle": "リンクを再作成しますか？",
+    "regenerateConfirmBody": "以前のリンクはすぐに使えなくなります。使用している人には新しいリンクが必要です。",
+    "regenerateConfirmCta": "再作成",
+    "stopConfirmTitle": "この旅程の共有を停止しますか？",
+    "stopConfirmBody": "リンクはすぐに使えなくなり、旅程は非公開になります。",
+    "shareMessage": "MotoVaultの旅程"
+  },
+  "offlinePack": {
+    "downloading": "オフラインパックをダウンロード中…",
+    "progress": "{{percent}}% · {{size}}",
+    "ready": "オフラインで利用可能",
+    "readyMeta": "{{size}} · {{date}}にダウンロード",
+    "removeA11y": "オフラインデータを削除",
+    "removeTitle": "オフラインデータを削除しますか？",
+    "removeBody": "この旅程でオフライン用に保存した地図タイルを削除して容量を空けます。",
+    "keep": "残す",
+    "remove": "削除",
+    "downloadA11y": "オフライン用にダウンロード",
+    "downloadHint": "地図タイルと旅程データを保存し、電波がなくても使えるようにします",
+    "downloadPro": "Proでオフライン用にダウンロード",
+    "downloadBody": "電波の弱いライドの前に地図タイルと旅程データを保存しましょう。"
+  },
+  "rideThis": {
+    "title": "このルートを走る",
+    "close": "閉じる",
+    "segmentOpened": "区間 {{index}}/{{total}} を開きました",
+    "openSegmentA11y": "区間 {{index}}/{{total}} を開く",
+    "openSegment": "区間 {{index}} を開く",
+    "openFinalSegment": "最後の区間を開く",
+    "bodyDay": "{{day}}日目の立ち寄り先をナビアプリに渡します。",
+    "bodyAll": "ルートを普段使っているアプリに渡します。",
+    "allDays": "全日程",
+    "gpx": "オフラインアプリ用 GPX",
+    "disclaimer": "ナビは行いません。走行はいつものアプリで。MotoVault はプランを作成し、きれいに引き渡すだけです。"
+  },
+  "tripReadiness": {
+    "nearlyReady": "ほぼ準備完了",
+    "somePending": "未完了のチェックがあります",
+    "needsAttention": "要確認",
+    "checksPass": "{{passed}}/{{total}} 件のチェックに合格",
+    "a11y": "{{headline}}。準備 {{percent}} パーセント。タップしてチェックリストを表示。",
+    "shareBrief": "タンクバッグ用メモを共有"
+  },
+  "tripSuggestions": {
+    "title": "提案",
+    "status": {
+      "pending": "保留中",
+      "accepted": "承認済み",
+      "rejected": "却下",
+      "withdrawn": "取り下げ済み"
+    },
+    "suggestedBy": "{{name}} さんの提案",
+    "period": {
+      "morning": "午前",
+      "afternoon": "午後",
+      "evening": "夕方"
+    },
+    "note": "メモ: {{note}}",
+    "accept": "承認",
+    "reject": "却下",
+    "withdraw": "取り下げ",
+    "pending_one": "保留中 {{count}} 件",
+    "pending_few": "保留中 {{count}} 件",
+    "pending_many": "保留中 {{count}} 件",
+    "pending_other": "保留中 {{count}} 件"
+  },
+  "tripAssistant": {
+    "title": "旅のアシスタント",
+    "subtitle": "バイク、経由地、日程を把握しています。",
+    "reset": "リセット",
+    "tryAsking": "こんな質問を試してください:",
+    "thinking": "考え中…",
+    "sendA11y": "メッセージを送信",
+    "prompts": {
+      "coffee": "経由地2と3の間でコーヒー休憩、寄り道は最大5分",
+      "curvier": "明日の午後のもっとワインディングな代替ルート",
+      "hotel": "最後の経由地近くのバイク歓迎ホテル",
+      "rain": "明日の午後に雨が降った場合の最適な迂回路"
+    }
   }
 }

@@ -2251,7 +2251,11 @@
     "participants": "Participants",
     "joinRide": "Join Ride",
     "leaveRide": "Leave Ride",
-    "cancelRide": "Cancel Ride"
+    "cancelRide": "Cancel Ride",
+    "createTitle": "ग्रुप राइड बनाएं",
+    "dateTimeLabel": "तारीख और समय",
+    "meetingPointLabel": "मिलने की जगह",
+    "createError": "राइड नहीं बन सकी। फिर से कोशिश करें।"
   },
   "rideHud": {
     "forgotToStopTitle": "अभी भी राइड पर हैं?",
@@ -2286,7 +2290,11 @@
     "serviceTitle": "MotoVault आपकी राइड रिकॉर्ड कर रहा है",
     "serviceBody": "राइड पर लौटने के लिए टैप करें। बाइक से उतरने पर इसे खत्म करें।",
     "noGpsTitle": "हम यह राइड ट्रैक नहीं कर सके",
-    "noGpsBody": "{{minutes}} मिनट रिकॉर्ड हुए, लेकिन लगभग कोई दूरी नहीं। GPS शायद ब्लॉक, बंद या अनुमानित लोकेशन पर था।"
+    "noGpsBody": "{{minutes}} मिनट रिकॉर्ड हुए, लेकिन लगभग कोई दूरी नहीं। GPS शायद ब्लॉक, बंद या अनुमानित लोकेशन पर था।",
+    "currentSpeedA11y": "मौजूदा गति: {{speed}} {{unit}}",
+    "elapsedA11y": "बीता समय: {{time}}",
+    "statusRecording": "रिकॉर्ड हो रहा है",
+    "statusPaused": "रुका हुआ"
   },
   "rideSummary": {
     "namePlaceholder": "राइड को नाम दें...",
@@ -2323,7 +2331,14 @@
     "couldNotOpenTitle": "खोल नहीं सके",
     "connectionError": "अपना कनेक्शन जांचें और फिर कोशिश करें",
     "searchPlaceholder": "रूट या स्थान खोजें...",
-    "reviewPlaceholder": "अपना अनुभव साझा करें (वैकल्पिक)"
+    "reviewPlaceholder": "अपना अनुभव साझा करें (वैकल्पिक)",
+    "noResults": "कोई परिणाम नहीं मिला",
+    "routesSection": "रूट",
+    "locationsSection": "स्थान",
+    "searchA11y": "रूट और जगहें खोजें",
+    "clearA11y": "खोज साफ़ करें",
+    "routeA11y": "रूट: {{name}}",
+    "locationA11y": "स्थान: {{name}}"
   },
   "discoverFilters": {
     "surfacePaved": "पक्की",
@@ -2350,7 +2365,9 @@
   },
   "mapPicker": {
     "title": "मानचित्र शैली",
-    "searchPlaceholder": "स्थान खोजें..."
+    "searchPlaceholder": "स्थान खोजें...",
+    "freeSection": "मुफ़्त",
+    "proSection": "Pro"
   },
   "survey": {
     "feedbackPlaceholder": "अपने विचार साझा करें (कृपया व्यक्तिगत जानकारी न दें)"
@@ -2402,7 +2419,8 @@
     "ride_one": "{{count}} ride",
     "ride_other": "{{count}} rides",
     "elev": "elev.",
-    "dur": "Dur"
+    "dur": "Dur",
+    "avg": "औसत"
   },
   "rideDetail": {
     "unavailable": "यह राइड अब उपलब्ध नहीं है। हो सकता है इसे हटा दिया गया हो या निजी कर दिया गया हो।",
@@ -2509,16 +2527,18 @@
     "appStore": "App Store",
     "open": "Open",
     "cancel": "Cancel",
-    "distance": "Distance",
-    "time": "Time",
-    "elev": "Elev",
-    "gain": "Gain",
-    "peak": "Peak",
+    "distance": "दूरी",
+    "time": "समय",
+    "elev": "ऊंचाई",
+    "gain": "चढ़ाई",
+    "peak": "शिखर",
     "elevProfile": "Elev profile",
-    "personalRecord": "Personal Record",
-    "topSpeed": "Top speed",
-    "longestRide": "Longest ride",
-    "mostElevation": "Most elevation"
+    "personalRecord": "व्यक्तिगत रिकॉर्ड",
+    "topSpeed": "शीर्ष गति",
+    "longestRide": "सबसे लंबी राइड",
+    "mostElevation": "सबसे अधिक चढ़ाई",
+    "rideNumber": "राइड सं. {{number}}",
+    "prevRecord": "+{{diff}} {{unit}} · पहले {{previous}} {{unit}}"
   },
   "rideChart": {
     "elevation": "Elevation ({{unit}})",
@@ -2849,5 +2869,115 @@
     "pointChange": "इसे कभी भी प्रोफ़ाइल → गोपनीयता में बदलें।",
     "allow": "अनुमति दें",
     "decline": "अनुमति न दें"
+  },
+  "tripDrafts": {
+    "continuePlanning": "प्लानिंग जारी रखें",
+    "newDraft": "नया ड्राफ्ट",
+    "newDraftA11y": "नई ट्रिप बनाएं",
+    "cardA11y": "ड्राफ्ट ट्रिप: {{title}}",
+    "dayUnit": "दिन",
+    "count_one": "{{count}} ड्राफ्ट",
+    "count_few": "{{count}} ड्राफ्ट",
+    "count_many": "{{count}} ड्राफ्ट",
+    "count_other": "{{count}} ड्राफ्ट"
+  },
+  "tripShare": {
+    "title": "यात्रा साझा करें",
+    "closeA11y": "बंद करें",
+    "archived": "इसे साझा करने के लिए इस यात्रा को संग्रह से निकालें।",
+    "generateTitle": "साझा करने का लिंक बनाएं",
+    "generateBody": "इस लिंक वाला कोई भी व्यक्ति यात्रा देख और आगे भेज सकता है।",
+    "generateCta": "लिंक बनाएं",
+    "urlLabel": "साझा URL",
+    "info": "इस लिंक वाला कोई भी आपकी यात्रा देख सकता है",
+    "copy": "लिंक कॉपी करें",
+    "copied": "कॉपी हो गया",
+    "shareSystem": "साझा करें…",
+    "regenerate": "लिंक फिर से बनाएं",
+    "warning": "इस लिंक वाला कोई भी यात्रा देख और आगे भेज सकता है। लिंक लीक हो जाए तो नया लिंक बनाएं।",
+    "stop": "साझा करना बंद करें",
+    "createErrorTitle": "लिंक नहीं बन सका",
+    "createErrorBody": "कुछ गलत हो गया। कृपया थोड़ी देर में फिर कोशिश करें।",
+    "updateErrorTitle": "यात्रा अपडेट नहीं हो सकी",
+    "updateErrorBody": "कृपया फिर से कोशिश करें।",
+    "regenerateConfirmTitle": "लिंक फिर से बनाएं?",
+    "regenerateConfirmBody": "पिछला लिंक तुरंत काम करना बंद कर देगा। इसका उपयोग करने वालों को नया लिंक चाहिए होगा।",
+    "regenerateConfirmCta": "फिर से बनाएं",
+    "stopConfirmTitle": "इस यात्रा को साझा करना बंद करें?",
+    "stopConfirmBody": "लिंक तुरंत काम करना बंद कर देगा और यात्रा निजी हो जाएगी।",
+    "shareMessage": "MotoVault पर यात्रा"
+  },
+  "offlinePack": {
+    "downloading": "ऑफ़लाइन पैक डाउनलोड हो रहा है…",
+    "progress": "{{percent}}% · {{size}}",
+    "ready": "ऑफ़लाइन उपलब्ध",
+    "readyMeta": "{{size}} · {{date}} को डाउनलोड किया",
+    "removeA11y": "ऑफ़लाइन डाउनलोड हटाएं",
+    "removeTitle": "ऑफ़लाइन डाउनलोड हटाएं?",
+    "removeBody": "इस यात्रा के लिए ऑफ़लाइन उपयोग हेतु सहेजी गई मैप टाइलें हटाकर जगह खाली करता है।",
+    "keep": "रखें",
+    "remove": "हटाएं",
+    "downloadA11y": "ऑफ़लाइन के लिए डाउनलोड करें",
+    "downloadHint": "टाइलें और यात्रा डेटा सहेजता है ताकि आप बिना सिग्नल के उपयोग कर सकें",
+    "downloadPro": "Pro के साथ ऑफ़लाइन के लिए डाउनलोड करें",
+    "downloadBody": "कमज़ोर सिग्नल वाली राइड से पहले मैप टाइलें और यात्रा डेटा सहेजें।"
+  },
+  "rideThis": {
+    "title": "यह राइड करें",
+    "close": "बंद करें",
+    "segmentOpened": "{{total}} में से खंड {{index}} खुला",
+    "openSegmentA11y": "{{total}} में से खंड {{index}} खोलें",
+    "openSegment": "खंड {{index}} खोलें",
+    "openFinalSegment": "अंतिम खंड खोलें",
+    "bodyDay": "दिन {{day}} के पड़ाव अपने नेविगेशन ऐप को भेजें।",
+    "bodyAll": "रूट को उस ऐप को भेजें जिससे आप राइड करते हैं।",
+    "allDays": "सभी दिन",
+    "gpx": "ऑफ़लाइन ऐप्स के लिए GPX",
+    "disclaimer": "हम आपके लिए नेविगेशन नहीं करते — आपकी राइड उसी ऐप पर रहती है जिसे आप जानते हैं। MotoVault बस योजना बनाकर उसे साफ़-सुथरे ढंग से सौंप देता है।"
+  },
+  "tripReadiness": {
+    "nearlyReady": "लगभग तैयार",
+    "somePending": "कुछ जांच बाकी हैं",
+    "needsAttention": "ध्यान देने की ज़रूरत",
+    "checksPass": "{{passed}}/{{total}} जांच पास",
+    "a11y": "{{headline}}. {{percent}} प्रतिशत तैयार। चेकलिस्ट देखने के लिए टैप करें।",
+    "shareBrief": "टैंक-बैग ब्रीफ़ शेयर करें"
+  },
+  "tripSuggestions": {
+    "title": "सुझाव",
+    "status": {
+      "pending": "लंबित",
+      "accepted": "स्वीकृत",
+      "rejected": "अस्वीकृत",
+      "withdrawn": "वापस लिया गया"
+    },
+    "suggestedBy": "{{name}} द्वारा सुझाया गया",
+    "period": {
+      "morning": "सुबह",
+      "afternoon": "दोपहर",
+      "evening": "शाम"
+    },
+    "note": "नोट: {{note}}",
+    "accept": "स्वीकार करें",
+    "reject": "अस्वीकार करें",
+    "withdraw": "वापस लें",
+    "pending_one": "{{count}} लंबित",
+    "pending_few": "{{count}} लंबित",
+    "pending_many": "{{count}} लंबित",
+    "pending_other": "{{count}} लंबित"
+  },
+  "tripAssistant": {
+    "title": "ट्रिप असिस्टेंट",
+    "subtitle": "आपकी बाइक, पड़ाव और दिनों को जानता है।",
+    "reset": "रीसेट करें",
+    "tryAsking": "यह पूछकर देखें:",
+    "thinking": "सोच रहा है…",
+    "sendA11y": "संदेश भेजें",
+    "prompts": {
+      "coffee": "स्टॉप 2 और 3 के बीच कॉफ़ी स्टॉप, रास्ते से अधिकतम 5 मिनट दूर",
+      "curvier": "कल दोपहर के लिए ज़्यादा घुमावदार विकल्प",
+      "hotel": "आखिरी स्टॉप के पास मोटरसाइकिल-फ्रेंडली होटल",
+      "rain": "अगर कल दोपहर बाद बारिश हो तो सबसे अच्छा वैकल्पिक रास्ता"
+    }
   }
 }
