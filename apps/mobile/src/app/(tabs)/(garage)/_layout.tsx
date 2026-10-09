@@ -2,6 +2,7 @@ import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { HUB_SHEET_RADIUS, useHubTheme } from '../../../components/bike-hub/ui/tokens';
 import { ErrorFallback } from '../../../components/error-fallback';
+import { FORM_SHEET_DETENTS } from '../../../config/sheet-detents';
 import { captureException } from '../../../lib/analytics';
 import { useEditorialTheme } from '../../../theme/editorial';
 
@@ -118,7 +119,7 @@ export default function GarageLayout() {
           headerTransparent: false,
           headerStyle: sheetHeaderStyle,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.85, 1.0],
+          sheetAllowedDetents: FORM_SHEET_DETENTS.TASK,
           contentStyle: sheetContentStyle,
         }}
       />
@@ -132,7 +133,7 @@ export default function GarageLayout() {
           headerTransparent: false,
           headerStyle: sheetHeaderStyle,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.85, 1.0],
+          sheetAllowedDetents: FORM_SHEET_DETENTS.TASK,
           contentStyle: sheetContentStyle,
         }}
       />
@@ -159,7 +160,7 @@ export default function GarageLayout() {
           headerTransparent: false,
           headerStyle: sheetHeaderStyle,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.7, 0.9],
+          sheetAllowedDetents: FORM_SHEET_DETENTS.EXPENSE,
           contentStyle: sheetContentStyle,
         }}
       />
@@ -221,7 +222,7 @@ export default function GarageLayout() {
           presentation: 'formSheet',
           headerShown: false,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.65, 0.85, 1.0],
+          sheetAllowedDetents: FORM_SHEET_DETENTS.COMPLETE_TASK,
           contentStyle: sheetContentStyle,
         }}
       />

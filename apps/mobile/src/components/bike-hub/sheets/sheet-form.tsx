@@ -365,8 +365,13 @@ export function SheetFooter({
     primaryState === SHEET_PRIMARY_STATE.DISABLED ||
     (primaryState === SHEET_PRIMARY_STATE.DONE && !primaryPressableWhenDone);
 
+  const androidOpenedOffset =
+    process.env.EXPO_OS === 'android' ? sheetBottomPadding(insets.bottom) + insets.bottom : 0;
+
   return (
-    <KeyboardStickyView>
+    // On Android the keyboard height already spans the navigation-bar inset that
+    // the footer pads for, so the lifted footer floated that much too high.
+    <KeyboardStickyView offset={{ closed: 0, opened: androidOpenedOffset }}>
       <View
         style={{
           flexDirection: 'row',

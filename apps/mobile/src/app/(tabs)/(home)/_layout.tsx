@@ -1,5 +1,6 @@
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { ErrorFallback } from '../../../components/error-fallback';
+import { FORM_SHEET_DETENTS } from '../../../config/sheet-detents';
 import { captureException } from '../../../lib/analytics';
 import { useEditorialTheme } from '../../../theme/editorial';
 
@@ -23,11 +24,11 @@ export default function HomeLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen
         name="add-maintenance-task"
-        options={{ ...sheetOptions, sheetAllowedDetents: [0.85, 1.0] }}
+        options={{ ...sheetOptions, sheetAllowedDetents: FORM_SHEET_DETENTS.TASK }}
       />
       <Stack.Screen
         name="add-expense"
-        options={{ ...sheetOptions, sheetAllowedDetents: [0.7, 0.9] }}
+        options={{ ...sheetOptions, sheetAllowedDetents: FORM_SHEET_DETENTS.EXPENSE }}
       />
     </Stack>
   );
