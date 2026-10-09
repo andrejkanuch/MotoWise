@@ -148,6 +148,7 @@ import { supabase } from '../lib/supabase';
 import { isWhatsNewOwed } from '../lib/whats-new';
 import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
 import { COLOR_SCHEME, useAuthStore } from '../stores/auth.store';
+import { useChecklistStore } from '../stores/checklist.store';
 import { useExperimentStore } from '../stores/experiment.store';
 import { useOnboardingStore } from '../stores/onboarding.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
@@ -714,6 +715,10 @@ function RootLayout() {
           // account on this device resumed at the last screen with the previous
           // rider's answers and skipped onboarding and its paywall.
           useOnboardingStore.getState().resetForSignOut();
+          // The Get Started card (its items, ticks and dismissal) belongs to the
+          // account too. Kept, the next account on this device inherited the
+          // previous rider's card, with their progress or with none of their own.
+          useChecklistStore.getState().reset();
           // Note/Odometer work a drag-down parked belongs to the session that wrote it.
           // Store-only: a user sign-out released its photos before the session ended
           // (`releaseSheetDraftsForSignOut`); a forced one cannot, so they stay.

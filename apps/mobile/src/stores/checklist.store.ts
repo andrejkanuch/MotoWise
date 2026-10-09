@@ -13,6 +13,19 @@ export const CHECKLIST_ITEM_ID = {
   EXPLORE_DASHBOARD: 'explore_dashboard',
   SCAN_RECEIPT: 'scan_receipt',
 } as const;
+export type ChecklistItemId = (typeof CHECKLIST_ITEM_ID)[keyof typeof CHECKLIST_ITEM_ID];
+
+/**
+ * What ticked an item — the `trigger` property of CHECKLIST_ITEM_COMPLETED.
+ * `data`: the rider's garage already shows it done (a bike photo, a saved ride,
+ * an expense, a receipt scan); see `lib/checklist-signals.ts`.
+ */
+export const CHECKLIST_COMPLETION_TRIGGER = {
+  TAP: 'tap',
+  DATA: 'data',
+} as const;
+export type ChecklistCompletionTrigger =
+  (typeof CHECKLIST_COMPLETION_TRIGGER)[keyof typeof CHECKLIST_COMPLETION_TRIGGER];
 
 export interface ChecklistItem {
   id: string;
@@ -28,7 +41,8 @@ export interface ChecklistState {
   dismissed: boolean;
   initialized: boolean;
   initialize: (goals: string[]) => void;
-  completeItem: (id: string) => void;
+  /** Idempotent: an item already done changes nothing and is not tracked again. */
+  completeItem: (id: string, trigger?: ChecklistCompletionTrigger) => void;
   dismiss: () => void;
   reset: () => void;
 }
@@ -149,7 +163,7 @@ export const useChecklistStore = create<ChecklistState>()(
         }
       },
 
-      completeItem: (id) => {
+      completeItem: (id, trigger = CHECKLIST_COMPLETION_TRIGGER.TAP) => {
         const { completedItems } = get();
         if (completedItems.includes(id)) return;
         const updated = [...completedItems, id];
@@ -158,6 +172,7 @@ export const useChecklistStore = create<ChecklistState>()(
           item: id,
           items_completed: updated.length,
           items_total: get().items.length,
+          trigger,
         });
       },
 

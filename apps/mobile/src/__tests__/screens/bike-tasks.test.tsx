@@ -48,17 +48,19 @@ jest.mock('../../lib/graphql-client', () => ({
 }));
 
 import {
+  DeleteMaintenanceTaskDocument,
   MaintenancePriority,
   MaintenanceTaskStatus,
   MaintenanceTasksByMotorcycleDocument,
   MyMotorcyclesDocument,
 } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen } from '@testing-library/react-native';
-import { Alert } from 'react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { Alert, type AlertButton } from 'react-native';
 import '../../i18n';
 import BikeTasksScreen from '../../app/(tabs)/(garage)/bike-tasks';
 import type { HubTask } from '../../components/bike-hub/shell/use-bike-hub-data';
+import { queryKeys } from '../../lib/query-keys';
 
 const BIKE_ID = 'bike-a';
 
@@ -103,9 +105,14 @@ const DONE = hubTask({
   completedAt: '2026-09-01T10:00:00Z',
 });
 
-async function renderScreen(tasks: HubTask[], params: Record<string, string> = {}) {
+async function renderScreen(
+  tasks: HubTask[],
+  params: Record<string, string> = {},
+  deleteResult: () => Promise<unknown> = () => Promise.resolve({ deleteMaintenanceTask: true }),
+) {
   mockParams = { motorcycleId: BIKE_ID, bikeName: 'Honda', ...params };
   mockFetcher.mockImplementation((document: unknown) => {
+    if (document === DeleteMaintenanceTaskDocument) return deleteResult();
     if (document === MaintenanceTasksByMotorcycleDocument) {
       return Promise.resolve({ maintenanceTasks: tasks });
     }
@@ -128,7 +135,23 @@ async function renderScreen(tasks: HubTask[], params: Record<string, string> = {
 
 afterEach(() => {
   jest.clearAllMocks();
+  jest.restoreAllMocks();
 });
+
+/** Opens the row, taps Delete and returns the confirm alert's destructive button. */
+async function openDeleteConfirm(title: string): Promise<AlertButton> {
+  const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+  await fireEvent.press(screen.getByLabelText(new RegExp(`^${title}\\. `)));
+  await fireEvent.press(screen.getByText('Delete'));
+  const buttons = alert.mock.calls.at(-1)?.[2] ?? [];
+  const destructive = buttons.find((button) => button.style === 'destructive');
+  if (!destructive?.onPress) throw new Error('no destructive confirm button');
+  return destructive;
+}
+
+function deleteCalls() {
+  return mockFetcher.mock.calls.filter(([document]) => document === DeleteMaintenanceTaskDocument);
+}
 
 describe('All Tasks screen', () => {
   it('lists open tasks with their mark-done circle and completed work below', async () => {
@@ -166,7 +189,7 @@ describe('All Tasks screen', () => {
     expect(alert).toHaveBeenCalledWith('Delete Task', expect.any(String), expect.any(Array));
   });
 
-  it('overdue shows only open tasks with a past due date', async () => {
+  it('overdue shows only open overdue tasks', async () => {
     await renderScreen([DONE, OPEN, LATE]);
     await fireEvent.press(screen.getByTestId('segment-1'));
     expect(screen.getByText('Oil change')).toBeTruthy();
@@ -189,5 +212,59 @@ describe('All Tasks screen', () => {
     expect(screen.getByText('Delete')).toBeTruthy();
     // A completed task cannot be edited.
     expect(screen.queryByText('Edit')).toBeNull();
+  });
+
+  it('confirming Delete deletes the task and refreshes both task lists', async () => {
+    const client = await renderScreen([OPEN]);
+    const invalidate = jest.spyOn(client, 'invalidateQueries');
+    const confirm = await openDeleteConfirm('Chain clean');
+    await act(async () => confirm.onPress?.());
+
+    await waitFor(() => expect(invalidate).toHaveBeenCalledTimes(2));
+    expect(deleteCalls()).toEqual([[DeleteMaintenanceTaskDocument, { id: 'open' }]]);
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: queryKeys.maintenanceTasks.byMotorcycle(BIKE_ID),
+    });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.maintenanceTasks.allUser });
+  });
+
+  it('a failed delete tells the rider and refreshes nothing', async () => {
+    const client = await renderScreen([OPEN], {}, () => Promise.reject(new Error('network')));
+    const invalidate = jest.spyOn(client, 'invalidateQueries');
+    const confirm = await openDeleteConfirm('Chain clean');
+    const alert = jest.mocked(Alert.alert);
+    await act(async () => confirm.onPress?.());
+
+    await waitFor(() => expect(alert).toHaveBeenCalledWith('Error', 'Failed to delete task.'));
+    expect(invalidate).not.toHaveBeenCalled();
+  });
+
+  it('a second confirm while the delete is in flight is ignored', async () => {
+    let settle: (value: unknown) => void = () => {};
+    const pending = new Promise((resolve) => {
+      settle = resolve;
+    });
+    await renderScreen([OPEN], {}, () => pending);
+    const confirm = await openDeleteConfirm('Chain clean');
+    await act(async () => confirm.onPress?.());
+    await act(async () => confirm.onPress?.());
+    expect(deleteCalls()).toHaveLength(1);
+
+    // Once it settles, a later delete goes through again.
+    await act(async () => settle({ deleteMaintenanceTask: true }));
+    await act(async () => confirm.onPress?.());
+    expect(deleteCalls()).toHaveLength(2);
+  });
+
+  it('files a task past its target odometer under Overdue, even with no due date', async () => {
+    const kmOver = hubTask({ id: 'km-over', title: 'Valve check', targetMileage: 900 });
+    await renderScreen([OPEN, kmOver]);
+    await fireEvent.press(screen.getByTestId('segment-1'));
+    expect(await screen.findByText('Valve check')).toBeTruthy();
+    expect(screen.queryByText('Chain clean')).toBeNull();
+
+    await fireEvent.press(screen.getByTestId('segment-2'));
+    expect(screen.queryByText('Valve check')).toBeNull();
+    expect(screen.getByText('Chain clean')).toBeTruthy();
   });
 });

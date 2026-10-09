@@ -1,5 +1,3 @@
-import { MyMotorcyclesDocument } from '@motovault/graphql';
-import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { type Href, useRouter } from 'expo-router';
 import {
@@ -12,21 +10,22 @@ import {
   ScanLine,
   Wallet,
 } from 'lucide-react-native';
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutDown, ZoomIn } from 'react-native-reanimated';
 import { useShallow } from 'zustand/react/shallow';
 import { GARAGE_ROUTE, HOME_ROUTE, TAB_ROUTE } from '../../config/routes';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
-import { QUERY_META } from '../../lib/query-meta';
+import { deriveCompletedItems } from '../../lib/checklist-signals';
 import {
   ALL_CHECKLIST_ITEMS,
+  CHECKLIST_COMPLETION_TRIGGER,
   CHECKLIST_ITEM_ID,
   useChecklistStore,
 } from '../../stores/checklist.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { GUTTER, radius, space, type } from '../../theme/type';
+import { useChecklistSignals } from './use-checklist-signals';
 
 const ICON_MAP: Record<string, typeof MapPin> = {
   MapPin,
@@ -57,24 +56,30 @@ export function OnboardingChecklist() {
       })),
     );
 
-  // Resolve the user's bike so the "log first expense" item can route into the
-  // expense flow (which requires a motorcycleId) instead of the bare garage tab.
-  // Only fetch when that item is actually on this user's checklist.
-  const hasExpenseItem = items.some((i) => i.id === CHECKLIST_ITEM_ID.FIRST_EXPENSE);
-  const { data: bikesData } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
-    staleTime: 5 * 60 * 1000,
-    enabled: hasExpenseItem,
-    // Nothing here depends on the list failing (the item falls back to the
-    // garage tab), so it must not veto Home's own error card with an alert.
-    meta: QUERY_META.DECORATION,
-  });
-  const firstBikeId = bikesData?.myMotorcycles?.[0]?.id;
+  const active = initialized && !dismissed && items.length > 0;
+  const openItemIds = useMemo(
+    () => items.filter((item) => !completedItems.includes(item.id)).map((item) => item.id),
+    [items, completedItems],
+  );
+  // The rider's own data ticks the items it proves (a bike photo, a finished
+  // ride, an expense, a receipt scan) — see `lib/checklist-signals.ts`. The
+  // bikes also route the "log first expense" item, whose form needs a bike.
+  const { signals, bikes, settled } = useChecklistSignals(openItemIds, active);
+  const dataCompleted = useMemo(
+    () => deriveCompletedItems(openItemIds, signals),
+    [openItemIds, signals],
+  );
+  // Persist them (and report each once: completeItem is idempotent). The render
+  // below already counts them, so the card never shows them unticked first.
+  useEffect(() => {
+    for (const id of dataCompleted) completeItem(id, CHECKLIST_COMPLETION_TRIGGER.DATA);
+  }, [dataCompleted, completeItem]);
+  const firstBikeId = bikes?.[0]?.id;
 
-  if (!initialized || dismissed || items.length === 0) return null;
+  if (!active || !settled) return null;
 
-  const completedCount = completedItems.length;
+  const doneIds = new Set([...completedItems, ...dataCompleted]);
+  const completedCount = items.filter((item) => doneIds.has(item.id)).length;
   const totalCount = items.length;
   const allDone = completedCount >= totalCount;
   const progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
@@ -139,7 +144,7 @@ export function OnboardingChecklist() {
       {/* Items */}
       <View>
         {items.map((item) => {
-          const isCompleted = completedItems.includes(item.id);
+          const isCompleted = doneIds.has(item.id);
           const IconComponent = ICON_MAP[item.icon] ?? MapPin;
 
           return (
@@ -163,7 +168,7 @@ export function OnboardingChecklist() {
                       pathname: GARAGE_ROUTE.EXPENSE_DASHBOARD,
                       params: { motorcycleId: firstBikeId },
                     });
-                  } else if (bikesData) {
+                  } else if (bikes) {
                     router.push(HOME_ROUTE.ADD_BIKE as Href);
                   } else {
                     router.push(TAB_ROUTE.GARAGE as Href);
