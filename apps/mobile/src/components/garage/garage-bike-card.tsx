@@ -23,15 +23,13 @@ const SEPARATOR = ' · ';
 
 interface GarageBikeCardProps {
   bike: GarageBike;
-  /** Position in the list, printed as the plate's racing number ("01"). */
-  index: number;
   plate: PlateCopy;
   size: PlateSize;
   onOpen: () => void;
   onMenu: () => void;
 }
 
-export function GarageBikeCard({ bike, index, plate, size, onOpen, onMenu }: GarageBikeCardProps) {
+export function GarageBikeCard({ bike, plate, size, onOpen, onMenu }: GarageBikeCardProps) {
   const { t } = useTranslation();
   const { t: theme } = useEditorialTheme();
   const name = `${bike.make} ${bike.model}`;
@@ -115,7 +113,6 @@ export function GarageBikeCard({ bike, index, plate, size, onOpen, onMenu }: Gar
         unit={plate.unit}
         caption={plate.caption}
         stateLabel={plate.stateLabel}
-        plateNumber={String(index + 1).padStart(2, '0')}
         size={size}
         onPress={onOpen}
         accessibilityHint={t('home.plateHint')}

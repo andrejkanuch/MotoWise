@@ -371,7 +371,6 @@ export default function GarageScreen() {
               >
                 <GarageBikeCard
                   bike={bike}
-                  index={i}
                   plate={plate}
                   size={plateSize}
                   onOpen={() => openBike(bike)}
