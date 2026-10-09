@@ -53,19 +53,17 @@ env:
     text: "Not now"
     optional: true
 
-# Expand + Done
+# Find the task, then tap its check circle
 - tapOn:
     text: ".*See all.*"
     optional: true
 - scrollUntilVisible:
     element:
-      text: "${TASK_TITLE}(,.*)?"
+      text: "${TASK_TITLE}([.,].*)?"
     direction: DOWN
-- tapOn: "${TASK_TITLE}(,.*)?"
-- tapOn:
-    text: "Done"
-    below:
-      text: "${TASK_TITLE}(,.*)?"
+# The Service row's own check circle marks it done (a11y "Mark <title> done",
+# bikeHub.service.markDoneA11y) and opens the completion screen.
+- tapOn: "Mark ${TASK_TITLE} done"
 
 # Complete with cost (creates linked expense)
 - extendedWaitUntil:
@@ -97,6 +95,7 @@ env:
 - tapOn:
     text: "Not now"
     optional: true
+- assertNotVisible: "Mark ${TASK_TITLE} done" # the task left the Active list — no pending check circle
 
 # Back on the hub (Service segment). The expense created by completion carries
 # the task title as its description (expenses.service createFromTask) and lives
@@ -131,5 +130,5 @@ env:
     visible: ${TASK_TITLE}
     timeout: 20000
 # Completed filter should surface the task
-- assertVisible: "${TASK_TITLE}(,.*)?"
+- assertVisible: "${TASK_TITLE}([.,].*)?"
 - takeScreenshot: expense-service-record-tasks

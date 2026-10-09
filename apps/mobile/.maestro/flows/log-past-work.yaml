@@ -147,7 +147,7 @@ env:
     optional: true
 
 # 9. Success — the record was created as COMPLETED, so it lives under History on
-#    the hub (the Active view hides it), and its card offers no pending "Done".
+#    the hub (the Active view hides it), and its row has no pending check circle.
 - tapOn:
     id: "segment-service" # the Log sheet leaves the hub on Overview
 - tapOn:
@@ -155,13 +155,10 @@ env:
     optional: true
 - scrollUntilVisible:
     element:
-      text: "${TASK_TITLE}(,.*)?"
+      text: "${TASK_TITLE}([.,].*)?"
     direction: DOWN
-- assertVisible: "${TASK_TITLE}(,.*)?"
-- assertNotVisible:
-    text: "Done" # a completed card shows no "Done" action
-    below:
-      text: "${TASK_TITLE}(,.*)?"
+- assertVisible: "${TASK_TITLE}([.,].*)?"
+- assertNotVisible: "Mark ${TASK_TITLE} done" # a completed row has no check circle
 - takeScreenshot: log-past-work-done
 
 # 10. Cleanup — delete the logged record so reruns stay deterministic. The
@@ -172,13 +169,13 @@ env:
       notVisible:
         text: "Delete"
         below:
-          text: "${TASK_TITLE}(,.*)?"
+          text: "${TASK_TITLE}([.,].*)?"
     commands:
-      - tapOn: "${TASK_TITLE}(,.*)?"
+      - tapOn: "${TASK_TITLE}([.,].*)?"
 - tapOn:
     text: "Delete"
     below:
-      text: "${TASK_TITLE}(,.*)?"
+      text: "${TASK_TITLE}([.,].*)?"
 # Wait for the confirm alert to finish presenting — a tap during its entrance
 # animation is dropped on iOS 27 — and retry once if it is still up.
 - extendedWaitUntil:
@@ -201,4 +198,4 @@ env:
           below:
             text: "Are you sure.*"
 - assertNotVisible:
-    text: "${TASK_TITLE}(,.*)?"
+    text: "${TASK_TITLE}([.,].*)?"

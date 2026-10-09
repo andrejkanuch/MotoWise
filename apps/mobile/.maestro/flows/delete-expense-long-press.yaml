@@ -31,23 +31,27 @@ env:
 
 - scrollUntilVisible:
     element:
-      text: "No expenses yet(,.*)?"
+      text: "No expenses yet([.,].*)?" # expenses.empty
     direction: DOWN
-- tapOn: "No expenses yet(,.*)?"
+- tapOn: "No expenses yet([.,].*)?"
 - assertVisible: "Amount"
 - inputText: "18.25"
 - tapOn:
     text: "Category" # non-interactive label — dismisses the custom amount keypad first
     optional: true
+# The sheet's Cancel / Save footer is pinned over the form's bottom edge; a tap
+# on anything behind it lands on the footer. Centre the notes field first and
+# dismiss the keyboard on a label above it (see expense-detail.yaml).
 - scrollUntilVisible:
     element:
-      text: "Details"
+      text: ".*What was this expense for.*" # DETAILS placeholder (wildcarded — literal "?" is a regex metachar)
     direction: DOWN
+    centerElement: true
 - tapOn:
     text: ".*What was this expense for.*"
 - inputText: ${EXPENSE_LABEL}
 - tapOn:
-    text: "Details"
+    text: "Item name.*" # non-interactive label above the notes field — dismisses the keyboard (hideKeyboard is unsupported)
     optional: true
 - scrollUntilVisible:
     element:
