@@ -15,8 +15,11 @@ jest.mock('../supabase', () => ({
     },
   },
 }));
+const mockStoreUser = { id: 'user-a' as string | null };
 jest.mock('../../stores/auth.store', () => ({
-  useAuthStore: { getState: () => ({ session: { user: { id: 'user-a' } } }) },
+  useAuthStore: {
+    getState: () => ({ session: mockStoreUser.id ? { user: { id: mockStoreUser.id } } : null }),
+  },
 }));
 jest.mock('../analytics', () => ({
   addBreadcrumb: jest.fn(),
@@ -40,6 +43,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockSignOut.mockResolvedValue({ error: null });
   mockSession.userId = 'user-a';
+  mockStoreUser.id = 'user-a';
 });
 
 describe('isAccountGoneError', () => {
@@ -86,6 +90,7 @@ describe('signOutGoneAccount', () => {
   it("keeps a genuine NOT_FOUND for the current account separate from another account's stale check", async () => {
     // A's stale request is still checking (B is signed in) when B's own `me` fails.
     mockSession.userId = 'user-b';
+    mockStoreUser.id = 'user-b';
     await Promise.all([signOutGoneAccount('user-a'), signOutGoneAccount('user-b')]);
     expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
@@ -94,8 +99,10 @@ describe('signOutGoneAccount', () => {
 describe('signOutGoneAccount bounds', () => {
   it('runs again for the same account once the previous check finished', async () => {
     mockSession.userId = 'user-b';
+    mockStoreUser.id = 'user-b';
     await signOutGoneAccount('user-a'); // stale: no-op
     mockSession.userId = 'user-a';
+    mockStoreUser.id = 'user-a';
     await signOutGoneAccount('user-a'); // genuine: signs out
     expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
@@ -113,6 +120,15 @@ describe('signOutGoneAccount bounds', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+});
+
+describe('signOutGoneAccount final check', () => {
+  it('does not sign out when the app session changed after the async session read', async () => {
+    // The Supabase read still says A, but the app has already moved on to B.
+    mockStoreUser.id = 'user-b';
+    await signOutGoneAccount('user-a');
+    expect(mockSignOut).not.toHaveBeenCalled();
   });
 });
 

@@ -58,6 +58,11 @@ export function signOutGoneAccount(requestUserId: string | null): Promise<void> 
   if (inFlight) return inFlight;
   const check = (async () => {
     if ((await getSessionUserId()) !== requestUserId) return;
+    // Re-check synchronously right before signing out, with nothing awaited in
+    // between: the session read above is async, and another account must never
+    // be the one this signs out. (Replacing a session in this app takes a full
+    // sign-out and sign-in, so this closes the last microtask-sized gap.)
+    if (getRequestSessionUserId() !== requestUserId) return;
     addBreadcrumb('me returned NOT_FOUND; signing out locally', ACCOUNT_GONE_SOURCE);
     const { error } = await supabase.auth.signOut({ scope: 'local' });
     if (error) captureException(error, { source: ACCOUNT_GONE_SOURCE });
