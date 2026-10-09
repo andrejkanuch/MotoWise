@@ -645,7 +645,7 @@ function RootLayout() {
         // removed the device's token): claim the push token for it now. The
         // mount-time registration ran before any session existed or for the
         // previous account. Idempotent; a no-op without notification permission.
-        if (sessionUserId !== prevUserIdRef.current) void registerForPushNotifications();
+        if (decision.shouldRegisterPush) void registerForPushNotifications();
       } else {
         if (decision.shouldResetUser) {
           // Reset only when we PREVIOUSLY had a user in this app session. On a

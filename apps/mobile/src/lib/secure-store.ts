@@ -372,8 +372,9 @@ function getInstallId(): string | null {
     if (!id) {
       const fresh = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
       store.set(INSTALL_ID_KEY, fresh);
-      // Only trust an id the store actually persisted: an id that exists only in
-      // memory would look like "another install" on the next launch.
+      // Cheap sanity check that the write took. It reads MMKV's in-memory map, so it
+      // does not prove the id reached disk; what keeps an id from being minted while
+      // app data is unavailable is sessionVerdict reading the keychain marker first.
       if (store.getString(INSTALL_ID_KEY) !== fresh) return null;
       id = fresh;
     }

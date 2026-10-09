@@ -12,6 +12,13 @@ export const SIGN_OUT_UNREGISTER_TIMEOUT_MS = 3000;
 /** The token this runtime last registered, so sign-out can remove it without asking Expo again. */
 let registeredToken: string | null = null;
 
+/**
+ * Bumped by every registration and every sign-out unregister. A sign-out
+ * unregister that finishes after its cap compares the value it captured: any
+ * registration since then (the same rider signing back in included) wins.
+ */
+let pushGeneration = 0;
+
 /** This device's Expo push token, or null when push is unavailable here. */
 async function getDevicePushToken(): Promise<{
   token: string;
@@ -36,6 +43,7 @@ async function getDevicePushToken(): Promise<{
  * UI (a failed registration must not disrupt onboarding or launch).
  */
 export async function registerForPushNotifications(): Promise<void> {
+  pushGeneration += 1;
   try {
     const device = await getDevicePushToken();
     if (!device) return;
@@ -65,13 +73,16 @@ async function currentUserId(): Promise<string | null> {
  * this; the next account to sign in on the device takes the token over instead.
  *
  * Sign-out does not wait past the cap, so the work below can finish late. It is
- * bound to the account it started for: if a different session is current by the
- * time the mutation would go out, it is skipped, so a late call can never remove
- * the token the NEXT account just claimed.
+ * bound to the sign-out it belongs to: if a registration has run since (a new
+ * account, or the same rider signing back in) or a different session is current
+ * by the time the mutation would go out, it is skipped, so a late call can never
+ * remove a token that was just claimed again.
  */
 export async function unregisterPushTokenForSignOut(): Promise<void> {
   const token = registeredToken;
   registeredToken = null;
+  pushGeneration += 1;
+  const generation = pushGeneration;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<void>((resolve) => {
     timer = setTimeout(resolve, SIGN_OUT_UNREGISTER_TIMEOUT_MS);
@@ -81,7 +92,7 @@ export async function unregisterPushTokenForSignOut(): Promise<void> {
     if (!owner) return;
     const deviceToken = token ?? (await getDevicePushToken())?.token;
     if (!deviceToken) return;
-    if ((await currentUserId()) !== owner) return;
+    if (pushGeneration !== generation || (await currentUserId()) !== owner) return;
     await gqlFetcher(UnregisterPushTokenDocument, { input: { token: deviceToken } });
   };
   try {

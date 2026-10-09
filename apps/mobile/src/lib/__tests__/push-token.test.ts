@@ -59,6 +59,8 @@ beforeEach(() => {
   process.env.EXPO_OS = 'ios';
   mockHasPermission.mockResolvedValue(true);
   mockGetExpoPushToken.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+  // clearAllMocks keeps implementations; reset the one a timeout test leaves hanging.
+  mockGqlFetcher.mockResolvedValue({});
 });
 
 describe('registerForPushNotifications', () => {
@@ -164,5 +166,24 @@ describe('unregisterPushTokenForSignOut', () => {
     await done;
     await new Promise((r) => setImmediate(r));
     expect(mockGqlFetcher).not.toHaveBeenCalled();
+  });
+
+  it('never removes the token the SAME rider re-claimed after signing back in', async () => {
+    let resolveToken: (v: { data: string }) => void = () => {};
+    mockGetExpoPushToken.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveToken = resolve;
+      }),
+    );
+    const done = unregisterPushTokenForSignOut();
+    // Let the unregister reach its (still pending) token lookup.
+    await new Promise((r) => setImmediate(r));
+    // Signed out, then back in as the same user: the auth listener registers again.
+    await registerForPushNotifications();
+    mockGqlFetcher.mockClear();
+    resolveToken({ data: 'ExponentPushToken[abc]' });
+    await done;
+    await new Promise((r) => setImmediate(r));
+    expect(mockGqlFetcher).not.toHaveBeenCalledWith('UNREGISTER_DOC', expect.anything());
   });
 });
