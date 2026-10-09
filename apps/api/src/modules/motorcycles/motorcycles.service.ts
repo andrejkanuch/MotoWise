@@ -14,8 +14,8 @@ import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { Motorcycle } from './models/motorcycle.model';
-import { RecallResult } from './models/recall.model';
-import { NhtsaService } from './nhtsa.service';
+import { type Recall, RecallResult } from './models/recall.model';
+import { NhtsaService, type RecallDto } from './nhtsa.service';
 
 const MOTORCYCLE_SELECT =
   'id, user_id, make, model, year, nickname, variant, is_primary, primary_photo_url, current_mileage, mileage_unit, distance_unit, mileage_updated_at, type, engine_cc, purchase_price, purchase_date, vin, recall_count, recall_last_checked_at, odometer_sync_source, odometer_last_ride_id, created_at';
@@ -221,6 +221,87 @@ export class MotorcyclesService {
   // ==========================================
 
   async checkRecalls(userId: string, motorcycleId: string): Promise<RecallResult> {
+    const { vin, recalls } = await this.loadBikeRecalls(userId, motorcycleId);
+    return this.buildRecallResult(userId, motorcycleId, vin, recalls);
+  }
+
+  /**
+   * Marks one recall campaign as done for the rider's bike (00189). Idempotent:
+   * a repeat keeps the original acknowledged_at. Returns the fresh result so the
+   * client updates without another query. NHTSA lookups are cached for 24h in
+   * NhtsaService, so re-reading the list here is normally a cache hit.
+   */
+  async acknowledgeRecall(
+    userId: string,
+    motorcycleId: string,
+    campaignNumber: string,
+  ): Promise<RecallResult> {
+    this.logger.log(
+      `acknowledgeRecall: userId=${userId}, motorcycleId=${motorcycleId}, campaign=${campaignNumber}`,
+    );
+    const { vin, recalls } = await this.loadBikeRecalls(userId, motorcycleId);
+    // Only campaigns NHTSA actually lists for this bike can be marked as done.
+    if (!recalls.some((recall) => recall.campaignNumber === campaignNumber)) {
+      throw new BadRequestException('Recall not found for this motorcycle');
+    }
+
+    // User client: the INSERT policy re-checks that the bike is the caller's own
+    // live bike. A plain insert (not an upsert) so an existing row — and its
+    // acknowledged_at — is left untouched; the unique violation is the no-op.
+    const { error } = await this.supabase.from('recall_acknowledgements').insert({
+      user_id: userId,
+      motorcycle_id: motorcycleId,
+      campaign_number: campaignNumber,
+    });
+
+    if (error && error.code !== PG_ERROR.UNIQUE_VIOLATION) {
+      this.logger.error(`acknowledgeRecall failed: ${error.message} (${error.code})`);
+      // RLS rejection or a bike deleted since the read above.
+      if (
+        error.code === PG_ERROR.INSUFFICIENT_PRIVILEGE ||
+        error.code === PG_ERROR.FOREIGN_KEY_VIOLATION
+      ) {
+        throw new NotFoundException('Motorcycle not found');
+      }
+      throw new InternalServerErrorException('Failed to mark the recall as done');
+    }
+
+    return this.buildRecallResult(userId, motorcycleId, vin, recalls);
+  }
+
+  /** Undo of {@link acknowledgeRecall}. Idempotent: deleting a missing row is a no-op. */
+  async unacknowledgeRecall(
+    userId: string,
+    motorcycleId: string,
+    campaignNumber: string,
+  ): Promise<RecallResult> {
+    this.logger.log(
+      `unacknowledgeRecall: userId=${userId}, motorcycleId=${motorcycleId}, campaign=${campaignNumber}`,
+    );
+    const { vin, recalls } = await this.loadBikeRecalls(userId, motorcycleId);
+
+    // Hard delete through the user client: the table has no deleted_at, and the
+    // owner-only SELECT/DELETE policies scope it to the caller's own rows.
+    const { error } = await this.supabase
+      .from('recall_acknowledgements')
+      .delete()
+      .eq('user_id', userId)
+      .eq('motorcycle_id', motorcycleId)
+      .eq('campaign_number', campaignNumber);
+
+    if (error) {
+      this.logger.error(`unacknowledgeRecall failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Failed to reopen the recall');
+    }
+
+    return this.buildRecallResult(userId, motorcycleId, vin, recalls);
+  }
+
+  /** The owned, live bike's VIN plus the NHTSA recalls for it. 404 when not the caller's. */
+  private async loadBikeRecalls(
+    userId: string,
+    motorcycleId: string,
+  ): Promise<{ vin: string | undefined; recalls: RecallDto[] }> {
     const { data: bike, error: bikeError } = await this.supabase
       .from('motorcycles')
       .select(MOTORCYCLE_SELECT)
@@ -240,17 +321,57 @@ export class MotorcyclesService {
       year: bike.year,
     });
 
+    return { vin: bike.vin ?? undefined, recalls };
+  }
+
+  /**
+   * Marks each recall with the rider's acknowledgement, orders open recalls
+   * first, and persists recall_count as the OPEN count.
+   */
+  private async buildRecallResult(
+    userId: string,
+    motorcycleId: string,
+    vin: string | undefined,
+    nhtsaRecalls: RecallDto[],
+  ): Promise<RecallResult> {
+    const { data: acks, error: acksError } = await this.supabase
+      .from('recall_acknowledgements')
+      .select('campaign_number, acknowledged_at')
+      .eq('user_id', userId)
+      .eq('motorcycle_id', motorcycleId);
+
+    if (acksError) {
+      // Failing beats silently counting every recall as open: that would
+      // overwrite recall_count with a number the rider already dismissed.
+      this.logger.error(
+        `buildRecallResult: acknowledgements read failed: ${acksError.message} (${acksError.code})`,
+      );
+      throw new InternalServerErrorException('Failed to load recall status');
+    }
+
+    const acknowledgedAtByCampaign = new Map(
+      (acks ?? []).map((ack) => [ack.campaign_number, ack.acknowledged_at] as const),
+    );
+    const marked: Recall[] = nhtsaRecalls.map((recall) => {
+      const acknowledgedAt = acknowledgedAtByCampaign.get(recall.campaignNumber) ?? null;
+      return { ...recall, acknowledged: acknowledgedAt !== null, acknowledgedAt };
+    });
+    const open = marked.filter((recall) => !recall.acknowledged);
+    const acknowledged = marked
+      .filter((recall) => recall.acknowledged)
+      .sort((a, b) => (b.acknowledgedAt ?? '').localeCompare(a.acknowledgedAt ?? ''));
+
     const checkedAt = new Date().toISOString();
 
-    // Persist the latest count so the garage card can show a badge without
-    // hitting the NHTSA API on every list render. Admin client is required
-    // (recall_* columns are outside the user UPDATE grants), so scope the write
-    // to the owned, non-deleted row as defense-in-depth — the bike could be
-    // soft-deleted between the read above and this write (TOCTOU).
+    // Persist the open count so the garage card / plate / CarPlay can show a
+    // badge without hitting the NHTSA API on every list render. Admin client is
+    // required (recall_* columns are outside the user UPDATE grants), so scope
+    // the write to the owned, non-deleted row as defense-in-depth — the bike
+    // could be soft-deleted between the read and this write (TOCTOU).
     await this.adminClient
       .from('motorcycles')
       .update({
-        recall_count: recalls.length,
+        recall_count: open.length,
         recall_last_checked_at: checkedAt,
       })
       .eq('id', motorcycleId)
@@ -258,10 +379,11 @@ export class MotorcyclesService {
       .is('deleted_at', null);
 
     return {
-      count: recalls.length,
-      recalls,
+      count: open.length,
+      acknowledgedCount: acknowledged.length,
+      recalls: [...open, ...acknowledged],
       checkedAt,
-      vinUsed: bike.vin ?? undefined,
+      vinUsed: vin,
     };
   }
 

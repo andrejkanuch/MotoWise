@@ -10,6 +10,7 @@ import {
   type HubCategoryInput,
   type HubDocumentInput,
 } from './documents';
+import { isOpenRecall } from './recall-acknowledgement';
 import { recallComponentLabels } from './recall-label';
 import { countOpenRecalls, getRecallSeverity } from './recall-severity';
 import {
@@ -32,7 +33,8 @@ export type AttentionTaskInput = Pick<
 export type AttentionRecallInput = Pick<
   Recall,
   'campaignNumber' | 'component' | 'summary' | 'consequence'
->;
+> &
+  Partial<Pick<Recall, 'acknowledged'>>;
 
 /** All open recalls, grouped into one row. */
 export interface RecallAttentionItem {
@@ -109,7 +111,8 @@ function recallItem(
 ): RecallAttentionItem[] {
   const count = countOpenRecalls(recalls, recallCount);
   if (count === 0) return [];
-  const known = recalls ?? [];
+  // Recalls the rider marked as done neither name a component nor make the row critical.
+  const known = (recalls ?? []).filter(isOpenRecall);
   return [
     {
       kind: ATTENTION_KIND.RECALL,

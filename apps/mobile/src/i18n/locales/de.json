@@ -1732,7 +1732,16 @@
     "consequence": "Folge",
     "remedy": "Abhilfe",
     "campaign": "Kampagne",
-    "attribution": "Rückrufdaten von NHTSA"
+    "attribution": "Rückrufdaten von NHTSA",
+    "markDone": "Als erledigt markieren",
+    "markDoneConfirmTitle": "Diesen Rückruf als erledigt markieren?",
+    "markDoneConfirmMessage": "Du wirst für dieses Motorrad nicht mehr an die Kampagne {{campaign}} erinnert.",
+    "ackError": "Der Rückruf konnte nicht aktualisiert werden. Bitte versuche es erneut.",
+    "doneSection": "Erledigt ({{count}})",
+    "doneOn": "Erledigt am {{date}}",
+    "undo": "Rückgängig",
+    "undoA11y": "Rückgängig: Kampagne {{campaign}} wieder als offen markieren",
+    "allDoneDescription": "Alle Rückrufe für dieses Motorrad sind als erledigt markiert."
   },
   "trips": {
     "riders": "Fahrer",

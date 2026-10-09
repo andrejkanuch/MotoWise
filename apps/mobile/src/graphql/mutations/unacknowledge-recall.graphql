@@ -1,5 +1,5 @@
-query MotorcycleRecalls($motorcycleId: String!) {
-  motorcycleRecalls(motorcycleId: $motorcycleId) {
+mutation UnacknowledgeRecall($motorcycleId: ID!, $campaignNumber: String!) {
+  unacknowledgeRecall(motorcycleId: $motorcycleId, campaignNumber: $campaignNumber) {
     count
     acknowledgedCount
     checkedAt

@@ -1753,7 +1753,16 @@
     "consequence": "Consequência",
     "remedy": "Solução",
     "campaign": "Campanha",
-    "attribution": "Dados de recalls da NHTSA"
+    "attribution": "Dados de recalls da NHTSA",
+    "markDone": "Marcar como feito",
+    "markDoneConfirmTitle": "Marcar este recall como feito?",
+    "markDoneConfirmMessage": "Você não será mais alertado sobre a campanha {{campaign}} para esta moto.",
+    "ackError": "Não foi possível atualizar este recall. Tente novamente.",
+    "doneSection": "Feitos ({{count}})",
+    "doneOn": "Marcado como feito em {{date}}",
+    "undo": "Desfazer",
+    "undoA11y": "Desfazer: marcar a campanha {{campaign}} como aberta de novo",
+    "allDoneDescription": "Todos os recalls desta moto estão marcados como feitos."
   },
   "trips": {
     "planATrip": "Planejar um rolê",

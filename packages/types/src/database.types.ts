@@ -2708,6 +2708,38 @@ export type Database = {
           },
         ]
       }
+      recall_acknowledgements: {
+        Row: {
+          acknowledged_at: string
+          campaign_number: string
+          id: string
+          motorcycle_id: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string
+          campaign_number: string
+          id?: string
+          motorcycle_id: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string
+          campaign_number?: string
+          id?: string
+          motorcycle_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recall_acknowledgements_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       receipt_scans: {
         Row: {
           consumed_month: string
