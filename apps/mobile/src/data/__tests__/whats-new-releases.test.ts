@@ -14,7 +14,7 @@ import {
  * is what these cover.
  */
 describe('whats-new releases', () => {
-  const CURRENT = '3.22.0';
+  const CURRENT = '3.25.0';
 
   it('has an entry for the shipping version', () => {
     expect(getWhatsNewRelease(CURRENT, SLIDE_PLATFORM.IOS)).not.toBeNull();
@@ -29,7 +29,7 @@ describe('whats-new releases', () => {
   });
 
   it('shows every slide of the shipping release on both platforms', () => {
-    // The bike-screen redesign shipped everywhere, so nothing in it is gated.
+    // The app-wide redesign shipped everywhere, so nothing in it is gated.
     for (const os of [SLIDE_PLATFORM.IOS, SLIDE_PLATFORM.ANDROID]) {
       expect(visibleSlides(getLatestRelease(os), os)).toHaveLength(3);
     }

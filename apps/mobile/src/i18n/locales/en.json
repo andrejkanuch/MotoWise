@@ -1710,6 +1710,14 @@
       "receiptDesc": "Point your camera at a fuel, parts, or service receipt — MotoVault reads the amount, date, and vendor and fills in the expense for you. Check it, save it, done.",
       "carplayTitle": "MotoVault on CarPlay",
       "carplayDesc": "Log rides from your bike’s screen. Start, pause, and finish a ride on the head unit without touching your phone — or let Automatic mode start it on the first GPS fix."
+    },
+    "v3250": {
+      "plateTitle": "Ready, Due or Overdue",
+      "plateDesc": "Home and Garage now show each bike on a plate. One look tells you whether it’s ready to ride, has service coming up, or is overdue.",
+      "themeTitle": "Light and Dark, Everywhere",
+      "themeDesc": "Every screen now has a light and a dark look and follows your Theme setting. Pick one in Profile › App settings › Theme, or leave it on System to match your phone.",
+      "profileTitle": "Profile, Reorganized",
+      "profileDesc": "Profile is split into clearer sections, and language, theme, units and currency now live together in App settings. Setting up a new account is smoother too."
     }
   },
   "oem": {
