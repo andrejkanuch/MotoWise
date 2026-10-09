@@ -1,13 +1,10 @@
 import type { MotorcycleRecallsQuery } from '@motovault/graphql';
 import { RECALL_CRITICAL_KEYWORDS, RECALL_SEVERITY, type RecallSeverity } from './constants';
-import { isOpenRecall } from './recall-acknowledgement';
+import { isOpenRecall, type OpenRecallInput } from './recall-acknowledgement';
 
 type Recall = MotorcycleRecallsQuery['motorcycleRecalls']['recalls'][number];
 
 export type RecallSeverityInput = Pick<Recall, 'component' | 'summary' | 'consequence'>;
-
-/** Only the acknowledgement flag matters for counting; absent means open. */
-export type OpenRecallInput = Partial<Pick<Recall, 'acknowledged'>>;
 
 /**
  * Critical when the recall's component, summary or consequence mentions a stall,

@@ -10,7 +10,7 @@ import {
   type HubCategoryInput,
   type HubDocumentInput,
 } from './documents';
-import { isOpenRecall } from './recall-acknowledgement';
+import { isOpenRecall, type OpenRecallInput } from './recall-acknowledgement';
 import { recallComponentLabels } from './recall-label';
 import { countOpenRecalls, getRecallSeverity } from './recall-severity';
 import {
@@ -34,7 +34,7 @@ export type AttentionRecallInput = Pick<
   Recall,
   'campaignNumber' | 'component' | 'summary' | 'consequence'
 > &
-  Partial<Pick<Recall, 'acknowledged'>>;
+  OpenRecallInput;
 
 /** All open recalls, grouped into one row. */
 export interface RecallAttentionItem {

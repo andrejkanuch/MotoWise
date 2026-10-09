@@ -1,9 +1,5 @@
-import {
-  CreateMotorcycleDocument,
-  MotorcycleMakesDocument,
-  MotorcycleModelsDocument,
-} from '@motovault/graphql';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { CreateMotorcycleDocument } from '@motovault/graphql';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Plus, Search } from 'lucide-react-native';
@@ -30,6 +26,7 @@ import {
   SheetFooter,
   SheetTitle,
 } from '../../../components/ui/sheet-form';
+import { BIKE_YEAR, sanitizeBikeYear, useBikePicker } from '../../../hooks/use-bike-picker';
 import { useProGate } from '../../../hooks/use-pro-gate';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -62,8 +59,6 @@ const TEST_ID = {
 
 const SECTION_STAGGER_MS = 50;
 const SECTION_ENTER_MS = 250;
-const YEAR_LENGTH = 4;
-const MIN_YEAR = 1900;
 /** A search this long with no match offers the typed text as a custom entry. */
 const CUSTOM_ENTRY_MIN_CHARS = 2;
 
@@ -81,70 +76,23 @@ export default function AddBikeScreen() {
   const { requireAccess } = useProGate();
 
   const [year, setYear] = useState('');
-  const [selectedMake, setSelectedMake] = useState<{ makeId: number; makeName: string } | null>(
-    null,
-  );
-  const [selectedModel, setSelectedModel] = useState<{
-    modelId: number;
-    modelName: string;
-  } | null>(null);
-  const [makeSearch, setMakeSearch] = useState('');
-  const [modelSearch, setModelSearch] = useState('');
-  const [customMake, setCustomMake] = useState('');
-  const [customModel, setCustomModel] = useState('');
   const [nickname, setNickname] = useState('');
-
-  const yearNum = Number.parseInt(year, 10);
-  const validYear =
-    year.length === YEAR_LENGTH && yearNum >= MIN_YEAR && yearNum <= new Date().getFullYear() + 1;
+  const picker = useBikePicker(year);
+  const {
+    yearNum,
+    selectedMake,
+    selectedModel,
+    makeSearch,
+    modelSearch,
+    customMake,
+    customModel,
+    makes,
+    models,
+  } = picker;
 
   const handleYearChange = (text: string) => {
-    setYear(text.replace(/[^0-9]/g, '').slice(0, YEAR_LENGTH));
-    setSelectedModel(null);
-    setModelSearch('');
-  };
-
-  // NHTSA queries
-  const makesResult = useQuery({
-    queryKey: queryKeys.nhtsa.makes,
-    queryFn: () => gqlFetcher(MotorcycleMakesDocument),
-    staleTime: Number.POSITIVE_INFINITY,
-  });
-
-  const modelsResult = useQuery({
-    queryKey: queryKeys.nhtsa.models({ makeId: selectedMake?.makeId ?? 0, year: yearNum }),
-    queryFn: () =>
-      gqlFetcher(MotorcycleModelsDocument, {
-        makeId: selectedMake?.makeId ?? 0,
-        year: yearNum,
-      }),
-    enabled: !!selectedMake && validYear && !customMake,
-    // NHTSA models for a (makeId, year) never change — cached 7 days server-side.
-    // Match the makes query so re-entering the flow doesn't re-hit the API.
-    staleTime: Number.POSITIVE_INFINITY,
-  });
-
-  const makes = makesResult.data?.motorcycleMakes ?? [];
-  const filteredMakes = makes.filter((make) =>
-    make.makeName.toLowerCase().includes(makeSearch.toLowerCase()),
-  );
-  const models = modelsResult.data?.motorcycleModels ?? [];
-  const filteredModels = models.filter((model) =>
-    model.modelName.toLowerCase().includes(modelSearch.toLowerCase()),
-  );
-
-  const handleSelectMake = (make: { makeId: number; makeName: string }) => {
-    triggerImpact();
-    setSelectedMake(make);
-    setSelectedModel(null);
-    setMakeSearch('');
-    setModelSearch('');
-  };
-
-  const handleSelectModel = (model: { modelId: number; modelName: string }) => {
-    triggerImpact();
-    setSelectedModel(model);
-    setModelSearch('');
+    setYear(sanitizeBikeYear(text));
+    picker.resetModel();
   };
 
   const { mutateAsync, isPending } = useMutation({
@@ -162,7 +110,7 @@ export default function AddBikeScreen() {
   });
 
   const isValid =
-    validYear &&
+    picker.validYear &&
     (!!selectedMake || !!customMake.trim()) &&
     (!!selectedModel || !!customModel.trim());
 
@@ -170,8 +118,8 @@ export default function AddBikeScreen() {
     if (!isValid || isPending) return;
 
     try {
-      const make = customMake || selectedMake?.makeName || '';
-      const model = customModel || selectedModel?.modelName || '';
+      const make = picker.makeName;
+      const model = picker.modelName;
       await mutateAsync({
         year: yearNum,
         make,
@@ -198,31 +146,8 @@ export default function AddBikeScreen() {
   };
 
   // ── Make: loading → chosen (custom or NHTSA) → search with matches ──
-  const reopenCustomMake = () => {
-    setMakeSearch(customMake);
-    setCustomMake('');
-    setSelectedModel(null);
-    setModelSearch('');
-    setCustomModel('');
-  };
-  const reopenMake = () => {
-    if (!selectedMake) return;
-    setMakeSearch(selectedMake.makeName);
-    setSelectedMake(null);
-    setSelectedModel(null);
-    setModelSearch('');
-  };
-  const chooseTypedMake = () => {
-    setCustomMake(makeSearch);
-    setSelectedMake(null);
-    setMakeSearch('');
-    setSelectedModel(null);
-    setModelSearch('');
-    setCustomModel('');
-  };
-
   const renderMake = () => {
-    if (makesResult.isLoading) return <PickerLoadingRow />;
+    if (makes.isLoading) return <PickerLoadingRow />;
     if (customMake && !makeSearch) {
       return (
         <PickerValueRow
@@ -230,7 +155,7 @@ export default function AddBikeScreen() {
           icon={Search}
           value={customMake}
           custom
-          onPress={reopenCustomMake}
+          onPress={picker.reopenCustomMake}
         />
       );
     }
@@ -240,28 +165,31 @@ export default function AddBikeScreen() {
           testID={TEST_ID.MAKE_VALUE}
           icon={Search}
           value={selectedMake.makeName}
-          onPress={reopenMake}
+          onPress={picker.reopenMake}
         />
       );
     }
-    const noMatch = makeSearch.length >= CUSTOM_ENTRY_MIN_CHARS && filteredMakes.length === 0;
+    const noMatch = makeSearch.length >= CUSTOM_ENTRY_MIN_CHARS && makes.filtered.length === 0;
     return (
       <>
         <IconInputRow
           testID={TEST_ID.MAKE_SEARCH}
           icon={Search}
           value={makeSearch}
-          onChangeText={setMakeSearch}
+          onChangeText={picker.setMakeSearch}
           placeholder={t('garage.searchMake')}
           accessibilityLabel={t('garage.make')}
           autoCapitalize="words"
         />
-        {makeSearch.length > 0 && filteredMakes.length > 0 ? (
+        {makes.filtered.length > 0 ? (
           <PickerResults
-            items={filteredMakes}
+            items={makes.filtered}
             keyOf={(make) => make.makeId}
             labelOf={(make) => make.makeName}
-            onSelect={handleSelectMake}
+            onSelect={(make) => {
+              triggerImpact();
+              picker.selectMake(make);
+            }}
             testIDPrefix={TEST_ID.MAKE_OPTION}
           />
         ) : null}
@@ -274,7 +202,7 @@ export default function AddBikeScreen() {
                 defaultValue: `Use "${makeSearch}"`,
                 make: makeSearch,
               })}
-              onPress={chooseTypedMake}
+              onPress={picker.chooseTypedMake}
             />
           </>
         ) : null}
@@ -284,7 +212,7 @@ export default function AddBikeScreen() {
 
   // ── Model: locked until a make and a valid year; free text for a custom make ──
   const renderModel = () => {
-    if ((!selectedMake && !customMake) || !validYear) {
+    if (!picker.modelUnlocked) {
       return <PickerDisabledRow icon={Search} label={t('garage.searchModel')} />;
     }
     if (customMake) {
@@ -295,10 +223,7 @@ export default function AddBikeScreen() {
             icon={Search}
             value={customModel}
             custom
-            onPress={() => {
-              setModelSearch(customModel);
-              setCustomModel('');
-            }}
+            onPress={picker.reopenCustomModel}
           />
         );
       }
@@ -307,16 +232,8 @@ export default function AddBikeScreen() {
           testID={TEST_ID.MODEL_SEARCH}
           icon={Search}
           value={modelSearch}
-          onChangeText={(text) => {
-            setModelSearch(text);
-            setCustomModel(text);
-          }}
-          onBlur={() => {
-            if (modelSearch.trim()) {
-              setCustomModel(modelSearch.trim());
-              setModelSearch('');
-            }
-          }}
+          onChangeText={picker.typeCustomModel}
+          onBlur={picker.commitCustomModel}
           placeholder={t('garage.searchModel')}
           accessibilityLabel={t('garage.model')}
           autoCapitalize="words"
@@ -324,17 +241,14 @@ export default function AddBikeScreen() {
         />
       );
     }
-    if (modelsResult.isLoading) return <PickerLoadingRow />;
+    if (models.isLoading) return <PickerLoadingRow />;
     if (selectedModel && !modelSearch) {
       return (
         <PickerValueRow
           testID={TEST_ID.MODEL_VALUE}
           icon={Search}
           value={selectedModel.modelName}
-          onPress={() => {
-            setModelSearch(selectedModel.modelName);
-            setSelectedModel(null);
-          }}
+          onPress={picker.reopenModel}
         />
       );
     }
@@ -345,53 +259,44 @@ export default function AddBikeScreen() {
           icon={Search}
           value={customModel}
           custom
-          onPress={() => {
-            setModelSearch(customModel);
-            setCustomModel('');
-            setSelectedModel(null);
-          }}
+          onPress={picker.reopenCustomModel}
         />
       );
     }
-    const noMatch = modelSearch.length >= CUSTOM_ENTRY_MIN_CHARS && filteredModels.length === 0;
+    const noMatch = modelSearch.length >= CUSTOM_ENTRY_MIN_CHARS && models.filtered.length === 0;
     return (
       <>
         <IconInputRow
           testID={TEST_ID.MODEL_SEARCH}
           icon={Search}
           value={modelSearch}
-          onChangeText={(text) => {
-            setModelSearch(text);
-            setSelectedModel(null);
-            setCustomModel('');
-          }}
+          onChangeText={picker.searchModel}
           placeholder={t('garage.searchModel')}
           accessibilityLabel={t('garage.model')}
           autoCapitalize="words"
         />
-        {filteredModels.length > 0 ? (
+        {models.filtered.length > 0 ? (
           <PickerResults
-            items={filteredModels}
+            items={models.filtered}
             keyOf={(model) => model.modelId}
             labelOf={(model) => model.modelName}
-            onSelect={handleSelectModel}
+            onSelect={(model) => {
+              triggerImpact();
+              picker.selectModel(model);
+            }}
             testIDPrefix={TEST_ID.MODEL_OPTION}
           />
         ) : null}
         {noMatch ? (
           <>
-            {models.length > 0 ? <PickerEmptyRow label={t('garage.noModelsFound')} /> : null}
+            {models.all.length > 0 ? <PickerEmptyRow label={t('garage.noModelsFound')} /> : null}
             <PickerCustomRow
               testID={TEST_ID.MODEL_CUSTOM}
               label={t('garage.useCustomModel', {
                 defaultValue: `Use "${modelSearch}"`,
                 model: modelSearch,
               })}
-              onPress={() => {
-                setCustomModel(modelSearch);
-                setSelectedModel(null);
-                setModelSearch('');
-              }}
+              onPress={picker.chooseTypedModel}
             />
           </>
         ) : null}
@@ -425,7 +330,7 @@ export default function AddBikeScreen() {
               placeholderTextColor={theme.ink4}
               accessibilityLabel={t('garage.year')}
               keyboardType="number-pad"
-              maxLength={YEAR_LENGTH}
+              maxLength={BIKE_YEAR.LENGTH}
               returnKeyType="next"
               style={[
                 inputTextStyle(theme),

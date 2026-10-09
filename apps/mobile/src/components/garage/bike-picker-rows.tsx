@@ -34,6 +34,11 @@ const DISABLED_OPACITY = 0.45;
 const PRESS_TINT_ALPHA = 0.06;
 const RESULTS_FADE_MS = 180;
 
+/** The iOS inset-grouped press highlight; Android shows its ripple instead. */
+function pressedRowTint(pressed: boolean, ink: string): string {
+  return pressed && process.env.EXPO_OS === 'ios' ? tint(ink, PRESS_TINT_ALPHA) : 'transparent';
+}
+
 const ROW_STYLE: ViewStyle = {
   minHeight: SHEET_CONTROL_HEIGHT,
   flexDirection: 'row',
@@ -118,10 +123,7 @@ export function PickerValueRow({
       style={({ pressed }) => ({
         ...ROW_STYLE,
         paddingVertical: space.xs,
-        backgroundColor:
-          pressed && process.env.EXPO_OS === 'ios'
-            ? tint(theme.ink, PRESS_TINT_ALPHA)
-            : 'transparent',
+        backgroundColor: pressedRowTint(pressed, theme.ink),
       })}
     >
       <Icon size={ROW_ICON_SIZE} color={theme.ink2} strokeWidth={2} />
@@ -178,10 +180,7 @@ export function PickerResults<T>({
                 paddingVertical: space.sm,
                 paddingLeft: ROW_DIVIDER_INSET,
                 paddingRight: space.md,
-                backgroundColor:
-                  pressed && process.env.EXPO_OS === 'ios'
-                    ? tint(theme.ink, PRESS_TINT_ALPHA)
-                    : 'transparent',
+                backgroundColor: pressedRowTint(pressed, theme.ink),
               })}
             >
               <Text style={[type.body, { color: theme.ink }]}>{labelOf(item)}</Text>
@@ -239,10 +238,7 @@ export function PickerCustomRow({
         style={({ pressed }) => ({
           ...ROW_STYLE,
           paddingVertical: space.xs,
-          backgroundColor:
-            pressed && process.env.EXPO_OS === 'ios'
-              ? tint(theme.ink, PRESS_TINT_ALPHA)
-              : 'transparent',
+          backgroundColor: pressedRowTint(pressed, theme.ink),
         })}
       >
         <Plus size={ROW_ICON_SIZE} color={theme.warm2} strokeWidth={2.25} />

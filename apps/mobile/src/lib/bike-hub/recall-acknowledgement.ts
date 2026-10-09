@@ -10,8 +10,15 @@ export const RECALL_ACK_ACTION = {
 } as const;
 export type RecallAckAction = (typeof RECALL_ACK_ACTION)[keyof typeof RECALL_ACK_ACTION];
 
+/**
+ * What deciding "open or done" needs from a recall: only the acknowledgement
+ * flag, absent meaning open (older cached results and old API builds lack it).
+ * The one input type for `isOpenRecall`, `countOpenRecalls` and the attention list.
+ */
+export type OpenRecallInput = Partial<Pick<RecallItem, 'acknowledged'>>;
+
 /** A recall still needs the rider's attention: NHTSA lists it and it is not marked as done. */
-export function isOpenRecall(recall: { acknowledged?: boolean | null }): boolean {
+export function isOpenRecall(recall: OpenRecallInput): boolean {
   return !recall.acknowledged;
 }
 

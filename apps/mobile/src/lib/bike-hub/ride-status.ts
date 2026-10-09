@@ -7,7 +7,8 @@ import {
   type RideStatus,
 } from './constants';
 import { getDocumentSignals, type HubCategoryInput, type HubDocumentInput } from './documents';
-import { countOpenRecalls, type OpenRecallInput } from './recall-severity';
+import type { OpenRecallInput } from './recall-acknowledgement';
+import { countOpenRecalls } from './recall-severity';
 import { getTaskDue, isActiveTask } from './task-due';
 
 type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];

@@ -1,6 +1,6 @@
 import { ExpenseDashboardDocument, type ExpenseDashboardQuery } from '@motovault/graphql';
 import { breakdownTotals, dashboardBreakdowns, selectBreakdown } from '@motovault/types';
-import { useQuery } from '@tanstack/react-query';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import {
   categoryTotalsFromBuckets,
@@ -17,12 +17,25 @@ export { PERIOD_OPTIONS };
 
 type ExpenseDashboard = ExpenseDashboardQuery['expenseDashboard'];
 
+const EXPENSE_DASHBOARD_STALE_MS = 5 * 60 * 1000;
+
+/**
+ * The expense dashboard query for one bike: key, fetcher and staleTime. Shared
+ * with the Get Started checklist's "first expense" signal so both read one cache
+ * entry under one freshness rule.
+ */
+export function expenseDashboardQueryOptions(motorcycleId: string) {
+  return queryOptions({
+    queryKey: [...queryKeys.expenses.byMotorcycle(motorcycleId), 'dashboard'] as const,
+    queryFn: () => gqlFetcher(ExpenseDashboardDocument, { motorcycleId }),
+    staleTime: EXPENSE_DASHBOARD_STALE_MS,
+  });
+}
+
 export function useExpenseDashboard(motorcycleId: string | undefined) {
   const { data, isPending, isError, refetch } = useQuery({
-    queryKey: [...queryKeys.expenses.byMotorcycle(motorcycleId ?? ''), 'dashboard'],
-    queryFn: () => gqlFetcher(ExpenseDashboardDocument, { motorcycleId: motorcycleId as string }),
+    ...expenseDashboardQueryOptions(motorcycleId ?? ''),
     enabled: !!motorcycleId,
-    staleTime: 5 * 60 * 1000,
   });
 
   const dashboard = data?.expenseDashboard;

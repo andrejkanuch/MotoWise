@@ -1,5 +1,4 @@
 import {
-  ExpenseDashboardDocument,
   type ExpenseDashboardQuery,
   MyMotorcyclesDocument,
   MyRidesDocument,
@@ -7,6 +6,7 @@ import {
 } from '@motovault/graphql';
 import { type QueryObserverResult, useQueries, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { expenseDashboardQueryOptions } from '../../hooks/use-expense-dashboard';
 import { type ChecklistSignals, isDataBackedItem } from '../../lib/checklist-signals';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -17,8 +17,7 @@ const BIKES_STALE_MS = 5 * 60 * 1000;
 /** The page Home's recent-rides strip fetches; the same key, so the same cache entry. */
 const HOME_RIDES_LIST = 'home';
 const HOME_RIDES_FIRST = 10;
-/** Matches `useExpenseDashboard` and `useReceiptScanQuota`, which share these keys. */
-const EXPENSE_DASHBOARD_STALE_MS = 5 * 60 * 1000;
+/** Matches `useReceiptScanQuota`, which shares this key. */
 const SCAN_QUOTA_STALE_MS = 60_000;
 
 type ExpenseDashboardResult = QueryObserverResult<ExpenseDashboardQuery>;
@@ -81,9 +80,7 @@ export function useChecklistSignals(
 
   const expenses = useQueries({
     queries: (needsExpenses ? (bikes ?? []) : []).map((bike) => ({
-      queryKey: [...queryKeys.expenses.byMotorcycle(bike.id), 'dashboard'] as const,
-      queryFn: () => gqlFetcher(ExpenseDashboardDocument, { motorcycleId: bike.id }),
-      staleTime: EXPENSE_DASHBOARD_STALE_MS,
+      ...expenseDashboardQueryOptions(bike.id),
       meta: QUERY_META.DECORATION,
     })),
     combine: combineExpenseCounts,
