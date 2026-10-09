@@ -30,10 +30,17 @@ jest.mock('expo-constants', () => ({
 jest.mock('../graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockGqlFetcher(...args),
 }));
-jest.mock('@motovault/graphql', () => ({ RegisterPushTokenDocument: 'REGISTER_DOC' }));
+jest.mock('@motovault/graphql', () => ({
+  RegisterPushTokenDocument: 'REGISTER_DOC',
+  UnregisterPushTokenDocument: 'UNREGISTER_DOC',
+}));
 jest.mock('../logger', () => ({ logger: { warn: jest.fn(), error: jest.fn() } }));
 
-import { registerForPushNotifications } from '../push-token';
+import {
+  registerForPushNotifications,
+  SIGN_OUT_UNREGISTER_TIMEOUT_MS,
+  unregisterPushTokenForSignOut,
+} from '../push-token';
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -78,5 +85,49 @@ describe('registerForPushNotifications', () => {
     mockGetExpoPushToken.mockRejectedValue(new Error('native failure'));
     await expect(registerForPushNotifications()).resolves.toBeUndefined();
     expect(mockGqlFetcher).not.toHaveBeenCalled();
+  });
+});
+
+describe('unregisterPushTokenForSignOut', () => {
+  it('removes the token this runtime registered, without asking Expo again', async () => {
+    await registerForPushNotifications();
+    mockGetExpoPushToken.mockClear();
+    mockGqlFetcher.mockClear();
+
+    await unregisterPushTokenForSignOut();
+    expect(mockGetExpoPushToken).not.toHaveBeenCalled();
+    expect(mockGqlFetcher).toHaveBeenCalledWith('UNREGISTER_DOC', {
+      input: { token: 'ExponentPushToken[abc]' },
+    });
+  });
+
+  it('asks Expo for the token when this runtime never registered one', async () => {
+    await unregisterPushTokenForSignOut();
+    expect(mockGqlFetcher).toHaveBeenCalledWith('UNREGISTER_DOC', {
+      input: { token: 'ExponentPushToken[abc]' },
+    });
+  });
+
+  it('no-ops without notification permission', async () => {
+    mockHasPermission.mockResolvedValue(false);
+    await unregisterPushTokenForSignOut();
+    expect(mockGqlFetcher).not.toHaveBeenCalled();
+  });
+
+  it('swallows a failed unregister (sign-out must continue)', async () => {
+    mockGqlFetcher.mockRejectedValue(new Error('network down'));
+    await expect(unregisterPushTokenForSignOut()).resolves.toBeUndefined();
+  });
+
+  it('gives up after the timeout instead of blocking sign-out', async () => {
+    jest.useFakeTimers();
+    try {
+      mockGqlFetcher.mockReturnValue(new Promise(() => {}));
+      const done = unregisterPushTokenForSignOut();
+      await jest.advanceTimersByTimeAsync(SIGN_OUT_UNREGISTER_TIMEOUT_MS);
+      await expect(done).resolves.toBeUndefined();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

@@ -2,43 +2,58 @@ import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestj
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 
+const DEVICE_PUSH_TOKENS_TABLE = 'device_push_tokens';
+const CLAIM_DEVICE_PUSH_TOKEN_RPC = 'claim_device_push_token';
+
 @Injectable()
 export class PushTokensService {
   private readonly logger = new Logger(PushTokensService.name);
 
-  // User-scoped writes go through the per-request user client so RLS enforces
-  // that a caller can only register a token under their own user_id.
+  // User-scoped writes go through the per-request user client: the claim RPC pins
+  // the owner to auth.uid() and the delete is filtered by the owner RLS policy.
   constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
 
   // Input is already validated by ZodValidationPipe (platform ∈ {ios, android});
   // the DB CHECK constraint enforces it again at the storage layer.
   async register(userId: string, input: { token: string; platform: string }): Promise<boolean> {
-    // Upsert on the unique token: re-registration from the same device refreshes
-    // ownership + last_seen_at rather than creating duplicates. Select the row back
-    // so we can detect the cross-user no-op (token owned by another user → owner-RLS
-    // filters the UPDATE leg → empty result, not an error).
-    const { data, error } = await this.supabase
-      .from('device_push_tokens')
-      .upsert(
-        {
-          user_id: userId,
-          token: input.token,
-          platform: input.platform,
-          last_seen_at: new Date().toISOString(),
-        },
-        { onConflict: 'token' },
-      )
-      .select('id');
+    // A device has one token and shows one account, so the last account to
+    // register owns it. A plain upsert cannot take a token over from another
+    // account: the owner-only UPDATE policy rejects the conflicting row with 42501
+    // (Sentry MOTO-VAULT-NODE-NESTJS-J). The RPC does the takeover with the owner
+    // pinned to auth.uid() — see migration 00188.
+    const { data, error } = await this.supabase.rpc(CLAIM_DEVICE_PUSH_TOKEN_RPC, {
+      p_token: input.token,
+      p_platform: input.platform,
+    });
 
     if (error) {
-      this.logger.error(`register failed: ${error.message} (${error.code})`);
+      this.logger.error(`register failed for ${userId}: ${error.message} (${error.code})`);
       throw new InternalServerErrorException('Failed to register push token');
     }
-    if (!data || data.length === 0) {
-      // Token is registered to a different user (e.g. device handoff); RLS blocked the
-      // re-assign. Not an error — report not-registered so the client can react.
-      this.logger.warn('register: upsert no-op — token owned by another user');
+    // false = the database saw no signed-in user, which the auth guard should make
+    // impossible; report it rather than pretend the device is registered.
+    if (data !== true) {
+      this.logger.warn(`register: claim returned ${String(data)} for ${userId}`);
       return false;
+    }
+    return true;
+  }
+
+  /**
+   * Removes this device's token from the caller's account, so a signed-out device
+   * stops receiving the account's notifications. Idempotent: a token that is
+   * already gone, or now belongs to another account, is not an error.
+   */
+  async unregister(userId: string, token: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from(DEVICE_PUSH_TOKENS_TABLE)
+      .delete()
+      .eq('token', token)
+      .eq('user_id', userId);
+
+    if (error) {
+      this.logger.error(`unregister failed for ${userId}: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Failed to unregister push token');
     }
     return true;
   }

@@ -11,6 +11,7 @@ import { Alert } from 'react-native';
 import { releaseSheetDraftsForSignOut } from '../components/bike-hub/notes/unattached-note-photos';
 import { gqlFetcher } from '../lib/graphql-client';
 import { isAccountAlreadyDeleted, userFriendlyError } from '../lib/graphql-errors';
+import { unregisterPushTokenForSignOut } from '../lib/push-token';
 import { queryKeys } from '../lib/query-keys';
 import { meOptions } from '../lib/query-options';
 import { presentPaywall } from '../lib/subscription';
@@ -48,6 +49,8 @@ export function useProfileData({ t, isPro }: UseProfileDataParams) {
   });
 
   const finishAccountDeletion = async () => {
+    // A soft-deleted account keeps its rows for 30 days; stop its pushes now.
+    await unregisterPushTokenForSignOut();
     await safeSignOut();
     queryClient.clear();
     router.replace('/(auth)/login');
@@ -88,8 +91,8 @@ export function useProfileData({ t, isPro }: UseProfileDataParams) {
 
   const handleLogout = async () => {
     triggerImpact();
-    // Needs the session, so before sign-out (the auth listener runs after it).
-    await releaseSheetDraftsForSignOut();
+    // Both need the session, so before sign-out (the auth listener runs after it).
+    await Promise.all([releaseSheetDraftsForSignOut(), unregisterPushTokenForSignOut()]);
     await safeSignOut();
     router.replace('/(auth)/login');
   };

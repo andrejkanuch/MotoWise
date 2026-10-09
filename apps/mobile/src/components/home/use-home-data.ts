@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BIKE_ORIGIN } from '../../lib/bike-hub/constants';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { userFriendlyError } from '../../lib/graphql-errors';
 import { computeHealthScore, getRelativeDueDate } from '../../lib/health-score';
 import { reconcileMaintenanceReminders } from '../../lib/notifications';
 import { queryKeys } from '../../lib/query-keys';
@@ -64,7 +65,10 @@ export function useHomeData() {
   const hasCriticalError = !isOffline && (meQuery.isError || bikesQuery.isError);
   const isOfflineEmpty = isOffline && !user && motorcycles.length === 0;
   const isRefreshing = meQuery.isRefetching || bikesQuery.isRefetching || ridesQuery.isRefetching;
-  const errorMessage = (meQuery.error as Error)?.message ?? (bikesQuery.error as Error)?.message;
+  // Never the raw error: a graphql-request ClientError's message is the whole
+  // response — headers, request id and query — and it was rendered verbatim.
+  const criticalError = meQuery.error ?? bikesQuery.error;
+  const errorMessage = criticalError ? userFriendlyError(criticalError) : undefined;
   const dataUpdatedAt = meQuery.dataUpdatedAt;
 
   const onRefresh = useCallback(() => {

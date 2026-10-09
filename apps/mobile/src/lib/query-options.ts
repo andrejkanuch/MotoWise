@@ -7,6 +7,7 @@
  */
 import { AllMaintenanceTasksDocument, MeDocument } from '@motovault/graphql';
 import { queryOptions } from '@tanstack/react-query';
+import { isAccountGoneError, signOutGoneAccount } from './account-gone';
 import { gqlFetcher } from './graphql-client';
 import { queryKeys } from './query-keys';
 
@@ -17,7 +18,16 @@ import { queryKeys } from './query-keys';
 export const meOptions = () =>
   queryOptions({
     queryKey: queryKeys.user.me,
-    queryFn: () => gqlFetcher(MeDocument),
+    queryFn: async () => {
+      try {
+        return await gqlFetcher(MeDocument);
+      } catch (error) {
+        // The session's account no longer exists: leaving the rider signed in
+        // strands them on screens that can only fail. Sign out instead.
+        if (isAccountGoneError(error)) void signOutGoneAccount();
+        throw error;
+      }
+    },
     retry: 1,
     retryDelay: 1000,
     meta: { showErrorAlert: false },

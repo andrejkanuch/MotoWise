@@ -22,6 +22,12 @@ const mockFetcher = jest.fn();
 jest.mock('../../../lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
+// meOptions signs out a session whose account is gone; keep the real Supabase
+// client (which needs env vars) out of this render test.
+jest.mock('../../../lib/account-gone', () => ({
+  isAccountGoneError: () => false,
+  signOutGoneAccount: jest.fn(),
+}));
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
   notificationAsync: jest.fn(),

@@ -17,3 +17,6 @@ export const RegisterPushTokenSchema = z.object({
   platform: z.enum([DEVICE_PLATFORM.IOS, DEVICE_PLATFORM.ANDROID]),
 });
 export type RegisterPushTokenInput = z.infer<typeof RegisterPushTokenSchema>;
+
+export const UnregisterPushTokenSchema = RegisterPushTokenSchema.pick({ token: true });
+export type UnregisterPushTokenInput = z.infer<typeof UnregisterPushTokenSchema>;

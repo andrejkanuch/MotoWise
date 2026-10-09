@@ -10,10 +10,12 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { PG_ERROR } from '../../common/supabase/unwrap';
 import { EmailService } from '../email/email.service';
 import { MetaEventsService } from '../meta/meta-events.service';
 import { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
@@ -115,8 +117,18 @@ export class UsersService {
       .eq('id', id)
       .single();
 
-    if (error || !data) {
+    // Only "no row" means the account is gone. Anything else is a database fault,
+    // and must not read as NOT_FOUND: the app signs a rider out when `me` says the
+    // user does not exist, so a transient outage reported as not-found would sign
+    // everyone out. (`unwrap` is not used: it is for user-client results only.)
+    if (error && error.code !== PG_ERROR.NOT_FOUND) {
       this.logger.error(`findById failed — id: ${id}, error: ${JSON.stringify(error)}`);
+      throw new InternalServerErrorException('Failed to load user', {
+        cause: new Error(`${error.code}: ${error.message}`),
+      });
+    }
+    if (!data) {
+      this.logger.warn(`findById: no users row for ${id}`);
       throw new NotFoundException('User not found');
     }
     return this.mapRow(data);

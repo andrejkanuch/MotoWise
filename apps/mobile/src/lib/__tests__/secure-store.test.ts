@@ -84,6 +84,15 @@ jest.mock('expo-secure-store', () => ({
   }),
 }));
 
+/** MMKV is the app container: wiped on uninstall, unlike the keychain. */
+const mockMmkv = new Map<string, string>();
+jest.mock('react-native-mmkv', () => ({
+  createMMKV: ({ id }: { id: string }) => ({
+    getString: (key: string) => mockMmkv.get(`${id}:${key}`),
+    set: (key: string, value: string) => mockMmkv.set(`${id}:${key}`, value),
+  }),
+}));
+
 import * as SecureStore from 'expo-secure-store';
 import { AppState, type AppStateStatus } from 'react-native';
 
@@ -121,6 +130,7 @@ const KEY = 'motovault.test-key';
 
 beforeEach(() => {
   mockKeychain.clear();
+  mockMmkv.clear();
   mockDeviceLocked = false;
   appStateHandlers = [];
   jest.spyOn(AppState, 'addEventListener').mockImplementation((_event, handler) => {
@@ -289,6 +299,65 @@ describe('secureStoreAuthAdapter', () => {
 
     await expect(secureStoreAuthAdapter.getItem(authKey)).resolves.toBeNull();
     expect(mockKeychain.get(authKey)?.value).toBe('legacy-session');
+  });
+});
+
+describe('secureStoreAuthAdapter: a reinstall does not resume the previous session', () => {
+  const authKey = 'sb-test-auth-token';
+  const MARKER = 'motovault.session-install-id';
+
+  /** Delete the app: the container (MMKV) goes, the keychain stays. */
+  function reinstallApp(): void {
+    mockMmkv.clear();
+  }
+
+  it('keeps a session written by this install across launches', async () => {
+    await loadModule().secureStoreAuthAdapter.setItem(authKey, 'session');
+    // Next cold start: same container, same install id.
+    await expect(loadModule().secureStoreAuthAdapter.getItem(authKey)).resolves.toBe('session');
+  });
+
+  it('discards a session written by a previous install, and deletes it', async () => {
+    await loadModule().secureStoreAuthAdapter.setItem(authKey, 'old-session');
+    reinstallApp();
+
+    await expect(loadModule().secureStoreAuthAdapter.getItem(authKey)).resolves.toBeNull();
+    expect(mockKeychain.has(authKey)).toBe(false);
+  });
+
+  it('keeps a session the new install writes after discarding the old one', async () => {
+    await loadModule().secureStoreAuthAdapter.setItem(authKey, 'old-session');
+    reinstallApp();
+
+    const { secureStoreAuthAdapter } = loadModule();
+    await expect(secureStoreAuthAdapter.getItem(authKey)).resolves.toBeNull();
+    await secureStoreAuthAdapter.setItem(authKey, 'new-session');
+    await expect(secureStoreAuthAdapter.getItem(authKey)).resolves.toBe('new-session');
+    // And on the next launch of this install.
+    await expect(loadModule().secureStoreAuthAdapter.getItem(authKey)).resolves.toBe('new-session');
+  });
+
+  it('keeps a session written before this check existed (no marker) and stamps it', async () => {
+    mockKeychain.set(authKey, {
+      value: 'legacy-session',
+      accessible: mockAccessibility.AFTER_FIRST_UNLOCK,
+    });
+
+    await expect(loadModule().secureStoreAuthAdapter.getItem(authKey)).resolves.toBe(
+      'legacy-session',
+    );
+    expect(mockKeychain.get(MARKER)?.value).toBeTruthy();
+  });
+
+  it('never discards when the marker cannot be read (locked device)', async () => {
+    await loadModule().secureStoreAuthAdapter.setItem(authKey, 'session');
+    reinstallApp();
+    // A marker an older build left WHEN_UNLOCKED is unreadable on a locked phone.
+    seedLegacyItem(MARKER, 'some-other-install');
+    mockDeviceLocked = true;
+
+    await loadModule().secureStoreAuthAdapter.getItem(authKey);
+    expect(mockKeychain.get(authKey)?.value).toBe('session');
   });
 });
 
