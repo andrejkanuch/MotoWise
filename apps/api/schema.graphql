@@ -1288,6 +1288,7 @@ type Mutation {
   unfollowRider(input: UnfollowRiderInput!): Boolean!
   unpublishBlogPost(id: String!): BlogPost!
   unpublishTemplate(tripId: ID!): Boolean!
+  unregisterPushToken(input: UnregisterPushTokenInput!): RegisterPushTokenResult!
   unsaveTrip(tripId: ID!): Boolean!
   unshareRide(rideId: String!, sharedWithUserId: String!): Boolean!
   updateBlogPost(input: UpdateBlogPostInput!): BlogPost!
@@ -2313,6 +2314,11 @@ type UndoReceiptScanSuccess {
 
 input UnfollowRiderInput {
   targetUserId: String!
+}
+
+input UnregisterPushTokenInput {
+  """The Expo push token to remove from the signed-in account."""
+  token: String!
 }
 
 type UnreviewedScan {

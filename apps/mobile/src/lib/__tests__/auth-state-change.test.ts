@@ -32,6 +32,30 @@ describe('decideAuthStateChange', () => {
     });
   });
 
+  describe('push token registration', () => {
+    const decide = (sessionUserId: string | null, prevUserId: string | null) =>
+      decideAuthStateChange({ sessionUserId, prevUserId, hasPersistedUser: prevUserId !== null })
+        .shouldRegisterPush;
+
+    it('registers when a session starts (cold start or first sign-in)', () => {
+      expect(decide('user-1', null)).toBe(true);
+    });
+
+    it('registers again when the same rider signs back in after Log out', () => {
+      // Log out removed the device's token: SIGNED_OUT sets prev to null first.
+      expect(decide(null, 'user-1')).toBe(false);
+      expect(decide('user-1', null)).toBe(true);
+    });
+
+    it('registers for a different account on the same device', () => {
+      expect(decide('user-2', 'user-1')).toBe(true);
+    });
+
+    it('does not re-register on TOKEN_REFRESHED for the same user', () => {
+      expect(decide('user-1', 'user-1')).toBe(false);
+    });
+  });
+
   describe('null session', () => {
     it('does NOT reset or clear on a genuine first-launch anonymous visitor (Defect 1)', () => {
       // Cold-start INITIAL_SESSION: no prior user in this session AND no

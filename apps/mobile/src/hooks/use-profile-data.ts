@@ -8,14 +8,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { Alert } from 'react-native';
-import { releaseSheetDraftsForSignOut } from '../components/bike-hub/notes/unattached-note-photos';
 import { gqlFetcher } from '../lib/graphql-client';
 import { isAccountAlreadyDeleted, userFriendlyError } from '../lib/graphql-errors';
 import { queryKeys } from '../lib/query-keys';
 import { meOptions } from '../lib/query-options';
 import { presentPaywall } from '../lib/subscription';
-import { safeSignOut } from '../lib/supabase';
 import { triggerImpact } from '../utils/haptics';
+import { signOutUser } from './sign-out';
 
 interface UseProfileDataParams {
   t: TFunction;
@@ -48,7 +47,8 @@ export function useProfileData({ t, isPro }: UseProfileDataParams) {
   });
 
   const finishAccountDeletion = async () => {
-    await safeSignOut();
+    // A soft-deleted account keeps its rows for 30 days; signOutUser stops its pushes now.
+    await signOutUser();
     queryClient.clear();
     router.replace('/(auth)/login');
   };
@@ -88,9 +88,7 @@ export function useProfileData({ t, isPro }: UseProfileDataParams) {
 
   const handleLogout = async () => {
     triggerImpact();
-    // Needs the session, so before sign-out (the auth listener runs after it).
-    await releaseSheetDraftsForSignOut();
-    await safeSignOut();
+    await signOutUser();
     router.replace('/(auth)/login');
   };
 
