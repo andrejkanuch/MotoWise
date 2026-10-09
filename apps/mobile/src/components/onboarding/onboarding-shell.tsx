@@ -235,6 +235,7 @@ function ProgressTrack({ screen }: { screen: OnboardingRoute }) {
   if (stepIndex < 0) return null;
   return (
     <View
+      accessible
       accessibilityRole="progressbar"
       accessibilityLabel={t('onboarding.progressA11y', {
         step: stepIndex + 1,

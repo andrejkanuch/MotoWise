@@ -30,12 +30,17 @@ describe('PriorityTag', () => {
     mockColorScheme = 'dark';
   });
 
-  it('uses the light, text-safe tag colours in light mode', async () => {
+  it.each([
+    [MaintenancePriority.Critical, 'CRIT', hubLight.tagCritBg, hubLight.late],
+    [MaintenancePriority.High, 'HIGH', hubLight.tagHighBg, hubLight.soon],
+    [MaintenancePriority.Medium, 'MED', hubLight.tagMedBg, hubLight.dim],
+    [MaintenancePriority.Low, 'LOW', hubLight.tagLowBg, hubLight.low],
+  ])('light mode: %s renders %s in the light, text-safe colours', async (priority, label, bg, fg) => {
     mockColorScheme = 'light';
-    await render(<PriorityTag priority={MaintenancePriority.Critical} />);
-    const text = screen.getByText('CRIT');
-    expect(StyleSheet.flatten(text.props.style).color).toBe(hubLight.late);
-    expect(StyleSheet.flatten(text.parent?.props.style).backgroundColor).toBe(hubLight.tagCritBg);
+    await render(<PriorityTag priority={priority} />);
+    const text = screen.getByText(label);
+    expect(StyleSheet.flatten(text.props.style).color).toBe(fg);
+    expect(StyleSheet.flatten(text.parent?.props.style).backgroundColor).toBe(bg);
   });
 
   it.each([

@@ -180,23 +180,11 @@ export const palette = {
 
   // ── Editorial redesign tokens (warm magazine aesthetic) ──
   // Dark mode
-  editorialDarkBg: '#1a1510',
   editorialDarkBg2: '#110e0a',
-  editorialDarkSurface: '#231e18',
-  editorialDarkSurface2: '#2d271f',
-  editorialDarkSurface3: '#382f26',
-  editorialDarkInk: '#faf6f0',
-  editorialDarkInk2: '#c4bdb2',
-  editorialDarkInk3: '#8e8880',
-  editorialDarkInk4: '#5e5850',
-  editorialDarkLine: 'rgba(255,255,255,0.08)',
-  editorialDarkLine2: 'rgba(255,255,255,0.04)',
   editorialDarkWarm: '#d4884a',
   editorialDarkWarm2: '#e8a86a',
 
-  // Experience-level accents (rider skill badges — see profile settings).
-  // Intermediate reuses editorialDarkWarm (same warm amber) — see settings.tsx —
-  // so we don't maintain two literals for one color.
+  // Experience-level accents (rider skill badges).
   experienceBeginner: '#a3b18a',
   experienceAdvanced: '#c4634a',
 
@@ -214,18 +202,8 @@ export const palette = {
 
   // Light mode
   editorialLightBg: '#f8f6f2',
-  editorialLightBg2: '#f0ede8',
-  editorialLightSurface: '#ffffff',
-  editorialLightSurface2: '#f5f2ed',
-  editorialLightSurface3: '#eae6df',
-  editorialLightInk: '#1a1510',
-  editorialLightInk2: '#4a453e',
   editorialLightInk3: '#7a746c',
-  editorialLightInk4: '#a49e96',
-  editorialLightLine: 'rgba(26,21,16,0.09)',
-  editorialLightLine2: 'rgba(26,21,16,0.05)',
   editorialLightWarm: '#c47a3a',
-  editorialLightWarm2: '#d4944e',
 
   // Shared semantic
   editorialSuccess: '#4eba6f',
@@ -250,29 +228,10 @@ export const palette = {
   // ── Bike hub redesign ──
   // Dark-only tokens of the bike-detail redesign (DESIGN-SPEC.md §2). Ground,
   // card and copper reuse surfaceDark / cardDark / signature500.
-  /** Raised surface: selected segment, secondary button, keypad key, icon tile */
-  hubRaised: '#2A2724',
-  /** Log sheet option row */
-  hubOption: '#26231F',
-  /** Sheet grabber, switch off, "other" share of the category bar */
-  hubTrack: '#4A4640',
-  hubText: '#F3EEE6',
-  /** Note body */
-  hubTextSoft: '#E6E0D6',
-  /** Secondary text */
-  hubDim: '#B5ADA2',
-  /** Eyebrows, meta, chevrons (4.5:1 on raised surfaces) */
-  hubMuted: '#9C958A',
-  /** Ink on copper — white on copper fails contrast */
-  hubInk: '#1A1410',
   /** Copper text actions, active chip border (with alpha) */
   hubCopperText: '#E07A48',
   /** Past due, CRIT tag text */
   hubLate: '#FF7A6B',
-  /** Due soon, HIGH tag text */
-  hubSoon: '#F0A050',
-  /** MED tag text */
-  hubMedium: '#7DA9F0',
   /** LOW tag text */
   hubLow: '#A39B8F',
   /** Ready / ok */
@@ -281,14 +240,7 @@ export const palette = {
   hubNotReadyDot: '#FF5A4A',
   hubTagCritBg: '#3A1A16',
   hubTagHighBg: '#3A2412',
-  hubTagMedBg: '#172538',
   hubTagLowBg: '#2A2824',
-  /** "Check before riding" card */
-  hubCardCheck: '#241D15',
-  /** "Not ready" card */
-  hubCardNotReady: '#2A1512',
-  /** "Ready to ride" card */
-  hubCardReady: '#152019',
   /** Overdue Critical task row (used from R2) */
   hubRowCritical: '#241715',
   /** Selected chip in sheets */
@@ -345,7 +297,6 @@ export const palette = {
   plateLightInk3: '#6B6C70',
   plateLightInk4: '#9C9DA1',
   plateLightCopper: '#B8501F',
-  plateLightSignal: '#C99A00',
   /** Due-soon as text or a dot on a light ground (≥4.5:1 on white). */
   plateLightSignalInk: '#8A6700',
   plateLightRed: '#C8352A',

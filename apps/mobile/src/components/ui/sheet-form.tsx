@@ -14,17 +14,13 @@ import {
 } from 'react-native';
 import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useCurrency } from '../../../hooks/use-currency';
-import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../../lib/expense-constants';
-import {
-  EDITORIAL_SCHEME,
-  type EditorialTokens,
-  useEditorialTheme,
-} from '../../../theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '../../../theme/type';
-import { triggerImpact } from '../../../utils/haptics';
-import { expenseIconFor } from './log-options';
-import { sheetBottomPadding } from './sheet-scroll';
+import { useCurrency } from '../../hooks/use-currency';
+import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../lib/expense-constants';
+import { EDITORIAL_SCHEME, type EditorialTokens, useEditorialTheme } from '../../theme/editorial';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
+import { expenseIconFor } from '../bike-hub/sheets/log-options';
+import { sheetBottomPadding } from '../bike-hub/sheets/sheet-scroll';
 
 /**
  * The one anatomy every form sheet shares (Add expense, Add / Edit task,

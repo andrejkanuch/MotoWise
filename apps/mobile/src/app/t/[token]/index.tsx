@@ -5,15 +5,8 @@ import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Eye, MapPin, UserPlus, Users } from 'lucide-react-native';
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getWaypointIcon } from '../../../components/trip/waypoint-type-picker';
@@ -23,6 +16,7 @@ import {
 } from '../../../hooks/use-trip-share-token-resolver';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { userFriendlyError } from '../../../lib/graphql-errors';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 function formatDateRange(start: string, end: string): string {
   const s = new Date(start);
@@ -36,7 +30,7 @@ function formatDateRange(start: string, end: string): string {
 }
 
 export default function SharedTripTrampolineScreen() {
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { token } = useLocalSearchParams<{ token: string }>();
@@ -118,6 +112,7 @@ function LoadingView() {
 }
 
 function ErrorView({ ctx }: { ctx: RenderCtx }) {
+  const { t } = useTranslation();
   const openApp = () => {
     Linking.openURL('https://motovault.app');
   };
@@ -141,7 +136,7 @@ function ErrorView({ ctx }: { ctx: RenderCtx }) {
           letterSpacing: -0.4,
         }}
       >
-        This trip isn't available
+        {t('sharedTrip.unavailableTitle')}
       </Text>
       <Text
         style={{
@@ -152,8 +147,7 @@ function ErrorView({ ctx }: { ctx: RenderCtx }) {
           marginBottom: 28,
         }}
       >
-        The link may have been revoked or the trip no longer exists. Ask the organiser for a fresh
-        link.
+        {t('sharedTrip.unavailableBody')}
       </Text>
       <Pressable
         onPress={openApp}
@@ -173,7 +167,7 @@ function ErrorView({ ctx }: { ctx: RenderCtx }) {
             letterSpacing: 0.2,
           }}
         >
-          Open MotoVault
+          {t('sharedTrip.openApp')}
         </Text>
       </Pressable>
     </Animated.View>
@@ -183,6 +177,7 @@ function ErrorView({ ctx }: { ctx: RenderCtx }) {
 type SharedTripData = NonNullable<TripByShareTokenQuery['tripByShareToken']>;
 
 function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: RenderCtx }) {
+  const { t } = useTranslation();
   const sectionLabelColor = ctx.isDark ? palette.neutral500 : palette.neutral400;
   const dividerColor = ctx.isDark ? palette.neutral800 : palette.neutral200;
 
@@ -197,7 +192,7 @@ function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: Rend
       });
     },
     onError: (err: Error) => {
-      Alert.alert('Could not join', userFriendlyError(err));
+      Alert.alert(t('sharedTrip.joinErrorTitle'), userFriendlyError(err));
     },
   });
 
@@ -238,7 +233,7 @@ function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: Rend
             textTransform: 'uppercase',
           }}
         >
-          Shared with you
+          {t('sharedTrip.sharedWithYou')}
         </Text>
       </Animated.View>
 
@@ -285,7 +280,9 @@ function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: Rend
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <MapPin size={13} color={ctx.bodyColor} />
-          <Text style={{ fontSize: 13, color: ctx.bodyColor }}>{waypoints.length} stops</Text>
+          <Text style={{ fontSize: 13, color: ctx.bodyColor }}>
+            {t('sharedTrip.stops', { count: waypoints.length })}
+          </Text>
         </View>
       </Animated.View>
 
@@ -316,7 +313,7 @@ function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: Rend
               marginBottom: 12,
             }}
           >
-            Route
+            {t('sharedTrip.route')}
           </Text>
           <View
             style={{
@@ -399,7 +396,7 @@ function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: Rend
               marginBottom: 12,
             }}
           >
-            Riders
+            {t('sharedTrip.riders')}
           </Text>
           <View style={{ gap: 10, marginBottom: 24 }}>
             {trip.participants.map((p) => (
@@ -486,7 +483,7 @@ function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: Rend
             <>
               <UserPlus size={18} color={palette.white} />
               <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
-                Join This Trip
+                {t('sharedTrip.join')}
               </Text>
             </>
           )}

@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
+import { NativeToggle } from '../../../components/ui/native-toggle';
 import {
   FormDateRow,
   FormDivider,
@@ -26,8 +27,7 @@ import {
   SHEET_PRIMARY_STATE,
   SheetFooter,
   SheetTitle,
-} from '../../../components/bike-hub/sheets/sheet-form';
-import { NativeToggle } from '../../../components/ui/native-toggle';
+} from '../../../components/ui/sheet-form';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';

@@ -1,11 +1,11 @@
 import { palette } from '@motovault/design-system';
 import type { Waypoint } from '@motovault/types';
 import { Moon, Sun } from 'lucide-react-native';
-import { Pressable, Text, useColorScheme, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
-import { editorialThemes, tint } from '../../theme/editorial';
+import { editorialThemes, tint, useEditorialTheme } from '../../theme/editorial';
 import { PLATE_FONT, type } from '../../theme/type';
 import {
   distanceUnitLabel,
@@ -68,8 +68,8 @@ export function HudLayoutB({
 }: HudLayoutProps) {
   const insets = useSafeAreaInsets();
   const system = useMeasurementSystem();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark' || isNightMode;
+  const { isDark: isDarkScheme } = useEditorialTheme();
+  const isDark = isDarkScheme || isNightMode;
 
   const frostedBg = isDark ? tint(palette.neutral950, 0.78) : tint(palette.editorialLightBg, 0.82);
   const frostedText = isDark ? palette.white : palette.neutral950;

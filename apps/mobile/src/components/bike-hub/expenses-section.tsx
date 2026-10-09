@@ -26,6 +26,7 @@ import { LoadError } from './load-error';
 import { useSegmentInteractive } from './shell/segment-interactive';
 import { HubCard } from './ui/hub-card';
 import { SectionHeader } from './ui/section-header';
+import { SegmentedTrack } from './ui/segmented-track';
 import {
   HUB_FIGURE,
   HUB_FIGURE_STRONG,
@@ -41,10 +42,6 @@ import {
 const ALL_TIME = 0;
 /** Rows shown before "See all". */
 const RECENT_LIMIT = 5;
-const YEAR_CHIP_HEIGHT = 32;
-const YEAR_TRACK_PADDING = 2;
-/** Vertical slop that grows a year chip to a full touch target. */
-const YEAR_CHIP_SLOP = Math.ceil((HUB_TOUCH_TARGET - YEAR_CHIP_HEIGHT) / 2);
 
 interface ExpensesSectionProps {
   motorcycleId: string;
@@ -201,58 +198,16 @@ export function ExpensesSection({
   return (
     <View style={{ paddingHorizontal: 16, gap: 12 }}>
       {/* Year / all-time switch */}
-      <View
-        accessibilityRole="tablist"
-        style={{
-          flexDirection: 'row',
-          gap: YEAR_TRACK_PADDING,
-          padding: YEAR_TRACK_PADDING,
-          borderRadius: HUB_RADIUS.segment + YEAR_TRACK_PADDING,
-          borderCurve: 'continuous',
-          backgroundColor: hub.card,
-          borderWidth: 1,
-          borderColor: hub.hairline,
-        }}
-      >
-        {yearOptions.map((option) => {
-          const selected = option.value === year;
-          return (
-            <Pressable
-              key={option.value}
-              testID={`expenses-year-${option.value === ALL_TIME ? 'all' : option.value}`}
-              onPress={() => selectYear(option.value)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected }}
-              hitSlop={{ top: YEAR_CHIP_SLOP, bottom: YEAR_CHIP_SLOP }}
-              style={({ pressed }) => ({
-                flex: 1,
-                minHeight: YEAR_CHIP_HEIGHT,
-                paddingHorizontal: 8,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: HUB_RADIUS.segment - 1,
-                borderCurve: 'continuous',
-                backgroundColor: selected ? hub.raised : undefined,
-                opacity: pressed && !selected ? 0.7 : 1,
-              })}
-            >
-              <Text
-                style={{
-                  ...(option.mono
-                    ? selected
-                      ? HUB_FIGURE_STRONG
-                      : HUB_FIGURE
-                    : SYSTEM_WEIGHT.semibold),
-                  fontSize: option.mono ? 15 : 13,
-                  color: selected ? hub.text : hub.dim,
-                }}
-              >
-                {option.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <SegmentedTrack
+        selected={year}
+        onChange={selectYear}
+        options={yearOptions.map((option) => ({
+          key: option.value,
+          label: option.label,
+          figure: option.mono,
+          testID: `expenses-year-${option.value === ALL_TIME ? 'all' : option.value}`,
+        }))}
+      />
 
       {isLoading && (
         <HubCard style={{ padding: 32, alignItems: 'center' }}>

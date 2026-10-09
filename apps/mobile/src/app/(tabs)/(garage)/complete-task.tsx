@@ -12,6 +12,7 @@ import { Alert, Text, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { expenseIconFor } from '../../../components/bike-hub/sheets/log-options';
+import { NativeToggle } from '../../../components/ui/native-toggle';
 import {
   FormCard,
   FormDivider,
@@ -23,8 +24,7 @@ import {
   SHEET_PRIMARY_STATE,
   SheetFooter,
   SheetTitle,
-} from '../../../components/bike-hub/sheets/sheet-form';
-import { NativeToggle } from '../../../components/ui/native-toggle';
+} from '../../../components/ui/sheet-form';
 import { useCurrency } from '../../../hooks/use-currency';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';

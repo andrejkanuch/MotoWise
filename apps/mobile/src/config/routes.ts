@@ -26,6 +26,8 @@ export const GARAGE_ROUTE = {
 /** Root modal routes (presented over any tab / onboarding stack) */
 export const MODAL_ROUTE = {
   SCAN_RECEIPT: '/(modals)/scan-receipt',
+  /** The modal stack's copy of add-bike, opened over receipt scan. */
+  ADD_BIKE: '/(modals)/add-bike',
 } as const;
 
 /** Profile sub-routes */

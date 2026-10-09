@@ -9,6 +9,10 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import {
+  DocumentCategoryChips,
+  DocumentExpiryField,
+} from '../../../components/documents/document-form-fields';
+import {
   FormCard,
   FormDivider,
   FormSection,
@@ -19,11 +23,7 @@ import {
   SHEET_PRIMARY_STATE,
   SheetFooter,
   SheetTitle,
-} from '../../../components/bike-hub/sheets/sheet-form';
-import {
-  DocumentCategoryChips,
-  DocumentExpiryField,
-} from '../../../components/documents/document-form-fields';
+} from '../../../components/ui/sheet-form';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import {
   generateDocumentId,

@@ -362,7 +362,7 @@ export default function RideDetailScreen() {
         year: 'numeric',
       })
     : '';
-  const metaText = bikeName ? `${metaDate} · ${bikeName}` : metaDate;
+  const metaText = [metaDate, bikeName].filter(Boolean).join(' · ');
 
   const defaultMapStyle = getDefaultMapStyle(isDark);
   const isNonDefaultStyle = mapStyle !== defaultMapStyle;

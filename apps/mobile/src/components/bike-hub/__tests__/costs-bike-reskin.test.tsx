@@ -20,6 +20,7 @@ jest.mock('../../../lib/analytics', () => ({
 }));
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
+  selectionAsync: jest.fn(),
   notificationAsync: jest.fn(),
   ImpactFeedbackStyle: { Light: 'light' },
   NotificationFeedbackType: { Success: 'success', Warning: 'warning' },

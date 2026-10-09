@@ -6,7 +6,15 @@ jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock
 jest.mock('react-native-reanimated', () => ({
   ...require('react-native-reanimated/mock'),
   useReducedMotion: () => true,
-  interpolateColor: () => 'transparent',
+  // The plate's fill: the state colour its shared value rests on.
+  interpolateColor: (value: number, _input: number[], output: string[]) =>
+    output[Math.round(value)],
+}));
+// Jest renders in the light scheme by default; the light-mode block flips this.
+let mockColorScheme = 'light';
+jest.mock('nativewind', () => ({
+  ...jest.requireActual('nativewind'),
+  useColorScheme: () => ({ colorScheme: mockColorScheme }),
 }));
 jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
 jest.mock('expo-haptics', () => ({
@@ -45,6 +53,7 @@ import {
 } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import i18n from '../../../i18n';
 import { BIKE_SEGMENT, HUB_UNIT, NOTE_SOURCE } from '../../../lib/bike-hub/constants';
 import {
@@ -63,12 +72,13 @@ import {
   TODAY,
   task,
 } from '../../../test/bike-hub-fixtures';
+import { editorialThemes } from '../../../theme/editorial';
 import { DRAFT_OUTCOME, publishDraftOutcome } from '../notes/use-draft-handoff';
 import { OverviewSegment } from '../overview/overview-segment';
 import type { BikeActions } from '../shell/use-bike-actions';
 import type { BikeHubData, HubBike, HubTask } from '../shell/use-bike-hub-data';
 import type { BikeHubNavigation } from '../shell/use-bike-hub-navigation';
-import { HUB_ROW_SUB_LINES } from '../ui/tokens';
+import { HUB_ROW_SUB_LINES, hubDark, hubLight } from '../ui/tokens';
 
 type Documents = BikeHubData['documents'];
 
@@ -509,6 +519,10 @@ describe('Overview — status variants', () => {
     expect(screen.getByText('1 overdue critical task')).toBeOnTheScreen();
     expect(screen.getByText('Needs attention · 1 overdue')).toBeOnTheScreen();
     expect(screen.queryByTestId('attention-overflow')).toBeNull();
+    // The verdict itself: a red (overdue) plate that says so to VoiceOver.
+    const plate = screen.getByTestId('ride-status-not_ready');
+    expect(plate.props.accessibilityLabel).toMatch(/^Overdue\. /);
+    expect(plateFill('Rear brake shoes, past due')).toBe(editorialThemes.light.plateOverdue);
   });
 
   it('READY: nothing needs attention, so the block is hidden and the card is not a button', async () => {
@@ -703,5 +717,54 @@ describe('Overview — status variants', () => {
     await renderOverview({ expenses: { 2026: EXPENSES_2026 } });
     await screen.findByTestId('costs-card');
     expect(screen.queryByTestId('costs-yoy')).toBeNull();
+  });
+});
+
+/** The plate panel behind a caption (caption → plate panel). */
+function plateStyle(caption: string) {
+  return StyleSheet.flatten(screen.getByText(caption).parent?.props.style);
+}
+function plateFill(caption: string) {
+  return plateStyle(caption).backgroundColor;
+}
+
+describe('Overview — colour schemes', () => {
+  afterEach(() => {
+    mockColorScheme = 'light';
+  });
+
+  it.each([
+    ['dark', hubDark, editorialThemes.dark, 0],
+    ['light', hubLight, editorialThemes.light, 2],
+  ] as const)('%s: plate, attention card and tags use that scheme’s tokens', async (scheme, hub, theme, keyline) => {
+    mockColorScheme = scheme;
+    await renderOverview();
+    const caption = await screen.findByText(/, past due$/);
+    const plate = StyleSheet.flatten(caption.parent?.props.style);
+    expect(plate.backgroundColor).toBe(theme.plateOverdue);
+    // A light ground gives the plate its printed keyline.
+    expect(plate.borderWidth).toBe(keyline);
+
+    const list = screen.getByTestId('attention-list');
+    const card = within(list).getByTestId('attention-recall').parent;
+    expect(StyleSheet.flatten(card?.props.style).backgroundColor).toBe(hub.card);
+
+    const tag = within(list).getAllByText('HIGH')[0];
+    expect(StyleSheet.flatten(tag?.props.style).color).toBe(hub.soon);
+    expect(StyleSheet.flatten(tag?.parent?.props.style).backgroundColor).toBe(hub.tagHighBg);
+  });
+
+  it('light: nothing tracked is a plain light card, not a dark one', async () => {
+    mockColorScheme = 'light';
+    await renderOverview({
+      documents: [],
+      recalls: [],
+      notes: [],
+      expenses: {},
+      tasks: [],
+      bike: BIKE_B as unknown as typeof BIKE_A,
+    });
+    const card = await screen.findByTestId('ride-status-untracked');
+    expect(StyleSheet.flatten(card.props.style).backgroundColor).toBe(hubLight.card);
   });
 });

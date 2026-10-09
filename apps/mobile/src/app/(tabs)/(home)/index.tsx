@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react-native';
+import { parseISO } from 'date-fns';
 import { Route, Sparkles, Wallet, WifiOff, Wrench } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -318,6 +319,7 @@ export default function HomeScreen() {
               width: AVATAR_SIZE,
               height: AVATAR_SIZE,
               borderRadius: AVATAR_SIZE / 2,
+              borderCurve: 'continuous',
               backgroundColor: theme.surface2,
               alignItems: 'center',
               justifyContent: 'center',
@@ -503,12 +505,12 @@ function formatTripDates(
   language: string,
 ): string | undefined {
   if (!startDate) return undefined;
-  const start = new Date(startDate).toLocaleDateString(language, {
+  const start = parseISO(startDate).toLocaleDateString(language, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   });
   if (!endDate || endDate === startDate) return start;
-  const end = new Date(endDate).toLocaleDateString(language, { month: 'short', day: 'numeric' });
+  const end = parseISO(endDate).toLocaleDateString(language, { month: 'short', day: 'numeric' });
   return `${start} – ${end}`;
 }

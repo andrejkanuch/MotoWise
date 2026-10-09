@@ -72,6 +72,7 @@ export default function RecallsScreen() {
             width: 44,
             height: 44,
             borderRadius: 22,
+            borderCurve: 'continuous',
             alignItems: 'center',
             justifyContent: 'center',
           }}

@@ -382,12 +382,33 @@ export default function RideSummaryScreen() {
   }, [mapStyle]);
 
   const stats = [
-    { icon: Route, label: 'Distance', value: formatDistance(distanceM, system) },
-    { icon: Clock, label: 'Moving time', value: formatDuration(durationS) },
-    { icon: TrendingUp, label: 'Avg speed', value: formatSpeed(avgSpeedMps, system) },
-    { icon: Gauge, label: 'Max speed', value: formatSpeed(maxSpeedMps, system), priv: true },
-    { icon: ArrowUp, label: 'Ascent', value: formatElevation(elevationGain, system) },
-    { icon: ArrowDown, label: 'Descent', value: formatElevation(elevationLoss, system) },
+    {
+      icon: Route,
+      label: t('rideSummary.stats.distance'),
+      value: formatDistance(distanceM, system),
+    },
+    { icon: Clock, label: t('rideSummary.stats.movingTime'), value: formatDuration(durationS) },
+    {
+      icon: TrendingUp,
+      label: t('rideSummary.stats.avgSpeed'),
+      value: formatSpeed(avgSpeedMps, system),
+    },
+    {
+      icon: Gauge,
+      label: t('rideSummary.stats.maxSpeed'),
+      value: formatSpeed(maxSpeedMps, system),
+      priv: true,
+    },
+    {
+      icon: ArrowUp,
+      label: t('rideSummary.stats.ascent'),
+      value: formatElevation(elevationGain, system),
+    },
+    {
+      icon: ArrowDown,
+      label: t('rideSummary.stats.descent'),
+      value: formatElevation(elevationLoss, system),
+    },
   ];
 
   return (

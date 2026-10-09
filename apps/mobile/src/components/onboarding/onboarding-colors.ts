@@ -24,7 +24,6 @@ function onboardingColorsFor(t: EditorialTokens) {
     cardBg: t.surface,
     cardBgSelected: t.surface2,
     cardBorder: t.line,
-    cardBorderDefault: t.line,
     accent: t.warm,
     accentBg: tint(t.warm, 0.14),
     success: t.success,
@@ -38,64 +37,31 @@ function onboardingColorsFor(t: EditorialTokens) {
     line: t.line,
     ink3: t.ink3,
 
-    // ── Surface / input backgrounds ──
-    surfaceInput: t.surface2,
-    surfaceCard: t.surface,
-
     // ── Borders ──
-    borderSubtle: t.line,
     borderMuted: t.surface3,
 
     // ── Text helpers ──
-    textWhite: t.ink,
     /** Ink on copper fills */
     textOnAccent: t.onWarm,
-    textLabel: t.ink3,
     textSoft: t.ink3,
-    textSubtitle: t.ink2,
     textBody: t.ink2,
-    textBright: t.ink,
-    textHighContrast: t.ink,
-    textFaintest: t.ink4,
-    textFaint: t.ink4,
-    textFaded: t.ink4,
-    textMutedIcon: t.ink3,
-    underlineSubtle: tint(t.ink, 0.2),
-    underlineFaint: tint(t.ink, 0.15),
-
-    // ── Experience levels — one neutral ramp, copper marks the selection ──
-    accentBeginner: t.ink2,
-    accentIntermediate: t.ink2,
-    accentAdvanced: t.ink2,
 
     // ── Semantic hues ──
     blue: t.info,
-    teal: t.success,
     amber: t.dueInk,
     green: t.success,
 
     // ── Semantic action colors ──
     acceptGreen: t.success,
     rejectRed: t.overdueInk,
-    accentBlue: t.info,
 
     // ── Opacity helpers ──
-    surfaceCardTranslucent: t.surface,
     borderFaint: t.line2,
     dotInactive: t.surface3,
-    surfaceOverlayButton: tint(t.bg, 0.5),
     surfaceOverlayDark: tint(t.bg, 0.6),
-    surfaceOverlayMedium: tint(t.bg, 0.4),
-    borderDashed: t.line,
-    borderIcon: t.line,
-    borderDefault: t.line,
 
     // ── Accept/reject borders ──
-    acceptBorder: tint(t.success, 0.5),
-    rejectBorder: tint(t.overdueInk, 0.5),
     rejectDotFaded: tint(t.overdueInk, 0.7),
-    surfaceDismiss: t.surface2,
-    iconDismiss: t.ink2,
 
     // ── Brand marks (make-initial badges) — same in both schemes ──
     /** Bone ink on a brand-colour badge */
@@ -105,7 +71,6 @@ function onboardingColorsFor(t: EditorialTokens) {
 
     // ── Priority tone backgrounds ──
     rejectBgTint: tint(t.overdueInk, 0.15),
-    blueBgTint: tint(t.info, 0.15),
   } as const;
 }
 

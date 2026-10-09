@@ -149,7 +149,7 @@ const CountryChipStrip = memo(function CountryChipStrip({
               style={{
                 fontSize: 12.5,
                 fontWeight: active ? '600' : '500',
-                color: active ? t.onWarm : t.ink2,
+                color: active ? t.bg : t.ink2,
               }}
             >
               {COUNTRY_NAMES[code]}

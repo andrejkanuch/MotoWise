@@ -1,5 +1,14 @@
 import { UpdateMyProfileDocument, UpdateUserDocument } from '@motovault/graphql';
-import { ExperienceLevel, RidingGoal } from '@motovault/types';
+import {
+  BIO_MAX_LENGTH,
+  CITY_MAX_LENGTH,
+  DISPLAY_NAME_MAX_LENGTH,
+  ExperienceLevel,
+  RESERVED_USERNAMES,
+  RidingGoal,
+  USERNAME_MAX_LENGTH,
+  USERNAME_REGEX,
+} from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, Stack, useNavigation } from 'expo-router';
@@ -42,9 +51,12 @@ const RIDING_GOALS = [
   { key: RidingGoal.JUST_EXPLORING, labelKey: 'settings.goalJustExploring' },
 ] as const;
 
-const USERNAME_PATTERN = /^[a-z0-9_]{3,30}$/;
 const USERNAME_DEBOUNCE_MS = 500;
-const BIO_MAX = 200;
+/** The server's own rules (format and reserved names), so the inline check agrees with save. */
+const RESERVED_USERNAME_SET: ReadonlySet<string> = new Set(RESERVED_USERNAMES);
+function isValidUsername(username: string): boolean {
+  return USERNAME_REGEX.test(username) && !RESERVED_USERNAME_SET.has(username);
+}
 
 const USERNAME_STATUS = {
   IDLE: 'idle',
@@ -179,34 +191,68 @@ export default function EditProfileScreen() {
   const usernameStatus: UsernameStatus =
     !debouncedUsername || debouncedUsername === initial?.publicUsername
       ? USERNAME_STATUS.IDLE
-      : USERNAME_PATTERN.test(debouncedUsername)
+      : isValidUsername(debouncedUsername)
         ? USERNAME_STATUS.VALID
         : USERNAME_STATUS.INVALID;
 
+  // The public profile and the account (name, riding profile) are two
+  // mutations with no shared transaction. Run both and handle each result, so
+  // a half-saved profile is reported as such and the half that landed becomes
+  // the new baseline instead of looking unsaved.
   const saveMutation = useMutation({
     mutationFn: async () => {
-      if (Object.keys(changes.publicInput).length > 0) {
-        await gqlFetcher(UpdateMyProfileDocument, { input: changes.publicInput });
-      }
-      if (Object.keys(changes.userInput).length > 0) {
-        await gqlFetcher(UpdateUserDocument, { input: changes.userInput });
-      }
+      const hasPublic = Object.keys(changes.publicInput).length > 0;
+      const hasUser = Object.keys(changes.userInput).length > 0;
+      const [publicResult, userResult] = await Promise.allSettled([
+        hasPublic ? gqlFetcher(UpdateMyProfileDocument, { input: changes.publicInput }) : null,
+        hasUser ? gqlFetcher(UpdateUserDocument, { input: changes.userInput }) : null,
+      ]);
+      const publicSaved = hasPublic && publicResult.status === 'fulfilled';
+      const userSaved = hasUser && userResult.status === 'fulfilled';
+      const failure = [publicResult, userResult].find((r) => r.status === 'rejected');
+      if (failure && !publicSaved && !userSaved) throw failure.reason;
+      return { publicSaved, userSaved, failure: failure?.reason as unknown };
     },
-    onSuccess: () => {
-      triggerNotification(Haptics.NotificationFeedbackType.Success);
-      if (Object.keys(changes.publicInput).length > 0) trackEvent(AnalyticsEvent.PROFILE_EDITED);
-      if (Object.keys(changes.userInput).length > 0 && form) {
+    onSuccess: ({ publicSaved, userSaved, failure }) => {
+      if (!form || !initial) return;
+      if (publicSaved) trackEvent(AnalyticsEvent.PROFILE_EDITED);
+      if (userSaved) {
         trackEvent(AnalyticsEvent.SETTINGS_CHANGED, {
           experience_level: form.experienceLevel,
           goals_count: form.ridingGoals.length,
         });
       }
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
-      // The saved name is trimmed server-side; trim the baseline to match so a
-      // trailing space does not leave the form dirty after save.
-      const saved = form ? { ...form, fullName: form.fullName.trim() } : form;
-      setInitial(saved);
-      setForm(saved);
+
+      // The new baseline is what the server now holds: saved parts take the
+      // form's values (the name trimmed, as sent), failed parts keep the old.
+      const baseline: FormValues = { ...initial };
+      if (publicSaved) {
+        for (const field of PUBLIC_FIELDS) Object.assign(baseline, { [field]: form[field] });
+      }
+      if (userSaved) {
+        baseline.fullName = changes.userInput.fullName ?? initial.fullName;
+        baseline.experienceLevel = form.experienceLevel;
+        baseline.ridingGoals = form.ridingGoals;
+      }
+      setInitial(baseline);
+
+      if (failure) {
+        triggerNotification(Haptics.NotificationFeedbackType.Error);
+        Alert.alert(
+          t('community.partialSaveTitle'),
+          t(
+            publicSaved ? 'community.partialSavePublicSaved' : 'community.partialSaveAccountSaved',
+            {
+              error: userFriendlyError(failure),
+            },
+          ),
+        );
+        return;
+      }
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
+      // A trailing space in the name is not a change once saved.
+      setForm({ ...form, fullName: form.fullName.trim() });
       setLeaveAfterSave(true);
     },
     onError: (error) => {
@@ -381,7 +427,7 @@ export default function EditProfileScreen() {
                     placeholderTextColor={theme.ink4}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    maxLength={30}
+                    maxLength={USERNAME_MAX_LENGTH}
                     accessibilityLabel={t('community.username')}
                     style={inputStyle}
                   />
@@ -392,7 +438,7 @@ export default function EditProfileScreen() {
                     onChangeText={(text) => set('displayName', text)}
                     placeholder={t('community.displayNamePlaceholder')}
                     placeholderTextColor={theme.ink4}
-                    maxLength={50}
+                    maxLength={DISPLAY_NAME_MAX_LENGTH}
                     accessibilityLabel={t('profile.publicNameLabel')}
                     style={inputStyle}
                   />
@@ -401,7 +447,7 @@ export default function EditProfileScreen() {
                   label={t('community.bio')}
                   trailing={
                     <Text style={[type.caption, { color: theme.ink4, alignSelf: 'flex-end' }]}>
-                      {form.bio.length}/{BIO_MAX}
+                      {form.bio.length}/{BIO_MAX_LENGTH}
                     </Text>
                   }
                 >
@@ -411,7 +457,7 @@ export default function EditProfileScreen() {
                     placeholder={t('community.bioPlaceholder')}
                     placeholderTextColor={theme.ink4}
                     multiline
-                    maxLength={BIO_MAX}
+                    maxLength={BIO_MAX_LENGTH}
                     accessibilityLabel={t('community.bio')}
                     style={[...inputStyle, { minHeight: 72, textAlignVertical: 'top' }]}
                   />
@@ -422,7 +468,7 @@ export default function EditProfileScreen() {
                     onChangeText={(text) => set('city', text)}
                     placeholder={t('community.cityPlaceholder')}
                     placeholderTextColor={theme.ink4}
-                    maxLength={100}
+                    maxLength={CITY_MAX_LENGTH}
                     accessibilityLabel={t('community.city')}
                     style={inputStyle}
                   />

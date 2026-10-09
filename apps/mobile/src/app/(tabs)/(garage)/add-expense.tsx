@@ -14,6 +14,8 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { hubCategoryColor, useHubTheme } from '../../../components/bike-hub/ui/tokens';
+import { ExpensePhotoGallery } from '../../../components/expense-photo-gallery';
 import {
   AmountField,
   ChoiceChip,
@@ -27,9 +29,7 @@ import {
   SHEET_PRIMARY_STATE,
   SheetFooter,
   SheetTitle,
-} from '../../../components/bike-hub/sheets/sheet-form';
-import { hubCategoryColor, useHubTheme } from '../../../components/bike-hub/ui/tokens';
-import { ExpensePhotoGallery } from '../../../components/expense-photo-gallery';
+} from '../../../components/ui/sheet-form';
 import { useCurrency } from '../../../hooks/use-currency';
 import {
   EXPENSE_ENTRY_SOURCE,

@@ -36,6 +36,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { MODAL_ROUTE } from '../../config/routes';
 import { useCurrency } from '../../hooks/use-currency';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
@@ -788,7 +789,7 @@ function ZeroBikePicker({
           {t('receiptScan.review.noBikePrompt')}
         </Text>
         <Pressable
-          onPress={() => router.push('/(tabs)/(garage)/add-bike' as Href)}
+          onPress={() => router.push(MODAL_ROUTE.ADD_BIKE as Href)}
           accessibilityRole="button"
           accessibilityLabel={t('receiptScan.review.addBike')}
           style={{

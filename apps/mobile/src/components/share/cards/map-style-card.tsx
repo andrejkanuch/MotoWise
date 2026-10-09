@@ -1,6 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { LinearGradient } from 'expo-linear-gradient';
 import { memo, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, Text, View } from 'react-native';
 import { tint } from '../../../theme/editorial';
 import { buildMapboxStaticUrl, type StaticMapStyle } from '../../../utils/mapbox-static';
@@ -14,9 +15,16 @@ import {
   Wordmark,
 } from './card-elements';
 
+const MAP_STYLE_LABEL_KEY = {
+  satellite: 'shareCard.mapStyle.satellite',
+  hybrid: 'shareCard.mapStyle.hybrid',
+  terrain3D: 'shareCard.mapStyle.terrain3D',
+} as const;
+
 interface MapStyleConfig {
   mapboxStyle: StaticMapStyle;
-  label: string;
+  /** i18n key of the style badge. */
+  labelKey: (typeof MAP_STYLE_LABEL_KEY)[keyof typeof MAP_STYLE_LABEL_KEY];
   /** Route stroke hex without # */
   strokeColor: string;
   /** Gradient overlay colors */
@@ -30,7 +38,7 @@ interface MapStyleConfig {
 const STYLE_CONFIGS: Record<string, MapStyleConfig> = {
   satellite: {
     mapboxStyle: 'satellite-v9',
-    label: 'Satellite',
+    labelKey: MAP_STYLE_LABEL_KEY.satellite,
     strokeColor: palette.whitePure.slice(1),
     gradientColors: [
       'transparent',
@@ -40,7 +48,7 @@ const STYLE_CONFIGS: Record<string, MapStyleConfig> = {
   },
   hybrid: {
     mapboxStyle: 'satellite-streets-v12',
-    label: 'Hybrid',
+    labelKey: MAP_STYLE_LABEL_KEY.hybrid,
     strokeColor: palette.plateCopper.slice(1),
     gradientColors: [
       'transparent',
@@ -50,7 +58,7 @@ const STYLE_CONFIGS: Record<string, MapStyleConfig> = {
   },
   terrain3D: {
     mapboxStyle: 'outdoors-v12',
-    label: '3D',
+    labelKey: MAP_STYLE_LABEL_KEY.terrain3D,
     strokeColor: palette.plateCopper.slice(1),
     gradientColors: [
       'transparent',
@@ -71,6 +79,7 @@ export const MapStyleCard = memo(function MapStyleCard({
   data: RideSharePayload;
   variant: MapStyleVariant;
 }) {
+  const { t } = useTranslation();
   const config = STYLE_CONFIGS[variant];
 
   const staticUrl = useMemo(() => {
@@ -133,7 +142,9 @@ export const MapStyleCard = memo(function MapStyleCard({
             backgroundColor: palette.whiteAlpha18,
           }}
         >
-          <Text style={{ ...CARD_TYPE.label, color: palette.whiteAlpha85 }}>{config.label}</Text>
+          <Text style={{ ...CARD_TYPE.label, color: palette.whiteAlpha85 }}>
+            {t(config.labelKey)}
+          </Text>
         </View>
       </View>
 

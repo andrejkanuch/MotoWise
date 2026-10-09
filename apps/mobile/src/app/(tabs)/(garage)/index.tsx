@@ -345,6 +345,7 @@ export default function GarageScreen() {
               width: ADD_BUTTON_SIZE,
               height: ADD_BUTTON_SIZE,
               borderRadius: radius.pill,
+              borderCurve: 'continuous',
               backgroundColor: theme.warm,
               alignItems: 'center',
               justifyContent: 'center',

@@ -450,7 +450,15 @@ export default function MyTripsScreen() {
     if (draftCount === 0) return null;
     return (
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
-        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: theme.dueInk }} />
+        <View
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            borderCurve: 'continuous',
+            backgroundColor: theme.dueInk,
+          }}
+        />
         <Text style={[type.label, { color: theme.ink2 }]}>
           {t('trips.draftCount', { count: draftCount })}
         </Text>

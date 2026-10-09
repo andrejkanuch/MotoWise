@@ -1,7 +1,9 @@
 import { palette } from '@motovault/design-system';
 import { Send } from 'lucide-react-native';
 import { memo, useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, useColorScheme, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { useEditorialTheme } from '../../theme/editorial';
 
 interface CommentInputProps {
   onSubmit: (text: string) => void;
@@ -18,9 +20,10 @@ export const CommentInput = memo(function CommentInput({
   isSubmitting = false,
   replyingTo,
   onCancelReply,
-  placeholder = 'Add a comment...',
+  placeholder,
 }: CommentInputProps) {
-  const isDark = useColorScheme() === 'dark';
+  const { t } = useTranslation();
+  const { isDark } = useEditorialTheme();
   const [text, setText] = useState('');
   const inputRef = useRef<TextInput>(null);
 
@@ -53,9 +56,11 @@ export const CommentInput = memo(function CommentInput({
             backgroundColor: replyBg,
           }}
         >
-          <Text style={{ fontSize: 12, color: replyText }}>Replying to comment</Text>
+          <Text style={{ fontSize: 12, color: replyText }}>{t('comments.replyingTo')}</Text>
           <Pressable onPress={onCancelReply} hitSlop={8}>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: replyText }}>Cancel</Text>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: replyText }}>
+              {t('common.cancel')}
+            </Text>
           </Pressable>
         </View>
       )}
@@ -77,7 +82,7 @@ export const CommentInput = memo(function CommentInput({
           ref={inputRef}
           value={text}
           onChangeText={setText}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t('comments.addPlaceholder')}
           placeholderTextColor={placeholderColor}
           maxLength={MAX_LENGTH}
           multiline

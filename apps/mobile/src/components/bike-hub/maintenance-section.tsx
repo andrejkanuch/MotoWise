@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import type { HubUnit } from '../../lib/bike-hub/constants';
-import { triggerImpact, triggerSelection } from '../../utils/haptics';
+import { triggerImpact } from '../../utils/haptics';
 import {
   completedTasks,
   groupActiveTasks,
@@ -18,9 +18,8 @@ import type { HubTask } from './shell/use-bike-hub-data';
 import { useToday } from './shell/use-today';
 import { HubCard } from './ui/hub-card';
 import { SectionHeader } from './ui/section-header';
+import { SegmentedTrack } from './ui/segmented-track';
 import {
-  HUB_CHROME_MAX_FONT_SCALE,
-  HUB_FIGURE_STRONG,
   HUB_RADIUS,
   HUB_TOUCH_TARGET,
   type HubTheme,
@@ -60,7 +59,7 @@ interface MaintenanceSectionProps {
   mileageUnit: HubUnit;
 }
 
-/** Active · 10 | History · 10 — a two-option segmented control in hub tokens. */
+/** Active · 10 | History · 10 — the hub's segmented track. */
 function ServiceTabs({
   active,
   counts,
@@ -70,69 +69,18 @@ function ServiceTabs({
   counts: Record<ServiceTab, number>;
   onChange: (tab: ServiceTab) => void;
 }) {
-  const hub = useHubTheme();
   const { t } = useTranslation();
   return (
-    <View
-      accessibilityRole="tablist"
-      style={{
-        flexDirection: 'row',
-        gap: 2,
-        padding: 2,
-        borderRadius: HUB_RADIUS.chip + 1,
-        borderCurve: 'continuous',
-        backgroundColor: hub.card,
-        borderWidth: 1,
-        borderColor: hub.hairline,
-      }}
-    >
-      {SERVICE_TABS.map((tab) => {
-        const selected = tab === active;
-        const label = t(TAB_LABEL_KEY[tab]);
-        return (
-          <Pressable
-            key={tab}
-            testID={`service-tab-${tab}`}
-            onPress={() => {
-              if (selected) return;
-              triggerSelection();
-              onChange(tab);
-            }}
-            accessibilityRole="tab"
-            accessibilityLabel={`${label}, ${counts[tab]}`}
-            accessibilityState={{ selected }}
-            style={{
-              flex: 1,
-              minHeight: HUB_TOUCH_TARGET - 4,
-              paddingHorizontal: 8,
-              paddingVertical: 6,
-              borderRadius: HUB_RADIUS.chip - 1,
-              borderCurve: 'continuous',
-              backgroundColor: selected ? hub.raised : undefined,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {/* Segmented-control chrome: capped like the segment bar, one line —
-                "Active · 10" broke into two at accessibility sizes. */}
-            <Text
-              maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-              numberOfLines={1}
-              style={{
-                textAlign: 'center',
-                ...SYSTEM_WEIGHT.semibold,
-                fontSize: 13,
-                lineHeight: 17,
-                color: selected ? hub.text : hub.dim,
-              }}
-            >
-              {label}
-              <Text style={{ ...HUB_FIGURE_STRONG }}>{` · ${counts[tab]}`}</Text>
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
+    <SegmentedTrack
+      selected={active}
+      onChange={onChange}
+      options={SERVICE_TABS.map((tab) => ({
+        key: tab,
+        label: t(TAB_LABEL_KEY[tab]),
+        count: counts[tab],
+        testID: `service-tab-${tab}`,
+      }))}
+    />
   );
 }
 

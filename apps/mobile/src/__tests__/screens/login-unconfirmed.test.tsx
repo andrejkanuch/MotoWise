@@ -1,14 +1,6 @@
 // Lives outside src/app on purpose: expo-router turns every file under src/app
 // into a route (its context regex only skips +api/+html), so a test there would
 // be bundled into the app as a screen.
-jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
-jest.mock('react-native-reanimated', () => ({
-  ...require('react-native-reanimated/mock'),
-  useReducedMotion: () => false,
-}));
-jest.mock('react-native-keyboard-controller', () =>
-  require('react-native-keyboard-controller/jest'),
-);
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));

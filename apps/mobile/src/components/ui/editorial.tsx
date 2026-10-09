@@ -1,11 +1,12 @@
 /**
- * Shared UI primitives — Card, Chip, Button, Section, Stat, Divider, Priority,
- * and the inset grouped settings kit (ESettingsGroup, ESettingsRow, EToggleRow,
- * EOptionRow, ESectionLabel, ESectionFooter).
+ * Shared UI primitives — the priority pill and the inset grouped settings kit
+ * (ESettingsGroup, ESettingsRow, EToggleRow, EOptionRow, ESectionLabel,
+ * ESectionFooter).
  */
 
 import { Check, ChevronRight, type LucideIcon } from 'lucide-react-native';
 import { Children, cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Pressable,
@@ -16,332 +17,29 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
 import { triggerImpact, triggerSelection } from '../../utils/haptics';
 import { NativeToggle } from './native-toggle';
 
-// ── Card ──
-export function ECard({
-  children,
-  style,
-  pad = 16,
-  onPress,
-  delay,
-}: {
-  children: ReactNode;
-  style?: StyleProp<ViewStyle>;
-  pad?: number;
-  onPress?: () => void;
-  delay?: number;
-}) {
-  const { t } = useEditorialTheme();
-  const inner = (
-    <View
-      style={[
-        {
-          backgroundColor: t.surface,
-          // Same card as the inset groups: ramp step, no outline.
-          borderRadius: radius.card,
-          borderCurve: 'continuous',
-          padding: pad,
-        },
-        style,
-      ]}
-    >
-      {children}
-    </View>
-  );
-
-  const wrapped = onPress ? (
-    <Pressable
-      onPress={() => {
-        triggerImpact();
-        onPress();
-      }}
-    >
-      {inner}
-    </Pressable>
-  ) : (
-    inner
-  );
-
-  if (delay != null) {
-    return <Animated.View entering={FadeInUp.delay(delay).duration(300)}>{wrapped}</Animated.View>;
-  }
-  return wrapped;
-}
-
-// ── Button ──
-const BUTTON_SIZES = {
-  sm: { padV: 10, padH: 14, fs: 13, gap: 6, r: 12 },
-  md: { padV: 14, padH: 18, fs: 15, gap: 8, r: 14 },
-  lg: { padV: 18, padH: 22, fs: 16, gap: 10, r: 16 },
+// ── Priority pill ──
+const PRIORITY_LABEL_KEYS = {
+  low: 'maintenance.priorityLow',
+  medium: 'maintenance.priorityMedium',
+  high: 'maintenance.priorityHigh',
+  critical: 'maintenance.priorityCritical',
 } as const;
 
-export function EButton({
-  label,
-  icon,
-  onPress,
-  variant = 'primary',
-  size = 'md',
-  full = false,
-  style,
-}: {
-  label: string;
-  icon?: ReactNode;
-  onPress?: () => void;
-  variant?: 'primary' | 'ghost' | 'solid' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
-  full?: boolean;
-  style?: StyleProp<ViewStyle>;
-}) {
+export function EPriority({ level }: { level: keyof typeof PRIORITY_LABEL_KEYS }) {
+  const { t: i18n } = useTranslation();
   const { t } = useEditorialTheme();
-  const s = BUTTON_SIZES[size];
-  const variants = {
-    primary: { bg: t.warm, fg: t.onWarm, border: 'transparent' },
-    ghost: { bg: 'transparent', fg: t.ink, border: t.line },
-    solid: { bg: t.surface2, fg: t.ink, border: t.line },
-    danger: { bg: 'transparent', fg: t.danger, border: 'transparent' },
-  } as const;
-  const v = variants[variant];
-
-  return (
-    <Pressable
-      onPress={() => {
-        triggerImpact();
-        onPress?.();
-      }}
-      style={[
-        {
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: s.gap,
-          paddingVertical: s.padV,
-          paddingHorizontal: s.padH,
-          backgroundColor: v.bg,
-          borderWidth: 1,
-          borderColor: v.border,
-          borderRadius: s.r,
-          borderCurve: 'continuous',
-          alignSelf: full ? 'stretch' : 'flex-start',
-        },
-        style,
-      ]}
-    >
-      {icon}
-      <Text
-        style={{
-          fontSize: s.fs,
-          fontWeight: '600',
-          letterSpacing: -0.15,
-          color: v.fg,
-        }}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-// ── Chip ──
-export function EChip({
-  label,
-  icon,
-  active,
-  color,
-  onPress,
-  size = 'md',
-}: {
-  label: string;
-  icon?: ReactNode;
-  active?: boolean;
-  color?: string;
-  onPress?: () => void;
-  size?: 'sm' | 'md';
-}) {
-  const { t } = useEditorialTheme();
-  const pad = size === 'sm' ? { v: 5, h: 10 } : { v: 7, h: 12 };
-  const fs = size === 'sm' ? 11 : 12;
-  const bg = active ? (color ?? t.warm) : t.surface2;
-  const fg = active ? t.onWarm : t.ink2;
-
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 5,
-        paddingVertical: pad.v,
-        paddingHorizontal: pad.h,
-        borderRadius: 999,
-        backgroundColor: bg,
-        borderWidth: 1,
-        borderColor: active ? 'transparent' : t.line,
-      }}
-    >
-      {icon}
-      <Text style={{ fontSize: fs, fontWeight: '600', color: fg }}>{label}</Text>
-    </Pressable>
-  );
-}
-
-// ── Section masthead (sentence-case section title + optional link) ──
-export function ESectionMasthead({
-  label,
-  kicker,
-  action,
-  onAction,
-}: {
-  label: string;
-  /** Secondary caption under the title (plain, never an eyebrow). */
-  kicker?: string;
-  action?: string;
-  onAction?: () => void;
-}) {
-  const { t } = useEditorialTheme();
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: space.sm,
-        marginBottom: space.xs,
-      }}
-    >
-      <View style={{ flex: 1 }}>
-        <Text accessibilityRole="header" style={[type.sectionTitle, { color: t.ink }]}>
-          {label}
-        </Text>
-        {kicker ? (
-          <Text style={[type.caption, { color: t.ink3, marginTop: 2 }]}>{kicker}</Text>
-        ) : null}
-      </View>
-      {action ? (
-        <Pressable
-          onPress={() => {
-            triggerImpact();
-            onAction?.();
-          }}
-          accessibilityRole="button"
-          hitSlop={8}
-          android_ripple={{ color: tint(t.ink, 0.08), borderless: true }}
-          style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 2 }}
-        >
-          <Text style={[type.subhead, SYSTEM_WEIGHT.semibold, { color: t.warm2 }]}>{action}</Text>
-          <ChevronRight size={16} color={t.warm2} strokeWidth={2.25} />
-        </Pressable>
-      ) : null}
-    </View>
-  );
-}
-
-// ── Section header (caption) ──
-export function ESectionHeader({
-  title,
-  action,
-  onAction,
-  children,
-  gap = 10,
-  style,
-}: {
-  title?: string;
-  action?: string;
-  onAction?: () => void;
-  children: ReactNode;
-  gap?: number;
-  style?: StyleProp<ViewStyle>;
-}) {
-  const { t } = useEditorialTheme();
-  return (
-    <View style={style}>
-      {(title || action) && (
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: 4,
-            marginBottom: 10,
-          }}
-        >
-          {title ? (
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: '600',
-                color: t.ink3,
-              }}
-            >
-              {title}
-            </Text>
-          ) : null}
-          {action ? (
-            <Pressable onPress={onAction}>
-              <Text style={{ fontSize: 12, color: t.ink2, fontWeight: '500' }}>{action}</Text>
-            </Pressable>
-          ) : null}
-        </View>
-      )}
-      <View style={{ gap }}>{children}</View>
-    </View>
-  );
-}
-
-// ── Stat tile ──
-export function EStat({ label, value, tone }: { label: string; value: string; tone?: string }) {
-  const { t } = useEditorialTheme();
-  return (
-    <View
-      style={{
-        flex: 1,
-        padding: 12,
-        backgroundColor: t.surface,
-        borderRadius: 14,
-        borderCurve: 'continuous',
-        borderWidth: 1,
-        borderColor: t.line,
-      }}
-    >
-      <Text
-        style={{
-          fontSize: 10,
-          fontWeight: '600',
-          color: t.ink3,
-          marginBottom: 4,
-        }}
-      >
-        {label}
-      </Text>
-      <Text
-        style={{
-          fontSize: 18,
-          fontWeight: '600',
-          color: tone ?? t.ink,
-          letterSpacing: -0.4,
-        }}
-      >
-        {value}
-      </Text>
-    </View>
-  );
-}
-
-// ── Priority pill ──
-export function EPriority({ level }: { level: 'low' | 'medium' | 'high' | 'critical' }) {
-  const { t } = useEditorialTheme();
-  const map = {
-    // Graphite for routine, the plate-state inks for urgency; copper stays action-only.
-    low: { c: t.ink3, label: 'Low' },
-    medium: { c: t.ink2, label: 'Medium' },
-    high: { c: t.dueInk, label: 'High' },
-    critical: { c: t.overdueInk, label: 'Critical' },
-  } as const;
-  const { c, label } = map[level];
+  // Graphite for routine, the plate-state inks for urgency; copper stays action-only.
+  const color = {
+    low: t.ink3,
+    medium: t.ink2,
+    high: t.dueInk,
+    critical: t.overdueInk,
+  }[level];
 
   return (
     <View
@@ -351,37 +49,18 @@ export function EPriority({ level }: { level: 'low' | 'medium' | 'high' | 'criti
         gap: 6,
         paddingVertical: 3,
         paddingHorizontal: 9,
-        backgroundColor: tint(c, 0.18),
+        backgroundColor: tint(color, 0.18),
         borderWidth: 1,
-        borderColor: tint(c, 0.32),
-        borderRadius: 999,
+        borderColor: tint(color, 0.32),
+        borderRadius: radius.pill,
       }}
     >
-      <View
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: 3,
-          backgroundColor: c,
-        }}
-      />
-      <Text
-        style={{
-          fontSize: 10,
-          fontWeight: '700',
-          color: c,
-        }}
-      >
-        {label}
+      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: color }} />
+      <Text style={[type.caption, SYSTEM_WEIGHT.bold, { color }]}>
+        {i18n(PRIORITY_LABEL_KEYS[level])}
       </Text>
     </View>
   );
-}
-
-// ── Divider ──
-export function EDivider({ style }: { style?: StyleProp<ViewStyle> }) {
-  const { t } = useEditorialTheme();
-  return <View style={[{ height: 1, backgroundColor: t.line }, style]} />;
 }
 
 // ── Settings section label (sentence-case caption above a settings group) ──
@@ -407,11 +86,6 @@ export function ESectionLabel({
       {label}
     </Text>
   );
-}
-
-/** @deprecated Use `ESectionLabel`. Kept for existing callers. */
-export function ESettingsSectionLabel({ label }: { label: string }) {
-  return <ESectionLabel label={label} />;
 }
 
 // ── Settings footer (caption under a settings group) ──
@@ -542,7 +216,6 @@ function RowText({ title, subtitle, color }: { title: string; subtitle?: string;
 export function ESettingsRow({
   icon,
   title,
-  label,
   subtitle,
   value,
   chevron,
@@ -550,7 +223,6 @@ export function ESettingsRow({
   onPress,
   testID,
   isLast,
-  color,
   badge,
   accessory,
   loading,
@@ -559,10 +231,7 @@ export function ESettingsRow({
   accessibilityHint,
 }: {
   icon?: LucideIcon;
-  /** Row title. */
-  title?: string;
-  /** @deprecated Use `title`. */
-  label?: string;
+  title: string;
   subtitle?: string;
   /** Current value, drawn trailing in secondary ink. */
   value?: string;
@@ -573,8 +242,6 @@ export function ESettingsRow({
   testID?: string;
   /** Set by `ESettingsGroup` — hides the bottom hairline. */
   isLast?: boolean;
-  /** @deprecated Use `destructive`. Overrides title + icon colour. */
-  color?: string;
   badge?: ReactNode;
   /** Trailing control in place of value/chevron (e.g. a spinner). */
   accessory?: ReactNode;
@@ -584,14 +251,13 @@ export function ESettingsRow({
   accessibilityHint?: string;
 }) {
   const { t } = useEditorialTheme();
-  const text = title ?? label ?? '';
   const isInteractive = !!onPress;
-  const tone = destructive ? t.danger : color;
-  const showChevron = chevron ?? (isInteractive && !tone);
+  const tone = destructive ? t.danger : undefined;
+  const showChevron = chevron ?? (isInteractive && !destructive);
 
   const content = (
     <RowShell icon={icon} iconColor={tone ?? t.ink2} isLast={isLast}>
-      <RowText title={text} subtitle={subtitle} color={tone ?? t.ink} />
+      <RowText title={title} subtitle={subtitle} color={tone ?? t.ink} />
       {badge}
       {value ? (
         <Text numberOfLines={1} style={[type.body, { color: t.ink3, maxWidth: '45%' }]}>
@@ -620,7 +286,7 @@ export function ESettingsRow({
       }}
       disabled={disabled || loading}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel ?? (value ? `${text}, ${value}` : undefined)}
+      accessibilityLabel={accessibilityLabel ?? (value ? `${title}, ${value}` : undefined)}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: !!(disabled || loading), busy: !!loading }}
       android_ripple={{ color: tint(t.ink, 0.08) }}
@@ -716,29 +382,5 @@ export function EOptionRow({
         {selected ? <Check size={18} color={t.warm} strokeWidth={2.5} /> : null}
       </RowShell>
     </Pressable>
-  );
-}
-
-// ── Progress bar ──
-export function EProgressBar({ value, color }: { value: number; color?: string }) {
-  const { t } = useEditorialTheme();
-  return (
-    <View
-      style={{
-        height: 6,
-        backgroundColor: t.surface2,
-        borderRadius: 999,
-        overflow: 'hidden',
-      }}
-    >
-      <View
-        style={{
-          width: `${Math.min(value, 1) * 100}%`,
-          height: '100%',
-          backgroundColor: color ?? t.warm,
-          borderRadius: 999,
-        }}
-      />
-    </View>
   );
 }

@@ -25,7 +25,7 @@ import {
   SHEET_PRIMARY_STATE,
   SheetFooter,
   SheetTitle,
-} from '../../../components/bike-hub/sheets/sheet-form';
+} from '../../../components/ui/sheet-form';
 import { useHydratedFormState } from '../../../hooks/use-hydrated-form-state';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';

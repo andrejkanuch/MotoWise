@@ -212,7 +212,8 @@ export default function DiagnosticResultScreen() {
           <Section title={t('diagnose.issues')}>
             <InsetGroup>
               {issues.map((issue, index) => (
-                <Fragment key={issue.description}>
+                // biome-ignore lint/suspicious/noArrayIndexKey: AI output may repeat a value and the list never reorders
+                <Fragment key={`${index}-${issue.description}`}>
                   {index > 0 && <RowSeparator />}
                   <View style={{ padding: space.md, gap: space.xs }}>
                     <Text selectable style={[type.body, { color: theme.ink }]}>
@@ -242,9 +243,10 @@ export default function DiagnosticResultScreen() {
         {tools.length > 0 && (
           <Section title={t('diagnose.toolsNeeded')}>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.xs }}>
-              {tools.map((tool) => (
+              {tools.map((tool, toolIndex) => (
                 <View
-                  key={tool}
+                  // biome-ignore lint/suspicious/noArrayIndexKey: AI output may repeat a value and the list never reorders
+                  key={`${toolIndex}-${tool}`}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -278,7 +280,8 @@ export default function DiagnosticResultScreen() {
           <Section title={t('diagnose.nextSteps')}>
             <InsetGroup>
               {nextSteps.map((step, stepIndex) => (
-                <Fragment key={step}>
+                // biome-ignore lint/suspicious/noArrayIndexKey: AI output may repeat a value and the list never reorders
+                <Fragment key={`${stepIndex}-${step}`}>
                   {stepIndex > 0 && <RowSeparator />}
                   <View
                     style={{

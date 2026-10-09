@@ -148,7 +148,7 @@ export default function ProfileScreen() {
               presentPaywall({
                 source: 'profile',
                 feature: 'subscription',
-                surface: 'profile_pro_banner',
+                surface: 'profile_subscriptions_row',
               })
             }
           />
