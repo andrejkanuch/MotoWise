@@ -361,7 +361,11 @@ export default function EditBikeScreen() {
   // A delete in flight holds the sheet: swiped away mid-request, it unmounted
   // before `dismiss(2)` and left the bike screen open on a deleted bike. Lifted
   // by `exit`, which the success handler sets in the same update.
-  const deleting = deleteMutation.isPending && exit === null;
+  // Not while paused: offline, TanStack parks the delete (still pending) until
+  // the network returns, which would trap the rider in the sheet. The queued
+  // delete still runs on reconnect; if the sheet is gone by then, the bike
+  // screen leaves on its own once the refetched garage list drops the bike.
+  const deleting = deleteMutation.isPending && !deleteMutation.isPaused && exit === null;
 
   useEffect(() => {
     navigation.setOptions({ gestureEnabled: !deleting });

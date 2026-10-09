@@ -81,7 +81,7 @@ import {
   MyMotorcyclesDocument,
   UpdateMotorcycleDocument,
 } from '@motovault/graphql';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Alert, type AlertButton } from 'react-native';
 import '../../i18n';
@@ -115,6 +115,7 @@ const TEST_ID = {
 
 interface Deferred {
   resolve: (value: unknown) => void;
+  reject: (reason: unknown) => void;
 }
 
 /** The pending DeleteMotorcycle request, settled by the test. */
@@ -133,8 +134,8 @@ function serve() {
       return Promise.resolve({ updateMotorcycle: { id: BIKE_ID } });
     }
     if (document === DeleteMotorcycleDocument) {
-      return new Promise((resolve) => {
-        pendingDelete = { resolve };
+      return new Promise((resolve, reject) => {
+        pendingDelete = { resolve, reject };
       });
     }
     return Promise.resolve(undefined);
@@ -165,6 +166,11 @@ async function renderScreen() {
   return { client, invalidate };
 }
 
+/** The footer's Cancel button (the delete confirmation is mocked, so it is the only one). */
+function cancelButton() {
+  return screen.getByRole('button', { name: 'Cancel' });
+}
+
 /** The rider swipes the sheet down (or taps back): what the guard does with it. */
 async function attemptDismiss() {
   await act(async () => {
@@ -180,6 +186,7 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
+  onlineManager.setOnline(true);
   await flush();
   jest.restoreAllMocks();
   mockFetcher.mockReset();
@@ -281,9 +288,10 @@ describe('Edit Motorcycle — delete', () => {
     await confirmDelete();
     alert.mockClear();
 
-    // Swipe-down / back while deleting: held, silently, with the gesture off.
+    // Swipe-down / back / Cancel while deleting: held, silently, with the gesture off.
     expect(mockPreventRemove.prevent).toBe(true);
     expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({ gestureEnabled: false });
+    expect(cancelButton()).toBeDisabled();
     await attemptDismiss();
     expect(alert).not.toHaveBeenCalled();
     expect(mockNavigation.dispatch).not.toHaveBeenCalled();
@@ -294,6 +302,54 @@ describe('Edit Motorcycle — delete', () => {
     await flush();
 
     expect(mockPreventRemove.prevent).toBe(false);
+    expect(mockRouter.dismiss).toHaveBeenCalledWith(2);
+  });
+
+  it('releases the hold when the delete fails', async () => {
+    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    await renderScreen();
+
+    await confirmDelete();
+    expect(mockPreventRemove.prevent).toBe(true);
+    expect(cancelButton()).toBeDisabled();
+
+    await act(async () => {
+      pendingDelete?.reject(new Error('Network request failed'));
+    });
+    await flush();
+
+    expect(mockPreventRemove.prevent).toBe(false);
+    expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({ gestureEnabled: true });
+    expect(cancelButton()).toBeEnabled();
+    expect(mockRouter.dismiss).not.toHaveBeenCalled();
+  });
+
+  it('does not hold the sheet while an offline delete is paused, and finishes on reconnect', async () => {
+    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    await renderScreen();
+    onlineManager.setOnline(false);
+
+    await confirmDelete();
+
+    // Parked by TanStack (pending + paused): the rider can still leave.
+    expect(mockFetcher).not.toHaveBeenCalledWith(DeleteMotorcycleDocument, expect.anything());
+    expect(mockPreventRemove.prevent).toBe(false);
+    expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({ gestureEnabled: true });
+    expect(cancelButton()).toBeEnabled();
+
+    // Back online, the queued delete runs and holds the sheet until it lands.
+    await act(async () => {
+      onlineManager.setOnline(true);
+    });
+    await flush();
+    expect(mockFetcher).toHaveBeenCalledWith(DeleteMotorcycleDocument, { id: BIKE_ID });
+    expect(mockPreventRemove.prevent).toBe(true);
+    expect(cancelButton()).toBeDisabled();
+
+    await act(async () => {
+      pendingDelete?.resolve({ deleteMotorcycle: true });
+    });
+    await flush();
     expect(mockRouter.dismiss).toHaveBeenCalledWith(2);
   });
 
