@@ -14,9 +14,9 @@
 #     ride" is DISABLED until any unfinished ride is resolved.
 #   - ENDING IS A LONG-PRESS: the control is "Hold to end ride" (longPressOn), not
 #     a tap. It opens an "End ride?" confirm in a @gorhom bottom sheet whose
-#     buttons are NOT exposed to the a11y tree, so "End Anyway" must be tapped by
-#     point (~73%, 80%). The confirm only appears for very short rides (ours is),
-#     so it's expected here.
+#     texts are NOT exposed to the a11y tree, so "End Anyway" must be tapped by
+#     point (~73%, 88% since the redesign). The confirm only appears for very
+#     short rides (ours is), so it's expected here.
 #   - the summary shows "RIDE SAVED …" and a "Save ride" button.
 #
 # Setup: composes onboarding.yaml (signed-in user + Honda). Run via:
@@ -59,10 +59,23 @@ env:
 - longPressOn:
     text: ".*Hold to end ride.*"
 
-# 6. Confirm the "End ride?" short-ride prompt. Its bottom-sheet buttons aren't in
-#    the a11y tree, so tap "End Anyway" (red, bottom-right) by point.
-- tapOn:
-    point: "73%,80%"
+# 6. Confirm the "End ride?" short-ride prompt (ride-hud.tsx guard sheet:
+#    "Keep Riding" | "End Anyway"). The @gorhom bottom sheet renders but none of
+#    its texts reach the a11y tree (an "End ride\\?" or "End Anyway" selector
+#    never matches — checked 2026-10-09), so "End Anyway" is tapped by point.
+#    The redesigned sheet puts the buttons at ~88% height (the old 73%,80% now
+#    lands on the tip box). Tap only while the summary is not up yet: a ride long
+#    enough to skip the guard ends straight on "RIDE SAVED".
+- extendedWaitUntil:
+    visible: ".*RIDE SAVED.*"
+    timeout: 3000
+    optional: true
+- runFlow:
+    when:
+      notVisible: ".*RIDE SAVED.*"
+    commands:
+      - tapOn:
+          point: "73%,88%" # "End Anyway" (red, bottom-right)
 
 # 7. Success: the ride summary shows "RIDE SAVED …"; finalize with Save ride.
 - extendedWaitUntil:

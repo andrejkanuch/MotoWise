@@ -143,14 +143,16 @@ env:
 #    History if we're on the hub (no-op on the All Tasks list), then confirm the
 #    task is present. Its card is collapsed (actions are now expand-gated), so it
 #    shows no inline "Done" either way.
+#    A completed (history) row's label leads with the completion date
+#    ("Oct 9 2026. <title>. …"), so its selectors match the title anywhere.
 - tapOn:
     text: ".*History.*"
     optional: true
 - scrollUntilVisible:
     element:
-      text: "${TASK_TITLE}([.,].*)?"
+      text: ".*${TASK_TITLE}.*"
     direction: DOWN
-- assertVisible: "${TASK_TITLE}([.,].*)?"
+- assertVisible: ".*${TASK_TITLE}.*"
 # EXPAND the completed card and assert its status discriminator: a completed card
 # offers ONLY Delete (Done/Edit are gated behind !isCompleted). This proves the
 # task actually completed, not merely that its title still renders — without it
@@ -162,11 +164,11 @@ env:
     when:
       notVisible: "Delete"
     commands:
-      - tapOn: "${TASK_TITLE}([.,].*)?"
+      - tapOn: ".*${TASK_TITLE}.*"
 - assertVisible:
     text: "Delete"
     below:
-      text: "${TASK_TITLE}([.,].*)?"
+      text: ".*${TASK_TITLE}.*"
 - assertNotVisible: "Mark ${TASK_TITLE} done" # a completed row has no check circle
 - takeScreenshot: complete-maintenance-task-done
 
@@ -176,7 +178,7 @@ env:
 - tapOn:
     text: "Delete"
     below:
-      text: "${TASK_TITLE}([.,].*)?"
+      text: ".*${TASK_TITLE}.*"
 # Wait for the confirm alert to finish presenting — a tap during its entrance
 # animation is dropped on iOS 27 — and retry once if it is still up.
 - extendedWaitUntil:
@@ -199,4 +201,4 @@ env:
           below:
             text: "Are you sure.*"
 - assertNotVisible:
-    text: "${TASK_TITLE}([.,].*)?"
+    text: ".*${TASK_TITLE}.*"

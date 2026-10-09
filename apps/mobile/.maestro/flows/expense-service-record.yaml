@@ -126,9 +126,12 @@ env:
 - takeScreenshot: expense-service-record-open
 
 - tapOn: ".*View full service record.*"
+# All Tasks opens on the Completed tab with the task expanded. A history row's
+# label leads with the completion date ("Oct 9 2026. <title>. At 12,600 km.
+# €88.00"), so match the title anywhere in the label, never anchored at the start.
 - extendedWaitUntil:
-    visible: ${TASK_TITLE}
+    visible: ".*${TASK_TITLE}.*"
     timeout: 20000
 # Completed filter should surface the task
-- assertVisible: "${TASK_TITLE}([.,].*)?"
+- assertVisible: ".*${TASK_TITLE}.*"
 - takeScreenshot: expense-service-record-tasks

@@ -53,16 +53,19 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   log-mode shape (Odometer / Date completed / "Log it", Priority hidden), logs a completed record,
   confirms it lands under History, and cleans up. **Authored from source 2026-07-16, pending
   on-device validation.** `test:e2e:log-past-work`.
-- **`flows/add-bike.yaml`** — add a second motorcycle. **Requires a PRO account** (free tier caps at
-  1 bike and onboarding already adds a Honda → paywall). Authored from source; validate on a Pro
-  account. `test:e2e:add-bike`.
+- **`flows/add-bike.yaml`** — add a motorcycle from the garage. Composes `onboarding.yaml` with
+  `NO_BIKE: "true"` (bike setup → "Not sure of the details?" → "I'll add my bike later" → no-bike
+  value screen), so the free test user reaches an empty garage and "Add your first bike" opens the
+  sheet — with the default onboarding Honda a free user hits the MAX_BIKES paywall instead (correct
+  app behaviour). `test:e2e:add-bike`. Every other flow keeps the default (a Honda Africa Twin).
 - **`flows/delete-expense.yaml`** — delete an expense. The gesture-only delete (the original client
   complaint) was **fixed**: tapping an expense row now reveals a visible "Delete" button
   (`swipeable-expense.tsx`); the reveal was validated on-device 2026-07-15. Flow drives the button
   path (tap row → Delete → confirm). `test:e2e:delete-expense`.
 - **`flows/log-ride.yaml`** — start a ride, record, hold-to-end, save. **Validated end-to-end
   on-device 2026-07-15.** Uses `setLocation` for a GPS fix; ends via a long-press ("Hold to end
-  ride") + a point-tap on the "End Anyway" bottom-sheet confirm (buttons not in the a11y tree).
+  ride") + a point-tap (~73%,88%) on the "End Anyway" bottom-sheet confirm (its texts are not in
+  the a11y tree). Re-validated 2026-10-09 against the redesigned sheet.
   `test:e2e:log-ride`.
 - **`flows/bike-hub-overview.yaml`** — the redesigned bike screen (bike-detail redesign R1): four
   segments, Overview "Log" pill → Log sheet → Note sheet → save, the Notes screen with delete + Undo,
@@ -194,7 +197,7 @@ Hard-won specifics for THIS app — check these first when a flow "should work" 
   `longPressOn`), and deleting an expense is swipe/long-press (see delete-expense's blocked note).
 - **Unlabeled + portal'd controls need point-taps.** The center ride **FAB** has no label (tap ~50%,92%),
   and the ride's **"End ride?"** confirm is a `@gorhom/bottom-sheet` whose buttons are absent from the
-  a11y tree — tap "End Anyway" by point (~73%,80%). Point-taps are percentage-based (portable) but
+  a11y tree — tap "End Anyway" by point (~73%,88% since the redesign; 73%,80% now hits the tip box). Point-taps are percentage-based (portable) but
   resolution-sensitive; prefer a real selector whenever `inspect_screen` exposes one.
 - **GPS-dependent flows need `setLocation`.** The ride pre-flight GPS check and recording need a fix;
   set one at the top of the flow (a stationary sim logs ~0 distance, which still saves).
@@ -210,8 +213,11 @@ iOS 27 simulator against a Release build pointed at a local Supabase + API
 - **Text matching ignores case.** `".*Garage.*"` matched Home's "Today in your garage." and
   `".*Profile.*"` matched "Complete your bike profile". Anchor tab taps: `"Garage(,.*)?"`.
 - **iOS merges a pressable's child texts into one label** ("E2E Complete Me, HIGH",
-  "No expenses yet, Track your fuel…"). Match row titles with `"${TITLE}(,.*)?"` (keeps an
-  edited title distinct) or `".*${TEXT}.*"` when the title is not first.
+  "No expenses yet, Track your fuel…"). Match active task rows with `"${TITLE}(,.*)?"` (keeps an
+  edited title distinct) and `".*${TEXT}.*"` when the title is not first. A completed (history)
+  task row (`HistoryTaskRow`, bike hub History and All Tasks → Completed) leads with the
+  completion date — "Oct 9 2026. E2E Service Record Link. At 12,600 km. €88.00" — so always match
+  it as `".*${TITLE}.*"`; a title-anchored pattern never matches it.
 - **Onboarding must pick a model.** `complete_onboarding` creates the bike only when make, model
   and year are all set; a make-only "Add to my garage" leaves the garage empty. Tap the model
   chip directly — typing a query makes the search field's value match too.

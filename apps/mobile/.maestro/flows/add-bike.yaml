@@ -1,34 +1,21 @@
 # Add a bike to the garage — E2E regression for the add-bike happy path.
 #
-# Proves a rider can add a SECOND, distinct bike from the garage: open the
-# add-bike form-sheet, enter a year, pick a make from the NHTSA picker
-# (Yamaha — deliberately different from the Honda onboarding leaves behind),
-# set a model, save, and assert the new bike surfaces in the garage. Exercises
-# the real make dropdown + model entry + CreateMotorcycle mutation + list
-# invalidation round-trip.
+# Proves a rider can add a bike from the garage: open the add-bike form-sheet,
+# enter a year, pick a make from the NHTSA picker, set a model, save, and assert
+# the new bike surfaces in the garage. Exercises the real make dropdown + model
+# entry + CreateMotorcycle mutation + list invalidation round-trip.
 #
-# Setup: composes onboarding.yaml, which signs in a pre-created user and leaves a
-# Honda in the garage (ending at Home). So this flow needs the same env the
-# onboarding runner provides — run it via:
+# Setup: composes onboarding.yaml with NO_BIKE="true", which signs in a
+# pre-created FREE user and skips bike setup ("I'll add my bike later"), so the
+# garage is empty when this flow opens it. That is what makes the form reachable
+# legitimately: FREE_TIER_LIMITS.MAX_BIKES = 1, so a free user who already has a
+# bike gets the RevenueCat paywall from "Add a Bike" instead of the sheet
+# (correct app behaviour). Run it via:
 #   pnpm --filter @motovault/mobile test:e2e:add-bike
-# (runner wired separately; it provisions/deletes a confirmed Supabase user
-# TEST_EMAIL/TEST_PASSWORD and expects a STANDALONE/PREVIEW build with
-# EXPO_PUBLIC_OB_VARIANT=invested baked in — see .maestro/README.md; the
-# onboarding *setup* portion uses clearState, so dev-client/Metro is unsupported).
-#
-# ⚠️ PREREQUISITE — the test account MUST have a Pro entitlement.
-#   FREE_TIER_LIMITS.MAX_BIKES = 1. Onboarding already added a Honda, so for a
-#   FREE user the garage add affordance runs requireAccess('MAX_BIKES', 1),
-#   returns false, and opens the RevenueCat paywall instead of the add-bike
-#   sheet — and even via a direct route the CreateMotorcycle mutation returns
-#   FORBIDDEN. A Pro account (isPro = unlimited) is required for a 2nd bike.
-#
-# ⚠️ NOT YET DEVICE-VALIDATED. Unlike edit-maintenance-task.yaml, the selectors
-#   below were authored FROM SOURCE (add-bike.tsx, (garage)/index.tsx,
-#   (garage)/_layout.tsx, en.json) and are PENDING on-device confirmation via the
-#   Maestro MCP. Since the Race Plate sheet redesign the fields are targeted by
-#   testID, which removes the old index guesses — still verify on a simulator
-#   before trusting this in CI.
+# The runner provisions/deletes a confirmed Supabase user (TEST_EMAIL /
+# TEST_PASSWORD) and expects a STANDALONE/PREVIEW build — see .maestro/README.md;
+# the onboarding setup uses clearState, so dev-client/Metro is unsupported. The
+# runner deletes the user (and with it the bike) on teardown.
 #
 # App-specific gotchas applied (see .maestro/README.md):
 #   - the Garage tab a11y text can carry a badge count, so match it as a partial
@@ -45,24 +32,26 @@ appId: ${APP_ID}
 env:
   APP_ID: com.motovault.app
   BIKE_YEAR: "2022"
-  BIKE_MAKE: "Yamaha" # a real NHTSA make, deliberately != the onboarding Honda
+  BIKE_MAKE: "Yamaha" # a real NHTSA make
   BIKE_MODEL: "E2E Model" # distinctive custom model so it's deterministic + assertable
 ---
-# 1. Setup — reach a signed-in Home with a Honda already in the garage.
-- runFlow: onboarding.yaml
+# 1. Setup — reach a signed-in Home with an EMPTY garage (bike setup skipped).
+- runFlow:
+    file: onboarding.yaml
+    env:
+      NO_BIKE: "true"
 
 # 2. Open the Garage tab. The tab label can carry a badge count, so match it as a
-#    partial regex. Wait for the onboarding Honda to confirm the list rendered.
+#    partial regex. The empty garage confirms onboarding really added no bike.
 - tapOn:
     text: "Garage(,.*)?" # the tab; ".*Garage.*" also matched Home's "Today in your garage." (Maestro text matching ignores case)
 - extendedWaitUntil:
-    visible: ".*Honda.*"
+    visible: "Your garage is empty"
     timeout: 30000
 
-# 3. Open the add-bike sheet via the garage "Add a Bike" row (the header + button
-#    carries the same accessibility label; either opens the sheet). (Requires Pro — a
-#    free account with the Honda already present hits the paywall here instead.)
-- tapOn: "Add a Bike"
+# 3. Open the add-bike sheet from the empty state's "Add your first bike" CTA
+#    (0 bikes < MAX_BIKES, so no paywall).
+- tapOn: "Add your first bike"
 - assertVisible: "Nickname (optional)" # confirms the add-bike sheet is up
 
 # 4. Year — by testID (the section caption also reads "Year").
@@ -112,14 +101,10 @@ env:
     optional: true
 
 # 8. Success: the sheet closes (router.back) and the new bike shows in the garage.
-#    Assert on the make — it came from the picker and is distinct from the Honda.
+#    Assert on the make — it came from the picker — and that the empty state is gone.
 - extendedWaitUntil:
     visible: ".*${BIKE_MAKE}.*"
     timeout: 30000
 - assertVisible: ".*${BIKE_MAKE}.*"
+- assertNotVisible: "Your garage is empty"
 - takeScreenshot: add-bike-done
-
-# NOTE: no automatic cleanup. This leaves the added Yamaha in the shared Pro test
-# account (a Pro account has no bike-count limit, so reruns still pass). If a
-# deterministic bike count matters, delete it from the bike hub between runs, or
-# wire teardown into the runner.
