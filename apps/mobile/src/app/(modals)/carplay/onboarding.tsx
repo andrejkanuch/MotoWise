@@ -16,16 +16,10 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  Eyebrow,
-  INK_ON_COPPER,
-  MONO,
-  PulseDot,
-  SERIF,
-  SERIF_ITALIC,
-} from '../../../components/carplay/primitives';
+import { PulseDot } from '../../../components/carplay/primitives';
 import { StateGlyph } from '../../../components/carplay/state-indicator';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { space, type } from '../../../theme/type';
 import { triggerImpact } from '../../../utils/haptics';
 
 export default function CarPlayOnboardingScreen() {
@@ -64,7 +58,7 @@ export default function CarPlayOnboardingScreen() {
           accessibilityLabel={t('carplay.onboarding.skip', { defaultValue: 'Skip' })}
           style={{ paddingVertical: 12 }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '600', color: c.ink3 }}>
+          <Text style={{ ...type.label, color: c.ink3 }}>
             {t('carplay.onboarding.skip', { defaultValue: 'Skip' })}
           </Text>
         </Pressable>
@@ -78,15 +72,10 @@ export default function CarPlayOnboardingScreen() {
         onMomentumScrollEnd={onScroll}
       >
         <CardShell width={width} insets={insets}>
-          <Eyebrow>
-            {t('carplay.onboarding.c1Eyebrow', { defaultValue: 'On the bike screen' })}
-          </Eyebrow>
-          <Display
-            first={t('carplay.onboarding.c1A', { defaultValue: 'Your ride, on the ' })}
-            em={t('carplay.onboarding.c1Em', { defaultValue: 'cluster' })}
-            last="."
-          />
-          <Text style={{ fontSize: 15, color: c.ink2, lineHeight: 22, marginTop: 14 }}>
+          <Display>
+            {t('carplay.onboarding.c1Title', { defaultValue: 'Your ride, on the cluster.' })}
+          </Display>
+          <Text style={{ ...type.body, color: c.ink2, marginTop: space.md }}>
             {t('carplay.onboarding.c1Body', {
               defaultValue:
                 'Distance, climb and moving time live on your motorcycle’s display — glance, never tap.',
@@ -98,15 +87,10 @@ export default function CarPlayOnboardingScreen() {
         </CardShell>
 
         <CardShell width={width} insets={insets}>
-          <Eyebrow>
-            {t('carplay.onboarding.c2Eyebrow', { defaultValue: 'Rides alongside your nav' })}
-          </Eyebrow>
-          <Display
-            first={t('carplay.onboarding.c2A', { defaultValue: 'Keep your ' })}
-            em={t('carplay.onboarding.c2Em', { defaultValue: 'directions' })}
-            last="."
-          />
-          <Text style={{ fontSize: 15, color: c.ink2, lineHeight: 22, marginTop: 14 }}>
+          <Display>
+            {t('carplay.onboarding.c2Title', { defaultValue: 'Keep your directions.' })}
+          </Display>
+          <Text style={{ ...type.body, color: c.ink2, marginTop: space.md }}>
             {t('carplay.onboarding.c2Body', {
               defaultValue:
                 'MotoVault never takes the map. Your nav app keeps showing turns — the toggle flips to MotoVault for a glance, then back.',
@@ -116,13 +100,8 @@ export default function CarPlayOnboardingScreen() {
         </CardShell>
 
         <CardShell width={width} insets={insets}>
-          <Eyebrow>{t('carplay.onboarding.c3Eyebrow', { defaultValue: 'How it starts' })}</Eyebrow>
-          <Display
-            first={t('carplay.onboarding.c3A', { defaultValue: 'Pick your ' })}
-            em={t('carplay.onboarding.c3Em', { defaultValue: 'start' })}
-            last="."
-          />
-          <Text style={{ fontSize: 15, color: c.ink2, lineHeight: 22, marginTop: 14 }}>
+          <Display>{t('carplay.onboarding.c3Title', { defaultValue: 'Pick your start.' })}</Display>
+          <Text style={{ ...type.body, color: c.ink2, marginTop: space.md }}>
             {t('carplay.onboarding.c3Body', {
               defaultValue:
                 'Change it anytime in the companion. You can always tell what’s about to happen.',
@@ -189,7 +168,7 @@ export default function CarPlayOnboardingScreen() {
             justifyContent: 'center',
           }}
         >
-          <Text style={{ fontSize: 16, fontWeight: '700', color: INK_ON_COPPER }}>
+          <Text style={{ ...type.bodyStrong, color: c.onWarm }}>
             {page < 2
               ? t('carplay.onboarding.continue', { defaultValue: 'Continue' })
               : t('carplay.onboarding.start', { defaultValue: 'Start riding' })}
@@ -226,22 +205,14 @@ function CardShell({
   );
 }
 
-function Display({ first, em, last }: { first: string; em: string; last: string }) {
+function Display({ children }: { children: string }) {
   const { t: c } = useEditorialTheme();
   return (
     <Text
-      style={{
-        marginTop: 12,
-        fontFamily: SERIF,
-        fontSize: 38,
-        lineHeight: 41,
-        letterSpacing: -0.5,
-        color: c.ink,
-      }}
+      accessibilityRole="header"
+      style={{ ...type.largeTitle, marginTop: space.sm, color: c.ink }}
     >
-      {first}
-      <Text style={{ fontFamily: SERIF_ITALIC, color: c.warm2 }}>{em}</Text>
-      {last}
+      {children}
     </Text>
   );
 }
@@ -288,8 +259,8 @@ function MiniMode({ title, sub, selected }: { title: string; sub: string; select
         )}
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 16, fontWeight: '700', color: c.ink }}>{title}</Text>
-        <Text style={{ fontSize: 13, color: c.ink3, marginTop: 1 }}>{sub}</Text>
+        <Text style={{ ...type.bodyStrong, color: c.ink }}>{title}</Text>
+        <Text style={{ ...type.caption, color: c.ink3, marginTop: 1 }}>{sub}</Text>
       </View>
     </View>
   );
@@ -329,12 +300,10 @@ function MiniTile() {
             justifyContent: 'space-between',
           }}
         >
-          <Text style={{ fontFamily: MONO, color: c.ink2, fontSize: 11, fontWeight: '600' }}>
+          <Text style={{ ...type.caption, fontVariant: ['tabular-nums'], color: c.ink2 }}>
             {'14:32'}
           </Text>
-          <Text style={{ fontFamily: MONO, color: c.ink3, fontSize: 11, letterSpacing: 1 }}>
-            {'MotoVault'}
-          </Text>
+          <Text style={{ ...type.caption, color: c.ink3 }}>{'MotoVault'}</Text>
         </View>
         <View style={{ paddingHorizontal: 14, paddingBottom: 14 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 }}>
@@ -358,7 +327,7 @@ function MiniTile() {
               }}
             >
               <Text style={{ color: c.ink2, fontSize: 13 }}>{l}</Text>
-              <Text style={{ color: c.ink, fontWeight: '600', fontSize: 13, fontFamily: MONO }}>
+              <Text style={{ ...type.label, fontVariant: ['tabular-nums'], color: c.ink }}>
                 {v}
               </Text>
             </View>

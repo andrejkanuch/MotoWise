@@ -1,18 +1,17 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { router } from 'expo-router';
-import { ChartNoAxesColumn } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BackHandler, Pressable, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ONBOARDING_COLORS } from '../components/onboarding/onboarding-colors';
+import { BackHandler, Pressable, Text, View } from 'react-native';
+import { useOnboardingColors } from '../components/onboarding/onboarding-colors';
+import { OnboardingShell } from '../components/onboarding/onboarding-shell';
 import { AnalyticsEvent, setAnalyticsEnabled, trackEvent } from '../lib/analytics';
 import type { AccountPrivacyPreference, ConsentDecision } from '../lib/analytics-consent';
 import { saveConsentToAccount } from '../lib/consent-account-sync';
 import { queryKeys } from '../lib/query-keys';
 import { useAuthStore } from '../stores/auth.store';
+import { radius, space, type } from '../theme/type';
 import { triggerImpact } from '../utils/haptics';
 
 /**
@@ -37,8 +36,8 @@ const CONSENT_SURFACE = 'consent_screen';
 type MeCache = { me?: { preferences?: { privacy?: AccountPrivacyPreference } | null } };
 
 export default function AnalyticsConsentScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const session = useAuthStore((s) => s.session);
   // One answer per presentation — a double tap must not apply two decisions.
@@ -77,107 +76,66 @@ export default function AnalyticsConsentScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: 'center',
-          paddingHorizontal: 24,
-          paddingTop: insets.top + 48,
-          paddingBottom: insets.bottom + 32,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        <Animated.View entering={FadeInDown.duration(300)}>
-          <View
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 16,
-              borderCurve: 'continuous',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: ONBOARDING_COLORS.accentBg,
-              marginBottom: 24,
-            }}
-          >
-            <ChartNoAxesColumn size={26} color={ONBOARDING_COLORS.warm2} />
-          </View>
-          <Text
-            accessibilityRole="header"
-            style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 34,
-              lineHeight: 37,
-              color: ONBOARDING_COLORS.textPrimary,
-              letterSpacing: -0.7,
-            }}
-          >
-            {t('analyticsConsent.title')}
-          </Text>
-          <Text
-            style={{
-              fontSize: 15,
-              lineHeight: 22,
-              color: ONBOARDING_COLORS.textSecondary,
-              marginTop: 14,
-            }}
-          >
-            {t('analyticsConsent.body')}
-          </Text>
-          <View style={{ gap: 10, marginTop: 20 }}>
-            {(['pointWhat', 'pointNever', 'pointChange'] as const).map((key) => (
-              <View key={key} style={{ flexDirection: 'row', gap: 10 }}>
-                <Text style={{ fontSize: 15, lineHeight: 22, color: ONBOARDING_COLORS.warm2 }}>
-                  •
-                </Text>
-                <Text
-                  style={{
-                    flex: 1,
-                    fontSize: 15,
-                    lineHeight: 22,
-                    color: ONBOARDING_COLORS.textSecondary,
-                  }}
-                >
-                  {t(`analyticsConsent.${key}`)}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </Animated.View>
-
-        <Animated.View
-          entering={FadeInUp.delay(120).duration(300)}
-          style={{ gap: 12, marginTop: 36 }}
-        >
+    <OnboardingShell
+      title={t('analyticsConsent.title')}
+      subtitle={t('analyticsConsent.body')}
+      footer={
+        // Equal weight: one style for both, neither preselected, stacked in
+        // the same footer slot every onboarding step uses.
+        <View style={{ gap: space.sm }}>
           <ConsentButton label={t('analyticsConsent.allow')} onPress={() => answer(true)} />
           <ConsentButton label={t('analyticsConsent.decline')} onPress={() => answer(false)} />
-        </Animated.View>
-      </ScrollView>
-    </View>
+        </View>
+      }
+    >
+      <View
+        style={{
+          borderRadius: radius.card,
+          borderCurve: 'continuous',
+          backgroundColor: oc.surface,
+          paddingHorizontal: space.md,
+          paddingVertical: space.xs,
+        }}
+      >
+        {(['pointWhat', 'pointNever', 'pointChange'] as const).map((key, index) => (
+          <View
+            key={key}
+            style={{
+              paddingVertical: space.sm,
+              borderTopWidth: index === 0 ? 0 : 1,
+              borderTopColor: oc.line,
+            }}
+          >
+            <Text style={[type.body, { flex: 1, color: oc.textSecondary }]}>
+              {t(`analyticsConsent.${key}`)}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </OnboardingShell>
   );
 }
 
 /** One style for both answers — see the module comment. */
 function ConsentButton({ label, onPress }: { label: string; onPress: () => void }) {
+  const oc = useOnboardingColors();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       style={({ pressed }) => ({
-        paddingVertical: 17,
-        borderRadius: 16,
+        minHeight: 52,
+        borderRadius: radius.control,
         borderCurve: 'continuous',
         alignItems: 'center',
-        backgroundColor: ONBOARDING_COLORS.cardBg,
-        borderWidth: 1,
-        borderColor: ONBOARDING_COLORS.cardBorderDefault,
-        opacity: pressed ? 0.8 : 1,
+        justifyContent: 'center',
+        overflow: 'hidden',
+        backgroundColor: oc.surface2,
+        opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.8 : 1,
       })}
+      android_ripple={{ color: oc.line, foreground: true }}
     >
-      <Text style={{ fontSize: 16, fontWeight: '600', color: ONBOARDING_COLORS.textPrimary }}>
-        {label}
-      </Text>
+      <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>{label}</Text>
     </Pressable>
   );
 }

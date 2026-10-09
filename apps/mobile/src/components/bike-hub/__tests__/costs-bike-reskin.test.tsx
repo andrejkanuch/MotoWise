@@ -7,7 +7,12 @@ jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+// The reanimated mock lacks the hooks the bike plate uses.
+jest.mock('react-native-reanimated', () => ({
+  ...require('react-native-reanimated/mock'),
+  useReducedMotion: () => true,
+  interpolateColor: () => 'transparent',
+}));
 jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
 jest.mock('../../../lib/analytics', () => ({
   ...require('../../../test/mocks').mockAnalytics(),
@@ -51,7 +56,7 @@ import { BIKE_A } from '../../../test/bike-hub-fixtures';
 import { BikeDetailsCard } from '../bike-details-card';
 import { DocumentsSection } from '../documents-section';
 import { ExpensesSection } from '../expenses-section';
-import { HUB_CATEGORY_COLOR, hub, hubCategoryColor } from '../ui/tokens';
+import { HUB_CATEGORY_COLOR, hubDark as hub, hubCategoryColor } from '../ui/tokens';
 
 const settle = () => act(async () => jest.advanceTimersByTimeAsync(1000));
 const withClient = (children: ReactNode) => (
@@ -125,7 +130,7 @@ describe('ExpensesSection', () => {
   });
 
   it('has no add button of its own — the pill adds — and opens analytics from its header', async () => {
-    await render(withClient(<ExpensesSection motorcycleId={BIKE_A.id} isDark />));
+    await render(withClient(<ExpensesSection motorcycleId={BIKE_A.id} />));
     await settle();
     expect(screen.getByText(`Spent in ${YEAR}`)).toBeOnTheScreen();
     expect(screen.getByText('Recent · 2')).toBeOnTheScreen();
@@ -138,7 +143,7 @@ describe('ExpensesSection', () => {
   });
 
   it('switches between this year and all time', async () => {
-    await render(withClient(<ExpensesSection motorcycleId={BIKE_A.id} isDark />));
+    await render(withClient(<ExpensesSection motorcycleId={BIKE_A.id} />));
     await settle();
     expect(screen.getByRole('tab', { name: String(YEAR) })).toBeSelected();
 

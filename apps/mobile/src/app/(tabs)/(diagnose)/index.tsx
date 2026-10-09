@@ -1,13 +1,14 @@
-import { palette } from '@motovault/design-system';
-import { MyDiagnosticsDocument, MyMotorcyclesDocument } from '@motovault/graphql';
+import {
+  MyDiagnosticsDocument,
+  type MyDiagnosticsQuery,
+  MyMotorcyclesDocument,
+  type MyMotorcyclesQuery,
+} from '@motovault/graphql';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
   AlertTriangle,
-  Camera,
   ChevronRight,
-  Clock,
   Disc,
   Droplets,
   ScanLine,
@@ -15,79 +16,30 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react-native';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import Animated, {
-  FadeIn,
-  FadeInUp,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  DIAGNOSTIC_STATUS,
+  formatDiagnosisDate,
+  isStuckProcessing,
+} from '../../../components/diagnosis/diagnostic-status';
+import { SeverityChip, useSeverityLabel } from '../../../components/diagnosis/severity-chip';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
+import { triggerImpact } from '../../../utils/haptics';
 
-const SEVERITY_COLORS = {
-  critical: {
-    bg: palette.dangerBgLight,
-    bgDark: palette.dangerBgDark,
-    icon: palette.danger500,
-    iconDark: '#fca5a5',
-    label: 'Critical',
-  },
-  high: {
-    bg: palette.signatureBgLight,
-    bgDark: palette.signatureBgDark,
-    icon: palette.signature500,
-    iconDark: palette.signature400,
-    label: 'High',
-  },
-  warning: {
-    bg: palette.warningBgLight,
-    bgDark: palette.warningBgDark,
-    icon: palette.warning500,
-    iconDark: '#fbbf24',
-    label: 'Warning',
-  },
-  medium: {
-    bg: palette.warningBgLight,
-    bgDark: palette.warningBgDark,
-    icon: palette.warning500,
-    iconDark: '#fbbf24',
-    label: 'Medium',
-  },
-  low: {
-    bg: palette.successBgLight,
-    bgDark: palette.successBgDark,
-    icon: palette.success500,
-    iconDark: '#4ade80',
-    label: 'OK',
-  },
-  default: {
-    bg: palette.successBgLight,
-    bgDark: palette.successBgDark,
-    icon: palette.success500,
-    iconDark: '#4ade80',
-    label: 'OK',
-  },
-} as const;
+type Diagnostic = MyDiagnosticsQuery['myDiagnostics'][number];
+type Motorcycle = MyMotorcyclesQuery['myMotorcycles'][number];
 
-function getSeverityColors(severity: string, isDark: boolean) {
-  const config =
-    SEVERITY_COLORS[severity as keyof typeof SEVERITY_COLORS] ?? SEVERITY_COLORS.default;
-  return {
-    bg: isDark ? config.bgDark : config.bg,
-    icon: isDark ? config.iconDark : config.icon,
-    label: config.label,
-  };
-}
+const RECENT_LIMIT = 5;
+const ROW_MIN_HEIGHT = 60;
+const CTA_HEIGHT = 52;
 
 const CAPABILITIES = [
   { icon: Wrench, labelKey: 'diagnose.capEngine' },
@@ -102,9 +54,7 @@ export default function DiagnoseScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { t: eTheme, isDark: colorSchemeDark } = useEditorialTheme();
-  const colorScheme = colorSchemeDark ? 'dark' : 'light';
-  const isDark = colorScheme === 'dark';
+  const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isRefreshingRef = useRef(false);
@@ -135,11 +85,9 @@ export default function DiagnoseScreen() {
     queryFn: () => gqlFetcher(MyDiagnosticsDocument),
   });
   const diagnostics = (data?.myDiagnostics ?? []).filter((d) => {
-    if (d.status === 'failed') return false;
-    if (d.status === 'processing') {
-      // Hide stuck diagnostics (processing > 2 min)
-      return Date.now() - new Date(d.createdAt).getTime() < 2 * 60 * 1000;
-    }
+    if (d.status === DIAGNOSTIC_STATUS.FAILED) return false;
+    // Hide stuck diagnostics (processing > 2 min)
+    if (d.status === DIAGNOSTIC_STATUS.PROCESSING) return !isStuckProcessing(d.createdAt);
     return true;
   });
 
@@ -149,481 +97,192 @@ export default function DiagnoseScreen() {
   });
   const motorcycles = motorcyclesData?.myMotorcycles ?? [];
 
-  // monthlyDiagCount removed — diagnostics are now a paid feature, no free tier limit
-
   useEffect(() => {
     trackEvent(AnalyticsEvent.DIAGNOSTIC_LIST_VIEWED);
   }, []);
 
-  // CTA glow pulse animation
-  const glowOpacity = useSharedValue(0.3);
-  useEffect(() => {
-    glowOpacity.value = withRepeat(
-      withSequence(withTiming(0.6, { duration: 1500 }), withTiming(0.3, { duration: 1500 })),
-      -1,
-    );
-  }, [glowOpacity]);
-
-  const glowStyle = useAnimatedStyle(() => ({
-    shadowOpacity: glowOpacity.value,
-  }));
-
-  // Press scale animation
-  const ctaScale = useSharedValue(1);
-  const ctaAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: ctaScale.value }],
-  }));
-
   const handleNewDiagnostic = () => {
+    triggerImpact();
     router.push('/(diagnose)/new');
   };
 
+  const recent = diagnostics.slice(0, RECENT_LIMIT);
+
   return (
-    <View style={{ flex: 1, backgroundColor: eTheme.bg }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 80, paddingTop: insets.top }}
+        contentContainerStyle={{
+          ...readableWidth,
+          paddingTop: insets.top + space.xs,
+          paddingBottom: insets.bottom + 80,
+          paddingHorizontal: GUTTER,
+        }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={onRefresh}
-            tintColor={isDark ? palette.white : palette.primary500}
+            tintColor={theme.ink3}
+            colors={[theme.warm]}
           />
         }
       >
-        {/* Header */}
-        <Animated.View
-          entering={FadeIn.duration(300)}
-          style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 }}
-        >
-          <Text
-            style={{
-              fontSize: 28,
-              fontWeight: '800',
-              letterSpacing: -0.5,
-              color: eTheme.ink,
-            }}
-          >
-            {t('tabs.diagnose')}
-          </Text>
-          <Text
-            style={{
-              fontSize: 14,
-              color: eTheme.ink3,
-              marginTop: 4,
-            }}
-          >
-            {t('diagnose.subtitle')}
-          </Text>
-        </Animated.View>
+        <Text accessibilityRole="header" style={[type.largeTitle, { color: theme.ink }]}>
+          {t('tabs.diagnose')}
+        </Text>
+        <Text style={[type.subhead, { color: theme.ink2, marginTop: space.xxs }]}>
+          {t('diagnose.headerSubhead')}
+        </Text>
 
-        {/* Hero CTA with gradient */}
-        <Animated.View
-          entering={FadeInUp.delay(100).duration(400)}
-          style={{ paddingHorizontal: 20, marginTop: 16 }}
+        <Pressable
+          onPress={handleNewDiagnostic}
+          accessibilityRole="button"
+          accessibilityLabel={t('diagnose.startCta')}
+          android_ripple={{ color: theme.onPlate, foreground: true }}
+          style={({ pressed }) => ({
+            marginTop: space.lg,
+            minHeight: CTA_HEIGHT,
+            borderRadius: radius.control,
+            borderCurve: 'continuous',
+            overflow: 'hidden',
+            backgroundColor: theme.warm,
+            opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.85 : 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: space.xs,
+            paddingHorizontal: space.md,
+          })}
         >
-          <Animated.View
-            style={[
-              glowStyle,
-              {
-                shadowColor: palette.signature500,
-                shadowOffset: { width: 0, height: 8 },
-                shadowRadius: 24,
-                elevation: 12,
-              },
-            ]}
-          >
-            <Pressable
-              onPress={handleNewDiagnostic}
-              onPressIn={() => {
-                ctaScale.value = withSpring(0.97, { damping: 15 });
-              }}
-              onPressOut={() => {
-                ctaScale.value = withSpring(1, { damping: 15 });
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t('diagnose.startNew')}
+          <ScanLine size={20} color={theme.onWarm} strokeWidth={2} />
+          <Text style={[type.bodyStrong, { color: theme.onWarm }]}>{t('diagnose.startCta')}</Text>
+        </Pressable>
+
+        {recent.length === 0 ? (
+          <View style={{ marginTop: space.xxl }}>
+            <Text style={[type.body, { color: theme.ink2 }]}>{t('diagnose.emptyExplainer')}</Text>
+
+            <Text
+              accessibilityRole="header"
+              style={[
+                type.sectionTitle,
+                { color: theme.ink, marginTop: space.xl, marginBottom: space.xs },
+              ]}
             >
-              <Animated.View style={ctaAnimatedStyle}>
-                <LinearGradient
-                  colors={
-                    isDark
-                      ? [
-                          palette.gradientHeroStart,
-                          palette.gradientHeroMid,
-                          palette.gradientHeroEnd,
-                        ]
-                      : [palette.gradientHeroStart, palette.gradientHeroMid, '#1d4ed8']
-                  }
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{
-                    borderRadius: 20,
-                    padding: 24,
-                    alignItems: 'center',
-                    borderCurve: 'continuous',
-                  }}
-                >
-                  {/* Frosted icon */}
+              {t('diagnose.capTitle')}
+            </Text>
+            <InsetGroup>
+              {CAPABILITIES.map(({ icon: Icon, labelKey }, index) => (
+                <Fragment key={labelKey}>
+                  {index > 0 && <RowSeparator inset={space.md + 20 + space.sm} />}
                   <View
                     style={{
-                      width: 64,
-                      height: 64,
-                      borderRadius: 20,
-                      backgroundColor: 'rgba(255,255,255,0.18)',
-                      borderWidth: 1,
-                      borderColor: 'rgba(255,255,255,0.25)',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: 16,
-                      borderCurve: 'continuous',
-                    }}
-                  >
-                    <Camera size={28} color={palette.white} strokeWidth={1.5} />
-                  </View>
-
-                  <Text style={{ color: palette.white, fontSize: 18, fontWeight: '700' }}>
-                    {t('diagnose.startNew')}
-                  </Text>
-                  <Text
-                    style={{
-                      color: 'rgba(255,255,255,0.7)',
-                      fontSize: 14,
-                      marginTop: 4,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {t('diagnose.scanDescription')}
-                  </Text>
-                </LinearGradient>
-              </Animated.View>
-            </Pressable>
-          </Animated.View>
-        </Animated.View>
-
-        {/* Recent Diagnostics OR Empty State + Capabilities */}
-        {diagnostics.length === 0 ? (
-          <>
-            {/* Empty state — inspiring, not sad */}
-            <Animated.View
-              entering={FadeInUp.delay(200).duration(400)}
-              style={{ paddingHorizontal: 20, marginTop: 24, alignItems: 'center' }}
-            >
-              <View
-                style={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: 36,
-                  backgroundColor: isDark ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.08)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <ScanLine size={32} color={isDark ? '#818CF8' : '#6366F1'} strokeWidth={1.5} />
-              </View>
-              <Text
-                style={{
-                  fontSize: 17,
-                  fontWeight: '600',
-                  marginTop: 16,
-                  color: eTheme.ink,
-                }}
-              >
-                {t('diagnose.emptyTitle')}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: eTheme.ink3,
-                  marginTop: 6,
-                  textAlign: 'center',
-                  maxWidth: 260,
-                }}
-              >
-                {t('diagnose.emptyBody')}
-              </Text>
-            </Animated.View>
-
-            {/* What can AI diagnose? */}
-            <Animated.View
-              entering={FadeInUp.delay(300).duration(400)}
-              style={{ paddingHorizontal: 20, marginTop: 32 }}
-            >
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  color: eTheme.ink3,
-                  marginBottom: 16,
-                }}
-              >
-                {t('diagnose.capTitle')}
-              </Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-                {CAPABILITIES.map(({ icon: Icon, labelKey }, index) => (
-                  <Animated.View
-                    key={labelKey}
-                    entering={FadeInUp.delay(350 + index * 40).duration(300)}
-                    style={{
-                      width: '47%',
                       flexDirection: 'row',
                       alignItems: 'center',
-                      gap: 10,
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : palette.white,
-                      borderRadius: 12,
-                      padding: 14,
-                      borderWidth: 1,
-                      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                      borderCurve: 'continuous',
+                      gap: space.sm,
+                      minHeight: 48,
+                      paddingHorizontal: space.md,
+                      paddingVertical: space.sm,
                     }}
                   >
-                    <Icon size={16} color={eTheme.ink3} strokeWidth={1.5} />
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        fontWeight: '500',
-                        color: isDark ? palette.neutral300 : palette.neutral700,
-                        flex: 1,
-                      }}
-                    >
-                      {t(labelKey)}
-                    </Text>
-                  </Animated.View>
-                ))}
-              </View>
-            </Animated.View>
-
-            {/* Tips for better results */}
-            <Animated.View
-              entering={FadeInUp.delay(500).duration(400)}
-              style={{ paddingHorizontal: 20, marginTop: 28 }}
-            >
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  color: eTheme.ink3,
-                  marginBottom: 12,
-                }}
-              >
-                {t('diagnose.tipsTitle')}
-              </Text>
-              <View
-                style={{
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : palette.white,
-                  borderRadius: 16,
-                  padding: 16,
-                  gap: 12,
-                  borderWidth: 1,
-                  borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                  borderCurve: 'continuous',
-                }}
-              >
-                {(['diagnose.tip1', 'diagnose.tip2', 'diagnose.tip3'] as const).map((key, i) => (
-                  <View
-                    key={key}
-                    style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}
-                  >
-                    <View
-                      style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: 10,
-                        backgroundColor: isDark ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.08)',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginTop: 1,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontSize: 11,
-                          fontWeight: '700',
-                          color: isDark ? '#818CF8' : '#6366F1',
-                        }}
-                      >
-                        {i + 1}
-                      </Text>
-                    </View>
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        color: isDark ? palette.neutral300 : palette.neutral600,
-                        flex: 1,
-                        lineHeight: 20,
-                      }}
-                    >
-                      {/* biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key */}
-                      {t(key as any)}
-                    </Text>
+                    <Icon size={20} color={theme.ink3} strokeWidth={1.75} />
+                    <Text style={[type.body, { color: theme.ink, flex: 1 }]}>{t(labelKey)}</Text>
                   </View>
-                ))}
-              </View>
-            </Animated.View>
-          </>
+                </Fragment>
+              ))}
+            </InsetGroup>
+          </View>
         ) : (
-          <Animated.View
-            entering={FadeInUp.delay(200).duration(400)}
-            style={{ paddingHorizontal: 20, marginTop: 24 }}
-          >
+          <View style={{ marginTop: space.xxl }}>
             <Text
-              style={{
-                fontSize: 13,
-                fontWeight: '600',
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-                color: eTheme.ink3,
-                marginBottom: 12,
-              }}
+              accessibilityRole="header"
+              style={[type.sectionTitle, { color: theme.ink, marginBottom: space.xs }]}
             >
               {t('diagnose.recent')}
             </Text>
-
-            <View style={{ gap: 10 }}>
-              {diagnostics.slice(0, 5).map((diag, index) => {
-                const sevColors = getSeverityColors(diag.severity ?? 'default', isDark);
-                const bike = motorcycles.find((m) => m.id === diag.motorcycleId);
-                const displayTitle =
-                  diag.status === 'completed' ? (diag.severity ?? 'Completed') : diag.status;
-
-                return (
-                  <Animated.View
-                    key={diag.id}
-                    entering={FadeInUp.delay(250 + index * 60).duration(400)}
-                  >
-                    <Pressable
-                      style={{
-                        backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : palette.white,
-                        borderRadius: 16,
-                        padding: 14,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        borderWidth: 1,
-                        borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                        borderCurve: 'continuous',
-                      }}
-                      onPress={() => router.push(`/(diagnose)/${diag.id}`)}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${displayTitle}, ${sevColors.label} severity, ${bike ? `${bike.make} ${bike.model}` : ''}`}
-                    >
-                      {/* Severity indicator bar */}
-                      <View
-                        style={{
-                          width: 3,
-                          height: 36,
-                          borderRadius: 2,
-                          backgroundColor: sevColors.icon,
-                          marginRight: 12,
-                        }}
-                      />
-
-                      <View
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 10,
-                          backgroundColor: sevColors.bg,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          marginRight: 12,
-                          borderCurve: 'continuous',
-                        }}
-                      >
-                        <ScanLine size={16} color={sevColors.icon} strokeWidth={2} />
-                      </View>
-
-                      <View style={{ flex: 1 }}>
-                        <Text
-                          style={{
-                            fontSize: 15,
-                            fontWeight: '600',
-                            color: eTheme.ink,
-                          }}
-                          numberOfLines={1}
-                        >
-                          {displayTitle}
-                        </Text>
-                        <View
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: 6,
-                            marginTop: 3,
-                          }}
-                        >
-                          {bike && (
-                            <Text
-                              style={{
-                                fontSize: 12,
-                                color: eTheme.ink3,
-                              }}
-                              numberOfLines={1}
-                            >
-                              {bike.make} {bike.model}
-                            </Text>
-                          )}
-                          <Text
-                            style={{
-                              fontSize: 3,
-                              color: isDark ? palette.neutral600 : palette.neutral300,
-                            }}
-                          >
-                            {'\u25CF'}
-                          </Text>
-                          <Clock size={10} color={eTheme.ink3} strokeWidth={2} />
-                          <Text
-                            style={{
-                              fontSize: 12,
-                              color: eTheme.ink3,
-                            }}
-                          >
-                            {new Date(diag.createdAt).toLocaleDateString()}
-                          </Text>
-                        </View>
-                      </View>
-
-                      {/* Severity badge */}
-                      <View
-                        style={{
-                          backgroundColor: sevColors.bg,
-                          borderRadius: 8,
-                          paddingHorizontal: 8,
-                          paddingVertical: 3,
-                          borderCurve: 'continuous',
-                          marginLeft: 8,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 11,
-                            fontWeight: '600',
-                            color: sevColors.icon,
-                            textTransform: 'capitalize',
-                          }}
-                        >
-                          {diag.severity ?? 'ok'}
-                        </Text>
-                      </View>
-
-                      <ChevronRight
-                        size={16}
-                        color={isDark ? palette.neutral600 : palette.neutral400}
-                        strokeWidth={2}
-                        style={{ marginLeft: 4 }}
-                      />
-                    </Pressable>
-                  </Animated.View>
-                );
-              })}
-            </View>
-          </Animated.View>
+            <InsetGroup>
+              {recent.map((diag, index) => (
+                <Animated.View key={diag.id} entering={FadeInUp.delay(index * 50).duration(250)}>
+                  {index > 0 && <RowSeparator inset={space.md} />}
+                  <DiagnosisRow
+                    diagnostic={diag}
+                    bike={motorcycles.find((m) => m.id === diag.motorcycleId)}
+                    onPress={() => router.push(`/(diagnose)/${diag.id}`)}
+                  />
+                </Animated.View>
+              ))}
+            </InsetGroup>
+          </View>
         )}
       </ScrollView>
     </View>
+  );
+}
+
+function InsetGroup({ children }: { children: ReactNode }) {
+  const { t: theme } = useEditorialTheme();
+  return (
+    <View
+      style={{
+        backgroundColor: theme.surface,
+        borderRadius: radius.card,
+        borderCurve: 'continuous',
+        overflow: 'hidden',
+      }}
+    >
+      {children}
+    </View>
+  );
+}
+
+function RowSeparator({ inset }: { inset: number }) {
+  const { t: theme } = useEditorialTheme();
+  return <View style={{ height: 1, marginLeft: inset, backgroundColor: theme.line }} />;
+}
+
+function DiagnosisRow({
+  diagnostic,
+  bike,
+  onPress,
+}: {
+  diagnostic: Diagnostic;
+  bike: Motorcycle | undefined;
+  onPress: () => void;
+}) {
+  const { t, i18n } = useTranslation();
+  const { t: theme } = useEditorialTheme();
+  const isProcessing = diagnostic.status === DIAGNOSTIC_STATUS.PROCESSING;
+  const severityLabel = useSeverityLabel(diagnostic.severity);
+  const chipLabel = isProcessing ? t('diagnose.statusAnalyzing') : undefined;
+
+  const title = bike ? `${bike.make} ${bike.model}` : t('diagnose.untitledDiagnosis');
+  const date = formatDiagnosisDate(diagnostic.createdAt, i18n.language);
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${title}, ${date}, ${chipLabel ?? t('diagnose.severityA11y', { level: severityLabel })}`}
+      android_ripple={{ color: theme.line }}
+      style={({ pressed }) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: space.sm,
+        minHeight: ROW_MIN_HEIGHT,
+        paddingHorizontal: space.md,
+        paddingVertical: space.sm,
+        backgroundColor: pressed && process.env.EXPO_OS === 'ios' ? theme.surface2 : 'transparent',
+      })}
+    >
+      <View style={{ flex: 1 }}>
+        <Text style={[type.bodyStrong, { color: theme.ink }]} numberOfLines={1}>
+          {title}
+        </Text>
+        <Text style={[type.caption, { color: theme.ink3, marginTop: 2 }]}>{date}</Text>
+      </View>
+      <SeverityChip severity={diagnostic.severity} label={chipLabel} />
+      <ChevronRight size={18} color={theme.ink4} strokeWidth={2} />
+    </Pressable>
   );
 }

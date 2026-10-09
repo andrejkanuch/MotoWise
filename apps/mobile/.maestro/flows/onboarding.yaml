@@ -146,7 +146,10 @@ env:
 # Handle the optional tail only if it appears; the single hard success check is
 # reaching the Home dashboard.
 - extendedWaitUntil:
-    visible: "[×✕]|.*hear about us.*|.*Today in your garage.*"
+    # One selector per wait: the Home tab label stands in for Home here (the
+    # tab's a11y text may carry a badge suffix, hence the optional tail); the
+    # final success check below matches Home by its testID.
+    visible: "[×✕]|.*hear about us.*|Home(,.*)?"
     timeout: 90000
 # commit_first: close the native RevenueCat paywall shown after account.
 - tapOn:
@@ -176,5 +179,6 @@ env:
 
 # Success: onboarding complete -> Home dashboard.
 - extendedWaitUntil:
-    visible: ".*Today in your garage.*"
+    visible:
+      id: "home-screen"
     timeout: 120000

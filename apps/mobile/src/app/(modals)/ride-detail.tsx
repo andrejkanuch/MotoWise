@@ -43,6 +43,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../theme/editorial';
+import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
 import {
   getDefaultMapStyle,
   MAP_STYLES,
@@ -57,7 +58,6 @@ import {
   formatDistanceValue,
   formatDuration,
   formatElevationValue,
-  formatSpeed,
   formatSpeedValue,
   speedUnitLabel,
 } from '../../utils/ride-formatters';
@@ -305,10 +305,7 @@ export default function RideDetailScreen() {
           paddingHorizontal: 32,
         }}
       >
-        <Text
-          selectable
-          style={{ color: theme.ink2, fontSize: 16, lineHeight: 22, textAlign: 'center' }}
-        >
+        <Text selectable style={[type.body, { color: theme.ink2, textAlign: 'center' }]}>
           {t('rideDetail.unavailable')}
         </Text>
         <Pressable
@@ -322,9 +319,7 @@ export default function RideDetailScreen() {
             backgroundColor: theme.warm,
           }}
         >
-          <Text style={{ color: palette.white, fontSize: 15, fontWeight: '600' }}>
-            {t('common.goBack')}
-          </Text>
+          <Text style={[type.bodyStrong, { color: theme.onWarm }]}>{t('common.goBack')}</Text>
         </Pressable>
       </View>
     );
@@ -340,7 +335,7 @@ export default function RideDetailScreen() {
           justifyContent: 'center',
         }}
       >
-        <ActivityIndicator size="large" color={theme.warm} />
+        <ActivityIndicator size="large" color={theme.ink3} />
       </View>
     );
   }
@@ -358,18 +353,16 @@ export default function RideDetailScreen() {
   // Elapsed time = moving + paused
   const elapsedS = durationS + pausedDurationS;
 
-  // Eyebrow: "SATURDAY · MAY 24, 2026 · BMW R 1250 GS"
-  const eyebrowDate = ride.startedAt
-    ? new Date(ride.startedAt)
-        .toLocaleDateString('en-US', {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
-        })
-        .toUpperCase()
+  // Meta line under the title: "Saturday, May 24, 2026 · BMW R 1250 GS"
+  const metaDate = ride.startedAt
+    ? new Date(ride.startedAt).toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      })
     : '';
-  const eyebrowText = bikeName ? `${eyebrowDate} · ${bikeName.toUpperCase()}` : eyebrowDate;
+  const metaText = bikeName ? `${metaDate} · ${bikeName}` : metaDate;
 
   const defaultMapStyle = getDefaultMapStyle(isDark);
   const isNonDefaultStyle = mapStyle !== defaultMapStyle;
@@ -380,15 +373,15 @@ export default function RideDetailScreen() {
     height: 44,
     borderRadius: 999,
     borderCurve: 'continuous' as const,
-    backgroundColor: 'rgba(30,28,25,0.74)',
+    backgroundColor: tint(theme.surface, 0.86),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: theme.line,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
   };
 
   const fabShadow = {
-    shadowColor: '#000',
+    shadowColor: palette.black,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.18,
     shadowRadius: 18,
@@ -505,10 +498,10 @@ export default function RideDetailScreen() {
                   />
                   <MapboxGL.Atmosphere
                     style={{
-                      color: 'rgb(186,210,235)',
-                      highColor: 'rgb(36,92,223)',
+                      color: palette.mapSkyHorizon,
+                      highColor: palette.mapSkyHigh,
                       horizonBlend: 0.02,
-                      spaceColor: 'rgb(11,11,25)',
+                      spaceColor: palette.mapSkySpace,
                       starIntensity: 0.6,
                     }}
                   />
@@ -529,17 +522,17 @@ export default function RideDetailScreen() {
                         ['linear'],
                         ['heatmap-density'],
                         0,
-                        'rgba(0,0,0,0)',
+                        tint(palette.black, 0),
                         0.2,
-                        '#1a1a2e',
+                        palette.plateG2,
                         0.4,
-                        '#3a2a1d',
+                        palette.signature600,
                         0.6,
-                        '#c8772c',
+                        palette.signature500,
                         0.8,
-                        '#e89d5a',
+                        palette.signature400,
                         1.0,
-                        '#ffffff',
+                        palette.whitePure,
                       ],
                       heatmapOpacity: ['interpolate', ['linear'], ['zoom'], 13, 0.8, 16, 0],
                     }}
@@ -578,7 +571,7 @@ export default function RideDetailScreen() {
             accessibilityLabel="Go back"
             style={{ ...fabStyle, ...fabShadow }}
           >
-            <ArrowLeft size={18} color="rgba(255,255,255,0.92)" />
+            <ArrowLeft size={18} color={theme.ink} />
           </Pressable>
         </View>
 
@@ -599,7 +592,7 @@ export default function RideDetailScreen() {
             accessibilityLabel="Share ride"
             style={{ ...fabStyle, ...fabShadow }}
           >
-            <Share2 size={18} color="rgba(255,255,255,0.92)" />
+            <Share2 size={18} color={theme.ink} />
           </Pressable>
 
           {/* Layers FAB */}
@@ -621,7 +614,7 @@ export default function RideDetailScreen() {
               accessibilityLabel="Change map style"
               style={{ ...fabStyle, ...fabShadow }}
             >
-              <Layers size={18} color="rgba(255,255,255,0.92)" />
+              <Layers size={18} color={theme.ink} />
               {/* Copper dot indicator when non-default style */}
               {isNonDefaultStyle && (
                 <View
@@ -657,22 +650,14 @@ export default function RideDetailScreen() {
               backgroundColor: theme.warm,
               alignItems: 'center',
               justifyContent: 'center',
-              shadowColor: 'rgba(200,119,44,1)',
+              shadowColor: theme.warm,
               shadowOffset: { width: 0, height: 8 },
               shadowOpacity: 0.35,
               shadowRadius: 20,
               elevation: 8,
             }}
           >
-            <Text
-              style={{
-                fontFamily: 'GeistMono-Bold',
-                fontSize: 11,
-                fontWeight: '700',
-                color: palette.white,
-                letterSpacing: 0.44,
-              }}
-            >
+            <Text style={[type.label, SYSTEM_WEIGHT.bold, { color: theme.onWarm }]}>
               {t('rideDetail.threeD')}
             </Text>
           </Pressable>
@@ -686,17 +671,17 @@ export default function RideDetailScreen() {
           enableDynamicSizing={false}
           enablePanDownToClose={false}
           backgroundStyle={{
-            backgroundColor: isDark ? '#1E1C19' : '#f5f2ec',
+            backgroundColor: theme.surface,
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
             borderCurve: 'continuous',
-            shadowColor: '#000',
+            shadowColor: palette.black,
             shadowOffset: { width: 0, height: -10 },
             shadowOpacity: 0.18,
             shadowRadius: 30,
           }}
           handleIndicatorStyle={{
-            backgroundColor: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(22,20,18,0.18)',
+            backgroundColor: theme.line2,
             width: 36,
             height: 4,
           }}
@@ -705,34 +690,16 @@ export default function RideDetailScreen() {
           <BottomSheetScrollView
             contentContainerStyle={{ padding: 20, paddingTop: 14, paddingBottom: 40, gap: 14 }}
           >
-            {/* Eyebrow */}
-            <Animated.View entering={FadeInUp.duration(250)} style={{ gap: 4 }}>
-              <Text
-                style={{
-                  fontFamily: 'GeistMono-SemiBold',
-                  fontSize: 10,
-                  fontWeight: '600',
-                  color: theme.ink3,
-                  textTransform: 'uppercase',
-                  letterSpacing: 2.2,
-                }}
-              >
-                {eyebrowText}
-              </Text>
-
+            <Animated.View entering={FadeInUp.duration(250)} style={{ gap: 2 }}>
               {/* Title */}
-              <Text
-                style={{
-                  fontSize: 26,
-                  fontWeight: '700',
-                  color: theme.ink,
-                  letterSpacing: -0.57,
-                  lineHeight: 29,
-                  marginTop: 4,
-                }}
-              >
+              <Text accessibilityRole="header" style={[type.sheetTitle, { color: theme.ink }]}>
                 {ride.name || 'Ride'}
               </Text>
+
+              {/* Date · bike */}
+              {metaText ? (
+                <Text style={[type.subhead, { color: theme.ink3 }]}>{metaText}</Text>
+              ) : null}
 
               {/* Duration chip */}
               <View
@@ -755,43 +722,18 @@ export default function RideDetailScreen() {
                     width: 7,
                     height: 7,
                     borderRadius: 99,
-                    backgroundColor: '#2bb673',
+                    backgroundColor: theme.success,
                   }}
                 />
-                <Text
-                  style={{
-                    fontFamily: 'GeistMono-Medium',
-                    fontSize: 11.5,
-                    fontWeight: '500',
-                    fontVariant: ['tabular-nums'],
-                    color: theme.ink2,
-                    letterSpacing: 0.58,
-                  }}
-                >
+                <Text style={[type.label, { color: theme.ink2, fontVariant: ['tabular-nums'] }]}>
                   {formatDuration(durationS)}
                 </Text>
                 {/* Separator + elapsed if different */}
                 {elapsedS > durationS && (
                   <>
+                    <Text style={[type.label, { color: theme.ink4 }]}> · </Text>
                     <Text
-                      style={{
-                        fontFamily: 'GeistMono-Medium',
-                        fontSize: 11.5,
-                        color: theme.ink4,
-                      }}
-                    >
-                      {' '}
-                      ·{' '}
-                    </Text>
-                    <Text
-                      style={{
-                        fontFamily: 'GeistMono-Medium',
-                        fontSize: 11.5,
-                        fontWeight: '500',
-                        fontVariant: ['tabular-nums'],
-                        color: theme.ink2,
-                        letterSpacing: 0.58,
-                      }}
+                      style={[type.label, { color: theme.ink2, fontVariant: ['tabular-nums'] }]}
                     >
                       {formatDuration(elapsedS)}
                     </Text>
@@ -800,33 +742,17 @@ export default function RideDetailScreen() {
                 {/* Red pip + paused time */}
                 {pausedDurationS > 0 && (
                   <>
-                    <Text
-                      style={{
-                        fontFamily: 'GeistMono-Medium',
-                        fontSize: 11.5,
-                        color: theme.ink4,
-                      }}
-                    >
-                      {' '}
-                      ·{' '}
-                    </Text>
+                    <Text style={[type.label, { color: theme.ink4 }]}> · </Text>
                     <View
                       style={{
                         width: 7,
                         height: 7,
                         borderRadius: 99,
-                        backgroundColor: '#d04a3c',
+                        backgroundColor: theme.danger,
                       }}
                     />
                     <Text
-                      style={{
-                        fontFamily: 'GeistMono-Medium',
-                        fontSize: 11.5,
-                        fontWeight: '500',
-                        fontVariant: ['tabular-nums'],
-                        color: theme.ink2,
-                        letterSpacing: 0.58,
-                      }}
+                      style={[type.label, { color: theme.ink2, fontVariant: ['tabular-nums'] }]}
                     >
                       {formatDuration(pausedDurationS)}
                     </Text>
@@ -838,7 +764,7 @@ export default function RideDetailScreen() {
             {/* 3x2 stat grid */}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
               <RideStatTile
-                icon={<Route size={14} color={theme.warm} />}
+                icon={<Route size={14} color={theme.ink3} />}
                 label={t('rideDetail.distance')}
                 value={formatDistanceValue(distanceM, system)}
                 unit={distanceUnitLabel(system)}
@@ -888,14 +814,7 @@ export default function RideDetailScreen() {
                     }}
                   >
                     <Text
-                      style={{
-                        fontFamily: 'GeistMono-Bold',
-                        fontSize: 7,
-                        fontWeight: '700',
-                        letterSpacing: 1.12,
-                        textTransform: 'uppercase',
-                        color: theme.ink3,
-                      }}
+                      style={[type.caption, { fontSize: 10, lineHeight: 12, color: theme.ink3 }]}
                     >
                       {t('rideDetail.private')}
                     </Text>
@@ -941,14 +860,7 @@ export default function RideDetailScreen() {
             {/* Lean angle tooltip */}
             {showLeanTooltip && maxLeanAngle != null && (
               <Animated.View entering={FadeIn.duration(200)} style={{ padding: 12 }}>
-                <Text
-                  style={{
-                    fontFamily: 'GeistMono-Regular',
-                    fontSize: 12,
-                    color: theme.ink2,
-                    lineHeight: 18,
-                  }}
-                >
+                <Text style={[type.subhead, { color: theme.ink2 }]}>
                   {t('rideDetail.leanTooltip')}
                 </Text>
               </Animated.View>
@@ -959,62 +871,15 @@ export default function RideDetailScreen() {
               <Animated.View entering={FadeIn.duration(200)}>
                 <View
                   style={{
-                    borderRadius: 18,
+                    borderRadius: radius.card,
                     borderCurve: 'continuous',
                     padding: 14,
                     paddingBottom: 12,
-                    backgroundColor: tint(theme.ink, 0.03),
+                    backgroundColor: theme.surface2,
                     borderWidth: 1,
-                    borderColor: tint(theme.ink, 0.04),
+                    borderColor: theme.line,
                   }}
                 >
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: 10,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: 'GeistMono-SemiBold',
-                        fontSize: 10,
-                        fontWeight: '600',
-                        letterSpacing: 1.8,
-                        textTransform: 'uppercase',
-                        color: theme.warm,
-                      }}
-                    >
-                      {t('rideDetail.elevationChart')}
-                    </Text>
-                    {/* Peak pill */}
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 5,
-                        paddingHorizontal: 7,
-                        paddingVertical: 3,
-                        borderRadius: 99,
-                        backgroundColor: tint(theme.warm, 0.1),
-                        borderWidth: 1,
-                        borderColor: tint(theme.warm, 0.25),
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontFamily: 'GeistMono-SemiBold',
-                          fontSize: 10,
-                          fontWeight: '600',
-                          letterSpacing: 0.6,
-                          color: theme.warm,
-                        }}
-                      >
-                        {`\u2191 ${t('rideDetail.peak', { value: `${formatElevationValue(elevationGain, system)}${elevationUnitLabel(system).toUpperCase()}` })}`}
-                      </Text>
-                    </View>
-                  </View>
                   <RideElevationChart
                     waypoints={waypoints}
                     system={system}
@@ -1031,48 +896,15 @@ export default function RideDetailScreen() {
               <Animated.View entering={FadeIn.duration(200)}>
                 <View
                   style={{
-                    borderRadius: 18,
+                    borderRadius: radius.card,
                     borderCurve: 'continuous',
                     padding: 14,
                     paddingBottom: 12,
-                    backgroundColor: tint(theme.ink, 0.03),
+                    backgroundColor: theme.surface2,
                     borderWidth: 1,
-                    borderColor: tint(theme.ink, 0.04),
+                    borderColor: theme.line,
                   }}
                 >
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: 10,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: 'GeistMono-SemiBold',
-                        fontSize: 10,
-                        fontWeight: '600',
-                        letterSpacing: 1.8,
-                        textTransform: 'uppercase',
-                        color: theme.warm,
-                      }}
-                    >
-                      {t('rideDetail.speedChart')}
-                    </Text>
-                    <Text
-                      style={{
-                        fontFamily: 'GeistMono-SemiBold',
-                        fontSize: 10,
-                        fontWeight: '600',
-                        letterSpacing: 0.8,
-                        fontVariant: ['tabular-nums'],
-                        color: theme.ink3,
-                      }}
-                    >
-                      {formatSpeed(maxSpeedMps, system)}
-                    </Text>
-                  </View>
                   <RideSpeedChart
                     waypoints={waypoints}
                     system={system}
@@ -1087,7 +919,7 @@ export default function RideDetailScreen() {
             {/* Loading indicator for waypoints */}
             {waypointsLoading && (
               <View style={{ paddingVertical: 24, alignItems: 'center' }}>
-                <ActivityIndicator size="small" color={theme.warm} />
+                <ActivityIndicator size="small" color={theme.ink3} />
               </View>
             )}
 
@@ -1109,20 +941,13 @@ export default function RideDetailScreen() {
                   borderRadius: 14,
                   borderCurve: 'continuous',
                   borderWidth: 1,
-                  borderColor: tint('#d04a3c', 0.35),
+                  borderColor: tint(theme.danger, 0.35),
                   backgroundColor: 'transparent',
                   marginTop: 4,
                 }}
               >
-                <Trash2 size={16} color="#d04a3c" />
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: '600',
-                    color: '#d04a3c',
-                    letterSpacing: -0.07,
-                  }}
-                >
+                <Trash2 size={16} color={theme.danger} />
+                <Text style={[type.bodyStrong, { color: theme.danger }]}>
                   {t('rideDetail.deleteRide')}
                 </Text>
               </Pressable>

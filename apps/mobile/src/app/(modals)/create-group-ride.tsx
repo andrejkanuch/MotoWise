@@ -1,5 +1,4 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
-import { palette } from '@motovault/design-system';
 import { CreateGroupRideDocument } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -22,7 +21,8 @@ import MapPicker from '../../components/map-picker';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-import { useEditorialTheme } from '../../theme/editorial';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { type } from '../../theme/type';
 
 type Difficulty = 'easy' | 'moderate' | 'challenging';
 
@@ -32,29 +32,23 @@ const DIFFICULTIES: { key: Difficulty; label: string }[] = [
   { key: 'challenging', label: 'Challenging' },
 ];
 
-const DIFFICULTY_COLORS = {
-  easy: palette.success500,
-  moderate: palette.warning500,
-  challenging: palette.danger500,
-} as const;
-
 export default function CreateGroupRideScreen() {
-  const { isDark } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
 
-  const bg = isDark ? palette.neutral950 : palette.white;
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
-  const inputBg = isDark ? palette.cardDark : palette.neutral100;
-  const inputBorder = isDark ? palette.surfaceElevated : palette.neutral200;
-  const inputTextColor = isDark ? palette.white : palette.neutral950;
-  const placeholderColor = isDark ? palette.neutral600 : palette.neutral400;
-  const labelColor = isDark ? palette.neutral300 : palette.neutral600;
-  const chipBg = isDark ? palette.neutral800 : palette.neutral200;
-  const chipSelectedBg = isDark ? palette.surfaceElevated : palette.neutral100;
+  const bg = theme.bg;
+  const titleColor = theme.ink;
+  const subtitleColor = theme.ink3;
+  const inputBg = theme.surface;
+  const inputBorder = theme.line;
+  const inputTextColor = theme.ink;
+  const placeholderColor = theme.ink4;
+  const labelColor = theme.ink2;
+  const chipBg = theme.surface2;
+  const chipSelectedBg = tint(theme.warm, 0.12);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -128,15 +122,15 @@ export default function CreateGroupRideScreen() {
               height: 36,
               borderRadius: 18,
               borderCurve: 'continuous',
-              backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
+              backgroundColor: theme.surface2,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
             <ArrowLeft size={18} color={titleColor} />
           </Pressable>
-          <Text style={{ flex: 1, fontSize: 18, fontWeight: '700', color: titleColor }}>
-            Create Group Ride
+          <Text style={[type.sheetTitle, { flex: 1, color: titleColor }]}>
+            {t('groupRide.createTitle')}
           </Text>
         </View>
 
@@ -150,7 +144,7 @@ export default function CreateGroupRideScreen() {
         >
           {/* Title */}
           <Animated.View entering={FadeInUp.delay(0).duration(250)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
+            <Text style={[type.label, { color: labelColor, marginBottom: 6 }]}>
               {t('groupRide.titleLabel')} *
             </Text>
             <TextInput
@@ -175,7 +169,7 @@ export default function CreateGroupRideScreen() {
 
           {/* Description */}
           <Animated.View entering={FadeInUp.delay(50).duration(250)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
+            <Text style={[type.label, { color: labelColor, marginBottom: 6 }]}>
               {t('groupRide.descriptionLabel')} *
             </Text>
             <TextInput
@@ -204,8 +198,8 @@ export default function CreateGroupRideScreen() {
 
           {/* Date & Time */}
           <Animated.View entering={FadeInUp.delay(100).duration(250)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-              Date & Time
+            <Text style={[type.label, { color: labelColor, marginBottom: 6 }]}>
+              {t('groupRide.dateTimeLabel')}
             </Text>
             <View
               style={{
@@ -220,7 +214,7 @@ export default function CreateGroupRideScreen() {
                 minimumDate={new Date()}
                 onChange={(_e, d) => d && setRideDate(d)}
                 themeVariant={isDark ? 'dark' : 'light'}
-                accentColor={palette.signature500}
+                accentColor={theme.warm}
                 style={{ flex: 1 }}
               />
               <DateTimePicker
@@ -229,15 +223,15 @@ export default function CreateGroupRideScreen() {
                 {...({ minuteInterval: 15 } as Record<string, number>)}
                 onChange={(_e, d) => d && setRideDate(d)}
                 themeVariant={isDark ? 'dark' : 'light'}
-                accentColor={palette.signature500}
+                accentColor={theme.warm}
               />
             </View>
           </Animated.View>
 
           {/* Meeting Point */}
           <Animated.View entering={FadeInUp.delay(150).duration(250)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-              Meeting Point
+            <Text style={[type.label, { color: labelColor, marginBottom: 6 }]}>
+              {t('groupRide.meetingPointLabel')}
             </Text>
             {showMapPicker ? (
               <View
@@ -275,7 +269,7 @@ export default function CreateGroupRideScreen() {
                   paddingVertical: 14,
                 }}
               >
-                <MapPin size={18} color={meetingPoint ? palette.signature500 : placeholderColor} />
+                <MapPin size={18} color={meetingPoint ? theme.ink2 : placeholderColor} />
                 <Text
                   style={{
                     flex: 1,
@@ -292,13 +286,12 @@ export default function CreateGroupRideScreen() {
 
           {/* Difficulty */}
           <Animated.View entering={FadeInUp.delay(200).duration(250)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-              Difficulty
+            <Text style={[type.label, { color: labelColor, marginBottom: 6 }]}>
+              {t('trips.difficultyLabel')}
             </Text>
             <View style={{ flexDirection: 'row', gap: 10 }}>
               {DIFFICULTIES.map((d) => {
                 const isSelected = difficulty === d.key;
-                const accentColor = DIFFICULTY_COLORS[d.key];
                 return (
                   <Pressable
                     key={d.key}
@@ -309,7 +302,7 @@ export default function CreateGroupRideScreen() {
                       borderRadius: 10,
                       borderCurve: 'continuous',
                       borderWidth: 1.5,
-                      borderColor: isSelected ? accentColor : inputBorder,
+                      borderColor: isSelected ? theme.warm : inputBorder,
                       backgroundColor: isSelected ? chipSelectedBg : chipBg,
                       alignItems: 'center',
                     }}
@@ -318,7 +311,7 @@ export default function CreateGroupRideScreen() {
                       style={{
                         fontSize: 13,
                         fontWeight: isSelected ? '700' : '500',
-                        color: isSelected ? accentColor : subtitleColor,
+                        color: isSelected ? theme.ink : subtitleColor,
                       }}
                     >
                       {d.label}
@@ -331,7 +324,7 @@ export default function CreateGroupRideScreen() {
 
           {/* Max Riders */}
           <Animated.View entering={FadeInUp.delay(250).duration(250)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
+            <Text style={[type.label, { color: labelColor, marginBottom: 6 }]}>
               {t('groupRide.maxRidersLabel')}
             </Text>
             <TextInput
@@ -358,8 +351,8 @@ export default function CreateGroupRideScreen() {
 
           {/* Error message */}
           {createMutation.isError && (
-            <Text style={{ fontSize: 13, color: palette.danger500, textAlign: 'center' }}>
-              Failed to create ride. Please try again.
+            <Text style={[type.subhead, { color: theme.overdueInk, textAlign: 'center' }]}>
+              {t('groupRide.createError')}
             </Text>
           )}
         </ScrollView>
@@ -376,7 +369,7 @@ export default function CreateGroupRideScreen() {
             paddingTop: 12,
             backgroundColor: bg,
             borderTopWidth: 1,
-            borderTopColor: isDark ? palette.surfaceElevated : palette.neutral200,
+            borderTopColor: theme.line,
           }}
         >
           <Pressable
@@ -390,21 +383,17 @@ export default function CreateGroupRideScreen() {
               paddingVertical: 14,
               borderRadius: 14,
               borderCurve: 'continuous',
-              backgroundColor: isValid
-                ? palette.accent500
-                : isDark
-                  ? palette.neutral800
-                  : palette.neutral300,
+              backgroundColor: isValid ? theme.warm : theme.surface3,
               opacity: createMutation.isPending ? 0.7 : 1,
             }}
           >
             {createMutation.isPending ? (
-              <ActivityIndicator size="small" color={palette.white} />
+              <ActivityIndicator size="small" color={theme.onWarm} />
             ) : (
               <>
-                <Plus size={18} color={palette.white} />
-                <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
-                  Create Group Ride
+                <Plus size={18} color={isValid ? theme.onWarm : theme.ink3} />
+                <Text style={[type.bodyStrong, { color: isValid ? theme.onWarm : theme.ink3 }]}>
+                  {t('groupRide.createTitle')}
                 </Text>
               </>
             )}

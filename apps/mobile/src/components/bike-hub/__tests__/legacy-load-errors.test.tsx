@@ -3,11 +3,22 @@
  * share one load-error look: the hub's copper Retry, announced on both
  * platforms. A categories failure no longer hides the documents themselves.
  */
+const mockColorScheme = 'dark';
+jest.mock('nativewind', () => ({
+  ...jest.requireActual('nativewind'),
+  useColorScheme: () => ({ colorScheme: mockColorScheme }),
+}));
+
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+// The reanimated mock lacks the hooks the bike plate uses.
+jest.mock('react-native-reanimated', () => ({
+  ...require('react-native-reanimated/mock'),
+  useReducedMotion: () => true,
+  interpolateColor: () => 'transparent',
+}));
 jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
 jest.mock('../../../lib/analytics', () => ({
   ...require('../../../test/mocks').mockAnalytics(),
@@ -42,7 +53,7 @@ import { queryClient } from '../../../lib/query-client';
 import { BIKE_A } from '../../../test/bike-hub-fixtures';
 import { DocumentsSection } from '../documents-section';
 import { ExpensesSection } from '../expenses-section';
-import { hub } from '../ui/tokens';
+import { hubDark as hub } from '../ui/tokens';
 
 /** Every retry of the app client: 2 + 4 + 8 s. */
 const ALL_RETRIES_MS = 30_000;
@@ -133,7 +144,7 @@ describe('Expenses and Documents load errors look and sound the same', () => {
     [
       'expenses',
       'expenses-load-error',
-      () => <ExpensesSection motorcycleId={BIKE_A.id} isDark />,
+      () => <ExpensesSection motorcycleId={BIKE_A.id} />,
       'Failed to load expense data',
     ],
     [

@@ -90,3 +90,9 @@ Ride-*.jsx
 # Python bytecode (store/play tooling)
 __pycache__/
 *.pyc
+
+# Impeccable working files (decision page, agent scratch)
+apps/mobile/.impeccable/tmp/
+apps/mobile/.impeccable/questions/
+apps/mobile/.impeccable/decision/
+apps/mobile/.impeccable/review/

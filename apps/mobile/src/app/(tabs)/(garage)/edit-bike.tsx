@@ -1,4 +1,4 @@
-import { palette, withAlpha } from '@motovault/design-system';
+import { palette } from '@motovault/design-system';
 import {
   DeleteMotorcycleDocument,
   MotorcycleMakesDocument,
@@ -50,7 +50,8 @@ import { cancelDocumentNotificationsForBike } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useAuthStore } from '../../../stores/auth.store';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { tint, useEditorialTheme } from '../../../theme/editorial';
+import { GUTTER, radius, space, type } from '../../../theme/type';
 import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 export default function EditBikeScreen() {
@@ -422,25 +423,22 @@ export default function EditBikeScreen() {
 
   // --- Styles ---
   const cardBg = theme.surface;
+  const saveInk = isDirty && isValid ? theme.onWarm : theme.ink3;
   const textColor = theme.ink;
-  const separator = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+  const separator = theme.line;
 
   const sectionLabel = {
-    fontSize: 10 as const,
-    fontWeight: '700' as const,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase' as const,
-    color: theme.ink3,
-    marginBottom: 8,
-    marginLeft: 4,
+    ...type.label,
+    color: theme.ink2,
+    marginBottom: space.xs,
+    marginLeft: space.xxs,
   };
 
   const cardStyle = {
     backgroundColor: cardBg,
-    borderRadius: 14,
+    borderRadius: radius.card,
     borderCurve: 'continuous' as const,
     overflow: 'hidden' as const,
-    boxShadow: isDark ? 'none' : ('0 1px 3px rgba(0,0,0,0.06)' as const),
   };
 
   const rowStyle = {
@@ -480,8 +478,8 @@ export default function EditBikeScreen() {
   const dropdownContainer = {
     backgroundColor: cardBg,
     borderWidth: 1,
-    borderColor: isDark ? palette.neutral700 : palette.neutral200,
-    borderRadius: 14,
+    borderColor: theme.line,
+    borderRadius: radius.card,
     borderCurve: 'continuous' as const,
     marginTop: 6,
     maxHeight: 220,
@@ -498,12 +496,7 @@ export default function EditBikeScreen() {
               disabled={!isDirty || !isValid || updateMutation.isPending}
               hitSlop={8}
               style={{
-                backgroundColor:
-                  isDirty && isValid
-                    ? theme.warm
-                    : isDark
-                      ? palette.neutral700
-                      : palette.neutral200,
+                backgroundColor: isDirty && isValid ? theme.warm : theme.surface2,
                 paddingHorizontal: 16,
                 paddingVertical: 7,
                 borderRadius: 18,
@@ -512,13 +505,13 @@ export default function EditBikeScreen() {
               }}
             >
               {updateMutation.isPending ? (
-                <ActivityIndicator size="small" color={palette.white} />
+                <ActivityIndicator size="small" color={theme.onWarm} />
               ) : (
                 <Text
                   style={{
                     fontSize: 15,
                     fontWeight: '600',
-                    color: isDirty && isValid ? palette.white : theme.ink3,
+                    color: isDirty && isValid ? theme.onWarm : theme.ink3,
                   }}
                 >
                   {t('common.save', { defaultValue: 'Save' })}
@@ -558,12 +551,12 @@ export default function EditBikeScreen() {
                       right: 0,
                       bottom: 0,
                       left: 0,
-                      backgroundColor: 'rgba(0,0,0,0.4)',
+                      backgroundColor: tint(palette.plateG0, 0.4),
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <ActivityIndicator size="large" color={palette.white} />
+                    <ActivityIndicator size="large" color={palette.plateInk} />
                   </View>
                 )}
                 <LinearGradient
@@ -582,7 +575,7 @@ export default function EditBikeScreen() {
                     position: 'absolute',
                     bottom: 12,
                     right: 12,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    backgroundColor: tint(palette.plateG0, 0.5),
                     borderRadius: 20,
                     borderCurve: 'continuous',
                     width: 40,
@@ -591,7 +584,7 @@ export default function EditBikeScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <Camera size={20} color={palette.white} strokeWidth={2} />
+                  <Camera size={20} color={palette.plateInk} strokeWidth={2} />
                 </View>
               </View>
             ) : (
@@ -619,45 +612,8 @@ export default function EditBikeScreen() {
           </Pressable>
         </Animated.View>
 
-        {/* Editorial header */}
-        <View style={{ paddingHorizontal: 16, paddingTop: 12, marginBottom: 20 }}>
-          <Text
-            style={{
-              fontSize: 10,
-              fontWeight: '700',
-              letterSpacing: 2,
-              textTransform: 'uppercase',
-              color: theme.ink3,
-              marginBottom: 6,
-            }}
-          >
-            {t('garage.editMastheadEyebrow', { defaultValue: '— GARAGE' })}
-          </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-            <Text
-              style={{
-                fontFamily: 'InstrumentSerif-Regular',
-                fontSize: 32,
-                color: theme.ink,
-                letterSpacing: -0.6,
-              }}
-            >
-              {t('garage.editMastheadTitle', { defaultValue: 'Edit' })}{' '}
-            </Text>
-            <Text
-              style={{
-                fontFamily: 'InstrumentSerif-Italic',
-                fontSize: 32,
-                color: theme.warm,
-                letterSpacing: -0.6,
-              }}
-            >
-              {t('garage.editMastheadSubject', { defaultValue: 'motorcycle.' })}
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ paddingHorizontal: 16, gap: 24 }}>
+        {/* The navigation bar carries the title ("Edit Motorcycle"). */}
+        <View style={{ paddingHorizontal: GUTTER, paddingTop: space.lg, gap: space.xl }}>
           {/* ─── Identity — grouped card ─── */}
           <Animated.View entering={FadeInDown.delay(50).duration(250)}>
             <Text style={sectionLabel}>
@@ -666,8 +622,8 @@ export default function EditBikeScreen() {
             <View style={cardStyle}>
               {/* Nickname */}
               <View style={rowStyle}>
-                <View style={iconBadge(isDark ? palette.primary900 : palette.primary50)}>
-                  <Bike size={16} color={palette.primary500} strokeWidth={2} />
+                <View style={iconBadge(theme.surface2)}>
+                  <Bike size={16} color={theme.ink2} strokeWidth={2} />
                 </View>
                 <TextInput
                   value={nickname}
@@ -675,7 +631,7 @@ export default function EditBikeScreen() {
                   placeholder={t('garage.nicknamePlaceholder', {
                     defaultValue: 'e.g. "Black Beauty"',
                   })}
-                  placeholderTextColor={palette.neutral400}
+                  placeholderTextColor={theme.ink4}
                   style={{ ...rowLabel, paddingVertical: 2 }}
                 />
               </View>
@@ -684,8 +640,8 @@ export default function EditBikeScreen() {
 
               {/* Year */}
               <View style={rowStyle}>
-                <View style={iconBadge(isDark ? palette.successBgDark : palette.successBgLight)}>
-                  <Gauge size={16} color={palette.success500} strokeWidth={2} />
+                <View style={iconBadge(theme.surface2)}>
+                  <Gauge size={16} color={theme.ink2} strokeWidth={2} />
                 </View>
                 <Text style={rowLabel}>{t('garage.year', { defaultValue: 'Year' })}</Text>
                 <TextInput
@@ -697,7 +653,7 @@ export default function EditBikeScreen() {
                   }}
                   keyboardType="number-pad"
                   placeholder={t('garage.yearExamplePlaceholder')}
-                  placeholderTextColor={palette.neutral400}
+                  placeholderTextColor={theme.ink4}
                   maxLength={4}
                   style={inputInRow}
                 />
@@ -727,8 +683,8 @@ export default function EditBikeScreen() {
                   }}
                   style={rowStyle}
                 >
-                  <View style={iconBadge(isDark ? palette.indigoBg : palette.primary50)}>
-                    <Search size={16} color={palette.indigo500} strokeWidth={2} />
+                  <View style={iconBadge(theme.surface2)}>
+                    <Search size={16} color={theme.ink2} strokeWidth={2} />
                   </View>
                   <Text style={rowLabel}>{selectedMake.makeName}</Text>
                   <Text style={{ fontSize: 12, color: theme.ink3 }}>
@@ -737,14 +693,14 @@ export default function EditBikeScreen() {
                 </Pressable>
               ) : (
                 <View style={rowStyle}>
-                  <View style={iconBadge(isDark ? palette.indigoBg : palette.primary50)}>
-                    <Search size={16} color={palette.indigo500} strokeWidth={2} />
+                  <View style={iconBadge(theme.surface2)}>
+                    <Search size={16} color={theme.ink2} strokeWidth={2} />
                   </View>
                   <TextInput
                     value={makeSearch}
                     onChangeText={setMakeSearch}
                     placeholder={t('garage.searchMake', { defaultValue: 'Search make...' })}
-                    placeholderTextColor={palette.neutral400}
+                    placeholderTextColor={theme.ink4}
                     autoCapitalize="words"
                     style={{ ...rowLabel, paddingVertical: 2 }}
                   />
@@ -756,8 +712,8 @@ export default function EditBikeScreen() {
               {/* Model */}
               {!selectedMake || !validYear ? (
                 <View style={{ ...rowStyle, opacity: 0.4 }}>
-                  <View style={iconBadge(isDark ? palette.indigoBg : palette.primary50)}>
-                    <Search size={16} color={palette.indigo500} strokeWidth={2} />
+                  <View style={iconBadge(theme.surface2)}>
+                    <Search size={16} color={theme.ink2} strokeWidth={2} />
                   </View>
                   <Text style={rowLabel}>
                     {t('garage.searchModel', { defaultValue: 'Search model...' })}
@@ -775,8 +731,8 @@ export default function EditBikeScreen() {
                   }}
                   style={rowStyle}
                 >
-                  <View style={iconBadge(isDark ? palette.indigoBg : palette.primary50)}>
-                    <Search size={16} color={palette.indigo500} strokeWidth={2} />
+                  <View style={iconBadge(theme.surface2)}>
+                    <Search size={16} color={theme.ink2} strokeWidth={2} />
                   </View>
                   <Text style={rowLabel}>{selectedModel.modelName}</Text>
                   <Text style={{ fontSize: 12, color: theme.ink3 }}>
@@ -785,8 +741,8 @@ export default function EditBikeScreen() {
                 </Pressable>
               ) : (
                 <View style={rowStyle}>
-                  <View style={iconBadge(isDark ? palette.indigoBg : palette.primary50)}>
-                    <Search size={16} color={palette.indigo500} strokeWidth={2} />
+                  <View style={iconBadge(theme.surface2)}>
+                    <Search size={16} color={theme.ink2} strokeWidth={2} />
                   </View>
                   <TextInput
                     value={modelSearch}
@@ -795,7 +751,7 @@ export default function EditBikeScreen() {
                       setSelectedModel(null);
                     }}
                     placeholder={t('garage.searchModel', { defaultValue: 'Search model...' })}
-                    placeholderTextColor={palette.neutral400}
+                    placeholderTextColor={theme.ink4}
                     autoCapitalize="words"
                     style={{ ...rowLabel, paddingVertical: 2 }}
                   />
@@ -822,11 +778,7 @@ export default function EditBikeScreen() {
                         paddingVertical: 13,
                         borderBottomWidth: 0.5,
                         borderBottomColor: separator,
-                        backgroundColor: pressed
-                          ? isDark
-                            ? palette.neutral700
-                            : palette.neutral100
-                          : 'transparent',
+                        backgroundColor: pressed ? theme.surface2 : 'transparent',
                       })}
                     >
                       <Text style={{ fontSize: 15, color: textColor }}>{m.makeName}</Text>
@@ -858,11 +810,7 @@ export default function EditBikeScreen() {
                         paddingVertical: 13,
                         borderBottomWidth: 0.5,
                         borderBottomColor: separator,
-                        backgroundColor: pressed
-                          ? isDark
-                            ? palette.neutral700
-                            : palette.neutral100
-                          : 'transparent',
+                        backgroundColor: pressed ? theme.surface2 : 'transparent',
                       })}
                     >
                       <Text style={{ fontSize: 15, color: textColor }}>{m.modelName}</Text>
@@ -889,8 +837,8 @@ export default function EditBikeScreen() {
             </Text>
             <View style={cardStyle}>
               <View style={rowStyle}>
-                <View style={iconBadge(isDark ? palette.indigoBg : palette.primary50)}>
-                  <Settings2 size={16} color={palette.indigo500} strokeWidth={2} />
+                <View style={iconBadge(theme.surface2)}>
+                  <Settings2 size={16} color={theme.ink2} strokeWidth={2} />
                 </View>
                 <View style={{ flexDirection: 'row', flex: 1, gap: 8 }}>
                   {(
@@ -929,17 +877,9 @@ export default function EditBikeScreen() {
                           borderCurve: 'continuous',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: selected
-                            ? withAlpha(theme.warm, 0.14)
-                            : isDark
-                              ? palette.neutral800
-                              : palette.neutral100,
+                          backgroundColor: selected ? tint(theme.warm, 0.14) : theme.surface2,
                           borderWidth: 1.5,
-                          borderColor: selected
-                            ? theme.warm
-                            : isDark
-                              ? palette.neutral700
-                              : palette.neutral200,
+                          borderColor: selected ? theme.warm : theme.line,
                         }}
                       >
                         <Text
@@ -980,8 +920,8 @@ export default function EditBikeScreen() {
             </Text>
             <View style={cardStyle}>
               <View style={rowStyle}>
-                <View style={iconBadge(isDark ? palette.successBgDark : palette.successBgLight)}>
-                  <Gauge size={16} color={palette.success500} strokeWidth={2} />
+                <View style={iconBadge(theme.surface2)}>
+                  <Gauge size={16} color={theme.ink2} strokeWidth={2} />
                 </View>
                 <Text style={rowLabel}>
                   {t('garage.currentMileage', { defaultValue: 'Mileage' })}
@@ -991,7 +931,7 @@ export default function EditBikeScreen() {
                   onChangeText={(text) => setMileage(text.replace(/[^0-9]/g, ''))}
                   keyboardType="number-pad"
                   placeholder={t('garage.odometerPlaceholder')}
-                  placeholderTextColor={palette.neutral400}
+                  placeholderTextColor={theme.ink4}
                   style={inputInRow}
                   accessibilityLabel={t('garage.odometerInputA11y', {
                     defaultValue: 'Odometer reading',
@@ -1011,8 +951,8 @@ export default function EditBikeScreen() {
             <View style={cardStyle}>
               {/* Purchase price */}
               <View style={rowStyle}>
-                <View style={iconBadge(isDark ? palette.successBgDark : palette.successBgLight)}>
-                  <DollarSign size={16} color={palette.success500} strokeWidth={2} />
+                <View style={iconBadge(theme.surface2)}>
+                  <DollarSign size={16} color={theme.ink2} strokeWidth={2} />
                 </View>
                 <Text style={rowLabel}>{t('garage.purchasePrice', { defaultValue: 'Price' })}</Text>
                 <Text style={{ fontSize: 15, fontWeight: '600', color: textColor }}>
@@ -1029,7 +969,7 @@ export default function EditBikeScreen() {
                   }}
                   keyboardType="decimal-pad"
                   placeholder={t('garage.pricePlaceholder')}
-                  placeholderTextColor={palette.neutral400}
+                  placeholderTextColor={theme.ink4}
                   style={inputInRow}
                 />
               </View>
@@ -1040,8 +980,8 @@ export default function EditBikeScreen() {
                   `maskAllTextInputs`, but wrap the whole row so the value stays
                   masked regardless of that config. (todo 186) */}
               <PostHogMaskView style={rowStyle}>
-                <View style={iconBadge(isDark ? palette.primary900 : palette.primary50)}>
-                  <Fingerprint size={16} color={palette.primary500} strokeWidth={2} />
+                <View style={iconBadge(theme.surface2)}>
+                  <Fingerprint size={16} color={theme.ink2} strokeWidth={2} />
                 </View>
                 <Text style={{ ...rowLabel, flex: 0, marginRight: 8 }}>VIN</Text>
                 <TextInput
@@ -1050,14 +990,14 @@ export default function EditBikeScreen() {
                   autoCapitalize="characters"
                   autoCorrect={false}
                   placeholder={t('garage.vinPlaceholder')}
-                  placeholderTextColor={palette.neutral400}
+                  placeholderTextColor={theme.ink4}
                   maxLength={17}
                   style={{ ...inputInRow, flex: 1, textAlign: 'left' }}
                 />
               </PostHogMaskView>
             </View>
             {!vinIsValid && (
-              <Text style={{ fontSize: 12, color: palette.danger500, marginTop: 6, marginLeft: 4 }}>
+              <Text style={{ fontSize: 12, color: theme.danger, marginTop: 6, marginLeft: 4 }}>
                 {t('garage.vinInvalid', {
                   defaultValue: 'VIN must be 17 uppercase characters (no I, O, or Q)',
                 })}
@@ -1130,13 +1070,8 @@ export default function EditBikeScreen() {
                 disabled={!isDirty || !isValid || updateMutation.isPending}
                 style={{
                   flex: 1,
-                  backgroundColor:
-                    isDirty && isValid
-                      ? theme.warm
-                      : isDark
-                        ? palette.neutral700
-                        : palette.neutral300,
-                  borderRadius: 14,
+                  backgroundColor: isDirty && isValid ? theme.warm : theme.surface2,
+                  borderRadius: radius.card,
                   borderCurve: 'continuous',
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -1146,11 +1081,11 @@ export default function EditBikeScreen() {
                 }}
               >
                 {updateMutation.isPending ? (
-                  <ActivityIndicator size="small" color={palette.white} />
+                  <ActivityIndicator size="small" color={saveInk} />
                 ) : (
-                  <Check size={18} color={palette.white} strokeWidth={2.5} />
+                  <Check size={18} color={saveInk} strokeWidth={2.5} />
                 )}
-                <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
+                <Text style={{ ...type.bodyStrong, color: saveInk }}>
                   {updateMutation.isPending
                     ? t('common.saving', { defaultValue: 'Saving...' })
                     : t('common.save', { defaultValue: 'Save' })}
@@ -1161,16 +1096,16 @@ export default function EditBikeScreen() {
 
           {/* ─── Danger Zone ─── */}
           <Animated.View entering={FadeInDown.delay(225).duration(250)} style={{ gap: 8 }}>
-            <Text style={{ ...sectionLabel, color: palette.danger500 }}>
+            <Text style={{ ...sectionLabel, color: theme.danger }}>
               {t('garage.dangerZone', { defaultValue: 'Danger Zone' })}
             </Text>
             <Pressable
               onPress={handleDelete}
               disabled={deleteMutation.isPending}
               style={{
-                backgroundColor: `${palette.danger500}18`,
+                backgroundColor: tint(theme.danger, 0.1),
                 borderWidth: 1,
-                borderColor: palette.danger500,
+                borderColor: theme.danger,
                 borderRadius: 14,
                 borderCurve: 'continuous',
                 paddingVertical: 14,
@@ -1182,11 +1117,11 @@ export default function EditBikeScreen() {
               }}
             >
               {deleteMutation.isPending ? (
-                <ActivityIndicator size="small" color={palette.danger500} />
+                <ActivityIndicator size="small" color={theme.danger} />
               ) : (
-                <Trash2 size={16} color={palette.danger500} strokeWidth={2} />
+                <Trash2 size={16} color={theme.danger} strokeWidth={2} />
               )}
-              <Text style={{ fontSize: 14, fontWeight: '600', color: palette.danger500 }}>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: theme.danger }}>
                 {deleteMutation.isPending
                   ? t('garage.deleting', { defaultValue: 'Deleting...' })
                   : t('garage.deleteMotorcycle', { defaultValue: 'Delete Motorcycle' })}

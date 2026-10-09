@@ -25,12 +25,13 @@ import { RowBody } from './ui/list-row';
 import { RowChevron } from './ui/row-chevron';
 import { SectionHeader } from './ui/section-header';
 import {
-  HUB_FONT,
   HUB_RADIUS,
   HUB_ROW_SUB_LINES,
   HUB_TOUCH_TARGET,
+  type HubColorKey,
   type HubCopyKey,
-  hub,
+  SYSTEM_WEIGHT,
+  useHubTheme,
 } from './ui/tokens';
 
 type DocumentItem = DocumentsByMotorcycleQuery['documents'][number];
@@ -46,6 +47,7 @@ interface DocumentsSectionProps {
 }
 
 export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [showHidden, setShowHidden] = useState(false);
@@ -239,7 +241,7 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
               </View>
               <Text
                 style={{
-                  fontFamily: HUB_FONT.sansSemiBold,
+                  ...SYSTEM_WEIGHT.semibold,
                   fontSize: 15,
                   lineHeight: 20,
                   color: hub.text,
@@ -250,7 +252,7 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
               </Text>
               <Text
                 style={{
-                  fontFamily: HUB_FONT.sans,
+                  ...SYSTEM_WEIGHT.regular,
                   fontSize: 13,
                   lineHeight: 17,
                   color: hub.dim,
@@ -318,9 +320,7 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
                 opacity: pressed ? 0.6 : 1,
               })}
             >
-              <Text
-                style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.copperText }}
-              >
+              <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 14, color: hub.copperText }}>
                 {showHidden ? t('documents.hideHidden') : t('documents.showHidden')}
               </Text>
             </Pressable>
@@ -378,29 +378,30 @@ interface DocumentRowProps {
 /** Expiry level → how the row's status reads. Expired and soon are real status; a future date is plain. */
 const EXPIRY_LOOK: Record<
   DocumentExpiryLevel,
-  { key: HubCopyKey; color: string; tileBg: string; tileIcon: string }
+  { key: HubCopyKey; color: HubColorKey; tileBg: HubColorKey; tileIcon: HubColorKey }
 > = {
   expired: {
     key: 'documents.expired',
-    color: hub.late,
-    tileBg: hub.tagCritBg,
-    tileIcon: hub.late,
+    color: 'late',
+    tileBg: 'tagCritBg',
+    tileIcon: 'late',
   },
   soon: {
     key: 'documents.expiresInDays',
-    color: hub.soon,
-    tileBg: hub.tagHighBg,
-    tileIcon: hub.soon,
+    color: 'soon',
+    tileBg: 'tagHighBg',
+    tileIcon: 'soon',
   },
   future: {
     key: 'documents.expiresOn',
-    color: hub.dim,
-    tileBg: hub.raised,
-    tileIcon: hub.dim,
+    color: 'dim',
+    tileBg: 'raised',
+    tileIcon: 'dim',
   },
 };
 
 function DocumentRow({ doc, promptsExpiry, index, divider, onOpen, onDelete }: DocumentRowProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const status = documentExpiryStatus(doc.expiryDate ?? null);
   const look = status ? EXPIRY_LOOK[status.level] : null;
@@ -446,17 +447,17 @@ function DocumentRow({ doc, promptsExpiry, index, divider, onOpen, onDelete }: D
         <RowBody
           icon={{
             icon: FileText,
-            color: look?.tileIcon ?? hub.dim,
-            background: look?.tileBg ?? hub.raised,
+            color: look ? hub[look.tileIcon] : hub.dim,
+            background: look ? hub[look.tileBg] : hub.raised,
           }}
           title={doc.title}
           sub={
             <Text
               numberOfLines={HUB_ROW_SUB_LINES}
-              style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 16, color: hub.muted }}
+              style={{ ...SYSTEM_WEIGHT.regular, fontSize: 13, lineHeight: 16, color: hub.muted }}
             >
               {statusText && look ? (
-                <Text style={{ color: look.color }}>{`${statusText} · `}</Text>
+                <Text style={{ color: hub[look.color] }}>{`${statusText} · `}</Text>
               ) : null}
               {meta}
             </Text>

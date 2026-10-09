@@ -1,14 +1,7 @@
 import '../global.css';
-import { GeistMono_400Regular } from '@expo-google-fonts/geist-mono/400Regular';
-import { GeistMono_500Medium } from '@expo-google-fonts/geist-mono/500Medium';
-import {
-  InstrumentSerif_400Regular,
-  InstrumentSerif_400Regular_Italic,
-} from '@expo-google-fonts/instrument-serif';
-import { PlusJakartaSans_400Regular } from '@expo-google-fonts/plus-jakarta-sans/400Regular';
-import { PlusJakartaSans_500Medium } from '@expo-google-fonts/plus-jakarta-sans/500Medium';
-import { PlusJakartaSans_600SemiBold } from '@expo-google-fonts/plus-jakarta-sans/600SemiBold';
-import { PlusJakartaSans_700Bold } from '@expo-google-fonts/plus-jakarta-sans/700Bold';
+import { BarlowCondensed_500Medium } from '@expo-google-fonts/barlow-condensed/500Medium';
+import { BarlowCondensed_600SemiBold } from '@expo-google-fonts/barlow-condensed/600SemiBold';
+import { BarlowCondensed_700Bold } from '@expo-google-fonts/barlow-condensed/700Bold';
 import { palette } from '@motovault/design-system';
 import { CompleteMaintenanceTaskDocument } from '@motovault/graphql';
 import { Currency, MeasurementSystem } from '@motovault/types';
@@ -45,14 +38,15 @@ import {
   useSegments,
 } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
+import { useColorScheme as useNativewindColorScheme } from 'nativewind';
 import { PostHogProvider, PostHogSurveyProvider } from 'posthog-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SessionRestoring } from '../components/auth/session-restoring';
 import { clearSheetDrafts } from '../components/bike-hub/notes/unattached-note-photos';
-import { HUB_FONT } from '../components/bike-hub/ui/tokens';
 import { OB_VARIANT } from '../config/onboarding';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
 import { refreshCarPlayHeadsUpData } from '../features/carplay/carplay-coordinator';
@@ -153,10 +147,11 @@ import {
 } from '../lib/subscription';
 import { supabase } from '../lib/supabase';
 import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
-import { useAuthStore } from '../stores/auth.store';
+import { COLOR_SCHEME, useAuthStore } from '../stores/auth.store';
 import { useExperimentStore } from '../stores/experiment.store';
 import { useOnboardingStore } from '../stores/onboarding.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
+import { PLATE_FONT } from '../theme/type';
 import { rideMMKV } from '../utils/ride-storage';
 import {
   clearDeliveredQueue,
@@ -513,6 +508,15 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
 
 function RootLayout() {
   const { setSession } = useAuthStore();
+
+  // Re-apply the rider's stored theme (App settings → Theme) on every launch;
+  // nativewind keeps the choice only in memory, so without this a picked
+  // Light/Dark falls back to System after a restart.
+  const storedColorScheme = useAuthStore((s) => s.colorScheme);
+  const { colorScheme: resolvedScheme, setColorScheme } = useNativewindColorScheme();
+  useEffect(() => {
+    setColorScheme(storedColorScheme === COLOR_SCHEME.SYSTEM ? 'unspecified' : storedColorScheme);
+  }, [storedColorScheme, setColorScheme]);
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
   // Tracks the last identified user so a null session is only treated as a
   // logout when we actually had one — see onAuthStateChange below.
@@ -539,19 +543,10 @@ function RootLayout() {
 
   // Load editorial fonts — don't block splash on this; text uses system fallback until loaded
   useFonts({
-    'InstrumentSerif-Regular': InstrumentSerif_400Regular,
-    'InstrumentSerif-Italic': InstrumentSerif_400Regular_Italic,
-    // Bike hub only (HUB_FONT in components/bike-hub/ui/tokens.ts). Registered
-    // under hub-specific keys on purpose: the ~130 older usages of the never-
-    // loaded `GeistMono*` / `PlusJakartaSans*` names must keep rendering in the
-    // system font until the owner decides to restyle them. Per-weight imports
-    // keep the unused weights of the two packages out of the bundle.
-    [HUB_FONT.mono]: GeistMono_400Regular,
-    [HUB_FONT.monoMedium]: GeistMono_500Medium,
-    [HUB_FONT.sans]: PlusJakartaSans_400Regular,
-    [HUB_FONT.sansMedium]: PlusJakartaSans_500Medium,
-    [HUB_FONT.sansSemiBold]: PlusJakartaSans_600SemiBold,
-    [HUB_FONT.sansBold]: PlusJakartaSans_700Bold,
+    // Race Plate condensed numerals and titles (theme/type.ts → PLATE_FONT).
+    [PLATE_FONT.medium]: BarlowCondensed_500Medium,
+    [PLATE_FONT.semibold]: BarlowCondensed_600SemiBold,
+    [PLATE_FONT.bold]: BarlowCondensed_700Bold,
   });
   const navigationRef = useNavigationContainerRef();
 
@@ -1100,6 +1095,10 @@ function RootLayout() {
             client opt-out set by setAnalyticsEnabled(). */}
         <PostHogSurveyProvider androidKeyboardBehavior="padding">
           <KeyboardProvider>
+            {/* Status bar icons follow the APP scheme (App settings → Theme), not the
+                system one. Screens that set their own (onboarding hero) mount later
+                and win while they are shown. */}
+            <StatusBar style={resolvedScheme === COLOR_SCHEME.DARK ? 'light' : 'dark'} />
             <PersistedQueryClientBoundary>
               <NavigationGate onSettled={hideSplash} />
               {/* Root-mounted so the post-save "Saved — Undo" toast (U7d) survives

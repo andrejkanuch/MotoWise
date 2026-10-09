@@ -1,28 +1,47 @@
-import { MyMotorcyclesDocument } from '@motovault/graphql';
+import {
+  MyMotorcyclesDocument,
+  type MyMotorcyclesQuery,
+  UpdateMotorcycleDocument,
+} from '@motovault/graphql';
 import * as Sentry from '@sentry/react-native';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Crown, MoreHorizontal, Plus } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { Crown, Plus } from 'lucide-react-native';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DocumentExpiryAlerts } from '../../../components/garage/document-expiry-alerts';
+import { GarageBikeCard } from '../../../components/garage/garage-bike-card';
+import { describePlate, type PlateCopy, rankBikeTasks } from '../../../components/home/home-plate';
 import { LottieMotorcycle } from '../../../components/lottie-motorcycle';
 import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
-import { ECard, ESectionMasthead } from '../../../components/ui/editorial';
+import { PLATE_SIZE, PLATE_STATE } from '../../../components/ui/bike-plate';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { useProGate } from '../../../hooks/use-pro-gate';
+import { formatOdometer, hasOdometer } from '../../../lib/bike-hub/format';
+import { isActiveTask } from '../../../lib/bike-hub/task-due';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { QUERY_META } from '../../../lib/query-meta';
+import { maintenanceBadgeOptions } from '../../../lib/query-options';
 import { presentPaywall } from '../../../lib/subscription';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
+import { showActionSheet } from '../../../utils/action-sheet';
+
+type GarageBike = MyMotorcyclesQuery['myMotorcycles'][number];
+
+/** Minimum height of an inset row: 44pt on iOS, 48dp on Android. */
+const ROW_MIN_HEIGHT = process.env.EXPO_OS === 'android' ? 48 : 44;
+const ADD_BUTTON_SIZE = process.env.EXPO_OS === 'android' ? 48 : 44;
+/** Shown in place of a figure the garage cannot know yet. */
+const NO_VALUE = '—';
+const LIST_STAGGER_MS = 50;
+const LIST_ENTER_MS = 240;
 
 function haptic() {
   if (process.env.EXPO_OS === 'ios') {
@@ -30,16 +49,8 @@ function haptic() {
   }
 }
 
-export default function GarageScreen() {
-  const { t } = useTranslation();
-  const { t: theme, isDark } = useEditorialTheme();
-  const insets = useSafeAreaInsets();
-  const router = useRouter();
-  const { requireAccess, isPro } = useProGate();
-  const mileageUnit = useMileageUnit();
-  const [view, setView] = useState<'shelf' | 'grid'>('shelf');
-
-  const { data, isLoading, error, refetch, isRefetching } = useQuery({
+function useGarageBikes() {
+  return useQuery({
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
     // Renders its own error state with Retry (below). It stays mounted beneath
@@ -47,19 +58,109 @@ export default function GarageScreen() {
     // every observer to agree.
     meta: QUERY_META.OWN_ERROR_UI,
   });
+}
+
+export default function GarageScreen() {
+  const { t, i18n } = useTranslation();
+  const { t: theme } = useEditorialTheme();
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { requireAccess, isPro } = useProGate();
+  const mileageUnit = useMileageUnit();
+  const language = i18n.language;
+
+  const { data, isLoading, error, refetch, isRefetching } = useGarageBikes();
+  // The same query as the tab-bar badge, so it is usually already cached.
+  const tasksQuery = useQuery(maintenanceBadgeOptions());
+
+  const setPrimaryMutation = useMutation({
+    mutationFn: (id: string) =>
+      gqlFetcher(UpdateMotorcycleDocument, { id, input: { isPrimary: true } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+    },
+  });
 
   const onRefresh = useCallback(() => {
     refetch();
-  }, [refetch]);
+    tasksQuery.refetch();
+  }, [refetch, tasksQuery.refetch]);
 
   const motorcycles = data?.myMotorcycles ?? [];
-  const totalKm = motorcycles.reduce((sum, b) => sum + (b.currentMileage ?? 0), 0);
-  const totalDistanceDisplay = totalKm.toLocaleString();
+  const tasks = tasksQuery.data?.allMaintenanceTasks;
+  const totalDistance = motorcycles.reduce((sum, b) => sum + (b.currentMileage ?? 0), 0);
+  const totalDistanceDisplay = formatOdometer(totalDistance, language);
+
+  const plates = useMemo(() => {
+    const today = new Date();
+    return new Map<string, PlateCopy>(
+      motorcycles.map((bike) => {
+        const odometer = bike.currentMileage;
+        if (!tasks) {
+          // Tasks not loaded (or failed): show the odometer and claim no verdict.
+          return [
+            bike.id,
+            {
+              state: PLATE_STATE.READY,
+              figure: hasOdometer(odometer) ? formatOdometer(odometer, language) : NO_VALUE,
+              unit: hasOdometer(odometer) ? mileageUnit : undefined,
+              caption: '',
+              stateLabel: '',
+            },
+          ];
+        }
+        const [next] = rankBikeTasks(tasks, {
+          bikeId: bike.id,
+          odometer,
+          unit: mileageUnit,
+          today,
+        });
+        return [bike.id, describePlate(next, { t, language, unit: mileageUnit, odometer })];
+      }),
+    );
+  }, [motorcycles, tasks, mileageUnit, language, t]);
+
+  const openTaskCount = useMemo(() => {
+    if (!tasks) return null;
+    const bikeIds = new Set(motorcycles.map((b) => b.id));
+    return tasks.filter((task) => bikeIds.has(task.motorcycleId) && isActiveTask(task)).length;
+  }, [tasks, motorcycles]);
+
+  const atFreeLimit = !isPro && motorcycles.length >= 1;
 
   const handleAddBike = () => {
     if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
     haptic();
     router.push('/(tabs)/(garage)/add-bike');
+  };
+
+  const handleHeaderAdd = atFreeLimit
+    ? () =>
+        presentPaywall({
+          source: 'garage',
+          feature: 'unlimited_bikes',
+          surface: 'garage_add_bike_header',
+        })
+    : handleAddBike;
+
+  const openBike = (bike: GarageBike) => {
+    haptic();
+    router.push(`/(tabs)/(garage)/bike/${bike.id}`);
+  };
+
+  const openBikeMenu = (bike: GarageBike) => {
+    showActionSheet(`${bike.make} ${bike.model}`, [
+      {
+        label: t('common.edit'),
+        onPress: () =>
+          router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id: bike.id } }),
+      },
+      ...(bike.isPrimary
+        ? []
+        : [{ label: t('garage.setAsPrimary'), onPress: () => setPrimaryMutation.mutate(bike.id) }]),
+      { label: t('common.cancel'), onPress: () => {}, style: 'cancel' as const },
+    ]);
   };
 
   if (isLoading && !data) {
@@ -68,22 +169,17 @@ export default function GarageScreen() {
         style={{
           flex: 1,
           backgroundColor: theme.bg,
-          padding: 20,
-          paddingTop: insets.top + 20,
+          paddingHorizontal: GUTTER,
+          paddingTop: insets.top + space.lg,
         }}
       >
         <SkeletonProvider>
-          <Animated.View entering={FadeInUp.delay(0).duration(300)}>
-            <Skeleton width="50%" height={16} borderRadius={6} />
-          </Animated.View>
-          {[0, 1, 2].map((i) => (
-            <Animated.View
-              key={i}
-              entering={FadeInUp.delay(100 + i * 50).duration(300)}
-              style={{ marginTop: 16 }}
-            >
-              <Skeleton width="100%" height={180} borderRadius={20} />
-            </Animated.View>
+          <Skeleton width="45%" height={36} borderRadius={radius.chip} />
+          {[0, 1].map((i) => (
+            <View key={i} style={{ marginTop: space.xl, gap: space.sm }}>
+              <Skeleton width="70%" height={56} borderRadius={radius.control} />
+              <Skeleton width="100%" height={150} borderRadius={radius.plate} />
+            </View>
           ))}
         </SkeletonProvider>
       </View>
@@ -98,25 +194,28 @@ export default function GarageScreen() {
           backgroundColor: theme.bg,
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 24,
+          padding: space.xl,
+          gap: space.md,
         }}
       >
-        <Text style={{ fontSize: 16, color: theme.ink, marginBottom: 16, textAlign: 'center' }}>
+        <Text style={[type.body, { color: theme.ink, textAlign: 'center' }]}>
           {t('common.error')}
         </Text>
         <Pressable
           onPress={onRefresh}
-          style={{
+          accessibilityRole="button"
+          android_ripple={{ color: theme.line }}
+          style={({ pressed }) => ({
+            minHeight: ROW_MIN_HEIGHT,
+            justifyContent: 'center',
             backgroundColor: theme.warm,
-            borderRadius: 12,
+            borderRadius: radius.control,
             borderCurve: 'continuous',
-            paddingHorizontal: 24,
-            paddingVertical: 12,
-          }}
+            paddingHorizontal: space.xl,
+            opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.85 : 1,
+          })}
         >
-          <Text style={{ color: '#1a1208', fontSize: 15, fontWeight: '600' }}>
-            {t('common.retry')}
-          </Text>
+          <Text style={[type.bodyStrong, { color: theme.onWarm }]}>{t('common.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -124,68 +223,82 @@ export default function GarageScreen() {
 
   if (motorcycles.length === 0) {
     return (
-      <View style={{ flex: 1, backgroundColor: theme.bg }}>
-        <View
-          style={{
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingHorizontal: 32,
-            paddingBottom: 80,
-          }}
-        >
-          <Animated.View entering={FadeInUp.duration(500)} style={{ alignItems: 'center' }}>
-            <LottieMotorcycle
-              animation="emptyGarage"
-              size={160}
-              loop={false}
-              style={{ marginBottom: 8 }}
-            />
-            <Text
-              style={{
-                fontFamily: 'InstrumentSerif-Regular',
-                fontSize: 28,
-                color: theme.ink,
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: theme.bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: space.xxl,
+          paddingBottom: 80,
+        }}
+      >
+        <Animated.View entering={FadeInUp.duration(LIST_ENTER_MS)} style={{ alignItems: 'center' }}>
+          <LottieMotorcycle
+            animation="emptyGarage"
+            size={160}
+            loop={false}
+            style={{ marginBottom: space.xs }}
+          />
+          <Text
+            accessibilityRole="header"
+            style={[type.sheetTitle, { color: theme.ink, textAlign: 'center' }]}
+          >
+            {t('garage.emptyTitle')}
+          </Text>
+          <Text
+            style={[
+              type.subhead,
+              {
+                color: theme.ink2,
                 textAlign: 'center',
-                marginBottom: 8,
-              }}
-            >
-              {t('garage.emptyTitle')}
+                marginTop: space.xs,
+                marginBottom: space.xxl,
+              },
+            ]}
+          >
+            {t('garage.emptySubtitle')}
+          </Text>
+          <Pressable
+            onPress={handleAddBike}
+            accessibilityRole="button"
+            android_ripple={{ color: theme.line }}
+            style={({ pressed }) => ({
+              minHeight: 52,
+              backgroundColor: theme.warm,
+              borderRadius: radius.card,
+              borderCurve: 'continuous',
+              paddingHorizontal: space.xl,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: space.xs,
+              opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.85 : 1,
+            })}
+          >
+            <Plus size={20} color={theme.onWarm} strokeWidth={2.5} />
+            <Text style={[type.bodyStrong, { color: theme.onWarm }]}>
+              {t('garage.addFirstBike')}
             </Text>
-            <Text
-              style={{
-                fontSize: 14,
-                color: theme.ink3,
-                textAlign: 'center',
-                lineHeight: 20,
-                marginBottom: 32,
-              }}
-            >
-              {t('garage.emptySubtitle')}
-            </Text>
-            <Pressable
-              onPress={handleAddBike}
-              style={{
-                backgroundColor: theme.warm,
-                borderRadius: 16,
-                borderCurve: 'continuous',
-                paddingHorizontal: 28,
-                paddingVertical: 16,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 10,
-              }}
-            >
-              <Plus size={20} color="#1a1208" strokeWidth={2.5} />
-              <Text style={{ fontSize: 16, fontWeight: '600', color: '#1a1208' }}>
-                {t('garage.addFirstBike')}
-              </Text>
-            </Pressable>
-          </Animated.View>
-        </View>
+          </Pressable>
+        </Animated.View>
       </View>
     );
   }
+
+  const plateSize = motorcycles.length === 1 ? PLATE_SIZE.HERO : PLATE_SIZE.COMPACT;
+  const oldestYear = Math.min(...motorcycles.map((b) => b.year));
+  const numbers = [
+    {
+      key: 'distance',
+      label: t('garage.totalDistance'),
+      value: totalDistanceDisplay,
+      unit: mileageUnit,
+    },
+    { key: 'oldest', label: t('garage.oldestBike'), value: String(oldestYear) },
+    ...(openTaskCount === null
+      ? []
+      : [{ key: 'tasks', label: t('garage.openTasks'), value: String(openTaskCount) }]),
+  ];
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -193,606 +306,155 @@ export default function GarageScreen() {
       <Sentry.TimeToFullDisplay record />
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+        contentContainerStyle={{ ...readableWidth, paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} tintColor={theme.warm} />
         }
       >
-        {/* ── Masthead ── */}
-        <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 14 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'flex-end',
-              justifyContent: 'space-between',
-              marginBottom: 4,
-            }}
-          >
-            <View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginBottom: 8,
-                }}
-              >
-                <View style={{ width: 14, height: 1, backgroundColor: theme.ink3 }} />
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: '700',
-                    letterSpacing: 2.2,
-                    textTransform: 'uppercase',
-                    color: theme.ink3,
-                  }}
-                >
-                  {motorcycles.length}{' '}
-                  {motorcycles.length === 1
-                    ? t('garage.bike', { defaultValue: 'bike' })
-                    : t('garage.bikes', { defaultValue: 'bikes' })}{' '}
-                  {t('garage.dotDistance', {
-                    defaultValue: '· {{distance}} {{unit}}',
-                    distance: totalDistanceDisplay,
-                    unit: mileageUnit,
-                  })}
-                </Text>
-              </View>
-              <Text
-                style={{
-                  fontFamily: 'InstrumentSerif-Regular',
-                  fontSize: 46,
-                  color: theme.ink,
-                  letterSpacing: -1.2,
-                  lineHeight: 54,
-                }}
-              >
-                {t('garage.mastheadThe')}{' '}
-                <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: theme.warm2 }}>
-                  {t('garage.mastheadGarage')}
-                </Text>
-              </Text>
-            </View>
-            <Pressable
-              onPress={
-                !isPro && motorcycles.length >= 1
-                  ? () =>
-                      presentPaywall({
-                        source: 'garage',
-                        feature: 'unlimited_bikes',
-                        surface: 'garage_add_bike_header',
-                      })
-                  : handleAddBike
-              }
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                backgroundColor: theme.warm,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {!isPro && motorcycles.length >= 1 ? (
-                <Crown size={19} color="#1a1208" />
-              ) : (
-                <Plus size={19} color="#1a1208" />
-              )}
-            </Pressable>
-          </View>
-        </View>
-
-        {/* ── View toggle ── */}
+        {/* ── Title ── */}
         <View
           style={{
-            paddingHorizontal: 16,
-            paddingBottom: 18,
+            paddingTop: insets.top + space.sm,
+            paddingHorizontal: GUTTER,
+            paddingBottom: space.lg,
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            gap: space.sm,
           }}
         >
-          <View
-            style={{
-              flexDirection: 'row',
-              padding: 3,
-              backgroundColor: theme.surface,
-              borderWidth: 1,
-              borderColor: theme.line,
-              borderRadius: 10,
-              borderCurve: 'continuous',
-            }}
-          >
-            {[
-              { key: 'shelf' as const, label: t('garage.viewShelf') },
-              { key: 'grid' as const, label: t('garage.viewGrid') },
-            ].map((v) => (
-              <Pressable
-                key={v.key}
-                onPress={() => setView(v.key)}
-                style={{
-                  paddingVertical: 6,
-                  paddingHorizontal: 14,
-                  borderRadius: 7,
-                  borderCurve: 'continuous',
-                  backgroundColor: view === v.key ? theme.surface2 : 'transparent',
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: '600',
-                    color: view === v.key ? theme.ink : theme.ink3,
-                  }}
-                >
-                  {v.label}
-                </Text>
-              </Pressable>
-            ))}
+          <View style={{ flex: 1, gap: space.xxs }}>
+            <Text accessibilityRole="header" style={[type.largeTitle, { color: theme.ink }]}>
+              {t('tabs.garage')}
+            </Text>
+            <Text style={[type.subhead, { color: theme.ink2 }]}>
+              {t('garage.summaryLine', {
+                count: motorcycles.length,
+                distance: totalDistanceDisplay,
+                unit: mileageUnit,
+              })}
+            </Text>
           </View>
-          <Text style={{ fontSize: 11, color: theme.ink3 }}>{t('garage.sortedByPrimary')}</Text>
+          <Pressable
+            onPress={handleHeaderAdd}
+            accessibilityRole="button"
+            accessibilityLabel={t('garage.addBike')}
+            accessibilityHint={atFreeLimit ? t('garage.moreBikesPro') : undefined}
+            android_ripple={{ color: theme.line, borderless: true }}
+            style={({ pressed }) => ({
+              width: ADD_BUTTON_SIZE,
+              height: ADD_BUTTON_SIZE,
+              borderRadius: radius.pill,
+              backgroundColor: theme.warm,
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.85 : 1,
+            })}
+          >
+            {atFreeLimit ? (
+              <Crown size={20} color={theme.onWarm} />
+            ) : (
+              <Plus size={22} color={theme.onWarm} strokeWidth={2.5} />
+            )}
+          </Pressable>
         </View>
 
-        {view === 'shelf' ? (
-          <>
-            {/* ── SHELF VIEW — horizontal carousel ── */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}
-              decelerationRate="fast"
-              snapToInterval={312}
-            >
-              {motorcycles.map((bike, i) => (
-                <Animated.View key={bike.id} entering={FadeIn.delay(i * 100).duration(400)}>
-                  <Pressable
-                    onPress={() => {
-                      haptic();
-                      router.push(`/(tabs)/(garage)/bike/${bike.id}`);
-                    }}
-                    style={{
-                      width: 300,
-                      aspectRatio: 3 / 4,
-                      borderRadius: 22,
-                      borderCurve: 'continuous',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {/* Background */}
-                    {bike.primaryPhotoUrl ? (
-                      <Image
-                        source={{ uri: bike.primaryPhotoUrl }}
-                        style={{ position: 'absolute', width: '100%', height: '100%' }}
-                        contentFit="cover"
-                        recyclingKey={bike.id}
-                      />
-                    ) : (
-                      <View
-                        style={{
-                          position: 'absolute',
-                          width: '100%',
-                          height: '100%',
-                          backgroundColor: theme.surface2,
-                        }}
-                      />
-                    )}
-                    {/* Bottom gradient for text readability */}
-                    <LinearGradient
-                      colors={['transparent', 'rgba(0,0,0,0.65)']}
-                      locations={[0.3, 1]}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                      }}
-                    />
+        {/* ── Bikes ── */}
+        <View style={{ paddingHorizontal: GUTTER, gap: space.xxl }}>
+          {motorcycles.map((bike, i) => {
+            const plate = plates.get(bike.id);
+            if (!plate) return null;
+            return (
+              <Animated.View
+                key={bike.id}
+                entering={FadeInUp.delay(i * LIST_STAGGER_MS).duration(LIST_ENTER_MS)}
+              >
+                <GarageBikeCard
+                  bike={bike}
+                  plate={plate}
+                  size={plateSize}
+                  onOpen={() => openBike(bike)}
+                  onMenu={() => openBikeMenu(bike)}
+                />
+              </Animated.View>
+            );
+          })}
 
-                    {/* Primary badge */}
-                    {bike.isPrimary && (
-                      <View
-                        style={{
-                          position: 'absolute',
-                          top: 14,
-                          left: 14,
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: 5,
-                          paddingVertical: 5,
-                          paddingHorizontal: 11,
-                          borderRadius: 999,
-                          backgroundColor: theme.warm,
-                        }}
-                      >
-                        <View
-                          style={{
-                            width: 5,
-                            height: 5,
-                            borderRadius: 3,
-                            backgroundColor: '#1a1208',
-                          }}
-                        />
-                        <Text
-                          style={{
-                            fontSize: 10,
-                            fontWeight: '700',
-                            letterSpacing: 1.2,
-                            textTransform: 'uppercase',
-                            color: '#1a1208',
-                          }}
-                        >
-                          {t('garage.primary')}
-                        </Text>
-                      </View>
-                    )}
+          {/* Add a bike — an inset row; the label is the Maestro anchor. */}
+          <Pressable
+            onPress={handleAddBike}
+            accessibilityRole="button"
+            android_ripple={{ color: theme.line }}
+            style={({ pressed }) => ({
+              minHeight: ROW_MIN_HEIGHT + space.sm,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: space.sm,
+              paddingHorizontal: space.md,
+              paddingVertical: space.sm,
+              borderRadius: radius.card,
+              borderCurve: 'continuous',
+              backgroundColor:
+                pressed && process.env.EXPO_OS === 'ios' ? theme.surface2 : theme.surface,
+            })}
+          >
+            <Plus size={20} color={theme.warm2} strokeWidth={2.25} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={[type.bodyStrong, { color: theme.warm2 }]}>{t('garage.addBike')}</Text>
+              {atFreeLimit ? (
+                <Text style={[type.subhead, { color: theme.ink3 }]}>
+                  {t('garage.moreBikesPro')}
+                </Text>
+              ) : null}
+            </View>
+            {atFreeLimit ? <Crown size={18} color={theme.ink3} /> : null}
+          </Pressable>
+        </View>
 
-                    {/* More button */}
-                    <View
-                      style={{
-                        position: 'absolute',
-                        top: 14,
-                        right: 14,
-                        width: 30,
-                        height: 30,
-                        borderRadius: 10,
-                        borderCurve: 'continuous',
-                        backgroundColor: 'rgba(0,0,0,0.35)',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <MoreHorizontal size={14} color="#fff" />
-                    </View>
+        {/* ── Document expiry alerts (R11) — only renders when ≥1 expiring ── */}
+        <DocumentExpiryAlerts />
 
-                    {/* Bottom info */}
-                    <View style={{ position: 'absolute', bottom: 18, left: 18, right: 18 }}>
-                      <Text
-                        style={{
-                          fontSize: 10,
-                          color: '#fff',
-                          opacity: 0.8,
-                          letterSpacing: 1.5,
-                          textTransform: 'uppercase',
-                          fontWeight: '600',
-                          marginBottom: 6,
-                        }}
-                      >
-                        {t('garage.bikeNumberYear', {
-                          num: String(i + 1).padStart(2, '0'),
-                          year: bike.year,
-                        })}
-                      </Text>
-                      <Text
-                        style={{
-                          fontFamily: 'InstrumentSerif-Regular',
-                          fontSize: 28,
-                          color: '#fff',
-                          letterSpacing: -0.5,
-                          lineHeight: 28,
-                        }}
-                      >
-                        {bike.make}
-                      </Text>
-                      <Text
-                        style={{
-                          fontFamily: 'InstrumentSerif-Italic',
-                          fontSize: 28,
-                          color: theme.warm2,
-                          letterSpacing: -0.5,
-                          lineHeight: 28,
-                          marginBottom: 12,
-                        }}
-                      >
-                        {bike.model}
-                      </Text>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          paddingTop: 10,
-                          borderTopWidth: 1,
-                          borderTopColor: 'rgba(255,255,255,0.18)',
-                        }}
-                      >
-                        <View style={{ flex: 1 }}>
-                          <Text
-                            style={{
-                              fontSize: 9,
-                              color: 'rgba(255,255,255,0.7)',
-                              fontWeight: '700',
-                              letterSpacing: 1,
-                              textTransform: 'uppercase',
-                            }}
-                          >
-                            {t('garage.odo')}
-                          </Text>
-                          <Text
-                            style={{
-                              fontFamily: 'InstrumentSerif-Regular',
-                              fontSize: 20,
-                              color: '#fff',
-                              letterSpacing: -0.4,
-                            }}
-                          >
-                            {(bike.currentMileage ?? 0).toLocaleString()}{' '}
-                            <Text style={{ fontSize: 11, opacity: 0.7 }}>{mileageUnit}</Text>
-                          </Text>
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text
-                            style={{
-                              fontSize: 9,
-                              color: 'rgba(255,255,255,0.7)',
-                              fontWeight: '700',
-                              letterSpacing: 1,
-                              textTransform: 'uppercase',
-                            }}
-                          >
-                            {t('garage.since')}
-                          </Text>
-                          <Text
-                            style={{
-                              fontFamily: 'InstrumentSerif-Regular',
-                              fontSize: 20,
-                              color: '#fff',
-                              letterSpacing: -0.4,
-                            }}
-                          >
-                            {new Date(bike.createdAt).getFullYear()}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  </Pressable>
-                </Animated.View>
-              ))}
-
-              {/* Add bike card */}
-              <Pressable
-                onPress={handleAddBike}
+        {/* ── By the numbers ── */}
+        <View style={{ paddingHorizontal: GUTTER, paddingTop: space.xxl, gap: space.xs }}>
+          <Text accessibilityRole="header" style={[type.sectionTitle, { color: theme.ink }]}>
+            {t('garage.byTheNumbers')}
+          </Text>
+          <View
+            style={{
+              backgroundColor: theme.surface,
+              borderRadius: radius.card,
+              borderCurve: 'continuous',
+              overflow: 'hidden',
+            }}
+          >
+            {numbers.map((row, i) => (
+              <View
+                key={row.key}
+                accessible
+                accessibilityLabel={`${row.label}: ${row.value}${row.unit ? ` ${row.unit}` : ''}`}
                 style={{
-                  width: 300,
-                  aspectRatio: 3 / 4,
-                  borderRadius: 22,
-                  borderCurve: 'continuous',
-                  borderWidth: 1.5,
-                  borderColor: theme.line,
+                  minHeight: ROW_MIN_HEIGHT,
+                  paddingVertical: space.sm,
+                  paddingHorizontal: space.md,
+                  flexDirection: 'row',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 12,
-                  backgroundColor: `${theme.surface}66`,
+                  justifyContent: 'space-between',
+                  gap: space.sm,
+                  borderTopWidth: i === 0 ? 0 : StyleSheet.hairlineWidth,
+                  borderTopColor: theme.line,
                 }}
               >
-                <View
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 24,
-                    backgroundColor: theme.surface2,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Plus size={22} color={theme.ink2} />
+                <Text style={[type.body, { color: theme.ink2, flexShrink: 1 }]}>{row.label}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.xxs }}>
+                  <Text style={[type.figureSmall, { color: theme.ink }]}>{row.value}</Text>
+                  {row.unit ? (
+                    <Text style={[type.label, { color: theme.ink3 }]}>{row.unit}</Text>
+                  ) : null}
                 </View>
-                <Text style={{ fontSize: 13, color: theme.ink2, fontWeight: '600' }}>
-                  {t('garage.addBike')}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 11,
-                    color: theme.ink3,
-                    textAlign: 'center',
-                    paddingHorizontal: 30,
-                  }}
-                >
-                  {t('garage.freePlanLimit')}
-                </Text>
-              </Pressable>
-            </ScrollView>
-
-            {/* ── Document expiry alerts (R11) — only renders when ≥1 expiring ── */}
-            <DocumentExpiryAlerts isDark={isDark} />
-
-            {/* ── Summary shelf ── */}
-            <View style={{ paddingHorizontal: 16, paddingTop: 20 }}>
-              <ESectionMasthead label={t('garage.byTheNumbers')} />
-              <ECard pad={0}>
-                {[
-                  {
-                    label: t('garage.totalDistance', { defaultValue: 'Total distance' }),
-                    value: `${totalDistanceDisplay} ${mileageUnit}`,
-                  },
-                  {
-                    label: t('garage.oldestBike'),
-                    value:
-                      motorcycles.length > 0
-                        ? `${Math.min(...motorcycles.map((b) => b.year))}`
-                        : '—',
-                  },
-                  { label: t('garage.openTasks'), value: '—' },
-                ].map((r, i, a) => (
-                  <View
-                    key={r.label}
-                    style={{
-                      paddingVertical: 13,
-                      paddingHorizontal: 16,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      borderBottomWidth: i < a.length - 1 ? 1 : 0,
-                      borderBottomColor: theme.line2,
-                    }}
-                  >
-                    <Text style={{ fontSize: 13, color: theme.ink2 }}>{r.label}</Text>
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        color: theme.ink,
-                        fontWeight: '600',
-                        letterSpacing: -0.05,
-                      }}
-                    >
-                      {r.value}
-                    </Text>
-                  </View>
-                ))}
-              </ECard>
-            </View>
-          </>
-        ) : (
-          /* ── GRID VIEW — compact 2-up ── */
-          <View style={{ paddingHorizontal: 16 }}>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-              {motorcycles.map((bike, i) => (
-                <Animated.View
-                  key={bike.id}
-                  entering={FadeInUp.delay(i * 80).duration(400)}
-                  style={{ width: '48%' }}
-                >
-                  <Pressable
-                    onPress={() => {
-                      haptic();
-                      router.push(`/(tabs)/(garage)/bike/${bike.id}`);
-                    }}
-                    style={{
-                      borderRadius: 16,
-                      borderCurve: 'continuous',
-                      overflow: 'hidden',
-                      borderWidth: 1,
-                      borderColor: theme.line,
-                      backgroundColor: theme.surface,
-                    }}
-                  >
-                    <View style={{ height: 120, position: 'relative' }}>
-                      {bike.primaryPhotoUrl ? (
-                        <Image
-                          source={{ uri: bike.primaryPhotoUrl }}
-                          style={{ width: '100%', height: '100%' }}
-                          contentFit="cover"
-                          recyclingKey={bike.id}
-                        />
-                      ) : (
-                        <View
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            backgroundColor: theme.surface2,
-                          }}
-                        />
-                      )}
-                      {bike.isPrimary && (
-                        <View
-                          style={{
-                            position: 'absolute',
-                            top: 8,
-                            left: 8,
-                            paddingVertical: 3,
-                            paddingHorizontal: 8,
-                            borderRadius: 999,
-                            backgroundColor: theme.warm,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontSize: 9,
-                              fontWeight: '700',
-                              letterSpacing: 1,
-                              textTransform: 'uppercase',
-                              color: '#1a1208',
-                            }}
-                          >
-                            {t('garage.primary')}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                    <View style={{ padding: 12, paddingTop: 10 }}>
-                      <Text
-                        style={{
-                          fontSize: 9,
-                          color: theme.ink3,
-                          letterSpacing: 1,
-                          textTransform: 'uppercase',
-                          fontWeight: '600',
-                          marginBottom: 3,
-                        }}
-                      >
-                        {bike.year}
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 13,
-                          fontWeight: '600',
-                          color: theme.ink,
-                          letterSpacing: -0.1,
-                          lineHeight: 15,
-                        }}
-                      >
-                        {bike.make}
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 13,
-                          fontWeight: '500',
-                          color: theme.ink2,
-                          fontFamily: 'InstrumentSerif-Italic',
-                          marginTop: 1,
-                        }}
-                      >
-                        {bike.model}
-                      </Text>
-                      <View
-                        style={{
-                          marginTop: 8,
-                          paddingTop: 8,
-                          borderTopWidth: 1,
-                          borderTopColor: theme.line2,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 11,
-                            color: theme.ink3,
-                          }}
-                        >
-                          {t('garage.mileageDistance', {
-                            defaultValue: '{{distance}} {{unit}}',
-                            distance: (bike.currentMileage ?? 0).toLocaleString(),
-                            unit: mileageUnit,
-                          })}
-                        </Text>
-                      </View>
-                    </View>
-                  </Pressable>
-                </Animated.View>
-              ))}
-              {/* Add bike grid cell */}
-              <View style={{ width: '48%' }}>
-                <Pressable
-                  onPress={handleAddBike}
-                  style={{
-                    borderRadius: 16,
-                    borderCurve: 'continuous',
-                    borderWidth: 1.5,
-                    borderColor: theme.line,
-                    aspectRatio: 3 / 4,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6,
-                  }}
-                >
-                  <Plus size={22} color={theme.ink2} />
-                  <Text style={{ fontSize: 12, color: theme.ink2, fontWeight: '600' }}>
-                    {t('garage.addBike')}
-                  </Text>
-                </Pressable>
               </View>
-            </View>
+            ))}
           </View>
-        )}
+        </View>
       </ScrollView>
     </View>
   );

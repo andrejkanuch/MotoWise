@@ -47,33 +47,42 @@ env:
 #    card that routes to Add Expense.
 - scrollUntilVisible:
     element:
-      text: "No expenses yet(,.*)?" # expenses.empty
+      text: "No expenses yet([.,].*)?" # expenses.empty
     direction: DOWN
-- tapOn: "No expenses yet(,.*)?"
-- assertVisible: "AMOUNT" # confirms the Add Expense screen
+- tapOn: "No expenses yet([.,].*)?"
+- assertVisible: "Amount" # confirms the Add Expense screen
 - inputText: ${EXPENSE_AMOUNT} # amount field is autoFocused
 - tapOn:
-    text: "CATEGORY" # non-interactive label — dismisses the custom amount keypad first
+    text: "Category" # non-interactive label — dismisses the custom amount keypad first
     optional: true
 - scrollUntilVisible:
     element:
-      text: "ITEM NAME.*" # section label (rendered upper-case; merged with "OPTIONAL")
+      text: "Item name.*" # section label (merged with " · Optional")
     direction: DOWN
 - tapOn:
     text: ".*What did you buy.*" # itemName placeholder (default category)
     optional: true
 - inputText: ${EXPENSE_ITEM}
+# The sheet's Cancel / Save footer is pinned over the bottom of the form, so a
+# field or label behind it is still "visible" to Maestro and a tap lands on the
+# footer (it hit Cancel). Centre the notes field before focusing it, and dismiss
+# the keyboard on a label ABOVE it, never on "Details" right behind the footer.
+- scrollUntilVisible:
+    element:
+      text: ".*What was this expense for.*" # DETAILS placeholder (wildcarded — "?" is a regex metachar)
+    direction: DOWN
+    centerElement: true
 - tapOn:
-    text: ".*What was this expense for.*" # DETAILS placeholder (wildcarded — "?" is a regex metachar)
+    text: ".*What was this expense for.*"
 - inputText: ${EXPENSE_LABEL}
 - tapOn:
-    text: "DETAILS" # non-interactive label — dismisses the custom keyboard
+    text: "Item name.*" # non-interactive label above the notes field — dismisses the keyboard
     optional: true
 - scrollUntilVisible:
     element:
-      text: "Save Expense"
+      text: "Save expense"
     direction: DOWN
-- tapOn: "Save Expense"
+- tapOn: "Save expense"
 - tapOn:
     text: "Not Now" # optional store-review prompt
     optional: true

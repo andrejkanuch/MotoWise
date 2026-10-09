@@ -20,19 +20,11 @@ import {
 } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, View } from 'react-native';
-import Animated, {
-  FadeIn,
-  FadeInUp,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withRepeat,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
+import { Text, View } from 'react-native';
+import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
+import { OnboardingBikePlate } from '../../components/onboarding/onboarding-bike-plate';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
+import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { getPrimaryGoal, getTotalScreens, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException, setUserPropertiesOnce } from '../../lib/analytics';
@@ -54,6 +46,7 @@ import { setSelfReportedSource } from '../../lib/subscription';
 import { useAuthStore } from '../../stores/auth.store';
 import { useChecklistStore } from '../../stores/checklist.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { radius, space, type } from '../../theme/type';
 
 // Onboarding still captures mileage with a per-bike mi/km toggle, but the app now
 // derives the display unit from the global users.measurement_system
@@ -90,11 +83,6 @@ const MIN_ANIMATION_MS = 1600;
  */
 const GARAGE_PAYWALL_ESCAPE_DELAY_MS = 6000;
 
-const SERIF_REGULAR = 'InstrumentSerif-Regular' as const;
-const SERIF_ITALIC = 'InstrumentSerif-Italic' as const;
-const MONO_MEDIUM = 'GeistMono-Medium' as const;
-const BODY = 'Geist-Regular' as const;
-
 type BikeLike = { year?: number | null; make?: string | null; model?: string | null } | null;
 
 /** Builds a human-readable bike label (e.g. "2023 BMW R 1250 GS"), or null if no bike. */
@@ -109,6 +97,7 @@ function buildBikeLabel(bike: BikeLike): string | null {
 }
 
 export default function PersonalizingScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const { totalScreens, variant } = useOnboardingStep(OB_SCREEN.PERSONALIZING);
   // Resume-after-kill entry (welcome's resume replace) — the rider already sat
@@ -175,25 +164,6 @@ export default function PersonalizingScreen() {
     () => [...FIXED_STEP_ICONS, goalConfig.icon] as const,
     [goalConfig.icon],
   );
-
-  const pulseScale = useSharedValue(1);
-  const pulseOpacity = useSharedValue(0.6);
-
-  useEffect(() => {
-    pulseScale.value = withRepeat(withTiming(1.3, { duration: 1200 }), -1, true);
-    pulseOpacity.value = withRepeat(withTiming(0.2, { duration: 1200 }), -1, true);
-  }, [pulseScale, pulseOpacity]);
-
-  const pulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulseScale.value }],
-    opacity: pulseOpacity.value,
-  }));
-
-  // Check-badge pop on the payoff phase (spring scale; respects reduced motion).
-  const checkScale = useSharedValue(0);
-  const checkBadgeStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: checkScale.value }],
-  }));
 
   // Track step viewed once on mount. Resume entries already fired this in the
   // original session (welcome fires ONBOARDING_RESUMED instead) — re-firing
@@ -395,16 +365,6 @@ export default function PersonalizingScreen() {
     }
   }, [mutationDone, animationDone, isResumed, reset, setOnboardingCompleted]);
 
-  // Pop the check badge in when the payoff phase appears.
-  useEffect(() => {
-    if (!showDone) return;
-    if (reducedMotion) {
-      checkScale.value = 1;
-      return;
-    }
-    checkScale.value = withSpring(1, { damping: 11, stiffness: 180, mass: 0.7 });
-  }, [showDone, reducedMotion, checkScale]);
-
   // Safety net: if stuck for 8s total, show continue button
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -511,268 +471,129 @@ export default function PersonalizingScreen() {
   // flips to the garage). Only if the silent completion errors or stalls past
   // the 8s safety net does the full UI surface, with the retry controls.
   if (isResumed && !showRetry) {
-    return <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }} />;
+    return <View style={{ flex: 1, backgroundColor: oc.background }} />;
   }
 
   if (showDone) {
     return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: ONBOARDING_COLORS.background,
-          alignItems: 'center',
-          justifyContent: 'center',
-          paddingHorizontal: 32,
+      <OnboardingShell
+        screen={OB_SCREEN.PERSONALIZING}
+        title={t('onboarding.personalizingDoneHeadline')}
+        subtitle={
+          bikeLabel
+            ? (t(
+                'onboarding.personalizingDoneSubWithBike' as never,
+                { bikeLabel } as never,
+              ) as unknown as string)
+            : t('onboarding.personalizingDoneSub' as never)
+        }
+        primary={{
+          label: t('onboarding.personalizingDoneCta' as never),
+          onPress: handleOpenGarage,
+          // Disabled while the paywall loads, so the tap visibly registered.
+          disabled: garagePaywallPending,
         }}
+        secondary={
+          showGarageEscape
+            ? { label: t('onboarding.obPaywallEscape'), onPress: handleGarageEscape }
+            : undefined
+        }
       >
-        <Animated.View
-          entering={FadeIn.duration(300)}
-          style={{ alignItems: 'center', width: '100%' }}
-        >
-          {/* Copper rounded CHECK badge — pops in with a spring scale */}
+        {bikeData?.make ? (
+          // The plate the rider set up, now ready — the payoff's one moment.
+          <OnboardingBikePlate make={bikeData.make} model={bikeData.model} year={bikeData.year} />
+        ) : (
           <Animated.View
-            style={[
-              {
-                width: 84,
-                height: 84,
-                borderRadius: 26,
-                borderCurve: 'continuous',
-                backgroundColor: ONBOARDING_COLORS.warm,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 24,
-              },
-              checkBadgeStyle,
-            ]}
+            entering={reducedMotion ? undefined : FadeIn.duration(240)}
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: radius.card,
+              borderCurve: 'continuous',
+              backgroundColor: oc.surface,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <Check size={40} color={ONBOARDING_COLORS.textOnAccent} strokeWidth={3} />
+            <Check size={30} color={oc.success} strokeWidth={2.6} />
           </Animated.View>
-
-          <Animated.Text
-            entering={FadeInUp.delay(80).duration(300)}
-            style={{
-              fontFamily: MONO_MEDIUM,
-              fontSize: 12,
-              letterSpacing: 1.6,
-              textTransform: 'uppercase',
-              color: ONBOARDING_COLORS.warm2,
-              marginBottom: 14,
-            }}
-          >
-            {t('onboarding.personalizingDoneEyebrow' as never)}
-          </Animated.Text>
-
-          <Animated.Text
-            entering={FadeInUp.delay(120).duration(300)}
-            style={{
-              fontFamily: SERIF_REGULAR,
-              fontSize: 40,
-              lineHeight: 44,
-              color: ONBOARDING_COLORS.textPrimary,
-              textAlign: 'center',
-              marginBottom: 12,
-            }}
-          >
-            {t('onboarding.personalizingDoneTitleLead' as never)}{' '}
-            <Text style={{ fontFamily: SERIF_ITALIC, color: ONBOARDING_COLORS.warm2 }}>
-              {t('onboarding.personalizingDoneTitleAccent' as never)}
-            </Text>
-          </Animated.Text>
-
-          <Animated.Text
-            entering={FadeInUp.delay(160).duration(300)}
-            style={{
-              fontFamily: BODY,
-              fontSize: 15,
-              lineHeight: 22,
-              color: ONBOARDING_COLORS.textSecondary,
-              textAlign: 'center',
-              maxWidth: 320,
-              marginBottom: 32,
-            }}
-          >
-            {bikeLabel
-              ? (t(
-                  'onboarding.personalizingDoneSubWithBike' as never,
-                  {
-                    bikeLabel,
-                  } as never,
-                ) as unknown as string)
-              : t('onboarding.personalizingDoneSub' as never)}
-          </Animated.Text>
-
-          <Animated.View entering={FadeInUp.delay(200).duration(300)} style={{ width: '100%' }}>
-            <OnboardingContinueButton
-              label={t('onboarding.personalizingDoneCta' as never)}
-              onPress={handleOpenGarage}
-              // Disabled while the paywall loads, so the tap visibly registered.
-              disabled={garagePaywallPending}
-            />
-          </Animated.View>
-          {showGarageEscape ? (
-            <Animated.View entering={FadeIn.duration(240)} style={{ marginTop: 16 }}>
-              <Pressable onPress={handleGarageEscape} hitSlop={12} accessibilityRole="button">
-                <Text style={{ fontSize: 13.5, color: ONBOARDING_COLORS.textMuted }}>
-                  {t('onboarding.obPaywallEscape')}
-                </Text>
-              </Pressable>
-            </Animated.View>
-          ) : null}
-        </Animated.View>
-      </View>
+        )}
+      </OnboardingShell>
     );
   }
 
+  const canRetry = showRetry && retryCount < 2;
+
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: ONBOARDING_COLORS.background,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-      }}
-    >
-      {/* Pulsing ring + Sparkles icon */}
-      <View
-        style={{
-          width: 120,
-          height: 120,
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: 48,
-        }}
-      >
-        <Animated.View
-          style={[
-            {
-              position: 'absolute',
-              width: 120,
-              height: 120,
-              borderRadius: 60,
-              borderCurve: 'continuous',
-              borderWidth: 3,
-              borderColor: ONBOARDING_COLORS.accent,
-            },
-            pulseStyle,
-          ]}
-        />
-        <View
-          style={{
-            width: 60,
-            height: 60,
-            borderRadius: 30,
-            borderCurve: 'continuous',
-            backgroundColor: ONBOARDING_COLORS.accent,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Sparkles size={28} color={ONBOARDING_COLORS.textPrimary} strokeWidth={2} />
-        </View>
-      </View>
-
-      {/* Title — Instrument Serif with italic-copper accent on the key phrase */}
-      <Text
-        style={{
-          fontFamily: SERIF_REGULAR,
-          fontSize: 30,
-          lineHeight: 34,
-          color: ONBOARDING_COLORS.textPrimary,
-          textAlign: 'center',
-          marginBottom: 8,
-        }}
-      >
-        {t('onboarding.v2PersonalizingTitleLead' as never)}{' '}
-        <Text style={{ fontFamily: SERIF_ITALIC, color: ONBOARDING_COLORS.warm2 }}>
-          {t('onboarding.v2PersonalizingTitleAccent' as never)}
-        </Text>
-      </Text>
-
-      {bikeLabel ? (
-        <Text
-          style={{
-            fontFamily: BODY,
-            fontSize: 13,
-            color: ONBOARDING_COLORS.ink3,
-            textAlign: 'center',
-            marginBottom: 32,
-          }}
-        >
-          {
-            t(
+    <OnboardingShell
+      screen={OB_SCREEN.PERSONALIZING}
+      title={t('onboarding.v2PersonalizingHeadline')}
+      subtitle={
+        bikeLabel
+          ? (t(
               'onboarding.v2PersonalizingSubtitle' as never,
-              {
-                bikeLabel,
-              } as never,
-            ) as unknown as string
-          }
-        </Text>
-      ) : (
-        <View style={{ marginBottom: 32 }} />
-      )}
-
-      <View style={{ gap: 16, alignItems: 'flex-start' }}>
-        {steps.map((stepKey, index) => {
-          const StepIcon = stepIcons[index];
-          return visibleSteps > index ? (
-            <Animated.View
-              key={stepKey}
-              entering={FadeInUp.duration(300)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 12,
-              }}
-            >
-              <StepIcon size={18} color={ONBOARDING_COLORS.textMuted} />
-              <Text
-                style={{
-                  fontFamily: BODY,
-                  fontSize: 16,
-                  color: ONBOARDING_COLORS.textSecondary,
-                }}
-              >
-                {t(`onboarding.${stepKey}` as never)}
-              </Text>
-              <Check size={16} color={ONBOARDING_COLORS.success} />
-            </Animated.View>
-          ) : null;
-        })}
-      </View>
-
-      {showRetry && (
-        <Animated.View
-          entering={FadeIn.duration(300)}
-          style={{ marginTop: 32, alignItems: 'center', gap: 16 }}
-        >
-          {retryCount < 2 && (
-            <Pressable
-              onPress={() => {
+              { bikeLabel } as never,
+            ) as unknown as string)
+          : undefined
+      }
+      primary={
+        canRetry
+          ? {
+              label: t('common.retry'),
+              onPress: () => {
                 setShowRetry(false);
                 setMutationDone(false);
                 setRetryCount((c) => c + 1);
-              }}
+              },
+            }
+          : undefined
+      }
+      secondary={
+        showRetry
+          ? { label: t('onboarding.personalizingSkip'), onPress: handleContinue }
+          : undefined
+      }
+    >
+      {/* Calm progress readout: every step listed, each ticking off in turn. */}
+      <View
+        style={{
+          borderRadius: radius.card,
+          borderCurve: 'continuous',
+          backgroundColor: oc.surface,
+          overflow: 'hidden',
+        }}
+      >
+        {steps.map((stepKey, index) => {
+          const StepIcon = stepIcons[index];
+          const done = visibleSteps > index;
+          return (
+            <View
+              key={stepKey}
+              accessibilityState={{ checked: done }}
               style={{
-                paddingHorizontal: 24,
-                paddingVertical: 12,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                backgroundColor: ONBOARDING_COLORS.cardBorder,
+                minHeight: 52,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: space.sm,
+                paddingHorizontal: space.md,
+                paddingVertical: space.sm,
+                borderTopWidth: index === 0 ? 0 : 1,
+                borderTopColor: oc.line,
               }}
             >
-              <Text style={{ color: ONBOARDING_COLORS.accent, fontSize: 16, fontWeight: '600' }}>
-                {t('common.retry')}
+              <StepIcon size={18} color={done ? oc.textSecondary : oc.textDimmed} />
+              <Text style={[type.body, { flex: 1, color: done ? oc.textPrimary : oc.textMuted }]}>
+                {t(`onboarding.${stepKey}` as never)}
               </Text>
-            </Pressable>
-          )}
-          <Pressable onPress={handleContinue}>
-            <Text style={{ color: ONBOARDING_COLORS.accent, fontSize: 15, fontWeight: '600' }}>
-              {t('onboarding.personalizingSkip')}
-            </Text>
-          </Pressable>
-        </Animated.View>
-      )}
-    </View>
+              {done ? (
+                <Animated.View entering={reducedMotion ? undefined : FadeIn.duration(200)}>
+                  <Check size={18} color={oc.success} strokeWidth={2.6} />
+                </Animated.View>
+              ) : null}
+            </View>
+          );
+        })}
+      </View>
+    </OnboardingShell>
   );
 }

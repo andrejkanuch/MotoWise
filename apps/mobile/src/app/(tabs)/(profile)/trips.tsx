@@ -1,19 +1,17 @@
-import { palette } from '@motovault/design-system';
 import { DeleteTripDocument, MyTripsDocument, type MyTripsQuery } from '@motovault/graphql';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import {
-  ArrowLeft,
   Calendar,
   EyeOff,
   Globe,
   Lock,
+  type LucideIcon,
   MapPin,
   Map as MapRoute,
   Plus,
   Users,
 } from 'lucide-react-native';
-import type { ComponentType } from 'react';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -27,44 +25,52 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CompletenessRing } from '../../../components/trip/completeness-ring';
 import { Avatar } from '../../../components/ui/avatar';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { type EditorialTokens, tint, useEditorialTheme } from '../../../theme/editorial';
+import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
 import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact } from '../../../utils/haptics';
 import { computeTripCompleteness } from '../../../utils/trip-completeness';
 
 const PAGE_SIZE = 20;
+const TARGET_SIZE = process.env.EXPO_OS === 'android' ? 48 : 44;
 
 type TripEdge = MyTripsQuery['myTrips']['edges'][number];
 type TripNode = TripEdge['node'];
 
-type VisibilityKey = 'private' | 'unlisted' | 'public';
+const VISIBILITY = {
+  PRIVATE: 'private',
+  UNLISTED: 'unlisted',
+  PUBLIC: 'public',
+} as const;
+type VisibilityKey = (typeof VISIBILITY)[keyof typeof VISIBILITY];
+
+const TRIP_STATUS_DRAFT = 'draft';
 
 type TFn = (key: string, opts?: Record<string, unknown>) => string;
 
 function getVisibilityStyles(
   t: TFn,
-): Record<
-  VisibilityKey,
-  { Icon: ComponentType<{ size?: number; color?: string }>; label: string; tint: string }
-> {
+  theme: EditorialTokens,
+): Record<VisibilityKey, { Icon: LucideIcon; label: string; tint: string }> {
   return {
-    private: { Icon: Lock, label: t('trips.visibilityPrivate'), tint: palette.neutral500 },
-    unlisted: { Icon: EyeOff, label: t('trips.visibilityUnlisted'), tint: palette.warning500 },
-    public: { Icon: Globe, label: t('trips.visibilityPublic'), tint: palette.success500 },
+    private: { Icon: Lock, label: t('trips.visibilityPrivate'), tint: theme.ink3 },
+    unlisted: { Icon: EyeOff, label: t('trips.visibilityUnlisted'), tint: theme.info },
+    public: { Icon: Globe, label: t('trips.visibilityPublic'), tint: theme.success },
   };
 }
 
-const DIFFICULTY_COLORS = {
-  easy: palette.success500,
-  moderate: palette.warning500,
-  challenging: palette.danger500,
-  expert: palette.signature500,
-} as const;
+function getDifficultyColors(theme: EditorialTokens) {
+  return {
+    easy: theme.success,
+    moderate: theme.dueInk,
+    challenging: theme.danger,
+    expert: theme.ink,
+  } as const;
+}
 
 function getDifficultyLabels(t: TFn) {
   return {
@@ -88,6 +94,18 @@ function dayCount(start: string, end: string): number {
   return Math.max(1, Math.round(ms / 86_400_000) + 1);
 }
 
+/** One stat in the card strip: icon + condensed figure + unit caption. */
+function TripStat({ icon: Icon, value, unit }: { icon: LucideIcon; value: number; unit: string }) {
+  const { t: theme } = useEditorialTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.xxs }}>
+      <Icon size={13} color={theme.ink3} />
+      <Text style={[type.figureSmall, { color: theme.ink }]}>{value}</Text>
+      <Text style={[type.caption, { color: theme.ink3 }]}>{unit}</Text>
+    </View>
+  );
+}
+
 function MyTripCard({
   trip,
   index,
@@ -102,24 +120,25 @@ function MyTripCard({
   const { t: theme, isDark } = useEditorialTheme();
   const { t } = useTranslation();
 
-  const diffKey = (trip.difficulty || 'easy').toLowerCase() as keyof typeof DIFFICULTY_COLORS;
-  const diffColor = DIFFICULTY_COLORS[diffKey] ?? theme.ink3;
+  const difficultyColors = getDifficultyColors(theme);
+  const diffKey = (trip.difficulty || 'easy').toLowerCase() as keyof typeof difficultyColors;
+  const diffColor = difficultyColors[diffKey] ?? theme.ink3;
   const diffLabels = getDifficultyLabels(t as TFn);
   const diffLabel = diffLabels[diffKey] ?? diffLabels.easy;
 
-  const rawVis = (trip.visibility ?? 'private').toLowerCase();
-  const visKey: VisibilityKey =
-    rawVis === 'public' || rawVis === 'unlisted' || rawVis === 'private'
-      ? (rawVis as VisibilityKey)
-      : 'private';
-  const vis = getVisibilityStyles(t as TFn)[visKey];
+  const rawVis = (trip.visibility ?? VISIBILITY.PRIVATE).toLowerCase();
+  const visKey: VisibilityKey = (Object.values(VISIBILITY) as string[]).includes(rawVis)
+    ? (rawVis as VisibilityKey)
+    : VISIBILITY.PRIVATE;
+  const vis = getVisibilityStyles(t as TFn, theme)[visKey];
   const VisIcon = vis.Icon;
 
-  const isDraft = trip.status === 'draft';
+  const isDraft = trip.status === TRIP_STATUS_DRAFT;
   const days = dayCount(trip.startDate, trip.endDate);
   const stopCount = trip.waypoints?.length ?? 0;
   const maxRiders = Math.max(1, trip.maxRiders ?? 1);
   const participantCount = Math.min(Math.max(0, trip.participantCount ?? 0), maxRiders);
+  const title = trip.title || t('trips.untitledTrip');
 
   // P4.2 — nudge the rider to finish drafts; hide ring when fully planned.
   // Memoised so scroll / draft-count re-renders of the parent list don't
@@ -145,56 +164,36 @@ function MyTripCard({
           onLongPress();
         }}
         accessibilityRole="button"
-        accessibilityLabel={`${isDraft ? 'Draft trip' : 'Trip'}: ${trip.title}`}
+        accessibilityLabel={isDraft ? `${t('trips.draftLabel')}: ${title}` : title}
+        android_ripple={{ color: tint(theme.ink, 0.08) }}
         style={({ pressed }) => ({
-          backgroundColor: pressed ? theme.surface2 : theme.surface,
-          borderRadius: 16,
+          backgroundColor:
+            pressed && process.env.EXPO_OS === 'ios' ? theme.surface2 : theme.surface,
+          borderRadius: radius.card,
           borderCurve: 'continuous',
-          borderWidth: 1,
-          borderColor: isDraft ? palette.warning500 : theme.line,
-          padding: 14,
-          gap: 10,
-          opacity: isDraft ? 1 : 1,
+          overflow: 'hidden',
+          padding: space.md,
+          gap: space.sm,
         })}
       >
         {/* Badge row */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
           {isDraft ? (
             <View
               style={{
-                backgroundColor: palette.warning500,
-                paddingHorizontal: 8,
-                paddingVertical: 3,
-                borderRadius: 8,
+                backgroundColor: theme.plateDue,
+                paddingHorizontal: space.xs,
+                paddingVertical: 2,
+                borderRadius: radius.chip - 4,
                 borderCurve: 'continuous',
               }}
             >
-              <Text
-                style={{
-                  fontSize: 10,
-                  fontWeight: '800',
-                  color: palette.white,
-                  letterSpacing: 0.5,
-                }}
-              >
-                {t('trips.draft')}
-              </Text>
+              <Text style={[type.label, { color: theme.onPlate }]}>{t('trips.draftLabel')}</Text>
             </View>
           ) : (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 4,
-                backgroundColor: theme.surface2,
-                paddingHorizontal: 8,
-                paddingVertical: 3,
-                borderRadius: 8,
-                borderCurve: 'continuous',
-              }}
-            >
-              <VisIcon size={10} color={vis.tint} />
-              <Text style={{ fontSize: 11, fontWeight: '700', color: vis.tint }}>{vis.label}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xxs }}>
+              <VisIcon size={12} color={vis.tint} />
+              <Text style={[type.label, { color: vis.tint }]}>{vis.label}</Text>
             </View>
           )}
 
@@ -208,85 +207,50 @@ function MyTripCard({
 
           <View
             style={{
-              paddingHorizontal: 8,
-              paddingVertical: 3,
-              borderRadius: 8,
+              paddingHorizontal: space.xs,
+              paddingVertical: 2,
+              borderRadius: radius.chip - 4,
               borderCurve: 'continuous',
-              backgroundColor: diffColor,
+              backgroundColor: tint(diffColor, 0.16),
             }}
           >
-            <Text style={{ fontSize: 11, fontWeight: '700', color: palette.white }}>
-              {diffLabel}
-            </Text>
+            <Text style={[type.label, { color: diffColor }]}>{diffLabel}</Text>
           </View>
         </View>
 
-        {/* Title */}
-        <Text
-          style={{
-            fontSize: 17,
-            fontWeight: '800',
-            color: theme.ink,
-            letterSpacing: -0.3,
-          }}
-          numberOfLines={1}
-        >
-          {trip.title || t('trips.untitledTrip')}
+        <Text style={[type.bodyStrong, { color: theme.ink }]} numberOfLines={1}>
+          {title}
         </Text>
 
         {/* Stats strip */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Calendar size={12} color={theme.warm} />
-            <Text style={{ fontSize: 13, fontWeight: '700', color: theme.ink }}>
-              {days}
-              <Text style={{ fontWeight: '500', color: theme.ink3 }}>d</Text>
-            </Text>
-          </View>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.md }}>
+          <TripStat icon={Calendar} value={days} unit="d" />
           {stopCount > 0 && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <MapPin size={12} color={theme.warm} />
-              <Text style={{ fontSize: 13, fontWeight: '700', color: theme.ink }}>
-                {stopCount}
-                <Text style={{ fontWeight: '500', color: theme.ink3 }}>
-                  {stopCount === 1 ? ` ${t('trips.stopSingular')}` : ` ${t('trips.stopPlural')}`}
-                </Text>
-              </Text>
-            </View>
+            <TripStat
+              icon={MapPin}
+              value={stopCount}
+              unit={stopCount === 1 ? t('trips.stopSingular') : t('trips.stopPlural')}
+            />
           )}
-          {!isDraft && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Users size={12} color={theme.warm} />
-              <Text style={{ fontSize: 13, fontWeight: '700', color: theme.ink }}>
-                {participantCount}
-                <Text style={{ fontWeight: '500', color: theme.ink3 }}>/{maxRiders}</Text>
-              </Text>
-            </View>
-          )}
+          {!isDraft && <TripStat icon={Users} value={participantCount} unit={`/ ${maxRiders}`} />}
         </View>
 
         {/* Meta row */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Text style={{ fontSize: 12, color: theme.ink3, fontWeight: '500' }} numberOfLines={1}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
+          <Text style={[type.caption, { color: theme.ink3 }]} numberOfLines={1}>
             {formatDateRange(trip.startDate, trip.endDate)}
           </Text>
+          <Text style={[type.caption, { color: theme.ink4 }]}>·</Text>
           <View
-            style={{
-              width: 4,
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: theme.ink3,
-              opacity: 0.6,
-            }}
-          />
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 1 }}>
+            style={{ flexDirection: 'row', alignItems: 'center', gap: space.xxs, flexShrink: 1 }}
+          >
             <Avatar
               url={trip.organiser.avatarUrl}
               name={trip.organiser.displayName}
               size={16}
               variant="neutral"
             />
-            <Text style={{ fontSize: 12, color: theme.ink3, flexShrink: 1 }} numberOfLines={1}>
+            <Text style={[type.caption, { color: theme.ink3, flexShrink: 1 }]} numberOfLines={1}>
               {trip.organiser.displayName}
             </Text>
           </View>
@@ -298,7 +262,6 @@ function MyTripCard({
 
 export default function MyTripsScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -339,14 +302,14 @@ export default function MyTripsScreen() {
 
   // Draft trips float to the top — they're the ones the user is likely returning to finish.
   const sortedEdges = useMemo<TripEdge[]>(() => {
-    const drafts = allEdges.filter((e) => e.node.status === 'draft');
-    const rest = allEdges.filter((e) => e.node.status !== 'draft');
+    const drafts = allEdges.filter((e) => e.node.status === TRIP_STATUS_DRAFT);
+    const rest = allEdges.filter((e) => e.node.status !== TRIP_STATUS_DRAFT);
     return [...drafts, ...rest];
   }, [allEdges]);
 
   const handleTripPress = useCallback(
     (trip: TripNode) => {
-      if (trip.status === 'draft') {
+      if (trip.status === TRIP_STATUS_DRAFT) {
         // Drafts resume in the create-trip editor so the user can finish and publish.
         router.push({ pathname: '/(modals)/create-trip', params: { tripId: trip.id } });
       } else {
@@ -359,13 +322,15 @@ export default function MyTripsScreen() {
   const handleLongPress = useCallback(
     (trip: TripNode) => {
       const options =
-        trip.status === 'draft'
+        trip.status === TRIP_STATUS_DRAFT
           ? [t('trips.continueEditing'), t('trips.deleteDraft'), t('common.cancel')]
           : [t('trips.share'), t('trips.edit'), t('trips.deleteTrip'), t('common.cancel')];
       const confirmDelete = () => {
         Alert.alert(
-          trip.status === 'draft' ? t('trips.confirmDeleteDraft') : t('trips.confirmDeleteTrip'),
-          trip.status === 'draft'
+          trip.status === TRIP_STATUS_DRAFT
+            ? t('trips.confirmDeleteDraft')
+            : t('trips.confirmDeleteTrip'),
+          trip.status === TRIP_STATUS_DRAFT
             ? t('trips.confirmDeleteDraftMessage')
             : t('trips.confirmDeleteTripMessage'),
           [
@@ -379,7 +344,7 @@ export default function MyTripsScreen() {
         );
       };
 
-      if (trip.status === 'draft') {
+      if (trip.status === TRIP_STATUS_DRAFT) {
         showActionSheet(trip.title || t('trips.untitledTrip'), [
           { label: options[0], onPress: () => handleTripPress(trip) },
           { label: options[1], onPress: confirmDelete, style: 'destructive' },
@@ -425,199 +390,133 @@ export default function MyTripsScreen() {
     [handleTripPress, handleLongPress],
   );
 
+  const openCreateTrip = useCallback(() => {
+    triggerImpact();
+    router.push('/(modals)/create-trip');
+  }, [router]);
+
   const renderEmpty = useCallback(() => {
     if (isLoading) return null;
     return (
       <Animated.View
-        entering={FadeIn.duration(300)}
-        style={{ alignItems: 'center', paddingTop: 48, paddingHorizontal: 32, gap: 16 }}
+        entering={FadeIn.duration(250)}
+        style={{
+          alignItems: 'center',
+          paddingTop: space.xxxl,
+          paddingHorizontal: space.xxl,
+          gap: space.sm,
+        }}
       >
-        <View
-          style={{
-            width: 80,
-            height: 80,
-            borderRadius: 40,
-            borderCurve: 'continuous',
-            backgroundColor: theme.surface2,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 8,
-          }}
-        >
-          <MapRoute size={36} color={theme.ink3} />
-        </View>
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: '700',
-            color: theme.ink,
-            textAlign: 'center',
-          }}
-        >
+        <MapRoute size={36} color={theme.ink3} strokeWidth={1.6} />
+        <Text style={[type.sectionTitle, { color: theme.ink, textAlign: 'center' }]}>
           {t('trips.emptyTitle')}
         </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.ink3,
-            textAlign: 'center',
-            lineHeight: 22,
-          }}
-        >
+        <Text style={[type.subhead, { color: theme.ink3, textAlign: 'center' }]}>
           {t('trips.emptySubtitle')}
         </Text>
         <Pressable
-          onPress={() => {
-            triggerImpact();
-            router.push('/(modals)/create-trip');
-          }}
+          onPress={openCreateTrip}
           accessibilityRole="button"
           accessibilityLabel={t('trips.planATrip')}
+          android_ripple={{ color: tint(theme.onWarm, 0.12) }}
           style={({ pressed }) => ({
             backgroundColor: theme.warm,
-            borderRadius: 20,
+            borderRadius: radius.control,
             borderCurve: 'continuous',
-            height: 56,
+            overflow: 'hidden',
+            minHeight: 52,
             alignItems: 'center',
             justifyContent: 'center',
             alignSelf: 'stretch',
-            marginTop: 8,
+            marginTop: space.xs,
             flexDirection: 'row',
-            gap: 8,
-            transform: [{ scale: pressed ? 0.97 : 1 }],
+            gap: space.xs,
+            opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.85 : 1,
           })}
         >
-          <Plus size={20} color={palette.white} />
-          <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>
-            {t('trips.planATrip')}
-          </Text>
+          <Plus size={20} color={theme.onWarm} />
+          <Text style={[type.bodyStrong, { color: theme.onWarm }]}>{t('trips.planATrip')}</Text>
         </Pressable>
       </Animated.View>
     );
-  }, [isLoading, theme, router, t]);
+  }, [isLoading, theme, t, openCreateTrip]);
+
+  const draftCount = useMemo(
+    () => allEdges.filter((e) => e.node.status === TRIP_STATUS_DRAFT).length,
+    [allEdges],
+  );
+
+  const renderHeader = useCallback(() => {
+    if (draftCount === 0) return null;
+    return (
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
+        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: theme.dueInk }} />
+        <Text style={[type.label, { color: theme.ink2 }]}>
+          {t('trips.draftCount', { count: draftCount })}
+        </Text>
+      </View>
+    );
+  }, [draftCount, theme, t]);
 
   const renderFooter = useCallback(() => {
     if (isFetchingNextPage) {
       return (
-        <View style={{ paddingVertical: 20 }}>
-          <ActivityIndicator size="small" color={theme.warm} />
+        <View style={{ paddingVertical: space.lg }}>
+          <ActivityIndicator size="small" color={theme.ink3} />
         </View>
       );
     }
     return null;
   }, [isFetchingNextPage, theme]);
 
-  const draftCount = useMemo(
-    () => allEdges.filter((e) => e.node.status === 'draft').length,
-    [allEdges],
-  );
-
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Header */}
-      <View
-        style={{
-          paddingTop: insets.top + 8,
-          paddingHorizontal: 20,
-          paddingBottom: 12,
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 12,
+    <>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <Pressable
+              onPress={openCreateTrip}
+              accessibilityRole="button"
+              accessibilityLabel={t('trips.planATrip')}
+              hitSlop={8}
+              style={{
+                minWidth: TARGET_SIZE,
+                minHeight: TARGET_SIZE,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Plus size={24} color={theme.warm} strokeWidth={2.2} />
+            </Pressable>
+          ),
         }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.goBack')}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            backgroundColor: theme.surface2,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <ArrowLeft size={20} color={theme.ink} />
-        </Pressable>
-        <Text
+      />
+      {isLoading ? (
+        <View
           style={{
             flex: 1,
-            fontSize: 28,
-            fontWeight: '800',
-            color: theme.ink,
-            letterSpacing: -0.5,
-          }}
-        >
-          {t('trips.myTrips')}
-        </Text>
-        <Pressable
-          onPress={() => {
-            triggerImpact();
-            router.push('/(modals)/create-trip');
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={t('trips.planATrip')}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            backgroundColor: theme.warm,
             alignItems: 'center',
             justifyContent: 'center',
+            backgroundColor: theme.bg,
           }}
         >
-          <Plus size={20} color={palette.white} />
-        </Pressable>
-      </View>
-
-      {/* Draft summary chip */}
-      {draftCount > 0 && (
-        <View style={{ paddingHorizontal: 20, paddingBottom: 8 }}>
-          <View
-            style={{
-              alignSelf: 'flex-start',
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 6,
-              paddingHorizontal: 10,
-              paddingVertical: 5,
-              borderRadius: 10,
-              borderCurve: 'continuous',
-              backgroundColor: `${palette.warning500}22`,
-            }}
-          >
-            <View
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 3,
-                backgroundColor: palette.warning500,
-              }}
-            />
-            <Text style={{ fontSize: 12, fontWeight: '700', color: palette.warning500 }}>
-              {t('trips.draftCount', { count: draftCount })}
-            </Text>
-          </View>
-        </View>
-      )}
-
-      {isLoading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={theme.warm} />
+          <ActivityIndicator size="large" color={theme.ink3} />
         </View>
       ) : (
         <FlatList
+          contentInsetAdjustmentBehavior="automatic"
+          style={{ flex: 1, backgroundColor: theme.bg }}
           data={sortedEdges}
           renderItem={renderItem}
           keyExtractor={(item) => item.node.id}
           contentContainerStyle={{
-            paddingHorizontal: 20,
-            paddingBottom: insets.bottom + 20,
-            gap: 12,
+            ...readableWidth,
+            paddingHorizontal: GUTTER,
+            paddingTop: space.xs,
+            paddingBottom: space.xxxl,
+            gap: space.sm,
           }}
+          ListHeaderComponent={renderHeader}
           ListEmptyComponent={renderEmpty}
           ListFooterComponent={renderFooter}
           onEndReached={handleLoadMore}
@@ -637,6 +536,6 @@ export default function MyTripsScreen() {
           maxToRenderPerBatch={5}
         />
       )}
-    </View>
+    </>
   );
 }

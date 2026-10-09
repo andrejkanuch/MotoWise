@@ -2,7 +2,20 @@
 // into a route (its context regex only skips +api/+html), so a test there would
 // be bundled into the app as a screen.
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+jest.mock('react-native-reanimated', () => ({
+  ...require('react-native-reanimated/mock'),
+  useReducedMotion: () => false,
+}));
+jest.mock('react-native-keyboard-controller', () =>
+  require('react-native-keyboard-controller/jest'),
+);
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
+// The onboarding shell reads flow progress; these screens are outside the flow.
+jest.mock('../../hooks/use-onboarding-flow', () => ({
+  useOnboardingStep: () => ({ variant: 'garage_first', stepIndex: -1, totalScreens: 0 }),
+}));
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
@@ -75,8 +88,8 @@ async function flush() {
 
 async function signIn() {
   await render(<LoginScreen />);
-  await fireEvent.changeText(screen.getByPlaceholderText(t('auth.email')), EMAIL);
-  await fireEvent.changeText(screen.getByPlaceholderText(t('auth.password')), PASSWORD);
+  await fireEvent.changeText(screen.getByLabelText(t('auth.email')), EMAIL);
+  await fireEvent.changeText(screen.getByLabelText(t('auth.password')), PASSWORD);
   await fireEvent.press(screen.getByText(t('auth.signIn')));
   await flush();
 }
@@ -159,7 +172,7 @@ describe('Login with an unconfirmed account', () => {
     expect(alertSpy).toHaveBeenCalledWith(t('common.error'), t('auth.codeSendFailed'));
     expect(screen.queryByText(CODE_TITLE())).toBeNull();
     expect(screen.queryByText(t('onboarding.obSignInNotFound'))).toBeNull();
-    expect(screen.getByPlaceholderText(t('auth.email')).props.value).toBe(EMAIL);
+    expect(screen.getByLabelText(t('auth.email')).props.value).toBe(EMAIL);
   });
 
   it('Change email returns to the form with the email kept and the password cleared', async () => {
@@ -170,8 +183,8 @@ describe('Login with an unconfirmed account', () => {
     await fireEvent.press(screen.getByText(t('auth.codeChangeEmail')));
 
     expect(screen.queryByText(CODE_TITLE())).toBeNull();
-    expect(screen.getByPlaceholderText(t('auth.email')).props.value).toBe(EMAIL);
-    expect(screen.getByPlaceholderText(t('auth.password')).props.value).toBe('');
+    expect(screen.getByLabelText(t('auth.email')).props.value).toBe(EMAIL);
+    expect(screen.getByLabelText(t('auth.password')).props.value).toBe('');
   });
 
   it('Android hardware back returns to the form', async () => {
@@ -187,8 +200,8 @@ describe('Login with an unconfirmed account', () => {
 
     expect(handled).toBe(true);
     expect(screen.queryByText(CODE_TITLE())).toBeNull();
-    expect(screen.getByPlaceholderText(t('auth.email')).props.value).toBe(EMAIL);
-    expect(screen.getByPlaceholderText(t('auth.password')).props.value).toBe('');
+    expect(screen.getByLabelText(t('auth.email')).props.value).toBe(EMAIL);
+    expect(screen.getByLabelText(t('auth.password')).props.value).toBe('');
   });
 
   it('Android hardware back during a pending verify keeps the code step', async () => {

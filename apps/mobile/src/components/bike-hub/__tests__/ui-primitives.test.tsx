@@ -1,3 +1,9 @@
+let mockColorScheme = 'dark';
+jest.mock('nativewind', () => ({
+  ...jest.requireActual('nativewind'),
+  useColorScheme: () => ({ colorScheme: mockColorScheme }),
+}));
+
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
@@ -17,13 +23,25 @@ import { PriorityTag } from '../ui/priority-tag';
 import { REFRESH_ANNOUNCE_WINDOW_MS, REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { SectionHeader } from '../ui/section-header';
 import { Stat } from '../ui/stat';
-import { TAG_VARIANT } from '../ui/tokens';
+import { hubDark, hubLight, TAG_VARIANT } from '../ui/tokens';
 
 describe('PriorityTag', () => {
+  afterEach(() => {
+    mockColorScheme = 'dark';
+  });
+
+  it('uses the light, text-safe tag colours in light mode', async () => {
+    mockColorScheme = 'light';
+    await render(<PriorityTag priority={MaintenancePriority.Critical} />);
+    const text = screen.getByText('CRIT');
+    expect(StyleSheet.flatten(text.props.style).color).toBe(hubLight.late);
+    expect(StyleSheet.flatten(text.parent?.props.style).backgroundColor).toBe(hubLight.tagCritBg);
+  });
+
   it.each([
     [MaintenancePriority.Critical, 'CRIT', palette.hubTagCritBg, palette.hubLate],
-    [MaintenancePriority.High, 'HIGH', palette.hubTagHighBg, palette.hubSoon],
-    [MaintenancePriority.Medium, 'MED', palette.hubTagMedBg, palette.hubMedium],
+    [MaintenancePriority.High, 'HIGH', palette.hubTagHighBg, hubDark.soon],
+    [MaintenancePriority.Medium, 'MED', hubDark.tagMedBg, hubDark.dim],
     [MaintenancePriority.Low, 'LOW', palette.hubTagLowBg, palette.hubLow],
   ])('%s renders %s in its colours', async (priority, label, bg, fg) => {
     await render(<PriorityTag priority={priority} />);
@@ -40,7 +58,7 @@ describe('PriorityTag', () => {
       </>,
     );
     expect(StyleSheet.flatten(screen.getByText('SAFETY').props.style).color).toBe(palette.hubLate);
-    expect(StyleSheet.flatten(screen.getByText('DOC').props.style).color).toBe(palette.hubSoon);
+    expect(StyleSheet.flatten(screen.getByText('DOC').props.style).color).toBe(hubDark.soon);
   });
 });
 
@@ -56,9 +74,7 @@ describe('DueLine', () => {
   it('"In 2 days · or in 8,733 km" with the soon colour leading', async () => {
     await render(<DueLine due={getTaskDue(AIR_FILTER, KM)} unit={HUB_UNIT.KM} />);
     expect(screen.getByText('In 2 days · or in 8,733 km')).toBeOnTheScreen();
-    expect(StyleSheet.flatten(screen.getByText('In 2 days').props.style).color).toBe(
-      palette.hubSoon,
-    );
+    expect(StyleSheet.flatten(screen.getByText('In 2 days').props.style).color).toBe(hubDark.soon);
   });
 
   it('"In 9,833 km · Honda schedule" in the plain colour', async () => {
@@ -70,9 +86,7 @@ describe('DueLine', () => {
     });
     await render(<DueLine due={getTaskDue(oem, KM)} unit={HUB_UNIT.KM} scheduleName="Honda" />);
     expect(screen.getByText('In 9,833 km · Honda schedule')).toBeOnTheScreen();
-    expect(StyleSheet.flatten(screen.getByText('In 9,833 km').props.style).color).toBe(
-      palette.hubDim,
-    );
+    expect(StyleSheet.flatten(screen.getByText('In 9,833 km').props.style).color).toBe(hubDark.dim);
   });
 
   it('"In 1,833 km · or by Jan 10" and "Mar 2027 · Honda schedule"', async () => {
@@ -319,13 +333,13 @@ describe('RefreshFailed', () => {
     // One row: Retry beside the (one- or two-line) message.
     await layout(message, 0, 36);
     await layout(retry, 9, 18);
-    expect(StyleSheet.flatten(separator.props.style).color).toBe(palette.hubSoon);
+    expect(StyleSheet.flatten(separator.props.style).color).toBe(hubDark.soon);
 
     // Wrapped: Retry on the row below.
     await layout(retry, 36, 18);
     const hidden = StyleSheet.flatten(separator.props.style).color;
-    expect(hidden).not.toBe(palette.hubSoon);
-    expect(hidden).toBe(withAlpha(palette.hubSoon, 0));
+    expect(hidden).not.toBe(hubDark.soon);
+    expect(hidden).toBe(withAlpha(hubDark.soon, 0));
     expect(separator).toBeOnTheScreen();
   });
 });

@@ -29,9 +29,7 @@
     "clean:artifacts": "find . -maxdepth 1 \\( -name 'build-*.aab' -o -name 'build-*.ipa' \\) -mtime +7 -delete && rm -rf dist"
   },
   "dependencies": {
-    "@expo-google-fonts/geist-mono": "^0.4.3",
-    "@expo-google-fonts/instrument-serif": "^0.4.1",
-    "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
+    "@expo-google-fonts/barlow-condensed": "^0.4.1",
     "@expo/metro-runtime": "~57.0.8",
     "@expo/ui": "^57.0.9",
     "@gorhom/bottom-sheet": "^5.2.14",

@@ -1,5 +1,4 @@
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { palette } from '@motovault/design-system';
 import {
   CancelGroupRideDocument,
   GroupRideDetailDocument,
@@ -31,7 +30,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
-import { useEditorialTheme } from '../../theme/editorial';
+import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
 import { MAP_STYLES } from '../../utils/map-styles';
 
 function formatDateTime(iso: string): string {
@@ -46,19 +45,16 @@ function formatDateTime(iso: string): string {
   return `${day} \u00b7 ${time}`;
 }
 
+/** Difficulty → status token (scheme-resolved at render). */
 const DIFFICULTY_COLORS = {
-  easy: { bg: palette.successBgLight, bgDark: palette.successBgDark, text: palette.success500 },
-  moderate: { bg: palette.warningBgLight, bgDark: palette.warningBgDark, text: palette.warning500 },
-  challenging: {
-    bg: palette.dangerBgLight,
-    bgDark: palette.dangerBgDark,
-    text: palette.danger500,
-  },
-} as const;
+  easy: 'success',
+  moderate: 'dueInk',
+  challenging: 'overdueInk',
+} as const satisfies Record<string, keyof EditorialTokens>;
 
 export default function GroupRideDetailScreen() {
   const { t } = useTranslation();
-  const { isDark } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -67,12 +63,12 @@ export default function GroupRideDetailScreen() {
   const userId = useAuthStore((s) => s.session?.user?.id);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const bg = isDark ? palette.neutral950 : palette.white;
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
-  const sheetBg = isDark ? palette.cardDark : palette.white;
-  const sectionLabelColor = isDark ? palette.neutral500 : palette.neutral400;
-  const bodyColor = isDark ? palette.neutral300 : palette.neutral600;
+  const bg = theme.bg;
+  const titleColor = theme.ink;
+  const subtitleColor = theme.ink3;
+  const sheetBg = theme.surface;
+  const sectionLabelColor = theme.ink3;
+  const bodyColor = theme.ink2;
 
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.groupRides.detail(groupRideId),
@@ -93,7 +89,7 @@ export default function GroupRideDetailScreen() {
   const difficultyKey = (
     ride?.difficulty ?? 'easy'
   ).toLowerCase() as keyof typeof DIFFICULTY_COLORS;
-  const difficultyStyle = DIFFICULTY_COLORS[difficultyKey] ?? DIFFICULTY_COLORS.easy;
+  const difficultyColor = theme[DIFFICULTY_COLORS[difficultyKey] ?? DIFFICULTY_COLORS.easy];
   const difficultyLabel = difficultyKey.charAt(0).toUpperCase() + difficultyKey.slice(1);
 
   const invalidateRide = useCallback(() => {
@@ -162,7 +158,7 @@ export default function GroupRideDetailScreen() {
       <View
         style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}
       >
-        <ActivityIndicator size="large" color={palette.accent500} />
+        <ActivityIndicator size="large" color={theme.ink3} />
       </View>
     );
   }
@@ -197,9 +193,9 @@ export default function GroupRideDetailScreen() {
                 width: 20,
                 height: 20,
                 borderRadius: 10,
-                backgroundColor: palette.accent500,
+                backgroundColor: theme.warm,
                 borderWidth: 3,
-                borderColor: palette.white,
+                borderColor: theme.surface,
               }}
             />
           </MapboxGL.MarkerView>
@@ -223,12 +219,12 @@ export default function GroupRideDetailScreen() {
             height: 40,
             borderRadius: 20,
             borderCurve: 'continuous',
-            backgroundColor: 'rgba(0,0,0,0.5)',
+            backgroundColor: tint(theme.surface, 0.85),
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <ArrowLeft size={20} color="#fff" />
+          <ArrowLeft size={20} color={theme.ink} />
         </Pressable>
       </View>
 
@@ -238,7 +234,7 @@ export default function GroupRideDetailScreen() {
         snapPoints={['40%', '70%', '92%']}
         index={0}
         backgroundStyle={{ backgroundColor: sheetBg, borderRadius: 24, borderCurve: 'continuous' }}
-        handleIndicatorStyle={{ backgroundColor: isDark ? palette.neutral600 : palette.neutral300 }}
+        handleIndicatorStyle={{ backgroundColor: theme.ink4 }}
       >
         <BottomSheetScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}>
           {/* Title */}
@@ -249,21 +245,21 @@ export default function GroupRideDetailScreen() {
           {/* Date & difficulty */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-              <Calendar size={14} color={palette.accent500} />
+              <Calendar size={14} color={theme.ink3} />
               <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
                 {formatDateTime(ride.dateTime)}
               </Text>
             </View>
             <View
               style={{
-                backgroundColor: isDark ? difficultyStyle.bgDark : difficultyStyle.bg,
+                backgroundColor: tint(difficultyColor, 0.14),
                 paddingHorizontal: 8,
                 paddingVertical: 3,
                 borderRadius: 8,
                 borderCurve: 'continuous',
               }}
             >
-              <Text style={{ fontSize: 11, fontWeight: '700', color: difficultyStyle.text }}>
+              <Text style={{ fontSize: 11, fontWeight: '700', color: difficultyColor }}>
                 {difficultyLabel}
               </Text>
             </View>
@@ -291,7 +287,7 @@ export default function GroupRideDetailScreen() {
           {/* Meeting point */}
           {ride.meetingPointName && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-              <MapPin size={14} color={palette.accent500} />
+              <MapPin size={14} color={theme.ink3} />
               <Text style={{ fontSize: 13, color: subtitleColor }}>{ride.meetingPointName}</Text>
             </View>
           )}
@@ -299,7 +295,7 @@ export default function GroupRideDetailScreen() {
           {/* Route info */}
           {ride.routeDescription && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-              <Route size={14} color={palette.accent500} />
+              <Route size={14} color={theme.ink3} />
               <Text style={{ fontSize: 13, color: subtitleColor }}>{ride.routeDescription}</Text>
             </View>
           )}
@@ -310,7 +306,7 @@ export default function GroupRideDetailScreen() {
               flexDirection: 'row',
               alignItems: 'center',
               gap: 8,
-              backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+              backgroundColor: theme.surface2,
               paddingHorizontal: 12,
               paddingVertical: 10,
               borderRadius: 12,
@@ -318,7 +314,7 @@ export default function GroupRideDetailScreen() {
               marginBottom: 16,
             }}
           >
-            <Users size={16} color={palette.accent500} />
+            <Users size={16} color={theme.ink3} />
             <Text style={{ fontSize: 14, fontWeight: '700', color: titleColor }}>
               {t('groupRide.ridersCount', {
                 count: ride.participantCount,
@@ -328,14 +324,14 @@ export default function GroupRideDetailScreen() {
             {isFull && (
               <View
                 style={{
-                  backgroundColor: isDark ? palette.dangerBgDark : palette.dangerBgLight,
+                  backgroundColor: tint(theme.danger, 0.12),
                   paddingHorizontal: 8,
                   paddingVertical: 2,
                   borderRadius: 6,
                   borderCurve: 'continuous',
                 }}
               >
-                <Text style={{ fontSize: 11, fontWeight: '700', color: palette.danger500 }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: theme.overdueInk }}>
                   {t('groupRide.full')}
                 </Text>
               </View>
@@ -374,7 +370,7 @@ export default function GroupRideDetailScreen() {
                     width: 32,
                     height: 32,
                     borderRadius: 16,
-                    backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
+                    backgroundColor: theme.surface3,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
@@ -433,7 +429,7 @@ export default function GroupRideDetailScreen() {
                           width: 36,
                           height: 36,
                           borderRadius: 18,
-                          backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
+                          backgroundColor: theme.surface3,
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
@@ -471,15 +467,15 @@ export default function GroupRideDetailScreen() {
                   paddingVertical: 14,
                   borderRadius: 14,
                   borderCurve: 'continuous',
-                  backgroundColor: palette.accent500,
+                  backgroundColor: theme.warm,
                 }}
               >
                 {actionLoading ? (
-                  <ActivityIndicator size="small" color={palette.white} />
+                  <ActivityIndicator size="small" color={theme.onWarm} />
                 ) : (
                   <>
-                    <Users size={16} color={palette.white} />
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                    <Users size={16} color={theme.onWarm} />
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: theme.onWarm }}>
                       {t('groupRide.joinRide')}
                     </Text>
                   </>
@@ -502,11 +498,11 @@ export default function GroupRideDetailScreen() {
                   borderCurve: 'continuous',
                   backgroundColor: 'transparent',
                   borderWidth: 1,
-                  borderColor: palette.danger500,
+                  borderColor: theme.danger,
                 }}
               >
-                <LogOut size={16} color={palette.danger500} />
-                <Text style={{ fontSize: 15, fontWeight: '700', color: palette.danger500 }}>
+                <LogOut size={16} color={theme.overdueInk} />
+                <Text style={{ fontSize: 15, fontWeight: '700', color: theme.overdueInk }}>
                   {t('groupRide.leaveRide')}
                 </Text>
               </Pressable>
@@ -525,11 +521,11 @@ export default function GroupRideDetailScreen() {
                   paddingVertical: 14,
                   borderRadius: 14,
                   borderCurve: 'continuous',
-                  backgroundColor: isDark ? palette.dangerBgDark : palette.dangerBgLight,
+                  backgroundColor: tint(theme.danger, 0.12),
                 }}
               >
-                <AlertTriangle size={16} color={palette.danger500} />
-                <Text style={{ fontSize: 15, fontWeight: '700', color: palette.danger500 }}>
+                <AlertTriangle size={16} color={theme.overdueInk} />
+                <Text style={{ fontSize: 15, fontWeight: '700', color: theme.overdueInk }}>
                   {t('groupRide.cancelRide')}
                 </Text>
               </Pressable>

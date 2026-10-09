@@ -58,7 +58,8 @@ import { useUserCountry } from '../../../hooks/use-user-country';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { tint, useEditorialTheme } from '../../../theme/editorial';
+import { SYSTEM_WEIGHT, space, type } from '../../../theme/type';
 import { getDefaultMapStyle, MAP_STYLES } from '../../../utils/map-styles';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -148,7 +149,7 @@ const CountryChipStrip = memo(function CountryChipStrip({
               style={{
                 fontSize: 12.5,
                 fontWeight: active ? '600' : '500',
-                color: active ? t.bg : t.ink2,
+                color: active ? t.onWarm : t.ink2,
               }}
             >
               {COUNTRY_NAMES[code]}
@@ -202,12 +203,12 @@ const FilterChipStrip = memo(function FilterChipStrip({
               borderColor: active ? t.warm : t.line,
             }}
           >
-            {ChipIcon && <ChipIcon size={13} color={active ? t.bg : t.ink2} />}
+            {ChipIcon && <ChipIcon size={13} color={active ? t.onWarm : t.ink2} />}
             <Text
               style={{
                 fontSize: 12.5,
                 fontWeight: '600',
-                color: active ? t.bg : t.ink2,
+                color: active ? t.onWarm : t.ink2,
               }}
             >
               {i18n(chip.i18nKey)}
@@ -240,7 +241,7 @@ const FilterChipStrip = memo(function FilterChipStrip({
               style={{
                 fontSize: 12.5,
                 fontWeight: '600',
-                color: active ? t.bg : t.ink2,
+                color: active ? t.onWarm : t.ink2,
               }}
             >
               {i18n(chip.i18nKey)}
@@ -307,36 +308,15 @@ const SectionHeading = memo(function SectionHeading({
         paddingBottom: 4,
       }}
     >
-      <View>
-        <Text
-          style={{
-            fontFamily: 'GeistMono',
-            fontSize: 10,
-            letterSpacing: 1.6,
-            textTransform: 'uppercase',
-            color: t.ink3,
-            fontWeight: '600',
-            marginBottom: 4,
-          }}
-        >
+      <View style={{ flexShrink: 1 }}>
+        <Text style={[type.sectionTitle, { color: t.ink }]}>
+          {hasMore
+            ? i18n('discoverFilters.routesFoundMore', { count: totalCount })
+            : i18n('discoverFilters.routesFoundCount', { count: totalCount })}
+        </Text>
+        <Text style={[type.caption, { color: t.ink3, marginTop: space.xxs }]}>
           {filterLabel}
           {countryLabel ? ` · ${countryLabel}` : ''}
-        </Text>
-        <Text
-          style={{
-            fontFamily: 'InstrumentSerif',
-            fontSize: 22,
-            color: t.ink,
-            letterSpacing: -0.5,
-            lineHeight: 26,
-          }}
-        >
-          {i18n(hasMore ? 'discoverFilters.routesFound_other' : 'discoverFilters.routesFound_one', {
-            count: totalCount,
-          })}{' '}
-          <Text style={{ fontStyle: 'italic', color: t.ink3, fontSize: 17 }}>
-            {i18n('discoverFilters.found')}
-          </Text>
         </Text>
       </View>
       <View style={{ position: 'relative' }}>
@@ -358,15 +338,7 @@ const SectionHeading = memo(function SectionHeading({
           }}
         >
           <SlidersHorizontal size={12} color={showSortMenu ? t.ink : t.ink3} />
-          <Text
-            style={{
-              fontFamily: 'GeistMono',
-              fontSize: 11,
-              color: showSortMenu ? t.ink : t.ink3,
-              fontWeight: '500',
-              letterSpacing: 0.4,
-            }}
-          >
+          <Text style={[type.label, { color: showSortMenu ? t.ink : t.ink3 }]}>
             {currentSortLabel}
           </Text>
         </Pressable>
@@ -384,7 +356,7 @@ const SectionHeading = memo(function SectionHeading({
               padding: 4,
               zIndex: 100,
               minWidth: 160,
-              shadowColor: '#000',
+              shadowColor: palette.black,
               shadowOpacity: 0.15,
               shadowRadius: 12,
               shadowOffset: { width: 0, height: 4 },
@@ -884,7 +856,7 @@ export default function DiscoverScreen() {
                     id="cluster-circles"
                     filter={['has', 'point_count']}
                     style={{
-                      circleColor: palette.accent500,
+                      circleColor: t.warm,
                       circleRadius: ['step', ['get', 'point_count'], 18, 10, 24, 50, 32],
                       circleOpacity: 0.85,
                     }}
@@ -895,7 +867,7 @@ export default function DiscoverScreen() {
                     style={{
                       textField: ['get', 'point_count_abbreviated'],
                       textSize: 13,
-                      textColor: palette.white,
+                      textColor: t.onWarm,
                       textFont: ['DIN Pro Medium'],
                     }}
                   />
@@ -903,7 +875,7 @@ export default function DiscoverScreen() {
                     id="route-dots"
                     filter={['!', ['has', 'point_count']]}
                     style={{
-                      circleColor: palette.accent500,
+                      circleColor: t.warm,
                       circleRadius: 6,
                       circleStrokeColor: palette.white,
                       circleStrokeWidth: 2,
@@ -947,15 +919,7 @@ export default function DiscoverScreen() {
             alignItems: 'center',
           }}
         >
-          <Text
-            style={{
-              fontFamily: 'InstrumentSerif',
-              fontSize: mapExpanded ? 26 : 22,
-              color: t.ink,
-              letterSpacing: -0.5,
-              lineHeight: 30,
-            }}
-          >
+          <Text style={[type.largeTitle, { color: t.ink }]} accessibilityRole="header">
             {i18n('tabs.discover')}
           </Text>
 
@@ -965,20 +929,13 @@ export default function DiscoverScreen() {
                 style={{
                   paddingHorizontal: 10,
                   paddingVertical: 5,
-                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  backgroundColor: tint(t.bg, 0.72),
                   borderRadius: 999,
                   borderWidth: 1,
-                  borderColor: 'rgba(255,255,255,0.08)',
+                  borderColor: t.line,
                 }}
               >
-                <Text
-                  style={{
-                    fontFamily: 'GeistMono',
-                    fontSize: 11,
-                    color: t.ink3,
-                    fontWeight: '500',
-                  }}
-                >
+                <Text style={[type.caption, { color: t.ink2 }]}>
                   {i18n('discoverFilters.routesNearby', {
                     count: allTrips.filter((r) => r.startLat != null).length,
                   })}
@@ -992,9 +949,9 @@ export default function DiscoverScreen() {
                 width: 32,
                 height: 32,
                 borderRadius: 16,
-                backgroundColor: 'rgba(0,0,0,0.5)',
+                backgroundColor: tint(t.bg, 0.72),
                 borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.08)',
+                borderColor: t.line,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -1026,11 +983,7 @@ export default function DiscoverScreen() {
         ListHeaderComponent={headerComponent}
         ListEmptyComponent={
           tripsLoading ? (
-            <ActivityIndicator
-              size="large"
-              color={palette.accent500}
-              style={{ paddingVertical: 40 }}
-            />
+            <ActivityIndicator size="large" color={t.ink3} style={{ paddingVertical: 40 }} />
           ) : (
             <Animated.View
               entering={reducedMotion ? undefined : FadeInUp.duration(300)}
@@ -1047,15 +1000,13 @@ export default function DiscoverScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Compass size={30} color={palette.accent500} />
+                <Compass size={30} color={t.ink3} />
               </View>
               <Text
                 style={{
-                  fontSize: 16,
-                  fontWeight: '700',
+                  ...type.bodyStrong,
                   color: t.ink,
                   textAlign: 'center',
-                  letterSpacing: -0.3,
                 }}
               >
                 {i18n('discoverFilters.noRoutesMatch')}
@@ -1085,11 +1036,7 @@ export default function DiscoverScreen() {
         }
         ListFooterComponent={
           isFetchingNextTrips ? (
-            <ActivityIndicator
-              size="small"
-              color={palette.accent500}
-              style={{ paddingVertical: 16 }}
-            />
+            <ActivityIndicator size="small" color={t.ink3} style={{ paddingVertical: 16 }} />
           ) : null
         }
       />
@@ -1119,8 +1066,8 @@ export default function DiscoverScreen() {
             paddingLeft: 14,
             borderRadius: 26,
             borderCurve: 'continuous',
-            backgroundColor: palette.accent500,
-            shadowColor: palette.accent500,
+            backgroundColor: t.warm,
+            shadowColor: t.warm,
             shadowOpacity: 0.4,
             shadowRadius: 16,
             shadowOffset: { width: 0, height: 8 },
@@ -1134,16 +1081,14 @@ export default function DiscoverScreen() {
             width: 30,
             height: 30,
             borderRadius: 15,
-            backgroundColor: 'rgba(255,255,255,0.2)',
+            backgroundColor: tint(t.onWarm, 0.16),
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Plus size={16} color={palette.white} strokeWidth={2.4} />
+          <Plus size={16} color={t.onWarm} strokeWidth={2.4} />
         </View>
-        <Text
-          style={{ fontSize: 14, fontWeight: '600', color: palette.white, letterSpacing: -0.1 }}
-        >
+        <Text style={[type.label, SYSTEM_WEIGHT.semibold, { fontSize: 14, color: t.onWarm }]}>
           {i18n('discoverFilters.planTrip')}
         </Text>
       </AnimatedPressable>

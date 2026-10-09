@@ -12,7 +12,12 @@ jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+// The reanimated mock lacks the hooks the bike plate uses.
+jest.mock('react-native-reanimated', () => ({
+  ...require('react-native-reanimated/mock'),
+  useReducedMotion: () => true,
+  interpolateColor: () => 'transparent',
+}));
 jest.mock('react-native-keyboard-controller', () =>
   require('react-native-keyboard-controller/jest'),
 );
@@ -93,7 +98,6 @@ describe('SwipeableExpense', () => {
     <SwipeableExpense
       expense={EXPENSE}
       motorcycleId={BIKE_A.id}
-      isDark
       onDelete={jest.fn()}
       index={0}
       enabled={enabled}
@@ -125,7 +129,7 @@ function Hub({ active, focused }: { active: BikeSegment; focused: boolean }) {
   const segments: Record<BikeSegment, SegmentDefinition> = {
     [BIKE_SEGMENT.OVERVIEW]: empty,
     [BIKE_SEGMENT.SERVICE]: empty,
-    [BIKE_SEGMENT.COSTS]: { render: () => <ExpensesSection motorcycleId={BIKE_A.id} isDark /> },
+    [BIKE_SEGMENT.COSTS]: { render: () => <ExpensesSection motorcycleId={BIKE_A.id} /> },
     [BIKE_SEGMENT.BIKE]: empty,
   };
   return (

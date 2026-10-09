@@ -10,10 +10,11 @@ import {
 import { SheetGrabber, SheetHeader } from '../../../components/bike-hub/sheets/sheet-header';
 import { SheetScroll, sheetBottomPadding } from '../../../components/bike-hub/sheets/sheet-scroll';
 import { useHubBike } from '../../../components/bike-hub/shell/use-hub-bike';
-import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, hub } from '../../../components/bike-hub/ui/tokens';
+import { HUB_CHROME_MAX_FONT_SCALE, useHubTheme } from '../../../components/bike-hub/ui/tokens';
 import { useCurrency } from '../../../hooks/use-currency';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { bikeDisplayName } from '../../../lib/bike-hub/format';
+import { SYSTEM_WEIGHT, type } from '../../../theme/type';
 import { triggerImpact } from '../../../utils/haptics';
 
 const OPTION_MIN_HEIGHT = 60;
@@ -38,6 +39,7 @@ const TITLE_EXTRA_SPACE = 4;
  * the form from the dismissal's completion.
  */
 export default function LogEntrySheet() {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
@@ -115,23 +117,23 @@ export default function LogEntrySheet() {
                 height: 44,
                 borderRadius: 12,
                 borderCurve: 'continuous',
-                backgroundColor: option.tileBackground,
+                backgroundColor: hub[option.tileTone],
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Icon size={20} color={option.iconColor} strokeWidth={2} />
+              <Icon size={20} color={hub[option.iconTone]} strokeWidth={2} />
             </View>
             <View style={{ flex: 1, gap: 2 }}>
               <Text
                 maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-                style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 16, color: hub.text }}
+                style={[type.bodyStrong, { color: hub.text }]}
               >
                 {title}
               </Text>
               <Text
                 maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-                style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 17, color: hub.dim }}
+                style={[type.label, SYSTEM_WEIGHT.regular, { color: hub.dim }]}
               >
                 {sub}
               </Text>

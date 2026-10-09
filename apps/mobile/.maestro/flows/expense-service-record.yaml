@@ -69,23 +69,23 @@ env:
 
 # Complete with cost (creates linked expense)
 - extendedWaitUntil:
-    visible: "Completion Details"
+    visible: "Completion details"
     timeout: 20000
 - tapOn: "e.g. 15000"
 - inputText: ${ODOMETER}
 - tapOn:
-    text: "Completion Details"
+    text: "Completion details"
     optional: true
 - tapOn: "0.00"
 - inputText: ${COST}
 - tapOn:
-    text: "Completion Details"
+    text: "Completion details"
     optional: true
 - scrollUntilVisible:
     element:
-      text: "Mark Complete"
+      text: "Mark complete"
     direction: DOWN
-- tapOn: "Mark Complete"
+- tapOn: "Mark complete"
 - tapOn:
     text: "Not Now"
     optional: true

@@ -1,13 +1,14 @@
+import { withAlpha } from '@motovault/design-system';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ArrowRight } from 'lucide-react-native';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import Animated, { FadeIn, FadeInUp, useReducedMotion } from 'react-native-reanimated';
+import { ONBOARDING_HERO_COLORS } from '../../components/onboarding/onboarding-colors';
 import { getResumeRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { getStoredAnalyticsConsent } from '../../lib/analytics-consent';
@@ -15,6 +16,7 @@ import { getStoredFbclid, getStoredUtmProperties } from '../../lib/meta-attribut
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { getOnboardingVariant } from '../../lib/onboarding-experiment';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { GUTTER, radius, space, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 // Module-scoped: resume-after-kill must fire only ONCE per app launch — on the
@@ -25,7 +27,14 @@ import { triggerImpact } from '../../utils/haptics';
 // ("GO_BACK was not handled by any navigator"). A fresh launch resets this flag.
 let resumeHandledThisLaunch = false;
 
+/** The welcome hero is the one title set larger than `type.largeTitle`. */
+const WELCOME_TITLE_SIZE = 52;
+
 export default function WelcomeScreen() {
+  // The hero is a photo under a dark veil in both schemes, so its text and
+  // scrim use the dark tokens regardless of the system scheme.
+  const oc = ONBOARDING_HERO_COLORS;
+  const reduceMotion = useReducedMotion();
   const { t } = useTranslation();
   const router = useRouter();
 
@@ -97,11 +106,12 @@ export default function WelcomeScreen() {
 
   // Block welcome UI while resume is pending — prevents flash of hero/animations
   if (resume) {
-    return <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }} />;
+    return <View style={{ flex: 1, backgroundColor: oc.background }} />;
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
+      <StatusBar style="light" />
       {/* Hero image — full bleed (dark atmospheric motorcycle shot) */}
       <View
         style={{
@@ -110,7 +120,7 @@ export default function WelcomeScreen() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: ONBOARDING_COLORS.background,
+          backgroundColor: oc.background,
         }}
       >
         <Image
@@ -124,10 +134,10 @@ export default function WelcomeScreen() {
       {/* Gradient veil — bottom-heavy dark overlay */}
       <LinearGradient
         colors={[
-          `${ONBOARDING_COLORS.background}66`,
-          `${ONBOARDING_COLORS.background}1A`,
-          `${ONBOARDING_COLORS.background}CC`,
-          ONBOARDING_COLORS.background,
+          withAlpha(oc.background, 0.4),
+          withAlpha(oc.background, 0.1),
+          withAlpha(oc.background, 0.8),
+          oc.background,
         ]}
         locations={[0, 0.25, 0.7, 1]}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
@@ -137,24 +147,24 @@ export default function WelcomeScreen() {
       <View
         style={{
           flex: 1,
-          paddingHorizontal: 28,
-          paddingTop: 60,
-          paddingBottom: 40,
+          paddingHorizontal: GUTTER,
+          paddingTop: space.xxxl + space.lg,
+          paddingBottom: space.xxxl,
           justifyContent: 'space-between',
         }}
       >
         {/* Brand mark */}
         <Animated.View
-          entering={FadeIn.delay(200).duration(400)}
+          entering={reduceMotion ? undefined : FadeIn.delay(100).duration(280)}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
         >
           <View
             style={{
               width: 32,
               height: 32,
-              borderRadius: 9,
+              borderRadius: radius.chip,
               borderCurve: 'continuous',
-              backgroundColor: ONBOARDING_COLORS.warm,
+              backgroundColor: oc.warm,
               overflow: 'hidden',
             }}
           >
@@ -164,14 +174,7 @@ export default function WelcomeScreen() {
               contentFit="cover"
             />
           </View>
-          <Text
-            style={{
-              fontWeight: '600',
-              letterSpacing: -0.3,
-              color: ONBOARDING_COLORS.textWhite,
-              fontSize: 15,
-            }}
-          >
+          <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
             {/* Brand name — not localized */}
             {'MotoVault'}
           </Text>
@@ -179,115 +182,78 @@ export default function WelcomeScreen() {
 
         {/* Bottom editorial copy */}
         <View>
-          {/* Tagline */}
-          <Animated.Text
-            entering={FadeInUp.delay(100).duration(400)}
-            style={{
-              fontSize: 11,
-              fontWeight: '600',
-              letterSpacing: 2,
-              textTransform: 'uppercase',
-              color: ONBOARDING_COLORS.warm2,
-              marginBottom: 18,
-            }}
-          >
-            {t('onboarding.v2WelcomeTagline')}
-          </Animated.Text>
-
           {/* Headline — "Your rides. / Your bike. / Your journey." */}
-          <Animated.View entering={FadeInUp.delay(200).duration(400)}>
+          <Animated.View entering={reduceMotion ? undefined : FadeInUp.delay(150).duration(280)}>
             <Text
-              style={{
-                fontFamily: 'InstrumentSerif-Regular',
-                fontSize: 56,
-                lineHeight: 57,
-                color: ONBOARDING_COLORS.textWhite,
-                letterSpacing: -1.1,
-                marginBottom: 18,
-              }}
+              accessibilityRole="header"
+              style={[
+                type.largeTitle,
+                {
+                  fontSize: WELCOME_TITLE_SIZE,
+                  lineHeight: WELCOME_TITLE_SIZE,
+                  color: oc.textPrimary,
+                  marginBottom: space.md,
+                },
+              ]}
             >
-              {t('onboarding.v2WelcomeHeadline1')}
-              {'\n'}
-              {t('onboarding.v2WelcomeHeadline2')}
-              {'\n'}
-              <Text
-                style={{
-                  fontFamily: 'InstrumentSerif-Italic',
-                  color: ONBOARDING_COLORS.warm2,
-                }}
-              >
-                {t('onboarding.v2WelcomeHeadline3')}
-              </Text>
+              {t('onboarding.v2WelcomeHeadline')}
             </Text>
           </Animated.View>
 
           {/* Subtitle */}
-          <Animated.View entering={FadeInUp.delay(300).duration(400)}>
+          <Animated.View entering={reduceMotion ? undefined : FadeInUp.delay(200).duration(280)}>
             <Text
-              style={{
-                fontSize: 15,
-                lineHeight: 22,
-                color: ONBOARDING_COLORS.textWhite,
-                opacity: 0.82,
-                maxWidth: 280,
-                marginBottom: 32,
-              }}
+              style={[
+                type.body,
+                { color: oc.textSecondary, maxWidth: 300, marginBottom: space.xxl },
+              ]}
             >
               {t('onboarding.v2WelcomeSubtitle')}
             </Text>
           </Animated.View>
 
           {/* CTA button */}
-          <Animated.View entering={FadeIn.delay(500).duration(300)}>
+          <Animated.View entering={reduceMotion ? undefined : FadeIn.delay(300).duration(240)}>
             <Pressable
               onPress={handleGetStarted}
+              accessibilityRole="button"
+              android_ripple={{ color: withAlpha(oc.textOnAccent, 0.18), foreground: true }}
               style={({ pressed }) => ({
-                backgroundColor: ONBOARDING_COLORS.warm,
-                borderRadius: 16,
+                backgroundColor: oc.warm,
+                borderRadius: radius.control,
                 borderCurve: 'continuous',
-                paddingVertical: 18,
-                paddingHorizontal: 22,
+                minHeight: 52,
+                paddingHorizontal: space.lg,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 10,
-                opacity: pressed ? 0.9 : 1,
+                gap: space.xs,
+                overflow: 'hidden',
+                opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.88 : 1,
                 transform: [{ scale: pressed ? 0.98 : 1 }],
               })}
             >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '600',
-                  color: ONBOARDING_COLORS.textOnAccent,
-                  letterSpacing: -0.15,
-                }}
-              >
+              <Text style={[type.bodyStrong, { color: oc.textOnAccent }]}>
                 {t('onboarding.v2WelcomeCta')}
               </Text>
-              <ArrowRight size={18} color={ONBOARDING_COLORS.textOnAccent} />
             </Pressable>
           </Animated.View>
 
           {/* Secondary CTA — returning riders sign in directly */}
-          <Animated.View entering={FadeIn.delay(650).duration(300)}>
+          <Animated.View entering={reduceMotion ? undefined : FadeIn.delay(350).duration(240)}>
             <Pressable
               onPress={handleLogIn}
+              accessibilityRole="button"
               hitSlop={8}
               style={({ pressed }) => ({
                 alignSelf: 'center',
-                marginTop: 18,
+                justifyContent: 'center',
+                minHeight: 44,
+                marginTop: space.xs,
                 opacity: pressed ? 0.7 : 1,
               })}
             >
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: '600',
-                  color: ONBOARDING_COLORS.warm2,
-                  letterSpacing: -0.1,
-                }}
-              >
+              <Text style={[type.bodyStrong, { color: oc.warm2 }]}>
                 {t('onboarding.obAccountHaveAccount')}
               </Text>
             </Pressable>

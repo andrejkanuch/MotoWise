@@ -1,3 +1,8 @@
+// The hub follows the system scheme; these assertions use the dark hub set.
+jest.mock('nativewind', () => ({
+  ...jest.requireActual('nativewind'),
+  useColorScheme: () => ({ colorScheme: 'dark' }),
+}));
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
@@ -51,7 +56,7 @@ import { BIKE_A, TODAY } from '../../../test/bike-hub-fixtures';
 import { OdometerSheet } from '../sheets/odometer-sheet';
 import { SHEET_TOP_CLEARANCE } from '../sheets/sheet-scroll';
 import type { HubBike } from '../shell/use-bike-hub-data';
-import { hub } from '../ui/tokens';
+import { hubDark as hub } from '../ui/tokens';
 
 const LATEST = {
   id: 'reading-1',

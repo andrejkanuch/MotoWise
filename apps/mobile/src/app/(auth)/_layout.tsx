@@ -1,12 +1,13 @@
-import { palette } from '@motovault/design-system';
 import { Stack } from 'expo-router';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 
 export default function AuthLayout() {
+  const oc = useOnboardingColors();
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: palette.surfaceDark },
+        contentStyle: { backgroundColor: oc.background },
         animation: 'slide_from_right',
       }}
     />

@@ -11,12 +11,15 @@ import { AnalyticsEvent, trackEvent } from '../../../../lib/analytics';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../../lib/meta-analytics';
 import { queryKeys } from '../../../../lib/query-keys';
+import { type EditorialTokens, tint, useEditorialTheme } from '../../../../theme/editorial';
+import { type } from '../../../../theme/type';
 
-const DIFFICULTY_COLORS = {
-  beginner: palette.success500,
-  intermediate: palette.warning500,
-  advanced: palette.danger500,
-} as const;
+/** Difficulty → theme token (resolved per scheme at render). */
+const DIFFICULTY_TOKEN = {
+  beginner: 'success',
+  intermediate: 'dueInk',
+  advanced: 'danger',
+} as const satisfies Record<string, keyof EditorialTokens>;
 
 const CATEGORY_COLORS = {
   'engine-basics': palette.moduleEngine,
@@ -38,6 +41,7 @@ interface ContentJson {
 
 export default function ArticleScreen() {
   const { t } = useTranslation();
+  const { t: theme } = useEditorialTheme();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -73,29 +77,45 @@ export default function ArticleScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-white dark:bg-neutral-900 items-center justify-center">
-        <ActivityIndicator size="large" color={palette.primary500} />
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: theme.bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <ActivityIndicator size="large" color={theme.ink3} />
       </View>
     );
   }
 
   if (error || !article) {
     return (
-      <View className="flex-1 bg-white dark:bg-neutral-900 items-center justify-center p-5">
-        <Text className="text-base text-neutral-500 dark:text-neutral-400 text-center">
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: theme.bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 20,
+        }}
+      >
+        <Text style={{ ...type.body, color: theme.ink3, textAlign: 'center' }}>
           {t('common.error')}
         </Text>
       </View>
     );
   }
 
-  const difficultyColor =
-    (DIFFICULTY_COLORS as Record<string, string>)[article.difficulty] ?? palette.neutral400;
-  const categoryColor =
-    (CATEGORY_COLORS as Record<string, string>)[article.category] ?? palette.primary500;
+  const difficultyToken = (DIFFICULTY_TOKEN as Record<string, keyof EditorialTokens>)[
+    article.difficulty
+  ];
+  const difficultyColor = difficultyToken ? theme[difficultyToken] : theme.ink3;
+  const categoryColor = (CATEGORY_COLORS as Record<string, string>)[article.category] ?? theme.ink2;
 
   return (
-    <View className="flex-1 bg-white dark:bg-neutral-900">
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -104,7 +124,7 @@ export default function ArticleScreen() {
       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(300)} className="px-5 pt-4">
-          <Text className="text-2xl font-bold text-neutral-950 dark:text-neutral-50">
+          <Text accessibilityRole="header" style={{ ...type.largeTitle, color: theme.ink }}>
             {article.title}
           </Text>
 
@@ -137,16 +157,16 @@ export default function ArticleScreen() {
             {/* Read time */}
             {article.readTime != null && (
               <View className="flex-row items-center gap-1">
-                <Clock size={12} color={palette.neutral400} strokeWidth={2} />
-                <Text className="text-xs text-neutral-500">
+                <Clock size={12} color={theme.ink3} strokeWidth={2} />
+                <Text style={{ ...type.caption, color: theme.ink3 }}>
                   {t('article.readTime', { minutes: article.readTime })}
                 </Text>
               </View>
             )}
             {/* View count */}
             <View className="flex-row items-center gap-1">
-              <Eye size={12} color={palette.neutral400} strokeWidth={2} />
-              <Text className="text-xs text-neutral-500">
+              <Eye size={12} color={theme.ink3} strokeWidth={2} />
+              <Text style={{ ...type.caption, color: theme.ink3 }}>
                 {t('article.views', { count: article.viewCount })}
               </Text>
             </View>
@@ -160,12 +180,10 @@ export default function ArticleScreen() {
             entering={FadeInUp.delay(100 + index * 50).duration(400)}
             className="px-5 mt-5"
           >
-            <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50 mb-2">
+            <Text style={{ ...type.sectionTitle, color: theme.ink, marginBottom: 8 }}>
               {section.heading}
             </Text>
-            <Text className="text-base text-neutral-700 dark:text-neutral-300 leading-6">
-              {section.body}
-            </Text>
+            <Text style={{ ...type.body, color: theme.ink2 }}>{section.body}</Text>
           </Animated.View>
         ))}
 
@@ -176,21 +194,25 @@ export default function ArticleScreen() {
             className="px-5 mt-6"
           >
             <View
-              className="bg-primary-50 dark:bg-primary-950 rounded-2xl p-5"
-              style={{ borderCurve: 'continuous' }}
+              style={{
+                backgroundColor: theme.surface,
+                borderWidth: 1,
+                borderColor: theme.line,
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                padding: 20,
+              }}
             >
               <View className="flex-row items-center gap-2 mb-3">
-                <BookOpen size={18} color={palette.primary500} strokeWidth={2} />
-                <Text className="text-base font-bold text-primary-700 dark:text-primary-300">
+                <BookOpen size={18} color={theme.ink2} strokeWidth={2} />
+                <Text style={{ ...type.bodyStrong, color: theme.ink }}>
                   {t('article.keyTakeaways')}
                 </Text>
               </View>
               {content.keyTakeaways.map((takeaway) => (
                 <View key={takeaway} className="flex-row gap-2 mt-1.5">
-                  <Text className="text-primary-500 text-sm">{'\u2022'}</Text>
-                  <Text className="text-sm text-primary-800 dark:text-primary-200 flex-1 leading-5">
-                    {takeaway}
-                  </Text>
+                  <Text style={{ ...type.subhead, color: theme.ink3 }}>{'\u2022'}</Text>
+                  <Text style={{ ...type.subhead, color: theme.ink2, flex: 1 }}>{takeaway}</Text>
                 </View>
               ))}
             </View>
@@ -203,7 +225,7 @@ export default function ArticleScreen() {
             entering={FadeInUp.delay(300 + (content.sections?.length ?? 0) * 50).duration(400)}
             className="px-5 mt-5"
           >
-            <Text className="text-base font-bold text-neutral-950 dark:text-neutral-50 mb-3">
+            <Text style={{ ...type.sectionTitle, color: theme.ink, marginBottom: 12 }}>
               {t('article.relatedTopics')}
             </Text>
             <ScrollView
@@ -214,8 +236,13 @@ export default function ArticleScreen() {
               {content.relatedTopics.map((topic) => (
                 <Pressable
                   key={topic}
-                  className="bg-neutral-100 dark:bg-neutral-800 rounded-xl px-4 py-2.5"
-                  style={{ borderCurve: 'continuous' }}
+                  style={{
+                    backgroundColor: theme.surface2,
+                    borderRadius: 12,
+                    borderCurve: 'continuous',
+                    paddingHorizontal: 16,
+                    paddingVertical: 10,
+                  }}
                   onPress={() => {
                     router.navigate({
                       pathname: '/(tabs)/(learn)',
@@ -223,9 +250,7 @@ export default function ArticleScreen() {
                     });
                   }}
                 >
-                  <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    {topic}
-                  </Text>
+                  <Text style={{ ...type.label, color: theme.ink2 }}>{topic}</Text>
                 </Pressable>
               ))}
             </ScrollView>
@@ -235,11 +260,17 @@ export default function ArticleScreen() {
         {/* AI Content Disclaimer */}
         <Animated.View entering={FadeInUp.delay(350).duration(400)} className="px-5 mt-6">
           <View
-            className="bg-amber-50 dark:bg-amber-950 rounded-2xl p-4 flex-row gap-3"
-            style={{ borderCurve: 'continuous' }}
+            style={{
+              backgroundColor: tint(theme.plateDue, 0.12),
+              borderRadius: 16,
+              borderCurve: 'continuous',
+              padding: 16,
+              flexDirection: 'row',
+              gap: 12,
+            }}
           >
-            <AlertTriangle size={16} color={palette.warning500} strokeWidth={2} />
-            <Text className="text-xs text-amber-800 dark:text-amber-200 flex-1 leading-4">
+            <AlertTriangle size={16} color={theme.dueInk} strokeWidth={2} />
+            <Text style={{ ...type.caption, color: theme.ink2, flex: 1 }}>
               {t('article.aiDisclaimer')}
             </Text>
           </View>
@@ -248,26 +279,32 @@ export default function ArticleScreen() {
         {/* Mark as Read Button */}
         <Animated.View entering={FadeInUp.delay(400).duration(400)} className="px-5 mt-4">
           <Pressable
-            className={`rounded-2xl py-4 items-center flex-row justify-center gap-2 ${
-              markReadMutation.isSuccess ? 'bg-green-100 dark:bg-green-900' : 'bg-primary-500'
-            }`}
-            style={{ borderCurve: 'continuous' }}
+            style={{
+              backgroundColor: markReadMutation.isSuccess ? tint(theme.success, 0.14) : theme.warm,
+              borderRadius: 16,
+              borderCurve: 'continuous',
+              paddingVertical: 16,
+              alignItems: 'center',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              gap: 8,
+            }}
             onPress={() => markReadMutation.mutate()}
             disabled={markReadMutation.isPending || markReadMutation.isSuccess}
           >
             {markReadMutation.isPending ? (
-              <ActivityIndicator size="small" color={palette.white} />
+              <ActivityIndicator size="small" color={theme.onWarm} />
             ) : markReadMutation.isSuccess ? (
               <>
-                <CheckCircle size={18} color={palette.success500} strokeWidth={2} />
-                <Text className="text-green-700 dark:text-green-300 font-semibold text-base">
+                <CheckCircle size={18} color={theme.success} strokeWidth={2} />
+                <Text style={{ ...type.bodyStrong, color: theme.success }}>
                   {t('article.alreadyRead')}
                 </Text>
               </>
             ) : (
               <>
-                <BookOpen size={18} color={palette.white} strokeWidth={2} />
-                <Text className="text-white font-semibold text-base">
+                <BookOpen size={18} color={theme.onWarm} strokeWidth={2} />
+                <Text style={{ ...type.bodyStrong, color: theme.onWarm }}>
                   {t('article.markAsRead')}
                 </Text>
               </>

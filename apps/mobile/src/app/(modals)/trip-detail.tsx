@@ -78,7 +78,8 @@ import { useTripSuggestions } from '../../hooks/use-trip-suggestions';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { cacheTripPayload } from '../../lib/offline-trips';
 import { useAuthStore } from '../../stores/auth.store';
-import { tint, useEditorialTheme } from '../../theme/editorial';
+import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, space, type } from '../../theme/type';
 import { MAP_STYLES } from '../../utils/map-styles';
 import { getRouteSegments } from '../../utils/mapbox-directions';
 import { showMarkerActionSheet } from '../../utils/marker-action-sheet';
@@ -103,11 +104,12 @@ const DIFFICULTY_LABELS = {
   expert: 'Expert',
 } as const;
 
+/** RSVP status glyph + the theme token it is drawn in (resolved per scheme). */
 const STATUS_ICONS = {
-  going: { Icon: CheckCircle, color: palette.success500 },
-  maybe: { Icon: HelpCircle, color: palette.warning500 },
-  declined: { Icon: XCircle, color: palette.danger500 },
-} as const;
+  going: { Icon: CheckCircle, token: 'success' },
+  maybe: { Icon: HelpCircle, token: 'dueInk' },
+  declined: { Icon: XCircle, token: 'danger' },
+} as const satisfies Record<string, { Icon: unknown; token: keyof EditorialTokens }>;
 
 const SURFACE_LABELS: Record<string, string> = {
   paved: 'Paved',
@@ -254,7 +256,7 @@ function TemplateRouteStartEndLine({
           borderColor: t.line,
         }}
       >
-        <MapPin size={16} color={t.warm} />
+        <MapPin size={16} color={t.ink2} />
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 13, fontWeight: '600', color: titleColor }}>
             {startLabel}
@@ -771,14 +773,8 @@ export default function TripDetailScreen() {
             {/* Title */}
             <Animated.Text
               entering={FadeInUp.duration(220)}
-              style={{
-                fontFamily: 'InstrumentSerif-Regular',
-                fontSize: 30,
-                color: t.ink,
-                letterSpacing: -0.6,
-                lineHeight: 32,
-                marginBottom: 10,
-              }}
+              accessibilityRole="header"
+              style={[type.largeTitle, { color: t.ink, marginBottom: space.sm }]}
             >
               {trip.title}
             </Animated.Text>
@@ -791,7 +787,7 @@ export default function TripDetailScreen() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 6,
-                  backgroundColor: palette.warningBgLight,
+                  backgroundColor: tint(t.plateDue, 0.14),
                   paddingHorizontal: 10,
                   paddingVertical: 6,
                   borderRadius: 8,
@@ -799,8 +795,8 @@ export default function TripDetailScreen() {
                   marginBottom: 10,
                 }}
               >
-                <WifiOff size={14} color={palette.warning500} />
-                <Text style={{ fontSize: 13, color: palette.warning500, fontWeight: '500' }}>
+                <WifiOff size={14} color={t.dueInk} />
+                <Text style={{ fontSize: 13, color: t.dueInk, fontWeight: '500' }}>
                   {i18n('trips.offlineCopy')} ·{' '}
                   {new Date(offlineMeta.downloadedAt).toLocaleDateString()}
                 </Text>
@@ -820,14 +816,14 @@ export default function TripDetailScreen() {
             >
               <View
                 style={{
-                  backgroundColor: tint(t.warm, 0.18),
+                  backgroundColor: t.surface2,
                   paddingHorizontal: 10,
                   paddingVertical: 4,
                   borderRadius: 8,
                   borderCurve: 'continuous',
                 }}
               >
-                <Text style={{ fontSize: 13, fontWeight: '700', color: t.warm }}>
+                <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: t.ink }]}>
                   {difficultyLabel}
                 </Text>
               </View>
@@ -849,7 +845,7 @@ export default function TripDetailScreen() {
                   {trip.visibility === 'public' ? (
                     <Globe size={11} color={t.success} />
                   ) : trip.visibility === 'unlisted' ? (
-                    <EyeOff size={11} color={t.warm} />
+                    <EyeOff size={11} color={t.ink2} />
                   ) : (
                     <Lock size={11} color={t.ink3} />
                   )}
@@ -861,7 +857,7 @@ export default function TripDetailScreen() {
                         trip.visibility === 'public'
                           ? t.success
                           : trip.visibility === 'unlisted'
-                            ? t.warm
+                            ? t.ink2
                             : t.ink3,
                     }}
                   >
@@ -893,24 +889,8 @@ export default function TripDetailScreen() {
               }}
             >
               <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
-                <Text
-                  style={{
-                    fontFamily: 'InstrumentSerif-Regular',
-                    fontSize: 20,
-                    color: t.ink,
-                  }}
-                >
-                  {tripDays}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 11,
-                    color: t.ink3,
-                    fontWeight: '600',
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.8,
-                  }}
-                >
+                <Text style={[type.figureSmall, { color: t.ink }]}>{tripDays}</Text>
+                <Text style={[type.caption, { color: t.ink3 }]}>
                   {tripDays === 1 ? 'day' : 'days'}
                 </Text>
               </View>
@@ -922,24 +902,8 @@ export default function TripDetailScreen() {
                 }}
               />
               <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
-                <Text
-                  style={{
-                    fontFamily: 'InstrumentSerif-Regular',
-                    fontSize: 20,
-                    color: t.ink,
-                  }}
-                >
-                  {waypoints.length}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 11,
-                    color: t.ink3,
-                    fontWeight: '600',
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.8,
-                  }}
-                >
+                <Text style={[type.figureSmall, { color: t.ink }]}>{waypoints.length}</Text>
+                <Text style={[type.caption, { color: t.ink3 }]}>
                   {waypoints.length === 1 ? 'stop' : 'stops'}
                 </Text>
               </View>
@@ -954,27 +918,11 @@ export default function TripDetailScreen() {
               )}
               {showDates && (
                 <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
-                  <Text
-                    style={{
-                      fontFamily: 'InstrumentSerif-Regular',
-                      fontSize: 20,
-                      color: t.ink,
-                    }}
-                  >
+                  <Text style={[type.figureSmall, { color: t.ink }]}>
                     {trip.participantCount + 1}
                     <Text style={{ color: t.ink3 }}>/{trip.maxRiders}</Text>
                   </Text>
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      color: t.ink3,
-                      fontWeight: '600',
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.8,
-                    }}
-                  >
-                    {i18n('trips.riders')}
-                  </Text>
+                  <Text style={[type.caption, { color: t.ink3 }]}>{i18n('trips.riders')}</Text>
                 </View>
               )}
             </Animated.View>
@@ -992,7 +940,7 @@ export default function TripDetailScreen() {
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Calendar size={13} color={t.warm} />
+                  <Calendar size={13} color={subtitleColor} />
                   <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
                     {formatDateRange(trip.startDate, trip.endDate)}
                   </Text>
@@ -1061,11 +1009,11 @@ export default function TripDetailScreen() {
                         paddingVertical: 4,
                         borderRadius: 10,
                         borderCurve: 'continuous',
-                        backgroundColor: tint(t.warm, 0.18),
+                        backgroundColor: t.plateReady,
                       }}
                     >
-                      <Award size={12} color={t.warm} />
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: t.warm }}>
+                      <Award size={12} color={t.onPlate} />
+                      <Text style={[type.caption, SYSTEM_WEIGHT.semibold, { color: t.onPlate }]}>
                         {i18n('trips.motoVaultPick')}
                       </Text>
                     </View>
@@ -1090,52 +1038,37 @@ export default function TripDetailScreen() {
                 >
                   {trip.distanceM != null && (
                     <View style={{ alignItems: 'center' }}>
-                      <Text
-                        style={{
-                          fontFamily: 'InstrumentSerif-Regular',
-                          fontSize: 18,
-                          color: t.ink,
-                          fontVariant: ['tabular-nums'],
-                        }}
-                      >
+                      <Text style={[type.figureSmall, { color: t.ink }]}>
                         {formatDistance(trip.distanceM, system)}
                       </Text>
-                      <Text style={{ fontSize: 11, color: t.ink3 }}>{i18n('trips.distance')}</Text>
+                      <Text style={[type.caption, { color: t.ink3 }]}>
+                        {i18n('trips.distance')}
+                      </Text>
                     </View>
                   )}
                   {(trip.elevationGainM ?? 0) > 0 && (
                     <View style={{ alignItems: 'center' }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                        <Mountain size={14} color={t.warm} />
-                        <Text
-                          style={{
-                            fontFamily: 'InstrumentSerif-Regular',
-                            fontSize: 18,
-                            color: t.ink,
-                            fontVariant: ['tabular-nums'],
-                          }}
-                        >
+                        <Mountain size={14} color={t.ink2} />
+                        <Text style={[type.figureSmall, { color: t.ink }]}>
                           {formatElevation(trip.elevationGainM ?? 0, system)}
                         </Text>
                       </View>
-                      <Text style={{ fontSize: 11, color: t.ink3 }}>{i18n('trips.elevation')}</Text>
+                      <Text style={[type.caption, { color: t.ink3 }]}>
+                        {i18n('trips.elevation')}
+                      </Text>
                     </View>
                   )}
                   {trip.estimatedDurationMinutes != null && trip.estimatedDurationMinutes > 0 && (
                     <View style={{ alignItems: 'center' }}>
-                      <Text
-                        style={{
-                          fontFamily: 'InstrumentSerif-Regular',
-                          fontSize: 18,
-                          color: t.ink,
-                          fontVariant: ['tabular-nums'],
-                        }}
-                      >
+                      <Text style={[type.figureSmall, { color: t.ink }]}>
                         {trip.estimatedDurationMinutes >= 60
                           ? `${Math.floor(trip.estimatedDurationMinutes / 60)}h ${trip.estimatedDurationMinutes % 60}m`
                           : `${trip.estimatedDurationMinutes}m`}
                       </Text>
-                      <Text style={{ fontSize: 11, color: t.ink3 }}>{i18n('trips.duration')}</Text>
+                      <Text style={[type.caption, { color: t.ink3 }]}>
+                        {i18n('trips.duration')}
+                      </Text>
                     </View>
                   )}
                   {trip.averageRating != null &&
@@ -1143,51 +1076,29 @@ export default function TripDetailScreen() {
                     trip.reviewCount > 0 && (
                       <View style={{ alignItems: 'center' }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                          <Star size={14} color={t.warm} fill={t.warm} />
-                          <Text
-                            style={{
-                              fontFamily: 'InstrumentSerif-Regular',
-                              fontSize: 18,
-                              color: t.ink,
-                            }}
-                          >
+                          <Star size={14} color={t.ink2} fill={t.ink2} />
+                          <Text style={[type.figureSmall, { color: t.ink }]}>
                             {trip.averageRating.toFixed(1)}
                           </Text>
                         </View>
-                        <Text style={{ fontSize: 11, color: t.ink3 }}>
+                        <Text style={[type.caption, { color: t.ink3 }]}>
                           {trip.reviewCount} {trip.reviewCount === 1 ? 'review' : 'reviews'}
                         </Text>
                       </View>
                     )}
                   {trip.viewCount != null && trip.viewCount > 0 && (
                     <View style={{ alignItems: 'center' }}>
-                      <Text
-                        style={{
-                          fontFamily: 'InstrumentSerif-Regular',
-                          fontSize: 18,
-                          color: t.ink,
-                        }}
-                      >
-                        {trip.viewCount}
-                      </Text>
-                      <Text style={{ fontSize: 11, color: t.ink3 }}>{i18n('trips.views')}</Text>
+                      <Text style={[type.figureSmall, { color: t.ink }]}>{trip.viewCount}</Text>
+                      <Text style={[type.caption, { color: t.ink3 }]}>{i18n('trips.views')}</Text>
                     </View>
                   )}
                   {trip.cloneCount != null && trip.cloneCount > 0 && (
                     <View style={{ alignItems: 'center' }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                         <Copy size={14} color={t.ink2} />
-                        <Text
-                          style={{
-                            fontFamily: 'InstrumentSerif-Regular',
-                            fontSize: 18,
-                            color: t.ink,
-                          }}
-                        >
-                          {trip.cloneCount}
-                        </Text>
+                        <Text style={[type.figureSmall, { color: t.ink }]}>{trip.cloneCount}</Text>
                       </View>
-                      <Text style={{ fontSize: 11, color: t.ink3 }}>{i18n('trips.clones')}</Text>
+                      <Text style={[type.caption, { color: t.ink3 }]}>{i18n('trips.clones')}</Text>
                     </View>
                   )}
                 </Animated.View>
@@ -1248,7 +1159,7 @@ export default function TripDetailScreen() {
                       justifyContent: 'center',
                     }}
                   >
-                    <Text style={{ fontSize: 14, fontWeight: '700', color: palette.white }}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: t.onWarm }}>
                       {(trip.organiser.displayName ?? 'O').charAt(0).toUpperCase()}
                     </Text>
                   </View>
@@ -1270,16 +1181,7 @@ export default function TripDetailScreen() {
                     entering={FadeInUp.delay(120).duration(220)}
                     style={{ marginBottom: 20 }}
                   >
-                    <Text
-                      style={{
-                        fontSize: 11,
-                        fontWeight: '700',
-                        color: t.ink2,
-                        marginBottom: 12,
-                        textTransform: 'uppercase',
-                        letterSpacing: 2.2,
-                      }}
-                    >
+                    <Text style={[type.sectionTitle, { color: t.ink, marginBottom: 12 }]}>
                       {i18n('trips.reviews')}
                     </Text>
                     {reviewsLoading ? (
@@ -1312,8 +1214,8 @@ export default function TripDetailScreen() {
                                 // biome-ignore lint/suspicious/noArrayIndexKey: fixed-size star rating array
                                 key={i}
                                 size={14}
-                                color={t.warm}
-                                fill={i < review.rating ? t.warm : 'transparent'}
+                                color={t.ink2}
+                                fill={i < review.rating ? t.ink2 : 'transparent'}
                               />
                             ))}
                           </View>
@@ -1434,11 +1336,9 @@ export default function TripDetailScreen() {
                             }}
                           >
                             {createReviewMutation.isPending ? (
-                              <ActivityIndicator size="small" color={palette.white} />
+                              <ActivityIndicator size="small" color={t.onWarm} />
                             ) : (
-                              <Text
-                                style={{ fontSize: 14, fontWeight: '600', color: palette.white }}
-                              >
+                              <Text style={{ fontSize: 14, fontWeight: '600', color: t.onWarm }}>
                                 {i18n('trips.submit')}
                               </Text>
                             )}
@@ -1478,16 +1378,7 @@ export default function TripDetailScreen() {
                 entering={FadeInUp.delay(50).duration(250)}
                 style={{ marginBottom: 16 }}
               >
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '700',
-                    color: t.ink2,
-                    marginBottom: 4,
-                    textTransform: 'uppercase',
-                    letterSpacing: 2.2,
-                  }}
-                >
+                <Text style={[type.sectionTitle, { color: t.ink, marginBottom: 4 }]}>
                   {isTemplate ? 'Sample itinerary' : 'Itinerary'}
                 </Text>
                 {isTemplate && (
@@ -1526,13 +1417,7 @@ export default function TripDetailScreen() {
                           marginBottom: 8,
                         }}
                       >
-                        <Text
-                          style={{
-                            fontFamily: 'InstrumentSerif-Regular',
-                            fontSize: 17,
-                            color: t.ink,
-                          }}
-                        >
+                        <Text style={[type.bodyStrong, { color: t.ink }]}>
                           {formatDayDate(dayIndex)}
                         </Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -1549,15 +1434,15 @@ export default function TripDetailScreen() {
                           <View key={`${dayIndex}-${group.period ?? 'unset'}`}>
                             {group.period && (
                               <Text
-                                style={{
-                                  fontSize: 13,
-                                  fontWeight: '700',
-                                  color: subtitleColor,
-                                  letterSpacing: 0.6,
-                                  textTransform: 'uppercase',
-                                  marginTop: 4,
-                                  marginBottom: 4,
-                                }}
+                                style={[
+                                  type.label,
+                                  SYSTEM_WEIGHT.semibold,
+                                  {
+                                    color: subtitleColor,
+                                    marginTop: space.xxs,
+                                    marginBottom: space.xxs,
+                                  },
+                                ]}
                               >
                                 {group.label}
                               </Text>
@@ -1593,7 +1478,7 @@ export default function TripDetailScreen() {
                     accessibilityRole="button"
                     accessibilityLabel="Add to My Trips"
                     style={({ pressed }) => ({
-                      backgroundColor: t.success,
+                      backgroundColor: t.warm,
                       paddingVertical: 14,
                       borderRadius: 14,
                       borderCurve: 'continuous',
@@ -1605,11 +1490,11 @@ export default function TripDetailScreen() {
                     })}
                   >
                     {cloneMutation.isPending ? (
-                      <ActivityIndicator size="small" color={palette.white} />
+                      <ActivityIndicator size="small" color={t.onWarm} />
                     ) : (
                       <>
-                        <Copy size={18} color={palette.white} />
-                        <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
+                        <Copy size={18} color={t.onWarm} />
+                        <Text style={{ fontSize: 16, fontWeight: '700', color: t.onWarm }}>
                           {i18n('trips.addToMyTrips')}
                         </Text>
                       </>
@@ -1669,16 +1554,7 @@ export default function TripDetailScreen() {
                 entering={FadeInUp.delay(100).duration(250)}
                 style={{ marginBottom: 16 }}
               >
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '700',
-                    color: t.ink2,
-                    marginBottom: 8,
-                    textTransform: 'uppercase',
-                    letterSpacing: 2.2,
-                  }}
-                >
+                <Text style={[type.sectionTitle, { color: t.ink, marginBottom: 8 }]}>
                   {i18n('trips.ridersCount', { count: trip.participantCount + 1 })}
                 </Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -1700,7 +1576,7 @@ export default function TripDetailScreen() {
                           justifyContent: 'center',
                         }}
                       >
-                        <Text style={{ fontSize: 14, fontWeight: '700', color: palette.white }}>
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: t.onWarm }}>
                           {(trip.organiser.displayName ?? 'O').charAt(0).toUpperCase()}
                         </Text>
                       </View>
@@ -1712,12 +1588,11 @@ export default function TripDetailScreen() {
                       {trip.organiser.displayName ?? 'Organizer'}
                     </Text>
                     <Text
-                      style={{
-                        fontSize: 9,
-                        fontWeight: '700',
-                        color: t.warm,
-                        textTransform: 'uppercase',
-                      }}
+                      style={[
+                        type.caption,
+                        SYSTEM_WEIGHT.semibold,
+                        { fontSize: 11, color: t.ink2 },
+                      ]}
                     >
                       {i18n('trips.lead')}
                     </Text>
@@ -1774,7 +1649,7 @@ export default function TripDetailScreen() {
                               justifyContent: 'center',
                             }}
                           >
-                            <statusInfo.Icon size={10} color={statusInfo.color} />
+                            <statusInfo.Icon size={10} color={t[statusInfo.token]} />
                           </View>
                         </View>
                         <Text
@@ -1785,12 +1660,11 @@ export default function TripDetailScreen() {
                         </Text>
                         {p.role === 'co_planner' && (
                           <Text
-                            style={{
-                              fontSize: 11,
-                              fontWeight: '700',
-                              color: t.warm,
-                              textAlign: 'center',
-                            }}
+                            style={[
+                              type.caption,
+                              SYSTEM_WEIGHT.semibold,
+                              { color: t.ink2, textAlign: 'center' },
+                            ]}
                           >
                             {i18n('trips.coPlanner')}
                           </Text>
@@ -1871,15 +1745,15 @@ export default function TripDetailScreen() {
                       paddingVertical: 14,
                       borderRadius: 14,
                       borderCurve: 'continuous',
-                      backgroundColor: t.success,
+                      backgroundColor: t.warm,
                     }}
                   >
                     {actionLoading ? (
-                      <ActivityIndicator size="small" color={palette.white} />
+                      <ActivityIndicator size="small" color={t.onWarm} />
                     ) : (
                       <>
-                        <Users size={16} color={palette.white} />
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                        <Users size={16} color={t.onWarm} />
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: t.onWarm }}>
                           {i18n('trips.imIn')}
                         </Text>
                       </>

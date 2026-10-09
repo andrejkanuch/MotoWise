@@ -57,7 +57,8 @@ env:
     visible: ".*Honda.*"
     timeout: 30000
 
-# 3. Open the add-bike sheet via the shelf "Add a Bike" card. (Requires Pro — a
+# 3. Open the add-bike sheet via the garage "Add a Bike" row (the header + button
+#    carries the same accessibility label; either opens the sheet). (Requires Pro — a
 #    free account with the Honda already present hits the paywall here instead.)
 - tapOn: "Add a Bike"
 - assertVisible: "Nickname (optional)" # confirms the add-bike sheet is up

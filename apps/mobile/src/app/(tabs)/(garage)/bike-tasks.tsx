@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import {
   DeleteMaintenanceTaskDocument,
   MaintenanceTasksByMotorcycleDocument,
@@ -39,7 +38,7 @@ export default function BikeTasksScreen() {
   // Unit follows the user's profile preference, not the deprecated per-bike field.
   const mileageUnit = useMileageUnit();
   const router = useRouter();
-  const { isDark } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
 
@@ -202,7 +201,7 @@ export default function BikeTasksScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Filter tabs */}
       <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
         <ScrollView
@@ -224,22 +223,14 @@ export default function BikeTasksScreen() {
                   paddingVertical: 8,
                   borderRadius: 20,
                   borderCurve: 'continuous',
-                  backgroundColor: isSelected
-                    ? palette.primary500
-                    : isDark
-                      ? palette.neutral800
-                      : palette.neutral100,
+                  backgroundColor: isSelected ? theme.warm : theme.surface2,
                 }}
               >
                 <Text
                   style={{
                     fontSize: 13,
                     fontWeight: '600',
-                    color: isSelected
-                      ? palette.white
-                      : isDark
-                        ? palette.neutral300
-                        : palette.neutral600,
+                    color: isSelected ? theme.onWarm : theme.ink2,
                   }}
                 >
                   {filter.label}
@@ -258,11 +249,7 @@ export default function BikeTasksScreen() {
           paddingBottom: insets.bottom + 20,
         }}
         refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
-            tintColor={palette.primary500}
-          />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.warm} />
         }
         showsVerticalScrollIndicator={false}
       >
@@ -280,18 +267,18 @@ export default function BikeTasksScreen() {
                 height: 56,
                 borderRadius: 16,
                 borderCurve: 'continuous',
-                backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
+                backgroundColor: theme.surface2,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Wrench size={28} color={palette.neutral400} strokeWidth={1.5} />
+              <Wrench size={28} color={theme.ink3} strokeWidth={1.5} />
             </View>
             <Text
               style={{
                 fontSize: 16,
                 fontWeight: '700',
-                color: isDark ? palette.neutral200 : palette.neutral800,
+                color: theme.ink,
                 marginTop: 16,
               }}
             >
@@ -301,7 +288,7 @@ export default function BikeTasksScreen() {
               style={{
                 fontSize: 14,
                 fontWeight: '500',
-                color: palette.neutral500,
+                color: theme.ink3,
                 marginTop: 4,
                 textAlign: 'center',
                 maxWidth: 260,

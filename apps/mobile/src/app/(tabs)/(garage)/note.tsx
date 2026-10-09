@@ -4,7 +4,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { useNotes } from '../../../components/bike-hub/notes/use-notes';
 import { NoteForm } from '../../../components/bike-hub/sheets/note-form';
 import { useHubBike } from '../../../components/bike-hub/shell/use-hub-bike';
-import { hub } from '../../../components/bike-hub/ui/tokens';
+import { useHubTheme } from '../../../components/bike-hub/ui/tokens';
 
 type NoteRouteParams = {
   motorcycleId: string;
@@ -30,6 +30,7 @@ interface TransitionEvents {
  * (new note) or per note (edit) — see `NoteForm` and `restorableNoteDraft`.
  */
 export default function NoteScreen() {
+  const hub = useHubTheme();
   const { motorcycleId, noteId, draft, photo } = useLocalSearchParams<NoteRouteParams>();
   const navigation = useNavigation();
   const { bike, bikes, isLoading: bikeLoading } = useHubBike(motorcycleId);

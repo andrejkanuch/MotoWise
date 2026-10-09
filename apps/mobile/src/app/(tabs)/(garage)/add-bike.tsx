@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import {
   CreateMotorcycleDocument,
   MotorcycleMakesDocument,
@@ -32,6 +31,7 @@ import {
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { radius, space, type } from '../../../theme/type';
 
 function haptic() {
   if (process.env.EXPO_OS === 'ios') {
@@ -46,7 +46,7 @@ export default function AddBikeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   const { requireAccess } = useProGate();
 
   const [year, setYear] = useState('');
@@ -168,33 +168,30 @@ export default function AddBikeScreen() {
   };
 
   const inputStyle = {
-    backgroundColor: isDark ? palette.neutral800 : palette.white,
-    borderRadius: 14,
+    ...type.body,
+    backgroundColor: theme.surface,
+    borderRadius: radius.control,
     borderCurve: 'continuous' as const,
-    paddingHorizontal: 16,
+    paddingHorizontal: space.md,
     paddingVertical: 14,
-    fontSize: 16,
-    color: isDark ? palette.neutral50 : palette.neutral950,
+    color: theme.ink,
   };
 
   const labelStyle = {
-    fontSize: 13,
-    fontWeight: '600' as const,
-    color: palette.neutral500,
-    textTransform: 'uppercase' as const,
-    letterSpacing: 0.5,
-    marginBottom: 8,
-    marginLeft: 4,
+    ...type.label,
+    color: theme.ink2,
+    marginBottom: space.xs,
+    marginLeft: space.xxs,
   };
 
-  const dropdownBg = isDark ? palette.neutral800 : palette.white;
-  const dropdownBorder = isDark ? palette.neutral700 : palette.neutral200;
-  const pressedBg = isDark ? palette.neutral700 : palette.neutral100;
+  const dropdownBg = theme.surface;
+  const dropdownBorder = theme.line;
+  const pressedBg = theme.surface2;
 
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+      contentContainerStyle={{ padding: space.md, paddingBottom: space.xxxl }}
       keyboardDismissMode="interactive"
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
@@ -206,7 +203,7 @@ export default function AddBikeScreen() {
           value={year}
           onChangeText={handleYearChange}
           placeholder={t('garage.yearPlaceholder')}
-          placeholderTextColor={palette.neutral400}
+          placeholderTextColor={theme.ink3}
           keyboardType="number-pad"
           maxLength={4}
           returnKeyType="next"
@@ -225,12 +222,12 @@ export default function AddBikeScreen() {
             marginLeft: 4,
           }}
         >
-          <Search size={14} color={palette.neutral500} />
+          <Search size={14} color={theme.ink3} />
           <Text style={{ ...labelStyle, marginBottom: 0, marginLeft: 0 }}>{t('garage.make')}</Text>
         </View>
 
         {makesResult.isLoading ? (
-          <ActivityIndicator color={palette.primary500} style={{ marginVertical: 16 }} />
+          <ActivityIndicator color={theme.warm} style={{ marginVertical: 16 }} />
         ) : customMake && !makeSearch ? (
           <Pressable
             onPress={() => {
@@ -243,7 +240,7 @@ export default function AddBikeScreen() {
             style={{
               ...inputStyle,
               borderWidth: 1.5,
-              borderColor: palette.primary500,
+              borderColor: theme.warm,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -253,7 +250,7 @@ export default function AddBikeScreen() {
               <Text
                 style={{
                   fontSize: 11,
-                  color: palette.primary500,
+                  color: theme.warm2,
                   fontWeight: '600',
                   marginBottom: 2,
                 }}
@@ -264,15 +261,13 @@ export default function AddBikeScreen() {
                 style={{
                   fontSize: 16,
                   fontWeight: '600',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
+                  color: theme.ink,
                 }}
               >
                 {customMake}
               </Text>
             </View>
-            <Text style={{ fontSize: 12, color: palette.neutral400 }}>
-              {t('garage.tapToChange')}
-            </Text>
+            <Text style={{ fontSize: 12, color: theme.ink3 }}>{t('garage.tapToChange')}</Text>
           </Pressable>
         ) : selectedMake && !makeSearch ? (
           <Pressable
@@ -285,7 +280,7 @@ export default function AddBikeScreen() {
             style={{
               ...inputStyle,
               borderWidth: 1.5,
-              borderColor: palette.primary500,
+              borderColor: theme.warm,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -295,14 +290,12 @@ export default function AddBikeScreen() {
               style={{
                 fontSize: 16,
                 fontWeight: '600',
-                color: isDark ? palette.neutral50 : palette.neutral950,
+                color: theme.ink,
               }}
             >
               {selectedMake.makeName}
             </Text>
-            <Text style={{ fontSize: 12, color: palette.neutral400 }}>
-              {t('garage.tapToChange')}
-            </Text>
+            <Text style={{ fontSize: 12, color: theme.ink3 }}>{t('garage.tapToChange')}</Text>
           </Pressable>
         ) : (
           <>
@@ -310,7 +303,7 @@ export default function AddBikeScreen() {
               value={makeSearch}
               onChangeText={setMakeSearch}
               placeholder={t('garage.searchMake')}
-              placeholderTextColor={palette.neutral400}
+              placeholderTextColor={theme.ink3}
               autoCapitalize="words"
               style={inputStyle}
             />
@@ -336,14 +329,14 @@ export default function AddBikeScreen() {
                         paddingHorizontal: 16,
                         paddingVertical: 13,
                         borderBottomWidth: 1,
-                        borderBottomColor: isDark ? palette.neutral700 : palette.neutral100,
+                        borderBottomColor: theme.line2,
                         backgroundColor: pressed ? pressedBg : 'transparent',
                       })}
                     >
                       <Text
                         style={{
                           fontSize: 15,
-                          color: isDark ? palette.neutral50 : palette.neutral950,
+                          color: theme.ink,
                         }}
                       >
                         {make.makeName}
@@ -354,9 +347,7 @@ export default function AddBikeScreen() {
               </View>
             ) : makeSearch.length > 1 && filteredMakes.length === 0 ? (
               <>
-                <Text
-                  style={{ fontSize: 14, color: palette.neutral400, marginTop: 8, marginLeft: 4 }}
-                >
+                <Text style={{ fontSize: 14, color: theme.ink3, marginTop: 8, marginLeft: 4 }}>
                   {t('garage.noMakesFound')}
                 </Text>
                 <Pressable
@@ -373,15 +364,11 @@ export default function AddBikeScreen() {
                     marginTop: 8,
                     paddingHorizontal: 16,
                     paddingVertical: 13,
-                    backgroundColor: pressed
-                      ? pressedBg
-                      : isDark
-                        ? palette.neutral800
-                        : palette.neutral50,
+                    backgroundColor: pressed ? pressedBg : theme.surface,
                     borderRadius: 14,
                     borderCurve: 'continuous',
                     borderWidth: 1,
-                    borderColor: palette.primary500,
+                    borderColor: theme.warm,
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 8,
@@ -390,7 +377,7 @@ export default function AddBikeScreen() {
                   <Text
                     style={{
                       fontSize: 15,
-                      color: palette.primary500,
+                      color: theme.warm2,
                       fontWeight: '600',
                       flex: 1,
                     }}
@@ -418,7 +405,7 @@ export default function AddBikeScreen() {
             marginLeft: 4,
           }}
         >
-          <Search size={14} color={palette.neutral500} />
+          <Search size={14} color={theme.ink3} />
           <Text style={{ ...labelStyle, marginBottom: 0, marginLeft: 0 }}>{t('garage.model')}</Text>
         </View>
 
@@ -429,9 +416,7 @@ export default function AddBikeScreen() {
               opacity: 0.4,
             }}
           >
-            <Text style={{ fontSize: 16, color: palette.neutral400 }}>
-              {t('garage.searchModel')}
-            </Text>
+            <Text style={{ fontSize: 16, color: theme.ink3 }}>{t('garage.searchModel')}</Text>
           </View>
         ) : customMake ? (
           // Free-text model entry when using a custom make
@@ -444,7 +429,7 @@ export default function AddBikeScreen() {
               style={{
                 ...inputStyle,
                 borderWidth: 1.5,
-                borderColor: palette.primary500,
+                borderColor: theme.warm,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -454,7 +439,7 @@ export default function AddBikeScreen() {
                 <Text
                   style={{
                     fontSize: 11,
-                    color: palette.primary500,
+                    color: theme.warm2,
                     fontWeight: '600',
                     marginBottom: 2,
                   }}
@@ -465,15 +450,13 @@ export default function AddBikeScreen() {
                   style={{
                     fontSize: 16,
                     fontWeight: '600',
-                    color: isDark ? palette.neutral50 : palette.neutral950,
+                    color: theme.ink,
                   }}
                 >
                   {customModel}
                 </Text>
               </View>
-              <Text style={{ fontSize: 12, color: palette.neutral400 }}>
-                {t('garage.tapToChange')}
-              </Text>
+              <Text style={{ fontSize: 12, color: theme.ink3 }}>{t('garage.tapToChange')}</Text>
             </Pressable>
           ) : (
             <TextInput
@@ -489,14 +472,14 @@ export default function AddBikeScreen() {
                 }
               }}
               placeholder={t('garage.searchModel')}
-              placeholderTextColor={palette.neutral400}
+              placeholderTextColor={theme.ink3}
               autoCapitalize="words"
               returnKeyType="done"
               style={inputStyle}
             />
           )
         ) : modelsResult.isLoading ? (
-          <ActivityIndicator color={palette.primary500} style={{ marginVertical: 16 }} />
+          <ActivityIndicator color={theme.warm} style={{ marginVertical: 16 }} />
         ) : selectedModel && !modelSearch ? (
           <Pressable
             onPress={() => {
@@ -506,7 +489,7 @@ export default function AddBikeScreen() {
             style={{
               ...inputStyle,
               borderWidth: 1.5,
-              borderColor: palette.primary500,
+              borderColor: theme.warm,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -516,14 +499,12 @@ export default function AddBikeScreen() {
               style={{
                 fontSize: 16,
                 fontWeight: '600',
-                color: isDark ? palette.neutral50 : palette.neutral950,
+                color: theme.ink,
               }}
             >
               {selectedModel.modelName}
             </Text>
-            <Text style={{ fontSize: 12, color: palette.neutral400 }}>
-              {t('garage.tapToChange')}
-            </Text>
+            <Text style={{ fontSize: 12, color: theme.ink3 }}>{t('garage.tapToChange')}</Text>
           </Pressable>
         ) : customModel && !modelSearch ? (
           <Pressable
@@ -535,7 +516,7 @@ export default function AddBikeScreen() {
             style={{
               ...inputStyle,
               borderWidth: 1.5,
-              borderColor: palette.primary500,
+              borderColor: theme.warm,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -545,7 +526,7 @@ export default function AddBikeScreen() {
               <Text
                 style={{
                   fontSize: 11,
-                  color: palette.primary500,
+                  color: theme.warm2,
                   fontWeight: '600',
                   marginBottom: 2,
                 }}
@@ -556,15 +537,13 @@ export default function AddBikeScreen() {
                 style={{
                   fontSize: 16,
                   fontWeight: '600',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
+                  color: theme.ink,
                 }}
               >
                 {customModel}
               </Text>
             </View>
-            <Text style={{ fontSize: 12, color: palette.neutral400 }}>
-              {t('garage.tapToChange')}
-            </Text>
+            <Text style={{ fontSize: 12, color: theme.ink3 }}>{t('garage.tapToChange')}</Text>
           </Pressable>
         ) : (
           <>
@@ -576,7 +555,7 @@ export default function AddBikeScreen() {
                 setCustomModel('');
               }}
               placeholder={t('garage.searchModel')}
-              placeholderTextColor={palette.neutral400}
+              placeholderTextColor={theme.ink3}
               autoCapitalize="words"
               style={inputStyle}
             />
@@ -602,14 +581,14 @@ export default function AddBikeScreen() {
                         paddingHorizontal: 16,
                         paddingVertical: 13,
                         borderBottomWidth: 1,
-                        borderBottomColor: isDark ? palette.neutral700 : palette.neutral100,
+                        borderBottomColor: theme.line2,
                         backgroundColor: pressed ? pressedBg : 'transparent',
                       })}
                     >
                       <Text
                         style={{
                           fontSize: 15,
-                          color: isDark ? palette.neutral50 : palette.neutral950,
+                          color: theme.ink,
                         }}
                       >
                         {model.modelName}
@@ -624,7 +603,7 @@ export default function AddBikeScreen() {
                   <Text
                     style={{
                       fontSize: 14,
-                      color: palette.neutral400,
+                      color: theme.ink3,
                       marginTop: 8,
                       marginLeft: 4,
                     }}
@@ -643,15 +622,11 @@ export default function AddBikeScreen() {
                     marginTop: 8,
                     paddingHorizontal: 16,
                     paddingVertical: 13,
-                    backgroundColor: pressed
-                      ? pressedBg
-                      : isDark
-                        ? palette.neutral800
-                        : palette.neutral50,
+                    backgroundColor: pressed ? pressedBg : theme.surface,
                     borderRadius: 14,
                     borderCurve: 'continuous',
                     borderWidth: 1,
-                    borderColor: palette.primary500,
+                    borderColor: theme.warm,
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 8,
@@ -660,7 +635,7 @@ export default function AddBikeScreen() {
                   <Text
                     style={{
                       fontSize: 15,
-                      color: palette.primary500,
+                      color: theme.warm2,
                       fontWeight: '600',
                       flex: 1,
                     }}
@@ -684,7 +659,7 @@ export default function AddBikeScreen() {
           value={nickname}
           onChangeText={setNickname}
           placeholder={t('garage.nickname')}
-          placeholderTextColor={palette.neutral400}
+          placeholderTextColor={theme.ink3}
           returnKeyType="done"
           onSubmitEditing={handleSubmit}
           style={inputStyle}
@@ -708,7 +683,7 @@ export default function AddBikeScreen() {
         >
           <View
             style={{
-              backgroundColor: palette.primary700,
+              backgroundColor: theme.warm,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
@@ -716,8 +691,8 @@ export default function AddBikeScreen() {
               gap: 8,
             }}
           >
-            {isPending && <ActivityIndicator size="small" color={palette.white} />}
-            <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
+            {isPending && <ActivityIndicator size="small" color={theme.onWarm} />}
+            <Text style={{ ...type.bodyStrong, color: theme.onWarm }}>
               {isPending ? t('garage.saving') : t('garage.addBike')}
             </Text>
           </View>

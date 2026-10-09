@@ -16,10 +16,9 @@ import { ImpactFeedbackStyle } from 'expo-haptics';
 import { Check, X } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
-  FadeIn,
   FadeInUp,
   interpolate,
   runOnJS,
@@ -28,17 +27,15 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OemDisclaimerCard } from '../../components/maintenance/oem-disclaimer-card';
 import { TaskCard } from '../../components/onboarding/maintenance/task-card';
-import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
-import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { getBrandColor } from '../../config/brand-dna';
+import { OnboardingBikePlate } from '../../components/onboarding/onboarding-bike-plate';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
+import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
+import { PLATE_SIZE } from '../../components/ui/bike-plate';
 import { OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
+import { useOnboardingNext } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
@@ -46,6 +43,8 @@ import { isMaintenanceIntent } from '../../lib/pending-intent';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { useEditorialTheme } from '../../theme/editorial';
+import { radius, space, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 import { convertIntervalDistance, intervalDistanceUnit } from '../../utils/maintenance-interval';
 
@@ -56,11 +55,11 @@ const EXIT_SPRING = { damping: 20, stiffness: 200, mass: 0.8 };
 const SNAP_BACK_SPRING = { damping: 18, stiffness: 350, mass: 0.6 };
 
 export default function MaintenanceScreen() {
+  const oc = useOnboardingColors();
+  const { isDark } = useEditorialTheme();
   const { t } = useTranslation();
   const onBack = useOnboardingBack(OB_SCREEN.MAINTENANCE);
-  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.MAINTENANCE);
   const goNext = useOnboardingNext(OB_SCREEN.MAINTENANCE);
-  const insets = useSafeAreaInsets();
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const pendingIntent = useOnboardingStore((s) => s.pendingIntent);
   const setAcceptedOemScheduleIds = useOnboardingStore((s) => s.setAcceptedOemScheduleIds);
@@ -72,7 +71,6 @@ export default function MaintenanceScreen() {
   const model = bikeData?.model ?? undefined;
   const year = bikeData?.year ?? undefined;
   const variant = bikeData?.variant ?? undefined;
-  const brandColor = getBrandColor(make);
   const bikeLabel = [model, make].filter(Boolean).join(' · ') || 'your bike';
 
   // Fetch OEM schedules for this make/model/year[/variant]. Threading the bike's
@@ -255,193 +253,150 @@ export default function MaintenanceScreen() {
     return null;
   }
 
+  const title = t('onboarding.v2MaintenanceTitleFull');
+  const subtitle = done
+    ? t('onboarding.v2MaintenancePreloaded', { bikeLabel })
+    : t('onboarding.v2MaintenanceSwipeInstruction', { bikeLabel });
+
   if (isLoading) {
     // Keep the Back button + progress visible while fetching — a bare,
     // escape-less spinner would trap the rider if the request hangs (e.g. slow
     // network, or a cold cache after Back re-enters this screen).
     return (
-      <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-        <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
-        <OnboardingBackButton
-          onPress={onBack}
-          style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
-        />
+      <OnboardingShell screen={OB_SCREEN.MAINTENANCE} onBack={onBack} title={title} scroll={false}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={ONBOARDING_COLORS.warm} />
+          <ActivityIndicator size="large" color={oc.textMuted} />
         </View>
-      </View>
+      </OnboardingShell>
     );
   }
 
-  return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
+  const plate = (
+    <OnboardingBikePlate make={make} model={model} year={year} size={PLATE_SIZE.COMPACT} />
+  );
 
-      {/* Back button */}
-      <OnboardingBackButton
-        onPress={onBack}
-        style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
-      />
-
-      {/* Header */}
-      <View style={{ paddingHorizontal: 26, paddingTop: 56 }}>
-        <Animated.View entering={FadeIn.duration(400)}>
-          <Text
-            style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 30,
-              lineHeight: 32,
-              color: ONBOARDING_COLORS.textPrimary,
-              letterSpacing: -0.5,
-              marginBottom: 8,
-            }}
-          >
-            {t('onboarding.v2MaintenanceTitle')}
-            {'\n'}
-            <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
-              {t('onboarding.v2MaintenanceTitleItalic')}
+  if (!done) {
+    /* ═══ SWIPE MODE ═══ */
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <OnboardingShell
+          screen={OB_SCREEN.MAINTENANCE}
+          onBack={onBack}
+          title={title}
+          subtitle={subtitle}
+          scroll={false}
+          contentStyle={{ gap: space.sm, paddingTop: space.xs }}
+          secondary={{
+            label: t('onboarding.v2MaintenanceSkipAll'),
+            onPress: () => skipMaintenance({ replace: false }),
+          }}
+          footer={
+            <Text
+              style={[
+                type.caption,
+                { color: oc.textMuted, textAlign: 'center', paddingHorizontal: space.xl },
+              ]}
+            >
+              {t('onboarding.v2MaintenanceReassurance')}
             </Text>
-          </Text>
-          <Text
-            style={{
-              fontSize: 13.5,
-              color: ONBOARDING_COLORS.textSubtitle,
-              lineHeight: 19,
-              maxWidth: 320,
-            }}
-          >
-            {done
-              ? t('onboarding.v2MaintenancePreloaded', { bikeLabel })
-              : t('onboarding.v2MaintenanceSwipeInstruction', { bikeLabel })}
-          </Text>
-        </Animated.View>
-      </View>
+          }
+        >
+          {plate}
 
-      {!done ? (
-        /* ═══ SWIPE MODE ═══ */
-        <>
           {/* Counter + progress dots */}
           <View
             style={{
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
-              paddingHorizontal: 26,
-              paddingTop: 14,
             }}
           >
-            <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 11,
-                fontWeight: '600',
-                letterSpacing: 1.7,
-                color: ONBOARDING_COLORS.textSoft,
-                textTransform: 'uppercase',
-              }}
-            >
-              {String(currentIdx + 1).padStart(2, '0')}{' '}
-              <Text style={{ color: ONBOARDING_COLORS.textFaintest }}>
-                / {String(tasks.length).padStart(2, '0')}
-              </Text>
+            <Text style={[type.figureSmall, { color: oc.textSecondary }]}>
+              {currentIdx + 1}
+              <Text style={{ color: oc.textMuted }}> / {tasks.length}</Text>
             </Text>
-            <View style={{ flexDirection: 'row', gap: 4 }}>
+            <View style={{ flexDirection: 'row', gap: space.xxs }}>
               {tasks.map((task, i) => (
                 <View
                   key={task.id}
                   style={{
                     width: i === currentIdx ? 16 : 4,
                     height: 4,
-                    borderRadius: 2,
+                    borderRadius: radius.pill,
                     backgroundColor:
                       i < currentIdx
                         ? accepted.includes(task.id)
-                          ? ONBOARDING_COLORS.acceptGreen
-                          : ONBOARDING_COLORS.rejectDotFaded
+                          ? oc.acceptGreen
+                          : oc.rejectDotFaded
                         : i === currentIdx
-                          ? brandColor
-                          : ONBOARDING_COLORS.dotInactive,
+                          ? oc.textPrimary
+                          : oc.dotInactive,
                   }}
                 />
               ))}
             </View>
           </View>
 
-          {/* Card stack */}
-          <View
-            style={{
-              flex: 1,
-              marginHorizontal: 24,
-              marginTop: 14,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <View style={{ width: '100%', height: CARD_HEIGHT, position: 'relative' }}>
-              {/* Background cards — animate as top card moves */}
-              {tasks[currentIdx + 2] && (
-                <Animated.View
-                  key={`bg-${tasks[currentIdx + 2].id}`}
-                  style={[
-                    { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
-                    thirdCardStyle,
-                  ]}
-                >
-                  <TaskCard
-                    task={tasks[currentIdx + 2]}
-                    brandColor={brandColor}
-                    dragDirection={noDrag}
-                    measurementSystem={measurementSystem}
-                  />
-                </Animated.View>
-              )}
-              {tasks[currentIdx + 1] && (
-                <Animated.View
-                  key={`bg-${tasks[currentIdx + 1].id}`}
-                  style={[
-                    { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
-                    nextCardStyle,
-                  ]}
-                >
-                  <TaskCard
-                    task={tasks[currentIdx + 1]}
-                    brandColor={brandColor}
-                    dragDirection={noDrag}
-                    measurementSystem={measurementSystem}
-                  />
-                </Animated.View>
-              )}
+          {/* Card stack — grows into the free space, capped at the card's design height */}
+          <View style={{ flex: 1, minHeight: 240, maxHeight: CARD_HEIGHT }}>
+            {tasks[currentIdx + 2] && (
+              <Animated.View
+                key={`bg-${tasks[currentIdx + 2].id}`}
+                style={[
+                  { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+                  thirdCardStyle,
+                ]}
+              >
+                <TaskCard
+                  task={tasks[currentIdx + 2]}
+                  dragDirection={noDrag}
+                  measurementSystem={measurementSystem}
+                />
+              </Animated.View>
+            )}
+            {tasks[currentIdx + 1] && (
+              <Animated.View
+                key={`bg-${tasks[currentIdx + 1].id}`}
+                style={[
+                  { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+                  nextCardStyle,
+                ]}
+              >
+                <TaskCard
+                  task={tasks[currentIdx + 1]}
+                  dragDirection={noDrag}
+                  measurementSystem={measurementSystem}
+                />
+              </Animated.View>
+            )}
 
-              {/* Top swipeable card */}
-              {currentTask && (
-                <GestureDetector gesture={panGesture}>
-                  <Animated.View
-                    key={`top-${currentTask.id}`}
-                    style={[
-                      { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 20 },
-                      topCardStyle,
-                    ]}
-                  >
-                    <TaskCard
-                      task={currentTask}
-                      brandColor={brandColor}
-                      dragDirection={dragDirection}
-                      measurementSystem={measurementSystem}
-                    />
-                  </Animated.View>
-                </GestureDetector>
-              )}
-            </View>
+            {/* Top swipeable card */}
+            {currentTask && (
+              <GestureDetector gesture={panGesture}>
+                <Animated.View
+                  key={`top-${currentTask.id}`}
+                  style={[
+                    { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 20 },
+                    topCardStyle,
+                  ]}
+                >
+                  <TaskCard
+                    task={currentTask}
+                    dragDirection={dragDirection}
+                    measurementSystem={measurementSystem}
+                  />
+                </Animated.View>
+              </GestureDetector>
+            )}
           </View>
 
-          {/* Action buttons */}
+          {/* Skip / add buttons */}
           <View
             style={{
               flexDirection: 'row',
               justifyContent: 'center',
               alignItems: 'center',
-              gap: 18,
-              paddingBottom: 12,
+              gap: space.lg,
             }}
           >
             <Pressable
@@ -449,29 +404,19 @@ export default function MaintenanceScreen() {
               accessibilityRole="button"
               accessibilityLabel="Skip this task"
               style={{
-                width: 60,
-                height: 60,
-                borderRadius: 30,
-                backgroundColor: ONBOARDING_COLORS.surfaceInput,
-                borderWidth: 1.5,
-                borderColor: ONBOARDING_COLORS.rejectBorder,
+                width: 56,
+                height: 56,
+                borderRadius: radius.pill,
+                backgroundColor: oc.surface2,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <X size={22} color={ONBOARDING_COLORS.rejectRed} strokeWidth={2.5} />
+              <X size={22} color={oc.rejectRed} strokeWidth={2.5} />
             </Pressable>
 
             <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 10,
-                letterSpacing: 1.7,
-                color: ONBOARDING_COLORS.textFaint,
-                textTransform: 'uppercase',
-                textAlign: 'center',
-                minWidth: 80,
-              }}
+              style={[type.caption, { color: oc.textMuted, textAlign: 'center', minWidth: 80 }]}
             >
               {t('onboarding.v2MaintenanceSwipeOrTap')}
             </Text>
@@ -481,228 +426,119 @@ export default function MaintenanceScreen() {
               accessibilityRole="button"
               accessibilityLabel="Add this task"
               style={{
-                width: 60,
-                height: 60,
-                borderRadius: 30,
-                backgroundColor: ONBOARDING_COLORS.surfaceInput,
-                borderWidth: 1.5,
-                borderColor: ONBOARDING_COLORS.acceptBorder,
+                width: 56,
+                height: 56,
+                borderRadius: radius.pill,
+                backgroundColor: oc.surface2,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Check size={22} color={ONBOARDING_COLORS.acceptGreen} strokeWidth={2.5} />
+              <Check size={22} color={oc.acceptGreen} strokeWidth={2.5} />
             </Pressable>
           </View>
+        </OnboardingShell>
+      </GestureHandlerRootView>
+    );
+  }
 
-          {/* Skip all + reassurance */}
-          <View style={{ alignItems: 'center', paddingBottom: insets.bottom + 16, gap: 6 }}>
-            <Pressable onPress={() => skipMaintenance({ replace: false })} style={{ padding: 8 }}>
-              <Text
+  /* ═══ SUMMARY MODE ═══ */
+  return (
+    <OnboardingShell
+      screen={OB_SCREEN.MAINTENANCE}
+      onBack={onBack}
+      title={title}
+      subtitle={subtitle}
+      primary={{
+        label: t('onboarding.continue', { defaultValue: 'Continue' }),
+        onPress: handleContinue,
+      }}
+      secondary={
+        skipped.length > 0
+          ? {
+              label: t('onboarding.v2MaintenanceReconsider', { count: skipped.length }),
+              onPress: () => {
+                setCurrentIdx(0);
+                setAccepted([]);
+                setSkipped([]);
+              },
+            }
+          : undefined
+      }
+    >
+      {plate}
+
+      <Text
+        accessibilityRole="header"
+        style={[type.sectionTitle, { color: oc.textPrimary, marginTop: space.xl }]}
+      >
+        {t('onboarding.v2MaintenanceTaskCount', { count: accepted.length })}{' '}
+        {accepted.length === 0
+          ? t('onboarding.v2MaintenanceAddLater')
+          : t('onboarding.v2MaintenanceOnRadar')}
+      </Text>
+      <Text
+        style={[
+          type.subhead,
+          { color: oc.textSecondary, marginTop: space.xxs, marginBottom: space.md },
+        ]}
+      >
+        {t('onboarding.v2MaintenanceReminders')}
+      </Text>
+
+      {/* Accepted tasks — inset grouped rows */}
+      {accepted.length > 0 && (
+        <View
+          style={{
+            borderRadius: radius.card,
+            borderCurve: 'continuous',
+            backgroundColor: oc.surface,
+            overflow: 'hidden',
+            marginBottom: space.md,
+          }}
+        >
+          {accepted.map((id, i) => {
+            const task = tasks.find((tk) => tk.id === id);
+            if (!task) return null;
+            return (
+              <Animated.View
+                key={id}
+                entering={FadeInUp.delay(i * 50).duration(240)}
                 style={{
-                  fontSize: 13,
-                  color: ONBOARDING_COLORS.textLabel,
-                  fontWeight: '500',
-                  textDecorationLine: 'underline',
-                  textDecorationColor: ONBOARDING_COLORS.underlineFaint,
+                  minHeight: 56,
+                  paddingVertical: space.xs,
+                  paddingHorizontal: space.md,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: space.sm,
+                  borderTopWidth: i === 0 ? 0 : 1,
+                  borderTopColor: oc.line,
                 }}
               >
-                {t('onboarding.v2MaintenanceSkipAll')}
-              </Text>
-            </Pressable>
-            <Text
-              style={{
-                fontSize: 11,
-                color: ONBOARDING_COLORS.textFaded,
-                textAlign: 'center',
-                paddingHorizontal: 40,
-              }}
-            >
-              {t('onboarding.v2MaintenanceReassurance')}
-            </Text>
-          </View>
-        </>
-      ) : (
-        /* ═══ SUMMARY MODE ═══ */
-        <>
-          <ScrollView
-            style={{ flex: 1, marginTop: 20 }}
-            contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 }}
-          >
-            {/* Plan ready badge */}
-            <Animated.View
-              entering={FadeIn.duration(380)}
-              style={{
-                alignSelf: 'flex-start',
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 8,
-                paddingVertical: 6,
-                paddingHorizontal: 12,
-                borderRadius: 999,
-                backgroundColor: `${brandColor}24`,
-                borderWidth: 1,
-                borderColor: `${brandColor}59`,
-                marginBottom: 16,
-              }}
-            >
-              <Check size={11} color={brandColor} strokeWidth={3} />
-              <Text
-                style={{
-                  fontFamily: 'GeistMono-Medium',
-                  fontSize: 10,
-                  fontWeight: '700',
-                  letterSpacing: 1.7,
-                  textTransform: 'uppercase',
-                  color: brandColor,
-                }}
-              >
-                {t('onboarding.v2MaintenancePlanReady')}
-              </Text>
-            </Animated.View>
-
-            {/* Summary headline */}
-            <Text
-              style={{
-                fontFamily: 'InstrumentSerif-Regular',
-                fontSize: 30,
-                lineHeight: 32,
-                color: ONBOARDING_COLORS.textWhite,
-                letterSpacing: -0.4,
-                marginBottom: 6,
-              }}
-            >
-              {t('onboarding.v2MaintenanceTaskCount', { count: accepted.length })}
-              {'\n'}
-              <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: brandColor }}>
-                {accepted.length === 0
-                  ? t('onboarding.v2MaintenanceAddLater')
-                  : t('onboarding.v2MaintenanceOnRadar')}
-              </Text>
-            </Text>
-            <Text
-              style={{
-                fontSize: 13,
-                color: ONBOARDING_COLORS.textSubtitle,
-                lineHeight: 19,
-                marginBottom: 18,
-                maxWidth: 320,
-              }}
-            >
-              {t('onboarding.v2MaintenanceReminders')}
-            </Text>
-
-            {/* Accepted tasks list */}
-            {accepted.length > 0 && (
-              <View style={{ gap: 6, marginBottom: 16 }}>
-                {accepted.map((id, i) => {
-                  const task = tasks.find((t) => t.id === id);
-                  if (!task) return null;
-                  return (
-                    <Animated.View
-                      key={id}
-                      entering={FadeInUp.delay(i * 50).duration(380)}
-                      style={{
-                        padding: 10,
-                        paddingHorizontal: 12,
-                        borderRadius: 12,
-                        borderCurve: 'continuous',
-                        backgroundColor: ONBOARDING_COLORS.surfaceInput,
-                        borderWidth: 1,
-                        borderColor: ONBOARDING_COLORS.borderSubtle,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 11,
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: 30,
-                          height: 30,
-                          borderRadius: 8,
-                          borderCurve: 'continuous',
-                          backgroundColor: `${brandColor}2E`,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Check size={15} color={brandColor} strokeWidth={2} />
-                      </View>
-                      <View style={{ flex: 1, minWidth: 0 }}>
-                        <Text
-                          style={{
-                            fontSize: 13.5,
-                            fontWeight: '600',
-                            color: ONBOARDING_COLORS.textWhite,
-                            letterSpacing: -0.2,
-                          }}
-                        >
-                          {task.taskName}
-                        </Text>
-                        <Text
-                          style={{
-                            fontFamily: 'GeistMono-Medium',
-                            fontSize: 11,
-                            color: ONBOARDING_COLORS.textSoft,
-                            letterSpacing: 0.4,
-                            marginTop: 2,
-                          }}
-                        >
-                          {task.intervalKm
-                            ? `${convertIntervalDistance(
-                                task.intervalKm,
-                                measurementSystem,
-                              ).toLocaleString()} ${intervalDistanceUnit(measurementSystem)}`
-                            : ''}
-                          {task.intervalKm && task.intervalDays ? ' · ' : ''}
-                          {task.intervalDays ? `${Math.round(task.intervalDays / 30)} mo` : ''}
-                        </Text>
-                      </View>
-                    </Animated.View>
-                  );
-                })}
-              </View>
-            )}
-
-            {/* Spec-data disclaimer (R5) — after the schedule list */}
-            <OemDisclaimerCard isDark delay={accepted.length * 50} style={{ marginTop: 4 }} />
-
-            {/* Reconsider link */}
-            {skipped.length > 0 && (
-              <Pressable
-                onPress={() => {
-                  setCurrentIdx(0);
-                  setAccepted([]);
-                  setSkipped([]);
-                }}
-                style={{ alignSelf: 'center', padding: 8 }}
-              >
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: ONBOARDING_COLORS.textMutedIcon,
-                    textDecorationLine: 'underline',
-                    textDecorationColor: ONBOARDING_COLORS.underlineFaint,
-                  }}
-                >
-                  {t('onboarding.v2MaintenanceReconsider', { count: skipped.length })}
-                </Text>
-              </Pressable>
-            )}
-          </ScrollView>
-
-          {/* Continue button */}
-          <View
-            style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: insets.bottom + 16 }}
-          >
-            <OnboardingContinueButton
-              label={t('onboarding.continue', { defaultValue: 'Continue' })}
-              onPress={handleContinue}
-              disabled={false}
-            />
-          </View>
-        </>
+                <Check size={18} color={oc.success} strokeWidth={2.5} />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>{task.taskName}</Text>
+                  <Text
+                    style={[type.caption, { color: oc.textMuted, fontVariant: ['tabular-nums'] }]}
+                  >
+                    {task.intervalKm
+                      ? `${convertIntervalDistance(
+                          task.intervalKm,
+                          measurementSystem,
+                        ).toLocaleString()} ${intervalDistanceUnit(measurementSystem)}`
+                      : ''}
+                    {task.intervalKm && task.intervalDays ? ' · ' : ''}
+                    {task.intervalDays ? `${Math.round(task.intervalDays / 30)} mo` : ''}
+                  </Text>
+                </View>
+              </Animated.View>
+            );
+          })}
+        </View>
       )}
-    </GestureHandlerRootView>
+
+      {/* Spec-data disclaimer (R5) — after the schedule list */}
+      <OemDisclaimerCard isDark={isDark} delay={accepted.length * 50} />
+    </OnboardingShell>
   );
 }

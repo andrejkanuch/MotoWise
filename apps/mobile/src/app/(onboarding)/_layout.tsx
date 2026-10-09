@@ -2,7 +2,7 @@ import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import { ErrorFallback } from '../../components/error-fallback';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { captureException } from '../../lib/analytics';
 import { resolveOnboardingVariant } from '../../lib/onboarding-experiment';
 import { useExperimentStore } from '../../stores/experiment.store';
@@ -13,6 +13,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 export default function OnboardingLayout() {
+  const oc = useOnboardingColors();
   // A/B assignment gate — the variant must be resolved BEFORE any onboarding
   // screen renders (it drives flow order, progress, and analytics). Resolution
   // is instant on later launches (persisted) and capped at ~2s on first launch
@@ -25,14 +26,14 @@ export default function OnboardingLayout() {
   }, []);
 
   if (!variant) {
-    return <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }} />;
+    return <View style={{ flex: 1, backgroundColor: oc.background }} />;
   }
 
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: ONBOARDING_COLORS.background },
+        contentStyle: { backgroundColor: oc.background },
         animation: 'ios_from_right',
         animationDuration: 350,
       }}
@@ -61,18 +62,6 @@ export default function OnboardingLayout() {
       <Stack.Screen name="scan-receipt" options={{ gestureEnabled: false }} />
       <Stack.Screen name="notifications" options={{ gestureEnabled: false }} />
       <Stack.Screen name="personalizing" options={{ gestureEnabled: false }} />
-
-      {/* TODO(2026-06-09): Delete v1 onboarding screens after week-4 metrics confirm v2 is stable.
-          These are retained for PostHog feature flag rollback. Unreachable in v2 flow.
-          Files to remove: bike-year, bike-make, bike-model, bike-type, bike-photo, currency, smart-maintenance, insights */}
-      <Stack.Screen name="bike-year" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="bike-make" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="bike-model" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="bike-type" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="bike-photo" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="currency" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="smart-maintenance" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="insights" options={{ gestureEnabled: true }} />
     </Stack>
   );
 }
