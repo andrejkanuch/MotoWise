@@ -40,18 +40,31 @@ describe('onboarding completion flags', () => {
     expect(state.completionSent).toBe(false);
   });
 
-  it('sign-out clears both but keeps the rider answers', () => {
+  it('sign-out drops the whole run, so the next account cannot resume it', () => {
     const store = useOnboardingStore.getState();
     store.setHeardFrom('instagram');
+    store.setRidingGoals(['track_rides']);
+    store.setLastCompletedScreen('personalizing');
     store.setAwaitingGarageCta(true);
     store.setCompletionSent(true);
 
-    store.clearAccountCompletionState();
+    store.resetForSignOut();
 
     const state = useOnboardingStore.getState();
     expect(state.awaitingGarageCta).toBe(false);
     expect(state.completionSent).toBe(false);
-    expect(state.heardFrom).toBe('instagram');
+    expect(state.heardFrom).toBeNull();
+    expect(state.ridingGoals).toEqual([]);
+    expect(state.lastCompletedScreen).toBeNull();
+  });
+
+  it('sign-out keeps the per-process intent resolution, so the next paywall does not wait', () => {
+    const store = useOnboardingStore.getState();
+    store.setIntentResolved(true);
+
+    store.resetForSignOut();
+
+    expect(useOnboardingStore.getState().intentResolved).toBe(true);
   });
 
   it('the root gate follows the server flag again once the hold is cleared', () => {
@@ -61,7 +74,7 @@ describe('onboarding completion flags', () => {
       isServerOnboardingComplete(preferences, useOnboardingStore.getState().awaitingGarageCta),
     ).toBe(false);
 
-    useOnboardingStore.getState().clearAccountCompletionState();
+    useOnboardingStore.getState().resetForSignOut();
     expect(
       isServerOnboardingComplete(preferences, useOnboardingStore.getState().awaitingGarageCta),
     ).toBe(true);

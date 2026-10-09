@@ -710,10 +710,11 @@ function RootLayout() {
           clearParkedScans();
           clearAllReceiptSaveUndo();
           clearScanConsent();
-          // The garage_first gate hold and the completion marker belong to the
-          // account that set them; a stale `awaitingGarageCta` would keep the next
-          // account out of the garage on every launch.
-          useOnboardingStore.getState().clearAccountCompletionState();
+          // The onboarding run (answers, resume point, garage_first hold and the
+          // completion marker) belongs to the account that made it. Kept, the next
+          // account on this device resumed at the last screen with the previous
+          // rider's answers and skipped onboarding and its paywall.
+          useOnboardingStore.getState().resetForSignOut();
           // Note/Odometer work a drag-down parked belongs to the session that wrote it.
           // Store-only: a user sign-out released its photos before the session ended
           // (`releaseSheetDraftsForSignOut`); a forced one cannot, so they stay.
