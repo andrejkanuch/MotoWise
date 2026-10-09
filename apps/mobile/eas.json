@@ -53,6 +53,19 @@
       "ios": {
         "image": "macos-tahoe-26.6-xcode-27.0"
       }
+    },
+    "e2e-simulator": {
+      "distribution": "internal",
+      "environment": "production",
+      "channel": "e2e",
+      "ios": {
+        "simulator": true,
+        "image": "macos-tahoe-26.6-xcode-27.0"
+      },
+      "env": {
+        "EXPO_PUBLIC_OB_VARIANT": "invested",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+      }
     }
   },
   "submit": {

@@ -95,3 +95,4 @@ __pycache__/
 apps/mobile/.impeccable/tmp/
 apps/mobile/.impeccable/questions/
 apps/mobile/.impeccable/decision/
+apps/mobile/.impeccable/review/
