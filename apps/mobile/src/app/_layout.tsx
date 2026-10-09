@@ -641,6 +641,9 @@ function RootLayout() {
         // mount-time registration ran before any session existed or for the
         // previous account. Idempotent; a no-op without notification permission.
         if (decision.shouldRegisterPush) void registerForPushNotifications();
+        // The Get Started card belongs to one account: a different rider on this
+        // device starts clean, the same one keeps their ticks across sign-out.
+        useChecklistStore.getState().claimForUser(sessionUserId);
       } else {
         if (decision.shouldResetUser) {
           // Reset only when we PREVIOUSLY had a user in this app session. On a
@@ -715,10 +718,10 @@ function RootLayout() {
           // account on this device resumed at the last screen with the previous
           // rider's answers and skipped onboarding and its paywall.
           useOnboardingStore.getState().resetForSignOut();
-          // The Get Started card (its items, ticks and dismissal) belongs to the
-          // account too. Kept, the next account on this device inherited the
-          // previous rider's card, with their progress or with none of their own.
-          useChecklistStore.getState().reset();
+          // The Get Started card is NOT reset here: it is owner-keyed, so the same
+          // rider signing back in keeps it (a server-onboarded account never re-runs
+          // `initialize`, so a reset lost it for good), and `claimForUser` in the
+          // session branch resets it when a different account signs in.
           // Note/Odometer work a drag-down parked belongs to the session that wrote it.
           // Store-only: a user sign-out released its photos before the session ended
           // (`releaseSheetDraftsForSignOut`); a forced one cannot, so they stay.

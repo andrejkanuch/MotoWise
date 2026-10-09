@@ -40,10 +40,24 @@ export interface ChecklistState {
   completedItems: string[];
   dismissed: boolean;
   initialized: boolean;
-  initialize: (goals: string[]) => void;
+  /**
+   * The account this card belongs to. Kept across sign-out so the same rider
+   * signing back in finds their card; a different account resets it
+   * (`claimForUser`). `null`: not claimed yet (fresh install, or a pre-v5 blob
+   * that the first signed-in user adopts).
+   */
+  ownerUserId: string | null;
+  initialize: (goals: string[], userId: string | null) => void;
+  /**
+   * Called whenever a session is observed. Same owner: no-op. No owner yet:
+   * the rider adopts the card. A different owner: the card is reset and handed
+   * to the new rider (it was never theirs).
+   */
+  claimForUser: (userId: string) => void;
   /** Idempotent: an item already done changes nothing and is not tracked again. */
   completeItem: (id: string, trigger?: ChecklistCompletionTrigger) => void;
   dismiss: () => void;
+  /** Clears the card. Not called on sign-out: see `claimForUser`. */
   reset: () => void;
 }
 
@@ -106,10 +120,13 @@ export const ALL_CHECKLIST_ITEMS: ChecklistItem[] = [
  *    onboarded users, since `initialize` only runs at onboarding completion.)
  *  - v4: append the "scan a receipt" item for already-onboarded users so the new
  *    activation task shows up without re-running `initialize`.
+ *  - v5: add `ownerUserId: null`. Before v5 sign-out reset the card, so a
+ *    persisted card belongs to whoever signs in next: `claimForUser` adopts it.
  * Items with no matching source pass through unchanged. Exported for unit testing.
  */
 export function migrateChecklistState(persisted: unknown, version: number): ChecklistState {
   const prev = persisted as ChecklistState;
+  const ownerUserId = version < 5 ? null : (prev.ownerUserId ?? null);
   let items = prev.items ?? [];
   if (version < 3) {
     items = items.map((item) => {
@@ -124,7 +141,7 @@ export function migrateChecklistState(persisted: unknown, version: number): Chec
       items = [...items, scanItem];
     }
   }
-  return { ...prev, items };
+  return { ...prev, items, ownerUserId };
 }
 
 /** Build a personalized checklist ordered by the user's goals */
@@ -152,15 +169,31 @@ export const useChecklistStore = create<ChecklistState>()(
       completedItems: [],
       dismissed: false,
       initialized: false,
+      ownerUserId: null,
 
-      initialize: (goals) => {
+      initialize: (goals, userId) => {
         // Always rebuild items from source of truth (deep links may have changed)
         const items = buildChecklist(goals);
-        if (!get().initialized) {
-          set({ items, initialized: true, completedItems: [], dismissed: false });
+        const { initialized, ownerUserId } = get();
+        const otherOwner = ownerUserId !== null && userId !== null && ownerUserId !== userId;
+        if (!initialized || otherOwner) {
+          set({
+            items,
+            initialized: true,
+            completedItems: [],
+            dismissed: false,
+            ownerUserId: userId,
+          });
         } else {
-          set({ items });
+          set({ items, ownerUserId: ownerUserId ?? userId });
         }
+      },
+
+      claimForUser: (userId) => {
+        const { ownerUserId, reset } = get();
+        if (ownerUserId === userId) return;
+        if (ownerUserId !== null) reset();
+        set({ ownerUserId: userId });
       },
 
       completeItem: (id, trigger = CHECKLIST_COMPLETION_TRIGGER.TAP) => {
@@ -178,13 +211,20 @@ export const useChecklistStore = create<ChecklistState>()(
 
       dismiss: () => set({ dismissed: true }),
 
-      reset: () => set({ items: [], completedItems: [], dismissed: false, initialized: false }),
+      reset: () =>
+        set({
+          items: [],
+          completedItems: [],
+          dismissed: false,
+          initialized: false,
+          ownerUserId: null,
+        }),
     }),
     {
       name: 'checklist-state',
-      version: 4,
+      version: 5,
       storage: createJSONStorage(() => createZustandMMKVStorage('checklist-store')),
-      partialize: ({ initialize, completeItem, dismiss, reset, ...data }) => data,
+      partialize: ({ initialize, claimForUser, completeItem, dismiss, reset, ...data }) => data,
       migrate: migrateChecklistState,
     },
   ),

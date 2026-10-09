@@ -314,7 +314,9 @@ export default function PersonalizingScreen() {
       // completion guardrail compares like with like.
       trackOnboardingCompleted();
       MetaAnalytics.trackCompleteRegistration(eventId);
-      useChecklistStore.getState().initialize(ridingGoals);
+      useChecklistStore
+        .getState()
+        .initialize(ridingGoals, useAuthStore.getState().session?.user?.id ?? null);
 
       // Not after the rider already left for the garage: reset() cleared the
       // store, and a marker written now would outlive this onboarding run.

@@ -245,7 +245,7 @@ describe('checklist store', () => {
     });
   });
 
-  it('reset (run on sign-out) leaves no card for the next account', () => {
+  it('reset (run when a different account signs in) leaves no card', () => {
     showCard(CARD_ITEMS, [CHECKLIST_ITEM_ID.FIRST_RIDE]);
     useChecklistStore.getState().dismiss();
     useChecklistStore.getState().reset();
