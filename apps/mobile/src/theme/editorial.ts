@@ -1,5 +1,5 @@
 /**
- * Editorial design theme — warm magazine aesthetic with Instrument Serif display type.
+ * App theme — Race Plate world (graphite ramp, bone ink, copper action, plate states).
  * Provides semantic color tokens for dark/light mode and shared UI constants.
  *
  * Usage:
@@ -11,47 +11,59 @@ import { palette } from '@motovault/design-system';
 import { useColorScheme } from 'nativewind';
 import { createContext, useContext } from 'react';
 
+// Race Plate world (DESIGN.md). Token names are kept from the editorial era so
+// every screen moves to the new ramp at once; `warm` is copper (action) and
+// `warm2` its text-weight variant — never an accent for display type.
 const dark = {
-  bg: palette.editorialDarkBg,
-  bg2: palette.editorialDarkBg2,
-  surface: palette.editorialDarkSurface,
-  surface2: palette.editorialDarkSurface2,
-  surface3: palette.editorialDarkSurface3,
-  ink: palette.editorialDarkInk,
-  ink2: palette.editorialDarkInk2,
-  ink3: palette.editorialDarkInk3,
-  ink4: palette.editorialDarkInk4,
-  line: palette.editorialDarkLine,
-  line2: palette.editorialDarkLine2,
-  warm: palette.editorialDarkWarm,
-  warm2: palette.editorialDarkWarm2,
-  success: palette.editorialSuccess,
-  danger: palette.editorialDanger,
-  info: palette.editorialInfo,
+  bg: palette.plateG0,
+  bg2: palette.plateG0,
+  surface: palette.plateG1,
+  surface2: palette.plateG2,
+  surface3: palette.plateG3,
+  ink: palette.plateInk,
+  ink2: palette.plateInk2,
+  ink3: palette.plateInk3,
+  ink4: palette.plateInk4,
+  line: palette.plateLineDark,
+  line2: palette.plateLine2Dark,
+  warm: palette.plateCopper,
+  warm2: palette.plateCopperText,
+  success: palette.plateGo,
+  danger: palette.plateRed,
+  info: palette.plateInfo,
   purple: palette.editorialPurple,
+  /** Plate-state triad — the signature move. */
+  plateReady: palette.plateBone,
+  plateDue: palette.plateSignal,
+  plateOverdue: palette.plateRed,
+  onPlate: palette.plateOnPlate,
 } as const;
 
-const light = {
-  bg: palette.editorialLightBg,
-  bg2: palette.editorialLightBg2,
-  surface: palette.editorialLightSurface,
-  surface2: palette.editorialLightSurface2,
-  surface3: palette.editorialLightSurface3,
-  ink: palette.editorialLightInk,
-  ink2: palette.editorialLightInk2,
-  ink3: palette.editorialLightInk3,
-  ink4: palette.editorialLightInk4,
-  line: palette.editorialLightLine,
-  line2: palette.editorialLightLine2,
-  warm: palette.editorialLightWarm,
-  warm2: palette.editorialLightWarm2,
-  success: palette.editorialSuccess,
-  danger: palette.editorialDanger,
-  info: palette.editorialInfo,
+const light: EditorialTokens = {
+  bg: palette.plateLightG0,
+  bg2: palette.plateLightG2,
+  surface: palette.plateLightG1,
+  surface2: palette.plateLightG2,
+  surface3: palette.plateLightG3,
+  ink: palette.plateLightInk,
+  ink2: palette.plateLightInk2,
+  ink3: palette.plateLightInk3,
+  ink4: palette.plateLightInk4,
+  line: palette.plateLineLight,
+  line2: palette.plateLine2Light,
+  warm: palette.plateLightCopper,
+  warm2: palette.plateLightCopper,
+  success: palette.plateLightGo,
+  danger: palette.plateLightRed,
+  info: palette.plateLightInfo,
   purple: palette.editorialPurple,
+  plateReady: palette.plateBone,
+  plateDue: palette.plateSignal,
+  plateOverdue: palette.plateRed,
+  onPlate: palette.plateOnPlate,
 } as const;
 
-export type EditorialTokens = typeof dark;
+export type EditorialTokens = { [K in keyof typeof dark]: string };
 
 export const editorialThemes = { dark, light } as const;
 

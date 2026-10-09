@@ -1,4 +1,7 @@
 import '../global.css';
+import { BarlowCondensed_500Medium } from '@expo-google-fonts/barlow-condensed/500Medium';
+import { BarlowCondensed_600SemiBold } from '@expo-google-fonts/barlow-condensed/600SemiBold';
+import { BarlowCondensed_700Bold } from '@expo-google-fonts/barlow-condensed/700Bold';
 import { GeistMono_400Regular } from '@expo-google-fonts/geist-mono/400Regular';
 import { GeistMono_500Medium } from '@expo-google-fonts/geist-mono/500Medium';
 import {
@@ -157,6 +160,7 @@ import { useAuthStore } from '../stores/auth.store';
 import { useExperimentStore } from '../stores/experiment.store';
 import { useOnboardingStore } from '../stores/onboarding.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
+import { PLATE_FONT } from '../theme/type';
 import { rideMMKV } from '../utils/ride-storage';
 import {
   clearDeliveredQueue,
@@ -539,6 +543,10 @@ function RootLayout() {
 
   // Load editorial fonts — don't block splash on this; text uses system fallback until loaded
   useFonts({
+    // Race Plate condensed numerals and titles (theme/type.ts → PLATE_FONT).
+    [PLATE_FONT.medium]: BarlowCondensed_500Medium,
+    [PLATE_FONT.semibold]: BarlowCondensed_600SemiBold,
+    [PLATE_FONT.bold]: BarlowCondensed_700Bold,
     'InstrumentSerif-Regular': InstrumentSerif_400Regular,
     'InstrumentSerif-Italic': InstrumentSerif_400Regular_Italic,
     // Bike hub only (HUB_FONT in components/bike-hub/ui/tokens.ts). Registered

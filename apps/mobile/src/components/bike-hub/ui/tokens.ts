@@ -16,20 +16,20 @@ import { TAB_BAR_MIN_INSET } from '../../../stores/tab-bar.store';
  * `withAlpha` so no colour literal lives in the app.
  */
 export const hub = {
-  ground: palette.surfaceDark,
-  card: palette.cardDark,
-  raised: palette.hubRaised,
-  option: palette.hubOption,
-  track: palette.hubTrack,
-  text: palette.hubText,
-  textSoft: palette.hubTextSoft,
-  dim: palette.hubDim,
-  muted: palette.hubMuted,
+  ground: palette.plateG0,
+  card: palette.plateG1,
+  raised: palette.plateG2,
+  option: palette.plateG2,
+  track: palette.plateG4,
+  text: palette.plateInk,
+  textSoft: palette.plateInk,
+  dim: palette.plateInk2,
+  muted: palette.plateInk3,
   /** Action only — never status, never a chart highlight. */
-  copper: palette.signature500,
-  copperText: palette.hubCopperText,
+  copper: palette.plateCopper,
+  copperText: palette.plateCopperText,
   /** Ink on copper. */
-  ink: palette.hubInk,
+  ink: palette.plateOnPlate,
   late: palette.hubLate,
   soon: palette.hubSoon,
   medium: palette.hubMedium,
@@ -44,8 +44,8 @@ export const hub = {
   chipOnBorder: withAlpha(palette.hubCopperText, 0.5),
   rowCritical: palette.hubRowCritical,
   rowCriticalBorder: withAlpha(palette.hubLate, 0.4),
-  photoChip: withAlpha(palette.surfaceDark, 0.78),
-  tabBar: withAlpha(palette.surfaceDark, 0.96),
+  photoChip: withAlpha(palette.plateG0, 0.78),
+  tabBar: withAlpha(palette.plateG0, 0.96),
   ripple: palette.whiteAlpha10,
   shadow: palette.black,
 } as const;
@@ -213,7 +213,7 @@ export const RIDE_STATUS_STYLE: Record<RideStatus, RideStatusStyle> = {
   },
   [RIDE_STATUS.UNTRACKED]: {
     titleKey: 'bikeHub.rideStatus.untracked',
-    card: palette.cardDark,
+    card: palette.plateG1,
     border: palette.whiteAlpha06,
     dot: palette.hubMuted,
   },

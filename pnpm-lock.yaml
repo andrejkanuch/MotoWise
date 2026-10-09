@@ -234,6 +234,9 @@ importers:
 
   apps/mobile:
     dependencies:
+      '@expo-google-fonts/barlow-condensed':
+        specifier: ^0.4.1
+        version: 0.4.1
       '@expo-google-fonts/geist-mono':
         specifier: ^0.4.3
         version: 0.4.3
@@ -1925,6 +1928,9 @@ packages:
   '@eslint/plugin-kit@0.7.2':
     resolution: {integrity: sha512-+CNAzxglkrpNf/kKywqQfk74QjtceuOE7Qm+AF8miRvPF/wmmK5+OJOgVh3AVTT3RP2mH3+FOaxlE5v72owk0A==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+
+  '@expo-google-fonts/barlow-condensed@0.4.1':
+    resolution: {integrity: sha512-9yuXU1MpI4Dw/8rR4pj2EXcT4/31H5+DrrT47auF8IzD9r7SZPRoNVq8clRq7zxOTh7v1gJk3pBhydDVf2x/dA==}
 
   '@expo-google-fonts/geist-mono@0.4.3':
     resolution: {integrity: sha512-gjnwv1QOG4meZpMhrLjTIPC/+lhyNu8EcXa2eJPVbPrYvguVjCfBq+Ezq6cWKWW8ung6fqb2TjvuTalE6lqlnw==}
@@ -12686,6 +12692,8 @@ snapshots:
     dependencies:
       '@eslint/core': 1.2.1
       levn: 0.4.1
+
+  '@expo-google-fonts/barlow-condensed@0.4.1': {}
 
   '@expo-google-fonts/geist-mono@0.4.3': {}
 
