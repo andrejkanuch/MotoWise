@@ -3,12 +3,13 @@ import { ImpactFeedbackStyle } from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { ArrowRight } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
+import { ONBOARDING_HERO_COLORS } from '../../components/onboarding/onboarding-colors';
 import { getResumeRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { getStoredAnalyticsConsent } from '../../lib/analytics-consent';
@@ -31,7 +32,9 @@ let resumeHandledThisLaunch = false;
 const WELCOME_TITLE_SIZE = 52;
 
 export default function WelcomeScreen() {
-  const oc = useOnboardingColors();
+  // The hero is a photo under a dark veil in both schemes, so its text and
+  // scrim use the dark tokens regardless of the system scheme.
+  const oc = ONBOARDING_HERO_COLORS;
   const { t } = useTranslation();
   const router = useRouter();
 
@@ -108,6 +111,7 @@ export default function WelcomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: oc.background }}>
+      <StatusBar style="light" />
       {/* Hero image — full bleed (dark atmospheric motorcycle shot) */}
       <View
         style={{

@@ -30,7 +30,7 @@ import { QUERY_META } from '../../../lib/query-meta';
 import { maintenanceBadgeOptions } from '../../../lib/query-options';
 import { presentPaywall } from '../../../lib/subscription';
 import { useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, space, type } from '../../../theme/type';
+import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
 import { showActionSheet } from '../../../utils/action-sheet';
 
 type GarageBike = MyMotorcyclesQuery['myMotorcycles'][number];
@@ -306,7 +306,7 @@ export default function GarageScreen() {
       <Sentry.TimeToFullDisplay record />
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+        contentContainerStyle={{ ...readableWidth, paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} tintColor={theme.warm} />

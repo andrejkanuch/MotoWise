@@ -22,7 +22,7 @@ import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, SYSTEM_WEIGHT, space, type } from '../../../theme/type';
+import { GUTTER, radius, readableWidth, SYSTEM_WEIGHT, space, type } from '../../../theme/type';
 import { triggerImpact } from '../../../utils/haptics';
 import { MAP_STYLES } from '../../../utils/map-styles';
 import {
@@ -138,7 +138,12 @@ export default function RideHeatmapScreen() {
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={{ flex: 1, backgroundColor: tok.bg }}
-        contentContainerStyle={{ paddingTop: space.xs, paddingBottom: space.xxxl, gap: space.md }}
+        contentContainerStyle={{
+          ...readableWidth,
+          paddingTop: space.xs,
+          paddingBottom: space.xxxl,
+          gap: space.md,
+        }}
         showsVerticalScrollIndicator={false}
       >
         {/* Map */}

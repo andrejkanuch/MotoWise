@@ -31,7 +31,7 @@ import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, SYSTEM_WEIGHT, space, type } from '../../../theme/type';
+import { GUTTER, radius, readableWidth, SYSTEM_WEIGHT, space, type } from '../../../theme/type';
 import { triggerImpact, triggerSelection } from '../../../utils/haptics';
 import {
   distanceUnitLabel,
@@ -837,6 +837,7 @@ export default function RidesScreen() {
           contentInsetAdjustmentBehavior="automatic"
           style={{ flex: 1, backgroundColor: theme.bg }}
           contentContainerStyle={{
+            ...readableWidth,
             paddingHorizontal: GUTTER,
             paddingTop: space.xs,
             paddingBottom: insets.bottom + 100,

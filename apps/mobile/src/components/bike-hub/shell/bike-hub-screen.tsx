@@ -4,12 +4,20 @@ import { StatusBar } from 'expo-status-bar';
 import { Plus } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Keyboard, Pressable, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Keyboard,
+  Pressable,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { type SharedValue, useSharedValue } from 'react-native-reanimated';
 import { BIKE_SEGMENT, type BikeSegment } from '../../../lib/bike-hub/constants';
 import { parseOrigin, resolveInitialSegment } from '../../../lib/bike-hub/segments';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { CONTENT_MAX_WIDTH, readableWidth } from '../../../theme/type';
 import { OverviewSegment } from '../overview/overview-segment';
 import { BikeSegment as BikeSegmentPanel } from '../segments/bike-segment';
 import { CostsSegment } from '../segments/costs-segment';
@@ -38,6 +46,9 @@ export interface BikeHubScreenProps {
   /** Changes on every re-navigation to an already-mounted screen. */
   ts?: string;
 }
+
+/** Distance of the action pill from the right edge of the content column. */
+const PILL_INSET = 16;
 
 /**
  * Segment → its one primary action, always labelled with what it adds ("Log"
@@ -169,17 +180,19 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
           borderBottomColor: hub.hairline,
         }}
       >
-        <BikeHeader
-          bike={data.bike}
-          origin={origin}
-          unit={data.unit}
-          collapse={collapse}
-          onBack={goBack}
-          onOdometerPress={() => navigationRef.current?.openOdometerSheet()}
-        />
-        {data.bike ? (
-          <SegmentBar active={active} onChange={selectSegment} serviceBadge={data.serviceBadge} />
-        ) : null}
+        <View style={readableWidth}>
+          <BikeHeader
+            bike={data.bike}
+            origin={origin}
+            unit={data.unit}
+            collapse={collapse}
+            onBack={goBack}
+            onOdometerPress={() => navigationRef.current?.openOdometerSheet()}
+          />
+          {data.bike ? (
+            <SegmentBar active={active} onChange={selectSegment} serviceBadge={data.serviceBadge} />
+          ) : null}
+        </View>
       </View>
 
       {data.bike ? (
@@ -281,6 +294,7 @@ function LoadedHub({
   const navigation = useBikeHubNavigation(bike, active, onShowSegment);
   useEffect(() => navigationRef(navigation), [navigationRef, navigation]);
   const keyboardVisible = useKeyboardVisible();
+  const { width: windowWidth } = useWindowDimensions();
 
   const pillAction: Record<BikeSegment, () => void> = {
     [BIKE_SEGMENT.OVERVIEW]: navigation.openLogSheet,
@@ -339,6 +353,8 @@ function LoadedHub({
   };
 
   const pill = PILL[active];
+  // On a tablet the pill sits at the right edge of the readable column, not the screen.
+  const pillRight = PILL_INSET + Math.max(0, (windowWidth - CONTENT_MAX_WIDTH) / 2);
   return (
     <>
       <Sentry.TimeToFullDisplay record />
@@ -353,7 +369,7 @@ function LoadedHub({
       />
       {/* Out of the way while typing a quick note. */}
       {keyboardVisible ? null : (
-        <View style={{ position: 'absolute', right: 16, bottom: pillBottom }}>
+        <View style={{ position: 'absolute', right: pillRight, bottom: pillBottom }}>
           <ActionPill
             testID={`action-pill-${active}`}
             icon={Plus}

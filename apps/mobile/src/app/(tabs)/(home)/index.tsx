@@ -31,7 +31,7 @@ import { BIKE_ORIGIN, BIKE_SEGMENT } from '../../../lib/bike-hub/constants';
 import { useRideStore } from '../../../stores/ride.store';
 import { tabBarBottomOffset, useTabBarStore } from '../../../stores/tab-bar.store';
 import { useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, space, type } from '../../../theme/type';
+import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
 import { triggerSelection } from '../../../utils/haptics';
 
 const FOCUS_TAB = { STATS: 'stats', TRIP: 'trip', HISTORY: 'history' } as const;
@@ -280,7 +280,11 @@ export default function HomeScreen() {
       <ScrollView
         testID="home-screen"
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: bottomPadding, paddingTop: insets.top }}
+        contentContainerStyle={{
+          ...readableWidth,
+          paddingBottom: bottomPadding,
+          paddingTop: insets.top,
+        }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={theme.ink3} />

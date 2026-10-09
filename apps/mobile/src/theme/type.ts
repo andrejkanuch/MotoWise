@@ -15,7 +15,7 @@
  * Usage: `<Text style={[type.body, { color: t.ink }]}>`
  */
 
-import type { TextStyle } from 'react-native';
+import type { TextStyle, ViewStyle } from 'react-native';
 
 /** Registered in `app/_layout.tsx` from `@expo-google-fonts/barlow-condensed`. */
 export const PLATE_FONT = {
@@ -137,3 +137,17 @@ export const radius = {
 
 /** Screen side gutter. */
 export const GUTTER = space.md;
+
+/**
+ * Readable column width. On a phone it is wider than the screen, so nothing
+ * changes; on a tablet content stops at this width and centres instead of
+ * stretching edge to edge.
+ */
+export const CONTENT_MAX_WIDTH = 720;
+
+/** Apply to a screen's scroll content container (or its inner column). */
+export const readableWidth = {
+  width: '100%',
+  maxWidth: CONTENT_MAX_WIDTH,
+  alignSelf: 'center',
+} as const satisfies ViewStyle;

@@ -12,7 +12,7 @@ import {
   ESettingsRow,
 } from '../../../components/ui/editorial';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, space, type } from '../../../theme/type';
+import { GUTTER, readableWidth, space, type } from '../../../theme/type';
 import { triggerImpact, triggerSelection } from '../../../utils/haptics';
 
 const SUPPORT_EMAIL = 'support@motovault.app';
@@ -124,6 +124,7 @@ export default function SupportScreen() {
       contentInsetAdjustmentBehavior="automatic"
       style={{ flex: 1, backgroundColor: theme.bg }}
       contentContainerStyle={{
+        ...readableWidth,
         paddingHorizontal: GUTTER,
         paddingTop: space.md,
         paddingBottom: space.xxxl,

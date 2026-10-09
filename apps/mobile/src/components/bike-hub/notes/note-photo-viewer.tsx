@@ -123,7 +123,7 @@ export function NotePhotoViewer({ photos, initialIndex, onClose }: NotePhotoView
             opacity: pressed ? 0.6 : 1,
           })}
         >
-          <X size={22} color={hub.text} strokeWidth={2.2} />
+          <X size={22} color={hub.onPhotoChip} strokeWidth={2.2} />
         </Pressable>
         {count > 1 ? (
           <Text

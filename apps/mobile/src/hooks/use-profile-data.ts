@@ -74,7 +74,7 @@ export function useDeleteAccount(t: TFunction) {
   const confirmDeleteAccount = () => {
     triggerImpact();
     Alert.alert(
-      t('privacy.deleteTitle', { defaultValue: 'Delete Account' }),
+      t('privacy.deleteTitle', { defaultValue: 'Delete account' }),
       t('privacy.deleteWarning', {
         defaultValue:
           'This will permanently delete your account and ALL associated data including motorcycles, maintenance history, diagnostics, and learning progress. Your subscription will be cancelled. You have 30 days to change your mind before data is permanently removed.',

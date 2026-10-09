@@ -1,5 +1,10 @@
 import { palette } from '@motovault/design-system';
-import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
+import {
+  type EditorialTokens,
+  editorialThemes,
+  tint,
+  useEditorialTheme,
+} from '../../theme/editorial';
 
 /**
  * Onboarding colors — Race Plate world, both schemes (DESIGN.md).
@@ -111,3 +116,10 @@ export function useOnboardingColors(): OnboardingColors {
   const { t } = useEditorialTheme();
   return onboardingColorsFor(t);
 }
+
+/**
+ * Colours for text and scrims laid over a hero photo. A photo is not the theme
+ * ground, so these are the dark-scheme tokens in both schemes: a dark veil
+ * keeps the image's contrast and light ink stays readable on it.
+ */
+export const ONBOARDING_HERO_COLORS: OnboardingColors = onboardingColorsFor(editorialThemes.dark);

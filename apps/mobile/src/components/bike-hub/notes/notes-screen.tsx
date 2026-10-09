@@ -21,7 +21,7 @@ import { filterNotes, getNoteLink } from '../../../lib/bike-hub/notes';
 import { isBikeSegment } from '../../../lib/bike-hub/segments';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
 import { useEditorialTheme } from '../../../theme/editorial';
-import { type } from '../../../theme/type';
+import { readableWidth, type } from '../../../theme/type';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import { useGuardedPush } from '../shell/use-guarded-push';
 import { useHubBottomLayout } from '../ui/bottom-layout';
@@ -412,7 +412,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
         // `flexGrow` lets the empty state fill (and scroll within) the room above
         // the composer; at the largest text sizes it scrolls instead of being
         // cut off behind the bar.
-        contentContainerStyle={{ padding: 16, flexGrow: 1 }}
+        contentContainerStyle={{ ...readableWidth, padding: 16, flexGrow: 1 }}
         onScrollBeginDrag={() => setSwipeOpenId(null)}
         refreshControl={
           <RefreshControl

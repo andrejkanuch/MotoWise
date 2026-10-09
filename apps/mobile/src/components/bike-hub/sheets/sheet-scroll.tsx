@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { ScrollView, useWindowDimensions, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { readableWidth } from '../../../theme/type';
 import { useHubTheme } from '../ui/tokens';
 
 /** Room the system keeps between the status bar and a full-height sheet's top edge. */
@@ -50,7 +51,7 @@ export function SheetScroll({ children, contentContainerStyle, testID }: SheetSc
         maxHeight: height - insets.top - SHEET_TOP_CLEARANCE,
         backgroundColor: hub.card,
       }}
-      contentContainerStyle={contentContainerStyle}
+      contentContainerStyle={[readableWidth, contentContainerStyle]}
       alwaysBounceVertical={false}
       contentInsetAdjustmentBehavior="never"
       automaticallyAdjustContentInsets={false}

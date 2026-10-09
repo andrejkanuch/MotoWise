@@ -30,7 +30,7 @@ import { Avatar } from '../../../components/ui/avatar';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { type EditorialTokens, tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, space, type } from '../../../theme/type';
+import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
 import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact } from '../../../utils/haptics';
 import { computeTripCompleteness } from '../../../utils/trip-completeness';
@@ -510,6 +510,7 @@ export default function MyTripsScreen() {
           renderItem={renderItem}
           keyExtractor={(item) => item.node.id}
           contentContainerStyle={{
+            ...readableWidth,
             paddingHorizontal: GUTTER,
             paddingTop: space.xs,
             paddingBottom: space.xxxl,

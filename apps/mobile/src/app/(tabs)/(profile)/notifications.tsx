@@ -24,7 +24,7 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { meOptions } from '../../../lib/query-options';
 import { useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, space } from '../../../theme/type';
+import { GUTTER, readableWidth, space } from '../../../theme/type';
 
 type NotificationPrefs = {
   newArticles: boolean;
@@ -114,6 +114,7 @@ export default function NotificationsScreen() {
       contentInsetAdjustmentBehavior="automatic"
       style={{ flex: 1, backgroundColor: theme.bg }}
       contentContainerStyle={{
+        ...readableWidth,
         paddingHorizontal: GUTTER,
         paddingTop: space.md,
         paddingBottom: space.xxxl,

@@ -23,7 +23,7 @@ import { userFriendlyError } from '../../../lib/graphql-errors';
 import { queryKeys } from '../../../lib/query-keys';
 import { meOptions } from '../../../lib/query-options';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, space, type } from '../../../theme/type';
+import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
 /* ─── Riding profile options ─── */
@@ -271,6 +271,7 @@ export default function EditProfileScreen() {
         keyboardShouldPersistTaps="handled"
         style={{ flex: 1, backgroundColor: theme.bg }}
         contentContainerStyle={{
+          ...readableWidth,
           paddingHorizontal: GUTTER,
           paddingTop: space.md,
           paddingBottom: space.xxxl,

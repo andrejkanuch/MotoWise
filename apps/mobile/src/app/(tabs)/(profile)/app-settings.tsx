@@ -7,7 +7,7 @@ import { useAppPreferences } from '../../../components/profile/use-app-preferenc
 import { ESettingsGroup, ESettingsRow } from '../../../components/ui/editorial';
 import { PROFILE_ROUTE } from '../../../config/routes';
 import { useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, space } from '../../../theme/type';
+import { GUTTER, readableWidth, space } from '../../../theme/type';
 
 const PREFERENCE_ROWS = [
   { key: APP_PREFERENCE_KEY.LANGUAGE, icon: Globe },
@@ -32,6 +32,7 @@ export default function AppSettingsScreen() {
       contentInsetAdjustmentBehavior="automatic"
       style={{ flex: 1, backgroundColor: theme.bg }}
       contentContainerStyle={{
+        ...readableWidth,
         paddingHorizontal: GUTTER,
         paddingTop: space.md,
         paddingBottom: space.xxxl,

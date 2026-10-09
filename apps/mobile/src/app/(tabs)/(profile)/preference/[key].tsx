@@ -7,7 +7,7 @@ import {
 import { useAppPreferences } from '../../../../components/profile/use-app-preferences';
 import { EOptionRow, ESettingsGroup } from '../../../../components/ui/editorial';
 import { useEditorialTheme } from '../../../../theme/editorial';
-import { GUTTER, space } from '../../../../theme/type';
+import { GUTTER, readableWidth, space } from '../../../../theme/type';
 
 const KEYS = Object.values(APP_PREFERENCE_KEY) as readonly string[];
 
@@ -30,6 +30,7 @@ export default function PreferenceScreen() {
         contentInsetAdjustmentBehavior="automatic"
         style={{ flex: 1, backgroundColor: theme.bg }}
         contentContainerStyle={{
+          ...readableWidth,
           paddingHorizontal: GUTTER,
           paddingTop: space.md,
           paddingBottom: space.xxxl,

@@ -50,7 +50,7 @@ import {
   presentPaywall,
 } from '../../../lib/subscription';
 import { useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, space } from '../../../theme/type';
+import { GUTTER, readableWidth, space } from '../../../theme/type';
 
 const IS_IOS = process.env.EXPO_OS === 'ios';
 const TAB_BAR_CLEARANCE = 120;
@@ -95,6 +95,7 @@ export default function ProfileScreen() {
       testID="profile-screen"
       style={{ flex: 1, backgroundColor: theme.bg }}
       contentContainerStyle={{
+        ...readableWidth,
         paddingTop: insets.top + space.md,
         paddingHorizontal: GUTTER,
         paddingBottom: TAB_BAR_CLEARANCE,

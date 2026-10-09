@@ -43,7 +43,7 @@ function Chip({ label }: { label: string }) {
       <Text
         maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
         numberOfLines={1}
-        style={{ ...SYSTEM_WEIGHT.medium, fontSize: 12, color: hub.text }}
+        style={{ ...SYSTEM_WEIGHT.medium, fontSize: 12, color: hub.onPhotoChip }}
       >
         {label}
       </Text>
@@ -162,8 +162,8 @@ export function PhotoBand({
             gap: 8,
           }}
         >
-          <ActivityIndicator color={hub.text} />
-          <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 13, color: hub.text }}>
+          <ActivityIndicator color={hub.onPhotoChip} />
+          <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 13, color: hub.onPhotoChip }}>
             {t('garage.uploadingPhoto')}
           </Text>
         </View>

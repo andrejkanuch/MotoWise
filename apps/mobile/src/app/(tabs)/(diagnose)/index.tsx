@@ -31,7 +31,7 @@ import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, space, type } from '../../../theme/type';
+import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
 import { triggerImpact } from '../../../utils/haptics';
 
 type Diagnostic = MyDiagnosticsQuery['myDiagnostics'][number];
@@ -113,6 +113,7 @@ export default function DiagnoseScreen() {
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
+          ...readableWidth,
           paddingTop: insets.top + space.xs,
           paddingBottom: insets.bottom + 80,
           paddingHorizontal: GUTTER,

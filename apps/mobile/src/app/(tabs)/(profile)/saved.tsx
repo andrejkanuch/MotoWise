@@ -18,7 +18,7 @@ import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, space, type } from '../../../theme/type';
+import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
 import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact } from '../../../utils/haptics';
 import { formatDistance } from '../../../utils/ride-formatters';
@@ -303,6 +303,7 @@ export default function SavedScreen() {
       renderItem={renderItem}
       keyExtractor={(item) => item.node.id}
       contentContainerStyle={{
+        ...readableWidth,
         paddingHorizontal: GUTTER,
         paddingTop: space.xs,
         paddingBottom: space.xxxl,

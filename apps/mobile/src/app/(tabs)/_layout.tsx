@@ -8,7 +8,7 @@ import { CommonActions } from 'expo-router/react-navigation';
 import { Bike, Compass, Home, Route, User } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, {
   FadeIn,
   useAnimatedStyle,
@@ -53,8 +53,12 @@ const TAB_MIN_HEIGHT = process.env.EXPO_OS === 'android' ? 48 : 44;
  */
 const HUB_DOCK_OVERHANG = 8;
 
-/** The island is the G0 ground at 96%, so content scrolling under it stays faintly legible. */
-const TAB_BAR_OPACITY = 0.96;
+/**
+ * The island is an opaque raised surface with a hairline: there is no native
+ * blur in the app, and any translucency let list text read through it.
+ */
+/** On a tablet the island stops at this width and centres; on a phone it spans the gutters. */
+const TAB_BAR_MAX_WIDTH = 520;
 const INDICATOR_SIZE = 4;
 const FAB_SIZE = 56;
 const FAB_RING = 3;
@@ -201,6 +205,8 @@ function HubDock() {
 function IslandTabBarContent({ state, navigation }: BottomTabBarProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
+  const sideInset = Math.max(space.lg, (windowWidth - TAB_BAR_MAX_WIDTH) / 2);
   const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
   // Screens that float chrome above the bar (the bike hub's action pill) read
@@ -239,11 +245,11 @@ function IslandTabBarContent({ state, navigation }: BottomTabBarProps) {
       style={{
         position: 'absolute',
         bottom: tabBarBottomOffset(insets.bottom),
-        left: space.lg,
-        right: space.lg,
-        backgroundColor: tint(theme.bg, TAB_BAR_OPACITY),
+        left: sideInset,
+        right: sideInset,
+        backgroundColor: theme.surface,
         borderRadius: radius.plate + space.xs,
-        borderWidth: 1,
+        borderWidth: StyleSheet.hairlineWidth,
         borderColor: theme.line,
         flexDirection: 'row',
         alignItems: 'center',
