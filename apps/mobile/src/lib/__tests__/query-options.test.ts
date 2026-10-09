@@ -3,13 +3,16 @@
 
 const mockFetcher = jest.fn();
 const mockSignOutGone = jest.fn();
+const mockRequestUser = jest.fn();
 
 jest.mock('../graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 jest.mock('../account-gone', () => ({
-  ...jest.requireActual('../account-gone'),
-  getSessionUserId: async () => 'user-a',
+  // The real classification, without the module's store/Supabase imports.
+  isAccountGoneError: (error: unknown) =>
+    jest.requireActual('../graphql-errors').hasGraphQLCode(error, 'NOT_FOUND'),
+  getRequestSessionUserId: () => mockRequestUser(),
   signOutGoneAccount: (...args: unknown[]) => mockSignOutGone(...args),
 }));
 jest.mock('../supabase', () => ({ supabase: { auth: {} } }));
@@ -30,7 +33,10 @@ function gqlError(code: string) {
 // biome-ignore lint/style/noNonNullAssertion: meOptions always defines queryFn
 const runMe = () => (meOptions().queryFn as unknown as () => Promise<unknown>)!();
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockRequestUser.mockReturnValue('user-a');
+});
 
 describe('meOptions queryFn', () => {
   it('returns the user on success without signing out', async () => {
@@ -41,6 +47,9 @@ describe('meOptions queryFn', () => {
 
   it('signs out once and rethrows when the account is gone (NOT_FOUND)', async () => {
     const error = gqlError('NOT_FOUND');
+    // The session user is captured BEFORE the request: a switch while it is in
+    // flight must not redirect the sign-out to the new account.
+    mockRequestUser.mockReturnValueOnce('user-a').mockReturnValue('user-b');
     mockFetcher.mockRejectedValue(error);
     await expect(runMe()).rejects.toBe(error);
     expect(mockSignOutGone).toHaveBeenCalledTimes(1);
@@ -56,5 +65,12 @@ describe('meOptions queryFn', () => {
     mockFetcher.mockRejectedValue(error);
     await expect(runMe()).rejects.toBe(error);
     expect(mockSignOutGone).not.toHaveBeenCalled();
+  });
+
+  it('passes no user when the request carried no session (nothing to sign out)', async () => {
+    mockRequestUser.mockReturnValue(null);
+    mockFetcher.mockRejectedValue(gqlError('NOT_FOUND'));
+    await expect(runMe()).rejects.toBeTruthy();
+    expect(mockSignOutGone).toHaveBeenCalledWith(null);
   });
 });

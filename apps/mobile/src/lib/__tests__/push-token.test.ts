@@ -36,15 +36,13 @@ jest.mock('@motovault/graphql', () => ({
 }));
 jest.mock('../logger', () => ({ logger: { warn: jest.fn(), error: jest.fn() } }));
 const mockSession = { userId: 'user-a' as string | null };
+const mockGetSession = jest.fn();
 jest.mock('../supabase', () => ({
-  supabase: {
-    auth: {
-      getSession: async () => ({
-        data: { session: mockSession.userId ? { user: { id: mockSession.userId } } : null },
-      }),
-    },
-  },
+  supabase: { auth: { getSession: (...args: unknown[]) => mockGetSession(...args) } },
 }));
+const sessionFor = (userId: string | null) => ({
+  data: { session: userId ? { user: { id: userId } } : null },
+});
 
 import {
   registerForPushNotifications,
@@ -56,6 +54,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockConfig.projectId = 'proj-1';
   mockSession.userId = 'user-a';
+  mockGetSession.mockImplementation(async () => sessionFor(mockSession.userId));
   process.env.EXPO_OS = 'ios';
   mockHasPermission.mockResolvedValue(true);
   mockGetExpoPushToken.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
@@ -200,5 +199,50 @@ describe('unregisterPushTokenForSignOut', () => {
     resolveToken({ data: 'ExponentPushToken[abc]' });
     await Promise.all([registering, signingOut]);
     expect(mockGqlFetcher).not.toHaveBeenCalledWith('REGISTER_DOC', expect.anything());
+  });
+
+  it('lets a registration that starts during the final session read win', async () => {
+    // Second getSession (the late check) is held open while the rider signs back in.
+    let releaseCheck: () => void = () => {};
+    mockGetSession
+      .mockImplementationOnce(async () => sessionFor('user-a'))
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            releaseCheck = () => resolve(sessionFor('user-a'));
+          }),
+      );
+    const signingOut = unregisterPushTokenForSignOut();
+    await new Promise((r) => setImmediate(r));
+    await registerForPushNotifications();
+    mockGqlFetcher.mockClear();
+    releaseCheck();
+    await signingOut;
+    expect(mockGqlFetcher).not.toHaveBeenCalledWith('UNREGISTER_DOC', expect.anything());
+  });
+
+  it('orders the unregister after a claim that is already on the wire', async () => {
+    const order: string[] = [];
+    let landClaim: () => void = () => {};
+    mockGqlFetcher.mockImplementation((doc: string) => {
+      if (doc === 'REGISTER_DOC') {
+        return new Promise<void>((resolve) => {
+          landClaim = () => {
+            order.push('register');
+            resolve();
+          };
+        });
+      }
+      order.push('unregister');
+      return Promise.resolve({});
+    });
+    const registering = registerForPushNotifications();
+    await new Promise((r) => setImmediate(r)); // claim sent, response pending
+    const signingOut = unregisterPushTokenForSignOut();
+    await new Promise((r) => setImmediate(r));
+    expect(order).toEqual([]); // unregister waits for the claim
+    landClaim();
+    await Promise.all([registering, signingOut]);
+    expect(order).toEqual(['register', 'unregister']);
   });
 });

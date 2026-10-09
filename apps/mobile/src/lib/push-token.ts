@@ -36,13 +36,25 @@ async function getDevicePushToken(): Promise<{
   return token ? { token, platform } : null;
 }
 
+/** The registration currently running, so a sign-out can order itself after it. */
+let pendingRegister: Promise<void> | null = null;
+
 /**
  * MOT-278: acquire this device's Expo push token and register it with the API so
  * the server can send maintenance-due push notifications. Idempotent and
  * best-effort — only runs when permission is granted, and never throws into the
  * UI (a failed registration must not disrupt onboarding or launch).
  */
-export async function registerForPushNotifications(): Promise<void> {
+export function registerForPushNotifications(): Promise<void> {
+  const run = registerOnce();
+  pendingRegister = run;
+  void run.finally(() => {
+    if (pendingRegister === run) pendingRegister = null;
+  });
+  return run;
+}
+
+async function registerOnce(): Promise<void> {
   pushGeneration += 1;
   const generation = pushGeneration;
   try {
@@ -91,7 +103,12 @@ export async function unregisterPushTokenForSignOut(): Promise<void> {
   const timeout = new Promise<void>((resolve) => {
     timer = setTimeout(resolve, SIGN_OUT_UNREGISTER_TIMEOUT_MS);
   });
+  const inFlightRegister = pendingRegister;
   const unregister = async () => {
+    // A claim already on the wire must land first, or it would re-attach the
+    // token to the account that is signing out after the unregister removed it.
+    // (One that has not sent yet sees the bumped generation and skips.)
+    if (inFlightRegister) await inFlightRegister;
     const owner = await currentUserId();
     if (!owner) return;
     const deviceToken = token ?? (await getDevicePushToken())?.token;

@@ -15,12 +15,15 @@ jest.mock('../supabase', () => ({
     },
   },
 }));
+jest.mock('../../stores/auth.store', () => ({
+  useAuthStore: { getState: () => ({ session: { user: { id: 'user-a' } } }) },
+}));
 jest.mock('../analytics', () => ({
   addBreadcrumb: jest.fn(),
   captureException: (...args: unknown[]) => mockCaptureException(...args),
 }));
 
-import { isAccountGoneError, signOutGoneAccount } from '../account-gone';
+import { getRequestSessionUserId, isAccountGoneError, signOutGoneAccount } from '../account-gone';
 
 function clientError(code: string) {
   return Object.assign(new Error('graphql error'), {
@@ -73,5 +76,18 @@ describe('signOutGoneAccount', () => {
   it('does nothing when the request carried no session', async () => {
     await signOutGoneAccount(null);
     expect(mockSignOut).not.toHaveBeenCalled();
+  });
+
+  it("keeps a genuine NOT_FOUND for the current account separate from another account's stale check", async () => {
+    // A's stale request is still checking (B is signed in) when B's own `me` fails.
+    mockSession.userId = 'user-b';
+    await Promise.all([signOutGoneAccount('user-a'), signOutGoneAccount('user-b')]);
+    expect(mockSignOut).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getRequestSessionUserId', () => {
+  it("reads the auth store's session synchronously", () => {
+    expect(getRequestSessionUserId()).toBe('user-a');
   });
 });

@@ -7,7 +7,7 @@
  */
 import { AllMaintenanceTasksDocument, MeDocument } from '@motovault/graphql';
 import { queryOptions } from '@tanstack/react-query';
-import { getSessionUserId, isAccountGoneError, signOutGoneAccount } from './account-gone';
+import { getRequestSessionUserId, isAccountGoneError, signOutGoneAccount } from './account-gone';
 import { gqlFetcher } from './graphql-client';
 import { queryKeys } from './query-keys';
 
@@ -20,7 +20,7 @@ export const meOptions = () =>
     queryKey: queryKeys.user.me,
     queryFn: async () => {
       // Whose `me` this is: a NOT_FOUND may only end the session that asked.
-      const requestUserId = await getSessionUserId();
+      const requestUserId = getRequestSessionUserId();
       try {
         return await gqlFetcher(MeDocument);
       } catch (error) {
