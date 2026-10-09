@@ -60,8 +60,12 @@ const HUB_DOCK_OVERHANG = 8;
 /** On a tablet the island stops at this width and centres; on a phone it spans the gutters. */
 const TAB_BAR_MAX_WIDTH = 520;
 const INDICATOR_SIZE = 4;
-const FAB_SIZE = 56;
-const FAB_RING = 3;
+/**
+ * The Ride button sits inside the island row. It used to rise half out of the
+ * bar on a negative margin, and the tab bar's host view clipped that half on
+ * Android (and on iOS in some container states).
+ */
+const FAB_SIZE = 52;
 
 function formatElapsed(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -128,10 +132,7 @@ function RideFAB() {
           backgroundColor: rideTheme.warm,
           alignItems: 'center',
           justifyContent: 'center',
-          marginTop: -FAB_SIZE / 2,
           borderCurve: 'continuous',
-          borderWidth: FAB_RING,
-          borderColor: rideTheme.bg,
         }}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
