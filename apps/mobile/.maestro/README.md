@@ -53,16 +53,19 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   log-mode shape (Odometer / Date completed / "Log it", Priority hidden), logs a completed record,
   confirms it lands under History, and cleans up. **Authored from source 2026-07-16, pending
   on-device validation.** `test:e2e:log-past-work`.
-- **`flows/add-bike.yaml`** — add a second motorcycle. **Requires a PRO account** (free tier caps at
-  1 bike and onboarding already adds a Honda → paywall). Authored from source; validate on a Pro
-  account. `test:e2e:add-bike`.
+- **`flows/add-bike.yaml`** — add a motorcycle from the garage. Composes `onboarding.yaml` with
+  `NO_BIKE: "true"` (bike setup → "Not sure of the details?" → "I'll add my bike later" → no-bike
+  value screen), so the free test user reaches an empty garage and "Add your first bike" opens the
+  sheet — with the default onboarding Honda a free user hits the MAX_BIKES paywall instead (correct
+  app behaviour). `test:e2e:add-bike`. Every other flow keeps the default (a Honda Africa Twin).
 - **`flows/delete-expense.yaml`** — delete an expense. The gesture-only delete (the original client
   complaint) was **fixed**: tapping an expense row now reveals a visible "Delete" button
   (`swipeable-expense.tsx`); the reveal was validated on-device 2026-07-15. Flow drives the button
   path (tap row → Delete → confirm). `test:e2e:delete-expense`.
 - **`flows/log-ride.yaml`** — start a ride, record, hold-to-end, save. **Validated end-to-end
   on-device 2026-07-15.** Uses `setLocation` for a GPS fix; ends via a long-press ("Hold to end
-  ride") + a point-tap on the "End Anyway" bottom-sheet confirm (buttons not in the a11y tree).
+  ride") + a point-tap (~73%,88%) on the "End Anyway" bottom-sheet confirm (its texts are not in
+  the a11y tree). Re-validated 2026-10-09 against the redesigned sheet.
   `test:e2e:log-ride`.
 - **`flows/bike-hub-overview.yaml`** — the redesigned bike screen (bike-detail redesign R1): four
   segments, Overview "Log" pill → Log sheet → Note sheet → save, the Notes screen with delete + Undo,
@@ -142,8 +145,8 @@ visible text verbatim.
 
 See `.claude/skills/write-tests/E2E.md` for the full convention set. Screenshots from
 `takeScreenshot:` land in `~/.maestro/tests/<run>/` under `maestro test`, but when driving
-via the Maestro **MCP** `run` tool they're written to the **cwd** (`apps/mobile/*.png`) — clean
-those up, they're not meant to be committed.
+via the Maestro **MCP** `run` tool they're written to the **cwd** (`apps/mobile/*.png`), which
+`apps/mobile/.gitignore` ignores — they're debug output, never commit them.
 
 ## App-specific gotchas (learned from live runs)
 
@@ -161,15 +164,19 @@ Hard-won specifics for THIS app — check these first when a flow "should work" 
   **"Save Password?"** (dismiss `Not Now`). After value-moments (adding a task, completing one, etc.)
   a StoreKit **"Enjoying MotoVault?"** rating prompt can appear (dismiss `Not Now`) — it's gated to
   ≥2 value-moments + once per app version, so it shows up on seasoned accounts, not fresh ones.
+- **What's New covers Home for already-onboarded accounts.** It shows once per app version to a
+  rider who did not just onboard, ~500ms after the tabs mount. `onboarding.yaml` waits for its
+  `"What's new · v.*"` label and taps the `Skip` `rightOf` it (both optional) before asserting Home.
 - **Tab-bar labels include the badge in their a11y text.** The Garage tab reads `"Garage, 1 due"`
   (was `"1, Garage"` before the a11y fix) when a badge is present. Always match tabs with a partial
   regex (`.*Garage.*`), never the bare word.
 - **Editorial headers split a phrase across `Text` nodes.** "New task." / "Edit task." render as two
   elements, so a single-element regex like `.*New.*task.*` will NOT match. Assert on a single-element
   label or button instead (e.g. `Priority`, `Save task`).
-- **Lists truncate; card actions don't need expanding.** The bike hub shows the top ~5 tasks + a
+- **Lists truncate; row actions need expanding.** The bike hub shows the top ~5 tasks + a
   **"See all"**; to act on a specific task reliably, open the All Tasks screen and `scrollUntilVisible`
-  it. The Done/Edit/Delete row is always rendered on each card — no tap-to-expand needed.
+  it. The hub and All Tasks share one row (`bike-hub/service/task-row.tsx`): its check circle
+  (a11y "Mark <title> done") completes the task; Edit/Delete appear only after tapping the title.
 - **Disambiguate repeated per-row controls.** Every task card has its own `Edit`/`Delete`; anchor the
   tap with `below:`/`rightOf:` (e.g. `tapOn: { text: "Edit", below: { text: "<task title>" } }`).
 - **Confirm dialogs reuse the same word as the row button.** A destructive action opens an Alert whose
@@ -190,7 +197,7 @@ Hard-won specifics for THIS app — check these first when a flow "should work" 
   `longPressOn`), and deleting an expense is swipe/long-press (see delete-expense's blocked note).
 - **Unlabeled + portal'd controls need point-taps.** The center ride **FAB** has no label (tap ~50%,92%),
   and the ride's **"End ride?"** confirm is a `@gorhom/bottom-sheet` whose buttons are absent from the
-  a11y tree — tap "End Anyway" by point (~73%,80%). Point-taps are percentage-based (portable) but
+  a11y tree — tap "End Anyway" by point (~73%,88% since the redesign; 73%,80% now hits the tip box). Point-taps are percentage-based (portable) but
   resolution-sensitive; prefer a real selector whenever `inspect_screen` exposes one.
 - **GPS-dependent flows need `setLocation`.** The ride pre-flight GPS check and recording need a fix;
   set one at the top of the flow (a stationary sim logs ~0 distance, which still saves).
@@ -206,8 +213,11 @@ iOS 27 simulator against a Release build pointed at a local Supabase + API
 - **Text matching ignores case.** `".*Garage.*"` matched Home's "Today in your garage." and
   `".*Profile.*"` matched "Complete your bike profile". Anchor tab taps: `"Garage(,.*)?"`.
 - **iOS merges a pressable's child texts into one label** ("E2E Complete Me, HIGH",
-  "No expenses yet, Track your fuel…"). Match row titles with `"${TITLE}(,.*)?"` (keeps an
-  edited title distinct) or `".*${TEXT}.*"` when the title is not first.
+  "No expenses yet, Track your fuel…"). Match active task rows with `"${TITLE}(,.*)?"` (keeps an
+  edited title distinct) and `".*${TEXT}.*"` when the title is not first. A completed (history)
+  task row (`HistoryTaskRow`, bike hub History and All Tasks → Completed) leads with the
+  completion date — "Oct 9 2026. E2E Service Record Link. At 12,600 km. €88.00" — so always match
+  it as `".*${TITLE}.*"`; a title-anchored pattern never matches it.
 - **Onboarding must pick a model.** `complete_onboarding` creates the bike only when make, model
   and year are all set; a make-only "Add to my garage" leaves the garage empty. Tap the model
   chip directly — typing a query makes the search field's value match too.

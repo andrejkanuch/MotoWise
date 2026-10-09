@@ -3,7 +3,7 @@ import { Search, X } from 'lucide-react-native';
 import { useCallback, useRef, useState } from 'react';
 import { FlatList, Pressable, TextInput, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-
+import { useEditorialTheme } from '../theme/editorial';
 import { type GeocodingResult, searchPlaces } from '../utils/mapbox-geocoding';
 
 type GeocodingSearchBarProps = {
@@ -23,13 +23,14 @@ export function GeocodingSearchBar({
   const [results, setResults] = useState<GeocodingResult[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const inputBg = isDark ? palette.cardDark : palette.neutral100;
-  const inputBorder = isDark ? 'rgba(255,255,255,0.08)' : palette.neutral200;
-  const textColor = isDark ? palette.white : palette.neutral900;
-  const placeholderColor = isDark ? palette.neutral600 : palette.neutral400;
-  const resultsBg = isDark ? palette.cardDark : palette.white;
-  const resultText = isDark ? palette.white : palette.neutral900;
-  const resultSubtitle = isDark ? palette.neutral400 : palette.neutral500;
+  const { t } = useEditorialTheme();
+  const inputBg = t.surface2;
+  const inputBorder = t.line;
+  const textColor = t.ink;
+  const placeholderColor = t.ink4;
+  const resultsBg = t.surface;
+  const resultText = t.ink;
+  const resultSubtitle = t.ink3;
 
   const handleChangeText = useCallback(
     (text: string) => {

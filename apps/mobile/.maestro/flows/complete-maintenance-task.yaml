@@ -24,8 +24,8 @@
 #   - the Garage tab a11y text carries the badge count, so match it as a partial
 #     regex, not the bare word "Garage";
 #   - the app's custom keyboard does NOT support `hideKeyboard` — dismiss it by
-#     tapping a non-interactive section label ("Priority", "Completion Details");
-#   - primary buttons ("Save task", "Mark Complete") can sit below the keyboard/
+#     tapping a non-interactive section label ("Priority", "Completion details");
+#   - primary buttons ("Save task", "Mark complete") can sit below the keyboard/
 #     fold, so scroll to them before tapping;
 #   - a StoreKit "Enjoying MotoVault?" review prompt is LIKELY after completing a
 #     task (completion is a value-moment) — dismiss "Not Now" (optional);
@@ -88,44 +88,42 @@ env:
     text: "Not now"
     optional: true
 
-# 4. Find the task, EXPAND it, then tap its "Done" action. "See all" opens the
+# 4. Find the task, then tap its check circle. "See all" opens the
 #    full All Tasks list when the hub truncates to the top few; harmless no-op
-#    (optional) otherwise. The card's actions are now revealed on tap (the
-#    always-visible Done/Edit/Delete row was moved into the expanded state — see
-#    swipeable-task-card.tsx), so tap the title to expand before anchoring "Done".
+#    (optional) otherwise. The hub and the All Tasks list share the same row
+#    (bike-hub/service/task-row.tsx): its check circle completes the task, and
+#    Edit/Delete only show once the title is tapped to expand it.
 - tapOn:
     text: ".*See all.*"
     optional: true
 - scrollUntilVisible:
     element:
-      text: "${TASK_TITLE}(,.*)?"
+      text: "${TASK_TITLE}([.,].*)?"
     direction: DOWN
-- tapOn: "${TASK_TITLE}(,.*)?" # expand the card to reveal its action row
-- tapOn:
-    text: "Done" # maintenance.markDone — opens the completion screen
-    below:
-      text: "${TASK_TITLE}(,.*)?"
+# The Service row's own check circle marks it done (a11y "Mark <title> done",
+# bikeHub.service.markDoneA11y) and opens the completion screen.
+- tapOn: "Mark ${TASK_TITLE} done"
 
 # 5. Completion screen — record odometer + cost, then mark complete.
 - extendedWaitUntil:
-    visible: "Completion Details"
+    visible: "Completion details"
     timeout: 20000
-- assertVisible: "${TASK_TITLE}(,.*)?" # completion screen echoes the task title
+- assertVisible: "${TASK_TITLE}([.,].*)?" # completion screen echoes the task title
 - tapOn: "e.g. 15000" # odometer input (targeted by placeholder text)
 - inputText: ${ODOMETER}
 - tapOn:
-    text: "Completion Details" # non-interactive label dismisses the custom keyboard
+    text: "Completion details" # non-interactive label dismisses the custom keyboard
     optional: true
 - tapOn: "0.00" # cost input (placeholder; assumes a 2-decimal currency)
 - inputText: ${COST}
 - tapOn:
-    text: "Completion Details" # dismiss the keyboard again before the button
+    text: "Completion details" # dismiss the keyboard again before the button
     optional: true
 - scrollUntilVisible:
     element:
-      text: "Mark Complete" # maintenance.markComplete — below the fold when keyboard is up
+      text: "Mark complete" # maintenance.markComplete — below the fold when keyboard is up
     direction: DOWN
-- tapOn: "Mark Complete"
+- tapOn: "Mark complete"
 # Completing a task is a value-moment — the StoreKit rating prompt is likely here.
 - tapOn:
     text: "Not Now"
@@ -145,14 +143,16 @@ env:
 #    History if we're on the hub (no-op on the All Tasks list), then confirm the
 #    task is present. Its card is collapsed (actions are now expand-gated), so it
 #    shows no inline "Done" either way.
+#    A completed (history) row's label leads with the completion date
+#    ("Oct 9 2026. <title>. …"), so its selectors match the title anywhere.
 - tapOn:
     text: ".*History.*"
     optional: true
 - scrollUntilVisible:
     element:
-      text: "${TASK_TITLE}(,.*)?"
+      text: ".*${TASK_TITLE}.*"
     direction: DOWN
-- assertVisible: "${TASK_TITLE}(,.*)?"
+- assertVisible: ".*${TASK_TITLE}.*"
 # EXPAND the completed card and assert its status discriminator: a completed card
 # offers ONLY Delete (Done/Edit are gated behind !isCompleted). This proves the
 # task actually completed, not merely that its title still renders — without it
@@ -164,15 +164,12 @@ env:
     when:
       notVisible: "Delete"
     commands:
-      - tapOn: "${TASK_TITLE}(,.*)?"
+      - tapOn: ".*${TASK_TITLE}.*"
 - assertVisible:
     text: "Delete"
     below:
-      text: "${TASK_TITLE}(,.*)?"
-- assertNotVisible:
-    text: "Done"
-    below:
-      text: "${TASK_TITLE}(,.*)?"
+      text: ".*${TASK_TITLE}.*"
+- assertNotVisible: "Mark ${TASK_TITLE} done" # a completed row has no check circle
 - takeScreenshot: complete-maintenance-task-done
 
 # 7. Cleanup — delete the completed task so reruns stay deterministic. The card is
@@ -181,7 +178,7 @@ env:
 - tapOn:
     text: "Delete"
     below:
-      text: "${TASK_TITLE}(,.*)?"
+      text: ".*${TASK_TITLE}.*"
 # Wait for the confirm alert to finish presenting — a tap during its entrance
 # animation is dropped on iOS 27 — and retry once if it is still up.
 - extendedWaitUntil:
@@ -204,4 +201,4 @@ env:
           below:
             text: "Are you sure.*"
 - assertNotVisible:
-    text: "${TASK_TITLE}(,.*)?"
+    text: ".*${TASK_TITLE}.*"

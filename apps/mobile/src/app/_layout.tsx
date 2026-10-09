@@ -1,14 +1,7 @@
 import '../global.css';
-import { GeistMono_400Regular } from '@expo-google-fonts/geist-mono/400Regular';
-import { GeistMono_500Medium } from '@expo-google-fonts/geist-mono/500Medium';
-import {
-  InstrumentSerif_400Regular,
-  InstrumentSerif_400Regular_Italic,
-} from '@expo-google-fonts/instrument-serif';
-import { PlusJakartaSans_400Regular } from '@expo-google-fonts/plus-jakarta-sans/400Regular';
-import { PlusJakartaSans_500Medium } from '@expo-google-fonts/plus-jakarta-sans/500Medium';
-import { PlusJakartaSans_600SemiBold } from '@expo-google-fonts/plus-jakarta-sans/600SemiBold';
-import { PlusJakartaSans_700Bold } from '@expo-google-fonts/plus-jakarta-sans/700Bold';
+import { BarlowCondensed_500Medium } from '@expo-google-fonts/barlow-condensed/500Medium';
+import { BarlowCondensed_600SemiBold } from '@expo-google-fonts/barlow-condensed/600SemiBold';
+import { BarlowCondensed_700Bold } from '@expo-google-fonts/barlow-condensed/700Bold';
 import { palette } from '@motovault/design-system';
 import { CompleteMaintenanceTaskDocument } from '@motovault/graphql';
 import { Currency, MeasurementSystem } from '@motovault/types';
@@ -45,16 +38,16 @@ import {
   useSegments,
 } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
+import { useColorScheme as useNativewindColorScheme } from 'nativewind';
 import { PostHogProvider, PostHogSurveyProvider } from 'posthog-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SessionRestoring } from '../components/auth/session-restoring';
 import { clearSheetDrafts } from '../components/bike-hub/notes/unattached-note-photos';
-import { HUB_FONT } from '../components/bike-hub/ui/tokens';
 import { OB_VARIANT } from '../config/onboarding';
-import { getWhatsNewRelease } from '../data/whats-new-releases';
 import { refreshCarPlayHeadsUpData } from '../features/carplay/carplay-coordinator';
 import { usePhoneSceneVisible } from '../features/carplay/use-carplay';
 import { clearParkedScans } from '../features/receipt-scan/parked-scan-store';
@@ -152,11 +145,14 @@ import {
   logoutRevenueCat,
 } from '../lib/subscription';
 import { supabase } from '../lib/supabase';
+import { isWhatsNewOwed } from '../lib/whats-new';
 import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
-import { useAuthStore } from '../stores/auth.store';
+import { COLOR_SCHEME, useAuthStore } from '../stores/auth.store';
+import { useChecklistStore } from '../stores/checklist.store';
 import { useExperimentStore } from '../stores/experiment.store';
 import { useOnboardingStore } from '../stores/onboarding.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
+import { PLATE_FONT } from '../theme/type';
 import { rideMMKV } from '../utils/ride-storage';
 import {
   clearDeliveredQueue,
@@ -341,11 +337,10 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
     if (isLoading || !session || !onboardingCompleted) return;
     if (whatsNewPushed) return;
 
+    // Only show for an unseen version we have release data for. New riders
+    // never qualify: onboarding marks the installed version seen.
     const currentVersion = Application.nativeApplicationVersion;
-    if (!currentVersion || currentVersion === lastSeenVersion) return;
-
-    // Only show if we have release data for this version
-    if (!getWhatsNewRelease(currentVersion)) return;
+    if (!currentVersion || !isWhatsNewOwed(currentVersion, lastSeenVersion)) return;
 
     // Avoid showing during initial navigation
     const inTabs = segments[0] === '(tabs)';
@@ -513,6 +508,15 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
 
 function RootLayout() {
   const { setSession } = useAuthStore();
+
+  // Re-apply the rider's stored theme (App settings → Theme) on every launch;
+  // nativewind keeps the choice only in memory, so without this a picked
+  // Light/Dark falls back to System after a restart.
+  const storedColorScheme = useAuthStore((s) => s.colorScheme);
+  const { colorScheme: resolvedScheme, setColorScheme } = useNativewindColorScheme();
+  useEffect(() => {
+    setColorScheme(storedColorScheme === COLOR_SCHEME.SYSTEM ? 'unspecified' : storedColorScheme);
+  }, [storedColorScheme, setColorScheme]);
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
   // Tracks the last identified user so a null session is only treated as a
   // logout when we actually had one — see onAuthStateChange below.
@@ -539,19 +543,10 @@ function RootLayout() {
 
   // Load editorial fonts — don't block splash on this; text uses system fallback until loaded
   useFonts({
-    'InstrumentSerif-Regular': InstrumentSerif_400Regular,
-    'InstrumentSerif-Italic': InstrumentSerif_400Regular_Italic,
-    // Bike hub only (HUB_FONT in components/bike-hub/ui/tokens.ts). Registered
-    // under hub-specific keys on purpose: the ~130 older usages of the never-
-    // loaded `GeistMono*` / `PlusJakartaSans*` names must keep rendering in the
-    // system font until the owner decides to restyle them. Per-weight imports
-    // keep the unused weights of the two packages out of the bundle.
-    [HUB_FONT.mono]: GeistMono_400Regular,
-    [HUB_FONT.monoMedium]: GeistMono_500Medium,
-    [HUB_FONT.sans]: PlusJakartaSans_400Regular,
-    [HUB_FONT.sansMedium]: PlusJakartaSans_500Medium,
-    [HUB_FONT.sansSemiBold]: PlusJakartaSans_600SemiBold,
-    [HUB_FONT.sansBold]: PlusJakartaSans_700Bold,
+    // Race Plate condensed numerals and titles (theme/type.ts → PLATE_FONT).
+    [PLATE_FONT.medium]: BarlowCondensed_500Medium,
+    [PLATE_FONT.semibold]: BarlowCondensed_600SemiBold,
+    [PLATE_FONT.bold]: BarlowCondensed_700Bold,
   });
   const navigationRef = useNavigationContainerRef();
 
@@ -646,6 +641,9 @@ function RootLayout() {
         // mount-time registration ran before any session existed or for the
         // previous account. Idempotent; a no-op without notification permission.
         if (decision.shouldRegisterPush) void registerForPushNotifications();
+        // The Get Started card belongs to one account: a different rider on this
+        // device starts clean, the same one keeps their ticks across sign-out.
+        useChecklistStore.getState().claimForUser(sessionUserId);
       } else {
         if (decision.shouldResetUser) {
           // Reset only when we PREVIOUSLY had a user in this app session. On a
@@ -720,6 +718,10 @@ function RootLayout() {
           // account on this device resumed at the last screen with the previous
           // rider's answers and skipped onboarding and its paywall.
           useOnboardingStore.getState().resetForSignOut();
+          // The Get Started card is NOT reset here: it is owner-keyed, so the same
+          // rider signing back in keeps it (a server-onboarded account never re-runs
+          // `initialize`, so a reset lost it for good), and `claimForUser` in the
+          // session branch resets it when a different account signs in.
           // Note/Odometer work a drag-down parked belongs to the session that wrote it.
           // Store-only: a user sign-out released its photos before the session ended
           // (`releaseSheetDraftsForSignOut`); a forced one cannot, so they stay.
@@ -1106,6 +1108,10 @@ function RootLayout() {
             client opt-out set by setAnalyticsEnabled(). */}
         <PostHogSurveyProvider androidKeyboardBehavior="padding">
           <KeyboardProvider>
+            {/* Status bar icons follow the APP scheme (App settings → Theme), not the
+                system one. Screens that set their own (onboarding hero) mount later
+                and win while they are shown. */}
+            <StatusBar style={resolvedScheme === COLOR_SCHEME.DARK ? 'light' : 'dark'} />
             <PersistedQueryClientBoundary>
               <NavigationGate onSettled={hideSplash} />
               {/* Root-mounted so the post-save "Saved — Undo" toast (U7d) survives

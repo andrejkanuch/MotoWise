@@ -1,3 +1,8 @@
+// The hub follows the system scheme; these assertions use the dark hub set.
+jest.mock('nativewind', () => ({
+  ...jest.requireActual('nativewind'),
+  useColorScheme: () => ({ colorScheme: 'dark' }),
+}));
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
@@ -82,7 +87,6 @@ jest.mock('../../../lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
-import { palette } from '@motovault/design-system';
 import {
   AddNotePhotoDocument,
   CreateNoteDocument,
@@ -94,6 +98,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { Alert, StyleSheet } from 'react-native';
 import { useKeyboardState } from 'react-native-keyboard-controller';
+import { hubDark as hub } from '../ui/tokens';
 import '../../../i18n';
 import { useSheetDraftStore } from '../../../stores/sheet-draft.store';
 import { BIKE_A, BIKE_B, NOTES } from '../../../test/bike-hub-fixtures';
@@ -846,7 +851,7 @@ describe('NoteForm — odometer stamp and Save states', () => {
     const style = StyleSheet.flatten(
       (screen.getByTestId('note-save').props as { style: unknown }).style as never,
     ) as { backgroundColor?: string; opacity?: number };
-    expect(style.backgroundColor).toBe(palette.hubRaised);
+    expect(style.backgroundColor).toBe(hub.raised);
     expect(style.opacity).toBe(1);
   });
 });

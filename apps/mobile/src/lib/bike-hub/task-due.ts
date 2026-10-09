@@ -23,7 +23,9 @@ import {
 } from './constants';
 import { hasOdometer } from './format';
 
-type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
+/** One maintenance task as the bike hub and the All Tasks screen read it. */
+export type HubTask = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
+type Task = HubTask;
 
 export type TaskDueInput = Pick<Task, 'dueDate' | 'targetMileage' | 'source'>;
 

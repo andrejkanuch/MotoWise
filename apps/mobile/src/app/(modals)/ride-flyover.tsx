@@ -19,7 +19,8 @@ import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-import { useEditorialTheme } from '../../theme/editorial';
+import { editorialThemes, tint } from '../../theme/editorial';
+import { type } from '../../theme/type';
 import { haversineMeters } from '../../utils/geo-utils';
 import { decodePolylineLatLng } from '../../utils/polyline';
 import {
@@ -79,13 +80,17 @@ const SPEED_OPTIONS = [1, 2, 4] as const;
 // Satellite-streets shows terrain texture + labels — much more 3D-visible than outdoors
 const FLYOVER_STYLE_URL = 'mapbox://styles/mapbox/satellite-streets-v12';
 
-const GLASS_BG = 'rgba(30,28,25,0.72)';
-const GLASS_BORDER = 'rgba(255,255,255,0.06)';
+// The flyover is always a dark surface: it plays over satellite imagery, so its
+// glass chrome and the screen around it use the dark tokens in both schemes.
+const FLYOVER_THEME = editorialThemes.dark;
+
+const GLASS_BG = tint(palette.plateG1, 0.72);
+const GLASS_BORDER = palette.whiteAlpha06;
 
 // ─── Screen ─────────────────────────────────────────────────────────────────
 
 export default function RideFlyoverScreen() {
-  const { t: theme } = useEditorialTheme();
+  const theme = FLYOVER_THEME;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { rideId } = useLocalSearchParams<{ rideId: string }>();
@@ -480,10 +485,10 @@ export default function RideFlyoverScreen() {
           paddingHorizontal: 40,
         }}
       >
-        <Text style={{ fontSize: 17, fontWeight: '600', color: theme.ink }}>
+        <Text style={[type.bodyStrong, { color: theme.ink }]}>
           {t('rideFlyover.notEnoughData')}
         </Text>
-        <Text style={{ fontSize: 14, color: theme.ink3, textAlign: 'center' }}>
+        <Text style={[type.subhead, { color: theme.ink3, textAlign: 'center' }]}>
           {t('rideFlyover.notEnoughDataBody')}
         </Text>
         <Pressable
@@ -496,9 +501,7 @@ export default function RideFlyoverScreen() {
             backgroundColor: theme.warm,
           }}
         >
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' }}>
-            {t('rideFlyover.goBack')}
-          </Text>
+          <Text style={[type.bodyStrong, { color: theme.onWarm }]}>{t('rideFlyover.goBack')}</Text>
         </Pressable>
       </View>
     );
@@ -564,10 +567,10 @@ export default function RideFlyoverScreen() {
         />
         <MapboxGL.Atmosphere
           style={{
-            color: 'rgb(186,210,235)',
-            highColor: 'rgb(36,92,223)',
+            color: palette.mapSkyHorizon,
+            highColor: palette.mapSkyHigh,
             horizonBlend: 0.02,
-            spaceColor: 'rgb(11,11,25)',
+            spaceColor: palette.mapSkySpace,
             starIntensity: 0.6,
           }}
         />
@@ -580,7 +583,7 @@ export default function RideFlyoverScreen() {
           minZoomLevel={15}
           maxZoomLevel={24}
           style={{
-            fillExtrusionColor: '#aaa',
+            fillExtrusionColor: palette.neutral400,
             fillExtrusionHeight: [
               'interpolate',
               ['linear'],
@@ -682,7 +685,7 @@ export default function RideFlyoverScreen() {
               id="bike-glow"
               style={{
                 circleRadius: 15,
-                circleColor: 'rgba(212,98,46,0.18)',
+                circleColor: tint(theme.warm, 0.18),
               }}
             />
             <MapboxGL.CircleLayer
@@ -691,7 +694,7 @@ export default function RideFlyoverScreen() {
                 circleRadius: 9,
                 circleColor: theme.warm,
                 circleStrokeWidth: 2.5,
-                circleStrokeColor: '#ffffff',
+                circleStrokeColor: palette.whitePure,
               }}
             />
           </MapboxGL.ShapeSource>
@@ -714,14 +717,14 @@ export default function RideFlyoverScreen() {
             borderColor: GLASS_BORDER,
             alignItems: 'center',
             justifyContent: 'center',
-            shadowColor: '#000',
+            shadowColor: palette.black,
             shadowOffset: { width: 0, height: 6 },
             shadowOpacity: 0.18,
             shadowRadius: 18,
             elevation: 6,
           }}
         >
-          <ArrowLeft size={18} color="rgba(255,255,255,0.92)" />
+          <ArrowLeft size={18} color={palette.whiteAlpha85} />
         </Pressable>
       </View>
 
@@ -749,117 +752,41 @@ export default function RideFlyoverScreen() {
         >
           {/* Speed */}
           <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text
-              style={{
-                fontFamily: 'GeistMono-Bold',
-                fontSize: 30,
-                fontWeight: '700',
-                color: theme.warm,
-                fontVariant: ['tabular-nums'],
-                lineHeight: 34,
-              }}
-            >
+            <Text style={[type.figure, { color: palette.whitePure, lineHeight: 34 }]}>
               {formatSpeedValue(currentSpeedMps, system)}
             </Text>
-            <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 9,
-                fontWeight: '500',
-                color: 'rgba(255,255,255,0.45)',
-                letterSpacing: 1.4,
-                textTransform: 'uppercase',
-                marginTop: 2,
-              }}
-            >
+            <Text style={[type.caption, { color: palette.whiteAlpha50, marginTop: 2 }]}>
               {speedUnitLabel(system)}
             </Text>
           </View>
 
           {/* Distance */}
           <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text
-              style={{
-                fontFamily: 'GeistMono-SemiBold',
-                fontSize: 18,
-                fontWeight: '600',
-                color: 'rgba(255,255,255,0.92)',
-                fontVariant: ['tabular-nums'],
-                lineHeight: 34,
-              }}
-            >
+            <Text style={[type.figureSmall, { color: palette.whiteAlpha85, lineHeight: 34 }]}>
               {formatDistanceValue(cumulativeDistanceM, system)}
             </Text>
-            <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 9,
-                fontWeight: '500',
-                color: 'rgba(255,255,255,0.45)',
-                letterSpacing: 1.4,
-                textTransform: 'uppercase',
-                marginTop: 2,
-              }}
-            >
+            <Text style={[type.caption, { color: palette.whiteAlpha50, marginTop: 2 }]}>
               {distanceUnitLabel(system)}
             </Text>
           </View>
 
           {/* Elevation */}
           <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text
-              style={{
-                fontFamily: 'GeistMono-SemiBold',
-                fontSize: 18,
-                fontWeight: '600',
-                color: 'rgba(255,255,255,0.92)',
-                fontVariant: ['tabular-nums'],
-                lineHeight: 34,
-              }}
-            >
+            <Text style={[type.figureSmall, { color: palette.whiteAlpha85, lineHeight: 34 }]}>
               {formatElevationValue(currentAltitude, system)}
             </Text>
-            <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 9,
-                fontWeight: '500',
-                color: 'rgba(255,255,255,0.45)',
-                letterSpacing: 1.4,
-                textTransform: 'uppercase',
-                marginTop: 2,
-              }}
-            >
+            <Text style={[type.caption, { color: palette.whiteAlpha50, marginTop: 2 }]}>
               {elevationUnitLabel(system)}
             </Text>
           </View>
 
           {/* Time */}
           <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text
-              style={{
-                fontFamily: 'GeistMono-SemiBold',
-                fontSize: 18,
-                fontWeight: '600',
-                color: 'rgba(255,255,255,0.92)',
-                fontVariant: ['tabular-nums'],
-                lineHeight: 34,
-              }}
-            >
+            <Text style={[type.figureSmall, { color: palette.whiteAlpha85, lineHeight: 34 }]}>
               {currentTimeStr}
             </Text>
-            <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 9,
-                fontWeight: '500',
-                color: 'rgba(255,255,255,0.45)',
-                letterSpacing: 1.4,
-                textTransform: 'uppercase',
-                marginTop: 2,
-              }}
-            >
-              TIME
+            <Text style={[type.caption, { color: palette.whiteAlpha50, marginTop: 2 }]}>
+              {t('shareSheet.time')}
             </Text>
           </View>
         </View>
@@ -897,7 +824,7 @@ export default function RideFlyoverScreen() {
             style={{ height: 24, justifyContent: 'center' }}
           >
             {/* Track */}
-            <View style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.12)' }}>
+            <View style={{ height: 6, borderRadius: 3, backgroundColor: palette.whiteAlpha12 }}>
               {/* Filled portion */}
               <View
                 style={{
@@ -922,7 +849,7 @@ export default function RideFlyoverScreen() {
                 height: 16,
                 borderRadius: 8,
                 backgroundColor: palette.white,
-                shadowColor: '#000',
+                shadowColor: palette.black,
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.25,
                 shadowRadius: 4,
@@ -934,24 +861,12 @@ export default function RideFlyoverScreen() {
           {/* Time labels */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: -8 }}>
             <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 11,
-                fontWeight: '500',
-                color: 'rgba(255,255,255,0.5)',
-                fontVariant: ['tabular-nums'],
-              }}
+              style={[type.caption, { color: palette.whiteAlpha50, fontVariant: ['tabular-nums'] }]}
             >
               {currentTimeStr}
             </Text>
             <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 11,
-                fontWeight: '500',
-                color: 'rgba(255,255,255,0.5)',
-                fontVariant: ['tabular-nums'],
-              }}
+              style={[type.caption, { color: palette.whiteAlpha50, fontVariant: ['tabular-nums'] }]}
             >
               {totalTimeStr}
             </Text>
@@ -968,17 +883,17 @@ export default function RideFlyoverScreen() {
                   paddingVertical: 6,
                   borderRadius: 99,
                   borderCurve: 'continuous',
-                  backgroundColor: activeSpeed === speed ? theme.warm : 'rgba(255,255,255,0.08)',
+                  backgroundColor: activeSpeed === speed ? theme.warm : palette.whiteAlpha08,
                 }}
               >
                 <Text
-                  style={{
-                    fontFamily: 'GeistMono-SemiBold',
-                    fontSize: 12,
-                    fontWeight: '600',
-                    color: activeSpeed === speed ? palette.white : 'rgba(255,255,255,0.6)',
-                    letterSpacing: 0.3,
-                  }}
+                  style={[
+                    type.label,
+                    {
+                      color: activeSpeed === speed ? theme.onWarm : palette.whiteAlpha60,
+                      fontVariant: ['tabular-nums'],
+                    },
+                  ]}
                 >
                   {`${speed}x`}
                 </Text>
@@ -1008,7 +923,7 @@ export default function RideFlyoverScreen() {
                 justifyContent: 'center',
               }}
             >
-              <RotateCcw size={20} color="rgba(255,255,255,0.7)" />
+              <RotateCcw size={20} color={palette.whiteAlpha70} />
             </Pressable>
 
             {/* Play / Pause */}
@@ -1024,7 +939,7 @@ export default function RideFlyoverScreen() {
                 backgroundColor: theme.warm,
                 alignItems: 'center',
                 justifyContent: 'center',
-                shadowColor: 'rgba(200,119,44,1)',
+                shadowColor: theme.warm,
                 shadowOffset: { width: 0, height: 6 },
                 shadowOpacity: 0.35,
                 shadowRadius: 16,
@@ -1032,9 +947,9 @@ export default function RideFlyoverScreen() {
               }}
             >
               {isPlaying ? (
-                <Pause size={22} color={palette.white} fill={palette.white} />
+                <Pause size={22} color={theme.onWarm} fill={theme.onWarm} />
               ) : (
-                <Play size={22} color={palette.white} fill={palette.white} />
+                <Play size={22} color={theme.onWarm} fill={theme.onWarm} />
               )}
             </Pressable>
 

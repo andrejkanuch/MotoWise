@@ -39,7 +39,7 @@ import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { presentPaywall } from '../../../lib/subscription';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { type EditorialTokens, useEditorialTheme } from '../../../theme/editorial';
 
 const MODULES = [
   { key: 'engine', icon: Cog, color: palette.moduleEngine, category: 'engine-basics' },
@@ -48,11 +48,17 @@ const MODULES = [
   { key: 'maintenance', icon: Wrench, color: palette.moduleMaintenance, category: 'maintenance' },
 ] as const;
 
-const DIFFICULTY_COLORS = {
-  beginner: palette.success500,
-  intermediate: palette.warning500,
-  advanced: palette.danger500,
-} as const;
+/** Difficulty → theme token (resolved per scheme at render). */
+const DIFFICULTY_TOKEN = {
+  beginner: 'success',
+  intermediate: 'dueInk',
+  advanced: 'danger',
+} as const satisfies Record<string, keyof EditorialTokens>;
+
+function difficultyColor(t: EditorialTokens, difficulty: string | null | undefined) {
+  const token = (DIFFICULTY_TOKEN as Record<string, keyof EditorialTokens>)[difficulty ?? ''];
+  return token ? t[token] : undefined;
+}
 
 const CATEGORY_COLORS = {
   'engine-basics': palette.moduleEngine,
@@ -402,11 +408,11 @@ export default function LearnScreen() {
                   disabled={isGenerating}
                 >
                   {isGenerating ? (
-                    <ActivityIndicator size="small" color={palette.white} />
+                    <ActivityIndicator size="small" color={t.onWarm} />
                   ) : (
-                    <Sparkles size={16} color={palette.white} strokeWidth={2} />
+                    <Sparkles size={16} color={t.onWarm} strokeWidth={2} />
                   )}
-                  <Text style={{ color: palette.white, fontWeight: '600', fontSize: 14 }}>
+                  <Text style={{ color: t.onWarm, fontWeight: '600', fontSize: 14 }}>
                     {isGenerating ? tr('learn.generating') : tr('learn.generateArticle')}
                   </Text>
                 </Pressable>
@@ -483,7 +489,7 @@ export default function LearnScreen() {
                             borderCurve: 'continuous',
                             paddingHorizontal: 10,
                             paddingVertical: 4,
-                            backgroundColor: `${(DIFFICULTY_COLORS as Record<string, string>)[node.difficulty] ?? t.ink3}15`,
+                            backgroundColor: `${difficultyColor(t, node.difficulty) ?? t.ink3}15`,
                           }}
                         >
                           <Text
@@ -491,9 +497,7 @@ export default function LearnScreen() {
                               fontSize: 12,
                               fontWeight: '500',
                               textTransform: 'capitalize',
-                              color:
-                                (DIFFICULTY_COLORS as Record<string, string>)[node.difficulty] ??
-                                t.ink3,
+                              color: difficultyColor(t, node.difficulty) ?? t.ink3,
                             }}
                           >
                             {node.difficulty}
@@ -525,8 +529,10 @@ export default function LearnScreen() {
               style={{ paddingHorizontal: 20, marginTop: 16 }}
             >
               <View
-                className="bg-primary-950 dark:bg-primary-800"
                 style={{
+                  backgroundColor: t.surface,
+                  borderWidth: 1,
+                  borderColor: t.line,
                   borderRadius: 14,
                   borderCurve: 'continuous',
                   padding: 20,
@@ -546,18 +552,18 @@ export default function LearnScreen() {
                       width: 40,
                       height: 40,
                       borderRadius: 12,
-                      backgroundColor: 'rgba(255,255,255,0.15)',
+                      backgroundColor: t.surface2,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <BookOpen size={20} color={palette.white} strokeWidth={2} />
+                    <BookOpen size={20} color={t.ink2} strokeWidth={2} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: palette.white, fontSize: 18, fontWeight: '700' }}>
+                    <Text style={{ color: t.ink, fontSize: 18, fontWeight: '700' }}>
                       {tr('learn.motorcycleBasics')}
                     </Text>
-                    <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>
+                    <Text style={{ color: t.ink3, fontSize: 14 }}>
                       {tr('learn.articlesRead', { count: totalRead })}
                     </Text>
                   </View>
@@ -567,14 +573,14 @@ export default function LearnScreen() {
                 <View
                   style={{
                     height: 8,
-                    backgroundColor: 'rgba(255,255,255,0.15)',
+                    backgroundColor: t.surface3,
                     borderRadius: 999,
                     overflow: 'hidden',
                   }}
                 >
                   <View
-                    className="bg-accent-400"
                     style={{
+                      backgroundColor: t.success,
                       height: '100%',
                       borderRadius: 999,
                       width: `${Math.min((totalRead / 20) * 100, 100)}%`,
@@ -583,7 +589,7 @@ export default function LearnScreen() {
                 </View>
                 <Text
                   style={{
-                    color: 'rgba(255,255,255,0.5)',
+                    color: t.ink3,
                     fontSize: 12,
                     marginTop: 8,
                     fontVariant: ['tabular-nums'],
@@ -750,17 +756,14 @@ export default function LearnScreen() {
                               borderCurve: 'continuous',
                               paddingHorizontal: 8,
                               paddingVertical: 3,
-                              backgroundColor: `${(DIFFICULTY_COLORS as Record<string, string>)[article.difficulty] ?? t.ink3}15`,
+                              backgroundColor: `${difficultyColor(t, article.difficulty) ?? t.ink3}15`,
                             }}
                           >
                             <Text
                               style={{
                                 fontSize: 11,
                                 fontWeight: '500',
-                                color:
-                                  (DIFFICULTY_COLORS as Record<string, string>)[
-                                    article.difficulty
-                                  ] ?? t.ink3,
+                                color: difficultyColor(t, article.difficulty) ?? t.ink3,
                                 textTransform: 'capitalize',
                               }}
                             >

@@ -2,7 +2,20 @@ jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+// The reanimated mock lacks the hooks the bike plate uses.
+jest.mock('react-native-reanimated', () => ({
+  ...require('react-native-reanimated/mock'),
+  useReducedMotion: () => true,
+  // The plate's fill: the state colour its shared value rests on.
+  interpolateColor: (value: number, _input: number[], output: string[]) =>
+    output[Math.round(value)],
+}));
+// Jest renders in the light scheme by default; the light-mode block flips this.
+let mockColorScheme = 'light';
+jest.mock('nativewind', () => ({
+  ...jest.requireActual('nativewind'),
+  useColorScheme: () => ({ colorScheme: mockColorScheme }),
+}));
 jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
@@ -40,6 +53,7 @@ import {
 } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import i18n from '../../../i18n';
 import { BIKE_SEGMENT, HUB_UNIT, NOTE_SOURCE } from '../../../lib/bike-hub/constants';
 import {
@@ -58,12 +72,13 @@ import {
   TODAY,
   task,
 } from '../../../test/bike-hub-fixtures';
+import { editorialThemes } from '../../../theme/editorial';
 import { DRAFT_OUTCOME, publishDraftOutcome } from '../notes/use-draft-handoff';
 import { OverviewSegment } from '../overview/overview-segment';
 import type { BikeActions } from '../shell/use-bike-actions';
 import type { BikeHubData, HubBike, HubTask } from '../shell/use-bike-hub-data';
 import type { BikeHubNavigation } from '../shell/use-bike-hub-navigation';
-import { HUB_ROW_SUB_LINES } from '../ui/tokens';
+import { HUB_ROW_SUB_LINES, hubDark, hubLight } from '../ui/tokens';
 
 type Documents = BikeHubData['documents'];
 
@@ -178,9 +193,13 @@ afterEach(() => {
 });
 
 describe('Overview — bike A', () => {
-  it('ride status: "Check before riding" with its three reasons', async () => {
+  it('ride status: the overdue plate (as on Home) with its three reasons below', async () => {
     await renderOverview();
-    expect(await screen.findByText('Check before riding')).toBeOnTheScreen();
+    // An overdue high task makes the plate red, like Home and Garage — not the
+    // ride status's milder "Check before riding".
+    const status = within(await screen.findByTestId('ride-status-check'));
+    expect(status.getByText(/, past due$/)).toBeOnTheScreen();
+    expect(screen.queryByText('Check before riding')).toBeNull();
     expect(
       await screen.findByText('1 open recall · 1 overdue high task · insurance expires in 12 days'),
     ).toBeOnTheScreen();
@@ -214,19 +233,19 @@ describe('Overview — bike A', () => {
     ]);
   });
 
-  it('the insurance row (riding-blocking, seeded) carries a shield and says what to do', async () => {
+  it('the insurance row (riding-blocking, seeded) says what to do, with no icon tile', async () => {
     await renderOverview();
     const row = within(await screen.findByTestId('attention-document-doc-insurance'));
-    expect(row.getByTestId('icon-Shield')).toBeOnTheScreen();
+    expect(row.getByText(/renew or upload the new policy/)).toBeOnTheScreen();
+    expect(row.queryByTestId('icon-Shield')).toBeNull();
     expect(row.queryByTestId('icon-FileText')).toBeNull();
   });
 
-  it('a custom category named "Insurance" is not riding-blocking: document icon, no action hint', async () => {
+  it('a custom category named "Insurance" is not riding-blocking: no action hint', async () => {
     await renderOverview({
       documents: [{ ...BIKE_A_DOCUMENTS[0], id: 'doc-custom', categoryId: 'cat-custom-insurance' }],
     });
     const row = within(await screen.findByTestId('attention-document-doc-custom'));
-    expect(row.getByTestId('icon-FileText')).toBeOnTheScreen();
     expect(row.getByText('In 12 days · Mapfre')).toBeOnTheScreen();
   });
 
@@ -496,16 +515,21 @@ describe('Overview — status variants', () => {
       dueDate: '2026-08-25',
     });
     await renderOverview({ ...quiet, tasks: [critical], bike: { ...BIKE_A, recallCount: 0 } });
-    expect(await screen.findByText('Not ready')).toBeOnTheScreen();
+    expect(await screen.findByText('Rear brake shoes, past due')).toBeOnTheScreen();
     expect(screen.getByText('1 overdue critical task')).toBeOnTheScreen();
     expect(screen.getByText('Needs attention · 1 overdue')).toBeOnTheScreen();
     expect(screen.queryByTestId('attention-overflow')).toBeNull();
+    // The verdict itself: a red (overdue) plate that says so to VoiceOver.
+    const plate = screen.getByTestId('ride-status-not_ready');
+    expect(plate.props.accessibilityLabel).toMatch(/^Overdue\. /);
+    expect(plateFill('Rear brake shoes, past due')).toBe(editorialThemes.light.plateOverdue);
   });
 
   it('READY: nothing needs attention, so the block is hidden and the card is not a button', async () => {
     const later = task({ id: 'later', title: 'Valves', dueDate: '2027-06-01' });
     await renderOverview({ ...quiet, tasks: [later], bike: { ...BIKE_A, recallCount: 0 } });
-    expect(await screen.findByText('Ready to ride')).toBeOnTheScreen();
+    // A ready plate counts down to the next task, as on Home.
+    expect(await screen.findByText('to Valves')).toBeOnTheScreen();
     expect(screen.queryByTestId('attention-list')).toBeNull();
     // No empty wrapper either: the status card is followed directly by Next up,
     // so only the list's one 12 pt gap separates them.
@@ -591,8 +615,8 @@ describe('Overview — status variants', () => {
 
   it('a failed recalls query still yields a status, from the bike’s recall count', async () => {
     await renderOverview({ ...quiet, tasks: [], recalls: 'error' });
-    expect(await screen.findByText('Check before riding')).toBeOnTheScreen();
-    expect(screen.getByText('1 open recall')).toBeOnTheScreen();
+    // No task is due, so the recall escalates the plate and names itself on it.
+    expect(await screen.findByText('Check before riding · 1 open recall')).toBeOnTheScreen();
     expect(screen.getByText('Open safety recall')).toBeOnTheScreen();
   });
 
@@ -658,7 +682,9 @@ describe('Overview — status variants', () => {
     await fireEvent.press(line.getByRole('button', { name: 'Retry needs attention' }));
     expect(refetchTasks).toHaveBeenCalledTimes(1);
     // The status is still a verdict from the cached data, not an error.
-    expect(screen.getByText('Check before riding')).toBeOnTheScreen();
+    expect(
+      within(screen.getByTestId('ride-status-check')).getByText(/, past due$/),
+    ).toBeOnTheScreen();
   });
 
   it('shows no refresh line when nothing failed', async () => {
@@ -691,5 +717,54 @@ describe('Overview — status variants', () => {
     await renderOverview({ expenses: { 2026: EXPENSES_2026 } });
     await screen.findByTestId('costs-card');
     expect(screen.queryByTestId('costs-yoy')).toBeNull();
+  });
+});
+
+/** The plate panel behind a caption (caption → plate panel). */
+function plateStyle(caption: string) {
+  return StyleSheet.flatten(screen.getByText(caption).parent?.props.style);
+}
+function plateFill(caption: string) {
+  return plateStyle(caption).backgroundColor;
+}
+
+describe('Overview — colour schemes', () => {
+  afterEach(() => {
+    mockColorScheme = 'light';
+  });
+
+  it.each([
+    ['dark', hubDark, editorialThemes.dark, 0],
+    ['light', hubLight, editorialThemes.light, 2],
+  ] as const)('%s: plate, attention card and tags use that scheme’s tokens', async (scheme, hub, theme, keyline) => {
+    mockColorScheme = scheme;
+    await renderOverview();
+    const caption = await screen.findByText(/, past due$/);
+    const plate = StyleSheet.flatten(caption.parent?.props.style);
+    expect(plate.backgroundColor).toBe(theme.plateOverdue);
+    // A light ground gives the plate its printed keyline.
+    expect(plate.borderWidth).toBe(keyline);
+
+    const list = screen.getByTestId('attention-list');
+    const card = within(list).getByTestId('attention-recall').parent;
+    expect(StyleSheet.flatten(card?.props.style).backgroundColor).toBe(hub.card);
+
+    const tag = within(list).getAllByText('HIGH')[0];
+    expect(StyleSheet.flatten(tag?.props.style).color).toBe(hub.soon);
+    expect(StyleSheet.flatten(tag?.parent?.props.style).backgroundColor).toBe(hub.tagHighBg);
+  });
+
+  it('light: nothing tracked is a plain light card, not a dark one', async () => {
+    mockColorScheme = 'light';
+    await renderOverview({
+      documents: [],
+      recalls: [],
+      notes: [],
+      expenses: {},
+      tasks: [],
+      bike: BIKE_B as unknown as typeof BIKE_A,
+    });
+    const card = await screen.findByTestId('ride-status-untracked');
+    expect(StyleSheet.flatten(card.props.style).backgroundColor).toBe(hubLight.card);
   });
 });

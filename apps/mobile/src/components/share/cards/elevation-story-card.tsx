@@ -1,16 +1,25 @@
 import { palette } from '@motovault/design-system';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
+import { elevationUnitLabel, formatElevationValue } from '../../../utils/ride-formatters';
 import type { RideSharePayload } from '../share-card-types';
-import { buildElevStats, ElevationSparkline, StatFooter, Wordmark } from './card-elements';
-
-const MONO = process.env.EXPO_OS === 'ios' ? 'Menlo' : 'monospace';
+import {
+  buildElevStats,
+  CARD_INK,
+  CARD_TYPE,
+  ElevationSparkline,
+  StatFooter,
+  Wordmark,
+} from './card-elements';
 
 export const ElevationStoryCard = memo(function ElevationStoryCard({
   data,
 }: {
   data: RideSharePayload;
 }) {
+  const { t } = useTranslation();
+  const sys = data.measurementSystem;
   return (
     <View
       style={{
@@ -35,17 +44,8 @@ export const ElevationStoryCard = memo(function ElevationStoryCard({
         }}
       >
         <Wordmark />
-        <Text
-          style={{
-            fontFamily: MONO,
-            fontSize: 8.5,
-            fontWeight: '600',
-            letterSpacing: 1.7,
-            color: palette.shareCopperSoft,
-            textTransform: 'uppercase',
-          }}
-        >
-          Elev profile
+        <Text style={{ ...CARD_TYPE.label, color: CARD_INK.muted }}>
+          {t('rideDetail.elevationProfile')}
         </Text>
       </View>
 
@@ -55,16 +55,8 @@ export const ElevationStoryCard = memo(function ElevationStoryCard({
         {/* Peak altitude label */}
         {data.elevationPeakM != null && (
           <View style={{ position: 'absolute', top: 8, right: 14 }}>
-            <Text
-              style={{
-                fontFamily: MONO,
-                fontSize: 9,
-                fontWeight: '700',
-                letterSpacing: 0.54,
-                color: palette.shareCopperSoft,
-              }}
-            >
-              {Math.round(data.elevationPeakM)} m
+            <Text style={{ ...CARD_TYPE.figure, fontSize: 13, color: CARD_INK.body }}>
+              {`${formatElevationValue(data.elevationPeakM, sys)} ${elevationUnitLabel(sys)}`}
             </Text>
           </View>
         )}
@@ -75,10 +67,9 @@ export const ElevationStoryCard = memo(function ElevationStoryCard({
         <Text
           numberOfLines={2}
           style={{
-            fontSize: 19,
-            fontWeight: '700',
-            letterSpacing: -0.42,
-            lineHeight: 20.5,
+            ...CARD_TYPE.title,
+            fontSize: 24,
+            lineHeight: 25,
             color: palette.shareTextLight,
           }}
         >
@@ -89,10 +80,10 @@ export const ElevationStoryCard = memo(function ElevationStoryCard({
       {/* Stats footer */}
       <StatFooter
         stats={buildElevStats(data)}
-        borderColor="rgba(255,255,255,0.12)"
-        labelColor="rgba(255,255,255,0.5)"
+        borderColor={CARD_INK.rule}
+        labelColor={CARD_INK.faint}
         valueColor={palette.shareTextLight}
-        unitColor="rgba(255,255,255,0.55)"
+        unitColor={palette.whiteAlpha55}
       />
     </View>
   );

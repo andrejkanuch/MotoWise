@@ -10,12 +10,13 @@ import {
 import { triggerSelection } from '../../../utils/haptics';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
-  HUB_FONT,
+  HUB_FIGURE_STRONG,
   HUB_HEIGHT,
   HUB_RADIUS,
   HUB_TOUCH_TARGET,
   type HubCopyKey,
-  hub,
+  SYSTEM_WEIGHT,
+  useHubTheme,
 } from './tokens';
 
 export const SEGMENT_LABEL_KEY: Record<BikeSegment, HubCopyKey> = {
@@ -51,6 +52,7 @@ export interface SegmentBarProps {
 }
 
 function Badge({ count }: { count: number }) {
+  const hub = useHubTheme();
   return (
     <View
       style={{
@@ -65,7 +67,7 @@ function Badge({ count }: { count: number }) {
     >
       <Text
         maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-        style={{ fontFamily: HUB_FONT.mono, fontSize: 11, color: hub.late }}
+        style={{ ...HUB_FIGURE_STRONG, fontSize: 13, color: hub.late }}
       >
         {count}
       </Text>
@@ -89,6 +91,7 @@ function useSegmentCopy(serviceBadge: number) {
 
 /** iOS / default: a horizontally scrollable row of 36 px pills. */
 function PillBar({ active, onChange, serviceBadge = 0 }: SegmentBarProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const copyFor = useSegmentCopy(serviceBadge);
   const scrollRef = useRef<ScrollView>(null);
@@ -153,7 +156,7 @@ function PillBar({ active, onChange, serviceBadge = 0 }: SegmentBarProps) {
               maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
               numberOfLines={1}
               style={{
-                fontFamily: HUB_FONT.sansSemiBold,
+                ...SYSTEM_WEIGHT.semibold,
                 fontSize: 13,
                 color: selected ? hub.text : hub.dim,
               }}
@@ -170,6 +173,7 @@ function PillBar({ active, onChange, serviceBadge = 0 }: SegmentBarProps) {
 
 /** Android: Material tabs — 48 dp, equal width, 2 dp copper indicator, ripple. */
 function MaterialTabs({ active, onChange, serviceBadge = 0 }: SegmentBarProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const copyFor = useSegmentCopy(serviceBadge);
   const [tabWidth, setTabWidth] = useState(0);
@@ -219,7 +223,7 @@ function MaterialTabs({ active, onChange, serviceBadge = 0 }: SegmentBarProps) {
               maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
               numberOfLines={1}
               style={{
-                fontFamily: HUB_FONT.sansSemiBold,
+                ...SYSTEM_WEIGHT.semibold,
                 fontSize: 14,
                 color: selected ? hub.text : hub.dim,
               }}

@@ -3,11 +3,11 @@ import { Pressable, Text } from 'react-native';
 import { triggerImpact } from '../../../utils/haptics';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
-  HUB_FONT,
   HUB_HEIGHT,
   HUB_PRESSED_SCALE,
   HUB_RADIUS,
-  hub,
+  SYSTEM_WEIGHT,
+  useHubTheme,
 } from './tokens';
 
 interface ActionPillProps {
@@ -33,6 +33,7 @@ export function ActionPill({
   accessibilityLabel,
   testID,
 }: ActionPillProps) {
+  const hub = useHubTheme();
   const labelled = !!label;
   return (
     <Pressable
@@ -67,7 +68,7 @@ export function ActionPill({
       {labelled ? (
         <Text
           maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-          style={{ fontFamily: HUB_FONT.sansBold, fontSize: 15, color: hub.ink }}
+          style={{ ...SYSTEM_WEIGHT.bold, fontSize: 15, color: hub.ink }}
         >
           {label}
         </Text>

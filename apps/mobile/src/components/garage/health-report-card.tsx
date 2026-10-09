@@ -1,9 +1,10 @@
-import { palette, radii, spacing } from '@motovault/design-system';
+import { radii, spacing } from '@motovault/design-system';
 import type { HealthReportStatus } from '@motovault/graphql';
 import { AlertTriangle, CheckCircle, Clock, Download } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Linking, Pressable, Text, useColorScheme, View } from 'react-native';
+import { Linking, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
 
 interface HealthReportCardProps {
@@ -15,44 +16,14 @@ interface HealthReportCardProps {
   onRetry?: () => void;
 }
 
-const STATUS_CONFIG = {
-  completed: {
-    light: {
-      bg: palette.successBgLight,
-      iconColor: palette.success500,
-      border: 'rgba(34,197,94,0.12)',
-    },
-    dark: {
-      bg: palette.successBgDark,
-      iconColor: '#4ade80',
-      border: 'rgba(34,197,94,0.15)',
-    },
-  },
-  pending: {
-    light: {
-      bg: palette.warningBgLight,
-      iconColor: palette.warning500,
-      border: 'rgba(245,158,11,0.12)',
-    },
-    dark: {
-      bg: palette.warningBgDark,
-      iconColor: '#fbbf24',
-      border: 'rgba(245,158,11,0.15)',
-    },
-  },
-  failed: {
-    light: {
-      bg: palette.dangerBgLight,
-      iconColor: palette.danger500,
-      border: 'rgba(239,68,68,0.12)',
-    },
-    dark: {
-      bg: palette.dangerBgDark,
-      iconColor: '#fca5a5',
-      border: 'rgba(239,68,68,0.15)',
-    },
-  },
-} as const;
+type ThemeTokens = ReturnType<typeof useEditorialTheme>['t'];
+
+/** Status → tone. Tints are derived from the tone so no colour literal lives here. */
+const STATUS_TONE: Record<HealthReportStatus, (t: ThemeTokens) => string> = {
+  completed: (t) => t.success,
+  pending: (t) => t.plateDue,
+  failed: (t) => t.danger,
+};
 
 function StatusIcon({ status, color }: { status: HealthReportStatus; color: string }) {
   switch (status) {
@@ -75,14 +46,11 @@ export function HealthReportCard({
   onRetry,
 }: HealthReportCardProps) {
   const { t } = useTranslation();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
-  const theme =
-    STATUS_CONFIG[status]?.[isDark ? 'dark' : 'light'] ??
-    STATUS_CONFIG.pending[isDark ? 'dark' : 'light'];
-  const textPrimary = isDark ? palette.neutral50 : palette.neutral950;
-  const textSecondary = isDark ? palette.neutral400 : palette.neutral500;
+  const { t: tokens } = useEditorialTheme();
+  const tone = (STATUS_TONE[status] ?? STATUS_TONE.pending)(tokens);
+  const theme = { bg: tint(tone, 0.1), border: tint(tone, 0.15), iconColor: tone };
+  const textPrimary = tokens.ink;
+  const textSecondary = tokens.ink3;
 
   const handlePress = async () => {
     if (status === 'completed' && pdfUrl) {
@@ -137,7 +105,7 @@ export function HealthReportCard({
               width: 36,
               height: 36,
               borderRadius: 10,
-              backgroundColor: `${theme.iconColor}18`,
+              backgroundColor: tint(theme.iconColor, 0.1),
               alignItems: 'center',
               justifyContent: 'center',
               borderCurve: 'continuous',
@@ -173,17 +141,13 @@ export function HealthReportCard({
                 width: 32,
                 height: 32,
                 borderRadius: radii.button,
-                backgroundColor: `${palette.primary500}15`,
+                backgroundColor: tint(tokens.warm, 0.1),
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderCurve: 'continuous',
               }}
             >
-              <Download
-                size={16}
-                color={isDark ? palette.primary300 : palette.primary600}
-                strokeWidth={2}
-              />
+              <Download size={16} color={tokens.warm2} strokeWidth={2} />
             </View>
           )}
         </View>

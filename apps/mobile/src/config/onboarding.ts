@@ -217,15 +217,6 @@ export const ONBOARDING_FLOWS: Record<ObVariant, ReadonlyArray<OnboardingRoute>>
   [OB_VARIANT.CONTROL]: SHIPPED_FLOW,
 };
 
-/**
- * Length of the pre-experiment V4 flow. Referenced only by the retired V1
- * screens (bike-year → … → smart-maintenance → insights), which are unreachable
- * from any flow but still compile — see the removal note in `(onboarding)/_layout`.
- * A literal now that V4_FLOW is gone. Do not use in new code; active screens
- * derive progress from `useOnboardingStep`.
- */
-export const TOTAL_SCREENS = 9;
-
 /** Ordered screen list for a variant. */
 export function getFlowScreens(variant: ObVariant): ReadonlyArray<OnboardingRoute> {
   return ONBOARDING_FLOWS[variant];

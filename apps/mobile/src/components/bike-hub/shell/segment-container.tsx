@@ -8,7 +8,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { BIKE_SEGMENT_ORDER, type BikeSegment } from '../../../lib/bike-hub/constants';
-import { hub } from '../ui/tokens';
+import { readableWidth } from '../../../theme/type';
+import { useHubTheme } from '../ui/tokens';
 import { SegmentInteractiveContext } from './segment-interactive';
 
 /** Scroll distance over which the header collapses into one row. */
@@ -55,6 +56,7 @@ function SegmentScroll({
   onRefresh,
   bottomInset,
 }: SegmentScrollProps) {
+  const hub = useHubTheme();
   const scrollY = useSharedValue(0);
 
   const onScroll = useAnimatedScrollHandler(
@@ -95,7 +97,7 @@ function SegmentScroll({
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: bottomInset }}
+          contentContainerStyle={{ ...readableWidth, paddingBottom: bottomInset }}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={hub.copper} />
           }

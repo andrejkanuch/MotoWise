@@ -5,11 +5,15 @@ import { LocateFixed } from 'lucide-react-native';
 import { PostHogMaskView } from 'posthog-react-native';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, useColorScheme, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useAuthStore } from '../../stores/auth.store';
+import { editorialThemes, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
 import { MAP_STYLES } from '../../utils/map-styles';
 import { resolveFollowUserMode } from './hud-map-follow';
+
+/** GPS-accuracy ring sits on the HUD's dark chrome. */
+const HUD_THEME = editorialThemes.dark;
 
 interface HudMapProps {
   waypoints: Waypoint[];
@@ -22,9 +26,9 @@ interface HudMapProps {
 }
 
 function getGpsColor(accuracy: number): string {
-  if (accuracy < 50) return palette.success500;
-  if (accuracy < 200) return palette.warning500;
-  return palette.danger500;
+  if (accuracy < 50) return HUD_THEME.success;
+  if (accuracy < 200) return HUD_THEME.dueInk;
+  return HUD_THEME.overdueInk;
 }
 
 function buildRouteGeoJSON(waypoints: Waypoint[]): GeoJSON.FeatureCollection {
@@ -60,7 +64,7 @@ function hasFiniteCourse(waypoints: Waypoint[]): boolean {
 
 export function HudMap({ waypoints, gpsAccuracy, recenterBottomOffset = 16 }: HudMapProps) {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const mapOrientation = useAuthStore((s) => s.mapOrientation);
   const routeGeoJSON = useMemo(() => buildRouteGeoJSON(waypoints), [waypoints]);
   const gpsColor = getGpsColor(gpsAccuracy);

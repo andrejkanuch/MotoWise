@@ -1,0 +1,18 @@
+mutation AcknowledgeRecall($motorcycleId: ID!, $campaignNumber: String!) {
+  acknowledgeRecall(motorcycleId: $motorcycleId, campaignNumber: $campaignNumber) {
+    count
+    acknowledgedCount
+    checkedAt
+    vinUsed
+    recalls {
+      campaignNumber
+      reportDate
+      component
+      summary
+      consequence
+      remedy
+      acknowledged
+      acknowledgedAt
+    }
+  }
+}

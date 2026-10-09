@@ -6,7 +6,7 @@
  *
  * Persisted per-user in the `auth-preferences` store; consumed by the ride HUD
  * map (`components/ride/hud-map.tsx`) and the settings segmented control
- * (`components/profile/preferences-section.tsx`).
+ * (`components/profile/use-app-preferences.ts`).
  */
 export const MAP_ORIENTATIONS = {
   NORTH: 'north',

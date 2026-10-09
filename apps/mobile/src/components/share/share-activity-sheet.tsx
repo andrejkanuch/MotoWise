@@ -6,6 +6,8 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, SlideInUp, SlideOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { type } from '../../theme/type';
 import { ShareCardCarousel } from './share-card-carousel';
 import {
   getAvailableVariants,
@@ -26,6 +28,7 @@ interface ShareActivitySheetProps {
 
 export function ShareActivitySheet({ visible, payload, onClose }: ShareActivitySheetProps) {
   const { t } = useTranslation();
+  const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
 
   const variants = getAvailableVariants(payload);
@@ -120,7 +123,10 @@ export function ShareActivitySheet({ visible, payload, onClose }: ShareActivityS
         exiting={FadeOut.duration(150)}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       >
-        <Pressable onPress={handleClose} style={{ flex: 1, backgroundColor: 'rgba(8,6,4,0.62)' }} />
+        <Pressable
+          onPress={handleClose}
+          style={{ flex: 1, backgroundColor: tint(palette.black, 0.5) }}
+        />
       </Animated.View>
 
       {/* Sheet */}
@@ -133,7 +139,7 @@ export function ShareActivitySheet({ visible, payload, onClose }: ShareActivityS
           right: 0,
           bottom: 0,
           top: 134,
-          backgroundColor: palette.shareSheetBg,
+          backgroundColor: theme.bg,
           borderTopLeftRadius: 28,
           borderTopRightRadius: 28,
           borderCurve: 'continuous',
@@ -146,7 +152,7 @@ export function ShareActivitySheet({ visible, payload, onClose }: ShareActivityS
             width: 38,
             height: 4,
             borderRadius: 99,
-            backgroundColor: 'rgba(255,255,255,0.18)',
+            backgroundColor: theme.line2,
             alignSelf: 'center',
             marginTop: 7,
           }}
@@ -164,31 +170,13 @@ export function ShareActivitySheet({ visible, payload, onClose }: ShareActivityS
           }}
         >
           <Pressable onPress={handleClose} hitSlop={12}>
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: '500',
-                color: 'rgba(255,255,255,0.85)',
-                letterSpacing: -0.05,
-              }}
-            >
-              {t('shareSheet.close')}
-            </Text>
+            <Text style={{ ...type.body, color: theme.warm2 }}>{t('shareSheet.close')}</Text>
           </Pressable>
 
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: '700',
-              color: palette.shareTextLight,
-              letterSpacing: -0.22,
-            }}
-          >
-            {t('shareSheet.title')}
-          </Text>
+          <Text style={{ ...type.bodyStrong, color: theme.ink }}>{t('shareSheet.title')}</Text>
 
           <View style={{ width: 40, alignItems: 'flex-end' }}>
-            {!isIdle && <ActivityIndicator size="small" color={palette.shareCopperSoft} />}
+            {!isIdle && <ActivityIndicator size="small" color={theme.ink3} />}
           </View>
         </View>
 

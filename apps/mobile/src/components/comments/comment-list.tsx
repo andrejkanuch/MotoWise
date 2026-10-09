@@ -10,10 +10,11 @@ import * as Haptics from 'expo-haptics';
 import { MessageCircle } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Text, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
+import { useEditorialTheme } from '../../theme/editorial';
 import { CommentInput } from './comment-input';
 import { CommentItem } from './comment-item';
 
@@ -26,7 +27,7 @@ interface CommentListProps {
 
 export function CommentList({ rideId, routeId, groupRideId, tripId }: CommentListProps) {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
   const userId = useAuthStore((s) => s.session?.user?.id);
   const [replyingTo, setReplyingTo] = useState<string | undefined>();

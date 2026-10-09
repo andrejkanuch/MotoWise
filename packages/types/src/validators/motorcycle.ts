@@ -61,3 +61,17 @@ export const UpdateMotorcycleSchema = z.object({
   variant: z.enum(['DCT', 'MT']).nullable().optional(),
 });
 export type UpdateMotorcycle = z.infer<typeof UpdateMotorcycleSchema>;
+
+/** Matches the CHECK on recall_acknowledgements.campaign_number (migration 00189). */
+export const RECALL_CAMPAIGN_NUMBER_MAX_LENGTH = 32;
+
+/**
+ * NHTSA recall campaign number (e.g. `23V123000`), as the rider's client echoes
+ * it back from `Recall.campaignNumber` when marking a recall as done.
+ */
+export const RecallCampaignNumberSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(RECALL_CAMPAIGN_NUMBER_MAX_LENGTH);
+export type RecallCampaignNumber = z.infer<typeof RecallCampaignNumberSchema>;

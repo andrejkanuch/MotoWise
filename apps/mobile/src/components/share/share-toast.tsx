@@ -3,6 +3,7 @@ import { Check } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
+import { useEditorialTheme } from '../../theme/editorial';
 
 interface ShareToastProps {
   message: string | null;
@@ -10,6 +11,7 @@ interface ShareToastProps {
 }
 
 export function ShareToast({ message, duration = 2000 }: ShareToastProps) {
+  const { t: theme } = useEditorialTheme();
   const [visible, setVisible] = useState(false);
   const [displayMessage, setDisplayMessage] = useState('');
   const timerRef = useRef<{ cancel: () => void } | null>(null);
@@ -69,8 +71,8 @@ export function ShareToast({ message, duration = 2000 }: ShareToastProps) {
           paddingHorizontal: 18,
           borderRadius: 14,
           borderCurve: 'continuous',
-          backgroundColor: 'rgba(255,255,255,0.95)',
-          shadowColor: '#000',
+          backgroundColor: theme.surface3,
+          shadowColor: palette.black,
           shadowOffset: { width: 0, height: 12 },
           shadowOpacity: 0.4,
           shadowRadius: 32,
@@ -82,19 +84,19 @@ export function ShareToast({ message, duration = 2000 }: ShareToastProps) {
             width: 22,
             height: 22,
             borderRadius: 999,
-            backgroundColor: palette.shareCopper,
+            backgroundColor: theme.success,
             justifyContent: 'center',
             alignItems: 'center',
           }}
         >
-          <Check size={12} color="#fff" strokeWidth={3} />
+          <Check size={12} color={theme.onPlate} strokeWidth={3} />
         </View>
         <Text
           style={{
             fontSize: 14,
             fontWeight: '600',
             letterSpacing: -0.07,
-            color: palette.shareSheetBg,
+            color: theme.ink,
           }}
         >
           {displayMessage}

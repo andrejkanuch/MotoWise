@@ -1,5 +1,3 @@
-jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
@@ -41,12 +39,7 @@ jest.mock('../../../lib/email-confirmation', () => ({
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import i18n from '../../../i18n';
-import {
-  EMAIL_CODE_SOURCE,
-  EMAIL_CODE_STEP_THEME,
-  EmailCodeStep,
-  type EmailCodeStepProps,
-} from '../email-code-step';
+import { EMAIL_CODE_SOURCE, EmailCodeStep, type EmailCodeStepProps } from '../email-code-step';
 
 const EMAIL = 'rider@example.com';
 const PASSWORD = 'hunter22';
@@ -84,7 +77,6 @@ async function renderStep(props: Partial<EmailCodeStepProps> = {}) {
     <EmailCodeStep
       email={EMAIL}
       source={EMAIL_CODE_SOURCE.SIGNUP}
-      theme={EMAIL_CODE_STEP_THEME.auth}
       onBack={onBack}
       onNeedsSignIn={onNeedsSignIn}
       {...props}

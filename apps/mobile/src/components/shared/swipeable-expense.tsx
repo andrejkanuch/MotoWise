@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import { type Href, router } from 'expo-router';
 import { ChevronRight, Trash2, Wrench } from 'lucide-react-native';
 import { useCallback, useRef } from 'react';
@@ -15,15 +14,11 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useCurrency } from '../../hooks/use-currency';
-import {
-  CATEGORY_COLORS,
-  CATEGORY_LABELS,
-  formatExpenseDate,
-  getExpenseTitle,
-} from '../../lib/expense-constants';
+import { CATEGORY_LABELS, formatExpenseDate, getExpenseTitle } from '../../lib/expense-constants';
 import { confirmDeleteExpenseAlert } from '../../lib/expense-delete';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
-import { HUB_FONT, hub, hubCategoryColor } from '../bike-hub/ui/tokens';
+import { type HubTheme, hubCategoryColor, useHubTheme } from '../bike-hub/ui/tokens';
 
 export interface SwipeableExpenseProps {
   expense: {
@@ -37,7 +32,6 @@ export interface SwipeableExpenseProps {
     date: string;
   };
   motorcycleId: string;
-  isDark: boolean;
   onDelete: (id: string) => void;
   index: number;
   /** True only when maintenanceTaskId resolves to a live task (matches detail). */
@@ -54,61 +48,29 @@ export interface SwipeableExpenseProps {
   enabled?: boolean;
 }
 
-interface RowLook {
-  rowBg: string;
-  radius: number;
-  title: TextStyle;
-  meta: TextStyle;
-  amount: TextStyle;
-  badgeBg: string;
-  badgeIcon: string;
-  chevron: string;
-  deleteBg: string;
-  deleteIcon: string;
-}
-
 /**
- * Dark = the bike hub's row (one card, hairline dividers, hub type with mono
- * figures, hub category colours); light = the original standalone row.
+ * The bike hub's row: flush in one hub card, hairline dividers, condensed
+ * figures and hub category colours — in the active scheme's hub colours.
  */
-const LOOK: Record<'dark' | 'light', RowLook> = {
-  dark: {
-    rowBg: hub.card,
-    radius: 0,
-    title: { fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, lineHeight: 18, color: hub.text },
-    meta: { fontFamily: HUB_FONT.mono, fontSize: 12, lineHeight: 16, color: hub.muted },
-    amount: { fontFamily: HUB_FONT.monoMedium, fontSize: 15, color: hub.text },
-    badgeBg: hub.raised,
-    badgeIcon: hub.dim,
-    chevron: hub.muted,
-    deleteBg: hub.late,
-    deleteIcon: hub.ink,
-  },
-  light: {
-    rowBg: palette.white,
-    radius: 10,
-    title: { fontSize: 14, fontWeight: '600', color: palette.neutral950 },
-    meta: { fontSize: 12, color: palette.neutral500 },
-    amount: { fontSize: 15, fontWeight: '700', color: palette.neutral950 },
-    badgeBg: palette.neutral100,
-    badgeIcon: palette.neutral500,
-    chevron: palette.neutral400,
-    deleteBg: palette.danger500,
-    deleteIcon: palette.white,
-  },
-};
+function rowLook(hub: HubTheme) {
+  return {
+    title: { ...SYSTEM_WEIGHT.semibold, fontSize: 15, lineHeight: 18, color: hub.text },
+    meta: { ...type.caption, color: hub.muted },
+    amount: { ...type.figureSmall, color: hub.text },
+  } satisfies Record<string, TextStyle>;
+}
 
 export function SwipeableExpense({
   expense,
   motorcycleId,
-  isDark,
   onDelete,
   index,
   hasServiceRecord = false,
   divider = false,
   enabled = true,
 }: SwipeableExpenseProps) {
-  const look = LOOK[isDark ? 'dark' : 'light'];
+  const hub = useHubTheme();
+  const look = rowLook(hub);
   const { t } = useTranslation();
   const { formatFor } = useCurrency();
   const amountText = formatFor(expense.amount, expense.currency);
@@ -200,9 +162,7 @@ export function SwipeableExpense({
     opacity: interpolate(translateX.value, [-80, -20, 0], [1, 1, 0], 'clamp'),
   }));
 
-  const catColor = isDark
-    ? hubCategoryColor(expense.category)
-    : (CATEGORY_COLORS[expense.category] ?? palette.neutral500);
+  const catColor = hubCategoryColor(expense.category, hub);
 
   return (
     <Animated.View entering={FadeInUp.delay(Math.min(index, 5) * 50).duration(250)}>
@@ -216,8 +176,8 @@ export function SwipeableExpense({
               top: 0,
               bottom: 0,
               width: 80,
-              backgroundColor: look.deleteBg,
-              borderRadius: look.radius,
+              backgroundColor: hub.late,
+              borderRadius: 0,
               borderCurve: 'continuous',
               alignItems: 'center',
               justifyContent: 'center',
@@ -225,7 +185,7 @@ export function SwipeableExpense({
             deleteButtonStyle,
           ]}
         >
-          <Trash2 size={18} color={look.deleteIcon} strokeWidth={2} />
+          <Trash2 size={18} color={hub.ink} strokeWidth={2} />
         </Animated.View>
 
         {/* Expense row */}
@@ -247,14 +207,14 @@ export function SwipeableExpense({
                 flexDirection: 'row',
                 alignItems: 'center',
                 paddingVertical: 12,
-                paddingLeft: isDark ? 14 : 12,
+                paddingLeft: 14,
                 paddingRight: 12,
-                backgroundColor: look.rowBg,
-                borderRadius: look.radius,
+                backgroundColor: hub.card,
+                borderRadius: 0,
                 borderCurve: 'continuous',
                 borderBottomWidth: divider ? 1 : 0,
                 borderBottomColor: hub.hairline,
-                gap: isDark ? 12 : 10,
+                gap: 12,
               },
               animatedStyle,
             ]}
@@ -270,7 +230,7 @@ export function SwipeableExpense({
             />
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={[{ flexShrink: 1 }, look.title]} numberOfLines={isDark ? 2 : 1}>
+                <Text style={[{ flexShrink: 1 }, look.title]} numberOfLines={2}>
                   {title}
                 </Text>
                 {hasServiceRecord && (
@@ -280,7 +240,7 @@ export function SwipeableExpense({
                       height: 18,
                       borderRadius: 5,
                       borderCurve: 'continuous',
-                      backgroundColor: look.badgeBg,
+                      backgroundColor: hub.raised,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -288,16 +248,14 @@ export function SwipeableExpense({
                       defaultValue: 'Has service record',
                     })}
                   >
-                    <Wrench size={11} color={look.badgeIcon} strokeWidth={2} />
+                    <Wrench size={11} color={hub.dim} strokeWidth={2} />
                   </View>
                 )}
               </View>
-              <Text style={[{ marginTop: isDark ? 3 : 1 }, look.meta]}>
-                {formatExpenseDate(expense.date)}
-              </Text>
+              <Text style={[{ marginTop: 3 }, look.meta]}>{formatExpenseDate(expense.date)}</Text>
             </View>
             <Text style={look.amount}>{amountText}</Text>
-            <ChevronRight size={16} color={look.chevron} strokeWidth={2} />
+            <ChevronRight size={16} color={hub.muted} strokeWidth={2} />
           </Animated.View>
         </GestureDetector>
       </View>

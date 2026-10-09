@@ -1,8 +1,10 @@
-import { palette } from '@motovault/design-system';
 import { CheckCircle, CloudDownload, Loader, Trash2 } from 'lucide-react-native';
-import { Alert, Pressable, Text, useColorScheme, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Alert, Pressable, Text, View } from 'react-native';
 import type { OfflineStatus } from '../../hooks/use-offline-trip';
 import { formatBytes } from '../../lib/offline-trips';
+import { useEditorialTheme } from '../../theme/editorial';
+import { type } from '../../theme/type';
 
 interface OfflinePackButtonProps {
   status: OfflineStatus;
@@ -19,15 +21,16 @@ export function OfflinePackButton({
   onDownload,
   onRemove,
 }: OfflinePackButtonProps) {
-  const isDark = useColorScheme() === 'dark';
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const subColor = isDark ? palette.neutral400 : palette.neutral500;
-  const cardBg = isDark ? palette.surfaceElevated : palette.neutral50;
+  const { t: theme } = useEditorialTheme();
+  const { t, i18n } = useTranslation();
+  const titleColor = theme.ink;
+  const subColor = theme.ink3;
+  const cardBg = theme.surface2;
 
   const confirmRemove = () => {
-    Alert.alert('Remove offline download?', 'Frees up the tiles this trip saved for offline use.', [
-      { text: 'Keep', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: onRemove },
+    Alert.alert(t('offlinePack.removeTitle'), t('offlinePack.removeBody'), [
+      { text: t('offlinePack.keep'), style: 'cancel' },
+      { text: t('offlinePack.remove'), style: 'destructive', onPress: onRemove },
     ]);
   };
 
@@ -46,14 +49,16 @@ export function OfflinePackButton({
           gap: 12,
         }}
       >
-        <Loader size={18} color={palette.accent500} />
+        <Loader size={18} color={theme.warm} />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 14, fontWeight: '700', color: titleColor }}>
-            Downloading offline pack…
+          <Text style={[type.bodyStrong, { color: titleColor }]}>
+            {t('offlinePack.downloading')}
           </Text>
-          <Text style={{ fontSize: 12, color: subColor, marginTop: 2 }}>
-            {Math.round(progress?.percentage ?? 0)}% ·{' '}
-            {formatBytes(progress?.completedResourceSize ?? 0)}
+          <Text style={[type.caption, { color: subColor, marginTop: 2 }]}>
+            {t('offlinePack.progress', {
+              percent: Math.round(progress?.percentage ?? 0),
+              size: formatBytes(progress?.completedResourceSize ?? 0),
+            })}
           </Text>
           {/* Progress bar */}
           <View
@@ -61,7 +66,7 @@ export function OfflinePackButton({
               marginTop: 6,
               height: 4,
               borderRadius: 2,
-              backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
+              backgroundColor: theme.line2,
               overflow: 'hidden',
             }}
           >
@@ -69,7 +74,7 @@ export function OfflinePackButton({
               style={{
                 height: '100%',
                 width: `${Math.min(100, Math.max(0, progress?.percentage ?? 0))}%`,
-                backgroundColor: palette.accent500,
+                backgroundColor: theme.warm,
               }}
             />
           </View>
@@ -94,23 +99,24 @@ export function OfflinePackButton({
           gap: 12,
         }}
       >
-        <CheckCircle size={18} color={palette.success500} />
+        <CheckCircle size={18} color={theme.success} />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 14, fontWeight: '700', color: titleColor }}>
-            Available offline
-          </Text>
-          <Text style={{ fontSize: 12, color: subColor, marginTop: 2 }}>
-            {formatBytes(meta.sizeBytes)} · downloaded {dl.toLocaleDateString()}
+          <Text style={[type.bodyStrong, { color: titleColor }]}>{t('offlinePack.ready')}</Text>
+          <Text style={[type.caption, { color: subColor, marginTop: 2 }]}>
+            {t('offlinePack.readyMeta', {
+              size: formatBytes(meta.sizeBytes),
+              date: dl.toLocaleDateString(i18n.language),
+            })}
           </Text>
         </View>
         <Pressable
           onPress={confirmRemove}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel="Remove offline download"
+          accessibilityLabel={t('offlinePack.removeA11y')}
           style={{ padding: 6 }}
         >
-          <Trash2 size={16} color={palette.danger500} />
+          <Trash2 size={16} color={theme.danger} />
         </Pressable>
       </View>
     );
@@ -120,8 +126,8 @@ export function OfflinePackButton({
     <Pressable
       onPress={onDownload}
       accessibilityRole="button"
-      accessibilityLabel="Download for offline"
-      accessibilityHint="Caches tiles and trip data so you can use it without signal"
+      accessibilityLabel={t('offlinePack.downloadA11y')}
+      accessibilityHint={t('offlinePack.downloadHint')}
       style={{
         backgroundColor: cardBg,
         borderRadius: 12,
@@ -134,13 +140,11 @@ export function OfflinePackButton({
         gap: 12,
       }}
     >
-      <CloudDownload size={18} color={palette.accent500} />
+      <CloudDownload size={18} color={theme.warm} />
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 14, fontWeight: '700', color: titleColor }}>
-          Download for offline with Pro
-        </Text>
-        <Text style={{ fontSize: 12, color: subColor, marginTop: 2 }}>
-          Save map tiles and trip data before weak-signal rides.
+        <Text style={[type.bodyStrong, { color: titleColor }]}>{t('offlinePack.downloadPro')}</Text>
+        <Text style={[type.caption, { color: subColor, marginTop: 2 }]}>
+          {t('offlinePack.downloadBody')}
         </Text>
       </View>
     </Pressable>

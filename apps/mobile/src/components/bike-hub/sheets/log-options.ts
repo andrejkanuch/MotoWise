@@ -17,15 +17,17 @@ import {
 } from 'lucide-react-native';
 import { ADD_TASK_MODE, LOG_OPTION, type LogOption } from '../../../lib/bike-hub/constants';
 import { EXPENSE_ENTRY_SOURCE } from '../../../lib/expense-analytics';
-import { type HubCopyKey, hub } from '../ui/tokens';
+import type { HubColorKey, HubCopyKey } from '../ui/tokens';
 
 export interface LogOptionDefinition {
   id: LogOption;
   icon: LucideIcon;
   /** Set = the icon depends on the rider's currency (the Expense receipt). */
   iconFor?: (currency: Currency) => LucideIcon;
-  iconColor: string;
-  tileBackground: string;
+  /** Hub colour of the icon, resolved against the active scheme's hub theme. */
+  iconTone: HubColorKey;
+  /** Hub colour of the icon's tile. */
+  tileTone: HubColorKey;
   titleKey: HubCopyKey;
   subKey: HubCopyKey;
   /** The form this option opens, for the given bike. D3: today's screens. */
@@ -57,8 +59,8 @@ const EXPENSE: LogOptionDefinition = {
   id: LOG_OPTION.EXPENSE,
   icon: ReceiptText,
   iconFor: expenseIconFor,
-  iconColor: hub.soon,
-  tileBackground: hub.tagHighBg,
+  iconTone: 'text',
+  tileTone: 'raised',
   titleKey: 'bikeHub.log.expense',
   subKey: 'bikeHub.log.expenseSub',
   href: (params) => ({
@@ -70,8 +72,8 @@ const EXPENSE: LogOptionDefinition = {
 const PAST_WORK: LogOptionDefinition = {
   id: LOG_OPTION.PAST_WORK,
   icon: Check,
-  iconColor: hub.ok,
-  tileBackground: hub.raised,
+  iconTone: 'text',
+  tileTone: 'raised',
   titleKey: 'bikeHub.log.pastWork',
   subKey: 'bikeHub.log.pastWorkSub',
   href: (params) => ({
@@ -83,8 +85,8 @@ const PAST_WORK: LogOptionDefinition = {
 const ODOMETER: LogOptionDefinition = {
   id: LOG_OPTION.ODOMETER,
   icon: Gauge,
-  iconColor: hub.text,
-  tileBackground: hub.raised,
+  iconTone: 'text',
+  tileTone: 'raised',
   titleKey: 'bikeHub.log.odometer',
   subKey: 'bikeHub.log.odometerSub',
   href: ({ motorcycleId }) => ({
@@ -96,8 +98,8 @@ const ODOMETER: LogOptionDefinition = {
 const NOTE: LogOptionDefinition = {
   id: LOG_OPTION.NOTE,
   icon: PenLine,
-  iconColor: hub.dim,
-  tileBackground: hub.raised,
+  iconTone: 'dim',
+  tileTone: 'raised',
   titleKey: 'bikeHub.log.note',
   subKey: 'bikeHub.log.noteSub',
   href: ({ motorcycleId }) => ({ pathname: '/(tabs)/(garage)/note', params: { motorcycleId } }),
@@ -107,8 +109,8 @@ const NOTE: LogOptionDefinition = {
 const TASK: LogOptionDefinition = {
   id: LOG_OPTION.TASK,
   icon: Wrench,
-  iconColor: hub.dim,
-  tileBackground: hub.raised,
+  iconTone: 'dim',
+  tileTone: 'raised',
   titleKey: 'bikeHub.log.planTask',
   subKey: 'bikeHub.log.taskSub',
   href: (params) => ({ pathname: '/(tabs)/(garage)/add-maintenance-task', params }),
@@ -117,8 +119,8 @@ const TASK: LogOptionDefinition = {
 const DOCUMENT: LogOptionDefinition = {
   id: LOG_OPTION.DOCUMENT,
   icon: FileText,
-  iconColor: hub.dim,
-  tileBackground: hub.raised,
+  iconTone: 'dim',
+  tileTone: 'raised',
   titleKey: 'bikeHub.log.document',
   subKey: 'bikeHub.log.documentSub',
   href: (params) => ({ pathname: '/(tabs)/(garage)/add-document', params }),

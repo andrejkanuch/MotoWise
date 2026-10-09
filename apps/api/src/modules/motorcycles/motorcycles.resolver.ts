@@ -1,6 +1,10 @@
-import { CreateMotorcycleSchema, UpdateMotorcycleSchema } from '@motovault/types';
+import {
+  CreateMotorcycleSchema,
+  RecallCampaignNumberSchema,
+  UpdateMotorcycleSchema,
+} from '@motovault/types';
 import { Inject, Injectable, Logger, Scope } from '@nestjs/common';
-import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -134,5 +138,27 @@ export class MotorcyclesResolver {
     @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
   ): Promise<RecallResult> {
     return this.motorcyclesService.checkRecalls(user.id, motorcycleId);
+  }
+
+  /** Marks a recall campaign as done for the rider's bike. Idempotent. */
+  @Mutation(() => RecallResult)
+  async acknowledgeRecall(
+    @CurrentUser() user: AuthUser,
+    @Args('motorcycleId', { type: () => ID }, ParseUUIDPipe) motorcycleId: string,
+    @Args('campaignNumber', new ZodValidationPipe(RecallCampaignNumberSchema))
+    campaignNumber: string,
+  ): Promise<RecallResult> {
+    return this.motorcyclesService.acknowledgeRecall(user.id, motorcycleId, campaignNumber);
+  }
+
+  /** Undo of acknowledgeRecall: the campaign counts as open again. Idempotent. */
+  @Mutation(() => RecallResult)
+  async unacknowledgeRecall(
+    @CurrentUser() user: AuthUser,
+    @Args('motorcycleId', { type: () => ID }, ParseUUIDPipe) motorcycleId: string,
+    @Args('campaignNumber', new ZodValidationPipe(RecallCampaignNumberSchema))
+    campaignNumber: string,
+  ): Promise<RecallResult> {
+    return this.motorcyclesService.unacknowledgeRecall(user.id, motorcycleId, campaignNumber);
   }
 }

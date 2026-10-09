@@ -3,13 +3,14 @@ import BottomSheet, {
   type BottomSheetScrollViewMethods,
   BottomSheetTextInput,
 } from '@gorhom/bottom-sheet';
-import { palette } from '@motovault/design-system';
 import { Send, Sparkles, X } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, Text, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import type { AssistantMessage } from '../../hooks/use-trip-assistant';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 
 interface TripAssistantSheetProps {
   visible: boolean;
@@ -20,12 +21,13 @@ interface TripAssistantSheetProps {
   onReset: () => void;
 }
 
-const SUGGESTIONS = [
-  'Coffee stop between stop 2 and 3, max 5 min off-route',
-  'Curvier alternative to tomorrow afternoon',
-  'Motorcycle-friendly hotel near the last stop',
-  'Best detour if it rains tomorrow PM',
-];
+/** Starter prompts, sent to the assistant in the rider's language. */
+const SUGGESTION_KEYS = [
+  'tripAssistant.prompts.coffee',
+  'tripAssistant.prompts.curvier',
+  'tripAssistant.prompts.hotel',
+  'tripAssistant.prompts.rain',
+] as const;
 
 export function TripAssistantSheet({
   visible,
@@ -36,7 +38,7 @@ export function TripAssistantSheet({
   onReset,
 }: TripAssistantSheetProps) {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
+  const { t: theme } = useEditorialTheme();
   const sheetRef = useRef<BottomSheet>(null);
   const scrollRef = useRef<BottomSheetScrollViewMethods | null>(null);
   const [draft, setDraft] = useState('');
@@ -52,14 +54,15 @@ export function TripAssistantSheet({
 
   if (!visible) return null;
 
-  const bg = isDark ? palette.neutral950 : palette.white;
-  const handleColor = isDark ? palette.neutral600 : palette.neutral300;
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const subColor = isDark ? palette.neutral400 : palette.neutral500;
-  const userBg = palette.accent500;
-  const aiBg = isDark ? palette.surfaceElevated : palette.neutral100;
-  const aiTextColor = isDark ? palette.neutral100 : palette.neutral900;
-  const inputBg = isDark ? palette.surfaceElevated : palette.neutral100;
+  const bg = theme.surface;
+  const handleColor = theme.ink4;
+  const titleColor = theme.ink;
+  const subColor = theme.ink3;
+  // Rider bubbles are inverse ink (copper is reserved for actions).
+  const userBg = theme.ink;
+  const aiBg = theme.surface2;
+  const aiTextColor = theme.ink;
+  const inputBg = theme.surface2;
 
   const handleSend = () => {
     const q = draft.trim();
@@ -93,29 +96,31 @@ export function TripAssistantSheet({
             width: 32,
             height: 32,
             borderRadius: 16,
-            backgroundColor: `${palette.accent500}22`,
+            backgroundColor: tint(theme.warm, 0.14),
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Sparkles size={16} color={palette.accent500} />
+          <Sparkles size={16} color={theme.warm} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: titleColor }}>Trip assistant</Text>
-          <Text style={{ fontSize: 12, color: subColor, marginTop: 1 }}>
-            Knows your bike, waypoints, and days.
+          <Text style={[type.bodyStrong, { color: titleColor }]}>{t('tripAssistant.title')}</Text>
+          <Text style={[type.caption, { color: subColor, marginTop: 1 }]}>
+            {t('tripAssistant.subtitle')}
           </Text>
         </View>
         {messages.length > 0 && (
           <Pressable onPress={onReset} hitSlop={8} accessibilityRole="button">
-            <Text style={{ fontSize: 13, color: palette.accent500, fontWeight: '600' }}>Reset</Text>
+            <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: theme.warm2 }]}>
+              {t('tripAssistant.reset')}
+            </Text>
           </Pressable>
         )}
         <Pressable
           onPress={onClose}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel="Close"
+          accessibilityLabel={t('tripShare.closeA11y')}
         >
           <X size={20} color={subColor} />
         </Pressable>
@@ -128,11 +133,11 @@ export function TripAssistantSheet({
       >
         {messages.length === 0 && (
           <View style={{ gap: 10, marginTop: 4 }}>
-            <Text style={{ fontSize: 13, color: subColor }}>Try asking:</Text>
-            {SUGGESTIONS.map((s) => (
+            <Text style={[type.label, { color: subColor }]}>{t('tripAssistant.tryAsking')}</Text>
+            {SUGGESTION_KEYS.map((key) => (
               <Pressable
-                key={s}
-                onPress={() => onAsk(s)}
+                key={key}
+                onPress={() => onAsk(t(key))}
                 style={{
                   paddingVertical: 10,
                   paddingHorizontal: 14,
@@ -141,7 +146,7 @@ export function TripAssistantSheet({
                   backgroundColor: aiBg,
                 }}
               >
-                <Text style={{ fontSize: 14, color: aiTextColor, lineHeight: 20 }}>{s}</Text>
+                <Text style={[type.subhead, { color: aiTextColor }]}>{t(key)}</Text>
               </Pressable>
             ))}
           </View>
@@ -161,13 +166,7 @@ export function TripAssistantSheet({
               backgroundColor: m.role === 'user' ? userBg : aiBg,
             }}
           >
-            <Text
-              style={{
-                fontSize: 14,
-                lineHeight: 20,
-                color: m.role === 'user' ? palette.white : aiTextColor,
-              }}
-            >
+            <Text style={[type.subhead, { color: m.role === 'user' ? theme.bg : aiTextColor }]}>
               {m.content}
             </Text>
           </Animated.View>
@@ -187,8 +186,8 @@ export function TripAssistantSheet({
               gap: 8,
             }}
           >
-            <ActivityIndicator size="small" color={palette.accent500} />
-            <Text style={{ fontSize: 13, color: subColor }}>Thinking…</Text>
+            <ActivityIndicator size="small" color={theme.warm} />
+            <Text style={[type.label, { color: subColor }]}>{t('tripAssistant.thinking')}</Text>
           </View>
         )}
       </BottomSheetScrollView>
@@ -202,7 +201,7 @@ export function TripAssistantSheet({
           paddingTop: 8,
           paddingBottom: 20,
           borderTopWidth: 1,
-          borderTopColor: isDark ? palette.neutral800 : palette.neutral200,
+          borderTopColor: theme.line,
           backgroundColor: bg,
         }}
       >
@@ -236,17 +235,17 @@ export function TripAssistantSheet({
           onPress={handleSend}
           disabled={!draft.trim() || isPending}
           accessibilityRole="button"
-          accessibilityLabel="Send message"
+          accessibilityLabel={t('tripAssistant.sendA11y')}
           style={{
             width: 40,
             height: 40,
             borderRadius: 20,
-            backgroundColor: draft.trim() && !isPending ? palette.accent500 : aiBg,
+            backgroundColor: draft.trim() && !isPending ? theme.warm : aiBg,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Send size={16} color={draft.trim() && !isPending ? palette.white : subColor} />
+          <Send size={16} color={draft.trim() && !isPending ? theme.onWarm : subColor} />
         </Pressable>
       </View>
     </BottomSheet>

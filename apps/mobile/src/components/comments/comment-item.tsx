@@ -4,8 +4,9 @@ import { Image } from 'expo-image';
 import { Reply } from 'lucide-react-native';
 import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, useColorScheme, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useEditorialTheme } from '../../theme/editorial';
 import { showActionSheet } from '../../utils/action-sheet';
 
 type CommentData = GetCommentsQuery['getComments']['comments'][number];
@@ -33,7 +34,7 @@ export const CommentItem = memo(function CommentItem({
   onAuthorPress,
 }: CommentItemProps) {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const isOwn = currentUserId === comment.author.id;
 
   const textColor = isDark ? palette.neutral200 : palette.neutral800;

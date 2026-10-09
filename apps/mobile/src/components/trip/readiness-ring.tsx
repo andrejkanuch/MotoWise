@@ -1,9 +1,11 @@
-import { palette } from '@motovault/design-system';
 import { Check, ChevronDown, ChevronUp, Share2, X } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, Text, useColorScheme, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
+import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 import type { ReadinessReport } from '../../utils/readiness';
 
 interface ReadinessRingProps {
@@ -16,28 +18,29 @@ const RING_STROKE = 6;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CIRCUM = 2 * Math.PI * RING_RADIUS;
 
-function colorForScore(score: number): string {
-  if (score >= 0.8) return palette.success500;
-  if (score >= 0.5) return palette.warning500;
-  return palette.danger500;
+function colorForScore(score: number, t: EditorialTokens): string {
+  if (score >= 0.8) return t.success;
+  if (score >= 0.5) return t.dueInk;
+  return t.overdueInk;
 }
 
 export function ReadinessRing({ report, onShareBrief }: ReadinessRingProps) {
-  const isDark = useColorScheme() === 'dark';
+  const { t } = useEditorialTheme();
+  const { t: tr } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   const pct = Math.round(report.score * 100);
-  const color = colorForScore(report.score);
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const subColor = isDark ? palette.neutral400 : palette.neutral500;
-  const cardBg = isDark ? palette.surfaceElevated : palette.neutral50;
+  const color = colorForScore(report.score, t);
+  const titleColor = t.ink;
+  const subColor = t.ink3;
+  const cardBg = t.surface;
 
   const headline = useMemo(() => {
-    if (report.score >= 0.95) return 'Ready to ride';
-    if (report.score >= 0.8) return 'Nearly ready';
-    if (report.score >= 0.5) return 'Some checks pending';
-    return 'Needs attention';
-  }, [report.score]);
+    if (report.score >= 0.95) return tr('startRide.readyToRide');
+    if (report.score >= 0.8) return tr('tripReadiness.nearlyReady');
+    if (report.score >= 0.5) return tr('tripReadiness.somePending');
+    return tr('tripReadiness.needsAttention');
+  }, [report.score, tr]);
 
   const strokeDashoffset = RING_CIRCUM * (1 - report.score);
 
@@ -58,7 +61,7 @@ export function ReadinessRing({ report, onShareBrief }: ReadinessRingProps) {
       <Pressable
         onPress={handleToggle}
         accessibilityRole="button"
-        accessibilityLabel={`${headline}. ${pct} percent ready. Tap to see the checklist.`}
+        accessibilityLabel={tr('tripReadiness.a11y', { headline, percent: pct })}
         style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
       >
         <View style={{ width: RING_SIZE, height: RING_SIZE }}>
@@ -67,7 +70,7 @@ export function ReadinessRing({ report, onShareBrief }: ReadinessRingProps) {
               cx={RING_SIZE / 2}
               cy={RING_SIZE / 2}
               r={RING_RADIUS}
-              stroke={isDark ? palette.neutral800 : palette.neutral200}
+              stroke={t.line2}
               strokeWidth={RING_STROKE}
               fill="transparent"
             />
@@ -96,13 +99,13 @@ export function ReadinessRing({ report, onShareBrief }: ReadinessRingProps) {
               justifyContent: 'center',
             }}
           >
-            <Text style={{ fontSize: 13, fontWeight: '800', color: titleColor }}>{pct}%</Text>
+            <Text style={[type.label, SYSTEM_WEIGHT.bold, { color: titleColor }]}>{pct}%</Text>
           </View>
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 15, fontWeight: '700', color: titleColor }}>{headline}</Text>
-          <Text style={{ fontSize: 12, color: subColor, marginTop: 2 }}>
-            {report.passed}/{report.total} checks pass
+          <Text style={[type.bodyStrong, { color: titleColor }]}>{headline}</Text>
+          <Text style={[type.caption, { color: subColor, marginTop: 2 }]}>
+            {tr('tripReadiness.checksPass', { passed: report.passed, total: report.total })}
           </Text>
         </View>
         <Chevron size={18} color={subColor} />
@@ -113,10 +116,10 @@ export function ReadinessRing({ report, onShareBrief }: ReadinessRingProps) {
           {report.items.map((item) => {
             const Icon = item.passed ? Check : X;
             const iconColor = item.passed
-              ? palette.success500
+              ? t.success
               : item.severity === 'required'
-                ? palette.danger500
-                : palette.warning500;
+                ? t.overdueInk
+                : t.dueInk;
             return (
               <View
                 key={item.key}
@@ -127,7 +130,7 @@ export function ReadinessRing({ report, onShareBrief }: ReadinessRingProps) {
                     width: 22,
                     height: 22,
                     borderRadius: 11,
-                    backgroundColor: `${iconColor}1F`,
+                    backgroundColor: tint(iconColor, 0.12),
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginTop: 1,
@@ -151,7 +154,7 @@ export function ReadinessRing({ report, onShareBrief }: ReadinessRingProps) {
             <Pressable
               onPress={onShareBrief}
               accessibilityRole="button"
-              accessibilityLabel="Share tank-bag brief"
+              accessibilityLabel={tr('tripReadiness.shareBrief')}
               style={{
                 marginTop: 8,
                 flexDirection: 'row',
@@ -162,12 +165,12 @@ export function ReadinessRing({ report, onShareBrief }: ReadinessRingProps) {
                 borderRadius: 10,
                 borderCurve: 'continuous',
                 borderWidth: 1,
-                borderColor: isDark ? palette.neutral700 : palette.neutral200,
+                borderColor: t.line2,
               }}
             >
               <Share2 size={14} color={titleColor} />
-              <Text style={{ fontSize: 13, fontWeight: '600', color: titleColor }}>
-                Share tank-bag brief
+              <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: titleColor }]}>
+                {tr('tripReadiness.shareBrief')}
               </Text>
             </Pressable>
           )}

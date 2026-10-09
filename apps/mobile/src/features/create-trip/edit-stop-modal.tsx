@@ -1,9 +1,9 @@
-import { palette } from '@motovault/design-system';
 import { X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, ScrollView as RNScrollView, Text, TextInput, View } from 'react-native';
 import { WaypointTypePicker } from '../../components/trip/waypoint-type-picker';
 import { tint, useEditorialTheme } from '../../theme/editorial';
+import { type } from '../../theme/type';
 import { PERIOD_LABEL } from '../../utils/period-of-day';
 import type { LocalWaypoint, PeriodOfDayLocal } from './types';
 
@@ -67,15 +67,7 @@ export function EditStopModal({
             paddingBottom: 12,
           }}
         >
-          <Text
-            style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 22,
-              color: titleColor,
-            }}
-          >
-            {i18n('trips.editStop')}
-          </Text>
+          <Text style={[type.sheetTitle, { color: titleColor }]}>{i18n('trips.editStop')}</Text>
           <Pressable
             onPress={onClose}
             hitSlop={12}
@@ -287,7 +279,7 @@ export function EditStopModal({
               style={{
                 fontSize: 16,
                 fontWeight: '700',
-                color: palette.whitePure,
+                color: t.onWarm,
               }}
             >
               {i18n('common.done')}

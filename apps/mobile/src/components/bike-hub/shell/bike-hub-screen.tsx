@@ -4,12 +4,20 @@ import { StatusBar } from 'expo-status-bar';
 import { Plus } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Keyboard, Pressable, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Keyboard,
+  Pressable,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { type SharedValue, useSharedValue } from 'react-native-reanimated';
 import { BIKE_SEGMENT, type BikeSegment } from '../../../lib/bike-hub/constants';
 import { parseOrigin, resolveInitialSegment } from '../../../lib/bike-hub/segments';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
-import { EDITORIAL_SCHEME, EditorialSchemeProvider } from '../../../theme/editorial';
+import { useEditorialTheme } from '../../../theme/editorial';
+import { CONTENT_MAX_WIDTH, readableWidth } from '../../../theme/type';
 import { OverviewSegment } from '../overview/overview-segment';
 import { BikeSegment as BikeSegmentPanel } from '../segments/bike-segment';
 import { CostsSegment } from '../segments/costs-segment';
@@ -18,7 +26,14 @@ import { ActionPill } from '../ui/action-pill';
 import { BikeHeader } from '../ui/bike-header';
 import { useHubBottomLayout } from '../ui/bottom-layout';
 import { SegmentBar } from '../ui/segment-bar';
-import { HUB_FONT, HUB_TOUCH_TARGET, type HubCopyKey, hub } from '../ui/tokens';
+import {
+  HUB_HEIGHT,
+  HUB_LAST_ROW_MARGIN,
+  HUB_TOUCH_TARGET,
+  type HubCopyKey,
+  SYSTEM_WEIGHT,
+  useHubTheme,
+} from '../ui/tokens';
 import { SegmentContainer, type SegmentDefinition } from './segment-container';
 import { useBikeActions } from './use-bike-actions';
 import { useBikeBack } from './use-bike-back';
@@ -38,6 +53,9 @@ export interface BikeHubScreenProps {
   /** Changes on every re-navigation to an already-mounted screen. */
   ts?: string;
 }
+
+/** Distance of the action pill from the right edge of the content column. */
+const PILL_INSET = 16;
 
 /**
  * Segment → its one primary action, always labelled with what it adds ("Log"
@@ -69,17 +87,6 @@ function landingKey({ ts, highlightTask, segment }: BikeHubScreenProps): string 
   return `${ts ?? ''}|${highlightTask ?? ''}|${segment ?? ''}`;
 }
 
-/**
- * The sections Service / Costs / Bike still wrap (until R2–R5) follow the
- * editorial theme; the hub is dark in both schemes, so pin them dark to sit on
- * the hub's ground instead of flipping to light panels on a light-mode phone.
- */
-function LegacySegment({ children }: { children: React.ReactNode }) {
-  return (
-    <EditorialSchemeProvider value={EDITORIAL_SCHEME.DARK}>{children}</EditorialSchemeProvider>
-  );
-}
-
 function CentredState({ children }: { children: React.ReactNode }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 }}>
@@ -94,6 +101,8 @@ function CentredState({ children }: { children: React.ReactNode }) {
  * detail. Service / Costs / Bike wrap today's sections until R2–R5.
  */
 export function BikeHubScreen(props: BikeHubScreenProps) {
+  const hub = useHubTheme();
+  const { isDark } = useEditorialTheme();
   const { id, highlightTask, segment: segmentParam, from } = props;
   const { t } = useTranslation();
   const bottomLayout = useHubBottomLayout();
@@ -101,6 +110,28 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
   const origin = parseOrigin(from);
   const goBack = useBikeBack(origin);
   const data = useBikeHubData(id);
+
+  // Leaves at most once: the hub's own delete (`onRemoved`) and the redirect
+  // below can both see the bike go.
+  const left = useRef(false);
+  const leave = useCallback(() => {
+    if (left.current) return;
+    left.current = true;
+    goBack();
+  }, [goBack]);
+
+  // The bike was here and the garage list no longer has it (deleted from Edit
+  // Motorcycle, whose sheet may have closed before its own navigation ran, or
+  // from another device): go back instead of showing "not found". A bike that
+  // never loaded (a stale deep link) keeps the not-found state.
+  const hadBike = useRef(false);
+  useEffect(() => {
+    if (data.bike) {
+      hadBike.current = true;
+      return;
+    }
+    if (hadBike.current && isFocused && !data.isLoading && !data.isError) leave();
+  }, [data.bike, data.isLoading, data.isError, isFocused, leave]);
   const setLastSegment = useBikeHubStore((state) => state.setLastSegment);
   const collapse = useSharedValue(0);
 
@@ -169,7 +200,7 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
 
   return (
     <View style={{ flex: 1, backgroundColor: hub.ground }}>
-      {isFocused ? <StatusBar style="light" /> : null}
+      {isFocused ? <StatusBar style={isDark ? 'light' : 'dark'} /> : null}
       <Sentry.TimeToInitialDisplay record />
       <View
         style={{
@@ -178,17 +209,19 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
           borderBottomColor: hub.hairline,
         }}
       >
-        <BikeHeader
-          bike={data.bike}
-          origin={origin}
-          unit={data.unit}
-          collapse={collapse}
-          onBack={goBack}
-          onOdometerPress={() => navigationRef.current?.openOdometerSheet()}
-        />
-        {data.bike ? (
-          <SegmentBar active={active} onChange={selectSegment} serviceBadge={data.serviceBadge} />
-        ) : null}
+        <View style={readableWidth}>
+          <BikeHeader
+            bike={data.bike}
+            origin={origin}
+            unit={data.unit}
+            collapse={collapse}
+            onBack={goBack}
+            onOdometerPress={() => navigationRef.current?.openOdometerSheet()}
+          />
+          {data.bike ? (
+            <SegmentBar active={active} onChange={selectSegment} serviceBadge={data.serviceBadge} />
+          ) : null}
+        </View>
       </View>
 
       {data.bike ? (
@@ -200,7 +233,7 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
           collapse={collapse}
           bottomInset={bottomLayout.contentInset}
           pillBottom={bottomLayout.pillBottom}
-          onRemoved={goBack}
+          onRemoved={leave}
           onShowSegment={setActive}
           onSelectSegment={selectSegment}
           onOpenTask={openTask}
@@ -219,7 +252,7 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
         <CentredState>
           <Text
             style={{
-              fontFamily: HUB_FONT.sans,
+              ...SYSTEM_WEIGHT.regular,
               fontSize: 16,
               lineHeight: 22,
               color: hub.dim,
@@ -239,9 +272,7 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
                 opacity: pressed ? 0.6 : 1,
               })}
             >
-              <Text
-                style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.copperText }}
-              >
+              <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 15, color: hub.copperText }}>
                 {t('common.retry')}
               </Text>
             </Pressable>
@@ -292,6 +323,11 @@ function LoadedHub({
   const navigation = useBikeHubNavigation(bike, active, onShowSegment);
   useEffect(() => navigationRef(navigation), [navigationRef, navigation]);
   const keyboardVisible = useKeyboardVisible();
+  const { width: windowWidth } = useWindowDimensions();
+  // The pill's real height (it can grow with the system text size): the last
+  // row must always scroll fully clear of its top edge, on phone and tablet.
+  const [pillHeight, setPillHeight] = useState<number>(HUB_HEIGHT.primary);
+  const contentInset = Math.max(bottomInset, pillBottom + pillHeight + HUB_LAST_ROW_MARGIN);
 
   const pillAction: Record<BikeSegment, () => void> = {
     [BIKE_SEGMENT.OVERVIEW]: navigation.openLogSheet,
@@ -317,7 +353,7 @@ function LoadedHub({
     },
     [BIKE_SEGMENT.SERVICE]: {
       render: () => (
-        <LegacySegment>
+        <>
           <ServiceSegment
             bike={bike}
             tasks={data.tasks}
@@ -325,31 +361,33 @@ function LoadedHub({
             highlightTaskId={landing.highlightTaskId}
             highlightKey={landing.key}
           />
-        </LegacySegment>
+        </>
       ),
     },
     [BIKE_SEGMENT.COSTS]: {
       render: () => (
-        <LegacySegment>
+        <>
           <CostsSegment bike={bike} unit={data.unit} />
-        </LegacySegment>
+        </>
       ),
     },
     [BIKE_SEGMENT.BIKE]: {
       render: () => (
-        <LegacySegment>
+        <>
           <BikeSegmentPanel
             bike={bike}
             actions={actions}
             onChangePhoto={photo.changePhoto}
             isUploadingPhoto={photo.uploading}
           />
-        </LegacySegment>
+        </>
       ),
     },
   };
 
   const pill = PILL[active];
+  // On a tablet the pill sits at the right edge of the readable column, not the screen.
+  const pillRight = PILL_INSET + Math.max(0, (windowWidth - CONTENT_MAX_WIDTH) / 2);
   return (
     <>
       <Sentry.TimeToFullDisplay record />
@@ -359,12 +397,15 @@ function LoadedHub({
         collapse={collapse}
         refreshing={data.isRefreshing}
         onRefresh={() => void data.refresh()}
-        bottomInset={bottomInset}
+        bottomInset={contentInset}
         focused={focused}
       />
       {/* Out of the way while typing a quick note. */}
       {keyboardVisible ? null : (
-        <View style={{ position: 'absolute', right: 16, bottom: pillBottom }}>
+        <View
+          style={{ position: 'absolute', right: pillRight, bottom: pillBottom }}
+          onLayout={(event) => setPillHeight(event.nativeEvent.layout.height)}
+        >
           <ActionPill
             testID={`action-pill-${active}`}
             icon={Plus}

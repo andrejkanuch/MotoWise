@@ -3,7 +3,8 @@ import { ChevronRight } from 'lucide-react-native';
 import { memo, useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { CATEGORY_COLORS, CATEGORY_LABELS, formatMoney } from '../../lib/expense-constants';
-import { useEditorialTheme } from '../../theme/editorial';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { type } from '../../theme/type';
 
 const MIN_SEGMENT_FLEX = 2;
 
@@ -97,9 +98,9 @@ export const CategoryDonut = memo(function CategoryDonut({
                   alignItems: 'center',
                   height: 52,
                   backgroundColor: isSelected
-                    ? `${color}12`
+                    ? tint(color, 0.07)
                     : pressed
-                      ? `${theme.ink}06`
+                      ? tint(theme.ink, 0.03)
                       : 'transparent',
                   borderRadius: 10,
                   borderCurve: 'continuous',
@@ -124,8 +125,8 @@ export const CategoryDonut = memo(function CategoryDonut({
                     numberOfLines={1}
                     ellipsizeMode="tail"
                     style={{
+                      ...type.body,
                       fontSize: 15,
-                      fontWeight: '500',
                       color: theme.ink,
                     }}
                   >
@@ -136,8 +137,8 @@ export const CategoryDonut = memo(function CategoryDonut({
                 {/* Amount + percentage */}
                 <Text
                   style={{
-                    fontFamily: 'InstrumentSerif-Regular',
-                    fontSize: 16,
+                    ...type.figureSmall,
+                    fontSize: 18,
                     color: theme.ink,
                     marginLeft: 8,
                   }}
@@ -146,7 +147,8 @@ export const CategoryDonut = memo(function CategoryDonut({
                 </Text>
                 <Text
                   style={{
-                    fontSize: 12,
+                    ...type.caption,
+                    fontVariant: ['tabular-nums'],
                     color: theme.ink3,
                     marginLeft: 8,
                     minWidth: 32,

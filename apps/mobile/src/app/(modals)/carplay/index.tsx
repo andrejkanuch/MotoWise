@@ -11,18 +11,12 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  CardGroup,
-  Eyebrow,
-  INK_ON_COPPER,
-  MONO,
-  PulseDot,
-  SectionLabel,
-} from '../../../components/carplay/primitives';
+import { CardGroup, Eyebrow, PulseDot, SectionLabel } from '../../../components/carplay/primitives';
 import { useActiveBike, useCarPlayConnection } from '../../../features/carplay/use-carplay';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { type StartMode, useCarPlayStore } from '../../../stores/carplay.store';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
+import { radius, SYSTEM_WEIGHT, type } from '../../../theme/type';
 import { triggerImpact } from '../../../utils/haptics';
 
 export default function CarPlayHubScreen() {
@@ -79,7 +73,7 @@ export default function CarPlayHubScreen() {
         >
           <ChevronLeft size={18} color={c.ink2} strokeWidth={2} />
         </Pressable>
-        <Text style={{ fontSize: 19, fontWeight: '700', letterSpacing: -0.3, color: c.ink }}>
+        <Text style={{ ...type.sheetTitle, color: c.ink }}>
           {t('carplay.hub.title', { defaultValue: 'CarPlay Companion' })}
         </Text>
       </View>
@@ -89,9 +83,8 @@ export default function CarPlayHubScreen() {
       >
         <Text
           style={{
-            fontSize: 13.5,
+            ...type.subhead,
             color: c.ink2,
-            lineHeight: 20,
             paddingHorizontal: 4,
             paddingTop: 2,
           }}
@@ -134,13 +127,9 @@ export default function CarPlayHubScreen() {
                   <Eyebrow style={{ marginBottom: 3, marginTop: 0 }}>
                     {t('carplay.hub.keepGuard', { defaultValue: 'Keep-guard' })}
                   </Eyebrow>
-                  <Text
-                    style={{ fontFamily: MONO, fontSize: 13, color: c.ink, letterSpacing: 0.3 }}
-                  >
-                    {'500 m · 2 min'}
-                  </Text>
+                  <Text style={{ ...type.figureSmall, color: c.ink }}>{'500 m · 2 min'}</Text>
                 </View>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: c.warm2 }}>
+                <Text style={{ ...type.label, ...SYSTEM_WEIGHT.semibold, color: c.warm2 }}>
                   {t('carplay.hub.adjust', { defaultValue: 'Adjust' })}
                 </Text>
               </View>
@@ -191,7 +180,7 @@ export default function CarPlayHubScreen() {
               borderRadius: 14,
               borderCurve: 'continuous',
               padding: 2,
-              backgroundColor: c.warm,
+              backgroundColor: c.line2,
             }}
           >
             {/* TODO(carplay): bike primaryPhotoUrl */}
@@ -207,18 +196,8 @@ export default function CarPlayHubScreen() {
             />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: c.ink }}>{bikeName}</Text>
-            <Text
-              style={{
-                fontFamily: MONO,
-                fontSize: 11.5,
-                color: c.ink3,
-                letterSpacing: 0.4,
-                marginTop: 3,
-              }}
-            >
-              {bikeStat}
-            </Text>
+            <Text style={{ ...type.bodyStrong, color: c.ink }}>{bikeName}</Text>
+            <Text style={{ ...type.caption, color: c.ink3, marginTop: 2 }}>{bikeStat}</Text>
           </View>
           <ChevronRight size={18} color={c.ink4} strokeWidth={2} />
         </View>
@@ -228,11 +207,11 @@ export default function CarPlayHubScreen() {
           <View
             style={{
               marginTop: 12,
-              backgroundColor: tint(c.warm, 0.12),
-              borderRadius: 14,
+              backgroundColor: tint(c.success, 0.12),
+              borderRadius: radius.control,
               borderCurve: 'continuous',
               borderWidth: 1,
-              borderColor: tint(c.warm, 0.3),
+              borderColor: tint(c.success, 0.3),
               paddingVertical: 12,
               paddingHorizontal: 14,
               flexDirection: 'row',
@@ -240,16 +219,8 @@ export default function CarPlayHubScreen() {
               gap: 11,
             }}
           >
-            <PulseDot color={c.warm} />
-            <Text
-              style={{
-                fontFamily: MONO,
-                fontSize: 11.5,
-                fontWeight: '500',
-                letterSpacing: 1,
-                color: c.warm2,
-              }}
-            >
+            <PulseDot color={c.success} />
+            <Text style={{ ...type.label, ...SYSTEM_WEIGHT.semibold, color: c.ink }}>
               {`${bikeName.toUpperCase()} · ${t('carplay.hub.connected', { defaultValue: 'CONNECTED' })}`}
             </Text>
           </View>
@@ -331,19 +302,15 @@ function RadioCard({
         </View>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <Text style={{ fontSize: 16, fontWeight: '700', letterSpacing: -0.2, color: c.ink }}>
-              {title}
-            </Text>
+            <Text style={{ ...type.bodyStrong, color: c.ink }}>{title}</Text>
             {badge && (
               <Text
                 style={{
-                  fontFamily: MONO,
-                  fontSize: 9.5,
-                  fontWeight: '600',
-                  letterSpacing: 1,
-                  color: INK_ON_COPPER,
-                  backgroundColor: c.warm,
-                  borderRadius: 5,
+                  ...type.caption,
+                  ...SYSTEM_WEIGHT.semibold,
+                  color: c.ink2,
+                  backgroundColor: c.surface3,
+                  borderRadius: 6,
                   borderCurve: 'continuous',
                   paddingHorizontal: 6,
                   paddingVertical: 2,
@@ -354,7 +321,7 @@ function RadioCard({
               </Text>
             )}
           </View>
-          <Text style={{ fontSize: 13.5, lineHeight: 19, color: c.ink2 }}>{consequence}</Text>
+          <Text style={{ ...type.subhead, color: c.ink2 }}>{consequence}</Text>
           {children}
         </View>
       </View>
@@ -375,6 +342,8 @@ function NavRow({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      android_ripple={{ color: c.line2 }}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -385,7 +354,7 @@ function NavRow({
         borderTopColor: c.line2,
       }}
     >
-      <Text style={{ flex: 1, fontSize: 15, fontWeight: '500', color: c.ink }}>{label}</Text>
+      <Text style={{ ...type.body, flex: 1, color: c.ink }}>{label}</Text>
       <ChevronRight size={17} color={c.ink4} strokeWidth={2} />
     </Pressable>
   );

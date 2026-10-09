@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect } from 'react';
-import { useColorScheme } from 'react-native';
 import {
   cancelAnimation,
   Easing,
@@ -8,6 +7,7 @@ import {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
+import { useEditorialTheme } from '../../theme/editorial';
 
 interface SkeletonContextValue {
   progress: SharedValue<number>;
@@ -18,7 +18,7 @@ const SkeletonContext = createContext<SkeletonContextValue | null>(null);
 
 export function SkeletonProvider({ children }: { children: React.ReactNode }) {
   const progress = useSharedValue(0);
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
 
   useEffect(() => {
     progress.value = withRepeat(

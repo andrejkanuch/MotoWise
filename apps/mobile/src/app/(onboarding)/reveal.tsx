@@ -2,31 +2,24 @@ import { GetOnboardingRevealDocument, type GetOnboardingRevealQuery } from '@mot
 import { MotorcycleType } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { DollarSign, Lightbulb, ShieldCheck, Users, Wrench } from 'lucide-react-native';
 import { type ReactNode, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
-import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { getBikeImage } from '../../config/bike-images';
-import { getBrandColor, getBrandDna } from '../../config/brand-dna';
+import { OnboardingBikePlate } from '../../components/onboarding/onboarding-bike-plate';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
+import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
+import { getBrandDna } from '../../config/brand-dna';
 import { getPrimaryConcern, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import {
-  useOnboardingNext,
-  useOnboardingStep,
-  useOnboardingVariant,
-} from '../../hooks/use-onboarding-flow';
+import { useOnboardingNext, useOnboardingVariant } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { radius, space, type } from '../../theme/type';
 import { getRevealRiderCount } from '../../utils/onboarding-reveal';
 
 type RevealData = GetOnboardingRevealQuery['onboardingReveal'];
@@ -51,11 +44,10 @@ const TYPE_TO_ARCHETYPE: Partial<Record<MotorcycleType, string>> = {
 };
 
 export default function RevealScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const variant = useOnboardingVariant();
   const onBack = useOnboardingBack(OB_SCREEN.REVEAL);
-  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.REVEAL);
   const goNext = useOnboardingNext(OB_SCREEN.REVEAL);
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const stayOnTopOf = useOnboardingStore((s) => s.stayOnTopOf);
@@ -67,7 +59,6 @@ export default function RevealScreen() {
   const make = bikeData?.make ?? '';
   const model = bikeData?.model || undefined;
   const year = bikeData?.year ?? new Date().getFullYear() - 3;
-  const brandColor = getBrandColor(make);
   const dna = getBrandDna(make);
   // Prefer the bike's detected type; fall back to the brand archetype.
   const archetype = (bikeData?.type && TYPE_TO_ARCHETYPE[bikeData.type]) || dna?.type || '';
@@ -112,42 +103,28 @@ export default function RevealScreen() {
     projectionLed && reveal?.projectedYearlyCostEur != null ? (
       <Animated.View
         key="cost"
-        entering={FadeInUp.delay(240).duration(360)}
+        entering={FadeInUp.delay(240).duration(280)}
         style={{
-          borderRadius: 18,
+          borderRadius: radius.card,
           borderCurve: 'continuous',
-          padding: 16,
-          backgroundColor: ONBOARDING_COLORS.accentBg,
-          borderWidth: 1,
-          borderColor: ONBOARDING_COLORS.warm,
+          padding: space.md,
+          backgroundColor: oc.surface,
+          gap: space.xs,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-          <ProofIcon color={ONBOARDING_COLORS.warm2}>
-            <DollarSign size={19} color={ONBOARDING_COLORS.warm2} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+          <ProofIcon>
+            <DollarSign size={18} color={oc.textSecondary} />
           </ProofIcon>
-          <Text style={monoLabel}>{t('onboarding.obRevealFirstYear')}</Text>
+          <Text style={[type.label, { color: oc.textMuted }]}>
+            {t('onboarding.obRevealFirstYear')}
+          </Text>
         </View>
-        <Text
-          style={{
-            fontFamily: 'InstrumentSerif-Regular',
-            fontSize: 28,
-            lineHeight: 30,
-            color: ONBOARDING_COLORS.textPrimary,
-          }}
-        >
-          {t('onboarding.obRevealCostAbout')}{' '}
-          <Text style={{ color: ONBOARDING_COLORS.warm2 }}>€{reveal.projectedYearlyCostEur}</Text>{' '}
+        <Text style={[type.sectionTitle, { color: oc.textPrimary }]}>
+          {t('onboarding.obRevealCostAbout')} €{reveal.projectedYearlyCostEur}{' '}
           {t('onboarding.obRevealCostInService')}
         </Text>
-        <Text
-          style={{
-            fontSize: 12.5,
-            color: ONBOARDING_COLORS.textSecondary,
-            lineHeight: 18,
-            marginTop: 8,
-          }}
-        >
+        <Text style={[type.subhead, { color: oc.textSecondary }]}>
           {t('onboarding.obRevealCostHint')}
         </Text>
       </Animated.View>
@@ -156,21 +133,14 @@ export default function RevealScreen() {
   const recallProof = (
     <Animated.View
       key="recall"
-      entering={FadeInUp.delay(330).duration(360)}
-      style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 13 }}
+      entering={FadeInUp.delay(300).duration(280)}
+      style={{ flexDirection: 'row', alignItems: 'flex-start', gap: space.sm }}
     >
-      <ProofIcon color={ONBOARDING_COLORS.success}>
-        <ShieldCheck size={18} color={ONBOARDING_COLORS.success} />
+      <ProofIcon>
+        <ShieldCheck size={18} color={oc.success} />
       </ProofIcon>
-      <View style={{ flex: 1 }}>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: '600',
-            color: ONBOARDING_COLORS.textPrimary,
-            lineHeight: 19,
-          }}
-        >
+      <View style={{ flex: 1, gap: space.xxs }}>
+        <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
           {reveal?.recallsChecked
             ? t('onboarding.obRevealRecallsClear', {
                 count: reveal.recallCount,
@@ -180,9 +150,7 @@ export default function RevealScreen() {
               })
             : t('onboarding.obRevealRecallsWatch', { make })}
         </Text>
-        <Text
-          style={{ fontSize: 12.5, color: ONBOARDING_COLORS.ink3, lineHeight: 17, marginTop: 3 }}
-        >
+        <Text style={[type.caption, { color: oc.textMuted }]}>
           {t('onboarding.obRevealRecallsSource')}
         </Text>
       </View>
@@ -192,63 +160,44 @@ export default function RevealScreen() {
   const knownIssuesProof = insightsReady ? (
     <Animated.View
       key="issues"
-      entering={FadeInUp.delay(420).duration(360)}
+      entering={FadeInUp.delay(360).duration(280)}
       style={{
-        borderRadius: 18,
+        borderRadius: radius.card,
         borderCurve: 'continuous',
-        padding: 15,
-        backgroundColor: ONBOARDING_COLORS.cardBg,
-        borderWidth: 1,
-        borderColor: ONBOARDING_COLORS.cardBorderDefault,
+        padding: space.md,
+        backgroundColor: oc.surface,
+        gap: space.sm,
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 11, marginBottom: 11 }}>
-        <ProofIcon color={ONBOARDING_COLORS.warning} size={34}>
-          <Lightbulb size={17} color={ONBOARDING_COLORS.warning} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+        <ProofIcon>
+          <Lightbulb size={18} color={oc.warning} />
         </ProofIcon>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 14, fontWeight: '700', color: ONBOARDING_COLORS.textPrimary }}>
+          <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
             {t('onboarding.obRevealKnownIssuesTitle', { label: model || make })}
           </Text>
-          <Text
-            style={{
-              fontFamily: 'GeistMono-Medium',
-              fontSize: 8.5,
-              letterSpacing: 1.2,
-              textTransform: 'uppercase',
-              color: ONBOARDING_COLORS.textMuted,
-              marginTop: 2,
-            }}
-          >
+          <Text style={[type.caption, { color: oc.textMuted }]}>
             {t('onboarding.obRevealKnownIssuesTag')}
           </Text>
         </View>
       </View>
-      <View style={{ gap: 8 }}>
+      <View style={{ gap: space.xs }}>
         {reveal.insights.knownIssues.map((issue) => (
           <View
             key={issue.title}
-            style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 9 }}
+            style={{ flexDirection: 'row', alignItems: 'flex-start', gap: space.xs }}
           >
             <View
               style={{
                 width: 5,
                 height: 5,
-                borderRadius: 3,
-                backgroundColor: ONBOARDING_COLORS.warning,
-                marginTop: 7,
+                borderRadius: radius.pill,
+                backgroundColor: oc.warning,
+                marginTop: 8,
               }}
             />
-            <Text
-              style={{
-                flex: 1,
-                fontSize: 12.5,
-                color: ONBOARDING_COLORS.textSecondary,
-                lineHeight: 18,
-              }}
-            >
-              {issue.detail}
-            </Text>
+            <Text style={[type.subhead, { flex: 1, color: oc.textSecondary }]}>{issue.detail}</Text>
           </View>
         ))}
       </View>
@@ -259,20 +208,13 @@ export default function RevealScreen() {
     riderCount != null ? (
       <Animated.View
         key="community"
-        entering={FadeInUp.delay(510).duration(360)}
-        style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}
+        entering={FadeInUp.delay(450).duration(280)}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}
       >
-        <ProofIcon color={ONBOARDING_COLORS.accentBlue}>
-          <Users size={18} color={ONBOARDING_COLORS.accentBlue} />
+        <ProofIcon>
+          <Users size={18} color={oc.textSecondary} />
         </ProofIcon>
-        <Text
-          style={{
-            flex: 1,
-            fontSize: 13.5,
-            color: ONBOARDING_COLORS.textSecondary,
-            lineHeight: 19,
-          }}
-        >
+        <Text style={[type.subhead, { flex: 1, color: oc.textSecondary }]}>
           {t('onboarding.obRevealCommunity', { count: riderCount, make })}
         </Text>
       </Animated.View>
@@ -281,15 +223,13 @@ export default function RevealScreen() {
   const scheduleProof = (
     <Animated.View
       key="schedule"
-      entering={FadeInUp.delay(465).duration(360)}
-      style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}
+      entering={FadeInUp.delay(400).duration(280)}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}
     >
-      <ProofIcon color={brandColor}>
-        <Wrench size={18} color={brandColor} />
+      <ProofIcon>
+        <Wrench size={18} color={oc.textSecondary} />
       </ProofIcon>
-      <Text
-        style={{ flex: 1, fontSize: 13.5, color: ONBOARDING_COLORS.textSecondary, lineHeight: 19 }}
-      >
+      <Text style={[type.subhead, { flex: 1, color: oc.textSecondary }]}>
         {t('onboarding.obRevealScheduleProof')}
       </Text>
     </Animated.View>
@@ -309,226 +249,74 @@ export default function RevealScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
+    <OnboardingShell
+      screen={OB_SCREEN.REVEAL}
+      onBack={onBack}
+      title={
+        projectionLed
+          ? t('onboarding.obRevealTitleBFull', { year, make })
+          : t('onboarding.obRevealTitleAFull')
+      }
+      primary={{ label: t('onboarding.continue'), onPress: () => goNext() }}
+    >
+      {/* The signature object — the same plate the rider set up in bike setup. */}
+      <OnboardingBikePlate make={make} model={model} year={year} />
 
-      <OnboardingBackButton
-        onPress={onBack}
-        style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
-      />
-
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 72, paddingBottom: 140 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* GARAGE UNLOCKED badge */}
-        <Animated.View
-          entering={FadeInUp.duration(320)}
+      {/* The rider's own photo, when they added one. */}
+      {bikeData?.photoUri ? (
+        <Image
+          source={{ uri: bikeData.photoUri }}
           style={{
-            alignSelf: 'flex-start',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            paddingVertical: 5,
-            paddingHorizontal: 11,
-            borderRadius: 999,
-            borderCurve: 'continuous',
-            backgroundColor: ONBOARDING_COLORS.accentBg,
-            borderWidth: 1,
-            borderColor: ONBOARDING_COLORS.warm,
-            marginBottom: 14,
+            height: 120,
+            marginTop: space.sm,
+            borderRadius: radius.card,
+            backgroundColor: oc.surface,
           }}
-        >
-          <Text
-            style={{
-              fontFamily: 'GeistMono-Medium',
-              fontSize: 10,
-              letterSpacing: 1.6,
-              textTransform: 'uppercase',
-              color: ONBOARDING_COLORS.warm2,
-            }}
-          >
-            {t('onboarding.obRevealBadge')}
-          </Text>
-        </Animated.View>
+          contentFit="cover"
+          transition={200}
+          accessibilityIgnoresInvertColors
+        />
+      ) : null}
 
-        <Animated.Text
-          entering={FadeInUp.delay(70).duration(320)}
-          style={{
-            fontFamily: 'InstrumentSerif-Regular',
-            fontSize: 34,
-            lineHeight: 36,
-            color: ONBOARDING_COLORS.textPrimary,
-            letterSpacing: -0.7,
-            marginBottom: 16,
-          }}
-        >
-          {projectionLed ? t('onboarding.obRevealTitleB') : t('onboarding.obRevealTitleA')}{' '}
-          <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
-            {projectionLed
-              ? t('onboarding.obRevealTitleBItalic', { year, make })
-              : t('onboarding.obRevealTitleAItalic')}
-          </Text>
-        </Animated.Text>
-
-        {/* Bike hero card */}
-        <Animated.View
-          entering={FadeInUp.delay(150).duration(380)}
-          style={{
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            overflow: 'hidden',
-            marginBottom: 18,
-            backgroundColor: ONBOARDING_COLORS.surface,
-            borderWidth: 1,
-            borderColor: `${brandColor}55`,
-            shadowColor: brandColor,
-            shadowOpacity: 0.2,
-            shadowRadius: 24,
-            shadowOffset: { width: 0, height: 14 },
-            elevation: 8,
-          }}
-        >
-          {/* bike hero photo — rider's own if they added one, else stock per-make */}
-          <View style={{ height: 132 }}>
-            <Image
-              source={bikeData?.photoUri ? { uri: bikeData.photoUri } : getBikeImage(make)}
-              style={{ width: '100%', height: '100%' }}
-              contentFit="cover"
-              transition={250}
-            />
-            <LinearGradient
-              colors={['transparent', `${brandColor}1F`, ONBOARDING_COLORS.surface]}
-              locations={[0, 0.5, 1]}
-              style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 96 }}
-            />
-            <View
-              style={{
-                position: 'absolute',
-                left: 16,
-                bottom: 12,
-                width: 44,
-                height: 44,
-                borderRadius: 13,
-                borderCurve: 'continuous',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: brandColor,
-                shadowColor: brandColor,
-                shadowOpacity: 0.5,
-                shadowRadius: 12,
-                shadowOffset: { width: 0, height: 4 },
-              }}
-            >
-              <Text style={{ fontSize: 20, fontWeight: '800', color: ONBOARDING_COLORS.textWhite }}>
-                {make.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-          </View>
-          <View style={{ padding: 18 }}>
-            <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 10,
-                letterSpacing: 1.4,
-                color: ONBOARDING_COLORS.ink3,
-              }}
-            >
-              {year}
-            </Text>
-            <Text
-              style={{
-                fontFamily: 'InstrumentSerif-Regular',
-                fontSize: 26,
-                lineHeight: 28,
-                color: ONBOARDING_COLORS.textPrimary,
-              }}
-            >
-              {make}
-              {model ? <Text style={{ color: ONBOARDING_COLORS.warm2 }}> {model}</Text> : null}
-            </Text>
-
-            {/* spec tiles */}
-            <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
-              <SpecTile
-                value={dna?.serviceInterval ?? '—'}
-                label={t('onboarding.obRevealSpecInterval')}
-                color={brandColor}
-              />
-              <SpecTile
-                value={String(reveal?.recallCount ?? 0)}
-                label={t('onboarding.obRevealSpecRecalls')}
-                color={brandColor}
-              />
-              <SpecTile
-                value={categoryLabel}
-                label={t('onboarding.obRevealSpecCategory')}
-                color={brandColor}
-              />
-            </View>
-          </View>
-        </Animated.View>
-
-        <View style={{ gap: 12, marginBottom: 14 }}>{proofs.filter(Boolean)}</View>
-
-        <Text
-          style={{
-            fontSize: 12.5,
-            fontStyle: 'italic',
-            color: ONBOARDING_COLORS.ink3,
-            lineHeight: 18,
-          }}
-        >
-          {t('onboarding.obRevealClosing')}
-        </Text>
-      </ScrollView>
-
+      {/* Bike facts — inset grouped rows */}
       <View
         style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          paddingHorizontal: 22,
-          paddingTop: 12,
-          paddingBottom: insets.bottom + 16,
-          backgroundColor: ONBOARDING_COLORS.background,
+          marginTop: space.sm,
+          marginBottom: space.xl,
+          borderRadius: radius.card,
+          borderCurve: 'continuous',
+          backgroundColor: oc.surface,
+          overflow: 'hidden',
         }}
       >
-        <OnboardingContinueButton label={t('onboarding.continue')} onPress={goNext} />
+        <FactRow
+          label={t('onboarding.obRevealSpecRecalls')}
+          value={String(reveal?.recallCount ?? 0)}
+          numeric
+        />
+        <View style={{ height: 1, marginLeft: space.md, backgroundColor: oc.line }} />
+        <FactRow label={t('onboarding.obRevealSpecCategory')} value={categoryLabel} />
       </View>
-    </View>
+
+      <View style={{ gap: space.lg, marginBottom: space.lg }}>{proofs.filter(Boolean)}</View>
+
+      <Text style={[type.subhead, { color: oc.textMuted }]}>{t('onboarding.obRevealClosing')}</Text>
+    </OnboardingShell>
   );
 }
 
-const monoLabel = {
-  fontFamily: 'GeistMono-Medium',
-  fontSize: 10,
-  letterSpacing: 1.6,
-  textTransform: 'uppercase' as const,
-  color: ONBOARDING_COLORS.ink3,
-};
-
-function ProofIcon({
-  children,
-  color,
-  size = 38,
-}: {
-  children: React.ReactNode;
-  color: string;
-  size?: number;
-}) {
+function ProofIcon({ children }: { children: ReactNode }) {
+  const oc = useOnboardingColors();
   return (
     <View
       style={{
-        width: size,
-        height: size,
-        borderRadius: 12,
+        width: 36,
+        height: 36,
+        borderRadius: radius.control,
         borderCurve: 'continuous',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: `${color}26`,
+        backgroundColor: oc.surface2,
       }}
     >
       {children}
@@ -536,34 +324,22 @@ function ProofIcon({
   );
 }
 
-function SpecTile({ value, label, color }: { value: string; label: string; color: string }) {
+function FactRow({ label, value, numeric }: { label: string; value: string; numeric?: boolean }) {
+  const oc = useOnboardingColors();
   return (
     <View
       style={{
-        flex: 1,
-        padding: 11,
-        borderRadius: 13,
-        borderCurve: 'continuous',
-        backgroundColor: ONBOARDING_COLORS.surfaceOverlayMedium,
-        borderWidth: 1,
-        borderColor: ONBOARDING_COLORS.line,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: 48,
+        paddingHorizontal: space.md,
+        gap: space.sm,
       }}
     >
-      <Text style={{ fontFamily: 'GeistMono-Medium', fontSize: 13, fontWeight: '600', color }}>
+      <Text style={[type.body, { color: oc.textSecondary }]}>{label}</Text>
+      <Text style={[numeric ? type.figureSmall : type.bodyStrong, { color: oc.textPrimary }]}>
         {value}
-      </Text>
-      <Text
-        style={{
-          fontFamily: 'GeistMono-Medium',
-          fontSize: 8,
-          letterSpacing: 0.8,
-          textTransform: 'uppercase',
-          color: ONBOARDING_COLORS.ink3,
-          marginTop: 6,
-          lineHeight: 11,
-        }}
-      >
-        {label}
       </Text>
     </View>
   );

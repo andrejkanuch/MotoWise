@@ -4,13 +4,12 @@ import { Text, View } from 'react-native';
 import { useReceiptScanEntry } from '../../../features/receipt-scan/receipt-scan-entry';
 import { SCAN_ENTRY_SURFACE } from '../../../features/receipt-scan/scan-flow-constants';
 import type { HubUnit } from '../../../lib/bike-hub/constants';
-import { useEditorialTheme } from '../../../theme/editorial';
 import { ExpensesSection } from '../expenses-section';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import { HubCard } from '../ui/hub-card';
 import { RowBody } from '../ui/list-row';
 import { RowChevron } from '../ui/row-chevron';
-import { HUB_FONT, hub } from '../ui/tokens';
+import { HUB_FIGURE, useHubTheme } from '../ui/tokens';
 
 interface CostsSegmentProps {
   bike: HubBike;
@@ -25,6 +24,7 @@ interface CostsSegmentProps {
  * free scans open the scan, an exhausted quota opens the upsell.
  */
 function ReceiptScanRow({ motorcycleId }: { motorcycleId: string }) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const scan = useReceiptScanEntry({ motorcycleId, surface: SCAN_ENTRY_SURFACE.BIKE_HUB });
   const quota = scan.showFreeBadge
@@ -54,9 +54,7 @@ function ReceiptScanRow({ motorcycleId }: { motorcycleId: string }) {
         trailing={
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             {quota ? (
-              <Text style={{ fontFamily: HUB_FONT.mono, fontSize: 12, color: hub.muted }}>
-                {quota}
-              </Text>
+              <Text style={{ ...HUB_FIGURE, fontSize: 14, color: hub.muted }}>{quota}</Text>
             ) : null}
             <RowChevron />
           </View>
@@ -73,12 +71,10 @@ function ReceiptScanRow({ motorcycleId }: { motorcycleId: string }) {
  * R4 moves it inside Add expense. Adding an expense is the action pill.
  */
 export function CostsSegment({ bike, unit }: CostsSegmentProps) {
-  const { isDark } = useEditorialTheme();
   return (
     <View style={{ paddingTop: 12, paddingBottom: 16 }}>
       <ExpensesSection
         motorcycleId={bike.id}
-        isDark={isDark}
         currentMileage={bike.currentMileage ?? undefined}
         mileageUnit={unit}
         afterSummary={<ReceiptScanRow motorcycleId={bike.id} />}

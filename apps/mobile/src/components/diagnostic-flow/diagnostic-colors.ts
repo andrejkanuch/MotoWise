@@ -1,51 +1,41 @@
-import { palette, withAlpha } from '@motovault/design-system';
-import { useColorScheme } from 'react-native';
+import { withAlpha } from '@motovault/design-system';
+import { useMemo } from 'react';
+import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
 
-const darkColors = {
-  background: palette.surfaceDark,
-  cardBg: palette.whiteAlpha06,
-  cardBgSelected: palette.whiteAlpha12,
-  cardBorder: palette.whiteAlpha10,
-  cardBorderSelected: palette.indigo400,
-  accent: palette.indigo400,
-  accentBg: palette.indigoBg,
-  textPrimary: palette.whitePure,
-  textSecondary: palette.whiteAlpha70,
-  textMuted: palette.whiteAlpha60,
-  disabledBg: palette.whiteAlpha08,
-  switchTrackFalse: palette.whiteAlpha10,
-  dontKnowBorderSelected: palette.whiteAlpha30,
-  dontKnowBorder: palette.whiteAlpha15,
-  progressTrack: palette.whiteAlpha06,
-  gradientStart: withAlpha(palette.surfaceDark, 0),
-  gradientEnd: palette.surfaceDark,
-  submittingBg: withAlpha(palette.indigo400, 0.7),
-} as const;
+/**
+ * The diagnosis wizard's colour roles, derived from the app theme so the
+ * in-app theme override reaches every step. Copper (`accent`) marks action and
+ * selection only; options sit on `surface2`.
+ */
+function buildDiagnosticColors(t: EditorialTokens) {
+  return {
+    background: t.bg,
+    cardBg: t.surface2,
+    cardBgSelected: t.surface3,
+    cardBorder: t.line,
+    cardBorderSelected: t.warm,
+    accent: t.warm,
+    accentBg: tint(t.warm, 0.14),
+    /** Ink on a copper fill (primary buttons, selected checkmarks). */
+    onAccent: t.onWarm,
+    textPrimary: t.ink,
+    textSecondary: t.ink2,
+    textMuted: t.ink3,
+    disabledBg: t.surface3,
+    switchTrackFalse: t.surface3,
+    dontKnowBorderSelected: t.ink3,
+    dontKnowBorder: t.line,
+    progressTrack: t.surface3,
+    gradientStart: withAlpha(t.bg, 0),
+    gradientEnd: t.bg,
+    submittingBg: t.surface3,
+    danger: t.danger,
+  } as const;
+}
 
-const lightColors = {
-  background: palette.white,
-  cardBg: palette.blackAlpha03,
-  cardBgSelected: withAlpha(palette.indigo500, 0.08),
-  cardBorder: palette.blackAlpha08,
-  cardBorderSelected: palette.indigo500,
-  accent: palette.indigo500,
-  accentBg: withAlpha(palette.indigo500, 0.1),
-  textPrimary: palette.neutral950,
-  textSecondary: palette.neutral600,
-  textMuted: palette.neutral400,
-  disabledBg: palette.blackAlpha05,
-  switchTrackFalse: palette.blackAlpha10,
-  dontKnowBorderSelected: palette.blackAlpha20,
-  dontKnowBorder: palette.blackAlpha12,
-  progressTrack: palette.blackAlpha06,
-  gradientStart: withAlpha(palette.whitePure, 0),
-  gradientEnd: palette.whitePure,
-  submittingBg: withAlpha(palette.indigo500, 0.5),
-} as const;
-
-export type DiagnosticColors = { [K in keyof typeof darkColors]: string };
+export type DiagnosticColors = ReturnType<typeof buildDiagnosticColors>;
 
 export function useDiagnosticColors(): DiagnosticColors {
-  const scheme = useColorScheme();
-  return scheme === 'dark' ? darkColors : lightColors;
+  const { t } = useEditorialTheme();
+  return useMemo(() => buildDiagnosticColors(t), [t]);
 }

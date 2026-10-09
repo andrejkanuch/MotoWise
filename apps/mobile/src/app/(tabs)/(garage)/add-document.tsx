@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import { CreateDocumentDocument, DocumentCategoriesDocument } from '@motovault/graphql';
 import { MAX_FILES_PER_DOCUMENT } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -13,6 +12,18 @@ import {
   DocumentCategoryChips,
   DocumentExpiryField,
 } from '../../../components/documents/document-form-fields';
+import {
+  FormCard,
+  FormDivider,
+  FormSection,
+  inputTextStyle,
+  ROW_DIVIDER_INSET,
+  SHEET_CONTENT_STYLE,
+  SHEET_CONTROL_HEIGHT,
+  SHEET_PRIMARY_STATE,
+  SheetFooter,
+  SheetTitle,
+} from '../../../components/ui/sheet-form';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import {
   generateDocumentId,
@@ -29,6 +40,7 @@ import { scheduleDocumentExpiryReminder } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../../theme/type';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 import { toISODateInput } from '../../../utils/trip-form-dates';
 
@@ -47,7 +59,7 @@ export default function AddDocumentScreen() {
     motorcycleId: string;
     bikeName?: string;
   }>();
-  const { t: theme, isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
   const userId = useAuthStore((s) => s.session?.user?.id);
 
@@ -189,218 +201,203 @@ export default function AddDocumentScreen() {
     },
   });
 
-  const cardBg = theme.surface;
-  const labelStyle = {
-    fontSize: 10,
-    fontWeight: '700' as const,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase' as const,
-    color: theme.ink3,
-    marginBottom: 8,
-    marginLeft: 4,
-  };
+  const optional = t('common.optional', { defaultValue: 'optional' });
 
   return (
-    <KeyboardAwareScrollView
-      bottomOffset={20}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, gap: 24 }}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={{ paddingTop: 8 }}>
-        <Text style={{ fontFamily: 'InstrumentSerif-Regular', fontSize: 32, color: theme.ink }}>
-          {t('documents.addTitle', { defaultValue: 'Add a document' })}
-        </Text>
-      </View>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        bottomOffset={20}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={SHEET_CONTENT_STYLE}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <SheetTitle>{t('documents.addTitle', { defaultValue: 'Add a document' })}</SheetTitle>
 
-      {/* File tray */}
-      <View>
-        <Text style={labelStyle}>{t('documents.filesLabel', { defaultValue: 'Files' })}</Text>
-        <View style={{ gap: 8 }}>
-          {files.map((f) => (
-            <View
-              key={f.key}
+        {/* File tray */}
+        <FormSection label={t('documents.filesLabel', { defaultValue: 'Files' })} card={false}>
+          <View style={{ gap: space.xs }}>
+            {files.length > 0 && (
+              <FormCard>
+                {files.map((f, index) => (
+                  <View key={f.key}>
+                    {index > 0 ? <FormDivider inset={ROW_DIVIDER_INSET} /> : null}
+                    <View
+                      style={{
+                        minHeight: SHEET_CONTROL_HEIGHT,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: space.sm,
+                        paddingHorizontal: space.md,
+                      }}
+                    >
+                      <FileText size={18} color={theme.ink2} strokeWidth={2} />
+                      <Text numberOfLines={1} style={[type.subhead, { flex: 1, color: theme.ink }]}>
+                        {f.picked.name}
+                      </Text>
+                      {f.status === 'uploading' && (
+                        <ActivityIndicator size="small" color={theme.ink3} />
+                      )}
+                      {f.status === 'done' && (
+                        <Check size={16} color={theme.success} strokeWidth={2.5} />
+                      )}
+                      {f.status === 'error' && (
+                        <Pressable
+                          onPress={() => retryFile(f)}
+                          hitSlop={12}
+                          accessibilityRole="button"
+                          accessibilityLabel={t('common.retry', { defaultValue: 'Retry' })}
+                        >
+                          <RotateCw size={16} color={theme.danger} strokeWidth={2.5} />
+                        </Pressable>
+                      )}
+                      <Pressable
+                        onPress={() => removeFile(f.key)}
+                        hitSlop={12}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.delete')}
+                      >
+                        <X size={16} color={theme.ink3} strokeWidth={2.5} />
+                      </Pressable>
+                    </View>
+                  </View>
+                ))}
+              </FormCard>
+            )}
+
+            <Pressable
+              onPress={handleAddFiles}
+              disabled={files.length >= MAX_FILES_PER_DOCUMENT}
+              accessibilityRole="button"
               style={{
+                minHeight: SHEET_CONTROL_HEIGHT,
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 10,
-                backgroundColor: cardBg,
-                borderRadius: 12,
+                justifyContent: 'center',
+                gap: space.xs,
+                borderRadius: radius.card,
                 borderCurve: 'continuous',
-                padding: 12,
+                borderWidth: 1,
+                borderStyle: 'dashed',
+                borderColor: theme.line2,
+                opacity: files.length >= MAX_FILES_PER_DOCUMENT ? 0.5 : 1,
               }}
             >
-              <FileText size={18} color={palette.primary400} strokeWidth={2} />
-              <Text numberOfLines={1} style={{ flex: 1, fontSize: 14, color: theme.ink }}>
-                {f.picked.name}
+              <Plus size={16} color={theme.warm2} strokeWidth={2.5} />
+              <Text style={[type.subhead, SYSTEM_WEIGHT.semibold, { color: theme.warm2 }]}>
+                {files.length === 0
+                  ? t('documents.addFiles', { defaultValue: 'Add files' })
+                  : t('documents.addMoreFiles', {
+                      defaultValue: 'Add more ({{count}}/{{max}})',
+                      count: files.length,
+                      max: MAX_FILES_PER_DOCUMENT,
+                    })}
               </Text>
-              {f.status === 'uploading' && (
-                <ActivityIndicator size="small" color={palette.primary500} />
-              )}
-              {f.status === 'done' && (
-                <Check size={16} color={palette.success500} strokeWidth={2.5} />
-              )}
-              {f.status === 'error' && (
-                <Pressable onPress={() => retryFile(f)} hitSlop={8}>
-                  <RotateCw size={16} color={palette.danger500} strokeWidth={2.5} />
-                </Pressable>
-              )}
-              <Pressable onPress={() => removeFile(f.key)} hitSlop={8}>
-                <X size={16} color={theme.ink3} strokeWidth={2.5} />
-              </Pressable>
-            </View>
-          ))}
+            </Pressable>
+          </View>
+        </FormSection>
 
-          <Pressable
-            onPress={handleAddFiles}
-            disabled={files.length >= MAX_FILES_PER_DOCUMENT}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              borderRadius: 12,
-              borderCurve: 'continuous',
-              borderWidth: 1.5,
-              borderStyle: 'dashed',
-              borderColor: theme.line,
-              paddingVertical: 14,
-              opacity: files.length >= MAX_FILES_PER_DOCUMENT ? 0.5 : 1,
-            }}
-          >
-            <Plus size={16} color={theme.warm} strokeWidth={2.5} />
-            <Text style={{ fontSize: 14, fontWeight: '600', color: theme.warm }}>
-              {files.length === 0
-                ? t('documents.addFiles', { defaultValue: 'Add files' })
-                : t('documents.addMoreFiles', {
-                    defaultValue: 'Add more ({{count}}/{{max}})',
-                    count: files.length,
-                    max: MAX_FILES_PER_DOCUMENT,
-                  })}
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-
-      {/* Title */}
-      <View>
-        <Text style={labelStyle}>{t('documents.titleLabel', { defaultValue: 'Title' })}</Text>
-        <TextInput
-          value={title}
-          onChangeText={(v) => setTitle(v.slice(0, 200))}
-          placeholder={t('documents.titlePlaceholder', {
-            defaultValue: 'e.g. 2026 Insurance Policy',
-          })}
-          placeholderTextColor={theme.ink4}
-          style={{
-            backgroundColor: cardBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 16,
-            fontSize: 15,
-            color: theme.ink,
-          }}
-        />
-      </View>
-
-      {/* Category chips */}
-      <View>
-        <Text style={labelStyle}>{t('documents.categoryLabel', { defaultValue: 'Category' })}</Text>
-        <DocumentCategoryChips
-          categories={categories}
-          selectedId={categoryId}
-          onSelect={setCategoryId}
-          theme={theme}
-        />
-      </View>
-
-      {/* Expiry (prompted for expiry-bearing categories, R9) */}
-      <View>
-        <Text style={labelStyle}>
-          {t('documents.expiryLabel', { defaultValue: 'Expiry date' })}
-          {promptsExpiry ? '' : ` (${t('common.optional', { defaultValue: 'optional' })})`}
-        </Text>
-        <DocumentExpiryField
-          value={expiryDate}
-          onChange={setExpiryDate}
-          show={showDatePicker}
-          setShow={setShowDatePicker}
-          theme={theme}
-        />
-        {promptsExpiry && !expiryDate && (
-          <Text style={{ fontSize: 12, color: palette.warning500, marginTop: 6, marginLeft: 4 }}>
-            {t('documents.expiryPrompt', {
-              defaultValue: 'No expiry set — this document won’t schedule a renewal reminder.',
+        <FormSection label={t('documents.titleLabel', { defaultValue: 'Title' })}>
+          <TextInput
+            value={title}
+            onChangeText={(v) => setTitle(v.slice(0, 200))}
+            placeholder={t('documents.titlePlaceholder', {
+              defaultValue: 'e.g. 2026 Insurance Policy',
             })}
-          </Text>
-        )}
-      </View>
+            placeholderTextColor={theme.ink4}
+            style={[
+              inputTextStyle(theme),
+              { minHeight: SHEET_CONTROL_HEIGHT, paddingHorizontal: space.md },
+            ]}
+          />
+        </FormSection>
 
-      {/* Note */}
-      <View>
-        <Text style={labelStyle}>{t('documents.noteLabel', { defaultValue: 'Note' })}</Text>
-        <TextInput
-          value={note}
-          onChangeText={(v) => setNote(v.slice(0, 2000))}
-          placeholder={t('documents.notePlaceholder', {
-            defaultValue: 'Plain text note (optional)',
-          })}
-          placeholderTextColor={theme.ink4}
-          multiline
-          textAlignVertical="top"
-          style={{
-            backgroundColor: cardBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 16,
-            fontSize: 15,
-            color: theme.ink,
-            minHeight: 80,
-          }}
-        />
-      </View>
+        <FormSection
+          label={t('documents.categoryLabel', { defaultValue: 'Category' })}
+          card={false}
+        >
+          <DocumentCategoryChips
+            categories={categories}
+            selectedId={categoryId}
+            onSelect={setCategoryId}
+            theme={theme}
+          />
+        </FormSection>
 
-      {/* Footer */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-        <Pressable
-          onPress={() => router.back()}
-          style={{ paddingVertical: 16, paddingHorizontal: 12 }}
+        {/* Expiry (prompted for expiry-bearing categories, R9) */}
+        <FormSection
+          label={
+            <>
+              {t('documents.expiryLabel', { defaultValue: 'Expiry date' })}
+              {promptsExpiry ? null : (
+                <Text style={{ color: theme.ink4 }}>
+                  {' · '}
+                  {optional}
+                </Text>
+              )}
+            </>
+          }
+          card={false}
         >
-          <Text style={{ fontSize: 16, fontWeight: '600', color: theme.ink2 }}>
-            {t('common.cancel', { defaultValue: 'Cancel' })}
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => {
-            triggerImpact();
-            createMutation.mutate();
-          }}
-          disabled={!isValid || createMutation.isPending}
-          style={{
-            flex: 1,
-            backgroundColor: isValid
-              ? theme.warm
-              : isDark
-                ? palette.neutral700
-                : palette.neutral300,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingVertical: 16,
-            gap: 8,
-          }}
-        >
-          <Check size={18} color={palette.white} strokeWidth={2.5} />
-          <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
-            {createMutation.isPending
-              ? t('common.saving', { defaultValue: 'Saving...' })
-              : t('documents.save', { defaultValue: 'Save document' })}
-          </Text>
-        </Pressable>
-      </View>
-    </KeyboardAwareScrollView>
+          <DocumentExpiryField
+            value={expiryDate}
+            onChange={setExpiryDate}
+            show={showDatePicker}
+            setShow={setShowDatePicker}
+            theme={theme}
+          />
+          {promptsExpiry && !expiryDate && (
+            <Text
+              style={[
+                type.caption,
+                { color: theme.dueInk, marginTop: space.xs, marginLeft: space.xxs },
+              ]}
+            >
+              {t('documents.expiryPrompt', {
+                defaultValue: 'No expiry set — this document won’t schedule a renewal reminder.',
+              })}
+            </Text>
+          )}
+        </FormSection>
+
+        <FormSection label={t('documents.noteLabel', { defaultValue: 'Note' })}>
+          <TextInput
+            value={note}
+            onChangeText={(v) => setNote(v.slice(0, 2000))}
+            placeholder={t('documents.notePlaceholder', {
+              defaultValue: 'Plain text note (optional)',
+            })}
+            placeholderTextColor={theme.ink4}
+            multiline
+            textAlignVertical="top"
+            style={[
+              inputTextStyle(theme),
+              { paddingHorizontal: space.md, paddingVertical: space.sm, minHeight: 88 },
+            ]}
+          />
+        </FormSection>
+      </KeyboardAwareScrollView>
+
+      <SheetFooter
+        primaryTestID="document-save"
+        primaryState={
+          isValid && !createMutation.isPending
+            ? SHEET_PRIMARY_STATE.READY
+            : SHEET_PRIMARY_STATE.DISABLED
+        }
+        primaryIcon={Check}
+        primaryLabel={
+          createMutation.isPending
+            ? t('common.saving', { defaultValue: 'Saving...' })
+            : t('documents.save', { defaultValue: 'Save document' })
+        }
+        onPrimary={() => {
+          triggerImpact();
+          createMutation.mutate();
+        }}
+        onCancel={() => router.back()}
+      />
+    </View>
   );
 }

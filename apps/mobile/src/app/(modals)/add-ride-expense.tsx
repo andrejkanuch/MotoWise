@@ -1,27 +1,35 @@
-import DateTimePicker from '@expo/ui/community/datetime-picker';
-import { palette } from '@motovault/design-system';
 import { LogExpenseDocument } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Calendar, Check, DollarSign, Plus } from 'lucide-react-native';
+import { Check, Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { Alert, Text, TextInput, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { hubCategoryColor, useHubTheme } from '../../components/bike-hub/ui/tokens';
+import {
+  AmountField,
+  ChoiceChip,
+  FormCard,
+  FormDateRow,
+  FormSection,
+  inputTextStyle,
+  MAX_EXPENSE_AMOUNT,
+  SHEET_CONTENT_STYLE,
+  SHEET_PRIMARY_STATE,
+  SheetFooter,
+  SheetTitle,
+} from '../../components/ui/sheet-form';
 import { useCurrency } from '../../hooks/use-currency';
 import { EXPENSE_ENTRY_SOURCE, trackExpenseAdded } from '../../lib/expense-analytics';
-import {
-  CATEGORY_COLORS,
-  CATEGORY_LABELS,
-  formatCurrencyInput,
-  PRIMARY_CATEGORIES,
-  ZERO_DECIMAL_CURRENCIES,
-} from '../../lib/expense-constants';
+import { CATEGORY_LABELS, PRIMARY_CATEGORIES } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../lib/store-review';
 import { useEditorialTheme } from '../../theme/editorial';
+import { space, type } from '../../theme/type';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import { toISODateInput } from '../../utils/trip-form-dates';
 
@@ -33,8 +41,9 @@ type Category = (typeof CATEGORIES)[number];
 export default function AddExpenseScreen() {
   const { t } = useTranslation();
   const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
-  const { isDark } = useEditorialTheme();
-  const { currency, symbol } = useCurrency();
+  const hub = useHubTheme();
+  const { t: theme } = useEditorialTheme();
+  const { currency } = useCurrency();
   const queryClient = useQueryClient();
 
   const [amount, setAmount] = useState('');
@@ -45,7 +54,7 @@ export default function AddExpenseScreen() {
   const [saved, setSaved] = useState(false);
 
   const parsedAmount = Number.parseFloat(amount) || 0;
-  const isValid = parsedAmount > 0 && parsedAmount <= 99999.99 && date <= new Date();
+  const isValid = parsedAmount > 0 && parsedAmount <= MAX_EXPENSE_AMOUNT && date <= new Date();
 
   const logMutation = useMutation({
     mutationFn: () =>
@@ -82,357 +91,109 @@ export default function AddExpenseScreen() {
     },
   });
 
-  const cardBg = isDark ? palette.neutral800 : palette.white;
-  const sectionGap = 24;
+  const primaryState = saved
+    ? SHEET_PRIMARY_STATE.DONE
+    : isValid && !logMutation.isPending
+      ? SHEET_PRIMARY_STATE.READY
+      : SHEET_PRIMARY_STATE.DISABLED;
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, gap: sectionGap }}
-      keyboardDismissMode="interactive"
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Amount input */}
-      <Animated.View entering={FadeIn.duration(250)}>
-        <View
-          style={{
-            backgroundColor: cardBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 16,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
-          }}
-        >
-          <View
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              borderCurve: 'continuous',
-              backgroundColor: isDark ? palette.successBgDark : palette.successBgLight,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <DollarSign size={18} color={palette.success500} strokeWidth={2} />
-          </View>
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: '700',
-              color: isDark ? palette.neutral50 : palette.neutral950,
-            }}
-          >
-            {symbol}
-          </Text>
-          <TextInput
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        bottomOffset={20}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={SHEET_CONTENT_STYLE}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <SheetTitle>{t('expenses.logExpenseTitle')}</SheetTitle>
+
+        <Animated.View entering={FadeIn.duration(250)}>
+          <AmountField
+            testID="ride-expense-amount"
+            label={t('expenses.amountLabel')}
             value={amount}
-            onChangeText={(val) => setAmount(formatCurrencyInput(val, currency))}
-            placeholder={ZERO_DECIMAL_CURRENCIES.has(currency) ? '0' : '0.00'}
-            placeholderTextColor={palette.neutral400}
-            keyboardType={ZERO_DECIMAL_CURRENCIES.has(currency) ? 'number-pad' : 'decimal-pad'}
-            style={{
-              flex: 1,
-              fontSize: 24,
-              fontWeight: '700',
-              color: isDark ? palette.neutral50 : palette.neutral950,
-              paddingVertical: 2,
-            }}
+            onChange={setAmount}
             autoFocus
           />
-        </View>
-      </Animated.View>
+        </Animated.View>
 
-      {/* Category pills */}
-      <Animated.View entering={FadeInDown.delay(50).duration(250)}>
-        <Text
-          style={{
-            fontSize: 13,
-            fontWeight: '600',
-            color: palette.neutral500,
-            marginBottom: 8,
-            marginLeft: 4,
-          }}
-        >
-          {t('expenses.category', { defaultValue: 'Category' })}
-        </Text>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {CATEGORIES.map((c) => {
-            const selected = category === c;
-            const meta = { color: CATEGORY_COLORS[c], label: CATEGORY_LABELS[c] };
-            return (
-              <Pressable
+        <FormSection label={t('expenses.category', { defaultValue: 'Category' })} card={false}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.xs }}>
+            {CATEGORIES.map((c) => (
+              <ChoiceChip
                 key={c}
-                onPress={() => {
-                  triggerImpact();
-                  setCategory(c);
-                }}
-                style={{
-                  flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  alignItems: 'center',
-                  backgroundColor: selected
-                    ? `${meta.color}18`
-                    : isDark
-                      ? palette.neutral800
-                      : palette.white,
-                  borderWidth: selected ? 1.5 : 1,
-                  borderColor: selected
-                    ? meta.color
-                    : isDark
-                      ? palette.neutral700
-                      : palette.neutral200,
-                  boxShadow: selected ? 'none' : isDark ? 'none' : '0 1px 2px rgba(0,0,0,0.04)',
-                }}
-              >
-                <View
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor: meta.color,
-                    marginBottom: 4,
-                  }}
-                />
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: selected ? '700' : '500',
-                    color: selected ? meta.color : isDark ? palette.neutral400 : palette.neutral600,
-                    textTransform: 'capitalize',
-                  }}
-                >
-                  {t(`expenses.category_${c}`, { defaultValue: meta.label })}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </Animated.View>
-
-      {/* Date picker */}
-      <Animated.View entering={FadeInDown.delay(100).duration(250)}>
-        <Text
-          style={{
-            fontSize: 13,
-            fontWeight: '600',
-            color: palette.neutral500,
-            marginBottom: 8,
-            marginLeft: 4,
-          }}
-        >
-          {t('expenses.date', { defaultValue: 'Date' })}
-        </Text>
-        <View
-          style={{
-            backgroundColor: cardBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            overflow: 'hidden',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
-          }}
-        >
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              setShowDatePicker(!showDatePicker);
-            }}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: 16,
-              paddingVertical: 14,
-              gap: 12,
-            }}
-          >
-            <View
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                borderCurve: 'continuous',
-                backgroundColor: isDark ? palette.primary900 : palette.primary50,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Calendar size={16} color={palette.primary500} strokeWidth={2} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '500',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
-                }}
-              >
-                {t('expenses.date', { defaultValue: 'Date' })}
-              </Text>
-            </View>
-            <Text
-              style={{
-                fontSize: 14,
-                color: palette.primary500,
-                fontWeight: '600',
-              }}
-            >
-              {date.toLocaleDateString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </Text>
-          </Pressable>
-
-          {showDatePicker && (
-            <View
-              style={{
-                borderTopWidth: 0.5,
-                borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-                paddingHorizontal: 8,
-              }}
-            >
-              <DateTimePicker
-                value={date}
-                mode="date"
-                display={process.env.EXPO_OS === 'ios' ? 'inline' : 'default'}
-                maximumDate={new Date()}
-                onChange={(event, selectedDate) => {
-                  if (process.env.EXPO_OS === 'android') {
-                    setShowDatePicker(false);
-                  }
-                  if (event.type === 'set' && selectedDate) {
-                    setDate(selectedDate);
-                  }
-                }}
-                style={process.env.EXPO_OS === 'ios' ? { height: 320 } : undefined}
+                label={t(`expenses.category_${c}`, { defaultValue: CATEGORY_LABELS[c] })}
+                dotColor={hubCategoryColor(c, hub)}
+                selected={category === c}
+                onPress={() => setCategory(c)}
               />
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
-                  paddingBottom: 8,
-                  paddingRight: 8,
-                }}
-              >
-                <Pressable
-                  onPress={() => {
-                    triggerImpact();
-                    setShowDatePicker(false);
-                  }}
-                >
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: palette.primary500 }}>
-                    {t('common.done', { defaultValue: 'Done' })}
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          )}
-        </View>
-      </Animated.View>
+            ))}
+          </View>
+        </FormSection>
 
-      {/* Description */}
-      <Animated.View entering={FadeInDown.delay(150).duration(250)}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-          <Text
-            style={{
-              fontSize: 13,
-              fontWeight: '600',
-              color: palette.neutral500,
-              marginLeft: 4,
-            }}
-          >
-            {t('expenses.description', { defaultValue: 'Description' })}{' '}
-            <Text style={{ fontWeight: '400' }}>
-              ({t('common.optional', { defaultValue: 'optional' })})
+        <FormCard>
+          <FormDateRow
+            label={t('expenses.date', { defaultValue: 'Date' })}
+            value={date}
+            open={showDatePicker}
+            onToggle={() => setShowDatePicker(!showDatePicker)}
+            onClose={() => setShowDatePicker(false)}
+            onChange={setDate}
+            maximumDate={new Date()}
+          />
+        </FormCard>
+
+        <FormSection
+          label={t('expenses.detailsLabel')}
+          trailing={
+            <Text
+              style={[
+                type.caption,
+                { color: description.length > 180 ? theme.dueInk : theme.ink3 },
+              ]}
+            >
+              {description.length}/200
             </Text>
-          </Text>
-          <Text
-            style={{
-              fontSize: 12,
-              color: description.length > 180 ? palette.warning500 : palette.neutral400,
-              marginRight: 4,
-            }}
-          >
-            {description.length}/200
-          </Text>
-        </View>
-        <View
-          style={{
-            backgroundColor: cardBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            overflow: 'hidden',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
-          }}
+          }
         >
           <TextInput
             value={description}
             onChangeText={(val) => setDescription(val.slice(0, 200))}
             placeholder={t('expenses.descriptionPlaceholder', {
-              defaultValue: 'e.g. Shell V-Power, rear brake pads...',
+              defaultValue: 'What was this expense for?',
             })}
-            placeholderTextColor={palette.neutral400}
+            placeholderTextColor={theme.ink4}
             multiline
             numberOfLines={3}
             textAlignVertical="top"
-            style={{
-              fontSize: 15,
-              color: isDark ? palette.neutral50 : palette.neutral950,
-              paddingHorizontal: 16,
-              paddingTop: 14,
-              paddingBottom: 14,
-              minHeight: 80,
-            }}
+            style={[
+              inputTextStyle(theme),
+              { paddingHorizontal: space.md, paddingVertical: space.sm, minHeight: 88 },
+            ]}
           />
-        </View>
-      </Animated.View>
+        </FormSection>
+      </KeyboardAwareScrollView>
 
-      {/* Save Button */}
-      <Animated.View entering={FadeInDown.delay(200).duration(250)}>
-        <Pressable
-          onPress={() => {
-            triggerImpact();
-            logMutation.mutate();
-          }}
-          disabled={logMutation.isPending || !isValid || saved}
-          style={{
-            backgroundColor: saved
-              ? palette.success500
-              : isValid
-                ? palette.primary500
-                : isDark
-                  ? palette.neutral700
-                  : palette.neutral300,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingVertical: 16,
-            gap: 8,
-          }}
-        >
-          {saved ? (
-            <Check size={18} color={palette.white} strokeWidth={2.5} />
-          ) : (
-            <Plus size={18} color={palette.white} strokeWidth={2.5} />
-          )}
-          <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
-            {saved
-              ? t('expenses.saved', { defaultValue: 'Expense Logged!' })
-              : logMutation.isPending
-                ? t('common.saving', { defaultValue: 'Saving...' })
-                : t('expenses.save', { defaultValue: 'Log Expense' })}
-          </Text>
-        </Pressable>
-      </Animated.View>
-    </ScrollView>
+      <SheetFooter
+        primaryTestID="ride-expense-save"
+        primaryState={primaryState}
+        primaryIcon={saved ? Check : Plus}
+        primaryLabel={
+          saved
+            ? t('expenses.saved', { defaultValue: 'Expense Logged!' })
+            : logMutation.isPending
+              ? t('common.saving', { defaultValue: 'Saving...' })
+              : t('expenses.save', { defaultValue: 'Log Expense' })
+        }
+        onPrimary={() => {
+          triggerImpact();
+          logMutation.mutate();
+        }}
+        onCancel={() => router.back()}
+      />
+    </View>
   );
 }

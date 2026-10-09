@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import type { TFunction } from 'i18next';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, type DimensionValue, Pressable, Text, View } from 'react-native';
+import { Alert, type DimensionValue, Pressable, Text, type TextStyle, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   DELTA_DIRECTION,
@@ -36,10 +36,11 @@ import {
   restorableOdometerDraft,
   useSheetDraftStore,
 } from '../../../stores/sheet-draft.store';
+import { SYSTEM_WEIGHT, type } from '../../../theme/type';
 import { triggerNotification, triggerSelection } from '../../../utils/haptics';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import { useToday } from '../shell/use-today';
-import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, HUB_HEIGHT, HUB_RADIUS, hub } from '../ui/tokens';
+import { HUB_CHROME_MAX_FONT_SCALE, HUB_HEIGHT, HUB_RADIUS, useHubTheme } from '../ui/tokens';
 import { DraftRestoredNotice } from './draft-restored-notice';
 import { OdometerDateChip } from './odometer-date-chip';
 import { OdometerKeypad } from './odometer-keypad';
@@ -62,15 +63,18 @@ const CHIP_HEIGHT = 40;
 const RIDES_CHIP_MAX_WIDTH = '45%';
 const CHIP_LINE_HEIGHT = 17;
 
-/** The entry's size (DESIGN.md "numeral display"). */
-const ENTRY_SIZE = 44;
-const ENTRY_TRACKING = -0.88;
+/** The entry: the sheet's one big figure (condensed, tabular digits). */
+const ENTRY_SIZE = 52;
+const ENTRY_LINE_HEIGHT = 56;
+const ENTRY_TRACKING = 0;
 /**
- * A mono separator takes a full digit cell, so "38,550" read as "38 , 550".
- * The digit before it and the separator itself give back this much each.
+ * Tabular digits keep a full cell each while the grouping separator is narrow,
+ * so the digit before it and the separator give back a little to keep
+ * "38,550" reading as one number.
  */
-const SEPARATOR_PULL = 7;
-const CARET = { width: 2, height: 36 } as const;
+const SEPARATOR_PULL = 1;
+const TABULAR: TextStyle['fontVariant'] = ['tabular-nums'];
+const CARET = { width: 2, height: 42 } as const;
 const LINE_HEIGHT = 18;
 
 interface EntryRun {
@@ -180,6 +184,7 @@ export function OdometerSheet({
   isMounted = alwaysMounted,
   now,
 }: OdometerSheetProps) {
+  const hub = useHubTheme();
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const language = i18n.language;
@@ -412,14 +417,7 @@ export function OdometerSheet({
         >
           <Text
             maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-            style={{
-              flexShrink: 1,
-              fontFamily: HUB_FONT.mono,
-              fontSize: 11,
-              letterSpacing: 0.88,
-              textTransform: 'uppercase',
-              color: hub.muted,
-            }}
+            style={[type.label, { flexShrink: 1, color: hub.muted }]}
           >
             {t('bikeHub.odometer.newReading')}
           </Text>
@@ -443,9 +441,9 @@ export function OdometerSheet({
               numberOfLines={1}
               adjustsFontSizeToFit
               style={{
-                fontFamily: HUB_FONT.monoMedium,
+                ...type.figure,
                 fontSize: ENTRY_SIZE,
-                lineHeight: 46,
+                lineHeight: ENTRY_LINE_HEIGHT,
                 letterSpacing: ENTRY_TRACKING,
                 color: value === null ? hub.muted : hub.text,
                 marginLeft: value === null ? 4 : 0,
@@ -473,7 +471,7 @@ export function OdometerSheet({
             accessibilityElementsHidden
             importantForAccessibility="no"
             maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-            style={{ fontFamily: HUB_FONT.mono, fontSize: 18, color: hub.muted }}
+            style={[type.figureSmall, { color: hub.muted }]}
           >
             {unit}
           </Text>
@@ -483,7 +481,7 @@ export function OdometerSheet({
           testID="odometer-last"
           maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
           style={{
-            fontFamily: HUB_FONT.sans,
+            ...SYSTEM_WEIGHT.regular,
             fontSize: 13,
             lineHeight: LINE_HEIGHT,
             color: hub.dim,
@@ -501,7 +499,7 @@ export function OdometerSheet({
           maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
           style={{
             minHeight: LINE_HEIGHT,
-            fontFamily: HUB_FONT.sansMedium,
+            ...SYSTEM_WEIGHT.medium,
             fontSize: 13,
             lineHeight: LINE_HEIGHT,
             color: detail.warn ? hub.soon : hub.text,
@@ -547,7 +545,7 @@ export function OdometerSheet({
           accessibilityLiveRegion="polite"
           maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
           style={{
-            fontFamily: HUB_FONT.sans,
+            ...SYSTEM_WEIGHT.regular,
             fontSize: 13,
             lineHeight: LINE_HEIGHT,
             color: noticeIsError ? hub.late : hub.dim,
@@ -584,7 +582,7 @@ export function OdometerSheet({
         <Text
           maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
           style={{
-            fontFamily: HUB_FONT.sansBold,
+            ...SYSTEM_WEIGHT.bold,
             fontSize: 16,
             color: saveDisabled ? hub.muted : hub.ink,
           }}
@@ -597,6 +595,7 @@ export function OdometerSheet({
 }
 
 function Caret() {
+  const hub = useHubTheme();
   return (
     <View
       testID="odometer-caret"
@@ -640,6 +639,7 @@ interface ChipProps {
 }
 
 function Chip({ label, onPress, highlighted = false, disabled, maxWidth, testID }: ChipProps) {
+  const hub = useHubTheme();
   return (
     <Pressable
       testID={testID}
@@ -667,8 +667,8 @@ function Chip({ label, onPress, highlighted = false, disabled, maxWidth, testID 
       <Text
         maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
         style={{
-          fontFamily: HUB_FONT.mono,
-          fontSize: 13,
+          ...type.label,
+          fontVariant: TABULAR,
           lineHeight: CHIP_LINE_HEIGHT,
           textAlign: 'center',
           color: highlighted ? hub.copperText : hub.text,

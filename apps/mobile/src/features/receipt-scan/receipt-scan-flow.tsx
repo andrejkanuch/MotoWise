@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import {
   Camera,
@@ -17,6 +16,7 @@ import { ActivityIndicator, Linking, Pressable, Text, View } from 'react-native'
 import Animated, { FadeIn, FadeInUp, SlideInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, space, type } from '../../theme/type';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import { ReviewCard } from './review-card';
 import {
@@ -51,7 +51,7 @@ export function ReceiptScanFlow({
    */
   onSave?: (payload: ReceiptReviewPayload) => void;
 }) {
-  const { isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const { phase } = flow.state;
 
@@ -66,20 +66,18 @@ export function ReceiptScanFlow({
     }
   }, [phase]);
 
-  const bg = isDark ? palette.neutral900 : palette.neutral50;
-
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: bg,
+        backgroundColor: theme.bg,
         paddingHorizontal: 20,
         // Clear the status bar / notch — a fixed 12 collided the "Review your
         // receipt" title with the status bar on notched devices.
         paddingTop: insets.top + 12,
       }}
     >
-      {renderPhase(phase, flow, isDark, onManualEntry, onClose, onSave)}
+      {renderPhase(phase, flow, onManualEntry, onClose, onSave)}
     </View>
   );
 }
@@ -95,7 +93,6 @@ function defaultReviewSave(_payload: ReceiptReviewPayload) {}
 function renderPhase(
   phase: ScanPhase,
   flow: ScanFlow,
-  isDark: boolean,
   onManualEntry: () => void,
   onClose: () => void,
   onSave: (payload: ReceiptReviewPayload) => void,
@@ -104,42 +101,34 @@ function renderPhase(
     case SCAN_PHASE.GATING:
       return <CenteredSpinner labelKey="receiptScan.gating.label" />;
     case SCAN_PHASE.BIKE_PICK:
-      return <BikePickView flow={flow} isDark={isDark} />;
+      return <BikePickView flow={flow} />;
     case SCAN_PHASE.CONSENT:
-      return <ConsentView flow={flow} isDark={isDark} onManualEntry={onManualEntry} />;
+      return <ConsentView flow={flow} onManualEntry={onManualEntry} />;
     case SCAN_PHASE.CAPTURE:
-      return <CaptureView flow={flow} isDark={isDark} onManualEntry={onManualEntry} />;
+      return <CaptureView flow={flow} onManualEntry={onManualEntry} />;
     case SCAN_PHASE.UPLOADING:
       return <UploadingView attempt={flow.state.uploadAttempt} />;
     case SCAN_PHASE.OFFLINE_QUEUED:
-      return <OfflineQueuedView isDark={isDark} onClose={onClose} />;
+      return <OfflineQueuedView onClose={onClose} />;
     case SCAN_PHASE.ANALYZING:
-      return <AnalyzingView flow={flow} isDark={isDark} />;
+      return <AnalyzingView flow={flow} />;
     case SCAN_PHASE.REVIEW:
       return (
         <ReviewCard
           handoff={flow.state.handoff as ReceiptReviewHandoff}
           bikeName={flow.bikeName}
           bikes={flow.bikes}
-          isDark={isDark}
           onPark={flow.parkForLater}
           onClose={onClose}
           onSave={onSave}
         />
       );
     case SCAN_PHASE.ERROR:
-      return <ErrorView flow={flow} isDark={isDark} onManualEntry={onManualEntry} />;
+      return <ErrorView flow={flow} onManualEntry={onManualEntry} />;
     case SCAN_PHASE.PARKED:
-      return <ParkedView isDark={isDark} onClose={onClose} />;
+      return <ParkedView onClose={onClose} />;
     case SCAN_PHASE.ALREADY_PROCESSED:
-      return (
-        <AlreadyProcessedView
-          flow={flow}
-          isDark={isDark}
-          onManualEntry={onManualEntry}
-          onClose={onClose}
-        />
-      );
+      return <AlreadyProcessedView flow={flow} onManualEntry={onManualEntry} onClose={onClose} />;
     default:
       return null;
   }
@@ -160,6 +149,7 @@ function PrimaryButton({
   onPress: () => void;
   disabled?: boolean;
 }) {
+  const { t: theme } = useEditorialTheme();
   return (
     <Pressable
       onPress={onPress}
@@ -171,7 +161,7 @@ function PrimaryButton({
         minHeight: TARGET_HEIGHT,
         borderRadius: 14,
         borderCurve: 'continuous',
-        backgroundColor: disabled ? palette.neutral500 : palette.signature500,
+        backgroundColor: disabled ? theme.surface3 : theme.warm,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -180,7 +170,9 @@ function PrimaryButton({
       }}
     >
       {icon}
-      <Text style={{ color: palette.white, fontSize: 17, fontWeight: '700' }}>{label}</Text>
+      <Text style={{ ...type.bodyStrong, color: disabled ? theme.ink3 : theme.onWarm }}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -189,13 +181,12 @@ function SecondaryButton({
   label,
   icon,
   onPress,
-  isDark,
 }: {
   label: string;
   icon?: ReactNode;
   onPress: () => void;
-  isDark: boolean;
 }) {
+  const { t: theme } = useEditorialTheme();
   return (
     <Pressable
       onPress={onPress}
@@ -205,7 +196,7 @@ function SecondaryButton({
         minHeight: TARGET_HEIGHT,
         borderRadius: 14,
         borderCurve: 'continuous',
-        backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
+        backgroundColor: theme.surface2,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -216,9 +207,8 @@ function SecondaryButton({
       {icon}
       <Text
         style={{
-          color: isDark ? palette.neutral50 : palette.neutral900,
-          fontSize: 16,
-          fontWeight: '600',
+          ...type.bodyStrong,
+          color: theme.ink,
         }}
       >
         {label}
@@ -227,14 +217,14 @@ function SecondaryButton({
   );
 }
 
-function Heading({ text, isDark }: { text: string; isDark: boolean }) {
+function Heading({ text }: { text: string }) {
+  const { t: theme } = useEditorialTheme();
   return (
     <Text
       style={{
-        fontSize: 24,
-        fontWeight: '800',
-        color: isDark ? palette.neutral50 : palette.neutral950,
-        marginBottom: 8,
+        ...type.sheetTitle,
+        color: theme.ink,
+        marginBottom: space.xs,
       }}
     >
       {text}
@@ -242,14 +232,14 @@ function Heading({ text, isDark }: { text: string; isDark: boolean }) {
   );
 }
 
-function Body({ text, isDark }: { text: string; isDark: boolean }) {
+function Body({ text }: { text: string }) {
+  const { t: theme } = useEditorialTheme();
   return (
     <Text
       style={{
-        fontSize: 16,
-        lineHeight: 23,
-        color: isDark ? palette.neutral300 : palette.neutral600,
-        marginBottom: 20,
+        ...type.body,
+        color: theme.ink2,
+        marginBottom: space.lg,
       }}
     >
       {text}
@@ -263,25 +253,24 @@ function BottomZone({ children }: { children: ReactNode }) {
 
 function CenteredSpinner({ labelKey }: { labelKey: TranslationKey }) {
   const { t } = useTranslation();
-  const { isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-      <ActivityIndicator size="large" color={palette.signature500} />
-      <Text style={{ color: isDark ? palette.neutral300 : palette.neutral600, fontSize: 16 }}>
-        {t(labelKey)}
-      </Text>
+      <ActivityIndicator size="large" color={theme.ink3} />
+      <Text style={{ ...type.body, color: theme.ink2 }}>{t(labelKey)}</Text>
     </View>
   );
 }
 
 // --- Phase views ---
 
-function BikePickView({ flow, isDark }: { flow: ScanFlow; isDark: boolean }) {
+function BikePickView({ flow }: { flow: ScanFlow }) {
+  const { t: theme } = useEditorialTheme();
   const { t } = useTranslation();
   return (
     <Animated.View entering={FadeInUp.duration(220)} style={{ flex: 1 }}>
-      <Heading text={t('receiptScan.bikePick.title')} isDark={isDark} />
-      <Body text={t('receiptScan.bikePick.subtitle')} isDark={isDark} />
+      <Heading text={t('receiptScan.bikePick.title')} />
+      <Body text={t('receiptScan.bikePick.subtitle')} />
       <View style={{ gap: 10 }}>
         {flow.bikes.map((bike, index) => (
           <Animated.View key={bike.id} entering={FadeInUp.delay(index * 50).duration(200)}>
@@ -291,9 +280,9 @@ function BikePickView({ flow, isDark }: { flow: ScanFlow; isDark: boolean }) {
                 minHeight: TARGET_HEIGHT,
                 borderRadius: 14,
                 borderCurve: 'continuous',
-                backgroundColor: isDark ? palette.neutral800 : palette.white,
+                backgroundColor: theme.surface,
                 borderWidth: 1,
-                borderColor: isDark ? palette.neutral700 : palette.neutral200,
+                borderColor: theme.line,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -302,14 +291,13 @@ function BikePickView({ flow, isDark }: { flow: ScanFlow; isDark: boolean }) {
             >
               <Text
                 style={{
-                  fontSize: 17,
-                  fontWeight: '600',
-                  color: isDark ? palette.neutral50 : palette.neutral900,
+                  ...type.bodyStrong,
+                  color: theme.ink,
                 }}
               >
                 {bike.name}
               </Text>
-              <ChevronRight size={20} color={palette.neutral400} />
+              <ChevronRight size={20} color={theme.ink3} />
             </Pressable>
           </Animated.View>
         ))}
@@ -318,73 +306,55 @@ function BikePickView({ flow, isDark }: { flow: ScanFlow; isDark: boolean }) {
   );
 }
 
-function ConsentView({
-  flow,
-  isDark,
-  onManualEntry,
-}: {
-  flow: ScanFlow;
-  isDark: boolean;
-  onManualEntry: () => void;
-}) {
+function ConsentView({ flow, onManualEntry }: { flow: ScanFlow; onManualEntry: () => void }) {
+  const { t: theme } = useEditorialTheme();
   const { t } = useTranslation();
   return (
     <Animated.View entering={FadeInUp.duration(220)} style={{ flex: 1 }}>
       <View style={{ alignItems: 'center', marginTop: 12, marginBottom: 20 }}>
-        <Sparkles size={40} color={palette.signature500} />
+        <Sparkles size={40} color={theme.ink2} />
       </View>
-      <Heading text={t('receiptScan.consent.title')} isDark={isDark} />
-      <Body text={t('receiptScan.consent.body')} isDark={isDark} />
+      <Heading text={t('receiptScan.consent.title')} />
+      <Body text={t('receiptScan.consent.body')} />
       <BottomZone>
         <PrimaryButton label={t('receiptScan.consent.accept')} onPress={flow.acceptConsent} />
         <SecondaryButton
           label={t('receiptScan.common.enterManually')}
-          icon={<PencilLine size={18} color={isDark ? palette.neutral50 : palette.neutral900} />}
+          icon={<PencilLine size={18} color={theme.ink} />}
           onPress={onManualEntry}
-          isDark={isDark}
         />
       </BottomZone>
     </Animated.View>
   );
 }
 
-function CaptureView({
-  flow,
-  isDark,
-  onManualEntry,
-}: {
-  flow: ScanFlow;
-  isDark: boolean;
-  onManualEntry: () => void;
-}) {
+function CaptureView({ flow, onManualEntry }: { flow: ScanFlow; onManualEntry: () => void }) {
+  const { t: theme } = useEditorialTheme();
   const { t } = useTranslation();
   return (
     <Animated.View entering={FadeInUp.duration(220)} style={{ flex: 1 }}>
-      <Heading text={t('receiptScan.capture.title')} isDark={isDark} />
-      <Body text={t('receiptScan.capture.subtitle')} isDark={isDark} />
+      <Heading text={t('receiptScan.capture.title')} />
+      <Body text={t('receiptScan.capture.subtitle')} />
       <BottomZone>
         <PrimaryButton
           label={t('receiptScan.capture.takePhoto')}
-          icon={<Camera size={20} color={palette.white} />}
+          icon={<Camera size={20} color={theme.onWarm} />}
           onPress={flow.captureFromCamera}
         />
         <SecondaryButton
           label={t('receiptScan.capture.chooseFromLibrary')}
-          icon={<ImageIcon size={18} color={isDark ? palette.neutral50 : palette.neutral900} />}
+          icon={<ImageIcon size={18} color={theme.ink} />}
           onPress={flow.captureFromLibrary}
-          isDark={isDark}
         />
         <SecondaryButton
           label={t('receiptScan.capture.openSettings')}
-          icon={<Settings size={18} color={isDark ? palette.neutral50 : palette.neutral900} />}
+          icon={<Settings size={18} color={theme.ink} />}
           onPress={() => Linking.openSettings()}
-          isDark={isDark}
         />
         <SecondaryButton
           label={t('receiptScan.common.enterManually')}
-          icon={<PencilLine size={18} color={isDark ? palette.neutral50 : palette.neutral900} />}
+          icon={<PencilLine size={18} color={theme.ink} />}
           onPress={onManualEntry}
-          isDark={isDark}
         />
       </BottomZone>
     </Animated.View>
@@ -393,24 +363,23 @@ function CaptureView({
 
 function UploadingView({ attempt }: { attempt: number }) {
   const { t } = useTranslation();
-  const { isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   return (
     <Animated.View
       entering={FadeIn.duration(200)}
       style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}
     >
-      <ActivityIndicator size="large" color={palette.signature500} />
+      <ActivityIndicator size="large" color={theme.ink3} />
       <Text
         style={{
-          fontSize: 18,
-          fontWeight: '600',
-          color: isDark ? palette.neutral50 : palette.neutral900,
+          ...type.bodyStrong,
+          color: theme.ink,
         }}
       >
         {t('receiptScan.uploading.label')}
       </Text>
       {attempt > 1 && (
-        <Text style={{ fontSize: 14, color: palette.neutral400 }}>
+        <Text style={{ ...type.subhead, color: theme.ink3 }}>
           {t('receiptScan.uploading.retrying')}
         </Text>
       )}
@@ -418,15 +387,16 @@ function UploadingView({ attempt }: { attempt: number }) {
   );
 }
 
-function OfflineQueuedView({ isDark, onClose }: { isDark: boolean; onClose: () => void }) {
+function OfflineQueuedView({ onClose }: { onClose: () => void }) {
+  const { t: theme } = useEditorialTheme();
   const { t } = useTranslation();
   return (
     <Animated.View entering={SlideInUp.duration(240)} style={{ flex: 1 }}>
       <View style={{ alignItems: 'center', marginTop: 40, marginBottom: 20 }}>
-        <WifiOff size={44} color={palette.signature500} />
+        <WifiOff size={44} color={theme.ink2} />
       </View>
-      <Heading text={t('receiptScan.offline.title')} isDark={isDark} />
-      <Body text={t('receiptScan.offline.body')} isDark={isDark} />
+      <Heading text={t('receiptScan.offline.title')} />
+      <Body text={t('receiptScan.offline.body')} />
       <BottomZone>
         <PrimaryButton label={t('receiptScan.common.done')} onPress={onClose} />
       </BottomZone>
@@ -434,7 +404,8 @@ function OfflineQueuedView({ isDark, onClose }: { isDark: boolean; onClose: () =
   );
 }
 
-function AnalyzingView({ flow, isDark }: { flow: ScanFlow; isDark: boolean }) {
+function AnalyzingView({ flow }: { flow: ScanFlow }) {
+  const { t: theme } = useEditorialTheme();
   const { t } = useTranslation();
   const [stageIndex, setStageIndex] = useState(0);
 
@@ -449,14 +420,13 @@ function AnalyzingView({ flow, isDark }: { flow: ScanFlow; isDark: boolean }) {
   return (
     <Animated.View entering={FadeIn.duration(200)} style={{ flex: 1 }}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 18 }}>
-        <ActivityIndicator size="large" color={palette.signature500} />
+        <ActivityIndicator size="large" color={theme.ink3} />
         <Animated.Text
           key={stageIndex}
           entering={FadeIn.duration(300)}
           style={{
-            fontSize: 18,
-            fontWeight: '600',
-            color: isDark ? palette.neutral50 : palette.neutral900,
+            ...type.bodyStrong,
+            color: theme.ink,
           }}
         >
           {t(ANALYZING_STAGE_KEYS[stageIndex])}
@@ -467,11 +437,8 @@ function AnalyzingView({ flow, isDark }: { flow: ScanFlow; isDark: boolean }) {
           <Animated.View entering={FadeInUp.duration(200)}>
             <SecondaryButton
               label={t('receiptScan.analyzing.skip')}
-              icon={
-                <PencilLine size={18} color={isDark ? palette.neutral50 : palette.neutral900} />
-              }
+              icon={<PencilLine size={18} color={theme.ink} />}
               onPress={flow.requestSkip}
-              isDark={isDark}
             />
           </Animated.View>
         )}
@@ -480,15 +447,8 @@ function AnalyzingView({ flow, isDark }: { flow: ScanFlow; isDark: boolean }) {
   );
 }
 
-function ErrorView({
-  flow,
-  isDark,
-  onManualEntry,
-}: {
-  flow: ScanFlow;
-  isDark: boolean;
-  onManualEntry: () => void;
-}) {
+function ErrorView({ flow, onManualEntry }: { flow: ScanFlow; onManualEntry: () => void }) {
+  const { t: theme } = useEditorialTheme();
   const { t } = useTranslation();
   const outcome = flow.state.error;
   if (!outcome) return null;
@@ -508,15 +468,15 @@ function ErrorView({
   return (
     <Animated.View entering={FadeInUp.duration(220)} style={{ flex: 1 }}>
       <View style={{ alignItems: 'center', marginTop: 32, marginBottom: 20 }}>
-        <Clock size={44} color={palette.warning500} />
+        <Clock size={44} color={theme.dueInk} />
       </View>
-      <Heading text={t(outcome.titleKey)} isDark={isDark} />
-      <Body text={t(outcome.bodyKey)} isDark={isDark} />
+      <Heading text={t(outcome.titleKey)} />
+      <Body text={t(outcome.bodyKey)} />
       {outcome.noCreditUsed && (
         <View
           style={{
             alignSelf: 'flex-start',
-            backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
+            backgroundColor: theme.surface2,
             borderRadius: 10,
             borderCurve: 'continuous',
             paddingHorizontal: 12,
@@ -524,7 +484,7 @@ function ErrorView({
             marginBottom: 8,
           }}
         >
-          <Text style={{ color: palette.success500, fontSize: 14, fontWeight: '600' }}>
+          <Text style={{ ...type.label, ...SYSTEM_WEIGHT.semibold, color: theme.success }}>
             {t('receiptScan.common.noCreditUsed')}
           </Text>
         </View>
@@ -534,9 +494,8 @@ function ErrorView({
         {outcome.recovery === 'retry' && (
           <SecondaryButton
             label={t('receiptScan.common.enterManually')}
-            icon={<PencilLine size={18} color={isDark ? palette.neutral50 : palette.neutral900} />}
+            icon={<PencilLine size={18} color={theme.ink} />}
             onPress={onManualEntry}
-            isDark={isDark}
           />
         )}
       </BottomZone>
@@ -544,15 +503,16 @@ function ErrorView({
   );
 }
 
-function ParkedView({ isDark, onClose }: { isDark: boolean; onClose: () => void }) {
+function ParkedView({ onClose }: { onClose: () => void }) {
+  const { t: theme } = useEditorialTheme();
   const { t } = useTranslation();
   return (
     <Animated.View entering={SlideInUp.duration(240)} style={{ flex: 1 }}>
       <View style={{ alignItems: 'center', marginTop: 40, marginBottom: 20 }}>
-        <CheckCircle2 size={44} color={palette.success500} />
+        <CheckCircle2 size={44} color={theme.success} />
       </View>
-      <Heading text={t('receiptScan.parked.title')} isDark={isDark} />
-      <Body text={t('receiptScan.parked.body')} isDark={isDark} />
+      <Heading text={t('receiptScan.parked.title')} />
+      <Body text={t('receiptScan.parked.body')} />
       <BottomZone>
         <PrimaryButton label={t('receiptScan.common.done')} onPress={onClose} />
       </BottomZone>
@@ -562,24 +522,23 @@ function ParkedView({ isDark, onClose }: { isDark: boolean; onClose: () => void 
 
 function AlreadyProcessedView({
   flow,
-  isDark,
   onManualEntry,
   onClose,
 }: {
   flow: ScanFlow;
-  isDark: boolean;
   onManualEntry: () => void;
   onClose: () => void;
 }) {
+  const { t: theme } = useEditorialTheme();
   const { t } = useTranslation();
   const handoff = flow.state.handoff;
   return (
     <Animated.View entering={FadeInUp.duration(220)} style={{ flex: 1 }}>
       <View style={{ alignItems: 'center', marginTop: 32, marginBottom: 20 }}>
-        <CheckCircle2 size={44} color={palette.signature500} />
+        <CheckCircle2 size={44} color={theme.ink2} />
       </View>
-      <Heading text={t('receiptScan.alreadyProcessed.title')} isDark={isDark} />
-      <Body text={t('receiptScan.alreadyProcessed.body')} isDark={isDark} />
+      <Heading text={t('receiptScan.alreadyProcessed.title')} />
+      <Body text={t('receiptScan.alreadyProcessed.body')} />
       <BottomZone>
         {handoff ? (
           <PrimaryButton
@@ -591,9 +550,8 @@ function AlreadyProcessedView({
         )}
         <SecondaryButton
           label={t('receiptScan.common.enterManually')}
-          icon={<PencilLine size={18} color={isDark ? palette.neutral50 : palette.neutral900} />}
+          icon={<PencilLine size={18} color={theme.ink} />}
           onPress={onManualEntry}
-          isDark={isDark}
         />
       </BottomZone>
     </Animated.View>

@@ -10,3 +10,5 @@ build-*.apk
 
 expo-env.d.ts
 # @end expo-cli
+# Maestro takeScreenshot output when flows run via the MCP (written to cwd)
+/*.png

@@ -1,8 +1,8 @@
-import { palette } from '@motovault/design-system';
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { HUB_SHEET_RADIUS, hub } from '../../../components/bike-hub/ui/tokens';
+import { HUB_SHEET_RADIUS, useHubTheme } from '../../../components/bike-hub/ui/tokens';
 import { ErrorFallback } from '../../../components/error-fallback';
+import { FORM_SHEET_DETENTS } from '../../../config/sheet-detents';
 import { captureException } from '../../../lib/analytics';
 import { useEditorialTheme } from '../../../theme/editorial';
 
@@ -13,9 +13,10 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 
 export default function GarageLayout() {
   const { t } = useTranslation();
-  const { isDark } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
+  const hub = useHubTheme();
 
-  const sheetSurface = isDark ? palette.neutral900 : palette.neutral50;
+  const sheetSurface = theme.bg;
   const sheetContentStyle = { backgroundColor: sheetSurface };
   const sheetHeaderStyle = { backgroundColor: sheetSurface };
   const hubSheetContentStyle = { backgroundColor: hub.card };
@@ -25,12 +26,13 @@ export default function GarageLayout() {
       screenOptions={{
         headerLargeTitle: true,
         headerTransparent: true,
-        headerBlurEffect: 'systemMaterial',
+        // Follow the APP scheme, not the system appearance (adaptive 'systemMaterial').
+        headerBlurEffect: isDark ? 'systemMaterialDark' : 'systemMaterialLight',
         headerShadowVisible: false,
         headerLargeTitleShadowVisible: false,
         headerBackButtonDisplayMode: 'minimal',
-        headerTintColor: isDark ? palette.neutral50 : palette.neutral950,
-        headerTitleStyle: { color: isDark ? palette.neutral50 : palette.neutral950 },
+        headerTintColor: theme.ink,
+        headerTitleStyle: { color: theme.ink },
       }}
     >
       <Stack.Screen name="index" options={{ title: t('tabs.garage'), headerShown: false }} />
@@ -41,8 +43,8 @@ export default function GarageLayout() {
           headerShown: false,
         }}
       />
-      {/* Bike hub sheets (bike-detail redesign R1). Dark hub card surface in both
-          colour schemes; each screen draws its own title row. */}
+      {/* Bike hub sheets (bike-detail redesign R1). The hub card surface of the active
+          colour scheme; each screen draws its own title row. */}
       <Stack.Screen
         name="log-entry"
         options={{
@@ -97,65 +99,70 @@ export default function GarageLayout() {
       <Stack.Screen
         name="add-bike"
         options={{
+          headerShown: false,
           title: t('garage.addBike', { defaultValue: 'Add Bike' }),
           presentation: 'formSheet',
           headerLargeTitle: false,
           headerTransparent: false,
           headerStyle: sheetHeaderStyle,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.85, 1.0],
+          sheetAllowedDetents: FORM_SHEET_DETENTS.BIKE,
           contentStyle: sheetContentStyle,
         }}
       />
       <Stack.Screen
         name="add-maintenance-task"
         options={{
+          headerShown: false,
           title: t('garage.addMaintenanceTask', { defaultValue: 'Add Task' }),
           presentation: 'formSheet',
           headerLargeTitle: false,
           headerTransparent: false,
           headerStyle: sheetHeaderStyle,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.85, 1.0],
+          sheetAllowedDetents: FORM_SHEET_DETENTS.TASK,
           contentStyle: sheetContentStyle,
         }}
       />
       <Stack.Screen
         name="edit-maintenance-task"
         options={{
+          headerShown: false,
           title: t('garage.editMaintenanceTask', { defaultValue: 'Edit Task' }),
           presentation: 'formSheet',
           headerLargeTitle: false,
           headerTransparent: false,
           headerStyle: sheetHeaderStyle,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.85, 1.0],
+          sheetAllowedDetents: FORM_SHEET_DETENTS.TASK,
           contentStyle: sheetContentStyle,
         }}
       />
       <Stack.Screen
         name="edit-bike"
         options={{
+          headerShown: false,
           title: t('garage.editBike', { defaultValue: 'Edit Motorcycle' }),
-          presentation: 'card',
+          presentation: 'formSheet',
           headerLargeTitle: false,
           headerTransparent: false,
-          headerStyle: {
-            backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
-          },
-          headerBackButtonDisplayMode: 'default',
+          headerStyle: sheetHeaderStyle,
+          sheetGrabberVisible: true,
+          sheetAllowedDetents: FORM_SHEET_DETENTS.BIKE,
+          contentStyle: sheetContentStyle,
         }}
       />
       <Stack.Screen
         name="add-expense"
         options={{
+          headerShown: false,
           title: t('garage.addExpense', { defaultValue: 'Add Expense' }),
           presentation: 'formSheet',
           headerLargeTitle: false,
           headerTransparent: false,
           headerStyle: sheetHeaderStyle,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.7, 0.9],
+          sheetAllowedDetents: FORM_SHEET_DETENTS.EXPENSE,
           contentStyle: sheetContentStyle,
         }}
       />
@@ -169,7 +176,7 @@ export default function GarageLayout() {
           headerLargeTitle: false,
           headerTransparent: false,
           headerStyle: {
-            backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+            backgroundColor: theme.bg,
           },
           headerBackButtonDisplayMode: 'default',
         }}
@@ -182,7 +189,7 @@ export default function GarageLayout() {
           headerLargeTitle: false,
           headerTransparent: false,
           headerStyle: {
-            backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+            backgroundColor: theme.bg,
           },
           headerBackButtonDisplayMode: 'default',
         }}
@@ -194,7 +201,7 @@ export default function GarageLayout() {
           headerLargeTitle: false,
           headerTransparent: false,
           headerStyle: {
-            backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+            backgroundColor: theme.bg,
           },
           headerBackButtonDisplayMode: 'default',
         }}
@@ -206,7 +213,7 @@ export default function GarageLayout() {
           headerLargeTitle: false,
           headerTransparent: false,
           headerStyle: {
-            backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+            backgroundColor: theme.bg,
           },
           headerBackButtonDisplayMode: 'default',
         }}
@@ -217,13 +224,14 @@ export default function GarageLayout() {
           presentation: 'formSheet',
           headerShown: false,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.65, 0.85, 1.0],
+          sheetAllowedDetents: FORM_SHEET_DETENTS.COMPLETE_TASK,
           contentStyle: sheetContentStyle,
         }}
       />
       <Stack.Screen
         name="add-document"
         options={{
+          headerShown: false,
           title: t('documents.addTitle', { defaultValue: 'Add Document' }),
           presentation: 'fullScreenModal',
           headerLargeTitle: false,

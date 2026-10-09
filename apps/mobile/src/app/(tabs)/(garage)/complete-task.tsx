@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import {
   CompleteMaintenanceTaskDocument,
   MaintenanceTasksByMotorcycleDocument,
@@ -6,23 +5,26 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Check, DollarSign, Gauge, Wrench } from 'lucide-react-native';
+import { Check, Gauge, Repeat } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, Text, TextInput, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeInUp,
-  useAnimatedStyle,
-  useSharedValue,
-  withSequence,
-  withSpring,
-  ZoomIn,
-} from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { expenseIconFor } from '../../../components/bike-hub/sheets/log-options';
 import { NativeToggle } from '../../../components/ui/native-toggle';
+import {
+  FormCard,
+  FormDivider,
+  FormRow,
+  FormSection,
+  ROW_DIVIDER_INSET,
+  RowNumberInput,
+  SHEET_CONTENT_STYLE,
+  SHEET_PRIMARY_STATE,
+  SheetFooter,
+  SheetTitle,
+} from '../../../components/ui/sheet-form';
 import { useCurrency } from '../../../hooks/use-currency';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
@@ -42,6 +44,7 @@ import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { invalidateAfterTaskCompletion } from '../../../lib/task-completion-cache';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { space, type } from '../../../theme/type';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 import { convertIntervalDistance } from '../../../utils/maintenance-interval';
 
@@ -60,8 +63,7 @@ function humanizeInterval(days: number): string {
 export default function CompleteTaskScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { isDark } = useEditorialTheme();
-  const insets = useSafeAreaInsets();
+  const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
 
   const { taskId, motorcycleId, bikeName, currentMileage } = useLocalSearchParams<{
@@ -82,11 +84,6 @@ export default function CompleteTaskScreen() {
   const [cost, setCost] = useState('');
   const { currency, symbol } = useCurrency();
   const mutatingRef = useRef(false);
-  const buttonScale = useSharedValue(1);
-
-  const buttonAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonScale.value }],
-  }));
 
   const tasksQuery = useQuery({
     queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
@@ -134,10 +131,6 @@ export default function CompleteTaskScreen() {
       }
       recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);
       setCompleted(true);
-      buttonScale.value = withSequence(
-        withSpring(1.08, { damping: 8, stiffness: 200 }),
-        withSpring(1, { damping: 12, stiffness: 150 }),
-      );
 
       maybeRequestReview(REVIEW_MILESTONE.MAINTENANCE_COMPLETED);
 
@@ -159,10 +152,6 @@ export default function CompleteTaskScreen() {
     },
   });
 
-  const textColor = isDark ? palette.neutral50 : palette.neutral950;
-  const secondaryTextColor = isDark ? palette.neutral400 : palette.neutral500;
-  const cardBg = isDark ? palette.neutral800 : palette.white;
-
   if (!task) {
     return (
       <View
@@ -170,314 +159,127 @@ export default function CompleteTaskScreen() {
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+          backgroundColor: theme.bg,
         }}
       >
-        <Text style={{ color: secondaryTextColor, fontSize: 15 }}>
+        <Text style={[type.body, { color: theme.ink3 }]}>
           {t('maintenance.taskNotFound', { defaultValue: 'Task not found' })}
         </Text>
       </View>
     );
   }
 
-  return (
-    <KeyboardAwareScrollView
-      style={{
-        flex: 1,
-        backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
-      }}
-      contentContainerStyle={{
-        paddingHorizontal: 20,
-        paddingTop: 24,
-        paddingBottom: insets.bottom + 16,
-        flexGrow: 1,
-      }}
-    >
-      <View style={{ flex: 1 }}>
-        <Animated.View
-          entering={FadeInUp.duration(300)}
-          style={{ alignItems: 'center', marginBottom: 32 }}
-        >
-          <View
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 16,
-              borderCurve: 'continuous',
-              backgroundColor: `${palette.success500}18`,
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 16,
-            }}
-          >
-            <Wrench size={28} color={palette.success500} strokeWidth={1.5} />
-          </View>
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: '700',
-              color: textColor,
-              textAlign: 'center',
-              marginBottom: 6,
-            }}
-          >
-            {task.title}
-          </Text>
-          <Text
-            style={{
-              fontSize: 15,
-              color: secondaryTextColor,
-              textAlign: 'center',
-            }}
-          >
-            {bikeName}
-          </Text>
-        </Animated.View>
+  const CostIcon = expenseIconFor(currency);
+  const primaryState = completed
+    ? SHEET_PRIMARY_STATE.DONE
+    : completeMutation.isPending
+      ? SHEET_PRIMARY_STATE.DISABLED
+      : SHEET_PRIMARY_STATE.READY;
 
-        {/* Completion Details */}
-        <Animated.View entering={FadeInDown.delay(50).duration(300)} style={{ marginBottom: 16 }}>
-          <Text
-            style={{
-              fontSize: 13,
-              fontWeight: '600',
-              color: secondaryTextColor,
-              marginBottom: 8,
-              marginLeft: 4,
-            }}
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        bottomOffset={20}
+        contentContainerStyle={SHEET_CONTENT_STYLE}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={{ gap: space.xxs }}>
+          <SheetTitle>{task.title}</SheetTitle>
+          {bikeName ? <Text style={[type.subhead, { color: theme.ink3 }]}>{bikeName}</Text> : null}
+        </View>
+
+        <Animated.View entering={FadeInDown.delay(50).duration(250)}>
+          <FormSection
+            label={t('maintenance.completionDetails', { defaultValue: 'Completion Details' })}
           >
-            {t('maintenance.completionDetails', { defaultValue: 'Completion Details' })}
-          </Text>
-          <View
-            style={{
-              backgroundColor: cardBg,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              overflow: 'hidden',
-              boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
-            }}
-          >
-            {/* Odometer reading row */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                gap: 12,
-              }}
-            >
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
-                  borderCurve: 'continuous',
-                  backgroundColor: isDark ? palette.successBgDark : palette.successBgLight,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Gauge size={16} color={palette.success500} strokeWidth={2} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 15, fontWeight: '500', color: textColor }}>
-                  {t('maintenance.odometer', { defaultValue: 'Odometer' })}
-                </Text>
-                {currentMileage ? (
-                  <Text style={{ fontSize: 12, color: secondaryTextColor, marginTop: 2 }}>
-                    {t('maintenance.currentReading', {
+            <FormRow
+              icon={Gauge}
+              label={t('maintenance.odometer', { defaultValue: 'Odometer' })}
+              hint={
+                currentMileage
+                  ? t('maintenance.currentReading', {
                       defaultValue: `Current: ${Number(currentMileage).toLocaleString()} ${mileageUnit}`,
                       value: Number(currentMileage).toLocaleString(),
                       unit: mileageUnit,
-                    })}
-                  </Text>
-                ) : null}
-              </View>
-              <TextInput
+                    })
+                  : undefined
+              }
+            >
+              <RowNumberInput
                 value={completedMileage}
                 onChangeText={(val) => setCompletedMileage(val.replace(/[^0-9]/g, ''))}
-                keyboardType="number-pad"
                 placeholder={t('garage.taskMileagePlaceholder')}
-                placeholderTextColor={palette.neutral400}
-                textAlign="right"
-                style={{
-                  fontSize: 15,
-                  fontWeight: '500',
-                  color: textColor,
-                  minWidth: 100,
-                  paddingVertical: 4,
-                }}
+                unit={completedMileage ? mileageUnit : undefined}
               />
-              {completedMileage ? (
-                <Text style={{ fontSize: 13, color: palette.neutral400 }}>{mileageUnit}</Text>
-              ) : null}
-            </View>
-
-            {/* Separator */}
-            <View
-              style={{
-                height: 0.5,
-                backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-                marginLeft: 60,
-              }}
-            />
-
-            {/* Cost row */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                gap: 12,
-              }}
-            >
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
-                  borderCurve: 'continuous',
-                  backgroundColor: isDark ? palette.warningBgDark : palette.warningBgLight,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <DollarSign size={16} color={palette.warning500} strokeWidth={2} />
-              </View>
-              <Text style={{ fontSize: 15, fontWeight: '500', color: textColor, flex: 1 }}>
-                {t('maintenance.totalCost', { defaultValue: 'Cost' })}
-              </Text>
-              <Text style={{ fontSize: 15, fontWeight: '500', color: textColor }}>{symbol}</Text>
-              <TextInput
+            </FormRow>
+            <FormDivider inset={ROW_DIVIDER_INSET} />
+            <FormRow icon={CostIcon} label={t('maintenance.totalCost', { defaultValue: 'Cost' })}>
+              <Text style={[type.body, { color: theme.ink3 }]}>{symbol}</Text>
+              <RowNumberInput
                 value={cost}
                 onChangeText={(val) => setCost(formatCurrencyInput(val, currency))}
                 keyboardType={ZERO_DECIMAL_CURRENCIES.has(currency) ? 'number-pad' : 'decimal-pad'}
                 placeholder={ZERO_DECIMAL_CURRENCIES.has(currency) ? '0' : '0.00'}
-                placeholderTextColor={palette.neutral400}
-                textAlign="right"
-                style={{
-                  fontSize: 15,
-                  fontWeight: '500',
-                  color: textColor,
-                  minWidth: 80,
-                  paddingVertical: 4,
-                }}
+                style={{ minWidth: 80 }}
               />
-            </View>
-          </View>
+            </FormRow>
+          </FormSection>
         </Animated.View>
 
         {task.isRecurring && (
-          <Animated.View entering={FadeInUp.delay(100).duration(300)}>
-            <View
-              style={{
-                backgroundColor: cardBg,
-                borderRadius: 14,
-                borderCurve: 'continuous',
-                padding: 16,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <View style={{ flex: 1, marginRight: 12 }}>
-                <Text
-                  style={{
-                    fontSize: 15,
-                    fontWeight: '600',
-                    color: textColor,
-                    marginBottom: 2,
-                  }}
-                >
-                  {t('maintenance.scheduleNext', {
-                    defaultValue: 'Schedule next',
-                  })}
-                </Text>
-                <Text style={{ fontSize: 13, color: secondaryTextColor }}>
-                  {task.intervalDays
-                    ? t('maintenance.scheduleNextDays', {
-                        defaultValue: humanizeInterval(task.intervalDays),
-                        count: task.intervalDays,
+          <FormCard>
+            <FormRow
+              icon={Repeat}
+              label={t('maintenance.scheduleNext', { defaultValue: 'Schedule next' })}
+              hint={
+                task.intervalDays
+                  ? t('maintenance.scheduleNextDays', {
+                      defaultValue: humanizeInterval(task.intervalDays),
+                      count: task.intervalDays,
+                    })
+                  : task.intervalKm
+                    ? t('maintenance.scheduleNextDistance', {
+                        defaultValue: 'In {{count}} {{unit}}',
+                        count: convertIntervalDistance(task.intervalKm, system),
+                        unit: mileageUnit,
                       })
-                    : task.intervalKm
-                      ? t('maintenance.scheduleNextDistance', {
-                          defaultValue: 'In {{count}} {{unit}}',
-                          count: convertIntervalDistance(task.intervalKm, system),
-                          unit: mileageUnit,
-                        })
-                      : t('maintenance.scheduleNextAuto', {
-                          defaultValue: 'Auto-calculated',
-                        })}
-                </Text>
-              </View>
-              <NativeToggle value={scheduleNext} onValueChange={setScheduleNext} />
-            </View>
-          </Animated.View>
+                    : t('maintenance.scheduleNextAuto', {
+                        defaultValue: 'Auto-calculated',
+                      })
+              }
+            >
+              <NativeToggle
+                value={scheduleNext}
+                onValueChange={setScheduleNext}
+                tint={theme.warm}
+              />
+            </FormRow>
+          </FormCard>
         )}
-      </View>
+      </KeyboardAwareScrollView>
 
-      <Animated.View entering={FadeIn.delay(200).duration(300)} style={{ marginTop: 32 }}>
-        <Animated.View style={buttonAnimStyle}>
-          <Pressable
-            onPress={() => {
-              if (mutatingRef.current) return;
-              mutatingRef.current = true;
-              triggerImpact();
-              completeMutation.mutate();
-            }}
-            disabled={completeMutation.isPending || completed}
-            style={{
-              backgroundColor: completed ? palette.success500 : palette.primary500,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              paddingVertical: 16,
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'row',
-              gap: 8,
-              opacity: completeMutation.isPending ? 0.7 : 1,
-            }}
-          >
-            {completed ? (
-              <Animated.View entering={ZoomIn.duration(200).springify()}>
-                <Check size={20} color={palette.white} strokeWidth={2.5} />
-              </Animated.View>
-            ) : (
-              <Check size={20} color={palette.white} strokeWidth={2} />
-            )}
-            <Text style={{ fontSize: 17, fontWeight: '700', color: palette.white }}>
-              {completed
-                ? t('maintenance.completed', { defaultValue: 'Completed!' })
-                : completeMutation.isPending
-                  ? t('maintenance.completing', { defaultValue: 'Completing...' })
-                  : t('maintenance.markComplete', {
-                      defaultValue: 'Mark as Complete',
-                    })}
-            </Text>
-          </Pressable>
-        </Animated.View>
-
-        <Pressable
-          onPress={() => router.back()}
-          disabled={completeMutation.isPending || completed}
-          style={{
-            paddingVertical: 14,
-            alignItems: 'center',
-            marginTop: 8,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 15,
-              fontWeight: '500',
-              color: secondaryTextColor,
-            }}
-          >
-            {t('common.cancel', { defaultValue: 'Cancel' })}
-          </Text>
-        </Pressable>
-      </Animated.View>
-    </KeyboardAwareScrollView>
+      <SheetFooter
+        primaryTestID="task-complete"
+        primaryState={primaryState}
+        primaryIcon={Check}
+        primaryLabel={
+          completed
+            ? t('maintenance.completed', { defaultValue: 'Completed!' })
+            : completeMutation.isPending
+              ? t('maintenance.completing', { defaultValue: 'Completing...' })
+              : t('maintenance.markComplete', { defaultValue: 'Mark as Complete' })
+        }
+        onPrimary={() => {
+          if (mutatingRef.current) return;
+          mutatingRef.current = true;
+          triggerImpact();
+          completeMutation.mutate();
+        }}
+        onCancel={() => router.back()}
+        cancelDisabled={completeMutation.isPending || completed}
+      />
+    </View>
   );
 }

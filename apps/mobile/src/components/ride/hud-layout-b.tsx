@@ -1,10 +1,12 @@
 import { palette } from '@motovault/design-system';
 import type { Waypoint } from '@motovault/types';
 import { Moon, Sun } from 'lucide-react-native';
-import { Pressable, Text, useColorScheme, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { editorialThemes, tint, useEditorialTheme } from '../../theme/editorial';
+import { PLATE_FONT, type } from '../../theme/type';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
@@ -66,14 +68,15 @@ export function HudLayoutB({
 }: HudLayoutProps) {
   const insets = useSafeAreaInsets();
   const system = useMeasurementSystem();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark' || isNightMode;
+  const { isDark: isDarkScheme } = useEditorialTheme();
+  const isDark = isDarkScheme || isNightMode;
 
-  const frostedBg = isDark ? 'rgba(10,9,7,0.78)' : 'rgba(248,246,242,0.82)';
+  const frostedBg = isDark ? tint(palette.neutral950, 0.78) : tint(palette.editorialLightBg, 0.82);
   const frostedText = isDark ? palette.white : palette.neutral950;
   const frostedMuted = isDark ? palette.neutral500 : palette.neutral400;
 
-  const statusDotColor = isPaused ? palette.warning500 : palette.success500;
+  const statusTokens = editorialThemes[isDark ? 'dark' : 'light'];
+  const statusDotColor = isPaused ? statusTokens.dueInk : statusTokens.success;
   const statusLabel = isPaused ? 'PAUSED' : 'REC';
 
   const displaySpeed = formatSpeedValue(currentSpeed, system);
@@ -182,7 +185,7 @@ export function HudLayoutB({
           bottom: 280,
           alignSelf: 'center',
           alignItems: 'center',
-          backgroundColor: 'rgba(12,11,9,0.85)',
+          backgroundColor: tint(palette.neutral950, 0.85),
           paddingHorizontal: 32,
           paddingVertical: 12,
           borderRadius: 22,
@@ -190,25 +193,16 @@ export function HudLayoutB({
           zIndex: 15,
         }}
       >
-        <Text
-          style={{
-            fontSize: 9,
-            fontWeight: '700',
-            color: 'rgba(255,255,255,0.5)',
-            letterSpacing: 1.5,
-            textTransform: 'uppercase',
-            marginBottom: 2,
-          }}
-        >
+        <Text style={[type.caption, { color: palette.iconMuted, marginBottom: 2 }]}>
           {speedUnit}
         </Text>
         <Text
           style={{
-            fontSize: 56,
-            fontWeight: '800',
+            fontFamily: PLATE_FONT.semibold,
+            fontSize: 60,
             fontVariant: ['tabular-nums'],
             color: palette.white,
-            lineHeight: 60,
+            lineHeight: 62,
           }}
         >
           {displaySpeed}
@@ -311,25 +305,8 @@ function StatCell({
 }) {
   return (
     <View style={{ flex: 1, alignItems: 'center' }}>
-      <Text
-        style={{
-          fontSize: 17,
-          fontWeight: '700',
-          fontVariant: ['tabular-nums'],
-          color: textColor,
-        }}
-      >
-        {value}
-      </Text>
-      <Text
-        style={{
-          fontSize: 10,
-          fontWeight: '600',
-          color: mutedColor,
-          letterSpacing: 0.5,
-          marginTop: 2,
-        }}
-      >
+      <Text style={[type.figureSmall, { color: textColor }]}>{value}</Text>
+      <Text style={[type.caption, { color: mutedColor, marginTop: 2 }]}>
         {label} ({unit})
       </Text>
     </View>

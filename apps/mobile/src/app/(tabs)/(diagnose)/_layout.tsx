@@ -1,6 +1,8 @@
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { ErrorFallback } from '../../../components/error-fallback';
 import { captureException } from '../../../lib/analytics';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   captureException(error, { boundary: 'diagnose' });
@@ -8,9 +10,19 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 export default function DiagnoseLayout() {
+  const { t } = useTranslation();
+  const { t: theme } = useEditorialTheme();
   return (
-    <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
-      <Stack.Screen name="index" options={{ headerShown: false, title: 'Diagnose' }} />
+    <Stack
+      screenOptions={{
+        headerBackButtonDisplayMode: 'minimal',
+        headerStyle: { backgroundColor: theme.bg },
+        headerTintColor: theme.ink,
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: theme.bg },
+      }}
+    >
+      <Stack.Screen name="index" options={{ headerShown: false, title: t('tabs.diagnose') }} />
       <Stack.Screen
         name="new"
         options={{
@@ -21,7 +33,10 @@ export default function DiagnoseLayout() {
       />
       <Stack.Screen
         name="[id]"
-        options={{ title: 'Diagnosis Result', headerBackTitle: 'Diagnose' }}
+        options={{
+          title: t('diagnose.resultScreenTitle'),
+          headerBackTitle: t('tabs.diagnose'),
+        }}
       />
     </Stack>
   );

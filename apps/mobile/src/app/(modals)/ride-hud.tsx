@@ -18,10 +18,16 @@ import {
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { bestEffortNativeCall, NativeSideEffect } from '../../lib/best-effort-native';
 import { useRideStore } from '../../stores/ride.store';
+import { editorialThemes } from '../../theme/editorial';
+import { radius, type } from '../../theme/type';
 import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../../utils/ride-constants';
 import { toggleBatterySaver } from '../../utils/ride-location';
 import { getPointBuffer, getWaypointChunks, rideMMKV, rideStorage } from '../../utils/ride-storage';
 import { hasPendingSyncWork } from '../../utils/ride-sync-queue';
+
+// The HUD is a riding instrument: always dark (night mode swaps to amber-red),
+// in both system schemes, so its sheet uses the dark tokens directly.
+const HUD_THEME = editorialThemes.dark;
 
 type SparklineMode = 'altitude' | 'speed';
 
@@ -378,21 +384,20 @@ export default function RideHudScreen() {
         index={-1}
         enablePanDownToClose
         backgroundStyle={{
-          backgroundColor: palette.neutral900,
+          backgroundColor: HUD_THEME.surface,
           borderRadius: 24,
           borderCurve: 'continuous',
         }}
         handleIndicatorStyle={{
-          backgroundColor: palette.neutral600,
+          backgroundColor: HUD_THEME.line2,
         }}
         enableDynamicSizing={false}
       >
         <View style={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 32 }}>
           <Text
             style={{
-              color: palette.neutral50,
-              fontSize: 20,
-              fontWeight: '700',
+              ...type.sectionTitle,
+              color: HUD_THEME.ink,
               marginBottom: 8,
             }}
           >
@@ -400,9 +405,8 @@ export default function RideHudScreen() {
           </Text>
           <Text
             style={{
-              color: palette.neutral400,
-              fontSize: 15,
-              lineHeight: 22,
+              ...type.subhead,
+              color: HUD_THEME.ink2,
               marginBottom: 16,
             }}
           >
@@ -419,16 +423,14 @@ export default function RideHudScreen() {
           {(showGuardTip || isNoGpsGuard) && (
             <View
               style={{
-                backgroundColor: palette.neutral800,
-                borderRadius: 12,
+                backgroundColor: HUD_THEME.surface2,
+                borderRadius: radius.control,
                 borderCurve: 'continuous',
                 padding: 12,
                 marginBottom: 16,
               }}
             >
-              <Text style={{ color: palette.warning500, fontSize: 13, lineHeight: 18 }}>
-                {t('rideHud.gpsTip')}
-              </Text>
+              <Text style={{ ...type.label, color: HUD_THEME.dueInk }}>{t('rideHud.gpsTip')}</Text>
             </View>
           )}
 
@@ -437,14 +439,14 @@ export default function RideHudScreen() {
               onPress={handleGuardKeepRiding}
               style={{
                 flex: 1,
-                backgroundColor: palette.neutral800,
-                borderRadius: 12,
+                backgroundColor: HUD_THEME.surface2,
+                borderRadius: radius.control,
                 borderCurve: 'continuous',
                 paddingVertical: 14,
                 alignItems: 'center',
               }}
             >
-              <Text style={{ color: palette.neutral50, fontSize: 15, fontWeight: '600' }}>
+              <Text style={{ ...type.bodyStrong, color: HUD_THEME.ink }}>
                 {t('rideHud.keepRiding')}
               </Text>
             </Pressable>
@@ -458,14 +460,14 @@ export default function RideHudScreen() {
               }}
               style={{
                 flex: 1,
-                backgroundColor: palette.danger500,
-                borderRadius: 12,
+                backgroundColor: HUD_THEME.danger,
+                borderRadius: radius.control,
                 borderCurve: 'continuous',
                 paddingVertical: 14,
                 alignItems: 'center',
               }}
             >
-              <Text style={{ color: palette.neutral50, fontSize: 15, fontWeight: '600' }}>
+              <Text style={{ ...type.bodyStrong, color: HUD_THEME.onPlate }}>
                 {t('rideHud.endAnyway')}
               </Text>
             </Pressable>

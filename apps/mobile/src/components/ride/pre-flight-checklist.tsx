@@ -10,6 +10,7 @@ import { useWeatherForecast } from '../../hooks/use-weather-forecast';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../theme/editorial';
+import { space, type } from '../../theme/type';
 
 interface PreFlightChecklistProps {
   motorcycleId?: string | null;
@@ -149,16 +150,10 @@ export function PreFlightChecklist({ motorcycleId }: PreFlightChecklistProps) {
   return (
     <View>
       <Text
-        style={{
-          fontFamily: 'GeistMono',
-          fontSize: 10,
-          fontWeight: '500',
-          color: theme.ink3,
-          textTransform: 'uppercase',
-          letterSpacing: 10 * 0.22,
-          marginBottom: 10,
-          paddingHorizontal: 4,
-        }}
+        style={[
+          type.label,
+          { color: theme.ink3, marginBottom: space.xs, paddingHorizontal: space.xxs },
+        ]}
       >
         {t('preFlight.title')}
       </Text>
@@ -180,10 +175,10 @@ export function PreFlightChecklist({ motorcycleId }: PreFlightChecklistProps) {
           const iconBg = isOk
             ? tint(theme.success, 0.18)
             : isWarn
-              ? tint(theme.warm, 0.18)
+              ? tint(theme.plateDue, 0.18)
               : tint(theme.ink3, 0.08);
 
-          const iconColor = isOk ? theme.success : isWarn ? theme.warm : theme.ink3;
+          const iconColor = isOk ? theme.success : isWarn ? theme.plateDue : theme.ink3;
           const StatusIcon = isOk ? Check : isWarn ? AlertCircle : null;
           const auxText = auxLabels[item.status] || '';
 
@@ -230,40 +225,18 @@ export function PreFlightChecklist({ motorcycleId }: PreFlightChecklistProps) {
                 </View>
 
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: '600',
-                      color: theme.ink,
-                      letterSpacing: -15 * 0.012,
-                      lineHeight: 15 * 1.2,
-                    }}
-                  >
-                    {item.label}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 12.5,
-                      color: theme.ink3,
-                      marginTop: 2,
-                      letterSpacing: -0.05,
-                    }}
-                  >
+                  <Text style={[type.bodyStrong, { color: theme.ink }]}>{item.label}</Text>
+                  <Text style={[type.caption, { color: theme.ink3, marginTop: 2 }]}>
                     {item.subtitle}
                   </Text>
                 </View>
 
                 {auxText ? (
                   <Text
-                    style={{
-                      fontFamily: 'GeistMono',
-                      fontSize: 9.5,
-                      fontWeight: '500',
-                      letterSpacing: 9.5 * 0.16,
-                      textTransform: 'uppercase',
-                      color: isWarn ? theme.warm : theme.ink3,
-                      flexShrink: 0,
-                    }}
+                    style={[
+                      type.caption,
+                      { color: isWarn ? theme.plateDue : theme.ink3, flexShrink: 0 },
+                    ]}
                   >
                     {auxText}
                   </Text>

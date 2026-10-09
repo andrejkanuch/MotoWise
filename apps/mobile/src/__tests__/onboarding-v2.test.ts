@@ -67,7 +67,7 @@ describe('ChecklistStore', () => {
   });
 
   it('should initialize with goal-matched items first', () => {
-    useChecklistStore.getState().initialize(['manage_expenses', 'track_rides']);
+    useChecklistStore.getState().initialize(['manage_expenses', 'track_rides'], 'user-a');
     const { items, initialized } = useChecklistStore.getState();
 
     expect(initialized).toBe(true);
@@ -79,14 +79,14 @@ describe('ChecklistStore', () => {
   });
 
   it('should include all items when no goals match', () => {
-    useChecklistStore.getState().initialize([]);
+    useChecklistStore.getState().initialize([], 'user-a');
     const { items } = useChecklistStore.getState();
 
     expect(items.length).toBe(5);
   });
 
   it('should complete an item only once', () => {
-    useChecklistStore.getState().initialize(['track_rides']);
+    useChecklistStore.getState().initialize(['track_rides'], 'user-a');
     useChecklistStore.getState().completeItem('first_ride');
     useChecklistStore.getState().completeItem('first_ride'); // duplicate
 
@@ -94,7 +94,7 @@ describe('ChecklistStore', () => {
   });
 
   it('should track multiple completed items', () => {
-    useChecklistStore.getState().initialize(['track_rides', 'manage_expenses']);
+    useChecklistStore.getState().initialize(['track_rides', 'manage_expenses'], 'user-a');
     useChecklistStore.getState().completeItem('first_ride');
     useChecklistStore.getState().completeItem('first_expense');
 
@@ -102,14 +102,14 @@ describe('ChecklistStore', () => {
   });
 
   it('should dismiss checklist', () => {
-    useChecklistStore.getState().initialize(['track_rides']);
+    useChecklistStore.getState().initialize(['track_rides'], 'user-a');
     useChecklistStore.getState().dismiss();
 
     expect(useChecklistStore.getState().dismissed).toBe(true);
   });
 
   it('should reset to initial state', () => {
-    useChecklistStore.getState().initialize(['track_rides']);
+    useChecklistStore.getState().initialize(['track_rides'], 'user-a');
     useChecklistStore.getState().completeItem('first_ride');
     useChecklistStore.getState().dismiss();
     useChecklistStore.getState().reset();
@@ -122,10 +122,10 @@ describe('ChecklistStore', () => {
   });
 
   it('should not reset completedItems on re-initialize', () => {
-    useChecklistStore.getState().initialize(['track_rides']);
+    useChecklistStore.getState().initialize(['track_rides'], 'user-a');
     useChecklistStore.getState().completeItem('first_ride');
     // Re-initialize (e.g. app restart)
-    useChecklistStore.getState().initialize(['track_rides']);
+    useChecklistStore.getState().initialize(['track_rides'], 'user-a');
 
     // Items rebuilt but completedItems preserved
     expect(useChecklistStore.getState().items.length).toBe(5);
@@ -133,7 +133,7 @@ describe('ChecklistStore', () => {
   });
 
   it('should have valid deep links for all items', () => {
-    useChecklistStore.getState().initialize([]);
+    useChecklistStore.getState().initialize([], 'user-a');
     const { items } = useChecklistStore.getState();
 
     for (const item of items) {

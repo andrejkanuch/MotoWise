@@ -1,6 +1,5 @@
 import {
   MaintenanceTasksByMotorcycleDocument,
-  type MaintenanceTasksByMotorcycleQuery,
   MyMotorcyclesDocument,
   type MyMotorcyclesQuery,
   MyRidesDocument,
@@ -11,13 +10,15 @@ import { useMotorcycleDocuments } from '../../../hooks/use-motorcycle-documents'
 import { getServiceBadgeCount } from '../../../lib/bike-hub/attention';
 import type { HubUnit } from '../../../lib/bike-hub/constants';
 import { toHubUnit } from '../../../lib/bike-hub/format';
+import type { HubTask } from '../../../lib/bike-hub/task-due';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { QUERY_META } from '../../../lib/query-meta';
 import { useToday } from './use-today';
 
 export type HubBike = MyMotorcyclesQuery['myMotorcycles'][number];
-export type HubTask = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
+// Lives in lib so `lib/bike-hub/all-tasks.ts` can share it without reaching into components.
+export type { HubTask } from '../../../lib/bike-hub/task-due';
 
 const NO_TASKS: HubTask[] = [];
 

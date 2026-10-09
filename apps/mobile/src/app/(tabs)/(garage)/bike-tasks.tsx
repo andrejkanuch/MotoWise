@@ -1,30 +1,96 @@
-import { palette } from '@motovault/design-system';
 import {
   DeleteMaintenanceTaskDocument,
+  MaintenanceTaskStatus,
   MaintenanceTasksByMotorcycleDocument,
-  type MaintenanceTasksByMotorcycleQuery,
+  MyMotorcyclesDocument,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Wrench } from 'lucide-react-native';
-import { useCallback, useMemo, useState } from 'react';
+import type { ParseKeys } from 'i18next';
+import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  PRIORITY_ORDER,
-  SwipeableTaskCard,
-} from '../../../components/bike-hub/swipeable-task-card';
+import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
+import { HistoryTaskRow, ServiceTaskRow } from '../../../components/bike-hub/service/task-row';
+import type { HubTask } from '../../../components/bike-hub/shell/use-bike-hub-data';
+import { useToday } from '../../../components/bike-hub/shell/use-today';
+import { useHubBottomLayout } from '../../../components/bike-hub/ui/bottom-layout';
+import { HubCard } from '../../../components/bike-hub/ui/hub-card';
+import { SectionHeader } from '../../../components/bike-hub/ui/section-header';
+import { useHubTheme } from '../../../components/bike-hub/ui/tokens';
+import { ThemedSegmentedControl } from '../../../components/ui/themed-segmented-control';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
+import {
+  filterAndSortTasks,
+  parseTaskFilter,
+  TASK_FILTER,
+  TASK_FILTERS,
+  type TaskFilter,
+} from '../../../lib/bike-hub/all-tasks';
+import { getTaskDue } from '../../../lib/bike-hub/task-due';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { QUERY_META } from '../../../lib/query-meta';
+import { GUTTER, readableWidth, space, type } from '../../../theme/type';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
-type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
-type FilterTab = 'all' | 'overdue' | 'upcoming' | 'completed';
+const NO_TASKS: HubTask[] = [];
+/** Rows past this index enter together instead of waiting their turn. */
+const MAX_STAGGERED = 5;
+const STAGGER_MS = 50;
+const ENTER_MS = 250;
+const EXIT_MS = 250;
+const LAYOUT_MS = 200;
+
+const FILTER_LABEL_KEY: Record<TaskFilter, ParseKeys> = {
+  [TASK_FILTER.ALL]: 'common.all',
+  // Sentence case: `maintenance.overdue` is the old upper-case badge copy.
+  [TASK_FILTER.OVERDUE]: 'bikeHub.service.group.overdue',
+  [TASK_FILTER.UPCOMING]: 'bikeHub.upcomingTasks',
+  [TASK_FILTER.COMPLETED]: 'maintenance.completed',
+};
+
+const EMPTY_COPY_KEY: Record<TaskFilter, { title: ParseKeys; subtitle: ParseKeys }> = {
+  [TASK_FILTER.ALL]: { title: 'maintenance.noTasks', subtitle: 'maintenance.noTasksHint' },
+  [TASK_FILTER.OVERDUE]: { title: 'maintenance.noOverdue', subtitle: 'maintenance.noOverdueHint' },
+  [TASK_FILTER.UPCOMING]: {
+    title: 'maintenance.noUpcoming',
+    subtitle: 'maintenance.noUpcomingHint',
+  },
+  [TASK_FILTER.COMPLETED]: {
+    title: 'maintenance.noCompleted',
+    subtitle: 'maintenance.noCompletedHint',
+  },
+};
+
+/** Staggered enter (index × 50 ms, capped), slide-out on delete, smooth reflow. */
+function RowMotion({ index, children }: { index: number; children: ReactNode }) {
+  return (
+    <Animated.View
+      entering={FadeInUp.delay(Math.min(index, MAX_STAGGERED) * STAGGER_MS).duration(ENTER_MS)}
+      exiting={FadeOutLeft.duration(EXIT_MS)}
+      layout={LinearTransition.duration(LAYOUT_MS)}
+    >
+      {children}
+    </Animated.View>
+  );
+}
+
+/** What is true for this filter, and what happens next — on a plain grouped card. */
+function EmptyState({ filter }: { filter: TaskFilter }) {
+  const { t } = useTranslation();
+  const hub = useHubTheme();
+  const copy = EMPTY_COPY_KEY[filter];
+  return (
+    <Animated.View entering={FadeIn.duration(ENTER_MS)} testID={`bike-tasks-empty-${filter}`}>
+      <HubCard style={{ paddingVertical: space.md, paddingHorizontal: space.md, gap: space.xxs }}>
+        <Text style={[type.bodyStrong, { color: hub.text }]}>{t(copy.title)}</Text>
+        <Text style={[type.subhead, { color: hub.dim }]}>{t(copy.subtitle)}</Text>
+      </HubCard>
+    </Animated.View>
+  );
+}
 
 export default function BikeTasksScreen() {
   const { t } = useTranslation();
@@ -33,20 +99,19 @@ export default function BikeTasksScreen() {
     bikeName?: string;
     // Deep-link params (e.g. from an expense's linked service record): open on a
     // given filter tab with a specific task already expanded.
-    initialFilter?: FilterTab;
+    initialFilter?: TaskFilter;
     expandTaskId?: string;
   }>();
   // Unit follows the user's profile preference, not the deprecated per-bike field.
   const mileageUnit = useMileageUnit();
   const router = useRouter();
-  const { isDark } = useEditorialTheme();
+  const hub = useHubTheme();
   const queryClient = useQueryClient();
-  const insets = useSafeAreaInsets();
+  const today = useToday();
+  const { tabBarClearance } = useHubBottomLayout();
 
-  const [activeFilter, setActiveFilter] = useState<FilterTab>(
-    initialFilter && ['all', 'overdue', 'upcoming', 'completed'].includes(initialFilter)
-      ? initialFilter
-      : 'all',
+  const [activeFilter, setActiveFilter] = useState<TaskFilter>(() =>
+    parseTaskFilter(initialFilter),
   );
   const [expandedId, setExpandedId] = useState<string | null>(expandTaskId ?? null);
 
@@ -58,11 +123,27 @@ export default function BikeTasksScreen() {
     queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
     queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId }),
   });
+  // Only the due line's wording ("In 1,833 km", "Honda schedule"); without it
+  // the rows fall back to the target itself and a generic schedule name.
+  const { data: bikesData } = useQuery({
+    queryKey: queryKeys.motorcycles.all,
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    meta: QUERY_META.DECORATION,
+  });
 
-  const tasks: Task[] = tasksData?.maintenanceTasks ?? [];
+  const tasks = tasksData?.maintenanceTasks ?? NO_TASKS;
+  const bike = bikesData?.myMotorcycles.find((motorcycle) => motorcycle.id === motorcycleId);
+  const odometer = bike?.currentMileage;
+  const make = bike?.make ?? '';
 
+  // Set the moment a delete is confirmed: a second confirm (a second alert opened
+  // while the first delete is in flight) is ignored instead of sent twice.
+  const deletePendingRef = useRef(false);
   const deleteMutation = useMutation({
     mutationFn: (taskId: string) => gqlFetcher(DeleteMaintenanceTaskDocument, { id: taskId }),
+    onSettled: () => {
+      deletePendingRef.current = false;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
@@ -78,254 +159,164 @@ export default function BikeTasksScreen() {
     },
   });
 
-  const filteredTasks = useMemo(() => {
-    const now = Date.now();
-    let filtered: Task[];
-
-    switch (activeFilter) {
-      case 'overdue':
-        filtered = tasks.filter(
-          (task) =>
-            (task.status === 'pending' || task.status === 'in_progress') &&
-            task.dueDate &&
-            new Date(task.dueDate).getTime() < now,
-        );
-        break;
-      case 'upcoming':
-        filtered = tasks.filter(
-          (task) =>
-            (task.status === 'pending' || task.status === 'in_progress') &&
-            (!task.dueDate || new Date(task.dueDate).getTime() >= now),
-        );
-        break;
-      case 'completed':
-        filtered = tasks.filter((task) => task.status === 'completed');
-        break;
-      default:
-        filtered = tasks;
-    }
-
-    return filtered.sort((a, b) => {
-      // Completed at bottom for 'all' tab
-      if (activeFilter === 'all') {
-        const aCompleted = a.status === 'completed';
-        const bCompleted = b.status === 'completed';
-        if (aCompleted && !bCompleted) return 1;
-        if (!aCompleted && bCompleted) return -1;
-      }
-
-      // Overdue first
-      const aOverdue = a.dueDate ? new Date(a.dueDate).getTime() < now : false;
-      const bOverdue = b.dueDate ? new Date(b.dueDate).getTime() < now : false;
-      if (aOverdue && !bOverdue) return -1;
-      if (!aOverdue && bOverdue) return 1;
-
-      // Then by date
-      if (a.dueDate && b.dueDate) {
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-      }
-      if (a.dueDate && !b.dueDate) return -1;
-      if (!a.dueDate && b.dueDate) return 1;
-
-      // Then by priority
-      return (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99);
-    });
-  }, [tasks, activeFilter]);
+  // The same due context as the rows, so a row that reads overdue is filed under Overdue.
+  const filteredTasks = useMemo(
+    () => filterAndSortTasks(tasks, activeFilter, { odometer, today, unit: mileageUnit }),
+    [tasks, activeFilter, odometer, today, mileageUnit],
+  );
+  // On "All" the sort already put completed work last, so splitting keeps the order.
+  const openTasks = filteredTasks.filter((task) => task.status !== MaintenanceTaskStatus.Completed);
+  const doneTasks = filteredTasks.filter((task) => task.status === MaintenanceTaskStatus.Completed);
+  const showSectionTitles = activeFilter === TASK_FILTER.ALL;
 
   const handleToggleExpand = useCallback(
     (taskId: string) => setExpandedId((prev) => (prev === taskId ? null : taskId)),
     [],
   );
 
-  const handleComplete = (taskId: string) => {
-    router.push({
-      pathname: '/(tabs)/(garage)/complete-task',
-      params: { taskId, motorcycleId, bikeName: bikeName ?? '' },
-    });
+  const handleComplete = useCallback(
+    (taskId: string) => {
+      router.push({
+        pathname: '/(tabs)/(garage)/complete-task',
+        params: { taskId, motorcycleId, bikeName: bikeName ?? '' },
+      });
+    },
+    [router, motorcycleId, bikeName],
+  );
+
+  const handleEdit = useCallback(
+    (taskId: string) => {
+      router.push({
+        pathname: '/(tabs)/(garage)/edit-maintenance-task',
+        params: { taskId, motorcycleId, bikeName: bikeName ?? '' },
+      });
+    },
+    [router, motorcycleId, bikeName],
+  );
+
+  const { mutate: deleteTask } = deleteMutation;
+  const handleDelete = useCallback(
+    (taskId: string, taskTitle: string) => {
+      Alert.alert(
+        t('maintenance.deleteTask', { defaultValue: 'Delete Task' }),
+        t('maintenance.confirmDeleteTask', {
+          defaultValue: `Delete "${taskTitle}"?`,
+          title: taskTitle,
+        }),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('common.delete'),
+            style: 'destructive',
+            onPress: () => {
+              if (deletePendingRef.current) return;
+              deletePendingRef.current = true;
+              deleteTask(taskId);
+            },
+          },
+        ],
+      );
+    },
+    [deleteTask, t],
+  );
+
+  const handleFilterChange = (index: number) => {
+    const next = TASK_FILTERS[index];
+    if (!next || next === activeFilter) return;
+    triggerImpact();
+    setActiveFilter(next);
   };
 
-  const handleEdit = (taskId: string) => {
-    router.push({
-      pathname: '/(tabs)/(garage)/edit-maintenance-task',
-      params: { taskId, motorcycleId, bikeName: bikeName ?? '' },
-    });
-  };
+  const openSection =
+    openTasks.length > 0 ? (
+      <View style={{ gap: space.xs }}>
+        {showSectionTitles ? (
+          <SectionHeader label={t('maintenance.activeTasks')} count={openTasks.length} />
+        ) : null}
+        <HubCard style={{ overflow: 'hidden' }}>
+          {openTasks.map((task, index) => (
+            <RowMotion key={task.id} index={index}>
+              <ServiceTaskRow
+                item={{ task, due: getTaskDue(task, { odometer, today, unit: mileageUnit }) }}
+                unit={mileageUnit}
+                make={make}
+                expanded={expandedId === task.id}
+                divider={index < openTasks.length - 1}
+                onToggle={handleToggleExpand}
+                onComplete={handleComplete}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                motorcycleId={motorcycleId}
+              />
+            </RowMotion>
+          ))}
+        </HubCard>
+      </View>
+    ) : null;
 
-  const handleDelete = (taskId: string, taskTitle: string) => {
-    Alert.alert(
-      t('maintenance.deleteTask', { defaultValue: 'Delete Task' }),
-      t('maintenance.confirmDeleteTask', {
-        defaultValue: `Delete "${taskTitle}"?`,
-        title: taskTitle,
-      }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: () => deleteMutation.mutate(taskId),
-        },
-      ],
-    );
-  };
-
-  const filters: { key: FilterTab; label: string }[] = [
-    { key: 'all', label: t('common.all', { defaultValue: 'All' }) },
-    { key: 'overdue', label: t('maintenance.overdue', { defaultValue: 'Overdue' }) },
-    { key: 'upcoming', label: t('bikeHub.upcomingTasks', { defaultValue: 'Upcoming' }) },
-    { key: 'completed', label: t('maintenance.completed', { defaultValue: 'Completed' }) },
-  ];
-
-  const emptyMessages: Record<FilterTab, { title: string; subtitle: string }> = {
-    all: {
-      title: t('maintenance.noTasks', { defaultValue: 'No maintenance tasks yet' }),
-      subtitle: t('maintenance.noTasksHint', {
-        defaultValue: 'Add tasks to track oil changes, tire wear, and more.',
-      }),
-    },
-    overdue: {
-      title: t('maintenance.noOverdue', { defaultValue: 'No overdue tasks' }),
-      subtitle: t('maintenance.noOverdueHint', { defaultValue: "You're all caught up." }),
-    },
-    upcoming: {
-      title: t('maintenance.noUpcoming', { defaultValue: 'No upcoming tasks' }),
-      subtitle: t('maintenance.noUpcomingHint', {
-        defaultValue: 'Nothing scheduled in the next 30 days.',
-      }),
-    },
-    completed: {
-      title: t('maintenance.noCompleted', { defaultValue: 'No completed tasks yet' }),
-      subtitle: t('maintenance.noCompletedHint', {
-        defaultValue: 'Completed tasks will appear here.',
-      }),
-    },
-  };
+  const doneSection =
+    doneTasks.length > 0 ? (
+      <View style={{ gap: space.xs }}>
+        {showSectionTitles ? (
+          <SectionHeader label={t('maintenance.completed')} count={doneTasks.length} />
+        ) : null}
+        <HubCard style={{ overflow: 'hidden' }}>
+          {doneTasks.map((task, index) => (
+            <RowMotion key={task.id} index={openTasks.length + index}>
+              <HistoryTaskRow
+                task={task}
+                unit={mileageUnit}
+                expanded={expandedId === task.id}
+                divider={index < doneTasks.length - 1}
+                onToggle={handleToggleExpand}
+                onDelete={handleDelete}
+                motorcycleId={motorcycleId}
+              />
+            </RowMotion>
+          ))}
+        </HubCard>
+      </View>
+    ) : null;
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}>
-      {/* Filter tabs */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 8 }}
-        >
-          {filters.map((filter) => {
-            const isSelected = activeFilter === filter.key;
-            return (
-              <Pressable
-                key={filter.key}
-                onPress={() => {
-                  triggerImpact();
-                  setActiveFilter(filter.key);
-                }}
-                style={{
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 20,
-                  borderCurve: 'continuous',
-                  backgroundColor: isSelected
-                    ? palette.primary500
-                    : isDark
-                      ? palette.neutral800
-                      : palette.neutral100,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: isSelected
-                      ? palette.white
-                      : isDark
-                        ? palette.neutral300
-                        : palette.neutral600,
-                  }}
-                >
-                  {filter.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+    <View style={{ flex: 1, backgroundColor: hub.ground }}>
+      <View
+        style={[
+          readableWidth,
+          { paddingHorizontal: GUTTER, paddingTop: space.sm, paddingBottom: space.xs },
+        ]}
+      >
+        <ThemedSegmentedControl
+          testID="bike-tasks-filter"
+          values={TASK_FILTERS.map((filter) => t(FILTER_LABEL_KEY[filter]))}
+          selectedIndex={TASK_FILTERS.indexOf(activeFilter)}
+          onChange={handleFilterChange}
+        />
       </View>
 
-      {/* Task list */}
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{
-          padding: 16,
-          paddingBottom: insets.bottom + 20,
-        }}
+        contentContainerStyle={[
+          readableWidth,
+          {
+            paddingHorizontal: GUTTER,
+            paddingTop: space.xs,
+            paddingBottom: tabBarClearance + space.xl,
+            gap: space.xl,
+          },
+        ]}
         refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
-            tintColor={palette.primary500}
-          />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={hub.copper} />
         }
         showsVerticalScrollIndicator={false}
       >
         {filteredTasks.length === 0 ? (
-          <Animated.View
-            entering={FadeIn.duration(300)}
-            style={{
-              alignItems: 'center',
-              paddingVertical: 60,
-            }}
-          >
-            <View
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 16,
-                borderCurve: 'continuous',
-                backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Wrench size={28} color={palette.neutral400} strokeWidth={1.5} />
-            </View>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '700',
-                color: isDark ? palette.neutral200 : palette.neutral800,
-                marginTop: 16,
-              }}
-            >
-              {emptyMessages[activeFilter].title}
-            </Text>
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: '500',
-                color: palette.neutral500,
-                marginTop: 4,
-                textAlign: 'center',
-                maxWidth: 260,
-              }}
-            >
-              {emptyMessages[activeFilter].subtitle}
-            </Text>
-          </Animated.View>
+          <EmptyState filter={activeFilter} />
         ) : (
-          filteredTasks.map((task, index) => (
-            <SwipeableTaskCard
-              key={task.id}
-              task={task}
-              index={index}
-              isDark={isDark}
-              isExpanded={expandedId === task.id}
-              motorcycleId={motorcycleId}
-              mileageUnit={mileageUnit}
-              onToggleExpand={handleToggleExpand}
-              onComplete={handleComplete}
-              onDelete={handleDelete}
-              onEdit={handleEdit}
-            />
-          ))
+          <>
+            {openSection}
+            {doneSection}
+          </>
         )}
       </ScrollView>
     </View>

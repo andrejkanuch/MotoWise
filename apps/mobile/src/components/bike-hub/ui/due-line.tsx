@@ -11,7 +11,7 @@ import {
 } from '../../../lib/bike-hub/constants';
 import { formatOdometer } from '../../../lib/bike-hub/format';
 import type { DueLimit, TaskDue } from '../../../lib/bike-hub/task-due';
-import { DUE_TONE_COLOR, HUB_FONT, HUB_ROW_SUB_LINES, hub } from './tokens';
+import { DUE_TONE_COLOR, HUB_ROW_SUB_LINES, SYSTEM_WEIGHT, useHubTheme } from './tokens';
 
 interface CopyContext {
   t: TFunction;
@@ -152,14 +152,15 @@ const SEPARATOR = ' · ';
 
 /** "201 days late · 3,933 km to target" — leading part in the tone colour, the rest muted. */
 export function DueLine({ due, unit, scheduleName, style }: DueLineProps) {
+  const hub = useHubTheme();
   const { t, i18n } = useTranslation();
   const copy = describeDue(due, { t, unit, language: i18n.language, scheduleName });
   return (
     <Text
       numberOfLines={HUB_ROW_SUB_LINES}
-      style={[{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 16 }, style]}
+      style={[{ ...SYSTEM_WEIGHT.regular, fontSize: 13, lineHeight: 16 }, style]}
     >
-      <Text style={{ color: DUE_TONE_COLOR[due.tone] }}>{copy.primary}</Text>
+      <Text style={{ color: hub[DUE_TONE_COLOR[due.tone]] }}>{copy.primary}</Text>
       {copy.secondary ? (
         <Text style={{ color: copy.secondaryLate ? hub.late : hub.muted }}>
           {SEPARATOR}

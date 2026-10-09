@@ -15,18 +15,18 @@ import {
 } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
-import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { TextInput } from 'react-native';
+import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
+import { OnboardingOptionList } from '../../components/onboarding/onboarding-option-list';
+import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { OB_SCREEN } from '../../config/onboarding';
-import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
+import { useOnboardingNext } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, setUserPropertiesOnce } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { setSelfReportedSource } from '../../lib/subscription';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { radius, space, type } from '../../theme/type';
 import { triggerNotification } from '../../utils/haptics';
 
 /**
@@ -63,9 +63,8 @@ const OTHER_TEXT_MAX_LENGTH = 80;
 const ADVANCE_DELAY_MS = 600;
 
 export default function HeardAboutScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
-  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.HEARD_ABOUT);
   const goNext = useOnboardingNext(OB_SCREEN.HEARD_ABOUT);
   const setHeardFrom = useOnboardingStore((s) => s.setHeardFrom);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
@@ -136,161 +135,51 @@ export default function HeardAboutScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
-
-      <ScrollView
-        contentContainerStyle={{
-          paddingHorizontal: 24,
-          paddingTop: 72,
-          paddingBottom: insets.bottom + 32,
-        }}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Animated.View entering={FadeInDown.duration(300)}>
-          <Text
-            accessibilityRole="header"
+    <OnboardingShell
+      screen={OB_SCREEN.HEARD_ABOUT}
+      title={t('onboarding.heardAboutHeadline')}
+      subtitle={t('onboarding.heardAboutSubtitle')}
+      primary={
+        otherOpen
+          ? { label: t('onboarding.heardAboutOtherContinue'), onPress: handleOtherContinue }
+          : undefined
+      }
+      secondary={{ label: t('onboarding.heardAboutSkip'), onPress: handleSkip }}
+    >
+      <OnboardingOptionList
+        options={HEARD_ABOUT_OPTIONS.map((option) => ({
+          key: option.id,
+          label: t(`onboarding.${option.labelKey}`),
+          icon: option.icon,
+        }))}
+        isSelected={(id) => pending === id}
+        onSelect={handleSelect}
+      />
+      {otherOpen ? (
+        <Animated.View entering={FadeInUp.duration(240)} style={{ marginTop: space.sm }}>
+          <TextInput
+            value={otherText}
+            onChangeText={setOtherText}
+            placeholder={t('onboarding.heardAboutOtherPlaceholder')}
+            placeholderTextColor={oc.textMuted}
+            maxLength={OTHER_TEXT_MAX_LENGTH}
+            autoFocus
+            returnKeyType="done"
+            onSubmitEditing={handleOtherContinue}
+            accessibilityLabel={t('onboarding.heardAboutOtherPlaceholder')}
             style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 34,
-              lineHeight: 36,
-              color: ONBOARDING_COLORS.textPrimary,
-              letterSpacing: -0.7,
+              ...type.body,
+              minHeight: 52,
+              backgroundColor: oc.surface,
+              borderRadius: radius.control,
+              borderCurve: 'continuous',
+              paddingHorizontal: space.md,
+              paddingVertical: space.sm,
+              color: oc.textPrimary,
             }}
-          >
-            {t('onboarding.heardAboutTitle')}{' '}
-            <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
-              {t('onboarding.heardAboutTitleItalic')}
-            </Text>
-          </Text>
-          <Text
-            style={{
-              fontSize: 14,
-              color: ONBOARDING_COLORS.textSecondary,
-              lineHeight: 20,
-              marginTop: 10,
-              maxWidth: 320,
-            }}
-          >
-            {t('onboarding.heardAboutSubtitle')}
-          </Text>
+          />
         </Animated.View>
-
-        <View style={{ gap: 10, marginTop: 24 }}>
-          {HEARD_ABOUT_OPTIONS.map((option, index) => {
-            const Icon = option.icon;
-            const active = pending === option.id;
-            const dimmed = pending !== null && !active;
-            const showOtherInput = option.id === OTHER_OPTION && otherOpen;
-            return (
-              <Animated.View
-                key={option.id}
-                entering={FadeInUp.delay(index * 50).duration(300)}
-                style={{ opacity: dimmed ? 0.4 : 1 }}
-              >
-                <Pressable
-                  onPress={() => handleSelect(option.id)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  accessibilityLabel={t(`onboarding.${option.labelKey}`)}
-                  accessibilityHint={t('onboarding.heardAboutHint')}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 14,
-                    padding: 14,
-                    borderRadius: 16,
-                    borderCurve: 'continuous',
-                    backgroundColor: active ? ONBOARDING_COLORS.accentBg : ONBOARDING_COLORS.cardBg,
-                    borderWidth: active ? 2 : 1,
-                    borderColor: active
-                      ? ONBOARDING_COLORS.warm
-                      : ONBOARDING_COLORS.cardBorderDefault,
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 13,
-                      borderCurve: 'continuous',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: active ? ONBOARDING_COLORS.warm : ONBOARDING_COLORS.surface2,
-                    }}
-                  >
-                    <Icon
-                      size={21}
-                      color={active ? ONBOARDING_COLORS.textOnAccent : ONBOARDING_COLORS.warm2}
-                    />
-                  </View>
-                  <Text
-                    style={{
-                      flex: 1,
-                      fontSize: 15.5,
-                      fontWeight: '600',
-                      color: ONBOARDING_COLORS.textPrimary,
-                    }}
-                  >
-                    {t(`onboarding.${option.labelKey}`)}
-                  </Text>
-                </Pressable>
-                {showOtherInput ? (
-                  <Animated.View
-                    entering={FadeInUp.duration(250)}
-                    style={{ gap: 10, marginTop: 10 }}
-                  >
-                    <TextInput
-                      value={otherText}
-                      onChangeText={setOtherText}
-                      placeholder={t('onboarding.heardAboutOtherPlaceholder')}
-                      placeholderTextColor={ONBOARDING_COLORS.textMuted}
-                      maxLength={OTHER_TEXT_MAX_LENGTH}
-                      autoFocus
-                      returnKeyType="done"
-                      onSubmitEditing={handleOtherContinue}
-                      accessibilityLabel={t('onboarding.heardAboutOtherPlaceholder')}
-                      style={{
-                        backgroundColor: ONBOARDING_COLORS.cardBg,
-                        borderWidth: 1,
-                        borderColor: ONBOARDING_COLORS.cardBorderDefault,
-                        borderRadius: 14,
-                        borderCurve: 'continuous',
-                        paddingHorizontal: 16,
-                        paddingVertical: 15,
-                        fontSize: 15,
-                        color: ONBOARDING_COLORS.textPrimary,
-                      }}
-                    />
-                    <OnboardingContinueButton
-                      label={t('onboarding.heardAboutOtherContinue')}
-                      onPress={handleOtherContinue}
-                      showIcon={false}
-                    />
-                  </Animated.View>
-                ) : null}
-              </Animated.View>
-            );
-          })}
-        </View>
-
-        <Pressable
-          onPress={handleSkip}
-          accessibilityRole="button"
-          style={{ paddingVertical: 18, alignItems: 'center', marginTop: 8 }}
-        >
-          <Text
-            style={{
-              fontSize: 15,
-              fontWeight: '600',
-              color: ONBOARDING_COLORS.textSecondary,
-            }}
-          >
-            {t('onboarding.heardAboutSkip')}
-          </Text>
-        </Pressable>
-      </ScrollView>
-    </View>
+      ) : null}
+    </OnboardingShell>
   );
 }

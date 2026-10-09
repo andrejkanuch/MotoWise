@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
@@ -18,6 +17,7 @@ import {
   PREDEFINED_TIMING,
   useDiagnosticFlowStore,
 } from '../../stores/diagnostic-flow.store';
+import { type } from '../../theme/type';
 import { NativeToggle } from '../ui/native-toggle';
 import { useDiagnosticColors } from './diagnostic-colors';
 
@@ -72,8 +72,6 @@ function ReviewCard({
               fontSize: 14,
               fontWeight: '600',
               color: colors.textMuted,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5,
             }}
           >
             {title}
@@ -149,6 +147,9 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
       ALL_PREDEFINED.has(v) ? (t(`diagnoseV2.option.${v}` as any) as string) : `"${v}"`,
     );
 
+  const submitDisabled = store.isSubmitting || !store.hasProblemInput;
+  const submitInk = submitDisabled ? colors.textMuted : colors.onAccent;
+
   return (
     <View style={{ flex: 1 }}>
       <ScrollView
@@ -160,28 +161,10 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
       >
         {/* Step header */}
         <View style={{ paddingHorizontal: 24, paddingTop: 8, marginBottom: 24 }}>
-          <Text
-            style={{
-              fontSize: 12,
-              fontWeight: '600',
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-              color: colors.textMuted,
-            }}
-          >
-            {t('diagnoseV2.stepOf', { current: 4, total: 4 })}
-          </Text>
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: '600',
-              color: colors.textPrimary,
-              marginTop: 4,
-            }}
-          >
+          <Text style={[type.sheetTitle, { color: colors.textPrimary, marginTop: 4 }]}>
             {t('diagnoseV2.review')}
           </Text>
-          <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
+          <Text style={[type.subhead, { color: colors.textMuted, marginTop: 4 }]}>
             {t('diagnoseV2.reviewHint')}
           </Text>
         </View>
@@ -234,7 +217,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
                   <View
                     key={tag}
                     style={{
-                      backgroundColor: colors.accentBg,
+                      backgroundColor: colors.cardBgSelected,
                       borderRadius: 8,
                       paddingHorizontal: 12,
                       paddingVertical: 4,
@@ -243,9 +226,9 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
                   >
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: '500',
-                        color: colors.accent,
+                        color: colors.textSecondary,
                       }}
                     >
                       {tag}
@@ -437,7 +420,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
           <Text
             style={{
               fontSize: 14,
-              color: palette.danger500,
+              color: colors.danger,
               textAlign: 'center',
               marginBottom: 8,
             }}
@@ -453,31 +436,27 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
             flexDirection: 'row',
             justifyContent: 'center',
             gap: 8,
-            backgroundColor:
-              store.isSubmitting || !store.hasProblemInput ? colors.submittingBg : colors.accent,
+            backgroundColor: submitDisabled ? colors.submittingBg : colors.accent,
             borderCurve: 'continuous',
           }}
           onPress={onSubmit}
-          disabled={store.isSubmitting || !store.hasProblemInput}
-          accessibilityState={{ disabled: store.isSubmitting || !store.hasProblemInput }}
+          disabled={submitDisabled}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: submitDisabled, busy: store.isSubmitting }}
         >
           {store.isSubmitting ? (
             <>
-              <ActivityIndicator size="small" color={palette.white} />
-              <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
+              <ActivityIndicator size="small" color={submitInk} />
+              <Text style={[type.bodyStrong, { color: submitInk }]}>
                 {t('diagnoseV2.analyzing')}
               </Text>
             </>
           ) : store.submitError ? (
-            <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
-              {t('diagnoseV2.tryAgain')}
-            </Text>
+            <Text style={[type.bodyStrong, { color: submitInk }]}>{t('diagnoseV2.tryAgain')}</Text>
           ) : (
             <>
-              <Sparkles size={18} color={palette.white} strokeWidth={2} />
-              <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
-                {t('diagnoseV2.analyze')}
-              </Text>
+              <Sparkles size={18} color={submitInk} strokeWidth={2} />
+              <Text style={[type.bodyStrong, { color: submitInk }]}>{t('diagnoseV2.analyze')}</Text>
             </>
           )}
         </Pressable>

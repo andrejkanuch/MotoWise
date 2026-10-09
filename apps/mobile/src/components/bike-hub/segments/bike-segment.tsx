@@ -15,7 +15,7 @@ import type { HubBike } from '../shell/use-bike-hub-data';
 import { HubCard } from '../ui/hub-card';
 import { RowChevron } from '../ui/row-chevron';
 import { SectionHeader } from '../ui/section-header';
-import { HUB_FONT, HUB_HEIGHT, HUB_RADIUS, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
+import { HUB_HEIGHT, HUB_RADIUS, HUB_TOUCH_TARGET, SYSTEM_WEIGHT, useHubTheme } from '../ui/tokens';
 
 interface BikeSegmentProps {
   bike: HubBike;
@@ -33,6 +33,7 @@ interface ActionRow {
 }
 
 function ActionListRow({ row, isLast }: { row: ActionRow; isLast: boolean }) {
+  const hub = useHubTheme();
   const Icon = row.icon;
   return (
     <Pressable
@@ -75,7 +76,7 @@ function ActionListRow({ row, isLast }: { row: ActionRow; isLast: boolean }) {
       <Text
         style={{
           flex: 1,
-          fontFamily: HUB_FONT.sansSemiBold,
+          ...SYSTEM_WEIGHT.semibold,
           fontSize: 15,
           lineHeight: 18,
           color: hub.text,
@@ -96,6 +97,7 @@ function ActionListRow({ row, isLast }: { row: ActionRow; isLast: boolean }) {
  * pill. R5 replaces the list with the Bike / BikeDetails screens.
  */
 export function BikeSegment({ bike, actions, onChangePhoto, isUploadingPhoto }: BikeSegmentProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
 
   const rows: ActionRow[] = [
@@ -162,7 +164,7 @@ export function BikeSegment({ bike, actions, onChangePhoto, isUploadingPhoto }: 
             opacity: pressed ? 0.6 : 1,
           })}
         >
-          <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.late }}>
+          <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 14, color: hub.late }}>
             {t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' })}
           </Text>
         </Pressable>

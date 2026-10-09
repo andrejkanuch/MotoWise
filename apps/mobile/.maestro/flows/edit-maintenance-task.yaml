@@ -85,20 +85,20 @@ env:
     optional: true
 - scrollUntilVisible:
     element:
-      text: "${TASK_TITLE}(,.*)?"
+      text: "${TASK_TITLE}([.,].*)?"
     direction: DOWN
-# The card's Edit/Done/Delete row only renders once the card is expanded
-# (swipeable-task-card.tsx), so tap the title first.
-- tapOn: "${TASK_TITLE}(,.*)?"
+# The row's Edit/Delete actions only render once it is expanded
+# (bike-hub/service/task-row.tsx, shared by the hub and All Tasks), so tap the title first.
+- tapOn: "${TASK_TITLE}([.,].*)?"
 - tapOn:
     text: "Edit"
     below:
-      text: "${TASK_TITLE}(,.*)?"
+      text: "${TASK_TITLE}([.,].*)?"
 
 # 5. Verify prefill, then change the title and priority.
-- assertVisible: "${TASK_TITLE}(,.*)?" # title prefilled from the cached task
+- assertVisible: "${TASK_TITLE}([.,].*)?" # title prefilled from the cached task
 - tapOn:
-    text: "${TASK_TITLE}(,.*)?" # focus the title field
+    text: "${TASK_TITLE}([.,].*)?" # focus the title field
 - eraseText:
     charactersToErase: 40
 - inputText: ${TASK_TITLE_EDITED}
@@ -118,7 +118,7 @@ env:
 - extendedWaitUntil:
     visible: ${TASK_TITLE_EDITED}
     timeout: 30000
-- assertVisible: "${TASK_TITLE_EDITED}(,.*)?"
+- assertVisible: "${TASK_TITLE_EDITED}([.,].*)?"
 - assertVisible: ".*Critical.*" # priority badge on the edited card (was High -> Critical)
 - takeScreenshot: edit-maintenance-task-done
 
@@ -129,13 +129,13 @@ env:
       notVisible:
         text: "Delete"
         below:
-          text: "${TASK_TITLE_EDITED}(,.*)?"
+          text: "${TASK_TITLE_EDITED}([.,].*)?"
     commands:
-      - tapOn: "${TASK_TITLE_EDITED}(,.*)?"
+      - tapOn: "${TASK_TITLE_EDITED}([.,].*)?"
 - tapOn:
     text: "Delete"
     below:
-      text: "${TASK_TITLE_EDITED}(,.*)?"
+      text: "${TASK_TITLE_EDITED}([.,].*)?"
 # Wait for the confirm alert to finish presenting — a tap during its entrance
 # animation is dropped on iOS 27. The expanded card's own "Delete" action sits
 # under the alert, right of its Cancel, so "Delete" rightOf "Cancel" matches the
@@ -160,5 +160,5 @@ env:
             text: "Cancel"
 # The card animates out after the confirm — wait for it rather than assert at once.
 - extendedWaitUntil:
-    notVisible: "${TASK_TITLE_EDITED}(,.*)?"
+    notVisible: "${TASK_TITLE_EDITED}([.,].*)?"
     timeout: 15000

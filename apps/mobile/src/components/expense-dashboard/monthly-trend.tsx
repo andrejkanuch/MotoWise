@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import { EXPENSE_CATEGORIES } from '@motovault/types';
 import { memo, useMemo } from 'react';
 import { Text, View } from 'react-native';
@@ -34,7 +33,7 @@ const MONTH_LABELS = [
 ];
 
 export const MonthlyTrend = memo(function MonthlyTrend({ buckets }: MonthlyTrendProps) {
-  const { t: theme, isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
 
   const { stackData, maxValue, allZero, presentCategories } = useMemo(() => {
     const isEmpty = buckets.length === 0 || buckets.every((b) => b.total === 0);
@@ -93,7 +92,7 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets }: MonthlyTrend
         rulesType="dashed"
         dashWidth={4}
         dashGap={4}
-        rulesColor={isDark ? palette.neutral700 : palette.neutral200}
+        rulesColor={theme.line}
         yAxisColor="transparent"
         xAxisColor="transparent"
         xAxisLabelTextStyle={{

@@ -7,6 +7,7 @@ import {
   type RideStatus,
 } from './constants';
 import { getDocumentSignals, type HubCategoryInput, type HubDocumentInput } from './documents';
+import type { OpenRecallInput } from './recall-acknowledgement';
 import { countOpenRecalls } from './recall-severity';
 import { getTaskDue, isActiveTask } from './task-due';
 
@@ -30,7 +31,7 @@ export interface RideStatusInput {
   documents: readonly HubDocumentInput[];
   categories: readonly HubCategoryInput[];
   /** Recalls returned for the bike; `null` while unknown (loading / failed). */
-  recalls: readonly unknown[] | null;
+  recalls: readonly OpenRecallInput[] | null;
   /** `bike.recallCount` — used when `recalls` is `null`. */
   recallCount?: number | null;
   odometer: number | null | undefined;

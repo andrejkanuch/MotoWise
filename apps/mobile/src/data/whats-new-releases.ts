@@ -19,7 +19,9 @@ import {
   ScanLine,
   Share2,
   Sparkles,
+  SunMoon,
   TrendingUp,
+  UserCog,
   Users,
   Wrench,
 } from 'lucide-react-native';
@@ -70,6 +72,29 @@ export interface WhatsNewRelease {
  * the current app version is shown.
  */
 export const WHATS_NEW_RELEASES = [
+  {
+    version: '3.25.0',
+    slides: [
+      {
+        icon: Gauge,
+        iconColor: palette.signature400,
+        titleKey: 'whatsNew.v3250.plateTitle' as const,
+        descriptionKey: 'whatsNew.v3250.plateDesc' as const,
+      },
+      {
+        icon: SunMoon,
+        iconColor: palette.primary400,
+        titleKey: 'whatsNew.v3250.themeTitle' as const,
+        descriptionKey: 'whatsNew.v3250.themeDesc' as const,
+      },
+      {
+        icon: UserCog,
+        iconColor: palette.accent400,
+        titleKey: 'whatsNew.v3250.profileTitle' as const,
+        descriptionKey: 'whatsNew.v3250.profileDesc' as const,
+      },
+    ],
+  },
   {
     version: '3.22.0',
     slides: [

@@ -1,6 +1,7 @@
 query MotorcycleRecalls($motorcycleId: String!) {
   motorcycleRecalls(motorcycleId: $motorcycleId) {
     count
+    acknowledgedCount
     checkedAt
     vinUsed
     recalls {
@@ -10,6 +11,8 @@ query MotorcycleRecalls($motorcycleId: String!) {
       summary
       consequence
       remedy
+      acknowledged
+      acknowledgedAt
     }
   }
 }

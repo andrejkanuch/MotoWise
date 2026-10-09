@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import {
   MyMotorcyclesDocument,
   MyRidesDocument,
@@ -8,7 +7,7 @@ import {
 } from '@motovault/graphql';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { type Href, useFocusEffect, useRouter } from 'expo-router';
-import { ArrowLeft, Route } from 'lucide-react-native';
+import { Flame, Route } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -24,12 +23,16 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Path, Stop, LinearGradient as SvgGradient } from 'react-native-svg';
 import { RideCard } from '../../../components/ride/ride-card';
+import { ESettingsGroup, ESettingsRow } from '../../../components/ui/editorial';
+import { ThemedSegmentedControl } from '../../../components/ui/themed-segmented-control';
+import { PROFILE_ROUTE } from '../../../config/routes';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { triggerImpact } from '../../../utils/haptics';
+import { GUTTER, radius, readableWidth, SYSTEM_WEIGHT, space, type } from '../../../theme/type';
+import { triggerImpact, triggerSelection } from '../../../utils/haptics';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
@@ -40,6 +43,9 @@ import {
 } from '../../../utils/ride-formatters';
 
 const PAGE_SIZE = 20;
+
+/** The period distance is the screen's one big figure: the figure face, scaled up. */
+const HERO_FIGURE = { fontSize: 56, lineHeight: 58 } as const;
 
 type Period = 'week' | 'month' | 'year' | 'all';
 const PERIOD_KEYS: Period[] = ['week', 'month', 'year', 'all'];
@@ -461,171 +467,134 @@ export default function RidesScreen() {
     return parts;
   }, [stats, system, t]);
 
+  const handleSeeAll = useCallback(() => {
+    triggerImpact();
+    setPeriod('all');
+    trackEvent(AnalyticsEvent.RIDES_HISTORY_FILTERED, {
+      filter_type: 'period',
+      value: 'all',
+      total_rides: stats.totalRides,
+    });
+  }, [stats.totalRides]);
+
+  const handlePeriodChange = useCallback(
+    (key: Period) => {
+      triggerSelection();
+      setPeriod(key);
+      trackEvent(AnalyticsEvent.RIDES_HISTORY_FILTERED, {
+        filter_type: 'period',
+        value: key,
+        total_rides: stats.totalRides,
+      });
+    },
+    [stats.totalRides],
+  );
+
   const renderHeader = useCallback(
     () => (
-      <Animated.View entering={FadeIn.duration(300)} style={{ gap: 12, marginBottom: 16 }}>
-        {/* Hero summary card */}
+      <Animated.View
+        entering={FadeIn.duration(300)}
+        style={{ gap: space.sm, marginBottom: space.md }}
+      >
+        {/* Period switcher */}
+        <ThemedSegmentedControl
+          values={PERIOD_KEYS.map((key) => periodLabelsMap[key])}
+          selectedIndex={PERIOD_KEYS.indexOf(period)}
+          onChange={(index) => {
+            const next = PERIOD_KEYS[index];
+            if (next) handlePeriodChange(next);
+          }}
+        />
+
+        {/* Period summary */}
         <View
           style={{
             backgroundColor: theme.surface,
-            borderRadius: 22,
+            borderRadius: radius.card,
             borderCurve: 'continuous',
-            borderWidth: 1,
-            borderColor: theme.line,
-            overflow: 'hidden',
-            position: 'relative',
+            padding: space.md,
+            gap: space.xs,
           }}
         >
-          {/* Copper radial gradient accent (decorative) */}
           <View
             style={{
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              bottom: 0,
-              width: '60%',
-              backgroundColor: tint(theme.warm, 0.1),
-              borderTopRightRadius: 22,
-              borderBottomRightRadius: 22,
-              opacity: 0.6,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: space.xs,
             }}
-            pointerEvents="none"
-          />
-
-          <View style={{ padding: 16, paddingHorizontal: 18, paddingBottom: 14 }}>
-            {/* Meta row */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                position: 'relative',
-                zIndex: 1,
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: 'GeistMono',
-                  fontSize: 9.5,
-                  fontWeight: '500',
-                  letterSpacing: 0.2 * 9.5,
-                  textTransform: 'uppercase',
-                  color: theme.ink3,
-                }}
-              >
-                {periodMetaLabel}
+          >
+            <Text style={[type.label, { color: theme.ink3 }]}>{periodMetaLabel}</Text>
+            {trendLabel ? (
+              <Text style={[type.label, { color: theme.ink2, fontVariant: ['tabular-nums'] }]}>
+                {trendLabel}
               </Text>
-              {trendLabel && (
-                <Text
-                  style={{
-                    fontFamily: 'GeistMono',
-                    fontSize: 9.5,
-                    fontWeight: '500',
-                    letterSpacing: 0.08 * 9.5,
-                    color: theme.warm,
-                  }}
-                >
-                  {trendLabel}
+            ) : null}
+          </View>
+
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.xxs }}>
+            <Text style={[type.figure, HERO_FIGURE, { color: theme.ink }]}>
+              {formatDistanceValue(stats.periodDistance, system)}
+            </Text>
+            <Text style={[type.figureSmall, { color: theme.ink3 }]}>
+              {distanceUnitLabel(system)}
+            </Text>
+          </View>
+
+          <View style={{ marginHorizontal: -2 }}>
+            <Sparkline data={stats.dailyDistances} color={theme.ink2} height={48} />
+          </View>
+
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              columnGap: space.xs,
+            }}
+          >
+            {heroSubText.map((part, i) => (
+              <React.Fragment key={part}>
+                {i > 0 && (
+                  <View
+                    style={{
+                      width: 3,
+                      height: 3,
+                      borderRadius: radius.pill,
+                      backgroundColor: theme.ink4,
+                    }}
+                  />
+                )}
+                <Text style={[type.caption, { color: theme.ink2 }]}>{part}</Text>
+              </React.Fragment>
+            ))}
+            <View style={{ flex: 1 }} />
+            {/* "See all" widens the summary to every ride (the All period). */}
+            {period !== 'all' ? (
+              <Pressable
+                onPress={handleSeeAll}
+                accessibilityRole="button"
+                accessibilityLabel={t('myRides.allTime')}
+                testID="rides-see-all"
+                hitSlop={{ top: 4, bottom: 4 }}
+                android_ripple={{ color: tint(theme.ink, 0.08), borderless: true }}
+                style={({ pressed }) => ({
+                  minHeight: 44,
+                  justifyContent: 'center',
+                  paddingHorizontal: space.xxs,
+                  opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.6 : 1,
+                })}
+              >
+                <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: theme.warm2 }]}>
+                  {t('myRides.seeAllRides')}
                 </Text>
-              )}
-            </View>
-
-            {/* Large distance number */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'baseline',
-                gap: 6,
-                marginTop: 6,
-                position: 'relative',
-                zIndex: 1,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 60,
-                  fontWeight: '700',
-                  color: theme.ink,
-                  fontVariant: ['tabular-nums'],
-                  letterSpacing: -0.04 * 60,
-                  lineHeight: 64,
-                }}
-              >
-                {formatDistanceValue(stats.periodDistance, system)}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: '500',
-                  color: theme.ink3,
-                  letterSpacing: -0.01 * 18,
-                  marginLeft: 2,
-                }}
-              >
-                {distanceUnitLabel(system)}
-              </Text>
-            </View>
-
-            {/* Sparkline */}
-            <View style={{ marginTop: 8, marginHorizontal: -2, position: 'relative', zIndex: 1 }}>
-              <Sparkline data={stats.dailyDistances} color={theme.warm} height={48} />
-            </View>
-
-            {/* Sub row */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 8,
-                marginTop: 6,
-                position: 'relative',
-                zIndex: 1,
-              }}
-            >
-              {heroSubText.map((part, i) => (
-                <React.Fragment key={part}>
-                  {i > 0 && (
-                    <View
-                      style={{
-                        width: 3,
-                        height: 3,
-                        borderRadius: 99,
-                        backgroundColor: theme.ink4,
-                      }}
-                    />
-                  )}
-                  <Text
-                    style={{
-                      fontSize: 12.5,
-                      fontWeight: '500',
-                      color: theme.ink2,
-                      letterSpacing: -0.005 * 12.5,
-                    }}
-                  >
-                    {part}
-                  </Text>
-                </React.Fragment>
-              ))}
-              {heroSubText.length > 0 && (
-                <>
-                  <View style={{ flex: 1 }} />
-                  <Text
-                    style={{
-                      fontSize: 12.5,
-                      fontWeight: '600',
-                      color: theme.warm,
-                    }}
-                  >
-                    {t('myRides.seeAllRides')}
-                  </Text>
-                </>
-              )}
-            </View>
+              </Pressable>
+            ) : null}
           </View>
         </View>
 
         {/* Stats trio */}
-        <View style={{ flexDirection: 'row', gap: 8 }}>
+        <View style={{ flexDirection: 'row', gap: space.xs }}>
           {[
             {
               label: t('myRides.rides'),
@@ -657,26 +626,13 @@ export default function RidesScreen() {
               style={{
                 flex: 1,
                 backgroundColor: theme.surface,
-                borderWidth: 1,
-                borderColor: theme.line,
-                borderRadius: 16,
+                borderRadius: radius.card,
                 borderCurve: 'continuous',
-                padding: 12,
-                paddingHorizontal: 14,
-                paddingBottom: 14,
+                padding: space.sm,
                 minHeight: 88,
               }}
             >
-              <Text
-                style={{
-                  fontFamily: 'GeistMono',
-                  fontSize: 9.5,
-                  fontWeight: '500',
-                  letterSpacing: 0.2 * 9.5,
-                  textTransform: 'uppercase',
-                  color: theme.ink3,
-                }}
-              >
+              <Text numberOfLines={1} style={[type.caption, { color: theme.ink3 }]}>
                 {s.label}
               </Text>
               <View
@@ -684,46 +640,24 @@ export default function RidesScreen() {
                   flexDirection: 'row',
                   alignItems: 'baseline',
                   gap: 3,
-                  marginTop: 10,
+                  marginTop: space.xs,
                 }}
               >
                 <Text
-                  style={{
-                    fontSize: 26,
-                    fontWeight: '700',
-                    color: s.value === '--' ? theme.ink3 : theme.ink,
-                    fontVariant: ['tabular-nums'],
-                    letterSpacing: -0.03 * 26,
-                    lineHeight: 26,
-                  }}
+                  numberOfLines={1}
+                  style={[type.figure, { color: s.value === '--' ? theme.ink3 : theme.ink }]}
                 >
                   {s.value}
                 </Text>
-                {s.unit && (
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: '500',
-                      color: theme.ink3,
-                      letterSpacing: -0.01 * 12,
-                      marginLeft: 1,
-                    }}
-                  >
-                    {s.unit}
-                  </Text>
-                )}
+                {s.unit ? (
+                  <Text style={[type.caption, { color: theme.ink3 }]}>{s.unit}</Text>
+                ) : null}
               </View>
               <View style={{ flex: 1 }} />
               {s.sub ? (
                 <Text
-                  style={{
-                    fontFamily: 'GeistMono',
-                    fontSize: 9.5,
-                    fontWeight: '500',
-                    letterSpacing: 0.08 * 9.5,
-                    color: theme.ink3,
-                    paddingTop: 6,
-                  }}
+                  numberOfLines={1}
+                  style={[type.caption, { color: theme.ink3, paddingTop: space.xxs }]}
                 >
                   {s.sub}
                 </Text>
@@ -732,31 +666,32 @@ export default function RidesScreen() {
           ))}
         </View>
 
+        {/* Lifetime heatmap + year recap */}
+        <ESettingsGroup>
+          <ESettingsRow
+            icon={Flame}
+            title={t('profile.roadsTitle')}
+            subtitle={t('profile.roadsSubtitle')}
+            testID="rides-heatmap-row"
+            onPress={() => router.push(PROFILE_ROUTE.HEATMAP)}
+          />
+        </ESettingsGroup>
+
         {/* Section header */}
         <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginTop: 10,
-            marginHorizontal: 2,
+            marginTop: space.xs,
           }}
         >
-          <Text
-            style={{
-              fontFamily: 'GeistMono',
-              fontSize: 10.5,
-              fontWeight: '600',
-              letterSpacing: 0.22 * 10.5,
-              textTransform: 'uppercase',
-              color: theme.ink3,
-            }}
-          >
+          <Text accessibilityRole="header" style={[type.sectionTitle, { color: theme.ink }]}>
             {t('myRides.recentRides')}
           </Text>
           <Pressable
             onPress={() => {
-              if (process.env.EXPO_OS === 'ios') triggerImpact();
+              triggerSelection();
               // Track BEFORE the state update — firing inside the setState updater
               // double-counted under StrictMode (72 events / 2 users). `sortNewest`
               // here is the pre-toggle value, so this reports the order being switched to.
@@ -768,23 +703,36 @@ export default function RidesScreen() {
               setSortNewest((prev) => !prev);
             }}
             accessibilityRole="button"
-            hitSlop={8}
+            android_ripple={{ color: tint(theme.ink, 0.08), borderless: true }}
+            style={({ pressed }) => ({
+              minHeight: 44,
+              justifyContent: 'center',
+              paddingLeft: space.xs,
+              opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.6 : 1,
+            })}
           >
-            <Text
-              style={{
-                fontSize: 12.5,
-                fontWeight: '600',
-                color: theme.warm,
-                letterSpacing: -0.01 * 12.5,
-              }}
-            >
-              {sortNewest ? `${t('myRides.newestFirst')} ↓` : `${t('myRides.oldestFirst')} ↑`}
+            <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: theme.warm2 }]}>
+              {sortNewest ? t('myRides.newestFirst') : t('myRides.oldestFirst')}
             </Text>
           </Pressable>
         </View>
       </Animated.View>
     ),
-    [stats, system, theme, periodMetaLabel, trendLabel, heroSubText, t, sortNewest],
+    [
+      stats,
+      system,
+      theme,
+      period,
+      periodLabelsMap,
+      periodMetaLabel,
+      trendLabel,
+      heroSubText,
+      t,
+      sortNewest,
+      handleSeeAll,
+      handlePeriodChange,
+      router,
+    ],
   );
 
   const renderEmpty = useCallback(() => {
@@ -793,53 +741,38 @@ export default function RidesScreen() {
       <Animated.View entering={FadeIn.duration(300)} style={{ paddingTop: 24 }}>
         <View
           style={{
-            borderRadius: 22,
+            borderRadius: radius.card,
             borderCurve: 'continuous',
             backgroundColor: theme.surface,
-            borderWidth: 1,
-            borderColor: theme.line2,
-            padding: 32,
-            paddingHorizontal: 24,
+            paddingVertical: space.xxl,
+            paddingHorizontal: space.xl,
             alignItems: 'center',
           }}
         >
-          {/* Icon box */}
           <View
             style={{
               width: 56,
               height: 56,
-              borderRadius: 16,
+              borderRadius: radius.card,
               borderCurve: 'continuous',
               backgroundColor: theme.surface2,
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: 14,
+              marginBottom: space.sm,
             }}
           >
             <Route size={24} color={theme.ink3} />
           </View>
 
           <Text
-            style={{
-              fontSize: 17,
-              fontWeight: '700',
-              letterSpacing: -0.018 * 17,
-              color: theme.ink,
-              textAlign: 'center',
-              marginBottom: 4,
-            }}
+            style={[
+              type.sectionTitle,
+              { color: theme.ink, textAlign: 'center', marginBottom: space.xxs },
+            ]}
           >
             {t('profile.ridesEmptyTitle')}
           </Text>
-          <Text
-            style={{
-              fontSize: 13,
-              color: theme.ink2,
-              textAlign: 'center',
-              lineHeight: 18,
-              maxWidth: 240,
-            }}
-          >
+          <Text style={[type.subhead, { color: theme.ink2, textAlign: 'center', maxWidth: 260 }]}>
             {t('profile.ridesEmptySubtitle')}
           </Text>
 
@@ -849,26 +782,28 @@ export default function RidesScreen() {
               if (hasBikes) {
                 router.push('/(modals)/start-ride');
               } else {
-                router.push('/(tabs)/(garage)/add-bike');
+                router.push(PROFILE_ROUTE.ADD_BIKE);
               }
             }}
             accessibilityRole="button"
             accessibilityLabel={
               hasBikes ? t('profile.ridesEmptyStartRide') : t('profile.ridesEmptyAddBike')
             }
+            android_ripple={{ color: tint(theme.onWarm, 0.2) }}
             style={({ pressed }) => ({
               backgroundColor: theme.warm,
-              borderRadius: 20,
+              borderRadius: radius.control,
               borderCurve: 'continuous',
-              height: 48,
+              overflow: 'hidden',
+              minHeight: 48,
               alignItems: 'center',
               justifyContent: 'center',
               alignSelf: 'stretch',
-              marginTop: 16,
-              transform: [{ scale: pressed ? 0.97 : 1 }],
+              marginTop: space.md,
+              opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.85 : 1,
             })}
           >
-            <Text style={{ color: palette.white, fontSize: 15, fontWeight: '700' }}>
+            <Text style={[type.bodyStrong, { color: theme.onWarm }]}>
               {hasBikes ? t('profile.ridesEmptyStartRide') : t('profile.ridesEmptyAddBike')}
             </Text>
           </Pressable>
@@ -880,8 +815,8 @@ export default function RidesScreen() {
   const renderFooter = useCallback(() => {
     if (isFetchingNextPage) {
       return (
-        <View style={{ paddingVertical: 20 }}>
-          <ActivityIndicator size="small" color={theme.warm} />
+        <View style={{ paddingVertical: space.lg }}>
+          <ActivityIndicator size="small" color={theme.ink3} />
         </View>
       );
     }
@@ -890,147 +825,23 @@ export default function RidesScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Header */}
-      <View
-        style={{
-          paddingTop: insets.top + 8,
-          paddingHorizontal: 20,
-          paddingBottom: 8,
-        }}
-      >
-        {/* Top row: back + title + total pill */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 14,
-            marginBottom: 12,
-          }}
-        >
-          <Pressable
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 999,
-              borderCurve: 'continuous',
-              backgroundColor: theme.surface,
-              borderWidth: 1,
-              borderColor: theme.line,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <ArrowLeft size={16} color={theme.ink2} />
-          </Pressable>
-          <Text
-            style={{
-              flex: 1,
-              fontSize: 24,
-              fontWeight: '700',
-              color: theme.ink,
-              letterSpacing: -0.022 * 24,
-            }}
-          >
-            {t('myRides.title')}
-          </Text>
-          <View
-            style={{
-              paddingHorizontal: 11,
-              paddingVertical: 6,
-              borderRadius: 999,
-              borderCurve: 'continuous',
-              backgroundColor: tint(theme.warm, 0.12),
-              borderWidth: 1,
-              borderColor: tint(theme.warm, 0.28),
-              flexShrink: 0,
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: 'GeistMono',
-                fontSize: 10.5,
-                fontWeight: '500',
-                letterSpacing: 0.08 * 10.5,
-                color: theme.warm,
-                fontVariant: ['tabular-nums'],
-              }}
-            >
-              {stats.totalRides} {t('myRides.rides')}
-            </Text>
-          </View>
-        </View>
-
-        {/* Period switcher */}
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {PERIOD_KEYS.map((key) => {
-            const active = period === key;
-            return (
-              <Pressable
-                key={key}
-                onPress={() => {
-                  if (process.env.EXPO_OS === 'ios') triggerImpact();
-                  setPeriod(key);
-                  trackEvent(AnalyticsEvent.RIDES_HISTORY_FILTERED, {
-                    filter_type: 'period',
-                    value: key,
-                    total_rides: stats.totalRides,
-                  });
-                }}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: active }}
-                style={{
-                  flex: 1,
-                  height: 34,
-                  borderRadius: 999,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: active ? theme.warm : 'transparent',
-                  borderWidth: 1,
-                  borderColor: active ? theme.warm : theme.line,
-                  ...(active
-                    ? {
-                        shadowColor: 'rgba(200,119,44,1)',
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.4,
-                        shadowRadius: 12,
-                        elevation: 6,
-                      }
-                    : {}),
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 13.5,
-                    fontWeight: '600',
-                    letterSpacing: -0.005 * 13.5,
-                    color: active ? palette.white : theme.ink2,
-                  }}
-                >
-                  {periodLabelsMap[key]}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-
       {isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={theme.warm} />
+          <ActivityIndicator size="large" color={theme.ink3} />
         </View>
       ) : (
         <FlatList
           data={sortedEdges}
           renderItem={renderItem}
           keyExtractor={(item) => item.node.id}
+          contentInsetAdjustmentBehavior="automatic"
+          style={{ flex: 1, backgroundColor: theme.bg }}
           contentContainerStyle={{
-            paddingHorizontal: 20,
-            paddingTop: 12,
+            ...readableWidth,
+            paddingHorizontal: GUTTER,
+            paddingTop: space.xs,
             paddingBottom: insets.bottom + 100,
-            gap: 12,
+            gap: space.sm,
           }}
           ListHeaderComponent={allEdges.length > 0 ? renderHeader : undefined}
           ListEmptyComponent={renderEmpty}

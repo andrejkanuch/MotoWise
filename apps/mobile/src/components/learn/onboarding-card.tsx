@@ -3,9 +3,10 @@ import * as Haptics from 'expo-haptics';
 import { BookOpen, Sparkles } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, useColorScheme, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
 import { useLearnOnboardingStore } from '../../stores/learn-onboarding.store';
+import { useEditorialTheme } from '../../theme/editorial';
 
 interface LearnOnboardingCardProps {
   onBrowse: () => void;
@@ -14,7 +15,7 @@ interface LearnOnboardingCardProps {
 
 export function LearnOnboardingCard({ onBrowse, onGenerate }: LearnOnboardingCardProps) {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const { dismissed, dismiss, incrementVisit } = useLearnOnboardingStore();
   const [hydrated, setHydrated] = useState(false);
   const hasIncremented = useRef(false);

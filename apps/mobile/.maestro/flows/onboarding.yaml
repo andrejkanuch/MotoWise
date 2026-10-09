@@ -1,5 +1,9 @@
 # Full onboarding E2E (INVESTED variant — the superset that visits every screen).
 #
+# Optional env: NO_BIKE="true" skips bike setup ("I'll add my bike later"), so the
+# user finishes onboarding with an empty garage. Unset (the default) adds a Honda
+# Africa Twin, which every bike flow composed on this one relies on.
+#
 # Prereqs (handled by scripts/run-onboarding-e2e.sh):
 #   - A confirmed Supabase user exists; its creds are passed in as TEST_EMAIL / TEST_PASSWORD.
 #   - The app is built/served with EXPO_PUBLIC_OB_VARIANT=invested so the flow is deterministic.
@@ -66,32 +70,54 @@ env:
       - tapOn: ".*Just did it.*"
       - tapOn: "Continue"
 
-# 6. Bike setup — MUST add a bike to keep bike-dependent screens reachable.
-# Fail-open regression (P2): with no web intent seeded, bike-setup MUST render
-# the normal make grid, never the "Is this your ride?" intent confirmation.
+# 6. Bike setup. Fail-open regression (P2): with no web intent seeded,
+# bike-setup MUST render the normal make grid, never the "Is this your ride?"
+# intent confirmation.
 - extendedWaitUntil:
     visible: "(?i)Popular makes"
     timeout: 15000
 - assertNotVisible: "Is this your ride?"
-- tapOn: ".*Honda.*"
+
+# 6a. Default path: add a bike, which keeps the bike-dependent screens reachable
+# and leaves a Honda in the garage for every flow composed on this one.
 # Pick a MODEL too: complete_onboarding only creates the bike when make, model
 # and year are all set — a make-only "Add to my garage" leaves the garage empty
 # and every bike flow composed on this one fails.
 # Tap the model chip directly (no typing — a typed query makes the search
 # field's own value match "Africa Twin" too).
-- scrollUntilVisible:
-    element: "Africa Twin"
-    direction: DOWN
-    timeout: 20000
-- tapOn: "Africa Twin"
-- assertVisible: ".*Africa Twin.*"
-- tapOn: "Add to my garage"
+# 7. Building plan (auto) → 8. Reveal.
+- runFlow:
+    when:
+      true: ${typeof NO_BIKE === 'undefined' || NO_BIKE !== 'true'}
+    commands:
+      - tapOn: ".*Honda.*"
+      - scrollUntilVisible:
+          element: "Africa Twin"
+          direction: DOWN
+          timeout: 20000
+      - tapOn: "Africa Twin"
+      - assertVisible: ".*Africa Twin.*"
+      - tapOn: "Add to my garage"
+      - extendedWaitUntil:
+          visible: "Continue"
+          timeout: 30000
+      - tapOn: "Continue"
 
-# 7. Building plan (auto) → 8. Reveal
-- extendedWaitUntil:
-    visible: "Continue"
-    timeout: 30000
-- tapOn: "Continue"
+# 6b. NO_BIKE=true (pass it via `runFlow: env:`): skip the bike, so the account
+# ends onboarding with an empty garage (add-bike.yaml needs that — a free user
+# with a bike hits the MAX_BIKES paywall). "Not sure of the details?" reveals
+# the partial-capture chips with the true skip, "I'll add my bike later"; the
+# flow then routes around Reveal to the no-bike value screen.
+- runFlow:
+    when:
+      true: ${typeof NO_BIKE !== 'undefined' && NO_BIKE === 'true'}
+    commands:
+      - tapOn: "Not sure of the details?"
+      - tapOn: "I'll add my bike later"
+      - extendedWaitUntil:
+          visible: "Add my bike now" # the no-bike value screen's secondary action
+          timeout: 30000
+      - tapOn: "Continue"
 
 # 9. Goals (multi-select → Continue)
 - assertVisible: ".*Track my rides.*"
@@ -146,7 +172,10 @@ env:
 # Handle the optional tail only if it appears; the single hard success check is
 # reaching the Home dashboard.
 - extendedWaitUntil:
-    visible: "[×✕]|.*hear about us.*|.*Today in your garage.*"
+    # One selector per wait: the Home tab label stands in for Home here (the
+    # tab's a11y text may carry a badge suffix, hence the optional tail); the
+    # final success check below matches Home by its testID.
+    visible: "[×✕]|.*hear about us.*|Home(,.*)?"
     timeout: 90000
 # commit_first: close the native RevenueCat paywall shown after account.
 - tapOn:
@@ -174,7 +203,25 @@ env:
           text: "[×✕]"
           optional: true
 
+# The signed-in test account is already onboarded, so it can be owed What's New
+# for this version (new riders never are). The modal pushes ~500ms after the tabs
+# mount: wait briefly for its "What's new · v<version>" label, then tap the Skip
+# beside it. Both are optional so a run without the modal passes untouched.
+- extendedWaitUntil:
+    visible: "What's new · v.*"
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible: "What's new · v.*"
+    commands:
+      - tapOn:
+          text: "Skip"
+          rightOf:
+            text: "What's new · v.*"
+
 # Success: onboarding complete -> Home dashboard.
 - extendedWaitUntil:
-    visible: ".*Today in your garage.*"
+    visible:
+      id: "home-screen"
     timeout: 120000

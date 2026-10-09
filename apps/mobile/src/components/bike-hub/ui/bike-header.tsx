@@ -6,15 +6,17 @@ import Animated, { interpolate, type SharedValue, useAnimatedStyle } from 'react
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BIKE_ORIGIN, type BikeOrigin, type HubUnit } from '../../../lib/bike-hub/constants';
 import { formatOdometer, hasOdometer } from '../../../lib/bike-hub/format';
+import { PLATE_FONT } from '../../../theme/type';
 import { triggerImpact } from '../../../utils/haptics';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
-  HUB_FONT,
+  HUB_FIGURE_STRONG,
   HUB_HEIGHT,
   HUB_RADIUS,
   HUB_TOUCH_TARGET,
   type HubCopyKey,
-  hub,
+  SYSTEM_WEIGHT,
+  useHubTheme,
 } from './tokens';
 
 type Motorcycle = MyMotorcyclesQuery['myMotorcycles'][number];
@@ -23,9 +25,9 @@ export type BikeHeaderBike = Pick<Motorcycle, 'make' | 'model' | 'year' | 'curre
 
 const ROW_HEIGHT = 48;
 const ROW_HEIGHT_COLLAPSED = 44;
-const NAME_SIZE = 22;
+const NAME_SIZE = 24;
 const NAME_SIZE_COLLAPSED = 17;
-const EYEBROW_SIZE = 10;
+const EYEBROW_SIZE = 11;
 const EYEBROW_LINE_HEIGHT = 13;
 const BACK_SIZE = 44;
 const CHIP_SLOP = Math.ceil((HUB_TOUCH_TARGET - HUB_HEIGHT.small) / 2);
@@ -51,7 +53,7 @@ interface BikeHeaderProps {
 
 /**
  * Persistent top row of the bike hub: origin-aware back, the bike name in
- * Instrument Serif over a mono eyebrow, and the odometer chip — the only
+ * condensed title type over a small year · make line, and the odometer chip — the only
  * odometer on the page. It never scrolls away; on scroll the name shrinks and
  * the eyebrow fades so the row becomes 44 px. Transforms and opacity only, no
  * layout animation beyond the 4 px row height.
@@ -64,6 +66,7 @@ export function BikeHeader({
   onBack,
   onOdometerPress,
 }: BikeHeaderProps) {
+  const hub = useHubTheme();
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
 
@@ -122,9 +125,9 @@ export function BikeHeader({
                 accessibilityRole="header"
                 numberOfLines={1}
                 style={{
-                  fontFamily: HUB_FONT.serif,
+                  fontFamily: PLATE_FONT.semibold,
                   fontSize: NAME_SIZE,
-                  lineHeight: 24,
+                  lineHeight: 26,
                   color: hub.text,
                 }}
               >
@@ -135,11 +138,9 @@ export function BikeHeader({
                 numberOfLines={1}
                 style={[
                   {
-                    fontFamily: HUB_FONT.mono,
+                    ...SYSTEM_WEIGHT.medium,
                     fontSize: EYEBROW_SIZE,
                     lineHeight: EYEBROW_LINE_HEIGHT,
-                    letterSpacing: EYEBROW_SIZE * 0.08,
-                    textTransform: 'uppercase',
                     color: hub.muted,
                   },
                   eyebrowStyle,
@@ -181,7 +182,7 @@ export function BikeHeader({
             <Text
               maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
               numberOfLines={1}
-              style={{ fontFamily: HUB_FONT.monoMedium, fontSize: 13, color: hub.text }}
+              style={{ ...HUB_FIGURE_STRONG, fontSize: 16, color: hub.text }}
             >
               {chipLabel}
             </Text>

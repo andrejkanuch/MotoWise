@@ -1,8 +1,8 @@
-import { palette } from '@motovault/design-system';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Text, useColorScheme, View, type ViewStyle } from 'react-native';
+import { Text, View, type ViewStyle } from 'react-native';
 import { getInitials } from '../../lib/user-avatar';
+import { useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT } from '../../theme/type';
 
 type AvatarVariant = 'primary' | 'neutral' | 'gradient';
 
@@ -15,9 +15,9 @@ interface AvatarProps {
   size: number;
   /**
    * Visual treatment for the fallback background.
-   *   - `primary` (default): tinted primary bubble — used on cards, comments, reviews.
-   *   - `neutral`: muted neutral bubble — used on profile headers, follower rows, participant chips.
-   *   - `gradient`: primary500→700 gradient — reserved for the signed-in user's large self-avatar.
+   *   - `primary` (default): raised graphite bubble — cards, comments, reviews.
+   *   - `neutral`: quieter graphite bubble — profile headers, follower rows, participant chips.
+   *   - `gradient`: kept for API compatibility; renders like `primary` (no gradients).
    */
   variant?: AvatarVariant;
   /** Extra wrapper styles (e.g. border, margin). */
@@ -30,33 +30,17 @@ interface AvatarProps {
  * placeholder), and if the image 404s or the user is offline the initials remain visible.
  */
 export function Avatar({ url, name, size, variant = 'primary', style }: AvatarProps) {
-  const isDark = useColorScheme() === 'dark';
+  const { t } = useEditorialTheme();
   const initials = getInitials(name);
-  const radius = size / 2;
   const fontSize = Math.max(10, Math.round(size * 0.36));
 
-  let bgColor: string | undefined;
-  let textColor: string = palette.white;
-  if (variant === 'primary') {
-    bgColor = isDark ? palette.primary700 : palette.primary200;
-    textColor = isDark ? palette.primary200 : palette.primary700;
-  } else if (variant === 'neutral') {
-    bgColor = isDark ? palette.neutral800 : palette.neutral200;
-    textColor = isDark ? palette.neutral300 : palette.neutral700;
-  }
-
-  const fallback = (
-    <Text
-      style={{
-        fontSize,
-        fontWeight: '700',
-        color: textColor,
-        includeFontPadding: false,
-      }}
-    >
-      {initials}
-    </Text>
-  );
+  // Race Plate: no blue/gradient bubbles. `primary` and `gradient` read as a
+  // raised graphite chip, `neutral` as the quieter one — all per-scheme tokens.
+  const fill = {
+    primary: { bg: t.surface3, fg: t.ink },
+    neutral: { bg: t.surface2, fg: t.ink2 },
+    gradient: { bg: t.surface3, fg: t.ink },
+  }[variant];
 
   return (
     <View
@@ -64,36 +48,26 @@ export function Avatar({ url, name, size, variant = 'primary', style }: AvatarPr
         {
           width: size,
           height: size,
-          borderRadius: radius,
+          borderRadius: size / 2,
           borderCurve: 'continuous',
           overflow: 'hidden',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: bgColor,
+          backgroundColor: fill.bg,
         },
         style,
       ]}
     >
-      {variant === 'gradient' ? (
-        <LinearGradient
-          colors={[palette.primary500, palette.primary700]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {fallback}
-        </LinearGradient>
-      ) : (
-        fallback
-      )}
+      <Text
+        style={{
+          ...SYSTEM_WEIGHT.semibold,
+          fontSize,
+          color: fill.fg,
+          includeFontPadding: false,
+        }}
+      >
+        {initials}
+      </Text>
       {url && (
         <Image
           source={{ uri: url }}

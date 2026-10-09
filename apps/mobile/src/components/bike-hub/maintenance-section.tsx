@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import type { HubUnit } from '../../lib/bike-hub/constants';
-import { triggerImpact, triggerSelection } from '../../utils/haptics';
+import { triggerImpact } from '../../utils/haptics';
 import {
   completedTasks,
   groupActiveTasks,
@@ -18,12 +18,13 @@ import type { HubTask } from './shell/use-bike-hub-data';
 import { useToday } from './shell/use-today';
 import { HubCard } from './ui/hub-card';
 import { SectionHeader } from './ui/section-header';
+import { SegmentedTrack } from './ui/segmented-track';
 import {
-  HUB_CHROME_MAX_FONT_SCALE,
-  HUB_FONT,
   HUB_RADIUS,
   HUB_TOUCH_TARGET,
-  hub,
+  type HubTheme,
+  SYSTEM_WEIGHT,
+  useHubTheme,
 } from './ui/tokens';
 
 /** Completed tasks shown before "See all" opens the full list. */
@@ -58,7 +59,7 @@ interface MaintenanceSectionProps {
   mileageUnit: HubUnit;
 }
 
-/** Active · 10 | History · 10 — a two-option segmented control in hub tokens. */
+/** Active · 10 | History · 10 — the hub's segmented track. */
 function ServiceTabs({
   active,
   counts,
@@ -70,71 +71,22 @@ function ServiceTabs({
 }) {
   const { t } = useTranslation();
   return (
-    <View
-      accessibilityRole="tablist"
-      style={{
-        flexDirection: 'row',
-        gap: 2,
-        padding: 2,
-        borderRadius: HUB_RADIUS.chip + 1,
-        borderCurve: 'continuous',
-        backgroundColor: hub.card,
-        borderWidth: 1,
-        borderColor: hub.hairline,
-      }}
-    >
-      {SERVICE_TABS.map((tab) => {
-        const selected = tab === active;
-        const label = t(TAB_LABEL_KEY[tab]);
-        return (
-          <Pressable
-            key={tab}
-            testID={`service-tab-${tab}`}
-            onPress={() => {
-              if (selected) return;
-              triggerSelection();
-              onChange(tab);
-            }}
-            accessibilityRole="tab"
-            accessibilityLabel={`${label}, ${counts[tab]}`}
-            accessibilityState={{ selected }}
-            style={{
-              flex: 1,
-              minHeight: HUB_TOUCH_TARGET - 4,
-              paddingHorizontal: 8,
-              paddingVertical: 6,
-              borderRadius: HUB_RADIUS.chip - 1,
-              borderCurve: 'continuous',
-              backgroundColor: selected ? hub.raised : undefined,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {/* Segmented-control chrome: capped like the segment bar, one line —
-                "Active · 10" broke into two at accessibility sizes. */}
-            <Text
-              maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-              numberOfLines={1}
-              style={{
-                textAlign: 'center',
-                fontFamily: HUB_FONT.sansSemiBold,
-                fontSize: 13,
-                lineHeight: 17,
-                color: selected ? hub.text : hub.dim,
-              }}
-            >
-              {label}
-              <Text style={{ fontFamily: HUB_FONT.monoMedium }}>{` · ${counts[tab]}`}</Text>
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
+    <SegmentedTrack
+      selected={active}
+      onChange={onChange}
+      options={SERVICE_TABS.map((tab) => ({
+        key: tab,
+        label: t(TAB_LABEL_KEY[tab]),
+        count: counts[tab],
+        testID: `service-tab-${tab}`,
+      }))}
+    />
   );
 }
 
 /** Empty states sit on a plain card: an icon tile, what is true, what to do. */
 function EmptyCard({ title, sub }: { title: string; sub?: string }) {
+  const hub = useHubTheme();
   return (
     <Animated.View entering={FadeIn.duration(ENTER_MS)}>
       <HubCard
@@ -162,7 +114,7 @@ function EmptyCard({ title, sub }: { title: string; sub?: string }) {
         <View style={{ flex: 1, gap: 3 }}>
           <Text
             style={{
-              fontFamily: HUB_FONT.sansSemiBold,
+              ...SYSTEM_WEIGHT.semibold,
               fontSize: 15,
               lineHeight: 18,
               color: hub.text,
@@ -172,7 +124,7 @@ function EmptyCard({ title, sub }: { title: string; sub?: string }) {
           </Text>
           {sub ? (
             <Text
-              style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 16, color: hub.dim }}
+              style={{ ...SYSTEM_WEIGHT.regular, fontSize: 13, lineHeight: 16, color: hub.dim }}
             >
               {sub}
             </Text>
@@ -183,11 +135,13 @@ function EmptyCard({ title, sub }: { title: string; sub?: string }) {
   );
 }
 
-const CRITICAL_CARD = {
-  backgroundColor: hub.rowCritical,
-  borderColor: hub.rowCriticalBorder,
-  overflow: 'hidden',
-} as const;
+function criticalCard(hub: HubTheme) {
+  return {
+    backgroundColor: hub.rowCritical,
+    borderColor: hub.rowCriticalBorder,
+    overflow: 'hidden',
+  } as const;
+}
 
 /**
  * Service segment content (R2 row, interim list): Active tasks in their due
@@ -208,6 +162,7 @@ export function MaintenanceSection({
   onEdit,
   mileageUnit,
 }: MaintenanceSectionProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const router = useRouter();
   const today = useToday();
@@ -286,7 +241,7 @@ export function MaintenanceSection({
       >
         <SectionHeader label={t(group.labelKey)} count={group.items.length} tone={group.tone} />
         {critical.map((item) => (
-          <HubCard key={item.task.id} style={CRITICAL_CARD}>
+          <HubCard key={item.task.id} style={criticalCard(hub)}>
             <ServiceTaskRow
               item={item}
               expanded={expandedId === item.task.id}
@@ -350,7 +305,7 @@ export function MaintenanceSection({
             >
               <Text
                 style={{
-                  fontFamily: HUB_FONT.sansSemiBold,
+                  ...SYSTEM_WEIGHT.semibold,
                   fontSize: 14,
                   lineHeight: ACTION_LINE_HEIGHT,
                   textAlign: 'center',

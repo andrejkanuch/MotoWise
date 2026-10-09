@@ -9,17 +9,12 @@ import { Bell, ChevronLeft, Headphones, Play } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  CardGroup,
-  CautionRow,
-  INK_ON_COPPER,
-  MONO,
-  SectionLabel,
-} from '../../../components/carplay/primitives';
+import { CardGroup, CautionRow, SectionLabel } from '../../../components/carplay/primitives';
 import { type RideStateKey, StateGlyph } from '../../../components/carplay/state-indicator';
 import { NativeToggle } from '../../../components/ui/native-toggle';
 import { type CueTone, useCarPlayStore } from '../../../stores/carplay.store';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../../../theme/type';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
 const LEGEND: { state: RideStateKey; labelKey: string; labelDefault: string; sound: string }[] = [
@@ -100,7 +95,7 @@ export default function CarPlayCuesScreen() {
         >
           <ChevronLeft size={18} color={c.ink2} strokeWidth={2} />
         </Pressable>
-        <Text style={{ fontSize: 19, fontWeight: '700', letterSpacing: -0.3, color: c.ink }}>
+        <Text style={{ ...type.sheetTitle, color: c.ink }}>
           {t('carplay.cues.title', { defaultValue: 'Confirmation cues' })}
         </Text>
       </View>
@@ -110,9 +105,8 @@ export default function CarPlayCuesScreen() {
       >
         <Text
           style={{
-            fontSize: 13.5,
+            ...type.subhead,
             color: c.ink2,
-            lineHeight: 20,
             paddingHorizontal: 4,
             paddingTop: 2,
           }}
@@ -182,14 +176,20 @@ export default function CarPlayCuesScreen() {
                   borderColor: sel ? c.warm : c.line,
                 }}
               >
-                <Text style={{ color: sel ? c.warm2 : c.ink2, fontSize: 13.5, fontWeight: '600' }}>
+                <Text
+                  style={{
+                    ...type.label,
+                    ...SYSTEM_WEIGHT.semibold,
+                    color: sel ? c.warm2 : c.ink2,
+                  }}
+                >
                   {tn.label}
                 </Text>
               </Pressable>
             );
           })}
         </View>
-        <Text style={{ fontSize: 12, color: c.ink3, paddingHorizontal: 4, paddingTop: 8 }}>
+        <Text style={{ ...type.caption, color: c.ink3, paddingHorizontal: 4, paddingTop: 8 }}>
           {t('carplay.cues.mechanicalDesc', {
             defaultValue: 'Mechanical — a rugged, brand-true click. Default.',
           })}
@@ -210,8 +210,8 @@ export default function CarPlayCuesScreen() {
             backgroundColor: c.warm,
           }}
         >
-          <Play size={18} color={INK_ON_COPPER} strokeWidth={2} fill={INK_ON_COPPER} />
-          <Text style={{ color: INK_ON_COPPER, fontSize: 15.5, fontWeight: '700' }}>
+          <Play size={18} color={c.onWarm} strokeWidth={2} fill={c.onWarm} />
+          <Text style={{ ...type.bodyStrong, color: c.onWarm }}>
             {t('carplay.cues.test', { defaultValue: 'Test this cue' })}
           </Text>
         </Pressable>
@@ -232,12 +232,10 @@ export default function CarPlayCuesScreen() {
               }}
             >
               <StateGlyph state={r.state} size={20} />
-              <Text style={{ flex: 1, fontSize: 14.5, fontWeight: '600', color: c.ink }}>
+              <Text style={{ ...type.body, flex: 1, color: c.ink }}>
                 {t(r.labelKey, { defaultValue: r.labelDefault })}
               </Text>
-              <Text style={{ fontFamily: MONO, fontSize: 11.5, color: c.ink3, letterSpacing: 0.3 }}>
-                {r.sound}
-              </Text>
+              <Text style={{ ...type.caption, color: c.ink3 }}>{r.sound}</Text>
             </View>
           ))}
         </CardGroup>
@@ -290,8 +288,8 @@ function ToggleRow({
         {icon}
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 15.5, fontWeight: '600', color: c.ink }}>{title}</Text>
-        <Text style={{ fontSize: 12.5, color: c.ink3, marginTop: 2 }}>{sub}</Text>
+        <Text style={{ ...type.bodyStrong, color: c.ink }}>{title}</Text>
+        <Text style={{ ...type.caption, color: c.ink3, marginTop: 2 }}>{sub}</Text>
       </View>
       <NativeToggle value={value} onValueChange={onValueChange} tint={c.warm} />
     </View>

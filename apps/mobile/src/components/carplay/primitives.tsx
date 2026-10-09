@@ -3,7 +3,6 @@
 // and the imported design (claude.ai/design — companion.jsx), translated to
 // the real MotoVault editorial theme. No hardcoded colors — palette/theme only.
 
-import { palette } from '@motovault/design-system';
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 import { Text, View, type ViewStyle } from 'react-native';
@@ -15,16 +14,9 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
+import { radius, space, type } from '../../theme/type';
 
-export const MONO = 'GeistMono';
-export const MONO_MEDIUM = 'GeistMono-Medium';
-export const SERIF = 'InstrumentSerif-Regular';
-export const SERIF_ITALIC = 'InstrumentSerif-Italic';
-
-// Dark ink for text/icons sitting on a copper fill (accessibility: dark-on-copper
-// passes WCAG; white-on-copper fails). See design spec §6.
-export const INK_ON_COPPER = palette.black;
-
+// Small system label (sentence case) — sits above a value or heads a grouped list.
 export function Eyebrow({
   children,
   color,
@@ -38,11 +30,7 @@ export function Eyebrow({
   return (
     <Text
       style={{
-        fontFamily: MONO_MEDIUM,
-        fontSize: 11,
-        fontWeight: '500',
-        letterSpacing: 2,
-        textTransform: 'uppercase',
+        ...type.label,
         color: color ?? c.ink3,
         ...style,
       }}
@@ -54,7 +42,14 @@ export function Eyebrow({
 
 export function SectionLabel({ children, style }: { children: ReactNode; style?: object }) {
   return (
-    <Eyebrow style={{ paddingHorizontal: 4, marginTop: 22, marginBottom: 11, ...style }}>
+    <Eyebrow
+      style={{
+        paddingHorizontal: space.xxs,
+        marginTop: space.lg,
+        marginBottom: space.xs,
+        ...style,
+      }}
+    >
       {children}
     </Eyebrow>
   );
@@ -126,7 +121,7 @@ export function CardGroup({ children, style }: { children: ReactNode; style?: Vi
     <View
       style={{
         backgroundColor: c.surface,
-        borderRadius: 16,
+        borderRadius: radius.card,
         borderCurve: 'continuous',
         borderWidth: 1,
         borderColor: c.line,
@@ -139,24 +134,23 @@ export function CardGroup({ children, style }: { children: ReactNode; style?: Vi
   );
 }
 
-// Caution banner (copper-tinted) — used when both cue channels are off, etc.
+// Caution banner (due-signal tint; copper is reserved for actions) — used when
+// both cue channels are off, etc.
 export function CautionRow({ children }: { children: ReactNode }) {
   const { t: c } = useEditorialTheme();
   return (
     <View
       style={{
-        backgroundColor: tint(c.warm, 0.1),
-        borderColor: tint(c.warm, 0.3),
+        backgroundColor: tint(c.plateDue, 0.12),
+        borderColor: tint(c.plateDue, 0.4),
         borderWidth: 1,
-        borderRadius: 14,
+        borderRadius: radius.control,
         borderCurve: 'continuous',
-        padding: 14,
-        marginTop: 10,
+        padding: space.md,
+        marginTop: space.sm,
       }}
     >
-      <Text style={{ color: c.warm2, fontSize: 13, fontWeight: '600', lineHeight: 18 }}>
-        {children}
-      </Text>
+      <Text style={{ ...type.label, color: c.ink }}>{children}</Text>
     </View>
   );
 }

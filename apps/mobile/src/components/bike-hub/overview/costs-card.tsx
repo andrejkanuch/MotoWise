@@ -15,14 +15,23 @@ import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { RowChevron } from '../ui/row-chevron';
 import { SectionHeader } from '../ui/section-header';
 import { Stat } from '../ui/stat';
-import { HUB_FONT, HUB_TOUCH_TARGET, type HubCopyKey, hub, hubCategoryColor } from '../ui/tokens';
+import {
+  HUB_FIGURE_STRONG,
+  HUB_TOUCH_TARGET,
+  type HubColorKey,
+  type HubCopyKey,
+  type HubTheme,
+  hubCategoryColor,
+  SYSTEM_WEIGHT,
+  useHubTheme,
+} from '../ui/tokens';
 
 // Spending more is not "due soon" and spending less is not "ready": the change
 // is a fact, so it reads in Bone with its arrow, never in a status colour.
-const YOY_STYLE: Record<DeltaDirection, { arrow: string; color: string }> = {
-  [DELTA_DIRECTION.UP]: { arrow: '▲', color: hub.text },
-  [DELTA_DIRECTION.DOWN]: { arrow: '▼', color: hub.text },
-  [DELTA_DIRECTION.FLAT]: { arrow: '=', color: hub.dim },
+const YOY_STYLE: Record<DeltaDirection, { arrow: string; color: HubColorKey }> = {
+  [DELTA_DIRECTION.UP]: { arrow: '▲', color: 'text' },
+  [DELTA_DIRECTION.DOWN]: { arrow: '▼', color: 'text' },
+  [DELTA_DIRECTION.FLAT]: { arrow: '=', color: 'dim' },
 };
 
 /** Whole currency units ("€218") — for averages and the purchase price. */
@@ -39,8 +48,8 @@ function categoryLabel(key: string, t: TFunction): string {
   return t(`expenses.category_${key}` as HubCopyKey, { defaultValue: CATEGORY_LABELS[key] ?? key });
 }
 
-function shareColor(share: CostsShare): string {
-  return share.key === COSTS_REST_KEY ? hub.track : hubCategoryColor(share.key);
+function shareColor(share: CostsShare, hub: HubTheme): string {
+  return share.key === COSTS_REST_KEY ? hub.track : hubCategoryColor(share.key, hub);
 }
 
 interface CostsCardProps {
@@ -71,6 +80,7 @@ export function CostsCard({
   refreshFailed = false,
   onPress,
 }: CostsCardProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   // The rider's display currency only prices the bike; spend is shown in the
   // currency it was recorded in (`summary.currency`).
@@ -102,7 +112,7 @@ export function CostsCard({
             paddingHorizontal: 16,
           }}
         >
-          <Text style={{ flex: 1, fontFamily: HUB_FONT.sans, fontSize: 14, color: hub.dim }}>
+          <Text style={{ flex: 1, ...SYSTEM_WEIGHT.regular, fontSize: 14, color: hub.dim }}>
             {t('bikeHub.costs.loadError')}
           </Text>
           <Pressable
@@ -110,9 +120,7 @@ export function CostsCard({
             accessibilityRole="button"
             style={{ minHeight: HUB_TOUCH_TARGET, justifyContent: 'center', paddingHorizontal: 8 }}
           >
-            <Text
-              style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.copperText }}
-            >
+            <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 14, color: hub.copperText }}>
               {t('common.retry')}
             </Text>
           </Pressable>
@@ -138,7 +146,7 @@ export function CostsCard({
         >
           <Text
             style={{
-              fontFamily: HUB_FONT.monoMedium,
+              ...HUB_FIGURE_STRONG,
               fontSize: 28,
               lineHeight: 30,
               color: hub.text,
@@ -146,7 +154,7 @@ export function CostsCard({
           >
             {total}
           </Text>
-          <Text style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 17, color: hub.dim }}>
+          <Text style={{ ...SYSTEM_WEIGHT.regular, fontSize: 13, lineHeight: 17, color: hub.dim }}>
             {purchasePrice
               ? t('bikeHub.costs.emptyWithPrice', {
                   price: formatWhole(purchasePrice, userCurrency),
@@ -186,7 +194,7 @@ export function CostsCard({
               numberOfLines={1}
               adjustsFontSizeToFit
               style={{
-                fontFamily: HUB_FONT.monoMedium,
+                ...HUB_FIGURE_STRONG,
                 fontSize: 32,
                 lineHeight: 34,
                 letterSpacing: -0.64,
@@ -196,8 +204,8 @@ export function CostsCard({
               {total}
             </Text>
             {yoy && yoyStyle ? (
-              <Text testID="costs-yoy" style={{ fontFamily: HUB_FONT.sans, fontSize: 13 }}>
-                <Text style={{ color: yoyStyle.color }}>
+              <Text testID="costs-yoy" style={{ ...SYSTEM_WEIGHT.regular, fontSize: 13 }}>
+                <Text style={{ color: hub[yoyStyle.color] }}>
                   {`${yoyStyle.arrow} ${t('bikeHub.costs.percent', { value: yoy.percent })}`}
                 </Text>
                 <Text style={{ color: hub.muted }}>
@@ -226,7 +234,11 @@ export function CostsCard({
                 category: categoryLabel(share.key, t),
                 percent: share.percent,
               })}
-              style={{ flexGrow: share.percent, flexBasis: 0, backgroundColor: shareColor(share) }}
+              style={{
+                flexGrow: share.percent,
+                flexBasis: 0,
+                backgroundColor: shareColor(share, hub),
+              }}
             />
           ))}
         </View>
@@ -263,7 +275,7 @@ export function CostsCard({
                 percent: topCategory.percent,
               })}
               valueStyle={{
-                fontFamily: HUB_FONT.sansSemiBold,
+                ...SYSTEM_WEIGHT.semibold,
                 fontSize: 14,
                 color: hub.text,
               }}

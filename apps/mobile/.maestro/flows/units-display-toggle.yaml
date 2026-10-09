@@ -17,7 +17,8 @@
 # flows (see README). No cleanup — the runner deletes the throwaway user.
 #
 # AUTHORED FROM SOURCE 2026-07-16, PENDING ON-DEVICE VALIDATION. Selectors from
-# preferences-section.tsx (Units -> "Imperial (mi, °F)" / "Metric (km, °C)") and
+# Profile → App settings → Units (testIDs profile-app-settings, app-settings-units,
+# preference-option-imperial / -metric; Race Plate redesign 2026-10-09) and
 # bike/[id].tsx (the Gauge odometer chip renders "<value> <unit>"). Device quirks
 # per .maestro/README.md: tab a11y labels carry a badge (match tabs as partial
 # regex); the odometer value + unit are sibling Text nodes, so assert the unit
@@ -40,12 +41,23 @@ env:
 # 2. Set Imperial, then confirm the bike hub odometer chip reads "mi".
 - tapOn:
     text: "Profile(,.*)?" # the tab; ".*Profile.*" also matched Home's "Complete your bike profile"
-- scrollUntilVisible:
-    element:
-      text: "Units"
-    direction: DOWN
+# Units live in Profile → App settings → Units (a pushed single-choice list).
+# The Profile stack may still be on App settings from an earlier step.
+- runFlow:
+    when:
+      notVisible:
+        id: "app-settings-screen"
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: "profile-app-settings"
+          direction: DOWN
+      - tapOn:
+          id: "profile-app-settings"
 - tapOn:
-    text: ".*Imperial.*" # Imperial (mi, °F)
+    id: "app-settings-units"
+- tapOn:
+    id: "preference-option-imperial" # "Imperial (mi, °F)"
 - tapOn:
     text: "Garage(,.*)?" # the tab; ".*Garage.*" also matched Home's "Today in your garage." (Maestro text matching ignores case)
 - tapOn:
@@ -88,12 +100,23 @@ env:
 # 3. Switch to Metric; the SAME bike's odometer chip must now read "km".
 - tapOn:
     text: "Profile(,.*)?" # the tab; ".*Profile.*" also matched Home's "Complete your bike profile"
-- scrollUntilVisible:
-    element:
-      text: "Units"
-    direction: DOWN
+# Units live in Profile → App settings → Units (a pushed single-choice list).
+# The Profile stack may still be on App settings from an earlier step.
+- runFlow:
+    when:
+      notVisible:
+        id: "app-settings-screen"
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: "profile-app-settings"
+          direction: DOWN
+      - tapOn:
+          id: "profile-app-settings"
 - tapOn:
-    text: ".*Metric.*" # Metric (km, °C)
+    id: "app-settings-units"
+- tapOn:
+    id: "preference-option-metric" # "Metric (km, °C)"
 - tapOn:
     text: "Garage(,.*)?" # the tab; ".*Garage.*" also matched Home's "Today in your garage." (Maestro text matching ignores case)
 - tapOn:

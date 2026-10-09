@@ -1,8 +1,6 @@
 // Lives outside src/app on purpose: expo-router turns every file under src/app
 // into a route (its context regex only skips +api/+html), so a test there would
 // be bundled into the app as a screen.
-jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
@@ -140,8 +138,8 @@ async function flush() {
 async function submitSignup(email = EMAIL, password = PASSWORD) {
   await render(<AccountScreen />);
   await fireEvent.press(screen.getByText(t('onboarding.obAccountWithEmail')));
-  await fireEvent.changeText(screen.getByPlaceholderText(t('auth.email')), email);
-  await fireEvent.changeText(screen.getByPlaceholderText(t('auth.password')), password);
+  await fireEvent.changeText(screen.getByLabelText(t('auth.email')), email);
+  await fireEvent.changeText(screen.getByLabelText(t('auth.password')), password);
   await fireEvent.press(screen.getByText(t('onboarding.obAccountCreate')));
   await flush();
 }
@@ -235,8 +233,8 @@ describe('AccountScreen email signup', () => {
     await fireEvent.press(screen.getByText(t('auth.codeChangeEmail')));
 
     expect(codeStepShown()).toBe(false);
-    expect(screen.getByPlaceholderText(t('auth.email')).props.value).toBe(EMAIL);
-    expect(screen.getByPlaceholderText(t('auth.password')).props.value).toBe('');
+    expect(screen.getByLabelText(t('auth.email')).props.value).toBe(EMAIL);
+    expect(screen.getByLabelText(t('auth.password')).props.value).toBe('');
   });
 
   it('Android back from the code step returns to the form and does not leave the screen', async () => {
@@ -250,8 +248,8 @@ describe('AccountScreen email signup', () => {
 
     expect(handled).toBe(true);
     expect(codeStepShown()).toBe(false);
-    expect(screen.getByPlaceholderText(t('auth.email')).props.value).toBe(EMAIL);
-    expect(screen.getByPlaceholderText(t('auth.password')).props.value).toBe('');
+    expect(screen.getByLabelText(t('auth.email')).props.value).toBe(EMAIL);
+    expect(screen.getByLabelText(t('auth.password')).props.value).toBe('');
     expect(mockRouter.replace).not.toHaveBeenCalled();
     expect(mockRouter.back).not.toHaveBeenCalled();
     // Back on the form, the hardware back is the screen's normal back again.
@@ -262,8 +260,8 @@ describe('AccountScreen email signup', () => {
     mockSignUp.mockResolvedValue(newUser);
     await submitSignup();
 
-    // OnboardingBackButton's default label.
-    await fireEvent.press(screen.getByLabelText('Go back'));
+    // The shell's back control is labelled with common.back.
+    await fireEvent.press(screen.getByLabelText(t('common.back')));
 
     expect(codeStepShown()).toBe(false);
     expect(mockRouter.replace).not.toHaveBeenCalled();

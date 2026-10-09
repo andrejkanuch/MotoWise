@@ -11,7 +11,7 @@ import Animated, {
 import { useCurrency } from '../../hooks/use-currency';
 import { triggerImpact } from '../../utils/haptics';
 import { HubCard } from './ui/hub-card';
-import { HUB_FONT, HUB_TOUCH_TARGET, hub } from './ui/tokens';
+import { HUB_FIGURE, HUB_TOUCH_TARGET, SYSTEM_WEIGHT, useHubTheme } from './ui/tokens';
 
 /** Chevron turn when the card opens: a disclosure, not a push. */
 const DISCLOSURE_MS = 180;
@@ -36,6 +36,7 @@ interface InfoRowProps {
 }
 
 function InfoRow({ label, value, mono = false, divider }: InfoRowProps) {
+  const hub = useHubTheme();
   return (
     <View
       style={{
@@ -51,7 +52,7 @@ function InfoRow({ label, value, mono = false, divider }: InfoRowProps) {
         borderBottomColor: hub.hairline,
       }}
     >
-      <Text style={{ fontFamily: HUB_FONT.sans, fontSize: 14, lineHeight: 19, color: hub.dim }}>
+      <Text style={{ ...SYSTEM_WEIGHT.regular, fontSize: 14, lineHeight: 19, color: hub.dim }}>
         {label}
       </Text>
       <Text
@@ -59,8 +60,8 @@ function InfoRow({ label, value, mono = false, divider }: InfoRowProps) {
         style={{
           flexShrink: 1,
           textAlign: 'right',
-          fontFamily: mono ? HUB_FONT.mono : HUB_FONT.sansSemiBold,
-          fontSize: 14,
+          ...(mono ? HUB_FIGURE : SYSTEM_WEIGHT.semibold),
+          fontSize: mono ? 16 : 14,
           lineHeight: 19,
           color: hub.text,
         }}
@@ -78,6 +79,7 @@ function InfoRow({ label, value, mono = false, divider }: InfoRowProps) {
  * down and turns over when the card opens in place.
  */
 export function BikeDetailsCard({ bike }: { bike: BikeDetailsCardBike }) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const { format: formatCurrency } = useCurrency();
   const [open, setOpen] = useState(false);
@@ -147,7 +149,7 @@ export function BikeDetailsCard({ bike }: { bike: BikeDetailsCardBike }) {
         <Text
           style={{
             flex: 1,
-            fontFamily: HUB_FONT.sansSemiBold,
+            ...SYSTEM_WEIGHT.semibold,
             fontSize: 15,
             lineHeight: 18,
             color: hub.text,

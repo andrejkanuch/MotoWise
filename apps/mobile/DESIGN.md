@@ -1,495 +1,384 @@
 ---
-name: MotoVault Mobile — Bike Hub
-description: Dark, warm instrument-panel UI for a rider's bike — copper for action, mono for every number, serif for the bike's name.
+name: MotoVault Mobile — Race Plate
+description: Every bike carries a number plate, and the plate tells you whether it is ready.
 colors:
-  copper: "#D4622E"
-  copper-text: "#E07A48"
-  copper-ink: "#1A1410"
-  ground: "#141210"
-  card: "#1E1C19"
-  raised: "#2A2724"
-  option: "#26231F"
-  track: "#4A4640"
-  text: "#F3EEE6"
-  text-soft: "#E6E0D6"
-  dim: "#B5ADA2"
-  muted: "#9C958A"
-  late: "#FF7A6B"
-  soon: "#F0A050"
-  medium: "#7DA9F0"
-  low: "#A39B8F"
-  ok: "#5FC8A0"
-  not-ready-dot: "#FF5A4A"
-  tag-crit-bg: "#3A1A16"
-  tag-high-bg: "#3A2412"
-  tag-med-bg: "#172538"
-  tag-low-bg: "#2A2824"
-  status-not-ready: "#2A1512"
-  status-check: "#241D15"
-  status-ready: "#152019"
-  row-critical: "#241715"
-  chip-on: "#2A2017"
-  hairline: "rgba(255,255,255,0.06)"
-  hairline-strong: "rgba(255,255,255,0.08)"
-  field-border: "rgba(255,255,255,0.1)"
-  dashed: "rgba(255,255,255,0.18)"
-  photo-chip: "rgba(20,18,16,0.78)"
-  tab-bar: "rgba(20,18,16,0.96)"
+  # Dark scheme (palette.plate*) — graphite ramp, bone ink
+  graphite-ground: "#111214"
+  graphite-card: "#1A1B1E"
+  graphite-raised: "#232427"
+  graphite-option: "#2E3034"
+  graphite-line-step: "#3D3F44"
+  bone-ink: "#ECE6DA"
+  bone-ink-2: "#BDB8AE"
+  bone-ink-3: "#8E8A83"
+  bone-ink-4: "#5F5C57"
+  line-dark: "rgba(236,230,218,0.09)"
+  line-2-dark: "rgba(236,230,218,0.05)"
+  exhaust-copper: "#D4622E"
+  copper-text: "#EC8A5A"
+  plate-ink: "#121315"
+  go-green: "#4FB47A"
+  info-blue: "#6C9BF2"
+  # Plate-state triad (same fills in both schemes)
+  plate-bone: "#ECE6DA"
+  plate-signal: "#F2C230"
+  plate-red: "#E5483A"
+  # Light scheme (palette.plateLight*)
+  light-ground: "#F3F2EF"
+  light-card: "#FFFFFF"
+  light-raised: "#EBE9E4"
+  light-option: "#DEDBD4"
+  light-line-step: "#C9C5BC"
+  light-ink: "#141517"
+  light-ink-2: "#45464A"
+  light-ink-3: "#6B6C70"
+  light-ink-4: "#9C9DA1"
+  line-light: "rgba(20,21,23,0.10)"
+  line-2-light: "rgba(20,21,23,0.05)"
+  light-copper: "#B8501F"
+  light-copper-text: "#A6461A"
+  light-signal-ink: "#8A6700"
+  light-red: "#C8352A"
+  light-go: "#2E8A55"
+  light-info: "#2F64C8"
 typography:
-  numeral-display:
-    fontFamily: "Geist Mono"
-    fontSize: "44px"
-    fontWeight: 500
-    lineHeight: "46px"
-    letterSpacing: "-0.88px"
+  plate:
+    fontFamily: "Barlow Condensed SemiBold (PlateCondensed-SemiBold)"
+    fontSize: "64px"
+    fontWeight: 600
+    lineHeight: "64px"
+    letterSpacing: "-0.5px"
+    fontFeature: "tnum"
+  plate-compact:
+    fontFamily: "Barlow Condensed SemiBold (PlateCondensed-SemiBold)"
+    fontSize: "40px"
+    fontWeight: 600
+    lineHeight: "42px"
+    letterSpacing: "-0.3px"
+    fontFeature: "tnum"
   figure:
-    fontFamily: "Geist Mono"
-    fontSize: "32px"
-    fontWeight: 500
-    lineHeight: "34px"
-    letterSpacing: "-0.64px"
-  serif-page:
-    fontFamily: "Instrument Serif"
-    fontSize: "30px"
-    fontWeight: 400
-  serif-sheet:
-    fontFamily: "Instrument Serif"
-    fontSize: "26px"
-    fontWeight: 400
+    fontFamily: "Barlow Condensed SemiBold (PlateCondensed-SemiBold)"
+    fontSize: "28px"
+    fontWeight: 600
     lineHeight: "30px"
-  serif-status:
-    fontFamily: "Instrument Serif"
-    fontSize: "24px"
-    fontWeight: 400
-    lineHeight: "26px"
-  serif-name:
-    fontFamily: "Instrument Serif"
-    fontSize: "22px"
-    fontWeight: 400
-    lineHeight: "24px"
-  keypad:
-    fontFamily: "Geist Mono"
-    fontSize: "24px"
+    fontFeature: "tnum"
+  figure-small:
+    fontFamily: "Barlow Condensed Medium (PlateCondensed-Medium)"
+    fontSize: "20px"
     fontWeight: 500
-  stat-value:
-    fontFamily: "Geist Mono"
-    fontSize: "17px"
-    fontWeight: 500
-  button:
-    fontFamily: "Plus Jakarta Sans"
-    fontSize: "15px"
+    lineHeight: "22px"
+    fontFeature: "tnum"
+  large-title:
+    fontFamily: "Barlow Condensed Bold (PlateCondensed-Bold)"
+    fontSize: "36px"
     fontWeight: 700
-  button-sheet:
-    fontFamily: "Plus Jakarta Sans"
-    fontSize: "16px"
-    fontWeight: 700
-  title:
-    fontFamily: "Plus Jakarta Sans"
-    fontSize: "15px"
+    lineHeight: "40px"
+    letterSpacing: "0.2px"
+  sheet-title:
+    fontFamily: "Barlow Condensed SemiBold (PlateCondensed-SemiBold)"
+    fontSize: "28px"
     fontWeight: 600
-    lineHeight: "18px"
+    lineHeight: "32px"
+    letterSpacing: "0.2px"
+  section-title:
+    fontFamily: "system-ui (SF Pro / Roboto)"
+    fontSize: "20px"
+    fontWeight: 600
+    lineHeight: "25px"
   body:
-    fontFamily: "Plus Jakarta Sans"
+    fontFamily: "system-ui (SF Pro / Roboto)"
+    fontSize: "17px (iOS) / 16px (Android)"
+    fontWeight: 400
+    lineHeight: "22px (iOS) / 24px (Android)"
+  body-strong:
+    fontFamily: "system-ui (SF Pro / Roboto)"
+    fontSize: "17px (iOS) / 16px (Android)"
+    fontWeight: 600
+    lineHeight: "22px (iOS) / 24px (Android)"
+  subhead:
+    fontFamily: "system-ui (SF Pro / Roboto)"
     fontSize: "15px"
     fontWeight: 400
-    lineHeight: "21px"
-  body-sm:
-    fontFamily: "Plus Jakarta Sans"
-    fontSize: "14px"
-    fontWeight: 400
-    lineHeight: "19px"
-  sub:
-    fontFamily: "Plus Jakarta Sans"
+    lineHeight: "20px"
+  label:
+    fontFamily: "system-ui (SF Pro / Roboto)"
     fontSize: "13px"
-    fontWeight: 400
-    lineHeight: "16px"
-  action-text:
-    fontFamily: "Plus Jakarta Sans"
-    fontSize: "14px"
-    fontWeight: 600
-  segment-label:
-    fontFamily: "Plus Jakarta Sans"
-    fontSize: "13px"
-    fontWeight: 600
+    fontWeight: 500
+    lineHeight: "18px"
   caption:
-    fontFamily: "Plus Jakarta Sans"
+    fontFamily: "system-ui (SF Pro / Roboto)"
     fontSize: "12px"
     fontWeight: 400
     lineHeight: "16px"
-  odometer-chip:
-    fontFamily: "Geist Mono"
-    fontSize: "13px"
-    fontWeight: 500
-  eyebrow:
-    fontFamily: "Geist Mono"
-    fontSize: "11px"
-    fontWeight: 400
-    letterSpacing: "0.08em"
-  eyebrow-sm:
-    fontFamily: "Geist Mono"
-    fontSize: "10px"
-    fontWeight: 400
-    lineHeight: "13px"
-    letterSpacing: "0.08em"
-  tag:
-    fontFamily: "Geist Mono"
-    fontSize: "10px"
-    fontWeight: 500
-    lineHeight: "12px"
-    letterSpacing: "0.06em"
 rounded:
-  tag: "5px"
-  photo-chip: "7px"
-  segment: "10px"
   chip: "10px"
-  tile: "10px"
-  button: "14px"
+  control: "12px"
   card: "16px"
+  plate: "20px"
   sheet: "24px"
-  pill: "26px"
+  island: "28px"
+  pill: "999px"
 spacing:
-  hair: "2px"
-  xs: "4px"
-  sm: "6px"
-  md: "8px"
-  lg: "12px"
-  row-inset: "14px"
-  gutter: "16px"
-  xl: "20px"
-  xxl: "24px"
+  xxs: "4px"
+  xs: "8px"
+  sm: "12px"
+  md: "16px"
+  lg: "20px"
+  xl: "24px"
+  xxl: "32px"
+  xxxl: "40px"
 components:
-  action-pill:
-    backgroundColor: "{colors.copper}"
-    textColor: "{colors.copper-ink}"
-    typography: "{typography.button}"
-    rounded: "{rounded.pill}"
-    padding: "0 20px 0 16px"
+  bike-plate-ready:
+    backgroundColor: "{colors.plate-bone}"
+    textColor: "{colors.plate-ink}"
+    typography: "{typography.plate}"
+    rounded: "{rounded.plate}"
+    padding: "20px"
+  bike-plate-due:
+    backgroundColor: "{colors.plate-signal}"
+    textColor: "{colors.plate-ink}"
+    typography: "{typography.plate}"
+    rounded: "{rounded.plate}"
+    padding: "20px"
+  bike-plate-overdue:
+    backgroundColor: "{colors.plate-red}"
+    textColor: "{colors.plate-ink}"
+    typography: "{typography.plate}"
+    rounded: "{rounded.plate}"
+    padding: "20px"
+  bike-plate-compact:
+    typography: "{typography.plate-compact}"
+    rounded: "{rounded.plate}"
+    padding: "16px"
+  button-primary-dark:
+    backgroundColor: "{colors.exhaust-copper}"
+    textColor: "{colors.plate-ink}"
+    typography: "{typography.body-strong}"
+    rounded: "{rounded.control}"
     height: "52px"
-  action-pill-icon:
-    backgroundColor: "{colors.copper}"
-    textColor: "{colors.copper-ink}"
+  button-primary-light:
+    backgroundColor: "{colors.light-copper}"
+    textColor: "{colors.light-card}"
+    typography: "{typography.body-strong}"
+    rounded: "{rounded.control}"
+    height: "52px"
+  button-cancel-dark:
+    backgroundColor: "{colors.graphite-raised}"
+    textColor: "{colors.bone-ink}"
+    typography: "{typography.body-strong}"
+    rounded: "{rounded.control}"
+    height: "52px"
+  button-primary-disabled-dark:
+    backgroundColor: "{colors.graphite-option}"
+    textColor: "{colors.bone-ink-4}"
+    rounded: "{rounded.control}"
+    height: "52px"
+  grouped-group-dark:
+    backgroundColor: "{colors.graphite-card}"
+    rounded: "{rounded.card}"
+  grouped-group-light:
+    backgroundColor: "{colors.light-card}"
+    rounded: "{rounded.card}"
+  grouped-row:
+    typography: "{typography.body}"
+    padding: "12px 16px"
+    height: "44px (iOS) / 48px (Android) minimum"
+  choice-chip-dark:
+    backgroundColor: "{colors.graphite-raised}"
+    textColor: "{colors.bone-ink-2}"
+    rounded: "{rounded.chip}"
+    padding: "0 16px"
+    height: "44px"
+  choice-chip-selected-dark:
+    backgroundColor: "{colors.graphite-raised}"
+    textColor: "{colors.copper-text}"
+    rounded: "{rounded.chip}"
+  home-action-tile-dark:
+    backgroundColor: "{colors.graphite-card}"
+    textColor: "{colors.bone-ink-2}"
+    typography: "{typography.label}"
+    rounded: "{rounded.control}"
+    height: "68px (iOS) / 64px (Android) minimum"
+  tab-island-dark:
+    backgroundColor: "{colors.graphite-card}"
+    textColor: "{colors.bone-ink-3}"
+    typography: "{typography.caption}"
+    rounded: "{rounded.island}"
+    padding: "8px"
+    width: "max 520px"
+  tab-island-light:
+    backgroundColor: "{colors.light-card}"
+    textColor: "{colors.light-ink-3}"
+    rounded: "{rounded.island}"
+    padding: "8px"
+  ride-button:
+    backgroundColor: "{colors.exhaust-copper}"
+    textColor: "{colors.plate-ink}"
     rounded: "{rounded.pill}"
     size: "52px"
-  button-primary:
-    backgroundColor: "{colors.copper}"
-    textColor: "{colors.copper-ink}"
-    typography: "{typography.button-sheet}"
-    rounded: "{rounded.button}"
-    height: "52px"
-  button-secondary:
-    backgroundColor: "{colors.raised}"
-    textColor: "{colors.text}"
-    typography: "{typography.title}"
-    rounded: "{rounded.button}"
-    height: "48px"
-  segment-pill:
-    textColor: "{colors.dim}"
-    typography: "{typography.segment-label}"
-    rounded: "{rounded.segment}"
-    padding: "0 14px"
-    height: "36px"
-  segment-pill-selected:
-    backgroundColor: "{colors.raised}"
-    textColor: "{colors.text}"
-    typography: "{typography.segment-label}"
-    rounded: "{rounded.segment}"
-    padding: "0 14px"
-    height: "36px"
-  odometer-chip:
-    backgroundColor: "{colors.card}"
-    textColor: "{colors.text}"
-    typography: "{typography.odometer-chip}"
-    rounded: "{rounded.chip}"
-    padding: "0 12px"
-    height: "36px"
-  hub-card:
-    backgroundColor: "{colors.card}"
-    rounded: "{rounded.card}"
-  list-row:
-    textColor: "{colors.text}"
-    typography: "{typography.title}"
-    padding: "12px 12px 12px 14px"
-  icon-tile:
-    backgroundColor: "{colors.raised}"
-    rounded: "{rounded.tile}"
-    size: "36px"
-  tag-crit:
-    backgroundColor: "{colors.tag-crit-bg}"
-    textColor: "{colors.late}"
-    typography: "{typography.tag}"
-    rounded: "{rounded.tag}"
-    padding: "3px 6px"
-  tag-high:
-    backgroundColor: "{colors.tag-high-bg}"
-    textColor: "{colors.soon}"
-    typography: "{typography.tag}"
-    rounded: "{rounded.tag}"
-    padding: "3px 6px"
-  tag-med:
-    backgroundColor: "{colors.tag-med-bg}"
-    textColor: "{colors.medium}"
-    typography: "{typography.tag}"
-    rounded: "{rounded.tag}"
-    padding: "3px 6px"
-  tag-low:
-    backgroundColor: "{colors.tag-low-bg}"
-    textColor: "{colors.low}"
-    typography: "{typography.tag}"
-    rounded: "{rounded.tag}"
-    padding: "3px 6px"
-  ride-status-ready:
-    backgroundColor: "{colors.status-ready}"
-    textColor: "{colors.text}"
-    typography: "{typography.serif-status}"
-    rounded: "{rounded.card}"
-    padding: "14px 14px 14px 16px"
-  ride-status-check:
-    backgroundColor: "{colors.status-check}"
-    textColor: "{colors.text}"
-    typography: "{typography.serif-status}"
-    rounded: "{rounded.card}"
-    padding: "14px 14px 14px 16px"
-  ride-status-not-ready:
-    backgroundColor: "{colors.status-not-ready}"
-    textColor: "{colors.text}"
-    typography: "{typography.serif-status}"
-    rounded: "{rounded.card}"
-    padding: "14px 14px 14px 16px"
-  undo-snackbar:
-    backgroundColor: "{colors.raised}"
-    textColor: "{colors.text}"
-    rounded: "{rounded.button}"
-    padding: "10px 16px"
-    height: "48px"
-  log-option-row:
-    backgroundColor: "{colors.option}"
-    textColor: "{colors.text}"
-    rounded: "{rounded.button}"
-    padding: "14px 16px"
-  keypad-key:
-    backgroundColor: "{colors.raised}"
-    textColor: "{colors.text}"
-    typography: "{typography.keypad}"
-    rounded: "{rounded.button}"
-    height: "56px"
-  field-quick-note:
-    backgroundColor: "{colors.ground}"
-    textColor: "{colors.text}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.chip}"
-    padding: "0 12px"
-    height: "36px"
-  sheet:
-    backgroundColor: "{colors.card}"
-    rounded: "{rounded.sheet}"
 ---
 
-# Design System: MotoVault Mobile — Bike Hub
-
-<!-- Scope: this records the INCUMBENT bike-hub world as shipped in code (apps/mobile/src/components/bike-hub, phase 1 of the bike-detail redesign, 3.22.0). It is the direction for the whole mobile app. Sources of truth, in order: components/bike-hub/ui/tokens.ts → packages/design-system/src/palette.ts → the ui/, sheets/, overview/, notes/ components. Intent lives in docs/design/app-screens/05-garage/02-bike-detail/redesign/DESIGN-SPEC.md; where code and spec disagree, this file records the code value and names the divergence. -->
+# Design System: MotoVault Mobile — Race Plate
 
 ## Overview
 
-**Creative North Star: "The Instrument Cluster"**
+**Creative North Star: "The Race Plate"**
 
-The bike hub reads like the dash of a well-made motorcycle at dusk: a warm near-black ground, a few lit readouts, and one copper control you reach for. Numbers are set in a monospace like gauge digits; the bike's name and the one-line ride verdict are set in a soft editorial serif, the only place the UI raises its voice. Everything else is quiet, warm-tinted sans on dark graphite. Information is ranked, not decorated: ride status first, then what needs attention, then what is next, then money, then notes and papers.
+Every bike carries a number plate, and the plate tells you whether it is ready. The app is built around one object: a rounded plate panel whose fill colour is the bike's readiness (bone = ready, signal yellow = due soon, red = overdue), printed with condensed racing numerals cut from plate lettering. The plate is reused wherever a bike appears (Home hero, Garage list, bike hub ride status, onboarding reveal), so a rider learns one object once.
 
-Density is confident rather than sparse. Cards hold several rows separated by hairlines, every row has a title plus a two-line sub-line, and money figures always carry their basis line. Colour is semantic and rationed: red-coral and amber mean late and soon, green means ready, blue means medium priority, and copper means "press here". Depth comes from tonal steps of warm graphite and 6–8 % white hairlines, not shadows; the floating action pill is the one lifted object.
+Around the plate the world is quiet and mechanical: a five-step graphite ramp with bone ink in dark, a warm off-white ramp with near-black ink in light, exhaust copper reserved for actions and selection, and native system type for every sentence. Density is confident but grouped: native inset grouped rows, a strict 4pt grid, tabular figures, and one large condensed title per screen. Primary actions sit low and large (the Home action row, the seated Ride button, sticky sheet footers) for a rider with one hand and possibly gloves.
 
-The hub is dark in both system colour schemes; there is no light hub yet. It replaces the legacy "editorial" layer (`theme/editorial.ts`): the Service, Costs and Bike segments still wrap the old `MaintenanceSection`, `ExpensesSection`, `DocumentsSection` and `BikeDetailsCard`, pinned dark through `EditorialSchemeProvider` so they sit on the same ground. Those sections are off-system (system font with `fontWeight`, editorial ink/warm tokens, blue `primary500` actions, a serif-italic section title) and are slated for replacement in phases 2–5; do not copy them.
+The world explicitly retires the previous "Bike Hub" editorial world: no serif, no italic display, no mono numerals, no eyebrows or section numbers, and no blue for medium priority. One diagonal livery stripe on the plate is the only rebellion against the grid.
 
 **Key Characteristics:**
-- Dark-only, warm-tinted surfaces: ground → card → raised, each a few lightness points apart.
-- Three typefaces with fixed jobs: Geist Mono for every number, tag and eyebrow; Plus Jakarta Sans for UI; Instrument Serif for the bike name, sheet titles, the ride-status verdict and the Notes page title.
-- Copper is action-only: one filled copper control per screen region, dark ink on it.
-- Status colour always has words beside it; priority is a tag, lateness is a due line.
-- Continuous (squircle) corners on every rounded surface; 16 px cards, 14 px buttons, 26 px pill.
-- Haptics on iOS for every press; Material tabs and ripple on Android.
+- The plate is the signature: state is a fill colour, not a badge.
+- Light and dark are both first-class; every token has a value in each scheme.
+- Copper means "act here" or "this is selected", never status, never a chart highlight.
+- Barlow Condensed carries numbers and titles only; everything read as a sentence is the OS face and scales with Dynamic Type.
+- Native idioms per platform: UISegmentedControl, form sheets with grabbers and header blur on iOS; Material segmented buttons, single-detent sheets and ripples on Android.
 
 ## Colors
 
-A warm-graphite night palette with one hot copper accent and a small, strictly semantic status set; every value lives in `palette` (the `hub*` block) and is aliased in `hub` in `ui/tokens.ts`.
+A graphite-and-bone instrument palette with one warm action colour and a three-step state triad that belongs to the plate.
+
+The token names in code are kept from the editorial era (`useEditorialTheme().t`): `bg`, `surface`, `surface2`, `surface3`, `ink`…`ink4`, `line`, `line2`, `warm` (copper), `warm2` (copper text). The bike hub reads the same palette through `useHubTheme()` (`ground`, `card`, `raised`, `option`, `track`). Both resolve from `palette` in `@motovault/design-system`; no colour literal lives in a component.
 
 ### Primary
-- **Exhaust Copper** (`palette.signature500`): the fill of the one primary action: the floating Log / action pill, sheet Save buttons, the Notes composer "Add" button, the Overview quick-note button, the Android segment indicator and the odometer entry caret. Never status, never decoration.
-- **Heated Copper** (`palette.hubCopperText`): copper as *text* on dark: section-header actions ("Full costs"), "Retry", snackbar "Undo", highlighted odometer chips. Lighter than the fill so it passes contrast on card and raised surfaces. At 50 % alpha it is the border of a selected chip.
-- **Copper Ink** (`palette.hubInk`): text and icons on copper. White on copper fails contrast; this near-black brown is mandatory.
+- **Exhaust Copper** (dark `exhaust-copper`, light `light-copper`): fills primary buttons (sheet Save, Ride button, `EButton` primary), the active tab dot, toggle tint, inline date-picker accent, option-row check, progress fill, and the selected-chip border. Ink on copper is `onWarm`: `plate-ink` in dark, `light-card` (white) in light, because dark ink on light copper is only 3.7:1.
+- **Copper Text** (dark `copper-text`, light `light-copper-text` in the hub / `light-copper` elsewhere): text-weight copper for links and text actions ("See all", "Open analytics", "Done") and selected chip labels.
 
-### Secondary (status)
-- **Warning-Light Coral** (`palette.hubLate`): past due, CRIT tag text, the Service badge count, inline save errors and destructive text actions. At 40 % alpha it borders an overdue Critical row; at 35 % it borders the "Not ready" card.
-- **Amber Lamp** (`palette.hubSoon`): due soon (within 30 days or 2,000 km / 1,200 mi), HIGH / SAFETY / DOC tag text, "Couldn't refresh", odometer warnings, the Expense log-option icon, and (in the Costs card) a year-over-year increase.
-- **Ready Green** (`palette.hubOk`): "Ready to ride" dot and border, the "Work already done" icon, a year-over-year decrease.
-- **Gauge Blue** (`palette.hubMedium`): MED tag text only.
-- **Not-Ready Signal** (`palette.hubNotReadyDot`): the dot on the "Not ready" card; brighter than Coral so a 10 px dot still reads.
+### Plate-state triad
+- **Plate Bone** (`plate-bone`): ready. Same fill in both schemes.
+- **Signal Yellow** (`plate-signal`): due soon.
+- **Plate Red** (`plate-red`): overdue.
+- **Plate Ink** (`plate-ink`): the only ink printed on any plate state, and on copper in dark.
 
-### Tertiary (tinted fills)
-- **Tag fills**: CRIT `tag-crit-bg`, HIGH `tag-high-bg`, MED `tag-med-bg`, LOW `tag-low-bg`: deep, low-chroma versions of their text colours.
-- **Status card fills**: `status-not-ready`, `status-check`, `status-ready`: the ride-status card takes the tint of its verdict; "Nothing tracked yet" uses the plain card.
-- **Critical row** (`palette.hubRowCritical`): the only row that gets a tinted background, an overdue Critical task (used from phase 2).
-- **Selected chip** (`palette.hubChipOn`): selected chips in sheets.
+As text or dots on the ground (not plate fills) the triad uses its ink variants: `dueInk` = `plate-signal` in dark, `light-signal-ink` in light; `overdueInk` = `plate-red` in dark, `light-red` in light. Priority dots and the `EPriority` pill reuse them: low = ink-3, medium = ink-2, high = dueInk, critical = overdueInk.
 
 ### Neutral
-- **Workshop Black** (`palette.surfaceDark`): the ground of the hub, header and segment bar; also the inset fill of quick-note fields and odometer chips sitting on a card.
-- **Warm Graphite** (`palette.cardDark`): cards, the odometer header chip and every hub form sheet's background.
-- **Raised Graphite** (`palette.hubRaised`): the selected segment pill, secondary buttons, keypad keys, neutral icon tiles, the undo snackbar.
-- **Option Graphite** (`palette.hubOption`): rows of the Log sheet.
-- **Track Grey** (`palette.hubTrack`): the Android sheet grabber, the "other" share of the category bar, off switches.
-- **Bone** (`palette.hubText`): primary text and icons.
-- **Soft Bone** (`palette.hubTextSoft`): note body text, a step down so long text does not glare.
-- **Dust** (`palette.hubDim`): secondary text: sub-lines, ride-status reasons, unselected segment labels, Cancel.
-- **Stone** (`palette.hubMuted`): eyebrows, meta, chevrons, placeholders, the grey half of a due line (holds 4.5:1 on raised).
-- **Low Grey** (`palette.hubLow`): LOW tag text.
-- **Hairlines**: `hairline` (`whiteAlpha06`) for card borders and row dividers; `hairline-strong` (`whiteAlpha08`) for chips, the snackbar, search and quick-note fields; `field-border` (`whiteAlpha10`, exposed as `hub.ripple`) for the Notes composer and odometer chips and as the Android ripple colour; `dashed` (`whiteAlpha18`) for the dashed "Add a photo" border.
-- **Overlays**: `photo-chip` (ground at 78 %) behind chips on the bike photo and the uploading scrim; `tab-bar` (ground at 96 %).
+- **Graphite ramp, dark** (`graphite-ground` → `graphite-card` → `graphite-raised` → `graphite-option` → `graphite-line-step`): screen ground, grouped cards and tab island, raised controls (cancel button, chip fill, row icon wells), selected Android segment and disabled primary, chart tracks.
+- **Paper ramp, light** (`light-ground` → `light-card` → `light-raised` → `light-option` → `light-line-step`): the same five roles in light. Cards are pure white on an off-white ground.
+- **Bone Ink, dark** (`bone-ink` → `bone-ink-4`): primary text, secondary text, captions and section labels, placeholders and chevrons.
+- **Ink, light** (`light-ink` → `light-ink-4`): the same four roles in light.
+- **Lines** (`line-dark` / `line-light`, and the fainter `line-2-*`): hairline row separators, sheet-footer top rule, island keyline, ripple colour.
+- **Go / Info** (`go-green`, `info-blue`, light `light-go`, `light-info`): success (sheet primary DONE state) and informational series such as the ride speed chart. Not part of the plate triad.
+
+### Sanctioned exceptions
+- **Expense category hues.** Fourteen fixed category colours (`palette.hubCat*` in dark, `palette.plateLightCat*` in light, ≥3:1 on white), resolved with `hubCategoryColor(category, hub)`. The same hue marks a category on the Add-expense chip dot and in the Costs chart bar, and the category name always sits beside it. None is copper or a state colour, so a bar never reads as a warning or a button.
+- **Ridden-route copper.** On maps (ride detail, flyover, trip detail, create trip) the ridden route is drawn in copper (`t.warm`): a 4px line over a 10px glow at 15% opacity. This is the one place copper is a data mark rather than an action, because the route is the rider's own trace.
 
 ### Named Rules
-**The Copper Is a Button Rule.** Copper means "press this". It never marks status, never highlights a chart bar and never decorates a heading. If it is copper and not tappable, it is a bug.
+**The Copper Is a Verb Rule.** Copper marks an action or the current selection. It is never a status, a heading accent, a chart highlight or display type.
 
-**The Words Beside the Colour Rule.** No colour carries meaning alone: every status dot sits beside the verdict, every tag has its label, every category bar segment has an accessibility label.
+**The Triad Belongs to State Rule.** Bone, signal and red are reserved for readiness. Medium priority is graphite, never a hue; decorative use of yellow or red is forbidden.
 
-**The No-Literals Rule.** Components read `hub.*` from `ui/tokens.ts`; tints are derived with `withAlpha(palette.x, a)`. A hex or `rgba()` literal in a hub component fails review.
+**The Both-Schemes Rule.** No token ships with only one scheme's value. Light is not an inversion: the plate gains a 2px `plate-ink` keyline on light grounds, copper darkens, and status inks shift to text-safe variants (every text token clears 4.5:1 on card, ground and raised).
 
 ## Typography
 
-**Display Font:** Instrument Serif (registered as `InstrumentSerif-Regular`, system serif until loaded)
-**Body Font:** Plus Jakarta Sans (registered as `HubSans-Regular / -Medium / -SemiBold / -Bold`)
-**Label/Mono Font:** Geist Mono (registered as `HubMono-Regular / -Medium`)
+**Display Font:** Barlow Condensed (registered as `PlateCondensed-Medium / -SemiBold / -Bold`)
+**Body Font:** the platform's own face (SF Pro on iOS, Roboto on Android), set by weight only, never by `fontFamily`
 
-**Character:** A workshop pairing: a geometric, slightly warm sans that stays out of the way, a gauge-like mono that makes every number and tag feel measured, and one soft serif that gives the bike's name and the ride verdict a human, crafted voice.
-
-The hub families are registered under hub-only keys in `app/_layout.tsx` (lead decision D6): one family per weight, never combined with `fontWeight`. The ~130 older usages of `PlusJakartaSans*` / `GeistMono*` elsewhere in the app point at names that are never loaded and render in the system font.
+**Character:** Racing-plate numerals against a native interface. The condensed face gives figures and titles the weight of plate lettering; the system face keeps every sentence native, accessible and Dynamic Type aware.
 
 ### Hierarchy
-- **Numeral display** (Mono Medium, 44/46, −0.88 tracking): the odometer entry in the Odometer sheet. One per screen.
-- **Figure** (Mono Medium, 32/34, −0.64 tracking; 28/30 in the empty state): the year's cost total in the Costs card. Shrinks to fit, never truncates.
-- **Serif titles** (Instrument Serif 400): Notes page title 30; sheet titles 26/30 (Log, Odometer); Note sheet title 24; ride-status verdict 24/26; bike name in the header 22/24, scaling to 17 when the header collapses.
-- **Keypad numerals** (Mono Medium 24) on 56 px keys.
-- **Stat value** (Mono Medium 17; the Costs card overrides to 16).
-- **Title** (Sans SemiBold 15/18): row titles, two lines max. Log-sheet option titles are 16.
-- **Body** (Sans 15/21, Soft Bone): note text. **Body small** (Sans 14/19): note previews, ride-status error, empty-state and "see all" lines.
-- **Sub-line** (Sans 13/16, Dust): row sub-lines and due lines, wrapping to two lines (`HUB_ROW_SUB_LINES`) before ellipsizing. Detail lines in cards use 13/17.
-- **Button** (Sans Bold 15 on the pill and composer, 16 on sheet Save, 13 on the 36 px quick-note button). Text actions: Sans SemiBold 13–15 in Heated Copper (13 in section headers, 14 in cards and sheets, 15 on full-screen states).
-- **Segment label** (Sans SemiBold 13 on iOS pills, 14 on Android tabs).
-- **Caption** (Sans 12, Stone or Coral): hints, odometer notices, inline save errors, note meta. Stat basis lines drop to Sans 11.
-- **Eyebrow** (Mono 11, uppercase, 0.08 em, Stone): section headers ("NEEDS ATTENTION · 3") and sheet field labels. **Eyebrow small** (Mono 10/13, uppercase, 0.08 em): the header's "2022 · HONDA" and stat eyebrows.
-- **Tag** (Mono Medium 10/12, 0.06 em): CRIT / HIGH / MED / LOW / SAFETY / DOC. Badge and photo-chip text use Mono 11.
+- **Plate** (SemiBold 600, 64/64, tabular; compact 40/42): the plate's big figure only. Fits to one line down to 0.6 scale, capped at 1.2× font scale.
+- **Figure** (SemiBold 600, 28/30; small Medium 500, 20/22; tabular): stats, amounts, odometers, plate units. The Add-expense amount is figure at 40/44.
+- **Title** (Large title Bold 700, 36/40; Sheet title SemiBold 600, 28/32): one condensed title per screen or sheet. iOS large navigation titles use `PlateCondensed-Bold`.
+- **Section title** (system 600, 20/25): "Up next" and other in-page section heads, sentence case.
+- **Body** (system 400, 17/22 iOS, 16/24 Android; strong 600): rows, captions on plates, button labels, inputs.
+- **Subhead** (system 400, 15/20): compact plate caption, text actions.
+- **Label** (system 500, 13/18) and **Caption** (system 400, 12/16): section captions above grouped cards, row subtitles, tab labels, plate identity edge.
 
 ### Named Rules
-**The Every-Number-Is-Mono Rule.** Odometer, money, counts, dates in stamps, tags and eyebrows are Geist Mono. A number in sans is a bug (the one sanctioned exception is the Top-category stat, which is a word plus a percentage).
+**The Condensed Means Number Rule.** Barlow Condensed carries plates, figures and titles. Anything a rider reads as a sentence uses the system face so it follows Dynamic Type.
 
-**The Three-Serif-Moments Rule.** Instrument Serif is for the bike's name, sheet and page titles, and the ride-status verdict. Never a section heading: section headers are mono eyebrows.
-
-**The Chrome Cap Rule.** Text inside fixed-size chrome (header, odometer chip, segment labels, action pill, sheet titles, keypad, sheet bodies) sets `maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}` (1.3). Body content (rows, cards, notes) is uncapped and must reflow; the hub is verified at AX5.
+**The Plain Voice Rule.** Sentence case everywhere. No serif, no italic, no eyebrows or kickers above titles, no section numbers, no letter-spaced uppercase labels.
 
 ## Layout
 
-A single column on a 16 px gutter. The hub is a persistent header (back · serif name over mono eyebrow · odometer chip, 12 px side padding, 48 px row collapsing to 44 px on scroll) over a segment bar (Overview · Service · Costs · Bike), then one scroll per segment. On iOS the segment bar is a horizontally scrollable row of 36 px pills with a 6 px gap and 16 px side padding; on Android it is four equal-width 48 dp Material tabs with a 2 dp copper indicator that slides in 200 ms.
+A strict 4pt grid: every gap, padding and margin is one of 4, 8, 12, 16, 20, 24, 32, 40. The screen gutter is 16. Sections on a screen and in a sheet are separated by 24; a caption sits 8 above its grouped card.
 
-Overview stacks its blocks with a 12 px gap and 12 px top padding: photo band (150 px; 120 px dashed empty state) → ride-status card → Needs attention (max three rows, then "N more") or the set-up list → Next up → Costs → Notes → Papers & bike rows. A block that renders nothing is removed from the list so it leaves no orphan gap. Within a block, the section header sits 8 px above its card.
+On a tablet, content stops at a **720pt readable column** (`readableWidth`: `maxWidth: 720`, centred); on a phone the column is wider than the screen and nothing changes. The tab island stops at 520pt and centres.
 
-The spacing rhythm is 2 / 4 / 6 / 8 / 12 / 14 / 16 with occasional 20 / 24; 8, 12, 16 and 6 dominate. These values are literal in components; the hub does not use the shared `spacing` scale in `@motovault/design-system` and has no spacing token object of its own.
+The Home first viewport is fixed in order: large condensed title, the hero plate (about the top third), a 4-up action row (Ride, Expense, Task, Diagnose; tiles 68pt iOS / 64dp Android, 8 apart), then "Up next" as inset rows. Scroll content reserves room for the floating tab island, whose real height is measured (`useTabBarStore`) because it grows with font scale.
 
-The bottom is owned by geometry, not guesses: the floating tab bar's real height is measured (`useTabBarStore`, fallback `HUB_TAB_BAR_HEIGHT` 65); the action pill floats `HUB_PILL_GAP` (16) above it at the right edge; segment content gets `HUB_PILL_CLEARANCE` (16 + 52 + 76 = 144) of extra bottom padding so the last row's chevron scrolls clear of the pill. Safe-area insets are always applied; the header pads by the top inset.
-
-Form sheets (Log, Odometer, Note) are native `formSheet`s on Warm Graphite with 24 px corners; Log and Odometer fit to content, the Note sheet is full height. Sheet content sits on 16 px padding with 10 px between Log options. Under large text every sheet scrolls (`SheetScroll`) so Save is always reachable.
+Touch targets are 44pt on iOS and 48dp on Android. Fixed chrome (tab labels, segment labels, hub header, sheet titles) caps font scale at 1.3; body content scales freely, and rows stack their tag above the title from font scale 1.5.
 
 ## Elevation & Depth
 
-Depth is tonal, not shadowed. Surfaces step up in lightness from Workshop Black (ground) to Warm Graphite (card) to Raised Graphite (selected, secondary, keys), and every card edge is a 1 px white hairline at 6 %. Tinted fills (status cards, tag fills, the critical row) add meaning, not height. The uploading scrim over the photo is ground at 78 %.
+Flat and tonal. Depth comes from stepping up the graphite (or paper) ramp: ground → card → raised → option. There is no drop shadow on cards, rows, plates or the tab island, and no native blur in the app body; the island is an opaque card-step surface with a hairline keyline so list text never reads through it. Over the bike hub an opaque ground-colour dock sits behind the island from 8pt above it to the screen edge.
 
-### Shadow Vocabulary
-- **Floating pill** (`shadowColor: palette.black`, offset 0/8, opacity 0.45, radius 12; Android `elevation: 6`): the action pill only, because it floats over scrolling content. Matches the mock's `0 8px 24px rgba(0,0,0,0.45)`.
+The only blur is the iOS navigation header, pinned to the app scheme (`systemChromeMaterialDark/Light` on Profile, `systemMaterialDark/Light` on Garage), never the adaptive material that follows the system appearance.
 
 ### Named Rules
-**The One Lifted Object Rule.** Only the floating action pill casts a shadow. Cards, rows, sheets and the snackbar are flat; separate them with tone and hairlines.
+**The Ramp Is the Shadow Rule.** A surface is lifted by moving one step up the ramp, never by a shadow.
 
 ## Shapes
 
-Every rounded surface uses `borderCurve: 'continuous'`, so corners are squircles rather than circular arcs; that is the hub's signature silhouette. The radius scale is small and role-bound (`HUB_RADIUS`): 5 px tags, 7 px photo chips, 10 px segment pills / chips / icon tiles / quick-note fields, 14 px buttons, keypad keys, the snackbar and composer fields, 16 px cards and the photo band, 24 px form sheets, 26 px for the 52 px action pill (a full capsule). True circles (the 10 px status dot, the 18 px badge, the 24 px photo-remove button) use half-height radii.
+Continuous corners (`borderCurve: 'continuous'`) on every rounded element. Radii are role-based: chips and row icon wells 10 (wells 8), controls and buttons 12, grouped cards 16, the plate 20, form sheets 24, the tab island 28 (plate + 8), and pills/the Ride button fully round.
 
-Borders are 1 px and almost always a white hairline; the only coloured borders are the status-card tint, a failed field (Coral) and a selected chip (copper at 50 %). The empty photo state is the one dashed border. Icons are lucide line icons at 14–22 px, stroke 1.8–2.5, never filled.
+The only diagonal in the app is the livery stripe: two parallel bands rotated 45° through the plate's top-right corner. Everything else is orthogonal.
 
 ## Components
 
-### Buttons
-Tactile and few: one copper fill per region, everything else tonal or text.
-- **Action pill (signature):** copper capsule, 52 px tall, 26 px radius, Copper Ink 20 px icon (stroke 2.5) plus Sans Bold 15 label, 16 px left / 20 px right padding. Labelled "Log" on Overview (opens the Log chooser); icon-only 52 px circle on other segments. Floating pill shadow. Press: scale 0.98 + light impact haptic.
-- **Primary (sheet Save):** copper, 52 px, 14 px radius, Sans Bold 16 in Copper Ink. Disabled 40 % opacity; pressed 85 %.
-- **Secondary:** Raised Graphite, 48 px, 14 px radius, Sans SemiBold 15 in Bone ("Done" under the date picker).
-- **Small primary:** 36 px copper, 10 px radius, plus-icon + Sans Bold 13 (Overview quick note). The Notes composer "Add" is a 48 px copper button.
-- **Text actions:** Heated Copper Sans SemiBold, no fill, touch target grown to 44/48 with hit slop; pressed 60 % opacity. Destructive actions are Coral text only.
-- Heights come from `HUB_HEIGHT` (52 / 48 / 36); anything shorter than `HUB_TOUCH_TARGET` (44 pt iOS / 48 dp Android) gets hit slop up to it.
+### Bike Plate (signature)
+The bike's readiness as an object.
+- **Anatomy:** figure row (plate figure + figure-weight unit, baseline aligned, kept clear of the stripe); one caption line beneath (body-strong on hero, subhead on compact, max 2 lines; prefixed with the state word only when the caption does not already say it); identity edge below a 1px rule at 16% ink: bold tabular racing number, then "make model · year" in label at 68% ink. No kicker above the figure.
+- **Sizes:** hero (padding 20, gap 8, stripe 220/14/34) and compact (padding 16, gap 4, stripe 140/9/22).
+- **States:** fill is the triad colour; ink is always `plate-ink`. On light grounds the plate carries a 2px `plate-ink` keyline; on graphite it has none.
+- **Livery stripe:** a copper band and a half-width ground-colour band, so it reads as copper-plus-black in dark and copper-plus-white in light.
+- **Motion:** settles in once (scale 0.98→1 with opacity, 240ms, exponential ease-out); a state change cross-fades the fill colour over 200ms. Pressed scale 0.985. Reduce Motion skips both.
+- **Accessibility:** one button with the state word in its label.
 
-### Chips
-- **Odometer chip (header):** 36 px, Warm Graphite with hairline-strong border, 10 px radius, gauge icon + Mono Medium 13 value and unit ("23,716 km"); reads "Set odometer" when unset. The only odometer on the page.
-- **Quick-add chips (Odometer sheet):** 40 px, Workshop Black with `field-border`, 11 px radius, Mono 13; highlighted chip = copper text and 50 % copper border.
-- **Photo chips:** ground at 78 %, 7 px radius, Mono 11 Bone ("PRIMARY", "38 rides").
-- **Segment pills:** 36 px, min width 72, 10 px radius; selected = Raised Graphite fill + Bone label, unselected = transparent + Dust label. The Service pill carries an 18 px Coral-on-CRIT badge with the overdue Critical/High count.
+### Inset grouped rows
+- **Group:** card-step surface, radius 16, no border, clips its rows. Captions above (label, ink-3, 16 inset) and footers below (caption).
+- **Row:** min height 44/48, padding 12 vertical, 16 sides; optional 28pt icon well on the raised step; body title, caption subtitle; trailing value (body, ink-3), state dot, or chevron (ink-4). The hairline separator starts at the text column and is omitted on the last row.
+- **Press:** iOS tints the row with ink at 6%; Android uses a ripple at 8%. Toggles are native with copper tint; option rows show a copper check.
 
-### Cards / Containers
-- **Corner Style:** continuous 16 px.
-- **Background:** Warm Graphite; ride-status cards use their verdict tint.
-- **Shadow Strategy:** none (see Elevation).
-- **Border:** 1 px hairline (6 %); status cards use the verdict colour at 30–35 %.
-- **Internal Padding:** 14–16 px (16 for the Costs card, 14/16 for the status card); multi-row cards pad per row instead.
-- A pressable card is one Pressable (scale 0.98, light haptic); it never nests another pressable.
+### Form sheets
+- **Anatomy:** condensed sheet title top-left; sections 24 apart, each a label caption over an inset grouped card; rows 52 high with 18pt neutral icons; the amount as a 40pt condensed figure.
+- **Sticky footer:** pinned above the keyboard (`KeyboardStickyView`) on a ground-colour bar with a 0.5px top hairline. Cancel (raised graphite, body-strong ink) beside a flexible copper primary, both 52 high, radius 12. Primary states: ready = copper / onWarm, disabled = option step / ink-4, done = success / onWarm.
+- **Chips:** 44 high, radius 10, raised fill with 1.5px border; selected = copper border and copper-text label. Category chips carry their category dot; priority chips carry the priority dot.
+- **Detents:** iOS keeps a resting + expanded pair (expense 0.7/0.9, task 0.85/1.0, complete task 0.65/0.85/1.0) with a visible grabber and 24 corner radius. Android gets a single 0.92 detent, because react-native-screens lays the sheet out at its largest detent and a lower one pushed the footer off screen.
 
-### Inputs / Fields
-- **Quick note (Overview):** 36 px, Workshop Black inset on the card, 10 px radius, hairline-strong border, Sans 14 Bone, Stone placeholder.
-- **Notes composer / search:** 48 px (composer) or 40 px (search), Warm Graphite, 14 / 11 px radius, `field-border` / hairline-strong border, Sans 15 / 14.
-- **Note sheet body:** Sans 16/23 in a 14 px-radius field.
-- **Error:** the border turns Coral and a 12 px Coral caption appears under the field, announced politely. Draft text is never cleared on failure.
-- **Odometer keypad:** the app's own pad on both platforms, 3×4 grid of 56 px Raised Graphite keys (14 px radius, 8 px gap), Mono Medium 24 numerals, selection haptic per key; bottom row = date · 0 · delete (long-press clears).
+### Tab bar island and Ride button
+- **Island:** floats at the safe-area inset (minimum 12), spans the gutters (20) on a phone and caps at 520 on a tablet; card-step surface, hairline keyline, radius 28, 8 padding. Follows the system scheme everywhere, including over the hub. Fades in once (240ms).
+- **Tabs:** Home, Discover, Garage, Profile. 22pt Lucide icon and caption label; active = ink with semibold label and a 4pt copper dot beneath, inactive = ink-3. Labels shrink to fit instead of wrapping. The Garage badge is a danger-red count bubble.
+- **Ride button:** a 52pt copper circle seated inside the island row between Discover and Garage (not rising out of it), route icon in onWarm. While a ride records it gently pulses (1→1.12) and shows elapsed time in copper text below; Reduce Motion stops the pulse. Medium haptic on iOS.
+- **Over sheets:** on iOS the native sheet covers the bar; on Android the island is not drawn while a logging sheet is on top of the stack.
 
-### Navigation
-- **Header:** 44 px back target with a 22 px chevron (pressed 60 %), centred serif name over a mono eyebrow, odometer chip right. On scroll the name scales 22 → 17, the eyebrow fades by 60 % of the collapse and the row shrinks 48 → 44 (transforms and opacity only; scroll-driven, 150 ms sync).
-- **Segment bar:** iOS pills with a selection haptic; Android Material tabs with ripple and sliding indicator. `tablist` / `tab` roles; the badge count is part of the Service tab's label.
-- Back is origin-aware ("Back to Garage / Home / Profile"); the native edge-swipe back stays enabled.
+### Segmented control
+- **iOS:** native `UISegmentedControl`, appearance pinned to the app scheme.
+- **Android:** Material single-choice segmented buttons in graphite: selected = option step with ink, unselected = card step with ink-2, line borders. Selection is a raised surface, never copper.
 
-### List Rows
-The content of every hub list: optional 36 px icon tile (10 px radius, tinted fill, 18 px icon) · title (Sans SemiBold 15/18, two lines) over a sub-line (Sans 13/16 Dust or a due line, two lines) · trailing tag or Stone chevron. 12 px vertical padding, 14 px left / 12 px right, 12 px gap, hairline divider except on the last row. Pressed 70 % opacity + light haptic.
+### Buttons and chips (shared kit)
+`EButton` primary is copper with onWarm ink; ghost is transparent with a line border; solid is the raised step; danger is red text. `EChip` active fills copper with onWarm ink; inactive is raised with ink-2.
 
-### Priority Tag and Due Line (signature pair)
-- **Tag:** Mono Medium 10 on its tinted fill, 5 px radius, 3 × 6 px padding; a fixed 44 px column in task lists. CRIT / HIGH / MED / LOW for priority; SAFETY / DOC on attention rows (amber, or CRIT colours when severe or expired).
-- **Due line:** leads with the nearer limit, coloured Coral (past), Amber (soon) or Dust (plain), then " · " and the other limit in Stone ("201 days late · 3,933 km to target"). The second part turns Coral when it has passed too. Always in the bike's own unit, never converted.
-
-### Ride-Status Card
-Status dot (10 px) · serif verdict 24/26 ("Ready to ride", "Check before riding", "Not ready", "Nothing tracked yet") over a 13/17 Dust reason line · chevron to the top attention row. Fill and border take the verdict tint. While tasks or documents are loading it renders an empty placeholder at 60 % opacity; on error, a Dust line with a copper Retry.
-
-### Stat
-Eyebrow small (shrinks to 85 % then wraps, never truncates) · Mono Medium value (shrinks to fit) · one-line Sans 11 basis ("9 months"). A stat is never pressable on its own; its card is.
-
-### Undo Snackbar
-Raised Graphite, 48 px min height, 14 px radius, hairline-strong border; Sans Medium 14 message, Sans Bold 14 copper "Undo" (and an optional second action). Enters FadeInUp 250 ms, exits FadeOutDown 200 ms; `alert` role with a polite live region. Five-second window owned by `useDeferredDelete`. Deletes of tasks, notes and expenses use it instead of a dialog.
-
-### Refresh-Failed Line
-"Couldn't refresh · Retry" in Sans 13/18: Amber message, copper Retry, wrapping onto a second line at large sizes. The block keeps its last data. One announcement per 2-second window across all blocks.
-
-### Motion
-Reanimated v4 only, all under 300 ms: Overview blocks enter FadeInUp 200 ms with a 15 ms stagger; segment indicator 200 ms; header collapse 150 ms; note-row swipe snap 180 ms; photo fade 180–200 ms. Reduce Motion is left to Reanimated's default (`ReduceMotion.System`).
+### Platform chrome
+- Status bar style follows the resolved **app** scheme (light content in dark, dark content in light), not the system.
+- iOS headers: large titles in the condensed face, transparent with app-scheme blur, no shadow, minimal back button. Android headers: opaque ground colour.
+- Android pressables use ripples; iOS uses opacity or tint plus haptics.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** take every colour from `hub` in `components/bike-hub/ui/tokens.ts` (backed by `palette.hub*`), and derive tints with `withAlpha`.
-- **Do** set `borderCurve: 'continuous'` beside every `borderRadius`, and use `HUB_RADIUS` (card 16, button 14, pill 26, segment/chip/tile 10, tag 5, photo chip 7) and `HUB_SHEET_RADIUS` (24).
-- **Do** use `HUB_FONT` families, one per weight, with no `fontWeight`; Geist Mono for every number, tag and eyebrow.
-- **Do** keep one copper fill per screen region and put Copper Ink (`hub.ink`) on it.
-- **Do** give every control `HUB_TOUCH_TARGET` (44 pt iOS / 48 dp Android), using hit slop on 36 px chips and text actions.
-- **Do** fire `triggerImpact()` on presses and `triggerSelection()` on segment and keypad changes; the helpers are iOS-only by design.
-- **Do** cap chrome text at `HUB_CHROME_MAX_FONT_SCALE` (1.3) and let body rows wrap to `HUB_ROW_SUB_LINES` (2).
-- **Do** use `SectionHeader` (mono 11 eyebrow, optional count, copper text action) for every section, and `HubCard` + `ListRow` for every list.
-- **Do** put a basis line under every money stat and words beside every status colour.
-- **Do** use native `formSheet` with Warm Graphite content for create/edit, and the 5-second `UndoSnackbar` for deleting tasks, notes and expenses.
+- **Do** show a bike's readiness with the Bike Plate wherever a bike appears, using the triad fill and `plate-ink`.
+- **Do** resolve every colour from `useEditorialTheme()` / `useHubTheme()` and ship both scheme values for any new token.
+- **Do** use copper only for a primary action, a link, or the current selection, with `onWarm` as its ink.
+- **Do** use `dueInk` / `overdueInk` for due and overdue text or dots on the ground, never the plate fills.
+- **Do** set numbers in the condensed figure roles with tabular digits, and sentences in the system face.
+- **Do** keep every spacing value on the 4pt scale and every screen inside the 720pt readable column.
+- **Do** build forms as inset grouped sections with the sticky Cancel + copper primary footer.
+- **Do** keep a category's hue identical on its chip and its chart mark, with the name beside it.
+- **Do** respect Reduce Motion: the plate settle and state fade drop to 0ms.
 
 ### Don't:
-- **Don't** use copper for status, chart bars, headings or any non-tappable element.
-- **Don't** add drop shadows to cards, rows, sheets or the snackbar; only the floating action pill casts one.
-- **Don't** write hex or `rgba()` literals in components, or reach for `palette.*` directly from a hub component instead of `hub.*`.
-- **Don't** use Instrument Serif for section headings, or sans for numbers.
-- **Don't** put white text on copper.
-- **Don't** add an "OVERDUE" pill: priority is the tag, lateness is the due line.
-- **Don't** copy the legacy editorial sections (`maintenance-section`, `expenses-section`, `documents-section`, `bike-details-card`, `swipeable-task-card`): system font with `fontWeight`, `palette.primary500` blue actions, `InstrumentSerif-Italic` section titles and editorial ink tokens are the layer being replaced.
-- **Don't** use the RN `Animated` API, or any transition longer than 300 ms.
-- **Don't** add badges, streaks or celebratory illustration: no gamification.
-- **Don't** nest a pressable inside a pressable `HubCard`; split the row into sibling Pressables instead.
+- **Don't** use a serif, italic, or mono face anywhere.
+- **Don't** put an eyebrow, kicker or section number above a title, or set labels in letter-spaced uppercase.
+- **Don't** use copper for status, a chart highlight, or display text (the ridden route on a map is the one exception).
+- **Don't** use bone, signal or red decoratively, or give medium priority a hue.
+- **Don't** add drop shadows or translucent blur to cards, rows or the tab island; step up the ramp instead.
+- **Don't** add another diagonal: the livery stripe is the only one.
+- **Don't** give Android form sheets more than one detent, or draw the tab island over an Android sheet.
+- **Don't** pin a header blur, segmented control or status bar to the system appearance; follow the app scheme.

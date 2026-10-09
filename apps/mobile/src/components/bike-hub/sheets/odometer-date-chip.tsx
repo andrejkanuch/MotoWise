@@ -5,13 +5,14 @@ import { ChevronDown } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
+import { EDITORIAL_SCHEME, useEditorialTheme } from '../../../theme/editorial';
+import { type } from '../../../theme/type';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
-  HUB_FONT,
   HUB_HEIGHT,
   HUB_RADIUS,
   HUB_TOUCH_TARGET,
-  hub,
+  useHubTheme,
 } from '../ui/tokens';
 import { SHEET_LOCKED_OPACITY } from './sheet-header';
 
@@ -39,6 +40,8 @@ export function IosOdometerDateChip({
   onPick,
   disabled = false,
 }: OdometerDateChipProps) {
+  const hub = useHubTheme();
+  const { isDark } = useEditorialTheme();
   const { i18n } = useTranslation();
   return (
     // The native control has no RN `disabled`: a locked chip takes no touches.
@@ -61,7 +64,7 @@ export function IosOdometerDateChip({
             datePickerStyle('compact'),
             labelsHidden(),
             tint(hub.copperText),
-            environment('colorScheme', 'dark'),
+            environment('colorScheme', isDark ? EDITORIAL_SCHEME.DARK : EDITORIAL_SCHEME.LIGHT),
             environment('locale', i18n.language),
           ]}
         />
@@ -81,6 +84,7 @@ export function AndroidOdometerDateChip({
   onPick,
   disabled = false,
 }: OdometerDateChipProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
@@ -113,7 +117,7 @@ export function AndroidOdometerDateChip({
         <Text
           maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
           numberOfLines={1}
-          style={{ fontFamily: HUB_FONT.monoMedium, fontSize: 13, color: hub.text }}
+          style={[type.label, { color: hub.text }]}
         >
           {label}
         </Text>

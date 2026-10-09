@@ -1,10 +1,12 @@
-import { LinearGradient } from 'expo-linear-gradient';
+import { addDays, startOfISOWeek } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
+import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useEditorialTheme } from '../../theme/editorial';
-import { ECard } from '../ui/editorial';
+import { radius, space, type } from '../../theme/type';
+import { distanceUnitLabel } from '../../utils/ride-formatters';
 
 interface FocusStatsProps {
   recentRides: {
@@ -13,30 +15,66 @@ interface FocusStatsProps {
   }[];
 }
 
+const DISTANCE_UNIT = { KM: 'km', MI: 'mi' } as const;
+type DistanceUnit = (typeof DISTANCE_UNIT)[keyof typeof DISTANCE_UNIT];
+
+/** Ride distances are GPS metres; they are converted for display only. */
+const METERS_PER_UNIT: Record<DistanceUnit, number> = {
+  [DISTANCE_UNIT.KM]: 1000,
+  [DISTANCE_UNIT.MI]: 1609.344,
+};
+/** The monthly goal as a round number in each unit (600 km ≈ 373 mi → 400 mi). */
+const MONTHLY_GOAL: Record<DistanceUnit, number> = {
+  [DISTANCE_UNIT.KM]: 600,
+  [DISTANCE_UNIT.MI]: 400,
+};
+const BAR_TRACK_HEIGHT = 72;
+const BAR_MIN_HEIGHT = 8;
+const BAR_EMPTY_HEIGHT = 4;
+const PROGRESS_HEIGHT = 6;
+const DAYS_IN_WEEK = 7;
+
 function WeekBars({ values }: { values: number[] }) {
   const { t: theme } = useEditorialTheme();
+  const { i18n } = useTranslation();
   const max = Math.max(...values, 1);
-  const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  // Narrow weekday initials in the rider's language, Monday first.
+  const dayLabels = useMemo(() => {
+    const monday = startOfISOWeek(new Date());
+    return Array.from({ length: DAYS_IN_WEEK }, (_, i) => {
+      const day = addDays(monday, i);
+      return {
+        key: day.toISOString(),
+        label: day.toLocaleDateString(i18n.language, { weekday: 'narrow' }),
+      };
+    });
+  }, [i18n.language]);
+
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 6, height: 80 }}>
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        gap: space.xs,
+        height: BAR_TRACK_HEIGHT + space.lg,
+      }}
+    >
       {values.map((v, i) => {
-        const h = v === 0 ? 3 : Math.max(10, (v / max) * 70);
-        const active = v > 0;
+        const h =
+          v === 0 ? BAR_EMPTY_HEIGHT : Math.max(BAR_MIN_HEIGHT, (v / max) * BAR_TRACK_HEIGHT);
         return (
-          <View key={days[i]} style={{ flex: 1, alignItems: 'center', gap: 5 }}>
+          <View key={dayLabels[i].key} style={{ flex: 1, alignItems: 'center', gap: space.xxs }}>
             <View
               style={{
                 width: '100%',
                 height: h,
-                borderRadius: 4,
+                borderRadius: radius.chip / 2,
                 borderCurve: 'continuous',
-                backgroundColor: active ? theme.warm : theme.surface2,
-                opacity: active ? 1 : 0.7,
+                backgroundColor: v > 0 ? theme.ink2 : theme.surface3,
               }}
             />
-            <Text style={{ fontSize: 10, color: theme.ink3, fontWeight: '500' }}>
-              {dayLabels[i]}
+            <Text style={[type.caption, { color: theme.ink3 }]} maxFontSizeMultiplier={1.4}>
+              {dayLabels[i].label}
             </Text>
           </View>
         );
@@ -47,176 +85,133 @@ function WeekBars({ values }: { values: number[] }) {
 
 export function FocusStats({ recentRides }: FocusStatsProps) {
   const { t: theme } = useEditorialTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
+  const unit: DistanceUnit =
+    distanceUnitLabel(useMeasurementSystem()) === DISTANCE_UNIT.MI
+      ? DISTANCE_UNIT.MI
+      : DISTANCE_UNIT.KM;
+  const metersPerUnit = METERS_PER_UNIT[unit];
+  const goal = MONTHLY_GOAL[unit];
 
   const thisMonthStats = useMemo(() => {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthRides = recentRides.filter((r) => new Date(r.startedAt) >= monthStart);
-    const distanceKm = Math.round(
-      monthRides.reduce((sum, r) => sum + (r.distanceM ?? 0), 0) / 1000,
+    const distance = Math.round(
+      monthRides.reduce((sum, r) => sum + (r.distanceM ?? 0), 0) / metersPerUnit,
     );
-    return { distanceKm, rideCount: monthRides.length };
-  }, [recentRides]);
+    return { distance, rideCount: monthRides.length };
+  }, [recentRides, metersPerUnit]);
 
-  const weeklyKm = useMemo(() => {
-    const now = new Date();
-    const today = now.getDay();
-    const mondayOffset = today === 0 ? 6 : today - 1;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - mondayOffset);
-    monday.setHours(0, 0, 0, 0);
-
-    const bars = [0, 0, 0, 0, 0, 0, 0];
+  const weeklyDistance = useMemo(() => {
+    const monday = startOfISOWeek(new Date());
+    const bars = Array<number>(DAYS_IN_WEEK).fill(0);
     for (const ride of recentRides) {
       const rideDate = new Date(ride.startedAt);
       if (rideDate >= monday) {
         const dayIdx = rideDate.getDay() === 0 ? 6 : rideDate.getDay() - 1;
-        bars[dayIdx] += Math.round((ride.distanceM ?? 0) / 1000);
+        bars[dayIdx] += (ride.distanceM ?? 0) / metersPerUnit;
       }
     }
-    return bars;
-  }, [recentRides]);
+    return bars.map(Math.round);
+  }, [recentRides, metersPerUnit]);
+
+  const monthLabel = new Date().toLocaleDateString(i18n.language, {
+    month: 'long',
+    year: 'numeric',
+  });
 
   return (
-    <ECard pad={18}>
+    <View
+      style={{
+        backgroundColor: theme.surface,
+        borderRadius: radius.card,
+        borderCurve: 'continuous',
+        padding: space.md,
+        gap: space.md,
+      }}
+    >
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'flex-end',
           justifyContent: 'space-between',
-          marginBottom: 6,
+          gap: space.sm,
         }}
       >
-        <View>
-          <Text
-            style={{
-              fontSize: 10,
-              color: theme.ink3,
-              marginBottom: 2,
-              fontWeight: '700',
-              letterSpacing: 1.2,
-              textTransform: 'uppercase',
-            }}
-          >
-            {new Date().toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
-          </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-            <Text
-              style={{
-                fontFamily: 'InstrumentSerif-Regular',
-                fontSize: 44,
-                color: theme.ink,
-                letterSpacing: -0.6,
-                lineHeight: 48,
-              }}
-            >
-              {thisMonthStats.distanceKm}
-            </Text>
-            <Text style={{ fontSize: 13, color: theme.ink3, fontWeight: '500' }}>
-              {t('home.monthlyGoalSuffix', { goal: 600 })}
+        <View style={{ flexShrink: 1 }}>
+          <Text style={[type.label, { color: theme.ink3 }]}>{monthLabel}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.xs }}>
+            <Text style={[type.figure, { color: theme.ink }]}>{thisMonthStats.distance}</Text>
+            <Text style={[type.label, { color: theme.ink3 }]}>
+              {t('home.monthlyGoalOf', { goal, unit })}
             </Text>
           </View>
         </View>
         <View style={{ alignItems: 'flex-end' }}>
-          <Text
-            style={{
-              fontSize: 10,
-              color: theme.ink3,
-              marginBottom: 2,
-              fontWeight: '700',
-              letterSpacing: 1.2,
-              textTransform: 'uppercase',
-            }}
-          >
-            {t('home.ridesLabel')}
-          </Text>
-          <Text
-            style={{
-              fontSize: 22,
-              fontWeight: '600',
-              color: theme.ink,
-              fontFamily: 'InstrumentSerif-Regular',
-            }}
-          >
-            {thisMonthStats.rideCount}
-          </Text>
+          <Text style={[type.label, { color: theme.ink3 }]}>{t('home.ridesLabel')}</Text>
+          <Text style={[type.figure, { color: theme.ink }]}>{thisMonthStats.rideCount}</Text>
         </View>
       </View>
 
-      {/* Distance progress */}
-      <View style={{ marginTop: 14 }}>
+      {/* Distance progress toward the monthly goal */}
+      <View style={{ gap: space.xxs }}>
         <View
+          accessible
+          accessibilityRole="progressbar"
+          accessibilityValue={{ min: 0, max: goal, now: thisMonthStats.distance }}
           style={{
-            height: 8,
-            borderRadius: 999,
-            backgroundColor: theme.surface2,
+            height: PROGRESS_HEIGHT,
+            borderRadius: PROGRESS_HEIGHT,
+            backgroundColor: theme.surface3,
             overflow: 'hidden',
           }}
         >
-          <LinearGradient
-            colors={[theme.warm, theme.warm2]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+          <View
             style={{
-              width: `${Math.min(100, (thisMonthStats.distanceKm / 600) * 100)}%`,
+              width: `${Math.min(100, (thisMonthStats.distance / goal) * 100)}%`,
               height: '100%',
-              borderRadius: 999,
+              backgroundColor: theme.ink2,
             }}
           />
         </View>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginTop: 6,
-          }}
-        >
-          <Text style={{ fontSize: 10, color: theme.ink3 }}>0</Text>
-          <Text style={{ fontSize: 10, color: theme.ink3 }}>300</Text>
-          <Text style={{ fontSize: 10, color: theme.ink3 }}>{t('home.kmGoal', { goal: 600 })}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={[type.caption, { color: theme.ink3, fontVariant: ['tabular-nums'] }]}>
+            0
+          </Text>
+          <Text style={[type.caption, { color: theme.ink3, fontVariant: ['tabular-nums'] }]}>
+            {t('home.distanceGoal', { goal, unit })}
+          </Text>
         </View>
       </View>
 
-      {/* Weekly sparkline */}
+      {/* Weekly bars */}
       <View
         style={{
-          marginTop: 18,
-          paddingTop: 16,
+          paddingTop: space.md,
           borderTopWidth: 1,
           borderTopColor: theme.line2,
+          gap: space.sm,
         }}
       >
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginBottom: 12,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: '600',
-              letterSpacing: 1,
-              textTransform: 'uppercase',
-              color: theme.ink3,
-            }}
-          >
-            {t('home.last7Days')}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: space.sm }}>
+          <Text style={[type.label, { color: theme.ink2 }]}>{t('home.last7Days')}</Text>
+          <Text style={[type.caption, { color: theme.ink3 }]}>
+            {t('home.distancePerDay', { unit })}
           </Text>
-          <Text style={{ fontSize: 11, color: theme.ink3 }}>{t('home.kmPerDay')}</Text>
         </View>
-        <WeekBars values={weeklyKm} />
+        <WeekBars values={weeklyDistance} />
       </View>
 
-      {/* Open analytics link */}
-      <Pressable onPress={() => router.push('/(tabs)/(garage)')} style={{ marginTop: 14 }}>
-        <Text style={{ fontSize: 12, color: theme.warm, fontWeight: '600' }}>
-          {t('home.openAnalytics')}
-        </Text>
+      <Pressable
+        onPress={() => router.push('/(tabs)/(garage)')}
+        accessibilityRole="link"
+        hitSlop={12}
+        style={{ alignSelf: 'flex-start' }}
+      >
+        <Text style={[type.label, { color: theme.warm2 }]}>{t('home.openAnalytics')}</Text>
       </Pressable>
-    </ECard>
+    </View>
   );
 }

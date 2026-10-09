@@ -1,5 +1,3 @@
-import DateTimePicker from '@expo/ui/community/datetime-picker';
-import { palette, withAlpha } from '@motovault/design-system';
 import {
   CreateMaintenanceTaskDocument,
   type MaintenancePriority,
@@ -12,9 +10,24 @@ import { Calendar, CalendarCheck, Check, Gauge, Plus, Repeat } from 'lucide-reac
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
-import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
-import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { NativeToggle } from '../../../components/ui/native-toggle';
+import {
+  FormDateRow,
+  FormDivider,
+  FormRow,
+  FormSection,
+  inputTextStyle,
+  PriorityPicker,
+  ROW_DIVIDER_INSET,
+  RowNumberInput,
+  SHEET_CONTENT_STYLE,
+  SHEET_CONTROL_HEIGHT,
+  SHEET_PRIMARY_STATE,
+  SheetFooter,
+  SheetTitle,
+} from '../../../components/ui/sheet-form';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
@@ -25,6 +38,7 @@ import { scheduleMaintenanceReminder } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../../theme/type';
 import { triggerImpact } from '../../../utils/haptics';
 import { intervalDistanceUnit } from '../../../utils/maintenance-interval';
 import { toISODateInput } from '../../../utils/trip-form-dates';
@@ -36,13 +50,11 @@ function clampToNow(date: Date): Date {
   return min([date, new Date()]);
 }
 
-const PRIORITIES = ['low', 'medium', 'high', 'critical'] as const;
-const PRIORITY_META: Record<string, { color: string }> = {
-  low: { color: palette.success500 },
-  medium: { color: palette.primary500 },
-  high: { color: palette.warning500 },
-  critical: { color: palette.danger500 },
-};
+const MULTILINE_INPUT = {
+  paddingHorizontal: space.md,
+  paddingVertical: space.sm,
+  minHeight: 88,
+} as const;
 
 // The modal serves two intents on one screen: scheduling a future task,
 // or logging work already completed (a historical maintenance record).
@@ -66,7 +78,7 @@ export default function AddMaintenanceTaskScreen() {
     mode?: string;
   }>();
   const startsInLog = initialMode === TASK_MODES.log;
-  const { t: theme, isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
   const system = useMeasurementSystem();
   const mileageUnit = useMileageUnit();
@@ -213,72 +225,38 @@ export default function AddMaintenanceTaskScreen() {
     },
   });
 
-  // Grouped card background
-  const cardBg = theme.surface;
-  const sectionGap = 24;
+  const canSave = !!title.trim() && !(isLog && !dueDate) && !createMutation.isPending;
+  const primaryState = saved
+    ? SHEET_PRIMARY_STATE.DONE
+    : canSave
+      ? SHEET_PRIMARY_STATE.READY
+      : SHEET_PRIMARY_STATE.DISABLED;
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <KeyboardAwareScrollView
         style={{ flex: 1 }}
         bottomOffset={20}
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24, gap: sectionGap }}
+        contentContainerStyle={SHEET_CONTENT_STYLE}
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Editorial header */}
-        <View style={{ paddingTop: 8, marginBottom: 8 }}>
-          <Text
-            style={{
-              fontSize: 10,
-              fontWeight: '700',
-              letterSpacing: 2,
-              textTransform: 'uppercase',
-              color: theme.ink3,
-              marginBottom: 6,
-            }}
-          >
-            — {t('maintenance.headerLabel', { defaultValue: 'MAINTENANCE' })}
-          </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-            <Text
-              style={{
-                fontFamily: 'InstrumentSerif-Regular',
-                fontSize: 32,
-                color: theme.ink,
-                letterSpacing: -0.6,
-              }}
-            >
-              {isLog
-                ? t('maintenance.logPrefix', { defaultValue: 'Log' })
-                : t('maintenance.newPrefix', { defaultValue: 'New' })}{' '}
-            </Text>
-            <Text
-              style={{
-                fontFamily: 'InstrumentSerif-Italic',
-                fontSize: 32,
-                color: theme.warm,
-                letterSpacing: -0.6,
-              }}
-            >
-              {isLog
-                ? t('maintenance.logSuffix', { defaultValue: 'work.' })
-                : t('maintenance.taskSuffix', { defaultValue: 'task.' })}
-            </Text>
-          </View>
-        </View>
+        <SheetTitle>
+          {isLog ? t('maintenance.logWorkTitle') : t('maintenance.newTaskTitle')}
+        </SheetTitle>
 
         {/* Mode switch — schedule a future task, or log work already done */}
         <View
+          accessibilityRole="tablist"
           style={{
             flexDirection: 'row',
-            gap: 8,
-            backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
-            borderRadius: 14,
+            gap: space.xxs,
+            backgroundColor: theme.surface2,
+            borderRadius: radius.control,
             borderCurve: 'continuous',
-            padding: 4,
+            padding: space.xxs,
           }}
         >
           {(
@@ -299,26 +277,29 @@ export default function AddMaintenanceTaskScreen() {
             return (
               <Pressable
                 key={key}
+                testID={`task-mode-${key}`}
                 onPress={() => switchMode(key)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: active }}
                 style={{
                   flex: 1,
+                  minHeight: 40,
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 6,
-                  paddingVertical: 10,
-                  borderRadius: 11,
+                  borderRadius: radius.control - space.xxs,
                   borderCurve: 'continuous',
                   backgroundColor: active ? theme.warm : 'transparent',
                 }}
               >
-                <Icon size={15} color={active ? palette.white : theme.ink3} strokeWidth={2.25} />
+                <Icon size={15} color={active ? theme.onWarm : theme.ink3} strokeWidth={2.25} />
                 <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: active ? '700' : '500',
-                    color: active ? palette.white : theme.ink2,
-                  }}
+                  style={[
+                    type.label,
+                    active ? SYSTEM_WEIGHT.semibold : null,
+                    { color: active ? theme.onWarm : theme.ink2 },
+                  ]}
                 >
                   {label}
                 </Text>
@@ -327,702 +308,208 @@ export default function AddMaintenanceTaskScreen() {
           })}
         </View>
 
-        {/* Task Title — prominent input */}
+        {/* Task title */}
         <Animated.View entering={FadeIn.duration(250)}>
-          {/* TASK section label */}
-          <Text
-            style={{
-              fontSize: 10,
-              fontWeight: '700',
-              letterSpacing: 1.5,
-              textTransform: 'uppercase',
-              color: theme.ink3,
-              marginBottom: 8,
-              marginLeft: 4,
-            }}
-          >
-            {t('maintenance.task', { defaultValue: 'Task' })}
-          </Text>
-          <View
-            style={{
-              backgroundColor: cardBg,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              padding: 16,
-              boxShadow: isDark ? 'none' : `0 1px 3px ${withAlpha(palette.black, 0.06)}`,
-            }}
-          >
+          <FormSection label={t('maintenance.task', { defaultValue: 'Task' })}>
             <TextInput
               value={title}
               onChangeText={setTitle}
               placeholder={t('maintenance.taskTitlePlaceholder', {
                 defaultValue: 'e.g. Oil Change, Chain Adjustment',
               })}
-              placeholderTextColor={palette.neutral400}
-              style={{
-                fontSize: 18,
-                fontWeight: '600',
-                color: isDark ? palette.neutral50 : palette.neutral950,
-                paddingVertical: 2,
-              }}
+              placeholderTextColor={theme.ink4}
+              style={[
+                type.bodyStrong,
+                { color: theme.ink, minHeight: SHEET_CONTROL_HEIGHT, paddingHorizontal: space.md },
+              ]}
               autoFocus
             />
-          </View>
+          </FormSection>
         </Animated.View>
 
-        {/* Priority — pill selector. Hidden when logging done work: priority is
-            the urgency of a pending item, meaningless for finished work. */}
+        {/* Priority. Hidden when logging done work: priority is the urgency of
+            a pending item, meaningless for finished work. */}
         {!isLog && (
-          <Animated.View
-            entering={FadeInDown.delay(50).duration(250)}
-            exiting={FadeOut.duration(150)}
-            layout={LinearTransition.duration(220)}
-          >
-            <Text
-              style={{
-                fontSize: 10,
-                fontWeight: '700',
-                letterSpacing: 1.5,
-                textTransform: 'uppercase',
-                color: theme.ink3,
-                marginBottom: 8,
-                marginLeft: 4,
-              }}
+          <Animated.View exiting={FadeOut.duration(150)} layout={LinearTransition.duration(220)}>
+            <FormSection
+              label={t('maintenance.priority', { defaultValue: 'Priority' })}
+              card={false}
             >
-              {t('maintenance.priority', { defaultValue: 'Priority' })}
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              {PRIORITIES.map((p) => {
-                const selected = priority === p;
-                const meta = PRIORITY_META[p];
-                return (
-                  <Pressable
-                    key={p}
-                    onPress={() => {
-                      triggerImpact();
-                      setPriority(p as MaintenancePriority);
-                    }}
-                    style={{
-                      flex: 1,
-                      paddingVertical: 12,
-                      borderRadius: 12,
-                      borderCurve: 'continuous',
-                      alignItems: 'center',
-                      backgroundColor: selected
-                        ? withAlpha(meta.color, 0.094)
-                        : isDark
-                          ? palette.neutral800
-                          : palette.white,
-                      borderWidth: selected ? 1.5 : 1,
-                      borderColor: selected
-                        ? meta.color
-                        : isDark
-                          ? palette.neutral700
-                          : palette.neutral200,
-                      boxShadow: selected
-                        ? 'none'
-                        : isDark
-                          ? 'none'
-                          : `0 1px 2px ${withAlpha(palette.black, 0.04)}`,
-                    }}
-                  >
-                    <View
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: 5,
-                        backgroundColor: meta.color,
-                        marginBottom: 4,
-                      }}
-                    />
-                    <Text
-                      style={{
-                        fontSize: 12,
-                        fontWeight: selected ? '700' : '500',
-                        color: selected
-                          ? meta.color
-                          : isDark
-                            ? palette.neutral400
-                            : palette.neutral600,
-                        textTransform: 'capitalize',
-                      }}
-                    >
-                      {t(`maintenance.priority_${p}`, { defaultValue: p })}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+              <PriorityPicker value={priority} onChange={setPriority} />
+            </FormSection>
           </Animated.View>
         )}
 
-        {/* Due Date + Mileage — grouped card */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(250)}
-          layout={LinearTransition.duration(220)}
-        >
-          <Text
-            style={{
-              fontSize: 10,
-              fontWeight: '700',
-              letterSpacing: 1.5,
-              textTransform: 'uppercase',
-              color: theme.ink3,
-              marginBottom: 8,
-              marginLeft: 4,
-            }}
+        {/* Date + mileage */}
+        <Animated.View layout={LinearTransition.duration(220)}>
+          <FormSection
+            label={
+              isLog
+                ? t('maintenance.logSection', { defaultValue: 'Record' })
+                : t('maintenance.schedule', { defaultValue: 'Schedule' })
+            }
           >
-            {isLog
-              ? t('maintenance.logSection', { defaultValue: 'Record' })
-              : t('maintenance.schedule', { defaultValue: 'Schedule' })}
-          </Text>
-          <View
-            style={{
-              backgroundColor: cardBg,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              overflow: 'hidden',
-              boxShadow: isDark ? 'none' : `0 1px 3px ${withAlpha(palette.black, 0.06)}`,
-            }}
-          >
-            {/* Due Date row */}
-            <Pressable
-              onPress={() => {
-                triggerImpact();
+            <FormDateRow
+              label={
+                isLog
+                  ? t('maintenance.dateDone', { defaultValue: 'Date completed' })
+                  : t('maintenance.dueDate', { defaultValue: 'Due Date' })
+              }
+              value={dueDate}
+              emptyLabel={t('maintenance.noneSet', { defaultValue: 'None' })}
+              open={showDatePicker}
+              onToggle={() => {
                 if (!dueDate) setDueDate(new Date());
                 setShowDatePicker(!showDatePicker);
               }}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 14,
-                gap: 12,
-              }}
-            >
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
-                  borderCurve: 'continuous',
-                  backgroundColor: isDark ? palette.primary900 : palette.primary50,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Calendar size={16} color={palette.primary500} strokeWidth={2} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: 15,
-                    fontWeight: '500',
-                    color: isDark ? palette.neutral50 : palette.neutral950,
-                  }}
-                >
-                  {isLog
-                    ? t('maintenance.dateDone', { defaultValue: 'Date completed' })
-                    : t('maintenance.dueDate', { defaultValue: 'Due Date' })}
-                </Text>
-              </View>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: dueDate ? palette.primary500 : palette.neutral400,
-                  fontWeight: dueDate ? '600' : '400',
-                }}
-              >
-                {dueDate
-                  ? dueDate.toLocaleDateString(undefined, {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })
-                  : t('maintenance.noneSet', { defaultValue: 'None' })}
-              </Text>
-            </Pressable>
-
-            {/* Inline date picker */}
-            {showDatePicker && dueDate && (
-              <View
-                style={{
-                  borderTopWidth: 0.5,
-                  borderTopColor: isDark ? palette.dividerDark : palette.dividerLight,
-                  paddingHorizontal: 8,
-                }}
-              >
-                <DateTimePicker
-                  value={dueDate ?? new Date()}
-                  mode="date"
-                  display={process.env.EXPO_OS === 'ios' ? 'inline' : 'default'}
-                  // Log mode allows backdating (down to a 30-year floor) but not
-                  // the future; Plan mode schedules forward from today.
-                  minimumDate={isLog ? subYears(new Date(), MAX_BACKDATE_YEARS) : new Date()}
-                  maximumDate={isLog ? new Date() : undefined}
-                  onChange={(event, selectedDate) => {
-                    // On Android, the native dialog fires onChange on both "OK" and "Cancel"
-                    // and must be dismissed by hiding the picker immediately
-                    if (process.env.EXPO_OS === 'android') {
+              onClose={() => setShowDatePicker(false)}
+              onChange={setDueDate}
+              // A logged (completed) record must carry a date, so no Clear in
+              // Log mode — otherwise completedAt would silently fall back to
+              // now() while the row reads "None".
+              onClear={
+                isLog
+                  ? undefined
+                  : () => {
+                      setDueDate(null);
                       setShowDatePicker(false);
                     }
-                    if (event.type === 'set' && selectedDate) {
-                      setDueDate(selectedDate);
-                    }
-                  }}
-                  style={process.env.EXPO_OS === 'ios' ? { height: 320 } : undefined}
-                />
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'flex-end',
-                    paddingBottom: 8,
-                    paddingRight: 8,
-                    gap: 16,
-                  }}
-                >
-                  {/* A logged (completed) record must carry a date, so no Clear
-                      in Log mode — otherwise completedAt would silently fall back
-                      to now() while the row reads "None". */}
-                  {!isLog && (
-                    <Pressable
-                      onPress={() => {
-                        triggerImpact();
-                        setDueDate(null);
-                        setShowDatePicker(false);
-                      }}
-                    >
-                      <Text style={{ fontSize: 14, fontWeight: '600', color: palette.danger500 }}>
-                        {t('maintenance.clearDate', { defaultValue: 'Clear' })}
-                      </Text>
-                    </Pressable>
-                  )}
-                  <Pressable
-                    onPress={() => {
-                      triggerImpact();
-                      setShowDatePicker(false);
-                    }}
-                  >
-                    <Text style={{ fontSize: 14, fontWeight: '600', color: palette.primary500 }}>
-                      {t('common.done', { defaultValue: 'Done' })}
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            )}
-
-            {/* Separator */}
-            <View
-              style={{
-                height: 0.5,
-                backgroundColor: isDark ? palette.dividerDark : palette.dividerLight,
-                marginLeft: 60,
-              }}
+              }
+              // Log mode allows backdating (down to a 30-year floor) but not
+              // the future; Plan mode schedules forward from today.
+              minimumDate={isLog ? subYears(new Date(), MAX_BACKDATE_YEARS) : new Date()}
+              maximumDate={isLog ? new Date() : undefined}
+              testID="task-date"
             />
-
-            {/* Target Mileage row */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 10,
-                gap: 12,
-              }}
-            >
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
-                  borderCurve: 'continuous',
-                  backgroundColor: isDark ? palette.successBgDark : palette.successBgLight,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Gauge size={16} color={palette.success500} strokeWidth={2} />
-              </View>
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '500',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
-                  flex: 1,
-                }}
-              >
-                {isLog
+            <FormDivider inset={ROW_DIVIDER_INSET} />
+            <FormRow
+              icon={Gauge}
+              label={
+                isLog
                   ? t('maintenance.odometer', { defaultValue: 'Odometer' })
-                  : t('maintenance.targetMileage', { defaultValue: 'Target mileage' })}
-              </Text>
-              <TextInput
+                  : t('maintenance.targetMileage', { defaultValue: 'Target mileage' })
+              }
+            >
+              <RowNumberInput
                 value={mileage}
                 onChangeText={(val) => setMileage(val.replace(/[^0-9]/g, ''))}
-                keyboardType="number-pad"
                 placeholder={t('garage.distanceIntervalPlaceholder')}
-                placeholderTextColor={palette.neutral400}
-                textAlign="right"
-                style={{
-                  fontSize: 15,
-                  fontWeight: '500',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
-                  minWidth: 100,
-                  paddingVertical: 4,
-                }}
+                unit={mileage ? mileageUnit : undefined}
               />
-              {mileage ? (
-                <Text style={{ fontSize: 13, color: palette.neutral400 }}>{mileageUnit}</Text>
-              ) : null}
-            </View>
-          </View>
+            </FormRow>
+          </FormSection>
         </Animated.View>
 
         {/* Recurring toggle. Hidden when logging done work — you don't repeat
             something you already finished. */}
         {!isLog && (
-          <Animated.View
-            entering={FadeInDown.delay(125).duration(250)}
-            exiting={FadeOut.duration(150)}
-            layout={LinearTransition.duration(220)}
-          >
-            <Text
-              style={{
-                fontSize: 10,
-                fontWeight: '700',
-                letterSpacing: 1.5,
-                textTransform: 'uppercase',
-                color: theme.ink3,
-                marginBottom: 8,
-                marginLeft: 4,
-              }}
-            >
-              {t('maintenance.options', { defaultValue: 'Options' })}
-            </Text>
-            <View
-              style={{
-                backgroundColor: cardBg,
-                borderRadius: 14,
-                borderCurve: 'continuous',
-                overflow: 'hidden',
-                boxShadow: isDark ? 'none' : `0 1px 3px ${withAlpha(palette.black, 0.06)}`,
-              }}
-            >
-              {/* Toggle row */}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                  justifyContent: 'space-between',
-                }}
+          <Animated.View exiting={FadeOut.duration(150)} layout={LinearTransition.duration(220)}>
+            <FormSection label={t('maintenance.options', { defaultValue: 'Options' })}>
+              <FormRow
+                icon={Repeat}
+                label={t('maintenance.repeatTask', { defaultValue: 'Repeat this task' })}
+                hint={
+                  isRecurring
+                    ? t('maintenance.recurringHint', {
+                        defaultValue: 'Set a distance or time interval, whichever comes first',
+                      })
+                    : undefined
+                }
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                  <View
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 8,
-                      borderCurve: 'continuous',
-                      backgroundColor: isDark ? palette.indigoBg : palette.primary50,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Repeat size={16} color={palette.indigo500} strokeWidth={2} />
-                  </View>
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: '500',
-                      color: isDark ? palette.neutral50 : palette.neutral950,
-                    }}
-                  >
-                    {t('maintenance.repeatTask', { defaultValue: 'Repeat this task' })}
-                  </Text>
-                </View>
-                <NativeToggle value={isRecurring} onValueChange={setIsRecurring} />
-              </View>
+                <NativeToggle
+                  value={isRecurring}
+                  onValueChange={setIsRecurring}
+                  tint={theme.warm}
+                />
+              </FormRow>
 
-              {/* Interval inputs (shown when recurring) */}
               {isRecurring && (
                 <>
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: palette.neutral500,
-                      paddingHorizontal: 16,
-                      paddingBottom: 8,
-                    }}
+                  <FormDivider inset={ROW_DIVIDER_INSET} />
+                  <FormRow
+                    icon={Gauge}
+                    label={t('maintenance.everyKm', { defaultValue: 'Distance interval' })}
                   >
-                    {t('maintenance.recurringHint', {
-                      defaultValue: 'Set a distance or time interval, whichever comes first',
-                    })}
-                  </Text>
-                  <View
-                    style={{
-                      height: 0.5,
-                      backgroundColor: isDark ? palette.dividerDark : palette.dividerLight,
-                      marginLeft: 60,
-                    }}
-                  />
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      paddingHorizontal: 16,
-                      paddingVertical: 10,
-                      gap: 12,
-                    }}
-                  >
-                    <View
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 8,
-                        borderCurve: 'continuous',
-                        backgroundColor: isDark ? palette.successBgDark : palette.successBgLight,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Gauge size={16} color={palette.success500} strokeWidth={2} />
-                    </View>
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        fontWeight: '500',
-                        color: isDark ? palette.neutral50 : palette.neutral950,
-                        flex: 1,
-                      }}
-                    >
-                      {t('maintenance.everyKm', { defaultValue: 'Distance interval' })}
-                    </Text>
-                    <TextInput
+                    <RowNumberInput
                       value={intervalInput}
                       onChangeText={(val) => setIntervalInput(val.replace(/[^0-9]/g, ''))}
-                      keyboardType="number-pad"
                       placeholder={t('garage.mileageIntervalPlaceholder')}
-                      placeholderTextColor={palette.neutral400}
-                      textAlign="right"
-                      style={{
-                        fontSize: 15,
-                        fontWeight: '500',
-                        color: isDark ? palette.neutral50 : palette.neutral950,
-                        minWidth: 80,
-                        paddingVertical: 4,
-                      }}
+                      unit={intervalUnit}
+                      style={{ minWidth: 80 }}
                     />
-                    <Text style={{ fontSize: 13, color: palette.neutral400 }}>{intervalUnit}</Text>
-                  </View>
-
-                  <View
-                    style={{
-                      height: 0.5,
-                      backgroundColor: isDark ? palette.dividerDark : palette.dividerLight,
-                      marginLeft: 60,
-                    }}
-                  />
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      paddingHorizontal: 16,
-                      paddingVertical: 10,
-                      gap: 12,
-                    }}
+                  </FormRow>
+                  <FormDivider inset={ROW_DIVIDER_INSET} />
+                  <FormRow
+                    icon={Calendar}
+                    label={t('maintenance.everyDays', { defaultValue: 'Time interval' })}
                   >
-                    <View
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 8,
-                        borderCurve: 'continuous',
-                        backgroundColor: isDark ? palette.primary900 : palette.primary50,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Calendar size={16} color={palette.primary500} strokeWidth={2} />
-                    </View>
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        fontWeight: '500',
-                        color: isDark ? palette.neutral50 : palette.neutral950,
-                        flex: 1,
-                      }}
-                    >
-                      {t('maintenance.everyDays', { defaultValue: 'Time interval' })}
-                    </Text>
-                    <TextInput
+                    <RowNumberInput
                       value={intervalDays}
                       onChangeText={(val) => setIntervalDays(val.replace(/[^0-9]/g, ''))}
-                      keyboardType="number-pad"
                       placeholder={t('garage.timeIntervalPlaceholder')}
-                      placeholderTextColor={palette.neutral400}
-                      textAlign="right"
-                      style={{
-                        fontSize: 15,
-                        fontWeight: '500',
-                        color: isDark ? palette.neutral50 : palette.neutral950,
-                        minWidth: 80,
-                        paddingVertical: 4,
-                      }}
+                      unit={t('maintenance.days', { defaultValue: 'days' })}
+                      style={{ minWidth: 80 }}
                     />
-                    <Text style={{ fontSize: 13, color: palette.neutral400 }}>
-                      {t('maintenance.days', { defaultValue: 'days' })}
-                    </Text>
-                  </View>
+                  </FormRow>
                 </>
               )}
-            </View>
+            </FormSection>
           </Animated.View>
         )}
 
-        {/* Description + Notes — grouped card */}
-        <Animated.View
-          entering={FadeInDown.delay(175).duration(250)}
-          layout={LinearTransition.duration(220)}
-        >
-          <Text
-            style={{
-              fontSize: 10,
-              fontWeight: '700',
-              letterSpacing: 1.5,
-              textTransform: 'uppercase',
-              color: theme.ink3,
-              marginBottom: 8,
-              marginLeft: 4,
-            }}
-          >
-            {t('maintenance.details', { defaultValue: 'Details' })}
-          </Text>
-          <View
-            style={{
-              backgroundColor: cardBg,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              overflow: 'hidden',
-              boxShadow: isDark ? 'none' : `0 1px 3px ${withAlpha(palette.black, 0.06)}`,
-            }}
-          >
+        {/* Description + notes */}
+        <Animated.View layout={LinearTransition.duration(220)}>
+          <FormSection label={t('maintenance.details', { defaultValue: 'Details' })}>
             <TextInput
               value={description}
               onChangeText={setDescription}
               placeholder={t('maintenance.descriptionPlaceholder', {
                 defaultValue: 'What needs to be done...',
               })}
-              placeholderTextColor={palette.neutral400}
+              placeholderTextColor={theme.ink4}
               multiline
               numberOfLines={3}
               textAlignVertical="top"
-              style={{
-                fontSize: 15,
-                color: isDark ? palette.neutral50 : palette.neutral950,
-                paddingHorizontal: 16,
-                paddingTop: 14,
-                paddingBottom: 14,
-                minHeight: 80,
-              }}
+              style={[inputTextStyle(theme), MULTILINE_INPUT]}
             />
-            <View
-              style={{
-                height: 0.5,
-                backgroundColor: isDark ? palette.dividerDark : palette.dividerLight,
-                marginLeft: 16,
-              }}
-            />
+            <FormDivider />
             <TextInput
               value={notes}
               onChangeText={setNotes}
               placeholder={t('maintenance.notesPlaceholder', {
                 defaultValue: 'Parts needed, tips, references...',
               })}
-              placeholderTextColor={palette.neutral400}
+              placeholderTextColor={theme.ink4}
               multiline
               numberOfLines={3}
               textAlignVertical="top"
-              style={{
-                fontSize: 15,
-                color: isDark ? palette.neutral50 : palette.neutral950,
-                paddingHorizontal: 16,
-                paddingTop: 14,
-                paddingBottom: 14,
-                minHeight: 80,
-              }}
+              style={[inputTextStyle(theme), MULTILINE_INPUT]}
             />
-          </View>
+          </FormSection>
         </Animated.View>
       </KeyboardAwareScrollView>
 
-      {/* Cancel + Save Footer — pinned above the keyboard so Save is always
-          reachable while typing (KeyboardStickyView rises with the keyboard). */}
-      <KeyboardStickyView>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 16,
-            paddingHorizontal: 16,
-            paddingTop: 12,
-            paddingBottom: 16,
-            backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
-            borderTopWidth: 0.5,
-            borderTopColor: isDark ? palette.dividerDark : palette.dividerLight,
-          }}
-        >
-          <Pressable
-            onPress={() => router.back()}
-            style={{ paddingVertical: 16, paddingHorizontal: 12 }}
-          >
-            <Text style={{ fontSize: 16, fontWeight: '600', color: theme.ink2 }}>
-              {t('common.cancel', { defaultValue: 'Cancel' })}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              createMutation.mutate();
-            }}
-            disabled={createMutation.isPending || !title.trim() || (isLog && !dueDate) || saved}
-            style={{
-              flex: 1,
-              backgroundColor: saved
-                ? palette.success500
-                : title.trim()
-                  ? theme.warm
-                  : isDark
-                    ? palette.neutral700
-                    : palette.neutral300,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              paddingVertical: 16,
-              gap: 8,
-            }}
-          >
-            {saved ? (
-              <Check size={18} color={palette.white} strokeWidth={2.5} />
-            ) : (
-              <Plus size={18} color={palette.white} strokeWidth={2.5} />
-            )}
-            <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
-              {saved
-                ? isLog
-                  ? t('maintenance.workLogged', { defaultValue: 'Logged!' })
-                  : t('maintenance.taskAdded', { defaultValue: 'Task Added!' })
-                : createMutation.isPending
-                  ? t('common.saving', { defaultValue: 'Saving...' })
-                  : isLog
-                    ? t('maintenance.logWork', { defaultValue: 'Log it' })
-                    : t('maintenance.saveTask', { defaultValue: 'Save task' })}
-            </Text>
-          </Pressable>
-        </View>
-      </KeyboardStickyView>
+      <SheetFooter
+        primaryTestID="task-save"
+        primaryState={primaryState}
+        primaryIcon={saved ? Check : Plus}
+        primaryLabel={
+          saved
+            ? isLog
+              ? t('maintenance.workLogged', { defaultValue: 'Logged!' })
+              : t('maintenance.taskAdded', { defaultValue: 'Task Added!' })
+            : createMutation.isPending
+              ? t('common.saving', { defaultValue: 'Saving...' })
+              : isLog
+                ? t('maintenance.logWork', { defaultValue: 'Log it' })
+                : t('maintenance.saveTask', { defaultValue: 'Save task' })
+        }
+        onPrimary={() => {
+          triggerImpact();
+          createMutation.mutate();
+        }}
+        onCancel={() => router.back()}
+      />
     </View>
   );
 }

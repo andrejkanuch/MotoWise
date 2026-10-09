@@ -1,5 +1,3 @@
-import DateTimePicker from '@expo/ui/community/datetime-picker';
-import { palette } from '@motovault/design-system';
 import {
   AddExpensePhotoDocument,
   ExpensePhotosDocument,
@@ -9,50 +7,59 @@ import { EXPENSE_CATEGORIES } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Calendar, Camera, Check, DollarSign, Plus } from 'lucide-react-native';
+import type { ParseKeys } from 'i18next';
+import { Check, Plus } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, Text, TextInput, View } from 'react-native';
+import { Alert, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { hubCategoryColor, useHubTheme } from '../../../components/bike-hub/ui/tokens';
 import { ExpensePhotoGallery } from '../../../components/expense-photo-gallery';
+import {
+  AmountField,
+  ChoiceChip,
+  FormCard,
+  FormDateRow,
+  FormSection,
+  inputTextStyle,
+  MAX_EXPENSE_AMOUNT,
+  SHEET_CONTENT_STYLE,
+  SHEET_CONTROL_HEIGHT,
+  SHEET_PRIMARY_STATE,
+  SheetFooter,
+  SheetTitle,
+} from '../../../components/ui/sheet-form';
 import { useCurrency } from '../../../hooks/use-currency';
 import {
   EXPENSE_ENTRY_SOURCE,
   parseExpenseEntrySource,
   trackExpenseAdded,
 } from '../../../lib/expense-analytics';
-import {
-  CATEGORY_COLORS,
-  CATEGORY_LABELS,
-  formatCurrencyInput,
-  ZERO_DECIMAL_CURRENCIES,
-} from '../../../lib/expense-constants';
+import { CATEGORY_LABELS } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { uploadExpensePhoto } from '../../../lib/image-upload';
 import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { space, type } from '../../../theme/type';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 import { toISODateInput } from '../../../utils/trip-form-dates';
 
 const CATEGORIES = EXPENSE_CATEGORIES;
 type Category = (typeof CATEGORIES)[number];
 
-const CATEGORY_META: Record<Category, { color: string; label: string }> = Object.fromEntries(
-  CATEGORIES.map((c) => [c, { color: CATEGORY_COLORS[c], label: CATEGORY_LABELS[c] }]),
-) as Record<Category, { color: string; label: string }>;
-
 // Category-aware hints for the optional item-name field. Falls back to a generic
 // placeholder for categories where a product name rarely applies (fuel, tolls…).
-const ITEM_NAME_HINTS: Partial<Record<Category, string>> = {
-  accessories: 'e.g. GPR-Tech Alpi-Tech 55L top case',
-  parts: 'e.g. EBC front brake pads',
-  gear: 'e.g. Shoei NXR2 helmet',
-  tires: 'e.g. Michelin Road 6',
-  modifications: 'e.g. Akrapovič exhaust',
+const ITEM_NAME_HINT_KEY: Partial<Record<Category, ParseKeys>> = {
+  accessories: 'expenses.itemNamePlaceholder_accessories',
+  parts: 'expenses.itemNamePlaceholder_parts',
+  gear: 'expenses.itemNamePlaceholder_gear',
+  tires: 'expenses.itemNamePlaceholder_tires',
+  modifications: 'expenses.itemNamePlaceholder_modifications',
 };
+const MULTILINE_MIN_HEIGHT = 88;
 
 export default function AddExpenseScreen() {
   const { t } = useTranslation();
@@ -80,8 +87,9 @@ export default function AddExpenseScreen() {
     entrySource?: string;
   }>();
   const entrySource = parseExpenseEntrySource(entrySourceParam, EXPENSE_ENTRY_SOURCE.MANUAL);
+  const hub = useHubTheme();
   const { t: theme, isDark } = useEditorialTheme();
-  const { currency, symbol } = useCurrency();
+  const { currency } = useCurrency();
   const queryClient = useQueryClient();
 
   const userId = useAuthStore((s) => s.session?.user?.id);
@@ -98,7 +106,6 @@ export default function AddExpenseScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [itemName, setItemName] = useState(itemNameParam ?? '');
   const [description, setDescription] = useState(descriptionParam ?? '');
-  // showCategoryPicker removed — chips are always visible
   const [saved, setSaved] = useState(false);
   // MOT-143: Receipt photos. Populated after the expense is saved so we have an ID.
   const [savedExpenseId, setSavedExpenseId] = useState<string | null>(null);
@@ -140,9 +147,14 @@ export default function AddExpenseScreen() {
     })();
   }, [savedExpenseId, photoUriParam, userId, queryClient]);
 
+  const hintKey = ITEM_NAME_HINT_KEY[category];
+  const itemNamePlaceholder = hintKey
+    ? t(hintKey)
+    : t('expenses.itemNamePlaceholder', { defaultValue: 'What did you buy?' });
+
   const parsedAmount = Number.parseFloat(amount) || 0;
   const isValid =
-    parsedAmount > 0 && parsedAmount <= 99999.99 && date <= new Date() && !!motorcycleId;
+    parsedAmount > 0 && parsedAmount <= MAX_EXPENSE_AMOUNT && date <= new Date() && !!motorcycleId;
 
   const logMutation = useMutation({
     mutationFn: () =>
@@ -182,372 +194,102 @@ export default function AddExpenseScreen() {
     },
   });
 
-  const cardBg = theme.surface;
-  const sectionGap = 24;
+  const primaryState = saved
+    ? SHEET_PRIMARY_STATE.DONE
+    : isValid && !logMutation.isPending
+      ? SHEET_PRIMARY_STATE.READY
+      : SHEET_PRIMARY_STATE.DISABLED;
 
   return (
-    <KeyboardAwareScrollView
-      bottomOffset={20}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, gap: sectionGap }}
-      keyboardDismissMode="interactive"
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Editorial header */}
-      <View style={{ paddingTop: 8, marginBottom: 8 }}>
-        <Text
-          style={{
-            fontSize: 10,
-            fontWeight: '700',
-            letterSpacing: 2,
-            textTransform: 'uppercase',
-            color: theme.ink3,
-            marginBottom: 6,
-          }}
-        >
-          {t('expenses.expensesEyebrow')}
-        </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-          <Text
-            style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 32,
-              color: theme.ink,
-              letterSpacing: -0.6,
-            }}
-          >
-            {t('expenses.logAn')}{' '}
-          </Text>
-          <Text
-            style={{
-              fontFamily: 'InstrumentSerif-Italic',
-              fontSize: 32,
-              color: theme.warm,
-              letterSpacing: -0.6,
-            }}
-          >
-            {t('expenses.expenseWord')}
-          </Text>
-        </View>
-      </View>
-
-      {/* Amount input */}
-      <Text
-        style={{
-          fontSize: 10,
-          fontWeight: '700',
-          letterSpacing: 1.5,
-          textTransform: 'uppercase',
-          color: theme.ink3,
-          marginBottom: 8,
-          marginLeft: 4,
-        }}
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        bottomOffset={20}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={SHEET_CONTENT_STYLE}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        AMOUNT
-      </Text>
-      <Animated.View entering={FadeIn.duration(250)}>
-        <View
-          style={{
-            backgroundColor: cardBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 16,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
-          }}
-        >
-          <View
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              borderCurve: 'continuous',
-              backgroundColor: isDark ? palette.successBgDark : palette.successBgLight,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <DollarSign size={18} color={palette.success500} strokeWidth={2} />
-          </View>
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: '700',
-              color: theme.ink,
-            }}
-          >
-            {symbol}
-          </Text>
-          <TextInput
+        <SheetTitle>{t('expenses.logExpenseTitle')}</SheetTitle>
+
+        {/* Amount — the one big number on the sheet */}
+        <Animated.View entering={FadeIn.duration(250)}>
+          <AmountField
+            testID="expense-amount"
+            label={t('expenses.amountLabel')}
             value={amount}
-            onChangeText={(val) => setAmount(formatCurrencyInput(val, currency))}
-            placeholder={ZERO_DECIMAL_CURRENCIES.has(currency) ? '0' : '0.00'}
-            placeholderTextColor={theme.ink4}
-            keyboardType={ZERO_DECIMAL_CURRENCIES.has(currency) ? 'number-pad' : 'decimal-pad'}
-            style={{
-              flex: 1,
-              fontSize: 24,
-              fontWeight: '700',
-              color: theme.ink,
-              paddingVertical: 2,
-            }}
+            onChange={setAmount}
             autoFocus
           />
-        </View>
-      </Animated.View>
+        </Animated.View>
 
-      {/* Validation hint */}
-      {parsedAmount > 99999.99 && (
-        <Text style={{ fontSize: 12, color: palette.danger500, marginTop: 4, marginLeft: 4 }}>
-          {t('expenses.amountTooHigh', { defaultValue: 'Maximum amount is 99,999.99' })}
-        </Text>
-      )}
-
-      {/* Category selector — horizontal chips */}
-      <Animated.View entering={FadeInDown.delay(50).duration(250)}>
-        <Text
-          style={{
-            fontSize: 10,
-            fontWeight: '700',
-            letterSpacing: 1.5,
-            textTransform: 'uppercase',
-            color: theme.ink3,
-            marginBottom: 8,
-            marginLeft: 4,
-          }}
-        >
-          CATEGORY
-        </Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {CATEGORIES.map((c) => {
-            const selected = category === c;
-            const meta = CATEGORY_META[c];
-            return (
-              <Pressable
+        {/* Category — always-visible chips, the category's own hue as a dot */}
+        <FormSection label={t('expenses.category')} card={false}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.xs }}>
+            {CATEGORIES.map((c) => (
+              <ChoiceChip
                 key={c}
-                onPress={() => {
-                  triggerImpact();
-                  setCategory(c);
-                }}
-                style={{
-                  paddingVertical: 10,
-                  paddingHorizontal: 16,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  backgroundColor: selected ? `${meta.color}18` : theme.surface,
-                  borderWidth: selected ? 1.5 : 1,
-                  borderColor: selected ? meta.color : theme.line,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: selected ? '700' : '500',
-                    color: selected ? meta.color : theme.ink2,
-                  }}
-                >
-                  {t(`expenses.category_${c}`, { defaultValue: meta.label })}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </Animated.View>
-
-      {/* Date picker */}
-      <Animated.View entering={FadeInDown.delay(100).duration(250)}>
-        <View
-          style={{
-            backgroundColor: cardBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            overflow: 'hidden',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
-          }}
-        >
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              setShowDatePicker(!showDatePicker);
-            }}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: 16,
-              paddingVertical: 14,
-              gap: 12,
-            }}
-          >
-            <View
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                borderCurve: 'continuous',
-                backgroundColor: isDark ? palette.primary900 : palette.primary50,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Calendar size={16} color={theme.warm} strokeWidth={2} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '500',
-                  color: theme.ink,
-                }}
-              >
-                {t('expenses.date', { defaultValue: 'Date' })}
-              </Text>
-            </View>
-            <Text
-              style={{
-                fontSize: 14,
-                color: theme.warm,
-                fontWeight: '600',
-              }}
-            >
-              {date.toLocaleDateString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </Text>
-          </Pressable>
-
-          {showDatePicker && (
-            <View
-              style={{
-                borderTopWidth: 0.5,
-                borderTopColor: theme.line,
-                paddingHorizontal: 8,
-              }}
-            >
-              <DateTimePicker
-                value={date}
-                mode="date"
-                display={process.env.EXPO_OS === 'ios' ? 'inline' : 'default'}
-                maximumDate={new Date()}
-                onChange={(event, selectedDate) => {
-                  if (process.env.EXPO_OS === 'android') {
-                    setShowDatePicker(false);
-                  }
-                  if (event.type === 'set' && selectedDate) {
-                    setDate(selectedDate);
-                  }
-                }}
-                style={process.env.EXPO_OS === 'ios' ? { height: 320 } : undefined}
+                testID={`expense-category-${c}`}
+                label={t(`expenses.category_${c}`, { defaultValue: CATEGORY_LABELS[c] })}
+                dotColor={hubCategoryColor(c, hub)}
+                selected={category === c}
+                onPress={() => setCategory(c)}
               />
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
-                  paddingBottom: 8,
-                  paddingRight: 8,
-                }}
-              >
-                <Pressable
-                  onPress={() => {
-                    triggerImpact();
-                    setShowDatePicker(false);
-                  }}
-                >
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: theme.warm }}>
-                    {t('common.done', { defaultValue: 'Done' })}
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          )}
-        </View>
-      </Animated.View>
+            ))}
+          </View>
+        </FormSection>
 
-      {/* Item name — optional structured product name (distinct from notes) */}
-      <Animated.View entering={FadeInDown.delay(140).duration(250)}>
-        <Text
-          style={{
-            fontSize: 10,
-            fontWeight: '700',
-            letterSpacing: 1.5,
-            textTransform: 'uppercase',
-            color: theme.ink3,
-            marginBottom: 8,
-            marginLeft: 4,
-          }}
-        >
-          {t('expenses.itemName', { defaultValue: 'Item name' })}
-          <Text style={{ fontWeight: '500', letterSpacing: 0 }}>
-            {'  '}
-            {t('common.optional', { defaultValue: 'optional' })}
-          </Text>
-        </Text>
-        <View
-          style={{
-            backgroundColor: cardBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            overflow: 'hidden',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
-          }}
+        <FormCard>
+          <FormDateRow
+            label={t('expenses.date', { defaultValue: 'Date' })}
+            value={date}
+            open={showDatePicker}
+            onToggle={() => setShowDatePicker(!showDatePicker)}
+            onClose={() => setShowDatePicker(false)}
+            onChange={setDate}
+            maximumDate={new Date()}
+            testID="expense-date"
+          />
+        </FormCard>
+
+        {/* Item name — optional structured product name (distinct from notes) */}
+        <FormSection
+          label={
+            <>
+              {t('expenses.itemName', { defaultValue: 'Item name' })}
+              <Text style={{ color: theme.ink4 }}>
+                {' · '}
+                {t('common.optional', { defaultValue: 'optional' })}
+              </Text>
+            </>
+          }
         >
           <TextInput
             value={itemName}
             onChangeText={(val) => setItemName(val.slice(0, 120))}
-            placeholder={t(`expenses.itemNamePlaceholder_${category}`, {
-              defaultValue:
-                ITEM_NAME_HINTS[category] ??
-                t('expenses.itemNamePlaceholder', { defaultValue: 'What did you buy?' }),
-            })}
+            placeholder={itemNamePlaceholder}
             placeholderTextColor={theme.ink4}
             returnKeyType="next"
-            style={{
-              fontSize: 15,
-              color: theme.ink,
-              paddingHorizontal: 16,
-              paddingVertical: 14,
-            }}
+            style={[
+              inputTextStyle(theme),
+              { minHeight: SHEET_CONTROL_HEIGHT, paddingHorizontal: space.md },
+            ]}
           />
-        </View>
-      </Animated.View>
+        </FormSection>
 
-      {/* Description */}
-      <Animated.View entering={FadeInDown.delay(150).duration(250)}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-          <Text
-            style={{
-              fontSize: 10,
-              fontWeight: '700',
-              letterSpacing: 1.5,
-              textTransform: 'uppercase',
-              color: theme.ink3,
-              marginLeft: 4,
-            }}
-          >
-            DETAILS
-          </Text>
-          <Text
-            style={{
-              fontSize: 12,
-              color: description.length > 180 ? palette.warning500 : theme.ink3,
-              marginRight: 4,
-            }}
-          >
-            {description.length}/200
-          </Text>
-        </View>
-        <View
-          style={{
-            backgroundColor: cardBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            overflow: 'hidden',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
-          }}
+        <FormSection
+          label={t('expenses.detailsLabel')}
+          trailing={
+            <Text
+              style={[
+                type.caption,
+                { color: description.length > 180 ? theme.dueInk : theme.ink3 },
+              ]}
+            >
+              {description.length}/200
+            </Text>
+          }
         >
           <TextInput
             value={description}
@@ -559,113 +301,69 @@ export default function AddExpenseScreen() {
             multiline
             numberOfLines={3}
             textAlignVertical="top"
-            style={{
-              fontSize: 15,
-              color: theme.ink,
-              paddingHorizontal: 16,
-              paddingTop: 14,
-              paddingBottom: 14,
-              minHeight: 80,
-            }}
+            style={[
+              inputTextStyle(theme),
+              {
+                paddingHorizontal: space.md,
+                paddingVertical: space.sm,
+                minHeight: MULTILINE_MIN_HEIGHT,
+              },
+            ]}
           />
-        </View>
-      </Animated.View>
+        </FormSection>
 
-      {/* Receipt Photos (MOT-143) — only available after the expense is saved */}
-      {savedExpenseId && userId && (
-        <Animated.View entering={FadeInDown.duration(250)}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 6,
-              marginBottom: 8,
-              marginLeft: 4,
-            }}
-          >
-            <Camera size={14} color={theme.ink3} strokeWidth={2} />
-            <Text style={{ fontSize: 13, fontWeight: '600', color: theme.ink3 }}>
-              {t('expenses.receipts', { defaultValue: 'Receipts' })}
-              <Text style={{ fontWeight: '400' }}>
-                {' '}
-                ({t('common.optional', { defaultValue: 'optional' })})
-              </Text>
-            </Text>
-          </View>
-          <View
-            style={{
-              backgroundColor: cardBg,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              padding: 12,
-              boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
-            }}
-          >
-            <ExpensePhotoGallery
-              expenseId={savedExpenseId}
-              userId={userId}
-              motorcycleId={motorcycleId}
-              photos={photos}
-              isDark={isDark}
-            />
-          </View>
-        </Animated.View>
-      )}
-
-      {/* Cancel + Save footer */}
-      <Animated.View entering={FadeInDown.delay(200).duration(250)}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-          <Pressable
-            onPress={() => router.back()}
-            style={{ paddingVertical: 16, paddingHorizontal: 12 }}
-          >
-            <Text style={{ fontSize: 16, fontWeight: '600', color: theme.ink2 }}>
-              {t('common.cancel')}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              if (saved) {
-                router.back();
-              } else {
-                logMutation.mutate();
+        {/* Receipt Photos (MOT-143) — only available after the expense is saved */}
+        {savedExpenseId && userId && (
+          <Animated.View entering={FadeInDown.duration(250)}>
+            <FormSection
+              label={
+                <>
+                  {t('expenses.receipts', { defaultValue: 'Receipts' })}
+                  <Text style={{ color: theme.ink4 }}>
+                    {' · '}
+                    {t('common.optional', { defaultValue: 'optional' })}
+                  </Text>
+                </>
               }
-            }}
-            disabled={logMutation.isPending || (!isValid && !saved)}
-            style={{
-              flex: 1,
-              backgroundColor: saved
-                ? palette.success500
-                : isValid
-                  ? theme.warm
-                  : isDark
-                    ? palette.neutral700
-                    : palette.neutral300,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              paddingVertical: 16,
-              gap: 8,
-            }}
-          >
-            {saved ? (
-              <Check size={18} color={palette.white} strokeWidth={2.5} />
-            ) : (
-              <Plus size={18} color={palette.white} strokeWidth={2.5} />
-            )}
-            <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
-              {saved
-                ? t('common.done', { defaultValue: 'Done' })
-                : logMutation.isPending
-                  ? t('common.saving', { defaultValue: 'Saving...' })
-                  : t('expenses.save', { defaultValue: 'Save expense' })}
-            </Text>
-          </Pressable>
-        </View>
-      </Animated.View>
-    </KeyboardAwareScrollView>
+            >
+              <View style={{ padding: space.sm }}>
+                <ExpensePhotoGallery
+                  expenseId={savedExpenseId}
+                  userId={userId}
+                  motorcycleId={motorcycleId}
+                  photos={photos}
+                  isDark={isDark}
+                />
+              </View>
+            </FormSection>
+          </Animated.View>
+        )}
+      </KeyboardAwareScrollView>
+
+      {/* Saving keeps the sheet open (receipts attach to the saved expense);
+          the primary then turns into "Done", which closes it. */}
+      <SheetFooter
+        primaryTestID="expense-save"
+        primaryState={primaryState}
+        primaryPressableWhenDone
+        primaryIcon={saved ? Check : Plus}
+        primaryLabel={
+          saved
+            ? t('common.done', { defaultValue: 'Done' })
+            : logMutation.isPending
+              ? t('common.saving', { defaultValue: 'Saving...' })
+              : t('expenses.save', { defaultValue: 'Save expense' })
+        }
+        onPrimary={() => {
+          triggerImpact();
+          if (saved) {
+            router.back();
+          } else {
+            logMutation.mutate();
+          }
+        }}
+        onCancel={() => router.back()}
+      />
+    </View>
   );
 }

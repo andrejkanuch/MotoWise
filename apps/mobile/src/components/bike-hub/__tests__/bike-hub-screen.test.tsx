@@ -2,7 +2,12 @@ jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+// The reanimated mock lacks the hooks the bike plate uses.
+jest.mock('react-native-reanimated', () => ({
+  ...require('react-native-reanimated/mock'),
+  useReducedMotion: () => true,
+  interpolateColor: () => 'transparent',
+}));
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 54, bottom: 34, left: 0, right: 0 }),
 }));
@@ -103,6 +108,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react-n
 import { StyleSheet } from 'react-native';
 import '../../../i18n';
 import { ADD_TASK_MODE, BIKE_ORIGIN, BIKE_SEGMENT } from '../../../lib/bike-hub/constants';
+import { queryKeys } from '../../../lib/query-keys';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
 import { BikeHubScreen, type BikeHubScreenProps } from '../shell/bike-hub-screen';
 
@@ -477,6 +483,84 @@ describe('BikeHubScreen — states', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Back to Home' }));
     expect(mockRouter.dismissAll).toHaveBeenCalledTimes(1);
     expect(mockRouter.navigate).toHaveBeenCalledWith('/(tabs)/(home)');
+  });
+
+  it('goes back once on its own when the bike it showed leaves the garage list', async () => {
+    const { client, rerender } = await renderHub();
+    expect(await screen.findByRole('tab', { name: 'Overview' })).toBeOnTheScreen();
+    expect(mockRouter.back).not.toHaveBeenCalled();
+
+    // Deleted from Edit Motorcycle, whose sheet closed before its own navigation.
+    await act(async () => {
+      client.setQueryData(queryKeys.motorcycles.all, { myMotorcycles: [] });
+      // Observers hear it on TanStack's batched (setTimeout 0) notify.
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+
+    // The effect runs again (focus lost and regained, a fresh list from another
+    // refetch) while the screen is still mounted: the latch holds it to one back.
+    mockIsFocused = false;
+    await rerender(hub({}, client));
+    mockIsFocused = true;
+    await rerender(hub({}, client));
+    await act(async () => {
+      client.setQueryData(queryKeys.motorcycles.all, { myMotorcycles: [] });
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+  });
+
+  it('a bike that never loaded (stale link) keeps not-found and does not leave', async () => {
+    respondWith({ bikes: [] });
+    const { client, rerender } = await renderHub();
+    expect(await screen.findByText('This bike is no longer in your garage.')).toBeOnTheScreen();
+
+    mockIsFocused = false;
+    await rerender(hub({}, client));
+    mockIsFocused = true;
+    await rerender(hub({}, client));
+    await act(async () => {
+      client.setQueryData(queryKeys.motorcycles.all, { myMotorcycles: [] });
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+
+    expect(mockRouter.back).not.toHaveBeenCalled();
+    expect(screen.getByText('This bike is no longer in your garage.')).toBeOnTheScreen();
+  });
+
+  it('does not leave when the garage list fails after the bike was shown', async () => {
+    const { client } = await renderHub();
+    expect(await screen.findByRole('tab', { name: 'Overview' })).toBeOnTheScreen();
+
+    // The list is dropped and its refetch fails: no bike, but no proof it was deleted.
+    mockFetcher.mockImplementation((document: unknown) =>
+      document === MyMotorcyclesDocument
+        ? Promise.reject(new Error('Network request failed'))
+        : Promise.resolve(undefined),
+    );
+    await act(async () => {
+      await client.resetQueries({ queryKey: queryKeys.motorcycles.all });
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+
+    expect(screen.getByText('Error')).toBeOnTheScreen();
+    expect(mockRouter.back).not.toHaveBeenCalled();
+  });
+
+  it('does not leave while another screen is on top (the edit sheet navigates itself)', async () => {
+    const { client } = await renderHub();
+    expect(await screen.findByRole('tab', { name: 'Overview' })).toBeOnTheScreen();
+    mockIsFocused = false;
+
+    await act(async () => {
+      client.setQueryData(queryKeys.motorcycles.all, { myMotorcycles: [] });
+      // Observers hear it on TanStack's batched (setTimeout 0) notify.
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+
+    expect(mockRouter.back).not.toHaveBeenCalled();
   });
 });
 

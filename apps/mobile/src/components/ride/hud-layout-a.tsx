@@ -14,6 +14,12 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { editorialThemes } from '../../theme/editorial';
+import { PLATE_FONT, SYSTEM_WEIGHT, type } from '../../theme/type';
+
+/** Layout A is always dark (night mode aside), so status uses the dark tokens. */
+const HUD_THEME = editorialThemes.dark;
+
 import {
   formatDistance,
   formatElapsed,
@@ -92,8 +98,8 @@ export function HudLayoutA({
   const mutedColor = isNightMode ? palette.nightText : palette.neutral400;
 
   // Status badge colors
-  const statusLabel = isPaused ? 'PAUSED' : 'RECORDING';
-  const statusColor = isPaused ? palette.warning500 : palette.success500;
+  const statusLabel = isPaused ? t('rideHud.statusPaused') : t('rideHud.statusRecording');
+  const statusColor = isPaused ? HUD_THEME.dueInk : HUD_THEME.success;
   const statusBg = isPaused ? palette.warningBgDark : palette.successBgDark;
 
   // ── Paused pulse animation ──
@@ -160,21 +166,16 @@ export function HudLayoutA({
               backgroundColor: statusColor,
             }}
           />
-          <Text style={{ fontSize: 13, fontWeight: '800', color: statusColor, letterSpacing: 1 }}>
+          <Text style={[type.label, SYSTEM_WEIGHT.bold, { color: statusColor }]}>
             {statusLabel}
           </Text>
         </Animated.View>
 
         {/* Timer */}
         <Text
-          style={{
-            fontSize: 20,
-            fontWeight: '700',
-            fontVariant: ['tabular-nums'],
-            color: textColor,
-          }}
+          style={[type.figureSmall, { color: textColor }]}
           accessibilityRole="text"
-          accessibilityLabel={`Elapsed time: ${formatElapsed(elapsedSeconds)}`}
+          accessibilityLabel={t('rideHud.elapsedA11y', { time: formatElapsed(elapsedSeconds) })}
         >
           {formatElapsed(elapsedSeconds)}
         </Text>
@@ -196,7 +197,7 @@ export function HudLayoutA({
               justifyContent: 'center',
             }}
           >
-            <BatteryLow size={22} color={isBatterySaver ? palette.warning500 : palette.iconMuted} />
+            <BatteryLow size={22} color={isBatterySaver ? HUD_THEME.dueInk : palette.iconMuted} />
           </Pressable>
           <Pressable
             onPress={onToggleNight}
@@ -232,7 +233,7 @@ export function HudLayoutA({
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: palette.warning500,
+              backgroundColor: HUD_THEME.dueInk,
               zIndex: 5,
               pointerEvents: 'none',
             },
@@ -253,26 +254,9 @@ export function HudLayoutA({
           overflow: 'hidden',
         }}
       >
-        {/* Warm gradient top border glow */}
-        <View
-          style={{
-            height: 3,
-            backgroundColor: palette.signature500,
-            opacity: 0.6,
-          }}
-        />
-
         <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 }}>
           {/* Kicker */}
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: '700',
-              letterSpacing: 1.5,
-              color: labelColor,
-              textTransform: 'uppercase',
-            }}
-          >
+          <Text style={[type.label, { color: labelColor }]}>
             {`${t('rideHud.speedLabel')} · ${unitLabel}`}
           </Text>
 
@@ -288,42 +272,32 @@ export function HudLayoutA({
             {/* Massive speed number */}
             <Text
               style={{
-                fontSize: 124,
-                fontWeight: '200',
+                fontFamily: PLATE_FONT.semibold,
+                fontSize: 132,
                 fontVariant: ['tabular-nums'],
                 color: textColor,
-                lineHeight: 124,
+                lineHeight: 132,
                 includeFontPadding: false,
-                letterSpacing: -4,
+                letterSpacing: -2,
                 opacity: isPaused ? 0.35 : 1,
               }}
               accessibilityRole="text"
-              accessibilityLabel={`Current speed: ${displaySpeed} ${unitLabel}`}
+              accessibilityLabel={t('rideHud.currentSpeedA11y', {
+                speed: displaySpeed,
+                unit: unitLabel,
+              })}
             >
               {displaySpeed}
             </Text>
 
             {/* Max speed */}
             <View style={{ marginBottom: 16 }}>
+              <Text style={[type.label, { color: mutedColor }]}>{t('myRides.max')}</Text>
               <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '700',
-                  letterSpacing: 1,
-                  color: mutedColor,
-                  textTransform: 'uppercase',
-                }}
-              >
-                MAX
-              </Text>
-              <Text
-                style={{
-                  fontSize: 22,
-                  fontWeight: '600',
-                  fontVariant: ['tabular-nums'],
-                  color: isNightMode ? palette.nightText : palette.signature400,
-                  marginTop: 2,
-                }}
+                style={[
+                  type.figure,
+                  { color: isNightMode ? palette.nightText : textColor, marginTop: 2 },
+                ]}
               >
                 {displayMaxSpeed}
               </Text>
@@ -457,27 +431,8 @@ function StatCell({
 }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', paddingVertical: 10 }}>
-      <Text
-        style={{
-          fontSize: 18,
-          fontWeight: '700',
-          fontVariant: ['tabular-nums'],
-          color: textColor,
-        }}
-      >
-        {value}
-      </Text>
-      <Text
-        style={{
-          fontSize: 10,
-          fontWeight: '700',
-          color: labelColor,
-          letterSpacing: 1,
-          marginTop: 2,
-        }}
-      >
-        {label}
-      </Text>
+      <Text style={[type.figureSmall, { color: textColor }]}>{value}</Text>
+      <Text style={[type.caption, { color: labelColor, marginTop: 2 }]}>{label}</Text>
     </View>
   );
 }

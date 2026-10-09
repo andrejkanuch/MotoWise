@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import { memo } from 'react';
 import { View } from 'react-native';
 import { CARD_VARIANTS, type CardVariant, type RideSharePayload } from '../share-card-types';
@@ -43,7 +44,7 @@ export const ShareCardPreview = memo(function ShareCardPreview({
   return (
     <View
       style={{
-        shadowColor: '#000',
+        shadowColor: palette.black,
         shadowOffset: { width: 0, height: 18 },
         shadowOpacity: 0.45,
         shadowRadius: 36,

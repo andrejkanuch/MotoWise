@@ -1,8 +1,6 @@
-import { palette } from '@motovault/design-system';
 import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { MotorcycleType } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { Bike, Check, ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +21,8 @@ import { detectTypeFromModel, useMotorcycleModels } from '../../hooks/use-motorc
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useDiagnosticFlowStore } from '../../stores/diagnostic-flow.store';
+import { type } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
 import { useDiagnosticColors } from './diagnostic-colors';
 import { WizardOptionChip } from './wizard-option-chip';
 
@@ -105,14 +105,14 @@ function ManualBikeForm() {
   }, [store.manualBikeInfo?.model, store.manualBikeInfo?.make]);
 
   const handleTypeSelect = (type: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact();
     store.setManualBikeInfo({ ...store.manualBikeInfo, type } as {
       type: string;
     });
   };
 
   const handleYearConfirm = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact();
     const year = yearInput ? Number.parseInt(yearInput, 10) : undefined;
     store.setManualBikeInfo({
       ...store.manualBikeInfo,
@@ -123,7 +123,7 @@ function ManualBikeForm() {
   };
 
   const handleMakeSelect = (make: { makeId: number; makeName: string }) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact();
     setSelectedMakeForSearch(make);
     setMakeSearch('');
     setDebouncedMakeSearch('');
@@ -136,7 +136,7 @@ function ManualBikeForm() {
   };
 
   const handleModelSelect = (model: { modelId: number; modelName: string }) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact();
     const detectedType = detectTypeFromModel(model.modelName);
     store.setManualBikeInfo({
       ...store.manualBikeInfo,
@@ -148,7 +148,7 @@ function ManualBikeForm() {
   };
 
   const handleStepBack = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact();
     if (manualStep === 'model') {
       setManualStep('make');
       setSelectedMakeForSearch(null);
@@ -305,10 +305,10 @@ function ManualBikeForm() {
               gap: 6,
             }}
           >
-            <Text style={{ fontSize: 15, fontWeight: '600', color: '#FFFFFF' }}>
+            <Text style={{ fontSize: 15, fontWeight: '600', color: colors.onAccent }}>
               {t('diagnoseV2.next')}
             </Text>
-            <ChevronRight size={16} color="#FFFFFF" />
+            <ChevronRight size={16} color={colors.onAccent} />
           </Pressable>
         </View>
       )}
@@ -374,8 +374,6 @@ function ManualBikeForm() {
                   fontSize: 12,
                   fontWeight: '600',
                   color: colors.textMuted,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
                   marginBottom: 8,
                 }}
               >
@@ -507,8 +505,7 @@ function ManualBikeForm() {
           <Pressable
             onPress={() => {
               if (!manualMakeText.trim()) return;
-              if (process.env.EXPO_OS === 'ios')
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              if (process.env.EXPO_OS === 'ios') triggerImpact();
               store.setManualBikeInfo({
                 ...store.manualBikeInfo,
                 type: store.manualBikeInfo?.type ?? '',
@@ -533,12 +530,15 @@ function ManualBikeForm() {
               style={{
                 fontSize: 15,
                 fontWeight: '600',
-                color: manualMakeText.trim() ? '#FFFFFF' : colors.textMuted,
+                color: manualMakeText.trim() ? colors.onAccent : colors.textMuted,
               }}
             >
               {t('diagnoseV2.next')}
             </Text>
-            <ChevronRight size={16} color={manualMakeText.trim() ? '#FFFFFF' : colors.textMuted} />
+            <ChevronRight
+              size={16}
+              color={manualMakeText.trim() ? colors.onAccent : colors.textMuted}
+            />
           </Pressable>
         </View>
       )}
@@ -730,8 +730,7 @@ function ManualBikeForm() {
           <Pressable
             onPress={() => {
               if (!manualModelText.trim()) return;
-              if (process.env.EXPO_OS === 'ios')
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              if (process.env.EXPO_OS === 'ios') triggerImpact();
               const detectedType = detectTypeFromModel(manualModelText.trim());
               store.setManualBikeInfo({
                 ...store.manualBikeInfo,
@@ -752,7 +751,7 @@ function ManualBikeForm() {
               style={{
                 fontSize: 15,
                 fontWeight: '600',
-                color: manualModelText.trim() ? '#FFFFFF' : colors.textMuted,
+                color: manualModelText.trim() ? colors.onAccent : colors.textMuted,
               }}
             >
               {t('diagnoseV2.confirmModel')}
@@ -857,7 +856,7 @@ export function StepBikeSelection() {
   }, [motorcycles]);
 
   const handleSelectBike = (id: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact();
     store.setSelectedMotorcycleId(id);
     store.setShowManualForm(false);
   };
@@ -880,34 +879,10 @@ export function StepBikeSelection() {
             marginBottom: 24,
           }}
         >
-          <Text
-            style={{
-              fontSize: 12,
-              fontWeight: '600',
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-              color: colors.textMuted,
-            }}
-          >
-            {t('diagnoseV2.stepOf', { current: 1, total: 4 })}
-          </Text>
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: '600',
-              color: colors.textPrimary,
-              marginTop: 4,
-            }}
-          >
+          <Text style={[type.sheetTitle, { color: colors.textPrimary, marginTop: 4 }]}>
             {t('diagnoseV2.selectBike')}
           </Text>
-          <Text
-            style={{
-              fontSize: 14,
-              color: colors.textMuted,
-              marginTop: 4,
-            }}
-          >
+          <Text style={[type.subhead, { color: colors.textMuted, marginTop: 4 }]}>
             {t('diagnoseV2.whichBike')}
           </Text>
         </View>
@@ -990,7 +965,7 @@ export function StepBikeSelection() {
                       justifyContent: 'center',
                     }}
                   >
-                    <Check size={14} color={palette.white} strokeWidth={2.5} />
+                    <Check size={14} color={colors.onAccent} strokeWidth={2.5} />
                   </View>
                 )}
               </Pressable>
@@ -1081,7 +1056,7 @@ export function StepBikeSelection() {
             style={{
               fontWeight: '600',
               fontSize: 16,
-              color: canProceed ? '#FFFFFF' : colors.textMuted,
+              color: canProceed ? colors.onAccent : colors.textMuted,
             }}
           >
             {t('diagnoseV2.next')}
