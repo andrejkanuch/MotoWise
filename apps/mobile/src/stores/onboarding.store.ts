@@ -106,12 +106,14 @@ interface OnboardingState {
   completionSent: boolean;
   setCompletionSent: (sent: boolean) => void;
   /**
-   * Clears the flags tied to the signed-in account's onboarding completion
-   * (`awaitingGarageCta`, `completionSent`) without dropping the rider's
-   * answers. Called on sign-out, so a flag left by one account can never hold
-   * the root gate or skip completion for the next.
+   * Sign-out: drops the whole onboarding run — answers, resume point and the
+   * completion flags. Onboarding progress belongs to the account that made it:
+   * keeping the answers let the next account on the device "resume" at the last
+   * screen with the previous rider's goals and bike, auto-complete onboarding in
+   * a second and skip the onboarding paywall. Same as reset(); named for the call
+   * site so the account-boundary rule stays visible.
    */
-  clearAccountCompletionState: () => void;
+  resetForSignOut: () => void;
   setIntentResolved: (resolved: boolean) => void;
   setAcceptedOemScheduleIds: (ids: string[]) => void;
   setExperienceLevel: (level: ExperienceLevel) => void;
@@ -163,7 +165,7 @@ const initialState = {
 
 export const useOnboardingStore = create<OnboardingState>()(
   persist(
-    (set, _get, store) => ({
+    (set, get, store) => ({
       ...initialState,
       setExperienceLevel: (level) => set({ experienceLevel: level }),
       setBikeData: (data) => set({ bikeData: data }),
@@ -188,7 +190,12 @@ export const useOnboardingStore = create<OnboardingState>()(
       setIntentResolved: (intentResolved) => set({ intentResolved }),
       setAwaitingGarageCta: (awaitingGarageCta) => set({ awaitingGarageCta }),
       setCompletionSent: (completionSent) => set({ completionSent }),
-      clearAccountCompletionState: () => set({ awaitingGarageCta: false, completionSent: false }),
+      // intentResolved is per-process (first-launch intent resolution already
+      // settled for this run of the app), not part of an account's onboarding;
+      // resetting it would make the next account's paywall wait for a
+      // resolution that never re-runs.
+      resetForSignOut: () =>
+        set({ ...store.getInitialState(), intentResolved: get().intentResolved }, true),
       reset: () => set(store.getInitialState(), true),
     }),
     {
@@ -218,7 +225,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         setIntentResolved,
         setAwaitingGarageCta,
         setCompletionSent,
-        clearAccountCompletionState,
+        resetForSignOut,
         // intentResolved is a per-process resolution flag — never persist it, or a
         // stale `true` would let a later launch skip waiting for the fresh read.
         intentResolved,
