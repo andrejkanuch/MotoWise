@@ -78,15 +78,27 @@ const BRAKES = recall('23V100000', 'BRAKES');
 const FUEL = recall('24V200000', 'FUEL PUMP');
 const LIGHTS_DONE = recall('25V300000', 'HEADLIGHT', ACKED_AT);
 
+/** What the server returns for the recalls query: the refetch after an ack settles reads it. */
+let mockServerRecalls: RecallResultData;
+
+/** The recalls query answers from the server state; any other document from `other`. */
+function serve(other: (document: unknown) => Promise<unknown> = () => Promise.resolve(undefined)) {
+  mockFetcher.mockImplementation((document: unknown) =>
+    document === MotorcycleRecallsDocument
+      ? Promise.resolve({ motorcycleRecalls: mockServerRecalls })
+      : other(document),
+  );
+}
+
 async function renderScreen(initial: RecallResultData) {
   mockParams = { motorcycleId: BIKE_ID, bikeName: 'Honda' };
-  mockFetcher.mockImplementation((document: unknown) => {
-    if (document === MotorcycleRecallsDocument) {
-      return Promise.resolve({ motorcycleRecalls: initial });
-    }
-    return Promise.resolve(undefined);
+  mockServerRecalls = initial;
+  serve();
+  const client = new QueryClient({
+    // Mutation gcTime Infinity: a finished mutation otherwise arms a 5-minute gc
+    // timer that `clear()` does not cancel, keeping the Jest worker alive.
+    defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { gcTime: Infinity } },
   });
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   const bikes: MyMotorcyclesQuery = {
     myMotorcycles: [{ id: BIKE_ID, recallCount: initial.count } as never],
   };
@@ -111,7 +123,15 @@ async function confirmAlert(alert: jest.SpyInstance) {
   });
 }
 
-afterEach(() => {
+/** Lets the refetch after the last ack settles, and TanStack's batched notifications, land inside act. */
+async function flush() {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  });
+}
+
+afterEach(async () => {
+  await flush();
   jest.restoreAllMocks();
   mockFetcher.mockReset();
   mockTrackEvent.mockReset();
@@ -136,14 +156,13 @@ describe('Recalls screen — mark as done', () => {
     const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     const client = await renderScreen(result([BRAKES, FUEL]));
     let resolveAck: (value: unknown) => void = () => {};
-    mockFetcher.mockImplementation((document: unknown) => {
-      if (document === AcknowledgeRecallDocument) {
-        return new Promise((resolve) => {
-          resolveAck = resolve;
-        });
-      }
-      return Promise.resolve(undefined);
-    });
+    serve((document) =>
+      document === AcknowledgeRecallDocument
+        ? new Promise((resolve) => {
+            resolveAck = resolve;
+          })
+        : Promise.resolve(undefined),
+    );
 
     await fireEvent.press(screen.getByTestId('recall-mark-done-23V100000'));
     expect(alert).toHaveBeenCalledWith(
@@ -168,14 +187,11 @@ describe('Recalls screen — mark as done', () => {
       campaignNumber: '23V100000',
     });
 
+    mockServerRecalls = result([FUEL, { ...BRAKES, acknowledged: true, acknowledgedAt: ACKED_AT }]);
     await act(async () => {
-      resolveAck({
-        acknowledgeRecall: result([
-          FUEL,
-          { ...BRAKES, acknowledged: true, acknowledgedAt: ACKED_AT },
-        ]),
-      });
+      resolveAck({ acknowledgeRecall: mockServerRecalls });
     });
+    await flush();
     expect(mockTrackEvent).toHaveBeenCalledWith(AnalyticsEvent.RECALL_ACKNOWLEDGED, {
       campaign_number: '23V100000',
       motorcycle_id: BIKE_ID,
@@ -185,7 +201,7 @@ describe('Recalls screen — mark as done', () => {
   it('rolls back and shows an error when the server rejects', async () => {
     const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     const client = await renderScreen(result([BRAKES]));
-    mockFetcher.mockImplementation((document: unknown) =>
+    serve((document) =>
       document === AcknowledgeRecallDocument
         ? Promise.reject(new Error('network'))
         : Promise.resolve(undefined),
@@ -193,6 +209,7 @@ describe('Recalls screen — mark as done', () => {
 
     await fireEvent.press(screen.getByTestId('recall-mark-done-23V100000'));
     await confirmAlert(alert);
+    await flush();
 
     await waitFor(() =>
       expect(alert).toHaveBeenLastCalledWith(
@@ -213,18 +230,16 @@ describe('Recalls screen — mark as done', () => {
     await renderScreen(result([LIGHTS_DONE]));
     expect(screen.getByText('No open recalls found')).toBeOnTheScreen();
     expect(screen.getByText('Every recall for this bike is marked as done.')).toBeOnTheScreen();
-    mockFetcher.mockImplementation((document: unknown) =>
+    mockServerRecalls = result([{ ...LIGHTS_DONE, acknowledged: false, acknowledgedAt: null }]);
+    serve((document) =>
       document === UnacknowledgeRecallDocument
-        ? Promise.resolve({
-            unacknowledgeRecall: result([
-              { ...LIGHTS_DONE, acknowledged: false, acknowledgedAt: null },
-            ]),
-          })
+        ? Promise.resolve({ unacknowledgeRecall: mockServerRecalls })
         : Promise.resolve(undefined),
     );
 
     await fireEvent.press(screen.getByTestId('recalls-done-toggle'));
     await fireEvent.press(screen.getByTestId('recall-undo-25V300000'));
+    await flush();
 
     await waitFor(() => expect(screen.getByText('1 open recall found')).toBeOnTheScreen());
     expect(screen.getByTestId('recall-mark-done-25V300000')).toBeOnTheScreen();

@@ -1,6 +1,6 @@
 import { MotorcycleRecallsDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
-import { ImpactFeedbackStyle, NotificationFeedbackType } from 'expo-haptics';
+import { ImpactFeedbackStyle } from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   AlertTriangle,
@@ -29,7 +29,7 @@ import { queryKeys } from '../../lib/query-keys';
 import { QUERY_META } from '../../lib/query-meta';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
-import { triggerImpact, triggerNotification } from '../../utils/haptics';
+import { triggerImpact } from '../../utils/haptics';
 
 const NHTSA_RECALLS_URL = 'https://www.nhtsa.gov/recalls';
 /** Card moves (open -> done and back) settle inside the 300ms motion budget. */
@@ -75,20 +75,8 @@ export default function RecallsScreen() {
 
   const runAck = (campaignNumber: string, action: RecallAckAction) => {
     triggerImpact(ImpactFeedbackStyle.Light);
-    ackMutation.mutate(
-      { campaignNumber, action },
-      {
-        onError: () => {
-          triggerNotification(NotificationFeedbackType.Error);
-          Alert.alert(
-            t('common.error', { defaultValue: 'Error' }),
-            t('recalls.ackError', {
-              defaultValue: "Couldn't update this recall. Please try again.",
-            }),
-          );
-        },
-      },
-    );
+    // Errors alert from the hook, so the alert survives the sheet closing.
+    ackMutation.mutate({ campaignNumber, action });
   };
 
   const confirmMarkDone = (recall: RecallItem) => {
