@@ -1,4 +1,8 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DataExportService } from './data-export.service';
 import { UsersService } from './users.service';
@@ -90,6 +94,21 @@ describe('UsersService', () => {
       });
 
       await expect(service.findById(userId)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException when no row comes back without an error', async () => {
+      mockUserClient._chain.single.mockResolvedValueOnce({ data: null, error: null });
+
+      await expect(service.findById(userId)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw InternalServerErrorException (not NotFound) on a database fault', async () => {
+      mockUserClient._chain.single.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'connection terminated', code: '08006' },
+      });
+
+      await expect(service.findById(userId)).rejects.toThrow(InternalServerErrorException);
     });
   });
 

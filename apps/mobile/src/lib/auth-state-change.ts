@@ -69,6 +69,12 @@ export interface AuthStateChangeDecision {
   shouldResetUser: boolean;
   /** Run local-data cleanup (query cache, sync queue, notifications, widgets…). */
   shouldClearLocalData: boolean;
+  /**
+   * Claim this device's push token for the session's user. Log out removes the
+   * device's token, so a new account — or the same one signing back in — must
+   * register again; a TOKEN_REFRESHED for the same user must not.
+   */
+  shouldRegisterPush: boolean;
 }
 
 /**
@@ -84,10 +90,12 @@ export function decideAuthStateChange({
 }: AuthStateChangeInputs): AuthStateChangeDecision {
   if (sessionUserId) {
     // Session present: identify only on a genuine identity change (todo 191).
+    const userChanged = prevUserId !== sessionUserId;
     return {
-      shouldIdentify: prevUserId !== sessionUserId,
+      shouldIdentify: userChanged,
       shouldResetUser: false,
       shouldClearLocalData: false,
+      shouldRegisterPush: userChanged,
     };
   }
 
@@ -105,5 +113,6 @@ export function decideAuthStateChange({
     // so a server-revoked session surviving a cold start still clears data.
     shouldClearLocalData: hadUser,
     shouldIdentify: false,
+    shouldRegisterPush: false,
   };
 }

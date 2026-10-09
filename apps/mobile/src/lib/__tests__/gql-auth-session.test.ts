@@ -2,9 +2,10 @@
 // UNAUTHENTICATED retries must collapse to ONE supabase.auth.refreshSession call.
 
 const mockRefresh = jest.fn();
+const mockGetSession = jest.fn();
 
 jest.mock('../supabase', () => ({
-  supabase: { auth: { refreshSession: () => mockRefresh() } },
+  supabase: { auth: { refreshSession: () => mockRefresh(), getSession: () => mockGetSession() } },
 }));
 
 const mockAuthState: {
@@ -23,10 +24,17 @@ jest.mock('../../stores/auth.store', () => ({
 }));
 
 import { AUTH_HYDRATION, type AuthHydration } from '../auth-hydration';
-import { hasAuthenticatedSession, refreshGqlSession } from '../gql-auth-session';
+import {
+  buildGqlRequestHeaders,
+  hasAuthenticatedSession,
+  invalidateGqlAccessTokenCache,
+  refreshGqlSession,
+} from '../gql-auth-session';
 
 beforeEach(() => {
   mockRefresh.mockReset();
+  mockGetSession.mockReset();
+  invalidateGqlAccessTokenCache();
   mockAuthState.session = null;
   mockAuthState.isLoading = false;
   mockAuthState.hydration = AUTH_HYDRATION.RESOLVED;
@@ -120,5 +128,37 @@ describe('hasAuthenticatedSession', () => {
     mockAuthState.isLoading = false;
     mockAuthState.hydration = AUTH_HYDRATION.RESOLVED;
     expect(hasAuthenticatedSession()).toBe(false);
+  });
+});
+
+describe('buildGqlRequestHeaders token cache across an account switch', () => {
+  const sessionWith = (token: string) => ({
+    data: { session: { access_token: token, expires_at: 9_999_999_999 } },
+  });
+
+  it("does not cache the previous account's token read before the auth change", async () => {
+    // A request starts reading account A's session; the auth callback switches to
+    // B (invalidating the cache) before that read returns.
+    let finishRead: (v: unknown) => void = () => {};
+    mockGetSession.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishRead = resolve;
+      }),
+    );
+    const inFlight = buildGqlRequestHeaders();
+    invalidateGqlAccessTokenCache();
+    finishRead(sessionWith('token-a'));
+    expect((await inFlight).Authorization).toBe('Bearer token-a');
+
+    // The next request re-reads the session instead of reusing A's token.
+    mockGetSession.mockResolvedValueOnce(sessionWith('token-b'));
+    expect((await buildGqlRequestHeaders()).Authorization).toBe('Bearer token-b');
+  });
+
+  it('reuses the cached token when nothing changed', async () => {
+    mockGetSession.mockResolvedValue(sessionWith('token-a'));
+    await buildGqlRequestHeaders();
+    await buildGqlRequestHeaders();
+    expect(mockGetSession).toHaveBeenCalledTimes(1);
   });
 });

@@ -96,6 +96,12 @@ export const SECURE_STORE_KEY = {
   META_CAPTURED: 'meta_captured',
   META_FIRST_SEEN_AT: 'meta_first_seen_at',
   META_INSTALL_VERSION: 'meta_install_version',
+  /**
+   * Install id of the runtime that last wrote the Supabase session. iOS keeps
+   * keychain items when an app is deleted, so without this a reinstall silently
+   * resumes the previous install's session. See `secureStoreAuthAdapter`.
+   */
+  SESSION_INSTALL_ID: 'motovault.session-install-id',
 } as const;
 
 export type SecureStoreKey = (typeof SECURE_STORE_KEY)[keyof typeof SECURE_STORE_KEY];
@@ -321,15 +327,124 @@ export async function deleteSecureItem(key: string): Promise<boolean> {
   return (await removeSecureItem(key)).status === SECURE_STORE_STATUS.OK;
 }
 
+// -------------------------------------------------------------------
+// A reinstall must not resume the previous install's session.
+// -------------------------------------------------------------------
+// iOS keeps keychain items when the app is deleted, so a fresh install found the
+// old Supabase session and signed the rider straight back in: the sign-in screen
+// flashed and onboarding skipped the account step, against a session the rider
+// believed they had thrown away (and, when that account had since been deleted,
+// against a user that no longer existed).
+//
+// MMKV lives in the app container, which IS wiped on delete. So each install
+// gets a random id in MMKV, and the keychain records which install wrote the
+// session. A session written by a different install is discarded on read.
+//
+//   marker == this install  -> keep
+//   marker missing          -> written by a build before this check: keep, stamp
+//   marker != this install  -> previous install: discard (until a new session is
+//                              written, which re-stamps the marker)
+//   marker unreadable       -> locked keychain or MMKV unavailable: keep — the
+//                              check must never sign out a rider on a locked phone
+//
+// A device restore brings MMKV and the keychain back together, so the ids still
+// match and the rider stays signed in. The marker is only re-stamped by a session
+// WRITE, so a kill between the discard and anything else just discards again.
+// -------------------------------------------------------------------
+
+const INSTALL_IDENTITY_STORE = 'install-identity';
+const INSTALL_ID_KEY = 'install_id';
+
+const SESSION_VERDICT = { KEEP: 'keep', DISCARD: 'discard', UNKNOWN: 'unknown' } as const;
+type SessionVerdict = (typeof SESSION_VERDICT)[keyof typeof SESSION_VERDICT];
+
+/** undefined = not resolved yet; null = MMKV unavailable (check disabled). */
+let installId: string | null | undefined;
+
+function getInstallId(): string | null {
+  if (installId !== undefined) return installId;
+  try {
+    // Required lazily so this module stays importable where the native MMKV
+    // module is absent (unit tests); the check then simply does not run.
+    const { createMMKV } = require('react-native-mmkv') as typeof import('react-native-mmkv');
+    const store = createMMKV({ id: INSTALL_IDENTITY_STORE });
+    let id = store.getString(INSTALL_ID_KEY);
+    if (!id) {
+      const fresh = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+      store.set(INSTALL_ID_KEY, fresh);
+      // Cheap sanity check that the write took. It reads MMKV's in-memory map, so it
+      // does not prove the id reached disk; what keeps an id from being minted while
+      // app data is unavailable is sessionVerdict reading the keychain marker first.
+      if (store.getString(INSTALL_ID_KEY) !== fresh) return null;
+      id = fresh;
+    }
+    installId = id;
+  } catch {
+    installId = null;
+  }
+  return installId;
+}
+
+/** Settled verdict for this runtime; UNKNOWN is never cached, so it is retried. */
+let settledVerdict: SessionVerdict | null = null;
+/** Auth keys this runtime wrote — always this install's, never discarded. */
+const writtenAuthKeys = new Set<string>();
+let markerStamped = false;
+
+async function sessionVerdict(): Promise<SessionVerdict> {
+  if (settledVerdict) return settledVerdict;
+
+  // Marker first. A readable keychain proves the device has been unlocked since
+  // boot, so only then is the install id read (or created): an id minted while
+  // the app's data was still unavailable would not match the marker after unlock
+  // and discard a session that is in fact this install's.
+  const marker = await readSecureItem(SECURE_STORE_KEY.SESSION_INSTALL_ID);
+  if (marker.status !== SECURE_STORE_STATUS.OK) return SESSION_VERDICT.UNKNOWN;
+
+  const id = getInstallId();
+  if (!id) return SESSION_VERDICT.UNKNOWN;
+
+  if (marker.value === null) {
+    markerStamped = await setSecureItem(SECURE_STORE_KEY.SESSION_INSTALL_ID, id);
+    settledVerdict = SESSION_VERDICT.KEEP;
+  } else {
+    settledVerdict = marker.value === id ? SESSION_VERDICT.KEEP : SESSION_VERDICT.DISCARD;
+    markerStamped = settledVerdict === SESSION_VERDICT.KEEP;
+  }
+  return settledVerdict;
+}
+
+async function stampSessionInstall(): Promise<void> {
+  const id = getInstallId();
+  if (!id || markerStamped) return;
+  markerStamped = await setSecureItem(SECURE_STORE_KEY.SESSION_INSTALL_ID, id);
+}
+
+/** Test-only: forget this runtime's verdict and install id. */
+export function __resetSessionInstallCheckForTests(): void {
+  installId = undefined;
+  settledVerdict = null;
+  writtenAuthKeys.clear();
+  markerStamped = false;
+}
+
 /**
  * Supabase Auth `storage` adapter. Supabase serialises its own storage access,
  * so awaiting the accessibility upgrade in here keeps the delete→add gap
- * invisible to every other Supabase read.
+ * invisible to every other Supabase read. Reads also drop a session left behind
+ * by a previous install of the app (see above).
  */
 export const secureStoreAuthAdapter = {
-  getItem: (key: string): Promise<string | null> => getSecureItem(key),
+  getItem: async (key: string): Promise<string | null> => {
+    if (!writtenAuthKeys.has(key) && (await sessionVerdict()) === SESSION_VERDICT.DISCARD) {
+      await deleteSecureItem(key);
+      return null;
+    }
+    return getSecureItem(key);
+  },
   setItem: async (key: string, value: string): Promise<void> => {
-    await setSecureItem(key, value);
+    writtenAuthKeys.add(key);
+    if (await setSecureItem(key, value)) await stampSessionInstall();
   },
   removeItem: async (key: string): Promise<void> => {
     await deleteSecureItem(key);

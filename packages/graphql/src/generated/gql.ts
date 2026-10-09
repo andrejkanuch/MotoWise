@@ -94,6 +94,7 @@ type Documents = {
     "mutation UndoReceiptScanSave($scanId: String!) {\n  undoReceiptScanSave(scanId: $scanId) {\n    __typename\n    ... on UndoReceiptScanSuccess {\n      scanId\n      status\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}": typeof types.UndoReceiptScanSaveDocument,
     "mutation UnfollowRider($input: UnfollowRiderInput!) {\n  unfollowRider(input: $input)\n}": typeof types.UnfollowRiderDocument,
     "mutation UnpublishTemplate($tripId: ID!) {\n  unpublishTemplate(tripId: $tripId)\n}": typeof types.UnpublishTemplateDocument,
+    "mutation UnregisterPushToken($input: UnregisterPushTokenInput!) {\n  unregisterPushToken(input: $input) {\n    success\n  }\n}": typeof types.UnregisterPushTokenDocument,
     "mutation UnsaveTrip($tripId: ID!) {\n  unsaveTrip(tripId: $tripId)\n}": typeof types.UnsaveTripDocument,
     "mutation UnshareRide($rideId: String!, $sharedWithUserId: String!) {\n  unshareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}": typeof types.UnshareRideDocument,
     "mutation UpdateDocumentCategory($id: String!, $input: UpdateDocumentCategoryInput!) {\n  updateDocumentCategory(id: $id, input: $input) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    updatedAt\n  }\n}": typeof types.UpdateDocumentCategoryDocument,
@@ -277,6 +278,7 @@ const documents: Documents = {
     "mutation UndoReceiptScanSave($scanId: String!) {\n  undoReceiptScanSave(scanId: $scanId) {\n    __typename\n    ... on UndoReceiptScanSuccess {\n      scanId\n      status\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}": types.UndoReceiptScanSaveDocument,
     "mutation UnfollowRider($input: UnfollowRiderInput!) {\n  unfollowRider(input: $input)\n}": types.UnfollowRiderDocument,
     "mutation UnpublishTemplate($tripId: ID!) {\n  unpublishTemplate(tripId: $tripId)\n}": types.UnpublishTemplateDocument,
+    "mutation UnregisterPushToken($input: UnregisterPushTokenInput!) {\n  unregisterPushToken(input: $input) {\n    success\n  }\n}": types.UnregisterPushTokenDocument,
     "mutation UnsaveTrip($tripId: ID!) {\n  unsaveTrip(tripId: $tripId)\n}": types.UnsaveTripDocument,
     "mutation UnshareRide($rideId: String!, $sharedWithUserId: String!) {\n  unshareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}": types.UnshareRideDocument,
     "mutation UpdateDocumentCategory($id: String!, $input: UpdateDocumentCategoryInput!) {\n  updateDocumentCategory(id: $id, input: $input) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    updatedAt\n  }\n}": types.UpdateDocumentCategoryDocument,
@@ -714,6 +716,10 @@ export function graphql(source: "mutation UnfollowRider($input: UnfollowRiderInp
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation UnpublishTemplate($tripId: ID!) {\n  unpublishTemplate(tripId: $tripId)\n}"): (typeof documents)["mutation UnpublishTemplate($tripId: ID!) {\n  unpublishTemplate(tripId: $tripId)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation UnregisterPushToken($input: UnregisterPushTokenInput!) {\n  unregisterPushToken(input: $input) {\n    success\n  }\n}"): (typeof documents)["mutation UnregisterPushToken($input: UnregisterPushTokenInput!) {\n  unregisterPushToken(input: $input) {\n    success\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -7,8 +7,17 @@ type CachedAccess = { accessToken: string; expiresAtMs: number };
 
 let cachedAccess: CachedAccess | null = null;
 
+/**
+ * Bumped on every invalidation. A session read that started before an auth
+ * change must not write its (now previous) token back into the cache once the
+ * auth callback has cleared it — the next request would carry the old account's
+ * JWT while the auth store already holds the new account.
+ */
+let cacheGeneration = 0;
+
 /** Call on Supabase auth state changes so we never send a stale JWT after sign-out. */
 export function invalidateGqlAccessTokenCache(): void {
+  cacheGeneration += 1;
   cachedAccess = null;
 }
 
@@ -73,6 +82,7 @@ export function hasAuthenticatedSession(): boolean {
 }
 
 async function materializeSession(): Promise<CachedAccess | null> {
+  const generation = cacheGeneration;
   let {
     data: { session },
   } = await supabase.auth.getSession();
@@ -99,14 +109,20 @@ async function materializeSession(): Promise<CachedAccess | null> {
     }
   }
 
+  const stillCurrent = generation === cacheGeneration;
   if (!session?.access_token) {
-    cachedAccess = null;
+    if (stillCurrent) cachedAccess = null;
     return null;
   }
 
-  const expiresAtMs = (session.expires_at ?? 0) * 1000;
-  cachedAccess = { accessToken: session.access_token, expiresAtMs };
-  return cachedAccess;
+  const access = {
+    accessToken: session.access_token,
+    expiresAtMs: (session.expires_at ?? 0) * 1000,
+  };
+  // Only cache what was read for the current auth state; the request that asked
+  // still uses it, but the next one re-reads the session.
+  if (stillCurrent) cachedAccess = access;
+  return access;
 }
 
 /**

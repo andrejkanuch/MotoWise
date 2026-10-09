@@ -4837,6 +4837,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      claim_device_push_token: {
+        Args: { p_platform: string; p_token: string }
+        Returns: boolean
+      }
       claim_next_social_post: {
         Args: { p_slot: string }
         Returns: {
@@ -5135,13 +5139,13 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      populate_geometry_columns:
-        | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
-        | { Args: { use_typmod?: boolean }; Returns: string }
       note_link_is_own: {
         Args: { p_expense_id: string; p_task_id: string }
         Returns: boolean
       }
+      populate_geometry_columns:
+        | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
+        | { Args: { use_typmod?: boolean }; Returns: string }
       postgis_constraint_dims: {
         Args: { geomcolumn: string; geomschema: string; geomtable: string }
         Returns: number
@@ -5192,6 +5196,9 @@ export type Database = {
           p_period_type?: string
           p_product_id?: string
           p_purchased_at?: string
+          p_rc_expires_at?: string
+          p_rc_status?: string
+          p_rc_tier?: string
           p_store?: string
           p_transferred_from?: string[]
         }
