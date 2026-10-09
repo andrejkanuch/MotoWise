@@ -108,6 +108,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react-n
 import { StyleSheet } from 'react-native';
 import '../../../i18n';
 import { ADD_TASK_MODE, BIKE_ORIGIN, BIKE_SEGMENT } from '../../../lib/bike-hub/constants';
+import { queryKeys } from '../../../lib/query-keys';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
 import { BikeHubScreen, type BikeHubScreenProps } from '../shell/bike-hub-screen';
 
@@ -482,6 +483,41 @@ describe('BikeHubScreen — states', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Back to Home' }));
     expect(mockRouter.dismissAll).toHaveBeenCalledTimes(1);
     expect(mockRouter.navigate).toHaveBeenCalledWith('/(tabs)/(home)');
+  });
+
+  it('goes back once on its own when the bike it showed leaves the garage list', async () => {
+    const { client } = await renderHub();
+    expect(await screen.findByRole('tab', { name: 'Overview' })).toBeOnTheScreen();
+    expect(mockRouter.back).not.toHaveBeenCalled();
+
+    // Deleted from Edit Motorcycle, whose sheet closed before its own navigation.
+    await act(async () => {
+      client.setQueryData(queryKeys.motorcycles.all, { myMotorcycles: [] });
+      // Observers hear it on TanStack's batched (setTimeout 0) notify.
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      client.setQueryData(queryKeys.motorcycles.all, { myMotorcycles: [] });
+      // Observers hear it on TanStack's batched (setTimeout 0) notify.
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not leave while another screen is on top (the edit sheet navigates itself)', async () => {
+    const { client } = await renderHub();
+    expect(await screen.findByRole('tab', { name: 'Overview' })).toBeOnTheScreen();
+    mockIsFocused = false;
+
+    await act(async () => {
+      client.setQueryData(queryKeys.motorcycles.all, { myMotorcycles: [] });
+      // Observers hear it on TanStack's batched (setTimeout 0) notify.
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+
+    expect(mockRouter.back).not.toHaveBeenCalled();
   });
 });
 
