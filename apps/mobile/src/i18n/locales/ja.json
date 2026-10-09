@@ -137,7 +137,8 @@
     "plateHint": "このバイクを開きます",
     "monthlyGoalOf": "/ {{goal}} {{unit}}",
     "distanceGoal": "{{goal}} {{unit}} 目標",
-    "distancePerDay": "{{unit}} / 日"
+    "distancePerDay": "{{unit}} / 日",
+    "avgSpeedImperial": "平均 {{speed}} mph"
   },
   "learn": {
     "searchPlaceholder": "トピックを検索...",

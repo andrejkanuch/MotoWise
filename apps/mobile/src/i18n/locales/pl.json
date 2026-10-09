@@ -137,7 +137,8 @@
     "plateHint": "Otwiera ten motocykl",
     "monthlyGoalOf": "/ {{goal}} {{unit}}",
     "distanceGoal": "Cel {{goal}} {{unit}}",
-    "distancePerDay": "{{unit}} / dzień"
+    "distancePerDay": "{{unit}} / dzień",
+    "avgSpeedImperial": "śr. {{speed}} mph"
   },
   "learn": {
     "searchPlaceholder": "Szukaj tematow...",

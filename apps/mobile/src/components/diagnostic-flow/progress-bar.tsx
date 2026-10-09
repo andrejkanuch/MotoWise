@@ -32,12 +32,18 @@ export function DiagnosticProgressBar({ currentStep, totalSteps }: DiagnosticPro
         height: TRACK_HEIGHT,
         backgroundColor: colors.progressTrack,
         borderRadius: radius.pill,
+        borderCurve: 'continuous',
         overflow: 'hidden',
       }}
     >
       <Animated.View
         style={[
-          { height: '100%', borderRadius: radius.pill, backgroundColor: colors.accent },
+          {
+            height: '100%',
+            borderRadius: radius.pill,
+            borderCurve: 'continuous',
+            backgroundColor: colors.accent,
+          },
           animatedWidth,
         ]}
       />

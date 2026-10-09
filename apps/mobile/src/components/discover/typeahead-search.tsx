@@ -216,7 +216,7 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
                     gap: 10,
                     paddingHorizontal: 14,
                     paddingVertical: 10,
-                    backgroundColor: pressed ? theme.surface2 : 'transparent',
+                    backgroundColor: pressed ? theme.surface3 : 'transparent',
                   })}
                 >
                   <Route size={16} color={theme.warm} />
@@ -256,7 +256,7 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
                       gap: 10,
                       paddingHorizontal: 14,
                       paddingVertical: 10,
-                      backgroundColor: pressed ? theme.surface2 : 'transparent',
+                      backgroundColor: pressed ? theme.surface3 : 'transparent',
                     })}
                   >
                     <PlaceIcon size={16} color={theme.ink3} />

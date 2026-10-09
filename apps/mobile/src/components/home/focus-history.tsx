@@ -1,10 +1,11 @@
+import { MeasurementSystem } from '@motovault/types';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useEditorialTheme } from '../../theme/editorial';
 import { radius, space, type } from '../../theme/type';
-import { formatDistance, formatDuration } from '../../utils/ride-formatters';
+import { formatDistance, formatDuration, formatSpeedValue } from '../../utils/ride-formatters';
 
 interface Ride {
   id: string;
@@ -23,6 +24,11 @@ interface FocusHistoryProps {
 const MAX_ROWS = 4;
 const ROW_MIN_HEIGHT = process.env.EXPO_OS === 'android' ? 48 : 44;
 const NO_VALUE = '--';
+/** Metric keeps the per-locale unit (km/h, km/jam, กม./ชม.) in its own string. */
+const AVG_SPEED_KEY: Record<MeasurementSystem, 'home.avgSpeed' | 'home.avgSpeedImperial'> = {
+  [MeasurementSystem.METRIC]: 'home.avgSpeed',
+  [MeasurementSystem.IMPERIAL]: 'home.avgSpeedImperial',
+};
 
 export function FocusHistory({ rides }: FocusHistoryProps) {
   const { t: theme } = useEditorialTheme();
@@ -77,7 +83,7 @@ export function FocusHistory({ rides }: FocusHistoryProps) {
           });
           const duration = ride.durationS == null ? NO_VALUE : formatDuration(ride.durationS);
           const speed = ride.avgSpeedMps
-            ? ` · ${t('home.avgSpeed', { speed: Math.round(ride.avgSpeedMps * 3.6) })}`
+            ? ` · ${t(AVG_SPEED_KEY[system], { speed: formatSpeedValue(ride.avgSpeedMps, system) })}`
             : '';
           return (
             <View

@@ -137,7 +137,8 @@
     "plateHint": "เปิดรถคันนี้",
     "monthlyGoalOf": "/ {{goal}} {{unit}}",
     "distanceGoal": "เป้าหมาย {{goal}} {{unit}}",
-    "distancePerDay": "{{unit}} / วัน"
+    "distancePerDay": "{{unit}} / วัน",
+    "avgSpeedImperial": "เฉลี่ย {{speed}} ไมล์/ชม."
   },
   "learn": {
     "searchPlaceholder": "ค้นหาหัวข้อ...",

@@ -137,7 +137,8 @@
     "plateHint": "Opens this bike",
     "monthlyGoalOf": "/ {{goal}} {{unit}}",
     "distanceGoal": "{{goal}} {{unit}} goal",
-    "distancePerDay": "{{unit}} / day"
+    "distancePerDay": "{{unit}} / day",
+    "avgSpeedImperial": "avg {{speed}} mph"
   },
   "learn": {
     "searchPlaceholder": "Search topics...",

@@ -1,12 +1,16 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, View } from 'react-native';
+import { type AccessibilityActionEvent, Pressable, Text, View } from 'react-native';
 import { radius, space, type } from '../../../theme/type';
 import { useOnboardingColors } from '../onboarding-colors';
 import { PickerLabel } from './picker-ui';
 
 const MIN_YEAR = 1970;
 const MAX_YEAR = new Date().getFullYear() + 1;
+
+/** VoiceOver/TalkBack swipe up/down on the adjustable year → step direction. */
+const A11Y_STEP: Record<string, number> = { increment: 1, decrement: -1 };
+const A11Y_ACTIONS = [{ name: 'increment' }, { name: 'decrement' }];
 
 interface YearStepperProps {
   /** Current year as a string (mirrors the parent's text state). */
@@ -36,6 +40,11 @@ export function YearStepper({ value, onChange, onStep }: YearStepperProps) {
     onChange(String(next));
   };
 
+  const onAccessibilityAction = (event: AccessibilityActionEvent) => {
+    const delta = A11Y_STEP[event.nativeEvent.actionName];
+    if (delta) step(delta);
+  };
+
   return (
     <View>
       <PickerLabel>{t('onboarding.v2BikeSetupYearCompact')}</PickerLabel>
@@ -56,6 +65,8 @@ export function YearStepper({ value, onChange, onStep }: YearStepperProps) {
           accessibilityRole="adjustable"
           accessibilityLabel={t('onboarding.v2BikeSetupYearCompact')}
           accessibilityValue={{ text: value }}
+          accessibilityActions={A11Y_ACTIONS}
+          onAccessibilityAction={onAccessibilityAction}
           style={[type.figure, { fontSize: 40, lineHeight: 44, color: oc.textPrimary }]}
           maxFontSizeMultiplier={1.3}
         >

@@ -37,7 +37,7 @@ export interface OnboardingAction {
   label: string;
   onPress: () => void;
   disabled?: boolean;
-  /** Primary only: the leading arrow icon (default on). */
+  /** Primary only: the trailing arrow icon (default off). */
   showIcon?: boolean;
   testID?: string;
   accessibilityLabel?: string;

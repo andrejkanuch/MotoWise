@@ -137,7 +137,8 @@
     "plateHint": "Abre esta moto",
     "monthlyGoalOf": "/ {{goal}} {{unit}}",
     "distanceGoal": "Meta de {{goal}} {{unit}}",
-    "distancePerDay": "{{unit}} / día"
+    "distancePerDay": "{{unit}} / día",
+    "avgSpeedImperial": "prom {{speed}} mph"
   },
   "learn": {
     "searchPlaceholder": "Buscar temas...",

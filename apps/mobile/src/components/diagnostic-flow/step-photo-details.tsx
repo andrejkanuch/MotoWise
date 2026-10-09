@@ -150,6 +150,7 @@ export function StepPhotoDetails() {
                   width: 44,
                   height: 44,
                   borderRadius: 22,
+                  borderCurve: 'continuous',
                   backgroundColor: PHOTO_SCRIM,
                   alignItems: 'center',
                   justifyContent: 'center',

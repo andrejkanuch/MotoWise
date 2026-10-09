@@ -137,7 +137,8 @@
     "plateHint": "Öffnet dieses Motorrad",
     "monthlyGoalOf": "/ {{goal}} {{unit}}",
     "distanceGoal": "{{goal}} {{unit}} Ziel",
-    "distancePerDay": "{{unit}} / Tag"
+    "distancePerDay": "{{unit}} / Tag",
+    "avgSpeedImperial": "Ø {{speed}} mph"
   },
   "learn": {
     "searchPlaceholder": "Themen suchen...",

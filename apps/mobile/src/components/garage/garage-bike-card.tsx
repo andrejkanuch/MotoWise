@@ -97,6 +97,7 @@ export function GarageBikeCard({ bike, plate, size, onOpen, onMenu }: GarageBike
             width: MENU_SIZE,
             height: MENU_SIZE,
             borderRadius: radius.pill,
+            borderCurve: 'continuous',
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor:

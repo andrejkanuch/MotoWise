@@ -32,14 +32,13 @@ type MapPickerProps = {
   onSelect: (location: SelectedLocation) => void;
   initialLat?: number;
   initialLng?: number;
-  isDark: boolean;
 };
 
 const DEFAULT_LAT = 48.1486;
 const DEFAULT_LNG = 17.1077;
 const DEFAULT_ZOOM = 13;
 
-export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: MapPickerProps) {
+export default function MapPicker({ onSelect, initialLat, initialLng }: MapPickerProps) {
   const { t } = useTranslation();
   const cameraRef = useRef<MapboxGL.Camera>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -56,7 +55,7 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
   const startLng = initialLng ?? DEFAULT_LNG;
 
   // Derived colors
-  const { t: theme } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
   const bg = theme.surface;
   const textColor = theme.ink;
   const subtextColor = theme.ink3;

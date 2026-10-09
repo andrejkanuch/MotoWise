@@ -136,7 +136,7 @@ export function NotePhotoViewer({ photos, initialIndex, onClose }: NotePhotoView
               textAlign: 'center',
               ...HUB_FIGURE,
               fontSize: 15,
-              color: hub.text,
+              color: hub.onPhotoChip,
             }}
           >
             {t('bikeHub.notesScreen.viewerCounter', { index: index + 1, count })}

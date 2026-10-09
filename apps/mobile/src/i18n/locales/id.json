@@ -137,7 +137,8 @@
     "plateHint": "Membuka motor ini",
     "monthlyGoalOf": "/ {{goal}} {{unit}}",
     "distanceGoal": "Target {{goal}} {{unit}}",
-    "distancePerDay": "{{unit}} / hari"
+    "distancePerDay": "{{unit}} / hari",
+    "avgSpeedImperial": "rata-rata {{speed}} mph"
   },
   "learn": {
     "searchPlaceholder": "Cari topik...",

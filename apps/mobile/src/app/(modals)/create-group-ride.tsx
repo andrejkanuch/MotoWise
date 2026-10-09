@@ -245,7 +245,6 @@ export default function CreateGroupRideScreen() {
                 }}
               >
                 <MapPicker
-                  isDark={isDark}
                   initialLat={meetingPoint?.lat}
                   initialLng={meetingPoint?.lng}
                   onSelect={(loc) => {

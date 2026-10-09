@@ -137,7 +137,8 @@
     "plateHint": "यह बाइक खोलता है",
     "monthlyGoalOf": "/ {{goal}} {{unit}}",
     "distanceGoal": "{{goal}} {{unit}} लक्ष्य",
-    "distancePerDay": "{{unit}} / दिन"
+    "distancePerDay": "{{unit}} / दिन",
+    "avgSpeedImperial": "औसत {{speed}} mph"
   },
   "learn": {
     "searchPlaceholder": "विषय खोजें...",

@@ -137,7 +137,8 @@
     "plateHint": "Otvorí túto motorku",
     "monthlyGoalOf": "/ {{goal}} {{unit}}",
     "distanceGoal": "Cieľ {{goal}} {{unit}}",
-    "distancePerDay": "{{unit}} / deň"
+    "distancePerDay": "{{unit}} / deň",
+    "avgSpeedImperial": "priemer {{speed}} mph"
   },
   "learn": {
     "searchPlaceholder": "Hľadať témy...",

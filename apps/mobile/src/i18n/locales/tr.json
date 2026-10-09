@@ -137,7 +137,8 @@
     "plateHint": "Bu motosikleti açar",
     "monthlyGoalOf": "/ {{goal}} {{unit}}",
     "distanceGoal": "{{goal}} {{unit}} hedef",
-    "distancePerDay": "{{unit}} / gün"
+    "distancePerDay": "{{unit}} / gün",
+    "avgSpeedImperial": "ort {{speed}} mph"
   },
   "learn": {
     "searchPlaceholder": "Konu ara...",
