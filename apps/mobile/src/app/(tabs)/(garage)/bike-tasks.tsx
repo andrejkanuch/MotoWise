@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { ParseKeys } from 'i18next';
-import { type ReactNode, useCallback, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
@@ -136,8 +136,14 @@ export default function BikeTasksScreen() {
   const odometer = bike?.currentMileage;
   const make = bike?.make ?? '';
 
+  // Set the moment a delete is confirmed: a second confirm (a second alert opened
+  // while the first delete is in flight) is ignored instead of sent twice.
+  const deletePendingRef = useRef(false);
   const deleteMutation = useMutation({
     mutationFn: (taskId: string) => gqlFetcher(DeleteMaintenanceTaskDocument, { id: taskId }),
+    onSettled: () => {
+      deletePendingRef.current = false;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
@@ -153,9 +159,10 @@ export default function BikeTasksScreen() {
     },
   });
 
+  // The same due context as the rows, so a row that reads overdue is filed under Overdue.
   const filteredTasks = useMemo(
-    () => filterAndSortTasks(tasks, activeFilter, Date.now()),
-    [tasks, activeFilter],
+    () => filterAndSortTasks(tasks, activeFilter, { odometer, today, unit: mileageUnit }),
+    [tasks, activeFilter, odometer, today, mileageUnit],
   );
   // On "All" the sort already put completed work last, so splitting keeps the order.
   const openTasks = filteredTasks.filter((task) => task.status !== MaintenanceTaskStatus.Completed);
@@ -201,7 +208,11 @@ export default function BikeTasksScreen() {
           {
             text: t('common.delete'),
             style: 'destructive',
-            onPress: () => deleteTask(taskId),
+            onPress: () => {
+              if (deletePendingRef.current) return;
+              deletePendingRef.current = true;
+              deleteTask(taskId);
+            },
           },
         ],
       );
