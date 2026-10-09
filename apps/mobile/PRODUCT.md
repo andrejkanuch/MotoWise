@@ -43,7 +43,7 @@ One rider-owned record of the bike: what it costs, what it needs next and where 
 
 - Navigation: native tabs Home · Discover · Garage · Profile, each with its own stack. Modals and sheets are native form sheets.
 - The bike hub (bike detail) is mid-redesign. Phase 1 shipped in 3.22.0: header, segment bar (Overview · Service · Costs · Bike), Overview, Log sheet, Odometer sheet, and Notes with photos. Service, Costs and Bike still wrap the previous sections until their phases land (spec: `docs/design/app-screens/05-garage/02-bike-detail/redesign/DESIGN-SPEC.md`, plan in `PROGRESS.md`).
-- The bike hub is dark in both system colour schemes. The rest of the app is dark-first.
+- Every surface, the bike hub included, supports light and dark and follows the app's theme setting (System / Light / Dark). Dark-first in design priority.
 - All copy goes through i18n, with 13 locales in `src/i18n/locales`. New keys must exist in every locale.
 - All colours come from `@motovault/design-system` `palette`. No colour literals in components.
 - OTA updates only reach builds with the same app version (runtime = appVersion).

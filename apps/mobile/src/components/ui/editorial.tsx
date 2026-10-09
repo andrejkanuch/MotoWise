@@ -42,9 +42,8 @@ export function ECard({
       style={[
         {
           backgroundColor: t.surface,
-          borderWidth: 1,
-          borderColor: t.line,
-          borderRadius: 20,
+          // Same card as the inset groups: ramp step, no outline.
+          borderRadius: radius.card,
           borderCurve: 'continuous',
           padding: pad,
         },
@@ -383,91 +382,6 @@ export function EPriority({ level }: { level: 'low' | 'medium' | 'high' | 'criti
 export function EDivider({ style }: { style?: StyleProp<ViewStyle> }) {
   const { t } = useEditorialTheme();
   return <View style={[{ height: 1, backgroundColor: t.line }, style]} />;
-}
-
-// ── Display text (condensed title face) ──
-export function EDisplay({
-  children,
-  size = 40,
-  style,
-}: {
-  children: ReactNode;
-  size?: number;
-  style?: StyleProp<TextStyle>;
-}) {
-  const { t } = useEditorialTheme();
-  return (
-    <Text
-      style={[
-        {
-          fontFamily: PLATE_FONT.bold,
-          fontSize: size,
-          lineHeight: size * 1.05,
-          color: t.ink,
-          letterSpacing: -size * 0.02,
-        },
-        style,
-      ]}
-    >
-      {children}
-    </Text>
-  );
-}
-
-// ── Display accent (same face, kept for API compatibility) ──
-export function EDisplayAccent({
-  children,
-  size = 40,
-  style,
-}: {
-  children: ReactNode;
-  size?: number;
-  style?: StyleProp<TextStyle>;
-}) {
-  const { t } = useEditorialTheme();
-  return (
-    <Text
-      style={[
-        {
-          fontFamily: PLATE_FONT.bold,
-          fontSize: size,
-          lineHeight: size * 1.05,
-          color: t.ink,
-          letterSpacing: -size * 0.02,
-        },
-        style,
-      ]}
-    >
-      {children}
-    </Text>
-  );
-}
-
-// ── Kicker / label ──
-export function EKicker({
-  children,
-  color,
-  style,
-}: {
-  children: ReactNode;
-  color?: string;
-  style?: StyleProp<TextStyle>;
-}) {
-  const { t } = useEditorialTheme();
-  return (
-    <Text
-      style={[
-        {
-          fontSize: 11,
-          fontWeight: '600',
-          color: color ?? t.warm,
-        },
-        style,
-      ]}
-    >
-      {children}
-    </Text>
-  );
 }
 
 // ── Settings section label (sentence-case caption above a settings group) ──

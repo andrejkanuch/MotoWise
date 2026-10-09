@@ -198,7 +198,7 @@ export default function RideHeatmapScreen() {
                 <MapboxGL.LineLayer
                   id="heatmap-line"
                   style={{
-                    lineColor: tok.danger,
+                    lineColor: tok.warm, // the ridden route is the rider's own mark (DESIGN.md copper exception)
                     lineWidth: 2,
                     lineOpacity: 0.7,
                     lineBlur: 2.5,
