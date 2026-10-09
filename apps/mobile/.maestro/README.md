@@ -167,9 +167,10 @@ Hard-won specifics for THIS app — check these first when a flow "should work" 
 - **Editorial headers split a phrase across `Text` nodes.** "New task." / "Edit task." render as two
   elements, so a single-element regex like `.*New.*task.*` will NOT match. Assert on a single-element
   label or button instead (e.g. `Priority`, `Save task`).
-- **Lists truncate; card actions don't need expanding.** The bike hub shows the top ~5 tasks + a
+- **Lists truncate; row actions need expanding.** The bike hub shows the top ~5 tasks + a
   **"See all"**; to act on a specific task reliably, open the All Tasks screen and `scrollUntilVisible`
-  it. The Done/Edit/Delete row is always rendered on each card — no tap-to-expand needed.
+  it. The hub and All Tasks share one row (`bike-hub/service/task-row.tsx`): its check circle
+  (a11y "Mark <title> done") completes the task; Edit/Delete appear only after tapping the title.
 - **Disambiguate repeated per-row controls.** Every task card has its own `Edit`/`Delete`; anchor the
   tap with `below:`/`rightOf:` (e.g. `tapOn: { text: "Edit", below: { text: "<task title>" } }`).
 - **Confirm dialogs reuse the same word as the row button.** A destructive action opens an Alert whose

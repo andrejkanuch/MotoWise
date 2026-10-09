@@ -163,7 +163,7 @@ env:
 
 # 10. Cleanup — delete the logged record so reruns stay deterministic. The
 #     confirm Alert reuses "Delete", so target it rightOf "Cancel". Delete lives
-#     in the card's expanded action row (swipeable-task-card.tsx).
+#     in the row's expanded details (bike-hub/service/task-row.tsx).
 - runFlow:
     when:
       notVisible:

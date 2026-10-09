@@ -90,9 +90,9 @@ env:
 
 # 4. Find the task, then tap its check circle. "See all" opens the
 #    full All Tasks list when the hub truncates to the top few; harmless no-op
-#    (optional) otherwise. The card's actions are now revealed on tap (the
-#    always-visible Done/Edit/Delete row was moved into the expanded state — see
-#    swipeable-task-card.tsx), so tap the title to expand before anchoring "Done".
+#    (optional) otherwise. The hub and the All Tasks list share the same row
+#    (bike-hub/service/task-row.tsx): its check circle completes the task, and
+#    Edit/Delete only show once the title is tapped to expand it.
 - tapOn:
     text: ".*See all.*"
     optional: true

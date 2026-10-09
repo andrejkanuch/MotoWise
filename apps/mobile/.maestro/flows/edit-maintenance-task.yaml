@@ -87,8 +87,8 @@ env:
     element:
       text: "${TASK_TITLE}([.,].*)?"
     direction: DOWN
-# The card's Edit/Done/Delete row only renders once the card is expanded
-# (swipeable-task-card.tsx), so tap the title first.
+# The row's Edit/Delete actions only render once it is expanded
+# (bike-hub/service/task-row.tsx, shared by the hub and All Tasks), so tap the title first.
 - tapOn: "${TASK_TITLE}([.,].*)?"
 - tapOn:
     text: "Edit"
