@@ -5,6 +5,8 @@ import { hasGraphQLCode } from './graphql-errors';
 import { supabase } from './supabase';
 
 const ACCOUNT_GONE_SOURCE = 'accountGone.signOut';
+/** Bound on one account-gone check, so a hung session read never blocks later ones. */
+export const ACCOUNT_GONE_CHECK_TIMEOUT_MS = 5000;
 
 /** In-flight sign-outs, one per gone account (single-flight per account). */
 const signingOut = new Map<string, Promise<void>>();
@@ -54,16 +56,20 @@ export function signOutGoneAccount(requestUserId: string | null): Promise<void> 
   if (!requestUserId) return Promise.resolve();
   const inFlight = signingOut.get(requestUserId);
   if (inFlight) return inFlight;
-  const run = (async () => {
+  const check = (async () => {
     if ((await getSessionUserId()) !== requestUserId) return;
     addBreadcrumb('me returned NOT_FOUND; signing out locally', ACCOUNT_GONE_SOURCE);
     const { error } = await supabase.auth.signOut({ scope: 'local' });
     if (error) captureException(error, { source: ACCOUNT_GONE_SOURCE });
-  })()
-    .catch((err) => captureException(err, { source: ACCOUNT_GONE_SOURCE }))
-    .finally(() => {
-      signingOut.delete(requestUserId);
-    });
+  })().catch((err) => captureException(err, { source: ACCOUNT_GONE_SOURCE }));
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, ACCOUNT_GONE_CHECK_TIMEOUT_MS);
+  });
+  const run = Promise.race([check, deadline]).finally(() => {
+    clearTimeout(timer);
+    signingOut.delete(requestUserId);
+  });
   signingOut.set(requestUserId, run);
   return run;
 }

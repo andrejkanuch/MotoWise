@@ -36,8 +36,13 @@ async function getDevicePushToken(): Promise<{
   return token ? { token, platform } : null;
 }
 
-/** The registration currently running, so a sign-out can order itself after it. */
-let pendingRegister: Promise<void> | null = null;
+/**
+ * Claims already sent to the API and not yet answered. A sign-out waits for
+ * exactly these (all of them, not just the latest), so the unregister always
+ * lands after them. A registration still looking up its token is not here: it
+ * sees the sign-out's generation bump and never sends.
+ */
+const claimsOnTheWire = new Set<Promise<unknown>>();
 
 /**
  * MOT-278: acquire this device's Expo push token and register it with the API so
@@ -45,16 +50,7 @@ let pendingRegister: Promise<void> | null = null;
  * best-effort — only runs when permission is granted, and never throws into the
  * UI (a failed registration must not disrupt onboarding or launch).
  */
-export function registerForPushNotifications(): Promise<void> {
-  const run = registerOnce();
-  pendingRegister = run;
-  void run.finally(() => {
-    if (pendingRegister === run) pendingRegister = null;
-  });
-  return run;
-}
-
-async function registerOnce(): Promise<void> {
+export async function registerForPushNotifications(): Promise<void> {
   pushGeneration += 1;
   const generation = pushGeneration;
   try {
@@ -64,8 +60,15 @@ async function registerOnce(): Promise<void> {
     // back for the account that is signing out.
     if (pushGeneration !== generation) return;
 
-    await gqlFetcher(RegisterPushTokenDocument, { input: device });
-    registeredToken = device.token;
+    const claim = gqlFetcher(RegisterPushTokenDocument, { input: device });
+    claimsOnTheWire.add(claim);
+    try {
+      await claim;
+    } finally {
+      claimsOnTheWire.delete(claim);
+    }
+    // Remember it only if no sign-out started meanwhile; that sign-out owns it now.
+    if (pushGeneration === generation) registeredToken = device.token;
   } catch (err) {
     logger.warn('push-token: registration failed:', err);
   }
@@ -103,12 +106,11 @@ export async function unregisterPushTokenForSignOut(): Promise<void> {
   const timeout = new Promise<void>((resolve) => {
     timer = setTimeout(resolve, SIGN_OUT_UNREGISTER_TIMEOUT_MS);
   });
-  const inFlightRegister = pendingRegister;
+  const sentClaims = [...claimsOnTheWire];
   const unregister = async () => {
-    // A claim already on the wire must land first, or it would re-attach the
+    // Claims already on the wire must land first, or one would re-attach the
     // token to the account that is signing out after the unregister removed it.
-    // (One that has not sent yet sees the bumped generation and skips.)
-    if (inFlightRegister) await inFlightRegister;
+    await Promise.allSettled(sentClaims);
     const owner = await currentUserId();
     if (!owner) return;
     const deviceToken = token ?? (await getDevicePushToken())?.token;

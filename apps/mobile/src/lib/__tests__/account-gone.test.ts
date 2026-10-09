@@ -23,7 +23,12 @@ jest.mock('../analytics', () => ({
   captureException: (...args: unknown[]) => mockCaptureException(...args),
 }));
 
-import { getRequestSessionUserId, isAccountGoneError, signOutGoneAccount } from '../account-gone';
+import {
+  ACCOUNT_GONE_CHECK_TIMEOUT_MS,
+  getRequestSessionUserId,
+  isAccountGoneError,
+  signOutGoneAccount,
+} from '../account-gone';
 
 function clientError(code: string) {
   return Object.assign(new Error('graphql error'), {
@@ -83,6 +88,31 @@ describe('signOutGoneAccount', () => {
     mockSession.userId = 'user-b';
     await Promise.all([signOutGoneAccount('user-a'), signOutGoneAccount('user-b')]);
     expect(mockSignOut).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('signOutGoneAccount bounds', () => {
+  it('runs again for the same account once the previous check finished', async () => {
+    mockSession.userId = 'user-b';
+    await signOutGoneAccount('user-a'); // stale: no-op
+    mockSession.userId = 'user-a';
+    await signOutGoneAccount('user-a'); // genuine: signs out
+    expect(mockSignOut).toHaveBeenCalledTimes(1);
+  });
+
+  it('a hung check does not block later checks for that account', async () => {
+    jest.useFakeTimers();
+    try {
+      mockSignOut.mockReturnValueOnce(new Promise(() => {}));
+      const hung = signOutGoneAccount('user-a');
+      await jest.advanceTimersByTimeAsync(ACCOUNT_GONE_CHECK_TIMEOUT_MS);
+      await hung;
+      mockSignOut.mockResolvedValue({ error: null });
+      await signOutGoneAccount('user-a');
+      expect(mockSignOut).toHaveBeenCalledTimes(2);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
 

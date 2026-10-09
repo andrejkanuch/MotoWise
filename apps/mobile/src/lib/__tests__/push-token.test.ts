@@ -245,4 +245,50 @@ describe('unregisterPushTokenForSignOut', () => {
     await Promise.all([registering, signingOut]);
     expect(order).toEqual(['register', 'unregister']);
   });
+
+  it('does not wait on a registration that has not sent its claim yet', async () => {
+    // The registration is stuck in its token lookup; sign-out must not spend its
+    // budget waiting for it (it will see the generation bump and never send).
+    mockGetExpoPushToken.mockReturnValueOnce(new Promise(() => {}));
+    void registerForPushNotifications();
+    await new Promise((r) => setImmediate(r));
+    mockGetExpoPushToken.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
+    await unregisterPushTokenForSignOut();
+    expect(mockGqlFetcher).toHaveBeenCalledWith('UNREGISTER_DOC', {
+      input: { token: 'ExponentPushToken[abc]' },
+    });
+  });
+
+  it('waits for every claim already on the wire, not only the latest', async () => {
+    const order: string[] = [];
+    const lands: Array<() => void> = [];
+    mockGqlFetcher.mockImplementation((doc: string) => {
+      if (doc === 'REGISTER_DOC') {
+        return new Promise<void>((resolve) => {
+          const n = lands.length + 1;
+          lands.push(() => {
+            order.push(`register-${n}`);
+            resolve();
+          });
+        });
+      }
+      order.push('unregister');
+      return Promise.resolve({});
+    });
+    // Each claim is sent before the next registration starts (e.g. launch, then
+    // SIGNED_IN), so both are on the wire at once.
+    const first = registerForPushNotifications();
+    await new Promise((r) => setImmediate(r));
+    const second = registerForPushNotifications();
+    await new Promise((r) => setImmediate(r));
+    expect(lands).toHaveLength(2);
+    const signingOut = unregisterPushTokenForSignOut();
+    await new Promise((r) => setImmediate(r));
+    lands[1]();
+    await new Promise((r) => setImmediate(r));
+    expect(order).toEqual(['register-2']); // still waiting for the older claim
+    lands[0]();
+    await Promise.all([first, second, signingOut]);
+    expect(order).toEqual(['register-2', 'register-1', 'unregister']);
+  });
 });
