@@ -486,7 +486,7 @@ describe('BikeHubScreen — states', () => {
   });
 
   it('goes back once on its own when the bike it showed leaves the garage list', async () => {
-    const { client } = await renderHub();
+    const { client, rerender } = await renderHub();
     expect(await screen.findByRole('tab', { name: 'Overview' })).toBeOnTheScreen();
     expect(mockRouter.back).not.toHaveBeenCalled();
 
@@ -498,12 +498,55 @@ describe('BikeHubScreen — states', () => {
     });
 
     expect(mockRouter.back).toHaveBeenCalledTimes(1);
+
+    // The effect runs again (focus lost and regained, a fresh list from another
+    // refetch) while the screen is still mounted: the latch holds it to one back.
+    mockIsFocused = false;
+    await rerender(hub({}, client));
+    mockIsFocused = true;
+    await rerender(hub({}, client));
     await act(async () => {
       client.setQueryData(queryKeys.motorcycles.all, { myMotorcycles: [] });
-      // Observers hear it on TanStack's batched (setTimeout 0) notify.
       await new Promise((resolve) => setTimeout(resolve, 10));
     });
     expect(mockRouter.back).toHaveBeenCalledTimes(1);
+  });
+
+  it('a bike that never loaded (stale link) keeps not-found and does not leave', async () => {
+    respondWith({ bikes: [] });
+    const { client, rerender } = await renderHub();
+    expect(await screen.findByText('This bike is no longer in your garage.')).toBeOnTheScreen();
+
+    mockIsFocused = false;
+    await rerender(hub({}, client));
+    mockIsFocused = true;
+    await rerender(hub({}, client));
+    await act(async () => {
+      client.setQueryData(queryKeys.motorcycles.all, { myMotorcycles: [] });
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+
+    expect(mockRouter.back).not.toHaveBeenCalled();
+    expect(screen.getByText('This bike is no longer in your garage.')).toBeOnTheScreen();
+  });
+
+  it('does not leave when the garage list fails after the bike was shown', async () => {
+    const { client } = await renderHub();
+    expect(await screen.findByRole('tab', { name: 'Overview' })).toBeOnTheScreen();
+
+    // The list is dropped and its refetch fails: no bike, but no proof it was deleted.
+    mockFetcher.mockImplementation((document: unknown) =>
+      document === MyMotorcyclesDocument
+        ? Promise.reject(new Error('Network request failed'))
+        : Promise.resolve(undefined),
+    );
+    await act(async () => {
+      await client.resetQueries({ queryKey: queryKeys.motorcycles.all });
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+
+    expect(screen.getByText('Error')).toBeOnTheScreen();
+    expect(mockRouter.back).not.toHaveBeenCalled();
   });
 
   it('does not leave while another screen is on top (the edit sheet navigates itself)', async () => {

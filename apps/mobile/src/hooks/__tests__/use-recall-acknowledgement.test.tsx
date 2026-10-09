@@ -19,11 +19,12 @@ import {
   type MyMotorcyclesQuery,
   UnacknowledgeRecallDocument,
 } from '@motovault/graphql';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, QueryObserver } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { Alert } from 'react-native';
 import '../../i18n';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import {
   RECALL_ACK_ACTION,
   type RecallItem,
@@ -141,6 +142,7 @@ afterEach(async () => {
 describe('useRecallAcknowledgement — overlapping acks', () => {
   it('runs acks for one bike one at a time, keeping both optimistic changes', async () => {
     const { client, hook, invalidate } = await setup(result([recall(A), recall(B)]));
+    jest.mocked(trackEvent).mockClear();
 
     await act(async () => {
       hook.result.current.mutate({ campaignNumber: A, action: RECALL_ACK_ACTION.ACKNOWLEDGE });
@@ -163,6 +165,12 @@ describe('useRecallAcknowledgement — overlapping acks', () => {
     expect(openCampaigns(client)).toEqual([]);
     expect(recallCount(client)).toBe(0);
     expect(invalidatedKeys(invalidate)).not.toContainEqual(RECALLS_KEY);
+    // A is logged when it lands, even though B's pending ack keeps its result out of the cache.
+    expect(trackEvent).toHaveBeenCalledTimes(1);
+    expect(trackEvent).toHaveBeenCalledWith(AnalyticsEvent.RECALL_ACKNOWLEDGED, {
+      campaign_number: A,
+      motorcycle_id: BIKE_ID,
+    });
 
     await act(async () => {
       requests[1]?.resolve(
@@ -229,6 +237,52 @@ describe('useRecallAcknowledgement — overlapping acks', () => {
     expect(alert).toHaveBeenCalledTimes(1);
     expect(openCampaigns(client)).toEqual([B]);
     expect(recallCount(client)).toBe(1);
+  });
+
+  it('when both fail, the refetch after the last one restores the server truth', async () => {
+    const initial = result([recall(A), recall(B)]);
+    const { client, hook, invalidate } = await setup(initial);
+    jest.mocked(trackEvent).mockClear();
+    // Mounted readers, so the final invalidation refetches what the server holds (both open).
+    const observers = [
+      new QueryObserver(client, {
+        queryKey: RECALLS_KEY,
+        queryFn: () => Promise.resolve({ motorcycleRecalls: initial }),
+        staleTime: Number.POSITIVE_INFINITY,
+      }),
+      new QueryObserver(client, {
+        queryKey: BIKES_KEY,
+        queryFn: () =>
+          Promise.resolve({ myMotorcycles: [{ id: BIKE_ID, recallCount: initial.count }] }),
+        staleTime: Number.POSITIVE_INFINITY,
+      }),
+    ];
+    const unsubscribe = observers.map((observer) => observer.subscribe(() => {}));
+
+    await act(async () => {
+      hook.result.current.mutate({ campaignNumber: A, action: RECALL_ACK_ACTION.ACKNOWLEDGE });
+      hook.result.current.mutate({ campaignNumber: B, action: RECALL_ACK_ACTION.ACKNOWLEDGE });
+    });
+    await act(async () => {
+      requests[0]?.reject(new Error('network'));
+    });
+    await flush();
+    expect(invalidatedKeys(invalidate)).not.toContainEqual(RECALLS_KEY);
+    expect(requests).toHaveLength(2);
+
+    await act(async () => {
+      requests[1]?.reject(new Error('network'));
+    });
+    await flush();
+
+    expect(alert).toHaveBeenCalledTimes(2);
+    expect(trackEvent).not.toHaveBeenCalled();
+    expect(invalidatedKeys(invalidate)).toContainEqual(RECALLS_KEY);
+    expect(invalidatedKeys(invalidate)).toContainEqual(BIKES_KEY);
+    // B's snapshot still carried A's optimistic ack; the refetch is what heals it.
+    expect(openCampaigns(client)).toEqual([A, B]);
+    expect(recallCount(client)).toBe(2);
+    for (const stop of unsubscribe) stop();
   });
 
   it('mark-then-undo on one campaign ends open, in request order', async () => {

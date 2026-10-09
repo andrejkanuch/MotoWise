@@ -120,8 +120,13 @@ export const ALL_CHECKLIST_ITEMS: ChecklistItem[] = [
  *    onboarded users, since `initialize` only runs at onboarding completion.)
  *  - v4: append the "scan a receipt" item for already-onboarded users so the new
  *    activation task shows up without re-running `initialize`.
- *  - v5: add `ownerUserId: null`. Before v5 sign-out reset the card, so a
- *    persisted card belongs to whoever signs in next: `claimForUser` adopts it.
+ *  - v5: add `ownerUserId: null`, which the next signed-in rider adopts
+ *    (`claimForUser`). Shipped builds before v5 never reset the card on
+ *    sign-out, so on a device upgraded while signed out that rider may not be
+ *    the one who filled the card in. No local signal tells them apart:
+ *    `LAST_USER_ID` is cleared on sign-out in those builds too. Adopting matches
+ *    the pre-v5 behaviour, and the common case (the owner still signed in when
+ *    the app updates) is claimed by the right rider.
  * Items with no matching source pass through unchanged. Exported for unit testing.
  */
 export function migrateChecklistState(persisted: unknown, version: number): ChecklistState {

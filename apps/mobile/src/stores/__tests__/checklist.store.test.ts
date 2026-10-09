@@ -129,6 +129,21 @@ describe('migrateChecklistState (cumulative v2 -> v4)', () => {
 
     expect(migrateChecklistState(state, 5).ownerUserId).toBe(RIDER_A);
   });
+
+  it('a v5 blob without ownerUserId comes back unclaimed (null, not undefined)', () => {
+    const state = {
+      items: [expenseSource],
+      completedItems: [CHECKLIST_ITEM_ID.FIRST_EXPENSE],
+      dismissed: false,
+      initialized: true,
+    };
+
+    const result = migrateChecklistState(state, 5);
+
+    expect(result.ownerUserId).toBeNull();
+    expect(result.items).toEqual([expenseSource]);
+    expect(result.completedItems).toEqual([CHECKLIST_ITEM_ID.FIRST_EXPENSE]);
+  });
 });
 
 /**
@@ -197,6 +212,26 @@ describe('owner-keyed checklist across sign-out', () => {
     expect(state.ownerUserId).toBe(RIDER_A);
     expect(state.items).toEqual([expenseSource]);
     expect(state.completedItems).toEqual([CHECKLIST_ITEM_ID.FIRST_EXPENSE]);
+  });
+
+  it('initialize without a user keeps the existing owner and their ticks', () => {
+    riderAMidChecklist();
+
+    useChecklistStore.getState().initialize(['discover_routes'], null);
+
+    const state = useChecklistStore.getState();
+    expect(state.ownerUserId).toBe(RIDER_A);
+    expect(state.completedItems).toEqual([CHECKLIST_ITEM_ID.FIRST_RIDE]);
+    expect(state.items[0]?.id).toBe(CHECKLIST_ITEM_ID.BROWSE_ROUTES);
+  });
+
+  it('initialize without a user on a fresh card builds it unclaimed', () => {
+    useChecklistStore.getState().initialize(['track_rides'], null);
+
+    const state = useChecklistStore.getState();
+    expect(state.initialized).toBe(true);
+    expect(state.items.length).toBeGreaterThan(0);
+    expect(state.ownerUserId).toBeNull();
   });
 
   it("initialize for a different rider starts a fresh card instead of keeping A's ticks", () => {
