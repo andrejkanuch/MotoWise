@@ -165,7 +165,7 @@ const initialState = {
 
 export const useOnboardingStore = create<OnboardingState>()(
   persist(
-    (set, _get, store) => ({
+    (set, get, store) => ({
       ...initialState,
       setExperienceLevel: (level) => set({ experienceLevel: level }),
       setBikeData: (data) => set({ bikeData: data }),
@@ -190,7 +190,12 @@ export const useOnboardingStore = create<OnboardingState>()(
       setIntentResolved: (intentResolved) => set({ intentResolved }),
       setAwaitingGarageCta: (awaitingGarageCta) => set({ awaitingGarageCta }),
       setCompletionSent: (completionSent) => set({ completionSent }),
-      resetForSignOut: () => set(store.getInitialState(), true),
+      // intentResolved is per-process (first-launch intent resolution already
+      // settled for this run of the app), not part of an account's onboarding;
+      // resetting it would make the next account's paywall wait for a
+      // resolution that never re-runs.
+      resetForSignOut: () =>
+        set({ ...store.getInitialState(), intentResolved: get().intentResolved }, true),
       reset: () => set(store.getInitialState(), true),
     }),
     {

@@ -58,6 +58,15 @@ describe('onboarding completion flags', () => {
     expect(state.lastCompletedScreen).toBeNull();
   });
 
+  it('sign-out keeps the per-process intent resolution, so the next paywall does not wait', () => {
+    const store = useOnboardingStore.getState();
+    store.setIntentResolved(true);
+
+    store.resetForSignOut();
+
+    expect(useOnboardingStore.getState().intentResolved).toBe(true);
+  });
+
   it('the root gate follows the server flag again once the hold is cleared', () => {
     const preferences = { onboardingCompleted: true };
     useOnboardingStore.getState().setAwaitingGarageCta(true);
