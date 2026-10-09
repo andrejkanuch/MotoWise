@@ -6,8 +6,9 @@ import {
   type OdometerDigit,
   type OdometerKey,
 } from '../../../lib/bike-hub/constants';
+import { SYSTEM_WEIGHT, type } from '../../../theme/type';
 import { triggerSelection } from '../../../utils/haptics';
-import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, HUB_RADIUS, hub } from '../ui/tokens';
+import { HUB_CHROME_MAX_FONT_SCALE, HUB_RADIUS, useHubTheme } from '../ui/tokens';
 import { SHEET_LOCKED_OPACITY } from './sheet-header';
 
 const KEY_HEIGHT = 56;
@@ -41,6 +42,7 @@ function Key({
   testID,
   children,
 }: KeyProps) {
+  const hub = useHubTheme();
   return (
     <Pressable
       testID={testID}
@@ -81,6 +83,7 @@ interface OdometerKeypadProps {
  * lives in a chip beside the reading, not in the pad.
  */
 export function OdometerKeypad({ onKey, disabled = false }: OdometerKeypadProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const digit = (value: OdometerDigit) => (
     <Key
@@ -92,7 +95,7 @@ export function OdometerKeypad({ onKey, disabled = false }: OdometerKeypadProps)
     >
       <Text
         maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-        style={{ fontFamily: HUB_FONT.monoMedium, fontSize: 24, color: hub.text }}
+        style={[type.figure, { color: hub.text }]}
       >
         {value}
       </Text>
@@ -117,7 +120,7 @@ export function OdometerKeypad({ onKey, disabled = false }: OdometerKeypadProps)
             maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
             numberOfLines={1}
             adjustsFontSizeToFit
-            style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.dim }}
+            style={[type.subhead, SYSTEM_WEIGHT.semibold, { color: hub.dim }]}
           >
             {t('bikeHub.odometer.clear')}
           </Text>

@@ -1,7 +1,8 @@
 import { History } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
+import { SYSTEM_WEIGHT, type } from '../../../theme/type';
+import { HUB_CHROME_MAX_FONT_SCALE, HUB_TOUCH_TARGET, useHubTheme } from '../ui/tokens';
 import { SHEET_LOCKED_OPACITY } from './sheet-header';
 
 const PRESSED_OPACITY = 0.6;
@@ -19,7 +20,7 @@ interface DraftRestoredNoticeProps {
 
 /**
  * The quiet line a sheet shows when it reopened with work a native dismissal
- * left behind: a caption in Stone and a copper "Clear" text action (DESIGN.md
+ * left behind: a caption in stone grey and a copper "Clear" text action (DESIGN.md
  * caption + text action). Clear empties the form back to how it would have opened.
  */
 export function DraftRestoredNotice({
@@ -29,6 +30,7 @@ export function DraftRestoredNotice({
   disabled = false,
   testID,
 }: DraftRestoredNoticeProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   return (
     <View
@@ -39,7 +41,7 @@ export function DraftRestoredNotice({
       <History size={14} color={hub.dim} strokeWidth={2} />
       <Text
         maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-        style={{ flex: 1, fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 18, color: hub.dim }}
+        style={[type.label, SYSTEM_WEIGHT.regular, { flex: 1, color: hub.dim }]}
       >
         {message}
       </Text>
@@ -59,7 +61,7 @@ export function DraftRestoredNotice({
       >
         <Text
           maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-          style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.copperText }}
+          style={[type.subhead, SYSTEM_WEIGHT.semibold, { color: hub.copperText }]}
         >
           {t('bikeHub.sheetDraft.clear')}
         </Text>

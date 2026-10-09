@@ -11,6 +11,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { gqlFetcher } from '../lib/graphql-client';
 import { pickImage, takePhoto, uploadExpensePhoto } from '../lib/image-upload';
 import { queryKeys } from '../lib/query-keys';
+import { tint } from '../theme/editorial';
 import { showActionSheet } from '../utils/action-sheet';
 
 const MAX_PHOTOS = 3;
@@ -170,7 +171,7 @@ export function ExpensePhotoGallery({
               borderColor: isDark ? palette.neutral600 : palette.neutral300,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+              backgroundColor: isDark ? tint(palette.whitePure, 0.03) : tint(palette.black, 0.02),
             }}
           >
             {uploading ? (
@@ -203,7 +204,7 @@ export function ExpensePhotoGallery({
         <View
           style={{
             flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.95)',
+            backgroundColor: tint(palette.black, 0.95),
             justifyContent: 'center',
             alignItems: 'center',
           }}
@@ -225,7 +226,7 @@ export function ExpensePhotoGallery({
               width: 40,
               height: 40,
               borderRadius: 20,
-              backgroundColor: 'rgba(255,255,255,0.15)',
+              backgroundColor: palette.whiteAlpha15,
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -245,7 +246,7 @@ export function ExpensePhotoGallery({
                 width: 48,
                 height: 48,
                 borderRadius: 24,
-                backgroundColor: 'rgba(239,68,68,0.8)',
+                backgroundColor: tint(palette.plateRed, 0.8),
                 alignItems: 'center',
                 justifyContent: 'center',
               }}

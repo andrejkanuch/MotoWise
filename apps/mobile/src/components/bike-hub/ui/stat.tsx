@@ -1,7 +1,7 @@
 import { Text, type TextStyle, View } from 'react-native';
-import { HUB_FONT, hub } from './tokens';
+import { HUB_FIGURE_STRONG, SYSTEM_WEIGHT, useHubTheme } from './tokens';
 
-const EYEBROW_SIZE = 10;
+const LABEL_SIZE = 12;
 
 interface StatProps {
   eyebrow: string;
@@ -14,10 +14,11 @@ interface StatProps {
 }
 
 /**
- * Eyebrow · mono value · one-line basis. A stat is never pressable on its own —
+ * Label · condensed figure · one-line basis. A stat is never pressable on its own —
  * the card that holds it is.
  */
 export function Stat({ eyebrow, value, basis, valueStyle, compact = false }: StatProps) {
+  const hub = useHubTheme();
   return (
     <View
       style={{
@@ -34,11 +35,9 @@ export function Stat({ eyebrow, value, basis, valueStyle, compact = false }: Sta
         adjustsFontSizeToFit
         minimumFontScale={0.85}
         style={{
-          fontFamily: HUB_FONT.mono,
-          fontSize: EYEBROW_SIZE,
-          letterSpacing: EYEBROW_SIZE * 0.08,
-          textTransform: 'uppercase',
-          color: hub.muted,
+          ...SYSTEM_WEIGHT.medium,
+          fontSize: LABEL_SIZE,
+          color: hub.dim,
         }}
       >
         {eyebrow}
@@ -46,14 +45,17 @@ export function Stat({ eyebrow, value, basis, valueStyle, compact = false }: Sta
       <Text
         numberOfLines={1}
         adjustsFontSizeToFit
-        style={[{ fontFamily: HUB_FONT.monoMedium, fontSize: 17, color: hub.text }, valueStyle]}
+        style={[
+          { ...HUB_FIGURE_STRONG, fontSize: 22, lineHeight: 24, color: hub.text },
+          valueStyle,
+        ]}
       >
         {value}
       </Text>
       {basis ? (
         <Text
           numberOfLines={1}
-          style={{ fontFamily: HUB_FONT.sans, fontSize: 11, color: hub.muted }}
+          style={{ ...SYSTEM_WEIGHT.regular, fontSize: 11, color: hub.muted }}
         >
           {basis}
         </Text>

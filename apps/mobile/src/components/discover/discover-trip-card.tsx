@@ -7,17 +7,19 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
-import { useEditorialTheme } from '../../theme/editorial';
+import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
 import { formatDistance } from '../../utils/ride-formatters';
 
 type TripNode = TripTemplatesQuery['tripTemplates']['edges'][number]['node'];
 
-const DIFFICULTY_COLORS: Record<string, string> = {
-  easy: palette.editorialSuccess,
-  moderate: palette.editorialDarkWarm,
-  challenging: palette.danger500,
-  expert: palette.editorialPurple,
-};
+/** Difficulty → theme token. Display only, so never copper (copper is action). */
+export const DIFFICULTY_TOKEN = {
+  easy: 'success',
+  moderate: 'dueInk',
+  challenging: 'danger',
+  expert: 'purple',
+} as const satisfies Record<string, keyof EditorialTokens>;
 
 const DIFFICULTY_LABELS: Record<string, string> = {
   easy: 'Easy',
@@ -46,7 +48,9 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
   const animDelay = Math.min(index * 40, 300);
 
   const km = trip.distanceM != null ? Math.round(trip.distanceM / 1000) : null;
-  const difficultyColor = DIFFICULTY_COLORS[trip.difficulty] ?? t.ink3;
+  const difficultyToken =
+    DIFFICULTY_TOKEN[trip.difficulty as keyof typeof DIFFICULTY_TOKEN] ?? null;
+  const difficultyColor = difficultyToken ? t[difficultyToken] : t.ink3;
   const difficultyLabel = DIFFICULTY_LABELS[trip.difficulty] ?? trip.difficulty;
   const surfaceLabel =
     trip.surfaceType === 'paved'
@@ -72,7 +76,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
           backgroundColor: t.surface,
           borderWidth: 1,
           borderColor: t.line,
-          borderRadius: 18,
+          borderRadius: radius.card,
           borderCurve: 'continuous',
           overflow: 'hidden',
           marginBottom: 12,
@@ -103,19 +107,11 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
                   paddingHorizontal: 8,
                   paddingVertical: 4,
                   borderRadius: 999,
-                  backgroundColor: 'rgba(212,136,74,0.95)',
+                  backgroundColor: t.plateReady,
                 }}
               >
-                <Award size={11} color={palette.editorialDarkBg} strokeWidth={2.2} />
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: '700',
-                    letterSpacing: 0.8,
-                    textTransform: 'uppercase',
-                    color: palette.editorialDarkBg,
-                  }}
-                >
+                <Award size={12} color={t.onPlate} strokeWidth={2.2} />
+                <Text style={[type.caption, SYSTEM_WEIGHT.semibold, { color: t.onPlate }]}>
                   {i18n('discover.pick')}
                 </Text>
               </View>
@@ -134,19 +130,10 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
                   paddingHorizontal: 8,
                   paddingVertical: 4,
                   borderRadius: 999,
-                  backgroundColor: 'rgba(0,0,0,0.55)',
+                  backgroundColor: tint(palette.plateG0, 0.72),
                 }}
               >
-                <Text
-                  style={{
-                    fontFamily: 'GeistMono',
-                    fontSize: 10,
-                    letterSpacing: 1,
-                    textTransform: 'uppercase',
-                    color: palette.editorialDarkInk,
-                    fontWeight: '600',
-                  }}
-                >
+                <Text style={[type.caption, SYSTEM_WEIGHT.medium, { color: palette.plateInk }]}>
                   {trip.countryCode}
                   {trip.city ? ` · ${trip.city}` : ''}
                 </Text>
@@ -162,77 +149,43 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
                 width: 32,
                 height: 32,
                 borderRadius: 16,
-                backgroundColor: 'rgba(0,0,0,0.55)',
+                backgroundColor: tint(palette.plateG0, 0.72),
                 borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.08)',
+                borderColor: palette.plateLineDark,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Bookmark size={14} color={palette.editorialDarkInk} />
+              <Bookmark size={14} color={palette.plateInk} />
             </View>
           </View>
         )}
 
         {/* Body */}
         <View style={{ padding: 14, paddingHorizontal: 16, gap: 6 }}>
-          {/* Region label */}
-          {trip.regionCode && (
-            <Text
-              style={{
-                fontFamily: 'GeistMono',
-                fontSize: 10,
-                letterSpacing: 1.4,
-                textTransform: 'uppercase',
-                color: t.ink3,
-              }}
-            >
-              {trip.regionCode}
-            </Text>
-          )}
-
           {/* Pick badge (when no cover) */}
           {!hasCover && trip.isMotovaultPick && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-              <Award size={13} color={palette.signature500} />
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '700',
-                  color: palette.signature500,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}
-              >
+              <Award size={13} color={t.ink2} />
+              <Text style={[type.caption, SYSTEM_WEIGHT.semibold, { color: t.ink2 }]}>
                 {i18n('discover.editorsPick')}
               </Text>
             </View>
           )}
 
           {/* Title */}
-          <Text
-            style={{
-              fontFamily: 'InstrumentSerif',
-              fontSize: large ? 24 : 19,
-              lineHeight: large ? 28 : 23,
-              letterSpacing: -0.4,
-              color: t.ink,
-            }}
-            numberOfLines={2}
-          >
+          <Text style={[type.sectionTitle, { color: t.ink }]} numberOfLines={2}>
             {trip.title}
           </Text>
 
+          {/* Region */}
+          {trip.regionCode && (
+            <Text style={[type.caption, { color: t.ink3 }]}>{trip.regionCode}</Text>
+          )}
+
           {/* Description */}
           {trip.description && (
-            <Text
-              style={{
-                fontSize: 12.5,
-                lineHeight: 18,
-                color: t.ink3,
-              }}
-              numberOfLines={2}
-            >
+            <Text style={[type.subhead, { color: t.ink3 }]} numberOfLines={2}>
               {trip.description}
             </Text>
           )}
@@ -249,16 +202,8 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
             {km != null && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <Route size={12} color={t.ink3} />
-                <Text
-                  style={{
-                    fontSize: 11.5,
-                    color: t.ink2,
-                    fontVariant: ['tabular-nums'],
-                  }}
-                >
-                  <Text style={{ fontWeight: '600' }}>
-                    {formatDistance(trip.distanceM ?? 0, system)}
-                  </Text>
+                <Text style={[type.figureSmall, { color: t.ink }]}>
+                  {formatDistance(trip.distanceM ?? 0, system)}
                 </Text>
               </View>
             )}
@@ -268,16 +213,8 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
                 <View style={{ width: 1, height: 10, backgroundColor: t.line }} />
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                   <Mountain size={12} color={t.ink3} />
-                  <Text
-                    style={{
-                      fontSize: 11.5,
-                      color: t.ink2,
-                      fontVariant: ['tabular-nums'],
-                    }}
-                  >
-                    <Text style={{ fontWeight: '600' }}>
-                      +{Math.round(trip.elevationGainM ?? 0)}
-                    </Text>
+                  <Text style={[type.figureSmall, { color: t.ink }]}>
+                    +{Math.round(trip.elevationGainM ?? 0)}
                     {i18n('discover.metersUnit')}
                   </Text>
                 </View>
@@ -292,14 +229,12 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
                 <View style={{ width: 1, height: 10, backgroundColor: t.line }} />
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                   <Clock size={12} color={t.ink3} />
-                  <Text style={{ fontSize: 11.5, color: t.ink2 }}>
-                    <Text style={{ fontWeight: '600' }}>
-                      {trip.dayCount != null && trip.dayCount > 1
-                        ? `${trip.dayCount} days`
-                        : trip.estimatedDurationMinutes != null
-                          ? `${Math.round(trip.estimatedDurationMinutes / 60)}h`
-                          : `${trip.dayCount} day`}
-                    </Text>
+                  <Text style={[type.figureSmall, { color: t.ink }]}>
+                    {trip.dayCount != null && trip.dayCount > 1
+                      ? `${trip.dayCount} days`
+                      : trip.estimatedDurationMinutes != null
+                        ? `${Math.round(trip.estimatedDurationMinutes / 60)}h`
+                        : `${trip.dayCount} day`}
                   </Text>
                 </View>
               </>
@@ -321,22 +256,21 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
               {trip.averageRating != null && trip.reviewCount > 0 && (
                 <>
-                  <Star size={12} color={t.warm} fill={t.warm} />
+                  <Star size={12} color={t.ink2} fill={t.ink2} />
                   <Text
-                    style={{
-                      fontSize: 11.5,
-                      fontWeight: '600',
-                      color: t.ink,
-                      fontVariant: ['tabular-nums'],
-                    }}
+                    style={[
+                      type.label,
+                      SYSTEM_WEIGHT.semibold,
+                      { color: t.ink, fontVariant: ['tabular-nums'] },
+                    ]}
                   >
                     {trip.averageRating.toFixed(1)}
                   </Text>
-                  <Text style={{ fontSize: 11.5, color: t.ink3 }}>({trip.reviewCount})</Text>
+                  <Text style={[type.label, { color: t.ink3 }]}>({trip.reviewCount})</Text>
                 </>
               )}
               {trip.cloneCount > 0 && (
-                <Text style={{ fontSize: 11.5, color: t.ink4, marginLeft: 4 }}>
+                <Text style={[type.label, { color: t.ink3, marginLeft: space.xxs }]}>
                   {i18n('discover.ridersCount', { riders: trip.cloneCount.toLocaleString() })}
                 </Text>
               )}
@@ -349,20 +283,12 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
                     paddingHorizontal: 8,
                     paddingVertical: 2,
                     borderRadius: 999,
-                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    backgroundColor: t.surface2,
                     borderWidth: 1,
                     borderColor: t.line,
                   }}
                 >
-                  <Text
-                    style={{
-                      fontSize: 10.5,
-                      color: t.ink2,
-                      fontWeight: '500',
-                    }}
-                  >
-                    {surfaceLabel}
-                  </Text>
+                  <Text style={[type.caption, { color: t.ink2 }]}>{surfaceLabel}</Text>
                 </View>
               )}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -374,13 +300,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
                     backgroundColor: difficultyColor,
                   }}
                 />
-                <Text
-                  style={{
-                    fontSize: 10.5,
-                    fontWeight: '600',
-                    color: difficultyColor,
-                  }}
-                >
+                <Text style={[type.caption, SYSTEM_WEIGHT.semibold, { color: difficultyColor }]}>
                   {difficultyLabel}
                 </Text>
               </View>

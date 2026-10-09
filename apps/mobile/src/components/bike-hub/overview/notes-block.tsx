@@ -6,6 +6,7 @@ import { Pressable, Text, TextInput, View } from 'react-native';
 import { type HubUnit, NOTE_SOURCE, OVERVIEW_NOTES_SHOWN } from '../../../lib/bike-hub/constants';
 import { formatOdometer, formatShortDate, hasOdometer } from '../../../lib/bike-hub/format';
 import { normaliseNoteText } from '../../../lib/bike-hub/notes';
+import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
 import { useDraftHandoff } from '../notes/use-draft-handoff';
 import { type HubNote, useCreateNote } from '../notes/use-notes';
@@ -14,11 +15,12 @@ import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { SectionHeader } from '../ui/section-header';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
-  HUB_FONT,
+  HUB_FIGURE,
   HUB_HEIGHT,
   HUB_RADIUS,
   HUB_TOUCH_TARGET,
-  hub,
+  SYSTEM_WEIGHT,
+  useHubTheme,
 } from '../ui/tokens';
 
 const SEPARATOR = ' · ';
@@ -71,6 +73,8 @@ export function NotesBlock({
   onOpenNotes,
   onOpenNoteSheet,
 }: NotesBlockProps) {
+  const hub = useHubTheme();
+  const { isDark } = useEditorialTheme();
   const { t, i18n } = useTranslation();
   const [draft, setDraft] = useState('');
   const [failed, setFailed] = useState(false);
@@ -146,7 +150,7 @@ export function NotesBlock({
               borderBottomColor: hub.hairline,
             }}
           >
-            <Text style={{ flex: 1, fontFamily: HUB_FONT.sans, fontSize: 14, color: hub.dim }}>
+            <Text style={{ flex: 1, ...SYSTEM_WEIGHT.regular, fontSize: 14, color: hub.dim }}>
               {t('bikeHub.notes.loadError')}
             </Text>
             <Pressable
@@ -158,9 +162,7 @@ export function NotesBlock({
                 paddingHorizontal: 8,
               }}
             >
-              <Text
-                style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.copperText }}
-              >
+              <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 14, color: hub.copperText }}>
                 {t('common.retry')}
               </Text>
             </Pressable>
@@ -187,11 +189,11 @@ export function NotesBlock({
           >
             <Text
               numberOfLines={3}
-              style={{ fontFamily: HUB_FONT.sans, fontSize: 14, lineHeight: 19, color: hub.text }}
+              style={{ ...SYSTEM_WEIGHT.regular, fontSize: 14, lineHeight: 19, color: hub.text }}
             >
               {note.text}
             </Text>
-            <Text style={{ fontFamily: HUB_FONT.mono, fontSize: 12, color: hub.muted }}>
+            <Text style={{ ...HUB_FIGURE, fontSize: 14, color: hub.muted }}>
               {noteMeta(note, unit, i18n.language)}
             </Text>
           </Pressable>
@@ -207,7 +209,7 @@ export function NotesBlock({
           }}
         >
           <TextInput
-            keyboardAppearance="dark"
+            keyboardAppearance={isDark ? 'dark' : 'light'}
             selectionColor={hub.copper}
             testID="quick-note-input"
             value={draft}
@@ -235,7 +237,7 @@ export function NotesBlock({
               borderColor: failed ? hub.late : hub.hairlineStrong,
               backgroundColor: hub.ground,
               color: hub.text,
-              fontFamily: HUB_FONT.sans,
+              ...SYSTEM_WEIGHT.regular,
               fontSize: 14,
             }}
           />
@@ -285,7 +287,7 @@ export function NotesBlock({
             <Text
               maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
               style={{
-                fontFamily: HUB_FONT.sansBold,
+                ...SYSTEM_WEIGHT.bold,
                 fontSize: 13,
                 color: text ? hub.ink : hub.muted,
               }}
@@ -298,7 +300,7 @@ export function NotesBlock({
           <Text
             accessibilityLiveRegion="polite"
             style={{
-              fontFamily: HUB_FONT.sans,
+              ...SYSTEM_WEIGHT.regular,
               fontSize: 12,
               color: hub.late,
               paddingHorizontal: 14,

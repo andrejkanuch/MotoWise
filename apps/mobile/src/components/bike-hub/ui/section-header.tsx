@@ -1,9 +1,10 @@
 import { Pressable, Text, View } from 'react-native';
 import type { DueTone } from '../../../lib/bike-hub/constants';
 import { triggerImpact } from '../../../utils/haptics';
-import { DUE_TONE_COLOR, HUB_FONT, HUB_TOUCH_TARGET, hub } from './tokens';
+import { DUE_TONE_COLOR, HUB_TOUCH_TARGET, SYSTEM_WEIGHT, useHubTheme } from './tokens';
 
-const EYEBROW_SIZE = 11;
+const TITLE_SIZE = 17;
+const TITLE_LINE_HEIGHT = 22;
 const ACTION_LINE_HEIGHT = 18;
 // Vertical slop that grows the one-line text action to a full touch target.
 const ACTION_SLOP = Math.ceil((HUB_TOUCH_TARGET - ACTION_LINE_HEIGHT) / 2);
@@ -18,23 +19,24 @@ interface SectionHeaderProps {
   label: string;
   /** Appended to the label as "Label · 6". */
   count?: number;
-  /** Colours the eyebrow (e.g. the Overdue group in R2). Muted by default. */
+  /** Colours the title (e.g. the Overdue group in R2). Ink by default. */
   tone?: DueTone;
   /** Copper text action on the right. */
   action?: SectionHeaderAction;
   /** Grey rule-of-sorting hint on the right, when there is no action. */
   hint?: string;
-  /** Eyebrow colour for a header that sits on a non-hub ground (the interim Bike tab). */
+  /** Title colour for a header that sits on a non-hub ground (the interim Bike tab). */
   color?: string;
 }
 
 /**
- * The one section header of the bike hub: a mono uppercase eyebrow with an
- * optional count, and either a copper text action or a grey hint on the right.
- * No serif section titles (DESIGN-SPEC §2).
+ * The one section header of the bike hub: a system semibold title in sentence
+ * case with an optional count, and either a copper text action or a grey hint
+ * on the right. No eyebrows, no serif (DESIGN.md → Typography).
  */
 export function SectionHeader({ label, count, tone, action, hint, color }: SectionHeaderProps) {
-  const eyebrow = count === undefined ? label : `${label} · ${count}`;
+  const hub = useHubTheme();
+  const title = count === undefined ? label : `${label} · ${count}`;
   return (
     <View
       style={{
@@ -50,14 +52,13 @@ export function SectionHeader({ label, count, tone, action, hint, color }: Secti
         accessibilityRole="header"
         style={{
           flexShrink: 1,
-          fontFamily: HUB_FONT.mono,
-          fontSize: EYEBROW_SIZE,
-          letterSpacing: EYEBROW_SIZE * 0.08,
-          textTransform: 'uppercase',
-          color: tone ? DUE_TONE_COLOR[tone] : (color ?? hub.muted),
+          ...SYSTEM_WEIGHT.semibold,
+          fontSize: TITLE_SIZE,
+          lineHeight: TITLE_LINE_HEIGHT,
+          color: tone ? hub[DUE_TONE_COLOR[tone]] : (color ?? hub.text),
         }}
       >
-        {eyebrow}
+        {title}
       </Text>
       {action ? (
         <Pressable
@@ -72,8 +73,8 @@ export function SectionHeader({ label, count, tone, action, hint, color }: Secti
         >
           <Text
             style={{
-              fontFamily: HUB_FONT.sansSemiBold,
-              fontSize: 13,
+              ...SYSTEM_WEIGHT.semibold,
+              fontSize: 15,
               lineHeight: ACTION_LINE_HEIGHT,
               color: hub.copperText,
             }}
@@ -83,7 +84,7 @@ export function SectionHeader({ label, count, tone, action, hint, color }: Secti
         </Pressable>
       ) : null}
       {!action && hint ? (
-        <Text style={{ fontFamily: HUB_FONT.sans, fontSize: 12, color: hub.muted }}>{hint}</Text>
+        <Text style={{ ...SYSTEM_WEIGHT.regular, fontSize: 12, color: hub.muted }}>{hint}</Text>
       ) : null}
     </View>
   );

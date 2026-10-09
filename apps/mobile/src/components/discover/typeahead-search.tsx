@@ -4,11 +4,13 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Globe, MapPin, Route, Search, X } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AccessibilityInfo, Pressable, Text, TextInput, useColorScheme, View } from 'react-native';
+import { AccessibilityInfo, Pressable, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 
 interface TypeaheadSearchProps {
   onRouteSelect: (routeId: string) => void;
@@ -23,19 +25,19 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
   onPlaceSelect,
 }: TypeaheadSearchProps) {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
+  const { t: theme, isDark } = useEditorialTheme();
   const inputRef = useRef<TextInput>(null);
   const [searchText, setSearchText] = useState('');
   const [debouncedText, setDebouncedText] = useState('');
   const [isFocused, setIsFocused] = useState(false);
 
-  const searchBg = isDark ? palette.neutral800 : palette.neutral100;
-  const searchTextColor = isDark ? palette.white : palette.neutral950;
-  const placeholderColor = isDark ? palette.neutral500 : palette.neutral400;
-  const dropdownBg = isDark ? palette.neutral900 : palette.white;
-  const dropdownBorder = isDark ? palette.surfaceElevated : palette.neutral200;
-  const sectionColor = isDark ? palette.neutral400 : palette.neutral500;
-  const itemColor = isDark ? palette.neutral200 : palette.neutral700;
+  const searchBg = theme.surface2;
+  const searchTextColor = theme.ink;
+  const placeholderColor = theme.ink4;
+  const dropdownBg = theme.surface2;
+  const dropdownBorder = theme.line;
+  const sectionColor = theme.ink3;
+  const itemColor = theme.ink2;
 
   // Debounce search text
   useEffect(() => {
@@ -137,7 +139,7 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
           onBlur={() => setTimeout(() => setIsFocused(false), 150)}
           placeholder={t('discoverSearch.searchPlaceholder')}
           placeholderTextColor={placeholderColor}
-          accessibilityLabel="Search routes and places"
+          accessibilityLabel={t('discoverSearch.searchA11y')}
           accessibilityHint="Type to search for motorcycle routes or locations"
           style={{
             flex: 1,
@@ -152,7 +154,7 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
           <Pressable
             onPress={handleClear}
             accessibilityRole="button"
-            accessibilityLabel="Clear search"
+            accessibilityLabel={t('discoverSearch.clearA11y')}
             hitSlop={8}
           >
             <X size={18} color={placeholderColor} />
@@ -176,7 +178,7 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
             borderCurve: 'continuous',
             maxHeight: 300,
             overflow: 'hidden',
-            shadowColor: palette.neutral950,
+            shadowColor: palette.black,
             shadowOpacity: isDark ? 0.4 : 0.1,
             shadowRadius: 12,
             shadowOffset: { width: 0, height: 4 },
@@ -185,7 +187,9 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
         >
           {!hasResults && !isLoading && (
             <View style={{ padding: 16, alignItems: 'center' }}>
-              <Text style={{ fontSize: 14, color: sectionColor }}>No results found</Text>
+              <Text style={[type.subhead, { color: sectionColor }]}>
+                {t('discoverSearch.noResults')}
+              </Text>
             </View>
           )}
 
@@ -193,42 +197,32 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
           {routes.length > 0 && (
             <View>
               <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '700',
-                  color: sectionColor,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  paddingHorizontal: 14,
-                  paddingTop: 12,
-                  paddingBottom: 6,
-                }}
+                style={[
+                  type.label,
+                  { color: sectionColor, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 },
+                ]}
               >
-                Routes
+                {t('discoverSearch.routesSection')}
               </Text>
               {routes.map((route) => (
                 <Pressable
                   key={route.id}
                   onPress={() => handleRoutePress(route)}
                   accessibilityRole="button"
-                  accessibilityLabel={`Route: ${route.name}`}
+                  accessibilityLabel={t('discoverSearch.routeA11y', { name: route.name })}
                   style={({ pressed }) => ({
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 10,
                     paddingHorizontal: 14,
                     paddingVertical: 10,
-                    backgroundColor: pressed
-                      ? isDark
-                        ? palette.neutral800
-                        : palette.neutral50
-                      : 'transparent',
+                    backgroundColor: pressed ? theme.surface2 : 'transparent',
                   })}
                 >
-                  <Route size={16} color={palette.accent500} />
+                  <Route size={16} color={theme.warm} />
                   <Text
                     numberOfLines={1}
-                    style={{ flex: 1, fontSize: 14, color: itemColor, fontWeight: '500' }}
+                    style={[type.subhead, SYSTEM_WEIGHT.medium, { flex: 1, color: itemColor }]}
                   >
                     {route.name}
                   </Text>
@@ -241,18 +235,12 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
           {places.length > 0 && (
             <View>
               <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '700',
-                  color: sectionColor,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  paddingHorizontal: 14,
-                  paddingTop: 12,
-                  paddingBottom: 6,
-                }}
+                style={[
+                  type.label,
+                  { color: sectionColor, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 },
+                ]}
               >
-                Locations
+                {t('discoverSearch.locationsSection')}
               </Text>
               {places.map((place) => {
                 const PlaceIcon = placeIcon(place.kind);
@@ -261,24 +249,20 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
                     key={place.id}
                     onPress={() => handlePlacePress(place)}
                     accessibilityRole="button"
-                    accessibilityLabel={`Location: ${place.name}`}
+                    accessibilityLabel={t('discoverSearch.locationA11y', { name: place.name })}
                     style={({ pressed }) => ({
                       flexDirection: 'row',
                       alignItems: 'center',
                       gap: 10,
                       paddingHorizontal: 14,
                       paddingVertical: 10,
-                      backgroundColor: pressed
-                        ? isDark
-                          ? palette.neutral800
-                          : palette.neutral50
-                        : 'transparent',
+                      backgroundColor: pressed ? theme.surface2 : 'transparent',
                     })}
                   >
-                    <PlaceIcon size={16} color={palette.indigo500} />
+                    <PlaceIcon size={16} color={theme.ink3} />
                     <Text
                       numberOfLines={1}
-                      style={{ flex: 1, fontSize: 14, color: itemColor, fontWeight: '500' }}
+                      style={[type.subhead, SYSTEM_WEIGHT.medium, { flex: 1, color: itemColor }]}
                     >
                       {place.name}
                     </Text>

@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { View } from 'react-native';
-import { hub } from '../ui/tokens';
+import { useHubTheme } from '../ui/tokens';
 
 const FADE_IN_MS = 180;
 const PHOTO_RADIUS = 10;
@@ -37,6 +37,7 @@ interface NotePhotoProps {
 
 /** One square note photo: a raised placeholder until the image fades in. */
 export function NotePhoto({ photo, size, accessibilityLabel }: NotePhotoProps) {
+  const hub = useHubTheme();
   // The rounded, raised frame shows until the image fades in; expo-image's own
   // style has no `borderCurve`, so the frame clips it.
   return (

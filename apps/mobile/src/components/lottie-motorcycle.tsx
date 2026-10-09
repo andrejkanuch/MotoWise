@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import { Bike } from 'lucide-react-native';
 import { useEffect } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
@@ -10,6 +9,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { useEditorialTheme } from '../theme/editorial';
 
 /**
  * Lightweight replacement for lottie-react-native.
@@ -27,6 +27,7 @@ export function LottieMotorcycle({
   speed?: number;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { t } = useEditorialTheme();
   const translateY = useSharedValue(0);
 
   useEffect(() => {
@@ -46,7 +47,7 @@ export function LottieMotorcycle({
       style={[{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }, style]}
     >
       <Animated.View style={animStyle}>
-        <Bike size={size * 0.5} color={palette.neutral400} strokeWidth={1.5} />
+        <Bike size={size * 0.5} color={t.ink3} strokeWidth={1.5} />
       </Animated.View>
     </View>
   );

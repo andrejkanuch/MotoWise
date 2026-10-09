@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { triggerImpact } from '../../../utils/haptics';
 import { RowChevron } from './row-chevron';
-import { HUB_FONT, HUB_RADIUS, HUB_ROW_SUB_LINES, hub } from './tokens';
+import { HUB_RADIUS, HUB_ROW_SUB_LINES, SYSTEM_WEIGHT, useHubTheme } from './tokens';
 
 const TILE_SIZE = 36;
 
@@ -25,6 +25,7 @@ interface RowBodyProps {
 
 /** Icon tile · title + sub-line · trailing. The content of every hub row. */
 export function RowBody({ icon, title, sub, trailing, busy = false }: RowBodyProps) {
+  const hub = useHubTheme();
   const Icon = icon?.icon;
   return (
     <>
@@ -51,7 +52,7 @@ export function RowBody({ icon, title, sub, trailing, busy = false }: RowBodyPro
         <Text
           numberOfLines={2}
           style={{
-            fontFamily: HUB_FONT.sansSemiBold,
+            ...SYSTEM_WEIGHT.semibold,
             fontSize: 15,
             lineHeight: 18,
             color: hub.text,
@@ -62,7 +63,7 @@ export function RowBody({ icon, title, sub, trailing, busy = false }: RowBodyPro
         {typeof sub === 'string' ? (
           <Text
             numberOfLines={HUB_ROW_SUB_LINES}
-            style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 16, color: hub.dim }}
+            style={{ ...SYSTEM_WEIGHT.regular, fontSize: 13, lineHeight: 16, color: hub.dim }}
           >
             {sub}
           </Text>
@@ -91,6 +92,7 @@ export function ListRow({
   testID,
   ...body
 }: ListRowProps) {
+  const hub = useHubTheme();
   return (
     <Pressable
       testID={testID}

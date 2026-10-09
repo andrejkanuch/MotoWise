@@ -1,7 +1,7 @@
 import { Pencil, Trash2 } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, type TextStyle, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -13,7 +13,13 @@ import { type HubUnit, NOTE_LINK_TONE, type NoteLinkTone } from '../../../lib/bi
 import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact } from '../../../utils/haptics';
 import { noteMeta } from '../overview/notes-block';
-import { HUB_FONT, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
+import {
+  HUB_FIGURE,
+  HUB_TOUCH_TARGET,
+  type HubColorKey,
+  SYSTEM_WEIGHT,
+  useHubTheme,
+} from '../ui/tokens';
 import { NotePhoto } from './note-photo';
 import type { HubNote } from './use-notes';
 
@@ -27,13 +33,13 @@ const LINK_SLOP = Math.ceil((HUB_TOUCH_TARGET - 16) / 2);
 /** `activate` is the screen reader's double-tap — the same as tapping the row. */
 const ACTION = { ACTIVATE: 'activate', EDIT: 'edit', DELETE: 'delete' } as const;
 
-const LINK_COLOR: Record<NoteLinkTone, string> = {
-  [NOTE_LINK_TONE.LINK]: hub.copperText,
-  [NOTE_LINK_TONE.QUIET]: hub.dim,
+const LINK_COLOR: Record<NoteLinkTone, HubColorKey> = {
+  [NOTE_LINK_TONE.LINK]: 'copperText',
+  [NOTE_LINK_TONE.QUIET]: 'dim',
 };
-const LINK_FONT: Record<NoteLinkTone, string> = {
-  [NOTE_LINK_TONE.LINK]: HUB_FONT.sansSemiBold,
-  [NOTE_LINK_TONE.QUIET]: HUB_FONT.sansMedium,
+const LINK_WEIGHT: Record<NoteLinkTone, TextStyle> = {
+  [NOTE_LINK_TONE.LINK]: SYSTEM_WEIGHT.semibold,
+  [NOTE_LINK_TONE.QUIET]: SYSTEM_WEIGHT.medium,
 };
 
 const SENTENCE_END = /[.!?…。！？]$/;
@@ -97,6 +103,7 @@ export function NoteRow({
   isFirst,
   isLast,
 }: NoteRowProps) {
+  const hub = useHubTheme();
   const { t, i18n } = useTranslation();
   const translateX = useSharedValue(0);
   const startX = useSharedValue(0);
@@ -177,7 +184,7 @@ export function NoteRow({
           <Pencil size={18} color={hub.text} strokeWidth={2} />
           <Text
             numberOfLines={1}
-            style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 12, color: hub.text }}
+            style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 12, color: hub.text }}
           >
             {editLabel}
           </Text>
@@ -196,7 +203,7 @@ export function NoteRow({
           <Trash2 size={18} color={hub.late} strokeWidth={2} />
           <Text
             numberOfLines={1}
-            style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 12, color: hub.late }}
+            style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 12, color: hub.late }}
           >
             {deleteLabel}
           </Text>
@@ -247,7 +254,7 @@ export function NoteRow({
             >
               <Text
                 style={{
-                  fontFamily: HUB_FONT.sans,
+                  ...SYSTEM_WEIGHT.regular,
                   fontSize: 15,
                   lineHeight: 21,
                   color: hub.textSoft,
@@ -296,7 +303,7 @@ export function NoteRow({
               <Text
                 importantForAccessibility="no"
                 accessibilityElementsHidden
-                style={{ fontFamily: HUB_FONT.mono, fontSize: 12, color: hub.muted }}
+                style={{ ...HUB_FIGURE, fontSize: 14, color: hub.muted }}
               >
                 {meta}
               </Text>
@@ -321,15 +328,15 @@ export function NoteRow({
                   })}
                 >
                   {link.busy ? (
-                    <ActivityIndicator size="small" color={LINK_COLOR[link.tone]} />
+                    <ActivityIndicator size="small" color={hub[LINK_COLOR[link.tone]]} />
                   ) : null}
                   <Text
                     numberOfLines={1}
                     style={{
                       flexShrink: 1,
-                      fontFamily: LINK_FONT[link.tone],
+                      ...LINK_WEIGHT[link.tone],
                       fontSize: 12,
-                      color: LINK_COLOR[link.tone],
+                      color: hub[LINK_COLOR[link.tone]],
                     }}
                   >
                     {link.label}

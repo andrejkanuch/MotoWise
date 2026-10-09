@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import type { LucideIcon } from 'lucide-react-native';
 import {
   Activity,
@@ -42,6 +41,8 @@ import {
   PREDEFINED_TIMING,
   useDiagnosticFlowStore,
 } from '../../stores/diagnostic-flow.store';
+import { space, type } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
 import { useDiagnosticColors } from './diagnostic-colors';
 import { WizardOptionChip } from './wizard-option-chip';
 
@@ -273,7 +274,7 @@ export function StepProblemDescription() {
   };
 
   const handleModeSwitch = (mode: 'wizard' | 'freetext') => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact();
     setInputMode(mode);
   };
 
@@ -355,17 +356,6 @@ export function StepProblemDescription() {
         {/* Step header */}
         <View style={{ paddingHorizontal: 24, paddingTop: 8, marginBottom: 24 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: '600',
-                textTransform: 'uppercase',
-                letterSpacing: 1,
-                color: colors.textMuted,
-              }}
-            >
-              {t('diagnoseV2.stepOf', { current: 2, total: 4 })}
-            </Text>
             {/* Sub-step dots */}
             <View style={{ flexDirection: 'row', gap: 4, marginLeft: 4 }}>
               {WIZARD_STEPS.map((step, i) => (
@@ -388,33 +378,19 @@ export function StepProblemDescription() {
           </View>
           {inputMode === 'wizard' && subStepContent ? (
             <Animated.View key={`header-${wizardSubStep}`} entering={FadeIn.duration(200)}>
-              <Text
-                style={{
-                  fontSize: 24,
-                  fontWeight: '600',
-                  color: colors.textPrimary,
-                  marginTop: 4,
-                }}
-              >
+              <Text style={[type.sheetTitle, { color: colors.textPrimary, marginTop: 4 }]}>
                 {subStepContent.question}
               </Text>
-              <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
+              <Text style={[type.subhead, { color: colors.textMuted, marginTop: 4 }]}>
                 {subStepContent.hint}
               </Text>
             </Animated.View>
           ) : (
             <>
-              <Text
-                style={{
-                  fontSize: 24,
-                  fontWeight: '600',
-                  color: colors.textPrimary,
-                  marginTop: 4,
-                }}
-              >
+              <Text style={[type.sheetTitle, { color: colors.textPrimary, marginTop: 4 }]}>
                 {t('diagnoseV2.describeProblem')}
               </Text>
-              <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
+              <Text style={[type.subhead, { color: colors.textMuted, marginTop: 4 }]}>
                 {t('diagnoseV2.describeProblemHint')}
               </Text>
             </>
@@ -439,16 +415,18 @@ export function StepProblemDescription() {
               paddingVertical: 12,
               borderRadius: 10,
               alignItems: 'center',
-              backgroundColor: inputMode === 'wizard' ? colors.accent : 'transparent',
+              backgroundColor: inputMode === 'wizard' ? colors.cardBgSelected : 'transparent',
               borderCurve: 'continuous',
             }}
             onPress={() => handleModeSwitch('wizard')}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: inputMode === 'wizard' }}
           >
             <Text
               style={{
                 fontSize: 14,
                 fontWeight: '600',
-                color: inputMode === 'wizard' ? '#FFFFFF' : colors.textMuted,
+                color: inputMode === 'wizard' ? colors.textPrimary : colors.textSecondary,
               }}
             >
               {t('diagnoseV2.guideMe')}
@@ -460,16 +438,18 @@ export function StepProblemDescription() {
               paddingVertical: 12,
               borderRadius: 10,
               alignItems: 'center',
-              backgroundColor: inputMode === 'freetext' ? colors.accent : 'transparent',
+              backgroundColor: inputMode === 'freetext' ? colors.cardBgSelected : 'transparent',
               borderCurve: 'continuous',
             }}
             onPress={() => handleModeSwitch('freetext')}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: inputMode === 'freetext' }}
           >
             <Text
               style={{
                 fontSize: 14,
                 fontWeight: '600',
-                color: inputMode === 'freetext' ? '#FFFFFF' : colors.textMuted,
+                color: inputMode === 'freetext' ? colors.textPrimary : colors.textSecondary,
               }}
             >
               {t('diagnoseV2.describeMyself')}
@@ -492,15 +472,15 @@ export function StepProblemDescription() {
                     entering={FadeInUp.delay(groupIndex * 60).duration(250)}
                   >
                     <Text
-                      style={{
-                        fontSize: 12,
-                        fontWeight: '600',
-                        textTransform: 'uppercase',
-                        letterSpacing: 1,
-                        color: colors.textMuted,
-                        marginBottom: 12,
-                        paddingHorizontal: 4,
-                      }}
+                      accessibilityRole="header"
+                      style={[
+                        type.label,
+                        {
+                          color: colors.textSecondary,
+                          marginBottom: space.xs,
+                          paddingHorizontal: 4,
+                        },
+                      ]}
                     >
                       {group.label}
                     </Text>
@@ -670,7 +650,9 @@ export function StepProblemDescription() {
           accessibilityRole="button"
           accessibilityState={{ disabled: !canContinue }}
         >
-          <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
+          <Text
+            style={[type.bodyStrong, { color: canContinue ? colors.onAccent : colors.textMuted }]}
+          >
             {editingFromReview ? t('diagnoseV2.backToReview') : t('diagnoseV2.next')}
           </Text>
         </Pressable>

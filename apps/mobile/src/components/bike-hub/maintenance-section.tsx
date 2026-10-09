@@ -20,10 +20,12 @@ import { HubCard } from './ui/hub-card';
 import { SectionHeader } from './ui/section-header';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
-  HUB_FONT,
+  HUB_FIGURE_STRONG,
   HUB_RADIUS,
   HUB_TOUCH_TARGET,
-  hub,
+  type HubTheme,
+  SYSTEM_WEIGHT,
+  useHubTheme,
 } from './ui/tokens';
 
 /** Completed tasks shown before "See all" opens the full list. */
@@ -68,6 +70,7 @@ function ServiceTabs({
   counts: Record<ServiceTab, number>;
   onChange: (tab: ServiceTab) => void;
 }) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   return (
     <View
@@ -117,14 +120,14 @@ function ServiceTabs({
               numberOfLines={1}
               style={{
                 textAlign: 'center',
-                fontFamily: HUB_FONT.sansSemiBold,
+                ...SYSTEM_WEIGHT.semibold,
                 fontSize: 13,
                 lineHeight: 17,
                 color: selected ? hub.text : hub.dim,
               }}
             >
               {label}
-              <Text style={{ fontFamily: HUB_FONT.monoMedium }}>{` · ${counts[tab]}`}</Text>
+              <Text style={{ ...HUB_FIGURE_STRONG }}>{` · ${counts[tab]}`}</Text>
             </Text>
           </Pressable>
         );
@@ -135,6 +138,7 @@ function ServiceTabs({
 
 /** Empty states sit on a plain card: an icon tile, what is true, what to do. */
 function EmptyCard({ title, sub }: { title: string; sub?: string }) {
+  const hub = useHubTheme();
   return (
     <Animated.View entering={FadeIn.duration(ENTER_MS)}>
       <HubCard
@@ -162,7 +166,7 @@ function EmptyCard({ title, sub }: { title: string; sub?: string }) {
         <View style={{ flex: 1, gap: 3 }}>
           <Text
             style={{
-              fontFamily: HUB_FONT.sansSemiBold,
+              ...SYSTEM_WEIGHT.semibold,
               fontSize: 15,
               lineHeight: 18,
               color: hub.text,
@@ -172,7 +176,7 @@ function EmptyCard({ title, sub }: { title: string; sub?: string }) {
           </Text>
           {sub ? (
             <Text
-              style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 16, color: hub.dim }}
+              style={{ ...SYSTEM_WEIGHT.regular, fontSize: 13, lineHeight: 16, color: hub.dim }}
             >
               {sub}
             </Text>
@@ -183,11 +187,13 @@ function EmptyCard({ title, sub }: { title: string; sub?: string }) {
   );
 }
 
-const CRITICAL_CARD = {
-  backgroundColor: hub.rowCritical,
-  borderColor: hub.rowCriticalBorder,
-  overflow: 'hidden',
-} as const;
+function criticalCard(hub: HubTheme) {
+  return {
+    backgroundColor: hub.rowCritical,
+    borderColor: hub.rowCriticalBorder,
+    overflow: 'hidden',
+  } as const;
+}
 
 /**
  * Service segment content (R2 row, interim list): Active tasks in their due
@@ -208,6 +214,7 @@ export function MaintenanceSection({
   onEdit,
   mileageUnit,
 }: MaintenanceSectionProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const router = useRouter();
   const today = useToday();
@@ -286,7 +293,7 @@ export function MaintenanceSection({
       >
         <SectionHeader label={t(group.labelKey)} count={group.items.length} tone={group.tone} />
         {critical.map((item) => (
-          <HubCard key={item.task.id} style={CRITICAL_CARD}>
+          <HubCard key={item.task.id} style={criticalCard(hub)}>
             <ServiceTaskRow
               item={item}
               expanded={expandedId === item.task.id}
@@ -350,7 +357,7 @@ export function MaintenanceSection({
             >
               <Text
                 style={{
-                  fontFamily: HUB_FONT.sansSemiBold,
+                  ...SYSTEM_WEIGHT.semibold,
                   fontSize: 14,
                   lineHeight: ACTION_LINE_HEIGHT,
                   textAlign: 'center',

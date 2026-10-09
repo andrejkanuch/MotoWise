@@ -17,6 +17,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  type TextStyle,
   View,
 } from 'react-native';
 import {
@@ -38,6 +39,8 @@ import { pickImage, takePhoto, uploadNotePhoto } from '../../../lib/image-upload
 import { queryKeys } from '../../../lib/query-keys';
 import { useAuthStore } from '../../../stores/auth.store';
 import { type ParkedPhotoUpload, parkedPhotoPaths } from '../../../stores/sheet-draft.store';
+import { useEditorialTheme } from '../../../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../../../theme/type';
 import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact, triggerNotification, triggerSelection } from '../../../utils/haptics';
 import { NativeToggle } from '../../ui/native-toggle';
@@ -48,11 +51,10 @@ import { type HubNote, useCreateNote, useUpdateNote } from '../notes/use-notes';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
-  HUB_FONT,
   HUB_HEIGHT,
   HUB_RADIUS,
   HUB_TOUCH_TARGET,
-  hub,
+  useHubTheme,
 } from '../ui/tokens';
 import { DraftRestoredNotice } from './draft-restored-notice';
 import { SHEET_CANCEL_PLACEMENT, SHEET_LOCKED_OPACITY, SheetHeader } from './sheet-header';
@@ -77,6 +79,7 @@ const FOOTER_FALLBACK_HEIGHT = 12 + HUB_HEIGHT.primary + FOOTER_KEYBOARD_GAP;
 const CARET_MARGIN = 8;
 /** Controls that cannot be used while the note saves (or after it saved) are dimmed to this. */
 const LOCKED_OPACITY = SHEET_LOCKED_OPACITY;
+const TABULAR: TextStyle['fontVariant'] = ['tabular-nums'];
 
 /** An uploaded object whose `addNotePhoto` has not been confirmed. */
 export type PendingNotePhoto = ParkedPhotoUpload;
@@ -141,6 +144,7 @@ function Chip({
   accessibilityLabel,
   testID,
 }: ChipProps) {
+  const hub = useHubTheme();
   return (
     <Pressable
       testID={testID}
@@ -173,7 +177,8 @@ function Chip({
         maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
         numberOfLines={1}
         style={{
-          fontFamily: mono ? HUB_FONT.monoMedium : HUB_FONT.sansSemiBold,
+          // A reading chip keeps its digits in fixed cells.
+          ...(mono ? { ...SYSTEM_WEIGHT.medium, fontVariant: TABULAR } : SYSTEM_WEIGHT.semibold),
           fontSize: 13,
           color: selected ? hub.text : hub.dim,
         }}
@@ -197,6 +202,7 @@ function AddPhotoChip({
   disabled: boolean;
   onPress: () => void;
 }) {
+  const hub = useHubTheme();
   return (
     <Pressable
       testID="note-add-photo"
@@ -230,7 +236,7 @@ function AddPhotoChip({
       <Text
         maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
         numberOfLines={1}
-        style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 13, color: hub.text }}
+        style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 13, color: hub.text }}
       >
         {label}
       </Text>
@@ -258,6 +264,8 @@ export function NoteForm({
   openPhotoPicker = false,
   onClose,
 }: NoteFormProps) {
+  const hub = useHubTheme();
+  const { isDark } = useEditorialTheme();
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -730,7 +738,7 @@ export function NoteForm({
             borderColor: hub.ripple,
             backgroundColor: hub.ground,
             color: locked ? hub.dim : hub.text,
-            fontFamily: HUB_FONT.sans,
+            ...SYSTEM_WEIGHT.regular,
             fontSize: 16,
             lineHeight: INPUT_LINE_HEIGHT,
           }}
@@ -801,14 +809,7 @@ export function NoteForm({
           <View style={{ gap: 6 }}>
             <Text
               maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-              style={{
-                fontFamily: HUB_FONT.mono,
-                fontSize: 11,
-                letterSpacing: 0.88,
-                textTransform: 'uppercase',
-                color: hub.muted,
-                paddingHorizontal: 2,
-              }}
+              style={[type.label, { color: hub.muted, paddingHorizontal: 2 }]}
             >
               {t('bikeHub.noteSheet.attachTo')}
             </Text>
@@ -850,13 +851,13 @@ export function NoteForm({
             }}
           >
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.text }}>
+              <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 14, color: hub.text }}>
                 {t('bikeHub.noteSheet.alsoTask')}
               </Text>
               <Text
                 testID="note-also-task-sub"
                 style={{
-                  fontFamily: HUB_FONT.sans,
+                  ...SYSTEM_WEIGHT.regular,
                   fontSize: 12,
                   lineHeight: 16,
                   color: hub.muted,
@@ -879,13 +880,13 @@ export function NoteForm({
                 if (!locked) setAlsoTask((on) => !on);
               }}
             >
-              {/* The sheet is dark in both schemes: the off track must read on it. */}
+              {/* The off track must read on the sheet in either scheme. */}
               <NativeToggle
                 value={alsoTask}
                 onValueChange={setAlsoTask}
                 tint={hub.copper}
                 disabled={locked}
-                darkSurface
+                darkSurface={isDark}
                 offTrack={hub.track}
               />
             </View>
@@ -896,7 +897,7 @@ export function NoteForm({
           <View accessibilityLiveRegion="polite" style={{ gap: 6 }}>
             {saved.taskMissing ? (
               <Text
-                style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 18, color: hub.dim }}
+                style={{ ...SYSTEM_WEIGHT.regular, fontSize: 13, lineHeight: 18, color: hub.dim }}
               >
                 {t('bikeHub.noteSheet.taskNotCreated')}
               </Text>
@@ -906,7 +907,7 @@ export function NoteForm({
                 {saved.failedPhotos.length > 0 ? (
                   <Text
                     style={{
-                      fontFamily: HUB_FONT.sans,
+                      ...SYSTEM_WEIGHT.regular,
                       fontSize: 13,
                       lineHeight: 18,
                       color: hub.late,
@@ -918,7 +919,7 @@ export function NoteForm({
                 {saved.failedRemovals.length > 0 ? (
                   <Text
                     style={{
-                      fontFamily: HUB_FONT.sans,
+                      ...SYSTEM_WEIGHT.regular,
                       fontSize: 13,
                       lineHeight: 18,
                       color: hub.late,
@@ -955,7 +956,7 @@ export function NoteForm({
             <Text
               testID="note-save-error"
               accessibilityLiveRegion="polite"
-              style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 18, color: hub.late }}
+              style={{ ...SYSTEM_WEIGHT.regular, fontSize: 13, lineHeight: 18, color: hub.late }}
             >
               {noSession ? t('bikeHub.noteSheet.photoNeedsSignIn') : t('bikeHub.notes.saveFailed')}
             </Text>
@@ -988,7 +989,7 @@ export function NoteForm({
                 style={{
                   flexShrink: 1,
                   textAlign: 'center',
-                  fontFamily: HUB_FONT.sansBold,
+                  ...SYSTEM_WEIGHT.bold,
                   fontSize: 16,
                   color: primaryInert ? hub.muted : hub.ink,
                   fontVariant: ['tabular-nums'],
@@ -1018,7 +1019,7 @@ export function NoteForm({
             >
               <Text
                 maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-                style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.text }}
+                style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 15, color: hub.text }}
               >
                 {t('common.done')}
               </Text>
@@ -1044,6 +1045,7 @@ function Thumbnail({
   failedLabel?: string;
   disabled: boolean;
 }) {
+  const hub = useHubTheme();
   return (
     <View
       testID={failedLabel ? 'note-photo-failed' : undefined}

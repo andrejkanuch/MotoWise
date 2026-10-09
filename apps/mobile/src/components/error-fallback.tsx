@@ -1,7 +1,8 @@
-import { palette } from '@motovault/design-system';
 import { AlertTriangle } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, useColorScheme, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { useEditorialTheme } from '../theme/editorial';
+import { radius, space, type } from '../theme/type';
 
 type ErrorFallbackProps = {
   error: unknown;
@@ -10,7 +11,7 @@ type ErrorFallbackProps = {
 
 export function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
+  const { t: theme } = useEditorialTheme();
   const message = __DEV__
     ? error instanceof Error
       ? error.message
@@ -21,24 +22,23 @@ export function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
     <View
       style={{
         flex: 1,
-        backgroundColor: isDark ? palette.neutral950 : palette.neutral50,
+        backgroundColor: theme.bg,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 24,
+        paddingHorizontal: space.xl,
       }}
     >
       <AlertTriangle
         size={40}
-        color={palette.warning500}
+        color={theme.dueInk}
         strokeWidth={1.8}
-        style={{ marginBottom: 16 }}
+        style={{ marginBottom: space.md }}
       />
       <Text
         style={{
-          fontSize: 16,
-          fontWeight: '600',
-          color: isDark ? palette.neutral50 : palette.neutral950,
-          marginBottom: 8,
+          ...type.bodyStrong,
+          color: theme.ink,
+          marginBottom: space.xs,
           textAlign: 'center',
         }}
       >
@@ -46,9 +46,9 @@ export function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
       </Text>
       <Text
         style={{
-          fontSize: 14,
-          color: isDark ? palette.neutral400 : palette.neutral500,
-          marginBottom: 16,
+          ...type.subhead,
+          color: theme.ink3,
+          marginBottom: space.md,
           textAlign: 'center',
         }}
       >
@@ -56,15 +56,19 @@ export function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
       </Text>
       <Pressable
         onPress={onRetry}
+        accessibilityRole="button"
+        android_ripple={{ color: theme.line2 }}
         style={{
-          backgroundColor: isDark ? palette.primary500 : palette.primary950,
-          borderRadius: 12,
-          paddingHorizontal: 24,
-          paddingVertical: 12,
+          backgroundColor: theme.warm,
+          borderRadius: radius.control,
+          minHeight: 44,
+          justifyContent: 'center',
+          paddingHorizontal: space.xl,
+          paddingVertical: space.sm,
           borderCurve: 'continuous',
         }}
       >
-        <Text style={{ color: palette.white, fontSize: 16, fontWeight: '600' }}>
+        <Text style={{ ...type.bodyStrong, color: theme.onWarm }}>
           {t('common.tryAgain', { defaultValue: 'Try Again' })}
         </Text>
       </Pressable>

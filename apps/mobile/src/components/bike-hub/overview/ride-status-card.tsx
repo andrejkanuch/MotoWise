@@ -9,9 +9,12 @@ import {
 } from '../../../lib/bike-hub/constants';
 import { midSentence } from '../../../lib/bike-hub/format';
 import type { RideStatusReason } from '../../../lib/bike-hub/ride-status';
+import { type } from '../../../theme/type';
+import type { PlateCopy } from '../../home/home-plate';
+import { BikePlate, PLATE_SIZE, PLATE_STATE, type PlateState } from '../../ui/bike-plate';
 import { HubCard } from '../ui/hub-card';
 import { RowChevron } from '../ui/row-chevron';
-import { HUB_FONT, HUB_TOUCH_TARGET, hub, RIDE_STATUS_STYLE } from '../ui/tokens';
+import { HUB_TOUCH_TARGET, RIDE_STATUS_STYLE, SYSTEM_WEIGHT, useHubTheme } from '../ui/tokens';
 
 const SEPARATOR = ' · ';
 
@@ -69,15 +72,33 @@ interface RideStatusCardProps {
   noOpenRecalls?: boolean;
   /** Performs the top attention row's action. Omit when there is nothing to open. */
   onPress?: () => void;
+  /**
+   * The bike's plate (Home/Garage logic: `describePlate`). The card shows it
+   * once tasks and documents are known; `null` keeps the plain card.
+   */
+  plate: PlateCopy | null;
 }
 
-const NEUTRAL = RIDE_STATUS_STYLE[RIDE_STATUS.UNTRACKED];
+const RIDE_PLATE_STATE: Record<RideStatus, PlateState> = {
+  [RIDE_STATUS.NOT_READY]: PLATE_STATE.OVERDUE,
+  [RIDE_STATUS.CHECK]: PLATE_STATE.DUE,
+  [RIDE_STATUS.READY]: PLATE_STATE.READY,
+  [RIDE_STATUS.UNTRACKED]: PLATE_STATE.READY,
+};
+
+const PLATE_SEVERITY: Record<PlateState, number> = {
+  [PLATE_STATE.READY]: 0,
+  [PLATE_STATE.DUE]: 1,
+  [PLATE_STATE.OVERDUE]: 2,
+};
 
 /**
- * Three words in serif on a tinted card: Not ready / Check before riding /
- * Ready to ride, or neutral "Nothing tracked yet". The words carry the meaning;
- * the dot and tint only repeat it. Without loaded tasks and documents it gives
- * no verdict: a neutral skeleton while loading, an error with Retry on failure.
+ * The bike's readiness as its plate (the Race Plate signature, as on Home and
+ * Garage): bone = ready, signal yellow = due soon, red = overdue, with the
+ * countdown to the most urgent task. Recalls and riding-blocking documents
+ * escalate the plate and name themselves on it; the reasons line sits below.
+ * "Nothing tracked yet" stays a plain card. Without loaded tasks and documents
+ * it gives no verdict: a neutral skeleton while loading, an error with Retry.
  */
 export function RideStatusCard({
   status,
@@ -87,7 +108,9 @@ export function RideStatusCard({
   onRetry,
   noOpenRecalls = false,
   onPress,
+  plate,
 }: RideStatusCardProps) {
+  const hub = useHubTheme();
   const { t, i18n } = useTranslation();
 
   if (isLoading) {
@@ -97,8 +120,8 @@ export function RideStatusCard({
         accessibilityLabel={t('common.loading')}
         style={{
           height: 76,
-          backgroundColor: NEUTRAL.card,
-          borderColor: NEUTRAL.border,
+          backgroundColor: hub.card,
+          borderColor: hub.hairline,
           opacity: 0.6,
         }}
       >
@@ -118,14 +141,14 @@ export function RideStatusCard({
           paddingVertical: 8,
           paddingLeft: 16,
           paddingRight: 8,
-          backgroundColor: NEUTRAL.card,
-          borderColor: NEUTRAL.border,
+          backgroundColor: hub.card,
+          borderColor: hub.hairline,
         }}
       >
         <Text
           style={{
             flex: 1,
-            fontFamily: HUB_FONT.sans,
+            ...SYSTEM_WEIGHT.regular,
             fontSize: 14,
             lineHeight: 19,
             color: hub.dim,
@@ -144,7 +167,7 @@ export function RideStatusCard({
             opacity: pressed ? 0.6 : 1,
           })}
         >
-          <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.copperText }}>
+          <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 14, color: hub.copperText }}>
             {t('common.retry')}
           </Text>
         </Pressable>
@@ -164,34 +187,78 @@ export function RideStatusCard({
         )
       : describeRideStatusReasons(reasons, t, i18n.language);
 
+  // Nothing tracked: no verdict, so no plate — a plain card says so.
+  if (status === RIDE_STATUS.UNTRACKED || !plate) {
+    return (
+      <HubCard
+        testID={`ride-status-${status}`}
+        onPress={onPress}
+        accessibilityLabel={detail ? `${title}. ${detail}` : title}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+          paddingVertical: 14,
+          paddingLeft: 16,
+          paddingRight: 14,
+        }}
+      >
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={{ ...type.sheetTitle, color: hub.text }}>{title}</Text>
+          {detail ? (
+            <Text
+              style={{ ...SYSTEM_WEIGHT.regular, fontSize: 13, lineHeight: 17, color: hub.dim }}
+            >
+              {detail}
+            </Text>
+          ) : null}
+        </View>
+        {onPress ? <RowChevron /> : null}
+      </HubCard>
+    );
+  }
+
+  // The plate: the same task countdown as Home and Garage, escalated when the
+  // ride status (recalls, riding-blocking documents) is more severe than it.
+  const rideState = RIDE_PLATE_STATE[status];
+  const escalated = PLATE_SEVERITY[rideState] > PLATE_SEVERITY[plate.state];
+  const state = escalated ? rideState : plate.state;
+  const stateLabel = escalated ? title : plate.stateLabel;
+  const caption = escalated && detail ? detail : plate.caption;
+  const showDetail = Boolean(detail) && caption !== detail;
+  const testID = `ride-status-${status}`;
+  const accessibilityLabel = [stateLabel, `${plate.figure} ${plate.unit ?? ''}`.trim(), caption]
+    .concat(showDetail ? [detail] : [])
+    .join('. ');
+
   return (
-    <HubCard
-      testID={`ride-status-${status}`}
-      onPress={onPress}
-      accessibilityLabel={detail ? `${title}. ${detail}` : title}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-        paddingVertical: 14,
-        paddingLeft: 16,
-        paddingRight: 14,
-        backgroundColor: style.card,
-        borderColor: style.border,
-      }}
-    >
-      <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: style.dot }} />
-      <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ fontFamily: HUB_FONT.serif, fontSize: 24, lineHeight: 26, color: hub.text }}>
-          {title}
+    <View testID={onPress ? undefined : testID} style={{ gap: 8 }}>
+      <BikePlate
+        state={state}
+        figure={plate.figure}
+        unit={plate.unit}
+        caption={caption}
+        stateLabel={stateLabel}
+        // An escalated plate's caption is the reasons line: print the verdict before it.
+        captionSaysState={escalated ? false : undefined}
+        size={PLATE_SIZE.COMPACT}
+        onPress={onPress}
+        testID={onPress ? testID : undefined}
+        accessibilityLabel={accessibilityLabel}
+      />
+      {showDetail ? (
+        <Text
+          style={{
+            ...SYSTEM_WEIGHT.regular,
+            fontSize: 13,
+            lineHeight: 17,
+            color: hub.dim,
+            paddingHorizontal: 2,
+          }}
+        >
+          {detail}
         </Text>
-        {detail ? (
-          <Text style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 17, color: hub.dim }}>
-            {detail}
-          </Text>
-        ) : null}
-      </View>
-      {onPress ? <RowChevron /> : null}
-    </HubCard>
+      ) : null}
+    </View>
   );
 }

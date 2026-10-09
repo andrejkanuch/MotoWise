@@ -1,4 +1,3 @@
-import { palette, withAlpha } from '@motovault/design-system';
 import type { MaintenanceTasksByMotorcycleQuery } from '@motovault/graphql';
 import {
   Calendar,
@@ -75,17 +74,13 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
     >
       <View
         style={{
-          backgroundColor: relative?.isOverdue
-            ? withAlpha(palette.danger500, isDark ? 0.08 : 0.05)
-            : isDark
-              ? palette.neutral800
-              : palette.white,
+          backgroundColor: relative?.isOverdue ? tint(et.danger, 0.08) : et.surface,
           borderRadius: 14,
           borderCurve: 'continuous',
           marginBottom: 10,
           overflow: 'hidden',
-          borderLeftWidth: relative?.isOverdue ? 3 : 0,
-          borderLeftColor: palette.danger500,
+          borderWidth: relative?.isOverdue ? 1 : 0,
+          borderColor: tint(et.danger, 0.35),
         }}
       >
         {/* Main card content */}
@@ -118,34 +113,24 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                 style={{
                   fontSize: 15,
                   fontWeight: '600',
-                  color: isCompleted
-                    ? palette.neutral400
-                    : isDark
-                      ? palette.neutral50
-                      : palette.neutral950,
+                  color: isCompleted ? et.ink3 : et.ink,
                   textDecorationLine: isCompleted ? 'line-through' : 'none',
                 }}
               >
                 {task.title}
               </Text>
               {task.notes && (
-                <Text
-                  style={{ fontSize: 12, color: palette.neutral500, marginTop: 2 }}
-                  numberOfLines={1}
-                >
+                <Text style={{ fontSize: 12, color: et.ink3, marginTop: 2 }} numberOfLines={1}>
                   {task.notes}
                 </Text>
               )}
               {relative && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                  <Calendar
-                    size={12}
-                    color={relative.isOverdue ? palette.danger500 : palette.neutral400}
-                  />
+                  <Calendar size={12} color={relative.isOverdue ? et.overdueInk : et.ink3} />
                   <Text
                     style={{
                       fontSize: 12,
-                      color: relative.isOverdue ? palette.danger500 : palette.neutral400,
+                      color: relative.isOverdue ? et.overdueInk : et.ink3,
                     }}
                   >
                     {String(t(relative.key as never, relative.params as never))}
@@ -154,8 +139,8 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
               )}
               {task.targetMileage && !isCompleted && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-                  <Gauge size={12} color={palette.neutral400} />
-                  <Text style={{ fontSize: 12, color: palette.neutral400 }}>
+                  <Gauge size={12} color={et.ink3} />
+                  <Text style={{ fontSize: 12, color: et.ink3 }}>
                     {task.targetMileage.toLocaleString()} {mileageUnit}
                   </Text>
                 </View>
@@ -167,7 +152,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
               (isOverdue ? (
                 <View
                   style={{
-                    backgroundColor: `${palette.danger500}20`,
+                    backgroundColor: tint(et.danger, 0.12),
                     borderRadius: 6,
                     borderCurve: 'continuous',
                     paddingHorizontal: 8,
@@ -178,7 +163,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                     style={{
                       fontSize: 11,
                       fontWeight: '700',
-                      color: palette.danger500,
+                      color: et.overdueInk,
                       letterSpacing: 0.3,
                     }}
                   >
@@ -189,9 +174,9 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                 <EPriority level={task.priority as 'low' | 'medium' | 'high' | 'critical'} />
               ))}
             {isExpanded ? (
-              <ChevronDown size={16} color={palette.neutral400} />
+              <ChevronDown size={16} color={et.ink3} />
             ) : (
-              <ChevronRight size={16} color={palette.neutral400} />
+              <ChevronRight size={16} color={et.ink3} />
             )}
           </View>
         </Pressable>
@@ -207,8 +192,8 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
               paddingBottom: 10,
             }}
           >
-            <CheckCircle2 size={14} color={palette.success500} strokeWidth={2} />
-            <Text style={{ fontSize: 12, color: palette.success500 }}>
+            <CheckCircle2 size={14} color={et.success} strokeWidth={2} />
+            <Text style={{ fontSize: 12, color: et.success }}>
               {new Date(task.completedAt).toLocaleDateString()}
               {task.completedMileage
                 ? ` @ ${task.completedMileage.toLocaleString()} ${mileageUnit}`
@@ -219,7 +204,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                 style={{
                   fontSize: 12,
                   fontWeight: '700',
-                  color: isDark ? palette.neutral200 : palette.neutral700,
+                  color: et.ink2,
                   marginLeft: 'auto',
                 }}
               >
@@ -238,14 +223,14 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                 paddingBottom: 14,
                 paddingTop: 4,
                 borderTopWidth: isCompleted ? 0.5 : 0,
-                borderTopColor: withAlpha(isDark ? palette.white : palette.black, 0.06),
+                borderTopColor: et.line,
               }}
             >
               {task.description && (
                 <Text
                   style={{
                     fontSize: 14,
-                    color: isDark ? palette.neutral300 : palette.neutral600,
+                    color: et.ink2,
                     marginBottom: 8,
                     lineHeight: 20,
                   }}
@@ -257,11 +242,9 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                 <View style={{ marginBottom: 8 }}>
                   <Text
                     style={{
-                      fontSize: 11,
+                      fontSize: 13,
                       fontWeight: '600',
-                      color: palette.neutral500,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
+                      color: et.ink3,
                       marginBottom: 4,
                     }}
                   >
@@ -271,7 +254,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                     selectable
                     style={{
                       fontSize: 13,
-                      color: isDark ? palette.neutral300 : palette.neutral600,
+                      color: et.ink2,
                       lineHeight: 18,
                     }}
                   >
@@ -283,11 +266,9 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                 <View style={{ marginBottom: 8 }}>
                   <Text
                     style={{
-                      fontSize: 11,
+                      fontSize: 13,
                       fontWeight: '600',
-                      color: palette.neutral500,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
+                      color: et.ink3,
                       marginBottom: 4,
                     }}
                   >
@@ -298,7 +279,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                       key={`${task.id}-part-${part}`}
                       style={{
                         fontSize: 13,
-                        color: isDark ? palette.neutral300 : palette.neutral600,
+                        color: et.ink2,
                         lineHeight: 20,
                       }}
                     >
@@ -311,11 +292,9 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                 <View style={{ marginBottom: 8 }}>
                   <Text
                     style={{
-                      fontSize: 11,
+                      fontSize: 13,
                       fontWeight: '600',
-                      color: palette.neutral500,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
+                      color: et.ink3,
                       marginBottom: 6,
                     }}
                   >
@@ -350,7 +329,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                         style={{
                           flex: 1,
                           fontSize: 13,
-                          color: isDark ? palette.neutral300 : palette.neutral600,
+                          color: et.ink2,
                         }}
                         numberOfLines={1}
                       >
@@ -361,7 +340,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                           style={{
                             fontSize: 13,
                             fontWeight: '600',
-                            color: isDark ? palette.neutral200 : palette.neutral700,
+                            color: et.ink2,
                           }}
                         >
                           {formatMoney(item.lineTotal, task.currency, displayCurrency)}
@@ -387,7 +366,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                   flexDirection: 'row',
                   marginTop: 12,
                   borderTopWidth: 0.5,
-                  borderTopColor: withAlpha(isDark ? palette.white : palette.black, 0.06),
+                  borderTopColor: et.line,
                 }}
               >
                 {!isCompleted && (
@@ -404,11 +383,11 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                       gap: 6,
                       paddingVertical: 10,
                       borderRightWidth: 0.5,
-                      borderRightColor: withAlpha(isDark ? palette.white : palette.black, 0.06),
+                      borderRightColor: et.line,
                     }}
                   >
-                    <Check size={14} color={palette.success500} strokeWidth={2.5} />
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: palette.success500 }}>
+                    <Check size={14} color={et.success} strokeWidth={2.5} />
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: et.success }}>
                       {t('maintenance.markDone', { defaultValue: 'Done' })}
                     </Text>
                   </Pressable>
@@ -427,11 +406,11 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                       gap: 6,
                       paddingVertical: 10,
                       borderRightWidth: 0.5,
-                      borderRightColor: withAlpha(isDark ? palette.white : palette.black, 0.06),
+                      borderRightColor: et.line,
                     }}
                   >
-                    <Pencil size={14} color={palette.primary500} strokeWidth={2} />
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: palette.primary500 }}>
+                    <Pencil size={14} color={et.warm2} strokeWidth={2} />
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: et.warm2 }}>
                       {t('common.edit', { defaultValue: 'Edit' })}
                     </Text>
                   </Pressable>
@@ -450,8 +429,8 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                     paddingVertical: 10,
                   }}
                 >
-                  <Trash2 size={14} color={palette.danger500} strokeWidth={2} />
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: palette.danger500 }}>
+                  <Trash2 size={14} color={et.overdueInk} strokeWidth={2} />
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: et.overdueInk }}>
                     {t('common.delete', { defaultValue: 'Delete' })}
                   </Text>
                 </Pressable>

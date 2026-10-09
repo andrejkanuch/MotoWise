@@ -10,7 +10,7 @@ import type { HubBike } from '../shell/use-bike-hub-data';
 import { HubCard } from '../ui/hub-card';
 import { ListRow } from '../ui/list-row';
 import { SectionHeader } from '../ui/section-header';
-import { HUB_FONT, hub } from '../ui/tokens';
+import { SYSTEM_WEIGHT, useHubTheme } from '../ui/tokens';
 
 const SEPARATOR = ' · ';
 
@@ -64,6 +64,7 @@ export function PapersBikeRows({
   documentCount,
   onPress,
 }: PapersBikeRowsProps) {
+  const hub = useHubTheme();
   const { t, i18n } = useTranslation();
   const { currency } = useCurrency();
   const urgent = documentSignals[0];
@@ -72,7 +73,7 @@ export function PapersBikeRows({
     documentCount === 0 ? (
       t('bikeHub.papers.empty')
     ) : urgent ? (
-      <Text numberOfLines={2} style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 16 }}>
+      <Text numberOfLines={2} style={{ ...SYSTEM_WEIGHT.regular, fontSize: 13, lineHeight: 16 }}>
         <Text style={{ color: urgent.expired ? hub.late : hub.soon }}>{signalCopy(urgent, t)}</Text>
         <Text style={{ color: hub.muted }}>
           {SEPARATOR}
