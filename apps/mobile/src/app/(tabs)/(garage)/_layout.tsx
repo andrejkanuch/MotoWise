@@ -99,13 +99,14 @@ export default function GarageLayout() {
       <Stack.Screen
         name="add-bike"
         options={{
+          headerShown: false,
           title: t('garage.addBike', { defaultValue: 'Add Bike' }),
           presentation: 'formSheet',
           headerLargeTitle: false,
           headerTransparent: false,
           headerStyle: sheetHeaderStyle,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.85, 1.0],
+          sheetAllowedDetents: FORM_SHEET_DETENTS.BIKE,
           contentStyle: sheetContentStyle,
         }}
       />
@@ -140,14 +141,15 @@ export default function GarageLayout() {
       <Stack.Screen
         name="edit-bike"
         options={{
+          headerShown: false,
           title: t('garage.editBike', { defaultValue: 'Edit Motorcycle' }),
-          presentation: 'card',
+          presentation: 'formSheet',
           headerLargeTitle: false,
           headerTransparent: false,
-          headerStyle: {
-            backgroundColor: theme.bg,
-          },
-          headerBackButtonDisplayMode: 'default',
+          headerStyle: sheetHeaderStyle,
+          sheetGrabberVisible: true,
+          sheetAllowedDetents: FORM_SHEET_DETENTS.BIKE,
+          contentStyle: sheetContentStyle,
         }}
       />
       <Stack.Screen

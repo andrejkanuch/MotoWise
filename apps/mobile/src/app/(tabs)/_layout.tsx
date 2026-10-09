@@ -162,11 +162,13 @@ function RideFAB() {
 
 /**
  * Logging sheets presented as form sheets over a tab's stack, by route name
- * (the (garage) and (home) stacks share the names). On iOS the native sheet
+ * (the (garage), (home) and (profile) stacks share the names). On iOS the native sheet
  * covers the bar; on Android the island is drawn over the sheet and hid its
  * lower fields and the Cancel / Save row, so it is not drawn there.
  */
 const SHEET_ROUTES: ReadonlySet<string> = new Set([
+  'add-bike',
+  'edit-bike',
   'add-expense',
   'add-maintenance-task',
   'edit-maintenance-task',

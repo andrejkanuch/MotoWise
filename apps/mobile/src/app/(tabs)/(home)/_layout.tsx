@@ -38,12 +38,12 @@ export default function HomeLayout() {
         options={{
           title: t('garage.addBike', { defaultValue: 'Add Bike' }),
           presentation: 'formSheet',
-          headerShown: true,
+          headerShown: false,
           headerLargeTitle: false,
           headerTransparent: false,
           headerStyle: { backgroundColor: theme.bg },
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.85, 1.0],
+          sheetAllowedDetents: FORM_SHEET_DETENTS.BIKE,
           contentStyle: { backgroundColor: theme.bg },
         }}
       />

@@ -6,19 +6,30 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { Search } from 'lucide-react-native';
+import { Plus, Search } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, TextInput, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import {
+  IconInputRow,
+  PickerCustomRow,
+  PickerDisabledRow,
+  PickerEmptyRow,
+  PickerLoadingRow,
+  PickerResults,
+  PickerValueRow,
+} from '../../../components/garage/bike-picker-rows';
+import {
+  FormSection,
+  inputTextStyle,
+  SHEET_CONTENT_STYLE,
+  SHEET_CONTROL_HEIGHT,
+  SHEET_PRIMARY_STATE,
+  SheetFooter,
+  SheetTitle,
+} from '../../../components/ui/sheet-form';
 import { useProGate } from '../../../hooks/use-pro-gate';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -31,16 +42,36 @@ import {
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
-import { radius, space, type } from '../../../theme/type';
+import { space } from '../../../theme/type';
+import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
-function haptic() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-}
+/** Maestro anchors (add-bike.yaml). */
+const TEST_ID = {
+  YEAR: 'add-bike-year',
+  MAKE_SEARCH: 'add-bike-make-search',
+  MAKE_VALUE: 'add-bike-make',
+  MAKE_OPTION: 'add-bike-make-option',
+  MAKE_CUSTOM: 'add-bike-make-custom',
+  MODEL_SEARCH: 'add-bike-model-search',
+  MODEL_VALUE: 'add-bike-model',
+  MODEL_OPTION: 'add-bike-model-option',
+  MODEL_CUSTOM: 'add-bike-model-custom',
+  NICKNAME: 'add-bike-nickname',
+  SUBMIT: 'add-bike-submit',
+} as const;
+
+const SECTION_STAGGER_MS = 50;
+const SECTION_ENTER_MS = 250;
+const YEAR_LENGTH = 4;
+const MIN_YEAR = 1900;
+/** A search this long with no match offers the typed text as a custom entry. */
+const CUSTOM_ENTRY_MIN_CHARS = 2;
 
 const isBikeLimitRejection = (error: unknown) =>
   hasGraphQLCode(error, GRAPHQL_ERROR_CODE.FORBIDDEN);
+
+const sectionEntering = (index: number) =>
+  FadeInUp.delay(index * SECTION_STAGGER_MS).duration(SECTION_ENTER_MS);
 
 export default function AddBikeScreen() {
   const { t } = useTranslation();
@@ -64,10 +95,11 @@ export default function AddBikeScreen() {
   const [nickname, setNickname] = useState('');
 
   const yearNum = Number.parseInt(year, 10);
-  const validYear = year.length === 4 && yearNum >= 1900 && yearNum <= new Date().getFullYear() + 1;
+  const validYear =
+    year.length === YEAR_LENGTH && yearNum >= MIN_YEAR && yearNum <= new Date().getFullYear() + 1;
 
   const handleYearChange = (text: string) => {
-    setYear(text.replace(/[^0-9]/g, '').slice(0, 4));
+    setYear(text.replace(/[^0-9]/g, '').slice(0, YEAR_LENGTH));
     setSelectedModel(null);
     setModelSearch('');
   };
@@ -93,16 +125,16 @@ export default function AddBikeScreen() {
   });
 
   const makes = makesResult.data?.motorcycleMakes ?? [];
-  const filteredMakes = makes.filter((make: { makeName: string }) =>
+  const filteredMakes = makes.filter((make) =>
     make.makeName.toLowerCase().includes(makeSearch.toLowerCase()),
   );
   const models = modelsResult.data?.motorcycleModels ?? [];
-  const filteredModels = models.filter((model: { modelName: string }) =>
+  const filteredModels = models.filter((model) =>
     model.modelName.toLowerCase().includes(modelSearch.toLowerCase()),
   );
 
   const handleSelectMake = (make: { makeId: number; makeName: string }) => {
-    haptic();
+    triggerImpact();
     setSelectedMake(make);
     setSelectedModel(null);
     setMakeSearch('');
@@ -110,7 +142,7 @@ export default function AddBikeScreen() {
   };
 
   const handleSelectModel = (model: { modelId: number; modelName: string }) => {
-    haptic();
+    triggerImpact();
     setSelectedModel(model);
     setModelSearch('');
   };
@@ -148,9 +180,7 @@ export default function AddBikeScreen() {
       });
       trackEvent(AnalyticsEvent.GARAGE_BIKE_ADDED, { make, model, year: yearNum });
       MetaAnalytics.trackAddToGarage(make, model, yearNum);
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       router.back();
     } catch (e: unknown) {
       // requireAccess shows the paywall and returns false. It returns true when the
@@ -167,537 +197,284 @@ export default function AddBikeScreen() {
     }
   };
 
-  const inputStyle = {
-    ...type.body,
-    backgroundColor: theme.surface,
-    borderRadius: radius.control,
-    borderCurve: 'continuous' as const,
-    paddingHorizontal: space.md,
-    paddingVertical: 14,
-    color: theme.ink,
+  // ── Make: loading → chosen (custom or NHTSA) → search with matches ──
+  const reopenCustomMake = () => {
+    setMakeSearch(customMake);
+    setCustomMake('');
+    setSelectedModel(null);
+    setModelSearch('');
+    setCustomModel('');
+  };
+  const reopenMake = () => {
+    if (!selectedMake) return;
+    setMakeSearch(selectedMake.makeName);
+    setSelectedMake(null);
+    setSelectedModel(null);
+    setModelSearch('');
+  };
+  const chooseTypedMake = () => {
+    setCustomMake(makeSearch);
+    setSelectedMake(null);
+    setMakeSearch('');
+    setSelectedModel(null);
+    setModelSearch('');
+    setCustomModel('');
   };
 
-  const labelStyle = {
-    ...type.label,
-    color: theme.ink2,
-    marginBottom: space.xs,
-    marginLeft: space.xxs,
-  };
-
-  const dropdownBg = theme.surface;
-  const dropdownBorder = theme.line;
-  const pressedBg = theme.surface2;
-
-  return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ padding: space.md, paddingBottom: space.xxxl }}
-      keyboardDismissMode="interactive"
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Year */}
-      <Animated.View entering={FadeInUp.duration(300)} style={{ marginBottom: 20 }}>
-        <Text style={labelStyle}>{t('garage.year')}</Text>
-        <TextInput
-          value={year}
-          onChangeText={handleYearChange}
-          placeholder={t('garage.yearPlaceholder')}
-          placeholderTextColor={theme.ink3}
-          keyboardType="number-pad"
-          maxLength={4}
-          returnKeyType="next"
-          style={inputStyle}
+  const renderMake = () => {
+    if (makesResult.isLoading) return <PickerLoadingRow />;
+    if (customMake && !makeSearch) {
+      return (
+        <PickerValueRow
+          testID={TEST_ID.MAKE_VALUE}
+          icon={Search}
+          value={customMake}
+          custom
+          onPress={reopenCustomMake}
         />
-      </Animated.View>
-
-      {/* Make */}
-      <Animated.View entering={FadeInUp.delay(60).duration(300)} style={{ marginBottom: 20 }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            marginBottom: 8,
-            marginLeft: 4,
-          }}
-        >
-          <Search size={14} color={theme.ink3} />
-          <Text style={{ ...labelStyle, marginBottom: 0, marginLeft: 0 }}>{t('garage.make')}</Text>
-        </View>
-
-        {makesResult.isLoading ? (
-          <ActivityIndicator color={theme.warm} style={{ marginVertical: 16 }} />
-        ) : customMake && !makeSearch ? (
-          <Pressable
-            onPress={() => {
-              setMakeSearch(customMake);
-              setCustomMake('');
-              setSelectedModel(null);
-              setModelSearch('');
-              setCustomModel('');
-            }}
-            style={{
-              ...inputStyle,
-              borderWidth: 1.5,
-              borderColor: theme.warm,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: 11,
-                  color: theme.warm2,
-                  fontWeight: '600',
-                  marginBottom: 2,
-                }}
-              >
-                {t('garage.customEntry', { defaultValue: 'Custom' })}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '600',
-                  color: theme.ink,
-                }}
-              >
-                {customMake}
-              </Text>
-            </View>
-            <Text style={{ fontSize: 12, color: theme.ink3 }}>{t('garage.tapToChange')}</Text>
-          </Pressable>
-        ) : selectedMake && !makeSearch ? (
-          <Pressable
-            onPress={() => {
-              setMakeSearch(selectedMake.makeName);
-              setSelectedMake(null);
-              setSelectedModel(null);
-              setModelSearch('');
-            }}
-            style={{
-              ...inputStyle,
-              borderWidth: 1.5,
-              borderColor: theme.warm,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: theme.ink,
-              }}
-            >
-              {selectedMake.makeName}
-            </Text>
-            <Text style={{ fontSize: 12, color: theme.ink3 }}>{t('garage.tapToChange')}</Text>
-          </Pressable>
-        ) : (
+      );
+    }
+    if (selectedMake && !makeSearch) {
+      return (
+        <PickerValueRow
+          testID={TEST_ID.MAKE_VALUE}
+          icon={Search}
+          value={selectedMake.makeName}
+          onPress={reopenMake}
+        />
+      );
+    }
+    const noMatch = makeSearch.length >= CUSTOM_ENTRY_MIN_CHARS && filteredMakes.length === 0;
+    return (
+      <>
+        <IconInputRow
+          testID={TEST_ID.MAKE_SEARCH}
+          icon={Search}
+          value={makeSearch}
+          onChangeText={setMakeSearch}
+          placeholder={t('garage.searchMake')}
+          accessibilityLabel={t('garage.make')}
+          autoCapitalize="words"
+        />
+        {makeSearch.length > 0 && filteredMakes.length > 0 ? (
+          <PickerResults
+            items={filteredMakes}
+            keyOf={(make) => make.makeId}
+            labelOf={(make) => make.makeName}
+            onSelect={handleSelectMake}
+            testIDPrefix={TEST_ID.MAKE_OPTION}
+          />
+        ) : null}
+        {noMatch ? (
           <>
-            <TextInput
-              value={makeSearch}
-              onChangeText={setMakeSearch}
-              placeholder={t('garage.searchMake')}
-              placeholderTextColor={theme.ink3}
-              autoCapitalize="words"
-              style={inputStyle}
+            <PickerEmptyRow label={t('garage.noMakesFound')} />
+            <PickerCustomRow
+              testID={TEST_ID.MAKE_CUSTOM}
+              label={t('garage.useCustomMake', {
+                defaultValue: `Use "${makeSearch}"`,
+                make: makeSearch,
+              })}
+              onPress={chooseTypedMake}
             />
-            {makeSearch.length > 0 && filteredMakes.length > 0 ? (
-              <View
-                style={{
-                  backgroundColor: dropdownBg,
-                  borderWidth: 1,
-                  borderColor: dropdownBorder,
-                  borderRadius: 14,
-                  borderCurve: 'continuous',
-                  marginTop: 6,
-                  maxHeight: 220,
-                  overflow: 'hidden',
-                }}
-              >
-                <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
-                  {filteredMakes.slice(0, 20).map((make) => (
-                    <Pressable
-                      key={make.makeId}
-                      onPress={() => handleSelectMake(make)}
-                      style={({ pressed }) => ({
-                        paddingHorizontal: 16,
-                        paddingVertical: 13,
-                        borderBottomWidth: 1,
-                        borderBottomColor: theme.line2,
-                        backgroundColor: pressed ? pressedBg : 'transparent',
-                      })}
-                    >
-                      <Text
-                        style={{
-                          fontSize: 15,
-                          color: theme.ink,
-                        }}
-                      >
-                        {make.makeName}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
-              </View>
-            ) : makeSearch.length > 1 && filteredMakes.length === 0 ? (
-              <>
-                <Text style={{ fontSize: 14, color: theme.ink3, marginTop: 8, marginLeft: 4 }}>
-                  {t('garage.noMakesFound')}
-                </Text>
-                <Pressable
-                  onPress={() => {
-                    haptic();
-                    setCustomMake(makeSearch);
-                    setSelectedMake(null);
-                    setMakeSearch('');
-                    setSelectedModel(null);
-                    setModelSearch('');
-                    setCustomModel('');
-                  }}
-                  style={({ pressed }) => ({
-                    marginTop: 8,
-                    paddingHorizontal: 16,
-                    paddingVertical: 13,
-                    backgroundColor: pressed ? pressedBg : theme.surface,
-                    borderRadius: 14,
-                    borderCurve: 'continuous',
-                    borderWidth: 1,
-                    borderColor: theme.warm,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 8,
-                  })}
-                >
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      color: theme.warm2,
-                      fontWeight: '600',
-                      flex: 1,
-                    }}
-                  >
-                    {t('garage.useCustomMake', {
-                      defaultValue: `Use "${makeSearch}"`,
-                      make: makeSearch,
-                    })}
-                  </Text>
-                </Pressable>
-              </>
-            ) : null}
           </>
-        )}
-      </Animated.View>
+        ) : null}
+      </>
+    );
+  };
 
-      {/* Model */}
-      <Animated.View entering={FadeInUp.delay(120).duration(300)} style={{ marginBottom: 20 }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            marginBottom: 8,
-            marginLeft: 4,
-          }}
-        >
-          <Search size={14} color={theme.ink3} />
-          <Text style={{ ...labelStyle, marginBottom: 0, marginLeft: 0 }}>{t('garage.model')}</Text>
-        </View>
-
-        {(!selectedMake && !customMake) || !validYear ? (
-          <View
-            style={{
-              ...inputStyle,
-              opacity: 0.4,
-            }}
-          >
-            <Text style={{ fontSize: 16, color: theme.ink3 }}>{t('garage.searchModel')}</Text>
-          </View>
-        ) : customMake ? (
-          // Free-text model entry when using a custom make
-          customModel && !modelSearch ? (
-            <Pressable
-              onPress={() => {
-                setModelSearch(customModel);
-                setCustomModel('');
-              }}
-              style={{
-                ...inputStyle,
-                borderWidth: 1.5,
-                borderColor: theme.warm,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: 11,
-                    color: theme.warm2,
-                    fontWeight: '600',
-                    marginBottom: 2,
-                  }}
-                >
-                  {t('garage.customEntry', { defaultValue: 'Custom' })}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '600',
-                    color: theme.ink,
-                  }}
-                >
-                  {customModel}
-                </Text>
-              </View>
-              <Text style={{ fontSize: 12, color: theme.ink3 }}>{t('garage.tapToChange')}</Text>
-            </Pressable>
-          ) : (
-            <TextInput
-              value={modelSearch}
-              onChangeText={(text) => {
-                setModelSearch(text);
-                setCustomModel(text);
-              }}
-              onBlur={() => {
-                if (modelSearch.trim()) {
-                  setCustomModel(modelSearch.trim());
-                  setModelSearch('');
-                }
-              }}
-              placeholder={t('garage.searchModel')}
-              placeholderTextColor={theme.ink3}
-              autoCapitalize="words"
-              returnKeyType="done"
-              style={inputStyle}
-            />
-          )
-        ) : modelsResult.isLoading ? (
-          <ActivityIndicator color={theme.warm} style={{ marginVertical: 16 }} />
-        ) : selectedModel && !modelSearch ? (
-          <Pressable
-            onPress={() => {
-              setModelSearch(selectedModel.modelName);
-              setSelectedModel(null);
-            }}
-            style={{
-              ...inputStyle,
-              borderWidth: 1.5,
-              borderColor: theme.warm,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: theme.ink,
-              }}
-            >
-              {selectedModel.modelName}
-            </Text>
-            <Text style={{ fontSize: 12, color: theme.ink3 }}>{t('garage.tapToChange')}</Text>
-          </Pressable>
-        ) : customModel && !modelSearch ? (
-          <Pressable
+  // ── Model: locked until a make and a valid year; free text for a custom make ──
+  const renderModel = () => {
+    if ((!selectedMake && !customMake) || !validYear) {
+      return <PickerDisabledRow icon={Search} label={t('garage.searchModel')} />;
+    }
+    if (customMake) {
+      if (customModel && !modelSearch) {
+        return (
+          <PickerValueRow
+            testID={TEST_ID.MODEL_VALUE}
+            icon={Search}
+            value={customModel}
+            custom
             onPress={() => {
               setModelSearch(customModel);
               setCustomModel('');
-              setSelectedModel(null);
             }}
-            style={{
-              ...inputStyle,
-              borderWidth: 1.5,
-              borderColor: theme.warm,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: 11,
-                  color: theme.warm2,
-                  fontWeight: '600',
-                  marginBottom: 2,
-                }}
-              >
-                {t('garage.customEntry', { defaultValue: 'Custom' })}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '600',
-                  color: theme.ink,
-                }}
-              >
-                {customModel}
-              </Text>
-            </View>
-            <Text style={{ fontSize: 12, color: theme.ink3 }}>{t('garage.tapToChange')}</Text>
-          </Pressable>
-        ) : (
-          <>
-            <TextInput
-              value={modelSearch}
-              onChangeText={(text) => {
-                setModelSearch(text);
-                setSelectedModel(null);
-                setCustomModel('');
-              }}
-              placeholder={t('garage.searchModel')}
-              placeholderTextColor={theme.ink3}
-              autoCapitalize="words"
-              style={inputStyle}
-            />
-            {filteredModels.length > 0 ? (
-              <View
-                style={{
-                  backgroundColor: dropdownBg,
-                  borderWidth: 1,
-                  borderColor: dropdownBorder,
-                  borderRadius: 14,
-                  borderCurve: 'continuous',
-                  marginTop: 6,
-                  maxHeight: 220,
-                  overflow: 'hidden',
-                }}
-              >
-                <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
-                  {filteredModels.slice(0, 20).map((model) => (
-                    <Pressable
-                      key={model.modelId}
-                      onPress={() => handleSelectModel(model)}
-                      style={({ pressed }) => ({
-                        paddingHorizontal: 16,
-                        paddingVertical: 13,
-                        borderBottomWidth: 1,
-                        borderBottomColor: theme.line2,
-                        backgroundColor: pressed ? pressedBg : 'transparent',
-                      })}
-                    >
-                      <Text
-                        style={{
-                          fontSize: 15,
-                          color: theme.ink,
-                        }}
-                      >
-                        {model.modelName}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
-              </View>
-            ) : modelSearch.length > 1 && filteredModels.length === 0 ? (
-              <>
-                {models.length > 0 && (
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      color: theme.ink3,
-                      marginTop: 8,
-                      marginLeft: 4,
-                    }}
-                  >
-                    {t('garage.noModelsFound')}
-                  </Text>
-                )}
-                <Pressable
-                  onPress={() => {
-                    haptic();
-                    setCustomModel(modelSearch);
-                    setSelectedModel(null);
-                    setModelSearch('');
-                  }}
-                  style={({ pressed }) => ({
-                    marginTop: 8,
-                    paddingHorizontal: 16,
-                    paddingVertical: 13,
-                    backgroundColor: pressed ? pressedBg : theme.surface,
-                    borderRadius: 14,
-                    borderCurve: 'continuous',
-                    borderWidth: 1,
-                    borderColor: theme.warm,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 8,
-                  })}
-                >
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      color: theme.warm2,
-                      fontWeight: '600',
-                      flex: 1,
-                    }}
-                  >
-                    {t('garage.useCustomModel', {
-                      defaultValue: `Use "${modelSearch}"`,
-                      model: modelSearch,
-                    })}
-                  </Text>
-                </Pressable>
-              </>
-            ) : null}
-          </>
-        )}
-      </Animated.View>
-
-      {/* Nickname */}
-      <Animated.View entering={FadeInUp.delay(180).duration(300)} style={{ marginBottom: 24 }}>
-        <Text style={labelStyle}>{t('garage.nickname')}</Text>
-        <TextInput
-          value={nickname}
-          onChangeText={setNickname}
-          placeholder={t('garage.nickname')}
-          placeholderTextColor={theme.ink3}
+          />
+        );
+      }
+      return (
+        <IconInputRow
+          testID={TEST_ID.MODEL_SEARCH}
+          icon={Search}
+          value={modelSearch}
+          onChangeText={(text) => {
+            setModelSearch(text);
+            setCustomModel(text);
+          }}
+          onBlur={() => {
+            if (modelSearch.trim()) {
+              setCustomModel(modelSearch.trim());
+              setModelSearch('');
+            }
+          }}
+          placeholder={t('garage.searchModel')}
+          accessibilityLabel={t('garage.model')}
+          autoCapitalize="words"
           returnKeyType="done"
-          onSubmitEditing={handleSubmit}
-          style={inputStyle}
         />
-      </Animated.View>
-
-      {/* Submit */}
-      <Animated.View entering={FadeInUp.delay(240).duration(300)}>
-        <Pressable
+      );
+    }
+    if (modelsResult.isLoading) return <PickerLoadingRow />;
+    if (selectedModel && !modelSearch) {
+      return (
+        <PickerValueRow
+          testID={TEST_ID.MODEL_VALUE}
+          icon={Search}
+          value={selectedModel.modelName}
           onPress={() => {
-            haptic();
-            handleSubmit();
+            setModelSearch(selectedModel.modelName);
+            setSelectedModel(null);
           }}
-          disabled={!isValid || isPending}
-          style={{
-            borderRadius: 16,
-            borderCurve: 'continuous',
-            overflow: 'hidden',
-            opacity: !isValid || isPending ? 0.5 : 1,
+        />
+      );
+    }
+    if (customModel && !modelSearch) {
+      return (
+        <PickerValueRow
+          testID={TEST_ID.MODEL_VALUE}
+          icon={Search}
+          value={customModel}
+          custom
+          onPress={() => {
+            setModelSearch(customModel);
+            setCustomModel('');
+            setSelectedModel(null);
           }}
-        >
-          <View
-            style={{
-              backgroundColor: theme.warm,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              paddingVertical: 16,
-              gap: 8,
-            }}
-          >
-            {isPending && <ActivityIndicator size="small" color={theme.onWarm} />}
-            <Text style={{ ...type.bodyStrong, color: theme.onWarm }}>
-              {isPending ? t('garage.saving') : t('garage.addBike')}
-            </Text>
-          </View>
-        </Pressable>
-      </Animated.View>
-    </ScrollView>
+        />
+      );
+    }
+    const noMatch = modelSearch.length >= CUSTOM_ENTRY_MIN_CHARS && filteredModels.length === 0;
+    return (
+      <>
+        <IconInputRow
+          testID={TEST_ID.MODEL_SEARCH}
+          icon={Search}
+          value={modelSearch}
+          onChangeText={(text) => {
+            setModelSearch(text);
+            setSelectedModel(null);
+            setCustomModel('');
+          }}
+          placeholder={t('garage.searchModel')}
+          accessibilityLabel={t('garage.model')}
+          autoCapitalize="words"
+        />
+        {filteredModels.length > 0 ? (
+          <PickerResults
+            items={filteredModels}
+            keyOf={(model) => model.modelId}
+            labelOf={(model) => model.modelName}
+            onSelect={handleSelectModel}
+            testIDPrefix={TEST_ID.MODEL_OPTION}
+          />
+        ) : null}
+        {noMatch ? (
+          <>
+            {models.length > 0 ? <PickerEmptyRow label={t('garage.noModelsFound')} /> : null}
+            <PickerCustomRow
+              testID={TEST_ID.MODEL_CUSTOM}
+              label={t('garage.useCustomModel', {
+                defaultValue: `Use "${modelSearch}"`,
+                model: modelSearch,
+              })}
+              onPress={() => {
+                setCustomModel(modelSearch);
+                setSelectedModel(null);
+                setModelSearch('');
+              }}
+            />
+          </>
+        ) : null}
+      </>
+    );
+  };
+
+  const primaryState =
+    isValid && !isPending ? SHEET_PRIMARY_STATE.READY : SHEET_PRIMARY_STATE.DISABLED;
+
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        bottomOffset={20}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={SHEET_CONTENT_STYLE}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <SheetTitle>{t('garage.addBike')}</SheetTitle>
+
+        <Animated.View entering={sectionEntering(0)}>
+          <FormSection label={t('garage.year')}>
+            <TextInput
+              testID={TEST_ID.YEAR}
+              value={year}
+              onChangeText={handleYearChange}
+              placeholder={t('garage.yearExamplePlaceholder')}
+              placeholderTextColor={theme.ink4}
+              accessibilityLabel={t('garage.year')}
+              keyboardType="number-pad"
+              maxLength={YEAR_LENGTH}
+              returnKeyType="next"
+              style={[
+                inputTextStyle(theme),
+                { minHeight: SHEET_CONTROL_HEIGHT, paddingHorizontal: space.md },
+              ]}
+            />
+          </FormSection>
+        </Animated.View>
+
+        <Animated.View entering={sectionEntering(1)}>
+          <FormSection label={t('garage.make')}>{renderMake()}</FormSection>
+        </Animated.View>
+
+        <Animated.View entering={sectionEntering(2)}>
+          <FormSection label={t('garage.model')}>{renderModel()}</FormSection>
+        </Animated.View>
+
+        <Animated.View entering={sectionEntering(3)}>
+          <FormSection label={t('garage.nickname')}>
+            <TextInput
+              testID={TEST_ID.NICKNAME}
+              value={nickname}
+              onChangeText={setNickname}
+              placeholder={t('garage.nicknamePlaceholder')}
+              placeholderTextColor={theme.ink4}
+              accessibilityLabel={t('garage.nickname')}
+              returnKeyType="done"
+              onSubmitEditing={handleSubmit}
+              style={[
+                inputTextStyle(theme),
+                { minHeight: SHEET_CONTROL_HEIGHT, paddingHorizontal: space.md },
+              ]}
+            />
+          </FormSection>
+        </Animated.View>
+      </KeyboardAwareScrollView>
+
+      <SheetFooter
+        primaryTestID={TEST_ID.SUBMIT}
+        primaryState={primaryState}
+        primaryIcon={Plus}
+        primaryLabel={isPending ? t('garage.saving') : t('garage.addBike')}
+        onPrimary={() => {
+          triggerImpact();
+          handleSubmit();
+        }}
+        onCancel={() => router.back()}
+        cancelDisabled={isPending}
+      />
+    </View>
   );
 }

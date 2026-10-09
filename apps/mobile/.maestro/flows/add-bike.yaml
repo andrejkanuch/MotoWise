@@ -26,17 +26,19 @@
 # ⚠️ NOT YET DEVICE-VALIDATED. Unlike edit-maintenance-task.yaml, the selectors
 #   below were authored FROM SOURCE (add-bike.tsx, (garage)/index.tsx,
 #   (garage)/_layout.tsx, en.json) and are PENDING on-device confirmation via the
-#   Maestro MCP. Known ambiguities flagged inline (marked "UNSURE") — verify on a
-#   simulator before trusting this in CI.
+#   Maestro MCP. Since the Race Plate sheet redesign the fields are targeted by
+#   testID, which removes the old index guesses — still verify on a simulator
+#   before trusting this in CI.
 #
 # App-specific gotchas applied (see .maestro/README.md):
 #   - the Garage tab a11y text can carry a badge count, so match it as a partial
 #     regex (".*Garage.*"), never the bare word;
 #   - the app's custom keyboard does NOT support hideKeyboard — dismiss it by
 #     tapping a non-interactive section label (e.g. "Model");
-#   - the "Add a Bike" submit button sits at the bottom of the scroll, below the
-#     keyboard, so scrollUntilVisible it (and anchor below "Nickname" — the header
-#     title and this button share the identical "Add a Bike" string) before tapping;
+#   - the sheet title and the sticky footer's primary share the "Add a Bike"
+#     string, so the form's fields and the primary are targeted by testID
+#     (add-bike-year / -make-search / -make / -model-search / -model-custom /
+#     -submit); the primary is pinned above the keyboard, so no scrolling;
 #   - a native StoreKit "Enjoying MotoVault?" review prompt can fire after a value
 #     moment (bike added) — dismiss "Not Now" (optional).
 appId: ${APP_ID}
@@ -63,51 +65,46 @@ env:
 - tapOn: "Add a Bike"
 - assertVisible: "Nickname (optional)" # confirms the add-bike sheet is up
 
-# 4. Year — the label and the input share the text "Year", so target the input
-#    (2nd match). UNSURE: index disambiguation; verify on-device.
+# 4. Year — by testID (the section caption also reads "Year").
 - tapOn:
-    text: "Year"
-    index: 1
+    id: "add-bike-year"
 - inputText: ${BIKE_YEAR}
 
-# 5. Make — type into the make search, then pick the make from the NHTSA dropdown.
-#    The search field's value and the dropdown row both read the make, so tap the
-#    dropdown row (2nd match). UNSURE: index disambiguation of row vs input.
-- tapOn: "Search make..."
+# 5. Make — type into the make search, then pick the make from the NHTSA matches.
+#    Match rows carry testID add-bike-make-option-<makeId>; the text narrows it to
+#    the exact make (Maestro text matching ignores case; NHTSA names are upper case),
+#    so the search field holding the same text is never the target.
+- tapOn:
+    id: "add-bike-make-search"
 - inputText: ${BIKE_MAKE}
 - tapOn:
-    text: ".*${BIKE_MAKE}.*"
-    index: 1
-- assertVisible: "Tap to change" # a make is selected → collapsed picker shows this
+    id: "add-bike-make-option-.*"
+    text: "${BIKE_MAKE}"
+- assertVisible:
+    id: "add-bike-make" # a make is selected → the chosen-make row ("Tap to change")
 
-# 6. Model — the field unlocks once make + valid year are set. Type a distinctive
-#    value that matches no NHTSA model so the "Use '<model>' as model" custom-entry
-#    button appears; tap it for a deterministic, assertable model.
+# 6. Model — the search input exists only once make + valid year are set (the
+#    locked row reads "Search model..." too, so wait on the input's testID). Type a
+#    distinctive value that matches no NHTSA model so the "Use '<model>' as model"
+#    custom-entry row appears; tap it for a deterministic, assertable model.
 - extendedWaitUntil:
-    visible: "Search model..."
+    visible:
+      id: "add-bike-model-search"
     timeout: 20000
-- tapOn: "Search model..."
+- tapOn:
+    id: "add-bike-model-search"
 - inputText: ${BIKE_MODEL}
 - tapOn:
-    text: ".*Use.*${BIKE_MODEL}.*as model.*"
+    id: "add-bike-model-custom"
 
-# 7. Dismiss the custom keyboard (tap a non-interactive label — hideKeyboard is
-#    unsupported by the keyboard controller), then scroll the submit button into
-#    view (it sits below the keyboard/fold) and save. Anchor below "Nickname" so
-#    we hit the button, not the identically-worded sheet header title.
+# 7. Dismiss the custom keyboard (tap a non-interactive caption — hideKeyboard is
+#    unsupported by the keyboard controller), then save with the sticky footer's
+#    primary (by testID: the sheet title reads "Add a Bike" too).
 - tapOn:
     text: "Model"
     optional: true
-- scrollUntilVisible:
-    element:
-      text: "Add a Bike"
-      below:
-        text: "Nickname (optional)"
-    direction: DOWN
 - tapOn:
-    text: "Add a Bike"
-    below:
-      text: "Nickname (optional)"
+    id: "add-bike-submit"
 
 # A native store-review prompt can fire after adding a bike — dismiss it.
 - tapOn:

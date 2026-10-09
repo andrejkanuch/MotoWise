@@ -1,6 +1,7 @@
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ErrorFallback } from '../../../components/error-fallback';
+import { FORM_SHEET_DETENTS } from '../../../config/sheet-detents';
 import { captureException } from '../../../lib/analytics';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { PLATE_FONT } from '../../../theme/type';
@@ -65,12 +66,13 @@ export default function ProfileLayout() {
         options={{
           title: t('garage.addBike', { defaultValue: 'Add Bike' }),
           presentation: 'formSheet',
+          headerShown: false,
           headerLargeTitle: false,
           headerTransparent: false,
           headerBlurEffect: undefined,
           headerStyle: { backgroundColor: theme.bg },
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.85, 1.0],
+          sheetAllowedDetents: FORM_SHEET_DETENTS.BIKE,
           contentStyle: { backgroundColor: theme.bg },
         }}
       />
