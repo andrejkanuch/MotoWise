@@ -1,26 +1,19 @@
-import { palette } from '@motovault/design-system';
 import { RotateTripShareTokenDocument, UpdateTripDocument } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { AlertTriangle, Check, Copy, Link2, RefreshCw, Share2, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Pressable,
-  Share,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Alert, Modal, Pressable, Share, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 import { queryKeys } from '../lib/query-keys';
 import { maybeRequestReview } from '../lib/store-review';
+import { tint, useEditorialTheme } from '../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../theme/type';
 
 interface TripShareSheetProps {
   tripId: string;
@@ -46,19 +39,20 @@ function truncate(url: string): string {
  * obtain a new plaintext value to copy or share.
  */
 export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripShareSheetProps) {
-  const isDark = useColorScheme() === 'dark';
+  const { t: theme } = useEditorialTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
 
   const [plaintextToken, setPlaintextToken] = useState<string | null>(null);
   const [justCopied, setJustCopied] = useState(false);
 
-  const bg = isDark ? palette.neutral950 : palette.white;
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const bodyColor = isDark ? palette.neutral300 : palette.neutral600;
-  const mutedColor = isDark ? palette.neutral500 : palette.neutral400;
-  const dividerColor = isDark ? palette.neutral800 : palette.neutral200;
-  const chipBg = isDark ? palette.neutral900 : palette.neutral100;
+  const bg = theme.surface;
+  const titleColor = theme.ink;
+  const bodyColor = theme.ink2;
+  const mutedColor = theme.ink3;
+  const dividerColor = theme.line;
+  const chipBg = theme.surface2;
 
   const rotateMutation = useMutation({
     mutationFn: () => gqlFetcher(RotateTripShareTokenDocument, { tripId }),
@@ -73,7 +67,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
     },
     onError: () => {
-      Alert.alert('Could not create link', 'Something went wrong. Please try again in a moment.');
+      Alert.alert(t('tripShare.createErrorTitle'), t('tripShare.createErrorBody'));
     },
   });
 
@@ -92,7 +86,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
       onClose();
     },
     onError: () => {
-      Alert.alert('Could not update trip', 'Please try again.');
+      Alert.alert(t('tripShare.updateErrorTitle'), t('tripShare.updateErrorBody'));
     },
   });
 
@@ -104,19 +98,15 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
   }, [rotateMutation]);
 
   const handleRegenerate = useCallback(() => {
-    Alert.alert(
-      'Regenerate link?',
-      'The previous link will stop working immediately. Anyone using it will need a new link.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Regenerate',
-          style: 'destructive',
-          onPress: () => rotateMutation.mutate(),
-        },
-      ],
-    );
-  }, [rotateMutation]);
+    Alert.alert(t('tripShare.regenerateConfirmTitle'), t('tripShare.regenerateConfirmBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('tripShare.regenerateConfirmCta'),
+        style: 'destructive',
+        onPress: () => rotateMutation.mutate(),
+      },
+    ]);
+  }, [rotateMutation, t]);
 
   const handleCopy = useCallback(async () => {
     if (!shareUrl) return;
@@ -130,7 +120,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
   const handleShareSystem = useCallback(async () => {
     if (!shareUrl) return;
     const result = await Share.share({
-      message: 'Trip on MotoVault',
+      message: t('tripShare.shareMessage'),
       url: shareUrl,
     });
     // Only fire analytics when the user actually completes the share —
@@ -139,22 +129,18 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
       trackEvent(AnalyticsEvent.TRIP_SHARED, { trip_id: tripId, method: 'system_share' });
       maybeRequestReview();
     }
-  }, [shareUrl, tripId]);
+  }, [shareUrl, tripId, t]);
 
   const handleStopSharing = useCallback(() => {
-    Alert.alert(
-      'Stop sharing this trip?',
-      'The link will stop working immediately and the trip becomes private.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Stop sharing',
-          style: 'destructive',
-          onPress: () => updateTripMutation.mutate(),
-        },
-      ],
-    );
-  }, [updateTripMutation]);
+    Alert.alert(t('tripShare.stopConfirmTitle'), t('tripShare.stopConfirmBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('tripShare.stop'),
+        style: 'destructive',
+        onPress: () => updateTripMutation.mutate(),
+      },
+    ]);
+  }, [updateTripMutation, t]);
 
   const handleClose = useCallback(() => {
     setPlaintextToken(null);
@@ -183,19 +169,14 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
             borderBottomColor: dividerColor,
           }}
         >
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '800',
-              color: titleColor,
-              letterSpacing: -0.3,
-            }}
-          >
-            Share trip
+          <Text accessibilityRole="header" style={[type.sheetTitle, { color: titleColor }]}>
+            {t('tripShare.title')}
           </Text>
           <Pressable
             onPress={handleClose}
             hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={t('tripShare.closeA11y')}
             style={{
               width: 34,
               height: 34,
@@ -230,15 +211,8 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
               >
                 <Link2 size={28} color={mutedColor} />
               </View>
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '600',
-                  color: bodyColor,
-                  textAlign: 'center',
-                }}
-              >
-                Unarchive this trip to share it.
+              <Text style={[type.bodyStrong, { color: bodyColor, textAlign: 'center' }]}>
+                {t('tripShare.archived')}
               </Text>
             </Animated.View>
           ) : !plaintextToken ? (
@@ -255,35 +229,24 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                     height: 64,
                     borderRadius: 32,
                     borderCurve: 'continuous',
-                    backgroundColor: isDark ? palette.accentTint : palette.accentBgLight,
+                    backgroundColor: theme.surface2,
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 16,
                   }}
                 >
-                  <Link2 size={28} color={palette.accent500} />
+                  <Link2 size={28} color={theme.ink2} />
                 </View>
                 <Text
-                  style={{
-                    fontSize: 20,
-                    fontWeight: '800',
-                    color: titleColor,
-                    letterSpacing: -0.4,
-                    marginBottom: 8,
-                    textAlign: 'center',
-                  }}
+                  style={[
+                    type.sectionTitle,
+                    { color: titleColor, marginBottom: 8, textAlign: 'center' },
+                  ]}
                 >
-                  Generate a share link
+                  {t('tripShare.generateTitle')}
                 </Text>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    color: bodyColor,
-                    lineHeight: 20,
-                    textAlign: 'center',
-                  }}
-                >
-                  Anyone with this link can view and forward the trip.
+                <Text style={[type.subhead, { color: bodyColor, textAlign: 'center' }]}>
+                  {t('tripShare.generateBody')}
                 </Text>
               </View>
 
@@ -291,7 +254,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                 onPress={handleGenerate}
                 disabled={rotateMutation.isPending}
                 style={{
-                  backgroundColor: palette.accent500,
+                  backgroundColor: theme.warm,
                   paddingVertical: 16,
                   borderRadius: 14,
                   borderCurve: 'continuous',
@@ -303,36 +266,20 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                 }}
               >
                 {rotateMutation.isPending ? (
-                  <ActivityIndicator size="small" color={palette.white} />
+                  <ActivityIndicator size="small" color={theme.onWarm} />
                 ) : (
-                  <Link2 size={18} color={palette.white} />
+                  <Link2 size={18} color={theme.onWarm} />
                 )}
-                <Text
-                  style={{
-                    color: palette.white,
-                    fontSize: 16,
-                    fontWeight: '700',
-                    letterSpacing: 0.2,
-                  }}
-                >
-                  Generate link
+                <Text style={[type.bodyStrong, { color: theme.onWarm }]}>
+                  {t('tripShare.generateCta')}
                 </Text>
               </Pressable>
             </Animated.View>
           ) : (
             <Animated.View entering={FadeInUp.duration(260)}>
               {/* URL display */}
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '700',
-                  color: mutedColor,
-                  letterSpacing: 0.8,
-                  textTransform: 'uppercase',
-                  marginBottom: 10,
-                }}
-              >
-                Share URL
+              <Text style={[type.label, { color: mutedColor, marginBottom: 10 }]}>
+                {t('tripShare.urlLabel')}
               </Text>
               <View
                 style={{
@@ -345,28 +292,16 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                   borderColor: dividerColor,
                 }}
               >
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    fontSize: 13,
-                    fontFamily: process.env.EXPO_OS === 'ios' ? 'Menlo' : 'monospace',
-                    color: titleColor,
-                  }}
-                >
+                <Text numberOfLines={1} style={[type.subhead, { color: titleColor }]}>
                   {truncate(shareUrl ?? '')}
                 </Text>
               </View>
 
               {/* Info line */}
               <Text
-                style={{
-                  fontSize: 12,
-                  color: isDark ? palette.neutral400 : palette.neutral500,
-                  textAlign: 'center',
-                  marginBottom: 16,
-                }}
+                style={[type.caption, { color: theme.ink3, textAlign: 'center', marginBottom: 16 }]}
               >
-                Anyone with this link can view your trip
+                {t('tripShare.info')}
               </Text>
 
               {/* Action buttons */}
@@ -375,7 +310,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                   onPress={handleCopy}
                   style={{
                     flex: 1,
-                    backgroundColor: palette.accent500,
+                    backgroundColor: theme.warm,
                     paddingVertical: 14,
                     borderRadius: 12,
                     borderCurve: 'continuous',
@@ -386,18 +321,12 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                   }}
                 >
                   {justCopied ? (
-                    <Check size={18} color={palette.white} />
+                    <Check size={18} color={theme.onWarm} />
                   ) : (
-                    <Copy size={18} color={palette.white} />
+                    <Copy size={18} color={theme.onWarm} />
                   )}
-                  <Text
-                    style={{
-                      color: palette.white,
-                      fontSize: 15,
-                      fontWeight: '700',
-                    }}
-                  >
-                    {justCopied ? 'Copied' : 'Copy link'}
+                  <Text style={[type.subhead, SYSTEM_WEIGHT.semibold, { color: theme.onWarm }]}>
+                    {justCopied ? t('tripShare.copied') : t('tripShare.copy')}
                   </Text>
                 </Pressable>
                 <Pressable
@@ -417,14 +346,8 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                   }}
                 >
                   <Share2 size={18} color={titleColor} />
-                  <Text
-                    style={{
-                      color: titleColor,
-                      fontSize: 15,
-                      fontWeight: '700',
-                    }}
-                  >
-                    Share…
+                  <Text style={[type.subhead, SYSTEM_WEIGHT.semibold, { color: titleColor }]}>
+                    {t('tripShare.shareSystem')}
                   </Text>
                 </Pressable>
               </View>
@@ -443,15 +366,9 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                   opacity: rotateMutation.isPending ? 0.6 : 1,
                 }}
               >
-                <RefreshCw size={15} color={palette.danger500} />
-                <Text
-                  style={{
-                    color: palette.danger500,
-                    fontSize: 14,
-                    fontWeight: '600',
-                  }}
-                >
-                  Regenerate link
+                <RefreshCw size={15} color={theme.danger} />
+                <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: theme.danger }]}>
+                  {t('tripShare.regenerate')}
                 </Text>
               </Pressable>
 
@@ -462,21 +379,14 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                   gap: 10,
                   padding: 14,
                   marginTop: 20,
-                  backgroundColor: isDark ? palette.warningBgDark : palette.warningBgLight,
+                  backgroundColor: tint(theme.plateDue, 0.12),
                   borderRadius: 12,
                   borderCurve: 'continuous',
                 }}
               >
-                <AlertTriangle size={16} color={palette.warning500} />
-                <Text
-                  style={{
-                    flex: 1,
-                    fontSize: 12,
-                    lineHeight: 17,
-                    color: bodyColor,
-                  }}
-                >
-                  Anyone with this link can view and forward the trip. Rotate the link if it leaks.
+                <AlertTriangle size={16} color={theme.dueInk} />
+                <Text style={[type.caption, { flex: 1, color: bodyColor }]}>
+                  {t('tripShare.warning')}
                 </Text>
               </View>
             </Animated.View>
@@ -506,16 +416,10 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
               }}
             >
               {updateTripMutation.isPending ? (
-                <ActivityIndicator size="small" color={palette.danger500} />
+                <ActivityIndicator size="small" color={theme.danger} />
               ) : (
-                <Text
-                  style={{
-                    color: palette.danger500,
-                    fontSize: 15,
-                    fontWeight: '700',
-                  }}
-                >
-                  Stop sharing
+                <Text style={[type.subhead, SYSTEM_WEIGHT.semibold, { color: theme.danger }]}>
+                  {t('tripShare.stop')}
                 </Text>
               )}
             </Pressable>

@@ -1,13 +1,16 @@
 /**
- * Editorial UI primitives — Card, Chip, Button, Section, Stat, Divider, Priority.
- * Matches the warm magazine aesthetic from the design preview.
+ * Shared UI primitives — Card, Chip, Button, Section, Stat, Divider, Priority,
+ * and the inset grouped settings kit (ESettingsGroup, ESettingsRow, EToggleRow,
+ * EOptionRow, ESectionLabel, ESectionFooter).
  */
 
-import { ChevronRight, type LucideIcon } from 'lucide-react-native';
-import type { ReactNode } from 'react';
+import { Check, ChevronRight, type LucideIcon } from 'lucide-react-native';
+import { Children, cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
 import {
+  ActivityIndicator,
   Pressable,
   type StyleProp,
+  StyleSheet,
   Text,
   type TextStyle,
   View,
@@ -15,7 +18,9 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { triggerImpact } from '../../utils/haptics';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { triggerImpact, triggerSelection } from '../../utils/haptics';
+import { NativeToggle } from './native-toggle';
 
 // ── Card ──
 export function ECard({
@@ -37,9 +42,8 @@ export function ECard({
       style={[
         {
           backgroundColor: t.surface,
-          borderWidth: 1,
-          borderColor: t.line,
-          borderRadius: 20,
+          // Same card as the inset groups: ramp step, no outline.
+          borderRadius: radius.card,
           borderCurve: 'continuous',
           padding: pad,
         },
@@ -96,7 +100,7 @@ export function EButton({
   const { t } = useEditorialTheme();
   const s = BUTTON_SIZES[size];
   const variants = {
-    primary: { bg: t.warm, fg: '#1a1208', border: 'transparent' },
+    primary: { bg: t.warm, fg: t.onWarm, border: 'transparent' },
     ghost: { bg: 'transparent', fg: t.ink, border: t.line },
     solid: { bg: t.surface2, fg: t.ink, border: t.line },
     danger: { bg: 'transparent', fg: t.danger, border: 'transparent' },
@@ -162,7 +166,7 @@ export function EChip({
   const pad = size === 'sm' ? { v: 5, h: 10 } : { v: 7, h: 12 };
   const fs = size === 'sm' ? 11 : 12;
   const bg = active ? (color ?? t.warm) : t.surface2;
-  const fg = active ? '#1a1208' : t.ink2;
+  const fg = active ? t.onWarm : t.ink2;
 
   return (
     <Pressable
@@ -185,7 +189,7 @@ export function EChip({
   );
 }
 
-// ── Section masthead ──
+// ── Section masthead (sentence-case section title + optional link) ──
 export function ESectionMasthead({
   label,
   kicker,
@@ -193,6 +197,7 @@ export function ESectionMasthead({
   onAction,
 }: {
   label: string;
+  /** Secondary caption under the title (plain, never an eyebrow). */
   kicker?: string;
   action?: string;
   onAction?: () => void;
@@ -204,41 +209,31 @@ export function ESectionMasthead({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 12,
-        paddingLeft: 2,
+        gap: space.sm,
+        marginBottom: space.xs,
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <Text
-          style={{
-            fontSize: 10,
-            fontWeight: '700',
-            letterSpacing: 2.2,
-            textTransform: 'uppercase',
-            color: t.ink2,
-          }}
-        >
+      <View style={{ flex: 1 }}>
+        <Text accessibilityRole="header" style={[type.sectionTitle, { color: t.ink }]}>
           {label}
         </Text>
         {kicker ? (
-          <>
-            <View style={{ width: 14, height: 1, backgroundColor: t.line }} />
-            <Text
-              style={{
-                fontSize: 10,
-                color: t.ink3,
-                fontStyle: 'italic',
-                fontFamily: 'InstrumentSerif-Italic',
-              }}
-            >
-              {kicker}
-            </Text>
-          </>
+          <Text style={[type.caption, { color: t.ink3, marginTop: 2 }]}>{kicker}</Text>
         ) : null}
       </View>
       {action ? (
-        <Pressable onPress={onAction}>
-          <Text style={{ fontSize: 11, color: t.ink2, fontWeight: '600' }}>{action} →</Text>
+        <Pressable
+          onPress={() => {
+            triggerImpact();
+            onAction?.();
+          }}
+          accessibilityRole="button"
+          hitSlop={8}
+          android_ripple={{ color: tint(t.ink, 0.08), borderless: true }}
+          style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 2 }}
+        >
+          <Text style={[type.subhead, SYSTEM_WEIGHT.semibold, { color: t.warm2 }]}>{action}</Text>
+          <ChevronRight size={16} color={t.warm2} strokeWidth={2.25} />
         </Pressable>
       ) : null}
     </View>
@@ -279,8 +274,6 @@ export function ESectionHeader({
               style={{
                 fontSize: 11,
                 fontWeight: '600',
-                letterSpacing: 1.3,
-                textTransform: 'uppercase',
                 color: t.ink3,
               }}
             >
@@ -318,8 +311,6 @@ export function EStat({ label, value, tone }: { label: string; value: string; to
         style={{
           fontSize: 10,
           fontWeight: '600',
-          letterSpacing: 1,
-          textTransform: 'uppercase',
           color: t.ink3,
           marginBottom: 4,
         }}
@@ -344,10 +335,11 @@ export function EStat({ label, value, tone }: { label: string; value: string; to
 export function EPriority({ level }: { level: 'low' | 'medium' | 'high' | 'critical' }) {
   const { t } = useEditorialTheme();
   const map = {
-    low: { c: t.success, label: 'Low' },
-    medium: { c: t.info, label: 'Medium' },
-    high: { c: t.warm, label: 'High' },
-    critical: { c: t.danger, label: 'Critical' },
+    // Graphite for routine, the plate-state inks for urgency; copper stays action-only.
+    low: { c: t.ink3, label: 'Low' },
+    medium: { c: t.ink2, label: 'Medium' },
+    high: { c: t.dueInk, label: 'High' },
+    critical: { c: t.overdueInk, label: 'Critical' },
   } as const;
   const { c, label } = map[level];
 
@@ -377,8 +369,6 @@ export function EPriority({ level }: { level: 'low' | 'medium' | 'high' | 'criti
         style={{
           fontSize: 10,
           fontWeight: '700',
-          letterSpacing: 0.8,
-          textTransform: 'uppercase',
           color: c,
         }}
       >
@@ -394,190 +384,337 @@ export function EDivider({ style }: { style?: StyleProp<ViewStyle> }) {
   return <View style={[{ height: 1, backgroundColor: t.line }, style]} />;
 }
 
-// ── Display text (Instrument Serif) ──
-export function EDisplay({
-  children,
-  size = 40,
-  style,
-}: {
-  children: ReactNode;
-  size?: number;
-  style?: StyleProp<TextStyle>;
-}) {
-  const { t } = useEditorialTheme();
-  return (
-    <Text
-      style={[
-        {
-          fontFamily: 'InstrumentSerif-Regular',
-          fontSize: size,
-          lineHeight: size * 1.05,
-          color: t.ink,
-          letterSpacing: -size * 0.02,
-        },
-        style,
-      ]}
-    >
-      {children}
-    </Text>
-  );
-}
-
-// ── Display italic accent ──
-export function EDisplayAccent({
-  children,
-  size = 40,
-  style,
-}: {
-  children: ReactNode;
-  size?: number;
-  style?: StyleProp<TextStyle>;
-}) {
-  const { t } = useEditorialTheme();
-  return (
-    <Text
-      style={[
-        {
-          fontFamily: 'InstrumentSerif-Italic',
-          fontSize: size,
-          lineHeight: size * 1.05,
-          color: t.warm2,
-          letterSpacing: -size * 0.02,
-        },
-        style,
-      ]}
-    >
-      {children}
-    </Text>
-  );
-}
-
-// ── Kicker / label ──
-export function EKicker({
-  children,
+// ── Settings section label (sentence-case caption above a settings group) ──
+export function ESectionLabel({
+  label,
   color,
   style,
 }: {
-  children: ReactNode;
+  label: string;
   color?: string;
   style?: StyleProp<TextStyle>;
 }) {
   const { t } = useEditorialTheme();
   return (
     <Text
+      accessibilityRole="header"
       style={[
-        {
-          fontSize: 11,
-          fontWeight: '600',
-          letterSpacing: 2,
-          textTransform: 'uppercase',
-          color: color ?? t.warm,
-        },
+        type.label,
+        { color: color ?? t.ink3, marginBottom: space.xs, marginLeft: space.md },
         style,
       ]}
-    >
-      {children}
-    </Text>
-  );
-}
-
-// ── Settings section label (caption above a settings group) ──
-export function ESettingsSectionLabel({ label }: { label: string }) {
-  const { t } = useEditorialTheme();
-  return (
-    <Text
-      style={{
-        fontSize: 11,
-        fontWeight: '700',
-        color: t.ink2,
-        textTransform: 'uppercase',
-        letterSpacing: 1.3,
-        marginBottom: 10,
-        marginLeft: 4,
-      }}
     >
       {label}
     </Text>
   );
 }
 
-// ── Settings row (tinted icon + label, optional value/badge, chevron) ──
-export function ESettingsRow({
+/** @deprecated Use `ESectionLabel`. Kept for existing callers. */
+export function ESettingsSectionLabel({ label }: { label: string }) {
+  return <ESectionLabel label={label} />;
+}
+
+// ── Settings footer (caption under a settings group) ──
+export function ESectionFooter({ children }: { children: ReactNode }) {
+  const { t } = useEditorialTheme();
+  return (
+    <Text
+      style={[type.caption, { color: t.ink3, marginTop: space.xs, marginHorizontal: space.md }]}
+    >
+      {children}
+    </Text>
+  );
+}
+
+// ── Settings group (inset grouped container) ──
+type GroupedRowProps = { isLast?: boolean };
+
+/**
+ * Inset grouped container for settings rows. Marks its last row so the
+ * hairline separators stop inside the card; falsy children are skipped.
+ */
+export function ESettingsGroup({
+  children,
+  style,
+  testID,
+}: {
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
+  testID?: string;
+}) {
+  const { t } = useEditorialTheme();
+  const rows = Children.toArray(children).filter(isValidElement);
+  return (
+    <View
+      testID={testID}
+      style={[
+        {
+          backgroundColor: t.surface,
+          borderRadius: radius.card,
+          borderCurve: 'continuous',
+          overflow: 'hidden',
+        },
+        style,
+      ]}
+    >
+      {rows.map((row, index) =>
+        index === rows.length - 1
+          ? cloneElement(row as ReactElement<GroupedRowProps>, { isLast: true })
+          : row,
+      )}
+    </View>
+  );
+}
+
+const ROW_MIN_HEIGHT = process.env.EXPO_OS === 'android' ? 48 : 44;
+const ROW_ICON_SIZE = 28;
+
+/** Row frame. The hairline sits on the text column, so it starts under the title. */
+function RowShell({
   icon: Icon,
+  iconColor,
+  isLast,
+  children,
+}: {
+  icon?: LucideIcon;
+  iconColor: string;
+  isLast?: boolean;
+  children: ReactNode;
+}) {
+  const { t } = useEditorialTheme();
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        minHeight: ROW_MIN_HEIGHT,
+        paddingLeft: space.md,
+      }}
+    >
+      {Icon ? (
+        <View
+          style={{
+            width: ROW_ICON_SIZE,
+            height: ROW_ICON_SIZE,
+            borderRadius: radius.chip - 2,
+            borderCurve: 'continuous',
+            backgroundColor: t.surface2,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: space.sm,
+          }}
+        >
+          <Icon size={16} color={iconColor} strokeWidth={1.9} />
+        </View>
+      ) : null}
+      <View
+        style={{
+          flex: 1,
+          flexDirection: 'row',
+          alignItems: 'center',
+          alignSelf: 'stretch',
+          paddingVertical: space.sm,
+          paddingRight: space.md,
+          gap: space.xs,
+          borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth,
+          borderBottomColor: t.line,
+        }}
+      >
+        {children}
+      </View>
+    </View>
+  );
+}
+
+function RowText({ title, subtitle, color }: { title: string; subtitle?: string; color: string }) {
+  const { t } = useEditorialTheme();
+  return (
+    <View style={{ flex: 1 }}>
+      <Text style={[type.body, { color }]}>{title}</Text>
+      {subtitle ? (
+        <Text style={[type.caption, { color: t.ink3, marginTop: 2 }]}>{subtitle}</Text>
+      ) : null}
+    </View>
+  );
+}
+
+// ── Settings row (icon + title/subtitle, optional value/badge/accessory, chevron) ──
+export function ESettingsRow({
+  icon,
+  title,
   label,
+  subtitle,
   value,
+  chevron,
+  destructive,
   onPress,
+  testID,
   isLast,
   color,
   badge,
+  accessory,
+  loading,
+  disabled,
+  accessibilityLabel,
+  accessibilityHint,
 }: {
-  icon: LucideIcon;
-  label: string;
+  icon?: LucideIcon;
+  /** Row title. */
+  title?: string;
+  /** @deprecated Use `title`. */
+  label?: string;
+  subtitle?: string;
+  /** Current value, drawn trailing in secondary ink. */
   value?: string;
+  /** Defaults to shown for tappable, non-destructive rows. */
+  chevron?: boolean;
+  destructive?: boolean;
   onPress?: () => void;
+  testID?: string;
+  /** Set by `ESettingsGroup` — hides the bottom hairline. */
   isLast?: boolean;
+  /** @deprecated Use `destructive`. Overrides title + icon colour. */
   color?: string;
   badge?: ReactNode;
+  /** Trailing control in place of value/chevron (e.g. a spinner). */
+  accessory?: ReactNode;
+  loading?: boolean;
+  disabled?: boolean;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }) {
   const { t } = useEditorialTheme();
+  const text = title ?? label ?? '';
   const isInteractive = !!onPress;
-  const labelColor = color ?? t.ink;
-  const iconColor = color ?? t.ink3;
+  const tone = destructive ? t.danger : color;
+  const showChevron = chevron ?? (isInteractive && !tone);
 
   const content = (
-    <>
-      <View
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: 8,
-          borderCurve: 'continuous',
-          backgroundColor: t.surface2,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Icon size={17} color={iconColor} strokeWidth={1.8} />
-      </View>
-      <Text style={{ flex: 1, fontSize: 16, color: labelColor, marginLeft: 12 }}>{label}</Text>
-      {badge ? <View style={{ marginRight: 8 }}>{badge}</View> : null}
+    <RowShell icon={icon} iconColor={tone ?? t.ink2} isLast={isLast}>
+      <RowText title={text} subtitle={subtitle} color={tone ?? t.ink} />
+      {badge}
       {value ? (
-        <Text
-          numberOfLines={1}
-          style={{ fontSize: 14, color: t.ink3, marginRight: isInteractive ? 6 : 0, maxWidth: 160 }}
-        >
+        <Text numberOfLines={1} style={[type.body, { color: t.ink3, maxWidth: '45%' }]}>
           {value}
         </Text>
       ) : null}
-      {!color && isInteractive ? <ChevronRight size={17} color={t.ink3} strokeWidth={2} /> : null}
-    </>
+      {loading ? <ActivityIndicator size="small" color={t.ink3} /> : accessory}
+      {showChevron ? <ChevronRight size={17} color={t.ink4} strokeWidth={2} /> : null}
+    </RowShell>
   );
 
-  const containerStyle = {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: isLast ? 0 : 0.5,
-    borderBottomColor: t.line,
-  };
-
   if (!isInteractive) {
-    return <View style={containerStyle}>{content}</View>;
+    return (
+      <View testID={testID} accessible accessibilityLabel={accessibilityLabel}>
+        {content}
+      </View>
+    );
   }
 
   return (
     <Pressable
+      testID={testID}
       onPress={() => {
         triggerImpact();
         onPress();
       }}
+      disabled={disabled || loading}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? (value ? `${text}, ${value}` : undefined)}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: !!(disabled || loading), busy: !!loading }}
+      android_ripple={{ color: tint(t.ink, 0.08) }}
       style={({ pressed }) => ({
-        ...containerStyle,
-        backgroundColor: pressed ? tint(t.ink, 0.05) : 'transparent',
+        backgroundColor:
+          pressed && process.env.EXPO_OS === 'ios' ? tint(t.ink, 0.06) : 'transparent',
+        opacity: disabled ? 0.5 : 1,
       })}
     >
       {content}
+    </Pressable>
+  );
+}
+
+// ── Toggle row (icon + title/subtitle + native switch) ──
+export function EToggleRow({
+  icon,
+  title,
+  subtitle,
+  value,
+  onValueChange,
+  isLast,
+  disabled,
+  testID,
+}: {
+  icon?: LucideIcon;
+  title: string;
+  subtitle?: string;
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+  /** Set by `ESettingsGroup`. */
+  isLast?: boolean;
+  disabled?: boolean;
+  testID?: string;
+}) {
+  const { t, isDark } = useEditorialTheme();
+  return (
+    <View testID={testID}>
+      <RowShell icon={icon} iconColor={t.ink2} isLast={isLast}>
+        <RowText title={title} subtitle={subtitle} color={t.ink} />
+        <NativeToggle
+          value={value}
+          tint={t.warm}
+          offTrack={isDark ? t.surface3 : t.line}
+          disabled={disabled}
+          onValueChange={(next) => {
+            triggerSelection();
+            onValueChange(next);
+          }}
+        />
+      </RowShell>
+    </View>
+  );
+}
+
+// ── Option row (list item with a trailing check) ──
+export function EOptionRow({
+  title,
+  subtitle,
+  selected,
+  onPress,
+  isLast,
+  testID,
+  multiple,
+}: {
+  title: string;
+  subtitle?: string;
+  selected: boolean;
+  onPress: () => void;
+  isLast?: boolean;
+  testID?: string;
+  /** Part of a multi-select list: announced as a checkbox instead of a radio. */
+  multiple?: boolean;
+}) {
+  const { t } = useEditorialTheme();
+  return (
+    <Pressable
+      testID={testID}
+      onPress={() => {
+        triggerSelection();
+        onPress();
+      }}
+      accessibilityRole={multiple ? 'checkbox' : 'radio'}
+      accessibilityState={multiple ? { checked: selected } : { selected }}
+      android_ripple={{ color: tint(t.ink, 0.08) }}
+      style={({ pressed }) => ({
+        backgroundColor:
+          pressed && process.env.EXPO_OS === 'ios' ? tint(t.ink, 0.06) : 'transparent',
+      })}
+    >
+      <RowShell iconColor={t.ink2} isLast={isLast}>
+        <RowText title={title} subtitle={subtitle} color={t.ink} />
+        {selected ? <Check size={18} color={t.warm} strokeWidth={2.5} /> : null}
+      </RowShell>
     </Pressable>
   );
 }

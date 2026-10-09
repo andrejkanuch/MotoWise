@@ -1,7 +1,8 @@
 import { palette } from '@motovault/design-system';
 import { ArrowDown, ArrowUp, CalendarDays, Trash2 } from 'lucide-react-native';
-import { Pressable, Text, useColorScheme, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useEditorialTheme } from '../../theme/editorial';
 import { getWaypointIcon } from './waypoint-type-picker';
 
 interface StopListItemProps {
@@ -37,11 +38,11 @@ export function StopListItem({
   distance,
   duration,
 }: StopListItemProps) {
-  const isDark = useColorScheme() === 'dark';
+  const { t: theme } = useEditorialTheme();
   const wt = getWaypointIcon(waypoint.type);
-  const textColor = isDark ? palette.white : palette.neutral950;
-  const subtextColor = isDark ? palette.neutral400 : palette.neutral500;
-  const rowBg = isDark ? palette.cardDark : palette.neutral50;
+  const textColor = theme.ink;
+  const subtextColor = theme.ink3;
+  const rowBg = theme.surface2;
 
   return (
     <Animated.View entering={FadeInUp.delay(index * 50).duration(200)}>
@@ -82,9 +83,7 @@ export function StopListItem({
             </Text>
           ) : null}
           {(distance || duration) && (
-            <Text
-              style={{ fontSize: 11, color: palette.accent500, marginTop: 3, fontWeight: '500' }}
-            >
+            <Text style={{ fontSize: 11, color: theme.warm, marginTop: 3, fontWeight: '500' }}>
               {[distance, duration].filter(Boolean).join(' · ')}
             </Text>
           )}
@@ -108,7 +107,7 @@ export function StopListItem({
           )}
           {onDelete && (
             <Pressable onPress={onDelete} hitSlop={8} style={{ padding: 4 }}>
-              <Trash2 size={16} color={palette.danger500} />
+              <Trash2 size={16} color={theme.danger} />
             </Pressable>
           )}
         </View>

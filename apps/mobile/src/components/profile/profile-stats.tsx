@@ -1,7 +1,10 @@
-import { palette } from '@motovault/design-system';
+import { metersToUnit, mileageUnitLabel } from '@motovault/types';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, useColorScheme, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { radius, space, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 function formatCompact(n: number): string {
@@ -14,63 +17,51 @@ interface ProfileStatsProps {
   followerCount: number;
   followingCount: number;
   totalRides: number;
+  /** Lifetime distance in metres (PublicRideStats.totalDistance). */
   totalDistance: number;
   onFollowersTap?: () => void;
   onFollowingTap?: () => void;
 }
 
-function StatCard({
+function StatCell({
   label,
   value,
   onPress,
-  isDark,
 }: {
   label: string;
   value: string;
   onPress?: () => void;
-  isDark: boolean;
 }) {
+  const { t } = useEditorialTheme();
   const content = (
-    <View style={{ alignItems: 'center', flex: 1, paddingVertical: 12 }}>
-      <Text
-        style={{
-          fontSize: 18,
-          fontWeight: '700',
-          color: isDark ? palette.white : palette.neutral950,
-          fontVariant: ['tabular-nums'],
-        }}
-      >
-        {value}
-      </Text>
-      <Text
-        style={{
-          fontSize: 12,
-          color: isDark ? palette.neutral400 : palette.neutral500,
-          marginTop: 2,
-        }}
-      >
+    <View style={{ alignItems: 'center', paddingVertical: space.sm, minHeight: 48 }}>
+      <Text style={[type.figureSmall, { color: t.ink }]}>{value}</Text>
+      <Text style={[type.caption, { color: t.ink3, marginTop: 2 }]} numberOfLines={1}>
         {label}
       </Text>
     </View>
   );
 
-  if (onPress) {
-    return (
-      <Pressable
-        onPress={() => {
-          triggerImpact();
-          onPress();
-        }}
-        style={{ flex: 1 }}
-        accessibilityRole="button"
-        accessibilityLabel={`${value} ${label}`}
-      >
-        {content}
-      </Pressable>
-    );
-  }
+  if (!onPress) return <View style={{ flex: 1 }}>{content}</View>;
 
-  return content;
+  return (
+    <Pressable
+      onPress={() => {
+        triggerImpact();
+        onPress();
+      }}
+      android_ripple={{ color: tint(t.ink, 0.08) }}
+      style={({ pressed }) => ({
+        flex: 1,
+        backgroundColor:
+          pressed && process.env.EXPO_OS === 'ios' ? tint(t.ink, 0.06) : 'transparent',
+      })}
+      accessibilityRole="button"
+      accessibilityLabel={`${value} ${label}`}
+    >
+      {content}
+    </Pressable>
+  );
 }
 
 export function ProfileStats({
@@ -82,10 +73,10 @@ export function ProfileStats({
   onFollowingTap,
 }: ProfileStatsProps) {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
-
-  const cardBg = isDark ? palette.surfaceElevated : palette.neutral100;
-  const dividerColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  const { t: theme } = useEditorialTheme();
+  // Display-only conversion into the viewer's own unit.
+  const unit = mileageUnitLabel(useMeasurementSystem());
+  const distance = Math.round(metersToUnit(totalDistance, unit));
 
   const stats = [
     {
@@ -99,7 +90,7 @@ export function ProfileStats({
       onPress: onFollowingTap,
     },
     { label: t('community.rides'), value: formatCompact(totalRides) },
-    { label: t('community.distance'), value: `${formatCompact(totalDistance)} km` },
+    { label: t('community.distance'), value: `${formatCompact(distance)} ${unit}` },
   ];
 
   return (
@@ -107,30 +98,25 @@ export function ProfileStats({
       <View
         style={{
           flexDirection: 'row',
-          backgroundColor: cardBg,
-          borderRadius: 16,
+          alignItems: 'center',
+          backgroundColor: theme.surface,
+          borderRadius: radius.card,
           borderCurve: 'continuous',
           overflow: 'hidden',
         }}
       >
         {stats.map((stat, index) => (
-          <View key={stat.label} style={{ flex: 1, flexDirection: 'row' }}>
-            <StatCard
-              label={stat.label}
-              value={stat.value}
-              onPress={stat.onPress}
-              isDark={isDark}
-            />
-            {index < stats.length - 1 && (
+          <View key={stat.label} style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+            <StatCell label={stat.label} value={stat.value} onPress={stat.onPress} />
+            {index < stats.length - 1 ? (
               <View
                 style={{
-                  width: 0.5,
-                  alignSelf: 'center',
-                  height: '60%',
-                  backgroundColor: dividerColor,
+                  width: StyleSheet.hairlineWidth,
+                  height: '50%',
+                  backgroundColor: theme.line,
                 }}
               />
-            )}
+            ) : null}
           </View>
         ))}
       </View>

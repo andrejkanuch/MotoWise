@@ -1,10 +1,13 @@
-import { palette } from '@motovault/design-system';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { MapPin, Pencil } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, useColorScheme, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { PROFILE_ROUTE } from '../../config/routes';
+import { getInitials } from '../../lib/user-avatar';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { radius, space, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 interface ProfileHeaderProps {
@@ -16,6 +19,52 @@ interface ProfileHeaderProps {
   isOwnProfile?: boolean;
 }
 
+/** Round rider avatar: the photo, or initials on the graphite surface. */
+export function RiderAvatar({
+  url,
+  name,
+  size,
+}: {
+  url?: string | null;
+  name?: string | null;
+  size: number;
+}) {
+  const { t } = useEditorialTheme();
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        borderCurve: 'continuous',
+        backgroundColor: t.surface2,
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}
+    >
+      <Text
+        style={[
+          type.bodyStrong,
+          { fontSize: Math.max(12, Math.round(size * 0.36)), lineHeight: undefined, color: t.ink2 },
+        ]}
+      >
+        {getInitials(name)}
+      </Text>
+      {url ? (
+        <Image
+          source={{ uri: url }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          transition={200}
+          accessibilityLabel={name ?? undefined}
+        />
+      ) : null}
+    </View>
+  );
+}
+
 export function ProfileHeader({
   avatarUrl,
   displayName,
@@ -25,115 +74,72 @@ export function ProfileHeader({
   isOwnProfile,
 }: ProfileHeaderProps) {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
-
-  const nameColor = isDark ? palette.white : palette.neutral950;
-  const usernameColor = isDark ? palette.neutral400 : palette.neutral500;
-  const bioColor = isDark ? palette.neutral300 : palette.neutral600;
-  const cityColor = isDark ? palette.neutral400 : palette.neutral500;
-  const avatarBg = isDark ? palette.neutral800 : palette.neutral200;
-
-  const initials = (displayName ?? publicUsername ?? '?')
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+  const { t: theme } = useEditorialTheme();
 
   return (
-    <Animated.View entering={FadeInUp.duration(280)} style={{ alignItems: 'center', gap: 12 }}>
-      {/* Avatar */}
-      <View
-        style={{
-          width: 80,
-          height: 80,
-          borderRadius: 40,
-          borderCurve: 'continuous',
-          backgroundColor: avatarBg,
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-        }}
-      >
-        {avatarUrl ? (
-          <Image
-            source={{ uri: avatarUrl }}
-            style={{ width: 80, height: 80 }}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-            transition={200}
-            accessibilityLabel={displayName ?? publicUsername ?? 'Avatar'}
-          />
-        ) : (
-          <Text style={{ fontSize: 28, fontWeight: '700', color: usernameColor }}>{initials}</Text>
-        )}
-      </View>
+    <Animated.View
+      entering={FadeInUp.duration(280)}
+      style={{ alignItems: 'center', gap: space.sm }}
+    >
+      <RiderAvatar url={avatarUrl} name={displayName ?? publicUsername} size={80} />
 
-      {/* Name + username */}
       <View style={{ alignItems: 'center', gap: 2 }}>
-        {displayName && (
-          <Text style={{ fontSize: 22, fontWeight: '700', color: nameColor }}>{displayName}</Text>
-        )}
-        {publicUsername && (
-          <Text style={{ fontSize: 15, color: usernameColor }}>@{publicUsername}</Text>
-        )}
+        {displayName ? (
+          <Text
+            style={[type.sheetTitle, { color: theme.ink, textAlign: 'center' }]}
+            accessibilityRole="header"
+          >
+            {displayName}
+          </Text>
+        ) : null}
+        {publicUsername ? (
+          <Text style={[type.subhead, { color: theme.ink3 }]}>@{publicUsername}</Text>
+        ) : null}
       </View>
 
-      {/* City */}
-      {city && (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <MapPin size={14} color={cityColor} strokeWidth={1.8} />
-          <Text style={{ fontSize: 14, color: cityColor }}>{city}</Text>
+      {city ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xxs }}>
+          <MapPin size={14} color={theme.ink3} strokeWidth={1.8} />
+          <Text style={[type.subhead, { color: theme.ink3 }]}>{city}</Text>
         </View>
-      )}
+      ) : null}
 
-      {/* Bio */}
-      {bio && (
+      {bio ? (
         <Text
-          style={{
-            fontSize: 15,
-            color: bioColor,
-            textAlign: 'center',
-            lineHeight: 21,
-            paddingHorizontal: 24,
-          }}
+          style={[
+            type.body,
+            { color: theme.ink2, textAlign: 'center', paddingHorizontal: space.xl },
+          ]}
         >
           {bio}
         </Text>
-      )}
+      ) : null}
 
-      {/* Edit button — own profile only */}
-      {isOwnProfile && (
+      {isOwnProfile ? (
         <Pressable
           onPress={() => {
             triggerImpact();
-            router.push('/(tabs)/(profile)/edit-profile');
+            router.push(PROFILE_ROUTE.EDIT_PROFILE);
           }}
+          android_ripple={{ color: tint(theme.ink, 0.08) }}
           style={({ pressed }) => ({
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 6,
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            borderRadius: 20,
+            gap: space.xs,
+            minHeight: 44,
+            paddingHorizontal: space.md,
+            borderRadius: radius.pill,
             borderCurve: 'continuous',
-            borderWidth: 1,
-            borderColor: isDark ? palette.neutral700 : palette.neutral300,
-            backgroundColor: pressed
-              ? isDark
-                ? palette.surfacePressed
-                : palette.neutral100
-              : 'transparent',
+            overflow: 'hidden',
+            backgroundColor: pressed ? theme.surface3 : theme.surface2,
           })}
           accessibilityRole="button"
           accessibilityLabel={t('community.editProfile')}
         >
-          <Pencil size={14} color={usernameColor} strokeWidth={1.8} />
-          <Text style={{ fontSize: 14, fontWeight: '600', color: usernameColor }}>
-            {t('common.edit')}
-          </Text>
+          <Pencil size={14} color={theme.ink2} strokeWidth={1.8} />
+          <Text style={[type.label, { color: theme.ink }]}>{t('common.edit')}</Text>
         </Pressable>
-      )}
+      ) : null}
     </Animated.View>
   );
 }

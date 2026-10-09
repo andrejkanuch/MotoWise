@@ -2,11 +2,17 @@ import { palette } from '@motovault/design-system';
 import { LinearGradient } from 'expo-linear-gradient';
 import { memo, useMemo } from 'react';
 import { Image, Text, View } from 'react-native';
+import { tint } from '../../../theme/editorial';
 import { buildMapboxStaticUrl, type StaticMapStyle } from '../../../utils/mapbox-static';
 import type { RideSharePayload } from '../share-card-types';
-import { buildDefaultStats, DateEyebrow, StatFooter, Wordmark } from './card-elements';
-
-const MONO = process.env.EXPO_OS === 'ios' ? 'Menlo' : 'monospace';
+import {
+  buildDefaultStats,
+  CARD_INK,
+  CARD_TYPE,
+  DateLine,
+  StatFooter,
+  Wordmark,
+} from './card-elements';
 
 interface MapStyleConfig {
   mapboxStyle: StaticMapStyle;
@@ -24,21 +30,33 @@ interface MapStyleConfig {
 const STYLE_CONFIGS: Record<string, MapStyleConfig> = {
   satellite: {
     mapboxStyle: 'satellite-v9',
-    label: 'SATELLITE',
-    strokeColor: 'FFFFFF',
-    gradientColors: ['transparent', 'rgba(8,6,4,0.82)', 'rgba(8,6,4,0.95)'],
+    label: 'Satellite',
+    strokeColor: palette.whitePure.slice(1),
+    gradientColors: [
+      'transparent',
+      tint(palette.shareCardDarkBg, 0.82),
+      tint(palette.shareCardDarkBg, 0.95),
+    ],
   },
   hybrid: {
     mapboxStyle: 'satellite-streets-v12',
-    label: 'HYBRID',
-    strokeColor: 'D4622E',
-    gradientColors: ['transparent', 'rgba(8,6,4,0.78)', 'rgba(8,6,4,0.92)'],
+    label: 'Hybrid',
+    strokeColor: palette.plateCopper.slice(1),
+    gradientColors: [
+      'transparent',
+      tint(palette.shareCardDarkBg, 0.78),
+      tint(palette.shareCardDarkBg, 0.92),
+    ],
   },
   terrain3D: {
     mapboxStyle: 'outdoors-v12',
     label: '3D',
-    strokeColor: 'D4622E',
-    gradientColors: ['transparent', 'rgba(8,6,4,0.72)', 'rgba(8,6,4,0.90)'],
+    strokeColor: palette.plateCopper.slice(1),
+    gradientColors: [
+      'transparent',
+      tint(palette.shareCardDarkBg, 0.72),
+      tint(palette.shareCardDarkBg, 0.9),
+    ],
     pitch: 50,
     bearing: 30,
   },
@@ -106,46 +124,35 @@ export const MapStyleCard = memo(function MapStyleCard({
           justifyContent: 'space-between',
         }}
       >
-        <Wordmark color="#fff" />
+        <Wordmark color={CARD_INK.strong} />
         <View
           style={{
             paddingVertical: 3,
             paddingHorizontal: 7,
             borderRadius: 99,
-            backgroundColor: 'rgba(255,255,255,0.18)',
+            backgroundColor: palette.whiteAlpha18,
           }}
         >
-          <Text
-            style={{
-              fontFamily: MONO,
-              fontSize: 8,
-              fontWeight: '700',
-              letterSpacing: 1.12,
-              color: 'rgba(255,255,255,0.85)',
-              textTransform: 'uppercase',
-            }}
-          >
-            {config.label}
-          </Text>
+          <Text style={{ ...CARD_TYPE.label, color: palette.whiteAlpha85 }}>{config.label}</Text>
         </View>
       </View>
 
       {/* Content block */}
       <View style={{ position: 'absolute', left: 14, right: 14, bottom: 80 }}>
-        <DateEyebrow date={data.date} />
         <Text
           numberOfLines={2}
           style={{
-            fontSize: 20,
-            fontWeight: '700',
-            letterSpacing: -0.44,
-            lineHeight: 21.6,
-            color: '#fff',
-            marginTop: 4,
+            ...CARD_TYPE.title,
+            fontSize: 26,
+            lineHeight: 27,
+            color: CARD_INK.strong,
           }}
         >
           {data.rideName}
         </Text>
+        <View style={{ marginTop: 4 }}>
+          <DateLine date={data.date} />
+        </View>
       </View>
 
       {/* Stats footer */}

@@ -1,6 +1,7 @@
 import { memo, useCallback, useRef } from 'react';
 import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { Dimensions, Pressable, ScrollView, View } from 'react-native';
+import { useEditorialTheme } from '../../theme/editorial';
 import { ShareCardPreview } from './cards/share-card-preview';
 import type { CardVariant, RideSharePayload } from './share-card-types';
 
@@ -25,6 +26,7 @@ export const ShareCardCarousel = memo(function ShareCardCarousel({
   activeCardRef,
   onIndexChange,
 }: ShareCardCarouselProps) {
+  const { t: theme } = useEditorialTheme();
   const scrollRef = useRef<ScrollView>(null);
 
   const snapOffsets = variants.map((_, i) => i * (CARD_WIDTH + CARD_GAP));
@@ -105,8 +107,7 @@ export const ShareCardCarousel = memo(function ShareCardCarousel({
                 width: i === activeIndex ? 18 : 6,
                 height: 6,
                 borderRadius: 99,
-                backgroundColor:
-                  i === activeIndex ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.25)',
+                backgroundColor: i === activeIndex ? theme.ink : theme.line2,
               }}
             />
           </Pressable>

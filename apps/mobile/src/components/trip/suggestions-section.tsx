@@ -6,12 +6,16 @@
  * suggestions happens via the MapPicker flow the organiser already uses —
  * we piggy-back on that instead of duplicating an input here.
  */
-import { palette } from '@motovault/design-system';
+
+import type { TFunction } from 'i18next';
 import { Check, CheckCircle2, Clock, X, XCircle } from 'lucide-react-native';
 import { useMemo } from 'react';
-import { ActivityIndicator, Pressable, Text, useColorScheme, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import type { TripSuggestion } from '../../hooks/use-trip-suggestions';
+import { tint as tintColor, useEditorialTheme } from '../../theme/editorial';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
 
 interface SuggestionsSectionProps {
   suggestions: TripSuggestion[];
@@ -27,15 +31,37 @@ interface SuggestionsSectionProps {
   respondingIds: ReadonlySet<string>;
 }
 
-function formatRelative(iso: string): string {
+const STATUS_KEY = {
+  pending: 'tripSuggestions.status.pending',
+  accepted: 'tripSuggestions.status.accepted',
+  rejected: 'tripSuggestions.status.rejected',
+  withdrawn: 'tripSuggestions.status.withdrawn',
+} as const;
+
+const PERIOD_KEY = {
+  morning: 'tripSuggestions.period.morning',
+  afternoon: 'tripSuggestions.period.afternoon',
+  evening: 'tripSuggestions.period.evening',
+} as const;
+
+function formatRelative(iso: string, tr: TFunction): string {
   const delta = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(delta / 60_000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return tr('home.justNow');
+  if (mins < 60) return tr('home.minutesAgo', { count: mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return tr('home.hoursAgo', { count: hours });
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return tr('home.daysAgo', { count: days });
+}
+
+function suggestionMeta(s: TripSuggestion, tr: TFunction): string {
+  const parts = [tr('tripSuggestions.suggestedBy', { name: s.author.displayName })];
+  if (typeof s.dayIndex === 'number')
+    parts.push(tr('trips.dayHeaderShort', { day: s.dayIndex + 1 }));
+  const period = s.periodOfDay ? PERIOD_KEY[s.periodOfDay as keyof typeof PERIOD_KEY] : undefined;
+  if (period) parts.push(tr(period));
+  return parts.join(' · ');
 }
 
 export function SuggestionsSection({
@@ -46,13 +72,14 @@ export function SuggestionsSection({
   onRespond,
   respondingIds,
 }: SuggestionsSectionProps) {
-  const isDark = useColorScheme() === 'dark';
+  const { t } = useEditorialTheme();
+  const { t: tr } = useTranslation();
 
-  const sectionBg = isDark ? palette.cardDark : palette.white;
-  const borderColor = isDark ? palette.neutral700 : palette.neutral200;
-  const headingColor = isDark ? palette.neutral50 : palette.neutral950;
-  const bodyColor = isDark ? palette.neutral300 : palette.neutral600;
-  const metaColor = isDark ? palette.neutral400 : palette.neutral500;
+  const sectionBg = t.surface;
+  const borderColor = t.line;
+  const headingColor = t.ink;
+  const bodyColor = t.ink2;
+  const metaColor = t.ink3;
 
   // Surface open ones first, then most recently decided.
   const ordered = useMemo(() => {
@@ -70,26 +97,19 @@ export function SuggestionsSection({
   return (
     <View style={{ marginTop: 20, gap: 10 }}>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-        <Text
-          style={{
-            color: headingColor,
-            fontSize: 17,
-            fontWeight: '800',
-            letterSpacing: -0.2,
-          }}
-        >
-          Suggestions
+        <Text style={[type.sectionTitle, { color: headingColor }]}>
+          {tr('tripSuggestions.title')}
         </Text>
         {pendingCount > 0 && (
-          <Text style={{ color: palette.warning500, fontSize: 13, fontWeight: '700' }}>
-            {pendingCount} pending
+          <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: t.plateDue }]}>
+            {tr('tripSuggestions.pending', { count: pendingCount })}
           </Text>
         )}
       </View>
 
       {isLoading && suggestions.length === 0 ? (
         <View style={{ paddingVertical: 14 }}>
-          <ActivityIndicator color={palette.accent500} />
+          <ActivityIndicator color={t.ink3} />
         </View>
       ) : (
         <View style={{ gap: 10 }}>
@@ -101,12 +121,12 @@ export function SuggestionsSection({
 
             const statusTint =
               s.status === 'accepted'
-                ? palette.success500
+                ? t.success
                 : s.status === 'rejected'
-                  ? palette.danger500
+                  ? t.danger
                   : s.status === 'withdrawn'
-                    ? palette.neutral400
-                    : palette.warning500;
+                    ? t.ink3
+                    : t.plateDue;
             const StatusIcon =
               s.status === 'accepted' ? CheckCircle2 : s.status === 'rejected' ? XCircle : Clock;
 
@@ -115,7 +135,7 @@ export function SuggestionsSection({
                 key={s.id}
                 entering={FadeInUp.delay(idx * 40).duration(220)}
                 style={{
-                  borderRadius: 14,
+                  borderRadius: radius.card,
                   borderCurve: 'continuous',
                   borderWidth: 1,
                   borderColor,
@@ -126,48 +146,31 @@ export function SuggestionsSection({
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <StatusIcon size={14} color={statusTint} />
-                  <Text
-                    style={{
-                      color: statusTint,
-                      fontSize: 11,
-                      fontWeight: '800',
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.4,
-                    }}
-                  >
-                    {s.status}
+                  <Text style={[type.caption, SYSTEM_WEIGHT.semibold, { color: statusTint }]}>
+                    {STATUS_KEY[s.status as keyof typeof STATUS_KEY]
+                      ? tr(STATUS_KEY[s.status as keyof typeof STATUS_KEY])
+                      : s.status}
                   </Text>
                   <View style={{ flex: 1 }} />
-                  <Text style={{ color: metaColor, fontSize: 12 }}>
-                    {formatRelative(s.createdAt)}
+                  <Text style={[type.caption, { color: metaColor }]}>
+                    {formatRelative(s.createdAt, tr)}
                   </Text>
                 </View>
-                <Text
-                  style={{
-                    color: headingColor,
-                    fontSize: 15,
-                    fontWeight: '700',
-                  }}
-                  numberOfLines={2}
-                >
+                <Text style={[type.bodyStrong, { color: headingColor }]} numberOfLines={2}>
                   {s.name}
                 </Text>
                 {s.notes ? (
-                  <Text style={{ color: bodyColor, fontSize: 13, lineHeight: 18 }}>{s.notes}</Text>
+                  <Text style={[type.subhead, { color: bodyColor }]}>{s.notes}</Text>
                 ) : null}
-                <Text style={{ color: metaColor, fontSize: 12 }}>
-                  Suggested by {s.author.displayName}
-                  {typeof s.dayIndex === 'number' ? ` · Day ${s.dayIndex + 1}` : ''}
-                  {s.periodOfDay ? ` · ${s.periodOfDay}` : ''}
-                </Text>
+                <Text style={[type.caption, { color: metaColor }]}>{suggestionMeta(s, tr)}</Text>
 
                 {isPending && (
                   <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
                     {canDecide && (
                       <>
                         <ActionButton
-                          label="Accept"
-                          tint={palette.success500}
+                          label={tr('tripSuggestions.accept')}
+                          tint={t.success}
                           Icon={Check}
                           disabled={rowResponding}
                           onPress={() =>
@@ -178,8 +181,8 @@ export function SuggestionsSection({
                           }
                         />
                         <ActionButton
-                          label="Reject"
-                          tint={palette.danger500}
+                          label={tr('tripSuggestions.reject')}
+                          tint={t.danger}
                           Icon={X}
                           disabled={rowResponding}
                           onPress={() =>
@@ -193,8 +196,8 @@ export function SuggestionsSection({
                     )}
                     {isAuthor && (
                       <ActionButton
-                        label="Withdraw"
-                        tint={palette.neutral500}
+                        label={tr('tripSuggestions.withdraw')}
+                        tint={t.ink3}
                         Icon={X}
                         disabled={rowResponding}
                         onPress={() =>
@@ -209,14 +212,8 @@ export function SuggestionsSection({
                 )}
 
                 {decided && s.decidedNote ? (
-                  <Text
-                    style={{
-                      color: metaColor,
-                      fontSize: 12,
-                      fontStyle: 'italic',
-                    }}
-                  >
-                    Note: {s.decidedNote}
+                  <Text style={[type.caption, { color: metaColor }]}>
+                    {tr('tripSuggestions.note', { note: s.decidedNote })}
                   </Text>
                 ) : null}
               </Animated.View>
@@ -247,15 +244,15 @@ function ActionButton({ label, tint, Icon, onPress, disabled }: ActionButtonProp
         flexDirection: 'row',
         alignItems: 'center',
         gap: 6,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
+        minHeight: 44,
+        paddingHorizontal: space.sm,
         borderRadius: 999,
-        backgroundColor: `${tint}22`,
+        backgroundColor: tintColor(tint, 0.14),
         opacity: disabled ? 0.5 : 1,
       }}
     >
       <Icon size={14} color={tint} />
-      <Text style={{ color: tint, fontSize: 13, fontWeight: '700' }}>{label}</Text>
+      <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: tint }]}>{label}</Text>
     </Pressable>
   );
 }

@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import type { GetRideWaypointsQuery } from '@motovault/graphql';
 import type { MeasurementSystem } from '@motovault/types';
 import { memo, useEffect, useMemo, useRef } from 'react';
@@ -7,6 +6,8 @@ import { Text, useWindowDimensions, View } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { radius, space, type } from '../../theme/type';
 import { haversineDistance } from '../../utils/geo-utils';
 import {
   distanceUnitLabel,
@@ -30,29 +31,7 @@ interface RideElevationChartProps {
 }
 
 const CHART_HEIGHT = 180;
-
-const tooltipContainer = {
-  backgroundColor: palette.surfaceElevated,
-  borderRadius: 8,
-  borderCurve: 'continuous' as const,
-  paddingHorizontal: 10,
-  paddingVertical: 6,
-  borderWidth: 1,
-  borderColor: palette.neutral700,
-};
-
-const tooltipValueText = {
-  fontFamily: 'PlusJakartaSans-SemiBold' as const,
-  fontSize: 13,
-  color: palette.white,
-};
-
-const tooltipSecondaryText = {
-  fontFamily: 'PlusJakartaSans-Regular' as const,
-  fontSize: 11,
-  color: palette.neutral400,
-  marginTop: 2,
-};
+const TABULAR = ['tabular-nums' as const];
 
 export const RideElevationChart = memo(function RideElevationChart({
   waypoints,
@@ -62,6 +41,9 @@ export const RideElevationChart = memo(function RideElevationChart({
   viewer,
 }: RideElevationChartProps) {
   const { t } = useTranslation();
+  const { t: theme } = useEditorialTheme();
+  const lineColor = theme.ink2;
+  const axisTextStyle = { ...type.caption, color: theme.ink3, fontVariant: TABULAR };
   const { width: screenWidth } = useWindowDimensions();
   const chartWidth = screenWidth - 140;
   const elevUnit = elevationUnitLabel(system);
@@ -162,27 +144,10 @@ export const RideElevationChart = memo(function RideElevationChart({
 
   if (chartData.length === 0) return null;
 
+  // Frameless: the caller (ride detail) owns the card around the chart.
   return (
-    <Animated.View
-      entering={FadeInUp.duration(200)}
-      style={{
-        backgroundColor: palette.surfaceSubtle,
-        borderRadius: 16,
-        borderCurve: 'continuous',
-        padding: 16,
-        borderWidth: 1,
-        borderColor: palette.surfaceElevated,
-      }}
-    >
-      <Text
-        style={{
-          fontFamily: 'PlusJakartaSans-SemiBold',
-          fontWeight: '600',
-          fontSize: 15,
-          color: palette.white,
-          marginBottom: 12,
-        }}
-      >
+    <Animated.View entering={FadeInUp.duration(200)}>
+      <Text style={[type.bodyStrong, { color: theme.ink, marginBottom: space.sm }]}>
         {t('rideChart.elevation', { unit: elevUnit })}
       </Text>
       <LineChart
@@ -193,31 +158,22 @@ export const RideElevationChart = memo(function RideElevationChart({
         width={chartWidth}
         hideDataPoints
         thickness={2}
-        color={palette.signature500}
-        startFillColor={palette.signatureTint}
-        endFillColor={palette.signatureTintZero}
+        color={lineColor}
+        startFillColor={tint(lineColor, 0.35)}
+        endFillColor={tint(lineColor, 0)}
         startOpacity={0.4}
         endOpacity={0}
         isAnimated={isAnimated}
         animationDuration={isAnimated ? 300 : 0}
         noOfSections={4}
         maxValue={maxVal}
-        rulesColor={palette.surfaceElevated}
+        rulesColor={theme.line}
         rulesType="dashed"
         yAxisColor="transparent"
-        xAxisColor={palette.surfaceElevated}
+        xAxisColor={theme.line}
         backgroundColor="transparent"
-        yAxisTextStyle={{
-          fontFamily: 'PlusJakartaSans-Regular',
-          color: palette.neutral500,
-          fontSize: 10,
-          fontVariant: ['tabular-nums'],
-        }}
-        xAxisLabelTextStyle={{
-          fontFamily: 'PlusJakartaSans-Regular',
-          color: palette.neutral500,
-          fontSize: 9,
-        }}
+        yAxisTextStyle={axisTextStyle}
+        xAxisLabelTextStyle={axisTextStyle}
         xAxisLabelTexts={xLabels}
         spacing={spacing}
         initialSpacing={8}
@@ -226,9 +182,9 @@ export const RideElevationChart = memo(function RideElevationChart({
           activatePointersOnLongPress: true,
           autoAdjustPointerLabelPosition: true,
           pointerStripHeight: CHART_HEIGHT,
-          pointerStripColor: palette.neutral500,
+          pointerStripColor: theme.ink3,
           pointerStripWidth: 1,
-          pointerColor: palette.signature500,
+          pointerColor: lineColor,
           radius: 5,
           pointerLabelWidth: 120,
           pointerLabelHeight: 50,
@@ -239,11 +195,21 @@ export const RideElevationChart = memo(function RideElevationChart({
             if (!item) return null;
             markScrubbed();
             return (
-              <View style={tooltipContainer}>
-                <Text style={tooltipValueText}>
+              <View
+                style={{
+                  backgroundColor: theme.surface3,
+                  borderRadius: radius.control,
+                  borderCurve: 'continuous',
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderWidth: 1,
+                  borderColor: theme.line2,
+                }}
+              >
+                <Text style={[type.label, { color: theme.ink, fontVariant: TABULAR }]}>
                   {Math.round(item.value)} {elevUnit}
                 </Text>
-                <Text style={tooltipSecondaryText}>
+                <Text style={[type.caption, { color: theme.ink3, marginTop: 2 }]}>
                   {item.dist.toFixed(1)} {distUnit}
                 </Text>
               </View>

@@ -9,6 +9,7 @@ import { router } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { Alert } from 'react-native';
 import { releaseSheetDraftsForSignOut } from '../components/bike-hub/notes/unattached-note-photos';
+import { GARAGE_ROUTE } from '../config/routes';
 import { gqlFetcher } from '../lib/graphql-client';
 import { isAccountAlreadyDeleted, userFriendlyError } from '../lib/graphql-errors';
 import { queryKeys } from '../lib/query-keys';
@@ -22,19 +23,10 @@ interface UseProfileDataParams {
   isPro: boolean;
 }
 
-export function useProfileData({ t, isPro }: UseProfileDataParams) {
+/** Server-side write of the account-level unit / currency preferences. */
+export function useUpdatePreference() {
   const queryClient = useQueryClient();
-
-  const meQuery = useQuery(meOptions());
-  const user = meQuery.data?.me;
-
-  const bikesQuery = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
-  });
-  const motorcycles = bikesQuery.data?.myMotorcycles ?? [];
-
-  const updatePreferenceMutation = useMutation({
+  return useMutation({
     mutationFn: (input: { currency?: string; measurementSystem?: string }) =>
       gqlFetcher(UpdateUserDocument, { input }),
     onSuccess: (_data, input) => {
@@ -46,6 +38,14 @@ export function useProfileData({ t, isPro }: UseProfileDataParams) {
       }
     },
   });
+}
+
+/**
+ * The one delete-account flow (two confirmations, then the server delete and a
+ * local sign-out). Used by the Profile home and the Privacy screen.
+ */
+export function useDeleteAccount(t: TFunction) {
+  const queryClient = useQueryClient();
 
   const finishAccountDeletion = async () => {
     await safeSignOut();
@@ -71,33 +71,10 @@ export function useProfileData({ t, isPro }: UseProfileDataParams) {
     },
   });
 
-  const handleAddBike = async () => {
-    if (!isPro && motorcycles.length >= FREE_TIER_LIMITS.MAX_BIKES) {
-      triggerImpact();
-      const result = await presentPaywall({
-        requiredEntitlementIdentifier: REVENUECAT_ENTITLEMENT_PRO,
-        source: 'profile',
-        feature: 'unlimited_bikes',
-        surface: 'profile_add_bike',
-      });
-      if (result !== 'purchased' && result !== 'restored') return;
-    }
-    triggerImpact();
-    router.navigate('/(tabs)/(garage)');
-  };
-
-  const handleLogout = async () => {
-    triggerImpact();
-    // Needs the session, so before sign-out (the auth listener runs after it).
-    await releaseSheetDraftsForSignOut();
-    await safeSignOut();
-    router.replace('/(auth)/login');
-  };
-
-  const handleDeleteAccount = () => {
+  const confirmDeleteAccount = () => {
     triggerImpact();
     Alert.alert(
-      t('privacy.deleteTitle', { defaultValue: 'Delete Account' }),
+      t('privacy.deleteTitle', { defaultValue: 'Delete account' }),
       t('privacy.deleteWarning', {
         defaultValue:
           'This will permanently delete your account and ALL associated data including motorcycles, maintenance history, diagnostics, and learning progress. Your subscription will be cancelled. You have 30 days to change your mind before data is permanently removed.',
@@ -129,12 +106,53 @@ export function useProfileData({ t, isPro }: UseProfileDataParams) {
     );
   };
 
+  return { confirmDeleteAccount, isDeleting: deleteMutation.isPending };
+}
+
+export function useProfileData({ t, isPro }: UseProfileDataParams) {
+  const meQuery = useQuery(meOptions());
+  const user = meQuery.data?.me;
+
+  const bikesQuery = useQuery({
+    queryKey: queryKeys.motorcycles.all,
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+  });
+  const motorcycles = bikesQuery.data?.myMotorcycles ?? [];
+
+  const updatePreferenceMutation = useUpdatePreference();
+
+  const { confirmDeleteAccount, isDeleting } = useDeleteAccount(t);
+
+  const handleAddBike = async () => {
+    if (!isPro && motorcycles.length >= FREE_TIER_LIMITS.MAX_BIKES) {
+      triggerImpact();
+      const result = await presentPaywall({
+        requiredEntitlementIdentifier: REVENUECAT_ENTITLEMENT_PRO,
+        source: 'profile',
+        feature: 'unlimited_bikes',
+        surface: 'profile_add_bike',
+      });
+      if (result !== 'purchased' && result !== 'restored') return;
+    }
+    triggerImpact();
+    router.push(GARAGE_ROUTE.ADD_BIKE);
+  };
+
+  const handleLogout = async () => {
+    triggerImpact();
+    // Needs the session, so before sign-out (the auth listener runs after it).
+    await releaseSheetDraftsForSignOut();
+    await safeSignOut();
+    router.replace('/(auth)/login');
+  };
+
   return {
     user,
     motorcycles,
     updatePreferenceMutation,
     handleAddBike,
     handleLogout,
-    handleDeleteAccount,
+    handleDeleteAccount: confirmDeleteAccount,
+    isDeleting,
   };
 }

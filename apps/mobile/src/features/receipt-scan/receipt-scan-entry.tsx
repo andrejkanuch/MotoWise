@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import { type Href, useRouter } from 'expo-router';
 import { ChevronRight, ScanLine, Sparkles } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +6,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { MODAL_ROUTE } from '../../config/routes';
 import { useProGate } from '../../hooks/use-pro-gate';
 import { tint, useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 import type { ScanEntrySurface } from './scan-flow-constants';
 import { RECEIPT_SCAN_LIMIT_KEY, useReceiptScanQuota } from './use-receipt-scan-quota';
@@ -101,9 +101,9 @@ export function ReceiptScanEntry({ motorcycleId, surface, delay = 0 }: ReceiptSc
           padding: 14,
           borderRadius: 16,
           borderCurve: 'continuous',
-          backgroundColor: tint(palette.signature500, 0.1),
+          backgroundColor: theme.surface,
           borderWidth: 1,
-          borderColor: tint(palette.signature500, 0.28),
+          borderColor: theme.line,
           transform: [{ scale: pressed ? 0.98 : 1 }],
         })}
       >
@@ -113,19 +113,19 @@ export function ReceiptScanEntry({ motorcycleId, surface, delay = 0 }: ReceiptSc
             height: 40,
             borderRadius: 12,
             borderCurve: 'continuous',
-            backgroundColor: tint(palette.signature500, 0.2),
+            backgroundColor: tint(theme.warm, 0.14),
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <ScanLine size={20} color={palette.signature500} strokeWidth={2} />
+          <ScanLine size={20} color={theme.warm} strokeWidth={2} />
         </View>
 
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={{ fontSize: 15, fontWeight: '700', color: theme.ink }} numberOfLines={1}>
+          <Text style={{ ...type.bodyStrong, color: theme.ink }} numberOfLines={1}>
             {t('receiptScan.entry.title')}
           </Text>
-          <Text style={{ fontSize: 12, color: theme.ink3, marginTop: 1 }} numberOfLines={1}>
+          <Text style={{ ...type.caption, color: theme.ink3, marginTop: 1 }} numberOfLines={1}>
             {t('receiptScan.entry.subtitle')}
           </Text>
         </View>
@@ -137,10 +137,10 @@ export function ReceiptScanEntry({ motorcycleId, surface, delay = 0 }: ReceiptSc
               paddingVertical: 5,
               borderRadius: 999,
               borderCurve: 'continuous',
-              backgroundColor: tint(palette.signature500, 0.16),
+              backgroundColor: theme.surface2,
             }}
           >
-            <Text style={{ fontSize: 12, fontWeight: '700', color: palette.signature500 }}>
+            <Text style={{ ...type.caption, ...SYSTEM_WEIGHT.semibold, color: theme.ink2 }}>
               {t('receiptScan.entry.freeBadge', { count: remaining })}
             </Text>
           </View>
@@ -156,11 +156,11 @@ export function ReceiptScanEntry({ motorcycleId, surface, delay = 0 }: ReceiptSc
               paddingVertical: 5,
               borderRadius: 999,
               borderCurve: 'continuous',
-              backgroundColor: palette.signature500,
+              backgroundColor: theme.warm,
             }}
           >
-            <Sparkles size={12} color={palette.white} strokeWidth={2.5} />
-            <Text style={{ fontSize: 12, fontWeight: '700', color: palette.white }}>
+            <Sparkles size={12} color={theme.onWarm} strokeWidth={2.5} />
+            <Text style={{ ...type.caption, ...SYSTEM_WEIGHT.bold, color: theme.onWarm }}>
               {t('receiptScan.entry.upsellBadge')}
             </Text>
           </View>

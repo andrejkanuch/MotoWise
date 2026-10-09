@@ -12,8 +12,9 @@ import {
   UtensilsCrossed,
   Wrench,
 } from 'lucide-react-native';
-import { Pressable, ScrollView, Text, useColorScheme } from 'react-native';
+import { Pressable, ScrollView, Text } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { useEditorialTheme } from '../../theme/editorial';
 
 const WAYPOINT_TYPES = [
   { key: 'start', label: 'Start', Icon: Flag, color: palette.success500 },
@@ -40,8 +41,7 @@ export function WaypointTypePicker({
   selected: string;
   onSelect: (type: string) => void;
 }) {
-  const isDark = useColorScheme() === 'dark';
-  const chipBg = isDark ? palette.neutral800 : palette.neutral200;
+  const { t } = useEditorialTheme();
 
   return (
     <Animated.View entering={FadeIn.duration(200)}>
@@ -67,7 +67,7 @@ export function WaypointTypePicker({
                 paddingHorizontal: 12,
                 borderRadius: 12,
                 borderCurve: 'continuous',
-                backgroundColor: isSelected ? wt.color : chipBg,
+                backgroundColor: isSelected ? wt.color : t.surface2,
                 opacity: isSelected ? 1 : 0.7,
               }}
             >
@@ -76,11 +76,7 @@ export function WaypointTypePicker({
                 style={{
                   fontSize: 10,
                   fontWeight: '600',
-                  color: isSelected
-                    ? palette.white
-                    : isDark
-                      ? palette.neutral300
-                      : palette.neutral600,
+                  color: isSelected ? palette.white : t.ink2,
                 }}
               >
                 {wt.label}

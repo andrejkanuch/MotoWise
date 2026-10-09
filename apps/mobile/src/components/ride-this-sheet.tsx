@@ -1,5 +1,6 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
+import type { ParseKeys } from 'i18next';
 import {
   ArrowRight,
   ChevronRight,
@@ -10,15 +11,8 @@ import {
   X,
 } from 'lucide-react-native';
 import { useMemo } from 'react';
-import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -28,6 +22,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NavProvider, RideThisProviderState } from '../hooks/use-ride-this';
+import { useEditorialTheme } from '../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../theme/type';
 
 interface RideThisSheetProps {
   visible: boolean;
@@ -50,11 +46,12 @@ interface RideThisSheetProps {
 
 const PROVIDER_ORDER: NavProvider[] = ['apple', 'google', 'waze', 'gpx'];
 
-const LABELS: Record<NavProvider, string> = {
-  apple: 'Apple Maps',
-  google: 'Google Maps',
-  waze: 'Waze',
-  gpx: 'GPX for offline apps',
+/** Brand names stay as-is; only the GPX row is a description that needs translating. */
+const LABELS: Record<NavProvider, { brand: string } | { key: ParseKeys }> = {
+  apple: { brand: 'Apple Maps' },
+  google: { brand: 'Google Maps' },
+  waze: { brand: 'Waze' },
+  gpx: { key: 'rideThis.gpx' },
 };
 
 const ICONS: Record<NavProvider, typeof MapIcon> = {
@@ -77,6 +74,7 @@ function DayPill({
   pillBg: string;
   textColor: string;
 }) {
+  const { t: theme } = useEditorialTheme();
   return (
     <Pressable
       onPress={onPress}
@@ -88,18 +86,13 @@ function DayPill({
         paddingHorizontal: 18,
         borderRadius: 22,
         borderCurve: 'continuous',
-        backgroundColor: selected ? palette.accent500 : pillBg,
+        backgroundColor: selected ? theme.warm : pillBg,
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
       <Text
-        style={{
-          fontSize: 14,
-          fontWeight: '700',
-          letterSpacing: -0.1,
-          color: selected ? palette.white : textColor,
-        }}
+        style={[type.label, SYSTEM_WEIGHT.semibold, { color: selected ? theme.onWarm : textColor }]}
       >
         {label}
       </Text>
@@ -132,6 +125,7 @@ function ProviderRow({
   bodyColor: string;
   mutedColor: string;
 }) {
+  const { t: theme } = useEditorialTheme();
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -174,32 +168,14 @@ function ProviderRow({
           }}
         >
           {showSpinner ? (
-            <ActivityIndicator size="small" color={palette.accent500} />
+            <ActivityIndicator size="small" color={theme.warm} />
           ) : (
-            <Icon size={20} color={disabled ? mutedColor : palette.accent500} />
+            <Icon size={20} color={disabled ? mutedColor : theme.warm} />
           )}
         </View>
         <View style={{ flex: 1 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: '700',
-              color: titleColor,
-              letterSpacing: -0.2,
-              marginBottom: 2,
-            }}
-          >
-            {label}
-          </Text>
-          <Text
-            style={{
-              fontSize: 13,
-              color: bodyColor,
-              lineHeight: 18,
-            }}
-          >
-            {subtitle}
-          </Text>
+          <Text style={[type.bodyStrong, { color: titleColor, marginBottom: 2 }]}>{label}</Text>
+          <Text style={[type.subhead, { color: bodyColor }]}>{subtitle}</Text>
         </View>
         <ChevronRight size={18} color={mutedColor} />
       </Pressable>
@@ -219,18 +195,23 @@ export function RideThisSheet({
   onSelectDay,
   availableDays = [],
 }: RideThisSheetProps) {
-  const isDark = useColorScheme() === 'dark';
+  const { t: theme } = useEditorialTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const providerLabel = (provider: NavProvider) => {
+    const label = LABELS[provider];
+    return 'brand' in label ? label.brand : t(label.key);
+  };
 
-  const bg = isDark ? palette.neutral950 : palette.white;
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const bodyColor = isDark ? palette.neutral400 : palette.neutral500;
-  const mutedColor = isDark ? palette.neutral500 : palette.neutral400;
-  const dividerColor = isDark ? palette.neutral800 : palette.neutral200;
-  const rowBg = isDark ? palette.neutral900 : palette.neutral50;
-  const closeBg = isDark ? palette.neutral800 : palette.neutral100;
-  const pillBg = isDark ? palette.surfaceSubtle : palette.neutral100;
-  const pillTextColor = isDark ? palette.white : palette.neutral950;
+  const bg = theme.surface;
+  const titleColor = theme.ink;
+  const bodyColor = theme.ink2;
+  const mutedColor = theme.ink3;
+  const dividerColor = theme.line;
+  const rowBg = theme.surface2;
+  const closeBg = theme.surface2;
+  const pillBg = theme.surface2;
+  const pillTextColor = theme.ink;
 
   const showDayPills = availableDays.length > 1;
 
@@ -242,9 +223,7 @@ export function RideThisSheet({
   };
 
   const bodyText =
-    selectedDay !== null
-      ? `Hand off Day ${selectedDay + 1} stops to your nav app.`
-      : 'Hand the route off to the app you ride with.';
+    selectedDay !== null ? t('rideThis.bodyDay', { day: selectedDay + 1 }) : t('rideThis.bodyAll');
 
   const visibleProviders = useMemo(
     () => PROVIDER_ORDER.filter((p) => (p === 'apple' ? process.env.EXPO_OS === 'ios' : true)),
@@ -272,21 +251,14 @@ export function RideThisSheet({
             borderBottomColor: dividerColor,
           }}
         >
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: '800',
-              color: titleColor,
-              letterSpacing: -0.4,
-            }}
-          >
-            Ride this
+          <Text accessibilityRole="header" style={[type.sheetTitle, { color: titleColor }]}>
+            {t('rideThis.title')}
           </Text>
           <Pressable
             onPress={onClose}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel="Close"
+            accessibilityLabel={t('rideThis.close')}
             style={{
               width: 48,
               height: 48,
@@ -311,39 +283,27 @@ export function RideThisSheet({
               padding: 16,
               borderRadius: 16,
               borderCurve: 'continuous',
-              backgroundColor: palette.accent500,
+              backgroundColor: theme.warm,
             }}
           >
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: '700',
-                color: palette.white,
-                letterSpacing: 0.8,
-                textTransform: 'uppercase',
-                opacity: 0.85,
-                marginBottom: 6,
-              }}
-            >
-              {LABELS[activeSegment.provider]}
+            <Text style={[type.label, { color: theme.onWarm, opacity: 0.85, marginBottom: 6 }]}>
+              {providerLabel(activeSegment.provider)}
             </Text>
-            <Text
-              style={{
-                fontSize: 17,
-                fontWeight: '700',
-                color: palette.white,
-                marginBottom: 12,
-                letterSpacing: -0.3,
-              }}
-            >
-              Segment {activeSegment.index + 1} of {activeSegment.total} opened
+            <Text style={[type.bodyStrong, { color: theme.onWarm, marginBottom: 12 }]}>
+              {t('rideThis.segmentOpened', {
+                index: activeSegment.index + 1,
+                total: activeSegment.total,
+              })}
             </Text>
             <Pressable
               onPress={onAdvance}
               accessibilityRole="button"
-              accessibilityLabel={`Open segment ${activeSegment.index + 2} of ${activeSegment.total}`}
+              accessibilityLabel={t('rideThis.openSegmentA11y', {
+                index: activeSegment.index + 2,
+                total: activeSegment.total,
+              })}
               style={{
-                backgroundColor: palette.white,
+                backgroundColor: theme.onWarm,
                 paddingVertical: 12,
                 paddingHorizontal: 16,
                 borderRadius: 12,
@@ -354,31 +314,18 @@ export function RideThisSheet({
                 gap: 8,
               }}
             >
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '700',
-                  color: palette.accent500,
-                }}
-              >
+              <Text style={[type.bodyStrong, { color: theme.warm }]}>
                 {activeSegment.index + 1 >= activeSegment.total - 1
-                  ? 'Open final segment'
-                  : `Open segment ${activeSegment.index + 2}`}
+                  ? t('rideThis.openFinalSegment')
+                  : t('rideThis.openSegment', { index: activeSegment.index + 2 })}
               </Text>
-              <ArrowRight size={16} color={palette.accent500} />
+              <ArrowRight size={16} color={theme.warm} />
             </Pressable>
           </Animated.View>
         )}
 
         <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-          <Text
-            style={{
-              fontSize: 13,
-              color: bodyColor,
-              lineHeight: 19,
-              marginBottom: showDayPills ? 12 : 16,
-            }}
-          >
+          <Text style={[type.subhead, { color: bodyColor, marginBottom: showDayPills ? 12 : 16 }]}>
             {bodyText}
           </Text>
 
@@ -390,7 +337,7 @@ export function RideThisSheet({
               style={{ marginHorizontal: -20, paddingHorizontal: 20, marginBottom: 16 }}
             >
               <DayPill
-                label="All days"
+                label={t('rideThis.allDays')}
                 selected={selectedDay === null}
                 onPress={() => handleSelectDay(null)}
                 pillBg={pillBg}
@@ -399,7 +346,7 @@ export function RideThisSheet({
               {availableDays.map((day) => (
                 <DayPill
                   key={day}
-                  label={`Day ${day + 1}`}
+                  label={t('trips.dayHeaderShort', { day: day + 1 })}
                   selected={selectedDay === day}
                   onPress={() => handleSelectDay(day)}
                   pillBg={pillBg}
@@ -420,14 +367,14 @@ export function RideThisSheet({
             return (
               <Animated.View key={provider} entering={FadeInUp.delay(i * 40).duration(220)}>
                 <ProviderRow
-                  label={LABELS[provider]}
+                  label={providerLabel(provider)}
                   subtitle={state.subtitle}
                   Icon={Icon}
                   disabled={disabled}
                   showSpinner={!!showSpinner}
                   onPress={() => !showSpinner && onProvider(provider)}
                   rowBg={rowBg}
-                  iconBg={isDark ? palette.neutral800 : palette.white}
+                  iconBg={theme.surface2}
                   titleColor={titleColor}
                   bodyColor={bodyColor}
                   mutedColor={mutedColor}
@@ -436,17 +383,8 @@ export function RideThisSheet({
             );
           })}
 
-          <Text
-            style={{
-              fontSize: 11,
-              color: mutedColor,
-              lineHeight: 16,
-              marginTop: 8,
-              paddingHorizontal: 4,
-            }}
-          >
-            We don't navigate for you — your ride stays on the app you know. MotoVault just builds
-            the plan and hands it over cleanly.
+          <Text style={[type.caption, { color: mutedColor, marginTop: 8, paddingHorizontal: 4 }]}>
+            {t('rideThis.disclaimer')}
           </Text>
         </View>
       </View>
@@ -468,6 +406,8 @@ export function RideThisStickyCta({
   subtitle?: string;
   disabled?: boolean;
 }) {
+  const { t: theme } = useEditorialTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
@@ -501,9 +441,9 @@ export function RideThisStickyCta({
           }}
           disabled={disabled}
           accessibilityRole="button"
-          accessibilityLabel={`Ride this${subtitle ? `. ${subtitle}` : ''}`}
+          accessibilityLabel={`${t('rideThis.title')}${subtitle ? `. ${subtitle}` : ''}`}
           style={{
-            backgroundColor: disabled ? palette.neutral500 : palette.accent500,
+            backgroundColor: disabled ? theme.surface3 : theme.warm,
             paddingVertical: 16,
             paddingHorizontal: 20,
             borderRadius: 16,
@@ -520,28 +460,18 @@ export function RideThisStickyCta({
             opacity: disabled ? 0.7 : 1,
           }}
         >
-          <Navigation size={18} color={palette.white} />
-          <Text
-            style={{
-              color: palette.white,
-              fontSize: 16,
-              fontWeight: '700',
-              letterSpacing: 0.2,
-            }}
-          >
-            Ride this
+          <Navigation size={18} color={disabled ? theme.ink3 : theme.onWarm} />
+          <Text style={[type.bodyStrong, { color: disabled ? theme.ink3 : theme.onWarm }]}>
+            {t('rideThis.title')}
           </Text>
         </Pressable>
       </Animated.View>
       {subtitle && (
         <Text
-          style={{
-            textAlign: 'center',
-            fontSize: 11,
-            color: palette.white,
-            marginTop: 6,
-            opacity: 0.8,
-          }}
+          style={[
+            type.caption,
+            { textAlign: 'center', color: theme.ink2, marginTop: 6, opacity: 0.8 },
+          ]}
         >
           {subtitle}
         </Text>

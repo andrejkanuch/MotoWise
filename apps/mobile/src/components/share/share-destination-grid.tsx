@@ -4,6 +4,8 @@ import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dimensions, Pressable, Text, View } from 'react-native';
 import Svg, { Circle, Defs, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
+import { useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 import type { ShareDestination } from './share-card-types';
 
 interface ShareDestinationGridProps {
@@ -18,17 +20,26 @@ function InstagramIcon() {
     <Svg width={26} height={26} viewBox="0 0 26 26">
       <Defs>
         <RadialGradient id="ig" cx="25%" cy="105%" r="120%">
-          <Stop offset="0%" stopColor="#FFD25F" />
-          <Stop offset="20%" stopColor="#F9A11B" />
-          <Stop offset="45%" stopColor="#ED4F5C" />
-          <Stop offset="70%" stopColor="#C42E91" />
-          <Stop offset="100%" stopColor="#7234C4" />
+          <Stop offset="0%" stopColor={palette.instagramYellow} />
+          <Stop offset="20%" stopColor={palette.instagramOrange} />
+          <Stop offset="45%" stopColor={palette.instagramRed} />
+          <Stop offset="70%" stopColor={palette.instagramMagenta} />
+          <Stop offset="100%" stopColor={palette.instagramPurple} />
         </RadialGradient>
       </Defs>
       <Rect x={1} y={1} width={24} height={24} rx={7} fill="url(#ig)" />
-      <Rect x={5} y={5} width={16} height={16} rx={5} fill="none" stroke="#fff" strokeWidth={1.8} />
-      <Circle cx={13} cy={13} r={4} fill="none" stroke="#fff" strokeWidth={1.8} />
-      <Circle cx={18.6} cy={7.4} r={1.1} fill="#fff" />
+      <Rect
+        x={5}
+        y={5}
+        width={16}
+        height={16}
+        rx={5}
+        fill="none"
+        stroke={palette.whitePure}
+        strokeWidth={1.8}
+      />
+      <Circle cx={13} cy={13} r={4} fill="none" stroke={palette.whitePure} strokeWidth={1.8} />
+      <Circle cx={18.6} cy={7.4} r={1.1} fill={palette.whitePure} />
     </Svg>
   );
 }
@@ -38,18 +49,18 @@ function InstagramDmIcon() {
     <Svg width={26} height={26} viewBox="0 0 26 26">
       <Defs>
         <RadialGradient id="igdm" cx="20%" cy="105%" r="125%">
-          <Stop offset="0%" stopColor="#FFD25F" />
-          <Stop offset="22%" stopColor="#F9A11B" />
-          <Stop offset="48%" stopColor="#ED4F5C" />
-          <Stop offset="72%" stopColor="#C42E91" />
-          <Stop offset="100%" stopColor="#7234C4" />
+          <Stop offset="0%" stopColor={palette.instagramYellow} />
+          <Stop offset="22%" stopColor={palette.instagramOrange} />
+          <Stop offset="48%" stopColor={palette.instagramRed} />
+          <Stop offset="72%" stopColor={palette.instagramMagenta} />
+          <Stop offset="100%" stopColor={palette.instagramPurple} />
         </RadialGradient>
       </Defs>
       <Rect x={1} y={1} width={24} height={24} rx={7} fill="url(#igdm)" />
       <Path
         d="M 8 13.2 L 18.5 8.5 L 15.5 18.5 L 13 14.5 L 8 13.2 Z M 13 14.5 L 18.5 8.5"
         fill="none"
-        stroke="#fff"
+        stroke={palette.whitePure}
         strokeWidth={1.6}
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -75,37 +86,42 @@ const DESTINATIONS: DestinationItem[] = [
   {
     id: 'saveImage',
     i18nKey: 'shareSheet.saveImage',
-    icon: (
-      <View
-        style={{
-          width: 50,
-          height: 50,
-          borderRadius: 999,
-          backgroundColor: 'rgba(255,255,255,0.10)',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Download size={22} color="#fff" />
-      </View>
-    ),
+    icon: <SaveImageIcon />,
   },
 ];
+
+function SaveImageIcon() {
+  const { t: theme } = useEditorialTheme();
+  return (
+    <View
+      style={{
+        width: 50,
+        height: 50,
+        borderRadius: 999,
+        backgroundColor: theme.surface2,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <Download size={22} color={theme.ink} />
+    </View>
+  );
+}
 
 export const ShareDestinationGrid = memo(function ShareDestinationGrid({
   disabled,
   onDestinationPress,
 }: ShareDestinationGridProps) {
   const { t } = useTranslation();
+  const { t: theme } = useEditorialTheme();
 
   return (
     <View>
       <Text
         style={{
-          fontSize: 14,
-          fontWeight: '700',
-          color: palette.shareTextLight,
-          letterSpacing: -0.11,
+          ...type.label,
+          ...SYSTEM_WEIGHT.semibold,
+          color: theme.ink2,
           paddingHorizontal: 22,
           paddingTop: 4,
           paddingBottom: 12,
@@ -146,6 +162,7 @@ const DestinationButton = memo(function DestinationButton({
   onPress: (id: ShareDestination) => void;
 }) {
   const { t } = useTranslation();
+  const { t: theme } = useEditorialTheme();
   const handlePress = useCallback(() => onPress(item.id), [item.id, onPress]);
 
   // Each cell is 1/3 of the grid width minus padding
@@ -169,12 +186,9 @@ const DestinationButton = memo(function DestinationButton({
       </View>
       <Text
         style={{
-          fontSize: 11,
-          fontWeight: '500',
-          color: 'rgba(255,255,255,0.82)',
+          ...type.caption,
+          color: theme.ink2,
           textAlign: 'center',
-          letterSpacing: -0.055,
-          lineHeight: 13,
           maxWidth: 64,
         }}
       >

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { StopListItem } from '../../components/trip/stop-list-item';
 import { useEditorialTheme } from '../../theme/editorial';
+import { type } from '../../theme/type';
 import type { RouteLeg } from '../../utils/mapbox-directions';
 import { groupByPeriod, PERIOD_HINT } from '../../utils/period-of-day';
 import {
@@ -88,13 +89,7 @@ export function DayStopList({
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Calendar size={16} color={titleColor} />
-                    <Text
-                      style={{
-                        fontFamily: 'InstrumentSerif-Regular',
-                        fontSize: 17,
-                        color: titleColor,
-                      }}
-                    >
+                    <Text style={[type.bodyStrong, { color: titleColor }]}>
                       {isShowcase
                         ? i18n('trips.dayHeaderShort', { day: dayIndex + 1 })
                         : i18n('trips.dayHeader', {

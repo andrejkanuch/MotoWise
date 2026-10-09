@@ -46,7 +46,8 @@ import {
 } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-import { tint } from '../../theme/editorial';
+import { EDITORIAL_SCHEME, editorialThemes, tint, useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, type as textRole } from '../../theme/type';
 import { triggerSelection } from '../../utils/haptics';
 import { localDateFromISODate, toISODateInput } from '../../utils/trip-form-dates';
 import {
@@ -188,11 +189,15 @@ function seedLineItems(result: ReceiptExtraction): ReceiptReviewLineItem[] {
 
 // --- Component ---------------------------------------------------------------
 
+/** Theme tokens for a subtree that already knows its scheme (no extra hook per row). */
+function reviewTokens(isDark: boolean) {
+  return editorialThemes[isDark ? EDITORIAL_SCHEME.DARK : EDITORIAL_SCHEME.LIGHT];
+}
+
 export interface ReviewCardProps {
   handoff: ReceiptReviewHandoff;
   bikeName: string;
   bikes: ScanBike[];
-  isDark: boolean;
   onPark: () => void;
   onClose: () => void;
   /** U7d persists this; here the parent may pass a no-op/log. */
@@ -207,16 +212,9 @@ export interface ReviewCardProps {
  * interpretations on round-trip (all fields live in state; the type toggle only
  * shows/hides the maintenance parts/labor rows).
  */
-export function ReviewCard({
-  handoff,
-  bikeName,
-  bikes,
-  isDark,
-  onPark,
-  onClose,
-  onSave,
-}: ReviewCardProps) {
+export function ReviewCard({ handoff, bikeName, bikes, onPark, onClose, onSave }: ReviewCardProps) {
   const { t } = useTranslation();
+  const { t: tk, isDark } = useEditorialTheme();
   const { result } = handoff;
   const system = useMeasurementSystem();
   const { currency: userCurrency } = useCurrency();
@@ -435,8 +433,8 @@ export function ReviewCard({
     result.odometerUnit,
   ]);
 
-  const ink = isDark ? palette.neutral50 : palette.neutral950;
-  const muted = palette.neutral400;
+  const ink = tk.ink;
+  const muted = tk.ink3;
 
   return (
     <Animated.View entering={FadeInUp.duration(220)} style={{ flex: 1 }}>
@@ -448,7 +446,7 @@ export function ReviewCard({
       >
         {/* Header + prominent bike */}
         <View style={{ gap: 4 }}>
-          <Text style={{ fontSize: 22, fontWeight: '800', color: ink }}>
+          <Text style={{ ...textRole.sheetTitle, color: ink }}>
             {t('receiptScan.review.title')}
           </Text>
           <BikeHeader
@@ -471,7 +469,7 @@ export function ReviewCard({
         )}
 
         <TypeChips type={type} isDark={isDark} onSwitch={switchType} />
-        <Text style={{ fontSize: 13, color: muted, marginTop: -8, marginLeft: 2 }}>
+        <Text style={{ ...textRole.caption, color: muted, marginTop: -8, marginLeft: 2 }}>
           {isMaintenance(type)
             ? t('receiptScan.review.typeMaintenanceHint')
             : t('receiptScan.review.typeExpenseHint')}
@@ -659,15 +657,15 @@ export function ReviewCard({
             minHeight: 52,
             borderRadius: 14,
             borderCurve: 'continuous',
-            backgroundColor: canSave ? palette.signature500 : palette.neutral500,
+            backgroundColor: canSave ? tk.warm : tk.surface3,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
             gap: 8,
           }}
         >
-          <Check size={20} color={palette.white} strokeWidth={2.5} />
-          <Text style={{ color: palette.white, fontSize: 17, fontWeight: '700' }}>
+          <Check size={20} color={tk.onWarm} strokeWidth={2.5} />
+          <Text style={{ ...textRole.bodyStrong, color: canSave ? tk.onWarm : tk.ink3 }}>
             {t('receiptScan.review.save')}
           </Text>
         </Pressable>
@@ -679,7 +677,7 @@ export function ReviewCard({
             minHeight: 48,
             borderRadius: 14,
             borderCurve: 'continuous',
-            backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
+            backgroundColor: tk.surface2,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
@@ -687,7 +685,7 @@ export function ReviewCard({
           }}
         >
           <Clock size={18} color={ink} />
-          <Text style={{ fontSize: 16, fontWeight: '600', color: ink }}>
+          <Text style={{ ...textRole.bodyStrong, color: ink }}>
             {t('receiptScan.review.reviewLater')}
           </Text>
         </Pressable>
@@ -697,7 +695,7 @@ export function ReviewCard({
           accessibilityLabel={t('receiptScan.common.done')}
           style={{ minHeight: 40, alignItems: 'center', justifyContent: 'center' }}
         >
-          <Text style={{ fontSize: 15, color: muted, fontWeight: '600' }}>
+          <Text style={{ ...textRole.subhead, ...SYSTEM_WEIGHT.semibold, color: muted }}>
             {t('receiptScan.common.done')}
           </Text>
         </Pressable>
@@ -742,11 +740,18 @@ function BikeHeader({
   label: string;
   promptLabel: string;
 }) {
-  const color = hasBike ? palette.neutral400 : palette.warning500;
+  const { t: tk } = useEditorialTheme();
+  const color = hasBike ? tk.ink3 : tk.ink;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
       <Bike size={15} color={color} />
-      <Text style={{ fontSize: 15, fontWeight: hasBike ? '600' : '700', color }}>
+      <Text
+        style={{
+          ...textRole.subhead,
+          ...(hasBike ? SYSTEM_WEIGHT.semibold : SYSTEM_WEIGHT.bold),
+          color,
+        }}
+      >
         {hasBike ? label : promptLabel}
       </Text>
     </View>
@@ -762,8 +767,9 @@ function ZeroBikePicker({
   isDark: boolean;
   onSelect: (id: string) => void;
 }) {
+  const tk = reviewTokens(isDark);
   const { t } = useTranslation();
-  const ink = isDark ? palette.neutral50 : palette.neutral900;
+  const ink = tk.ink;
 
   if (bikes.length === 0) {
     return (
@@ -771,14 +777,16 @@ function ZeroBikePicker({
         style={{
           borderRadius: 14,
           borderCurve: 'continuous',
-          backgroundColor: isDark ? palette.warningBgDark : palette.warningBgLight,
+          backgroundColor: tint(tk.plateDue, 0.12),
           borderWidth: 1,
-          borderColor: palette.warningBorder,
+          borderColor: tint(tk.plateDue, 0.5),
           padding: 16,
           gap: 12,
         }}
       >
-        <Text style={{ fontSize: 14, color: ink }}>{t('receiptScan.review.noBikePrompt')}</Text>
+        <Text style={{ ...textRole.subhead, color: ink }}>
+          {t('receiptScan.review.noBikePrompt')}
+        </Text>
         <Pressable
           onPress={() => router.push('/(tabs)/(garage)/add-bike' as Href)}
           accessibilityRole="button"
@@ -787,15 +795,15 @@ function ZeroBikePicker({
             minHeight: 44,
             borderRadius: 12,
             borderCurve: 'continuous',
-            backgroundColor: palette.signature500,
+            backgroundColor: tk.warm,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
             gap: 8,
           }}
         >
-          <Plus size={18} color={palette.white} strokeWidth={2.5} />
-          <Text style={{ color: palette.white, fontSize: 15, fontWeight: '700' }}>
+          <Plus size={18} color={tk.onWarm} strokeWidth={2.5} />
+          <Text style={{ ...textRole.bodyStrong, color: tk.onWarm }}>
             {t('receiptScan.review.addBike')}
           </Text>
         </Pressable>
@@ -815,17 +823,17 @@ function ZeroBikePicker({
             minHeight: 48,
             borderRadius: 12,
             borderCurve: 'continuous',
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: tk.surface,
             borderWidth: 1,
-            borderColor: isDark ? palette.neutral700 : palette.neutral200,
+            borderColor: tk.line,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingHorizontal: 16,
           }}
         >
-          <Text style={{ fontSize: 16, fontWeight: '600', color: ink }}>{bike.name}</Text>
-          <ChevronRight size={18} color={palette.neutral400} />
+          <Text style={{ ...textRole.bodyStrong, color: ink }}>{bike.name}</Text>
+          <ChevronRight size={18} color={tk.ink3} />
         </Pressable>
       ))}
     </View>
@@ -841,6 +849,7 @@ function TypeChips({
   isDark: boolean;
   onSwitch: (next: ReceiptReviewType) => void;
 }) {
+  const tk = reviewTokens(isDark);
   const { t } = useTranslation();
   const options: Array<{ value: ReceiptReviewType; label: string; Icon: typeof Wrench }> = [
     {
@@ -874,33 +883,17 @@ function TypeChips({
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
-              backgroundColor: selected
-                ? tint(palette.signature500, 0.12)
-                : isDark
-                  ? palette.neutral800
-                  : palette.white,
+              backgroundColor: selected ? tint(tk.warm, 0.12) : tk.surface,
               borderWidth: selected ? 1.5 : 1,
-              borderColor: selected
-                ? palette.signature500
-                : isDark
-                  ? palette.neutral700
-                  : palette.neutral200,
+              borderColor: selected ? tk.warm : tk.line,
             }}
           >
-            <Icon
-              size={17}
-              color={selected ? palette.signature500 : palette.neutral400}
-              strokeWidth={2}
-            />
+            <Icon size={17} color={selected ? tk.warm : tk.ink3} strokeWidth={2} />
             <Text
               style={{
-                fontSize: 15,
-                fontWeight: selected ? '700' : '600',
-                color: selected
-                  ? palette.signature500
-                  : isDark
-                    ? palette.neutral300
-                    : palette.neutral600,
+                ...textRole.subhead,
+                ...(selected ? SYSTEM_WEIGHT.bold : SYSTEM_WEIGHT.semibold),
+                color: selected ? tk.warm : tk.ink2,
               }}
             >
               {label}
@@ -913,6 +906,7 @@ function TypeChips({
 }
 
 function NeedsCheckBadge({ cue }: { cue: string }) {
+  const { t: tk } = useEditorialTheme();
   return (
     <View
       accessible
@@ -922,30 +916,28 @@ function NeedsCheckBadge({ cue }: { cue: string }) {
         alignItems: 'center',
         gap: 5,
         alignSelf: 'flex-start',
-        backgroundColor: palette.warningBgDark,
+        backgroundColor: tint(tk.plateDue, 0.12),
         borderRadius: 8,
         borderCurve: 'continuous',
         borderWidth: 1,
-        borderColor: palette.warningBorder,
+        borderColor: tint(tk.plateDue, 0.5),
         paddingHorizontal: 8,
         paddingVertical: 4,
       }}
     >
-      <AlertTriangle size={13} color={palette.warning500} strokeWidth={2.5} />
-      <Text style={{ fontSize: 12, fontWeight: '700', color: palette.warning500 }}>{cue}</Text>
+      <AlertTriangle size={13} color={tk.dueInk} strokeWidth={2.5} />
+      <Text style={{ ...textRole.caption, ...SYSTEM_WEIGHT.bold, color: tk.ink }}>{cue}</Text>
     </View>
   );
 }
 
 function FieldLabel({ text, isDark }: { text: string; isDark: boolean }) {
+  const tk = reviewTokens(isDark);
   return (
     <Text
       style={{
-        fontSize: 10,
-        fontWeight: '700',
-        letterSpacing: 1.5,
-        textTransform: 'uppercase',
-        color: isDark ? palette.neutral400 : palette.neutral500,
+        ...textRole.label,
+        color: tk.ink3,
         marginBottom: 6,
         marginLeft: 2,
       }}
@@ -984,14 +976,11 @@ function AmountField({
   checkAmountCue: string;
   checkCurrencyCue: string;
 }) {
+  const tk = reviewTokens(isDark);
   const { t } = useTranslation();
-  const ink = isDark ? palette.neutral50 : palette.neutral950;
-  const cardBg = isDark ? palette.neutral800 : palette.white;
-  const border = needsCheck
-    ? palette.warningBorder
-    : isDark
-      ? palette.neutral700
-      : palette.neutral200;
+  const ink = tk.ink;
+  const cardBg = tk.surface;
+  const border = needsCheck ? tint(tk.plateDue, 0.5) : tk.line;
   return (
     <View>
       <FieldLabel text={t('receiptScan.review.amount')} isDark={isDark} />
@@ -1016,9 +1005,8 @@ function AmountField({
           autoCorrect={false}
           accessibilityLabel={t('receiptScan.review.currency')}
           style={{
-            fontSize: 15,
-            fontWeight: '700',
-            color: palette.neutral400,
+            ...textRole.figureSmall,
+            color: tk.ink3,
             minWidth: 42,
           }}
         />
@@ -1028,11 +1016,18 @@ function AmountField({
           onBlur={onAmountBlur}
           keyboardType="decimal-pad"
           placeholder="0.00"
-          placeholderTextColor={palette.neutral500}
+          placeholderTextColor={tk.ink4}
           accessibilityLabel={t('receiptScan.review.amount')}
           maxFontSizeMultiplier={AMOUNT_MAX_FONT_MULTIPLIER}
           numberOfLines={1}
-          style={{ flex: 1, fontSize: 40, fontWeight: '800', color: ink, paddingVertical: 2 }}
+          style={{
+            ...textRole.figure,
+            fontSize: 40,
+            lineHeight: 46,
+            flex: 1,
+            color: ink,
+            paddingVertical: 2,
+          }}
         />
         <ReceiptThumbnail
           imageUri={imageUri}
@@ -1060,6 +1055,7 @@ function ReceiptThumbnail({
   label: string;
   onPress: () => void;
 }) {
+  const tk = reviewTokens(isDark);
   if (!imageUri) return null;
   return (
     <Pressable
@@ -1072,7 +1068,7 @@ function ReceiptThumbnail({
         borderRadius: 10,
         borderCurve: 'continuous',
         overflow: 'hidden',
-        backgroundColor: isDark ? palette.neutral700 : palette.neutral200,
+        backgroundColor: tk.line,
       }}
     >
       <Image source={{ uri: imageUri }} style={{ width: 56, height: 56 }} contentFit="cover" />
@@ -1095,12 +1091,9 @@ function TextField({
   onChangeText: (v: string) => void;
   onBlur: () => void;
 }) {
-  const ink = isDark ? palette.neutral50 : palette.neutral900;
-  const border = needsCheckCue
-    ? palette.warningBorder
-    : isDark
-      ? palette.neutral700
-      : palette.neutral200;
+  const tk = reviewTokens(isDark);
+  const ink = tk.ink;
+  const border = needsCheckCue ? tint(tk.plateDue, 0.5) : tk.line;
   return (
     <View>
       <FieldLabel text={label} isDark={isDark} />
@@ -1109,11 +1102,11 @@ function TextField({
         onChangeText={onChangeText}
         onBlur={onBlur}
         accessibilityLabel={label}
-        placeholderTextColor={palette.neutral500}
+        placeholderTextColor={tk.ink4}
         style={{
-          fontSize: 16,
+          ...textRole.body,
           color: ink,
-          backgroundColor: isDark ? palette.neutral800 : palette.white,
+          backgroundColor: tk.surface,
           borderRadius: 12,
           borderCurve: 'continuous',
           borderWidth: needsCheckCue ? 1.5 : 1,
@@ -1146,7 +1139,8 @@ function NumberField({
   onChangeText: (v: string) => void;
   onBlur: () => void;
 }) {
-  const ink = isDark ? palette.neutral50 : palette.neutral900;
+  const tk = reviewTokens(isDark);
+  const ink = tk.ink;
   return (
     <View>
       <FieldLabel text={label} isDark={isDark} />
@@ -1155,16 +1149,16 @@ function NumberField({
           flexDirection: 'row',
           alignItems: 'center',
           gap: 6,
-          backgroundColor: isDark ? palette.neutral800 : palette.white,
+          backgroundColor: tk.surface,
           borderRadius: 12,
           borderCurve: 'continuous',
           borderWidth: 1,
-          borderColor: isDark ? palette.neutral700 : palette.neutral200,
+          borderColor: tk.line,
           paddingHorizontal: 12,
           paddingVertical: 12,
         }}
       >
-        <Text style={{ fontSize: 13, fontWeight: '700', color: palette.neutral400 }}>
+        <Text style={{ ...textRole.label, ...SYSTEM_WEIGHT.semibold, color: tk.ink3 }}>
           {currency}
         </Text>
         <TextInput
@@ -1173,9 +1167,9 @@ function NumberField({
           onBlur={onBlur}
           keyboardType="decimal-pad"
           placeholder="0.00"
-          placeholderTextColor={palette.neutral500}
+          placeholderTextColor={tk.ink4}
           accessibilityLabel={label}
-          style={{ flex: 1, fontSize: 16, fontWeight: '600', color: ink }}
+          style={{ ...textRole.figureSmall, flex: 1, color: ink }}
         />
       </View>
     </View>
@@ -1214,10 +1208,11 @@ function LineItemsField({
   onRemove: (index: number) => void;
   onAdd: () => void;
 }) {
+  const tk = reviewTokens(isDark);
   const { t } = useTranslation();
-  const ink = isDark ? palette.neutral50 : palette.neutral900;
-  const cardBg = isDark ? palette.neutral800 : palette.white;
-  const border = isDark ? palette.neutral700 : palette.neutral200;
+  const ink = tk.ink;
+  const cardBg = tk.surface;
+  const border = tk.line;
   return (
     <View>
       <FieldLabel text={title} isDark={isDark} />
@@ -1241,9 +1236,9 @@ function LineItemsField({
                 value={item.label}
                 onChangeText={(v) => onChangeLabel(index, v)}
                 placeholder={labelPlaceholder}
-                placeholderTextColor={palette.neutral500}
+                placeholderTextColor={tk.ink4}
                 accessibilityLabel={labelPlaceholder}
-                style={{ flex: 1, fontSize: 15, fontWeight: '600', color: ink }}
+                style={{ ...textRole.subhead, ...SYSTEM_WEIGHT.semibold, flex: 1, color: ink }}
               />
               <Pressable
                 onPress={() => onRemove(index)}
@@ -1252,7 +1247,7 @@ function LineItemsField({
                 hitSlop={8}
                 style={{ padding: 4 }}
               >
-                <X size={16} color={palette.neutral400} />
+                <X size={16} color={tk.ink3} />
               </Pressable>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -1268,13 +1263,13 @@ function LineItemsField({
                   paddingHorizontal: 10,
                   borderRadius: 9,
                   borderCurve: 'continuous',
-                  backgroundColor: tint(palette.signature500, 0.1),
+                  backgroundColor: tint(tk.warm, 0.1),
                 }}
               >
-                <Text style={{ fontSize: 13, fontWeight: '600', color: palette.signature500 }}>
+                <Text style={{ ...textRole.label, ...SYSTEM_WEIGHT.semibold, color: tk.warm }}>
                   {item.serviceType ? serviceTypeLabel(item.serviceType, t) : serviceTypeFieldLabel}
                 </Text>
-                <ChevronRight size={13} color={palette.signature500} />
+                <ChevronRight size={13} color={tk.warm} />
               </Pressable>
               <View
                 style={{
@@ -1282,14 +1277,14 @@ function LineItemsField({
                   alignItems: 'center',
                   gap: 4,
                   marginLeft: 'auto',
-                  backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+                  backgroundColor: tk.bg,
                   borderRadius: 9,
                   borderCurve: 'continuous',
                   paddingHorizontal: 10,
                   paddingVertical: 6,
                 }}
               >
-                <Text style={{ fontSize: 12, fontWeight: '700', color: palette.neutral400 }}>
+                <Text style={{ ...textRole.caption, ...SYSTEM_WEIGHT.bold, color: tk.ink3 }}>
                   {currency}
                 </Text>
                 <TextInput
@@ -1297,8 +1292,8 @@ function LineItemsField({
                   onChangeText={(v) => onChangeAmount(index, formatCurrencyInput(v, userCurrency))}
                   keyboardType="decimal-pad"
                   placeholder="0.00"
-                  placeholderTextColor={palette.neutral500}
-                  style={{ minWidth: 64, fontSize: 15, fontWeight: '600', color: ink }}
+                  placeholderTextColor={tk.ink4}
+                  style={{ ...textRole.figureSmall, fontSize: 17, minWidth: 64, color: ink }}
                 />
               </View>
             </View>
@@ -1321,8 +1316,8 @@ function LineItemsField({
             borderStyle: 'dashed',
           }}
         >
-          <Plus size={16} color={palette.signature500} />
-          <Text style={{ fontSize: 14, fontWeight: '600', color: palette.signature500 }}>
+          <Plus size={16} color={tk.warm} />
+          <Text style={{ ...textRole.subhead, ...SYSTEM_WEIGHT.semibold, color: tk.warm }}>
             {addLabel}
           </Text>
         </Pressable>
@@ -1346,12 +1341,15 @@ function ReminderOptIn({
   hint: string;
   onToggle: (serviceType: string) => void;
 }) {
+  const tk = reviewTokens(isDark);
   const { t } = useTranslation();
-  const muted = palette.neutral400;
+  const muted = tk.ink3;
   return (
     <View>
       <FieldLabel text={title} isDark={isDark} />
-      <Text style={{ fontSize: 13, color: muted, marginBottom: 8, marginLeft: 2 }}>{hint}</Text>
+      <Text style={{ ...textRole.caption, color: muted, marginBottom: 8, marginLeft: 2 }}>
+        {hint}
+      </Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {candidates.map((serviceType) => {
           const isSelected = selected.has(serviceType);
@@ -1370,33 +1368,21 @@ function ReminderOptIn({
                 paddingHorizontal: 12,
                 borderRadius: 11,
                 borderCurve: 'continuous',
-                backgroundColor: isSelected
-                  ? tint(palette.signature500, 0.12)
-                  : isDark
-                    ? palette.neutral800
-                    : palette.white,
+                backgroundColor: isSelected ? tint(tk.warm, 0.12) : tk.surface,
                 borderWidth: isSelected ? 1.5 : 1,
-                borderColor: isSelected
-                  ? palette.signature500
-                  : isDark
-                    ? palette.neutral700
-                    : palette.neutral200,
+                borderColor: isSelected ? tk.warm : tk.line,
               }}
             >
               {isSelected ? (
-                <Check size={14} color={palette.signature500} strokeWidth={2.5} />
+                <Check size={14} color={tk.warm} strokeWidth={2.5} />
               ) : (
-                <Plus size={14} color={palette.neutral400} strokeWidth={2} />
+                <Plus size={14} color={tk.ink3} strokeWidth={2} />
               )}
               <Text
                 style={{
-                  fontSize: 13,
-                  fontWeight: isSelected ? '700' : '500',
-                  color: isSelected
-                    ? palette.signature500
-                    : isDark
-                      ? palette.neutral300
-                      : palette.neutral600,
+                  ...textRole.label,
+                  ...(isSelected ? SYSTEM_WEIGHT.bold : SYSTEM_WEIGHT.medium),
+                  color: isSelected ? tk.warm : tk.ink2,
                 }}
               >
                 {serviceTypeLabel(serviceType, t)}
@@ -1424,9 +1410,10 @@ function ServiceTypePicker({
   onSelect: (key: string) => void;
   onClose: () => void;
 }) {
+  const tk = reviewTokens(isDark);
   const { t } = useTranslation();
-  const ink = isDark ? palette.neutral50 : palette.neutral900;
-  const sheetBg = isDark ? palette.neutral900 : palette.white;
+  const ink = tk.ink;
+  const sheetBg = tk.surface;
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable
@@ -1449,9 +1436,9 @@ function ServiceTypePicker({
           <View
             style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
           >
-            <Text style={{ fontSize: 17, fontWeight: '800', color: ink }}>{title}</Text>
+            <Text style={{ ...textRole.sectionTitle, color: ink }}>{title}</Text>
             <Pressable onPress={onClose} accessibilityRole="button" hitSlop={8}>
-              <X size={22} color={palette.neutral400} />
+              <X size={22} color={tk.ink3} />
             </Pressable>
           </View>
           <ScrollView style={{ marginTop: 12 }} contentContainerStyle={{ gap: 8 }}>
@@ -1471,25 +1458,21 @@ function ServiceTypePicker({
                     paddingHorizontal: 14,
                     borderRadius: 12,
                     borderCurve: 'continuous',
-                    backgroundColor: isSelected
-                      ? tint(palette.signature500, 0.12)
-                      : isDark
-                        ? palette.neutral800
-                        : palette.neutral50,
+                    backgroundColor: isSelected ? tint(tk.warm, 0.12) : tk.surface2,
                     borderWidth: isSelected ? 1.5 : 1,
-                    borderColor: isSelected ? palette.signature500 : 'transparent',
+                    borderColor: isSelected ? tk.warm : 'transparent',
                   }}
                 >
                   <Text
                     style={{
-                      fontSize: 15,
-                      fontWeight: isSelected ? '700' : '500',
-                      color: isSelected ? palette.signature500 : ink,
+                      ...textRole.subhead,
+                      ...(isSelected ? SYSTEM_WEIGHT.bold : SYSTEM_WEIGHT.medium),
+                      color: isSelected ? tk.warm : ink,
                     }}
                   >
                     {serviceTypeLabel(key, t)}
                   </Text>
-                  {isSelected && <Check size={18} color={palette.signature500} />}
+                  {isSelected && <Check size={18} color={tk.warm} />}
                 </Pressable>
               );
             })}
@@ -1521,13 +1504,10 @@ function DateField({
   onChange: (d: Date) => void;
   onClose: () => void;
 }) {
+  const tk = reviewTokens(isDark);
   const { t } = useTranslation();
-  const ink = isDark ? palette.neutral50 : palette.neutral900;
-  const border = needsCheckCue
-    ? palette.warningBorder
-    : isDark
-      ? palette.neutral700
-      : palette.neutral200;
+  const ink = tk.ink;
+  const border = needsCheckCue ? tint(tk.plateDue, 0.5) : tk.line;
   const display = date
     ? date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
     : placeholder;
@@ -1536,7 +1516,7 @@ function DateField({
       <FieldLabel text={label} isDark={isDark} />
       <View
         style={{
-          backgroundColor: isDark ? palette.neutral800 : palette.white,
+          backgroundColor: tk.surface,
           borderRadius: 12,
           borderCurve: 'continuous',
           borderWidth: needsCheckCue ? 1.5 : 1,
@@ -1556,16 +1536,14 @@ function DateField({
             paddingVertical: 13,
           }}
         >
-          <Calendar size={17} color={palette.neutral400} />
-          <Text style={{ flex: 1, fontSize: 16, color: date ? ink : palette.neutral500 }}>
-            {display}
-          </Text>
+          <Calendar size={17} color={tk.ink3} />
+          <Text style={{ ...textRole.body, flex: 1, color: date ? ink : tk.ink4 }}>{display}</Text>
         </Pressable>
         {expanded && (
           <View
             style={{
               borderTopWidth: 0.5,
-              borderTopColor: palette.neutral700,
+              borderTopColor: tk.line,
               paddingHorizontal: 8,
             }}
           >
@@ -1582,7 +1560,7 @@ function DateField({
             />
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 8 }}>
               <Pressable onPress={onClose} accessibilityRole="button">
-                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.signature500 }}>
+                <Text style={{ ...textRole.subhead, ...SYSTEM_WEIGHT.semibold, color: tk.warm }}>
                   {t('receiptScan.common.done')}
                 </Text>
               </Pressable>
@@ -1612,6 +1590,7 @@ function CategoryField({
   label: string;
   onSelect: (c: string) => void;
 }) {
+  const tk = reviewTokens(isDark);
   const { t } = useTranslation();
   return (
     <View>
@@ -1633,28 +1612,16 @@ function CategoryField({
                 paddingHorizontal: 14,
                 borderRadius: 11,
                 borderCurve: 'continuous',
-                backgroundColor: selected
-                  ? tint(palette.signature500, 0.12)
-                  : isDark
-                    ? palette.neutral800
-                    : palette.white,
+                backgroundColor: selected ? tint(tk.warm, 0.12) : tk.surface,
                 borderWidth: selected ? 1.5 : 1,
-                borderColor: selected
-                  ? palette.signature500
-                  : isDark
-                    ? palette.neutral700
-                    : palette.neutral200,
+                borderColor: selected ? tk.warm : tk.line,
               }}
             >
               <Text
                 style={{
-                  fontSize: 13,
-                  fontWeight: selected ? '700' : '500',
-                  color: selected
-                    ? palette.signature500
-                    : isDark
-                      ? palette.neutral300
-                      : palette.neutral600,
+                  ...textRole.label,
+                  ...(selected ? SYSTEM_WEIGHT.bold : SYSTEM_WEIGHT.medium),
+                  color: selected ? tk.warm : tk.ink2,
                 }}
               >
                 {t(`expenses.category_${c}` as TranslationKey, {
@@ -1695,8 +1662,9 @@ function OdometerRow({
   checkCue: string;
   onToggle: (v: boolean) => void;
 }) {
+  const tk = reviewTokens(isDark);
   const { t } = useTranslation();
-  const ink = isDark ? palette.neutral50 : palette.neutral900;
+  const ink = tk.ink;
   const fmt = (n: number) => n.toLocaleString();
   const valueText = firstSet
     ? `${fmt(next)} ${unitLabel}`
@@ -1708,33 +1676,29 @@ function OdometerRow({
   return (
     <View
       style={{
-        backgroundColor: isDark ? palette.neutral800 : palette.white,
+        backgroundColor: tk.surface,
         borderRadius: 14,
         borderCurve: 'continuous',
         borderWidth: needsCheck ? 1.5 : 1,
-        borderColor: needsCheck
-          ? palette.warningBorder
-          : isDark
-            ? palette.neutral700
-            : palette.neutral200,
+        borderColor: needsCheck ? tint(tk.plateDue, 0.5) : tk.line,
         padding: 14,
         gap: 10,
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: ink, marginBottom: 2 }}>
+          <Text
+            style={{ ...textRole.label, ...SYSTEM_WEIGHT.semibold, color: ink, marginBottom: 2 }}
+          >
             {title}
           </Text>
-          <Text style={{ fontSize: 16, fontWeight: '600', color: palette.signature500 }}>
-            {valueText}
-          </Text>
+          <Text style={{ ...textRole.bodyStrong, color: tk.warm }}>{valueText}</Text>
         </View>
         <Switch
           value={enabled}
           onValueChange={onToggle}
           accessibilityLabel={a11y}
-          trackColor={{ true: palette.signature500, false: palette.neutral500 }}
+          trackColor={{ true: tk.warm, false: tk.surface3 }}
         />
       </View>
       {needsCheck && <NeedsCheckBadge cue={checkCue} />}
@@ -1822,7 +1786,9 @@ function ReceiptZoomModal({
       }}
     >
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.96)', justifyContent: 'center' }}>
+        <View
+          style={{ flex: 1, backgroundColor: tint(palette.black, 0.96), justifyContent: 'center' }}
+        >
           {uri && (
             <GestureDetector gesture={gesture}>
               <Animated.View style={[{ width: '100%', height: '100%' }, imageStyle]}>
@@ -1848,7 +1814,7 @@ function ReceiptZoomModal({
               width: 42,
               height: 42,
               borderRadius: 21,
-              backgroundColor: 'rgba(255,255,255,0.16)',
+              backgroundColor: tint(palette.whitePure, 0.16),
               alignItems: 'center',
               justifyContent: 'center',
             }}
