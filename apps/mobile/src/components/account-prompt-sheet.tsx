@@ -1,9 +1,7 @@
-import { withAlpha } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
-import { Bookmark } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Modal, Pressable, Text, TextInput, View } from 'react-native';
+import { Alert, Modal, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AUTH_EMAIL_REDIRECT_TO } from '../config/auth';
@@ -14,9 +12,11 @@ import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '..
 import { presentOAuthError } from '../lib/oauth-error-alert';
 import { supabase } from '../lib/supabase';
 import { radius, space, type } from '../theme/type';
-import { authButton, authInput, authInputColors } from './auth/auth-styles';
-import { AppleGlyph, GoogleGlyph } from './onboarding/oauth-glyphs';
+import { AuthBusyOverlay, AuthField, OAuthButtons } from './auth/auth-field';
+import { authButton } from './auth/auth-styles';
 import { useOnboardingColors } from './onboarding/onboarding-colors';
+import { OnboardingContinueButton } from './onboarding/onboarding-continue-button';
+import { OnboardingTextButton } from './onboarding/onboarding-shell';
 
 /**
  * Contextual "Save this to your garage" account-save bottom sheet (design name
@@ -181,22 +181,6 @@ export function AccountPromptSheet({
               }}
             />
 
-            {/* Icon tile. */}
-            <View
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: radius.card,
-                borderCurve: 'continuous',
-                backgroundColor: oc.surface2,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: space.md,
-              }}
-            >
-              <Bookmark size={24} color={oc.textPrimary} strokeWidth={1.75} />
-            </View>
-
             <Text
               accessibilityRole="header"
               style={[type.sheetTitle, { color: oc.textPrimary, marginBottom: space.xs }]}
@@ -205,75 +189,56 @@ export function AccountPromptSheet({
             </Text>
 
             {/* Context-aware body. */}
-            <Text
-              style={[
-                type.subhead,
-                { color: oc.textSecondary, maxWidth: 320, marginBottom: space.lg },
-              ]}
-            >
+            <Text style={[type.body, { color: oc.textSecondary, marginBottom: space.xl }]}>
               {t(BODY_KEY[context] as never)}
             </Text>
 
             {emailMode ? (
-              <View style={{ gap: space.sm }}>
-                <TextInput
+              <View style={{ gap: space.md }}>
+                <AuthField
+                  raised
+                  label={t('auth.email')}
                   value={email}
                   onChangeText={setEmail}
-                  placeholder={t('auth.email')}
-                  placeholderTextColor={oc.textMuted}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   autoComplete="email"
-                  style={[authInput, authInputColors(oc)]}
+                  textContentType="emailAddress"
                 />
-                <TextInput
+                <AuthField
+                  raised
+                  label={t('auth.password')}
                   value={password}
                   onChangeText={setPassword}
-                  placeholder={t('auth.password')}
-                  placeholderTextColor={oc.textMuted}
                   secureTextEntry
                   autoComplete="new-password"
-                  style={[authInput, authInputColors(oc)]}
+                  textContentType="newPassword"
                 />
-                <Pressable
+                <OnboardingContinueButton
+                  label={t('onboarding.obAccountCreate')}
                   onPress={handleEmail}
                   disabled={!canSubmitEmail}
-                  style={[authButton(oc.warm), { opacity: canSubmitEmail ? 1 : 0.5 }]}
-                >
-                  <Text style={[type.bodyStrong, { color: oc.textOnAccent }]}>
-                    {t('onboarding.obAccountCreate')}
-                  </Text>
-                </Pressable>
-                <Pressable
+                />
+                <OnboardingTextButton
+                  label={t('onboarding.obAccountOtherOptions')}
                   onPress={() => setEmailMode(false)}
-                  hitSlop={8}
-                  style={{ alignSelf: 'center' }}
-                >
-                  <Text style={[type.label, { color: oc.ink3, marginTop: space.xxs }]}>
-                    {t('onboarding.obAccountOtherOptions')}
-                  </Text>
-                </Pressable>
+                />
               </View>
             ) : (
               <View style={{ gap: space.sm }}>
-                {process.env.EXPO_OS === 'ios' ? (
-                  <Pressable onPress={handleApple} style={authButton(oc.textWhite)}>
-                    <AppleGlyph size={18} color={oc.background} />
-                    <Text style={[type.bodyStrong, { color: oc.background }]}>
-                      {t('auth.continueWithApple')}
-                    </Text>
-                  </Pressable>
-                ) : null}
+                <OAuthButtons onApple={handleApple} onGoogle={handleGoogle} />
                 <Pressable
-                  onPress={handleGoogle}
-                  style={authButton(oc.cardBg, oc.cardBorderDefault)}
+                  onPress={() => setEmailMode(true)}
+                  accessibilityRole="button"
+                  android_ripple={{ color: oc.line, foreground: true }}
+                  style={({ pressed }) => [
+                    authButton(oc.surface2),
+                    {
+                      overflow: 'hidden',
+                      opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.85 : 1,
+                    },
+                  ]}
                 >
-                  <GoogleGlyph size={18} />
-                  <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
-                    {t('auth.continueWithGoogle')}
-                  </Text>
-                </Pressable>
-                <Pressable onPress={() => setEmailMode(true)} style={authButton(oc.surface2)}>
                   <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
                     {t('onboarding.obAccountWithEmail')}
                   </Text>
@@ -282,41 +247,13 @@ export function AccountPromptSheet({
             )}
 
             {/* Dismiss. */}
-            <Pressable
-              onPress={onDismiss}
-              hitSlop={8}
-              style={{
-                alignSelf: 'center',
-                justifyContent: 'center',
-                minHeight: 44,
-                marginTop: space.xs,
-              }}
-            >
-              <Text style={[type.label, { color: oc.ink3 }]}>{t(CP_KEY.notNow)}</Text>
-            </Pressable>
+            <View style={{ marginTop: space.xs }}>
+              <OnboardingTextButton label={t(CP_KEY.notNow)} onPress={onDismiss} />
+            </View>
           </Pressable>
         </Animated.View>
 
-        {busy ? (
-          <View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: withAlpha(oc.background, 0.9),
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: space.sm,
-            }}
-          >
-            <ActivityIndicator size="large" color={oc.warm} />
-            <Text style={[type.subhead, { color: oc.textSecondary }]}>
-              {t('onboarding.obAccountCreating')}
-            </Text>
-          </View>
-        ) : null}
+        {busy ? <AuthBusyOverlay label={t('onboarding.obAccountCreating')} /> : null}
       </Animated.View>
     </Modal>
   );

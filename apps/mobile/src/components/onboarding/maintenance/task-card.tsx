@@ -179,7 +179,10 @@ export function TaskCard({ task, dragDirection, measurementSystem }: TaskCardPro
       </View>
 
       {/* Title */}
-      <Text style={[type.sheetTitle, { color: oc.textPrimary, marginBottom: space.sm }]}>
+      <Text
+        numberOfLines={2}
+        style={[type.sheetTitle, { color: oc.textPrimary, marginBottom: space.sm }]}
+      >
         {task.taskName}
       </Text>
 
@@ -193,7 +196,9 @@ export function TaskCard({ task, dragDirection, measurementSystem }: TaskCardPro
 
       {/* Description */}
       {task.description && (
-        <Text style={[type.subhead, { color: oc.textSecondary }]}>{task.description}</Text>
+        <Text numberOfLines={3} style={[type.subhead, { color: oc.textSecondary }]}>
+          {task.description}
+        </Text>
       )}
 
       {/* Swipe stamps */}

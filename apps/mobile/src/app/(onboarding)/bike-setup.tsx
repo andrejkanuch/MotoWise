@@ -8,32 +8,25 @@ import { useQuery } from '@tanstack/react-query';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, Text, TextInput, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { BikePhotoField } from '../../components/onboarding/bike-setup/bike-photo-field';
-import { BrandHero } from '../../components/onboarding/bike-setup/brand-hero';
 import { MakeGrid } from '../../components/onboarding/bike-setup/make-grid';
 import { ModelPicker } from '../../components/onboarding/bike-setup/model-picker';
+import { MakeBadge, PickerLabel } from '../../components/onboarding/bike-setup/picker-ui';
 import { VariantSelector } from '../../components/onboarding/bike-setup/variant-selector';
 import { YearStepper } from '../../components/onboarding/bike-setup/year-stepper';
-import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
+import { OnboardingBikePlate } from '../../components/onboarding/onboarding-bike-plate';
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
-import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
-import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { getBrandColor, getBrandDna, MAKE_COLORS, POPULAR_MAKES } from '../../config/brand-dna';
+import {
+  OnboardingShell,
+  OnboardingTextButton,
+} from '../../components/onboarding/onboarding-shell';
+import { getBrandDna, MAKE_COLORS, POPULAR_MAKES } from '../../config/brand-dna';
 import { OB_SCREEN } from '../../config/onboarding';
 import { useMileageUnit } from '../../hooks/use-mileage-unit';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
+import { useOnboardingNext } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
@@ -84,9 +77,7 @@ export default function BikeSetupScreen() {
   const oc = useOnboardingColors();
   const { t } = useTranslation();
   const onBack = useOnboardingBack(OB_SCREEN.BIKE_SETUP);
-  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.BIKE_SETUP);
   const goNext = useOnboardingNext(OB_SCREEN.BIKE_SETUP);
-  const insets = useSafeAreaInsets();
   const setBikeData = useOnboardingStore((s) => s.setBikeData);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
   const existingBikeData = useOnboardingStore((s) => s.bikeData);
@@ -372,365 +363,204 @@ export default function BikeSetupScreen() {
     goNext();
   };
 
-  return (
-    <View style={{ flex: 1, backgroundColor: oc.background }}>
-      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
+  const makeStat = activeMakeName
+    ? makeStats.find((st) => st.make.toLowerCase() === activeMakeName.toLowerCase())
+    : undefined;
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
-      >
-        {/* Header — tap to dismiss keyboard */}
-        <View
-          onStartShouldSetResponder={() => {
-            Keyboard.dismiss();
-            return false;
-          }}
-          style={{ paddingHorizontal: 24, paddingTop: 12 }}
-        >
-          <OnboardingBackButton
-            onPress={onBack}
-            style={{ position: 'absolute', top: 0, left: 16, zIndex: 10 }}
-          />
+  // ── Footer ──────────────────────────────────────────────────
+  const footerSecondary = showIntentConfirm
+    ? {
+        label: t('onboarding.v2IntentConfirmChange' as never),
+        onPress: handleNotMyBike,
+      }
+    : {
+        label: showMakeDetails
+          ? t('onboarding.v2BikeSetupSkip')
+          : t('onboarding.v2BikeSetupNotSure' as never),
+        // With a make picked / custom entry open, the footer is a true skip.
+        // In the empty list it reveals the make-only partial-capture chips.
+        onPress: () => {
+          if (showMakeDetails) {
+            handleSkip();
+          } else {
+            triggerImpact();
+            setShowPartialCapture((v) => !v);
+          }
+        },
+      };
 
-          <View style={{ height: 48 }} />
-
-          <Animated.View entering={FadeInDown.duration(300)}>
-            <Text
-              accessibilityRole="header"
-              style={[type.largeTitle, { color: oc.textPrimary, marginBottom: space.xs }]}
-            >
-              {headline.title}
-            </Text>
-            <Text style={[type.subhead, { color: oc.textSecondary, maxWidth: 330 }]}>
-              {headline.sub}
-            </Text>
-          </Animated.View>
-        </View>
-
-        {/* Scrollable content */}
-        <ScrollView
-          style={{ flex: 1, marginTop: 20 }}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, gap: 20 }}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          showsVerticalScrollIndicator={false}
-        >
-          {showIntentConfirm && selectedMake ? (
-            /* ═══ Intent confirmation: one-tap "Is this your ride?" (P2 T3) ═══ */
-            <IntentConfirmCard
-              makeName={selectedMake.makeName}
-              modelName={selectedModel?.modelName ?? null}
-              year={year}
-              onYearChange={setYear}
-              onStep={triggerImpact}
-              accent={getBrandColor(selectedMake.makeName)}
-            />
-          ) : !showMakeDetails ? (
-            /* ═══ Stage A: Make grid (year is set after a make is picked) ═══ */
-            <MakeGrid
-              makes={makes}
-              stats={makeStats}
-              onSelect={handleSelectMake}
-              onSelectOther={handleSelectOther}
-            />
-          ) : (
-            /* ═══ Stage B: Brand hero + model picker ═══ */
-            <>
-              {/* Model year stepper */}
-              <YearStepper value={year} onChange={setYear} onStep={triggerImpact} />
-
-              {/* Custom make name input (only for "Other"). Stays mounted while
-                  typing — it used to unmount after the first character. */}
-              {isCustomMake && (
-                <View>
-                  <Text style={[sectionLabel, { color: oc.textLabel }]}>
-                    {t('onboarding.v2BikeSetupMakeName')}
-                  </Text>
-                  <TextInput
-                    value={customMakeName}
-                    onChangeText={setCustomMakeName}
-                    placeholder={t('onboarding.v2BikeSetupMakeNamePlaceholder')}
-                    placeholderTextColor={oc.textDimmed}
-                    autoCapitalize="words"
-                    maxLength={50}
-                    autoFocus
-                    style={{
-                      backgroundColor: oc.surfaceInput,
-                      borderWidth: 1,
-                      borderColor: oc.borderSubtle,
-                      borderRadius: radius.control,
-                      borderCurve: 'continuous',
-                      padding: 14,
-                      color: oc.textWhite,
-                      ...type.bodyStrong,
-                    }}
-                  />
-                </View>
-              )}
-
-              {/* Brand hero (only when we have a valid name) */}
-              {showBrandHero && activeMakeName && (
-                <>
-                  <BrandHero
-                    makeName={activeMakeName}
-                    isCustom={isCustomMake}
-                    stats={makeStats}
-                    onChangeMake={handleChangeMake}
-                  />
-
-                  <ModelPicker
-                    makeName={activeMakeName}
-                    isCustomMake={isCustomMake}
-                    models={models}
-                    isLoading={modelsResult.isLoading}
-                    selectedModel={selectedModel}
-                    onSelect={handleSelectModel}
-                    onDismiss={() => setSelectedModel(null)}
-                  />
-
-                  {/* Variant capture (U7) — only once a specific model is chosen;
-                      it's meaningless at the make level. */}
-                  {selectedModel && <VariantSelector value={variant} onChange={setVariant} />}
-
-                  <BikePhotoField photoUri={photoUri} onChange={setPhotoUri} />
-                </>
-              )}
-            </>
-          )}
-        </ScrollView>
-
-        {/* Bottom actions */}
-        <View
-          style={{
-            paddingHorizontal: 20,
-            paddingTop: 14,
-            paddingBottom: insets.bottom + 16,
-            backgroundColor: oc.background,
-          }}
-        >
-          {showIntentConfirm ? (
-            /* ═══ Intent confirmation actions (P2 T3) ═══ */
-            <>
-              <OnboardingContinueButton
-                label={t('onboarding.v2IntentConfirmCta' as never)}
-                onPress={handleContinue}
-                disabled={!canContinue}
-              />
-              <Pressable
-                onPress={handleNotMyBike}
-                accessibilityRole="button"
-                accessibilityLabel={t('onboarding.v2IntentConfirmChange' as never)}
-                style={{ alignSelf: 'center', marginTop: 14, padding: 8 }}
-              >
-                <Text
-                  style={[
-                    type.subhead,
-                    {
-                      color: oc.textSubtitle,
-                      textDecorationLine: 'underline',
-                      textDecorationColor: oc.underlineSubtle,
-                    },
-                  ]}
-                >
-                  {t('onboarding.v2IntentConfirmChange' as never)}
-                </Text>
-              </Pressable>
-            </>
-          ) : (
-            <>
-              {/* Make-only partial capture — reveals quick make chips. */}
-              {!showMakeDetails && showPartialCapture && quickMakes.length > 0 && (
-                <Animated.View
-                  entering={FadeInDown.duration(260)}
-                  style={{
-                    marginBottom: 12,
-                    padding: 14,
-                    borderRadius: 16,
-                    borderCurve: 'continuous',
-                    backgroundColor: oc.surfaceInput,
-                    borderWidth: 1,
-                    borderColor: oc.borderSubtle,
-                  }}
-                >
-                  <Text style={[type.caption, { color: oc.textSecondary, marginBottom: space.xs }]}>
-                    {t('onboarding.v2BikeSetupPartialHelper' as never)}
-                  </Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                    {quickMakes.map((m) => (
-                      <Pressable
-                        key={m.makeId}
-                        onPress={() => handleQuickMake(m)}
-                        accessibilityRole="button"
-                        accessibilityLabel={m.makeName}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: 8,
-                          paddingVertical: 8,
-                          paddingHorizontal: 12,
-                          borderRadius: 999,
-                          backgroundColor: oc.surfaceCardTranslucent,
-                          borderWidth: 1,
-                          borderColor: oc.borderSubtle,
-                        }}
-                      >
-                        <View
-                          style={{
-                            width: 20,
-                            height: 20,
-                            borderRadius: 6,
-                            borderCurve: 'continuous',
-                            backgroundColor: MAKE_COLORS[m.makeName] ?? oc.warm,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontSize: 10,
-                              fontWeight: '800',
-                              color: oc.textWhite,
-                            }}
-                          >
-                            {m.makeName[0]}
-                          </Text>
-                        </View>
-                        <Text style={[type.label, { color: oc.textPrimary }]}>{m.makeName}</Text>
-                      </Pressable>
-                    ))}
-                  </View>
-
-                  {/* True skip — no bike, keeps existing handleSkip navigation. */}
-                  <Pressable
-                    onPress={handleSkip}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('onboarding.v2BikeSetupSkip')}
-                    style={{ alignSelf: 'flex-start', marginTop: 12, paddingVertical: 4 }}
-                  >
-                    <Text
-                      style={[
-                        type.label,
-                        {
-                          color: oc.textMuted,
-                          textDecorationLine: 'underline',
-                          textDecorationColor: oc.underlineSubtle,
-                        },
-                      ]}
-                    >
-                      {t('onboarding.v2BikeSetupSkip')}
-                    </Text>
-                  </Pressable>
-                </Animated.View>
-              )}
-
-              <OnboardingContinueButton
-                label={t('onboarding.v2BikeSetupCta' as never)}
-                onPress={handleContinue}
-                disabled={!canContinue}
-              />
-              <Pressable
-                onPress={() => {
-                  // With a make picked / custom entry open, the footer is a true skip.
-                  // In the empty grid it reveals the make-only partial-capture chips.
-                  if (showMakeDetails) {
-                    handleSkip();
-                  } else {
-                    triggerImpact();
-                    setShowPartialCapture((v) => !v);
-                  }
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  showMakeDetails
-                    ? t('onboarding.v2BikeSetupSkip')
-                    : t('onboarding.v2BikeSetupNotSure' as never)
-                }
-                style={{ alignSelf: 'center', marginTop: 14, padding: 8 }}
-              >
-                <Text
-                  style={[
-                    type.subhead,
-                    {
-                      color: oc.textSubtitle,
-                      textDecorationLine: 'underline',
-                      textDecorationColor: oc.underlineSubtle,
-                    },
-                  ]}
-                >
-                  {showMakeDetails
-                    ? t('onboarding.v2BikeSetupSkip')
-                    : t('onboarding.v2BikeSetupNotSure' as never)}
-                </Text>
-              </Pressable>
-            </>
-          )}
-        </View>
-      </KeyboardAvoidingView>
-    </View>
-  );
-}
-
-const sectionLabel = {
-  ...type.label,
-  marginBottom: space.sm,
-  paddingLeft: 2,
-};
-
-/**
- * Intent confirmation (P2 T3) — a single identity card for the bike carried over
- * from the article, plus the year stepper (the only required input). Confirming
- * runs the normal handleContinue; "Not my bike" drops back to the grid.
- */
-function IntentConfirmCard({
-  makeName,
-  modelName,
-  year,
-  onYearChange,
-  onStep,
-  accent,
-}: {
-  makeName: string;
-  modelName: string | null;
-  year: string;
-  onYearChange: (year: string) => void;
-  onStep: () => void;
-  accent: string;
-}) {
-  const oc = useOnboardingColors();
-  const bikeLabel = modelName ? `${makeName} ${modelName}` : makeName;
-  return (
-    <Animated.View entering={FadeInDown.duration(280)} style={{ gap: 20 }}>
-      <View
+  const partialCapture =
+    !showIntentConfirm && !showMakeDetails && showPartialCapture && quickMakes.length > 0 ? (
+      <Animated.View
+        entering={FadeIn.duration(200)}
         style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 14,
-          padding: 16,
-          borderRadius: 18,
+          marginBottom: space.xs,
+          padding: space.md,
+          gap: space.sm,
+          borderRadius: radius.card,
           borderCurve: 'continuous',
-          backgroundColor: oc.surfaceCardTranslucent,
-          borderWidth: 1,
-          borderColor: oc.cardBorder,
+          backgroundColor: oc.surface,
         }}
       >
-        <View
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 12,
-            borderCurve: 'continuous',
-            backgroundColor: MAKE_COLORS[makeName] ?? accent,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Text style={[type.bodyStrong, { color: oc.textWhite }]}>{makeName[0]}</Text>
+        <Text style={[type.subhead, { color: oc.textSecondary }]}>
+          {t('onboarding.v2BikeSetupPartialHelper' as never)}
+        </Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.xs }}>
+          {quickMakes.map((m) => (
+            <Pressable
+              key={m.makeId}
+              onPress={() => handleQuickMake(m)}
+              accessibilityRole="button"
+              accessibilityLabel={m.makeName}
+              style={{
+                minHeight: 44,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: space.xs,
+                paddingHorizontal: space.sm,
+                borderRadius: radius.control,
+                borderCurve: 'continuous',
+                backgroundColor: oc.surface2,
+              }}
+            >
+              <MakeBadge makeName={m.makeName} color={MAKE_COLORS[m.makeName]} />
+              <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>{m.makeName}</Text>
+            </Pressable>
+          ))}
         </View>
-        <Text style={[type.sheetTitle, { flex: 1, color: oc.textPrimary }]}>{bikeLabel}</Text>
-      </View>
+        {/* True skip — no bike, keeps existing handleSkip navigation. */}
+        <Pressable
+          onPress={handleSkip}
+          accessibilityRole="button"
+          accessibilityLabel={t('onboarding.v2BikeSetupSkip')}
+          style={{ alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' }}
+        >
+          <Text style={[type.bodyStrong, { color: oc.warm2 }]}>
+            {t('onboarding.v2BikeSetupSkip')}
+          </Text>
+        </Pressable>
+      </Animated.View>
+    ) : null;
 
-      <YearStepper value={year} onChange={onYearChange} onStep={onStep} />
-    </Animated.View>
+  return (
+    <OnboardingShell
+      screen={OB_SCREEN.BIKE_SETUP}
+      onBack={onBack}
+      title={headline.title}
+      subtitle={headline.sub}
+      footer={partialCapture}
+      primary={{
+        label: showIntentConfirm
+          ? t('onboarding.v2IntentConfirmCta' as never)
+          : t('onboarding.v2BikeSetupCta' as never),
+        onPress: handleContinue,
+        disabled: !canContinue,
+      }}
+      secondary={footerSecondary}
+      contentStyle={{ gap: space.xl }}
+    >
+      {showIntentConfirm && selectedMake ? (
+        /* ═══ Intent confirmation: one-tap "Is this your ride?" (P2 T3) ═══ */
+        <>
+          <OnboardingBikePlate
+            make={selectedMake.makeName}
+            model={selectedModel?.modelName}
+            year={isValidYear ? yearNum : null}
+          />
+          <YearStepper value={year} onChange={setYear} onStep={triggerImpact} />
+        </>
+      ) : !showMakeDetails ? (
+        /* ═══ Stage A: make list (year is set after a make is picked) ═══ */
+        <MakeGrid
+          makes={makes}
+          stats={makeStats}
+          onSelect={handleSelectMake}
+          onSelectOther={handleSelectOther}
+        />
+      ) : (
+        /* ═══ Stage B: the bike becomes a plate, then model / year / extras ═══ */
+        <>
+          {showBrandHero && activeMakeName ? (
+            <View style={{ gap: space.xs }}>
+              <OnboardingBikePlate
+                make={activeMakeName}
+                model={selectedModel?.modelName}
+                year={isValidYear ? yearNum : null}
+              />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+                <Text style={[type.subhead, { flex: 1, color: oc.textSecondary }]}>
+                  {isCustomMake
+                    ? t('onboarding.v2BrandHeroWelcomeCustom')
+                    : makeStat && makeStat.riders > 0
+                      ? t('onboarding.v2BrandHeroWelcomeRiders', {
+                          count: makeStat.riders + 1,
+                          makeName: activeMakeName,
+                        })
+                      : t('onboarding.v2BrandHeroWelcomeGeneric', { makeName: activeMakeName })}
+                </Text>
+                <OnboardingTextButton
+                  label={t('onboarding.v2BrandHeroChange')}
+                  onPress={handleChangeMake}
+                />
+              </View>
+            </View>
+          ) : null}
+
+          {/* Custom make name input (only for "Other"). Stays mounted while
+              typing — it used to unmount after the first character. */}
+          {isCustomMake && (
+            <View>
+              <PickerLabel>{t('onboarding.v2BikeSetupMakeName')}</PickerLabel>
+              <TextInput
+                value={customMakeName}
+                onChangeText={setCustomMakeName}
+                placeholder={t('onboarding.v2BikeSetupMakeNamePlaceholder')}
+                placeholderTextColor={oc.textMuted}
+                accessibilityLabel={t('onboarding.v2BikeSetupMakeName')}
+                autoCapitalize="words"
+                maxLength={50}
+                autoFocus
+                selectionColor={oc.warm}
+                style={[
+                  type.body,
+                  {
+                    minHeight: 52,
+                    paddingHorizontal: space.md,
+                    borderRadius: radius.control,
+                    borderCurve: 'continuous',
+                    backgroundColor: oc.surface,
+                    color: oc.textPrimary,
+                  },
+                ]}
+              />
+            </View>
+          )}
+
+          {showBrandHero && activeMakeName && (
+            <ModelPicker
+              makeName={activeMakeName}
+              isCustomMake={isCustomMake}
+              models={models}
+              isLoading={modelsResult.isLoading}
+              selectedModel={selectedModel}
+              onSelect={handleSelectModel}
+              onDismiss={() => setSelectedModel(null)}
+            />
+          )}
+
+          {/* Model year stepper */}
+          <YearStepper value={year} onChange={setYear} onStep={triggerImpact} />
+
+          {showBrandHero && activeMakeName && (
+            <>
+              {/* Variant capture (U7) — only once a specific model is chosen;
+                  it's meaningless at the make level. */}
+              {selectedModel && <VariantSelector value={variant} onChange={setVariant} />}
+              <BikePhotoField photoUri={photoUri} onChange={setPhotoUri} />
+            </>
+          )}
+        </>
+      )}
+    </OnboardingShell>
   );
 }

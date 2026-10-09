@@ -45,7 +45,7 @@ export function SessionRestoring({ onGiveUp }: { onGiveUp: () => void }) {
         backgroundColor: oc.background,
       }}
     >
-      <ActivityIndicator color={oc.warm} />
+      <ActivityIndicator color={oc.textMuted} />
       <Text style={[type.body, { color: oc.textPrimary, textAlign: 'center' }]}>
         {t('auth.restoringSession')}
       </Text>

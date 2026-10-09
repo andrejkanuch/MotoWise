@@ -1,26 +1,20 @@
-import { palette, withAlpha } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Check } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
-  FadeInUp,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
+import { OnboardingBikePlate } from '../../components/onboarding/onboarding-bike-plate';
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
-import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { getBikeImage } from '../../config/bike-images';
-import { getBrandColor } from '../../config/brand-dna';
+import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
+import { useOnboardingNext } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -37,9 +31,8 @@ const COMMITMENT_STYLE_HOLD = 'hold';
 export default function CommitmentScreen() {
   const oc = useOnboardingColors();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
+  const reduceMotion = useReducedMotion();
   const onBack = useOnboardingBack(OB_SCREEN.COMMITMENT);
-  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.COMMITMENT);
   const goNext = useOnboardingNext(OB_SCREEN.COMMITMENT);
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
@@ -47,7 +40,6 @@ export default function CommitmentScreen() {
   const make = bikeData?.make ?? '';
   const model = bikeData?.model || undefined;
   const year = bikeData?.year ?? new Date().getFullYear() - 3;
-  const brandColor = getBrandColor(make);
   const bikeName = `${year} ${make}${model ? ` ${model}` : ''}`;
 
   const [sealed, setSealed] = useState(false);
@@ -81,7 +73,7 @@ export default function CommitmentScreen() {
 
   const completeHold = () => {
     setHolding(false);
-    fill.value = withTiming(1, { duration: 120 });
+    fill.value = withTiming(1, { duration: reduceMotion ? 0 : 120 });
     seal();
   };
 
@@ -89,7 +81,8 @@ export default function CommitmentScreen() {
     if (sealed) return;
     setHolding(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    fill.value = withTiming(1, { duration: HOLD_MS });
+    // Reduce Motion: no sweep; the fill lands when the hold completes.
+    if (!reduceMotion) fill.value = withTiming(1, { duration: HOLD_MS });
     holdTimer.current = setTimeout(completeHold, HOLD_MS);
   };
 
@@ -97,7 +90,7 @@ export default function CommitmentScreen() {
     if (sealed) return;
     setHolding(false);
     if (holdTimer.current) clearTimeout(holdTimer.current);
-    fill.value = withTiming(0, { duration: 280 });
+    fill.value = withTiming(0, { duration: reduceMotion ? 0 : 200 });
   };
 
   const skip = () => {
@@ -106,185 +99,80 @@ export default function CommitmentScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: oc.background }}>
-      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingTop: 12,
-          paddingHorizontal: 16,
-          gap: 8,
-        }}
-      >
-        <OnboardingBackButton onPress={onBack} />
-      </View>
-
-      <View
-        style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 }}
-      >
-        {/* bike medallion — the rider's actual bike */}
-        <Animated.View
-          entering={FadeInUp.duration(400)}
-          style={{
-            width: 120,
-            height: 120,
-            borderRadius: 60,
-            marginBottom: 26,
-            borderWidth: 2,
-            borderColor: withAlpha(brandColor, 0.53),
-          }}
-        >
-          <View style={{ width: '100%', height: '100%', borderRadius: 60, overflow: 'hidden' }}>
-            <Image
-              source={bikeData?.photoUri ? { uri: bikeData.photoUri } : getBikeImage(make)}
-              style={{ width: '100%', height: '100%' }}
-              contentFit="cover"
-              transition={250}
-            />
-            <LinearGradient
-              colors={[withAlpha(palette.black, 0), withAlpha(palette.black, 0.45)]}
-              style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 56 }}
-            />
-          </View>
-          {/* brand-letter badge */}
-          <View
-            style={{
-              position: 'absolute',
-              bottom: -6,
-              left: 43,
-              width: 34,
-              height: 34,
-              borderRadius: 11,
-              borderCurve: 'continuous',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: brandColor,
-              borderWidth: 2,
-              borderColor: oc.background,
-            }}
-          >
-            <Text style={[type.bodyStrong, { color: oc.brandMarkInk }]}>
-              {make.charAt(0).toUpperCase()}
-            </Text>
-          </View>
-        </Animated.View>
-
-        <Animated.Text
-          entering={FadeInUp.delay(90).duration(400)}
-          style={[type.largeTitle, { textAlign: 'center', color: oc.textPrimary }]}
-        >
-          {t('onboarding.obCommitTitle')}
-          {'\n'}
-          {t('onboarding.obCommitTitleOf')} {bikeName}.
-        </Animated.Text>
-        <Animated.Text
-          entering={FadeInUp.delay(160).duration(400)}
-          style={[
-            type.subhead,
-            {
-              color: oc.textSecondary,
-              textAlign: 'center',
-              maxWidth: 320,
-              marginTop: space.sm,
-            },
-          ]}
-        >
-          {t('onboarding.obCommitSupportA')}
-        </Animated.Text>
-      </View>
-
-      <View style={{ paddingHorizontal: 24, paddingBottom: insets.bottom + 24 }}>
-        {/* press-and-hold pledge */}
-        <Pressable
-          onPressIn={startHold}
-          onPressOut={cancelHold}
-          disabled={sealed}
-          accessibilityRole="button"
-          accessibilityLabel={t('onboarding.obCommitButtonIdle')}
-          // Screen readers activate with a single action, not a timed hold.
-          accessibilityActions={[{ name: 'activate' }]}
-          onAccessibilityAction={(event) => {
-            if (event.nativeEvent.actionName === 'activate') seal();
-          }}
-          style={{
-            height: 56,
-            borderRadius: radius.control,
-            borderCurve: 'continuous',
-            overflow: 'hidden',
-            backgroundColor: oc.cardBg,
-            borderWidth: 1,
-            borderColor: sealed ? 'transparent' : oc.warm,
-          }}
-        >
-          <Animated.View
-            style={[
-              {
-                position: 'absolute',
-                top: 0,
-                bottom: 0,
-                left: 0,
-                backgroundColor: oc.warm,
-              },
-              fillStyle,
-            ]}
-          />
-          <View
-            style={{
-              flex: 1,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 9,
-            }}
-          >
-            {sealed ? (
-              <>
-                <Text style={[type.bodyStrong, { color: oc.textOnAccent }]}>
-                  {t('onboarding.obCommitButtonDone')}
-                </Text>
-                <Check size={19} color={oc.textOnAccent} strokeWidth={2.6} />
-              </>
-            ) : (
-              <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
-                {holding
-                  ? t('onboarding.obCommitButtonHolding')
-                  : t('onboarding.obCommitButtonIdle')}
-              </Text>
-            )}
-          </View>
-        </Pressable>
-
-        <Text
-          style={[
-            type.caption,
-            {
-              textAlign: 'center',
-              color: sealed ? oc.textSecondary : oc.textMuted,
-              marginTop: space.sm,
-            },
-          ]}
-        >
-          {sealed ? t('onboarding.obCommitPledged') : t('onboarding.obCommitHint')}
-        </Text>
-
-        {!sealed ? (
+    <OnboardingShell
+      screen={OB_SCREEN.COMMITMENT}
+      onBack={onBack}
+      title={`${t('onboarding.obCommitTitle')}\n${t('onboarding.obCommitTitleOf')} ${bikeName}.`}
+      subtitle={t('onboarding.obCommitSupportA')}
+      secondary={sealed ? undefined : { label: t('onboarding.obCommitNotNow'), onPress: skip }}
+      footer={
+        <View style={{ gap: space.xs }}>
+          {/* press-and-hold pledge — the screen's one authored motion */}
           <Pressable
-            onPress={skip}
-            hitSlop={8}
+            onPressIn={startHold}
+            onPressOut={cancelHold}
+            disabled={sealed}
+            accessibilityRole="button"
+            accessibilityLabel={t('onboarding.obCommitButtonIdle')}
+            // Screen readers activate with a single action, not a timed hold.
+            accessibilityActions={[{ name: 'activate' }]}
+            onAccessibilityAction={(event) => {
+              if (event.nativeEvent.actionName === 'activate') seal();
+            }}
             style={{
-              marginTop: space.xs,
-              alignSelf: 'center',
-              minHeight: 44,
-              justifyContent: 'center',
+              minHeight: 52,
+              borderRadius: radius.control,
+              borderCurve: 'continuous',
+              overflow: 'hidden',
+              backgroundColor: oc.surface2,
             }}
           >
-            <Text style={[type.subhead, { color: oc.textSecondary }]}>
-              {t('onboarding.obCommitNotNow')}
-            </Text>
+            <Animated.View
+              style={[
+                { position: 'absolute', top: 0, bottom: 0, left: 0, backgroundColor: oc.warm },
+                fillStyle,
+              ]}
+            />
+            <View
+              style={{
+                flex: 1,
+                minHeight: 52,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: space.xs,
+              }}
+            >
+              {sealed ? (
+                <>
+                  <Text style={[type.bodyStrong, { color: oc.textOnAccent }]}>
+                    {t('onboarding.obCommitButtonDone')}
+                  </Text>
+                  <Check size={19} color={oc.textOnAccent} strokeWidth={2.6} />
+                </>
+              ) : (
+                <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
+                  {holding
+                    ? t('onboarding.obCommitButtonHolding')
+                    : t('onboarding.obCommitButtonIdle')}
+                </Text>
+              )}
+            </View>
           </Pressable>
-        ) : null}
-      </View>
-    </View>
+
+          <Text
+            style={[
+              type.caption,
+              { textAlign: 'center', color: sealed ? oc.textSecondary : oc.textMuted },
+            ]}
+          >
+            {sealed ? t('onboarding.obCommitPledged') : t('onboarding.obCommitHint')}
+          </Text>
+        </View>
+      }
+    >
+      {/* The same plate the rider set up — this is what they're committing to. */}
+      <OnboardingBikePlate make={make} model={model} year={year} />
+    </OnboardingShell>
   );
 }

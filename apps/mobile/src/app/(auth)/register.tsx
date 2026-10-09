@@ -1,26 +1,13 @@
 import * as Haptics from 'expo-haptics';
-import { Image } from 'expo-image';
-import { Link, useRouter } from 'expo-router';
-
-const logo = require('../../assets/images/motovault-logo.webp');
+import { type Href, useRouter } from 'expo-router';
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { authButton, authInput, authInputColors } from '../../components/auth/auth-styles';
+import { Alert, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { AuthDivider, AuthField, OAuthButtons } from '../../components/auth/auth-field';
 import { EMAIL_CODE_SOURCE, EmailCodeStep } from '../../components/auth/email-code-step';
-import { AppleGlyph, GoogleGlyph } from '../../components/onboarding/oauth-glyphs';
-import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
+import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { AUTH_EMAIL_REDIRECT_TO } from '../../config/auth';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
@@ -30,10 +17,11 @@ import { userFriendlyError } from '../../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { supabase } from '../../lib/supabase';
-import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { space } from '../../theme/type';
+
+const LOGIN_ROUTE: Href = '/(auth)/login';
 
 export default function RegisterScreen() {
-  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -83,7 +71,7 @@ export default function RegisterScreen() {
         if (data.user.identities?.length === 0) {
           Alert.alert(t('auth.accountExistsTitle'), t('auth.accountExistsMessage'), [
             { text: t('common.cancel'), style: 'cancel' },
-            { text: t('auth.signIn'), onPress: () => router.replace('/(auth)/login') },
+            { text: t('auth.signIn'), onPress: () => router.replace(LOGIN_ROUTE) },
           ]);
         } else {
           // USER_SIGNED_UP fires from the code step once the account is confirmed.
@@ -136,174 +124,65 @@ export default function RegisterScreen() {
   const canSubmit = email.length > 0 && password.length > 0 && fullName.length > 0 && !loading;
 
   return (
-    <View style={{ flex: 1, backgroundColor: oc.background }}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{
-            flexGrow: 1,
-            justifyContent: 'center',
-            paddingHorizontal: space.xl,
-            paddingVertical: space.xxxl,
-            gap: space.xxl,
-          }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Brand header */}
-          <Animated.View
-            entering={FadeInDown.duration(280)}
-            style={{ alignItems: 'center', gap: space.xs }}
-          >
-            <Image
-              source={logo}
-              style={{
-                width: 88,
-                height: 88,
-                borderRadius: radius.plate,
-                // @ts-expect-error borderCurve works on RN Image but isn't in ImageStyle types
-                borderCurve: 'continuous',
-                marginBottom: space.xs,
-              }}
+    <OnboardingShell
+      title={codeStep ? undefined : t('auth.signUp')}
+      primary={
+        codeStep
+          ? undefined
+          : {
+              label: loading ? t('auth.signingUp') : t('auth.signUp'),
+              onPress: handleRegister,
+              disabled: !canSubmit,
+            }
+      }
+      secondary={
+        codeStep
+          ? undefined
+          : { label: t('auth.hasAccount'), onPress: () => router.push(LOGIN_ROUTE) }
+      }
+    >
+      {codeStep ? (
+        <EmailCodeStep
+          email={codeStep.email}
+          source={EMAIL_CODE_SOURCE.SIGNUP}
+          password={codeStep.password}
+          initialCooldownMs={codeStep.initialCooldownMs}
+          onBack={closeCodeStep}
+          onBusyChange={onCodeStepBusyChange}
+          onNeedsSignIn={() => router.replace(LOGIN_ROUTE)}
+        />
+      ) : (
+        <Animated.View entering={FadeIn.duration(200)} style={{ gap: space.sm }}>
+          <OAuthButtons onApple={handleAppleSignIn} onGoogle={handleGoogleSignIn} />
+          <AuthDivider label={t('auth.orContinueWithEmail')} />
+          <View style={{ gap: space.md }}>
+            <AuthField
+              label={t('auth.fullName')}
+              value={fullName}
+              onChangeText={setFullName}
+              autoComplete="name"
+              textContentType="name"
             />
-            <Text
-              accessibilityRole="header"
-              style={[type.largeTitle, { color: oc.textPrimary, textAlign: 'center' }]}
-            >
-              {t('auth.signUp')}
-            </Text>
-          </Animated.View>
-
-          {codeStep ? (
-            <EmailCodeStep
-              email={codeStep.email}
-              source={EMAIL_CODE_SOURCE.SIGNUP}
-              password={codeStep.password}
-              initialCooldownMs={codeStep.initialCooldownMs}
-              onBack={closeCodeStep}
-              onBusyChange={onCodeStepBusyChange}
-              onNeedsSignIn={() => router.replace('/(auth)/login')}
+            <AuthField
+              label={t('auth.email')}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+              textContentType="emailAddress"
             />
-          ) : (
-            <>
-              {/* Social auth */}
-              <Animated.View entering={FadeInUp.delay(100).duration(280)} style={{ gap: space.sm }}>
-                {process.env.EXPO_OS === 'ios' && (
-                  <Pressable
-                    onPress={handleAppleSignIn}
-                    style={({ pressed }) => [
-                      authButton(oc.textPrimary),
-                      { opacity: pressed ? 0.85 : 1 },
-                    ]}
-                  >
-                    <AppleGlyph size={18} color={oc.background} />
-                    <Text style={[type.bodyStrong, { color: oc.background }]}>
-                      {t('auth.continueWithApple')}
-                    </Text>
-                  </Pressable>
-                )}
-
-                <Pressable
-                  onPress={handleGoogleSignIn}
-                  android_ripple={{ color: oc.borderMuted }}
-                  style={({ pressed }) => [
-                    authButton(oc.surface2),
-                    { opacity: pressed ? 0.85 : 1 },
-                  ]}
-                >
-                  <GoogleGlyph size={18} />
-                  <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
-                    {t('auth.continueWithGoogle')}
-                  </Text>
-                </Pressable>
-              </Animated.View>
-
-              {/* Divider */}
-              <Animated.View
-                entering={FadeIn.delay(160).duration(240)}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}
-              >
-                <View style={{ flex: 1, height: 1, backgroundColor: oc.line }} />
-                <Text style={[type.caption, { color: oc.textMuted }]}>
-                  {t('auth.orContinueWithEmail')}
-                </Text>
-                <View style={{ flex: 1, height: 1, backgroundColor: oc.line }} />
-              </Animated.View>
-
-              {/* Email form */}
-              <Animated.View entering={FadeInUp.delay(200).duration(280)} style={{ gap: space.sm }}>
-                <TextInput
-                  value={fullName}
-                  onChangeText={setFullName}
-                  placeholder={t('auth.fullName')}
-                  placeholderTextColor={oc.textMuted}
-                  autoComplete="name"
-                  style={[authInput, authInputColors(oc)]}
-                />
-                <TextInput
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder={t('auth.email')}
-                  placeholderTextColor={oc.textMuted}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  autoComplete="email"
-                  style={[authInput, authInputColors(oc)]}
-                />
-                <TextInput
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder={t('auth.password')}
-                  placeholderTextColor={oc.textMuted}
-                  secureTextEntry
-                  autoComplete="new-password"
-                  style={[authInput, authInputColors(oc)]}
-                />
-                <Pressable
-                  onPress={handleRegister}
-                  disabled={!canSubmit}
-                  style={({ pressed }) => [
-                    authButton(canSubmit ? oc.warm : oc.surface2),
-                    { opacity: pressed ? 0.85 : 1 },
-                  ]}
-                >
-                  {loading && <ActivityIndicator size="small" color={oc.textOnAccent} />}
-                  <Text
-                    style={[
-                      type.bodyStrong,
-                      {
-                        color: canSubmit ? oc.textOnAccent : oc.textMuted,
-                      },
-                    ]}
-                  >
-                    {loading ? t('auth.signingUp') : t('auth.signUp')}
-                  </Text>
-                </Pressable>
-              </Animated.View>
-
-              {/* Footer */}
-              <Animated.View
-                entering={FadeIn.delay(260).duration(240)}
-                style={{ alignItems: 'center' }}
-              >
-                <Link href="/(auth)/login" asChild>
-                  <Pressable
-                    style={({ pressed }) => ({
-                      opacity: pressed ? 0.6 : 1,
-                      minHeight: 44,
-                      justifyContent: 'center',
-                    })}
-                  >
-                    <Text style={[type.subhead, SYSTEM_WEIGHT.semibold, { color: oc.warm2 }]}>
-                      {t('auth.hasAccount')}
-                    </Text>
-                  </Pressable>
-                </Link>
-              </Animated.View>
-            </>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
+            <AuthField
+              label={t('auth.password')}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoComplete="new-password"
+              textContentType="newPassword"
+            />
+          </View>
+        </Animated.View>
+      )}
+    </OnboardingShell>
   );
 }

@@ -1,11 +1,12 @@
 import type { MotorcycleModelsQuery } from '@motovault/graphql';
-import { Check, Plus, Search, X } from 'lucide-react-native';
+import { Check, Plus, X } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { radius, space, type } from '../../../theme/type';
 import { useOnboardingColors } from '../onboarding-colors';
+import { PickerGroup, PickerLabel, PickerRow, PickerSearchField } from './picker-ui';
 
 type Model = MotorcycleModelsQuery['motorcycleModels'][number];
 
@@ -51,44 +52,29 @@ export function ModelPicker({
 
   const showCustom = query.trim().length > 0 && filtered.length === 0;
 
-  // Selected model confirmation chip
+  // Selected model — one row with a copper check and a change control.
   if (selectedModel) {
     return (
-      <Animated.View entering={FadeIn.duration(280)}>
-        <Text style={[labelStyle, { color: oc.textLabel }]}>
-          {t('onboarding.v2ModelPickerLabel')}
-        </Text>
+      <Animated.View entering={FadeIn.duration(240)}>
+        <PickerLabel>{t('onboarding.v2ModelPickerLabel')}</PickerLabel>
         <View
           style={{
-            padding: 14,
-            paddingHorizontal: space.md,
-            borderRadius: radius.control,
-            borderCurve: 'continuous',
-            backgroundColor: oc.cardBgSelected,
-            borderWidth: 1.5,
-            borderColor: oc.warm,
+            minHeight: 56,
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 12,
+            gap: space.sm,
+            paddingLeft: space.md,
+            paddingRight: space.xxs,
+            borderRadius: radius.control,
+            borderCurve: 'continuous',
+            backgroundColor: oc.surface,
+            borderWidth: 2,
+            borderColor: oc.warm,
           }}
         >
-          <View
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 14,
-              backgroundColor: oc.warm,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Check size={14} color={oc.textOnAccent} strokeWidth={3} />
-          </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text
-              numberOfLines={1}
-              style={[type.bodyStrong, { color: oc.textPrimary, marginBottom: 2 }]}
-            >
+          <Check size={18} strokeWidth={3} color={oc.warm} />
+          <View style={{ flex: 1, minWidth: 0, paddingVertical: space.xs }}>
+            <Text numberOfLines={1} style={[type.bodyStrong, { color: oc.textPrimary }]}>
               {selectedModel.modelName}
             </Text>
             <Text style={[type.caption, { color: oc.textMuted }]}>
@@ -99,17 +85,9 @@ export function ModelPicker({
             onPress={onDismiss}
             accessibilityRole="button"
             accessibilityLabel="Change model"
-            hitSlop={8}
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 14,
-              backgroundColor: oc.surfaceDismiss,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
           >
-            <X size={13} color={oc.iconDismiss} />
+            <X size={18} color={oc.textMuted} />
           </Pressable>
         </View>
       </Animated.View>
@@ -117,116 +95,56 @@ export function ModelPicker({
   }
 
   return (
-    <Animated.View entering={FadeInUp.delay(150).duration(380)}>
-      <Text style={[labelStyle, { color: oc.textLabel }]}>
-        {t('onboarding.v2ModelPickerLabel')}{' '}
-        <Text style={[type.caption, { color: oc.textMuted }]}>
-          {t('onboarding.v2ModelPickerOptional')}
-        </Text>
-      </Text>
+    <Animated.View entering={FadeIn.duration(240)}>
+      <PickerLabel>
+        {t('onboarding.v2ModelPickerLabel')} · {t('onboarding.v2ModelPickerOptional')}
+      </PickerLabel>
 
-      {/* Search */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: oc.surfaceInput,
-          borderWidth: 1,
-          borderColor: oc.borderSubtle,
-          borderRadius: radius.control,
-          borderCurve: 'continuous',
-          paddingHorizontal: 14,
-          gap: 10,
-          marginBottom: 10,
-        }}
-      >
-        <Search size={15} color={oc.textMutedIcon} />
-        <TextInput
+      <View style={{ gap: space.xs }}>
+        <PickerSearchField
           value={query}
           onChangeText={setQuery}
+          maxLength={50}
           placeholder={
             isCustomMake
               ? t('onboarding.v2ModelPickerSearchCustom')
               : t('onboarding.v2ModelPickerSearchPlaceholder', { makeName })
           }
-          placeholderTextColor={oc.textDimmed}
-          autoCapitalize="words"
-          autoCorrect={false}
-          maxLength={50}
-          style={{
-            flex: 1,
-            minHeight: 44,
-            paddingVertical: space.sm,
-            color: oc.textPrimary,
-            ...type.body,
-          }}
         />
-      </View>
 
-      {isLoading && (
-        <View style={{ padding: 16, alignItems: 'center' }}>
-          <ActivityIndicator size="small" color={oc.warm} />
-        </View>
-      )}
+        {isLoading && (
+          <View style={{ padding: space.md, alignItems: 'center' }}>
+            <ActivityIndicator size="small" color={oc.textMuted} />
+          </View>
+        )}
 
-      {/* Model chips */}
-      {!isCustomMake && !isLoading && (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-          {filtered.length === 0 && !query && models.length === 0 && (
-            <Text style={[type.caption, { color: oc.textMuted, padding: space.xxs }]}>
-              {t('onboarding.v2ModelPickerNoCatalog', { makeName })}
-            </Text>
-          )}
-          {filtered.map((m) => (
-            <Pressable
-              key={m.modelId}
-              onPress={() => onSelect(m)}
-              accessibilityRole="button"
-              accessibilityLabel={m.modelName}
-              style={{
-                minHeight: 36,
-                justifyContent: 'center',
-                paddingHorizontal: space.sm,
-                borderRadius: radius.pill,
-                backgroundColor: oc.surfaceInput,
-                borderWidth: 1,
-                borderColor: oc.borderSubtle,
-              }}
-            >
-              <Text style={[type.label, { color: oc.textPrimary }]}>{m.modelName}</Text>
-            </Pressable>
-          ))}
-        </View>
-      )}
-
-      {/* Custom model option */}
-      {showCustom && (
-        <Pressable
-          onPress={() => onSelect({ modelId: 0, modelName: query.trim() })}
-          style={{
-            marginTop: 8,
-            minHeight: 44,
-            paddingHorizontal: 14,
-            borderRadius: radius.control,
-            borderCurve: 'continuous',
-            backgroundColor: oc.surface2,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 10,
-          }}
-        >
-          <Plus size={16} color={oc.warm2} />
-          <Text style={[type.subhead, { color: oc.textPrimary }]}>
-            {t('onboarding.v2ModelPickerUseCustom', { model: query.trim() })}
+        {!isCustomMake && !isLoading && filtered.length === 0 && !query && models.length === 0 && (
+          <Text style={[type.caption, { color: oc.textMuted, marginLeft: space.xxs }]}>
+            {t('onboarding.v2ModelPickerNoCatalog', { makeName })}
           </Text>
-        </Pressable>
-      )}
+        )}
+
+        {/* Model rows — the row text is exactly the model name. */}
+        {!isCustomMake && !isLoading && filtered.length > 0 && (
+          <PickerGroup>
+            {filtered.map((m) => (
+              <PickerRow key={m.modelId} title={m.modelName} onPress={() => onSelect(m)} />
+            ))}
+          </PickerGroup>
+        )}
+
+        {/* Custom model option */}
+        {showCustom && (
+          <PickerGroup>
+            <PickerRow
+              title={t('onboarding.v2ModelPickerUseCustom', { model: query.trim() })}
+              leading={<Plus size={18} color={oc.warm2} />}
+              accent
+              onPress={() => onSelect({ modelId: 0, modelName: query.trim() })}
+            />
+          </PickerGroup>
+        )}
+      </View>
     </Animated.View>
   );
 }
-
-const labelStyle = {
-  ...type.label,
-  marginBottom: space.sm,
-  paddingLeft: 2,
-};

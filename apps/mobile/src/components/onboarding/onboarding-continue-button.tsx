@@ -1,6 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { ArrowRight } from 'lucide-react-native';
 import { Pressable, Text } from 'react-native';
+import { tint } from '../../theme/editorial';
 import { radius, space, type } from '../../theme/type';
 import { triggerNotification } from '../../utils/haptics';
 import { useOnboardingColors } from './onboarding-colors';
@@ -9,14 +10,21 @@ interface OnboardingContinueButtonProps {
   label: string;
   onPress: () => void;
   disabled?: boolean;
+  /** Trailing arrow. Off by default — the copper fill already says "go". */
   showIcon?: boolean;
+  testID?: string;
+  accessibilityLabel?: string;
 }
+
+/** The copper 52pt primary action of every onboarding step (ink = `t.onWarm`). */
 
 export function OnboardingContinueButton({
   label,
   onPress,
   disabled = false,
-  showIcon = true,
+  showIcon = false,
+  testID,
+  accessibilityLabel,
 }: OnboardingContinueButtonProps) {
   const oc = useOnboardingColors();
   const handlePress = () => {
@@ -28,8 +36,11 @@ export function OnboardingContinueButton({
     <Pressable
       onPress={handlePress}
       disabled={disabled}
+      testID={testID}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled }}
+      android_ripple={{ color: tint(oc.textOnAccent, 0.18), foreground: true }}
       style={({ pressed }) => ({
         backgroundColor: disabled ? oc.surface2 : oc.warm,
         borderRadius: radius.control,
@@ -41,7 +52,8 @@ export function OnboardingContinueButton({
         justifyContent: 'center',
         gap: space.xs,
         width: '100%',
-        opacity: pressed && !disabled ? 0.9 : 1,
+        overflow: 'hidden',
+        opacity: pressed && !disabled && process.env.EXPO_OS === 'ios' ? 0.88 : 1,
         transform: [{ scale: pressed && !disabled ? 0.98 : 1 }],
       })}
     >

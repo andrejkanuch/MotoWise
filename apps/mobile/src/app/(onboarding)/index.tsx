@@ -4,11 +4,10 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ArrowRight } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { ONBOARDING_HERO_COLORS } from '../../components/onboarding/onboarding-colors';
 import { getResumeRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { AnalyticsEvent } from '../../lib/analytics';
@@ -17,7 +16,7 @@ import { getStoredFbclid, getStoredUtmProperties } from '../../lib/meta-attribut
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { getOnboardingVariant } from '../../lib/onboarding-experiment';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { radius, space, type } from '../../theme/type';
+import { GUTTER, radius, space, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 // Module-scoped: resume-after-kill must fire only ONCE per app launch — on the
@@ -35,6 +34,7 @@ export default function WelcomeScreen() {
   // The hero is a photo under a dark veil in both schemes, so its text and
   // scrim use the dark tokens regardless of the system scheme.
   const oc = ONBOARDING_HERO_COLORS;
+  const reduceMotion = useReducedMotion();
   const { t } = useTranslation();
   const router = useRouter();
 
@@ -147,7 +147,7 @@ export default function WelcomeScreen() {
       <View
         style={{
           flex: 1,
-          paddingHorizontal: space.xl,
+          paddingHorizontal: GUTTER,
           paddingTop: space.xxxl + space.lg,
           paddingBottom: space.xxxl,
           justifyContent: 'space-between',
@@ -155,7 +155,7 @@ export default function WelcomeScreen() {
       >
         {/* Brand mark */}
         <Animated.View
-          entering={FadeIn.delay(200).duration(400)}
+          entering={reduceMotion ? undefined : FadeIn.delay(100).duration(280)}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
         >
           <View
@@ -183,7 +183,7 @@ export default function WelcomeScreen() {
         {/* Bottom editorial copy */}
         <View>
           {/* Headline — "Your rides. / Your bike. / Your journey." */}
-          <Animated.View entering={FadeInUp.delay(200).duration(300)}>
+          <Animated.View entering={reduceMotion ? undefined : FadeInUp.delay(150).duration(280)}>
             <Text
               accessibilityRole="header"
               style={[
@@ -201,7 +201,7 @@ export default function WelcomeScreen() {
           </Animated.View>
 
           {/* Subtitle */}
-          <Animated.View entering={FadeInUp.delay(250).duration(300)}>
+          <Animated.View entering={reduceMotion ? undefined : FadeInUp.delay(200).duration(280)}>
             <Text
               style={[
                 type.body,
@@ -213,9 +213,11 @@ export default function WelcomeScreen() {
           </Animated.View>
 
           {/* CTA button */}
-          <Animated.View entering={FadeIn.delay(500).duration(300)}>
+          <Animated.View entering={reduceMotion ? undefined : FadeIn.delay(300).duration(240)}>
             <Pressable
               onPress={handleGetStarted}
+              accessibilityRole="button"
+              android_ripple={{ color: withAlpha(oc.textOnAccent, 0.18), foreground: true }}
               style={({ pressed }) => ({
                 backgroundColor: oc.warm,
                 borderRadius: radius.control,
@@ -226,21 +228,22 @@ export default function WelcomeScreen() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: space.xs,
-                opacity: pressed ? 0.9 : 1,
+                overflow: 'hidden',
+                opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.88 : 1,
                 transform: [{ scale: pressed ? 0.98 : 1 }],
               })}
             >
               <Text style={[type.bodyStrong, { color: oc.textOnAccent }]}>
                 {t('onboarding.v2WelcomeCta')}
               </Text>
-              <ArrowRight size={18} color={oc.textOnAccent} />
             </Pressable>
           </Animated.View>
 
           {/* Secondary CTA — returning riders sign in directly */}
-          <Animated.View entering={FadeIn.delay(650).duration(300)}>
+          <Animated.View entering={reduceMotion ? undefined : FadeIn.delay(350).duration(240)}>
             <Pressable
               onPress={handleLogIn}
+              accessibilityRole="button"
               hitSlop={8}
               style={({ pressed }) => ({
                 alignSelf: 'center',

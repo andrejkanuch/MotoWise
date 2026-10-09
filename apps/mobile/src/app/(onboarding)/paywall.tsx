@@ -14,13 +14,11 @@
 import Constants from 'expo-constants';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ActivityIndicator } from 'react-native';
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
-import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { OB_SCREEN } from '../../config/onboarding';
-import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
+import { useOnboardingNext } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import {
@@ -29,7 +27,6 @@ import {
   resolveOnboardingPaywallPlacement,
 } from '../../lib/onboarding-paywall';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { space, type } from '../../theme/type';
 
 const isExpoGo = Constants.appOwnership === 'expo';
 
@@ -54,8 +51,6 @@ const ESCAPE_HATCH_DELAY_MS = 6000;
 export default function PaywallScreen() {
   const oc = useOnboardingColors();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
-  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.PAYWALL);
   const goNext = useOnboardingNext(OB_SCREEN.PAYWALL);
   const presented = useRef(false);
   const advanced = useRef(false);
@@ -205,37 +200,16 @@ export default function PaywallScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: oc.background }}>
-      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color={oc.accent} />
-      </View>
-
-      {/* Only reachable when the native modal never covered this screen. */}
-      {showEscape ? (
-        <Animated.View
-          entering={FadeIn.duration(240)}
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: 0,
-            paddingHorizontal: space.xl,
-            paddingBottom: insets.bottom + space.lg,
-          }}
-        >
-          <Pressable
-            onPress={handleEscape}
-            hitSlop={12}
-            accessibilityRole="button"
-            style={{ alignSelf: 'center', minHeight: 44, justifyContent: 'center' }}
-          >
-            <Text style={[type.subhead, { color: oc.textMuted }]}>
-              {t('onboarding.obPaywallEscape')}
-            </Text>
-          </Pressable>
-        </Animated.View>
-      ) : null}
-    </View>
+    <OnboardingShell
+      screen={OB_SCREEN.PAYWALL}
+      scroll={false}
+      contentStyle={{ alignItems: 'center', justifyContent: 'center' }}
+      // Only reachable when the native modal never covered this screen.
+      secondary={
+        showEscape ? { label: t('onboarding.obPaywallEscape'), onPress: handleEscape } : undefined
+      }
+    >
+      <ActivityIndicator size="large" color={oc.textMuted} />
+    </OnboardingShell>
   );
 }

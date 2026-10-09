@@ -88,7 +88,7 @@ env:
     text: "Not now"
     optional: true
 
-# 4. Find the task, EXPAND it, then tap its "Done" action. "See all" opens the
+# 4. Find the task, then tap its check circle. "See all" opens the
 #    full All Tasks list when the hub truncates to the top few; harmless no-op
 #    (optional) otherwise. The card's actions are now revealed on tap (the
 #    always-visible Done/Edit/Delete row was moved into the expanded state — see
@@ -98,19 +98,17 @@ env:
     optional: true
 - scrollUntilVisible:
     element:
-      text: "${TASK_TITLE}(,.*)?"
+      text: "${TASK_TITLE}([.,].*)?"
     direction: DOWN
-- tapOn: "${TASK_TITLE}(,.*)?" # expand the card to reveal its action row
-- tapOn:
-    text: "Done" # maintenance.markDone — opens the completion screen
-    below:
-      text: "${TASK_TITLE}(,.*)?"
+# The Service row's own check circle marks it done (a11y "Mark <title> done",
+# bikeHub.service.markDoneA11y) and opens the completion screen.
+- tapOn: "Mark ${TASK_TITLE} done"
 
 # 5. Completion screen — record odometer + cost, then mark complete.
 - extendedWaitUntil:
     visible: "Completion details"
     timeout: 20000
-- assertVisible: "${TASK_TITLE}(,.*)?" # completion screen echoes the task title
+- assertVisible: "${TASK_TITLE}([.,].*)?" # completion screen echoes the task title
 - tapOn: "e.g. 15000" # odometer input (targeted by placeholder text)
 - inputText: ${ODOMETER}
 - tapOn:
@@ -150,9 +148,9 @@ env:
     optional: true
 - scrollUntilVisible:
     element:
-      text: "${TASK_TITLE}(,.*)?"
+      text: "${TASK_TITLE}([.,].*)?"
     direction: DOWN
-- assertVisible: "${TASK_TITLE}(,.*)?"
+- assertVisible: "${TASK_TITLE}([.,].*)?"
 # EXPAND the completed card and assert its status discriminator: a completed card
 # offers ONLY Delete (Done/Edit are gated behind !isCompleted). This proves the
 # task actually completed, not merely that its title still renders — without it
@@ -164,15 +162,12 @@ env:
     when:
       notVisible: "Delete"
     commands:
-      - tapOn: "${TASK_TITLE}(,.*)?"
+      - tapOn: "${TASK_TITLE}([.,].*)?"
 - assertVisible:
     text: "Delete"
     below:
-      text: "${TASK_TITLE}(,.*)?"
-- assertNotVisible:
-    text: "Done"
-    below:
-      text: "${TASK_TITLE}(,.*)?"
+      text: "${TASK_TITLE}([.,].*)?"
+- assertNotVisible: "Mark ${TASK_TITLE} done" # a completed row has no check circle
 - takeScreenshot: complete-maintenance-task-done
 
 # 7. Cleanup — delete the completed task so reruns stay deterministic. The card is
@@ -181,7 +176,7 @@ env:
 - tapOn:
     text: "Delete"
     below:
-      text: "${TASK_TITLE}(,.*)?"
+      text: "${TASK_TITLE}([.,].*)?"
 # Wait for the confirm alert to finish presenting — a tap during its entrance
 # animation is dropped on iOS 27 — and retry once if it is still up.
 - extendedWaitUntil:
@@ -204,4 +199,4 @@ env:
           below:
             text: "Are you sure.*"
 - assertNotVisible:
-    text: "${TASK_TITLE}(,.*)?"
+    text: "${TASK_TITLE}([.,].*)?"

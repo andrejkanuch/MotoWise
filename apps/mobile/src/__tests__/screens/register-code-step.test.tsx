@@ -2,7 +2,20 @@
 // into a route (its context regex only skips +api/+html), so a test there would
 // be bundled into the app as a screen.
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+jest.mock('react-native-reanimated', () => ({
+  ...require('react-native-reanimated/mock'),
+  useReducedMotion: () => false,
+}));
+jest.mock('react-native-keyboard-controller', () =>
+  require('react-native-keyboard-controller/jest'),
+);
+// The onboarding shell reads flow progress; these screens are outside the flow.
+jest.mock('../../hooks/use-onboarding-flow', () => ({
+  useOnboardingStep: () => ({ variant: 'garage_first', stepIndex: -1, totalScreens: 0 }),
+}));
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
@@ -79,9 +92,9 @@ async function flush() {
 
 async function register() {
   await render(<RegisterScreen />);
-  await fireEvent.changeText(screen.getByPlaceholderText(t('auth.fullName')), NAME);
-  await fireEvent.changeText(screen.getByPlaceholderText(t('auth.email')), EMAIL);
-  await fireEvent.changeText(screen.getByPlaceholderText(t('auth.password')), PASSWORD);
+  await fireEvent.changeText(screen.getByLabelText(t('auth.fullName')), NAME);
+  await fireEvent.changeText(screen.getByLabelText(t('auth.email')), EMAIL);
+  await fireEvent.changeText(screen.getByLabelText(t('auth.password')), PASSWORD);
   // The header title and the submit button share the label; the button is last.
   const labels = screen.getAllByText(t('auth.signUp'));
   await fireEvent.press(labels[labels.length - 1]);
@@ -123,12 +136,9 @@ describe('Register with email confirmation', () => {
   it('signs up and opens the code step with the trimmed, lowercased email', async () => {
     mockSignUp.mockResolvedValue(noSession);
     await render(<RegisterScreen />);
-    await fireEvent.changeText(screen.getByPlaceholderText(t('auth.fullName')), NAME);
-    await fireEvent.changeText(
-      screen.getByPlaceholderText(t('auth.email')),
-      ` ${EMAIL.toUpperCase()} `,
-    );
-    await fireEvent.changeText(screen.getByPlaceholderText(t('auth.password')), PASSWORD);
+    await fireEvent.changeText(screen.getByLabelText(t('auth.fullName')), NAME);
+    await fireEvent.changeText(screen.getByLabelText(t('auth.email')), ` ${EMAIL.toUpperCase()} `);
+    await fireEvent.changeText(screen.getByLabelText(t('auth.password')), PASSWORD);
     const labels = screen.getAllByText(t('auth.signUp'));
     await fireEvent.press(labels[labels.length - 1]);
     await flush();
@@ -211,9 +221,9 @@ describe('Register with email confirmation', () => {
     await fireEvent.press(screen.getByText(t('auth.codeChangeEmail')));
 
     expect(screen.queryByText(CODE_TITLE())).toBeNull();
-    expect(screen.getByPlaceholderText(t('auth.email')).props.value).toBe(EMAIL);
-    expect(screen.getByPlaceholderText(t('auth.fullName')).props.value).toBe(NAME);
-    expect(screen.getByPlaceholderText(t('auth.password')).props.value).toBe('');
+    expect(screen.getByLabelText(t('auth.email')).props.value).toBe(EMAIL);
+    expect(screen.getByLabelText(t('auth.fullName')).props.value).toBe(NAME);
+    expect(screen.getByLabelText(t('auth.password')).props.value).toBe('');
   });
 
   it('Android hardware back returns to the form', async () => {
@@ -228,7 +238,7 @@ describe('Register with email confirmation', () => {
 
     expect(handled).toBe(true);
     expect(screen.queryByText(CODE_TITLE())).toBeNull();
-    expect(screen.getByPlaceholderText(t('auth.email')).props.value).toBe(EMAIL);
-    expect(screen.getByPlaceholderText(t('auth.password')).props.value).toBe('');
+    expect(screen.getByLabelText(t('auth.email')).props.value).toBe(EMAIL);
+    expect(screen.getByLabelText(t('auth.password')).props.value).toBe('');
   });
 });

@@ -13,13 +13,9 @@ import { type Href, useFocusEffect, useRouter } from 'expo-router';
 import { Clock, Sparkles } from 'lucide-react-native';
 import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
+import { Text, View } from 'react-native';
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
-import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
-import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { OB_SCREEN } from '../../config/onboarding';
 import { MODAL_ROUTE } from '../../config/routes';
 import {
@@ -27,7 +23,7 @@ import {
   type TranslationKey,
 } from '../../features/receipt-scan/scan-flow-constants';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
+import { useOnboardingNext } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -59,9 +55,7 @@ export default function OnboardingScanReceiptScreen() {
   const oc = useOnboardingColors();
   const { t } = useTranslation();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const onBack = useOnboardingBack(OB_SCREEN.SCAN_RECEIPT);
-  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.SCAN_RECEIPT);
   const goNext = useOnboardingNext(OB_SCREEN.SCAN_RECEIPT);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
 
@@ -106,86 +100,46 @@ export default function OnboardingScanReceiptScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: oc.background }}>
-      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
-
-      <OnboardingBackButton
-        onPress={onBack}
-        style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
-      />
-
-      <View style={{ flex: 1, paddingHorizontal: 22, paddingTop: 96 }}>
-        <Animated.Text
-          entering={FadeInUp.delay(70).duration(280)}
-          style={[type.largeTitle, { color: oc.textPrimary, marginBottom: space.sm }]}
-        >
-          {t('onboarding.scanHeadline')}
-        </Animated.Text>
-
-        <Animated.Text
-          entering={FadeInUp.delay(130).duration(280)}
-          style={[type.body, { color: oc.textSecondary, marginBottom: space.xl }]}
-        >
-          {t('onboarding.scanSubtitle')}
-        </Animated.Text>
-
-        <View style={{ gap: space.sm }}>
-          {VALUE_BULLETS.map((bullet, index) => {
-            const Icon = bullet.icon;
-            return (
-              <Animated.View
-                key={bullet.labelKey}
-                entering={FadeInUp.delay(180 + index * 60).duration(280)}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}
-              >
-                <View
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: radius.chip,
-                    borderCurve: 'continuous',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: oc.surface2,
-                  }}
-                >
-                  <Icon size={18} color={oc.textSecondary} />
-                </View>
-                <Text style={[type.body, { flex: 1, color: oc.textPrimary }]}>
-                  {t(bullet.labelKey as TranslationKey)}
-                </Text>
-              </Animated.View>
-            );
-          })}
-        </View>
-      </View>
-
+    <OnboardingShell
+      screen={OB_SCREEN.SCAN_RECEIPT}
+      onBack={onBack}
+      title={t('onboarding.scanHeadline')}
+      subtitle={t('onboarding.scanSubtitle')}
+      primary={{ label: t('onboarding.scanCta'), onPress: handleScan }}
+      secondary={{ label: t('onboarding.scanSkip'), onPress: handleSkip }}
+    >
       <View
         style={{
-          paddingHorizontal: 22,
-          paddingTop: 12,
-          paddingBottom: insets.bottom + 16,
-          backgroundColor: oc.background,
+          borderRadius: radius.card,
+          borderCurve: 'continuous',
+          backgroundColor: oc.surface,
+          overflow: 'hidden',
         }}
       >
-        <OnboardingContinueButton label={t('onboarding.scanCta')} onPress={handleScan} />
-        <Pressable
-          onPress={handleSkip}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={t('onboarding.scanSkip')}
-          style={{
-            marginTop: space.xs,
-            alignSelf: 'center',
-            minHeight: 44,
-            justifyContent: 'center',
-          }}
-        >
-          <Text style={[type.subhead, { color: oc.textSecondary }]}>
-            {t('onboarding.scanSkip')}
-          </Text>
-        </Pressable>
+        {VALUE_BULLETS.map((bullet, index) => {
+          const Icon = bullet.icon;
+          return (
+            <View
+              key={bullet.labelKey}
+              style={{
+                minHeight: 52,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: space.sm,
+                paddingHorizontal: space.md,
+                paddingVertical: space.sm,
+                borderTopWidth: index === 0 ? 0 : 1,
+                borderTopColor: oc.line,
+              }}
+            >
+              <Icon size={18} color={oc.textSecondary} />
+              <Text style={[type.body, { flex: 1, color: oc.textPrimary }]}>
+                {t(bullet.labelKey as TranslationKey)}
+              </Text>
+            </View>
+          );
+        })}
       </View>
-    </View>
+    </OnboardingShell>
   );
 }

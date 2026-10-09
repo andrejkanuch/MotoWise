@@ -5,6 +5,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { radius, space, type } from '../../../theme/type';
 import { triggerImpact } from '../../../utils/haptics';
 import { useOnboardingColors } from '../onboarding-colors';
+import { PickerLabel } from './picker-ui';
 
 /**
  * Minimal drivetrain/trim selector (U7). Writes the bike's `variant` so the OEM
@@ -32,9 +33,7 @@ export function VariantSelector({ value, onChange }: VariantSelectorProps) {
 
   return (
     <Animated.View entering={FadeIn.duration(260)}>
-      <Text style={[type.label, { color: oc.textLabel, marginBottom: space.xs, paddingLeft: 2 }]}>
-        {t('onboarding.v2BikeSetupVariantLabel')}
-      </Text>
+      <PickerLabel>{t('onboarding.v2BikeSetupVariantLabel')}</PickerLabel>
       <View style={{ flexDirection: 'row', gap: 8 }}>
         {OPTIONS.map((opt) => {
           const selected = value === opt.value;
@@ -45,7 +44,7 @@ export function VariantSelector({ value, onChange }: VariantSelectorProps) {
                 triggerImpact();
                 onChange(opt.value);
               }}
-              accessibilityRole="button"
+              accessibilityRole="radio"
               accessibilityState={{ selected }}
               accessibilityLabel={t(opt.labelKey)}
               style={{
@@ -56,9 +55,9 @@ export function VariantSelector({ value, onChange }: VariantSelectorProps) {
                 borderCurve: 'continuous',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: selected ? oc.cardBgSelected : oc.surfaceInput,
-                borderWidth: 1.5,
-                borderColor: selected ? oc.warm : oc.borderSubtle,
+                backgroundColor: oc.surface,
+                borderWidth: 2,
+                borderColor: selected ? oc.warm : 'transparent',
               }}
             >
               <Text
@@ -75,7 +74,9 @@ export function VariantSelector({ value, onChange }: VariantSelectorProps) {
           );
         })}
       </View>
-      <Text style={[type.caption, { color: oc.textMuted, marginTop: space.xs, paddingLeft: 2 }]}>
+      <Text
+        style={[type.caption, { color: oc.textMuted, marginTop: space.xs, marginLeft: space.xxs }]}
+      >
         {t('onboarding.v2BikeSetupVariantHelper')}
       </Text>
     </Animated.View>

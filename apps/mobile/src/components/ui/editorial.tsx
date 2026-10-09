@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { PLATE_FONT, radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
 import { triggerImpact, triggerSelection } from '../../utils/haptics';
 import { NativeToggle } from './native-toggle';
 

@@ -14,6 +14,7 @@ import { useCurrency } from '../../../hooks/use-currency';
 import type { HubUnit } from '../../../lib/bike-hub/constants';
 import { formatOdometer, formatShortDate, hasOdometer } from '../../../lib/bike-hub/format';
 import { formatMoney, serviceTypeLabel } from '../../../lib/expense-constants';
+import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
 import { TaskPhotoGallery } from '../../task-photo-gallery';
 import type { HubTask } from '../shell/use-bike-hub-data';
@@ -384,6 +385,7 @@ interface TaskDetailsProps {
 
 function TaskDetails({ task, motorcycleId, onEdit, onDelete }: TaskDetailsProps) {
   const hub = useHubTheme();
+  const { isDark } = useEditorialTheme();
   const { t } = useTranslation();
   const { currency: displayCurrency } = useCurrency();
   const parts = task.partsNeeded ?? [];
@@ -457,7 +459,7 @@ function TaskDetails({ task, motorcycleId, onEdit, onDelete }: TaskDetailsProps)
         userId={task.userId}
         motorcycleId={motorcycleId}
         photos={task.photos ?? []}
-        isDark
+        isDark={isDark}
       />
       <View
         style={{

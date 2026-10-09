@@ -47,9 +47,9 @@ env:
 #    card that routes to Add Expense.
 - scrollUntilVisible:
     element:
-      text: "No expenses yet(,.*)?" # expenses.empty
+      text: "No expenses yet([.,].*)?" # expenses.empty
     direction: DOWN
-- tapOn: "No expenses yet(,.*)?"
+- tapOn: "No expenses yet([.,].*)?"
 - assertVisible: "Amount" # confirms the Add Expense screen
 - inputText: ${EXPENSE_AMOUNT} # amount field is autoFocused
 - tapOn:
@@ -63,11 +63,20 @@ env:
     text: ".*What did you buy.*" # itemName placeholder (default category)
     optional: true
 - inputText: ${EXPENSE_ITEM}
+# The sheet's Cancel / Save footer is pinned over the bottom of the form, so a
+# field or label behind it is still "visible" to Maestro and a tap lands on the
+# footer (it hit Cancel). Centre the notes field before focusing it, and dismiss
+# the keyboard on a label ABOVE it, never on "Details" right behind the footer.
+- scrollUntilVisible:
+    element:
+      text: ".*What was this expense for.*" # DETAILS placeholder (wildcarded — "?" is a regex metachar)
+    direction: DOWN
+    centerElement: true
 - tapOn:
-    text: ".*What was this expense for.*" # DETAILS placeholder (wildcarded — "?" is a regex metachar)
+    text: ".*What was this expense for.*"
 - inputText: ${EXPENSE_LABEL}
 - tapOn:
-    text: "Details" # non-interactive label — dismisses the custom keyboard
+    text: "Item name.*" # non-interactive label above the notes field — dismisses the keyboard
     optional: true
 - scrollUntilVisible:
     element:

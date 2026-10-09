@@ -1,12 +1,13 @@
 import type { MakeStatsQuery, MotorcycleMakesQuery } from '@motovault/graphql';
-import { Plus, Search } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { MAKE_COLORS, POPULAR_MAKES } from '../../../config/brand-dna';
-import { radius, space, type } from '../../../theme/type';
+import { space, type } from '../../../theme/type';
 import { useOnboardingColors } from '../onboarding-colors';
+import { MakeBadge, PickerGroup, PickerLabel, PickerRow, PickerSearchField } from './picker-ui';
 
 type Make = MotorcycleMakesQuery['motorcycleMakes'][number];
 type MakeStat = MakeStatsQuery['makeStats'][number];
@@ -16,10 +17,6 @@ interface MakeGridProps {
   stats: MakeStat[];
   onSelect: (make: Make) => void;
   onSelectOther: () => void;
-}
-
-function getBadgeColor(makeName: string, fallback: string): string {
-  return MAKE_COLORS[makeName] ?? fallback;
 }
 
 function findStat(stats: MakeStat[], makeName: string): MakeStat | undefined {
@@ -68,197 +65,61 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
   // Shown only when we actually have data; never a fabricated figure.
   const totalRiders = useMemo(() => stats.reduce((sum, s) => sum + (s.riders ?? 0), 0), [stats]);
 
+  const rowFor = (m: Make) => {
+    const stat = findStat(stats, m.makeName);
+    return (
+      <PickerRow
+        key={m.makeId}
+        title={m.makeName}
+        detail={stat && stat.riders > 0 ? String(stat.riders) : undefined}
+        leading={<MakeBadge makeName={m.makeName} color={MAKE_COLORS[m.makeName]} />}
+        onPress={() => onSelect(m)}
+        chevron
+      />
+    );
+  };
+
   return (
-    <Animated.View entering={FadeIn.delay(120).duration(380)} style={{ gap: 12 }}>
-      {/* Search input */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: oc.surfaceInput,
-          borderWidth: 1,
-          borderColor: oc.borderSubtle,
-          borderRadius: radius.control,
-          borderCurve: 'continuous',
-          paddingHorizontal: 14,
-          gap: 10,
-        }}
-      >
-        <Search size={15} color={oc.textMutedIcon} />
-        <TextInput
+    <Animated.View entering={FadeIn.duration(240)} style={{ gap: space.md }}>
+      <View style={{ gap: space.xs }}>
+        <PickerSearchField
           value={query}
           onChangeText={setQuery}
           placeholder={t('onboarding.v2MakeGridSearchPlaceholder' as never)}
-          placeholderTextColor={oc.textDimmed}
-          autoCapitalize="words"
-          autoCorrect={false}
-          style={{
-            flex: 1,
-            minHeight: 44,
-            paddingVertical: space.sm,
-            color: oc.textPrimary,
-            ...type.body,
-          }}
         />
+        {/* Live social-proof teaser — real rider count, only when we have data */}
+        {totalRiders > 0 && (
+          <Text style={[type.caption, { color: oc.textMuted, marginLeft: space.xxs }]}>
+            {t('onboarding.v2MakeGridTeaser' as never, { count: totalRiders })}
+          </Text>
+        )}
       </View>
 
-      {/* Live social-proof teaser — real rider count, only when we have data */}
-      {totalRiders > 0 && (
-        <Text style={[type.caption, { color: oc.textMuted, paddingLeft: 2 }]}>
-          {t('onboarding.v2MakeGridTeaser' as never, { count: totalRiders })}
-        </Text>
-      )}
-
       {isSearching ? (
-        /* Search results list */
-        <View style={{ gap: 6 }}>
-          {searchResults.length === 0 && (
-            <Text style={[type.subhead, { color: oc.textMuted, padding: space.xs }]}>
-              {t('onboarding.v2MakeGridNoMatches')}
-            </Text>
-          )}
-          {searchResults.map((m) => {
-            const stat = findStat(stats, m.makeName);
-            return (
-              <Pressable
-                key={m.makeId}
-                onPress={() => onSelect(m)}
-                accessibilityRole="button"
-                accessibilityLabel={m.makeName}
-                style={{
-                  minHeight: 48,
-                  paddingHorizontal: 14,
-                  borderRadius: radius.control,
-                  borderCurve: 'continuous',
-                  backgroundColor: oc.surfaceInput,
-                  borderWidth: 1,
-                  borderColor: oc.borderSubtle,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 12,
-                }}
-              >
-                <View
-                  style={{
-                    width: 26,
-                    height: 26,
-                    borderRadius: 6,
-                    borderCurve: 'continuous',
-                    backgroundColor: getBadgeColor(m.makeName, oc.brandMarkFallback),
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Text style={[type.label, { fontWeight: '700', color: oc.brandMarkInk }]}>
-                    {m.makeName[0]}
-                  </Text>
-                </View>
-                <Text style={[type.body, { flex: 1, color: oc.textPrimary }]}>{m.makeName}</Text>
-                {stat && stat.riders > 0 && (
-                  <Text style={[type.figureSmall, { fontSize: 15, color: oc.textMuted }]}>
-                    {stat.riders}
-                  </Text>
-                )}
-              </Pressable>
-            );
-          })}
-        </View>
-      ) : (
-        /* Popular makes grid */
-        <View style={{ gap: 12 }}>
-          <Text style={[type.label, { color: oc.textLabel, paddingLeft: 2 }]}>
-            {t('onboarding.v2MakeGridPopularLabel' as never)}
+        searchResults.length === 0 ? (
+          <Text style={[type.subhead, { color: oc.textMuted, marginLeft: space.xxs }]}>
+            {t('onboarding.v2MakeGridNoMatches')}
           </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {popularItems.map((m) => {
-              const stat = findStat(stats, m.makeName);
-              return (
-                <Pressable
-                  key={m.makeId}
-                  onPress={() => onSelect(m)}
-                  accessibilityRole="button"
-                  accessibilityLabel={m.makeName}
-                  style={{
-                    width: '48.5%',
-                    padding: 14,
-                    paddingHorizontal: space.sm,
-                    borderRadius: radius.control,
-                    borderCurve: 'continuous',
-                    backgroundColor: oc.surfaceInput,
-                    borderWidth: 1,
-                    borderColor: oc.borderSubtle,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 10,
-                    minHeight: 52,
-                    position: 'relative',
-                  }}
-                >
-                  {/* Top-3 rank badge */}
-                  {stat && stat.rank <= 3 && (
-                    <Text
-                      style={[
-                        type.caption,
-                        {
-                          position: 'absolute',
-                          top: space.xxs,
-                          right: space.xs,
-                          fontVariant: ['tabular-nums'],
-                          color: oc.textMuted,
-                        },
-                      ]}
-                    >
-                      #{stat.rank}
-                    </Text>
-                  )}
-                  <View
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 5,
-                      borderCurve: 'continuous',
-                      backgroundColor: getBadgeColor(m.makeName, oc.brandMarkFallback),
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Text style={[type.caption, { fontWeight: '700', color: oc.brandMarkInk }]}>
-                      {m.makeName[0]}
-                    </Text>
-                  </View>
-                  <Text numberOfLines={1} style={[type.label, { flex: 1, color: oc.textPrimary }]}>
-                    {m.makeName}
-                  </Text>
-                </Pressable>
-              );
-            })}
-
-            {/* Other make */}
-            <Pressable
-              onPress={onSelectOther}
-              accessibilityRole="button"
-              accessibilityLabel="Other make"
-              style={{
-                width: '100%',
-                paddingHorizontal: space.sm,
-                borderRadius: radius.control,
-                borderCurve: 'continuous',
-                backgroundColor: oc.surface2,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                minHeight: 48,
-              }}
-            >
-              <Plus size={16} color={oc.warm2} />
-              <Text style={[type.label, { color: oc.warm2 }]}>
-                {t('onboarding.v2MakeGridOther')}
-              </Text>
-            </Pressable>
-          </View>
+        ) : (
+          <PickerGroup>{searchResults.map(rowFor)}</PickerGroup>
+        )
+      ) : (
+        <View>
+          <PickerLabel>{t('onboarding.v2MakeGridPopularLabel' as never)}</PickerLabel>
+          <PickerGroup>{popularItems.map(rowFor)}</PickerGroup>
         </View>
       )}
+
+      {/* Other make */}
+      <PickerGroup>
+        <PickerRow
+          title={t('onboarding.v2MakeGridOther')}
+          accessibilityLabel="Other make"
+          leading={<Plus size={18} color={oc.warm2} />}
+          accent
+          onPress={onSelectOther}
+        />
+      </PickerGroup>
     </Animated.View>
   );
 }

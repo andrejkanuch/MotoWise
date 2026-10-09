@@ -16,10 +16,9 @@ import { ImpactFeedbackStyle } from 'expo-haptics';
 import { Check, X } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
-  FadeIn,
   FadeInUp,
   interpolate,
   runOnJS,
@@ -28,16 +27,15 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OemDisclaimerCard } from '../../components/maintenance/oem-disclaimer-card';
 import { TaskCard } from '../../components/onboarding/maintenance/task-card';
-import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
+import { OnboardingBikePlate } from '../../components/onboarding/onboarding-bike-plate';
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
-import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
-import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
+import { PLATE_SIZE } from '../../components/ui/bike-plate';
 import { OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
+import { useOnboardingNext } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
@@ -61,9 +59,7 @@ export default function MaintenanceScreen() {
   const { isDark } = useEditorialTheme();
   const { t } = useTranslation();
   const onBack = useOnboardingBack(OB_SCREEN.MAINTENANCE);
-  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.MAINTENANCE);
   const goNext = useOnboardingNext(OB_SCREEN.MAINTENANCE);
-  const insets = useSafeAreaInsets();
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const pendingIntent = useOnboardingStore((s) => s.pendingIntent);
   const setAcceptedOemScheduleIds = useOnboardingStore((s) => s.setAcceptedOemScheduleIds);
@@ -257,76 +253,76 @@ export default function MaintenanceScreen() {
     return null;
   }
 
+  const title = t('onboarding.v2MaintenanceTitleFull');
+  const subtitle = done
+    ? t('onboarding.v2MaintenancePreloaded', { bikeLabel })
+    : t('onboarding.v2MaintenanceSwipeInstruction', { bikeLabel });
+
   if (isLoading) {
     // Keep the Back button + progress visible while fetching — a bare,
     // escape-less spinner would trap the rider if the request hangs (e.g. slow
     // network, or a cold cache after Back re-enters this screen).
     return (
-      <View style={{ flex: 1, backgroundColor: oc.background }}>
-        <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
-        <OnboardingBackButton
-          onPress={onBack}
-          style={{ position: 'absolute', top: insets.top + 40, left: space.md, zIndex: 10 }}
-        />
+      <OnboardingShell screen={OB_SCREEN.MAINTENANCE} onBack={onBack} title={title} scroll={false}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={oc.warm} />
+          <ActivityIndicator size="large" color={oc.textMuted} />
         </View>
-      </View>
+      </OnboardingShell>
     );
   }
 
-  return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: oc.background }}>
-      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
+  const plate = (
+    <OnboardingBikePlate make={make} model={model} year={year} size={PLATE_SIZE.COMPACT} />
+  );
 
-      {/* Back button */}
-      <OnboardingBackButton
-        onPress={onBack}
-        style={{ position: 'absolute', top: insets.top + 40, left: space.md, zIndex: 10 }}
-      />
+  if (!done) {
+    /* ═══ SWIPE MODE ═══ */
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <OnboardingShell
+          screen={OB_SCREEN.MAINTENANCE}
+          onBack={onBack}
+          title={title}
+          subtitle={subtitle}
+          scroll={false}
+          contentStyle={{ gap: space.sm, paddingTop: space.xs }}
+          secondary={{
+            label: t('onboarding.v2MaintenanceSkipAll'),
+            onPress: () => skipMaintenance({ replace: false }),
+          }}
+          footer={
+            <Text
+              style={[
+                type.caption,
+                { color: oc.textMuted, textAlign: 'center', paddingHorizontal: space.xl },
+              ]}
+            >
+              {t('onboarding.v2MaintenanceReassurance')}
+            </Text>
+          }
+        >
+          {plate}
 
-      {/* Header */}
-      <View style={{ paddingHorizontal: space.lg, paddingTop: 56 + space.md }}>
-        <Animated.View entering={FadeIn.duration(280)}>
-          <Text
-            accessibilityRole="header"
-            style={[type.largeTitle, { color: oc.textPrimary, marginBottom: space.xs }]}
-          >
-            {t('onboarding.v2MaintenanceTitleFull')}
-          </Text>
-          <Text style={[type.subhead, { color: oc.textSecondary, maxWidth: 340 }]}>
-            {done
-              ? t('onboarding.v2MaintenancePreloaded', { bikeLabel })
-              : t('onboarding.v2MaintenanceSwipeInstruction', { bikeLabel })}
-          </Text>
-        </Animated.View>
-      </View>
-
-      {!done ? (
-        /* ═══ SWIPE MODE ═══ */
-        <>
           {/* Counter + progress dots */}
           <View
             style={{
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
-              paddingHorizontal: space.lg,
-              paddingTop: space.sm,
             }}
           >
             <Text style={[type.figureSmall, { color: oc.textSecondary }]}>
               {currentIdx + 1}
               <Text style={{ color: oc.textMuted }}> / {tasks.length}</Text>
             </Text>
-            <View style={{ flexDirection: 'row', gap: 4 }}>
+            <View style={{ flexDirection: 'row', gap: space.xxs }}>
               {tasks.map((task, i) => (
                 <View
                   key={task.id}
                   style={{
                     width: i === currentIdx ? 16 : 4,
                     height: 4,
-                    borderRadius: 2,
+                    borderRadius: radius.pill,
                     backgroundColor:
                       i < currentIdx
                         ? accepted.includes(task.id)
@@ -341,78 +337,66 @@ export default function MaintenanceScreen() {
             </View>
           </View>
 
-          {/* Card stack */}
-          <View
-            style={{
-              flex: 1,
-              marginHorizontal: 24,
-              marginTop: 14,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <View style={{ width: '100%', height: CARD_HEIGHT, position: 'relative' }}>
-              {/* Background cards — animate as top card moves */}
-              {tasks[currentIdx + 2] && (
-                <Animated.View
-                  key={`bg-${tasks[currentIdx + 2].id}`}
-                  style={[
-                    { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
-                    thirdCardStyle,
-                  ]}
-                >
-                  <TaskCard
-                    task={tasks[currentIdx + 2]}
-                    dragDirection={noDrag}
-                    measurementSystem={measurementSystem}
-                  />
-                </Animated.View>
-              )}
-              {tasks[currentIdx + 1] && (
-                <Animated.View
-                  key={`bg-${tasks[currentIdx + 1].id}`}
-                  style={[
-                    { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
-                    nextCardStyle,
-                  ]}
-                >
-                  <TaskCard
-                    task={tasks[currentIdx + 1]}
-                    dragDirection={noDrag}
-                    measurementSystem={measurementSystem}
-                  />
-                </Animated.View>
-              )}
+          {/* Card stack — grows into the free space, capped at the card's design height */}
+          <View style={{ flex: 1, minHeight: 240, maxHeight: CARD_HEIGHT }}>
+            {tasks[currentIdx + 2] && (
+              <Animated.View
+                key={`bg-${tasks[currentIdx + 2].id}`}
+                style={[
+                  { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+                  thirdCardStyle,
+                ]}
+              >
+                <TaskCard
+                  task={tasks[currentIdx + 2]}
+                  dragDirection={noDrag}
+                  measurementSystem={measurementSystem}
+                />
+              </Animated.View>
+            )}
+            {tasks[currentIdx + 1] && (
+              <Animated.View
+                key={`bg-${tasks[currentIdx + 1].id}`}
+                style={[
+                  { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+                  nextCardStyle,
+                ]}
+              >
+                <TaskCard
+                  task={tasks[currentIdx + 1]}
+                  dragDirection={noDrag}
+                  measurementSystem={measurementSystem}
+                />
+              </Animated.View>
+            )}
 
-              {/* Top swipeable card */}
-              {currentTask && (
-                <GestureDetector gesture={panGesture}>
-                  <Animated.View
-                    key={`top-${currentTask.id}`}
-                    style={[
-                      { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 20 },
-                      topCardStyle,
-                    ]}
-                  >
-                    <TaskCard
-                      task={currentTask}
-                      dragDirection={dragDirection}
-                      measurementSystem={measurementSystem}
-                    />
-                  </Animated.View>
-                </GestureDetector>
-              )}
-            </View>
+            {/* Top swipeable card */}
+            {currentTask && (
+              <GestureDetector gesture={panGesture}>
+                <Animated.View
+                  key={`top-${currentTask.id}`}
+                  style={[
+                    { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 20 },
+                    topCardStyle,
+                  ]}
+                >
+                  <TaskCard
+                    task={currentTask}
+                    dragDirection={dragDirection}
+                    measurementSystem={measurementSystem}
+                  />
+                </Animated.View>
+              </GestureDetector>
+            )}
           </View>
 
-          {/* Action buttons */}
+          {/* Skip / add buttons */}
           <View
             style={{
               flexDirection: 'row',
               justifyContent: 'center',
               alignItems: 'center',
-              gap: 18,
-              paddingBottom: 12,
+              gap: space.lg,
             }}
           >
             <Pressable
@@ -420,12 +404,10 @@ export default function MaintenanceScreen() {
               accessibilityRole="button"
               accessibilityLabel="Skip this task"
               style={{
-                width: 60,
-                height: 60,
-                borderRadius: 30,
-                backgroundColor: oc.surfaceInput,
-                borderWidth: 1.5,
-                borderColor: oc.rejectBorder,
+                width: 56,
+                height: 56,
+                borderRadius: radius.pill,
+                backgroundColor: oc.surface2,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -444,12 +426,10 @@ export default function MaintenanceScreen() {
               accessibilityRole="button"
               accessibilityLabel="Add this task"
               style={{
-                width: 60,
-                height: 60,
-                borderRadius: 30,
-                backgroundColor: oc.surfaceInput,
-                borderWidth: 1.5,
-                borderColor: oc.acceptBorder,
+                width: 56,
+                height: 56,
+                borderRadius: radius.pill,
+                backgroundColor: oc.surface2,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -457,159 +437,108 @@ export default function MaintenanceScreen() {
               <Check size={22} color={oc.acceptGreen} strokeWidth={2.5} />
             </Pressable>
           </View>
+        </OnboardingShell>
+      </GestureHandlerRootView>
+    );
+  }
 
-          {/* Skip all + reassurance */}
-          <View style={{ alignItems: 'center', paddingBottom: insets.bottom + 16, gap: 6 }}>
-            <Pressable
-              onPress={() => skipMaintenance({ replace: false })}
-              accessibilityRole="button"
-              style={{ minHeight: 44, justifyContent: 'center', paddingHorizontal: space.xs }}
-            >
-              <Text style={[type.bodyStrong, { color: oc.warm2 }]}>
-                {t('onboarding.v2MaintenanceSkipAll')}
-              </Text>
-            </Pressable>
-            <Text
-              style={[
-                type.caption,
-                {
-                  color: oc.textMuted,
-                  textAlign: 'center',
-                  paddingHorizontal: space.xxxl,
-                },
-              ]}
-            >
-              {t('onboarding.v2MaintenanceReassurance')}
-            </Text>
-          </View>
-        </>
-      ) : (
-        /* ═══ SUMMARY MODE ═══ */
-        <>
-          <ScrollView
-            style={{ flex: 1, marginTop: 20 }}
-            contentContainerStyle={{ paddingHorizontal: space.lg, paddingBottom: space.xl }}
-          >
-            {/* Summary headline */}
-            <Text
-              accessibilityRole="header"
-              style={[type.largeTitle, { color: oc.textPrimary, marginBottom: space.xs }]}
-            >
-              {t('onboarding.v2MaintenanceTaskCount', { count: accepted.length })}{' '}
-              {accepted.length === 0
-                ? t('onboarding.v2MaintenanceAddLater')
-                : t('onboarding.v2MaintenanceOnRadar')}
-            </Text>
-            <Text
-              style={[
-                type.subhead,
-                { color: oc.textSecondary, marginBottom: space.lg, maxWidth: 340 },
-              ]}
-            >
-              {t('onboarding.v2MaintenanceReminders')}
-            </Text>
+  /* ═══ SUMMARY MODE ═══ */
+  return (
+    <OnboardingShell
+      screen={OB_SCREEN.MAINTENANCE}
+      onBack={onBack}
+      title={title}
+      subtitle={subtitle}
+      primary={{
+        label: t('onboarding.continue', { defaultValue: 'Continue' }),
+        onPress: handleContinue,
+      }}
+      secondary={
+        skipped.length > 0
+          ? {
+              label: t('onboarding.v2MaintenanceReconsider', { count: skipped.length }),
+              onPress: () => {
+                setCurrentIdx(0);
+                setAccepted([]);
+                setSkipped([]);
+              },
+            }
+          : undefined
+      }
+    >
+      {plate}
 
-            {/* Accepted tasks list */}
-            {accepted.length > 0 && (
-              <View style={{ gap: 6, marginBottom: 16 }}>
-                {accepted.map((id, i) => {
-                  const task = tasks.find((t) => t.id === id);
-                  if (!task) return null;
-                  return (
-                    <Animated.View
-                      key={id}
-                      entering={FadeInUp.delay(i * 50).duration(380)}
-                      style={{
-                        minHeight: 56,
-                        paddingVertical: space.xs,
-                        paddingHorizontal: space.md,
-                        borderRadius: radius.control,
-                        borderCurve: 'continuous',
-                        backgroundColor: oc.surface,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: space.sm,
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: radius.chip,
-                          borderCurve: 'continuous',
-                          backgroundColor: oc.surface2,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Check size={15} color={oc.success} strokeWidth={2} />
-                      </View>
-                      <View style={{ flex: 1, minWidth: 0 }}>
-                        <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
-                          {task.taskName}
-                        </Text>
-                        <Text
-                          style={[
-                            type.caption,
-                            { color: oc.textMuted, fontVariant: ['tabular-nums'] },
-                          ]}
-                        >
-                          {task.intervalKm
-                            ? `${convertIntervalDistance(
-                                task.intervalKm,
-                                measurementSystem,
-                              ).toLocaleString()} ${intervalDistanceUnit(measurementSystem)}`
-                            : ''}
-                          {task.intervalKm && task.intervalDays ? ' · ' : ''}
-                          {task.intervalDays ? `${Math.round(task.intervalDays / 30)} mo` : ''}
-                        </Text>
-                      </View>
-                    </Animated.View>
-                  );
-                })}
-              </View>
-            )}
+      <Text
+        accessibilityRole="header"
+        style={[type.sectionTitle, { color: oc.textPrimary, marginTop: space.xl }]}
+      >
+        {t('onboarding.v2MaintenanceTaskCount', { count: accepted.length })}{' '}
+        {accepted.length === 0
+          ? t('onboarding.v2MaintenanceAddLater')
+          : t('onboarding.v2MaintenanceOnRadar')}
+      </Text>
+      <Text
+        style={[
+          type.subhead,
+          { color: oc.textSecondary, marginTop: space.xxs, marginBottom: space.md },
+        ]}
+      >
+        {t('onboarding.v2MaintenanceReminders')}
+      </Text>
 
-            {/* Spec-data disclaimer (R5) — after the schedule list */}
-            <OemDisclaimerCard
-              isDark={isDark}
-              delay={accepted.length * 50}
-              style={{ marginTop: 4 }}
-            />
-
-            {/* Reconsider link */}
-            {skipped.length > 0 && (
-              <Pressable
-                onPress={() => {
-                  setCurrentIdx(0);
-                  setAccepted([]);
-                  setSkipped([]);
+      {/* Accepted tasks — inset grouped rows */}
+      {accepted.length > 0 && (
+        <View
+          style={{
+            borderRadius: radius.card,
+            borderCurve: 'continuous',
+            backgroundColor: oc.surface,
+            overflow: 'hidden',
+            marginBottom: space.md,
+          }}
+        >
+          {accepted.map((id, i) => {
+            const task = tasks.find((tk) => tk.id === id);
+            if (!task) return null;
+            return (
+              <Animated.View
+                key={id}
+                entering={FadeInUp.delay(i * 50).duration(240)}
+                style={{
+                  minHeight: 56,
+                  paddingVertical: space.xs,
+                  paddingHorizontal: space.md,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: space.sm,
+                  borderTopWidth: i === 0 ? 0 : 1,
+                  borderTopColor: oc.line,
                 }}
-                style={{ alignSelf: 'center', minHeight: 44, justifyContent: 'center' }}
               >
-                <Text style={[type.subhead, { color: oc.warm2 }]}>
-                  {t('onboarding.v2MaintenanceReconsider', { count: skipped.length })}
-                </Text>
-              </Pressable>
-            )}
-          </ScrollView>
-
-          {/* Continue button */}
-          <View
-            style={{
-              paddingHorizontal: space.lg,
-              paddingTop: space.sm,
-              paddingBottom: insets.bottom + space.md,
-            }}
-          >
-            <OnboardingContinueButton
-              label={t('onboarding.continue', { defaultValue: 'Continue' })}
-              onPress={handleContinue}
-              disabled={false}
-            />
-          </View>
-        </>
+                <Check size={18} color={oc.success} strokeWidth={2.5} />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>{task.taskName}</Text>
+                  <Text
+                    style={[type.caption, { color: oc.textMuted, fontVariant: ['tabular-nums'] }]}
+                  >
+                    {task.intervalKm
+                      ? `${convertIntervalDistance(
+                          task.intervalKm,
+                          measurementSystem,
+                        ).toLocaleString()} ${intervalDistanceUnit(measurementSystem)}`
+                      : ''}
+                    {task.intervalKm && task.intervalDays ? ' · ' : ''}
+                    {task.intervalDays ? `${Math.round(task.intervalDays / 30)} mo` : ''}
+                  </Text>
+                </View>
+              </Animated.View>
+            );
+          })}
+        </View>
       )}
-    </GestureHandlerRootView>
+
+      {/* Spec-data disclaimer (R5) — after the schedule list */}
+      <OemDisclaimerCard isDark={isDark} delay={accepted.length * 50} />
+    </OnboardingShell>
   );
 }

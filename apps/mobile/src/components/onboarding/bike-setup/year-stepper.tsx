@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { radius, space, type } from '../../../theme/type';
 import { useOnboardingColors } from '../onboarding-colors';
+import { PickerLabel } from './picker-ui';
 
 const MIN_YEAR = 1970;
 const MAX_YEAR = new Date().getFullYear() + 1;
@@ -15,12 +16,6 @@ interface YearStepperProps {
   /** Haptic/side-effect hook fired on a successful step. */
   onStep?: () => void;
 }
-
-const labelStyle = {
-  ...type.label,
-  marginBottom: space.sm,
-  paddingLeft: 2,
-};
 
 /**
  * Model-year stepper — `< 2023 >` with the year centered as a condensed figure.
@@ -43,25 +38,29 @@ export function YearStepper({ value, onChange, onStep }: YearStepperProps) {
 
   return (
     <View>
-      <Text style={[labelStyle, { color: oc.textLabel }]}>
-        {t('onboarding.v2BikeSetupYearCompact')}
-      </Text>
+      <PickerLabel>{t('onboarding.v2BikeSetupYearCompact')}</PickerLabel>
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          backgroundColor: oc.surfaceInput,
-          borderWidth: 1,
-          borderColor: oc.borderSubtle,
+          backgroundColor: oc.surface,
           borderRadius: radius.card,
           borderCurve: 'continuous',
-          paddingHorizontal: 10,
-          paddingVertical: 8,
+          paddingHorizontal: space.xs,
+          paddingVertical: space.xs,
         }}
       >
         <StepButton direction="prev" disabled={!canDecrement} onPress={() => step(-1)} />
-        <Text style={[type.figure, { color: oc.textPrimary }]}>{value}</Text>
+        <Text
+          accessibilityRole="adjustable"
+          accessibilityLabel={t('onboarding.v2BikeSetupYearCompact')}
+          accessibilityValue={{ text: value }}
+          style={[type.figure, { fontSize: 40, lineHeight: 44, color: oc.textPrimary }]}
+          maxFontSizeMultiplier={1.3}
+        >
+          {value}
+        </Text>
         <StepButton direction="next" disabled={!canIncrement} onPress={() => step(1)} />
       </View>
     </View>
@@ -91,7 +90,7 @@ function StepButton({
         height: 44,
         borderRadius: radius.control,
         borderCurve: 'continuous',
-        backgroundColor: oc.surfaceCardTranslucent,
+        backgroundColor: oc.surface2,
         alignItems: 'center',
         justifyContent: 'center',
         opacity: disabled ? 0.35 : 1,

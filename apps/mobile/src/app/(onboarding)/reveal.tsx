@@ -2,27 +2,18 @@ import { GetOnboardingRevealDocument, type GetOnboardingRevealQuery } from '@mot
 import { MotorcycleType } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { DollarSign, Lightbulb, ShieldCheck, Users, Wrench } from 'lucide-react-native';
 import { type ReactNode, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
+import { OnboardingBikePlate } from '../../components/onboarding/onboarding-bike-plate';
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
-import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
-import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { BikePlate, PLATE_SIZE, PLATE_STATE } from '../../components/ui/bike-plate';
-import { getBikeImage } from '../../config/bike-images';
+import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { getBrandDna } from '../../config/brand-dna';
 import { getPrimaryConcern, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
-import {
-  useOnboardingNext,
-  useOnboardingStep,
-  useOnboardingVariant,
-} from '../../hooks/use-onboarding-flow';
+import { useOnboardingNext, useOnboardingVariant } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
@@ -32,17 +23,6 @@ import { radius, space, type } from '../../theme/type';
 import { getRevealRiderCount } from '../../utils/onboarding-reveal';
 
 type RevealData = GetOnboardingRevealQuery['onboardingReveal'];
-
-const NO_VALUE = '—';
-
-/** Split a brand-DNA interval ("10,000 km") into the plate's figure and unit. */
-function splitInterval(interval: string | undefined): { figure: string; unit?: string } {
-  if (!interval) return { figure: NO_VALUE };
-  const at = interval.lastIndexOf(' ');
-  return at > 0
-    ? { figure: interval.slice(0, at), unit: interval.slice(at + 1) }
-    : { figure: interval };
-}
 
 /** Archetype → Category spec-tile i18n key (falls back to "Tracked"). */
 const CATEGORY_LABEL_KEYS: Record<string, string> = {
@@ -66,10 +46,8 @@ const TYPE_TO_ARCHETYPE: Partial<Record<MotorcycleType, string>> = {
 export default function RevealScreen() {
   const oc = useOnboardingColors();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const variant = useOnboardingVariant();
   const onBack = useOnboardingBack(OB_SCREEN.REVEAL);
-  const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.REVEAL);
   const goNext = useOnboardingNext(OB_SCREEN.REVEAL);
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const stayOnTopOf = useOnboardingStore((s) => s.stayOnTopOf);
@@ -270,117 +248,60 @@ export default function RevealScreen() {
     proofs = [costProof, recallProof, scheduleProof, knownIssuesProof, communityProof];
   }
 
-  // The rider's first plate: a new bike in the garage starts "ready", and its
-  // figure is the make's service interval.
-  const interval = splitInterval(dna?.serviceInterval);
-  const identity = [make, model].filter(Boolean).join(' ');
-
   return (
-    <View style={{ flex: 1, backgroundColor: oc.background }}>
-      <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
+    <OnboardingShell
+      screen={OB_SCREEN.REVEAL}
+      onBack={onBack}
+      title={
+        projectionLed
+          ? t('onboarding.obRevealTitleBFull', { year, make })
+          : t('onboarding.obRevealTitleAFull')
+      }
+      primary={{ label: t('onboarding.continue'), onPress: () => goNext() }}
+    >
+      {/* The signature object — the same plate the rider set up in bike setup. */}
+      <OnboardingBikePlate make={make} model={model} year={year} />
 
-      <OnboardingBackButton
-        onPress={onBack}
-        style={{ position: 'absolute', top: insets.top + 40, left: space.md, zIndex: 10 }}
-      />
-
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{
-          paddingHorizontal: space.lg,
-          paddingTop: 72 + space.md,
-          paddingBottom: 140,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        <Animated.Text
-          entering={FadeInUp.duration(280)}
-          accessibilityRole="header"
-          style={[type.largeTitle, { color: oc.textPrimary, marginBottom: space.lg }]}
-        >
-          {projectionLed
-            ? t('onboarding.obRevealTitleBFull', { year, make })
-            : t('onboarding.obRevealTitleAFull')}
-        </Animated.Text>
-
-        {/* bike photo — rider's own if they added one, else stock per-make */}
-        <Animated.View
-          entering={FadeInUp.delay(80).duration(280)}
+      {/* The rider's own photo, when they added one. */}
+      {bikeData?.photoUri ? (
+        <Image
+          source={{ uri: bikeData.photoUri }}
           style={{
-            height: 132,
-            borderRadius: radius.card,
-            borderCurve: 'continuous',
-            overflow: 'hidden',
-            backgroundColor: oc.surface,
-            marginBottom: space.sm,
-          }}
-        >
-          <Image
-            source={bikeData?.photoUri ? { uri: bikeData.photoUri } : getBikeImage(make)}
-            style={{ width: '100%', height: '100%' }}
-            contentFit="cover"
-            transition={250}
-          />
-          <LinearGradient
-            colors={['transparent', oc.surfaceOverlayMedium]}
-            style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 64 }}
-          />
-        </Animated.View>
-
-        {/* The signature object — the rider meets their bike's plate here. */}
-        <BikePlate
-          state={PLATE_STATE.READY}
-          size={PLATE_SIZE.HERO}
-          figure={interval.figure}
-          unit={interval.unit}
-          caption={t('onboarding.obRevealSpecInterval')}
-          stateLabel={t('home.readyLabel')}
-          identity={`${identity} · ${year}`}
-          accessibilityLabel={`${identity} ${year}, ${t('onboarding.obRevealSpecInterval')} ${interval.figure} ${interval.unit ?? ''}`}
-        />
-
-        {/* Bike facts — inset grouped rows */}
-        <View
-          style={{
+            height: 120,
             marginTop: space.sm,
-            marginBottom: space.xl,
             borderRadius: radius.card,
-            borderCurve: 'continuous',
             backgroundColor: oc.surface,
-            overflow: 'hidden',
           }}
-        >
-          <FactRow
-            label={t('onboarding.obRevealSpecRecalls')}
-            value={String(reveal?.recallCount ?? 0)}
-            numeric
-          />
-          <View style={{ height: 1, marginLeft: space.md, backgroundColor: oc.line }} />
-          <FactRow label={t('onboarding.obRevealSpecCategory')} value={categoryLabel} />
-        </View>
+          contentFit="cover"
+          transition={200}
+          accessibilityIgnoresInvertColors
+        />
+      ) : null}
 
-        <View style={{ gap: space.md, marginBottom: space.lg }}>{proofs.filter(Boolean)}</View>
-
-        <Text style={[type.subhead, { color: oc.textMuted }]}>
-          {t('onboarding.obRevealClosing')}
-        </Text>
-      </ScrollView>
-
+      {/* Bike facts — inset grouped rows */}
       <View
         style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          paddingHorizontal: space.lg,
-          paddingTop: space.sm,
-          paddingBottom: insets.bottom + space.md,
-          backgroundColor: oc.background,
+          marginTop: space.sm,
+          marginBottom: space.xl,
+          borderRadius: radius.card,
+          borderCurve: 'continuous',
+          backgroundColor: oc.surface,
+          overflow: 'hidden',
         }}
       >
-        <OnboardingContinueButton label={t('onboarding.continue')} onPress={goNext} />
+        <FactRow
+          label={t('onboarding.obRevealSpecRecalls')}
+          value={String(reveal?.recallCount ?? 0)}
+          numeric
+        />
+        <View style={{ height: 1, marginLeft: space.md, backgroundColor: oc.line }} />
+        <FactRow label={t('onboarding.obRevealSpecCategory')} value={categoryLabel} />
       </View>
-    </View>
+
+      <View style={{ gap: space.lg, marginBottom: space.lg }}>{proofs.filter(Boolean)}</View>
+
+      <Text style={[type.subhead, { color: oc.textMuted }]}>{t('onboarding.obRevealClosing')}</Text>
+    </OnboardingShell>
   );
 }
 

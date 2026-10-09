@@ -9,7 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { EMAIL_OTP_LENGTH } from '../../config/auth';
 import { useResendCooldown } from '../../hooks/use-resend-cooldown';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
@@ -55,8 +55,8 @@ function emailCodeStepTheme(oc: OnboardingColors): EmailCodeStepTheme {
     textPrimary: oc.textPrimary,
     textSecondary: oc.textSecondary,
     textMuted: oc.textMuted,
-    inputBackground: oc.surface2,
-    inputBorder: oc.cardBorderDefault,
+    inputBackground: oc.surface,
+    inputBorder: oc.line,
     accent: oc.warm2,
     error: oc.error,
   };
@@ -147,6 +147,7 @@ export function EmailCodeStep({
   const { t } = useTranslation();
   const address = normalizeEmail(email);
   const [code, setCode] = useState('');
+  const inputRef = useRef<TextInput>(null);
   const [busy, setBusy] = useState(false);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<StepMessage | null>(null);
@@ -313,20 +314,27 @@ export function EmailCodeStep({
     : t('auth.codeResend');
 
   return (
-    <Animated.View entering={FadeInUp.duration(250)} style={{ gap: space.md }}>
-      <View style={{ gap: space.xs }}>
+    <Animated.View entering={FadeIn.duration(200)} style={{ gap: space.lg }}>
+      {/* Same header rhythm as OnboardingShell: condensed title, one body line. */}
+      <View style={{ gap: space.xs, marginBottom: space.xs }}>
         <Text accessibilityRole="header" style={[type.largeTitle, { color: theme.textPrimary }]}>
           {t('auth.codeTitle')}
         </Text>
-        <Text style={[type.subhead, { color: theme.textSecondary }]}>
+        <Text style={[type.body, { color: theme.textSecondary }]}>
           {t('auth.codeSentTo', { digits: EMAIL_OTP_LENGTH, email: address })}
         </Text>
       </View>
 
       <View style={{ gap: space.xs }}>
+        <Pressable onPress={() => inputRef.current?.focus()} hitSlop={4}>
+          <Text style={[type.label, { color: theme.textSecondary }]}>
+            {t('auth.codeInputLabel')}
+          </Text>
+        </Pressable>
         {/* No native maxLength: it truncates a paste BEFORE onChangeText, so
             "Your code: 482 913" would lose its digits. Length is enforced in handleChangeText. */}
         <TextInput
+          ref={inputRef}
           value={code}
           onChangeText={handleChangeText}
           editable={!fieldDisabled}
@@ -343,8 +351,9 @@ export function EmailCodeStep({
             borderColor: message?.tone === TONE.ERROR ? theme.error : theme.inputBorder,
             borderRadius: radius.control,
             borderCurve: 'continuous',
+            minHeight: 64,
             paddingHorizontal: space.md,
-            paddingVertical: space.md,
+            paddingVertical: space.sm,
             ...type.figure,
             letterSpacing: 10,
             textAlign: 'center',
