@@ -14,6 +14,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
+    "mutation AcknowledgeRecall($motorcycleId: ID!, $campaignNumber: String!) {\n  acknowledgeRecall(motorcycleId: $motorcycleId, campaignNumber: $campaignNumber) {\n    count\n    acknowledgedCount\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n      acknowledged\n      acknowledgedAt\n    }\n  }\n}": typeof types.AcknowledgeRecallDocument,
     "mutation AddDocumentCategory($input: AddDocumentCategoryInput!) {\n  addDocumentCategory(input: $input) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    createdAt\n    updatedAt\n  }\n}": typeof types.AddDocumentCategoryDocument,
     "mutation AddExpensePhoto($input: AddExpensePhotoInput!) {\n  addExpensePhoto(input: $input) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": typeof types.AddExpensePhotoDocument,
     "mutation AddNotePhoto($input: AddNotePhotoInput!) {\n  addNotePhoto(input: $input) {\n    id\n    noteId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": typeof types.AddNotePhotoDocument,
@@ -91,6 +92,7 @@ type Documents = {
     "mutation StartRide($input: StartRideInput!) {\n  startRide(input: $input) {\n    id\n    status\n    startedAt\n    motorcycleId\n  }\n}": typeof types.StartRideDocument,
     "mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    createdAt\n  }\n}": typeof types.SubmitDiagnosticDocument,
     "mutation TrackAffiliateClick($input: TrackClickInput!) {\n  trackAffiliateClick(input: $input) {\n    partner\n    affiliateUrl\n    productUrl\n    tracked\n  }\n}": typeof types.TrackAffiliateClickDocument,
+    "mutation UnacknowledgeRecall($motorcycleId: ID!, $campaignNumber: String!) {\n  unacknowledgeRecall(\n    motorcycleId: $motorcycleId\n    campaignNumber: $campaignNumber\n  ) {\n    count\n    acknowledgedCount\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n      acknowledged\n      acknowledgedAt\n    }\n  }\n}": typeof types.UnacknowledgeRecallDocument,
     "mutation UndoReceiptScanSave($scanId: String!) {\n  undoReceiptScanSave(scanId: $scanId) {\n    __typename\n    ... on UndoReceiptScanSuccess {\n      scanId\n      status\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}": typeof types.UndoReceiptScanSaveDocument,
     "mutation UnfollowRider($input: UnfollowRiderInput!) {\n  unfollowRider(input: $input)\n}": typeof types.UnfollowRiderDocument,
     "mutation UnpublishTemplate($tripId: ID!) {\n  unpublishTemplate(tripId: $tripId)\n}": typeof types.UnpublishTemplateDocument,
@@ -141,7 +143,7 @@ type Documents = {
     "query Me {\n  me {\n    id\n    email\n    fullName\n    role\n    preferences\n    measurementSystem\n    currency\n    publicUsername\n    displayName\n    bio\n    city\n    isPublic\n    followerCount\n    followingCount\n    avatarUrl\n    createdAt\n    updatedAt\n  }\n}": typeof types.MeDocument,
     "query MotorcycleMakes {\n  motorcycleMakes {\n    makeId\n    makeName\n    isPopular\n  }\n}": typeof types.MotorcycleMakesDocument,
     "query MotorcycleModels($makeId: Int!, $year: Int!) {\n  motorcycleModels(makeId: $makeId, year: $year) {\n    modelId\n    modelName\n  }\n}": typeof types.MotorcycleModelsDocument,
-    "query MotorcycleRecalls($motorcycleId: String!) {\n  motorcycleRecalls(motorcycleId: $motorcycleId) {\n    count\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n    }\n  }\n}": typeof types.MotorcycleRecallsDocument,
+    "query MotorcycleRecalls($motorcycleId: String!) {\n  motorcycleRecalls(motorcycleId: $motorcycleId) {\n    count\n    acknowledgedCount\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n      acknowledged\n      acknowledgedAt\n    }\n  }\n}": typeof types.MotorcycleRecallsDocument,
     "query MyDiagnostics {\n  myDiagnostics {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": typeof types.MyDiagnosticsDocument,
     "query GetMyHealthReports {\n  getMyHealthReports {\n    id\n    userId\n    motorcycleId\n    status\n    pdfUrl\n    iapTransactionId\n    createdAt\n    completedAt\n  }\n}": typeof types.GetMyHealthReportsDocument,
     "query MyMotorcycles {\n  myMotorcycles {\n    id\n    userId\n    make\n    model\n    year\n    nickname\n    variant\n    isPrimary\n    primaryPhotoUrl\n    currentMileage\n    mileageUnit\n    distanceUnit\n    mileageUpdatedAt\n    purchasePrice\n    purchaseDate\n    type\n    engineCc\n    vin\n    recallCount\n    recallLastCheckedAt\n    odometerSyncSource\n    odometerLastRideId\n    createdAt\n  }\n}": typeof types.MyMotorcyclesDocument,
@@ -198,6 +200,7 @@ type Documents = {
     "query WebTripReviews($country: String!, $region: String!, $slug: String!, $first: Int) {\n  tripReviews(country: $country, region: $region, slug: $slug, first: $first) {\n    id\n    rating\n    text\n    conditionTags\n    createdAt\n    author {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    bike {\n      make\n      model\n      year\n    }\n  }\n}": typeof types.WebTripReviewsDocument,
 };
 const documents: Documents = {
+    "mutation AcknowledgeRecall($motorcycleId: ID!, $campaignNumber: String!) {\n  acknowledgeRecall(motorcycleId: $motorcycleId, campaignNumber: $campaignNumber) {\n    count\n    acknowledgedCount\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n      acknowledged\n      acknowledgedAt\n    }\n  }\n}": types.AcknowledgeRecallDocument,
     "mutation AddDocumentCategory($input: AddDocumentCategoryInput!) {\n  addDocumentCategory(input: $input) {\n    id\n    name\n    kind\n    isHidden\n    promptsExpiry\n    createdAt\n    updatedAt\n  }\n}": types.AddDocumentCategoryDocument,
     "mutation AddExpensePhoto($input: AddExpensePhotoInput!) {\n  addExpensePhoto(input: $input) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": types.AddExpensePhotoDocument,
     "mutation AddNotePhoto($input: AddNotePhotoInput!) {\n  addNotePhoto(input: $input) {\n    id\n    noteId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": types.AddNotePhotoDocument,
@@ -275,6 +278,7 @@ const documents: Documents = {
     "mutation StartRide($input: StartRideInput!) {\n  startRide(input: $input) {\n    id\n    status\n    startedAt\n    motorcycleId\n  }\n}": types.StartRideDocument,
     "mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    createdAt\n  }\n}": types.SubmitDiagnosticDocument,
     "mutation TrackAffiliateClick($input: TrackClickInput!) {\n  trackAffiliateClick(input: $input) {\n    partner\n    affiliateUrl\n    productUrl\n    tracked\n  }\n}": types.TrackAffiliateClickDocument,
+    "mutation UnacknowledgeRecall($motorcycleId: ID!, $campaignNumber: String!) {\n  unacknowledgeRecall(\n    motorcycleId: $motorcycleId\n    campaignNumber: $campaignNumber\n  ) {\n    count\n    acknowledgedCount\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n      acknowledged\n      acknowledgedAt\n    }\n  }\n}": types.UnacknowledgeRecallDocument,
     "mutation UndoReceiptScanSave($scanId: String!) {\n  undoReceiptScanSave(scanId: $scanId) {\n    __typename\n    ... on UndoReceiptScanSuccess {\n      scanId\n      status\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}": types.UndoReceiptScanSaveDocument,
     "mutation UnfollowRider($input: UnfollowRiderInput!) {\n  unfollowRider(input: $input)\n}": types.UnfollowRiderDocument,
     "mutation UnpublishTemplate($tripId: ID!) {\n  unpublishTemplate(tripId: $tripId)\n}": types.UnpublishTemplateDocument,
@@ -325,7 +329,7 @@ const documents: Documents = {
     "query Me {\n  me {\n    id\n    email\n    fullName\n    role\n    preferences\n    measurementSystem\n    currency\n    publicUsername\n    displayName\n    bio\n    city\n    isPublic\n    followerCount\n    followingCount\n    avatarUrl\n    createdAt\n    updatedAt\n  }\n}": types.MeDocument,
     "query MotorcycleMakes {\n  motorcycleMakes {\n    makeId\n    makeName\n    isPopular\n  }\n}": types.MotorcycleMakesDocument,
     "query MotorcycleModels($makeId: Int!, $year: Int!) {\n  motorcycleModels(makeId: $makeId, year: $year) {\n    modelId\n    modelName\n  }\n}": types.MotorcycleModelsDocument,
-    "query MotorcycleRecalls($motorcycleId: String!) {\n  motorcycleRecalls(motorcycleId: $motorcycleId) {\n    count\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n    }\n  }\n}": types.MotorcycleRecallsDocument,
+    "query MotorcycleRecalls($motorcycleId: String!) {\n  motorcycleRecalls(motorcycleId: $motorcycleId) {\n    count\n    acknowledgedCount\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n      acknowledged\n      acknowledgedAt\n    }\n  }\n}": types.MotorcycleRecallsDocument,
     "query MyDiagnostics {\n  myDiagnostics {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": types.MyDiagnosticsDocument,
     "query GetMyHealthReports {\n  getMyHealthReports {\n    id\n    userId\n    motorcycleId\n    status\n    pdfUrl\n    iapTransactionId\n    createdAt\n    completedAt\n  }\n}": types.GetMyHealthReportsDocument,
     "query MyMotorcycles {\n  myMotorcycles {\n    id\n    userId\n    make\n    model\n    year\n    nickname\n    variant\n    isPrimary\n    primaryPhotoUrl\n    currentMileage\n    mileageUnit\n    distanceUnit\n    mileageUpdatedAt\n    purchasePrice\n    purchaseDate\n    type\n    engineCc\n    vin\n    recallCount\n    recallLastCheckedAt\n    odometerSyncSource\n    odometerLastRideId\n    createdAt\n  }\n}": types.MyMotorcyclesDocument,
@@ -396,6 +400,10 @@ const documents: Documents = {
  */
 export function graphql(source: string): unknown;
 
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation AcknowledgeRecall($motorcycleId: ID!, $campaignNumber: String!) {\n  acknowledgeRecall(motorcycleId: $motorcycleId, campaignNumber: $campaignNumber) {\n    count\n    acknowledgedCount\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n      acknowledged\n      acknowledgedAt\n    }\n  }\n}"): (typeof documents)["mutation AcknowledgeRecall($motorcycleId: ID!, $campaignNumber: String!) {\n  acknowledgeRecall(motorcycleId: $motorcycleId, campaignNumber: $campaignNumber) {\n    count\n    acknowledgedCount\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n      acknowledged\n      acknowledgedAt\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -707,6 +715,10 @@ export function graphql(source: "mutation TrackAffiliateClick($input: TrackClick
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "mutation UnacknowledgeRecall($motorcycleId: ID!, $campaignNumber: String!) {\n  unacknowledgeRecall(\n    motorcycleId: $motorcycleId\n    campaignNumber: $campaignNumber\n  ) {\n    count\n    acknowledgedCount\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n      acknowledged\n      acknowledgedAt\n    }\n  }\n}"): (typeof documents)["mutation UnacknowledgeRecall($motorcycleId: ID!, $campaignNumber: String!) {\n  unacknowledgeRecall(\n    motorcycleId: $motorcycleId\n    campaignNumber: $campaignNumber\n  ) {\n    count\n    acknowledgedCount\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n      acknowledged\n      acknowledgedAt\n    }\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation UndoReceiptScanSave($scanId: String!) {\n  undoReceiptScanSave(scanId: $scanId) {\n    __typename\n    ... on UndoReceiptScanSuccess {\n      scanId\n      status\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}"): (typeof documents)["mutation UndoReceiptScanSave($scanId: String!) {\n  undoReceiptScanSave(scanId: $scanId) {\n    __typename\n    ... on UndoReceiptScanSuccess {\n      scanId\n      status\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -907,7 +919,7 @@ export function graphql(source: "query MotorcycleModels($makeId: Int!, $year: In
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "query MotorcycleRecalls($motorcycleId: String!) {\n  motorcycleRecalls(motorcycleId: $motorcycleId) {\n    count\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n    }\n  }\n}"): (typeof documents)["query MotorcycleRecalls($motorcycleId: String!) {\n  motorcycleRecalls(motorcycleId: $motorcycleId) {\n    count\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n    }\n  }\n}"];
+export function graphql(source: "query MotorcycleRecalls($motorcycleId: String!) {\n  motorcycleRecalls(motorcycleId: $motorcycleId) {\n    count\n    acknowledgedCount\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n      acknowledged\n      acknowledgedAt\n    }\n  }\n}"): (typeof documents)["query MotorcycleRecalls($motorcycleId: String!) {\n  motorcycleRecalls(motorcycleId: $motorcycleId) {\n    count\n    acknowledgedCount\n    checkedAt\n    vinUsed\n    recalls {\n      campaignNumber\n      reportDate\n      component\n      summary\n      consequence\n      remedy\n      acknowledged\n      acknowledgedAt\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

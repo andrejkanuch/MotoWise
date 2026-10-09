@@ -1175,6 +1175,7 @@ enum MotorcycleType {
 }
 
 type Mutation {
+  acknowledgeRecall(campaignNumber: String!, motorcycleId: ID!): RecallResult!
   addDocumentCategory(input: AddDocumentCategoryInput!): DocumentCategory!
   addExpensePhoto(input: AddExpensePhotoInput!): ExpensePhoto!
   addNotePhoto(input: AddNotePhotoInput!): NotePhoto!
@@ -1284,6 +1285,7 @@ type Mutation {
   trackAffiliateClick(input: TrackClickInput!): AffiliateProduct!
   trackSponsorshipClick(input: TrackSponsorshipClickInput!): Boolean!
   trackSponsorshipImpression(input: TrackSponsorshipImpressionInput!): Boolean!
+  unacknowledgeRecall(campaignNumber: String!, motorcycleId: ID!): RecallResult!
   undoReceiptScanSave(scanId: String!): UndoReceiptScanResult!
   unfollowRider(input: UnfollowRiderInput!): Boolean!
   unpublishBlogPost(id: String!): BlogPost!
@@ -1620,6 +1622,8 @@ type QuotaStatus {
 }
 
 type Recall {
+  acknowledged: Boolean!
+  acknowledgedAt: String
   campaignNumber: String!
   component: String!
   consequence: String!
@@ -1629,6 +1633,7 @@ type Recall {
 }
 
 type RecallResult {
+  acknowledgedCount: Int!
   checkedAt: String!
   count: Int!
   recalls: [Recall!]!

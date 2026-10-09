@@ -21,6 +21,8 @@ describe('MotorcyclesResolver', () => {
       'updateMotorcycle',
       'deleteMotorcycle',
       'motorcycleRecalls',
+      'acknowledgeRecall',
+      'unacknowledgeRecall',
     ];
 
     for (const method of protectedMethods) {
@@ -84,6 +86,19 @@ describe('MotorcyclesResolver', () => {
         { load: vi.fn().mockResolvedValue([]) } as never,
         mockSupabase,
       );
+    });
+
+    it("acknowledgeRecall / unacknowledgeRecall delegate with the caller's id", async () => {
+      const fresh = { count: 0, acknowledgedCount: 1, recalls: [], checkedAt: 'now' };
+      const service = mockMotorcyclesService as unknown as Record<string, ReturnType<typeof vi.fn>>;
+      service.acknowledgeRecall = vi.fn().mockResolvedValue(fresh);
+      service.unacknowledgeRecall = vi.fn().mockResolvedValue(fresh);
+      const user = { id: 'user-1', email: 'test@test.com' };
+
+      await expect(resolver.acknowledgeRecall(user, 'moto-1', '23V100000')).resolves.toBe(fresh);
+      await expect(resolver.unacknowledgeRecall(user, 'moto-1', '23V100000')).resolves.toBe(fresh);
+      expect(service.acknowledgeRecall).toHaveBeenCalledWith('user-1', 'moto-1', '23V100000');
+      expect(service.unacknowledgeRecall).toHaveBeenCalledWith('user-1', 'moto-1', '23V100000');
     });
 
     it('should still return motorcycle when oemSchedulesService.autoPopulateForBike throws', async () => {

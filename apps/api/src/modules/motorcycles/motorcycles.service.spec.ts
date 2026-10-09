@@ -3,6 +3,7 @@ import {
   BadRequestException,
   ForbiddenException,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MotorcyclesService } from './motorcycles.service';
@@ -352,4 +353,212 @@ describe('MotorcyclesService', () => {
   });
 
   // getMakeStats moved to MakeStatsService (singleton) — see make-stats.service.spec.ts
+
+  describe('recalls + acknowledgements (00189)', () => {
+    type Result = { data?: unknown; error?: { message: string; code?: string } | null };
+
+    /** A PostgREST-style builder: every call returns itself, awaiting resolves `result`. */
+    function chain(result: Result) {
+      const calls: Array<[string, unknown[]]> = [];
+      const builder: Record<string, unknown> = {};
+      for (const method of ['select', 'eq', 'is', 'single', 'insert', 'delete', 'update']) {
+        builder[method] = vi.fn((...args: unknown[]) => {
+          calls.push([method, args]);
+          return builder;
+        });
+      }
+      // biome-ignore lint/suspicious/noThenProperty: intentional thenable stub — Supabase query builders are awaited directly.
+      builder.then = (resolve: (value: Result) => unknown) =>
+        resolve({ data: null, error: null, ...result });
+      return { builder, calls };
+    }
+
+    const bikeRow = { ...sampleRow, vin: null, recall_count: 2 };
+    const recallA = {
+      campaignNumber: '23V100000',
+      reportDate: '2023-01-01',
+      component: 'BRAKES',
+      summary: 's',
+      consequence: 'c',
+      remedy: 'r',
+    };
+    const recallB = { ...recallA, campaignNumber: '24V200000', component: 'FUEL' };
+    const recallC = { ...recallA, campaignNumber: '25V300000', component: 'LIGHTS' };
+
+    let nhtsa: { getRecalls: ReturnType<typeof vi.fn> };
+    let tables: Record<string, Array<ReturnType<typeof chain>>>;
+    let adminUpdate: ReturnType<typeof chain>;
+
+    /** Queue builders per table, consumed in call order. */
+    function wireUserClient(acks: Result, write?: Result) {
+      tables = {
+        motorcycles: [chain({ data: bikeRow })],
+        recall_acknowledgements: write ? [chain(write), chain(acks)] : [chain(acks)],
+      };
+      (mockUserClient.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
+        const next = tables[table]?.shift();
+        if (!next) throw new Error(`unexpected from(${table})`);
+        return next.builder;
+      });
+    }
+
+    beforeEach(() => {
+      nhtsa = { getRecalls: vi.fn().mockResolvedValue([recallA, recallB, recallC]) };
+      service = new MotorcyclesService(
+        mockUserClient as never,
+        mockAdminClient as never,
+        nhtsa as never,
+      );
+      adminUpdate = chain({ data: null });
+      (mockAdminClient.from as ReturnType<typeof vi.fn>).mockReturnValue(adminUpdate.builder);
+    });
+
+    it('checkRecalls marks acknowledged recalls, lists open first and persists the OPEN count', async () => {
+      wireUserClient({
+        data: [
+          { campaign_number: '23V100000', acknowledged_at: '2026-01-01T00:00:00Z' },
+          { campaign_number: '25V300000', acknowledged_at: '2026-02-01T00:00:00Z' },
+        ],
+      });
+
+      const result = await service.checkRecalls('user-1', 'moto-1');
+
+      expect(result.count).toBe(1);
+      expect(result.acknowledgedCount).toBe(2);
+      expect(result.recalls.map((r) => r.campaignNumber)).toEqual([
+        '24V200000', // open
+        '25V300000', // acknowledged, most recent first
+        '23V100000',
+      ]);
+      expect(result.recalls[0]).toMatchObject({ acknowledged: false, acknowledgedAt: null });
+      expect(result.recalls[1]).toMatchObject({
+        acknowledged: true,
+        acknowledgedAt: '2026-02-01T00:00:00Z',
+      });
+      expect(adminUpdate.builder.update).toHaveBeenCalledWith(
+        expect.objectContaining({ recall_count: 1 }),
+      );
+      // Admin write stays scoped to the owned, live bike.
+      expect(adminUpdate.calls).toEqual(
+        expect.arrayContaining([
+          ['eq', ['id', 'moto-1']],
+          ['eq', ['user_id', 'user-1']],
+          ['is', ['deleted_at', null]],
+        ]),
+      );
+    });
+
+    it('checkRecalls reads acknowledgements through the USER client, scoped to the rider and bike', async () => {
+      wireUserClient({ data: [] });
+      const acks = tables.recall_acknowledgements[0];
+
+      const result = await service.checkRecalls('user-1', 'moto-1');
+
+      expect(result.count).toBe(3);
+      expect(acks.calls).toEqual(
+        expect.arrayContaining([
+          ['eq', ['user_id', 'user-1']],
+          ['eq', ['motorcycle_id', 'moto-1']],
+        ]),
+      );
+      expect(mockAdminClient.from).not.toHaveBeenCalledWith('recall_acknowledgements');
+    });
+
+    it('checkRecalls fails instead of counting dismissed recalls as open when the read fails', async () => {
+      wireUserClient({ data: null, error: { message: 'boom', code: '42P01' } });
+
+      await expect(service.checkRecalls('user-1', 'moto-1')).rejects.toThrow(
+        InternalServerErrorException,
+      );
+      expect(adminUpdate.builder.update).not.toHaveBeenCalled();
+    });
+
+    it("checkRecalls 404s for a bike that is not the caller's", async () => {
+      tables = {
+        motorcycles: [chain({ data: null, error: { message: 'none', code: 'PGRST116' } })],
+      };
+      (mockUserClient.from as ReturnType<typeof vi.fn>).mockImplementation(
+        (table: string) => tables[table].shift()?.builder,
+      );
+
+      await expect(service.checkRecalls('user-2', 'moto-1')).rejects.toThrow(NotFoundException);
+      expect(nhtsa.getRecalls).not.toHaveBeenCalled();
+    });
+
+    it('acknowledgeRecall inserts via the user client and returns the recomputed result', async () => {
+      wireUserClient(
+        { data: [{ campaign_number: '24V200000', acknowledged_at: '2026-03-01T00:00:00Z' }] },
+        { data: null },
+      );
+      const insert = tables.recall_acknowledgements[0];
+
+      const result = await service.acknowledgeRecall('user-1', 'moto-1', '24V200000');
+
+      expect(insert.builder.insert).toHaveBeenCalledWith({
+        user_id: 'user-1',
+        motorcycle_id: 'moto-1',
+        campaign_number: '24V200000',
+      });
+      expect(result.count).toBe(2);
+      expect(result.acknowledgedCount).toBe(1);
+      expect(adminUpdate.builder.update).toHaveBeenCalledWith(
+        expect.objectContaining({ recall_count: 2 }),
+      );
+    });
+
+    it('acknowledgeRecall is idempotent: a unique violation is a no-op', async () => {
+      wireUserClient(
+        { data: [{ campaign_number: '24V200000', acknowledged_at: '2026-03-01T00:00:00Z' }] },
+        { error: { message: 'duplicate key', code: '23505' } },
+      );
+
+      const result = await service.acknowledgeRecall('user-1', 'moto-1', '24V200000');
+
+      expect(result.acknowledgedCount).toBe(1);
+    });
+
+    it('acknowledgeRecall rejects a campaign NHTSA does not list for the bike', async () => {
+      wireUserClient({ data: [] });
+
+      await expect(service.acknowledgeRecall('user-1', 'moto-1', '99V999999')).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(tables.recall_acknowledgements).toHaveLength(1); // nothing written or read
+    });
+
+    it('acknowledgeRecall maps an RLS rejection to NotFound', async () => {
+      wireUserClient({ data: [] }, { error: { message: 'rls', code: '42501' } });
+
+      await expect(service.acknowledgeRecall('user-1', 'moto-1', '24V200000')).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(adminUpdate.builder.update).not.toHaveBeenCalled();
+    });
+
+    it("unacknowledgeRecall hard-deletes the rider's row and returns the recomputed result", async () => {
+      wireUserClient({ data: [] }, { data: null });
+      const del = tables.recall_acknowledgements[0];
+
+      const result = await service.unacknowledgeRecall('user-1', 'moto-1', '24V200000');
+
+      expect(del.builder.delete).toHaveBeenCalled();
+      expect(del.calls).toEqual(
+        expect.arrayContaining([
+          ['eq', ['user_id', 'user-1']],
+          ['eq', ['motorcycle_id', 'moto-1']],
+          ['eq', ['campaign_number', '24V200000']],
+        ]),
+      );
+      expect(result.count).toBe(3);
+      expect(result.acknowledgedCount).toBe(0);
+    });
+
+    it('unacknowledgeRecall surfaces a delete failure', async () => {
+      wireUserClient({ data: [] }, { error: { message: 'boom', code: 'XX000' } });
+
+      await expect(service.unacknowledgeRecall('user-1', 'moto-1', '24V200000')).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+  });
 });
