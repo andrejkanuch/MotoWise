@@ -5,6 +5,10 @@
 #
 #   supabase/checks/run.sh                                # every check
 #   supabase/checks/run.sh process_revenuecat_event.sql   # one check
+#
+# A check that needs schema the throwaway database lacks (auth.users, a
+# migration under test) ships a fixture of the same name in fixtures/, run
+# first in the same container.
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -33,6 +37,10 @@ fi
 
 for check in "${checks[@]}"; do
   echo "== $check"
+  if [ -f "$here/fixtures/$check" ]; then
+    docker exec "$name" psql -X -v ON_ERROR_STOP=1 -U postgres -h 127.0.0.1 -d postgres \
+      -f "/supabase/checks/fixtures/$check"
+  fi
   docker exec "$name" psql -X -v ON_ERROR_STOP=1 -U postgres -h 127.0.0.1 -d postgres \
     -f "/supabase/checks/$check"
 done
