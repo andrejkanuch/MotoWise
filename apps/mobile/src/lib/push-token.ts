@@ -19,6 +19,9 @@ let registeredToken: string | null = null;
  */
 let pushGeneration = 0;
 
+/** Bumped by sign-out unregisters only: decides whether a landed claim may be remembered. */
+let signOutCount = 0;
+
 /** This device's Expo push token, or null when push is unavailable here. */
 async function getDevicePushToken(): Promise<{
   token: string;
@@ -53,6 +56,7 @@ const claimsOnTheWire = new Set<Promise<unknown>>();
 export async function registerForPushNotifications(): Promise<void> {
   pushGeneration += 1;
   const generation = pushGeneration;
+  const signOutsAtStart = signOutCount;
   try {
     const device = await getDevicePushToken();
     if (!device) return;
@@ -67,8 +71,10 @@ export async function registerForPushNotifications(): Promise<void> {
     } finally {
       claimsOnTheWire.delete(claim);
     }
-    // Remember it only if no sign-out started meanwhile; that sign-out owns it now.
-    if (pushGeneration === generation) registeredToken = device.token;
+    // Remember it unless a sign-out started meanwhile (that sign-out owns it now).
+    // A newer overlapping registration must not stop this: if it ends up sending
+    // nothing, sign-out still needs this token.
+    if (signOutCount === signOutsAtStart) registeredToken = device.token;
   } catch (err) {
     logger.warn('push-token: registration failed:', err);
   }
@@ -100,6 +106,7 @@ async function currentUserId(): Promise<string | null> {
 export async function unregisterPushTokenForSignOut(): Promise<void> {
   const token = registeredToken;
   registeredToken = null;
+  signOutCount += 1;
   pushGeneration += 1;
   const generation = pushGeneration;
   let timer: ReturnType<typeof setTimeout> | undefined;

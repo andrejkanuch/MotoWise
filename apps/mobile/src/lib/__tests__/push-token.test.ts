@@ -291,4 +291,52 @@ describe('unregisterPushTokenForSignOut', () => {
     await Promise.all([first, second, signingOut]);
     expect(order).toEqual(['register-2', 'register-1', 'unregister']);
   });
+
+  it('a claim landing after Log out started does not leave its token remembered', async () => {
+    let landClaim: () => void = () => {};
+    mockGqlFetcher.mockImplementation((doc: string) =>
+      doc === 'REGISTER_DOC'
+        ? new Promise<void>((resolve) => {
+            landClaim = resolve;
+          })
+        : Promise.resolve({}),
+    );
+    const registering = registerForPushNotifications();
+    await new Promise((r) => setImmediate(r)); // claim sent with token abc
+    mockGetExpoPushToken.mockResolvedValue({ data: 'ExponentPushToken[fresh]' });
+    const signingOut = unregisterPushTokenForSignOut();
+    await new Promise((r) => setImmediate(r));
+    landClaim();
+    await Promise.all([registering, signingOut]);
+
+    // The next sign-out looks the token up again instead of reusing the stale one.
+    mockGqlFetcher.mockClear();
+    await unregisterPushTokenForSignOut();
+    expect(mockGqlFetcher).toHaveBeenCalledWith('UNREGISTER_DOC', {
+      input: { token: 'ExponentPushToken[fresh]' },
+    });
+  });
+
+  it('remembers the older claim when a newer overlapping registration sends nothing', async () => {
+    let landClaim: () => void = () => {};
+    mockGqlFetcher.mockImplementation((doc: string) =>
+      doc === 'REGISTER_DOC'
+        ? new Promise<void>((resolve) => {
+            landClaim = resolve;
+          })
+        : Promise.resolve({}),
+    );
+    const older = registerForPushNotifications();
+    await new Promise((r) => setImmediate(r)); // older claim on the wire (token abc)
+    mockHasPermission.mockResolvedValue(false); // permission revoked: the newer one sends nothing
+    await registerForPushNotifications();
+    landClaim();
+    await older;
+
+    mockGqlFetcher.mockClear();
+    await unregisterPushTokenForSignOut(); // no permission, so it cannot look the token up again
+    expect(mockGqlFetcher).toHaveBeenCalledWith('UNREGISTER_DOC', {
+      input: { token: 'ExponentPushToken[abc]' },
+    });
+  });
 });
