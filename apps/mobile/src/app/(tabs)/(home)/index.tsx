@@ -151,7 +151,7 @@ export default function HomeScreen() {
           testID: 'home-action-expense',
           onPress: () =>
             router.push({
-              pathname: '/(tabs)/(garage)/add-expense',
+              pathname: '/(tabs)/(home)/add-expense',
               params: { motorcycleId: activeBike.id },
             }),
         },
@@ -162,7 +162,7 @@ export default function HomeScreen() {
           testID: 'home-action-task',
           onPress: () =>
             router.push({
-              pathname: '/(tabs)/(garage)/add-maintenance-task',
+              pathname: '/(tabs)/(home)/add-maintenance-task',
               params: {
                 motorcycleId: activeBike.id,
                 bikeName: `${activeBike.year} ${activeBike.make} ${activeBike.model}`,
