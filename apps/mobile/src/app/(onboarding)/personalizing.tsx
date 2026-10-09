@@ -43,6 +43,7 @@ import {
 } from '../../lib/onboarding-paywall';
 import { queryKeys } from '../../lib/query-keys';
 import { setSelfReportedSource } from '../../lib/subscription';
+import { markWhatsNewSeenForNewRider } from '../../lib/whats-new';
 import { useAuthStore } from '../../stores/auth.store';
 import { useChecklistStore } from '../../stores/checklist.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -183,6 +184,9 @@ export default function PersonalizingScreen() {
       // would re-arm the hold after the rider entered the garage, and the root
       // gate would send them back into onboarding on every later launch.
       if (showsGaragePaywall) setAwaitingGarageCta(true);
+      // Also before the first await: a new rider must never land on Home under
+      // What's New, and every way out of onboarding passes through this run.
+      markWhatsNewSeenForNewRider();
 
       // Resolve the user's global measurement system from the onboarding unit
       // toggle (falling back to the device-derived store default). The odometer is

@@ -161,6 +161,9 @@ Hard-won specifics for THIS app — check these first when a flow "should work" 
   **"Save Password?"** (dismiss `Not Now`). After value-moments (adding a task, completing one, etc.)
   a StoreKit **"Enjoying MotoVault?"** rating prompt can appear (dismiss `Not Now`) — it's gated to
   ≥2 value-moments + once per app version, so it shows up on seasoned accounts, not fresh ones.
+- **What's New covers Home for already-onboarded accounts.** It shows once per app version to a
+  rider who did not just onboard, ~500ms after the tabs mount. `onboarding.yaml` waits for its
+  `"What's new · v.*"` label and taps the `Skip` `rightOf` it (both optional) before asserting Home.
 - **Tab-bar labels include the badge in their a11y text.** The Garage tab reads `"Garage, 1 due"`
   (was `"1, Garage"` before the a11y fix) when a badge is present. Always match tabs with a partial
   regex (`.*Garage.*`), never the bare word.

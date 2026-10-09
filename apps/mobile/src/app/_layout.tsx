@@ -48,7 +48,6 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SessionRestoring } from '../components/auth/session-restoring';
 import { clearSheetDrafts } from '../components/bike-hub/notes/unattached-note-photos';
 import { OB_VARIANT } from '../config/onboarding';
-import { getWhatsNewRelease } from '../data/whats-new-releases';
 import { refreshCarPlayHeadsUpData } from '../features/carplay/carplay-coordinator';
 import { usePhoneSceneVisible } from '../features/carplay/use-carplay';
 import { clearParkedScans } from '../features/receipt-scan/parked-scan-store';
@@ -146,6 +145,7 @@ import {
   logoutRevenueCat,
 } from '../lib/subscription';
 import { supabase } from '../lib/supabase';
+import { isWhatsNewOwed } from '../lib/whats-new';
 import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
 import { COLOR_SCHEME, useAuthStore } from '../stores/auth.store';
 import { useExperimentStore } from '../stores/experiment.store';
@@ -336,11 +336,10 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
     if (isLoading || !session || !onboardingCompleted) return;
     if (whatsNewPushed) return;
 
+    // Only show for an unseen version we have release data for. New riders
+    // never qualify: onboarding marks the installed version seen.
     const currentVersion = Application.nativeApplicationVersion;
-    if (!currentVersion || currentVersion === lastSeenVersion) return;
-
-    // Only show if we have release data for this version
-    if (!getWhatsNewRelease(currentVersion)) return;
+    if (!currentVersion || !isWhatsNewOwed(currentVersion, lastSeenVersion)) return;
 
     // Avoid showing during initial navigation
     const inTabs = segments[0] === '(tabs)';

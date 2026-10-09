@@ -177,6 +177,23 @@ env:
           text: "[×✕]"
           optional: true
 
+# The signed-in test account is already onboarded, so it can be owed What's New
+# for this version (new riders never are). The modal pushes ~500ms after the tabs
+# mount: wait briefly for its "What's new · v<version>" label, then tap the Skip
+# beside it. Both are optional so a run without the modal passes untouched.
+- extendedWaitUntil:
+    visible: "What's new · v.*"
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible: "What's new · v.*"
+    commands:
+      - tapOn:
+          text: "Skip"
+          rightOf:
+            text: "What's new · v.*"
+
 # Success: onboarding complete -> Home dashboard.
 - extendedWaitUntil:
     visible:
