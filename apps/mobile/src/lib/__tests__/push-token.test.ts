@@ -35,6 +35,16 @@ jest.mock('@motovault/graphql', () => ({
   UnregisterPushTokenDocument: 'UNREGISTER_DOC',
 }));
 jest.mock('../logger', () => ({ logger: { warn: jest.fn(), error: jest.fn() } }));
+const mockSession = { userId: 'user-a' as string | null };
+jest.mock('../supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: async () => ({
+        data: { session: mockSession.userId ? { user: { id: mockSession.userId } } : null },
+      }),
+    },
+  },
+}));
 
 import {
   registerForPushNotifications,
@@ -45,6 +55,7 @@ import {
 beforeEach(() => {
   jest.clearAllMocks();
   mockConfig.projectId = 'proj-1';
+  mockSession.userId = 'user-a';
   process.env.EXPO_OS = 'ios';
   mockHasPermission.mockResolvedValue(true);
   mockGetExpoPushToken.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
@@ -129,5 +140,29 @@ describe('unregisterPushTokenForSignOut', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+
+  it('skips when nobody is signed in (the mutation could only be rejected)', async () => {
+    mockSession.userId = null;
+    await unregisterPushTokenForSignOut();
+    expect(mockGqlFetcher).not.toHaveBeenCalled();
+  });
+
+  it("never removes the NEXT account's token when it finishes late", async () => {
+    // Account A signs out; the token lookup outlives the sign-out cap, and by the
+    // time it resolves account B is signed in and has claimed the token.
+    let resolveToken: (v: { data: string }) => void = () => {};
+    mockGetExpoPushToken.mockReturnValue(
+      new Promise((resolve) => {
+        resolveToken = resolve;
+      }),
+    );
+    const done = unregisterPushTokenForSignOut();
+    await Promise.resolve();
+    mockSession.userId = 'user-b';
+    resolveToken({ data: 'ExponentPushToken[abc]' });
+    await done;
+    await new Promise((r) => setImmediate(r));
+    expect(mockGqlFetcher).not.toHaveBeenCalled();
   });
 });

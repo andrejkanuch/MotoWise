@@ -30,8 +30,9 @@ export class PushTokensService {
       this.logger.error(`register failed for ${userId}: ${error.message} (${error.code})`);
       throw new InternalServerErrorException('Failed to register push token');
     }
-    // false = the database saw no signed-in user, which the auth guard should make
-    // impossible; report it rather than pretend the device is registered.
+    // false = no signed-in user in the database, or a token that is not an Expo push
+    // token (the Zod pipe should make both impossible); report it rather than
+    // pretend the device is registered.
     if (data !== true) {
       this.logger.warn(`register: claim returned ${String(data)} for ${userId}`);
       return false;

@@ -14,6 +14,7 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'rea
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../../components/ui/native-toggle';
+import { signOutUser } from '../../../hooks/sign-out';
 import {
   AnalyticsEvent,
   setAnalyticsEnabled,
@@ -31,7 +32,6 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { isAccountAlreadyDeleted, userFriendlyError } from '../../../lib/graphql-errors';
 import { queryKeys } from '../../../lib/query-keys';
 import { meOptions } from '../../../lib/query-options';
-import { safeSignOut } from '../../../lib/supabase';
 import { useEditorialTheme } from '../../../theme/editorial';
 
 type PrivacyPrefs = {
@@ -250,8 +250,8 @@ export default function PrivacyScreen() {
   };
 
   const finishAccountDeletion = async () => {
-    // Sign out and navigate to login
-    await safeSignOut();
+    // Same sign-out as Log out: it also stops the soft-deleted account's pushes.
+    await signOutUser();
     queryClient.clear();
     router.replace('/(auth)/login');
   };

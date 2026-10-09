@@ -370,8 +370,12 @@ function getInstallId(): string | null {
     const store = createMMKV({ id: INSTALL_IDENTITY_STORE });
     let id = store.getString(INSTALL_ID_KEY);
     if (!id) {
-      id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
-      store.set(INSTALL_ID_KEY, id);
+      const fresh = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+      store.set(INSTALL_ID_KEY, fresh);
+      // Only trust an id the store actually persisted: an id that exists only in
+      // memory would look like "another install" on the next launch.
+      if (store.getString(INSTALL_ID_KEY) !== fresh) return null;
+      id = fresh;
     }
     installId = id;
   } catch {
@@ -388,11 +392,16 @@ let markerStamped = false;
 
 async function sessionVerdict(): Promise<SessionVerdict> {
   if (settledVerdict) return settledVerdict;
-  const id = getInstallId();
-  if (!id) return SESSION_VERDICT.UNKNOWN;
 
+  // Marker first. A readable keychain proves the device has been unlocked since
+  // boot, so only then is the install id read (or created): an id minted while
+  // the app's data was still unavailable would not match the marker after unlock
+  // and discard a session that is in fact this install's.
   const marker = await readSecureItem(SECURE_STORE_KEY.SESSION_INSTALL_ID);
   if (marker.status !== SECURE_STORE_STATUS.OK) return SESSION_VERDICT.UNKNOWN;
+
+  const id = getInstallId();
+  if (!id) return SESSION_VERDICT.UNKNOWN;
 
   if (marker.value === null) {
     markerStamped = await setSecureItem(SECURE_STORE_KEY.SESSION_INSTALL_ID, id);

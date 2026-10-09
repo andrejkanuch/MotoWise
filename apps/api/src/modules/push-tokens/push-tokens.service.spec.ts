@@ -45,7 +45,7 @@ describe('PushTokensService.register', () => {
     ]);
   });
 
-  it('returns false when the RPC refuses (no signed-in user in the database)', async () => {
+  it('returns false when the RPC refuses (no signed-in user, or not an Expo token)', async () => {
     const { client } = makeUserClient({ rpcResult: { data: false, error: null } });
     await expect(new PushTokensService(client).register('u1', INPUT)).resolves.toBe(false);
   });

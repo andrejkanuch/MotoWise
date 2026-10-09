@@ -96,6 +96,12 @@ describe('UsersService', () => {
       await expect(service.findById(userId)).rejects.toThrow(NotFoundException);
     });
 
+    it('should throw NotFoundException when no row comes back without an error', async () => {
+      mockUserClient._chain.single.mockResolvedValueOnce({ data: null, error: null });
+
+      await expect(service.findById(userId)).rejects.toThrow(NotFoundException);
+    });
+
     it('should throw InternalServerErrorException (not NotFound) on a database fault', async () => {
       mockUserClient._chain.single.mockResolvedValueOnce({
         data: null,

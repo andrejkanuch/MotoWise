@@ -359,6 +359,34 @@ describe('secureStoreAuthAdapter: a reinstall does not resume the previous sessi
     await loadModule().secureStoreAuthAdapter.getItem(authKey);
     expect(mockKeychain.get(authKey)?.value).toBe('session');
   });
+  it('does not mint an install id while the keychain is locked', async () => {
+    await loadModule().secureStoreAuthAdapter.setItem(authKey, 'session');
+    const savedContainer = new Map(mockMmkv);
+    // Pre-first-unlock launch: MMKV reads back empty and the marker is unreadable.
+    mockMmkv.clear();
+    seedLegacyItem(MARKER, mockKeychain.get(MARKER)?.value ?? '');
+    mockDeviceLocked = true;
+    const { secureStoreAuthAdapter } = loadModule();
+    await secureStoreAuthAdapter.getItem(authKey);
+    expect(mockMmkv.size).toBe(0);
+
+    // Unlock in the same process: the real install id is back, the session stays.
+    for (const [key, value] of savedContainer) mockMmkv.set(key, value);
+    mockDeviceLocked = false;
+    await expect(secureStoreAuthAdapter.getItem(authKey)).resolves.toBe('session');
+  });
+
+  it('keeps the session when MMKV is unavailable (check disabled, never a sign-out)', async () => {
+    await loadModule().secureStoreAuthAdapter.setItem(authKey, 'session');
+    jest.doMock('react-native-mmkv', () => {
+      throw new Error('native module missing');
+    });
+    try {
+      await expect(loadModule().secureStoreAuthAdapter.getItem(authKey)).resolves.toBe('session');
+    } finally {
+      jest.dontMock('react-native-mmkv');
+    }
+  });
 });
 
 describe('runWithUnlockRetry', () => {
