@@ -16,6 +16,9 @@ interface OnboardingContinueButtonProps {
   accessibilityLabel?: string;
 }
 
+/** Largest Dynamic Type multiplier for footer button labels. */
+export const FOOTER_MAX_FONT_SCALE = 1.4;
+
 /** The copper 52pt primary action of every onboarding step (ink = `t.onWarm`). */
 
 export function OnboardingContinueButton({
@@ -57,7 +60,12 @@ export function OnboardingContinueButton({
         transform: [{ scale: pressed && !disabled ? 0.98 : 1 }],
       })}
     >
-      <Text style={[type.bodyStrong, { color: disabled ? oc.textMuted : oc.textOnAccent }]}>
+      <Text
+        // Sticky footers sit above the keyboard: cap growth so AX sizes keep
+        // the focused field in view on small phones.
+        maxFontSizeMultiplier={FOOTER_MAX_FONT_SCALE}
+        style={[type.bodyStrong, { color: disabled ? oc.textMuted : oc.textOnAccent }]}
+      >
         {label}
       </Text>
       {showIcon ? <ArrowRight size={18} color={disabled ? oc.textMuted : oc.textOnAccent} /> : null}

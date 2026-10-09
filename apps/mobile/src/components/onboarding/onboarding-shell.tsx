@@ -1,9 +1,13 @@
 import { ChevronLeft } from 'lucide-react-native';
 import type { ReactNode } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View, type ViewStyle } from 'react-native';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import { type LayoutChangeEvent, Pressable, Text, View, type ViewStyle } from 'react-native';
+import {
+  KeyboardAwareScrollView,
+  KeyboardStickyView,
+  useKeyboardState,
+} from 'react-native-keyboard-controller';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -16,12 +20,18 @@ import type { OnboardingRoute } from '../../config/onboarding';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { GUTTER, radius, space, type } from '../../theme/type';
 import { useOnboardingColors } from './onboarding-colors';
-import { OnboardingContinueButton } from './onboarding-continue-button';
+import { FOOTER_MAX_FONT_SCALE, OnboardingContinueButton } from './onboarding-continue-button';
 
 const TOP_BAR_HEIGHT = 44;
 const TRACK_HEIGHT = 3;
 const TRACK_MS = 240;
 const EASE_OUT = Easing.out(Easing.exp);
+/**
+ * Room kept between the sticky footer and the focused input's caret: half a
+ * 52pt field, the gap and the next field's label, so the rider (and Maestro's
+ * "Email" → "Password" taps) can always reach the next field above the footer.
+ */
+const CARET_CLEARANCE = space.xxxl + space.xl;
 
 export interface OnboardingAction {
   label: string;
@@ -44,7 +54,7 @@ export interface OnboardingShellProps {
   subtitle?: string;
   /** Copper 52pt primary action in the sticky footer. */
   primary?: OnboardingAction;
-  /** Quiet text action under the primary. */
+  /** Quiet text action under the primary. Hidden while the keyboard is up, so the footer stays one button tall above it. */
   secondary?: OnboardingAction;
   /** Footer content in place of / above the actions (e.g. an affirmation or caption). */
   footer?: ReactNode;
@@ -61,6 +71,11 @@ export interface OnboardingShellProps {
  * a thin copper progress track, a condensed title + optional subhead, the step's
  * content, and a sticky, keyboard-aware footer holding the copper primary and an
  * optional text action. Every onboarding and account step renders inside it.
+ *
+ * Keyboard: the footer rides on top of the keyboard (`KeyboardStickyView`) and
+ * the content is a `KeyboardAwareScrollView` whose `bottomOffset` is the
+ * footer's measured height, so a focused input always scrolls clear of footer +
+ * keyboard. While the keyboard is up the secondary action collapses away.
  */
 export function OnboardingShell({
   screen,
@@ -77,6 +92,15 @@ export function OnboardingShell({
 }: OnboardingShellProps) {
   const oc = useOnboardingColors();
   const insets = useSafeAreaInsets();
+  const keyboardVisible = useKeyboardState((state) => state.isVisible);
+  const [footerHeight, setFooterHeight] = useState(0);
+  const onFooterLayout = (event: LayoutChangeEvent) =>
+    setFooterHeight(event.nativeEvent.layout.height);
+
+  // With the keyboard up the footer's safe-area padding sits behind the
+  // keyboard (the sticky view's `opened` offset), so only the rest is visible.
+  const visibleFooter = Math.max(0, footerHeight - insets.bottom);
+  const showSecondary = !!secondary && !keyboardVisible;
 
   const header =
     title || subtitle ? (
@@ -100,31 +124,33 @@ export function OnboardingShell({
 
   return (
     <View style={{ flex: 1, backgroundColor: oc.background }} testID={testID}>
-      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-        <View style={{ paddingTop: insets.top }}>
-          <OnboardingTopBar screen={screen} onBack={onBack} />
+      <View style={{ paddingTop: insets.top }}>
+        <OnboardingTopBar screen={screen} onBack={onBack} />
+      </View>
+
+      {scroll ? (
+        <KeyboardAwareScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={[contentPadding, contentStyle]}
+          bottomOffset={visibleFooter + CARET_CLEARANCE}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          showsVerticalScrollIndicator={false}
+        >
+          {header}
+          {children}
+        </KeyboardAwareScrollView>
+      ) : (
+        <View style={[{ flex: 1 }, contentPadding, contentStyle]}>
+          {header}
+          {children}
         </View>
+      )}
 
-        {scroll ? (
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={[contentPadding, contentStyle]}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="interactive"
-            showsVerticalScrollIndicator={false}
-          >
-            {header}
-            {children}
-          </ScrollView>
-        ) : (
-          <View style={[{ flex: 1 }, contentPadding, contentStyle]}>
-            {header}
-            {children}
-          </View>
-        )}
-
-        {hasFooter ? (
+      {hasFooter ? (
+        <KeyboardStickyView offset={{ closed: 0, opened: insets.bottom }}>
           <View
+            onLayout={onFooterLayout}
             style={{
               paddingHorizontal: GUTTER,
               paddingTop: space.sm,
@@ -144,10 +170,10 @@ export function OnboardingShell({
                 accessibilityLabel={primary.accessibilityLabel}
               />
             ) : null}
-            {secondary ? <OnboardingTextButton {...secondary} /> : null}
+            {showSecondary && secondary ? <OnboardingTextButton {...secondary} /> : null}
           </View>
-        ) : null}
-      </KeyboardAvoidingView>
+        </KeyboardStickyView>
+      ) : null}
     </View>
   );
 }
@@ -255,7 +281,12 @@ export function OnboardingTextButton({
         opacity: disabled ? 0.4 : pressed ? 0.6 : 1,
       })}
     >
-      <Text style={[type.bodyStrong, { color: oc.warm2, textAlign: 'center' }]}>{label}</Text>
+      <Text
+        maxFontSizeMultiplier={FOOTER_MAX_FONT_SCALE}
+        style={[type.bodyStrong, { color: oc.warm2, textAlign: 'center' }]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }

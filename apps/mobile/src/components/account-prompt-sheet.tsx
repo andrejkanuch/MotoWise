@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Modal, Pressable, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Modal, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AUTH_EMAIL_REDIRECT_TO } from '../config/auth';
@@ -139,122 +139,130 @@ export function AccountPromptSheet({
       statusBarTranslucent
       onRequestClose={onDismiss}
     >
-      {/* Scrim — tapping dismisses. */}
-      <Animated.View
-        entering={FadeIn.duration(220)}
-        style={{
-          flex: 1,
-          backgroundColor: oc.surfaceOverlayDark,
-          justifyContent: 'flex-end',
-        }}
+      {/* A Modal is its own window, outside the app's KeyboardProvider: RN's
+          avoiding view lifts the bottom sheet above the keyboard (iOS; Android
+          modal windows resize on their own). */}
+      <KeyboardAvoidingView
+        behavior={process.env.EXPO_OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
       >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t(CP_KEY.notNow)}
-          onPress={onDismiss}
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-        />
-
-        {/* Sheet — stops propagation so taps inside don't dismiss. */}
+        {/* Scrim — tapping dismisses. */}
         <Animated.View
-          entering={SlideInDown.duration(280)}
+          entering={FadeIn.duration(220)}
           style={{
-            backgroundColor: oc.surface,
-            borderTopLeftRadius: radius.plate,
-            borderTopRightRadius: radius.plate,
-            borderCurve: 'continuous',
-            paddingHorizontal: space.xl,
-            paddingTop: space.sm,
-            paddingBottom: insets.bottom + space.xxl,
+            flex: 1,
+            backgroundColor: oc.surfaceOverlayDark,
+            justifyContent: 'flex-end',
           }}
         >
-          <Pressable onPress={() => {}} accessible={false}>
-            {/* Drag handle. */}
-            <View
-              style={{
-                width: 36,
-                height: 4,
-                borderRadius: radius.pill,
-                backgroundColor: oc.borderMuted,
-                alignSelf: 'center',
-                marginBottom: space.lg,
-              }}
-            />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t(CP_KEY.notNow)}
+            onPress={onDismiss}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
 
-            <Text
-              accessibilityRole="header"
-              style={[type.sheetTitle, { color: oc.textPrimary, marginBottom: space.xs }]}
-            >
-              {t(CP_KEY.title)}
-            </Text>
+          {/* Sheet — stops propagation so taps inside don't dismiss. */}
+          <Animated.View
+            entering={SlideInDown.duration(280)}
+            style={{
+              backgroundColor: oc.surface,
+              borderTopLeftRadius: radius.plate,
+              borderTopRightRadius: radius.plate,
+              borderCurve: 'continuous',
+              paddingHorizontal: space.xl,
+              paddingTop: space.sm,
+              paddingBottom: insets.bottom + space.xxl,
+            }}
+          >
+            <Pressable onPress={() => {}} accessible={false}>
+              {/* Drag handle. */}
+              <View
+                style={{
+                  width: 36,
+                  height: 4,
+                  borderRadius: radius.pill,
+                  backgroundColor: oc.borderMuted,
+                  alignSelf: 'center',
+                  marginBottom: space.lg,
+                }}
+              />
 
-            {/* Context-aware body. */}
-            <Text style={[type.body, { color: oc.textSecondary, marginBottom: space.xl }]}>
-              {t(BODY_KEY[context] as never)}
-            </Text>
+              <Text
+                accessibilityRole="header"
+                style={[type.sheetTitle, { color: oc.textPrimary, marginBottom: space.xs }]}
+              >
+                {t(CP_KEY.title)}
+              </Text>
 
-            {emailMode ? (
-              <View style={{ gap: space.md }}>
-                <AuthField
-                  raised
-                  label={t('auth.email')}
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  autoComplete="email"
-                  textContentType="emailAddress"
-                />
-                <AuthField
-                  raised
-                  label={t('auth.password')}
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  autoComplete="new-password"
-                  textContentType="newPassword"
-                />
-                <OnboardingContinueButton
-                  label={t('onboarding.obAccountCreate')}
-                  onPress={handleEmail}
-                  disabled={!canSubmitEmail}
-                />
-                <OnboardingTextButton
-                  label={t('onboarding.obAccountOtherOptions')}
-                  onPress={() => setEmailMode(false)}
-                />
+              {/* Context-aware body. */}
+              <Text style={[type.body, { color: oc.textSecondary, marginBottom: space.xl }]}>
+                {t(BODY_KEY[context] as never)}
+              </Text>
+
+              {emailMode ? (
+                <View style={{ gap: space.md }}>
+                  <AuthField
+                    raised
+                    label={t('auth.email')}
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    autoComplete="email"
+                    textContentType="emailAddress"
+                  />
+                  <AuthField
+                    raised
+                    label={t('auth.password')}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    autoComplete="new-password"
+                    textContentType="newPassword"
+                  />
+                  <OnboardingContinueButton
+                    label={t('onboarding.obAccountCreate')}
+                    onPress={handleEmail}
+                    disabled={!canSubmitEmail}
+                  />
+                  <OnboardingTextButton
+                    label={t('onboarding.obAccountOtherOptions')}
+                    onPress={() => setEmailMode(false)}
+                  />
+                </View>
+              ) : (
+                <View style={{ gap: space.sm }}>
+                  <OAuthButtons onApple={handleApple} onGoogle={handleGoogle} />
+                  <Pressable
+                    onPress={() => setEmailMode(true)}
+                    accessibilityRole="button"
+                    android_ripple={{ color: oc.line, foreground: true }}
+                    style={({ pressed }) => [
+                      authButton(oc.surface2),
+                      {
+                        overflow: 'hidden',
+                        opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.85 : 1,
+                      },
+                    ]}
+                  >
+                    <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
+                      {t('onboarding.obAccountWithEmail')}
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
+
+              {/* Dismiss. */}
+              <View style={{ marginTop: space.xs }}>
+                <OnboardingTextButton label={t(CP_KEY.notNow)} onPress={onDismiss} />
               </View>
-            ) : (
-              <View style={{ gap: space.sm }}>
-                <OAuthButtons onApple={handleApple} onGoogle={handleGoogle} />
-                <Pressable
-                  onPress={() => setEmailMode(true)}
-                  accessibilityRole="button"
-                  android_ripple={{ color: oc.line, foreground: true }}
-                  style={({ pressed }) => [
-                    authButton(oc.surface2),
-                    {
-                      overflow: 'hidden',
-                      opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.85 : 1,
-                    },
-                  ]}
-                >
-                  <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
-                    {t('onboarding.obAccountWithEmail')}
-                  </Text>
-                </Pressable>
-              </View>
-            )}
+            </Pressable>
+          </Animated.View>
 
-            {/* Dismiss. */}
-            <View style={{ marginTop: space.xs }}>
-              <OnboardingTextButton label={t(CP_KEY.notNow)} onPress={onDismiss} />
-            </View>
-          </Pressable>
+          {busy ? <AuthBusyOverlay label={t('onboarding.obAccountCreating')} /> : null}
         </Animated.View>
-
-        {busy ? <AuthBusyOverlay label={t('onboarding.obAccountCreating')} /> : null}
-      </Animated.View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
