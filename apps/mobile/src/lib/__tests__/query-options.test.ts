@@ -9,7 +9,8 @@ jest.mock('../graphql-client', () => ({
 }));
 jest.mock('../account-gone', () => ({
   ...jest.requireActual('../account-gone'),
-  signOutGoneAccount: () => mockSignOutGone(),
+  getSessionUserId: async () => 'user-a',
+  signOutGoneAccount: (...args: unknown[]) => mockSignOutGone(...args),
 }));
 jest.mock('../supabase', () => ({ supabase: { auth: {} } }));
 jest.mock('../analytics', () => ({ addBreadcrumb: jest.fn(), captureException: jest.fn() }));
@@ -43,6 +44,8 @@ describe('meOptions queryFn', () => {
     mockFetcher.mockRejectedValue(error);
     await expect(runMe()).rejects.toBe(error);
     expect(mockSignOutGone).toHaveBeenCalledTimes(1);
+    // Bound to the session that sent the request, not whoever is signed in later.
+    expect(mockSignOutGone).toHaveBeenCalledWith('user-a');
   });
 
   it.each([

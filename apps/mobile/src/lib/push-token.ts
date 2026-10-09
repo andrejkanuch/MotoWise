@@ -44,9 +44,13 @@ async function getDevicePushToken(): Promise<{
  */
 export async function registerForPushNotifications(): Promise<void> {
   pushGeneration += 1;
+  const generation = pushGeneration;
   try {
     const device = await getDevicePushToken();
     if (!device) return;
+    // A sign-out started while the token was being looked up: do not claim it
+    // back for the account that is signing out.
+    if (pushGeneration !== generation) return;
 
     await gqlFetcher(RegisterPushTokenDocument, { input: device });
     registeredToken = device.token;
@@ -92,7 +96,8 @@ export async function unregisterPushTokenForSignOut(): Promise<void> {
     if (!owner) return;
     const deviceToken = token ?? (await getDevicePushToken())?.token;
     if (!deviceToken) return;
-    if (pushGeneration !== generation || (await currentUserId()) !== owner) return;
+    // Generation last: a registration can start during the session read.
+    if ((await currentUserId()) !== owner || pushGeneration !== generation) return;
     await gqlFetcher(UnregisterPushTokenDocument, { input: { token: deviceToken } });
   };
   try {

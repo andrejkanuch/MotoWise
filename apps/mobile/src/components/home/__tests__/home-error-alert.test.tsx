@@ -26,6 +26,7 @@ jest.mock('../../../lib/graphql-client', () => ({
 // client (which needs env vars) out of this render test.
 jest.mock('../../../lib/account-gone', () => ({
   isAccountGoneError: () => false,
+  getSessionUserId: async () => null,
   signOutGoneAccount: jest.fn(),
 }));
 jest.mock('expo-haptics', () => ({

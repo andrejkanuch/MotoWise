@@ -7,7 +7,7 @@
  */
 import { AllMaintenanceTasksDocument, MeDocument } from '@motovault/graphql';
 import { queryOptions } from '@tanstack/react-query';
-import { isAccountGoneError, signOutGoneAccount } from './account-gone';
+import { getSessionUserId, isAccountGoneError, signOutGoneAccount } from './account-gone';
 import { gqlFetcher } from './graphql-client';
 import { queryKeys } from './query-keys';
 
@@ -19,12 +19,14 @@ export const meOptions = () =>
   queryOptions({
     queryKey: queryKeys.user.me,
     queryFn: async () => {
+      // Whose `me` this is: a NOT_FOUND may only end the session that asked.
+      const requestUserId = await getSessionUserId();
       try {
         return await gqlFetcher(MeDocument);
       } catch (error) {
         // The session's account no longer exists: leaving the rider signed in
         // strands them on screens that can only fail. Sign out instead.
-        if (isAccountGoneError(error)) void signOutGoneAccount();
+        if (isAccountGoneError(error)) void signOutGoneAccount(requestUserId);
         throw error;
       }
     },

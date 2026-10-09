@@ -32,9 +32,8 @@
 -- Same hardening as 00176: SET search_path = '', `auth.uid() IS NULL` refuses
 -- everything (service_role included), and REVOKE names anon as well as PUBLIC
 -- because this database's default privileges grant EXECUTE to anon explicitly.
--- The platform is validated by the table's existing CHECK constraint; the token
--- shape is validated in the function, because PostgREST exposes the RPC directly
--- and the API's Zod check is not on that path.
+-- Token shape and platform are validated in the function (returning false), because
+-- PostgREST exposes the RPC directly and the API's Zod check is not on that path.
 --
 -- DEPLOY ORDER: apply this migration BEFORE the API that calls it. Render
 -- deploys apps/api on merge to main; an API that calls a missing function makes
@@ -56,12 +55,15 @@ BEGIN
     RETURN false;
   END IF;
 
-  -- The RPC is callable directly through PostgREST, so it enforces the same token
-  -- shape the API's Zod schema does (EXPO_PUSH_TOKEN_REGEX, max 255): nothing that
-  -- is not an Expo push token can be stored or used to take over a row.
+  -- The RPC is callable directly through PostgREST, so it enforces what the API's
+  -- Zod schema does (EXPO_PUSH_TOKEN_REGEX, max 255, platform ios|android) and
+  -- answers false rather than letting a table constraint raise: nothing that is not
+  -- an Expo push token can be stored or used to take over a row.
   IF p_token IS NULL
      OR length(p_token) > 255
-     OR p_token !~ '^Ex(ponent|po)PushToken\[[^]]+\]$' THEN
+     OR p_token !~ '^Ex(ponent|po)PushToken\[[^]]+\]$'
+     OR p_platform IS NULL
+     OR p_platform NOT IN ('ios', 'android') THEN
     RETURN false;
   END IF;
 
@@ -82,7 +84,7 @@ GRANT EXECUTE ON FUNCTION public.claim_device_push_token(text, text) TO authenti
 
 COMMENT ON FUNCTION public.claim_device_push_token(text, text) IS
   'Registers a device push token to auth.uid(), taking it over from any previous owner. '
-  'Returns false when there is no signed-in user or the token is not an Expo push token. '
+  'Returns false when there is no signed-in user or the token or platform is invalid. '
   'See migration 00188.';
 
 COMMIT;

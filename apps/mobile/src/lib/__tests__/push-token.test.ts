@@ -186,4 +186,19 @@ describe('unregisterPushTokenForSignOut', () => {
     await new Promise((r) => setImmediate(r));
     expect(mockGqlFetcher).not.toHaveBeenCalledWith('UNREGISTER_DOC', expect.anything());
   });
+
+  it('does not claim the token back when Log out starts during the token lookup', async () => {
+    let resolveToken: (v: { data: string }) => void = () => {};
+    mockGetExpoPushToken.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveToken = resolve;
+      }),
+    );
+    const registering = registerForPushNotifications();
+    await new Promise((r) => setImmediate(r));
+    const signingOut = unregisterPushTokenForSignOut();
+    resolveToken({ data: 'ExponentPushToken[abc]' });
+    await Promise.all([registering, signingOut]);
+    expect(mockGqlFetcher).not.toHaveBeenCalledWith('REGISTER_DOC', expect.anything());
+  });
 });
