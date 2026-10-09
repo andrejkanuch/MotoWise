@@ -1753,7 +1753,16 @@
     "consequence": "Consecuencia",
     "remedy": "Solución",
     "campaign": "Campaña",
-    "attribution": "Datos de retiros de NHTSA"
+    "attribution": "Datos de retiros de NHTSA",
+    "markDone": "Marcar como hecho",
+    "markDoneConfirmTitle": "¿Marcar este retiro como hecho?",
+    "markDoneConfirmMessage": "No volverás a recibir avisos de la campaña {{campaign}} para esta moto.",
+    "ackError": "No se pudo actualizar este retiro. Inténtalo de nuevo.",
+    "doneSection": "Hechos ({{count}})",
+    "doneOn": "Marcado como hecho el {{date}}",
+    "undo": "Deshacer",
+    "undoA11y": "Deshacer: volver a marcar la campaña {{campaign}} como abierta",
+    "allDoneDescription": "Todos los retiros de esta moto están marcados como hechos."
   },
   "trips": {
     "planATrip": "Planificar un viaje",

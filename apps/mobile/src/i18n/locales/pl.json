@@ -1774,7 +1774,16 @@
     "consequence": "Konsekwencja",
     "remedy": "Rozwiązanie",
     "campaign": "Kampania",
-    "attribution": "Dane wycofań z NHTSA"
+    "attribution": "Dane wycofań z NHTSA",
+    "markDone": "Oznacz jako wykonane",
+    "markDoneConfirmTitle": "Oznaczyć to wycofanie jako wykonane?",
+    "markDoneConfirmMessage": "Nie będziesz już otrzymywać powiadomień o kampanii {{campaign}} dla tego motocykla.",
+    "ackError": "Nie udało się zaktualizować tego wycofania. Spróbuj ponownie.",
+    "doneSection": "Wykonane ({{count}})",
+    "doneOn": "Oznaczono jako wykonane {{date}}",
+    "undo": "Cofnij",
+    "undoA11y": "Cofnij: oznacz kampanię {{campaign}} ponownie jako otwartą",
+    "allDoneDescription": "Wszystkie wycofania dla tego motocykla są oznaczone jako wykonane."
   },
   "trips": {
     "planATrip": "Zaplanuj trasę",

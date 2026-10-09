@@ -1732,7 +1732,16 @@
     "consequence": "Konsekuensi",
     "remedy": "Penanganan",
     "campaign": "Kampanye",
-    "attribution": "Data recall dari NHTSA"
+    "attribution": "Data recall dari NHTSA",
+    "markDone": "Tandai selesai",
+    "markDoneConfirmTitle": "Tandai recall ini sebagai selesai?",
+    "markDoneConfirmMessage": "Kamu tidak akan diingatkan lagi tentang kampanye {{campaign}} untuk motor ini.",
+    "ackError": "Gagal memperbarui recall ini. Silakan coba lagi.",
+    "doneSection": "Selesai ({{count}})",
+    "doneOn": "Ditandai selesai {{date}}",
+    "undo": "Urungkan",
+    "undoA11y": "Urungkan: tandai kampanye {{campaign}} sebagai terbuka lagi",
+    "allDoneDescription": "Semua recall untuk motor ini sudah ditandai selesai."
   },
   "trips": {
     "planATrip": "Rencanakan perjalanan",

@@ -1732,7 +1732,16 @@
     "consequence": "影響",
     "remedy": "対策",
     "campaign": "キャンペーン",
-    "attribution": "リコールデータはNHTSA提供"
+    "attribution": "リコールデータはNHTSA提供",
+    "markDone": "対応済みにする",
+    "markDoneConfirmTitle": "このリコールを対応済みにしますか？",
+    "markDoneConfirmMessage": "このバイクについて、キャンペーン {{campaign}} の通知は今後表示されません。",
+    "ackError": "リコールを更新できませんでした。もう一度お試しください。",
+    "doneSection": "対応済み（{{count}}）",
+    "doneOn": "{{date}} に対応済み",
+    "undo": "元に戻す",
+    "undoA11y": "元に戻す：キャンペーン {{campaign}} を未対応に戻す",
+    "allDoneDescription": "このバイクのリコールはすべて対応済みです。"
   },
   "trips": {
     "riders": "ライダー",

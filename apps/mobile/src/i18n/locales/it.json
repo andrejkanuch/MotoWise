@@ -1753,7 +1753,16 @@
     "consequence": "Conseguenza",
     "remedy": "Rimedio",
     "campaign": "Campagna",
-    "attribution": "Dati richiami da NHTSA"
+    "attribution": "Dati richiami da NHTSA",
+    "markDone": "Segna come fatto",
+    "markDoneConfirmTitle": "Segnare questo richiamo come fatto?",
+    "markDoneConfirmMessage": "Non riceverai più avvisi sulla campagna {{campaign}} per questa moto.",
+    "ackError": "Impossibile aggiornare questo richiamo. Riprova.",
+    "doneSection": "Fatti ({{count}})",
+    "doneOn": "Segnato come fatto il {{date}}",
+    "undo": "Annulla",
+    "undoA11y": "Annulla: segna di nuovo la campagna {{campaign}} come aperta",
+    "allDoneDescription": "Tutti i richiami di questa moto sono segnati come fatti."
   },
   "trips": {
     "planATrip": "Pianifica un'uscita",

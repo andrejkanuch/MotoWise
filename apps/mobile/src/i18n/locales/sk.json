@@ -1774,7 +1774,16 @@
     "consequence": "Následok",
     "remedy": "Riešenie",
     "campaign": "Kampaň",
-    "attribution": "Údaje o stiahnutiach z NHTSA"
+    "attribution": "Údaje o stiahnutiach z NHTSA",
+    "markDone": "Označiť ako vybavené",
+    "markDoneConfirmTitle": "Označiť toto stiahnutie ako vybavené?",
+    "markDoneConfirmMessage": "Na kampaň {{campaign}} vás pri tejto motorke už nebudeme upozorňovať.",
+    "ackError": "Stiahnutie sa nepodarilo aktualizovať. Skúste to znova.",
+    "doneSection": "Vybavené ({{count}})",
+    "doneOn": "Označené ako vybavené {{date}}",
+    "undo": "Späť",
+    "undoA11y": "Späť: označiť kampaň {{campaign}} znova ako otvorenú",
+    "allDoneDescription": "Všetky stiahnutia pre túto motorku sú označené ako vybavené."
   },
   "trips": {
     "planATrip": "Naplánovať jazdu",

@@ -1,18 +1,39 @@
 import { MotorcycleRecallsDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
+import { ImpactFeedbackStyle, NotificationFeedbackType } from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { AlertTriangle, ChevronLeft, ExternalLink, ShieldCheck } from 'lucide-react-native';
+import {
+  AlertTriangle,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  ShieldCheck,
+} from 'lucide-react-native';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeInUp, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRecallAcknowledgement } from '../../hooks/use-recall-acknowledgement';
+import { formatFullDate } from '../../lib/bike-hub/format';
+import {
+  RECALL_ACK_ACTION,
+  type RecallAckAction,
+  type RecallItem,
+  splitRecalls,
+} from '../../lib/bike-hub/recall-acknowledgement';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { QUERY_META } from '../../lib/query-meta';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { triggerImpact, triggerNotification } from '../../utils/haptics';
 
 const NHTSA_RECALLS_URL = 'https://www.nhtsa.gov/recalls';
+/** Card moves (open -> done and back) settle inside the 300ms motion budget. */
+const CARD_LAYOUT = LinearTransition.duration(250);
 
 /**
  * MOT-142: Safety recall results screen.
@@ -21,9 +42,13 @@ const NHTSA_RECALLS_URL = 'https://www.nhtsa.gov/recalls';
  * VIN when available and falls back to make/model/year), and renders each
  * recall campaign. Empty state is a clear "No open recalls" banner — the
  * absence of a recall is as valuable as the presence of one.
+ *
+ * Each open recall can be marked as done (00189): it moves into a collapsed
+ * "Done (n)" group with its date and an Undo, and stops counting towards the
+ * bike's recallCount (plate, garage badge, hub attention, CarPlay).
  */
 export default function RecallsScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const { motorcycleId, bikeName } = useLocalSearchParams<{
@@ -42,9 +67,46 @@ export default function RecallsScreen() {
   });
 
   const result = data?.motorcycleRecalls;
-  const recalls = result?.recalls ?? [];
-  const count = result?.count ?? 0;
+  const { open, done } = splitRecalls(result?.recalls ?? []);
+  const count = open.length;
   const hasRecalls = count > 0;
+  const [doneExpanded, setDoneExpanded] = useState(false);
+  const ackMutation = useRecallAcknowledgement(motorcycleId);
+
+  const runAck = (campaignNumber: string, action: RecallAckAction) => {
+    triggerImpact(ImpactFeedbackStyle.Light);
+    ackMutation.mutate(
+      { campaignNumber, action },
+      {
+        onError: () => {
+          triggerNotification(NotificationFeedbackType.Error);
+          Alert.alert(
+            t('common.error', { defaultValue: 'Error' }),
+            t('recalls.ackError', {
+              defaultValue: "Couldn't update this recall. Please try again.",
+            }),
+          );
+        },
+      },
+    );
+  };
+
+  const confirmMarkDone = (recall: RecallItem) => {
+    Alert.alert(
+      t('recalls.markDoneConfirmTitle', { defaultValue: 'Mark this recall as done?' }),
+      t('recalls.markDoneConfirmMessage', {
+        defaultValue: "You won't be alerted about campaign {{campaign}} for this bike again.",
+        campaign: recall.campaignNumber,
+      }),
+      [
+        { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
+        {
+          text: t('recalls.markDone', { defaultValue: 'Mark as done' }),
+          onPress: () => runAck(recall.campaignNumber, RECALL_ACK_ACTION.ACKNOWLEDGE),
+        },
+      ],
+    );
+  };
 
   const bg = theme.bg;
   const card = theme.surface;
@@ -143,10 +205,14 @@ export default function RecallsScreen() {
                 {t('recalls.none', { defaultValue: 'No open recalls found' })}
               </Text>
               <Text style={{ ...type.subhead, color: mutedText, marginTop: space.xxs }}>
-                {t('recalls.noneDescription', {
-                  defaultValue:
-                    'NHTSA has no open safety recall campaigns for this motorcycle at this time.',
-                })}
+                {done.length > 0
+                  ? t('recalls.allDoneDescription', {
+                      defaultValue: 'Every recall for this bike is marked as done.',
+                    })
+                  : t('recalls.noneDescription', {
+                      defaultValue:
+                        'NHTSA has no open safety recall campaigns for this motorcycle at this time.',
+                    })}
               </Text>
             </View>
           </Animated.View>
@@ -174,10 +240,12 @@ export default function RecallsScreen() {
               </Text>
             </View>
 
-            {recalls.map((recall, index) => (
+            {open.map((recall, index) => (
               <Animated.View
                 key={recall.campaignNumber}
-                entering={FadeInUp.delay(index * 60).duration(300)}
+                entering={FadeInUp.delay(index * 50).duration(250)}
+                exiting={FadeOut.duration(200)}
+                layout={CARD_LAYOUT}
                 style={{
                   backgroundColor: card,
                   padding: space.md,
@@ -228,9 +296,136 @@ export default function RecallsScreen() {
                 <Text style={{ ...type.caption, color: mutedText, marginTop: space.xxs }}>
                   {t('recalls.campaign', { defaultValue: 'Campaign' })}: {recall.campaignNumber}
                 </Text>
+
+                {/* Secondary (ghost) action: copper is reserved for primary actions. */}
+                <Pressable
+                  testID={`recall-mark-done-${recall.campaignNumber}`}
+                  onPress={() => confirmMarkDone(recall)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('recalls.markDone', { defaultValue: 'Mark as done' })}
+                  style={({ pressed }) => ({
+                    minHeight: 44,
+                    borderRadius: radius.control,
+                    borderCurve: 'continuous',
+                    borderWidth: 1,
+                    borderColor: theme.line,
+                    backgroundColor: pressed ? theme.surface2 : 'transparent',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: space.xs,
+                    paddingHorizontal: space.md,
+                  })}
+                >
+                  <Check size={18} color={theme.ink2} strokeWidth={2} />
+                  <Text style={{ ...type.bodyStrong, color: textColor }}>
+                    {t('recalls.markDone', { defaultValue: 'Mark as done' })}
+                  </Text>
+                </Pressable>
               </Animated.View>
             ))}
           </>
+        )}
+
+        {!isLoading && done.length > 0 && (
+          <Animated.View layout={CARD_LAYOUT} style={{ gap: space.xs, marginTop: space.sm }}>
+            <Pressable
+              testID="recalls-done-toggle"
+              onPress={() => setDoneExpanded((expanded) => !expanded)}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: doneExpanded }}
+              hitSlop={8}
+              style={{
+                minHeight: 44,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: space.xxs,
+                paddingHorizontal: space.md,
+              }}
+            >
+              <Text style={{ ...type.label, color: theme.ink3, flex: 1 }}>
+                {t('recalls.doneSection', {
+                  defaultValue: 'Done ({{count}})',
+                  count: done.length,
+                })}
+              </Text>
+              {doneExpanded ? (
+                <ChevronDown size={18} color={theme.ink3} strokeWidth={2} />
+              ) : (
+                <ChevronRight size={18} color={theme.ink3} strokeWidth={2} />
+              )}
+            </Pressable>
+
+            {doneExpanded && (
+              <Animated.View
+                entering={FadeIn.duration(200)}
+                exiting={FadeOut.duration(150)}
+                style={{
+                  backgroundColor: card,
+                  borderRadius: radius.card,
+                  borderCurve: 'continuous',
+                  overflow: 'hidden',
+                }}
+              >
+                {done.map((recall, index) => (
+                  <Animated.View
+                    key={recall.campaignNumber}
+                    testID={`recall-done-${recall.campaignNumber}`}
+                    entering={FadeIn.duration(200)}
+                    layout={CARD_LAYOUT}
+                    style={{
+                      minHeight: 52,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: space.sm,
+                      paddingVertical: space.sm,
+                      paddingLeft: space.md,
+                      paddingRight: space.xs,
+                      borderTopWidth: index === 0 ? 0 : 0.5,
+                      borderTopColor: theme.line,
+                    }}
+                  >
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <Text style={{ ...type.body, color: textColor }} numberOfLines={2}>
+                        {recall.component}
+                      </Text>
+                      <Text style={{ ...type.caption, color: mutedText }}>
+                        {recall.acknowledgedAt
+                          ? t('recalls.doneOn', {
+                              defaultValue: 'Marked done {{date}}',
+                              date: formatFullDate(recall.acknowledgedAt, i18n.language),
+                            })
+                          : null}
+                        {recall.acknowledgedAt ? ' · ' : ''}
+                        {recall.campaignNumber}
+                      </Text>
+                    </View>
+                    <Pressable
+                      testID={`recall-undo-${recall.campaignNumber}`}
+                      onPress={() => runAck(recall.campaignNumber, RECALL_ACK_ACTION.UNACKNOWLEDGE)}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('recalls.undoA11y', {
+                        defaultValue: 'Undo: mark campaign {{campaign}} as open',
+                        campaign: recall.campaignNumber,
+                      })}
+                      hitSlop={8}
+                      style={{
+                        minHeight: 44,
+                        minWidth: 44,
+                        paddingHorizontal: space.sm,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text style={{ ...type.bodyStrong, color: theme.warm2 }}>
+                        {t('recalls.undo', { defaultValue: 'Undo' })}
+                      </Text>
+                    </Pressable>
+                  </Animated.View>
+                ))}
+              </Animated.View>
+            )}
+          </Animated.View>
         )}
 
         {/* NHTSA attribution */}

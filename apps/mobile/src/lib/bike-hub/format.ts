@@ -66,3 +66,12 @@ export function formatShortDate(value: string | Date, locale: string): string {
 export function hasOdometer(value: number | null | undefined): value is number {
   return value != null && value > 0;
 }
+
+/** "Oct 9, 2026"-style date with the year, in the given locale. */
+export function formatFullDate(value: string | Date, locale: string): string {
+  return toDate(value).toLocaleDateString(locale, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}

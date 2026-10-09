@@ -1732,7 +1732,16 @@
     "consequence": "Sonuç",
     "remedy": "Çözüm",
     "campaign": "Kampanya",
-    "attribution": "Geri çağırma verileri NHTSA'dan"
+    "attribution": "Geri çağırma verileri NHTSA'dan",
+    "markDone": "Yapıldı olarak işaretle",
+    "markDoneConfirmTitle": "Bu geri çağırma yapıldı olarak işaretlensin mi?",
+    "markDoneConfirmMessage": "Bu motosiklet için {{campaign}} kampanyası hakkında artık uyarı almayacaksın.",
+    "ackError": "Bu geri çağırma güncellenemedi. Lütfen tekrar dene.",
+    "doneSection": "Yapıldı ({{count}})",
+    "doneOn": "{{date}} tarihinde yapıldı olarak işaretlendi",
+    "undo": "Geri al",
+    "undoA11y": "Geri al: {{campaign}} kampanyasını yeniden açık olarak işaretle",
+    "allDoneDescription": "Bu motosikletin tüm geri çağırmaları yapıldı olarak işaretlendi."
   },
   "trips": {
     "planATrip": "Tur planla",

@@ -641,6 +641,9 @@ export const AnalyticsEvent = {
   HEALTH_REPORT_DOWNLOADED: 'health_report_downloaded',
   HEALTH_REPORT_RETRIED: 'health_report_retried',
   RECALLS_CHECKED: 'recalls_checked',
+  // Rider marked a recall campaign as done / undid it. Props: campaign_number, motorcycle_id.
+  RECALL_ACKNOWLEDGED: 'recall_acknowledged',
+  RECALL_UNACKNOWLEDGED: 'recall_unacknowledged',
   OEM_SCHEDULE_IMPORTED: 'oem_schedule_imported',
 
   // Feature usage — Garage / Document Vault

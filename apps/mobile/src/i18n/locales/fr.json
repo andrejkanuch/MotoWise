@@ -1753,7 +1753,16 @@
     "consequence": "Conséquence",
     "remedy": "Remède",
     "campaign": "Campagne",
-    "attribution": "Données de rappel de NHTSA"
+    "attribution": "Données de rappel de NHTSA",
+    "markDone": "Marquer comme fait",
+    "markDoneConfirmTitle": "Marquer ce rappel comme fait ?",
+    "markDoneConfirmMessage": "Vous ne serez plus alerté de la campagne {{campaign}} pour cette moto.",
+    "ackError": "Impossible de mettre à jour ce rappel. Veuillez réessayer.",
+    "doneSection": "Faits ({{count}})",
+    "doneOn": "Marqué comme fait le {{date}}",
+    "undo": "Annuler",
+    "undoA11y": "Annuler : marquer à nouveau la campagne {{campaign}} comme ouverte",
+    "allDoneDescription": "Tous les rappels de cette moto sont marqués comme faits."
   },
   "trips": {
     "riders": "pilotes",

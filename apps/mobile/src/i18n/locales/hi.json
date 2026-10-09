@@ -1732,7 +1732,16 @@
     "consequence": "परिणाम",
     "remedy": "उपाय",
     "campaign": "अभियान",
-    "attribution": "रीकॉल डेटा NHTSA से"
+    "attribution": "रीकॉल डेटा NHTSA से",
+    "markDone": "पूरा हुआ चिह्नित करें",
+    "markDoneConfirmTitle": "इस रीकॉल को पूरा हुआ चिह्नित करें?",
+    "markDoneConfirmMessage": "इस बाइक के लिए अभियान {{campaign}} के बारे में आपको फिर से सूचित नहीं किया जाएगा।",
+    "ackError": "यह रीकॉल अपडेट नहीं हो सका। कृपया फिर से कोशिश करें।",
+    "doneSection": "पूरे हुए ({{count}})",
+    "doneOn": "{{date}} को पूरा हुआ चिह्नित किया",
+    "undo": "पूर्ववत करें",
+    "undoA11y": "पूर्ववत करें: अभियान {{campaign}} को फिर से खुला चिह्नित करें",
+    "allDoneDescription": "इस बाइक के सभी रीकॉल पूरे हुए चिह्नित हैं।"
   },
   "trips": {
     "planATrip": "ट्रिप प्लान करें",

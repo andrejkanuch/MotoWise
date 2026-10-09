@@ -1743,7 +1743,16 @@
     "consequence": "Consequence",
     "remedy": "Remedy",
     "campaign": "Campaign",
-    "attribution": "Recall data from NHTSA"
+    "attribution": "Recall data from NHTSA",
+    "markDone": "Mark as done",
+    "markDoneConfirmTitle": "Mark this recall as done?",
+    "markDoneConfirmMessage": "You won't be alerted about campaign {{campaign}} for this bike again.",
+    "ackError": "Couldn't update this recall. Please try again.",
+    "doneSection": "Done ({{count}})",
+    "doneOn": "Marked done {{date}}",
+    "undo": "Undo",
+    "undoA11y": "Undo: mark campaign {{campaign}} as open",
+    "allDoneDescription": "Every recall for this bike is marked as done."
   },
   "trips": {
     "planATrip": "Plan a Trip",
