@@ -580,7 +580,10 @@
     "rideMap": "Sürüş haritası",
     "mapNorthUp": "Kuzey yukarıda",
     "mapHeadingUp": "Gidiş yönü yukarıda",
-    "editProfileHint": "Herkese açık profilini ve sürüş profilini düzenle"
+    "editProfileHint": "Herkese açık profilini ve sürüş profilini düzenle",
+    "sectionApp": "Uygulama",
+    "nameLabel": "Ad",
+    "publicNameLabel": "Herkese açık ad (diğer sürücülere görünür)"
   },
   "onboarding": {
     "welcomeTitle": "MotoVault'a Hosgeldin",

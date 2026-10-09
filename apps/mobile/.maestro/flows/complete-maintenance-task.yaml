@@ -24,8 +24,8 @@
 #   - the Garage tab a11y text carries the badge count, so match it as a partial
 #     regex, not the bare word "Garage";
 #   - the app's custom keyboard does NOT support `hideKeyboard` — dismiss it by
-#     tapping a non-interactive section label ("Priority", "Completion Details");
-#   - primary buttons ("Save task", "Mark Complete") can sit below the keyboard/
+#     tapping a non-interactive section label ("Priority", "Completion details");
+#   - primary buttons ("Save task", "Mark complete") can sit below the keyboard/
 #     fold, so scroll to them before tapping;
 #   - a StoreKit "Enjoying MotoVault?" review prompt is LIKELY after completing a
 #     task (completion is a value-moment) — dismiss "Not Now" (optional);
@@ -108,24 +108,24 @@ env:
 
 # 5. Completion screen — record odometer + cost, then mark complete.
 - extendedWaitUntil:
-    visible: "Completion Details"
+    visible: "Completion details"
     timeout: 20000
 - assertVisible: "${TASK_TITLE}(,.*)?" # completion screen echoes the task title
 - tapOn: "e.g. 15000" # odometer input (targeted by placeholder text)
 - inputText: ${ODOMETER}
 - tapOn:
-    text: "Completion Details" # non-interactive label dismisses the custom keyboard
+    text: "Completion details" # non-interactive label dismisses the custom keyboard
     optional: true
 - tapOn: "0.00" # cost input (placeholder; assumes a 2-decimal currency)
 - inputText: ${COST}
 - tapOn:
-    text: "Completion Details" # dismiss the keyboard again before the button
+    text: "Completion details" # dismiss the keyboard again before the button
     optional: true
 - scrollUntilVisible:
     element:
-      text: "Mark Complete" # maintenance.markComplete — below the fold when keyboard is up
+      text: "Mark complete" # maintenance.markComplete — below the fold when keyboard is up
     direction: DOWN
-- tapOn: "Mark Complete"
+- tapOn: "Mark complete"
 # Completing a task is a value-moment — the StoreKit rating prompt is likely here.
 - tapOn:
     text: "Not Now"

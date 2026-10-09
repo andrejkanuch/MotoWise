@@ -580,7 +580,10 @@
     "rideMap": "ライドマップ",
     "mapNorthUp": "北を上",
     "mapHeadingUp": "進行方向を上",
-    "editProfileHint": "公開プロフィールとライダープロフィールを編集"
+    "editProfileHint": "公開プロフィールとライダープロフィールを編集",
+    "sectionApp": "アプリ",
+    "nameLabel": "名前",
+    "publicNameLabel": "公開名(ほかのライダーに表示)"
   },
   "onboarding": {
     "welcomeTitle": "MotoVaultへようこそ",

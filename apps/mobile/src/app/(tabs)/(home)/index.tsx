@@ -1,4 +1,3 @@
-import SegmentedControl from '@expo/ui/community/segmented-control';
 import * as Sentry from '@sentry/react-native';
 import { Route, Sparkles, Wallet, WifiOff, Wrench } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
@@ -23,6 +22,7 @@ import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 import { BikePlate, PLATE_SIZE } from '../../../components/ui/bike-plate';
 import { ESettingsGroup, ESettingsRow } from '../../../components/ui/editorial';
+import { ThemedSegmentedControl } from '../../../components/ui/themed-segmented-control';
 import { ReceiptScanRecoveryCard } from '../../../features/receipt-scan/receipt-scan-recovery-card';
 import { SCAN_ENTRY_SURFACE } from '../../../features/receipt-scan/scan-flow-constants';
 import { useMileageUnit } from '../../../hooks/use-mileage-unit';
@@ -428,15 +428,15 @@ export default function HomeScreen() {
           {/* Focus picker — this month / upcoming trip / ride history */}
           {hasMotorcycles && (
             <View style={{ gap: space.sm }}>
-              <SegmentedControl
+              <ThemedSegmentedControl
                 values={[
                   t('home.focusThisMonth'),
                   t('home.focusUpcomingTrip'),
                   t('home.focusRideHistory'),
                 ]}
                 selectedIndex={FOCUS_TABS.indexOf(focusTab)}
-                onChange={(e) => {
-                  setFocusTab(FOCUS_TABS[e.nativeEvent.selectedSegmentIndex]);
+                onChange={(index) => {
+                  setFocusTab(FOCUS_TABS[index]);
                   triggerSelection();
                 }}
               />

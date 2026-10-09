@@ -35,13 +35,14 @@ export const hubDark = {
   /** Ink on copper. */
   ink: palette.plateOnPlate,
   late: palette.hubLate,
-  soon: palette.hubSoon,
-  medium: palette.hubMedium,
+  /** Due soon as text — the plate's signal yellow. */
+  soon: palette.plateSignal,
   low: palette.hubLow,
   ok: palette.hubOk,
   tagCritBg: palette.hubTagCritBg,
   tagHighBg: palette.hubTagHighBg,
-  tagMedBg: palette.hubTagMedBg,
+  /** Medium priority is graphite, never a hue (the triad is reserved for state). */
+  tagMedBg: palette.plateG3,
   tagLowBg: palette.hubTagLowBg,
   hairline: palette.whiteAlpha06,
   hairlineStrong: palette.whiteAlpha08,
@@ -56,12 +57,6 @@ export const hubDark = {
   tabBar: withAlpha(palette.plateG0, 0.96),
   ripple: palette.whiteAlpha10,
   shadow: palette.black,
-  /** Plate-state triad (same fills in both schemes) and the ink printed on them. */
-  plateReady: palette.plateBone,
-  plateDue: palette.plateSignal,
-  plateOverdue: palette.plateRed,
-  onPlate: palette.plateOnPlate,
-  onPlateSoft: withAlpha(palette.plateOnPlate, 0.72),
 } as const;
 
 export type HubTheme = { readonly [K in keyof typeof hubDark]: string };
@@ -83,12 +78,11 @@ export const hubLight: HubTheme = {
   ink: palette.plateLightG1,
   late: palette.plateLightLate,
   soon: palette.plateLightSoon,
-  medium: palette.plateLightMedium,
   low: palette.plateLightMuted,
   ok: palette.plateLightOk,
   tagCritBg: palette.plateLightTagCritBg,
   tagHighBg: palette.plateLightTagHighBg,
-  tagMedBg: palette.plateLightTagMedBg,
+  tagMedBg: palette.plateLightG3,
   tagLowBg: palette.plateLightTagLowBg,
   hairline: palette.plateLineLight,
   hairlineStrong: withAlpha(palette.plateLightInk, 0.14),
@@ -102,11 +96,6 @@ export const hubLight: HubTheme = {
   tabBar: withAlpha(palette.plateLightG0, 0.96),
   ripple: withAlpha(palette.plateLightInk, 0.08),
   shadow: palette.black,
-  plateReady: palette.plateBone,
-  plateDue: palette.plateSignal,
-  plateOverdue: palette.plateRed,
-  onPlate: palette.plateOnPlate,
-  onPlateSoft: withAlpha(palette.plateOnPlate, 0.72),
 };
 
 /** The hub colours for the active colour scheme. */
@@ -210,7 +199,7 @@ export interface TagStyle {
 export const PRIORITY_TAG: Record<MaintenancePriority, TagStyle> = {
   [MaintenancePriority.Critical]: { labelKey: 'bikeHub.tag.critical', bg: 'tagCritBg', fg: 'late' },
   [MaintenancePriority.High]: { labelKey: 'bikeHub.tag.high', bg: 'tagHighBg', fg: 'soon' },
-  [MaintenancePriority.Medium]: { labelKey: 'bikeHub.tag.medium', bg: 'tagMedBg', fg: 'medium' },
+  [MaintenancePriority.Medium]: { labelKey: 'bikeHub.tag.medium', bg: 'tagMedBg', fg: 'dim' },
   [MaintenancePriority.Low]: { labelKey: 'bikeHub.tag.low', bg: 'tagLowBg', fg: 'low' },
 };
 
@@ -231,48 +220,16 @@ export const VARIANT_TAG: Record<
   [TAG_VARIANT.DOC]: { labelKey: 'bikeHub.tag.doc', normal: TONE_HIGH, critical: TONE_CRIT },
 };
 
-/**
- * Ride status → plate state (Race Plate triad): red plate = not ready, signal
- * yellow = check before riding, bone = ready. The plate colour IS the verdict;
- * the words on it carry the meaning, so no dot or tint repeats it. "Nothing
- * tracked yet" gives no verdict and stays a plain card. Values are `HubTheme` keys.
- */
+/** Ride status → its verdict words (the plate itself is drawn by `RideStatusCard`). */
 export interface RideStatusStyle {
   titleKey: HubCopyKey;
-  card: HubColorKey;
-  border: HubColorKey;
-  ink: HubColorKey;
-  inkSoft: HubColorKey;
 }
 
-const PLATE_INK = { ink: 'onPlate', inkSoft: 'onPlateSoft' } as const;
-
 export const RIDE_STATUS_STYLE: Record<RideStatus, RideStatusStyle> = {
-  [RIDE_STATUS.NOT_READY]: {
-    titleKey: 'bikeHub.rideStatus.notReady',
-    card: 'plateOverdue',
-    border: 'plateOverdue',
-    ...PLATE_INK,
-  },
-  [RIDE_STATUS.CHECK]: {
-    titleKey: 'bikeHub.rideStatus.check',
-    card: 'plateDue',
-    border: 'plateDue',
-    ...PLATE_INK,
-  },
-  [RIDE_STATUS.READY]: {
-    titleKey: 'bikeHub.rideStatus.ready',
-    card: 'plateReady',
-    border: 'hairlineStrong',
-    ...PLATE_INK,
-  },
-  [RIDE_STATUS.UNTRACKED]: {
-    titleKey: 'bikeHub.rideStatus.untracked',
-    card: 'card',
-    border: 'hairline',
-    ink: 'text',
-    inkSoft: 'dim',
-  },
+  [RIDE_STATUS.NOT_READY]: { titleKey: 'bikeHub.rideStatus.notReady' },
+  [RIDE_STATUS.CHECK]: { titleKey: 'bikeHub.rideStatus.check' },
+  [RIDE_STATUS.READY]: { titleKey: 'bikeHub.rideStatus.ready' },
+  [RIDE_STATUS.UNTRACKED]: { titleKey: 'bikeHub.rideStatus.untracked' },
 };
 
 /** Due-line tone → the `HubTheme` key colouring its leading part. */

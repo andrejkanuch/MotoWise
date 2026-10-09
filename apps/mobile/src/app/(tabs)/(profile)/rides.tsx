@@ -1,4 +1,3 @@
-import SegmentedControl from '@expo/ui/community/segmented-control';
 import {
   MyMotorcyclesDocument,
   MyRidesDocument,
@@ -25,6 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Path, Stop, LinearGradient as SvgGradient } from 'react-native-svg';
 import { RideCard } from '../../../components/ride/ride-card';
 import { ESettingsGroup, ESettingsRow } from '../../../components/ui/editorial';
+import { ThemedSegmentedControl } from '../../../components/ui/themed-segmented-control';
 import { PROFILE_ROUTE } from '../../../config/routes';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
@@ -497,11 +497,11 @@ export default function RidesScreen() {
         style={{ gap: space.sm, marginBottom: space.md }}
       >
         {/* Period switcher */}
-        <SegmentedControl
+        <ThemedSegmentedControl
           values={PERIOD_KEYS.map((key) => periodLabelsMap[key])}
           selectedIndex={PERIOD_KEYS.indexOf(period)}
-          onChange={(e) => {
-            const next = PERIOD_KEYS[e.nativeEvent.selectedSegmentIndex];
+          onChange={(index) => {
+            const next = PERIOD_KEYS[index];
             if (next) handlePeriodChange(next);
           }}
         />

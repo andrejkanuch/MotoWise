@@ -357,11 +357,9 @@ export const palette = {
   plateLightCopperText: '#A6461A',
   plateLightLate: '#B13026',
   plateLightSoon: '#7A5B00',
-  plateLightMedium: '#2A59B3',
   plateLightOk: '#246E44',
   plateLightTagCritBg: '#FBE9E6',
   plateLightTagHighBg: '#FBF1DC',
-  plateLightTagMedBg: '#E6EEFB',
   plateLightTagLowBg: '#ECEAE5',
   // Expense category hues for light grounds (≥3:1 on white — dots and bars,
   // always beside the category name).

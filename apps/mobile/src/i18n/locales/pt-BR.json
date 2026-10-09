@@ -581,7 +581,10 @@
     "rideMap": "Mapa do passeio",
     "mapNorthUp": "Norte para cima",
     "mapHeadingUp": "Direção para cima",
-    "editProfileHint": "Edite seu perfil público e de piloto"
+    "editProfileHint": "Edite seu perfil público e de piloto",
+    "sectionApp": "App",
+    "nameLabel": "Nome",
+    "publicNameLabel": "Nome público (visível para outros pilotos)"
   },
   "onboarding": {
     "welcomeTitle": "Bem-vindo ao MotoVault",

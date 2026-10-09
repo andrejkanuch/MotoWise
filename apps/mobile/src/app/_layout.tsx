@@ -38,6 +38,7 @@ import {
   useSegments,
 } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useColorScheme as useNativewindColorScheme } from 'nativewind';
 import { PostHogProvider, PostHogSurveyProvider } from 'posthog-react-native';
@@ -512,7 +513,7 @@ function RootLayout() {
   // nativewind keeps the choice only in memory, so without this a picked
   // Light/Dark falls back to System after a restart.
   const storedColorScheme = useAuthStore((s) => s.colorScheme);
-  const { setColorScheme } = useNativewindColorScheme();
+  const { colorScheme: resolvedScheme, setColorScheme } = useNativewindColorScheme();
   useEffect(() => {
     setColorScheme(storedColorScheme === COLOR_SCHEME.SYSTEM ? 'unspecified' : storedColorScheme);
   }, [storedColorScheme, setColorScheme]);
@@ -1094,6 +1095,10 @@ function RootLayout() {
             client opt-out set by setAnalyticsEnabled(). */}
         <PostHogSurveyProvider androidKeyboardBehavior="padding">
           <KeyboardProvider>
+            {/* Status bar icons follow the APP scheme (App settings → Theme), not the
+                system one. Screens that set their own (onboarding hero) mount later
+                and win while they are shown. */}
+            <StatusBar style={resolvedScheme === COLOR_SCHEME.DARK ? 'light' : 'dark'} />
             <PersistedQueryClientBoundary>
               <NavigationGate onSettled={hideSplash} />
               {/* Root-mounted so the post-save "Saved — Undo" toast (U7d) survives

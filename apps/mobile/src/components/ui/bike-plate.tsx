@@ -4,7 +4,8 @@
  * A rounded number-plate panel whose colour IS the bike's readiness:
  * bone = ready, signal yellow = due soon, red = overdue. The big condensed
  * figure is the distance (or time) to the next thing; the caption says what
- * that thing is; the plate's edge carries the bike's identity. One diagonal
+ * that thing is; the plate's edge carries the racing number and the bike's
+ * identity ("01 · Honda Africa Twin · 2022"). No kicker above the figure. One diagonal
  * livery stripe cuts the top-right corner — the only diagonal in the app.
  *
  * Reused wherever a bike appears (home hero, garage list, sheets) so a rider
@@ -12,7 +13,7 @@
  */
 
 import { useEffect } from 'react';
-import { Pressable, Text, View, type ViewStyle } from 'react-native';
+import { Pressable, Text, type TextStyle, View, type ViewStyle } from 'react-native';
 import Animated, {
   Easing,
   interpolateColor,
@@ -22,7 +23,9 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+
+const TABULAR: TextStyle['fontVariant'] = ['tabular-nums'];
 
 export const PLATE_STATE = {
   READY: 'ready',
@@ -55,11 +58,21 @@ export interface BikePlateProps {
   unit?: string;
   /** One line saying what the figure counts down to (e.g. "to Oil change"). */
   caption: string;
-  /** Short state word printed on the plate edge (e.g. "Ready", "Due soon"). */
+  /**
+   * Short state word ("Ready", "Due soon", "Overdue"). Always in the
+   * accessibility label; printed before the caption only when the caption
+   * does not already say it (see `captionSaysState`).
+   */
   stateLabel: string;
+  /**
+   * The caption already states the plate's state ("Brake pads, past due",
+   * "No service due"). Default: true for ready and overdue plates (their
+   * copy says it), and for a due plate whose caption contains `stateLabel`.
+   */
+  captionSaysState?: boolean;
   /** Bike identity on the plate edge (e.g. "Honda Africa Twin · 2022"). */
   identity?: string;
-  /** Optional racing-number style index (e.g. "07"). */
+  /** Racing-number index printed first on the identity edge (e.g. "07"). */
   plateNumber?: string;
   size?: PlateSize;
   onPress?: () => void;
@@ -75,6 +88,7 @@ export function BikePlate({
   unit,
   caption,
   stateLabel,
+  captionSaysState,
   identity,
   plateNumber,
   size = PLATE_SIZE.HERO,
@@ -113,6 +127,11 @@ export function BikePlate({
   const inkSoft = tint(ink, 0.68);
   const figureStyle = hero ? type.plate : type.plateCompact;
   const pad = hero ? space.lg : space.md;
+  const stripe = hero ? STRIPE.hero : STRIPE.compact;
+  const stated =
+    captionSaysState ??
+    (state !== PLATE_STATE.DUE || caption.toLowerCase().includes(stateLabel.toLowerCase()));
+  const shownCaption = stated ? caption : `${stateLabel} · ${caption}`;
 
   const body = (
     <Animated.View
@@ -134,29 +153,19 @@ export function BikePlate({
         style,
       ]}
     >
-      <LiveryStripe hero={hero} copper={t.warm} ground={t.bg} />
+      <LiveryStripe stripe={stripe} copper={t.warm} ground={t.bg} />
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
-        {plateNumber ? (
-          <Text
-            style={[type.label, { color: ink, fontVariant: ['tabular-nums'] }]}
-            maxFontSizeMultiplier={1.4}
-          >
-            {plateNumber}
-          </Text>
-        ) : null}
+      {/* The figure row keeps clear of the livery stripe in the top-right corner. */}
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          gap: space.xs,
+          marginRight: stripeClearance(stripe) - pad,
+        }}
+      >
         <Text
-          style={[type.label, { color: ink, flexShrink: 1 }]}
-          numberOfLines={1}
-          maxFontSizeMultiplier={1.4}
-        >
-          {stateLabel}
-        </Text>
-      </View>
-
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.xs }}>
-        <Text
-          style={[figureStyle, { color: ink }]}
+          style={[figureStyle, { color: ink, flexShrink: 1 }]}
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.6}
@@ -175,10 +184,10 @@ export function BikePlate({
       </View>
 
       <Text style={[hero ? type.bodyStrong : type.subhead, { color: ink }]} numberOfLines={2}>
-        {caption}
+        {shownCaption}
       </Text>
 
-      {identity ? (
+      {identity || plateNumber ? (
         <View
           style={{
             marginTop: hero ? space.sm : space.xs,
@@ -188,6 +197,12 @@ export function BikePlate({
           }}
         >
           <Text style={[type.label, { color: inkSoft }]} numberOfLines={1}>
+            {plateNumber ? (
+              <Text style={[SYSTEM_WEIGHT.bold, { color: ink, fontVariant: TABULAR }]}>
+                {plateNumber}
+              </Text>
+            ) : null}
+            {plateNumber && identity ? ' · ' : null}
             {identity}
           </Text>
         </View>
@@ -211,11 +226,31 @@ export function BikePlate({
   );
 }
 
+const STRIPE = {
+  hero: { length: 220, band: 14, offset: 34 },
+  compact: { length: 140, band: 9, offset: 22 },
+} as const;
+type StripeGeometry = (typeof STRIPE)[keyof typeof STRIPE];
+
+/**
+ * How far in from the plate's right edge the stripe reaches at the figure's
+ * height: its centre line meets the edge `2 × offset` down, plus both bands.
+ */
+function stripeClearance({ band, offset }: StripeGeometry): number {
+  return 2 * offset + band * 1.5;
+}
+
 /** Two parallel bands cut diagonally through the plate's top-right corner. */
-function LiveryStripe({ hero, copper, ground }: { hero: boolean; copper: string; ground: string }) {
-  const length = hero ? 220 : 140;
-  const band = hero ? 14 : 9;
-  const offset = hero ? 34 : 22;
+function LiveryStripe({
+  stripe,
+  copper,
+  ground,
+}: {
+  stripe: StripeGeometry;
+  copper: string;
+  ground: string;
+}) {
+  const { length, band, offset } = stripe;
   return (
     <View
       pointerEvents="none"

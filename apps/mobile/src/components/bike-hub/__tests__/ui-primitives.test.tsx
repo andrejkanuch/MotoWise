@@ -40,8 +40,8 @@ describe('PriorityTag', () => {
 
   it.each([
     [MaintenancePriority.Critical, 'CRIT', palette.hubTagCritBg, palette.hubLate],
-    [MaintenancePriority.High, 'HIGH', palette.hubTagHighBg, palette.hubSoon],
-    [MaintenancePriority.Medium, 'MED', palette.hubTagMedBg, palette.hubMedium],
+    [MaintenancePriority.High, 'HIGH', palette.hubTagHighBg, hubDark.soon],
+    [MaintenancePriority.Medium, 'MED', hubDark.tagMedBg, hubDark.dim],
     [MaintenancePriority.Low, 'LOW', palette.hubTagLowBg, palette.hubLow],
   ])('%s renders %s in its colours', async (priority, label, bg, fg) => {
     await render(<PriorityTag priority={priority} />);
@@ -58,7 +58,7 @@ describe('PriorityTag', () => {
       </>,
     );
     expect(StyleSheet.flatten(screen.getByText('SAFETY').props.style).color).toBe(palette.hubLate);
-    expect(StyleSheet.flatten(screen.getByText('DOC').props.style).color).toBe(palette.hubSoon);
+    expect(StyleSheet.flatten(screen.getByText('DOC').props.style).color).toBe(hubDark.soon);
   });
 });
 
@@ -74,9 +74,7 @@ describe('DueLine', () => {
   it('"In 2 days · or in 8,733 km" with the soon colour leading', async () => {
     await render(<DueLine due={getTaskDue(AIR_FILTER, KM)} unit={HUB_UNIT.KM} />);
     expect(screen.getByText('In 2 days · or in 8,733 km')).toBeOnTheScreen();
-    expect(StyleSheet.flatten(screen.getByText('In 2 days').props.style).color).toBe(
-      palette.hubSoon,
-    );
+    expect(StyleSheet.flatten(screen.getByText('In 2 days').props.style).color).toBe(hubDark.soon);
   });
 
   it('"In 9,833 km · Honda schedule" in the plain colour', async () => {
@@ -335,13 +333,13 @@ describe('RefreshFailed', () => {
     // One row: Retry beside the (one- or two-line) message.
     await layout(message, 0, 36);
     await layout(retry, 9, 18);
-    expect(StyleSheet.flatten(separator.props.style).color).toBe(palette.hubSoon);
+    expect(StyleSheet.flatten(separator.props.style).color).toBe(hubDark.soon);
 
     // Wrapped: Retry on the row below.
     await layout(retry, 36, 18);
     const hidden = StyleSheet.flatten(separator.props.style).color;
-    expect(hidden).not.toBe(palette.hubSoon);
-    expect(hidden).toBe(withAlpha(palette.hubSoon, 0));
+    expect(hidden).not.toBe(hubDark.soon);
+    expect(hidden).toBe(withAlpha(hubDark.soon, 0));
     expect(separator).toBeOnTheScreen();
   });
 });

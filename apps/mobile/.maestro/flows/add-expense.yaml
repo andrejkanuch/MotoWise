@@ -26,7 +26,7 @@
 #     support `hideKeyboard` — dismiss it by tapping a non-interactive section
 #     label ("Category" / "Details"), which works because the ScrollView sets
 #     keyboardShouldPersistTaps="handled";
-#   - the "Save Expense" button sits at the bottom of the form, below the
+#   - the "Save expense" button sits at the bottom of the form, below the
 #     keyboard/fold, so dismiss the keyboard and scroll to it before tapping;
 #   - after a successful save the screen stays OPEN (button flips to "Done" so
 #     receipts can be attached) — tap "Done" to pop back to the bike hub where the
@@ -94,9 +94,9 @@ env:
     optional: true
 - scrollUntilVisible:
     element:
-      text: "Save Expense" # expenses.save → "Save Expense"; below the keyboard/fold
+      text: "Save expense" # expenses.save → "Save expense"; below the keyboard/fold
     direction: DOWN
-- tapOn: "Save Expense"
+- tapOn: "Save expense"
 
 # A native store-review prompt can fire after saving an expense — dismiss it.
 - tapOn:

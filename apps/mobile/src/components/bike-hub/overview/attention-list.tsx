@@ -1,6 +1,5 @@
 import type { MaintenancePriority } from '@motovault/graphql';
 import type { TFunction } from 'i18next';
-import { FileText, type LucideIcon, Shield, ShieldAlert, Wrench } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import {
@@ -20,7 +19,7 @@ import {
 } from '../../../lib/bike-hub/constants';
 import { formatShortDate } from '../../../lib/bike-hub/format';
 import { DueLine, describeDue } from '../ui/due-line';
-import type { RowIcon } from '../ui/list-row';
+import { HubCard } from '../ui/hub-card';
 import { PriorityTag } from '../ui/priority-tag';
 import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { SectionHeader } from '../ui/section-header';
@@ -78,11 +77,9 @@ function subLine(hub: HubTheme, lead: string, leadColor: string, rest?: string) 
 
 type BlockingCategory = (typeof RIDE_BLOCKING_DOCUMENT_CATEGORIES)[number];
 
-/** A riding-blocking document's own icon and what the rider should do about it. */
-const BLOCKING_DOCUMENT_ROW: Partial<
-  Record<BlockingCategory, { icon: LucideIcon; actionKey: HubCopyKey }>
-> = {
-  Insurance: { icon: Shield, actionKey: 'bikeHub.attention.docActionInsurance' },
+/** What the rider should do about a riding-blocking document. */
+const BLOCKING_DOCUMENT_ROW: Partial<Record<BlockingCategory, { actionKey: HubCopyKey }>> = {
+  Insurance: { actionKey: 'bikeHub.attention.docActionInsurance' },
 };
 
 function blockingDocumentRow(item: DocumentAttentionItem) {
@@ -91,7 +88,15 @@ function blockingDocumentRow(item: DocumentAttentionItem) {
   return BLOCKING_DOCUMENT_ROW[categoryName as BlockingCategory];
 }
 
-function RecallRow({ item, context }: { item: RecallAttentionItem; context: RowContext }) {
+function RecallRow({
+  item,
+  context,
+  divider,
+}: {
+  item: RecallAttentionItem;
+  context: RowContext;
+  divider: boolean;
+}) {
   const hub = useHubTheme();
   const { t } = context;
   const colors = tone(hub, item.critical);
@@ -105,42 +110,55 @@ function RecallRow({ item, context }: { item: RecallAttentionItem; context: RowC
   const sub = t('bikeHub.attention.recallSub');
   // One recall names its component in the title; several list them on the sub-line.
   const listed = item.count > 1 ? item.components : [];
-  const icon: RowIcon = { icon: ShieldAlert, color: colors.fg, background: colors.bg };
   return (
     <AttentionRow
       testID="attention-recall"
-      icon={icon}
       title={title}
       sub={subLine(hub, sub, colors.fg, listed.join(SEPARATOR))}
       trailing={<PriorityTag variant={TAG_VARIANT.SAFETY} critical={item.critical} />}
       accessibilityLabel={[title, sub, listed.join(', ')].filter(Boolean).join('. ')}
+      divider={divider}
       onPress={() => context.onPress(item)}
     />
   );
 }
 
-function TaskRow({ item, context }: { item: TaskAttentionItem; context: RowContext }) {
-  const hub = useHubTheme();
+function TaskRow({
+  item,
+  context,
+  divider,
+}: {
+  item: TaskAttentionItem;
+  context: RowContext;
+  divider: boolean;
+}) {
   const { t, language, unit, make } = context;
   const tag = PRIORITY_TAG[item.task.priority];
   const copy = describeDue(item.due, { t, unit, language, scheduleName: make });
-  const icon: RowIcon = { icon: Wrench, color: hub[tag.fg], background: hub[tag.bg] };
   return (
     <AttentionRow
       testID={`attention-task-${item.id}`}
-      icon={icon}
       title={item.task.title}
       sub={<DueLine due={item.due} unit={unit} scheduleName={make} />}
       trailing={<PriorityTag priority={item.task.priority} />}
       accessibilityLabel={[item.task.title, copy.primary, copy.secondary, t(tag.labelKey)]
         .filter(Boolean)
         .join('. ')}
+      divider={divider}
       onPress={() => context.onPress(item)}
     />
   );
 }
 
-function DocumentRow({ item, context }: { item: DocumentAttentionItem; context: RowContext }) {
+function DocumentRow({
+  item,
+  context,
+  divider,
+}: {
+  item: DocumentAttentionItem;
+  context: RowContext;
+  divider: boolean;
+}) {
   const hub = useHubTheme();
   const { t, language } = context;
   const { signal } = item;
@@ -161,19 +179,14 @@ function DocumentRow({ item, context }: { item: DocumentAttentionItem; context: 
   const rest = [signal.document.title, blocking ? t(blocking.actionKey) : null]
     .filter(Boolean)
     .join(SEPARATOR);
-  const icon: RowIcon = {
-    icon: blocking?.icon ?? FileText,
-    color: colors.fg,
-    background: colors.bg,
-  };
   return (
     <AttentionRow
       testID={`attention-document-${item.id}`}
-      icon={icon}
       title={title}
       sub={subLine(hub, lead, colors.fg, rest)}
       trailing={<PriorityTag variant={TAG_VARIANT.DOC} critical={signal.expired} />}
       accessibilityLabel={`${title}. ${lead}. ${rest}`}
+      divider={divider}
       onPress={() => context.onPress(item)}
     />
   );
@@ -183,6 +196,7 @@ const ROW: {
   [K in AttentionKind]: (props: {
     item: Extract<AttentionItem, { kind: K }>;
     context: RowContext;
+    divider: boolean;
   }) => React.JSX.Element;
 } = {
   [ATTENTION_KIND.RECALL]: RecallRow,
@@ -330,23 +344,26 @@ export function AttentionList({
           onRetry={onRetry}
         />
       ) : null}
-      {result.visible.map((item) => {
-        const Row = ROW[item.kind] as (props: {
-          item: AttentionItem;
-          context: RowContext;
-        }) => React.JSX.Element;
-        return <Row key={item.id} item={item} context={context} />;
-      })}
-      {overflow ? (
-        <AttentionRow
-          testID="attention-overflow"
-          icon={{ icon: Wrench, color: hub.dim, background: hub.raised }}
-          title={overflowTitle(overflow, t)}
-          sub={overflow.titles.join(SEPARATOR)}
-          accessibilityLabel={`${overflowTitle(overflow, t)}. ${overflow.titles.join(', ')}`}
-          onPress={onPressAll}
-        />
-      ) : null}
+      <HubCard style={{ overflow: 'hidden' }}>
+        {result.visible.map((item, index) => {
+          const Row = ROW[item.kind] as (props: {
+            item: AttentionItem;
+            context: RowContext;
+            divider: boolean;
+          }) => React.JSX.Element;
+          const last = index === result.visible.length - 1 && !overflow;
+          return <Row key={item.id} item={item} context={context} divider={!last} />;
+        })}
+        {overflow ? (
+          <AttentionRow
+            testID="attention-overflow"
+            title={overflowTitle(overflow, t)}
+            sub={overflow.titles.join(SEPARATOR)}
+            accessibilityLabel={`${overflowTitle(overflow, t)}. ${overflow.titles.join(', ')}`}
+            onPress={onPressAll}
+          />
+        ) : null}
+      </HubCard>
     </View>
   );
 }

@@ -26,7 +26,14 @@ import { ActionPill } from '../ui/action-pill';
 import { BikeHeader } from '../ui/bike-header';
 import { useHubBottomLayout } from '../ui/bottom-layout';
 import { SegmentBar } from '../ui/segment-bar';
-import { HUB_TOUCH_TARGET, type HubCopyKey, SYSTEM_WEIGHT, useHubTheme } from '../ui/tokens';
+import {
+  HUB_HEIGHT,
+  HUB_LAST_ROW_MARGIN,
+  HUB_TOUCH_TARGET,
+  type HubCopyKey,
+  SYSTEM_WEIGHT,
+  useHubTheme,
+} from '../ui/tokens';
 import { SegmentContainer, type SegmentDefinition } from './segment-container';
 import { useBikeActions } from './use-bike-actions';
 import { useBikeBack } from './use-bike-back';
@@ -295,6 +302,10 @@ function LoadedHub({
   useEffect(() => navigationRef(navigation), [navigationRef, navigation]);
   const keyboardVisible = useKeyboardVisible();
   const { width: windowWidth } = useWindowDimensions();
+  // The pill's real height (it can grow with the system text size): the last
+  // row must always scroll fully clear of its top edge, on phone and tablet.
+  const [pillHeight, setPillHeight] = useState<number>(HUB_HEIGHT.primary);
+  const contentInset = Math.max(bottomInset, pillBottom + pillHeight + HUB_LAST_ROW_MARGIN);
 
   const pillAction: Record<BikeSegment, () => void> = {
     [BIKE_SEGMENT.OVERVIEW]: navigation.openLogSheet,
@@ -364,12 +375,15 @@ function LoadedHub({
         collapse={collapse}
         refreshing={data.isRefreshing}
         onRefresh={() => void data.refresh()}
-        bottomInset={bottomInset}
+        bottomInset={contentInset}
         focused={focused}
       />
       {/* Out of the way while typing a quick note. */}
       {keyboardVisible ? null : (
-        <View style={{ position: 'absolute', right: pillRight, bottom: pillBottom }}>
+        <View
+          style={{ position: 'absolute', right: pillRight, bottom: pillBottom }}
+          onLayout={(event) => setPillHeight(event.nativeEvent.layout.height)}
+        >
           <ActionPill
             testID={`action-pill-${active}`}
             icon={Plus}

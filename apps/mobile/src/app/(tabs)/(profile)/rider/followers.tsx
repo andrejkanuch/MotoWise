@@ -1,4 +1,3 @@
-import SegmentedControl from '@expo/ui/community/segmented-control';
 import {
   GetFollowersDocument,
   type GetFollowersQuery,
@@ -13,6 +12,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { FOLLOW_LIST_TAB, type FollowListTab } from '../../../../components/profile/constants';
 import { RiderAvatar } from '../../../../components/profile/profile-header';
+import { ThemedSegmentedControl } from '../../../../components/ui/themed-segmented-control';
 import { PROFILE_ROUTE } from '../../../../config/routes';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { queryKeys } from '../../../../lib/query-keys';
@@ -159,11 +159,11 @@ export default function FollowersScreen() {
                 @{params.username}
               </Text>
             ) : null}
-            <SegmentedControl
+            <ThemedSegmentedControl
               values={tabs.map(tabLabel)}
               selectedIndex={tabs.indexOf(activeTab)}
-              onChange={(e) => {
-                const next = tabs[e.nativeEvent.selectedSegmentIndex];
+              onChange={(index) => {
+                const next = tabs[index];
                 if (!next) return;
                 triggerSelection();
                 setActiveTab(next);

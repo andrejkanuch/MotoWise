@@ -580,7 +580,10 @@
     "rideMap": "राइड मैप",
     "mapNorthUp": "उत्तर ऊपर",
     "mapHeadingUp": "दिशा ऊपर",
-    "editProfileHint": "अपनी सार्वजनिक और राइडिंग प्रोफ़ाइल संपादित करें"
+    "editProfileHint": "अपनी सार्वजनिक और राइडिंग प्रोफ़ाइल संपादित करें",
+    "sectionApp": "ऐप",
+    "nameLabel": "नाम",
+    "publicNameLabel": "सार्वजनिक नाम (दूसरे राइडर्स को दिखता है)"
   },
   "onboarding": {
     "welcomeTitle": "MotoVault में आपका स्वागत है",

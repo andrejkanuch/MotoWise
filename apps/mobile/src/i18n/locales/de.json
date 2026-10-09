@@ -580,7 +580,10 @@
     "rideMap": "Fahrtkarte",
     "mapNorthUp": "Norden oben",
     "mapHeadingUp": "Fahrtrichtung oben",
-    "editProfileHint": "Öffentliches Profil und Fahrerprofil bearbeiten"
+    "editProfileHint": "Öffentliches Profil und Fahrerprofil bearbeiten",
+    "sectionApp": "App",
+    "nameLabel": "Name",
+    "publicNameLabel": "Öffentlicher Name (für andere Fahrer sichtbar)"
   },
   "onboarding": {
     "welcomeTitle": "Willkommen bei MotoVault",

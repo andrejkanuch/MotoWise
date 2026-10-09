@@ -336,10 +336,11 @@ export function EStat({ label, value, tone }: { label: string; value: string; to
 export function EPriority({ level }: { level: 'low' | 'medium' | 'high' | 'critical' }) {
   const { t } = useEditorialTheme();
   const map = {
-    low: { c: t.success, label: 'Low' },
-    medium: { c: t.info, label: 'Medium' },
-    high: { c: t.warm, label: 'High' },
-    critical: { c: t.danger, label: 'Critical' },
+    // Graphite for routine, the plate-state inks for urgency; copper stays action-only.
+    low: { c: t.ink3, label: 'Low' },
+    medium: { c: t.ink2, label: 'Medium' },
+    high: { c: t.dueInk, label: 'High' },
+    critical: { c: t.overdueInk, label: 'Critical' },
   } as const;
   const { c, label } = map[level];
 

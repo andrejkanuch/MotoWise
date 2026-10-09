@@ -256,8 +256,6 @@ interface ChoiceChipProps {
   dotColor?: string;
   /** Grow to share the row equally (priority). */
   grow?: boolean;
-  /** Overrides the copper selection (priority's plate-state fills). */
-  selectedLook?: { fill: string; ink: string; border: string };
   testID?: string;
 }
 
@@ -268,13 +266,11 @@ export function ChoiceChip({
   onPress,
   dotColor,
   grow = false,
-  selectedLook,
   testID,
 }: ChoiceChipProps) {
   const { t: theme } = useEditorialTheme();
-  const fill = selected && selectedLook ? selectedLook.fill : theme.surface2;
-  const border = selected ? (selectedLook?.border ?? theme.warm) : theme.surface2;
-  const ink = selected ? (selectedLook?.ink ?? theme.warm2) : theme.ink2;
+  const border = selected ? theme.warm : theme.surface2;
+  const ink = selected ? theme.warm2 : theme.ink2;
   return (
     <Pressable
       testID={testID}
@@ -295,7 +291,7 @@ export function ChoiceChip({
         paddingHorizontal: space.md,
         borderRadius: radius.chip,
         borderCurve: 'continuous',
-        backgroundColor: fill,
+        backgroundColor: theme.surface2,
         borderWidth: 1.5,
         borderColor: border,
         overflow: 'hidden',
@@ -363,7 +359,7 @@ export function SheetFooter({
   const ink = {
     [SHEET_PRIMARY_STATE.READY]: theme.onWarm,
     [SHEET_PRIMARY_STATE.DISABLED]: theme.ink4,
-    [SHEET_PRIMARY_STATE.DONE]: theme.onPlate,
+    [SHEET_PRIMARY_STATE.DONE]: theme.onWarm,
   }[primaryState];
   const primaryDisabled =
     primaryState === SHEET_PRIMARY_STATE.DISABLED ||
@@ -547,26 +543,18 @@ const PRIORITY_ORDER = [
   MaintenancePriority.Critical,
 ] as const;
 
-/** Priority → plate-state fill when selected (low stays a neutral graphite). */
-function priorityLook(theme: EditorialTokens, priority: MaintenancePriority) {
-  const look: Record<MaintenancePriority, { fill: string; ink: string; border: string }> = {
-    [MaintenancePriority.Low]: { fill: theme.surface3, ink: theme.ink2, border: theme.ink3 },
-    [MaintenancePriority.Medium]: { fill: theme.info, ink: theme.onPlate, border: theme.info },
-    [MaintenancePriority.High]: {
-      fill: theme.plateDue,
-      ink: theme.onPlate,
-      border: theme.plateDue,
-    },
-    [MaintenancePriority.Critical]: {
-      fill: theme.plateOverdue,
-      ink: theme.onPlate,
-      border: theme.plateOverdue,
-    },
+/** Priority → its dot: neutral for low and medium, status ink for high and critical. */
+function priorityDot(theme: EditorialTokens, priority: MaintenancePriority): string {
+  const dot: Record<MaintenancePriority, string> = {
+    [MaintenancePriority.Low]: theme.ink3,
+    [MaintenancePriority.Medium]: theme.ink2,
+    [MaintenancePriority.High]: theme.dueInk,
+    [MaintenancePriority.Critical]: theme.overdueInk,
   };
-  return look[priority];
+  return dot[priority];
 }
 
-/** The four priorities as one row of equal chips, coloured by plate state. */
+/** The four priorities as one row of equal chips; selection is copper like every chip. */
 export function PriorityPicker({
   value,
   onChange,
@@ -578,24 +566,17 @@ export function PriorityPicker({
   const { t: theme } = useEditorialTheme();
   return (
     <View style={{ flexDirection: 'row', gap: space.xs }}>
-      {PRIORITY_ORDER.map((p) => {
-        const look = priorityLook(theme, p);
-        const selected = value === p;
-        // The dot carries the colour while unselected; on a filled chip it turns ink.
-        const dot = selected ? look.ink : p === MaintenancePriority.Low ? theme.ink3 : look.fill;
-        return (
-          <ChoiceChip
-            key={p}
-            testID={`priority-${p}`}
-            grow
-            label={t(`maintenance.priority_${p}`)}
-            dotColor={dot}
-            selected={selected}
-            selectedLook={look}
-            onPress={() => onChange(p)}
-          />
-        );
-      })}
+      {PRIORITY_ORDER.map((p) => (
+        <ChoiceChip
+          key={p}
+          testID={`priority-${p}`}
+          grow
+          label={t(`maintenance.priority_${p}`)}
+          dotColor={priorityDot(theme, p)}
+          selected={value === p}
+          onPress={() => onChange(p)}
+        />
+      ))}
     </View>
   );
 }

@@ -1,10 +1,8 @@
-import { FREE_TIER_LIMITS } from '@motovault/types';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import {
   ArrowUpRight,
-  Bike,
   Bookmark,
   BookOpen,
   CreditCard,
@@ -16,7 +14,6 @@ import {
   Megaphone,
   Navigation,
   Pencil,
-  Plus,
   RotateCcw,
   Settings,
   Shield,
@@ -41,7 +38,7 @@ import {
   ESettingsGroup,
   ESettingsRow,
 } from '../../../components/ui/editorial';
-import { PROFILE_ROUTE, TAB_ROUTE } from '../../../config/routes';
+import { PROFILE_ROUTE } from '../../../config/routes';
 import { useProGate } from '../../../hooks/use-pro-gate';
 import { useProfileData } from '../../../hooks/use-profile-data';
 import {
@@ -84,10 +81,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { isPro } = useProGate();
 
-  const { user, motorcycles, handleAddBike, handleLogout, handleDeleteAccount, isDeleting } =
-    useProfileData({ t, isPro });
-
-  const addBikeGated = !isPro && motorcycles.length >= FREE_TIER_LIMITS.MAX_BIKES;
+  const { user, handleLogout, handleDeleteAccount, isDeleting } = useProfileData({ t, isPro });
   const appVersion = Constants.expoConfig?.version ?? '';
 
   return (
@@ -136,25 +130,7 @@ export default function ProfileScreen() {
         ) : null}
       </Section>
 
-      <Section index={1} label={t('tabs.garage')}>
-        {motorcycles.length > 0 ? (
-          <ESettingsRow
-            testID="profile-bikes"
-            icon={Bike}
-            title={t('profile.bikes')}
-            value={String(motorcycles.length)}
-            onPress={() => router.navigate(TAB_ROUTE.GARAGE)}
-          />
-        ) : null}
-        <ESettingsRow
-          testID="profile-add-bike"
-          icon={addBikeGated ? Crown : Plus}
-          title={t('profile.addBike')}
-          onPress={handleAddBike}
-        />
-      </Section>
-
-      <Section index={2} label={t('profile.sectionSubscription')}>
+      <Section index={1} label={t('profile.sectionSubscription')}>
         {isPro ? (
           <ESettingsRow
             testID="profile-pro-status"
@@ -206,22 +182,13 @@ export default function ProfileScreen() {
         )}
       </Section>
 
-      <Section index={3} label={t('settings.title')}>
+      <Section index={2} label={t('profile.sectionApp')}>
         <ESettingsRow
           testID="profile-app-settings"
           icon={Settings}
           title={t('profile.appSettings')}
           subtitle={t('profile.appSettingsSubtitle')}
           onPress={() => router.push(PROFILE_ROUTE.APP_SETTINGS)}
-        />
-      </Section>
-
-      <Section index={4} label={t('profile.support')}>
-        <ESettingsRow
-          testID="profile-help"
-          icon={HelpCircle}
-          title={t('profile.helpFaq')}
-          onPress={() => router.push(PROFILE_ROUTE.SUPPORT)}
         />
         <ESettingsRow
           testID="profile-whats-new"
@@ -235,6 +202,15 @@ export default function ProfileScreen() {
           icon={BookOpen}
           title={t('tabs.learn')}
           onPress={() => router.push('/(tabs)/(learn)')}
+        />
+      </Section>
+
+      <Section index={3} label={t('profile.support')}>
+        <ESettingsRow
+          testID="profile-help"
+          icon={HelpCircle}
+          title={t('profile.helpFaq')}
+          onPress={() => router.push(PROFILE_ROUTE.SUPPORT)}
         />
         <ESettingsRow
           testID="profile-terms"
@@ -255,7 +231,7 @@ export default function ProfileScreen() {
       </Section>
 
       <View>
-        <Section index={5} label={t('profile.sectionAccount')}>
+        <Section index={4} label={t('profile.sectionAccount')}>
           <ESettingsRow
             testID="profile-edit"
             icon={Pencil}

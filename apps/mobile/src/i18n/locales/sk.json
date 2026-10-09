@@ -582,7 +582,10 @@
     "rideMap": "Mapa jazdy",
     "mapNorthUp": "Sever hore",
     "mapHeadingUp": "Smer jazdy hore",
-    "editProfileHint": "Uprav verejný a jazdecký profil"
+    "editProfileHint": "Uprav verejný a jazdecký profil",
+    "sectionApp": "Aplikácia",
+    "nameLabel": "Meno",
+    "publicNameLabel": "Verejné meno (vidia ho ostatní jazdci)"
   },
   "onboarding": {
     "welcomeTitle": "Vitaj v MotoVault",

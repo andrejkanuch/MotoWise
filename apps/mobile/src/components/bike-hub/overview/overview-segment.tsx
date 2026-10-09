@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import type { AttentionItem } from '../../../lib/bike-hub/attention';
@@ -10,6 +11,7 @@ import {
   type HubUnit,
   RIDE_STATUS,
 } from '../../../lib/bike-hub/constants';
+import { describePlate, rankBikeTasks } from '../../home/home-plate';
 import type { BikeActions } from '../shell/use-bike-actions';
 import type { BikeHubData, HubBike } from '../shell/use-bike-hub-data';
 import type { BikeHubNavigation } from '../shell/use-bike-hub-navigation';
@@ -56,6 +58,7 @@ export function OverviewSegment({
   onOpenTask,
   now,
 }: OverviewSegmentProps) {
+  const { t, i18n } = useTranslation();
   const data = useOverviewData(bike, shell, unit, now);
   // A verdict needs tasks and documents both loaded: until then no status, and
   // no "Set this bike up" list for a bike that may well have tasks.
@@ -74,6 +77,19 @@ export function OverviewSegment({
   const onPressItem = (item: AttentionItem) =>
     (openItem[item.kind] as (item: AttentionItem) => void)(item);
   const topItem = data.attention.visible[0];
+  // The bike's plate, from the same logic as Home and Garage.
+  const plate = useMemo(() => {
+    if (!statusKnown) return null;
+    // The hub's tasks are already this bike's: scope them to it explicitly.
+    const tasks = shell.tasks.map((task) => ({ ...task, motorcycleId: bike.id }));
+    const [next] = rankBikeTasks(tasks, {
+      bikeId: bike.id,
+      odometer: bike.currentMileage,
+      unit,
+      today: data.today,
+    });
+    return describePlate(next, { t, language: i18n.language, unit, odometer: bike.currentMileage });
+  }, [statusKnown, data.today, shell.tasks, bike.id, bike.currentMileage, unit, t, i18n.language]);
 
   // A block that renders nothing must not be listed at all, or its empty
   // wrapper would still take a 12 pt gap (READY: status card → costs).
@@ -110,6 +126,7 @@ export function OverviewSegment({
         // (ride-status.ts) — so a known recall list is all that is left to check.
         noOpenRecalls={data.recallsKnown}
         onPress={topItem ? () => onPressItem(topItem) : undefined}
+        plate={plate}
       />,
     ],
     untracked

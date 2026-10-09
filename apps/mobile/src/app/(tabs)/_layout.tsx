@@ -154,6 +154,25 @@ function RideFAB() {
   );
 }
 
+/**
+ * Logging sheets presented as form sheets over a tab's stack, by route name
+ * (the (garage) and (home) stacks share the names). On iOS the native sheet
+ * covers the bar; on Android the island is drawn over the sheet and hid its
+ * lower fields and the Cancel / Save row, so it is not drawn there.
+ */
+const SHEET_ROUTES: ReadonlySet<string> = new Set([
+  'add-expense',
+  'add-maintenance-task',
+  'edit-maintenance-task',
+  'complete-task',
+  'add-document',
+  'log-entry',
+  'odometer',
+  'note',
+]);
+
+const IS_ANDROID = process.env.EXPO_OS === 'android';
+
 /** Name of the route on top of the focused tab's stack, if it has one. */
 function topRouteName(state: BottomTabBarProps['state']): string | undefined {
   const tab = state.routes[state.index]?.state;
@@ -168,6 +187,7 @@ function topRouteName(state: BottomTabBarProps['state']): string | undefined {
  */
 function IslandTabBar(props: BottomTabBarProps) {
   const route = topRouteName(props.state);
+  if (IS_ANDROID && route !== undefined && SHEET_ROUTES.has(route)) return null;
   const overHub = route !== undefined && BIKE_HUB_ROUTES.has(route);
   return (
     <>

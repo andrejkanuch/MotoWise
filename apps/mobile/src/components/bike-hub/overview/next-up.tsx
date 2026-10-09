@@ -4,6 +4,7 @@ import type { HubUnit } from '../../../lib/bike-hub/constants';
 import type { TaskDue } from '../../../lib/bike-hub/task-due';
 import type { HubTask } from '../shell/use-bike-hub-data';
 import { DueLine, describeDue } from '../ui/due-line';
+import { HubCard } from '../ui/hub-card';
 import { PriorityTag } from '../ui/priority-tag';
 import { SectionHeader } from '../ui/section-header';
 import { PRIORITY_TAG } from '../ui/tokens';
@@ -25,21 +26,23 @@ export function NextUp({ entry, unit, make, onPress }: NextUpProps) {
   return (
     <View testID="next-up" style={{ gap: 8 }}>
       <SectionHeader label={t('bikeHub.nextUp.title')} />
-      <AttentionRow
-        testID={`next-up-${task.id}`}
-        title={task.title}
-        sub={<DueLine due={due} unit={unit} scheduleName={make} />}
-        trailing={<PriorityTag priority={task.priority} />}
-        accessibilityLabel={[
-          task.title,
-          copy.primary,
-          copy.secondary,
-          t(PRIORITY_TAG[task.priority].labelKey),
-        ]
-          .filter(Boolean)
-          .join('. ')}
-        onPress={() => onPress(task.id)}
-      />
+      <HubCard style={{ overflow: 'hidden' }}>
+        <AttentionRow
+          testID={`next-up-${task.id}`}
+          title={task.title}
+          sub={<DueLine due={due} unit={unit} scheduleName={make} />}
+          trailing={<PriorityTag priority={task.priority} />}
+          accessibilityLabel={[
+            task.title,
+            copy.primary,
+            copy.secondary,
+            t(PRIORITY_TAG[task.priority].labelKey),
+          ]
+            .filter(Boolean)
+            .join('. ')}
+          onPress={() => onPress(task.id)}
+        />
+      </HubCard>
     </View>
   );
 }

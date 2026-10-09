@@ -580,7 +580,10 @@
     "rideMap": "Peta perjalanan",
     "mapNorthUp": "Utara di atas",
     "mapHeadingUp": "Arah hadap di atas",
-    "editProfileHint": "Ubah profil publik dan profil berkendara"
+    "editProfileHint": "Ubah profil publik dan profil berkendara",
+    "sectionApp": "Aplikasi",
+    "nameLabel": "Nama",
+    "publicNameLabel": "Nama publik (terlihat oleh pengendara lain)"
   },
   "onboarding": {
     "welcomeTitle": "Selamat Datang di MotoVault",

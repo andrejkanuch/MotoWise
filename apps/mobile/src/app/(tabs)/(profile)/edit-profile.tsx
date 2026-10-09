@@ -156,6 +156,14 @@ export default function EditProfileScreen() {
     for (const field of PUBLIC_FIELDS) {
       if (form[field] !== initial[field]) Object.assign(publicInput, { [field]: form[field] });
     }
+    // A public profile with no public name shows the rider's name (the field's
+    // placeholder) — save that so other riders see what this screen showed.
+    const fallbackPublicName = form.fullName.trim();
+    if (form.isPublic && !form.displayName.trim() && !initial.displayName && fallbackPublicName) {
+      if (form.isPublic !== initial.isPublic || Object.keys(publicInput).length > 0) {
+        publicInput.displayName = fallbackPublicName;
+      }
+    }
     const userInput: { fullName?: string; preferences?: Record<string, unknown> } = {};
     const trimmedName = form.fullName.trim();
     if (trimmedName && trimmedName !== initial.fullName) userInput.fullName = trimmedName;
@@ -282,103 +290,11 @@ export default function EditProfileScreen() {
           <ActivityIndicator style={{ marginTop: space.xxl }} color={theme.ink3} />
         ) : (
           <>
-            {/* ─── Public profile ─── */}
-            <View>
-              <ESectionLabel label={t('community.publicProfile')} />
-              <ESettingsGroup>
-                <EToggleRow
-                  testID="edit-profile-public"
-                  icon={Globe}
-                  title={t('community.makePublic')}
-                  subtitle={t('community.publicProfileDesc')}
-                  value={form.isPublic}
-                  onValueChange={(value) => set('isPublic', value)}
-                />
-                <FieldRow
-                  label={t('community.username')}
-                  trailing={
-                    usernameStatus === USERNAME_STATUS.VALID ? (
-                      <CheckCircle2 size={18} color={theme.success} strokeWidth={2} />
-                    ) : usernameStatus === USERNAME_STATUS.INVALID ? (
-                      <AlertCircle size={18} color={theme.danger} strokeWidth={2} />
-                    ) : null
-                  }
-                >
-                  <Text style={[type.body, { color: theme.ink3 }]}>@</Text>
-                  <TextInput
-                    testID="edit-profile-username"
-                    value={form.publicUsername}
-                    onChangeText={(text) =>
-                      set('publicUsername', text.toLowerCase().replace(/[^a-z0-9_]/g, ''))
-                    }
-                    placeholder={t('community.usernamePlaceholder')}
-                    placeholderTextColor={theme.ink4}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    maxLength={30}
-                    accessibilityLabel={t('community.username')}
-                    style={inputStyle}
-                  />
-                </FieldRow>
-                <FieldRow label={t('community.displayName')}>
-                  <TextInput
-                    value={form.displayName}
-                    onChangeText={(text) => set('displayName', text)}
-                    placeholder={t('community.displayNamePlaceholder')}
-                    placeholderTextColor={theme.ink4}
-                    maxLength={50}
-                    accessibilityLabel={t('community.displayName')}
-                    style={inputStyle}
-                  />
-                </FieldRow>
-                <FieldRow
-                  label={t('community.bio')}
-                  trailing={
-                    <Text style={[type.caption, { color: theme.ink4, alignSelf: 'flex-end' }]}>
-                      {form.bio.length}/{BIO_MAX}
-                    </Text>
-                  }
-                >
-                  <TextInput
-                    value={form.bio}
-                    onChangeText={(text) => set('bio', text)}
-                    placeholder={t('community.bioPlaceholder')}
-                    placeholderTextColor={theme.ink4}
-                    multiline
-                    maxLength={BIO_MAX}
-                    accessibilityLabel={t('community.bio')}
-                    style={[...inputStyle, { minHeight: 72, textAlignVertical: 'top' }]}
-                  />
-                </FieldRow>
-                <FieldRow label={t('community.city')} isLast>
-                  <TextInput
-                    value={form.city}
-                    onChangeText={(text) => set('city', text)}
-                    placeholder={t('community.cityPlaceholder')}
-                    placeholderTextColor={theme.ink4}
-                    maxLength={100}
-                    accessibilityLabel={t('community.city')}
-                    style={inputStyle}
-                  />
-                </FieldRow>
-              </ESettingsGroup>
-              {usernameStatus === USERNAME_STATUS.INVALID ? (
-                <Text
-                  style={[
-                    type.caption,
-                    { color: theme.danger, marginTop: space.xs, marginHorizontal: space.md },
-                  ]}
-                >
-                  {t('community.usernameInvalid')}
-                </Text>
-              ) : null}
-            </View>
-
             {/* ─── Riding profile (private) ─── */}
             <View>
               <ESectionLabel label={t('profile.ridingProfile')} />
               <ESettingsGroup>
-                <FieldRow label={t('settings.fullNameLabel')} isLast>
+                <FieldRow label={t('profile.nameLabel')} isLast>
                   <TextInput
                     testID="edit-profile-full-name"
                     value={form.fullName}
@@ -387,7 +303,7 @@ export default function EditProfileScreen() {
                     placeholderTextColor={theme.ink4}
                     autoCapitalize="words"
                     autoCorrect={false}
-                    accessibilityLabel={t('settings.fullNameLabel')}
+                    accessibilityLabel={t('profile.nameLabel')}
                     style={inputStyle}
                   />
                 </FieldRow>
@@ -434,6 +350,98 @@ export default function EditProfileScreen() {
                   );
                 })}
               </ESettingsGroup>
+            </View>
+
+            {/* ─── Public profile ─── */}
+            <View>
+              <ESectionLabel label={t('community.publicProfile')} />
+              <ESettingsGroup>
+                <EToggleRow
+                  testID="edit-profile-public"
+                  icon={Globe}
+                  title={t('community.makePublic')}
+                  subtitle={t('community.publicProfileDesc')}
+                  value={form.isPublic}
+                  onValueChange={(value) => set('isPublic', value)}
+                />
+                <FieldRow
+                  label={t('community.username')}
+                  trailing={
+                    usernameStatus === USERNAME_STATUS.VALID ? (
+                      <CheckCircle2 size={18} color={theme.success} strokeWidth={2} />
+                    ) : usernameStatus === USERNAME_STATUS.INVALID ? (
+                      <AlertCircle size={18} color={theme.danger} strokeWidth={2} />
+                    ) : null
+                  }
+                >
+                  <Text style={[type.body, { color: theme.ink3 }]}>@</Text>
+                  <TextInput
+                    testID="edit-profile-username"
+                    value={form.publicUsername}
+                    onChangeText={(text) =>
+                      set('publicUsername', text.toLowerCase().replace(/[^a-z0-9_]/g, ''))
+                    }
+                    placeholder={t('community.usernamePlaceholder')}
+                    placeholderTextColor={theme.ink4}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    maxLength={30}
+                    accessibilityLabel={t('community.username')}
+                    style={inputStyle}
+                  />
+                </FieldRow>
+                <FieldRow label={t('profile.publicNameLabel')}>
+                  <TextInput
+                    value={form.displayName}
+                    onChangeText={(text) => set('displayName', text)}
+                    placeholder={form.fullName.trim() || t('community.displayNamePlaceholder')}
+                    placeholderTextColor={theme.ink4}
+                    maxLength={50}
+                    accessibilityLabel={t('profile.publicNameLabel')}
+                    style={inputStyle}
+                  />
+                </FieldRow>
+                <FieldRow
+                  label={t('community.bio')}
+                  trailing={
+                    <Text style={[type.caption, { color: theme.ink4, alignSelf: 'flex-end' }]}>
+                      {form.bio.length}/{BIO_MAX}
+                    </Text>
+                  }
+                >
+                  <TextInput
+                    value={form.bio}
+                    onChangeText={(text) => set('bio', text)}
+                    placeholder={t('community.bioPlaceholder')}
+                    placeholderTextColor={theme.ink4}
+                    multiline
+                    maxLength={BIO_MAX}
+                    accessibilityLabel={t('community.bio')}
+                    style={[...inputStyle, { minHeight: 72, textAlignVertical: 'top' }]}
+                  />
+                </FieldRow>
+                <FieldRow label={t('community.city')} isLast>
+                  <TextInput
+                    value={form.city}
+                    onChangeText={(text) => set('city', text)}
+                    placeholder={t('community.cityPlaceholder')}
+                    placeholderTextColor={theme.ink4}
+                    maxLength={100}
+                    accessibilityLabel={t('community.city')}
+                    style={inputStyle}
+                  />
+                </FieldRow>
+              </ESettingsGroup>
+              {usernameStatus === USERNAME_STATUS.INVALID ? (
+                <Text
+                  style={[
+                    type.caption,
+                    { color: theme.danger, marginTop: space.xs, marginHorizontal: space.md },
+                  ]}
+                >
+                  {t('community.usernameInvalid')}
+                </Text>
+              ) : null}
             </View>
 
             {saveMutation.isError ? (

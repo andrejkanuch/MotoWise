@@ -21,14 +21,20 @@ const IS_IOS = process.env.EXPO_OS === 'ios';
  */
 export default function ProfileLayout() {
   const { t } = useTranslation();
-  const { t: theme } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
 
   return (
     <Stack
       screenOptions={{
         headerLargeTitle: IS_IOS,
         headerTransparent: IS_IOS,
-        headerBlurEffect: IS_IOS ? 'systemChromeMaterial' : undefined,
+        // Pinned to the APP scheme: the adaptive 'systemChromeMaterial' follows the
+        // system appearance and paints a light bar under a dark-mode title.
+        headerBlurEffect: IS_IOS
+          ? isDark
+            ? 'systemChromeMaterialDark'
+            : 'systemChromeMaterialLight'
+          : undefined,
         headerShadowVisible: false,
         headerLargeTitleShadowVisible: false,
         headerBackButtonDisplayMode: 'minimal',

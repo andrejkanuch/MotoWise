@@ -580,7 +580,10 @@
     "rideMap": "แผนที่การขับขี่",
     "mapNorthUp": "ทิศเหนืออยู่ด้านบน",
     "mapHeadingUp": "ทิศทางการขับอยู่ด้านบน",
-    "editProfileHint": "แก้ไขโปรไฟล์สาธารณะและโปรไฟล์การขับขี่"
+    "editProfileHint": "แก้ไขโปรไฟล์สาธารณะและโปรไฟล์การขับขี่",
+    "sectionApp": "แอป",
+    "nameLabel": "ชื่อ",
+    "publicNameLabel": "ชื่อสาธารณะ (ผู้ขับขี่คนอื่นเห็น)"
   },
   "onboarding": {
     "welcomeTitle": "ยินดีต้อนรับสู่ MotoVault",

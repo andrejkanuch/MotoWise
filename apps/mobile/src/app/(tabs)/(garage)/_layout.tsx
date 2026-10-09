@@ -12,7 +12,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 
 export default function GarageLayout() {
   const { t } = useTranslation();
-  const { t: theme } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
   const hub = useHubTheme();
 
   const sheetSurface = theme.bg;
@@ -25,7 +25,8 @@ export default function GarageLayout() {
       screenOptions={{
         headerLargeTitle: true,
         headerTransparent: true,
-        headerBlurEffect: 'systemMaterial',
+        // Follow the APP scheme, not the system appearance (adaptive 'systemMaterial').
+        headerBlurEffect: isDark ? 'systemMaterialDark' : 'systemMaterialLight',
         headerShadowVisible: false,
         headerLargeTitleShadowVisible: false,
         headerBackButtonDisplayMode: 'minimal',

@@ -581,7 +581,10 @@
     "rideMap": "Carte de balade",
     "mapNorthUp": "Nord en haut",
     "mapHeadingUp": "Direction en haut",
-    "editProfileHint": "Modifier ton profil public et ton profil de motard"
+    "editProfileHint": "Modifier ton profil public et ton profil de motard",
+    "sectionApp": "App",
+    "nameLabel": "Nom",
+    "publicNameLabel": "Nom public (visible par les autres motards)"
   },
   "onboarding": {
     "welcomeTitle": "Bienvenue sur MotoVault",

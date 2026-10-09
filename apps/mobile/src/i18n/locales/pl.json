@@ -582,7 +582,10 @@
     "rideMap": "Mapa jazdy",
     "mapNorthUp": "Północ u góry",
     "mapHeadingUp": "Kierunek jazdy u góry",
-    "editProfileHint": "Edytuj profil publiczny i profil jeźdźca"
+    "editProfileHint": "Edytuj profil publiczny i profil jeźdźca",
+    "sectionApp": "Aplikacja",
+    "nameLabel": "Imię i nazwisko",
+    "publicNameLabel": "Nazwa publiczna (widoczna dla innych motocyklistów)"
   },
   "onboarding": {
     "welcomeTitle": "Witaj w MotoVault",

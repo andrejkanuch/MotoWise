@@ -51,9 +51,9 @@ env:
     optional: true
 - scrollUntilVisible:
     element:
-      text: "Save Expense"
+      text: "Save expense"
     direction: DOWN
-- tapOn: "Save Expense"
+- tapOn: "Save expense"
 - tapOn:
     text: "Not Now"
     optional: true
