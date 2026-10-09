@@ -346,13 +346,61 @@ export const palette = {
   plateLightInk4: '#9C9DA1',
   plateLightCopper: '#B8501F',
   plateLightSignal: '#C99A00',
+  /** Due-soon as text or a dot on a light ground (≥4.5:1 on white). */
+  plateLightSignalInk: '#8A6700',
   plateLightRed: '#C8352A',
   plateLightGo: '#2E8A55',
   plateLightInfo: '#2F64C8',
+  // Bike hub, light scheme. Status hues are text-safe (≥4.5:1 on the card,
+  // ground and raised steps); tag fills pair with them at ≥5:1.
+  plateLightMuted: '#5E5F63',
+  plateLightCopperText: '#A6461A',
+  plateLightLate: '#B13026',
+  plateLightSoon: '#7A5B00',
+  plateLightMedium: '#2A59B3',
+  plateLightOk: '#246E44',
+  plateLightTagCritBg: '#FBE9E6',
+  plateLightTagHighBg: '#FBF1DC',
+  plateLightTagMedBg: '#E6EEFB',
+  plateLightTagLowBg: '#ECEAE5',
+  // Expense category hues for light grounds (≥3:1 on white — dots and bars,
+  // always beside the category name).
+  plateLightCatFuel: '#9A7A14',
+  plateLightCatTraining: '#7F7D1A',
+  plateLightCatAccessories: '#5E8A24',
+  plateLightCatTolls: '#3E8A3D',
+  plateLightCatParts: '#1F8A7F',
+  plateLightCatRegistration: '#16879A',
+  plateLightCatService: '#1E7DAD',
+  plateLightCatParking: '#2F6FAE',
+  plateLightCatInsurance: '#6466D6',
+  plateLightCatGear: '#8B62D9',
+  plateLightCatMods: '#9A4CB4',
+  plateLightCatTaxes: '#B54E95',
+  plateLightCatTires: '#C2507E',
+  plateLightCatOther: '#7A746B',
   plateLineDark: 'rgba(236,230,218,0.09)',
   plateLine2Dark: 'rgba(236,230,218,0.05)',
   plateLineLight: 'rgba(20,21,23,0.10)',
   plateLine2Light: 'rgba(20,21,23,0.05)',
+
+  // ── Google "G" brand mark (official four colours; sign-in buttons only) ──
+  googleBlue: '#4285F4',
+  googleGreen: '#34A853',
+  googleYellow: '#FBBC05',
+  googleRed: '#EA4335',
+
+  // ── Third-party & map atmosphere (fixed; never theme or brand accents) ──
+  /** Mapbox 3D atmosphere (`<Atmosphere>` fog) on ride detail + flyover. */
+  mapSkyHorizon: '#BAD2EB',
+  mapSkyHigh: '#245CDF',
+  mapSkySpace: '#0B0B19',
+  /** Instagram brand gradient stops (share-destination icons only). */
+  instagramYellow: '#FFD25F',
+  instagramOrange: '#F9A11B',
+  instagramRed: '#ED4F5C',
+  instagramMagenta: '#C42E91',
+  instagramPurple: '#7234C4',
 } as const;
 
 export type Palette = typeof palette;

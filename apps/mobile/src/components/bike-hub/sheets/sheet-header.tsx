@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
+import { SYSTEM_WEIGHT, type } from '../../../theme/type';
+import { HUB_CHROME_MAX_FONT_SCALE, HUB_TOUCH_TARGET, useHubTheme } from '../ui/tokens';
 
 /** Grabber for Android, where the form sheet draws none of its own. */
 export function SheetGrabber() {
+  const hub = useHubTheme();
   if (process.env.EXPO_OS !== 'android') return null;
   return (
     <View
@@ -35,9 +37,6 @@ export type SheetCancelPlacement =
 /** Controls of a hub sheet that cannot be used while it saves (or after it saved). */
 export const SHEET_LOCKED_OPACITY = 0.45;
 
-/** Serif sheet title (DESIGN.md `serif-sheet`, 26/30). */
-const TITLE_SIZE = 26;
-const TITLE_LINE_HEIGHT = 30;
 const TITLE_LINES = 2;
 /** Dimmed Cancel while it cannot be used (a save in flight). */
 const DISABLED_OPACITY = 0.4;
@@ -53,7 +52,7 @@ interface SheetHeaderProps {
   cancelTestID?: string;
 }
 
-/** One header design for every hub sheet: serif title plus "Cancel". */
+/** One header design for every hub sheet: condensed title plus "Cancel". */
 export function SheetHeader({
   title,
   onCancel,
@@ -61,6 +60,7 @@ export function SheetHeader({
   cancelDisabled = false,
   cancelTestID,
 }: SheetHeaderProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const leading = cancelPlacement === SHEET_CANCEL_PLACEMENT.LEADING;
   // With Cancel leading, the title is centred on the sheet: a spacer as wide as
@@ -86,7 +86,7 @@ export function SheetHeader({
       <Text
         maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
         numberOfLines={1}
-        style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.dim }}
+        style={[type.subhead, SYSTEM_WEIGHT.semibold, { color: hub.dim }]}
       >
         {t('common.cancel')}
       </Text>
@@ -108,14 +108,10 @@ export function SheetHeader({
         maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
         accessibilityRole="header"
         numberOfLines={TITLE_LINES}
-        style={{
-          flex: 1,
-          textAlign: leading ? 'center' : 'left',
-          fontFamily: HUB_FONT.serif,
-          fontSize: TITLE_SIZE,
-          lineHeight: TITLE_LINE_HEIGHT,
-          color: hub.text,
-        }}
+        style={[
+          type.sheetTitle,
+          { flex: 1, textAlign: leading ? 'center' : 'left', color: hub.text },
+        ]}
       >
         {title}
       </Text>

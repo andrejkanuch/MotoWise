@@ -84,7 +84,7 @@ export function BikePlate({
   testID,
   style,
 }: BikePlateProps) {
-  const { t } = useEditorialTheme();
+  const { t, isDark } = useEditorialTheme();
   const reduceMotion = useReducedMotion();
   const hero = size === PLATE_SIZE.HERO;
 
@@ -125,6 +125,10 @@ export function BikePlate({
           paddingTop: pad,
           paddingBottom: hero ? space.lg : space.md,
           gap: hero ? space.xs : space.xxs,
+          // On a light ground a bone plate needs its rim, like a real plate's
+          // printed keyline; on graphite the plate stands on its own.
+          borderWidth: isDark ? 0 : 2,
+          borderColor: t.onPlate,
         },
         animatedStyle,
         style,

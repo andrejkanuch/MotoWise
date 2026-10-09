@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import { TripTemplatesDocument, type TripTemplatesQuery } from '@motovault/graphql';
 import { COUNTRY_NAMES, type SupportedCountryCode } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
@@ -13,16 +12,11 @@ import { useUserCountry } from '../../hooks/use-user-country';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, space, type } from '../../theme/type';
 import { formatDistance } from '../../utils/ride-formatters';
+import { DIFFICULTY_TOKEN } from './discover-trip-card';
 
 type TripNode = TripTemplatesQuery['tripTemplates']['edges'][number]['node'];
-
-const DIFFICULTY_COLORS: Record<string, string> = {
-  easy: palette.editorialSuccess,
-  moderate: palette.editorialDarkWarm,
-  challenging: palette.danger500,
-  expert: palette.editorialPurple,
-};
 
 interface NearYouSectionProps {
   onTripPress: (tripId: string) => void;
@@ -72,32 +66,8 @@ export const NearYouSection = memo(function NearYouSection({
         }}
       >
         <View style={{ flex: 1 }}>
-          <Text
-            style={{
-              fontFamily: 'GeistMono',
-              fontSize: 10,
-              letterSpacing: 1.6,
-              textTransform: 'uppercase',
-              color: palette.accent500,
-              fontWeight: '600',
-              marginBottom: 6,
-            }}
-          >
+          <Text style={[type.sectionTitle, { color: theme.ink }]} accessibilityRole="header">
             {i18n('nearYou.sectionMeta', { country: countryName })}
-          </Text>
-          <Text
-            style={{
-              fontFamily: 'InstrumentSerif',
-              fontSize: 26,
-              color: theme.ink,
-              letterSpacing: -0.5,
-              lineHeight: 30,
-            }}
-          >
-            {i18n('nearYou.heading')}{' '}
-            <Text style={{ fontStyle: 'italic', color: palette.accent500 }}>
-              {i18n('nearYou.headingCountry', { country: countryName })}
-            </Text>
           </Text>
         </View>
         <Pressable
@@ -105,27 +75,14 @@ export const NearYouSection = memo(function NearYouSection({
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 4,
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            borderRadius: 999,
-            borderWidth: 1,
-            borderColor: theme.line,
+            gap: space.xxs,
+            minHeight: 44,
+            paddingLeft: space.sm,
           }}
+          accessibilityRole="button"
         >
-          <Text
-            style={{
-              fontFamily: 'GeistMono',
-              fontSize: 10,
-              letterSpacing: 0.8,
-              textTransform: 'uppercase',
-              color: theme.ink2,
-              fontWeight: '500',
-            }}
-          >
-            {i18n('nearYou.viewAll')}
-          </Text>
-          <ChevronRight size={12} color={theme.ink3} />
+          <Text style={[type.label, { color: theme.warm2 }]}>{i18n('nearYou.viewAll')}</Text>
+          <ChevronRight size={14} color={theme.warm2} />
         </Pressable>
       </View>
 
@@ -169,7 +126,8 @@ const NearYouCard = memo(function NearYouCard({
     ? Math.floor(trip.estimatedDurationMinutes / 60)
     : null;
   const mins = trip.estimatedDurationMinutes ? trip.estimatedDurationMinutes % 60 : null;
-  const diffColor = DIFFICULTY_COLORS[trip.difficulty] ?? theme.ink3;
+  const diffToken = DIFFICULTY_TOKEN[trip.difficulty as keyof typeof DIFFICULTY_TOKEN] ?? null;
+  const diffColor = diffToken ? theme[diffToken] : theme.ink3;
 
   return (
     <Animated.View
@@ -213,22 +171,14 @@ const NearYouCard = memo(function NearYouCard({
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 4,
-                  paddingHorizontal: 7,
+                  paddingHorizontal: space.xs,
                   paddingVertical: 3,
                   borderRadius: 999,
-                  backgroundColor: 'rgba(212,136,74,0.95)',
+                  backgroundColor: theme.plateReady,
                 }}
               >
-                <Award size={10} color={palette.editorialDarkBg} strokeWidth={2.2} />
-                <Text
-                  style={{
-                    fontSize: 9,
-                    fontWeight: '700',
-                    letterSpacing: 0.7,
-                    textTransform: 'uppercase',
-                    color: palette.editorialDarkBg,
-                  }}
-                >
+                <Award size={12} color={theme.onPlate} strokeWidth={2.2} />
+                <Text style={[type.caption, SYSTEM_WEIGHT.semibold, { color: theme.onPlate }]}>
                   {i18n('nearYou.editorsPick')}
                 </Text>
               </View>
@@ -238,32 +188,15 @@ const NearYouCard = memo(function NearYouCard({
 
         {/* Body */}
         <View style={{ padding: 12, gap: 6 }}>
+          <Text numberOfLines={2} style={[type.bodyStrong, { color: theme.ink }]}>
+            {trip.title}
+          </Text>
           {trip.countryCode && (
-            <Text
-              style={{
-                fontFamily: 'GeistMono',
-                fontSize: 9,
-                letterSpacing: 1.2,
-                textTransform: 'uppercase',
-                color: theme.ink3,
-              }}
-            >
+            <Text style={[type.caption, { color: theme.ink3 }]}>
               {COUNTRY_NAMES[trip.countryCode.toUpperCase() as SupportedCountryCode] ??
                 trip.countryCode}
             </Text>
           )}
-          <Text
-            numberOfLines={2}
-            style={{
-              fontSize: 15,
-              fontWeight: '700',
-              color: theme.ink,
-              letterSpacing: -0.3,
-              lineHeight: 20,
-            }}
-          >
-            {trip.title}
-          </Text>
 
           {/* Stats row */}
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 2 }}>
@@ -291,16 +224,7 @@ const NearYouCard = memo(function NearYouCard({
                     backgroundColor: diffColor,
                   }}
                 />
-                <Text
-                  style={{
-                    fontFamily: 'GeistMono',
-                    fontSize: 10,
-                    letterSpacing: 0.5,
-                    textTransform: 'uppercase',
-                    color: theme.ink3,
-                    fontWeight: '500',
-                  }}
-                >
+                <Text style={[type.caption, { color: theme.ink3, textTransform: 'capitalize' }]}>
                   {trip.difficulty}
                 </Text>
               </View>
@@ -316,19 +240,7 @@ function StatBadge({ label }: { label: string }) {
   const { t: theme } = useEditorialTheme();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-      <View
-        style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: palette.accent500 }}
-      />
-      <Text
-        style={{
-          fontFamily: 'GeistMono',
-          fontSize: 10,
-          letterSpacing: 0.5,
-          textTransform: 'uppercase',
-          color: theme.ink3,
-          fontWeight: '500',
-        }}
-      >
+      <Text style={[type.label, { color: theme.ink2, fontVariant: ['tabular-nums'] }]}>
         {label}
       </Text>
     </View>

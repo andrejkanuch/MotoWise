@@ -31,7 +31,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { getPrimaryGoal, getTotalScreens, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
@@ -54,6 +54,7 @@ import { setSelfReportedSource } from '../../lib/subscription';
 import { useAuthStore } from '../../stores/auth.store';
 import { useChecklistStore } from '../../stores/checklist.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { radius, space, type } from '../../theme/type';
 
 // Onboarding still captures mileage with a per-bike mi/km toggle, but the app now
 // derives the display unit from the global users.measurement_system
@@ -90,11 +91,6 @@ const MIN_ANIMATION_MS = 1600;
  */
 const GARAGE_PAYWALL_ESCAPE_DELAY_MS = 6000;
 
-const SERIF_REGULAR = 'InstrumentSerif-Regular' as const;
-const SERIF_ITALIC = 'InstrumentSerif-Italic' as const;
-const MONO_MEDIUM = 'GeistMono-Medium' as const;
-const BODY = 'Geist-Regular' as const;
-
 type BikeLike = { year?: number | null; make?: string | null; model?: string | null } | null;
 
 /** Builds a human-readable bike label (e.g. "2023 BMW R 1250 GS"), or null if no bike. */
@@ -109,6 +105,7 @@ function buildBikeLabel(bike: BikeLike): string | null {
 }
 
 export default function PersonalizingScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const { totalScreens, variant } = useOnboardingStep(OB_SCREEN.PERSONALIZING);
   // Resume-after-kill entry (welcome's resume replace) — the rider already sat
@@ -511,7 +508,7 @@ export default function PersonalizingScreen() {
   // flips to the garage). Only if the silent completion errors or stalls past
   // the 8s safety net does the full UI surface, with the retry controls.
   if (isResumed && !showRetry) {
-    return <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }} />;
+    return <View style={{ flex: 1, backgroundColor: oc.background }} />;
   }
 
   if (showDone) {
@@ -519,7 +516,7 @@ export default function PersonalizingScreen() {
       <View
         style={{
           flex: 1,
-          backgroundColor: ONBOARDING_COLORS.background,
+          backgroundColor: oc.background,
           alignItems: 'center',
           justifyContent: 'center',
           paddingHorizontal: 32,
@@ -535,61 +532,44 @@ export default function PersonalizingScreen() {
               {
                 width: 84,
                 height: 84,
-                borderRadius: 26,
+                borderRadius: radius.card,
                 borderCurve: 'continuous',
-                backgroundColor: ONBOARDING_COLORS.warm,
+                backgroundColor: oc.success,
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: 24,
+                marginBottom: space.xl,
               },
               checkBadgeStyle,
             ]}
           >
-            <Check size={40} color={ONBOARDING_COLORS.textOnAccent} strokeWidth={3} />
+            <Check size={40} color={oc.textOnAccent} strokeWidth={3} />
           </Animated.View>
 
           <Animated.Text
-            entering={FadeInUp.delay(80).duration(300)}
-            style={{
-              fontFamily: MONO_MEDIUM,
-              fontSize: 12,
-              letterSpacing: 1.6,
-              textTransform: 'uppercase',
-              color: ONBOARDING_COLORS.warm2,
-              marginBottom: 14,
-            }}
-          >
-            {t('onboarding.personalizingDoneEyebrow' as never)}
-          </Animated.Text>
-
-          <Animated.Text
             entering={FadeInUp.delay(120).duration(300)}
-            style={{
-              fontFamily: SERIF_REGULAR,
-              fontSize: 40,
-              lineHeight: 44,
-              color: ONBOARDING_COLORS.textPrimary,
-              textAlign: 'center',
-              marginBottom: 12,
-            }}
+            style={[
+              type.largeTitle,
+              {
+                color: oc.textPrimary,
+                textAlign: 'center',
+                marginBottom: space.sm,
+              },
+            ]}
           >
-            {t('onboarding.personalizingDoneTitleLead' as never)}{' '}
-            <Text style={{ fontFamily: SERIF_ITALIC, color: ONBOARDING_COLORS.warm2 }}>
-              {t('onboarding.personalizingDoneTitleAccent' as never)}
-            </Text>
+            {t('onboarding.personalizingDoneHeadline')}
           </Animated.Text>
 
           <Animated.Text
             entering={FadeInUp.delay(160).duration(300)}
-            style={{
-              fontFamily: BODY,
-              fontSize: 15,
-              lineHeight: 22,
-              color: ONBOARDING_COLORS.textSecondary,
-              textAlign: 'center',
-              maxWidth: 320,
-              marginBottom: 32,
-            }}
+            style={[
+              type.body,
+              {
+                color: oc.textSecondary,
+                textAlign: 'center',
+                maxWidth: 320,
+                marginBottom: space.xxl,
+              },
+            ]}
           >
             {bikeLabel
               ? (t(
@@ -610,9 +590,9 @@ export default function PersonalizingScreen() {
             />
           </Animated.View>
           {showGarageEscape ? (
-            <Animated.View entering={FadeIn.duration(240)} style={{ marginTop: 16 }}>
+            <Animated.View entering={FadeIn.duration(240)} style={{ marginTop: space.md }}>
               <Pressable onPress={handleGarageEscape} hitSlop={12} accessibilityRole="button">
-                <Text style={{ fontSize: 13.5, color: ONBOARDING_COLORS.textMuted }}>
+                <Text style={[type.subhead, { color: oc.textSecondary }]}>
                   {t('onboarding.obPaywallEscape')}
                 </Text>
               </Pressable>
@@ -627,7 +607,7 @@ export default function PersonalizingScreen() {
     <View
       style={{
         flex: 1,
-        backgroundColor: ONBOARDING_COLORS.background,
+        backgroundColor: oc.background,
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
@@ -651,8 +631,8 @@ export default function PersonalizingScreen() {
               height: 120,
               borderRadius: 60,
               borderCurve: 'continuous',
-              borderWidth: 3,
-              borderColor: ONBOARDING_COLORS.accent,
+              borderWidth: 2,
+              borderColor: oc.textMuted,
             },
             pulseStyle,
           ]}
@@ -663,41 +643,27 @@ export default function PersonalizingScreen() {
             height: 60,
             borderRadius: 30,
             borderCurve: 'continuous',
-            backgroundColor: ONBOARDING_COLORS.accent,
+            backgroundColor: oc.surface2,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Sparkles size={28} color={ONBOARDING_COLORS.textPrimary} strokeWidth={2} />
+          <Sparkles size={28} color={oc.textPrimary} strokeWidth={2} />
         </View>
       </View>
 
-      {/* Title — Instrument Serif with italic-copper accent on the key phrase */}
       <Text
-        style={{
-          fontFamily: SERIF_REGULAR,
-          fontSize: 30,
-          lineHeight: 34,
-          color: ONBOARDING_COLORS.textPrimary,
-          textAlign: 'center',
-          marginBottom: 8,
-        }}
+        style={[
+          type.largeTitle,
+          { color: oc.textPrimary, textAlign: 'center', marginBottom: space.xs },
+        ]}
       >
-        {t('onboarding.v2PersonalizingTitleLead' as never)}{' '}
-        <Text style={{ fontFamily: SERIF_ITALIC, color: ONBOARDING_COLORS.warm2 }}>
-          {t('onboarding.v2PersonalizingTitleAccent' as never)}
-        </Text>
+        {t('onboarding.v2PersonalizingHeadline')}
       </Text>
 
       {bikeLabel ? (
         <Text
-          style={{
-            fontFamily: BODY,
-            fontSize: 13,
-            color: ONBOARDING_COLORS.ink3,
-            textAlign: 'center',
-            marginBottom: 32,
-          }}
+          style={[type.subhead, { color: oc.ink3, textAlign: 'center', marginBottom: space.xxl }]}
         >
           {
             t(
@@ -709,10 +675,10 @@ export default function PersonalizingScreen() {
           }
         </Text>
       ) : (
-        <View style={{ marginBottom: 32 }} />
+        <View style={{ marginBottom: space.xxl }} />
       )}
 
-      <View style={{ gap: 16, alignItems: 'flex-start' }}>
+      <View style={{ gap: space.md, alignItems: 'flex-start' }}>
         {steps.map((stepKey, index) => {
           const StepIcon = stepIcons[index];
           return visibleSteps > index ? (
@@ -722,20 +688,14 @@ export default function PersonalizingScreen() {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 12,
+                gap: space.sm,
               }}
             >
-              <StepIcon size={18} color={ONBOARDING_COLORS.textMuted} />
-              <Text
-                style={{
-                  fontFamily: BODY,
-                  fontSize: 16,
-                  color: ONBOARDING_COLORS.textSecondary,
-                }}
-              >
+              <StepIcon size={18} color={oc.textMuted} />
+              <Text style={[type.body, { color: oc.textSecondary }]}>
                 {t(`onboarding.${stepKey}` as never)}
               </Text>
-              <Check size={16} color={ONBOARDING_COLORS.success} />
+              <Check size={16} color={oc.success} />
             </Animated.View>
           ) : null;
         })}
@@ -744,7 +704,7 @@ export default function PersonalizingScreen() {
       {showRetry && (
         <Animated.View
           entering={FadeIn.duration(300)}
-          style={{ marginTop: 32, alignItems: 'center', gap: 16 }}
+          style={{ marginTop: space.xxl, alignItems: 'center', gap: space.md }}
         >
           {retryCount < 2 && (
             <Pressable
@@ -754,20 +714,19 @@ export default function PersonalizingScreen() {
                 setRetryCount((c) => c + 1);
               }}
               style={{
-                paddingHorizontal: 24,
-                paddingVertical: 12,
-                borderRadius: 12,
+                minHeight: 52,
+                justifyContent: 'center',
+                paddingHorizontal: space.xl,
+                borderRadius: radius.control,
                 borderCurve: 'continuous',
-                backgroundColor: ONBOARDING_COLORS.cardBorder,
+                backgroundColor: oc.warm,
               }}
             >
-              <Text style={{ color: ONBOARDING_COLORS.accent, fontSize: 16, fontWeight: '600' }}>
-                {t('common.retry')}
-              </Text>
+              <Text style={[type.bodyStrong, { color: oc.textOnAccent }]}>{t('common.retry')}</Text>
             </Pressable>
           )}
-          <Pressable onPress={handleContinue}>
-            <Text style={{ color: ONBOARDING_COLORS.accent, fontSize: 15, fontWeight: '600' }}>
+          <Pressable onPress={handleContinue} style={{ minHeight: 44, justifyContent: 'center' }}>
+            <Text style={[type.bodyStrong, { color: oc.warm2 }]}>
               {t('onboarding.personalizingSkip')}
             </Text>
           </Pressable>

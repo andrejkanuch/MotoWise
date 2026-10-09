@@ -2,10 +2,16 @@ import { palette } from '@motovault/design-system';
 import { LinearGradient } from 'expo-linear-gradient';
 import { memo } from 'react';
 import { Image, Text, View } from 'react-native';
+import { tint } from '../../../theme/editorial';
 import type { RideSharePayload } from '../share-card-types';
-import { buildDefaultStats, DateEyebrow, StatFooter, Wordmark } from './card-elements';
-
-const MONO = process.env.EXPO_OS === 'ios' ? 'Menlo' : 'monospace';
+import {
+  buildDefaultStats,
+  CARD_INK,
+  CARD_TYPE,
+  DateLine,
+  StatFooter,
+  Wordmark,
+} from './card-elements';
 
 export const MapHeroCard = memo(function MapHeroCard({ data }: { data: RideSharePayload }) {
   return (
@@ -30,7 +36,11 @@ export const MapHeroCard = memo(function MapHeroCard({ data }: { data: RideShare
 
       {/* Gradient overlay — bottom 64% */}
       <LinearGradient
-        colors={['transparent', 'rgba(8,6,4,0.78)', 'rgba(8,6,4,0.92)']}
+        colors={[
+          'transparent',
+          tint(palette.shareCardDarkBg, 0.78),
+          tint(palette.shareCardDarkBg, 0.92),
+        ]}
         locations={[0, 0.7, 1]}
         style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '64%' }}
       />
@@ -47,7 +57,7 @@ export const MapHeroCard = memo(function MapHeroCard({ data }: { data: RideShare
           justifyContent: 'space-between',
         }}
       >
-        <Wordmark color="#fff" />
+        <Wordmark color={CARD_INK.strong} />
         {data.isPB && (
           <View
             style={{
@@ -57,41 +67,30 @@ export const MapHeroCard = memo(function MapHeroCard({ data }: { data: RideShare
               paddingVertical: 3,
               paddingHorizontal: 7,
               borderRadius: 99,
-              backgroundColor: 'rgba(200,119,44,0.78)',
+              backgroundColor: palette.plateBone,
             }}
           >
-            <Text
-              style={{
-                fontFamily: MONO,
-                fontSize: 8,
-                fontWeight: '700',
-                letterSpacing: 1.12,
-                color: '#fff',
-                textTransform: 'uppercase',
-              }}
-            >
-              PB
-            </Text>
+            <Text style={{ ...CARD_TYPE.label, color: palette.plateOnPlate }}>PB</Text>
           </View>
         )}
       </View>
 
       {/* Content block */}
       <View style={{ position: 'absolute', left: 14, right: 14, bottom: 80 }}>
-        <DateEyebrow date={data.date} />
         <Text
           numberOfLines={2}
           style={{
-            fontSize: 20,
-            fontWeight: '700',
-            letterSpacing: -0.44,
-            lineHeight: 21.6,
-            color: '#fff',
-            marginTop: 4,
+            ...CARD_TYPE.title,
+            fontSize: 26,
+            lineHeight: 27,
+            color: CARD_INK.strong,
           }}
         >
           {data.rideName}
         </Text>
+        <View style={{ marginTop: 4 }}>
+          <DateLine date={data.date} />
+        </View>
       </View>
 
       {/* Stats footer */}

@@ -32,10 +32,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OemDisclaimerCard } from '../../components/maintenance/oem-disclaimer-card';
 import { TaskCard } from '../../components/onboarding/maintenance/task-card';
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { getBrandColor } from '../../config/brand-dna';
 import { OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
@@ -46,6 +45,8 @@ import { isMaintenanceIntent } from '../../lib/pending-intent';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { useEditorialTheme } from '../../theme/editorial';
+import { radius, space, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 import { convertIntervalDistance, intervalDistanceUnit } from '../../utils/maintenance-interval';
 
@@ -56,6 +57,8 @@ const EXIT_SPRING = { damping: 20, stiffness: 200, mass: 0.8 };
 const SNAP_BACK_SPRING = { damping: 18, stiffness: 350, mass: 0.6 };
 
 export default function MaintenanceScreen() {
+  const oc = useOnboardingColors();
+  const { isDark } = useEditorialTheme();
   const { t } = useTranslation();
   const onBack = useOnboardingBack(OB_SCREEN.MAINTENANCE);
   const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.MAINTENANCE);
@@ -72,7 +75,6 @@ export default function MaintenanceScreen() {
   const model = bikeData?.model ?? undefined;
   const year = bikeData?.year ?? undefined;
   const variant = bikeData?.variant ?? undefined;
-  const brandColor = getBrandColor(make);
   const bikeLabel = [model, make].filter(Boolean).join(' · ') || 'your bike';
 
   // Fetch OEM schedules for this make/model/year[/variant]. Threading the bike's
@@ -260,56 +262,39 @@ export default function MaintenanceScreen() {
     // escape-less spinner would trap the rider if the request hangs (e.g. slow
     // network, or a cold cache after Back re-enters this screen).
     return (
-      <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+      <View style={{ flex: 1, backgroundColor: oc.background }}>
         <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
         <OnboardingBackButton
           onPress={onBack}
-          style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
+          style={{ position: 'absolute', top: insets.top + 40, left: space.md, zIndex: 10 }}
         />
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={ONBOARDING_COLORS.warm} />
+          <ActivityIndicator size="large" color={oc.warm} />
         </View>
       </View>
     );
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       {/* Back button */}
       <OnboardingBackButton
         onPress={onBack}
-        style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
+        style={{ position: 'absolute', top: insets.top + 40, left: space.md, zIndex: 10 }}
       />
 
       {/* Header */}
-      <View style={{ paddingHorizontal: 26, paddingTop: 56 }}>
-        <Animated.View entering={FadeIn.duration(400)}>
+      <View style={{ paddingHorizontal: space.lg, paddingTop: 56 + space.md }}>
+        <Animated.View entering={FadeIn.duration(280)}>
           <Text
-            style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 30,
-              lineHeight: 32,
-              color: ONBOARDING_COLORS.textPrimary,
-              letterSpacing: -0.5,
-              marginBottom: 8,
-            }}
+            accessibilityRole="header"
+            style={[type.largeTitle, { color: oc.textPrimary, marginBottom: space.xs }]}
           >
-            {t('onboarding.v2MaintenanceTitle')}
-            {'\n'}
-            <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
-              {t('onboarding.v2MaintenanceTitleItalic')}
-            </Text>
+            {t('onboarding.v2MaintenanceTitleFull')}
           </Text>
-          <Text
-            style={{
-              fontSize: 13.5,
-              color: ONBOARDING_COLORS.textSubtitle,
-              lineHeight: 19,
-              maxWidth: 320,
-            }}
-          >
+          <Text style={[type.subhead, { color: oc.textSecondary, maxWidth: 340 }]}>
             {done
               ? t('onboarding.v2MaintenancePreloaded', { bikeLabel })
               : t('onboarding.v2MaintenanceSwipeInstruction', { bikeLabel })}
@@ -326,24 +311,13 @@ export default function MaintenanceScreen() {
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
-              paddingHorizontal: 26,
-              paddingTop: 14,
+              paddingHorizontal: space.lg,
+              paddingTop: space.sm,
             }}
           >
-            <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 11,
-                fontWeight: '600',
-                letterSpacing: 1.7,
-                color: ONBOARDING_COLORS.textSoft,
-                textTransform: 'uppercase',
-              }}
-            >
-              {String(currentIdx + 1).padStart(2, '0')}{' '}
-              <Text style={{ color: ONBOARDING_COLORS.textFaintest }}>
-                / {String(tasks.length).padStart(2, '0')}
-              </Text>
+            <Text style={[type.figureSmall, { color: oc.textSecondary }]}>
+              {currentIdx + 1}
+              <Text style={{ color: oc.textMuted }}> / {tasks.length}</Text>
             </Text>
             <View style={{ flexDirection: 'row', gap: 4 }}>
               {tasks.map((task, i) => (
@@ -356,11 +330,11 @@ export default function MaintenanceScreen() {
                     backgroundColor:
                       i < currentIdx
                         ? accepted.includes(task.id)
-                          ? ONBOARDING_COLORS.acceptGreen
-                          : ONBOARDING_COLORS.rejectDotFaded
+                          ? oc.acceptGreen
+                          : oc.rejectDotFaded
                         : i === currentIdx
-                          ? brandColor
-                          : ONBOARDING_COLORS.dotInactive,
+                          ? oc.textPrimary
+                          : oc.dotInactive,
                   }}
                 />
               ))}
@@ -389,7 +363,6 @@ export default function MaintenanceScreen() {
                 >
                   <TaskCard
                     task={tasks[currentIdx + 2]}
-                    brandColor={brandColor}
                     dragDirection={noDrag}
                     measurementSystem={measurementSystem}
                   />
@@ -405,7 +378,6 @@ export default function MaintenanceScreen() {
                 >
                   <TaskCard
                     task={tasks[currentIdx + 1]}
-                    brandColor={brandColor}
                     dragDirection={noDrag}
                     measurementSystem={measurementSystem}
                   />
@@ -424,7 +396,6 @@ export default function MaintenanceScreen() {
                   >
                     <TaskCard
                       task={currentTask}
-                      brandColor={brandColor}
                       dragDirection={dragDirection}
                       measurementSystem={measurementSystem}
                     />
@@ -452,26 +423,18 @@ export default function MaintenanceScreen() {
                 width: 60,
                 height: 60,
                 borderRadius: 30,
-                backgroundColor: ONBOARDING_COLORS.surfaceInput,
+                backgroundColor: oc.surfaceInput,
                 borderWidth: 1.5,
-                borderColor: ONBOARDING_COLORS.rejectBorder,
+                borderColor: oc.rejectBorder,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <X size={22} color={ONBOARDING_COLORS.rejectRed} strokeWidth={2.5} />
+              <X size={22} color={oc.rejectRed} strokeWidth={2.5} />
             </Pressable>
 
             <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 10,
-                letterSpacing: 1.7,
-                color: ONBOARDING_COLORS.textFaint,
-                textTransform: 'uppercase',
-                textAlign: 'center',
-                minWidth: 80,
-              }}
+              style={[type.caption, { color: oc.textMuted, textAlign: 'center', minWidth: 80 }]}
             >
               {t('onboarding.v2MaintenanceSwipeOrTap')}
             </Text>
@@ -484,39 +447,37 @@ export default function MaintenanceScreen() {
                 width: 60,
                 height: 60,
                 borderRadius: 30,
-                backgroundColor: ONBOARDING_COLORS.surfaceInput,
+                backgroundColor: oc.surfaceInput,
                 borderWidth: 1.5,
-                borderColor: ONBOARDING_COLORS.acceptBorder,
+                borderColor: oc.acceptBorder,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Check size={22} color={ONBOARDING_COLORS.acceptGreen} strokeWidth={2.5} />
+              <Check size={22} color={oc.acceptGreen} strokeWidth={2.5} />
             </Pressable>
           </View>
 
           {/* Skip all + reassurance */}
           <View style={{ alignItems: 'center', paddingBottom: insets.bottom + 16, gap: 6 }}>
-            <Pressable onPress={() => skipMaintenance({ replace: false })} style={{ padding: 8 }}>
-              <Text
-                style={{
-                  fontSize: 13,
-                  color: ONBOARDING_COLORS.textLabel,
-                  fontWeight: '500',
-                  textDecorationLine: 'underline',
-                  textDecorationColor: ONBOARDING_COLORS.underlineFaint,
-                }}
-              >
+            <Pressable
+              onPress={() => skipMaintenance({ replace: false })}
+              accessibilityRole="button"
+              style={{ minHeight: 44, justifyContent: 'center', paddingHorizontal: space.xs }}
+            >
+              <Text style={[type.bodyStrong, { color: oc.warm2 }]}>
                 {t('onboarding.v2MaintenanceSkipAll')}
               </Text>
             </Pressable>
             <Text
-              style={{
-                fontSize: 11,
-                color: ONBOARDING_COLORS.textFaded,
-                textAlign: 'center',
-                paddingHorizontal: 40,
-              }}
+              style={[
+                type.caption,
+                {
+                  color: oc.textMuted,
+                  textAlign: 'center',
+                  paddingHorizontal: space.xxxl,
+                },
+              ]}
             >
               {t('onboarding.v2MaintenanceReassurance')}
             </Text>
@@ -527,67 +488,23 @@ export default function MaintenanceScreen() {
         <>
           <ScrollView
             style={{ flex: 1, marginTop: 20 }}
-            contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 }}
+            contentContainerStyle={{ paddingHorizontal: space.lg, paddingBottom: space.xl }}
           >
-            {/* Plan ready badge */}
-            <Animated.View
-              entering={FadeIn.duration(380)}
-              style={{
-                alignSelf: 'flex-start',
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 8,
-                paddingVertical: 6,
-                paddingHorizontal: 12,
-                borderRadius: 999,
-                backgroundColor: `${brandColor}24`,
-                borderWidth: 1,
-                borderColor: `${brandColor}59`,
-                marginBottom: 16,
-              }}
-            >
-              <Check size={11} color={brandColor} strokeWidth={3} />
-              <Text
-                style={{
-                  fontFamily: 'GeistMono-Medium',
-                  fontSize: 10,
-                  fontWeight: '700',
-                  letterSpacing: 1.7,
-                  textTransform: 'uppercase',
-                  color: brandColor,
-                }}
-              >
-                {t('onboarding.v2MaintenancePlanReady')}
-              </Text>
-            </Animated.View>
-
             {/* Summary headline */}
             <Text
-              style={{
-                fontFamily: 'InstrumentSerif-Regular',
-                fontSize: 30,
-                lineHeight: 32,
-                color: ONBOARDING_COLORS.textWhite,
-                letterSpacing: -0.4,
-                marginBottom: 6,
-              }}
+              accessibilityRole="header"
+              style={[type.largeTitle, { color: oc.textPrimary, marginBottom: space.xs }]}
             >
-              {t('onboarding.v2MaintenanceTaskCount', { count: accepted.length })}
-              {'\n'}
-              <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: brandColor }}>
-                {accepted.length === 0
-                  ? t('onboarding.v2MaintenanceAddLater')
-                  : t('onboarding.v2MaintenanceOnRadar')}
-              </Text>
+              {t('onboarding.v2MaintenanceTaskCount', { count: accepted.length })}{' '}
+              {accepted.length === 0
+                ? t('onboarding.v2MaintenanceAddLater')
+                : t('onboarding.v2MaintenanceOnRadar')}
             </Text>
             <Text
-              style={{
-                fontSize: 13,
-                color: ONBOARDING_COLORS.textSubtitle,
-                lineHeight: 19,
-                marginBottom: 18,
-                maxWidth: 320,
-              }}
+              style={[
+                type.subhead,
+                { color: oc.textSecondary, marginBottom: space.lg, maxWidth: 340 },
+              ]}
             >
               {t('onboarding.v2MaintenanceReminders')}
             </Text>
@@ -603,50 +520,39 @@ export default function MaintenanceScreen() {
                       key={id}
                       entering={FadeInUp.delay(i * 50).duration(380)}
                       style={{
-                        padding: 10,
-                        paddingHorizontal: 12,
-                        borderRadius: 12,
+                        minHeight: 56,
+                        paddingVertical: space.xs,
+                        paddingHorizontal: space.md,
+                        borderRadius: radius.control,
                         borderCurve: 'continuous',
-                        backgroundColor: ONBOARDING_COLORS.surfaceInput,
-                        borderWidth: 1,
-                        borderColor: ONBOARDING_COLORS.borderSubtle,
+                        backgroundColor: oc.surface,
                         flexDirection: 'row',
                         alignItems: 'center',
-                        gap: 11,
+                        gap: space.sm,
                       }}
                     >
                       <View
                         style={{
-                          width: 30,
-                          height: 30,
-                          borderRadius: 8,
+                          width: 28,
+                          height: 28,
+                          borderRadius: radius.chip,
                           borderCurve: 'continuous',
-                          backgroundColor: `${brandColor}2E`,
+                          backgroundColor: oc.surface2,
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
                       >
-                        <Check size={15} color={brandColor} strokeWidth={2} />
+                        <Check size={15} color={oc.success} strokeWidth={2} />
                       </View>
                       <View style={{ flex: 1, minWidth: 0 }}>
-                        <Text
-                          style={{
-                            fontSize: 13.5,
-                            fontWeight: '600',
-                            color: ONBOARDING_COLORS.textWhite,
-                            letterSpacing: -0.2,
-                          }}
-                        >
+                        <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
                           {task.taskName}
                         </Text>
                         <Text
-                          style={{
-                            fontFamily: 'GeistMono-Medium',
-                            fontSize: 11,
-                            color: ONBOARDING_COLORS.textSoft,
-                            letterSpacing: 0.4,
-                            marginTop: 2,
-                          }}
+                          style={[
+                            type.caption,
+                            { color: oc.textMuted, fontVariant: ['tabular-nums'] },
+                          ]}
                         >
                           {task.intervalKm
                             ? `${convertIntervalDistance(
@@ -665,7 +571,11 @@ export default function MaintenanceScreen() {
             )}
 
             {/* Spec-data disclaimer (R5) — after the schedule list */}
-            <OemDisclaimerCard isDark delay={accepted.length * 50} style={{ marginTop: 4 }} />
+            <OemDisclaimerCard
+              isDark={isDark}
+              delay={accepted.length * 50}
+              style={{ marginTop: 4 }}
+            />
 
             {/* Reconsider link */}
             {skipped.length > 0 && (
@@ -675,16 +585,9 @@ export default function MaintenanceScreen() {
                   setAccepted([]);
                   setSkipped([]);
                 }}
-                style={{ alignSelf: 'center', padding: 8 }}
+                style={{ alignSelf: 'center', minHeight: 44, justifyContent: 'center' }}
               >
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: ONBOARDING_COLORS.textMutedIcon,
-                    textDecorationLine: 'underline',
-                    textDecorationColor: ONBOARDING_COLORS.underlineFaint,
-                  }}
-                >
+                <Text style={[type.subhead, { color: oc.warm2 }]}>
                   {t('onboarding.v2MaintenanceReconsider', { count: skipped.length })}
                 </Text>
               </Pressable>
@@ -693,7 +596,11 @@ export default function MaintenanceScreen() {
 
           {/* Continue button */}
           <View
-            style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: insets.bottom + 16 }}
+            style={{
+              paddingHorizontal: space.lg,
+              paddingTop: space.sm,
+              paddingBottom: insets.bottom + space.md,
+            }}
           >
             <OnboardingContinueButton
               label={t('onboarding.continue', { defaultValue: 'Continue' })}

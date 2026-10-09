@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import { MotorcycleRecallsDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -10,7 +9,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { QUERY_META } from '../../lib/query-meta';
-import { useEditorialTheme } from '../../theme/editorial';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+
+const NHTSA_RECALLS_URL = 'https://www.nhtsa.gov/recalls';
 
 /**
  * MOT-142: Safety recall results screen.
@@ -22,7 +24,7 @@ import { useEditorialTheme } from '../../theme/editorial';
  */
 export default function RecallsScreen() {
   const { t } = useTranslation();
-  const { isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const { motorcycleId, bikeName } = useLocalSearchParams<{
     motorcycleId: string;
@@ -44,10 +46,10 @@ export default function RecallsScreen() {
   const count = result?.count ?? 0;
   const hasRecalls = count > 0;
 
-  const bg = isDark ? palette.neutral950 : palette.neutral50;
-  const card = isDark ? palette.neutral800 : palette.white;
-  const textColor = isDark ? palette.neutral50 : palette.neutral950;
-  const mutedText = isDark ? palette.neutral400 : palette.neutral600;
+  const bg = theme.bg;
+  const card = theme.surface;
+  const textColor = theme.ink;
+  const mutedText = theme.ink3;
 
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>
@@ -64,17 +66,19 @@ export default function RecallsScreen() {
         <Pressable
           onPress={() => router.back()}
           hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.goBack', { defaultValue: 'Go back' })}
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: 18,
+            width: 44,
+            height: 44,
+            borderRadius: 22,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
           <ChevronLeft size={24} color={textColor} strokeWidth={2} />
         </Pressable>
-        <Text style={{ fontSize: 18, fontWeight: '700', color: textColor, flex: 1 }}>
+        <Text accessibilityRole="header" style={{ ...type.sheetTitle, color: textColor, flex: 1 }}>
           {t('recalls.title', { defaultValue: 'Safety Recalls' })}
         </Text>
       </View>
@@ -88,13 +92,15 @@ export default function RecallsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {bikeName && (
-          <Text style={{ fontSize: 14, color: mutedText, marginBottom: 4 }}>{bikeName}</Text>
+          <Text style={{ ...type.subhead, color: mutedText, marginBottom: space.xxs }}>
+            {bikeName}
+          </Text>
         )}
 
         {isLoading && (
           <View style={{ padding: 40, alignItems: 'center' }}>
-            <ActivityIndicator size="large" color={palette.primary500} />
-            <Text style={{ marginTop: 12, fontSize: 14, color: mutedText }}>
+            <ActivityIndicator size="large" color={theme.ink3} />
+            <Text style={{ ...type.subhead, marginTop: space.sm, color: mutedText }}>
               {t('recalls.checking', { defaultValue: 'Checking NHTSA database…' })}
             </Text>
           </View>
@@ -103,13 +109,13 @@ export default function RecallsScreen() {
         {error && !isLoading && (
           <View
             style={{
-              backgroundColor: isDark ? palette.dangerBgDark : palette.dangerBgLight,
-              padding: 16,
-              borderRadius: 12,
+              backgroundColor: tint(theme.danger, 0.12),
+              padding: space.md,
+              borderRadius: radius.control,
               borderCurve: 'continuous',
             }}
           >
-            <Text style={{ color: palette.danger500, fontWeight: '600' }}>
+            <Text style={{ ...type.bodyStrong, color: theme.overdueInk }}>
               {t('recalls.error', {
                 defaultValue: 'Could not reach the NHTSA database. Please try again.',
               })}
@@ -121,21 +127,21 @@ export default function RecallsScreen() {
           <Animated.View
             entering={FadeInUp.duration(300)}
             style={{
-              backgroundColor: isDark ? palette.successBgDark : palette.successBgLight,
-              padding: 20,
-              borderRadius: 14,
+              backgroundColor: tint(theme.success, 0.12),
+              padding: space.lg,
+              borderRadius: radius.card,
               borderCurve: 'continuous',
               flexDirection: 'row',
               gap: 12,
               alignItems: 'flex-start',
             }}
           >
-            <ShieldCheck size={24} color={palette.success500} strokeWidth={2} />
+            <ShieldCheck size={24} color={theme.success} strokeWidth={2} />
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 16, fontWeight: '700', color: palette.success500 }}>
+              <Text style={{ ...type.bodyStrong, color: textColor }}>
                 {t('recalls.none', { defaultValue: 'No open recalls found' })}
               </Text>
-              <Text style={{ fontSize: 13, color: mutedText, marginTop: 4 }}>
+              <Text style={{ ...type.subhead, color: mutedText, marginTop: space.xxs }}>
                 {t('recalls.noneDescription', {
                   defaultValue:
                     'NHTSA has no open safety recall campaigns for this motorcycle at this time.',
@@ -149,17 +155,17 @@ export default function RecallsScreen() {
           <>
             <View
               style={{
-                backgroundColor: isDark ? palette.warningBgDark : palette.warningBgLight,
-                padding: 16,
-                borderRadius: 14,
+                backgroundColor: tint(theme.plateDue, 0.14),
+                padding: space.md,
+                borderRadius: radius.card,
                 borderCurve: 'continuous',
                 flexDirection: 'row',
                 gap: 12,
                 alignItems: 'center',
               }}
             >
-              <AlertTriangle size={22} color={palette.warning500} strokeWidth={2} />
-              <Text style={{ flex: 1, fontSize: 14, fontWeight: '700', color: palette.warning500 }}>
+              <AlertTriangle size={22} color={theme.dueInk} strokeWidth={2} />
+              <Text style={{ ...type.bodyStrong, flex: 1, color: textColor }}>
                 {t('recalls.openCount', {
                   defaultValue: `${count} open recall${count === 1 ? '' : 's'} found`,
                   count,
@@ -173,51 +179,52 @@ export default function RecallsScreen() {
                 entering={FadeInUp.delay(index * 60).duration(300)}
                 style={{
                   backgroundColor: card,
-                  padding: 16,
-                  borderRadius: 14,
+                  padding: space.md,
+                  borderRadius: radius.card,
                   borderCurve: 'continuous',
-                  borderLeftWidth: 4,
-                  borderLeftColor: palette.danger500,
-                  gap: 10,
+                  borderWidth: 1,
+                  borderColor: theme.line,
+                  gap: space.sm,
                 }}
               >
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: palette.danger500 }}>
-                    {recall.component.toUpperCase()}
+                  <Text
+                    style={{
+                      ...type.label,
+                      ...SYSTEM_WEIGHT.semibold,
+                      flex: 1,
+                      color: theme.overdueInk,
+                    }}
+                  >
+                    {recall.component}
                   </Text>
-                  <Text style={{ fontSize: 11, color: mutedText }}>{recall.reportDate}</Text>
+                  <Text style={{ ...type.caption, color: mutedText }}>{recall.reportDate}</Text>
                 </View>
 
-                <Text style={{ fontSize: 13, color: textColor, lineHeight: 19 }}>
-                  {recall.summary}
-                </Text>
+                <Text style={{ ...type.subhead, color: textColor }}>{recall.summary}</Text>
 
                 <View
                   style={{
                     borderTopWidth: 1,
-                    borderTopColor: isDark ? palette.neutral700 : palette.neutral200,
-                    paddingTop: 10,
+                    borderTopColor: theme.line2,
+                    paddingTop: space.sm,
                     gap: 6,
                   }}
                 >
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: mutedText }}>
+                  <Text style={{ ...type.caption, ...SYSTEM_WEIGHT.semibold, color: mutedText }}>
                     {t('recalls.consequence', { defaultValue: 'CONSEQUENCE' })}
                   </Text>
-                  <Text style={{ fontSize: 13, color: textColor, lineHeight: 19 }}>
-                    {recall.consequence}
-                  </Text>
+                  <Text style={{ ...type.subhead, color: textColor }}>{recall.consequence}</Text>
                 </View>
 
                 <View style={{ gap: 6 }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: mutedText }}>
+                  <Text style={{ ...type.caption, ...SYSTEM_WEIGHT.semibold, color: mutedText }}>
                     {t('recalls.remedy', { defaultValue: 'REMEDY' })}
                   </Text>
-                  <Text style={{ fontSize: 13, color: textColor, lineHeight: 19 }}>
-                    {recall.remedy}
-                  </Text>
+                  <Text style={{ ...type.subhead, color: textColor }}>{recall.remedy}</Text>
                 </View>
 
-                <Text style={{ fontSize: 11, color: mutedText, marginTop: 4 }}>
+                <Text style={{ ...type.caption, color: mutedText, marginTop: space.xxs }}>
                   {t('recalls.campaign', { defaultValue: 'Campaign' })}: {recall.campaignNumber}
                 </Text>
               </Animated.View>
@@ -227,20 +234,21 @@ export default function RecallsScreen() {
 
         {/* NHTSA attribution */}
         <Pressable
-          onPress={() => Linking.openURL('https://www.nhtsa.gov/recalls')}
+          onPress={() => Linking.openURL(NHTSA_RECALLS_URL)}
+          accessibilityRole="link"
           style={{
             marginTop: 20,
             padding: 14,
-            borderRadius: 12,
+            borderRadius: radius.control,
             borderCurve: 'continuous',
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
             gap: 6,
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: card,
           }}
         >
-          <Text style={{ fontSize: 12, color: mutedText }}>
+          <Text style={{ ...type.caption, color: mutedText }}>
             {t('recalls.attribution', { defaultValue: 'Recall data from NHTSA' })}
           </Text>
           <ExternalLink size={12} color={mutedText} />

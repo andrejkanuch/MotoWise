@@ -5,7 +5,7 @@ import type { HubUnit } from '../../../lib/bike-hub/constants';
 import { HubCard } from '../ui/hub-card';
 import { ListRow } from '../ui/list-row';
 import { SectionHeader } from '../ui/section-header';
-import { hub } from '../ui/tokens';
+import { useHubTheme } from '../ui/tokens';
 
 interface SetupListProps {
   make: string;
@@ -25,6 +25,7 @@ export function SetupList({
   onLogPastWork,
   onAddDocument,
 }: SetupListProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   return (
     <View testID="setup-list" style={{ gap: 8 }}>

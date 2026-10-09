@@ -1,19 +1,18 @@
-import { palette } from '@motovault/design-system';
-import {
-  DeleteAccountDocument,
-  RequestDataExportDocument,
-  UpdateUserDocument,
-} from '@motovault/graphql';
+import { RequestDataExportDocument, UpdateUserDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
-import { router } from 'expo-router';
-import { AlertTriangle, ArrowLeft, Database, Shield } from 'lucide-react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { ArrowUpRight, BarChart3, Bug, Database, Shield, Trash2 } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { NativeToggle } from '../../../components/ui/native-toggle';
+import { Alert, ScrollView, View } from 'react-native';
+import { LEGAL_URL } from '../../../components/profile/constants';
+import {
+  ESectionLabel,
+  ESettingsGroup,
+  ESettingsRow,
+  EToggleRow,
+} from '../../../components/ui/editorial';
+import { useDeleteAccount } from '../../../hooks/use-profile-data';
 import {
   AnalyticsEvent,
   setAnalyticsEnabled,
@@ -28,11 +27,11 @@ import {
   type PrivacyChange,
 } from '../../../lib/analytics-consent';
 import { gqlFetcher } from '../../../lib/graphql-client';
-import { isAccountAlreadyDeleted, userFriendlyError } from '../../../lib/graphql-errors';
 import { queryKeys } from '../../../lib/query-keys';
 import { meOptions } from '../../../lib/query-options';
-import { safeSignOut } from '../../../lib/supabase';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { GUTTER, space } from '../../../theme/type';
+import { triggerImpact } from '../../../utils/haptics';
 
 type PrivacyPrefs = {
   analyticsEnabled: boolean;
@@ -52,84 +51,11 @@ function privacyDefaults(): PrivacyPrefs {
   };
 }
 
-function haptic() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-}
-
-function ToggleRow({
-  icon: Icon,
-  title,
-  subtitle,
-  value,
-  onToggle,
-  isDark,
-  isLast,
-}: {
-  icon: typeof Shield;
-  title: string;
-  subtitle: string;
-  value: boolean;
-  onToggle: (v: boolean) => void;
-  isDark: boolean;
-  isLast?: boolean;
-}) {
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        borderBottomWidth: isLast ? 0 : 0.5,
-        borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-      }}
-    >
-      <View
-        style={{
-          width: 34,
-          height: 34,
-          borderRadius: 9,
-          borderCurve: 'continuous',
-          backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : palette.neutral100,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Icon
-          size={17}
-          color={isDark ? palette.neutral300 : palette.neutral600}
-          strokeWidth={1.8}
-        />
-      </View>
-      <View style={{ flex: 1, marginLeft: 12, marginRight: 12 }}>
-        <Text
-          style={{
-            fontSize: 16,
-            color: isDark ? palette.neutral50 : palette.neutral950,
-          }}
-        >
-          {title}
-        </Text>
-        <Text style={{ fontSize: 12, color: palette.neutral500, marginTop: 1 }}>{subtitle}</Text>
-      </View>
-      <NativeToggle
-        value={value}
-        onValueChange={(v) => {
-          haptic();
-          onToggle(v);
-        }}
-      />
-    </View>
-  );
-}
-
 export default function PrivacyScreen() {
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
-  const { isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
+  const { confirmDeleteAccount, isDeleting } = useDeleteAccount(t);
 
   const meQuery = useQuery(meOptions());
 
@@ -230,7 +156,7 @@ export default function PrivacyScreen() {
   });
 
   const handleExportData = () => {
-    haptic();
+    triggerImpact();
     Alert.alert(
       t('privacy.exportTitle', { defaultValue: 'Export Your Data' }),
       t('privacy.exportMessage', {
@@ -249,326 +175,77 @@ export default function PrivacyScreen() {
     );
   };
 
-  const finishAccountDeletion = async () => {
-    // Sign out and navigate to login
-    await safeSignOut();
-    queryClient.clear();
-    router.replace('/(auth)/login');
-  };
-
-  const deleteMutation = useMutation({
-    mutationFn: () => gqlFetcher(DeleteAccountDocument),
-    meta: { skipSentryCapture: isAccountAlreadyDeleted },
-    onSuccess: finishAccountDeletion,
-    onError: (error: Error) => {
-      // Account already gone server-side (e.g. a retried deletion) — the desired
-      // end state is identical to success, so finish the local sign-out.
-      if (isAccountAlreadyDeleted(error)) {
-        void finishAccountDeletion();
-        return;
-      }
-      Alert.alert(
-        t('privacy.deleteErrorTitle', { defaultValue: 'Deletion Failed' }),
-        userFriendlyError(error),
-      );
-    },
-  });
-
-  const handleDeleteAccount = () => {
-    haptic();
-    Alert.alert(
-      t('privacy.deleteTitle', { defaultValue: 'Delete Account' }),
-      t('privacy.deleteWarning', {
-        defaultValue:
-          'This will permanently delete your account and ALL associated data including motorcycles, maintenance history, diagnostics, and learning progress. Your subscription will be cancelled. You have 30 days to change your mind before data is permanently removed.',
-      }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('privacy.deleteConfirmButton', { defaultValue: 'Delete My Account' }),
-          style: 'destructive',
-          onPress: () => {
-            // Second confirmation
-            Alert.alert(
-              t('privacy.deleteConfirmTitle', { defaultValue: 'Are you absolutely sure?' }),
-              t('privacy.deleteConfirmMessage', {
-                defaultValue:
-                  'This cannot be undone. Type DELETE to confirm is not required, but please be certain.',
-              }),
-              [
-                { text: t('common.cancel'), style: 'cancel' },
-                {
-                  text: t('privacy.deleteFinal', { defaultValue: 'Yes, Delete Everything' }),
-                  style: 'destructive',
-                  onPress: () => deleteMutation.mutate(),
-                },
-              ],
-            );
-          },
-        },
-      ],
-    );
-  };
-
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}>
-      {/* Header */}
-      <View
-        style={{
-          paddingTop: insets.top + 8,
-          paddingBottom: 12,
-          paddingHorizontal: 20,
-          flexDirection: 'row',
-          alignItems: 'center',
-          borderBottomWidth: 0.5,
-          borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-        }}
-      >
-        <Pressable
-          onPress={() => {
-            haptic();
-            router.back();
-          }}
-          hitSlop={12}
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: 9,
-            borderCurve: 'continuous',
-            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : palette.neutral100,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <ArrowLeft
-            size={18}
-            color={isDark ? palette.neutral300 : palette.neutral600}
-            strokeWidth={2}
+    <ScrollView
+      testID="privacy-screen"
+      contentInsetAdjustmentBehavior="automatic"
+      style={{ flex: 1, backgroundColor: theme.bg }}
+      contentContainerStyle={{
+        paddingHorizontal: GUTTER,
+        paddingTop: space.md,
+        paddingBottom: space.xxxl,
+        gap: space.xl,
+      }}
+      showsVerticalScrollIndicator={false}
+    >
+      <View>
+        <ESectionLabel label={t('privacy.dataCollection')} />
+        <ESettingsGroup>
+          <EToggleRow
+            testID="privacy-analytics"
+            icon={BarChart3}
+            title={t('privacy.analytics')}
+            subtitle={t('privacy.analyticsDesc')}
+            value={state.analyticsEnabled}
+            onValueChange={(v) => toggle('analyticsEnabled', v)}
           />
-        </Pressable>
-        <Text
-          style={{
-            flex: 1,
-            fontSize: 17,
-            fontWeight: '600',
-            color: isDark ? palette.neutral50 : palette.neutral950,
-            textAlign: 'center',
-            marginRight: 34,
-          }}
-        >
-          {t('privacy.title', { defaultValue: 'Privacy' })}
-        </Text>
+          <EToggleRow
+            testID="privacy-crash-reporting"
+            icon={Bug}
+            title={t('privacy.crashReporting')}
+            subtitle={t('privacy.crashReportingDesc')}
+            value={state.crashReportingEnabled}
+            onValueChange={(v) => toggle('crashReportingEnabled', v)}
+          />
+        </ESettingsGroup>
       </View>
 
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Data Collection */}
-        <Animated.View
-          entering={FadeInUp.duration(400)}
-          style={{ paddingHorizontal: 20, marginTop: 24 }}
-        >
-          <Text
-            style={{
-              fontSize: 13,
-              fontWeight: '600',
-              color: palette.neutral500,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              marginBottom: 8,
-              marginLeft: 4,
-            }}
-          >
-            {t('privacy.dataCollection', { defaultValue: 'Data Collection' })}
-          </Text>
-          <View
-            style={{
-              backgroundColor: isDark ? palette.neutral800 : palette.white,
-              borderRadius: 16,
-              borderCurve: 'continuous',
-              overflow: 'hidden',
-              boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.05)',
-            }}
-          >
-            <ToggleRow
-              icon={Shield}
-              title={t('privacy.analytics', { defaultValue: 'Analytics' })}
-              subtitle={t('privacy.analyticsDesc', {
-                defaultValue: 'Help us improve MotoVault with usage data',
-              })}
-              value={state.analyticsEnabled}
-              onToggle={(v) => toggle('analyticsEnabled', v)}
-              isDark={isDark}
-            />
-            <ToggleRow
-              icon={Shield}
-              title={t('privacy.crashReporting', { defaultValue: 'Crash Reporting' })}
-              subtitle={t('privacy.crashReportingDesc', {
-                defaultValue: 'Automatically report app crashes',
-              })}
-              value={state.crashReportingEnabled}
-              onToggle={(v) => toggle('crashReportingEnabled', v)}
-              isDark={isDark}
-              isLast
-            />
-          </View>
-        </Animated.View>
+      <View>
+        <ESectionLabel label={t('privacy.yourData')} />
+        <ESettingsGroup>
+          <ESettingsRow
+            testID="privacy-export"
+            icon={Database}
+            title={t('privacy.exportData')}
+            subtitle={t('privacy.exportDataDesc')}
+            loading={exportMutation.isPending}
+            onPress={handleExportData}
+          />
+          <ESettingsRow
+            testID="privacy-policy"
+            icon={Shield}
+            title={t('profile.privacyPolicy')}
+            chevron={false}
+            accessory={<ArrowUpRight size={17} color={theme.ink4} strokeWidth={2} />}
+            onPress={() => void WebBrowser.openBrowserAsync(LEGAL_URL.PRIVACY)}
+          />
+        </ESettingsGroup>
+      </View>
 
-        {/* Your Data */}
-        <Animated.View
-          entering={FadeInUp.delay(80).duration(400)}
-          style={{ paddingHorizontal: 20, marginTop: 28 }}
-        >
-          <Text
-            style={{
-              fontSize: 13,
-              fontWeight: '600',
-              color: palette.neutral500,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              marginBottom: 8,
-              marginLeft: 4,
-            }}
-          >
-            {t('privacy.yourData', { defaultValue: 'Your Data' })}
-          </Text>
-          <View
-            style={{
-              backgroundColor: isDark ? palette.neutral800 : palette.white,
-              borderRadius: 16,
-              borderCurve: 'continuous',
-              overflow: 'hidden',
-              boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.05)',
-            }}
-          >
-            <Pressable
-              onPress={handleExportData}
-              style={({ pressed }) => ({
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 14,
-                backgroundColor: pressed
-                  ? isDark
-                    ? 'rgba(255,255,255,0.05)'
-                    : 'rgba(0,0,0,0.03)'
-                  : 'transparent',
-              })}
-            >
-              <View
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 9,
-                  borderCurve: 'continuous',
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : palette.neutral100,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Database
-                  size={17}
-                  color={isDark ? palette.neutral300 : palette.neutral600}
-                  strokeWidth={1.8}
-                />
-              </View>
-              <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: isDark ? palette.neutral50 : palette.neutral950,
-                  }}
-                >
-                  {t('privacy.exportData', { defaultValue: 'Export My Data' })}
-                </Text>
-                <Text style={{ fontSize: 12, color: palette.neutral500, marginTop: 1 }}>
-                  {t('privacy.exportDataDesc', {
-                    defaultValue: 'Download a copy of your information',
-                  })}
-                </Text>
-              </View>
-            </Pressable>
-          </View>
-        </Animated.View>
-
-        {/* Danger Zone */}
-        <Animated.View
-          entering={FadeInUp.delay(160).duration(400)}
-          style={{ paddingHorizontal: 20, marginTop: 28 }}
-        >
-          <Text
-            style={{
-              fontSize: 13,
-              fontWeight: '600',
-              color: palette.danger500,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              marginBottom: 8,
-              marginLeft: 4,
-            }}
-          >
-            {t('privacy.dangerZone', { defaultValue: 'Danger Zone' })}
-          </Text>
-          <View
-            style={{
-              backgroundColor: isDark ? palette.neutral800 : palette.white,
-              borderRadius: 16,
-              borderCurve: 'continuous',
-              overflow: 'hidden',
-              boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.05)',
-            }}
-          >
-            <Pressable
-              onPress={handleDeleteAccount}
-              disabled={deleteMutation.isPending}
-              style={({ pressed }) => ({
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 14,
-                opacity: deleteMutation.isPending ? 0.6 : 1,
-                backgroundColor: pressed
-                  ? isDark
-                    ? 'rgba(255,255,255,0.05)'
-                    : 'rgba(0,0,0,0.03)'
-                  : 'transparent',
-              })}
-            >
-              <View
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 9,
-                  borderCurve: 'continuous',
-                  backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.1)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {deleteMutation.isPending ? (
-                  <ActivityIndicator size="small" color={palette.danger500} />
-                ) : (
-                  <AlertTriangle size={17} color={palette.danger500} strokeWidth={1.8} />
-                )}
-              </View>
-              <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={{ fontSize: 16, color: palette.danger500, fontWeight: '600' }}>
-                  {deleteMutation.isPending
-                    ? t('privacy.deletingAccount', { defaultValue: 'Deleting...' })
-                    : t('privacy.deleteAccount', { defaultValue: 'Delete Account' })}
-                </Text>
-                <Text style={{ fontSize: 12, color: palette.neutral500, marginTop: 1 }}>
-                  {t('privacy.deleteAccountDesc', {
-                    defaultValue: 'Permanently remove your account and data',
-                  })}
-                </Text>
-              </View>
-            </Pressable>
-          </View>
-        </Animated.View>
-      </ScrollView>
-    </View>
+      {/* Same flow as Profile → Account → Delete account (useDeleteAccount). */}
+      <View>
+        <ESettingsGroup>
+          <ESettingsRow
+            testID="privacy-delete-account"
+            icon={Trash2}
+            title={isDeleting ? t('privacy.deletingAccount') : t('privacy.deleteAccount')}
+            subtitle={t('privacy.deleteAccountDesc')}
+            destructive
+            loading={isDeleting}
+            onPress={confirmDeleteAccount}
+          />
+        </ESettingsGroup>
+      </View>
+    </ScrollView>
   );
 }

@@ -18,16 +18,18 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { type } from '../../theme/type';
 
 const POPULAR_MAKES = ['BMW', 'Ducati', 'KTM', 'Harley-Davidson', 'Honda', 'Yamaha', 'Triumph'];
 
 export default function BikeMakeScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -98,7 +100,7 @@ export default function BikeMakeScreen() {
   const showGrid = !search && !selectedMake && !customMake && popularMakeItems.length > 0;
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
@@ -116,45 +118,17 @@ export default function BikeMakeScreen() {
                       flex: 1,
                       height: 3,
                       borderRadius: 2,
-                      backgroundColor:
-                        i === 1 ? ONBOARDING_COLORS.warm : ONBOARDING_COLORS.surface2,
+                      backgroundColor: i === 1 ? oc.warm : oc.surface2,
                     }}
                   />
                 ))}
               </View>
 
               <Animated.View entering={FadeInDown.duration(300)}>
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '600',
-                    letterSpacing: 2,
-                    textTransform: 'uppercase',
-                    color: ONBOARDING_COLORS.warm,
-                    marginBottom: 10,
-                  }}
-                >
-                  Step 1 of 3
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: 'InstrumentSerif-Regular',
-                    fontSize: 36,
-                    lineHeight: 38,
-                    color: ONBOARDING_COLORS.textPrimary,
-                    letterSpacing: -0.7,
-                    marginBottom: 6,
-                  }}
-                >
+                <Text style={[type.largeTitle, { color: oc.textPrimary, marginBottom: 6 }]}>
                   What do you ride?
                 </Text>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    color: ONBOARDING_COLORS.textSecondary,
-                    lineHeight: 20,
-                  }}
-                >
+                <Text style={[type.subhead, { color: oc.textSecondary }]}>
                   Pick your make — we'll pre-fill service intervals, torque specs, and common
                   issues.
                 </Text>
@@ -176,9 +150,9 @@ export default function BikeMakeScreen() {
                       setSearch(selectedMake.makeName);
                     }}
                     style={{
-                      backgroundColor: `${ONBOARDING_COLORS.warm}24`,
+                      backgroundColor: `${oc.warm}24`,
                       borderWidth: 1,
-                      borderColor: ONBOARDING_COLORS.warm,
+                      borderColor: oc.warm,
                       borderRadius: 16,
                       borderCurve: 'continuous',
                       padding: 18,
@@ -194,7 +168,7 @@ export default function BikeMakeScreen() {
                         height: 30,
                         borderRadius: 8,
                         borderCurve: 'continuous',
-                        backgroundColor: ONBOARDING_COLORS.surface2,
+                        backgroundColor: oc.surface2,
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
@@ -203,7 +177,7 @@ export default function BikeMakeScreen() {
                         style={{
                           fontSize: 12,
                           fontWeight: '700',
-                          color: ONBOARDING_COLORS.textSecondary,
+                          color: oc.textSecondary,
                           letterSpacing: 0.5,
                         }}
                       >
@@ -215,15 +189,13 @@ export default function BikeMakeScreen() {
                         flex: 1,
                         fontSize: 14,
                         fontWeight: '600',
-                        color: ONBOARDING_COLORS.textPrimary,
+                        color: oc.textPrimary,
                         letterSpacing: -0.1,
                       }}
                     >
                       {selectedMake.makeName}
                     </Text>
-                    <Text style={{ fontSize: 12, color: ONBOARDING_COLORS.ink3 }}>
-                      Tap to change
-                    </Text>
+                    <Text style={{ fontSize: 12, color: oc.ink3 }}>Tap to change</Text>
                   </Pressable>
                 </Animated.View>
               ) : customMake && !search ? (
@@ -234,9 +206,9 @@ export default function BikeMakeScreen() {
                       setCustomMake('');
                     }}
                     style={{
-                      backgroundColor: `${ONBOARDING_COLORS.warm}24`,
+                      backgroundColor: `${oc.warm}24`,
                       borderWidth: 1,
-                      borderColor: ONBOARDING_COLORS.warm,
+                      borderColor: oc.warm,
                       borderRadius: 16,
                       borderCurve: 'continuous',
                       padding: 18,
@@ -251,16 +223,12 @@ export default function BikeMakeScreen() {
                         flex: 1,
                         fontSize: 14,
                         fontWeight: '600',
-                        color: ONBOARDING_COLORS.textPrimary,
+                        color: oc.textPrimary,
                       }}
                     >
                       {customMake}
                     </Text>
-                    <Text
-                      style={{ fontSize: 11, color: ONBOARDING_COLORS.warm, fontWeight: '600' }}
-                    >
-                      Custom
-                    </Text>
+                    <Text style={{ fontSize: 11, color: oc.warm, fontWeight: '600' }}>Custom</Text>
                   </Pressable>
                 </Animated.View>
               ) : null}
@@ -271,9 +239,9 @@ export default function BikeMakeScreen() {
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    backgroundColor: ONBOARDING_COLORS.surface,
+                    backgroundColor: oc.surface,
                     borderWidth: 1,
-                    borderColor: ONBOARDING_COLORS.line,
+                    borderColor: oc.line,
                     borderRadius: 14,
                     borderCurve: 'continuous',
                     paddingHorizontal: 14,
@@ -281,17 +249,17 @@ export default function BikeMakeScreen() {
                     gap: 10,
                   }}
                 >
-                  <Search size={16} color={ONBOARDING_COLORS.ink3} />
+                  <Search size={16} color={oc.ink3} />
                   <TextInput
                     value={search}
                     onChangeText={setSearch}
                     placeholder="Search makes..."
-                    placeholderTextColor={ONBOARDING_COLORS.ink3}
+                    placeholderTextColor={oc.ink3}
                     style={{
                       flex: 1,
                       paddingVertical: 14,
                       fontSize: 15,
-                      color: ONBOARDING_COLORS.textPrimary,
+                      color: oc.textPrimary,
                     }}
                   />
                 </View>
@@ -299,7 +267,7 @@ export default function BikeMakeScreen() {
 
               {/* Loading */}
               {makesResult.isLoading && (
-                <ActivityIndicator color={ONBOARDING_COLORS.warm} style={{ marginVertical: 20 }} />
+                <ActivityIndicator color={oc.warm} style={{ marginVertical: 20 }} />
               )}
 
               {/* Search results dropdown */}
@@ -307,9 +275,9 @@ export default function BikeMakeScreen() {
                 <Animated.View entering={FadeInUp.duration(200)}>
                   <View
                     style={{
-                      backgroundColor: ONBOARDING_COLORS.surface,
+                      backgroundColor: oc.surface,
                       borderWidth: 1,
-                      borderColor: ONBOARDING_COLORS.line,
+                      borderColor: oc.line,
                       borderRadius: 16,
                       borderCurve: 'continuous',
                       maxHeight: 300,
@@ -325,14 +293,14 @@ export default function BikeMakeScreen() {
                             paddingHorizontal: 16,
                             paddingVertical: 14,
                             borderBottomWidth: 1,
-                            borderBottomColor: ONBOARDING_COLORS.line,
-                            backgroundColor: pressed ? ONBOARDING_COLORS.surface2 : 'transparent',
+                            borderBottomColor: oc.line,
+                            backgroundColor: pressed ? oc.surface2 : 'transparent',
                           })}
                         >
                           <Text
                             style={{
                               fontSize: 15,
-                              color: ONBOARDING_COLORS.textPrimary,
+                              color: oc.textPrimary,
                               fontWeight: '500',
                             }}
                           >
@@ -348,7 +316,7 @@ export default function BikeMakeScreen() {
               {/* No results — custom make */}
               {showNoResults && (
                 <Animated.View entering={FadeInUp.duration(200)} style={{ gap: 8 }}>
-                  <Text style={{ fontSize: 14, color: ONBOARDING_COLORS.ink3, paddingLeft: 4 }}>
+                  <Text style={{ fontSize: 14, color: oc.ink3, paddingLeft: 4 }}>
                     No makes found
                   </Text>
                   <Pressable
@@ -361,9 +329,9 @@ export default function BikeMakeScreen() {
                       setSelectedMake(null);
                     }}
                     style={{
-                      backgroundColor: ONBOARDING_COLORS.surface,
+                      backgroundColor: oc.surface,
                       borderWidth: 1,
-                      borderColor: ONBOARDING_COLORS.warm,
+                      borderColor: oc.warm,
                       borderRadius: 14,
                       borderCurve: 'continuous',
                       padding: 14,
@@ -375,14 +343,14 @@ export default function BikeMakeScreen() {
                     <Text
                       style={{
                         fontSize: 14,
-                        color: ONBOARDING_COLORS.warm,
+                        color: oc.warm,
                         fontWeight: '600',
                         flexShrink: 1,
                       }}
                     >
                       Use "{search}" as make
                     </Text>
-                    <ChevronRight size={16} color={ONBOARDING_COLORS.warm} />
+                    <ChevronRight size={16} color={oc.warm} />
                   </Pressable>
                 </Animated.View>
               )}
@@ -409,11 +377,9 @@ export default function BikeMakeScreen() {
                             padding: 18,
                             borderRadius: 16,
                             borderCurve: 'continuous',
-                            backgroundColor: pressed
-                              ? ONBOARDING_COLORS.surface2
-                              : ONBOARDING_COLORS.surface,
+                            backgroundColor: pressed ? oc.surface2 : oc.surface,
                             borderWidth: 1,
-                            borderColor: ONBOARDING_COLORS.line,
+                            borderColor: oc.line,
                             gap: 10,
                           })}
                         >
@@ -423,7 +389,7 @@ export default function BikeMakeScreen() {
                               height: 30,
                               borderRadius: 8,
                               borderCurve: 'continuous',
-                              backgroundColor: ONBOARDING_COLORS.surface2,
+                              backgroundColor: oc.surface2,
                               alignItems: 'center',
                               justifyContent: 'center',
                             }}
@@ -432,7 +398,7 @@ export default function BikeMakeScreen() {
                               style={{
                                 fontSize: 12,
                                 fontWeight: '700',
-                                color: ONBOARDING_COLORS.textSecondary,
+                                color: oc.textSecondary,
                                 letterSpacing: 0.5,
                               }}
                             >
@@ -443,7 +409,7 @@ export default function BikeMakeScreen() {
                             style={{
                               fontSize: 14,
                               fontWeight: '600',
-                              color: ONBOARDING_COLORS.textPrimary,
+                              color: oc.textPrimary,
                               letterSpacing: -0.1,
                             }}
                           >
@@ -462,9 +428,9 @@ export default function BikeMakeScreen() {
                           padding: 18,
                           borderRadius: 16,
                           borderCurve: 'continuous',
-                          backgroundColor: ONBOARDING_COLORS.surface,
+                          backgroundColor: oc.surface,
                           borderWidth: 1,
-                          borderColor: ONBOARDING_COLORS.line,
+                          borderColor: oc.line,
                           alignItems: 'center',
                           justifyContent: 'center',
                           minHeight: 88,
@@ -473,7 +439,7 @@ export default function BikeMakeScreen() {
                         <Text
                           style={{
                             fontSize: 13,
-                            color: ONBOARDING_COLORS.ink3,
+                            color: oc.ink3,
                           }}
                         >
                           + Other

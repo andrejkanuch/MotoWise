@@ -9,7 +9,7 @@ import { type SharedValue, useSharedValue } from 'react-native-reanimated';
 import { BIKE_SEGMENT, type BikeSegment } from '../../../lib/bike-hub/constants';
 import { parseOrigin, resolveInitialSegment } from '../../../lib/bike-hub/segments';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
-import { EDITORIAL_SCHEME, EditorialSchemeProvider } from '../../../theme/editorial';
+import { useEditorialTheme } from '../../../theme/editorial';
 import { OverviewSegment } from '../overview/overview-segment';
 import { BikeSegment as BikeSegmentPanel } from '../segments/bike-segment';
 import { CostsSegment } from '../segments/costs-segment';
@@ -18,7 +18,7 @@ import { ActionPill } from '../ui/action-pill';
 import { BikeHeader } from '../ui/bike-header';
 import { useHubBottomLayout } from '../ui/bottom-layout';
 import { SegmentBar } from '../ui/segment-bar';
-import { HUB_FONT, HUB_TOUCH_TARGET, type HubCopyKey, hub } from '../ui/tokens';
+import { HUB_TOUCH_TARGET, type HubCopyKey, SYSTEM_WEIGHT, useHubTheme } from '../ui/tokens';
 import { SegmentContainer, type SegmentDefinition } from './segment-container';
 import { useBikeActions } from './use-bike-actions';
 import { useBikeBack } from './use-bike-back';
@@ -69,17 +69,6 @@ function landingKey({ ts, highlightTask, segment }: BikeHubScreenProps): string 
   return `${ts ?? ''}|${highlightTask ?? ''}|${segment ?? ''}`;
 }
 
-/**
- * The sections Service / Costs / Bike still wrap (until R2–R5) follow the
- * editorial theme; the hub is dark in both schemes, so pin them dark to sit on
- * the hub's ground instead of flipping to light panels on a light-mode phone.
- */
-function LegacySegment({ children }: { children: React.ReactNode }) {
-  return (
-    <EditorialSchemeProvider value={EDITORIAL_SCHEME.DARK}>{children}</EditorialSchemeProvider>
-  );
-}
-
 function CentredState({ children }: { children: React.ReactNode }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 }}>
@@ -94,6 +83,8 @@ function CentredState({ children }: { children: React.ReactNode }) {
  * detail. Service / Costs / Bike wrap today's sections until R2–R5.
  */
 export function BikeHubScreen(props: BikeHubScreenProps) {
+  const hub = useHubTheme();
+  const { isDark } = useEditorialTheme();
   const { id, highlightTask, segment: segmentParam, from } = props;
   const { t } = useTranslation();
   const bottomLayout = useHubBottomLayout();
@@ -169,7 +160,7 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
 
   return (
     <View style={{ flex: 1, backgroundColor: hub.ground }}>
-      {isFocused ? <StatusBar style="light" /> : null}
+      {isFocused ? <StatusBar style={isDark ? 'light' : 'dark'} /> : null}
       <Sentry.TimeToInitialDisplay record />
       <View
         style={{
@@ -219,7 +210,7 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
         <CentredState>
           <Text
             style={{
-              fontFamily: HUB_FONT.sans,
+              ...SYSTEM_WEIGHT.regular,
               fontSize: 16,
               lineHeight: 22,
               color: hub.dim,
@@ -239,9 +230,7 @@ export function BikeHubScreen(props: BikeHubScreenProps) {
                 opacity: pressed ? 0.6 : 1,
               })}
             >
-              <Text
-                style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.copperText }}
-              >
+              <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 15, color: hub.copperText }}>
                 {t('common.retry')}
               </Text>
             </Pressable>
@@ -317,7 +306,7 @@ function LoadedHub({
     },
     [BIKE_SEGMENT.SERVICE]: {
       render: () => (
-        <LegacySegment>
+        <>
           <ServiceSegment
             bike={bike}
             tasks={data.tasks}
@@ -325,26 +314,26 @@ function LoadedHub({
             highlightTaskId={landing.highlightTaskId}
             highlightKey={landing.key}
           />
-        </LegacySegment>
+        </>
       ),
     },
     [BIKE_SEGMENT.COSTS]: {
       render: () => (
-        <LegacySegment>
+        <>
           <CostsSegment bike={bike} unit={data.unit} />
-        </LegacySegment>
+        </>
       ),
     },
     [BIKE_SEGMENT.BIKE]: {
       render: () => (
-        <LegacySegment>
+        <>
           <BikeSegmentPanel
             bike={bike}
             actions={actions}
             onChangePhoto={photo.changePhoto}
             isUploadingPhoto={photo.uploading}
           />
-        </LegacySegment>
+        </>
       ),
     },
   };

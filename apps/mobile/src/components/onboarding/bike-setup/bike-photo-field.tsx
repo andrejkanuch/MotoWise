@@ -3,15 +3,14 @@ import { Camera, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { pickImage, takePhoto } from '../../../lib/image-upload';
+import { radius, type } from '../../../theme/type';
 import { triggerImpact } from '../../../utils/haptics';
-import { ONBOARDING_COLORS } from '../onboarding-colors';
+import { useOnboardingColors } from '../onboarding-colors';
 
 interface BikePhotoFieldProps {
   /** Local image URI, or null when none chosen. */
   photoUri: string | null;
   onChange: (uri: string | null) => void;
-  /** Brand accent for the selected-state framing. */
-  accent: string;
 }
 
 /**
@@ -19,7 +18,8 @@ interface BikePhotoFieldProps {
  * URI on the onboarding bike data; the Reveal shows it (falling back to the
  * stock per-make image when absent).
  */
-export function BikePhotoField({ photoUri, onChange, accent }: BikePhotoFieldProps) {
+export function BikePhotoField({ photoUri, onChange }: BikePhotoFieldProps) {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
 
   const choosePhoto = () => {
@@ -51,11 +51,11 @@ export function BikePhotoField({ photoUri, onChange, accent }: BikePhotoFieldPro
           alignItems: 'center',
           gap: 12,
           padding: 10,
-          borderRadius: 16,
+          borderRadius: radius.card,
           borderCurve: 'continuous',
-          backgroundColor: ONBOARDING_COLORS.surfaceInput,
+          backgroundColor: oc.surfaceInput,
           borderWidth: 1,
-          borderColor: `${accent}59`,
+          borderColor: oc.cardBorder,
         }}
       >
         <Pressable
@@ -69,7 +69,7 @@ export function BikePhotoField({ photoUri, onChange, accent }: BikePhotoFieldPro
             contentFit="cover"
           />
         </Pressable>
-        <Text style={{ flex: 1, fontSize: 13.5, color: ONBOARDING_COLORS.textBody }}>
+        <Text style={[type.subhead, { flex: 1, color: oc.textBody }]}>
           {t('onboarding.bikePhotoSubtitle')}
         </Text>
         <Pressable
@@ -81,12 +81,12 @@ export function BikePhotoField({ photoUri, onChange, accent }: BikePhotoFieldPro
             width: 30,
             height: 30,
             borderRadius: 15,
-            backgroundColor: ONBOARDING_COLORS.surfaceDismiss,
+            backgroundColor: oc.surfaceDismiss,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <X size={15} color={ONBOARDING_COLORS.iconDismiss} />
+          <X size={15} color={oc.iconDismiss} />
         </Pressable>
       </View>
     );
@@ -102,18 +102,17 @@ export function BikePhotoField({ photoUri, onChange, accent }: BikePhotoFieldPro
         alignItems: 'center',
         justifyContent: 'center',
         gap: 10,
+        minHeight: 52,
         paddingVertical: 16,
-        borderRadius: 16,
+        borderRadius: radius.card,
         borderCurve: 'continuous',
         borderWidth: 1,
         borderStyle: 'dashed',
-        borderColor: ONBOARDING_COLORS.borderMuted,
+        borderColor: oc.borderMuted,
       }}
     >
-      <Camera size={17} color={ONBOARDING_COLORS.warm2} />
-      <Text style={{ fontSize: 14, fontWeight: '500', color: ONBOARDING_COLORS.warm2 }}>
-        {t('onboarding.bikePhotoSubtitle')}
-      </Text>
+      <Camera size={17} color={oc.warm2} />
+      <Text style={[type.label, { color: oc.warm2 }]}>{t('onboarding.bikePhotoSubtitle')}</Text>
     </Pressable>
   );
 }

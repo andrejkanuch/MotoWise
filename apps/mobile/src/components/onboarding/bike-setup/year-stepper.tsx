@@ -1,7 +1,8 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import { ONBOARDING_COLORS } from '../onboarding-colors';
+import { radius, space, type } from '../../../theme/type';
+import { useOnboardingColors } from '../onboarding-colors';
 
 const MIN_YEAR = 1970;
 const MAX_YEAR = new Date().getFullYear() + 1;
@@ -16,21 +17,18 @@ interface YearStepperProps {
 }
 
 const labelStyle = {
-  fontSize: 11,
-  fontWeight: '600' as const,
-  letterSpacing: 1.5,
-  textTransform: 'uppercase' as const,
-  color: ONBOARDING_COLORS.textLabel,
-  marginBottom: 12,
+  ...type.label,
+  marginBottom: space.sm,
   paddingLeft: 2,
 };
 
 /**
- * Model-year stepper — `< 2023 >` with the year centered in the brand accent.
+ * Model-year stepper — `< 2023 >` with the year centered as a condensed figure.
  * Replaces the empty-state year box: year is only set once a make is picked
  * (design: bike-setup "selected" state).
  */
 export function YearStepper({ value, onChange, onStep }: YearStepperProps) {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const year = Number.parseInt(value, 10) || MAX_YEAR - 1;
   const canDecrement = year > MIN_YEAR;
@@ -45,33 +43,25 @@ export function YearStepper({ value, onChange, onStep }: YearStepperProps) {
 
   return (
     <View>
-      <Text style={labelStyle}>{t('onboarding.v2BikeSetupYearCompact')}</Text>
+      <Text style={[labelStyle, { color: oc.textLabel }]}>
+        {t('onboarding.v2BikeSetupYearCompact')}
+      </Text>
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          backgroundColor: ONBOARDING_COLORS.surfaceInput,
+          backgroundColor: oc.surfaceInput,
           borderWidth: 1,
-          borderColor: ONBOARDING_COLORS.borderSubtle,
-          borderRadius: 16,
+          borderColor: oc.borderSubtle,
+          borderRadius: radius.card,
           borderCurve: 'continuous',
           paddingHorizontal: 10,
           paddingVertical: 8,
         }}
       >
         <StepButton direction="prev" disabled={!canDecrement} onPress={() => step(-1)} />
-        <Text
-          style={{
-            fontFamily: 'GeistMono-Medium',
-            fontSize: 26,
-            fontWeight: '700',
-            letterSpacing: 2,
-            color: ONBOARDING_COLORS.warm,
-          }}
-        >
-          {value}
-        </Text>
+        <Text style={[type.figure, { color: oc.textPrimary }]}>{value}</Text>
         <StepButton direction="next" disabled={!canIncrement} onPress={() => step(1)} />
       </View>
     </View>
@@ -87,6 +77,7 @@ function StepButton({
   disabled: boolean;
   onPress: () => void;
 }) {
+  const oc = useOnboardingColors();
   const Icon = direction === 'prev' ? ChevronLeft : ChevronRight;
   return (
     <Pressable
@@ -96,17 +87,17 @@ function StepButton({
       accessibilityRole="button"
       accessibilityLabel={direction === 'prev' ? 'Previous year' : 'Next year'}
       style={{
-        width: 40,
-        height: 40,
-        borderRadius: 12,
+        width: 44,
+        height: 44,
+        borderRadius: radius.control,
         borderCurve: 'continuous',
-        backgroundColor: ONBOARDING_COLORS.surfaceCardTranslucent,
+        backgroundColor: oc.surfaceCardTranslucent,
         alignItems: 'center',
         justifyContent: 'center',
         opacity: disabled ? 0.35 : 1,
       }}
     >
-      <Icon size={20} color={ONBOARDING_COLORS.textPrimary} />
+      <Icon size={20} color={oc.textPrimary} />
     </Pressable>
   );
 }

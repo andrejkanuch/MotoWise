@@ -4,6 +4,7 @@ import { Gauge, Map as MapIcon } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { tint } from '../../theme/editorial';
 
 export type HudLayout = 'A' | 'B';
 
@@ -19,10 +20,10 @@ const SEGMENTS: { layout: HudLayout; Icon: typeof Gauge }[] = [
 ];
 
 export function HudLayoutSwitcher({ activeLayout, onSwitch, isNightMode }: HudLayoutSwitcherProps) {
-  const containerBg = isNightMode ? 'rgba(13,6,4,0.85)' : 'rgba(20,18,16,0.65)';
+  const containerBg = isNightMode ? tint(palette.nightBg, 0.85) : tint(palette.neutral900, 0.65);
   const activeBg = isNightMode ? palette.nightAccent : palette.controlBgActive;
   const activeIconColor = isNightMode ? palette.nightText : palette.white;
-  const inactiveIconColor = isNightMode ? 'rgba(212,74,26,0.4)' : palette.iconMuted;
+  const inactiveIconColor = isNightMode ? tint(palette.nightText, 0.4) : palette.iconMuted;
 
   const handlePress = useCallback(
     (layout: HudLayout) => {

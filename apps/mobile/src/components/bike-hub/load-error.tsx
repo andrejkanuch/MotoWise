@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, Pressable, Text, View } from 'react-native';
-import { HUB_FONT, HUB_RADIUS, HUB_TOUCH_TARGET, hub } from './ui/tokens';
+import { HUB_RADIUS, HUB_TOUCH_TARGET, SYSTEM_WEIGHT, useHubTheme } from './ui/tokens';
 
 interface LoadErrorProps {
   message: string;
@@ -26,6 +26,7 @@ export function LoadError({
   retryTestID,
   retryAccessibilityLabel,
 }: LoadErrorProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -52,7 +53,7 @@ export function LoadError({
       }}
     >
       <Text
-        style={{ flex: 1, fontFamily: HUB_FONT.sans, fontSize: 14, lineHeight: 19, color: hub.dim }}
+        style={{ flex: 1, ...SYSTEM_WEIGHT.regular, fontSize: 14, lineHeight: 19, color: hub.dim }}
       >
         {message}
       </Text>
@@ -68,7 +69,7 @@ export function LoadError({
           opacity: pressed ? 0.6 : 1,
         })}
       >
-        <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.copperText }}>
+        <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 14, color: hub.copperText }}>
           {t('common.retry')}
         </Text>
       </Pressable>

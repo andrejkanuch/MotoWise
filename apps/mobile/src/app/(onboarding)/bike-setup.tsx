@@ -17,15 +17,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import Animated, {
-  Easing,
-  FadeInDown,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BikePhotoField } from '../../components/onboarding/bike-setup/bike-photo-field';
 import { BrandHero } from '../../components/onboarding/bike-setup/brand-hero';
@@ -34,7 +26,7 @@ import { ModelPicker } from '../../components/onboarding/bike-setup/model-picker
 import { VariantSelector } from '../../components/onboarding/bike-setup/variant-selector';
 import { YearStepper } from '../../components/onboarding/bike-setup/year-stepper';
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { getBrandColor, getBrandDna, MAKE_COLORS, POPULAR_MAKES } from '../../config/brand-dna';
@@ -48,6 +40,7 @@ import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { resolveMakeFromIntent } from '../../lib/pending-intent';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { radius, space, type } from '../../theme/type';
 import { isValidMakeName } from '../../utils/bike-make';
 import { triggerImpact } from '../../utils/haptics';
 
@@ -88,6 +81,7 @@ function detectTypeFromModel(modelName: string): MotorcycleType | null {
 }
 
 export default function BikeSetupScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const onBack = useOnboardingBack(OB_SCREEN.BIKE_SETUP);
   const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.BIKE_SETUP);
@@ -175,15 +169,13 @@ export default function BikeSetupScreen() {
   const headline = useMemo(() => {
     if (showIntentConfirm) {
       return {
-        lead: t('onboarding.v2IntentConfirmTitle' as never),
-        accent: '',
+        title: t('onboarding.v2IntentConfirmTitle' as never),
         sub: t('onboarding.v2IntentConfirmSubtitle' as never),
       };
     }
     if (showBrandHero && activeMakeName) {
       return {
-        lead: t('onboarding.v2BikeSetupTitlePicked' as never),
-        accent: t('onboarding.v2BikeSetupTitlePickedAccent' as never, {
+        title: t('onboarding.v2BikeSetupTitlePickedFull' as never, {
           makeName: activeMakeName,
         }) as string,
         sub: isCustomMake
@@ -193,8 +185,7 @@ export default function BikeSetupScreen() {
       };
     }
     return {
-      lead: t('onboarding.v2BikeSetupTitleEmpty' as never),
-      accent: t('onboarding.v2BikeSetupTitleEmptyAccent' as never),
+      title: t('onboarding.v2BikeSetupTitleEmptyFull' as never),
       sub: t('onboarding.v2BikeSetupSubtitleReward' as never),
     };
   }, [showIntentConfirm, showBrandHero, activeMakeName, isCustomMake, t]);
@@ -382,7 +373,7 @@ export default function BikeSetupScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       <KeyboardAvoidingView
@@ -404,46 +395,14 @@ export default function BikeSetupScreen() {
 
           <View style={{ height: 48 }} />
 
-          <EyebrowPill
-            accent={ONBOARDING_COLORS.warm2}
-            label={t(
-              (showIntentConfirm
-                ? 'onboarding.v2IntentConfirmEyebrow'
-                : 'onboarding.v2BikeSetupEyebrow') as never,
-            )}
-          />
-
           <Animated.View entering={FadeInDown.duration(300)}>
             <Text
-              style={{
-                fontFamily: 'InstrumentSerif-Regular',
-                fontSize: 30,
-                lineHeight: 32,
-                color: ONBOARDING_COLORS.textPrimary,
-                letterSpacing: -0.5,
-                marginBottom: 8,
-              }}
+              accessibilityRole="header"
+              style={[type.largeTitle, { color: oc.textPrimary, marginBottom: space.xs }]}
             >
-              {headline.lead}
-              {headline.accent ? (
-                <>
-                  {'\n'}
-                  <Text
-                    style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}
-                  >
-                    {headline.accent}
-                  </Text>
-                </>
-              ) : null}
+              {headline.title}
             </Text>
-            <Text
-              style={{
-                fontSize: 13.5,
-                color: ONBOARDING_COLORS.textSoft,
-                lineHeight: 19,
-                maxWidth: 330,
-              }}
-            >
+            <Text style={[type.subhead, { color: oc.textSecondary, maxWidth: 330 }]}>
               {headline.sub}
             </Text>
           </Animated.View>
@@ -485,25 +444,26 @@ export default function BikeSetupScreen() {
                   typing — it used to unmount after the first character. */}
               {isCustomMake && (
                 <View>
-                  <Text style={sectionLabel}>{t('onboarding.v2BikeSetupMakeName')}</Text>
+                  <Text style={[sectionLabel, { color: oc.textLabel }]}>
+                    {t('onboarding.v2BikeSetupMakeName')}
+                  </Text>
                   <TextInput
                     value={customMakeName}
                     onChangeText={setCustomMakeName}
                     placeholder={t('onboarding.v2BikeSetupMakeNamePlaceholder')}
-                    placeholderTextColor={ONBOARDING_COLORS.textDimmed}
+                    placeholderTextColor={oc.textDimmed}
                     autoCapitalize="words"
                     maxLength={50}
                     autoFocus
                     style={{
-                      backgroundColor: ONBOARDING_COLORS.surfaceInput,
+                      backgroundColor: oc.surfaceInput,
                       borderWidth: 1,
-                      borderColor: ONBOARDING_COLORS.borderSubtle,
-                      borderRadius: 14,
+                      borderColor: oc.borderSubtle,
+                      borderRadius: radius.control,
                       borderCurve: 'continuous',
                       padding: 14,
-                      color: ONBOARDING_COLORS.textWhite,
-                      fontSize: 16,
-                      fontWeight: '600',
+                      color: oc.textWhite,
+                      ...type.bodyStrong,
                     }}
                   />
                 </View>
@@ -531,19 +491,9 @@ export default function BikeSetupScreen() {
 
                   {/* Variant capture (U7) — only once a specific model is chosen;
                       it's meaningless at the make level. */}
-                  {selectedModel && (
-                    <VariantSelector
-                      value={variant}
-                      onChange={setVariant}
-                      accent={getBrandColor(activeMakeName)}
-                    />
-                  )}
+                  {selectedModel && <VariantSelector value={variant} onChange={setVariant} />}
 
-                  <BikePhotoField
-                    photoUri={photoUri}
-                    onChange={setPhotoUri}
-                    accent={getBrandColor(activeMakeName)}
-                  />
+                  <BikePhotoField photoUri={photoUri} onChange={setPhotoUri} />
                 </>
               )}
             </>
@@ -556,7 +506,7 @@ export default function BikeSetupScreen() {
             paddingHorizontal: 20,
             paddingTop: 14,
             paddingBottom: insets.bottom + 16,
-            backgroundColor: ONBOARDING_COLORS.background,
+            backgroundColor: oc.background,
           }}
         >
           {showIntentConfirm ? (
@@ -574,14 +524,14 @@ export default function BikeSetupScreen() {
                 style={{ alignSelf: 'center', marginTop: 14, padding: 8 }}
               >
                 <Text
-                  style={{
-                    fontSize: 14.5,
-                    color: ONBOARDING_COLORS.textSubtitle,
-                    fontWeight: '500',
-                    textDecorationLine: 'underline',
-                    textDecorationColor: ONBOARDING_COLORS.underlineSubtle,
-                    letterSpacing: -0.1,
-                  }}
+                  style={[
+                    type.subhead,
+                    {
+                      color: oc.textSubtitle,
+                      textDecorationLine: 'underline',
+                      textDecorationColor: oc.underlineSubtle,
+                    },
+                  ]}
                 >
                   {t('onboarding.v2IntentConfirmChange' as never)}
                 </Text>
@@ -598,19 +548,12 @@ export default function BikeSetupScreen() {
                     padding: 14,
                     borderRadius: 16,
                     borderCurve: 'continuous',
-                    backgroundColor: ONBOARDING_COLORS.surfaceInput,
+                    backgroundColor: oc.surfaceInput,
                     borderWidth: 1,
-                    borderColor: ONBOARDING_COLORS.borderSubtle,
+                    borderColor: oc.borderSubtle,
                   }}
                 >
-                  <Text
-                    style={{
-                      fontSize: 12.5,
-                      color: ONBOARDING_COLORS.textSoft,
-                      lineHeight: 18,
-                      marginBottom: 10,
-                    }}
-                  >
+                  <Text style={[type.caption, { color: oc.textSecondary, marginBottom: space.xs }]}>
                     {t('onboarding.v2BikeSetupPartialHelper' as never)}
                   </Text>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -627,9 +570,9 @@ export default function BikeSetupScreen() {
                           paddingVertical: 8,
                           paddingHorizontal: 12,
                           borderRadius: 999,
-                          backgroundColor: ONBOARDING_COLORS.surfaceCardTranslucent,
+                          backgroundColor: oc.surfaceCardTranslucent,
                           borderWidth: 1,
-                          borderColor: ONBOARDING_COLORS.borderSubtle,
+                          borderColor: oc.borderSubtle,
                         }}
                       >
                         <View
@@ -638,7 +581,7 @@ export default function BikeSetupScreen() {
                             height: 20,
                             borderRadius: 6,
                             borderCurve: 'continuous',
-                            backgroundColor: MAKE_COLORS[m.makeName] ?? ONBOARDING_COLORS.warm,
+                            backgroundColor: MAKE_COLORS[m.makeName] ?? oc.warm,
                             alignItems: 'center',
                             justifyContent: 'center',
                           }}
@@ -647,21 +590,13 @@ export default function BikeSetupScreen() {
                             style={{
                               fontSize: 10,
                               fontWeight: '800',
-                              color: ONBOARDING_COLORS.textWhite,
+                              color: oc.textWhite,
                             }}
                           >
                             {m.makeName[0]}
                           </Text>
                         </View>
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            fontWeight: '600',
-                            color: ONBOARDING_COLORS.textPrimary,
-                          }}
-                        >
-                          {m.makeName}
-                        </Text>
+                        <Text style={[type.label, { color: oc.textPrimary }]}>{m.makeName}</Text>
                       </Pressable>
                     ))}
                   </View>
@@ -674,13 +609,14 @@ export default function BikeSetupScreen() {
                     style={{ alignSelf: 'flex-start', marginTop: 12, paddingVertical: 4 }}
                   >
                     <Text
-                      style={{
-                        fontSize: 13,
-                        color: ONBOARDING_COLORS.textFaded,
-                        fontWeight: '500',
-                        textDecorationLine: 'underline',
-                        textDecorationColor: ONBOARDING_COLORS.underlineSubtle,
-                      }}
+                      style={[
+                        type.label,
+                        {
+                          color: oc.textMuted,
+                          textDecorationLine: 'underline',
+                          textDecorationColor: oc.underlineSubtle,
+                        },
+                      ]}
                     >
                       {t('onboarding.v2BikeSetupSkip')}
                     </Text>
@@ -713,14 +649,14 @@ export default function BikeSetupScreen() {
                 style={{ alignSelf: 'center', marginTop: 14, padding: 8 }}
               >
                 <Text
-                  style={{
-                    fontSize: 14.5,
-                    color: ONBOARDING_COLORS.textSubtitle,
-                    fontWeight: '500',
-                    textDecorationLine: 'underline',
-                    textDecorationColor: ONBOARDING_COLORS.underlineSubtle,
-                    letterSpacing: -0.1,
-                  }}
+                  style={[
+                    type.subhead,
+                    {
+                      color: oc.textSubtitle,
+                      textDecorationLine: 'underline',
+                      textDecorationColor: oc.underlineSubtle,
+                    },
+                  ]}
                 >
                   {showMakeDetails
                     ? t('onboarding.v2BikeSetupSkip')
@@ -736,12 +672,8 @@ export default function BikeSetupScreen() {
 }
 
 const sectionLabel = {
-  fontSize: 11,
-  fontWeight: '600' as const,
-  letterSpacing: 1.5,
-  textTransform: 'uppercase' as const,
-  color: ONBOARDING_COLORS.textLabel,
-  marginBottom: 12,
+  ...type.label,
+  marginBottom: space.sm,
   paddingLeft: 2,
 };
 
@@ -765,6 +697,7 @@ function IntentConfirmCard({
   onStep: () => void;
   accent: string;
 }) {
+  const oc = useOnboardingColors();
   const bikeLabel = modelName ? `${makeName} ${modelName}` : makeName;
   return (
     <Animated.View entering={FadeInDown.duration(280)} style={{ gap: 20 }}>
@@ -776,9 +709,9 @@ function IntentConfirmCard({
           padding: 16,
           borderRadius: 18,
           borderCurve: 'continuous',
-          backgroundColor: ONBOARDING_COLORS.surfaceCardTranslucent,
+          backgroundColor: oc.surfaceCardTranslucent,
           borderWidth: 1,
-          borderColor: `${accent}4D`,
+          borderColor: oc.cardBorder,
         }}
       >
         <View
@@ -792,80 +725,12 @@ function IntentConfirmCard({
             justifyContent: 'center',
           }}
         >
-          <Text style={{ fontSize: 20, fontWeight: '800', color: ONBOARDING_COLORS.textWhite }}>
-            {makeName[0]}
-          </Text>
+          <Text style={[type.bodyStrong, { color: oc.textWhite }]}>{makeName[0]}</Text>
         </View>
-        <Text
-          style={{
-            flex: 1,
-            fontFamily: 'InstrumentSerif-Regular',
-            fontSize: 26,
-            lineHeight: 30,
-            color: ONBOARDING_COLORS.textPrimary,
-            letterSpacing: -0.4,
-          }}
-        >
-          {bikeLabel}
-        </Text>
+        <Text style={[type.sheetTitle, { flex: 1, color: oc.textPrimary }]}>{bikeLabel}</Text>
       </View>
 
       <YearStepper value={year} onChange={onYearChange} onStep={onStep} />
-    </Animated.View>
-  );
-}
-
-// Eyebrow pill — matches the styling used on experience.tsx (pulsing dot + caps mono label).
-function EyebrowPill({ accent, label }: { accent: string; label: string }) {
-  const dotScale = useSharedValue(1);
-
-  useEffect(() => {
-    dotScale.value = withRepeat(
-      withSequence(
-        withTiming(1.4, { duration: 900, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) }),
-      ),
-      -1,
-      false,
-    );
-  }, [dotScale]);
-
-  const dotStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: dotScale.value }],
-  }));
-
-  return (
-    <Animated.View
-      entering={FadeInDown.delay(100).duration(500)}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        alignSelf: 'flex-start',
-        gap: 6,
-        paddingVertical: 4,
-        paddingHorizontal: 10,
-        borderRadius: 999,
-        backgroundColor: `${accent}1F`,
-        borderWidth: 1,
-        borderColor: `${accent}4D`,
-        marginBottom: 14,
-      }}
-    >
-      <Animated.View
-        style={[{ width: 4, height: 4, borderRadius: 2, backgroundColor: accent }, dotStyle]}
-      />
-      <Text
-        style={{
-          fontFamily: 'GeistMono-Medium',
-          fontSize: 9.5,
-          fontWeight: '600',
-          letterSpacing: 1.7,
-          textTransform: 'uppercase',
-          color: accent,
-        }}
-      >
-        {label}
-      </Text>
     </Animated.View>
   );
 }

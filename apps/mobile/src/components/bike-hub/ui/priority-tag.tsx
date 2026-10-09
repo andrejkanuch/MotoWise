@@ -2,15 +2,17 @@ import type { MaintenancePriority } from '@motovault/graphql';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import {
-  HUB_FONT,
+  HUB_FIGURE_STRONG,
   HUB_RADIUS,
+  type HubColorKey,
   type HubCopyKey,
   PRIORITY_TAG,
   type TagVariant,
+  useHubTheme,
   VARIANT_TAG,
 } from './tokens';
 
-const TAG_SIZE = 10;
+const TAG_SIZE = 12;
 const FIXED_WIDTH = 44;
 
 type PriorityTagProps = (
@@ -25,7 +27,11 @@ type PriorityTagProps = (
   fixedWidth?: boolean;
 };
 
-function resolve(props: PriorityTagProps): { labelKey: HubCopyKey; bg: string; fg: string } {
+function resolve(props: PriorityTagProps): {
+  labelKey: HubCopyKey;
+  bg: HubColorKey;
+  fg: HubColorKey;
+} {
   if ('priority' in props) return PRIORITY_TAG[props.priority];
   const variant = VARIANT_TAG[props.variant];
   return { labelKey: variant.labelKey, ...(props.critical ? variant.critical : variant.normal) };
@@ -37,7 +43,11 @@ function resolve(props: PriorityTagProps): { labelKey: HubCopyKey; bg: string; f
  */
 export function PriorityTag(props: PriorityTagProps) {
   const { t } = useTranslation();
-  const { labelKey, bg, fg } = resolve(props);
+  const hub = useHubTheme();
+  const tag = resolve(props);
+  const { labelKey } = tag;
+  const bg = hub[tag.bg];
+  const fg = hub[tag.fg];
   const fixedWidth = props.fixedWidth ?? false;
   return (
     <View
@@ -54,10 +64,10 @@ export function PriorityTag(props: PriorityTagProps) {
     >
       <Text
         style={{
-          fontFamily: HUB_FONT.monoMedium,
+          ...HUB_FIGURE_STRONG,
           fontSize: TAG_SIZE,
-          lineHeight: 12,
-          letterSpacing: TAG_SIZE * 0.06,
+          lineHeight: 14,
+          letterSpacing: TAG_SIZE * 0.04,
           color: fg,
         }}
       >

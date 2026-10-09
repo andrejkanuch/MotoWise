@@ -29,6 +29,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
+import { radius, space, type } from '../../theme/type';
 import { distanceUnitLabel, formatDistance, formatRelativeDate } from '../../utils/ride-formatters';
 import { startGPSListener } from '../../utils/ride-location';
 import {
@@ -219,7 +220,7 @@ export default function StartRideScreen() {
     width: 9,
     height: 9,
     borderRadius: 9,
-    backgroundColor: '#4ade80',
+    backgroundColor: theme.success,
     transform: [{ scale: pulseScale.value }],
     opacity: pulseOpacity.value,
   }));
@@ -270,50 +271,10 @@ export default function StartRideScreen() {
       >
         {/* Editorial headline */}
         <Animated.View entering={FadeInUp.duration(300)} style={{ marginBottom: 22 }}>
-          <Text
-            style={{
-              fontFamily: 'GeistMono',
-              fontSize: 10.5,
-              fontWeight: '500',
-              color: theme.ink3,
-              textTransform: 'uppercase',
-              letterSpacing: 10.5 * 0.22,
-              marginBottom: 14,
-            }}
-          >
-            {t('startRide.preFlight')}
+          <Text accessibilityRole="header" style={[type.largeTitle, { color: theme.ink }]}>
+            {t('startRide.readyToRide')}
           </Text>
-          <Text
-            style={{
-              fontSize: 58,
-              fontWeight: '600',
-              color: theme.ink,
-              letterSpacing: -58 * 0.035,
-              lineHeight: 58 * 0.96,
-            }}
-          >
-            {t('startRide.readyTo')}
-            {'\n'}
-            <Text
-              style={{
-                fontFamily: 'InstrumentSerif-Italic',
-                fontWeight: '400',
-                letterSpacing: -58 * 0.025,
-              }}
-            >
-              {t('startRide.ride')}
-            </Text>
-          </Text>
-          <Text
-            style={{
-              fontSize: 15.5,
-              color: theme.ink2,
-              lineHeight: 15.5 * 1.45,
-              marginTop: 16,
-              maxWidth: 320,
-              letterSpacing: -0.08,
-            }}
-          >
+          <Text style={[type.body, { color: theme.ink2, marginTop: space.xs, maxWidth: 320 }]}>
             {t('startRide.subtitle')}
           </Text>
         </Animated.View>
@@ -323,19 +284,19 @@ export default function StartRideScreen() {
           <Animated.View
             entering={FadeInUp.delay(50).duration(280)}
             style={{
-              backgroundColor: tint(theme.warm, 0.1),
-              borderRadius: 16,
+              backgroundColor: tint(theme.plateDue, 0.1),
+              borderRadius: radius.card,
               borderCurve: 'continuous',
               padding: 16,
               gap: 12,
               marginBottom: 16,
               borderWidth: 1,
-              borderColor: tint(theme.warm, 0.3),
+              borderColor: tint(theme.plateDue, 0.3),
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <AlertTriangle size={20} color={theme.warm} />
-              <Text style={{ fontSize: 15, fontWeight: '700', color: theme.warm }}>
+              <AlertTriangle size={20} color={theme.plateDue} />
+              <Text style={[type.bodyStrong, { color: theme.ink, flex: 1 }]}>
                 {t('startRide.unfinishedTitle')}
               </Text>
             </View>
@@ -354,9 +315,7 @@ export default function StartRideScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '700', color: theme.bg }}>
-                  {t('startRide.resume')}
-                </Text>
+                <Text style={[type.bodyStrong, { color: theme.bg }]}>{t('startRide.resume')}</Text>
               </Pressable>
               <Pressable
                 onPress={handleEndUnfinished}
@@ -374,7 +333,7 @@ export default function StartRideScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '600', color: theme.ink2 }}>
+                <Text style={[type.bodyStrong, { color: theme.ink2 }]}>
                   {t('startRide.endRide')}
                 </Text>
               </Pressable>
@@ -408,47 +367,26 @@ export default function StartRideScreen() {
                 height: 56,
                 borderRadius: 16,
                 borderCurve: 'continuous',
-                backgroundColor: selectedBikeId ? tint(theme.warm, 0.15) : theme.surface2,
+                backgroundColor: theme.surface2,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
               {selectedBikeId ? (
-                <Bike size={24} color={theme.warm} />
+                <Bike size={24} color={theme.ink2} />
               ) : (
                 <Zap size={24} color={theme.ink3} />
               )}
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text
-                style={{
-                  fontFamily: 'GeistMono',
-                  fontSize: 9.5,
-                  fontWeight: '500',
-                  color: theme.warm,
-                  textTransform: 'uppercase',
-                  letterSpacing: 9.5 * 0.2,
-                  marginBottom: 5,
-                }}
-              >
+              <Text style={[type.caption, { color: theme.ink3, marginBottom: 2 }]}>
                 {t('startRide.riding')}
               </Text>
-              <Text
-                style={{
-                  fontSize: 17,
-                  fontWeight: '600',
-                  color: theme.ink,
-                  letterSpacing: -17 * 0.018,
-                  lineHeight: 17 * 1.15,
-                }}
-                numberOfLines={1}
-              >
+              <Text style={[type.bodyStrong, { color: theme.ink }]} numberOfLines={1}>
                 {selectedBikeLabel || t('startRide.selectMotorcycle')}
               </Text>
               {selectedBike && (
-                <Text
-                  style={{ fontSize: 12.5, color: theme.ink3, marginTop: 3, letterSpacing: -0.05 }}
-                >
+                <Text style={[type.caption, { color: theme.ink3, marginTop: 2 }]}>
                   {selectedBike.model} · {mileageLabel}
                 </Text>
               )}
@@ -509,18 +447,15 @@ export default function StartRideScreen() {
                           height: 40,
                           borderRadius: 10,
                           borderCurve: 'continuous',
-                          backgroundColor: tint(theme.warm, 0.12),
+                          backgroundColor: theme.surface2,
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
                       >
-                        <Bike size={18} color={theme.warm} />
+                        <Bike size={18} color={theme.ink2} />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text
-                          style={{ fontSize: 13, fontWeight: '600', color: theme.ink }}
-                          numberOfLines={1}
-                        >
+                        <Text style={[type.bodyStrong, { color: theme.ink }]} numberOfLines={1}>
                           {label}
                         </Text>
                       </View>
@@ -560,7 +495,7 @@ export default function StartRideScreen() {
                 >
                   <Zap size={18} color={theme.ink3} />
                 </View>
-                <Text style={{ flex: 1, fontSize: 13, color: theme.ink2, fontWeight: '500' }}>
+                <Text style={[type.body, { flex: 1, color: theme.ink2 }]}>
                   {t('startRide.quickRideNoBike')}
                 </Text>
               </Pressable>
@@ -593,38 +528,17 @@ export default function StartRideScreen() {
                 borderCurve: 'continuous',
               }}
             >
-              <Text
-                style={{
-                  fontFamily: 'InstrumentSerif-Italic',
-                  fontSize: 30,
-                  lineHeight: 30,
-                  letterSpacing: -0.6,
-                  color: theme.ink,
-                  minWidth: 36,
-                }}
-              >
-                {totalRides}
-              </Text>
+              <Text style={[type.figure, { color: theme.ink, minWidth: 36 }]}>{totalRides}</Text>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text
-                  style={{
-                    fontSize: 14.5,
-                    fontWeight: '600',
-                    color: theme.ink,
-                    letterSpacing: -0.15,
-                    lineHeight: 14.5 * 1.2,
-                  }}
-                >
+                <Text style={[type.bodyStrong, { color: theme.ink }]}>
                   {t('startRide.previousRides')}
                 </Text>
                 {lastRide && (
                   <Text
-                    style={{
-                      fontSize: 12,
-                      color: theme.ink3,
-                      marginTop: 3,
-                      fontVariant: ['tabular-nums'],
-                    }}
+                    style={[
+                      type.caption,
+                      { color: theme.ink3, marginTop: 2, fontVariant: ['tabular-nums'] },
+                    ]}
                     numberOfLines={1}
                   >
                     {t('startRide.lastRideSummary', {
@@ -652,9 +566,9 @@ export default function StartRideScreen() {
             style={({ pressed }) => ({
               width: '100%',
               height: 60,
-              borderRadius: 999,
+              borderRadius: radius.pill,
               borderCurve: 'continuous',
-              backgroundColor: theme.ink,
+              backgroundColor: theme.warm,
               opacity: isStarting || hasUnfinished ? 0.5 : pressed ? 0.85 : 1,
               flexDirection: 'row',
               alignItems: 'center',
@@ -663,7 +577,7 @@ export default function StartRideScreen() {
             })}
           >
             {isStarting ? (
-              <ActivityIndicator size="small" color={theme.bg} />
+              <ActivityIndicator size="small" color={theme.onWarm} />
             ) : (
               <>
                 <View
@@ -675,31 +589,18 @@ export default function StartRideScreen() {
                       width: 9,
                       height: 9,
                       borderRadius: 999,
-                      backgroundColor: '#4ade80',
+                      backgroundColor: theme.success,
                     }}
                   />
                 </View>
-                <Text
-                  style={{
-                    fontSize: 17.5,
-                    fontWeight: '600',
-                    color: theme.bg,
-                    letterSpacing: -17.5 * 0.012,
-                  }}
-                >
+                <Text style={[type.bodyStrong, { color: theme.onWarm }]}>
                   {t('startRide.startButton')}
                 </Text>
               </>
             )}
           </Pressable>
           <Text
-            style={{
-              fontSize: 11.5,
-              color: theme.ink3,
-              textAlign: 'center',
-              marginTop: 12,
-              lineHeight: 11.5 * 1.4,
-            }}
+            style={[type.caption, { color: theme.ink3, textAlign: 'center', marginTop: space.sm }]}
           >
             {t('startRide.trackingNote')}
           </Text>
@@ -707,12 +608,10 @@ export default function StartRideScreen() {
           {hasUnfinished && (
             <Animated.Text
               entering={FadeIn.delay(300).duration(200)}
-              style={{
-                fontSize: 13,
-                color: theme.warm,
-                textAlign: 'center',
-                marginTop: 12,
-              }}
+              style={[
+                type.label,
+                { color: theme.plateDue, textAlign: 'center', marginTop: space.sm },
+              ]}
             >
               {t('startRide.resolveUnfinished')}
             </Animated.Text>

@@ -20,12 +20,15 @@ import type { HubTask } from '../shell/use-bike-hub-data';
 import { DueLine, describeDue } from '../ui/due-line';
 import { PriorityTag } from '../ui/priority-tag';
 import {
-  HUB_FONT,
+  HUB_FIGURE,
+  HUB_FIGURE_STRONG,
   HUB_RADIUS,
   HUB_STACK_FONT_SCALE,
   HUB_TOUCH_TARGET,
   type HubCopyKey,
-  hub,
+  type HubTheme,
+  SYSTEM_WEIGHT,
+  useHubTheme,
 } from '../ui/tokens';
 import { effectiveTaskTotal, isCriticalOverdue, type ServiceTaskItem } from './group-tasks';
 
@@ -50,20 +53,18 @@ function useStacked(): boolean {
 }
 
 const TITLE_STYLE = {
-  fontFamily: HUB_FONT.sansSemiBold,
+  ...SYSTEM_WEIGHT.semibold,
   fontSize: 15,
   lineHeight: 18,
-  color: hub.text,
 } as const;
 
 const SUB_STYLE = {
-  fontFamily: HUB_FONT.sans,
+  ...SYSTEM_WEIGHT.regular,
   fontSize: 13,
   lineHeight: 16,
-  color: hub.dim,
 } as const;
 
-function rowDivider(divider: boolean): ViewStyle {
+function rowDivider(hub: HubTheme, divider: boolean): ViewStyle {
   return { borderBottomWidth: divider ? 1 : 0, borderBottomColor: hub.hairline };
 }
 
@@ -106,6 +107,7 @@ export const ServiceTaskRow = memo(function ServiceTaskRow({
   onDelete,
   motorcycleId,
 }: ServiceTaskRowProps) {
+  const hub = useHubTheme();
   const { t, i18n } = useTranslation();
   const stacked = useStacked();
   const { task, due } = item;
@@ -135,13 +137,13 @@ export const ServiceTaskRow = memo(function ServiceTaskRow({
   const tag = <PriorityTag priority={task.priority} fixedWidth={!stacked} />;
   const text = (
     <View style={{ flex: stacked ? undefined : 1, minWidth: 0, gap: 3 }}>
-      <Text style={TITLE_STYLE}>{task.title}</Text>
+      <Text style={[TITLE_STYLE, { color: hub.text }]}>{task.title}</Text>
       <DueLine due={due} unit={unit} scheduleName={make} />
     </View>
   );
 
   return (
-    <View style={rowDivider(divider)}>
+    <View style={rowDivider(hub, divider)}>
       <View style={{ flexDirection: 'row', alignItems: stacked ? 'flex-start' : 'center' }}>
         <Pressable
           testID={`service-task-${task.id}`}
@@ -232,6 +234,7 @@ export const HistoryTaskRow = memo(function HistoryTaskRow({
   onDelete,
   motorcycleId,
 }: HistoryTaskRowProps) {
+  const hub = useHubTheme();
   const { t, i18n } = useTranslation();
   const stacked = useStacked();
   const { currency: displayCurrency } = useCurrency();
@@ -267,26 +270,20 @@ export const HistoryTaskRow = memo(function HistoryTaskRow({
         gap: stacked ? 6 : 1,
       }}
     >
-      <Text
-        style={{ fontFamily: HUB_FONT.monoMedium, fontSize: 13, lineHeight: 16, color: hub.text }}
-      >
+      <Text style={{ ...HUB_FIGURE_STRONG, fontSize: 15, lineHeight: 18, color: hub.text }}>
         {shortDate}
       </Text>
-      <Text style={{ fontFamily: HUB_FONT.mono, fontSize: 11, lineHeight: 16, color: hub.muted }}>
-        {year}
-      </Text>
+      <Text style={{ ...HUB_FIGURE, fontSize: 13, lineHeight: 16, color: hub.muted }}>{year}</Text>
     </View>
   ) : null;
   const money = cost ? (
-    <Text
-      style={{ fontFamily: HUB_FONT.monoMedium, fontSize: 14, lineHeight: 18, color: hub.text }}
-    >
+    <Text style={{ ...HUB_FIGURE_STRONG, fontSize: 16, lineHeight: 18, color: hub.text }}>
       {cost}
     </Text>
   ) : null;
 
   return (
-    <View style={rowDivider(divider)}>
+    <View style={rowDivider(hub, divider)}>
       <Pressable
         testID={`service-history-${task.id}`}
         onPress={() => {
@@ -309,8 +306,8 @@ export const HistoryTaskRow = memo(function HistoryTaskRow({
       >
         {date}
         <View style={{ flex: stacked ? undefined : 1, minWidth: 0, gap: 2 }}>
-          <Text style={TITLE_STYLE}>{task.title}</Text>
-          {odometer ? <Text style={SUB_STYLE}>{odometer}</Text> : null}
+          <Text style={[TITLE_STYLE, { color: hub.text }]}>{task.title}</Text>
+          {odometer ? <Text style={[SUB_STYLE, { color: hub.dim }]}>{odometer}</Text> : null}
         </View>
         {money}
       </Pressable>
@@ -326,15 +323,14 @@ export const HistoryTaskRow = memo(function HistoryTaskRow({
 // ---------------------------------------------------------------------------
 
 function DetailLabel({ children }: { children: string }) {
+  const hub = useHubTheme();
   return (
     <Text
       accessibilityRole="header"
       style={{
-        fontFamily: HUB_FONT.mono,
-        fontSize: 11,
-        letterSpacing: 11 * 0.08,
-        textTransform: 'uppercase',
-        color: hub.muted,
+        ...SYSTEM_WEIGHT.semibold,
+        fontSize: 13,
+        color: hub.dim,
       }}
     >
       {children}
@@ -343,10 +339,9 @@ function DetailLabel({ children }: { children: string }) {
 }
 
 const BODY_STYLE = {
-  fontFamily: HUB_FONT.sans,
+  ...SYSTEM_WEIGHT.regular,
   fontSize: 14,
   lineHeight: 19,
-  color: hub.textSoft,
 } as const;
 
 function TextAction({
@@ -375,7 +370,7 @@ function TextAction({
         opacity: pressed ? 0.6 : 1,
       })}
     >
-      <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color }}>{label}</Text>
+      <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 14, color }}>{label}</Text>
     </Pressable>
   );
 }
@@ -388,6 +383,7 @@ interface TaskDetailsProps {
 }
 
 function TaskDetails({ task, motorcycleId, onEdit, onDelete }: TaskDetailsProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const { currency: displayCurrency } = useCurrency();
   const parts = task.partsNeeded ?? [];
@@ -400,11 +396,13 @@ function TaskDetails({ task, motorcycleId, onEdit, onDelete }: TaskDetailsProps)
       testID={`service-task-details-${task.id}`}
       style={{ paddingLeft: 14, paddingRight: 12, paddingBottom: 4, gap: 12 }}
     >
-      {task.description ? <Text style={BODY_STYLE}>{task.description}</Text> : null}
+      {task.description ? (
+        <Text style={[BODY_STYLE, { color: hub.textSoft }]}>{task.description}</Text>
+      ) : null}
       {task.notes ? (
         <View style={{ gap: 4 }}>
           <DetailLabel>{t('maintenance.notes')}</DetailLabel>
-          <Text selectable style={BODY_STYLE}>
+          <Text selectable style={[BODY_STYLE, { color: hub.textSoft }]}>
             {task.notes}
           </Text>
         </View>
@@ -413,7 +411,7 @@ function TaskDetails({ task, motorcycleId, onEdit, onDelete }: TaskDetailsProps)
         <View style={{ gap: 4 }}>
           <DetailLabel>{t('maintenance.partsNeeded')}</DetailLabel>
           {parts.map((part) => (
-            <Text key={`${task.id}-part-${part}`} style={BODY_STYLE}>
+            <Text key={`${task.id}-part-${part}`} style={[BODY_STYLE, { color: hub.textSoft }]}>
               {`• ${part}`}
             </Text>
           ))}
@@ -437,14 +435,16 @@ function TaskDetails({ task, motorcycleId, onEdit, onDelete }: TaskDetailsProps)
                     paddingHorizontal: 6,
                   }}
                 >
-                  <Text style={{ fontFamily: HUB_FONT.sansMedium, fontSize: 12, color: hub.dim }}>
+                  <Text style={{ ...SYSTEM_WEIGHT.medium, fontSize: 12, color: hub.dim }}>
                     {serviceTypeLabel(line.serviceType, t)}
                   </Text>
                 </View>
               ) : null}
-              <Text style={[BODY_STYLE, { flex: 1, minWidth: 120 }]}>{line.label}</Text>
+              <Text style={[BODY_STYLE, { color: hub.textSoft, flex: 1, minWidth: 120 }]}>
+                {line.label}
+              </Text>
               {line.lineTotal != null ? (
-                <Text style={{ fontFamily: HUB_FONT.monoMedium, fontSize: 13, color: hub.text }}>
+                <Text style={{ ...HUB_FIGURE_STRONG, fontSize: 15, color: hub.text }}>
                   {formatMoney(line.lineTotal, task.currency, displayCurrency)}
                 </Text>
               ) : null}

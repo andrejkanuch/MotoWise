@@ -1,10 +1,10 @@
-import { withAlpha } from '@motovault/design-system';
 import { MotorcycleVariant } from '@motovault/types';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { radius, space, type } from '../../../theme/type';
 import { triggerImpact } from '../../../utils/haptics';
-import { ONBOARDING_COLORS } from '../onboarding-colors';
+import { useOnboardingColors } from '../onboarding-colors';
 
 /**
  * Minimal drivetrain/trim selector (U7). Writes the bike's `variant` so the OEM
@@ -24,25 +24,15 @@ const OPTIONS = [
 interface VariantSelectorProps {
   value: MotorcycleVariant | null;
   onChange: (variant: MotorcycleVariant | null) => void;
-  accent: string;
 }
 
-export function VariantSelector({ value, onChange, accent }: VariantSelectorProps) {
+export function VariantSelector({ value, onChange }: VariantSelectorProps) {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
 
   return (
     <Animated.View entering={FadeIn.duration(260)}>
-      <Text
-        style={{
-          fontSize: 11,
-          fontWeight: '600',
-          letterSpacing: 1.5,
-          textTransform: 'uppercase',
-          color: ONBOARDING_COLORS.textLabel,
-          marginBottom: 8,
-          paddingLeft: 2,
-        }}
-      >
+      <Text style={[type.label, { color: oc.textLabel, marginBottom: space.xs, paddingLeft: 2 }]}>
         {t('onboarding.v2BikeSetupVariantLabel')}
       </Text>
       <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -60,25 +50,24 @@ export function VariantSelector({ value, onChange, accent }: VariantSelectorProp
               accessibilityLabel={t(opt.labelKey)}
               style={{
                 flex: 1,
-                paddingVertical: 12,
-                borderRadius: 12,
+                minHeight: 44,
+                paddingVertical: space.sm,
+                borderRadius: radius.control,
                 borderCurve: 'continuous',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: selected
-                  ? withAlpha(accent, 0.14)
-                  : ONBOARDING_COLORS.surfaceInput,
+                backgroundColor: selected ? oc.cardBgSelected : oc.surfaceInput,
                 borderWidth: 1.5,
-                borderColor: selected ? accent : ONBOARDING_COLORS.borderSubtle,
+                borderColor: selected ? oc.warm : oc.borderSubtle,
               }}
             >
               <Text
-                style={{
-                  fontSize: 13.5,
-                  fontWeight: '600',
-                  letterSpacing: -0.1,
-                  color: selected ? accent : ONBOARDING_COLORS.textSoft,
-                }}
+                style={[
+                  type.label,
+                  {
+                    color: selected ? oc.textPrimary : oc.textSecondary,
+                  },
+                ]}
               >
                 {t(opt.labelKey)}
               </Text>
@@ -86,15 +75,7 @@ export function VariantSelector({ value, onChange, accent }: VariantSelectorProp
           );
         })}
       </View>
-      <Text
-        style={{
-          fontSize: 12,
-          color: ONBOARDING_COLORS.textFaded,
-          lineHeight: 17,
-          marginTop: 8,
-          paddingLeft: 2,
-        }}
-      >
+      <Text style={[type.caption, { color: oc.textMuted, marginTop: space.xs, paddingLeft: 2 }]}>
         {t('onboarding.v2BikeSetupVariantHelper')}
       </Text>
     </Animated.View>

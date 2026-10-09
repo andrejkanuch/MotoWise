@@ -1,3 +1,4 @@
+import { withAlpha } from '@motovault/design-system';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -16,14 +17,11 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  EMAIL_CODE_SOURCE,
-  EMAIL_CODE_STEP_THEME,
-  EmailCodeStep,
-} from '../../components/auth/email-code-step';
+import { authButton, authInput, authInputColors } from '../../components/auth/auth-styles';
+import { EMAIL_CODE_SOURCE, EmailCodeStep } from '../../components/auth/email-code-step';
 import { AppleGlyph, GoogleGlyph } from '../../components/onboarding/oauth-glyphs';
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { AUTH_EMAIL_REDIRECT_TO } from '../../config/auth';
@@ -46,6 +44,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { useSubscriptionStore } from '../../stores/subscription.store';
+import { radius, space, type } from '../../theme/type';
 
 /**
  * Post-paywall account step. Onboarding + the paywall run anonymously; the
@@ -56,6 +55,7 @@ import { useSubscriptionStore } from '../../stores/subscription.store';
  * onboarding, so this is the single auth gate (moved from before onboarding).
  */
 export default function AccountScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -236,7 +236,7 @@ export default function AccountScreen() {
   const canSubmitEmail = email.length > 0 && password.length > 0 && !busy;
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       {/*
@@ -260,7 +260,7 @@ export default function AccountScreen() {
           contentContainerStyle={{
             flexGrow: 1,
             justifyContent: 'center',
-            paddingHorizontal: 26,
+            paddingHorizontal: space.xl,
             paddingTop: 80,
             paddingBottom: insets.bottom + 24,
           }}
@@ -274,26 +274,16 @@ export default function AccountScreen() {
                 alignSelf: 'flex-start',
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 6,
-                paddingVertical: 6,
-                paddingHorizontal: 12,
-                borderRadius: 999,
+                gap: space.xxs,
+                paddingVertical: space.xxs,
+                paddingHorizontal: space.sm,
+                borderRadius: radius.pill,
                 borderCurve: 'continuous',
-                backgroundColor: ONBOARDING_COLORS.accentBg,
-                borderWidth: 1,
-                borderColor: ONBOARDING_COLORS.warm,
-                marginBottom: 20,
+                backgroundColor: oc.surface2,
+                marginBottom: space.lg,
               }}
             >
-              <Text
-                style={{
-                  fontFamily: 'GeistMono-Medium',
-                  fontSize: 10,
-                  letterSpacing: 1.6,
-                  textTransform: 'uppercase',
-                  color: ONBOARDING_COLORS.warm2,
-                }}
-              >
+              <Text style={[type.label, { color: oc.textPrimary }]}>
                 {t('onboarding.obAccountProBadge')}
               </Text>
             </Animated.View>
@@ -304,33 +294,19 @@ export default function AccountScreen() {
             <>
               <Animated.Text
                 entering={FadeInUp.delay(60).duration(320)}
-                style={{
-                  fontFamily: 'InstrumentSerif-Regular',
-                  fontSize: 34,
-                  lineHeight: 37,
-                  color: ONBOARDING_COLORS.textPrimary,
-                  letterSpacing: -0.7,
-                  marginBottom: 10,
-                }}
+                accessibilityRole="header"
+                style={[type.largeTitle, { color: oc.textPrimary, marginBottom: space.xs }]}
               >
-                {isPro ? t('onboarding.obAccountTitlePro') : t('onboarding.obAccountTitleFree')}{' '}
-                <Text
-                  style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}
-                >
-                  {isPro
-                    ? t('onboarding.obAccountTitleProItalic')
-                    : t('onboarding.obAccountTitleFreeItalic')}
-                </Text>
+                {isPro
+                  ? t('onboarding.obAccountTitleProFull' as never)
+                  : t('onboarding.obAccountTitleFreeFull' as never)}
               </Animated.Text>
               <Animated.Text
                 entering={FadeInUp.delay(120).duration(320)}
-                style={{
-                  fontSize: 14.5,
-                  color: ONBOARDING_COLORS.textSecondary,
-                  lineHeight: 21,
-                  maxWidth: 330,
-                  marginBottom: 26,
-                }}
+                style={[
+                  type.subhead,
+                  { color: oc.textSecondary, maxWidth: 330, marginBottom: space.xl },
+                ]}
               >
                 {isPro
                   ? t('onboarding.obAccountSubtitlePro')
@@ -345,31 +321,30 @@ export default function AccountScreen() {
               source={EMAIL_CODE_SOURCE.SIGNUP}
               password={codeStep.password}
               initialCooldownMs={codeStep.initialCooldownMs}
-              theme={EMAIL_CODE_STEP_THEME.onboarding}
               onBack={closeCodeStep}
               onBusyChange={onCodeStepBusyChange}
               onNeedsSignIn={() => router.push(OB_ROUTE.SIGN_IN)}
             />
           ) : emailMode ? (
-            <Animated.View entering={FadeInUp.duration(280)} style={{ gap: 12 }}>
+            <Animated.View entering={FadeInUp.duration(280)} style={{ gap: space.sm }}>
               <TextInput
                 value={email}
                 onChangeText={setEmail}
                 placeholder={t('auth.email')}
-                placeholderTextColor={ONBOARDING_COLORS.textMuted}
+                placeholderTextColor={oc.textMuted}
                 autoCapitalize="none"
                 keyboardType="email-address"
                 autoComplete="email"
-                style={authInput}
+                style={[authInput, authInputColors(oc)]}
               />
               <TextInput
                 value={password}
                 onChangeText={setPassword}
                 placeholder={t('auth.password')}
-                placeholderTextColor={ONBOARDING_COLORS.textMuted}
+                placeholderTextColor={oc.textMuted}
                 secureTextEntry
                 autoComplete="new-password"
-                style={authInput}
+                style={[authInput, authInputColors(oc)]}
               />
               <OnboardingContinueButton
                 label={t('onboarding.obAccountCreate')}
@@ -382,70 +357,43 @@ export default function AccountScreen() {
                 hitSlop={8}
                 style={{ alignSelf: 'center' }}
               >
-                <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.ink3, marginTop: 4 }}>
+                <Text style={[type.label, { color: oc.ink3, marginTop: space.xxs }]}>
                   {t('onboarding.obAccountOtherOptions')}
                 </Text>
               </Pressable>
             </Animated.View>
           ) : (
-            <Animated.View entering={FadeInUp.delay(180).duration(320)} style={{ gap: 11 }}>
+            <Animated.View entering={FadeInUp.delay(180).duration(280)} style={{ gap: space.sm }}>
               {process.env.EXPO_OS === 'ios' ? (
-                <Pressable onPress={handleApple} style={authButton(ONBOARDING_COLORS.textWhite)}>
-                  <AppleGlyph size={18} color={ONBOARDING_COLORS.background} />
-                  <Text
-                    style={{
-                      fontSize: 15.5,
-                      fontWeight: '600',
-                      color: ONBOARDING_COLORS.background,
-                    }}
-                  >
+                <Pressable onPress={handleApple} style={authButton(oc.textWhite)}>
+                  <AppleGlyph size={18} color={oc.background} />
+                  <Text style={[type.bodyStrong, { color: oc.background }]}>
                     {t('auth.continueWithApple')}
                   </Text>
                 </Pressable>
               ) : null}
-              <Pressable
-                onPress={handleGoogle}
-                style={authButton(ONBOARDING_COLORS.cardBg, ONBOARDING_COLORS.cardBorderDefault)}
-              >
+              <Pressable onPress={handleGoogle} style={authButton(oc.cardBg, oc.cardBorderDefault)}>
                 <GoogleGlyph size={18} />
-                <Text
-                  style={{
-                    fontSize: 15.5,
-                    fontWeight: '600',
-                    color: ONBOARDING_COLORS.textPrimary,
-                  }}
-                >
+                <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
                   {t('auth.continueWithGoogle')}
                 </Text>
               </Pressable>
               <View
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 3 }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: space.sm,
+                  marginVertical: space.xxs,
+                }}
               >
-                <View style={{ flex: 1, height: 1, backgroundColor: ONBOARDING_COLORS.line }} />
-                <Text
-                  style={{
-                    fontFamily: 'GeistMono-Medium',
-                    fontSize: 10,
-                    letterSpacing: 1.2,
-                    textTransform: 'uppercase',
-                    color: ONBOARDING_COLORS.textMuted,
-                  }}
-                >
+                <View style={{ flex: 1, height: 1, backgroundColor: oc.line }} />
+                <Text style={[type.caption, { color: oc.textMuted }]}>
                   {t('onboarding.obAccountOrEmail')}
                 </Text>
-                <View style={{ flex: 1, height: 1, backgroundColor: ONBOARDING_COLORS.line }} />
+                <View style={{ flex: 1, height: 1, backgroundColor: oc.line }} />
               </View>
-              <Pressable
-                onPress={() => setEmailMode(true)}
-                style={authButton('transparent', ONBOARDING_COLORS.cardBorderDefault)}
-              >
-                <Text
-                  style={{
-                    fontSize: 15.5,
-                    fontWeight: '600',
-                    color: ONBOARDING_COLORS.textSecondary,
-                  }}
-                >
+              <Pressable onPress={() => setEmailMode(true)} style={authButton(oc.surface2)}>
+                <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
                   {t('onboarding.obAccountWithEmail')}
                 </Text>
               </Pressable>
@@ -457,12 +405,12 @@ export default function AccountScreen() {
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 8,
-              marginTop: 22,
+              gap: space.xs,
+              marginTop: space.lg,
             }}
           >
-            <ShieldCheck size={14} color={ONBOARDING_COLORS.success} />
-            <Text style={{ fontSize: 12.5, color: ONBOARDING_COLORS.ink3 }}>
+            <ShieldCheck size={14} color={oc.success} />
+            <Text style={[type.caption, { color: oc.ink3 }]}>
               {isPro
                 ? t('onboarding.obAccountReassurancePro')
                 : t('onboarding.obAccountReassuranceFree')}
@@ -472,9 +420,14 @@ export default function AccountScreen() {
           <Pressable
             onPress={() => router.push(OB_ROUTE.SIGN_IN)}
             hitSlop={8}
-            style={{ alignSelf: 'center', marginTop: 18 }}
+            style={{
+              alignSelf: 'center',
+              justifyContent: 'center',
+              minHeight: 44,
+              marginTop: space.sm,
+            }}
           >
-            <Text style={{ fontSize: 13.5, color: ONBOARDING_COLORS.warm2, fontWeight: '600' }}>
+            <Text style={[type.label, { color: oc.warm2 }]}>
               {t('onboarding.obAccountHaveAccount')}
             </Text>
           </Pressable>
@@ -489,46 +442,18 @@ export default function AccountScreen() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: `${ONBOARDING_COLORS.background}E6`,
+            backgroundColor: withAlpha(oc.background, 0.9),
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 14,
+            gap: space.sm,
           }}
         >
-          <ActivityIndicator size="large" color={ONBOARDING_COLORS.warm} />
-          <Text style={{ fontSize: 13.5, color: ONBOARDING_COLORS.textSecondary }}>
+          <ActivityIndicator size="large" color={oc.warm} />
+          <Text style={[type.subhead, { color: oc.textSecondary }]}>
             {t('onboarding.obAccountCreating')}
           </Text>
         </View>
       ) : null}
     </View>
   );
-}
-
-const authInput = {
-  backgroundColor: ONBOARDING_COLORS.cardBg,
-  borderWidth: 1,
-  borderColor: ONBOARDING_COLORS.cardBorderDefault,
-  borderRadius: 14,
-  borderCurve: 'continuous' as const,
-  paddingHorizontal: 16,
-  paddingVertical: 15,
-  fontSize: 15,
-  color: ONBOARDING_COLORS.textPrimary,
-};
-
-function authButton(backgroundColor: string, borderColor?: string) {
-  return {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    gap: 10,
-    paddingVertical: 15,
-    paddingHorizontal: 18,
-    borderRadius: 15,
-    borderCurve: 'continuous' as const,
-    backgroundColor,
-    borderWidth: borderColor ? 1 : 0,
-    borderColor: borderColor ?? 'transparent',
-  };
 }

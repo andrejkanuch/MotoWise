@@ -1,6 +1,9 @@
 import { palette } from '@motovault/design-system';
-import { Image, Text, View } from 'react-native';
+import { format } from 'date-fns';
+import { Image, Text, type TextStyle, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
+import { tint } from '../../../theme/editorial';
+import { PLATE_FONT, SYSTEM_WEIGHT } from '../../../theme/type';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
@@ -10,13 +13,44 @@ import {
 } from '../../../utils/ride-formatters';
 import type { LngLat, RideSharePayload } from '../share-card-types';
 
-const MONO = process.env.EXPO_OS === 'ios' ? 'Menlo' : 'monospace';
+/**
+ * Share-card type: the app's roles scaled down to the 222pt card. Cards render
+ * to an image, so sizes are fixed (no Dynamic Type) — numbers and titles on the
+ * condensed plate face, words on the system face, sentence case.
+ */
+export const CARD_TYPE = {
+  label: { ...SYSTEM_WEIGHT.semibold, fontSize: 9 },
+  figure: { fontFamily: PLATE_FONT.semibold, fontVariant: ['tabular-nums'] },
+  title: { fontFamily: PLATE_FONT.bold, letterSpacing: 0.2 },
+} as const satisfies Record<string, TextStyle>;
+
+/** Ink on the dark cards. Cards are images, so they never follow the app theme. */
+export const CARD_INK = {
+  strong: palette.whitePure,
+  body: tint(palette.whitePure, 0.9),
+  muted: palette.whiteAlpha70,
+  faint: palette.whiteAlpha50,
+  rule: palette.whiteAlpha12,
+} as const;
+
+/** Ink on the cream route-print card. */
+export const CARD_INK_CREAM = {
+  strong: palette.shareCreamText,
+  muted: tint(palette.shareCreamText, 0.7),
+  faint: tint(palette.shareCreamText, 0.5),
+  rule: tint(palette.shareCreamText, 0.18),
+} as const;
+
+const DATE_FORMAT = {
+  long: 'EEE d MMM yyyy',
+  compact: 'dd.MM.yyyy',
+} as const;
 
 const APP_ICON = require('../../../assets/images/motovault-icon-card.png');
 
 // ── Wordmark ────────────────────────────────────────────────────────────────
 
-export function Wordmark({ color = 'rgba(255,255,255,0.7)' }: { color?: string }) {
+export function Wordmark({ color = CARD_INK.muted }: { color?: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
       <View
@@ -32,75 +66,30 @@ export function Wordmark({ color = 'rgba(255,255,255,0.7)' }: { color?: string }
       </View>
       <Text
         style={{
-          fontFamily: MONO,
-          fontSize: 8.5,
-          fontWeight: '700',
-          letterSpacing: 1.87,
-          textTransform: 'uppercase',
+          ...SYSTEM_WEIGHT.bold,
+          fontSize: 10,
           color,
         }}
       >
-        MOTOVAULT
+        MotoVault
       </Text>
     </View>
   );
 }
 
-// ── Date Eyebrow ────────────────────────────────────────────────────────────
+// ── Dates ───────────────────────────────────────────────────────────────────
 
-export function DateEyebrow({
-  date,
-  color = 'rgba(255,255,255,0.7)',
-}: {
-  date: string;
-  color?: string;
-}) {
-  const d = new Date(date);
-  const formatted = d
-    .toLocaleDateString(undefined, {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    })
-    .toUpperCase();
+/** Ride date as a sentence-case meta line (sits under the ride name). */
+export function DateLine({ date, color = CARD_INK.muted }: { date: string; color?: string }) {
   return (
-    <Text
-      style={{
-        fontFamily: MONO,
-        fontSize: 8.5,
-        fontWeight: '600',
-        letterSpacing: 1.53,
-        color,
-        textTransform: 'uppercase',
-      }}
-    >
-      {formatted}
-    </Text>
+    <Text style={{ ...CARD_TYPE.label, color }}>{format(new Date(date), DATE_FORMAT.long)}</Text>
   );
 }
 
-export function DateCompact({
-  date,
-  color = 'rgba(255,255,255,0.5)',
-}: {
-  date: string;
-  color?: string;
-}) {
-  const d = new Date(date);
-  const formatted = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+export function DateCompact({ date, color = CARD_INK.faint }: { date: string; color?: string }) {
   return (
-    <Text
-      style={{
-        fontFamily: MONO,
-        fontSize: 8,
-        fontWeight: '600',
-        letterSpacing: 1.44,
-        color,
-        textTransform: 'uppercase',
-      }}
-    >
-      {formatted}
+    <Text style={{ ...CARD_TYPE.figure, fontSize: 11, color }}>
+      {format(new Date(date), DATE_FORMAT.compact)}
     </Text>
   );
 }
@@ -115,10 +104,10 @@ interface StatItem {
 
 export function StatFooter({
   stats,
-  borderColor = 'rgba(255,255,255,0.2)',
-  labelColor = 'rgba(255,255,255,0.72)',
-  valueColor = '#fff',
-  unitColor = 'rgba(255,255,255,0.7)',
+  borderColor = palette.whiteAlpha20,
+  labelColor = CARD_INK.muted,
+  valueColor = CARD_INK.strong,
+  unitColor = CARD_INK.muted,
 }: {
   stats: StatItem[];
   borderColor?: string;
@@ -144,11 +133,7 @@ export function StatFooter({
         <View key={s.label} style={{ flex: 1 }}>
           <Text
             style={{
-              fontFamily: MONO,
-              fontSize: 7.5,
-              fontWeight: '600',
-              letterSpacing: 1.2,
-              textTransform: 'uppercase',
+              ...CARD_TYPE.label,
               color: labelColor,
             }}
           >
@@ -156,16 +141,15 @@ export function StatFooter({
           </Text>
           <Text
             style={{
-              fontSize: 17,
-              fontWeight: '700',
-              letterSpacing: -0.37,
+              ...CARD_TYPE.figure,
+              fontSize: 20,
+              lineHeight: 22,
               marginTop: 2,
               color: valueColor,
-              fontVariant: ['tabular-nums'],
             }}
           >
             {s.value}
-            <Text style={{ fontSize: 10, fontWeight: '500', color: unitColor, letterSpacing: 0 }}>
+            <Text style={{ ...SYSTEM_WEIGHT.medium, fontSize: 10, color: unitColor }}>
               {' '}
               {s.unit}
             </Text>
@@ -221,7 +205,7 @@ export function RouteSilhouette({
   coordinates,
   width = 110,
   height = 60,
-  strokeColor = 'rgba(232,157,90,0.85)',
+  strokeColor = tint(palette.shareCopperSoft, 0.85),
   strokeWidth = 1.6,
 }: {
   coordinates: LngLat[];
@@ -369,7 +353,7 @@ export function ElevationSparkline({
             cy={peak[1]}
             r={4.5}
             fill={palette.shareCopper}
-            stroke="#fff"
+            stroke={palette.whitePure}
             strokeWidth={2}
           />
         </>

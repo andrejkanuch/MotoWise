@@ -21,7 +21,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { triggerImpact } from '../../../utils/haptics';
-import { HUB_CHROME_MAX_FONT_SCALE, HUB_FONT, HUB_TOUCH_TARGET, hub } from '../ui/tokens';
+import { HUB_CHROME_MAX_FONT_SCALE, HUB_FIGURE, HUB_TOUCH_TARGET, useHubTheme } from '../ui/tokens';
 import { type NotePhotoSource, notePhotoUri } from './note-photo';
 
 const MAX_ZOOM = 4;
@@ -50,6 +50,7 @@ interface NotePhotoViewerProps {
  * photo is usually on screen at once.
  */
 export function NotePhotoViewer({ photos, initialIndex, onClose }: NotePhotoViewerProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
@@ -133,8 +134,8 @@ export function NotePhotoViewer({ photos, initialIndex, onClose }: NotePhotoView
               flex: 1,
               marginRight: HUB_TOUCH_TARGET,
               textAlign: 'center',
-              fontFamily: HUB_FONT.mono,
-              fontSize: 13,
+              ...HUB_FIGURE,
+              fontSize: 15,
               color: hub.text,
             }}
           >

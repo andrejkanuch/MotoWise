@@ -8,7 +8,8 @@ import { AUTH_HYDRATION, type AuthHydration } from '../lib/auth-hydration';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 import { MAP_ORIENTATIONS, type MapOrientation } from '../utils/map-orientation';
 
-type ColorScheme = 'system' | 'light' | 'dark';
+export const COLOR_SCHEME = { SYSTEM: 'system', LIGHT: 'light', DARK: 'dark' } as const;
+export type ColorScheme = (typeof COLOR_SCHEME)[keyof typeof COLOR_SCHEME];
 
 /** Auto-detect measurement system from device locale */
 function detectMeasurementSystem(): MeasurementSystem {

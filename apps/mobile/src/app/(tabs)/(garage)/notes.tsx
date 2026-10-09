@@ -4,7 +4,11 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NotesScreen } from '../../../components/bike-hub/notes/notes-screen';
 import { useHubBike } from '../../../components/bike-hub/shell/use-hub-bike';
-import { HUB_FONT, HUB_TOUCH_TARGET, hub } from '../../../components/bike-hub/ui/tokens';
+import {
+  HUB_TOUCH_TARGET,
+  SYSTEM_WEIGHT,
+  useHubTheme,
+} from '../../../components/bike-hub/ui/tokens';
 
 type NotesRouteParams = {
   motorcycleId: string;
@@ -14,6 +18,7 @@ type NotesRouteParams = {
 
 /** Notes screen route (card push inside the garage stack; the tab bar stays). */
 export default function NotesRoute() {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -29,7 +34,7 @@ export default function NotesRoute() {
         accessibilityRole="button"
         style={{ minHeight: HUB_TOUCH_TARGET, justifyContent: 'center', paddingHorizontal: 16 }}
       >
-        <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.copperText }}>
+        <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 15, color: hub.copperText }}>
           {t('common.back')}
         </Text>
       </Pressable>
@@ -38,7 +43,7 @@ export default function NotesRoute() {
           <ActivityIndicator color={hub.copper} />
         ) : (
           <Text
-            style={{ fontFamily: HUB_FONT.sans, fontSize: 16, color: hub.dim, textAlign: 'center' }}
+            style={{ ...SYSTEM_WEIGHT.regular, fontSize: 16, color: hub.dim, textAlign: 'center' }}
           >
             {t('bikeHub.state.notFound')}
           </Text>

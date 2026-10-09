@@ -33,8 +33,17 @@ import { isNetworkError } from '../../../lib/network-error';
 import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { useDiagnosticFlowStore } from '../../../stores/diagnostic-flow.store';
+import { space } from '../../../theme/type';
 
 const TOTAL_STEPS = 4;
+const HEADER_BUTTON_SIZE = 44;
+const HEADER_BUTTON_STYLE = {
+  width: HEADER_BUTTON_SIZE,
+  height: HEADER_BUTTON_SIZE,
+  borderRadius: HEADER_BUTTON_SIZE / 2,
+  alignItems: 'center',
+  justifyContent: 'center',
+} as const;
 
 export default function NewDiagnosticScreen() {
   const { t } = useTranslation();
@@ -221,31 +230,41 @@ export default function NewDiagnosticScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white dark:bg-neutral-900" style={{ paddingTop: insets.top }}>
+    <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}>
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3">
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingHorizontal: space.xs,
+          paddingVertical: space.xs,
+        }}
+      >
         {currentStep > 1 ? (
           <Pressable
-            className="w-10 h-10 rounded-full items-center justify-center"
+            style={HEADER_BUTTON_STYLE}
             onPress={handleBack}
-            hitSlop={8}
+            hitSlop={4}
+            android_ripple={{ color: colors.cardBorder, borderless: true }}
             accessibilityRole="button"
             accessibilityLabel={t('diagnoseV2.back')}
           >
             <ArrowLeft size={22} color={colors.textSecondary} strokeWidth={2} />
           </Pressable>
         ) : (
-          <View className="w-10" />
+          <View style={{ width: HEADER_BUTTON_SIZE }} />
         )}
 
-        <View className="flex-1 mx-3">
+        <View style={{ flex: 1, marginHorizontal: space.sm }}>
           <DiagnosticProgressBar currentStep={currentStep} totalSteps={TOTAL_STEPS} />
         </View>
 
         <Pressable
-          className="w-10 h-10 rounded-full items-center justify-center"
+          style={HEADER_BUTTON_STYLE}
           onPress={handleClose}
-          hitSlop={8}
+          hitSlop={4}
+          android_ripple={{ color: colors.cardBorder, borderless: true }}
           accessibilityRole="button"
           accessibilityLabel={t('diagnoseV2.close')}
         >

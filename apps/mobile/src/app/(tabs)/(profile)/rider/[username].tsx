@@ -1,29 +1,27 @@
-import { palette } from '@motovault/design-system';
 import { GetRiderProfileDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Bike } from 'lucide-react-native';
+import { Bike } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { FOLLOW_LIST_TAB, type FollowListTab } from '../../../../components/profile/constants';
 import { FollowButton } from '../../../../components/profile/follow-button';
 import { ProfileHeader } from '../../../../components/profile/profile-header';
 import { ProfileStats } from '../../../../components/profile/profile-stats';
+import { ESectionLabel, ESettingsGroup, ESettingsRow } from '../../../../components/ui/editorial';
 import { QueryBoundary } from '../../../../components/ui/query-boundary';
+import { PROFILE_ROUTE } from '../../../../config/routes';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { queryKeys } from '../../../../lib/query-keys';
 import { meOptions } from '../../../../lib/query-options';
+import { useEditorialTheme } from '../../../../theme/editorial';
+import { GUTTER, radius, space, type } from '../../../../theme/type';
 
 export default function RiderProfileScreen() {
   const { t } = useTranslation();
+  const { t: theme } = useEditorialTheme();
   const { username } = useLocalSearchParams<{ username: string }>();
-  const isDark = useColorScheme() === 'dark';
-
-  const bgColor = isDark ? palette.neutral950 : palette.white;
-  const textColor = isDark ? palette.white : palette.neutral950;
-  const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
-  const cardBg = isDark ? palette.surfaceElevated : palette.neutral50;
-  const cardBorder = isDark ? 'rgba(255,255,255,0.08)' : palette.neutral200;
 
   // Current user to detect own profile
   const meQuery = useQuery(meOptions());
@@ -38,47 +36,44 @@ export default function RiderProfileScreen() {
   const profile = profileQuery.data?.getRiderProfile;
   const isOwnProfile = currentUser && profile ? currentUser.id === profile.id : false;
 
-  const navigateToFollowers = (tab: 'followers' | 'following') => {
+  const navigateToFollowers = (tab: FollowListTab) => {
     if (!profile) return;
     router.push({
-      pathname: '/(tabs)/(profile)/rider/followers',
+      pathname: PROFILE_ROUTE.FOLLOWERS,
       params: { userId: profile.id, username: profile.publicUsername, tab },
     });
   };
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: username ? `@${username}` : t('community.riderProfile'),
-          headerLeft: () => (
-            <Pressable onPress={() => router.back()} hitSlop={8}>
-              <ArrowLeft size={22} color={textColor} strokeWidth={2} />
-            </Pressable>
-          ),
-          headerStyle: { backgroundColor: bgColor },
-          headerTitleStyle: { color: textColor },
-          headerShadowVisible: false,
-        }}
-      />
-      <View style={{ flex: 1, backgroundColor: bgColor }}>
+      <Stack.Screen options={{ title: username ? `@${username}` : t('community.riderProfile') }} />
+      <View style={{ flex: 1, backgroundColor: theme.bg }}>
         <QueryBoundary
           isLoading={profileQuery.isLoading}
           isError={profileQuery.isError}
           onRetry={() => profileQuery.refetch()}
           isEmpty={!profile}
           emptyState={
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-              <Text style={{ fontSize: 16, color: subtitleColor, textAlign: 'center' }}>
+            <View
+              style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.xl }}
+            >
+              <Text style={[type.body, { color: theme.ink3, textAlign: 'center' }]}>
                 {t('community.profileNotFound')}
               </Text>
             </View>
           }
         >
           {profile && (
-            <ScrollView contentContainerStyle={{ padding: 20, gap: 24, paddingBottom: 40 }}>
-              {/* Header */}
+            <ScrollView
+              contentInsetAdjustmentBehavior="automatic"
+              style={{ flex: 1, backgroundColor: theme.bg }}
+              contentContainerStyle={{
+                paddingHorizontal: GUTTER,
+                paddingTop: space.lg,
+                paddingBottom: space.xxxl,
+                gap: space.xl,
+              }}
+            >
               <ProfileHeader
                 avatarUrl={profile.avatarUrl}
                 displayName={profile.displayName}
@@ -99,111 +94,43 @@ export default function RiderProfileScreen() {
                 </View>
               )}
 
-              {/* Stats */}
               <ProfileStats
                 followerCount={profile.followerCount}
                 followingCount={profile.followingCount}
                 totalRides={profile.rideStats.totalRides}
                 totalDistance={profile.rideStats.totalDistance}
-                onFollowersTap={() => navigateToFollowers('followers')}
-                onFollowingTap={() => navigateToFollowers('following')}
+                onFollowersTap={() => navigateToFollowers(FOLLOW_LIST_TAB.FOLLOWERS)}
+                onFollowingTap={() => navigateToFollowers(FOLLOW_LIST_TAB.FOLLOWING)}
               />
 
-              {/* Bikes */}
               {profile.bikes.length > 0 && (
                 <Animated.View entering={FadeInUp.delay(100).duration(280)}>
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: '600',
-                      color: subtitleColor,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                      marginBottom: 8,
-                      marginLeft: 4,
-                    }}
-                  >
-                    {t('community.bikes')}
-                  </Text>
-                  <View
-                    style={{
-                      backgroundColor: cardBg,
-                      borderRadius: 14,
-                      borderCurve: 'continuous',
-                      overflow: 'hidden',
-                      borderWidth: 1,
-                      borderColor: cardBorder,
-                    }}
-                  >
-                    {profile.bikes.map((bike, index) => (
-                      <View
+                  <ESectionLabel label={t('community.bikes')} />
+                  <ESettingsGroup>
+                    {profile.bikes.map((bike) => (
+                      <ESettingsRow
                         key={`${bike.make}-${bike.model}-${bike.year}`}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          padding: 14,
-                          gap: 12,
-                          borderBottomWidth: index < profile.bikes.length - 1 ? 0.5 : 0,
-                          borderBottomColor: cardBorder,
-                        }}
-                      >
-                        <View
-                          style={{
-                            width: 36,
-                            height: 36,
-                            borderRadius: 10,
-                            borderCurve: 'continuous',
-                            backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <Bike size={18} color={palette.signature500} strokeWidth={1.8} />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={{ fontSize: 15, fontWeight: '600', color: textColor }}>
-                            {bike.year} {bike.make} {bike.model}
-                          </Text>
-                          {bike.nickname && (
-                            <Text style={{ fontSize: 13, color: subtitleColor, marginTop: 1 }}>
-                              {bike.nickname}
-                            </Text>
-                          )}
-                        </View>
-                      </View>
+                        icon={Bike}
+                        title={`${bike.year} ${bike.make} ${bike.model}`}
+                        subtitle={bike.nickname ?? undefined}
+                      />
                     ))}
-                  </View>
+                  </ESettingsGroup>
                 </Animated.View>
               )}
 
-              {/* Recent public rides placeholder */}
               <Animated.View entering={FadeInUp.delay(150).duration(280)}>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: subtitleColor,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.5,
-                    marginBottom: 8,
-                    marginLeft: 4,
-                  }}
-                >
-                  {t('community.recentRides')}
-                </Text>
+                <ESectionLabel label={t('community.recentRides')} />
                 <View
                   style={{
-                    backgroundColor: cardBg,
-                    borderRadius: 14,
+                    backgroundColor: theme.surface,
+                    borderRadius: radius.card,
                     borderCurve: 'continuous',
-                    padding: 20,
+                    padding: space.lg,
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    borderWidth: 1,
-                    borderColor: cardBorder,
                   }}
                 >
-                  <Text style={{ fontSize: 14, color: subtitleColor }}>
+                  <Text style={[type.subhead, { color: theme.ink3 }]}>
                     {t('community.noPublicRides')}
                   </Text>
                 </View>

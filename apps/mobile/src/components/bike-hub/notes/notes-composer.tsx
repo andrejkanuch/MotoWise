@@ -4,14 +4,15 @@ import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { normaliseNoteText } from '../../../lib/bike-hub/notes';
+import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
-  HUB_FONT,
   HUB_HEIGHT,
   HUB_RADIUS,
   HUB_TOUCH_TARGET,
-  hub,
+  SYSTEM_WEIGHT,
+  useHubTheme,
 } from '../ui/tokens';
 import { useDraftHandoff } from './use-draft-handoff';
 
@@ -38,6 +39,8 @@ interface NotesComposerProps {
  * closing the sheet without saving loses nothing.
  */
 export function NotesComposer({ onSubmit, onOpenSheet }: NotesComposerProps) {
+  const hub = useHubTheme();
+  const { isDark } = useEditorialTheme();
   const { t } = useTranslation();
   const { fontScale } = useWindowDimensions();
   const [draft, setDraft] = useState('');
@@ -69,7 +72,7 @@ export function NotesComposer({ onSubmit, onOpenSheet }: NotesComposerProps) {
 
   const field = (
     <TextInput
-      keyboardAppearance="dark"
+      keyboardAppearance={isDark ? 'dark' : 'light'}
       selectionColor={hub.copper}
       testID="notes-composer-input"
       value={draft}
@@ -96,7 +99,7 @@ export function NotesComposer({ onSubmit, onOpenSheet }: NotesComposerProps) {
         borderColor: failed ? hub.late : hub.ripple,
         backgroundColor: hub.card,
         color: hub.text,
-        fontFamily: HUB_FONT.sans,
+        ...SYSTEM_WEIGHT.regular,
         fontSize: 15,
       }}
     />
@@ -138,7 +141,7 @@ export function NotesComposer({ onSubmit, onOpenSheet }: NotesComposerProps) {
       >
         <Text
           maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
-          style={{ fontFamily: HUB_FONT.sansBold, fontSize: 15, color: text ? hub.ink : hub.muted }}
+          style={{ ...SYSTEM_WEIGHT.bold, fontSize: 15, color: text ? hub.ink : hub.muted }}
         >
           {t('bikeHub.notesScreen.composerAdd')}
         </Text>
@@ -151,7 +154,7 @@ export function NotesComposer({ onSubmit, onOpenSheet }: NotesComposerProps) {
       {failed ? (
         <Text
           accessibilityLiveRegion="polite"
-          style={{ fontFamily: HUB_FONT.sans, fontSize: 12, color: hub.late }}
+          style={{ ...SYSTEM_WEIGHT.regular, fontSize: 12, color: hub.late }}
         >
           {t('bikeHub.notes.saveFailed')}
         </Text>
@@ -182,6 +185,7 @@ function QuietIconButton({
   onPress: () => void;
   icon: ReactNode;
 }) {
+  const hub = useHubTheme();
   return (
     <Pressable
       testID={testID}

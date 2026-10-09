@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { type AccessibilityRole, Pressable, View, type ViewStyle } from 'react-native';
 import { triggerImpact } from '../../../utils/haptics';
-import { HUB_PRESSED_SCALE, HUB_RADIUS, hub } from './tokens';
+import { HUB_PRESSED_SCALE, HUB_RADIUS, useHubTheme } from './tokens';
 
 interface HubCardProps {
   children: ReactNode;
@@ -16,9 +16,7 @@ interface HubCardProps {
 }
 
 const SURFACE: ViewStyle = {
-  backgroundColor: hub.card,
   borderWidth: 1,
-  borderColor: hub.hairline,
   borderRadius: HUB_RADIUS.card,
   borderCurve: 'continuous',
 };
@@ -33,13 +31,14 @@ export function HubCard({
   disabled = false,
   testID,
 }: HubCardProps) {
+  const hub = useHubTheme();
   if (!onPress) {
     return (
       <View
         testID={testID}
         accessibilityLabel={accessibilityLabel}
         accessibilityRole={accessibilityRole}
-        style={[SURFACE, style]}
+        style={[SURFACE, { backgroundColor: hub.card, borderColor: hub.hairline }, style]}
       >
         {children}
       </View>
@@ -58,6 +57,7 @@ export function HubCard({
       accessibilityState={{ disabled }}
       style={({ pressed }) => [
         SURFACE,
+        { backgroundColor: hub.card, borderColor: hub.hairline },
         style,
         { transform: [{ scale: pressed ? HUB_PRESSED_SCALE : 1 }], opacity: disabled ? 0.5 : 1 },
       ]}

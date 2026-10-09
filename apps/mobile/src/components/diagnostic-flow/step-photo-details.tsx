@@ -1,5 +1,4 @@
-import { palette } from '@motovault/design-system';
-import * as Haptics from 'expo-haptics';
+import { palette, withAlpha } from '@motovault/design-system';
 import { Image } from 'expo-image';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
@@ -12,13 +11,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
 import type { Urgency } from '../../stores/diagnostic-flow.store';
 import { useDiagnosticFlowStore } from '../../stores/diagnostic-flow.store';
+import { useEditorialTheme } from '../../theme/editorial';
+import { type } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
 import { useDiagnosticColors } from './diagnostic-colors';
 
-const URGENCY_COLORS: Record<string, string> = {
-  stranded: palette.danger500,
-  soon: palette.warning500,
-  preventive: palette.success500,
-};
+/** The remove button sits on the photo itself, so it carries its own scrim in both schemes. */
+const PHOTO_SCRIM = withAlpha(palette.plateG0, 0.6);
 
 const URGENCY_OPTIONS: { value: Urgency; labelKey: string; icon: typeof AlertTriangle }[] = [
   { value: 'stranded', labelKey: 'diagnoseV2.urgencyStranded', icon: AlertTriangle },
@@ -37,6 +36,12 @@ async function compressPhoto(uri: string): Promise<string> {
 export function StepPhotoDetails() {
   const { t } = useTranslation();
   const colors = useDiagnosticColors();
+  const { t: theme } = useEditorialTheme();
+  const urgencyColors: Record<Urgency, string> = {
+    stranded: theme.plateOverdue,
+    soon: theme.plateDue,
+    preventive: theme.success,
+  };
   const insets = useSafeAreaInsets();
   const [compressing, setCompressing] = useState(false);
 
@@ -90,7 +95,7 @@ export function StepPhotoDetails() {
   };
 
   const handleUrgencyPress = (value: Urgency) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact();
     setUrgency(urgency === value ? null : value);
   };
 
@@ -108,28 +113,10 @@ export function StepPhotoDetails() {
       >
         {/* Step header */}
         <View style={{ paddingHorizontal: 24, paddingTop: 8, marginBottom: 24 }}>
-          <Text
-            style={{
-              fontSize: 12,
-              fontWeight: '600',
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-              color: colors.textMuted,
-            }}
-          >
-            {t('diagnoseV2.stepOf', { current: 3, total: 4 })}
-          </Text>
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: '600',
-              color: colors.textPrimary,
-              marginTop: 4,
-            }}
-          >
+          <Text style={[type.sheetTitle, { color: colors.textPrimary, marginTop: 4 }]}>
             {t('diagnoseV2.photoDetails')}
           </Text>
-          <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
+          <Text style={[type.subhead, { color: colors.textMuted, marginTop: 4 }]}>
             {t('diagnoseV2.photoEncouragement')}
           </Text>
         </View>
@@ -163,13 +150,15 @@ export function StepPhotoDetails() {
                   width: 44,
                   height: 44,
                   borderRadius: 22,
-                  backgroundColor: 'rgba(0,0,0,0.5)',
+                  backgroundColor: PHOTO_SCRIM,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
                 onPress={() => setPhotoUri(null)}
+                accessibilityRole="button"
+                accessibilityLabel={t('diagnoseV2.removePhoto')}
               >
-                <X size={16} color={palette.white} strokeWidth={2} />
+                <X size={16} color={palette.plateInk} strokeWidth={2} />
               </Pressable>
             </View>
           </Animated.View>
@@ -192,8 +181,8 @@ export function StepPhotoDetails() {
               onPress={() => handleCapture('camera')}
               disabled={compressing}
             >
-              <Camera size={20} color={palette.white} strokeWidth={2} />
-              <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
+              <Camera size={20} color={colors.onAccent} strokeWidth={2} />
+              <Text style={[type.bodyStrong, { color: colors.onAccent }]}>
                 {t('diagnoseV2.takePhoto')}
               </Text>
             </Pressable>
@@ -296,7 +285,7 @@ export function StepPhotoDetails() {
           <View style={{ gap: 8 }}>
             {URGENCY_OPTIONS.map(({ value, labelKey, icon: Icon }) => {
               const isSelected = urgency === value;
-              const accentColor = URGENCY_COLORS[value] ?? colors.accent;
+              const accentColor = urgencyColors[value] ?? colors.accent;
               return (
                 <Pressable
                   key={value}
@@ -362,7 +351,7 @@ export function StepPhotoDetails() {
           }}
           onPress={handleNext}
         >
-          <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
+          <Text style={[type.bodyStrong, { color: colors.onAccent }]}>
             {editingFromReview ? t('diagnoseV2.backToReview') : t('diagnoseV2.next')}
           </Text>
         </Pressable>

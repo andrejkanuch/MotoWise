@@ -25,14 +25,15 @@ import { PriorityTag } from '../ui/priority-tag';
 import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { SectionHeader } from '../ui/section-header';
 import {
-  HUB_FONT,
   HUB_RADIUS,
   HUB_ROW_SUB_LINES,
   HUB_TOUCH_TARGET,
   type HubCopyKey,
-  hub,
+  type HubTheme,
   PRIORITY_TAG,
+  SYSTEM_WEIGHT,
   TAG_VARIANT,
+  useHubTheme,
 } from '../ui/tokens';
 import { AttentionRow } from './attention-row';
 
@@ -54,15 +55,15 @@ interface RowContext {
   onPress: (item: AttentionItem) => void;
 }
 
-function tone(critical: boolean): { fg: string; bg: string } {
+function tone(hub: HubTheme, critical: boolean): { fg: string; bg: string } {
   return critical ? { fg: hub.late, bg: hub.tagCritBg } : { fg: hub.soon, bg: hub.tagHighBg };
 }
 
-function subLine(lead: string, leadColor: string, rest?: string) {
+function subLine(hub: HubTheme, lead: string, leadColor: string, rest?: string) {
   return (
     <Text
       numberOfLines={HUB_ROW_SUB_LINES}
-      style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 16 }}
+      style={{ ...SYSTEM_WEIGHT.regular, fontSize: 13, lineHeight: 16 }}
     >
       <Text style={{ color: leadColor }}>{lead}</Text>
       {rest ? (
@@ -91,8 +92,9 @@ function blockingDocumentRow(item: DocumentAttentionItem) {
 }
 
 function RecallRow({ item, context }: { item: RecallAttentionItem; context: RowContext }) {
+  const hub = useHubTheme();
   const { t } = context;
-  const colors = tone(item.critical);
+  const colors = tone(hub, item.critical);
   const components = item.components.join(SEPARATOR);
   const title =
     item.count === 1
@@ -109,7 +111,7 @@ function RecallRow({ item, context }: { item: RecallAttentionItem; context: RowC
       testID="attention-recall"
       icon={icon}
       title={title}
-      sub={subLine(sub, colors.fg, listed.join(SEPARATOR))}
+      sub={subLine(hub, sub, colors.fg, listed.join(SEPARATOR))}
       trailing={<PriorityTag variant={TAG_VARIANT.SAFETY} critical={item.critical} />}
       accessibilityLabel={[title, sub, listed.join(', ')].filter(Boolean).join('. ')}
       onPress={() => context.onPress(item)}
@@ -118,10 +120,11 @@ function RecallRow({ item, context }: { item: RecallAttentionItem; context: RowC
 }
 
 function TaskRow({ item, context }: { item: TaskAttentionItem; context: RowContext }) {
+  const hub = useHubTheme();
   const { t, language, unit, make } = context;
   const tag = PRIORITY_TAG[item.task.priority];
   const copy = describeDue(item.due, { t, unit, language, scheduleName: make });
-  const icon: RowIcon = { icon: Wrench, color: tag.fg, background: tag.bg };
+  const icon: RowIcon = { icon: Wrench, color: hub[tag.fg], background: hub[tag.bg] };
   return (
     <AttentionRow
       testID={`attention-task-${item.id}`}
@@ -138,9 +141,10 @@ function TaskRow({ item, context }: { item: TaskAttentionItem; context: RowConte
 }
 
 function DocumentRow({ item, context }: { item: DocumentAttentionItem; context: RowContext }) {
+  const hub = useHubTheme();
   const { t, language } = context;
   const { signal } = item;
-  const colors = tone(signal.expired);
+  const colors = tone(hub, signal.expired);
   const category = signal.categoryName ?? t('documents.uncategorized');
   const date = signal.document.expiryDate
     ? formatShortDate(signal.document.expiryDate, language)
@@ -167,7 +171,7 @@ function DocumentRow({ item, context }: { item: DocumentAttentionItem; context: 
       testID={`attention-document-${item.id}`}
       icon={icon}
       title={title}
-      sub={subLine(lead, colors.fg, rest)}
+      sub={subLine(hub, lead, colors.fg, rest)}
       trailing={<PriorityTag variant={TAG_VARIANT.DOC} critical={signal.expired} />}
       accessibilityLabel={`${title}. ${lead}. ${rest}`}
       onPress={() => context.onPress(item)}
@@ -205,6 +209,7 @@ function overflowTitle(overflow: AttentionOverflow, t: TFunction): string {
 }
 
 function SkeletonRow() {
+  const hub = useHubTheme();
   return (
     <View
       style={{
@@ -249,6 +254,7 @@ export function AttentionList({
   onPressItem,
   onPressAll,
 }: AttentionListProps) {
+  const hub = useHubTheme();
   const { t, i18n } = useTranslation();
   const title = t('bikeHub.attention.title');
 
@@ -276,7 +282,7 @@ export function AttentionList({
             paddingHorizontal: 2,
           }}
         >
-          <Text style={{ flex: 1, fontFamily: HUB_FONT.sans, fontSize: 14, color: hub.dim }}>
+          <Text style={{ flex: 1, ...SYSTEM_WEIGHT.regular, fontSize: 14, color: hub.dim }}>
             {t('bikeHub.attention.loadError')}
           </Text>
           <Pressable
@@ -284,9 +290,7 @@ export function AttentionList({
             accessibilityRole="button"
             style={{ minHeight: HUB_TOUCH_TARGET, justifyContent: 'center', paddingHorizontal: 8 }}
           >
-            <Text
-              style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.copperText }}
-            >
+            <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 14, color: hub.copperText }}>
               {t('common.retry')}
             </Text>
           </Pressable>

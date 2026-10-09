@@ -9,7 +9,7 @@ import { Alert, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
@@ -20,6 +20,7 @@ import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { registerForPushNotifications } from '../../lib/push-token';
 import { resyncTrialReminder } from '../../lib/subscription';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { radius, space, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 /**
@@ -34,24 +35,21 @@ const NOTIFICATION_PERMISSION = {
 
 /**
  * Three benefit rows, each with a two-tier title + subtitle and an icon in a
- * per-row colored rounded tile (copper / blue / teal). No gamification copy.
+ * neutral rounded tile. No gamification copy.
  */
 const BENEFITS = [
   {
     icon: Bell,
-    tile: ONBOARDING_COLORS.warm,
     titleKey: 'v2NotificationsBenefit1Title',
     subtitleKey: 'v2NotificationsBenefit1Subtitle',
   },
   {
     icon: BarChart3,
-    tile: ONBOARDING_COLORS.blue,
     titleKey: 'v2NotificationsBenefit2Title',
     subtitleKey: 'v2NotificationsBenefit2Subtitle',
   },
   {
     icon: Compass,
-    tile: ONBOARDING_COLORS.teal,
     titleKey: 'v2NotificationsBenefit3Title',
     subtitleKey: 'v2NotificationsBenefit3Subtitle',
   },
@@ -67,23 +65,11 @@ type TWide = (key: string, options?: Record<string, unknown>) => string;
 
 /** A realistic sample push-notification card: logo tile, app name · time, body. */
 function NotificationCard() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const tx = t as unknown as TWide;
   return (
-    <View style={{ alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
-      {/* soft copper glow behind the card */}
-      <View
-        style={{
-          position: 'absolute',
-          top: -8,
-          width: 260,
-          height: 120,
-          borderRadius: 60,
-          borderCurve: 'continuous',
-          backgroundColor: ONBOARDING_COLORS.warm,
-          opacity: 0.16,
-        }}
-      />
+    <View style={{ alignItems: 'center', justifyContent: 'center', marginBottom: space.xxs }}>
       <Animated.View
         entering={FadeInDown.duration(500)}
         style={{
@@ -91,24 +77,24 @@ function NotificationCard() {
           maxWidth: 320,
           flexDirection: 'row',
           alignItems: 'center',
-          gap: 11,
-          paddingVertical: 13,
-          paddingHorizontal: 14,
-          borderRadius: 18,
+          gap: space.sm,
+          paddingVertical: space.sm,
+          paddingHorizontal: space.sm,
+          borderRadius: radius.card,
           borderCurve: 'continuous',
-          backgroundColor: ONBOARDING_COLORS.surface2,
+          backgroundColor: oc.surface2,
           borderWidth: 1,
-          borderColor: ONBOARDING_COLORS.cardBorderDefault,
+          borderColor: oc.cardBorderDefault,
         }}
       >
         <View
           style={{
             width: 36,
             height: 36,
-            borderRadius: 9,
+            borderRadius: radius.chip,
             borderCurve: 'continuous',
             overflow: 'hidden',
-            backgroundColor: ONBOARDING_COLORS.warm,
+            backgroundColor: oc.warm,
           }}
         >
           <Image
@@ -125,35 +111,14 @@ function NotificationCard() {
               justifyContent: 'space-between',
             }}
           >
-            <Text
-              style={{
-                fontFamily: 'Geist',
-                fontSize: 12.5,
-                fontWeight: '700',
-                color: ONBOARDING_COLORS.textPrimary,
-              }}
-            >
+            <Text style={[type.label, { color: oc.textPrimary }]}>
               {tx('onboarding.v2NotificationsSampleApp')}
             </Text>
-            <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 9.5,
-                color: ONBOARDING_COLORS.textMuted,
-              }}
-            >
+            <Text style={[type.caption, { color: oc.textMuted }]}>
               {tx('onboarding.v2NotificationsSampleTime')}
             </Text>
           </View>
-          <Text
-            style={{
-              fontFamily: 'Geist-Regular',
-              fontSize: 12.5,
-              lineHeight: 17,
-              color: ONBOARDING_COLORS.textSecondary,
-              marginTop: 2,
-            }}
-          >
+          <Text style={[type.subhead, { color: oc.textSecondary, marginTop: 2 }]}>
             {tx('onboarding.v2NotificationsSampleBody')}
           </Text>
         </View>
@@ -163,6 +128,7 @@ function NotificationCard() {
 }
 
 export default function NotificationsScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const tx = t as unknown as TWide;
   const insets = useSafeAreaInsets();
@@ -265,38 +231,26 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
-      {/* Header — back button + eyebrow */}
+      {/* Header — back button */}
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          paddingTop: 12,
-          paddingHorizontal: 16,
-          gap: 8,
+          paddingTop: space.sm,
+          paddingHorizontal: space.md,
         }}
       >
         <OnboardingBackButton onPress={onBack} />
-        <Text
-          style={{
-            fontFamily: 'GeistMono-Medium',
-            fontSize: 11,
-            letterSpacing: 1.8,
-            textTransform: 'uppercase',
-            color: ONBOARDING_COLORS.warm2,
-          }}
-        >
-          {tx('onboarding.v2NotificationsEyebrow')}
-        </Text>
       </View>
 
       <View
         style={{
           flex: 1,
-          paddingHorizontal: 24,
-          paddingTop: 20,
+          paddingHorizontal: space.xl,
+          paddingTop: space.lg,
           justifyContent: 'space-between',
         }}
       >
@@ -308,39 +262,21 @@ export default function NotificationsScreen() {
 
           <Animated.Text
             entering={FadeInUp.delay(100).duration(300)}
-            style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 30,
-              lineHeight: 34,
-              color: ONBOARDING_COLORS.textPrimary,
-              letterSpacing: -0.5,
-              marginTop: 24,
-            }}
+            accessibilityRole="header"
+            style={[type.largeTitle, { color: oc.textPrimary, marginTop: space.xl }]}
           >
-            {tx('onboarding.v2NotificationsTitleLead')}
-            {'\n'}
-            {tx('onboarding.v2NotificationsTitleBike')}{' '}
-            <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
-              {tx('onboarding.v2NotificationsTitleHealth')}
-            </Text>
+            {t('onboarding.v2NotificationsTitle')}
           </Animated.Text>
 
           <Animated.Text
             entering={FadeInUp.delay(200).duration(300)}
-            style={{
-              fontFamily: 'Geist-Regular',
-              fontSize: 14,
-              color: ONBOARDING_COLORS.textSecondary,
-              lineHeight: 21,
-              marginTop: 8,
-              maxWidth: 320,
-            }}
+            style={[type.subhead, { color: oc.textSecondary, marginTop: space.xs, maxWidth: 320 }]}
           >
             {t('onboarding.v2NotificationsSubtitle')}
           </Animated.Text>
 
           {/* Benefit rows */}
-          <View style={{ gap: 18, marginTop: 28 }}>
+          <View style={{ gap: space.md, marginTop: space.xxl }}>
             {BENEFITS.map((benefit, index) => (
               <Animated.View
                 key={benefit.titleKey}
@@ -348,42 +284,26 @@ export default function NotificationsScreen() {
                   .duration(300)
                   .springify()
                   .damping(18)}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}
               >
                 <View
                   style={{
                     width: 40,
                     height: 40,
-                    borderRadius: 12,
+                    borderRadius: radius.control,
                     borderCurve: 'continuous',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: `${benefit.tile}29`,
+                    backgroundColor: oc.surface2,
                   }}
                 >
-                  <benefit.icon size={19} color={benefit.tile} />
+                  <benefit.icon size={19} color={oc.textSecondary} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      fontFamily: 'Geist',
-                      fontSize: 14.5,
-                      fontWeight: '600',
-                      color: ONBOARDING_COLORS.textPrimary,
-                      letterSpacing: -0.15,
-                    }}
-                  >
+                  <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
                     {tx(`onboarding.${benefit.titleKey}`)}
                   </Text>
-                  <Text
-                    style={{
-                      fontFamily: 'Geist-Regular',
-                      fontSize: 12.5,
-                      color: ONBOARDING_COLORS.ink3,
-                      lineHeight: 17,
-                      marginTop: 1,
-                    }}
-                  >
+                  <Text style={[type.subhead, { color: oc.ink3, marginTop: 2 }]}>
                     {tx(`onboarding.${benefit.subtitleKey}`)}
                   </Text>
                 </View>
@@ -393,32 +313,25 @@ export default function NotificationsScreen() {
         </View>
 
         {/* Buttons */}
-        <View style={{ gap: 12, paddingBottom: insets.bottom + 24 }}>
+        <View style={{ gap: space.sm, paddingBottom: insets.bottom + space.xl }}>
           <Pressable
             onPress={handleEnable}
             accessibilityRole="button"
             style={({ pressed }) => ({
               flexDirection: 'row',
-              gap: 9,
-              backgroundColor: ONBOARDING_COLORS.warm,
-              borderRadius: 16,
+              gap: space.xs,
+              backgroundColor: oc.warm,
+              borderRadius: radius.control,
               borderCurve: 'continuous',
-              paddingVertical: 18,
+              minHeight: 52,
               alignItems: 'center',
               justifyContent: 'center',
               opacity: pressed ? 0.9 : 1,
               transform: [{ scale: pressed ? 0.98 : 1 }],
             })}
           >
-            <Bell size={18} color={ONBOARDING_COLORS.textOnAccent} />
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: ONBOARDING_COLORS.textOnAccent,
-                letterSpacing: -0.15,
-              }}
-            >
+            <Bell size={18} color={oc.textOnAccent} />
+            <Text style={[type.bodyStrong, { color: oc.textOnAccent }]}>
               {t('onboarding.v2NotificationsEnable')}
             </Text>
           </Pressable>
@@ -427,25 +340,17 @@ export default function NotificationsScreen() {
             onPress={handleSkip}
             accessibilityRole="button"
             style={({ pressed }) => ({
-              borderWidth: 1,
-              borderColor: ONBOARDING_COLORS.cardBorderDefault,
-              borderRadius: 16,
+              backgroundColor: oc.surface2,
+              borderRadius: radius.control,
               borderCurve: 'continuous',
-              paddingVertical: 18,
+              minHeight: 52,
               alignItems: 'center',
               justifyContent: 'center',
               opacity: pressed ? 0.9 : 1,
               transform: [{ scale: pressed ? 0.98 : 1 }],
             })}
           >
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: ONBOARDING_COLORS.textSecondary,
-                letterSpacing: -0.15,
-              }}
-            >
+            <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
               {t('onboarding.v2NotificationsMaybeLater')}
             </Text>
           </Pressable>

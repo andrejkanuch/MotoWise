@@ -1,3 +1,9 @@
+let mockColorScheme = 'dark';
+jest.mock('nativewind', () => ({
+  ...jest.requireActual('nativewind'),
+  useColorScheme: () => ({ colorScheme: mockColorScheme }),
+}));
+
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
@@ -17,9 +23,21 @@ import { PriorityTag } from '../ui/priority-tag';
 import { REFRESH_ANNOUNCE_WINDOW_MS, REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { SectionHeader } from '../ui/section-header';
 import { Stat } from '../ui/stat';
-import { TAG_VARIANT } from '../ui/tokens';
+import { hubDark, hubLight, TAG_VARIANT } from '../ui/tokens';
 
 describe('PriorityTag', () => {
+  afterEach(() => {
+    mockColorScheme = 'dark';
+  });
+
+  it('uses the light, text-safe tag colours in light mode', async () => {
+    mockColorScheme = 'light';
+    await render(<PriorityTag priority={MaintenancePriority.Critical} />);
+    const text = screen.getByText('CRIT');
+    expect(StyleSheet.flatten(text.props.style).color).toBe(hubLight.late);
+    expect(StyleSheet.flatten(text.parent?.props.style).backgroundColor).toBe(hubLight.tagCritBg);
+  });
+
   it.each([
     [MaintenancePriority.Critical, 'CRIT', palette.hubTagCritBg, palette.hubLate],
     [MaintenancePriority.High, 'HIGH', palette.hubTagHighBg, palette.hubSoon],
@@ -70,9 +88,7 @@ describe('DueLine', () => {
     });
     await render(<DueLine due={getTaskDue(oem, KM)} unit={HUB_UNIT.KM} scheduleName="Honda" />);
     expect(screen.getByText('In 9,833 km · Honda schedule')).toBeOnTheScreen();
-    expect(StyleSheet.flatten(screen.getByText('In 9,833 km').props.style).color).toBe(
-      palette.hubDim,
-    );
+    expect(StyleSheet.flatten(screen.getByText('In 9,833 km').props.style).color).toBe(hubDark.dim);
   });
 
   it('"In 1,833 km · or by Jan 10" and "Mar 2027 · Honda schedule"', async () => {

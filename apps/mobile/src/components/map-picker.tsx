@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { useEditorialTheme } from '../theme/editorial';
 import { MAP_STYLES } from '../utils/map-styles';
 import {
   type GeocodingResult,
@@ -55,11 +56,12 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
   const startLng = initialLng ?? DEFAULT_LNG;
 
   // Derived colors
-  const bg = isDark ? palette.neutral950 : palette.white;
-  const textColor = isDark ? palette.white : palette.neutral950;
-  const subtextColor = isDark ? palette.neutral400 : palette.neutral500;
-  const dropdownBg = isDark ? palette.cardDark : palette.white;
-  const dropdownBorder = isDark ? palette.surfaceElevated : palette.neutral200;
+  const { t: theme } = useEditorialTheme();
+  const bg = theme.surface;
+  const textColor = theme.ink;
+  const subtextColor = theme.ink3;
+  const dropdownBg = theme.surface2;
+  const dropdownBorder = theme.line;
   const mapStyle = isDark ? MAP_STYLES.dark : MAP_STYLES.light;
 
   const handleSearch = useCallback((text: string) => {
@@ -164,16 +166,12 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
             alignItems: 'center',
             paddingHorizontal: 14,
             paddingVertical: 12,
-            backgroundColor: pressed
-              ? isDark
-                ? palette.surfacePressed
-                : palette.neutral100
-              : 'transparent',
+            backgroundColor: pressed ? theme.surface2 : 'transparent',
             borderBottomWidth: 1,
             borderBottomColor: dropdownBorder,
           })}
         >
-          <MapPin size={16} color={palette.signature500} style={{ marginRight: 10 }} />
+          <MapPin size={16} color={theme.ink3} style={{ marginRight: 10 }} />
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 14, fontWeight: '500', color: textColor }} numberOfLines={1}>
               {item.name}
@@ -185,7 +183,7 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
         </Pressable>
       </Animated.View>
     ),
-    [handleSelectResult, isDark, textColor, subtextColor, dropdownBorder],
+    [handleSelectResult, textColor, subtextColor, dropdownBorder, theme.ink3, theme.surface2],
   );
 
   return (
@@ -231,7 +229,7 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
             width: 8,
             height: 4,
             borderRadius: 4,
-            backgroundColor: 'rgba(0,0,0,0.2)',
+            backgroundColor: palette.blackAlpha20,
             position: 'absolute',
             top: '50%',
             marginTop: 18,
@@ -244,7 +242,7 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
               width: 36,
               height: 36,
               borderRadius: 18,
-              backgroundColor: palette.signature500,
+              backgroundColor: theme.warm,
               justifyContent: 'center',
               alignItems: 'center',
               borderCurve: 'continuous',
@@ -255,14 +253,14 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
               elevation: 6,
             }}
           >
-            <MapPin size={20} color={palette.white} />
+            <MapPin size={20} color={theme.onWarm} />
           </View>
           {/* Pin stem */}
           <View
             style={{
               width: 3,
               height: 10,
-              backgroundColor: palette.signature500,
+              backgroundColor: theme.warm,
               marginTop: -2,
             }}
           />
@@ -272,7 +270,7 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
               width: 6,
               height: 6,
               borderRadius: 3,
-              backgroundColor: palette.signature500,
+              backgroundColor: theme.warm,
               marginTop: -1,
             }}
           />
@@ -305,13 +303,9 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
           }}
         >
           {isReversing ? (
-            <ActivityIndicator
-              size="small"
-              color={palette.signature500}
-              style={{ marginRight: 10 }}
-            />
+            <ActivityIndicator size="small" color={theme.warm} style={{ marginRight: 10 }} />
           ) : (
-            <MapPin size={16} color={palette.signature500} style={{ marginRight: 10 }} />
+            <MapPin size={16} color={theme.ink3} style={{ marginRight: 10 }} />
           )}
           <Text
             style={{ flex: 1, fontSize: 13, color: textColor, fontWeight: '500' }}
@@ -369,11 +363,7 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
             }}
           />
           {isSearching && (
-            <ActivityIndicator
-              size="small"
-              color={palette.signature500}
-              style={{ marginLeft: 6 }}
-            />
+            <ActivityIndicator size="small" color={theme.warm} style={{ marginLeft: 6 }} />
           )}
           {query.length > 0 && !isSearching && (
             <Pressable
@@ -385,7 +375,7 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
                 height: 24,
                 borderRadius: 12,
                 borderCurve: 'continuous',
-                backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+                backgroundColor: theme.surface3,
                 justifyContent: 'center',
                 alignItems: 'center',
               }}

@@ -22,6 +22,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useWhatsNewStore } from '../../stores/whats-new.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
+import { radius, space, type } from '../../theme/type';
 
 export default function WhatsNewModal() {
   const { t } = useTranslation();
@@ -149,20 +150,12 @@ export default function WhatsNewModal() {
           paddingTop: insets.top + 16,
         }}
       >
-        <Text
-          style={{
-            fontFamily: 'GeistMono-SemiBold',
-            fontSize: 11,
-            color: theme.ink3,
-            letterSpacing: 2,
-            textTransform: 'uppercase',
-          }}
-        >
+        <Text style={[type.label, { color: theme.ink2, fontVariant: ['tabular-nums'] }]}>
           {`${t('whatsNew.badge')} · v${displayVersion}`}
         </Text>
         {!isLast && (
           <Pressable onPress={handleSkip} hitSlop={16}>
-            <Text style={{ color: theme.ink3, fontSize: 13, fontWeight: '500' }}>
+            <Text style={[type.label, { fontSize: 15, color: theme.ink2 }]}>
               {t('common.skip')}
             </Text>
           </Pressable>
@@ -248,10 +241,6 @@ export default function WhatsNewModal() {
             backgroundColor: featureTintSoft,
             alignItems: 'center',
             justifyContent: 'center',
-            shadowColor: featureTint,
-            shadowOffset: { width: 0, height: 24 },
-            shadowOpacity: 0.35,
-            shadowRadius: 48,
           }}
         >
           <Icon size={52} color={featureTint} />
@@ -269,14 +258,7 @@ export default function WhatsNewModal() {
             borderRadius: 99,
           }}
         >
-          <Text
-            style={{
-              fontFamily: 'GeistMono-SemiBold',
-              fontSize: 11.5,
-              color: theme.ink2,
-              letterSpacing: 0.5,
-            }}
-          >
+          <Text style={[type.figureSmall, { fontSize: 15, lineHeight: 18, color: theme.ink2 }]}>
             {String(currentIndex + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
           </Text>
         </View>
@@ -294,22 +276,15 @@ export default function WhatsNewModal() {
         }}
       >
         <Text
-          style={{
-            fontFamily: 'InstrumentSerif-Regular',
-            fontSize: 38,
-            color: theme.ink,
-            lineHeight: 40,
-            letterSpacing: -0.7,
-            marginBottom: 14,
-          }}
+          accessibilityRole="header"
+          style={[type.largeTitle, { color: theme.ink, marginBottom: space.sm }]}
         >
           {t(slide.titleKey as never)}
         </Text>
         <Text
           style={{
-            fontSize: 15,
+            ...type.body,
             color: theme.ink2,
-            lineHeight: 22.5,
           }}
         >
           {t(slide.descriptionKey as never)}
@@ -333,7 +308,7 @@ export default function WhatsNewModal() {
                 width: idx === currentIndex ? 22 : 7,
                 height: 7,
                 borderRadius: 99,
-                backgroundColor: idx === currentIndex ? featureTint : tint(theme.ink, 0.16),
+                backgroundColor: idx === currentIndex ? theme.warm : tint(theme.ink, 0.16),
               }}
               layout={undefined}
             />
@@ -351,30 +326,27 @@ export default function WhatsNewModal() {
         <Pressable
           onPress={handleNext}
           style={({ pressed }) => ({
-            backgroundColor: featureTint,
-            borderRadius: 14,
+            minHeight: 52,
+            backgroundColor: theme.warm,
+            borderRadius: radius.card,
             borderCurve: 'continuous',
-            paddingVertical: 17,
+            paddingVertical: space.md,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
             gap: 10,
             opacity: pressed ? 0.85 : 1,
             transform: [{ scale: pressed ? 0.98 : 1 }],
-            shadowColor: featureTint,
-            shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.45,
-            shadowRadius: 28,
           })}
         >
-          <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff' }}>
+          <Text style={[type.bodyStrong, { color: theme.onWarm }]}>
             {isLast
               ? slide.ctaAction
                 ? t((slide.ctaLabelKey ?? 'whatsNew.getStarted') as never)
                 : t('whatsNew.getStarted')
               : t('whatsNew.next')}
           </Text>
-          <ArrowRight size={16} color="#fff" />
+          <ArrowRight size={18} color={theme.onWarm} />
         </Pressable>
       </View>
     </View>

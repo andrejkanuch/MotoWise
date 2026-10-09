@@ -18,13 +18,14 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { type } from '../../theme/type';
 
 function detectTypeFromModel(modelName: string): MotorcycleType | null {
   const lower = modelName.toLowerCase();
@@ -44,6 +45,7 @@ function detectTypeFromModel(modelName: string): MotorcycleType | null {
 }
 
 export default function BikeModelScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const router = useRouter();
   const setBikeData = useOnboardingStore((s) => s.setBikeData);
@@ -124,7 +126,7 @@ export default function BikeModelScreen() {
   const canContinue = !!(selectedModel?.modelName || customModel.trim());
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={4} totalScreens={TOTAL_SCREENS} />
 
       <KeyboardAvoidingView
@@ -135,13 +137,7 @@ export default function BikeModelScreen() {
           <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 48 }}>
             <Animated.Text
               entering={FadeInDown.duration(300)}
-              style={{
-                fontSize: 36,
-                fontWeight: '800',
-                color: ONBOARDING_COLORS.textPrimary,
-                letterSpacing: -0.5,
-                marginBottom: 12,
-              }}
+              style={[type.largeTitle, { color: oc.textPrimary, marginBottom: 12 }]}
             >
               {t('onboarding.bikeModelTitle')}
             </Animated.Text>
@@ -150,7 +146,7 @@ export default function BikeModelScreen() {
               entering={FadeInUp.delay(100).duration(300)}
               style={{
                 fontSize: 17,
-                color: ONBOARDING_COLORS.textSecondary,
+                color: oc.textSecondary,
                 lineHeight: 24,
                 marginBottom: 32,
               }}
@@ -167,9 +163,9 @@ export default function BikeModelScreen() {
                     setSelectedModel(null);
                   }}
                   style={{
-                    backgroundColor: ONBOARDING_COLORS.cardBg,
+                    backgroundColor: oc.cardBg,
                     borderWidth: 1,
-                    borderColor: ONBOARDING_COLORS.accent,
+                    borderColor: oc.accent,
                     borderRadius: 16,
                     borderCurve: 'continuous',
                     padding: 16,
@@ -182,13 +178,13 @@ export default function BikeModelScreen() {
                   <Text
                     style={{
                       fontSize: 17,
-                      color: ONBOARDING_COLORS.textPrimary,
+                      color: oc.textPrimary,
                       fontWeight: '600',
                     }}
                   >
                     {selectedModel.modelName}
                   </Text>
-                  <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.textMuted }}>
+                  <Text style={{ fontSize: 13, color: oc.textMuted }}>
                     {t('onboarding.tapToChange')}
                   </Text>
                 </Pressable>
@@ -203,16 +199,8 @@ export default function BikeModelScreen() {
                     marginBottom: 10,
                   }}
                 >
-                  <Search size={18} color={ONBOARDING_COLORS.textMuted} />
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: '600',
-                      color: ONBOARDING_COLORS.textMuted,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                    }}
-                  >
+                  <Search size={18} color={oc.textMuted} />
+                  <Text style={[type.label, { color: oc.textMuted }]}>
                     {t('onboarding.searchModel')}
                   </Text>
                 </View>
@@ -224,17 +212,17 @@ export default function BikeModelScreen() {
                     setCustomModel('');
                   }}
                   placeholder={t('onboarding.searchModel')}
-                  placeholderTextColor={ONBOARDING_COLORS.textDimmed}
+                  placeholderTextColor={oc.textDimmed}
                   autoFocus
                   style={{
-                    backgroundColor: ONBOARDING_COLORS.cardBg,
+                    backgroundColor: oc.cardBg,
                     borderWidth: 1,
-                    borderColor: ONBOARDING_COLORS.cardBorder,
+                    borderColor: oc.cardBorder,
                     borderRadius: 16,
                     borderCurve: 'continuous',
                     padding: 16,
                     fontSize: 17,
-                    color: ONBOARDING_COLORS.textPrimary,
+                    color: oc.textPrimary,
                     marginBottom: 12,
                   }}
                 />
@@ -243,28 +231,26 @@ export default function BikeModelScreen() {
 
             {/* Loading */}
             {modelsResult.isLoading && (
-              <ActivityIndicator color={ONBOARDING_COLORS.accent} style={{ marginVertical: 20 }} />
+              <ActivityIndicator color={oc.accent} style={{ marginVertical: 20 }} />
             )}
 
             {/* Error with retry */}
             {modelsResult.isError && (
               <View style={{ alignItems: 'center', marginVertical: 20, gap: 12 }}>
-                <Text style={{ fontSize: 15, color: ONBOARDING_COLORS.textMuted }}>
+                <Text style={{ fontSize: 15, color: oc.textMuted }}>
                   {t('onboarding.modelsLoadError')}
                 </Text>
                 <Pressable
                   onPress={() => modelsResult.refetch()}
                   style={{
-                    backgroundColor: ONBOARDING_COLORS.cardBorder,
+                    backgroundColor: oc.cardBorder,
                     borderRadius: 12,
                     borderCurve: 'continuous',
                     paddingHorizontal: 20,
                     paddingVertical: 10,
                   }}
                 >
-                  <Text
-                    style={{ fontSize: 15, fontWeight: '600', color: ONBOARDING_COLORS.accent }}
-                  >
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: oc.accent }}>
                     {t('common.retry')}
                   </Text>
                 </Pressable>
@@ -276,9 +262,9 @@ export default function BikeModelScreen() {
               <Animated.View entering={FadeInUp.duration(200)} style={{ flex: 1 }}>
                 <View
                   style={{
-                    backgroundColor: ONBOARDING_COLORS.cardBg,
+                    backgroundColor: oc.cardBg,
                     borderWidth: 1,
-                    borderColor: ONBOARDING_COLORS.cardBgSelected,
+                    borderColor: oc.cardBgSelected,
                     borderRadius: 16,
                     borderCurve: 'continuous',
                     flex: 1,
@@ -295,13 +281,11 @@ export default function BikeModelScreen() {
                           paddingHorizontal: 16,
                           paddingVertical: 14,
                           borderBottomWidth: 1,
-                          borderBottomColor: ONBOARDING_COLORS.cardBg,
-                          backgroundColor: pressed
-                            ? ONBOARDING_COLORS.cardBorderDefault
-                            : 'transparent',
+                          borderBottomColor: oc.cardBg,
+                          backgroundColor: pressed ? oc.cardBorderDefault : 'transparent',
                         })}
                       >
-                        <Text style={{ fontSize: 16, color: ONBOARDING_COLORS.textPrimary }}>
+                        <Text style={{ fontSize: 16, color: oc.textPrimary }}>
                           {model.modelName}
                         </Text>
                       </Pressable>
@@ -316,7 +300,7 @@ export default function BikeModelScreen() {
               <Text
                 style={{
                   fontSize: 15,
-                  color: ONBOARDING_COLORS.textMuted,
+                  color: oc.textMuted,
                   marginTop: 4,
                 }}
               >
@@ -335,16 +319,8 @@ export default function BikeModelScreen() {
                     marginBottom: 10,
                   }}
                 >
-                  <Bike size={18} color={ONBOARDING_COLORS.textMuted} />
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: '600',
-                      color: ONBOARDING_COLORS.textMuted,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                    }}
-                  >
+                  <Bike size={18} color={oc.textMuted} />
+                  <Text style={[type.label, { color: oc.textMuted }]}>
                     {t('onboarding.enterModelManually')}
                   </Text>
                 </View>
@@ -352,27 +328,21 @@ export default function BikeModelScreen() {
                   value={customModel}
                   onChangeText={setCustomModel}
                   placeholder={t('onboarding.modelPlaceholder')}
-                  placeholderTextColor={ONBOARDING_COLORS.textDimmed}
+                  placeholderTextColor={oc.textDimmed}
                   autoFocus
                   style={{
-                    backgroundColor: ONBOARDING_COLORS.cardBg,
+                    backgroundColor: oc.cardBg,
                     borderWidth: 1,
-                    borderColor: ONBOARDING_COLORS.cardBorder,
+                    borderColor: oc.cardBorder,
                     borderRadius: 16,
                     borderCurve: 'continuous',
                     padding: 16,
                     fontSize: 17,
-                    color: ONBOARDING_COLORS.textPrimary,
+                    color: oc.textPrimary,
                     marginBottom: 12,
                   }}
                 />
-                <Text
-                  style={{
-                    fontSize: 14,
-                    color: ONBOARDING_COLORS.textMuted,
-                    fontStyle: 'italic',
-                  }}
-                >
+                <Text style={[type.subhead, { color: oc.textMuted }]}>
                   {t('onboarding.modelNotInDatabase')}
                 </Text>
               </Animated.View>
@@ -385,7 +355,7 @@ export default function BikeModelScreen() {
                   <Pressable
                     onPress={handleContinue}
                     style={({ pressed }) => ({
-                      backgroundColor: ONBOARDING_COLORS.textPrimary,
+                      backgroundColor: oc.textPrimary,
                       borderRadius: 16,
                       borderCurve: 'continuous',
                       paddingVertical: 16,
@@ -400,12 +370,12 @@ export default function BikeModelScreen() {
                       style={{
                         fontSize: 17,
                         fontWeight: '700',
-                        color: ONBOARDING_COLORS.background,
+                        color: oc.background,
                       }}
                     >
                       {t('onboarding.continue')}
                     </Text>
-                    <ChevronRight size={20} color={ONBOARDING_COLORS.background} />
+                    <ChevronRight size={20} color={oc.background} />
                   </Pressable>
                 </Animated.View>
               </View>

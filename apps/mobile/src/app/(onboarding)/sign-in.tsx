@@ -1,3 +1,4 @@
+import { withAlpha } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -15,14 +16,11 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  EMAIL_CODE_SOURCE,
-  EMAIL_CODE_STEP_THEME,
-  EmailCodeStep,
-} from '../../components/auth/email-code-step';
+import { authButton, authInput, authInputColors } from '../../components/auth/auth-styles';
+import { EMAIL_CODE_SOURCE, EmailCodeStep } from '../../components/auth/email-code-step';
 import { AppleGlyph, GoogleGlyph } from '../../components/onboarding/oauth-glyphs';
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OB_ROUTE } from '../../config/onboarding';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
@@ -33,6 +31,7 @@ import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '..
 import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { supabase } from '../../lib/supabase';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
 
 /**
  * Returning-user sign-in, reachable from Welcome's "Log in" and the account
@@ -43,6 +42,7 @@ import { supabase } from '../../lib/supabase';
  * (to tabs if their onboarding is already complete server-side).
  */
 export default function OnboardingSignInScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -152,7 +152,7 @@ export default function OnboardingSignInScreen() {
   const canSubmit = email.length > 0 && password.length > 0 && !busy;
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingBackButton
         onPress={codeStep ? backFromCodeStep : () => router.back()}
         style={{ position: 'absolute', top: insets.top + 12, left: 16, zIndex: 10 }}
@@ -164,7 +164,7 @@ export default function OnboardingSignInScreen() {
           contentContainerStyle={{
             flexGrow: 1,
             justifyContent: 'center',
-            paddingHorizontal: 26,
+            paddingHorizontal: space.xl,
             paddingVertical: 48,
           }}
           keyboardShouldPersistTaps="handled"
@@ -175,11 +175,11 @@ export default function OnboardingSignInScreen() {
             style={{
               width: 52,
               height: 52,
-              borderRadius: 15,
+              borderRadius: radius.control,
               borderCurve: 'continuous',
-              backgroundColor: ONBOARDING_COLORS.warm,
+              backgroundColor: oc.surface2,
               overflow: 'hidden',
-              marginBottom: 22,
+              marginBottom: space.lg,
             }}
           >
             <Image
@@ -195,7 +195,6 @@ export default function OnboardingSignInScreen() {
               source={EMAIL_CODE_SOURCE.SIGNIN_UNCONFIRMED}
               password={codeStep.password}
               initialCooldownMs={codeStep.initialCooldownMs}
-              theme={EMAIL_CODE_STEP_THEME.onboarding}
               onBack={closeCodeStep}
               onBusyChange={onCodeStepBusyChange}
               onNeedsSignIn={closeCodeStep}
@@ -204,108 +203,76 @@ export default function OnboardingSignInScreen() {
             <>
               <Animated.Text
                 entering={FadeInUp.delay(40).duration(320)}
-                style={{
-                  fontFamily: 'InstrumentSerif-Regular',
-                  fontSize: 36,
-                  lineHeight: 38,
-                  color: ONBOARDING_COLORS.textPrimary,
-                  letterSpacing: -0.7,
-                  marginBottom: 8,
-                }}
+                accessibilityRole="header"
+                style={[type.largeTitle, { color: oc.textPrimary, marginBottom: space.xs }]}
               >
-                {t('onboarding.obSignInTitleLead' as never)}
-                {'\n'}
-                <Text
-                  style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}
-                >
-                  {t('onboarding.obSignInTitleAccent' as never)}
-                </Text>
+                {t('onboarding.obSignInTitle' as never)}
               </Animated.Text>
               <Animated.Text
                 entering={FadeInUp.delay(60).duration(320)}
-                style={{
-                  fontSize: 14.5,
-                  color: ONBOARDING_COLORS.textSecondary,
-                  lineHeight: 21,
-                  marginBottom: 28,
-                }}
+                style={[type.subhead, { color: oc.textSecondary, marginBottom: space.xl }]}
               >
                 {t('onboarding.obSignInSubtitle')}
               </Animated.Text>
 
-              <Animated.View entering={FadeInUp.delay(120).duration(320)} style={{ gap: 11 }}>
+              <Animated.View entering={FadeInUp.delay(120).duration(280)} style={{ gap: space.sm }}>
                 {process.env.EXPO_OS === 'ios' ? (
-                  <Pressable onPress={handleApple} style={authButton(ONBOARDING_COLORS.textWhite)}>
-                    <AppleGlyph size={18} color={ONBOARDING_COLORS.background} />
-                    <Text
-                      style={{
-                        fontSize: 15.5,
-                        fontWeight: '600',
-                        color: ONBOARDING_COLORS.background,
-                      }}
-                    >
+                  <Pressable onPress={handleApple} style={authButton(oc.textWhite)}>
+                    <AppleGlyph size={18} color={oc.background} />
+                    <Text style={[type.bodyStrong, { color: oc.background }]}>
                       {t('auth.continueWithApple')}
                     </Text>
                   </Pressable>
                 ) : null}
                 <Pressable
                   onPress={handleGoogle}
-                  style={authButton(ONBOARDING_COLORS.cardBg, ONBOARDING_COLORS.cardBorderDefault)}
+                  style={authButton(oc.cardBg, oc.cardBorderDefault)}
                 >
                   <GoogleGlyph size={18} />
-                  <Text
-                    style={{
-                      fontSize: 15.5,
-                      fontWeight: '600',
-                      color: ONBOARDING_COLORS.textPrimary,
-                    }}
-                  >
+                  <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
                     {t('auth.continueWithGoogle')}
                   </Text>
                 </Pressable>
 
                 <View
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 6 }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: space.sm,
+                    marginVertical: space.xxs,
+                  }}
                 >
-                  <View style={{ flex: 1, height: 1, backgroundColor: ONBOARDING_COLORS.line }} />
-                  <Text
-                    style={{
-                      fontFamily: 'GeistMono-Medium',
-                      fontSize: 10,
-                      letterSpacing: 1.2,
-                      textTransform: 'uppercase',
-                      color: ONBOARDING_COLORS.textMuted,
-                    }}
-                  >
+                  <View style={{ flex: 1, height: 1, backgroundColor: oc.line }} />
+                  <Text style={[type.caption, { color: oc.textMuted }]}>
                     {t('onboarding.obAccountOrEmail')}
                   </Text>
-                  <View style={{ flex: 1, height: 1, backgroundColor: ONBOARDING_COLORS.line }} />
+                  <View style={{ flex: 1, height: 1, backgroundColor: oc.line }} />
                 </View>
 
                 <TextInput
                   value={email}
                   onChangeText={setEmail}
                   placeholder={t('auth.email')}
-                  placeholderTextColor={ONBOARDING_COLORS.textMuted}
+                  placeholderTextColor={oc.textMuted}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   autoComplete="email"
-                  style={authInput}
+                  style={[authInput, authInputColors(oc)]}
                 />
                 <TextInput
                   value={password}
                   onChangeText={setPassword}
                   placeholder={t('auth.password')}
-                  placeholderTextColor={ONBOARDING_COLORS.textMuted}
+                  placeholderTextColor={oc.textMuted}
                   secureTextEntry
                   autoComplete="password"
-                  style={authInput}
+                  style={[authInput, authInputColors(oc)]}
                 />
                 {sendFailed ? (
                   <Animated.Text
                     entering={FadeInUp.duration(220)}
                     accessibilityLiveRegion="polite"
-                    style={{ fontSize: 13, color: ONBOARDING_COLORS.error, paddingHorizontal: 2 }}
+                    style={[type.label, { color: oc.error }]}
                   >
                     {t('auth.codeSendFailed')}
                   </Animated.Text>
@@ -317,17 +284,14 @@ export default function OnboardingSignInScreen() {
                       flexDirection: 'row',
                       flexWrap: 'wrap',
                       alignItems: 'center',
-                      gap: 4,
-                      paddingHorizontal: 2,
+                      gap: space.xxs,
                     }}
                   >
-                    <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.error }}>
+                    <Text style={[type.label, { color: oc.error }]}>
                       {t('onboarding.obSignInNotFound' as never)}
                     </Text>
                     <Pressable onPress={goToGetStarted} hitSlop={8}>
-                      <Text
-                        style={{ fontSize: 13, fontWeight: '600', color: ONBOARDING_COLORS.warm2 }}
-                      >
+                      <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: oc.warm2 }]}>
                         {t('onboarding.obSignInCreateOne' as never)}
                       </Text>
                     </Pressable>
@@ -343,11 +307,11 @@ export default function OnboardingSignInScreen() {
                 <Pressable
                   onPress={goToGetStarted}
                   hitSlop={8}
-                  style={{ alignSelf: 'center', marginTop: 10 }}
+                  style={{ alignSelf: 'center', justifyContent: 'center', minHeight: 44 }}
                 >
-                  <Text style={{ fontSize: 13.5, color: ONBOARDING_COLORS.textSecondary }}>
+                  <Text style={[type.label, { color: oc.textSecondary }]}>
                     {t('onboarding.obSignInNewHere' as never)}{' '}
-                    <Text style={{ color: ONBOARDING_COLORS.warm2, fontWeight: '600' }}>
+                    <Text style={[SYSTEM_WEIGHT.semibold, { color: oc.warm2 }]}>
                       {t('onboarding.obSignInGetStarted' as never)}
                     </Text>
                   </Text>
@@ -366,46 +330,18 @@ export default function OnboardingSignInScreen() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: `${ONBOARDING_COLORS.background}E6`,
+            backgroundColor: withAlpha(oc.background, 0.9),
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 14,
+            gap: space.sm,
           }}
         >
-          <ActivityIndicator size="large" color={ONBOARDING_COLORS.warm} />
-          <Text style={{ fontSize: 13.5, color: ONBOARDING_COLORS.textSecondary }}>
+          <ActivityIndicator size="large" color={oc.warm} />
+          <Text style={[type.subhead, { color: oc.textSecondary }]}>
             {t('onboarding.obSignInSigningIn' as never)}
           </Text>
         </View>
       ) : null}
     </View>
   );
-}
-
-const authInput = {
-  backgroundColor: ONBOARDING_COLORS.cardBg,
-  borderWidth: 1,
-  borderColor: ONBOARDING_COLORS.cardBorderDefault,
-  borderRadius: 14,
-  borderCurve: 'continuous' as const,
-  paddingHorizontal: 16,
-  paddingVertical: 15,
-  fontSize: 15,
-  color: ONBOARDING_COLORS.textPrimary,
-};
-
-function authButton(backgroundColor: string, borderColor?: string) {
-  return {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    gap: 10,
-    paddingVertical: 15,
-    paddingHorizontal: 18,
-    borderRadius: 15,
-    borderCurve: 'continuous' as const,
-    backgroundColor,
-    borderWidth: borderColor ? 1 : 0,
-    borderColor: borderColor ?? 'transparent',
-  };
 }

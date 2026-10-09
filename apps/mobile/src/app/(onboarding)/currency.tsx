@@ -1,20 +1,23 @@
-import { palette } from '@motovault/design-system';
 import type { Currency } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { CURRENCY_LIST } from '../../lib/currencies';
 import { detectCurrency } from '../../lib/locale-detection';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { type } from '../../theme/type';
 
 export default function CurrencyScreen() {
+  const oc = useOnboardingColors();
+  const { t } = useTranslation();
   const router = useRouter();
   const setCurrency = useOnboardingStore((s) => s.setCurrency);
   const existingCurrency = useOnboardingStore((s) => s.currency);
@@ -42,19 +45,13 @@ export default function CurrencyScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={7} totalScreens={TOTAL_SCREENS} />
 
       <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 48 }}>
         <Animated.Text
           entering={FadeInDown.duration(300)}
-          style={{
-            fontSize: 36,
-            fontWeight: '800',
-            color: ONBOARDING_COLORS.textPrimary,
-            letterSpacing: -0.5,
-            marginBottom: 8,
-          }}
+          style={[type.largeTitle, { color: oc.textPrimary, marginBottom: 8 }]}
         >
           Your currency
         </Animated.Text>
@@ -63,7 +60,7 @@ export default function CurrencyScreen() {
           entering={FadeInDown.delay(50).duration(300)}
           style={{
             fontSize: 16,
-            color: ONBOARDING_COLORS.textSecondary,
+            color: oc.textSecondary,
             marginBottom: 24,
           }}
         >
@@ -87,12 +84,12 @@ export default function CurrencyScreen() {
                     borderRadius: 14,
                     borderCurve: 'continuous',
                     backgroundColor: isSelected
-                      ? `${palette.primary500}18`
+                      ? oc.cardBgSelected
                       : pressed
-                        ? `${palette.neutral500}10`
+                        ? oc.surface2
                         : 'transparent',
                     borderWidth: isSelected ? 1.5 : 1,
-                    borderColor: isSelected ? palette.primary500 : `${palette.neutral500}30`,
+                    borderColor: isSelected ? oc.warm : oc.cardBorderDefault,
                     transform: [{ scale: pressed ? 0.98 : 1 }],
                   })}
                 >
@@ -101,7 +98,7 @@ export default function CurrencyScreen() {
                       fontSize: 22,
                       fontWeight: '700',
                       width: 48,
-                      color: ONBOARDING_COLORS.textPrimary,
+                      color: oc.textPrimary,
                     }}
                   >
                     {item.symbol}
@@ -111,7 +108,7 @@ export default function CurrencyScreen() {
                       style={{
                         fontSize: 16,
                         fontWeight: '600',
-                        color: ONBOARDING_COLORS.textPrimary,
+                        color: oc.textPrimary,
                       }}
                     >
                       {item.code}
@@ -119,14 +116,14 @@ export default function CurrencyScreen() {
                     <Text
                       style={{
                         fontSize: 13,
-                        color: ONBOARDING_COLORS.textSecondary,
+                        color: oc.textSecondary,
                         marginTop: 1,
                       }}
                     >
                       {item.name}
                     </Text>
                   </View>
-                  {isSelected && <Check size={20} color={palette.primary500} strokeWidth={3} />}
+                  {isSelected && <Check size={20} color={oc.warm} strokeWidth={3} />}
                 </Pressable>
               </Animated.View>
             );
@@ -148,7 +145,7 @@ export default function CurrencyScreen() {
         <Pressable
           onPress={handleContinue}
           style={({ pressed }) => ({
-            backgroundColor: palette.primary500,
+            backgroundColor: oc.warm,
             paddingVertical: 16,
             borderRadius: 14,
             borderCurve: 'continuous',
@@ -156,7 +153,9 @@ export default function CurrencyScreen() {
             transform: [{ scale: pressed ? 0.98 : 1 }],
           })}
         >
-          <Text style={{ fontSize: 17, fontWeight: '700', color: '#fff' }}>Continue</Text>
+          <Text style={[type.bodyStrong, { color: oc.textOnAccent }]}>
+            {t('onboarding.continue')}
+          </Text>
         </Pressable>
       </View>
     </View>

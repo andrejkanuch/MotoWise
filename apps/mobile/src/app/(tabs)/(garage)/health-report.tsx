@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import {
   ExpensesByMotorcycleDocument,
   GenerateBikeHealthReportDocument,
@@ -27,6 +26,7 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
+import { space, type } from '../../../theme/type';
 import { triggerImpact } from '../../../utils/haptics';
 
 const MIN_RECORDS_REQUIRED = 3;
@@ -187,11 +187,11 @@ export default function HealthReportScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 {bike.nickname ? (
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: t.warm, marginBottom: 1 }}>
+                  <Text style={{ ...type.label, color: t.ink2, marginBottom: 1 }}>
                     {bike.nickname}
                   </Text>
                 ) : null}
-                <Text style={{ fontSize: 16, fontWeight: '700', color: t.ink }}>{bikeName}</Text>
+                <Text style={{ ...type.bodyStrong, color: t.ink }}>{bikeName}</Text>
               </View>
             </View>
           </Animated.View>
@@ -216,7 +216,7 @@ export default function HealthReportScreen() {
               }}
             >
               <ActivityIndicator size="small" color={t.warm} />
-              <Text style={{ fontSize: 15, fontWeight: '700', color: t.ink, textAlign: 'center' }}>
+              <Text style={{ ...type.bodyStrong, color: t.ink, textAlign: 'center' }}>
                 {i18n('healthReport.generating')}
               </Text>
               <Text style={{ fontSize: 13, color: t.ink3, textAlign: 'center', lineHeight: 18 }}>
@@ -250,8 +250,7 @@ export default function HealthReportScreen() {
               </View>
               <Text
                 style={{
-                  fontFamily: 'InstrumentSerif-Regular',
-                  fontSize: 22,
+                  ...type.sheetTitle,
                   color: t.ink,
                   textAlign: 'center',
                 }}
@@ -279,8 +278,8 @@ export default function HealthReportScreen() {
                     transform: [{ scale: pressed ? 0.97 : 1 }],
                   })}
                 >
-                  <Download size={16} color={palette.white} strokeWidth={2} />
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                  <Download size={16} color={t.onWarm} strokeWidth={2} />
+                  <Text style={{ ...type.bodyStrong, color: t.onWarm }}>
                     {i18n('healthReport.downloadReport')}
                   </Text>
                 </Pressable>
@@ -328,8 +327,8 @@ export default function HealthReportScreen() {
                   transform: [{ scale: pressed ? 0.97 : 1 }],
                 })}
               >
-                <RefreshCw size={16} color={palette.white} strokeWidth={2} />
-                <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                <RefreshCw size={16} color={t.onWarm} strokeWidth={2} />
+                <Text style={{ ...type.bodyStrong, color: t.onWarm }}>
                   {i18n('common.retry', { defaultValue: 'Retry' })}
                 </Text>
               </Pressable>
@@ -352,16 +351,11 @@ export default function HealthReportScreen() {
                   transform: [{ scale: pressed && hasEnoughData ? 0.97 : 1 }],
                 })}
               >
-                <HeartPulse
-                  size={18}
-                  color={hasEnoughData ? palette.white : t.ink3}
-                  strokeWidth={2}
-                />
+                <HeartPulse size={18} color={hasEnoughData ? t.onWarm : t.ink3} strokeWidth={2} />
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontWeight: '700',
-                    color: hasEnoughData ? palette.white : t.ink3,
+                    ...type.bodyStrong,
+                    color: hasEnoughData ? t.onWarm : t.ink3,
                   }}
                 >
                   {i18n('healthReport.generateButton')}
@@ -413,13 +407,11 @@ export default function HealthReportScreen() {
             style={{ paddingHorizontal: 20, marginTop: 20 }}
           >
             <Text
+              accessibilityRole="header"
               style={{
-                fontSize: 11,
-                fontWeight: '700',
-                color: t.ink2,
-                marginBottom: 10,
-                textTransform: 'uppercase',
-                letterSpacing: 2.2,
+                ...type.sectionTitle,
+                color: t.ink,
+                marginBottom: space.xs,
               }}
             >
               {i18n('healthReport.pastReports')}
@@ -513,7 +505,7 @@ function ReportRow({
           <StatusIcon size={18} color={statusColor} strokeWidth={2} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: t.ink }}>{statusLabel}</Text>
+          <Text style={{ ...type.bodyStrong, fontSize: 15, color: t.ink }}>{statusLabel}</Text>
           <Text style={{ fontSize: 12, color: t.ink3, marginTop: 2 }}>{dateStr}</Text>
         </View>
         {report.status === 'completed' && report.pdfUrl && (

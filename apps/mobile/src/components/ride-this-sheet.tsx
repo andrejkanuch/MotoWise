@@ -10,15 +10,7 @@ import {
   X,
 } from 'lucide-react-native';
 import { useMemo } from 'react';
-import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -28,6 +20,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NavProvider, RideThisProviderState } from '../hooks/use-ride-this';
+import { useEditorialTheme } from '../theme/editorial';
 
 interface RideThisSheetProps {
   visible: boolean;
@@ -77,6 +70,7 @@ function DayPill({
   pillBg: string;
   textColor: string;
 }) {
+  const { t: theme } = useEditorialTheme();
   return (
     <Pressable
       onPress={onPress}
@@ -88,7 +82,7 @@ function DayPill({
         paddingHorizontal: 18,
         borderRadius: 22,
         borderCurve: 'continuous',
-        backgroundColor: selected ? palette.accent500 : pillBg,
+        backgroundColor: selected ? theme.warm : pillBg,
         alignItems: 'center',
         justifyContent: 'center',
       }}
@@ -98,7 +92,7 @@ function DayPill({
           fontSize: 14,
           fontWeight: '700',
           letterSpacing: -0.1,
-          color: selected ? palette.white : textColor,
+          color: selected ? theme.onWarm : textColor,
         }}
       >
         {label}
@@ -132,6 +126,7 @@ function ProviderRow({
   bodyColor: string;
   mutedColor: string;
 }) {
+  const { t: theme } = useEditorialTheme();
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -174,9 +169,9 @@ function ProviderRow({
           }}
         >
           {showSpinner ? (
-            <ActivityIndicator size="small" color={palette.accent500} />
+            <ActivityIndicator size="small" color={theme.warm} />
           ) : (
-            <Icon size={20} color={disabled ? mutedColor : palette.accent500} />
+            <Icon size={20} color={disabled ? mutedColor : theme.warm} />
           )}
         </View>
         <View style={{ flex: 1 }}>
@@ -219,18 +214,18 @@ export function RideThisSheet({
   onSelectDay,
   availableDays = [],
 }: RideThisSheetProps) {
-  const isDark = useColorScheme() === 'dark';
+  const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
 
-  const bg = isDark ? palette.neutral950 : palette.white;
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const bodyColor = isDark ? palette.neutral400 : palette.neutral500;
-  const mutedColor = isDark ? palette.neutral500 : palette.neutral400;
-  const dividerColor = isDark ? palette.neutral800 : palette.neutral200;
-  const rowBg = isDark ? palette.neutral900 : palette.neutral50;
-  const closeBg = isDark ? palette.neutral800 : palette.neutral100;
-  const pillBg = isDark ? palette.surfaceSubtle : palette.neutral100;
-  const pillTextColor = isDark ? palette.white : palette.neutral950;
+  const bg = theme.surface;
+  const titleColor = theme.ink;
+  const bodyColor = theme.ink2;
+  const mutedColor = theme.ink3;
+  const dividerColor = theme.line;
+  const rowBg = theme.surface2;
+  const closeBg = theme.surface2;
+  const pillBg = theme.surface2;
+  const pillTextColor = theme.ink;
 
   const showDayPills = availableDays.length > 1;
 
@@ -311,14 +306,14 @@ export function RideThisSheet({
               padding: 16,
               borderRadius: 16,
               borderCurve: 'continuous',
-              backgroundColor: palette.accent500,
+              backgroundColor: theme.warm,
             }}
           >
             <Text
               style={{
                 fontSize: 11,
                 fontWeight: '700',
-                color: palette.white,
+                color: theme.onWarm,
                 letterSpacing: 0.8,
                 textTransform: 'uppercase',
                 opacity: 0.85,
@@ -331,7 +326,7 @@ export function RideThisSheet({
               style={{
                 fontSize: 17,
                 fontWeight: '700',
-                color: palette.white,
+                color: theme.onWarm,
                 marginBottom: 12,
                 letterSpacing: -0.3,
               }}
@@ -343,7 +338,7 @@ export function RideThisSheet({
               accessibilityRole="button"
               accessibilityLabel={`Open segment ${activeSegment.index + 2} of ${activeSegment.total}`}
               style={{
-                backgroundColor: palette.white,
+                backgroundColor: theme.onWarm,
                 paddingVertical: 12,
                 paddingHorizontal: 16,
                 borderRadius: 12,
@@ -358,14 +353,14 @@ export function RideThisSheet({
                 style={{
                   fontSize: 15,
                   fontWeight: '700',
-                  color: palette.accent500,
+                  color: theme.warm,
                 }}
               >
                 {activeSegment.index + 1 >= activeSegment.total - 1
                   ? 'Open final segment'
                   : `Open segment ${activeSegment.index + 2}`}
               </Text>
-              <ArrowRight size={16} color={palette.accent500} />
+              <ArrowRight size={16} color={theme.warm} />
             </Pressable>
           </Animated.View>
         )}
@@ -427,7 +422,7 @@ export function RideThisSheet({
                   showSpinner={!!showSpinner}
                   onPress={() => !showSpinner && onProvider(provider)}
                   rowBg={rowBg}
-                  iconBg={isDark ? palette.neutral800 : palette.white}
+                  iconBg={theme.surface2}
                   titleColor={titleColor}
                   bodyColor={bodyColor}
                   mutedColor={mutedColor}
@@ -468,6 +463,7 @@ export function RideThisStickyCta({
   subtitle?: string;
   disabled?: boolean;
 }) {
+  const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
@@ -503,7 +499,7 @@ export function RideThisStickyCta({
           accessibilityRole="button"
           accessibilityLabel={`Ride this${subtitle ? `. ${subtitle}` : ''}`}
           style={{
-            backgroundColor: disabled ? palette.neutral500 : palette.accent500,
+            backgroundColor: disabled ? theme.surface3 : theme.warm,
             paddingVertical: 16,
             paddingHorizontal: 20,
             borderRadius: 16,
@@ -520,10 +516,10 @@ export function RideThisStickyCta({
             opacity: disabled ? 0.7 : 1,
           }}
         >
-          <Navigation size={18} color={palette.white} />
+          <Navigation size={18} color={disabled ? theme.ink3 : theme.onWarm} />
           <Text
             style={{
-              color: palette.white,
+              color: disabled ? theme.ink3 : theme.onWarm,
               fontSize: 16,
               fontWeight: '700',
               letterSpacing: 0.2,
@@ -538,7 +534,7 @@ export function RideThisStickyCta({
           style={{
             textAlign: 'center',
             fontSize: 11,
-            color: palette.white,
+            color: theme.ink2,
             marginTop: 6,
             opacity: 0.8,
           }}

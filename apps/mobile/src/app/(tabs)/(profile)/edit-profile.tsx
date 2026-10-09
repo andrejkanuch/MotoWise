@@ -1,442 +1,457 @@
-import { palette } from '@motovault/design-system';
-import { MeDocument, UpdateMyProfileDocument } from '@motovault/graphql';
+import { UpdateMyProfileDocument, UpdateUserDocument } from '@motovault/graphql';
+import { ExperienceLevel, RidingGoal } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { router, Stack } from 'expo-router';
-import { AlertCircle, CheckCircle2, Globe, X } from 'lucide-react-native';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { router, Stack, useNavigation } from 'expo-router';
+import { usePreventRemove } from 'expo-router/react-navigation';
+import { AlertCircle, CheckCircle2, Globe } from 'lucide-react-native';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-import { NativeToggle } from '../../../components/ui/native-toggle';
+  EOptionRow,
+  ESectionFooter,
+  ESectionLabel,
+  ESettingsGroup,
+  EToggleRow,
+} from '../../../components/ui/editorial';
 import { useHydratedFormState } from '../../../hooks/use-hydrated-form-state';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { userFriendlyError } from '../../../lib/graphql-errors';
 import { queryKeys } from '../../../lib/query-keys';
 import { meOptions } from '../../../lib/query-options';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { tint, useEditorialTheme } from '../../../theme/editorial';
+import { GUTTER, radius, space, type } from '../../../theme/type';
+import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
-function haptic() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
+/* ─── Riding profile options ─── */
+
+const EXPERIENCE_LEVELS = [
+  { key: ExperienceLevel.BEGINNER, labelKey: 'settings.experienceBeginner' },
+  { key: ExperienceLevel.INTERMEDIATE, labelKey: 'settings.experienceIntermediate' },
+  { key: ExperienceLevel.ADVANCED, labelKey: 'settings.experienceAdvanced' },
+] as const;
+
+const RIDING_GOALS = [
+  { key: RidingGoal.TRACK_RIDES, labelKey: 'settings.goalTrackRides' },
+  { key: RidingGoal.MANAGE_EXPENSES, labelKey: 'settings.goalManageExpenses' },
+  { key: RidingGoal.DISCOVER_ROUTES, labelKey: 'settings.goalDiscoverRoutes' },
+  { key: RidingGoal.MAINTAIN_BIKE, labelKey: 'settings.goalMaintainBike' },
+  { key: RidingGoal.JUST_EXPLORING, labelKey: 'settings.goalJustExploring' },
+] as const;
+
+const USERNAME_PATTERN = /^[a-z0-9_]{3,30}$/;
+const USERNAME_DEBOUNCE_MS = 500;
+const BIO_MAX = 200;
+
+const USERNAME_STATUS = {
+  IDLE: 'idle',
+  VALID: 'valid',
+  INVALID: 'invalid',
+} as const;
+type UsernameStatus = (typeof USERNAME_STATUS)[keyof typeof USERNAME_STATUS];
+
+type FormValues = {
+  publicUsername: string;
+  displayName: string;
+  bio: string;
+  city: string;
+  isPublic: boolean;
+  fullName: string;
+  experienceLevel: ExperienceLevel;
+  ridingGoals: string[];
+};
+
+type UserPreferences = { experienceLevel?: string; ridingGoals?: string[] };
+
+const PUBLIC_FIELDS = ['publicUsername', 'displayName', 'bio', 'city', 'isPublic'] as const;
+
+function sameGoals(a: string[], b: string[]) {
+  return JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
 }
 
-function hapticSuccess() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-  }
-}
-
-/** Debounce hook */
 function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
-    const t = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
   }, [value, delay]);
   return debounced;
 }
 
+/** A labelled text field inside an inset group. */
+function FieldRow({
+  label,
+  children,
+  isLast,
+  trailing,
+}: {
+  label: string;
+  children: ReactNode;
+  isLast?: boolean;
+  trailing?: ReactNode;
+}) {
+  const { t } = useEditorialTheme();
+  return (
+    <View
+      style={{
+        paddingHorizontal: space.md,
+        paddingTop: space.sm,
+        paddingBottom: space.xs,
+        borderBottomWidth: isLast ? 0 : 0.5,
+        borderBottomColor: t.line,
+      }}
+    >
+      <Text style={[type.caption, { color: t.ink3 }]}>{label}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs, minHeight: 36 }}>
+        {children}
+        {trailing}
+      </View>
+    </View>
+  );
+}
+
+/**
+ * Edit profile — the one place a rider edits who they are: the public profile
+ * other riders see, and the private riding profile (name, experience, goals)
+ * that tunes the app. Saved together from the header.
+ */
 export default function EditProfileScreen() {
   const { t } = useTranslation();
-  const { isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
+  const navigation = useNavigation();
 
-  // Load current profile data
   const meQuery = useQuery(meOptions());
   const user = meQuery.data?.me;
 
-  // Form state
-  const [publicUsername, setPublicUsername] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [bio, setBio] = useState('');
-  const [city, setCity] = useState('');
-  const [isPublic, setIsPublic] = useState(false);
+  const [initial, setInitial] = useState<FormValues | null>(null);
+  const [form, setForm] = useState<FormValues | null>(null);
+  const [leaveAfterSave, setLeaveAfterSave] = useState(false);
 
-  // Track whether form has been modified
-  const [isDirty, setIsDirty] = useState(false);
-  const initialValuesRef = useRef<{
-    publicUsername: string;
-    displayName: string;
-    bio: string;
-    city: string;
-    isPublic: boolean;
-  } | null>(null);
-
-  // Populate form when user data loads (once)
   useHydratedFormState(user, (u) => {
-    const values = {
-      publicUsername: ((u as Record<string, unknown>).publicUsername as string) ?? '',
-      displayName: ((u as Record<string, unknown>).displayName as string) ?? '',
-      bio: ((u as Record<string, unknown>).bio as string) ?? '',
-      city: ((u as Record<string, unknown>).city as string) ?? '',
-      isPublic: ((u as Record<string, unknown>).isPublic as boolean) ?? false,
+    const prefs = u.preferences as UserPreferences | null | undefined;
+    const values: FormValues = {
+      publicUsername: u.publicUsername ?? '',
+      displayName: u.displayName ?? '',
+      bio: u.bio ?? '',
+      city: u.city ?? '',
+      isPublic: u.isPublic ?? false,
+      fullName: u.fullName ?? '',
+      experienceLevel: (prefs?.experienceLevel as ExperienceLevel) ?? ExperienceLevel.BEGINNER,
+      ridingGoals: prefs?.ridingGoals ?? [],
     };
-    initialValuesRef.current = values;
-    setPublicUsername(values.publicUsername);
-    setDisplayName(values.displayName);
-    setBio(values.bio);
-    setCity(values.city);
-    setIsPublic(values.isPublic);
+    setInitial(values);
+    setForm(values);
   });
 
-  // Track dirty state
-  useEffect(() => {
-    if (!initialValuesRef.current) return;
-    const iv = initialValuesRef.current;
-    const dirty =
-      publicUsername !== iv.publicUsername ||
-      displayName !== iv.displayName ||
-      bio !== iv.bio ||
-      city !== iv.city ||
-      isPublic !== iv.isPublic;
-    setIsDirty(dirty);
-  }, [publicUsername, displayName, bio, city, isPublic]);
+  const set = <K extends keyof FormValues>(key: K, value: FormValues[K]) =>
+    setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
 
-  // Username validation (debounced)
-  const debouncedUsername = useDebounce(publicUsername, 500);
-  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>(
-    'idle',
-  );
-
-  useEffect(() => {
-    if (!debouncedUsername || debouncedUsername === initialValuesRef.current?.publicUsername) {
-      setUsernameStatus('idle');
-      return;
+  const changes = useMemo(() => {
+    if (!form || !initial) return { publicInput: {}, userInput: {}, ridingChanged: false };
+    const publicInput: Partial<Pick<FormValues, (typeof PUBLIC_FIELDS)[number]>> = {};
+    for (const field of PUBLIC_FIELDS) {
+      if (form[field] !== initial[field]) Object.assign(publicInput, { [field]: form[field] });
     }
-
-    // Client-side validation first
-    const usernameRegex = /^[a-z0-9_]{3,30}$/;
-    if (!usernameRegex.test(debouncedUsername)) {
-      setUsernameStatus('invalid');
-      return;
+    const userInput: { fullName?: string; preferences?: Record<string, unknown> } = {};
+    const trimmedName = form.fullName.trim();
+    if (trimmedName && trimmedName !== initial.fullName) userInput.fullName = trimmedName;
+    const ridingChanged =
+      form.experienceLevel !== initial.experienceLevel ||
+      !sameGoals(form.ridingGoals, initial.ridingGoals);
+    if (ridingChanged) {
+      userInput.preferences = {
+        experienceLevel: form.experienceLevel,
+        ridingGoals: form.ridingGoals,
+      };
     }
+    return { publicInput, userInput, ridingChanged };
+  }, [form, initial]);
 
-    // Server-side uniqueness check via a lightweight profile lookup
-    setUsernameStatus('checking');
-    gqlFetcher(MeDocument)
-      .then(() => {
-        // If we get here, the username check passed (server validates on save)
-        // For now, mark as valid if it passes regex
-        setUsernameStatus('valid');
-      })
-      .catch(() => {
-        setUsernameStatus('invalid');
-      });
-  }, [debouncedUsername]);
+  const isDirty =
+    Object.keys(changes.publicInput).length > 0 || Object.keys(changes.userInput).length > 0;
 
-  // Guard ref for save button
-  const guardRef = useRef(false);
+  // Username format check (debounced). Uniqueness is enforced by the server on save.
+  const debouncedUsername = useDebounce(form?.publicUsername ?? '', USERNAME_DEBOUNCE_MS);
+  const usernameStatus: UsernameStatus =
+    !debouncedUsername || debouncedUsername === initial?.publicUsername
+      ? USERNAME_STATUS.IDLE
+      : USERNAME_PATTERN.test(debouncedUsername)
+        ? USERNAME_STATUS.VALID
+        : USERNAME_STATUS.INVALID;
 
-  const updateMutation = useMutation({
-    mutationFn: (input: {
-      publicUsername?: string;
-      displayName?: string;
-      bio?: string;
-      city?: string;
-      isPublic?: boolean;
-    }) => gqlFetcher(UpdateMyProfileDocument, { input }),
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (Object.keys(changes.publicInput).length > 0) {
+        await gqlFetcher(UpdateMyProfileDocument, { input: changes.publicInput });
+      }
+      if (Object.keys(changes.userInput).length > 0) {
+        await gqlFetcher(UpdateUserDocument, { input: changes.userInput });
+      }
+    },
     onSuccess: () => {
-      hapticSuccess();
-      trackEvent(AnalyticsEvent.PROFILE_EDITED);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
+      if (Object.keys(changes.publicInput).length > 0) trackEvent(AnalyticsEvent.PROFILE_EDITED);
+      if (changes.ridingChanged && form) {
+        trackEvent(AnalyticsEvent.SETTINGS_CHANGED, {
+          experience_level: form.experienceLevel,
+          goals_count: form.ridingGoals.length,
+        });
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
-      // Update initial values so isDirty resets
-      initialValuesRef.current = { publicUsername, displayName, bio, city, isPublic };
-      setIsDirty(false);
-      router.back();
+      setInitial(form);
+      setLeaveAfterSave(true);
     },
     onError: (error) => {
       Alert.alert(t('common.error'), userFriendlyError(error));
     },
   });
 
-  const handleSave = useCallback(() => {
-    if (guardRef.current) return;
-    guardRef.current = true;
-    setTimeout(() => {
-      guardRef.current = false;
-    }, 1000);
+  // Leave once the saved values are the new baseline, so the unsaved-changes
+  // guard below no longer holds the screen.
+  useEffect(() => {
+    if (leaveAfterSave && !isDirty) router.back();
+  }, [leaveAfterSave, isDirty]);
 
-    haptic();
+  usePreventRemove(isDirty && !saveMutation.isPending, ({ data }) => {
+    Alert.alert(t('community.unsavedChanges'), t('community.unsavedChangesDesc'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('community.discard'),
+        style: 'destructive',
+        onPress: () => navigation.dispatch(data.action),
+      },
+    ]);
+  });
 
-    // When toggling isPublic ON, prompt for username if not set
-    if (isPublic && !publicUsername.trim()) {
+  const handleSave = () => {
+    if (!form || saveMutation.isPending) return;
+    triggerImpact();
+    if (form.isPublic && !form.publicUsername.trim()) {
       Alert.alert(t('community.usernameRequired'), t('community.usernameRequiredDesc'));
       return;
     }
+    saveMutation.mutate();
+  };
 
-    const input: Record<string, unknown> = {};
-    const iv = initialValuesRef.current;
-    if (!iv) return;
-
-    if (publicUsername !== iv.publicUsername) input.publicUsername = publicUsername;
-    if (displayName !== iv.displayName) input.displayName = displayName;
-    if (bio !== iv.bio) input.bio = bio;
-    if (city !== iv.city) input.city = city;
-    if (isPublic !== iv.isPublic) input.isPublic = isPublic;
-
-    updateMutation.mutate(input);
-  }, [publicUsername, displayName, bio, city, isPublic, updateMutation, t]);
-
-  // Warn on swipe-back with unsaved changes
-  const handleDismiss = useCallback(() => {
-    if (isDirty) {
-      Alert.alert(t('community.unsavedChanges'), t('community.unsavedChangesDesc'), [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('community.discard'),
-          style: 'destructive',
-          onPress: () => router.back(),
-        },
-      ]);
-    } else {
-      router.back();
-    }
-  }, [isDirty, t]);
-
-  const bgColor = isDark ? palette.neutral950 : palette.white;
-  const cardBg = isDark ? palette.surfaceElevated : palette.neutral50;
-  const textColor = isDark ? palette.white : palette.neutral950;
-  const labelColor = isDark ? palette.neutral400 : palette.neutral500;
-  const inputBg = isDark ? 'rgba(255,255,255,0.06)' : palette.neutral100;
-  const inputBorder = isDark ? 'rgba(255,255,255,0.1)' : palette.neutral200;
-  const placeholderColor = isDark ? palette.neutral600 : palette.neutral400;
+  const canSave = isDirty && !saveMutation.isPending;
+  const inputStyle = [type.body, { flex: 1, color: theme.ink, paddingVertical: space.xs }];
 
   return (
     <>
       <Stack.Screen
         options={{
-          headerShown: true,
-          title: t('community.editProfile'),
-          headerLeft: () => (
-            <Pressable onPress={handleDismiss} hitSlop={8}>
-              <X size={22} color={textColor} />
-            </Pressable>
-          ),
-          headerRight: () => (
-            <Pressable
-              onPress={handleSave}
-              disabled={!isDirty || updateMutation.isPending}
-              hitSlop={8}
-            >
-              {updateMutation.isPending ? (
-                <ActivityIndicator size="small" color={palette.primary500} />
-              ) : (
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '600',
-                    color: isDirty ? palette.primary500 : palette.neutral400,
-                  }}
-                >
+          headerRight: () =>
+            saveMutation.isPending ? (
+              <ActivityIndicator size="small" color={theme.ink3} />
+            ) : (
+              <Pressable
+                testID="edit-profile-save"
+                onPress={handleSave}
+                disabled={!canSave}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !canSave }}
+                style={{ minHeight: 44, justifyContent: 'center', paddingHorizontal: space.xxs }}
+              >
+                <Text style={[type.bodyStrong, { color: canSave ? theme.warm : theme.ink4 }]}>
                   {t('common.save')}
                 </Text>
-              )}
-            </Pressable>
-          ),
-          headerStyle: { backgroundColor: bgColor },
-          headerTitleStyle: { color: textColor },
-          headerShadowVisible: false,
+              </Pressable>
+            ),
         }}
       />
-      <KeyboardAvoidingView
-        behavior={process.env.EXPO_OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1, backgroundColor: bgColor }}
+      <KeyboardAwareScrollView
+        testID="edit-profile-screen"
+        bottomOffset={space.xl}
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
+        style={{ flex: 1, backgroundColor: theme.bg }}
+        contentContainerStyle={{
+          paddingHorizontal: GUTTER,
+          paddingTop: space.md,
+          paddingBottom: space.xxxl,
+          gap: space.xl,
+        }}
       >
-        <ScrollView
-          contentContainerStyle={{ padding: 20, gap: 20, paddingBottom: 60 }}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Public profile toggle */}
-          <Animated.View entering={FadeInUp.duration(280)}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: cardBg,
-                borderRadius: 14,
-                borderCurve: 'continuous',
-                padding: 16,
-                gap: 12,
-              }}
-            >
-              <Globe size={20} color={palette.primary500} strokeWidth={1.8} />
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 16, fontWeight: '600', color: textColor }}>
-                  {t('community.publicProfile')}
+        {!form ? (
+          <ActivityIndicator style={{ marginTop: space.xxl }} color={theme.ink3} />
+        ) : (
+          <>
+            {/* ─── Public profile ─── */}
+            <View>
+              <ESectionLabel label={t('community.publicProfile')} />
+              <ESettingsGroup>
+                <EToggleRow
+                  testID="edit-profile-public"
+                  icon={Globe}
+                  title={t('community.makePublic')}
+                  subtitle={t('community.publicProfileDesc')}
+                  value={form.isPublic}
+                  onValueChange={(value) => set('isPublic', value)}
+                />
+                <FieldRow
+                  label={t('community.username')}
+                  trailing={
+                    usernameStatus === USERNAME_STATUS.VALID ? (
+                      <CheckCircle2 size={18} color={theme.success} strokeWidth={2} />
+                    ) : usernameStatus === USERNAME_STATUS.INVALID ? (
+                      <AlertCircle size={18} color={theme.danger} strokeWidth={2} />
+                    ) : null
+                  }
+                >
+                  <Text style={[type.body, { color: theme.ink3 }]}>@</Text>
+                  <TextInput
+                    testID="edit-profile-username"
+                    value={form.publicUsername}
+                    onChangeText={(text) =>
+                      set('publicUsername', text.toLowerCase().replace(/[^a-z0-9_]/g, ''))
+                    }
+                    placeholder={t('community.usernamePlaceholder')}
+                    placeholderTextColor={theme.ink4}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    maxLength={30}
+                    accessibilityLabel={t('community.username')}
+                    style={inputStyle}
+                  />
+                </FieldRow>
+                <FieldRow label={t('community.displayName')}>
+                  <TextInput
+                    value={form.displayName}
+                    onChangeText={(text) => set('displayName', text)}
+                    placeholder={t('community.displayNamePlaceholder')}
+                    placeholderTextColor={theme.ink4}
+                    maxLength={50}
+                    accessibilityLabel={t('community.displayName')}
+                    style={inputStyle}
+                  />
+                </FieldRow>
+                <FieldRow
+                  label={t('community.bio')}
+                  trailing={
+                    <Text style={[type.caption, { color: theme.ink4, alignSelf: 'flex-end' }]}>
+                      {form.bio.length}/{BIO_MAX}
+                    </Text>
+                  }
+                >
+                  <TextInput
+                    value={form.bio}
+                    onChangeText={(text) => set('bio', text)}
+                    placeholder={t('community.bioPlaceholder')}
+                    placeholderTextColor={theme.ink4}
+                    multiline
+                    maxLength={BIO_MAX}
+                    accessibilityLabel={t('community.bio')}
+                    style={[...inputStyle, { minHeight: 72, textAlignVertical: 'top' }]}
+                  />
+                </FieldRow>
+                <FieldRow label={t('community.city')} isLast>
+                  <TextInput
+                    value={form.city}
+                    onChangeText={(text) => set('city', text)}
+                    placeholder={t('community.cityPlaceholder')}
+                    placeholderTextColor={theme.ink4}
+                    maxLength={100}
+                    accessibilityLabel={t('community.city')}
+                    style={inputStyle}
+                  />
+                </FieldRow>
+              </ESettingsGroup>
+              {usernameStatus === USERNAME_STATUS.INVALID ? (
+                <Text
+                  style={[
+                    type.caption,
+                    { color: theme.danger, marginTop: space.xs, marginHorizontal: space.md },
+                  ]}
+                >
+                  {t('community.usernameInvalid')}
                 </Text>
-                <Text style={{ fontSize: 13, color: labelColor, marginTop: 2 }}>
-                  {t('community.publicProfileDesc')}
+              ) : null}
+            </View>
+
+            {/* ─── Riding profile (private) ─── */}
+            <View>
+              <ESectionLabel label={t('profile.ridingProfile')} />
+              <ESettingsGroup>
+                <FieldRow label={t('settings.fullNameLabel')} isLast>
+                  <TextInput
+                    testID="edit-profile-full-name"
+                    value={form.fullName}
+                    onChangeText={(text) => set('fullName', text)}
+                    placeholder={t('settings.fullNamePlaceholder')}
+                    placeholderTextColor={theme.ink4}
+                    autoCapitalize="words"
+                    autoCorrect={false}
+                    accessibilityLabel={t('settings.fullNameLabel')}
+                    style={inputStyle}
+                  />
+                </FieldRow>
+              </ESettingsGroup>
+              <ESectionFooter>{t('profile.ridingProfileFooter')}</ESectionFooter>
+            </View>
+
+            <View>
+              <ESectionLabel label={t('settings.experienceLevelLabel')} />
+              <ESettingsGroup>
+                {EXPERIENCE_LEVELS.map((level) => (
+                  <EOptionRow
+                    key={level.key}
+                    testID={`edit-profile-experience-${level.key}`}
+                    title={t(level.labelKey)}
+                    selected={form.experienceLevel === level.key}
+                    onPress={() => set('experienceLevel', level.key)}
+                  />
+                ))}
+              </ESettingsGroup>
+            </View>
+
+            <View>
+              <ESectionLabel label={t('settings.ridingGoalsLabel')} />
+              <ESettingsGroup>
+                {RIDING_GOALS.map((goal) => {
+                  const selected = form.ridingGoals.includes(goal.key);
+                  return (
+                    <EOptionRow
+                      key={goal.key}
+                      multiple
+                      testID={`edit-profile-goal-${goal.key}`}
+                      title={t(goal.labelKey)}
+                      selected={selected}
+                      onPress={() =>
+                        set(
+                          'ridingGoals',
+                          selected
+                            ? form.ridingGoals.filter((g) => g !== goal.key)
+                            : [...form.ridingGoals, goal.key],
+                        )
+                      }
+                    />
+                  );
+                })}
+              </ESettingsGroup>
+            </View>
+
+            {saveMutation.isError ? (
+              <View
+                style={{
+                  padding: space.sm,
+                  borderRadius: radius.control,
+                  borderCurve: 'continuous',
+                  backgroundColor: tint(theme.danger, 0.12),
+                }}
+              >
+                <Text style={[type.subhead, { color: theme.danger }]}>
+                  {t('settings.saveError')}
                 </Text>
               </View>
-              <NativeToggle
-                value={isPublic}
-                onValueChange={(val) => {
-                  haptic();
-                  setIsPublic(val);
-                }}
-              />
-            </View>
-          </Animated.View>
-
-          {/* Username */}
-          <Animated.View entering={FadeInUp.delay(50).duration(280)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-              {t('community.username')}
-            </Text>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: inputBg,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                borderWidth: 1,
-                borderColor:
-                  usernameStatus === 'valid'
-                    ? palette.success500
-                    : usernameStatus === 'invalid'
-                      ? palette.danger500
-                      : inputBorder,
-                paddingHorizontal: 14,
-              }}
-            >
-              <Text style={{ fontSize: 16, color: labelColor }}>@</Text>
-              <TextInput
-                value={publicUsername}
-                onChangeText={(text) =>
-                  setPublicUsername(text.toLowerCase().replace(/[^a-z0-9_]/g, ''))
-                }
-                placeholder={t('community.usernamePlaceholder')}
-                placeholderTextColor={placeholderColor}
-                autoCapitalize="none"
-                autoCorrect={false}
-                maxLength={30}
-                style={{
-                  flex: 1,
-                  fontSize: 16,
-                  color: textColor,
-                  paddingVertical: 14,
-                  marginLeft: 2,
-                }}
-              />
-              {usernameStatus === 'checking' && (
-                <ActivityIndicator size="small" color={palette.neutral400} />
-              )}
-              {usernameStatus === 'valid' && (
-                <CheckCircle2 size={18} color={palette.success500} strokeWidth={2} />
-              )}
-              {usernameStatus === 'invalid' && (
-                <AlertCircle size={18} color={palette.danger500} strokeWidth={2} />
-              )}
-            </View>
-            {usernameStatus === 'invalid' && (
-              <Text style={{ fontSize: 12, color: palette.danger500, marginTop: 4, marginLeft: 4 }}>
-                {t('community.usernameInvalid')}
-              </Text>
-            )}
-          </Animated.View>
-
-          {/* Display Name */}
-          <Animated.View entering={FadeInUp.delay(100).duration(280)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-              {t('community.displayName')}
-            </Text>
-            <TextInput
-              value={displayName}
-              onChangeText={setDisplayName}
-              placeholder={t('community.displayNamePlaceholder')}
-              placeholderTextColor={placeholderColor}
-              maxLength={50}
-              style={{
-                fontSize: 16,
-                color: textColor,
-                backgroundColor: inputBg,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                borderWidth: 1,
-                borderColor: inputBorder,
-                paddingHorizontal: 14,
-                paddingVertical: 14,
-              }}
-            />
-          </Animated.View>
-
-          {/* Bio */}
-          <Animated.View entering={FadeInUp.delay(150).duration(280)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-              {t('community.bio')}
-            </Text>
-            <TextInput
-              value={bio}
-              onChangeText={setBio}
-              placeholder={t('community.bioPlaceholder')}
-              placeholderTextColor={placeholderColor}
-              multiline
-              maxLength={200}
-              style={{
-                fontSize: 16,
-                color: textColor,
-                backgroundColor: inputBg,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                borderWidth: 1,
-                borderColor: inputBorder,
-                paddingHorizontal: 14,
-                paddingVertical: 14,
-                minHeight: 80,
-                textAlignVertical: 'top',
-              }}
-            />
-            <Text
-              style={{
-                fontSize: 11,
-                color: labelColor,
-                textAlign: 'right',
-                marginTop: 4,
-              }}
-            >
-              {bio.length}/200
-            </Text>
-          </Animated.View>
-
-          {/* City */}
-          <Animated.View entering={FadeInUp.delay(200).duration(280)}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-              {t('community.city')}
-            </Text>
-            <TextInput
-              value={city}
-              onChangeText={setCity}
-              placeholder={t('community.cityPlaceholder')}
-              placeholderTextColor={placeholderColor}
-              maxLength={100}
-              style={{
-                fontSize: 16,
-                color: textColor,
-                backgroundColor: inputBg,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                borderWidth: 1,
-                borderColor: inputBorder,
-                paddingHorizontal: 14,
-                paddingVertical: 14,
-              }}
-            />
-          </Animated.View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+            ) : null}
+          </>
+        )}
+      </KeyboardAwareScrollView>
     </>
   );
 }

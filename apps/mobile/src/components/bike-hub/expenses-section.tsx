@@ -27,12 +27,14 @@ import { useSegmentInteractive } from './shell/segment-interactive';
 import { HubCard } from './ui/hub-card';
 import { SectionHeader } from './ui/section-header';
 import {
-  HUB_FONT,
+  HUB_FIGURE,
+  HUB_FIGURE_STRONG,
   HUB_RADIUS,
   HUB_TOUCH_TARGET,
   type HubCopyKey,
-  hub,
   hubCategoryColor,
+  SYSTEM_WEIGHT,
+  useHubTheme,
 } from './ui/tokens';
 
 /** `year` value that means every year. */
@@ -46,7 +48,6 @@ const YEAR_CHIP_SLOP = Math.ceil((HUB_TOUCH_TARGET - YEAR_CHIP_HEIGHT) / 2);
 
 interface ExpensesSectionProps {
   motorcycleId: string;
-  isDark: boolean;
   currentMileage?: number;
   mileageUnit?: string;
   /** Rendered under the summary (the Costs segment's quiet scan-a-receipt row). */
@@ -67,11 +68,11 @@ interface YearOption {
  */
 export function ExpensesSection({
   motorcycleId,
-  isDark,
   currentMileage,
   mileageUnit,
   afterSummary,
 }: ExpensesSectionProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const { currency: displayCurrency } = useCurrency();
   // Off while the Costs segment is hidden or the hub is covered — see useSegmentInteractive.
@@ -237,12 +238,12 @@ export function ExpensesSection({
             >
               <Text
                 style={{
-                  fontFamily: option.mono
+                  ...(option.mono
                     ? selected
-                      ? HUB_FONT.monoMedium
-                      : HUB_FONT.mono
-                    : HUB_FONT.sansSemiBold,
-                  fontSize: 13,
+                      ? HUB_FIGURE_STRONG
+                      : HUB_FIGURE
+                    : SYSTEM_WEIGHT.semibold),
+                  fontSize: option.mono ? 15 : 13,
                   color: selected ? hub.text : hub.dim,
                 }}
               >
@@ -292,7 +293,7 @@ export function ExpensesSection({
             </View>
             <Text
               style={{
-                fontFamily: HUB_FONT.sansSemiBold,
+                ...SYSTEM_WEIGHT.semibold,
                 fontSize: 15,
                 lineHeight: 20,
                 color: hub.text,
@@ -303,7 +304,7 @@ export function ExpensesSection({
             </Text>
             <Text
               style={{
-                fontFamily: HUB_FONT.sans,
+                ...SYSTEM_WEIGHT.regular,
                 fontSize: 13,
                 lineHeight: 17,
                 color: hub.dim,
@@ -329,7 +330,7 @@ export function ExpensesSection({
               numberOfLines={1}
               adjustsFontSizeToFit
               style={{
-                fontFamily: HUB_FONT.monoMedium,
+                ...HUB_FIGURE_STRONG,
                 fontSize: 32,
                 lineHeight: 34,
                 letterSpacing: -0.64,
@@ -361,7 +362,7 @@ export function ExpensesSection({
                     style={{
                       flexGrow: pct,
                       flexBasis: 0,
-                      backgroundColor: hubCategoryColor(cat.category),
+                      backgroundColor: hubCategoryColor(cat.category, hub),
                     }}
                   />
                 );
@@ -392,12 +393,12 @@ export function ExpensesSection({
                         width: 8,
                         height: 8,
                         borderRadius: 4,
-                        backgroundColor: hubCategoryColor(cat.category),
+                        backgroundColor: hubCategoryColor(cat.category, hub),
                       }}
                     />
-                    <Text style={{ fontFamily: HUB_FONT.sans, fontSize: 13, color: hub.dim }}>
+                    <Text style={{ ...SYSTEM_WEIGHT.regular, fontSize: 13, color: hub.dim }}>
                       {categoryLabel(cat.category)}{' '}
-                      <Text style={{ fontFamily: HUB_FONT.mono, color: hub.text }}>
+                      <Text style={{ ...HUB_FIGURE, color: hub.text }}>
                         {formatCurrencyTotals(
                           groupTotalsByCurrency(cat.expenses, displayCurrency),
                           displayCurrency,
@@ -424,7 +425,6 @@ export function ExpensesSection({
                 key={expense.id}
                 expense={expense}
                 motorcycleId={motorcycleId}
-                isDark={isDark}
                 onDelete={handleDelete}
                 index={index}
                 divider={index < displayedExpenses.length - 1}
@@ -452,9 +452,7 @@ export function ExpensesSection({
                 opacity: pressed ? 0.6 : 1,
               })}
             >
-              <Text
-                style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.copperText }}
-              >
+              <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 14, color: hub.copperText }}>
                 {showAll
                   ? t('expenses.showLess')
                   : t('expenses.seeAll', { count: allExpenses.length })}

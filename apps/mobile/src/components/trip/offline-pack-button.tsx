@@ -1,8 +1,8 @@
-import { palette } from '@motovault/design-system';
 import { CheckCircle, CloudDownload, Loader, Trash2 } from 'lucide-react-native';
-import { Alert, Pressable, Text, useColorScheme, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import type { OfflineStatus } from '../../hooks/use-offline-trip';
 import { formatBytes } from '../../lib/offline-trips';
+import { useEditorialTheme } from '../../theme/editorial';
 
 interface OfflinePackButtonProps {
   status: OfflineStatus;
@@ -19,10 +19,10 @@ export function OfflinePackButton({
   onDownload,
   onRemove,
 }: OfflinePackButtonProps) {
-  const isDark = useColorScheme() === 'dark';
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const subColor = isDark ? palette.neutral400 : palette.neutral500;
-  const cardBg = isDark ? palette.surfaceElevated : palette.neutral50;
+  const { t: theme } = useEditorialTheme();
+  const titleColor = theme.ink;
+  const subColor = theme.ink3;
+  const cardBg = theme.surface2;
 
   const confirmRemove = () => {
     Alert.alert('Remove offline download?', 'Frees up the tiles this trip saved for offline use.', [
@@ -46,7 +46,7 @@ export function OfflinePackButton({
           gap: 12,
         }}
       >
-        <Loader size={18} color={palette.accent500} />
+        <Loader size={18} color={theme.warm} />
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 14, fontWeight: '700', color: titleColor }}>
             Downloading offline pack…
@@ -61,7 +61,7 @@ export function OfflinePackButton({
               marginTop: 6,
               height: 4,
               borderRadius: 2,
-              backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
+              backgroundColor: theme.line2,
               overflow: 'hidden',
             }}
           >
@@ -69,7 +69,7 @@ export function OfflinePackButton({
               style={{
                 height: '100%',
                 width: `${Math.min(100, Math.max(0, progress?.percentage ?? 0))}%`,
-                backgroundColor: palette.accent500,
+                backgroundColor: theme.warm,
               }}
             />
           </View>
@@ -94,7 +94,7 @@ export function OfflinePackButton({
           gap: 12,
         }}
       >
-        <CheckCircle size={18} color={palette.success500} />
+        <CheckCircle size={18} color={theme.success} />
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 14, fontWeight: '700', color: titleColor }}>
             Available offline
@@ -110,7 +110,7 @@ export function OfflinePackButton({
           accessibilityLabel="Remove offline download"
           style={{ padding: 6 }}
         >
-          <Trash2 size={16} color={palette.danger500} />
+          <Trash2 size={16} color={theme.danger} />
         </Pressable>
       </View>
     );
@@ -134,7 +134,7 @@ export function OfflinePackButton({
         gap: 12,
       }}
     >
-      <CloudDownload size={18} color={palette.accent500} />
+      <CloudDownload size={18} color={theme.warm} />
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 14, fontWeight: '700', color: titleColor }}>
           Download for offline with Pro

@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
-import { useEditorialTheme } from '../../theme/editorial';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 import { useLatestReceiptSaveUndo } from './receipt-scan-undo-store';
 import { SAVE_SNACKBAR_FRESH_MS, SAVE_SNACKBAR_TIMEOUT_MS } from './scan-flow-constants';
 import { useUndoReceiptSave } from './use-receipt-scan-save';
@@ -21,7 +22,7 @@ import { useUndoReceiptSave } from './use-receipt-scan-save';
  */
 export function ReceiptScanSaveSnackbar() {
   const { t } = useTranslation();
-  const { isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   const entry = useLatestReceiptSaveUndo();
   const { undo, undoing } = useUndoReceiptSave();
 
@@ -42,10 +43,6 @@ export function ReceiptScanSaveSnackbar() {
   }, [entry]);
 
   if (!entry || visibleScanId !== entry.scanId) return null;
-
-  const ink = isDark ? palette.neutral50 : palette.neutral950;
-  const surface = isDark ? palette.neutral800 : palette.white;
-  const line = isDark ? palette.neutral700 : palette.neutral200;
 
   const handleUndo = async () => {
     if (undoing) return;
@@ -69,25 +66,23 @@ export function ReceiptScanSaveSnackbar() {
           padding: 14,
           borderRadius: 16,
           borderCurve: 'continuous',
-          backgroundColor: surface,
+          backgroundColor: theme.surface2,
           borderWidth: 1,
-          borderColor: line,
-          shadowColor: '#000',
+          borderColor: theme.line,
+          shadowColor: palette.black,
           shadowOffset: { width: 0, height: 8 },
           shadowOpacity: 0.2,
           shadowRadius: 20,
           elevation: 10,
         }}
       >
-        <CheckCircle2 size={22} color={palette.success500} strokeWidth={2.5} />
+        <CheckCircle2 size={22} color={theme.success} strokeWidth={2.5} />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 15, fontWeight: '700', color: ink }} numberOfLines={1}>
+          <Text style={{ ...type.bodyStrong, color: theme.ink }} numberOfLines={1}>
             {t('receiptScan.saved.toast', { bike: entry.bikeName })}
           </Text>
           {entry.freeScansLeft != null && (
-            <Text
-              style={{ fontSize: 12, fontWeight: '600', color: palette.neutral400, marginTop: 2 }}
-            >
+            <Text style={{ ...type.caption, color: theme.ink3, marginTop: 2 }}>
               {t('receiptScan.saved.freeScansLeft', { count: entry.freeScansLeft })}
             </Text>
           )}
@@ -106,15 +101,15 @@ export function ReceiptScanSaveSnackbar() {
             paddingHorizontal: 12,
             borderRadius: 10,
             borderCurve: 'continuous',
-            backgroundColor: `${palette.signature500}1F`,
+            backgroundColor: tint(theme.warm, 0.12),
           }}
         >
           {undoing ? (
-            <ActivityIndicator size="small" color={palette.signature500} />
+            <ActivityIndicator size="small" color={theme.warm} />
           ) : (
-            <Undo2 size={16} color={palette.signature500} strokeWidth={2.5} />
+            <Undo2 size={16} color={theme.warm} strokeWidth={2.5} />
           )}
-          <Text style={{ fontSize: 14, fontWeight: '700', color: palette.signature500 }}>
+          <Text style={{ ...type.subhead, ...SYSTEM_WEIGHT.semibold, color: theme.warm }}>
             {t('receiptScan.saved.undo')}
           </Text>
         </Pressable>

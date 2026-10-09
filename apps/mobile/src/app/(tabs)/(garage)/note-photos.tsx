@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { NotePhotoViewer } from '../../../components/bike-hub/notes/note-photo-viewer';
 import { useNotes } from '../../../components/bike-hub/notes/use-notes';
-import { hub } from '../../../components/bike-hub/ui/tokens';
+import { useHubTheme } from '../../../components/bike-hub/ui/tokens';
 
 type NotePhotosRouteParams = {
   motorcycleId: string;
@@ -15,6 +15,7 @@ type NotePhotosRouteParams = {
 
 /** Full-screen photo viewer of one note (fullScreenModal over the Notes screen). */
 export default function NotePhotosRoute() {
+  const hub = useHubTheme();
   const { motorcycleId, noteId, index } = useLocalSearchParams<NotePhotosRouteParams>();
   const { notes, isLoading } = useNotes(motorcycleId);
   const note = notes.find((candidate) => candidate.id === noteId);

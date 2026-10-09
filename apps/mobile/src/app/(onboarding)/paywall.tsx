@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding-flow';
@@ -29,6 +29,7 @@ import {
   resolveOnboardingPaywallPlacement,
 } from '../../lib/onboarding-paywall';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { space, type } from '../../theme/type';
 
 const isExpoGo = Constants.appOwnership === 'expo';
 
@@ -51,6 +52,7 @@ const INTENT_RESOLVE_TIMEOUT_MS = 2500;
 const ESCAPE_HATCH_DELAY_MS = 6000;
 
 export default function PaywallScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.PAYWALL);
@@ -203,10 +205,10 @@ export default function PaywallScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color={ONBOARDING_COLORS.accent} />
+        <ActivityIndicator size="large" color={oc.accent} />
       </View>
 
       {/* Only reachable when the native modal never covered this screen. */}
@@ -218,17 +220,17 @@ export default function PaywallScreen() {
             left: 0,
             right: 0,
             bottom: 0,
-            paddingHorizontal: 24,
-            paddingBottom: insets.bottom + 20,
+            paddingHorizontal: space.xl,
+            paddingBottom: insets.bottom + space.lg,
           }}
         >
           <Pressable
             onPress={handleEscape}
             hitSlop={12}
             accessibilityRole="button"
-            style={{ alignSelf: 'center' }}
+            style={{ alignSelf: 'center', minHeight: 44, justifyContent: 'center' }}
           >
-            <Text style={{ fontSize: 13.5, color: ONBOARDING_COLORS.textMuted }}>
+            <Text style={[type.subhead, { color: oc.textMuted }]}>
               {t('onboarding.obPaywallEscape')}
             </Text>
           </Pressable>

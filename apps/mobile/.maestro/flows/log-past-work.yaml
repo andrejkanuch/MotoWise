@@ -28,7 +28,7 @@
 #
 # AUTHORED FROM SOURCE 2026-07-16, PENDING ON-DEVICE VALIDATION. Selectors were
 # extracted from the screen code (bike hub Log sheet: sheets/log-options.ts,
-# add-maintenance-task.tsx, preferences-section.tsx) and en.json, not yet driven
+# add-maintenance-task.tsx, profile app-settings / preference/[key].tsx) and en.json, not yet driven
 # live. Device-specific quirks handled inline (see .maestro/README.md):
 #   - the Garage/Profile tab a11y text carries a badge/label, so match tabs as a
 #     partial regex, not the bare word;
@@ -51,17 +51,27 @@ env:
 # 1. Setup — reach a signed-in Home with a bike in the garage.
 - runFlow: onboarding.yaml
 
-# 2. Force a KNOWN unit preference so the assertion is deterministic. Open the
-#    Profile tab, reveal the Units picker, and pick Imperial (mi). Parentheses/°
-#    in the label are regex metachars, so match on a partial ".*Imperial.*".
+# 2. Force a KNOWN unit preference so the assertion is deterministic: Profile
+#    tab → App settings → Units → Imperial (mi), matched by testID.
 - tapOn:
     text: "Profile(,.*)?" # the tab; ".*Profile.*" also matched Home's "Complete your bike profile"
-- scrollUntilVisible:
-    element:
-      text: "Units"
-    direction: DOWN
+# Units live in Profile → App settings → Units (a pushed single-choice list).
+# The Profile stack may still be on App settings from an earlier step.
+- runFlow:
+    when:
+      notVisible:
+        id: "app-settings-screen"
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: "profile-app-settings"
+          direction: DOWN
+      - tapOn:
+          id: "profile-app-settings"
 - tapOn:
-    text: ".*Imperial.*" # "Imperial (mi, °F)" — sets measurementSystem=imperial
+    id: "app-settings-units"
+- tapOn:
+    id: "preference-option-imperial" # "Imperial (mi, °F)" — sets measurementSystem=imperial
 
 # 3. Open the bike hub. The Garage tab a11y text carries a badge count, so match
 #    it as a partial regex.

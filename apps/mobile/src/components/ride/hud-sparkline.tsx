@@ -29,8 +29,8 @@ function HudSparklineInner({ data, mode, isNightMode, system, onToggleMode }: Hu
   const strokeColor = isNightMode
     ? palette.nightText
     : mode === 'altitude'
-      ? palette.accent500
-      : palette.signature500;
+      ? palette.plateInfo
+      : palette.plateInk;
 
   const label = mode === 'altitude' ? 'ALT' : 'SPD';
 

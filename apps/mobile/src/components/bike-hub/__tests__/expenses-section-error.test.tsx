@@ -82,7 +82,7 @@ function renderSection({ withOverview }: { withOverview: boolean }) {
     <QueryClientProvider client={queryClient}>
       <View>
         {withOverview ? <OverviewObserver /> : null}
-        <ExpensesSection motorcycleId={BIKE_A.id} isDark />
+        <ExpensesSection motorcycleId={BIKE_A.id} />
       </View>
     </QueryClientProvider>,
   );

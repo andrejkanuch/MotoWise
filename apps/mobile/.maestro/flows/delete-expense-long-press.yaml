@@ -34,20 +34,20 @@ env:
       text: "No expenses yet(,.*)?"
     direction: DOWN
 - tapOn: "No expenses yet(,.*)?"
-- assertVisible: "AMOUNT"
+- assertVisible: "Amount"
 - inputText: "18.25"
 - tapOn:
-    text: "CATEGORY" # non-interactive label — dismisses the custom amount keypad first
+    text: "Category" # non-interactive label — dismisses the custom amount keypad first
     optional: true
 - scrollUntilVisible:
     element:
-      text: "DETAILS"
+      text: "Details"
     direction: DOWN
 - tapOn:
     text: ".*What was this expense for.*"
 - inputText: ${EXPENSE_LABEL}
 - tapOn:
-    text: "DETAILS"
+    text: "Details"
     optional: true
 - scrollUntilVisible:
     element:

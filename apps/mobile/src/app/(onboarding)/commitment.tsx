@@ -1,3 +1,4 @@
+import { palette, withAlpha } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,7 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { getBikeImage } from '../../config/bike-images';
 import { getBrandColor } from '../../config/brand-dna';
@@ -23,6 +24,7 @@ import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { radius, space, type } from '../../theme/type';
 import { triggerNotification } from '../../utils/haptics';
 
 /** The pledge is a short press-and-hold — deliberate, but never a wait. */
@@ -33,6 +35,7 @@ const SEAL_PAUSE_MS = 450;
 const COMMITMENT_STYLE_HOLD = 'hold';
 
 export default function CommitmentScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const onBack = useOnboardingBack(OB_SCREEN.COMMITMENT);
@@ -103,7 +106,7 @@ export default function CommitmentScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
       <View
         style={{
@@ -115,17 +118,6 @@ export default function CommitmentScreen() {
         }}
       >
         <OnboardingBackButton onPress={onBack} />
-        <Text
-          style={{
-            fontFamily: 'GeistMono-Medium',
-            fontSize: 11,
-            letterSpacing: 1.8,
-            textTransform: 'uppercase',
-            color: ONBOARDING_COLORS.warm2,
-          }}
-        >
-          {t('onboarding.obCommitEyebrow')}
-        </Text>
       </View>
 
       <View
@@ -140,11 +132,7 @@ export default function CommitmentScreen() {
             borderRadius: 60,
             marginBottom: 26,
             borderWidth: 2,
-            borderColor: `${brandColor}88`,
-            shadowColor: brandColor,
-            shadowOpacity: 0.5,
-            shadowRadius: 22,
-            shadowOffset: { width: 0, height: 8 },
+            borderColor: withAlpha(brandColor, 0.53),
           }}
         >
           <View style={{ width: '100%', height: '100%', borderRadius: 60, overflow: 'hidden' }}>
@@ -155,7 +143,7 @@ export default function CommitmentScreen() {
               transition={250}
             />
             <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.45)']}
+              colors={[withAlpha(palette.black, 0), withAlpha(palette.black, 0.45)]}
               style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 56 }}
             />
           </View>
@@ -173,10 +161,10 @@ export default function CommitmentScreen() {
               justifyContent: 'center',
               backgroundColor: brandColor,
               borderWidth: 2,
-              borderColor: ONBOARDING_COLORS.background,
+              borderColor: oc.background,
             }}
           >
-            <Text style={{ fontSize: 15, fontWeight: '800', color: ONBOARDING_COLORS.textWhite }}>
+            <Text style={[type.bodyStrong, { color: oc.brandMarkInk }]}>
               {make.charAt(0).toUpperCase()}
             </Text>
           </View>
@@ -184,33 +172,23 @@ export default function CommitmentScreen() {
 
         <Animated.Text
           entering={FadeInUp.delay(90).duration(400)}
-          style={{
-            fontFamily: 'InstrumentSerif-Regular',
-            fontSize: 30,
-            lineHeight: 34,
-            textAlign: 'center',
-            color: ONBOARDING_COLORS.textPrimary,
-            letterSpacing: -0.5,
-          }}
+          style={[type.largeTitle, { textAlign: 'center', color: oc.textPrimary }]}
         >
           {t('onboarding.obCommitTitle')}
           {'\n'}
-          {t('onboarding.obCommitTitleOf')}{' '}
-          <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
-            {bikeName}
-          </Text>
-          .
+          {t('onboarding.obCommitTitleOf')} {bikeName}.
         </Animated.Text>
         <Animated.Text
           entering={FadeInUp.delay(160).duration(400)}
-          style={{
-            fontSize: 14,
-            color: ONBOARDING_COLORS.textSecondary,
-            lineHeight: 21,
-            textAlign: 'center',
-            maxWidth: 320,
-            marginTop: 13,
-          }}
+          style={[
+            type.subhead,
+            {
+              color: oc.textSecondary,
+              textAlign: 'center',
+              maxWidth: 320,
+              marginTop: space.sm,
+            },
+          ]}
         >
           {t('onboarding.obCommitSupportA')}
         </Animated.Text>
@@ -230,13 +208,13 @@ export default function CommitmentScreen() {
             if (event.nativeEvent.actionName === 'activate') seal();
           }}
           style={{
-            height: 58,
-            borderRadius: 16,
+            height: 56,
+            borderRadius: radius.control,
             borderCurve: 'continuous',
             overflow: 'hidden',
-            backgroundColor: ONBOARDING_COLORS.cardBg,
+            backgroundColor: oc.cardBg,
             borderWidth: 1,
-            borderColor: sealed ? 'transparent' : ONBOARDING_COLORS.warm,
+            borderColor: sealed ? 'transparent' : oc.warm,
           }}
         >
           <Animated.View
@@ -246,7 +224,7 @@ export default function CommitmentScreen() {
                 top: 0,
                 bottom: 0,
                 left: 0,
-                backgroundColor: ONBOARDING_COLORS.warm,
+                backgroundColor: oc.warm,
               },
               fillStyle,
             ]}
@@ -262,25 +240,13 @@ export default function CommitmentScreen() {
           >
             {sealed ? (
               <>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '700',
-                    color: ONBOARDING_COLORS.textOnAccent,
-                  }}
-                >
+                <Text style={[type.bodyStrong, { color: oc.textOnAccent }]}>
                   {t('onboarding.obCommitButtonDone')}
                 </Text>
-                <Check size={19} color={ONBOARDING_COLORS.textOnAccent} strokeWidth={2.6} />
+                <Check size={19} color={oc.textOnAccent} strokeWidth={2.6} />
               </>
             ) : (
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '700',
-                  color: ONBOARDING_COLORS.textPrimary,
-                }}
-              >
+              <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
                 {holding
                   ? t('onboarding.obCommitButtonHolding')
                   : t('onboarding.obCommitButtonIdle')}
@@ -290,22 +256,30 @@ export default function CommitmentScreen() {
         </Pressable>
 
         <Text
-          style={{
-            fontFamily: 'GeistMono-Medium',
-            fontSize: 10,
-            letterSpacing: 1.4,
-            textTransform: 'uppercase',
-            textAlign: 'center',
-            color: sealed ? ONBOARDING_COLORS.warm2 : ONBOARDING_COLORS.textMuted,
-            marginTop: 11,
-          }}
+          style={[
+            type.caption,
+            {
+              textAlign: 'center',
+              color: sealed ? oc.textSecondary : oc.textMuted,
+              marginTop: space.sm,
+            },
+          ]}
         >
           {sealed ? t('onboarding.obCommitPledged') : t('onboarding.obCommitHint')}
         </Text>
 
         {!sealed ? (
-          <Pressable onPress={skip} hitSlop={8} style={{ marginTop: 10, alignSelf: 'center' }}>
-            <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.textMuted }}>
+          <Pressable
+            onPress={skip}
+            hitSlop={8}
+            style={{
+              marginTop: space.xs,
+              alignSelf: 'center',
+              minHeight: 44,
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={[type.subhead, { color: oc.textSecondary }]}>
               {t('onboarding.obCommitNotNow')}
             </Text>
           </Pressable>

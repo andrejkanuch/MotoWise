@@ -1,9 +1,9 @@
-import { palette } from '@motovault/design-system';
 import { Check, ChevronDown, ChevronUp, Share2, X } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, Text, useColorScheme, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
+import { type EditorialTokens, useEditorialTheme } from '../../theme/editorial';
 import type { ReadinessReport } from '../../utils/readiness';
 
 interface ReadinessRingProps {
@@ -16,21 +16,21 @@ const RING_STROKE = 6;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CIRCUM = 2 * Math.PI * RING_RADIUS;
 
-function colorForScore(score: number): string {
-  if (score >= 0.8) return palette.success500;
-  if (score >= 0.5) return palette.warning500;
-  return palette.danger500;
+function colorForScore(score: number, t: EditorialTokens): string {
+  if (score >= 0.8) return t.success;
+  if (score >= 0.5) return t.dueInk;
+  return t.overdueInk;
 }
 
 export function ReadinessRing({ report, onShareBrief }: ReadinessRingProps) {
-  const isDark = useColorScheme() === 'dark';
+  const { t } = useEditorialTheme();
   const [expanded, setExpanded] = useState(false);
 
   const pct = Math.round(report.score * 100);
-  const color = colorForScore(report.score);
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const subColor = isDark ? palette.neutral400 : palette.neutral500;
-  const cardBg = isDark ? palette.surfaceElevated : palette.neutral50;
+  const color = colorForScore(report.score, t);
+  const titleColor = t.ink;
+  const subColor = t.ink3;
+  const cardBg = t.surface;
 
   const headline = useMemo(() => {
     if (report.score >= 0.95) return 'Ready to ride';
@@ -67,7 +67,7 @@ export function ReadinessRing({ report, onShareBrief }: ReadinessRingProps) {
               cx={RING_SIZE / 2}
               cy={RING_SIZE / 2}
               r={RING_RADIUS}
-              stroke={isDark ? palette.neutral800 : palette.neutral200}
+              stroke={t.line2}
               strokeWidth={RING_STROKE}
               fill="transparent"
             />
@@ -113,10 +113,10 @@ export function ReadinessRing({ report, onShareBrief }: ReadinessRingProps) {
           {report.items.map((item) => {
             const Icon = item.passed ? Check : X;
             const iconColor = item.passed
-              ? palette.success500
+              ? t.success
               : item.severity === 'required'
-                ? palette.danger500
-                : palette.warning500;
+                ? t.overdueInk
+                : t.dueInk;
             return (
               <View
                 key={item.key}
@@ -162,7 +162,7 @@ export function ReadinessRing({ report, onShareBrief }: ReadinessRingProps) {
                 borderRadius: 10,
                 borderCurve: 'continuous',
                 borderWidth: 1,
-                borderColor: isDark ? palette.neutral700 : palette.neutral200,
+                borderColor: t.line2,
               }}
             >
               <Share2 size={14} color={titleColor} />

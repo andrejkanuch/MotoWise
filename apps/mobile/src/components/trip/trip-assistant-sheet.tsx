@@ -3,13 +3,13 @@ import BottomSheet, {
   type BottomSheetScrollViewMethods,
   BottomSheetTextInput,
 } from '@gorhom/bottom-sheet';
-import { palette } from '@motovault/design-system';
 import { Send, Sparkles, X } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, Text, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import type { AssistantMessage } from '../../hooks/use-trip-assistant';
+import { tint, useEditorialTheme } from '../../theme/editorial';
 
 interface TripAssistantSheetProps {
   visible: boolean;
@@ -36,7 +36,7 @@ export function TripAssistantSheet({
   onReset,
 }: TripAssistantSheetProps) {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
+  const { t: theme } = useEditorialTheme();
   const sheetRef = useRef<BottomSheet>(null);
   const scrollRef = useRef<BottomSheetScrollViewMethods | null>(null);
   const [draft, setDraft] = useState('');
@@ -52,14 +52,15 @@ export function TripAssistantSheet({
 
   if (!visible) return null;
 
-  const bg = isDark ? palette.neutral950 : palette.white;
-  const handleColor = isDark ? palette.neutral600 : palette.neutral300;
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const subColor = isDark ? palette.neutral400 : palette.neutral500;
-  const userBg = palette.accent500;
-  const aiBg = isDark ? palette.surfaceElevated : palette.neutral100;
-  const aiTextColor = isDark ? palette.neutral100 : palette.neutral900;
-  const inputBg = isDark ? palette.surfaceElevated : palette.neutral100;
+  const bg = theme.surface;
+  const handleColor = theme.ink4;
+  const titleColor = theme.ink;
+  const subColor = theme.ink3;
+  // Rider bubbles are inverse ink (copper is reserved for actions).
+  const userBg = theme.ink;
+  const aiBg = theme.surface2;
+  const aiTextColor = theme.ink;
+  const inputBg = theme.surface2;
 
   const handleSend = () => {
     const q = draft.trim();
@@ -93,12 +94,12 @@ export function TripAssistantSheet({
             width: 32,
             height: 32,
             borderRadius: 16,
-            backgroundColor: `${palette.accent500}22`,
+            backgroundColor: tint(theme.warm, 0.14),
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Sparkles size={16} color={palette.accent500} />
+          <Sparkles size={16} color={theme.warm} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 16, fontWeight: '700', color: titleColor }}>Trip assistant</Text>
@@ -108,7 +109,7 @@ export function TripAssistantSheet({
         </View>
         {messages.length > 0 && (
           <Pressable onPress={onReset} hitSlop={8} accessibilityRole="button">
-            <Text style={{ fontSize: 13, color: palette.accent500, fontWeight: '600' }}>Reset</Text>
+            <Text style={{ fontSize: 13, color: theme.warm, fontWeight: '600' }}>Reset</Text>
           </Pressable>
         )}
         <Pressable
@@ -165,7 +166,7 @@ export function TripAssistantSheet({
               style={{
                 fontSize: 14,
                 lineHeight: 20,
-                color: m.role === 'user' ? palette.white : aiTextColor,
+                color: m.role === 'user' ? theme.bg : aiTextColor,
               }}
             >
               {m.content}
@@ -187,7 +188,7 @@ export function TripAssistantSheet({
               gap: 8,
             }}
           >
-            <ActivityIndicator size="small" color={palette.accent500} />
+            <ActivityIndicator size="small" color={theme.warm} />
             <Text style={{ fontSize: 13, color: subColor }}>Thinking…</Text>
           </View>
         )}
@@ -202,7 +203,7 @@ export function TripAssistantSheet({
           paddingTop: 8,
           paddingBottom: 20,
           borderTopWidth: 1,
-          borderTopColor: isDark ? palette.neutral800 : palette.neutral200,
+          borderTopColor: theme.line,
           backgroundColor: bg,
         }}
       >
@@ -241,12 +242,12 @@ export function TripAssistantSheet({
             width: 40,
             height: 40,
             borderRadius: 20,
-            backgroundColor: draft.trim() && !isPending ? palette.accent500 : aiBg,
+            backgroundColor: draft.trim() && !isPending ? theme.warm : aiBg,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Send size={16} color={draft.trim() && !isPending ? palette.white : subColor} />
+          <Send size={16} color={draft.trim() && !isPending ? theme.onWarm : subColor} />
         </Pressable>
       </View>
     </BottomSheet>

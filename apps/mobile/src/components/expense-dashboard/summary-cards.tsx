@@ -1,8 +1,10 @@
 import type { Currency } from '@motovault/types';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { formatMoney } from '../../lib/expense-constants';
 import { useEditorialTheme } from '../../theme/editorial';
+import { radius, space, type } from '../../theme/type';
 
 interface SummaryCardsProps {
   avgPerMonth: number;
@@ -22,15 +24,16 @@ export const SummaryCards = memo(function SummaryCards({
   unitLabel,
   currency,
 }: SummaryCardsProps) {
+  const { t } = useTranslation();
   const { t: theme } = useEditorialTheme();
 
   const pills = [
     {
-      label: 'AVG/MO',
+      label: t('expenses.avgPerMonth'),
       value: Number.isFinite(avgPerMonth) ? formatMoney(avgPerMonth, currency) : '\u2014',
     },
     {
-      label: 'ENTRIES',
+      label: t('expenses.entries'),
       value: String(expenseCount),
     },
     {
@@ -51,31 +54,29 @@ export const SummaryCards = memo(function SummaryCards({
           style={{
             flex: 1,
             backgroundColor: theme.surface,
-            borderRadius: 14,
+            borderRadius: radius.card,
             borderCurve: 'continuous',
-            padding: 12,
+            padding: space.sm,
             borderWidth: 1,
             borderColor: theme.line,
           }}
         >
           <Text
             style={{
-              fontSize: 10,
-              fontWeight: '700',
-              color: theme.ink3,
-              textTransform: 'uppercase',
-              letterSpacing: 1.2,
-              marginBottom: 6,
+              ...type.label,
+              color: theme.ink2,
+              marginBottom: space.xxs,
             }}
+            numberOfLines={1}
           >
             {pill.label}
           </Text>
           <Text
             style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 22,
+              ...type.figure,
+              fontSize: 24,
+              lineHeight: 28,
               color: theme.ink,
-              letterSpacing: -0.3,
             }}
             numberOfLines={1}
             adjustsFontSizeToFit

@@ -5,7 +5,7 @@ import { OdometerSheet } from '../../../components/bike-hub/sheets/odometer-shee
 import { useDiscardReadingGuard } from '../../../components/bike-hub/sheets/use-log-odometer';
 import { useHubBike } from '../../../components/bike-hub/shell/use-hub-bike';
 import { refreshToday } from '../../../components/bike-hub/shell/use-today';
-import { hub } from '../../../components/bike-hub/ui/tokens';
+import { useHubTheme } from '../../../components/bike-hub/ui/tokens';
 
 const PLACEHOLDER_HEIGHT = 240;
 
@@ -17,6 +17,7 @@ const PLACEHOLDER_HEIGHT = 240;
  * reading is parked and restored the next time the sheet opens for this bike.
  */
 export default function OdometerScreen() {
+  const hub = useHubTheme();
   const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
   const { bike } = useHubBike(motorcycleId);
   const [dirty, setDirty] = useState(false);

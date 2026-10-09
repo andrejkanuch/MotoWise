@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import { GenerateOnboardingInsightsDocument } from '@motovault/graphql';
 import { useMutation } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -17,17 +16,18 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { type } from '../../theme/type';
 
-const TYPE_COLORS: Record<string, string> = {
-  maintenance: ONBOARDING_COLORS.warning,
-  learning: ONBOARDING_COLORS.accent,
-  community: ONBOARDING_COLORS.success,
+const TYPE_COLOR_KEYS: Record<string, 'warning' | 'textSecondary' | 'success'> = {
+  maintenance: 'warning',
+  learning: 'textSecondary',
+  community: 'success',
 };
 
 const ICON_MAP: Record<string, React.ComponentType<{ size: number; color: string }>> = {
@@ -43,6 +43,7 @@ function resolveLucideIcon(name: string) {
 }
 
 function SkeletonCard({ index }: { index: number }) {
+  const oc = useOnboardingColors();
   const shimmer = useSharedValue(0.3);
 
   useEffect(() => {
@@ -57,7 +58,7 @@ function SkeletonCard({ index }: { index: number }) {
     <Animated.View
       entering={FadeInUp.delay(index * 80).duration(300)}
       style={{
-        backgroundColor: ONBOARDING_COLORS.cardBg,
+        backgroundColor: oc.cardBg,
         borderRadius: 16,
         borderCurve: 'continuous',
         padding: 20,
@@ -71,7 +72,7 @@ function SkeletonCard({ index }: { index: number }) {
             height: 40,
             borderRadius: 12,
             borderCurve: 'continuous',
-            backgroundColor: ONBOARDING_COLORS.cardBorder,
+            backgroundColor: oc.cardBorder,
           },
           animatedStyle,
         ]}
@@ -82,7 +83,7 @@ function SkeletonCard({ index }: { index: number }) {
             width: '60%',
             height: 16,
             borderRadius: 8,
-            backgroundColor: ONBOARDING_COLORS.cardBorder,
+            backgroundColor: oc.cardBorder,
           },
           animatedStyle,
         ]}
@@ -93,7 +94,7 @@ function SkeletonCard({ index }: { index: number }) {
             width: '90%',
             height: 12,
             borderRadius: 6,
-            backgroundColor: ONBOARDING_COLORS.cardBorderDefault,
+            backgroundColor: oc.cardBorderDefault,
           },
           animatedStyle,
         ]}
@@ -103,6 +104,7 @@ function SkeletonCard({ index }: { index: number }) {
 }
 
 export default function InsightsScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -176,7 +178,7 @@ export default function InsightsScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={9} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
@@ -208,13 +210,7 @@ export default function InsightsScreen() {
 
         <Animated.Text
           entering={FadeIn.duration(300)}
-          style={{
-            fontSize: 28,
-            fontWeight: '800',
-            color: ONBOARDING_COLORS.textPrimary,
-            textAlign: 'center',
-            marginBottom: 8,
-          }}
+          style={[type.largeTitle, { color: oc.textPrimary, textAlign: 'center', marginBottom: 8 }]}
         >
           {t('onboarding.insightsTitle')}
         </Animated.Text>
@@ -223,7 +219,7 @@ export default function InsightsScreen() {
           entering={FadeIn.delay(100).duration(300)}
           style={{
             fontSize: 16,
-            color: ONBOARDING_COLORS.textSecondary,
+            color: oc.textSecondary,
             textAlign: 'center',
             marginBottom: 32,
           }}
@@ -248,11 +244,11 @@ export default function InsightsScreen() {
               paddingVertical: 48,
             }}
           >
-            <AlertCircle size={40} color={ONBOARDING_COLORS.textMuted} />
+            <AlertCircle size={40} color={oc.textMuted} />
             <Text
               style={{
                 fontSize: 16,
-                color: ONBOARDING_COLORS.textSecondary,
+                color: oc.textSecondary,
                 textAlign: 'center',
               }}
             >
@@ -265,10 +261,10 @@ export default function InsightsScreen() {
                 paddingVertical: 10,
                 borderRadius: 12,
                 borderCurve: 'continuous',
-                backgroundColor: ONBOARDING_COLORS.cardBorder,
+                backgroundColor: oc.cardBorder,
               }}
             >
-              <Text style={{ color: ONBOARDING_COLORS.accent, fontSize: 16, fontWeight: '600' }}>
+              <Text style={{ color: oc.accent, fontSize: 16, fontWeight: '600' }}>
                 {t('common.retry')}
               </Text>
             </Pressable>
@@ -279,14 +275,14 @@ export default function InsightsScreen() {
           <View style={{ gap: 16 }}>
             {insights.map((insight, index) => {
               const Icon = resolveLucideIcon(insight.icon);
-              const accent = TYPE_COLORS[insight.type] ?? ONBOARDING_COLORS.accent;
+              const accent = oc[TYPE_COLOR_KEYS[insight.type] ?? 'textSecondary'];
               return (
                 <Animated.View
                   // biome-ignore lint/suspicious/noArrayIndexKey: insight list from API, index needed for unique key
                   key={`${insight.type}-${index}`}
                   entering={FadeInUp.delay(index * 100).duration(300)}
                   style={{
-                    backgroundColor: ONBOARDING_COLORS.cardBg,
+                    backgroundColor: oc.cardBg,
                     borderRadius: 16,
                     borderCurve: 'continuous',
                     padding: 20,
@@ -313,7 +309,7 @@ export default function InsightsScreen() {
                       style={{
                         fontSize: 17,
                         fontWeight: '700',
-                        color: ONBOARDING_COLORS.textPrimary,
+                        color: oc.textPrimary,
                         flex: 1,
                       }}
                     >
@@ -323,7 +319,7 @@ export default function InsightsScreen() {
                   <Text
                     style={{
                       fontSize: 15,
-                      color: ONBOARDING_COLORS.textSecondary,
+                      color: oc.textSecondary,
                       lineHeight: 22,
                     }}
                   >
@@ -346,8 +342,8 @@ export default function InsightsScreen() {
             gap: 8,
           }}
         >
-          <Users2 size={16} color={ONBOARDING_COLORS.textMuted} />
-          <Text style={{ fontSize: 14, color: ONBOARDING_COLORS.textMuted }}>
+          <Users2 size={16} color={oc.textMuted} />
+          <Text style={{ fontSize: 14, color: oc.textMuted }}>
             {t('onboarding.insightsSocialProof')}
           </Text>
         </Animated.View>
@@ -363,7 +359,7 @@ export default function InsightsScreen() {
           paddingHorizontal: 24,
           paddingBottom: insets.bottom + 16,
           paddingTop: 16,
-          backgroundColor: ONBOARDING_COLORS.background,
+          backgroundColor: oc.background,
         }}
       >
         <Animated.View entering={FadeInUp.delay(500).duration(300)}>
@@ -371,15 +367,15 @@ export default function InsightsScreen() {
             onPress={handleContinue}
             disabled={isPending}
             style={({ pressed }) => ({
-              backgroundColor: pressed ? palette.indigo500 : ONBOARDING_COLORS.accent,
+              backgroundColor: oc.accent,
               borderRadius: 16,
               borderCurve: 'continuous',
               paddingVertical: 16,
               alignItems: 'center',
-              opacity: isPending ? 0.5 : 1,
+              opacity: isPending ? 0.5 : pressed ? 0.9 : 1,
             })}
           >
-            <Text style={{ fontSize: 17, fontWeight: '700', color: ONBOARDING_COLORS.textPrimary }}>
+            <Text style={[type.bodyStrong, { color: oc.textOnAccent }]}>
               {t('onboarding.insightsCta')}
             </Text>
           </Pressable>
@@ -390,9 +386,7 @@ export default function InsightsScreen() {
               onPress={handleContinue}
               style={{ alignItems: 'center', paddingVertical: 12, marginTop: 4 }}
             >
-              <Text style={{ fontSize: 14, color: ONBOARDING_COLORS.textMuted }}>
-                {t('common.skip')}
-              </Text>
+              <Text style={{ fontSize: 14, color: oc.textMuted }}>{t('common.skip')}</Text>
             </Pressable>
           )}
         </Animated.View>

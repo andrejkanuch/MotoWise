@@ -49,6 +49,7 @@ import { useCreateTripData } from '../../hooks/use-create-trip-data';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { tint, useEditorialTheme } from '../../theme/editorial';
+import { type } from '../../theme/type';
 import {
   cycleMapStyle as cycleMapStyleFn,
   getDefaultMapStyle,
@@ -427,6 +428,8 @@ export default function CreateTripScreen() {
     !maxRidersError &&
     // Showcase mode has no dates to validate.
     (isShowcase || (!dateRangeError && startDate <= endDate));
+  // Ink for the primary (copper) buttons; dims with the disabled fill.
+  const onWarmFill = isValid ? t.onWarm : t.ink3;
 
   // Cycle map style
   const cycleMapStyle = useCallback(() => {
@@ -628,12 +631,10 @@ export default function CreateTripScreen() {
               entering={reducedMotion ? undefined : FadeIn.duration(200)}
               style={{ paddingHorizontal: 20, paddingBottom: 12 }}
             >
-              <Text
-                style={{ fontFamily: 'InstrumentSerif-Regular', fontSize: 22, color: titleColor }}
-              >
+              <Text style={[type.sheetTitle, { color: titleColor }]}>
                 {title.trim() || (isEditMode ? 'Edit Trip' : 'New Trip')}
               </Text>
-              <Text style={{ fontSize: 13, color: subtitleColor, marginTop: 2 }}>
+              <Text style={[type.subhead, { color: subtitleColor, marginTop: 2 }]}>
                 {waypoints.length === 0
                   ? 'Search or long-press the map to add stops'
                   : `${waypoints.length} stop${waypoints.length === 1 ? '' : 's'} planned`}
@@ -680,7 +681,7 @@ export default function CreateTripScreen() {
                         style={{
                           fontSize: 13,
                           fontWeight: '700',
-                          color: selected ? '#fff' : inputTextColor,
+                          color: selected ? t.onWarm : inputTextColor,
                         }}
                       >
                         {opt.label}
@@ -1305,16 +1306,16 @@ export default function CreateTripScreen() {
                         paddingVertical: 14,
                         borderRadius: 14,
                         borderCurve: 'continuous',
-                        backgroundColor: isValid ? t.warm : isDark ? t.surface2 : t.line,
+                        backgroundColor: isValid ? t.warm : t.surface3,
                         opacity: isSaving ? 0.7 : 1,
                       }}
                     >
                       {updateMutation.isPending ? (
-                        <ActivityIndicator size="small" color={'#fff'} />
+                        <ActivityIndicator size="small" color={onWarmFill} />
                       ) : (
                         <>
-                          <Save size={16} color={'#fff'} />
-                          <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>
+                          <Save size={16} color={onWarmFill} />
+                          <Text style={{ fontSize: 15, fontWeight: '700', color: onWarmFill }}>
                             {isEditingDraft ? i18n('trips.saveDraft') : i18n('trips.updateTrip')}
                           </Text>
                         </>
@@ -1338,16 +1339,16 @@ export default function CreateTripScreen() {
                           paddingVertical: 14,
                           borderRadius: 14,
                           borderCurve: 'continuous',
-                          backgroundColor: isValid ? t.success : isDark ? t.surface2 : t.line,
+                          backgroundColor: isValid ? t.warm : t.surface3,
                           opacity: isSaving ? 0.7 : 1,
                         }}
                       >
                         {updateAndPublishMutation.isPending ? (
-                          <ActivityIndicator size="small" color={'#fff'} />
+                          <ActivityIndicator size="small" color={onWarmFill} />
                         ) : (
                           <>
-                            <Send size={16} color={'#fff'} />
-                            <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>
+                            <Send size={16} color={onWarmFill} />
+                            <Text style={{ fontSize: 15, fontWeight: '700', color: onWarmFill }}>
                               {i18n('trips.publish')}
                             </Text>
                           </>
@@ -1418,7 +1419,7 @@ export default function CreateTripScreen() {
                         borderCurve: 'continuous',
                         borderWidth: 1,
                         borderColor: isValid ? t.warm : 'transparent',
-                        backgroundColor: isValid ? 'transparent' : isDark ? t.surface2 : t.line,
+                        backgroundColor: isValid ? 'transparent' : t.surface3,
                         opacity: isSaving ? 0.7 : 1,
                       }}
                     >
@@ -1426,12 +1427,12 @@ export default function CreateTripScreen() {
                         <ActivityIndicator size="small" color={t.warm} />
                       ) : (
                         <>
-                          <Save size={16} color={isValid ? t.warm : '#fff'} />
+                          <Save size={16} color={isValid ? t.warm : t.ink3} />
                           <Text
                             style={{
                               fontSize: 15,
                               fontWeight: '700',
-                              color: isValid ? t.warm : '#fff',
+                              color: isValid ? t.warm : t.ink3,
                             }}
                           >
                             {i18n('trips.saveDraft')}
@@ -1454,16 +1455,16 @@ export default function CreateTripScreen() {
                         paddingVertical: 14,
                         borderRadius: 14,
                         borderCurve: 'continuous',
-                        backgroundColor: isValid ? t.warm : isDark ? t.surface2 : t.line,
+                        backgroundColor: isValid ? t.warm : t.surface3,
                         opacity: isSaving ? 0.7 : 1,
                       }}
                     >
                       {publishMutation.isPending ? (
-                        <ActivityIndicator size="small" color={'#fff'} />
+                        <ActivityIndicator size="small" color={onWarmFill} />
                       ) : (
                         <>
-                          <Send size={16} color={'#fff'} />
-                          <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>
+                          <Send size={16} color={onWarmFill} />
+                          <Text style={{ fontSize: 15, fontWeight: '700', color: onWarmFill }}>
                             {i18n('trips.publish')}
                           </Text>
                         </>

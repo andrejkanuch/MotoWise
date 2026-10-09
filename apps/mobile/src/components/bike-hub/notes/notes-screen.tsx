@@ -20,6 +20,8 @@ import { bikeDisplayName, hasOdometer, toHubUnit } from '../../../lib/bike-hub/f
 import { filterNotes, getNoteLink } from '../../../lib/bike-hub/notes';
 import { isBikeSegment } from '../../../lib/bike-hub/segments';
 import { useBikeHubStore } from '../../../stores/bike-hub.store';
+import { useEditorialTheme } from '../../../theme/editorial';
+import { type } from '../../../theme/type';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import { useGuardedPush } from '../shell/use-guarded-push';
 import { useHubBottomLayout } from '../ui/bottom-layout';
@@ -27,10 +29,10 @@ import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { SEGMENT_LABEL_KEY } from '../ui/segment-bar';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
-  HUB_FONT,
   HUB_TOUCH_TARGET,
   type HubCopyKey,
-  hub,
+  SYSTEM_WEIGHT,
+  useHubTheme,
 } from '../ui/tokens';
 import { UndoSnackbar } from '../ui/undo-snackbar';
 import { useDeferredDelete } from '../ui/use-deferred-delete';
@@ -72,6 +74,8 @@ interface NotesScreenProps {
  * stays above the keyboard and the tab bar.
  */
 export function NotesScreen({ bike, from }: NotesScreenProps) {
+  const hub = useHubTheme();
+  const { isDark } = useEditorialTheme();
   const { t } = useTranslation();
   const router = useRouter();
   // Row taps, composer buttons and photos open sheets/leaves through the hub's
@@ -247,8 +251,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
             accessibilityRole="header"
             style={{
               paddingHorizontal: 2,
-              fontFamily: HUB_FONT.serif,
-              fontSize: 30,
+              ...type.sheetTitle,
               color: hub.text,
             }}
           >
@@ -257,7 +260,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
         ) : null}
         {hasNotes || searching ? (
           <TextInput
-            keyboardAppearance="dark"
+            keyboardAppearance={isDark ? 'dark' : 'light'}
             selectionColor={hub.copper}
             testID="notes-search"
             value={query}
@@ -279,7 +282,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
               borderColor: hub.hairlineStrong,
               backgroundColor: hub.card,
               color: hub.text,
-              fontFamily: HUB_FONT.sans,
+              ...SYSTEM_WEIGHT.regular,
               fontSize: 14,
             }}
           />
@@ -290,7 +293,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
             accessibilityLiveRegion="polite"
             style={{
               paddingHorizontal: 2,
-              fontFamily: HUB_FONT.sans,
+              ...SYSTEM_WEIGHT.regular,
               fontSize: 13,
               color: hub.dim,
             }}
@@ -378,7 +381,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
             <Text
               maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
               numberOfLines={1}
-              style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 15, color: hub.copperText }}
+              style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 15, color: hub.copperText }}
             >
               {t(SEGMENT_LABEL_KEY[origin])}
             </Text>
@@ -390,7 +393,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
             style={{
               flex: 1,
               textAlign: 'center',
-              fontFamily: HUB_FONT.sansSemiBold,
+              ...SYSTEM_WEIGHT.semibold,
               fontSize: 15,
               color: hub.text,
             }}
@@ -482,6 +485,7 @@ function StateMessage({
   action?: { label: string; onPress: () => void };
   testID?: string;
 }) {
+  const hub = useHubTheme();
   return (
     <View
       testID={testID}
@@ -490,7 +494,7 @@ function StateMessage({
       <Text
         accessibilityRole="header"
         style={{
-          fontFamily: HUB_FONT.sansSemiBold,
+          ...SYSTEM_WEIGHT.semibold,
           fontSize: 15,
           color: hub.text,
           textAlign: 'center',
@@ -501,7 +505,7 @@ function StateMessage({
       {body ? (
         <Text
           style={{
-            fontFamily: HUB_FONT.sans,
+            ...SYSTEM_WEIGHT.regular,
             fontSize: 13,
             lineHeight: 18,
             color: hub.dim,
@@ -518,7 +522,7 @@ function StateMessage({
           accessibilityRole="button"
           style={{ minHeight: HUB_TOUCH_TARGET, justifyContent: 'center', paddingHorizontal: 12 }}
         >
-          <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.copperText }}>
+          <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 14, color: hub.copperText }}>
             {action.label}
           </Text>
         </Pressable>

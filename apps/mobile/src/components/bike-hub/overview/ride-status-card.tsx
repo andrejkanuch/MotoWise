@@ -9,9 +9,10 @@ import {
 } from '../../../lib/bike-hub/constants';
 import { midSentence } from '../../../lib/bike-hub/format';
 import type { RideStatusReason } from '../../../lib/bike-hub/ride-status';
+import { radius, type } from '../../../theme/type';
 import { HubCard } from '../ui/hub-card';
 import { RowChevron } from '../ui/row-chevron';
-import { HUB_FONT, HUB_TOUCH_TARGET, hub, RIDE_STATUS_STYLE } from '../ui/tokens';
+import { HUB_TOUCH_TARGET, RIDE_STATUS_STYLE, SYSTEM_WEIGHT, useHubTheme } from '../ui/tokens';
 
 const SEPARATOR = ' · ';
 
@@ -74,9 +75,10 @@ interface RideStatusCardProps {
 const NEUTRAL = RIDE_STATUS_STYLE[RIDE_STATUS.UNTRACKED];
 
 /**
- * Three words in serif on a tinted card: Not ready / Check before riding /
- * Ready to ride, or neutral "Nothing tracked yet". The words carry the meaning;
- * the dot and tint only repeat it. Without loaded tasks and documents it gives
+ * The bike's plate verdict: a plate-coloured panel (red / signal yellow / bone)
+ * saying Not ready / Check before riding / Ready to ride in condensed title
+ * type, or a neutral graphite card for "Nothing tracked yet". The words carry
+ * the meaning; the plate colour repeats it. Without loaded tasks and documents it gives
  * no verdict: a neutral skeleton while loading, an error with Retry on failure.
  */
 export function RideStatusCard({
@@ -88,6 +90,7 @@ export function RideStatusCard({
   noOpenRecalls = false,
   onPress,
 }: RideStatusCardProps) {
+  const hub = useHubTheme();
   const { t, i18n } = useTranslation();
 
   if (isLoading) {
@@ -97,8 +100,8 @@ export function RideStatusCard({
         accessibilityLabel={t('common.loading')}
         style={{
           height: 76,
-          backgroundColor: NEUTRAL.card,
-          borderColor: NEUTRAL.border,
+          backgroundColor: hub[NEUTRAL.card],
+          borderColor: hub[NEUTRAL.border],
           opacity: 0.6,
         }}
       >
@@ -118,14 +121,14 @@ export function RideStatusCard({
           paddingVertical: 8,
           paddingLeft: 16,
           paddingRight: 8,
-          backgroundColor: NEUTRAL.card,
-          borderColor: NEUTRAL.border,
+          backgroundColor: hub[NEUTRAL.card],
+          borderColor: hub[NEUTRAL.border],
         }}
       >
         <Text
           style={{
             flex: 1,
-            fontFamily: HUB_FONT.sans,
+            ...SYSTEM_WEIGHT.regular,
             fontSize: 14,
             lineHeight: 19,
             color: hub.dim,
@@ -144,7 +147,7 @@ export function RideStatusCard({
             opacity: pressed ? 0.6 : 1,
           })}
         >
-          <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 14, color: hub.copperText }}>
+          <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 14, color: hub.copperText }}>
             {t('common.retry')}
           </Text>
         </Pressable>
@@ -176,22 +179,27 @@ export function RideStatusCard({
         paddingVertical: 14,
         paddingLeft: 16,
         paddingRight: 14,
-        backgroundColor: style.card,
-        borderColor: style.border,
+        borderRadius: radius.plate,
+        backgroundColor: hub[style.card],
+        borderColor: hub[style.border],
       }}
     >
-      <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: style.dot }} />
       <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ fontFamily: HUB_FONT.serif, fontSize: 24, lineHeight: 26, color: hub.text }}>
-          {title}
-        </Text>
+        <Text style={{ ...type.sheetTitle, color: hub[style.ink] }}>{title}</Text>
         {detail ? (
-          <Text style={{ fontFamily: HUB_FONT.sans, fontSize: 13, lineHeight: 17, color: hub.dim }}>
+          <Text
+            style={{
+              ...SYSTEM_WEIGHT.medium,
+              fontSize: 13,
+              lineHeight: 17,
+              color: hub[style.inkSoft],
+            }}
+          >
             {detail}
           </Text>
         ) : null}
       </View>
-      {onPress ? <RowChevron /> : null}
+      {onPress ? <RowChevron color={hub[style.inkSoft]} /> : null}
     </HubCard>
   );
 }

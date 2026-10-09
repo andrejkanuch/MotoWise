@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import type { MaintenanceStyle } from '@motovault/types';
 import { LastServiceDate, ReminderChannel } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
@@ -17,21 +16,21 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { NativeToggle } from '../../components/ui/native-toggle';
 import { TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { type } from '../../theme/type';
 
 const MAINTENANCE_STYLE_OPTIONS: {
   value: MaintenanceStyle;
   icon: typeof Wrench;
-  color: string;
 }[] = [
-  { value: 'diy', icon: Wrench, color: ONBOARDING_COLORS.success },
-  { value: 'sometimes', icon: HelpCircle, color: palette.moduleSuspension },
-  { value: 'mechanic', icon: Building2, color: '#A78BFA' },
+  { value: 'diy', icon: Wrench },
+  { value: 'sometimes', icon: HelpCircle },
+  { value: 'mechanic', icon: Building2 },
 ];
 
 const TOGGLE_ROWS = [
@@ -40,28 +39,24 @@ const TOGGLE_ROWS = [
     icon: Bell,
     labelKey: 'maintenanceRemindersLabel',
     descKey: 'maintenanceRemindersDesc',
-    color: ONBOARDING_COLORS.accent,
   },
   {
     key: 'seasonalTips',
     icon: Sun,
     labelKey: 'seasonalTipsLabel',
     descKey: 'seasonalTipsDesc',
-    color: ONBOARDING_COLORS.warning,
   },
   {
     key: 'recallAlerts',
     icon: ShieldAlert,
     labelKey: 'recallAlertsLabel',
     descKey: 'recallAlertsDesc',
-    color: palette.danger500,
   },
   {
     key: 'weeklySummary',
     icon: BarChart3,
     labelKey: 'weeklySummaryLabel',
     descKey: 'weeklySummaryDesc',
-    color: ONBOARDING_COLORS.success,
   },
 ] as const;
 
@@ -78,25 +73,23 @@ const REMINDER_CHANNEL_OPTIONS = [
     value: ReminderChannel.PUSH,
     labelKey: 'reminderChannel_push',
     icon: Bell,
-    color: ONBOARDING_COLORS.accent,
   },
   {
     value: ReminderChannel.EMAIL,
     labelKey: 'reminderChannel_email',
     icon: Bell,
-    color: palette.moduleSuspension,
   },
   {
     value: ReminderChannel.BOTH,
     labelKey: 'reminderChannel_both',
     icon: Bell,
-    color: ONBOARDING_COLORS.success,
   },
 ] as const;
 
 type ToggleKey = 'maintenanceReminders' | 'seasonalTips' | 'recallAlerts' | 'weeklySummary';
 
 export default function SmartMaintenanceScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const router = useRouter();
   const store = useOnboardingStore();
@@ -178,7 +171,7 @@ export default function SmartMaintenanceScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={8} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
@@ -188,13 +181,7 @@ export default function SmartMaintenanceScreen() {
       >
         <Animated.Text
           entering={FadeInDown.duration(300)}
-          style={{
-            fontSize: 28,
-            fontWeight: '800',
-            color: ONBOARDING_COLORS.textPrimary,
-            letterSpacing: -0.5,
-            marginBottom: 32,
-          }}
+          style={[type.largeTitle, { color: oc.textPrimary, marginBottom: 32 }]}
         >
           {t('onboarding.smartMaintenanceTitle', { bike: bikeName })}
         </Animated.Text>
@@ -205,7 +192,7 @@ export default function SmartMaintenanceScreen() {
           style={{
             fontSize: 20,
             fontWeight: '700',
-            color: ONBOARDING_COLORS.textPrimary,
+            color: oc.textPrimary,
             marginBottom: 12,
           }}
         >
@@ -223,7 +210,6 @@ export default function SmartMaintenanceScreen() {
                 icon={option.icon}
                 label={t(`onboarding.maintenanceStyle_${option.value}`)}
                 subtitle={t(`onboarding.maintenanceStyleDesc_${option.value}`)}
-                color={option.color}
                 selected={maintStyle === option.value}
                 onPress={handleMaintStylePress}
               />
@@ -251,27 +237,25 @@ export default function SmartMaintenanceScreen() {
                     height: 36,
                     borderRadius: 18,
                     borderCurve: 'continuous',
-                    backgroundColor: `${row.color}22`,
+                    backgroundColor: oc.surface2,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Icon size={18} color={row.color} />
+                  <Icon size={18} color={oc.textSecondary} />
                 </View>
 
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
-                      color: ONBOARDING_COLORS.textPrimary,
+                      color: oc.textPrimary,
                       fontSize: 17,
                       fontWeight: '600',
                     }}
                   >
                     {t(`onboarding.${row.labelKey}`)}
                   </Text>
-                  <Text
-                    style={{ color: ONBOARDING_COLORS.textSecondary, fontSize: 14, marginTop: 2 }}
-                  >
+                  <Text style={{ color: oc.textSecondary, fontSize: 14, marginTop: 2 }}>
                     {t(`onboarding.${row.descKey}`)}
                   </Text>
                 </View>
@@ -291,7 +275,7 @@ export default function SmartMaintenanceScreen() {
           style={{
             fontSize: 20,
             fontWeight: '700',
-            color: ONBOARDING_COLORS.textPrimary,
+            color: oc.textPrimary,
             marginBottom: 12,
           }}
         >
@@ -308,7 +292,6 @@ export default function SmartMaintenanceScreen() {
                 value={option.value}
                 icon={Bell}
                 label={t(`onboarding.${option.labelKey}`)}
-                color={ONBOARDING_COLORS.accent}
                 selected={lastService === option.value}
                 onPress={handleLastServicePress}
               />
@@ -324,7 +307,7 @@ export default function SmartMaintenanceScreen() {
               style={{
                 fontSize: 20,
                 fontWeight: '700',
-                color: ONBOARDING_COLORS.textPrimary,
+                color: oc.textPrimary,
                 marginBottom: 12,
               }}
             >
@@ -341,7 +324,6 @@ export default function SmartMaintenanceScreen() {
                     value={option.value}
                     icon={option.icon}
                     label={t(`onboarding.${option.labelKey}`)}
-                    color={option.color}
                     selected={reminderChannel === option.value}
                     onPress={handleReminderChannelPress}
                   />
@@ -357,9 +339,7 @@ export default function SmartMaintenanceScreen() {
           onPress={handleContinue}
           disabled={!canContinue}
           style={({ pressed }) => ({
-            backgroundColor: canContinue
-              ? ONBOARDING_COLORS.textPrimary
-              : ONBOARDING_COLORS.textDimmed,
+            backgroundColor: canContinue ? oc.textPrimary : oc.textDimmed,
             borderRadius: 20,
             borderCurve: 'continuous',
             paddingVertical: 16,
@@ -371,7 +351,7 @@ export default function SmartMaintenanceScreen() {
             style={{
               fontSize: 17,
               fontWeight: '700',
-              color: canContinue ? ONBOARDING_COLORS.background : ONBOARDING_COLORS.textMuted,
+              color: canContinue ? oc.background : oc.textMuted,
             }}
           >
             {t('onboarding.continue')}

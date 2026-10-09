@@ -12,6 +12,7 @@ import { Pressable, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withRepeat,
   withSequence,
@@ -19,18 +20,15 @@ import Animated, {
   ZoomIn,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { HUB_CHROME_MAX_FONT_SCALE, hub } from '../../components/bike-hub/ui/tokens';
+import { HUB_CHROME_MAX_FONT_SCALE } from '../../components/bike-hub/ui/tokens';
 import { GlobalCarPlayBanner } from '../../components/carplay/global-carplay-banner';
 import { ErrorFallback } from '../../components/error-fallback';
 import { BIKE_HUB_ROUTES } from '../../lib/bike-hub/constants';
 import { maintenanceBadgeOptions } from '../../lib/query-options';
 import { useRideStore } from '../../stores/ride.store';
 import { tabBarBottomOffset, useTabBarStore } from '../../stores/tab-bar.store';
-import {
-  EDITORIAL_SCHEME,
-  EditorialSchemeProvider,
-  useEditorialTheme,
-} from '../../theme/editorial';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
 
 const TAB_CONFIG = [
   { name: '(home)', icon: Home, labelKey: 'tabs.home' },
@@ -46,12 +44,20 @@ const TAB_CONFIG = [
  */
 const TAB_LABEL_MAX_FONT_SCALE = HUB_CHROME_MAX_FONT_SCALE;
 const TAB_LABEL_MIN_SCALE = 0.75;
+/** 44 pt on iOS, 48 dp on Android. */
+const TAB_MIN_HEIGHT = process.env.EXPO_OS === 'android' ? 48 : 44;
 
 /**
  * Over the bike hub the island sits on an opaque full-width dock so list rows
  * do not show beside and below it. It starts this far above the island's top.
  */
 const HUB_DOCK_OVERHANG = 8;
+
+/** The island is the G0 ground at 96%, so content scrolling under it stays faintly legible. */
+const TAB_BAR_OPACITY = 0.96;
+const INDICATOR_SIZE = 4;
+const FAB_SIZE = 56;
+const FAB_RING = 3;
 
 function formatElapsed(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -63,7 +69,9 @@ function formatElapsed(seconds: number): string {
 
 function RideFAB() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { t: rideTheme } = useEditorialTheme();
+  const reduceMotion = useReducedMotion();
   const rideStatus = useRideStore((s) => s.status);
   const elapsedTime = useRideStore((s) => s.elapsedTime);
   const isActive = rideStatus === 'recording' || rideStatus === 'paused';
@@ -71,7 +79,7 @@ function RideFAB() {
   const pulseScale = useSharedValue(1);
 
   useEffect(() => {
-    if (isActive) {
+    if (isActive && !reduceMotion) {
       pulseScale.value = withRepeat(
         withSequence(withTiming(1.12, { duration: 800 }), withTiming(1, { duration: 800 })),
         -1,
@@ -80,7 +88,7 @@ function RideFAB() {
     } else {
       pulseScale.value = withTiming(1, { duration: 200 });
     }
-  }, [isActive, pulseScale]);
+  }, [isActive, reduceMotion, pulseScale]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulseScale.value }],
@@ -106,32 +114,33 @@ function RideFAB() {
     >
       <Pressable
         onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={t('common.ride')}
+        android_ripple={{ color: tint(rideTheme.onWarm, 0.16), borderless: true }}
         style={{
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: palette.editorialSuccess,
+          width: FAB_SIZE,
+          height: FAB_SIZE,
+          borderRadius: FAB_SIZE / 2,
+          backgroundColor: rideTheme.warm,
           alignItems: 'center',
           justifyContent: 'center',
-          marginTop: -28,
+          marginTop: -FAB_SIZE / 2,
           borderCurve: 'continuous',
-          boxShadow: `0 10px 30px ${isActive ? 'rgba(78,186,111,0.5)' : 'rgba(78,186,111,0.3)'}`,
-          borderWidth: 3,
+          borderWidth: FAB_RING,
           borderColor: rideTheme.bg,
         }}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Route size={24} color={palette.white} strokeWidth={2.2} />
+        <Route size={24} color={rideTheme.onWarm} strokeWidth={2.2} />
       </Pressable>
       {isActive && (
         <Text
-          style={{
-            fontSize: 9,
-            fontWeight: '700',
-            color: palette.editorialSuccess,
-            marginTop: 2,
-            fontVariant: ['tabular-nums'],
-          }}
+          maxFontSizeMultiplier={TAB_LABEL_MAX_FONT_SCALE}
+          style={[
+            type.caption,
+            SYSTEM_WEIGHT.semibold,
+            { color: rideTheme.warm2, marginTop: 2, fontVariant: ['tabular-nums'] },
+          ]}
         >
           {formatElapsed(elapsedTime)}
         </Text>
@@ -148,17 +157,18 @@ function topRouteName(state: BottomTabBarProps['state']): string | undefined {
 }
 
 /**
- * The bar follows the system scheme, except over the bike hub, which is dark in
- * both: a light bar under it read as a different app.
+ * The bar follows the system scheme everywhere, the bike hub included: the hub
+ * now has a light scheme too, so pinning the bar dark over it would read as a
+ * different app in light mode.
  */
 function IslandTabBar(props: BottomTabBarProps) {
   const route = topRouteName(props.state);
   const overHub = route !== undefined && BIKE_HUB_ROUTES.has(route);
   return (
-    <EditorialSchemeProvider value={overHub ? EDITORIAL_SCHEME.DARK : null}>
+    <>
       {overHub ? <HubDock /> : null}
       <IslandTabBarContent {...props} />
-    </EditorialSchemeProvider>
+    </>
   );
 }
 
@@ -168,6 +178,8 @@ function IslandTabBar(props: BottomTabBarProps) {
  * already lets the last row scroll clear of it.
  */
 function HubDock() {
+  // The hub's ground is the app's G0 ground in either scheme.
+  const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const height = useTabBarStore((s) => s.height);
   if (height === null) return null;
@@ -180,7 +192,7 @@ function HubDock() {
         right: 0,
         bottom: 0,
         height: tabBarBottomOffset(insets.bottom) + height + HUB_DOCK_OVERHANG,
-        backgroundColor: hub.ground,
+        backgroundColor: theme.bg,
       }}
     />
   );
@@ -189,7 +201,7 @@ function HubDock() {
 function IslandTabBarContent({ state, navigation }: BottomTabBarProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { t: theme, isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
   // Screens that float chrome above the bar (the bike hub's action pill) read
   // its real height: it grows with the system text size. Measuring only — the
@@ -222,22 +234,24 @@ function IslandTabBarContent({ state, navigation }: BottomTabBarProps) {
 
   return (
     <Animated.View
-      entering={FadeIn.duration(400)}
+      entering={FadeIn.duration(240)}
       onLayout={(event) => setTabBarHeight(event.nativeEvent.layout.height)}
       style={{
         position: 'absolute',
         bottom: tabBarBottomOffset(insets.bottom),
-        left: 20,
-        right: 20,
-        backgroundColor: theme.bg,
-        borderRadius: 28,
+        left: space.lg,
+        right: space.lg,
+        backgroundColor: tint(theme.bg, TAB_BAR_OPACITY),
+        borderRadius: radius.plate + space.xs,
+        borderWidth: 1,
+        borderColor: theme.line,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-around',
-        paddingVertical: 10,
-        paddingHorizontal: 8,
+        paddingTop: space.xs,
+        paddingBottom: space.xxs,
+        paddingHorizontal: space.xs,
         borderCurve: 'continuous',
-        boxShadow: isDark ? '0 8px 24px rgba(0, 0, 0, 0.4)' : '0 8px 24px rgba(0, 0, 0, 0.12)',
       }}
     >
       {state.routes.flatMap((route, index) => {
@@ -290,20 +304,20 @@ function IslandTabBarContent({ state, navigation }: BottomTabBarProps) {
             accessibilityRole="tab"
             accessibilityState={{ selected: isFocused }}
             accessibilityLabel={accessibilityLabel}
+            android_ripple={{ color: tint(theme.ink, 0.08), borderless: true }}
             style={{
               alignItems: 'center',
               justifyContent: 'center',
               flex: 1,
-              paddingVertical: 4,
+              minHeight: TAB_MIN_HEIGHT,
+              paddingVertical: space.xxs,
             }}
           >
             <View>
               <Icon
                 size={22}
-                color={
-                  isFocused ? (config.name === '(garage)' ? theme.warm : theme.ink) : theme.ink3
-                }
-                strokeWidth={isFocused ? 2.5 : 1.8}
+                color={isFocused ? theme.ink : theme.ink3}
+                strokeWidth={isFocused ? 2.2 : 1.8}
               />
               {showBadge && (
                 <Animated.View
@@ -312,7 +326,7 @@ function IslandTabBarContent({ state, navigation }: BottomTabBarProps) {
                     position: 'absolute',
                     top: -6,
                     right: -10,
-                    backgroundColor: palette.danger500,
+                    backgroundColor: theme.danger,
                     borderRadius: 9,
                     minWidth: 18,
                     height: 18,
@@ -323,11 +337,11 @@ function IslandTabBarContent({ state, navigation }: BottomTabBarProps) {
                 >
                   <Text
                     maxFontSizeMultiplier={TAB_LABEL_MAX_FONT_SCALE}
-                    style={{
-                      fontSize: 10,
-                      fontWeight: '800',
-                      color: palette.white,
-                    }}
+                    style={[
+                      type.caption,
+                      SYSTEM_WEIGHT.bold,
+                      { fontSize: 10, lineHeight: 12, color: palette.white },
+                    ]}
                   >
                     {badgeDisplay}
                   </Text>
@@ -339,21 +353,29 @@ function IslandTabBarContent({ state, navigation }: BottomTabBarProps) {
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={TAB_LABEL_MIN_SCALE}
-              style={{
-                fontSize: 10,
-                fontWeight: isFocused ? '700' : '500',
-                color: isFocused
-                  ? config.name === '(garage)'
-                    ? theme.warm
-                    : theme.ink
-                  : theme.ink3,
-                marginTop: 3,
-                // Bounds the label to its tab so `adjustsFontSizeToFit` has a width to fit.
-                maxWidth: '100%',
-              }}
+              style={[
+                type.caption,
+                isFocused ? SYSTEM_WEIGHT.semibold : SYSTEM_WEIGHT.regular,
+                {
+                  color: isFocused ? theme.ink : theme.ink3,
+                  marginTop: 2,
+                  // Bounds the label to its tab so `adjustsFontSizeToFit` has a width to fit.
+                  maxWidth: '100%',
+                },
+              ]}
             >
               {label}
             </Text>
+            {/* Selection mark: copper is the app's selection colour. */}
+            <View
+              style={{
+                width: INDICATOR_SIZE,
+                height: INDICATOR_SIZE,
+                borderRadius: INDICATOR_SIZE / 2,
+                marginTop: 2,
+                backgroundColor: isFocused ? theme.warm : 'transparent',
+              }}
+            />
           </Pressable>
         );
 

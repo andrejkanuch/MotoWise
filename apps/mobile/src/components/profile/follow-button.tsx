@@ -1,14 +1,15 @@
-import { palette } from '@motovault/design-system';
 import { FollowRiderDocument, UnfollowRiderDocument } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { UserCheck, UserPlus } from 'lucide-react-native';
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, Text, useColorScheme } from 'react-native';
+import { ActivityIndicator, Pressable, Text } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { tint, useEditorialTheme } from '../../theme/editorial';
+import { radius, space, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 interface FollowButtonProps {
@@ -30,7 +31,7 @@ export function FollowButton({
   isFollowing: initialIsFollowing,
 }: FollowButtonProps) {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
+  const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
 
   // Server truth — updated only on mutation success/error
@@ -91,6 +92,8 @@ export function FollowButton({
 
   const isActive = optimisticFollowing;
   const Icon = isActive ? UserCheck : UserPlus;
+  // Follow is the action (copper); Following is a settled state (graphite).
+  const fg = isActive ? theme.ink : theme.onWarm;
 
   return (
     <Animated.View entering={FadeIn.duration(200)}>
@@ -98,58 +101,34 @@ export function FollowButton({
         onPress={handlePress}
         disabled={isLoading}
         accessibilityRole="button"
+        accessibilityState={{ busy: isLoading }}
         accessibilityLabel={
           isActive
             ? t('community.unfollowLabel', { name: targetUsername })
             : t('community.followLabel', { name: targetUsername })
         }
+        android_ripple={{ color: tint(theme.ink, 0.12) }}
         style={({ pressed }) => ({
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: 6,
-          paddingHorizontal: 20,
-          paddingVertical: 10,
-          borderRadius: 24,
+          gap: space.xs,
+          paddingHorizontal: space.lg,
+          minHeight: 44,
+          minWidth: 120,
+          borderRadius: radius.pill,
           borderCurve: 'continuous',
-          borderWidth: isActive ? 1 : 0,
-          borderColor: isActive
-            ? isDark
-              ? palette.neutral600
-              : palette.neutral300
-            : 'transparent',
-          backgroundColor: isActive
-            ? 'transparent'
-            : pressed
-              ? palette.primary600
-              : palette.primary500,
-          opacity: pressed ? 0.9 : 1,
-          minWidth: 110,
+          overflow: 'hidden',
+          backgroundColor: isActive ? theme.surface2 : theme.warm,
+          opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.85 : 1,
         })}
       >
         {isLoading ? (
-          <ActivityIndicator
-            size="small"
-            color={isActive ? (isDark ? palette.neutral300 : palette.neutral600) : palette.white}
-          />
+          <ActivityIndicator size="small" color={fg} />
         ) : (
           <>
-            <Icon
-              size={16}
-              color={isActive ? (isDark ? palette.neutral300 : palette.neutral600) : palette.white}
-              strokeWidth={2}
-            />
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: '600',
-                color: isActive
-                  ? isDark
-                    ? palette.neutral300
-                    : palette.neutral600
-                  : palette.white,
-              }}
-            >
+            <Icon size={16} color={fg} strokeWidth={2} />
+            <Text style={[type.bodyStrong, { fontSize: 15, color: fg }]}>
               {isActive ? t('community.followingBtn') : t('community.followBtn')}
             </Text>
           </>

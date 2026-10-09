@@ -1,10 +1,11 @@
+import { withAlpha } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
+import { Bookmark } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Modal, Pressable, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
 import { AUTH_EMAIL_REDIRECT_TO } from '../config/auth';
 import { captureException } from '../lib/analytics';
 import { signUpConsentMetadata } from '../lib/analytics-consent';
@@ -12,8 +13,10 @@ import { userFriendlyError } from '../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../lib/oauth';
 import { presentOAuthError } from '../lib/oauth-error-alert';
 import { supabase } from '../lib/supabase';
+import { radius, space, type } from '../theme/type';
+import { authButton, authInput, authInputColors } from './auth/auth-styles';
 import { AppleGlyph, GoogleGlyph } from './onboarding/oauth-glyphs';
-import { ONBOARDING_COLORS } from './onboarding/onboarding-colors';
+import { useOnboardingColors } from './onboarding/onboarding-colors';
 
 /**
  * Contextual "Save this to your garage" account-save bottom sheet (design name
@@ -42,21 +45,6 @@ type AccountPromptSheetProps = {
   onAuthenticated?: () => void;
 };
 
-/** Bookmark glyph (matches the `bookmark` design icon — Feather/Lucide style). */
-function BookmarkGlyph({ size = 24, color }: { size?: number; color: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"
-        stroke={color}
-        strokeWidth={1.75}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
 /** Body-copy key per context — avoids a magic-string switch in the JSX. */
 const BODY_KEY: Record<AccountPromptContext, string> = {
   ride: 'onboarding.cpPromptBodyRide',
@@ -70,8 +58,7 @@ const BODY_KEY: Record<AccountPromptContext, string> = {
  * typed-resources `t()` overload accepts them until the locale JSON is updated.
  */
 const CP_KEY = {
-  titleLead: 'onboarding.cpPromptTitleLead' as never,
-  titleAccent: 'onboarding.cpPromptTitleAccent' as never,
+  title: 'onboarding.cpPromptTitle' as never,
   notNow: 'onboarding.cpPromptNotNow' as never,
 } as const;
 
@@ -81,6 +68,7 @@ export function AccountPromptSheet({
   onDismiss,
   onAuthenticated,
 }: AccountPromptSheetProps) {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
@@ -154,7 +142,11 @@ export function AccountPromptSheet({
       {/* Scrim — tapping dismisses. */}
       <Animated.View
         entering={FadeIn.duration(220)}
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' }}
+        style={{
+          flex: 1,
+          backgroundColor: oc.surfaceOverlayDark,
+          justifyContent: 'flex-end',
+        }}
       >
         <Pressable
           accessibilityRole="button"
@@ -165,119 +157,90 @@ export function AccountPromptSheet({
 
         {/* Sheet — stops propagation so taps inside don't dismiss. */}
         <Animated.View
-          entering={SlideInDown.duration(420)}
+          entering={SlideInDown.duration(280)}
           style={{
-            backgroundColor: ONBOARDING_COLORS.background,
-            borderTopLeftRadius: 26,
-            borderTopRightRadius: 26,
+            backgroundColor: oc.surface,
+            borderTopLeftRadius: radius.plate,
+            borderTopRightRadius: radius.plate,
             borderCurve: 'continuous',
-            borderTopWidth: 1,
-            borderColor: ONBOARDING_COLORS.line,
-            paddingHorizontal: 22,
-            paddingTop: 12,
-            paddingBottom: insets.bottom + 30,
+            paddingHorizontal: space.xl,
+            paddingTop: space.sm,
+            paddingBottom: insets.bottom + space.xxl,
           }}
         >
           <Pressable onPress={() => {}} accessible={false}>
             {/* Drag handle. */}
             <View
               style={{
-                width: 38,
+                width: 36,
                 height: 4,
-                borderRadius: 2,
-                backgroundColor: ONBOARDING_COLORS.textMuted,
+                borderRadius: radius.pill,
+                backgroundColor: oc.borderMuted,
                 alignSelf: 'center',
-                marginBottom: 20,
+                marginBottom: space.lg,
               }}
             />
 
-            {/* Copper-tinted icon tile. */}
+            {/* Icon tile. */}
             <View
               style={{
                 width: 52,
                 height: 52,
-                borderRadius: 16,
+                borderRadius: radius.card,
                 borderCurve: 'continuous',
-                backgroundColor: ONBOARDING_COLORS.accentBg,
-                borderWidth: 1,
-                borderColor: ONBOARDING_COLORS.warm,
+                backgroundColor: oc.surface2,
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: 16,
+                marginBottom: space.md,
               }}
             >
-              <BookmarkGlyph size={24} color={ONBOARDING_COLORS.warm2} />
+              <Bookmark size={24} color={oc.textPrimary} strokeWidth={1.75} />
             </View>
 
-            {/* Title — "Save this to / your garage." */}
             <Text
-              style={{
-                fontFamily: 'InstrumentSerif-Regular',
-                fontSize: 28,
-                lineHeight: 31,
-                color: ONBOARDING_COLORS.textPrimary,
-                letterSpacing: -0.6,
-                marginBottom: 8,
-              }}
+              accessibilityRole="header"
+              style={[type.sheetTitle, { color: oc.textPrimary, marginBottom: space.xs }]}
             >
-              {t(CP_KEY.titleLead)}{' '}
-              <Text
-                style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}
-              >
-                {t(CP_KEY.titleAccent)}
-              </Text>
+              {t(CP_KEY.title)}
             </Text>
 
             {/* Context-aware body. */}
             <Text
-              style={{
-                fontFamily: 'Geist',
-                fontSize: 14,
-                color: ONBOARDING_COLORS.textSecondary,
-                lineHeight: 20,
-                maxWidth: 320,
-                marginBottom: 20,
-              }}
+              style={[
+                type.subhead,
+                { color: oc.textSecondary, maxWidth: 320, marginBottom: space.lg },
+              ]}
             >
               {t(BODY_KEY[context] as never)}
             </Text>
 
             {emailMode ? (
-              <View style={{ gap: 12 }}>
+              <View style={{ gap: space.sm }}>
                 <TextInput
                   value={email}
                   onChangeText={setEmail}
                   placeholder={t('auth.email')}
-                  placeholderTextColor={ONBOARDING_COLORS.textMuted}
+                  placeholderTextColor={oc.textMuted}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   autoComplete="email"
-                  style={authInput}
+                  style={[authInput, authInputColors(oc)]}
                 />
                 <TextInput
                   value={password}
                   onChangeText={setPassword}
                   placeholder={t('auth.password')}
-                  placeholderTextColor={ONBOARDING_COLORS.textMuted}
+                  placeholderTextColor={oc.textMuted}
                   secureTextEntry
                   autoComplete="new-password"
-                  style={authInput}
+                  style={[authInput, authInputColors(oc)]}
                 />
                 <Pressable
                   onPress={handleEmail}
                   disabled={!canSubmitEmail}
-                  style={[
-                    authButton(ONBOARDING_COLORS.warm),
-                    { opacity: canSubmitEmail ? 1 : 0.5 },
-                  ]}
+                  style={[authButton(oc.warm), { opacity: canSubmitEmail ? 1 : 0.5 }]}
                 >
-                  <Text
-                    style={{
-                      fontSize: 15.5,
-                      fontWeight: '600',
-                      color: ONBOARDING_COLORS.textOnAccent,
-                    }}
-                  >
+                  <Text style={[type.bodyStrong, { color: oc.textOnAccent }]}>
                     {t('onboarding.obAccountCreate')}
                   </Text>
                 </Pressable>
@@ -286,53 +249,32 @@ export function AccountPromptSheet({
                   hitSlop={8}
                   style={{ alignSelf: 'center' }}
                 >
-                  <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.ink3, marginTop: 4 }}>
+                  <Text style={[type.label, { color: oc.ink3, marginTop: space.xxs }]}>
                     {t('onboarding.obAccountOtherOptions')}
                   </Text>
                 </Pressable>
               </View>
             ) : (
-              <View style={{ gap: 10 }}>
+              <View style={{ gap: space.sm }}>
                 {process.env.EXPO_OS === 'ios' ? (
-                  <Pressable onPress={handleApple} style={authButton(ONBOARDING_COLORS.textWhite)}>
-                    <AppleGlyph size={18} color={ONBOARDING_COLORS.background} />
-                    <Text
-                      style={{
-                        fontSize: 15.5,
-                        fontWeight: '600',
-                        color: ONBOARDING_COLORS.background,
-                      }}
-                    >
+                  <Pressable onPress={handleApple} style={authButton(oc.textWhite)}>
+                    <AppleGlyph size={18} color={oc.background} />
+                    <Text style={[type.bodyStrong, { color: oc.background }]}>
                       {t('auth.continueWithApple')}
                     </Text>
                   </Pressable>
                 ) : null}
                 <Pressable
                   onPress={handleGoogle}
-                  style={authButton(ONBOARDING_COLORS.cardBg, ONBOARDING_COLORS.cardBorderDefault)}
+                  style={authButton(oc.cardBg, oc.cardBorderDefault)}
                 >
                   <GoogleGlyph size={18} />
-                  <Text
-                    style={{
-                      fontSize: 15.5,
-                      fontWeight: '600',
-                      color: ONBOARDING_COLORS.textPrimary,
-                    }}
-                  >
+                  <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
                     {t('auth.continueWithGoogle')}
                   </Text>
                 </Pressable>
-                <Pressable
-                  onPress={() => setEmailMode(true)}
-                  style={authButton('transparent', ONBOARDING_COLORS.cardBorderDefault)}
-                >
-                  <Text
-                    style={{
-                      fontSize: 15.5,
-                      fontWeight: '600',
-                      color: ONBOARDING_COLORS.textSecondary,
-                    }}
-                  >
+                <Pressable onPress={() => setEmailMode(true)} style={authButton(oc.surface2)}>
+                  <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
                     {t('onboarding.obAccountWithEmail')}
                   </Text>
                 </Pressable>
@@ -343,11 +285,14 @@ export function AccountPromptSheet({
             <Pressable
               onPress={onDismiss}
               hitSlop={8}
-              style={{ alignSelf: 'center', marginTop: 16 }}
+              style={{
+                alignSelf: 'center',
+                justifyContent: 'center',
+                minHeight: 44,
+                marginTop: space.xs,
+              }}
             >
-              <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.ink3, fontWeight: '500' }}>
-                {t(CP_KEY.notNow)}
-              </Text>
+              <Text style={[type.label, { color: oc.ink3 }]}>{t(CP_KEY.notNow)}</Text>
             </Pressable>
           </Pressable>
         </Animated.View>
@@ -360,14 +305,14 @@ export function AccountPromptSheet({
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: `${ONBOARDING_COLORS.background}E6`,
+              backgroundColor: withAlpha(oc.background, 0.9),
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 14,
+              gap: space.sm,
             }}
           >
-            <ActivityIndicator size="large" color={ONBOARDING_COLORS.warm} />
-            <Text style={{ fontSize: 13.5, color: ONBOARDING_COLORS.textSecondary }}>
+            <ActivityIndicator size="large" color={oc.warm} />
+            <Text style={[type.subhead, { color: oc.textSecondary }]}>
               {t('onboarding.obAccountCreating')}
             </Text>
           </View>
@@ -375,32 +320,4 @@ export function AccountPromptSheet({
       </Animated.View>
     </Modal>
   );
-}
-
-const authInput = {
-  backgroundColor: ONBOARDING_COLORS.cardBg,
-  borderWidth: 1,
-  borderColor: ONBOARDING_COLORS.cardBorderDefault,
-  borderRadius: 14,
-  borderCurve: 'continuous' as const,
-  paddingHorizontal: 16,
-  paddingVertical: 15,
-  fontSize: 15,
-  color: ONBOARDING_COLORS.textPrimary,
-};
-
-function authButton(backgroundColor: string, borderColor?: string) {
-  return {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    gap: 10,
-    paddingVertical: 15,
-    paddingHorizontal: 18,
-    borderRadius: 15,
-    borderCurve: 'continuous' as const,
-    backgroundColor,
-    borderWidth: borderColor ? 1 : 0,
-    borderColor: borderColor ?? 'transparent',
-  };
 }

@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -24,8 +23,9 @@ import {
   verifySignupCode,
 } from '../../lib/email-confirmation';
 import { supabase } from '../../lib/supabase';
+import { radius, space, type } from '../../theme/type';
 import { triggerNotification } from '../../utils/haptics';
-import { ONBOARDING_COLORS } from '../onboarding/onboarding-colors';
+import { type OnboardingColors, useOnboardingColors } from '../onboarding/onboarding-colors';
 
 /** Why a confirmation code was sent; the `source` of the `email_code_*` events. */
 export const EMAIL_CODE_SOURCE = {
@@ -49,27 +49,18 @@ export interface EmailCodeStepTheme {
   error: string;
 }
 
-/** Ready-made themes for the two places the step is shown. */
-export const EMAIL_CODE_STEP_THEME = {
-  onboarding: {
-    textPrimary: ONBOARDING_COLORS.textPrimary,
-    textSecondary: ONBOARDING_COLORS.textSecondary,
-    textMuted: ONBOARDING_COLORS.textMuted,
-    inputBackground: ONBOARDING_COLORS.cardBg,
-    inputBorder: ONBOARDING_COLORS.cardBorderDefault,
-    accent: ONBOARDING_COLORS.accent,
-    error: ONBOARDING_COLORS.error,
-  },
-  auth: {
-    textPrimary: palette.white,
-    textSecondary: palette.whiteAlpha55,
-    textMuted: palette.whiteAlpha35,
-    inputBackground: palette.whiteAlpha06,
-    inputBorder: palette.whiteAlpha10,
-    accent: palette.moduleSuspension,
-    error: palette.danger500,
-  },
-} as const satisfies Record<string, EmailCodeStepTheme>;
+/** Onboarding and the (auth) screens share the Race Plate tokens of the current scheme. */
+function emailCodeStepTheme(oc: OnboardingColors): EmailCodeStepTheme {
+  return {
+    textPrimary: oc.textPrimary,
+    textSecondary: oc.textSecondary,
+    textMuted: oc.textMuted,
+    inputBackground: oc.surface2,
+    inputBorder: oc.cardBorderDefault,
+    accent: oc.warm2,
+    error: oc.error,
+  };
+}
 
 export interface EmailCodeStepProps {
   /** The address the code went to (already normalized by the caller or not; it is normalized here). */
@@ -79,7 +70,8 @@ export interface EmailCodeStepProps {
   password?: string;
   /** Open with the resend countdown already running (a send was rate-limited). */
   initialCooldownMs?: number;
-  theme: EmailCodeStepTheme;
+  /** Overrides the scheme's Race Plate colors. */
+  theme?: EmailCodeStepTheme;
   /** Back to the email form ("Change email"). */
   onBack: () => void;
   /** "Already confirmed" with no password in memory: take the rider to sign-in. */
@@ -145,11 +137,13 @@ export function EmailCodeStep({
   source,
   password,
   initialCooldownMs,
-  theme,
+  theme: themeOverride,
   onBack,
   onNeedsSignIn,
   onBusyChange,
 }: EmailCodeStepProps) {
+  const oc = useOnboardingColors();
+  const theme = themeOverride ?? emailCodeStepTheme(oc);
   const { t } = useTranslation();
   const address = normalizeEmail(email);
   const [code, setCode] = useState('');
@@ -319,20 +313,17 @@ export function EmailCodeStep({
     : t('auth.codeResend');
 
   return (
-    <Animated.View entering={FadeInUp.duration(250)} style={{ gap: 16 }}>
-      <View style={{ gap: 8 }}>
-        <Text
-          accessibilityRole="header"
-          style={{ fontSize: 26, fontWeight: '700', color: theme.textPrimary, letterSpacing: -0.4 }}
-        >
+    <Animated.View entering={FadeInUp.duration(250)} style={{ gap: space.md }}>
+      <View style={{ gap: space.xs }}>
+        <Text accessibilityRole="header" style={[type.largeTitle, { color: theme.textPrimary }]}>
           {t('auth.codeTitle')}
         </Text>
-        <Text style={{ fontSize: 15, lineHeight: 21, color: theme.textSecondary }}>
+        <Text style={[type.subhead, { color: theme.textSecondary }]}>
           {t('auth.codeSentTo', { digits: EMAIL_OTP_LENGTH, email: address })}
         </Text>
       </View>
 
-      <View style={{ gap: 10 }}>
+      <View style={{ gap: space.xs }}>
         {/* No native maxLength: it truncates a paste BEFORE onChangeText, so
             "Your code: 482 913" would lose its digits. Length is enforced in handleChangeText. */}
         <TextInput
@@ -350,12 +341,11 @@ export function EmailCodeStep({
             backgroundColor: theme.inputBackground,
             borderWidth: 1,
             borderColor: message?.tone === TONE.ERROR ? theme.error : theme.inputBorder,
-            borderRadius: 14,
+            borderRadius: radius.control,
             borderCurve: 'continuous',
-            paddingHorizontal: 16,
-            paddingVertical: 16,
-            fontFamily: 'GeistMono-Medium',
-            fontSize: 28,
+            paddingHorizontal: space.md,
+            paddingVertical: space.md,
+            ...type.figure,
             letterSpacing: 10,
             textAlign: 'center',
             color: theme.textPrimary,
@@ -363,9 +353,9 @@ export function EmailCodeStep({
           }}
         />
         {busy ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
             <ActivityIndicator size="small" color={theme.textSecondary} />
-            <Text style={{ fontSize: 14, color: theme.textSecondary }}>
+            <Text style={[type.subhead, { color: theme.textSecondary }]}>
               {t('auth.codeVerifying')}
             </Text>
           </View>
@@ -373,18 +363,17 @@ export function EmailCodeStep({
         {message ? (
           <Text
             accessibilityLiveRegion="polite"
-            style={{
-              fontSize: 14,
-              lineHeight: 20,
-              color: message.tone === TONE.ERROR ? theme.error : theme.textSecondary,
-            }}
+            style={[
+              type.subhead,
+              { color: message.tone === TONE.ERROR ? theme.error : theme.textSecondary },
+            ]}
           >
             {t(message.key)}
           </Text>
         ) : null}
       </View>
 
-      <View style={{ gap: 4, alignItems: 'flex-start' }}>
+      <View style={{ gap: space.xxs, alignItems: 'flex-start' }}>
         {canRetry ? (
           <TextAction
             label={t('common.tryAgain')}
@@ -437,15 +426,14 @@ function TextAction({ label, onPress, disabled = false, color, disabledColor }: 
       accessibilityState={{ disabled }}
       hitSlop={8}
       style={({ pressed }) => ({
-        paddingVertical: 8,
-        borderRadius: 8,
+        minHeight: 44,
+        justifyContent: 'center',
+        borderRadius: radius.chip,
         borderCurve: 'continuous',
         opacity: pressed && !disabled ? 0.6 : 1,
       })}
     >
-      <Text style={{ fontSize: 15, fontWeight: '600', color: disabled ? disabledColor : color }}>
-        {label}
-      </Text>
+      <Text style={[type.bodyStrong, { color: disabled ? disabledColor : color }]}>{label}</Text>
     </Pressable>
   );
 }

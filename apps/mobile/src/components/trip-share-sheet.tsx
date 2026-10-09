@@ -1,26 +1,18 @@
-import { palette } from '@motovault/design-system';
 import { RotateTripShareTokenDocument, UpdateTripDocument } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { AlertTriangle, Check, Copy, Link2, RefreshCw, Share2, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Pressable,
-  Share,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, Share, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 import { queryKeys } from '../lib/query-keys';
 import { maybeRequestReview } from '../lib/store-review';
+import { tint, useEditorialTheme } from '../theme/editorial';
+import { type } from '../theme/type';
 
 interface TripShareSheetProps {
   tripId: string;
@@ -46,19 +38,19 @@ function truncate(url: string): string {
  * obtain a new plaintext value to copy or share.
  */
 export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripShareSheetProps) {
-  const isDark = useColorScheme() === 'dark';
+  const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
 
   const [plaintextToken, setPlaintextToken] = useState<string | null>(null);
   const [justCopied, setJustCopied] = useState(false);
 
-  const bg = isDark ? palette.neutral950 : palette.white;
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const bodyColor = isDark ? palette.neutral300 : palette.neutral600;
-  const mutedColor = isDark ? palette.neutral500 : palette.neutral400;
-  const dividerColor = isDark ? palette.neutral800 : palette.neutral200;
-  const chipBg = isDark ? palette.neutral900 : palette.neutral100;
+  const bg = theme.surface;
+  const titleColor = theme.ink;
+  const bodyColor = theme.ink2;
+  const mutedColor = theme.ink3;
+  const dividerColor = theme.line;
+  const chipBg = theme.surface2;
 
   const rotateMutation = useMutation({
     mutationFn: () => gqlFetcher(RotateTripShareTokenDocument, { tripId }),
@@ -255,13 +247,13 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                     height: 64,
                     borderRadius: 32,
                     borderCurve: 'continuous',
-                    backgroundColor: isDark ? palette.accentTint : palette.accentBgLight,
+                    backgroundColor: theme.surface2,
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 16,
                   }}
                 >
-                  <Link2 size={28} color={palette.accent500} />
+                  <Link2 size={28} color={theme.ink2} />
                 </View>
                 <Text
                   style={{
@@ -291,7 +283,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                 onPress={handleGenerate}
                 disabled={rotateMutation.isPending}
                 style={{
-                  backgroundColor: palette.accent500,
+                  backgroundColor: theme.warm,
                   paddingVertical: 16,
                   borderRadius: 14,
                   borderCurve: 'continuous',
@@ -303,13 +295,13 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                 }}
               >
                 {rotateMutation.isPending ? (
-                  <ActivityIndicator size="small" color={palette.white} />
+                  <ActivityIndicator size="small" color={theme.onWarm} />
                 ) : (
-                  <Link2 size={18} color={palette.white} />
+                  <Link2 size={18} color={theme.onWarm} />
                 )}
                 <Text
                   style={{
-                    color: palette.white,
+                    color: theme.onWarm,
                     fontSize: 16,
                     fontWeight: '700',
                     letterSpacing: 0.2,
@@ -345,14 +337,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                   borderColor: dividerColor,
                 }}
               >
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    fontSize: 13,
-                    fontFamily: process.env.EXPO_OS === 'ios' ? 'Menlo' : 'monospace',
-                    color: titleColor,
-                  }}
-                >
+                <Text numberOfLines={1} style={[type.subhead, { color: titleColor }]}>
                   {truncate(shareUrl ?? '')}
                 </Text>
               </View>
@@ -361,7 +346,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
               <Text
                 style={{
                   fontSize: 12,
-                  color: isDark ? palette.neutral400 : palette.neutral500,
+                  color: theme.ink3,
                   textAlign: 'center',
                   marginBottom: 16,
                 }}
@@ -375,7 +360,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                   onPress={handleCopy}
                   style={{
                     flex: 1,
-                    backgroundColor: palette.accent500,
+                    backgroundColor: theme.warm,
                     paddingVertical: 14,
                     borderRadius: 12,
                     borderCurve: 'continuous',
@@ -386,13 +371,13 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                   }}
                 >
                   {justCopied ? (
-                    <Check size={18} color={palette.white} />
+                    <Check size={18} color={theme.onWarm} />
                   ) : (
-                    <Copy size={18} color={palette.white} />
+                    <Copy size={18} color={theme.onWarm} />
                   )}
                   <Text
                     style={{
-                      color: palette.white,
+                      color: theme.onWarm,
                       fontSize: 15,
                       fontWeight: '700',
                     }}
@@ -443,10 +428,10 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                   opacity: rotateMutation.isPending ? 0.6 : 1,
                 }}
               >
-                <RefreshCw size={15} color={palette.danger500} />
+                <RefreshCw size={15} color={theme.danger} />
                 <Text
                   style={{
-                    color: palette.danger500,
+                    color: theme.danger,
                     fontSize: 14,
                     fontWeight: '600',
                   }}
@@ -462,12 +447,12 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
                   gap: 10,
                   padding: 14,
                   marginTop: 20,
-                  backgroundColor: isDark ? palette.warningBgDark : palette.warningBgLight,
+                  backgroundColor: tint(theme.plateDue, 0.12),
                   borderRadius: 12,
                   borderCurve: 'continuous',
                 }}
               >
-                <AlertTriangle size={16} color={palette.warning500} />
+                <AlertTriangle size={16} color={theme.dueInk} />
                 <Text
                   style={{
                     flex: 1,
@@ -506,11 +491,11 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
               }}
             >
               {updateTripMutation.isPending ? (
-                <ActivityIndicator size="small" color={palette.danger500} />
+                <ActivityIndicator size="small" color={theme.danger} />
               ) : (
                 <Text
                   style={{
-                    color: palette.danger500,
+                    color: theme.danger,
                     fontSize: 15,
                     fontWeight: '700',
                   }}

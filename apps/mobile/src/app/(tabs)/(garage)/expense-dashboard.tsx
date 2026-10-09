@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import {
   ExpensesByMotorcycleDocument,
   type ExpensesByMotorcycleQuery,
@@ -46,12 +45,19 @@ import {
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
+import { GUTTER, radius, space, type } from '../../../theme/type';
 
-const PERIOD_LABELS: Record<Period, string> = {
-  thisYear: 'This Year',
-  lastYear: 'Last Year',
-  allTime: 'All Time',
-};
+const PERIOD_LABEL_KEY = {
+  thisYear: 'expenses.periodThisYear',
+  lastYear: 'expenses.periodLastYear',
+  allTime: 'expenses.periodAllTime',
+} as const satisfies Record<Period, string>;
+
+const PERIOD_TOTAL_KEY = {
+  thisYear: 'expenses.totalSpentThisYear',
+  lastYear: 'expenses.totalSpentLastYear',
+  allTime: 'expenses.totalSpentAllTime',
+} as const satisfies Record<Period, string>;
 
 /**
  * MOT-273: one-tap quick-add categories on the empty state. Prefilling the
@@ -60,18 +66,11 @@ const PERIOD_LABELS: Record<Period, string> = {
  */
 const QUICK_ADD_CATEGORIES: ExpenseCategory[] = ['fuel', 'maintenance', 'insurance'];
 
-const STAT_LABEL_STYLE = {
-  fontSize: 10,
-  fontWeight: '700' as const,
-  letterSpacing: 1,
-  textTransform: 'uppercase' as const,
-};
+const STAT_LABEL_STYLE = type.label;
 
 const STAT_VALUE_STYLE = {
-  fontFamily: 'InstrumentSerif-Regular',
-  fontSize: 18,
-  fontVariant: ['tabular-nums' as const],
-  marginTop: 4,
+  ...type.figureSmall,
+  marginTop: space.xxs,
 };
 
 /**
@@ -91,7 +90,7 @@ function StatColumn({
 }) {
   return (
     <View style={{ flex: 1 }}>
-      <Text style={{ ...STAT_LABEL_STYLE, color: theme.ink3 }}>{label}</Text>
+      <Text style={{ ...STAT_LABEL_STYLE, color: theme.ink2 }}>{label}</Text>
       <Text style={{ ...STAT_VALUE_STYLE, color: theme.ink }}>{value}</Text>
     </View>
   );
@@ -120,11 +119,11 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
       </Animated.View>
       <Animated.View entering={FadeInUp.delay(200).duration(300)}>
         <Text
+          accessibilityRole="header"
           style={{
-            fontFamily: 'InstrumentSerif-Regular',
-            fontSize: 24,
+            ...type.sheetTitle,
             color: theme.ink,
-            marginTop: 16,
+            marginTop: space.md,
             textAlign: 'center',
           }}
         >
@@ -134,9 +133,9 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
       <Animated.View entering={FadeInUp.delay(280).duration(300)}>
         <Text
           style={{
-            fontSize: 14,
-            color: theme.ink3,
-            marginTop: 8,
+            ...type.subhead,
+            color: theme.ink2,
+            marginTop: space.xs,
             textAlign: 'center',
             maxWidth: 280,
           }}
@@ -192,7 +191,7 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
               }}
             />
             <Plus size={13} color={theme.ink3} strokeWidth={2} />
-            <Text style={{ fontSize: 14, fontWeight: '600', color: theme.ink }}>
+            <Text style={{ ...type.label, fontSize: 14, color: theme.ink }}>
               {t(`expenses.category_${cat}`)}
             </Text>
           </Pressable>
@@ -228,13 +227,7 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
             alignItems: 'center',
           }}
         >
-          <Text
-            style={{
-              fontWeight: '600',
-              fontSize: 16,
-              color: palette.white,
-            }}
-          >
+          <Text style={{ ...type.bodyStrong, color: theme.onWarm }}>
             {t('expenses.addFirstExpense')}
           </Text>
         </Pressable>
@@ -250,10 +243,9 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
       <Animated.View entering={FadeIn.delay(560).duration(300)}>
         <Text
           style={{
-            fontFamily: 'InstrumentSerif-Italic',
-            fontSize: 13,
+            ...type.subhead,
             color: theme.ink3,
-            marginTop: 12,
+            marginTop: space.sm,
           }}
         >
           {t('expenses.emptyStateTip')}
@@ -405,11 +397,10 @@ export default function ExpenseDashboardScreen() {
       >
         <Text
           style={{
-            fontFamily: 'InstrumentSerif-Regular',
-            fontSize: 20,
+            ...type.body,
             color: theme.ink2,
             textAlign: 'center',
-            marginBottom: 16,
+            marginBottom: space.md,
           }}
         >
           {t('expenses.failedToLoad')}
@@ -426,15 +417,7 @@ export default function ExpenseDashboardScreen() {
             borderCurve: 'continuous',
           }}
         >
-          <Text
-            style={{
-              fontWeight: '600',
-              fontSize: 14,
-              color: palette.white,
-            }}
-          >
-            {t('common.retry')}
-          </Text>
+          <Text style={{ ...type.bodyStrong, color: theme.onWarm }}>{t('common.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -475,20 +458,15 @@ export default function ExpenseDashboardScreen() {
   // period-scoped split would not add up to the total printed above it.
   const { invested, consumed } = splitExpenseTotals(selected.categoryTotals, purchasePrice ?? 0);
   const heroTotal = formatCurrencyTotals(periodTotals, dashboardCurrency);
-  const unitLabel = mileageUnit === 'km' ? 'COST/KM' : 'COST/MI';
+  const unitLabel = t(mileageUnit === 'km' ? 'expenses.costPerKm' : 'expenses.costPerMi');
 
-  const periodContextLabel =
-    period === 'thisYear'
-      ? 'Total spent this year'
-      : period === 'lastYear'
-        ? 'Total spent last year'
-        : 'Total spent all time';
+  const periodContextLabel = t(PERIOD_TOTAL_KEY[period]);
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: theme.bg }}
       contentContainerStyle={{
-        paddingHorizontal: 20,
+        paddingHorizontal: GUTTER,
         paddingBottom: 100,
         ...(process.env.EXPO_OS === 'android' && { paddingTop: 56 }),
       }}
@@ -500,33 +478,14 @@ export default function ExpenseDashboardScreen() {
     >
       <Sentry.TimeToInitialDisplay record />
       <Sentry.TimeToFullDisplay record />
-      {/* Editorial Header */}
-      <Animated.View entering={FadeInDown.duration(300)} style={{ marginTop: 12 }}>
-        <Text
-          style={{
-            fontSize: 10,
-            fontWeight: '700',
-            letterSpacing: 2,
-            textTransform: 'uppercase',
-            color: theme.ink3,
-          }}
-        >
-          {t('expenses.dashboard')}
-        </Text>
-        {bikeName ? (
-          <Text
-            style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 28,
-              color: theme.ink,
-              marginTop: 4,
-              letterSpacing: -0.5,
-            }}
-          >
+      {/* Which bike — the navigation bar already carries the screen title. */}
+      {bikeName ? (
+        <Animated.View entering={FadeInDown.duration(240)} style={{ marginTop: space.sm }}>
+          <Text accessibilityRole="header" style={{ ...type.sheetTitle, color: theme.ink }}>
             {bikeName}
           </Text>
-        ) : null}
-      </Animated.View>
+        </Animated.View>
+      ) : null}
 
       {/* Period Selector */}
       <Animated.View entering={FadeInUp.delay(40).duration(300)} style={{ marginTop: 20 }}>
@@ -547,7 +506,7 @@ export default function ExpenseDashboardScreen() {
             <Pressable
               key={option}
               onPress={() => handlePeriodChange(option)}
-              accessibilityLabel={`Show ${PERIOD_LABELS[option]} expenses`}
+              accessibilityLabel={t(PERIOD_LABEL_KEY[option])}
               accessibilityRole="button"
               accessibilityState={{ selected: period === option }}
               style={{
@@ -567,7 +526,7 @@ export default function ExpenseDashboardScreen() {
                   color: period === option ? theme.ink : theme.ink3,
                 }}
               >
-                {PERIOD_LABELS[option]}
+                {t(PERIOD_LABEL_KEY[option])}
               </Text>
             </Pressable>
           ))}
@@ -619,24 +578,17 @@ export default function ExpenseDashboardScreen() {
 
       {/* Hero Total */}
       <Animated.View entering={FadeInUp.delay(80).duration(300)} style={{ marginTop: 28 }}>
-        <Text
-          style={{
-            fontSize: 13,
-            color: theme.ink3,
-          }}
-        >
-          {periodContextLabel}
-        </Text>
+        <Text style={{ ...type.subhead, color: theme.ink2 }}>{periodContextLabel}</Text>
 
         <Text
           adjustsFontSizeToFit
           numberOfLines={1}
           accessibilityLabel={`Total: ${heroTotal}`}
           style={{
-            fontFamily: 'InstrumentSerif-Regular',
-            fontSize: 48,
+            ...type.figure,
+            fontSize: 52,
+            lineHeight: 56,
             color: theme.ink,
-            letterSpacing: -1.5,
             marginTop: 2,
           }}
         >
@@ -667,8 +619,8 @@ export default function ExpenseDashboardScreen() {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: tint(theme.warm, 0.15),
-              borderRadius: 20,
+              backgroundColor: theme.surface2,
+              borderRadius: radius.pill,
               borderCurve: 'continuous',
               paddingHorizontal: 12,
               paddingVertical: 7,
@@ -698,8 +650,9 @@ export default function ExpenseDashboardScreen() {
             </Text>
             <Text
               style={{
-                fontFamily: 'InstrumentSerif-Regular',
-                fontSize: 13,
+                ...type.figureSmall,
+                fontSize: 16,
+                lineHeight: 18,
                 color: theme.ink,
                 marginLeft: 6,
               }}
@@ -734,25 +687,15 @@ export default function ExpenseDashboardScreen() {
               padding: 16,
             }}
           >
-            <Text
-              style={{
-                fontSize: 10,
-                fontWeight: '700',
-                letterSpacing: 1.5,
-                textTransform: 'uppercase',
-                color: theme.ink3,
-                marginBottom: 8,
-              }}
-            >
+            <Text style={{ ...type.bodyStrong, color: theme.ink2, marginBottom: space.xxs }}>
               {t('expenses.totalCostOfOwnership')}
             </Text>
             <Text
               style={{
-                fontFamily: 'InstrumentSerif-Regular',
-                fontSize: 32,
+                ...type.figure,
+                fontSize: 34,
+                lineHeight: 38,
                 color: theme.ink,
-                fontVariant: ['tabular-nums'],
-                letterSpacing: -0.5,
               }}
             >
               {formatAgg(purchasePrice + selected.allTimeTotal)}
@@ -855,13 +798,8 @@ export default function ExpenseDashboardScreen() {
       {/* Category Breakdown */}
       <Animated.View entering={FadeInUp.delay(200).duration(300)} style={{ marginTop: 32 }}>
         <Text
-          style={{
-            fontFamily: 'InstrumentSerif-Italic',
-            fontSize: 22,
-            color: theme.warm2,
-            marginBottom: 14,
-            paddingLeft: 2,
-          }}
+          accessibilityRole="header"
+          style={{ ...type.sectionTitle, color: theme.ink, marginBottom: space.sm }}
         >
           {t('expenses.byCategory')}
         </Text>
@@ -911,8 +849,7 @@ export default function ExpenseDashboardScreen() {
               />
               <Text
                 style={{
-                  fontFamily: 'InstrumentSerif-Regular',
-                  fontSize: 18,
+                  ...type.bodyStrong,
                   color: theme.ink,
                   flex: 1,
                 }}
@@ -975,10 +912,10 @@ export default function ExpenseDashboardScreen() {
                   </View>
                   <Text
                     style={{
-                      fontFamily: 'InstrumentSerif-Regular',
-                      fontSize: 16,
+                      ...type.figureSmall,
+                      fontSize: 18,
                       color: theme.ink,
-                      marginLeft: 12,
+                      marginLeft: space.sm,
                     }}
                   >
                     {formatFor(expense.amount, expense.currency)}
@@ -993,13 +930,8 @@ export default function ExpenseDashboardScreen() {
       {/* Monthly Trend */}
       <Animated.View entering={FadeInUp.delay(260).duration(300)} style={{ marginTop: 24 }}>
         <Text
-          style={{
-            fontFamily: 'InstrumentSerif-Italic',
-            fontSize: 22,
-            color: theme.warm2,
-            marginBottom: 14,
-            paddingLeft: 2,
-          }}
+          accessibilityRole="header"
+          style={{ ...type.sectionTitle, color: theme.ink, marginBottom: space.sm }}
         >
           {t('expenses.monthlyTrend')}
         </Text>

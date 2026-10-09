@@ -5,10 +5,10 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { triggerImpact } from '../../../utils/haptics';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
-  HUB_FONT,
   HUB_PRESSED_SCALE,
   HUB_RADIUS,
-  hub,
+  SYSTEM_WEIGHT,
+  useHubTheme,
 } from '../ui/tokens';
 
 const BAND_HEIGHT = 150;
@@ -28,6 +28,7 @@ interface PhotoBandProps {
 }
 
 function Chip({ label }: { label: string }) {
+  const hub = useHubTheme();
   return (
     <View
       style={{
@@ -42,7 +43,7 @@ function Chip({ label }: { label: string }) {
       <Text
         maxFontSizeMultiplier={HUB_CHROME_MAX_FONT_SCALE}
         numberOfLines={1}
-        style={{ fontFamily: HUB_FONT.mono, fontSize: 11, color: hub.text }}
+        style={{ ...SYSTEM_WEIGHT.medium, fontSize: 12, color: hub.text }}
       >
         {label}
       </Text>
@@ -62,6 +63,7 @@ export function PhotoBand({
   onPress,
   onAddPhoto,
 }: PhotoBandProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
 
   if (!photoUrl) {
@@ -91,7 +93,7 @@ export function PhotoBand({
         ) : (
           <Camera size={22} color={hub.dim} strokeWidth={1.8} />
         )}
-        <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 13, color: hub.dim }}>
+        <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 13, color: hub.dim }}>
           {uploading ? t('garage.uploadingPhoto') : t('bikeHub.photo.add')}
         </Text>
       </Pressable>
@@ -161,7 +163,7 @@ export function PhotoBand({
           }}
         >
           <ActivityIndicator color={hub.text} />
-          <Text style={{ fontFamily: HUB_FONT.sansSemiBold, fontSize: 13, color: hub.text }}>
+          <Text style={{ ...SYSTEM_WEIGHT.semibold, fontSize: 13, color: hub.text }}>
             {t('garage.uploadingPhoto')}
           </Text>
         </View>

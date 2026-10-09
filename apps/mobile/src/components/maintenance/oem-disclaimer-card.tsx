@@ -3,7 +3,7 @@ import { AlertTriangle, Info } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Text, View, type ViewStyle } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { HUB_FONT, hub } from '../bike-hub/ui/tokens';
+import { SYSTEM_WEIGHT, useHubTheme } from '../bike-hub/ui/tokens';
 
 export const OEM_DISCLAIMER_VARIANT = {
   /** Amber warning card — onboarding, where the schedule is first imported. */
@@ -30,6 +30,7 @@ interface OemDisclaimerCardProps {
  * Due-soon colour.
  */
 function QuietDisclaimer({ style }: { style?: ViewStyle }) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   return (
     <View style={[{ flexDirection: 'row', gap: 8, paddingHorizontal: 2 }, style]}>
@@ -38,7 +39,7 @@ function QuietDisclaimer({ style }: { style?: ViewStyle }) {
         selectable
         style={{
           flex: 1,
-          fontFamily: HUB_FONT.sans,
+          ...SYSTEM_WEIGHT.regular,
           fontSize: 12,
           lineHeight: 16,
           color: hub.muted,

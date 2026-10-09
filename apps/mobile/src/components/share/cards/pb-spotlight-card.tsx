@@ -1,7 +1,7 @@
 import { palette } from '@motovault/design-system';
-import { LinearGradient } from 'expo-linear-gradient';
 import { memo } from 'react';
 import { Text, View } from 'react-native';
+import { tint } from '../../../theme/editorial';
 import {
   distanceUnitLabel,
   formatDistanceValue,
@@ -10,9 +10,7 @@ import {
   speedUnitLabel,
 } from '../../../utils/ride-formatters';
 import type { RideSharePayload } from '../share-card-types';
-import { RouteSilhouette } from './card-elements';
-
-const MONO = process.env.EXPO_OS === 'ios' ? 'Menlo' : 'monospace';
+import { CARD_INK, CARD_TYPE, RouteSilhouette } from './card-elements';
 
 export const PbSpotlightCard = memo(function PbSpotlightCard({ data }: { data: RideSharePayload }) {
   if (!data.isPB) return null;
@@ -57,20 +55,7 @@ export const PbSpotlightCard = memo(function PbSpotlightCard({ data }: { data: R
         overflow: 'hidden',
       }}
     >
-      {/* Copper radial glow */}
-      <LinearGradient
-        colors={['rgba(200,119,44,0.4)', 'transparent']}
-        style={{
-          position: 'absolute',
-          top: -60,
-          left: -60,
-          right: -60,
-          height: 280,
-          borderRadius: 140,
-        }}
-      />
-
-      {/* PB tag */}
+      {/* PB tag — a bone plate chip */}
       <View style={{ position: 'absolute', top: 16, left: 0, right: 0, alignItems: 'center' }}>
         <View
           style={{
@@ -80,20 +65,11 @@ export const PbSpotlightCard = memo(function PbSpotlightCard({ data }: { data: R
             paddingVertical: 5,
             paddingHorizontal: 11,
             borderRadius: 99,
-            backgroundColor: palette.shareCopper,
+            backgroundColor: palette.plateBone,
           }}
         >
-          <Text
-            style={{
-              fontFamily: MONO,
-              fontSize: 8.5,
-              fontWeight: '700',
-              letterSpacing: 1.87,
-              color: '#fff',
-              textTransform: 'uppercase',
-            }}
-          >
-            Personal Record
+          <Text style={{ ...CARD_TYPE.label, fontSize: 10, color: palette.plateOnPlate }}>
+            Personal record
           </Text>
         </View>
       </View>
@@ -102,34 +78,24 @@ export const PbSpotlightCard = memo(function PbSpotlightCard({ data }: { data: R
       <View style={{ position: 'absolute', top: 96, left: 0, right: 0, alignItems: 'center' }}>
         <Text
           style={{
-            fontSize: 96,
-            fontWeight: '800',
-            letterSpacing: -4.32,
-            lineHeight: 86,
-            color: '#fff',
-            fontVariant: ['tabular-nums'],
+            ...CARD_TYPE.figure,
+            fontFamily: CARD_TYPE.title.fontFamily,
+            fontSize: 104,
+            lineHeight: 96,
+            color: CARD_INK.strong,
           }}
         >
           {heroValue}
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: '600',
-              letterSpacing: -0.24,
-              color: palette.shareCopperSoft,
-            }}
-          >
+          <Text style={{ ...CARD_TYPE.figure, fontSize: 26, color: CARD_INK.muted }}>
             {' '}
             {heroUnit}
           </Text>
         </Text>
         <Text
           style={{
-            fontStyle: 'italic',
-            fontSize: 18,
-            fontWeight: '400',
-            letterSpacing: -0.09,
-            color: 'rgba(255,255,255,0.85)',
+            ...CARD_TYPE.label,
+            fontSize: 15,
+            color: palette.whiteAlpha85,
             marginTop: 6,
           }}
         >
@@ -138,13 +104,10 @@ export const PbSpotlightCard = memo(function PbSpotlightCard({ data }: { data: R
         {diff != null && data.prevPbValue != null && (
           <Text
             style={{
-              fontFamily: MONO,
-              fontSize: 9,
-              fontWeight: '600',
-              letterSpacing: 1.26,
-              color: 'rgba(255,255,255,0.5)',
+              ...CARD_TYPE.label,
+              fontVariant: ['tabular-nums'],
+              color: CARD_INK.faint,
               marginTop: 14,
-              textTransform: 'uppercase',
             }}
           >
             +{diff} {heroUnit} · prev. {formatSpeedValue(data.prevPbValue, sys)} {heroUnit}
@@ -161,7 +124,7 @@ export const PbSpotlightCard = memo(function PbSpotlightCard({ data }: { data: R
           bottom: 14,
           paddingTop: 12,
           borderTopWidth: 1,
-          borderTopColor: 'rgba(255,255,255,0.12)',
+          borderTopColor: CARD_INK.rule,
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'flex-end',
@@ -171,23 +134,19 @@ export const PbSpotlightCard = memo(function PbSpotlightCard({ data }: { data: R
           <Text
             numberOfLines={1}
             style={{
-              fontSize: 11,
-              fontWeight: '600',
-              letterSpacing: -0.055,
-              color: 'rgba(255,255,255,0.9)',
+              ...CARD_TYPE.title,
+              fontSize: 15,
+              color: CARD_INK.body,
             }}
           >
             {data.rideName}
           </Text>
           <Text
             style={{
-              fontFamily: MONO,
-              fontSize: 8.5,
-              fontWeight: '500',
-              letterSpacing: 1.53,
-              color: 'rgba(255,255,255,0.5)',
+              ...CARD_TYPE.label,
+              fontVariant: ['tabular-nums'],
+              color: CARD_INK.faint,
               marginTop: 4,
-              textTransform: 'uppercase',
             }}
           >
             {formatDistanceValue(data.distanceM, sys)} {distanceUnitLabel(sys)} ·{' '}
@@ -200,7 +159,7 @@ export const PbSpotlightCard = memo(function PbSpotlightCard({ data }: { data: R
               coordinates={data.routeCoordinates}
               width={48}
               height={48}
-              strokeColor="rgba(232,157,90,0.8)"
+              strokeColor={tint(palette.shareCopperSoft, 0.8)}
               strokeWidth={1}
             />
           </View>

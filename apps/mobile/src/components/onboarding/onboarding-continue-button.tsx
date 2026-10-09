@@ -1,8 +1,9 @@
 import * as Haptics from 'expo-haptics';
 import { ArrowRight } from 'lucide-react-native';
 import { Pressable, Text } from 'react-native';
+import { radius, space, type } from '../../theme/type';
 import { triggerNotification } from '../../utils/haptics';
-import { ONBOARDING_COLORS } from './onboarding-colors';
+import { useOnboardingColors } from './onboarding-colors';
 
 interface OnboardingContinueButtonProps {
   label: string;
@@ -17,6 +18,7 @@ export function OnboardingContinueButton({
   disabled = false,
   showIcon = true,
 }: OnboardingContinueButtonProps) {
+  const oc = useOnboardingColors();
   const handlePress = () => {
     triggerNotification(Haptics.NotificationFeedbackType.Success);
     onPress();
@@ -29,36 +31,24 @@ export function OnboardingContinueButton({
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       style={({ pressed }) => ({
-        backgroundColor: disabled ? ONBOARDING_COLORS.surface2 : ONBOARDING_COLORS.warm,
-        borderRadius: 16,
+        backgroundColor: disabled ? oc.surface2 : oc.warm,
+        borderRadius: radius.control,
         borderCurve: 'continuous',
-        paddingVertical: 18,
-        paddingHorizontal: 22,
+        minHeight: 52,
+        paddingHorizontal: space.lg,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 10,
+        gap: space.xs,
         width: '100%',
         opacity: pressed && !disabled ? 0.9 : 1,
         transform: [{ scale: pressed && !disabled ? 0.98 : 1 }],
       })}
     >
-      <Text
-        style={{
-          fontSize: 16,
-          fontWeight: '600',
-          color: disabled ? ONBOARDING_COLORS.textSecondary : ONBOARDING_COLORS.textOnAccent,
-          letterSpacing: -0.15,
-        }}
-      >
+      <Text style={[type.bodyStrong, { color: disabled ? oc.textMuted : oc.textOnAccent }]}>
         {label}
       </Text>
-      {showIcon ? (
-        <ArrowRight
-          size={18}
-          color={disabled ? ONBOARDING_COLORS.textSecondary : ONBOARDING_COLORS.textOnAccent}
-        />
-      ) : null}
+      {showIcon ? <ArrowRight size={18} color={disabled ? oc.textMuted : oc.textOnAccent} /> : null}
     </Pressable>
   );
 }

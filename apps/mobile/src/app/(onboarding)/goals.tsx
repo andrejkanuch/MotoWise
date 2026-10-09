@@ -7,7 +7,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { getPrimaryGoal, OB_SCREEN } from '../../config/onboarding';
@@ -16,6 +16,7 @@ import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { radius, space, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 /** How long the affirmation shows before navigating on. */
@@ -51,11 +52,11 @@ const GOAL_OPTIONS = [
     labelKey: 'v2GoalJustExploring',
     descKey: 'v2GoalJustExploringDesc',
     icon: Sparkles,
-    italicSubtitle: true,
   },
 ] as const;
 
 export default function GoalsScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   // Widened wrapper for onboarding copy keys that are pending addition to en.json.
   // Routes through i18next at runtime; sidesteps the generated-from-en.json key union
@@ -135,7 +136,7 @@ export default function GoalsScreen() {
   const canContinue = selected.size > 0;
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       {/* Back button */}
@@ -149,56 +150,26 @@ export default function GoalsScreen() {
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 72, paddingBottom: 180 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Eyebrow */}
-        <Animated.Text
-          entering={FadeInDown.duration(300)}
-          style={{
-            fontFamily: 'GeistMono-Medium',
-            fontSize: 11,
-            letterSpacing: 1.8,
-            textTransform: 'uppercase',
-            color: ONBOARDING_COLORS.warm2,
-            marginBottom: 12,
-          }}
-        >
-          {tx('onboarding.goalsEyebrow')}
-        </Animated.Text>
-
         {/* Headline */}
         <Animated.View entering={FadeInDown.delay(60).duration(300)}>
           <Text
-            style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 36,
-              lineHeight: 38,
-              color: ONBOARDING_COLORS.textPrimary,
-              letterSpacing: -0.7,
-              marginBottom: 6,
-            }}
+            accessibilityRole="header"
+            style={[type.largeTitle, { color: oc.textPrimary, marginBottom: space.xs }]}
           >
-            {tx('onboarding.goalsTitle')}
-            {'\n'}
-            <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
-              {tx('onboarding.goalsTitleAccent', { make: titleMake })}
-            </Text>
+            {tx('onboarding.goalsHeadline', { make: titleMake })}
           </Text>
         </Animated.View>
 
         {/* Subtitle */}
         <Animated.Text
           entering={FadeInUp.delay(150).duration(300)}
-          style={{
-            fontSize: 14,
-            color: ONBOARDING_COLORS.textSecondary,
-            lineHeight: 20,
-            marginBottom: 32,
-          }}
+          style={[type.subhead, { color: oc.textSecondary, marginBottom: space.xxl }]}
         >
           {tx('onboarding.goalsSubtitle')}
         </Animated.Text>
 
         {/* Goal cards */}
-        <View style={{ gap: 12 }}>
+        <View style={{ gap: space.sm }}>
           {GOAL_OPTIONS.map((goal, index) => {
             const isSelected = selected.has(goal.key);
             const Icon = goal.icon;
@@ -217,19 +188,15 @@ export default function GoalsScreen() {
                   accessibilityState={{ checked: isSelected }}
                   accessibilityLabel={`${t(`onboarding.${goal.labelKey}`)}, ${t(`onboarding.${goal.descKey}`)}`}
                   style={({ pressed }) => ({
-                    backgroundColor: isSelected
-                      ? ONBOARDING_COLORS.accentBg
-                      : ONBOARDING_COLORS.cardBg,
+                    backgroundColor: isSelected ? oc.cardBgSelected : oc.cardBg,
                     borderWidth: isSelected ? 2 : 1,
-                    borderColor: isSelected
-                      ? ONBOARDING_COLORS.warm
-                      : ONBOARDING_COLORS.cardBorderDefault,
-                    borderRadius: 16,
+                    borderColor: isSelected ? oc.warm : oc.cardBorderDefault,
+                    borderRadius: radius.card,
                     borderCurve: 'continuous',
-                    padding: 16,
+                    padding: space.md,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 12,
+                    gap: space.sm,
                     transform: [{ scale: pressed ? 0.97 : 1 }],
                   })}
                 >
@@ -240,41 +207,22 @@ export default function GoalsScreen() {
                       height: 44,
                       borderRadius: 22,
                       borderCurve: 'continuous',
-                      backgroundColor: isSelected
-                        ? ONBOARDING_COLORS.accentBg
-                        : ONBOARDING_COLORS.surface2,
+                      backgroundColor: oc.surface2,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Icon
-                      size={22}
-                      color={isSelected ? ONBOARDING_COLORS.warm2 : ONBOARDING_COLORS.ink3}
-                    />
+                    <Icon size={22} color={isSelected ? oc.textPrimary : oc.ink3} />
                   </View>
 
                   {/* Text */}
                   <View style={{ flex: 1 }}>
-                    <Text
-                      numberOfLines={1}
-                      style={{
-                        color: ONBOARDING_COLORS.textPrimary,
-                        fontSize: 17,
-                        fontWeight: '600',
-                      }}
-                    >
+                    <Text numberOfLines={1} style={[type.bodyStrong, { color: oc.textPrimary }]}>
                       {t(`onboarding.${goal.labelKey}`)}
                     </Text>
                     <Text
                       numberOfLines={2}
-                      style={{
-                        color: ONBOARDING_COLORS.textSecondary,
-                        fontSize: 14,
-                        marginTop: 2,
-                        ...('italicSubtitle' in goal && goal.italicSubtitle
-                          ? { fontStyle: 'italic' }
-                          : {}),
-                      }}
+                      style={[type.subhead, { color: oc.textSecondary, marginTop: 2 }]}
                     >
                       {t(`onboarding.${goal.descKey}`)}
                     </Text>
@@ -287,24 +235,24 @@ export default function GoalsScreen() {
                       style={{
                         width: 28,
                         height: 28,
-                        borderRadius: 8,
+                        borderRadius: radius.pill,
                         borderCurve: 'continuous',
-                        backgroundColor: ONBOARDING_COLORS.warm,
+                        backgroundColor: oc.warm,
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <Check size={16} color={ONBOARDING_COLORS.textOnAccent} />
+                      <Check size={16} color={oc.textOnAccent} />
                     </Animated.View>
                   ) : (
                     <View
                       style={{
                         width: 28,
                         height: 28,
-                        borderRadius: 8,
+                        borderRadius: radius.pill,
                         borderCurve: 'continuous',
                         borderWidth: 1.5,
-                        borderColor: ONBOARDING_COLORS.cardBorderDefault,
+                        borderColor: oc.cardBorderDefault,
                       }}
                     />
                   )}
@@ -322,22 +270,23 @@ export default function GoalsScreen() {
           bottom: 0,
           left: 0,
           right: 0,
-          paddingHorizontal: 24,
-          paddingBottom: insets.bottom + 16,
-          paddingTop: 16,
-          backgroundColor: ONBOARDING_COLORS.background,
+          paddingHorizontal: space.xl,
+          paddingBottom: insets.bottom + space.md,
+          paddingTop: space.md,
+          backgroundColor: oc.background,
         }}
       >
         {showAffirmation ? (
           <Animated.Text
             entering={FadeInUp.duration(200)}
-            style={{
-              fontSize: 16,
-              fontWeight: '600',
-              color: ONBOARDING_COLORS.warm,
-              textAlign: 'center',
-              paddingVertical: 18,
-            }}
+            style={[
+              type.bodyStrong,
+              {
+                color: oc.textPrimary,
+                textAlign: 'center',
+                paddingVertical: space.md,
+              },
+            ]}
           >
             {tx('onboarding.goalsAffirmation')}
           </Animated.Text>
@@ -349,14 +298,15 @@ export default function GoalsScreen() {
               disabled={!canContinue}
             />
             <Text
-              style={{
-                fontFamily: 'GeistMono-Medium',
-                fontSize: 11,
-                letterSpacing: 1,
-                color: ONBOARDING_COLORS.textMuted,
-                textAlign: 'center',
-                marginTop: 10,
-              }}
+              style={[
+                type.caption,
+                {
+                  color: oc.textMuted,
+                  textAlign: 'center',
+                  marginTop: space.xs,
+                  fontVariant: ['tabular-nums'],
+                },
+              ]}
             >
               {tx('onboarding.goalsPicked', {
                 count: selected.size,

@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
@@ -18,11 +17,10 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import {
-  EMAIL_CODE_SOURCE,
-  EMAIL_CODE_STEP_THEME,
-  EmailCodeStep,
-} from '../../components/auth/email-code-step';
+import { authButton, authInput, authInputColors } from '../../components/auth/auth-styles';
+import { EMAIL_CODE_SOURCE, EmailCodeStep } from '../../components/auth/email-code-step';
+import { AppleGlyph, GoogleGlyph } from '../../components/onboarding/oauth-glyphs';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { classifyAuthError, EMAIL_AUTH_ERROR, sendSignupCode } from '../../lib/email-confirmation';
@@ -30,8 +28,10 @@ import { userFriendlyError } from '../../lib/graphql-errors';
 import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { supabase } from '../../lib/supabase';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
 
 export default function LoginScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -124,54 +124,43 @@ export default function LoginScreen() {
   const canSubmit = email.length > 0 && password.length > 0 && !loading;
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.surfaceDark }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView
           style={{ flex: 1 }}
           contentContainerStyle={{
             flexGrow: 1,
             justifyContent: 'center',
-            paddingHorizontal: 24,
-            paddingVertical: 48,
-            gap: 32,
+            paddingHorizontal: space.xl,
+            paddingVertical: space.xxxl,
+            gap: space.xxl,
           }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           {/* Brand header */}
           <Animated.View
-            entering={FadeInDown.duration(600)}
-            style={{ alignItems: 'center', gap: 12 }}
+            entering={FadeInDown.duration(280)}
+            style={{ alignItems: 'center', gap: space.xs }}
           >
             <Image
               source={logo}
               style={{
                 width: 88,
                 height: 88,
-                borderRadius: 22,
+                borderRadius: radius.plate,
                 // @ts-expect-error borderCurve works on RN Image but isn't in ImageStyle types
                 borderCurve: 'continuous',
-                marginBottom: 8,
+                marginBottom: space.xs,
               }}
             />
             <Text
-              style={{
-                fontSize: 32,
-                fontWeight: '800',
-                color: palette.white,
-                letterSpacing: -0.5,
-                textAlign: 'center',
-              }}
+              accessibilityRole="header"
+              style={[type.largeTitle, { color: oc.textPrimary, textAlign: 'center' }]}
             >
               {t('common.appName')}
             </Text>
-            <Text
-              style={{
-                fontSize: 17,
-                color: palette.whiteAlpha50,
-                textAlign: 'center',
-              }}
-            >
+            <Text style={[type.body, { color: oc.textSecondary, textAlign: 'center' }]}>
               {t('auth.tagline')}
             </Text>
           </Animated.View>
@@ -182,7 +171,6 @@ export default function LoginScreen() {
               source={EMAIL_CODE_SOURCE.SIGNIN_UNCONFIRMED}
               password={codeStep.password}
               initialCooldownMs={codeStep.initialCooldownMs}
-              theme={EMAIL_CODE_STEP_THEME.auth}
               onBack={closeCodeStep}
               onBusyChange={onCodeStepBusyChange}
               onNeedsSignIn={closeCodeStep}
@@ -190,24 +178,17 @@ export default function LoginScreen() {
           ) : (
             <>
               {/* Social auth */}
-              <Animated.View entering={FadeInUp.delay(150).duration(500)} style={{ gap: 12 }}>
+              <Animated.View entering={FadeInUp.delay(100).duration(280)} style={{ gap: space.sm }}>
                 {process.env.EXPO_OS === 'ios' && (
                   <Pressable
                     onPress={handleAppleSignIn}
-                    style={({ pressed }) => ({
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: palette.white,
-                      borderRadius: 16,
-                      borderCurve: 'continuous',
-                      paddingVertical: 16,
-                      gap: 10,
-                      opacity: pressed ? 0.85 : 1,
-                      transform: [{ scale: pressed ? 0.98 : 1 }],
-                    })}
+                    style={({ pressed }) => [
+                      authButton(oc.textPrimary),
+                      { opacity: pressed ? 0.85 : 1 },
+                    ]}
                   >
-                    <Text style={{ fontSize: 16, fontWeight: '600', color: palette.black }}>
+                    <AppleGlyph size={18} color={oc.background} />
+                    <Text style={[type.bodyStrong, { color: oc.background }]}>
                       {t('auth.continueWithApple')}
                     </Text>
                   </Pressable>
@@ -215,23 +196,14 @@ export default function LoginScreen() {
 
                 <Pressable
                   onPress={handleGoogleSignIn}
-                  style={({ pressed }) => ({
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: palette.whiteAlpha08,
-                    borderWidth: 1,
-                    borderColor: palette.whiteAlpha12,
-                    borderRadius: 16,
-                    borderCurve: 'continuous',
-                    paddingVertical: 16,
-                    gap: 10,
-                    opacity: pressed ? 0.85 : 1,
-                    transform: [{ scale: pressed ? 0.98 : 1 }],
-                  })}
+                  android_ripple={{ color: oc.borderMuted }}
+                  style={({ pressed }) => [
+                    authButton(oc.surface2),
+                    { opacity: pressed ? 0.85 : 1 },
+                  ]}
                 >
-                  <Text style={{ fontSize: 18, fontWeight: '700', color: palette.white }}>G</Text>
-                  <Text style={{ fontSize: 16, fontWeight: '600', color: palette.white }}>
+                  <GoogleGlyph size={18} />
+                  <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
                     {t('auth.continueWithGoogle')}
                   </Text>
                 </Pressable>
@@ -239,80 +211,53 @@ export default function LoginScreen() {
 
               {/* Divider */}
               <Animated.View
-                entering={FadeIn.delay(300).duration(400)}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}
+                entering={FadeIn.delay(160).duration(240)}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}
               >
-                <View style={{ flex: 1, height: 1, backgroundColor: palette.whiteAlpha08 }} />
-                <Text style={{ fontSize: 13, color: palette.whiteAlpha35, fontWeight: '500' }}>
+                <View style={{ flex: 1, height: 1, backgroundColor: oc.line }} />
+                <Text style={[type.caption, { color: oc.textMuted }]}>
                   {t('auth.orContinueWithEmail')}
                 </Text>
-                <View style={{ flex: 1, height: 1, backgroundColor: palette.whiteAlpha08 }} />
+                <View style={{ flex: 1, height: 1, backgroundColor: oc.line }} />
               </Animated.View>
 
               {/* Email form */}
-              <Animated.View entering={FadeInUp.delay(350).duration(500)} style={{ gap: 14 }}>
+              <Animated.View entering={FadeInUp.delay(200).duration(280)} style={{ gap: space.sm }}>
                 <TextInput
                   value={email}
                   onChangeText={setEmail}
                   placeholder={t('auth.email')}
-                  placeholderTextColor={palette.whiteAlpha30}
+                  placeholderTextColor={oc.textMuted}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   autoComplete="email"
-                  style={{
-                    backgroundColor: palette.whiteAlpha06,
-                    borderWidth: 1,
-                    borderColor: palette.whiteAlpha10,
-                    borderRadius: 14,
-                    borderCurve: 'continuous',
-                    paddingHorizontal: 18,
-                    paddingVertical: 16,
-                    fontSize: 16,
-                    color: palette.white,
-                  }}
+                  style={[authInput, authInputColors(oc)]}
                 />
                 <TextInput
                   value={password}
                   onChangeText={setPassword}
                   placeholder={t('auth.password')}
-                  placeholderTextColor={palette.whiteAlpha30}
+                  placeholderTextColor={oc.textMuted}
                   secureTextEntry
                   autoComplete="password"
-                  style={{
-                    backgroundColor: palette.whiteAlpha06,
-                    borderWidth: 1,
-                    borderColor: palette.whiteAlpha10,
-                    borderRadius: 14,
-                    borderCurve: 'continuous',
-                    paddingHorizontal: 18,
-                    paddingVertical: 16,
-                    fontSize: 16,
-                    color: palette.white,
-                  }}
+                  style={[authInput, authInputColors(oc)]}
                 />
                 <Pressable
                   onPress={handleLogin}
                   disabled={!canSubmit}
-                  style={({ pressed }) => ({
-                    backgroundColor: canSubmit ? palette.white : palette.whiteAlpha12,
-                    borderRadius: 14,
-                    borderCurve: 'continuous',
-                    paddingVertical: 18,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexDirection: 'row',
-                    gap: 8,
-                    opacity: pressed ? 0.85 : 1,
-                    transform: [{ scale: pressed ? 0.98 : 1 }],
-                  })}
+                  style={({ pressed }) => [
+                    authButton(canSubmit ? oc.warm : oc.surface2),
+                    { opacity: pressed ? 0.85 : 1 },
+                  ]}
                 >
-                  {loading && <ActivityIndicator size="small" color={palette.surfaceDark} />}
+                  {loading && <ActivityIndicator size="small" color={oc.textOnAccent} />}
                   <Text
-                    style={{
-                      fontSize: 17,
-                      fontWeight: '700',
-                      color: canSubmit ? palette.surfaceDark : palette.whiteAlpha30,
-                    }}
+                    style={[
+                      type.bodyStrong,
+                      {
+                        color: canSubmit ? oc.textOnAccent : oc.textMuted,
+                      },
+                    ]}
                   >
                     {loading ? t('auth.signingIn') : t('auth.signIn')}
                   </Text>
@@ -321,16 +266,18 @@ export default function LoginScreen() {
 
               {/* Footer */}
               <Animated.View
-                entering={FadeIn.delay(500).duration(400)}
+                entering={FadeIn.delay(260).duration(240)}
                 style={{ alignItems: 'center' }}
               >
                 <Link href="/(auth)/register" asChild>
                   <Pressable
-                    style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, paddingVertical: 8 })}
+                    style={({ pressed }) => ({
+                      opacity: pressed ? 0.6 : 1,
+                      minHeight: 44,
+                      justifyContent: 'center',
+                    })}
                   >
-                    <Text
-                      style={{ fontSize: 15, color: palette.moduleSuspension, fontWeight: '600' }}
-                    >
+                    <Text style={[type.subhead, SYSTEM_WEIGHT.semibold, { color: oc.warm2 }]}>
                       {t('auth.noAccount')}
                     </Text>
                   </Pressable>

@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import type { MileageUnit } from '@motovault/types';
 import { MotorcycleType } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
@@ -10,40 +9,39 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { MileageSlider } from '../../components/onboarding/mileage-slider';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { TOTAL_SCREENS } from '../../config/onboarding';
 import { useMileageUnit } from '../../hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { type } from '../../theme/type';
 
 const MOTORCYCLE_TYPE_OPTIONS = [
   {
     value: MotorcycleType.CRUISER,
     icon: Bike,
     labelKey: 'cruiser',
-    color: ONBOARDING_COLORS.warning,
   },
-  { value: MotorcycleType.SPORTBIKE, icon: Gauge, labelKey: 'sportbike', color: palette.danger500 },
+  { value: MotorcycleType.SPORTBIKE, icon: Gauge, labelKey: 'sportbike' },
   {
     value: MotorcycleType.STANDARD,
     icon: Bike,
     labelKey: 'standard',
-    color: palette.moduleSuspension,
   },
   {
     value: MotorcycleType.TOURING,
     icon: MapPin,
     labelKey: 'touring',
-    color: ONBOARDING_COLORS.success,
   },
-  { value: MotorcycleType.DUAL_SPORT, icon: Mountain, labelKey: 'dual_sport', color: '#A78BFA' },
-  { value: MotorcycleType.DIRT_BIKE, icon: Mountain, labelKey: 'dirt_bike', color: '#FB923C' },
-  { value: MotorcycleType.SCOOTER, icon: Bike, labelKey: 'scooter', color: '#38BDF8' },
-  { value: MotorcycleType.OTHER, icon: HelpCircle, labelKey: 'other', color: '#94A3B8' },
+  { value: MotorcycleType.DUAL_SPORT, icon: Mountain, labelKey: 'dual_sport' },
+  { value: MotorcycleType.DIRT_BIKE, icon: Mountain, labelKey: 'dirt_bike' },
+  { value: MotorcycleType.SCOOTER, icon: Bike, labelKey: 'scooter' },
+  { value: MotorcycleType.OTHER, icon: HelpCircle, labelKey: 'other' },
 ] as const;
 
 export default function BikeTypeScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const router = useRouter();
   const bikeData = useOnboardingStore((s) => s.bikeData);
@@ -85,7 +83,7 @@ export default function BikeTypeScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={5} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
@@ -95,13 +93,7 @@ export default function BikeTypeScreen() {
       >
         <Animated.Text
           entering={FadeInDown.duration(300)}
-          style={{
-            fontSize: 28,
-            fontWeight: '800',
-            color: ONBOARDING_COLORS.textPrimary,
-            letterSpacing: -0.5,
-            marginBottom: 8,
-          }}
+          style={[type.largeTitle, { color: oc.textPrimary, marginBottom: 8 }]}
         >
           {t('onboarding.bikeTypeTitle')}
         </Animated.Text>
@@ -111,7 +103,7 @@ export default function BikeTypeScreen() {
             entering={FadeInUp.delay(100).duration(300)}
             style={{
               fontSize: 15,
-              color: ONBOARDING_COLORS.textSecondary,
+              color: oc.textSecondary,
               marginBottom: 24,
             }}
           >
@@ -136,7 +128,6 @@ export default function BikeTypeScreen() {
                     ? t('onboarding.bikeTypeAutoDetected')
                     : undefined
                 }
-                color={option.color}
                 selected={selectedType === option.value}
                 onPress={handleSelectType}
               />
@@ -151,7 +142,7 @@ export default function BikeTypeScreen() {
               style={{
                 fontSize: 20,
                 fontWeight: '700',
-                color: ONBOARDING_COLORS.textPrimary,
+                color: oc.textPrimary,
                 marginBottom: 16,
               }}
             >
@@ -172,7 +163,7 @@ export default function BikeTypeScreen() {
           <Pressable
             onPress={handleContinue}
             style={({ pressed }) => ({
-              backgroundColor: ONBOARDING_COLORS.textPrimary,
+              backgroundColor: oc.textPrimary,
               borderRadius: 16,
               borderCurve: 'continuous',
               paddingVertical: 16,
@@ -187,12 +178,11 @@ export default function BikeTypeScreen() {
               style={{
                 fontSize: 17,
                 fontWeight: '700',
-                color: ONBOARDING_COLORS.background,
               }}
             >
               {t('onboarding.continue')}
             </Text>
-            <ChevronRight size={20} color={ONBOARDING_COLORS.background} />
+            <ChevronRight size={20} color={oc.background} />
           </Pressable>
         </View>
       )}

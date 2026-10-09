@@ -10,14 +10,14 @@
  * is fine, the placement was not.
  */
 import { type Href, useFocusEffect, useRouter } from 'expo-router';
-import { Clock, ScanLine, Sparkles } from 'lucide-react-native';
+import { Clock, Sparkles } from 'lucide-react-native';
 import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_SCREEN } from '../../config/onboarding';
@@ -31,6 +31,7 @@ import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { radius, space, type } from '../../theme/type';
 
 /**
  * Onboarding "snap a receipt" step (U8 — activation Goal 7 / G6).
@@ -45,7 +46,7 @@ import { useOnboardingStore } from '../../stores/onboarding.store';
  */
 
 interface ValueBullet {
-  readonly icon: typeof ScanLine;
+  readonly icon: typeof Clock;
   readonly labelKey: string;
 }
 
@@ -55,6 +56,7 @@ const VALUE_BULLETS: readonly ValueBullet[] = [
 ] as const;
 
 export default function OnboardingScanReceiptScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -104,7 +106,7 @@ export default function OnboardingScanReceiptScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       <OnboardingBackButton
@@ -113,96 +115,43 @@ export default function OnboardingScanReceiptScreen() {
       />
 
       <View style={{ flex: 1, paddingHorizontal: 22, paddingTop: 96 }}>
-        <Animated.View
-          entering={FadeInUp.duration(280)}
-          style={{
-            alignSelf: 'flex-start',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            paddingVertical: 5,
-            paddingHorizontal: 11,
-            borderRadius: 999,
-            borderCurve: 'continuous',
-            backgroundColor: ONBOARDING_COLORS.accentBg,
-            borderWidth: 1,
-            borderColor: ONBOARDING_COLORS.warm,
-            marginBottom: 14,
-          }}
-        >
-          <ScanLine size={13} color={ONBOARDING_COLORS.warm2} />
-          <Text
-            style={{
-              fontFamily: 'GeistMono-Medium',
-              fontSize: 10,
-              letterSpacing: 1.6,
-              textTransform: 'uppercase',
-              color: ONBOARDING_COLORS.warm2,
-            }}
-          >
-            {t('onboarding.scanEyebrow')}
-          </Text>
-        </Animated.View>
-
         <Animated.Text
           entering={FadeInUp.delay(70).duration(280)}
-          style={{
-            fontFamily: 'InstrumentSerif-Regular',
-            fontSize: 34,
-            lineHeight: 37,
-            color: ONBOARDING_COLORS.textPrimary,
-            letterSpacing: -0.7,
-            marginBottom: 12,
-          }}
+          style={[type.largeTitle, { color: oc.textPrimary, marginBottom: space.sm }]}
         >
-          {t('onboarding.scanTitle')}{' '}
-          <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
-            {t('onboarding.scanTitleAccent')}
-          </Text>
+          {t('onboarding.scanHeadline')}
         </Animated.Text>
 
         <Animated.Text
           entering={FadeInUp.delay(130).duration(280)}
-          style={{
-            fontSize: 14.5,
-            color: ONBOARDING_COLORS.textSecondary,
-            lineHeight: 21,
-            marginBottom: 26,
-          }}
+          style={[type.body, { color: oc.textSecondary, marginBottom: space.xl }]}
         >
           {t('onboarding.scanSubtitle')}
         </Animated.Text>
 
-        <View style={{ gap: 14 }}>
+        <View style={{ gap: space.sm }}>
           {VALUE_BULLETS.map((bullet, index) => {
             const Icon = bullet.icon;
             return (
               <Animated.View
                 key={bullet.labelKey}
                 entering={FadeInUp.delay(180 + index * 60).duration(280)}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}
               >
                 <View
                   style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 11,
+                    width: 36,
+                    height: 36,
+                    borderRadius: radius.chip,
                     borderCurve: 'continuous',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: `${ONBOARDING_COLORS.warm2}26`,
+                    backgroundColor: oc.surface2,
                   }}
                 >
-                  <Icon size={17} color={ONBOARDING_COLORS.warm2} />
+                  <Icon size={18} color={oc.textSecondary} />
                 </View>
-                <Text
-                  style={{
-                    flex: 1,
-                    fontSize: 14.5,
-                    color: ONBOARDING_COLORS.textPrimary,
-                    lineHeight: 20,
-                  }}
-                >
+                <Text style={[type.body, { flex: 1, color: oc.textPrimary }]}>
                   {t(bullet.labelKey as TranslationKey)}
                 </Text>
               </Animated.View>
@@ -216,7 +165,7 @@ export default function OnboardingScanReceiptScreen() {
           paddingHorizontal: 22,
           paddingTop: 12,
           paddingBottom: insets.bottom + 16,
-          backgroundColor: ONBOARDING_COLORS.background,
+          backgroundColor: oc.background,
         }}
       >
         <OnboardingContinueButton label={t('onboarding.scanCta')} onPress={handleScan} />
@@ -225,9 +174,14 @@ export default function OnboardingScanReceiptScreen() {
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={t('onboarding.scanSkip')}
-          style={{ marginTop: 12, alignSelf: 'center' }}
+          style={{
+            marginTop: space.xs,
+            alignSelf: 'center',
+            minHeight: 44,
+            justifyContent: 'center',
+          }}
         >
-          <Text style={{ fontSize: 13.5, color: ONBOARDING_COLORS.textMuted }}>
+          <Text style={[type.subhead, { color: oc.textSecondary }]}>
             {t('onboarding.scanSkip')}
           </Text>
         </Pressable>

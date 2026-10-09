@@ -4,13 +4,13 @@ import { Text, View } from 'react-native';
 import type { RideSharePayload } from '../share-card-types';
 import {
   buildDefaultStats,
+  CARD_INK,
+  CARD_TYPE,
   DateCompact,
   RouteSilhouette,
   StatFooter,
   Wordmark,
 } from './card-elements';
-
-const MONO = process.env.EXPO_OS === 'ios' ? 'Menlo' : 'monospace';
 
 export const EditorialDarkCard = memo(function EditorialDarkCard({
   data,
@@ -49,42 +49,19 @@ export const EditorialDarkCard = memo(function EditorialDarkCard({
       {/* Center content */}
       <View style={{ position: 'absolute', top: 56, left: 18, right: 18, alignItems: 'center' }}>
         <Text
-          style={{
-            fontFamily: MONO,
-            fontSize: 8,
-            fontWeight: '600',
-            letterSpacing: 1.92,
-            color: palette.shareCopperSoft,
-            textTransform: 'uppercase',
-          }}
-        >
-          Ride no. {rideNum}
-        </Text>
-        <Text
           numberOfLines={3}
           style={{
-            fontSize: 22,
-            fontWeight: '700',
-            letterSpacing: -0.48,
-            lineHeight: 22,
-            color: 'rgba(255,255,255,0.94)',
+            ...CARD_TYPE.title,
+            fontSize: 30,
+            lineHeight: 31,
+            color: CARD_INK.strong,
             textAlign: 'center',
-            marginTop: 14,
           }}
         >
-          {data.rideName.split('—').map((part, i) =>
-            i === 0 ? (
-              <Text key={part.trim()}>{part.trim()}</Text>
-            ) : (
-              <Text
-                key={part.trim()}
-                style={{ fontStyle: 'italic', fontWeight: '400', fontSize: 36 }}
-              >
-                {'\n'}
-                {part.trim()}
-              </Text>
-            ),
-          )}
+          {data.rideName}
+        </Text>
+        <Text style={{ ...CARD_TYPE.label, color: CARD_INK.faint, marginTop: 10 }}>
+          Ride no. {rideNum}
         </Text>
       </View>
 
@@ -100,10 +77,10 @@ export const EditorialDarkCard = memo(function EditorialDarkCard({
       {/* Stats footer */}
       <StatFooter
         stats={buildDefaultStats(data)}
-        borderColor="rgba(255,255,255,0.12)"
-        labelColor="rgba(255,255,255,0.5)"
+        borderColor={CARD_INK.rule}
+        labelColor={CARD_INK.faint}
         valueColor={palette.shareTextLight}
-        unitColor="rgba(255,255,255,0.55)"
+        unitColor={palette.whiteAlpha55}
       />
     </View>
   );

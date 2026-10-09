@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useEditorialTheme } from '../../theme/editorial';
+import { radius, space, type } from '../../theme/type';
 import { formatDistance, formatDuration } from '../../utils/ride-formatters';
-import { ECard } from '../ui/editorial';
 
 interface Ride {
   id: string;
@@ -20,115 +20,94 @@ interface FocusHistoryProps {
   rides: Ride[];
 }
 
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
+const MAX_ROWS = 4;
+const ROW_MIN_HEIGHT = process.env.EXPO_OS === 'android' ? 48 : 44;
+const NO_VALUE = '--';
 
 export function FocusHistory({ rides }: FocusHistoryProps) {
   const { t: theme } = useEditorialTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const system = useMeasurementSystem();
 
+  const card = {
+    backgroundColor: theme.surface,
+    borderRadius: radius.card,
+    borderCurve: 'continuous',
+    overflow: 'hidden',
+  } as const;
+
   if (rides.length === 0) {
     return (
-      <ECard pad={16}>
-        <Text style={{ fontSize: 13, color: theme.ink3, textAlign: 'center', paddingVertical: 20 }}>
+      <View style={[card, { padding: space.lg }]}>
+        <Text style={[type.subhead, { color: theme.ink3, textAlign: 'center' }]}>
           {t('home.noRidesRecorded')}
         </Text>
-      </ECard>
+      </View>
     );
   }
 
   return (
-    <ECard pad={0}>
+    <View style={{ gap: space.xs }}>
       <View
         style={{
-          paddingHorizontal: 16,
-          paddingTop: 14,
-          paddingBottom: 10,
           flexDirection: 'row',
           alignItems: 'baseline',
           justifyContent: 'space-between',
+          gap: space.sm,
         }}
       >
-        <Text
-          style={{
-            fontSize: 11,
-            fontWeight: '700',
-            letterSpacing: 1.2,
-            textTransform: 'uppercase',
-            color: theme.ink3,
-          }}
-        >
+        <Text accessibilityRole="header" style={[type.label, { color: theme.ink2 }]}>
           {t('home.recentRides')}
         </Text>
-        <Pressable onPress={() => router.push('/(tabs)/(profile)/rides')}>
-          <Text style={{ fontSize: 11, color: theme.warm, fontWeight: '600' }}>
-            {t('home.seeAllRides')}
-          </Text>
+        <Pressable
+          onPress={() => router.push('/(tabs)/(profile)/rides')}
+          accessibilityRole="link"
+          hitSlop={12}
+        >
+          <Text style={[type.label, { color: theme.warm2 }]}>{t('home.seeAllRides')}</Text>
         </Pressable>
       </View>
 
-      {rides.slice(0, 4).map((ride, i) => (
-        <View
-          key={ride.id}
-          style={{
-            paddingVertical: 12,
-            paddingHorizontal: 16,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 12,
-            borderTopWidth: 1,
-            borderTopColor: theme.line2,
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 22,
-              color: theme.ink3,
-              width: 30,
-              textAlign: 'center',
-              letterSpacing: -0.4,
-            }}
-          >
-            {String(i + 1).padStart(2, '0')}
-          </Text>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text
+      <View style={card}>
+        {rides.slice(0, MAX_ROWS).map((ride, i, shown) => {
+          const date = new Date(ride.startedAt).toLocaleDateString(i18n.language, {
+            month: 'short',
+            day: 'numeric',
+          });
+          const duration = ride.durationS == null ? NO_VALUE : formatDuration(ride.durationS);
+          const speed = ride.avgSpeedMps
+            ? ` · ${t('home.avgSpeed', { speed: Math.round(ride.avgSpeedMps * 3.6) })}`
+            : '';
+          return (
+            <View
+              key={ride.id}
               style={{
-                fontSize: 13,
-                fontWeight: '600',
-                color: theme.ink,
-                letterSpacing: -0.1,
-                marginBottom: 2,
+                minHeight: ROW_MIN_HEIGHT,
+                paddingVertical: space.sm,
+                paddingHorizontal: space.md,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: space.sm,
+                borderBottomWidth: i === shown.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                borderBottomColor: theme.line,
               }}
-              numberOfLines={1}
             >
-              {ride.name ?? t('home.defaultRideName')}
-            </Text>
-            <Text style={{ fontSize: 11, color: theme.ink3 }} numberOfLines={1}>
-              {formatDate(ride.startedAt)} ·{' '}
-              {ride.durationS == null ? '--' : formatDuration(ride.durationS)}
-              {ride.avgSpeedMps
-                ? ` · ${t('home.avgSpeed', { speed: Math.round(ride.avgSpeedMps * 3.6) })}`
-                : ''}
-            </Text>
-          </View>
-          <Text
-            style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 18,
-              color: theme.ink,
-              letterSpacing: -0.4,
-            }}
-          >
-            {ride.distanceM == null ? '--' : formatDistance(ride.distanceM, system)}
-          </Text>
-        </View>
-      ))}
-    </ECard>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={[type.body, { color: theme.ink }]} numberOfLines={1}>
+                  {ride.name ?? t('home.defaultRideName')}
+                </Text>
+                <Text style={[type.caption, { color: theme.ink3 }]} numberOfLines={1}>
+                  {`${date} · ${duration}${speed}`}
+                </Text>
+              </View>
+              <Text style={[type.figureSmall, { color: theme.ink }]}>
+                {ride.distanceM == null ? NO_VALUE : formatDistance(ride.distanceM, system)}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
   );
 }

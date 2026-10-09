@@ -2,14 +2,14 @@ import { Check } from 'lucide-react-native';
 import type React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
-import { ONBOARDING_COLORS } from './onboarding-colors';
+import { radius, space, type } from '../../theme/type';
+import { useOnboardingColors } from './onboarding-colors';
 
 interface OnboardingCardProps<T extends string = string> {
   value: T;
   icon: React.ComponentType<{ size: number; color: string }>;
   label: string;
   subtitle?: string;
-  color: string;
   selected: boolean;
   onPress: (value: T) => void;
 }
@@ -19,10 +19,10 @@ export function OnboardingCard<T extends string>({
   icon: Icon,
   label,
   subtitle,
-  color,
   selected,
   onPress,
 }: OnboardingCardProps<T>) {
+  const oc = useOnboardingColors();
   const handlePress = () => {
     onPress(value);
   };
@@ -35,64 +35,39 @@ export function OnboardingCard<T extends string>({
       accessibilityLabel={subtitle ? `${label}, ${subtitle}` : label}
       accessibilityState={{ selected }}
       style={({ pressed }) => ({
-        backgroundColor: selected ? ONBOARDING_COLORS.cardBgSelected : ONBOARDING_COLORS.cardBg,
+        backgroundColor: selected ? oc.cardBgSelected : oc.cardBg,
         borderWidth: selected ? 2 : 1,
-        borderColor: selected ? color : ONBOARDING_COLORS.cardBorderDefault,
-        borderRadius: 20,
+        borderColor: selected ? oc.warm : oc.cardBorderDefault,
+        borderRadius: radius.card,
         borderCurve: 'continuous',
-        padding: 16,
+        padding: space.md,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: space.sm,
         width: '100%',
-        transform: [{ scale: pressed ? 0.97 : 1 }],
-        ...(process.env.EXPO_OS === 'ios'
-          ? selected
-            ? {
-                shadowColor: color,
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: 0.2,
-                shadowRadius: 10,
-              }
-            : {
-                shadowColor: ONBOARDING_COLORS.textOnAccent,
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.2,
-                shadowRadius: 3,
-              }
-          : {}),
+        transform: [{ scale: pressed ? 0.98 : 1 }],
       })}
     >
       <View
         style={{
           width: 44,
           height: 44,
-          borderRadius: 22,
+          borderRadius: radius.control,
           borderCurve: 'continuous',
-          backgroundColor: `${color}22`,
+          backgroundColor: oc.surface2,
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <Icon size={22} color={color} />
+        <Icon size={22} color={selected ? oc.warm2 : oc.textSecondary} />
       </View>
 
       <View style={{ flex: 1 }}>
-        <Text
-          numberOfLines={1}
-          style={{ color: ONBOARDING_COLORS.textPrimary, fontSize: 17, fontWeight: '600' }}
-        >
+        <Text numberOfLines={1} style={[type.bodyStrong, { color: oc.textPrimary }]}>
           {label}
         </Text>
         {subtitle ? (
-          <Text
-            numberOfLines={1}
-            style={{
-              color: ONBOARDING_COLORS.textSecondary,
-              fontSize: 14,
-              marginTop: 2,
-            }}
-          >
+          <Text numberOfLines={1} style={[type.subhead, { color: oc.textSecondary, marginTop: 2 }]}>
             {subtitle}
           </Text>
         ) : null}
@@ -100,18 +75,18 @@ export function OnboardingCard<T extends string>({
 
       {selected ? (
         <Animated.View
-          entering={ZoomIn.duration(200).springify()}
+          entering={ZoomIn.duration(200)}
           style={{
             width: 28,
             height: 28,
             borderRadius: 14,
             borderCurve: 'continuous',
-            backgroundColor: color,
+            backgroundColor: oc.warm,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Check size={16} color={ONBOARDING_COLORS.textPrimary} />
+          <Check size={16} color={oc.textOnAccent} />
         </Animated.View>
       ) : null}
     </Pressable>

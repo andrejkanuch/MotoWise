@@ -1,19 +1,12 @@
 import type { MakeStatsQuery, MotorcycleMakesQuery } from '@motovault/graphql';
-import { Search } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { Plus, Search } from 'lucide-react-native';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, TextInput, View } from 'react-native';
-import Animated, {
-  Easing,
-  FadeIn,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { MAKE_COLORS, POPULAR_MAKES } from '../../../config/brand-dna';
-import { ONBOARDING_COLORS } from '../onboarding-colors';
+import { radius, space, type } from '../../../theme/type';
+import { useOnboardingColors } from '../onboarding-colors';
 
 type Make = MotorcycleMakesQuery['motorcycleMakes'][number];
 type MakeStat = MakeStatsQuery['makeStats'][number];
@@ -25,8 +18,8 @@ interface MakeGridProps {
   onSelectOther: () => void;
 }
 
-function getBadgeColor(makeName: string): string {
-  return MAKE_COLORS[makeName] ?? ONBOARDING_COLORS.warm;
+function getBadgeColor(makeName: string, fallback: string): string {
+  return MAKE_COLORS[makeName] ?? fallback;
 }
 
 function findStat(stats: MakeStat[], makeName: string): MakeStat | undefined {
@@ -34,34 +27,8 @@ function findStat(stats: MakeStat[], makeName: string): MakeStat | undefined {
   return stats.find((s) => s.make.toLowerCase() === lower);
 }
 
-/** Pulsing green "live" dot for the social-proof teaser. */
-function PulseDot() {
-  const scale = useSharedValue(1);
-
-  useEffect(() => {
-    scale.value = withRepeat(
-      withSequence(
-        withTiming(1.5, { duration: 900, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) }),
-      ),
-      -1,
-      false,
-    );
-  }, [scale]);
-
-  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-
-  return (
-    <Animated.View
-      style={[
-        { width: 6, height: 6, borderRadius: 3, backgroundColor: ONBOARDING_COLORS.green },
-        style,
-      ]}
-    />
-  );
-}
-
 export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProps) {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
 
@@ -108,61 +75,45 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor: ONBOARDING_COLORS.surfaceInput,
+          backgroundColor: oc.surfaceInput,
           borderWidth: 1,
-          borderColor: ONBOARDING_COLORS.borderSubtle,
-          borderRadius: 14,
+          borderColor: oc.borderSubtle,
+          borderRadius: radius.control,
           borderCurve: 'continuous',
           paddingHorizontal: 14,
           gap: 10,
         }}
       >
-        <Search size={15} color={ONBOARDING_COLORS.textMutedIcon} />
+        <Search size={15} color={oc.textMutedIcon} />
         <TextInput
           value={query}
           onChangeText={setQuery}
           placeholder={t('onboarding.v2MakeGridSearchPlaceholder' as never)}
-          placeholderTextColor={ONBOARDING_COLORS.textDimmed}
+          placeholderTextColor={oc.textDimmed}
           autoCapitalize="words"
           autoCorrect={false}
           style={{
             flex: 1,
-            paddingVertical: 12,
-            color: ONBOARDING_COLORS.textPrimary,
-            fontSize: 14,
+            minHeight: 44,
+            paddingVertical: space.sm,
+            color: oc.textPrimary,
+            ...type.body,
           }}
         />
       </View>
 
       {/* Live social-proof teaser — real rider count, only when we have data */}
       {totalRiders > 0 && (
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
-            paddingLeft: 4,
-          }}
-        >
-          <PulseDot />
-          <Text
-            style={{
-              fontFamily: 'GeistMono-Medium',
-              fontSize: 10.5,
-              letterSpacing: 0.8,
-              color: ONBOARDING_COLORS.textMutedIcon,
-            }}
-          >
-            {t('onboarding.v2MakeGridTeaser' as never, { count: totalRiders })}
-          </Text>
-        </View>
+        <Text style={[type.caption, { color: oc.textMuted, paddingLeft: 2 }]}>
+          {t('onboarding.v2MakeGridTeaser' as never, { count: totalRiders })}
+        </Text>
       )}
 
       {isSearching ? (
         /* Search results list */
         <View style={{ gap: 6 }}>
           {searchResults.length === 0 && (
-            <Text style={{ fontSize: 12.5, color: ONBOARDING_COLORS.textMutedIcon, padding: 8 }}>
+            <Text style={[type.subhead, { color: oc.textMuted, padding: space.xs }]}>
               {t('onboarding.v2MakeGridNoMatches')}
             </Text>
           )}
@@ -175,13 +126,13 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
                 accessibilityRole="button"
                 accessibilityLabel={m.makeName}
                 style={{
-                  padding: 12,
+                  minHeight: 48,
                   paddingHorizontal: 14,
-                  borderRadius: 12,
+                  borderRadius: radius.control,
                   borderCurve: 'continuous',
-                  backgroundColor: ONBOARDING_COLORS.surfaceInput,
+                  backgroundColor: oc.surfaceInput,
                   borderWidth: 1,
-                  borderColor: ONBOARDING_COLORS.borderSubtle,
+                  borderColor: oc.borderSubtle,
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 12,
@@ -193,36 +144,18 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
                     height: 26,
                     borderRadius: 6,
                     borderCurve: 'continuous',
-                    backgroundColor: getBadgeColor(m.makeName),
+                    backgroundColor: getBadgeColor(m.makeName, oc.brandMarkFallback),
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Text
-                    style={{ fontSize: 11, fontWeight: '800', color: ONBOARDING_COLORS.textWhite }}
-                  >
+                  <Text style={[type.label, { fontWeight: '700', color: oc.brandMarkInk }]}>
                     {m.makeName[0]}
                   </Text>
                 </View>
-                <Text
-                  style={{
-                    flex: 1,
-                    fontSize: 14,
-                    fontWeight: '500',
-                    color: ONBOARDING_COLORS.textPrimary,
-                  }}
-                >
-                  {m.makeName}
-                </Text>
+                <Text style={[type.body, { flex: 1, color: oc.textPrimary }]}>{m.makeName}</Text>
                 {stat && stat.riders > 0 && (
-                  <Text
-                    style={{
-                      fontFamily: 'GeistMono-Medium',
-                      fontSize: 11,
-                      color: ONBOARDING_COLORS.textMutedIcon,
-                      letterSpacing: 0.8,
-                    }}
-                  >
+                  <Text style={[type.figureSmall, { fontSize: 15, color: oc.textMuted }]}>
                     {stat.riders}
                   </Text>
                 )}
@@ -233,16 +166,7 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
       ) : (
         /* Popular makes grid */
         <View style={{ gap: 12 }}>
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: '600',
-              letterSpacing: 2,
-              textTransform: 'uppercase',
-              color: ONBOARDING_COLORS.textLabel,
-              paddingLeft: 2,
-            }}
-          >
+          <Text style={[type.label, { color: oc.textLabel, paddingLeft: 2 }]}>
             {t('onboarding.v2MakeGridPopularLabel' as never)}
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -257,12 +181,12 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
                   style={{
                     width: '48.5%',
                     padding: 14,
-                    paddingHorizontal: 12,
-                    borderRadius: 14,
+                    paddingHorizontal: space.sm,
+                    borderRadius: radius.control,
                     borderCurve: 'continuous',
-                    backgroundColor: ONBOARDING_COLORS.surfaceInput,
+                    backgroundColor: oc.surfaceInput,
                     borderWidth: 1,
-                    borderColor: ONBOARDING_COLORS.borderSubtle,
+                    borderColor: oc.borderSubtle,
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 10,
@@ -273,16 +197,16 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
                   {/* Top-3 rank badge */}
                   {stat && stat.rank <= 3 && (
                     <Text
-                      style={{
-                        position: 'absolute',
-                        top: 6,
-                        right: 8,
-                        fontFamily: 'GeistMono-Medium',
-                        fontSize: 8.5,
-                        fontWeight: '700',
-                        letterSpacing: 1,
-                        color: getBadgeColor(m.makeName),
-                      }}
+                      style={[
+                        type.caption,
+                        {
+                          position: 'absolute',
+                          top: space.xxs,
+                          right: space.xs,
+                          fontVariant: ['tabular-nums'],
+                          color: oc.textMuted,
+                        },
+                      ]}
                     >
                       #{stat.rank}
                     </Text>
@@ -293,59 +217,42 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
                       height: 22,
                       borderRadius: 5,
                       borderCurve: 'continuous',
-                      backgroundColor: getBadgeColor(m.makeName),
+                      backgroundColor: getBadgeColor(m.makeName, oc.brandMarkFallback),
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Text
-                      style={{
-                        fontSize: 10,
-                        fontWeight: '800',
-                        color: ONBOARDING_COLORS.textWhite,
-                      }}
-                    >
+                    <Text style={[type.caption, { fontWeight: '700', color: oc.brandMarkInk }]}>
                       {m.makeName[0]}
                     </Text>
                   </View>
-                  <Text
-                    numberOfLines={1}
-                    style={{
-                      flex: 1,
-                      fontSize: 12.5,
-                      fontWeight: '600',
-                      color: ONBOARDING_COLORS.textPrimary,
-                      letterSpacing: -0.1,
-                    }}
-                  >
+                  <Text numberOfLines={1} style={[type.label, { flex: 1, color: oc.textPrimary }]}>
                     {m.makeName}
                   </Text>
                 </Pressable>
               );
             })}
 
-            {/* Other make — dashed */}
+            {/* Other make */}
             <Pressable
               onPress={onSelectOther}
               accessibilityRole="button"
               accessibilityLabel="Other make"
               style={{
                 width: '100%',
-                padding: 14,
-                paddingHorizontal: 12,
-                borderRadius: 14,
+                paddingHorizontal: space.sm,
+                borderRadius: radius.control,
                 borderCurve: 'continuous',
-                borderWidth: 1,
-                borderColor: ONBOARDING_COLORS.borderMuted,
+                backgroundColor: oc.surface2,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 8,
-                minHeight: 44,
+                minHeight: 48,
               }}
             >
-              <Text style={{ fontSize: 16, color: ONBOARDING_COLORS.warm2 }}>+</Text>
-              <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.warm2, fontWeight: '500' }}>
+              <Plus size={16} color={oc.warm2} />
+              <Text style={[type.label, { color: oc.warm2 }]}>
                 {t('onboarding.v2MakeGridOther')}
               </Text>
             </Pressable>

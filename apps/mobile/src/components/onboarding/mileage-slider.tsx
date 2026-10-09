@@ -3,8 +3,9 @@ import type { MileageUnit } from '@motovault/types';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, TextInput, View } from 'react-native';
+import { radius, space, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
-import { ONBOARDING_COLORS } from './onboarding-colors';
+import { useOnboardingColors } from './onboarding-colors';
 
 const MILEAGE_FORMAT = new Intl.NumberFormat('en-US');
 
@@ -21,6 +22,7 @@ const UNIT_CONFIG = {
 } as const;
 
 export function MileageSlider({ value, unit, onValueChange, onUnitChange }: MileageSliderProps) {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const lastHapticBucket = useRef(Math.floor(value / 5000));
   const [isEditing, setIsEditing] = useState(false);
@@ -66,9 +68,9 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
   return (
     <View
       style={{
-        backgroundColor: ONBOARDING_COLORS.cardBg,
+        backgroundColor: oc.cardBg,
         borderWidth: 1,
-        borderColor: ONBOARDING_COLORS.cardBorder,
+        borderColor: oc.cardBorder,
         borderRadius: 16,
         borderCurve: 'continuous',
         padding: 20,
@@ -79,7 +81,7 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
         style={{
           flexDirection: 'row',
           alignSelf: 'center',
-          backgroundColor: ONBOARDING_COLORS.cardBorderDefault,
+          backgroundColor: oc.cardBorderDefault,
           borderRadius: 12,
           borderCurve: 'continuous',
           padding: 3,
@@ -91,19 +93,19 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
             key={u}
             onPress={() => handleUnitChange(u)}
             style={{
-              paddingHorizontal: 24,
-              paddingVertical: 8,
-              borderRadius: 10,
+              paddingHorizontal: space.xl,
+              minHeight: 36,
+              justifyContent: 'center',
+              borderRadius: radius.chip,
               borderCurve: 'continuous',
-              backgroundColor: unit === u ? ONBOARDING_COLORS.textMuted : 'transparent',
+              backgroundColor: unit === u ? oc.surface3 : 'transparent',
             }}
           >
             <Text
-              style={{
-                fontSize: 15,
-                fontWeight: unit === u ? '700' : '500',
-                color: unit === u ? ONBOARDING_COLORS.textPrimary : ONBOARDING_COLORS.textMuted,
-              }}
+              style={[
+                unit === u ? type.bodyStrong : type.body,
+                { color: unit === u ? oc.textPrimary : oc.textMuted },
+              ]}
             >
               {u}
             </Text>
@@ -122,14 +124,12 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
           autoFocus
           selectTextOnFocus
           style={{
-            fontSize: 28,
-            fontWeight: '700',
-            color: ONBOARDING_COLORS.textPrimary,
+            ...type.figure,
+            color: oc.textPrimary,
             textAlign: 'center',
-            marginBottom: 16,
-            fontVariant: ['tabular-nums'],
+            marginBottom: space.md,
             borderBottomWidth: 2,
-            borderBottomColor: ONBOARDING_COLORS.accent,
+            borderBottomColor: oc.accent,
             paddingVertical: 4,
             alignSelf: 'center',
             minWidth: 120,
@@ -138,25 +138,22 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
       ) : (
         <Pressable onPress={handleStartEditing}>
           <Text
-            style={{
-              fontSize: 28,
-              fontWeight: '700',
-              color: ONBOARDING_COLORS.textPrimary,
-              textAlign: 'center',
-              marginBottom: 16,
-              fontVariant: ['tabular-nums'],
-            }}
+            style={[
+              type.figure,
+              {
+                color: oc.textPrimary,
+                textAlign: 'center',
+                marginBottom: space.xxs,
+              },
+            ]}
           >
             {MILEAGE_FORMAT.format(value)} {unit}
           </Text>
           <Text
-            style={{
-              fontSize: 11,
-              color: ONBOARDING_COLORS.textMuted,
-              textAlign: 'center',
-              marginTop: -12,
-              marginBottom: 8,
-            }}
+            style={[
+              type.caption,
+              { color: oc.textMuted, textAlign: 'center', marginBottom: space.xs },
+            ]}
           >
             {t('onboarding.tapToTypeExact', { defaultValue: 'Tap to type exact value' })}
           </Text>
@@ -170,9 +167,9 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
         step={config.step}
         value={value}
         onValueChange={handleValueChange}
-        minimumTrackTintColor={ONBOARDING_COLORS.accent}
-        maximumTrackTintColor={ONBOARDING_COLORS.textMuted}
-        thumbTintColor={ONBOARDING_COLORS.textPrimary}
+        minimumTrackTintColor={oc.accent}
+        maximumTrackTintColor={oc.textMuted}
+        thumbTintColor={oc.textPrimary}
       />
 
       {/* Range labels */}
@@ -183,8 +180,8 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
           marginTop: 8,
         }}
       >
-        <Text style={{ fontSize: 12, color: ONBOARDING_COLORS.textDimmed }}>0 {unit}</Text>
-        <Text style={{ fontSize: 12, color: ONBOARDING_COLORS.textDimmed }}>
+        <Text style={[type.caption, { color: oc.textMuted }]}>0 {unit}</Text>
+        <Text style={[type.caption, { color: oc.textMuted }]}>
           {MILEAGE_FORMAT.format(config.max)} {unit}
         </Text>
       </View>
@@ -194,18 +191,13 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
         onPress={handleNotSure}
         style={({ pressed }) => ({
           alignSelf: 'center',
-          marginTop: 16,
+          minHeight: 44,
+          justifyContent: 'center',
+          marginTop: space.xs,
           opacity: pressed ? 0.6 : 1,
         })}
       >
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: '500',
-            color: ONBOARDING_COLORS.textMuted,
-            textDecorationLine: 'underline',
-          }}
-        >
+        <Text style={[type.bodyStrong, { color: oc.warm2 }]}>
           {t('onboarding.mileageNotSureShort')}
         </Text>
       </Pressable>

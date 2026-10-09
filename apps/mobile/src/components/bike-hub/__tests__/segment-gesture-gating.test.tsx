@@ -93,7 +93,6 @@ describe('SwipeableExpense', () => {
     <SwipeableExpense
       expense={EXPENSE}
       motorcycleId={BIKE_A.id}
-      isDark
       onDelete={jest.fn()}
       index={0}
       enabled={enabled}
@@ -125,7 +124,7 @@ function Hub({ active, focused }: { active: BikeSegment; focused: boolean }) {
   const segments: Record<BikeSegment, SegmentDefinition> = {
     [BIKE_SEGMENT.OVERVIEW]: empty,
     [BIKE_SEGMENT.SERVICE]: empty,
-    [BIKE_SEGMENT.COSTS]: { render: () => <ExpensesSection motorcycleId={BIKE_A.id} isDark /> },
+    [BIKE_SEGMENT.COSTS]: { render: () => <ExpensesSection motorcycleId={BIKE_A.id} /> },
     [BIKE_SEGMENT.BIKE]: empty,
   };
   return (

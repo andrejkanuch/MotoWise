@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import { MyTripsDocument, type MyTripsQuery } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -9,19 +8,14 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { tint, useEditorialTheme } from '../../../theme/editorial';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../../theme/type';
 import { computeTripCompleteness } from '../../../utils/trip-completeness';
 import { CompletenessRing } from '../../trip/completeness-ring';
 import { Avatar } from '../../ui/avatar';
+import { DIFFICULTY_TOKEN } from '../discover-trip-card';
 
 type TripNode = MyTripsQuery['myTrips']['edges'][number]['node'];
-
-const DIFFICULTY_COLORS: Record<string, string> = {
-  easy: palette.success500,
-  moderate: palette.warning500,
-  challenging: palette.danger500,
-  expert: palette.signature500,
-};
 
 const DIFFICULTY_LABELS: Record<string, string> = {
   easy: 'Chill',
@@ -44,7 +38,7 @@ function formatDateRange(start: string, end: string): string {
 }
 
 function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void }) {
-  const { t, isDark } = useEditorialTheme();
+  const { t } = useEditorialTheme();
 
   const waypointCount = trip.waypoints?.length ?? 0;
   const days = dayCount(trip.startDate, trip.endDate);
@@ -52,7 +46,8 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
   const participantCount = Math.min(Math.max(0, trip.participantCount ?? 0), maxRiders);
 
   const diffKey = (trip.difficulty || 'easy').toLowerCase();
-  const diffColor = DIFFICULTY_COLORS[diffKey] ?? palette.neutral500;
+  const diffToken = DIFFICULTY_TOKEN[diffKey as keyof typeof DIFFICULTY_TOKEN];
+  const diffColor = diffToken ? t[diffToken] : t.ink3;
   const diffLabel = DIFFICULTY_LABELS[diffKey] ?? 'Chill';
 
   const completeness = useMemo(
@@ -76,8 +71,8 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
         width: 280,
         backgroundColor: pressed ? t.surface2 : t.surface,
         borderWidth: 1,
-        borderColor: palette.warning500,
-        borderRadius: 16,
+        borderColor: t.line,
+        borderRadius: radius.card,
         borderCurve: 'continuous',
         padding: 14,
         gap: 10,
@@ -87,29 +82,20 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
         <View
           style={{
-            backgroundColor: palette.warning500,
-            paddingHorizontal: 8,
-            paddingVertical: 3,
-            borderRadius: 8,
+            backgroundColor: t.plateDue,
+            paddingHorizontal: space.xs,
+            paddingVertical: 2,
+            borderRadius: radius.chip,
             borderCurve: 'continuous',
           }}
         >
-          <Text
-            style={{
-              fontSize: 10,
-              fontWeight: '800',
-              color: palette.white,
-              letterSpacing: 0.5,
-            }}
-          >
-            DRAFT
-          </Text>
+          <Text style={[type.caption, SYSTEM_WEIGHT.semibold, { color: t.onPlate }]}>Draft</Text>
         </View>
 
         <View style={{ flex: 1 }} />
 
         {completeness.percent < 100 && (
-          <CompletenessRing percent={completeness.percent} dark={isDark} size={26} stroke={2.5} />
+          <CompletenessRing percent={completeness.percent} size={26} stroke={2.5} />
         )}
 
         <View
@@ -118,41 +104,35 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
             paddingVertical: 3,
             borderRadius: 8,
             borderCurve: 'continuous',
-            backgroundColor: diffColor,
+            backgroundColor: tint(diffColor, 0.14),
           }}
         >
-          <Text style={{ fontSize: 11, fontWeight: '700', color: palette.white }}>{diffLabel}</Text>
+          <Text style={[type.caption, SYSTEM_WEIGHT.semibold, { color: diffColor }]}>
+            {diffLabel}
+          </Text>
         </View>
       </View>
 
       {/* Title */}
-      <Text
-        style={{
-          fontSize: 16,
-          fontWeight: '800',
-          color: t.ink,
-          letterSpacing: -0.3,
-        }}
-        numberOfLines={1}
-      >
+      <Text style={[type.bodyStrong, { color: t.ink }]} numberOfLines={1}>
         {trip.title || 'Untitled trip'}
       </Text>
 
       {/* Stats strip: days + stops + riders */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <Calendar size={12} color={palette.accent500} />
-          <Text style={{ fontSize: 13, fontWeight: '700', color: t.ink }}>
+          <Calendar size={12} color={t.ink3} />
+          <Text style={[type.figureSmall, { color: t.ink }]}>
             {days}
-            <Text style={{ fontWeight: '500', color: t.ink3 }}>d</Text>
+            <Text style={[type.caption, { color: t.ink3 }]}>d</Text>
           </Text>
         </View>
         {waypointCount > 0 && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <MapPin size={12} color={palette.accent500} />
-            <Text style={{ fontSize: 13, fontWeight: '700', color: t.ink }}>
+            <MapPin size={12} color={t.ink3} />
+            <Text style={[type.figureSmall, { color: t.ink }]}>
               {waypointCount}
-              <Text style={{ fontWeight: '500', color: t.ink3 }}>
+              <Text style={[type.caption, { color: t.ink3 }]}>
                 {waypointCount === 1 ? ' stop' : ' stops'}
               </Text>
             </Text>
@@ -160,10 +140,10 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
         )}
         {maxRiders > 1 && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Users size={12} color={palette.accent500} />
-            <Text style={{ fontSize: 13, fontWeight: '700', color: t.ink }}>
+            <Users size={12} color={t.ink3} />
+            <Text style={[type.figureSmall, { color: t.ink }]}>
               {participantCount}
-              <Text style={{ fontWeight: '500', color: t.ink3 }}>/{maxRiders}</Text>
+              <Text style={[type.caption, { color: t.ink3 }]}>/{maxRiders}</Text>
             </Text>
           </View>
         )}
@@ -171,7 +151,7 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
 
       {/* Meta row: date range + organiser */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <Text style={{ fontSize: 12, color: t.ink3, fontWeight: '500' }} numberOfLines={1}>
+        <Text style={[type.caption, { color: t.ink3 }]} numberOfLines={1}>
           {formatDateRange(trip.startDate, trip.endDate)}
         </Text>
         <View
@@ -190,7 +170,7 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
             size={16}
             variant="neutral"
           />
-          <Text style={{ fontSize: 12, color: t.ink3, flexShrink: 1 }} numberOfLines={1}>
+          <Text style={[type.caption, { color: t.ink3, flexShrink: 1 }]} numberOfLines={1}>
             {trip.organiser.displayName}
           </Text>
         </View>
@@ -293,27 +273,18 @@ export const DraftTripStrip = memo(function DraftTripStrip() {
       <View
         style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}
       >
-        <Text
-          style={{
-            fontFamily: 'GeistMono',
-            fontSize: 10.5,
-            letterSpacing: 1.6,
-            textTransform: 'uppercase',
-            color: t.ink2,
-            fontWeight: '600',
-          }}
-        >
+        <Text style={[type.sectionTitle, { color: t.ink }]} accessibilityRole="header">
           Continue planning
         </Text>
         {!isLoading && (
-          <Text style={{ fontFamily: 'GeistMono', fontSize: 10.5, color: t.ink3 }}>
+          <Text style={[type.caption, { color: t.ink3 }]}>
             {drafts.length} {drafts.length === 1 ? 'draft' : 'drafts'}
           </Text>
         )}
       </View>
 
       {isLoading ? (
-        <ActivityIndicator size="small" color={palette.accent500} style={{ paddingVertical: 16 }} />
+        <ActivityIndicator size="small" color={t.ink3} style={{ paddingVertical: 16 }} />
       ) : (
         <ScrollView
           horizontal

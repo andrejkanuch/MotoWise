@@ -9,9 +9,10 @@ import {
   formatElevationValue,
 } from '../../../utils/ride-formatters';
 import type { RideSharePayload } from '../share-card-types';
-import { DateCompact, RouteSilhouette, Wordmark } from './card-elements';
+import { CARD_INK_CREAM, CARD_TYPE, DateCompact, RouteSilhouette, Wordmark } from './card-elements';
 
-const MONO = process.env.EXPO_OS === 'ios' ? 'Menlo' : 'monospace';
+const STAT_UNIT = { ...CARD_TYPE.label, fontSize: 10, color: CARD_INK_CREAM.muted } as const;
+const STAT_VALUE = { ...CARD_TYPE.figure, fontSize: 17, color: CARD_INK_CREAM.strong } as const;
 
 export const RoutePrintCard = memo(function RoutePrintCard({ data }: { data: RideSharePayload }) {
   const sys = data.measurementSystem;
@@ -40,8 +41,8 @@ export const RoutePrintCard = memo(function RoutePrintCard({ data }: { data: Rid
           justifyContent: 'space-between',
         }}
       >
-        <Wordmark color="rgba(26,22,18,0.7)" />
-        <DateCompact date={data.date} color="rgba(26,22,18,0.5)" />
+        <Wordmark color={CARD_INK_CREAM.muted} />
+        <DateCompact date={data.date} color={CARD_INK_CREAM.faint} />
       </View>
 
       {/* Route art — large centered */}
@@ -77,96 +78,34 @@ export const RoutePrintCard = memo(function RoutePrintCard({ data }: { data: Rid
           bottom: 14,
           paddingTop: 12,
           borderTopWidth: 1,
-          borderTopColor: 'rgba(26,22,18,0.18)',
+          borderTopColor: CARD_INK_CREAM.rule,
         }}
       >
         <Text
-          style={{
-            fontFamily: MONO,
-            fontSize: 8.5,
-            fontWeight: '600',
-            letterSpacing: 1.53,
-            color: 'rgba(26,22,18,0.5)',
-            textTransform: 'uppercase',
-          }}
-        >
-          Ride no. {rideNum}
-        </Text>
-        <Text
           numberOfLines={2}
           style={{
-            fontSize: 18,
-            fontWeight: '700',
-            letterSpacing: -0.4,
-            lineHeight: 19.4,
-            color: palette.shareCreamText,
-            marginTop: 4,
+            ...CARD_TYPE.title,
+            fontSize: 22,
+            lineHeight: 23,
+            color: CARD_INK_CREAM.strong,
           }}
         >
           {data.rideName}
         </Text>
+        <Text style={{ ...CARD_TYPE.label, color: CARD_INK_CREAM.faint, marginTop: 2 }}>
+          Ride no. {rideNum}
+        </Text>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 14, marginTop: 10 }}>
-          <Text
-            style={{
-              fontFamily: MONO,
-              fontSize: 10,
-              fontWeight: '600',
-              letterSpacing: 1.2,
-              color: 'rgba(26,22,18,0.7)',
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: '700',
-                letterSpacing: -0.25,
-                color: palette.shareCreamText,
-              }}
-            >
-              {formatDistanceValue(data.distanceM, sys)}
-            </Text>{' '}
+          <Text style={STAT_UNIT}>
+            <Text style={STAT_VALUE}>{formatDistanceValue(data.distanceM, sys)}</Text>{' '}
             {distanceUnitLabel(sys)}
           </Text>
-          <Text
-            style={{
-              fontFamily: MONO,
-              fontSize: 10,
-              fontWeight: '600',
-              letterSpacing: 1.2,
-              color: 'rgba(26,22,18,0.7)',
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: '700',
-                letterSpacing: -0.25,
-                color: palette.shareCreamText,
-              }}
-            >
-              {formatDuration(data.durationS)}
-            </Text>
+          <Text style={STAT_UNIT}>
+            <Text style={STAT_VALUE}>{formatDuration(data.durationS)}</Text>
           </Text>
           {data.elevationGainM != null && (
-            <Text
-              style={{
-                fontFamily: MONO,
-                fontSize: 10,
-                fontWeight: '600',
-                letterSpacing: 1.2,
-                color: 'rgba(26,22,18,0.7)',
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: '700',
-                  letterSpacing: -0.25,
-                  color: palette.shareCreamText,
-                }}
-              >
-                {formatElevationValue(data.elevationGainM, sys)}
-              </Text>{' '}
+            <Text style={STAT_UNIT}>
+              <Text style={STAT_VALUE}>{formatElevationValue(data.elevationGainM, sys)}</Text>{' '}
               {elevationUnitLabel(sys)} ↑
             </Text>
           )}

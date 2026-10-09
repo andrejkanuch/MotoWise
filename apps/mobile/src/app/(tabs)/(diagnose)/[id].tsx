@@ -1,57 +1,54 @@
-import { palette, radii, spacing } from '@motovault/design-system';
 import { DiagnosticByIdDocument, MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
+import { parseISO } from 'date-fns';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   AlertTriangle,
-  ArrowRight,
   BookOpen,
   ChevronRight,
   HardHat,
+  type LucideIcon,
   RefreshCw,
   Share2,
-  ShieldAlert,
   Wrench,
 } from 'lucide-react-native';
+import { Fragment, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  DIAGNOSTIC_STATUS,
+  isStuckProcessing,
+  PROCESSING_POLL_MS,
+} from '../../../components/diagnosis/diagnostic-status';
+import {
+  SEVERITY_CHIP_SIZE,
+  SeverityChip,
+  URGENT_SEVERITIES,
+} from '../../../components/diagnosis/severity-chip';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { exportDiagnosticReport } from '../../../lib/pdf-export';
 import { queryKeys } from '../../../lib/query-keys';
+import { tint, useEditorialTheme } from '../../../theme/editorial';
+import { GUTTER, radius, space, type } from '../../../theme/type';
 import { triggerImpact } from '../../../utils/haptics';
 
-const SEVERITY_CONFIG = {
-  critical: {
-    light: { color: palette.danger500, bg: palette.dangerBgLight, text: '#991b1b' },
-    dark: { color: '#fca5a5', bg: palette.dangerBgDark, text: '#fca5a5' },
-  },
-  high: {
-    light: {
-      color: palette.signature500,
-      bg: palette.signatureBgLight,
-      text: palette.signature600,
-    },
-    dark: { color: palette.signature400, bg: palette.signatureBgDark, text: palette.signature400 },
-  },
-  medium: {
-    light: { color: palette.warning500, bg: palette.warningBgLight, text: '#92400e' },
-    dark: { color: '#fbbf24', bg: palette.warningBgDark, text: '#fbbf24' },
-  },
-  low: {
-    light: { color: palette.success500, bg: palette.successBgLight, text: '#166534' },
-    dark: { color: '#4ade80', bg: palette.successBgDark, text: '#4ade80' },
-  },
+const DIFFICULTY_LABEL_KEY = {
+  easy: 'diagnose.difficultyLevel.easy',
+  moderate: 'diagnose.difficultyLevel.moderate',
+  hard: 'diagnose.difficultyLevel.hard',
+  professional: 'diagnose.difficultyLevel.professional',
 } as const;
+type Difficulty = keyof typeof DIFFICULTY_LABEL_KEY;
 
-const DIFFICULTY_CONFIG = {
-  easy: { light: palette.success500, dark: '#4ade80', label: 'Easy — DIY Friendly' },
-  moderate: { light: palette.warning500, dark: '#fbbf24', label: 'Moderate — Some Experience' },
-  hard: { light: palette.signature500, dark: palette.signature400, label: 'Hard — Advanced' },
-  professional: { light: palette.danger500, dark: '#fca5a5', label: 'Professional Only' },
-} as const;
+function isDifficulty(value: string | undefined): value is Difficulty {
+  return value != null && value in DIFFICULTY_LABEL_KEY;
+}
+
+const METER_HEIGHT = 4;
+const ICON_SIZE = 20;
+const ROW_MIN_HEIGHT = 52;
 
 interface DiagnosticResult {
   part?: string;
@@ -64,12 +61,13 @@ interface DiagnosticResult {
   relatedArticleId?: string | null;
 }
 
+const toPercent = (fraction: number) => Math.round(fraction * 100);
+
 export default function DiagnosticResultScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -78,10 +76,9 @@ export default function DiagnosticResultScreen() {
     enabled: !!id,
     refetchInterval: (query) => {
       const diag = query.state.data?.diagnosticById;
-      if (diag?.status !== 'processing') return false;
+      if (diag?.status !== DIAGNOSTIC_STATUS.PROCESSING) return false;
       // Stop polling if processing for more than 2 minutes (stuck)
-      const age = Date.now() - new Date(diag.createdAt).getTime();
-      return age < 2 * 60 * 1000 ? 3000 : false;
+      return isStuckProcessing(diag.createdAt) ? false : PROCESSING_POLL_MS;
     },
   });
 
@@ -93,11 +90,11 @@ export default function DiagnosticResultScreen() {
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
   const bike = motorcyclesData?.myMotorcycles?.find((m) => m.id === diagnostic?.motorcycleId);
-  const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : 'Motorcycle';
+  const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : t('diagnoseV2.reviewBike');
 
   const handleShareReport = async () => {
-    if (diagnostic?.status !== 'completed') return;
-    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
+    if (diagnostic?.status !== DIAGNOSTIC_STATUS.COMPLETED) return;
+    triggerImpact();
     try {
       await exportDiagnosticReport(
         {
@@ -114,850 +111,386 @@ export default function DiagnosticResultScreen() {
     }
   };
 
-  // Theme colors
-  const bg = isDark ? palette.surfaceDark : palette.white;
-  const cardBg = isDark ? palette.cardDark : palette.neutral50;
-  const textPrimary = isDark ? palette.neutral50 : palette.neutral950;
-  const textSecondary = isDark ? palette.neutral400 : palette.neutral500;
-  const textTertiary = isDark ? palette.neutral500 : palette.neutral400;
-  const trackBg = isDark ? palette.neutral700 : palette.neutral200;
-  const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+  const startNew = () => router.push('/(diagnose)/new');
 
   if (isLoading) {
-    return (
-      <View
-        style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}
-      >
-        <ActivityIndicator size="large" color={palette.primary500} />
-        <Text style={{ fontSize: 14, color: textSecondary, marginTop: spacing[3] }}>
-          {t('diagnose.processing')}
-        </Text>
-      </View>
-    );
+    return <ProcessingState label={t('diagnose.processing')} />;
   }
 
   if (error || !diagnostic) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: bg,
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: spacing[6],
-        }}
-      >
-        <AlertTriangle size={40} color={palette.danger500} strokeWidth={1.5} />
-        <Text
-          style={{ fontSize: 16, color: textSecondary, textAlign: 'center', marginTop: spacing[3] }}
-        >
-          {t('diagnose.failed')}
-        </Text>
-        <Pressable
-          style={{
-            marginTop: spacing[4],
-            backgroundColor: palette.primary500,
-            borderRadius: radii.card,
-            paddingHorizontal: spacing[6],
-            paddingVertical: spacing[3],
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: spacing[2],
-            borderCurve: 'continuous',
-          }}
-          onPress={() => refetch()}
-        >
-          <RefreshCw size={16} color={palette.white} strokeWidth={2} />
-          <Text style={{ color: palette.white, fontWeight: '600', fontSize: 14 }}>
-            {t('diagnose.retry')}
-          </Text>
-        </Pressable>
-      </View>
-    );
+    return <FailedState onRetry={() => refetch()} />;
   }
 
-  if (diagnostic.status === 'processing') {
+  if (diagnostic.status === DIAGNOSTIC_STATUS.PROCESSING) {
     // If processing for more than 2 minutes, it's stuck — show failed state
-    const createdMs = new Date(diagnostic.createdAt).getTime();
-    const isStuck = Date.now() - createdMs > 2 * 60 * 1000;
-
-    if (isStuck) {
-      return (
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: bg,
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: spacing[6],
-          }}
-        >
-          <AlertTriangle size={40} color={palette.danger500} strokeWidth={1.5} />
-          <Text
-            style={{
-              fontSize: 16,
-              color: textSecondary,
-              textAlign: 'center',
-              marginTop: spacing[3],
-            }}
-          >
-            {t('diagnose.failed')}
-          </Text>
-          <Pressable
-            style={{
-              marginTop: spacing[4],
-              backgroundColor: palette.primary500,
-              borderRadius: radii.card,
-              paddingHorizontal: spacing[6],
-              paddingVertical: spacing[3],
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: spacing[2],
-              borderCurve: 'continuous',
-            }}
-            onPress={() => router.push('/(diagnose)/new')}
-          >
-            <RefreshCw size={16} color={palette.white} strokeWidth={2} />
-            <Text style={{ color: palette.white, fontWeight: '600', fontSize: 14 }}>
-              {t('diagnose.retry')}
-            </Text>
-          </Pressable>
-        </View>
-      );
-    }
-
-    return (
-      <View
-        style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}
-      >
-        <ActivityIndicator size="large" color={palette.primary500} />
-        <Text
-          style={{ fontSize: 16, fontWeight: '600', color: textPrimary, marginTop: spacing[4] }}
-        >
-          {t('diagnose.processing')}
-        </Text>
-      </View>
-    );
+    if (isStuckProcessing(diagnostic.createdAt)) return <FailedState onRetry={startNew} />;
+    return <ProcessingState label={t('diagnose.processing')} />;
   }
 
-  if (diagnostic.status === 'failed') {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: bg,
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: spacing[6],
-        }}
-      >
-        <AlertTriangle size={40} color={palette.danger500} strokeWidth={1.5} />
-        <Text
-          style={{ fontSize: 16, color: textSecondary, textAlign: 'center', marginTop: spacing[3] }}
-        >
-          {t('diagnose.failed')}
-        </Text>
-        <Pressable
-          style={{
-            marginTop: spacing[4],
-            backgroundColor: palette.primary500,
-            borderRadius: radii.card,
-            paddingHorizontal: spacing[6],
-            paddingVertical: spacing[3],
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: spacing[2],
-            borderCurve: 'continuous',
-          }}
-          onPress={() => router.push('/(diagnose)/new')}
-        >
-          <RefreshCw size={16} color={palette.white} strokeWidth={2} />
-          <Text style={{ color: palette.white, fontWeight: '600', fontSize: 14 }}>
-            {t('diagnose.retry')}
-          </Text>
-        </Pressable>
-      </View>
-    );
+  if (diagnostic.status === DIAGNOSTIC_STATUS.FAILED) {
+    return <FailedState onRetry={startNew} />;
   }
 
-  const sevKey = (diagnostic.severity ?? 'low') as keyof typeof SEVERITY_CONFIG;
-  const sevTheme =
-    SEVERITY_CONFIG[sevKey]?.[isDark ? 'dark' : 'light'] ??
-    SEVERITY_CONFIG.low[isDark ? 'dark' : 'light'];
   const confidence = diagnostic.confidence ?? 0;
-  const diffKey = (resultJson?.difficulty ?? '') as keyof typeof DIFFICULTY_CONFIG;
-  const diffConfig = DIFFICULTY_CONFIG[diffKey];
-
-  const confidenceColor =
-    confidence > 0.7
-      ? isDark
-        ? '#4ade80'
-        : palette.success500
-      : confidence > 0.4
-        ? isDark
-          ? '#fbbf24'
-          : palette.warning500
-        : isDark
-          ? '#fca5a5'
-          : palette.danger500;
+  const isUrgent = diagnostic.severity != null && URGENT_SEVERITIES.has(diagnostic.severity);
+  const difficulty = isDifficulty(resultJson?.difficulty) ? resultJson.difficulty : null;
+  const issues = resultJson?.issues ?? [];
+  const tools = resultJson?.toolsNeeded ?? [];
+  const nextSteps = resultJson?.nextSteps ?? [];
+  const timestamp = new Intl.DateTimeFormat(i18n.language, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(parseISO(diagnostic.createdAt));
 
   return (
-    <View style={{ flex: 1, backgroundColor: bg }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24, gap: spacing[3] }}
+        contentContainerStyle={{
+          paddingTop: space.md,
+          paddingHorizontal: GUTTER,
+          paddingBottom: insets.bottom + space.xl,
+          gap: space.xl,
+        }}
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header: Part + Description */}
-        {resultJson?.part && (
-          <Animated.View
-            entering={FadeIn.duration(300)}
-            style={{ paddingHorizontal: spacing[5], paddingTop: spacing[4] }}
-          >
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: '500',
-                color: textTertiary,
-                textTransform: 'uppercase',
-                letterSpacing: 1.2,
-                marginBottom: spacing[1],
-              }}
-            >
-              {t('diagnose.part')}
-            </Text>
+        {/* Severity + part */}
+        <Animated.View entering={FadeIn.duration(250)}>
+          <SeverityChip severity={diagnostic.severity} size={SEVERITY_CHIP_SIZE.REGULAR} />
+          {resultJson?.part ? (
             <Text
               selectable
-              style={{ fontSize: 24, fontWeight: '700', color: textPrimary, lineHeight: 30 }}
+              accessibilityRole="header"
+              style={[type.sheetTitle, { color: theme.ink, marginTop: space.sm }]}
             >
               {resultJson.part}
             </Text>
-            {resultJson.description && (
-              <Text
-                selectable
-                style={{
-                  fontSize: 14,
-                  color: textSecondary,
-                  lineHeight: 20,
-                  marginTop: spacing[2],
-                }}
-              >
-                {resultJson.description}
-              </Text>
-            )}
-          </Animated.View>
-        )}
+          ) : null}
+          {resultJson?.description ? (
+            <Text selectable style={[type.body, { color: theme.ink2, marginTop: space.xs }]}>
+              {resultJson.description}
+            </Text>
+          ) : null}
+        </Animated.View>
 
-        {/* Severity Badge */}
-        <Animated.View
-          entering={FadeInUp.delay(50).duration(400)}
-          style={{ paddingHorizontal: spacing[5] }}
-        >
+        {/* Consult a mechanic — high/critical */}
+        {isUrgent && (
           <View
+            accessibilityRole="alert"
             style={{
-              backgroundColor: sevTheme.bg,
-              borderRadius: 16,
-              padding: spacing[4],
               flexDirection: 'row',
-              alignItems: 'center',
-              gap: spacing[3],
+              gap: space.sm,
+              padding: space.md,
+              borderRadius: radius.card,
               borderCurve: 'continuous',
-              borderWidth: 1,
-              borderColor: isDark ? 'rgba(255,255,255,0.06)' : `${sevTheme.color}20`,
+              backgroundColor: tint(theme.danger, 0.12),
             }}
           >
-            <View
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                backgroundColor: `${sevTheme.color}18`,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderCurve: 'continuous',
-              }}
-            >
-              <ShieldAlert size={18} color={sevTheme.color} strokeWidth={2} />
-            </View>
+            <HardHat size={ICON_SIZE} color={theme.danger} strokeWidth={2} />
             <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '500',
-                  color: textSecondary,
-                  textTransform: 'uppercase',
-                  letterSpacing: 1,
-                }}
-              >
-                {t('diagnose.severity')}
+              <Text style={[type.bodyStrong, { color: theme.ink }]}>
+                {t('diagnose.consultMechanic')}
               </Text>
-              <Text
-                style={{
-                  fontSize: 17,
-                  fontWeight: '700',
-                  color: sevTheme.text,
-                  textTransform: 'capitalize',
-                  marginTop: 2,
-                }}
-              >
-                {diagnostic.severity ?? 'unknown'}
+              <Text style={[type.subhead, { color: theme.ink2, marginTop: 2 }]}>
+                {t('diagnose.consultMechanicSubtitle')}
               </Text>
             </View>
           </View>
-        </Animated.View>
-
-        {/* Consult a Mechanic CTA — critical/high */}
-        {(sevKey === 'critical' || sevKey === 'high') && (
-          <Animated.View
-            entering={FadeInUp.delay(75).duration(400)}
-            style={{ paddingHorizontal: spacing[5] }}
-          >
-            <Pressable
-              onPress={() => {
-                if (process.env.EXPO_OS === 'ios') {
-                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-                }
-              }}
-              style={{
-                backgroundColor: isDark ? palette.dangerBgDark : palette.dangerBgLight,
-                borderRadius: 16,
-                padding: spacing[4],
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: spacing[3],
-                borderCurve: 'continuous',
-                borderWidth: 1,
-                borderColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.12)',
-              }}
-            >
-              <View
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  backgroundColor: `${palette.danger500}18`,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderCurve: 'continuous',
-                }}
-              >
-                <HardHat size={18} color={isDark ? '#fca5a5' : palette.danger500} strokeWidth={2} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{ fontSize: 15, fontWeight: '700', color: isDark ? '#fca5a5' : '#991b1b' }}
-                >
-                  {t('diagnose.consultMechanic')}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: isDark ? '#fca5a5' : '#b91c1c',
-                    opacity: 0.8,
-                    marginTop: 2,
-                    lineHeight: 16,
-                  }}
-                >
-                  {t('diagnose.consultMechanicSubtitle')}
-                </Text>
-              </View>
-              <ChevronRight size={16} color={isDark ? '#fca5a5' : '#991b1b'} strokeWidth={2} />
-            </Pressable>
-          </Animated.View>
         )}
 
         {/* Confidence */}
-        <Animated.View
-          entering={FadeInUp.delay(100).duration(400)}
-          style={{ paddingHorizontal: spacing[5] }}
-        >
-          <View
-            style={{
-              backgroundColor: cardBg,
-              borderRadius: 16,
-              padding: spacing[4],
-              borderCurve: 'continuous',
-              borderWidth: 1,
-              borderColor,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: '500',
-                color: textSecondary,
-                textTransform: 'uppercase',
-                letterSpacing: 1,
-                marginBottom: spacing[2],
-              }}
-            >
-              {t('diagnose.confidence')}
-            </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[3] }}>
-              <View
-                style={{
-                  flex: 1,
-                  height: 6,
-                  backgroundColor: trackBg,
-                  borderRadius: 3,
-                  overflow: 'hidden',
-                }}
-              >
-                <View
-                  style={{
-                    height: '100%',
-                    borderRadius: 3,
-                    width: `${confidence * 100}%`,
-                    backgroundColor: confidenceColor,
-                  }}
-                />
-              </View>
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '700',
-                  color: confidenceColor,
-                  width: 48,
-                  textAlign: 'right',
-                  fontVariant: ['tabular-nums'],
-                }}
-              >
-                {Math.round(confidence * 100)}%
-              </Text>
-            </View>
+        <Section title={t('diagnose.confidence')}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+            <Text style={[type.figure, { color: theme.ink }]}>{toPercent(confidence)}%</Text>
+            <Meter fraction={confidence} />
           </View>
-        </Animated.View>
+        </Section>
 
-        {/* Issues Found */}
-        {resultJson?.issues && resultJson.issues.length > 0 && (
-          <Animated.View
-            entering={FadeInUp.delay(150).duration(400)}
-            style={{ paddingHorizontal: spacing[5] }}
-          >
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '700',
-                color: textPrimary,
-                marginBottom: spacing[2],
-              }}
-            >
-              {t('diagnose.issues')}
-            </Text>
-            <View style={{ gap: spacing[2] }}>
-              {resultJson.issues.map((issue) => {
-                const prob = issue.probability ?? 0;
-                const issueColor =
-                  prob > 0.5
-                    ? isDark
-                      ? palette.signature400
-                      : palette.signature500
-                    : prob > 0.25
-                      ? isDark
-                        ? '#93c5fd'
-                        : palette.primary500
-                      : isDark
-                        ? palette.neutral400
-                        : palette.neutral500;
-
-                return (
-                  <View
-                    key={issue.description}
-                    style={{
-                      backgroundColor: cardBg,
-                      borderRadius: radii.card,
-                      padding: spacing[3],
-                      borderCurve: 'continuous',
-                      borderWidth: 1,
-                      borderColor,
-                    }}
-                  >
-                    <Text
-                      selectable
-                      style={{
-                        fontSize: 14,
-                        color: isDark ? palette.neutral200 : palette.neutral700,
-                        lineHeight: 20,
-                      }}
-                    >
+        {/* Issues found */}
+        {issues.length > 0 && (
+          <Section title={t('diagnose.issues')}>
+            <InsetGroup>
+              {issues.map((issue, index) => (
+                <Fragment key={issue.description}>
+                  {index > 0 && <RowSeparator />}
+                  <View style={{ padding: space.md, gap: space.xs }}>
+                    <Text selectable style={[type.body, { color: theme.ink }]}>
                       {issue.description}
                     </Text>
                     {issue.probability != null && (
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: spacing[2],
-                          marginTop: spacing[2],
-                        }}
-                      >
-                        <View
-                          style={{
-                            flex: 1,
-                            height: 4,
-                            backgroundColor: trackBg,
-                            borderRadius: 2,
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <View
-                            style={{
-                              height: '100%',
-                              borderRadius: 2,
-                              width: `${prob * 100}%`,
-                              backgroundColor: issueColor,
-                            }}
-                          />
-                        </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+                        <Meter fraction={issue.probability} />
                         <Text
-                          style={{
-                            fontSize: 12,
-                            fontWeight: '600',
-                            color: issueColor,
-                            width: 40,
-                            textAlign: 'right',
-                            fontVariant: ['tabular-nums'],
-                          }}
+                          style={[
+                            type.figureSmall,
+                            { color: theme.ink2, minWidth: 44, textAlign: 'right' },
+                          ]}
                         >
-                          {Math.round(prob * 100)}%
+                          {toPercent(issue.probability)}%
                         </Text>
                       </View>
                     )}
                   </View>
-                );
-              })}
-            </View>
-          </Animated.View>
+                </Fragment>
+              ))}
+            </InsetGroup>
+          </Section>
         )}
 
-        {/* Tools Needed */}
-        {resultJson?.toolsNeeded && resultJson.toolsNeeded.length > 0 && (
-          <Animated.View
-            entering={FadeInUp.delay(200).duration(400)}
-            style={{ paddingHorizontal: spacing[5], marginTop: spacing[1] }}
-          >
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '700',
-                color: textPrimary,
-                marginBottom: spacing[2],
-              }}
-            >
-              {t('diagnose.toolsNeeded')}
-            </Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] }}>
-              {resultJson.toolsNeeded.map((tool) => (
+        {/* Tools needed */}
+        {tools.length > 0 && (
+          <Section title={t('diagnose.toolsNeeded')}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.xs }}>
+              {tools.map((tool) => (
                 <View
                   key={tool}
                   style={{
-                    backgroundColor: cardBg,
-                    borderRadius: radii.button,
-                    paddingHorizontal: spacing[3],
-                    paddingVertical: spacing[2],
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 6,
+                    gap: space.xs - 2,
+                    paddingHorizontal: space.sm,
+                    paddingVertical: space.xs,
+                    borderRadius: radius.chip,
                     borderCurve: 'continuous',
-                    borderWidth: 1,
-                    borderColor,
+                    backgroundColor: theme.surface2,
                   }}
                 >
-                  <Wrench size={12} color={textSecondary} strokeWidth={2} />
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      color: isDark ? palette.neutral300 : palette.neutral700,
-                    }}
-                  >
-                    {tool}
-                  </Text>
+                  <Wrench size={14} color={theme.ink3} strokeWidth={2} />
+                  <Text style={[type.label, { color: theme.ink }]}>{tool}</Text>
                 </View>
               ))}
             </View>
-          </Animated.View>
+          </Section>
         )}
 
         {/* Difficulty */}
-        {diffConfig && (
-          <Animated.View
-            entering={FadeInUp.delay(250).duration(400)}
-            style={{ paddingHorizontal: spacing[5], marginTop: spacing[1] }}
-          >
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: '500',
-                color: textSecondary,
-                textTransform: 'uppercase',
-                letterSpacing: 1,
-                marginBottom: spacing[2],
-              }}
-            >
-              {t('diagnose.difficulty')}
+        {difficulty && (
+          <Section title={t('diagnose.difficulty')}>
+            <Text style={[type.body, { color: theme.ink }]}>
+              {t(DIFFICULTY_LABEL_KEY[difficulty])}
             </Text>
-            <View
-              style={{
-                borderRadius: radii.button,
-                paddingHorizontal: spacing[3],
-                paddingVertical: spacing[2],
-                alignSelf: 'flex-start',
-                backgroundColor: `${isDark ? diffConfig.dark : diffConfig.light}18`,
-                borderCurve: 'continuous',
-                borderWidth: 1,
-                borderColor: `${isDark ? diffConfig.dark : diffConfig.light}25`,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  color: isDark ? diffConfig.dark : diffConfig.light,
-                }}
-              >
-                {diffConfig.label}
-              </Text>
-            </View>
-          </Animated.View>
+          </Section>
         )}
 
-        {/* Next Steps */}
-        {resultJson?.nextSteps && resultJson.nextSteps.length > 0 && (
-          <Animated.View
-            entering={FadeInUp.delay(300).duration(400)}
-            style={{ paddingHorizontal: spacing[5], marginTop: spacing[1] }}
-          >
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '700',
-                color: textPrimary,
-                marginBottom: spacing[2],
-              }}
-            >
-              {t('diagnose.nextSteps')}
-            </Text>
-            <View
-              style={{
-                backgroundColor: cardBg,
-                borderRadius: 16,
-                padding: spacing[4],
-                gap: spacing[3],
-                borderCurve: 'continuous',
-                borderWidth: 1,
-                borderColor,
-              }}
-            >
-              {resultJson.nextSteps.map((step: string, stepIndex: number) => (
-                <View
-                  key={step}
-                  style={{ flexDirection: 'row', gap: spacing[3], alignItems: 'flex-start' }}
-                >
+        {/* Next steps */}
+        {nextSteps.length > 0 && (
+          <Section title={t('diagnose.nextSteps')}>
+            <InsetGroup>
+              {nextSteps.map((step, stepIndex) => (
+                <Fragment key={step}>
+                  {stepIndex > 0 && <RowSeparator />}
                   <View
                     style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
-                      backgroundColor: isDark
-                        ? `${palette.primary400}20`
-                        : `${palette.primary500}15`,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginTop: 1,
+                      flexDirection: 'row',
+                      gap: space.sm,
+                      padding: space.md,
+                      alignItems: 'flex-start',
                     }}
                   >
-                    <Text
-                      style={{
-                        fontSize: 11,
-                        fontWeight: '700',
-                        color: isDark ? palette.primary300 : palette.primary600,
-                      }}
-                    >
+                    <Text style={[type.figureSmall, { color: theme.ink3, minWidth: 16 }]}>
                       {stepIndex + 1}
                     </Text>
+                    <Text selectable style={[type.body, { color: theme.ink, flex: 1 }]}>
+                      {step}
+                    </Text>
                   </View>
-                  <Text
-                    selectable
-                    style={{
-                      fontSize: 14,
-                      color: isDark ? palette.neutral300 : palette.neutral700,
-                      flex: 1,
-                      lineHeight: 20,
-                    }}
-                  >
-                    {step}
-                  </Text>
-                </View>
+                </Fragment>
               ))}
-            </View>
-          </Animated.View>
+            </InsetGroup>
+          </Section>
         )}
 
-        {/* Related Article */}
-        {diagnostic.relatedArticleId && (
-          <Animated.View
-            entering={FadeInUp.delay(350).duration(400)}
-            style={{ paddingHorizontal: spacing[5] }}
-          >
-            <Pressable
-              onPress={() => {
-                if (process.env.EXPO_OS === 'ios') {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
-                router.push(
-                  `/(tabs)/(learn)/article/${diagnostic.relatedArticleId}` as `/${string}`,
-                );
-              }}
-              style={{
-                backgroundColor: isDark ? `${palette.primary500}15` : palette.primary50,
-                borderRadius: 16,
-                padding: spacing[4],
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: spacing[3],
-                borderCurve: 'continuous',
-                borderWidth: 1,
-                borderColor: isDark ? `${palette.primary500}20` : `${palette.primary500}12`,
-              }}
-            >
-              <View
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  backgroundColor: `${palette.primary500}18`,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderCurve: 'continuous',
+        {/* Actions */}
+        <InsetGroup>
+          {diagnostic.relatedArticleId && (
+            <>
+              <ActionRow
+                icon={BookOpen}
+                label={t('diagnose.findArticle')}
+                onPress={() => {
+                  triggerImpact();
+                  router.push(
+                    `/(tabs)/(learn)/article/${diagnostic.relatedArticleId}` as `/${string}`,
+                  );
                 }}
-              >
-                <BookOpen
-                  size={16}
-                  color={isDark ? palette.primary300 : palette.primary600}
-                  strokeWidth={2}
-                />
-              </View>
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '600',
-                  color: isDark ? palette.primary300 : palette.primary700,
-                  flex: 1,
-                }}
-              >
-                {t('diagnose.findArticle')}
-              </Text>
-              <ArrowRight
-                size={16}
-                color={isDark ? palette.primary400 : palette.primary500}
-                strokeWidth={2}
               />
-            </Pressable>
-          </Animated.View>
-        )}
-
-        {/* Share Report */}
-        <Animated.View
-          entering={FadeInUp.delay(375).duration(400)}
-          style={{ paddingHorizontal: spacing[5] }}
-        >
-          <Pressable
+              <RowSeparator />
+            </>
+          )}
+          <ActionRow
+            icon={Share2}
+            label={t('diagnose.shareReport', { defaultValue: 'Share Diagnostic Report' })}
             onPress={handleShareReport}
-            style={{
-              backgroundColor: isDark ? `${palette.neutral400}12` : palette.neutral100,
-              borderRadius: 16,
-              padding: spacing[4],
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: spacing[3],
-              borderCurve: 'continuous',
-              borderWidth: 1,
-              borderColor,
-            }}
-          >
-            <View
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                backgroundColor: isDark ? `${palette.neutral400}18` : `${palette.neutral500}12`,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderCurve: 'continuous',
-              }}
-            >
-              <Share2
-                size={16}
-                color={isDark ? palette.neutral300 : palette.neutral600}
-                strokeWidth={2}
-              />
-            </View>
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: '600',
-                color: isDark ? palette.neutral200 : palette.neutral700,
-                flex: 1,
-              }}
-            >
-              {t('diagnose.shareReport', { defaultValue: 'Share Diagnostic Report' })}
-            </Text>
-            <ArrowRight
-              size={16}
-              color={isDark ? palette.neutral400 : palette.neutral500}
-              strokeWidth={2}
-            />
-          </Pressable>
-        </Animated.View>
+          />
+        </InsetGroup>
 
-        {/* Disclaimer */}
-        <Animated.View
-          entering={FadeInUp.delay(425).duration(400)}
-          style={{ paddingHorizontal: spacing[5], marginTop: spacing[1] }}
-        >
-          <View
-            style={{
-              backgroundColor: isDark ? palette.warningBgDark : palette.warningBgLight,
-              borderRadius: 16,
-              padding: spacing[4],
-              flexDirection: 'row',
-              gap: spacing[3],
-              borderCurve: 'continuous',
-              borderWidth: 1,
-              borderColor: isDark ? 'rgba(245,158,11,0.12)' : 'rgba(245,158,11,0.15)',
-            }}
-          >
-            <AlertTriangle
-              size={16}
-              color={isDark ? '#fbbf24' : palette.warning500}
-              strokeWidth={2}
-              style={{ marginTop: 1 }}
-            />
-            <Text
-              selectable
-              style={{
-                fontSize: 12,
-                color: isDark ? '#fde68a' : '#92400e',
-                flex: 1,
-                lineHeight: 17,
-              }}
-            >
+        {/* Disclaimer + timestamp */}
+        <View style={{ gap: space.xs }}>
+          <View style={{ flexDirection: 'row', gap: space.xs }}>
+            <AlertTriangle size={14} color={theme.ink3} strokeWidth={2} style={{ marginTop: 1 }} />
+            <Text selectable style={[type.caption, { color: theme.ink3, flex: 1 }]}>
               {t('diagnose.disclaimer')}
             </Text>
           </View>
-        </Animated.View>
-
-        {/* Timestamp */}
-        <Animated.View
-          entering={FadeInUp.delay(475).duration(400)}
-          style={{ paddingHorizontal: spacing[5] }}
-        >
-          <Text style={{ fontSize: 12, color: textTertiary, textAlign: 'center' }}>
-            {new Date(diagnostic.createdAt).toLocaleString()}
-          </Text>
-        </Animated.View>
+          <Text style={[type.caption, { color: theme.ink4 }]}>{timestamp}</Text>
+        </View>
       </ScrollView>
+    </View>
+  );
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  const { t: theme } = useEditorialTheme();
+  return (
+    <View style={{ gap: space.xs }}>
+      <Text accessibilityRole="header" style={[type.sectionTitle, { color: theme.ink }]}>
+        {title}
+      </Text>
+      {children}
+    </View>
+  );
+}
+
+function InsetGroup({ children }: { children: ReactNode }) {
+  const { t: theme } = useEditorialTheme();
+  return (
+    <View
+      style={{
+        backgroundColor: theme.surface,
+        borderRadius: radius.card,
+        borderCurve: 'continuous',
+        overflow: 'hidden',
+      }}
+    >
+      {children}
+    </View>
+  );
+}
+
+function RowSeparator() {
+  const { t: theme } = useEditorialTheme();
+  return <View style={{ height: 1, marginLeft: space.md, backgroundColor: theme.line }} />;
+}
+
+/** A thin neutral meter — certainty is information, not a verdict, so it stays uncoloured. */
+function Meter({ fraction }: { fraction: number }) {
+  const { t: theme } = useEditorialTheme();
+  const clamped = Math.min(Math.max(fraction, 0), 1);
+  return (
+    <View
+      style={{
+        flex: 1,
+        height: METER_HEIGHT,
+        borderRadius: radius.pill,
+        backgroundColor: theme.surface3,
+        overflow: 'hidden',
+      }}
+    >
+      <View
+        style={{
+          width: `${clamped * 100}%`,
+          height: '100%',
+          borderRadius: radius.pill,
+          backgroundColor: theme.ink2,
+        }}
+      />
+    </View>
+  );
+}
+
+function ActionRow({
+  icon: Icon,
+  label,
+  onPress,
+}: {
+  icon: LucideIcon;
+  label: string;
+  onPress: () => void;
+}) {
+  const { t: theme } = useEditorialTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      android_ripple={{ color: theme.line }}
+      style={({ pressed }) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: space.sm,
+        minHeight: ROW_MIN_HEIGHT,
+        paddingHorizontal: space.md,
+        backgroundColor: pressed && process.env.EXPO_OS === 'ios' ? theme.surface2 : 'transparent',
+      })}
+    >
+      <Icon size={ICON_SIZE} color={theme.warm} strokeWidth={2} />
+      <Text style={[type.body, { color: theme.ink, flex: 1 }]}>{label}</Text>
+      <ChevronRight size={18} color={theme.ink4} strokeWidth={2} />
+    </Pressable>
+  );
+}
+
+function ProcessingState({ label }: { label: string }) {
+  const { t: theme } = useEditorialTheme();
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: theme.bg,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: space.xl,
+        gap: space.md,
+      }}
+    >
+      <ActivityIndicator size="large" color={theme.ink3} />
+      <Text style={[type.bodyStrong, { color: theme.ink, textAlign: 'center' }]}>{label}</Text>
+    </View>
+  );
+}
+
+function FailedState({ onRetry }: { onRetry: () => void }) {
+  const { t } = useTranslation();
+  const { t: theme } = useEditorialTheme();
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: theme.bg,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: space.xl,
+        gap: space.md,
+      }}
+    >
+      <AlertTriangle size={36} color={theme.danger} strokeWidth={1.75} />
+      <Text style={[type.body, { color: theme.ink2, textAlign: 'center' }]}>
+        {t('diagnose.failed')}
+      </Text>
+      <Pressable
+        onPress={() => {
+          triggerImpact();
+          onRetry();
+        }}
+        accessibilityRole="button"
+        android_ripple={{ color: theme.onPlate, foreground: true }}
+        style={({ pressed }) => ({
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: space.xs,
+          minHeight: 48,
+          paddingHorizontal: space.xl,
+          borderRadius: radius.control,
+          borderCurve: 'continuous',
+          overflow: 'hidden',
+          backgroundColor: theme.warm,
+          opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.85 : 1,
+        })}
+      >
+        <RefreshCw size={16} color={theme.onWarm} strokeWidth={2} />
+        <Text style={[type.bodyStrong, { color: theme.onWarm }]}>{t('diagnose.retry')}</Text>
+      </Pressable>
     </View>
   );
 }

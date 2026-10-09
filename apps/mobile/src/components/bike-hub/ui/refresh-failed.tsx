@@ -2,10 +2,9 @@ import { withAlpha } from '@motovault/design-system';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, type LayoutRectangle, Pressable, Text, View } from 'react-native';
-import { HUB_FONT, HUB_TOUCH_TARGET, type HubCopyKey, hub } from './tokens';
+import { HUB_TOUCH_TARGET, type HubCopyKey, SYSTEM_WEIGHT, useHubTheme } from './tokens';
 
 const SEPARATOR = ' · ';
-const SEPARATOR_HIDDEN = withAlpha(hub.soon, 0);
 const FONT_SIZE = 13;
 const LINE_HEIGHT = 18;
 /** Vertical slop that lifts the one-line Retry to a full touch target. */
@@ -66,6 +65,7 @@ interface RefreshFailedProps {
  * platforms).
  */
 export function RefreshFailed({ block, onRetry, testID }: RefreshFailedProps) {
+  const hub = useHubTheme();
   const { t } = useTranslation();
   const message = t('bikeHub.refreshFailed');
   const [messageLayout, setMessageLayout] = useState<LayoutRectangle | null>(null);
@@ -90,7 +90,7 @@ export function RefreshFailed({ block, onRetry, testID }: RefreshFailedProps) {
         onLayout={(event) => setMessageLayout(event.nativeEvent.layout)}
         style={{
           flexShrink: 1,
-          fontFamily: HUB_FONT.sans,
+          ...SYSTEM_WEIGHT.regular,
           fontSize: FONT_SIZE,
           lineHeight: LINE_HEIGHT,
           color: hub.soon,
@@ -98,7 +98,7 @@ export function RefreshFailed({ block, onRetry, testID }: RefreshFailedProps) {
       >
         {message}
         {/* Nested Text takes no opacity: a clear colour keeps the space, hides the glyph. */}
-        <Text style={{ color: wrapped ? SEPARATOR_HIDDEN : hub.soon }}>{SEPARATOR}</Text>
+        <Text style={{ color: wrapped ? withAlpha(hub.soon, 0) : hub.soon }}>{SEPARATOR}</Text>
       </Text>
       <Pressable
         onLayout={(event) => setRetryLayout(event.nativeEvent.layout)}
@@ -110,7 +110,7 @@ export function RefreshFailed({ block, onRetry, testID }: RefreshFailedProps) {
       >
         <Text
           style={{
-            fontFamily: HUB_FONT.sansSemiBold,
+            ...SYSTEM_WEIGHT.semibold,
             fontSize: FONT_SIZE,
             lineHeight: LINE_HEIGHT,
             color: hub.copperText,

@@ -1,9 +1,10 @@
-import { palette } from '@motovault/design-system';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { AUTH_HYDRATION_ESCAPE_MS } from '../../lib/auth-hydration';
+import { radius, space, type } from '../../theme/type';
+import { useOnboardingColors } from '../onboarding/onboarding-colors';
 
 /**
  * Shown when auth hydration timed out with no answer.
@@ -24,6 +25,7 @@ import { AUTH_HYDRATION_ESCAPE_MS } from '../../lib/auth-hydration';
  * state, so the guard must not be computed until the answer is real.
  */
 export function SessionRestoring({ onGiveUp }: { onGiveUp: () => void }) {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const [canGiveUp, setCanGiveUp] = useState(false);
 
@@ -38,19 +40,13 @@ export function SessionRestoring({ onGiveUp }: { onGiveUp: () => void }) {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 16,
-        paddingHorizontal: 32,
-        backgroundColor: palette.editorialDarkBg2,
+        gap: space.md,
+        paddingHorizontal: space.xxl,
+        backgroundColor: oc.background,
       }}
     >
-      <ActivityIndicator color={palette.signature500} />
-      <Text
-        style={{
-          color: palette.editorialDarkInk,
-          fontSize: 16,
-          textAlign: 'center',
-        }}
-      >
+      <ActivityIndicator color={oc.warm} />
+      <Text style={[type.body, { color: oc.textPrimary, textAlign: 'center' }]}>
         {t('auth.restoringSession')}
       </Text>
       {canGiveUp ? (
@@ -59,15 +55,15 @@ export function SessionRestoring({ onGiveUp }: { onGiveUp: () => void }) {
             accessibilityRole="button"
             onPress={onGiveUp}
             style={{
-              paddingHorizontal: 20,
-              paddingVertical: 12,
-              borderRadius: 12,
+              minHeight: 52,
+              justifyContent: 'center',
+              paddingHorizontal: space.lg,
+              borderRadius: radius.control,
               borderCurve: 'continuous',
-              borderWidth: 1,
-              borderColor: palette.signature500,
+              backgroundColor: oc.surface2,
             }}
           >
-            <Text style={{ color: palette.signature500, fontSize: 15 }}>
+            <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
               {t('auth.signInInstead')}
             </Text>
           </Pressable>

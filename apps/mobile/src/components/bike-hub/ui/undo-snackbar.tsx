@@ -1,7 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { triggerImpact } from '../../../utils/haptics';
-import { HUB_FONT, HUB_HEIGHT, HUB_RADIUS, HUB_TOUCH_TARGET, hub } from './tokens';
+import { HUB_HEIGHT, HUB_RADIUS, HUB_TOUCH_TARGET, SYSTEM_WEIGHT, useHubTheme } from './tokens';
 
 const ENTER_MS = 250;
 const EXIT_MS = 200;
@@ -21,6 +21,7 @@ interface UndoSnackbarProps {
 }
 
 function ActionText({ action }: { action: SnackbarAction }) {
+  const hub = useHubTheme();
   return (
     <Pressable
       onPress={() => {
@@ -32,7 +33,7 @@ function ActionText({ action }: { action: SnackbarAction }) {
       hitSlop={{ top: ACTION_SLOP, bottom: ACTION_SLOP, left: 8, right: 8 }}
       style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
     >
-      <Text style={{ fontFamily: HUB_FONT.sansBold, fontSize: 14, color: hub.copperText }}>
+      <Text style={{ ...SYSTEM_WEIGHT.bold, fontSize: 14, color: hub.copperText }}>
         {action.label}
       </Text>
     </Pressable>
@@ -45,6 +46,7 @@ function ActionText({ action }: { action: SnackbarAction }) {
  * its composer or action pill. Announced politely to screen readers.
  */
 export function UndoSnackbar({ message, action, secondaryAction }: UndoSnackbarProps) {
+  const hub = useHubTheme();
   return (
     <Animated.View
       entering={FadeInUp.duration(ENTER_MS)}
@@ -65,7 +67,7 @@ export function UndoSnackbar({ message, action, secondaryAction }: UndoSnackbarP
         gap: 16,
       }}
     >
-      <Text style={{ flex: 1, fontFamily: HUB_FONT.sansMedium, fontSize: 14, color: hub.text }}>
+      <Text style={{ flex: 1, ...SYSTEM_WEIGHT.medium, fontSize: 14, color: hub.text }}>
         {message}
       </Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>

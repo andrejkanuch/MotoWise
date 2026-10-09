@@ -25,6 +25,12 @@ const SKIPPED_DIRS = ['__tests__', '__mocks__', 'test'];
 const HISTORY_ONLY_ALLOWLIST: readonly string[] = [
   // Retired 2026-08-24; signup is counted server-side now (see the constant's doc).
   'ACCOUNT_CREATED',
+  // Retired 2026-10-09 with the never-rendered components/ride/pb-toast.tsx.
+  'PB_TOAST_SEEN',
+  'PB_TOAST_TAPPED',
+  'PB_TOAST_DISMISSED',
+  // Retired 2026-10-09 with the never-imported components/gpx-export-modal.tsx.
+  'ROUTE_GPX_EXPORTED',
 ];
 
 function catalogKeys(): string[] {

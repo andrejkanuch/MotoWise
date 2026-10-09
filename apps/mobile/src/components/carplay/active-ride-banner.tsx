@@ -7,7 +7,8 @@
 import { ChevronUp } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { MONO, PulseDot, StaticDot } from './primitives';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { PulseDot, StaticDot } from './primitives';
 import { type RideStateKey, stateTint, stateWord } from './state-indicator';
 
 export type BannerState = 'recording' | 'autoPaused' | 'acquiring' | 'armedAuto' | 'manualIdle';
@@ -59,9 +60,9 @@ export function ActiveRideBanner({
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: space.sm,
         backgroundColor: c.surface,
-        borderRadius: 16,
+        borderRadius: radius.card,
         borderCurve: 'continuous',
         borderWidth: 1,
         borderColor: tint(tintColor, 0.3),
@@ -74,22 +75,20 @@ export function ActiveRideBanner({
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Text
             style={{
-              fontFamily: MONO,
-              fontSize: 12,
-              fontWeight: '600',
-              letterSpacing: 1,
+              ...type.label,
+              ...SYSTEM_WEIGHT.semibold,
               color: tintColor,
             }}
           >
             {word}
           </Text>
           {cfg.metrics && (
-            <Text style={{ fontFamily: MONO, fontSize: 12, color: c.ink2 }}>
+            <Text style={{ ...type.label, fontVariant: ['tabular-nums'], color: c.ink2 }}>
               {isAcquiring ? '— km · —:—' : `${distance} · ${time}`}
             </Text>
           )}
         </View>
-        <Text style={{ fontSize: 11.5, color: c.ink3, marginTop: 2 }}>{cfg.sub}</Text>
+        <Text style={{ ...type.caption, color: c.ink3, marginTop: 2 }}>{cfg.sub}</Text>
       </View>
       <ChevronUp size={18} color={c.ink4} strokeWidth={2} />
     </Pressable>

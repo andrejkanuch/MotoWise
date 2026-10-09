@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ONBOARDING_COLORS } from './onboarding-colors';
+import { useOnboardingColors } from './onboarding-colors';
 
 interface OnboardingProgressProps {
   screenIndex: number;
@@ -8,10 +8,11 @@ interface OnboardingProgressProps {
 }
 
 /**
- * Editorial onboarding progress — segmented bar with warm accent.
+ * Onboarding progress — segmented bar; completed segments in ink.
  * Shows current step out of total as filled segments.
  */
 export function OnboardingProgress({ screenIndex, totalScreens }: OnboardingProgressProps) {
+  const oc = useOnboardingColors();
   const insets = useSafeAreaInsets();
   const steps = Array.from({ length: totalScreens }, (_, i) => `step-${i}`);
 
@@ -32,7 +33,7 @@ export function OnboardingProgress({ screenIndex, totalScreens }: OnboardingProg
             height: 3,
             borderRadius: 2,
             borderCurve: 'continuous',
-            backgroundColor: i <= screenIndex ? ONBOARDING_COLORS.warm : ONBOARDING_COLORS.surface2,
+            backgroundColor: i <= screenIndex ? oc.textPrimary : oc.surface3,
           }}
         />
       ))}

@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import { type Href, useRouter } from 'expo-router';
 import { CheckCircle2, ChevronRight, ReceiptText, Undo2, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +6,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { MODAL_ROUTE } from '../../config/routes';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { tint, useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 import { getParkedScans, useParkedScanCount } from './parked-scan-store';
 import { clearReceiptSaveUndo, useLatestReceiptSaveUndo } from './receipt-scan-undo-store';
@@ -67,9 +67,9 @@ export function ReceiptScanRecoveryCard() {
             padding: 14,
             borderRadius: 16,
             borderCurve: 'continuous',
-            backgroundColor: tint(palette.warning500, 0.1),
+            backgroundColor: tint(theme.plateDue, 0.1),
             borderWidth: 1,
-            borderColor: tint(palette.warning500, 0.3),
+            borderColor: tint(theme.plateDue, 0.3),
             transform: [{ scale: pressed ? 0.98 : 1 }],
           })}
         >
@@ -79,18 +79,18 @@ export function ReceiptScanRecoveryCard() {
               height: 40,
               borderRadius: 12,
               borderCurve: 'continuous',
-              backgroundColor: tint(palette.warning500, 0.2),
+              backgroundColor: tint(theme.plateDue, 0.2),
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <ReceiptText size={20} color={palette.warning500} strokeWidth={2} />
+            <ReceiptText size={20} color={theme.dueInk} strokeWidth={2} />
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: theme.ink }} numberOfLines={1}>
+            <Text style={{ ...type.bodyStrong, color: theme.ink }} numberOfLines={1}>
               {t('receiptScan.recovery.reviewTitle', { count: parkedCount })}
             </Text>
-            <Text style={{ fontSize: 12, color: theme.ink3, marginTop: 1 }} numberOfLines={1}>
+            <Text style={{ ...type.caption, color: theme.ink3, marginTop: 1 }} numberOfLines={1}>
               {t('receiptScan.recovery.reviewSubtitle')}
             </Text>
           </View>
@@ -119,9 +119,12 @@ export function ReceiptScanRecoveryCard() {
             borderColor: theme.line,
           }}
         >
-          <CheckCircle2 size={20} color={palette.success500} strokeWidth={2} />
+          <CheckCircle2 size={20} color={theme.success} strokeWidth={2} />
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: theme.ink }} numberOfLines={1}>
+            <Text
+              style={{ ...type.subhead, ...SYSTEM_WEIGHT.semibold, color: theme.ink }}
+              numberOfLines={1}
+            >
               {t('receiptScan.saved.toast', { bike: undoEntry.bikeName })}
             </Text>
           </View>
@@ -143,15 +146,15 @@ export function ReceiptScanRecoveryCard() {
               paddingHorizontal: 12,
               borderRadius: 10,
               borderCurve: 'continuous',
-              backgroundColor: tint(palette.signature500, 0.12),
+              backgroundColor: tint(theme.warm, 0.12),
             }}
           >
             {undoing ? (
-              <ActivityIndicator size="small" color={palette.signature500} />
+              <ActivityIndicator size="small" color={theme.warm} />
             ) : (
-              <Undo2 size={16} color={palette.signature500} strokeWidth={2.5} />
+              <Undo2 size={16} color={theme.warm} strokeWidth={2.5} />
             )}
-            <Text style={{ fontSize: 14, fontWeight: '700', color: palette.signature500 }}>
+            <Text style={{ ...type.subhead, ...SYSTEM_WEIGHT.semibold, color: theme.warm }}>
               {t('receiptScan.saved.undo')}
             </Text>
           </Pressable>

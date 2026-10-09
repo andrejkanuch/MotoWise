@@ -37,6 +37,11 @@ const dark = {
   plateDue: palette.plateSignal,
   plateOverdue: palette.plateRed,
   onPlate: palette.plateOnPlate,
+  /** Ink on copper (`warm`) — dark plate ink in dark mode, white in light (both ≥4.5:1). */
+  onWarm: palette.plateOnPlate,
+  /** Due-soon / overdue as text or dots on the ground (not plate fills). */
+  dueInk: palette.plateSignal,
+  overdueInk: palette.plateRed,
 } as const;
 
 const light: EditorialTokens = {
@@ -61,7 +66,10 @@ const light: EditorialTokens = {
   plateDue: palette.plateSignal,
   plateOverdue: palette.plateRed,
   onPlate: palette.plateOnPlate,
-} as const;
+  onWarm: palette.plateLightG1,
+  dueInk: palette.plateLightSignalInk,
+  overdueInk: palette.plateLightRed,
+};
 
 export type EditorialTokens = { [K in keyof typeof dark]: string };
 

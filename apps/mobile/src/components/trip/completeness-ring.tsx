@@ -5,14 +5,15 @@
  * Renders the percent in the middle and tints the stroke by completeness
  * (accent once the rider has ≥75%, amber in the middle, neutral below that).
  */
-import { palette } from '@motovault/design-system';
 import { Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import { useEditorialTheme } from '../../theme/editorial';
 
 interface CompletenessRingProps {
   percent: number;
   size?: number;
   stroke?: number;
+  /** @deprecated Colours follow the app theme; kept so existing callers compile. */
   dark?: boolean;
   showLabel?: boolean;
 }
@@ -21,7 +22,6 @@ export function CompletenessRing({
   percent,
   size = 30,
   stroke = 3,
-  dark = false,
   showLabel = true,
 }: CompletenessRingProps) {
   const clamped = Math.max(0, Math.min(100, Math.round(percent)));
@@ -29,11 +29,11 @@ export function CompletenessRing({
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - clamped / 100);
 
-  const color =
-    clamped >= 75 ? palette.success500 : clamped >= 50 ? palette.warning500 : palette.neutral400;
+  const { t } = useEditorialTheme();
+  const color = clamped >= 75 ? t.success : clamped >= 50 ? t.dueInk : t.ink4;
 
-  const trackColor = dark ? palette.neutral700 : palette.neutral200;
-  const labelColor = dark ? palette.neutral50 : palette.neutral950;
+  const trackColor = t.line2;
+  const labelColor = t.ink;
 
   return (
     <View

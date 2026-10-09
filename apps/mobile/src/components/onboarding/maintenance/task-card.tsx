@@ -7,29 +7,30 @@ import Animated, { type SharedValue, useAnimatedStyle } from 'react-native-reani
 
 type OemTask = OemSchedulesPreviewQuery['oemSchedulesPreview'][number];
 
+import { radius, space, type } from '../../../theme/type';
 import { convertIntervalDistance, intervalDistanceUnit } from '../../../utils/maintenance-interval';
-import { ONBOARDING_COLORS } from '../onboarding-colors';
+import { useOnboardingColors } from '../onboarding-colors';
 
 const PRIORITY_TONE = {
   critical: {
     labelKey: 'onboarding.v2TaskCardCritical',
-    color: ONBOARDING_COLORS.rejectRed,
-    bg: ONBOARDING_COLORS.rejectBgTint,
+    color: 'rejectRed',
+    bg: 'rejectBgTint',
   },
   high: {
     labelKey: 'onboarding.v2TaskCardCritical',
-    color: ONBOARDING_COLORS.rejectRed,
-    bg: ONBOARDING_COLORS.rejectBgTint,
+    color: 'rejectRed',
+    bg: 'rejectBgTint',
   },
   medium: {
     labelKey: 'onboarding.v2TaskCardRecommended',
-    color: ONBOARDING_COLORS.warm,
-    bg: ONBOARDING_COLORS.accentBg,
+    color: 'textSecondary',
+    bg: 'surface2',
   },
   low: {
     labelKey: 'onboarding.v2TaskCardOptional',
-    color: ONBOARDING_COLORS.accentBlue,
-    bg: ONBOARDING_COLORS.blueBgTint,
+    color: 'textMuted',
+    bg: 'surface2',
   },
 } as const;
 
@@ -84,12 +85,12 @@ function formatIntervalKey(
 
 interface TaskCardProps {
   task: OemTask;
-  brandColor: string;
   dragDirection: SharedValue<'left' | 'right' | null>;
   measurementSystem: MeasurementSystem;
 }
 
-export function TaskCard({ task, brandColor, dragDirection, measurementSystem }: TaskCardProps) {
+export function TaskCard({ task, dragDirection, measurementSystem }: TaskCardProps) {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const tone = PRIORITY_TONE[task.priority as keyof typeof PRIORITY_TONE] ?? PRIORITY_TONE.medium;
   const Icon = getTaskIcon(task.taskName);
@@ -99,10 +100,10 @@ export function TaskCard({ task, brandColor, dragDirection, measurementSystem }:
   const borderStyle = useAnimatedStyle(() => ({
     borderColor:
       dragDirection.value === 'right'
-        ? ONBOARDING_COLORS.acceptGreen
+        ? oc.acceptGreen
         : dragDirection.value === 'left'
-          ? ONBOARDING_COLORS.rejectRed
-          : ONBOARDING_COLORS.borderFaint,
+          ? oc.rejectRed
+          : oc.borderFaint,
   }));
 
   const addStampStyle = useAnimatedStyle(() => ({
@@ -122,13 +123,12 @@ export function TaskCard({ task, brandColor, dragDirection, measurementSystem }:
           left: 0,
           right: 0,
           bottom: 0,
-          borderRadius: 22,
+          borderRadius: radius.plate,
           borderCurve: 'continuous',
           overflow: 'hidden',
-          backgroundColor: ONBOARDING_COLORS.surfaceCard,
+          backgroundColor: oc.surface,
           borderWidth: 1.5,
-          padding: 20,
-          paddingBottom: 18,
+          padding: space.lg,
           justifyContent: 'space-between',
         },
         borderStyle,
@@ -140,125 +140,60 @@ export function TaskCard({ task, brandColor, dragDirection, measurementSystem }:
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: 14,
+          marginBottom: space.md,
         }}
       >
         <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 6,
-            paddingVertical: 4,
-            paddingHorizontal: 9,
-            borderRadius: 999,
-            backgroundColor: tone.bg,
-            borderWidth: 1,
-            borderColor: `${tone.color}40`,
+            gap: space.xs,
+            minHeight: 24,
+            paddingHorizontal: space.xs,
+            borderRadius: radius.pill,
+            backgroundColor: oc[tone.bg],
           }}
         >
-          <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: tone.color }} />
-          <Text
-            style={{
-              fontFamily: 'GeistMono-Medium',
-              fontSize: 9.5,
-              fontWeight: '700',
-              letterSpacing: 1.5,
-              textTransform: 'uppercase',
-              color: tone.color,
-            }}
-          >
-            {t(tone.labelKey)}
-          </Text>
+          <View
+            style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: oc[tone.color] }}
+          />
+          <Text style={[type.label, { color: oc[tone.color] }]}>{t(tone.labelKey)}</Text>
         </View>
-        <Text
-          style={{
-            fontFamily: 'GeistMono-Medium',
-            fontSize: 10,
-            color: ONBOARDING_COLORS.textLabel,
-            letterSpacing: 1,
-          }}
-        >
-          {t('onboarding.v2TaskCardOem')}
-        </Text>
+        <Text style={[type.caption, { color: oc.textMuted }]}>{t('onboarding.v2TaskCardOem')}</Text>
       </View>
 
       {/* Icon */}
       <View
         style={{
-          width: 56,
-          height: 56,
-          borderRadius: 16,
+          width: 52,
+          height: 52,
+          borderRadius: radius.card,
           borderCurve: 'continuous',
-          backgroundColor: brandColor,
+          backgroundColor: oc.surface2,
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: 16,
-          ...(process.env.EXPO_OS === 'ios'
-            ? {
-                shadowColor: brandColor,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.55,
-                shadowRadius: 12,
-              }
-            : {}),
+          marginBottom: space.md,
         }}
       >
-        <Icon size={26} color={ONBOARDING_COLORS.textOnAccent} strokeWidth={1.8} />
+        <Icon size={24} color={oc.textPrimary} strokeWidth={1.8} />
       </View>
 
       {/* Title */}
-      <Text
-        style={{
-          fontFamily: 'InstrumentSerif-Italic',
-          fontSize: 26,
-          lineHeight: 28,
-          letterSpacing: -0.4,
-          color: ONBOARDING_COLORS.textWhite,
-          marginBottom: 12,
-        }}
-      >
+      <Text style={[type.sheetTitle, { color: oc.textPrimary, marginBottom: space.sm }]}>
         {task.taskName}
       </Text>
 
       {/* Interval */}
-      <View style={{ marginBottom: 12 }}>
-        <Text
-          style={{
-            fontFamily: 'GeistMono-Medium',
-            fontSize: 9,
-            fontWeight: '600',
-            letterSpacing: 1.3,
-            textTransform: 'uppercase',
-            color: ONBOARDING_COLORS.textMutedIcon,
-            marginBottom: 4,
-          }}
-        >
+      <View style={{ marginBottom: space.sm, gap: space.xxs }}>
+        <Text style={[type.label, { color: oc.textMuted }]}>
           {t('onboarding.v2TaskCardInterval')}
         </Text>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: '600',
-            color: ONBOARDING_COLORS.textWhite,
-            letterSpacing: -0.1,
-          }}
-        >
-          {interval}
-        </Text>
+        <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>{interval}</Text>
       </View>
 
       {/* Description */}
       {task.description && (
-        <Text
-          style={{
-            fontSize: 12.5,
-            lineHeight: 18,
-            color: ONBOARDING_COLORS.textBody,
-            marginBottom: 10,
-          }}
-        >
-          {task.description}
-        </Text>
+        <Text style={[type.subhead, { color: oc.textSecondary }]}>{task.description}</Text>
       )}
 
       {/* Swipe stamps */}
@@ -268,26 +203,18 @@ export function TaskCard({ task, brandColor, dragDirection, measurementSystem }:
             position: 'absolute',
             top: 60,
             right: 20,
-            paddingVertical: 6,
-            paddingHorizontal: 14,
-            borderRadius: 8,
-            borderWidth: 3,
-            borderColor: ONBOARDING_COLORS.acceptGreen,
-            backgroundColor: ONBOARDING_COLORS.surfaceOverlayDark,
-            transform: [{ rotate: '-12deg' }],
+            paddingVertical: space.xxs,
+            paddingHorizontal: space.sm,
+            borderRadius: radius.chip,
+            borderCurve: 'continuous',
+            borderWidth: 2,
+            borderColor: oc.acceptGreen,
+            backgroundColor: oc.surfaceOverlayDark,
           },
           addStampStyle,
         ]}
       >
-        <Text
-          style={{
-            fontFamily: 'GeistMono-Medium',
-            fontWeight: '800',
-            fontSize: 16,
-            letterSpacing: 2,
-            color: ONBOARDING_COLORS.acceptGreen,
-          }}
-        >
+        <Text style={[type.bodyStrong, { color: oc.acceptGreen }]}>
           {t('onboarding.v2TaskCardAdd')}
         </Text>
       </Animated.View>
@@ -297,26 +224,18 @@ export function TaskCard({ task, brandColor, dragDirection, measurementSystem }:
             position: 'absolute',
             top: 60,
             left: 20,
-            paddingVertical: 6,
-            paddingHorizontal: 14,
-            borderRadius: 8,
-            borderWidth: 3,
-            borderColor: ONBOARDING_COLORS.rejectRed,
-            backgroundColor: ONBOARDING_COLORS.surfaceOverlayDark,
-            transform: [{ rotate: '12deg' }],
+            paddingVertical: space.xxs,
+            paddingHorizontal: space.sm,
+            borderRadius: radius.chip,
+            borderCurve: 'continuous',
+            borderWidth: 2,
+            borderColor: oc.rejectRed,
+            backgroundColor: oc.surfaceOverlayDark,
           },
           skipStampStyle,
         ]}
       >
-        <Text
-          style={{
-            fontFamily: 'GeistMono-Medium',
-            fontWeight: '800',
-            fontSize: 16,
-            letterSpacing: 2,
-            color: ONBOARDING_COLORS.rejectRed,
-          }}
-        >
+        <Text style={[type.bodyStrong, { color: oc.rejectRed }]}>
           {t('onboarding.v2TaskCardSkip')}
         </Text>
       </Animated.View>

@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import { MyMotorcyclesDocument, UnreviewedReceiptScansDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { type Href, router, useLocalSearchParams } from 'expo-router';
@@ -20,6 +19,8 @@ import { EXPENSE_ENTRY_SOURCE } from '../../lib/expense-analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
+import { useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 
 /**
  * Receipt-scan flow modal (U6 + U8 entry wiring). Paywall-before-camera →
@@ -42,6 +43,7 @@ export default function ScanReceiptScreen() {
   }>();
 
   const isOnboarding = params.is_onboarding === 'true';
+  const { t: theme } = useEditorialTheme();
   const surface = toEntrySurface(params.surface);
   const resumeScanId = params.resumeScanId ?? null;
 
@@ -88,7 +90,7 @@ export default function ScanReceiptScreen() {
   if (resumeScanId && !resumeHandoff) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        {!resumeMissing && <ActivityIndicator color={palette.signature500} />}
+        {!resumeMissing && <ActivityIndicator color={theme.ink3} />}
       </View>
     );
   }
@@ -207,9 +209,10 @@ function ScanFlowHost({ initialBikeId, isOnboarding, initialResume, surface }: S
  */
 function ResumeErrorView({ onRetry, onClose }: { onRetry: () => void; onClose: () => void }) {
   const { t } = useTranslation();
+  const { t: theme } = useEditorialTheme();
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 }}>
-      <Text style={{ fontSize: 16, color: palette.neutral400, textAlign: 'center' }}>
+      <Text style={{ ...type.body, color: theme.ink2, textAlign: 'center' }}>
         {t('common.genericError')}
       </Text>
       <Pressable
@@ -221,14 +224,12 @@ function ResumeErrorView({ onRetry, onClose }: { onRetry: () => void; onClose: (
           paddingHorizontal: 28,
           borderRadius: 14,
           borderCurve: 'continuous',
-          backgroundColor: palette.signature500,
+          backgroundColor: theme.warm,
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>
-          {t('common.retry')}
-        </Text>
+        <Text style={{ ...type.bodyStrong, color: theme.onWarm }}>{t('common.retry')}</Text>
       </Pressable>
       <Pressable
         onPress={onClose}
@@ -236,7 +237,7 @@ function ResumeErrorView({ onRetry, onClose }: { onRetry: () => void; onClose: (
         accessibilityLabel={t('common.done')}
         style={{ minHeight: 40, alignItems: 'center', justifyContent: 'center' }}
       >
-        <Text style={{ fontSize: 15, color: palette.neutral400, fontWeight: '600' }}>
+        <Text style={{ ...type.subhead, ...SYSTEM_WEIGHT.semibold, color: theme.ink3 }}>
           {t('common.done')}
         </Text>
       </Pressable>

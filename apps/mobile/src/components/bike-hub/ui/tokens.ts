@@ -2,6 +2,7 @@ import { palette, withAlpha } from '@motovault/design-system';
 import { MaintenancePriority } from '@motovault/graphql';
 import type { ExpenseCategory } from '@motovault/types';
 import type { ParseKeys } from 'i18next';
+import type { TextStyle } from 'react-native';
 import {
   DUE_TONE,
   type DueTone,
@@ -9,13 +10,16 @@ import {
   type RideStatus,
 } from '../../../lib/bike-hub/constants';
 import { TAB_BAR_MIN_INSET } from '../../../stores/tab-bar.store';
+import { useEditorialTheme } from '../../../theme/editorial';
+import { PLATE_FONT, SYSTEM_WEIGHT } from '../../../theme/type';
 
 /**
- * Semantic colours of the bike hub (DESIGN-SPEC.md §2). The hub is dark in both
- * colour schemes until a light design exists. Tinted borders are derived with
- * `withAlpha` so no colour literal lives in the app.
+ * Semantic colours of the bike hub (DESIGN.md → Colour), one set per scheme.
+ * Components read the active set with `useHubTheme()`; tinted borders are
+ * derived with `withAlpha` so no colour literal lives in the app. Every text
+ * token clears 4.5:1 on `card`, `ground` and `raised` in its scheme.
  */
-export const hub = {
+export const hubDark = {
   ground: palette.plateG0,
   card: palette.plateG1,
   raised: palette.plateG2,
@@ -37,6 +41,8 @@ export const hub = {
   ok: palette.hubOk,
   tagCritBg: palette.hubTagCritBg,
   tagHighBg: palette.hubTagHighBg,
+  tagMedBg: palette.hubTagMedBg,
+  tagLowBg: palette.hubTagLowBg,
   hairline: palette.whiteAlpha06,
   hairlineStrong: palette.whiteAlpha08,
   dashed: palette.whiteAlpha18,
@@ -44,28 +50,88 @@ export const hub = {
   chipOnBorder: withAlpha(palette.hubCopperText, 0.5),
   rowCritical: palette.hubRowCritical,
   rowCriticalBorder: withAlpha(palette.hubLate, 0.4),
+  /** Chip laid over a photo, and the text on it. */
   photoChip: withAlpha(palette.plateG0, 0.78),
+  onPhotoChip: palette.plateInk,
   tabBar: withAlpha(palette.plateG0, 0.96),
   ripple: palette.whiteAlpha10,
   shadow: palette.black,
+  /** Plate-state triad (same fills in both schemes) and the ink printed on them. */
+  plateReady: palette.plateBone,
+  plateDue: palette.plateSignal,
+  plateOverdue: palette.plateRed,
+  onPlate: palette.plateOnPlate,
+  onPlateSoft: withAlpha(palette.plateOnPlate, 0.72),
 } as const;
 
+export type HubTheme = { readonly [K in keyof typeof hubDark]: string };
+export type HubColorKey = keyof HubTheme;
+
+export const hubLight: HubTheme = {
+  ground: palette.plateLightG0,
+  card: palette.plateLightG1,
+  raised: palette.plateLightG2,
+  option: palette.plateLightG2,
+  track: palette.plateLightG4,
+  text: palette.plateLightInk,
+  textSoft: palette.plateLightInk,
+  dim: palette.plateLightInk2,
+  muted: palette.plateLightMuted,
+  copper: palette.plateLightCopper,
+  copperText: palette.plateLightCopperText,
+  // Dark ink on light copper is only 3.7:1; white is 5:1.
+  ink: palette.plateLightG1,
+  late: palette.plateLightLate,
+  soon: palette.plateLightSoon,
+  medium: palette.plateLightMedium,
+  low: palette.plateLightMuted,
+  ok: palette.plateLightOk,
+  tagCritBg: palette.plateLightTagCritBg,
+  tagHighBg: palette.plateLightTagHighBg,
+  tagMedBg: palette.plateLightTagMedBg,
+  tagLowBg: palette.plateLightTagLowBg,
+  hairline: palette.plateLineLight,
+  hairlineStrong: withAlpha(palette.plateLightInk, 0.14),
+  dashed: withAlpha(palette.plateLightInk, 0.24),
+  chipOn: withAlpha(palette.plateLightCopper, 0.1),
+  chipOnBorder: withAlpha(palette.plateLightCopper, 0.5),
+  rowCritical: palette.plateLightTagCritBg,
+  rowCriticalBorder: withAlpha(palette.plateLightLate, 0.35),
+  photoChip: withAlpha(palette.plateG0, 0.78),
+  onPhotoChip: palette.plateInk,
+  tabBar: withAlpha(palette.plateLightG0, 0.96),
+  ripple: withAlpha(palette.plateLightInk, 0.08),
+  shadow: palette.black,
+  plateReady: palette.plateBone,
+  plateDue: palette.plateSignal,
+  plateOverdue: palette.plateRed,
+  onPlate: palette.plateOnPlate,
+  onPlateSoft: withAlpha(palette.plateOnPlate, 0.72),
+};
+
+/** The hub colours for the active colour scheme. */
+export function useHubTheme(): HubTheme {
+  const { isDark } = useEditorialTheme();
+  return isDark ? hubDark : hubLight;
+}
+
 /**
- * Hub-only font families (lead decision D6). Geist Mono and Plus Jakarta Sans
- * are registered under these keys in `app/_layout.tsx`; the names the rest of
- * the app already uses (`GeistMono*`, `PlusJakartaSans*`) stay unregistered so
- * no other screen changes appearance. One family per weight — do not combine
- * with `fontWeight`.
+ * Hub type (Race Plate, DESIGN.md → Typography). Words use the platform's own
+ * face via `SYSTEM_WEIGHT` (never a `fontFamily`, so Dynamic Type and the OS
+ * face apply); numbers — odometers, amounts, counts, dates — use the condensed
+ * plate figures with tabular digits. Spread into a style: `{ ...HUB_FIGURE, fontSize: 15 }`.
  */
-export const HUB_FONT = {
-  serif: 'InstrumentSerif-Regular',
-  mono: 'HubMono-Regular',
-  monoMedium: 'HubMono-Medium',
-  sans: 'HubSans-Regular',
-  sansMedium: 'HubSans-Medium',
-  sansSemiBold: 'HubSans-SemiBold',
-  sansBold: 'HubSans-Bold',
-} as const;
+export { SYSTEM_WEIGHT };
+
+export const HUB_FIGURE = {
+  fontFamily: PLATE_FONT.medium,
+  fontVariant: ['tabular-nums'],
+} as const satisfies TextStyle;
+
+export const HUB_FIGURE_STRONG = {
+  fontFamily: PLATE_FONT.semibold,
+  fontVariant: ['tabular-nums'],
+} as const satisfies TextStyle;
 
 export const HUB_RADIUS = {
   card: 16,
@@ -135,95 +201,85 @@ export type HubCopyKey = ParseKeys;
 
 export interface TagStyle {
   labelKey: HubCopyKey;
-  bg: string;
-  fg: string;
+  /** Keys into the active `HubTheme`: `hub[tag.bg]`, `hub[tag.fg]`. */
+  bg: HubColorKey;
+  fg: HubColorKey;
 }
 
 /** Priority → tag. Priority is always the tag; lateness is always the due line. */
 export const PRIORITY_TAG: Record<MaintenancePriority, TagStyle> = {
-  [MaintenancePriority.Critical]: {
-    labelKey: 'bikeHub.tag.critical',
-    bg: palette.hubTagCritBg,
-    fg: palette.hubLate,
-  },
-  [MaintenancePriority.High]: {
-    labelKey: 'bikeHub.tag.high',
-    bg: palette.hubTagHighBg,
-    fg: palette.hubSoon,
-  },
-  [MaintenancePriority.Medium]: {
-    labelKey: 'bikeHub.tag.medium',
-    bg: palette.hubTagMedBg,
-    fg: palette.hubMedium,
-  },
-  [MaintenancePriority.Low]: {
-    labelKey: 'bikeHub.tag.low',
-    bg: palette.hubTagLowBg,
-    fg: palette.hubLow,
-  },
+  [MaintenancePriority.Critical]: { labelKey: 'bikeHub.tag.critical', bg: 'tagCritBg', fg: 'late' },
+  [MaintenancePriority.High]: { labelKey: 'bikeHub.tag.high', bg: 'tagHighBg', fg: 'soon' },
+  [MaintenancePriority.Medium]: { labelKey: 'bikeHub.tag.medium', bg: 'tagMedBg', fg: 'medium' },
+  [MaintenancePriority.Low]: { labelKey: 'bikeHub.tag.low', bg: 'tagLowBg', fg: 'low' },
 };
+
+interface TagTone {
+  bg: HubColorKey;
+  fg: HubColorKey;
+}
+
+const TONE_HIGH: TagTone = { bg: 'tagHighBg', fg: 'soon' };
+const TONE_CRIT: TagTone = { bg: 'tagCritBg', fg: 'late' };
 
 /** Non-priority tags on attention rows. `critical` picks the CRIT fill for a severe recall. */
 export const VARIANT_TAG: Record<
   TagVariant,
   { labelKey: HubCopyKey; normal: TagTone; critical: TagTone }
 > = {
-  [TAG_VARIANT.SAFETY]: {
-    labelKey: 'bikeHub.tag.safety',
-    normal: { bg: palette.hubTagHighBg, fg: palette.hubSoon },
-    critical: { bg: palette.hubTagCritBg, fg: palette.hubLate },
-  },
-  [TAG_VARIANT.DOC]: {
-    labelKey: 'bikeHub.tag.doc',
-    normal: { bg: palette.hubTagHighBg, fg: palette.hubSoon },
-    critical: { bg: palette.hubTagCritBg, fg: palette.hubLate },
-  },
+  [TAG_VARIANT.SAFETY]: { labelKey: 'bikeHub.tag.safety', normal: TONE_HIGH, critical: TONE_CRIT },
+  [TAG_VARIANT.DOC]: { labelKey: 'bikeHub.tag.doc', normal: TONE_HIGH, critical: TONE_CRIT },
 };
 
-interface TagTone {
-  bg: string;
-  fg: string;
-}
-
+/**
+ * Ride status → plate state (Race Plate triad): red plate = not ready, signal
+ * yellow = check before riding, bone = ready. The plate colour IS the verdict;
+ * the words on it carry the meaning, so no dot or tint repeats it. "Nothing
+ * tracked yet" gives no verdict and stays a plain card. Values are `HubTheme` keys.
+ */
 export interface RideStatusStyle {
   titleKey: HubCopyKey;
-  card: string;
-  border: string;
-  dot: string;
+  card: HubColorKey;
+  border: HubColorKey;
+  ink: HubColorKey;
+  inkSoft: HubColorKey;
 }
+
+const PLATE_INK = { ink: 'onPlate', inkSoft: 'onPlateSoft' } as const;
 
 export const RIDE_STATUS_STYLE: Record<RideStatus, RideStatusStyle> = {
   [RIDE_STATUS.NOT_READY]: {
     titleKey: 'bikeHub.rideStatus.notReady',
-    card: palette.hubCardNotReady,
-    border: withAlpha(palette.hubLate, 0.35),
-    dot: palette.hubNotReadyDot,
+    card: 'plateOverdue',
+    border: 'plateOverdue',
+    ...PLATE_INK,
   },
   [RIDE_STATUS.CHECK]: {
     titleKey: 'bikeHub.rideStatus.check',
-    card: palette.hubCardCheck,
-    border: withAlpha(palette.hubSoon, 0.35),
-    dot: palette.hubSoon,
+    card: 'plateDue',
+    border: 'plateDue',
+    ...PLATE_INK,
   },
   [RIDE_STATUS.READY]: {
     titleKey: 'bikeHub.rideStatus.ready',
-    card: palette.hubCardReady,
-    border: withAlpha(palette.hubOk, 0.3),
-    dot: palette.hubOk,
+    card: 'plateReady',
+    border: 'hairlineStrong',
+    ...PLATE_INK,
   },
   [RIDE_STATUS.UNTRACKED]: {
     titleKey: 'bikeHub.rideStatus.untracked',
-    card: palette.plateG1,
-    border: palette.whiteAlpha06,
-    dot: palette.hubMuted,
+    card: 'card',
+    border: 'hairline',
+    ink: 'text',
+    inkSoft: 'dim',
   },
 };
 
-/** Due-line tone → colour of the leading part. */
-export const DUE_TONE_COLOR: Record<DueTone, string> = {
-  [DUE_TONE.LATE]: palette.hubLate,
-  [DUE_TONE.SOON]: palette.hubSoon,
-  [DUE_TONE.PLAIN]: palette.hubDim,
+/** Due-line tone → the `HubTheme` key colouring its leading part. */
+export const DUE_TONE_COLOR: Record<DueTone, HubColorKey> = {
+  [DUE_TONE.LATE]: 'late',
+  [DUE_TONE.SOON]: 'soon',
+  [DUE_TONE.PLAIN]: 'dim',
 };
 
 /**
@@ -249,9 +305,31 @@ export const HUB_CATEGORY_COLOR: Record<ExpenseCategory, string> = {
   other: palette.hubCatOther,
 };
 
-/** A category's hub colour; a key retired from the category table reads as "Other". */
-export function hubCategoryColor(category: string): string {
-  return (HUB_CATEGORY_COLOR as Record<string, string>)[category] ?? palette.hubCatOther;
+export const HUB_CATEGORY_COLOR_LIGHT: Record<ExpenseCategory, string> = {
+  fuel: palette.plateLightCatFuel,
+  maintenance: palette.plateLightCatService,
+  parts: palette.plateLightCatParts,
+  tires: palette.plateLightCatTires,
+  gear: palette.plateLightCatGear,
+  accessories: palette.plateLightCatAccessories,
+  modifications: palette.plateLightCatMods,
+  insurance: palette.plateLightCatInsurance,
+  registration: palette.plateLightCatRegistration,
+  taxes_fees: palette.plateLightCatTaxes,
+  tolls: palette.plateLightCatTolls,
+  parking: palette.plateLightCatParking,
+  training: palette.plateLightCatTraining,
+  other: palette.plateLightCatOther,
+};
+
+/**
+ * A category's hub colour in the given scheme's set (dark by default); a key
+ * retired from the category table reads as "Other".
+ */
+export function hubCategoryColor(category: string, theme: HubTheme = hubDark): string {
+  const table: Record<string, string> =
+    theme === hubLight ? HUB_CATEGORY_COLOR_LIGHT : HUB_CATEGORY_COLOR;
+  return table[category] ?? table.other;
 }
 
 /**

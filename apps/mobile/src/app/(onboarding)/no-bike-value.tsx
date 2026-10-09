@@ -1,12 +1,12 @@
 import { useRouter } from 'expo-router';
-import { Bike, type LucideIcon, MapIcon, Receipt, Route, Wrench } from 'lucide-react-native';
+import { type LucideIcon, MapIcon, Receipt, Route, Wrench } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingBackButton } from '../../components/onboarding/onboarding-back-button';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
@@ -15,6 +15,7 @@ import { useOnboardingNext, useOnboardingStep } from '../../hooks/use-onboarding
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { radius, space, type } from '../../theme/type';
 
 /**
  * No-bike value screen (P2.3 / T4b). Riders who skip bike-setup would otherwise
@@ -30,7 +31,6 @@ import { useOnboardingStore } from '../../stores/onboarding.store';
 
 interface ValuePillar {
   readonly icon: LucideIcon;
-  readonly color: string;
   readonly titleKey: string;
   readonly bodyKey: string;
 }
@@ -38,31 +38,28 @@ interface ValuePillar {
 const VALUE_PILLARS: readonly ValuePillar[] = [
   {
     icon: Route,
-    color: ONBOARDING_COLORS.accentBlue,
     titleKey: 'onboarding.obNoBikeRidesTitle',
     bodyKey: 'onboarding.obNoBikeRidesBody',
   },
   {
     icon: Receipt,
-    color: ONBOARDING_COLORS.warm2,
     titleKey: 'onboarding.obNoBikeExpensesTitle',
     bodyKey: 'onboarding.obNoBikeExpensesBody',
   },
   {
     icon: Wrench,
-    color: ONBOARDING_COLORS.success,
     titleKey: 'onboarding.obNoBikeServiceTitle',
     bodyKey: 'onboarding.obNoBikeServiceBody',
   },
   {
     icon: MapIcon,
-    color: ONBOARDING_COLORS.teal,
     titleKey: 'onboarding.obNoBikeRoutesTitle',
     bodyKey: 'onboarding.obNoBikeRoutesBody',
   },
 ] as const;
 
 export default function NoBikeValueScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -93,81 +90,46 @@ export default function NoBikeValueScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       <OnboardingBackButton
         onPress={onBack}
-        style={{ position: 'absolute', top: insets.top + 44, left: 16, zIndex: 10 }}
+        style={{ position: 'absolute', top: insets.top + 40, left: space.md, zIndex: 10 }}
       />
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 72, paddingBottom: 160 }}
+        contentContainerStyle={{
+          paddingHorizontal: space.lg,
+          paddingTop: 72 + space.md,
+          paddingBottom: 160,
+        }}
         showsVerticalScrollIndicator={false}
       >
-        {/* eyebrow */}
-        <Animated.View
-          entering={FadeInUp.duration(280)}
-          style={{
-            alignSelf: 'flex-start',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            paddingVertical: 5,
-            paddingHorizontal: 11,
-            borderRadius: 999,
-            borderCurve: 'continuous',
-            backgroundColor: ONBOARDING_COLORS.accentBg,
-            borderWidth: 1,
-            borderColor: ONBOARDING_COLORS.warm,
-            marginBottom: 14,
-          }}
-        >
-          <Bike size={13} color={ONBOARDING_COLORS.warm2} />
-          <Text
-            style={{
-              fontFamily: 'GeistMono-Medium',
-              fontSize: 10,
-              letterSpacing: 1.6,
-              textTransform: 'uppercase',
-              color: ONBOARDING_COLORS.warm2,
-            }}
-          >
-            {t('onboarding.obNoBikeEyebrow')}
-          </Text>
-        </Animated.View>
-
         <Animated.Text
-          entering={FadeInUp.delay(70).duration(280)}
-          style={{
-            fontFamily: 'InstrumentSerif-Regular',
-            fontSize: 34,
-            lineHeight: 37,
-            color: ONBOARDING_COLORS.textPrimary,
-            letterSpacing: -0.7,
-            marginBottom: 12,
-          }}
+          entering={FadeInUp.duration(280)}
+          accessibilityRole="header"
+          style={[type.largeTitle, { color: oc.textPrimary, marginBottom: space.sm }]}
         >
-          {t('onboarding.obNoBikeTitle')}{' '}
-          <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
-            {t('onboarding.obNoBikeTitleAccent')}
-          </Text>
+          {t('onboarding.obNoBikeTitleFull')}
         </Animated.Text>
 
         <Animated.Text
-          entering={FadeInUp.delay(130).duration(280)}
-          style={{
-            fontSize: 14.5,
-            color: ONBOARDING_COLORS.textSecondary,
-            lineHeight: 21,
-            marginBottom: 22,
-          }}
+          entering={FadeInUp.delay(60).duration(280)}
+          style={[type.body, { color: oc.textSecondary, marginBottom: space.xl }]}
         >
           {t('onboarding.obNoBikeSubtitle')}
         </Animated.Text>
 
-        <View style={{ gap: 12 }}>
+        <View
+          style={{
+            borderRadius: radius.card,
+            borderCurve: 'continuous',
+            backgroundColor: oc.surface,
+            overflow: 'hidden',
+          }}
+        >
           {VALUE_PILLARS.map((pillar, index) => {
             const Icon = pillar.icon;
             return (
@@ -177,47 +139,30 @@ export default function NoBikeValueScreen() {
                 style={{
                   flexDirection: 'row',
                   alignItems: 'flex-start',
-                  gap: 13,
-                  borderRadius: 18,
-                  borderCurve: 'continuous',
-                  padding: 15,
-                  backgroundColor: ONBOARDING_COLORS.cardBg,
-                  borderWidth: 1,
-                  borderColor: ONBOARDING_COLORS.cardBorderDefault,
+                  gap: space.sm,
+                  padding: space.md,
+                  borderTopWidth: index === 0 ? 0 : 1,
+                  borderTopColor: oc.line,
                 }}
               >
                 <View
                   style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 12,
+                    width: 36,
+                    height: 36,
+                    borderRadius: radius.control,
                     borderCurve: 'continuous',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: `${pillar.color}26`,
+                    backgroundColor: oc.surface2,
                   }}
                 >
-                  <Icon size={19} color={pillar.color} />
+                  <Icon size={18} color={oc.textSecondary} />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: '700',
-                      color: ONBOARDING_COLORS.textPrimary,
-                      lineHeight: 20,
-                    }}
-                  >
+                <View style={{ flex: 1, gap: space.xxs }}>
+                  <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
                     {t(pillar.titleKey as never)}
                   </Text>
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      color: ONBOARDING_COLORS.textSecondary,
-                      lineHeight: 18,
-                      marginTop: 3,
-                    }}
-                  >
+                  <Text style={[type.subhead, { color: oc.textSecondary }]}>
                     {t(pillar.bodyKey as never)}
                   </Text>
                 </View>
@@ -233,10 +178,10 @@ export default function NoBikeValueScreen() {
           left: 0,
           right: 0,
           bottom: 0,
-          paddingHorizontal: 22,
-          paddingTop: 12,
-          paddingBottom: insets.bottom + 16,
-          backgroundColor: ONBOARDING_COLORS.background,
+          paddingHorizontal: space.lg,
+          paddingTop: space.sm,
+          paddingBottom: insets.bottom + space.md,
+          backgroundColor: oc.background,
         }}
       >
         <OnboardingContinueButton label={t('onboarding.continue')} onPress={handleContinue} />
@@ -245,9 +190,14 @@ export default function NoBikeValueScreen() {
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={t('onboarding.obNoBikeAddBike')}
-          style={{ marginTop: 12, alignSelf: 'center' }}
+          style={{
+            marginTop: space.xxs,
+            minHeight: 44,
+            justifyContent: 'center',
+            alignSelf: 'center',
+          }}
         >
-          <Text style={{ fontSize: 13.5, color: ONBOARDING_COLORS.textMuted }}>
+          <Text style={[type.bodyStrong, { color: oc.warm2 }]}>
             {t('onboarding.obNoBikeAddBike')}
           </Text>
         </Pressable>

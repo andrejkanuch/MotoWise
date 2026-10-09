@@ -6,12 +6,13 @@
  * suggestions happens via the MapPicker flow the organiser already uses —
  * we piggy-back on that instead of duplicating an input here.
  */
-import { palette } from '@motovault/design-system';
 import { Check, CheckCircle2, Clock, X, XCircle } from 'lucide-react-native';
 import { useMemo } from 'react';
-import { ActivityIndicator, Pressable, Text, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import type { TripSuggestion } from '../../hooks/use-trip-suggestions';
+import { tint as tintColor, useEditorialTheme } from '../../theme/editorial';
+import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
 
 interface SuggestionsSectionProps {
   suggestions: TripSuggestion[];
@@ -46,13 +47,13 @@ export function SuggestionsSection({
   onRespond,
   respondingIds,
 }: SuggestionsSectionProps) {
-  const isDark = useColorScheme() === 'dark';
+  const { t } = useEditorialTheme();
 
-  const sectionBg = isDark ? palette.cardDark : palette.white;
-  const borderColor = isDark ? palette.neutral700 : palette.neutral200;
-  const headingColor = isDark ? palette.neutral50 : palette.neutral950;
-  const bodyColor = isDark ? palette.neutral300 : palette.neutral600;
-  const metaColor = isDark ? palette.neutral400 : palette.neutral500;
+  const sectionBg = t.surface;
+  const borderColor = t.line;
+  const headingColor = t.ink;
+  const bodyColor = t.ink2;
+  const metaColor = t.ink3;
 
   // Surface open ones first, then most recently decided.
   const ordered = useMemo(() => {
@@ -70,18 +71,9 @@ export function SuggestionsSection({
   return (
     <View style={{ marginTop: 20, gap: 10 }}>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-        <Text
-          style={{
-            color: headingColor,
-            fontSize: 17,
-            fontWeight: '800',
-            letterSpacing: -0.2,
-          }}
-        >
-          Suggestions
-        </Text>
+        <Text style={[type.sectionTitle, { color: headingColor }]}>Suggestions</Text>
         {pendingCount > 0 && (
-          <Text style={{ color: palette.warning500, fontSize: 13, fontWeight: '700' }}>
+          <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: t.plateDue }]}>
             {pendingCount} pending
           </Text>
         )}
@@ -89,7 +81,7 @@ export function SuggestionsSection({
 
       {isLoading && suggestions.length === 0 ? (
         <View style={{ paddingVertical: 14 }}>
-          <ActivityIndicator color={palette.accent500} />
+          <ActivityIndicator color={t.ink3} />
         </View>
       ) : (
         <View style={{ gap: 10 }}>
@@ -101,12 +93,12 @@ export function SuggestionsSection({
 
             const statusTint =
               s.status === 'accepted'
-                ? palette.success500
+                ? t.success
                 : s.status === 'rejected'
-                  ? palette.danger500
+                  ? t.danger
                   : s.status === 'withdrawn'
-                    ? palette.neutral400
-                    : palette.warning500;
+                    ? t.ink3
+                    : t.plateDue;
             const StatusIcon =
               s.status === 'accepted' ? CheckCircle2 : s.status === 'rejected' ? XCircle : Clock;
 
@@ -115,7 +107,7 @@ export function SuggestionsSection({
                 key={s.id}
                 entering={FadeInUp.delay(idx * 40).duration(220)}
                 style={{
-                  borderRadius: 14,
+                  borderRadius: radius.card,
                   borderCurve: 'continuous',
                   borderWidth: 1,
                   borderColor,
@@ -127,35 +119,26 @@ export function SuggestionsSection({
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <StatusIcon size={14} color={statusTint} />
                   <Text
-                    style={{
-                      color: statusTint,
-                      fontSize: 11,
-                      fontWeight: '800',
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.4,
-                    }}
+                    style={[
+                      type.caption,
+                      SYSTEM_WEIGHT.semibold,
+                      { color: statusTint, textTransform: 'capitalize' },
+                    ]}
                   >
                     {s.status}
                   </Text>
                   <View style={{ flex: 1 }} />
-                  <Text style={{ color: metaColor, fontSize: 12 }}>
+                  <Text style={[type.caption, { color: metaColor }]}>
                     {formatRelative(s.createdAt)}
                   </Text>
                 </View>
-                <Text
-                  style={{
-                    color: headingColor,
-                    fontSize: 15,
-                    fontWeight: '700',
-                  }}
-                  numberOfLines={2}
-                >
+                <Text style={[type.bodyStrong, { color: headingColor }]} numberOfLines={2}>
                   {s.name}
                 </Text>
                 {s.notes ? (
-                  <Text style={{ color: bodyColor, fontSize: 13, lineHeight: 18 }}>{s.notes}</Text>
+                  <Text style={[type.subhead, { color: bodyColor }]}>{s.notes}</Text>
                 ) : null}
-                <Text style={{ color: metaColor, fontSize: 12 }}>
+                <Text style={[type.caption, { color: metaColor }]}>
                   Suggested by {s.author.displayName}
                   {typeof s.dayIndex === 'number' ? ` · Day ${s.dayIndex + 1}` : ''}
                   {s.periodOfDay ? ` · ${s.periodOfDay}` : ''}
@@ -167,7 +150,7 @@ export function SuggestionsSection({
                       <>
                         <ActionButton
                           label="Accept"
-                          tint={palette.success500}
+                          tint={t.success}
                           Icon={Check}
                           disabled={rowResponding}
                           onPress={() =>
@@ -179,7 +162,7 @@ export function SuggestionsSection({
                         />
                         <ActionButton
                           label="Reject"
-                          tint={palette.danger500}
+                          tint={t.danger}
                           Icon={X}
                           disabled={rowResponding}
                           onPress={() =>
@@ -194,7 +177,7 @@ export function SuggestionsSection({
                     {isAuthor && (
                       <ActionButton
                         label="Withdraw"
-                        tint={palette.neutral500}
+                        tint={t.ink3}
                         Icon={X}
                         disabled={rowResponding}
                         onPress={() =>
@@ -209,15 +192,7 @@ export function SuggestionsSection({
                 )}
 
                 {decided && s.decidedNote ? (
-                  <Text
-                    style={{
-                      color: metaColor,
-                      fontSize: 12,
-                      fontStyle: 'italic',
-                    }}
-                  >
-                    Note: {s.decidedNote}
-                  </Text>
+                  <Text style={[type.caption, { color: metaColor }]}>Note: {s.decidedNote}</Text>
                 ) : null}
               </Animated.View>
             );
@@ -247,15 +222,15 @@ function ActionButton({ label, tint, Icon, onPress, disabled }: ActionButtonProp
         flexDirection: 'row',
         alignItems: 'center',
         gap: 6,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
+        minHeight: 44,
+        paddingHorizontal: space.sm,
         borderRadius: 999,
-        backgroundColor: `${tint}22`,
+        backgroundColor: tintColor(tint, 0.14),
         opacity: disabled ? 0.5 : 1,
       }}
     >
       <Icon size={14} color={tint} />
-      <Text style={{ color: tint, fontSize: 13, fontWeight: '700' }}>{label}</Text>
+      <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: tint }]}>{label}</Text>
     </Pressable>
   );
 }

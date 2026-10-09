@@ -2,7 +2,7 @@ import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import { ErrorFallback } from '../../components/error-fallback';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { captureException } from '../../lib/analytics';
 import { resolveOnboardingVariant } from '../../lib/onboarding-experiment';
 import { useExperimentStore } from '../../stores/experiment.store';
@@ -13,6 +13,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 export default function OnboardingLayout() {
+  const oc = useOnboardingColors();
   // A/B assignment gate — the variant must be resolved BEFORE any onboarding
   // screen renders (it drives flow order, progress, and analytics). Resolution
   // is instant on later launches (persisted) and capped at ~2s on first launch
@@ -25,14 +26,14 @@ export default function OnboardingLayout() {
   }, []);
 
   if (!variant) {
-    return <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }} />;
+    return <View style={{ flex: 1, backgroundColor: oc.background }} />;
   }
 
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: ONBOARDING_COLORS.background },
+        contentStyle: { backgroundColor: oc.background },
         animation: 'ios_from_right',
         animationDuration: 350,
       }}

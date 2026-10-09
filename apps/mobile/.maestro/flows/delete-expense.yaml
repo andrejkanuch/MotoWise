@@ -50,20 +50,20 @@ env:
       text: "No expenses yet(,.*)?" # expenses.empty
     direction: DOWN
 - tapOn: "No expenses yet(,.*)?"
-- assertVisible: "AMOUNT" # single-element label confirms the Add Expense screen
+- assertVisible: "Amount" # single-element label confirms the Add Expense screen
 - inputText: "42.50" # amount field autoFocused
 - tapOn:
-    text: "CATEGORY" # non-interactive label — dismisses the custom amount keypad first
+    text: "Category" # non-interactive label — dismisses the custom amount keypad first
     optional: true
 - scrollUntilVisible:
     element:
-      text: "DETAILS"
+      text: "Details"
     direction: DOWN
 - tapOn:
     text: ".*What was this expense for.*" # DETAILS placeholder (wildcarded — literal "?" is a regex metachar)
 - inputText: ${EXPENSE_LABEL}
 - tapOn:
-    text: "DETAILS" # non-interactive label — dismisses the custom keyboard (hideKeyboard is unsupported)
+    text: "Details" # non-interactive label — dismisses the custom keyboard (hideKeyboard is unsupported)
     optional: true
 - scrollUntilVisible:
     element:

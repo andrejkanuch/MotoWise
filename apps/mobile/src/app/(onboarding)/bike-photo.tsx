@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,12 +16,13 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { logger } from '../../lib/logger';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { type } from '../../theme/type';
 
 /** Crop to 4:3 center and compress */
 async function cropAndCompress(uri: string): Promise<string> {
@@ -67,6 +67,7 @@ async function cropAndCompress(uri: string): Promise<string> {
 }
 
 export default function BikePhotoScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const router = useRouter();
   const bikeData = useOnboardingStore((s) => s.bikeData);
@@ -167,7 +168,7 @@ export default function BikePhotoScreen() {
   const displayName = nickname.trim() || bikeLabel;
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={6} totalScreens={TOTAL_SCREENS} />
 
       <KeyboardAvoidingView
@@ -183,13 +184,7 @@ export default function BikePhotoScreen() {
         >
           <Animated.Text
             entering={FadeInDown.duration(300)}
-            style={{
-              fontSize: 28,
-              fontWeight: '800',
-              color: ONBOARDING_COLORS.textPrimary,
-              letterSpacing: -0.5,
-              marginBottom: 32,
-            }}
+            style={[type.largeTitle, { color: oc.textPrimary, marginBottom: 32 }]}
           >
             {t('onboarding.bikePhotoTitle')}
           </Animated.Text>
@@ -204,16 +199,8 @@ export default function BikePhotoScreen() {
                 marginBottom: 10,
               }}
             >
-              <Tag size={18} color={ONBOARDING_COLORS.textMuted} />
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  color: ONBOARDING_COLORS.textMuted,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}
-              >
+              <Tag size={18} color={oc.textMuted} />
+              <Text style={[type.label, { color: oc.textMuted }]}>
                 {t('onboarding.nicknamePlaceholder')}
               </Text>
             </View>
@@ -221,16 +208,16 @@ export default function BikePhotoScreen() {
               value={nickname}
               onChangeText={setNickname}
               placeholder={t('onboarding.nicknamePlaceholder')}
-              placeholderTextColor={ONBOARDING_COLORS.textDimmed}
+              placeholderTextColor={oc.textDimmed}
               style={{
-                backgroundColor: ONBOARDING_COLORS.cardBg,
+                backgroundColor: oc.cardBg,
                 borderWidth: 1,
-                borderColor: ONBOARDING_COLORS.cardBorder,
+                borderColor: oc.cardBorder,
                 borderRadius: 16,
                 borderCurve: 'continuous',
                 padding: 16,
                 fontSize: 17,
-                color: ONBOARDING_COLORS.textPrimary,
+                color: oc.textPrimary,
                 marginBottom: 32,
               }}
             />
@@ -242,7 +229,7 @@ export default function BikePhotoScreen() {
               style={{
                 fontSize: 17,
                 fontWeight: '700',
-                color: ONBOARDING_COLORS.textPrimary,
+                color: oc.textPrimary,
                 marginBottom: 16,
               }}
             >
@@ -274,14 +261,14 @@ export default function BikePhotoScreen() {
                       right: 0,
                       paddingHorizontal: 16,
                       paddingVertical: 12,
-                      backgroundColor: 'rgba(0,0,0,0.55)',
+                      backgroundColor: oc.surfaceOverlayDark,
                     }}
                   >
                     <Text
                       style={{
                         fontSize: 17,
                         fontWeight: '700',
-                        color: ONBOARDING_COLORS.textPrimary,
+                        color: oc.textPrimary,
                       }}
                       numberOfLines={1}
                     >
@@ -291,7 +278,7 @@ export default function BikePhotoScreen() {
                       <Text
                         style={{
                           fontSize: 14,
-                          color: ONBOARDING_COLORS.textSecondary,
+                          color: oc.textSecondary,
                           marginTop: 2,
                         }}
                         numberOfLines={1}
@@ -307,7 +294,7 @@ export default function BikePhotoScreen() {
                     onPress={handleContinue}
                     style={({ pressed }) => ({
                       flex: 1,
-                      backgroundColor: ONBOARDING_COLORS.textPrimary,
+                      backgroundColor: oc.textPrimary,
                       borderRadius: 16,
                       borderCurve: 'continuous',
                       paddingVertical: 14,
@@ -322,7 +309,7 @@ export default function BikePhotoScreen() {
                       style={{
                         fontSize: 16,
                         fontWeight: '700',
-                        color: ONBOARDING_COLORS.background,
+                        color: oc.background,
                       }}
                     >
                       {t('onboarding.looksGreat')}
@@ -332,7 +319,7 @@ export default function BikePhotoScreen() {
                   <Pressable
                     onPress={handleRetake}
                     style={({ pressed }) => ({
-                      backgroundColor: ONBOARDING_COLORS.cardBorderDefault,
+                      backgroundColor: oc.cardBorderDefault,
                       borderRadius: 16,
                       borderCurve: 'continuous',
                       paddingVertical: 14,
@@ -344,12 +331,12 @@ export default function BikePhotoScreen() {
                       gap: 6,
                     })}
                   >
-                    <X size={18} color={ONBOARDING_COLORS.textSecondary} />
+                    <X size={18} color={oc.textSecondary} />
                     <Text
                       style={{
                         fontSize: 16,
                         fontWeight: '600',
-                        color: ONBOARDING_COLORS.textSecondary,
+                        color: oc.textSecondary,
                       }}
                     >
                       {t('onboarding.retakePhoto')}
@@ -363,9 +350,9 @@ export default function BikePhotoScreen() {
                 <Pressable
                   onPress={handleTakePhoto}
                   style={({ pressed }) => ({
-                    backgroundColor: ONBOARDING_COLORS.cardBg,
+                    backgroundColor: oc.cardBg,
                     borderWidth: 1,
-                    borderColor: ONBOARDING_COLORS.cardBorder,
+                    borderColor: oc.cardBorder,
                     borderRadius: 16,
                     borderCurve: 'continuous',
                     paddingVertical: 18,
@@ -382,18 +369,18 @@ export default function BikePhotoScreen() {
                       height: 44,
                       borderRadius: 22,
                       borderCurve: 'continuous',
-                      backgroundColor: ONBOARDING_COLORS.accentBg,
+                      backgroundColor: oc.accentBg,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Camera size={22} color={ONBOARDING_COLORS.accent} />
+                    <Camera size={22} color={oc.accent} />
                   </View>
                   <Text
                     style={{
                       fontSize: 17,
                       fontWeight: '600',
-                      color: ONBOARDING_COLORS.textPrimary,
+                      color: oc.textPrimary,
                     }}
                   >
                     {t('onboarding.takePhoto')}
@@ -403,9 +390,9 @@ export default function BikePhotoScreen() {
                 <Pressable
                   onPress={handleChooseFromLibrary}
                   style={({ pressed }) => ({
-                    backgroundColor: ONBOARDING_COLORS.cardBg,
+                    backgroundColor: oc.cardBg,
                     borderWidth: 1,
-                    borderColor: ONBOARDING_COLORS.cardBorder,
+                    borderColor: oc.cardBorder,
                     borderRadius: 16,
                     borderCurve: 'continuous',
                     paddingVertical: 18,
@@ -422,18 +409,18 @@ export default function BikePhotoScreen() {
                       height: 44,
                       borderRadius: 22,
                       borderCurve: 'continuous',
-                      backgroundColor: `${palette.moduleSuspension}26`,
+                      backgroundColor: oc.surface2,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <ImageIcon size={22} color={ONBOARDING_COLORS.accent} />
+                    <ImageIcon size={22} color={oc.accent} />
                   </View>
                   <Text
                     style={{
                       fontSize: 17,
                       fontWeight: '600',
-                      color: ONBOARDING_COLORS.textPrimary,
+                      color: oc.textPrimary,
                     }}
                   >
                     {t('onboarding.chooseFromLibrary')}
@@ -450,7 +437,7 @@ export default function BikePhotoScreen() {
             <Pressable
               onPress={handleContinue}
               style={({ pressed }) => ({
-                backgroundColor: ONBOARDING_COLORS.textPrimary,
+                backgroundColor: oc.textPrimary,
                 borderRadius: 16,
                 borderCurve: 'continuous',
                 paddingVertical: 16,
@@ -465,12 +452,12 @@ export default function BikePhotoScreen() {
                 style={{
                   fontSize: 17,
                   fontWeight: '700',
-                  color: ONBOARDING_COLORS.background,
+                  color: oc.background,
                 }}
               >
                 {t('onboarding.continue')}
               </Text>
-              <ChevronRight size={20} color={ONBOARDING_COLORS.background} />
+              <ChevronRight size={20} color={oc.background} />
             </Pressable>
 
             <Pressable
@@ -484,12 +471,12 @@ export default function BikePhotoScreen() {
                 opacity: pressed ? 0.6 : 1,
               })}
             >
-              <SkipForward size={16} color={ONBOARDING_COLORS.textMuted} />
+              <SkipForward size={16} color={oc.textMuted} />
               <Text
                 style={{
                   fontSize: 15,
                   fontWeight: '600',
-                  color: ONBOARDING_COLORS.textMuted,
+                  color: oc.textMuted,
                 }}
               >
                 {t('onboarding.addLater')}

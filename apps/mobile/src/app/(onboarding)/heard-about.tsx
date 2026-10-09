@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_SCREEN } from '../../config/onboarding';
@@ -27,6 +27,7 @@ import { AnalyticsEvent, setUserPropertiesOnce } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { setSelfReportedSource } from '../../lib/subscription';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { radius, space, type } from '../../theme/type';
 import { triggerNotification } from '../../utils/haptics';
 
 /**
@@ -63,6 +64,7 @@ const OTHER_TEXT_MAX_LENGTH = 80;
 const ADVANCE_DELAY_MS = 600;
 
 export default function HeardAboutScreen() {
+  const oc = useOnboardingColors();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { stepIndex, totalScreens } = useOnboardingStep(OB_SCREEN.HEARD_ABOUT);
@@ -136,7 +138,7 @@ export default function HeardAboutScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: oc.background }}>
       <OnboardingProgress screenIndex={stepIndex} totalScreens={totalScreens} />
 
       <ScrollView
@@ -149,35 +151,17 @@ export default function HeardAboutScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Animated.View entering={FadeInDown.duration(300)}>
-          <Text
-            accessibilityRole="header"
-            style={{
-              fontFamily: 'InstrumentSerif-Regular',
-              fontSize: 34,
-              lineHeight: 36,
-              color: ONBOARDING_COLORS.textPrimary,
-              letterSpacing: -0.7,
-            }}
-          >
-            {t('onboarding.heardAboutTitle')}{' '}
-            <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
-              {t('onboarding.heardAboutTitleItalic')}
-            </Text>
+          <Text accessibilityRole="header" style={[type.largeTitle, { color: oc.textPrimary }]}>
+            {t('onboarding.heardAboutHeadline')}
           </Text>
           <Text
-            style={{
-              fontSize: 14,
-              color: ONBOARDING_COLORS.textSecondary,
-              lineHeight: 20,
-              marginTop: 10,
-              maxWidth: 320,
-            }}
+            style={[type.subhead, { color: oc.textSecondary, marginTop: space.xs, maxWidth: 320 }]}
           >
             {t('onboarding.heardAboutSubtitle')}
           </Text>
         </Animated.View>
 
-        <View style={{ gap: 10, marginTop: 24 }}>
+        <View style={{ gap: space.xs, marginTop: space.xl }}>
           {HEARD_ABOUT_OPTIONS.map((option, index) => {
             const Icon = option.icon;
             const active = pending === option.id;
@@ -198,69 +182,57 @@ export default function HeardAboutScreen() {
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 14,
-                    padding: 14,
-                    borderRadius: 16,
+                    gap: space.sm,
+                    padding: space.sm,
+                    borderRadius: radius.card,
                     borderCurve: 'continuous',
-                    backgroundColor: active ? ONBOARDING_COLORS.accentBg : ONBOARDING_COLORS.cardBg,
+                    backgroundColor: active ? oc.cardBgSelected : oc.cardBg,
                     borderWidth: active ? 2 : 1,
-                    borderColor: active
-                      ? ONBOARDING_COLORS.warm
-                      : ONBOARDING_COLORS.cardBorderDefault,
+                    borderColor: active ? oc.warm : oc.cardBorderDefault,
                   }}
                 >
                   <View
                     style={{
                       width: 44,
                       height: 44,
-                      borderRadius: 13,
+                      borderRadius: radius.control,
                       borderCurve: 'continuous',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: active ? ONBOARDING_COLORS.warm : ONBOARDING_COLORS.surface2,
+                      backgroundColor: active ? oc.warm : oc.surface2,
                     }}
                   >
-                    <Icon
-                      size={21}
-                      color={active ? ONBOARDING_COLORS.textOnAccent : ONBOARDING_COLORS.warm2}
-                    />
+                    <Icon size={21} color={active ? oc.textOnAccent : oc.textSecondary} />
                   </View>
-                  <Text
-                    style={{
-                      flex: 1,
-                      fontSize: 15.5,
-                      fontWeight: '600',
-                      color: ONBOARDING_COLORS.textPrimary,
-                    }}
-                  >
+                  <Text style={[type.bodyStrong, { flex: 1, color: oc.textPrimary }]}>
                     {t(`onboarding.${option.labelKey}`)}
                   </Text>
                 </Pressable>
                 {showOtherInput ? (
                   <Animated.View
                     entering={FadeInUp.duration(250)}
-                    style={{ gap: 10, marginTop: 10 }}
+                    style={{ gap: space.xs, marginTop: space.xs }}
                   >
                     <TextInput
                       value={otherText}
                       onChangeText={setOtherText}
                       placeholder={t('onboarding.heardAboutOtherPlaceholder')}
-                      placeholderTextColor={ONBOARDING_COLORS.textMuted}
+                      placeholderTextColor={oc.textMuted}
                       maxLength={OTHER_TEXT_MAX_LENGTH}
                       autoFocus
                       returnKeyType="done"
                       onSubmitEditing={handleOtherContinue}
                       accessibilityLabel={t('onboarding.heardAboutOtherPlaceholder')}
                       style={{
-                        backgroundColor: ONBOARDING_COLORS.cardBg,
+                        backgroundColor: oc.cardBg,
                         borderWidth: 1,
-                        borderColor: ONBOARDING_COLORS.cardBorderDefault,
-                        borderRadius: 14,
+                        borderColor: oc.cardBorderDefault,
+                        borderRadius: radius.control,
                         borderCurve: 'continuous',
-                        paddingHorizontal: 16,
-                        paddingVertical: 15,
-                        fontSize: 15,
-                        color: ONBOARDING_COLORS.textPrimary,
+                        paddingHorizontal: space.md,
+                        paddingVertical: space.md,
+                        ...type.body,
+                        color: oc.textPrimary,
                       }}
                     />
                     <OnboardingContinueButton
@@ -278,15 +250,9 @@ export default function HeardAboutScreen() {
         <Pressable
           onPress={handleSkip}
           accessibilityRole="button"
-          style={{ paddingVertical: 18, alignItems: 'center', marginTop: 8 }}
+          style={{ paddingVertical: space.md, alignItems: 'center', marginTop: space.xs }}
         >
-          <Text
-            style={{
-              fontSize: 15,
-              fontWeight: '600',
-              color: ONBOARDING_COLORS.textSecondary,
-            }}
-          >
+          <Text style={[type.bodyStrong, { color: oc.textSecondary }]}>
             {t('onboarding.heardAboutSkip')}
           </Text>
         </Pressable>

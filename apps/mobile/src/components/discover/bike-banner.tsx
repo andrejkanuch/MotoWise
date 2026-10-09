@@ -9,6 +9,7 @@ import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useEditorialTheme } from '../../theme/editorial';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 
 export const BikeBanner = memo(function BikeBanner() {
   const { t } = useEditorialTheme();
@@ -54,24 +55,15 @@ export const BikeBanner = memo(function BikeBanner() {
           justifyContent: 'center',
         }}
       >
-        <Route size={15} color={t.warm} />
+        <Route size={15} color={t.ink2} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
-        <Text
-          style={{
-            fontFamily: 'GeistMono',
-            fontSize: 10,
-            letterSpacing: 1.2,
-            textTransform: 'uppercase',
-            color: t.ink3,
-            marginBottom: 1,
-          }}
-        >
+        <Text style={[type.caption, { color: t.ink3 }]}>
           {translate('discover.forYourBike', { defaultValue: 'For your bike' })}
         </Text>
-        <Text style={{ fontSize: 13, color: t.ink, fontWeight: '500' }} numberOfLines={1}>
+        <Text style={[type.subhead, SYSTEM_WEIGHT.medium, { color: t.ink }]} numberOfLines={1}>
           {bike.make} {bike.model}{' '}
-          <Text style={{ color: t.ink3, fontWeight: '400' }}>
+          <Text style={[SYSTEM_WEIGHT.regular, { color: t.ink3 }]}>
             ·{' '}
             {bike.type ?? translate('discover.motorcycleFallback', { defaultValue: 'motorcycle' })}{' '}
             · {(bike.currentMileage ?? 0).toLocaleString()} {mileageUnitLabel(system)}

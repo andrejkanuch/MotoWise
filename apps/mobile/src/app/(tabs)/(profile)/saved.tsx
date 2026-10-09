@@ -1,8 +1,7 @@
-import { palette } from '@motovault/design-system';
 import { SavedTripsDocument, type SavedTripsQuery, UnsaveTripDocument } from '@motovault/graphql';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { type Href, useRouter } from 'expo-router';
-import { ArrowLeft, Bookmark, Compass, Mountain, Route, Star } from 'lucide-react-native';
+import { Bookmark, Compass, Mountain, Star } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,11 +14,11 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { tint, useEditorialTheme } from '../../../theme/editorial';
+import { GUTTER, radius, space, type } from '../../../theme/type';
 import { showActionSheet } from '../../../utils/action-sheet';
 import { triggerImpact } from '../../../utils/haptics';
 import { formatDistance } from '../../../utils/ride-formatters';
@@ -28,6 +27,12 @@ const PAGE_SIZE = 20;
 
 type SavedTripEdge = SavedTripsQuery['savedTrips']['edges'][number];
 type SavedTripNode = SavedTripEdge['node'];
+
+const SURFACE_LABEL_KEYS = {
+  paved: 'discoverFilters.surfacePaved',
+  mixed: 'discoverFilters.surfaceMixed',
+  off_road: 'discoverFilters.surfaceOffRoad',
+} as const;
 
 function SavedTripCard({
   trip,
@@ -40,18 +45,14 @@ function SavedTripCard({
   onPress: () => void;
   onLongPress: () => void;
 }) {
-  const { t: theme, isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   const { t } = useTranslation();
   const system = useMeasurementSystem();
 
-  const surfaceLabel =
-    trip.surfaceType === 'paved'
-      ? 'Paved'
-      : trip.surfaceType === 'mixed'
-        ? 'Mixed'
-        : trip.surfaceType === 'off_road'
-          ? 'Off-road'
-          : null;
+  const surfaceKey =
+    trip.surfaceType && trip.surfaceType in SURFACE_LABEL_KEYS
+      ? SURFACE_LABEL_KEYS[trip.surfaceType as keyof typeof SURFACE_LABEL_KEYS]
+      : null;
 
   return (
     <Animated.View entering={FadeInUp.delay(Math.min(index * 50, 300)).duration(250)}>
@@ -62,87 +63,56 @@ function SavedTripCard({
           onLongPress();
         }}
         accessibilityRole="button"
-        accessibilityLabel={`Saved trip: ${trip.title}`}
+        accessibilityLabel={t('saved.tripA11y', { title: trip.title })}
+        android_ripple={{ color: tint(theme.ink, 0.08) }}
         style={({ pressed }) => ({
-          backgroundColor: pressed
-            ? isDark
-              ? palette.neutral800
-              : palette.neutral100
-            : theme.surface,
-          borderRadius: 16,
+          backgroundColor:
+            pressed && process.env.EXPO_OS === 'ios' ? theme.surface2 : theme.surface,
+          borderRadius: radius.card,
           borderCurve: 'continuous',
-          borderWidth: 1,
-          borderColor: theme.line,
-          padding: 14,
-          gap: 8,
+          overflow: 'hidden',
+          padding: space.md,
+          gap: space.xs,
         })}
       >
-        {/* Header row */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Route size={16} color={palette.accent500} />
-          <Text
-            style={{ flex: 1, fontSize: 15, fontWeight: '700', color: theme.ink }}
-            numberOfLines={1}
-          >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
+          <Text style={[type.bodyStrong, { flex: 1, color: theme.ink }]} numberOfLines={1}>
             {trip.title}
           </Text>
-          <Bookmark size={14} color={palette.accent500} fill={palette.accent500} />
+          <Bookmark size={16} color={theme.ink2} fill={theme.ink2} />
         </View>
 
-        {/* Stats row */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.md }}>
           {trip.distanceM != null && (
-            <Text
-              style={{
-                fontSize: 13,
-                fontWeight: '600',
-                color: theme.ink2,
-                fontVariant: ['tabular-nums'],
-              }}
-            >
+            <Text style={[type.figureSmall, { color: theme.ink }]}>
               {formatDistance(trip.distanceM, system)}
             </Text>
           )}
 
           {(trip.elevationGainM ?? 0) > 0 && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-              <Mountain size={12} color={palette.accent500} />
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  color: theme.ink2,
-                  fontVariant: ['tabular-nums'],
-                }}
-              >
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.xxs }}>
+              <Mountain size={13} color={theme.ink3} />
+              <Text style={[type.figureSmall, { color: theme.ink }]}>
                 {t('saved.elevationMeters', { value: Math.round(trip.elevationGainM ?? 0) })}
               </Text>
             </View>
           )}
 
-          {surfaceLabel && <Text style={{ fontSize: 12, color: theme.ink3 }}>{surfaceLabel}</Text>}
+          {surfaceKey && <Text style={[type.caption, { color: theme.ink3 }]}>{t(surfaceKey)}</Text>}
 
           {trip.averageRating != null && trip.reviewCount > 0 && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-              <Star size={12} color={palette.warning500} fill={palette.warning500} />
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: '600',
-                  color: theme.ink2,
-                  fontVariant: ['tabular-nums'],
-                }}
-              >
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.xxs }}>
+              <Star size={12} color={theme.dueInk} fill={theme.dueInk} />
+              <Text style={[type.label, { color: theme.ink2, fontVariant: ['tabular-nums'] }]}>
                 {trip.averageRating.toFixed(1)}
               </Text>
-              <Text style={{ fontSize: 11, color: theme.ink3 }}>({trip.reviewCount})</Text>
+              <Text style={[type.caption, { color: theme.ink3 }]}>({trip.reviewCount})</Text>
             </View>
           )}
         </View>
 
-        {/* Organiser */}
         {trip.organiser && (
-          <Text style={{ fontSize: 12, color: theme.ink3 }}>
+          <Text style={[type.caption, { color: theme.ink3 }]}>
             {t('saved.byOrganiser', {
               name: trip.organiser.publicUsername
                 ? `${trip.organiser.displayName} @${trip.organiser.publicUsername}`
@@ -157,7 +127,6 @@ function SavedTripCard({
 
 export default function SavedScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { t: theme } = useEditorialTheme();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -203,25 +172,25 @@ export default function SavedScreen() {
     (trip: SavedTripNode) => {
       showActionSheet(trip.title, [
         {
-          label: 'Share Trip',
+          label: t('trips.share'),
           onPress: () => {
             Share.share({
-              message: `Check out this trip on MotoVault: ${trip.title}`,
+              message: t('trips.shareMessage', { title: trip.title }),
             });
           },
         },
         {
-          label: 'Remove from Saved',
+          label: t('saved.removeFromSaved'),
           onPress: () => {
             triggerImpact();
             unsaveMutation.mutate(trip.id);
           },
           style: 'destructive',
         },
-        { label: 'Cancel', onPress: () => {}, style: 'cancel' },
+        { label: t('common.cancel'), onPress: () => {}, style: 'cancel' },
       ]);
     },
-    [unsaveMutation],
+    [unsaveMutation, t],
   );
 
   const handleLoadMore = useCallback(() => {
@@ -246,41 +215,19 @@ export default function SavedScreen() {
     if (isLoading) return null;
     return (
       <Animated.View
-        entering={FadeIn.duration(300)}
-        style={{ alignItems: 'center', paddingTop: 48, paddingHorizontal: 32, gap: 16 }}
+        entering={FadeIn.duration(250)}
+        style={{
+          alignItems: 'center',
+          paddingTop: space.xxxl,
+          paddingHorizontal: space.xxl,
+          gap: space.sm,
+        }}
       >
-        <View
-          style={{
-            width: 80,
-            height: 80,
-            borderRadius: 40,
-            borderCurve: 'continuous',
-            backgroundColor: theme.surface2,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 8,
-          }}
-        >
-          <Bookmark size={36} color={theme.ink3} />
-        </View>
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: '700',
-            color: theme.ink,
-            textAlign: 'center',
-          }}
-        >
+        <Bookmark size={36} color={theme.ink3} strokeWidth={1.6} />
+        <Text style={[type.sectionTitle, { color: theme.ink, textAlign: 'center' }]}>
           {t('saved.emptyTitle')}
         </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: theme.ink3,
-            textAlign: 'center',
-            lineHeight: 22,
-          }}
-        >
+        <Text style={[type.subhead, { color: theme.ink3, textAlign: 'center' }]}>
           {t('saved.emptyDesc')}
         </Text>
         <Pressable
@@ -290,135 +237,95 @@ export default function SavedScreen() {
           }}
           accessibilityRole="button"
           accessibilityLabel={t('saved.exploreTrips')}
+          android_ripple={{ color: tint(theme.onWarm, 0.12) }}
           style={({ pressed }) => ({
             backgroundColor: theme.warm,
-            borderRadius: 20,
+            borderRadius: radius.control,
             borderCurve: 'continuous',
-            height: 56,
+            overflow: 'hidden',
+            minHeight: 52,
             alignItems: 'center',
             justifyContent: 'center',
             alignSelf: 'stretch',
-            marginTop: 8,
+            marginTop: space.xs,
             flexDirection: 'row',
-            gap: 8,
-            transform: [{ scale: pressed ? 0.97 : 1 }],
+            gap: space.xs,
+            opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.85 : 1,
           })}
         >
-          <Compass size={20} color={palette.white} />
-          <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>
-            {t('saved.exploreTrips')}
-          </Text>
+          <Compass size={20} color={theme.onWarm} />
+          <Text style={[type.bodyStrong, { color: theme.onWarm }]}>{t('saved.exploreTrips')}</Text>
         </Pressable>
       </Animated.View>
     );
   }, [isLoading, t, theme, router]);
 
+  const renderHeader = useCallback(() => {
+    if (allEdges.length === 0) return null;
+    return (
+      <Text style={[type.label, { color: theme.ink3 }]}>
+        {t('saved.tripCount', { count: allEdges.length })}
+      </Text>
+    );
+  }, [allEdges.length, theme, t]);
+
   const renderFooter = useCallback(() => {
     if (isFetchingNextPage) {
       return (
-        <View style={{ paddingVertical: 20 }}>
-          <ActivityIndicator size="small" color={palette.accent500} />
+        <View style={{ paddingVertical: space.lg }}>
+          <ActivityIndicator size="small" color={theme.ink3} />
         </View>
       );
     }
     return null;
-  }, [isFetchingNextPage]);
+  }, [isFetchingNextPage, theme]);
 
-  return (
-    <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Header */}
+  if (isLoading) {
+    return (
       <View
         style={{
-          paddingTop: insets.top + 8,
-          paddingHorizontal: 20,
-          paddingBottom: 12,
-          flexDirection: 'row',
+          flex: 1,
           alignItems: 'center',
-          gap: 12,
+          justifyContent: 'center',
+          backgroundColor: theme.bg,
         }}
       >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            backgroundColor: theme.surface2,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <ArrowLeft size={20} color={theme.ink} />
-        </Pressable>
-        <Text
-          style={{
-            flex: 1,
-            fontSize: 28,
-            fontWeight: '800',
-            color: theme.ink,
-            letterSpacing: -0.5,
-          }}
-        >
-          {t('saved.title')}
-        </Text>
-        <View
-          style={{
-            paddingHorizontal: 10,
-            paddingVertical: 4,
-            borderRadius: 10,
-            borderCurve: 'continuous',
-            backgroundColor: theme.surface2,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 13,
-              fontWeight: '700',
-              color: palette.accent500,
-              fontVariant: ['tabular-nums'],
-            }}
-          >
-            {t('saved.tripCount', { count: allEdges?.length ?? 0 })}
-          </Text>
-        </View>
+        <ActivityIndicator size="large" color={theme.ink3} />
       </View>
+    );
+  }
 
-      {isLoading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={palette.accent500} />
-        </View>
-      ) : (
-        <FlatList
-          data={allEdges ?? []}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.node.id}
-          contentContainerStyle={{
-            paddingHorizontal: 20,
-            paddingBottom: insets.bottom + 20,
-            gap: 12,
+  return (
+    <FlatList
+      contentInsetAdjustmentBehavior="automatic"
+      style={{ flex: 1, backgroundColor: theme.bg }}
+      data={allEdges}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.node.id}
+      contentContainerStyle={{
+        paddingHorizontal: GUTTER,
+        paddingTop: space.xs,
+        paddingBottom: space.xxxl,
+        gap: space.sm,
+      }}
+      ListHeaderComponent={renderHeader}
+      ListEmptyComponent={renderEmpty}
+      ListFooterComponent={renderFooter}
+      onEndReached={handleLoadMore}
+      onEndReachedThreshold={0.3}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={() => {
+            triggerImpact();
+            refetch();
           }}
-          ListEmptyComponent={renderEmpty}
-          ListFooterComponent={renderFooter}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.3}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={() => {
-                triggerImpact();
-                refetch();
-              }}
-              tintColor={theme.ink3}
-            />
-          }
-          showsVerticalScrollIndicator={false}
-          windowSize={7}
-          maxToRenderPerBatch={5}
+          tintColor={theme.ink3}
         />
-      )}
-    </View>
+      }
+      showsVerticalScrollIndicator={false}
+      windowSize={7}
+      maxToRenderPerBatch={5}
+    />
   );
 }

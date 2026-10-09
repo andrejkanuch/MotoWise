@@ -4,11 +4,12 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Globe, MapPin, Route, Search, X } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AccessibilityInfo, Pressable, Text, TextInput, useColorScheme, View } from 'react-native';
+import { AccessibilityInfo, Pressable, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { useEditorialTheme } from '../../theme/editorial';
 
 interface TypeaheadSearchProps {
   onRouteSelect: (routeId: string) => void;
@@ -23,19 +24,19 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
   onPlaceSelect,
 }: TypeaheadSearchProps) {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
+  const { t: theme, isDark } = useEditorialTheme();
   const inputRef = useRef<TextInput>(null);
   const [searchText, setSearchText] = useState('');
   const [debouncedText, setDebouncedText] = useState('');
   const [isFocused, setIsFocused] = useState(false);
 
-  const searchBg = isDark ? palette.neutral800 : palette.neutral100;
-  const searchTextColor = isDark ? palette.white : palette.neutral950;
-  const placeholderColor = isDark ? palette.neutral500 : palette.neutral400;
-  const dropdownBg = isDark ? palette.neutral900 : palette.white;
-  const dropdownBorder = isDark ? palette.surfaceElevated : palette.neutral200;
-  const sectionColor = isDark ? palette.neutral400 : palette.neutral500;
-  const itemColor = isDark ? palette.neutral200 : palette.neutral700;
+  const searchBg = theme.surface2;
+  const searchTextColor = theme.ink;
+  const placeholderColor = theme.ink4;
+  const dropdownBg = theme.surface2;
+  const dropdownBorder = theme.line;
+  const sectionColor = theme.ink3;
+  const itemColor = theme.ink2;
 
   // Debounce search text
   useEffect(() => {
@@ -176,7 +177,7 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
             borderCurve: 'continuous',
             maxHeight: 300,
             overflow: 'hidden',
-            shadowColor: palette.neutral950,
+            shadowColor: palette.black,
             shadowOpacity: isDark ? 0.4 : 0.1,
             shadowRadius: 12,
             shadowOffset: { width: 0, height: 4 },
@@ -218,14 +219,10 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
                     gap: 10,
                     paddingHorizontal: 14,
                     paddingVertical: 10,
-                    backgroundColor: pressed
-                      ? isDark
-                        ? palette.neutral800
-                        : palette.neutral50
-                      : 'transparent',
+                    backgroundColor: pressed ? theme.surface2 : 'transparent',
                   })}
                 >
-                  <Route size={16} color={palette.accent500} />
+                  <Route size={16} color={theme.warm} />
                   <Text
                     numberOfLines={1}
                     style={{ flex: 1, fontSize: 14, color: itemColor, fontWeight: '500' }}
@@ -268,14 +265,10 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
                       gap: 10,
                       paddingHorizontal: 14,
                       paddingVertical: 10,
-                      backgroundColor: pressed
-                        ? isDark
-                          ? palette.neutral800
-                          : palette.neutral50
-                        : 'transparent',
+                      backgroundColor: pressed ? theme.surface2 : 'transparent',
                     })}
                   >
-                    <PlaceIcon size={16} color={palette.indigo500} />
+                    <PlaceIcon size={16} color={theme.ink3} />
                     <Text
                       numberOfLines={1}
                       style={{ flex: 1, fontSize: 14, color: itemColor, fontWeight: '500' }}

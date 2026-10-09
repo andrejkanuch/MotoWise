@@ -25,13 +25,20 @@ export const MODAL_ROUTE = {
 
 /** Profile sub-routes */
 export const PROFILE_ROUTE = {
+  INDEX: '/(tabs)/(profile)',
   RIDES: '/(tabs)/(profile)/rides',
   TRIPS: '/(tabs)/(profile)/trips',
   SAVED: '/(tabs)/(profile)/saved',
   HEATMAP: '/(tabs)/(profile)/heatmap',
-  SETTINGS: '/(tabs)/(profile)/settings',
+  APP_SETTINGS: '/(tabs)/(profile)/app-settings',
+  /** Pushed single-choice list for one app setting; pass `{ key: AppPreferenceKey }`. */
+  PREFERENCE: '/(tabs)/(profile)/preference/[key]',
   NOTIFICATIONS: '/(tabs)/(profile)/notifications',
   SUPPORT: '/(tabs)/(profile)/support',
   PRIVACY: '/(tabs)/(profile)/privacy',
   EDIT_PROFILE: '/(tabs)/(profile)/edit-profile',
+  /** Rider's public profile; pass `{ username }`. */
+  RIDER: '/(tabs)/(profile)/rider/[username]',
+  /** Follower / following lists; pass `{ userId, tab?: FollowListTab }`. */
+  FOLLOWERS: '/(tabs)/(profile)/rider/followers',
 } as const;

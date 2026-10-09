@@ -7,9 +7,13 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, useColorScheme, View } from 'react-native';
 import { useAuthStore } from '../../stores/auth.store';
+import { editorialThemes } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
 import { MAP_STYLES } from '../../utils/map-styles';
 import { resolveFollowUserMode } from './hud-map-follow';
+
+/** GPS-accuracy ring sits on the HUD's dark chrome. */
+const HUD_THEME = editorialThemes.dark;
 
 interface HudMapProps {
   waypoints: Waypoint[];
@@ -22,9 +26,9 @@ interface HudMapProps {
 }
 
 function getGpsColor(accuracy: number): string {
-  if (accuracy < 50) return palette.success500;
-  if (accuracy < 200) return palette.warning500;
-  return palette.danger500;
+  if (accuracy < 50) return HUD_THEME.success;
+  if (accuracy < 200) return HUD_THEME.dueInk;
+  return HUD_THEME.overdueInk;
 }
 
 function buildRouteGeoJSON(waypoints: Waypoint[]): GeoJSON.FeatureCollection {

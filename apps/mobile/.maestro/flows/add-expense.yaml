@@ -24,7 +24,7 @@
 #     regex (".*Garage.*"), not the bare word;
 #   - the amount input autofocuses the app's custom keyboard, which does NOT
 #     support `hideKeyboard` — dismiss it by tapping a non-interactive section
-#     label ("CATEGORY" / "DETAILS"), which works because the ScrollView sets
+#     label ("Category" / "Details"), which works because the ScrollView sets
 #     keyboardShouldPersistTaps="handled";
 #   - the "Save Expense" button sits at the bottom of the form, below the
 #     keyboard/fold, so dismiss the keyboard and scroll to it before tapping;
@@ -63,7 +63,7 @@ env:
     id: "segment-costs"
 - tapOn:
     id: "action-pill-costs"
-- assertVisible: "AMOUNT" # single-element section label confirms the add-expense screen
+- assertVisible: "Amount" # single-element section label confirms the add-expense screen
 
 # 4. Enter a distinctive amount. The amount TextInput is autoFocused on open, so
 #    inputText lands here directly (decimal-pad; formatCurrencyInput keeps "741.83").
@@ -74,15 +74,15 @@ env:
 - tapOn: "Parts"
 
 # 6. Add the distinctive note so the saved row is uniquely identifiable. Dismiss
-#    the custom keyboard first (tap the non-interactive "CATEGORY" label), then
+#    the custom keyboard first (tap the non-interactive "Category" label), then
 #    scroll the DETAILS field into view and focus it before typing — tapping a new
 #    TextInput moves focus, avoiding the "inputText concatenates across fields" trap.
 - tapOn:
-    text: "CATEGORY" # non-interactive label — dismisses the custom keyboard
+    text: "Category" # non-interactive label — dismisses the custom keyboard
     optional: true
 - scrollUntilVisible:
     element:
-      text: "DETAILS" # section label directly above the notes field
+      text: "Details" # section label directly above the notes field
     direction: DOWN
 - tapOn:
     text: ".*What was this expense for.*" # DETAILS placeholder; wildcarded — the literal "?" is a regex metachar
@@ -90,7 +90,7 @@ env:
 
 # 7. Dismiss the keyboard again, then reach the Save button at the bottom of the form.
 - tapOn:
-    text: "DETAILS" # non-interactive label — dismisses the keyboard
+    text: "Details" # non-interactive label — dismisses the keyboard
     optional: true
 - scrollUntilVisible:
     element:
