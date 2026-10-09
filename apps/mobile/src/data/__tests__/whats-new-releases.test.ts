@@ -14,7 +14,7 @@ import {
  * is what these cover.
  */
 describe('whats-new releases', () => {
-  const CURRENT = '3.22.0';
+  const CURRENT = '3.22.4';
 
   it('has an entry for the shipping version', () => {
     expect(getWhatsNewRelease(CURRENT, SLIDE_PLATFORM.IOS)).not.toBeNull();

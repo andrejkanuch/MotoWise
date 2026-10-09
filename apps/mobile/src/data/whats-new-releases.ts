@@ -71,7 +71,11 @@ export interface WhatsNewRelease {
  */
 export const WHATS_NEW_RELEASES = [
   {
-    version: '3.22.0',
+    // The bike-screen redesign. Approved as 3.22.0 but withdrawn before release
+    // and shipped as 3.22.4 (with the account/push fixes); the i18n keys keep
+    // their v3220 names. Shown only on an exact version match, so this must
+    // carry the version that actually reaches riders.
+    version: '3.22.4',
     slides: [
       {
         icon: LayoutDashboard,
