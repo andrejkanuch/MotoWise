@@ -5,6 +5,7 @@ import { type RefObject, useCallback, useEffect, useMemo, useState } from 'react
 import { useTranslation } from 'react-i18next';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { showActionSheet } from '../../utils/action-sheet';
+import { triggerImpact } from '../../utils/haptics';
 import { getRouteSegments, type RouteLeg } from '../../utils/mapbox-directions';
 import type { GeocodingResult } from '../../utils/mapbox-geocoding';
 import { formatDayDate, tempId } from './format-trip-segments';
@@ -87,7 +88,7 @@ export function useTripWaypoints({
           : wp,
       ),
     );
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setEditingWaypoint(null);
   }, [editingWaypoint, editName, editType, editNotes, editPeriod]);
 
@@ -141,7 +142,7 @@ export function useTripWaypoints({
         waypoint_type: wp.type,
         waypoint_index: wp.sortOrder,
       });
-      if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      triggerImpact(Haptics.ImpactFeedbackStyle.Light);
       // Fly camera to new waypoint
       cameraRef.current?.flyTo([wp.lng, wp.lat], 500);
     },
@@ -174,7 +175,7 @@ export function useTripWaypoints({
   const handleLongPress = useCallback(
     (event: GeoJSON.Feature<GeoJSON.Point, ScreenPointPayload>) => {
       const [lng, lat] = event.geometry.coordinates;
-      if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
       const type = waypoints.length === 0 ? 'start' : waypoints.length === 1 ? 'end' : 'scenic';
       addWaypoint({
         type,

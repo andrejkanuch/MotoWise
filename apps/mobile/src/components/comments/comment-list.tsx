@@ -15,6 +15,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { useEditorialTheme } from '../../theme/editorial';
+import { triggerNotification } from '../../utils/haptics';
 import { CommentInput } from './comment-input';
 import { CommentItem } from './comment-item';
 
@@ -70,9 +71,7 @@ export function CommentList({ rideId, routeId, groupRideId, tripId }: CommentLis
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
       setReplyingTo(undefined);
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
     },
   });
 
@@ -86,9 +85,7 @@ export function CommentList({ rideId, routeId, groupRideId, tripId }: CommentLis
   const flagMutation = useMutation({
     mutationFn: (commentId: string) => gqlFetcher(FlagCommentDocument, { commentId }),
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
     },
   });
 

@@ -5,7 +5,6 @@ import {
 } from '@motovault/graphql';
 import * as Sentry from '@sentry/react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Crown, Plus } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
@@ -32,6 +31,7 @@ import { presentPaywall } from '@/lib/subscription';
 import { useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, radius, readableWidth, space, type } from '@/theme/type';
 import { showActionSheet } from '@/utils/action-sheet';
+import { triggerImpact } from '@/utils/haptics';
 
 type GarageBike = MyMotorcyclesQuery['myMotorcycles'][number];
 
@@ -42,12 +42,6 @@ const ADD_BUTTON_SIZE = process.env.EXPO_OS === 'android' ? 48 : 44;
 const NO_VALUE = '—';
 const LIST_STAGGER_MS = 50;
 const LIST_ENTER_MS = 240;
-
-function haptic() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-}
 
 function useGarageBikes() {
   return useQuery({
@@ -131,7 +125,7 @@ export default function GarageScreen() {
 
   const handleAddBike = () => {
     if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
-    haptic();
+    triggerImpact();
     router.push('/(tabs)/(garage)/add-bike');
   };
 
@@ -145,7 +139,7 @@ export default function GarageScreen() {
     : handleAddBike;
 
   const openBike = (bike: GarageBike) => {
-    haptic();
+    triggerImpact();
     router.push(`/(tabs)/(garage)/bike/${bike.id}`);
   };
 

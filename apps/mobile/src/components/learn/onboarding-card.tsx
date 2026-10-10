@@ -1,5 +1,4 @@
 import { palette } from '@motovault/design-system';
-import * as Haptics from 'expo-haptics';
 import { BookOpen, Sparkles } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +6,7 @@ import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
 import { useLearnOnboardingStore } from '../../stores/learn-onboarding.store';
 import { useEditorialTheme } from '../../theme/editorial';
+import { triggerImpact } from '../../utils/haptics';
 
 interface LearnOnboardingCardProps {
   onBrowse: () => void;
@@ -42,12 +42,6 @@ export function LearnOnboardingCard({ onBrowse, onGenerate }: LearnOnboardingCar
 
   if (!hydrated || dismissed) return null;
 
-  const haptic = () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-  };
-
   return (
     <Animated.View
       entering={FadeInDown.duration(400)}
@@ -65,7 +59,7 @@ export function LearnOnboardingCard({ onBrowse, onGenerate }: LearnOnboardingCar
       {/* Dismiss button */}
       <Pressable
         onPress={() => {
-          haptic();
+          triggerImpact();
           dismiss();
         }}
         hitSlop={12}
@@ -121,7 +115,7 @@ export function LearnOnboardingCard({ onBrowse, onGenerate }: LearnOnboardingCar
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <Pressable
           onPress={() => {
-            haptic();
+            triggerImpact();
             onBrowse();
           }}
           style={{
@@ -154,7 +148,7 @@ export function LearnOnboardingCard({ onBrowse, onGenerate }: LearnOnboardingCar
 
         <Pressable
           onPress={() => {
-            haptic();
+            triggerImpact();
             onGenerate();
           }}
           style={{

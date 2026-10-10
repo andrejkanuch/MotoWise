@@ -11,6 +11,7 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { radius, SYSTEM_WEIGHT, space, type } from '@/theme/type';
+import { triggerImpact, triggerSelection } from '@/utils/haptics';
 import { computeTripCompleteness } from '@/utils/trip-completeness';
 import { formatTripDateRangeShort } from '@/utils/trip-date-range';
 import { CompletenessRing } from '../../trip/completeness-ring';
@@ -248,14 +249,14 @@ export const DraftTripStrip = memo(function DraftTripStrip() {
     (tripId: string) => {
       const stillExists = drafts.some((d) => d.id === tripId);
       if (!stillExists) return;
-      if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
+      triggerSelection();
       router.push({ pathname: '/(modals)/create-trip', params: { tripId } });
     },
     [drafts, router],
   );
 
   const handleNewDraft = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
     router.push('/(modals)/create-trip');
   }, [router]);
 

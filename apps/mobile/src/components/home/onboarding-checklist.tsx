@@ -25,6 +25,7 @@ import {
 } from '../../stores/checklist.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { GUTTER, radius, space, type } from '../../theme/type';
+import { triggerNotification } from '../../utils/haptics';
 import { useChecklistSignals } from './use-checklist-signals';
 
 const ICON_MAP: Record<string, typeof MapPin> = {
@@ -152,9 +153,7 @@ export function OnboardingChecklist() {
               key={item.id}
               onPress={() => {
                 if (!isCompleted) {
-                  if (process.env.EXPO_OS === 'ios') {
-                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                  }
+                  triggerNotification(Haptics.NotificationFeedbackType.Success);
                   completeItem(item.id);
                 }
                 if (item.id === CHECKLIST_ITEM_ID.FIRST_EXPENSE) {

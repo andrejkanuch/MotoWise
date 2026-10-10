@@ -31,6 +31,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
+import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import { MAP_STYLES } from '../../utils/map-styles';
 
 function formatDateTime(iso: string): string {
@@ -102,8 +103,7 @@ export default function GroupRideDetailScreen() {
     onMutate: () => setActionLoading(true),
     onSettled: () => setActionLoading(false),
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       trackEvent(AnalyticsEvent.GROUP_RIDE_JOINED, { group_ride_id: groupRideId });
       invalidateRide();
     },
@@ -114,7 +114,7 @@ export default function GroupRideDetailScreen() {
     onMutate: () => setActionLoading(true),
     onSettled: () => setActionLoading(false),
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
       trackEvent(AnalyticsEvent.GROUP_RIDE_LEFT, { group_ride_id: groupRideId });
       invalidateRide();
     },
@@ -125,8 +125,7 @@ export default function GroupRideDetailScreen() {
     onMutate: () => setActionLoading(true),
     onSettled: () => setActionLoading(false),
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      triggerNotification(Haptics.NotificationFeedbackType.Warning);
       invalidateRide();
       router.back();
     },

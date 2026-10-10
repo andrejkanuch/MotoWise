@@ -44,6 +44,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
 import {
   getDefaultMapStyle,
   MAP_STYLES,
@@ -194,9 +195,7 @@ export default function RideDetailScreen() {
 
   const handleShare = useCallback(async () => {
     if (!ride || !rideId) return;
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     // Capture a map snapshot for the share card background
     if (mapRef.current && !mapSnapshotUri) {
       try {
@@ -258,9 +257,7 @@ export default function RideDetailScreen() {
 
   const handleMapStyleSelect = useCallback(
     (style: MapStyle) => {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }
+      triggerImpact(Haptics.ImpactFeedbackStyle.Light);
       trackEvent(AnalyticsEvent.RIDE_MAP_STYLE_CHANGED, {
         ride_id: rideId ?? null,
         from_style: mapStyle,
@@ -599,9 +596,7 @@ export default function RideDetailScreen() {
           {routeData && (
             <Pressable
               onPress={() => {
-                if (process.env.EXPO_OS === 'ios') {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
+                triggerImpact(Haptics.ImpactFeedbackStyle.Light);
                 // Distinguishes "opened the picker but kept the default" from
                 // "never opened it" — the change event alone can't tell them apart.
                 trackEvent(AnalyticsEvent.RIDE_MAP_PICKER_OPENED, {
@@ -635,9 +630,7 @@ export default function RideDetailScreen() {
           {/* 3D FAB */}
           <Pressable
             onPress={() => {
-              if (process.env.EXPO_OS === 'ios') {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              }
+              triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
               router.push({ pathname: '/(modals)/ride-flyover', params: { rideId } });
             }}
             accessibilityRole="button"

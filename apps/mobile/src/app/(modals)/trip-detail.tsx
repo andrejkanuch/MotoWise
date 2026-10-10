@@ -81,6 +81,7 @@ import { cacheTripPayload } from '../../lib/offline-trips';
 import { useAuthStore } from '../../stores/auth.store';
 import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
 import { SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { triggerImpact, triggerSelection } from '../../utils/haptics';
 import { MAP_STYLES } from '../../utils/map-styles';
 import { getRouteSegments } from '../../utils/mapbox-directions';
 import { showMarkerActionSheet } from '../../utils/marker-action-sheet';
@@ -431,7 +432,7 @@ export default function TripDetailScreen() {
   }, [waypoints]);
 
   const toggleDay = useCallback((dayIndex: number) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setCollapsedDays((prev) => ({ ...prev, [dayIndex]: !prev[dayIndex] }));
   }, []);
 
@@ -558,7 +559,7 @@ export default function TripDetailScreen() {
 
   const handleOpenShareSheet = useCallback(() => {
     if (!trip) return;
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setShareSheetVisible(true);
   }, [trip]);
 
@@ -1228,8 +1229,7 @@ export default function TripDetailScreen() {
                     {!reviewFormVisible ? (
                       <Pressable
                         onPress={() => {
-                          if (process.env.EXPO_OS === 'ios')
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          triggerImpact(Haptics.ImpactFeedbackStyle.Light);
                           setReviewFormVisible(true);
                         }}
                         style={{
@@ -1269,7 +1269,7 @@ export default function TripDetailScreen() {
                             <Pressable
                               key={n}
                               onPress={() => {
-                                if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
+                                triggerSelection();
                                 setReviewRating(n);
                               }}
                             >

@@ -5,6 +5,7 @@ import { useCallback } from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { tint } from '../../theme/editorial';
+import { triggerImpact } from '../../utils/haptics';
 
 export type HudLayout = 'A' | 'B';
 
@@ -28,9 +29,7 @@ export function HudLayoutSwitcher({ activeLayout, onSwitch, isNightMode }: HudLa
   const handlePress = useCallback(
     (layout: HudLayout) => {
       if (layout === activeLayout) return;
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }
+      triggerImpact(Haptics.ImpactFeedbackStyle.Light);
       onSwitch(layout);
     },
     [activeLayout, onSwitch],

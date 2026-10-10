@@ -46,6 +46,7 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, radius, space, type } from '@/theme/type';
+import { triggerImpact, triggerSelection } from '@/utils/haptics';
 
 const PERIOD_LABEL_KEY = {
   thisYear: 'expenses.periodThisYear',
@@ -158,9 +159,7 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
           <Pressable
             key={cat}
             onPress={() => {
-              if (process.env.EXPO_OS === 'ios') {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }
+              triggerImpact(Haptics.ImpactFeedbackStyle.Light);
               trackEvent(AnalyticsEvent.EXPENSE_QUICK_ADD_TAPPED, { category: cat });
               router.push({
                 pathname: GARAGE_ROUTE.ADD_EXPENSE,
@@ -206,9 +205,7 @@ function EmptyState({ motorcycleId }: { motorcycleId: string }) {
             ctaScale.value = withSpring(1, { damping: 15, stiffness: 150 });
           }}
           onPress={() => {
-            if (process.env.EXPO_OS === 'ios') {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            }
+            triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
             router.push({
               pathname: GARAGE_ROUTE.ADD_EXPENSE,
               params: { motorcycleId },
@@ -332,19 +329,17 @@ export default function ExpenseDashboardScreen() {
   );
 
   const handleCurrencyChange = useCallback((currency: string) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
+    triggerSelection();
     setChartCurrency(currency);
   }, []);
 
   const handleCategoryPress = useCallback((category: string) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setSelectedCategory((prev) => (prev === category ? null : category));
   }, []);
 
   const handlePeriodChange = (newPeriod: Period) => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
+    triggerSelection();
     setPeriod(newPeriod);
   };
 
@@ -748,8 +743,7 @@ export default function ExpenseDashboardScreen() {
         <Animated.View entering={FadeInUp.delay(120).duration(300)} style={{ marginTop: 24 }}>
           <Pressable
             onPress={() => {
-              if (process.env.EXPO_OS === 'ios')
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              triggerImpact(Haptics.ImpactFeedbackStyle.Light);
               router.push({
                 pathname: '/(tabs)/(garage)/edit-bike',
                 params: { id: motorcycleId },

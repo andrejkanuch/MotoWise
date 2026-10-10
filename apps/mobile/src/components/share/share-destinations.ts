@@ -4,6 +4,7 @@ import * as MediaLibrary from 'expo-media-library';
 import { Alert, Linking } from 'react-native';
 import RNShare, { Social } from 'react-native-share';
 import i18n from '../../i18n';
+import { triggerNotification } from '../../utils/haptics';
 import type { ShareDestination, ShareResult } from './share-card-types';
 
 function buildDeepLink(rideId: string): string {
@@ -140,9 +141,7 @@ async function saveImage(imageUri: string, _deepLink: string): Promise<ShareResu
 
   try {
     await MediaLibrary.saveToLibraryAsync(imageUri);
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
+    triggerNotification(Haptics.NotificationFeedbackType.Success);
     return { success: true };
   } catch {
     return { success: false, reason: 'error', message: i18n.t('shareSheet.saveImageFailed') };

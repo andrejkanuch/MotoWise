@@ -1,7 +1,6 @@
 import { palette } from '@motovault/design-system';
 import { AddExpensePhotoDocument, DeleteExpensePhotoDocument } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { Camera, Trash2, X } from 'lucide-react-native';
 import { useState } from 'react';
@@ -13,6 +12,7 @@ import { pickImage, takePhoto, uploadExpensePhoto } from '../lib/image-upload';
 import { queryKeys } from '../lib/query-keys';
 import { tint } from '../theme/editorial';
 import { showActionSheet } from '../utils/action-sheet';
+import { triggerImpact } from '../utils/haptics';
 
 const MAX_PHOTOS = 3;
 
@@ -21,12 +21,6 @@ type Photo = {
   storagePath: string;
   publicUrl: string;
 };
-
-function haptic() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-}
 
 /**
  * Photo gallery for receipts attached to an expense (MOT-143).
@@ -86,7 +80,7 @@ export function ExpensePhotoGallery({
   };
 
   const showAddOptions = () => {
-    haptic();
+    triggerImpact();
     showActionSheet(t('expenses.addReceipt', { defaultValue: 'Add Receipt' }), [
       {
         label: t('expenses.takeReceiptPhoto', { defaultValue: 'Take Receipt Photo' }),
@@ -111,7 +105,7 @@ export function ExpensePhotoGallery({
   };
 
   const handleDeletePhoto = (photo: Photo) => {
-    haptic();
+    triggerImpact();
     Alert.alert(
       t('expenses.deletePhoto', { defaultValue: 'Delete Photo' }),
       t('expenses.confirmDeletePhoto', {
@@ -135,7 +129,7 @@ export function ExpensePhotoGallery({
           <Animated.View key={photo.id} entering={FadeIn.delay(index * 50).duration(200)}>
             <Pressable
               onPress={() => {
-                haptic();
+                triggerImpact();
                 setViewingPhoto(photo);
               }}
               onLongPress={() => handleDeletePhoto(photo)}

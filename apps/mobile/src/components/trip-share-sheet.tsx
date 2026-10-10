@@ -14,6 +14,7 @@ import { queryKeys } from '../lib/query-keys';
 import { maybeRequestReview } from '../lib/store-review';
 import { tint, useEditorialTheme } from '../theme/editorial';
 import { SYSTEM_WEIGHT, type } from '../theme/type';
+import { triggerImpact, triggerNotification } from '../utils/haptics';
 
 interface TripShareSheetProps {
   tripId: string;
@@ -57,8 +58,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
   const rotateMutation = useMutation({
     mutationFn: () => gqlFetcher(RotateTripShareTokenDocument, { tripId }),
     onSuccess: (data) => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       setPlaintextToken(data.rotateTripShareToken);
       setJustCopied(false);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
@@ -77,8 +77,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
         input: { tripId, visibility: 'private' },
       }),
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
@@ -93,7 +92,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
   const shareUrl = plaintextToken ? buildShareUrl(plaintextToken) : null;
 
   const handleGenerate = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
     rotateMutation.mutate();
   }, [rotateMutation]);
 
@@ -111,7 +110,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
   const handleCopy = useCallback(async () => {
     if (!shareUrl) return;
     await Clipboard.setStringAsync(shareUrl);
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setJustCopied(true);
     trackEvent(AnalyticsEvent.TRIP_SHARED, { trip_id: tripId, method: 'copy_link' });
     setTimeout(() => setJustCopied(false), 1600);

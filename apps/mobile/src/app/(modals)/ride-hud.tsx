@@ -20,6 +20,7 @@ import { bestEffortNativeCall, NativeSideEffect } from '../../lib/best-effort-na
 import { useRideStore } from '../../stores/ride.store';
 import { editorialThemes } from '../../theme/editorial';
 import { radius, type } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
 import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../../utils/ride-constants';
 import { toggleBatterySaver } from '../../utils/ride-location';
 import { getPointBuffer, getWaypointChunks, rideMMKV, rideStorage } from '../../utils/ride-storage';
@@ -36,10 +37,6 @@ type SparklineMode = 'altitude' | 'speed';
  * lock is never released, so it lives in one constant.
  */
 const KEEP_AWAKE_TAG = 'ride-hud';
-
-function haptic(style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Light) {
-  if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(style);
-}
 
 /** Read persisted HUD layout preference from MMKV */
 function getPersistedLayout(): HudLayout {
@@ -212,7 +209,7 @@ export default function RideHudScreen() {
   }, [updateElapsedTime]);
 
   const handlePause = useCallback(() => {
-    haptic(Haptics.ImpactFeedbackStyle.Heavy);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Heavy);
     pauseRide(); // store banks the pause clock (engine-owned, shared with CarPlay)
     trackEvent(AnalyticsEvent.RIDE_PAUSED, {
       ride_id: rideMMKV.getCurrentId() ?? null,
@@ -222,7 +219,7 @@ export default function RideHudScreen() {
   }, [pauseRide, distance]);
 
   const handleResume = useCallback(() => {
-    haptic(Haptics.ImpactFeedbackStyle.Heavy);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Heavy);
     // Read the pause start before resumeRide() banks + clears it.
     const pausedAt = rideMMKV.getPausedAt();
     const pauseDuration = pausedAt > 0 ? Math.round((Date.now() - pausedAt) / 1000) : 0;
@@ -294,19 +291,19 @@ export default function RideHudScreen() {
   }, [executeEndRide, guardData]);
 
   const handleToggleNight = useCallback(() => {
-    haptic();
+    triggerImpact();
     toggleNight();
   }, [toggleNight]);
 
   const handleToggleBattery = useCallback(() => {
-    haptic();
+    triggerImpact();
     const newState = !isBatterySaver;
     toggleBattery();
     toggleBatterySaver(newState);
   }, [toggleBattery, isBatterySaver]);
 
   const handleToggleSparkline = useCallback(() => {
-    haptic();
+    triggerImpact();
     setSparklineMode((m) => (m === 'speed' ? 'altitude' : 'speed'));
   }, []);
 

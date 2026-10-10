@@ -17,6 +17,7 @@ import {
 import { gqlFetcher } from '@/lib/graphql-client';
 import { userFriendlyError } from '@/lib/graphql-errors';
 import { useEditorialTheme } from '@/theme/editorial';
+import { triggerNotification } from '@/utils/haptics';
 import { formatTripDateRangeLong } from '@/utils/trip-date-range';
 
 export default function SharedTripTrampolineScreen() {
@@ -174,8 +175,7 @@ function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: Rend
   const joinMutation = useMutation({
     mutationFn: () => gqlFetcher(JoinTripDocument, { input: { tripId: trip.id, status: 'going' } }),
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       ctx.router.replace({
         pathname: '/(modals)/trip-detail',
         params: { tripId: trip.id },
