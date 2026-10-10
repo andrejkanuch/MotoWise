@@ -31,11 +31,11 @@
     "check:agent-docs": "tsx scripts/check-agent-docs.ts",
     "check:mobile-structure": "tsx scripts/check-mobile-structure.ts",
     "check:deadcode": "knip --include files --workspace apps/mobile",
-    "verify:mobile": "turbo typecheck test --filter=@motovault/mobile && pnpm check:router && pnpm check:mobile-colors",
+    "verify:mobile": "turbo typecheck test --filter=@motovault/mobile && pnpm check:router && pnpm check:mobile-colors && pnpm check:mobile-structure && pnpm check:deadcode",
     "verify:api": "turbo typecheck test --filter=@motovault/api && pnpm check:api-bans",
     "verify:web": "turbo typecheck test --filter=@motovault/web",
     "knip": "knip",
-    "precheck": "pnpm check:api-bans && pnpm check:router && pnpm check:mobile-colors && pnpm check:arch && pnpm check:store-copy && pnpm lint && pnpm typecheck && pnpm test",
+    "precheck": "pnpm check:api-bans && pnpm check:router && pnpm check:mobile-colors && pnpm check:arch && pnpm check:store-copy && pnpm check:agent-docs && pnpm check:mobile-structure && pnpm check:deadcode && pnpm lint && pnpm typecheck && pnpm test",
     "precheck:push": "sh scripts/precheck-changed.sh",
     "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true"
   },

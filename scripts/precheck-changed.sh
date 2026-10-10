@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 # Pre-push: Biome only on files changed since merge-base with main (fast local feedback).
 # CI and `pnpm precheck` still run full `pnpm lint` on the repo.
+# Then the instruction-file and mobile-structure guards, typecheck, tests and the i18n ratchet.
 
 set -eu
 
@@ -45,4 +46,4 @@ else
   fi
 fi
 
-pnpm typecheck && pnpm test && pnpm check:i18n
+pnpm check:agent-docs && pnpm check:mobile-structure && pnpm typecheck && pnpm test && pnpm check:i18n
