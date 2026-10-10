@@ -31,6 +31,9 @@ const HISTORY_ONLY_ALLOWLIST: readonly string[] = [
   'PB_TOAST_DISMISSED',
   // Retired 2026-10-09 with the never-imported components/gpx-export-modal.tsx.
   'ROUTE_GPX_EXPORTED',
+  // Retired 2026-10-10 with the never-imported components/share/share-ride.ts.
+  'SHARE_CARD_GENERATED',
+  'SHARE_CARD_FAILED',
 ];
 
 function catalogKeys(): string[] {

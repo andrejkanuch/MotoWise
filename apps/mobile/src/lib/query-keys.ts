@@ -33,7 +33,6 @@ export const queryKeys = {
     detail: (slug: string) => ['articles', 'detail', slug] as const,
   },
   onboarding: {
-    insights: (input: Record<string, unknown>) => ['onboarding', 'insights', input] as const,
     reveal: (make: string, year: number, model?: string | null) =>
       ['onboarding', 'reveal', make, year, model ?? null] as const,
     /** OEM maintenance-schedule preview — shared by the Maintenance screen and
@@ -45,9 +44,6 @@ export const queryKeys = {
       year?: number | null,
       variant?: string | null,
     ) => ['oemSchedulesPreview', make, model ?? null, year ?? null, variant ?? null] as const,
-  },
-  shareLinks: {
-    byMotorcycle: (motorcycleId: string) => ['shareLinks', 'byMotorcycle', motorcycleId] as const,
   },
   expenses: {
     byMotorcycle: (motorcycleId: string) => ['expenses', 'byMotorcycle', motorcycleId] as const,
@@ -110,24 +106,11 @@ export const queryKeys = {
     byMotorcycle: (motorcycleId: string) => ['rides', 'motorcycle', motorcycleId] as const,
   },
   healthReports: {
-    all: ['healthReports'] as const,
     byMotorcycle: (motorcycleId: string) =>
       ['healthReports', 'byMotorcycle', motorcycleId] as const,
   },
-  routes: {
-    all: ['routes'] as const,
-    discover: (filters: string) => ['routes', 'discover', filters] as const,
-    editorPicks: ['routes', 'editorPicks'] as const,
-    detail: (routeId: string) => ['routes', 'detail', routeId] as const,
-    saved: ['routes', 'saved'] as const,
-    gpxQuota: ['routes', 'gpx-quota'] as const,
-  },
   typeahead: {
     search: (q: string) => ['typeahead', q] as const,
-  },
-  fuelStops: {
-    nearRoute: (routeId: string, bikeId?: string) =>
-      ['fuelStops', 'nearRoute', routeId, bikeId] as const,
   },
   comments: {
     byRide: (rideId: string) => ['comments', 'ride', rideId] as const,
@@ -159,7 +142,6 @@ export const queryKeys = {
     myDrafts: ['trips', 'myDrafts'] as const,
     /** Discover horizontal strip: upcoming non-template public trips. */
     discoverRiderStrip: ['trips', 'discoverRiderStrip'] as const,
-    gpxQuota: ['trips', 'gpx-quota'] as const,
     suggestions: (tripId: string) => ['trip-suggestions', tripId] as const,
     /** Public share-token trampoline (`tripByShareToken`). */
     byShareToken: (token: string) => ['trip-by-share-token', token] as const,
@@ -168,20 +150,12 @@ export const queryKeys = {
       ['trip-by-slug-deeplink', country, region, slug] as const,
   },
   tripTemplates: {
-    all: ['tripTemplates'] as const,
     list: (filters: string) => ['tripTemplates', 'list', filters] as const,
   },
   savedTrips: {
     all: ['savedTrips'] as const,
   },
-  isTripSaved: {
-    check: (tripId: string) => ['isTripSaved', tripId] as const,
-  },
   tripReviews: {
-    all: ['tripReviews'] as const,
     byTrip: (tripId: string) => ['tripReviews', 'byTrip', tripId] as const,
-  },
-  subscription: {
-    offerings: ['subscription', 'offerings'] as const,
   },
 };
