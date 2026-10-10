@@ -41,6 +41,7 @@ import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { rootFromArgs } from './cli-root';
 import {
   SOLUTIONS_DIR,
   SOLUTIONS_INDEX_COMMAND,
@@ -701,7 +702,7 @@ const PNPM_CAVEAT =
 
 function main(): void {
   const reportOnly = process.argv.includes(REPORT_FLAG);
-  const { scanned, findings, pnpmCallsChecked } = checkAgentDocs();
+  const { scanned, findings, pnpmCallsChecked } = checkAgentDocs(rootFromArgs(ROOT));
 
   if (findings.length === 0) {
     const pnpmCalls = pnpmCallsChecked

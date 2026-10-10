@@ -24,6 +24,7 @@ import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { rootFromArgs } from './cli-root';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 
@@ -234,8 +235,9 @@ function unstagedChanges(root: string): string[] {
 }
 
 function main(): void {
+  const root = rootFromArgs(ROOT);
   if (process.argv.includes(CHECK_FLAG)) {
-    if (solutionsIndexIsCurrent(ROOT)) {
+    if (solutionsIndexIsCurrent(root)) {
       console.log(`✓ ${SOLUTIONS_INDEX_PATH} is up to date (staged state)`);
       return;
     }
@@ -244,11 +246,11 @@ function main(): void {
     );
     process.exit(1);
   }
-  writeFileSync(path.join(ROOT, SOLUTIONS_INDEX_PATH), renderSolutionsIndex(ROOT));
+  writeFileSync(path.join(root, SOLUTIONS_INDEX_PATH), renderSolutionsIndex(root));
   console.log(
     `wrote ${SOLUTIONS_INDEX_PATH} from the staged documents. Stage it: git add ${SOLUTIONS_INDEX_PATH}`,
   );
-  const unstaged = [...new Set(unstagedChanges(ROOT))];
+  const unstaged = [...new Set(unstagedChanges(root))];
   if (unstaged.length > 0) {
     console.log(
       `Not read, because not staged (git add, then run this again):\n${unstaged.map((file) => `  ${file}`).join('\n')}`,

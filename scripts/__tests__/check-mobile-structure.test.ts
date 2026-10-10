@@ -280,6 +280,39 @@ describe('check-mobile-structure: messages and --update', () => {
     }
   });
 
+  test('a directory named like an Object.prototype key is undeclared, not a crash', () => {
+    const root = makeTree(
+      treeOf({
+        ...LOGGER,
+        'constructor/thing.ts': importing('@/lib/logger'),
+        'lib/uses.ts': importing('@/constructor/thing'),
+        'toString/other.ts': MODULE,
+      }),
+    );
+    try {
+      const placement = (violationsIn(root) ?? []).filter((v) => v.rule === KIND.placement);
+      assert.deepEqual(placement.map((violation) => violation.file).sort(), [
+        'constructor/',
+        'toString/',
+      ]);
+    } finally {
+      removeTree(root);
+    }
+  });
+
+  test('a baseline that cannot be read is an error that names the file', () => {
+    const root = makeTree({ ...treeOf(LOGGER), [BASELINE]: '{"routes": ' });
+    try {
+      assert.throws(
+        () => checkMobileStructure(root),
+        /mobile-structure-baseline\.json is not a valid baseline/,
+      );
+      assert.throws(() => checkMobileStructure(root, { update: true }), /not a valid baseline/);
+    } finally {
+      removeTree(root);
+    }
+  });
+
   test('a tree with no baseline file has nothing to check against', () => {
     const root = makeTree({ [`${SRC}/${ROUTE}`]: MODULE });
     try {

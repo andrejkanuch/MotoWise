@@ -5,7 +5,7 @@
  */
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { devNull, tmpdir } from 'node:os';
 import path from 'node:path';
 
 /** Repo-relative path → file content. */
@@ -15,6 +15,13 @@ export type Files = Readonly<Record<string, string>>;
 for (const name of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_PREFIX']) {
   delete process.env[name];
 }
+
+// The developer's own git configuration must not reach a fixture: a global
+// `core.excludesFile` that ignores `*.md` would hide every instruction file
+// from `git add` and `git ls-files`. Set on this process, so the guards called
+// in-process and the ones spawned as a CLI inherit it too.
+process.env.GIT_CONFIG_GLOBAL = devNull;
+process.env.GIT_CONFIG_NOSYSTEM = '1';
 
 const git = (root: string, ...args: string[]): void => {
   execFileSync('git', args, { cwd: root, stdio: 'ignore' });

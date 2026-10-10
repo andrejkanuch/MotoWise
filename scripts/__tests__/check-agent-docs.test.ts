@@ -419,6 +419,39 @@ for (const [title, cases] of [
   });
 }
 
+describe('check-agent-docs: which files count as existing', () => {
+  // Pins `git ls-files --cached --others --exclude-standard`: without `--others` a
+  // file added in the same change is "missing"; without `--exclude-standard` a
+  // build output or a local .env makes a dead citation pass on one machine only.
+  const cited = (file: string): string => `\`${file}\`\n`;
+  const missingPaths = (root: string) =>
+    findingsIn(root).filter((finding) => finding.kind === KIND.missingPath);
+
+  test('accepts a path that exists only as an untracked file', () => {
+    const root = repoWith({ [ROOT_DOC]: cited('scripts/new-tool.ts') });
+    try {
+      assert.equal(missingPaths(root).length, 1);
+      writeFiles(root, { 'scripts/new-tool.ts': '' });
+      assert.deepEqual(missingPaths(root), []);
+    } finally {
+      removeTree(root);
+    }
+  });
+
+  test('reports a path that exists only as a git-ignored file', () => {
+    const root = repoWith({
+      '.gitignore': 'node_modules\ndist\n',
+      [ROOT_DOC]: cited('apps/web/dist/main.js'),
+    });
+    try {
+      writeFiles(root, { 'apps/web/dist/main.js': '' });
+      assert.equal(missingPaths(root).length, 1);
+    } finally {
+      removeTree(root);
+    }
+  });
+});
+
 describe('check-agent-docs: where a missing path was looked for', () => {
   const cases: readonly { name: string; doc: string; line: string; looked: string }[] = [
     { name: 'a root file', doc: ROOT_DOC, line: '`apps/mobile/nope.ts`', looked: 'the repo root' },

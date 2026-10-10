@@ -32,6 +32,7 @@ import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { type Node, Project, type SourceFile, SyntaxKind } from 'ts-morph';
+import { rootFromArgs } from './cli-root';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const SRC_REL = 'apps/mobile/src';
@@ -195,7 +196,8 @@ const layerOf = (srcRelative: string): string | null =>
 
 function isForbidden(fromLayer: string | null, toLayer: string | null): boolean {
   if (fromLayer === null || toLayer === null || fromLayer === toLayer) return false;
-  return LAYERS[fromLayer]?.includes(toLayer) ?? false;
+  // Object.hasOwn: a directory may be called `constructor` or `toString`.
+  return Object.hasOwn(LAYERS, fromLayer) && LAYERS[fromLayer].includes(toLayer);
 }
 
 /** Files that sit where LAYERS has no rule for them: directly in `src`, or in an undeclared directory. */
@@ -210,7 +212,7 @@ function misplacedIn(files: readonly string[]): Violation[] {
         file,
         detail: 'a TypeScript file directly in src/, where no layer rule applies to it',
       });
-    } else if (!(layer in LAYERS) && !TEST_ONLY_DIRS.includes(layer)) {
+    } else if (!Object.hasOwn(LAYERS, layer) && !TEST_ONLY_DIRS.includes(layer)) {
       undeclared.set(layer, (undeclared.get(layer) ?? 0) + 1);
     }
   }
@@ -267,13 +269,52 @@ function measure(src: string): Tree {
   return { counts, files: new Set(files), misplaced: misplacedIn(files) };
 }
 
+/** The baseline file exists and cannot be used. `main` prints the message; nothing overwrites the file. */
+export class BaselineError extends Error {}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+const isCount = (value: unknown): value is number => Number.isInteger(value) && Number(value) >= 0;
+const isCounts = (value: unknown): value is Record<string, number> =>
+  isRecord(value) && Object.values(value).every(isCount);
+
+/** How each rule's entry must be shaped, and how to say so; a rule the file leaves out is empty. */
+const BASELINE_SHAPE: Readonly<
+  Record<keyof Baseline, { holds: string; ok: (value: unknown) => boolean }>
+> = {
+  [RULE.deepImports]: { holds: 'each file to a whole number of imports', ok: isCounts },
+  [RULE.layering]: {
+    holds: 'each file to its targets, and each target to a whole number of imports',
+    ok: (value) => isRecord(value) && Object.values(value).every(isCounts),
+  },
+  [RULE.routes]: { holds: 'each route to a whole number of lines', ok: isCounts },
+};
+
 function readBaseline(baselinePath: string): Baseline | null {
   if (!existsSync(baselinePath)) return null;
-  const parsed = JSON.parse(readFileSync(baselinePath, 'utf8')) as Partial<Baseline>;
+  const invalid = (why: string) =>
+    new BaselineError(
+      `${BASELINE_REL} is not a valid baseline: ${why}. Fix it by hand or restore it with \`git checkout -- ${BASELINE_REL}\`; ${UPDATE_FLAG} does not rewrite a file it cannot read.`,
+    );
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(readFileSync(baselinePath, 'utf8'));
+  } catch (error) {
+    throw invalid(`it is not JSON (${error instanceof Error ? error.message : String(error)})`);
+  }
+  if (!isRecord(parsed)) throw invalid('it is not a JSON object');
+  for (const rule of Object.values(RULE)) {
+    const shape = BASELINE_SHAPE[rule];
+    if (parsed[rule] !== undefined && !shape.ok(parsed[rule])) {
+      throw invalid(`"${rule}" must map ${shape.holds}`);
+    }
+  }
+  const entries = parsed as Partial<Baseline>;
   return {
-    [RULE.deepImports]: parsed[RULE.deepImports] ?? {},
-    [RULE.layering]: parsed[RULE.layering] ?? {},
-    [RULE.routes]: parsed[RULE.routes] ?? {},
+    [RULE.deepImports]: entries[RULE.deepImports] ?? {},
+    [RULE.layering]: entries[RULE.layering] ?? {},
+    [RULE.routes]: entries[RULE.routes] ?? {},
   };
 }
 
@@ -435,7 +476,8 @@ const baselinePathOf = (root: string): string => path.join(root, BASELINE_REL);
 /**
  * Checks the mobile app of the repository at `root` against its baseline.
  * With `update`, the baseline is lowered (or created) first. Returns null
- * when there is no baseline to check against.
+ * when there is no baseline to check against, and throws BaselineError when
+ * there is one that cannot be read.
  */
 export function checkMobileStructure(
   root: string = ROOT,
@@ -457,8 +499,18 @@ export function checkMobileStructure(
   };
 }
 
+function checkOrExit(): ReturnType<typeof checkMobileStructure> {
+  try {
+    return checkMobileStructure(rootFromArgs(ROOT), { update: process.argv.includes(UPDATE_FLAG) });
+  } catch (error) {
+    if (!(error instanceof BaselineError)) throw error;
+    console.error(`\n✗ ${error.message}\n`);
+    process.exit(1);
+  }
+}
+
 function main(): void {
-  const result = checkMobileStructure(ROOT, { update: process.argv.includes(UPDATE_FLAG) });
+  const result = checkOrExit();
   if (!result) {
     console.error(`\n✗ ${BASELINE_REL} is missing. Create it with: ${UPDATE_COMMAND}\n`);
     process.exit(1);
