@@ -13,10 +13,12 @@
  *      root; `../x` only against the citing file's directory). A glob must
  *      match at least one file. Read from inline code, fenced blocks and
  *      Markdown link targets. In a fenced block `../x` is taken as an
- *      example's import and skipped. Not
- *      read: a bare filename, a path in plain prose, and a path whose first
- *      directory does not exist (that is how prose such as `Get/List/Create`
- *      is told apart from a path).
+ *      example's import and skipped, and `./x` is judged only when its first
+ *      directory exists (`./helpers`, `./gradlew` and `./.env.local` are an
+ *      example's own files). Not read: a bare filename, a path in plain
+ *      prose, a token that is only dots and slashes (`./`, `../`), and a path
+ *      whose first directory does not exist (that is how prose such as
+ *      `Get/List/Create` is told apart from a path).
  *   2. Scripts: the first word of a `pnpm` call that is not a flag must be a
  *      script in some package.json of the repository, a binary in a
  *      `node_modules/.bin`, or a pnpm command (PNPM_COMMANDS). That is all:
@@ -32,7 +34,8 @@
  *      with a default cap for any CLAUDE.md the table does not list.
  *   4. Solutions index: `docs/solutions/README.md` must equal what
  *      `scripts/gen-solutions-index.ts` generates. Both sides are read from
- *      the git index (the staged state), never the working tree.
+ *      the last commit (`HEAD`), which is what a push sends and CI checks out,
+ *      never from the git index or the working tree.
  *
  * Runs via `pnpm check:agent-docs`. Exits non-zero on any finding.
  * `--report` prints the findings and exits 0.
@@ -43,11 +46,9 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { rootFromArgs } from './cli-root';
 import {
-  SOLUTIONS_DIR,
-  SOLUTIONS_INDEX_COMMAND,
   SOLUTIONS_INDEX_PATH,
-  SOLUTIONS_INDEX_STATE_READ,
   solutionsIndexIsCurrent,
+  solutionsIndexRemedy,
 } from './gen-solutions-index';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
@@ -335,7 +336,7 @@ function loadRepo(root: string): Repo {
 const SPAN_KIND = {
   /** Inline code: paths and pnpm calls are read from it. */
   code: 'code',
-  /** A line of a fenced block: the same, except that `./x` and `../x` are not relative to this file, and a `#` comment holds no pnpm call. */
+  /** A line of a fenced block: the same, except that `../x` is skipped, `./x` is judged only when its first directory exists, and a `#` comment holds no pnpm call. */
   fence: 'fence',
   /** A JSON string: paths are read from it; pnpm calls only when the string is a command, that is, begins with `pnpm`. */
   json: 'json',
@@ -425,6 +426,8 @@ const ASSIGNMENT_PREFIX = /^(?:--?[\w-]+|[A-Z_][A-Z0-9_]*)=/;
 const QUOTES = /^['"]+|['"]+$/g;
 const FRAGMENT = /[#?].*$/;
 const URL_SCHEME = /^[a-z][a-z0-9+.-]*:/i;
+/** `./`, `../`, `../..`: a directory the command is run in or from, not a citation. */
+const ONLY_DOTS_AND_SLASHES = /^[./]+$/;
 
 const count = (text: string, char: string): number => text.split(char).length - 1;
 
@@ -514,12 +517,15 @@ function missingFrom(repo: Repo, cited: string, bases: readonly string[]): Missi
  * segment is a real entry next to the citing file or at the repo root. That
  * second condition is what keeps prose such as `Get/List/Create`, branch names
  * and URL routes out of the check. A token that starts with `./` or `../`
- * says it is a path itself.
+ * says it is a path itself, except `./x` in a fenced block, where it may as
+ * well be an import or a file of the example: there the first segment after
+ * the `./` must exist, as for any other token.
  */
 function checkPath(repo: Repo, token: string, citingDir: string, fenced: boolean): Missing | null {
   const cleaned = pathInToken(token);
   if (!PATH_TOKEN.test(cleaned)) return null;
   if (cleaned.startsWith('@') || cleaned.startsWith('/')) return null;
+  if (ONLY_DOTS_AND_SLASHES.test(cleaned)) return null;
 
   // `../x` is relative to the citing file, except in a fenced block, where it
   // is an import specifier of the example's own file. `./x` is run from
@@ -527,8 +533,8 @@ function checkPath(repo: Repo, token: string, citingDir: string, fenced: boolean
   const climbs = cleaned.startsWith('../');
   if (fenced && climbs) return null;
   const bases = climbs ? [citingDir] : [citingDir, '.'];
-  const explicitlyRelative = climbs || cleaned.startsWith('./');
-  const firstSegment = cleaned.split('/')[0];
+  const explicitlyRelative = climbs || (!fenced && cleaned.startsWith('./'));
+  const firstSegment = cleaned.replace(/^\.\//, '').split('/')[0];
   const anchored =
     explicitlyRelative ||
     GLOB_CHARS.test(firstSegment) ||
@@ -666,7 +672,7 @@ function indexFindings(root: string): Finding[] {
       file: SOLUTIONS_INDEX_PATH,
       line: 1,
       kind: FINDING_KIND.staleIndex,
-      message: `does not match the solution documents. ${SOLUTIONS_INDEX_STATE_READ} Run: ${SOLUTIONS_INDEX_COMMAND} && git add ${SOLUTIONS_DIR}`,
+      message: `does not match the solution documents. ${solutionsIndexRemedy(root)}`,
     },
   ];
 }

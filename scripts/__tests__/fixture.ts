@@ -22,6 +22,9 @@ for (const name of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_PREFIX'])
 // in-process and the ones spawned as a CLI inherit it too.
 process.env.GIT_CONFIG_GLOBAL = devNull;
 process.env.GIT_CONFIG_NOSYSTEM = '1';
+// With no global configuration there is no identity to commit as.
+process.env.GIT_AUTHOR_NAME = process.env.GIT_COMMITTER_NAME = 'fixture';
+process.env.GIT_AUTHOR_EMAIL = process.env.GIT_COMMITTER_EMAIL = 'fixture@example.invalid';
 
 const git = (root: string, ...args: string[]): void => {
   execFileSync('git', args, { cwd: root, stdio: 'ignore' });
@@ -42,7 +45,7 @@ export function makeTree(files: Files): string {
   return root;
 }
 
-/** A git repository with `files` in its index. Nothing is committed: the guards read the index. */
+/** A git repository with `files` in its index. Nothing is committed: see `commit`. */
 export function makeRepo(files: Files): string {
   const root = makeTree(files);
   git(root, 'init', '--quiet');
@@ -53,6 +56,11 @@ export function makeRepo(files: Files): string {
 /** Stages everything that is not ignored. */
 export function track(root: string): void {
   git(root, 'add', '--all');
+}
+
+/** Commits what is staged. The solutions-index check reads the last commit, nothing else. */
+export function commit(root: string): void {
+  git(root, 'commit', '--quiet', '--no-verify', '--allow-empty', '--message=fixture');
 }
 
 export function removeTree(root: string): void {

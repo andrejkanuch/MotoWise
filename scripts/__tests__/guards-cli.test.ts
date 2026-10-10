@@ -4,12 +4,17 @@
  * so a guard that printed its findings and exited 0 would pass all of them.
  */
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { execSync, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, test } from 'node:test';
-import { renderSolutionsIndex, SOLUTIONS_INDEX_PATH } from '../gen-solutions-index';
-import { type Files, makeRepo, makeTree, removeTree, track, writeFiles } from './fixture';
+import {
+  renderSolutionsIndex,
+  SOLUTIONS_INDEX_COMMAND,
+  SOLUTIONS_INDEX_PATH,
+  SOLUTIONS_INDEX_REMEDY,
+} from '../gen-solutions-index';
+import { commit, type Files, makeRepo, makeTree, removeTree, track, writeFiles } from './fixture';
 
 const REPO = path.resolve(import.meta.dirname, '../..');
 const TSX = path.join(REPO, 'node_modules/.bin/tsx');
@@ -24,15 +29,17 @@ type Script = (typeof SCRIPT)[keyof typeof SCRIPT];
 const OK = 0;
 const FAILED = 1;
 
-/** Runs a guard on the tree at `root` and returns how the process ended. */
-function run(script: Script, root: string, ...flags: string[]) {
-  const { status, stdout, stderr } = spawnSync(
-    TSX,
-    [path.join(REPO, script), `--root=${root}`, ...flags],
-    { encoding: 'utf8' },
-  );
+/** Runs a guard with exactly `args` and returns how the process ended. */
+function runWith(script: Script, ...args: string[]) {
+  const { status, stdout, stderr } = spawnSync(TSX, [path.join(REPO, script), ...args], {
+    encoding: 'utf8',
+  });
   return { status, stdout, stderr };
 }
+
+/** Runs a guard on the tree at `root`. */
+const run = (script: Script, root: string, ...flags: string[]) =>
+  runWith(script, `--root=${root}`, ...flags);
 
 function withTree(root: string, body: (root: string) => void): void {
   try {
@@ -54,6 +61,7 @@ describe('check-agent-docs as a CLI', () => {
     const root = makeRepo({ ...BASE, 'CLAUDE.md': doc });
     writeFiles(root, { [SOLUTIONS_INDEX_PATH]: renderSolutionsIndex(root) });
     track(root);
+    commit(root);
     return root;
   };
   const CLEAN = '`scripts/tool.ts` and `pnpm lint`\n';
@@ -63,7 +71,8 @@ describe('check-agent-docs as a CLI', () => {
     withTree(repoWith(CLEAN), (root) => {
       const { status, stdout, stderr } = run(SCRIPT.agentDocs, root);
       assert.equal(status, OK, stderr);
-      assert.match(stdout, /instruction files OK/);
+      // One file: the fixture's. The real checkout has more, so this fails if --root is ignored.
+      assert.match(stdout, /instruction files OK — 1 files/);
     });
   });
 
@@ -145,35 +154,121 @@ describe('check-mobile-structure as a CLI', () => {
   }
 });
 
-describe('gen-solutions-index --check as a CLI', () => {
-  const DOCS: Files = { 'docs/solutions/ui-bugs/a-bug.md': '# A bug\n' };
+describe('--root', () => {
+  const STACK_FRAME = /\n\s+at /;
+  const BAD: readonly { name: string; args: readonly string[] }[] = [
+    { name: 'an empty --root=', args: ['--root='] },
+    { name: 'a bare --root', args: ['--root'] },
+    { name: 'the space form', args: ['--root', REPO] },
+    { name: 'a directory that does not exist', args: [`--root=${path.join(REPO, 'no-such-dir')}`] },
+    { name: 'a file', args: [`--root=${path.join(REPO, 'package.json')}`] },
+  ];
+  for (const script of Object.values(SCRIPT)) {
+    for (const { name, args } of BAD) {
+      test(`${script} exits 1 with one line for ${name}`, () => {
+        const { status, stdout, stderr } = runWith(script, ...args);
+        assert.equal(status, FAILED, stdout);
+        assert.match(stderr, /^✗ --root.*\n$/);
+        assert.doesNotMatch(stderr, STACK_FRAME);
+        assert.equal(stdout, '');
+      });
+    }
+  }
+});
 
-  test('exits 0 when the staged index is current', () => {
-    const root = makeRepo(DOCS);
+describe('gen-solutions-index as a CLI', () => {
+  const DOCS: Files = { 'docs/solutions/ui-bugs/a-bug.md': '# A bug\n' };
+  const NEW_DOC = 'docs/solutions/ui-bugs/b.md';
+  const DRAFT = 'docs/solutions/ui-bugs/zz-draft.md';
+  const check = (root: string) => run(SCRIPT.solutionsIndex, root, '--check');
+  const sh = (root: string, command: string): string =>
+    execSync(command, { cwd: root, encoding: 'utf8' });
+  /** A repository whose last commit holds `files` and a current index. */
+  const committed = (files: Files): string => {
+    const root = makeRepo(files);
     writeFiles(root, { [SOLUTIONS_INDEX_PATH]: renderSolutionsIndex(root) });
     track(root);
-    withTree(root, () => {
-      const { status, stdout, stderr } = run(SCRIPT.solutionsIndex, root, '--check');
+    commit(root);
+    return root;
+  };
+  /** The same, then a commit that adds a document without regenerating the index. */
+  const committedStale = (): string => {
+    const root = committed(DOCS);
+    writeFiles(root, { [NEW_DOC]: '# B\n' });
+    track(root);
+    commit(root);
+    return root;
+  };
+
+  test('--check exits 0 when the committed index is current', () => {
+    withTree(committed(DOCS), (root) => {
+      const { status, stdout, stderr } = check(root);
       assert.equal(status, OK, stderr);
       assert.match(stdout, /up to date/);
     });
   });
 
-  test('exits 1 when it is stale, and says which state it read', () => {
-    withTree(makeRepo({ ...DOCS, [SOLUTIONS_INDEX_PATH]: '# Solved problems\n' }), (root) => {
-      const { status, stderr } = run(SCRIPT.solutionsIndex, root, '--check');
+  test('--check exits 1 when it is stale, and says which state it read', () => {
+    withTree(committedStale(), (root) => {
+      const { status, stderr } = check(root);
       assert.equal(status, FAILED, stderr);
       assert.match(stderr, /is stale/);
-      assert.match(stderr, /git index/);
+      assert.match(stderr, /last commit \(HEAD\)/);
     });
   });
 
-  test('without --check it writes the index, which is current once staged', () => {
+  test('--check exits 0 in a repository with no commit', () => {
     withTree(makeRepo(DOCS), (root) => {
-      assert.equal(run(SCRIPT.solutionsIndex, root).status, OK);
-      assert.equal(run(SCRIPT.solutionsIndex, root, '--check').status, FAILED);
+      const { status, stdout, stderr } = check(root);
+      assert.equal(status, OK, stderr);
+      assert.match(stdout, /no commit/);
+    });
+  });
+
+  test('--check judges the commit a push sends, not what is staged', () => {
+    withTree(committed(DOCS), (root) => {
+      // A staged document that is not committed does not block a push of clean commits.
+      writeFiles(root, { [NEW_DOC]: '# B\n' });
       track(root);
-      assert.equal(run(SCRIPT.solutionsIndex, root, '--check').status, OK);
+      assert.equal(check(root).status, OK);
+      commit(root);
+      // A regenerated index that is staged but not committed does not make the commit current.
+      assert.equal(run(SCRIPT.solutionsIndex, root).status, OK);
+      sh(root, `git add ${SOLUTIONS_INDEX_PATH}`);
+      const { status, stderr } = check(root);
+      assert.equal(status, FAILED, stderr);
+      assert.match(stderr, /staged index is current.*git commit/);
+      commit(root);
+      assert.equal(check(root).status, OK);
+    });
+  });
+
+  test('the printed steps work on the first run and leave an untracked draft alone', () => {
+    withTree(committedStale(), (root) => {
+      writeFiles(root, { [DRAFT]: '# Draft\n', 'docs/solutions/ui-bugs/a-bug.md': '# Retitled\n' });
+      const { status, stderr } = check(root);
+      assert.equal(status, FAILED, stderr);
+      assert.ok(stderr.includes(SOLUTIONS_INDEX_REMEDY.join(' && ')), stderr);
+      for (const step of SOLUTIONS_INDEX_REMEDY) {
+        if (step === SOLUTIONS_INDEX_COMMAND)
+          assert.equal(run(SCRIPT.solutionsIndex, root).status, OK);
+        else sh(root, step === 'git commit' ? `${step} --quiet --message=index` : step);
+      }
+      assert.equal(check(root).status, OK);
+      assert.equal(sh(root, 'git status --porcelain'), `?? ${DRAFT}\n`);
+      const index = sh(root, `git show HEAD:${SOLUTIONS_INDEX_PATH}`);
+      assert.ok(index.includes('Retitled') && index.includes('b.md'), index);
+      assert.equal(index.includes('zz-draft'), false, index);
+    });
+  });
+
+  test('without --check it names what it did not read', () => {
+    withTree(committed(DOCS), (root) => {
+      writeFiles(root, { [DRAFT]: '# Draft\n', 'docs/solutions/ui-bugs/a-bug.md': '# Retitled\n' });
+      const { status, stdout } = run(SCRIPT.solutionsIndex, root);
+      assert.equal(status, OK);
+      assert.match(stdout, /Not read, because not staged/);
+      assert.ok(stdout.includes(DRAFT) && stdout.includes('a-bug.md'), stdout);
     });
   });
 });

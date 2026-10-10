@@ -1,5 +1,6 @@
 /** gen-solutions-index: which documents the index lists. */
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { rmSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
@@ -8,7 +9,7 @@ import {
   SOLUTIONS_INDEX_PATH,
   solutionsIndexIsCurrent,
 } from '../gen-solutions-index';
-import { type Files, makeRepo, removeTree, track, writeFiles } from './fixture';
+import { commit, type Files, makeRepo, removeTree, track, writeFiles } from './fixture';
 
 const TRACKED: Files = {
   'docs/solutions/ui-bugs/a-bug.md': '---\ntitle: A bug\nmodule: mobile\nsymptom: It breaks\n---\n',
@@ -65,14 +66,17 @@ for (const { name, add, tracked, row } of cases) {
   });
 }
 
-test('the index is the same with and without an untracked draft', () => {
+test('the check is the same with and without an untracked or a staged draft', () => {
   withRepo(TRACKED, (root) => {
     writeFiles(root, { [SOLUTIONS_INDEX_PATH]: renderSolutionsIndex(root) });
     track(root);
+    commit(root);
     assert.equal(solutionsIndexIsCurrent(root), true);
     writeFiles(root, { 'docs/solutions/ui-bugs/zz-draft.md': '# Draft\n' });
     assert.equal(solutionsIndexIsCurrent(root), true);
     track(root);
+    assert.equal(solutionsIndexIsCurrent(root), true);
+    commit(root);
     assert.equal(solutionsIndexIsCurrent(root), false);
   });
 });
@@ -90,23 +94,47 @@ test('the index is built from the staged state, not the working tree', () => {
   });
 });
 
-test('a regenerated index is current once it is staged', () => {
+test('a regenerated index is current once it is committed, not once it is staged', () => {
   withRepo(TRACKED, (root) => {
-    writeFiles(root, { [SOLUTIONS_INDEX_PATH]: renderSolutionsIndex(root) });
+    commit(root);
     assert.equal(solutionsIndexIsCurrent(root), false);
+    writeFiles(root, { [SOLUTIONS_INDEX_PATH]: renderSolutionsIndex(root) });
     track(root);
+    assert.equal(solutionsIndexIsCurrent(root), false);
+    commit(root);
     assert.equal(solutionsIndexIsCurrent(root), true);
-    writeFiles(root, { [SOLUTIONS_INDEX_PATH]: 'edited, not staged\n' });
+    writeFiles(root, { [SOLUTIONS_INDEX_PATH]: 'edited, not committed\n' });
+    track(root);
     assert.equal(solutionsIndexIsCurrent(root), true);
   });
 });
 
 test('the index does not list itself, and a missing index is not current', () => {
   withRepo(TRACKED, (root) => {
+    commit(root);
     assert.equal(solutionsIndexIsCurrent(root), false);
     writeFiles(root, { [SOLUTIONS_INDEX_PATH]: renderSolutionsIndex(root) });
     track(root);
+    commit(root);
     assert.equal(renderSolutionsIndex(root).includes('README.md'), false);
+    assert.equal(solutionsIndexIsCurrent(root), true);
+  });
+});
+
+test('a repository with no commit has nothing to push, so nothing is stale', () => {
+  withRepo(TRACKED, (root) => {
+    assert.equal(solutionsIndexIsCurrent(root), true);
+  });
+});
+
+test('a detached HEAD is read like any other', () => {
+  withRepo(TRACKED, (root) => {
+    commit(root);
+    execFileSync('git', ['checkout', '--quiet', '--detach'], { cwd: root });
+    assert.equal(solutionsIndexIsCurrent(root), false);
+    writeFiles(root, { [SOLUTIONS_INDEX_PATH]: renderSolutionsIndex(root) });
+    track(root);
+    commit(root);
     assert.equal(solutionsIndexIsCurrent(root), true);
   });
 });

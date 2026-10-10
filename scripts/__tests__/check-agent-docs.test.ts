@@ -10,7 +10,7 @@ import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
 import { checkAgentDocs } from '../check-agent-docs';
 import { renderSolutionsIndex, SOLUTIONS_INDEX_PATH } from '../gen-solutions-index';
-import { type Files, lines, makeRepo, removeTree, track, writeFiles } from './fixture';
+import { commit, type Files, lines, makeRepo, removeTree, track, writeFiles } from './fixture';
 
 const findingsIn = (root: string) => checkAgentDocs(root).findings;
 
@@ -83,6 +83,34 @@ const PATH_CASES: readonly Case[] = [
     fenced: true,
     expect: NONE,
   },
+  {
+    name: './x import specifier in a fenced example',
+    line: "import { a } from './helpers';",
+    fenced: true,
+    expect: NONE,
+  },
+  {
+    name: './gradlew in a fenced command',
+    line: 'cd android && ./gradlew assembleRelease',
+    fenced: true,
+    expect: NONE,
+  },
+  {
+    name: 'git-ignored ./file in a fenced command',
+    line: 'source ./.env.local',
+    fenced: true,
+    expect: NONE,
+  },
+  {
+    name: 'existing ./path in a fence of a nested file',
+    line: './src/lib/logger.ts',
+    fenced: true,
+    doc: MOBILE_DOC,
+    expect: NONE,
+  },
+  { name: 'the current directory as a copy target', line: '`cp -r scripts ./`', expect: NONE },
+  { name: 'the parent directory', line: '`cd ../`', expect: NONE },
+  { name: 'two directories up', line: '`cd ../..`', expect: NONE },
   { name: 'link to an existing file', line: '[guide](docs/guide.md)', expect: NONE },
   { name: 'link with an anchor', line: '[guide](docs/guide.md#section)', expect: NONE },
   { name: 'link to a URL', line: '[site](https://example.com/apps/nope.md)', expect: NONE },
@@ -159,6 +187,13 @@ const PATH_CASES: readonly Case[] = [
     name: 'missing ./path in a fence',
     line: './apps/mobile/nope.sh',
     fenced: true,
+    expect: [KIND.missingPath],
+  },
+  {
+    name: 'missing ./path in a fence of a nested file',
+    line: './src/lib/nope.ts',
+    fenced: true,
+    doc: MOBILE_DOC,
     expect: [KIND.missingPath],
   },
   {
@@ -383,11 +418,12 @@ function layOut(cases: readonly Case[]): { docs: Files; lineOf: Map<Case, number
   return { docs, lineOf };
 }
 
-/** A repository whose solutions index is current, so only the files under test can produce findings. */
+/** A repository whose committed solutions index is current, so only the files under test can produce findings. */
 function repoWith(files: Files): string {
   const root = makeRepo({ ...TREE, ...files });
   writeFiles(root, { [SOLUTIONS_INDEX_PATH]: renderSolutionsIndex(root) });
   track(root);
+  commit(root);
   return root;
 }
 
@@ -510,6 +546,7 @@ describe('check-agent-docs: pnpm calls outside Markdown code', () => {
     try {
       writeFiles(root, { [SOLUTIONS_INDEX_PATH]: renderSolutionsIndex(root) });
       track(root);
+      commit(root);
       const result = checkAgentDocs(root);
       assert.deepEqual(result.findings, []);
       assert.equal(result.pnpmCallsChecked, false);
@@ -610,54 +647,74 @@ describe('check-agent-docs: budgets', () => {
 
 describe('check-agent-docs: solutions index', () => {
   const DOC = 'docs/solutions/ui-bugs/a-bug.md';
-  const staleIn = (root: string): boolean =>
-    findingsIn(root).some((finding) => finding.kind === KIND.staleIndex);
-
-  test('accepts a current index, reports one that misses a tracked document', () => {
-    const root = repoWith({ [DOC]: '# A bug\n' });
+  const ANOTHER = 'docs/solutions/ui-bugs/another.md';
+  const staleFindings = (root: string) =>
+    findingsIn(root).filter((finding) => finding.kind === KIND.staleIndex);
+  const staleIn = (root: string): boolean => staleFindings(root).length > 0;
+  const withRepo = (files: Files, body: (root: string) => void): void => {
+    const root = repoWith(files);
     try {
-      assert.equal(staleIn(root), false);
-      writeFiles(root, { 'docs/solutions/ui-bugs/another.md': '# Another\n' });
-      track(root);
-      assert.equal(staleIn(root), true);
+      body(root);
     } finally {
       removeTree(root);
     }
+  };
+
+  test('accepts a current index, reports one that misses a committed document', () => {
+    withRepo({ [DOC]: '# A bug\n' }, (root) => {
+      assert.equal(staleIn(root), false);
+      writeFiles(root, { [ANOTHER]: '# Another\n' });
+      track(root);
+      commit(root);
+      assert.equal(staleIn(root), true);
+    });
   });
 
-  test('reads the staged state: an unstaged delete or edit of a document changes nothing', () => {
-    const root = repoWith({ [DOC]: '# A bug\n', 'docs/solutions/ui-bugs/b.md': '# B\n' });
-    try {
+  test('reads the last commit: a staged or unstaged change of a document changes nothing', () => {
+    withRepo({ [DOC]: '# A bug\n', 'docs/solutions/ui-bugs/b.md': '# B\n' }, (root) => {
       rmSync(path.join(root, DOC));
-      writeFiles(root, { 'docs/solutions/ui-bugs/b.md': '# Retitled\n' });
+      writeFiles(root, { 'docs/solutions/ui-bugs/b.md': '# Retitled\n', [ANOTHER]: '# Another\n' });
       assert.equal(staleIn(root), false);
       track(root);
+      assert.equal(staleIn(root), false);
+      commit(root);
       assert.equal(staleIn(root), true);
-    } finally {
-      removeTree(root);
-    }
+    });
   });
 
-  test('the stale message says which state was read', () => {
-    const root = repoWith({ [DOC]: '# A bug\n' });
-    try {
-      writeFiles(root, { 'docs/solutions/ui-bugs/another.md': '# Another\n' });
+  test('a regenerated index that is staged but not committed is still stale, and the message says to commit', () => {
+    withRepo({ [DOC]: '# A bug\n' }, (root) => {
+      writeFiles(root, { [ANOTHER]: '# Another\n' });
       track(root);
-      const [finding] = findingsIn(root).filter((found) => found.kind === KIND.staleIndex);
-      assert.match(finding.message, /git index/);
-      assert.match(finding.message, /git add docs\/solutions/);
-    } finally {
-      removeTree(root);
-    }
+      commit(root);
+      writeFiles(root, { [SOLUTIONS_INDEX_PATH]: renderSolutionsIndex(root) });
+      track(root);
+      const [finding] = staleFindings(root);
+      assert.match(finding.message, /last commit \(HEAD\)/);
+      assert.match(finding.message, /staged index is current.*git commit/);
+      commit(root);
+      assert.equal(staleIn(root), false);
+    });
+  });
+
+  test('the stale message gives the steps in an order that works, ending in a commit', () => {
+    withRepo({ [DOC]: '# A bug\n' }, (root) => {
+      writeFiles(root, { [ANOTHER]: '# Another\n' });
+      track(root);
+      commit(root);
+      const [finding] = staleFindings(root);
+      assert.match(finding.message, /last commit \(HEAD\)/);
+      assert.match(
+        finding.message,
+        /git add -u docs\/solutions && pnpm exec tsx scripts\/gen-solutions-index\.ts && git add docs\/solutions\/README\.md && git commit/,
+      );
+    });
   });
 
   test('accepts an untracked draft beside a current index', () => {
-    const root = repoWith({ [DOC]: '# A bug\n' });
-    try {
+    withRepo({ [DOC]: '# A bug\n' }, (root) => {
       writeFiles(root, { 'docs/solutions/ui-bugs/zz-draft.md': '# Draft\n' });
       assert.equal(staleIn(root), false);
-    } finally {
-      removeTree(root);
-    }
+    });
   });
 });

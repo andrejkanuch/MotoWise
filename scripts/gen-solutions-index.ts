@@ -4,21 +4,31 @@
  *
  * `docs/solutions/` is where solved problems are written up, and an agent can
  * only use a write-up it can find. This script writes `docs/solutions/README.md`
- * from the front matter of every document staged there, at any depth: one
- * row per document with its path, title, module and symptom, grouped by
- * category directory.
+ * from the front matter of every document there, at any depth: one row per
+ * document with its path, title, module and symptom, grouped by category
+ * directory.
  *
- * Everything is read from the git index (what `git add` has staged), never
- * from the working tree: which documents exist, their content, and, for the
- * check, the index file itself. A commit of the staged state is what CI
- * checks out, so the answer here and there is the same. An untracked draft,
- * an unstaged edit and an unstaged delete are not seen until they are staged.
+ * The two modes read two states of the repository, neither the working tree:
  *
- *   git add docs/solutions && pnpm exec tsx scripts/gen-solutions-index.ts   rewrite the index
- *   pnpm exec tsx scripts/gen-solutions-index.ts --check                      exit 1 if it is stale
+ *   - Writing reads the git index (what `git add` has staged): which
+ *     documents exist and their content. An untracked draft, an unstaged edit
+ *     and an unstaged delete are not in the file it writes; it names them.
+ *   - `--check` reads the last commit (`HEAD`): the documents and the index
+ *     file. That commit is what `git push` sends and what CI checks out, so
+ *     pre-push and CI judge the same content. Nothing staged or unstaged
+ *     changes the answer, in either direction: a regenerated index passes
+ *     only once it is committed, and a staged document that is not committed
+ *     does not block a push. A repository with no commit passes: there is
+ *     nothing to push. (On a pull request CI checks out the merge with the
+ *     base branch, so a document added on the base since the branch was cut
+ *     can still make CI fail where pre-push passed.)
  *
- * `pnpm check:agent-docs` runs the same comparison, so adding a solution
- * document without regenerating and staging the index fails the check.
+ *   pnpm exec tsx scripts/gen-solutions-index.ts           rewrite the index from the staged documents
+ *   pnpm exec tsx scripts/gen-solutions-index.ts --check   exit 1 if the committed index is stale
+ *
+ * The steps that update it are SOLUTIONS_INDEX_REMEDY below, in that order.
+ * `pnpm check:agent-docs` runs the same check, so committing a solution
+ * document without regenerating and committing the index fails it.
  */
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
@@ -37,9 +47,25 @@ const NO_CATEGORY = '(no category)';
 
 export const SOLUTIONS_INDEX_PATH = `${SOLUTIONS_DIR}/${INDEX_NAME}`;
 export const SOLUTIONS_INDEX_COMMAND = 'pnpm exec tsx scripts/gen-solutions-index.ts';
-/** Said wherever the index is reported stale, so an unstaged edit is not a mystery. */
-export const SOLUTIONS_INDEX_STATE_READ =
-  'Both are read from the git index (the staged state), not the working tree: an edit, a new document or a delete that is not staged is not seen.';
+const COMMIT_COMMAND = 'git commit';
+/**
+ * What makes a stale index current, in an order that works on the first run.
+ * `git add -u` stages edits and deletes of tracked documents and never an
+ * untracked file, so a draft is not swept into the commit.
+ */
+export const SOLUTIONS_INDEX_REMEDY = [
+  `git add -u ${SOLUTIONS_DIR}`,
+  SOLUTIONS_INDEX_COMMAND,
+  `git add ${SOLUTIONS_INDEX_PATH}`,
+  COMMIT_COMMAND,
+] as const;
+/** Said wherever the index is reported stale, so a fix that is not committed is not a mystery. */
+const STATE_CHECKED =
+  'Both are read from the last commit (HEAD), which is what a push sends and CI checks out: nothing staged or in the working tree is seen.';
+
+/** The states of the repository a file can be read from: the prefix of `<state>:<path>`. */
+const STATE = { index: '', head: 'HEAD' } as const;
+type State = (typeof STATE)[keyof typeof STATE];
 
 /** Front matter keys that name what a document is about, in order of preference. */
 const MODULE_KEYS = ['module', 'modules', 'affected_modules', 'component', 'components'] as const;
@@ -115,9 +141,29 @@ function rowFor(file: string, content: string): Row {
 const GIT_BUFFER = 256 * 1024 * 1024;
 const NEWLINE = 0x0a;
 
-/** The staged Markdown files under `docs/solutions/`, the index file included. */
-function stagedFiles(root: string): string[] {
-  return execFileSync('git', ['ls-files', '--cached', '-z', '--', SOLUTIONS_DIR], {
+const GIT_NOT_FOUND = 1;
+
+/** False in a repository with no commit yet. A detached HEAD is a commit like any other. */
+function hasCommit(root: string): boolean {
+  try {
+    execFileSync('git', ['rev-parse', '--verify', '--quiet', `${STATE.head}^{commit}`], {
+      cwd: root,
+      stdio: 'ignore',
+    });
+    return true;
+  } catch (error) {
+    if ((error as { status?: number }).status === GIT_NOT_FOUND) return false;
+    throw error;
+  }
+}
+
+/** The Markdown files under `docs/solutions/` in `state`, the index file included. */
+function filesIn(root: string, state: State): string[] {
+  const list =
+    state === STATE.head
+      ? ['ls-tree', '-r', '-z', '--name-only', STATE.head]
+      : ['ls-files', '--cached', '-z'];
+  return execFileSync('git', [...list, '--', SOLUTIONS_DIR], {
     cwd: root,
     encoding: 'utf8',
     maxBuffer: GIT_BUFFER,
@@ -126,15 +172,16 @@ function stagedFiles(root: string): string[] {
     .filter((file) => file.endsWith('.md'));
 }
 
-/** The staged content of each file, in one git call. A file with nothing staged is left out. */
-function stagedContent(root: string, files: readonly string[]): Map<string, string> {
+/** The content of each file in `state`, in one git call. A file that is not a blob there is left out. */
+function contentIn(root: string, state: State): Map<string, string> {
+  const files = filesIn(root, state);
   const contents = new Map<string, string>();
   if (files.length === 0) return contents;
-  // `git cat-file --batch` answers each `:<path>` with `<oid> <type> <size>\n<content>\n`,
+  // `git cat-file --batch` answers each `<state>:<path>` with `<oid> <type> <size>\n<content>\n`,
   // or with one line ending in `missing`.
   const out = execFileSync('git', ['cat-file', '--batch'], {
     cwd: root,
-    input: files.map((file) => `:${file}\n`).join(''),
+    input: files.map((file) => `${state}:${file}\n`).join(''),
     maxBuffer: GIT_BUFFER,
   });
   let at = 0;
@@ -172,11 +219,11 @@ const cell = (text: string): string => text.replace(/\|/g, '\\|').replace(/\s+/g
 
 /** The full text of the index, built from the staged documents of the repository at `root`. */
 export function renderSolutionsIndex(root: string = ROOT): string {
-  return render(stagedContent(root, stagedFiles(root)));
+  return render(contentIn(root, STATE.index));
 }
 
-function render(staged: ReadonlyMap<string, string>): string {
-  const documents = [...staged.keys()].filter((file) => file !== SOLUTIONS_INDEX_PATH);
+function render(contents: ReadonlyMap<string, string>): string {
+  const documents = [...contents.keys()].filter((file) => file !== SOLUTIONS_INDEX_PATH);
   const out: string[] = [
     '# Solved problems',
     '',
@@ -185,7 +232,7 @@ function render(staged: ReadonlyMap<string, string>): string {
     'One row per document. Search this file for a symptom or a module before debugging something that may already have been solved. A dash means the document does not state that field.',
   ];
   for (const [category, files] of inIndexOrder(byCategory(documents))) {
-    const rows = [...files].sort().map((file) => rowFor(file, staged.get(file) ?? ''));
+    const rows = [...files].sort().map((file) => rowFor(file, contents.get(file) ?? ''));
     const categoryDir = category === NO_CATEGORY ? SOLUTIONS_DIR : `${SOLUTIONS_DIR}/${category}`;
     out.push(
       '',
@@ -204,14 +251,34 @@ function render(staged: ReadonlyMap<string, string>): string {
   return `${out.join('\n')}\n`;
 }
 
-/** True when the staged index file equals what the staged documents would generate. */
-export function solutionsIndexIsCurrent(root: string = ROOT): boolean {
+/** True when the index file in `state` equals what the documents in `state` would generate. */
+function isCurrentIn(root: string, state: State): boolean {
   try {
-    const staged = stagedContent(root, stagedFiles(root));
-    return staged.get(SOLUTIONS_INDEX_PATH) === render(staged);
+    const contents = contentIn(root, state);
+    return contents.get(SOLUTIONS_INDEX_PATH) === render(contents);
   } catch {
     return false;
   }
+}
+
+/**
+ * True when the committed index file equals what the committed documents
+ * would generate, or when nothing is committed yet.
+ */
+export function solutionsIndexIsCurrent(root: string = ROOT): boolean {
+  try {
+    return !hasCommit(root) || isCurrentIn(root, STATE.head);
+  } catch {
+    return false;
+  }
+}
+
+/** What to do about a stale index: only the commit, when the fix is already staged. */
+export function solutionsIndexRemedy(root: string = ROOT): string {
+  if (isCurrentIn(root, STATE.index)) {
+    return `${STATE_CHECKED} The staged index is current, so only the commit is missing: ${COMMIT_COMMAND}`;
+  }
+  return `${STATE_CHECKED} Run, in this order: ${SOLUTIONS_INDEX_REMEDY.join(' && ')}. A new document is listed once it is staged, so git add it by its path first.`;
 }
 
 /** Paths under `docs/solutions/` whose working-tree state is not what is staged, the index file aside. */
@@ -238,17 +305,19 @@ function main(): void {
   const root = rootFromArgs(ROOT);
   if (process.argv.includes(CHECK_FLAG)) {
     if (solutionsIndexIsCurrent(root)) {
-      console.log(`✓ ${SOLUTIONS_INDEX_PATH} is up to date (staged state)`);
+      console.log(
+        hasCommit(root)
+          ? `✓ ${SOLUTIONS_INDEX_PATH} is up to date (last commit)`
+          : `✓ ${SOLUTIONS_INDEX_PATH} was not checked: this repository has no commit`,
+      );
       return;
     }
-    console.error(
-      `✗ ${SOLUTIONS_INDEX_PATH} is stale. ${SOLUTIONS_INDEX_STATE_READ} Run: ${SOLUTIONS_INDEX_COMMAND} && git add ${SOLUTIONS_DIR}`,
-    );
+    console.error(`✗ ${SOLUTIONS_INDEX_PATH} is stale. ${solutionsIndexRemedy(root)}`);
     process.exit(1);
   }
   writeFileSync(path.join(root, SOLUTIONS_INDEX_PATH), renderSolutionsIndex(root));
   console.log(
-    `wrote ${SOLUTIONS_INDEX_PATH} from the staged documents. Stage it: git add ${SOLUTIONS_INDEX_PATH}`,
+    `wrote ${SOLUTIONS_INDEX_PATH} from the staged documents. The check reads the last commit: git add ${SOLUTIONS_INDEX_PATH} && ${COMMIT_COMMAND}`,
   );
   const unstaged = [...new Set(unstagedChanges(root))];
   if (unstaged.length > 0) {
