@@ -59,7 +59,7 @@ Turborepo + pnpm workspaces. This file holds only what applies everywhere; each 
 
 ## Guards that will fail a push
 - Git hooks live in `.githooks`. pre-commit runs GraphQL codegen when a `.graphql` file or the schema is staged and fails if generated output would change. pre-push runs `pnpm precheck:push`
-- `pnpm precheck:push` — Biome on changed files, then typecheck, test and `pnpm check:i18n`. Use `git push --no-verify` only when intentional
+- `pnpm precheck:push` — Biome on changed files, then `check:agent-docs`, `check:mobile-structure`, typecheck, test and `pnpm check:i18n`. Use `git push --no-verify` only when intentional
 - `pnpm check:arch` (package boundaries), `pnpm check:api-bans`, `pnpm check:router`, `pnpm check:mobile-colors`, `pnpm check:store-copy`
 - `pnpm check:agent-docs` — this file and its siblings may cite only paths and scripts that exist, within size budgets
 - `pnpm check:mobile-structure` (mobile imports, layering, route size), `pnpm check:deadcode` (unused mobile files)

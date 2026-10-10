@@ -17,7 +17,7 @@ each app and package. `pnpm check:agent-docs` fails if a path cited here stops e
 | `apps/mobile/src/app/(tabs)/(garage)/` | Bike hub (`bike/`), expenses, maintenance tasks, documents, notes, odometer |
 | `apps/mobile/src/app/(modals)/` | Ride flow, trips, group rides, receipt scan, recalls, CarPlay screens |
 | `apps/mobile/src/app/(onboarding)/`, `apps/mobile/src/app/(auth)/` | Onboarding flow including the paywall; login and register |
-| `apps/mobile/src/features/` | Vertical slices: `carplay`, `ride`, `receipt-scan`, `create-trip` |
+| `apps/mobile/src/features/` | Vertical slices: `carplay`, `ride`, `receipt-scan`, `create-trip`. `apps/mobile/src/features/create-trip/index.ts` is the one barrel file that exists; add no more |
 | `apps/mobile/src/components/` | UI by domain (`bike-hub`, `ride`, `garage`, `maintenance`, `discover`, `trip`, `onboarding`, …); shared primitives in `ui/`, `shared/`, `skeleton/` |
 | `apps/mobile/src/lib/` | Infrastructure: GraphQL client, query keys and options, Supabase, secure storage, analytics, subscription, notifications, widgets sync |
 | `apps/mobile/src/lib/bike-hub/` | The bike hub's pure logic: segments, attention, task due dates, costs, recalls |
@@ -95,6 +95,7 @@ each app and package. `pnpm check:agent-docs` fails if a path cited here stops e
 | `scripts/check-arch-boundaries.ts` | Packages never import apps; no relative imports across packages (`pnpm check:arch`) |
 | `scripts/check-agent-docs.ts` | Instruction files cite real paths and scripts, within budget (`pnpm check:agent-docs`) |
 | `scripts/check-mobile-structure.ts`, `scripts/mobile-structure-baseline.json` | Mobile import and route-size rules, and the recorded violations (`pnpm check:mobile-structure`) |
+| `scripts/codemod-mobile-alias.ts` | Rewrites mobile imports that climb three or more levels to `@/`. `--check` exits 1 if a run would change a file; re-run it with `--write` after rebasing a branch |
 | `scripts/check-i18n.sh`, `scripts/check-i18n-new-keys.ts` | i18n ratchet (`pnpm check:i18n`) |
 | `scripts/check-no-router-any.sh`, `scripts/check-no-hardcoded-mobile-colors.sh` | Mobile guards (`pnpm check:router`, `pnpm check:mobile-colors`) |
 | `scripts/check-api-bans.sh` | No raw Postgres error-code literals outside `unwrap.ts` (`pnpm check:api-bans`) |

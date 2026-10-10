@@ -31,7 +31,7 @@ Do not move an existing domain.
 | Tokens | `src/theme/` | |
 | Test | `__tests__/` beside the code; cross-cutting contracts in `src/__tests__/` | Never under `src/app` |
 
-- Allowed direction: `app` to `features` and `components`, to `hooks`, to `lib` and `stores`, to `utils`, `theme` and `config`. Nothing imports `app`. No barrel files.
+- Allowed direction: `app` to `features` and `components`, to `hooks`, to `lib` and `stores`, to `utils`, `theme` and `config`. Nothing imports `app`. No new barrel files.
 - Imports: use `@/` (it maps to `src/`) for an import that leaves the file's top-level `src/` directory; relative paths inside it. `pnpm check:mobile-structure` fails on a new import climbing three or more levels, a new layering violation, or a route that grows.
 - File naming: kebab-case, routes included. Exception: `src/widgets/*Widget.tsx` stay PascalCase — coupled to the native iOS widget targets in `app.config.ts` and the lazy imports in `src/lib/widget-sync.ts`; renaming breaks the widget build.
 
