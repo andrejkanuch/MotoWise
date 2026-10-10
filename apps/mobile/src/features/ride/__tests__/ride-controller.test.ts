@@ -317,9 +317,10 @@ describe('endRideSession', () => {
     expect(clearRideData).not.toHaveBeenCalled();
   });
 
-  it('carries the auto-paused seconds to the summary and its route, separately from durationS', () => {
-    // The summary's durationS excludes manual pauses only; the server's moving time
-    // also subtracts auto-pauses, so the summary needs both to apply R1 the same way.
+  it("carries the server's moving time to the summary and its route, separately from durationS", () => {
+    // The summary's durationS is the displayed clock (manual pauses only); the
+    // server's moving time also subtracts auto-pauses, so the summary needs that
+    // number to apply R1 the same way the server does.
     jest.spyOn(Date, 'now').mockReturnValue(1_240_000);
     mmkvState.currentId = 'ride-ap';
     mmkvState.startedAt = 1_000_000;
@@ -327,11 +328,11 @@ describe('endRideSession', () => {
 
     const summary = endRideSession('phone');
 
-    expect(summary).toMatchObject({ durationS: 240, autoPausedS: 90 });
+    expect(summary).toMatchObject({ durationS: 240, movingTimeS: 150 });
     const endCall = enqueue.mock.calls.find(([type]) => type === 'endRide');
     expect(endCall?.[1].variables.input.autoPausedDurationS).toBe(90);
     expect(buildRideSummaryHref(summary as NonNullable<typeof summary>)).toMatchObject({
-      params: expect.objectContaining({ durationS: '240', autoPausedS: '90' }),
+      params: expect.objectContaining({ durationS: '240', movingTimeS: '150' }),
     });
     (Date.now as jest.Mock).mockRestore();
   });

@@ -47,7 +47,6 @@ import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../../lib/ride-analytics';
-import { summaryMovingTimeS } from '../../lib/ride-milestone-trigger';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../lib/store-review';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, type } from '../../theme/type';
@@ -100,7 +99,7 @@ export default function RideSummaryScreen() {
     elevationLoss: string;
     startedAt: string;
     motorcycleId: string;
-    autoPausedS: string;
+    movingTimeS: string;
   }>();
 
   const rideId = params.rideId ?? '';
@@ -112,7 +111,7 @@ export default function RideSummaryScreen() {
   const elevationLoss = Number(params.elevationLoss) || 0;
   const startedAtMs = Number(params.startedAt) || Date.now();
   const motorcycleId = params.motorcycleId ?? '';
-  const autoPausedS = Number(params.autoPausedS) || 0;
+  const movingTimeS = Number(params.movingTimeS) || 0;
 
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -138,13 +137,8 @@ export default function RideSummaryScreen() {
   const bikeName = useBikeName(motorcycleId);
 
   // Ride-moment paywall teaser, shadow phase: logs would-have-shown when the summary opens;
-  // nothing renders while RIDE_TEASER_LIVE is false. Moving time here is the server's (minus auto-pauses).
-  useRideTeaserEvaluation({
-    rideId,
-    distanceM,
-    movingS: summaryMovingTimeS(durationS, autoPausedS),
-    measurementSystem: system,
-  });
+  // nothing renders while RIDE_TEASER_LIVE is false. movingTimeS is the server's moving time.
+  useRideTeaserEvaluation({ rideId, distanceM, movingS: movingTimeS, measurementSystem: system });
 
   // Fetch PB data
   const { data: overviewData } = useQuery<RideOverviewQuery>({

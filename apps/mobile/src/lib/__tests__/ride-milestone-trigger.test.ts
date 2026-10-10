@@ -2,11 +2,9 @@ import { MeasurementSystem, RIDE_MILESTONE_PAYWALL } from '@motovault/types';
 import {
   distanceInRiderUnit,
   evaluateRideTeaser,
-  isQualifyingRide,
   RIDE_TEASER_TRIGGER,
   type RideTeaserInput,
   rideTeaserEvaluatedProperties,
-  summaryMovingTimeS,
   TEASER_SUPPRESSION,
 } from '../ride-milestone-trigger';
 
@@ -205,28 +203,6 @@ describe('distanceInRiderUnit', () => {
   it('converts to km or miles', () => {
     expect(distanceInRiderUnit(50_000, MeasurementSystem.METRIC)).toBe(50);
     expect(distanceInRiderUnit(1609.344, MeasurementSystem.IMPERIAL)).toBe(1);
-  });
-});
-
-describe('summaryMovingTimeS', () => {
-  /** The server's computeMovingTimeS, which the phone must agree with (R1). */
-  const serverMovingTimeS = (elapsedS: number, pausedS: number, autoPausedS: number) =>
-    Math.max(0, elapsedS - pausedS - autoPausedS);
-
-  it('R1: a 4-minute ride with a 90 s auto-pause is not qualifying on the phone, as on the server', () => {
-    const elapsedS = 240;
-    const autoPausedS = 90;
-    // The summary's durationS already excludes manual pauses (none here).
-    const movingS = summaryMovingTimeS(elapsedS, autoPausedS);
-
-    expect(movingS).toBe(serverMovingTimeS(elapsedS, 0, autoPausedS));
-    expect(movingS).toBeLessThan(RIDE_MILESTONE_PAYWALL.QUALIFYING_MIN_MOVING_S);
-    expect(isQualifyingRide({ distanceM: 2_000, movingS, systemEnded: false })).toBe(false);
-  });
-
-  it('subtracts nothing when there was no auto-pause and never goes negative', () => {
-    expect(summaryMovingTimeS(1_200, 0)).toBe(1_200);
-    expect(summaryMovingTimeS(30, 90)).toBe(0);
   });
 });
 
