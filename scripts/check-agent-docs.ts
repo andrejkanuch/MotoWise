@@ -12,7 +12,8 @@
  *      directory and then the repo root. A glob must match at least one file.
  *   2. Scripts: `pnpm <script>` and `pnpm --filter <pkg> <script>` must name a
  *      script in the package.json they would run against.
- *   3. Budgets: line and byte caps per file (BUDGETS below).
+ *   3. Budgets: line and byte caps per file (PLANNED_SIZES below, plus headroom),
+ *      with a default cap for any CLAUDE.md the table does not list.
  *   4. Solutions index: `docs/solutions/README.md` must equal what
  *      `scripts/gen-solutions-index.ts` generates from the documents on disk.
  *
@@ -44,17 +45,27 @@ type FindingKind = (typeof FINDING_KIND)[keyof typeof FINDING_KIND];
 
 type Finding = { file: string; line: number; kind: FindingKind; message: string };
 
+const CLAUDE_MD = /(^|\/)CLAUDE\.md$/;
+
 /** Which files are scanned. Patterns are matched against repo-relative posix paths. */
 const SCANNED = [
-  /(^|\/)CLAUDE\.md$/,
+  CLAUDE_MD,
   /^\.claude\/hooks\/protected-files\.txt$/,
   /^\.claude\/verification-config\.json$/,
   /^\.claude\/skills\/.+\.md$/,
   /^docs\/MAP\.md$/,
 ] as const;
 
-/** Line and byte caps. A file that does not exist yet is not checked. */
-const BUDGETS: Readonly<Record<string, { lines: number; bytes?: number; lineBytes?: number }>> = {
+type Budget = { lines: number; bytes: number; lineBytes?: number };
+
+/**
+ * The sizes the files were planned at (KTD11 of
+ * docs/plans/2026-10-10-1356-refactor-mobile-structure-and-agent-instructions-plan.md).
+ * The plan set no byte size for `docs/MAP.md`; 10,000 is its size, rounded up,
+ * when the cap was added. The enforced cap is this plus BUDGET_HEADROOM, so a
+ * correction to a file that sits at its planned size does not block its own push.
+ */
+const PLANNED_SIZES: Readonly<Record<string, Budget>> = {
   'CLAUDE.md': { lines: 80, bytes: 5500, lineBytes: 300 },
   'apps/mobile/CLAUDE.md': { lines: 100, bytes: 7500 },
   'apps/api/CLAUDE.md': { lines: 60, bytes: 5000 },
@@ -63,8 +74,28 @@ const BUDGETS: Readonly<Record<string, { lines: number; bytes?: number; lineByte
   'packages/graphql/CLAUDE.md': { lines: 25, bytes: 1600 },
   'packages/types/CLAUDE.md': { lines: 20, bytes: 1000 },
   'packages/design-system/CLAUDE.md': { lines: 15, bytes: 900 },
-  'docs/MAP.md': { lines: 150 },
+  'docs/MAP.md': { lines: 150, bytes: 10000 },
 };
+
+/** Any other `CLAUDE.md`: a new one is capped from its first commit. Sized like `supabase/CLAUDE.md`. */
+const PLANNED_SIZE_OF_UNLISTED_CLAUDE_MD: Budget = { lines: 40, bytes: 3000 };
+
+const BUDGET_HEADROOM = 1.1;
+
+const withHeadroom = (planned: Budget): Budget => ({
+  lines: Math.ceil(planned.lines * BUDGET_HEADROOM),
+  bytes: Math.ceil(planned.bytes * BUDGET_HEADROOM),
+  ...(planned.lineBytes === undefined
+    ? {}
+    : { lineBytes: Math.ceil(planned.lineBytes * BUDGET_HEADROOM) }),
+});
+
+/** The enforced caps of a file, or null when it has none. A file that does not exist yet is not checked. */
+function budgetOf(file: string): Budget | null {
+  const planned =
+    PLANNED_SIZES[file] ?? (CLAUDE_MD.test(file) ? PLANNED_SIZE_OF_UNLISTED_CLAUDE_MD : null);
+  return planned && withHeadroom(planned);
+}
 
 /**
  * Cited paths that are allowed not to exist in the tracked tree. Keep this
@@ -379,7 +410,7 @@ function scriptFindings(file: string, spans: readonly Span[]): Finding[] {
 // ---------------------------------------------------------------------------
 
 function budgetFindings(file: string, content: string, lines: readonly string[]): Finding[] {
-  const budget = BUDGETS[file];
+  const budget = budgetOf(file);
   if (!budget) return [];
   const findings: Finding[] = [];
   const over = (line: number, message: string) =>
@@ -388,9 +419,7 @@ function budgetFindings(file: string, content: string, lines: readonly string[])
   const lineCount = content.split('\n').length - 1;
   const byteCount = Buffer.byteLength(content);
   if (lineCount > budget.lines) over(1, `${lineCount} lines, budget is ${budget.lines}`);
-  if (budget.bytes !== undefined && byteCount > budget.bytes) {
-    over(1, `${byteCount} bytes, budget is ${budget.bytes}`);
-  }
+  if (byteCount > budget.bytes) over(1, `${byteCount} bytes, budget is ${budget.bytes}`);
   const { lineBytes } = budget;
   if (lineBytes !== undefined) {
     lines.forEach((text, index) => {
@@ -452,6 +481,6 @@ for (const finding of findings) {
   console.error(`      ${finding.kind}: ${finding.message}\n`);
 }
 console.error(
-  `Fix the citation, or the thing it cites. A path that is deliberately absent from the tree goes in SKIPPED_PATHS in scripts/check-agent-docs.ts with its reason; a budget is raised in BUDGETS in the same file.\n`,
+  `Fix the citation, or the thing it cites. A path that is deliberately absent from the tree goes in SKIPPED_PATHS in scripts/check-agent-docs.ts with its reason; a budget is raised in PLANNED_SIZES in the same file.\n`,
 );
 process.exit(reportOnly ? 0 : 1);
