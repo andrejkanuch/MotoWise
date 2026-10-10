@@ -1,4 +1,9 @@
-import { type MeasurementSystem, metersToUnit, mileageUnitLabel } from '@motovault/types';
+import {
+  type MeasurementSystem,
+  metersToUnit,
+  mileageUnitLabel,
+  RIDE_MILESTONE_PAYWALL,
+} from '@motovault/types';
 import {
   BadRequestException,
   ConflictException,
@@ -15,6 +20,7 @@ import { RIDE_EVENTS } from '../../common/constants/events';
 import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
 import { PG_ERROR, unwrap } from '../../common/supabase/unwrap';
 import { POSTGRES_REAL, QUERY_LIMITS } from '../../config/constants';
+import { computeMovingTimeS } from '../ride-analytics/ride-analytics.utils';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { EndRideInput } from './dto/end-ride.input';
@@ -23,6 +29,7 @@ import type { UpdateRideInput } from './dto/update-ride.input';
 import type { UploadWaypointsInput } from './dto/upload-waypoints.input';
 import type { Ride } from './models/ride.model';
 import type { RideConnection } from './models/ride-connection.model';
+import type { RideMilestoneStats } from './models/ride-milestone-stats.model';
 import type { Waypoint } from './models/waypoint.model';
 
 const MAX_WAYPOINTS_PER_RIDE = QUERY_LIMITS.MAX_WAYPOINTS_PER_RIDE;
@@ -1070,6 +1077,53 @@ export class RidesService {
       routeThumbnailUri: (row.route_thumbnail_uri as string) ?? undefined,
       createdAt: row.created_at as string,
       updatedAt: row.updated_at as string,
+    };
+  }
+
+  /**
+   * Qualifying rides for the ride-moment paywall teaser (plan R1): completed by
+   * the rider, not deleted, at least 1 km and 3 minutes of moving time, and not
+   * ended by the system. User client, so RLS scopes the read. `excludeRideId`
+   * leaves out the ride whose summary is open: the phone adds it back from local
+   * data, so the count is right even while that ride's end is still queued.
+   */
+  async getRideMilestoneStats(
+    userId: string,
+    excludeRideId?: string | null,
+  ): Promise<RideMilestoneStats> {
+    let query = this.supabase
+      .from('rides')
+      .select('id, distance_m, started_at, ended_at, paused_duration_s, auto_paused_duration_s')
+      .eq('user_id', userId)
+      .eq('status', 'completed')
+      .is('deleted_at', null)
+      .is('auto_ended_reason', null)
+      .gte('distance_m', RIDE_MILESTONE_PAYWALL.QUALIFYING_MIN_DISTANCE_M);
+    if (excludeRideId) query = query.neq('id', excludeRideId);
+
+    const { data, error } = await query;
+    if (error) {
+      this.logger.error(`getRideMilestoneStats failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Could not read ride milestone stats');
+    }
+
+    const qualifying = (data ?? []).filter(
+      (row) =>
+        row.started_at &&
+        row.ended_at &&
+        computeMovingTimeS(
+          row.started_at,
+          row.ended_at,
+          row.paused_duration_s ?? 0,
+          row.auto_paused_duration_s ?? 0,
+        ) >= RIDE_MILESTONE_PAYWALL.QUALIFYING_MIN_MOVING_S,
+    );
+    return {
+      qualifyingRideCount: qualifying.length,
+      longestQualifyingDistanceM: qualifying.reduce(
+        (max, row) => Math.max(max, Math.round(row.distance_m ?? 0)),
+        0,
+      ),
     };
   }
 }

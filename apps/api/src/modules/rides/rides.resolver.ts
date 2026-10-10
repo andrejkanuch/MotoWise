@@ -18,6 +18,7 @@ import { UploadWaypointsInput } from './dto/upload-waypoints.input';
 import { EndRideResponse } from './models/end-ride-response.model';
 import { Ride } from './models/ride.model';
 import { RideConnection } from './models/ride-connection.model';
+import { RideMilestoneStats } from './models/ride-milestone-stats.model';
 import { Waypoint } from './models/waypoint.model';
 import { RidesService } from './rides.service';
 
@@ -133,5 +134,13 @@ export class RidesResolver {
     @Args('sharedWithUserId', ParseUUIDPipe) sharedWithUserId: string,
   ): Promise<boolean> {
     return this.ridesService.unshareRide(user.id, rideId, sharedWithUserId);
+  }
+
+  @Query(() => RideMilestoneStats)
+  async rideMilestoneStats(
+    @CurrentUser() user: AuthUser,
+    @Args('excludeRideId', { nullable: true }) excludeRideId?: string,
+  ): Promise<RideMilestoneStats> {
+    return this.ridesService.getRideMilestoneStats(user.id, excludeRideId ?? null);
   }
 }

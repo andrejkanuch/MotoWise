@@ -124,3 +124,33 @@ export const ODOMETER_MAX = 9_999_999;
  * `interval '5 minutes'` in `log_odometer_reading` (00181).
  */
 export const ODOMETER_FUTURE_TOLERANCE_MS = 5 * 60 * 1000;
+
+/**
+ * Ride-moment paywall teasers (docs/plans/2026-10-10-1621-feat-ride-moment-paywall-plumbing-plan.md).
+ * A "qualifying" ride is one the rider completed themselves, at least 1 km and
+ * 3 minutes of moving time, and not ended by the system. The server counts them
+ * (`rideMilestoneStats`); the phone decides whether a teaser is due. Shared so both
+ * sides agree on what counts.
+ */
+export const RIDE_MILESTONE_PAYWALL = {
+  /** Rides shorter than this never count (R1). */
+  QUALIFYING_MIN_DISTANCE_M: 1000,
+  /** Rides with less moving time than this never count (R1). */
+  QUALIFYING_MIN_MOVING_S: 180,
+  /** The summary teaser is due on this qualifying ride (R2). */
+  MILESTONE_RIDE: 5,
+  /** Long-ride teaser: first qualifying ride at or above this many units in the rider's own unit (R3). */
+  LONG_RIDE_THRESHOLD: 50,
+  /** No teaser within this many hours of dismissing the onboarding paywall (R4). */
+  ONBOARDING_PAYWALL_COOLDOWN_H: 72,
+} as const;
+
+/** RevenueCat placements for ride-moment paywalls, one per trigger (R8). */
+export const RIDE_PAYWALL_PLACEMENT = {
+  MILESTONE: 'ride_milestone_5',
+  LONG_RIDE: 'ride_long_50km',
+  RIDER_INSIGHTS: 'rider_insights',
+} as const;
+
+export type RidePaywallPlacement =
+  (typeof RIDE_PAYWALL_PLACEMENT)[keyof typeof RIDE_PAYWALL_PLACEMENT];
