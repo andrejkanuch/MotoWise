@@ -25,15 +25,16 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import { CompletenessRing } from '../../../components/trip/completeness-ring';
-import { Avatar } from '../../../components/ui/avatar';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { type EditorialTokens, tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
-import { showActionSheet } from '../../../utils/action-sheet';
-import { triggerImpact } from '../../../utils/haptics';
-import { computeTripCompleteness } from '../../../utils/trip-completeness';
+import { CompletenessRing } from '@/components/trip/completeness-ring';
+import { Avatar } from '@/components/ui/avatar';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { type EditorialTokens, tint, useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, radius, readableWidth, space, type } from '@/theme/type';
+import { showActionSheet } from '@/utils/action-sheet';
+import { triggerImpact } from '@/utils/haptics';
+import { computeTripCompleteness } from '@/utils/trip-completeness';
+import { formatTripDateRangeShort } from '@/utils/trip-date-range';
 
 const PAGE_SIZE = 20;
 const TARGET_SIZE = process.env.EXPO_OS === 'android' ? 48 : 44;
@@ -79,14 +80,6 @@ function getDifficultyLabels(t: TFn) {
     challenging: t('trips.difficultyChallenging'),
     expert: t('trips.difficultyExpert'),
   } as const;
-}
-
-function formatDateRange(start: string, end: string): string {
-  const s = new Date(start);
-  const e = new Date(end);
-  const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-  if (start === end) return s.toLocaleDateString(undefined, opts);
-  return `${s.toLocaleDateString(undefined, opts)} – ${e.toLocaleDateString(undefined, opts)}`;
 }
 
 function dayCount(start: string, end: string): number {
@@ -238,7 +231,7 @@ function MyTripCard({
         {/* Meta row */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
           <Text style={[type.caption, { color: theme.ink3 }]} numberOfLines={1}>
-            {formatDateRange(trip.startDate, trip.endDate)}
+            {formatTripDateRangeShort(trip.startDate, trip.endDate)}
           </Text>
           <Text style={[type.caption, { color: theme.ink4 }]}>·</Text>
           <View

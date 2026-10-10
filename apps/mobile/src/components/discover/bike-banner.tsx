@@ -10,6 +10,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useEditorialTheme } from '../../theme/editorial';
 import { SYSTEM_WEIGHT, type } from '../../theme/type';
+import { selectPrimaryBike } from '../../utils/primary-bike';
 
 export const BikeBanner = memo(function BikeBanner() {
   const { t } = useEditorialTheme();
@@ -24,7 +25,7 @@ export const BikeBanner = memo(function BikeBanner() {
 
   const bike = useMemo(() => {
     const bikes = data?.myMotorcycles ?? [];
-    return bikes.find((b) => b.isPrimary) ?? bikes[0] ?? null;
+    return selectPrimaryBike(bikes) ?? null;
   }, [data]);
 
   if (!bike) return null;

@@ -13,8 +13,8 @@ jest.mock('expo-router', () => ({
     },
   }),
 }));
-jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 
 // The form has its own suite; here it is a stand-in that exposes what the route hands it.
 const mockNoteForm = jest.fn((_props: Record<string, unknown>) => null);
@@ -23,15 +23,15 @@ jest.mock('../sheets/note-form', () => ({
 }));
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
 import { MyMotorcyclesDocument, NotesByMotorcycleDocument } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, waitFor } from '@testing-library/react-native';
-import NoteScreen from '../../../app/(tabs)/(garage)/note';
-import { BIKE_A, NOTES } from '../../../test/bike-hub-fixtures';
+import NoteScreen from '@/app/(tabs)/(garage)/note';
+import { BIKE_A, NOTES } from '@/test/bike-hub-fixtures';
 
 const clients: QueryClient[] = [];
 

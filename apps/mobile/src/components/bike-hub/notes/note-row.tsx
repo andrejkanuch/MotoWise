@@ -9,9 +9,9 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { type HubUnit, NOTE_LINK_TONE, type NoteLinkTone } from '../../../lib/bike-hub/constants';
-import { showActionSheet } from '../../../utils/action-sheet';
-import { triggerImpact } from '../../../utils/haptics';
+import { type HubUnit, NOTE_LINK_TONE, type NoteLinkTone } from '@/lib/bike-hub/constants';
+import { showActionSheet } from '@/utils/action-sheet';
+import { triggerImpact } from '@/utils/haptics';
 import { noteMeta } from '../overview/notes-block';
 import {
   HUB_FIGURE,

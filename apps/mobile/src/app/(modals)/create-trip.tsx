@@ -50,6 +50,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { type } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
 import {
   cycleMapStyle as cycleMapStyleFn,
   getDefaultMapStyle,
@@ -453,7 +454,7 @@ export default function CreateTripScreen() {
         return d;
       });
     }
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
   }, [isShowcase]);
 
   const selectMode = useCallback(
@@ -479,7 +480,7 @@ export default function CreateTripScreen() {
         }
         return next;
       });
-      if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     },
     [startDate, endDate],
   );

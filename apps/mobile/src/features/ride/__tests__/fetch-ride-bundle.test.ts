@@ -2,9 +2,9 @@ jest.mock('@motovault/graphql', () => ({
   GetRideDocument: 'GetRideDocument',
   GetPublicRideDocument: 'GetPublicRideDocument',
 }));
-jest.mock('../../../lib/graphql-client', () => ({ gqlFetcher: jest.fn() }));
+jest.mock('@/lib/graphql-client', () => ({ gqlFetcher: jest.fn() }));
 
-import { gqlFetcher } from '../../../lib/graphql-client';
+import { gqlFetcher } from '@/lib/graphql-client';
 import { fetchRideBundle, RIDE_VIEWER } from '../fetch-ride-bundle';
 
 const fetcher = gqlFetcher as jest.Mock;

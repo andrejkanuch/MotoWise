@@ -1,19 +1,19 @@
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
   ImpactFeedbackStyle: { Light: 'light' },
 }));
 jest.mock('expo-image', () => ({ Image: () => null }));
-jest.mock('../../../stores/auth.store', () => ({
+jest.mock('@/stores/auth.store', () => ({
   useAuthStore: (selector: (state: unknown) => unknown) =>
     selector({ currency: 'EUR', session: { user: { id: 'user-1' } } }),
 }));
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
@@ -26,8 +26,8 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
-import '../../../i18n';
-import { HUB_UNIT, RIDE_STATUS, RIDE_STATUS_REASON } from '../../../lib/bike-hub/constants';
+import '@/i18n';
+import { HUB_UNIT, RIDE_STATUS, RIDE_STATUS_REASON } from '@/lib/bike-hub/constants';
 import {
   AIR_FILTER,
   BIKE_A,
@@ -39,7 +39,7 @@ import {
   EXPENSES_2026,
   NOTES,
   TODAY,
-} from '../../../test/bike-hub-fixtures';
+} from '@/test/bike-hub-fixtures';
 import { PhotoBand } from '../overview/photo-band';
 import { useOverviewData } from '../overview/use-overview-data';
 import type { BikeHubData, HubBike, HubTask } from '../shell/use-bike-hub-data';

@@ -1,10 +1,10 @@
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { HUB_SHEET_RADIUS, useHubTheme } from '../../../components/bike-hub/ui/tokens';
-import { ErrorFallback } from '../../../components/error-fallback';
-import { FORM_SHEET_DETENTS } from '../../../config/sheet-detents';
-import { captureException } from '../../../lib/analytics';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { HUB_SHEET_RADIUS, useHubTheme } from '@/components/bike-hub/ui/tokens';
+import { ErrorFallback } from '@/components/error-fallback';
+import { FORM_SHEET_DETENTS } from '@/config/sheet-detents';
+import { captureException } from '@/lib/analytics';
+import { useEditorialTheme } from '@/theme/editorial';
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   captureException(error, { boundary: 'garage' });

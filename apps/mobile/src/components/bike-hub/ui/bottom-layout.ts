@@ -1,5 +1,5 @@
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { tabBarBottomOffset, useTabBarStore } from '../../../stores/tab-bar.store';
+import { tabBarBottomOffset, useTabBarStore } from '@/stores/tab-bar.store';
 import { HUB_PILL_CLEARANCE, HUB_PILL_GAP, HUB_TAB_BAR_HEIGHT } from './tokens';
 
 export interface HubBottomLayout {

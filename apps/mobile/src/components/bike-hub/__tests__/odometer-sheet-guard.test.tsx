@@ -4,7 +4,7 @@ jest.mock('expo-localization', () => ({
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 54, bottom: 34, left: 0, right: 0 }),
 }));
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
   notificationAsync: jest.fn(),
@@ -68,7 +68,7 @@ jest.mock('@expo/ui/community/datetime-picker', () => ({
 }));
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
@@ -80,8 +80,8 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react-native';
 import { Alert, type AlertButton, StyleSheet } from 'react-native';
-import '../../../i18n';
-import { BIKE_A, TODAY } from '../../../test/bike-hub-fixtures';
+import '@/i18n';
+import { BIKE_A, TODAY } from '@/test/bike-hub-fixtures';
 import { AndroidOdometerDateChip } from '../sheets/odometer-date-chip';
 import { entryRuns, OdometerSheet } from '../sheets/odometer-sheet';
 import { useDiscardReadingGuard } from '../sheets/use-log-odometer';

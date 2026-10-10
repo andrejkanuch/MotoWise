@@ -22,6 +22,7 @@ import { queryKeys } from '../../lib/query-keys';
 import { editorialThemes, tint } from '../../theme/editorial';
 import { type } from '../../theme/type';
 import { haversineMeters } from '../../utils/geo-utils';
+import { triggerImpact } from '../../utils/haptics';
 import { decodePolylineLatLng } from '../../utils/polyline';
 import {
   distanceUnitLabel,
@@ -339,16 +340,12 @@ export default function RideFlyoverScreen() {
   // ─── Playback controls ───────────────────────────────────────────────
 
   const handlePlayPause = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setIsPlaying((prev) => !prev);
   }, []);
 
   const handleRestart = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
     progress.value = 0;
     trackedCompleteRef.current = false;
     lastBearingRef.current = null;
@@ -360,9 +357,7 @@ export default function RideFlyoverScreen() {
 
   const handleSpeedChange = useCallback(
     (speed: (typeof SPEED_OPTIONS)[number]) => {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }
+      triggerImpact(Haptics.ImpactFeedbackStyle.Light);
       trackEvent(AnalyticsEvent.RIDE_FLYOVER_SPEED_CHANGED, {
         ride_id: rideId ?? '',
         speed,

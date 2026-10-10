@@ -19,9 +19,9 @@ jest.mock('react-native-reanimated', () => ({
   useReducedMotion: () => true,
   interpolateColor: () => 'transparent',
 }));
-jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
-jest.mock('../../../lib/analytics', () => ({
-  ...require('../../../test/mocks').mockAnalytics(),
+jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
+jest.mock('@/lib/analytics', () => ({
+  ...require('@/test/mocks').mockAnalytics(),
   addBreadcrumb: jest.fn(),
 }));
 jest.mock('expo-haptics', () => ({
@@ -31,15 +31,15 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success', Warning: 'warning' },
 }));
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
-jest.mock('../../../lib/notifications', () => ({ cancelDocumentNotifications: jest.fn() }));
-jest.mock('../../../hooks/use-currency', () => ({ useCurrency: () => ({ currency: 'EUR' }) }));
-jest.mock('../../../hooks/use-delete-expense', () => ({
+jest.mock('@/lib/notifications', () => ({ cancelDocumentNotifications: jest.fn() }));
+jest.mock('@/hooks/use-currency', () => ({ useCurrency: () => ({ currency: 'EUR' }) }));
+jest.mock('@/hooks/use-delete-expense', () => ({
   useDeleteExpense: () => ({ mutate: jest.fn() }),
 }));
 jest.mock('../../shared/swipeable-expense', () => ({ SwipeableExpense: () => null }));
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
@@ -48,9 +48,9 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { AccessibilityInfo, Alert, StyleSheet } from 'react-native';
-import '../../../i18n';
-import { queryClient } from '../../../lib/query-client';
-import { BIKE_A } from '../../../test/bike-hub-fixtures';
+import '@/i18n';
+import { queryClient } from '@/lib/query-client';
+import { BIKE_A } from '@/test/bike-hub-fixtures';
 import { DocumentsSection } from '../documents-section';
 import { ExpensesSection } from '../expenses-section';
 import { hubDark as hub } from '../ui/tokens';

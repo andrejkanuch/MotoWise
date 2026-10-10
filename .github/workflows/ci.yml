@@ -136,9 +136,14 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check:arch
+      # Instruction files cite only paths and scripts that exist, within budget.
+      - run: pnpm check:agent-docs
+      # Mobile deep imports, layering and route size, against
+      # scripts/mobile-structure-baseline.json.
+      - run: pnpm check:mobile-structure
 
   deadcode:
-    name: Dead Code (knip, advisory)
+    name: Dead Code (knip)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -150,8 +155,10 @@ jobs:
           node-version: 22.20.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Blocking: an unused source file under apps/mobile fails the job.
+      - run: pnpm check:deadcode
       # Advisory only: knip's first-run backlog is being triaged (see
-      # docs/knip-backlog-2026-07-10.md). `|| true` keeps the check green so it
+      # docs/knip-backlog-2026-07-10.md). `|| true` keeps this step green so it
       # surfaces findings in the log without failing CI. Drop `|| true` to make
       # it blocking once `pnpm knip` is clean.
       - run: pnpm knip || true

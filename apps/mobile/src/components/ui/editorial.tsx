@@ -6,7 +6,6 @@
 
 import { Check, ChevronRight, type LucideIcon } from 'lucide-react-native';
 import { Children, cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Pressable,
@@ -18,50 +17,9 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { radius, space, type } from '../../theme/type';
 import { triggerImpact, triggerSelection } from '../../utils/haptics';
 import { NativeToggle } from './native-toggle';
-
-// ── Priority pill ──
-const PRIORITY_LABEL_KEYS = {
-  low: 'maintenance.priorityLow',
-  medium: 'maintenance.priorityMedium',
-  high: 'maintenance.priorityHigh',
-  critical: 'maintenance.priorityCritical',
-} as const;
-
-export function EPriority({ level }: { level: keyof typeof PRIORITY_LABEL_KEYS }) {
-  const { t: i18n } = useTranslation();
-  const { t } = useEditorialTheme();
-  // Graphite for routine, the plate-state inks for urgency; copper stays action-only.
-  const color = {
-    low: t.ink3,
-    medium: t.ink2,
-    high: t.dueInk,
-    critical: t.overdueInk,
-  }[level];
-
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        paddingVertical: 3,
-        paddingHorizontal: 9,
-        backgroundColor: tint(color, 0.18),
-        borderWidth: 1,
-        borderColor: tint(color, 0.32),
-        borderRadius: radius.pill,
-      }}
-    >
-      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: color }} />
-      <Text style={[type.caption, SYSTEM_WEIGHT.bold, { color }]}>
-        {i18n(PRIORITY_LABEL_KEYS[level])}
-      </Text>
-    </View>
-  );
-}
 
 // ── Settings section label (sentence-case caption above a settings group) ──
 export function ESectionLabel({

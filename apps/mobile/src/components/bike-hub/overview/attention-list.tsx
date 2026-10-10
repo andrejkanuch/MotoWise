@@ -10,14 +10,14 @@ import {
   type DocumentAttentionItem,
   type RecallAttentionItem,
   type TaskAttentionItem,
-} from '../../../lib/bike-hub/attention';
+} from '@/lib/bike-hub/attention';
 import {
   ATTENTION_KIND,
   type AttentionKind,
   type HubUnit,
   type RIDE_BLOCKING_DOCUMENT_CATEGORIES,
-} from '../../../lib/bike-hub/constants';
-import { formatShortDate } from '../../../lib/bike-hub/format';
+} from '@/lib/bike-hub/constants';
+import { formatShortDate } from '@/lib/bike-hub/format';
 import { DueLine, describeDue } from '../ui/due-line';
 import { HubCard } from '../ui/hub-card';
 import { PriorityTag } from '../ui/priority-tag';

@@ -3,12 +3,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { pickImage, takePhoto, uploadBikePhoto } from '../../../lib/image-upload';
-import { queryKeys } from '../../../lib/query-keys';
-import { useAuthStore } from '../../../stores/auth.store';
-import { showActionSheet } from '../../../utils/action-sheet';
-import { triggerImpact } from '../../../utils/haptics';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { pickImage, takePhoto, uploadBikePhoto } from '@/lib/image-upload';
+import { queryKeys } from '@/lib/query-keys';
+import { useAuthStore } from '@/stores/auth.store';
+import { showActionSheet } from '@/utils/action-sheet';
+import { triggerImpact } from '@/utils/haptics';
 
 /**
  * Take / choose a bike photo, upload it and set it as the bike's primary photo.

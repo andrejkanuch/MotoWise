@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { gqlFetcher } from '../lib/graphql-client';
 import { queryKeys } from '../lib/query-keys';
 import { DEFAULT_KM_PER_LITER, DEFAULT_TANK_LITERS } from '../utils/fuel-range';
+import { selectPrimaryBike } from '../utils/primary-bike';
 
 /**
  * Returns the user's primary bike ID and default fuel data.
@@ -15,7 +16,7 @@ export function usePrimaryBikeFuelData() {
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
     select: (d) => {
       const bikes = d?.myMotorcycles ?? [];
-      const primary = bikes.find((b) => b.isPrimary) ?? bikes[0];
+      const primary = selectPrimaryBike(bikes);
       return primary?.id;
     },
   });

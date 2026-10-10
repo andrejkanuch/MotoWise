@@ -11,7 +11,7 @@
 import { execFile } from 'node:child_process';
 import path from 'node:path';
 import { MaintenancePriority } from '@motovault/graphql';
-import { CATEGORIES, document, expenseYear, task } from '../../../test/bike-hub-fixtures';
+import { CATEGORIES, document, expenseYear, task } from '@/test/bike-hub-fixtures';
 import { DUE_STATE, HUB_UNIT, RIDE_STATUS } from '../constants';
 import { summariseCosts } from '../costs-summary';
 import { getDocumentSignals } from '../documents';

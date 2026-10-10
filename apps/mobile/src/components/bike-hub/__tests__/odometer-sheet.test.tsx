@@ -9,7 +9,7 @@ jest.mock('expo-localization', () => ({
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 54, bottom: 34, left: 0, right: 0 }),
 }));
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
   notificationAsync: jest.fn(),
@@ -39,7 +39,7 @@ jest.mock('@expo/ui/swift-ui/modifiers', () => ({
 }));
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
@@ -51,8 +51,8 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 import { Alert, Dimensions, StyleSheet } from 'react-native';
-import '../../../i18n';
-import { BIKE_A, TODAY } from '../../../test/bike-hub-fixtures';
+import '@/i18n';
+import { BIKE_A, TODAY } from '@/test/bike-hub-fixtures';
 import { OdometerSheet } from '../sheets/odometer-sheet';
 import { SHEET_TOP_CLEARANCE } from '../sheets/sheet-scroll';
 import type { HubBike } from '../shell/use-bike-hub-data';
@@ -166,7 +166,7 @@ describe('OdometerSheet', () => {
         { input: { motorcycleId: BIKE_A.id, value: 39_407, recordedAt: undefined } },
       ],
     ]);
-    const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
+    const { trackEvent } = jest.requireMock('@/lib/analytics') as { trackEvent: jest.Mock };
     expect(trackEvent).toHaveBeenCalledWith('ODOMETER_UPDATED', {
       motorcycle_id: BIKE_A.id,
       source: 'sheet',
@@ -457,7 +457,7 @@ describe('OdometerSheet — a reading on the day of the latest one (M2)', () => 
         recordedAt: new Date(2026, 9, 1, 23, 59, 59, 999).toISOString(),
       },
     });
-    const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
+    const { trackEvent } = jest.requireMock('@/lib/analytics') as { trackEvent: jest.Mock };
     expect(trackEvent).toHaveBeenCalledWith(
       'ODOMETER_UPDATED',
       expect.objectContaining({ backdated: false }),
@@ -477,7 +477,7 @@ describe('OdometerSheet — a reading on the day of the latest one (M2)', () => 
     expect(screen.queryByTestId('odometer-notice')).toBeNull();
     await fireEvent.press(screen.getByTestId('odometer-save'));
     await waitFor(() => expect(saved()).toHaveLength(1));
-    const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
+    const { trackEvent } = jest.requireMock('@/lib/analytics') as { trackEvent: jest.Mock };
     expect(trackEvent).toHaveBeenCalledWith(
       'ODOMETER_UPDATED',
       expect.objectContaining({ backdated: true }),

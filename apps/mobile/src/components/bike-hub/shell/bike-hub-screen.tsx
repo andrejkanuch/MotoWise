@@ -13,11 +13,11 @@ import {
   View,
 } from 'react-native';
 import { type SharedValue, useSharedValue } from 'react-native-reanimated';
-import { BIKE_SEGMENT, type BikeSegment } from '../../../lib/bike-hub/constants';
-import { parseOrigin, resolveInitialSegment } from '../../../lib/bike-hub/segments';
-import { useBikeHubStore } from '../../../stores/bike-hub.store';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { CONTENT_MAX_WIDTH, readableWidth } from '../../../theme/type';
+import { BIKE_SEGMENT, type BikeSegment } from '@/lib/bike-hub/constants';
+import { parseOrigin, resolveInitialSegment } from '@/lib/bike-hub/segments';
+import { useBikeHubStore } from '@/stores/bike-hub.store';
+import { useEditorialTheme } from '@/theme/editorial';
+import { CONTENT_MAX_WIDTH, readableWidth } from '@/theme/type';
 import { OverviewSegment } from '../overview/overview-segment';
 import { BikeSegment as BikeSegmentPanel } from '../segments/bike-segment';
 import { CostsSegment } from '../segments/costs-segment';

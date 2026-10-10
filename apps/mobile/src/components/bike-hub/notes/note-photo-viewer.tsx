@@ -20,7 +20,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { triggerImpact } from '../../../utils/haptics';
+import { triggerImpact } from '@/utils/haptics';
 import { HUB_CHROME_MAX_FONT_SCALE, HUB_FIGURE, HUB_TOUCH_TARGET, useHubTheme } from '../ui/tokens';
 import { type NotePhotoSource, notePhotoUri } from './note-photo';
 

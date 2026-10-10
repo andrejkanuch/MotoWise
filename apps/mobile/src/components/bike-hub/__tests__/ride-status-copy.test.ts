@@ -5,16 +5,16 @@ jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
 
-import i18n from '../../../i18n';
-import { RIDE_STATUS_REASON } from '../../../lib/bike-hub/constants';
-import { getRideStatus, type RideStatusReason } from '../../../lib/bike-hub/ride-status';
+import i18n from '@/i18n';
+import { RIDE_STATUS_REASON } from '@/lib/bike-hub/constants';
+import { getRideStatus, type RideStatusReason } from '@/lib/bike-hub/ride-status';
 import {
   BIKE_A_DOCUMENTS,
   BIKE_A_TASKS,
   CATEGORIES,
   ECU_RECALL,
   KM,
-} from '../../../test/bike-hub-fixtures';
+} from '@/test/bike-hub-fixtures';
 import { describeRideStatusReasons } from '../overview/ride-status-card';
 
 const EN = 'en';

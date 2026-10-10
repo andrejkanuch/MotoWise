@@ -250,6 +250,8 @@ are explicit about this, but easy to miss.
 
 ### Supabase migration ledger drift blocks `db push`
 
+> **Retired, 2026-10-10.** `npx supabase db push` is no longer the route to production, and applying a migration there is an owner-approved step. See `docs/runbooks/supabase-migrations.md`. The commands below are kept as the record of what was done at the time.
+
 `supabase db push` failed with `Remote migration versions not found in
 local migrations directory` because migration `00074` existed in the
 remote `supabase_migrations.schema_migrations` table but had been renamed
@@ -325,6 +327,8 @@ curl "http://localhost:8787/__scheduled?cron=0+14+*+*+*"
 ```
 
 ## Deployment reference (for the next time this needs to be rebuilt)
+
+> **Retired, 2026-10-10.** `npx supabase db push` is no longer the route to production, and applying a migration there is an owner-approved step. See `docs/runbooks/supabase-migrations.md`. Step 1 below is kept as the record of what was done at the time.
 
 ```bash
 # 1. Migration

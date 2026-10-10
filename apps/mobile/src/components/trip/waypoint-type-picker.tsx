@@ -15,6 +15,7 @@ import {
 import { Pressable, ScrollView, Text } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useEditorialTheme } from '../../theme/editorial';
+import { triggerImpact } from '../../utils/haptics';
 
 const WAYPOINT_TYPES = [
   { key: 'start', label: 'Start', Icon: Flag, color: palette.success500 },
@@ -57,8 +58,7 @@ export function WaypointTypePicker({
               key={wt.key}
               onPress={() => {
                 onSelect(wt.key);
-                if (process.env.EXPO_OS === 'ios')
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                triggerImpact(Haptics.ImpactFeedbackStyle.Light);
               }}
               style={{
                 alignItems: 'center',

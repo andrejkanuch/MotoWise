@@ -19,6 +19,7 @@ import { gqlFetcher } from '../lib/graphql-client';
 import { userFriendlyError } from '../lib/graphql-errors';
 import { cacheTripPayload, getOfflineMeta, readCachedTripPayload } from '../lib/offline-trips';
 import { queryKeys } from '../lib/query-keys';
+import { triggerImpact, triggerNotification } from '../utils/haptics';
 
 /**
  * Data layer for the trip-detail screen — owns the TripDetail + reviews
@@ -79,8 +80,7 @@ export function useTripDetailData(
     onMutate: () => setActionLoading(true),
     onSettled: () => setActionLoading(false),
     onSuccess: (_data, status) => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       trackEvent(AnalyticsEvent.TRIP_JOINED, { trip_id: tripId, status });
       invalidateTrip();
     },
@@ -91,7 +91,7 @@ export function useTripDetailData(
     onMutate: () => setActionLoading(true),
     onSettled: () => setActionLoading(false),
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
       trackEvent(AnalyticsEvent.TRIP_LEFT, { trip_id: tripId });
       invalidateTrip();
     },
@@ -114,8 +114,7 @@ export function useTripDetailData(
   const cloneMutation = useMutation({
     mutationFn: () => gqlFetcher(CloneTripDocument, { tripId }),
     onSuccess: (data) => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       // Navigate to the cloned trip so the user can see it immediately
@@ -135,7 +134,7 @@ export function useTripDetailData(
   });
 
   const handleCloneTemplate = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
     cloneMutation.mutate();
   }, [cloneMutation]);
 
@@ -143,8 +142,7 @@ export function useTripDetailData(
   const saveMutation = useMutation({
     mutationFn: () => gqlFetcher(SaveTripDocument, { tripId }),
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       setIsSaved(true);
       invalidateTrip();
     },
@@ -153,7 +151,7 @@ export function useTripDetailData(
   const unsaveMutation = useMutation({
     mutationFn: () => gqlFetcher(UnsaveTripDocument, { tripId }),
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      triggerImpact(Haptics.ImpactFeedbackStyle.Light);
       setIsSaved(false);
       invalidateTrip();
     },
@@ -187,8 +185,7 @@ export function useTripDetailData(
         input: { tripId, rating: reviewRating, text: reviewText || undefined },
       }),
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       setReviewFormVisible(false);
       setReviewText('');
       setReviewRating(5);
@@ -203,7 +200,7 @@ export function useTripDetailData(
   });
 
   const handleSubmitReview = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
     createReviewMutation.mutate();
   }, [createReviewMutation]);
 

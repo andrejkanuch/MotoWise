@@ -11,8 +11,8 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Text, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { expenseIconFor } from '../../../components/bike-hub/sheets/log-options';
-import { NativeToggle } from '../../../components/ui/native-toggle';
+import { expenseIconFor } from '@/components/bike-hub/sheets/log-options';
+import { NativeToggle } from '@/components/ui/native-toggle';
 import {
   FormCard,
   FormDivider,
@@ -24,29 +24,29 @@ import {
   SHEET_PRIMARY_STATE,
   SheetFooter,
   SheetTitle,
-} from '../../../components/ui/sheet-form';
-import { useCurrency } from '../../../hooks/use-currency';
-import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
-import { useMileageUnit } from '../../../hooks/use-mileage-unit';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { CORE_ACTION_KIND, recordCoreAction } from '../../../lib/core-action-milestones';
+} from '@/components/ui/sheet-form';
+import { useCurrency } from '@/hooks/use-currency';
+import { useMeasurementSystem } from '@/hooks/use-measurement-system';
+import { useMileageUnit } from '@/hooks/use-mileage-unit';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { CORE_ACTION_KIND, recordCoreAction } from '@/lib/core-action-milestones';
 import {
   EXPENSE_ENTRY_SOURCE,
   MAINTENANCE_EXPENSE_CATEGORY,
   taskCompletionExpenseAmount,
   trackExpenseAdded,
-} from '../../../lib/expense-analytics';
-import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../../lib/expense-constants';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { MAINTENANCE_COMPLETION_SURFACE } from '../../../lib/maintenance-analytics';
-import { cancelTaskNotification } from '../../../lib/notifications';
-import { queryKeys } from '../../../lib/query-keys';
-import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
-import { invalidateAfterTaskCompletion } from '../../../lib/task-completion-cache';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { space, type } from '../../../theme/type';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
-import { convertIntervalDistance } from '../../../utils/maintenance-interval';
+} from '@/lib/expense-analytics';
+import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '@/lib/expense-constants';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { MAINTENANCE_COMPLETION_SURFACE } from '@/lib/maintenance-analytics';
+import { cancelTaskNotification } from '@/lib/notifications';
+import { queryKeys } from '@/lib/query-keys';
+import { maybeRequestReview, REVIEW_MILESTONE } from '@/lib/store-review';
+import { invalidateAfterTaskCompletion } from '@/lib/task-completion-cache';
+import { useEditorialTheme } from '@/theme/editorial';
+import { space, type } from '@/theme/type';
+import { triggerImpact, triggerNotification } from '@/utils/haptics';
+import { convertIntervalDistance } from '@/utils/maintenance-interval';
 
 function humanizeInterval(days: number): string {
   if (days >= 365) {

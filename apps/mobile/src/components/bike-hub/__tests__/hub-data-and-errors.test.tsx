@@ -1,8 +1,8 @@
-jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
@@ -18,7 +18,7 @@ import {
 import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
-import { BIKE_A } from '../../../test/bike-hub-fixtures';
+import { BIKE_A } from '@/test/bike-hub-fixtures';
 import { useCreateTaskFromNote, useDeleteNote, useUpdateNote } from '../notes/use-notes';
 import { useLogOdometer } from '../sheets/use-log-odometer';
 import { useBikeHubData } from '../shell/use-bike-hub-data';

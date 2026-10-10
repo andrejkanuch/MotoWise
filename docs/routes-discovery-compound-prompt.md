@@ -1,5 +1,7 @@
 # Routes Discovery — Compound Engineering Prompt
 
+> **Retired step, 2026-10-10.** This prompt tells the agent to run `npx supabase db push`. That command is no longer the route to production, and applying a migration there is an owner-approved step: see `docs/runbooks/supabase-migrations.md`. Write the migration and stop.
+
 > **56 tickets** across 3 phases, 10 epics. This document provides the full ticket registry and a compound execution prompt designed for parallel AI agent execution.
 
 ---

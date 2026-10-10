@@ -21,18 +21,18 @@ import {
   DIAGNOSTIC_STATUS,
   isStuckProcessing,
   PROCESSING_POLL_MS,
-} from '../../../components/diagnosis/diagnostic-status';
+} from '@/components/diagnosis/diagnostic-status';
 import {
   SEVERITY_CHIP_SIZE,
   SeverityChip,
   URGENT_SEVERITIES,
-} from '../../../components/diagnosis/severity-chip';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { exportDiagnosticReport } from '../../../lib/pdf-export';
-import { queryKeys } from '../../../lib/query-keys';
-import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, space, type } from '../../../theme/type';
-import { triggerImpact } from '../../../utils/haptics';
+} from '@/components/diagnosis/severity-chip';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { exportDiagnosticReport } from '@/lib/pdf-export';
+import { queryKeys } from '@/lib/query-keys';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, radius, space, type } from '@/theme/type';
+import { triggerImpact } from '@/utils/haptics';
 
 const DIFFICULTY_LABEL_KEY = {
   easy: 'diagnose.difficultyLevel.easy',

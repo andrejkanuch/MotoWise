@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
-import { NativeToggle } from '../../../components/ui/native-toggle';
+import { NativeToggle } from '@/components/ui/native-toggle';
 import {
   FormDateRow,
   FormDivider,
@@ -27,21 +27,21 @@ import {
   SHEET_PRIMARY_STATE,
   SheetFooter,
   SheetTitle,
-} from '../../../components/ui/sheet-form';
-import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
-import { useMileageUnit } from '../../../hooks/use-mileage-unit';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { CORE_ACTION_KIND, recordCoreAction } from '../../../lib/core-action-milestones';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { MetaAnalytics } from '../../../lib/meta-analytics';
-import { scheduleMaintenanceReminder } from '../../../lib/notifications';
-import { queryKeys } from '../../../lib/query-keys';
-import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '../../../theme/type';
-import { triggerImpact } from '../../../utils/haptics';
-import { intervalDistanceUnit } from '../../../utils/maintenance-interval';
-import { toISODateInput } from '../../../utils/trip-form-dates';
+} from '@/components/ui/sheet-form';
+import { useMeasurementSystem } from '@/hooks/use-measurement-system';
+import { useMileageUnit } from '@/hooks/use-mileage-unit';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { CORE_ACTION_KIND, recordCoreAction } from '@/lib/core-action-milestones';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { MetaAnalytics } from '@/lib/meta-analytics';
+import { scheduleMaintenanceReminder } from '@/lib/notifications';
+import { queryKeys } from '@/lib/query-keys';
+import { maybeRequestReview, REVIEW_MILESTONE } from '@/lib/store-review';
+import { useEditorialTheme } from '@/theme/editorial';
+import { radius, SYSTEM_WEIGHT, space, type } from '@/theme/type';
+import { triggerImpact } from '@/utils/haptics';
+import { intervalDistanceUnit } from '@/utils/maintenance-interval';
+import { toISODateInput } from '@/utils/trip-form-dates';
 
 /** Never let a "completed" timestamp run ahead of the current instant — the
  *  API rejects a future completedAt. Returns `now` when `date` is in the future,

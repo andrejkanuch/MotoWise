@@ -1,13 +1,8 @@
 // The expense option carries an EXPENSE_ENTRY_SOURCE (lib/expense-analytics → analytics).
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 
-import {
-  ADD_TASK_MODE,
-  BIKE_LEAF,
-  BIKE_SEGMENT,
-  LOG_OPTION,
-} from '../../../lib/bike-hub/constants';
-import { EXPENSE_ENTRY_SOURCE } from '../../../lib/expense-analytics';
+import { ADD_TASK_MODE, BIKE_LEAF, BIKE_SEGMENT, LOG_OPTION } from '@/lib/bike-hub/constants';
+import { EXPENSE_ENTRY_SOURCE } from '@/lib/expense-analytics';
 import { LOG_OPTIONS } from '../sheets/log-options';
 import { buildBikeHubNavigation } from '../shell/use-bike-hub-navigation';
 

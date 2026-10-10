@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { AppState, type AppStateStatus } from 'react-native';
-import { UNDO_WINDOW_MS } from '../../../lib/bike-hub/constants';
-import { usePendingDeleteStore } from '../../../stores/pending-delete.store';
+import { UNDO_WINDOW_MS } from '@/lib/bike-hub/constants';
+import { usePendingDeleteStore } from '@/stores/pending-delete.store';
 import { useDeferredDelete } from '../ui/use-deferred-delete';
 
 type Commit = (id: string) => Promise<unknown>;

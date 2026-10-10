@@ -6,14 +6,14 @@ jest.mock('react-native-purchases', () => ({ __esModule: true, default: mockPurc
 
 const mockTrackEvent = jest.fn();
 const mockCaptureException = jest.fn();
-jest.mock('../../../lib/analytics', () => ({
+jest.mock('@/lib/analytics', () => ({
   AnalyticsEvent: { SUBSCRIPTION_RESTORED: 'subscription_restored' },
   trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
   captureException: (...args: unknown[]) => mockCaptureException(...args),
 }));
 
 const mockUpdateStore = jest.fn();
-jest.mock('../../../lib/subscription', () => ({
+jest.mock('@/lib/subscription', () => ({
   updateStoreFromCustomerInfo: (...args: unknown[]) => mockUpdateStore(...args),
 }));
 

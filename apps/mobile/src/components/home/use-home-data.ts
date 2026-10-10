@@ -15,6 +15,7 @@ import { userFriendlyError } from '../../lib/graphql-errors';
 import { reconcileMaintenanceReminders } from '../../lib/notifications';
 import { queryKeys } from '../../lib/query-keys';
 import { meOptions } from '../../lib/query-options';
+import { triggerNotification } from '../../utils/haptics';
 import { getGreeting } from './home-helpers';
 
 export function useHomeData() {
@@ -71,9 +72,7 @@ export function useHomeData() {
       // Broaden to the rides root so every ride-list variant refreshes (MOT-268).
       queryClient.invalidateQueries({ queryKey: queryKeys.rides.all }),
     ]).then(() => {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
     });
   }, [queryClient]);
 

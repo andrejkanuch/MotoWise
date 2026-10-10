@@ -1,7 +1,7 @@
 import { CalendarDays, FileText, Wrench } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
-import type { HubUnit } from '../../../lib/bike-hub/constants';
+import type { HubUnit } from '@/lib/bike-hub/constants';
 import { HubCard } from '../ui/hub-card';
 import { ListRow } from '../ui/list-row';
 import { SectionHeader } from '../ui/section-header';

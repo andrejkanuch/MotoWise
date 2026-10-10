@@ -9,8 +9,8 @@ jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
-jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 jest.mock('expo-haptics', () => ({
   notificationAsync: jest.fn(),
   NotificationFeedbackType: { Success: 'success' },
@@ -18,7 +18,7 @@ jest.mock('expo-haptics', () => ({
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn() }) }));
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
@@ -31,14 +31,14 @@ import {
 } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, waitFor } from '@testing-library/react-native';
-import '../../../i18n';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
+import '@/i18n';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import {
   ALL_CHECKLIST_ITEMS,
   CHECKLIST_COMPLETION_TRIGGER,
   CHECKLIST_ITEM_ID,
   useChecklistStore,
-} from '../../../stores/checklist.store';
+} from '@/stores/checklist.store';
 import { OnboardingChecklist } from '../onboarding-checklist';
 
 const BIKE_ID = 'bike-1';

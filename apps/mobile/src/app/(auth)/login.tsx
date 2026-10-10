@@ -16,6 +16,7 @@ import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '..
 import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { supabase } from '../../lib/supabase';
 import { space } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
 
 const REGISTER_ROUTE: Href = '/(auth)/register';
 
@@ -59,9 +60,7 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -81,9 +80,7 @@ export default function LoginScreen() {
   };
 
   const handleAppleSignIn = async () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     try {
       const { isNewUser } = await signInWithApple();
       // OAuth can't tell signup from sign-in by screen — attribute from the auth result.
@@ -97,9 +94,7 @@ export default function LoginScreen() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     try {
       const { isNewUser } = await signInWithGoogle();
       trackEvent(isNewUser ? AnalyticsEvent.USER_SIGNED_UP : AnalyticsEvent.USER_SIGNED_IN, {

@@ -7,11 +7,13 @@ import { memo, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '../../../theme/type';
-import { computeTripCompleteness } from '../../../utils/trip-completeness';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { radius, SYSTEM_WEIGHT, space, type } from '@/theme/type';
+import { triggerImpact, triggerSelection } from '@/utils/haptics';
+import { computeTripCompleteness } from '@/utils/trip-completeness';
+import { formatTripDateRangeShort } from '@/utils/trip-date-range';
 import { CompletenessRing } from '../../trip/completeness-ring';
 import { Avatar } from '../../ui/avatar';
 import { DIFFICULTY_TOKEN } from '../discover-trip-card';
@@ -28,14 +30,6 @@ const DIFFICULTY_LABEL_KEYS = {
 function dayCount(start: string, end: string): number {
   const ms = new Date(end).getTime() - new Date(start).getTime();
   return Math.max(1, Math.round(ms / 86_400_000) + 1);
-}
-
-function formatDateRange(start: string, end: string): string {
-  const s = new Date(start);
-  const e = new Date(end);
-  const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-  if (start === end) return s.toLocaleDateString(undefined, opts);
-  return `${s.toLocaleDateString(undefined, opts)} – ${e.toLocaleDateString(undefined, opts)}`;
 }
 
 function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void }) {
@@ -162,7 +156,7 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
       {/* Meta row: date range + organiser */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <Text style={[type.caption, { color: t.ink3 }]} numberOfLines={1}>
-          {formatDateRange(trip.startDate, trip.endDate)}
+          {formatTripDateRangeShort(trip.startDate, trip.endDate)}
         </Text>
         <View
           style={{
@@ -255,14 +249,14 @@ export const DraftTripStrip = memo(function DraftTripStrip() {
     (tripId: string) => {
       const stillExists = drafts.some((d) => d.id === tripId);
       if (!stillExists) return;
-      if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
+      triggerSelection();
       router.push({ pathname: '/(modals)/create-trip', params: { tripId } });
     },
     [drafts, router],
   );
 
   const handleNewDraft = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
     router.push('/(modals)/create-trip');
   }, [router]);
 

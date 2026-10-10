@@ -35,8 +35,8 @@ import {
   PickerLoadingRow,
   PickerResults,
   PickerValueRow,
-} from '../../../components/garage/bike-picker-rows';
-import { NativeToggle } from '../../../components/ui/native-toggle';
+} from '@/components/garage/bike-picker-rows';
+import { NativeToggle } from '@/components/ui/native-toggle';
 import {
   ChoiceChip,
   FormDivider,
@@ -49,21 +49,21 @@ import {
   SHEET_PRIMARY_STATE,
   SheetFooter,
   SheetTitle,
-} from '../../../components/ui/sheet-form';
-import { BIKE_YEAR, sanitizeBikeYear, useBikePicker } from '../../../hooks/use-bike-picker';
-import { useCurrency } from '../../../hooks/use-currency';
-import { useHydratedFormState } from '../../../hooks/use-hydrated-form-state';
-import { useMileageUnit } from '../../../hooks/use-mileage-unit';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { pickImage, takePhoto, uploadBikePhoto } from '../../../lib/image-upload';
-import { cancelDocumentNotificationsForBike } from '../../../lib/notifications';
-import { queryKeys } from '../../../lib/query-keys';
-import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
-import { useAuthStore } from '../../../stores/auth.store';
-import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { radius, space, type } from '../../../theme/type';
-import { showActionSheet } from '../../../utils/action-sheet';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
+} from '@/components/ui/sheet-form';
+import { BIKE_YEAR, sanitizeBikeYear, useBikePicker } from '@/hooks/use-bike-picker';
+import { useCurrency } from '@/hooks/use-currency';
+import { useHydratedFormState } from '@/hooks/use-hydrated-form-state';
+import { useMileageUnit } from '@/hooks/use-mileage-unit';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { pickImage, takePhoto, uploadBikePhoto } from '@/lib/image-upload';
+import { cancelDocumentNotificationsForBike } from '@/lib/notifications';
+import { queryKeys } from '@/lib/query-keys';
+import { maybeRequestReview, REVIEW_MILESTONE } from '@/lib/store-review';
+import { useAuthStore } from '@/stores/auth.store';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { radius, space, type } from '@/theme/type';
+import { showActionSheet } from '@/utils/action-sheet';
+import { triggerImpact, triggerNotification } from '@/utils/haptics';
 
 /** Stable anchors for tests and Maestro. */
 const TEST_ID = {

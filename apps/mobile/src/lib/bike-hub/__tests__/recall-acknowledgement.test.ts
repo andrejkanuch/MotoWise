@@ -1,4 +1,4 @@
-import { CATEGORIES, ECU_RECALL, KM } from '../../../test/bike-hub-fixtures';
+import { CATEGORIES, ECU_RECALL, KM } from '@/test/bike-hub-fixtures';
 import { rankAttention } from '../attention';
 import { ATTENTION_KIND, RIDE_STATUS } from '../constants';
 import {

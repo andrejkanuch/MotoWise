@@ -21,6 +21,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
+import { selectPrimaryBike } from '../../utils/primary-bike';
 import { activeRideSeconds } from '../../utils/ride-duration';
 import { encodePolyline } from '../../utils/ride-heatmap';
 import { distanceMeters, startGPSListener, stopGPSListener } from '../../utils/ride-location';
@@ -101,7 +102,7 @@ async function resolvePrimaryMotorcycleId(): Promise<string | null> {
     }
   }
   const bikes = cache?.myMotorcycles ?? [];
-  return (bikes.find((b) => b.isPrimary) ?? bikes[0])?.id ?? null;
+  return selectPrimaryBike(bikes)?.id ?? null;
 }
 
 /**

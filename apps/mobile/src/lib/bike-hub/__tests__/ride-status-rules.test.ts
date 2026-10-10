@@ -8,7 +8,7 @@ import {
   ODOMETER,
   TODAY,
   task,
-} from '../../../test/bike-hub-fixtures';
+} from '@/test/bike-hub-fixtures';
 import { HUB_UNIT, RIDE_STATUS, RIDE_STATUS_REASON, type RideStatus } from '../constants';
 import { getRideStatus, type RideStatusInput } from '../ride-status';
 

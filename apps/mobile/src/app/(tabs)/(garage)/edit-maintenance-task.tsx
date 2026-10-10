@@ -25,18 +25,18 @@ import {
   SHEET_PRIMARY_STATE,
   SheetFooter,
   SheetTitle,
-} from '../../../components/ui/sheet-form';
-import { useHydratedFormState } from '../../../hooks/use-hydrated-form-state';
-import { useMileageUnit } from '../../../hooks/use-mileage-unit';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { cancelTaskNotification, scheduleMaintenanceReminder } from '../../../lib/notifications';
-import { queryKeys } from '../../../lib/query-keys';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { space, type } from '../../../theme/type';
-import { triggerImpact } from '../../../utils/haptics';
-import { buildTaskUpdateInput, resolveReminderAction } from '../../../utils/maintenance-task-form';
-import { toISODateInput } from '../../../utils/trip-form-dates';
+} from '@/components/ui/sheet-form';
+import { useHydratedFormState } from '@/hooks/use-hydrated-form-state';
+import { useMileageUnit } from '@/hooks/use-mileage-unit';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { cancelTaskNotification, scheduleMaintenanceReminder } from '@/lib/notifications';
+import { queryKeys } from '@/lib/query-keys';
+import { useEditorialTheme } from '@/theme/editorial';
+import { space, type } from '@/theme/type';
+import { triggerImpact } from '@/utils/haptics';
+import { buildTaskUpdateInput, resolveReminderAction } from '@/utils/maintenance-task-form';
+import { toISODateInput } from '@/utils/trip-form-dates';
 
 const MULTILINE_INPUT = {
   paddingHorizontal: space.md,

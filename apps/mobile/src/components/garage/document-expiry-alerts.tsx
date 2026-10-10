@@ -12,6 +12,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useEditorialTheme } from '../../theme/editorial';
 import { GUTTER, radius, space, type } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
 
 const ROW_MIN_HEIGHT = 56;
 
@@ -53,9 +54,7 @@ export function DocumentExpiryAlerts() {
             <Pressable
               key={doc.id}
               onPress={() => {
-                if (process.env.EXPO_OS === 'ios') {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
+                triggerImpact(Haptics.ImpactFeedbackStyle.Light);
                 trackEvent(AnalyticsEvent.DOCUMENT_EXPIRY_ALERT_TAPPED, {
                   overdue,
                   days_until: days,

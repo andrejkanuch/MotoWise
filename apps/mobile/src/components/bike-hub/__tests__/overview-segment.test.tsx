@@ -16,7 +16,7 @@ jest.mock('nativewind', () => ({
   ...jest.requireActual('nativewind'),
   useColorScheme: () => ({ colorScheme: mockColorScheme }),
 }));
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
   notificationAsync: jest.fn(),
@@ -25,7 +25,7 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success', Warning: 'warning' },
 }));
 jest.mock('expo-image', () => ({ Image: () => null }));
-jest.mock('../../../stores/auth.store', () => ({
+jest.mock('@/stores/auth.store', () => ({
   useAuthStore: (selector: (state: unknown) => unknown) =>
     selector({ currency: 'EUR', session: { user: { id: 'user-1' } } }),
 }));
@@ -39,7 +39,7 @@ jest.mock('lucide-react-native', () => {
 });
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
@@ -54,8 +54,8 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
-import i18n from '../../../i18n';
-import { BIKE_SEGMENT, HUB_UNIT, NOTE_SOURCE } from '../../../lib/bike-hub/constants';
+import i18n from '@/i18n';
+import { BIKE_SEGMENT, HUB_UNIT, NOTE_SOURCE } from '@/lib/bike-hub/constants';
 import {
   AIR_FILTER,
   BIKE_A,
@@ -71,8 +71,8 @@ import {
   NOTES,
   TODAY,
   task,
-} from '../../../test/bike-hub-fixtures';
-import { editorialThemes } from '../../../theme/editorial';
+} from '@/test/bike-hub-fixtures';
+import { editorialThemes } from '@/theme/editorial';
 import { DRAFT_OUTCOME, publishDraftOutcome } from '../notes/use-draft-handoff';
 import { OverviewSegment } from '../overview/overview-segment';
 import type { BikeActions } from '../shell/use-bike-actions';
@@ -420,7 +420,7 @@ describe('Overview — quick note', () => {
       }),
     );
     expect(input.props.value).toBe('');
-    const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
+    const { trackEvent } = jest.requireMock('@/lib/analytics') as { trackEvent: jest.Mock };
     await waitFor(() =>
       expect(trackEvent).toHaveBeenCalledWith('NOTE_CREATED', {
         motorcycle_id: BIKE_A.id,

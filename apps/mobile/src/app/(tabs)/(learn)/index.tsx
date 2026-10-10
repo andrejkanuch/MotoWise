@@ -33,13 +33,14 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LearnOnboardingCard } from '../../../components/learn/onboarding-card';
-import { Skeleton } from '../../../components/skeleton/skeleton';
-import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { presentPaywall } from '../../../lib/subscription';
-import { type EditorialTokens, useEditorialTheme } from '../../../theme/editorial';
+import { LearnOnboardingCard } from '@/components/learn/onboarding-card';
+import { Skeleton } from '@/components/skeleton/skeleton';
+import { SkeletonProvider } from '@/components/skeleton/skeleton-provider';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { presentPaywall } from '@/lib/subscription';
+import { type EditorialTokens, useEditorialTheme } from '@/theme/editorial';
+import { selectPrimaryBike } from '@/utils/primary-bike';
 
 const MODULES = [
   { key: 'engine', icon: Cog, color: palette.moduleEngine, category: 'engine-basics' },
@@ -166,7 +167,7 @@ export default function LearnScreen() {
   });
   const primaryBike = useMemo(() => {
     const bikes = motorcyclesData?.myMotorcycles ?? [];
-    return bikes.find((b: { isPrimary: boolean }) => b.isPrimary) ?? bikes[0] ?? null;
+    return selectPrimaryBike(bikes) ?? null;
   }, [motorcyclesData]);
 
   const generateMutation = useMutation({

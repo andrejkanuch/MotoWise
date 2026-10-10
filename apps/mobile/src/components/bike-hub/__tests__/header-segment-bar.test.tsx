@@ -15,8 +15,8 @@ jest.mock('react-native-safe-area-context', () => ({
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import { makeMutable } from 'react-native-reanimated';
-import '../../../i18n';
-import { BIKE_ORIGIN, BIKE_SEGMENT, HUB_UNIT } from '../../../lib/bike-hub/constants';
+import '@/i18n';
+import { BIKE_ORIGIN, BIKE_SEGMENT, HUB_UNIT } from '@/lib/bike-hub/constants';
 import { BikeHeader, type BikeHeaderBike } from '../ui/bike-header';
 import { SegmentBar } from '../ui/segment-bar';
 

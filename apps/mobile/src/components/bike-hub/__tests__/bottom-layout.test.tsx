@@ -10,11 +10,7 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 import { act, renderHook } from '@testing-library/react-native';
-import {
-  TAB_BAR_MIN_INSET,
-  tabBarBottomOffset,
-  useTabBarStore,
-} from '../../../stores/tab-bar.store';
+import { TAB_BAR_MIN_INSET, tabBarBottomOffset, useTabBarStore } from '@/stores/tab-bar.store';
 import { hubBottomLayout, useHubBottomLayout } from '../ui/bottom-layout';
 import {
   HUB_HEIGHT,

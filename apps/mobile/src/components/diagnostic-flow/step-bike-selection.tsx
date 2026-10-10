@@ -23,6 +23,7 @@ import { queryKeys } from '../../lib/query-keys';
 import { useDiagnosticFlowStore } from '../../stores/diagnostic-flow.store';
 import { type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
+import { selectPrimaryBike } from '../../utils/primary-bike';
 import { useDiagnosticColors } from './diagnostic-colors';
 import { WizardOptionChip } from './wizard-option-chip';
 
@@ -850,7 +851,7 @@ export function StepBikeSelection() {
       !s.showManualForm &&
       motorcycles.length > 0
     ) {
-      const primary = motorcycles.find((m) => m.isPrimary) ?? motorcycles[0];
+      const primary = selectPrimaryBike(motorcycles);
       if (primary) s.setSelectedMotorcycleId(primary.id);
     }
   }, [motorcycles]);

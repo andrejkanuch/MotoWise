@@ -4,11 +4,11 @@ jest.mock('expo-file-system', () => ({
   },
 }));
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 const mockRemoveObject = jest.fn();
-jest.mock('../../../lib/image-upload', () => ({
+jest.mock('@/lib/image-upload', () => ({
   removeNotePhotoObject: (...args: unknown[]) => mockRemoveObject(...args),
 }));
 
@@ -20,7 +20,7 @@ import {
   newDraftToken,
   noteDraftKey,
   useSheetDraftStore,
-} from '../../../stores/sheet-draft.store';
+} from '@/stores/sheet-draft.store';
 import {
   clearSheetDrafts,
   parkNoteDraft,

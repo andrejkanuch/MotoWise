@@ -24,16 +24,16 @@ import {
   ESectionLabel,
   ESettingsGroup,
   EToggleRow,
-} from '../../../components/ui/editorial';
-import { useHydratedFormState } from '../../../hooks/use-hydrated-form-state';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { userFriendlyError } from '../../../lib/graphql-errors';
-import { queryKeys } from '../../../lib/query-keys';
-import { meOptions } from '../../../lib/query-options';
-import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
+} from '@/components/ui/editorial';
+import { useHydratedFormState } from '@/hooks/use-hydrated-form-state';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { userFriendlyError } from '@/lib/graphql-errors';
+import { queryKeys } from '@/lib/query-keys';
+import { meOptions } from '@/lib/query-options';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, radius, readableWidth, space, type } from '@/theme/type';
+import { triggerImpact, triggerNotification } from '@/utils/haptics';
 
 /* ─── Riding profile options ─── */
 

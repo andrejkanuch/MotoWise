@@ -18,19 +18,19 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, readableWidth, SYSTEM_WEIGHT, space, type } from '../../../theme/type';
-import { triggerImpact } from '../../../utils/haptics';
-import { MAP_STYLES } from '../../../utils/map-styles';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, radius, readableWidth, SYSTEM_WEIGHT, space, type } from '@/theme/type';
+import { triggerImpact } from '@/utils/haptics';
+import { MAP_STYLES } from '@/utils/map-styles';
 import {
   buildAnnualRecap,
   buildHeatmapFeatureCollection,
   buildLifetimeTotals,
   type HeatmapRide,
-} from '../../../utils/ride-heatmap';
+} from '@/utils/ride-heatmap';
 
 const PAGE_SIZE = 50;
 // Hard cap so a rider with 10k rides doesn't pound the API on mount.

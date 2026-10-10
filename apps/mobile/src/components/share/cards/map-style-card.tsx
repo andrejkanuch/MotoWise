@@ -3,8 +3,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Text, View } from 'react-native';
-import { tint } from '../../../theme/editorial';
-import { buildMapboxStaticUrl, type StaticMapStyle } from '../../../utils/mapbox-static';
+import { tint } from '@/theme/editorial';
+import { buildMapboxStaticUrl, type StaticMapStyle } from '@/utils/mapbox-static';
 import type { RideSharePayload } from '../share-card-types';
 import {
   buildDefaultStats,

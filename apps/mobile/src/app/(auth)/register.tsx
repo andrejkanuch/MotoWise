@@ -18,6 +18,7 @@ import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '..
 import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { supabase } from '../../lib/supabase';
 import { space } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
 
 const LOGIN_ROUTE: Href = '/(auth)/login';
 
@@ -40,9 +41,7 @@ export default function RegisterScreen() {
   } = useEmailCodeStep({ clearPassword: () => setPassword('') });
 
   const handleRegister = async () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
     // The code step verifies against the normalized address; sign up with the same one.
     const address = normalizeEmail(email);
@@ -90,9 +89,7 @@ export default function RegisterScreen() {
   };
 
   const handleAppleSignIn = async () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     try {
       const { isNewUser } = await signInWithApple();
       // Attribute from the auth result, not the screen — a returning user may tap OAuth here.
@@ -108,9 +105,7 @@ export default function RegisterScreen() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     try {
       const { isNewUser } = await signInWithGoogle();
       trackEvent(isNewUser ? AnalyticsEvent.USER_SIGNED_UP : AnalyticsEvent.USER_SIGNED_IN, {

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, FlatList, Pressable, RefreshControl, Text, TextInput, View } from 'react-native';
 import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useCurrency } from '../../../hooks/use-currency';
+import { useCurrency } from '@/hooks/use-currency';
 import {
   BIKE_SEGMENT,
   type BikeSegment,
@@ -15,13 +15,13 @@ import {
   NOTE_SOURCE,
   NOTES_SEARCH_DEBOUNCE_MS,
   type NoteLinkKind,
-} from '../../../lib/bike-hub/constants';
-import { bikeDisplayName, hasOdometer, toHubUnit } from '../../../lib/bike-hub/format';
-import { filterNotes, getNoteLink } from '../../../lib/bike-hub/notes';
-import { isBikeSegment } from '../../../lib/bike-hub/segments';
-import { useBikeHubStore } from '../../../stores/bike-hub.store';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { readableWidth, type } from '../../../theme/type';
+} from '@/lib/bike-hub/constants';
+import { bikeDisplayName, hasOdometer, toHubUnit } from '@/lib/bike-hub/format';
+import { filterNotes, getNoteLink } from '@/lib/bike-hub/notes';
+import { isBikeSegment } from '@/lib/bike-hub/segments';
+import { useBikeHubStore } from '@/stores/bike-hub.store';
+import { useEditorialTheme } from '@/theme/editorial';
+import { readableWidth, type } from '@/theme/type';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import { useGuardedPush } from '../shell/use-guarded-push';
 import { useHubBottomLayout } from '../ui/bottom-layout';

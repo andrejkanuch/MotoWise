@@ -23,6 +23,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { type } from '../../theme/type';
+import { triggerNotification } from '../../utils/haptics';
 
 type Difficulty = 'easy' | 'moderate' | 'challenging';
 
@@ -85,8 +86,7 @@ export default function CreateGroupRideScreen() {
         },
       }),
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       trackEvent(AnalyticsEvent.GROUP_RIDE_CREATED, { difficulty });
       queryClient.invalidateQueries({ queryKey: queryKeys.groupRides.all });
       router.back();

@@ -1,7 +1,6 @@
 import { palette } from '@motovault/design-system';
 import { AddTaskPhotoDocument, DeleteTaskPhotoDocument } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { Camera, Trash2, X } from 'lucide-react-native';
 import { useState } from 'react';
@@ -13,6 +12,7 @@ import { pickImage, takePhoto, uploadMaintenancePhoto } from '../lib/image-uploa
 import { queryKeys } from '../lib/query-keys';
 import { tint } from '../theme/editorial';
 import { showActionSheet } from '../utils/action-sheet';
+import { triggerImpact } from '../utils/haptics';
 
 const MAX_PHOTOS = 5;
 
@@ -21,12 +21,6 @@ type Photo = {
   storagePath: string;
   publicUrl: string;
 };
-
-function haptic() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-}
 
 export function TaskPhotoGallery({
   taskId,
@@ -79,7 +73,7 @@ export function TaskPhotoGallery({
   };
 
   const showAddOptions = () => {
-    haptic();
+    triggerImpact();
     showActionSheet(t('maintenance.addPhoto', { defaultValue: 'Add Photo' }), [
       {
         label: t('maintenance.takePhoto', { defaultValue: 'Take Photo' }),
@@ -104,7 +98,7 @@ export function TaskPhotoGallery({
   };
 
   const handleDeletePhoto = (photo: Photo) => {
-    haptic();
+    triggerImpact();
     Alert.alert(
       t('maintenance.deletePhoto', { defaultValue: 'Delete Photo' }),
       t('maintenance.confirmDeletePhoto', {
@@ -128,7 +122,7 @@ export function TaskPhotoGallery({
           <Animated.View key={photo.id} entering={FadeIn.delay(index * 50).duration(200)}>
             <Pressable
               onPress={() => {
-                haptic();
+                triggerImpact();
                 setViewingPhoto(photo);
               }}
               onLongPress={() => handleDeletePhoto(photo)}

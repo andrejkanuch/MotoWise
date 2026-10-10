@@ -1,5 +1,5 @@
 import { ODOMETER_MAX } from '@motovault/types';
-import { EXPENSES_2025, EXPENSES_2026, expenseYear, TODAY } from '../../../test/bike-hub-fixtures';
+import { EXPENSES_2025, EXPENSES_2026, expenseYear, TODAY } from '@/test/bike-hub-fixtures';
 import {
   BIKE_LEAF,
   BIKE_ORIGIN,

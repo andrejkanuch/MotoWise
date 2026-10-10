@@ -1,13 +1,10 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ScrollView } from 'react-native';
-import {
-  APP_PREFERENCE_KEY,
-  type AppPreferenceKey,
-} from '../../../../components/profile/constants';
-import { useAppPreferences } from '../../../../components/profile/use-app-preferences';
-import { EOptionRow, ESettingsGroup } from '../../../../components/ui/editorial';
-import { useEditorialTheme } from '../../../../theme/editorial';
-import { GUTTER, readableWidth, space } from '../../../../theme/type';
+import { APP_PREFERENCE_KEY, type AppPreferenceKey } from '@/components/profile/constants';
+import { useAppPreferences } from '@/components/profile/use-app-preferences';
+import { EOptionRow, ESettingsGroup } from '@/components/ui/editorial';
+import { useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, readableWidth, space } from '@/theme/type';
 
 const KEYS = Object.values(APP_PREFERENCE_KEY) as readonly string[];
 

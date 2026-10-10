@@ -4,12 +4,12 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { cancelDocumentNotificationsForBike } from '../../../lib/notifications';
-import { queryKeys } from '../../../lib/query-keys';
-import { useBikeHubStore } from '../../../stores/bike-hub.store';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { cancelDocumentNotificationsForBike } from '@/lib/notifications';
+import { queryKeys } from '@/lib/query-keys';
+import { useBikeHubStore } from '@/stores/bike-hub.store';
+import { triggerImpact, triggerNotification } from '@/utils/haptics';
 import type { HubBike } from './use-bike-hub-data';
 
 export interface BikeActions {

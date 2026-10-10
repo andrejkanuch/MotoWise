@@ -23,6 +23,8 @@ import { queryKeys } from '../../lib/query-keys';
 import { useWhatsNewStore } from '../../stores/whats-new.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, space, type } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
+import { selectPrimaryBike } from '../../utils/primary-bike';
 
 export default function WhatsNewModal() {
   const { t } = useTranslation();
@@ -69,7 +71,7 @@ export default function WhatsNewModal() {
     (action: WhatsNewAction) => {
       setLastSeenVersion(currentVersion);
       const bikes = bikesData?.myMotorcycles ?? [];
-      const target = bikes.find((b) => b.isPrimary) ?? bikes[0];
+      const target = selectPrimaryBike(bikes);
       trackEvent(AnalyticsEvent.WHATS_NEW_CTA_TAPPED, {
         version: currentVersion,
         action,
@@ -91,9 +93,7 @@ export default function WhatsNewModal() {
   );
 
   const handleNext = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     if (isLast) {
       if (slide.ctaAction) {
         runAction(slide.ctaAction);
@@ -113,9 +113,7 @@ export default function WhatsNewModal() {
   }, [isLast, dismiss, runAction, slide.ctaAction, currentIndex, currentVersion, slides]);
 
   const handleSkip = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     trackEvent(AnalyticsEvent.WHATS_NEW_SKIPPED, {
       version: currentVersion,
       skipped_at_slide: currentIndex,

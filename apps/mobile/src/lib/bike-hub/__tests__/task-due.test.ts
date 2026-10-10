@@ -1,6 +1,6 @@
 import { MaintenancePriority, MaintenanceTaskSource } from '@motovault/graphql';
 import { addDays, format } from 'date-fns';
-import { AIR_FILTER, BRAKE_PADS, KM, ODOMETER, TODAY, task } from '../../../test/bike-hub-fixtures';
+import { AIR_FILTER, BRAKE_PADS, KM, ODOMETER, TODAY, task } from '@/test/bike-hub-fixtures';
 import {
   DUE_DIMENSION,
   DUE_DIRECTION,

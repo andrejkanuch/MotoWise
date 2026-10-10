@@ -11,7 +11,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import {
   DocumentCategoryChips,
   DocumentExpiryField,
-} from '../../../components/documents/document-form-fields';
+} from '@/components/documents/document-form-fields';
 import {
   FormCard,
   FormDivider,
@@ -23,8 +23,8 @@ import {
   SHEET_PRIMARY_STATE,
   SheetFooter,
   SheetTitle,
-} from '../../../components/ui/sheet-form';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
+} from '@/components/ui/sheet-form';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import {
   generateDocumentId,
   type PickedDocument,
@@ -34,15 +34,15 @@ import {
   type UploadedDocumentFile,
   uploadDocumentFile,
   withUploadTimeout,
-} from '../../../lib/document-upload';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { scheduleDocumentExpiryReminder } from '../../../lib/notifications';
-import { queryKeys } from '../../../lib/query-keys';
-import { useAuthStore } from '../../../stores/auth.store';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '../../../theme/type';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
-import { toISODateInput } from '../../../utils/trip-form-dates';
+} from '@/lib/document-upload';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { scheduleDocumentExpiryReminder } from '@/lib/notifications';
+import { queryKeys } from '@/lib/query-keys';
+import { useAuthStore } from '@/stores/auth.store';
+import { useEditorialTheme } from '@/theme/editorial';
+import { radius, SYSTEM_WEIGHT, space, type } from '@/theme/type';
+import { triggerImpact, triggerNotification } from '@/utils/haptics';
+import { toISODateInput } from '@/utils/trip-form-dates';
 
 type FileStatus = 'uploading' | 'done' | 'error';
 

@@ -6,10 +6,10 @@ import {
   RIDE_STATUS_REASON,
   type RideStatus,
   type RideStatusReasonKind,
-} from '../../../lib/bike-hub/constants';
-import { midSentence } from '../../../lib/bike-hub/format';
-import type { RideStatusReason } from '../../../lib/bike-hub/ride-status';
-import { type } from '../../../theme/type';
+} from '@/lib/bike-hub/constants';
+import { midSentence } from '@/lib/bike-hub/format';
+import type { RideStatusReason } from '@/lib/bike-hub/ride-status';
+import { type } from '@/theme/type';
 import type { PlateCopy } from '../../home/home-plate';
 import { BikePlate, PLATE_SIZE, PLATE_STATE, type PlateState } from '../../ui/bike-plate';
 import { HubCard } from '../ui/hub-card';

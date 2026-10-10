@@ -56,6 +56,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { formatTripDateRangeLong } from '@/utils/trip-date-range';
 import { CommentList } from '../../components/comments/comment-list';
 import { RideThisSheet, RideThisStickyCta } from '../../components/ride-this-sheet';
 import { OfflinePackButton } from '../../components/trip/offline-pack-button';
@@ -80,6 +81,7 @@ import { cacheTripPayload } from '../../lib/offline-trips';
 import { useAuthStore } from '../../stores/auth.store';
 import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
 import { SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { triggerImpact, triggerSelection } from '../../utils/haptics';
 import { MAP_STYLES } from '../../utils/map-styles';
 import { getRouteSegments } from '../../utils/mapbox-directions';
 import { showMarkerActionSheet } from '../../utils/marker-action-sheet';
@@ -117,14 +119,6 @@ const SURFACE_LABELS: Record<string, string> = {
   off_road: 'Off-road',
   gravel: 'Gravel',
 };
-
-/** Decode Google-encoded polyline string to [lng, lat] for Mapbox */
-function formatDateRange(start: string, end: string): string {
-  const s = new Date(start);
-  const e = new Date(end);
-  const opts: Intl.DateTimeFormatOptions = { month: 'long', day: 'numeric', year: 'numeric' };
-  return `${s.toLocaleDateString('en-US', opts)} \u2013 ${e.toLocaleDateString('en-US', opts)}`;
-}
 
 function AnimatedChevron({ collapsed, color }: { collapsed: boolean; color: string }) {
   const rotation = useSharedValue(collapsed ? 180 : 0);
@@ -438,7 +432,7 @@ export default function TripDetailScreen() {
   }, [waypoints]);
 
   const toggleDay = useCallback((dayIndex: number) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setCollapsedDays((prev) => ({ ...prev, [dayIndex]: !prev[dayIndex] }));
   }, []);
 
@@ -565,7 +559,7 @@ export default function TripDetailScreen() {
 
   const handleOpenShareSheet = useCallback(() => {
     if (!trip) return;
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setShareSheetVisible(true);
   }, [trip]);
 
@@ -942,7 +936,7 @@ export default function TripDetailScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Calendar size={13} color={subtitleColor} />
                   <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
-                    {formatDateRange(trip.startDate, trip.endDate)}
+                    {formatTripDateRangeLong(trip.startDate, trip.endDate)}
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -1235,8 +1229,7 @@ export default function TripDetailScreen() {
                     {!reviewFormVisible ? (
                       <Pressable
                         onPress={() => {
-                          if (process.env.EXPO_OS === 'ios')
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          triggerImpact(Haptics.ImpactFeedbackStyle.Light);
                           setReviewFormVisible(true);
                         }}
                         style={{
@@ -1276,7 +1269,7 @@ export default function TripDetailScreen() {
                             <Pressable
                               key={n}
                               onPress={() => {
-                                if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
+                                triggerSelection();
                                 setReviewRating(n);
                               }}
                             >
