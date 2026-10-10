@@ -114,10 +114,13 @@ type PresentPaywallOptions = PaywallAnalyticsOptions & {
   silentOnError?: boolean;
 };
 
-/** Onboarding surfaces (lib/onboarding-paywall.ts ONBOARDING_PAYWALL_SURFACE). Matched by
- * prefix so the two onboarding variants and any future one all count. */
-function isOnboardingPaywallSurface(surface: string | null | undefined): boolean {
-  return typeof surface === 'string' && surface.startsWith('onboarding_');
+/**
+ * Onboarding surfaces (lib/onboarding-paywall.ts ONBOARDING_PAYWALL_SURFACE). Matched by
+ * prefix so the two onboarding variants and any future one all count; that module
+ * imports this one, so the constant itself cannot be imported here without a cycle.
+ */
+function isOnboardingPaywallSurface(surface: string | undefined): boolean {
+  return surface?.startsWith('onboarding_') ?? false;
 }
 
 function paywallProperties(
@@ -674,6 +677,12 @@ function buildPaywallCustomVariables(
 // converted one reads NORMAL and is a paying customer). Client-side fallback for
 // the server-set attribute — covers the window before the webhook lands and
 // receipts restored from another store account.
+export function hasUsedTrial(info: {
+  entitlements: { all: Record<string, { periodType?: string }> };
+}): boolean {
+  return info.entitlements.all[REVENUECAT_ENTITLEMENT_PRO]?.periodType === 'TRIAL';
+}
+
 /**
  * Whether this account ever redeemed a Pro trial, from the cached customer info.
  * `null` when RevenueCat is unavailable or the read fails: a diagnostic field for
@@ -687,12 +696,6 @@ export async function hasHadTrialSnapshot(): Promise<boolean | null> {
   } catch {
     return null;
   }
-}
-
-export function hasUsedTrial(info: {
-  entitlements: { all: Record<string, { periodType?: string }> };
-}): boolean {
-  return info.entitlements.all[REVENUECAT_ENTITLEMENT_PRO]?.periodType === 'TRIAL';
 }
 
 /**

@@ -1,5 +1,7 @@
 import {
-  MeasurementSystem,
+  type MeasurementSystem,
+  metersToUnit,
+  mileageUnitLabel,
   RIDE_MILESTONE_PAYWALL,
   RIDE_PAYWALL_PLACEMENT,
 } from '@motovault/types';
@@ -96,13 +98,11 @@ export interface RideTeaserEvaluation {
   isQualifyingRide: boolean;
 }
 
-const METERS_PER_KM = 1000;
-const METERS_PER_MILE = 1609.344;
 const MS_PER_HOUR = 3_600_000;
 
 /** Distance in the rider's own unit (R3 reads "50 km or more in the rider's own distance unit"). */
 export function distanceInRiderUnit(distanceM: number, system: MeasurementSystem): number {
-  return distanceM / (system === MeasurementSystem.IMPERIAL ? METERS_PER_MILE : METERS_PER_KM);
+  return metersToUnit(distanceM, mileageUnitLabel(system));
 }
 
 /** R1, applied to the ride whose summary is open. */
