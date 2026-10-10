@@ -17,17 +17,7 @@ import {
 import { gqlFetcher } from '@/lib/graphql-client';
 import { userFriendlyError } from '@/lib/graphql-errors';
 import { useEditorialTheme } from '@/theme/editorial';
-
-function formatDateRange(start: string, end: string): string {
-  const s = new Date(start);
-  const e = new Date(end);
-  const opts: Intl.DateTimeFormatOptions = {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  };
-  return `${s.toLocaleDateString('en-US', opts)} \u2013 ${e.toLocaleDateString('en-US', opts)}`;
-}
+import { formatTripDateRangeLong } from '@/utils/trip-date-range';
 
 export default function SharedTripTrampolineScreen() {
   const { isDark } = useEditorialTheme();
@@ -260,7 +250,7 @@ function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: Rend
           marginBottom: 6,
         }}
       >
-        {formatDateRange(trip.startDate, trip.endDate)}
+        {formatTripDateRangeLong(trip.startDate, trip.endDate)}
       </Animated.Text>
 
       {/* Meta row */}

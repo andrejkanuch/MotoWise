@@ -56,6 +56,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { formatTripDateRangeLong } from '@/utils/trip-date-range';
 import { CommentList } from '../../components/comments/comment-list';
 import { RideThisSheet, RideThisStickyCta } from '../../components/ride-this-sheet';
 import { OfflinePackButton } from '../../components/trip/offline-pack-button';
@@ -117,14 +118,6 @@ const SURFACE_LABELS: Record<string, string> = {
   off_road: 'Off-road',
   gravel: 'Gravel',
 };
-
-/** Decode Google-encoded polyline string to [lng, lat] for Mapbox */
-function formatDateRange(start: string, end: string): string {
-  const s = new Date(start);
-  const e = new Date(end);
-  const opts: Intl.DateTimeFormatOptions = { month: 'long', day: 'numeric', year: 'numeric' };
-  return `${s.toLocaleDateString('en-US', opts)} \u2013 ${e.toLocaleDateString('en-US', opts)}`;
-}
 
 function AnimatedChevron({ collapsed, color }: { collapsed: boolean; color: string }) {
   const rotation = useSharedValue(collapsed ? 180 : 0);
@@ -942,7 +935,7 @@ export default function TripDetailScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Calendar size={13} color={subtitleColor} />
                   <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
-                    {formatDateRange(trip.startDate, trip.endDate)}
+                    {formatTripDateRangeLong(trip.startDate, trip.endDate)}
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>

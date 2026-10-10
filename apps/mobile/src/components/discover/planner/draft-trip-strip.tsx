@@ -12,6 +12,7 @@ import { queryKeys } from '@/lib/query-keys';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { radius, SYSTEM_WEIGHT, space, type } from '@/theme/type';
 import { computeTripCompleteness } from '@/utils/trip-completeness';
+import { formatTripDateRangeShort } from '@/utils/trip-date-range';
 import { CompletenessRing } from '../../trip/completeness-ring';
 import { Avatar } from '../../ui/avatar';
 import { DIFFICULTY_TOKEN } from '../discover-trip-card';
@@ -28,14 +29,6 @@ const DIFFICULTY_LABEL_KEYS = {
 function dayCount(start: string, end: string): number {
   const ms = new Date(end).getTime() - new Date(start).getTime();
   return Math.max(1, Math.round(ms / 86_400_000) + 1);
-}
-
-function formatDateRange(start: string, end: string): string {
-  const s = new Date(start);
-  const e = new Date(end);
-  const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-  if (start === end) return s.toLocaleDateString(undefined, opts);
-  return `${s.toLocaleDateString(undefined, opts)} – ${e.toLocaleDateString(undefined, opts)}`;
 }
 
 function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void }) {
@@ -162,7 +155,7 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
       {/* Meta row: date range + organiser */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <Text style={[type.caption, { color: t.ink3 }]} numberOfLines={1}>
-          {formatDateRange(trip.startDate, trip.endDate)}
+          {formatTripDateRangeShort(trip.startDate, trip.endDate)}
         </Text>
         <View
           style={{
