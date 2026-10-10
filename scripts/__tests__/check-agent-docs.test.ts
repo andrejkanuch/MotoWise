@@ -15,7 +15,6 @@ const findingsIn = (root: string) => checkAgentDocs(root).findings;
 const KIND = {
   missingPath: 'missing-path',
   missingScript: 'missing-script',
-  unknownWorkspace: 'unknown-workspace',
   overBudget: 'over-budget',
   staleIndex: 'stale-index',
 } as const;
@@ -32,9 +31,9 @@ const TREE: Files = {
   'package.json': manifest({
     name: 'fixture',
     scripts: { lint: 'x', test: 'x' },
-    devDependencies: { tsx: '1', '@biomejs/biome': '1' },
   }),
-  // An installed binary whose package the root does not declare.
+  // Installed binaries: git-ignored, read from disk.
+  'node_modules/.bin/tsx': '',
   'node_modules/.bin/turbo': '',
   'apps/mobile/package.json': manifest({
     name: '@fixture/mobile',
@@ -49,7 +48,7 @@ const TREE: Files = {
 
 type Case = {
   name: string;
-  /** One line of Markdown. */
+  /** One line of Markdown; with more than one, the findings of the last are compared. */
   line: string;
   expect: readonly Kind[];
   /** Put the line inside a fenced block. */
@@ -171,35 +170,51 @@ const PATH_CASES: readonly Case[] = [
   },
 ];
 
-const PNPM_CASES: readonly Case[] = [
-  // What must pass.
+/** One fixture file per table: together they would be over the root file's line budget. */
+const PNPM_ACCEPTED: readonly Case[] = [
   { name: 'root script', line: '`pnpm lint`', expect: NONE },
   { name: 'pnpm run <script>', line: '`pnpm run lint`', expect: NONE },
-  { name: 'binary of a declared dependency', line: '`pnpm tsx scripts/tool.ts`', expect: NONE },
-  { name: 'binary of a scoped dependency', line: '`pnpm biome check .`', expect: NONE },
-  { name: 'installed binary', line: '`pnpm turbo run build`', expect: NONE },
+  { name: 'installed binary', line: '`pnpm tsx scripts/tool.ts`', expect: NONE },
+  { name: 'installed binary with its own run word', line: '`pnpm turbo run build`', expect: NONE },
   { name: 'pnpm command with a flag', line: '`pnpm install --frozen-lockfile`', expect: NONE },
   { name: 'pnpm command that is not a script', line: '`pnpm config get registry`', expect: NONE },
+  { name: 'pnpm upgrade', line: '`pnpm upgrade --latest`', expect: NONE },
+  { name: 'pnpm version', line: '`pnpm version patch`', expect: NONE },
+  { name: 'pnpm sbom', line: '`pnpm sbom --sbom-format cyclonedx`', expect: NONE },
+  { name: 'pnpm cat-file', line: '`pnpm cat-file abc`', expect: NONE },
   { name: 'filter by full name', line: '`pnpm --filter @fixture/mobile test:e2e`', expect: NONE },
-  { name: 'filter by unscoped name', line: '`pnpm --filter mobile test:e2e`', expect: NONE },
   { name: 'filter with =', line: '`pnpm --filter=mobile start`', expect: NONE },
   { name: 'filter by directory', line: '`pnpm --filter ./apps/mobile test`', expect: NONE },
   { name: 'filter by name glob', line: '`pnpm --filter "@fixture/*" test`', expect: NONE },
-  {
-    name: 'two filters, script in one of them',
-    line: '`pnpm --filter mobile --filter web dev`',
-    expect: NONE,
-  },
+  { name: 'two filters', line: '`pnpm --filter mobile --filter web dev`', expect: NONE },
   { name: 'placeholder filter', line: '`pnpm --filter <pkg> test`', expect: NONE },
+  { name: 'placeholder script', line: '`pnpm <script>`', expect: NONE },
+  { name: 'a flag that takes a value', line: '`pnpm --reporter append-only lint`', expect: NONE },
   { name: 'cd into a workspace first', line: '`cd apps/mobile && pnpm test:e2e`', expect: NONE },
+  { name: 'cd with a trailing slash', line: '`cd apps/mobile/ && pnpm test:e2e`', expect: NONE },
+  { name: '-C with a trailing slash', line: '`pnpm -C apps/mobile/ test:e2e`', expect: NONE },
   {
-    name: 'cd into a directory the check cannot resolve',
-    line: '`cd "$ROOT" && pnpm lint`',
+    name: 'cd in a subshell, with an env prefix',
+    line: '`pnpm --filter web test && (cd apps/mobile && PORT=3100 pnpm start)`',
     expect: NONE,
   },
+  { name: 'cd; pnpm', line: '`cd apps/mobile; pnpm test:e2e`', expect: NONE },
+  { name: '(cd; pnpm)', line: '`(cd apps/mobile; pnpm test:e2e)`', expect: NONE },
+  {
+    name: 'cd, another command, then pnpm',
+    line: '`cd apps/mobile && npx expo install --fix && pnpm test:e2e`',
+    expect: NONE,
+  },
+  {
+    name: 'cd on one fenced line, pnpm on the next',
+    line: 'cd apps/mobile\npnpm test:e2e',
+    fenced: true,
+    expect: NONE,
+  },
+  { name: 'cd into a variable', line: '`cd "$ROOT" && pnpm lint`', expect: NONE },
   { name: 'cd to a home-relative directory', line: '`cd ~/elsewhere && pnpm lint`', expect: NONE },
   { name: '-C <dir>', line: '`pnpm -C apps/mobile test:e2e`', expect: NONE },
-  { name: '-r, script in some workspace', line: '`pnpm -r dev`', expect: NONE },
+  { name: '-r', line: '`pnpm -r dev`', expect: NONE },
   { name: '-w', line: '`pnpm -w lint`', expect: NONE },
   { name: 'a switch before the script', line: '`pnpm --silent lint`', expect: NONE },
   { name: '--if-present', line: '`pnpm --if-present nope`', expect: NONE },
@@ -210,8 +225,33 @@ const PNPM_CASES: readonly Case[] = [
     expect: NONE,
   },
   { name: 'pnpm-lock.yaml is not a call', line: '`pnpm-lock.yaml nope`', expect: NONE },
+  {
+    name: 'pnpm in a fenced shell comment',
+    line: '# pnpm is run from the repo root',
+    fenced: true,
+    expect: NONE,
+  },
+  {
+    name: 'pnpm in a comment after a fenced command',
+    line: 'pnpm lint # pnpm is what runs it',
+    fenced: true,
+    expect: NONE,
+  },
 
-  // What must be reported.
+  // Precision the check gives up: which workspace a command runs in is not
+  // resolved, so a script that exists in any package.json passes.
+  { name: 'workspace script run from the root', line: '`pnpm test:e2e`', expect: NONE },
+  { name: '`pnpm start` at the root, which has no start', line: '`pnpm start`', expect: NONE },
+  { name: 'workspace script after -w', line: '`pnpm -w test:e2e`', expect: NONE },
+  {
+    name: "another workspace's script after cd",
+    line: '`cd apps/mobile && pnpm dev`',
+    expect: NONE,
+  },
+  { name: 'a filter that names no workspace', line: '`pnpm --filter nope test`', expect: NONE },
+];
+
+const PNPM_REPORTED: readonly Case[] = [
   { name: 'missing script', line: '`pnpm nope`', expect: [KIND.missingScript] },
   {
     name: 'missing script in a fence',
@@ -219,17 +259,33 @@ const PNPM_CASES: readonly Case[] = [
     fenced: true,
     expect: [KIND.missingScript],
   },
+  {
+    name: 'missing script before a fenced comment',
+    line: 'pnpm nope # pnpm lint',
+    fenced: true,
+    expect: [KIND.missingScript],
+  },
+  { name: 'missing script after run', line: '`pnpm run nope`', expect: [KIND.missingScript] },
   { name: 'missing script after -r', line: '`pnpm -r nope`', expect: [KIND.missingScript] },
   { name: 'missing script after -w', line: '`pnpm -w nope`', expect: [KIND.missingScript] },
-  { name: 'workspace script after -w', line: '`pnpm -w test:e2e`', expect: [KIND.missingScript] },
   {
     name: 'missing script after a switch',
     line: '`pnpm --silent nope`',
     expect: [KIND.missingScript],
   },
   {
+    name: 'missing script after a flag that takes a value',
+    line: '`pnpm --loglevel warn nope`',
+    expect: [KIND.missingScript],
+  },
+  {
     name: 'missing script after -C <dir>',
     line: '`pnpm -C apps/mobile nope`',
+    expect: [KIND.missingScript],
+  },
+  {
+    name: 'missing script after cd',
+    line: '`cd apps/mobile && pnpm nope`',
     expect: [KIND.missingScript],
   },
   {
@@ -248,30 +304,20 @@ const PNPM_CASES: readonly Case[] = [
     expect: [KIND.missingScript],
   },
   {
-    name: 'workspace script run from the root',
-    line: '`pnpm test:e2e`',
+    name: 'second call of a chain',
+    line: '`pnpm lint && pnpm nope`',
     expect: [KIND.missingScript],
   },
-  {
-    name: "another workspace's script after cd",
-    line: '`cd apps/mobile && pnpm dev`',
-    expect: [KIND.missingScript],
-  },
+  // The directory itself is still a cited path.
   {
     name: '-C into a directory that does not exist',
     line: '`pnpm -C apps/nope test`',
-    expect: [KIND.missingPath, KIND.unknownWorkspace],
+    expect: [KIND.missingPath],
   },
-  { name: 'unknown filter', line: '`pnpm --filter nope test`', expect: [KIND.unknownWorkspace] },
   {
-    name: 'unknown directory filter',
+    name: 'directory filter that does not exist',
     line: '`pnpm --filter ./apps/nope test`',
-    expect: [KIND.missingPath, KIND.unknownWorkspace],
-  },
-  {
-    name: 'one unknown filter of two',
-    line: '`pnpm --filter mobile --filter nope test`',
-    expect: [KIND.unknownWorkspace],
+    expect: [KIND.missingPath],
   },
 ];
 
@@ -284,10 +330,9 @@ function layOut(cases: readonly Case[]): { docs: Files; lineOf: Map<Case, number
     const body = bodies.get(testCase.doc ?? ROOT_DOC) ?? [];
     bodies.set(testCase.doc ?? ROOT_DOC, body);
     if (testCase.fenced) body.push(`${FENCE}sh`);
-    body.push(testCase.line);
+    body.push(...testCase.line.split('\n'));
     lineOf.set(testCase, body.length);
     if (testCase.fenced) body.push(FENCE);
-    body.push('');
   }
   const docs = Object.fromEntries([...bodies].map(([doc, body]) => [doc, `${body.join('\n')}\n`]));
   return { docs, lineOf };
@@ -303,7 +348,8 @@ function repoWith(files: Files): string {
 
 for (const [title, cases] of [
   ['cited paths', PATH_CASES],
-  ['pnpm calls', PNPM_CASES],
+  ['pnpm calls that pass', PNPM_ACCEPTED],
+  ['pnpm calls that are reported', PNPM_REPORTED],
 ] as const) {
   describe(`check-agent-docs: ${title}`, () => {
     const { docs, lineOf } = layOut(cases);
@@ -327,6 +373,49 @@ for (const [title, cases] of [
     }
   });
 }
+
+describe('check-agent-docs: pnpm calls outside Markdown code', () => {
+  const CONFIG = '.claude/verification-config.json';
+  const scriptFindingsOf = (files: Files) => {
+    const root = repoWith(files);
+    try {
+      return findingsIn(root).filter((finding) => finding.kind === KIND.missingScript);
+    } finally {
+      removeTree(root);
+    }
+  };
+
+  test('accepts: the word pnpm in a JSON sentence', () => {
+    const config = manifest({ note: 'Always use pnpm for installs', command: 'pnpm lint' });
+    assert.deepEqual(scriptFindingsOf({ [CONFIG]: config }), []);
+  });
+
+  test('reports: a JSON command string that names a missing script', () => {
+    const config = manifest({ note: 'Always use pnpm for installs', command: 'pnpm nope' });
+    const found = scriptFindingsOf({ [CONFIG]: config });
+    assert.deepEqual(
+      found.map((finding) => [finding.file, finding.line]),
+      [[CONFIG, 3]],
+    );
+    assert.match(found[0].message, /PNPM_COMMANDS/);
+  });
+
+  test('does not judge a word when no dependencies are installed', () => {
+    const root = makeRepo({
+      'package.json': manifest({ scripts: {} }),
+      [ROOT_DOC]: '`pnpm nope`\n',
+    });
+    try {
+      writeFiles(root, { [SOLUTIONS_INDEX_PATH]: renderSolutionsIndex(root) });
+      track(root);
+      const result = checkAgentDocs(root);
+      assert.deepEqual(result.findings, []);
+      assert.equal(result.pnpmCallsChecked, false);
+    } finally {
+      removeTree(root);
+    }
+  });
+});
 
 describe('check-agent-docs: budgets', () => {
   const NESTED_DOC = 'apps/mobile/src/features/CLAUDE.md';

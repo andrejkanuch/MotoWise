@@ -15,10 +15,17 @@
  *      read: a bare filename, a path in plain prose, and a path whose first
  *      directory does not exist (that is how prose such as `Get/List/Create`
  *      is told apart from a path).
- *   2. Scripts: a `pnpm` call must name a script in the package.json it would
- *      run against, or a binary pnpm would fall back to (`pnpm tsx …`). The
- *      target follows `--filter`, `-r`, `-w`, `-C <dir>` and a leading
- *      `cd <dir> &&`.
+ *   2. Scripts: the first word of a `pnpm` call that is not a flag must be a
+ *      script in some package.json of the repository, a binary in a
+ *      `node_modules/.bin`, or a pnpm command (PNPM_COMMANDS). That is all:
+ *      the check does not work out which workspace `cd`, `-C` or `--filter`
+ *      selects, because every attempt to follow pnpm's and the shell's grammar
+ *      rejected true commands. The price is precision: `pnpm start` at the
+ *      root passes although only apps/web has a `start` script. Read it as
+ *      "this word exists somewhere", not "this command works here". Not
+ *      judged at all: a call in a checkout with no dependencies installed
+ *      (a binary cannot be told from a typo), `pnpm` in a fenced `#` comment,
+ *      and `pnpm` inside a JSON string that is not itself a command.
  *   3. Budgets: line and byte caps per file (PLANNED_SIZES below, plus headroom),
  *      with a default cap for any CLAUDE.md the table does not list.
  *   4. Solutions index: `docs/solutions/README.md` must equal what
@@ -45,7 +52,6 @@ const PACKAGE_MANIFEST = 'package.json';
 const FINDING_KIND = {
   missingPath: 'missing-path',
   missingScript: 'missing-script',
-  unknownWorkspace: 'unknown-workspace',
   overBudget: 'over-budget',
   staleIndex: 'stale-index',
 } as const;
@@ -112,56 +118,126 @@ function budgetOf(file: string): Budget | null {
 const SKIPPED_PATHS: Readonly<Record<string, string>> = {};
 
 /**
- * pnpm's own commands: the word after `pnpm` is not a package.json script.
- * `test` and `start` are left out on purpose: they run the script of that name.
+ * pnpm's own commands and their aliases: the word after `pnpm` is not a
+ * package.json script. Taken from pnpm 11.9.0 (the `packageManager` version):
+ * every command `pnpm help -a` lists, plus each word `pnpm help <word>`
+ * prints a usage for. `run` is skipped by the parser. `test` and `start` are
+ * left out on purpose: they run the script of that name, so one must exist.
  */
-const PNPM_BUILTINS: ReadonlySet<string> = new Set([
+const PNPM_COMMANDS = [
   'add',
+  'adduser',
   'approve-builds',
   'audit',
   'bin',
+  'bugs',
+  'c',
   'cache',
+  'cat-file',
+  'cat-index',
+  'ci',
+  'clean',
+  'completion',
   'config',
   'create',
   'dedupe',
   'deploy',
+  'deprecate',
+  'dist-tag',
   'dlx',
-  'doctor',
+  'docs',
   'env',
   'exec',
   'fetch',
+  'find-hash',
+  'get',
   'help',
+  'home',
   'i',
   'ignored-builds',
   'import',
   'info',
   'init',
   'install',
+  'install-test',
+  'it',
+  'la',
   'licenses',
   'link',
   'list',
+  'll',
+  'ln',
+  'login',
+  'logout',
   'ls',
+  'm',
+  'multi',
   'outdated',
+  'owner',
   'pack',
   'patch',
   'patch-commit',
   'patch-remove',
+  'peers',
+  'ping',
+  'pkg',
   'prune',
   'publish',
+  'rb',
   'rebuild',
+  'recursive',
   'remove',
+  'repo',
+  'restart',
   'rm',
   'root',
+  'rt',
+  'run-script',
+  'runtime',
+  'sbom',
+  'search',
   'self-update',
+  'set',
   'setup',
+  'show',
+  'stage',
+  'star',
+  'stars',
   'store',
+  't',
+  'un',
   'uninstall',
   'unlink',
+  'unpublish',
+  'unstar',
   'up',
   'update',
+  'upgrade',
+  'v',
+  'version',
   'view',
+  'whoami',
   'why',
-]);
+  'with',
+] as const;
+
+/**
+ * pnpm flags whose value is the next word (`pnpm help -a`, `pnpm help run`,
+ * `pnpm help recursive`). Any other flag is taken as a switch.
+ */
+const PNPM_FLAGS_WITH_VALUE = [
+  '--filter',
+  '-F',
+  '--filter-prod',
+  '--dir',
+  '-C',
+  '--loglevel',
+  '--reporter',
+  '--workspace-concurrency',
+  '--resume-from',
+  '--test-pattern',
+  '--changed-files-ignore-pattern',
+] as const;
 
 const toPosix = (p: string): string => p.split(path.sep).join('/');
 
@@ -169,26 +245,17 @@ const toPosix = (p: string): string => p.split(path.sep).join('/');
 // The repository: files, workspaces and their scripts
 // ---------------------------------------------------------------------------
 
-type Workspace = {
-  dir: string;
-  name: string;
-  scripts: ReadonlySet<string>;
-  /** What `pnpm <word>` can run here when no script is called <word>. */
-  bins: ReadonlySet<string>;
-};
-
 type Repo = {
   root: string;
   files: readonly string[];
   exists: (rel: string) => boolean;
-  /** The pnpm workspaces: the root, and each package under apps/ and packages/. */
-  workspaces: readonly Workspace[];
-  rootWorkspace: Workspace | null;
-  /** The package.json a command run in `dir` would use: that directory's, or the nearest one above it. */
-  manifestFor: (dir: string) => Workspace | null;
+  /** Every word `pnpm <word>` can run somewhere in the repository: scripts, installed binaries, pnpm commands. */
+  pnpmWords: ReadonlySet<string>;
+  /** False in a checkout with no `node_modules/.bin`: an unknown word may be a binary, so none is judged. */
+  binsInstalled: boolean;
 };
 
-const WORKSPACE_MANIFEST = /^(?:(?:apps|packages)\/[^/]+\/)?package\.json$/;
+const MANIFEST_FILE = /(^|\/)package\.json$/;
 const BIN_DIR = 'node_modules/.bin';
 
 function listFiles(root: string): string[] {
@@ -214,6 +281,18 @@ function installedBins(root: string, dir: string): string[] {
   }
 }
 
+function scriptsOf(root: string, manifest: string): string[] {
+  try {
+    const json = JSON.parse(readFileSync(path.join(root, manifest), 'utf8')) as {
+      scripts?: Record<string, string>;
+    };
+    return Object.keys(json.scripts ?? {});
+  } catch {
+    // Deleted but not staged, or not JSON: it defines no script the check can read.
+    return [];
+  }
+}
+
 function loadRepo(root: string): Repo {
   const files = listFiles(root);
   const fileSet = new Set(files);
@@ -226,61 +305,19 @@ function loadRepo(root: string): Repo {
     }
   }
 
-  const rootBins = installedBins(root, '.');
-  const readManifest = (manifest: string): Workspace => {
-    const json = JSON.parse(readFileSync(path.join(root, manifest), 'utf8')) as {
-      name?: string;
-      scripts?: Record<string, string>;
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
-    };
-    const dir = path.posix.dirname(manifest);
-    // Without an install there is no .bin directory; a dependency's own name
-    // (`tsx`, `@biomejs/biome` → `biome`) stands in for its binary.
-    const declared = Object.keys({ ...json.dependencies, ...json.devDependencies }).map(
-      (dependency) => dependency.split('/').pop() ?? dependency,
-    );
-    return {
-      dir,
-      name: json.name ?? '',
-      scripts: new Set(Object.keys(json.scripts ?? {})),
-      bins: new Set([...declared, ...installedBins(root, dir), ...rootBins]),
-    };
-  };
-
-  const manifests = new Map<string, Workspace>();
-  const manifestAt = (dir: string): Workspace | null => {
-    const manifest = dir === '.' ? PACKAGE_MANIFEST : `${dir}/${PACKAGE_MANIFEST}`;
-    if (!fileSet.has(manifest)) return null;
-    const cached = manifests.get(dir) ?? readManifest(manifest);
-    manifests.set(dir, cached);
-    return cached;
-  };
-
-  const workspaces = files
-    .filter((file) => WORKSPACE_MANIFEST.test(file))
-    .map((file) => manifestAt(path.posix.dirname(file)))
-    .filter((workspace): workspace is Workspace => workspace !== null);
-
+  const manifests = files.filter((file) => MANIFEST_FILE.test(file));
+  const bins = manifests.flatMap((manifest) => installedBins(root, path.posix.dirname(manifest)));
   return {
     root,
     files,
     exists: (rel) => fileSet.has(rel) || dirSet.has(rel),
-    workspaces,
-    rootWorkspace: workspaces.find((w) => w.dir === '.') ?? null,
-    manifestFor: (dir) => {
-      for (let at = path.posix.normalize(dir); ; at = path.posix.dirname(at)) {
-        if (at.startsWith('..')) return null;
-        const found = manifestAt(at);
-        if (found || at === '.') return found;
-      }
-    },
+    pnpmWords: new Set([
+      ...PNPM_COMMANDS,
+      ...manifests.flatMap((manifest) => scriptsOf(root, manifest)),
+      ...bins,
+    ]),
+    binsInstalled: bins.length > 0,
   };
-}
-
-/** The workspace a file sits in, when it is not the root. */
-function owningWorkspace(repo: Repo, file: string): Workspace | null {
-  return repo.workspaces.find((w) => w.dir !== '.' && file.startsWith(`${w.dir}/`)) ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -288,10 +325,12 @@ function owningWorkspace(repo: Repo, file: string): Workspace | null {
 // ---------------------------------------------------------------------------
 
 const SPAN_KIND = {
-  /** Inline code or a JSON string: paths and pnpm calls are read from it. */
+  /** Inline code: paths and pnpm calls are read from it. */
   code: 'code',
-  /** A line of a fenced block: the same, except that `./x` and `../x` are not relative to this file. */
+  /** A line of a fenced block: the same, except that `./x` and `../x` are not relative to this file, and a `#` comment holds no pnpm call. */
   fence: 'fence',
+  /** A JSON string: paths are read from it; pnpm calls only when the string is a command, that is, begins with `pnpm`. */
+  json: 'json',
   /** The target of a Markdown link: it is a path, whatever it looks like. */
   link: 'link',
   /** Free text: only pnpm calls are read from it. */
@@ -350,7 +389,7 @@ function jsonSpans(lines: readonly string[]): Span[] {
     [...text.matchAll(JSON_STRING)].map((match) => ({
       text: match[1],
       line: index + 1,
-      kind: SPAN_KIND.code,
+      kind: SPAN_KIND.json,
     })),
   );
 }
@@ -509,7 +548,7 @@ function pathFindings(repo: Repo, file: string, spans: readonly Span[]): Finding
   };
   for (const span of spans) {
     if (span.kind === SPAN_KIND.link) report(span.line, checkLink(repo, span.text, citingDir));
-    if (span.kind !== SPAN_KIND.code && span.kind !== SPAN_KIND.fence) continue;
+    if (span.kind === SPAN_KIND.link || span.kind === SPAN_KIND.text) continue;
     const fenced = span.kind === SPAN_KIND.fence;
     for (const token of span.text.split(/\s+/)) {
       report(span.line, checkPath(repo, token, citingDir, fenced));
@@ -524,168 +563,55 @@ function pathFindings(repo: Repo, file: string, spans: readonly Span[]): Finding
 
 /** `pnpm` as a command word: not `pnpm-lock.yaml`, not the end of a longer word. */
 const PNPM_WORD = /(?<![\w./@-])pnpm(?=\s)/g;
-/** The command just before `pnpm` is `cd <dir> &&`. */
-const CD_BEFORE = /(?:^|[\s;&|(])cd\s+(\S+)\s*&&\s*$/;
 const COMMAND_END = /&&|\|\||[;|]/;
+/** A shell comment: `#` at the start of the line or after a space. */
+const SHELL_COMMENT = /(?:^|\s)#.*$/;
+const JSON_COMMAND = /^pnpm\s/;
 const PLACEHOLDER = /[<>]/;
-/** A directory the check can resolve: not `$VAR`, `~`, an absolute path, `..` or a placeholder. */
-const REPO_RELATIVE_DIR = /^(?!\.\.(?:\/|$))[\w.@()[\]-][\w.@()[\]/-]*$/;
 const SCRIPT_WORD = /^[A-Za-z][\w:.-]*$/;
 const WORD_EDGES = /^['"]+|['".,;:!?)\]]+$/g;
 const RUN = 'run';
+const IF_PRESENT = '--if-present';
 
-const FLAG = {
-  filter: ['--filter', '-F'],
-  dir: ['--dir', '-C'],
-  recursive: ['--recursive', '-r'],
-  workspaceRoot: ['--workspace-root', '-w'],
-  ifPresent: ['--if-present'],
-  /** Other flags that take their value as the next word. Any other flag is a switch. */
-  takesValue: ['--reporter', '--loglevel', '--workspace-concurrency', '--config', '--color'],
-} as const;
-const isFlag = (group: readonly string[], name: string): boolean => group.includes(name);
-
-type PnpmCall = {
-  filters: string[];
-  dir: string | null;
-  recursive: boolean;
-  workspaceRoot: boolean;
-  ifPresent: boolean;
-  /** The first word that is not a flag: a script, a binary or a pnpm command. */
-  word: string | null;
-};
-
-/** Reads the flags and the command word that follow `pnpm`. */
-function parsePnpmCall(rest: string): PnpmCall {
+/**
+ * The first word after `pnpm` that is not a flag, a flag's value or `run`.
+ * Null when there is none, or when `--if-present` says the script may be absent.
+ */
+function commandWord(rest: string): string | null {
   const words = rest.split(COMMAND_END)[0].trim().split(/\s+/).filter(Boolean);
-  const call: PnpmCall = {
-    filters: [],
-    dir: null,
-    recursive: false,
-    workspaceRoot: false,
-    ifPresent: false,
-    word: null,
-  };
   for (let i = 0; i < words.length; i++) {
     const word = words[i];
     if (word === RUN) continue;
-    if (!word.startsWith('-')) {
-      call.word = word.replace(WORD_EDGES, '');
-      break;
-    }
-    const equals = word.indexOf('=');
-    const name = equals === -1 ? word : word.slice(0, equals);
-    const takeValue = (): string =>
-      (equals === -1 ? (words[++i] ?? '') : word.slice(equals + 1)).replace(QUOTES, '');
-
-    if (isFlag(FLAG.filter, name)) call.filters.push(takeValue());
-    else if (isFlag(FLAG.dir, name)) call.dir = takeValue();
-    else if (isFlag(FLAG.takesValue, name)) takeValue();
-    else if (isFlag(FLAG.recursive, name)) call.recursive = true;
-    else if (isFlag(FLAG.workspaceRoot, name)) call.workspaceRoot = true;
-    else if (isFlag(FLAG.ifPresent, name)) call.ifPresent = true;
+    if (!word.startsWith('-')) return word.replace(WORD_EDGES, '');
+    if (word === IF_PRESENT) return null;
+    if ((PNPM_FLAGS_WITH_VALUE as readonly string[]).includes(word)) i += 1;
   }
-  return call;
+  return null;
 }
 
-const wildcard = (pattern: string): RegExp =>
-  new RegExp(`^${pattern.replace(/[.+^$()|[\]\\{}?]/g, '\\$&').replace(/\*/g, '.*')}$`);
-
-/**
- * The workspaces a `--filter` selects. It accepts a name, an unscoped name
- * when that is unambiguous, a name glob (`@motovault/*`), or a directory
- * (`./apps/mobile`, `{apps/mobile}`); `...` and `^` only widen the selection
- * to dependencies, so they are dropped.
- */
-function resolveFilter(repo: Repo, filter: string): Workspace[] {
-  const selector = filter.replace(/^\.\.\.\^?|\^?\.\.\.$/g, '');
-  const members = repo.workspaces.filter((w) => w.dir !== '.');
-
-  const braced = /^\{(.+)\}$/.exec(selector)?.[1];
-  if (braced !== undefined || selector.startsWith('.')) {
-    const dir = wildcard(path.posix.normalize(braced ?? selector));
-    return members.filter((w) => dir.test(w.dir));
-  }
-  if (selector.includes('*')) {
-    const byName = members.filter((w) => wildcard(selector).test(w.name));
-    return byName.length > 0 || selector.startsWith('@')
-      ? byName
-      : members.filter((w) => wildcard(`@*/${selector}`).test(w.name));
-  }
-  const exact = repo.workspaces.filter((w) => w.name === selector);
-  if (exact.length > 0) return exact;
-  const unscoped = members.filter((w) => w.name.endsWith(`/${selector}`));
-  return unscoped.length === 1 ? unscoped : [];
+/** The part of a span a pnpm call can be read from. */
+function commandText(span: Span): string {
+  if (span.kind === SPAN_KIND.link) return '';
+  if (span.kind === SPAN_KIND.fence) return span.text.replace(SHELL_COMMENT, '');
+  if (span.kind === SPAN_KIND.json) return JSON_COMMAND.test(span.text) ? span.text : '';
+  return span.text;
 }
 
 function scriptFindings(repo: Repo, file: string, spans: readonly Span[]): Finding[] {
+  if (!repo.binsInstalled) return [];
   const findings: Finding[] = [];
-  const citingDir = path.posix.dirname(file);
-  const own = owningWorkspace(repo, file);
-  const describe = (targets: readonly Workspace[]): string =>
-    targets
-      .map((w) => (w.dir === '.' ? `the root ${PACKAGE_MANIFEST}` : `${w.dir}/${PACKAGE_MANIFEST}`))
-      .join(' or ');
-
   for (const span of spans) {
-    if (span.kind === SPAN_KIND.link) continue;
-    for (const match of span.text.matchAll(PNPM_WORD)) {
-      const start = match.index ?? 0;
-      const call = parsePnpmCall(span.text.slice(start + match[0].length));
-      const report = (kind: FindingKind, message: string) =>
-        findings.push({ file, line: span.line, kind, message });
-
-      // Where the command runs.
-      let targets: Workspace[];
-      const filters = call.filters.filter((filter) => !filter.startsWith('!'));
-      const cdDir = CD_BEFORE.exec(span.text.slice(0, start))?.[1].replace(QUOTES, '');
-      const inDir = call.dir ?? cdDir;
-      if (filters.length > 0) {
-        if (filters.some((filter) => PLACEHOLDER.test(filter))) continue;
-        targets = [];
-        for (const filter of filters) {
-          const selected = resolveFilter(repo, filter);
-          if (selected.length === 0) {
-            report(FINDING_KIND.unknownWorkspace, `\`pnpm --filter ${filter}\` names no workspace`);
-          }
-          targets.push(...selected);
-        }
-        if (targets.length === 0) continue;
-      } else if (call.recursive) {
-        targets = [...repo.workspaces];
-      } else if (call.workspaceRoot) {
-        targets = repo.rootWorkspace ? [repo.rootWorkspace] : [];
-      } else if (inDir !== undefined && REPO_RELATIVE_DIR.test(inDir)) {
-        // A directory is read from the repo root first (where commands are
-        // run from), then from the citing file's directory.
-        const manifest = [inDir, path.posix.join(citingDir, inDir)]
-          .filter(
-            (dir) => repo.exists(path.posix.normalize(dir)) || path.posix.normalize(dir) === '.',
-          )
-          .map((dir) => repo.manifestFor(dir))
-          .find((workspace) => workspace !== null);
-        if (!manifest) {
-          report(
-            FINDING_KIND.unknownWorkspace,
-            `\`pnpm\` is run in \`${inDir}\`, which is not a directory with a ${PACKAGE_MANIFEST} above it`,
-          );
-          continue;
-        }
-        targets = [manifest];
-      } else {
-        // Unfiltered: the command runs from the repo root, or from the
-        // workspace the citing file documents.
-        targets = [repo.rootWorkspace, own].filter((w): w is Workspace => w !== null);
-      }
-
-      const { word } = call;
+    const text = commandText(span);
+    for (const match of text.matchAll(PNPM_WORD)) {
+      const word = commandWord(text.slice((match.index ?? 0) + match[0].length));
       if (!word || PLACEHOLDER.test(word) || !SCRIPT_WORD.test(word)) continue;
-      if (PNPM_BUILTINS.has(word) || call.ifPresent) continue;
-      if (targets.some((w) => w.scripts.has(word) || w.bins.has(word))) continue;
-      report(
-        FINDING_KIND.missingScript,
-        `\`pnpm ${word}\`: no "${word}" script in ${describe(targets)}, and no binary of that name`,
-      );
+      if (repo.pnpmWords.has(word)) continue;
+      findings.push({
+        file,
+        line: span.line,
+        kind: FINDING_KIND.missingScript,
+        message: `\`pnpm ${word}\`: no ${PACKAGE_MANIFEST} in the repository has a "${word}" script, no ${BIN_DIR} has that binary, and it is not in PNPM_COMMANDS in scripts/check-agent-docs.ts`,
+      });
     }
   }
   return findings;
@@ -735,7 +661,12 @@ function indexFindings(root: string): Finding[] {
 // ---------------------------------------------------------------------------
 
 /** Every finding in the instruction files of the repository at `root`. */
-export function checkAgentDocs(root: string = ROOT): { scanned: number; findings: Finding[] } {
+export function checkAgentDocs(root: string = ROOT): {
+  scanned: number;
+  findings: Finding[];
+  /** False when no dependencies are installed, so no pnpm call was judged. */
+  pnpmCallsChecked: boolean;
+} {
   const repo = loadRepo(root);
   const targets = repo.files.filter((file) => SCANNED.some((pattern) => pattern.test(file)));
   const findings: Finding[] = [];
@@ -750,16 +681,22 @@ export function checkAgentDocs(root: string = ROOT): { scanned: number; findings
     );
   }
   findings.push(...indexFindings(root));
-  return { scanned: targets.length, findings };
+  return { scanned: targets.length, findings, pnpmCallsChecked: repo.binsInstalled };
 }
+
+const PNPM_CAVEAT =
+  'not necessarily in the workspace the command runs in: cd, -C and --filter are not resolved';
 
 function main(): void {
   const reportOnly = process.argv.includes(REPORT_FLAG);
-  const { scanned, findings } = checkAgentDocs();
+  const { scanned, findings, pnpmCallsChecked } = checkAgentDocs();
 
   if (findings.length === 0) {
+    const pnpmCalls = pnpmCallsChecked
+      ? `pnpm calls name a script, binary or pnpm command that exists somewhere in the repository (${PNPM_CAVEAT})`
+      : `pnpm calls were NOT checked (no ${BIN_DIR}: run pnpm install)`;
     console.log(
-      `✓ instruction files OK — ${scanned} files: paths cited in code spans, fenced blocks and link targets resolve, pnpm calls name a script or binary, sizes are within budget, the solutions index is current. Not checked: a bare filename, a path in plain prose, a path whose first directory does not exist`,
+      `✓ instruction files OK — ${scanned} files: paths cited in code spans, fenced blocks and link targets resolve, ${pnpmCalls}, sizes are within budget, the solutions index is current. Not checked: a bare filename, a path in plain prose, a path whose first directory does not exist`,
     );
     return;
   }
@@ -770,7 +707,7 @@ function main(): void {
     console.error(`      ${finding.kind}: ${finding.message}\n`);
   }
   console.error(
-    `Fix the citation, or the thing it cites. A path that is deliberately absent from the tree goes in SKIPPED_PATHS in scripts/check-agent-docs.ts with its reason; a budget is raised in PLANNED_SIZES in the same file.\n`,
+    `Fix the citation, or the thing it cites. A path that is deliberately absent from the tree goes in SKIPPED_PATHS in scripts/check-agent-docs.ts with its reason; a budget is raised in PLANNED_SIZES in the same file; a real pnpm command the check does not know goes in PNPM_COMMANDS. A pnpm call that passes names a word that exists somewhere in the repository (${PNPM_CAVEAT}).\n`,
   );
   process.exit(reportOnly ? 0 : 1);
 }
