@@ -13,6 +13,8 @@
  *   2. Scripts: `pnpm <script>` and `pnpm --filter <pkg> <script>` must name a
  *      script in the package.json they would run against.
  *   3. Budgets: line and byte caps per file (BUDGETS below).
+ *   4. Solutions index: `docs/solutions/README.md` must equal what
+ *      `scripts/gen-solutions-index.ts` generates from the documents on disk.
  *
  * Runs via `pnpm check:agent-docs`. Exits non-zero on any finding.
  * `--report` prints the findings and exits 0.
@@ -20,6 +22,11 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import {
+  SOLUTIONS_INDEX_COMMAND,
+  SOLUTIONS_INDEX_PATH,
+  solutionsIndexIsCurrent,
+} from './gen-solutions-index';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 
@@ -31,6 +38,7 @@ const FINDING_KIND = {
   missingScript: 'missing-script',
   unknownWorkspace: 'unknown-workspace',
   overBudget: 'over-budget',
+  staleIndex: 'stale-index',
 } as const;
 type FindingKind = (typeof FINDING_KIND)[keyof typeof FINDING_KIND];
 
@@ -394,6 +402,22 @@ function budgetFindings(file: string, content: string, lines: readonly string[])
 }
 
 // ---------------------------------------------------------------------------
+// Check 4: solutions index
+// ---------------------------------------------------------------------------
+
+function indexFindings(): Finding[] {
+  if (solutionsIndexIsCurrent()) return [];
+  return [
+    {
+      file: SOLUTIONS_INDEX_PATH,
+      line: 1,
+      kind: FINDING_KIND.staleIndex,
+      message: `does not match the solution documents on disk. Run: ${SOLUTIONS_INDEX_COMMAND}`,
+    },
+  ];
+}
+
+// ---------------------------------------------------------------------------
 
 function check(): { scanned: number; findings: Finding[] } {
   const targets = FILES.filter((file) => SCANNED.some((pattern) => pattern.test(file)));
@@ -408,6 +432,7 @@ function check(): { scanned: number; findings: Finding[] } {
       ...budgetFindings(file, content, lines),
     );
   }
+  findings.push(...indexFindings());
   return { scanned: targets.length, findings };
 }
 
