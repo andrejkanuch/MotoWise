@@ -5,7 +5,7 @@
   "ignore": ["docs/**", "infra/**"],
   "workspaces": {
     ".": {
-      "entry": ["scripts/*.ts"],
+      "entry": ["scripts/*.ts", "scripts/__tests__/*.test.ts"],
       "project": ["scripts/**/*.ts"],
       "ignoreDependencies": ["turbo", "tsx"]
     },

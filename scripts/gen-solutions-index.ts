@@ -4,8 +4,10 @@
  *
  * `docs/solutions/` is where solved problems are written up, and an agent can
  * only use a write-up it can find. This script writes `docs/solutions/README.md`
- * from the front matter of every document there: one row per document with its
- * path, title, module and symptom, grouped by category directory.
+ * from the front matter of every document git tracks there, at any depth: one
+ * row per document with its path, title, module and symptom, grouped by
+ * category directory. An untracked draft is not indexed until it is added, so
+ * the index is the same on a clean checkout as on the machine that wrote it.
  *
  *   pnpm exec tsx scripts/gen-solutions-index.ts           rewrite the index
  *   pnpm exec tsx scripts/gen-solutions-index.ts --check   exit 1 if it is stale
@@ -13,7 +15,8 @@
  * `pnpm check:agent-docs` runs the same comparison, so adding a solution
  * document without regenerating the index fails the check.
  */
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -23,6 +26,8 @@ const CHECK_FLAG = '--check';
 const SOLUTIONS_DIR = 'docs/solutions';
 const INDEX_NAME = 'README.md';
 const EMPTY_CELL = '—';
+/** Heading for a document that sits directly in `docs/solutions/`. */
+const NO_CATEGORY = '(no category)';
 
 export const SOLUTIONS_INDEX_PATH = `${SOLUTIONS_DIR}/${INDEX_NAME}`;
 export const SOLUTIONS_INDEX_COMMAND = 'pnpm exec tsx scripts/gen-solutions-index.ts';
@@ -87,8 +92,8 @@ function readFrontMatter(content: string): FrontMatter {
   return data;
 }
 
-function rowFor(file: string): Row {
-  const content = readFileSync(path.join(ROOT, file), 'utf8');
+function rowFor(root: string, file: string): Row {
+  const content = readFileSync(path.join(root, file), 'utf8');
   const data = readFrontMatter(content);
   const moduleKey = MODULE_KEYS.find((key) => data[key]);
   return {
@@ -99,24 +104,42 @@ function rowFor(file: string): Row {
   };
 }
 
-function categories(): string[] {
-  return readdirSync(path.join(ROOT, SOLUTIONS_DIR), { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort();
+/**
+ * The tracked solution documents, grouped by the category directory they sit
+ * under. A file deleted from the working tree but not yet from the index is
+ * left out.
+ */
+function documentsByCategory(root: string): Map<string, string[]> {
+  const tracked = execFileSync('git', ['ls-files', '--cached', '-z', '--', SOLUTIONS_DIR], {
+    cwd: root,
+    encoding: 'utf8',
+  })
+    .split('\0')
+    .filter(
+      (file) =>
+        file.endsWith('.md') && file !== SOLUTIONS_INDEX_PATH && existsSync(path.join(root, file)),
+    );
+
+  const groups = new Map<string, string[]>();
+  for (const file of tracked) {
+    const [first, ...rest] = path.posix.relative(SOLUTIONS_DIR, file).split('/');
+    const category = rest.length > 0 ? first : NO_CATEGORY;
+    groups.set(category, [...(groups.get(category) ?? []), file]);
+  }
+  return groups;
 }
 
-function documentsIn(category: string): string[] {
-  return readdirSync(path.join(ROOT, SOLUTIONS_DIR, category))
-    .filter((name) => name.endsWith('.md'))
-    .sort()
-    .map((name) => `${SOLUTIONS_DIR}/${category}/${name}`);
+/** Category directories in name order, then the documents with no category. */
+function inIndexOrder(groups: Map<string, string[]>): [string, string[]][] {
+  const named = [...groups].filter(([category]) => category !== NO_CATEGORY).sort();
+  const loose = groups.get(NO_CATEGORY);
+  return loose ? [...named, [NO_CATEGORY, loose]] : named;
 }
 
 const cell = (text: string): string => text.replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
 
-/** The full text of the index, built from the documents on disk. */
-export function renderSolutionsIndex(): string {
+/** The full text of the index, built from the tracked documents of the repository at `root`. */
+export function renderSolutionsIndex(root: string = ROOT): string {
   const out: string[] = [
     '# Solved problems',
     '',
@@ -124,9 +147,9 @@ export function renderSolutionsIndex(): string {
     '',
     'One row per document. Search this file for a symptom or a module before debugging something that may already have been solved. A dash means the document does not state that field.',
   ];
-  for (const category of categories()) {
-    const rows = documentsIn(category).map(rowFor);
-    if (rows.length === 0) continue;
+  for (const [category, files] of inIndexOrder(documentsByCategory(root))) {
+    const rows = [...files].sort().map((file) => rowFor(root, file));
+    const categoryDir = category === NO_CATEGORY ? SOLUTIONS_DIR : `${SOLUTIONS_DIR}/${category}`;
     out.push(
       '',
       `## ${category}`,
@@ -137,17 +160,19 @@ export function renderSolutionsIndex(): string {
     for (const row of rows) {
       const relative = path.posix.relative(SOLUTIONS_DIR, row.file);
       out.push(
-        `| [${path.posix.basename(row.file)}](${relative}) | ${cell(row.title)} | ${cell(row.module)} | ${cell(row.symptom)} |`,
+        `| [${path.posix.relative(categoryDir, row.file)}](${relative}) | ${cell(row.title)} | ${cell(row.module)} | ${cell(row.symptom)} |`,
       );
     }
   }
   return `${out.join('\n')}\n`;
 }
 
-/** True when the committed index equals what the documents on disk would generate. */
-export function solutionsIndexIsCurrent(): boolean {
+/** True when the index file equals what the tracked documents would generate. */
+export function solutionsIndexIsCurrent(root: string = ROOT): boolean {
   try {
-    return readFileSync(path.join(ROOT, SOLUTIONS_INDEX_PATH), 'utf8') === renderSolutionsIndex();
+    return (
+      readFileSync(path.join(root, SOLUTIONS_INDEX_PATH), 'utf8') === renderSolutionsIndex(root)
+    );
   } catch {
     return false;
   }
