@@ -1,3 +1,4 @@
+import { RIDE_MILESTONE_PAYWALL } from '@motovault/types';
 import {
   BadRequestException,
   ConflictException,
@@ -75,6 +76,7 @@ describe('RidesService', () => {
       'delete',
       'upsert',
       'eq',
+      'neq',
       'in',
       'is',
       'lt',
@@ -969,6 +971,125 @@ describe('RidesService', () => {
   // Visibility canonicalization (audit C6): `visibility` is the canonical access column
   // (RLS gates on it); `is_public` is dual-written until every SQL consumer migrates off
   // it. mapRow DERIVES isPublic from visibility so old + new clients never disagree.
+  describe('getRideMilestoneStats', () => {
+    // 10 minutes elapsed; distance_m well over the 1 km floor.
+    const qualifyingRow = {
+      id: 'ride-q1',
+      distance_m: 12_000,
+      started_at: '2026-10-10T10:00:00Z',
+      ended_at: '2026-10-10T10:10:00Z',
+      paused_duration_s: 0,
+      auto_paused_duration_s: 0,
+    };
+
+    it('applies the R1 filters on the user client and excludes the open ride', async () => {
+      mockUserClient._pushResult({ data: [qualifyingRow] });
+
+      await service.getRideMilestoneStats(userId, 'ride-open');
+
+      const [query] = queriesFrom(mockUserClient._calls);
+      expect(query.table).toBe('rides');
+      expect(query.ops).toEqual(
+        expect.arrayContaining([
+          { method: 'eq', args: ['user_id', userId] },
+          { method: 'eq', args: ['status', 'completed'] },
+          { method: 'is', args: ['deleted_at', null] },
+          { method: 'is', args: ['auto_ended_reason', null] },
+          { method: 'gte', args: ['distance_m', RIDE_MILESTONE_PAYWALL.QUALIFYING_MIN_DISTANCE_M] },
+          { method: 'neq', args: ['id', 'ride-open'] },
+        ]),
+      );
+    });
+
+    it('skips the exclusion when no ride id is given', async () => {
+      mockUserClient._pushResult({ data: [qualifyingRow] });
+
+      await service.getRideMilestoneStats(userId, null);
+
+      expect(mockUserClient._chain.neq).not.toHaveBeenCalled();
+    });
+
+    it('drops rides under the moving-time floor after subtracting manual AND auto pauses', async () => {
+      const floorS = RIDE_MILESTONE_PAYWALL.QUALIFYING_MIN_MOVING_S;
+      mockUserClient._pushResult({
+        data: [
+          // 4 minutes elapsed, 90 s auto-paused: 150 s moving, under the floor.
+          {
+            ...qualifyingRow,
+            id: 'auto-paused-short',
+            ended_at: '2026-10-10T10:04:00Z',
+            auto_paused_duration_s: 90,
+          },
+          // 4 minutes elapsed, 90 s manually paused: same answer.
+          {
+            ...qualifyingRow,
+            id: 'paused-short',
+            ended_at: '2026-10-10T10:04:00Z',
+            paused_duration_s: 90,
+          },
+          // Exactly the floor counts.
+          {
+            ...qualifyingRow,
+            id: 'at-floor',
+            ended_at: '2026-10-10T10:04:00Z',
+            auto_paused_duration_s: 240 - floorS,
+          },
+          // Null pause columns read as 0.
+          {
+            ...qualifyingRow,
+            id: 'null-pauses',
+            paused_duration_s: null,
+            auto_paused_duration_s: null,
+          },
+          // A row with no end timestamp never qualifies.
+          { ...qualifyingRow, id: 'no-end', ended_at: null },
+        ],
+      });
+
+      const stats = await service.getRideMilestoneStats(userId, null);
+
+      expect(stats.qualifyingRideCount).toBe(2);
+    });
+
+    it('reports the longest surviving distance, rounded, and 0 when nothing qualifies', async () => {
+      mockUserClient._pushResult({
+        data: [
+          { ...qualifyingRow, id: 'a', distance_m: 20_000.6 },
+          { ...qualifyingRow, id: 'b', distance_m: 55_000.2 },
+          // Longest raw row, but under the moving-time floor, so it must not win.
+          { ...qualifyingRow, id: 'c', distance_m: 90_000, ended_at: '2026-10-10T10:01:00Z' },
+        ],
+      });
+      expect(await service.getRideMilestoneStats(userId, null)).toEqual({
+        qualifyingRideCount: 2,
+        longestQualifyingDistanceM: 55_000,
+      });
+
+      const fresh = createMockClient();
+      fresh._pushResult({ data: [] });
+      const emptyService = new RidesService(
+        fresh as never,
+        fresh as never,
+        mockEventEmitter as never,
+      );
+      expect(await emptyService.getRideMilestoneStats(userId, null)).toEqual({
+        qualifyingRideCount: 0,
+        longestQualifyingDistanceM: 0,
+      });
+    });
+
+    it('surfaces a query failure as InternalServerErrorException', async () => {
+      mockUserClient._pushResult({
+        data: null,
+        error: { code: '42P01', message: 'relation does not exist' },
+      });
+
+      await expect(service.getRideMilestoneStats(userId, null)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+  });
+
   describe('visibility dual-write', () => {
     it('updateRide({ isPublic: true }) writes BOTH is_public=true AND visibility=public', async () => {
       mockUserClient._pushResult({ data: { ...fakeRow, is_public: true, visibility: 'public' } });

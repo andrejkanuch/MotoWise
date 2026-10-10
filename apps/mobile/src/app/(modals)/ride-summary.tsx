@@ -47,6 +47,7 @@ import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../../lib/ride-analytics';
+import { summaryMovingTimeS } from '../../lib/ride-milestone-trigger';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../../lib/store-review';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, type } from '../../theme/type';
@@ -99,6 +100,7 @@ export default function RideSummaryScreen() {
     elevationLoss: string;
     startedAt: string;
     motorcycleId: string;
+    autoPausedS: string;
   }>();
 
   const rideId = params.rideId ?? '';
@@ -110,6 +112,7 @@ export default function RideSummaryScreen() {
   const elevationLoss = Number(params.elevationLoss) || 0;
   const startedAtMs = Number(params.startedAt) || Date.now();
   const motorcycleId = params.motorcycleId ?? '';
+  const autoPausedS = Number(params.autoPausedS) || 0;
 
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -136,7 +139,14 @@ export default function RideSummaryScreen() {
 
   // Ride-moment paywall teaser, shadow phase: evaluate and log would-have-shown
   // when the summary opens. Nothing renders while RIDE_TEASER_LIVE is false.
-  useRideTeaserEvaluation({ rideId, distanceM, movingS: durationS, measurementSystem: system });
+  // The displayed Moving time stays `durationS`; the qualifying rule uses the
+  // server's definition, which also subtracts auto-pauses.
+  useRideTeaserEvaluation({
+    rideId,
+    distanceM,
+    movingS: summaryMovingTimeS(durationS, autoPausedS),
+    measurementSystem: system,
+  });
 
   // Fetch PB data
   const { data: overviewData } = useQuery<RideOverviewQuery>({

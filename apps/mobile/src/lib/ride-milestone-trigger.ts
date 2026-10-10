@@ -105,6 +105,17 @@ export function distanceInRiderUnit(distanceM: number, system: MeasurementSystem
   return metersToUnit(distanceM, mileageUnitLabel(system));
 }
 
+/**
+ * Moving time for the ride whose summary is open, matching the server's
+ * `computeMovingTimeS` (elapsed minus manual AND auto pauses). The summary's
+ * `durationS` already excludes manual pauses, so only the auto-paused seconds
+ * are subtracted here. Both sides must apply R1 to the same number, or the
+ * phone's `is_qualifying_ride` disagrees with the server's count.
+ */
+export function summaryMovingTimeS(durationS: number, autoPausedS: number): number {
+  return Math.max(0, durationS - autoPausedS);
+}
+
 /** R1, applied to the ride whose summary is open. */
 export function isQualifyingRide(ride: RideTeaserInput['ride']): boolean {
   return (

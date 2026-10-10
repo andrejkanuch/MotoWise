@@ -139,7 +139,7 @@ export class RidesResolver {
   @Query(() => RideMilestoneStats)
   async rideMilestoneStats(
     @CurrentUser() user: AuthUser,
-    @Args('excludeRideId', { nullable: true }) excludeRideId?: string,
+    @Args('excludeRideId', { nullable: true }, ParseUUIDPipe) excludeRideId?: string,
   ): Promise<RideMilestoneStats> {
     return this.ridesService.getRideMilestoneStats(user.id, excludeRideId ?? null);
   }

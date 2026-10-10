@@ -201,6 +201,12 @@ export interface RideEndSummary {
   elevationLoss: number;
   startedAt: number | undefined;
   motorcycleId: string | null;
+  /**
+   * Seconds the GPS listener auto-paused. `durationS` already excludes manual
+   * pauses but NOT these; the server's moving time subtracts both, so the summary
+   * needs this to apply the same qualifying rule (plan R1).
+   */
+  autoPausedS: number;
 }
 
 /** Elapsed riding seconds derived from persisted timestamps (no UI timer needed). */
@@ -376,6 +382,7 @@ export function endRideSession(
     elevationLoss: Math.round(elevLoss),
     startedAt,
     motorcycleId,
+    autoPausedS: Math.round(totalAutoPausedMs / 1000),
   };
 }
 
@@ -397,6 +404,7 @@ export function buildRideSummaryHref(summary: RideEndSummary): Href {
       elevationLoss: String(summary.elevationLoss),
       startedAt: summary.startedAt?.toString() ?? '',
       motorcycleId: summary.motorcycleId ?? '',
+      autoPausedS: String(summary.autoPausedS),
     },
   };
 }

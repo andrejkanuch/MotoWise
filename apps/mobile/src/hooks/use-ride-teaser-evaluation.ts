@@ -1,8 +1,8 @@
 import { RideMilestoneStatsDocument, type RideMilestoneStatsQuery } from '@motovault/graphql';
 import type { MeasurementSystem } from '@motovault/types';
 import { useEffect, useRef } from 'react';
+import { isHeadUnitConnected } from '../../modules/carplay/src';
 import { RIDE_TEASER_LIVE } from '../config/feature-flags';
-import { useCarPlayConnection } from '../features/carplay/use-carplay';
 import { gqlFetcher } from '../lib/graphql-client';
 import { logger } from '../lib/logger';
 import { getOnboardingPaywallDismissedAt } from '../lib/paywall-history';
@@ -20,7 +20,7 @@ import { useSubscriptionStore } from '../stores/subscription.store';
 interface RideTeaserEvaluationInput {
   rideId: string;
   distanceM: number;
-  /** Elapsed minus pauses, as the summary already computes it. */
+  /** Elapsed minus manual AND auto pauses: the server's `computeMovingTimeS` definition (R1). */
   movingS: number;
   measurementSystem: MeasurementSystem;
 }
@@ -33,19 +33,26 @@ interface RideTeaserEvaluationInput {
  * Shadow phase: `RIDE_TEASER_LIVE` is false, so nothing renders and nothing
  * opens — the event's `would_show` is the baseline the live cards are judged
  * against. Offline or a failed stats read suppresses (R7) rather than guessing.
+ *
+ * Exactly one event per summary: the effect is keyed on `rideId` alone and is
+ * never cancelled. A rerender, a CarPlay connect/disconnect, or a Save/Discard
+ * while the reads are in flight must not drop the event (it is a pure side
+ * effect with no UI), so volatile inputs are read through a ref at evaluation
+ * time and the CarPlay state straight from the native module.
  */
 export function useRideTeaserEvaluation(input: RideTeaserEvaluationInput): void {
-  const { connected: carPlayConnected } = useCarPlayConnection();
   const evaluatedForRide = useRef<string | null>(null);
+  const latestInput = useRef(input);
+  latestInput.current = input;
 
+  const { rideId } = input;
   useEffect(() => {
-    if (!input.rideId || evaluatedForRide.current === input.rideId) return;
-    evaluatedForRide.current = input.rideId;
+    if (!rideId || evaluatedForRide.current === rideId) return;
+    evaluatedForRide.current = rideId;
 
-    let cancelled = false;
-    (async () => {
+    void (async () => {
       const [stats, hasHadTrial] = await Promise.all([
-        gqlFetcher(RideMilestoneStatsDocument, { excludeRideId: input.rideId })
+        gqlFetcher(RideMilestoneStatsDocument, { excludeRideId: rideId })
           .then((data: RideMilestoneStatsQuery): RideTeaserStats => data.rideMilestoneStats)
           .catch((error: unknown) => {
             logger.warn('[RideTeaser] milestone stats unavailable', error);
@@ -53,37 +60,32 @@ export function useRideTeaserEvaluation(input: RideTeaserEvaluationInput): void 
           }),
         hasHadTrialSnapshot(),
       ]);
-      if (cancelled) return;
 
+      const { distanceM, movingS, measurementSystem } = latestInput.current;
       const userId = useAuthStore.getState().session?.user.id ?? 'anonymous';
       const subscription = useSubscriptionStore.getState();
       const rideStatus = useRideStore.getState().status;
 
       const evaluation = evaluateRideTeaser({
-        ride: { distanceM: input.distanceM, movingS: input.movingS, systemEnded: false },
+        ride: { distanceM, movingS, systemEnded: false },
         priorStats: stats,
         isPro: subscription.isPro,
         isTrialing: subscription.isTrialing,
-        carPlayConnected,
+        carPlayConnected: isHeadUnitConnected(),
         activeRide: rideStatus === 'recording' || rideStatus === 'paused',
         onboardingPaywallDismissedAt: getOnboardingPaywallDismissedAt(),
-        measurementSystem: input.measurementSystem,
+        measurementSystem,
         shownTriggers: getShownTriggers(userId),
         liveEnabled: RIDE_TEASER_LIVE,
         now: Date.now(),
       });
       trackRideTeaserEvaluated(evaluation, {
-        rideId: input.rideId,
-        distanceM: input.distanceM,
+        rideId,
+        distanceM,
         hasHadTrial,
         isPro: subscription.isPro,
         isTrialing: subscription.isTrialing,
       });
     })();
-
-    return () => {
-      cancelled = true;
-    };
-    // One evaluation per summary (the ref guard); the inputs are fixed for the life of the screen.
-  }, [input.rideId, input.distanceM, input.movingS, input.measurementSystem, carPlayConnected]);
+  }, [rideId]);
 }
