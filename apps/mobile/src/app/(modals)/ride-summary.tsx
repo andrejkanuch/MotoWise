@@ -137,10 +137,8 @@ export default function RideSummaryScreen() {
 
   const bikeName = useBikeName(motorcycleId);
 
-  // Ride-moment paywall teaser, shadow phase: evaluate and log would-have-shown
-  // when the summary opens. Nothing renders while RIDE_TEASER_LIVE is false.
-  // The displayed Moving time stays `durationS`; the qualifying rule uses the
-  // server's definition, which also subtracts auto-pauses.
+  // Ride-moment paywall teaser, shadow phase: logs would-have-shown when the summary opens;
+  // nothing renders while RIDE_TEASER_LIVE is false. Moving time here is the server's (minus auto-pauses).
   useRideTeaserEvaluation({
     rideId,
     distanceM,
