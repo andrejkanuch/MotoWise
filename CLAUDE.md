@@ -68,4 +68,4 @@ Turborepo + pnpm workspaces. This file holds only what applies everywhere; each 
 ## When stuck
 - `docs/solutions/README.md` — index of solved problems. Search it before debugging
 - `docs/MAP.md` — what is where
-- A local checkout can lag `origin/main`. Before auditing or planning, run `git fetch` and compare `HEAD` with `origin/main`
+- A local checkout can lag `origin/main`. A SessionStart hook (`.claude/hooks/warn-behind-main.sh`) prints one line when it is behind the ref as last fetched; it does not fetch. Before auditing or planning, run `git fetch` and compare `HEAD` with `origin/main`

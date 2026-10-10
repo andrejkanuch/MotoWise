@@ -1,6 +1,17 @@
 {
   "$comment": "Team-shared Claude Code settings (committed). Personal permissions live in settings.local.json (tracked in git today).",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Comparing this checkout with origin/main...",
+            "command": "bash -c 'HOOK=\"$(git rev-parse --show-toplevel 2>/dev/null)/.claude/hooks/warn-behind-main.sh\"; [ -f \"$HOOK\" ] || exit 0; bash \"$HOOK\" || exit 0'"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Edit|MultiEdit|Write|NotebookEdit",
