@@ -32,7 +32,7 @@ Do not move an existing domain.
 | Test | `__tests__/` beside the code; cross-cutting contracts in `src/__tests__/` | Never under `src/app` |
 
 - Allowed direction: `app` to `features` and `components`, to `hooks`, to `lib` and `stores`, to `utils`, `theme` and `config`. Nothing imports `app`. No new barrel files.
-- Imports: use `@/` (it maps to `src/`) for any import that would climb three or more directories; one- and two-level relative paths are accepted. `pnpm check:mobile-structure` fails on a new import climbing three or more levels, a new layering violation, a route that grows, TypeScript in a new top-level `src/` directory, or a baseline entry looser than the tree (`pnpm check:mobile-structure --update` lowers it).
+- Imports: use `@/` (it maps to `src/`) for any import that would climb three or more directories; one- and two-level relative paths are accepted. `pnpm check:mobile-structure` fails on a new import climbing three or more levels, a new layering violation, a route that grows, or misplaced TypeScript.
 - File naming: kebab-case, routes included. Exception: `src/widgets/*Widget.tsx` stay PascalCase — coupled to the native iOS widget targets in `app.config.ts` and the lazy imports in `src/lib/widget-sync.ts`; renaming breaks the widget build.
 
 ## Architecture
@@ -61,7 +61,6 @@ Do not move an existing domain.
 - `expo` and `react-native` are declared in this app only. Run Expo CLI from this directory or via `pnpm --filter @motovault/mobile <script>`. `@sentry/react-native` stays in `expo.install.exclude` (pinned ahead of Expo's recommendation; re-check each SDK bump). Why: `docs/solutions/build-errors/renovate-dependabot-duplicate-bots.md`
 
 ## Common Mistakes
-- Not handling loading/error states in TanStack Query hooks
 - Forgetting `pnpm generate` after modifying .graphql files; using localhost on the Android emulator (use 10.0.2.2)
 - Putting native permissions or usage strings anywhere but `app.config.ts` (there is no mobile `app.json`)
 - An RNGH gesture inside a bike-hub segment that does not gate `.enabled()` on `useSegmentInteractive()` — recognisers leak onto recycled views (`docs/solutions/ui-bugs/hidden-segment-rows-still-receive-taps-gesture-handler.md`)

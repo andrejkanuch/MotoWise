@@ -117,6 +117,8 @@ fallthrough = true
 
 Adding a nullable column via `ALTER TABLE` is metadata-only (zero-risk), but PostgREST's schema cache may take up to ~100ms to reload via the `pgrst_watch` event trigger. If the Worker tries to INSERT referencing the new `source` column before the cache reloads, PostgREST returns **PGRST204** ("Could not find the column in the schema cache").
 
+> **Retired, 2026-10-10.** `npx supabase db push` is no longer the route to production, and applying a migration there is an owner-approved step. See `docs/runbooks/supabase-migrations.md`. The step below is kept as the record of what was done at the time; the wait and the reload apply after a migration is applied by any route.
+
 **Verification step**: after `supabase db push`, wait 1-2 seconds, then test-insert a row with the new column. If it 404s, force a reload:
 ```sql
 NOTIFY pgrst, 'reload schema';

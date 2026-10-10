@@ -108,8 +108,12 @@ Expo's documentation describes two kinds of rollback and three commands:
   `npx eas update:roll-back-to-embedded --branch production --runtime-version <version>`
   publishes a rollback that tells devices on that runtime version to use the bundle their
   binary shipped with. `<version>` is the `version` string in `apps/mobile/app.config.ts`.
-- `npx eas update:rollback` is an interactive prompt that leads to one of the two. It
-  cannot be used where there is no terminal to answer it.
+- `npx eas update:rollback` leads to one of the two. Run bare, it is an interactive
+  prompt. Without a terminal it needs the update group and the flag:
+  `npx eas update:rollback <update-group-id> --non-interactive`. The group must be the
+  latest update for its branch and runtime version; the group published before it is
+  republished, and if there is none a rollback to the embedded bundle is published
+  (`eas update:rollback --help`, eas-cli 23.2.0, read 2026-10-10; not run on this project).
 
 Run them from `apps/mobile`. `update:republish` also accepts `-m <message>`,
 `-p android|ios|all` and `--non-interactive`.

@@ -923,3 +923,17 @@ Allowed direction: `app` to `features` and `components`, to `hooks`, to `lib` an
 - Left to #289: 39 images under `apps/web/public`, two mobile images, two API files, four analytics events in `apps/mobile/src/lib/analytics.ts`, three stray root files, and the move of ten onboarding documents to an archive folder.
 - PR A does not touch `apps/mobile/src/lib/analytics.ts` event definitions, any image, or those root files, so a rebased #289 has no content conflict with it.
 - #289 needs its list rebuilt on `main` before it merges: it was last updated on 2026-10-06, and `main` has moved since.
+
+## Changes after review (2026-10-10)
+
+Two code reviews of the branch and the owner's answers to the open decisions changed what was built. The text above is left as it was planned; where it disagrees with this section, this section is what the branch does.
+
+| Planned above | What the branch does | Why |
+|---|---|---|
+| Owner Decision 7 and the Appendix's "Kept" list: `apps/mobile/src/lib/paywall-validation.ts` is kept. | Deleted, with its test (eb42ac1e). | Decided after the first review: nothing but its own test reaches it. |
+| "PR A does not touch `apps/mobile/src/lib/analytics.ts` event definitions." | `AnalyticsEvent.SHARE_CARD_GENERATED` and `SHARE_CARD_FAILED` are deleted (eb42ac1e). | Decided after the first review: no runtime code reads them. |
+| Owner Decision 1: `npx supabase db push` was an open question; the instruction files only became "owner-approved step". | Retired as the route to production (69f5d128). `docs/runbooks/supabase-migrations.md` is the route; solution documents and the agent prompt that present it as a step to run carry a dated note. | The owner decided. |
+| Owner Decision 2 and the scope list: no `SessionStart` hook. | Added: `.claude/hooks/warn-behind-main.sh`, on `startup` and `resume` only, 10 s timeout (e59d7294, 6ca2b57e). It makes no network call. | Decided after the first review. The matcher and timeout came from the second review: with neither, it re-ran after every `/clear` and compaction with a 600 s default. |
+| AE6: a commit that takes a baselined route below its recorded size passes, and the baseline "may be lowered". | The check fails until the baseline is lowered (`pnpm check:mobile-structure --update`, committed with the change). The same holds for deep-import and layering entries and for entries naming a file that is gone (265a1176). | First review: with a loose baseline a cleaned-up file could grow back to its old allowance unnoticed. |
+| KTD for `check:agent-docs`: a `pnpm` call must name a script in the package.json it runs against. | The first word that is not a flag must be a script in any package.json, a binary in a `node_modules/.bin`, or a pnpm command. `cd`, `-C` and `--filter` are not resolved (14d55535). | Second review: following pnpm's and the shell's grammar kept rejecting true commands (three fix commits in a row, then four more cases). The cost is stated in the script: a script that exists only in another workspace passes. |
+| The solutions index is generated from the tracked documents. | Generated and checked from the git index only, never the working tree (3d063189). | Second review: an unstaged delete or retitle made the local check and CI disagree. |
