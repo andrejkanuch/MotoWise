@@ -15,8 +15,7 @@
         "src/**/*.module.ts",
         "scripts/*.ts",
         "src/**/*.{test,spec}.ts",
-        "vitest.config.ts",
-        "vitest.e2e.config.ts"
+        "vitest.config.ts"
       ],
       "project": ["src/**/*.ts"]
     },
@@ -25,9 +24,13 @@
       "project": ["src/**/*.{ts,tsx}"]
     },
     "apps/mobile": {
-      "entry": ["src/**/__tests__/**/*.{ts,tsx}", "src/**/*.{test,spec}.{ts,tsx}"],
+      "entry": [
+        "src/**/__tests__/**/*.{ts,tsx}",
+        "src/**/*.{test,spec}.{ts,tsx}",
+        "src/test/**/*.{ts,tsx}"
+      ],
       "project": ["src/**/*.{ts,tsx}"],
-      "ignore": ["src/**/*.web.{ts,tsx}"]
+      "ignore": ["src/**/*.web.{ts,tsx}", "src/**/*.{android,ios}.{ts,tsx}"]
     },
     "packages/*": {
       "entry": ["src/index.ts", "src/**/*.{test,spec}.{ts,tsx}"],
