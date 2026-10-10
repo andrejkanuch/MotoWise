@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { type } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
 import { ShareCardCarousel } from './share-card-carousel';
 import {
   getAvailableVariants,
@@ -96,9 +97,7 @@ export function ShareActivitySheet({ visible, payload, onClose }: ShareActivityS
 
   const handleDestinationPress = useCallback(
     (destination: ShareDestination) => {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }
+      triggerImpact(Haptics.ImpactFeedbackStyle.Light);
       const activeVariant = variants[activeIndex] ?? variants[0];
       trackEvent(AnalyticsEvent.SHARE_DESTINATION_TAPPED, { destination, variant: activeVariant });
       handleDestinationTap(destination, activeVariant);
@@ -107,9 +106,7 @@ export function ShareActivitySheet({ visible, payload, onClose }: ShareActivityS
   );
 
   const handleClose = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     onClose();
   }, [onClose]);
 

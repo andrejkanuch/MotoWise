@@ -9,25 +9,16 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getWaypointIcon } from '../../../components/trip/waypoint-type-picker';
+import { getWaypointIcon } from '@/components/trip/waypoint-type-picker';
 import {
   type TrampolineState,
   useTripShareTokenResolver,
-} from '../../../hooks/use-trip-share-token-resolver';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { userFriendlyError } from '../../../lib/graphql-errors';
-import { useEditorialTheme } from '../../../theme/editorial';
-
-function formatDateRange(start: string, end: string): string {
-  const s = new Date(start);
-  const e = new Date(end);
-  const opts: Intl.DateTimeFormatOptions = {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  };
-  return `${s.toLocaleDateString('en-US', opts)} \u2013 ${e.toLocaleDateString('en-US', opts)}`;
-}
+} from '@/hooks/use-trip-share-token-resolver';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { userFriendlyError } from '@/lib/graphql-errors';
+import { useEditorialTheme } from '@/theme/editorial';
+import { triggerNotification } from '@/utils/haptics';
+import { formatTripDateRangeLong } from '@/utils/trip-date-range';
 
 export default function SharedTripTrampolineScreen() {
   const { isDark } = useEditorialTheme();
@@ -184,8 +175,7 @@ function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: Rend
   const joinMutation = useMutation({
     mutationFn: () => gqlFetcher(JoinTripDocument, { input: { tripId: trip.id, status: 'going' } }),
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       ctx.router.replace({
         pathname: '/(modals)/trip-detail',
         params: { tripId: trip.id },
@@ -260,7 +250,7 @@ function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: Rend
           marginBottom: 6,
         }}
       >
-        {formatDateRange(trip.startDate, trip.endDate)}
+        {formatTripDateRangeLong(trip.startDate, trip.endDate)}
       </Animated.Text>
 
       {/* Meta row */}

@@ -214,6 +214,7 @@ Check this list before adding a `deleted_at` column to a new table.
 | `rides` | RPC `soft_delete_ride` (00176) — was admin-client |
 | `motorcycles` | RPC `soft_delete_motorcycle` (00027, hardened in 00176) |
 | `maintenance_tasks` | RPC `soft_delete_maintenance_task` (00027, hardened in 00176) |
+| `notes` | RPC `soft_delete_note` (00182) — built on the RPC from the start |
 | `ride_summaries` | **latent** — same policy shape (`00058:68`), no soft-delete path wired up yet. Wire one and it breaks the same way. |
 | `ride_waypoints` | not affected — no `deleted_at`; rows are hard-deleted by the `purge_soft_deleted_rides` GDPR job (`00048`) |
 

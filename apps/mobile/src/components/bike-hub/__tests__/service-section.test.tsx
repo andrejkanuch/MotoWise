@@ -17,26 +17,19 @@ jest.mock('expo-haptics', () => ({
 }));
 const mockPush = jest.fn();
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
-jest.mock('../../../hooks/use-currency', () => ({ useCurrency: () => ({ currency: 'EUR' }) }));
+jest.mock('@/hooks/use-currency', () => ({ useCurrency: () => ({ currency: 'EUR' }) }));
 jest.mock('../../task-photo-gallery', () => ({ TaskPhotoGallery: () => null }));
 jest.mock('../shell/use-today', () => ({
-  useToday: () => jest.requireActual('../../../test/bike-hub-fixtures').TODAY,
+  useToday: () => jest.requireActual('@/test/bike-hub-fixtures').TODAY,
 }));
 
 import { MaintenancePriority, MaintenanceTaskStatus } from '@motovault/graphql';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import { StyleSheet, useWindowDimensions } from 'react-native';
-import '../../../i18n';
-import { countOverdueTasks, getServiceBadgeCount } from '../../../lib/bike-hub/attention';
-import { HUB_UNIT } from '../../../lib/bike-hub/constants';
-import {
-  AIR_FILTER,
-  BIKE_A_TASKS,
-  BRAKE_PADS,
-  KM,
-  ODOMETER,
-  task,
-} from '../../../test/bike-hub-fixtures';
+import '@/i18n';
+import { countOverdueTasks, getServiceBadgeCount } from '@/lib/bike-hub/attention';
+import { HUB_UNIT } from '@/lib/bike-hub/constants';
+import { AIR_FILTER, BIKE_A_TASKS, BRAKE_PADS, KM, ODOMETER, task } from '@/test/bike-hub-fixtures';
 import { MaintenanceSection } from '../maintenance-section';
 import type { HubTask } from '../shell/use-bike-hub-data';
 

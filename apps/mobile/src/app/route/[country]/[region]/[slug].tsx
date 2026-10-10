@@ -5,8 +5,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
-import { gqlFetcher } from '../../../../lib/graphql-client';
-import { queryKeys } from '../../../../lib/query-keys';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
 
 /**
  * Universal link: https://motovault.app/route/:country/:region/:slug

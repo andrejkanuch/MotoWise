@@ -1,11 +1,11 @@
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { OdometerSheet } from '../../../components/bike-hub/sheets/odometer-sheet';
-import { useDiscardReadingGuard } from '../../../components/bike-hub/sheets/use-log-odometer';
-import { useHubBike } from '../../../components/bike-hub/shell/use-hub-bike';
-import { refreshToday } from '../../../components/bike-hub/shell/use-today';
-import { useHubTheme } from '../../../components/bike-hub/ui/tokens';
+import { OdometerSheet } from '@/components/bike-hub/sheets/odometer-sheet';
+import { useDiscardReadingGuard } from '@/components/bike-hub/sheets/use-log-odometer';
+import { useHubBike } from '@/components/bike-hub/shell/use-hub-bike';
+import { refreshToday } from '@/components/bike-hub/shell/use-today';
+import { useHubTheme } from '@/components/bike-hub/ui/tokens';
 
 const PLACEHOLDER_HEIGHT = 240;
 

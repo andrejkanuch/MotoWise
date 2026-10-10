@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react-native';
 import { Pressable, Text } from 'react-native';
-import { triggerImpact } from '../../../utils/haptics';
+import { triggerImpact } from '@/utils/haptics';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
   HUB_HEIGHT,

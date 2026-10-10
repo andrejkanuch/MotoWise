@@ -1,12 +1,12 @@
 import { MaintenancePriority, MaintenanceTaskStatus } from '@motovault/graphql';
-import { DUE_STATE, DUE_TONE, type DueState, type DueTone } from '../../../lib/bike-hub/constants';
+import { DUE_STATE, DUE_TONE, type DueState, type DueTone } from '@/lib/bike-hub/constants';
 import {
   compareTasksForAttention,
   type DueContext,
   getTaskDue,
   isActiveTask,
   type TaskDue,
-} from '../../../lib/bike-hub/task-due';
+} from '@/lib/bike-hub/task-due';
 import type { HubTask } from '../shell/use-bike-hub-data';
 import type { HubCopyKey } from '../ui/tokens';
 

@@ -12,14 +12,14 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 const mockStep = { variant: 'garage_first', stepIndex: 2, totalScreens: 8 };
-jest.mock('../../../hooks/use-onboarding-flow', () => ({
+jest.mock('@/hooks/use-onboarding-flow', () => ({
   useOnboardingStep: () => mockStep,
 }));
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { useKeyboardState } from 'react-native-keyboard-controller';
-import { OB_SCREEN } from '../../../config/onboarding';
-import i18n from '../../../i18n';
+import { OB_SCREEN } from '@/config/onboarding';
+import i18n from '@/i18n';
 import { FOOTER_MAX_FONT_SCALE } from '../onboarding-continue-button';
 import { OnboardingShell } from '../onboarding-shell';
 

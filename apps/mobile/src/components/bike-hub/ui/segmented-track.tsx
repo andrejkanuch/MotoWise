@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
-import { triggerSelection } from '../../../utils/haptics';
+import { triggerSelection } from '@/utils/haptics';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
   HUB_FIGURE,

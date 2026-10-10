@@ -36,8 +36,8 @@ jest.mock('react-native-mmkv', () => ({
 }));
 
 // Bike-status data seam (coordinator loads the active bike + tasks outside React).
-jest.mock('../../../lib/graphql-client', () => ({ gqlFetcher: jest.fn() }));
-jest.mock('../../../lib/query-client', () => ({ queryClient: { getQueryData: jest.fn() } }));
+jest.mock('@/lib/graphql-client', () => ({ gqlFetcher: jest.fn() }));
+jest.mock('@/lib/query-client', () => ({ queryClient: { getQueryData: jest.fn() } }));
 jest.mock('@motovault/graphql', () => ({
   MaintenanceTasksByMotorcycleDocument: 'MaintenanceTasksByMotorcycleDocument',
   MyMotorcyclesDocument: 'MyMotorcyclesDocument',
@@ -55,7 +55,7 @@ jest.mock('../../ride/ride-controller', () => ({
 // Coordinator now routes the phone to the ride-summary on Stop, and logs nav
 // failures — mock the imperative router + analytics to avoid the native chains.
 jest.mock('expo-router', () => ({ router: { replace: jest.fn() } }));
-jest.mock('../../../lib/analytics', () => ({
+jest.mock('@/lib/analytics', () => ({
   captureException: jest.fn(),
   addBreadcrumb: jest.fn(),
   trackEvent: jest.fn(),
@@ -84,7 +84,7 @@ const mockRide = {
 };
 const mockStoreListeners: Array<() => void> = [];
 
-jest.mock('../../../stores/ride.store', () => ({
+jest.mock('@/stores/ride.store', () => ({
   useRideStore: {
     getState: () => mockRide,
     subscribe: (cb: () => void) => {
@@ -96,24 +96,24 @@ jest.mock('../../../stores/ride.store', () => ({
     },
   },
 }));
-jest.mock('../../../stores/carplay.store', () => ({
+jest.mock('@/stores/carplay.store', () => ({
   useCarPlayStore: { getState: () => ({ startMode: 'automatic' }) },
 }));
 // A head unit can connect while the phone sits on the login screen, so the
 // coordinator's user-scoped loads are gated on there being a session at all
 // (Sentry MOTO-VAULT-REACT-NATIVE-1J). Keep it settable per test.
 const mockAuth = { measurementSystem: 'metric', session: { access_token: 't' } as unknown };
-jest.mock('../../../stores/auth.store', () => ({
+jest.mock('@/stores/auth.store', () => ({
   useAuthStore: { getState: () => mockAuth },
 }));
-jest.mock('../../../lib/gql-auth-session', () => ({
+jest.mock('@/lib/gql-auth-session', () => ({
   hasAuthenticatedSession: () => mockAuth.session !== null,
 }));
 
 import { router } from 'expo-router';
-import { captureException, flushAnalytics, trackEvent } from '../../../lib/analytics';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryClient } from '../../../lib/query-client';
+import { captureException, flushAnalytics, trackEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryClient } from '@/lib/query-client';
 import * as rideController from '../../ride/ride-controller';
 import {
   __resetCarPlayCoordinator,

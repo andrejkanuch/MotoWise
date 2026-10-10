@@ -3,19 +3,16 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  LOG_OPTIONS,
-  type LogOptionDefinition,
-} from '../../../components/bike-hub/sheets/log-options';
-import { SheetGrabber, SheetHeader } from '../../../components/bike-hub/sheets/sheet-header';
-import { SheetScroll, sheetBottomPadding } from '../../../components/bike-hub/sheets/sheet-scroll';
-import { useHubBike } from '../../../components/bike-hub/shell/use-hub-bike';
-import { HUB_CHROME_MAX_FONT_SCALE, useHubTheme } from '../../../components/bike-hub/ui/tokens';
-import { useCurrency } from '../../../hooks/use-currency';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { bikeDisplayName } from '../../../lib/bike-hub/format';
-import { SYSTEM_WEIGHT, type } from '../../../theme/type';
-import { triggerImpact } from '../../../utils/haptics';
+import { LOG_OPTIONS, type LogOptionDefinition } from '@/components/bike-hub/sheets/log-options';
+import { SheetGrabber, SheetHeader } from '@/components/bike-hub/sheets/sheet-header';
+import { SheetScroll, sheetBottomPadding } from '@/components/bike-hub/sheets/sheet-scroll';
+import { useHubBike } from '@/components/bike-hub/shell/use-hub-bike';
+import { HUB_CHROME_MAX_FONT_SCALE, useHubTheme } from '@/components/bike-hub/ui/tokens';
+import { useCurrency } from '@/hooks/use-currency';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { bikeDisplayName } from '@/lib/bike-hub/format';
+import { SYSTEM_WEIGHT, type } from '@/theme/type';
+import { triggerImpact } from '@/utils/haptics';
 
 const OPTION_MIN_HEIGHT = 60;
 /** Between options: tight enough that six fit without crowding the sheet. */

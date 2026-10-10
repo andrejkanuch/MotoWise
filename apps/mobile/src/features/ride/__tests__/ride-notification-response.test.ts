@@ -1,14 +1,14 @@
 // What each press on a forgotten-ride notification does. The one rule that matters
 // most: only the explicit "End ride" button ends a ride — a plain tap navigates.
 
-jest.mock('../../../lib/notifications', () => ({
+jest.mock('@/lib/notifications', () => ({
   NOTIFICATION_ACTION: { END_RIDE: 'END_RIDE', KEEP_RIDING: 'KEEP_RIDING' },
 }));
-jest.mock('../../../stores/ride.store', () => {
+jest.mock('@/stores/ride.store', () => {
   const store = { status: 'recording' as string };
   return { useRideStore: { getState: () => store } };
 });
-jest.mock('../../../utils/ride-storage', () => {
+jest.mock('@/utils/ride-storage', () => {
   const state = { currentId: 'ride-1' as string | undefined };
   return { __state: state, rideMMKV: { getCurrentId: () => state.currentId } };
 });
@@ -16,14 +16,14 @@ jest.mock('../ride-controller', () => ({
   endRideSession: jest.fn(() => ({ rideId: 'ride-1' })),
   buildRideSummaryHref: jest.fn(() => '/summary-href'),
 }));
-jest.mock('../../../utils/ride-reminders', () => ({
+jest.mock('@/utils/ride-reminders', () => ({
   armRideReminders: jest.fn(() => Promise.resolve()),
   rideEndTrimTarget: jest.fn(() => 4_000_000),
 }));
 
-import { useRideStore } from '../../../stores/ride.store';
-import { armRideReminders } from '../../../utils/ride-reminders';
-import * as storage from '../../../utils/ride-storage';
+import { useRideStore } from '@/stores/ride.store';
+import { armRideReminders } from '@/utils/ride-reminders';
+import * as storage from '@/utils/ride-storage';
 import { endRideSession } from '../ride-controller';
 import {
   __resetRideIdleResponsesForTest,

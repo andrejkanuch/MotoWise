@@ -2,7 +2,7 @@ import { type ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import type { AttentionItem } from '../../../lib/bike-hub/attention';
+import type { AttentionItem } from '@/lib/bike-hub/attention';
 import {
   ATTENTION_KIND,
   type AttentionKind,
@@ -10,7 +10,7 @@ import {
   type BikeSegment,
   type HubUnit,
   RIDE_STATUS,
-} from '../../../lib/bike-hub/constants';
+} from '@/lib/bike-hub/constants';
 import { describePlate, rankBikeTasks } from '../../home/home-plate';
 import type { BikeActions } from '../shell/use-bike-actions';
 import type { BikeHubData, HubBike } from '../shell/use-bike-hub-data';

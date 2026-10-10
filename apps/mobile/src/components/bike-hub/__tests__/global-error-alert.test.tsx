@@ -20,14 +20,14 @@ jest.mock('react-native-reanimated', () => ({
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
-jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
-jest.mock('../../../lib/analytics', () => ({
-  ...require('../../../test/mocks').mockAnalytics(),
+jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
+jest.mock('@/lib/analytics', () => ({
+  ...require('@/test/mocks').mockAnalytics(),
   addBreadcrumb: jest.fn(),
 }));
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 jest.mock('expo-haptics', () => ({
@@ -37,20 +37,20 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success', Warning: 'warning' },
 }));
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), back: jest.fn() }) }));
-jest.mock('../../../lib/notifications', () => ({
+jest.mock('@/lib/notifications', () => ({
   cancelDocumentNotificationsForBike: jest.fn(),
 }));
-jest.mock('../../../lib/image-upload', () => ({
+jest.mock('@/lib/image-upload', () => ({
   pickImage: jest.fn(),
   takePhoto: jest.fn(() => Promise.resolve('file:///photo.jpg')),
   uploadBikePhoto: jest.fn(() => Promise.resolve({ publicUrl: 'https://example.test/p.jpg' })),
 }));
-jest.mock('../../../stores/auth.store', () => ({
+jest.mock('@/stores/auth.store', () => ({
   useAuthStore: (selector: (state: unknown) => unknown) =>
     selector({ session: { user: { id: 'user-1' } } }),
 }));
 const mockActionSheet = jest.fn();
-jest.mock('../../../utils/action-sheet', () => ({
+jest.mock('@/utils/action-sheet', () => ({
   showActionSheet: (...args: unknown[]) => mockActionSheet(...args),
 }));
 
@@ -58,12 +58,12 @@ import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { act, fireEvent, render, renderHook, screen } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { Alert } from 'react-native';
-import { HUB_UNIT, NOTE_SOURCE } from '../../../lib/bike-hub/constants';
-import { userFriendlyError } from '../../../lib/graphql-errors';
-import { queryClient, resolveFailureHandling } from '../../../lib/query-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { QUERY_META } from '../../../lib/query-meta';
-import { BIKE_A } from '../../../test/bike-hub-fixtures';
+import { HUB_UNIT, NOTE_SOURCE } from '@/lib/bike-hub/constants';
+import { userFriendlyError } from '@/lib/graphql-errors';
+import { queryClient, resolveFailureHandling } from '@/lib/query-client';
+import { queryKeys } from '@/lib/query-keys';
+import { QUERY_META } from '@/lib/query-meta';
+import { BIKE_A } from '@/test/bike-hub-fixtures';
 import { DocumentsSection } from '../documents-section';
 import {
   useCreateNote,

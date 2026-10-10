@@ -2,6 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Linking, Platform } from 'react-native';
 import { AnalyticsEvent, addBreadcrumb, trackEvent } from '../lib/analytics';
+import { triggerImpact, triggerNotification } from '../utils/haptics';
 import {
   buildAppleMapsUrl,
   buildGoogleMapsUrls,
@@ -211,9 +212,7 @@ export function useRideThis({
   );
 
   const openUrlWithHaptic = useCallback(async (url: string, fallbackUrl?: string) => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
     try {
       await Linking.openURL(url);
     } catch {
@@ -234,9 +233,7 @@ export function useRideThis({
   }, []);
 
   const open = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setVisible(true);
   }, []);
 
@@ -281,9 +278,7 @@ export function useRideThis({
     const nextIndex = activeSegment.index + 1;
     const state = providers[activeSegment.provider];
     if (nextIndex >= state.urls.length) {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       close();
       return;
     }

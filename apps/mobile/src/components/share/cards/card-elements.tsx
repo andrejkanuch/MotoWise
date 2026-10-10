@@ -4,15 +4,15 @@ import type { ParseKeys } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { Image, Text, type TextStyle, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
-import { tint } from '../../../theme/editorial';
-import { PLATE_FONT, SYSTEM_WEIGHT } from '../../../theme/type';
+import { tint } from '@/theme/editorial';
+import { PLATE_FONT, SYSTEM_WEIGHT } from '@/theme/type';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
   formatDistanceValue,
   formatDuration,
   formatElevationValue,
-} from '../../../utils/ride-formatters';
+} from '@/utils/ride-formatters';
 import type { LngLat, RideSharePayload } from '../share-card-types';
 
 /**

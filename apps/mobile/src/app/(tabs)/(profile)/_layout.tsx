@@ -1,10 +1,10 @@
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { ErrorFallback } from '../../../components/error-fallback';
-import { FORM_SHEET_DETENTS } from '../../../config/sheet-detents';
-import { captureException } from '../../../lib/analytics';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { PLATE_FONT } from '../../../theme/type';
+import { ErrorFallback } from '@/components/error-fallback';
+import { FORM_SHEET_DETENTS } from '@/config/sheet-detents';
+import { captureException } from '@/lib/analytics';
+import { useEditorialTheme } from '@/theme/editorial';
+import { PLATE_FONT } from '@/theme/type';
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   captureException(error, { boundary: 'profile' });

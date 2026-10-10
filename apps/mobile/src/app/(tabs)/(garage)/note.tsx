@@ -1,10 +1,10 @@
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { useNotes } from '../../../components/bike-hub/notes/use-notes';
-import { NoteForm } from '../../../components/bike-hub/sheets/note-form';
-import { useHubBike } from '../../../components/bike-hub/shell/use-hub-bike';
-import { useHubTheme } from '../../../components/bike-hub/ui/tokens';
+import { useNotes } from '@/components/bike-hub/notes/use-notes';
+import { NoteForm } from '@/components/bike-hub/sheets/note-form';
+import { useHubBike } from '@/components/bike-hub/shell/use-hub-bike';
+import { useHubTheme } from '@/components/bike-hub/ui/tokens';
 
 type NoteRouteParams = {
   motorcycleId: string;

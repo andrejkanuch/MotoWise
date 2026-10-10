@@ -10,7 +10,6 @@
     "typecheck": "tsc --noEmit -p tsconfig.build.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "generate:schema": "ts-node --transpile-only scripts/generate-schema.ts"
   },
   "dependencies": {

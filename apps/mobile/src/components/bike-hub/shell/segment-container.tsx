@@ -7,8 +7,8 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { BIKE_SEGMENT_ORDER, type BikeSegment } from '../../../lib/bike-hub/constants';
-import { readableWidth } from '../../../theme/type';
+import { BIKE_SEGMENT_ORDER, type BikeSegment } from '@/lib/bike-hub/constants';
+import { readableWidth } from '@/theme/type';
 import { useHubTheme } from '../ui/tokens';
 import { SegmentInteractiveContext } from './segment-interactive';
 

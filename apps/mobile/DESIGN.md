@@ -253,7 +253,7 @@ The token names in code are kept from the editorial era (`useEditorialTheme().t`
 - **Plate Red** (`plate-red`): overdue.
 - **Plate Ink** (`plate-ink`): the only ink printed on any plate state, and on copper in dark.
 
-As text or dots on the ground (not plate fills) the triad uses its ink variants: `dueInk` = `plate-signal` in dark, `light-signal-ink` in light; `overdueInk` = `plate-red` in dark, `light-red` in light. Priority dots and the `EPriority` pill reuse them: low = ink-3, medium = ink-2, high = dueInk, critical = overdueInk.
+As text or dots on the ground (not plate fills) the triad uses its ink variants: `dueInk` = `plate-signal` in dark, `light-signal-ink` in light; `overdueInk` = `plate-red` in dark, `light-red` in light. Priority dots reuse them: low = ink-3, medium = ink-2, high = dueInk, critical = overdueInk.
 
 ### Neutral
 - **Graphite ramp, dark** (`graphite-ground` → `graphite-card` → `graphite-raised` → `graphite-option` → `graphite-line-step`): screen ground, grouped cards and tab island, raised controls (cancel button, chip fill, row icon wells), selected Android segment and disabled primary, chart tracks.

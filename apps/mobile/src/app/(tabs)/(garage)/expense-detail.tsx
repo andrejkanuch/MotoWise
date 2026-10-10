@@ -19,24 +19,24 @@ import {
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import { ExpensePhotoGallery } from '../../../components/expense-photo-gallery';
-import { useCurrency } from '../../../hooks/use-currency';
-import { useDeleteExpense } from '../../../hooks/use-delete-expense';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
+import { ExpensePhotoGallery } from '@/components/expense-photo-gallery';
+import { useCurrency } from '@/hooks/use-currency';
+import { useDeleteExpense } from '@/hooks/use-delete-expense';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import {
   CATEGORY_COLORS,
   CATEGORY_LABELS,
   getExpenseTitle,
   serviceTypeLabel,
-} from '../../../lib/expense-constants';
-import { confirmDeleteExpenseAlert } from '../../../lib/expense-delete';
-import { findExpenseInCache, flattenExpenses } from '../../../lib/find-expense-in-cache';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { useAuthStore } from '../../../stores/auth.store';
-import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { triggerImpact } from '../../../utils/haptics';
-import { localDateFromISODate } from '../../../utils/trip-form-dates';
+} from '@/lib/expense-constants';
+import { confirmDeleteExpenseAlert } from '@/lib/expense-delete';
+import { findExpenseInCache, flattenExpenses } from '@/lib/find-expense-in-cache';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { useAuthStore } from '@/stores/auth.store';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { triggerImpact } from '@/utils/haptics';
+import { localDateFromISODate } from '@/utils/trip-form-dates';
 
 // Card elevation shared across this screen's surfaces (light mode only; dark uses
 // flat surfaces). Palette-token based per the no-hardcoded-colors rule.

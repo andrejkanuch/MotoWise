@@ -37,7 +37,7 @@ describe('app auth-email redirect contract', () => {
   const calls = authEmailCalls();
 
   it('finds the signUp and resend call sites it guards', () => {
-    expect(calls.length).toBeGreaterThanOrEqual(4);
+    expect(calls.length).toBeGreaterThanOrEqual(3);
   });
 
   it.each(

@@ -16,11 +16,11 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PulseDot } from '../../../components/carplay/primitives';
-import { StateGlyph } from '../../../components/carplay/state-indicator';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { space, type } from '../../../theme/type';
-import { triggerImpact } from '../../../utils/haptics';
+import { PulseDot } from '@/components/carplay/primitives';
+import { StateGlyph } from '@/components/carplay/state-indicator';
+import { useEditorialTheme } from '@/theme/editorial';
+import { space, type } from '@/theme/type';
+import { triggerImpact } from '@/utils/haptics';
 
 export default function CarPlayOnboardingScreen() {
   const { t } = useTranslation();

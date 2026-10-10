@@ -1,13 +1,9 @@
 import { Delete } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import {
-  ODOMETER_KEY,
-  type OdometerDigit,
-  type OdometerKey,
-} from '../../../lib/bike-hub/constants';
-import { SYSTEM_WEIGHT, type } from '../../../theme/type';
-import { triggerSelection } from '../../../utils/haptics';
+import { ODOMETER_KEY, type OdometerDigit, type OdometerKey } from '@/lib/bike-hub/constants';
+import { SYSTEM_WEIGHT, type } from '@/theme/type';
+import { triggerSelection } from '@/utils/haptics';
 import { HUB_CHROME_MAX_FONT_SCALE, HUB_RADIUS, useHubTheme } from '../ui/tokens';
 import { SHEET_LOCKED_OPACITY } from './sheet-header';
 

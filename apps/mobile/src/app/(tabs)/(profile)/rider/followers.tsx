@@ -10,16 +10,16 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { FOLLOW_LIST_TAB, type FollowListTab } from '../../../../components/profile/constants';
-import { RiderAvatar } from '../../../../components/profile/profile-header';
-import { ThemedSegmentedControl } from '../../../../components/ui/themed-segmented-control';
-import { PROFILE_ROUTE } from '../../../../config/routes';
-import { gqlFetcher } from '../../../../lib/graphql-client';
-import { queryKeys } from '../../../../lib/query-keys';
-import { meOptions } from '../../../../lib/query-options';
-import { tint, useEditorialTheme } from '../../../../theme/editorial';
-import { GUTTER, space, type } from '../../../../theme/type';
-import { triggerImpact, triggerSelection } from '../../../../utils/haptics';
+import { FOLLOW_LIST_TAB, type FollowListTab } from '@/components/profile/constants';
+import { RiderAvatar } from '@/components/profile/profile-header';
+import { ThemedSegmentedControl } from '@/components/ui/themed-segmented-control';
+import { PROFILE_ROUTE } from '@/config/routes';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { meOptions } from '@/lib/query-options';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, space, type } from '@/theme/type';
+import { triggerImpact, triggerSelection } from '@/utils/haptics';
 
 type FollowEdge = GetFollowersQuery['getFollowers']['edges'][number];
 

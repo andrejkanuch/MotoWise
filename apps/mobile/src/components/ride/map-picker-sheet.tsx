@@ -9,6 +9,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, space, type } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
 import type { MapStyle } from '../../utils/map-styles';
 
 const MAP_PREVIEWS: Record<MapStyle, ImageSource> = {
@@ -108,9 +109,7 @@ export const MapPickerSheet = memo(function MapPickerSheet({
 
   const handleSelect = useCallback(
     (style: MapStyle) => {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }
+      triggerImpact(Haptics.ImpactFeedbackStyle.Light);
       onSelectStyle(style);
     },
     [onSelectStyle],

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
-import { UNDO_WINDOW_MS } from '../../../lib/bike-hub/constants';
-import { usePendingDeleteStore } from '../../../stores/pending-delete.store';
+import { UNDO_WINDOW_MS } from '@/lib/bike-hub/constants';
+import { usePendingDeleteStore } from '@/stores/pending-delete.store';
 
 const APP_STATE_BACKGROUND: AppStateStatus = 'background';
 

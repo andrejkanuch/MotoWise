@@ -17,19 +17,19 @@ jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) =>
 jest.mock('nativewind', () => ({
   useColorScheme: () => ({ setColorScheme: mockSetNativeColorScheme }),
 }));
-jest.mock('../../../hooks/use-profile-data', () => ({
+jest.mock('@/hooks/use-profile-data', () => ({
   useUpdatePreference: () => ({ mutate: mockMutate }),
 }));
 // The real store pulls in i18n init; the hook only needs the constant and the hook.
-jest.mock('../../../stores/auth.store', () => ({
+jest.mock('@/stores/auth.store', () => ({
   COLOR_SCHEME: { SYSTEM: 'system', LIGHT: 'light', DARK: 'dark' },
   useAuthStore: () => mockStore,
 }));
 
 import { MeasurementSystem } from '@motovault/types';
 import { act, renderHook } from '@testing-library/react-native';
-import { COLOR_SCHEME } from '../../../stores/auth.store';
-import { MAP_ORIENTATIONS } from '../../../utils/map-orientation';
+import { COLOR_SCHEME } from '@/stores/auth.store';
+import { MAP_ORIENTATIONS } from '@/utils/map-orientation';
 import { APP_PREFERENCE_KEY, type AppPreferenceKey } from '../constants';
 import { useAppPreferences } from '../use-app-preferences';
 

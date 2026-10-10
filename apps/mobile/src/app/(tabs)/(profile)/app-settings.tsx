@@ -2,12 +2,12 @@ import { router } from 'expo-router';
 import { Bell, Coins, Globe, Lock, Map as MapIcon, Palette, Ruler } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ScrollView } from 'react-native';
-import { APP_PREFERENCE_KEY, type AppPreferenceKey } from '../../../components/profile/constants';
-import { useAppPreferences } from '../../../components/profile/use-app-preferences';
-import { ESettingsGroup, ESettingsRow } from '../../../components/ui/editorial';
-import { PROFILE_ROUTE } from '../../../config/routes';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, readableWidth, space } from '../../../theme/type';
+import { APP_PREFERENCE_KEY, type AppPreferenceKey } from '@/components/profile/constants';
+import { useAppPreferences } from '@/components/profile/use-app-preferences';
+import { ESettingsGroup, ESettingsRow } from '@/components/ui/editorial';
+import { PROFILE_ROUTE } from '@/config/routes';
+import { useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, readableWidth, space } from '@/theme/type';
 
 const PREFERENCE_ROWS = [
   { key: APP_PREFERENCE_KEY.LANGUAGE, icon: Globe },

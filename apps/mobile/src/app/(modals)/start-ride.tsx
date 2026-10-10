@@ -30,6 +30,7 @@ import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, space, type } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
 import { distanceUnitLabel, formatDistance, formatRelativeDate } from '../../utils/ride-formatters';
 import { startGPSListener } from '../../utils/ride-location';
 import {
@@ -422,8 +423,7 @@ export default function StartRideScreen() {
                     <Pressable
                       key={bike.id}
                       onPress={() => {
-                        if (process.env.EXPO_OS === 'ios')
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        triggerImpact(Haptics.ImpactFeedbackStyle.Light);
                         trackEvent(AnalyticsEvent.RIDE_BIKE_CHANGED, {
                           from_motorcycle_id: selectedBikeId ?? null,
                           to_motorcycle_id: bike.id,
@@ -466,8 +466,7 @@ export default function StartRideScreen() {
               {/* Quick ride option */}
               <Pressable
                 onPress={() => {
-                  if (process.env.EXPO_OS === 'ios')
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  triggerImpact(Haptics.ImpactFeedbackStyle.Light);
                   setSelectedBikeId(null);
                   setShowBikePicker(false);
                 }}

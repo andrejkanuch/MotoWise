@@ -47,20 +47,21 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BikeBanner } from '../../../components/discover/bike-banner';
-import { DiscoverTripCard } from '../../../components/discover/discover-trip-card';
-import { NearYouSection } from '../../../components/discover/near-you-section';
-import { DraftTripStrip } from '../../../components/discover/planner/draft-trip-strip';
-import { TypeaheadSearch } from '../../../components/discover/typeahead-search';
-import { WeatherStrip } from '../../../components/discover/weather-strip';
-import { WEATHER_ENABLED } from '../../../config/feature-flags';
-import { useUserCountry } from '../../../hooks/use-user-country';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { SYSTEM_WEIGHT, space, type } from '../../../theme/type';
-import { getDefaultMapStyle, MAP_STYLES } from '../../../utils/map-styles';
+import { BikeBanner } from '@/components/discover/bike-banner';
+import { DiscoverTripCard } from '@/components/discover/discover-trip-card';
+import { NearYouSection } from '@/components/discover/near-you-section';
+import { DraftTripStrip } from '@/components/discover/planner/draft-trip-strip';
+import { TypeaheadSearch } from '@/components/discover/typeahead-search';
+import { WeatherStrip } from '@/components/discover/weather-strip';
+import { WEATHER_ENABLED } from '@/config/feature-flags';
+import { useUserCountry } from '@/hooks/use-user-country';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { SYSTEM_WEIGHT, space, type } from '@/theme/type';
+import { triggerImpact, triggerSelection } from '@/utils/haptics';
+import { getDefaultMapStyle, MAP_STYLES } from '@/utils/map-styles';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as unknown as typeof FlatList;
@@ -322,8 +323,7 @@ const SectionHeading = memo(function SectionHeading({
       <View style={{ position: 'relative' }}>
         <Pressable
           onPress={() => {
-            if (process.env.EXPO_OS === 'ios')
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            triggerImpact(Haptics.ImpactFeedbackStyle.Light);
             setShowSortMenu((prev) => !prev);
           }}
           style={{
@@ -625,9 +625,7 @@ export default function DiscoverScreen() {
       const cluster = feature.properties.cluster;
       const isCluster = cluster === true || cluster === 1 || cluster === 'true' || cluster === '1';
       if (isCluster && shapeSourceRef.current) {
-        if (process.env.EXPO_OS === 'ios') {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        }
+        triggerImpact(Haptics.ImpactFeedbackStyle.Light);
         try {
           const zoom = await shapeSourceRef.current.getClusterExpansionZoom(feature);
           const [lng, lat] = (feature.geometry as GeoJSON.Point).coordinates;
@@ -642,9 +640,7 @@ export default function DiscoverScreen() {
         }
         return;
       }
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.selectionAsync();
-      }
+      triggerSelection();
       const tripId = String(feature.properties.id ?? '');
       if (tripId) {
         handleTripPress(tripId);
@@ -658,7 +654,7 @@ export default function DiscoverScreen() {
   }, [hasNextTrips, isFetchingNextTrips, fetchNextTrips]);
 
   const toggleSurface = useCallback((key: SurfaceKey) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setSurfaceFilter((prev) => {
       const next = prev === key ? null : key;
       trackEvent(AnalyticsEvent.DISCOVER_FILTER_APPLIED, {
@@ -670,7 +666,7 @@ export default function DiscoverScreen() {
   }, []);
 
   const toggleDifficulty = useCallback((key: DifficultyKey) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setDifficultyFilter((prev) => {
       const next = prev === key ? null : key;
       trackEvent(AnalyticsEvent.DISCOVER_FILTER_APPLIED, {
@@ -682,7 +678,7 @@ export default function DiscoverScreen() {
   }, []);
 
   const toggleCountry = useCallback((key: SupportedCountryCode) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setCountryCode((prev) => {
       const next = prev === key ? null : key;
       trackEvent(AnalyticsEvent.DISCOVER_FILTER_APPLIED, {
@@ -718,7 +714,7 @@ export default function DiscoverScreen() {
   }));
 
   const handleCreatePress = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
     router.push('/(modals)/create-trip');
   }, [router]);
 
@@ -765,12 +761,12 @@ export default function DiscoverScreen() {
   }, []);
 
   const handleToggleMap = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setMapExpanded((prev) => !prev);
   }, []);
 
   const handleSortChange = useCallback((sort: SortOption) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setSortBy(sort);
   }, []);
 

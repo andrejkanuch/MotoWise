@@ -16,6 +16,7 @@ import { gqlFetcher } from '../lib/graphql-client';
 import { userFriendlyError } from '../lib/graphql-errors';
 import { queryKeys } from '../lib/query-keys';
 import { maybeRequestReview, REVIEW_MILESTONE } from '../lib/store-review';
+import { triggerNotification } from '../utils/haptics';
 
 interface RouterLike {
   back: () => void;
@@ -75,8 +76,7 @@ export function useCreateTripData({
       return result.createTripWithWaypoints.id;
     },
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       trackEvent(AnalyticsEvent.TRIP_CREATED, {
         difficulty,
         waypoint_count: waypointCount,
@@ -103,8 +103,7 @@ export function useCreateTripData({
       return newTripId;
     },
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       // MOT-285: the publish path also CREATES a trip — fire TRIP_CREATED here too
       // so the trip_created -> trip_published funnel is computable (published trips
       // were previously invisible to the create step).
@@ -143,8 +142,7 @@ export function useCreateTripData({
       });
     },
     onSuccess: async () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
@@ -170,8 +168,7 @@ export function useCreateTripData({
       await gqlFetcher(publishDocFor(tripInput), { tripId: editTripId });
     },
     onSuccess: async () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
@@ -191,8 +188,7 @@ export function useCreateTripData({
       await gqlFetcher(DeleteTripDocument, { tripId: tripId ?? '' });
     },
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });

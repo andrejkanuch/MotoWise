@@ -2,7 +2,7 @@ import { palette } from '@motovault/design-system';
 import { LinearGradient } from 'expo-linear-gradient';
 import { memo } from 'react';
 import { Image, Text, View } from 'react-native';
-import { tint } from '../../../theme/editorial';
+import { tint } from '@/theme/editorial';
 import type { RideSharePayload } from '../share-card-types';
 import {
   buildDefaultStats,

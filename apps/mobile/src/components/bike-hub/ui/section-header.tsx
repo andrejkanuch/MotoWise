@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
-import type { DueTone } from '../../../lib/bike-hub/constants';
-import { triggerImpact } from '../../../utils/haptics';
+import type { DueTone } from '@/lib/bike-hub/constants';
+import { triggerImpact } from '@/utils/haptics';
 import { DUE_TONE_COLOR, HUB_TOUCH_TARGET, SYSTEM_WEIGHT, useHubTheme } from './tokens';
 
 const TITLE_SIZE = 17;

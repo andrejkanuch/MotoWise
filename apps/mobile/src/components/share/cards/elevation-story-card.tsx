@@ -2,7 +2,7 @@ import { palette } from '@motovault/design-system';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
-import { elevationUnitLabel, formatElevationValue } from '../../../utils/ride-formatters';
+import { elevationUnitLabel, formatElevationValue } from '@/utils/ride-formatters';
 import type { RideSharePayload } from '../share-card-types';
 import {
   buildElevStats,

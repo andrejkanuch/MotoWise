@@ -29,6 +29,7 @@ import { useRideStore } from '../../stores/ride.store';
 import { tabBarBottomOffset, useTabBarStore } from '../../stores/tab-bar.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { triggerImpact } from '../../utils/haptics';
 
 const TAB_CONFIG = [
   { name: '(home)', icon: Home, labelKey: 'tabs.home' },
@@ -103,9 +104,7 @@ function RideFAB() {
   }));
 
   const onPress = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
     if (isActive) {
       router.push('/(modals)/ride-hud');
     } else {
@@ -305,9 +304,7 @@ function IslandTabBarContent({ state, navigation }: BottomTabBarProps) {
             canPreventDefault: true,
           });
           if (!isFocused && !event.defaultPrevented) {
-            if (process.env.EXPO_OS === 'ios') {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            }
+            triggerImpact(Haptics.ImpactFeedbackStyle.Light);
             navigation.navigate(route.name, route.params);
           } else if (isFocused && !event.defaultPrevented && queryClient.isMutating() === 0) {
             // Pop nested stack to root when re-tapping the active tab.

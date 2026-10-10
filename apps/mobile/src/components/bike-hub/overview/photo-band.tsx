@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { Camera } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { triggerImpact } from '../../../utils/haptics';
+import { triggerImpact } from '@/utils/haptics';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
   HUB_PRESSED_SCALE,

@@ -3,15 +3,10 @@ import { MaintenancePriority } from '@motovault/graphql';
 import type { ExpenseCategory } from '@motovault/types';
 import type { ParseKeys } from 'i18next';
 import type { TextStyle } from 'react-native';
-import {
-  DUE_TONE,
-  type DueTone,
-  RIDE_STATUS,
-  type RideStatus,
-} from '../../../lib/bike-hub/constants';
-import { TAB_BAR_MIN_INSET } from '../../../stores/tab-bar.store';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { PLATE_FONT, SYSTEM_WEIGHT } from '../../../theme/type';
+import { DUE_TONE, type DueTone, RIDE_STATUS, type RideStatus } from '@/lib/bike-hub/constants';
+import { TAB_BAR_MIN_INSET } from '@/stores/tab-bar.store';
+import { useEditorialTheme } from '@/theme/editorial';
+import { PLATE_FONT, SYSTEM_WEIGHT } from '@/theme/type';
 
 /**
  * Semantic colours of the bike hub (DESIGN.md → Colour), one set per scheme.

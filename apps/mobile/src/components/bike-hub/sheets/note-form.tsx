@@ -26,23 +26,18 @@ import {
   useKeyboardState,
 } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { NOTE_SOURCE } from '../../../lib/bike-hub/constants';
-import {
-  bikeDisplayName,
-  formatOdometer,
-  hasOdometer,
-  toHubUnit,
-} from '../../../lib/bike-hub/format';
-import { normaliseNoteText } from '../../../lib/bike-hub/notes';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { pickImage, takePhoto, uploadNotePhoto } from '../../../lib/image-upload';
-import { queryKeys } from '../../../lib/query-keys';
-import { useAuthStore } from '../../../stores/auth.store';
-import { type ParkedPhotoUpload, parkedPhotoPaths } from '../../../stores/sheet-draft.store';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { SYSTEM_WEIGHT, type } from '../../../theme/type';
-import { showActionSheet } from '../../../utils/action-sheet';
-import { triggerImpact, triggerNotification, triggerSelection } from '../../../utils/haptics';
+import { NOTE_SOURCE } from '@/lib/bike-hub/constants';
+import { bikeDisplayName, formatOdometer, hasOdometer, toHubUnit } from '@/lib/bike-hub/format';
+import { normaliseNoteText } from '@/lib/bike-hub/notes';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { pickImage, takePhoto, uploadNotePhoto } from '@/lib/image-upload';
+import { queryKeys } from '@/lib/query-keys';
+import { useAuthStore } from '@/stores/auth.store';
+import { type ParkedPhotoUpload, parkedPhotoPaths } from '@/stores/sheet-draft.store';
+import { useEditorialTheme } from '@/theme/editorial';
+import { SYSTEM_WEIGHT, type } from '@/theme/type';
+import { showActionSheet } from '@/utils/action-sheet';
+import { triggerImpact, triggerNotification, triggerSelection } from '@/utils/haptics';
 import { NativeToggle } from '../../ui/native-toggle';
 import { NotePhoto, rememberLocalNotePhoto } from '../notes/note-photo';
 import { removeUnattachedNotePhotos } from '../notes/unattached-note-photos';

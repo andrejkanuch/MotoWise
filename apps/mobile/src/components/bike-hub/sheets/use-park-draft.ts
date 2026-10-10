@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { SHEET_EXIT, type SheetExit } from '../../../lib/bike-hub/constants';
-import { newDraftToken } from '../../../stores/sheet-draft.store';
+import { SHEET_EXIT, type SheetExit } from '@/lib/bike-hub/constants';
+import { newDraftToken } from '@/stores/sheet-draft.store';
 
 interface ParkDraftOptions {
   /**

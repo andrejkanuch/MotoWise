@@ -9,13 +9,13 @@ import { Bell, ChevronLeft, Headphones, Play } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CardGroup, CautionRow, SectionLabel } from '../../../components/carplay/primitives';
-import { type RideStateKey, StateGlyph } from '../../../components/carplay/state-indicator';
-import { NativeToggle } from '../../../components/ui/native-toggle';
-import { type CueTone, useCarPlayStore } from '../../../stores/carplay.store';
-import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { SYSTEM_WEIGHT, type } from '../../../theme/type';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
+import { CardGroup, CautionRow, SectionLabel } from '@/components/carplay/primitives';
+import { type RideStateKey, StateGlyph } from '@/components/carplay/state-indicator';
+import { NativeToggle } from '@/components/ui/native-toggle';
+import { type CueTone, useCarPlayStore } from '@/stores/carplay.store';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { SYSTEM_WEIGHT, type } from '@/theme/type';
+import { triggerImpact, triggerNotification } from '@/utils/haptics';
 
 const LEGEND: { state: RideStateKey; labelKey: string; labelDefault: string; sound: string }[] = [
   {

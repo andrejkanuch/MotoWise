@@ -24,6 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NavProvider, RideThisProviderState } from '../hooks/use-ride-this';
 import { useEditorialTheme } from '../theme/editorial';
 import { SYSTEM_WEIGHT, type } from '../theme/type';
+import { triggerImpact } from '../utils/haptics';
 
 interface RideThisSheetProps {
   visible: boolean;
@@ -216,9 +217,7 @@ export function RideThisSheet({
   const showDayPills = availableDays.length > 1;
 
   const handleSelectDay = (day: number | null) => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     onSelectDay?.(day);
   };
 
@@ -428,9 +427,7 @@ export function RideThisStickyCta({
       <Animated.View style={animatedStyle}>
         <Pressable
           onPress={() => {
-            if (process.env.EXPO_OS === 'ios') {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            }
+            triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
             onPress();
           }}
           onPressIn={() => {

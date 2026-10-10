@@ -5,7 +5,6 @@ import {
 } from '@motovault/graphql';
 import * as Sentry from '@sentry/react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Crown, Plus } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
@@ -13,25 +12,26 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DocumentExpiryAlerts } from '../../../components/garage/document-expiry-alerts';
-import { GarageBikeCard } from '../../../components/garage/garage-bike-card';
-import { describePlate, type PlateCopy, rankBikeTasks } from '../../../components/home/home-plate';
-import { LottieMotorcycle } from '../../../components/lottie-motorcycle';
-import { Skeleton } from '../../../components/skeleton/skeleton';
-import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
-import { PLATE_SIZE, PLATE_STATE } from '../../../components/ui/bike-plate';
-import { useMileageUnit } from '../../../hooks/use-mileage-unit';
-import { useProGate } from '../../../hooks/use-pro-gate';
-import { formatOdometer, hasOdometer } from '../../../lib/bike-hub/format';
-import { isActiveTask } from '../../../lib/bike-hub/task-due';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { QUERY_META } from '../../../lib/query-meta';
-import { maintenanceBadgeOptions } from '../../../lib/query-options';
-import { presentPaywall } from '../../../lib/subscription';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
-import { showActionSheet } from '../../../utils/action-sheet';
+import { DocumentExpiryAlerts } from '@/components/garage/document-expiry-alerts';
+import { GarageBikeCard } from '@/components/garage/garage-bike-card';
+import { describePlate, type PlateCopy, rankBikeTasks } from '@/components/home/home-plate';
+import { LottieMotorcycle } from '@/components/lottie-motorcycle';
+import { Skeleton } from '@/components/skeleton/skeleton';
+import { SkeletonProvider } from '@/components/skeleton/skeleton-provider';
+import { PLATE_SIZE, PLATE_STATE } from '@/components/ui/bike-plate';
+import { useMileageUnit } from '@/hooks/use-mileage-unit';
+import { useProGate } from '@/hooks/use-pro-gate';
+import { formatOdometer, hasOdometer } from '@/lib/bike-hub/format';
+import { isActiveTask } from '@/lib/bike-hub/task-due';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { QUERY_META } from '@/lib/query-meta';
+import { maintenanceBadgeOptions } from '@/lib/query-options';
+import { presentPaywall } from '@/lib/subscription';
+import { useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, radius, readableWidth, space, type } from '@/theme/type';
+import { showActionSheet } from '@/utils/action-sheet';
+import { triggerImpact } from '@/utils/haptics';
 
 type GarageBike = MyMotorcyclesQuery['myMotorcycles'][number];
 
@@ -42,12 +42,6 @@ const ADD_BUTTON_SIZE = process.env.EXPO_OS === 'android' ? 48 : 44;
 const NO_VALUE = '—';
 const LIST_STAGGER_MS = 50;
 const LIST_ENTER_MS = 240;
-
-function haptic() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-}
 
 function useGarageBikes() {
   return useQuery({
@@ -131,7 +125,7 @@ export default function GarageScreen() {
 
   const handleAddBike = () => {
     if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
-    haptic();
+    triggerImpact();
     router.push('/(tabs)/(garage)/add-bike');
   };
 
@@ -145,7 +139,7 @@ export default function GarageScreen() {
     : handleAddBike;
 
   const openBike = (bike: GarageBike) => {
-    haptic();
+    triggerImpact();
     router.push(`/(tabs)/(garage)/bike/${bike.id}`);
   };
 

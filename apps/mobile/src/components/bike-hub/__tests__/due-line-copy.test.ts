@@ -4,16 +4,16 @@ jest.mock('expo-localization', () => ({
 
 import { MaintenancePriority, MaintenanceTaskSource } from '@motovault/graphql';
 import { addDays, format } from 'date-fns';
-import i18n from '../../../i18n';
+import i18n from '@/i18n';
 import {
   DUE_STATE,
   DUE_TONE,
   type DueState,
   type DueTone,
   HUB_UNIT,
-} from '../../../lib/bike-hub/constants';
-import { type DueContext, getTaskDue } from '../../../lib/bike-hub/task-due';
-import { AIR_FILTER, BRAKE_PADS, KM, ODOMETER, TODAY, task } from '../../../test/bike-hub-fixtures';
+} from '@/lib/bike-hub/constants';
+import { type DueContext, getTaskDue } from '@/lib/bike-hub/task-due';
+import { AIR_FILTER, BRAKE_PADS, KM, ODOMETER, TODAY, task } from '@/test/bike-hub-fixtures';
 import { describeDue } from '../ui/due-line';
 
 const LANGUAGE = 'en';

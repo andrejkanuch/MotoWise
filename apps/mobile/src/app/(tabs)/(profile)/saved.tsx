@@ -14,14 +14,14 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
-import { showActionSheet } from '../../../utils/action-sheet';
-import { triggerImpact } from '../../../utils/haptics';
-import { formatDistance } from '../../../utils/ride-formatters';
+import { useMeasurementSystem } from '@/hooks/use-measurement-system';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, radius, readableWidth, space, type } from '@/theme/type';
+import { showActionSheet } from '@/utils/action-sheet';
+import { triggerImpact } from '@/utils/haptics';
+import { formatDistance } from '@/utils/ride-formatters';
 
 const PAGE_SIZE = 20;
 

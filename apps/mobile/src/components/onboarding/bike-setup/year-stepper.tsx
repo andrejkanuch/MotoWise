@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { type AccessibilityActionEvent, Pressable, Text, View } from 'react-native';
-import { radius, space, type } from '../../../theme/type';
+import { radius, space, type } from '@/theme/type';
 import { useOnboardingColors } from '../onboarding-colors';
 import { PickerLabel } from './picker-ui';
 

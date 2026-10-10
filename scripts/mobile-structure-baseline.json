@@ -1,0 +1,87 @@
+{
+  "deepImports": {},
+  "layering": {
+    "hooks/sign-out.ts": {
+      "components/bike-hub/notes/unattached-note-photos.ts": 1
+    },
+    "hooks/use-ride-idle-responses.ts": {
+      "features/ride/ride-notification-response.ts": 1
+    },
+    "utils/mapbox-directions.ts": {
+      "lib/logger.ts": 1
+    },
+    "utils/mapbox-geocoding.ts": {
+      "lib/logger.ts": 1
+    },
+    "utils/ride-location.ts": {
+      "lib/analytics.ts": 1,
+      "lib/location-error.ts": 1,
+      "lib/notifications.ts": 1,
+      "lib/ride-analytics.ts": 1,
+      "stores/ride.store.ts": 1
+    },
+    "utils/ride-permissions.ts": {
+      "lib/analytics.ts": 1
+    },
+    "utils/ride-reminders.ts": {
+      "lib/analytics.ts": 1,
+      "lib/notifications.ts": 1,
+      "stores/ride.store.ts": 1
+    },
+    "utils/ride-storage.ts": {
+      "lib/analytics.ts": 1
+    },
+    "utils/ride-sync-queue.ts": {
+      "lib/analytics.ts": 1,
+      "lib/graphql-client.ts": 1,
+      "lib/graphql-errors.ts": 1,
+      "lib/network-error.ts": 1,
+      "lib/secure-store.ts": 1,
+      "stores/auth.store.ts": 1
+    }
+  },
+  "routes": {
+    "app/(modals)/carplay/index.tsx": 361,
+    "app/(modals)/carplay/onboarding.tsx": 339,
+    "app/(modals)/create-group-ride.tsx": 404,
+    "app/(modals)/create-trip.tsx": 1508,
+    "app/(modals)/group-ride-detail.tsx": 540,
+    "app/(modals)/recalls.tsx": 443,
+    "app/(modals)/ride-detail.tsx": 971,
+    "app/(modals)/ride-flyover.tsx": 958,
+    "app/(modals)/ride-hud.tsx": 476,
+    "app/(modals)/ride-summary.tsx": 921,
+    "app/(modals)/start-ride.tsx": 628,
+    "app/(modals)/trip-detail.tsx": 1885,
+    "app/(modals)/whats-new.tsx": 352,
+    "app/(onboarding)/account.tsx": 365,
+    "app/(onboarding)/bike-setup.tsx": 566,
+    "app/(onboarding)/maintenance.tsx": 544,
+    "app/(onboarding)/personalizing.tsx": 605,
+    "app/(onboarding)/reveal.tsx": 346,
+    "app/(tabs)/(diagnose)/[id].tsx": 499,
+    "app/(tabs)/(discover)/index.tsx": 1093,
+    "app/(tabs)/(garage)/add-bike.tsx": 381,
+    "app/(tabs)/(garage)/add-document.tsx": 403,
+    "app/(tabs)/(garage)/add-expense.tsx": 369,
+    "app/(tabs)/(garage)/add-maintenance-task.tsx": 515,
+    "app/(tabs)/(garage)/bike-tasks.tsx": 324,
+    "app/(tabs)/(garage)/document/[id].tsx": 360,
+    "app/(tabs)/(garage)/edit-bike.tsx": 919,
+    "app/(tabs)/(garage)/expense-dashboard.tsx": 936,
+    "app/(tabs)/(garage)/expense-detail.tsx": 657,
+    "app/(tabs)/(garage)/health-report.tsx": 518,
+    "app/(tabs)/(garage)/index.tsx": 456,
+    "app/(tabs)/(home)/index.tsx": 512,
+    "app/(tabs)/(learn)/article/[slug].tsx": 317,
+    "app/(tabs)/(learn)/index.tsx": 797,
+    "app/(tabs)/(profile)/edit-profile.tsx": 508,
+    "app/(tabs)/(profile)/heatmap.tsx": 397,
+    "app/(tabs)/(profile)/rides.tsx": 868,
+    "app/(tabs)/(profile)/saved.tsx": 332,
+    "app/(tabs)/(profile)/trips.tsx": 542,
+    "app/(tabs)/_layout.tsx": 448,
+    "app/_layout.tsx": 1128,
+    "app/t/[token]/index.tsx": 484
+  }
+}

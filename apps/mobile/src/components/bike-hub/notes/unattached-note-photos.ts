@@ -1,12 +1,12 @@
 import { NotesByMotorcycleDocument } from '@motovault/graphql';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { removeNotePhotoObject } from '../../../lib/image-upload';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { removeNotePhotoObject } from '@/lib/image-upload';
 import {
   type NoteDraft,
   type ParkedPhotoUpload,
   parkedPhotoPaths,
   useSheetDraftStore,
-} from '../../../stores/sheet-draft.store';
+} from '@/stores/sheet-draft.store';
 
 /**
  * Deletes uploaded objects that never got a `note_photos` row. An unconfirmed

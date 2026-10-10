@@ -21,9 +21,9 @@ jest.mock('react-native-reanimated', () => ({
 jest.mock('react-native-keyboard-controller', () =>
   require('react-native-keyboard-controller/jest'),
 );
-jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
-jest.mock('../../../lib/analytics', () => ({
-  ...require('../../../test/mocks').mockAnalytics(),
+jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
+jest.mock('@/lib/analytics', () => ({
+  ...require('@/test/mocks').mockAnalytics(),
   addBreadcrumb: jest.fn(),
 }));
 jest.mock('expo-haptics', () => ({
@@ -33,19 +33,19 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success', Warning: 'warning' },
 }));
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
-jest.mock('../../../hooks/use-currency', () => ({
+jest.mock('@/hooks/use-currency', () => ({
   useCurrency: () => ({
     currency: 'EUR',
     format: (n: number) => `€${n}`,
     formatFor: (n: number) => `€${n}`,
   }),
 }));
-jest.mock('../../../hooks/use-delete-expense', () => ({
+jest.mock('@/hooks/use-delete-expense', () => ({
   useDeleteExpense: () => ({ mutate: jest.fn() }),
 }));
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
@@ -55,10 +55,10 @@ import { act, render } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { fireGestureHandler, getByGestureTestId } from 'react-native-gesture-handler/jest-utils';
 import { useSharedValue } from 'react-native-reanimated';
-import '../../../i18n';
-import { BIKE_SEGMENT, type BikeSegment } from '../../../lib/bike-hub/constants';
-import { queryClient } from '../../../lib/query-client';
-import { BIKE_A } from '../../../test/bike-hub-fixtures';
+import '@/i18n';
+import { BIKE_SEGMENT, type BikeSegment } from '@/lib/bike-hub/constants';
+import { queryClient } from '@/lib/query-client';
+import { BIKE_A } from '@/test/bike-hub-fixtures';
 import { SwipeableExpense } from '../../shared/swipeable-expense';
 import { ExpensesSection } from '../expenses-section';
 import { SegmentContainer, type SegmentDefinition } from '../shell/segment-container';

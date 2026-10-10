@@ -11,13 +11,13 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CardGroup, Eyebrow, PulseDot, SectionLabel } from '../../../components/carplay/primitives';
-import { useActiveBike, useCarPlayConnection } from '../../../features/carplay/use-carplay';
-import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
-import { type StartMode, useCarPlayStore } from '../../../stores/carplay.store';
-import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { radius, SYSTEM_WEIGHT, type } from '../../../theme/type';
-import { triggerImpact } from '../../../utils/haptics';
+import { CardGroup, Eyebrow, PulseDot, SectionLabel } from '@/components/carplay/primitives';
+import { useActiveBike, useCarPlayConnection } from '@/features/carplay/use-carplay';
+import { useMeasurementSystem } from '@/hooks/use-measurement-system';
+import { type StartMode, useCarPlayStore } from '@/stores/carplay.store';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { radius, SYSTEM_WEIGHT, type } from '@/theme/type';
+import { triggerImpact } from '@/utils/haptics';
 
 export default function CarPlayHubScreen() {
   const { t } = useTranslation();

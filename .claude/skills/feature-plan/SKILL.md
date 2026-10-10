@@ -22,10 +22,11 @@ Do NOT plan in a vacuum. First:
 1. Search for similar existing functionality (don't duplicate) — `Grep`/`Glob` across `apps/` + `packages/`.
 2. Identify the layers this feature touches, in MotoVault's dependency order (this is also the task order):
    1. Supabase migration (`supabase/migrations/`) + RLS policies — every new table needs RLS
-   2. `pnpm generate:types` → Zod schemas in `packages/types`
-   3. NestJS model/resolver/service in `apps/api` (map snake_case → camelCase at the service layer)
-   4. `.graphql` operations + `pnpm generate`
-   5. Mobile hooks/screens (`apps/mobile`) and/or web (`apps/web`), using `@motovault/graphql` types
+   2. **Owner gate.** Applying the migration to production is an owner-approved step (`docs/runbooks/supabase-migrations.md`). The owner applies it; the plan stops here until it is live. Do not apply it yourself, and never with `npx supabase db push` (retired)
+   3. `pnpm db:types` → Zod schemas in `packages/types`. It reads production, so it shows the new shape only once the migration is live there
+   4. NestJS model/resolver/service in `apps/api` (map snake_case → camelCase at the service layer)
+   5. `.graphql` operations + `pnpm generate`
+   6. Mobile hooks/screens (`apps/mobile`) and/or web (`apps/web`), using `@motovault/graphql` types
 3. Note the conventions to follow (from CLAUDE.md + the relevant app's CLAUDE.md).
 
 Record the integration points found, so tasks reference real files, not guesses.
@@ -72,7 +73,7 @@ Each phase is independently shippable and ends green on `pnpm precheck`.
 
 ## Rules
 - **Small phases.** Each phase ends with a green `pnpm precheck` and is reviewable in one sitting.
-- **Migrations are their own early task** — SQL + RLS + `pnpm generate` before any API code depends on the shape.
+- **Migrations are their own early task** — SQL + RLS, then the owner gate, then `pnpm db:types`, before any API code depends on the shape. A task that needs the regenerated types is blocked until the owner has applied the migration.
 - **Every user-facing task gets a `DEVICE`/`BROWSER` or `E2E` criterion**, not just `TEST`.
 - **Prefer editing existing patterns** over new abstractions (matches the codebase's simplicity bias).
 - Defer anything out of scope to an explicit "Out of scope" list — don't silently drop it.

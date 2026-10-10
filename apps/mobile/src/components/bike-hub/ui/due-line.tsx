@@ -8,9 +8,9 @@ import {
   DUE_DISPLAY,
   type DueDisplay,
   type HubUnit,
-} from '../../../lib/bike-hub/constants';
-import { formatOdometer } from '../../../lib/bike-hub/format';
-import type { DueLimit, TaskDue } from '../../../lib/bike-hub/task-due';
+} from '@/lib/bike-hub/constants';
+import { formatOdometer } from '@/lib/bike-hub/format';
+import type { DueLimit, TaskDue } from '@/lib/bike-hub/task-due';
 import { DUE_TONE_COLOR, HUB_ROW_SUB_LINES, SYSTEM_WEIGHT, useHubTheme } from './tokens';
 
 interface CopyContext {

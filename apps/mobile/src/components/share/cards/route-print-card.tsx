@@ -8,7 +8,7 @@ import {
   formatDistanceValue,
   formatDuration,
   formatElevationValue,
-} from '../../../utils/ride-formatters';
+} from '@/utils/ride-formatters';
 import type { RideSharePayload } from '../share-card-types';
 import { CARD_INK_CREAM, CARD_TYPE, DateCompact, RouteSilhouette, Wordmark } from './card-elements';
 

@@ -3,9 +3,9 @@ import { Camera, Maximize2 } from 'lucide-react-native';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, TextInput, useWindowDimensions, View } from 'react-native';
-import { normaliseNoteText } from '../../../lib/bike-hub/notes';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { triggerImpact } from '../../../utils/haptics';
+import { normaliseNoteText } from '@/lib/bike-hub/notes';
+import { useEditorialTheme } from '@/theme/editorial';
+import { triggerImpact } from '@/utils/haptics';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
   HUB_HEIGHT,
