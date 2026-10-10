@@ -1,6 +1,6 @@
 import { type Href, useRouter } from 'expo-router';
 import { useCallback } from 'react';
-import { BIKE_ORIGIN, type BikeOrigin } from '../../../lib/bike-hub/constants';
+import { BIKE_ORIGIN, type BikeOrigin } from '@/lib/bike-hub/constants';
 
 const GARAGE_HREF: Href = '/(tabs)/(garage)';
 const HOME_HREF: Href = '/(tabs)/(home)';

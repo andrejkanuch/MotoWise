@@ -10,10 +10,10 @@ import {
   ESectionLabel,
   ESettingsGroup,
   ESettingsRow,
-} from '../../../components/ui/editorial';
-import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, readableWidth, space, type } from '../../../theme/type';
-import { triggerImpact, triggerSelection } from '../../../utils/haptics';
+} from '@/components/ui/editorial';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, readableWidth, space, type } from '@/theme/type';
+import { triggerImpact, triggerSelection } from '@/utils/haptics';
 
 const SUPPORT_EMAIL = 'support@motovault.app';
 const SUPPORT_MAILTO = `mailto:${SUPPORT_EMAIL}?subject=MotoVault Support`;

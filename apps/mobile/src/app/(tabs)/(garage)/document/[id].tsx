@@ -26,18 +26,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   DocumentCategoryChips,
   DocumentExpiryField,
-} from '../../../../components/documents/document-form-fields';
-import { DocumentViewer } from '../../../../components/documents/document-viewer';
-import { AnalyticsEvent, trackEvent } from '../../../../lib/analytics';
-import { gqlFetcher } from '../../../../lib/graphql-client';
+} from '@/components/documents/document-form-fields';
+import { DocumentViewer } from '@/components/documents/document-viewer';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
 import {
   cancelDocumentNotifications,
   scheduleDocumentExpiryReminder,
-} from '../../../../lib/notifications';
-import { queryKeys } from '../../../../lib/query-keys';
-import { useEditorialTheme } from '../../../../theme/editorial';
-import { triggerImpact, triggerNotification } from '../../../../utils/haptics';
-import { toISODateInput } from '../../../../utils/trip-form-dates';
+} from '@/lib/notifications';
+import { queryKeys } from '@/lib/query-keys';
+import { useEditorialTheme } from '@/theme/editorial';
+import { triggerImpact, triggerNotification } from '@/utils/haptics';
+import { toISODateInput } from '@/utils/trip-form-dates';
 
 type DocumentItem = DocumentsByMotorcycleQuery['documents'][number];
 

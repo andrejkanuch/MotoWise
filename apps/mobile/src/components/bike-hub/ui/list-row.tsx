@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { triggerImpact } from '../../../utils/haptics';
+import { triggerImpact } from '@/utils/haptics';
 import { RowChevron } from './row-chevron';
 import { HUB_RADIUS, HUB_ROW_SUB_LINES, SYSTEM_WEIGHT, useHubTheme } from './tokens';
 

@@ -12,7 +12,7 @@ import {
   KM,
   TODAY,
   task,
-} from '../../../test/bike-hub-fixtures';
+} from '@/test/bike-hub-fixtures';
 import { getNextUp, getServiceBadgeCount, rankAttention } from '../attention';
 import { ATTENTION_KIND, RECALL_SEVERITY, RIDE_STATUS, RIDE_STATUS_REASON } from '../constants';
 import { getRecallSeverity } from '../recall-severity';

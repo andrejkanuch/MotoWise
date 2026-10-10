@@ -5,33 +5,33 @@ import { ArrowUpRight, BarChart3, Bug, Database, Shield, Trash2 } from 'lucide-r
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, ScrollView, View } from 'react-native';
-import { LEGAL_URL } from '../../../components/profile/constants';
+import { LEGAL_URL } from '@/components/profile/constants';
 import {
   ESectionLabel,
   ESettingsGroup,
   ESettingsRow,
   EToggleRow,
-} from '../../../components/ui/editorial';
-import { useDeleteAccount } from '../../../hooks/use-profile-data';
+} from '@/components/ui/editorial';
+import { useDeleteAccount } from '@/hooks/use-profile-data';
 import {
   AnalyticsEvent,
   setAnalyticsEnabled,
   setCrashReportingEnabled,
   trackEvent,
-} from '../../../lib/analytics';
+} from '@/lib/analytics';
 import {
   type AccountPrivacyPreference,
   buildPrivacyUpdate,
   type ConsentDecision,
   getStoredAnalyticsConsent,
   type PrivacyChange,
-} from '../../../lib/analytics-consent';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { meOptions } from '../../../lib/query-options';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, readableWidth, space } from '../../../theme/type';
-import { triggerImpact } from '../../../utils/haptics';
+} from '@/lib/analytics-consent';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { meOptions } from '@/lib/query-options';
+import { useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, readableWidth, space } from '@/theme/type';
+import { triggerImpact } from '@/utils/haptics';
 
 type PrivacyPrefs = {
   analyticsEnabled: boolean;

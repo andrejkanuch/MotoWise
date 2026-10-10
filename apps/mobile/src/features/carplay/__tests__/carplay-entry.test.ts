@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 jest.mock('../carplay-coordinator', () => ({ startCarPlayCoordinator: jest.fn() }));
-jest.mock('../../../lib/analytics', () => ({ initSentry: jest.fn(), captureException: jest.fn() }));
+jest.mock('@/lib/analytics', () => ({ initSentry: jest.fn(), captureException: jest.fn() }));
 
 const APP_ROOT = join(__dirname, '../../../..');
 const read = (rel: string) => readFileSync(join(APP_ROOT, rel), 'utf8');
@@ -20,7 +20,7 @@ describe('carplay-entry', () => {
 
   it('never lets a CarPlay start failure abort the bundle', () => {
     const coordinator = jest.requireMock('../carplay-coordinator');
-    const { captureException } = jest.requireMock('../../../lib/analytics');
+    const { captureException } = jest.requireMock('@/lib/analytics');
     coordinator.startCarPlayCoordinator.mockImplementationOnce(() => {
       throw new Error('boom');
     });
@@ -52,8 +52,8 @@ describe('carplay-entry', () => {
   // A CarPlay-only launch never evaluates the root layout, so Sentry must be live
   // before the coordinator registers or its captureException calls are dropped.
   it('initializes Sentry from the entry, before CarPlay registers', () => {
-    const { initSentry } = jest.requireMock('../../../lib/analytics');
-    require('../../../lib/init-sentry-entry');
+    const { initSentry } = jest.requireMock('@/lib/analytics');
+    require('@/lib/init-sentry-entry');
     expect(initSentry).toHaveBeenCalledTimes(1);
 
     const entry = read('index.ts');

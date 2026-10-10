@@ -4,25 +4,25 @@
  * never count-limited. Two guards: the Log sheet is exercised as a free rider,
  * and the hub's own source is checked for any reach into the gating code.
  */
-jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
+jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 54, bottom: 34, left: 0, right: 0 }),
 }));
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
   ImpactFeedbackStyle: { Light: 'light' },
 }));
 
 const mockPresentPaywall = jest.fn();
-jest.mock('../../../lib/subscription', () => ({
+jest.mock('@/lib/subscription', () => ({
   presentPaywall: (...args: unknown[]) => mockPresentPaywall(...args),
 }));
 const mockUseProGate = jest.fn();
-jest.mock('../../../hooks/use-pro-gate', () => ({
+jest.mock('@/hooks/use-pro-gate', () => ({
   useProGate: (...args: unknown[]) => mockUseProGate(...args),
 }));
 
@@ -36,7 +36,7 @@ jest.mock('expo-router', () => ({
 }));
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
@@ -44,11 +44,11 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import LogEntrySheet from '../../../app/(tabs)/(garage)/log-entry';
-import '../../../i18n';
-import { LOG_OPTION } from '../../../lib/bike-hub/constants';
-import { useSubscriptionStore } from '../../../stores/subscription.store';
-import { BIKE_A } from '../../../test/bike-hub-fixtures';
+import LogEntrySheet from '@/app/(tabs)/(garage)/log-entry';
+import '@/i18n';
+import { LOG_OPTION } from '@/lib/bike-hub/constants';
+import { useSubscriptionStore } from '@/stores/subscription.store';
+import { BIKE_A } from '@/test/bike-hub-fixtures';
 import { LOG_OPTIONS } from '../sheets/log-options';
 
 const SRC = path.resolve(__dirname, '../../..');

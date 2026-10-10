@@ -26,28 +26,28 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LEGAL_URL } from '../../../components/profile/constants';
-import { IdentityHeader } from '../../../components/profile/identity-header';
+import { LEGAL_URL } from '@/components/profile/constants';
+import { IdentityHeader } from '@/components/profile/identity-header';
 import {
   openManageSubscription,
   restorePurchases,
-} from '../../../components/profile/subscription-actions';
+} from '@/components/profile/subscription-actions';
 import {
   ESectionFooter,
   ESectionLabel,
   ESettingsGroup,
   ESettingsRow,
-} from '../../../components/ui/editorial';
-import { PROFILE_ROUTE } from '../../../config/routes';
-import { useProGate } from '../../../hooks/use-pro-gate';
-import { useProfileData } from '../../../hooks/use-profile-data';
+} from '@/components/ui/editorial';
+import { PROFILE_ROUTE } from '@/config/routes';
+import { useProGate } from '@/hooks/use-pro-gate';
+import { useProfileData } from '@/hooks/use-profile-data';
 import {
   CODE_REDEMPTION_SURFACE,
   presentCodeRedemption,
   presentPaywall,
-} from '../../../lib/subscription';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, readableWidth, space } from '../../../theme/type';
+} from '@/lib/subscription';
+import { useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, readableWidth, space } from '@/theme/type';
 
 const IS_IOS = process.env.EXPO_OS === 'ios';
 const TAB_BAR_CLEARANCE = 120;

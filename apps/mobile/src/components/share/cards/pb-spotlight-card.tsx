@@ -2,7 +2,7 @@ import { palette } from '@motovault/design-system';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
-import { tint } from '../../../theme/editorial';
+import { tint } from '@/theme/editorial';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
@@ -11,7 +11,7 @@ import {
   formatElevationValue,
   formatSpeedValue,
   speedUnitLabel,
-} from '../../../utils/ride-formatters';
+} from '@/utils/ride-formatters';
 import type { RideSharePayload } from '../share-card-types';
 import { CARD_INK, CARD_TYPE, RouteSilhouette } from './card-elements';
 

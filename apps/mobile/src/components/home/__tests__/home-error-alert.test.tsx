@@ -12,19 +12,19 @@ jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
-jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
-jest.mock('../../../lib/analytics', () => ({
-  ...require('../../../test/mocks').mockAnalytics(),
+jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
+jest.mock('@/lib/analytics', () => ({
+  ...require('@/test/mocks').mockAnalytics(),
   addBreadcrumb: jest.fn(),
 }));
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 // meOptions signs out a session whose account is gone; keep the real Supabase
 // client (which needs env vars) out of this render test.
-jest.mock('../../../lib/account-gone', () => ({
+jest.mock('@/lib/account-gone', () => ({
   isAccountGoneError: () => false,
   getRequestSessionUserId: () => null,
   signOutGoneAccount: jest.fn(),
@@ -36,20 +36,20 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success', Warning: 'warning' },
 }));
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), back: jest.fn() }) }));
-jest.mock('../../../lib/notifications', () => ({
+jest.mock('@/lib/notifications', () => ({
   reconcileMaintenanceReminders: jest.fn(() => Promise.resolve()),
 }));
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import { act, render } from '@testing-library/react-native';
 import { Alert } from 'react-native';
-import { queryClient } from '../../../lib/query-client';
-import { queryKeys } from '../../../lib/query-keys';
+import { queryClient } from '@/lib/query-client';
+import { queryKeys } from '@/lib/query-keys';
 import {
   ALL_CHECKLIST_ITEMS,
   CHECKLIST_ITEM_ID,
   useChecklistStore,
-} from '../../../stores/checklist.store';
+} from '@/stores/checklist.store';
 import { OnboardingChecklist } from '../onboarding-checklist';
 import { useHomeData } from '../use-home-data';
 

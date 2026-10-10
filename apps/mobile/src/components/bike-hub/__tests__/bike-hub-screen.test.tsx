@@ -11,8 +11,8 @@ jest.mock('react-native-reanimated', () => ({
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 54, bottom: 34, left: 0, right: 0 }),
 }));
-jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 jest.mock('expo-status-bar', () => ({ StatusBar: () => null }));
 jest.mock('react-native-keyboard-controller', () =>
   require('react-native-keyboard-controller/jest'),
@@ -45,22 +45,22 @@ jest.mock('expo-router', () => ({
 }));
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
-jest.mock('../../../lib/notifications', () => ({
+jest.mock('@/lib/notifications', () => ({
   cancelDocumentNotificationsForBike: jest.fn(),
 }));
-jest.mock('../../../lib/image-upload', () => ({
+jest.mock('@/lib/image-upload', () => ({
   pickImage: jest.fn(),
   takePhoto: jest.fn(),
   uploadBikePhoto: jest.fn(),
 }));
-jest.mock('../../../stores/auth.store', () => ({
+jest.mock('@/stores/auth.store', () => ({
   useAuthStore: (selector: (state: unknown) => unknown) =>
     selector({ session: { user: { id: 'user-1' } } }),
 }));
-jest.mock('../../../theme/editorial', () => ({
+jest.mock('@/theme/editorial', () => ({
   EDITORIAL_SCHEME: { DARK: 'dark', LIGHT: 'light' },
   EditorialSchemeProvider: ({ children }: { children: unknown }) => children,
   useEditorialTheme: () => ({ t: { bg: 'legacy-bg' }, isDark: true }),
@@ -84,7 +84,7 @@ jest.mock('../../maintenance/oem-disclaimer-card', () => ({
   OEM_DISCLAIMER_VARIANT: { CARD: 'card', QUIET: 'quiet' },
   OemDisclaimerCard: () => null,
 }));
-jest.mock('../../../features/receipt-scan/receipt-scan-entry', () => ({
+jest.mock('@/features/receipt-scan/receipt-scan-entry', () => ({
   ReceiptScanEntry: () => null,
   useReceiptScanEntry: () => ({
     open: jest.fn(),
@@ -106,10 +106,10 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
-import '../../../i18n';
-import { ADD_TASK_MODE, BIKE_ORIGIN, BIKE_SEGMENT } from '../../../lib/bike-hub/constants';
-import { queryKeys } from '../../../lib/query-keys';
-import { useBikeHubStore } from '../../../stores/bike-hub.store';
+import '@/i18n';
+import { ADD_TASK_MODE, BIKE_ORIGIN, BIKE_SEGMENT } from '@/lib/bike-hub/constants';
+import { queryKeys } from '@/lib/query-keys';
+import { useBikeHubStore } from '@/stores/bike-hub.store';
 import { BikeHubScreen, type BikeHubScreenProps } from '../shell/bike-hub-screen';
 
 const BIKE_ID = 'bike-a';
@@ -358,7 +358,7 @@ describe('BikeHubScreen — segments', () => {
   });
 
   it('the interim Bike list keeps every old entry point and its analytics', async () => {
-    const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
+    const { trackEvent } = jest.requireMock('@/lib/analytics') as { trackEvent: jest.Mock };
     await renderHub({ segment: BIKE_SEGMENT.BIKE });
     await fireEvent.press(await screen.findByTestId('bike-action-edit'));
     expect(mockRouter.push).toHaveBeenLastCalledWith({

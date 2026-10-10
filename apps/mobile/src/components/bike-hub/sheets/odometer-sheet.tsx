@@ -14,13 +14,13 @@ import {
   type OdometerKey,
   SHEET_EXIT,
   type SheetExit,
-} from '../../../lib/bike-hub/constants';
+} from '@/lib/bike-hub/constants';
 import {
   formatOdometer,
   formatShortDate,
   hasOdometer,
   toHubUnit,
-} from '../../../lib/bike-hub/format';
+} from '@/lib/bike-hub/format';
 import {
   applyKey,
   applyQuickAdd,
@@ -30,14 +30,14 @@ import {
   odometerBaseline,
   parseEntry,
   validateReading,
-} from '../../../lib/bike-hub/odometer-input';
+} from '@/lib/bike-hub/odometer-input';
 import {
   type OdometerDraft,
   restorableOdometerDraft,
   useSheetDraftStore,
-} from '../../../stores/sheet-draft.store';
-import { SYSTEM_WEIGHT, type } from '../../../theme/type';
-import { triggerNotification, triggerSelection } from '../../../utils/haptics';
+} from '@/stores/sheet-draft.store';
+import { SYSTEM_WEIGHT, type } from '@/theme/type';
+import { triggerNotification, triggerSelection } from '@/utils/haptics';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import { useToday } from '../shell/use-today';
 import { HUB_CHROME_MAX_FONT_SCALE, HUB_HEIGHT, HUB_RADIUS, useHubTheme } from '../ui/tokens';

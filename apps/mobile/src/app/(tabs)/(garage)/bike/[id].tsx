@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { BikeHubScreen } from '../../../../components/bike-hub/shell/bike-hub-screen';
+import { BikeHubScreen } from '@/components/bike-hub/shell/bike-hub-screen';
 
 /** Route params of the bike hub. All but `id` are optional landing hints. */
 type BikeRouteParams = {

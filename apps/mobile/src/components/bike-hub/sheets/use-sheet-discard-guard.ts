@@ -8,7 +8,7 @@ import {
   SHEET_DISMISS_GUARD_PLATFORMS,
   SHEET_EXIT,
   type SheetExit,
-} from '../../../lib/bike-hub/constants';
+} from '@/lib/bike-hub/constants';
 
 /** The one navigation action a native sheet sends after it has ALREADY gone. */
 const NATIVE_POP_ACTION = 'POP';

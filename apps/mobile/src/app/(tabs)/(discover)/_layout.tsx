@@ -1,6 +1,6 @@
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
-import { ErrorFallback } from '../../../components/error-fallback';
-import { captureException } from '../../../lib/analytics';
+import { ErrorFallback } from '@/components/error-fallback';
+import { captureException } from '@/lib/analytics';
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   captureException(error, { boundary: 'discover' });

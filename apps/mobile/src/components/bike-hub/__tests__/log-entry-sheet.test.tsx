@@ -1,11 +1,11 @@
-jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
+jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 54, bottom: 34, left: 0, right: 0 }),
 }));
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
   ImpactFeedbackStyle: { Light: 'light' },
@@ -35,18 +35,18 @@ jest.mock('lucide-react-native', () => {
 });
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import { Dimensions, StyleSheet } from 'react-native';
-import LogEntrySheet from '../../../app/(tabs)/(garage)/log-entry';
-import '../../../i18n';
-import { LOG_OPTION } from '../../../lib/bike-hub/constants';
-import { useAuthStore } from '../../../stores/auth.store';
-import { BIKE_A } from '../../../test/bike-hub-fixtures';
+import LogEntrySheet from '@/app/(tabs)/(garage)/log-entry';
+import '@/i18n';
+import { LOG_OPTION } from '@/lib/bike-hub/constants';
+import { useAuthStore } from '@/stores/auth.store';
+import { BIKE_A } from '@/test/bike-hub-fixtures';
 import { SHEET_BOTTOM_PADDING, SHEET_TOP_CLEARANCE } from '../sheets/sheet-scroll';
 
 const clients: QueryClient[] = [];
@@ -110,7 +110,7 @@ describe('Log sheet', () => {
         entrySource: 'bike_hub',
       },
     });
-    const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
+    const { trackEvent } = jest.requireMock('@/lib/analytics') as { trackEvent: jest.Mock };
     expect(trackEvent).toHaveBeenCalledWith('BIKE_LOG_OPTION_SELECTED', {
       motorcycle_id: BIKE_A.id,
       option: LOG_OPTION.EXPENSE,
@@ -149,7 +149,7 @@ describe('Log sheet', () => {
     });
     expect(mockRouter.back).not.toHaveBeenCalled();
     expect(mockRouter.push).not.toHaveBeenCalled();
-    const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
+    const { trackEvent } = jest.requireMock('@/lib/analytics') as { trackEvent: jest.Mock };
     expect(trackEvent).toHaveBeenCalledWith('BIKE_LOG_OPTION_SELECTED', {
       motorcycle_id: BIKE_A.id,
       option: LOG_OPTION.ODOMETER,

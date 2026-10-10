@@ -12,7 +12,7 @@ jest.mock('react-native-safe-area-context', () => ({
 jest.mock('react-native-keyboard-controller', () =>
   require('react-native-keyboard-controller/jest'),
 );
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
   notificationAsync: jest.fn(),
@@ -22,7 +22,7 @@ jest.mock('expo-haptics', () => ({
 }));
 jest.mock('expo-image', () => ({ Image: () => null }));
 let mockSession: { user: { id: string } } | null = { user: { id: 'user-1' } };
-jest.mock('../../../stores/auth.store', () => ({
+jest.mock('@/stores/auth.store', () => ({
   useAuthStore: (selector: (state: unknown) => unknown) =>
     selector({ currency: 'EUR', session: mockSession }),
 }));
@@ -42,14 +42,14 @@ jest.mock('../../ui/native-toggle', () => {
 const mockUpload = jest.fn();
 const mockPick = jest.fn();
 const mockRemoveObject = jest.fn();
-jest.mock('../../../lib/image-upload', () => ({
+jest.mock('@/lib/image-upload', () => ({
   pickImage: () => mockPick(),
   takePhoto: jest.fn(),
   uploadNotePhoto: (...args: unknown[]) => mockUpload(...args),
   removeNotePhotoObject: (...args: unknown[]) => mockRemoveObject(...args),
 }));
 // The action sheet is native; choose "Choose from Library" (the second option) straight away.
-jest.mock('../../../utils/action-sheet', () => ({
+jest.mock('@/utils/action-sheet', () => ({
   showActionSheet: (_title: string, options: Array<{ onPress: () => void }>) =>
     options[1]?.onPress(),
 }));
@@ -83,7 +83,7 @@ const GO_BACK = { type: 'GO_BACK' };
 const NATIVE_SWIPE = { type: 'POP' };
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
@@ -99,9 +99,9 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-
 import { Alert, StyleSheet } from 'react-native';
 import { useKeyboardState } from 'react-native-keyboard-controller';
 import { hubDark as hub } from '../ui/tokens';
-import '../../../i18n';
-import { useSheetDraftStore } from '../../../stores/sheet-draft.store';
-import { BIKE_A, BIKE_B, NOTES } from '../../../test/bike-hub-fixtures';
+import '@/i18n';
+import { useSheetDraftStore } from '@/stores/sheet-draft.store';
+import { BIKE_A, BIKE_B, NOTES } from '@/test/bike-hub-fixtures';
 import {
   DRAFT_OUTCOME,
   type DraftOutcome,

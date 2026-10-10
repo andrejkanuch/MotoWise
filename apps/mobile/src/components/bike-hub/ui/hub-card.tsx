@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { type AccessibilityRole, Pressable, View, type ViewStyle } from 'react-native';
-import { triggerImpact } from '../../../utils/haptics';
+import { triggerImpact } from '@/utils/haptics';
 import { HUB_PRESSED_SCALE, HUB_RADIUS, useHubTheme } from './tokens';
 
 interface HubCardProps {

@@ -5,9 +5,9 @@ import {
   BIKE_LEAF,
   type BikeLeaf,
   type BikeSegment,
-} from '../../../lib/bike-hub/constants';
-import { ownerSegmentOf } from '../../../lib/bike-hub/segments';
-import { EXPENSE_ENTRY_SOURCE } from '../../../lib/expense-analytics';
+} from '@/lib/bike-hub/constants';
+import { ownerSegmentOf } from '@/lib/bike-hub/segments';
+import { EXPENSE_ENTRY_SOURCE } from '@/lib/expense-analytics';
 import type { HubBike } from './use-bike-hub-data';
 import { useGuardedPush } from './use-guarded-push';
 

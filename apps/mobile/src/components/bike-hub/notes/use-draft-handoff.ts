@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { normaliseNoteText } from '../../../lib/bike-hub/notes';
+import { normaliseNoteText } from '@/lib/bike-hub/notes';
 
 /** How a Note sheet opened with a handed-off draft ended. */
 export const DRAFT_OUTCOME = {

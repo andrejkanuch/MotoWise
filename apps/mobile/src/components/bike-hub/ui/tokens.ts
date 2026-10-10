@@ -8,10 +8,10 @@ import {
   type DueTone,
   RIDE_STATUS,
   type RideStatus,
-} from '../../../lib/bike-hub/constants';
-import { TAB_BAR_MIN_INSET } from '../../../stores/tab-bar.store';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { PLATE_FONT, SYSTEM_WEIGHT } from '../../../theme/type';
+} from '@/lib/bike-hub/constants';
+import { TAB_BAR_MIN_INSET } from '@/stores/tab-bar.store';
+import { useEditorialTheme } from '@/theme/editorial';
+import { PLATE_FONT, SYSTEM_WEIGHT } from '@/theme/type';
 
 /**
  * Semantic colours of the bike hub (DESIGN.md → Colour), one set per scheme.

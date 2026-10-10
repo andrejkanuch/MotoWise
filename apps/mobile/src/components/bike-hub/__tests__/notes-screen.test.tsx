@@ -16,8 +16,8 @@ jest.mock('react-native-safe-area-context', () => ({
 jest.mock('react-native-keyboard-controller', () =>
   require('react-native-keyboard-controller/jest'),
 );
-jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
   notificationAsync: jest.fn(),
@@ -26,7 +26,7 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success', Warning: 'warning' },
 }));
 jest.mock('expo-image', () => ({ Image: () => null }));
-jest.mock('../../../stores/auth.store', () => ({
+jest.mock('@/stores/auth.store', () => ({
   useAuthStore: (selector: (state: unknown) => unknown) =>
     selector({ currency: 'EUR', session: { user: { id: 'user-1' } } }),
 }));
@@ -49,7 +49,7 @@ jest.mock('expo-router', () => ({
 }));
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
@@ -63,12 +63,12 @@ import {
 } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import '../../../i18n';
-import { NOTE_SOURCE, NOTES_SEARCH_DEBOUNCE_MS } from '../../../lib/bike-hub/constants';
-import { queryKeys } from '../../../lib/query-keys';
-import { useBikeHubStore } from '../../../stores/bike-hub.store';
-import { usePendingDeleteStore } from '../../../stores/pending-delete.store';
-import { BIKE_A, NOTES } from '../../../test/bike-hub-fixtures';
+import '@/i18n';
+import { NOTE_SOURCE, NOTES_SEARCH_DEBOUNCE_MS } from '@/lib/bike-hub/constants';
+import { queryKeys } from '@/lib/query-keys';
+import { useBikeHubStore } from '@/stores/bike-hub.store';
+import { usePendingDeleteStore } from '@/stores/pending-delete.store';
+import { BIKE_A, NOTES } from '@/test/bike-hub-fixtures';
 import { NotesScreen } from '../notes/notes-screen';
 import { DRAFT_OUTCOME, publishDraftOutcome } from '../notes/use-draft-handoff';
 import type { HubBike } from '../shell/use-bike-hub-data';
@@ -300,7 +300,7 @@ describe('NotesScreen', () => {
         },
       }),
     );
-    const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
+    const { trackEvent } = jest.requireMock('@/lib/analytics') as { trackEvent: jest.Mock };
     await waitFor(() =>
       expect(trackEvent).toHaveBeenCalledWith(
         'NOTE_CREATED',
@@ -482,7 +482,7 @@ describe('NotesScreen', () => {
     );
     await unmount();
     expect(mockFetcher).toHaveBeenCalledWith(DeleteNoteDocument, { id: 'note-3' });
-    const { trackEvent } = jest.requireMock('../../../lib/analytics') as { trackEvent: jest.Mock };
+    const { trackEvent } = jest.requireMock('@/lib/analytics') as { trackEvent: jest.Mock };
     await waitFor(() =>
       expect(trackEvent).toHaveBeenCalledWith('NOTE_DELETED', { motorcycle_id: BIKE_A.id }),
     );

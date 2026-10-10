@@ -20,11 +20,11 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { triggerImpact } from '../../../utils/haptics';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { useEditorialTheme } from '@/theme/editorial';
+import { triggerImpact } from '@/utils/haptics';
 
 type CategoryItem = DocumentCategoriesQuery['documentCategories'][number];
 

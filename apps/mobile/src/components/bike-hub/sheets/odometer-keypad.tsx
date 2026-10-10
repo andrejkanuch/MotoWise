@@ -5,9 +5,9 @@ import {
   ODOMETER_KEY,
   type OdometerDigit,
   type OdometerKey,
-} from '../../../lib/bike-hub/constants';
-import { SYSTEM_WEIGHT, type } from '../../../theme/type';
-import { triggerSelection } from '../../../utils/haptics';
+} from '@/lib/bike-hub/constants';
+import { SYSTEM_WEIGHT, type } from '@/theme/type';
+import { triggerSelection } from '@/utils/haptics';
 import { HUB_CHROME_MAX_FONT_SCALE, HUB_RADIUS, useHubTheme } from '../ui/tokens';
 import { SHEET_LOCKED_OPACITY } from './sheet-header';
 

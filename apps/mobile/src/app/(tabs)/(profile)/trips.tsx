@@ -25,15 +25,15 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import { CompletenessRing } from '../../../components/trip/completeness-ring';
-import { Avatar } from '../../../components/ui/avatar';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { type EditorialTokens, tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
-import { showActionSheet } from '../../../utils/action-sheet';
-import { triggerImpact } from '../../../utils/haptics';
-import { computeTripCompleteness } from '../../../utils/trip-completeness';
+import { CompletenessRing } from '@/components/trip/completeness-ring';
+import { Avatar } from '@/components/ui/avatar';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { type EditorialTokens, tint, useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, radius, readableWidth, space, type } from '@/theme/type';
+import { showActionSheet } from '@/utils/action-sheet';
+import { triggerImpact } from '@/utils/haptics';
+import { computeTripCompleteness } from '@/utils/trip-completeness';
 
 const PAGE_SIZE = 20;
 const TARGET_SIZE = process.env.EXPO_OS === 'android' ? 48 : 44;

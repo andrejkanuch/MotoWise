@@ -14,8 +14,8 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import { hubCategoryColor, useHubTheme } from '../../../components/bike-hub/ui/tokens';
-import { ExpensePhotoGallery } from '../../../components/expense-photo-gallery';
+import { hubCategoryColor, useHubTheme } from '@/components/bike-hub/ui/tokens';
+import { ExpensePhotoGallery } from '@/components/expense-photo-gallery';
 import {
   AmountField,
   ChoiceChip,
@@ -29,23 +29,23 @@ import {
   SHEET_PRIMARY_STATE,
   SheetFooter,
   SheetTitle,
-} from '../../../components/ui/sheet-form';
-import { useCurrency } from '../../../hooks/use-currency';
+} from '@/components/ui/sheet-form';
+import { useCurrency } from '@/hooks/use-currency';
 import {
   EXPENSE_ENTRY_SOURCE,
   parseExpenseEntrySource,
   trackExpenseAdded,
-} from '../../../lib/expense-analytics';
-import { CATEGORY_LABELS } from '../../../lib/expense-constants';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { uploadExpensePhoto } from '../../../lib/image-upload';
-import { queryKeys } from '../../../lib/query-keys';
-import { maybeRequestReview, REVIEW_MILESTONE } from '../../../lib/store-review';
-import { useAuthStore } from '../../../stores/auth.store';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { space, type } from '../../../theme/type';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
-import { toISODateInput } from '../../../utils/trip-form-dates';
+} from '@/lib/expense-analytics';
+import { CATEGORY_LABELS } from '@/lib/expense-constants';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { uploadExpensePhoto } from '@/lib/image-upload';
+import { queryKeys } from '@/lib/query-keys';
+import { maybeRequestReview, REVIEW_MILESTONE } from '@/lib/store-review';
+import { useAuthStore } from '@/stores/auth.store';
+import { useEditorialTheme } from '@/theme/editorial';
+import { space, type } from '@/theme/type';
+import { triggerImpact, triggerNotification } from '@/utils/haptics';
+import { toISODateInput } from '@/utils/trip-form-dates';
 
 const CATEGORIES = EXPENSE_CATEGORIES;
 type Category = (typeof CATEGORIES)[number];

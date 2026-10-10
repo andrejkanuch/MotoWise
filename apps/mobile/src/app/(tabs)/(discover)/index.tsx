@@ -47,20 +47,20 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BikeBanner } from '../../../components/discover/bike-banner';
-import { DiscoverTripCard } from '../../../components/discover/discover-trip-card';
-import { NearYouSection } from '../../../components/discover/near-you-section';
-import { DraftTripStrip } from '../../../components/discover/planner/draft-trip-strip';
-import { TypeaheadSearch } from '../../../components/discover/typeahead-search';
-import { WeatherStrip } from '../../../components/discover/weather-strip';
-import { WEATHER_ENABLED } from '../../../config/feature-flags';
-import { useUserCountry } from '../../../hooks/use-user-country';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { SYSTEM_WEIGHT, space, type } from '../../../theme/type';
-import { getDefaultMapStyle, MAP_STYLES } from '../../../utils/map-styles';
+import { BikeBanner } from '@/components/discover/bike-banner';
+import { DiscoverTripCard } from '@/components/discover/discover-trip-card';
+import { NearYouSection } from '@/components/discover/near-you-section';
+import { DraftTripStrip } from '@/components/discover/planner/draft-trip-strip';
+import { TypeaheadSearch } from '@/components/discover/typeahead-search';
+import { WeatherStrip } from '@/components/discover/weather-strip';
+import { WEATHER_ENABLED } from '@/config/feature-flags';
+import { useUserCountry } from '@/hooks/use-user-country';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { SYSTEM_WEIGHT, space, type } from '@/theme/type';
+import { getDefaultMapStyle, MAP_STYLES } from '@/utils/map-styles';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as unknown as typeof FlatList;

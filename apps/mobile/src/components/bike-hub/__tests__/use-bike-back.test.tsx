@@ -9,7 +9,7 @@ const mockRouter = {
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
 
 import { renderHook } from '@testing-library/react-native';
-import { BIKE_ORIGIN, type BikeOrigin } from '../../../lib/bike-hub/constants';
+import { BIKE_ORIGIN, type BikeOrigin } from '@/lib/bike-hub/constants';
 import { useBikeBack } from '../shell/use-bike-back';
 
 async function goBack(origin: BikeOrigin) {

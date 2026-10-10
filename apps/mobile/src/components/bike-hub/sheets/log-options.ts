@@ -15,8 +15,8 @@ import {
   ReceiptTurkishLira,
   Wrench,
 } from 'lucide-react-native';
-import { ADD_TASK_MODE, LOG_OPTION, type LogOption } from '../../../lib/bike-hub/constants';
-import { EXPENSE_ENTRY_SOURCE } from '../../../lib/expense-analytics';
+import { ADD_TASK_MODE, LOG_OPTION, type LogOption } from '@/lib/bike-hub/constants';
+import { EXPENSE_ENTRY_SOURCE } from '@/lib/expense-analytics';
 import type { HubColorKey, HubCopyKey } from '../ui/tokens';
 
 export interface LogOptionDefinition {

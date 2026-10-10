@@ -7,12 +7,12 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import { AnalyticsEvent, trackEvent } from '../../../../lib/analytics';
-import { gqlFetcher } from '../../../../lib/graphql-client';
-import { MetaAnalytics } from '../../../../lib/meta-analytics';
-import { queryKeys } from '../../../../lib/query-keys';
-import { type EditorialTokens, tint, useEditorialTheme } from '../../../../theme/editorial';
-import { type } from '../../../../theme/type';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { MetaAnalytics } from '@/lib/meta-analytics';
+import { queryKeys } from '@/lib/query-keys';
+import { type EditorialTokens, tint, useEditorialTheme } from '@/theme/editorial';
+import { type } from '@/theme/type';
 
 /** Difficulty → theme token (resolved per scheme at render). */
 const DIFFICULTY_TOKEN = {

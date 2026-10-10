@@ -4,7 +4,7 @@ jest.mock('expo-localization', () => ({
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 54, bottom: 34, left: 0, right: 0 }),
 }));
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
   notificationAsync: jest.fn(),
@@ -65,9 +65,9 @@ jest.mock('@expo/ui/community/datetime-picker', () => ({
 const mockGuardPlatforms = new Set<string>(['ios']);
 // A live getter: the factory runs before this file's constants are initialised
 // (an object-literal getter would be evaluated once, by the spread helper).
-jest.mock('../../../lib/bike-hub/constants', () =>
+jest.mock('@/lib/bike-hub/constants', () =>
   Object.defineProperty(
-    { ...jest.requireActual('../../../lib/bike-hub/constants') },
+    { ...jest.requireActual('@/lib/bike-hub/constants') },
     'SHEET_DISMISS_GUARD_PLATFORMS',
     { get: () => mockGuardPlatforms, enumerable: true },
   ),
@@ -79,7 +79,7 @@ const asIos = () => {
 };
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
@@ -92,9 +92,9 @@ import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { useState } from 'react';
 import { Alert, type AlertButton } from 'react-native';
-import '../../../i18n';
-import { useSheetDraftStore } from '../../../stores/sheet-draft.store';
-import { BIKE_A, TODAY } from '../../../test/bike-hub-fixtures';
+import '@/i18n';
+import { useSheetDraftStore } from '@/stores/sheet-draft.store';
+import { BIKE_A, TODAY } from '@/test/bike-hub-fixtures';
 import { OdometerSheet } from '../sheets/odometer-sheet';
 import { useDiscardReadingGuard } from '../sheets/use-log-odometer';
 import type { HubBike } from '../shell/use-bike-hub-data';

@@ -20,32 +20,32 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { CategoryDonut } from '../../../components/expense-dashboard/category-donut';
-import { MonthlyTrend } from '../../../components/expense-dashboard/monthly-trend';
-import { SummaryCards } from '../../../components/expense-dashboard/summary-cards';
-import { GARAGE_ROUTE } from '../../../config/routes';
-import { ReceiptScanEntry } from '../../../features/receipt-scan/receipt-scan-entry';
-import { SCAN_ENTRY_SURFACE } from '../../../features/receipt-scan/scan-flow-constants';
-import { useCurrency } from '../../../hooks/use-currency';
+import { CategoryDonut } from '@/components/expense-dashboard/category-donut';
+import { MonthlyTrend } from '@/components/expense-dashboard/monthly-trend';
+import { SummaryCards } from '@/components/expense-dashboard/summary-cards';
+import { GARAGE_ROUTE } from '@/config/routes';
+import { ReceiptScanEntry } from '@/features/receipt-scan/receipt-scan-entry';
+import { SCAN_ENTRY_SURFACE } from '@/features/receipt-scan/scan-flow-constants';
+import { useCurrency } from '@/hooks/use-currency';
 import {
   PERIOD_OPTIONS,
   type Period,
   useDashboardData,
   useExpenseDashboard,
-} from '../../../hooks/use-expense-dashboard';
-import { useMileageUnit } from '../../../hooks/use-mileage-unit';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
+} from '@/hooks/use-expense-dashboard';
+import { useMileageUnit } from '@/hooks/use-mileage-unit';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import {
   CATEGORY_COLORS,
   CATEGORY_LABELS,
   dominantCurrency,
   formatCurrencyTotals,
   formatMoney,
-} from '../../../lib/expense-constants';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, space, type } from '../../../theme/type';
+} from '@/lib/expense-constants';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, radius, space, type } from '@/theme/type';
 
 const PERIOD_LABEL_KEY = {
   thisYear: 'expenses.periodThisYear',

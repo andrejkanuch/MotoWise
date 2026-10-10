@@ -16,7 +16,7 @@ import {
   PickerLoadingRow,
   PickerResults,
   PickerValueRow,
-} from '../../../components/garage/bike-picker-rows';
+} from '@/components/garage/bike-picker-rows';
 import {
   FormSection,
   inputTextStyle,
@@ -25,22 +25,22 @@ import {
   SHEET_PRIMARY_STATE,
   SheetFooter,
   SheetTitle,
-} from '../../../components/ui/sheet-form';
-import { BIKE_YEAR, sanitizeBikeYear, useBikePicker } from '../../../hooks/use-bike-picker';
-import { useProGate } from '../../../hooks/use-pro-gate';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { GRAPHQL_ERROR_CODE } from '../../../lib/graphql-error-classification';
+} from '@/components/ui/sheet-form';
+import { BIKE_YEAR, sanitizeBikeYear, useBikePicker } from '@/hooks/use-bike-picker';
+import { useProGate } from '@/hooks/use-pro-gate';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { GRAPHQL_ERROR_CODE } from '@/lib/graphql-error-classification';
 import {
   extractGraphQLMessage,
   hasGraphQLCode,
   userFriendlyError,
-} from '../../../lib/graphql-errors';
-import { MetaAnalytics } from '../../../lib/meta-analytics';
-import { queryKeys } from '../../../lib/query-keys';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { space } from '../../../theme/type';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
+} from '@/lib/graphql-errors';
+import { MetaAnalytics } from '@/lib/meta-analytics';
+import { queryKeys } from '@/lib/query-keys';
+import { useEditorialTheme } from '@/theme/editorial';
+import { space } from '@/theme/type';
+import { triggerImpact, triggerNotification } from '@/utils/haptics';
 
 /** Maestro anchors (add-bike.yaml). */
 const TEST_ID = {

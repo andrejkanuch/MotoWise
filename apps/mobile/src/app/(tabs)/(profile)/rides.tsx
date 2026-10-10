@@ -22,17 +22,17 @@ import {
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Path, Stop, LinearGradient as SvgGradient } from 'react-native-svg';
-import { RideCard } from '../../../components/ride/ride-card';
-import { ESettingsGroup, ESettingsRow } from '../../../components/ui/editorial';
-import { ThemedSegmentedControl } from '../../../components/ui/themed-segmented-control';
-import { PROFILE_ROUTE } from '../../../config/routes';
-import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { tint, useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, readableWidth, SYSTEM_WEIGHT, space, type } from '../../../theme/type';
-import { triggerImpact, triggerSelection } from '../../../utils/haptics';
+import { RideCard } from '@/components/ride/ride-card';
+import { ESettingsGroup, ESettingsRow } from '@/components/ui/editorial';
+import { ThemedSegmentedControl } from '@/components/ui/themed-segmented-control';
+import { PROFILE_ROUTE } from '@/config/routes';
+import { useMeasurementSystem } from '@/hooks/use-measurement-system';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { tint, useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, radius, readableWidth, SYSTEM_WEIGHT, space, type } from '@/theme/type';
+import { triggerImpact, triggerSelection } from '@/utils/haptics';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
@@ -40,7 +40,7 @@ import {
   formatDistanceValue,
   formatElevationValue,
   speedUnitLabel,
-} from '../../../utils/ride-formatters';
+} from '@/utils/ride-formatters';
 
 const PAGE_SIZE = 20;
 

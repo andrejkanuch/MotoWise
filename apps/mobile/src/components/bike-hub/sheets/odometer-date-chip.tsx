@@ -5,8 +5,8 @@ import { ChevronDown } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import { EDITORIAL_SCHEME, useEditorialTheme } from '../../../theme/editorial';
-import { type } from '../../../theme/type';
+import { EDITORIAL_SCHEME, useEditorialTheme } from '@/theme/editorial';
+import { type } from '@/theme/type';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
   HUB_HEIGHT,

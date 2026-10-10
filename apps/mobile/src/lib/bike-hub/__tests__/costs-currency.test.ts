@@ -1,4 +1,4 @@
-import { expenseYear, TODAY } from '../../../test/bike-hub-fixtures';
+import { expenseYear, TODAY } from '@/test/bike-hub-fixtures';
 import { DELTA_DIRECTION } from '../constants';
 import { summariseCosts } from '../costs-summary';
 

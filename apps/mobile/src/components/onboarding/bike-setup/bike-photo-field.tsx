@@ -2,9 +2,9 @@ import { Image } from 'expo-image';
 import { Camera, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, View } from 'react-native';
-import { pickImage, takePhoto } from '../../../lib/image-upload';
-import { radius, space, type } from '../../../theme/type';
-import { triggerImpact } from '../../../utils/haptics';
+import { pickImage, takePhoto } from '@/lib/image-upload';
+import { radius, space, type } from '@/theme/type';
+import { triggerImpact } from '@/utils/haptics';
 import { useOnboardingColors } from '../onboarding-colors';
 
 interface BikePhotoFieldProps {

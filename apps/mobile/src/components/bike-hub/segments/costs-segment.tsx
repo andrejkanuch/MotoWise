@@ -1,9 +1,9 @@
 import { ScanLine } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
-import { useReceiptScanEntry } from '../../../features/receipt-scan/receipt-scan-entry';
-import { SCAN_ENTRY_SURFACE } from '../../../features/receipt-scan/scan-flow-constants';
-import type { HubUnit } from '../../../lib/bike-hub/constants';
+import { useReceiptScanEntry } from '@/features/receipt-scan/receipt-scan-entry';
+import { SCAN_ENTRY_SURFACE } from '@/features/receipt-scan/scan-flow-constants';
+import type { HubUnit } from '@/lib/bike-hub/constants';
 import { ExpensesSection } from '../expenses-section';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import { HubCard } from '../ui/hub-card';

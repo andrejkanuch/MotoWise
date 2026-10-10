@@ -1,7 +1,7 @@
 import { History } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import { SYSTEM_WEIGHT, type } from '../../../theme/type';
+import { SYSTEM_WEIGHT, type } from '@/theme/type';
 import { HUB_CHROME_MAX_FONT_SCALE, HUB_TOUCH_TARGET, useHubTheme } from '../ui/tokens';
 import { SHEET_LOCKED_OPACITY } from './sheet-header';
 

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import type { SheetExit } from '../../../lib/bike-hub/constants';
+import type { SheetExit } from '@/lib/bike-hub/constants';
 import {
   type NoteDraft,
   newDraftToken,
@@ -8,7 +8,7 @@ import {
   type ParkedPhotoUpload,
   restorableNoteDraft,
   useSheetDraftStore,
-} from '../../../stores/sheet-draft.store';
+} from '@/stores/sheet-draft.store';
 import { parkNoteDraft } from '../notes/unattached-note-photos';
 import { DRAFT_OUTCOME, type DraftOutcome, publishDraftOutcome } from '../notes/use-draft-handoff';
 import { useParkDraftOnExit } from './use-park-draft';

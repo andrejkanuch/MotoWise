@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
-import type { HubUnit } from '../../../lib/bike-hub/constants';
-import type { TaskDue } from '../../../lib/bike-hub/task-due';
+import type { HubUnit } from '@/lib/bike-hub/constants';
+import type { TaskDue } from '@/lib/bike-hub/task-due';
 import type { HubTask } from '../shell/use-bike-hub-data';
 import { DueLine, describeDue } from '../ui/due-line';
 import { HubCard } from '../ui/hub-card';

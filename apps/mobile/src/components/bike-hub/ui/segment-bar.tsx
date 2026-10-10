@@ -6,8 +6,8 @@ import {
   BIKE_SEGMENT,
   BIKE_SEGMENT_ORDER,
   type BikeSegment,
-} from '../../../lib/bike-hub/constants';
-import { triggerSelection } from '../../../utils/haptics';
+} from '@/lib/bike-hub/constants';
+import { triggerSelection } from '@/utils/haptics';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
   HUB_FIGURE_STRONG,

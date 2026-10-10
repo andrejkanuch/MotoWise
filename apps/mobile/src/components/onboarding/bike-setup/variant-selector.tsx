@@ -2,8 +2,8 @@ import { MotorcycleVariant } from '@motovault/types';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { radius, space, type } from '../../../theme/type';
-import { triggerImpact } from '../../../utils/haptics';
+import { radius, space, type } from '@/theme/type';
+import { triggerImpact } from '@/utils/haptics';
 import { useOnboardingColors } from '../onboarding-colors';
 import { PickerLabel } from './picker-ui';
 

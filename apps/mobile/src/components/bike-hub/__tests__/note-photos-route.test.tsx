@@ -21,8 +21,8 @@ jest.mock('react-native-reanimated', () => ({
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 54, bottom: 34, left: 0, right: 0 }),
 }));
-jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
-jest.mock('../../../lib/analytics', () => require('../../../test/mocks').mockAnalytics());
+jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
   ImpactFeedbackStyle: { Light: 'light' },
@@ -34,16 +34,16 @@ jest.mock('expo-image', () => {
 });
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
 import { NotesByMotorcycleDocument } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import '../../../i18n';
-import NotePhotosRoute from '../../../app/(tabs)/(garage)/note-photos';
-import { BIKE_A, NOTES } from '../../../test/bike-hub-fixtures';
+import '@/i18n';
+import NotePhotosRoute from '@/app/(tabs)/(garage)/note-photos';
+import { BIKE_A, NOTES } from '@/test/bike-hub-fixtures';
 import { rememberLocalNotePhoto } from '../notes/note-photo';
 
 const PHOTO_NOTE = {

@@ -1,4 +1,4 @@
-import { TODAY } from '../../../test/bike-hub-fixtures';
+import { TODAY } from '@/test/bike-hub-fixtures';
 import {
   BIKE_LEAF,
   BIKE_ORIGIN,

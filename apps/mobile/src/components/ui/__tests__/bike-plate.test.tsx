@@ -19,8 +19,8 @@ jest.mock('react-native-reanimated', () => ({
 
 import { render, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
-import { editorialThemes } from '../../../theme/editorial';
-import { type } from '../../../theme/type';
+import { editorialThemes } from '@/theme/editorial';
+import { type } from '@/theme/type';
 import { BikePlate, type BikePlateProps, PLATE_SIZE, PLATE_STATE } from '../bike-plate';
 
 const BASE: BikePlateProps = {

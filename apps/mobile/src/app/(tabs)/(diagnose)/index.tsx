@@ -25,14 +25,14 @@ import {
   DIAGNOSTIC_STATUS,
   formatDiagnosisDate,
   isStuckProcessing,
-} from '../../../components/diagnosis/diagnostic-status';
-import { SeverityChip, useSeverityLabel } from '../../../components/diagnosis/severity-chip';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { useEditorialTheme } from '../../../theme/editorial';
-import { GUTTER, radius, readableWidth, space, type } from '../../../theme/type';
-import { triggerImpact } from '../../../utils/haptics';
+} from '@/components/diagnosis/diagnostic-status';
+import { SeverityChip, useSeverityLabel } from '@/components/diagnosis/severity-chip';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { useEditorialTheme } from '@/theme/editorial';
+import { GUTTER, radius, readableWidth, space, type } from '@/theme/type';
+import { triggerImpact } from '@/utils/haptics';
 
 type Diagnostic = MyDiagnosticsQuery['myDiagnostics'][number];
 type Motorcycle = MyMotorcyclesQuery['myMotorcycles'][number];

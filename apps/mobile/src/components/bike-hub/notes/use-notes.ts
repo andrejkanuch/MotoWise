@@ -10,12 +10,12 @@ import {
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import type { NoteSource } from '../../../lib/bike-hub/constants';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { QUERY_META } from '../../../lib/query-meta';
-import { usePendingDeleteStore } from '../../../stores/pending-delete.store';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import type { NoteSource } from '@/lib/bike-hub/constants';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { QUERY_META } from '@/lib/query-meta';
+import { usePendingDeleteStore } from '@/stores/pending-delete.store';
 
 export type HubNote = NotesByMotorcycleQuery['notes'][number];
 

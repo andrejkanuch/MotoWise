@@ -2,9 +2,9 @@ import { NOTE_PHOTOS_MAX } from '@motovault/types';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { NotePhotoViewer } from '../../../components/bike-hub/notes/note-photo-viewer';
-import { useNotes } from '../../../components/bike-hub/notes/use-notes';
-import { useHubTheme } from '../../../components/bike-hub/ui/tokens';
+import { NotePhotoViewer } from '@/components/bike-hub/notes/note-photo-viewer';
+import { useNotes } from '@/components/bike-hub/notes/use-notes';
+import { useHubTheme } from '@/components/bike-hub/ui/tokens';
 
 type NotePhotosRouteParams = {
   motorcycleId: string;

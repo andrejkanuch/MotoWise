@@ -14,9 +14,9 @@ jest.mock('react-native-reanimated', () => ({
   useReducedMotion: () => true,
   interpolateColor: () => 'transparent',
 }));
-jest.mock('react-native-mmkv', () => require('../../../test/mocks').makeMmkvMock());
-jest.mock('../../../lib/analytics', () => ({
-  ...require('../../../test/mocks').mockAnalytics(),
+jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
+jest.mock('@/lib/analytics', () => ({
+  ...require('@/test/mocks').mockAnalytics(),
   addBreadcrumb: jest.fn(),
 }));
 jest.mock('expo-haptics', () => ({
@@ -24,14 +24,14 @@ jest.mock('expo-haptics', () => ({
   ImpactFeedbackStyle: { Light: 'light' },
 }));
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
-jest.mock('../../../hooks/use-currency', () => ({ useCurrency: () => ({ currency: 'EUR' }) }));
-jest.mock('../../../hooks/use-delete-expense', () => ({
+jest.mock('@/hooks/use-currency', () => ({ useCurrency: () => ({ currency: 'EUR' }) }));
+jest.mock('@/hooks/use-delete-expense', () => ({
   useDeleteExpense: () => ({ mutate: jest.fn() }),
 }));
 jest.mock('../../shared/swipeable-expense', () => ({ SwipeableExpense: () => null }));
 
 const mockFetcher = jest.fn();
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
@@ -39,10 +39,10 @@ import { ExpensesByMotorcycleDocument } from '@motovault/graphql';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Alert, View } from 'react-native';
-import '../../../i18n';
-import { HUB_UNIT } from '../../../lib/bike-hub/constants';
-import { queryClient } from '../../../lib/query-client';
-import { BIKE_A } from '../../../test/bike-hub-fixtures';
+import '@/i18n';
+import { HUB_UNIT } from '@/lib/bike-hub/constants';
+import { queryClient } from '@/lib/query-client';
+import { BIKE_A } from '@/test/bike-hub-fixtures';
 import { ExpensesSection } from '../expenses-section';
 import { useOverviewData } from '../overview/use-overview-data';
 import type { BikeHubData, HubBike } from '../shell/use-bike-hub-data';

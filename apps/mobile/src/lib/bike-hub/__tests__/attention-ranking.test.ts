@@ -12,7 +12,7 @@ import {
   ODOMETER,
   TODAY,
   task,
-} from '../../../test/bike-hub-fixtures';
+} from '@/test/bike-hub-fixtures';
 import {
   type AttentionInput,
   countOverdueAttentionItems,

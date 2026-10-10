@@ -5,12 +5,12 @@
 // defined INSIDE each factory (the preset resolves modules before module-scope
 // consts initialize) and read back through the imported mocked modules.
 
-jest.mock('../../../utils/ride-permissions', () => ({
+jest.mock('@/utils/ride-permissions', () => ({
   checkAndRequestPermissions: jest.fn(() => Promise.resolve('full')),
   readPermissionLevel: jest.fn(() => Promise.resolve('full')),
   isApproximateLocation: jest.fn(() => Promise.resolve(false)),
 }));
-jest.mock('../../../utils/ride-reminders', () => ({
+jest.mock('@/utils/ride-reminders', () => ({
   armRideReminders: jest.fn(() => Promise.resolve()),
   cancelRideReminders: jest.fn(() => Promise.resolve()),
 }));
@@ -18,12 +18,12 @@ jest.mock('expo-notifications', () => ({
   getPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted', canAskAgain: true })),
   requestPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
 }));
-jest.mock('../../../utils/ride-location', () => ({
+jest.mock('@/utils/ride-location', () => ({
   startGPSListener: jest.fn(() => Promise.resolve()),
   stopGPSListener: jest.fn(() => Promise.resolve()),
   distanceMeters: jest.fn(() => 0),
 }));
-jest.mock('../../../utils/ride-storage', () => {
+jest.mock('@/utils/ride-storage', () => {
   const state = {
     startedAt: 0 as number | undefined,
     totalPausedMs: 0,
@@ -61,28 +61,28 @@ jest.mock('../../../utils/ride-storage', () => {
     clearRideData: jest.fn(),
   };
 });
-jest.mock('../../../utils/ride-sync-queue', () => ({
+jest.mock('@/utils/ride-sync-queue', () => ({
   enqueueOrExecute: jest.fn(),
   enqueueWaypointUpload: jest.fn().mockResolvedValue(undefined),
 }));
 // Bike-less rides resolve the primary bike (cache-first, then fetch) so the odometer
 // still tracks — mock the data seam; default to "no bikes cached / fetch empty".
-jest.mock('../../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: jest.fn(() => Promise.resolve(undefined)),
 }));
-jest.mock('../../../lib/query-client', () => ({
+jest.mock('@/lib/query-client', () => ({
   queryClient: { getQueryData: jest.fn(() => undefined) },
 }));
-jest.mock('../../../lib/query-keys', () => ({
+jest.mock('@/lib/query-keys', () => ({
   queryKeys: { motorcycles: { all: ['motorcycles'] } },
 }));
-jest.mock('../../../utils/ride-heatmap', () => ({ encodePolyline: jest.fn(() => 'poly') }));
-jest.mock('../../../lib/analytics', () => ({
+jest.mock('@/utils/ride-heatmap', () => ({ encodePolyline: jest.fn(() => 'poly') }));
+jest.mock('@/lib/analytics', () => ({
   trackEvent: jest.fn(),
   captureException: jest.fn(),
   AnalyticsEvent: { RIDE_STARTED: 'ride_started', RIDE_ENDED: 'ride_ended' },
 }));
-jest.mock('../../../stores/ride.store', () => {
+jest.mock('@/stores/ride.store', () => {
   const store = {
     status: 'recording' as 'idle' | 'recording' | 'paused' | 'ended',
     startRide: jest.fn(),
@@ -101,14 +101,14 @@ jest.mock('expo-haptics', () => ({
 }));
 
 import * as Notifications from 'expo-notifications';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryClient } from '../../../lib/query-client';
-import { useRideStore } from '../../../stores/ride.store';
-import * as gps from '../../../utils/ride-location';
-import * as perms from '../../../utils/ride-permissions';
-import * as reminders from '../../../utils/ride-reminders';
-import * as storage from '../../../utils/ride-storage';
-import * as syncQueue from '../../../utils/ride-sync-queue';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryClient } from '@/lib/query-client';
+import { useRideStore } from '@/stores/ride.store';
+import * as gps from '@/utils/ride-location';
+import * as perms from '@/utils/ride-permissions';
+import * as reminders from '@/utils/ride-reminders';
+import * as storage from '@/utils/ride-storage';
+import * as syncQueue from '@/utils/ride-sync-queue';
 import { elapsedRideSeconds, endRideSession, startRideSession } from '../ride-controller';
 
 // biome-ignore lint/suspicious/noExplicitAny: reaching into the mock's mutable state

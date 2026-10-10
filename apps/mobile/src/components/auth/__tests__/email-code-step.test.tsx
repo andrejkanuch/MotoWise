@@ -10,7 +10,7 @@ jest.mock('expo-haptics', () => ({
 
 const mockTrackEvent = jest.fn();
 const mockResetUser = jest.fn();
-jest.mock('../../../lib/analytics', () => ({
+jest.mock('@/lib/analytics', () => ({
   captureException: jest.fn(),
   trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
   resetUser: (...args: unknown[]) => mockResetUser(...args),
@@ -19,7 +19,7 @@ jest.mock('../../../lib/analytics', () => ({
 
 const mockSignInWithPassword = jest.fn();
 const mockSignOut = jest.fn();
-jest.mock('../../../lib/supabase', () => ({
+jest.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
       signInWithPassword: (...args: unknown[]) => mockSignInWithPassword(...args),
@@ -30,15 +30,15 @@ jest.mock('../../../lib/supabase', () => ({
 
 const mockSendSignupCode = jest.fn();
 const mockVerifySignupCode = jest.fn();
-jest.mock('../../../lib/email-confirmation', () => ({
-  ...jest.requireActual('../../../lib/email-confirmation'),
+jest.mock('@/lib/email-confirmation', () => ({
+  ...jest.requireActual('@/lib/email-confirmation'),
   sendSignupCode: (...args: unknown[]) => mockSendSignupCode(...args),
   verifySignupCode: (...args: unknown[]) => mockVerifySignupCode(...args),
 }));
 
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import i18n from '../../../i18n';
+import i18n from '@/i18n';
 import { EMAIL_CODE_SOURCE, EmailCodeStep, type EmailCodeStepProps } from '../email-code-step';
 
 const EMAIL = 'rider@example.com';

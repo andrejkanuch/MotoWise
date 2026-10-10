@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { interpolate, type SharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BIKE_ORIGIN, type BikeOrigin, type HubUnit } from '../../../lib/bike-hub/constants';
-import { formatOdometer, hasOdometer } from '../../../lib/bike-hub/format';
-import { PLATE_FONT } from '../../../theme/type';
-import { triggerImpact } from '../../../utils/haptics';
+import { BIKE_ORIGIN, type BikeOrigin, type HubUnit } from '@/lib/bike-hub/constants';
+import { formatOdometer, hasOdometer } from '@/lib/bike-hub/format';
+import { PLATE_FONT } from '@/theme/type';
+import { triggerImpact } from '@/utils/haptics';
 import {
   HUB_CHROME_MAX_FONT_SCALE,
   HUB_FIGURE_STRONG,

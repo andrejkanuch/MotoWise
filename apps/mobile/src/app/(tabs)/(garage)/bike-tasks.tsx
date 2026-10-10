@@ -12,28 +12,28 @@ import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
-import { HistoryTaskRow, ServiceTaskRow } from '../../../components/bike-hub/service/task-row';
-import type { HubTask } from '../../../components/bike-hub/shell/use-bike-hub-data';
-import { useToday } from '../../../components/bike-hub/shell/use-today';
-import { useHubBottomLayout } from '../../../components/bike-hub/ui/bottom-layout';
-import { HubCard } from '../../../components/bike-hub/ui/hub-card';
-import { SectionHeader } from '../../../components/bike-hub/ui/section-header';
-import { useHubTheme } from '../../../components/bike-hub/ui/tokens';
-import { ThemedSegmentedControl } from '../../../components/ui/themed-segmented-control';
-import { useMileageUnit } from '../../../hooks/use-mileage-unit';
+import { HistoryTaskRow, ServiceTaskRow } from '@/components/bike-hub/service/task-row';
+import type { HubTask } from '@/components/bike-hub/shell/use-bike-hub-data';
+import { useToday } from '@/components/bike-hub/shell/use-today';
+import { useHubBottomLayout } from '@/components/bike-hub/ui/bottom-layout';
+import { HubCard } from '@/components/bike-hub/ui/hub-card';
+import { SectionHeader } from '@/components/bike-hub/ui/section-header';
+import { useHubTheme } from '@/components/bike-hub/ui/tokens';
+import { ThemedSegmentedControl } from '@/components/ui/themed-segmented-control';
+import { useMileageUnit } from '@/hooks/use-mileage-unit';
 import {
   filterAndSortTasks,
   parseTaskFilter,
   TASK_FILTER,
   TASK_FILTERS,
   type TaskFilter,
-} from '../../../lib/bike-hub/all-tasks';
-import { getTaskDue } from '../../../lib/bike-hub/task-due';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { QUERY_META } from '../../../lib/query-meta';
-import { GUTTER, readableWidth, space, type } from '../../../theme/type';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
+} from '@/lib/bike-hub/all-tasks';
+import { getTaskDue } from '@/lib/bike-hub/task-due';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { QUERY_META } from '@/lib/query-meta';
+import { GUTTER, readableWidth, space, type } from '@/theme/type';
+import { triggerImpact, triggerNotification } from '@/utils/haptics';
 
 const NO_TASKS: HubTask[] = [];
 /** Rows past this index enter together instead of waiting their turn. */

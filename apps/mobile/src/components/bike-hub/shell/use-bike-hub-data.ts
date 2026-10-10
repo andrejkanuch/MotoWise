@@ -6,19 +6,19 @@ import {
 } from '@motovault/graphql';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { useMotorcycleDocuments } from '../../../hooks/use-motorcycle-documents';
-import { getServiceBadgeCount } from '../../../lib/bike-hub/attention';
-import type { HubUnit } from '../../../lib/bike-hub/constants';
-import { toHubUnit } from '../../../lib/bike-hub/format';
-import type { HubTask } from '../../../lib/bike-hub/task-due';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
-import { QUERY_META } from '../../../lib/query-meta';
+import { useMotorcycleDocuments } from '@/hooks/use-motorcycle-documents';
+import { getServiceBadgeCount } from '@/lib/bike-hub/attention';
+import type { HubUnit } from '@/lib/bike-hub/constants';
+import { toHubUnit } from '@/lib/bike-hub/format';
+import type { HubTask } from '@/lib/bike-hub/task-due';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { queryKeys } from '@/lib/query-keys';
+import { QUERY_META } from '@/lib/query-meta';
 import { useToday } from './use-today';
 
 export type HubBike = MyMotorcyclesQuery['myMotorcycles'][number];
 // Lives in lib so `lib/bike-hub/all-tasks.ts` can share it without reaching into components.
-export type { HubTask } from '../../../lib/bike-hub/task-due';
+export type { HubTask } from '@/lib/bike-hub/task-due';
 
 const NO_TASKS: HubTask[] = [];
 
