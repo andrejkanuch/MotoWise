@@ -14,7 +14,7 @@
     "test_e2e_web": "pnpm --filter @motovault/web exec playwright test"
   },
   "quality_gate": {
-    "$comment": "Run after every task. This is the single gate CI also enforces.",
+    "$comment": "Run after every task. It is not all of CI: CI also runs pnpm check:i18n and pnpm audit --audit-level=critical, which precheck does not. precheck runs pnpm check:api-bans, which no CI job does.",
     "command": "pnpm precheck"
   },
   "web": {

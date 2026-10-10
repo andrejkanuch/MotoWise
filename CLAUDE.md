@@ -57,12 +57,12 @@ Turborepo + pnpm workspaces. This file holds only what applies everywhere; each 
 - Mobile OTA: publish only with `--environment production` or the `Mobile OTA Update` workflow, never with a local env file, and only with the owner's go-ahead (`docs/runbooks/mobile-ota.md`)
 - `expo` and `react-native` belong to `apps/mobile` ONLY — never add them to the root or `apps/web`. Run Expo CLI from `apps/mobile`
 
-## Guards that will fail a push
-- Git hooks live in `.githooks`. pre-commit runs GraphQL codegen when a `.graphql` file or the schema is staged and fails if generated output would change. pre-push runs `pnpm precheck:push`
-- `pnpm precheck:push` — Biome on changed files, then `check:agent-docs`, `check:mobile-structure`, typecheck, test and `pnpm check:i18n`. Use `git push --no-verify` only when intentional
-- `pnpm check:arch` (package boundaries), `pnpm check:api-bans`, `pnpm check:router`, `pnpm check:mobile-colors`, `pnpm check:store-copy`
-- `pnpm check:agent-docs` — this file and its siblings may cite only paths and scripts that exist, within size budgets
-- `pnpm check:mobile-structure` (mobile imports, layering, route size), `pnpm check:deadcode` (unused mobile files)
+## Guards
+- Git hooks live in `.githooks`. pre-commit runs GraphQL codegen when a `.graphql` file or the schema is staged and fails if generated output would change. pre-push runs `pnpm precheck:push`. Use `git push --no-verify` only when intentional
+- Run on push (`pnpm precheck:push`): Biome on changed files, `pnpm check:agent-docs`, `pnpm check:mobile-structure`, typecheck, test, `pnpm check:i18n`
+- `pnpm precheck` and CI only, a push does not run them: `pnpm check:arch` (package boundaries), `pnpm check:router`, `pnpm check:mobile-colors`, `pnpm check:store-copy`, `pnpm check:deadcode` (unused mobile files), Biome on the whole repo
+- `pnpm check:api-bans` runs in `pnpm precheck` and `pnpm verify:api` only. No CI job runs it
+- `pnpm check:agent-docs` — this file and its siblings may cite only paths and scripts that exist, within size budgets. `pnpm check:mobile-structure` — mobile imports, layering, route size
 - Do not edit generated files: `packages/graphql/src/generated/`, `packages/types/src/database.types.ts`, `apps/api/schema.graphql`. A hook blocks the edit
 
 ## When stuck
