@@ -528,6 +528,8 @@ const PNPM_WORD = /(?<![\w./@-])pnpm(?=\s)/g;
 const CD_BEFORE = /(?:^|[\s;&|(])cd\s+(\S+)\s*&&\s*$/;
 const COMMAND_END = /&&|\|\||[;|]/;
 const PLACEHOLDER = /[<>]/;
+/** A directory the check can resolve: not `$VAR`, `~`, an absolute path, `..` or a placeholder. */
+const REPO_RELATIVE_DIR = /^(?!\.\.(?:\/|$))[\w.@()[\]-][\w.@()[\]/-]*$/;
 const SCRIPT_WORD = /^[A-Za-z][\w:.-]*$/;
 const WORD_EDGES = /^['"]+|['".,;:!?)\]]+$/g;
 const RUN = 'run';
@@ -653,7 +655,7 @@ function scriptFindings(repo: Repo, file: string, spans: readonly Span[]): Findi
         targets = [...repo.workspaces];
       } else if (call.workspaceRoot) {
         targets = repo.rootWorkspace ? [repo.rootWorkspace] : [];
-      } else if (inDir !== undefined && !PLACEHOLDER.test(inDir)) {
+      } else if (inDir !== undefined && REPO_RELATIVE_DIR.test(inDir)) {
         // A directory is read from the repo root first (where commands are
         // run from), then from the citing file's directory.
         const manifest = [inDir, path.posix.join(citingDir, inDir)]

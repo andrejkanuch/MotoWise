@@ -192,6 +192,12 @@ const PNPM_CASES: readonly Case[] = [
   },
   { name: 'placeholder filter', line: '`pnpm --filter <pkg> test`', expect: NONE },
   { name: 'cd into a workspace first', line: '`cd apps/mobile && pnpm test:e2e`', expect: NONE },
+  {
+    name: 'cd into a directory the check cannot resolve',
+    line: '`cd "$ROOT" && pnpm lint`',
+    expect: NONE,
+  },
+  { name: 'cd to a home-relative directory', line: '`cd ~/elsewhere && pnpm lint`', expect: NONE },
   { name: '-C <dir>', line: '`pnpm -C apps/mobile test:e2e`', expect: NONE },
   { name: '-r, script in some workspace', line: '`pnpm -r dev`', expect: NONE },
   { name: '-w', line: '`pnpm -w lint`', expect: NONE },
@@ -250,6 +256,11 @@ const PNPM_CASES: readonly Case[] = [
     name: "another workspace's script after cd",
     line: '`cd apps/mobile && pnpm dev`',
     expect: [KIND.missingScript],
+  },
+  {
+    name: '-C into a directory that does not exist',
+    line: '`pnpm -C apps/nope test`',
+    expect: [KIND.missingPath, KIND.unknownWorkspace],
   },
   { name: 'unknown filter', line: '`pnpm --filter nope test`', expect: [KIND.unknownWorkspace] },
   {
