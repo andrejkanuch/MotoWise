@@ -27,6 +27,7 @@ jest.mock('@/utils/ride-storage', () => {
   const state = {
     startedAt: 0 as number | undefined,
     totalPausedMs: 0,
+    totalAutoPausedMs: 0,
     pausedAt: 0,
     currentId: '',
   };
@@ -37,7 +38,7 @@ jest.mock('@/utils/ride-storage', () => {
       getStartedAt: () => state.startedAt,
       getTotalPausedMs: () => state.totalPausedMs,
       getPausedAt: () => state.pausedAt,
-      getTotalAutoPausedMs: () => 0,
+      getTotalAutoPausedMs: () => state.totalAutoPausedMs,
       getMotorcycleId: () => 'bike-9',
       getHudLayout: () => 'A',
       setCurrentId: jest.fn((id: string) => {
@@ -109,12 +110,18 @@ import * as perms from '@/utils/ride-permissions';
 import * as reminders from '@/utils/ride-reminders';
 import * as storage from '@/utils/ride-storage';
 import * as syncQueue from '@/utils/ride-sync-queue';
-import { elapsedRideSeconds, endRideSession, startRideSession } from '../ride-controller';
+import {
+  buildRideSummaryHref,
+  elapsedRideSeconds,
+  endRideSession,
+  startRideSession,
+} from '../ride-controller';
 
 // biome-ignore lint/suspicious/noExplicitAny: reaching into the mock's mutable state
 const mmkvState = (storage as any).__state as {
   startedAt: number | undefined;
   totalPausedMs: number;
+  totalAutoPausedMs: number;
   pausedAt: number;
   currentId: string;
 };
@@ -141,6 +148,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mmkvState.startedAt = 0;
   mmkvState.totalPausedMs = 0;
+  mmkvState.totalAutoPausedMs = 0;
   mmkvState.pausedAt = 0;
   mmkvState.currentId = '';
   store.status = 'recording';
@@ -307,6 +315,26 @@ describe('endRideSession', () => {
     mmkvState.currentId = 'ride-ph';
     endRideSession('phone');
     expect(clearRideData).not.toHaveBeenCalled();
+  });
+
+  it("carries the server's moving time to the summary and its route, separately from durationS", () => {
+    // The summary's durationS is the displayed clock (manual pauses only); the
+    // server's moving time also subtracts auto-pauses, so the summary needs that
+    // number to apply R1 the same way the server does.
+    jest.spyOn(Date, 'now').mockReturnValue(1_240_000);
+    mmkvState.currentId = 'ride-ap';
+    mmkvState.startedAt = 1_000_000;
+    mmkvState.totalAutoPausedMs = 90_000;
+
+    const summary = endRideSession('phone');
+
+    expect(summary).toMatchObject({ durationS: 240, movingTimeS: 150 });
+    const endCall = enqueue.mock.calls.find(([type]) => type === 'endRide');
+    expect(endCall?.[1].variables.input.autoPausedDurationS).toBe(90);
+    expect(buildRideSummaryHref(summary as NonNullable<typeof summary>)).toMatchObject({
+      params: expect.objectContaining({ durationS: '240', movingTimeS: '150' }),
+    });
+    (Date.now as jest.Mock).mockRestore();
   });
 
   it('is idempotent on a double-Stop — returns null and does not re-end when already ended', () => {

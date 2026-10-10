@@ -23,3 +23,13 @@
  * the enabled branches instead of treating them as unreachable.
  */
 export const WEATHER_ENABLED: boolean = false;
+
+/**
+ * Ride-moment paywall teasers (docs/plans/2026-10-10-1621-feat-ride-moment-paywall-plumbing-plan.md).
+ *
+ * OFF = shadow phase: every ride summary evaluates eligibility and emits
+ * `ride_paywall_teaser_evaluated` with `would_show`, but no card renders and no
+ * paywall opens. Flip to `true` only once Rider Insights has shipped its Pro
+ * groups (plan R14); flipping it back off is the over-the-air kill switch (R13).
+ */
+export const RIDE_TEASER_LIVE: boolean = false;

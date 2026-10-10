@@ -750,6 +750,13 @@ export const AnalyticsEvent = {
   CARPLAY_START_FAILED: 'carplay_start_failed',
 
   // Subscription funnel
+  /**
+   * One per ride summary: whether a ride-moment paywall teaser was due and, if it
+   * did not show, why. Shadow phase first (`shown` always false) — this is the
+   * would-have-shown baseline the live cards are judged against. See
+   * lib/ride-milestone-trigger.ts.
+   */
+  RIDE_PAYWALL_TEASER_EVALUATED: 'ride_paywall_teaser_evaluated',
   PAYWALL_PRESENT_REQUESTED: 'paywall_present_requested',
   PAYWALL_VIEWED: 'paywall_viewed',
   PAYWALL_DISMISSED: 'paywall_dismissed',

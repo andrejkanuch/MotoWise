@@ -22,7 +22,7 @@ import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
-import { activeRideSeconds } from '../../utils/ride-duration';
+import { activeRideSeconds, movingTimeSeconds } from '../../utils/ride-duration';
 import { encodePolyline } from '../../utils/ride-heatmap';
 import { distanceMeters, startGPSListener, stopGPSListener } from '../../utils/ride-location';
 import {
@@ -202,6 +202,13 @@ export interface RideEndSummary {
   elevationLoss: number;
   startedAt: number | undefined;
   motorcycleId: string | null;
+  /**
+   * Moving time by the server's formula (`movingTimeSeconds`): floored elapsed
+   * seconds minus the rounded manual AND auto pauses sent with EndRide. `durationS`
+   * is the displayed clock (rounded, manual pauses only); the ride-moment paywall
+   * rule (plan R1) must use this one so the phone agrees with the server's count.
+   */
+  movingTimeS: number;
 }
 
 /** Elapsed riding seconds derived from persisted timestamps (no UI timer needed). */
@@ -377,6 +384,9 @@ export function endRideSession(
     elevationLoss: Math.round(elevLoss),
     startedAt,
     motorcycleId,
+    movingTimeS: startedAt
+      ? movingTimeSeconds(startedAt, endedAtMs, totalPausedMs, totalAutoPausedMs)
+      : 0,
   };
 }
 
@@ -398,6 +408,7 @@ export function buildRideSummaryHref(summary: RideEndSummary): Href {
       elevationLoss: String(summary.elevationLoss),
       startedAt: summary.startedAt?.toString() ?? '',
       motorcycleId: summary.motorcycleId ?? '',
+      movingTimeS: String(summary.movingTimeS),
     },
   };
 }

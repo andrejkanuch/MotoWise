@@ -114,6 +114,15 @@ type PresentPaywallOptions = PaywallAnalyticsOptions & {
   silentOnError?: boolean;
 };
 
+/**
+ * Onboarding surfaces (lib/onboarding-paywall.ts ONBOARDING_PAYWALL_SURFACE). Matched by
+ * prefix so the two onboarding variants and any future one all count; that module
+ * imports this one, so the constant itself cannot be imported here without a cycle.
+ */
+function isOnboardingPaywallSurface(surface: string | undefined): boolean {
+  return surface?.startsWith('onboarding_') ?? false;
+}
+
 function paywallProperties(
   options: PresentPaywallOptions,
   extra: Record<string, JsonType> = {},
@@ -186,6 +195,14 @@ async function trackPaywallResult(
       reason: 'user_cancelled',
     });
     trackEvent(AnalyticsEvent.PURCHASE_CANCELLED, properties);
+    // The ride-moment teaser stays quiet for 72 h after an onboarding dismissal
+    // (lib/ride-milestone-trigger.ts, plan R4). Loaded lazily: paywall-history
+    // opens an MMKV store, which this module's tests do not provide.
+    if (isOnboardingPaywallSurface(options.surface)) {
+      import('./paywall-history')
+        .then((m) => m.recordOnboardingPaywallDismissed())
+        .catch((e) => addBreadcrumb(String(e), 'revenuecat.paywallHistory.recordFailed'));
+    }
   }
 }
 
@@ -664,6 +681,21 @@ export function hasUsedTrial(info: {
   entitlements: { all: Record<string, { periodType?: string }> };
 }): boolean {
   return info.entitlements.all[REVENUECAT_ENTITLEMENT_PRO]?.periodType === 'TRIAL';
+}
+
+/**
+ * Whether this account ever redeemed a Pro trial, from the cached customer info.
+ * `null` when RevenueCat is unavailable or the read fails: a diagnostic field for
+ * the ride-moment teaser event (plan R11), never worth blocking a summary on.
+ */
+export async function hasHadTrialSnapshot(): Promise<boolean | null> {
+  if (isExpoGo()) return null;
+  try {
+    const Purchases = await getPurchases();
+    return hasUsedTrial(await Purchases.getCustomerInfo());
+  } catch {
+    return null;
+  }
 }
 
 /**

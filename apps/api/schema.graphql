@@ -1548,6 +1548,7 @@ type Query {
   receiptScanQuota: ReceiptScanQuota!
   ride(id: String!): Ride!
   rideFeed(after: String, first: Int = 20): FeedRideConnection!
+  rideMilestoneStats(excludeRideId: String): RideMilestoneStats!
   rideOverview: RideOverview!
   rideWaypoints(maxPoints: Int, rideId: String!): [Waypoint!]!
   routeConditions(routeId: ID!): RouteConditions!
@@ -1784,6 +1785,11 @@ type RideConnection {
 type RideEdge {
   cursor: String!
   node: Ride!
+}
+
+type RideMilestoneStats {
+  longestQualifyingDistanceM: Int!
+  qualifyingRideCount: Int!
 }
 
 type RideOverview {
