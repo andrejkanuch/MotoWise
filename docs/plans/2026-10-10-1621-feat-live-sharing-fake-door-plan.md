@@ -58,10 +58,10 @@ This plan covers the demand test only. The breakdown below is the current unders
 - R2. Tapping opens a sheet that says MotoVault is considering live sharing, asks who the rider would share with (partner, family, friend, riding group, nobody), and offers "Tell me when it's ready".
 - R3. The sheet names no date, takes no payment and opens no paywall.
 - R4. After the rider taps "Tell me when it's ready" the row reads "You're on the list" for that rider and does not open the sheet again; a rider who closes the sheet without opting in sees the row unchanged.
-- R5. Showing the row, tapping it and opting in emit events carrying the rider's qualifying ride count (as defined in the paywall plumbing plan's R1), Pro status, platform and the chosen audience.
+- R5. Showing the row, tapping it and opting in emit events carrying the rider's qualifying ride count (as defined in the paywall plumbing plan's R1), Pro status, platform and the chosen audience; the audience is unset on the row-shown and row-tapped events and the rider's selected audience on the opt-in event.
 - R6. The row is removed over the air at the end of the window without a store build.
 - R7. The window closes when 100 riders with at least one qualifying ride have seen the row or after six weeks, whichever comes first; the result is the number of those riders who opted in with an audience other than "nobody", divided by that population; the build bar is 10% and at least five opt-ins. Taps and opt-ins by riders with no qualifying ride are reported separately and do not enter the rule.
-- R8. The opt-in is stored on the rider's account. If live sharing is dropped the row is removed and nothing is sent; if it is built, opted-in riders receive one notification at launch.
+- R8. The opt-in is stored on the rider's account in the existing preferences field, with no new backend field or table. If live sharing is dropped the row is removed and nothing is sent; if it is built, opted-in riders receive one notification at launch.
 
 ### Key Flows
 

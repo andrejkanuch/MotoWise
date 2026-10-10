@@ -87,7 +87,7 @@ This plan covers the measurement layer only. The breakdown below is the current 
 
 ### Key Flows
 
-- F1. Third ride, eligible
+- F1. Fifth ride, eligible
   - **Trigger:** A1 stops their fifth qualifying ride and the summary opens; the ride is already completed server-side at Stop.
   - **Steps:** Summary opens with the ride already stored; eligibility evaluated locally from the summary plus a qualifying-count read; card rendered in its teaser state; eligibility event emitted; rider taps; paywall requested with `ride_milestone_5`.
   - **Outcome:** Purchase or dismissal recorded against the placement.

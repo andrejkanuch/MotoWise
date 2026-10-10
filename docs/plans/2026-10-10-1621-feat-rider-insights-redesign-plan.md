@@ -82,7 +82,7 @@ This plan covers the Rider Insights screen, its insights and its entry points. T
 
 - R11. A Home card shows the rider's latest insight headline and opens the screen.
 - R12. The top of My Rides carries the screen's headline and entry.
-- R13. Every ride summary shows one line with a number from that ride, computed from the ride already completed at Stop: for Pro riders the new-roads distance ("+12 km of new roads"), for non-Pro riders a free-layer number (lifetime distance or ride count after this ride). When the preferred item is zero or the backend value is not yet available, the line falls back in this order: new-roads distance, the ride's rank by distance this season, lifetime distance after this ride computed on the device. This is the same card the paywall plumbing plan uses (its R6).
+- R13. Every ride summary shows one line with a number from that ride, computed from the ride already completed at Stop: for Pro riders the new-roads distance ("+12 km of new roads"), for non-Pro riders a free-layer number (lifetime distance or ride count after this ride). When the preferred item is zero or its backend value is not yet available, the line falls back in this order, skipping any candidate that is zero or unavailable and never re-selecting the preferred item: new-roads distance, the ride's rank by distance this season, lifetime distance after this ride computed on the device. This is the same card the paywall plumbing plan uses (its R6).
 
 **Computation and data**
 
@@ -104,7 +104,7 @@ This plan covers the Rider Insights screen, its insights and its entry points. T
 
 - F1. Free rider after a ride
   - **Trigger:** A1 saves a qualifying ride.
-  - **Steps:** Summary shows the one-line hook; tap opens Rider Insights; map fits to bounds; Territory card shows blurred real numbers; tap opens the intro sheet; "See plans" opens the paywall.
+  - **Steps:** Summary shows the one-line hook; tap opens Rider Insights (when a paywall plumbing trigger is due and the rider is eligible, the same card is in its teaser state and the tap opens the paywall instead, per that plan's R6); map fits to bounds; Territory card shows blurred real numbers; tap opens the intro sheet; "See plans" opens the paywall.
   - **Covers:** R1, R9, R13, R14, R16, R17.
 - F2. Pro rider
   - **Trigger:** A2 opens the screen from the Home card.
