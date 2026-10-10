@@ -21,6 +21,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useCarPlayStore } from '../../stores/carplay.store';
 import { useRideStore } from '../../stores/ride.store';
+import { selectPrimaryBike } from '../../utils/primary-bike';
 import { formatDistance, formatElapsed, formatElevation } from '../../utils/ride-formatters';
 import { initialPhoneSceneVisible } from './phone-scene';
 
@@ -68,7 +69,7 @@ export function useActiveBike(): Motorcycle | null {
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
   const bikes = data?.myMotorcycles ?? [];
-  return bikes.find((b) => b.isPrimary) ?? bikes[0] ?? null;
+  return selectPrimaryBike(bikes) ?? null;
 }
 
 export interface LiveRideSnapshot {

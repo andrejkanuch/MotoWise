@@ -23,6 +23,7 @@ import { queryKeys } from '../../lib/query-keys';
 import { useWhatsNewStore } from '../../stores/whats-new.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, space, type } from '../../theme/type';
+import { selectPrimaryBike } from '../../utils/primary-bike';
 
 export default function WhatsNewModal() {
   const { t } = useTranslation();
@@ -69,7 +70,7 @@ export default function WhatsNewModal() {
     (action: WhatsNewAction) => {
       setLastSeenVersion(currentVersion);
       const bikes = bikesData?.myMotorcycles ?? [];
-      const target = bikes.find((b) => b.isPrimary) ?? bikes[0];
+      const target = selectPrimaryBike(bikes);
       trackEvent(AnalyticsEvent.WHATS_NEW_CTA_TAPPED, {
         version: currentVersion,
         action,

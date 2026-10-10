@@ -42,6 +42,7 @@ import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { useCarPlayStore } from '../../stores/carplay.store';
 import { useRideStore } from '../../stores/ride.store';
+import { selectPrimaryBike } from '../../utils/primary-bike';
 import { rideMMKV } from '../../utils/ride-storage';
 import {
   buildRideSummaryHref,
@@ -247,7 +248,7 @@ function render(now: number = Date.now()): void {
 
 function activeBikeFrom(cache: MyMotorcyclesQuery | undefined) {
   const bikes = cache?.myMotorcycles ?? [];
-  return bikes.find((b) => b.isPrimary) ?? bikes[0] ?? null;
+  return selectPrimaryBike(bikes) ?? null;
 }
 
 function rideIsMoving(): boolean {

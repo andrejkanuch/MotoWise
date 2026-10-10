@@ -22,6 +22,7 @@ import {
 } from '@motovault/types';
 import { Platform } from 'react-native';
 import { useAuthStore } from '../stores/auth.store';
+import { selectPrimaryBike } from '../utils/primary-bike';
 import {
   distanceUnitLabel,
   formatDistanceValue,
@@ -473,7 +474,7 @@ async function fetchExpenses(): Promise<ExpenseDashboardQuery['expenseDashboard'
   const bikes = motorcyclesData?.myMotorcycles;
   if (!bikes?.length) return null;
 
-  const primaryBike = bikes.find((b) => b.isPrimary) ?? bikes[0];
+  const primaryBike = selectPrimaryBike(bikes);
   const qk = queryKeys.expenses.byMotorcycle(primaryBike.id);
   const cached = queryClient.getQueryData<ExpenseDashboardQuery>(qk);
   const state = queryClient.getQueryState(qk);
