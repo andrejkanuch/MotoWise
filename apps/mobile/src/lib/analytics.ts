@@ -710,8 +710,6 @@ export const AnalyticsEvent = {
   RIDE_FLYOVER_COMPLETED: 'ride_flyover_completed',
   RIDE_FLYOVER_EXITED: 'ride_flyover_exited',
   RIDE_FLYOVER_SPEED_CHANGED: 'ride_flyover_speed_changed',
-  SHARE_CARD_GENERATED: 'share_card_generated',
-  SHARE_CARD_FAILED: 'share_card_failed',
   SHARE_COMPLETED: 'share_completed',
   SHARE_RESULT: 'share_result',
 
