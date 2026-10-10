@@ -22,7 +22,7 @@ Do NOT plan in a vacuum. First:
 1. Search for similar existing functionality (don't duplicate) — `Grep`/`Glob` across `apps/` + `packages/`.
 2. Identify the layers this feature touches, in MotoVault's dependency order (this is also the task order):
    1. Supabase migration (`supabase/migrations/`) + RLS policies — every new table needs RLS
-   2. `pnpm generate:types` → Zod schemas in `packages/types`
+   2. `pnpm db:types` → Zod schemas in `packages/types`
    3. NestJS model/resolver/service in `apps/api` (map snake_case → camelCase at the service layer)
    4. `.graphql` operations + `pnpm generate`
    5. Mobile hooks/screens (`apps/mobile`) and/or web (`apps/web`), using `@motovault/graphql` types

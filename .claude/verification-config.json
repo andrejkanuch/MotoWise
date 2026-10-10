@@ -42,7 +42,6 @@
     }
   },
   "api": {
-    "test": "pnpm --filter @motovault/api test",
-    "test_e2e": "pnpm --filter @motovault/api test:e2e"
+    "test": "pnpm --filter @motovault/api test"
   }
 }

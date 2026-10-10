@@ -5,7 +5,7 @@ Generated GraphQL client types (TypedDocumentNode) consumed by mobile (TanStack 
 
 ## Pipeline
 1. NestJS API generates `schema.graphql` (code-first, `autoSchemaFile`)
-2. Apps define `.graphql` operation files in their `src/graphql/` dirs
+2. Apps define `.graphql` operation files in `apps/mobile/src/graphql/` and `apps/web/src/graphql/`
 3. `graphql-codegen` reads schema + operations and generates TypedDocumentNode types here
 4. Mobile and web import from `@motovault/graphql`
 

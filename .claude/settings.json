@@ -1,5 +1,5 @@
 {
-  "$comment": "Team-shared Claude Code settings (committed). Personal permissions live in settings.local.json (git-ignored).",
+  "$comment": "Team-shared Claude Code settings (committed). Personal permissions live in settings.local.json (tracked in git today).",
   "hooks": {
     "PreToolUse": [
       {
