@@ -28,6 +28,7 @@
     "check:404": "bash scripts/check-404-contract.sh",
     "check:store-copy": "python3 store/play/check-metadata.py",
     "reconcile:signup": "tsx scripts/reconcile-signup-events.ts",
+    "check:agent-docs": "tsx scripts/check-agent-docs.ts",
     "check:deadcode": "knip --include files --workspace apps/mobile",
     "verify:mobile": "turbo typecheck test --filter=@motovault/mobile && pnpm check:router && pnpm check:mobile-colors",
     "verify:api": "turbo typecheck test --filter=@motovault/api && pnpm check:api-bans",
