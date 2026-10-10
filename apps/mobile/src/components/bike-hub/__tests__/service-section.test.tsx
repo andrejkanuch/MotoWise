@@ -29,14 +29,7 @@ import { StyleSheet, useWindowDimensions } from 'react-native';
 import '@/i18n';
 import { countOverdueTasks, getServiceBadgeCount } from '@/lib/bike-hub/attention';
 import { HUB_UNIT } from '@/lib/bike-hub/constants';
-import {
-  AIR_FILTER,
-  BIKE_A_TASKS,
-  BRAKE_PADS,
-  KM,
-  ODOMETER,
-  task,
-} from '@/test/bike-hub-fixtures';
+import { AIR_FILTER, BIKE_A_TASKS, BRAKE_PADS, KM, ODOMETER, task } from '@/test/bike-hub-fixtures';
 import { MaintenanceSection } from '../maintenance-section';
 import type { HubTask } from '../shell/use-bike-hub-data';
 

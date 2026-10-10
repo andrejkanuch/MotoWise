@@ -10,11 +10,7 @@ import { BikeSwitcher } from '@/components/home/bike-switcher';
 import { EmptyState } from '@/components/home/empty-state';
 import { FocusHistory } from '@/components/home/focus-history';
 import { FocusStats } from '@/components/home/focus-stats';
-import {
-  type HomeAction,
-  HomeActionRow,
-  ReceiptScanRow,
-} from '@/components/home/home-actions';
+import { type HomeAction, HomeActionRow, ReceiptScanRow } from '@/components/home/home-actions';
 import { describePlate, rankBikeTasks } from '@/components/home/home-plate';
 import { OnboardingChecklist } from '@/components/home/onboarding-checklist';
 import { UpNext } from '@/components/home/up-next';

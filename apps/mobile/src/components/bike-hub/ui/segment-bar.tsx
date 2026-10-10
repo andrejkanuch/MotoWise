@@ -2,11 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { type LayoutChangeEvent, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import {
-  BIKE_SEGMENT,
-  BIKE_SEGMENT_ORDER,
-  type BikeSegment,
-} from '@/lib/bike-hub/constants';
+import { BIKE_SEGMENT, BIKE_SEGMENT_ORDER, type BikeSegment } from '@/lib/bike-hub/constants';
 import { triggerSelection } from '@/utils/haptics';
 import {
   HUB_CHROME_MAX_FONT_SCALE,

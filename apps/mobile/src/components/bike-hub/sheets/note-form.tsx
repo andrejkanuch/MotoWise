@@ -27,12 +27,7 @@ import {
 } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NOTE_SOURCE } from '@/lib/bike-hub/constants';
-import {
-  bikeDisplayName,
-  formatOdometer,
-  hasOdometer,
-  toHubUnit,
-} from '@/lib/bike-hub/format';
+import { bikeDisplayName, formatOdometer, hasOdometer, toHubUnit } from '@/lib/bike-hub/format';
 import { normaliseNoteText } from '@/lib/bike-hub/notes';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { pickImage, takePhoto, uploadNotePhoto } from '@/lib/image-upload';

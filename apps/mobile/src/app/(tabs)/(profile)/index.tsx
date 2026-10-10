@@ -41,11 +41,7 @@ import {
 import { PROFILE_ROUTE } from '@/config/routes';
 import { useProGate } from '@/hooks/use-pro-gate';
 import { useProfileData } from '@/hooks/use-profile-data';
-import {
-  CODE_REDEMPTION_SURFACE,
-  presentCodeRedemption,
-  presentPaywall,
-} from '@/lib/subscription';
+import { CODE_REDEMPTION_SURFACE, presentCodeRedemption, presentPaywall } from '@/lib/subscription';
 import { useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, readableWidth, space } from '@/theme/type';
 

@@ -30,10 +30,7 @@ import {
 import { DocumentViewer } from '@/components/documents/document-viewer';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
-import {
-  cancelDocumentNotifications,
-  scheduleDocumentExpiryReminder,
-} from '@/lib/notifications';
+import { cancelDocumentNotifications, scheduleDocumentExpiryReminder } from '@/lib/notifications';
 import { queryKeys } from '@/lib/query-keys';
 import { useEditorialTheme } from '@/theme/editorial';
 import { triggerImpact, triggerNotification } from '@/utils/haptics';

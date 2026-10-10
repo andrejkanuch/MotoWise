@@ -3,10 +3,7 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  LOG_OPTIONS,
-  type LogOptionDefinition,
-} from '@/components/bike-hub/sheets/log-options';
+import { LOG_OPTIONS, type LogOptionDefinition } from '@/components/bike-hub/sheets/log-options';
 import { SheetGrabber, SheetHeader } from '@/components/bike-hub/sheets/sheet-header';
 import { SheetScroll, sheetBottomPadding } from '@/components/bike-hub/sheets/sheet-scroll';
 import { useHubBike } from '@/components/bike-hub/shell/use-hub-bike';

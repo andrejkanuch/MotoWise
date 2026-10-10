@@ -14,12 +14,7 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, ScrollView, View } from 'react-native';
-import {
-  ESectionLabel,
-  ESettingsGroup,
-  ESettingsRow,
-  EToggleRow,
-} from '@/components/ui/editorial';
+import { ESectionLabel, ESettingsGroup, ESettingsRow, EToggleRow } from '@/components/ui/editorial';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
 import { meOptions } from '@/lib/query-options';

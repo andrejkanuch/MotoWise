@@ -31,11 +31,7 @@ import { useProGate } from '@/hooks/use-pro-gate';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { GRAPHQL_ERROR_CODE } from '@/lib/graphql-error-classification';
-import {
-  extractGraphQLMessage,
-  hasGraphQLCode,
-  userFriendlyError,
-} from '@/lib/graphql-errors';
+import { extractGraphQLMessage, hasGraphQLCode, userFriendlyError } from '@/lib/graphql-errors';
 import { MetaAnalytics } from '@/lib/meta-analytics';
 import { queryKeys } from '@/lib/query-keys';
 import { useEditorialTheme } from '@/theme/editorial';

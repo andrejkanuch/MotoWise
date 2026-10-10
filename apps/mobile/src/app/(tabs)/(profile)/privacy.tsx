@@ -6,12 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, ScrollView, View } from 'react-native';
 import { LEGAL_URL } from '@/components/profile/constants';
-import {
-  ESectionLabel,
-  ESettingsGroup,
-  ESettingsRow,
-  EToggleRow,
-} from '@/components/ui/editorial';
+import { ESectionLabel, ESettingsGroup, ESettingsRow, EToggleRow } from '@/components/ui/editorial';
 import { useDeleteAccount } from '@/hooks/use-profile-data';
 import {
   AnalyticsEvent,

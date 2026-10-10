@@ -15,12 +15,7 @@ import {
   SHEET_EXIT,
   type SheetExit,
 } from '@/lib/bike-hub/constants';
-import {
-  formatOdometer,
-  formatShortDate,
-  hasOdometer,
-  toHubUnit,
-} from '@/lib/bike-hub/format';
+import { formatOdometer, formatShortDate, hasOdometer, toHubUnit } from '@/lib/bike-hub/format';
 import {
   applyKey,
   applyQuickAdd,

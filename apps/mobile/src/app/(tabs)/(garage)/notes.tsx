@@ -4,11 +4,7 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NotesScreen } from '@/components/bike-hub/notes/notes-screen';
 import { useHubBike } from '@/components/bike-hub/shell/use-hub-bike';
-import {
-  HUB_TOUCH_TARGET,
-  SYSTEM_WEIGHT,
-  useHubTheme,
-} from '@/components/bike-hub/ui/tokens';
+import { HUB_TOUCH_TARGET, SYSTEM_WEIGHT, useHubTheme } from '@/components/bike-hub/ui/tokens';
 
 type NotesRouteParams = {
   motorcycleId: string;

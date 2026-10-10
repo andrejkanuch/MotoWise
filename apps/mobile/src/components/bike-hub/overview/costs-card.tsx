@@ -3,11 +3,7 @@ import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { useCurrency } from '@/hooks/use-currency';
-import {
-  COSTS_REST_KEY,
-  DELTA_DIRECTION,
-  type DeltaDirection,
-} from '@/lib/bike-hub/constants';
+import { COSTS_REST_KEY, DELTA_DIRECTION, type DeltaDirection } from '@/lib/bike-hub/constants';
 import type { CostsShare, CostsSummary } from '@/lib/bike-hub/costs-summary';
 import { CATEGORY_LABELS, formatCurrency } from '@/lib/expense-constants';
 import { HubCard } from '../ui/hub-card';
