@@ -1,5 +1,7 @@
 /** gen-solutions-index: which documents the index lists. */
 import assert from 'node:assert/strict';
+import { rmSync } from 'node:fs';
+import path from 'node:path';
 import { test } from 'node:test';
 import {
   renderSolutionsIndex,
@@ -66,11 +68,36 @@ for (const { name, add, tracked, row } of cases) {
 test('the index is the same with and without an untracked draft', () => {
   withRepo(TRACKED, (root) => {
     writeFiles(root, { [SOLUTIONS_INDEX_PATH]: renderSolutionsIndex(root) });
+    track(root);
     assert.equal(solutionsIndexIsCurrent(root), true);
     writeFiles(root, { 'docs/solutions/ui-bugs/zz-draft.md': '# Draft\n' });
     assert.equal(solutionsIndexIsCurrent(root), true);
     track(root);
     assert.equal(solutionsIndexIsCurrent(root), false);
+  });
+});
+
+test('the index is built from the staged state, not the working tree', () => {
+  withRepo(TRACKED, (root) => {
+    const staged = renderSolutionsIndex(root);
+    rmSync(path.join(root, 'docs/solutions/build-errors/a-build.md'));
+    writeFiles(root, { 'docs/solutions/ui-bugs/a-bug.md': '# Retitled, not staged\n' });
+    assert.equal(renderSolutionsIndex(root), staged);
+    track(root);
+    const restaged = renderSolutionsIndex(root);
+    assert.equal(restaged.includes('a-build.md'), false, restaged);
+    assert.ok(restaged.includes('Retitled, not staged'), restaged);
+  });
+});
+
+test('a regenerated index is current once it is staged', () => {
+  withRepo(TRACKED, (root) => {
+    writeFiles(root, { [SOLUTIONS_INDEX_PATH]: renderSolutionsIndex(root) });
+    assert.equal(solutionsIndexIsCurrent(root), false);
+    track(root);
+    assert.equal(solutionsIndexIsCurrent(root), true);
+    writeFiles(root, { [SOLUTIONS_INDEX_PATH]: 'edited, not staged\n' });
+    assert.equal(solutionsIndexIsCurrent(root), true);
   });
 });
 

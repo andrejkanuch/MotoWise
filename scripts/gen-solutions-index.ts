@@ -4,26 +4,31 @@
  *
  * `docs/solutions/` is where solved problems are written up, and an agent can
  * only use a write-up it can find. This script writes `docs/solutions/README.md`
- * from the front matter of every document git tracks there, at any depth: one
+ * from the front matter of every document staged there, at any depth: one
  * row per document with its path, title, module and symptom, grouped by
- * category directory. An untracked draft is not indexed until it is added, so
- * the index is the same on a clean checkout as on the machine that wrote it.
+ * category directory.
  *
- *   pnpm exec tsx scripts/gen-solutions-index.ts           rewrite the index
- *   pnpm exec tsx scripts/gen-solutions-index.ts --check   exit 1 if it is stale
+ * Everything is read from the git index (what `git add` has staged), never
+ * from the working tree: which documents exist, their content, and, for the
+ * check, the index file itself. A commit of the staged state is what CI
+ * checks out, so the answer here and there is the same. An untracked draft,
+ * an unstaged edit and an unstaged delete are not seen until they are staged.
+ *
+ *   git add docs/solutions && pnpm exec tsx scripts/gen-solutions-index.ts   rewrite the index
+ *   pnpm exec tsx scripts/gen-solutions-index.ts --check                      exit 1 if it is stale
  *
  * `pnpm check:agent-docs` runs the same comparison, so adding a solution
- * document without regenerating the index fails the check.
+ * document without regenerating and staging the index fails the check.
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 
 const CHECK_FLAG = '--check';
-const SOLUTIONS_DIR = 'docs/solutions';
+export const SOLUTIONS_DIR = 'docs/solutions';
 const INDEX_NAME = 'README.md';
 const EMPTY_CELL = '—';
 /** Heading for a document that sits directly in `docs/solutions/`. */
@@ -31,6 +36,9 @@ const NO_CATEGORY = '(no category)';
 
 export const SOLUTIONS_INDEX_PATH = `${SOLUTIONS_DIR}/${INDEX_NAME}`;
 export const SOLUTIONS_INDEX_COMMAND = 'pnpm exec tsx scripts/gen-solutions-index.ts';
+/** Said wherever the index is reported stale, so an unstaged edit is not a mystery. */
+export const SOLUTIONS_INDEX_STATE_READ =
+  'Both are read from the git index (the staged state), not the working tree: an edit, a new document or a delete that is not staged is not seen.';
 
 /** Front matter keys that name what a document is about, in order of preference. */
 const MODULE_KEYS = ['module', 'modules', 'affected_modules', 'component', 'components'] as const;
@@ -92,8 +100,7 @@ function readFrontMatter(content: string): FrontMatter {
   return data;
 }
 
-function rowFor(root: string, file: string): Row {
-  const content = readFileSync(path.join(root, file), 'utf8');
+function rowFor(file: string, content: string): Row {
   const data = readFrontMatter(content);
   const moduleKey = MODULE_KEYS.find((key) => data[key]);
   return {
@@ -104,24 +111,48 @@ function rowFor(root: string, file: string): Row {
   };
 }
 
-/**
- * The tracked solution documents, grouped by the category directory they sit
- * under. A file deleted from the working tree but not yet from the index is
- * left out.
- */
-function documentsByCategory(root: string): Map<string, string[]> {
-  const tracked = execFileSync('git', ['ls-files', '--cached', '-z', '--', SOLUTIONS_DIR], {
+const GIT_BUFFER = 256 * 1024 * 1024;
+const NEWLINE = 0x0a;
+
+/** The staged Markdown files under `docs/solutions/`, the index file included. */
+function stagedFiles(root: string): string[] {
+  return execFileSync('git', ['ls-files', '--cached', '-z', '--', SOLUTIONS_DIR], {
     cwd: root,
     encoding: 'utf8',
+    maxBuffer: GIT_BUFFER,
   })
     .split('\0')
-    .filter(
-      (file) =>
-        file.endsWith('.md') && file !== SOLUTIONS_INDEX_PATH && existsSync(path.join(root, file)),
-    );
+    .filter((file) => file.endsWith('.md'));
+}
 
+/** The staged content of each file, in one git call. A file with nothing staged is left out. */
+function stagedContent(root: string, files: readonly string[]): Map<string, string> {
+  const contents = new Map<string, string>();
+  if (files.length === 0) return contents;
+  // `git cat-file --batch` answers each `:<path>` with `<oid> <type> <size>\n<content>\n`,
+  // or with one line ending in `missing`.
+  const out = execFileSync('git', ['cat-file', '--batch'], {
+    cwd: root,
+    input: files.map((file) => `:${file}\n`).join(''),
+    maxBuffer: GIT_BUFFER,
+  });
+  let at = 0;
+  for (const file of files) {
+    const headerEnd = out.indexOf(NEWLINE, at);
+    const header = out.toString('utf8', at, headerEnd).split(' ');
+    at = headerEnd + 1;
+    const size = Number(header[2]);
+    if (header.length !== 3 || Number.isNaN(size)) continue;
+    contents.set(file, out.toString('utf8', at, at + size));
+    at += size + 1;
+  }
+  return contents;
+}
+
+/** Documents grouped by the category directory they sit under. */
+function byCategory(documents: readonly string[]): Map<string, string[]> {
   const groups = new Map<string, string[]>();
-  for (const file of tracked) {
+  for (const file of documents) {
     const [first, ...rest] = path.posix.relative(SOLUTIONS_DIR, file).split('/');
     const category = rest.length > 0 ? first : NO_CATEGORY;
     groups.set(category, [...(groups.get(category) ?? []), file]);
@@ -138,8 +169,13 @@ function inIndexOrder(groups: Map<string, string[]>): [string, string[]][] {
 
 const cell = (text: string): string => text.replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
 
-/** The full text of the index, built from the tracked documents of the repository at `root`. */
+/** The full text of the index, built from the staged documents of the repository at `root`. */
 export function renderSolutionsIndex(root: string = ROOT): string {
+  return render(stagedContent(root, stagedFiles(root)));
+}
+
+function render(staged: ReadonlyMap<string, string>): string {
+  const documents = [...staged.keys()].filter((file) => file !== SOLUTIONS_INDEX_PATH);
   const out: string[] = [
     '# Solved problems',
     '',
@@ -147,8 +183,8 @@ export function renderSolutionsIndex(root: string = ROOT): string {
     '',
     'One row per document. Search this file for a symptom or a module before debugging something that may already have been solved. A dash means the document does not state that field.',
   ];
-  for (const [category, files] of inIndexOrder(documentsByCategory(root))) {
-    const rows = [...files].sort().map((file) => rowFor(root, file));
+  for (const [category, files] of inIndexOrder(byCategory(documents))) {
+    const rows = [...files].sort().map((file) => rowFor(file, staged.get(file) ?? ''));
     const categoryDir = category === NO_CATEGORY ? SOLUTIONS_DIR : `${SOLUTIONS_DIR}/${category}`;
     out.push(
       '',
@@ -167,28 +203,57 @@ export function renderSolutionsIndex(root: string = ROOT): string {
   return `${out.join('\n')}\n`;
 }
 
-/** True when the index file equals what the tracked documents would generate. */
+/** True when the staged index file equals what the staged documents would generate. */
 export function solutionsIndexIsCurrent(root: string = ROOT): boolean {
   try {
-    return (
-      readFileSync(path.join(root, SOLUTIONS_INDEX_PATH), 'utf8') === renderSolutionsIndex(root)
-    );
+    const staged = stagedContent(root, stagedFiles(root));
+    return staged.get(SOLUTIONS_INDEX_PATH) === render(staged);
   } catch {
     return false;
   }
 }
 
+/** Paths under `docs/solutions/` whose working-tree state is not what is staged, the index file aside. */
+function unstagedChanges(root: string): string[] {
+  return execFileSync(
+    'git',
+    [
+      'ls-files',
+      '--modified',
+      '--deleted',
+      '--others',
+      '--exclude-standard',
+      '-z',
+      '--',
+      SOLUTIONS_DIR,
+    ],
+    { cwd: root, encoding: 'utf8', maxBuffer: GIT_BUFFER },
+  )
+    .split('\0')
+    .filter((file) => file.endsWith('.md') && file !== SOLUTIONS_INDEX_PATH);
+}
+
 function main(): void {
   if (process.argv.includes(CHECK_FLAG)) {
-    if (solutionsIndexIsCurrent()) {
-      console.log(`✓ ${SOLUTIONS_INDEX_PATH} is up to date`);
+    if (solutionsIndexIsCurrent(ROOT)) {
+      console.log(`✓ ${SOLUTIONS_INDEX_PATH} is up to date (staged state)`);
       return;
     }
-    console.error(`✗ ${SOLUTIONS_INDEX_PATH} is stale. Run: ${SOLUTIONS_INDEX_COMMAND}`);
+    console.error(
+      `✗ ${SOLUTIONS_INDEX_PATH} is stale. ${SOLUTIONS_INDEX_STATE_READ} Run: ${SOLUTIONS_INDEX_COMMAND} && git add ${SOLUTIONS_DIR}`,
+    );
     process.exit(1);
   }
-  writeFileSync(path.join(ROOT, SOLUTIONS_INDEX_PATH), renderSolutionsIndex());
-  console.log(`wrote ${SOLUTIONS_INDEX_PATH}`);
+  writeFileSync(path.join(ROOT, SOLUTIONS_INDEX_PATH), renderSolutionsIndex(ROOT));
+  console.log(
+    `wrote ${SOLUTIONS_INDEX_PATH} from the staged documents. Stage it: git add ${SOLUTIONS_INDEX_PATH}`,
+  );
+  const unstaged = [...new Set(unstagedChanges(ROOT))];
+  if (unstaged.length > 0) {
+    console.log(
+      `Not read, because not staged (git add, then run this again):\n${unstaged.map((file) => `  ${file}`).join('\n')}`,
+    );
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();

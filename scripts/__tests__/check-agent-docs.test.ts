@@ -5,6 +5,8 @@
  * fixture repository; a case names the finding kinds expected on its line.
  */
 import assert from 'node:assert/strict';
+import { rmSync } from 'node:fs';
+import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
 import { checkAgentDocs } from '../check-agent-docs';
 import { renderSolutionsIndex, SOLUTIONS_INDEX_PATH } from '../gen-solutions-index';
@@ -22,6 +24,7 @@ type Kind = (typeof KIND)[keyof typeof KIND];
 
 const ROOT_DOC = 'CLAUDE.md';
 const MOBILE_DOC = 'apps/mobile/CLAUDE.md';
+const SKILL_DOC = '.claude/skills/zz/SKILL.md';
 const NONE: readonly Kind[] = [];
 
 const manifest = (json: object): string => `${JSON.stringify(json, null, 2)}\n`;
@@ -101,8 +104,44 @@ const PATH_CASES: readonly Case[] = [
     doc: MOBILE_DOC,
     expect: NONE,
   },
+  {
+    name: './path from the repo root, cited in a nested file',
+    line: '`./scripts/tool.ts`',
+    doc: MOBILE_DOC,
+    expect: NONE,
+  },
+  {
+    name: './path from the repo root, cited in a skill',
+    line: '`bash ./scripts/tool.ts https://x`',
+    doc: SKILL_DOC,
+    expect: NONE,
+  },
+  {
+    name: './path next to a nested file',
+    line: '`./src/lib/logger.ts`',
+    doc: MOBILE_DOC,
+    expect: NONE,
+  },
+  {
+    name: '../path from a nested file',
+    line: '`../../docs/guide.md`',
+    doc: MOBILE_DOC,
+    expect: NONE,
+  },
 
   // What must be reported.
+  {
+    name: 'missing ./path in a nested file',
+    line: '`./scripts/nope.sh`',
+    doc: MOBILE_DOC,
+    expect: [KIND.missingPath],
+  },
+  {
+    name: 'missing ../path in a nested file',
+    line: '`../nope/guide.md`',
+    doc: MOBILE_DOC,
+    expect: [KIND.missingPath],
+  },
   {
     name: 'missing path in inline code',
     line: '`apps/mobile/src/lib/nope.ts`',
@@ -185,6 +224,12 @@ const PNPM_ACCEPTED: readonly Case[] = [
   { name: 'filter by full name', line: '`pnpm --filter @fixture/mobile test:e2e`', expect: NONE },
   { name: 'filter with =', line: '`pnpm --filter=mobile start`', expect: NONE },
   { name: 'filter by directory', line: '`pnpm --filter ./apps/mobile test`', expect: NONE },
+  {
+    name: 'filter by directory, cited from a nested file',
+    line: '`pnpm --filter ./apps/mobile test`',
+    doc: MOBILE_DOC,
+    expect: NONE,
+  },
   { name: 'filter by name glob', line: '`pnpm --filter "@fixture/*" test`', expect: NONE },
   { name: 'two filters', line: '`pnpm --filter mobile --filter web dev`', expect: NONE },
   { name: 'placeholder filter', line: '`pnpm --filter <pkg> test`', expect: NONE },
@@ -374,6 +419,30 @@ for (const [title, cases] of [
   });
 }
 
+describe('check-agent-docs: where a missing path was looked for', () => {
+  const cases: readonly { name: string; doc: string; line: string; looked: string }[] = [
+    { name: 'a root file', doc: ROOT_DOC, line: '`apps/mobile/nope.ts`', looked: 'the repo root' },
+    {
+      name: 'a nested file',
+      doc: MOBILE_DOC,
+      line: '`./scripts/nope.sh`',
+      looked: '`apps/mobile/` and the repo root',
+    },
+    { name: 'a ../ path', doc: MOBILE_DOC, line: '`../nope/guide.md`', looked: '`apps/mobile/`' },
+  ];
+  for (const { name, doc, line, looked } of cases) {
+    test(`the message names the directories tried: ${name}`, () => {
+      const root = repoWith({ [doc]: `${line}\n` });
+      try {
+        const [finding] = findingsIn(root).filter((found) => found.kind === KIND.missingPath);
+        assert.ok(finding.message.endsWith(`(looked in ${looked})`), finding.message);
+      } finally {
+        removeTree(root);
+      }
+    });
+  }
+});
+
 describe('check-agent-docs: pnpm calls outside Markdown code', () => {
   const CONFIG = '.claude/verification-config.json';
   const scriptFindingsOf = (files: Files) => {
@@ -423,9 +492,33 @@ describe('check-agent-docs: budgets', () => {
   const bytes = (count: number): string => `${'x'.repeat(count - 1)}\n`;
   /** `count` bytes in lines short enough for the root file's per-line cap. */
   const shortLines = (count: number): string => lines(count / 100, 'x'.repeat(99));
+  /** Exactly `count` bytes, in lines of at most 100. */
+  const bytesInLines = (count: number): string =>
+    `${shortLines(count - (count % 100))}${count % 100 ? bytes(count % 100) : ''}`;
 
   const cases: readonly { name: string; doc: string; content: string; over: boolean }[] = [
     // Planned sizes are 5,500 bytes / 80 lines / 300 bytes a line for the root file; the caps add 10%.
+    { name: 'root file at exactly 110%', doc: ROOT_DOC, content: bytesInLines(6050), over: false },
+    {
+      name: 'root file one byte over 110%',
+      doc: ROOT_DOC,
+      content: bytesInLines(6051),
+      over: true,
+    },
+    {
+      name: 'unlisted CLAUDE.md at exactly 110%',
+      doc: NESTED_DOC,
+      content: bytes(3300),
+      over: false,
+    },
+    {
+      name: 'unlisted CLAUDE.md one byte over 110%',
+      doc: NESTED_DOC,
+      content: bytes(3301),
+      over: true,
+    },
+    { name: 'mobile file at 110 lines', doc: MOBILE_DOC, content: lines(110, 'x'), over: false },
+    { name: 'mobile file at 111 lines', doc: MOBILE_DOC, content: lines(111, 'x'), over: true },
     {
       name: 'root file a little over its planned size',
       doc: ROOT_DOC,
@@ -494,6 +587,32 @@ describe('check-agent-docs: solutions index', () => {
       writeFiles(root, { 'docs/solutions/ui-bugs/another.md': '# Another\n' });
       track(root);
       assert.equal(staleIn(root), true);
+    } finally {
+      removeTree(root);
+    }
+  });
+
+  test('reads the staged state: an unstaged delete or edit of a document changes nothing', () => {
+    const root = repoWith({ [DOC]: '# A bug\n', 'docs/solutions/ui-bugs/b.md': '# B\n' });
+    try {
+      rmSync(path.join(root, DOC));
+      writeFiles(root, { 'docs/solutions/ui-bugs/b.md': '# Retitled\n' });
+      assert.equal(staleIn(root), false);
+      track(root);
+      assert.equal(staleIn(root), true);
+    } finally {
+      removeTree(root);
+    }
+  });
+
+  test('the stale message says which state was read', () => {
+    const root = repoWith({ [DOC]: '# A bug\n' });
+    try {
+      writeFiles(root, { 'docs/solutions/ui-bugs/another.md': '# Another\n' });
+      track(root);
+      const [finding] = findingsIn(root).filter((found) => found.kind === KIND.staleIndex);
+      assert.match(finding.message, /git index/);
+      assert.match(finding.message, /git add docs\/solutions/);
     } finally {
       removeTree(root);
     }

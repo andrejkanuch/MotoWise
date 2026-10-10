@@ -9,9 +9,11 @@
  * `.claude` hook list, verification config and project skills, `docs/MAP.md`):
  *
  *   1. Paths: a cited repo path must exist, resolved against the citing file's
- *      directory and then the repo root. A glob must match at least one file.
- *      Read from inline code, fenced blocks and Markdown link targets. In a
- *      fenced block `../x` is taken as an example's import and skipped. Not
+ *      directory and then the repo root (`./x` too: commands are run from the
+ *      root; `../x` only against the citing file's directory). A glob must
+ *      match at least one file. Read from inline code, fenced blocks and
+ *      Markdown link targets. In a fenced block `../x` is taken as an
+ *      example's import and skipped. Not
  *      read: a bare filename, a path in plain prose, and a path whose first
  *      directory does not exist (that is how prose such as `Get/List/Create`
  *      is told apart from a path).
@@ -29,7 +31,8 @@
  *   3. Budgets: line and byte caps per file (PLANNED_SIZES below, plus headroom),
  *      with a default cap for any CLAUDE.md the table does not list.
  *   4. Solutions index: `docs/solutions/README.md` must equal what
- *      `scripts/gen-solutions-index.ts` generates from the tracked documents.
+ *      `scripts/gen-solutions-index.ts` generates. Both sides are read from
+ *      the git index (the staged state), never the working tree.
  *
  * Runs via `pnpm check:agent-docs`. Exits non-zero on any finding.
  * `--report` prints the findings and exits 0.
@@ -39,8 +42,10 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
+  SOLUTIONS_DIR,
   SOLUTIONS_INDEX_COMMAND,
   SOLUTIONS_INDEX_PATH,
+  SOLUTIONS_INDEX_STATE_READ,
   solutionsIndexIsCurrent,
 } from './gen-solutions-index';
 
@@ -76,7 +81,7 @@ type Budget = { lines: number; bytes: number; lineBytes?: number };
  * The sizes the files were planned at (KTD11 of
  * docs/plans/2026-10-10-1356-refactor-mobile-structure-and-agent-instructions-plan.md).
  * The plan set no byte size for `docs/MAP.md`; 10,000 is its size, rounded up,
- * when the cap was added. The enforced cap is this plus BUDGET_HEADROOM, so a
+ * when the cap was added. The enforced cap is this plus BUDGET_HEADROOM_PERCENT, so a
  * correction to a file that sits at its planned size does not block its own push.
  */
 const PLANNED_SIZES: Readonly<Record<string, Budget>> = {
@@ -94,14 +99,16 @@ const PLANNED_SIZES: Readonly<Record<string, Budget>> = {
 /** Any other `CLAUDE.md`: a new one is capped from its first commit. Sized like `supabase/CLAUDE.md`. */
 const PLANNED_SIZE_OF_UNLISTED_CLAUDE_MD: Budget = { lines: 40, bytes: 3000 };
 
-const BUDGET_HEADROOM = 1.1;
+const BUDGET_HEADROOM_PERCENT = 10;
+
+/** In integers: `5500 * 1.1` is 6050.000000000001 in floating point, and rounds up to 6051. */
+const plusHeadroom = (planned: number): number =>
+  Math.ceil((planned * (100 + BUDGET_HEADROOM_PERCENT)) / 100);
 
 const withHeadroom = (planned: Budget): Budget => ({
-  lines: Math.ceil(planned.lines * BUDGET_HEADROOM),
-  bytes: Math.ceil(planned.bytes * BUDGET_HEADROOM),
-  ...(planned.lineBytes === undefined
-    ? {}
-    : { lineBytes: Math.ceil(planned.lineBytes * BUDGET_HEADROOM) }),
+  lines: plusHeadroom(planned.lines),
+  bytes: plusHeadroom(planned.bytes),
+  ...(planned.lineBytes === undefined ? {} : { lineBytes: plusHeadroom(planned.lineBytes) }),
 });
 
 /** The enforced caps of a file, or null when it has none. A file that does not exist yet is not checked. */
@@ -490,44 +497,46 @@ function resolves(repo: Repo, candidate: string): boolean {
   return repo.files.some((file) => pattern.test(file));
 }
 
-/** The cited path when it resolves nowhere, null when it resolves or is deliberately absent. */
-function missingFrom(repo: Repo, cited: string, bases: readonly string[]): string | null {
+type Missing = { cited: string; bases: readonly string[] };
+
+/** The cited path when it resolves in none of `bases`, null when it resolves or is deliberately absent. */
+function missingFrom(repo: Repo, cited: string, bases: readonly string[]): Missing | null {
   const bare = cited.replace(/\/+$/, '');
   const candidates = bases.map((base) => path.posix.normalize(path.posix.join(base, bare)));
   if (candidates.some((candidate) => resolves(repo, candidate))) return null;
   if (candidates.some((candidate) => candidate in SKIPPED_PATHS)) return null;
-  return cited;
+  return { cited, bases };
 }
 
 /**
  * A token is treated as a repo path when it is shaped like one and its first
  * segment is a real entry next to the citing file or at the repo root. That
  * second condition is what keeps prose such as `Get/List/Create`, branch names
- * and URL routes out of the check.
+ * and URL routes out of the check. A token that starts with `./` or `../`
+ * says it is a path itself.
  */
-function checkPath(repo: Repo, token: string, citingDir: string, fenced: boolean): string | null {
+function checkPath(repo: Repo, token: string, citingDir: string, fenced: boolean): Missing | null {
   const cleaned = pathInToken(token);
   if (!PATH_TOKEN.test(cleaned)) return null;
   if (cleaned.startsWith('@') || cleaned.startsWith('/')) return null;
 
-  // In a fenced block `../x` is an import specifier of the example's own
-  // file, and `./x` is run from wherever the reader is: the repo root, mostly.
-  if (fenced && cleaned.startsWith('../')) return null;
-  const bare = (fenced ? cleaned.replace(/^\.\//, '') : cleaned).replace(/\/+$/, '');
-  const explicitlyRelative = bare.startsWith('./') || bare.startsWith('../');
-  const firstSegment = bare.split('/')[0];
-  const bases = explicitlyRelative ? [citingDir] : [citingDir, '.'];
-  const anchored = bases.some(
-    (base) =>
-      explicitlyRelative ||
-      GLOB_CHARS.test(firstSegment) ||
-      repo.exists(path.posix.normalize(path.posix.join(base, firstSegment))),
-  );
-  return anchored && missingFrom(repo, bare, bases) ? cleaned : null;
+  // `../x` is relative to the citing file, except in a fenced block, where it
+  // is an import specifier of the example's own file. `./x` is run from
+  // wherever the reader is, the repo root mostly, so both places are tried.
+  const climbs = cleaned.startsWith('../');
+  if (fenced && climbs) return null;
+  const bases = climbs ? [citingDir] : [citingDir, '.'];
+  const explicitlyRelative = climbs || cleaned.startsWith('./');
+  const firstSegment = cleaned.split('/')[0];
+  const anchored =
+    explicitlyRelative ||
+    GLOB_CHARS.test(firstSegment) ||
+    bases.some((base) => repo.exists(path.posix.normalize(path.posix.join(base, firstSegment))));
+  return anchored ? missingFrom(repo, cleaned, bases) : null;
 }
 
 /** A link target is a path unless it is a URL, an in-page anchor or a site-absolute route. */
-function checkLink(repo: Repo, target: string, citingDir: string): string | null {
+function checkLink(repo: Repo, target: string, citingDir: string): Missing | null {
   if (URL_SCHEME.test(target) || target.startsWith('#') || target.startsWith('/')) return null;
   const cited = target.replace(FRAGMENT, '');
   if (!LINK_PATH.test(cited) || cited.startsWith('@')) return null;
@@ -537,13 +546,16 @@ function checkLink(repo: Repo, target: string, citingDir: string): string | null
 function pathFindings(repo: Repo, file: string, spans: readonly Span[]): Finding[] {
   const citingDir = path.posix.dirname(file);
   const findings: Finding[] = [];
-  const report = (line: number, missing: string | null) => {
+  const report = (line: number, missing: Missing | null) => {
     if (!missing) return;
+    const looked = [...new Set(missing.bases.map((base) => path.posix.normalize(base)))]
+      .map((base) => (base === '.' ? 'the repo root' : `\`${base}/\``))
+      .join(' and ');
     findings.push({
       file,
       line,
       kind: FINDING_KIND.missingPath,
-      message: `cites \`${missing}\`, which does not exist (looked next to this file and at the repo root)`,
+      message: `cites \`${missing.cited}\`, which does not exist (looked in ${looked})`,
     });
   };
   for (const span of spans) {
@@ -653,7 +665,7 @@ function indexFindings(root: string): Finding[] {
       file: SOLUTIONS_INDEX_PATH,
       line: 1,
       kind: FINDING_KIND.staleIndex,
-      message: `does not match the tracked solution documents. Run: ${SOLUTIONS_INDEX_COMMAND}`,
+      message: `does not match the solution documents. ${SOLUTIONS_INDEX_STATE_READ} Run: ${SOLUTIONS_INDEX_COMMAND} && git add ${SOLUTIONS_DIR}`,
     },
   ];
 }
