@@ -158,11 +158,12 @@ If you see those on a URL that should 404, the response was cached as a successf
     server. Encodes route families (bogus → 404, real → 200, legacy → 308) and verifies the
     target's `<title>` first, because port 3000 is often held by an unrelated local app.
     Wired into CI via `.github/workflows/check-404-contract.yml`, which fires on
-    `deployment_status` — the only moment a real server exists. Production is probed at
-    `motovault.app`; previews need `VERCEL_AUTOMATION_BYPASS_SECRET` because Deployment
-    Protection is scoped `all_except_custom_domains`, and the job emits a notice and skips
-    rather than failing if that secret is absent. It exits non-zero when the target is
-    unreachable, so it can never silently pass.
+    `deployment_status` — the only moment a real server exists. It probes the deployment's
+    own `*.vercel.app` URL for every environment, production included, and needs
+    `VERCEL_AUTOMATION_BYPASS_SECRET` for that; the job emits a notice and skips rather
+    than failing if that secret is absent. It exits non-zero when the target is
+    unreachable, so it can never silently pass. (Until 2026-08-24 production was probed
+    at `motovault.app`. That never worked — see "The CI probe" below.)
 - **Do not use `localhost:3000` for measurement.** IPv6 resolution reached an unrelated vite
   app on `[::1]:3000` and produced a false conclusion twice. Use `127.0.0.1:3100`.
 - `vercel.json`'s `ignoreCommand` **overrides** the dashboard "Ignored Build Step". A custom
@@ -170,6 +171,13 @@ If you see those on a URL that should 404, the response was cached as a successf
 - A local prod build needs `apps/web/.env.local` with `NEXT_PUBLIC_API_URL`,
   `NEXT_PUBLIC_BASE_URL` (matching the port you serve on — something server-side fetches it),
   and `NEXT_PUBLIC_SUPABASE_URL` / `_ANON_KEY` for the blog to resolve.
+
+## The CI probe: the deployment URL, never `motovault.app`
+
+Moved unchanged from the root `CLAUDE.md` ("Repo maintenance"), where it was the only
+written record besides the comment in `.github/workflows/check-404-contract.yml`.
+
+**From CI, always probe the deployment's own `*.vercel.app` URL (`deployment_status.environment_url`) with `VERCEL_AUTOMATION_BYPASS_SECRET`, production included** — never `motovault.app`. Vercel's Deployment Protection is scoped `all_except_custom_domains`, so the custom domain needs no bypass secret, but that exemption is a trap: `motovault.app` is fronted by **Cloudflare**, which serves GitHub runners a `Just a moment...` bot challenge, and the script's identity check then fails with a message that reads like a misconfiguration. Every production run failed this way from the workflow's introduction until 2026-08-24 while every preview run passed — preview runs masked it, and #207 (no more previews) left the check with no working signal until #209 fixed it.
 
 ## The progress bar, rebuilt without a boundary
 
