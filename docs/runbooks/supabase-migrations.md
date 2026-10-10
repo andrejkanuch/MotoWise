@@ -4,13 +4,23 @@
 migration file and stops. It does not apply anything to production on its own
 initiative, as part of a data-model change or otherwise.
 
-This runbook records only what tracked files in this repository already state. It does
-not define a procedure. **How migrations are meant to reach production is an open owner
-decision** (Owner Decision 1 of
-`docs/plans/2026-10-10-1356-refactor-mobile-structure-and-agent-instructions-plan.md`):
-retire `npx supabase db push`, or repair it with a non-interactive database password.
-Until the owner rules, treat everything under "What the tracked record shows" as history,
-not as instructions.
+**`npx supabase db push` is retired as the route to production** (owner decision,
+2026-10-10; it was Owner Decision 1 of
+`docs/plans/2026-10-10-1356-refactor-mobile-structure-and-agent-instructions-plan.md`).
+Do not run it and do not try to repair it. The reasons, from tracked files:
+
+- It blocks on an interactive database-password prompt, as does
+  `npx supabase migration list` (`docs/Activation-Store-Truth-Runbook-2026-08-24.md`).
+- It fails on history drift with
+  `Remote migration versions not found in local migrations directory`
+  (`docs/HANDOFF-Growth-MOT-269.md`, 2026-06-30): applies made another way are recorded
+  under versions that match no local file.
+- The applies those two documents record went another way: 00159 on 2026-06-30 through
+  the Supabase MCP `apply_migration` tool, 00174 in August 2026 through the Supabase
+  Management API.
+
+Older plans, specs and hand-offs under `docs/` still show `npx supabase db push` as a
+step. They are dated records of what was planned then, not instructions.
 
 ## What an agent may do without asking
 
@@ -44,34 +54,34 @@ the same task along with the schema and codegen tasks. So:
   `supabase/migrations/00178_reapply_00141_users_grants_and_rpc_auth.sql` re-applies
   00141 instead of changing it.
 
-## What the tracked record shows
+## How a migration reaches production
 
-- **`npx supabase db push` has not been the working route.**
-  `docs/Activation-Store-Truth-Runbook-2026-08-24.md` records that `npx supabase db push`
-  and `npx supabase migration list` block on an interactive database-password prompt.
-  `docs/HANDOFF-Growth-MOT-269.md` (2026-06-30) records `db push` failing with
-  `Remote migration versions not found in local migrations directory`, because of
-  history drift.
-- **The Supabase Management API is the route those documents show working.** Migration
-  00174 was applied with `POST /v1/projects/{ref}/database/query`
-  (`docs/Activation-Store-Truth-Runbook-2026-08-24.md`). The header of
-  `supabase/migrations/00187_revenuecat_entitlement_source_of_truth.sql` is written for
-  that route: "Apply this whole file as ONE statement batch (one Management API call,
-  with this leading comment block stripped: a call that starts with a comment executes
-  nothing)". `docs/runbooks/supabase-confirmation-template.md` uses the same API for an
-  auth template.
-- **The Management API does not record the version.** After 00174 the version was
-  written into `supabase_migrations.schema_migrations` by hand (same document).
-  Out-of-band applies have also landed with a timestamp version instead of the file
-  number: 00158 was recorded as `20260625120202` (`docs/HANDOFF-Growth-MOT-269.md`).
-- **`schema_migrations` is not proof that a migration is live.** 00141 was listed as
-  applied while its grants, policies and RPC checks were absent from production; 00178
-  re-applied it (the header of 00178;
-  `features/bike-detail-shell-overview/data-verification.md`). Verify the objects, not
-  the row.
-- **Read a migration's header before applying it.** Some state a deploy order (00187:
-  apply the migration, then deploy the API; 00178: deploy the code first) and some must
-  land as one batch so that a `REVOKE` is never separated from its `CREATE`.
+The route is the Supabase Management API or the Supabase MCP `apply_migration` tool.
+Either one is used only on the owner's go-ahead for that migration, given in the session.
+This section records what tracked files state about the route; it adds nothing to them.
+
+1. **Read the migration's header first.** Some state a deploy order (00187: apply the
+   migration, then deploy the API; 00178: deploy the code first) and some must land as
+   one batch so that a `REVOKE` is never separated from its `CREATE`.
+2. **Apply the file.** Migration 00174 was applied with
+   `POST /v1/projects/{ref}/database/query`
+   (`docs/Activation-Store-Truth-Runbook-2026-08-24.md`). The header of
+   `supabase/migrations/00187_revenuecat_entitlement_source_of_truth.sql` is written for
+   that route: "Apply this whole file as ONE statement batch (one Management API call,
+   with this leading comment block stripped: a call that starts with a comment executes
+   nothing)". `docs/runbooks/supabase-confirmation-template.md` uses the same API for an
+   auth template. 00159 was applied with the MCP `apply_migration` tool
+   (`docs/HANDOFF-Growth-MOT-269.md`).
+3. **Record the version under the file's number.** The Management API does not record
+   it: after 00174 the version was written into `supabase_migrations.schema_migrations`
+   by hand (same document). An out-of-band apply has also landed under a timestamp
+   instead of the file number: 00158 was recorded as `20260625120202`
+   (`docs/HANDOFF-Growth-MOT-269.md`).
+4. **Verify the objects, not the row.** `schema_migrations` is not proof that a migration
+   is live. 00141 was listed as applied while its grants, policies and RPC checks were
+   absent from production; 00178 re-applied it (the header of 00178;
+   `features/bike-detail-shell-overview/data-verification.md`).
+5. Only then does `pnpm db:types` show the new shape.
 
 ## Local database
 

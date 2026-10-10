@@ -22,7 +22,7 @@ Do NOT plan in a vacuum. First:
 1. Search for similar existing functionality (don't duplicate) — `Grep`/`Glob` across `apps/` + `packages/`.
 2. Identify the layers this feature touches, in MotoVault's dependency order (this is also the task order):
    1. Supabase migration (`supabase/migrations/`) + RLS policies — every new table needs RLS
-   2. **Owner gate.** Applying the migration to production is an owner-approved step (`docs/runbooks/supabase-migrations.md`). The owner applies it; the plan stops here until it is live. Do not apply it yourself
+   2. **Owner gate.** Applying the migration to production is an owner-approved step (`docs/runbooks/supabase-migrations.md`). The owner applies it; the plan stops here until it is live. Do not apply it yourself, and never with `npx supabase db push` (retired)
    3. `pnpm db:types` → Zod schemas in `packages/types`. It reads production, so it shows the new shape only once the migration is live there
    4. NestJS model/resolver/service in `apps/api` (map snake_case → camelCase at the service layer)
    5. `.graphql` operations + `pnpm generate`

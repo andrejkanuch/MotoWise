@@ -31,7 +31,7 @@ Turborepo + pnpm workspaces. This file holds only what applies everywhere; each 
 
 ## Changing a data model
 1. Write the migration SQL in `supabase/migrations/`
-2. Applying it to production is an owner-approved step — do not apply it yourself. See `docs/runbooks/supabase-migrations.md`
+2. Applying it to production is an owner-approved step — do not apply it yourself. `npx supabase db push` is retired. See `docs/runbooks/supabase-migrations.md`
 3. `pnpm db:types` updates database.types.ts. It reads production, so it shows only migrations that are live there
 4. Update the Zod schemas in packages/types to match
 5. Update the NestJS models and resolvers to match

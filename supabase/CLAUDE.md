@@ -8,7 +8,7 @@
 
 ## Rules
 - **Every DB change is a migration** in `migrations/`. Create it with `pnpm db:migration <name>`.
-- **Applying a migration to production is an owner-approved step.** Write the file and stop; do not apply it yourself. What the tracked record shows about how migrations have reached production, and what is still undecided: `docs/runbooks/supabase-migrations.md`.
+- **Applying a migration to production is an owner-approved step.** Write the file and stop; do not apply it yourself. `npx supabase db push` is retired. The route that is used, and why: `docs/runbooks/supabase-migrations.md`.
 - **Number above the highest version live on production**, not above the highest file here. A number may be reserved by an unmerged branch.
 - **A migration that is live on production is frozen.** Correct it with a new migration (00178 re-applies 00141 this way).
 - **RLS on every new table.** Never skip the policies.

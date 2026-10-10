@@ -85,7 +85,7 @@ each app and package. `pnpm check:agent-docs` fails if a path cited here stops e
 | `supabase/checks/` | SQL checks and fixtures; `run.sh` runs them in a disposable container |
 | `supabase/templates/`, `supabase/config.toml` | Auth email templates; local and auth config |
 | `supabase/seed.sql`, `supabase/seed-articles.sql` | Local seeds |
-| `docs/runbooks/supabase-migrations.md` | What the tracked record shows about migrations and production |
+| `docs/runbooks/supabase-migrations.md` | How a migration reaches production (owner-approved; `db push` is retired) |
 
 ## scripts/ — repository tooling
 
