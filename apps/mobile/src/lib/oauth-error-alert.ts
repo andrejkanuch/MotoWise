@@ -14,6 +14,8 @@ const PRESENT: Record<OAuthErrorKind, (err: unknown) => void> = {
   // The first sign-in is still on screen and will finish on its own.
   [OAUTH_ERROR_KIND.inProgress]: () => {},
   [OAUTH_ERROR_KIND.noPlayServices]: () => showError(i18n.t('auth.googlePlayServicesUnavailable')),
+  // Not reported: a device that refuses the sheet is not something a release can fix.
+  [OAUTH_ERROR_KIND.cannotPresent]: () => showError(i18n.t('auth.googleSignInCannotOpen')),
   [OAUTH_ERROR_KIND.expected]: (err) => showError(userFriendlyError(err)),
   [OAUTH_ERROR_KIND.unexpected]: (err) => {
     captureException(err);

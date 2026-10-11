@@ -24,6 +24,7 @@
   },
   "auth": {
     "googlePlayServicesUnavailable": "O login com o Google precisa do Google Play Services, que este aparelho não tem. Continue com o e-mail.",
+    "googleSignInCannotOpen": "Não foi possível abrir o login com o Google neste aparelho. Tente novamente ou continue com o e-mail.",
     "signIn": "Entrar",
     "signingIn": "Entrando...",
     "signUp": "Criar Conta",

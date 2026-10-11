@@ -24,6 +24,7 @@
   },
   "auth": {
     "googlePlayServicesUnavailable": "L'accesso con Google richiede i servizi Google Play, non disponibili su questo dispositivo. Continua invece con l'email.",
+    "googleSignInCannotOpen": "Non è stato possibile aprire l'accesso con Google su questo dispositivo. Riprova oppure continua con l'email.",
     "signIn": "Accedi",
     "signingIn": "Accesso in corso...",
     "signUp": "Crea account",

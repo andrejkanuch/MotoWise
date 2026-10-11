@@ -41,6 +41,13 @@ describe('presentOAuthError', () => {
     expect(captureException).not.toHaveBeenCalled();
   });
 
+  it('tells the rider the Google sheet could not open, without reporting', () => {
+    classify.mockReturnValue(OAUTH_ERROR_KIND.cannotPresent);
+    presentOAuthError(new Error('x'));
+    expect(alertSpy).toHaveBeenCalledWith('common.error', 'auth.googleSignInCannotOpen');
+    expect(captureException).not.toHaveBeenCalled();
+  });
+
   it('alerts but does not report an expected outcome', () => {
     classify.mockReturnValue(OAUTH_ERROR_KIND.expected);
     presentOAuthError(new Error('x'));

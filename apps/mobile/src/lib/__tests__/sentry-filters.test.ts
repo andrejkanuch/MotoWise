@@ -360,6 +360,50 @@ describe('sentryBeforeSend', () => {
     });
   });
 
+  // An uncaught JS error aborts the process, and the SDK's native side drops the
+  // resulting crash because it expects this JS event to have been sent. Filtering
+  // it here leaves no trace at all (TestFlight crash 2026-10-10, 3.25.0 build 105).
+  describe('fatal events are never filtered', () => {
+    const fatal = (value: string, extra: Partial<SentryEvent> = {}): SentryEvent =>
+      makeEvent({
+        level: 'fatal',
+        exception: {
+          values: [{ type: 'Error', value, mechanism: { type: 'onerror', handled: false } }],
+        },
+        ...extra,
+      });
+
+    it.each([
+      ['a network failure', 'fetch failed: The network connection was lost.'],
+      ['a request timeout', 'The request timed out after 30000 ms (EndRide)'],
+      ['a missing session', new MissingGqlSessionError('EndRide').message],
+      ['the RevenueCat anonymous logOut', 'LogOut was called but the current user is anonymous.'],
+      ['the Fabric view-state race', 'Unable to find viewState for tag 42'],
+    ])('keeps a fatal that reads like %s', (_label, value) => {
+      const event = fatal(value);
+      expect(sentryBeforeSend(event)).toBe(event);
+    });
+
+    it('keeps a fatal whose frames are all engine-internal', () => {
+      const event = fatal('boom');
+      const [first] = event.exception?.values ?? [];
+      if (first) {
+        first.stacktrace = { frames: [{ filename: '/InternalBytecode.js', in_app: false }] };
+      }
+      expect(sentryBeforeSend(event)).toBe(event);
+    });
+
+    it('still drops the same failure when it was handled', () => {
+      const event = makeEvent({
+        level: 'error',
+        exception: {
+          values: [{ type: 'Error', value: 'fetch failed: The network connection was lost.' }],
+        },
+      });
+      expect(sentryBeforeSend(event)).toBeNull();
+    });
+  });
+
   describe('regular errors pass through', () => {
     it('passes JS application errors', () => {
       const event = makeEvent({

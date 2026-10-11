@@ -8,6 +8,7 @@ jest.mock('@react-native-google-signin/google-signin', () => ({
     IN_PROGRESS: 'ASYNC_OP_IN_PROGRESS',
     PLAY_SERVICES_NOT_AVAILABLE: 'PLAY_SERVICES_NOT_AVAILABLE',
     SIGN_IN_REQUIRED: 'SIGN_IN_REQUIRED',
+    NULL_PRESENTER: 'NULL_PRESENTER',
   },
 }));
 jest.mock('expo-apple-authentication', () => ({}));
@@ -175,6 +176,33 @@ describe('classifyOAuthError', () => {
     const err = codeError('PLAY_SERVICES_NOT_AVAILABLE');
     expect(classifyOAuthError(err)).toBe(OAUTH_ERROR_KIND.noPlayServices);
     expect(isExpectedAuthError(err)).toBe(true);
+  });
+
+  // MOTO-VAULT-REACT-NATIVE-2B: the sheet never opened. iOS has no code for it (-1 is
+  // the SDK's catch-all), so the native message is the only signal.
+  it('treats iOS "Unable to open Safari" as cannotPresent, not a bug', () => {
+    const err = Object.assign(
+      new Error(
+        'RNGoogleSignIn: Unknown error in google sign in., Error Domain=com.google.GIDSignIn Code=-1 "Unable to open Safari." UserInfo={NSLocalizedDescription=Unable to open Safari.}',
+      ),
+      { code: '-1' },
+    );
+    expect(classifyOAuthError(err)).toBe(OAUTH_ERROR_KIND.cannotPresent);
+    expect(isExpectedAuthError(err)).toBe(true);
+  });
+
+  it('treats a missing presenting view controller as cannotPresent, by code', () => {
+    expect(classifyOAuthError(codeError('NULL_PRESENTER'))).toBe(OAUTH_ERROR_KIND.cannotPresent);
+  });
+
+  it('still reports other iOS catch-all (-1) failures', () => {
+    const err = Object.assign(
+      new Error(
+        'RNGoogleSignIn: Unknown error in google sign in., Error Domain=com.google.GIDSignIn Code=-1 "invalid_audience"',
+      ),
+      { code: '-1' },
+    );
+    expect(classifyOAuthError(err)).toBe(OAUTH_ERROR_KIND.unexpected);
   });
 
   it('treats our own in-flight guard error as in-progress', () => {

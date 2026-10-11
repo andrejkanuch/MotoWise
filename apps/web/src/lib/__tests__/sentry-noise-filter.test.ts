@@ -1,7 +1,11 @@
 import type { ErrorEvent } from '@sentry/nextjs';
 import type { CaptureResult } from 'posthog-js';
 import { describe, expect, it } from 'vitest';
-import { shouldDropClientEvent, shouldDropPostHogEvent } from '../sentry-noise-filter';
+import {
+  shouldDropClientEvent,
+  shouldDropPostHogEvent,
+  shouldDropServerEvent,
+} from '../sentry-noise-filter';
 
 type Frame = { filename?: string; in_app?: boolean };
 
@@ -347,6 +351,40 @@ describe('shouldDropClientEvent', () => {
     });
   });
 
+  describe('headless scraper runtime (MOTOVAULT-WEB-1S)', () => {
+    const value = "Cannot read properties of null (reading 'replace')";
+    const mechanismType = 'auto.browser.browserapierrors.requestAnimationFrame';
+
+    it('drops an error whose stack runs through the Obscura / Deno core runtime', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWith(value, {
+            type: 'TypeError',
+            mechanismType,
+            frames: [
+              { filename: 'ext:core/01_core.js' },
+              { filename: '<script>' },
+              { filename: '<obscura:bootstrap>' },
+              { filename: '<script>' },
+            ],
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('KEEPS the same error from a real browser, where it would be ours', () => {
+      expect(
+        shouldDropClientEvent(
+          eventWith(value, {
+            type: 'TypeError',
+            mechanismType,
+            frames: [{ filename: 'https://motovault.app/_next/static/chunks/app.js' }],
+          }),
+        ),
+      ).toBe(false);
+    });
+  });
+
   it('keeps unrelated first-party errors', () => {
     expect(
       shouldDropClientEvent(
@@ -355,6 +393,32 @@ describe('shouldDropClientEvent', () => {
         }),
       ),
     ).toBe(false);
+  });
+});
+
+describe('shouldDropServerEvent', () => {
+  it('drops the malformed Next-Router-State-Tree render error (MOTOVAULT-WEB-1R)', () => {
+    expect(
+      shouldDropServerEvent(
+        eventWith('The router state header was sent but could not be parsed.', {
+          mechanismType: 'auto.function.nextjs.on_request_error',
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('KEEPS the other router state header errors', () => {
+    expect(shouldDropServerEvent(eventWith('The router state header was too large.'))).toBe(false);
+    expect(
+      shouldDropServerEvent(
+        eventWith('Multiple router state headers were sent. This is not allowed.'),
+      ),
+    ).toBe(false);
+  });
+
+  it('KEEPS unrelated server errors and events with no exception', () => {
+    expect(shouldDropServerEvent(eventWith('fetch failed', { type: 'TypeError' }))).toBe(false);
+    expect(shouldDropServerEvent({} as ErrorEvent)).toBe(false);
   });
 });
 
