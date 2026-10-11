@@ -485,30 +485,31 @@ function onConnect(): void {
   bikeVisible = false;
   // Synchronous, store-only (MMKV-hydrated): the panel is up the moment the scene
   // connects — no auth, network or phone UI in the way.
-  const snap = currentSnapshot();
-  clearInformation(); // ensure the next render builds a fresh root template
   try {
+    const snap = currentSnapshot();
+    clearInformation(); // ensure the next render builds a fresh root template
     renderInformation(panelModel(snap)); // projection, not start
+    lastState = snap.state;
+    lastPushAt = Date.now();
+    connectedAt = lastPushAt;
+    trackEvent(AnalyticsEvent.CARPLAY_CONNECTED, {
+      ride_state: snap.state,
+      // The session itself: hasAuthenticatedSession() is also true while auth hydrates.
+      signed_in: !!useAuthStore.getState().session,
+    });
+    unsubStore?.();
+    // Guarded: this runs inside the ride store's `set()`, i.e. in the middle of whatever
+    // the ride engine is doing (ending a ride, a background GPS tick). A panel that
+    // fails to paint must not unwind into it.
+    unsubStore = useRideStore.subscribe(() => guarded(GUARD_SOURCE.storeRender, render));
   } catch (err) {
     // Release the guard so the next replay (or reconnect) retries the build instead
-    // of leaving the head unit blank until a disconnect.
+    // of leaving the head unit blank, or painted once and never updated, until a
+    // disconnect. Covers every step up to the store subscription, not just the paint.
     connected = false;
     captureException(err, { source: GUARD_SOURCE.connect });
     return;
   }
-  lastState = snap.state;
-  lastPushAt = Date.now();
-  connectedAt = lastPushAt;
-  trackEvent(AnalyticsEvent.CARPLAY_CONNECTED, {
-    ride_state: snap.state,
-    // The session itself: hasAuthenticatedSession() is also true while auth hydrates.
-    signed_in: !!useAuthStore.getState().session,
-  });
-  unsubStore?.();
-  // Guarded: this runs inside the ride store's `set()`, i.e. in the middle of whatever
-  // the ride engine is doing (ending a ride, a background GPS tick). A panel that
-  // fails to paint must not unwind into it.
-  unsubStore = useRideStore.subscribe(() => guarded(GUARD_SOURCE.storeRender, render));
   // Warm the heads-up snapshot off the render path (cache-first). Fire-and-forget:
   // currentRideInput reads whatever is cached; the load re-renders when it lands.
   void loadHeadsUpData();
@@ -656,7 +657,7 @@ export function startCarPlayCoordinator(): void {
   for (const s of [c, d]) if (s) eventSubs.push(s);
   // The library already replays didConnect for an attached scene; this covers a
   // future version that drops the replay. The `connected` guard dedupes the two.
-  if (isHeadUnitConnected()) onConnect();
+  if (isHeadUnitConnected()) guarded(GUARD_SOURCE.connect, onConnect);
 }
 
 // Test-only reset.

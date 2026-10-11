@@ -480,6 +480,22 @@ describe('carplay-coordinator', () => {
     jest.useRealTimers();
   });
 
+  it('retries the root build when a step before the paint throws', () => {
+    (carplay.clearInformation as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('clear failed');
+    });
+    startCarPlayCoordinator();
+    expect(fireConnect).not.toThrow();
+    expect(captureException).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'clear failed' }),
+      expect.objectContaining({ source: 'carplay-coordinator.onConnect' }),
+    );
+    expect(mockStoreListeners.length).toBe(0);
+    fireConnect(); // the replay must not be swallowed by a stuck `connected` flag
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
+    expect(mockStoreListeners.length).toBe(1);
+  });
+
   // --- Throw containment (TestFlight crash 2026-10-10, 3.25.0 build 105) ---
   // Each of these runs on a stack with nothing of ours above it — a native button
   // press, the ride store's set(), a native timer — where an uncaught throw is a
