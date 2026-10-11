@@ -22,6 +22,7 @@ import {
 } from './graphql-error-classification';
 import { getStoredUtmProperties } from './meta-attribution';
 import { isNetworkError } from './network-error';
+import { resolveSentryEnvironment } from './sentry-environment';
 import { isMessageEvent, messageFingerprint } from './sentry-message-grouping';
 
 // -------------------------------------------------------------------
@@ -231,6 +232,16 @@ export function sentryBeforeSend(
     event.fingerprint = messageFingerprint(event.message);
     return event;
   }
+  // An uncaught JS error (level `fatal`, set by the SDK's global handler) is never
+  // noise, whatever it says: React Native aborts the process right after, and the
+  // SDK's native side drops the resulting "Unhandled JS Exception" crash on the
+  // assumption that this JS event was sent. Every filter below was written for a
+  // HANDLED capture; applied to a fatal it makes the crash invisible. The TestFlight
+  // crash of 2026-10-10 (3.25.0 build 105) left no Sentry event, and the only trace
+  // of it was one `before_send` client discard in that hour.
+  if (event.level === 'fatal') {
+    return event;
+  }
   // Known React Native Fabric race condition — view is unmounted before
   // an async image/reanimated callback can update props. Not actionable.
   if (message.includes('Unable to find viewState for tag')) {
@@ -298,6 +309,7 @@ export function initSentry() {
 
   Sentry.init({
     dsn: SENTRY_DSN,
+    environment: resolveSentryEnvironment(),
     tracesSampleRate: __DEV__ ? 1.0 : 0.2,
     profilesSampleRate: __DEV__ ? 1.0 : 0.3,
     enabled: !__DEV__,

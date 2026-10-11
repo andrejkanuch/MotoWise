@@ -124,6 +124,35 @@ let headsUpSnapshot: HeadsUpSnapshot = EMPTY_HEADS_UP;
 // newer load) is dropped instead of overwriting the current snapshot.
 let headsUpToken = 0;
 
+// Where a head-unit entry point failed, for Sentry. Every function the native side
+// (or the ride store, or a timer) calls into goes through `guarded` with one of these.
+const GUARD_SOURCE = {
+  action: 'carplay-coordinator.onAction',
+  storeRender: 'carplay-coordinator.storeRender',
+  flushTimer: 'carplay-coordinator.flushTimer',
+  stopArmTimer: 'carplay-coordinator.stopArmTimer',
+  connect: 'carplay-coordinator.onConnect',
+  disconnect: 'carplay-coordinator.onDisconnect',
+  bikeListAppear: 'carplay-coordinator.bikeListAppear',
+  bikeListDismissed: 'carplay-coordinator.bikeListDismissed',
+  ridePanelReappeared: 'carplay-coordinator.ridePanelReappeared',
+} as const;
+
+/**
+ * Run a head-unit entry point so a throw cannot leave it. These run on stacks with
+ * no caller of ours above them — a native button press, a native timer, the ride
+ * store's `set()` — where an uncaught throw is a FATAL JS error: React Native aborts
+ * the process, which on a CarPlay-only launch is the process recording the ride.
+ * (TestFlight crash 2026-10-10, 3.25.0 build 105: End Ride on the head unit.)
+ */
+function guarded(source: (typeof GUARD_SOURCE)[keyof typeof GUARD_SOURCE], fn: () => void): void {
+  try {
+    fn();
+  } catch (err) {
+    captureException(err, { source });
+  }
+}
+
 function clearFlush(): void {
   if (flushTimer) {
     clearTimeout(flushTimer);
@@ -231,14 +260,15 @@ function render(now: number = Date.now()): void {
   // still lands at the window boundary even if the store stops ticking.
   if (!flushTimer) {
     flushTimer = setTimeout(
-      () => {
-        flushTimer = null;
-        // The head unit may have disconnected while this flush was pending
-        // (onDisconnect drops unsubStore). Skip the trailing render so we never
-        // touch a cleared template after disconnect.
-        if (!unsubStore) return;
-        render();
-      },
+      () =>
+        guarded(GUARD_SOURCE.flushTimer, () => {
+          flushTimer = null;
+          // The head unit may have disconnected while this flush was pending
+          // (onDisconnect drops unsubStore). Skip the trailing render so we never
+          // touch a cleared template after disconnect.
+          if (!unsubStore) return;
+          render();
+        }),
       THROTTLE_MS - (now - lastPushAt),
     );
   }
@@ -286,10 +316,11 @@ function openBikeList(): void {
   bikeLoadToken++;
   const system = useAuthStore.getState().measurementSystem ?? 'metric';
   pushBikeList(buildBikeStatus(syncBikeInput(), system), {
-    onWillAppear: () => {
-      void loadBikeStatus();
-    },
-    onPopped: onBikeListDismissed,
+    onWillAppear: () =>
+      guarded(GUARD_SOURCE.bikeListAppear, () => {
+        void loadBikeStatus();
+      }),
+    onPopped: () => guarded(GUARD_SOURCE.bikeListDismissed, onBikeListDismissed),
   });
 }
 
@@ -462,7 +493,7 @@ function onConnect(): void {
     // Release the guard so the next replay (or reconnect) retries the build instead
     // of leaving the head unit blank until a disconnect.
     connected = false;
-    captureException(err, { source: 'carplay-coordinator.onConnect' });
+    captureException(err, { source: GUARD_SOURCE.connect });
     return;
   }
   lastState = snap.state;
@@ -474,7 +505,10 @@ function onConnect(): void {
     signed_in: !!useAuthStore.getState().session,
   });
   unsubStore?.();
-  unsubStore = useRideStore.subscribe(() => render());
+  // Guarded: this runs inside the ride store's `set()`, i.e. in the middle of whatever
+  // the ride engine is doing (ending a ride, a background GPS tick). A panel that
+  // fails to paint must not unwind into it.
+  unsubStore = useRideStore.subscribe(() => guarded(GUARD_SOURCE.storeRender, render));
   // Warm the heads-up snapshot off the render path (cache-first). Fire-and-forget:
   // currentRideInput reads whatever is cached; the load re-renders when it lands.
   void loadHeadsUpData();
@@ -578,10 +612,14 @@ function onAction(actionId: string): void {
       if (!stopArmed) {
         stopArmed = true;
         clearStopArmTimer();
-        stopArmTimer = setTimeout(() => {
-          disarmStop();
-          forceRender();
-        }, STOP_CONFIRM_MS);
+        stopArmTimer = setTimeout(
+          () =>
+            guarded(GUARD_SOURCE.stopArmTimer, () => {
+              disarmStop();
+              forceRender();
+            }),
+          STOP_CONFIRM_MS,
+        );
         forceRender(); // show the confirm immediately (bypass the throttle)
         return;
       }
@@ -607,12 +645,14 @@ function onAction(actionId: string): void {
 export function startCarPlayCoordinator(): void {
   if (started || !isCarPlayAvailable) return;
   started = true;
-  setActionDispatcher(onAction);
+  setActionDispatcher((actionId) => guarded(GUARD_SOURCE.action, () => onAction(actionId)));
   // Root-panel reappear is the version-independent "Bike list dismissed" signal — see
   // onRidePanelReappeared.
-  setInformationLifecycle({ onDidAppear: onRidePanelReappeared });
-  const c = addConnectListener(onConnect);
-  const d = addDisconnectListener(onDisconnect);
+  setInformationLifecycle({
+    onDidAppear: () => guarded(GUARD_SOURCE.ridePanelReappeared, onRidePanelReappeared),
+  });
+  const c = addConnectListener(() => guarded(GUARD_SOURCE.connect, onConnect));
+  const d = addDisconnectListener(() => guarded(GUARD_SOURCE.disconnect, onDisconnect));
   for (const s of [c, d]) if (s) eventSubs.push(s);
   // The library already replays didConnect for an attached scene; this covers a
   // future version that drops the replay. The `connected` guard dedupes the two.

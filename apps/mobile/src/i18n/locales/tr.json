@@ -24,6 +24,7 @@
   },
   "auth": {
     "googlePlayServicesUnavailable": "Google ile giriş için bu cihazda bulunmayan Google Play Hizmetleri gerekir. Lütfen bunun yerine e-postayla devam edin.",
+    "googleSignInCannotOpen": "Google ile giriş bu cihazda açılamadı. Lütfen tekrar deneyin veya bunun yerine e-postayla devam edin.",
     "signIn": "Giriş Yap",
     "signingIn": "Giriş yapılıyor...",
     "signUp": "Hesap Oluştur",

@@ -24,6 +24,7 @@
   },
   "auth": {
     "googlePlayServicesUnavailable": "La connexion Google nécessite les services Google Play, absents de cet appareil. Continuez plutôt avec votre e-mail.",
+    "googleSignInCannotOpen": "La connexion Google n'a pas pu s'ouvrir sur cet appareil. Réessayez ou continuez plutôt avec votre e-mail.",
     "signIn": "Se connecter",
     "signingIn": "Connexion...",
     "signUp": "Créer un compte",

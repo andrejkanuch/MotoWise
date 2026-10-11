@@ -3,6 +3,7 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from '@sentry/nextjs';
+import { shouldDropServerEvent } from './src/lib/sentry-noise-filter';
 
 Sentry.init({
   dsn: 'https://a3cf72113ed0793fa895a40f6baa3ab1@o4510167517954048.ingest.us.sentry.io/4511299447291904',
@@ -32,4 +33,10 @@ Sentry.init({
   // Enable sending user PII (Personally Identifiable Information)
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
   sendDefaultPii: true,
+
+  // Drop request-level noise no code change can prevent. See
+  // shouldDropServerEvent for the per-rule rationale.
+  beforeSend(event) {
+    return shouldDropServerEvent(event) ? null : event;
+  },
 });

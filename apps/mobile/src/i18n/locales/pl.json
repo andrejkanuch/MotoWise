@@ -24,6 +24,7 @@
   },
   "auth": {
     "googlePlayServicesUnavailable": "Logowanie przez Google wymaga usług Google Play, których to urządzenie nie ma. Kontynuuj za pomocą adresu e-mail.",
+    "googleSignInCannotOpen": "Nie udało się otworzyć logowania przez Google na tym urządzeniu. Spróbuj ponownie lub kontynuuj za pomocą adresu e-mail.",
     "signIn": "Zaloguj się",
     "signingIn": "Logowanie...",
     "signUp": "Utwórz konto",
