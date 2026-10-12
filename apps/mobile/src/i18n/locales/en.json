@@ -352,7 +352,8 @@
     "editProfileHint": "Edit your public profile and riding profile",
     "sectionApp": "App",
     "nameLabel": "Name",
-    "publicNameLabel": "Public name (shown to other riders)"
+    "publicNameLabel": "Public name (shown to other riders)",
+    "sectionFeedback": "Feedback"
   },
   "onboarding": {
     "welcomeTitle": "Welcome to MotoVault",
@@ -1570,7 +1571,6 @@
   "support": {
     "faq": "FAQ",
     "contact": "Contact Us",
-    "emailSupport": "Email Support",
     "version": "Version {{version}}",
     "faq1Question": "How do I add a motorcycle?",
     "faq1Answer": "Go to the Garage tab and tap the + button. You can search for your motorcycle by make, model, and year.",
@@ -1584,6 +1584,34 @@
     "faq5Answer": "Yes. We use end-to-end encryption and follow industry best practices. You can export or delete your data at any time from Privacy settings.",
     "rateApp": "Rate MotoVault",
     "rateAppSubtitle": "Tell other riders what you think"
+  },
+  "feedback": {
+    "title": "Write to the developer",
+    "rowSubtitle": "Ideas, bugs, anything on your mind",
+    "intro": "Your message goes straight to the developer, and every one gets read.",
+    "quickPickLabel": "What's it about?",
+    "quickPickLove": "I love…",
+    "quickPickWish": "I wish…",
+    "quickPickBroken": "Something's broken",
+    "messageLabel": "Your message",
+    "messagePlaceholder": "Tell the developer what's on your mind",
+    "context": "Sent along with your message: app version {{version}}, {{platform}}, your app language and your most recent bike.",
+    "contactLabel": "Reply",
+    "contactOptIn": "The developer may contact me about my feedback",
+    "contactEmailLabel": "Email to reach me at",
+    "contactEmailPlaceholder": "name@example.com",
+    "contactEmailHelper": "Only used to reply to you. It doesn't change how you sign in.",
+    "contactEmailRelayHelper": "You sign in with Hide My Email. Leave this empty to get replies at that relay address, or add a personal email.",
+    "emailInvalid": "That email doesn't look right. Check it and try again.",
+    "send": "Send",
+    "errorGeneric": "Couldn't send your message. Your text is still here, so try again in a moment.",
+    "errorThrottled": "You've sent a few messages in a short time. Please try again a little later.",
+    "sentTitle": "Message sent",
+    "sentBody": "Thanks for writing. If you said the developer may contact you, expect a reply by email.",
+    "notificationsSection": "Talk to the developer",
+    "notificationsOptInSubtitle": "Replies about the feedback you send",
+    "notificationsEmailRelay": "Hide My Email address",
+    "saveError": "Couldn't save that change. Check your connection and try again."
   },
   "quickActions": {
     "startRide": "Start Ride",

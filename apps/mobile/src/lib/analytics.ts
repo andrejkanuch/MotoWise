@@ -598,6 +598,13 @@ export const AnalyticsEvent = {
   REVIEW_PROMPTED: 'review_prompted',
   REVIEW_STORE_PAGE_OPENED: 'review_store_page_opened',
 
+  // Write to the developer. Never the message text, the contact email or its
+  // domain. `feedback_sent { quick_pick, contact_opt_in }` fires on a confirmed
+  // send; `feedback_contact_opt_in_changed { enabled, source }` on each saved
+  // change of the contact opt-in (form, notifications, onboarding).
+  FEEDBACK_SENT: 'feedback_sent',
+  FEEDBACK_CONTACT_OPT_IN_CHANGED: 'feedback_contact_opt_in_changed',
+
   // Feature usage — Learn
   ARTICLE_VIEWED: 'article_viewed',
   ARTICLE_READ: 'article_read',

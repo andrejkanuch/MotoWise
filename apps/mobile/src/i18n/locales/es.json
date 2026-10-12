@@ -352,7 +352,8 @@
     "editProfileHint": "Edita tu perfil público y tu perfil de piloto",
     "sectionApp": "App",
     "nameLabel": "Nombre",
-    "publicNameLabel": "Nombre público (visible para otros pilotos)"
+    "publicNameLabel": "Nombre público (visible para otros pilotos)",
+    "sectionFeedback": "Comentarios"
   },
   "onboarding": {
     "welcomeTitle": "Bienvenido a MotoVault",
@@ -1580,7 +1581,6 @@
   "support": {
     "faq": "Preguntas frecuentes",
     "contact": "Contactarnos",
-    "emailSupport": "Soporte por correo",
     "version": "Versión {{version}}",
     "faq1Question": "¿Cómo agrego una motocicleta?",
     "faq1Answer": "Ve a la pestaña Garaje y toca el botón +. Puedes buscar tu motocicleta por marca, modelo y año.",
@@ -1594,6 +1594,34 @@
     "faq5Answer": "Sí. Usamos cifrado de extremo a extremo y seguimos las mejores prácticas de la industria. Puedes exportar o eliminar tus datos en cualquier momento desde la configuración de Privacidad.",
     "rateApp": "Valorar MotoVault",
     "rateAppSubtitle": "Cuéntales a otros motoristas qué te parece"
+  },
+  "feedback": {
+    "title": "Escribe al desarrollador",
+    "rowSubtitle": "Ideas, fallos, lo que tengas en mente",
+    "intro": "Tu mensaje llega directamente al desarrollador, y se leen todos.",
+    "quickPickLabel": "¿De qué se trata?",
+    "quickPickLove": "Me encanta…",
+    "quickPickWish": "Me gustaría…",
+    "quickPickBroken": "Algo no funciona",
+    "messageLabel": "Tu mensaje",
+    "messagePlaceholder": "Cuéntale al desarrollador lo que tienes en mente",
+    "context": "Se envía con tu mensaje: versión de la app {{version}}, {{platform}}, el idioma de la app y tu moto más reciente.",
+    "contactLabel": "Respuesta",
+    "contactOptIn": "El desarrollador puede contactarme sobre mis comentarios",
+    "contactEmailLabel": "Email para contactarme",
+    "contactEmailPlaceholder": "nombre@ejemplo.com",
+    "contactEmailHelper": "Solo se usa para responderte. No cambia cómo inicias sesión.",
+    "contactEmailRelayHelper": "Inicias sesión con Ocultar mi correo electrónico. Déjalo vacío para recibir respuestas en esa dirección de reenvío, o añade un email personal.",
+    "emailInvalid": "Ese email no parece correcto. Revísalo e inténtalo de nuevo.",
+    "send": "Enviar",
+    "errorGeneric": "No se pudo enviar tu mensaje. Tu texto sigue aquí, así que inténtalo de nuevo en un momento.",
+    "errorThrottled": "Has enviado varios mensajes en poco tiempo. Inténtalo de nuevo un poco más tarde.",
+    "sentTitle": "Mensaje enviado",
+    "sentBody": "Gracias por escribir. Si aceptaste que el desarrollador te contacte, recibirás una respuesta por email.",
+    "notificationsSection": "Habla con el desarrollador",
+    "notificationsOptInSubtitle": "Respuestas sobre los comentarios que envías",
+    "notificationsEmailRelay": "Dirección de Ocultar mi correo electrónico",
+    "saveError": "No se pudo guardar el cambio. Revisa tu conexión e inténtalo de nuevo."
   },
   "quickActions": {
     "startRide": "Iniciar viaje",

@@ -352,7 +352,8 @@
     "editProfileHint": "Öffentliches Profil und Fahrerprofil bearbeiten",
     "sectionApp": "App",
     "nameLabel": "Name",
-    "publicNameLabel": "Öffentlicher Name (für andere Fahrer sichtbar)"
+    "publicNameLabel": "Öffentlicher Name (für andere Fahrer sichtbar)",
+    "sectionFeedback": "Feedback"
   },
   "onboarding": {
     "welcomeTitle": "Willkommen bei MotoVault",
@@ -1559,7 +1560,6 @@
   "support": {
     "faq": "FAQ",
     "contact": "Kontakt",
-    "emailSupport": "E-Mail-Support",
     "version": "Version {{version}}",
     "faq1Question": "Wie füge ich ein Motorrad hinzu?",
     "faq1Answer": "Öffne den Tab Garage und tippe auf +. Du kannst dein Motorrad nach Marke, Modell und Baujahr suchen.",
@@ -1573,6 +1573,34 @@
     "faq5Answer": "Ja. Wir nutzen Ende-zu-Ende-Verschlüsselung und folgen bewährten Branchenstandards. Du kannst deine Daten jederzeit in den Datenschutz-Einstellungen exportieren oder löschen.",
     "rateApp": "MotoVault bewerten",
     "rateAppSubtitle": "Sag anderen Fahrern, was du denkst"
+  },
+  "feedback": {
+    "title": "Schreib dem Entwickler",
+    "rowSubtitle": "Ideen, Fehler, alles, was dich beschäftigt",
+    "intro": "Deine Nachricht geht direkt an den Entwickler, und jede wird gelesen.",
+    "quickPickLabel": "Worum geht es?",
+    "quickPickLove": "Ich liebe …",
+    "quickPickWish": "Ich wünsche mir …",
+    "quickPickBroken": "Etwas funktioniert nicht",
+    "messageLabel": "Deine Nachricht",
+    "messagePlaceholder": "Erzähl dem Entwickler, was dich beschäftigt",
+    "context": "Mit deiner Nachricht gesendet: App-Version {{version}}, {{platform}}, deine App-Sprache und dein zuletzt bearbeitetes Motorrad.",
+    "contactLabel": "Antwort",
+    "contactOptIn": "Der Entwickler darf mich zu meinem Feedback kontaktieren",
+    "contactEmailLabel": "E-Mail für Antworten",
+    "contactEmailPlaceholder": "name@beispiel.de",
+    "contactEmailHelper": "Wird nur genutzt, um dir zu antworten. Deine Anmeldung ändert sich dadurch nicht.",
+    "contactEmailRelayHelper": "Du meldest dich mit „E-Mail-Adresse verbergen“ an. Lass das Feld leer, um Antworten an diese Weiterleitungsadresse zu bekommen, oder gib eine private E-Mail an.",
+    "emailInvalid": "Diese E-Mail-Adresse sieht nicht richtig aus. Bitte prüf sie und versuch es erneut.",
+    "send": "Senden",
+    "errorGeneric": "Deine Nachricht konnte nicht gesendet werden. Dein Text ist noch da – versuch es gleich noch einmal.",
+    "errorThrottled": "Du hast in kurzer Zeit mehrere Nachrichten gesendet. Bitte versuch es etwas später noch einmal.",
+    "sentTitle": "Nachricht gesendet",
+    "sentBody": "Danke fürs Schreiben. Wenn der Entwickler dich kontaktieren darf, bekommst du eine Antwort per E-Mail.",
+    "notificationsSection": "Mit dem Entwickler sprechen",
+    "notificationsOptInSubtitle": "Antworten zu deinem Feedback",
+    "notificationsEmailRelay": "Adresse von „E-Mail-Adresse verbergen“",
+    "saveError": "Die Änderung konnte nicht gespeichert werden. Prüf deine Verbindung und versuch es erneut."
   },
   "quickActions": {
     "startRide": "Fahrt starten",

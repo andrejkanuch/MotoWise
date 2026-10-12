@@ -1,0 +1,3 @@
+mutation SendFeedback($input: SendFeedbackInput!) {
+  sendFeedback(input: $input)
+}

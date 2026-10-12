@@ -42,6 +42,8 @@ export const PROFILE_ROUTE = {
   PREFERENCE: '/(tabs)/(profile)/preference/[key]',
   NOTIFICATIONS: '/(tabs)/(profile)/notifications',
   SUPPORT: '/(tabs)/(profile)/support',
+  /** "Write to the developer" form. */
+  FEEDBACK: '/(tabs)/(profile)/feedback',
   PRIVACY: '/(tabs)/(profile)/privacy',
   EDIT_PROFILE: '/(tabs)/(profile)/edit-profile',
   /** Profile's own copy of the garage add-bike sheet (closes back to Profile). */

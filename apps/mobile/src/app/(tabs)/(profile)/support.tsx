@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
-import * as Linking from 'expo-linking';
-import { ChevronDown, ChevronUp, Mail, Star } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { ChevronDown, ChevronUp, MessageSquare, Star } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -11,13 +11,12 @@ import {
   ESettingsGroup,
   ESettingsRow,
 } from '@/components/ui/editorial';
+import { PROFILE_ROUTE } from '@/config/routes';
 import { openStoreReviewPage, REVIEW_STORE_SURFACE } from '@/lib/store-review';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, readableWidth, space, type } from '@/theme/type';
 import { triggerImpact, triggerSelection } from '@/utils/haptics';
 
-const SUPPORT_EMAIL = 'support@motovault.app';
-const SUPPORT_MAILTO = `mailto:${SUPPORT_EMAIL}?subject=MotoVault Support`;
 const ROW_MIN_HEIGHT = process.env.EXPO_OS === 'android' ? 48 : 44;
 
 const FAQ_ITEMS = [
@@ -113,11 +112,6 @@ export default function SupportScreen() {
   const { t } = useTranslation();
   const { t: theme } = useEditorialTheme();
 
-  const handleContactSupport = useCallback(() => {
-    triggerImpact();
-    Linking.openURL(SUPPORT_MAILTO);
-  }, []);
-
   const handleRateApp = useCallback(() => {
     triggerImpact();
     openStoreReviewPage(REVIEW_STORE_SURFACE.SUPPORT);
@@ -155,11 +149,11 @@ export default function SupportScreen() {
         <ESectionLabel label={t('support.contact', { defaultValue: 'Contact Us' })} />
         <ESettingsGroup>
           <ESettingsRow
-            icon={Mail}
-            title={t('support.emailSupport', { defaultValue: 'Email Support' })}
-            subtitle={SUPPORT_EMAIL}
-            onPress={handleContactSupport}
-            testID="support-email"
+            icon={MessageSquare}
+            title={t('feedback.title')}
+            subtitle={t('feedback.rowSubtitle')}
+            onPress={() => router.push(PROFILE_ROUTE.FEEDBACK)}
+            testID="support-feedback"
           />
           <ESettingsRow
             icon={Star}

@@ -352,7 +352,8 @@
     "editProfileHint": "Modifica il profilo pubblico e il profilo di guida",
     "sectionApp": "App",
     "nameLabel": "Nome",
-    "publicNameLabel": "Nome pubblico (visibile agli altri motociclisti)"
+    "publicNameLabel": "Nome pubblico (visibile agli altri motociclisti)",
+    "sectionFeedback": "Feedback"
   },
   "onboarding": {
     "welcomeTitle": "Benvenuto su MotoVault",
@@ -1580,7 +1581,6 @@
   "support": {
     "faq": "FAQ",
     "contact": "Contattaci",
-    "emailSupport": "Supporto via email",
     "version": "Versione {{version}}",
     "faq1Question": "Come aggiungo una moto?",
     "faq1Answer": "Vai nella scheda Garage e tocca il pulsante +. Puoi cercare la tua moto per marca, modello e anno.",
@@ -1594,6 +1594,34 @@
     "faq5Answer": "Sì. Usiamo la crittografia end-to-end e seguiamo le migliori pratiche del settore. Puoi esportare o eliminare i tuoi dati in qualsiasi momento dalle impostazioni Privacy.",
     "rateApp": "Valuta MotoVault",
     "rateAppSubtitle": "Racconta agli altri motociclisti cosa ne pensi"
+  },
+  "feedback": {
+    "title": "Scrivi allo sviluppatore",
+    "rowSubtitle": "Idee, bug, qualsiasi cosa ti passi per la testa",
+    "intro": "Il tuo messaggio arriva direttamente allo sviluppatore, e vengono letti tutti.",
+    "quickPickLabel": "Di cosa si tratta?",
+    "quickPickLove": "Adoro…",
+    "quickPickWish": "Vorrei…",
+    "quickPickBroken": "Qualcosa non funziona",
+    "messageLabel": "Il tuo messaggio",
+    "messagePlaceholder": "Racconta allo sviluppatore cosa hai in mente",
+    "context": "Inviato con il tuo messaggio: versione dell’app {{version}}, {{platform}}, la lingua dell’app e la tua moto più recente.",
+    "contactLabel": "Risposta",
+    "contactOptIn": "Lo sviluppatore può contattarmi riguardo al mio feedback",
+    "contactEmailLabel": "Email per contattarmi",
+    "contactEmailPlaceholder": "nome@esempio.it",
+    "contactEmailHelper": "Usata solo per risponderti. Non cambia il modo in cui accedi.",
+    "contactEmailRelayHelper": "Accedi con Nascondi la mia email. Lascia vuoto per ricevere le risposte a quell’indirizzo di inoltro, oppure aggiungi un’email personale.",
+    "emailInvalid": "Questa email non sembra corretta. Controllala e riprova.",
+    "send": "Invia",
+    "errorGeneric": "Impossibile inviare il messaggio. Il tuo testo è ancora qui, riprova tra un attimo.",
+    "errorThrottled": "Hai inviato diversi messaggi in poco tempo. Riprova un po’ più tardi.",
+    "sentTitle": "Messaggio inviato",
+    "sentBody": "Grazie per aver scritto. Se hai accettato che lo sviluppatore ti contatti, riceverai una risposta via email.",
+    "notificationsSection": "Parla con lo sviluppatore",
+    "notificationsOptInSubtitle": "Risposte sul feedback che invii",
+    "notificationsEmailRelay": "Indirizzo di Nascondi la mia email",
+    "saveError": "Impossibile salvare la modifica. Controlla la connessione e riprova."
   },
   "quickActions": {
     "startRide": "Inizia viaggio",

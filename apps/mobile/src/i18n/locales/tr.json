@@ -352,7 +352,8 @@
     "editProfileHint": "Herkese açık profilini ve sürüş profilini düzenle",
     "sectionApp": "Uygulama",
     "nameLabel": "Ad",
-    "publicNameLabel": "Herkese açık ad (diğer sürücülere görünür)"
+    "publicNameLabel": "Herkese açık ad (diğer sürücülere görünür)",
+    "sectionFeedback": "Geri bildirim"
   },
   "onboarding": {
     "welcomeTitle": "MotoVault'a Hoşgeldin",
@@ -1559,7 +1560,6 @@
   "support": {
     "faq": "Sıkça Sorulan Sorular",
     "contact": "Bize Ulaşın",
-    "emailSupport": "E-posta Desteği",
     "version": "Surum {{version}}",
     "faq1Question": "Nasıl motosiklet eklerim?",
     "faq1Answer": "Garaj sekmesine git ve + düğmesine dokun. Motosikletini marka, model ve yıla göre arayabilirsin.",
@@ -1573,6 +1573,34 @@
     "faq5Answer": "Evet. Uçtan uca şifreleme kullanıyor ve sektörün en iyi uygulamalarını izliyoruz. Verilerini istediğin zaman Gizlilik ayarlarından dışa aktarabilir veya silebilirsin.",
     "rateApp": "MotoVault'u değerlendir",
     "rateAppSubtitle": "Diğer sürücülere ne düşündüğünü anlat"
+  },
+  "feedback": {
+    "title": "Geliştiriciye yaz",
+    "rowSubtitle": "Fikirler, hatalar, aklındaki her şey",
+    "intro": "Mesajın doğrudan geliştiriciye gider ve her biri okunur.",
+    "quickPickLabel": "Ne hakkında?",
+    "quickPickLove": "Çok seviyorum…",
+    "quickPickWish": "Keşke…",
+    "quickPickBroken": "Bir şey bozuk",
+    "messageLabel": "Mesajın",
+    "messagePlaceholder": "Geliştiriciye aklındakini anlat",
+    "context": "Mesajınla birlikte gönderilir: uygulama sürümü {{version}}, {{platform}}, uygulama dilin ve en son motosikletin.",
+    "contactLabel": "Yanıt",
+    "contactOptIn": "Geliştirici geri bildirimim hakkında benimle iletişime geçebilir",
+    "contactEmailLabel": "İletişim için e-posta",
+    "contactEmailPlaceholder": "ad@ornek.com",
+    "contactEmailHelper": "Yalnızca sana yanıt vermek için kullanılır. Giriş yapma şeklini değiştirmez.",
+    "contactEmailRelayHelper": "E-postamı Gizle ile giriş yapıyorsun. Yanıtları o aktarma adresine almak için boş bırak ya da kişisel bir e-posta ekle.",
+    "emailInvalid": "Bu e-posta doğru görünmüyor. Kontrol edip tekrar dene.",
+    "send": "Gönder",
+    "errorGeneric": "Mesajın gönderilemedi. Metnin hâlâ burada, birazdan tekrar dene.",
+    "errorThrottled": "Kısa sürede birkaç mesaj gönderdin. Lütfen biraz sonra tekrar dene.",
+    "sentTitle": "Mesaj gönderildi",
+    "sentBody": "Yazdığın için teşekkürler. Geliştiricinin seninle iletişime geçmesine izin verdiysen yanıt e-postayla gelecek.",
+    "notificationsSection": "Geliştiriciyle konuş",
+    "notificationsOptInSubtitle": "Gönderdiğin geri bildirimlere yanıtlar",
+    "notificationsEmailRelay": "E-postamı Gizle adresi",
+    "saveError": "Değişiklik kaydedilemedi. Bağlantını kontrol edip tekrar dene."
   },
   "quickActions": {
     "startRide": "Sürüşe Başla",

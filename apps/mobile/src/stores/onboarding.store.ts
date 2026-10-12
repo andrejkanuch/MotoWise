@@ -106,6 +106,13 @@ interface OnboardingState {
   completionSent: boolean;
   setCompletionSent: (sent: boolean) => void;
   /**
+   * The notifications step's unchecked "the developer may contact me" line.
+   * Sent with `completeOnboarding` (only when true), which saves it to the
+   * account as `preferences.feedbackContact`.
+   */
+  feedbackContactOptIn: boolean;
+  setFeedbackContactOptIn: (optIn: boolean) => void;
+  /**
    * Sign-out: drops the whole onboarding run — answers, resume point and the
    * completion flags. Onboarding progress belongs to the account that made it:
    * keeping the answers let the next account on the device "resume" at the last
@@ -161,6 +168,7 @@ const initialState = {
   intentResolved: false,
   awaitingGarageCta: false,
   completionSent: false,
+  feedbackContactOptIn: false,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -190,6 +198,7 @@ export const useOnboardingStore = create<OnboardingState>()(
       setIntentResolved: (intentResolved) => set({ intentResolved }),
       setAwaitingGarageCta: (awaitingGarageCta) => set({ awaitingGarageCta }),
       setCompletionSent: (completionSent) => set({ completionSent }),
+      setFeedbackContactOptIn: (feedbackContactOptIn) => set({ feedbackContactOptIn }),
       // intentResolved is per-process (first-launch intent resolution already
       // settled for this run of the app), not part of an account's onboarding;
       // resetting it would make the next account's paywall wait for a
@@ -200,7 +209,7 @@ export const useOnboardingStore = create<OnboardingState>()(
     }),
     {
       name: 'onboarding-state',
-      version: 8,
+      version: 9,
       storage: createJSONStorage(() => createZustandMMKVStorage('onboarding-store')),
       partialize: ({
         setExperienceLevel,
@@ -225,6 +234,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         setIntentResolved,
         setAwaitingGarageCta,
         setCompletionSent,
+        setFeedbackContactOptIn,
         resetForSignOut,
         // intentResolved is a per-process resolution flag — never persist it, or a
         // stale `true` would let a later launch skip waiting for the fresh read.
@@ -266,6 +276,11 @@ export const useOnboardingStore = create<OnboardingState>()(
         // V8: web→app intent — resolved "which bike" from install referrer/clipboard.
         if (version < 8) {
           state.pendingIntent = state.pendingIntent ?? null;
+        }
+
+        // V9: contact opt-in line on the notifications step (unchecked by default).
+        if (version < 9) {
+          state.feedbackContactOptIn = state.feedbackContactOptIn ?? false;
         }
 
         if (version < 3) {

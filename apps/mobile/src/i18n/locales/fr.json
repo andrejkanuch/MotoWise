@@ -352,7 +352,8 @@
     "editProfileHint": "Modifier ton profil public et ton profil de motard",
     "sectionApp": "Application",
     "nameLabel": "Nom",
-    "publicNameLabel": "Nom public (visible par les autres motards)"
+    "publicNameLabel": "Nom public (visible par les autres motards)",
+    "sectionFeedback": "Vos retours"
   },
   "onboarding": {
     "welcomeTitle": "Bienvenue sur MotoVault",
@@ -1580,7 +1581,6 @@
   "support": {
     "faq": "FAQ",
     "contact": "Nous contacter",
-    "emailSupport": "Support par e-mail",
     "version": "Version {{version}}",
     "faq1Question": "Comment ajouter une moto ?",
     "faq1Answer": "Va dans l’onglet Garage et touche le bouton +. Tu peux chercher ta moto par marque, modèle et année.",
@@ -1594,6 +1594,34 @@
     "faq5Answer": "Oui. Nous utilisons le chiffrement de bout en bout et suivons les bonnes pratiques du secteur. Tu peux exporter ou supprimer tes données à tout moment dans les réglages de Confidentialité.",
     "rateApp": "Noter MotoVault",
     "rateAppSubtitle": "Dites aux autres motards ce que vous en pensez"
+  },
+  "feedback": {
+    "title": "Écrire au développeur",
+    "rowSubtitle": "Idées, bugs, tout ce qui vous passe par la tête",
+    "intro": "Votre message arrive directement chez le développeur, et chacun est lu.",
+    "quickPickLabel": "De quoi s’agit-il ?",
+    "quickPickLove": "J’adore…",
+    "quickPickWish": "J’aimerais…",
+    "quickPickBroken": "Quelque chose ne marche pas",
+    "messageLabel": "Votre message",
+    "messagePlaceholder": "Dites au développeur ce que vous avez en tête",
+    "context": "Envoyé avec votre message : version de l’app {{version}}, {{platform}}, la langue de l’app et votre moto la plus récente.",
+    "contactLabel": "Réponse",
+    "contactOptIn": "Le développeur peut me contacter au sujet de mon retour",
+    "contactEmailLabel": "E-mail pour me joindre",
+    "contactEmailPlaceholder": "nom@exemple.fr",
+    "contactEmailHelper": "Utilisé uniquement pour vous répondre. Cela ne change pas votre façon de vous connecter.",
+    "contactEmailRelayHelper": "Vous vous connectez avec Masquer mon adresse e-mail. Laissez ce champ vide pour recevoir les réponses sur cette adresse relais, ou ajoutez un e-mail personnel.",
+    "emailInvalid": "Cet e-mail ne semble pas correct. Vérifiez-le et réessayez.",
+    "send": "Envoyer",
+    "errorGeneric": "Impossible d’envoyer votre message. Votre texte est toujours là, réessayez dans un instant.",
+    "errorThrottled": "Vous avez envoyé plusieurs messages en peu de temps. Réessayez un peu plus tard.",
+    "sentTitle": "Message envoyé",
+    "sentBody": "Merci d’avoir écrit. Si vous avez accepté que le développeur vous contacte, vous recevrez une réponse par e-mail.",
+    "notificationsSection": "Parler au développeur",
+    "notificationsOptInSubtitle": "Réponses au sujet de vos retours",
+    "notificationsEmailRelay": "Adresse Masquer mon adresse e-mail",
+    "saveError": "Impossible d’enregistrer ce changement. Vérifiez votre connexion et réessayez."
   },
   "quickActions": {
     "startRide": "Démarrer un trajet",

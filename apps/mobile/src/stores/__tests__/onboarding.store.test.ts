@@ -80,3 +80,26 @@ describe('onboarding completion flags', () => {
     ).toBe(true);
   });
 });
+
+describe('contact opt-in line (persist v9)', () => {
+  it('persists the choice so a kill before personalizing keeps it', () => {
+    useOnboardingStore.getState().setFeedbackContactOptIn(true);
+
+    expect(persisted()).toMatchObject({ feedbackContactOptIn: true });
+  });
+
+  it('migrating a v8 store keeps the answers and adds the line unticked', async () => {
+    const { migrate } = useOnboardingStore.persist.getOptions();
+    if (!migrate) throw new Error('onboarding store has no migrate');
+    const v8 = {
+      ridingGoals: ['track_rides'],
+      heardFrom: 'instagram',
+      lastCompletedScreen: 'notifications',
+      pendingIntent: null,
+    };
+
+    const migrated = (await migrate(v8, 8)) as unknown as Record<string, unknown>;
+
+    expect(migrated).toEqual({ ...v8, feedbackContactOptIn: false });
+  });
+});
