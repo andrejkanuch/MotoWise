@@ -138,6 +138,10 @@ export class DataExportService {
         byUserId('document_categories'),
       ]);
 
+      // "Write to the developer" messages (00190). Copies already in the support
+      // inbox are outside this export.
+      const feedbackMessagesResult = await byUserId('feedback_messages');
+
       const exportData = {
         exportedAt: new Date().toISOString(),
         profile: profileResult.data ?? null,
@@ -156,6 +160,7 @@ export class DataExportService {
         documents: documentsResult.data ?? [],
         documentFiles: documentFilesResult.data ?? [],
         documentCategories: documentCategoriesResult.data ?? [],
+        feedbackMessages: feedbackMessagesResult.data ?? [],
       };
 
       // Store export as JSON in Supabase Storage

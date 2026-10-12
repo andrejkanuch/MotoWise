@@ -1,8 +1,44 @@
+import { type DevicePlatform, FEEDBACK_QUICK_PICK, type FeedbackQuickPick } from '@motovault/types';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
 
 const FROM_ADDRESS = 'MotoVault <noreply@motovault.app>';
+const DEFAULT_NOTIFY_EMAIL = 'support@motovault.app';
+const DRY_RUN_ERROR = 'RESEND_API_KEY not configured (dry run, not sent)';
+
+/** Outcome of one send. Callers that only fire-and-forget may ignore it. */
+export interface EmailSendResult {
+  ok: boolean;
+  error?: string;
+}
+
+export interface EmailSendOptions {
+  replyTo?: string;
+}
+
+/** A rider's "Write to the developer" message, as emailed to the support inbox. */
+export interface FeedbackNotification {
+  userId: string;
+  message: string;
+  quickPick?: FeedbackQuickPick;
+  platform: DevicePlatform;
+  appVersion: string;
+  updateId?: string | null;
+  locale: string;
+  bikeName: string | null;
+  /** Effective address the rider allowed replies to; null = no contact consent. */
+  contactEmail: string | null;
+}
+
+/** Subject labels: app constants only, never rider text. */
+const FEEDBACK_SUBJECT_LABEL: Record<FeedbackQuickPick, string> = {
+  [FEEDBACK_QUICK_PICK.LOVE]: 'I love…',
+  [FEEDBACK_QUICK_PICK.WISH]: 'I wish…',
+  [FEEDBACK_QUICK_PICK.BROKEN]: "Something's broken",
+};
+const FEEDBACK_SUBJECT_NO_PICK = 'Message';
+const NOT_PROVIDED = '—';
 
 const EMAIL_COLORS = {
   HEADING: '#0F172A',
@@ -73,6 +109,50 @@ export class EmailService {
     });
 
     await this.send(email, subject, html);
+  }
+
+  /**
+   * Emails a rider's feedback message to the support inbox. Every rider value is
+   * escaped; the subject carries only the quick-pick label. Reply-To is set only
+   * when the rider allowed contact.
+   */
+  async sendFeedbackNotification(feedback: FeedbackNotification): Promise<EmailSendResult> {
+    const notifyEmail = this.config.get<string>('NOTIFY_EMAIL') ?? DEFAULT_NOTIFY_EMAIL;
+    const label = feedback.quickPick
+      ? FEEDBACK_SUBJECT_LABEL[feedback.quickPick]
+      : FEEDBACK_SUBJECT_NO_PICK;
+    const subject = `MotoVault feedback: ${label}`;
+
+    const contextRows: Array<[string, string]> = [
+      ['App version', feedback.appVersion],
+      ['Update', feedback.updateId ?? NOT_PROVIDED],
+      ['Platform', feedback.platform],
+      ['Locale', feedback.locale],
+      ['Bike', feedback.bikeName ?? NOT_PROVIDED],
+      ['User id', feedback.userId],
+    ];
+    const contextHtml = contextRows
+      .map(
+        ([name, value]) =>
+          `<tr><td style="padding: 4px 12px 4px 0; color: ${EMAIL_COLORS.MUTED};">${name}</td><td style="padding: 4px 0; color: ${EMAIL_COLORS.HEADING};">${escapeHtml(value)}</td></tr>`,
+      )
+      .join('');
+    const contactHtml = feedback.contactEmail
+      ? `The rider allows contact about this feedback. Reply to this email to reach them at <strong>${escapeHtml(feedback.contactEmail)}</strong>.`
+      : 'The rider did not opt in to contact. Do not reply; identify them only by the user id above.';
+
+    const html = renderEmailLayout({
+      title: escapeHtml(label),
+      bodyHtml: `
+        <p style="font-size: 15px; color: ${EMAIL_COLORS.HEADING}; background: ${EMAIL_COLORS.HIGHLIGHT_BG}; padding: 12px 16px; border-radius: 8px; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(feedback.message)}</p>
+        <table style="font-size: 13px; margin: 16px 0; border-collapse: collapse;">${contextHtml}</table>
+        <p style="font-size: 14px; color: ${EMAIL_COLORS.BODY}; line-height: 1.6;">${contactHtml}</p>
+      `,
+    });
+
+    return this.send(notifyEmail, subject, html, {
+      replyTo: feedback.contactEmail ?? undefined,
+    });
   }
 
   async sendAccountDeletionConfirmation(email: string, fullName?: string): Promise<void> {
@@ -172,10 +252,15 @@ export class EmailService {
     );
   }
 
-  private async send(to: string, subject: string, html: string): Promise<void> {
+  private async send(
+    to: string,
+    subject: string,
+    html: string,
+    options: EmailSendOptions = {},
+  ): Promise<EmailSendResult> {
     if (!this.resend) {
       this.logger.warn(`[DRY RUN] Email to ${to}: ${subject}`);
-      return;
+      return { ok: false, error: DRY_RUN_ERROR };
     }
 
     try {
@@ -184,17 +269,21 @@ export class EmailService {
         to,
         subject,
         html,
+        ...(options.replyTo && { replyTo: options.replyTo }),
       });
 
       if (error) {
-        this.logger.error(`Failed to send email to ${to}: ${JSON.stringify(error)}`);
-        return;
+        const detail = JSON.stringify(error);
+        this.logger.error(`Failed to send email to ${to}: ${detail}`);
+        return { ok: false, error: detail };
       }
 
       this.logger.log(`Email sent to ${to}: ${subject}`);
+      return { ok: true };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       this.logger.error(`Email send error to ${to}: ${message}`);
+      return { ok: false, error: message };
     }
   }
 }

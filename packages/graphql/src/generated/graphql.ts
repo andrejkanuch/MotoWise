@@ -350,6 +350,8 @@ export type CompleteOnboardingInput = {
   experienceLevel: Scalars['String']['input'];
   /** Meta click ID from deep link for CAPI attribution */
   fbclid?: InputMaybe<Scalars['String']['input']>;
+  /** Sent only when the contact opt-in line was ticked; saved with the account email */
+  feedbackContactOptIn?: InputMaybe<FeedbackContactOptInInput>;
   lastServiceDate?: InputMaybe<Scalars['String']['input']>;
   learningFormats: Array<Scalars['String']['input']>;
   maintenanceReminders?: InputMaybe<Scalars['Boolean']['input']>;
@@ -784,6 +786,13 @@ export type FeedRider = {
   avatarUrl?: Maybe<Scalars['String']['output']>;
   displayName: Scalars['String']['output'];
   publicUsername: Scalars['String']['output'];
+};
+
+export type FeedbackContactOptInInput = {
+  /** App locale the opt-in line was shown in */
+  locale: Scalars['String']['input'];
+  /** FEEDBACK_CONTACT_WORDING_VERSION shown with the opt-in line */
+  wordingVersion: Scalars['Int']['input'];
 };
 
 export enum FlagStatus {
@@ -1314,6 +1323,8 @@ export type Mutation = {
   saveTrip: Scalars['Boolean']['output'];
   scanReceipt: ReceiptScanResult;
   scheduleBlogPost: BlogPost;
+  /** Send a message to the developer. Saved, then emailed to the support inbox. Idempotent per clientId. */
+  sendFeedback: Scalars['Boolean']['output'];
   setTripParticipantRole: Scalars['Boolean']['output'];
   shareRide: Scalars['Boolean']['output'];
   /** Share a completed ride as a published template trip on Discover. Replaces shareRideToDiscover. */
@@ -1759,6 +1770,11 @@ export type MutationScanReceiptArgs = {
 
 export type MutationScheduleBlogPostArgs = {
   input: ScheduleBlogPostInput;
+};
+
+
+export type MutationSendFeedbackArgs = {
+  input: SendFeedbackInput;
 };
 
 
@@ -2907,6 +2923,28 @@ export type SearchArticlesInput = {
   difficulty?: InputMaybe<ArticleDifficulty>;
   first?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SendFeedbackInput = {
+  appVersion: Scalars['String']['input'];
+  /** Client-generated UUID per draft; reuse it on retry so the message is saved once */
+  clientId: Scalars['ID']['input'];
+  /** Email to reach the rider at; omit or null to use the account email */
+  contactEmail?: InputMaybe<Scalars['String']['input']>;
+  /** The developer may contact me about my feedback */
+  contactOptIn: Scalars['Boolean']['input'];
+  /** FEEDBACK_CONTACT_WORDING_VERSION shown with the opt-in */
+  contactWordingVersion: Scalars['Int']['input'];
+  /** App locale the form was shown in */
+  locale: Scalars['String']['input'];
+  /** 1-4000 characters after trimming */
+  message: Scalars['String']['input'];
+  /** ios | android */
+  platform: Scalars['String']['input'];
+  /** love | wish | broken */
+  quickPick?: InputMaybe<Scalars['String']['input']>;
+  /** expo-updates update id, when running an update */
+  updateId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type SetParticipantRoleInput = {

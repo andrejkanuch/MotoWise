@@ -29,6 +29,7 @@ import { EmailModule } from './modules/email/email.module';
 import { EntitlementsModule } from './modules/entitlements/entitlements.module';
 import { ExpensesModule } from './modules/expenses/expenses.module';
 import { FeedModule } from './modules/feed/feed.module';
+import { FeedbackModule } from './modules/feedback/feedback.module';
 import { FollowsModule } from './modules/follows/follows.module';
 import { FuelStopsModule } from './modules/fuel-stops/fuel-stops.module';
 import { GroupRidesModule } from './modules/group-rides/group-rides.module';
@@ -114,6 +115,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     DiagnosticsModule,
     DocumentsModule,
     ExpensesModule,
+    FeedbackModule,
     FeedModule,
     FollowsModule,
     GroupRidesModule,
