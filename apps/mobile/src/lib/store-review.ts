@@ -1,3 +1,4 @@
+import { DEVICE_PLATFORM } from '@motovault/types';
 import { differenceInMilliseconds, isAfter, subDays } from 'date-fns';
 import { AppState, Linking } from 'react-native';
 import { createMMKV, type MMKV } from 'react-native-mmkv';
@@ -93,7 +94,7 @@ const COOLDOWN_KEY = 'review:lastRequestedAt';
 const LEGACY_KEYS = ['review:actionCount', 'review:version'] as const;
 const MS_PER_DAY = 86_400_000;
 const SCORE_DECIMALS = 10;
-const APP_STATE_ACTIVE = 'active';
+export const APP_STATE_ACTIVE = 'active';
 
 interface ScoreEvent {
   /** Action. */
@@ -228,10 +229,10 @@ export async function maybeRequestReview(
   return true;
 }
 
-/** What the ride summary already fetched about the rider's recent rides. */
-export interface RideReviewOverview {
-  lastRideId: string | null;
-  last30DaysRideCount: number;
+/** The slice of the ride summary's `rideOverview` query the ride moment reads. */
+export interface RideOverviewSnapshot {
+  lastRide?: { id: string } | null;
+  last30Days: { rideCount: number };
 }
 
 export interface RideReviewGateInput {
@@ -240,7 +241,7 @@ export interface RideReviewGateInput {
   rideId: string;
   /** This device's saved-ride count for the rider, including this ride. */
   localRideCount: number;
-  overview: RideReviewOverview | null;
+  overview: RideOverviewSnapshot | null | undefined;
 }
 
 /**
@@ -259,15 +260,14 @@ export function rideReviewGate({
 }: RideReviewGateInput): { scores: boolean; eligible: boolean } {
   const scores =
     distanceM >= REVIEW_CONFIG.rideMinDistanceM && durationS >= REVIEW_CONFIG.rideMinDurationS;
-  const overviewCountsThisRide = overview?.lastRideId === rideId;
+  const overviewCountsThisRide = overview?.lastRide?.id === rideId;
   const priorRideInOverview = overview
-    ? overview.last30DaysRideCount >= (overviewCountsThisRide ? 2 : 1)
+    ? overview.last30Days.rideCount >= (overviewCountsThisRide ? 2 : 1)
     : false;
   return { scores, eligible: scores && (localRideCount >= 2 || priorRideInOverview) };
 }
 
 const IOS_REVIEW_HOLD_MS = 1500;
-const PLATFORM_IOS = 'ios';
 
 /**
  * How long a screen that is about to navigate away waits after a request, so
@@ -275,13 +275,7 @@ const PLATFORM_IOS = 'ios';
  * the flow ends; iOS gives no shown or dismissed signal.
  */
 export function reviewDialogHoldMs(os: string | undefined): number {
-  return os === PLATFORM_IOS ? IOS_REVIEW_HOLD_MS : 0;
-}
-
-/** The slice of the ride summary's `rideOverview` query the ride moment reads. */
-export interface RideOverviewSnapshot {
-  lastRide?: { id: string } | null;
-  last30Days: { rideCount: number };
+  return os === DEVICE_PLATFORM.IOS ? IOS_REVIEW_HOLD_MS : 0;
 }
 
 /**
@@ -290,21 +284,8 @@ export interface RideOverviewSnapshot {
  * dialog has had time to open (see {@link reviewDialogHoldMs}) so the caller
  * navigates away after it, not before.
  */
-export async function requestRideReview({
-  overview,
-  ...ride
-}: Omit<RideReviewGateInput, 'overview'> & {
-  overview: RideOverviewSnapshot | null | undefined;
-}): Promise<void> {
-  const gate = rideReviewGate({
-    ...ride,
-    overview: overview
-      ? {
-          lastRideId: overview.lastRide?.id ?? null,
-          last30DaysRideCount: overview.last30Days.rideCount,
-        }
-      : null,
-  });
+export async function requestRideReview(ride: RideReviewGateInput): Promise<void> {
+  const gate = rideReviewGate(ride);
   if (!gate.scores) return;
   const requested = await maybeRequestReview(REVIEW_MOMENT.RIDE, { eligible: gate.eligible });
   const holdMs = requested ? reviewDialogHoldMs(process.env.EXPO_OS) : 0;
@@ -345,7 +326,7 @@ const ANDROID_PACKAGE = 'com.motovault.app';
  * Apple explicitly allows `action=write-review`.
  */
 export function getWriteReviewUrls(os: string | undefined): readonly string[] {
-  if (os === PLATFORM_IOS) {
+  if (os === DEVICE_PLATFORM.IOS) {
     return [`https://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`];
   }
   return [

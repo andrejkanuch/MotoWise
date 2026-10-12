@@ -1,6 +1,6 @@
 import {
+  buildFeedbackContact,
   FEEDBACK_CONTACT_SOURCE,
-  type FeedbackContact,
   type SendFeedbackInput,
   UserPreferencesSchema,
 } from '@motovault/types';
@@ -10,7 +10,11 @@ import * as Sentry from '@sentry/nestjs';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { PG_ERROR } from '../../common/supabase/unwrap';
-import { EmailService, type FeedbackNotification } from '../email/email.service';
+import {
+  type EmailSendResult,
+  EmailService,
+  type FeedbackNotification,
+} from '../email/email.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { UsersService } from '../users/users.service';
@@ -158,19 +162,20 @@ export class FeedbackService {
   ): Promise<void> {
     const parsed = UserPreferencesSchema.safeParse(storedPreferences ?? {});
     const stored = parsed.success ? parsed.data.feedbackContact : undefined;
-    const email = input.contactEmail ?? null;
+    // The form sends contactEmail only while the rider opts in, so an opted-out
+    // send keeps whatever address is stored rather than erasing it.
+    const email = input.contactOptIn ? (input.contactEmail ?? null) : (stored?.email ?? null);
     const unchanged =
       (stored?.enabled ?? false) === input.contactOptIn && (stored?.email ?? null) === email;
     if (unchanged) return;
 
-    const feedbackContact: FeedbackContact = {
+    const feedbackContact = buildFeedbackContact({
       enabled: input.contactOptIn,
       email,
-      decidedAt: new Date().toISOString(),
       wordingVersion: input.contactWordingVersion,
       locale: input.locale,
       source: FEEDBACK_CONTACT_SOURCE.FORM,
-    };
+    });
     try {
       await this.usersService.update(userId, { preferences: { feedbackContact } });
     } catch (err) {
@@ -184,7 +189,7 @@ export class FeedbackService {
     clientId: string,
     feedback: FeedbackNotification,
   ): Promise<void> {
-    let result: { ok: boolean; error?: string };
+    let result: EmailSendResult;
     try {
       result = await this.emailService.sendFeedbackNotification(feedback);
     } catch (err) {

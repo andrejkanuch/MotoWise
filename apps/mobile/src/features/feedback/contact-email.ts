@@ -4,6 +4,7 @@ import {
   FeedbackContactEmailSchema,
   FeedbackContactSchema,
   type FeedbackContactSource,
+  buildFeedbackContact as sharedBuildFeedbackContact,
 } from '@motovault/types';
 
 /**
@@ -80,12 +81,12 @@ export function buildFeedbackContact({
   source: FeedbackContactSource;
   now?: Date;
 }): FeedbackContact {
-  return {
+  return sharedBuildFeedbackContact({
     enabled,
     email,
-    decidedAt: now.toISOString(),
     wordingVersion: FEEDBACK_CONTACT_WORDING_VERSION,
     locale,
     source,
-  };
+    now,
+  });
 }

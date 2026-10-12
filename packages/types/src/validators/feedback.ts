@@ -54,6 +54,14 @@ export const FeedbackContactSchema = z.object({
 });
 export type FeedbackContact = z.infer<typeof FeedbackContactSchema>;
 
+/** Builds the whole `feedbackContact` object every writer must send, stamping `decidedAt`. */
+export function buildFeedbackContact({
+  now = new Date(),
+  ...choice
+}: Omit<FeedbackContact, 'decidedAt'> & { now?: Date }): FeedbackContact {
+  return { ...choice, decidedAt: now.toISOString() };
+}
+
 export const SendFeedbackInputSchema = z.object({
   /** Client-generated per draft; reused across retries so a retried insert is a no-op. */
   clientId: z.string().uuid(),

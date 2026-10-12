@@ -1,11 +1,10 @@
 import { differenceInMinutes } from 'date-fns';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
-import { REVIEW_ACTION, recordReviewAction } from '../lib/store-review';
+import { APP_STATE_ACTIVE, REVIEW_ACTION, recordReviewAction } from '../lib/store-review';
 
 /** App opens score for the review engine at most this often. */
 const APP_OPEN_REVIEW_INTERVAL_MIN = 30;
-const APP_STATE_ACTIVE = 'active';
 
 /**
  * Review engine: an app open (cold launch, sign-in or return to foreground)

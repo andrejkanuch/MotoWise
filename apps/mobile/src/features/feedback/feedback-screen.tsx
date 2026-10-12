@@ -22,7 +22,6 @@ import { GUTTER, radius, readableWidth, SYSTEM_WEIGHT, space, type } from '@/the
 import { triggerImpact, triggerNotification } from '@/utils/haptics';
 import { ContactCheckbox } from './contact-checkbox';
 import {
-  CONTACT_EMAIL_ERROR,
   initialContactEmailField,
   isRelayEmail,
   parseContactEmailField,
@@ -85,7 +84,7 @@ export function FeedbackScreen() {
     if (!canSend) return;
     const parsedEmail = contactOptIn ? parseContactEmailField(contactEmail, accountEmail) : null;
     if (parsedEmail && !parsedEmail.ok) {
-      setEmailInvalid(parsedEmail.error === CONTACT_EMAIL_ERROR.INVALID);
+      setEmailInvalid(true);
       return;
     }
     triggerImpact();

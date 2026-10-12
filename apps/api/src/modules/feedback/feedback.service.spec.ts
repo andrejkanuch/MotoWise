@@ -239,6 +239,44 @@ describe('FeedbackService.sendFeedback', () => {
     expect(t.usersService.update).not.toHaveBeenCalled();
   });
 
+  it('opting out from the form keeps the stored contact email', async () => {
+    const t = setup({
+      storedPreferences: {
+        feedbackContact: {
+          enabled: true,
+          email: 'me@personal.dev',
+          decidedAt: '2026-10-01T00:00:00.000Z',
+          wordingVersion: 1,
+          locale: 'en',
+          source: 'notifications',
+        },
+      },
+    });
+    await t.service.sendFeedback(USER, baseInput({ contactOptIn: false }));
+    expect(t.usersService.update).toHaveBeenCalledWith('user-1', {
+      preferences: {
+        feedbackContact: expect.objectContaining({ enabled: false, email: 'me@personal.dev' }),
+      },
+    });
+  });
+
+  it('an opted-out send leaves an already opted-out choice and its email untouched', async () => {
+    const t = setup({
+      storedPreferences: {
+        feedbackContact: {
+          enabled: false,
+          email: 'me@personal.dev',
+          decidedAt: '2026-10-01T00:00:00.000Z',
+          wordingVersion: 1,
+          locale: 'en',
+          source: 'notifications',
+        },
+      },
+    });
+    await t.service.sendFeedback(USER, baseInput({ contactOptIn: false }));
+    expect(t.usersService.update).not.toHaveBeenCalled();
+  });
+
   it('not opted in: no contact email reaches the notification', async () => {
     const t = setup({});
     await t.service.sendFeedback(USER, baseInput({ contactEmail: 'me@personal.dev' }));

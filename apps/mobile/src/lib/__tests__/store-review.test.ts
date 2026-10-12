@@ -269,7 +269,7 @@ describe('rideReviewGate', () => {
         ...LONG,
         rideId: 'r1',
         localRideCount: 1,
-        overview: { lastRideId: 'r1', last30DaysRideCount: 1 },
+        overview: { lastRide: { id: 'r1' }, last30Days: { rideCount: 1 } },
       }),
     ).toEqual({ scores: true, eligible: false });
   });
@@ -280,7 +280,7 @@ describe('rideReviewGate', () => {
         ...LONG,
         rideId: 'r1',
         localRideCount: 1,
-        overview: { lastRideId: null, last30DaysRideCount: 0 },
+        overview: { lastRide: null, last30Days: { rideCount: 0 } },
       }),
     ).toEqual({ scores: true, eligible: false });
   });
@@ -298,7 +298,7 @@ describe('rideReviewGate', () => {
         ...LONG,
         rideId: 'r9',
         localRideCount: 1,
-        overview: { lastRideId: 'r8', last30DaysRideCount: 1 },
+        overview: { lastRide: { id: 'r8' }, last30Days: { rideCount: 1 } },
       }),
     ).toEqual({ scores: true, eligible: true });
   });
@@ -309,7 +309,7 @@ describe('rideReviewGate', () => {
         ...LONG,
         rideId: 'r9',
         localRideCount: 1,
-        overview: { lastRideId: 'r9', last30DaysRideCount: 2 },
+        overview: { lastRide: { id: 'r9' }, last30Days: { rideCount: 2 } },
       }),
     ).toEqual({ scores: true, eligible: true });
   });

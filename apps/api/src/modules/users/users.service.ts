@@ -1,6 +1,6 @@
 import {
+  buildFeedbackContact,
   FEEDBACK_CONTACT_SOURCE,
-  type FeedbackContact,
   RESERVED_HANDLES,
   RESERVED_USERNAMES,
   USERNAME_REGEX,
@@ -198,15 +198,14 @@ export class UsersService {
       recallAlerts: input.recallAlerts ?? false,
       weeklySummary: input.weeklySummary ?? false,
       ...(input.feedbackContactOptIn && {
-        feedbackContact: {
+        feedbackContact: buildFeedbackContact({
           enabled: true,
           // null = use the account email; editable later in Notifications.
           email: null,
-          decidedAt: new Date().toISOString(),
           wordingVersion: input.feedbackContactOptIn.wordingVersion,
           locale: input.feedbackContactOptIn.locale,
           source: FEEDBACK_CONTACT_SOURCE.ONBOARDING,
-        } satisfies FeedbackContact,
+        }),
       }),
     };
 

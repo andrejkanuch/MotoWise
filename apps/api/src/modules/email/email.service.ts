@@ -207,7 +207,7 @@ export class EmailService {
   }
 
   async sendWaitlistNotification(email: string): Promise<void> {
-    const notifyEmail = this.config.get<string>('NOTIFY_EMAIL') ?? 'support@motovault.app';
+    const notifyEmail = this.config.get<string>('NOTIFY_EMAIL') ?? DEFAULT_NOTIFY_EMAIL;
 
     // Notify the team
     await this.send(
