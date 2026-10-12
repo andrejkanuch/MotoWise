@@ -246,7 +246,13 @@ describe('maybeRequestReview', () => {
   it('ignores malformed stored events instead of throwing', async () => {
     mockStore.set(
       'review:events:user-a',
-      JSON.stringify([null, { a: 'pro_subscribed', t: 'soon' }, 42, { a: 'unknown', t: 1 }]),
+      JSON.stringify([
+        null,
+        { a: 'pro_subscribed', t: 'soon' },
+        42,
+        { a: 'unknown', t: 1 },
+        { a: 'constructor', t: 1 },
+      ]),
     );
     recordReviewAction(REVIEW_ACTION.PRO_SUBSCRIBED);
     expect(getReviewScore()).toBeCloseTo(10);

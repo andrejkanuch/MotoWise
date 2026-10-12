@@ -132,7 +132,7 @@ function readEvents(userId: string): ScoreEvent[] {
         !!e &&
         typeof e === 'object' &&
         typeof e.a === 'string' &&
-        e.a in REVIEW_CONFIG.weights &&
+        Object.hasOwn(REVIEW_CONFIG.weights, e.a) &&
         Number.isFinite(e.t),
     );
   } catch {
