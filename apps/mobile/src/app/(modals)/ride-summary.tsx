@@ -46,12 +46,7 @@ import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../../lib/ride-analytics';
-import {
-  maybeRequestReview,
-  REVIEW_MOMENT,
-  reviewDialogHoldMs,
-  rideReviewGate,
-} from '../../lib/store-review';
+import { requestRideReview } from '../../lib/store-review';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, type } from '../../theme/type';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
@@ -325,28 +320,9 @@ export default function RideSummaryScreen() {
         });
       }
 
-      // Ask while the ride's stats are still on screen, and hold the navigation
-      // only when a request was actually made so the dialog opens over them.
+      // Ask while the ride's stats are still on screen; navigation waits for the dialog.
       const overview = overviewData?.rideOverview;
-      const reviewGate = rideReviewGate({
-        distanceM,
-        durationS,
-        rideId,
-        localRideCount,
-        overview: overview
-          ? {
-              lastRideId: overview.lastRide?.id ?? null,
-              last30DaysRideCount: overview.last30Days.rideCount,
-            }
-          : null,
-      });
-      if (reviewGate.scores) {
-        const requested = await maybeRequestReview(REVIEW_MOMENT.RIDE, {
-          eligible: reviewGate.eligible,
-        });
-        const holdMs = requested ? reviewDialogHoldMs(process.env.EXPO_OS) : 0;
-        if (holdMs > 0) await new Promise((resolve) => setTimeout(resolve, holdMs));
-      }
+      await requestRideReview({ distanceM, durationS, rideId, localRideCount, overview });
 
       router.replace('/(tabs)/(profile)');
     } catch (error) {

@@ -7,7 +7,6 @@ import { CompleteMaintenanceTaskDocument } from '@motovault/graphql';
 import { Currency, MeasurementSystem } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
 import { useQuery } from '@tanstack/react-query';
-import { differenceInMinutes } from 'date-fns';
 import * as Application from 'expo-application';
 import { useFonts } from 'expo-font';
 import * as Network from 'expo-network';
@@ -63,6 +62,7 @@ import {
 } from '../features/ride/ride-notification-response';
 import { useAnalyticsSuperProperties } from '../hooks/use-analytics-super-properties';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
+import { useReviewAppOpenScoring } from '../hooks/use-review-app-open-scoring';
 import { useRideIdleResponses } from '../hooks/use-ride-idle-responses';
 import { useScreenTracking } from '../hooks/use-screen-tracking';
 import i18n from '../i18n';
@@ -226,8 +226,6 @@ let consentPromptScheduled = false;
 
 /** Later than What's New (500 ms) so, if both are owed, consent sits on top. */
 const CONSENT_PROMPT_DELAY_MS = 700;
-/** App opens score for the review engine at most this often. */
-const APP_OPEN_REVIEW_INTERVAL_MIN = 30;
 
 function NavigationGate({ onSettled }: { onSettled: () => void }) {
   const {
@@ -921,24 +919,7 @@ function RootLayout() {
     return () => clearTimeout(timer);
   }, [session]);
 
-  // Review engine: an app open (cold launch, sign-in or return to foreground)
-  // scores at most once per APP_OPEN_REVIEW_INTERVAL_MIN for the signed-in rider.
-  const sessionUserId = session?.user?.id;
-  useEffect(() => {
-    if (!sessionUserId) return;
-    let lastOpenAt: Date | null = null;
-    const recordOpen = () => {
-      const now = new Date();
-      if (lastOpenAt && differenceInMinutes(now, lastOpenAt) < APP_OPEN_REVIEW_INTERVAL_MIN) return;
-      lastOpenAt = now;
-      recordReviewAction(REVIEW_ACTION.APP_OPEN);
-    };
-    if (AppState.currentState === 'active') recordOpen();
-    const sub = AppState.addEventListener('change', (state: string) => {
-      if (state === 'active') recordOpen();
-    });
-    return () => sub.remove();
-  }, [sessionUserId]);
+  useReviewAppOpenScoring(session?.user?.id);
 
   // Initialize RevenueCat SDK with cleanup
   useEffect(() => {

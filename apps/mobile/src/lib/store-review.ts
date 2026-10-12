@@ -278,6 +278,39 @@ export function reviewDialogHoldMs(os: string | undefined): number {
   return os === PLATFORM_IOS ? IOS_REVIEW_HOLD_MS : 0;
 }
 
+/** The slice of the ride summary's `rideOverview` query the ride moment reads. */
+export interface RideOverviewSnapshot {
+  lastRide?: { id: string } | null;
+  last30Days: { rideCount: number };
+}
+
+/**
+ * The ride moment, end to end: score a ride that meets the minimums, request
+ * the dialog when it is also at least the 2nd ride, and resolve only after the
+ * dialog has had time to open (see {@link reviewDialogHoldMs}) so the caller
+ * navigates away after it, not before.
+ */
+export async function requestRideReview({
+  overview,
+  ...ride
+}: Omit<RideReviewGateInput, 'overview'> & {
+  overview: RideOverviewSnapshot | null | undefined;
+}): Promise<void> {
+  const gate = rideReviewGate({
+    ...ride,
+    overview: overview
+      ? {
+          lastRideId: overview.lastRide?.id ?? null,
+          last30DaysRideCount: overview.last30Days.rideCount,
+        }
+      : null,
+  });
+  if (!gate.scores) return;
+  const requested = await maybeRequestReview(REVIEW_MOMENT.RIDE, { eligible: gate.eligible });
+  const holdMs = requested ? reviewDialogHoldMs(process.env.EXPO_OS) : 0;
+  if (holdMs > 0) await new Promise((resolve) => setTimeout(resolve, holdMs));
+}
+
 /** Share of the flyover that must actually play (not be scrubbed past) to count as watched. */
 const FLYOVER_MIN_PLAYED_FRACTION = 0.5;
 

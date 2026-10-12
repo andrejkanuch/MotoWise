@@ -63,6 +63,7 @@ import {
   REVIEW_MOMENT,
   REVIEW_STORE_SURFACE,
   recordReviewAction,
+  requestRideReview,
   reviewDialogHoldMs,
   rideReviewGate,
 } from '../store-review';
@@ -335,6 +336,44 @@ describe('rideReviewGate', () => {
         overview: null,
       }),
     ).toEqual({ scores: false, eligible: false });
+  });
+});
+
+describe('requestRideReview', () => {
+  const ride = { distanceM: 25_000, durationS: 1800, rideId: 'ride-2' };
+
+  it('does not ask on a first ride that the overview already counts', async () => {
+    recordReviewAction(REVIEW_ACTION.PRO_SUBSCRIBED);
+    await requestRideReview({
+      ...ride,
+      localRideCount: 1,
+      overview: { lastRide: { id: 'ride-2' }, last30Days: { rideCount: 1 } },
+    });
+    expect(mockRequestReview).not.toHaveBeenCalled();
+  });
+
+  it('asks on a qualifying 2nd ride and resolves only after the iOS hold', async () => {
+    recordReviewAction(REVIEW_ACTION.PRO_SUBSCRIBED);
+    let resolved = false;
+    const pending = requestRideReview({
+      ...ride,
+      localRideCount: 1,
+      overview: { lastRide: { id: 'ride-1' }, last30Days: { rideCount: 1 } },
+    }).then(() => {
+      resolved = true;
+    });
+    await jest.advanceTimersByTimeAsync(1000);
+    expect(mockRequestReview).toHaveBeenCalledTimes(1);
+    expect(resolved).toBe(false);
+    await jest.advanceTimersByTimeAsync(500);
+    await pending;
+    expect(resolved).toBe(true);
+  });
+
+  it('neither scores nor asks for a ride under the minimums', async () => {
+    recordReviewAction(REVIEW_ACTION.PRO_SUBSCRIBED);
+    await requestRideReview({ ...ride, distanceM: 3000, localRideCount: 5, overview: null });
+    expect(mockRequestReview).not.toHaveBeenCalled();
   });
 });
 
