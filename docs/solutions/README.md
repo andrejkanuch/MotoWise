@@ -22,6 +22,12 @@ One row per document. Search this file for a symptom or a module before debuggin
 | [renovate-dependabot-duplicate-bots.md](build-errors/renovate-dependabot-duplicate-bots.md) | Two dependency bots with contradictory rules: Renovate only, one branch | repo dependency automation, mobile build pipeline | Duplicate dependency branches for the same GitHub Actions digests; a bot bumped react-native ahead of the Expo SDK and broke pod install; expo-doctor failed the duplicate-native-module check |
 | [turbopack-stale-build-cache-drops-css.md](build-errors/turbopack-stale-build-cache-drops-css.md) | A restored Turbopack build cache shipped auth and garage routes without their CSS tokens | web build (apps/web/next.config.ts, apps/web/scripts/check-route-css.mjs) | /login, /signup, /garage and /welcome shipped to production without the --mv-* tokens; local and next dev builds were correct |
 
+## developer-experience
+
+| Document | Title | Module | Symptom |
+|---|---|---|---|
+| [local-supabase-start-fails-at-00093.md](developer-experience/local-supabase-start-fails-at-00093.md) | Local `supabase start` fails at 00093; verify an unapplied migration with checks/run.sh instead | supabase migrations | — |
+
 ## integration-issues
 
 | Document | Title | Module | Symptom |
