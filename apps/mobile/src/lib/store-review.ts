@@ -330,9 +330,11 @@ const APP_STORE_ID = '6760291360';
 const ANDROID_PACKAGE = 'com.motovault.app';
 
 /**
- * Store pages that open straight on writing a review, in the order to try.
- * Pure so both platforms are testable: jest-expo inlines `process.env.EXPO_OS`.
- * Apple explicitly allows `action=write-review`.
+ * Store pages for rating MotoVault, in the order to try. iOS opens straight on
+ * writing a review (Apple documents `action=write-review`); Google Play has no
+ * documented direct link, so Android opens the listing, where the rider taps
+ * "Write a review". Pure so both platforms are testable: jest-expo inlines
+ * `process.env.EXPO_OS`.
  */
 export function getWriteReviewUrls(os: string | undefined): readonly string[] {
   if (os === DEVICE_PLATFORM.IOS) {
@@ -345,8 +347,8 @@ export function getWriteReviewUrls(os: string | undefined): readonly string[] {
 }
 
 /**
- * Opens the store's write-a-review page for MotoVault (the "Rate MotoVault"
- * rows). Not throttled and never touches the review cooldown. Each URL is tried
+ * Opens MotoVault's store page for rating (the "Rate MotoVault" rows): the
+ * write-a-review sheet on iOS, the Play listing on Android. Not throttled and never touches the review cooldown. Each URL is tried
  * with `openURL` and the next one only when it rejects — `canOpenURL` returns
  * false negatives on Android 11+ without a `<queries>` entry.
  */
