@@ -1612,7 +1612,9 @@
     "faq4Question": "Jak zmienić język?",
     "faq4Answer": "Przejdź do Profil → Ustawienia aplikacji → Język i wybierz język.",
     "faq5Question": "Czy moje dane są bezpieczne?",
-    "faq5Answer": "Tak. Używamy szyfrowania end-to-end i stosujemy najlepsze praktyki branżowe. W każdej chwili możesz wyeksportować lub usunąć swoje dane w Ustawieniach prywatności."
+    "faq5Answer": "Tak. Używamy szyfrowania end-to-end i stosujemy najlepsze praktyki branżowe. W każdej chwili możesz wyeksportować lub usunąć swoje dane w Ustawieniach prywatności.",
+    "rateApp": "Oceń MotoVault",
+    "rateAppSubtitle": "Powiedz innym motocyklistom, co myślisz"
   },
   "quickActions": {
     "startRide": "Rozpocznij jazdę",
@@ -2457,17 +2459,6 @@
     "battery": "Akumulator",
     "general_service": "Przegląd ogólny",
     "other": "Inne"
-  },
-  "review": {
-    "softAskTitle": "Podoba Ci się MotoVault?",
-    "softAskBody": "Krótka ocena pomaga innym motocyklistom znaleźć aplikację.",
-    "softAskYes": "Uwielbiam",
-    "softAskNo": "Niezbyt",
-    "feedbackTitle": "Pomóż nam ulepszyć",
-    "feedbackBody": "Napisz, co nie działa — czytamy każdą wiadomość.",
-    "feedbackYes": "Wyślij opinię",
-    "feedbackNo": "Nie teraz",
-    "feedbackSubject": "Opinia o MotoVault"
   },
   "analyticsConsent": {
     "title": "Pomóż rozwijać MotoVault",

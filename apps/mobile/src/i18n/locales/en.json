@@ -1581,7 +1581,9 @@
     "faq4Question": "How do I change my language?",
     "faq4Answer": "Go to Profile → App settings → Language and pick the language you want.",
     "faq5Question": "Is my data secure?",
-    "faq5Answer": "Yes. We use end-to-end encryption and follow industry best practices. You can export or delete your data at any time from Privacy settings."
+    "faq5Answer": "Yes. We use end-to-end encryption and follow industry best practices. You can export or delete your data at any time from Privacy settings.",
+    "rateApp": "Rate MotoVault",
+    "rateAppSubtitle": "Tell other riders what you think"
   },
   "quickActions": {
     "startRide": "Start Ride",
@@ -2411,17 +2413,6 @@
     "battery": "Battery",
     "general_service": "General service",
     "other": "Other"
-  },
-  "review": {
-    "softAskTitle": "Enjoying MotoVault?",
-    "softAskBody": "A quick rating helps other riders find the app.",
-    "softAskYes": "Love it",
-    "softAskNo": "Not really",
-    "feedbackTitle": "Help us improve?",
-    "feedbackBody": "Tell us what's not working — we read every message.",
-    "feedbackYes": "Send feedback",
-    "feedbackNo": "Not now",
-    "feedbackSubject": "MotoVault feedback"
   },
   "analyticsConsent": {
     "title": "Help shape MotoVault",

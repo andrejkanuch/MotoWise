@@ -58,7 +58,6 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { pickImage, takePhoto, uploadBikePhoto } from '@/lib/image-upload';
 import { cancelDocumentNotificationsForBike } from '@/lib/notifications';
 import { queryKeys } from '@/lib/query-keys';
-import { maybeRequestReview, REVIEW_MILESTONE } from '@/lib/store-review';
 import { useAuthStore } from '@/stores/auth.store';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { radius, space, type } from '@/theme/type';
@@ -333,7 +332,6 @@ export default function EditBikeScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.odometer.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.all });
       triggerNotification(Haptics.NotificationFeedbackType.Success);
-      maybeRequestReview(REVIEW_MILESTONE.BIKE_EDITED);
       setExit(EXIT.SAVED);
     },
   });

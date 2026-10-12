@@ -1570,7 +1570,9 @@
     "faq4Question": "Bagaimana cara mengganti bahasa?",
     "faq4Answer": "Buka Profil → Pengaturan aplikasi → Bahasa, lalu pilih bahasa yang kamu inginkan.",
     "faq5Question": "Apakah dataku aman?",
-    "faq5Answer": "Ya. Kami menggunakan enkripsi end-to-end dan mengikuti praktik terbaik industri. Kamu bisa mengekspor atau menghapus datamu kapan saja dari pengaturan Privasi."
+    "faq5Answer": "Ya. Kami menggunakan enkripsi end-to-end dan mengikuti praktik terbaik industri. Kamu bisa mengekspor atau menghapus datamu kapan saja dari pengaturan Privasi.",
+    "rateApp": "Beri rating MotoVault",
+    "rateAppSubtitle": "Ceritakan pendapatmu ke pengendara lain"
   },
   "quickActions": {
     "startRide": "Mulai Perjalanan",
@@ -2411,17 +2413,6 @@
     "battery": "Aki",
     "general_service": "Servis umum",
     "other": "Lainnya"
-  },
-  "review": {
-    "softAskTitle": "Suka dengan MotoVault?",
-    "softAskBody": "Penilaian singkat membantu pengendara lain menemukan aplikasi ini.",
-    "softAskYes": "Suka banget",
-    "softAskNo": "Kurang",
-    "feedbackTitle": "Bantu kami berkembang",
-    "feedbackBody": "Beri tahu apa yang kurang — kami membaca setiap pesan.",
-    "feedbackYes": "Kirim masukan",
-    "feedbackNo": "Nanti saja",
-    "feedbackSubject": "Masukan MotoVault"
   },
   "analyticsConsent": {
     "title": "Bantu bentuk MotoVault",

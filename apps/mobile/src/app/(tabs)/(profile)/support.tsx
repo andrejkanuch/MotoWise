@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
-import { ChevronDown, ChevronUp, Mail } from 'lucide-react-native';
+import { ChevronDown, ChevronUp, Mail, Star } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -11,6 +11,7 @@ import {
   ESettingsGroup,
   ESettingsRow,
 } from '@/components/ui/editorial';
+import { openStoreReviewPage, REVIEW_STORE_SURFACE } from '@/lib/store-review';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, readableWidth, space, type } from '@/theme/type';
 import { triggerImpact, triggerSelection } from '@/utils/haptics';
@@ -117,6 +118,11 @@ export default function SupportScreen() {
     Linking.openURL(SUPPORT_MAILTO);
   }, []);
 
+  const handleRateApp = useCallback(() => {
+    triggerImpact();
+    openStoreReviewPage(REVIEW_STORE_SURFACE.SUPPORT);
+  }, []);
+
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   return (
@@ -154,6 +160,15 @@ export default function SupportScreen() {
             subtitle={SUPPORT_EMAIL}
             onPress={handleContactSupport}
             testID="support-email"
+          />
+          <ESettingsRow
+            icon={Star}
+            title={t('support.rateApp', { defaultValue: 'Rate MotoVault' })}
+            subtitle={t('support.rateAppSubtitle', {
+              defaultValue: 'Tell other riders what you think',
+            })}
+            onPress={handleRateApp}
+            testID="support-rate-app"
           />
         </ESettingsGroup>
         <ESectionFooter>

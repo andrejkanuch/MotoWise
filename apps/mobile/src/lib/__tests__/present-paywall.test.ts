@@ -47,6 +47,12 @@ jest.mock('../analytics', () => ({
 }));
 jest.mock('../logger', () => ({ logger: { warn: jest.fn() } }));
 
+const mockRecordReviewAction = jest.fn();
+jest.mock('../store-review', () => ({
+  REVIEW_ACTION: { PRO_SUBSCRIBED: 'pro_subscribed' },
+  recordReviewAction: (...args: unknown[]) => mockRecordReviewAction(...args),
+}));
+
 const mockShowUnavailable = jest.fn();
 jest.mock('../paywall-error-alert', () => ({
   showPaywallUnavailable: () => mockShowUnavailable(),
@@ -176,5 +182,21 @@ describe('presentPaywall', () => {
     await presentPaywall();
 
     expect(mockShowUnavailable).not.toHaveBeenCalled();
+  });
+
+  it('scores a new Pro purchase for the review engine', async () => {
+    mockPresent.mockResolvedValue('PURCHASED');
+
+    await presentPaywall();
+
+    expect(mockRecordReviewAction).toHaveBeenCalledWith('pro_subscribed');
+  });
+
+  it('does not score a restored purchase', async () => {
+    mockPresent.mockResolvedValue('RESTORED');
+
+    await presentPaywall();
+
+    expect(mockRecordReviewAction).not.toHaveBeenCalled();
   });
 });

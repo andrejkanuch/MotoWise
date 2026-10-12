@@ -19,6 +19,7 @@ import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { createFlyoverReviewGate, maybeRequestReview, REVIEW_MOMENT } from '../../lib/store-review';
 import { editorialThemes, tint } from '../../theme/editorial';
 import { type } from '../../theme/type';
 import { haversineMeters } from '../../utils/geo-utils';
@@ -212,6 +213,9 @@ export default function RideFlyoverScreen() {
   }, [waypoints.length, rideId]);
 
   const trackedCompleteRef = useRef(false);
+  // Once per screen visit: scrubbing and restart never reset it.
+  const reviewGateRef = useRef<ReturnType<typeof createFlyoverReviewGate> | null>(null);
+  if (!reviewGateRef.current) reviewGateRef.current = createFlyoverReviewGate();
 
   // ─── Camera animation (smooth: 10fps with interpolated positions) ────
 
@@ -257,8 +261,10 @@ export default function RideFlyoverScreen() {
     const interval = setInterval(() => {
       // Advance progress (distance-based for constant speed)
       const dt = CAMERA_INTERVAL_MS * activeSpeed;
-      const newP = Math.min(1, progress.value + dt / TOTAL_DURATION_MS);
+      const prevP = progress.value;
+      const newP = Math.min(1, prevP + dt / TOTAL_DURATION_MS);
       progress.value = newP;
+      reviewGateRef.current?.onAdvance(prevP, newP);
 
       // Interpolated position along the route
       const currentDistM = newP * totalRouteM;
@@ -287,6 +293,7 @@ export default function RideFlyoverScreen() {
         trackedCompleteRef.current = true;
         trackEvent(AnalyticsEvent.RIDE_FLYOVER_COMPLETED, { ride_id: rideId ?? '' });
         setIsPlaying(false);
+        if (reviewGateRef.current?.onNaturalEnd()) void maybeRequestReview(REVIEW_MOMENT.FLYOVER);
       }
     }, CAMERA_INTERVAL_MS);
 

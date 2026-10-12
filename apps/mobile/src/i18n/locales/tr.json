@@ -1570,7 +1570,9 @@
     "faq4Question": "Dili nasıl değiştiririm?",
     "faq4Answer": "Profil → Uygulama ayarları → Dil bölümüne gidip istediğin dili seç.",
     "faq5Question": "Verilerim güvende mi?",
-    "faq5Answer": "Evet. Uçtan uca şifreleme kullanıyor ve sektörün en iyi uygulamalarını izliyoruz. Verilerini istediğin zaman Gizlilik ayarlarından dışa aktarabilir veya silebilirsin."
+    "faq5Answer": "Evet. Uçtan uca şifreleme kullanıyor ve sektörün en iyi uygulamalarını izliyoruz. Verilerini istediğin zaman Gizlilik ayarlarından dışa aktarabilir veya silebilirsin.",
+    "rateApp": "MotoVault'u değerlendir",
+    "rateAppSubtitle": "Diğer sürücülere ne düşündüğünü anlat"
   },
   "quickActions": {
     "startRide": "Sürüşe Başla",
@@ -2411,17 +2413,6 @@
     "battery": "Akü",
     "general_service": "Genel bakım",
     "other": "Diğer"
-  },
-  "review": {
-    "softAskTitle": "MotoVault'u beğendin mi?",
-    "softAskBody": "Kısa bir puan, diğer sürücülerin uygulamayı bulmasına yardımcı olur.",
-    "softAskYes": "Bayıldım",
-    "softAskNo": "Pek değil",
-    "feedbackTitle": "Gelişmemize yardım et",
-    "feedbackBody": "Neyin iyi olmadığını söyle — her mesajı okuyoruz.",
-    "feedbackYes": "Geri bildirim gönder",
-    "feedbackNo": "Şimdi değil",
-    "feedbackSubject": "MotoVault geri bildirim"
   },
   "analyticsConsent": {
     "title": "MotoVault'u birlikte şekillendirelim",

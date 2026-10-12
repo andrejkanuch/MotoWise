@@ -592,12 +592,11 @@ export const AnalyticsEvent = {
   DIAGNOSTIC_FAILED: 'diagnostic_failed',
   DIAGNOSTIC_LIST_VIEWED: 'diagnostic_list_viewed',
 
-  // Store review
+  // Store review. `review_prompted { moment, score }` counts native review
+  // requests (the OS decides whether a dialog shows); `review_store_page_opened
+  // { surface }` is a "Rate MotoVault" tap.
   REVIEW_PROMPTED: 'review_prompted',
-  REVIEW_SOFT_ASK_SHOWN: 'review_soft_ask_shown',
-  REVIEW_SOFT_ASK_POSITIVE: 'review_soft_ask_positive',
-  REVIEW_SOFT_ASK_NEGATIVE: 'review_soft_ask_negative',
-  REVIEW_FEEDBACK_OPENED: 'review_feedback_opened',
+  REVIEW_STORE_PAGE_OPENED: 'review_store_page_opened',
 
   // Feature usage — Learn
   ARTICLE_VIEWED: 'article_viewed',

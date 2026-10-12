@@ -1591,7 +1591,9 @@
     "faq4Question": "Comment changer de langue ?",
     "faq4Answer": "Va dans Profil → Réglages de l'app → Langue et choisis la langue souhaitée.",
     "faq5Question": "Mes données sont-elles sécurisées ?",
-    "faq5Answer": "Oui. Nous utilisons le chiffrement de bout en bout et suivons les bonnes pratiques du secteur. Tu peux exporter ou supprimer tes données à tout moment dans les réglages de Confidentialité."
+    "faq5Answer": "Oui. Nous utilisons le chiffrement de bout en bout et suivons les bonnes pratiques du secteur. Tu peux exporter ou supprimer tes données à tout moment dans les réglages de Confidentialité.",
+    "rateApp": "Noter MotoVault",
+    "rateAppSubtitle": "Dites aux autres motards ce que vous en pensez"
   },
   "quickActions": {
     "startRide": "Démarrer un trajet",
@@ -2434,17 +2436,6 @@
     "battery": "Batterie",
     "general_service": "Entretien général",
     "other": "Autre"
-  },
-  "review": {
-    "softAskTitle": "Vous aimez MotoVault ?",
-    "softAskBody": "Une note rapide aide d'autres motards à trouver l'app.",
-    "softAskYes": "J'adore",
-    "softAskNo": "Pas vraiment",
-    "feedbackTitle": "Aidez-nous à améliorer",
-    "feedbackBody": "Dites-nous ce qui ne va pas — nous lisons chaque message.",
-    "feedbackYes": "Envoyer un avis",
-    "feedbackNo": "Plus tard",
-    "feedbackSubject": "Avis MotoVault"
   },
   "analyticsConsent": {
     "title": "Aidez à façonner MotoVault",

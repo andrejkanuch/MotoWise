@@ -15,7 +15,7 @@ import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 import { userFriendlyError } from '../lib/graphql-errors';
 import { queryKeys } from '../lib/query-keys';
-import { maybeRequestReview, REVIEW_MILESTONE } from '../lib/store-review';
+import { REVIEW_ACTION, recordReviewAction } from '../lib/store-review';
 import { triggerNotification } from '../utils/haptics';
 
 interface RouterLike {
@@ -85,7 +85,7 @@ export function useCreateTripData({
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      maybeRequestReview(REVIEW_MILESTONE.TRIP_CREATED);
+      recordReviewAction(REVIEW_ACTION.EXPENSE_OR_TRIP);
       router.back();
     },
     onError: (error) => {
@@ -120,7 +120,7 @@ export function useCreateTripData({
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      maybeRequestReview(REVIEW_MILESTONE.TRIP_CREATED);
+      recordReviewAction(REVIEW_ACTION.EXPENSE_OR_TRIP);
       router.back();
     },
     onError: (error) => {

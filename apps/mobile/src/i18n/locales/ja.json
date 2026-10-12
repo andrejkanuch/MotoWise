@@ -1570,7 +1570,9 @@
     "faq4Question": "言語を変更するには？",
     "faq4Answer": "プロフィール → アプリ設定 → 言語 から、使いたい言語を選んでください。",
     "faq5Question": "データは安全ですか？",
-    "faq5Answer": "はい。エンドツーエンド暗号化を使用し、業界のベストプラクティスに従っています。データはプライバシー設定からいつでもエクスポートまたは削除できます。"
+    "faq5Answer": "はい。エンドツーエンド暗号化を使用し、業界のベストプラクティスに従っています。データはプライバシー設定からいつでもエクスポートまたは削除できます。",
+    "rateApp": "MotoVaultを評価",
+    "rateAppSubtitle": "ほかのライダーに感想を伝えましょう"
   },
   "quickActions": {
     "startRide": "ライドを開始",
@@ -2411,17 +2413,6 @@
     "battery": "バッテリー",
     "general_service": "一般整備",
     "other": "その他"
-  },
-  "review": {
-    "softAskTitle": "MotoVaultはいかがですか？",
-    "softAskBody": "評価いただくと、他のライダーがアプリを見つけやすくなります。",
-    "softAskYes": "気に入っています",
-    "softAskNo": "あまり",
-    "feedbackTitle": "改善にご協力ください",
-    "feedbackBody": "うまくいかない点を教えてください。すべてのメッセージを読んでいます。",
-    "feedbackYes": "フィードバックを送る",
-    "feedbackNo": "今はしない",
-    "feedbackSubject": "MotoVault フィードバック"
   },
   "analyticsConsent": {
     "title": "MotoVaultづくりにご協力ください",

@@ -1612,7 +1612,9 @@
     "faq4Question": "Ako zmením jazyk?",
     "faq4Answer": "Prejdi do Profil → Nastavenia aplikácie → Jazyk a vyber si jazyk.",
     "faq5Question": "Sú moje údaje v bezpečí?",
-    "faq5Answer": "Áno. Používame end-to-end šifrovanie a riadime sa osvedčenými postupmi z odvetvia. Svoje údaje môžeš kedykoľvek exportovať alebo vymazať v nastaveniach Súkromia."
+    "faq5Answer": "Áno. Používame end-to-end šifrovanie a riadime sa osvedčenými postupmi z odvetvia. Svoje údaje môžeš kedykoľvek exportovať alebo vymazať v nastaveniach Súkromia.",
+    "rateApp": "Ohodnoť MotoVault",
+    "rateAppSubtitle": "Povedz ostatným motorkárom, čo si myslíš"
   },
   "quickActions": {
     "startRide": "Začať jazdu",
@@ -2457,17 +2459,6 @@
     "battery": "Batéria",
     "general_service": "Všeobecný servis",
     "other": "Iné"
-  },
-  "review": {
-    "softAskTitle": "Páči sa ti MotoVault?",
-    "softAskBody": "Krátke hodnotenie pomôže ďalším motorkárom nájsť aplikáciu.",
-    "softAskYes": "Milujem to",
-    "softAskNo": "Nie celkom",
-    "feedbackTitle": "Pomôž nám zlepšiť sa",
-    "feedbackBody": "Napíš, čo nefunguje — čítame každú správu.",
-    "feedbackYes": "Poslať spätnú väzbu",
-    "feedbackNo": "Teraz nie",
-    "feedbackSubject": "Spätná väzba MotoVault"
   },
   "analyticsConsent": {
     "title": "Pomôž tvoriť MotoVault",

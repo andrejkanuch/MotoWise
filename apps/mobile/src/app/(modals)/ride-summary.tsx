@@ -46,7 +46,12 @@ import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../../lib/ride-analytics';
-import { maybeRequestReview, REVIEW_MILESTONE } from '../../lib/store-review';
+import {
+  maybeRequestReview,
+  REVIEW_MOMENT,
+  reviewDialogHoldMs,
+  rideReviewGate,
+} from '../../lib/store-review';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, type } from '../../theme/type';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
@@ -307,8 +312,7 @@ export default function RideSummaryScreen() {
         },
       });
       MetaAnalytics.trackLogRide();
-      recordCoreAction(CORE_ACTION_KIND.RIDE_SAVED);
-      maybeRequestReview(REVIEW_MILESTONE.RIDE_COMPLETED);
+      const localRideCount = recordCoreAction(CORE_ACTION_KIND.RIDE_SAVED);
 
       // Share to Discover (fire-and-forget, non-blocking)
       if (shareToDiscover) {
@@ -319,6 +323,29 @@ export default function RideSummaryScreen() {
             }).catch((err: unknown) => logger.warn('[RideSummary] Share to Discover failed:', err));
           });
         });
+      }
+
+      // Ask while the ride's stats are still on screen, and hold the navigation
+      // only when a request was actually made so the dialog opens over them.
+      const overview = overviewData?.rideOverview;
+      const reviewGate = rideReviewGate({
+        distanceM,
+        durationS,
+        rideId,
+        localRideCount,
+        overview: overview
+          ? {
+              lastRideId: overview.lastRide?.id ?? null,
+              last30DaysRideCount: overview.last30Days.rideCount,
+            }
+          : null,
+      });
+      if (reviewGate.scores) {
+        const requested = await maybeRequestReview(REVIEW_MOMENT.RIDE, {
+          eligible: reviewGate.eligible,
+        });
+        const holdMs = requested ? reviewDialogHoldMs(process.env.EXPO_OS) : 0;
+        if (holdMs > 0) await new Promise((resolve) => setTimeout(resolve, holdMs));
       }
 
       router.replace('/(tabs)/(profile)');
@@ -339,6 +366,7 @@ export default function RideSummaryScreen() {
     motorcycleId,
     maxSpeedMps,
     avgSpeedMps,
+    overviewData?.rideOverview,
   ]);
 
   const handleDiscard = useCallback(() => {
