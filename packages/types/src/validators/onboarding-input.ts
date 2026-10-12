@@ -11,6 +11,7 @@ import {
   RidingFrequency,
   RidingGoal,
 } from '../constants/enums';
+import { FeedbackLocaleSchema, FeedbackWordingVersionSchema } from './feedback';
 import { MotorcycleMakeSchema } from './motorcycle';
 import { nullishToUndefined } from './nullish';
 
@@ -61,6 +62,16 @@ export const CompleteOnboardingInputSchema = z.object({
   currency: nullishToUndefined(z.enum(currencyValues)),
   fbclid: nullishToUndefined(z.string().max(256)),
   eventId: nullishToUndefined(z.string().uuid()),
+  /**
+   * Sent only when the rider ticked the contact opt-in line on the onboarding
+   * notifications step; the API stores it as preferences.feedbackContact.
+   */
+  feedbackContactOptIn: nullishToUndefined(
+    z.object({
+      wordingVersion: FeedbackWordingVersionSchema,
+      locale: FeedbackLocaleSchema,
+    }),
+  ),
 });
 
 export type CompleteOnboardingInput = z.infer<typeof CompleteOnboardingInputSchema>;
