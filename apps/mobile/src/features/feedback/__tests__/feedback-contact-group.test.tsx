@@ -134,6 +134,24 @@ describe('Talk to the developer (Notifications)', () => {
     expect(screen.getByTestId('toggle').props.accessibilityState.checked).toBe(false);
   });
 
+  it('waits for the first write before sending the second, so the server ends on the latest value', async () => {
+    let releaseFirst: (value: unknown) => void = () => {};
+    updateImpl = () =>
+      new Promise((resolve) => {
+        releaseFirst = resolve;
+      });
+    await renderGroup();
+    await fireEvent.press(screen.getByTestId('toggle'));
+    await fireEvent.press(screen.getByTestId('toggle'));
+    await flush();
+    expect(sentContacts().map((c) => c.enabled)).toEqual([true]);
+
+    updateImpl = () => Promise.resolve({ updateUser: { id: 'user-1' } });
+    await act(async () => releaseFirst({ updateUser: { id: 'user-1' } }));
+    await flush();
+    expect(sentContacts().map((c) => c.enabled)).toEqual([true, false]);
+  });
+
   it('a failed save puts the toggle back and says so', async () => {
     updateImpl = () => Promise.reject(new Error('Network request failed'));
     await renderGroup();

@@ -125,7 +125,16 @@ function readEvents(userId: string): ScoreEvent[] {
   if (!raw) return [];
   try {
     const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as ScoreEvent[]) : [];
+    if (!Array.isArray(parsed)) return [];
+    // Keep only well-formed events so one bad entry can't break the moment it is read at.
+    return parsed.filter(
+      (e): e is ScoreEvent =>
+        !!e &&
+        typeof e === 'object' &&
+        typeof e.a === 'string' &&
+        e.a in REVIEW_CONFIG.weights &&
+        Number.isFinite(e.t),
+    );
   } catch {
     return [];
   }

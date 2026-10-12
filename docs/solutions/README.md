@@ -26,7 +26,7 @@ One row per document. Search this file for a symptom or a module before debuggin
 
 | Document | Title | Module | Symptom |
 |---|---|---|---|
-| [local-supabase-start-fails-at-00093.md](developer-experience/local-supabase-start-fails-at-00093.md) | Local `supabase start` fails at 00093; verify an unapplied migration with checks/run.sh instead | supabase migrations | — |
+| [local-supabase-start-fails-at-00093.md](developer-experience/local-supabase-start-fails-at-00093.md) | Local `supabase start` cannot replay the migrations; verify an unapplied migration with checks/run.sh instead | supabase migrations | `supabase start` from the repo root stops replaying migrations (seen at 00093 with ll_to_earth, and at 00097/00098/00102) |
 
 ## integration-issues
 

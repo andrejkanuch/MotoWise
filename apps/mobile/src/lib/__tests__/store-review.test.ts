@@ -243,6 +243,15 @@ describe('maybeRequestReview', () => {
     expect(mockRequestReview).not.toHaveBeenCalled();
   });
 
+  it('ignores malformed stored events instead of throwing', async () => {
+    mockStore.set(
+      'review:events:user-a',
+      JSON.stringify([null, { a: 'pro_subscribed', t: 'soon' }, 42, { a: 'unknown', t: 1 }]),
+    );
+    recordReviewAction(REVIEW_ACTION.PRO_SUBSCRIBED);
+    expect(getReviewScore()).toBeCloseTo(10);
+  });
+
   it('removes the legacy per-version keys on first run without affecting eligibility', async () => {
     mockStore.set('review:version', '3.25.0');
     mockStore.set('review:actionCount', 9);

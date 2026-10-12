@@ -23,6 +23,8 @@ export function useFeedbackContactPreference() {
   const stored = readFeedbackContact(meQuery.data?.me?.preferences);
 
   const lastSentRef = useRef<FeedbackContact | null>(null);
+  /** Writes run one after another so the server always ends on the rider's latest choice. */
+  const writeQueueRef = useRef<Promise<unknown>>(Promise.resolve());
   /** The toggle as the rider last set it; null = show the stored value. */
   const [enabledOverride, setEnabledOverride] = useState<boolean | null>(null);
 
@@ -45,8 +47,10 @@ export function useFeedbackContactPreference() {
       source: FEEDBACK_CONTACT_SOURCE.NOTIFICATIONS,
     });
     lastSentRef.current = next;
+    const write = writeQueueRef.current.then(() => mutation.mutateAsync(next));
+    writeQueueRef.current = write.catch(() => undefined);
     try {
-      await mutation.mutateAsync(next);
+      await write;
       return true;
     } catch {
       if (lastSentRef.current === next) lastSentRef.current = previous;
