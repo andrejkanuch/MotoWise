@@ -16,12 +16,20 @@ const EXPECTED_AUTH_MESSAGES = [
   'authorization attempt failed for an unknown reason',
 ];
 
+// iOS reports a sign-in sheet that never opened as the SDK's catch-all code (-1), so
+// this one has no code of its own to classify by. AppAuth raises it when
+// `ASWebAuthenticationSession` is skipped (Guided Access) or refuses to start
+// (restricted or kiosk-mode device). (MOTO-VAULT-REACT-NATIVE-2B)
+const CANNOT_PRESENT_MESSAGES = ['unable to open safari'];
+
 /** How a failed OAuth attempt is presented: silently, with a specific message, or reported. */
 export const OAUTH_ERROR_KIND = {
   /** A second Google sign-in started while one was already open (double tap). Silent. */
   inProgress: 'inProgress',
   /** The device has no Google Play services (e.g. Huawei without GMS). Guide to email. */
   noPlayServices: 'noPlayServices',
+  /** The OS would not open the Google sign-in sheet. Nothing was shown; retry or use email. */
+  cannotPresent: 'cannotPresent',
   /** A normal user outcome such as cancelling. Not a bug. */
   expected: 'expected',
   /** Anything else: a real failure to report. */
@@ -42,6 +50,7 @@ export class GoogleSignInInProgressError extends Error {
 const GOOGLE_CODE_KIND: Readonly<Record<string, OAuthErrorKind>> = {
   [statusCodes.IN_PROGRESS]: OAUTH_ERROR_KIND.inProgress,
   [statusCodes.PLAY_SERVICES_NOT_AVAILABLE]: OAUTH_ERROR_KIND.noPlayServices,
+  [statusCodes.NULL_PRESENTER]: OAUTH_ERROR_KIND.cannotPresent,
 };
 
 export function classifyOAuthError(err: unknown): OAuthErrorKind {
@@ -51,6 +60,7 @@ export function classifyOAuthError(err: unknown): OAuthErrorKind {
     if (kind) return kind;
   }
   const msg = err instanceof Error ? err.message.toLowerCase() : '';
+  if (CANNOT_PRESENT_MESSAGES.some((m) => msg.includes(m))) return OAUTH_ERROR_KIND.cannotPresent;
   return EXPECTED_AUTH_MESSAGES.some((m) => msg.includes(m))
     ? OAUTH_ERROR_KIND.expected
     : OAUTH_ERROR_KIND.unexpected;

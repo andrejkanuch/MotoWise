@@ -64,6 +64,7 @@
       },
       "env": {
         "EXPO_PUBLIC_OB_VARIANT": "invested",
+        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "e2e",
         "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     }

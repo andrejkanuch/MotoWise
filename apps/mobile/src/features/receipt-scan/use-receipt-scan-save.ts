@@ -20,6 +20,7 @@ import { EXPENSE_ENTRY_SOURCE, trackExpenseAdded } from '../../lib/expense-analy
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
+import { REVIEW_ACTION, recordReviewAction } from '../../lib/store-review';
 import { triggerNotification } from '../../utils/haptics';
 import { deleteDurablePhoto } from './durable-receipt-photo';
 import { unparkScan } from './parked-scan-store';
@@ -257,6 +258,8 @@ export function useReceiptScanSave(params: UseReceiptScanSaveParams) {
         if (recordType === RECEIPT_REVIEW_TYPE.MAINTENANCE) {
           recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);
         }
+        // Any scan save scores like a logged expense; onboarding scans never score.
+        if (!isOnboarding) recordReviewAction(REVIEW_ACTION.EXPENSE_OR_TRIP);
         if (payload.applyOdometer) {
           // G3 odometer-freshness signal: the rider accepted the scanned reading,
           // advancing the bike's known mileage. NOTE: this is captured for the R8

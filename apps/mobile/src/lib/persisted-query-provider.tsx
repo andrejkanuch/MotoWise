@@ -3,7 +3,11 @@ import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 import { useAuthStore } from '../stores/auth.store';
 import { queryClient } from './query-client';
-import { queryPersister, shouldDehydratePersistedQuery } from './query-persist';
+import {
+  queryPersister,
+  shouldDehydratePersistedMutation,
+  shouldDehydratePersistedQuery,
+} from './query-persist';
 import {
   deleteSecureItem,
   getSecureItemSync,
@@ -53,6 +57,7 @@ export function PersistedQueryClientBoundary({ children }: { children: ReactNode
         buster,
         dehydrateOptions: {
           shouldDehydrateQuery: shouldDehydratePersistedQuery,
+          shouldDehydrateMutation: shouldDehydratePersistedMutation,
         },
       }}
     >

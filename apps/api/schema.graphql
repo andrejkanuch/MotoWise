@@ -317,6 +317,11 @@ input CompleteOnboardingInput {
 
   """Meta click ID from deep link for CAPI attribution"""
   fbclid: String
+
+  """
+  Sent only when the contact opt-in line was ticked; saved with the account email
+  """
+  feedbackContactOptIn: FeedbackContactOptInInput
   lastServiceDate: String
   learningFormats: [String!]!
   maintenanceReminders: Boolean = true
@@ -753,6 +758,14 @@ type FeedRider {
   avatarUrl: String
   displayName: String!
   publicUsername: String!
+}
+
+input FeedbackContactOptInInput {
+  """App locale the opt-in line was shown in"""
+  locale: String!
+
+  """FEEDBACK_CONTACT_WORDING_VERSION shown with the opt-in line"""
+  wordingVersion: Int!
 }
 
 enum FlagStatus {
@@ -1271,6 +1284,11 @@ type Mutation {
   saveTrip(tripId: ID!): Boolean!
   scanReceipt(isOnboarding: Boolean, scanId: String!): ReceiptScanResult!
   scheduleBlogPost(input: ScheduleBlogPostInput!): BlogPost!
+
+  """
+  Send a message to the developer. Saved, then emailed to the support inbox. Idempotent per clientId.
+  """
+  sendFeedback(input: SendFeedbackInput!): Boolean!
   setTripParticipantRole(input: SetParticipantRoleInput!): Boolean!
   shareRide(rideId: String!, sharedWithUserId: String!): Boolean!
 
@@ -1908,6 +1926,39 @@ input SearchArticlesInput {
   difficulty: ArticleDifficulty
   first: Int = 20
   query: String
+}
+
+input SendFeedbackInput {
+  appVersion: String!
+
+  """
+  Client-generated UUID per draft; reuse it on retry so the message is saved once
+  """
+  clientId: ID!
+
+  """Email to reach the rider at; omit or null to use the account email"""
+  contactEmail: String
+
+  """The developer may contact me about my feedback"""
+  contactOptIn: Boolean!
+
+  """FEEDBACK_CONTACT_WORDING_VERSION shown with the opt-in"""
+  contactWordingVersion: Int!
+
+  """App locale the form was shown in"""
+  locale: String!
+
+  """1-4000 characters after trimming"""
+  message: String!
+
+  """ios | android"""
+  platform: String!
+
+  """love | wish | broken"""
+  quickPick: String
+
+  """expo-updates update id, when running an update"""
+  updateId: String
 }
 
 input SetParticipantRoleInput {

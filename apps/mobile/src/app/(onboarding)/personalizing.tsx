@@ -26,6 +26,7 @@ import { OnboardingBikePlate } from '../../components/onboarding/onboarding-bike
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { getPrimaryGoal, getTotalScreens, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
+import { onboardingFeedbackContactInput } from '../../features/feedback/onboarding-contact-input';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException, setUserPropertiesOnce } from '../../lib/analytics';
 import { createGaragePaywallHandoff } from '../../lib/garage-paywall-handoff';
@@ -279,6 +280,7 @@ export default function PersonalizingScreen() {
           ...(bikePhotoUrl && { bikePhotoUrl }),
         }),
         ...(acceptedOemScheduleIds.length > 0 && { acceptedOemScheduleIds }),
+        ...onboardingFeedbackContactInput(),
       };
 
       // Clear fbclid after use — it should only be sent once

@@ -75,6 +75,8 @@ export const THROTTLE_PRESETS = {
   CLONE: { limit: 10, ttl: 3_600_000 },
   DOCUMENT_UPLOAD: { limit: 30, ttl: 60_000 },
   DOCUMENT_SIGN: { limit: 120, ttl: 60_000 },
+  /** sendFeedback: each call emails the support inbox. */
+  FEEDBACK: { limit: 5, ttl: 3_600_000 },
 } as const;
 
 /**

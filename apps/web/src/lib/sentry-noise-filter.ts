@@ -55,6 +55,13 @@ function isKnownExternalFrame(frame: { filename?: string }): boolean {
 }
 
 /**
+ * Frames only a non-browser JavaScript runtime can produce: `ext:core/…` is
+ * Deno's core, and `<obscura:bootstrap>` is the DOM shim of Obscura, a headless
+ * scraper built on it. No real browser emits either.
+ */
+const NON_BROWSER_RUNTIME_FRAME_RE = /ext:core\/|<obscura:/;
+
+/**
  * The shared drop decision. Operates on the exception list common to both
  * Sentry and PostHog; the per-provider adapters below extract it.
  */
@@ -169,6 +176,23 @@ function shouldDropExceptions(exceptions: NoiseException[] | undefined): boolean
     return true;
   }
 
+  // Errors raised inside a headless scraper's emulated DOM (MOTOVAULT-WEB-1S:
+  // "Cannot read properties of null (reading 'replace')" on the homepage). The
+  // client announced itself as Chrome on Windows, but its stack ran through
+  // `ext:core/01_core.js` and `<obscura:bootstrap>` — the Obscura scraper, whose
+  // partial DOM hands our hero animation a null where every browser returns a
+  // string. It names every script `<script>`, so our own bundle frames are
+  // unrecognisable there and no first-party check applies; the runtime frame is
+  // the evidence. It arrived through the requestAnimationFrame wrapper, not a
+  // global handler, so the rule below never saw it.
+  if (
+    exceptions.some((e) =>
+      e.stacktrace?.frames?.some((f) => NON_BROWSER_RUNTIME_FRAME_RE.test(f.filename ?? '')),
+    )
+  ) {
+    return true;
+  }
+
   // Injected-script errors that reach the global handlers with a stack that lies
   // entirely outside our bundle (MOTOVAULT-WEB-1H, -1J, -1P). In-app browsers
   // (the Google app, Chrome on iOS) inject minified scripts whose frames Sentry
@@ -197,6 +221,30 @@ function shouldDropExceptions(exceptions: NoiseException[] | undefined): boolean
  */
 export function shouldDropClientEvent(event: ErrorEvent): boolean {
   return shouldDropExceptions(event.exception?.values);
+}
+
+/**
+ * Next.js throws this (error code E10) while parsing the `Next-Router-State-Tree`
+ * request header of an RSC fetch, before any of our code runs.
+ */
+const MALFORMED_ROUTER_STATE_MESSAGE = 'The router state header was sent but could not be parsed.';
+
+/**
+ * Server and edge adapter — `beforeSend` in sentry.server.config.ts and
+ * sentry.edge.config.ts.
+ *
+ * Drops requests that arrive with a `Next-Router-State-Tree` header Next.js
+ * cannot parse (MOTOVAULT-WEB-1R). Only Next's own client router writes that
+ * header, so a malformed one comes from something replaying a captured RSC
+ * request with the header rewritten. The 127 events were one 25-minute scan of
+ * /explore, /pro, /forgot-password, /signup and /login: a single user agent,
+ * one trace id reused across dozens of requests, and "27 users" that were
+ * Cloudflare edge addresses. Nothing in the app can prevent the throw or fix
+ * the request. Matched on the exact message so every other render error,
+ * including the sibling "too large" and "multiple headers" ones, still reports.
+ */
+export function shouldDropServerEvent(event: ErrorEvent): boolean {
+  return event.exception?.values?.some((e) => e.value === MALFORMED_ROUTER_STATE_MESSAGE) ?? false;
 }
 
 /**

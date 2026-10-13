@@ -24,6 +24,7 @@
   },
   "auth": {
     "googlePlayServicesUnavailable": "Logowanie przez Google wymaga usług Google Play, których to urządzenie nie ma. Kontynuuj za pomocą adresu e-mail.",
+    "googleSignInCannotOpen": "Nie udało się otworzyć logowania przez Google na tym urządzeniu. Spróbuj ponownie lub kontynuuj za pomocą adresu e-mail.",
     "signIn": "Zaloguj się",
     "signingIn": "Logowanie...",
     "signUp": "Utwórz konto",
@@ -351,7 +352,8 @@
     "editProfileHint": "Edytuj profil publiczny i profil jeźdźca",
     "sectionApp": "Aplikacja",
     "nameLabel": "Imię i nazwisko",
-    "publicNameLabel": "Nazwa publiczna (widoczna dla innych motocyklistów)"
+    "publicNameLabel": "Nazwa publiczna (widoczna dla innych motocyklistów)",
+    "sectionFeedback": "Opinie"
   },
   "onboarding": {
     "welcomeTitle": "Witaj w MotoVault",
@@ -1600,7 +1602,6 @@
   "support": {
     "faq": "Najczęściej zadawane pytania",
     "contact": "Skontaktuj się z nami",
-    "emailSupport": "Wsparcie e-mail",
     "version": "Wersja {{version}}",
     "faq1Question": "Jak dodać motocykl?",
     "faq1Answer": "Przejdź do zakładki Garaż i dotknij przycisku +. Możesz wyszukać swój motocykl po marce, modelu i roku.",
@@ -1611,7 +1612,37 @@
     "faq4Question": "Jak zmienić język?",
     "faq4Answer": "Przejdź do Profil → Ustawienia aplikacji → Język i wybierz język.",
     "faq5Question": "Czy moje dane są bezpieczne?",
-    "faq5Answer": "Tak. Używamy szyfrowania end-to-end i stosujemy najlepsze praktyki branżowe. W każdej chwili możesz wyeksportować lub usunąć swoje dane w Ustawieniach prywatności."
+    "faq5Answer": "Tak. Używamy szyfrowania end-to-end i stosujemy najlepsze praktyki branżowe. W każdej chwili możesz wyeksportować lub usunąć swoje dane w Ustawieniach prywatności.",
+    "rateApp": "Oceń MotoVault",
+    "rateAppSubtitle": "Powiedz innym motocyklistom, co myślisz"
+  },
+  "feedback": {
+    "title": "Napisz do twórcy aplikacji",
+    "rowSubtitle": "Pomysły, błędy, cokolwiek masz na myśli",
+    "intro": "Twoja wiadomość trafia prosto do twórcy aplikacji, a każda jest czytana.",
+    "quickPickLabel": "Czego dotyczy?",
+    "quickPickLove": "Uwielbiam…",
+    "quickPickWish": "Przydałoby się…",
+    "quickPickBroken": "Coś nie działa",
+    "messageLabel": "Twoja wiadomość",
+    "messagePlaceholder": "Napisz twórcy, co masz na myśli",
+    "context": "Wysyłane razem z wiadomością: wersja aplikacji {{version}}, {{platform}}, język aplikacji i Twój ostatnio używany motocykl.",
+    "contactLabel": "Odpowiedź",
+    "contactOptIn": "Twórca aplikacji może się ze mną skontaktować w sprawie mojej opinii",
+    "contactEmailLabel": "E-mail do kontaktu",
+    "contactEmailPlaceholder": "imie@przyklad.pl",
+    "contactEmailHelper": "Używany tylko do odpowiedzi. Nie zmienia sposobu logowania.",
+    "contactEmailRelayHelper": "Logujesz się przez Ukryj mój adres e-mail. Zostaw puste pole, aby dostawać odpowiedzi na ten adres przekierowania, albo dodaj prywatny e-mail.",
+    "emailInvalid": "Ten e-mail wygląda na niepoprawny. Sprawdź go i spróbuj ponownie.",
+    "send": "Wyślij",
+    "errorGeneric": "Nie udało się wysłać wiadomości. Twój tekst nadal tu jest, spróbuj ponownie za chwilę.",
+    "errorThrottled": "Wysłano kilka wiadomości w krótkim czasie. Spróbuj ponownie trochę później.",
+    "sentTitle": "Wiadomość wysłana",
+    "sentBody": "Dzięki za wiadomość. Jeśli zgodzono się na kontakt, odpowiedź przyjdzie e-mailem.",
+    "notificationsSection": "Porozmawiaj z twórcą aplikacji",
+    "notificationsOptInSubtitle": "Odpowiedzi na wysłane opinie",
+    "notificationsEmailRelay": "Adres Ukryj mój adres e-mail",
+    "saveError": "Nie udało się zapisać zmiany. Sprawdź połączenie i spróbuj ponownie."
   },
   "quickActions": {
     "startRide": "Rozpocznij jazdę",
@@ -2456,17 +2487,6 @@
     "battery": "Akumulator",
     "general_service": "Przegląd ogólny",
     "other": "Inne"
-  },
-  "review": {
-    "softAskTitle": "Podoba Ci się MotoVault?",
-    "softAskBody": "Krótka ocena pomaga innym motocyklistom znaleźć aplikację.",
-    "softAskYes": "Uwielbiam",
-    "softAskNo": "Niezbyt",
-    "feedbackTitle": "Pomóż nam ulepszyć",
-    "feedbackBody": "Napisz, co nie działa — czytamy każdą wiadomość.",
-    "feedbackYes": "Wyślij opinię",
-    "feedbackNo": "Nie teraz",
-    "feedbackSubject": "Opinia o MotoVault"
   },
   "analyticsConsent": {
     "title": "Pomóż rozwijać MotoVault",

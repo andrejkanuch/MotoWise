@@ -14,6 +14,7 @@ import { getStoredUtmProperties } from './meta-attribution';
 import { isNetworkError } from './network-error';
 import { showPaywallUnavailable } from './paywall-error-alert';
 import { isExpectedRevenueCatError, revenueCatErrorProperties } from './revenuecat-errors';
+import { REVIEW_ACTION, recordReviewAction } from './store-review';
 import type { TrialEntitlementSnapshot } from './trial-reminder';
 
 // Module-level cached import — resolve once, reuse everywhere
@@ -180,6 +181,8 @@ async function trackPaywallResult(
   trackEvent(AnalyticsEvent.PAYWALL_RESULT, properties);
 
   if (result === 'purchased') {
+    // A restore re-grants an old purchase; only a new one scores for the review engine.
+    recordReviewAction(REVIEW_ACTION.PRO_SUBSCRIBED);
     trackEvent(AnalyticsEvent.PURCHASE_COMPLETED, {
       ...properties,
       ...(await purchasedProductProperties()),

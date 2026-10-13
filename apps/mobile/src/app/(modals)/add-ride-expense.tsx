@@ -27,7 +27,7 @@ import { EXPENSE_ENTRY_SOURCE, trackExpenseAdded } from '../../lib/expense-analy
 import { CATEGORY_LABELS, PRIMARY_CATEGORIES } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-import { maybeRequestReview, REVIEW_MILESTONE } from '../../lib/store-review';
+import { REVIEW_ACTION, recordReviewAction } from '../../lib/store-review';
 import { useEditorialTheme } from '../../theme/editorial';
 import { space, type } from '../../theme/type';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
@@ -80,7 +80,7 @@ export default function AddExpenseScreen() {
       });
       setSaved(true);
       triggerNotification(Haptics.NotificationFeedbackType.Success);
-      maybeRequestReview(REVIEW_MILESTONE.EXPENSE_LOGGED);
+      recordReviewAction(REVIEW_ACTION.EXPENSE_OR_TRIP);
       setTimeout(() => router.back(), 600);
     },
     onError: () => {

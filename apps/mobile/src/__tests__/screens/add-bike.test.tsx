@@ -27,6 +27,12 @@ jest.mock('expo-router', () => ({
   useRouter: () => mockRouter,
 }));
 
+const mockMaybeRequestReview = jest.fn().mockResolvedValue(false);
+jest.mock('../../lib/store-review', () => ({
+  REVIEW_MOMENT: { GARAGE_BIKE: 'garage_bike' },
+  maybeRequestReview: (...args: unknown[]) => mockMaybeRequestReview(...args),
+}));
+
 const mockFetcher = jest.fn();
 jest.mock('../../lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
@@ -45,6 +51,7 @@ import AddBikeScreen from '../../app/(tabs)/(garage)/add-bike';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { GRAPHQL_ERROR_CODE } from '../../lib/graphql-error-classification';
 import { queryKeys } from '../../lib/query-keys';
+import { useAuthStore } from '../../stores/auth.store';
 
 const HONDA = { makeId: 474, makeName: 'HONDA' };
 const AFRICA_TWIN = { modelId: 10, modelName: 'Africa Twin' };
@@ -127,6 +134,8 @@ afterEach(async () => {
   mockRequireAccess.mockReset();
   mockRouter.back.mockReset();
   jest.mocked(trackEvent).mockReset();
+  mockMaybeRequestReview.mockClear();
+  useAuthStore.setState({ onboardingCompleted: false });
 });
 
 describe('Add a Bike — year and model gating', () => {
@@ -200,6 +209,33 @@ describe('Add a Bike — save', () => {
       year: 2022,
     });
     expect(mockRouter.back).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers the store review moment for a bike added from the Garage', async () => {
+    useAuthStore.setState({ onboardingCompleted: true });
+    await renderScreen();
+    await typeYear('2022');
+    await chooseHonda();
+    await chooseAfricaTwin();
+
+    await fireEvent.press(screen.getByTestId(TEST_ID.SUBMIT));
+    await flush();
+
+    expect(mockMaybeRequestReview).toHaveBeenCalledWith('garage_bike');
+  });
+
+  it('never offers the store review moment while onboarding', async () => {
+    useAuthStore.setState({ onboardingCompleted: false });
+    await renderScreen();
+    await typeYear('2022');
+    await chooseHonda();
+    await chooseAfricaTwin();
+
+    await fireEvent.press(screen.getByTestId(TEST_ID.SUBMIT));
+    await flush();
+
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    expect(mockMaybeRequestReview).not.toHaveBeenCalled();
   });
 
   it('opens the paywall when the free bike limit rejects the save', async () => {

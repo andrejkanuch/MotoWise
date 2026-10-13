@@ -480,6 +480,75 @@ describe('carplay-coordinator', () => {
     jest.useRealTimers();
   });
 
+  it('retries the root build when a step before the paint throws', () => {
+    (carplay.clearInformation as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('clear failed');
+    });
+    startCarPlayCoordinator();
+    expect(fireConnect).not.toThrow();
+    expect(captureException).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'clear failed' }),
+      expect.objectContaining({ source: 'carplay-coordinator.onConnect' }),
+    );
+    expect(mockStoreListeners.length).toBe(0);
+    fireConnect(); // the replay must not be swallowed by a stuck `connected` flag
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
+    expect(mockStoreListeners.length).toBe(1);
+  });
+
+  // --- Throw containment (TestFlight crash 2026-10-10, 3.25.0 build 105) ---
+  // Each of these runs on a stack with nothing of ours above it — a native button
+  // press, the ride store's set(), a native timer — where an uncaught throw is a
+  // fatal JS error and React Native aborts the process recording the ride.
+
+  it('contains a throw from a head-unit button press and reports it', () => {
+    (rideController.endRideSession as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('end failed');
+    });
+    startCarPlayCoordinator();
+    fireConnect();
+    fireAction('stop'); // arm
+
+    expect(() => fireAction('stop')).not.toThrow();
+    expect(captureException).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'end failed' }),
+      expect.objectContaining({ source: 'carplay-coordinator.onAction' }),
+    );
+  });
+
+  it('contains a panel render that throws inside a ride-store update', () => {
+    startCarPlayCoordinator();
+    fireConnect();
+    (carplay.renderInformation as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('paint failed');
+    });
+    mockRide.status = 'ended'; // a state transition renders immediately
+
+    // The subscriber runs inside the store's set() — e.g. mid endRideSession.
+    expect(fireStore).not.toThrow();
+    expect(captureException).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'paint failed' }),
+      expect.objectContaining({ source: 'carplay-coordinator.storeRender' }),
+    );
+  });
+
+  it('contains a throw from the stop-confirm auto-disarm timer', () => {
+    jest.useFakeTimers();
+    startCarPlayCoordinator();
+    fireConnect();
+    fireAction('stop'); // arm
+    (carplay.renderInformation as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('paint failed');
+    });
+
+    expect(() => jest.advanceTimersByTime(5_000)).not.toThrow();
+    expect(captureException).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'paint failed' }),
+      expect.objectContaining({ source: 'carplay-coordinator.stopArmTimer' }),
+    );
+    jest.useRealTimers();
+  });
+
   it('opens the bike-status list on the Bike action', () => {
     startCarPlayCoordinator();
     fireConnect();

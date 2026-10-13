@@ -34,6 +34,10 @@ jest.mock('react-native-purchases', () => ({
   default: mockPurchases,
 }));
 jest.mock('expo-constants', () => ({ __esModule: true, default: { appOwnership: null } }));
+jest.mock('../store-review', () => ({
+  REVIEW_ACTION: { PRO_SUBSCRIBED: 'pro_subscribed' },
+  recordReviewAction: jest.fn(),
+}));
 jest.mock('../analytics-consent', () => ({ getStoredAnalyticsConsent: () => false }));
 jest.mock('../analytics', () => ({
   captureException: jest.fn(),

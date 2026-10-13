@@ -24,6 +24,7 @@
   },
   "auth": {
     "googlePlayServicesUnavailable": "Die Google-Anmeldung benötigt Google Play-Dienste, die auf diesem Gerät nicht verfügbar sind. Bitte fahre stattdessen mit E-Mail fort.",
+    "googleSignInCannotOpen": "Die Google-Anmeldung konnte auf diesem Gerät nicht geöffnet werden. Bitte versuche es erneut oder fahre stattdessen mit E-Mail fort.",
     "signIn": "Anmelden",
     "signingIn": "Anmeldung...",
     "signUp": "Konto erstellen",
@@ -351,7 +352,8 @@
     "editProfileHint": "Öffentliches Profil und Fahrerprofil bearbeiten",
     "sectionApp": "App",
     "nameLabel": "Name",
-    "publicNameLabel": "Öffentlicher Name (für andere Fahrer sichtbar)"
+    "publicNameLabel": "Öffentlicher Name (für andere Fahrer sichtbar)",
+    "sectionFeedback": "Feedback"
   },
   "onboarding": {
     "welcomeTitle": "Willkommen bei MotoVault",
@@ -1558,7 +1560,6 @@
   "support": {
     "faq": "FAQ",
     "contact": "Kontakt",
-    "emailSupport": "E-Mail-Support",
     "version": "Version {{version}}",
     "faq1Question": "Wie füge ich ein Motorrad hinzu?",
     "faq1Answer": "Öffne den Tab Garage und tippe auf +. Du kannst dein Motorrad nach Marke, Modell und Baujahr suchen.",
@@ -1569,7 +1570,37 @@
     "faq4Question": "Wie ändere ich die Sprache?",
     "faq4Answer": "Gehe zu Profil → App-Einstellungen → Sprache und wähle die gewünschte Sprache.",
     "faq5Question": "Sind meine Daten sicher?",
-    "faq5Answer": "Ja. Wir nutzen Ende-zu-Ende-Verschlüsselung und folgen bewährten Branchenstandards. Du kannst deine Daten jederzeit in den Datenschutz-Einstellungen exportieren oder löschen."
+    "faq5Answer": "Ja. Wir nutzen Ende-zu-Ende-Verschlüsselung und folgen bewährten Branchenstandards. Du kannst deine Daten jederzeit in den Datenschutz-Einstellungen exportieren oder löschen.",
+    "rateApp": "MotoVault bewerten",
+    "rateAppSubtitle": "Sag anderen Fahrern, was du denkst"
+  },
+  "feedback": {
+    "title": "Schreib dem Entwickler",
+    "rowSubtitle": "Ideen, Fehler, alles, was dich beschäftigt",
+    "intro": "Deine Nachricht geht direkt an den Entwickler, und jede wird gelesen.",
+    "quickPickLabel": "Worum geht es?",
+    "quickPickLove": "Ich liebe …",
+    "quickPickWish": "Ich wünsche mir …",
+    "quickPickBroken": "Etwas funktioniert nicht",
+    "messageLabel": "Deine Nachricht",
+    "messagePlaceholder": "Erzähl dem Entwickler, was dich beschäftigt",
+    "context": "Mit deiner Nachricht gesendet: App-Version {{version}}, {{platform}}, deine App-Sprache und dein zuletzt bearbeitetes Motorrad.",
+    "contactLabel": "Antwort",
+    "contactOptIn": "Der Entwickler darf mich zu meinem Feedback kontaktieren",
+    "contactEmailLabel": "E-Mail für Antworten",
+    "contactEmailPlaceholder": "name@beispiel.de",
+    "contactEmailHelper": "Wird nur genutzt, um dir zu antworten. Deine Anmeldung ändert sich dadurch nicht.",
+    "contactEmailRelayHelper": "Du meldest dich mit „E-Mail-Adresse verbergen“ an. Lass das Feld leer, um Antworten an diese Weiterleitungsadresse zu bekommen, oder gib eine private E-Mail an.",
+    "emailInvalid": "Diese E-Mail-Adresse sieht nicht richtig aus. Bitte prüf sie und versuch es erneut.",
+    "send": "Senden",
+    "errorGeneric": "Deine Nachricht konnte nicht gesendet werden. Dein Text ist noch da – versuch es gleich noch einmal.",
+    "errorThrottled": "Du hast in kurzer Zeit mehrere Nachrichten gesendet. Bitte versuch es etwas später noch einmal.",
+    "sentTitle": "Nachricht gesendet",
+    "sentBody": "Danke fürs Schreiben. Wenn der Entwickler dich kontaktieren darf, bekommst du eine Antwort per E-Mail.",
+    "notificationsSection": "Mit dem Entwickler sprechen",
+    "notificationsOptInSubtitle": "Antworten zu deinem Feedback",
+    "notificationsEmailRelay": "Adresse von „E-Mail-Adresse verbergen“",
+    "saveError": "Die Änderung konnte nicht gespeichert werden. Prüf deine Verbindung und versuch es erneut."
   },
   "quickActions": {
     "startRide": "Fahrt starten",
@@ -2410,17 +2441,6 @@
     "battery": "Batterie",
     "general_service": "Allgemeine Wartung",
     "other": "Sonstiges"
-  },
-  "review": {
-    "softAskTitle": "Gefällt dir MotoVault?",
-    "softAskBody": "Eine kurze Bewertung hilft anderen Fahrern, die App zu finden.",
-    "softAskYes": "Liebe ich",
-    "softAskNo": "Nicht wirklich",
-    "feedbackTitle": "Hilf uns, besser zu werden",
-    "feedbackBody": "Sag uns, was nicht passt — wir lesen jede Nachricht.",
-    "feedbackYes": "Feedback senden",
-    "feedbackNo": "Jetzt nicht",
-    "feedbackSubject": "MotoVault Feedback"
   },
   "analyticsConsent": {
     "title": "Gestalte MotoVault mit",

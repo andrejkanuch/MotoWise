@@ -32,6 +32,10 @@ jest.mock('expo-constants', () => ({
 }));
 
 const mockConsent = jest.fn<boolean, []>();
+jest.mock('../store-review', () => ({
+  REVIEW_ACTION: { PRO_SUBSCRIBED: 'pro_subscribed' },
+  recordReviewAction: jest.fn(),
+}));
 jest.mock('../analytics-consent', () => ({
   getStoredAnalyticsConsent: () => mockConsent(),
 }));

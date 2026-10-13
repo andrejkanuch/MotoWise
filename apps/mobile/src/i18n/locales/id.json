@@ -24,6 +24,7 @@
   },
   "auth": {
     "googlePlayServicesUnavailable": "Masuk dengan Google memerlukan layanan Google Play, yang tidak tersedia di perangkat ini. Silakan lanjutkan dengan email.",
+    "googleSignInCannotOpen": "Masuk dengan Google tidak dapat dibuka di perangkat ini. Silakan coba lagi atau lanjutkan dengan email.",
     "signIn": "Masuk",
     "signingIn": "Sedang masuk...",
     "signUp": "Buat Akun",
@@ -351,7 +352,8 @@
     "editProfileHint": "Ubah profil publik dan profil berkendara",
     "sectionApp": "Aplikasi",
     "nameLabel": "Nama",
-    "publicNameLabel": "Nama publik (terlihat oleh pengendara lain)"
+    "publicNameLabel": "Nama publik (terlihat oleh pengendara lain)",
+    "sectionFeedback": "Masukan"
   },
   "onboarding": {
     "welcomeTitle": "Selamat Datang di MotoVault",
@@ -1558,7 +1560,6 @@
   "support": {
     "faq": "Pertanyaan Umum",
     "contact": "Hubungi Kami",
-    "emailSupport": "Dukungan Email",
     "version": "Versi {{version}}",
     "faq1Question": "Bagaimana cara menambahkan motor?",
     "faq1Answer": "Buka tab Garasi dan ketuk tombol +. Kamu bisa mencari motormu berdasarkan merek, model, dan tahun.",
@@ -1569,7 +1570,37 @@
     "faq4Question": "Bagaimana cara mengganti bahasa?",
     "faq4Answer": "Buka Profil → Pengaturan aplikasi → Bahasa, lalu pilih bahasa yang kamu inginkan.",
     "faq5Question": "Apakah dataku aman?",
-    "faq5Answer": "Ya. Kami menggunakan enkripsi end-to-end dan mengikuti praktik terbaik industri. Kamu bisa mengekspor atau menghapus datamu kapan saja dari pengaturan Privasi."
+    "faq5Answer": "Ya. Kami menggunakan enkripsi end-to-end dan mengikuti praktik terbaik industri. Kamu bisa mengekspor atau menghapus datamu kapan saja dari pengaturan Privasi.",
+    "rateApp": "Beri rating MotoVault",
+    "rateAppSubtitle": "Ceritakan pendapatmu ke pengendara lain"
+  },
+  "feedback": {
+    "title": "Tulis ke pengembang",
+    "rowSubtitle": "Ide, bug, apa pun yang kamu pikirkan",
+    "intro": "Pesanmu langsung sampai ke pengembang, dan setiap pesan dibaca.",
+    "quickPickLabel": "Tentang apa?",
+    "quickPickLove": "Aku suka…",
+    "quickPickWish": "Aku berharap…",
+    "quickPickBroken": "Ada yang rusak",
+    "messageLabel": "Pesanmu",
+    "messagePlaceholder": "Ceritakan ke pengembang apa yang kamu pikirkan",
+    "context": "Dikirim bersama pesanmu: versi aplikasi {{version}}, {{platform}}, bahasa aplikasimu, dan motor terbarumu.",
+    "contactLabel": "Balasan",
+    "contactOptIn": "Pengembang boleh menghubungiku tentang masukanku",
+    "contactEmailLabel": "Email untuk menghubungiku",
+    "contactEmailPlaceholder": "nama@contoh.com",
+    "contactEmailHelper": "Hanya dipakai untuk membalasmu. Tidak mengubah cara kamu masuk.",
+    "contactEmailRelayHelper": "Kamu masuk dengan Sembunyikan Email Saya. Kosongkan kolom ini untuk menerima balasan di alamat relay itu, atau tambahkan email pribadi.",
+    "emailInvalid": "Email itu sepertinya salah. Periksa lalu coba lagi.",
+    "send": "Kirim",
+    "errorGeneric": "Pesanmu tidak bisa dikirim. Teksmu masih di sini, coba lagi sebentar lagi.",
+    "errorThrottled": "Kamu mengirim beberapa pesan dalam waktu singkat. Coba lagi nanti.",
+    "sentTitle": "Pesan terkirim",
+    "sentBody": "Terima kasih sudah menulis. Jika kamu mengizinkan pengembang menghubungimu, balasan akan datang lewat email.",
+    "notificationsSection": "Bicara dengan pengembang",
+    "notificationsOptInSubtitle": "Balasan tentang masukan yang kamu kirim",
+    "notificationsEmailRelay": "Alamat Sembunyikan Email Saya",
+    "saveError": "Perubahan tidak bisa disimpan. Periksa koneksimu lalu coba lagi."
   },
   "quickActions": {
     "startRide": "Mulai Perjalanan",
@@ -2410,17 +2441,6 @@
     "battery": "Aki",
     "general_service": "Servis umum",
     "other": "Lainnya"
-  },
-  "review": {
-    "softAskTitle": "Suka dengan MotoVault?",
-    "softAskBody": "Penilaian singkat membantu pengendara lain menemukan aplikasi ini.",
-    "softAskYes": "Suka banget",
-    "softAskNo": "Kurang",
-    "feedbackTitle": "Bantu kami berkembang",
-    "feedbackBody": "Beri tahu apa yang kurang — kami membaca setiap pesan.",
-    "feedbackYes": "Kirim masukan",
-    "feedbackNo": "Nanti saja",
-    "feedbackSubject": "Masukan MotoVault"
   },
   "analyticsConsent": {
     "title": "Bantu bentuk MotoVault",

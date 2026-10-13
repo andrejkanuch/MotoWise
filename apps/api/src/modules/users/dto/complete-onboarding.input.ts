@@ -1,5 +1,15 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
 
+/** The rider ticked "the developer may contact me" on the onboarding notifications step. */
+@InputType()
+export class FeedbackContactOptInInput {
+  @Field(() => Int, { description: 'FEEDBACK_CONTACT_WORDING_VERSION shown with the opt-in line' })
+  wordingVersion: number;
+
+  @Field({ description: 'App locale the opt-in line was shown in' })
+  locale: string;
+}
+
 @InputType()
 export class CompleteOnboardingInput {
   @Field()
@@ -79,4 +89,10 @@ export class CompleteOnboardingInput {
     description: 'UUID for client-server event deduplication with Meta CAPI',
   })
   eventId?: string;
+
+  @Field(() => FeedbackContactOptInInput, {
+    nullable: true,
+    description: 'Sent only when the contact opt-in line was ticked; saved with the account email',
+  })
+  feedbackContactOptIn?: FeedbackContactOptInInput;
 }

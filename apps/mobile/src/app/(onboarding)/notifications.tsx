@@ -1,3 +1,4 @@
+import { FEEDBACK_CONTACT_SOURCE } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import * as Linking from 'expo-linking';
@@ -9,9 +10,10 @@ import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated'
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { OB_SCREEN } from '../../config/onboarding';
+import { ContactCheckbox } from '../../features/feedback/contact-checkbox';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { useOnboardingNext } from '../../hooks/use-onboarding-flow';
-import { AnalyticsEvent } from '../../lib/analytics';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { setupNotificationChannels } from '../../lib/notifications';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { registerForPushNotifications } from '../../lib/push-token';
@@ -108,6 +110,8 @@ export default function NotificationsScreen() {
   const goNext = useOnboardingNext(OB_SCREEN.NOTIFICATIONS);
   const tracked = useRef(false);
   const setLastCompletedScreen = useOnboardingStore((s) => s.setLastCompletedScreen);
+  const contactOptIn = useOnboardingStore((s) => s.feedbackContactOptIn);
+  const setContactOptIn = useOnboardingStore((s) => s.setFeedbackContactOptIn);
 
   useEffect(() => {
     if (tracked.current) return;
@@ -116,6 +120,13 @@ export default function NotificationsScreen() {
   }, []);
 
   const navigateForward = () => {
+    // The contact line is kept whichever button was tapped; it is saved by completeOnboarding.
+    if (useOnboardingStore.getState().feedbackContactOptIn) {
+      trackEvent(AnalyticsEvent.FEEDBACK_CONTACT_OPT_IN_CHANGED, {
+        enabled: true,
+        source: FEEDBACK_CONTACT_SOURCE.ONBOARDING,
+      });
+    }
     setLastCompletedScreen(OB_SCREEN.NOTIFICATIONS);
     goNext();
   };
@@ -209,6 +220,15 @@ export default function NotificationsScreen() {
       subtitle={tx('onboarding.v2NotificationsBenefit1Subtitle')}
       primary={{ label: t('onboarding.v2NotificationsEnable'), onPress: handleEnable }}
       secondary={{ label: t('onboarding.v2NotificationsMaybeLater'), onPress: handleSkip }}
+      footer={
+        <ContactCheckbox
+          compact
+          testID="onboarding-feedback-contact"
+          label={t('feedback.contactOptIn')}
+          checked={contactOptIn}
+          onChange={setContactOptIn}
+        />
+      }
     >
       {/* What a reminder actually looks like — the one benefit, shown not told. */}
       <NotificationCard />
