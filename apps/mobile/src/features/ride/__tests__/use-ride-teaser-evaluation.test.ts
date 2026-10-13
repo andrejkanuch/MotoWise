@@ -192,7 +192,7 @@ describe('useRideTeaserEvaluation', () => {
     expect(mockFetcher).toHaveBeenCalledTimes(1);
   });
 
-  it('a crash-recovered summary counts as system-ended: one event, ride_not_qualifying', async () => {
+  it('a crash-recovered summary emits once, suppressed as recovered_unconfirmed', async () => {
     mockRouteParams = { recovered: '1' };
 
     await renderHook(() => useRideTeaserEvaluation(FIFTH_RIDE));
@@ -200,7 +200,7 @@ describe('useRideTeaserEvaluation', () => {
 
     expect(track).toHaveBeenCalledTimes(1);
     expect(track.mock.calls[0][1]).toMatchObject({
-      suppression_reason: TEASER_SUPPRESSION.RIDE_NOT_QUALIFYING,
+      suppression_reason: TEASER_SUPPRESSION.RECOVERED_UNCONFIRMED,
       would_show: false,
     });
   });

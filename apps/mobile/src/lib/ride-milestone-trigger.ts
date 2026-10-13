@@ -40,6 +40,12 @@ export type RideTeaserTrigger = (typeof RIDE_TEASER_TRIGGER)[keyof typeof RIDE_T
 export const TEASER_SUPPRESSION = {
   /** The ride itself does not qualify (R1): too short, too little moving time, or system-ended. */
   RIDE_NOT_QUALIFYING: 'ride_not_qualifying',
+  /**
+   * The summary came from the crash-recovery End on Start Ride: the phone cannot
+   * confirm the server accepted that end (the sweep may have closed the ride first,
+   * or the queued EndRide may still fail), so it neither counts nor shows (R1, R7).
+   */
+  RECOVERED_UNCONFIRMED: 'recovered_unconfirmed',
   /** The qualifying-count read failed or the phone was offline (R7): never guess. */
   STATS_UNAVAILABLE: 'stats_unavailable',
   /** Neither trigger is due on this summary. */
@@ -70,6 +76,8 @@ export interface RideTeaserInput {
     /** Ended by the idle sweep, stale-on-start or the headless auto-end — never a teaser (R1). */
     systemEnded: boolean;
   };
+  /** The summary opened from the crash-recovery End (buildRideSummaryHref `recovered`). */
+  recovered: boolean;
   /** `null` when the read failed; the rule then suppresses with STATS_UNAVAILABLE. */
   priorStats: RideTeaserStats | null;
   isPro: boolean;
@@ -155,6 +163,14 @@ export function evaluateRideTeaser(input: RideTeaserInput): RideTeaserEvaluation
   const qualifying = isQualifyingRide(input.ride);
   const base = { shown: false, wouldShow: false, isQualifyingRide: qualifying };
 
+  if (input.recovered) {
+    return {
+      ...base,
+      trigger: null,
+      suppressionReason: TEASER_SUPPRESSION.RECOVERED_UNCONFIRMED,
+      qualifyingRideCount: input.priorStats ? input.priorStats.qualifyingRideCount : null,
+    };
+  }
   if (!qualifying) {
     return {
       ...base,

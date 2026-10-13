@@ -32,6 +32,7 @@ const HOUR = 3_600_000;
 function input(over: Partial<RideTeaserInput> = {}): RideTeaserInput {
   return {
     ride: { distanceM: 12_000, movingS: 1_200, systemEnded: false },
+    recovered: false,
     priorStats: { qualifyingRideCount: 4, longestQualifyingDistanceM: 20_000 },
     isPro: false,
     isTrialing: false,
@@ -94,6 +95,15 @@ describe('evaluateRideTeaser', () => {
       }),
     );
     expect(result.suppressionReason).toBe(TEASER_SUPPRESSION.RIDE_NOT_QUALIFYING);
+  });
+
+  it('R1/R7: a crash-recovered summary is suppressed, neither counted nor shown', () => {
+    expect(evaluateRideTeaser(input({ recovered: true }))).toMatchObject({
+      trigger: null,
+      wouldShow: false,
+      suppressionReason: TEASER_SUPPRESSION.RECOVERED_UNCONFIRMED,
+      qualifyingRideCount: 4,
+    });
   });
 
   it('R7: a failed stats read suppresses rather than guesses', () => {

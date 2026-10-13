@@ -31,7 +31,11 @@ import {
   type PermissionLevel,
   readPermissionLevel,
 } from '../../utils/ride-permissions';
-import { armRideReminders, cancelRideReminders } from '../../utils/ride-reminders';
+import {
+  armRideReminders,
+  cancelRideReminders,
+  rideEndTrimTarget,
+} from '../../utils/ride-reminders';
 import {
   flushBufferToMMKV,
   getPointBuffer,
@@ -394,11 +398,10 @@ export function endRideSession(
  * The ride-summary route for a finished ride. Shared by the phone HUD's End and the
  * CarPlay Stop so both surfaces land on the same summary (which reads these params
  * and owns clearing the ride data). Pure — builds the Href, never navigates.
- */
-/**
+ *
  * `recovered`: the ride was ended from the crash-recovery prompt on Start Ride, not
- * by the rider's Stop. The summary passes it on so the ride-moment teaser treats the
- * ride as system-ended (plan R1) instead of trusting a completion it cannot confirm.
+ * by the rider's Stop. The ride-moment teaser then suppresses its evaluation as
+ * recovered_unconfirmed instead of trusting a server-side end it cannot confirm.
  */
 export function buildRideSummaryHref(
   summary: RideEndSummary,
@@ -420,4 +423,14 @@ export function buildRideSummaryHref(
       recovered: recovered ? '1' : '',
     },
   };
+}
+
+/**
+ * End the unfinished ride Start Ride found after an app kill, trimmed to its last
+ * movement, and return the summary to open — marked `recovered`, because the phone
+ * cannot confirm the server accepted this end. Null when there is no ride to end.
+ */
+export function endRecoveredRide(): Href | null {
+  const summary = endRideSession('phone', { endAt: rideEndTrimTarget() });
+  return summary ? buildRideSummaryHref(summary, { recovered: true }) : null;
 }

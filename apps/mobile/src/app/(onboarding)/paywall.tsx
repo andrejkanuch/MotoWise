@@ -22,10 +22,10 @@ import { useOnboardingNext } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import {
-  ONBOARDING_PAYWALL_SURFACE,
   presentOnboardingPaywall,
   resolveOnboardingPaywallPlacement,
 } from '../../lib/onboarding-paywall';
+import { ONBOARDING_PAYWALL_SURFACE } from '../../lib/paywall-surfaces';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
 const isExpoGo = Constants.appOwnership === 'expo';

@@ -13,6 +13,7 @@ jest.mock('@/utils/ride-permissions', () => ({
 jest.mock('@/utils/ride-reminders', () => ({
   armRideReminders: jest.fn(() => Promise.resolve()),
   cancelRideReminders: jest.fn(() => Promise.resolve()),
+  rideEndTrimTarget: jest.fn(() => 1_200_000),
 }));
 jest.mock('expo-notifications', () => ({
   getPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted', canAskAgain: true })),
@@ -113,6 +114,7 @@ import * as syncQueue from '@/utils/ride-sync-queue';
 import {
   buildRideSummaryHref,
   elapsedRideSeconds,
+  endRecoveredRide,
   endRideSession,
   startRideSession,
 } from '../ride-controller';
@@ -335,11 +337,29 @@ describe('endRideSession', () => {
     expect(buildRideSummaryHref(ended)).toMatchObject({
       params: expect.objectContaining({ durationS: '240', movingTimeS: '150', recovered: '' }),
     });
-    // The crash-recovery End marks the summary so the ride teaser treats it as system-ended.
     expect(buildRideSummaryHref(ended, { recovered: true })).toMatchObject({
       params: expect.objectContaining({ recovered: '1' }),
     });
     (Date.now as jest.Mock).mockRestore();
+  });
+
+  it('ends the unfinished ride Start Ride found, trimmed, and marks its summary recovered', () => {
+    jest.spyOn(Date, 'now').mockReturnValue(1_240_000);
+    mmkvState.currentId = 'ride-crashed';
+    mmkvState.startedAt = 1_000_000;
+
+    const href = endRecoveredRide();
+
+    expect(href).toMatchObject({
+      pathname: '/(modals)/ride-summary',
+      params: expect.objectContaining({ rideId: 'ride-crashed', recovered: '1' }),
+    });
+    (Date.now as jest.Mock).mockRestore();
+  });
+
+  it('returns no summary when there is no unfinished ride to end', () => {
+    mmkvState.currentId = '';
+    expect(endRecoveredRide()).toBeNull();
   });
 
   it('is idempotent on a double-Stop — returns null and does not re-end when already ended', () => {

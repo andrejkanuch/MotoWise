@@ -1017,6 +1017,22 @@ describe('RidesService', () => {
       expect(stats).toEqual({ qualifyingRideCount: 1_001, longestQualifyingDistanceM: 90_000 });
       expect(mockUserClient._chain.range).toHaveBeenNthCalledWith(1, 0, 999);
       expect(mockUserClient._chain.range).toHaveBeenNthCalledWith(2, 1_000, 1_999);
+      // Offset paging needs a stable order, or rows can repeat or vanish between pages.
+      expect(mockUserClient._chain.order).toHaveBeenCalledWith('id');
+    });
+
+    it('reads one more page after an exactly full one and stops on the empty page', async () => {
+      const fullPage = Array.from({ length: 1_000 }, (_, i) => ({
+        ...qualifyingRow,
+        id: `r-${i}`,
+      }));
+      mockUserClient._pushResult({ data: fullPage });
+      mockUserClient._pushResult({ data: [] });
+
+      const stats = await service.getRideMilestoneStats(userId, null);
+
+      expect(stats.qualifyingRideCount).toBe(1_000);
+      expect(mockUserClient._chain.range).toHaveBeenCalledTimes(2);
     });
 
     it('skips the exclusion when no ride id is given', async () => {

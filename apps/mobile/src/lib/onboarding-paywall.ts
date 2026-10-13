@@ -14,7 +14,6 @@ import { presentPaywall, setOnboardingAttributes, waitForRevenueCatLogin } from 
  * `commit_first` step screen (the historical value, kept so funnels stay
  * comparable); `onboarding_garage_ready` is the `garage_first` payoff CTA.
  */
-export { ONBOARDING_PAYWALL_SURFACE } from './paywall-surfaces';
 
 /**
  * How long to wait for RevenueCat `logIn` before presenting anyway. After the

@@ -44,11 +44,11 @@ interface RideTeaserEvaluationInput {
 export function useRideTeaserEvaluation(input: RideTeaserEvaluationInput): void {
   const evaluatedForRide = useRef<string | null>(null);
   // `recovered` (buildRideSummaryHref): the summary opened from the crash-recovery
-  // End on Start Ride, not the rider's Stop. The phone cannot confirm the rider
-  // completed that ride, so it counts as system-ended and never qualifies (R1).
+  // End on Start Ride, whose server-side end the phone cannot confirm. The rule
+  // suppresses it as recovered_unconfirmed rather than guessing either way.
   const { recovered } = useLocalSearchParams<{ recovered?: string }>();
-  const latestInput = useRef({ ...input, systemEnded: recovered === '1' });
-  latestInput.current = { ...input, systemEnded: recovered === '1' };
+  const latestInput = useRef({ ...input, recovered: recovered === '1' });
+  latestInput.current = { ...input, recovered: recovered === '1' };
 
   const { rideId } = input;
   useEffect(() => {
@@ -67,13 +67,19 @@ export function useRideTeaserEvaluation(input: RideTeaserEvaluationInput): void 
           hasHadTrialSnapshot(),
         ]);
 
-        const { distanceM, movingS, systemEnded, measurementSystem } = latestInput.current;
+        const {
+          distanceM,
+          movingS,
+          recovered: isRecovered,
+          measurementSystem,
+        } = latestInput.current;
         const userId = useAuthStore.getState().session?.user.id ?? 'anonymous';
         const subscription = useSubscriptionStore.getState();
         const rideStatus = useRideStore.getState().status;
 
         const evaluation = evaluateRideTeaser({
-          ride: { distanceM, movingS, systemEnded },
+          ride: { distanceM, movingS, systemEnded: false },
+          recovered: isRecovered,
           priorStats: stats,
           isPro: subscription.isPro,
           isTrialing: subscription.isTrialing,
