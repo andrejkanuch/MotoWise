@@ -1,7 +1,7 @@
 import { RideMilestoneStatsDocument, type RideMilestoneStatsQuery } from '@motovault/graphql';
 import type { MeasurementSystem } from '@motovault/types';
 import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { isHeadUnitConnected } from '../../../modules/carplay/src';
 import { RIDE_TEASER_LIVE } from '../../config/feature-flags';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -48,7 +48,11 @@ export function useRideTeaserEvaluation(input: RideTeaserEvaluationInput): void 
   // suppresses it as recovered_unconfirmed rather than guessing either way.
   const { recovered } = useLocalSearchParams<{ recovered?: string }>();
   const latestInput = useRef({ ...input, recovered: recovered === '1' });
-  latestInput.current = { ...input, recovered: recovered === '1' };
+  // Written after commit, never during render: a discarded render must not leave
+  // uncommitted props for the async evaluation to read.
+  useLayoutEffect(() => {
+    latestInput.current = { ...input, recovered: recovered === '1' };
+  });
 
   const { rideId } = input;
   useEffect(() => {
