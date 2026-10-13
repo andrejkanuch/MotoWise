@@ -33,6 +33,17 @@ import type { RideMilestoneStats } from './models/ride-milestone-stats.model';
 import type { Waypoint } from './models/waypoint.model';
 
 const MAX_WAYPOINTS_PER_RIDE = QUERY_LIMITS.MAX_WAYPOINTS_PER_RIDE;
+/** Under PostgREST's default max-rows (1000), so a full page always means "read on". */
+const MILESTONE_STATS_PAGE_SIZE = 1_000;
+
+interface MilestoneRideRow {
+  id: string;
+  distance_m: number | null;
+  started_at: string | null;
+  ended_at: string | null;
+  paused_duration_s: number | null;
+  auto_paused_duration_s: number | null;
+}
 
 /**
  * Postgres SQLSTATE class → whether a retry could ever succeed. Matched by class
@@ -1091,23 +1102,32 @@ export class RidesService {
     userId: string,
     excludeRideId?: string | null,
   ): Promise<RideMilestoneStats> {
-    let query = this.supabase
-      .from('rides')
-      .select('id, distance_m, started_at, ended_at, paused_duration_s, auto_paused_duration_s')
-      .eq('user_id', userId)
-      .eq('status', 'completed')
-      .is('deleted_at', null)
-      .is('auto_ended_reason', null)
-      .gte('distance_m', RIDE_MILESTONE_PAYWALL.QUALIFYING_MIN_DISTANCE_M);
-    if (excludeRideId) query = query.neq('id', excludeRideId);
+    // Paged: PostgREST caps a response at its max-rows setting (1000 by default)
+    // without an error, which would understate the longest ride for a heavy rider.
+    const rows: MilestoneRideRow[] = [];
+    for (let from = 0; ; from += MILESTONE_STATS_PAGE_SIZE) {
+      let query = this.supabase
+        .from('rides')
+        .select('id, distance_m, started_at, ended_at, paused_duration_s, auto_paused_duration_s')
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+        .is('deleted_at', null)
+        .is('auto_ended_reason', null)
+        .gte('distance_m', RIDE_MILESTONE_PAYWALL.QUALIFYING_MIN_DISTANCE_M);
+      if (excludeRideId) query = query.neq('id', excludeRideId);
 
-    const { data, error } = await query;
-    if (error) {
-      this.logger.error(`getRideMilestoneStats failed: ${error.message} (${error.code})`);
-      throw new InternalServerErrorException('Could not read ride milestone stats');
+      const { data, error } = await query
+        .order('id')
+        .range(from, from + MILESTONE_STATS_PAGE_SIZE - 1);
+      if (error) {
+        this.logger.error(`getRideMilestoneStats failed: ${error.message} (${error.code})`);
+        throw new InternalServerErrorException('Could not read ride milestone stats');
+      }
+      rows.push(...(data ?? []));
+      if ((data ?? []).length < MILESTONE_STATS_PAGE_SIZE) break;
     }
 
-    const qualifying = (data ?? []).filter(
+    const qualifying = rows.filter(
       (row) =>
         row.started_at &&
         row.ended_at &&

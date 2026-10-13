@@ -84,6 +84,7 @@ describe('RidesService', () => {
       'gte',
       'order',
       'limit',
+      'range',
     ]) {
       chain[m] = vi.fn().mockImplementation((...args: unknown[]) => {
         calls.push({ method: m, args });
@@ -999,6 +1000,23 @@ describe('RidesService', () => {
           { method: 'neq', args: ['id', 'ride-open'] },
         ]),
       );
+    });
+
+    it('reads past the first page so a heavy rider is never cut off at the row cap', async () => {
+      const fullPage = Array.from({ length: 1_000 }, (_, i) => ({
+        ...qualifyingRow,
+        id: `r-${i}`,
+      }));
+      mockUserClient._pushResult({ data: fullPage });
+      mockUserClient._pushResult({
+        data: [{ ...qualifyingRow, id: 'r-long', distance_m: 90_000 }],
+      });
+
+      const stats = await service.getRideMilestoneStats(userId, null);
+
+      expect(stats).toEqual({ qualifyingRideCount: 1_001, longestQualifyingDistanceM: 90_000 });
+      expect(mockUserClient._chain.range).toHaveBeenNthCalledWith(1, 0, 999);
+      expect(mockUserClient._chain.range).toHaveBeenNthCalledWith(2, 1_000, 1_999);
     });
 
     it('skips the exclusion when no ride id is given', async () => {

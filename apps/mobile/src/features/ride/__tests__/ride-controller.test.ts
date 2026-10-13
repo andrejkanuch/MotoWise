@@ -331,8 +331,13 @@ describe('endRideSession', () => {
     expect(summary).toMatchObject({ durationS: 240, movingTimeS: 150 });
     const endCall = enqueue.mock.calls.find(([type]) => type === 'endRide');
     expect(endCall?.[1].variables.input.autoPausedDurationS).toBe(90);
-    expect(buildRideSummaryHref(summary as NonNullable<typeof summary>)).toMatchObject({
-      params: expect.objectContaining({ durationS: '240', movingTimeS: '150' }),
+    const ended = summary as NonNullable<typeof summary>;
+    expect(buildRideSummaryHref(ended)).toMatchObject({
+      params: expect.objectContaining({ durationS: '240', movingTimeS: '150', recovered: '' }),
+    });
+    // The crash-recovery End marks the summary so the ride teaser treats it as system-ended.
+    expect(buildRideSummaryHref(ended, { recovered: true })).toMatchObject({
+      params: expect.objectContaining({ recovered: '1' }),
     });
     (Date.now as jest.Mock).mockRestore();
   });

@@ -124,7 +124,7 @@ export default function StartRideScreen() {
       const summary = endRideSession('phone', { endAt: rideEndTrimTarget() });
       if (summary) {
         setHasUnfinished(false);
-        router.replace(buildRideSummaryHref(summary));
+        router.replace(buildRideSummaryHref(summary, { recovered: true }));
         return;
       }
     }

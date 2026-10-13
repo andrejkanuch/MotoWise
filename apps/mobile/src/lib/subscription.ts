@@ -13,6 +13,7 @@ import { logger } from './logger';
 import { getStoredUtmProperties } from './meta-attribution';
 import { isNetworkError } from './network-error';
 import { showPaywallUnavailable } from './paywall-error-alert';
+import { isOnboardingPaywallSurface } from './paywall-surfaces';
 import { isExpectedRevenueCatError, revenueCatErrorProperties } from './revenuecat-errors';
 import { REVIEW_ACTION, recordReviewAction } from './store-review';
 import type { TrialEntitlementSnapshot } from './trial-reminder';
@@ -115,15 +116,6 @@ type PresentPaywallOptions = PaywallAnalyticsOptions & {
   silentOnError?: boolean;
 };
 
-/**
- * Onboarding surfaces (lib/onboarding-paywall.ts ONBOARDING_PAYWALL_SURFACE). Matched by
- * prefix so the two onboarding variants and any future one all count; that module
- * imports this one, so the constant itself cannot be imported here without a cycle.
- */
-function isOnboardingPaywallSurface(surface: string | undefined): boolean {
-  return surface?.startsWith('onboarding_') ?? false;
-}
-
 function paywallProperties(
   options: PresentPaywallOptions,
   extra: Record<string, JsonType> = {},
@@ -172,6 +164,14 @@ async function purchasedProductProperties(): Promise<Record<string, JsonType>> {
   }
 }
 
+/**
+ * How paywall-history is loaded. An object so tests can replace the dynamic
+ * import, which this repo's Jest setup does not transform.
+ */
+export const paywallHistoryLoader = {
+  load: () => import('./paywall-history'),
+};
+
 async function trackPaywallResult(
   options: PresentPaywallOptions,
   result: PaywallResult,
@@ -202,7 +202,8 @@ async function trackPaywallResult(
     // (lib/ride-milestone-trigger.ts, plan R4). Loaded lazily: paywall-history
     // opens an MMKV store, which this module's tests do not provide.
     if (isOnboardingPaywallSurface(options.surface)) {
-      import('./paywall-history')
+      paywallHistoryLoader
+        .load()
         .then((m) => m.recordOnboardingPaywallDismissed())
         .catch((e) => addBreadcrumb(String(e), 'revenuecat.paywallHistory.recordFailed'));
     }

@@ -129,7 +129,7 @@ describe('evaluateRideTeaser', () => {
     });
   });
 
-  it('AE3: a 32 mi ride for a miles rider whose longest is 28 mi is due, but the milestone wins when both are due', () => {
+  it('AE3: a 52 mi ride for a miles rider whose longest is 28 mi is due, but the milestone wins when both are due', () => {
     const miles = (mi: number) => mi * 1609.344;
     const both = evaluateRideTeaser(
       input({
@@ -160,6 +160,18 @@ describe('evaluateRideTeaser', () => {
       }),
     );
     expect(result).toMatchObject({ trigger: null, suppressionReason: TEASER_SUPPRESSION.NOT_DUE });
+  });
+
+  it('R3: exactly 50 is long when the prior longest is just below it', () => {
+    const atThreshold = (longestM: number) =>
+      evaluateRideTeaser(
+        input({
+          ride: { distanceM: 50_000, movingS: 3_600, systemEnded: false },
+          priorStats: { qualifyingRideCount: 2, longestQualifyingDistanceM: longestM },
+        }),
+      ).trigger;
+    expect(atThreshold(49_999)).toBe(RIDE_TEASER_TRIGGER.LONG_RIDE);
+    expect(atThreshold(50_000)).toBeNull();
   });
 
   it('R3: riders already past 50 before go-live never get the long-ride teaser', () => {

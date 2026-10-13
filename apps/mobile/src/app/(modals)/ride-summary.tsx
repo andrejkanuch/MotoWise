@@ -37,9 +37,9 @@ import {
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../components/ui/native-toggle';
+import { useRideTeaserEvaluation } from '../../features/ride/use-ride-teaser-evaluation';
 import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
-import { useRideTeaserEvaluation } from '../../hooks/use-ride-teaser-evaluation';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { CORE_ACTION_KIND, recordCoreAction } from '../../lib/core-action-milestones';
 import { gqlFetcher } from '../../lib/graphql-client';

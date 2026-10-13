@@ -395,7 +395,15 @@ export function endRideSession(
  * CarPlay Stop so both surfaces land on the same summary (which reads these params
  * and owns clearing the ride data). Pure — builds the Href, never navigates.
  */
-export function buildRideSummaryHref(summary: RideEndSummary): Href {
+/**
+ * `recovered`: the ride was ended from the crash-recovery prompt on Start Ride, not
+ * by the rider's Stop. The summary passes it on so the ride-moment teaser treats the
+ * ride as system-ended (plan R1) instead of trusting a completion it cannot confirm.
+ */
+export function buildRideSummaryHref(
+  summary: RideEndSummary,
+  { recovered = false }: { recovered?: boolean } = {},
+): Href {
   return {
     pathname: '/(modals)/ride-summary',
     params: {
@@ -409,6 +417,7 @@ export function buildRideSummaryHref(summary: RideEndSummary): Href {
       startedAt: summary.startedAt?.toString() ?? '',
       motorcycleId: summary.motorcycleId ?? '',
       movingTimeS: String(summary.movingTimeS),
+      recovered: recovered ? '1' : '',
     },
   };
 }

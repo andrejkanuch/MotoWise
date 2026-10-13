@@ -14,38 +14,41 @@ jest.mock('react-native-mmkv', () => ({
     };
   },
 }));
-jest.mock('../../lib/analytics', () => require('../../test/mocks').mockAnalytics());
-jest.mock('../../lib/logger', () => ({ logger: { warn: jest.fn(), error: jest.fn() } }));
+jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
+jest.mock('@/lib/logger', () => ({ logger: { warn: jest.fn(), error: jest.fn() } }));
 
 const mockFetcher = jest.fn();
-jest.mock('../../lib/graphql-client', () => ({
+jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 const mockHasHadTrialSnapshot = jest.fn(() => Promise.resolve(false));
-jest.mock('../../lib/subscription', () => ({
+jest.mock('@/lib/subscription', () => ({
   hasHadTrialSnapshot: () => mockHasHadTrialSnapshot(),
 }));
-jest.mock('../../lib/paywall-history', () => ({
+jest.mock('@/lib/paywall-history', () => ({
   getOnboardingPaywallDismissedAt: () => null,
 }));
+let mockRouteParams: { recovered?: string } = {};
+jest.mock('expo-router', () => ({ useLocalSearchParams: () => mockRouteParams }));
 const mockIsHeadUnitConnected = jest.fn(() => false);
-jest.mock('../../../modules/carplay/src', () => ({
+jest.mock('../../../../modules/carplay/src', () => ({
   isHeadUnitConnected: () => mockIsHeadUnitConnected(),
 }));
-jest.mock('../../stores/auth.store', () => ({
+jest.mock('@/stores/auth.store', () => ({
   useAuthStore: { getState: () => ({ session: { user: { id: 'rider-1' } } }) },
 }));
-jest.mock('../../stores/ride.store', () => ({
+jest.mock('@/stores/ride.store', () => ({
   useRideStore: { getState: () => ({ status: 'ended' }) },
 }));
-jest.mock('../../stores/subscription.store', () => ({
+jest.mock('@/stores/subscription.store', () => ({
   useSubscriptionStore: { getState: () => ({ isPro: false, isTrialing: false }) },
 }));
 
 import { MeasurementSystem } from '@motovault/types';
 import { act, renderHook } from '@testing-library/react-native';
-import { trackEvent } from '../../lib/analytics';
-import { RIDE_TEASER_TRIGGER, TEASER_SUPPRESSION } from '../../lib/ride-milestone-trigger';
+import { trackEvent } from '@/lib/analytics';
+import { logger } from '@/lib/logger';
+import { RIDE_TEASER_TRIGGER, TEASER_SUPPRESSION } from '@/lib/ride-milestone-trigger';
 import { useRideTeaserEvaluation } from '../use-ride-teaser-evaluation';
 
 const track = trackEvent as jest.Mock;
@@ -75,6 +78,7 @@ const flush = () => act(async () => {});
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockRouteParams = {};
   mockIsHeadUnitConnected.mockReturnValue(false);
   mockFetcher.mockResolvedValue(PRIOR_STATS);
 });
@@ -186,6 +190,31 @@ describe('useRideTeaserEvaluation', () => {
 
     expect(track).toHaveBeenCalledTimes(1);
     expect(mockFetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('a crash-recovered summary counts as system-ended: one event, ride_not_qualifying', async () => {
+    mockRouteParams = { recovered: '1' };
+
+    await renderHook(() => useRideTeaserEvaluation(FIFTH_RIDE));
+    await flush();
+
+    expect(track).toHaveBeenCalledTimes(1);
+    expect(track.mock.calls[0][1]).toMatchObject({
+      suppression_reason: TEASER_SUPPRESSION.RIDE_NOT_QUALIFYING,
+      would_show: false,
+    });
+  });
+
+  it('a throw after the reads is logged, not left as an unhandled rejection', async () => {
+    mockIsHeadUnitConnected.mockImplementation(() => {
+      throw new Error('native module unavailable');
+    });
+
+    await renderHook(() => useRideTeaserEvaluation(FIFTH_RIDE));
+    await flush();
+
+    expect(track).not.toHaveBeenCalled();
+    expect(logger.warn).toHaveBeenCalledWith('[RideTeaser] evaluation failed', expect.any(Error));
   });
 
   it('does nothing without a rideId', async () => {

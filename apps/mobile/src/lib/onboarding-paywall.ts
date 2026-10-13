@@ -5,6 +5,7 @@ import {
   MAINTENANCE_INTENT_PLACEMENT,
 } from '../config/onboarding';
 import type { useOnboardingStore } from '../stores/onboarding.store';
+import type { OnboardingPaywallSurface } from './paywall-surfaces';
 import { isMaintenanceIntent } from './pending-intent';
 import { presentPaywall, setOnboardingAttributes, waitForRevenueCatLogin } from './subscription';
 
@@ -13,13 +14,7 @@ import { presentPaywall, setOnboardingAttributes, waitForRevenueCatLogin } from 
  * `commit_first` step screen (the historical value, kept so funnels stay
  * comparable); `onboarding_garage_ready` is the `garage_first` payoff CTA.
  */
-export const ONBOARDING_PAYWALL_SURFACE = {
-  STEP: 'onboarding_paywall',
-  GARAGE_READY: 'onboarding_garage_ready',
-} as const;
-
-export type OnboardingPaywallSurface =
-  (typeof ONBOARDING_PAYWALL_SURFACE)[keyof typeof ONBOARDING_PAYWALL_SURFACE];
+export { ONBOARDING_PAYWALL_SURFACE } from './paywall-surfaces';
 
 /**
  * How long to wait for RevenueCat `logIn` before presenting anyway. After the
