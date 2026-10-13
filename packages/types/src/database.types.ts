@@ -1508,6 +1508,68 @@ export type Database = {
           },
         ]
       }
+      feedback_messages: {
+        Row: {
+          app_version: string
+          client_id: string
+          contact_allowed: boolean
+          contact_email: string | null
+          created_at: string
+          email_error: string | null
+          emailed_at: string | null
+          id: string
+          locale: string
+          message: string
+          motorcycle_id: string | null
+          platform: string
+          quick_pick: string | null
+          update_id: string | null
+          user_id: string
+        }
+        Insert: {
+          app_version: string
+          client_id: string
+          contact_allowed?: boolean
+          contact_email?: string | null
+          created_at?: string
+          email_error?: string | null
+          emailed_at?: string | null
+          id?: string
+          locale: string
+          message: string
+          motorcycle_id?: string | null
+          platform: string
+          quick_pick?: string | null
+          update_id?: string | null
+          user_id: string
+        }
+        Update: {
+          app_version?: string
+          client_id?: string
+          contact_allowed?: boolean
+          contact_email?: string | null
+          created_at?: string
+          email_error?: string | null
+          emailed_at?: string | null
+          id?: string
+          locale?: string
+          message?: string
+          motorcycle_id?: string | null
+          platform?: string
+          quick_pick?: string | null
+          update_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_messages_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string

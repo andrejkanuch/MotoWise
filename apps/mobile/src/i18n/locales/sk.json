@@ -352,7 +352,8 @@
     "editProfileHint": "Uprav verejný a jazdecký profil",
     "sectionApp": "Aplikácia",
     "nameLabel": "Meno",
-    "publicNameLabel": "Verejné meno (vidia ho ostatní jazdci)"
+    "publicNameLabel": "Verejné meno (vidia ho ostatní jazdci)",
+    "sectionFeedback": "Spätná väzba"
   },
   "onboarding": {
     "welcomeTitle": "Vitaj v MotoVault",
@@ -1601,7 +1602,6 @@
   "support": {
     "faq": "Často kladené otázky",
     "contact": "Kontaktuj nás",
-    "emailSupport": "E-mailová podpora",
     "version": "Verzia {{version}}",
     "faq1Question": "Ako pridám motorku?",
     "faq1Answer": "Prejdi na kartu Garáž a ťukni na tlačidlo +. Motorku môžeš vyhľadať podľa výrobcu, modelu a roku.",
@@ -1612,7 +1612,37 @@
     "faq4Question": "Ako zmením jazyk?",
     "faq4Answer": "Prejdi do Profil → Nastavenia aplikácie → Jazyk a vyber si jazyk.",
     "faq5Question": "Sú moje údaje v bezpečí?",
-    "faq5Answer": "Áno. Používame end-to-end šifrovanie a riadime sa osvedčenými postupmi z odvetvia. Svoje údaje môžeš kedykoľvek exportovať alebo vymazať v nastaveniach Súkromia."
+    "faq5Answer": "Áno. Používame end-to-end šifrovanie a riadime sa osvedčenými postupmi z odvetvia. Svoje údaje môžeš kedykoľvek exportovať alebo vymazať v nastaveniach Súkromia.",
+    "rateApp": "Ohodnoť MotoVault",
+    "rateAppSubtitle": "Povedz ostatným motorkárom, čo si myslíš"
+  },
+  "feedback": {
+    "title": "Napíš vývojárovi",
+    "rowSubtitle": "Nápady, chyby, čokoľvek ťa napadne",
+    "intro": "Tvoja správa ide priamo vývojárovi a každá sa prečíta.",
+    "quickPickLabel": "O čo ide?",
+    "quickPickLove": "Páči sa mi…",
+    "quickPickWish": "Chýba mi…",
+    "quickPickBroken": "Niečo nefunguje",
+    "messageLabel": "Tvoja správa",
+    "messagePlaceholder": "Napíš vývojárovi, čo máš na srdci",
+    "context": "Odošle sa spolu so správou: verzia aplikácie {{version}}, {{platform}}, jazyk aplikácie a tvoja najnovšia motorka.",
+    "contactLabel": "Odpoveď",
+    "contactOptIn": "Vývojár ma môže kontaktovať ohľadom mojej spätnej väzby",
+    "contactEmailLabel": "E-mail na kontakt",
+    "contactEmailPlaceholder": "meno@priklad.sk",
+    "contactEmailHelper": "Použije sa len na odpoveď. Nemení spôsob, akým sa prihlasuješ.",
+    "contactEmailRelayHelper": "Prihlasuješ sa cez Skryť môj e-mail. Nechaj pole prázdne, ak chceš odpovede na túto presmerovaciu adresu, alebo pridaj osobný e-mail.",
+    "emailInvalid": "Tento e-mail nevyzerá správne. Skontroluj ho a skús to znova.",
+    "send": "Odoslať",
+    "errorGeneric": "Správu sa nepodarilo odoslať. Tvoj text tu stále je, skús to o chvíľu znova.",
+    "errorThrottled": "Za krátky čas prišlo od teba viac správ. Skús to znova o niečo neskôr.",
+    "sentTitle": "Správa odoslaná",
+    "sentBody": "Vďaka za správu. Ak ťa vývojár smie kontaktovať, odpoveď príde e-mailom.",
+    "notificationsSection": "Porozprávaj sa s vývojárom",
+    "notificationsOptInSubtitle": "Odpovede na spätnú väzbu, ktorú pošleš",
+    "notificationsEmailRelay": "Adresa Skryť môj e-mail",
+    "saveError": "Zmenu sa nepodarilo uložiť. Skontroluj pripojenie a skús to znova."
   },
   "quickActions": {
     "startRide": "Začať jazdu",
@@ -2457,17 +2487,6 @@
     "battery": "Batéria",
     "general_service": "Všeobecný servis",
     "other": "Iné"
-  },
-  "review": {
-    "softAskTitle": "Páči sa ti MotoVault?",
-    "softAskBody": "Krátke hodnotenie pomôže ďalším motorkárom nájsť aplikáciu.",
-    "softAskYes": "Milujem to",
-    "softAskNo": "Nie celkom",
-    "feedbackTitle": "Pomôž nám zlepšiť sa",
-    "feedbackBody": "Napíš, čo nefunguje — čítame každú správu.",
-    "feedbackYes": "Poslať spätnú väzbu",
-    "feedbackNo": "Teraz nie",
-    "feedbackSubject": "Spätná väzba MotoVault"
   },
   "analyticsConsent": {
     "title": "Pomôž tvoriť MotoVault",

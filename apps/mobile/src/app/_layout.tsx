@@ -62,6 +62,7 @@ import {
 } from '../features/ride/ride-notification-response';
 import { useAnalyticsSuperProperties } from '../hooks/use-analytics-super-properties';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
+import { useReviewAppOpenScoring } from '../hooks/use-review-app-open-scoring';
 import { useRideIdleResponses } from '../hooks/use-ride-idle-responses';
 import { useScreenTracking } from '../hooks/use-screen-tracking';
 import i18n from '../i18n';
@@ -138,6 +139,7 @@ import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
 import { meOptions } from '../lib/query-options';
 import { clearPersistedQueryCache } from '../lib/query-persist';
 import { refreshAfterSyncedOp } from '../lib/ride-sync-refresh';
+import { REVIEW_ACTION, recordReviewAction } from '../lib/store-review';
 import {
   configureRevenueCatAnonymously,
   initRevenueCat,
@@ -917,6 +919,8 @@ function RootLayout() {
     return () => clearTimeout(timer);
   }, [session]);
 
+  useReviewAppOpenScoring(session?.user?.id);
+
   // Initialize RevenueCat SDK with cleanup
   useEffect(() => {
     let cancelled = false;
@@ -1059,6 +1063,8 @@ function RootLayout() {
               surface: MAINTENANCE_COMPLETION_SURFACE.REMINDER_NOTIFICATION,
             });
             recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);
+            // Scores like a completed task, but a notification action is never a prompt moment.
+            recordReviewAction(REVIEW_ACTION.SERVICE);
             // Cancel any remaining reminder stages for the now-completed task.
             await cancelTaskNotification(data.taskId);
             queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });

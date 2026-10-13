@@ -2,6 +2,10 @@
 // trialDaysLeft (drives every pro-gate). Tested against the REAL subscription
 // store (only analytics is mocked, to avoid pulling native Sentry/PostHog).
 
+jest.mock('../store-review', () => ({
+  REVIEW_ACTION: { PRO_SUBSCRIBED: 'pro_subscribed' },
+  recordReviewAction: jest.fn(),
+}));
 jest.mock('../analytics', () => require('../../test/mocks').mockAnalytics());
 
 import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';

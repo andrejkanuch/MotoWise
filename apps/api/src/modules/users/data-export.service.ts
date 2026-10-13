@@ -132,10 +132,18 @@ export class DataExportService {
       // Document vault: metadata + storage paths only (not the raw file bytes).
       // document_files carries a denormalized user_id (00150) so byUserId works.
       // document_categories included too — custom category names are user data (GDPR).
-      const [documentsResult, documentFilesResult, documentCategoriesResult] = await Promise.all([
+      // feedback_messages: "Write to the developer" messages (00190). Copies already
+      // in the support inbox are outside this export.
+      const [
+        documentsResult,
+        documentFilesResult,
+        documentCategoriesResult,
+        feedbackMessagesResult,
+      ] = await Promise.all([
         byUserId('documents'),
         byUserId('document_files'),
         byUserId('document_categories'),
+        byUserId('feedback_messages'),
       ]);
 
       const exportData = {
@@ -156,6 +164,7 @@ export class DataExportService {
         documents: documentsResult.data ?? [],
         documentFiles: documentFilesResult.data ?? [],
         documentCategories: documentCategoriesResult.data ?? [],
+        feedbackMessages: feedbackMessagesResult.data ?? [],
       };
 
       // Store export as JSON in Supabase Storage

@@ -15,10 +15,6 @@ jest.mock('../../utils/haptics', () => ({
 jest.mock('../../lib/analytics', () => require('../../test/mocks').mockAnalytics());
 jest.mock('../../hooks/use-currency', () => ({ useCurrency: () => ({ symbol: '€' }) }));
 jest.mock('../../hooks/use-mileage-unit', () => ({ useMileageUnit: () => 'km' }));
-jest.mock('../../lib/store-review', () => ({
-  maybeRequestReview: jest.fn(),
-  REVIEW_MILESTONE: { BIKE_EDITED: 'bike_edited' },
-}));
 jest.mock('../../lib/notifications', () => ({
   cancelDocumentNotificationsForBike: jest.fn(() => Promise.resolve()),
 }));

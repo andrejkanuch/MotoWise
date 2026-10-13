@@ -46,7 +46,7 @@ import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../../lib/ride-analytics';
-import { maybeRequestReview, REVIEW_MILESTONE } from '../../lib/store-review';
+import { requestRideReview } from '../../lib/store-review';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, type } from '../../theme/type';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
@@ -307,8 +307,7 @@ export default function RideSummaryScreen() {
         },
       });
       MetaAnalytics.trackLogRide();
-      recordCoreAction(CORE_ACTION_KIND.RIDE_SAVED);
-      maybeRequestReview(REVIEW_MILESTONE.RIDE_COMPLETED);
+      const localRideCount = recordCoreAction(CORE_ACTION_KIND.RIDE_SAVED);
 
       // Share to Discover (fire-and-forget, non-blocking)
       if (shareToDiscover) {
@@ -320,6 +319,10 @@ export default function RideSummaryScreen() {
           });
         });
       }
+
+      // Ask while the ride's stats are still on screen; navigation waits for the dialog.
+      const overview = overviewData?.rideOverview;
+      await requestRideReview({ distanceM, durationS, rideId, localRideCount, overview });
 
       router.replace('/(tabs)/(profile)');
     } catch (error) {
@@ -339,6 +342,7 @@ export default function RideSummaryScreen() {
     motorcycleId,
     maxSpeedMps,
     avgSpeedMps,
+    overviewData?.rideOverview,
   ]);
 
   const handleDiscard = useCallback(() => {

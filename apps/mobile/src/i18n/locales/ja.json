@@ -352,7 +352,8 @@
     "editProfileHint": "公開プロフィールとライダープロフィールを編集",
     "sectionApp": "アプリ",
     "nameLabel": "名前",
-    "publicNameLabel": "公開名(ほかのライダーに表示)"
+    "publicNameLabel": "公開名(ほかのライダーに表示)",
+    "sectionFeedback": "フィードバック"
   },
   "onboarding": {
     "welcomeTitle": "MotoVaultへようこそ",
@@ -1559,7 +1560,6 @@
   "support": {
     "faq": "よくある質問",
     "contact": "お問い合わせ",
-    "emailSupport": "メールサポート",
     "version": "バージョン {{version}}",
     "faq1Question": "バイクを追加するには？",
     "faq1Answer": "ガレージタブを開いて＋ボタンをタップします。メーカー、モデル、年式でバイクを検索できます。",
@@ -1570,7 +1570,37 @@
     "faq4Question": "言語を変更するには？",
     "faq4Answer": "プロフィール → アプリ設定 → 言語 から、使いたい言語を選んでください。",
     "faq5Question": "データは安全ですか？",
-    "faq5Answer": "はい。エンドツーエンド暗号化を使用し、業界のベストプラクティスに従っています。データはプライバシー設定からいつでもエクスポートまたは削除できます。"
+    "faq5Answer": "はい。エンドツーエンド暗号化を使用し、業界のベストプラクティスに従っています。データはプライバシー設定からいつでもエクスポートまたは削除できます。",
+    "rateApp": "MotoVaultを評価",
+    "rateAppSubtitle": "ほかのライダーに感想を伝えましょう"
+  },
+  "feedback": {
+    "title": "開発者にメッセージを送る",
+    "rowSubtitle": "アイデア、不具合、気になることなら何でも",
+    "intro": "メッセージは開発者に直接届き、すべて目を通しています。",
+    "quickPickLabel": "どんな内容ですか？",
+    "quickPickLove": "気に入っている点…",
+    "quickPickWish": "こうなってほしい…",
+    "quickPickBroken": "うまく動かない",
+    "messageLabel": "メッセージ",
+    "messagePlaceholder": "開発者に伝えたいことを書いてください",
+    "context": "メッセージと一緒に送信される情報：アプリのバージョン {{version}}、{{platform}}、アプリの言語、最近のバイク。",
+    "contactLabel": "返信",
+    "contactOptIn": "フィードバックについて開発者から連絡を受けてもよい",
+    "contactEmailLabel": "連絡先メールアドレス",
+    "contactEmailPlaceholder": "name@example.com",
+    "contactEmailHelper": "返信にのみ使用します。サインイン方法は変わりません。",
+    "contactEmailRelayHelper": "「メールを非公開」でサインインしています。空欄のままにするとその転送用アドレスに返信が届きます。個人のメールアドレスを入力することもできます。",
+    "emailInvalid": "メールアドレスの形式が正しくないようです。確認してもう一度お試しください。",
+    "send": "送信",
+    "errorGeneric": "メッセージを送信できませんでした。入力した内容は残っているので、少し待ってからもう一度お試しください。",
+    "errorThrottled": "短時間に複数のメッセージが送信されました。しばらくしてからもう一度お試しください。",
+    "sentTitle": "送信しました",
+    "sentBody": "メッセージありがとうございます。連絡を許可していただいた場合は、メールで返信します。",
+    "notificationsSection": "開発者と話す",
+    "notificationsOptInSubtitle": "送ったフィードバックへの返信",
+    "notificationsEmailRelay": "「メールを非公開」のアドレス",
+    "saveError": "変更を保存できませんでした。接続を確認してもう一度お試しください。"
   },
   "quickActions": {
     "startRide": "ライドを開始",
@@ -2411,17 +2441,6 @@
     "battery": "バッテリー",
     "general_service": "一般整備",
     "other": "その他"
-  },
-  "review": {
-    "softAskTitle": "MotoVaultはいかがですか？",
-    "softAskBody": "評価いただくと、他のライダーがアプリを見つけやすくなります。",
-    "softAskYes": "気に入っています",
-    "softAskNo": "あまり",
-    "feedbackTitle": "改善にご協力ください",
-    "feedbackBody": "うまくいかない点を教えてください。すべてのメッセージを読んでいます。",
-    "feedbackYes": "フィードバックを送る",
-    "feedbackNo": "今はしない",
-    "feedbackSubject": "MotoVault フィードバック"
   },
   "analyticsConsent": {
     "title": "MotoVaultづくりにご協力ください",
