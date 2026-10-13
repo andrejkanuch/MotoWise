@@ -20,3 +20,24 @@ export function activeRideSeconds(clock: RideClock, endAt: number): number {
   const pausedMs = clock.totalPausedMs + inProgressPauseMs;
   return Math.max(0, Math.round((endAt - clock.startedAt - pausedMs) / MS_PER_SECOND));
 }
+
+/**
+ * Moving time exactly as the API computes it (`computeMovingTimeS` in
+ * ride-analytics.utils.ts): whole elapsed seconds, floored, minus the rounded
+ * manual and auto pause seconds the phone sends with EndRide. `activeRideSeconds`
+ * rounds instead, so a ride can read 180 s on the summary and 179 s on the server;
+ * the ride-moment paywall rule (plan R1) must be applied to the server's number.
+ */
+export function movingTimeSeconds(
+  startedAt: number,
+  endedAt: number,
+  totalPausedMs: number,
+  totalAutoPausedMs: number,
+): number {
+  return Math.max(
+    0,
+    Math.floor((endedAt - startedAt) / MS_PER_SECOND) -
+      Math.round(totalPausedMs / MS_PER_SECOND) -
+      Math.round(totalAutoPausedMs / MS_PER_SECOND),
+  );
+}

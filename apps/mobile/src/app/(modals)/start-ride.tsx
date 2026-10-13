@@ -18,11 +18,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LocationDisclosureModal } from '../../components/ride/location-disclosure-modal';
 import { PreFlightChecklist } from '../../components/ride/pre-flight-checklist';
-import {
-  buildRideSummaryHref,
-  endRideSession,
-  startRideSession,
-} from '../../features/ride/ride-controller';
+import { endRecoveredRide, startRideSession } from '../../features/ride/ride-controller';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -38,11 +34,7 @@ import {
   markPrePromptDismissed,
   shouldShowPrePrompt,
 } from '../../utils/ride-permissions';
-import {
-  armRideReminders,
-  cancelRideReminders,
-  rideEndTrimTarget,
-} from '../../utils/ride-reminders';
+import { armRideReminders, cancelRideReminders } from '../../utils/ride-reminders';
 import { rideMMKV } from '../../utils/ride-storage';
 
 export default function StartRideScreen() {
@@ -121,10 +113,10 @@ export default function StartRideScreen() {
       // trimmed to the last movement. This used to send distance 0 with no route —
       // throwing the recorded ride away, and overwriting the real distance if the
       // server sweep had already closed it.
-      const summary = endRideSession('phone', { endAt: rideEndTrimTarget() });
-      if (summary) {
+      const summaryHref = endRecoveredRide();
+      if (summaryHref) {
         setHasUnfinished(false);
-        router.replace(buildRideSummaryHref(summary));
+        router.replace(summaryHref);
         return;
       }
     }

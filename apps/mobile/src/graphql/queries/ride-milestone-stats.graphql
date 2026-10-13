@@ -1,0 +1,6 @@
+query RideMilestoneStats($excludeRideId: String) {
+  rideMilestoneStats(excludeRideId: $excludeRideId) {
+    qualifyingRideCount
+    longestQualifyingDistanceM
+  }
+}

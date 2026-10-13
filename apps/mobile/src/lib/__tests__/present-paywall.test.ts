@@ -69,7 +69,16 @@ jest.mock('../../stores/subscription.store', () => ({
   },
 }));
 
-import { presentPaywall } from '../subscription';
+import { ONBOARDING_PAYWALL_SURFACE } from '../paywall-surfaces';
+import { paywallHistoryLoader, presentPaywall } from '../subscription';
+
+const mockRecordDismissed = jest.fn();
+paywallHistoryLoader.load = () =>
+  Promise.resolve({
+    recordOnboardingPaywallDismissed: mockRecordDismissed,
+    getOnboardingPaywallDismissedAt: () => null,
+  });
+const settle = () => new Promise((resolve) => setImmediate(resolve));
 
 const OFFERING = { identifier: 'default', availablePackages: [{}, {}] };
 const resultEvents = () =>
@@ -198,5 +207,31 @@ describe('presentPaywall', () => {
     await presentPaywall();
 
     expect(mockRecordReviewAction).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ONBOARDING_PAYWALL_SURFACE.STEP,
+    ONBOARDING_PAYWALL_SURFACE.GARAGE_READY,
+  ])('records an onboarding dismissal for the ride teaser cooldown (%s)', async (surface) => {
+    await presentPaywall({ surface });
+    await settle();
+
+    expect(mockRecordDismissed).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not start the cooldown for a dismissal outside onboarding', async () => {
+    await presentPaywall({ source: 'feature_gate', surface: 'garage_add_bike_header' });
+    await settle();
+
+    expect(mockRecordDismissed).not.toHaveBeenCalled();
+  });
+
+  it('does not start the cooldown when the rider buys', async () => {
+    mockPresent.mockResolvedValue('PURCHASED');
+
+    await presentPaywall({ surface: ONBOARDING_PAYWALL_SURFACE.STEP });
+    await settle();
+
+    expect(mockRecordDismissed).not.toHaveBeenCalled();
   });
 });

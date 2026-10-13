@@ -13,6 +13,7 @@ jest.mock('@/utils/ride-permissions', () => ({
 jest.mock('@/utils/ride-reminders', () => ({
   armRideReminders: jest.fn(() => Promise.resolve()),
   cancelRideReminders: jest.fn(() => Promise.resolve()),
+  rideEndTrimTarget: jest.fn(() => 1_200_000),
 }));
 jest.mock('expo-notifications', () => ({
   getPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted', canAskAgain: true })),
@@ -27,6 +28,7 @@ jest.mock('@/utils/ride-storage', () => {
   const state = {
     startedAt: 0 as number | undefined,
     totalPausedMs: 0,
+    totalAutoPausedMs: 0,
     pausedAt: 0,
     currentId: '',
   };
@@ -37,7 +39,7 @@ jest.mock('@/utils/ride-storage', () => {
       getStartedAt: () => state.startedAt,
       getTotalPausedMs: () => state.totalPausedMs,
       getPausedAt: () => state.pausedAt,
-      getTotalAutoPausedMs: () => 0,
+      getTotalAutoPausedMs: () => state.totalAutoPausedMs,
       getMotorcycleId: () => 'bike-9',
       getHudLayout: () => 'A',
       setCurrentId: jest.fn((id: string) => {
@@ -109,12 +111,19 @@ import * as perms from '@/utils/ride-permissions';
 import * as reminders from '@/utils/ride-reminders';
 import * as storage from '@/utils/ride-storage';
 import * as syncQueue from '@/utils/ride-sync-queue';
-import { elapsedRideSeconds, endRideSession, startRideSession } from '../ride-controller';
+import {
+  buildRideSummaryHref,
+  elapsedRideSeconds,
+  endRecoveredRide,
+  endRideSession,
+  startRideSession,
+} from '../ride-controller';
 
 // biome-ignore lint/suspicious/noExplicitAny: reaching into the mock's mutable state
 const mmkvState = (storage as any).__state as {
   startedAt: number | undefined;
   totalPausedMs: number;
+  totalAutoPausedMs: number;
   pausedAt: number;
   currentId: string;
 };
@@ -141,6 +150,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mmkvState.startedAt = 0;
   mmkvState.totalPausedMs = 0;
+  mmkvState.totalAutoPausedMs = 0;
   mmkvState.pausedAt = 0;
   mmkvState.currentId = '';
   store.status = 'recording';
@@ -307,6 +317,49 @@ describe('endRideSession', () => {
     mmkvState.currentId = 'ride-ph';
     endRideSession('phone');
     expect(clearRideData).not.toHaveBeenCalled();
+  });
+
+  it("carries the server's moving time to the summary and its route, separately from durationS", () => {
+    // The summary's durationS is the displayed clock (manual pauses only); the
+    // server's moving time also subtracts auto-pauses, so the summary needs that
+    // number to apply R1 the same way the server does.
+    jest.spyOn(Date, 'now').mockReturnValue(1_240_000);
+    mmkvState.currentId = 'ride-ap';
+    mmkvState.startedAt = 1_000_000;
+    mmkvState.totalAutoPausedMs = 90_000;
+
+    const summary = endRideSession('phone');
+
+    expect(summary).toMatchObject({ durationS: 240, movingTimeS: 150 });
+    const endCall = enqueue.mock.calls.find(([type]) => type === 'endRide');
+    expect(endCall?.[1].variables.input.autoPausedDurationS).toBe(90);
+    const ended = summary as NonNullable<typeof summary>;
+    expect(buildRideSummaryHref(ended)).toMatchObject({
+      params: expect.objectContaining({ durationS: '240', movingTimeS: '150', recovered: '' }),
+    });
+    expect(buildRideSummaryHref(ended, { recovered: true })).toMatchObject({
+      params: expect.objectContaining({ recovered: '1' }),
+    });
+    (Date.now as jest.Mock).mockRestore();
+  });
+
+  it('ends the unfinished ride Start Ride found, trimmed, and marks its summary recovered', () => {
+    jest.spyOn(Date, 'now').mockReturnValue(1_240_000);
+    mmkvState.currentId = 'ride-crashed';
+    mmkvState.startedAt = 1_000_000;
+
+    const href = endRecoveredRide();
+
+    expect(href).toMatchObject({
+      pathname: '/(modals)/ride-summary',
+      params: expect.objectContaining({ rideId: 'ride-crashed', recovered: '1' }),
+    });
+    (Date.now as jest.Mock).mockRestore();
+  });
+
+  it('returns no summary when there is no unfinished ride to end', () => {
+    mmkvState.currentId = '';
+    expect(endRecoveredRide()).toBeNull();
   });
 
   it('is idempotent on a double-Stop — returns null and does not re-end when already ended', () => {

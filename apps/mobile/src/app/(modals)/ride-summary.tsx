@@ -37,6 +37,7 @@ import {
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../components/ui/native-toggle';
+import { useRideTeaserEvaluation } from '../../features/ride/use-ride-teaser-evaluation';
 import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
@@ -98,6 +99,7 @@ export default function RideSummaryScreen() {
     elevationLoss: string;
     startedAt: string;
     motorcycleId: string;
+    movingTimeS: string;
   }>();
 
   const rideId = params.rideId ?? '';
@@ -109,6 +111,7 @@ export default function RideSummaryScreen() {
   const elevationLoss = Number(params.elevationLoss) || 0;
   const startedAtMs = Number(params.startedAt) || Date.now();
   const motorcycleId = params.motorcycleId ?? '';
+  const movingTimeS = Number(params.movingTimeS) || 0;
 
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -132,6 +135,10 @@ export default function RideSummaryScreen() {
   const mapRef = useRef<MapboxGL.MapView>(null);
 
   const bikeName = useBikeName(motorcycleId);
+
+  // Ride-moment paywall teaser, shadow phase: logs would-have-shown when the summary opens;
+  // nothing renders while RIDE_TEASER_LIVE is false. movingTimeS is the server's moving time.
+  useRideTeaserEvaluation({ rideId, distanceM, movingS: movingTimeS, measurementSystem: system });
 
   // Fetch PB data
   const { data: overviewData } = useQuery<RideOverviewQuery>({

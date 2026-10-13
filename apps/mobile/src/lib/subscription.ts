@@ -13,6 +13,7 @@ import { logger } from './logger';
 import { getStoredUtmProperties } from './meta-attribution';
 import { isNetworkError } from './network-error';
 import { showPaywallUnavailable } from './paywall-error-alert';
+import { isOnboardingPaywallSurface } from './paywall-surfaces';
 import { isExpectedRevenueCatError, revenueCatErrorProperties } from './revenuecat-errors';
 import { REVIEW_ACTION, recordReviewAction } from './store-review';
 import type { TrialEntitlementSnapshot } from './trial-reminder';
@@ -163,6 +164,14 @@ async function purchasedProductProperties(): Promise<Record<string, JsonType>> {
   }
 }
 
+/**
+ * How paywall-history is loaded. An object so tests can replace the dynamic
+ * import, which this repo's Jest setup does not transform.
+ */
+export const paywallHistoryLoader = {
+  load: () => import('./paywall-history'),
+};
+
 async function trackPaywallResult(
   options: PresentPaywallOptions,
   result: PaywallResult,
@@ -189,6 +198,15 @@ async function trackPaywallResult(
       reason: 'user_cancelled',
     });
     trackEvent(AnalyticsEvent.PURCHASE_CANCELLED, properties);
+    // The ride-moment teaser stays quiet for 72 h after an onboarding dismissal
+    // (lib/ride-milestone-trigger.ts, plan R4). Loaded lazily: paywall-history
+    // opens an MMKV store, which this module's tests do not provide.
+    if (isOnboardingPaywallSurface(options.surface)) {
+      paywallHistoryLoader
+        .load()
+        .then((m) => m.recordOnboardingPaywallDismissed())
+        .catch((e) => addBreadcrumb(String(e), 'revenuecat.paywallHistory.recordFailed'));
+    }
   }
 }
 
@@ -667,6 +685,21 @@ export function hasUsedTrial(info: {
   entitlements: { all: Record<string, { periodType?: string }> };
 }): boolean {
   return info.entitlements.all[REVENUECAT_ENTITLEMENT_PRO]?.periodType === 'TRIAL';
+}
+
+/**
+ * Whether this account ever redeemed a Pro trial, from the cached customer info.
+ * `null` when RevenueCat is unavailable or the read fails: a diagnostic field for
+ * the ride-moment teaser event (plan R11), never worth blocking a summary on.
+ */
+export async function hasHadTrialSnapshot(): Promise<boolean | null> {
+  if (isExpoGo()) return null;
+  try {
+    const Purchases = await getPurchases();
+    return hasUsedTrial(await Purchases.getCustomerInfo());
+  } catch {
+    return null;
+  }
 }
 
 /**

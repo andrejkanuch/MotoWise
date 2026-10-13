@@ -15,10 +15,10 @@ jest.mock('../pending-intent', () => ({
 import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import {
   isServerOnboardingComplete,
-  ONBOARDING_PAYWALL_SURFACE,
   presentOnboardingPaywall,
   resolveOnboardingPaywallPlacement,
 } from '../onboarding-paywall';
+import { ONBOARDING_PAYWALL_SURFACE } from '../paywall-surfaces';
 
 const baseInput = {
   ridingGoals: ['discover_routes', 'track_rides'],

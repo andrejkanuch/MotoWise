@@ -22,7 +22,7 @@ import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
-import { activeRideSeconds } from '../../utils/ride-duration';
+import { activeRideSeconds, movingTimeSeconds } from '../../utils/ride-duration';
 import { encodePolyline } from '../../utils/ride-heatmap';
 import { distanceMeters, startGPSListener, stopGPSListener } from '../../utils/ride-location';
 import {
@@ -31,7 +31,11 @@ import {
   type PermissionLevel,
   readPermissionLevel,
 } from '../../utils/ride-permissions';
-import { armRideReminders, cancelRideReminders } from '../../utils/ride-reminders';
+import {
+  armRideReminders,
+  cancelRideReminders,
+  rideEndTrimTarget,
+} from '../../utils/ride-reminders';
 import {
   flushBufferToMMKV,
   getPointBuffer,
@@ -202,6 +206,13 @@ export interface RideEndSummary {
   elevationLoss: number;
   startedAt: number | undefined;
   motorcycleId: string | null;
+  /**
+   * Moving time by the server's formula (`movingTimeSeconds`): floored elapsed
+   * seconds minus the rounded manual AND auto pauses sent with EndRide. `durationS`
+   * is the displayed clock (rounded, manual pauses only); the ride-moment paywall
+   * rule (plan R1) must use this one so the phone agrees with the server's count.
+   */
+  movingTimeS: number;
 }
 
 /** Elapsed riding seconds derived from persisted timestamps (no UI timer needed). */
@@ -377,6 +388,9 @@ export function endRideSession(
     elevationLoss: Math.round(elevLoss),
     startedAt,
     motorcycleId,
+    movingTimeS: startedAt
+      ? movingTimeSeconds(startedAt, endedAtMs, totalPausedMs, totalAutoPausedMs)
+      : 0,
   };
 }
 
@@ -384,8 +398,15 @@ export function endRideSession(
  * The ride-summary route for a finished ride. Shared by the phone HUD's End and the
  * CarPlay Stop so both surfaces land on the same summary (which reads these params
  * and owns clearing the ride data). Pure — builds the Href, never navigates.
+ *
+ * `recovered`: the ride was ended from the crash-recovery prompt on Start Ride, not
+ * by the rider's Stop. The ride-moment teaser then suppresses its evaluation as
+ * recovered_unconfirmed instead of trusting a server-side end it cannot confirm.
  */
-export function buildRideSummaryHref(summary: RideEndSummary): Href {
+export function buildRideSummaryHref(
+  summary: RideEndSummary,
+  { recovered = false }: { recovered?: boolean } = {},
+): Href {
   return {
     pathname: '/(modals)/ride-summary',
     params: {
@@ -398,6 +419,18 @@ export function buildRideSummaryHref(summary: RideEndSummary): Href {
       elevationLoss: String(summary.elevationLoss),
       startedAt: summary.startedAt?.toString() ?? '',
       motorcycleId: summary.motorcycleId ?? '',
+      movingTimeS: String(summary.movingTimeS),
+      recovered: recovered ? '1' : '',
     },
   };
+}
+
+/**
+ * End the unfinished ride Start Ride found after an app kill, trimmed to its last
+ * movement, and return the summary to open — marked `recovered`, because the phone
+ * cannot confirm the server accepted this end. Null when there is no ride to end.
+ */
+export function endRecoveredRide(): Href | null {
+  const summary = endRideSession('phone', { endAt: rideEndTrimTarget() });
+  return summary ? buildRideSummaryHref(summary, { recovered: true }) : null;
 }

@@ -38,10 +38,10 @@ import { MetaAnalytics } from '../../lib/meta-analytics';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import {
-  ONBOARDING_PAYWALL_SURFACE,
   presentOnboardingPaywall,
   resolveOnboardingPaywallPlacement,
 } from '../../lib/onboarding-paywall';
+import { ONBOARDING_PAYWALL_SURFACE } from '../../lib/paywall-surfaces';
 import { queryKeys } from '../../lib/query-keys';
 import { setSelfReportedSource } from '../../lib/subscription';
 import { markWhatsNewSeenForNewRider } from '../../lib/whats-new';
