@@ -32,6 +32,9 @@ on:
         required: true
         default: "fix: onboarding paywall Android crash (custom variables)"
 
+permissions:
+  contents: read
+
 concurrency:
   group: mobile-ota-${{ github.event.inputs.branch }}
   cancel-in-progress: false

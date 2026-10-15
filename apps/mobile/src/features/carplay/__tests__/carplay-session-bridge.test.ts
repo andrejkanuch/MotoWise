@@ -15,6 +15,7 @@ jest.mock('@/lib/supabase', () => ({
   },
 }));
 jest.mock('@/lib/gql-auth-session', () => ({ invalidateGqlAccessTokenCache: jest.fn() }));
+jest.mock('@/lib/analytics', () => ({ captureException: jest.fn() }));
 jest.mock('@/utils/ride-sync-queue', () => ({ drainQueue: jest.fn(() => Promise.resolve()) }));
 
 const mockAuthState: { session: Session | null; setSession: jest.Mock } = {
@@ -27,6 +28,7 @@ jest.mock('@/stores/auth.store', () => ({
   useAuthStore: { getState: () => mockAuthState },
 }));
 
+import { captureException } from '@/lib/analytics';
 import { invalidateGqlAccessTokenCache } from '@/lib/gql-auth-session';
 import { drainQueue } from '@/utils/ride-sync-queue';
 import { __resetCarPlaySessionBridge, startCarPlaySessionBridge } from '../carplay-session-bridge';
@@ -121,6 +123,19 @@ describe('CarPlay session bridge', () => {
     expect(mockAuthState.setSession).toHaveBeenCalledWith(null);
     expect(drainQueue).not.toHaveBeenCalled();
     expect(onSession).not.toHaveBeenCalled();
+  });
+
+  it('reports a drain that rejects instead of leaving it unhandled', async () => {
+    const failure = new Error('drain failed');
+    (drainQueue as jest.Mock).mockReturnValueOnce(Promise.reject(failure));
+    startCarPlaySessionBridge(jest.fn());
+
+    emit('INITIAL_SESSION', session('rider-1', 'token-1'));
+    await Promise.resolve();
+
+    expect(captureException).toHaveBeenCalledWith(failure, {
+      source: 'carplay-session-bridge.drain',
+    });
   });
 
   it('does nothing for a signed-out launch', () => {

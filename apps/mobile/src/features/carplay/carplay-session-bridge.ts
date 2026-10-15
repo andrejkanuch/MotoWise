@@ -1,4 +1,5 @@
 import type { Session } from '@supabase/supabase-js';
+import { captureException } from '../../lib/analytics';
 import { invalidateGqlAccessTokenCache } from '../../lib/gql-auth-session';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/auth.store';
@@ -36,7 +37,11 @@ export function startCarPlaySessionBridge(onSession: () => void): void {
     invalidateGqlAccessTokenCache();
     useAuthStore.getState().setSession(session);
     if (!session) return;
-    void drainQueue();
+    // Fire-and-forget like the root layout's drain, but a drain can still reject
+    // (the legacy-op claim runs outside its network guard), so report it.
+    drainQueue().catch((e: unknown) =>
+      captureException(e, { source: 'carplay-session-bridge.drain' }),
+    );
     onSession();
   });
   unsubscribe = () => subscription.unsubscribe();
