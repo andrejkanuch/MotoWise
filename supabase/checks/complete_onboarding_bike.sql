@@ -5,6 +5,8 @@
 --   * make + year with no model creates exactly one bike, stored with model '';
 --   * a blank model is treated as no model;
 --   * repeating either call does not create a second bike;
+--   * a rider who already has a primary bike still completes onboarding, and
+--     the new bike is added as a non-primary bike;
 --   * make + model + year still creates exactly one bike with that model;
 --   * no make creates no bike but still completes onboarding;
 --   * a rider cannot complete onboarding for someone else.
@@ -45,7 +47,8 @@ SELECT
   set_config('onb_check.make_only', gen_random_uuid()::text, true),
   set_config('onb_check.blank_model', gen_random_uuid()::text, true),
   set_config('onb_check.full_bike', gen_random_uuid()::text, true),
-  set_config('onb_check.no_bike', gen_random_uuid()::text, true);
+  set_config('onb_check.no_bike', gen_random_uuid()::text, true),
+  set_config('onb_check.has_primary', gen_random_uuid()::text, true);
 
 INSERT INTO auth.users (id, email, aud, role)
 SELECT id, 'onb-check-' || id || '@example.invalid', 'authenticated', 'authenticated'
@@ -53,8 +56,13 @@ FROM (VALUES
   (current_setting('onb_check.make_only')::uuid),
   (current_setting('onb_check.blank_model')::uuid),
   (current_setting('onb_check.full_bike')::uuid),
-  (current_setting('onb_check.no_bike')::uuid)
+  (current_setting('onb_check.no_bike')::uuid),
+  (current_setting('onb_check.has_primary')::uuid)
 ) AS t (id);
+
+-- A live primary bike that the onboarding bike below does not match.
+INSERT INTO public.motorcycles (user_id, make, model, year, is_primary, distance_unit)
+VALUES (current_setting('onb_check.has_primary')::uuid, 'BMW', 'R 1250 GS', 2021, true, 'km');
 
 SET LOCAL ROLE authenticated;
 
@@ -71,6 +79,7 @@ DO $$
 DECLARE
   rider CONSTANT uuid := current_setting('onb_check.make_only')::uuid;
   result jsonb;
+  repeat jsonb;
 BEGIN
   result := public.complete_onboarding(
     p_user_id => rider, p_preferences => '{"onboardingCompleted": true}'::jsonb,
@@ -80,14 +89,17 @@ BEGIN
   IF result ->> 'motorcycle_id' IS NULL THEN
     RAISE EXCEPTION 'FAIL: make-only onboarding returned no motorcycle_id';
   END IF;
-  PERFORM public.complete_onboarding(
+  repeat := public.complete_onboarding(
     p_user_id => rider, p_preferences => '{"onboardingCompleted": true}'::jsonb,
     p_bike_make => 'Venom', p_bike_year => 2023, p_mileage_unit => 'mi'
   );
+  IF repeat ->> 'motorcycle_id' IS DISTINCT FROM result ->> 'motorcycle_id' THEN
+    RAISE EXCEPTION 'FAIL: repeated make-only onboarding returned a different motorcycle_id';
+  END IF;
 END $$;
 
 -- ---------------------------------------------------------------------------
--- A blank model is treated as no model.
+-- A blank model is treated as no model, including on a repeat call.
 -- ---------------------------------------------------------------------------
 SELECT set_config(
   'request.jwt.claims',
@@ -101,6 +113,29 @@ BEGIN
     p_user_id => current_setting('onb_check.blank_model')::uuid,
     p_preferences => '{"onboardingCompleted": true}'::jsonb,
     p_bike_make => 'Ducati', p_bike_model => '   ', p_bike_year => 2021
+  );
+  PERFORM public.complete_onboarding(
+    p_user_id => current_setting('onb_check.blank_model')::uuid,
+    p_preferences => '{"onboardingCompleted": true}'::jsonb,
+    p_bike_make => 'Ducati', p_bike_model => ' ', p_bike_year => 2021
+  );
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- A rider who already has a primary bike: onboarding still completes.
+-- ---------------------------------------------------------------------------
+SELECT set_config(
+  'request.jwt.claims',
+  json_build_object('sub', current_setting('onb_check.has_primary'), 'role', 'authenticated')::text,
+  true
+);
+
+DO $$
+BEGIN
+  PERFORM public.complete_onboarding(
+    p_user_id => current_setting('onb_check.has_primary')::uuid,
+    p_preferences => '{"onboardingCompleted": true}'::jsonb,
+    p_bike_make => 'Venom', p_bike_year => 2023
   );
 END $$;
 
@@ -170,6 +205,7 @@ DECLARE
   blank_model CONSTANT uuid := current_setting('onb_check.blank_model')::uuid;
   full_bike CONSTANT uuid := current_setting('onb_check.full_bike')::uuid;
   no_bike CONSTANT uuid := current_setting('onb_check.no_bike')::uuid;
+  has_primary CONSTANT uuid := current_setting('onb_check.has_primary')::uuid;
   bikes INTEGER;
   bike public.motorcycles;
 BEGIN
@@ -186,9 +222,26 @@ BEGIN
       bike.current_mileage, bike.mileage_unit, bike.is_primary;
   END IF;
 
-  SELECT count(*) INTO bikes FROM public.motorcycles WHERE user_id = blank_model AND model = '';
-  IF bikes <> 1 THEN
-    RAISE EXCEPTION 'FAIL: blank-model rider has % bikes with an empty model, expected 1', bikes;
+  SELECT count(*) INTO bikes FROM public.motorcycles WHERE user_id = blank_model;
+  IF bikes <> 1 OR NOT EXISTS (
+    SELECT 1 FROM public.motorcycles WHERE user_id = blank_model AND model = ''
+  ) THEN
+    RAISE EXCEPTION 'FAIL: blank-model rider has % bikes, expected 1 with an empty model', bikes;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.users WHERE id = has_primary AND onboarding_completed_at IS NOT NULL
+  ) THEN
+    RAISE EXCEPTION 'FAIL: rider with an existing primary bike did not complete onboarding';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.motorcycles
+    WHERE user_id = has_primary AND make = 'Venom' AND model = '' AND NOT is_primary
+  ) OR NOT EXISTS (
+    SELECT 1 FROM public.motorcycles
+    WHERE user_id = has_primary AND make = 'BMW' AND is_primary
+  ) THEN
+    RAISE EXCEPTION 'FAIL: rider with an existing primary bike: expected BMW primary and a non-primary Venom';
   END IF;
 
   SELECT count(*) INTO bikes FROM public.motorcycles

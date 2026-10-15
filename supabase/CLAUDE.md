@@ -2,7 +2,7 @@
 
 ## What is here
 - `migrations/` — every schema change, as `00NNN_<name>.sql`
-- `checks/` — SQL checks with fixtures; `checks/run.sh` runs them in a disposable Postgres container (needs Docker) and cannot reach another database
+- `checks/` — SQL checks with fixtures; `checks/run.sh` runs them in a disposable Postgres container (needs Docker) and cannot reach another database. Each check gets its own empty database in that container, so a fixture's schema never leaks into the next check
 - `templates/`, `config.toml` — auth email templates and local config
 - `seed.sql`, `seed-articles.sql` — local seeds
 

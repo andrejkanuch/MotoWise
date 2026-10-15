@@ -7,6 +7,11 @@
 -- an empty garage. motorcycles.model is NOT NULL, so a make-only bike is stored
 -- with model = '' (an absent or blank model normalises to the empty string).
 --
+-- The new bike is primary only when the rider has no live primary bike, so a
+-- rider who already owns one can still complete onboarding: before, the
+-- make-only call skipped the insert, and an unconditional is_primary = true
+-- would now abort the whole call on idx_motorcycles_one_primary_per_user.
+--
 -- Only the bike branch changes. Signature, SECURITY DEFINER, search_path and the
 -- auth.uid() check are unchanged, and CREATE OR REPLACE keeps the existing ACL.
 -- Plan: docs/plans/2026-10-15-1102-fix-onboarding-make-only-bike-dropped-plan.md
@@ -85,7 +90,12 @@ BEGIN
         COALESCE(p_bike_type, 'other'::motorcycle_type),
         COALESCE(p_bike_mileage, 0),
         p_bike_nickname,
-        true,
+        -- Primary only when the rider has no live primary bike yet, so a repeat
+        -- onboarding never trips idx_motorcycles_one_primary_per_user.
+        NOT EXISTS (
+          SELECT 1 FROM public.motorcycles
+          WHERE user_id = p_user_id AND is_primary AND deleted_at IS NULL
+        ),
         p_bike_photo_url,
         COALESCE(p_mileage_unit, 'mi')
       )

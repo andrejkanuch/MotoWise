@@ -11,7 +11,7 @@
 --     request.jwt.claims (the function's ownership check);
 --   * the columns complete_onboarding reads and writes, with prod's NOT NULL
 --     constraints (motorcycles.model is NOT NULL: the reason a make-only bike
---     is stored with an empty model);
+--     is stored with an empty model) and its one-primary-bike unique index;
 --   * distance_unit, which prod's trg_motorcycles_default_distance_unit fills;
 --     a column default stands in for that trigger here.
 
@@ -89,6 +89,10 @@ CREATE TABLE public.motorcycles (
   deleted_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- Prod's one-primary-bike rule (00010).
+CREATE UNIQUE INDEX idx_motorcycles_one_primary_per_user
+  ON public.motorcycles (user_id) WHERE is_primary = true AND deleted_at IS NULL;
 
 COMMIT;
 

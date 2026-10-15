@@ -17,7 +17,7 @@ deepened: 2026-10-15
 - **Authority:** this plan → `CLAUDE.md` (migration + Supabase client rules) → repo conventions.
 - **Execution profile:** one migration, one SQL check, one one-off data backfill. No API change, no mobile release.
 - **Stop conditions:** stop and report if prod's `complete_onboarding` body differs from the repo's latest definition in anything other than the bike branch, or if the backfill insert would touch a rider who has any `motorcycles` row at the moment of insert.
-- **Finishes and ships:** the `lfg` run: PR to `main`, review, merge, apply the migration to prod, run the backfill.
+- **Finishes and ships:** the `lfg` run: PR to `main`, review, merge. Applying 00191 to prod and running the backfill are owner-approved steps (`supabase/CLAUDE.md`); the run asks the owner, then does them.
 
 ---
 
@@ -63,13 +63,13 @@ Found while profiling the 2026-10-14 Android trial user: they entered a 2023 Ven
 
 ### Key Technical Decisions
 
-- KTD1. **Fix in the RPC, not the client.** The database decides whether the bike is created, so changing only the condition fixes every app version already installed (R4). A client change would need a store build and still leave 3.26.0 broken. The insert uses `COALESCE(NULLIF(btrim(p_bike_model), ''), '')` as the model, and the existence check matches on that same normalised value so a repeat call stays idempotent (R2).
+- KTD1. **Fix in the RPC, not the client.** The database decides whether the bike is created, so changing only the condition fixes every app version already installed (R4). A client change would need a store build and still leave 3.26.0 broken. The insert uses `COALESCE(NULLIF(btrim(p_bike_model), ''), '')` as the model, and the existence check matches on that same normalised value so a repeat call stays idempotent (R2). The new bike is primary only when the rider has no live primary bike, so a rider who already owns one can still complete onboarding instead of hitting `idx_motorcycles_one_primary_per_user`.
 - KTD2. **Empty string, not a placeholder.** A literal like "Unknown" would render as a model name everywhere and pollute OEM schedule matching. `''` is already what the client sends internally, satisfies `NOT NULL`, and renders as just "2023 Venom". The API update validator treats model as optional, but mobile Edit bike requires a model before Save enables, so these riders must pick a model to edit the bike. That is accepted here and tracked under Deferred to Follow-Up Work.
 - KTD3. **Backfill from two recorded sources, as a one-off.** The dropped bike survives in two places: the PostHog `onboarding_completed` event (`has_bike`, `bike_make`, `bike_year`, empty `bike_model`; consented riders only) and the RevenueCat customer attributes `primary_bike_make` / `primary_bike_year` with no `primary_bike_model`, which the app writes before the onboarding paywall regardless of analytics consent. The candidate set is the union of both, de-duplicated by user id. Neither source holds the rider's type, mileage or nickname, so recovered bikes take the RPC defaults. The backfill is a reviewed one-off SQL run through the Management API, not a migration, because its input is a dated list of user ids. Only riders who neither consented nor reached the paywall are unrecoverable (stated in the PR).
 
 ### Assumptions
 
-- `/lfg` authorises the full run, including applying the migration to prod and running the backfill (the user asked to fix and merge).
+- `/lfg` authorises the code, the PR and the merge. It does not stand in for the owner's approval of the prod migration and backfill, which is asked for explicitly after merge.
 - Prod's function body matches `supabase/migrations/00163_add_kes_currency.sql` outside the bike branch; U1 verifies this before writing the migration.
 
 ---
@@ -124,7 +124,7 @@ Found while profiling the 2026-10-14 Android trial user: they entered a 2023 Ven
 
 ## Definition of Done
 
-- Migration 00191 merged to `main`, applied to prod, and recorded in `supabase_migrations.schema_migrations`.
+- Migration 00191 merged to `main`; once the owner approves, applied to prod and recorded in `supabase_migrations.schema_migrations`.
 - U2's check passes locally and on prod.
 - `pnpm precheck` green; PR reviewed with `ce-code-review` before merge.
 - Backfill run, with candidate and inserted counts in the PR.
