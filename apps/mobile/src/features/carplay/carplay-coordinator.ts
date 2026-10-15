@@ -44,6 +44,7 @@ import { useCarPlayStore } from '../../stores/carplay.store';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
 import { rideMMKV } from '../../utils/ride-storage';
+import { drainQueue } from '../../utils/ride-sync-queue';
 import {
   buildRideSummaryHref,
   elapsedRideSeconds,
@@ -138,6 +139,7 @@ const GUARD_SOURCE = {
   bikeListDismissed: 'carplay-coordinator.bikeListDismissed',
   ridePanelReappeared: 'carplay-coordinator.ridePanelReappeared',
   sessionBridge: 'carplay-coordinator.sessionBridge',
+  queueDrain: 'carplay-coordinator.queueDrain',
 } as const;
 
 /**
@@ -491,6 +493,10 @@ function onConnect(): void {
   // the auth session; without it the ride sync queue delivers nothing. Its own
   // guard, ahead of the panel: sync must not depend on the paint, nor the paint on it.
   guarded(GUARD_SOURCE.sessionBridge, () => startCarPlaySessionBridge(refreshCarPlayHeadsUpData));
+  // Retry delivery on every connect: in a CarPlay-only process the root layout's
+  // resume and connectivity triggers never run, and the bridge only drains when
+  // the session changes. Single-flight and owner-scoped, so a retry is safe.
+  drainQueue().catch((err: unknown) => captureException(err, { source: GUARD_SOURCE.queueDrain }));
   try {
     const snap = currentSnapshot();
     clearInformation(); // ensure the next render builds a fresh root template
