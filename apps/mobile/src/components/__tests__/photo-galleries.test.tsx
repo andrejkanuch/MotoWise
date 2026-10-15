@@ -271,6 +271,18 @@ describe.each(GALLERIES)('$name', (gallery) => {
 
     await fireEvent(screen.getAllByTestId('photo')[1], 'longPress');
     expect(alert).toHaveBeenCalledWith(keys.deleteTitle, keys.deleteMessage, expect.any(Array));
+
+    // Confirming the second delete must not unguard the first, still-pending one.
+    const buttons = alert.mock.calls[0][2] as Array<{ style?: string; onPress?: () => void }>;
+    await act(async () => {
+      buttons.find((b) => b.style === 'destructive')?.onPress?.();
+    });
+    await waitFor(() => expect(mockFetcher).toHaveBeenCalledTimes(2));
+    await flush();
+    alert.mockClear();
+    await fireEvent(screen.getAllByTestId('photo')[0], 'longPress');
+    await fireEvent(screen.getAllByTestId('photo')[1], 'longPress');
+    expect(alert).not.toHaveBeenCalled();
     alert.mockRestore();
   });
 });

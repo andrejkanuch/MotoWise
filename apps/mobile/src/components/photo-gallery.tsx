@@ -64,6 +64,10 @@ export function PhotoGallery({
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [viewingPhoto, setViewingPhoto] = useState<GalleryPhoto | null>(null);
+  // Photos whose delete (and the refetch after it) is still in flight. Tracked
+  // per photo: `useMutation` only reports its latest call, so two deletes in a
+  // row would unguard the first.
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<ReadonlySet<string>>(() => new Set());
   const { maxPhotos, labels } = config;
 
   const invalidate = () => config.invalidate(queryClient);
@@ -75,7 +79,14 @@ export function PhotoGallery({
 
   const deletePhotoMutation = useMutation({
     mutationFn: (photoId: string) => config.deletePhoto(photoId),
+    onMutate: (photoId) => setPendingDeleteIds((ids) => new Set(ids).add(photoId)),
     onSuccess: invalidate,
+    onSettled: (_data, _error, photoId) =>
+      setPendingDeleteIds((ids) => {
+        const next = new Set(ids);
+        next.delete(photoId);
+        return next;
+      }),
   });
 
   const handleUpload = async (uri: string) => {
@@ -116,10 +127,9 @@ export function PhotoGallery({
   };
 
   const handleDeletePhoto = (photo: GalleryPhoto) => {
-    // Only the photo whose delete is in flight is ignored. The mutation stays
-    // pending until the refetch lands, and a refetch paused offline must not
-    // lock the rest of the gallery.
-    if (deletePhotoMutation.isPending && deletePhotoMutation.variables === photo.id) return;
+    // Only a photo whose own delete is in flight is ignored: a refetch paused
+    // offline must not lock the rest of the gallery.
+    if (pendingDeleteIds.has(photo.id)) return;
     triggerImpact();
     Alert.alert(labels.deleteTitle, labels.deleteMessage, [
       { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
