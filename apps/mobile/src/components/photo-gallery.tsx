@@ -116,7 +116,10 @@ export function PhotoGallery({
   };
 
   const handleDeletePhoto = (photo: GalleryPhoto) => {
-    if (deletePhotoMutation.isPending) return;
+    // Only the photo whose delete is in flight is ignored. The mutation stays
+    // pending until the refetch lands, and a refetch paused offline must not
+    // lock the rest of the gallery.
+    if (deletePhotoMutation.isPending && deletePhotoMutation.variables === photo.id) return;
     triggerImpact();
     Alert.alert(labels.deleteTitle, labels.deleteMessage, [
       { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },

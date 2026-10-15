@@ -255,4 +255,22 @@ describe.each(GALLERIES)('$name', (gallery) => {
     );
     alert.mockRestore();
   });
+
+  it('ignores a repeat long-press on the photo being deleted and keeps the others deletable', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    // The delete's refetch never lands (offline after a successful delete).
+    mockFetcher.mockReturnValue(new Promise(() => {}));
+    await renderGallery(gallery.render(photoList(2)));
+    await longPressFirstPhotoAndConfirm(alert);
+    await waitFor(() => expect(mockFetcher).toHaveBeenCalledTimes(1));
+    await flush();
+    alert.mockClear();
+
+    await fireEvent(screen.getAllByTestId('photo')[0], 'longPress');
+    expect(alert).not.toHaveBeenCalled();
+
+    await fireEvent(screen.getAllByTestId('photo')[1], 'longPress');
+    expect(alert).toHaveBeenCalledWith(keys.deleteTitle, keys.deleteMessage, expect.any(Array));
+    alert.mockRestore();
+  });
 });
