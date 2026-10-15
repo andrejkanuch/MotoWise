@@ -8,7 +8,9 @@
 --   * a rider who already has a primary bike still completes onboarding, and
 --     the new bike is added as a non-primary bike;
 --   * make + model + year still creates exactly one bike with that model;
---   * no make creates no bike but still completes onboarding;
+--   * a soft-deleted bike that matches is not reused: a live bike is created,
+--     and it is primary when the only primary bike was the deleted one;
+--   * no make, or a blank make, creates no bike but still completes onboarding;
 --   * a rider cannot complete onboarding for someone else.
 --
 -- SAFE ON A REAL DATABASE. Everything runs in ONE transaction that ends in
@@ -48,7 +50,9 @@ SELECT
   set_config('onb_check.blank_model', gen_random_uuid()::text, true),
   set_config('onb_check.full_bike', gen_random_uuid()::text, true),
   set_config('onb_check.no_bike', gen_random_uuid()::text, true),
-  set_config('onb_check.has_primary', gen_random_uuid()::text, true);
+  set_config('onb_check.has_primary', gen_random_uuid()::text, true),
+  set_config('onb_check.deleted_match', gen_random_uuid()::text, true),
+  set_config('onb_check.blank_make', gen_random_uuid()::text, true);
 
 INSERT INTO auth.users (id, email, aud, role)
 SELECT id, 'onb-check-' || id || '@example.invalid', 'authenticated', 'authenticated'
@@ -57,12 +61,18 @@ FROM (VALUES
   (current_setting('onb_check.blank_model')::uuid),
   (current_setting('onb_check.full_bike')::uuid),
   (current_setting('onb_check.no_bike')::uuid),
-  (current_setting('onb_check.has_primary')::uuid)
+  (current_setting('onb_check.has_primary')::uuid),
+  (current_setting('onb_check.deleted_match')::uuid),
+  (current_setting('onb_check.blank_make')::uuid)
 ) AS t (id);
 
 -- A live primary bike that the onboarding bike below does not match.
 INSERT INTO public.motorcycles (user_id, make, model, year, is_primary, distance_unit)
 VALUES (current_setting('onb_check.has_primary')::uuid, 'BMW', 'R 1250 GS', 2021, true, 'km');
+
+-- A soft-deleted primary bike identical to the onboarding bike below.
+INSERT INTO public.motorcycles (user_id, make, model, year, is_primary, distance_unit, deleted_at)
+VALUES (current_setting('onb_check.deleted_match')::uuid, 'Venom', '', 2023, true, 'mi', now());
 
 SET LOCAL ROLE authenticated;
 
@@ -140,6 +150,42 @@ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
+-- A matching soft-deleted bike is not reused.
+-- ---------------------------------------------------------------------------
+SELECT set_config(
+  'request.jwt.claims',
+  json_build_object('sub', current_setting('onb_check.deleted_match'), 'role', 'authenticated')::text,
+  true
+);
+
+DO $$
+BEGIN
+  PERFORM public.complete_onboarding(
+    p_user_id => current_setting('onb_check.deleted_match')::uuid,
+    p_preferences => '{"onboardingCompleted": true}'::jsonb,
+    p_bike_make => 'Venom', p_bike_year => 2023
+  );
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- A blank make is treated as no make.
+-- ---------------------------------------------------------------------------
+SELECT set_config(
+  'request.jwt.claims',
+  json_build_object('sub', current_setting('onb_check.blank_make'), 'role', 'authenticated')::text,
+  true
+);
+
+DO $$
+BEGIN
+  PERFORM public.complete_onboarding(
+    p_user_id => current_setting('onb_check.blank_make')::uuid,
+    p_preferences => '{"onboardingCompleted": true}'::jsonb,
+    p_bike_make => '   ', p_bike_year => 2023
+  );
+END $$;
+
+-- ---------------------------------------------------------------------------
 -- Make + model + year: unchanged behaviour, including no duplicate on repeat.
 -- ---------------------------------------------------------------------------
 SELECT set_config(
@@ -206,6 +252,8 @@ DECLARE
   full_bike CONSTANT uuid := current_setting('onb_check.full_bike')::uuid;
   no_bike CONSTANT uuid := current_setting('onb_check.no_bike')::uuid;
   has_primary CONSTANT uuid := current_setting('onb_check.has_primary')::uuid;
+  deleted_match CONSTANT uuid := current_setting('onb_check.deleted_match')::uuid;
+  blank_make CONSTANT uuid := current_setting('onb_check.blank_make')::uuid;
   bikes INTEGER;
   bike public.motorcycles;
 BEGIN
@@ -258,6 +306,23 @@ BEGIN
     SELECT 1 FROM public.users WHERE id = no_bike AND onboarding_completed_at IS NOT NULL
   ) THEN
     RAISE EXCEPTION 'FAIL: rider with no make did not complete onboarding';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.motorcycles
+    WHERE user_id = deleted_match AND make = 'Venom' AND deleted_at IS NULL AND is_primary
+  ) THEN
+    RAISE EXCEPTION 'FAIL: matching soft-deleted bike was reused instead of creating a live primary bike';
+  END IF;
+
+  SELECT count(*) INTO bikes FROM public.motorcycles WHERE user_id = blank_make;
+  IF bikes <> 0 THEN
+    RAISE EXCEPTION 'FAIL: rider with a blank make has % bikes, expected 0', bikes;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.users WHERE id = blank_make AND onboarding_completed_at IS NOT NULL
+  ) THEN
+    RAISE EXCEPTION 'FAIL: rider with a blank make did not complete onboarding';
   END IF;
 
   RAISE NOTICE 'complete_onboarding bike check: all assertions passed';

@@ -6,6 +6,8 @@
 -- no error: the rider finished onboarding, and its "garage ready" paywall, with
 -- an empty garage. motorcycles.model is NOT NULL, so a make-only bike is stored
 -- with model = '' (an absent or blank model normalises to the empty string).
+-- A blank make counts as no make, and a soft-deleted bike never counts as the
+-- onboarding bike already existing.
 --
 -- The new bike is primary only when the rider has no live primary bike, so a
 -- rider who already owns one can still complete onboarding: before, the
@@ -25,6 +27,7 @@ CREATE OR REPLACE FUNCTION public.complete_onboarding(p_user_id uuid, p_preferen
 AS $function$
 DECLARE
   v_bike_id UUID;
+  v_bike_make TEXT := NULLIF(btrim(p_bike_make), '');
   v_bike_model TEXT := COALESCE(NULLIF(btrim(p_bike_model), ''), '');
   v_extra_prefs JSONB := '{}'::jsonb;
 BEGIN
@@ -74,10 +77,13 @@ BEGIN
   IF NOT FOUND THEN RAISE EXCEPTION 'User not found: %', p_user_id; END IF;
 
   -- A make-only bike (no or blank model) is created with model = ''.
-  IF p_bike_make IS NOT NULL AND p_bike_year IS NOT NULL THEN
+  IF v_bike_make IS NOT NULL AND p_bike_year IS NOT NULL THEN
+    -- Only a live bike counts as already created; a soft-deleted match must not
+    -- swallow the onboarding bike.
     SELECT id INTO v_bike_id FROM public.motorcycles
-    WHERE user_id = p_user_id AND make = p_bike_make
+    WHERE user_id = p_user_id AND make = v_bike_make
       AND model = v_bike_model AND year = p_bike_year
+      AND deleted_at IS NULL
     LIMIT 1;
 
     IF v_bike_id IS NULL THEN
@@ -86,12 +92,12 @@ BEGIN
         is_primary, primary_photo_url, mileage_unit
       )
       VALUES (
-        p_user_id, p_bike_make, v_bike_model, p_bike_year,
+        p_user_id, v_bike_make, v_bike_model, p_bike_year,
         COALESCE(p_bike_type, 'other'::motorcycle_type),
         COALESCE(p_bike_mileage, 0),
         p_bike_nickname,
-        -- Primary only when the rider has no live primary bike yet, so a repeat
-        -- onboarding never trips idx_motorcycles_one_primary_per_user.
+        -- Primary only when the rider has no live primary bike yet, so a
+        -- sequential repeat onboarding cannot trip idx_motorcycles_one_primary_per_user.
         NOT EXISTS (
           SELECT 1 FROM public.motorcycles
           WHERE user_id = p_user_id AND is_primary AND deleted_at IS NULL
