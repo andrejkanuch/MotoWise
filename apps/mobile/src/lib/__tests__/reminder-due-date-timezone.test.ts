@@ -35,6 +35,7 @@ jest.mock('@react-native-async-storage/async-storage', () => {
         store.delete(k);
         return Promise.resolve();
       }),
+      __store: store,
     },
   };
 });
@@ -46,8 +47,13 @@ jest.mock('../../i18n', () => ({
 
 import { execFile } from 'node:child_process';
 import path from 'node:path';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
-import { scheduleDocumentExpiryReminder, scheduleMaintenanceReminder } from '../notifications';
+import {
+  reconcileMaintenanceReminders,
+  scheduleDocumentExpiryReminder,
+  scheduleMaintenanceReminder,
+} from '../notifications';
 
 const CHILD_ZONE_ENV = 'REMINDER_TZ_CHILD';
 const CHILD_TIMEOUT_MS = 120_000;
@@ -62,6 +68,11 @@ const childZone = process.env[CHILD_ZONE_ENV];
 const isChild = childZone !== undefined;
 
 const schedule = Notifications.scheduleNotificationAsync as jest.Mock;
+const cancel = Notifications.cancelScheduledNotificationAsync as jest.Mock;
+// biome-ignore lint/suspicious/noExplicitAny: reaching into the mock's backing map
+const storage = (AsyncStorage as any).__store as Map<string, string>;
+const NOTIFICATION_MAP_KEY = '@motovault/notification-map';
+const SCHEDULE_VERSION_KEY = '@motovault/reminder-schedule-version';
 
 /** The rider's day, 2026-10-02, at the two moments where UTC and local dates differ most. */
 const MOMENTS_OF_OCT_2: Array<[label: string, now: Date]> = [
@@ -110,6 +121,55 @@ describe(`reminder fire dates (${childZone ?? 'machine zone'})`, () => {
       );
       expect(triggerDates()).toEqual([NINE_AM(13), NINE_AM(19)]);
     });
+  });
+});
+
+describe('stages scheduled under the old rule are rescheduled once', () => {
+  const task = {
+    id: 'task-1',
+    title: 'Chain',
+    dueDate: DUE_OCT_20,
+    motorcycleId: 'bike-1',
+    status: 'pending',
+    remind1d: true,
+  };
+  const bikeNames = { 'bike-1': 'Africa Twin' };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers({ now: new Date(2026, 9, 2, 9, 30) });
+    storage.clear();
+    // What a rider updating from 3.26.0 carries: stage ids stored for an active
+    // task and for a document, and no schedule version.
+    storage.set(
+      NOTIFICATION_MAP_KEY,
+      JSON.stringify({ 'task-1': ['old-task-stage'], 'doc:doc-1': ['old-doc-stage'] }),
+    );
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('reconcile drops the stored maintenance stages, reschedules the task on the right day, and leaves documents alone', async () => {
+    await reconcileMaintenanceReminders([task], bikeNames);
+
+    expect(cancel).toHaveBeenCalledWith('old-task-stage');
+    expect(cancel).not.toHaveBeenCalledWith('old-doc-stage');
+    expect(triggerDates()).toEqual([NINE_AM(19)]);
+    expect(storage.get(SCHEDULE_VERSION_KEY)).toBeDefined();
+    const map = JSON.parse(storage.get(NOTIFICATION_MAP_KEY) ?? '{}');
+    expect(map['doc:doc-1']).toEqual(['old-doc-stage']);
+    expect(map['task-1']).toHaveLength(1);
+  });
+
+  it('the next reconcile leaves the rescheduled stages alone', async () => {
+    await reconcileMaintenanceReminders([task], bikeNames);
+    jest.clearAllMocks();
+
+    await reconcileMaintenanceReminders([task], bikeNames);
+
+    expect(cancel).not.toHaveBeenCalled();
+    expect(schedule).not.toHaveBeenCalled();
   });
 });
 
