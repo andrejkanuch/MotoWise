@@ -1,5 +1,5 @@
 import type { DocumentCategoriesQuery, DocumentsByMotorcycleQuery } from '@motovault/graphql';
-import { differenceInCalendarDays, parseISO } from 'date-fns';
+import { daysUntil } from '../../utils/days-until';
 import {
   DUE_SOON_DAYS,
   RIDE_BLOCKING_DOCUMENT_CATEGORIES,
@@ -45,7 +45,7 @@ export function getDocumentSignals<D extends HubDocumentInput>(
   const signals: DocumentSignal<D>[] = [];
   for (const document of documents) {
     if (!document.expiryDate) continue;
-    const days = differenceInCalendarDays(parseISO(document.expiryDate), today);
+    const days = daysUntil(document.expiryDate, today);
     if (Number.isNaN(days) || days > DUE_SOON_DAYS) continue;
     const category = categoryById.get(document.categoryId);
     signals.push({
