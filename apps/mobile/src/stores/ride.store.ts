@@ -71,6 +71,9 @@ export const useRideStore = create<RideState>()((set) => ({
       status: 'recording',
       ...INITIAL_STATS,
       recordingSubState: 'moving',
+      // startGPSListener always starts at full accuracy; a previous ride's
+      // switch must not show ON over it.
+      isBatterySaver: false,
     }),
   pauseRide: () => {
     rideMMKV.setStatus('paused');

@@ -101,6 +101,12 @@ describe('useRideStore', () => {
     expect(state.recordingSubState).toBe('moving');
   });
 
+  it('startRide turns battery saver off, matching the full-accuracy GPS start', () => {
+    useRideStore.getState().setBatterySaver(true);
+    useRideStore.getState().startRide();
+    expect(useRideStore.getState().isBatterySaver).toBe(false);
+  });
+
   it('pauseRide sets status to paused', () => {
     useRideStore.getState().startRide();
     useRideStore.getState().pauseRide();
