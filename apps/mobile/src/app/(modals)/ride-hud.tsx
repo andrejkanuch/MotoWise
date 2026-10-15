@@ -15,14 +15,14 @@ import {
   elapsedRideSeconds,
   endRideSession,
 } from '../../features/ride/ride-controller';
-import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
+import { useBatterySaverToggle } from '../../features/ride/use-battery-saver-toggle';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { bestEffortNativeCall, NativeSideEffect } from '../../lib/best-effort-native';
 import { useRideStore } from '../../stores/ride.store';
 import { editorialThemes } from '../../theme/editorial';
 import { radius, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../../utils/ride-constants';
-import { toggleBatterySaver } from '../../utils/ride-location';
 import { getPointBuffer, getWaypointChunks, rideMMKV, rideStorage } from '../../utils/ride-storage';
 import { hasPendingSyncWork } from '../../utils/ride-sync-queue';
 
@@ -76,7 +76,7 @@ export default function RideHudScreen() {
   const isNightMode = useRideStore((s) => s.isNightMode);
   const isBatterySaver = useRideStore((s) => s.isBatterySaver);
   const toggleNight = useRideStore((s) => s.toggleNightMode);
-  const toggleBattery = useRideStore((s) => s.toggleBatterySaver);
+  const handleToggleBattery = useBatterySaverToggle();
   const pauseRide = useRideStore((s) => s.pauseRide);
   const resumeRide = useRideStore((s) => s.resumeRide);
   const updateElapsedTime = useRideStore((s) => s.updateElapsedTime);
@@ -294,16 +294,6 @@ export default function RideHudScreen() {
     triggerImpact();
     toggleNight();
   }, [toggleNight]);
-
-  const handleToggleBattery = useCallback(async () => {
-    triggerImpact();
-    try {
-      // Flip the toggle only once the native profile actually changed.
-      if (await toggleBatterySaver(!isBatterySaver)) toggleBattery();
-    } catch (error) {
-      captureException(error, { source: 'ride-hud.toggleBatterySaver' });
-    }
-  }, [toggleBattery, isBatterySaver]);
 
   const handleToggleSparkline = useCallback(() => {
     triggerImpact();

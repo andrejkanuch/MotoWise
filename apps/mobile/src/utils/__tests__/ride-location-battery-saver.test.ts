@@ -54,6 +54,7 @@ jest.mock('../ride-reminders', () => ({
 }));
 
 import * as Location from 'expo-location';
+import { captureException } from '../../lib/analytics';
 import { toggleBatterySaver } from '../ride-location';
 
 const mocked = Location as jest.Mocked<typeof Location>;
@@ -97,6 +98,20 @@ describe('toggleBatterySaver', () => {
 
     expect(mocked.startLocationUpdatesAsync).toHaveBeenCalledTimes(2);
     expect(startedAccuracy(1)).toBe(Location.Accuracy.BestForNavigation);
+  });
+
+  it('reports a failed restore but still rethrows the original failure', async () => {
+    const failure = new Error('restart failed');
+    const restoreFailure = new Error('restore failed');
+    mocked.startLocationUpdatesAsync
+      .mockRejectedValueOnce(failure)
+      .mockRejectedValueOnce(restoreFailure);
+
+    await expect(toggleBatterySaver(true)).rejects.toBe(failure);
+
+    expect(captureException).toHaveBeenCalledWith(restoreFailure, {
+      source: 'ride-location.toggleBatterySaver.restore',
+    });
   });
 
   it('has nothing to restart when no session is running', async () => {

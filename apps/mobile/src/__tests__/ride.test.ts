@@ -145,11 +145,12 @@ describe('useRideStore', () => {
     expect(useRideStore.getState().isNightMode).toBe(false);
   });
 
-  it('toggleBatterySaver toggles boolean', () => {
+  it('setBatterySaver stores the given value, idempotently', () => {
     expect(useRideStore.getState().isBatterySaver).toBe(false);
-    useRideStore.getState().toggleBatterySaver();
+    useRideStore.getState().setBatterySaver(true);
+    useRideStore.getState().setBatterySaver(true);
     expect(useRideStore.getState().isBatterySaver).toBe(true);
-    useRideStore.getState().toggleBatterySaver();
+    useRideStore.getState().setBatterySaver(false);
     expect(useRideStore.getState().isBatterySaver).toBe(false);
   });
 });

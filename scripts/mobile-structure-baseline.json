@@ -49,7 +49,7 @@
     "app/(modals)/recalls.tsx": 443,
     "app/(modals)/ride-detail.tsx": 971,
     "app/(modals)/ride-flyover.tsx": 965,
-    "app/(modals)/ride-hud.tsx": 476,
+    "app/(modals)/ride-hud.tsx": 469,
     "app/(modals)/ride-summary.tsx": 932,
     "app/(modals)/start-ride.tsx": 620,
     "app/(modals)/trip-detail.tsx": 1885,

@@ -38,7 +38,7 @@ interface RideState {
   updateElevation: (gain: number, loss: number, current: number, max: number, min: number) => void;
   updateStopCount: (count: number) => void;
   toggleNightMode: () => void;
-  toggleBatterySaver: () => void;
+  setBatterySaver: (enabled: boolean) => void;
   setPermissionLevel: (level: PermissionLevel) => void;
   setGpsPermissionLost: (lost: boolean) => void;
   hydrate: () => void;
@@ -104,7 +104,7 @@ export const useRideStore = create<RideState>()((set) => ({
     set({ elevationGain, elevationLoss, currentAltitude, maxAltitude, minAltitude }),
   updateStopCount: (stopCount) => set({ stopCount }),
   toggleNightMode: () => set((state) => ({ isNightMode: !state.isNightMode })),
-  toggleBatterySaver: () => set((state) => ({ isBatterySaver: !state.isBatterySaver })),
+  setBatterySaver: (isBatterySaver) => set({ isBatterySaver }),
   setPermissionLevel: (permissionLevel) => set({ permissionLevel }),
   setGpsPermissionLost: (gpsPermissionLost) => set({ gpsPermissionLost }),
   hydrate: () => {
