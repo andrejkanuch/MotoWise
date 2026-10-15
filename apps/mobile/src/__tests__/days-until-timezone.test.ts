@@ -12,6 +12,7 @@
  */
 import { execFile } from 'node:child_process';
 import path from 'node:path';
+import { computeHealthScore, getRelativeDueDate } from '@/lib/health-score';
 import { daysUntil } from '@/utils/days-until';
 
 const CHILD_ZONE_ENV = 'DAYS_UNTIL_TZ_CHILD';
@@ -45,6 +46,43 @@ describe(`calendar days until a date (${childZone ?? 'machine zone'})`, () => {
       expect(daysUntil(DUE.TODAY, now)).toBe(0);
       expect(daysUntil(DUE.TOMORROW, now)).toBe(1);
       expect(daysUntil(DUE.YESTERDAY, now)).toBe(-1);
+    });
+
+    // Sites that read the clock themselves run with it set to `now`.
+    describe('with the clock set', () => {
+      beforeEach(() => {
+        jest.useFakeTimers({ now });
+      });
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('CarPlay getRelativeDueDate: due today, due tomorrow, 1d overdue', () => {
+        expect(getRelativeDueDate(DUE.TODAY)).toEqual({
+          key: 'maintenance.dueToday',
+          isOverdue: false,
+          daysAway: 0,
+        });
+        expect(getRelativeDueDate(DUE.TOMORROW)).toEqual({
+          key: 'maintenance.dueTomorrow',
+          isOverdue: false,
+          daysAway: 1,
+        });
+        expect(getRelativeDueDate(DUE.YESTERDAY)).toEqual({
+          key: 'maintenance.overdueByDays',
+          params: { count: 1 },
+          isOverdue: true,
+          daysAway: -1,
+        });
+      });
+
+      it('health score: today and tomorrow are urgent, not overdue; yesterday is overdue, not urgent', () => {
+        const scoreOne = (dueDate: string) =>
+          computeHealthScore([{ status: 'pending', priority: 'medium', dueDate }]);
+        expect(scoreOne(DUE.TODAY)).toMatchObject({ overdueTasks: 0, urgentTasks: 1 });
+        expect(scoreOne(DUE.TOMORROW)).toMatchObject({ overdueTasks: 0, urgentTasks: 1 });
+        expect(scoreOne(DUE.YESTERDAY)).toMatchObject({ overdueTasks: 1, urgentTasks: 0 });
+      });
     });
   });
 });

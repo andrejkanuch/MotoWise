@@ -1,3 +1,5 @@
+import { daysUntil } from '../utils/days-until';
+
 const PRIORITY_WEIGHTS: Record<string, number> = {
   critical: 4,
   high: 3,
@@ -35,9 +37,6 @@ export function computeHealthScore(tasks: TaskInput[]): HealthScoreResult {
     return { score: 0, grade: 'A', hasData: false, overdueTasks: 0, urgentTasks: 0 };
   }
 
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
   const activeTasks = tasks.filter((t) => t.status === 'pending' || t.status === 'in_progress');
   const completedTasks = tasks.filter((t) => t.status === 'completed');
 
@@ -52,8 +51,7 @@ export function computeHealthScore(tasks: TaskInput[]): HealthScoreResult {
   let overdueTasks = 0;
   for (const task of activeTasks) {
     if (!task.dueDate) continue;
-    const due = new Date(task.dueDate);
-    const daysOverdue = Math.floor((today.getTime() - due.getTime()) / 86400000);
+    const daysOverdue = -daysUntil(task.dueDate);
     const weight = PRIORITY_WEIGHTS[task.priority] ?? 2;
     overdueMaxPenalty += weight * 5;
     if (daysOverdue > 0) {
@@ -70,16 +68,15 @@ export function computeHealthScore(tasks: TaskInput[]): HealthScoreResult {
   let urgentTasks = 0;
   for (const task of activeTasks) {
     if (!task.dueDate) continue;
-    const due = new Date(task.dueDate);
-    const daysUntil = Math.floor((due.getTime() - today.getTime()) / 86400000);
+    const daysToDue = daysUntil(task.dueDate);
     const weight = PRIORITY_WEIGHTS[task.priority] ?? 2;
-    if (daysUntil >= 0 && daysUntil <= 7) {
+    if (daysToDue >= 0 && daysToDue <= 7) {
       urgencyMaxPenalty += weight;
-      if (daysUntil <= 3) {
+      if (daysToDue <= 3) {
         urgencyPenalty += weight;
         urgentTasks++;
       } else {
-        urgencyPenalty += weight * ((7 - daysUntil) / 7);
+        urgencyPenalty += weight * ((7 - daysToDue) / 7);
         urgentTasks++;
       }
     }
@@ -117,10 +114,7 @@ export function getRelativeDueDate(dueDate: string): {
   isOverdue: boolean;
   daysAway: number;
 } {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const due = new Date(dueDate);
-  const diffDays = Math.floor((due.getTime() - today.getTime()) / 86400000);
+  const diffDays = daysUntil(dueDate);
 
   if (diffDays < 0) {
     return {
