@@ -3,7 +3,6 @@ import {
   CreateTaskFromNoteDocument,
   DeleteNoteDocument,
   type MaintenanceTaskStatus,
-  MaintenanceTasksByMotorcycleDocument,
   NotesByMotorcycleDocument,
   type NotesByMotorcycleQuery,
   UpdateNoteDocument,
@@ -15,6 +14,7 @@ import type { NoteSource } from '@/lib/bike-hub/constants';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
 import { QUERY_META } from '@/lib/query-meta';
+import { maintenanceTasksOptions } from '@/lib/query-options';
 import { usePendingDeleteStore } from '@/stores/pending-delete.store';
 
 export type HubNote = NotesByMotorcycleQuery['notes'][number];
@@ -67,8 +67,7 @@ export function useNotes(motorcycleId: string) {
  */
 export function useTaskStatuses(motorcycleId: string): ReadonlyMap<string, MaintenanceTaskStatus> {
   const query = useQuery({
-    queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-    queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId }),
+    ...maintenanceTasksOptions(motorcycleId),
     enabled: !!motorcycleId,
     // Same meta as the hub's observer of this key; a failure leaves the plain link.
     meta: OWN_ERROR_UI,

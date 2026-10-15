@@ -37,6 +37,7 @@ import { hashKey } from '@tanstack/react-query';
 import {
   expenseDashboardQueryOptions,
   expensesOptions,
+  maintenanceTasksOptions,
   rideWaypointsOptions,
 } from '../lib/query-options';
 
@@ -78,20 +79,11 @@ const SHARED_DOCUMENTS: readonly string[] = [
  */
 const KNOWN_UNCONVERTED: Readonly<Record<string, readonly string[]>> = {
   'app/(tabs)/(garage)/add-document.tsx': ['DocumentCategoriesDocument'],
-  'app/(tabs)/(garage)/bike-tasks.tsx': ['MaintenanceTasksByMotorcycleDocument'],
-  'app/(tabs)/(garage)/complete-task.tsx': ['MaintenanceTasksByMotorcycleDocument'],
   'app/(tabs)/(garage)/document/[id].tsx': ['DocumentCategoriesDocument'],
-  'app/(tabs)/(garage)/edit-maintenance-task.tsx': ['MaintenanceTasksByMotorcycleDocument'],
-  'app/(tabs)/(garage)/expense-detail.tsx': ['MaintenanceTasksByMotorcycleDocument'],
-  'app/(tabs)/(garage)/health-report.tsx': ['MaintenanceTasksByMotorcycleDocument'],
   'app/(tabs)/(garage)/manage-document-categories.tsx': ['DocumentCategoriesDocument'],
   'app/(tabs)/(profile)/heatmap.tsx': ['MyRidesForHeatmapDocument'],
   'components/bike-hub/documents-section.tsx': ['DocumentCategoriesDocument'],
-  'components/bike-hub/expenses-section.tsx': ['MaintenanceTasksByMotorcycleDocument'],
-  'components/bike-hub/notes/use-notes.ts': ['MaintenanceTasksByMotorcycleDocument'],
   'components/bike-hub/overview/use-overview-data.ts': ['DocumentCategoriesDocument'],
-  'components/bike-hub/shell/use-bike-hub-data.ts': ['MaintenanceTasksByMotorcycleDocument'],
-  'components/ride/pre-flight-checklist.tsx': ['MaintenanceTasksByMotorcycleDocument'],
   'hooks/use-ride-heatmap-data.ts': ['MyRidesForHeatmapDocument'],
 };
 
@@ -182,6 +174,12 @@ const VARIABLE_FACTORIES: VariableCase[] = [
   {
     name: 'expenseDashboardQueryOptions',
     build: (v) => expenseDashboardQueryOptions(v.motorcycleId as string),
+    a: { motorcycleId: 'bike-a' },
+    b: { motorcycleId: 'bike-b' },
+  },
+  {
+    name: 'maintenanceTasksOptions',
+    build: (v) => maintenanceTasksOptions(v.motorcycleId as string),
     a: { motorcycleId: 'bike-a' },
     b: { motorcycleId: 'bike-b' },
   },

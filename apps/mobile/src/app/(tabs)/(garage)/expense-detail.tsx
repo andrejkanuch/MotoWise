@@ -1,9 +1,5 @@
 import { palette, withAlpha } from '@motovault/design-system';
-import {
-  ExpensePhotosDocument,
-  MaintenanceTasksByMotorcycleDocument,
-  type MaintenanceTasksByMotorcycleQuery,
-} from '@motovault/graphql';
+import { ExpensePhotosDocument, type MaintenanceTasksByMotorcycleQuery } from '@motovault/graphql';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type Href, router, useLocalSearchParams, useNavigation } from 'expo-router';
 import {
@@ -32,7 +28,7 @@ import { confirmDeleteExpenseAlert } from '@/lib/expense-delete';
 import { findExpenseInCache, flattenExpenses } from '@/lib/find-expense-in-cache';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
-import { EXPENSES_ALL_YEARS, expensesOptions } from '@/lib/query-options';
+import { EXPENSES_ALL_YEARS, expensesOptions, maintenanceTasksOptions } from '@/lib/query-options';
 import { useAuthStore } from '@/stores/auth.store';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { triggerImpact } from '@/utils/haptics';
@@ -105,8 +101,7 @@ export default function ExpenseDetailScreen() {
   // Linked service record — seed from the hub's cached task list (no cold fetch
   // when warm). Still observe so orphaned FKs / loading / error are visible.
   const tasksQuery = useQuery({
-    queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-    queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId }),
+    ...maintenanceTasksOptions(motorcycleId),
     enabled: !!maintenanceTaskId && !!motorcycleId,
     initialData: () =>
       queryClient.getQueryData<MaintenanceTasksByMotorcycleQuery>(

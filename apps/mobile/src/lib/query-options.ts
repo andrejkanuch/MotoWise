@@ -10,6 +10,7 @@ import {
   ExpenseDashboardDocument,
   ExpensesByMotorcycleDocument,
   GetRideWaypointsDocument,
+  MaintenanceTasksByMotorcycleDocument,
   MeDocument,
   MyMotorcyclesDocument,
 } from '@motovault/graphql';
@@ -62,6 +63,18 @@ export const motorcyclesOptions = () =>
   queryOptions({
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+  });
+
+/**
+ * One bike's maintenance tasks. Read by the hub shell, the task list, the
+ * complete/edit/expense-detail screens (which seed `initialData` from this
+ * same key), the health report and the pre-ride checklist. Each site adds its
+ * own `enabled`, `initialData` and `meta`.
+ */
+export const maintenanceTasksOptions = (motorcycleId: string) =>
+  queryOptions({
+    queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
+    queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId }),
   });
 
 /**

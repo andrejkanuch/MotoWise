@@ -1,4 +1,3 @@
-import { MaintenanceTasksByMotorcycleDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { Receipt } from 'lucide-react-native';
@@ -14,10 +13,8 @@ import {
   formatCurrencyTotals,
   groupTotalsByCurrency,
 } from '../../lib/expense-constants';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
 import { QUERY_META } from '../../lib/query-meta';
-import { expensesOptions } from '../../lib/query-options';
+import { expensesOptions, maintenanceTasksOptions } from '../../lib/query-options';
 import { triggerImpact } from '../../utils/haptics';
 import { SwipeableExpense } from '../shared/swipeable-expense';
 import { LoadError } from './load-error';
@@ -95,8 +92,7 @@ export function ExpensesSection({
   // detail agree when maintenanceTaskId is orphaned. A failure only hides the
   // badge; the hub shell shows the task list's own error.
   const { data: tasksData } = useQuery({
-    queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-    queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId }),
+    ...maintenanceTasksOptions(motorcycleId),
     meta: QUERY_META.OWN_ERROR_UI,
   });
   const liveTaskIds = useMemo(
