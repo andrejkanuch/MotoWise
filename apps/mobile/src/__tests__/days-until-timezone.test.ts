@@ -12,9 +12,10 @@
  */
 import { execFile } from 'node:child_process';
 import path from 'node:path';
-import { MaintenancePriority } from '@motovault/graphql';
+import { MaintenancePriority, MaintenanceTaskStatus } from '@motovault/graphql';
 import { countGarageBadge } from '@/components/garage/garage-badge-count';
 import { computeHealthScore, getRelativeDueDate } from '@/lib/health-score';
+import { pickWidgetNextService } from '@/lib/widget-next-service';
 import { daysUntil } from '@/utils/days-until';
 
 const CHILD_ZONE_ENV = 'DAYS_UNTIL_TZ_CHILD';
@@ -65,6 +66,18 @@ describe(`calendar days until a date (${childZone ?? 'machine zone'})`, () => {
         countGarageBadge([{ priority: MaintenancePriority.Critical, dueDate }], now);
       expect(badge('2026-10-05')).toBe(1);
       expect(badge('2026-10-06')).toBe(0);
+    });
+
+    it('widget: due today is "In 0 days", tomorrow 1, yesterday "1d overdue"', () => {
+      const widget = (dueDate: string) =>
+        pickWidgetNextService(
+          [{ dueDate, status: MaintenanceTaskStatus.Pending, completedAt: null }],
+          now,
+        );
+      expect(widget(DUE.TODAY)).toMatchObject({ daysUntil: 0, isOverdue: false });
+      expect(widget(DUE.TOMORROW)).toMatchObject({ daysUntil: 1, isOverdue: false });
+      // A task overdue by one day never reads "In 0 days".
+      expect(widget(DUE.YESTERDAY)).toMatchObject({ daysUntil: -1, isOverdue: true });
     });
 
     // Sites that read the clock themselves run with it set to `now`.
