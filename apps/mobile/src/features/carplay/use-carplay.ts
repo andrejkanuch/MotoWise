@@ -4,7 +4,7 @@
 // pre-CarPlay build — KTD7). Live ride data and the active bike are real —
 // sourced from the ride store and my-motorcycles.
 
-import { MyMotorcyclesDocument, type MyMotorcyclesQuery } from '@motovault/graphql';
+import type { MyMotorcyclesQuery } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
@@ -17,8 +17,7 @@ import {
 } from '../../../modules/carplay/src';
 import type { BannerState } from '../../components/carplay/active-ride-banner';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
+import { motorcyclesOptions } from '../../lib/query-options';
 import { useCarPlayStore } from '../../stores/carplay.store';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
@@ -65,8 +64,7 @@ export function useCarPlayConnection(): { connected: boolean } {
 // The active (primary) bike, or null while loading / none set.
 export function useActiveBike(): Motorcycle | null {
   const { data } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
   const bikes = data?.myMotorcycles ?? [];
   return selectPrimaryBike(bikes) ?? null;

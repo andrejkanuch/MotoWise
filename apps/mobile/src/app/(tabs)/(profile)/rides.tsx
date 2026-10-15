@@ -1,5 +1,4 @@
 import {
-  MyMotorcyclesDocument,
   MyRidesDocument,
   type MyRidesQuery,
   RideOverviewDocument,
@@ -30,6 +29,7 @@ import { useMeasurementSystem } from '@/hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
+import { motorcyclesOptions } from '@/lib/query-options';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, radius, readableWidth, SYSTEM_WEIGHT, space, type } from '@/theme/type';
 import { triggerImpact, triggerSelection } from '@/utils/haptics';
@@ -247,8 +247,7 @@ export default function RidesScreen() {
   }, [overview]);
 
   const { data: motorcyclesData } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
   const hasBikes = useMemo(
     () => (motorcyclesData?.myMotorcycles?.length ?? 0) > 0,

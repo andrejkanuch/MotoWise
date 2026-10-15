@@ -1,6 +1,5 @@
 import {
   AllMaintenanceTasksDocument,
-  MyMotorcyclesDocument,
   MyRidesDocument,
   type MyRidesQuery,
   MyTripsDocument,
@@ -14,7 +13,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { reconcileMaintenanceReminders } from '../../lib/notifications';
 import { queryKeys } from '../../lib/query-keys';
-import { meOptions } from '../../lib/query-options';
+import { meOptions, motorcyclesOptions } from '../../lib/query-options';
 import { triggerNotification } from '../../utils/haptics';
 import { getGreeting } from './home-helpers';
 
@@ -25,8 +24,7 @@ export function useHomeData() {
 
   const meQuery = useQuery(meOptions());
   const bikesQuery = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
     meta: { showErrorAlert: false },
   });
   const maintenanceQuery = useQuery({

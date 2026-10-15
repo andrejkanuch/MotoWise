@@ -1,4 +1,3 @@
-import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Application from 'expo-application';
 import * as Haptics from 'expo-haptics';
@@ -18,8 +17,7 @@ import {
 } from '../../data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { BIKE_SEGMENT } from '../../lib/bike-hub/constants';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
+import { motorcyclesOptions } from '../../lib/query-options';
 import { useWhatsNewStore } from '../../stores/whats-new.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, space, type } from '../../theme/type';
@@ -44,8 +42,7 @@ export default function WhatsNewModal() {
 
   // Cached from the home screen — used to resolve the fast-action target bike.
   const { data: bikesData } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
 
   const [currentIndex, setCurrentIndex] = useState(0);

@@ -3,7 +3,6 @@ import {
   GetMyHealthReportsDocument,
   type GetMyHealthReportsQuery,
   MaintenanceTasksByMotorcycleDocument,
-  MyMotorcyclesDocument,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
@@ -23,7 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
-import { expensesOptions } from '@/lib/query-options';
+import { expensesOptions, motorcyclesOptions } from '@/lib/query-options';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { space, type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
@@ -47,8 +46,7 @@ export default function HealthReportScreen() {
   }, [bikeId]);
 
   const { data: motorcyclesData } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
   const bike = motorcyclesData?.myMotorcycles?.find((m) => m.id === bikeId);
   const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : '';

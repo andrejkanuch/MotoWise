@@ -1,6 +1,5 @@
 import {
   type ExpenseDashboardQuery,
-  MyMotorcyclesDocument,
   MyRidesDocument,
   ReceiptScanQuotaDocument,
 } from '@motovault/graphql';
@@ -10,7 +9,7 @@ import { type ChecklistSignals, isDataBackedItem } from '../../lib/checklist-sig
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { QUERY_META } from '../../lib/query-meta';
-import { expenseDashboardQueryOptions } from '../../lib/query-options';
+import { expenseDashboardQueryOptions, motorcyclesOptions } from '../../lib/query-options';
 import { CHECKLIST_ITEM_ID } from '../../stores/checklist.store';
 
 const BIKES_STALE_MS = 5 * 60 * 1000;
@@ -63,8 +62,7 @@ export function useChecklistSignals(
 
   // Always on while the card shows: the expense item routes to the first bike.
   const bikesQuery = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
     staleTime: BIKES_STALE_MS,
     enabled: active,
     meta: QUERY_META.DECORATION,

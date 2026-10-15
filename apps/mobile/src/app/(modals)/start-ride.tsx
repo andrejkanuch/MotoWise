@@ -1,4 +1,4 @@
-import { MyMotorcyclesDocument, MyRidesDocument } from '@motovault/graphql';
+import { MyRidesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -23,6 +23,7 @@ import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { motorcyclesOptions } from '../../lib/query-options';
 import { useRideStore } from '../../stores/ride.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, space, type } from '../../theme/type';
@@ -51,8 +52,7 @@ export default function StartRideScreen() {
   const [showDisclosure, setShowDisclosure] = useState(false);
 
   const { data } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
 
   const motorcycles = data?.myMotorcycles ?? [];

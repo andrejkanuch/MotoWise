@@ -1,4 +1,4 @@
-import { DiagnosticByIdDocument, MyMotorcyclesDocument } from '@motovault/graphql';
+import { DiagnosticByIdDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { parseISO } from 'date-fns';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -30,6 +30,7 @@ import {
 import { gqlFetcher } from '@/lib/graphql-client';
 import { exportDiagnosticReport } from '@/lib/pdf-export';
 import { queryKeys } from '@/lib/query-keys';
+import { motorcyclesOptions } from '@/lib/query-options';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, radius, space, type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
@@ -86,8 +87,7 @@ export default function DiagnosticResultScreen() {
   const resultJson = (diagnostic?.resultJson ?? null) as DiagnosticResult | null;
 
   const { data: motorcyclesData } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
   const bike = motorcyclesData?.myMotorcycles?.find((m) => m.id === diagnostic?.motorcycleId);
   const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : t('diagnoseV2.reviewBike');

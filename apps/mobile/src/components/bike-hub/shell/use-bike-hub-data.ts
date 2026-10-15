@@ -1,6 +1,5 @@
 import {
   MaintenanceTasksByMotorcycleDocument,
-  MyMotorcyclesDocument,
   type MyMotorcyclesQuery,
   MyRidesDocument,
 } from '@motovault/graphql';
@@ -14,6 +13,7 @@ import type { HubTask } from '@/lib/bike-hub/task-due';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
 import { QUERY_META } from '@/lib/query-meta';
+import { motorcyclesOptions } from '@/lib/query-options';
 import { useToday } from './use-today';
 
 export type HubBike = MyMotorcyclesQuery['myMotorcycles'][number];
@@ -68,8 +68,7 @@ export function useBikeHubData(id: string): BikeHubData {
 
   // The full-screen error state covers a bike list that failed with nothing cached.
   const bikes = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
     meta: QUERY_META.OWN_ERROR_UI,
   });
   const tasksQuery = useQuery({
