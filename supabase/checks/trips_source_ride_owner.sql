@@ -139,7 +139,7 @@ BEGIN
   INSERT INTO public.trips (id, organiser_user_id, title, description, difficulty, start_date, end_date, is_template, source_ride_id)
   VALUES (trip2, user_a, 'ride-owner-check', 'check', 'moderate', current_date, current_date, true, ride_a2);
   UPDATE public.trips SET source_ride_id = NULL WHERE id = trip2;
-  SELECT source_ride_id INTO linked FROM public.trips WHERE id = trip2;
+  SELECT source_ride_id INTO STRICT linked FROM public.trips WHERE id = trip2;
   IF linked IS NOT NULL THEN
     RAISE EXCEPTION 'FAIL: clearing source_ride_id left %', linked;
   END IF;
@@ -156,7 +156,7 @@ DECLARE
   linked uuid;
 BEGIN
   DELETE FROM public.rides WHERE id = current_setting('ride_owner_check.ride_a')::uuid;
-  SELECT source_ride_id INTO linked FROM public.trips
+  SELECT source_ride_id INTO STRICT linked FROM public.trips
   WHERE id = current_setting('ride_owner_check.trip')::uuid;
   IF linked IS NOT NULL THEN
     RAISE EXCEPTION 'FAIL: deleting the ride left source_ride_id = %', linked;
