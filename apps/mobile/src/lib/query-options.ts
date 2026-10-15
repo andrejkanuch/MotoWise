@@ -14,8 +14,12 @@ import {
   MaintenanceTasksByMotorcycleDocument,
   MeDocument,
   MyMotorcyclesDocument,
+  MyRidesForHeatmapDocument,
+  type MyRidesForHeatmapQuery,
+  type MyRidesForHeatmapQueryVariables,
 } from '@motovault/graphql';
-import { queryOptions } from '@tanstack/react-query';
+import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
+import { HEATMAP_PAGE_SIZE } from '../utils/ride-constants';
 import { getRequestSessionUserId, isAccountGoneError, signOutGoneAccount } from './account-gone';
 import { gqlFetcher } from './graphql-client';
 import { queryKeys } from './query-keys';
@@ -100,6 +104,34 @@ export const rideWaypointsOptions = (rideId: string, maxPoints: number) =>
     queryKey: queryKeys.rides.waypoints(rideId, maxPoints),
     queryFn: () => gqlFetcher(GetRideWaypointsDocument, { rideId, maxPoints }),
     staleTime: Number.POSITIVE_INFINITY,
+  });
+
+const HEATMAP_STALE_MS = 5 * 60 * 1000;
+
+/**
+ * Every ride's polyline for the heatmap, paged `HEATMAP_PAGE_SIZE` at a time.
+ * The profile heatmap screen and the ride-tab heatmap hook both eagerly page
+ * up to `HEATMAP_MAX_PAGES` — by far the heaviest ride query — so the entry
+ * stays fresh for five minutes: re-entering the screen (or a sibling mounting
+ * it) does not refetch every page. A ride save still invalidates `rides.all`
+ * and marks it stale for the next view. The hook adds its own `enabled`.
+ */
+export const rideHeatmapOptions = () =>
+  infiniteQueryOptions({
+    queryKey: queryKeys.rides.heatmap,
+    queryFn: ({ pageParam }) => {
+      const variables: MyRidesForHeatmapQueryVariables = {
+        first: HEATMAP_PAGE_SIZE,
+        after: pageParam,
+      };
+      return gqlFetcher(MyRidesForHeatmapDocument, variables);
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage: MyRidesForHeatmapQuery) => {
+      const pi = lastPage?.myRides?.pageInfo;
+      return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
+    },
+    staleTime: HEATMAP_STALE_MS,
   });
 
 /** The `year` variable of the expenses query that means every year. */

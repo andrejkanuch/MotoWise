@@ -10,10 +10,9 @@
  *
  * Two checks, both static over `apps/mobile/src` except for the hashing one:
  *   1. Source scan — a shared document appears in a `gqlFetcher(` call only in
- *      the factory file, in an imperative cache-or-fetch site (which keeps its
- *      own fetch so background code never picks up the cache's retries and the
- *      global error alert), or in `KNOWN_UNCONVERTED`. Each conversion unit
- *      deletes its files from that list; it is empty when every site is through.
+ *      the factory file or in an imperative cache-or-fetch site (which keeps
+ *      its own fetch so background code never picks up the cache's retries and
+ *      the global error alert).
  *   2. Every factory that takes variables hashes two variable sets to two keys,
  *      and hands the fetcher the same variables its key carries.
  *
@@ -72,17 +71,6 @@ const SHARED_DOCUMENTS: readonly string[] = [
   'ExpenseDashboardDocument',
 ];
 
-/**
- * Files that still fetch a shared document themselves, with the documents each
- * one fetches directly. An entry leaves this list in the unit that converts
- * that site; an entry whose file no longer fetches that document fails the
- * honesty check below so the list cannot go stale.
- */
-const KNOWN_UNCONVERTED: Readonly<Record<string, readonly string[]>> = {
-  'app/(tabs)/(profile)/heatmap.tsx': ['MyRidesForHeatmapDocument'],
-  'hooks/use-ride-heatmap-data.ts': ['MyRidesForHeatmapDocument'],
-};
-
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const path = join(dir, entry.name);
@@ -111,28 +99,17 @@ function directFetchSites(): Map<string, string[]> {
 describe('shared documents are fetched through their factory', () => {
   const sites = directFetchSites();
   const allowedFiles = new Set([FACTORY_FILE, ...IMPERATIVE_SITES]);
-  const isKnown = (file: string, document: string) =>
-    KNOWN_UNCONVERTED[file]?.includes(document) ?? false;
 
   it('finds the factory file', () => {
     expect(sites.has(FACTORY_FILE)).toBe(true);
   });
 
-  it('no file outside the factory, the imperative sites and KNOWN_UNCONVERTED fetches one', () => {
+  it('no file outside the factory and the imperative sites fetches one', () => {
     const offenders = [...sites.entries()]
       .filter(([file]) => !allowedFiles.has(file))
-      .flatMap(([file, documents]) =>
-        documents.filter((document) => !isKnown(file, document)).map((d) => `${file}: ${d}`),
-      )
+      .flatMap(([file, documents]) => documents.map((d) => `${file}: ${d}`))
       .sort();
     expect(offenders).toEqual([]);
-  });
-
-  it('keeps KNOWN_UNCONVERTED honest — a converted site must leave the list', () => {
-    const stale = Object.entries(KNOWN_UNCONVERTED).flatMap(([file, documents]) =>
-      documents.filter((d) => !sites.get(file)?.includes(d)).map((d) => `${file}: ${d}`),
-    );
-    expect(stale).toEqual([]);
   });
 
   it('keeps the imperative allowlist honest', () => {

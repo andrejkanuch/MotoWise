@@ -5,11 +5,6 @@
  * and stacks them on a world map as low-opacity lines (Strava-style heatmap).
  * The top card is a shareable annual recap keyed off the current year.
  */
-import {
-  MyRidesForHeatmapDocument,
-  type MyRidesForHeatmapQuery,
-  type MyRidesForHeatmapQueryVariables,
-} from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
@@ -19,24 +14,18 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
-import { gqlFetcher } from '@/lib/graphql-client';
-import { queryKeys } from '@/lib/query-keys';
+import { rideHeatmapOptions } from '@/lib/query-options';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, radius, readableWidth, SYSTEM_WEIGHT, space, type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
 import { MAP_STYLES } from '@/utils/map-styles';
+import { HEATMAP_MAX_PAGES, HEATMAP_PAGE_SIZE } from '@/utils/ride-constants';
 import {
   buildAnnualRecap,
   buildHeatmapFeatureCollection,
   buildLifetimeTotals,
   type HeatmapRide,
 } from '@/utils/ride-heatmap';
-
-const PAGE_SIZE = 50;
-// Hard cap so a rider with 10k rides doesn't pound the API on mount.
-// 20 pages × 50/page ≈ most-recent ~1000 rides, which covers the realistic
-// "personal heatmap" ceiling. Rides beyond that show a footer hint.
-const MAX_PAGES = 20;
 
 function formatKm(meters: number): string {
   return `${(meters / 1000).toFixed(meters < 10_000 ? 1 : 0)} km`;
@@ -46,34 +35,22 @@ export default function RideHeatmapScreen() {
   const { t: i18n } = useTranslation();
   const { t: tok, isDark } = useEditorialTheme();
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
-    queryKey: queryKeys.rides.heatmap,
-    queryFn: ({ pageParam }: { pageParam: string | null }) => {
-      const variables: MyRidesForHeatmapQueryVariables = {
-        first: PAGE_SIZE,
-        after: pageParam,
-      };
-      return gqlFetcher(MyRidesForHeatmapDocument, variables);
-    },
-    initialPageParam: null as string | null,
-    getNextPageParam: (lastPage: MyRidesForHeatmapQuery) => {
-      const pi = lastPage?.myRides?.pageInfo;
-      return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
-    },
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery(
+    rideHeatmapOptions(),
+  );
 
   useEffect(() => {
     trackEvent(AnalyticsEvent.HEATMAP_VIEWED);
   }, []);
 
   const pagesLoaded = data?.pages?.length ?? 0;
-  const capReached = pagesLoaded >= MAX_PAGES;
+  const capReached = pagesLoaded >= HEATMAP_MAX_PAGES;
 
-  // Eagerly page until MAX_PAGES. Firing from an effect (not render body) keeps
+  // Eagerly page until HEATMAP_MAX_PAGES. Firing from an effect (not render body) keeps
   // React from queuing a fetch on every re-render — without the cap this was an
   // unbounded loop for riders with large histories.
   useEffect(() => {
-    if (hasNextPage && !isFetchingNextPage && pagesLoaded < MAX_PAGES) {
+    if (hasNextPage && !isFetchingNextPage && pagesLoaded < HEATMAP_MAX_PAGES) {
       fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, pagesLoaded, fetchNextPage]);
@@ -252,7 +229,7 @@ export default function RideHeatmapScreen() {
                   { color: tok.ink, textAlign: 'center' },
                 ]}
               >
-                {i18n('heatmap.showingRecent', { count: MAX_PAGES * PAGE_SIZE })}
+                {i18n('heatmap.showingRecent', { count: HEATMAP_MAX_PAGES * HEATMAP_PAGE_SIZE })}
               </Text>
             </View>
           )}

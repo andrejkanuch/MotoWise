@@ -22,6 +22,7 @@ jest.mock('../analytics', () => ({ addBreadcrumb: jest.fn(), captureException: j
 jest.mock('@motovault/graphql', () => ({
   DocumentCategoriesDocument: 'DOCUMENT_CATEGORIES_DOC',
   MeDocument: 'ME_DOC',
+  MyRidesForHeatmapDocument: 'HEATMAP_DOC',
   AllMaintenanceTasksDocument: 'TASKS_DOC',
   ExpensesByMotorcycleDocument: 'EXPENSES_DOC',
   ExpenseDashboardDocument: 'EXPENSE_DASHBOARD_DOC',
@@ -35,6 +36,7 @@ import {
   expenseDashboardQueryOptions,
   expensesOptions,
   meOptions,
+  rideHeatmapOptions,
   rideWaypointsOptions,
 } from '../query-options';
 
@@ -176,5 +178,33 @@ describe('expenseDashboardQueryOptions', () => {
     mockFetcher.mockResolvedValue({ expenseDashboard: { expenseCount: 1 } });
     await runQueryFn(options);
     expect(mockFetcher).toHaveBeenCalledWith('EXPENSE_DASHBOARD_DOC', { motorcycleId: 'bike-a' });
+  });
+});
+
+describe('rideHeatmapOptions', () => {
+  // The heatmap eagerly pages up to 20 x 50 rides, the heaviest ride query in
+  // the app. The hook twin kept it fresh for five minutes; the profile screen's
+  // inline copy carried no staleTime, so re-entering it refetched every page.
+  it('keeps the heatmap fresh for five minutes', () => {
+    expect(rideHeatmapOptions().staleTime).toBe(5 * 60 * 1000);
+  });
+
+  it('starts from no cursor and asks for a page of 50 rides after the cursor it is given', async () => {
+    mockFetcher.mockResolvedValue({ myRides: { edges: [], pageInfo: {} } });
+    const options = rideHeatmapOptions();
+    expect(options.initialPageParam).toBeNull();
+    await options.queryFn({ pageParam: 'cursor-1' } as never);
+    expect(mockFetcher).toHaveBeenCalledWith('HEATMAP_DOC', { first: 50, after: 'cursor-1' });
+  });
+
+  it('pages on from the end cursor while there is a next page, and stops with null', () => {
+    const { getNextPageParam } = rideHeatmapOptions();
+    const page = (hasNextPage: boolean) => ({
+      myRides: { edges: [], pageInfo: { hasNextPage, endCursor: 'cursor-2' } },
+    });
+    const more = page(true);
+    const last = page(false);
+    expect(getNextPageParam(more, [more], null, [null])).toBe('cursor-2');
+    expect(getNextPageParam(last, [last], null, [null])).toBeNull();
   });
 });

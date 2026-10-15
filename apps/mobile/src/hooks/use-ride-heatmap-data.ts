@@ -1,16 +1,9 @@
-import {
-  MyRidesForHeatmapDocument,
-  type MyRidesForHeatmapQuery,
-  type MyRidesForHeatmapQueryVariables,
-} from '@motovault/graphql';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
-import { gqlFetcher } from '../lib/graphql-client';
-import { queryKeys } from '../lib/query-keys';
+import { rideHeatmapOptions } from '../lib/query-options';
 import { decodePolyline } from '../utils/polyline';
+import { HEATMAP_MAX_PAGES } from '../utils/ride-constants';
 
-const PAGE_SIZE = 50;
-const MAX_PAGES = 20;
 /** Keep every Nth point to cap total at ~5 000. */
 const DOWNSAMPLE_STEP = 5;
 const MAX_POINTS = 5_000;
@@ -20,32 +13,15 @@ export function useRideHeatmapData({ enabled }: { enabled: boolean }): {
   isLoading: boolean;
 } {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
-    queryKey: queryKeys.rides.heatmap,
-    queryFn: ({ pageParam }: { pageParam: string | null }) => {
-      const variables: MyRidesForHeatmapQueryVariables = {
-        first: PAGE_SIZE,
-        after: pageParam,
-      };
-      return gqlFetcher(MyRidesForHeatmapDocument, variables);
-    },
-    initialPageParam: null as string | null,
-    getNextPageParam: (lastPage: MyRidesForHeatmapQuery) => {
-      const pi = lastPage?.myRides?.pageInfo;
-      return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
-    },
-    // The heatmap eagerly pages up to 20×50 rides — by far the heaviest ride
-    // query. Keep it fresh for 5 min so re-entering the screen (or a sibling
-    // mounting it) doesn't refetch every page; a ride save still invalidates
-    // `rides.all` and marks it stale for the next view.
-    staleTime: 5 * 60 * 1000,
+    ...rideHeatmapOptions(),
     enabled,
   });
 
   const pagesLoaded = data?.pages?.length ?? 0;
 
-  // Eagerly page until MAX_PAGES (same pattern as profile heatmap screen).
+  // Eagerly page until HEATMAP_MAX_PAGES (same pattern as profile heatmap screen).
   useEffect(() => {
-    if (enabled && hasNextPage && !isFetchingNextPage && pagesLoaded < MAX_PAGES) {
+    if (enabled && hasNextPage && !isFetchingNextPage && pagesLoaded < HEATMAP_MAX_PAGES) {
       fetchNextPage();
     }
   }, [enabled, hasNextPage, isFetchingNextPage, pagesLoaded, fetchNextPage]);
