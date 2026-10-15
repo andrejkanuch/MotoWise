@@ -141,12 +141,22 @@ SELECT set_config(
 );
 
 DO $$
+DECLARE
+  rider CONSTANT uuid := current_setting('onb_check.has_primary')::uuid;
+  first_result jsonb;
+  repeat_result jsonb;
 BEGIN
-  PERFORM public.complete_onboarding(
-    p_user_id => current_setting('onb_check.has_primary')::uuid,
-    p_preferences => '{"onboardingCompleted": true}'::jsonb,
+  first_result := public.complete_onboarding(
+    p_user_id => rider, p_preferences => '{"onboardingCompleted": true}'::jsonb,
     p_bike_make => 'Venom', p_bike_year => 2023
   );
+  repeat_result := public.complete_onboarding(
+    p_user_id => rider, p_preferences => '{"onboardingCompleted": true}'::jsonb,
+    p_bike_make => 'Venom', p_bike_year => 2023
+  );
+  IF repeat_result ->> 'motorcycle_id' IS DISTINCT FROM first_result ->> 'motorcycle_id' THEN
+    RAISE EXCEPTION 'FAIL: existing-primary repeat returned a different motorcycle_id';
+  END IF;
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -277,6 +287,11 @@ BEGIN
     RAISE EXCEPTION 'FAIL: blank-model rider has % bikes, expected 1 with an empty model', bikes;
   END IF;
 
+  SELECT count(*) INTO bikes FROM public.motorcycles
+  WHERE user_id = has_primary AND deleted_at IS NULL;
+  IF bikes <> 2 THEN
+    RAISE EXCEPTION 'FAIL: existing-primary rider has % live bikes, expected 2', bikes;
+  END IF;
   IF NOT EXISTS (
     SELECT 1 FROM public.users WHERE id = has_primary AND onboarding_completed_at IS NOT NULL
   ) THEN
