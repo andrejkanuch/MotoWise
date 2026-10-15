@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HUB_CHROME_MAX_FONT_SCALE } from '../../components/bike-hub/ui/tokens';
 import { GlobalCarPlayBanner } from '../../components/carplay/global-carplay-banner';
 import { ErrorFallback } from '../../components/error-fallback';
+import { countGarageBadge } from '../../components/garage/garage-badge-count';
 import { BIKE_HUB_ROUTES } from '../../lib/bike-hub/constants';
 import { maintenanceBadgeOptions } from '../../lib/query-options';
 import { useRideStore } from '../../stores/ride.store';
@@ -245,26 +246,10 @@ function IslandTabBarContent({ state, navigation }: BottomTabBarProps) {
   // Badge count for garage tab
   const { data: maintenanceData } = useQuery(maintenanceBadgeOptions());
 
-  const garageBadgeCount = useMemo(() => {
-    const tasks = maintenanceData?.allMaintenanceTasks ?? [];
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    let count = 0;
-    for (const task of tasks) {
-      if (!task.dueDate) continue;
-      const due = new Date(task.dueDate);
-      const daysUntil = Math.floor((due.getTime() - today.getTime()) / 86400000);
-      // Overdue tasks
-      if (daysUntil < 0) {
-        count++;
-      }
-      // Critical/high due within 3 days
-      else if (daysUntil <= 3 && (task.priority === 'critical' || task.priority === 'high')) {
-        count++;
-      }
-    }
-    return count;
-  }, [maintenanceData]);
+  const garageBadgeCount = useMemo(
+    () => countGarageBadge(maintenanceData?.allMaintenanceTasks ?? [], new Date()),
+    [maintenanceData],
+  );
 
   return (
     <Animated.View
