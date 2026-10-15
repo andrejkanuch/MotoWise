@@ -112,6 +112,7 @@ import { canShowConsentPrompt } from '../lib/consent-prompt';
 import { CORE_ACTION_KIND, recordCoreAction } from '../lib/core-action-milestones';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
+import { invalidateMaintenanceTasks } from '../lib/invalidate';
 import { MAINTENANCE_COMPLETION_SURFACE } from '../lib/maintenance-analytics';
 import { captureMetaAttribution } from '../lib/meta-attribution';
 import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
@@ -1067,12 +1068,7 @@ function RootLayout() {
             recordReviewAction(REVIEW_ACTION.SERVICE);
             // Cancel any remaining reminder stages for the now-completed task.
             await cancelTaskNotification(data.taskId);
-            queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
-            if (data.motorcycleId) {
-              queryClient.invalidateQueries({
-                queryKey: queryKeys.maintenanceTasks.byMotorcycle(data.motorcycleId),
-              });
-            }
+            invalidateMaintenanceTasks(queryClient, data.motorcycleId);
           } catch {
             // Silently fail — user can mark done manually in app
           }

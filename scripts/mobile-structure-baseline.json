@@ -64,8 +64,8 @@
     "app/(tabs)/(garage)/add-bike.tsx": 387,
     "app/(tabs)/(garage)/add-document.tsx": 403,
     "app/(tabs)/(garage)/add-expense.tsx": 369,
-    "app/(tabs)/(garage)/add-maintenance-task.tsx": 517,
-    "app/(tabs)/(garage)/bike-tasks.tsx": 318,
+    "app/(tabs)/(garage)/add-maintenance-task.tsx": 514,
+    "app/(tabs)/(garage)/bike-tasks.tsx": 315,
     "app/(tabs)/(garage)/document/[id].tsx": 359,
     "app/(tabs)/(garage)/edit-bike.tsx": 913,
     "app/(tabs)/(garage)/expense-dashboard.tsx": 925,
@@ -81,7 +81,7 @@
     "app/(tabs)/(profile)/saved.tsx": 332,
     "app/(tabs)/(profile)/trips.tsx": 542,
     "app/(tabs)/_layout.tsx": 433,
-    "app/_layout.tsx": 1134,
+    "app/_layout.tsx": 1130,
     "app/t/[token]/index.tsx": 484
   }
 }

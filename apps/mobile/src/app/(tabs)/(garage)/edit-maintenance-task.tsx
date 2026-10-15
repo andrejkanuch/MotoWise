@@ -26,6 +26,7 @@ import { useHydratedFormState } from '@/hooks/use-hydrated-form-state';
 import { useMileageUnit } from '@/hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { invalidateMaintenanceTasks } from '@/lib/invalidate';
 import { cancelTaskNotification, scheduleMaintenanceReminder } from '@/lib/notifications';
 import { queryKeys } from '@/lib/query-keys';
 import { maintenanceTasksOptions } from '@/lib/query-options';
@@ -109,10 +110,7 @@ export default function EditMaintenanceTaskScreen() {
         }),
       }),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
+      invalidateMaintenanceTasks(queryClient, motorcycleId);
 
       // Keep the local reminder consistent with the edited due date.
       const updated = data?.updateMaintenanceTask;

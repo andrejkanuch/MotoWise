@@ -1,4 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
+import { invalidateMaintenanceTasks } from './invalidate';
 import { queryKeys } from './query-keys';
 
 /**
@@ -13,10 +14,7 @@ export function invalidateAfterTaskCompletion(
   motorcycleId: string,
   { hasCost }: { hasCost: boolean },
 ): void {
-  void queryClient.invalidateQueries({
-    queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-  });
-  void queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
+  invalidateMaintenanceTasks(queryClient, motorcycleId);
   if (hasCost) {
     void queryClient.invalidateQueries({
       queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),

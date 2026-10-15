@@ -33,9 +33,9 @@ import { useMileageUnit } from '@/hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { CORE_ACTION_KIND, recordCoreAction } from '@/lib/core-action-milestones';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { invalidateMaintenanceTasks } from '@/lib/invalidate';
 import { MetaAnalytics } from '@/lib/meta-analytics';
 import { scheduleMaintenanceReminder } from '@/lib/notifications';
-import { queryKeys } from '@/lib/query-keys';
 import { maybeRequestReview, REVIEW_MOMENT } from '@/lib/store-review';
 import { useEditorialTheme } from '@/theme/editorial';
 import { radius, SYSTEM_WEIGHT, space, type } from '@/theme/type';
@@ -167,10 +167,7 @@ export default function AddMaintenanceTaskScreen() {
       return gqlFetcher(CreateMaintenanceTaskDocument, { input });
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
+      invalidateMaintenanceTasks(queryClient, motorcycleId);
 
       // Schedule notification reminders if the task has a due date.
       // A logged (already-completed) record has nothing to remind, so skip.

@@ -16,6 +16,7 @@ import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytic
 import { CORE_ACTION_KIND, recordCoreAction } from '../../lib/core-action-milestones';
 import { EXPENSE_ENTRY_SOURCE, trackExpenseAdded } from '../../lib/expense-analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { invalidateMaintenanceTasks } from '../../lib/invalidate';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
 import { EXPENSES_ALL_YEARS, expensesOptions } from '../../lib/query-options';
@@ -100,12 +101,7 @@ function invalidateForRecord(recordType: string, motorcycleId: string, odometerT
   queryClient.invalidateQueries({ queryKey: queryKeys.receiptScans.unreviewed });
   queryClient.invalidateQueries({ queryKey: queryKeys.expenses.byMotorcycle(motorcycleId) });
   if (recordType === RECEIPT_REVIEW_TYPE.MAINTENANCE) {
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-    });
-    queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.history(motorcycleId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.spending(motorcycleId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
+    invalidateMaintenanceTasks(queryClient, motorcycleId);
   }
   if (odometerTouched) {
     queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });

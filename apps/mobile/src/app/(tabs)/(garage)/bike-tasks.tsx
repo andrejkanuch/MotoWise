@@ -25,7 +25,7 @@ import {
 } from '@/lib/bike-hub/all-tasks';
 import { getTaskDue } from '@/lib/bike-hub/task-due';
 import { gqlFetcher } from '@/lib/graphql-client';
-import { queryKeys } from '@/lib/query-keys';
+import { invalidateMaintenanceTasks } from '@/lib/invalidate';
 import { QUERY_META } from '@/lib/query-meta';
 import { maintenanceTasksOptions, motorcyclesOptions } from '@/lib/query-options';
 import { GUTTER, readableWidth, space, type } from '@/theme/type';
@@ -139,10 +139,7 @@ export default function BikeTasksScreen() {
       deletePendingRef.current = false;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
+      invalidateMaintenanceTasks(queryClient, motorcycleId);
       triggerNotification(Haptics.NotificationFeedbackType.Warning);
     },
     onError: () => {
