@@ -15,7 +15,7 @@ import {
   elapsedRideSeconds,
   endRideSession,
 } from '../../features/ride/ride-controller';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { bestEffortNativeCall, NativeSideEffect } from '../../lib/best-effort-native';
 import { useRideStore } from '../../stores/ride.store';
 import { editorialThemes } from '../../theme/editorial';
@@ -295,11 +295,14 @@ export default function RideHudScreen() {
     toggleNight();
   }, [toggleNight]);
 
-  const handleToggleBattery = useCallback(() => {
+  const handleToggleBattery = useCallback(async () => {
     triggerImpact();
-    const newState = !isBatterySaver;
-    toggleBattery();
-    toggleBatterySaver(newState);
+    try {
+      // Flip the toggle only once the native profile actually changed.
+      if (await toggleBatterySaver(!isBatterySaver)) toggleBattery();
+    } catch (error) {
+      captureException(error, { source: 'ride-hud.toggleBatterySaver' });
+    }
   }, [toggleBattery, isBatterySaver]);
 
   const handleToggleSparkline = useCallback(() => {

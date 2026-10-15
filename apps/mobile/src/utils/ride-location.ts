@@ -170,14 +170,40 @@ export async function stopGPSListener(): Promise<void> {
   resetAutoPauseState();
 }
 
-export async function toggleBatterySaver(enabled: boolean): Promise<void> {
-  if (await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK)) {
-    await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
+/**
+ * Restarts a running session with the requested accuracy profile and resolves
+ * whether `enabled` is now in effect, so the caller only flips its toggle when
+ * it is true.
+ *
+ * Switching profiles means stop-then-start, and without foreground permission
+ * the start rejects after the stop has already succeeded, leaving the ride with
+ * no GPS at all (Sentry MOTO-VAULT-REACT-NATIVE-3X: the rider had revoked
+ * permission mid-ride). So the permission is checked before anything is
+ * stopped, and a start that still fails restores the previous profile before
+ * rethrowing.
+ */
+export async function toggleBatterySaver(enabled: boolean): Promise<boolean> {
+  if (!(await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK))) return true;
+
+  const { granted } = await Location.getForegroundPermissionsAsync();
+  if (!granted) return false;
+
+  await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
+  try {
     await Location.startLocationUpdatesAsync(
       BACKGROUND_LOCATION_TASK,
       locationUpdateOptions(enabled),
     );
+  } catch (error) {
+    await Location.startLocationUpdatesAsync(
+      BACKGROUND_LOCATION_TASK,
+      locationUpdateOptions(!enabled),
+    ).catch((restoreError: unknown) => {
+      captureException(restoreError, { source: 'ride-location.toggleBatterySaver.restore' });
+    });
+    throw error;
   }
+  return true;
 }
 
 // --- Auto-pause decision (pure) ---
