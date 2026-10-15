@@ -199,7 +199,18 @@ export async function resolvePendingIntent(): Promise<void> {
   // A real failure is reported from the attempt itself, not from the race: the
   // attempt keeps running after the bound below expires, and a rejection that
   // lands late must still reach Sentry instead of being dropped by the race.
-  const attempt: Promise<ResolutionOutcome> = runWithUnlockRetry(() => readAndStoreIntent()).then(
+  //
+  // The read is also caught inside the task, because `runWithUnlockRetry` re-runs
+  // it from an AppState listener after it has already resolved: a rejection from
+  // one of those foreground retries has no caller to land in and would surface as
+  // an unhandled rejection. A failed read ends the retries, as a first-attempt
+  // failure always did.
+  const readOnce = (): Promise<boolean> =>
+    readAndStoreIntent().catch((e: unknown) => {
+      captureException(e, { source: CAPTURE_SOURCE });
+      return true;
+    });
+  const attempt: Promise<ResolutionOutcome> = runWithUnlockRetry(readOnce).then(
     () => RESOLUTION_OUTCOME.SETTLED,
     (e: unknown) => {
       captureException(e, { source: CAPTURE_SOURCE });

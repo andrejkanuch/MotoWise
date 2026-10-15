@@ -162,6 +162,27 @@ describe('resolvePendingIntent', () => {
     });
   });
 
+  it('reports a failure from a foreground retry instead of leaving it unhandled', async () => {
+    const failure = new Error('retry blew up');
+    let retryTask: () => Promise<boolean> = () => Promise.resolve(true);
+    const retry = jest
+      .spyOn(secureStore, 'runWithUnlockRetry')
+      .mockImplementationOnce(async (task) => {
+        // The AppState listener keeps this task and runs it after this resolves.
+        retryTask = task;
+      });
+    await resolvePendingIntent();
+
+    const read = jest.spyOn(secureStore, 'readSecureItem').mockRejectedValueOnce(failure);
+    await expect(retryTask()).resolves.toBe(true);
+
+    expect(mockAnalytics.captureException).toHaveBeenCalledWith(failure, {
+      source: 'pending-intent-reader.resolvePendingIntent',
+    });
+    read.mockRestore();
+    retry.mockRestore();
+  });
+
   it('still reports a real failure to Sentry', async () => {
     const failure = new Error('resolution blew up');
     const retry = jest.spyOn(secureStore, 'runWithUnlockRetry').mockRejectedValueOnce(failure);
