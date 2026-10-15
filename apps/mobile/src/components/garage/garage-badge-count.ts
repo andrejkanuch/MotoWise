@@ -20,12 +20,9 @@ export function countGarageBadge(tasks: readonly BadgeTask[], now: Date): number
   for (const task of tasks) {
     if (!task.dueDate) continue;
     const days = daysUntil(task.dueDate, now);
-    // Overdue tasks
     if (days < 0) {
       count++;
-    }
-    // Critical/high due within 3 days
-    else if (
+    } else if (
       days <= URGENT_WITHIN_DAYS &&
       (task.priority === 'critical' || task.priority === 'high')
     ) {

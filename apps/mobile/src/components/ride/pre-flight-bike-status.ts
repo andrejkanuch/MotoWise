@@ -14,8 +14,6 @@ export const PRE_FLIGHT_BIKE_STATUS = {
   ALL_CLEAR: 'allClear',
 } as const;
 
-export type ChecklistLevel = 'ok' | 'warn' | 'na';
-
 /** Within this many calendar days an upcoming task is a warning, not ok. */
 const WARN_WITHIN_DAYS = 7;
 

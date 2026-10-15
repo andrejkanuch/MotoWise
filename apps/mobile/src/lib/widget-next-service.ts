@@ -1,5 +1,5 @@
 import type { AllMaintenanceTasksQuery } from '@motovault/graphql';
-import { daysUntil as calendarDaysUntil } from '../utils/days-until';
+import { daysUntil } from '../utils/days-until';
 
 export type NextServiceTask = Pick<
   AllMaintenanceTasksQuery['allMaintenanceTasks'][number],
@@ -35,7 +35,7 @@ export function pickWidgetNextService<T extends NextServiceTask>(
   const next = pending[0];
   if (!next) return null;
 
-  const daysUntil = next.dueDate ? calendarDaysUntil(next.dueDate, now) : null;
-  const isOverdue = daysUntil !== null && daysUntil < 0;
-  return { task: next, daysUntil, isOverdue };
+  const days = next.dueDate ? daysUntil(next.dueDate, now) : null;
+  const isOverdue = days !== null && days < 0;
+  return { task: next, daysUntil: days, isOverdue };
 }

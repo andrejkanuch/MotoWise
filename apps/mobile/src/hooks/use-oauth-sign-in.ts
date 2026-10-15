@@ -16,12 +16,14 @@ import { triggerImpact } from '../utils/haptics';
  * which alerts and reports by kind. No navigation here: the auth listener in
  * the root layout moves the rider on once the session exists.
  */
-export function useOAuthSignIn(): { onApple: () => Promise<void>; onGoogle: () => Promise<void> } {
-  return {
-    onApple: () => signIn(signInWithApple, AUTH_METHOD.APPLE),
-    onGoogle: () => signIn(signInWithGoogle, AUTH_METHOD.GOOGLE),
-  };
+export function useOAuthSignIn(): typeof OAUTH_HANDLERS {
+  return OAUTH_HANDLERS;
 }
+
+const OAUTH_HANDLERS = {
+  onApple: () => signIn(signInWithApple, AUTH_METHOD.APPLE),
+  onGoogle: () => signIn(signInWithGoogle, AUTH_METHOD.GOOGLE),
+} as const;
 
 async function signIn(provider: () => Promise<OAuthResult>, method: AuthMethod): Promise<void> {
   triggerImpact();

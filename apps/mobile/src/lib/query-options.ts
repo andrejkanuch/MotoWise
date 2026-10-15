@@ -23,6 +23,10 @@ import { HEATMAP_PAGE_SIZE } from '../utils/ride-constants';
 import { getRequestSessionUserId, isAccountGoneError, signOutGoneAccount } from './account-gone';
 import { gqlFetcher } from './graphql-client';
 import { queryKeys } from './query-keys';
+import { QUERY_META } from './query-meta';
+
+/** Shared `staleTime` for lists that change slowly and are reopened often. */
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
 /**
  * Current-user (`me`) query. Defined once and reused by the navigation gate
@@ -45,7 +49,7 @@ export const meOptions = () =>
     },
     retry: 1,
     retryDelay: 1000,
-    meta: { showErrorAlert: false },
+    meta: QUERY_META.OWN_ERROR_UI,
   });
 
 /**
@@ -56,7 +60,7 @@ export const maintenanceBadgeOptions = () =>
   queryOptions({
     queryKey: queryKeys.maintenanceTasks.allUser,
     queryFn: () => gqlFetcher(AllMaintenanceTasksDocument),
-    meta: { showErrorAlert: false },
+    meta: QUERY_META.OWN_ERROR_UI,
   });
 
 /**
@@ -106,8 +110,6 @@ export const rideWaypointsOptions = (rideId: string, maxPoints: number) =>
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-const HEATMAP_STALE_MS = 5 * 60 * 1000;
-
 /**
  * Every ride's polyline for the heatmap, paged `HEATMAP_PAGE_SIZE` at a time.
  * The profile heatmap screen and the ride-tab heatmap hook both eagerly page
@@ -131,13 +133,11 @@ export const rideHeatmapOptions = () =>
       const pi = lastPage?.myRides?.pageInfo;
       return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
     },
-    staleTime: HEATMAP_STALE_MS,
+    staleTime: FIVE_MINUTES_MS,
   });
 
 /** The `year` variable of the expenses query that means every year. */
 export const EXPENSES_ALL_YEARS = 0;
-
-const EXPENSE_DASHBOARD_STALE_MS = 5 * 60 * 1000;
 
 /**
  * One bike's expenses for one year (`EXPENSES_ALL_YEARS` for all of them). The
@@ -162,5 +162,5 @@ export const expenseDashboardQueryOptions = (motorcycleId: string) =>
   queryOptions({
     queryKey: queryKeys.expenses.dashboard(motorcycleId),
     queryFn: () => gqlFetcher(ExpenseDashboardDocument, { motorcycleId }),
-    staleTime: EXPENSE_DASHBOARD_STALE_MS,
+    staleTime: FIVE_MINUTES_MS,
   });

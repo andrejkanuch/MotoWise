@@ -42,7 +42,6 @@ const mockSignInWithGoogle = jest.fn();
 jest.mock('../../lib/oauth', () => ({
   signInWithApple: jest.fn(),
   signInWithGoogle: (...args: unknown[]) => mockSignInWithGoogle(...args),
-  reportUnexpectedAuthError: jest.fn(),
 }));
 jest.mock('../../lib/oauth-error-alert', () => ({ presentOAuthError: jest.fn() }));
 jest.mock('../../lib/onboarding-analytics', () => ({ trackOnboardingFlowEvent: jest.fn() }));

@@ -31,7 +31,6 @@ jest.mock('../../components/onboarding/oauth-glyphs', () => ({
 jest.mock('../../lib/oauth', () => ({
   signInWithApple: jest.fn(),
   signInWithGoogle: jest.fn(),
-  reportUnexpectedAuthError: jest.fn(),
 }));
 jest.mock('../../lib/oauth-error-alert', () => ({ presentOAuthError: jest.fn() }));
 jest.mock('../../lib/onboarding-analytics', () => ({ trackOnboardingFlowEvent: jest.fn() }));
