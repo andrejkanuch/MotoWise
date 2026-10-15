@@ -12,6 +12,8 @@
  */
 import { execFile } from 'node:child_process';
 import path from 'node:path';
+import { MaintenancePriority } from '@motovault/graphql';
+import { countGarageBadge } from '@/components/garage/garage-badge-count';
 import { computeHealthScore, getRelativeDueDate } from '@/lib/health-score';
 import { daysUntil } from '@/utils/days-until';
 
@@ -46,6 +48,23 @@ describe(`calendar days until a date (${childZone ?? 'machine zone'})`, () => {
       expect(daysUntil(DUE.TODAY, now)).toBe(0);
       expect(daysUntil(DUE.TOMORROW, now)).toBe(1);
       expect(daysUntil(DUE.YESTERDAY, now)).toBe(-1);
+    });
+
+    it('Garage badge: due today counts only when critical or high, yesterday always', () => {
+      const badge = (priority: MaintenancePriority, dueDate: string) =>
+        countGarageBadge([{ priority, dueDate }], now);
+      expect(badge(MaintenancePriority.Medium, DUE.TODAY)).toBe(0);
+      expect(badge(MaintenancePriority.Critical, DUE.TODAY)).toBe(1);
+      expect(badge(MaintenancePriority.High, DUE.TOMORROW)).toBe(1);
+      expect(badge(MaintenancePriority.Low, DUE.TOMORROW)).toBe(0);
+      expect(badge(MaintenancePriority.Low, DUE.YESTERDAY)).toBe(1);
+    });
+
+    it('Garage badge: a critical task due in 3 days counts, in 4 days it does not', () => {
+      const badge = (dueDate: string) =>
+        countGarageBadge([{ priority: MaintenancePriority.Critical, dueDate }], now);
+      expect(badge('2026-10-05')).toBe(1);
+      expect(badge('2026-10-06')).toBe(0);
     });
 
     // Sites that read the clock themselves run with it set to `now`.
