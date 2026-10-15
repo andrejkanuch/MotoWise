@@ -55,6 +55,8 @@ jest.mock('../../ride/ride-controller', () => ({
 // Coordinator now routes the phone to the ride-summary on Stop, and logs nav
 // failures — mock the imperative router + analytics to avoid the native chains.
 jest.mock('expo-router', () => ({ router: { replace: jest.fn() } }));
+jest.mock('../carplay-session-bridge', () => ({ startCarPlaySessionBridge: jest.fn() }));
+jest.mock('@/utils/ride-sync-queue', () => ({ drainQueue: jest.fn(() => Promise.resolve()) }));
 jest.mock('@/lib/analytics', () => ({
   captureException: jest.fn(),
   addBreadcrumb: jest.fn(),
@@ -114,12 +116,14 @@ import { router } from 'expo-router';
 import { captureException, flushAnalytics, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryClient } from '@/lib/query-client';
+import { drainQueue } from '@/utils/ride-sync-queue';
 import * as rideController from '../../ride/ride-controller';
 import {
   __resetCarPlayCoordinator,
   refreshCarPlayHeadsUpData,
   startCarPlayCoordinator,
 } from '../carplay-coordinator';
+import { startCarPlaySessionBridge } from '../carplay-session-bridge';
 
 const THROTTLE_MS = 10_000; // mirror of the coordinator's internal throttle window
 const fireConnect = () => (carplay.addConnectListener as jest.Mock).mock.calls[0][0]();
@@ -477,6 +481,110 @@ describe('carplay-coordinator', () => {
     fireAction('stop'); // a fresh arm, not a confirm
     expect(rideController.endRideSession).not.toHaveBeenCalled();
 
+    jest.useRealTimers();
+  });
+
+  it('starts the session bridge on connect so a CarPlay-only ride can sync', () => {
+    startCarPlayCoordinator();
+    fireConnect();
+    expect(startCarPlaySessionBridge).toHaveBeenCalledWith(expect.any(Function));
+  });
+
+  it('retries the ride queue on every head-unit connect', async () => {
+    startCarPlayCoordinator();
+    fireConnect();
+    expect(drainQueue).toHaveBeenCalledTimes(1);
+
+    const failure = new Error('drain failed');
+    (drainQueue as jest.Mock).mockReturnValueOnce(Promise.reject(failure));
+    fireDisconnect();
+    fireConnect();
+    await Promise.resolve();
+    expect(drainQueue).toHaveBeenCalledTimes(2);
+    expect(captureException).toHaveBeenCalledWith(failure, {
+      source: 'carplay-coordinator.queueDrain',
+    });
+  });
+
+  it('still paints the panel when the session bridge throws', () => {
+    (startCarPlaySessionBridge as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('bridge failed');
+    });
+    startCarPlayCoordinator();
+    expect(fireConnect).not.toThrow();
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
+    expect(captureException).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'bridge failed' }),
+      expect.objectContaining({ source: 'carplay-coordinator.sessionBridge' }),
+    );
+  });
+
+  it('retries the root build when a step before the paint throws', () => {
+    (carplay.clearInformation as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('clear failed');
+    });
+    startCarPlayCoordinator();
+    expect(fireConnect).not.toThrow();
+    expect(captureException).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'clear failed' }),
+      expect.objectContaining({ source: 'carplay-coordinator.onConnect' }),
+    );
+    expect(mockStoreListeners.length).toBe(0);
+    fireConnect(); // the replay must not be swallowed by a stuck `connected` flag
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
+    expect(mockStoreListeners.length).toBe(1);
+  });
+
+  // --- Throw containment (TestFlight crash 2026-10-10, 3.25.0 build 105) ---
+  // Each of these runs on a stack with nothing of ours above it — a native button
+  // press, the ride store's set(), a native timer — where an uncaught throw is a
+  // fatal JS error and React Native aborts the process recording the ride.
+
+  it('contains a throw from a head-unit button press and reports it', () => {
+    (rideController.endRideSession as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('end failed');
+    });
+    startCarPlayCoordinator();
+    fireConnect();
+    fireAction('stop'); // arm
+
+    expect(() => fireAction('stop')).not.toThrow();
+    expect(captureException).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'end failed' }),
+      expect.objectContaining({ source: 'carplay-coordinator.onAction' }),
+    );
+  });
+
+  it('contains a panel render that throws inside a ride-store update', () => {
+    startCarPlayCoordinator();
+    fireConnect();
+    (carplay.renderInformation as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('paint failed');
+    });
+    mockRide.status = 'ended'; // a state transition renders immediately
+
+    // The subscriber runs inside the store's set() — e.g. mid endRideSession.
+    expect(fireStore).not.toThrow();
+    expect(captureException).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'paint failed' }),
+      expect.objectContaining({ source: 'carplay-coordinator.storeRender' }),
+    );
+  });
+
+  it('contains a throw from the stop-confirm auto-disarm timer', () => {
+    jest.useFakeTimers();
+    startCarPlayCoordinator();
+    fireConnect();
+    fireAction('stop'); // arm
+    (carplay.renderInformation as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('paint failed');
+    });
+
+    expect(() => jest.advanceTimersByTime(5_000)).not.toThrow();
+    expect(captureException).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'paint failed' }),
+      expect.objectContaining({ source: 'carplay-coordinator.stopArmTimer' }),
+    );
     jest.useRealTimers();
   });
 

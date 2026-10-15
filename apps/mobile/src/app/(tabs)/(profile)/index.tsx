@@ -12,12 +12,14 @@ import {
   LogOut,
   Map as MapRoute,
   Megaphone,
+  MessageSquare,
   Navigation,
   Pencil,
   RotateCcw,
   Settings,
   Shield,
   Smartphone,
+  Star,
   Ticket,
   Trash2,
 } from 'lucide-react-native';
@@ -41,6 +43,7 @@ import {
 import { PROFILE_ROUTE } from '@/config/routes';
 import { useProGate } from '@/hooks/use-pro-gate';
 import { useProfileData } from '@/hooks/use-profile-data';
+import { openStoreReviewPage, REVIEW_STORE_SURFACE } from '@/lib/store-review';
 import { CODE_REDEMPTION_SURFACE, presentCodeRedemption, presentPaywall } from '@/lib/subscription';
 import { useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, readableWidth, space } from '@/theme/type';
@@ -201,7 +204,26 @@ export default function ProfileScreen() {
         />
       </Section>
 
-      <Section index={3} label={t('profile.support')}>
+      <Section index={3} label={t('profile.sectionFeedback')}>
+        <ESettingsRow
+          testID="profile-feedback"
+          icon={MessageSquare}
+          title={t('feedback.title')}
+          subtitle={t('feedback.rowSubtitle')}
+          onPress={() => router.push(PROFILE_ROUTE.FEEDBACK)}
+        />
+        <ESettingsRow
+          testID="profile-rate-app"
+          icon={Star}
+          title={t('support.rateApp')}
+          subtitle={t('support.rateAppSubtitle')}
+          chevron={false}
+          accessory={<ExternalIcon />}
+          onPress={() => void openStoreReviewPage(REVIEW_STORE_SURFACE.PROFILE)}
+        />
+      </Section>
+
+      <Section index={4} label={t('profile.support')}>
         <ESettingsRow
           testID="profile-help"
           icon={HelpCircle}
@@ -227,7 +249,7 @@ export default function ProfileScreen() {
       </Section>
 
       <View>
-        <Section index={4} label={t('profile.sectionAccount')}>
+        <Section index={5} label={t('profile.sectionAccount')}>
           <ESettingsRow
             testID="profile-edit"
             icon={Pencil}

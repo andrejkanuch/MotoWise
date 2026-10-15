@@ -118,3 +118,30 @@ describe('MotorcycleMakeSchema', () => {
     expect(() => MotorcycleMakeSchema.parse('')).toThrow();
   });
 });
+
+describe('CompleteOnboardingInputSchema.feedbackContactOptIn', () => {
+  it('keeps the opt-in object so the API can store it', () => {
+    const result = CompleteOnboardingInputSchema.parse({
+      ...validBase,
+      feedbackContactOptIn: { wordingVersion: 1, locale: 'de' },
+    });
+    expect(result.feedbackContactOptIn).toEqual({ wordingVersion: 1, locale: 'de' });
+  });
+
+  it('treats null as not ticked', () => {
+    const result = CompleteOnboardingInputSchema.parse({
+      ...validBase,
+      feedbackContactOptIn: null,
+    });
+    expect(result.feedbackContactOptIn).toBeUndefined();
+  });
+
+  it('rejects a wording version below 1', () => {
+    expect(
+      CompleteOnboardingInputSchema.safeParse({
+        ...validBase,
+        feedbackContactOptIn: { wordingVersion: 0, locale: 'de' },
+      }).success,
+    ).toBe(false);
+  });
+});

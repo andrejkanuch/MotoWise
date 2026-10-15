@@ -162,6 +162,41 @@ describe('UsersService', () => {
   });
 
   describe('completeOnboarding', () => {
+    it('stores the onboarding contact opt-in in p_preferences when ticked', async () => {
+      mockUserClient._chain.single.mockResolvedValueOnce({ data: fakeUserRow, error: null });
+
+      await service.completeOnboarding(userId, {
+        experienceLevel: 'beginner',
+        ridingGoals: [],
+        learningFormats: [],
+        feedbackContactOptIn: { wordingVersion: 1, locale: 'de' },
+      } as never);
+
+      const prefs = mockUserClient.rpc.mock.calls[0][1].p_preferences;
+      expect(prefs.feedbackContact).toMatchObject({
+        enabled: true,
+        email: null,
+        wordingVersion: 1,
+        locale: 'de',
+        source: 'onboarding',
+      });
+      expect(Number.isNaN(Date.parse(prefs.feedbackContact.decidedAt))).toBe(false);
+    });
+
+    it('leaves feedbackContact out of p_preferences when not ticked', async () => {
+      mockUserClient._chain.single.mockResolvedValueOnce({ data: fakeUserRow, error: null });
+
+      await service.completeOnboarding(userId, {
+        experienceLevel: 'beginner',
+        ridingGoals: [],
+        learningFormats: [],
+      } as never);
+
+      expect(mockUserClient.rpc.mock.calls[0][1].p_preferences).not.toHaveProperty(
+        'feedbackContact',
+      );
+    });
+
     it('should call RPC with correct payload', async () => {
       mockUserClient.rpc.mockResolvedValueOnce({ data: null, error: null });
       // findById is called after RPC

@@ -217,13 +217,35 @@ export const ONBOARDING_FLOWS: Record<ObVariant, ReadonlyArray<OnboardingRoute>>
   [OB_VARIANT.CONTROL]: SHIPPED_FLOW,
 };
 
+/**
+ * Flow for a variant — total over whatever string is actually persisted, not
+ * just over `ObVariant`.
+ *
+ * The variant is read back from MMKV and only TYPED as `ObVariant`; nothing
+ * validates it against the values this bundle knows. An install can hold a value
+ * the running bundle has no flow for — one written by a newer bundle (an OTA
+ * rollback, an embedded-bundle emergency launch, a dev client switching
+ * branches) or one a later release drops from `OB_VARIANT`. A bare lookup in
+ * `ONBOARDING_FLOWS` is then `undefined` and every helper below throws during
+ * the welcome screen's first render, which the rider can only escape by
+ * reinstalling. (Sentry MOTO-VAULT-REACT-NATIVE-3P)
+ *
+ * Such a value gets the paywall-free shipped flow, the same degradation
+ * `getOnboardingVariant` uses for an unassigned install: nobody is shown a
+ * paywall they were not enrolled for. The stored value is left alone, so it is
+ * honoured again once a bundle that knows it is running.
+ */
+function flowFor(variant: ObVariant): ReadonlyArray<OnboardingRoute> {
+  return isObVariant(variant) ? ONBOARDING_FLOWS[variant] : SHIPPED_FLOW;
+}
+
 /** Ordered screen list for a variant. */
 export function getFlowScreens(variant: ObVariant): ReadonlyArray<OnboardingRoute> {
-  return ONBOARDING_FLOWS[variant];
+  return flowFor(variant);
 }
 
 export function getTotalScreens(variant: ObVariant): number {
-  return ONBOARDING_FLOWS[variant].length;
+  return flowFor(variant).length;
 }
 
 /**
@@ -260,7 +282,7 @@ export const OB_STEP_NAME: Record<OnboardingRoute, string> = {
  * screens not in the variant's flow (e.g. the standalone sign-in surface).
  */
 export function getStepIndex(variant: ObVariant, route: OnboardingRoute): number {
-  return ONBOARDING_FLOWS[variant].indexOf(route);
+  return flowFor(variant).indexOf(route);
 }
 
 /** Type-safe onboarding route paths for router.push / router.replace */
@@ -492,7 +514,7 @@ export function getNextRoute(
   current: OnboardingRoute,
   ctx?: OnboardingNavContext,
 ): OnboardingRoutePath | null {
-  const flow = ONBOARDING_FLOWS[variant];
+  const flow = flowFor(variant);
   let idx = flow.indexOf(current);
 
   if (idx === -1) {
@@ -541,9 +563,7 @@ export function getVisibleProgress(
   route: OnboardingRoute,
   ctx: OnboardingNavContext,
 ): { index: number; total: number } {
-  const visible = ONBOARDING_FLOWS[variant].filter(
-    (screen) => !isSkippedForBikeState(screen, ctx.hasBike),
-  );
+  const visible = flowFor(variant).filter((screen) => !isSkippedForBikeState(screen, ctx.hasBike));
   return { index: visible.indexOf(route), total: visible.length };
 }
 
@@ -566,7 +586,7 @@ export function getPreviousRoute(
   current: OnboardingRoute,
   ctx?: OnboardingNavContext,
 ): OnboardingRoutePath | null {
-  const flow = ONBOARDING_FLOWS[variant];
+  const flow = flowFor(variant);
   let previousIndex = flow.indexOf(current) - 1;
   if (previousIndex < 0) {
     // First step, or a retired screen that is no longer in the flow at all —

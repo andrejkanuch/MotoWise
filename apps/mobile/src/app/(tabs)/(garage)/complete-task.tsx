@@ -41,7 +41,7 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { MAINTENANCE_COMPLETION_SURFACE } from '@/lib/maintenance-analytics';
 import { cancelTaskNotification } from '@/lib/notifications';
 import { queryKeys } from '@/lib/query-keys';
-import { maybeRequestReview, REVIEW_MILESTONE } from '@/lib/store-review';
+import { maybeRequestReview, REVIEW_MOMENT } from '@/lib/store-review';
 import { invalidateAfterTaskCompletion } from '@/lib/task-completion-cache';
 import { useEditorialTheme } from '@/theme/editorial';
 import { space, type } from '@/theme/type';
@@ -132,7 +132,7 @@ export default function CompleteTaskScreen() {
       recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);
       setCompleted(true);
 
-      maybeRequestReview(REVIEW_MILESTONE.MAINTENANCE_COMPLETED);
+      void maybeRequestReview(REVIEW_MOMENT.MAINTENANCE);
 
       setTimeout(() => router.back(), 800);
     },

@@ -26,6 +26,7 @@ import { OnboardingBikePlate } from '../../components/onboarding/onboarding-bike
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { getPrimaryGoal, getTotalScreens, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
+import { onboardingFeedbackContactInput } from '../../features/feedback/onboarding-contact-input';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException, setUserPropertiesOnce } from '../../lib/analytics';
 import { createGaragePaywallHandoff } from '../../lib/garage-paywall-handoff';
@@ -37,10 +38,10 @@ import { MetaAnalytics } from '../../lib/meta-analytics';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import {
-  ONBOARDING_PAYWALL_SURFACE,
   presentOnboardingPaywall,
   resolveOnboardingPaywallPlacement,
 } from '../../lib/onboarding-paywall';
+import { ONBOARDING_PAYWALL_SURFACE } from '../../lib/paywall-surfaces';
 import { queryKeys } from '../../lib/query-keys';
 import { setSelfReportedSource } from '../../lib/subscription';
 import { markWhatsNewSeenForNewRider } from '../../lib/whats-new';
@@ -279,6 +280,7 @@ export default function PersonalizingScreen() {
           ...(bikePhotoUrl && { bikePhotoUrl }),
         }),
         ...(acceptedOemScheduleIds.length > 0 && { acceptedOemScheduleIds }),
+        ...onboardingFeedbackContactInput(),
       };
 
       // Clear fbclid after use — it should only be sent once

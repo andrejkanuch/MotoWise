@@ -24,6 +24,7 @@
   },
   "auth": {
     "googlePlayServicesUnavailable": "O login com o Google precisa do Google Play Services, que este aparelho não tem. Continue com o e-mail.",
+    "googleSignInCannotOpen": "Não foi possível abrir o login com o Google neste aparelho. Tente novamente ou continue com o e-mail.",
     "signIn": "Entrar",
     "signingIn": "Entrando...",
     "signUp": "Criar Conta",
@@ -351,7 +352,8 @@
     "editProfileHint": "Edite seu perfil público e de piloto",
     "sectionApp": "App",
     "nameLabel": "Nome",
-    "publicNameLabel": "Nome público (visível para outros pilotos)"
+    "publicNameLabel": "Nome público (visível para outros pilotos)",
+    "sectionFeedback": "Feedback"
   },
   "onboarding": {
     "welcomeTitle": "Bem-vindo ao MotoVault",
@@ -1579,7 +1581,6 @@
   "support": {
     "faq": "Perguntas frequentes",
     "contact": "Fale conosco",
-    "emailSupport": "Suporte por e-mail",
     "version": "Versão {{version}}",
     "faq1Question": "Como adiciono uma moto?",
     "faq1Answer": "Vá até a aba Garagem e toque no botão +. Você pode buscar sua moto por marca, modelo e ano.",
@@ -1590,7 +1591,37 @@
     "faq4Question": "Como mudo o idioma?",
     "faq4Answer": "Vá em Perfil → Configurações do app → Idioma e escolha o idioma desejado.",
     "faq5Question": "Meus dados estão seguros?",
-    "faq5Answer": "Sim. Usamos criptografia de ponta a ponta e seguimos as melhores práticas do setor. Você pode exportar ou excluir seus dados a qualquer momento nas configurações de Privacidade."
+    "faq5Answer": "Sim. Usamos criptografia de ponta a ponta e seguimos as melhores práticas do setor. Você pode exportar ou excluir seus dados a qualquer momento nas configurações de Privacidade.",
+    "rateApp": "Avaliar o MotoVault",
+    "rateAppSubtitle": "Conte a outros motociclistas o que você acha"
+  },
+  "feedback": {
+    "title": "Escreva para o desenvolvedor",
+    "rowSubtitle": "Ideias, bugs, o que estiver na sua cabeça",
+    "intro": "Sua mensagem vai direto para o desenvolvedor, e todas são lidas.",
+    "quickPickLabel": "Sobre o que é?",
+    "quickPickLove": "Eu adoro…",
+    "quickPickWish": "Eu queria…",
+    "quickPickBroken": "Algo está quebrado",
+    "messageLabel": "Sua mensagem",
+    "messagePlaceholder": "Conte ao desenvolvedor o que você está pensando",
+    "context": "Enviado junto com sua mensagem: versão do app {{version}}, {{platform}}, o idioma do app e sua moto mais recente.",
+    "contactLabel": "Resposta",
+    "contactOptIn": "O desenvolvedor pode me contatar sobre meu feedback",
+    "contactEmailLabel": "Email para falar comigo",
+    "contactEmailPlaceholder": "nome@exemplo.com",
+    "contactEmailHelper": "Usado só para responder você. Não muda a forma como você entra.",
+    "contactEmailRelayHelper": "Você entra com Ocultar Meu E-mail. Deixe vazio para receber respostas nesse endereço de retransmissão ou adicione um email pessoal.",
+    "emailInvalid": "Esse email não parece correto. Confira e tente de novo.",
+    "send": "Enviar",
+    "errorGeneric": "Não foi possível enviar sua mensagem. Seu texto continua aqui, tente de novo em instantes.",
+    "errorThrottled": "Você enviou várias mensagens em pouco tempo. Tente de novo um pouco mais tarde.",
+    "sentTitle": "Mensagem enviada",
+    "sentBody": "Obrigado por escrever. Se você permitiu que o desenvolvedor entre em contato, a resposta chegará por email.",
+    "notificationsSection": "Fale com o desenvolvedor",
+    "notificationsOptInSubtitle": "Respostas sobre o feedback que você envia",
+    "notificationsEmailRelay": "Endereço do Ocultar Meu E-mail",
+    "saveError": "Não foi possível salvar a alteração. Verifique sua conexão e tente de novo."
   },
   "quickActions": {
     "startRide": "Iniciar viagem",
@@ -2433,17 +2464,6 @@
     "battery": "Bateria",
     "general_service": "Revisão geral",
     "other": "Outro"
-  },
-  "review": {
-    "softAskTitle": "Curtindo o MotoVault?",
-    "softAskBody": "Uma avaliação rápida ajuda outros motociclistas a encontrar o app.",
-    "softAskYes": "Adoro",
-    "softAskNo": "Nem tanto",
-    "feedbackTitle": "Ajude a melhorar",
-    "feedbackBody": "Conte o que não está bom — lemos todas as mensagens.",
-    "feedbackYes": "Enviar feedback",
-    "feedbackNo": "Agora não",
-    "feedbackSubject": "Feedback do MotoVault"
   },
   "analyticsConsent": {
     "title": "Ajude a construir o MotoVault",

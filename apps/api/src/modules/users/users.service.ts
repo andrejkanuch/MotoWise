@@ -1,4 +1,6 @@
 import {
+  buildFeedbackContact,
+  FEEDBACK_CONTACT_SOURCE,
   RESERVED_HANDLES,
   RESERVED_USERNAMES,
   USERNAME_REGEX,
@@ -195,6 +197,16 @@ export class UsersService {
       seasonalTips: input.seasonalTips ?? false,
       recallAlerts: input.recallAlerts ?? false,
       weeklySummary: input.weeklySummary ?? false,
+      ...(input.feedbackContactOptIn && {
+        feedbackContact: buildFeedbackContact({
+          enabled: true,
+          // null = use the account email; editable later in Notifications.
+          email: null,
+          wordingVersion: input.feedbackContactOptIn.wordingVersion,
+          locale: input.feedbackContactOptIn.locale,
+          source: FEEDBACK_CONTACT_SOURCE.ONBOARDING,
+        }),
+      }),
     };
 
     const { error } = await this.supabase.rpc('complete_onboarding', {

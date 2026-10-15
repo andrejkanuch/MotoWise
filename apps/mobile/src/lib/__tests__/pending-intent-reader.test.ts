@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import * as analytics from '../analytics';
 import { resolvePendingIntent } from '../pending-intent-reader';
+import * as secureStore from '../secure-store';
 import { SECURE_STORE_KEY } from '../secure-store';
 
 // jest.mock is hoisted above these imports by babel-jest, so the imports above
@@ -39,6 +40,7 @@ jest.mock('../analytics', () => ({
   setUserPropertiesOnce: jest.fn(),
   registerSuperProperties: jest.fn(),
   captureException: jest.fn(),
+  addBreadcrumb: jest.fn(),
 }));
 
 const mockSecureStore = jest.mocked(SecureStore);
@@ -112,5 +114,86 @@ describe('resolvePendingIntent', () => {
     );
     // Onboarding is never blocked on the outcome.
     expect(useOnboardingStore.getState().intentResolved).toBe(true);
+  });
+
+  // MOTO-VAULT-REACT-NATIVE-32 / -3V: the Play Referrer native module can go
+  // silent (and a low-end phone's cold start can outlast the bound), so the 4s
+  // bound expiring is an expected outcome. It was reported as an Error on every
+  // such launch.
+  describe('when the read outlasts the bound', () => {
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => jest.useRealTimers());
+
+    it('leaves a breadcrumb instead of a Sentry error and still unblocks onboarding', async () => {
+      // A read that never settles — the stalled-transport shape.
+      mockSecureStore.getItemAsync.mockReturnValue(new Promise<string | null>(() => {}));
+
+      const resolution = resolvePendingIntent();
+      await jest.advanceTimersByTimeAsync(4000);
+      await resolution;
+
+      expect(mockAnalytics.captureException).not.toHaveBeenCalled();
+      expect(mockAnalytics.addBreadcrumb).toHaveBeenCalledTimes(1);
+      expect(useOnboardingStore.getState().intentResolved).toBe(true);
+      // Nothing was consumed, so the one-shot stays unwritten for the next launch.
+      expect(mockSecureStore.setItemAsync).not.toHaveBeenCalled();
+    });
+
+    it('still completes a read that lands after the bound', async () => {
+      let release: (value: string | null) => void = () => {};
+      mockSecureStore.getItemAsync.mockReturnValueOnce(
+        new Promise<string | null>((resolve) => {
+          release = resolve;
+        }),
+      );
+
+      const resolution = resolvePendingIntent();
+      await jest.advanceTimersByTimeAsync(4000);
+      await resolution;
+      release(null);
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(mockSecureStore.setItemAsync).toHaveBeenCalledWith(
+        SECURE_STORE_KEY.PENDING_INTENT_CHECKED,
+        '1',
+        { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK },
+      );
+      expect(mockAnalytics.captureException).not.toHaveBeenCalled();
+    });
+  });
+
+  it('reports a failure from a foreground retry instead of leaving it unhandled', async () => {
+    const failure = new Error('retry blew up');
+    let retryTask: () => Promise<boolean> = () => Promise.resolve(true);
+    const retry = jest
+      .spyOn(secureStore, 'runWithUnlockRetry')
+      .mockImplementationOnce(async (task) => {
+        // The AppState listener keeps this task and runs it after this resolves.
+        retryTask = task;
+      });
+    await resolvePendingIntent();
+
+    const read = jest.spyOn(secureStore, 'readSecureItem').mockRejectedValueOnce(failure);
+    await expect(retryTask()).resolves.toBe(true);
+
+    expect(mockAnalytics.captureException).toHaveBeenCalledWith(failure, {
+      source: 'pending-intent-reader.resolvePendingIntent',
+    });
+    read.mockRestore();
+    retry.mockRestore();
+  });
+
+  it('still reports a real failure to Sentry', async () => {
+    const failure = new Error('resolution blew up');
+    const retry = jest.spyOn(secureStore, 'runWithUnlockRetry').mockRejectedValueOnce(failure);
+
+    await expect(resolvePendingIntent()).resolves.toBeUndefined();
+
+    expect(mockAnalytics.captureException).toHaveBeenCalledWith(failure, {
+      source: 'pending-intent-reader.resolvePendingIntent',
+    });
+    expect(mockAnalytics.addBreadcrumb).not.toHaveBeenCalled();
+    expect(useOnboardingStore.getState().intentResolved).toBe(true);
+    retry.mockRestore();
   });
 });

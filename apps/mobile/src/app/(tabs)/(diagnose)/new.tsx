@@ -31,7 +31,6 @@ import { hasGraphQLCode } from '@/lib/graphql-errors';
 import { MetaAnalytics } from '@/lib/meta-analytics';
 import { isNetworkError } from '@/lib/network-error';
 import { queryKeys } from '@/lib/query-keys';
-import { maybeRequestReview, REVIEW_MILESTONE } from '@/lib/store-review';
 import { useDiagnosticFlowStore } from '@/stores/diagnostic-flow.store';
 import { space } from '@/theme/type';
 
@@ -200,7 +199,6 @@ export default function NewDiagnosticScreen() {
         has_photo: !!state.photoUri,
         has_wizard_answers: !!hasWizardAnswers,
       });
-      maybeRequestReview(REVIEW_MILESTONE.DIAGNOSIS_COMPLETED);
       queryClient.invalidateQueries({ queryKey: queryKeys.diagnostics.all });
       router.replace(`/(diagnose)/${result.submitDiagnostic.id}` as `/${string}`);
     } catch (error: unknown) {

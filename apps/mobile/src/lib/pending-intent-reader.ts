@@ -1,6 +1,7 @@
 import { useOnboardingStore } from '../stores/onboarding.store';
 import {
   AnalyticsEvent,
+  addBreadcrumb,
   captureException,
   registerSuperProperties,
   setUserPropertiesOnce,
@@ -54,15 +55,37 @@ const INTENT_CHECKED = '1';
  */
 const RESOLVE_TIMEOUT_MS = 4000;
 
+/** How the bounded wait in {@link resolvePendingIntent} ended. */
+const RESOLUTION_OUTCOME = {
+  SETTLED: 'settled',
+  TIMED_OUT: 'timed_out',
+} as const;
+
+type ResolutionOutcome = (typeof RESOLUTION_OUTCOME)[keyof typeof RESOLUTION_OUTCOME];
+
+const CAPTURE_SOURCE = 'pending-intent-reader.resolvePendingIntent';
+const BREADCRUMB_CATEGORY = 'pending-intent';
+
 /**
- * Reject after `ms` so a stalled await can't hang the resolution flow, plus the
- * handle to cancel it once the race settles — an un-cleared 4s timer keeps the
- * runtime (and a jest worker) alive for no reason.
+ * Resolves (never rejects) after `ms` so a stalled await can't hang the
+ * resolution flow, plus the handle to cancel it once the race settles — an
+ * un-cleared 4s timer keeps the runtime (and a jest worker) alive for no reason.
+ *
+ * Expiry is an OUTCOME, not an error. The Play Referrer native module emits
+ * nothing at all on several paths (the Play Store service binds but never
+ * connects, a response code outside its switch), and on a low-end phone the
+ * cold-start JS thread alone can eat the budget. It used to reject with an
+ * Error that was reported to Sentry on every such launch — and, because the
+ * one-shot flag is only written after the read, on every later launch too.
+ * (MOTO-VAULT-REACT-NATIVE-32 / -3V)
  */
-function rejectAfter(ms: number): { expiry: Promise<never>; cancel: () => void } {
+function expireAfter(ms: number): {
+  expiry: Promise<typeof RESOLUTION_OUTCOME.TIMED_OUT>;
+  cancel: () => void;
+} {
   let timer: ReturnType<typeof setTimeout> | undefined;
-  const expiry = new Promise<never>((_resolve, reject) => {
-    timer = setTimeout(() => reject(new Error('pending-intent resolution timed out')), ms);
+  const expiry = new Promise<typeof RESOLUTION_OUTCOME.TIMED_OUT>((resolve) => {
+    timer = setTimeout(() => resolve(RESOLUTION_OUTCOME.TIMED_OUT), ms);
   });
   return { expiry, cancel: () => clearTimeout(timer) };
 }
@@ -167,24 +190,51 @@ async function readAndStoreIntent(): Promise<boolean> {
 }
 
 export async function resolvePendingIntent(): Promise<void> {
-  let cancelTimeout: (() => void) | null = null;
+  // Keychain reads no longer throw (lib/secure-store) — a locked device on a
+  // background cold start resolves false instead, and `runWithUnlockRetry`
+  // picks the resolution back up the next time the app is foregrounded rather
+  // than burning the one-shot or reporting an expected condition to Sentry.
+  // (MOTO-VAULT-REACT-NATIVE-2D)
+  //
+  // A real failure is reported from the attempt itself, not from the race: the
+  // attempt keeps running after the bound below expires, and a rejection that
+  // lands late must still reach Sentry instead of being dropped by the race.
+  //
+  // The read is also caught inside the task, because `runWithUnlockRetry` re-runs
+  // it from an AppState listener after it has already resolved: a rejection from
+  // one of those foreground retries has no caller to land in and would surface as
+  // an unhandled rejection. A failed read ends the retries, as a first-attempt
+  // failure always did.
+  const readOnce = (): Promise<boolean> =>
+    readAndStoreIntent().catch((e: unknown) => {
+      captureException(e, { source: CAPTURE_SOURCE });
+      return true;
+    });
+  const attempt: Promise<ResolutionOutcome> = runWithUnlockRetry(readOnce).then(
+    () => RESOLUTION_OUTCOME.SETTLED,
+    (e: unknown) => {
+      captureException(e, { source: CAPTURE_SOURCE });
+      return RESOLUTION_OUTCOME.SETTLED;
+    },
+  );
+
+  // Bound the wait: a stalled Play Referrer callback must never hang the
+  // paywall, which waits on `intentResolved`. On expiry we stop WAITING and take
+  // the no-intent path; the read itself is not cancelled, so a referrer that
+  // arrives late still stores its campaign and intent, and one that never
+  // arrives leaves the one-shot unwritten for the next launch to retry.
+  const timeout = expireAfter(RESOLVE_TIMEOUT_MS);
   try {
-    // Bound the first attempt: a stalled Play Referrer callback must never hang
-    // the paywall, which waits on `intentResolved`. On timeout we abandon the
-    // read and fall through to the no-intent path.
-    //
-    // Keychain reads no longer throw (lib/secure-store) — a locked device on a
-    // background cold start resolves false instead, and `runWithUnlockRetry`
-    // picks the resolution back up the next time the app is foregrounded rather
-    // than burning the one-shot or reporting an expected condition to Sentry.
-    // (MOTO-VAULT-REACT-NATIVE-2D)
-    const timeout = rejectAfter(RESOLVE_TIMEOUT_MS);
-    cancelTimeout = timeout.cancel;
-    await Promise.race([runWithUnlockRetry(() => readAndStoreIntent()), timeout.expiry]);
-  } catch (e) {
-    captureException(e, { source: 'pending-intent-reader.resolvePendingIntent' });
+    const outcome = await Promise.race([attempt, timeout.expiry]);
+    if (outcome === RESOLUTION_OUTCOME.TIMED_OUT) {
+      addBreadcrumb(
+        'pending-intent resolution still pending; continuing without it',
+        BREADCRUMB_CATEGORY,
+        { timeoutMs: RESOLVE_TIMEOUT_MS },
+      );
+    }
   } finally {
-    cancelTimeout?.();
+    timeout.cancel();
     // Release the install-attribution emit, which waits for the referrer.
     markReferrerSettled();
     // Signal that resolution has settled (any path — kill-switch off, already

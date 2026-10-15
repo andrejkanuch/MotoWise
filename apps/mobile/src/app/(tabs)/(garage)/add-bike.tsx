@@ -34,6 +34,8 @@ import { GRAPHQL_ERROR_CODE } from '@/lib/graphql-error-classification';
 import { extractGraphQLMessage, hasGraphQLCode, userFriendlyError } from '@/lib/graphql-errors';
 import { MetaAnalytics } from '@/lib/meta-analytics';
 import { queryKeys } from '@/lib/query-keys';
+import { maybeRequestReview, REVIEW_MOMENT } from '@/lib/store-review';
+import { useAuthStore } from '@/stores/auth.store';
 import { useEditorialTheme } from '@/theme/editorial';
 import { space } from '@/theme/type';
 import { triggerImpact, triggerNotification } from '@/utils/haptics';
@@ -125,6 +127,10 @@ export default function AddBikeScreen() {
       trackEvent(AnalyticsEvent.GARAGE_BIKE_ADDED, { make, model, year: yearNum });
       MetaAnalytics.trackAddToGarage(make, model, yearNum);
       triggerNotification(Haptics.NotificationFeedbackType.Success);
+      // The onboarding first bike is never a review moment and earns no points.
+      if (useAuthStore.getState().onboardingCompleted) {
+        void maybeRequestReview(REVIEW_MOMENT.GARAGE_BIKE);
+      }
       router.back();
     } catch (e: unknown) {
       // requireAccess shows the paywall and returns false. It returns true when the

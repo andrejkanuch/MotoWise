@@ -40,7 +40,7 @@ import { CATEGORY_LABELS } from '@/lib/expense-constants';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { uploadExpensePhoto } from '@/lib/image-upload';
 import { queryKeys } from '@/lib/query-keys';
-import { maybeRequestReview, REVIEW_MILESTONE } from '@/lib/store-review';
+import { REVIEW_ACTION, recordReviewAction } from '@/lib/store-review';
 import { useAuthStore } from '@/stores/auth.store';
 import { useEditorialTheme } from '@/theme/editorial';
 import { space, type } from '@/theme/type';
@@ -184,7 +184,7 @@ export default function AddExpenseScreen() {
       // The expense id is now available from the mutation result.
       setSavedExpenseId(result.logExpense.id);
       triggerNotification(Haptics.NotificationFeedbackType.Success);
-      maybeRequestReview(REVIEW_MILESTONE.EXPENSE_LOGGED);
+      recordReviewAction(REVIEW_ACTION.EXPENSE_OR_TRIP);
     },
     onError: () => {
       Alert.alert(

@@ -36,7 +36,7 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { MetaAnalytics } from '@/lib/meta-analytics';
 import { scheduleMaintenanceReminder } from '@/lib/notifications';
 import { queryKeys } from '@/lib/query-keys';
-import { maybeRequestReview, REVIEW_MILESTONE } from '@/lib/store-review';
+import { maybeRequestReview, REVIEW_MOMENT } from '@/lib/store-review';
 import { useEditorialTheme } from '@/theme/editorial';
 import { radius, SYSTEM_WEIGHT, space, type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
@@ -211,9 +211,11 @@ export default function AddMaintenanceTaskScreen() {
       // event is maintenance_task_created above; see its doc in lib/analytics.ts.
       MetaAnalytics.trackLogMaintenance(title.trim());
       // Logging past work is a serviced bike; planning a future task is not.
-      if (isLog) recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);
+      if (isLog) {
+        recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);
+        void maybeRequestReview(REVIEW_MOMENT.MAINTENANCE);
+      }
       setSaved(true);
-      maybeRequestReview(REVIEW_MILESTONE.MAINTENANCE_TASK_ADDED);
       triggerImpact();
       setTimeout(() => router.back(), 600);
     },

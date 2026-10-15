@@ -6,6 +6,7 @@ import {
   RidingFrequency,
   RidingGoal,
 } from '../constants/enums';
+import { FeedbackContactSchema } from './feedback';
 import { nullishToUndefined } from './nullish';
 
 const experienceLevelValues = Object.values(ExperienceLevel) as [string, ...string[]];
@@ -22,6 +23,7 @@ export const UserPreferencesSchema = z
     ridingFrequency: nullishToUndefined(z.enum(ridingFrequencyValues)),
     maintenanceStyle: nullishToUndefined(z.enum(maintenanceStyleValues)),
     learningFormats: nullishToUndefined(z.array(z.enum(learningFormatValues)).max(4)),
+    feedbackContact: nullishToUndefined(FeedbackContactSchema),
   })
   .passthrough();
 
