@@ -163,12 +163,6 @@
     "trustFree": "Ucretsiz basla",
     "trustNoCard": "Asla spam yok",
     "disclaimer": "Simdi iOS ve Android'de mevcut.",
-    "emailPlaceholder": "senin@email.com",
-    "submitButton": "Ucretsiz Indir",
-    "submitting": "Yonlendiriliyor...",
-    "successMessage": "Tesekkurler! MotoVault'u App Store veya Google Play'den indirin.",
-    "successTagline": "Motorun bir elektronik tablodan daha fazlasini hak ediyor.",
-    "errorMessage": "Bir seyler yanlis gitti. Lutfen tekrar dene.",
     "personality": "Motorun bir elektronik tablodan daha fazlasini hak ediyor."
   },
   "Faq": {

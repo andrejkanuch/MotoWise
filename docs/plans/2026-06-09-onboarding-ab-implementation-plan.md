@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-09
 **Branch:** `feat/onboarding-ab-2026` (off `fix/backend-audit-remediation` — the default-closed API auth guard lives there and every new `@Public()` resolver interacts with it)
-**Specs:** `onboarding-abc-test-plan.md` · `onboarding-design-prompts.md` (A) · `onboarding-design-prompts-variantB.md` (B) · `auth-and-paywall-timing.md` · `onboarding-aha-moment.md`
+**Specs** (archived in `docs/archive/onboarding-2026-06/`)**:** `onboarding-abc-test-plan.md` · `onboarding-design-prompts.md` (A) · `onboarding-design-prompts-variantB.md` (B) · `auth-and-paywall-timing.md` · `onboarding-aha-moment.md`
 **Visual source of truth:** `docs/design-reference/onboarding-v4/` (JSX extracted from the standalone HTML reference — screens 01–12, S1, CP, tokens, chrome)
 
 ---

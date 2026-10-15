@@ -32,7 +32,7 @@
 
 **Experiment:** PostHog [Experiment #83476](https://eu.posthog.com/project/155556/experiments/83476) on flag [`onboarding_ab_2026`](https://eu.posthog.com/project/155556/feature_flags/202343) — variants `lean` (A) / `invested` (B) / `control` (V4 holdout, 0% by default).
 **Source of truth in code:** `apps/mobile/src/lib/onboarding-analytics.ts` + `apps/mobile/src/config/onboarding.ts`.
-**Property naming:** the variant is `variant` on every onboarding event AND `onboarding_variant` as a super + person property. (The earlier planning doc `posthog-ab-spec.md` proposed `ab_variant`; that name was **not** adopted — this schema is authoritative.)
+**Property naming:** the variant is `variant` on every onboarding event AND `onboarding_variant` as a super + person property. (The earlier planning doc `docs/archive/onboarding-2026-06/posthog-ab-spec.md` proposed `ab_variant`; that name was **not** adopted — this schema is authoritative.)
 
 ## Contract
 

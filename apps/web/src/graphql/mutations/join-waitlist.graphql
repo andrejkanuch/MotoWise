@@ -1,3 +1,0 @@
-mutation JoinWaitlist($email: String!) {
-  joinWaitlist(email: $email)
-}

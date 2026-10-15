@@ -3,8 +3,9 @@
  *
  * The vision model (GPT-4.1 via `zodResponseFormat`) fills this contract from a
  * single receipt image. It is the shipped counterpart of the U1 spike schema
- * (`scripts/receipt-scan-spike/schema.ts`) — same shape, but this is the source
- * of truth for the API extraction service and the mobile review card.
+ * (the removed `scripts/receipt-scan-spike/`, see git history) — same shape,
+ * and this is the source of truth for the API extraction service and the
+ * mobile review card.
  *
  * OpenAI structured outputs run in STRICT mode: every property must be present
  * in the object, so "optional" fields are modelled as `.nullable()` rather than
