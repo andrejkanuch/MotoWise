@@ -101,6 +101,12 @@ describe('useRideStore', () => {
     expect(state.recordingSubState).toBe('moving');
   });
 
+  it('startRide turns battery saver off, matching the full-accuracy GPS start', () => {
+    useRideStore.getState().setBatterySaver(true);
+    useRideStore.getState().startRide();
+    expect(useRideStore.getState().isBatterySaver).toBe(false);
+  });
+
   it('pauseRide sets status to paused', () => {
     useRideStore.getState().startRide();
     useRideStore.getState().pauseRide();
@@ -145,11 +151,12 @@ describe('useRideStore', () => {
     expect(useRideStore.getState().isNightMode).toBe(false);
   });
 
-  it('toggleBatterySaver toggles boolean', () => {
+  it('setBatterySaver stores the given value, idempotently', () => {
     expect(useRideStore.getState().isBatterySaver).toBe(false);
-    useRideStore.getState().toggleBatterySaver();
+    useRideStore.getState().setBatterySaver(true);
+    useRideStore.getState().setBatterySaver(true);
     expect(useRideStore.getState().isBatterySaver).toBe(true);
-    useRideStore.getState().toggleBatterySaver();
+    useRideStore.getState().setBatterySaver(false);
     expect(useRideStore.getState().isBatterySaver).toBe(false);
   });
 });

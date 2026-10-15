@@ -4396,6 +4396,7 @@ export type Database = {
           review_count: number
           search_tsv: unknown
           slug: string | null
+          source_ride_id: string | null
           start_date: string
           start_lat: number | null
           start_lng: number | null
@@ -4443,6 +4444,7 @@ export type Database = {
           review_count?: number
           search_tsv?: unknown
           slug?: string | null
+          source_ride_id?: string | null
           start_date: string
           start_lat?: number | null
           start_lng?: number | null
@@ -4490,6 +4492,7 @@ export type Database = {
           review_count?: number
           search_tsv?: unknown
           slug?: string | null
+          source_ride_id?: string | null
           start_date?: string
           start_lat?: number | null
           start_lng?: number | null
@@ -4535,6 +4538,13 @@ export type Database = {
             columns: ["organiser_user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trips_source_ride_id_fkey"
+            columns: ["source_ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
             referencedColumns: ["id"]
           },
         ]

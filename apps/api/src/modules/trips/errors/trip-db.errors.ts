@@ -5,6 +5,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import type { PostgrestError } from '@supabase/supabase-js';
+import { PG_ERROR } from '../../../common/supabase/unwrap';
 
 /**
  * ⚠️ TEMPORARY LOCAL COPY — to be replaced by a shared module.
@@ -66,7 +67,20 @@ export const PG_CHECK_VIOLATION = '23514';
 export const TRIP_CONSTRAINT = {
   DATE_RANGE: 'chk_trips_date_range',
   MAX_RIDERS: 'trips_max_riders_check',
+  /** 00192: one Discover template per source ride. */
+  ONE_TEMPLATE_PER_SOURCE_RIDE: 'idx_trips_one_template_per_source_ride',
 } as const;
+
+export const RIDE_ALREADY_SHARED_MESSAGE = 'This ride is already shared on Discover';
+
+/**
+ * True when a trips write lost to the one-template-per-ride index. Matched by
+ * name because idx_trips_template_slug raises the same 23505, and a slug clash
+ * is not "already shared".
+ */
+export const isRideAlreadySharedError = (error: PostgrestError): boolean =>
+  error.code === PG_ERROR.UNIQUE_VIOLATION &&
+  error.message.includes(TRIP_CONSTRAINT.ONE_TEMPLATE_PER_SOURCE_RIDE);
 
 /** Unknown-code fallback for the log line and the appended status code. */
 const UNKNOWN_CODE = 'unknown';

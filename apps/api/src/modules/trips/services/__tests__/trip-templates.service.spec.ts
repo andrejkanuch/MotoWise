@@ -1,6 +1,8 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RevalidationService } from '../../../../common/revalidation/revalidation.service';
+import { RIDE_ALREADY_SHARED_MESSAGE } from '../../errors/trip-db.errors';
 import { TripTemplatesService } from '../trip-templates.service';
 
 /**
@@ -134,5 +136,81 @@ describe('TripTemplatesService.listTemplates', () => {
     await service.listTemplates({ country: 'jp' }, 10);
 
     expect(queryStub.stub.ilike).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * publishAsTemplate on a trip whose source ride already has a template (it was
+ * unpublished, the ride re-shared, then this one republished) loses to 00192's
+ * one-template-per-ride index.
+ */
+describe('TripTemplatesService.publishAsTemplate', () => {
+  type Result = { data: unknown; error: unknown };
+
+  /** One stub per `.from()` call, each resolving its own queued result. */
+  const buildService = (results: Result[]) => {
+    let next = 0;
+    const from = vi.fn(() => {
+      const result = results[Math.min(next++, results.length - 1)] as Result;
+      const stub: Record<string, unknown> = {};
+      for (const method of ['select', 'eq', 'order', 'update']) stub[method] = vi.fn(() => stub);
+      stub.single = vi.fn(() => Promise.resolve(result));
+      // biome-ignore lint/suspicious/noThenProperty: mocking PostgREST's thenable builder
+      stub.then = (resolve: (value: Result) => unknown) => Promise.resolve(result).then(resolve);
+      return stub;
+    });
+    const service = new TripTemplatesService(
+      { from } as unknown as SupabaseClient,
+      {} as unknown as SupabaseClient,
+      { revalidate: vi.fn() } as unknown as RevalidationService,
+    );
+    // biome-ignore lint/suspicious/noExplicitAny: test access to private logger
+    vi.spyOn((service as any).logger, 'error').mockImplementation(() => undefined);
+    return service;
+  };
+
+  const ownedDraft = {
+    data: {
+      id: 'trip-1',
+      title: 'Evening loop',
+      description: 'Shared from a ride',
+      organiser_user_id: 'user-1',
+      country_code: 'SK',
+      is_template: false,
+    },
+    error: null,
+  };
+  const twoWaypoints = {
+    data: [
+      { id: 'w1', sort_order: 0, day_index: 0, type: 'start', name: 'A', lat: 48.1, lng: 17.1 },
+      { id: 'w2', sort_order: 1, day_index: 0, type: 'end', name: 'B', lat: 48.2, lng: 17.2 },
+    ],
+    error: null,
+  };
+  const uniqueViolation = (index: string) => ({
+    data: null,
+    error: {
+      code: '23505',
+      message: `duplicate key value violates unique constraint "${index}"`,
+    } as PostgrestError,
+  });
+
+  const publish = (update: Result) =>
+    buildService([ownedDraft, twoWaypoints, update])
+      .publishAsTemplate('user-1', 'trip-1')
+      .then(() => null)
+      .catch((e: unknown) => e);
+
+  it('answers "already shared" when the ride already has a template', async () => {
+    const thrown = await publish(uniqueViolation('idx_trips_one_template_per_source_ride'));
+
+    expect(thrown).toBeInstanceOf(BadRequestException);
+    expect((thrown as Error).message).toBe(RIDE_ALREADY_SHARED_MESSAGE);
+  });
+
+  it('keeps a slug clash a generic publish failure', async () => {
+    const thrown = await publish(uniqueViolation('idx_trips_template_slug'));
+
+    expect(thrown).toBeInstanceOf(InternalServerErrorException);
   });
 });
