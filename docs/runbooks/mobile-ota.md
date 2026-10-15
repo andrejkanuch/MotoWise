@@ -61,6 +61,21 @@ Every `EXPO_PUBLIC_*` variable the app reads must exist in the EAS `production`
 environment, or the bundle ships without it. `apps/mobile/.env.example` lists the keys.
 Secret-visibility variables are not readable during an update.
 
+Then upload this update's source maps to Sentry, from the same checkout and before
+anything deletes `dist`:
+
+```bash
+cd apps/mobile && SENTRY_AUTH_TOKEN=<token> SENTRY_ORG=lominic SENTRY_PROJECT=moto-vault-react-native \
+  npx sentry-expo-upload-sourcemaps dist
+```
+
+Skip it and Sentry symbolicates the update's stack frames against the wrong bundle. It
+cannot be done later: on 2026-10-15 a re-export of the same commit (`59a4ce64`, update
+group `848c0f00`) gave different bundle hashes from the published ones, so that update's
+maps were lost. The workflow runs this step itself when the `SENTRY_AUTH_TOKEN`
+repository secret is set. Command from Sentry's "Uploading source maps for EAS Update"
+guide, read 2026-10-15.
+
 ## Why not `.env.production`
 
 The root `CLAUDE.md` used to say to publish with

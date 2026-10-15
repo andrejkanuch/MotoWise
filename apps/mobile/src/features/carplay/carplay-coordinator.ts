@@ -52,6 +52,7 @@ import {
   startRideSession,
 } from '../ride/ride-controller';
 import { type BikeStatusInput, buildBikeError, buildBikeStatus } from './carplay-bike-status';
+import { startCarPlaySessionBridge } from './carplay-session-bridge';
 import {
   buildPanelItems,
   CARPLAY_ACTION,
@@ -486,6 +487,9 @@ function onConnect(): void {
   // Synchronous, store-only (MMKV-hydrated): the panel is up the moment the scene
   // connects — no auth, network or phone UI in the way.
   try {
+    // A CarPlay-only launch never mounts the root layout, the only other writer of
+    // the auth session; without it the ride sync queue delivers nothing.
+    startCarPlaySessionBridge(refreshCarPlayHeadsUpData);
     const snap = currentSnapshot();
     clearInformation(); // ensure the next render builds a fresh root template
     renderInformation(panelModel(snap)); // projection, not start

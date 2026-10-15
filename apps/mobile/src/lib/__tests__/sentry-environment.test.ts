@@ -4,7 +4,15 @@ import { resolveSentryEnvironment, SENTRY_ENVIRONMENT } from '../sentry-environm
 
 describe('resolveSentryEnvironment', () => {
   it('is production when the variable is unset', () => {
-    expect(resolveSentryEnvironment(undefined)).toBe(SENTRY_ENVIRONMENT.PRODUCTION);
+    // Called with no argument so the default reads the environment, which this
+    // test controls rather than inheriting whatever the shell running Jest set.
+    const saved = process.env.EXPO_PUBLIC_SENTRY_ENVIRONMENT;
+    delete process.env.EXPO_PUBLIC_SENTRY_ENVIRONMENT;
+    try {
+      expect(resolveSentryEnvironment()).toBe(SENTRY_ENVIRONMENT.PRODUCTION);
+    } finally {
+      if (saved !== undefined) process.env.EXPO_PUBLIC_SENTRY_ENVIRONMENT = saved;
+    }
     expect(resolveSentryEnvironment('')).toBe(SENTRY_ENVIRONMENT.PRODUCTION);
   });
 

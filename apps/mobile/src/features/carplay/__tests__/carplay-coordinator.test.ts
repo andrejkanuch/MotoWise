@@ -55,6 +55,7 @@ jest.mock('../../ride/ride-controller', () => ({
 // Coordinator now routes the phone to the ride-summary on Stop, and logs nav
 // failures — mock the imperative router + analytics to avoid the native chains.
 jest.mock('expo-router', () => ({ router: { replace: jest.fn() } }));
+jest.mock('../carplay-session-bridge', () => ({ startCarPlaySessionBridge: jest.fn() }));
 jest.mock('@/lib/analytics', () => ({
   captureException: jest.fn(),
   addBreadcrumb: jest.fn(),
@@ -120,6 +121,7 @@ import {
   refreshCarPlayHeadsUpData,
   startCarPlayCoordinator,
 } from '../carplay-coordinator';
+import { startCarPlaySessionBridge } from '../carplay-session-bridge';
 
 const THROTTLE_MS = 10_000; // mirror of the coordinator's internal throttle window
 const fireConnect = () => (carplay.addConnectListener as jest.Mock).mock.calls[0][0]();
@@ -478,6 +480,12 @@ describe('carplay-coordinator', () => {
     expect(rideController.endRideSession).not.toHaveBeenCalled();
 
     jest.useRealTimers();
+  });
+
+  it('starts the session bridge on connect so a CarPlay-only ride can sync', () => {
+    startCarPlayCoordinator();
+    fireConnect();
+    expect(startCarPlaySessionBridge).toHaveBeenCalledWith(expect.any(Function));
   });
 
   it('retries the root build when a step before the paint throws', () => {
