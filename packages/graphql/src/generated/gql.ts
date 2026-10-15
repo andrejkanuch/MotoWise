@@ -180,7 +180,6 @@ type Documents = {
     "mutation CreateBlogKeyword($input: CreateBlogKeywordInput!) {\n  createBlogKeyword(input: $input) {\n    id\n    slug\n    name\n  }\n}": typeof types.CreateBlogKeywordDocument,
     "mutation CreateBlogPost($input: CreateBlogPostInput!) {\n  createBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}": typeof types.CreateBlogPostDocument,
     "mutation DeleteBlogPost($id: String!) {\n  deleteBlogPost(id: $id)\n}": typeof types.DeleteBlogPostDocument,
-    "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}": typeof types.JoinWaitlistDocument,
     "mutation PublishBlogPost($id: String!) {\n  publishBlogPost(id: $id) {\n    ...BlogPostFields\n  }\n}": typeof types.PublishBlogPostDocument,
     "mutation RevertBlogPostVersion($id: String!, $versionNum: Int!) {\n  revertBlogPostVersion(id: $id, versionNum: $versionNum) {\n    ...BlogPostFields\n  }\n}": typeof types.RevertBlogPostVersionDocument,
     "mutation ScheduleBlogPost($input: ScheduleBlogPostInput!) {\n  scheduleBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}": typeof types.ScheduleBlogPostDocument,
@@ -368,7 +367,6 @@ const documents: Documents = {
     "mutation CreateBlogKeyword($input: CreateBlogKeywordInput!) {\n  createBlogKeyword(input: $input) {\n    id\n    slug\n    name\n  }\n}": types.CreateBlogKeywordDocument,
     "mutation CreateBlogPost($input: CreateBlogPostInput!) {\n  createBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}": types.CreateBlogPostDocument,
     "mutation DeleteBlogPost($id: String!) {\n  deleteBlogPost(id: $id)\n}": types.DeleteBlogPostDocument,
-    "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}": types.JoinWaitlistDocument,
     "mutation PublishBlogPost($id: String!) {\n  publishBlogPost(id: $id) {\n    ...BlogPostFields\n  }\n}": types.PublishBlogPostDocument,
     "mutation RevertBlogPostVersion($id: String!, $versionNum: Int!) {\n  revertBlogPostVersion(id: $id, versionNum: $versionNum) {\n    ...BlogPostFields\n  }\n}": types.RevertBlogPostVersionDocument,
     "mutation ScheduleBlogPost($input: ScheduleBlogPostInput!) {\n  scheduleBlogPost(input: $input) {\n    ...BlogPostFields\n  }\n}": types.ScheduleBlogPostDocument,
@@ -1068,10 +1066,6 @@ export function graphql(source: "mutation CreateBlogPost($input: CreateBlogPostI
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation DeleteBlogPost($id: String!) {\n  deleteBlogPost(id: $id)\n}"): (typeof documents)["mutation DeleteBlogPost($id: String!) {\n  deleteBlogPost(id: $id)\n}"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}"): (typeof documents)["mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

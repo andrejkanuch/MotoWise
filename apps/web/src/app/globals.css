@@ -196,17 +196,6 @@
 .card-lift:hover .star-earned:nth-child(4) { transform: scale(1.15); transition-delay: 150ms; }
 .card-lift:hover .star-earned:nth-child(5) { transform: scale(1.15); transition-delay: 200ms; }
 
-/* ── Delight: Waitlist success — check draws in ── */
-@keyframes check-draw {
-  from { stroke-dashoffset: 24; }
-  to { stroke-dashoffset: 0; }
-}
-.check-animate {
-  stroke-dasharray: 24;
-  stroke-dashoffset: 24;
-  animation: check-draw 0.4s var(--ease-out-expo) 0.15s forwards;
-}
-
 /* Grain texture overlay — static PNG tile for performance (no mix-blend-mode) */
 .grain-overlay::after {
   content: "";
@@ -236,10 +225,6 @@
     transition: none !important;
     transform: none !important;
     animation: none !important;
-  }
-  .check-animate {
-    animation: none !important;
-    stroke-dashoffset: 0;
   }
   .cta-glow::after {
     animation: none !important;

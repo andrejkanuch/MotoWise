@@ -37,7 +37,6 @@ export const WebEvent = {
   // open_in_app_clicked). In PostHog, app_store_click is aliased to this so
   // historical clicks still roll up. See docs/SEO-Conversion-Plan-2026-07-15.md.
   STORE_CTA_CLICK: 'store_cta_click',
-  WAITLIST_SIGNUP: 'waitlist_signup',
 
   // Pricing / Checkout
   CHECKOUT_INITIATED: 'checkout_initiated',
@@ -230,10 +229,6 @@ function pingCtaCounter(payload: {
   } catch {
     // best-effort; attribution is never worth surfacing an error to the visitor
   }
-}
-
-export function trackWaitlistSignup() {
-  trackEvent(WebEvent.WAITLIST_SIGNUP);
 }
 
 export function trackBlogRead(slug: string) {

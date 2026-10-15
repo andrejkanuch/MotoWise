@@ -163,12 +163,6 @@
     "trustFree": "เริ่มต้นฟรี",
     "trustNoCard": "ไม่มีสแปม ตลอดไป",
     "disclaimer": "พร้อมใช้งานแล้วบน iOS และ Android",
-    "emailPlaceholder": "your@email.com",
-    "submitButton": "ดาวน์โหลดฟรี",
-    "submitting": "กำลังเปลี่ยนเส้นทาง...",
-    "successMessage": "ขอบคุณครับ! ดาวน์โหลด MotoVault จาก App Store หรือ Google Play",
-    "successTagline": "มอเตอร์ไซค์คุณสมควรได้ดีกว่าสเปรดชีต",
-    "errorMessage": "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง",
     "personality": "มอเตอร์ไซค์คุณสมควรได้ดีกว่าสเปรดชีต"
   },
   "Faq": {
