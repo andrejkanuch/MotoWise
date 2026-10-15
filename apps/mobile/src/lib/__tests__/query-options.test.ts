@@ -24,6 +24,7 @@ jest.mock('@motovault/graphql', () => ({
   AllMaintenanceTasksDocument: 'TASKS_DOC',
   ExpensesByMotorcycleDocument: 'EXPENSES_DOC',
   ExpenseDashboardDocument: 'EXPENSE_DASHBOARD_DOC',
+  GetRideWaypointsDocument: 'WAYPOINTS_DOC',
 }));
 
 import { hashKey } from '@tanstack/react-query';
@@ -32,6 +33,7 @@ import {
   expenseDashboardQueryOptions,
   expensesOptions,
   meOptions,
+  rideWaypointsOptions,
 } from '../query-options';
 
 function gqlError(code: string) {
@@ -111,6 +113,31 @@ describe('expensesOptions', () => {
 
   it('carries no option of its own — enabled, staleTime and meta stay at the call site', () => {
     expect(Object.keys(expensesOptions('bike-a', 2026)).sort()).toEqual(['queryFn', 'queryKey']);
+  });
+});
+
+describe('rideWaypointsOptions', () => {
+  // Ride detail asks for 300 points and the flyover for 400. Under one key per
+  // ride the second screen read the first screen's resolution.
+  it('keys the point count, so 300 and 400 points are two entries under the rides prefix', () => {
+    const detail = rideWaypointsOptions('ride-a', 300).queryKey;
+    const flyover = rideWaypointsOptions('ride-a', 400).queryKey;
+    expect(hashKey(detail)).not.toBe(hashKey(flyover));
+    expect(detail.slice(0, 1)).toEqual(['rides']);
+    expect(flyover.slice(0, 1)).toEqual(['rides']);
+  });
+
+  it('fetches the waypoints document with the ride id and the point count from the key', async () => {
+    mockFetcher.mockResolvedValue({ rideWaypoints: [] });
+    const options = rideWaypointsOptions('ride-a', 400);
+    await runQueryFn(options);
+    expect(mockFetcher).toHaveBeenCalledWith('WAYPOINTS_DOC', { rideId: 'ride-a', maxPoints: 400 });
+    expect(options.queryKey).toContain('ride-a');
+    expect(options.queryKey).toContain(400);
+  });
+
+  it('never goes stale on its own — a recorded route does not change', () => {
+    expect(rideWaypointsOptions('ride-a', 300).staleTime).toBe(Number.POSITIVE_INFINITY);
   });
 });
 

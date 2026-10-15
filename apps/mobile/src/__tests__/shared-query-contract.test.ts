@@ -34,7 +34,11 @@ jest.mock('../lib/analytics', () => ({ addBreadcrumb: jest.fn(), captureExceptio
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { hashKey } from '@tanstack/react-query';
-import { expenseDashboardQueryOptions, expensesOptions } from '../lib/query-options';
+import {
+  expenseDashboardQueryOptions,
+  expensesOptions,
+  rideWaypointsOptions,
+} from '../lib/query-options';
 
 const SRC_DIR = join(__dirname, '..');
 const SOURCE_EXTENSIONS = ['.ts', '.tsx'];
@@ -73,8 +77,6 @@ const SHARED_DOCUMENTS: readonly string[] = [
  * honesty check below so the list cannot go stale.
  */
 const KNOWN_UNCONVERTED: Readonly<Record<string, readonly string[]>> = {
-  'app/(modals)/ride-detail.tsx': ['GetRideWaypointsDocument'],
-  'app/(modals)/ride-flyover.tsx': ['GetRideWaypointsDocument'],
   'app/(modals)/scan-receipt.tsx': ['MyMotorcyclesDocument'],
   'app/(modals)/start-ride.tsx': ['MyMotorcyclesDocument'],
   'app/(modals)/whats-new.tsx': ['MyMotorcyclesDocument'],
@@ -212,6 +214,12 @@ const VARIABLE_FACTORIES: VariableCase[] = [
     build: (v) => expenseDashboardQueryOptions(v.motorcycleId as string),
     a: { motorcycleId: 'bike-a' },
     b: { motorcycleId: 'bike-b' },
+  },
+  {
+    name: 'rideWaypointsOptions',
+    build: (v) => rideWaypointsOptions(v.rideId as string, v.maxPoints as number),
+    a: { rideId: 'ride-a', maxPoints: 300 },
+    b: { rideId: 'ride-a', maxPoints: 400 },
   },
 ];
 

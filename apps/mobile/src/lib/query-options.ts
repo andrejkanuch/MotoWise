@@ -9,6 +9,7 @@ import {
   AllMaintenanceTasksDocument,
   ExpenseDashboardDocument,
   ExpensesByMotorcycleDocument,
+  GetRideWaypointsDocument,
   MeDocument,
   MyMotorcyclesDocument,
 } from '@motovault/graphql';
@@ -61,6 +62,19 @@ export const motorcyclesOptions = () =>
   queryOptions({
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+  });
+
+/**
+ * A ride's route points, simplified to `maxPoints`. The count is in the key:
+ * ride detail and the flyover ask for different resolutions, and under one key
+ * per ride the second screen drew the first screen's points. A recorded route
+ * never changes, so the entry never goes stale on its own.
+ */
+export const rideWaypointsOptions = (rideId: string, maxPoints: number) =>
+  queryOptions({
+    queryKey: queryKeys.rides.waypoints(rideId, maxPoints),
+    queryFn: () => gqlFetcher(GetRideWaypointsDocument, { rideId, maxPoints }),
+    staleTime: Number.POSITIVE_INFINITY,
   });
 
 /** The `year` variable of the expenses query that means every year. */

@@ -11,3 +11,8 @@ export const RECORD_LABELS: Record<string, string> = {
  *  rides `below_min_ride` so insights can filter them out. */
 export const MIN_RIDE_ELAPSED_S = 30;
 export const MIN_RIDE_DISTANCE_M = 50;
+
+/** Route points requested per screen — the detail map and the flyover camera
+ *  ask for different resolutions, and each is cached under its own count. */
+export const RIDE_DETAIL_WAYPOINT_POINTS = 300;
+export const RIDE_FLYOVER_WAYPOINT_POINTS = 400;

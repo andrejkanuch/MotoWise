@@ -113,7 +113,8 @@ export const queryKeys = {
     overview: ['rides', 'overview'] as const,
     list: (cursor?: string) => ['rides', 'list', cursor] as const,
     detail: (id: string) => ['rides', 'detail', id] as const,
-    waypoints: (id: string) => ['rides', 'waypoints', id] as const,
+    /** Route points at one resolution: detail and flyover ask for different counts. */
+    waypoints: (id: string, maxPoints: number) => ['rides', 'waypoints', id, maxPoints] as const,
     heatmap: ['rides', 'heatmap'] as const,
     byMotorcycle: (motorcycleId: string) => ['rides', 'motorcycle', motorcycleId] as const,
   },
