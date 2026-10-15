@@ -13,7 +13,9 @@ import { PG_ERROR } from '../../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import {
+  isRideAlreadySharedError,
   PG_CHECK_VIOLATION,
+  RIDE_ALREADY_SHARED_MESSAGE,
   throwTripCheckViolation,
   throwTripDbError,
 } from '../errors/trip-db.errors';
@@ -103,8 +105,6 @@ export interface ParticipantRow {
  * dates_pending=true to satisfy chk_trips_date_range (see 00111).
  */
 export const TRIP_DATE_SENTINEL = '1970-01-01';
-
-export const RIDE_ALREADY_SHARED_MESSAGE = 'This ride is already shared on Discover';
 
 export const TRIP_SELECT =
   'id, title, description, start_date, end_date, dates_pending, difficulty, max_riders, participant_count, status, visibility, cover_image_url, created_at, updated_at, organiser_user_id, users:organiser_user_id(id, display_name, public_username, avatar_url, is_public)';
@@ -931,7 +931,7 @@ export class TripLifecycleService {
 
     // A concurrent share of the same ride loses the race on
     // idx_trips_one_template_per_source_ride (00192): same answer as the check above.
-    if (insertError?.code === PG_ERROR.UNIQUE_VIOLATION) {
+    if (insertError && isRideAlreadySharedError(insertError)) {
       throw new BadRequestException(RIDE_ALREADY_SHARED_MESSAGE);
     }
     if (insertError) {

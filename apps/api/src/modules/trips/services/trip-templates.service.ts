@@ -14,6 +14,7 @@ import { RevalidationService } from '../../../common/revalidation/revalidation.s
 import { applySlugFilters, ilikeEquals } from '../../../common/slug-lookup';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
+import { isRideAlreadySharedError, RIDE_ALREADY_SHARED_MESSAGE } from '../errors/trip-db.errors';
 import type { Trip, TripConnection } from '../models/trip.model';
 import { tripTemplateRevalidation } from '../trip-revalidation';
 import {
@@ -294,6 +295,11 @@ export class TripTemplatesService {
       .select(TRIP_DETAIL_SELECT)
       .single();
 
+    // Unpublished, re-shared from the same ride, then republished: the ride
+    // already has its one template (00192).
+    if (updateError && isRideAlreadySharedError(updateError)) {
+      throw new BadRequestException(RIDE_ALREADY_SHARED_MESSAGE);
+    }
     if (updateError) {
       this.logger.error(`publishAsTemplate failed: ${updateError.message} (${updateError.code})`);
       throw new InternalServerErrorException('Failed to publish template');
