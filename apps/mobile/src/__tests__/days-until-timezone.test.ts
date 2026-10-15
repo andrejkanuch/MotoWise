@@ -14,6 +14,10 @@ import { execFile } from 'node:child_process';
 import path from 'node:path';
 import { MaintenancePriority, MaintenanceTaskStatus } from '@motovault/graphql';
 import { countGarageBadge } from '@/components/garage/garage-badge-count';
+import {
+  getPreFlightBikeStatus,
+  PRE_FLIGHT_BIKE_STATUS,
+} from '@/components/ride/pre-flight-bike-status';
 import { computeHealthScore, getRelativeDueDate } from '@/lib/health-score';
 import { pickWidgetNextService } from '@/lib/widget-next-service';
 import { daysUntil } from '@/utils/days-until';
@@ -78,6 +82,43 @@ describe(`calendar days until a date (${childZone ?? 'machine zone'})`, () => {
       expect(widget(DUE.TOMORROW)).toMatchObject({ daysUntil: 1, isOverdue: false });
       // A task overdue by one day never reads "In 0 days".
       expect(widget(DUE.YESTERDAY)).toMatchObject({ daysUntil: -1, isOverdue: true });
+    });
+
+    it('checklist: due today is "due in 0d", tomorrow "due in 1d", yesterday overdue', () => {
+      const checklist = (dueDate: string) =>
+        getPreFlightBikeStatus(
+          'bike-1',
+          [{ title: 'Chain', dueDate, status: MaintenanceTaskStatus.Pending }],
+          now,
+        );
+      expect(checklist(DUE.TODAY)).toEqual({
+        kind: PRE_FLIGHT_BIKE_STATUS.DUE_IN,
+        level: 'warn',
+        task: 'Chain',
+        days: 0,
+      });
+      expect(checklist(DUE.TOMORROW)).toEqual({
+        kind: PRE_FLIGHT_BIKE_STATUS.DUE_IN,
+        level: 'warn',
+        task: 'Chain',
+        days: 1,
+      });
+      expect(checklist(DUE.YESTERDAY)).toEqual({
+        kind: PRE_FLIGHT_BIKE_STATUS.OVERDUE,
+        level: 'warn',
+        task: 'Chain',
+      });
+    });
+
+    it('checklist: due in exactly 7 calendar days is a warning, in 8 days it is ok', () => {
+      const checklist = (dueDate: string) =>
+        getPreFlightBikeStatus(
+          'bike-1',
+          [{ title: 'Valves', dueDate, status: MaintenanceTaskStatus.Pending }],
+          now,
+        );
+      expect(checklist('2026-10-09')).toMatchObject({ level: 'warn', days: 7 });
+      expect(checklist('2026-10-10')).toMatchObject({ level: 'ok', days: 8 });
     });
 
     // Sites that read the clock themselves run with it set to `now`.
