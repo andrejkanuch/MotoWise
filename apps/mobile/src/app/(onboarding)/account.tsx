@@ -240,8 +240,8 @@ export default function AccountScreen() {
           codeStep
             ? undefined
             : isPro
-              ? t('onboarding.obAccountTitleProFull' as never)
-              : t('onboarding.obAccountTitleFreeFull' as never)
+              ? t('onboarding.obAccountTitleProFull')
+              : t('onboarding.obAccountTitleFreeFull')
         }
         subtitle={
           codeStep

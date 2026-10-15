@@ -487,14 +487,11 @@ export default function PersonalizingScreen() {
         title={t('onboarding.personalizingDoneHeadline')}
         subtitle={
           bikeLabel
-            ? (t(
-                'onboarding.personalizingDoneSubWithBike' as never,
-                { bikeLabel } as never,
-              ) as unknown as string)
-            : t('onboarding.personalizingDoneSub' as never)
+            ? t('onboarding.personalizingDoneSubWithBike', { bikeLabel })
+            : t('onboarding.personalizingDoneSub')
         }
         primary={{
-          label: t('onboarding.personalizingDoneCta' as never),
+          label: t('onboarding.personalizingDoneCta'),
           onPress: handleOpenGarage,
           // Disabled while the paywall loads, so the tap visibly registered.
           disabled: garagePaywallPending,
@@ -534,14 +531,7 @@ export default function PersonalizingScreen() {
     <OnboardingShell
       screen={OB_SCREEN.PERSONALIZING}
       title={t('onboarding.v2PersonalizingHeadline')}
-      subtitle={
-        bikeLabel
-          ? (t(
-              'onboarding.v2PersonalizingSubtitle' as never,
-              { bikeLabel } as never,
-            ) as unknown as string)
-          : undefined
-      }
+      subtitle={bikeLabel ? t('onboarding.v2PersonalizingSubtitle', { bikeLabel }) : undefined}
       primary={
         canRetry
           ? {

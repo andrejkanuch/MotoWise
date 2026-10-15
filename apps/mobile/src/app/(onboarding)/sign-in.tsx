@@ -146,7 +146,7 @@ export default function OnboardingSignInScreen() {
       <OnboardingShell
         onBack={codeStep ? backFromCodeStep : () => router.back()}
         // EmailCodeStep has its own header; the screen's heading steps aside.
-        title={codeStep ? undefined : t('onboarding.obSignInTitle' as never)}
+        title={codeStep ? undefined : t('onboarding.obSignInTitle')}
         subtitle={codeStep ? undefined : t('onboarding.obSignInSubtitle')}
         primary={
           codeStep
@@ -157,7 +157,7 @@ export default function OnboardingSignInScreen() {
           codeStep
             ? undefined
             : {
-                label: `${t('onboarding.obSignInNewHere' as never)} ${t('onboarding.obSignInGetStarted' as never)}`,
+                label: `${t('onboarding.obSignInNewHere')} ${t('onboarding.obSignInGetStarted')}`,
                 onPress: goToGetStarted,
               }
         }
@@ -213,7 +213,7 @@ export default function OnboardingSignInScreen() {
                 }}
               >
                 <Text style={[type.subhead, { color: oc.error }]}>
-                  {t('onboarding.obSignInNotFound' as never)}
+                  {t('onboarding.obSignInNotFound')}
                 </Text>
                 <Pressable
                   onPress={goToGetStarted}
@@ -222,7 +222,7 @@ export default function OnboardingSignInScreen() {
                   style={{ minHeight: 44, justifyContent: 'center' }}
                 >
                   <Text style={[type.subhead, SYSTEM_WEIGHT.semibold, { color: oc.warm2 }]}>
-                    {t('onboarding.obSignInCreateOne' as never)}
+                    {t('onboarding.obSignInCreateOne')}
                   </Text>
                 </Pressable>
               </View>
@@ -231,7 +231,7 @@ export default function OnboardingSignInScreen() {
         )}
       </OnboardingShell>
 
-      {busy ? <AuthBusyOverlay label={t('onboarding.obSignInSigningIn' as never)} /> : null}
+      {busy ? <AuthBusyOverlay label={t('onboarding.obSignInSigningIn')} /> : null}
     </View>
   );
 }
