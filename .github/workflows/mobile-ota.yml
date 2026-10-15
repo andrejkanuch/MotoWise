@@ -9,6 +9,9 @@ name: Mobile OTA Update
 #   - Secret EXPO_TOKEN: an Expo access token (Expo dashboard → Account →
 #     Access Tokens) with permission to publish updates for project
 #     359ae282-329d-455d-b9f3-64919afad0b4 (owner: andykeny).
+#   - Optional secret SENTRY_AUTH_TOKEN: a Sentry auth token that can upload
+#     source maps to lominic/moto-vault-react-native. Without it the update
+#     still publishes, but its stack traces will not symbolicate in Sentry.
 #
 # Production EXPO_PUBLIC_* config is pulled from EAS-hosted environment
 # variables via `--environment production` (Expo dashboard → project →
@@ -73,9 +76,14 @@ jobs:
       # Without them Sentry symbolicates an OTA's stack frames against the wrong
       # bundle (MOTO-VAULT-REACT-NATIVE-3V pointed at an unrelated function for this
       # reason). The bundle cannot be rebuilt byte-identically later, so this is the
-      # only chance to upload them. Needs the SENTRY_AUTH_TOKEN repository secret;
-      # without it the publish still stands and this step only warns.
+      # only chance to upload them. Needs the SENTRY_AUTH_TOKEN repository secret.
+      # It must never fail the run: the update is already live by now, and a red
+      # run invites "Re-run failed jobs", which would publish the commit again.
+      # `pnpm exec`, not `npx`: an unscoped package of the same name exists on the
+      # public registry, and npx would fetch and run it (with the token) if the
+      # local bin did not resolve.
       - name: Upload source maps to Sentry
+        continue-on-error: true
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: lominic
@@ -85,4 +93,5 @@ jobs:
             echo "::warning::SENTRY_AUTH_TOKEN secret is not set; this update's source maps were not uploaded."
             exit 0
           fi
-          npx sentry-expo-upload-sourcemaps dist
+          pnpm exec sentry-expo-upload-sourcemaps dist \
+            || echo "::warning::Sentry source map upload failed; the update is published but its stack traces will not symbolicate."

@@ -137,6 +137,7 @@ const GUARD_SOURCE = {
   bikeListAppear: 'carplay-coordinator.bikeListAppear',
   bikeListDismissed: 'carplay-coordinator.bikeListDismissed',
   ridePanelReappeared: 'carplay-coordinator.ridePanelReappeared',
+  sessionBridge: 'carplay-coordinator.sessionBridge',
 } as const;
 
 /**
@@ -486,10 +487,11 @@ function onConnect(): void {
   bikeVisible = false;
   // Synchronous, store-only (MMKV-hydrated): the panel is up the moment the scene
   // connects — no auth, network or phone UI in the way.
+  // A CarPlay-only launch never mounts the root layout, the only other writer of
+  // the auth session; without it the ride sync queue delivers nothing. Its own
+  // guard, ahead of the panel: sync must not depend on the paint, nor the paint on it.
+  guarded(GUARD_SOURCE.sessionBridge, () => startCarPlaySessionBridge(refreshCarPlayHeadsUpData));
   try {
-    // A CarPlay-only launch never mounts the root layout, the only other writer of
-    // the auth session; without it the ride sync queue delivers nothing.
-    startCarPlaySessionBridge(refreshCarPlayHeadsUpData);
     const snap = currentSnapshot();
     clearInformation(); // ensure the next render builds a fresh root template
     renderInformation(panelModel(snap)); // projection, not start

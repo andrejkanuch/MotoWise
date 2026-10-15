@@ -85,6 +85,32 @@ describe('CarPlay session bridge', () => {
     expect(drainQueue).toHaveBeenCalledTimes(1);
   });
 
+  it('switches accounts: the new rider is in the store before anything drains', () => {
+    mockAuthState.session = session('rider-a', 'token-a');
+    startCarPlaySessionBridge(jest.fn());
+    (drainQueue as jest.Mock).mockImplementationOnce(() => {
+      // The ownership guard reads the store at drain time.
+      expect(mockAuthState.session?.user.id).toBe('rider-b');
+      return Promise.resolve();
+    });
+
+    emit('SIGNED_OUT', null);
+    expect(drainQueue).not.toHaveBeenCalled();
+    emit('SIGNED_IN', session('rider-b', 'token-b'));
+
+    expect(mockAuthState.session).toEqual(session('rider-b', 'token-b'));
+    expect(drainQueue).toHaveBeenCalledTimes(1);
+  });
+
+  it('replaces a different rider without a sign-out in between', () => {
+    mockAuthState.session = session('rider-a', 'token-a');
+    startCarPlaySessionBridge(jest.fn());
+
+    emit('SIGNED_IN', session('rider-b', 'token-a'));
+
+    expect(mockAuthState.setSession).toHaveBeenCalledWith(session('rider-b', 'token-a'));
+  });
+
   it('mirrors a sign-out without draining', () => {
     mockAuthState.session = session('rider-1', 'token-1');
     const onSession = jest.fn();

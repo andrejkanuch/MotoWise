@@ -27,7 +27,8 @@ another), the EAS Update branch (default `production`) and the message. Replace 
 message: its default in the workflow file is left over from an earlier fix. The
 workflow (`.github/workflows/mobile-ota.yml`) installs with a frozen lockfile and runs
 `eas-cli update --branch … --message … --environment production --non-interactive` from
-`apps/mobile`. It needs the `EXPO_TOKEN` repository secret.
+`apps/mobile`. It needs the `EXPO_TOKEN` repository secret. A `SENTRY_AUTH_TOKEN` secret, if set,
+lets it upload the update's source maps to Sentry afterwards.
 
 **From a machine.** Only on the owner's go-ahead, and only from a clean checkout of
 `main`:
@@ -66,7 +67,7 @@ anything deletes `dist`:
 
 ```bash
 cd apps/mobile && SENTRY_AUTH_TOKEN=<token> SENTRY_ORG=lominic SENTRY_PROJECT=moto-vault-react-native \
-  npx sentry-expo-upload-sourcemaps dist
+  pnpm exec sentry-expo-upload-sourcemaps dist
 ```
 
 Skip it and Sentry symbolicates the update's stack frames against the wrong bundle. It
@@ -74,7 +75,10 @@ cannot be done later: on 2026-10-15 a re-export of the same commit (`59a4ce64`, 
 group `848c0f00`) gave different bundle hashes from the published ones, so that update's
 maps were lost. The workflow runs this step itself when the `SENTRY_AUTH_TOKEN`
 repository secret is set. Command from Sentry's "Uploading source maps for EAS Update"
-guide, read 2026-10-15.
+guide, read 2026-10-15. Use `pnpm exec`, never `npx`: an unscoped package named
+`sentry-expo-upload-sourcemaps` on the public registry is published by a third party,
+and `npx` fetches and runs it when the local bin does not resolve (from `apps/mobile` it
+does not; the bin is in the workspace root).
 
 ## Why not `.env.production`
 

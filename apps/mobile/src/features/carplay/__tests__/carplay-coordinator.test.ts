@@ -488,6 +488,19 @@ describe('carplay-coordinator', () => {
     expect(startCarPlaySessionBridge).toHaveBeenCalledWith(expect.any(Function));
   });
 
+  it('still paints the panel when the session bridge throws', () => {
+    (startCarPlaySessionBridge as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('bridge failed');
+    });
+    startCarPlayCoordinator();
+    expect(fireConnect).not.toThrow();
+    expect(carplay.renderInformation).toHaveBeenCalledTimes(1);
+    expect(captureException).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'bridge failed' }),
+      expect.objectContaining({ source: 'carplay-coordinator.sessionBridge' }),
+    );
+  });
+
   it('retries the root build when a step before the paint throws', () => {
     (carplay.clearInformation as jest.Mock).mockImplementationOnce(() => {
       throw new Error('clear failed');
