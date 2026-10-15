@@ -104,6 +104,8 @@ export interface ParticipantRow {
  */
 export const TRIP_DATE_SENTINEL = '1970-01-01';
 
+export const RIDE_ALREADY_SHARED_MESSAGE = 'This ride is already shared on Discover';
+
 export const TRIP_SELECT =
   'id, title, description, start_date, end_date, dates_pending, difficulty, max_riders, participant_count, status, visibility, cover_image_url, created_at, updated_at, organiser_user_id, users:organiser_user_id(id, display_name, public_username, avatar_url, is_public)';
 
@@ -887,14 +889,16 @@ export class TripLifecycleService {
       .maybeSingle();
 
     if (existingError) {
-      this.logger.error(
-        `shareRideAsTrip duplicate check failed: ${existingError.message} (${existingError.code})`,
+      throwTripDbError(
+        this.logger,
+        existingError,
+        'shareRideAsTrip duplicate check',
+        'Failed to check existing shared ride',
       );
-      throw new InternalServerErrorException('Failed to check existing shared ride');
     }
 
     if (existing) {
-      throw new BadRequestException('This ride is already shared on Discover');
+      throw new BadRequestException(RIDE_ALREADY_SHARED_MESSAGE);
     }
 
     // 3. Build the trip title
@@ -925,8 +929,15 @@ export class TripLifecycleService {
       .select(TRIP_DETAIL_SELECT)
       .single();
 
-    if (insertError || !tripData) {
-      this.logger.error(`shareRideAsTrip insert failed: ${insertError?.message}`);
+    // A concurrent share of the same ride loses the race on
+    // idx_trips_one_template_per_source_ride (00192): same answer as the check above.
+    if (insertError?.code === PG_ERROR.UNIQUE_VIOLATION) {
+      throw new BadRequestException(RIDE_ALREADY_SHARED_MESSAGE);
+    }
+    if (insertError) {
+      throwTripDbError(this.logger, insertError, 'shareRideAsTrip insert', 'Failed to share ride');
+    }
+    if (!tripData) {
       throw new InternalServerErrorException('Failed to share ride as trip');
     }
 
