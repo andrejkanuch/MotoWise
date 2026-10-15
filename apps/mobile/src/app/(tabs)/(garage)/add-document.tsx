@@ -36,8 +36,8 @@ import {
   withUploadTimeout,
 } from '@/lib/document-upload';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { invalidateDocuments } from '@/lib/invalidate';
 import { scheduleDocumentExpiryReminder } from '@/lib/notifications';
-import { queryKeys } from '@/lib/query-keys';
 import { documentCategoriesOptions } from '@/lib/query-options';
 import { useAuthStore } from '@/stores/auth.store';
 import { useEditorialTheme } from '@/theme/editorial';
@@ -189,8 +189,7 @@ export default function AddDocumentScreen() {
           bikeName ?? '',
         ).catch(() => {});
       }
-      queryClient.invalidateQueries({ queryKey: queryKeys.documents.byMotorcycle(motorcycleId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.documents.expiring });
+      invalidateDocuments(queryClient, motorcycleId);
       router.back();
     },
     onError: () => {

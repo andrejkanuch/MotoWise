@@ -32,6 +32,7 @@ import { AnalyticsEvent, captureException, setUserPropertiesOnce } from '../../l
 import { createGaragePaywallHandoff } from '../../lib/garage-paywall-handoff';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { uploadBikePhoto } from '../../lib/image-upload';
+import { invalidateUser } from '../../lib/invalidate';
 import { detectCurrency } from '../../lib/locale-detection';
 import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
@@ -42,7 +43,6 @@ import {
   resolveOnboardingPaywallPlacement,
 } from '../../lib/onboarding-paywall';
 import { ONBOARDING_PAYWALL_SURFACE } from '../../lib/paywall-surfaces';
-import { queryKeys } from '../../lib/query-keys';
 import { setSelfReportedSource } from '../../lib/subscription';
 import { markWhatsNewSeenForNewRider } from '../../lib/whats-new';
 import { useAuthStore } from '../../stores/auth.store';
@@ -140,8 +140,7 @@ export default function PersonalizingScreen() {
     mutationFn: (input: CompleteOnboardingInput) =>
       gqlFetcher(CompleteOnboardingDocument, { input }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
-      queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+      invalidateUser(queryClient, { withBikes: true });
     },
   });
 
@@ -208,10 +207,9 @@ export default function PersonalizingScreen() {
           await gqlFetcher(UpdateUserDocument, {
             input: { measurementSystem: onboardingSystem },
           });
-          queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
           // The 00180 sync trigger just rewrote the new bike's distance_unit; the
           // bike was cached (by completeOnboarding's refetch) in the old unit.
-          queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+          invalidateUser(queryClient, { withBikes: true });
         } catch (err) {
           logger.warn('[Personalizing] measurement_system update skipped:', err);
         }

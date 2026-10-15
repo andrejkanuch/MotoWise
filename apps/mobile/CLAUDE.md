@@ -24,6 +24,7 @@ Do not move an existing domain.
 | Screen body | The domain home, as `<name>-screen.tsx` | |
 | Hook | The domain home if one domain uses it, `src/hooks/` if two or more do | One hook per `use-*` file |
 | Query | Keys always from `src/lib/query-keys.ts`. A document fetched from two or more files gets a factory in `src/lib/query-options.ts` | Every variable that changes the payload is in the key |
+| Mutation | An invalidation two or more mutations repeat goes through a helper in `src/lib/invalidate.ts` | Its test pins the exact keys |
 | Zustand store (local state) | `src/stores/<name>.store.ts` | |
 | Service (stateful, I/O, not React) | The domain home, or `src/lib/` if no single domain owns it | |
 | Pure helper | `src/utils/` if two or more domains use it, the domain home otherwise | `utils` imports nothing from `lib`, `stores`, `hooks`, `components`, `features` or `app` |

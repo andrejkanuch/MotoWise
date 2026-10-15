@@ -139,7 +139,6 @@ export const queryKeys = {
     list: (userId: string) => ['following', 'list', userId] as const,
   },
   groupRides: {
-    all: ['groupRides'] as const,
     detail: (id: string) => ['groupRides', 'detail', id] as const,
   },
   trips: {

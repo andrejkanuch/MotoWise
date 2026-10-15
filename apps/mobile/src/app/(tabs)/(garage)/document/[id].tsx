@@ -29,6 +29,7 @@ import {
 import { DocumentViewer } from '@/components/documents/document-viewer';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { invalidateDocuments } from '@/lib/invalidate';
 import { cancelDocumentNotifications, scheduleDocumentExpiryReminder } from '@/lib/notifications';
 import { queryKeys } from '@/lib/query-keys';
 import { documentCategoriesOptions } from '@/lib/query-options';
@@ -87,10 +88,7 @@ export default function DocumentDetailScreen() {
   const [note, setNote] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.documents.byMotorcycle(motorcycleId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.documents.expiring });
-  };
+  const invalidate = () => invalidateDocuments(queryClient, motorcycleId);
 
   const beginEdit = () => {
     if (!doc) return;

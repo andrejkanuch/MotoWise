@@ -11,8 +11,8 @@ import { useMotorcycleDocuments } from '../../hooks/use-motorcycle-documents';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { type DocumentExpiryLevel, documentExpiryStatus } from '../../lib/document-expiry';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { invalidateDocuments } from '../../lib/invalidate';
 import { cancelDocumentNotifications } from '../../lib/notifications';
-import { queryKeys } from '../../lib/query-keys';
 import { QUERY_META } from '../../lib/query-meta';
 import { documentCategoriesOptions } from '../../lib/query-options';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
@@ -86,8 +86,7 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
       });
       triggerNotification(Haptics.NotificationFeedbackType.Success);
       cancelDocumentNotifications(id).catch(() => {});
-      queryClient.invalidateQueries({ queryKey: queryKeys.documents.byMotorcycle(motorcycleId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.documents.expiring });
+      invalidateDocuments(queryClient, motorcycleId);
     },
     onError: () => {
       Alert.alert(

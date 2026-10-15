@@ -33,3 +33,25 @@ export function invalidateTrips(queryClient: QueryClient, tripId?: string): Prom
   if (tripId === undefined) return Promise.resolve();
   return queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
 }
+
+/**
+ * After a document is added, edited or deleted: the bike's documents and the
+ * expiring-documents list behind the home reminders.
+ */
+export function invalidateDocuments(queryClient: QueryClient, motorcycleId: string): void {
+  void queryClient.invalidateQueries({ queryKey: queryKeys.documents.byMotorcycle(motorcycleId) });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.documents.expiring });
+}
+
+/**
+ * After the rider's profile changes: `user.me`, and the bike list too when the
+ * change rewrites every bike (a measurement-system update moves each bike's
+ * `distance_unit` server-side, and onboarding completion creates the first bike).
+ */
+export function invalidateUser(
+  queryClient: QueryClient,
+  { withBikes }: { withBikes: boolean },
+): void {
+  void queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
+  if (withBikes) void queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+}

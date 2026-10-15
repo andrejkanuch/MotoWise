@@ -2,7 +2,12 @@
 // they were folded into it — pinned as the literal cache keys, so a drift in a
 // key builder or a dropped line fails here instead of leaving a list stale.
 import { QueryClient, QueryObserver } from '@tanstack/react-query';
-import { invalidateMaintenanceTasks, invalidateTrips } from '../invalidate';
+import {
+  invalidateDocuments,
+  invalidateMaintenanceTasks,
+  invalidateTrips,
+  invalidateUser,
+} from '../invalidate';
 
 function spyInvalidations(client: QueryClient) {
   const spy = jest.spyOn(client, 'invalidateQueries');
@@ -86,5 +91,33 @@ describe('invalidateTrips', () => {
 
     for (const key of listKeys) expect(client.getQueryState(key)?.isInvalidated).toBe(true);
     expect(client.getQueryState(editorKey)?.isInvalidated).toBe(false);
+  });
+});
+
+describe('invalidateDocuments', () => {
+  it('refreshes the documents of that bike and the expiring list, nothing else', () => {
+    const client = new QueryClient();
+    const invalidated = spyInvalidations(client);
+    invalidateDocuments(client, 'bike-1');
+    expect(invalidated()).toEqual([
+      ['documents', 'byMotorcycle', 'bike-1'],
+      ['documents', 'expiring'],
+    ]);
+  });
+});
+
+describe('invalidateUser', () => {
+  it('with bikes refreshes the user and the bike list, nothing else', () => {
+    const client = new QueryClient();
+    const invalidated = spyInvalidations(client);
+    invalidateUser(client, { withBikes: true });
+    expect(invalidated()).toEqual([['user', 'me'], ['motorcycles']]);
+  });
+
+  it('without bikes refreshes only the user', () => {
+    const client = new QueryClient();
+    const invalidated = spyInvalidations(client);
+    invalidateUser(client, { withBikes: false });
+    expect(invalidated()).toEqual([['user', 'me']]);
   });
 });
