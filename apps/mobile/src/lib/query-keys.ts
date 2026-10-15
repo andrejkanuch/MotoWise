@@ -3,8 +3,8 @@ export const queryKeys = {
     me: ['user', 'me'] as const,
   },
   motorcycles: {
+    /** The one bike-list entry; every screen reads and invalidates this key. */
     all: ['motorcycles'] as const,
-    lists: () => [...queryKeys.motorcycles.all, 'list'] as const,
   },
   diagnostics: {
     all: ['diagnostics'] as const,

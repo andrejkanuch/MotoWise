@@ -10,6 +10,7 @@ import {
   ExpenseDashboardDocument,
   ExpensesByMotorcycleDocument,
   MeDocument,
+  MyMotorcyclesDocument,
 } from '@motovault/graphql';
 import { queryOptions } from '@tanstack/react-query';
 import { getRequestSessionUserId, isAccountGoneError, signOutGoneAccount } from './account-gone';
@@ -49,6 +50,17 @@ export const maintenanceBadgeOptions = () =>
     queryKey: queryKeys.maintenanceTasks.allUser,
     queryFn: () => gqlFetcher(AllMaintenanceTasksDocument),
     meta: { showErrorAlert: false },
+  });
+
+/**
+ * The rider's bike list. Fetched by Home and Garage, persisted across launches,
+ * and read by two dozen screens, so it is nearly always a cache hit. Each site
+ * adds its own `staleTime`, `enabled`, `select` and `meta`.
+ */
+export const motorcyclesOptions = () =>
+  queryOptions({
+    queryKey: queryKeys.motorcycles.all,
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
 
 /** The `year` variable of the expenses query that means every year. */

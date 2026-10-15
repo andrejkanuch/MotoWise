@@ -51,7 +51,7 @@ export default function StartRideScreen() {
   const [showDisclosure, setShowDisclosure] = useState(false);
 
   const { data } = useQuery({
-    queryKey: queryKeys.motorcycles.lists(),
+    queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
 
