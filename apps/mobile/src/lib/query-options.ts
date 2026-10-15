@@ -5,7 +5,12 @@
  *
  * Keys still flow through the central registry in `query-keys.ts`.
  */
-import { AllMaintenanceTasksDocument, MeDocument } from '@motovault/graphql';
+import {
+  AllMaintenanceTasksDocument,
+  ExpenseDashboardDocument,
+  ExpensesByMotorcycleDocument,
+  MeDocument,
+} from '@motovault/graphql';
 import { queryOptions } from '@tanstack/react-query';
 import { getRequestSessionUserId, isAccountGoneError, signOutGoneAccount } from './account-gone';
 import { gqlFetcher } from './graphql-client';
@@ -44,4 +49,35 @@ export const maintenanceBadgeOptions = () =>
     queryKey: queryKeys.maintenanceTasks.allUser,
     queryFn: () => gqlFetcher(AllMaintenanceTasksDocument),
     meta: { showErrorAlert: false },
+  });
+
+/** The `year` variable of the expenses query that means every year. */
+export const EXPENSES_ALL_YEARS = 0;
+
+const EXPENSE_DASHBOARD_STALE_MS = 5 * 60 * 1000;
+
+/**
+ * One bike's expenses for one year (`EXPENSES_ALL_YEARS` for all of them). The
+ * year is part of the key because the screens ask for different years: with a
+ * bare per-bike key the dashboard (all years) and the health report (this year)
+ * read whichever payload arrived first. Each site adds its own `enabled`,
+ * `staleTime`, `placeholderData` and `meta`.
+ */
+export const expensesOptions = (motorcycleId: string, year: number) =>
+  queryOptions({
+    queryKey: queryKeys.expenses.byYear(motorcycleId, year),
+    queryFn: () => gqlFetcher(ExpensesByMotorcycleDocument, { motorcycleId, year }),
+  });
+
+/**
+ * The expense dashboard aggregate for one bike: key, fetcher and staleTime.
+ * Shared by the dashboard screen, the Get Started checklist's "first expense"
+ * signal and the widget sync, so all of them read one cache entry under one
+ * freshness rule.
+ */
+export const expenseDashboardQueryOptions = (motorcycleId: string) =>
+  queryOptions({
+    queryKey: queryKeys.expenses.dashboard(motorcycleId),
+    queryFn: () => gqlFetcher(ExpenseDashboardDocument, { motorcycleId }),
+    staleTime: EXPENSE_DASHBOARD_STALE_MS,
   });

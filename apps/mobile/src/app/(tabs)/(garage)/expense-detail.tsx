@@ -1,7 +1,6 @@
 import { palette, withAlpha } from '@motovault/design-system';
 import {
   ExpensePhotosDocument,
-  ExpensesByMotorcycleDocument,
   MaintenanceTasksByMotorcycleDocument,
   type MaintenanceTasksByMotorcycleQuery,
 } from '@motovault/graphql';
@@ -33,6 +32,7 @@ import { confirmDeleteExpenseAlert } from '@/lib/expense-delete';
 import { findExpenseInCache, flattenExpenses } from '@/lib/find-expense-in-cache';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
+import { EXPENSES_ALL_YEARS, expensesOptions } from '@/lib/query-options';
 import { useAuthStore } from '@/stores/auth.store';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { triggerImpact } from '@/utils/haptics';
@@ -69,8 +69,7 @@ export default function ExpenseDetailScreen() {
   // all-time fetch — never trust route params for amount/title (spoof/stale).
   const cachedHit = findExpenseInCache(queryClient, motorcycleId, expenseId);
   const expensesQuery = useQuery({
-    queryKey: [...queryKeys.expenses.byMotorcycle(motorcycleId), 0],
-    queryFn: () => gqlFetcher(ExpensesByMotorcycleDocument, { motorcycleId, year: 0 }),
+    ...expensesOptions(motorcycleId, EXPENSES_ALL_YEARS),
     enabled: !!motorcycleId && !!expenseId,
     // Render-only seed from any cached year entry (placeholderData is NOT written
     // to this all-time [..., 0] cache slot), so a year-specific hit can't

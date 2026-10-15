@@ -1,8 +1,4 @@
-import {
-  DocumentCategoriesDocument,
-  ExpensesByMotorcycleDocument,
-  MotorcycleRecallsDocument,
-} from '@motovault/graphql';
+import { DocumentCategoriesDocument, MotorcycleRecallsDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useCurrency } from '@/hooks/use-currency';
@@ -15,6 +11,7 @@ import type { TaskDue } from '@/lib/bike-hub/task-due';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
 import { QUERY_META } from '@/lib/query-meta';
+import { expensesOptions } from '@/lib/query-options';
 import { type HubNote, useNotes } from '../notes/use-notes';
 import type { BikeHubData, HubBike, HubTask } from '../shell/use-bike-hub-data';
 import { useToday } from '../shell/use-today';
@@ -101,15 +98,12 @@ export function useOverviewData(
   });
   const categoriesLoading = categoriesQuery.data === undefined && !categoriesQuery.isError;
   const categoriesError = categoriesQuery.isError && !categoriesQuery.data;
-  // Keyed with the year: the bare `byMotorcycle` key is shared with other variables.
   const currentYear = useQuery({
-    queryKey: [...queryKeys.expenses.byMotorcycle(id), year],
-    queryFn: () => gqlFetcher(ExpensesByMotorcycleDocument, { motorcycleId: id, year }),
+    ...expensesOptions(id, year),
     meta: OWN_ERROR_UI,
   });
   const previousYear = useQuery({
-    queryKey: [...queryKeys.expenses.byMotorcycle(id), year - 1],
-    queryFn: () => gqlFetcher(ExpensesByMotorcycleDocument, { motorcycleId: id, year: year - 1 }),
+    ...expensesOptions(id, year - 1),
     meta: OWN_ERROR_UI,
   });
   const notes = useNotes(id);

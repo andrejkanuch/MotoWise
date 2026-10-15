@@ -6,11 +6,11 @@ import {
 } from '@motovault/graphql';
 import { type QueryObserverResult, useQueries, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { expenseDashboardQueryOptions } from '../../hooks/use-expense-dashboard';
 import { type ChecklistSignals, isDataBackedItem } from '../../lib/checklist-signals';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { QUERY_META } from '../../lib/query-meta';
+import { expenseDashboardQueryOptions } from '../../lib/query-options';
 import { CHECKLIST_ITEM_ID } from '../../stores/checklist.store';
 
 const BIKES_STALE_MS = 5 * 60 * 1000;

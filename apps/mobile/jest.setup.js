@@ -34,3 +34,10 @@ timeoutManager.setTimeoutProvider({
   setInterval: (callback, delay) => unref(globalThis.setInterval(callback, delay)),
   clearInterval: (timer) => globalThis.clearInterval(timer),
 });
+
+// `lib/supabase` creates the client at import and throws without the
+// EXPO_PUBLIC_SUPABASE_* env, which no test sets. `lib/query-options` reaches it
+// through `account-gone`, so every component on a shared query factory would
+// otherwise fail to load. A bare stub: any call on it is still a clear failure,
+// and a test that exercises auth keeps its own `jest.mock('…/supabase', …)`.
+jest.mock('./src/lib/supabase', () => ({ supabase: { auth: {} } }));

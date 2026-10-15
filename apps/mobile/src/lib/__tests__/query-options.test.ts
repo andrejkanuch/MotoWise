@@ -1,5 +1,7 @@
 // The `me` query is where a deleted account is noticed: NOT_FOUND must end the
 // session (and still surface the error); every other failure must leave it alone.
+// The expense factories must keep the cache entries their call sites already
+// built by hand — the key arrays below are the literal arrays those sites wrote.
 
 const mockFetcher = jest.fn();
 const mockSignOutGone = jest.fn();
@@ -20,9 +22,17 @@ jest.mock('../analytics', () => ({ addBreadcrumb: jest.fn(), captureException: j
 jest.mock('@motovault/graphql', () => ({
   MeDocument: 'ME_DOC',
   AllMaintenanceTasksDocument: 'TASKS_DOC',
+  ExpensesByMotorcycleDocument: 'EXPENSES_DOC',
+  ExpenseDashboardDocument: 'EXPENSE_DASHBOARD_DOC',
 }));
 
-import { meOptions } from '../query-options';
+import { hashKey } from '@tanstack/react-query';
+import {
+  EXPENSES_ALL_YEARS,
+  expenseDashboardQueryOptions,
+  expensesOptions,
+  meOptions,
+} from '../query-options';
 
 function gqlError(code: string) {
   return Object.assign(new Error('graphql error'), {
@@ -72,5 +82,50 @@ describe('meOptions queryFn', () => {
     mockFetcher.mockRejectedValue(gqlError('NOT_FOUND'));
     await expect(runMe()).rejects.toBeTruthy();
     expect(mockSignOutGone).toHaveBeenCalledWith(null);
+  });
+});
+
+const runQueryFn = (options: { queryFn?: unknown }) =>
+  (options.queryFn as () => Promise<unknown>)();
+
+describe('expensesOptions', () => {
+  it('keys a year under the per-bike prefix, as the hub and expense detail already did inline', () => {
+    expect(hashKey(expensesOptions('bike-a', 2026).queryKey)).toBe(
+      hashKey(['expenses', 'byMotorcycle', 'bike-a', 2026]),
+    );
+    expect(hashKey(expensesOptions('bike-a', EXPENSES_ALL_YEARS).queryKey)).toBe(
+      hashKey(['expenses', 'byMotorcycle', 'bike-a', 0]),
+    );
+  });
+
+  it('fetches the expenses document with the bike and the year', async () => {
+    mockFetcher.mockResolvedValue({ expenses: { categories: [] } });
+    await expect(runQueryFn(expensesOptions('bike-a', 2026))).resolves.toEqual({
+      expenses: { categories: [] },
+    });
+    expect(mockFetcher).toHaveBeenCalledWith('EXPENSES_DOC', {
+      motorcycleId: 'bike-a',
+      year: 2026,
+    });
+  });
+
+  it('carries no option of its own — enabled, staleTime and meta stay at the call site', () => {
+    expect(Object.keys(expensesOptions('bike-a', 2026)).sort()).toEqual(['queryFn', 'queryKey']);
+  });
+});
+
+describe('expenseDashboardQueryOptions', () => {
+  it('keeps the key it had in hooks/use-expense-dashboard before the move', () => {
+    expect(hashKey(expenseDashboardQueryOptions('bike-a').queryKey)).toBe(
+      hashKey(['expenses', 'byMotorcycle', 'bike-a', 'dashboard']),
+    );
+  });
+
+  it('keeps its five-minute staleTime and fetches the dashboard for the bike', async () => {
+    const options = expenseDashboardQueryOptions('bike-a');
+    expect(options.staleTime).toBe(5 * 60 * 1000);
+    mockFetcher.mockResolvedValue({ expenseDashboard: { expenseCount: 1 } });
+    await runQueryFn(options);
+    expect(mockFetcher).toHaveBeenCalledWith('EXPENSE_DASHBOARD_DOC', { motorcycleId: 'bike-a' });
   });
 });

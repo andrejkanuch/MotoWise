@@ -46,7 +46,19 @@ export const queryKeys = {
     ) => ['oemSchedulesPreview', make, model ?? null, year ?? null, variant ?? null] as const,
   },
   expenses: {
+    /**
+     * Prefix of every expense entry for a bike — the per-year lists and the
+     * dashboard aggregate. Invalidate it after any expense write. Nothing is
+     * fetched under the bare prefix: a fetch there was read by every other
+     * year's observer as its own data.
+     */
     byMotorcycle: (motorcycleId: string) => ['expenses', 'byMotorcycle', motorcycleId] as const,
+    /** One year's expenses; `EXPENSES_ALL_YEARS` (query-options.ts) is every year. */
+    byYear: (motorcycleId: string, year: number) =>
+      [...queryKeys.expenses.byMotorcycle(motorcycleId), year] as const,
+    /** The dashboard aggregate (`expenseDashboard`) for a bike. */
+    dashboard: (motorcycleId: string) =>
+      [...queryKeys.expenses.byMotorcycle(motorcycleId), 'dashboard'] as const,
   },
   expensePhotos: {
     byExpense: (expenseId: string) => ['expense-photos', expenseId] as const,
