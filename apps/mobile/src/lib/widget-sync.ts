@@ -34,6 +34,7 @@ import { gqlFetcher } from './graphql-client';
 import { logger } from './logger';
 import { queryClient } from './query-client';
 import { queryKeys } from './query-keys';
+import { expenseDashboardQueryOptions } from './query-options';
 
 // ── In-flight guard + abort for logout race condition ────────────────────────
 
@@ -475,8 +476,9 @@ async function fetchExpenses(): Promise<ExpenseDashboardQuery['expenseDashboard'
   if (!bikes?.length) return null;
 
   const primaryBike = selectPrimaryBike(bikes);
-  const qk = queryKeys.expenses.byMotorcycle(primaryBike.id);
-  const cached = queryClient.getQueryData<ExpenseDashboardQuery>(qk);
+  // The dashboard screen's own entry; the bare per-bike key holds no fetch.
+  const qk = expenseDashboardQueryOptions(primaryBike.id).queryKey;
+  const cached = queryClient.getQueryData(qk);
   const state = queryClient.getQueryState(qk);
   if (cached && state && Date.now() - state.dataUpdatedAt < STALE_MS) {
     return cached.expenseDashboard;

@@ -67,51 +67,61 @@ const SHARED_DOCUMENTS: readonly string[] = [
 ];
 
 /**
- * Files that still fetch a shared document themselves. A file leaves this list
- * in the unit that converts it; a file that no longer fetches one fails the
+ * Files that still fetch a shared document themselves, with the documents each
+ * one fetches directly. An entry leaves this list in the unit that converts
+ * that site; an entry whose file no longer fetches that document fails the
  * honesty check below so the list cannot go stale.
  */
-const KNOWN_UNCONVERTED: readonly string[] = [
-  'app/(modals)/ride-detail.tsx',
-  'app/(modals)/ride-flyover.tsx',
-  'app/(modals)/scan-receipt.tsx',
-  'app/(modals)/start-ride.tsx',
-  'app/(modals)/whats-new.tsx',
-  'app/(tabs)/(diagnose)/[id].tsx',
-  'app/(tabs)/(diagnose)/index.tsx',
-  'app/(tabs)/(garage)/add-document.tsx',
-  'app/(tabs)/(garage)/bike-tasks.tsx',
-  'app/(tabs)/(garage)/complete-task.tsx',
-  'app/(tabs)/(garage)/document/[id].tsx',
-  'app/(tabs)/(garage)/edit-bike.tsx',
-  'app/(tabs)/(garage)/edit-maintenance-task.tsx',
-  'app/(tabs)/(garage)/expense-dashboard.tsx',
-  'app/(tabs)/(garage)/expense-detail.tsx',
-  'app/(tabs)/(garage)/health-report.tsx',
-  'app/(tabs)/(garage)/index.tsx',
-  'app/(tabs)/(garage)/manage-document-categories.tsx',
-  'app/(tabs)/(learn)/index.tsx',
-  'app/(tabs)/(profile)/heatmap.tsx',
-  'app/(tabs)/(profile)/rides.tsx',
-  'components/bike-hub/documents-section.tsx',
-  'components/bike-hub/expenses-section.tsx',
-  'components/bike-hub/notes/use-notes.ts',
-  'components/bike-hub/overview/use-overview-data.ts',
-  'components/bike-hub/shell/use-bike-hub-data.ts',
-  'components/bike-hub/shell/use-hub-bike.ts',
-  'components/diagnostic-flow/step-bike-selection.tsx',
-  'components/diagnostic-flow/step-review-submit.tsx',
-  'components/discover/bike-banner.tsx',
-  'components/home/use-checklist-signals.ts',
-  'components/home/use-home-data.ts',
-  'components/ride/pre-flight-checklist.tsx',
-  'features/carplay/use-carplay.ts',
-  'features/receipt-scan/review-card.tsx',
-  'hooks/use-analytics-super-properties.ts',
-  'hooks/use-primary-bike-fuel-data.ts',
-  'hooks/use-profile-data.ts',
-  'hooks/use-ride-heatmap-data.ts',
-];
+const KNOWN_UNCONVERTED: Readonly<Record<string, readonly string[]>> = {
+  'app/(modals)/ride-detail.tsx': ['GetRideWaypointsDocument'],
+  'app/(modals)/ride-flyover.tsx': ['GetRideWaypointsDocument'],
+  'app/(modals)/scan-receipt.tsx': ['MyMotorcyclesDocument'],
+  'app/(modals)/start-ride.tsx': ['MyMotorcyclesDocument'],
+  'app/(modals)/whats-new.tsx': ['MyMotorcyclesDocument'],
+  'app/(tabs)/(diagnose)/[id].tsx': ['MyMotorcyclesDocument'],
+  'app/(tabs)/(diagnose)/index.tsx': ['MyMotorcyclesDocument'],
+  'app/(tabs)/(garage)/add-document.tsx': ['DocumentCategoriesDocument'],
+  'app/(tabs)/(garage)/bike-tasks.tsx': [
+    'MyMotorcyclesDocument',
+    'MaintenanceTasksByMotorcycleDocument',
+  ],
+  'app/(tabs)/(garage)/complete-task.tsx': ['MaintenanceTasksByMotorcycleDocument'],
+  'app/(tabs)/(garage)/document/[id].tsx': ['DocumentCategoriesDocument'],
+  'app/(tabs)/(garage)/edit-bike.tsx': ['MyMotorcyclesDocument'],
+  'app/(tabs)/(garage)/edit-maintenance-task.tsx': ['MaintenanceTasksByMotorcycleDocument'],
+  'app/(tabs)/(garage)/expense-dashboard.tsx': ['MyMotorcyclesDocument'],
+  'app/(tabs)/(garage)/expense-detail.tsx': ['MaintenanceTasksByMotorcycleDocument'],
+  'app/(tabs)/(garage)/health-report.tsx': [
+    'MyMotorcyclesDocument',
+    'MaintenanceTasksByMotorcycleDocument',
+  ],
+  'app/(tabs)/(garage)/index.tsx': ['MyMotorcyclesDocument'],
+  'app/(tabs)/(garage)/manage-document-categories.tsx': ['DocumentCategoriesDocument'],
+  'app/(tabs)/(learn)/index.tsx': ['MyMotorcyclesDocument'],
+  'app/(tabs)/(profile)/heatmap.tsx': ['MyRidesForHeatmapDocument'],
+  'app/(tabs)/(profile)/rides.tsx': ['MyMotorcyclesDocument'],
+  'components/bike-hub/documents-section.tsx': ['DocumentCategoriesDocument'],
+  'components/bike-hub/expenses-section.tsx': ['MaintenanceTasksByMotorcycleDocument'],
+  'components/bike-hub/notes/use-notes.ts': ['MaintenanceTasksByMotorcycleDocument'],
+  'components/bike-hub/overview/use-overview-data.ts': ['DocumentCategoriesDocument'],
+  'components/bike-hub/shell/use-bike-hub-data.ts': [
+    'MyMotorcyclesDocument',
+    'MaintenanceTasksByMotorcycleDocument',
+  ],
+  'components/bike-hub/shell/use-hub-bike.ts': ['MyMotorcyclesDocument'],
+  'components/diagnostic-flow/step-bike-selection.tsx': ['MyMotorcyclesDocument'],
+  'components/diagnostic-flow/step-review-submit.tsx': ['MyMotorcyclesDocument'],
+  'components/discover/bike-banner.tsx': ['MyMotorcyclesDocument'],
+  'components/home/use-checklist-signals.ts': ['MyMotorcyclesDocument'],
+  'components/home/use-home-data.ts': ['MyMotorcyclesDocument'],
+  'components/ride/pre-flight-checklist.tsx': ['MaintenanceTasksByMotorcycleDocument'],
+  'features/carplay/use-carplay.ts': ['MyMotorcyclesDocument'],
+  'features/receipt-scan/review-card.tsx': ['MyMotorcyclesDocument'],
+  'hooks/use-analytics-super-properties.ts': ['MyMotorcyclesDocument'],
+  'hooks/use-primary-bike-fuel-data.ts': ['MyMotorcyclesDocument'],
+  'hooks/use-profile-data.ts': ['MyMotorcyclesDocument'],
+  'hooks/use-ride-heatmap-data.ts': ['MyRidesForHeatmapDocument'],
+};
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -140,7 +150,9 @@ function directFetchSites(): Map<string, string[]> {
 
 describe('shared documents are fetched through their factory', () => {
   const sites = directFetchSites();
-  const allowed = new Set([FACTORY_FILE, ...IMPERATIVE_SITES, ...KNOWN_UNCONVERTED]);
+  const allowedFiles = new Set([FACTORY_FILE, ...IMPERATIVE_SITES]);
+  const isKnown = (file: string, document: string) =>
+    KNOWN_UNCONVERTED[file]?.includes(document) ?? false;
 
   it('finds the factory file', () => {
     expect(sites.has(FACTORY_FILE)).toBe(true);
@@ -148,14 +160,19 @@ describe('shared documents are fetched through their factory', () => {
 
   it('no file outside the factory, the imperative sites and KNOWN_UNCONVERTED fetches one', () => {
     const offenders = [...sites.entries()]
-      .filter(([file]) => !allowed.has(file))
-      .map(([file, documents]) => `${file}: ${documents.join(', ')}`)
+      .filter(([file]) => !allowedFiles.has(file))
+      .flatMap(([file, documents]) =>
+        documents.filter((document) => !isKnown(file, document)).map((d) => `${file}: ${d}`),
+      )
       .sort();
     expect(offenders).toEqual([]);
   });
 
-  it('keeps KNOWN_UNCONVERTED honest — a converted file must leave the list', () => {
-    expect(KNOWN_UNCONVERTED.filter((file) => !sites.has(file))).toEqual([]);
+  it('keeps KNOWN_UNCONVERTED honest — a converted site must leave the list', () => {
+    const stale = Object.entries(KNOWN_UNCONVERTED).flatMap(([file, documents]) =>
+      documents.filter((d) => !sites.get(file)?.includes(d)).map((d) => `${file}: ${d}`),
+    );
+    expect(stale).toEqual([]);
   });
 
   it('keeps the imperative allowlist honest', () => {

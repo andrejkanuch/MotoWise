@@ -1,5 +1,4 @@
 import {
-  ExpensesByMotorcycleDocument,
   GenerateBikeHealthReportDocument,
   GetMyHealthReportsDocument,
   type GetMyHealthReportsQuery,
@@ -24,6 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
+import { expensesOptions } from '@/lib/query-options';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { space, type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
@@ -63,20 +63,13 @@ export default function HealthReportScreen() {
   });
 
   const { data: expensesData } = useQuery({
-    queryKey: queryKeys.expenses.byMotorcycle(bikeId ?? ''),
-    queryFn: () =>
-      gqlFetcher(ExpensesByMotorcycleDocument, {
-        motorcycleId: bikeId ?? '',
-        year: new Date().getFullYear(),
-      }),
+    ...expensesOptions(bikeId ?? '', new Date().getFullYear()),
     enabled: !!bikeId,
   });
 
   const maintenanceCount = tasksData?.maintenanceTasks?.length ?? 0;
-  const expenseCategories =
-    (expensesData as { expenses?: { categories?: { expenses?: unknown[] }[] } })?.expenses
-      ?.categories ?? [];
-  const expenseCount = expenseCategories.reduce((sum, cat) => sum + (cat.expenses?.length ?? 0), 0);
+  const expenseCategories = expensesData?.expenses?.categories ?? [];
+  const expenseCount = expenseCategories.reduce((sum, cat) => sum + cat.expenses.length, 0);
   const hasEnoughData =
     maintenanceCount >= MIN_RECORDS_REQUIRED || expenseCount >= MIN_RECORDS_REQUIRED;
 
