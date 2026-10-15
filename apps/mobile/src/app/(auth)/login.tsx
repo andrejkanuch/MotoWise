@@ -9,11 +9,10 @@ import { AuthDivider, AuthField, OAuthButtons } from '../../components/auth/auth
 import { EMAIL_CODE_SOURCE, EmailCodeStep } from '../../components/auth/email-code-step';
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
+import { useOAuthSignIn } from '../../hooks/use-oauth-sign-in';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { classifyAuthError, EMAIL_AUTH_ERROR, sendSignupCode } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
-import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
-import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { supabase } from '../../lib/supabase';
 import { space } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
@@ -79,31 +78,7 @@ export default function LoginScreen() {
     }
   };
 
-  const handleAppleSignIn = async () => {
-    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
-    try {
-      const { isNewUser } = await signInWithApple();
-      // OAuth can't tell signup from sign-in by screen — attribute from the auth result.
-      trackEvent(isNewUser ? AnalyticsEvent.USER_SIGNED_UP : AnalyticsEvent.USER_SIGNED_IN, {
-        auth_method: 'apple',
-      });
-    } catch (err) {
-      reportUnexpectedAuthError(err, captureException);
-      Alert.alert(t('common.error'), userFriendlyError(err));
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
-    try {
-      const { isNewUser } = await signInWithGoogle();
-      trackEvent(isNewUser ? AnalyticsEvent.USER_SIGNED_UP : AnalyticsEvent.USER_SIGNED_IN, {
-        auth_method: 'google',
-      });
-    } catch (err) {
-      presentOAuthError(err);
-    }
-  };
+  const { onApple, onGoogle } = useOAuthSignIn();
 
   const canSubmit = email.length > 0 && password.length > 0 && !loading;
 
@@ -138,7 +113,7 @@ export default function LoginScreen() {
         />
       ) : (
         <Animated.View entering={FadeIn.duration(200)} style={{ gap: space.sm }}>
-          <OAuthButtons onApple={handleAppleSignIn} onGoogle={handleGoogleSignIn} />
+          <OAuthButtons onApple={onApple} onGoogle={onGoogle} />
           <AuthDivider label={t('auth.orContinueWithEmail')} />
           <View style={{ gap: space.md }}>
             <AuthField

@@ -10,12 +10,11 @@ import { EMAIL_CODE_SOURCE, EmailCodeStep } from '../../components/auth/email-co
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { AUTH_EMAIL_REDIRECT_TO } from '../../config/auth';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
+import { useOAuthSignIn } from '../../hooks/use-oauth-sign-in';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { signUpConsentMetadata } from '../../lib/analytics-consent';
 import { classifyAuthError, EMAIL_AUTH_ERROR, normalizeEmail } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
-import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
-import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { supabase } from '../../lib/supabase';
 import { space } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
@@ -88,33 +87,7 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleAppleSignIn = async () => {
-    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
-    try {
-      const { isNewUser } = await signInWithApple();
-      // Attribute from the auth result, not the screen — a returning user may tap OAuth here.
-      trackEvent(isNewUser ? AnalyticsEvent.USER_SIGNED_UP : AnalyticsEvent.USER_SIGNED_IN, {
-        auth_method: 'apple',
-      });
-    } catch (err) {
-      // Cancellations and Apple's generic "unknown reason" failure are expected
-      // user outcomes, not bugs — don't report them to Sentry. (MOTO-VAULT-REACT-NATIVE-C)
-      reportUnexpectedAuthError(err, captureException);
-      Alert.alert(t('common.error'), userFriendlyError(err));
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
-    try {
-      const { isNewUser } = await signInWithGoogle();
-      trackEvent(isNewUser ? AnalyticsEvent.USER_SIGNED_UP : AnalyticsEvent.USER_SIGNED_IN, {
-        auth_method: 'google',
-      });
-    } catch (err) {
-      presentOAuthError(err);
-    }
-  };
+  const { onApple, onGoogle } = useOAuthSignIn();
 
   const canSubmit = email.length > 0 && password.length > 0 && fullName.length > 0 && !loading;
 
@@ -148,7 +121,7 @@ export default function RegisterScreen() {
         />
       ) : (
         <Animated.View entering={FadeIn.duration(200)} style={{ gap: space.sm }}>
-          <OAuthButtons onApple={handleAppleSignIn} onGoogle={handleGoogleSignIn} />
+          <OAuthButtons onApple={onApple} onGoogle={onGoogle} />
           <AuthDivider label={t('auth.orContinueWithEmail')} />
           <View style={{ gap: space.md }}>
             <AuthField
