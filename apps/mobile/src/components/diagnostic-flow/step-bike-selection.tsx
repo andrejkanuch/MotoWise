@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
 import { useMotorcycleMakes } from '../../hooks/use-motorcycle-makes';
 import { detectTypeFromModel, useMotorcycleModels } from '../../hooks/use-motorcycle-models';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { motorcyclesOptions } from '../../lib/query-options';
 import { useDiagnosticFlowStore } from '../../stores/diagnostic-flow.store';
 import { type } from '../../theme/type';
@@ -220,8 +221,7 @@ function ManualBikeForm() {
         {Object.values(MotorcycleType).map((type: string) => (
           <WizardOptionChip
             key={type}
-            // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
-            label={t(`diagnoseV2.option.${type}` as any)}
+            label={tDynamic(t, `diagnoseV2.option.${type}`)}
             selected={store.manualBikeInfo?.type === type}
             onPress={() => handleTypeSelect(type)}
           />

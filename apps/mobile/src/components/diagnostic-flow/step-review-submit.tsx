@@ -7,6 +7,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { motorcyclesOptions } from '../../lib/query-options';
 import type { Step } from '../../stores/diagnostic-flow.store';
 import {
@@ -139,10 +140,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
 
   const wizardTags = Object.entries(store.wizardAnswers)
     .flatMap(([, values]) => (values as string[]).filter((v: string) => v !== 'dont_know'))
-    .map((v: string) =>
-      // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key from wizard answers
-      ALL_PREDEFINED.has(v) ? (t(`diagnoseV2.option.${v}` as any) as string) : `"${v}"`,
-    );
+    .map((v: string) => (ALL_PREDEFINED.has(v) ? tDynamic(t, `diagnoseV2.option.${v}`) : `"${v}"`));
 
   const submitDisabled = store.isSubmitting || !store.hasProblemInput;
   const submitInk = submitDisabled ? colors.textMuted : colors.onAccent;

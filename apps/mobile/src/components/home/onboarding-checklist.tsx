@@ -16,6 +16,7 @@ import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutDown, ZoomIn } from 'react-native-reanimated';
 import { useShallow } from 'zustand/react/shallow';
 import { GARAGE_ROUTE, HOME_ROUTE, TAB_ROUTE } from '../../config/routes';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { deriveCompletedItems } from '../../lib/checklist-signals';
 import {
   ALL_CHECKLIST_ITEMS,
@@ -227,7 +228,7 @@ export function OnboardingChecklist() {
                   },
                 ]}
               >
-                {t(item.labelKey as never)}
+                {tDynamic(t, item.labelKey)}
               </Text>
 
               {/* Chevron */}

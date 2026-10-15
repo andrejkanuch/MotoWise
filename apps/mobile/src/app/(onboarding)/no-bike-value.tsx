@@ -9,6 +9,7 @@ import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { useOnboardingNext } from '../../hooks/use-onboarding-flow';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -120,10 +121,10 @@ export default function NoBikeValueScreen() {
               <Icon size={20} color={oc.textMuted} style={{ marginTop: 1 }} />
               <View style={{ flex: 1, gap: space.xxs }}>
                 <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
-                  {t(pillar.titleKey as never)}
+                  {tDynamic(t, pillar.titleKey)}
                 </Text>
                 <Text style={[type.subhead, { color: oc.textSecondary }]}>
-                  {t(pillar.bodyKey as never)}
+                  {tDynamic(t, pillar.bodyKey)}
                 </Text>
               </View>
             </Animated.View>

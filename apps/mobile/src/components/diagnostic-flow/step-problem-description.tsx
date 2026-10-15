@@ -34,6 +34,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { meOptions } from '../../lib/query-options';
 import {
   PREDEFINED_LOCATION,
@@ -488,11 +489,9 @@ export function StepProblemDescription() {
                       {group.options.map((option) => (
                         <WizardOptionChip
                           key={option}
-                          // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
-                          label={t(`diagnoseV2.option.${option}` as any)}
+                          label={tDynamic(t, `diagnoseV2.option.${option}`)}
                           subtitle={
-                            // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
-                            isBeginner ? t(`diagnoseV2.subtitle.${option}` as any) : undefined
+                            isBeginner ? tDynamic(t, `diagnoseV2.subtitle.${option}`) : undefined
                           }
                           selected={selectionSet.has(option)}
                           IconComponent={SYMPTOM_ICONS[option]}
@@ -539,11 +538,9 @@ export function StepProblemDescription() {
                         style={{ width: '47%' }}
                       >
                         <WizardOptionChip
-                          // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
-                          label={t(`diagnoseV2.option.${option}` as any)}
+                          label={tDynamic(t, `diagnoseV2.option.${option}`)}
                           subtitle={
-                            // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
-                            isBeginner ? t(`diagnoseV2.subtitle.${option}` as any) : undefined
+                            isBeginner ? tDynamic(t, `diagnoseV2.subtitle.${option}`) : undefined
                           }
                           selected={selectionSet.has(option)}
                           IconComponent={IconComp}

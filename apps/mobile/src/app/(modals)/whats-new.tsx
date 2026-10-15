@@ -15,6 +15,7 @@ import {
   type WhatsNewAction,
   type WhatsNewSlide,
 } from '../../data/whats-new-releases';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { BIKE_SEGMENT } from '../../lib/bike-hub/constants';
 import { motorcyclesOptions } from '../../lib/query-options';
@@ -274,7 +275,7 @@ export default function WhatsNewModal() {
           accessibilityRole="header"
           style={[type.largeTitle, { color: theme.ink, marginBottom: space.sm }]}
         >
-          {t(slide.titleKey as never)}
+          {tDynamic(t, slide.titleKey)}
         </Text>
         <Text
           style={{
@@ -282,7 +283,7 @@ export default function WhatsNewModal() {
             color: theme.ink2,
           }}
         >
-          {t(slide.descriptionKey as never)}
+          {tDynamic(t, slide.descriptionKey)}
         </Text>
       </Animated.View>
 
@@ -337,7 +338,7 @@ export default function WhatsNewModal() {
           <Text style={[type.bodyStrong, { color: theme.onWarm }]}>
             {isLast
               ? slide.ctaAction
-                ? t((slide.ctaLabelKey ?? 'whatsNew.getStarted') as never)
+                ? tDynamic(t, slide.ctaLabelKey ?? 'whatsNew.getStarted')
                 : t('whatsNew.getStarted')
               : t('whatsNew.next')}
           </Text>

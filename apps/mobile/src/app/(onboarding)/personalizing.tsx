@@ -28,6 +28,7 @@ import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { getPrimaryGoal, getTotalScreens, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
 import { onboardingFeedbackContactInput } from '../../features/feedback/onboarding-contact-input';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { AnalyticsEvent, captureException, setUserPropertiesOnce } from '../../lib/analytics';
 import { createGaragePaywallHandoff } from '../../lib/garage-paywall-handoff';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -579,7 +580,7 @@ export default function PersonalizingScreen() {
             >
               <StepIcon size={18} color={done ? oc.textSecondary : oc.textDimmed} />
               <Text style={[type.body, { flex: 1, color: done ? oc.textPrimary : oc.textMuted }]}>
-                {t(`onboarding.${stepKey}` as never)}
+                {tDynamic(t, `onboarding.${stepKey}`)}
               </Text>
               {done ? (
                 <Animated.View entering={reducedMotion ? undefined : FadeIn.duration(200)}>

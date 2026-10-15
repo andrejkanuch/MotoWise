@@ -9,6 +9,7 @@ import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-nativ
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
+import { tDynamic } from '../../i18n/t-dynamic';
 import type { Urgency } from '../../stores/diagnostic-flow.store';
 import { useDiagnosticFlowStore } from '../../stores/diagnostic-flow.store';
 import { useEditorialTheme } from '../../theme/editorial';
@@ -317,8 +318,7 @@ export function StepPhotoDetails() {
                       color: isSelected ? colors.textPrimary : colors.textSecondary,
                     }}
                   >
-                    {/* biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key */}
-                    {t(labelKey as any)}
+                    {tDynamic(t, labelKey)}
                   </Text>
                 </Pressable>
               );
