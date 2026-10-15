@@ -1,11 +1,15 @@
 import './instrument';
 
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { configureBodyParser } from './common/http/body-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  configureBodyParser(app);
 
   // Graceful shutdown hooks for SIGTERM/SIGINT
   app.enableShutdownHooks();

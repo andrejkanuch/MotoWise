@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { RIDE_ALREADY_SHARED_MESSAGE } from '../../errors/trip-db.errors';
 import { TripLifecycleService } from '../trip-lifecycle.service';
 
 /**
@@ -27,6 +28,7 @@ function makeQueryStub(result: Result) {
   }
   stub.insert = vi.fn(chain);
   stub.single = vi.fn(() => Promise.resolve(result));
+  stub.maybeSingle = vi.fn(() => Promise.resolve(result));
   // biome-ignore lint/suspicious/noThenProperty: mocking PostgREST's thenable builder
   stub.then = (
     resolve: (value: Result) => unknown,
@@ -209,6 +211,131 @@ describe('TripLifecycleService', () => {
       expect((thrown as Error).message).not.toContain('date');
       expect((thrown as Error).message).toBe('Some trip details are invalid.');
       expect(((thrown as Error).cause as Error).message).toContain('trips_max_riders_check');
+    });
+  });
+
+  /**
+   * MOTO-VAULT-NODE-NESTJS-Q: the duplicate check filtered trips.source_ride_id,
+   * a column that existed only on routes, so every share 500'd with 42703.
+   * Migration 00192 adds the column and a one-template-per-ride unique index.
+   */
+  describe('shareRideAsTrip', () => {
+    const completedRide = {
+      data: {
+        id: 'ride-1',
+        user_id: 'user-1',
+        route_polyline: 'abc',
+        distance_m: 12_000,
+        elevation_gain: 300,
+        elevation_loss: 280,
+        status: 'completed',
+      },
+      error: null,
+    };
+    const notYetShared = { data: null, error: null };
+
+    const share = () =>
+      service
+        .shareRideAsTrip('user-1', { rideId: 'ride-1', name: 'Evening loop' })
+        .then(() => null)
+        .catch((e: unknown) => e);
+
+    it('links the new template trip to its source ride', async () => {
+      buildService({
+        rides: [completedRide],
+        trips: [notYetShared, { data: tripRow(1), error: null }],
+      });
+
+      await service.shareRideAsTrip('user-1', { rideId: 'ride-1' });
+
+      expect(insertArg('trips', 1)).toMatchObject({
+        source_ride_id: 'ride-1',
+        is_template: true,
+      });
+    });
+
+    it('refuses a ride that already has a Discover template', async () => {
+      buildService({ rides: [completedRide], trips: [{ data: { id: 'trip-0' }, error: null }] });
+
+      const thrown = await share();
+
+      expect(thrown).toBeInstanceOf(BadRequestException);
+      expect((thrown as Error).message).toBe(RIDE_ALREADY_SHARED_MESSAGE);
+    });
+
+    it('answers a lost race on the one-template-per-ride index like the duplicate check', async () => {
+      buildService({
+        rides: [completedRide],
+        trips: [
+          notYetShared,
+          {
+            data: null,
+            error: pgError(
+              '23505',
+              'duplicate key value violates unique constraint "idx_trips_one_template_per_source_ride"',
+            ),
+          },
+        ],
+      });
+
+      const thrown = await share();
+
+      expect(thrown).toBeInstanceOf(BadRequestException);
+      expect((thrown as Error).message).toBe(RIDE_ALREADY_SHARED_MESSAGE);
+    });
+
+    it('does not call a 23505 from another unique index "already shared"', async () => {
+      buildService({
+        rides: [completedRide],
+        trips: [
+          notYetShared,
+          {
+            data: null,
+            error: pgError(
+              '23505',
+              'duplicate key value violates unique constraint "idx_trips_template_slug"',
+            ),
+          },
+        ],
+      });
+
+      const thrown = await share();
+
+      expect(thrown).toBeInstanceOf(BadRequestException);
+      expect((thrown as Error).message).not.toBe(RIDE_ALREADY_SHARED_MESSAGE);
+      expect(((thrown as Error).cause as Error).message).toContain('idx_trips_template_slug');
+    });
+
+    it('keeps an unknown insert failure a 500 with the Postgres code as cause', async () => {
+      buildService({
+        rides: [completedRide],
+        trips: [notYetShared, { data: null, error: pgError('XX999', 'something nobody has seen') }],
+      });
+
+      const thrown = await share();
+
+      expect(thrown).toBeInstanceOf(InternalServerErrorException);
+      expect(((thrown as Error).cause as Error).message).toContain('XX999');
+    });
+
+    it('treats an insert that returns no row as a 500', async () => {
+      buildService({ rides: [completedRide], trips: [notYetShared, { data: null, error: null }] });
+
+      await expect(share()).resolves.toBeInstanceOf(InternalServerErrorException);
+    });
+
+    it('keeps a schema error on the duplicate check a 500 with the Postgres code as cause', async () => {
+      buildService({
+        rides: [completedRide],
+        trips: [
+          { data: null, error: pgError('42703', 'column trips.source_ride_id does not exist') },
+        ],
+      });
+
+      const thrown = await share();
+
+      expect(thrown).toBeInstanceOf(InternalServerErrorException);
+      expect(((thrown as Error).cause as Error).message).toContain('42703');
     });
   });
 });

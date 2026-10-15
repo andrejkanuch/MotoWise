@@ -13,7 +13,9 @@ import { PG_ERROR } from '../../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import {
+  isRideAlreadySharedError,
   PG_CHECK_VIOLATION,
+  RIDE_ALREADY_SHARED_MESSAGE,
   throwTripCheckViolation,
   throwTripDbError,
 } from '../errors/trip-db.errors';
@@ -887,14 +889,16 @@ export class TripLifecycleService {
       .maybeSingle();
 
     if (existingError) {
-      this.logger.error(
-        `shareRideAsTrip duplicate check failed: ${existingError.message} (${existingError.code})`,
+      throwTripDbError(
+        this.logger,
+        existingError,
+        'shareRideAsTrip duplicate check',
+        'Failed to check existing shared ride',
       );
-      throw new InternalServerErrorException('Failed to check existing shared ride');
     }
 
     if (existing) {
-      throw new BadRequestException('This ride is already shared on Discover');
+      throw new BadRequestException(RIDE_ALREADY_SHARED_MESSAGE);
     }
 
     // 3. Build the trip title
@@ -925,8 +929,15 @@ export class TripLifecycleService {
       .select(TRIP_DETAIL_SELECT)
       .single();
 
-    if (insertError || !tripData) {
-      this.logger.error(`shareRideAsTrip insert failed: ${insertError?.message}`);
+    // A concurrent share of the same ride loses the race on
+    // idx_trips_one_template_per_source_ride (00192): same answer as the check above.
+    if (insertError && isRideAlreadySharedError(insertError)) {
+      throw new BadRequestException(RIDE_ALREADY_SHARED_MESSAGE);
+    }
+    if (insertError) {
+      throwTripDbError(this.logger, insertError, 'shareRideAsTrip insert', 'Failed to share ride');
+    }
+    if (!tripData) {
       throw new InternalServerErrorException('Failed to share ride as trip');
     }
 
