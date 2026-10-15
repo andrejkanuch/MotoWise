@@ -1,6 +1,6 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { CreateGroupRideDocument } from '@motovault/graphql';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, MapPin, Plus } from 'lucide-react-native';
@@ -20,7 +20,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapPicker from '../../components/map-picker';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { type } from '../../theme/type';
 import { triggerNotification } from '../../utils/haptics';
@@ -38,7 +37,6 @@ export default function CreateGroupRideScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const queryClient = useQueryClient();
 
   const bg = theme.bg;
   const titleColor = theme.ink;
@@ -88,7 +86,6 @@ export default function CreateGroupRideScreen() {
     onSuccess: () => {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
       trackEvent(AnalyticsEvent.GROUP_RIDE_CREATED, { difficulty });
-      queryClient.invalidateQueries({ queryKey: queryKeys.groupRides.all });
       router.back();
     },
   });

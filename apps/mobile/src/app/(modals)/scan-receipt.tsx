@@ -1,4 +1,4 @@
-import { MyMotorcyclesDocument, UnreviewedReceiptScansDocument } from '@motovault/graphql';
+import { UnreviewedReceiptScansDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { type Href, router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -18,6 +18,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { EXPENSE_ENTRY_SOURCE } from '../../lib/expense-analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { motorcyclesOptions } from '../../lib/query-options';
 import { useAuthStore } from '../../stores/auth.store';
 import { useEditorialTheme } from '../../theme/editorial';
 import { SYSTEM_WEIGHT, type } from '../../theme/type';
@@ -118,8 +119,7 @@ function ScanFlowHost({ initialBikeId, isOnboarding, initialResume, surface }: S
   const userId = useAuthStore((s) => s.session?.user?.id) ?? null;
 
   const { data: bikesData, isLoading: bikesLoading } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
   const bikes: ScanBike[] = (bikesData?.myMotorcycles ?? []).map((b) => ({
     id: b.id,

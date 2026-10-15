@@ -1,8 +1,4 @@
-import {
-  DeleteDocumentDocument,
-  DocumentCategoriesDocument,
-  type DocumentsByMotorcycleQuery,
-} from '@motovault/graphql';
+import { DeleteDocumentDocument, type DocumentsByMotorcycleQuery } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { type Href, router } from 'expo-router';
@@ -15,9 +11,10 @@ import { useMotorcycleDocuments } from '../../hooks/use-motorcycle-documents';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { type DocumentExpiryLevel, documentExpiryStatus } from '../../lib/document-expiry';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { invalidateDocuments } from '../../lib/invalidate';
 import { cancelDocumentNotifications } from '../../lib/notifications';
-import { queryKeys } from '../../lib/query-keys';
 import { QUERY_META } from '../../lib/query-meta';
+import { documentCategoriesOptions } from '../../lib/query-options';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import { LoadError } from './load-error';
 import { HubCard } from './ui/hub-card';
@@ -64,8 +61,7 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
   } = useMotorcycleDocuments(motorcycleId, { meta: QUERY_META.OWN_ERROR_UI });
 
   const categoriesQuery = useQuery({
-    queryKey: queryKeys.documents.categories(true),
-    queryFn: () => gqlFetcher(DocumentCategoriesDocument, { includeHidden: true }),
+    ...documentCategoriesOptions(true),
     meta: QUERY_META.OWN_ERROR_UI,
   });
   const categoryData = categoriesQuery.data;
@@ -90,8 +86,7 @@ export function DocumentsSection({ motorcycleId, bikeName }: DocumentsSectionPro
       });
       triggerNotification(Haptics.NotificationFeedbackType.Success);
       cancelDocumentNotifications(id).catch(() => {});
-      queryClient.invalidateQueries({ queryKey: queryKeys.documents.byMotorcycle(motorcycleId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.documents.expiring });
+      invalidateDocuments(queryClient, motorcycleId);
     },
     onError: () => {
       Alert.alert(

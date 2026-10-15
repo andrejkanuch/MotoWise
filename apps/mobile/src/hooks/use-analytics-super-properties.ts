@@ -1,4 +1,3 @@
-import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import {
@@ -12,9 +11,7 @@ import {
   personPropertiesFrom,
   SUPER_PROPERTY,
 } from '../lib/analytics-super-properties';
-import { gqlFetcher } from '../lib/graphql-client';
-import { queryKeys } from '../lib/query-keys';
-import { meOptions } from '../lib/query-options';
+import { meOptions, motorcyclesOptions } from '../lib/query-options';
 import { useAuthStore } from '../stores/auth.store';
 import { useOnboardingStore } from '../stores/onboarding.store';
 import { useSubscriptionStore } from '../stores/subscription.store';
@@ -46,8 +43,7 @@ export function useAnalyticsSuperProperties(): void {
 
   // Same key + fetcher as every garage screen, so this shares their cache.
   const bikesQuery = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
     enabled: signedIn,
     meta: { showErrorAlert: false },
   });

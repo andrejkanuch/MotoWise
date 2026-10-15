@@ -1,9 +1,5 @@
 import { palette } from '@motovault/design-system';
-import {
-  DeleteMotorcycleDocument,
-  MyMotorcyclesDocument,
-  UpdateMotorcycleDocument,
-} from '@motovault/graphql';
+import { DeleteMotorcycleDocument, UpdateMotorcycleDocument } from '@motovault/graphql';
 import { MotorcycleVariant } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -58,6 +54,7 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { pickImage, takePhoto, uploadBikePhoto } from '@/lib/image-upload';
 import { cancelDocumentNotificationsForBike } from '@/lib/notifications';
 import { queryKeys } from '@/lib/query-keys';
+import { motorcyclesOptions } from '@/lib/query-options';
 import { useAuthStore } from '@/stores/auth.store';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { radius, space, type } from '@/theme/type';
@@ -160,8 +157,7 @@ export default function EditBikeScreen() {
 
   // --- Data ---
   const { data } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
 
   const bike = (data?.myMotorcycles ?? []).find((m: { id: string }) => m.id === id);

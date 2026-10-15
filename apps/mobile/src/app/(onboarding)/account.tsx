@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { ShieldCheck } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
@@ -22,13 +21,12 @@ import {
 import { AUTH_EMAIL_REDIRECT_TO } from '../../config/auth';
 import { getPreviousRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
+import { useOAuthSignIn } from '../../hooks/use-oauth-sign-in';
 import { useOnboardingNext, useOnboardingVariant } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { signUpConsentMetadata } from '../../lib/analytics-consent';
 import { classifyAuthError, EMAIL_AUTH_ERROR, normalizeEmail } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
-import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
-import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { meOptions } from '../../lib/query-options';
 import { supabase } from '../../lib/supabase';
@@ -148,24 +146,7 @@ export default function AccountScreen() {
     if (!alreadyOnboarded) goNext();
   }, [session, goNext, meQuery.isLoading, meQuery.isError, meQuery.data]);
 
-  const handleApple = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    try {
-      await signInWithApple();
-    } catch (err) {
-      reportUnexpectedAuthError(err, captureException);
-      Alert.alert(t('common.error'), userFriendlyError(err));
-    }
-  };
-
-  const handleGoogle = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    try {
-      await signInWithGoogle();
-    } catch (err) {
-      presentOAuthError(err);
-    }
-  };
+  const { onApple, onGoogle } = useOAuthSignIn();
 
   const handleEmail = async () => {
     setBusy(true);
@@ -210,7 +191,7 @@ export default function AccountScreen() {
         // New account with an active session (no email confirmation needed, e.g.
         // confirmations off locally). Never passes through the code step, so
         // this is the one USER_SIGNED_UP for the account.
-        // OAuth paths fire USER_SIGNED_UP in oauth.ts; the email-in-onboarding
+        // OAuth paths fire USER_SIGNED_UP from useOAuthSignIn; the email-in-onboarding
         // path must too, otherwise onboarding email signups never reach the
         // canonical signup metric (the Executive "Daily Signups" denominator).
         trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'email' });
@@ -240,8 +221,8 @@ export default function AccountScreen() {
           codeStep
             ? undefined
             : isPro
-              ? t('onboarding.obAccountTitleProFull' as never)
-              : t('onboarding.obAccountTitleFreeFull' as never)
+              ? t('onboarding.obAccountTitleProFull')
+              : t('onboarding.obAccountTitleFreeFull')
         }
         subtitle={
           codeStep
@@ -321,7 +302,7 @@ export default function AccountScreen() {
           </Animated.View>
         ) : (
           <Animated.View entering={FadeIn.duration(200)} style={{ gap: space.sm }}>
-            <OAuthButtons onApple={handleApple} onGoogle={handleGoogle} />
+            <OAuthButtons onApple={onApple} onGoogle={onGoogle} />
             <AuthDivider label={t('onboarding.obAccountOrEmail')} />
             <Pressable
               onPress={() => setEmailMode(true)}

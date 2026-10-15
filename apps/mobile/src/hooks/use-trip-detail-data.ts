@@ -17,6 +17,7 @@ import { Alert } from 'react-native';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 import { userFriendlyError } from '../lib/graphql-errors';
+import { invalidateTrips } from '../lib/invalidate';
 import { cacheTripPayload, getOfflineMeta, readCachedTripPayload } from '../lib/offline-trips';
 import { queryKeys } from '../lib/query-keys';
 import { triggerImpact, triggerNotification } from '../utils/haptics';
@@ -68,9 +69,7 @@ export function useTripDetailData(
   }, [trip, tripId, offlineReady]);
 
   const invalidateTrip = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-    queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
+    void invalidateTrips(queryClient, tripId);
   }, [queryClient, tripId]);
 
   const [actionLoading, setActionLoading] = useState(false);
@@ -115,8 +114,7 @@ export function useTripDetailData(
     mutationFn: () => gqlFetcher(CloneTripDocument, { tripId }),
     onSuccess: (data) => {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
+      invalidateTrips(queryClient);
       // Navigate to the cloned trip so the user can see it immediately
       const clonedId = data?.cloneTrip;
       if (clonedId) {

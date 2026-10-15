@@ -1,9 +1,4 @@
-import {
-  DeleteMaintenanceTaskDocument,
-  MaintenanceTaskStatus,
-  MaintenanceTasksByMotorcycleDocument,
-  MyMotorcyclesDocument,
-} from '@motovault/graphql';
+import { DeleteMaintenanceTaskDocument, MaintenanceTaskStatus } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -30,8 +25,9 @@ import {
 } from '@/lib/bike-hub/all-tasks';
 import { getTaskDue } from '@/lib/bike-hub/task-due';
 import { gqlFetcher } from '@/lib/graphql-client';
-import { queryKeys } from '@/lib/query-keys';
+import { invalidateMaintenanceTasks } from '@/lib/invalidate';
 import { QUERY_META } from '@/lib/query-meta';
+import { maintenanceTasksOptions, motorcyclesOptions } from '@/lib/query-options';
 import { GUTTER, readableWidth, space, type } from '@/theme/type';
 import { triggerImpact, triggerNotification } from '@/utils/haptics';
 
@@ -120,14 +116,12 @@ export default function BikeTasksScreen() {
     refetch,
     isRefetching,
   } = useQuery({
-    queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-    queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId }),
+    ...maintenanceTasksOptions(motorcycleId),
   });
   // Only the due line's wording ("In 1,833 km", "Honda schedule"); without it
   // the rows fall back to the target itself and a generic schedule name.
   const { data: bikesData } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
     meta: QUERY_META.DECORATION,
   });
 
@@ -145,10 +139,7 @@ export default function BikeTasksScreen() {
       deletePendingRef.current = false;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
+      invalidateMaintenanceTasks(queryClient, motorcycleId);
       triggerNotification(Haptics.NotificationFeedbackType.Warning);
     },
     onError: () => {

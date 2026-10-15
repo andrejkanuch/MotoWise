@@ -2,7 +2,6 @@ import { palette } from '@motovault/design-system';
 import {
   GenerateArticleDocument,
   ListPopularArticlesDocument,
-  MyMotorcyclesDocument,
   MyProgressDocument,
   SearchArticlesDocument,
 } from '@motovault/graphql';
@@ -38,6 +37,7 @@ import { Skeleton } from '@/components/skeleton/skeleton';
 import { SkeletonProvider } from '@/components/skeleton/skeleton-provider';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
+import { motorcyclesOptions } from '@/lib/query-options';
 import { presentPaywall } from '@/lib/subscription';
 import { type EditorialTokens, useEditorialTheme } from '@/theme/editorial';
 import { selectPrimaryBike } from '@/utils/primary-bike';
@@ -162,8 +162,7 @@ export default function LearnScreen() {
 
   // Fetch user's motorcycles to pass bike context to article generation
   const { data: motorcyclesData } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
   const primaryBike = useMemo(() => {
     const bikes = motorcyclesData?.myMotorcycles ?? [];

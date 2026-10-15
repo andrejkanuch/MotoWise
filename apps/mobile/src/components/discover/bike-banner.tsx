@@ -1,4 +1,3 @@
-import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { mileageUnitLabel } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, Route } from 'lucide-react-native';
@@ -6,8 +5,7 @@ import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
+import { motorcyclesOptions } from '../../lib/query-options';
 import { useEditorialTheme } from '../../theme/editorial';
 import { SYSTEM_WEIGHT, type } from '../../theme/type';
 import { selectPrimaryBike } from '../../utils/primary-bike';
@@ -18,8 +16,7 @@ export const BikeBanner = memo(function BikeBanner() {
   const system = useMeasurementSystem();
 
   const { data } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
     staleTime: 5 * 60 * 1000,
   });
 

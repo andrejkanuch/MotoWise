@@ -1,7 +1,5 @@
-import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
-import { gqlFetcher } from '@/lib/graphql-client';
-import { queryKeys } from '@/lib/query-keys';
+import { motorcyclesOptions } from '@/lib/query-options';
 import type { HubBike } from './use-bike-hub-data';
 
 /**
@@ -21,8 +19,7 @@ export function useHubBike(motorcycleId: string | undefined): {
   isLoading: boolean;
 } {
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
   const bikes = data?.myMotorcycles ?? [];
   return { bike: bikes.find((bike) => bike.id === motorcycleId) ?? null, bikes, isLoading };

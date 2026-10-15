@@ -28,6 +28,7 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { CompletenessRing } from '@/components/trip/completeness-ring';
 import { Avatar } from '@/components/ui/avatar';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { invalidateTrips } from '@/lib/invalidate';
 import { queryKeys } from '@/lib/query-keys';
 import { type EditorialTokens, tint, useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, radius, readableWidth, space, type } from '@/theme/type';
@@ -275,9 +276,7 @@ export default function MyTripsScreen() {
   const deleteMutation = useMutation({
     mutationFn: (tripId: string) => gqlFetcher(DeleteTripDocument, { tripId }),
     onSuccess: (_data, tripId) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
+      invalidateTrips(queryClient);
       queryClient.removeQueries({ queryKey: queryKeys.trips.detail(tripId) });
     },
     onError: (err) => {

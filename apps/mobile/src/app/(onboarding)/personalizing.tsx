@@ -28,10 +28,12 @@ import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { getPrimaryGoal, getTotalScreens, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
 import { onboardingFeedbackContactInput } from '../../features/feedback/onboarding-contact-input';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { AnalyticsEvent, captureException, setUserPropertiesOnce } from '../../lib/analytics';
 import { createGaragePaywallHandoff } from '../../lib/garage-paywall-handoff';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { uploadBikePhoto } from '../../lib/image-upload';
+import { invalidateUser } from '../../lib/invalidate';
 import { detectCurrency } from '../../lib/locale-detection';
 import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
@@ -42,7 +44,6 @@ import {
   resolveOnboardingPaywallPlacement,
 } from '../../lib/onboarding-paywall';
 import { ONBOARDING_PAYWALL_SURFACE } from '../../lib/paywall-surfaces';
-import { queryKeys } from '../../lib/query-keys';
 import { setSelfReportedSource } from '../../lib/subscription';
 import { markWhatsNewSeenForNewRider } from '../../lib/whats-new';
 import { useAuthStore } from '../../stores/auth.store';
@@ -140,8 +141,7 @@ export default function PersonalizingScreen() {
     mutationFn: (input: CompleteOnboardingInput) =>
       gqlFetcher(CompleteOnboardingDocument, { input }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
-      queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+      invalidateUser(queryClient, { withBikes: true });
     },
   });
 
@@ -208,10 +208,9 @@ export default function PersonalizingScreen() {
           await gqlFetcher(UpdateUserDocument, {
             input: { measurementSystem: onboardingSystem },
           });
-          queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
           // The 00180 sync trigger just rewrote the new bike's distance_unit; the
           // bike was cached (by completeOnboarding's refetch) in the old unit.
-          queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+          invalidateUser(queryClient, { withBikes: true });
         } catch (err) {
           logger.warn('[Personalizing] measurement_system update skipped:', err);
         }
@@ -489,14 +488,11 @@ export default function PersonalizingScreen() {
         title={t('onboarding.personalizingDoneHeadline')}
         subtitle={
           bikeLabel
-            ? (t(
-                'onboarding.personalizingDoneSubWithBike' as never,
-                { bikeLabel } as never,
-              ) as unknown as string)
-            : t('onboarding.personalizingDoneSub' as never)
+            ? t('onboarding.personalizingDoneSubWithBike', { bikeLabel })
+            : t('onboarding.personalizingDoneSub')
         }
         primary={{
-          label: t('onboarding.personalizingDoneCta' as never),
+          label: t('onboarding.personalizingDoneCta'),
           onPress: handleOpenGarage,
           // Disabled while the paywall loads, so the tap visibly registered.
           disabled: garagePaywallPending,
@@ -536,14 +532,7 @@ export default function PersonalizingScreen() {
     <OnboardingShell
       screen={OB_SCREEN.PERSONALIZING}
       title={t('onboarding.v2PersonalizingHeadline')}
-      subtitle={
-        bikeLabel
-          ? (t(
-              'onboarding.v2PersonalizingSubtitle' as never,
-              { bikeLabel } as never,
-            ) as unknown as string)
-          : undefined
-      }
+      subtitle={bikeLabel ? t('onboarding.v2PersonalizingSubtitle', { bikeLabel }) : undefined}
       primary={
         canRetry
           ? {
@@ -591,7 +580,7 @@ export default function PersonalizingScreen() {
             >
               <StepIcon size={18} color={done ? oc.textSecondary : oc.textDimmed} />
               <Text style={[type.body, { flex: 1, color: done ? oc.textPrimary : oc.textMuted }]}>
-                {t(`onboarding.${stepKey}` as never)}
+                {tDynamic(t, `onboarding.${stepKey}`)}
               </Text>
               {done ? (
                 <Animated.View entering={reducedMotion ? undefined : FadeIn.duration(200)}>

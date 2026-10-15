@@ -1,12 +1,12 @@
 import { NEAR_EXPIRY_BADGE_DAYS } from '@motovault/types';
-import { differenceInCalendarDays, parseISO } from 'date-fns';
+import { daysUntil } from '../utils/days-until';
 
 export type DocumentExpiryLevel = 'expired' | 'soon' | 'future';
 
 /** Whole calendar days until expiry; negative when already expired, null when no date. */
 export function daysUntilExpiry(expiryDate: string | null | undefined): number | null {
   if (!expiryDate) return null;
-  return differenceInCalendarDays(parseISO(expiryDate), new Date());
+  return daysUntil(expiryDate);
 }
 
 /**

@@ -1,8 +1,4 @@
-import {
-  type MaintenancePriority,
-  MaintenanceTasksByMotorcycleDocument,
-  UpdateMaintenanceTaskDocument,
-} from '@motovault/graphql';
+import { type MaintenancePriority, UpdateMaintenanceTaskDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Check, Gauge } from 'lucide-react-native';
@@ -30,8 +26,10 @@ import { useHydratedFormState } from '@/hooks/use-hydrated-form-state';
 import { useMileageUnit } from '@/hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { invalidateMaintenanceTasks } from '@/lib/invalidate';
 import { cancelTaskNotification, scheduleMaintenanceReminder } from '@/lib/notifications';
 import { queryKeys } from '@/lib/query-keys';
+import { maintenanceTasksOptions } from '@/lib/query-options';
 import { useEditorialTheme } from '@/theme/editorial';
 import { space, type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
@@ -58,8 +56,7 @@ export default function EditMaintenanceTaskScreen() {
   // Prefill from the already-fetched task list (warm cache): the rider always
   // reaches Edit from a list that has loaded this task. Mirrors complete-task.
   const tasksQuery = useQuery({
-    queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-    queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId }),
+    ...maintenanceTasksOptions(motorcycleId),
     initialData: () =>
       queryClient.getQueryData(queryKeys.maintenanceTasks.byMotorcycle(motorcycleId)),
     initialDataUpdatedAt: () =>
@@ -113,10 +110,7 @@ export default function EditMaintenanceTaskScreen() {
         }),
       }),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
+      invalidateMaintenanceTasks(queryClient, motorcycleId);
 
       // Keep the local reminder consistent with the edited due date.
       const updated = data?.updateMaintenanceTask;

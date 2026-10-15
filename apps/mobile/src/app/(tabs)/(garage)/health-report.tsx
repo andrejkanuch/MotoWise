@@ -1,10 +1,7 @@
 import {
-  ExpensesByMotorcycleDocument,
   GenerateBikeHealthReportDocument,
   GetMyHealthReportsDocument,
   type GetMyHealthReportsQuery,
-  MaintenanceTasksByMotorcycleDocument,
-  MyMotorcyclesDocument,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
@@ -24,6 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
+import { expensesOptions, maintenanceTasksOptions, motorcyclesOptions } from '@/lib/query-options';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { space, type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
@@ -47,36 +45,24 @@ export default function HealthReportScreen() {
   }, [bikeId]);
 
   const { data: motorcyclesData } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
   const bike = motorcyclesData?.myMotorcycles?.find((m) => m.id === bikeId);
   const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : '';
 
   const { data: tasksData } = useQuery({
-    queryKey: queryKeys.maintenanceTasks.byMotorcycle(bikeId ?? ''),
-    queryFn: () =>
-      gqlFetcher(MaintenanceTasksByMotorcycleDocument, {
-        motorcycleId: bikeId ?? '',
-      }),
+    ...maintenanceTasksOptions(bikeId ?? ''),
     enabled: !!bikeId,
   });
 
   const { data: expensesData } = useQuery({
-    queryKey: queryKeys.expenses.byMotorcycle(bikeId ?? ''),
-    queryFn: () =>
-      gqlFetcher(ExpensesByMotorcycleDocument, {
-        motorcycleId: bikeId ?? '',
-        year: new Date().getFullYear(),
-      }),
+    ...expensesOptions(bikeId ?? '', new Date().getFullYear()),
     enabled: !!bikeId,
   });
 
   const maintenanceCount = tasksData?.maintenanceTasks?.length ?? 0;
-  const expenseCategories =
-    (expensesData as { expenses?: { categories?: { expenses?: unknown[] }[] } })?.expenses
-      ?.categories ?? [];
-  const expenseCount = expenseCategories.reduce((sum, cat) => sum + (cat.expenses?.length ?? 0), 0);
+  const expenseCategories = expensesData?.expenses?.categories ?? [];
+  const expenseCount = expenseCategories.reduce((sum, cat) => sum + cat.expenses.length, 0);
   const hasEnoughData =
     maintenanceCount >= MIN_RECORDS_REQUIRED || expenseCount >= MIN_RECORDS_REQUIRED;
 

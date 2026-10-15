@@ -85,12 +85,12 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
         <PickerSearchField
           value={query}
           onChangeText={setQuery}
-          placeholder={t('onboarding.v2MakeGridSearchPlaceholder' as never)}
+          placeholder={t('onboarding.v2MakeGridSearchPlaceholder')}
         />
         {/* Live social-proof teaser — real rider count, only when we have data */}
         {totalRiders > 0 && (
           <Text style={[type.caption, { color: oc.textMuted, marginLeft: space.xxs }]}>
-            {t('onboarding.v2MakeGridTeaser' as never, { count: totalRiders })}
+            {t('onboarding.v2MakeGridTeaser', { count: totalRiders })}
           </Text>
         )}
       </View>
@@ -105,7 +105,7 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
         )
       ) : (
         <View>
-          <PickerLabel>{t('onboarding.v2MakeGridPopularLabel' as never)}</PickerLabel>
+          <PickerLabel>{t('onboarding.v2MakeGridPopularLabel')}</PickerLabel>
           <PickerGroup>{popularItems.map(rowFor)}</PickerGroup>
         </View>
       )}

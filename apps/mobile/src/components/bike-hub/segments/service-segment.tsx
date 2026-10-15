@@ -8,7 +8,7 @@ import { Alert, View } from 'react-native';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import type { HubUnit } from '@/lib/bike-hub/constants';
 import { gqlFetcher } from '@/lib/graphql-client';
-import { queryKeys } from '@/lib/query-keys';
+import { invalidateMaintenanceTasks } from '@/lib/invalidate';
 import { triggerNotification } from '@/utils/haptics';
 import { OEM_DISCLAIMER_VARIANT, OemDisclaimerCard } from '../../maintenance/oem-disclaimer-card';
 import { MaintenanceSection } from '../maintenance-section';
@@ -52,8 +52,7 @@ export function ServiceSegment({
   const deleteMutation = useMutation({
     mutationFn: (taskId: string) => gqlFetcher(DeleteMaintenanceTaskDocument, { id: taskId }),
     onSuccess: (_data, taskId) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.byMotorcycle(id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
+      invalidateMaintenanceTasks(queryClient, id);
       trackEvent(AnalyticsEvent.MAINTENANCE_TASK_DELETED, { motorcycle_id: id, task_id: taskId });
       triggerNotification(Haptics.NotificationFeedbackType.Warning);
     },

@@ -15,11 +15,10 @@ import { useOnboardingColors } from '../../components/onboarding/onboarding-colo
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { OB_ROUTE } from '../../config/onboarding';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
+import { useOAuthSignIn } from '../../hooks/use-oauth-sign-in';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { classifyAuthError, EMAIL_AUTH_ERROR, sendSignupCode } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
-import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
-import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { supabase } from '../../lib/supabase';
 import { SYSTEM_WEIGHT, space, type } from '../../theme/type';
@@ -85,30 +84,7 @@ export default function OnboardingSignInScreen() {
     router.replace(OB_ROUTE.EXPERIENCE);
   };
 
-  const handleApple = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    try {
-      const { isNewUser } = await signInWithApple();
-      trackEvent(isNewUser ? AnalyticsEvent.USER_SIGNED_UP : AnalyticsEvent.USER_SIGNED_IN, {
-        auth_method: 'apple',
-      });
-    } catch (err) {
-      reportUnexpectedAuthError(err, captureException);
-      Alert.alert(t('common.error'), userFriendlyError(err));
-    }
-  };
-
-  const handleGoogle = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    try {
-      const { isNewUser } = await signInWithGoogle();
-      trackEvent(isNewUser ? AnalyticsEvent.USER_SIGNED_UP : AnalyticsEvent.USER_SIGNED_IN, {
-        auth_method: 'google',
-      });
-    } catch (err) {
-      presentOAuthError(err);
-    }
-  };
+  const { onApple, onGoogle } = useOAuthSignIn();
 
   const handleEmail = async () => {
     setBusy(true);
@@ -146,7 +122,7 @@ export default function OnboardingSignInScreen() {
       <OnboardingShell
         onBack={codeStep ? backFromCodeStep : () => router.back()}
         // EmailCodeStep has its own header; the screen's heading steps aside.
-        title={codeStep ? undefined : t('onboarding.obSignInTitle' as never)}
+        title={codeStep ? undefined : t('onboarding.obSignInTitle')}
         subtitle={codeStep ? undefined : t('onboarding.obSignInSubtitle')}
         primary={
           codeStep
@@ -157,7 +133,7 @@ export default function OnboardingSignInScreen() {
           codeStep
             ? undefined
             : {
-                label: `${t('onboarding.obSignInNewHere' as never)} ${t('onboarding.obSignInGetStarted' as never)}`,
+                label: `${t('onboarding.obSignInNewHere')} ${t('onboarding.obSignInGetStarted')}`,
                 onPress: goToGetStarted,
               }
         }
@@ -174,7 +150,7 @@ export default function OnboardingSignInScreen() {
           />
         ) : (
           <Animated.View entering={FadeIn.duration(200)} style={{ gap: space.sm }}>
-            <OAuthButtons onApple={handleApple} onGoogle={handleGoogle} />
+            <OAuthButtons onApple={onApple} onGoogle={onGoogle} />
             <AuthDivider label={t('onboarding.obAccountOrEmail')} />
             <View style={{ gap: space.md }}>
               <AuthField
@@ -213,7 +189,7 @@ export default function OnboardingSignInScreen() {
                 }}
               >
                 <Text style={[type.subhead, { color: oc.error }]}>
-                  {t('onboarding.obSignInNotFound' as never)}
+                  {t('onboarding.obSignInNotFound')}
                 </Text>
                 <Pressable
                   onPress={goToGetStarted}
@@ -222,7 +198,7 @@ export default function OnboardingSignInScreen() {
                   style={{ minHeight: 44, justifyContent: 'center' }}
                 >
                   <Text style={[type.subhead, SYSTEM_WEIGHT.semibold, { color: oc.warm2 }]}>
-                    {t('onboarding.obSignInCreateOne' as never)}
+                    {t('onboarding.obSignInCreateOne')}
                   </Text>
                 </Pressable>
               </View>
@@ -231,7 +207,7 @@ export default function OnboardingSignInScreen() {
         )}
       </OnboardingShell>
 
-      {busy ? <AuthBusyOverlay label={t('onboarding.obSignInSigningIn' as never)} /> : null}
+      {busy ? <AuthBusyOverlay label={t('onboarding.obSignInSigningIn')} /> : null}
     </View>
   );
 }

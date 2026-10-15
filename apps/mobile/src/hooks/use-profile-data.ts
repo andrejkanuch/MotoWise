@@ -1,8 +1,4 @@
-import {
-  DeleteAccountDocument,
-  MyMotorcyclesDocument,
-  UpdateUserDocument,
-} from '@motovault/graphql';
+import { DeleteAccountDocument, UpdateUserDocument } from '@motovault/graphql';
 import { FREE_TIER_LIMITS, REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
@@ -11,8 +7,8 @@ import { Alert } from 'react-native';
 import { PROFILE_ROUTE } from '../config/routes';
 import { gqlFetcher } from '../lib/graphql-client';
 import { isAccountAlreadyDeleted, userFriendlyError } from '../lib/graphql-errors';
-import { queryKeys } from '../lib/query-keys';
-import { meOptions } from '../lib/query-options';
+import { invalidateUser } from '../lib/invalidate';
+import { meOptions, motorcyclesOptions } from '../lib/query-options';
 import { presentPaywall } from '../lib/subscription';
 import { triggerImpact } from '../utils/haptics';
 import { signOutUser } from './sign-out';
@@ -29,12 +25,9 @@ export function useUpdatePreference() {
     mutationFn: (input: { currency?: string; measurementSystem?: string }) =>
       gqlFetcher(UpdateUserDocument, { input }),
     onSuccess: (_data, input) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
       // A unit change rewrites every bike's distance_unit server-side (00180
       // sync trigger), and the bike hub labels distances from the cached bike.
-      if (input.measurementSystem) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
-      }
+      invalidateUser(queryClient, { withBikes: !!input.measurementSystem });
     },
   });
 }
@@ -114,8 +107,7 @@ export function useProfileData({ t, isPro }: UseProfileDataParams) {
   const user = meQuery.data?.me;
 
   const bikesQuery = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
   const motorcycles = bikesQuery.data?.myMotorcycles ?? [];
 

@@ -14,6 +14,7 @@ import { getBrandDna } from '../../config/brand-dna';
 import { getPrimaryConcern, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { useOnboardingNext, useOnboardingVariant } from '../../hooks/use-onboarding-flow';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
@@ -62,9 +63,8 @@ export default function RevealScreen() {
   const dna = getBrandDna(make);
   // Prefer the bike's detected type; fall back to the brand archetype.
   const archetype = (bikeData?.type && TYPE_TO_ARCHETYPE[bikeData.type]) || dna?.type || '';
-  const categoryLabel = t(
-    `onboarding.${CATEGORY_LABEL_KEYS[archetype] ?? 'obRevealCatTracked'}` as never,
-  ) as string;
+  const categoryKey = CATEGORY_LABEL_KEYS[archetype] ?? 'obRevealCatTracked';
+  const categoryLabel = tDynamic(t, `onboarding.${categoryKey}`);
 
   // Variant B leads with the cost projection; A leads with the recall check.
   const projectionLed = variant === OB_VARIANT.INVESTED;

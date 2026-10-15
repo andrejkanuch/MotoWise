@@ -12,6 +12,7 @@ import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { OB_SCREEN } from '../../config/onboarding';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { useOnboardingNext } from '../../hooks/use-onboarding-flow';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -141,7 +142,7 @@ export default function ExperienceScreen() {
           >
             <Check size={16} color={oc.success} strokeWidth={2.6} />
             <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
-              {t(`onboarding.${pendingOption.affirmKey}` as never)}
+              {tDynamic(t, `onboarding.${pendingOption.affirmKey}`)}
             </Text>
           </Animated.View>
         ) : undefined
@@ -150,8 +151,8 @@ export default function ExperienceScreen() {
       <OnboardingOptionList
         options={EXPERIENCE_OPTIONS.map((option) => ({
           key: option.id,
-          label: t(`onboarding.${option.labelKey}` as never),
-          description: `${t(`onboarding.${option.tenureKey}` as never)} · ${t(`onboarding.${option.previewKey}` as never)}`,
+          label: tDynamic(t, `onboarding.${option.labelKey}`),
+          description: `${tDynamic(t, `onboarding.${option.tenureKey}`)} · ${tDynamic(t, `onboarding.${option.previewKey}`)}`,
           icon: option.icon,
         }))}
         isSelected={(id) => selected === id}

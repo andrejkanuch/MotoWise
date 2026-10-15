@@ -3,8 +3,8 @@ export const queryKeys = {
     me: ['user', 'me'] as const,
   },
   motorcycles: {
+    /** The one bike-list entry; every screen reads and invalidates this key. */
     all: ['motorcycles'] as const,
-    lists: () => [...queryKeys.motorcycles.all, 'list'] as const,
   },
   diagnostics: {
     all: ['diagnostics'] as const,
@@ -22,8 +22,6 @@ export const queryKeys = {
     allUser: ['maintenance-tasks', 'all-user'] as const,
     byMotorcycle: (motorcycleId: string) =>
       ['maintenance-tasks', 'motorcycle', motorcycleId] as const,
-    history: (motorcycleId: string) => ['maintenance-tasks', 'history', motorcycleId] as const,
-    spending: (motorcycleId: string) => ['maintenance-tasks', 'spending', motorcycleId] as const,
   },
   articles: {
     all: ['articles'] as const,
@@ -46,7 +44,19 @@ export const queryKeys = {
     ) => ['oemSchedulesPreview', make, model ?? null, year ?? null, variant ?? null] as const,
   },
   expenses: {
+    /**
+     * Prefix of every expense entry for a bike — the per-year lists and the
+     * dashboard aggregate. Invalidate it after any expense write. Nothing is
+     * fetched under the bare prefix: a fetch there was read by every other
+     * year's observer as its own data.
+     */
     byMotorcycle: (motorcycleId: string) => ['expenses', 'byMotorcycle', motorcycleId] as const,
+    /** One year's expenses; `EXPENSES_ALL_YEARS` (query-options.ts) is every year. */
+    byYear: (motorcycleId: string, year: number) =>
+      [...queryKeys.expenses.byMotorcycle(motorcycleId), year] as const,
+    /** The dashboard aggregate (`expenseDashboard`) for a bike. */
+    dashboard: (motorcycleId: string) =>
+      [...queryKeys.expenses.byMotorcycle(motorcycleId), 'dashboard'] as const,
   },
   expensePhotos: {
     byExpense: (expenseId: string) => ['expense-photos', expenseId] as const,
@@ -101,7 +111,8 @@ export const queryKeys = {
     overview: ['rides', 'overview'] as const,
     list: (cursor?: string) => ['rides', 'list', cursor] as const,
     detail: (id: string) => ['rides', 'detail', id] as const,
-    waypoints: (id: string) => ['rides', 'waypoints', id] as const,
+    /** Route points at one resolution: detail and flyover ask for different counts. */
+    waypoints: (id: string, maxPoints: number) => ['rides', 'waypoints', id, maxPoints] as const,
     heatmap: ['rides', 'heatmap'] as const,
     byMotorcycle: (motorcycleId: string) => ['rides', 'motorcycle', motorcycleId] as const,
   },
@@ -128,20 +139,23 @@ export const queryKeys = {
     list: (userId: string) => ['following', 'list', userId] as const,
   },
   groupRides: {
-    all: ['groupRides'] as const,
     detail: (id: string) => ['groupRides', 'detail', id] as const,
   },
   trips: {
     all: ['trips'] as const,
     detail: (id: string) => ['trips', 'detail', id] as const,
-    /** Source trip loaded into the create/edit screen (edit or clone mode). */
+    /**
+     * Source trip loaded into the create/edit screen (edit or clone mode).
+     * Deliberately outside the `['trips']` prefix: the editor hydrates its form
+     * once, so a refetch helps it nothing, and under the prefix every trip
+     * invalidation would refetch this trip while the editor is open — after a
+     * delete too. Its observer sets `gcTime: 0` so each open fetches fresh.
+     */
     edit: (tripId: string) => ['trip-edit', tripId] as const,
     list: (scope: string) => ['trips', 'list', scope] as const,
     my: ['trips', 'my'] as const,
     /** Discover draft strip: user's draft trips (non-paginated). */
     myDrafts: ['trips', 'myDrafts'] as const,
-    /** Discover horizontal strip: upcoming non-template public trips. */
-    discoverRiderStrip: ['trips', 'discoverRiderStrip'] as const,
     suggestions: (tripId: string) => ['trip-suggestions', tripId] as const,
     /** Public share-token trampoline (`tripByShareToken`). */
     byShareToken: (token: string) => ['trip-by-share-token', token] as const,

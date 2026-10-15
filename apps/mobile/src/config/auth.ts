@@ -27,3 +27,13 @@ export const AUTH_ERROR_CODE = {
   OVER_EMAIL_SEND_RATE_LIMIT: 'over_email_send_rate_limit',
   OVER_REQUEST_RATE_LIMIT: 'over_request_rate_limit',
 } as const;
+
+/**
+ * `auth_method` on `user_signed_up` / `user_signed_in` when the rider used an
+ * OAuth provider. The email paths send their own `'email'` at the call site.
+ */
+export const AUTH_METHOD = {
+  APPLE: 'apple',
+  GOOGLE: 'google',
+} as const;
+export type AuthMethod = (typeof AUTH_METHOD)[keyof typeof AUTH_METHOD];

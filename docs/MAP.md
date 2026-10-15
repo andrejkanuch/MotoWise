@@ -19,11 +19,11 @@ each app and package. `pnpm check:agent-docs` fails if a path cited here stops e
 | `apps/mobile/src/app/(onboarding)/`, `apps/mobile/src/app/(auth)/` | Onboarding flow including the paywall; login and register |
 | `apps/mobile/src/features/` | Vertical slices: `carplay`, `ride`, `receipt-scan`, `create-trip`. `apps/mobile/src/features/create-trip/index.ts` is the one barrel file that exists; add no more |
 | `apps/mobile/src/components/` | UI by domain (`bike-hub`, `ride`, `garage`, `maintenance`, `discover`, `trip`, `onboarding`, …); shared primitives in `ui/`, `shared/`, `skeleton/` |
-| `apps/mobile/src/lib/` | Infrastructure: GraphQL client, query keys and options, Supabase, secure storage, analytics, subscription, notifications, widgets sync |
+| `apps/mobile/src/lib/` | Infrastructure: GraphQL client, query keys and options, invalidation helpers (`invalidate.ts`), Supabase, secure storage, analytics, subscription, notifications, widgets sync |
 | `apps/mobile/src/lib/bike-hub/` | The bike hub's pure logic: segments, attention, task due dates, costs, recalls |
 | `apps/mobile/src/hooks/` | Hooks shared across domains |
 | `apps/mobile/src/stores/` | Zustand stores |
-| `apps/mobile/src/utils/` | Pure helpers: units, fuel, geo, Mapbox, haptics |
+| `apps/mobile/src/utils/` | Pure helpers: units, fuel, geo, Mapbox, haptics, dates (`days-until.ts`) |
 | `apps/mobile/src/config/`, `apps/mobile/src/theme/` | Feature flags, onboarding config, sheet detents; type scale and editorial tokens |
 | `apps/mobile/src/graphql/` | `.graphql` operations in `queries/` and `mutations/` |
 | `apps/mobile/src/i18n/` | i18next setup and `locales/*.json`; `en` is the source |

@@ -1,4 +1,3 @@
-import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,8 +7,8 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
+import { tDynamic } from '../../i18n/t-dynamic';
+import { motorcyclesOptions } from '../../lib/query-options';
 import type { Step } from '../../stores/diagnostic-flow.store';
 import {
   PREDEFINED_LOCATION,
@@ -126,8 +125,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
   );
 
   const { data: motorcyclesData } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
   const motorcycles = motorcyclesData?.myMotorcycles ?? [];
   const selectedBike = motorcycles.find((m) => m.id === store.selectedMotorcycleId);
@@ -142,10 +140,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
 
   const wizardTags = Object.entries(store.wizardAnswers)
     .flatMap(([, values]) => (values as string[]).filter((v: string) => v !== 'dont_know'))
-    .map((v: string) =>
-      // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key from wizard answers
-      ALL_PREDEFINED.has(v) ? (t(`diagnoseV2.option.${v}` as any) as string) : `"${v}"`,
-    );
+    .map((v: string) => (ALL_PREDEFINED.has(v) ? tDynamic(t, `diagnoseV2.option.${v}`) : `"${v}"`));
 
   const submitDisabled = store.isSubmitting || !store.hasProblemInput;
   const submitInk = submitDisabled ? colors.textMuted : colors.onAccent;

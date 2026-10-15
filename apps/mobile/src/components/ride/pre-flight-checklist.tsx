@@ -1,4 +1,3 @@
-import { MaintenanceTasksByMotorcycleDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Location from 'expo-location';
 import { AlertCircle, Check, Cloud, Navigation, Wrench } from 'lucide-react-native';
@@ -7,10 +6,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { useWeatherForecast } from '../../hooks/use-weather-forecast';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
+import { maintenanceTasksOptions } from '../../lib/query-options';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { space, type } from '../../theme/type';
+import { getPreFlightBikeStatus, PRE_FLIGHT_BIKE_STATUS } from './pre-flight-bike-status';
 
 interface PreFlightChecklistProps {
   motorcycleId?: string | null;
@@ -57,49 +56,31 @@ export function PreFlightChecklist({ motorcycleId }: PreFlightChecklistProps) {
 
   // Maintenance tasks — real data for selected bike
   const { data: tasksData } = useQuery({
-    queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId ?? ''),
-    queryFn: () =>
-      gqlFetcher(MaintenanceTasksByMotorcycleDocument, {
-        motorcycleId: motorcycleId ?? '',
-      }),
+    ...maintenanceTasksOptions(motorcycleId ?? ''),
     enabled: !!motorcycleId,
   });
 
   const bikeStatus = useMemo(() => {
-    if (!motorcycleId) return { subtitle: t('preFlight.noBikeSelected'), status: 'na' as const };
-    const tasks = tasksData?.maintenanceTasks ?? [];
-    if (tasks.length === 0)
-      return { subtitle: t('preFlight.noTasksTracked'), status: 'na' as const };
-
-    const now = new Date();
-    const overdue = tasks.filter(
-      (task) => task.status !== 'completed' && task.dueDate && new Date(task.dueDate) < now,
+    const bike = getPreFlightBikeStatus(
+      motorcycleId,
+      tasksData?.maintenanceTasks ?? [],
+      new Date(),
     );
-    const upcoming = tasks.filter(
-      (task) => task.status !== 'completed' && task.dueDate && new Date(task.dueDate) >= now,
-    );
-
-    if (overdue.length > 0) {
-      const first = overdue[0];
-      return {
-        subtitle: t('preFlight.overdue', { task: first.title }),
-        status: 'warn' as const,
-      };
+    switch (bike.kind) {
+      case PRE_FLIGHT_BIKE_STATUS.NO_BIKE:
+        return { subtitle: t('preFlight.noBikeSelected'), status: bike.level };
+      case PRE_FLIGHT_BIKE_STATUS.NO_TASKS:
+        return { subtitle: t('preFlight.noTasksTracked'), status: bike.level };
+      case PRE_FLIGHT_BIKE_STATUS.OVERDUE:
+        return { subtitle: t('preFlight.overdue', { task: bike.task }), status: bike.level };
+      case PRE_FLIGHT_BIKE_STATUS.DUE_IN:
+        return {
+          subtitle: t('preFlight.dueIn', { task: bike.task, days: bike.days }),
+          status: bike.level,
+        };
+      case PRE_FLIGHT_BIKE_STATUS.ALL_CLEAR:
+        return { subtitle: t('preFlight.allClear'), status: bike.level };
     }
-
-    if (upcoming.length > 0) {
-      const first = upcoming[0];
-      // dueDate is guaranteed non-null by the `upcoming` filter above.
-      const daysUntil = Math.ceil(
-        (new Date(first.dueDate ?? now).getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
-      );
-      return {
-        subtitle: t('preFlight.dueIn', { task: first.title, days: daysUntil }),
-        status: daysUntil <= 7 ? ('warn' as const) : ('ok' as const),
-      };
-    }
-
-    return { subtitle: t('preFlight.allClear'), status: 'ok' as const };
   }, [motorcycleId, tasksData, t]);
 
   const weatherSubtitle = useMemo(() => {

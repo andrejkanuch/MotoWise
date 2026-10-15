@@ -1,7 +1,6 @@
 import { palette } from '@motovault/design-system';
 import {
   DeleteDocumentDocument,
-  DocumentCategoriesDocument,
   DocumentsByMotorcycleDocument,
   type DocumentsByMotorcycleQuery,
   UpdateDocumentDocument,
@@ -30,8 +29,10 @@ import {
 import { DocumentViewer } from '@/components/documents/document-viewer';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { invalidateDocuments } from '@/lib/invalidate';
 import { cancelDocumentNotifications, scheduleDocumentExpiryReminder } from '@/lib/notifications';
 import { queryKeys } from '@/lib/query-keys';
+import { documentCategoriesOptions } from '@/lib/query-options';
 import { useEditorialTheme } from '@/theme/editorial';
 import { triggerImpact, triggerNotification } from '@/utils/haptics';
 import { toISODateInput } from '@/utils/trip-form-dates';
@@ -54,8 +55,7 @@ export default function DocumentDetailScreen() {
     queryFn: () => gqlFetcher(DocumentsByMotorcycleDocument, { motorcycleId }),
   });
   const { data: categoryData } = useQuery({
-    queryKey: queryKeys.documents.categories(false),
-    queryFn: () => gqlFetcher(DocumentCategoriesDocument, { includeHidden: false }),
+    ...documentCategoriesOptions(false),
   });
 
   const doc: DocumentItem | undefined = data?.documents.find((d) => d.id === id);
@@ -88,10 +88,7 @@ export default function DocumentDetailScreen() {
   const [note, setNote] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.documents.byMotorcycle(motorcycleId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.documents.expiring });
-  };
+  const invalidate = () => invalidateDocuments(queryClient, motorcycleId);
 
   const beginEdit = () => {
     if (!doc) return;

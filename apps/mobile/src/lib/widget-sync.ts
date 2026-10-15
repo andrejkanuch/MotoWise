@@ -34,6 +34,8 @@ import { gqlFetcher } from './graphql-client';
 import { logger } from './logger';
 import { queryClient } from './query-client';
 import { queryKeys } from './query-keys';
+import { expenseDashboardQueryOptions } from './query-options';
+import { pickWidgetNextService } from './widget-next-service';
 
 // ── In-flight guard + abort for logout race condition ────────────────────────
 
@@ -98,24 +100,9 @@ export async function syncWidgets(
   // ── Maintenance → NextServiceWidget ──────────────────────────
   const maintenanceResult = results[0];
   if (maintenanceResult.status === 'fulfilled' && maintenanceResult.value) {
-    const tasks = maintenanceResult.value;
-    const pending = tasks
-      .filter((t) => t.status !== 'completed' && !t.completedAt)
-      .sort((a, b) => {
-        if (!a.dueDate && !b.dueDate) return 0;
-        if (!a.dueDate) return 1;
-        if (!b.dueDate) return -1;
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-      });
-
-    const next = pending[0];
-    if (next) {
-      const now = new Date();
-      const dueDate = next.dueDate ? new Date(next.dueDate) : null;
-      const daysUntil = dueDate
-        ? Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-        : null;
-      const isOverdue = daysUntil !== null && daysUntil < 0;
+    const nextService = pickWidgetNextService(maintenanceResult.value, new Date());
+    if (nextService) {
+      const { task: next, daysUntil, isOverdue } = nextService;
 
       // target_mileage is stored raw in the user's unit; render with the global label.
       const unitLabel = mileageUnitLabel(measurementSystem);
@@ -475,8 +462,9 @@ async function fetchExpenses(): Promise<ExpenseDashboardQuery['expenseDashboard'
   if (!bikes?.length) return null;
 
   const primaryBike = selectPrimaryBike(bikes);
-  const qk = queryKeys.expenses.byMotorcycle(primaryBike.id);
-  const cached = queryClient.getQueryData<ExpenseDashboardQuery>(qk);
+  // The dashboard screen's own entry; the bare per-bike key holds no fetch.
+  const qk = expenseDashboardQueryOptions(primaryBike.id).queryKey;
+  const cached = queryClient.getQueryData(qk);
   const state = queryClient.getQueryState(qk);
   if (cached && state && Date.now() - state.dataUpdatedAt < STALE_MS) {
     return cached.expenseDashboard;

@@ -2,7 +2,6 @@ import { palette } from '@motovault/design-system';
 import {
   AddDocumentCategoryDocument,
   DeleteDocumentCategoryDocument,
-  DocumentCategoriesDocument,
   type DocumentCategoriesQuery,
   UpdateDocumentCategoryDocument,
 } from '@motovault/graphql';
@@ -23,6 +22,7 @@ import {
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
+import { documentCategoriesOptions } from '@/lib/query-options';
 import { useEditorialTheme } from '@/theme/editorial';
 import { triggerImpact } from '@/utils/haptics';
 
@@ -34,7 +34,9 @@ type CategoryItem = DocumentCategoriesQuery['documentCategories'][number];
 const CATEGORY_HAS_DOCUMENTS = 'CATEGORY_HAS_DOCUMENTS';
 
 // The Manage Categories screen always renders the full set (including hidden).
-const CATEGORIES_KEY = queryKeys.documents.categories(true);
+const CATEGORIES_QUERY = documentCategoriesOptions(true);
+// The key the optimistic update writes — the same entry the query reads.
+const CATEGORIES_KEY = CATEGORIES_QUERY.queryKey;
 
 export default function ManageDocumentCategoriesScreen() {
   const { t } = useTranslation();
@@ -44,8 +46,7 @@ export default function ManageDocumentCategoriesScreen() {
   const [newName, setNewName] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: CATEGORIES_KEY,
-    queryFn: () => gqlFetcher(DocumentCategoriesDocument, { includeHidden: true }),
+    ...CATEGORIES_QUERY,
   });
   const categories = data?.documentCategories ?? [];
   const visible = categories.filter((c) => !c.isHidden);

@@ -24,6 +24,7 @@ Do not move an existing domain.
 | Screen body | The domain home, as `<name>-screen.tsx` | |
 | Hook | The domain home if one domain uses it, `src/hooks/` if two or more do | One hook per `use-*` file |
 | Query | Keys always from `src/lib/query-keys.ts`. A document fetched from two or more files gets a factory in `src/lib/query-options.ts` | Every variable that changes the payload is in the key |
+| Mutation | An invalidation two or more mutations repeat goes through a helper in `src/lib/invalidate.ts` | Its test pins the exact keys |
 | Zustand store (local state) | `src/stores/<name>.store.ts` | |
 | Service (stateful, I/O, not React) | The domain home, or `src/lib/` if no single domain owns it | |
 | Pure helper | `src/utils/` if two or more domains use it, the domain home otherwise | `utils` imports nothing from `lib`, `stores`, `hooks`, `components`, `features` or `app` |
@@ -41,7 +42,7 @@ Do not move an existing domain.
 - Supabase Auth for all auth (email, Google, Apple). OAuth uses `signInWithIdToken` (native), not `signInWithOAuth` (browser). Tokens in expo-secure-store, NEVER AsyncStorage. Auth gating in root _layout.tsx (Redirect to (auth) if no session)
 
 ## i18n
-- All user-facing copy goes through `t()`. Locales: `SUPPORTED_LOCALES` in `packages/types/src/constants/enums.ts`; files in `src/i18n/locales/*.json`; `en` is the source of truth.
+- All user-facing copy goes through `t()`. A key built at run time goes through `tDynamic(t, key)` (`src/i18n/t-dynamic.ts`), the one place a key is cast; never cast at a `t()` call. Locales: `SUPPORTED_LOCALES` in `packages/types/src/constants/enums.ts`; files in `src/i18n/locales/*.json`; `en` is the source of truth.
 - `eslint.config.mjs` is an **i18n-only ESLint config**, the one deliberate exception to Biome-only: `eslint-plugin-i18next/no-literal-string` is the only tool that sees hard-coded text inside RN `<Text>`. Do NOT add general ESLint rules to it and do NOT remove it as a Biome duplicate.
 - The gate is a ratchet (`scripts/check-i18n.sh`; pre-push and CI): it blocks only NEW hard-coded strings in changed files and new `en.json` keys missing from a locale. Older debt is not blocked; fix it when you touch a file. Full audits: `pnpm i18n:status`, `pnpm --filter @motovault/mobile i18n:hardcoded`.
 

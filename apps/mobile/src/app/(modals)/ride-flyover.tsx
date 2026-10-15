@@ -1,10 +1,5 @@
 import { palette } from '@motovault/design-system';
-import {
-  GetRideDocument,
-  type GetRideQuery,
-  GetRideWaypointsDocument,
-  type GetRideWaypointsQuery,
-} from '@motovault/graphql';
+import { GetRideDocument, type GetRideQuery } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -19,12 +14,14 @@ import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { rideWaypointsOptions } from '../../lib/query-options';
 import { createFlyoverReviewGate, maybeRequestReview, REVIEW_MOMENT } from '../../lib/store-review';
 import { editorialThemes, tint } from '../../theme/editorial';
 import { type } from '../../theme/type';
 import { haversineMeters } from '../../utils/geo-utils';
 import { triggerImpact } from '../../utils/haptics';
 import { decodePolylineLatLng } from '../../utils/polyline';
+import { RIDE_FLYOVER_WAYPOINT_POINTS } from '../../utils/ride-constants';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
@@ -126,17 +123,12 @@ export default function RideFlyoverScreen() {
   });
 
   const { data: waypointData, isLoading: waypointsLoading } = useQuery({
-    queryKey: queryKeys.rides.waypoints(rideId ?? ''),
-    queryFn: () => {
-      if (!rideId) throw new Error('Missing rideId');
-      return gqlFetcher(GetRideWaypointsDocument, { rideId, maxPoints: 400 });
-    },
+    ...rideWaypointsOptions(rideId ?? '', RIDE_FLYOVER_WAYPOINT_POINTS),
     enabled: !!rideId,
-    staleTime: Number.POSITIVE_INFINITY,
   });
 
   const ride = (rideBundle as { viewer: string; ride: GetRideQuery['ride'] } | undefined)?.ride;
-  const serverWaypoints = (waypointData as GetRideWaypointsQuery | undefined)?.rideWaypoints ?? [];
+  const serverWaypoints = waypointData?.rideWaypoints ?? [];
 
   // Fall back to decoding route polyline when server waypoints are empty
   const waypoints = useMemo(() => {

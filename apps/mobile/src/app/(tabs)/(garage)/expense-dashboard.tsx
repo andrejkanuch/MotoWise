@@ -1,8 +1,3 @@
-import {
-  ExpensesByMotorcycleDocument,
-  type ExpensesByMotorcycleQuery,
-  MyMotorcyclesDocument,
-} from '@motovault/graphql';
 import { type ExpenseCategory, resolveCurrency, splitExpenseTotals } from '@motovault/types';
 import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -42,8 +37,8 @@ import {
   formatCurrencyTotals,
   formatMoney,
 } from '@/lib/expense-constants';
-import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
+import { EXPENSES_ALL_YEARS, expensesOptions, motorcyclesOptions } from '@/lib/query-options';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, radius, space, type } from '@/theme/type';
 import { triggerImpact, triggerSelection } from '@/utils/haptics';
@@ -280,8 +275,7 @@ export default function ExpenseDashboardScreen() {
 
   // Fetch bike data for purchase price (uses existing cache from garage tab)
   const { data: bikesData } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
     staleTime: 5 * 60 * 1000,
   });
   const bike = (bikesData?.myMotorcycles ?? []).find((m: { id: string }) => m.id === motorcycleId);
@@ -290,26 +284,21 @@ export default function ExpenseDashboardScreen() {
 
   // Fetch individual expenses for category drill-down
   const { data: expensesData } = useQuery({
-    queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
-    queryFn: () => gqlFetcher(ExpensesByMotorcycleDocument, { motorcycleId, year: 0 }),
+    ...expensesOptions(motorcycleId, EXPENSES_ALL_YEARS),
     enabled: !!motorcycleId,
     staleTime: 5 * 60 * 1000,
   });
 
   const categoryExpenses = useMemo(() => {
     if (!selectedCategory || !expensesData) return [];
-    const data = expensesData as ExpensesByMotorcycleQuery;
-    const cat = data.expenses?.categories?.find((c) => c.category === selectedCategory);
+    const cat = expensesData.expenses?.categories?.find((c) => c.category === selectedCategory);
     return cat?.expenses ?? [];
   }, [selectedCategory, expensesData]);
 
   // Fallback label for a dashboard from an API that predates per-currency
   // aggregates: the currency most of this bike's expense rows use.
   const legacyCurrency = useMemo(() => {
-    const records =
-      (expensesData as ExpensesByMotorcycleQuery | undefined)?.expenses?.categories?.flatMap(
-        (c) => c.expenses,
-      ) ?? [];
+    const records = expensesData?.expenses?.categories?.flatMap((c) => c.expenses) ?? [];
     return dominantCurrency(records, displayCurrency);
   }, [expensesData, displayCurrency]);
 

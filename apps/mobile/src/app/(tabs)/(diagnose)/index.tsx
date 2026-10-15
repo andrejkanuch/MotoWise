@@ -1,7 +1,6 @@
 import {
   MyDiagnosticsDocument,
   type MyDiagnosticsQuery,
-  MyMotorcyclesDocument,
   type MyMotorcyclesQuery,
 } from '@motovault/graphql';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -30,6 +29,7 @@ import { SeverityChip, useSeverityLabel } from '@/components/diagnosis/severity-
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
+import { motorcyclesOptions } from '@/lib/query-options';
 import { useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, radius, readableWidth, space, type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
@@ -92,8 +92,7 @@ export default function DiagnoseScreen() {
   });
 
   const { data: motorcyclesData } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
   const motorcycles = motorcyclesData?.myMotorcycles ?? [];
 

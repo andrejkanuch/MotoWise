@@ -46,7 +46,6 @@ jest.mock('../../lib/analytics-consent', () => ({
   signUpConsentMetadata: () => ({ analytics_consent: 'granted' }),
 }));
 jest.mock('../../lib/oauth', () => ({
-  reportUnexpectedAuthError: jest.fn(),
   signInWithApple: jest.fn(),
   signInWithGoogle: jest.fn(),
 }));

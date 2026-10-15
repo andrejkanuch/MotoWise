@@ -95,7 +95,6 @@ export default function GroupRideDetailScreen() {
 
   const invalidateRide = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: queryKeys.groupRides.detail(groupRideId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.groupRides.all });
   }, [queryClient, groupRideId]);
 
   const joinMutation = useMutation({

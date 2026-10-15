@@ -8,6 +8,9 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+// The bike list's query factory reaches the auth store (MMKV) and analytics (Sentry).
+jest.mock('react-native-mmkv', () => require('../../test/mocks').makeMmkvMock());
+jest.mock('../../lib/analytics', () => require('../../test/mocks').mockAnalytics());
 jest.mock('../../utils/haptics', () => ({
   triggerImpact: jest.fn(),
   triggerNotification: jest.fn(),

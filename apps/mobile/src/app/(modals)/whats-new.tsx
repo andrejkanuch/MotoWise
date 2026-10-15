@@ -1,4 +1,3 @@
-import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Application from 'expo-application';
 import * as Haptics from 'expo-haptics';
@@ -16,10 +15,10 @@ import {
   type WhatsNewAction,
   type WhatsNewSlide,
 } from '../../data/whats-new-releases';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { BIKE_SEGMENT } from '../../lib/bike-hub/constants';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
+import { motorcyclesOptions } from '../../lib/query-options';
 import { useWhatsNewStore } from '../../stores/whats-new.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, space, type } from '../../theme/type';
@@ -44,8 +43,7 @@ export default function WhatsNewModal() {
 
   // Cached from the home screen — used to resolve the fast-action target bike.
   const { data: bikesData } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -277,7 +275,7 @@ export default function WhatsNewModal() {
           accessibilityRole="header"
           style={[type.largeTitle, { color: theme.ink, marginBottom: space.sm }]}
         >
-          {t(slide.titleKey as never)}
+          {tDynamic(t, slide.titleKey)}
         </Text>
         <Text
           style={{
@@ -285,7 +283,7 @@ export default function WhatsNewModal() {
             color: theme.ink2,
           }}
         >
-          {t(slide.descriptionKey as never)}
+          {tDynamic(t, slide.descriptionKey)}
         </Text>
       </Animated.View>
 
@@ -340,7 +338,7 @@ export default function WhatsNewModal() {
           <Text style={[type.bodyStrong, { color: theme.onWarm }]}>
             {isLast
               ? slide.ctaAction
-                ? t((slide.ctaLabelKey ?? 'whatsNew.getStarted') as never)
+                ? tDynamic(t, slide.ctaLabelKey ?? 'whatsNew.getStarted')
                 : t('whatsNew.getStarted')
               : t('whatsNew.next')}
           </Text>

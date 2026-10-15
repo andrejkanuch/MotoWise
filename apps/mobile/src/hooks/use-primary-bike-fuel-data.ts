@@ -1,7 +1,5 @@
-import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
-import { gqlFetcher } from '../lib/graphql-client';
-import { queryKeys } from '../lib/query-keys';
+import { motorcyclesOptions } from '../lib/query-options';
 import { DEFAULT_KM_PER_LITER, DEFAULT_TANK_LITERS } from '../utils/fuel-range';
 import { selectPrimaryBike } from '../utils/primary-bike';
 
@@ -12,8 +10,7 @@ import { selectPrimaryBike } from '../utils/primary-bike';
  */
 export function usePrimaryBikeFuelData() {
   const { data: bikeId } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
     select: (d) => {
       const bikes = d?.myMotorcycles ?? [];
       const primary = selectPrimaryBike(bikes);

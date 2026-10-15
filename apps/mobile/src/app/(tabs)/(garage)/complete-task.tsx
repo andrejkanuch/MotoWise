@@ -1,7 +1,4 @@
-import {
-  CompleteMaintenanceTaskDocument,
-  MaintenanceTasksByMotorcycleDocument,
-} from '@motovault/graphql';
+import { CompleteMaintenanceTaskDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -41,6 +38,7 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { MAINTENANCE_COMPLETION_SURFACE } from '@/lib/maintenance-analytics';
 import { cancelTaskNotification } from '@/lib/notifications';
 import { queryKeys } from '@/lib/query-keys';
+import { maintenanceTasksOptions } from '@/lib/query-options';
 import { maybeRequestReview, REVIEW_MOMENT } from '@/lib/store-review';
 import { invalidateAfterTaskCompletion } from '@/lib/task-completion-cache';
 import { useEditorialTheme } from '@/theme/editorial';
@@ -86,8 +84,7 @@ export default function CompleteTaskScreen() {
   const mutatingRef = useRef(false);
 
   const tasksQuery = useQuery({
-    queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-    queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId }),
+    ...maintenanceTasksOptions(motorcycleId),
     initialData: () =>
       queryClient.getQueryData(queryKeys.maintenanceTasks.byMotorcycle(motorcycleId)),
     initialDataUpdatedAt: () =>

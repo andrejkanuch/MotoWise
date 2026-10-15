@@ -1,4 +1,3 @@
-import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { MotorcycleType } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { Bike, Check, ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react-native';
@@ -18,8 +17,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
 import { useMotorcycleMakes } from '../../hooks/use-motorcycle-makes';
 import { detectTypeFromModel, useMotorcycleModels } from '../../hooks/use-motorcycle-models';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
+import { tDynamic } from '../../i18n/t-dynamic';
+import { motorcyclesOptions } from '../../lib/query-options';
 import { useDiagnosticFlowStore } from '../../stores/diagnostic-flow.store';
 import { type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
@@ -222,8 +221,7 @@ function ManualBikeForm() {
         {Object.values(MotorcycleType).map((type: string) => (
           <WizardOptionChip
             key={type}
-            // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
-            label={t(`diagnoseV2.option.${type}` as any)}
+            label={tDynamic(t, `diagnoseV2.option.${type}`)}
             selected={store.manualBikeInfo?.type === type}
             onPress={() => handleTypeSelect(type)}
           />
@@ -837,8 +835,7 @@ export function StepBikeSelection() {
   );
 
   const { data: motorcyclesData } = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
   const motorcycles = motorcyclesData?.myMotorcycles ?? [];
 

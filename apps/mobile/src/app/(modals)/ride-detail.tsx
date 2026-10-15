@@ -1,11 +1,6 @@
 import BottomSheet, { BottomSheetBackdrop, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
-import {
-  type GetPublicRideQuery,
-  type GetRideQuery,
-  GetRideWaypointsDocument,
-  type GetRideWaypointsQuery,
-} from '@motovault/graphql';
+import type { GetPublicRideQuery, GetRideQuery } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -40,8 +35,8 @@ import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useRideHeatmapData } from '../../hooks/use-ride-heatmap-data';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
-import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { rideWaypointsOptions } from '../../lib/query-options';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
@@ -53,6 +48,7 @@ import {
   needsTerrain3D,
 } from '../../utils/map-styles';
 import { decodePolylineLatLng } from '../../utils/polyline';
+import { RIDE_DETAIL_WAYPOINT_POINTS } from '../../utils/ride-constants';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
@@ -104,19 +100,14 @@ export default function RideDetailScreen() {
   const canLoadWaypoints = !!rideId && rideBundle != null && isOwnerViewer;
 
   const { data: waypointData, isLoading: waypointsLoading } = useQuery({
-    queryKey: queryKeys.rides.waypoints(rideId ?? ''),
-    queryFn: () => {
-      if (!rideId) throw new Error('Missing rideId');
-      return gqlFetcher(GetRideWaypointsDocument, { rideId, maxPoints: 300 });
-    },
+    ...rideWaypointsOptions(rideId ?? '', RIDE_DETAIL_WAYPOINT_POINTS),
     enabled: canLoadWaypoints,
-    staleTime: Number.POSITIVE_INFINITY,
     // A missing route degrades to the "No route data" map state.
     meta: { showErrorAlert: false },
   });
 
   const ride = rideBundle?.ride as RideDetailPayload | undefined;
-  const waypoints = (waypointData as GetRideWaypointsQuery | undefined)?.rideWaypoints ?? [];
+  const waypoints = waypointData?.rideWaypoints ?? [];
 
   const rideLoaded = ride?.id;
   // Latch so RIDE_VIEWED fires exactly ONCE per mount. Narrowing the deps to

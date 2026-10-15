@@ -4,7 +4,7 @@ import {
   MaintenanceTaskStatus,
   type MaintenanceTasksByMotorcycleQuery,
 } from '@motovault/graphql';
-import { differenceInCalendarDays, parseISO } from 'date-fns';
+import { daysUntil } from '../../utils/days-until';
 import {
   DUE_DAY_PRECISION_DAYS,
   DUE_DIMENSION,
@@ -78,7 +78,7 @@ function timeDisplay(days: number): DueDisplay {
 
 function timeLimit(dueDate: string | null | undefined, today: Date): DueLimit | null {
   if (!dueDate) return null;
-  const days = differenceInCalendarDays(parseISO(dueDate), today);
+  const days = daysUntil(dueDate, today);
   if (Number.isNaN(days)) return null;
   // A task due today has not passed yet.
   if (days < 0) {

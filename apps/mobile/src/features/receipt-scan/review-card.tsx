@@ -1,6 +1,5 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { palette } from '@motovault/design-system';
-import { MyMotorcyclesDocument } from '@motovault/graphql';
 import {
   type Currency,
   EXPENSE_CATEGORIES,
@@ -39,14 +38,14 @@ import Animated, {
 import { MODAL_ROUTE } from '../../config/routes';
 import { useCurrency } from '../../hooks/use-currency';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import {
   CATEGORY_LABELS,
   formatCurrencyInput,
   serviceTypeLabel,
 } from '../../lib/expense-constants';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
+import { motorcyclesOptions } from '../../lib/query-options';
 import { EDITORIAL_SCHEME, editorialThemes, tint, useEditorialTheme } from '../../theme/editorial';
 import { SYSTEM_WEIGHT, type as textRole } from '../../theme/type';
 import { triggerSelection } from '../../utils/haptics';
@@ -221,8 +220,7 @@ export function ReviewCard({ handoff, bikeName, bikes, onPark, onClose, onSave }
   const { currency: userCurrency } = useCurrency();
 
   const motorcyclesQuery = useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
   });
   const motorcycles = motorcyclesQuery.data?.myMotorcycles ?? [];
 
@@ -1605,7 +1603,7 @@ function CategoryField({
               onPress={() => onSelect(c)}
               accessibilityRole="button"
               accessibilityState={{ selected }}
-              accessibilityLabel={t(`expenses.category_${c}` as TranslationKey, {
+              accessibilityLabel={tDynamic(t, `expenses.category_${c}`, {
                 defaultValue: CATEGORY_LABELS[c],
               })}
               style={{
@@ -1625,7 +1623,7 @@ function CategoryField({
                   color: selected ? tk.warm : tk.ink2,
                 }}
               >
-                {t(`expenses.category_${c}` as TranslationKey, {
+                {tDynamic(t, `expenses.category_${c}`, {
                   defaultValue: CATEGORY_LABELS[c],
                 })}
               </Text>

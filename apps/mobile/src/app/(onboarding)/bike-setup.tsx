@@ -160,24 +160,23 @@ export default function BikeSetupScreen() {
   const headline = useMemo(() => {
     if (showIntentConfirm) {
       return {
-        title: t('onboarding.v2IntentConfirmTitle' as never),
-        sub: t('onboarding.v2IntentConfirmSubtitle' as never),
+        title: t('onboarding.v2IntentConfirmTitle'),
+        sub: t('onboarding.v2IntentConfirmSubtitle'),
       };
     }
     if (showBrandHero && activeMakeName) {
       return {
-        title: t('onboarding.v2BikeSetupTitlePickedFull' as never, {
+        title: t('onboarding.v2BikeSetupTitlePickedFull', {
           makeName: activeMakeName,
         }) as string,
         sub: isCustomMake
-          ? t('onboarding.v2BikeSetupSubtitleReward' as never)
-          : (getBrandDna(activeMakeName)?.tagline ??
-            t('onboarding.v2BikeSetupSubtitleReward' as never)),
+          ? t('onboarding.v2BikeSetupSubtitleReward')
+          : (getBrandDna(activeMakeName)?.tagline ?? t('onboarding.v2BikeSetupSubtitleReward')),
       };
     }
     return {
-      title: t('onboarding.v2BikeSetupTitleEmptyFull' as never),
-      sub: t('onboarding.v2BikeSetupSubtitleReward' as never),
+      title: t('onboarding.v2BikeSetupTitleEmptyFull'),
+      sub: t('onboarding.v2BikeSetupSubtitleReward'),
     };
   }, [showIntentConfirm, showBrandHero, activeMakeName, isCustomMake, t]);
 
@@ -370,13 +369,13 @@ export default function BikeSetupScreen() {
   // ── Footer ──────────────────────────────────────────────────
   const footerSecondary = showIntentConfirm
     ? {
-        label: t('onboarding.v2IntentConfirmChange' as never),
+        label: t('onboarding.v2IntentConfirmChange'),
         onPress: handleNotMyBike,
       }
     : {
         label: showMakeDetails
           ? t('onboarding.v2BikeSetupSkip')
-          : t('onboarding.v2BikeSetupNotSure' as never),
+          : t('onboarding.v2BikeSetupNotSure'),
         // With a make picked / custom entry open, the footer is a true skip.
         // In the empty list it reveals the make-only partial-capture chips.
         onPress: () => {
@@ -403,7 +402,7 @@ export default function BikeSetupScreen() {
         }}
       >
         <Text style={[type.subhead, { color: oc.textSecondary }]}>
-          {t('onboarding.v2BikeSetupPartialHelper' as never)}
+          {t('onboarding.v2BikeSetupPartialHelper')}
         </Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.xs }}>
           {quickMakes.map((m) => (
@@ -451,8 +450,8 @@ export default function BikeSetupScreen() {
       footer={partialCapture}
       primary={{
         label: showIntentConfirm
-          ? t('onboarding.v2IntentConfirmCta' as never)
-          : t('onboarding.v2BikeSetupCta' as never),
+          ? t('onboarding.v2IntentConfirmCta')
+          : t('onboarding.v2BikeSetupCta'),
         onPress: handleContinue,
         disabled: !canContinue,
       }}

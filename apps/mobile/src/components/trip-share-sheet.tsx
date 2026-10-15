@@ -10,7 +10,7 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
-import { queryKeys } from '../lib/query-keys';
+import { invalidateTrips } from '../lib/invalidate';
 import { tint, useEditorialTheme } from '../theme/editorial';
 import { SYSTEM_WEIGHT, type } from '../theme/type';
 import { triggerImpact, triggerNotification } from '../utils/haptics';
@@ -60,10 +60,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
       triggerNotification(Haptics.NotificationFeedbackType.Success);
       setPlaintextToken(data.rotateTripShareToken);
       setJustCopied(false);
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
+      invalidateTrips(queryClient, tripId);
     },
     onError: () => {
       Alert.alert(t('tripShare.createErrorTitle'), t('tripShare.createErrorBody'));
@@ -77,9 +74,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
       }),
     onSuccess: () => {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
+      invalidateTrips(queryClient, tripId);
       setPlaintextToken(null);
       onClose();
     },

@@ -1,8 +1,4 @@
-import {
-  MyMotorcyclesDocument,
-  type MyMotorcyclesQuery,
-  UpdateMotorcycleDocument,
-} from '@motovault/graphql';
+import { type MyMotorcyclesQuery, UpdateMotorcycleDocument } from '@motovault/graphql';
 import * as Sentry from '@sentry/react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
@@ -26,7 +22,7 @@ import { isActiveTask } from '@/lib/bike-hub/task-due';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
 import { QUERY_META } from '@/lib/query-meta';
-import { maintenanceBadgeOptions } from '@/lib/query-options';
+import { maintenanceBadgeOptions, motorcyclesOptions } from '@/lib/query-options';
 import { presentPaywall } from '@/lib/subscription';
 import { useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, radius, readableWidth, space, type } from '@/theme/type';
@@ -45,8 +41,7 @@ const LIST_ENTER_MS = 240;
 
 function useGarageBikes() {
   return useQuery({
-    queryKey: queryKeys.motorcycles.all,
-    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    ...motorcyclesOptions(),
     // Renders its own error state with Retry (below). It stays mounted beneath
     // the bike hub, which opts out of the same key; the global handler needs
     // every observer to agree.
