@@ -8,7 +8,7 @@
 #
 # A check that needs schema the throwaway database lacks (auth.users, a
 # migration under test) ships a fixture of the same name in fixtures/, run
-# first in the same container.
+# first in the same container, on that check's own empty database.
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -35,12 +35,19 @@ if [ "$#" -gt 0 ]; then checks=("$@"); else
   for f in "$here"/*.sql; do checks+=("$(basename "$f")"); done
 fi
 
+# Each check gets its own empty database, so one check's fixture schema can
+# never trip another check's empty-database guard. Roles are cluster-wide and
+# fixtures create them only when missing.
+n=0
 for check in "${checks[@]}"; do
   echo "== $check"
+  n=$((n + 1))
+  db="check_$n"
+  docker exec "$name" createdb -U postgres -h 127.0.0.1 "$db"
   if [ -f "$here/fixtures/$check" ]; then
-    docker exec "$name" psql -X -v ON_ERROR_STOP=1 -U postgres -h 127.0.0.1 -d postgres \
+    docker exec "$name" psql -X -v ON_ERROR_STOP=1 -U postgres -h 127.0.0.1 -d "$db" \
       -f "/supabase/checks/fixtures/$check"
   fi
-  docker exec "$name" psql -X -v ON_ERROR_STOP=1 -U postgres -h 127.0.0.1 -d postgres \
+  docker exec "$name" psql -X -v ON_ERROR_STOP=1 -U postgres -h 127.0.0.1 -d "$db" \
     -f "/supabase/checks/$check"
 done
