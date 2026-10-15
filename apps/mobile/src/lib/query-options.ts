@@ -7,6 +7,7 @@
  */
 import {
   AllMaintenanceTasksDocument,
+  DocumentCategoriesDocument,
   ExpenseDashboardDocument,
   ExpensesByMotorcycleDocument,
   GetRideWaypointsDocument,
@@ -63,6 +64,17 @@ export const motorcyclesOptions = () =>
   queryOptions({
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+  });
+
+/**
+ * The rider's document categories, with or without the hidden ones. The flag
+ * is in the key under the `documents.categoriesAll` prefix, so one invalidation
+ * refreshes both variants. Each site adds its own `meta`.
+ */
+export const documentCategoriesOptions = (includeHidden: boolean) =>
+  queryOptions({
+    queryKey: queryKeys.documents.categories(includeHidden),
+    queryFn: () => gqlFetcher(DocumentCategoriesDocument, { includeHidden }),
   });
 
 /**

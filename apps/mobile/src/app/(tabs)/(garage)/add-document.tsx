@@ -1,4 +1,4 @@
-import { CreateDocumentDocument, DocumentCategoriesDocument } from '@motovault/graphql';
+import { CreateDocumentDocument } from '@motovault/graphql';
 import { MAX_FILES_PER_DOCUMENT } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -38,6 +38,7 @@ import {
 import { gqlFetcher } from '@/lib/graphql-client';
 import { scheduleDocumentExpiryReminder } from '@/lib/notifications';
 import { queryKeys } from '@/lib/query-keys';
+import { documentCategoriesOptions } from '@/lib/query-options';
 import { useAuthStore } from '@/stores/auth.store';
 import { useEditorialTheme } from '@/theme/editorial';
 import { radius, SYSTEM_WEIGHT, space, type } from '@/theme/type';
@@ -88,8 +89,7 @@ export default function AddDocumentScreen() {
   }, []);
 
   const { data: categoryData } = useQuery({
-    queryKey: queryKeys.documents.categories(false),
-    queryFn: () => gqlFetcher(DocumentCategoriesDocument, { includeHidden: false }),
+    ...documentCategoriesOptions(false),
   });
   const categories = categoryData?.documentCategories ?? [];
   const selectedCategory = categories.find((c) => c.id === categoryId);

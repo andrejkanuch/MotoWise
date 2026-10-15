@@ -1,4 +1,4 @@
-import { DocumentCategoriesDocument, MotorcycleRecallsDocument } from '@motovault/graphql';
+import { MotorcycleRecallsDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useCurrency } from '@/hooks/use-currency';
@@ -11,7 +11,7 @@ import type { TaskDue } from '@/lib/bike-hub/task-due';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
 import { QUERY_META } from '@/lib/query-meta';
-import { expensesOptions } from '@/lib/query-options';
+import { documentCategoriesOptions, expensesOptions } from '@/lib/query-options';
 import { type HubNote, useNotes } from '../notes/use-notes';
 import type { BikeHubData, HubBike, HubTask } from '../shell/use-bike-hub-data';
 import { useToday } from '../shell/use-today';
@@ -92,8 +92,7 @@ export function useOverviewData(
     meta: OWN_ERROR_UI,
   });
   const categoriesQuery = useQuery({
-    queryKey: queryKeys.documents.categories(true),
-    queryFn: () => gqlFetcher(DocumentCategoriesDocument, { includeHidden: true }),
+    ...documentCategoriesOptions(true),
     meta: OWN_ERROR_UI,
   });
   const categoriesLoading = categoriesQuery.data === undefined && !categoriesQuery.isError;

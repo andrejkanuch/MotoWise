@@ -20,6 +20,7 @@ jest.mock('../account-gone', () => ({
 jest.mock('../supabase', () => ({ supabase: { auth: {} } }));
 jest.mock('../analytics', () => ({ addBreadcrumb: jest.fn(), captureException: jest.fn() }));
 jest.mock('@motovault/graphql', () => ({
+  DocumentCategoriesDocument: 'DOCUMENT_CATEGORIES_DOC',
   MeDocument: 'ME_DOC',
   AllMaintenanceTasksDocument: 'TASKS_DOC',
   ExpensesByMotorcycleDocument: 'EXPENSES_DOC',
@@ -29,6 +30,7 @@ jest.mock('@motovault/graphql', () => ({
 
 import { hashKey } from '@tanstack/react-query';
 import {
+  documentCategoriesOptions,
   EXPENSES_ALL_YEARS,
   expenseDashboardQueryOptions,
   expensesOptions,
@@ -113,6 +115,26 @@ describe('expensesOptions', () => {
 
   it('carries no option of its own — enabled, staleTime and meta stay at the call site', () => {
     expect(Object.keys(expensesOptions('bike-a', 2026)).sort()).toEqual(['queryFn', 'queryKey']);
+  });
+});
+
+describe('documentCategoriesOptions', () => {
+  // Manage Categories reads the hidden ones too; every other screen does not.
+  // One invalidation of the `categoriesAll` prefix must still refresh both.
+  it('keys the hidden flag under the categoriesAll prefix, so true and false are two entries', () => {
+    const withHidden = documentCategoriesOptions(true).queryKey;
+    const visibleOnly = documentCategoriesOptions(false).queryKey;
+    expect(hashKey(withHidden)).not.toBe(hashKey(visibleOnly));
+    expect(withHidden.slice(0, 2)).toEqual(['documents', 'categories']);
+    expect(visibleOnly.slice(0, 2)).toEqual(['documents', 'categories']);
+  });
+
+  it('fetches the categories document with the flag the key carries', async () => {
+    mockFetcher.mockResolvedValue({ documentCategories: [] });
+    const options = documentCategoriesOptions(true);
+    await runQueryFn(options);
+    expect(mockFetcher).toHaveBeenCalledWith('DOCUMENT_CATEGORIES_DOC', { includeHidden: true });
+    expect(options.queryKey).toContain(true);
   });
 });
 

@@ -35,6 +35,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { hashKey } from '@tanstack/react-query';
 import {
+  documentCategoriesOptions,
   expenseDashboardQueryOptions,
   expensesOptions,
   maintenanceTasksOptions,
@@ -78,12 +79,7 @@ const SHARED_DOCUMENTS: readonly string[] = [
  * honesty check below so the list cannot go stale.
  */
 const KNOWN_UNCONVERTED: Readonly<Record<string, readonly string[]>> = {
-  'app/(tabs)/(garage)/add-document.tsx': ['DocumentCategoriesDocument'],
-  'app/(tabs)/(garage)/document/[id].tsx': ['DocumentCategoriesDocument'],
-  'app/(tabs)/(garage)/manage-document-categories.tsx': ['DocumentCategoriesDocument'],
   'app/(tabs)/(profile)/heatmap.tsx': ['MyRidesForHeatmapDocument'],
-  'components/bike-hub/documents-section.tsx': ['DocumentCategoriesDocument'],
-  'components/bike-hub/overview/use-overview-data.ts': ['DocumentCategoriesDocument'],
   'hooks/use-ride-heatmap-data.ts': ['MyRidesForHeatmapDocument'],
 };
 
@@ -170,6 +166,12 @@ const VARIABLE_FACTORIES: VariableCase[] = [
     build: (v) => expensesOptions(v.motorcycleId as string, v.year as number),
     a: { motorcycleId: 'bike-a', year: 0 },
     b: { motorcycleId: 'bike-a', year: 2026 },
+  },
+  {
+    name: 'documentCategoriesOptions',
+    build: (v) => documentCategoriesOptions(v.includeHidden as boolean),
+    a: { includeHidden: true },
+    b: { includeHidden: false },
   },
   {
     name: 'expenseDashboardQueryOptions',
