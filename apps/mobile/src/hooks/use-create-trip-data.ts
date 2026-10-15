@@ -60,11 +60,16 @@ export function useCreateTripData({
 }: UseCreateTripDataParams) {
   const queryClient = useQueryClient();
 
-  // Fetch existing trip data when in edit OR clone mode
+  // The source trip in edit OR clone mode. The form copies the first data it
+  // sees and ignores later data, so the editor must open with the trip as the
+  // server has it now: `gcTime: 0` drops the entry when the editor closes, and
+  // the next open has no data until the fetch returns — also after a change
+  // made elsewhere, such as an accepted suggestion.
   const tripQuery = useQuery({
     queryKey: queryKeys.trips.edit(sourceTripId ?? ''),
     queryFn: () => gqlFetcher(TripDetailDocument, { tripId: sourceTripId ?? '' }),
     enabled: !!sourceTripId,
+    gcTime: 0,
   });
 
   // Save draft mutation
