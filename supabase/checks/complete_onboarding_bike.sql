@@ -154,6 +154,8 @@ BEGIN
     p_user_id => rider, p_preferences => '{"onboardingCompleted": true}'::jsonb,
     p_bike_make => 'Venom', p_bike_year => 2023
   );
+  -- Checked against the table in the assertions below, as the connecting role.
+  PERFORM set_config('onb_check.has_primary_bike', coalesce(first_result ->> 'motorcycle_id', ''), true);
   IF repeat_result ->> 'motorcycle_id' IS DISTINCT FROM first_result ->> 'motorcycle_id' THEN
     RAISE EXCEPTION 'FAIL: existing-primary repeat returned a different motorcycle_id';
   END IF;
@@ -285,6 +287,15 @@ BEGIN
     SELECT 1 FROM public.motorcycles WHERE user_id = blank_model AND model = ''
   ) THEN
     RAISE EXCEPTION 'FAIL: blank-model rider has % bikes, expected 1 with an empty model', bikes;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.motorcycles
+    WHERE id = nullif(current_setting('onb_check.has_primary_bike'), '')::uuid
+      AND user_id = has_primary AND make = 'Venom' AND deleted_at IS NULL
+  ) THEN
+    RAISE EXCEPTION 'FAIL: existing-primary onboarding returned % instead of the new Venom',
+      current_setting('onb_check.has_primary_bike');
   END IF;
 
   SELECT count(*) INTO bikes FROM public.motorcycles
