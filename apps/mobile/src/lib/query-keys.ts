@@ -157,8 +157,6 @@ export const queryKeys = {
     my: ['trips', 'my'] as const,
     /** Discover draft strip: user's draft trips (non-paginated). */
     myDrafts: ['trips', 'myDrafts'] as const,
-    /** Discover horizontal strip: upcoming non-template public trips. */
-    discoverRiderStrip: ['trips', 'discoverRiderStrip'] as const,
     suggestions: (tripId: string) => ['trip-suggestions', tripId] as const,
     /** Public share-token trampoline (`tripByShareToken`). */
     byShareToken: (token: string) => ['trip-by-share-token', token] as const,

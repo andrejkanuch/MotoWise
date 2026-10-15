@@ -14,6 +14,7 @@ import { Alert } from 'react-native';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 import { userFriendlyError } from '../lib/graphql-errors';
+import { invalidateTrips } from '../lib/invalidate';
 import { queryKeys } from '../lib/query-keys';
 import { REVIEW_ACTION, recordReviewAction } from '../lib/store-review';
 import { triggerNotification } from '../utils/haptics';
@@ -87,9 +88,7 @@ export function useCreateTripData({
         waypoint_count: waypointCount,
         published: false,
       });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
+      invalidateTrips(queryClient);
       recordReviewAction(REVIEW_ACTION.EXPENSE_OR_TRIP);
       router.back();
     },
@@ -122,9 +121,7 @@ export function useCreateTripData({
         waypoint_count: waypointCount,
         max_riders: Number.parseInt(maxRiders, 10) || 10,
       });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
+      invalidateTrips(queryClient);
       recordReviewAction(REVIEW_ACTION.EXPENSE_OR_TRIP);
       router.back();
     },
@@ -148,12 +145,7 @@ export function useCreateTripData({
     },
     onSuccess: async () => {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.trips.detail(tripId ?? ''),
-      });
+      await invalidateTrips(queryClient, tripId ?? '');
       router.back();
     },
     onError: (error) => {
@@ -174,12 +166,7 @@ export function useCreateTripData({
     },
     onSuccess: async () => {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.trips.detail(tripId ?? ''),
-      });
+      await invalidateTrips(queryClient, tripId ?? '');
       router.back();
     },
     onError: (error) => {
@@ -194,9 +181,7 @@ export function useCreateTripData({
     },
     onSuccess: () => {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
+      invalidateTrips(queryClient);
       queryClient.removeQueries({ queryKey: queryKeys.trips.detail(tripId ?? '') });
       // Pop both the edit modal AND the trip-detail modal underneath it.
       router.dismissAll();
