@@ -18,12 +18,10 @@ import { useOnboardingColors } from '../../components/onboarding/onboarding-colo
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { OB_SCREEN } from '../../config/onboarding';
 import { MODAL_ROUTE } from '../../config/routes';
-import {
-  SCAN_ENTRY_SURFACE,
-  type TranslationKey,
-} from '../../features/receipt-scan/scan-flow-constants';
+import { SCAN_ENTRY_SURFACE } from '../../features/receipt-scan/scan-flow-constants';
 import { useOnboardingBack } from '../../hooks/use-onboarding-back';
 import { useOnboardingNext } from '../../hooks/use-onboarding-flow';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -134,7 +132,7 @@ export default function OnboardingScanReceiptScreen() {
             >
               <Icon size={18} color={oc.textSecondary} />
               <Text style={[type.body, { flex: 1, color: oc.textPrimary }]}>
-                {t(bullet.labelKey as TranslationKey)}
+                {tDynamic(t, bullet.labelKey)}
               </Text>
             </View>
           );

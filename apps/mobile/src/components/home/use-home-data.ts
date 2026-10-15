@@ -1,9 +1,4 @@
-import {
-  AllMaintenanceTasksDocument,
-  MyRidesDocument,
-  type MyRidesQuery,
-  MyTripsDocument,
-} from '@motovault/graphql';
+import { MyRidesDocument, type MyRidesQuery, MyTripsDocument } from '@motovault/graphql';
 import { onlineManager, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -13,7 +8,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { reconcileMaintenanceReminders } from '../../lib/notifications';
 import { queryKeys } from '../../lib/query-keys';
-import { meOptions, motorcyclesOptions } from '../../lib/query-options';
+import { maintenanceBadgeOptions, meOptions, motorcyclesOptions } from '../../lib/query-options';
 import { triggerNotification } from '../../utils/haptics';
 import { getGreeting } from './home-helpers';
 
@@ -27,11 +22,7 @@ export function useHomeData() {
     ...motorcyclesOptions(),
     meta: { showErrorAlert: false },
   });
-  const maintenanceQuery = useQuery({
-    queryKey: queryKeys.maintenanceTasks.allUser,
-    queryFn: () => gqlFetcher(AllMaintenanceTasksDocument),
-    meta: { showErrorAlert: false },
-  });
+  const maintenanceQuery = useQuery(maintenanceBadgeOptions());
   const ridesQuery = useQuery({
     queryKey: queryKeys.rides.list('home'),
     queryFn: () => gqlFetcher(MyRidesDocument, { first: 10 }),

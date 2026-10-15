@@ -38,6 +38,7 @@ import Animated, {
 import { MODAL_ROUTE } from '../../config/routes';
 import { useCurrency } from '../../hooks/use-currency';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import {
   CATEGORY_LABELS,
@@ -1602,7 +1603,7 @@ function CategoryField({
               onPress={() => onSelect(c)}
               accessibilityRole="button"
               accessibilityState={{ selected }}
-              accessibilityLabel={t(`expenses.category_${c}` as TranslationKey, {
+              accessibilityLabel={tDynamic(t, `expenses.category_${c}`, {
                 defaultValue: CATEGORY_LABELS[c],
               })}
               style={{
@@ -1622,7 +1623,7 @@ function CategoryField({
                   color: selected ? tk.warm : tk.ink2,
                 }}
               >
-                {t(`expenses.category_${c}` as TranslationKey, {
+                {tDynamic(t, `expenses.category_${c}`, {
                   defaultValue: CATEGORY_LABELS[c],
                 })}
               </Text>

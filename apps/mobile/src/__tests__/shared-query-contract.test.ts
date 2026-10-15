@@ -1,7 +1,10 @@
 /**
- * A GraphQL document that two or more files fetch has ONE `queryOptions()`
- * factory in `lib/query-options.ts`, and every `useQuery` / `useInfiniteQuery` /
- * `fetchQuery` site of that document goes through it.
+ * A GraphQL document that `lib/query-options.ts` owns has ONE `queryOptions()`
+ * factory there, and every `useQuery` / `useInfiniteQuery` / `fetchQuery` site
+ * of that document goes through it. `SHARED_DOCUMENTS` is the ratchet: the
+ * documents converted so far. A document fetched by several files but not yet
+ * listed (`MyRidesDocument`, `MyTripsDocument`, `RideOverviewDocument` at the
+ * time of writing) is not governed until it is converted and added here.
  *
  * Why: a key written by hand at each site drifts from its variables. The
  * dashboard and the health report both cached `ExpensesByMotorcycle` under the
@@ -60,8 +63,9 @@ const IMPERATIVE_SITES: readonly string[] = [
   'lib/widget-sync.ts',
 ];
 
-/** Documents fetched from two or more files. */
+/** Documents the factory file owns; each is fetched from two or more files. */
 const SHARED_DOCUMENTS: readonly string[] = [
+  'AllMaintenanceTasksDocument',
   'MyMotorcyclesDocument',
   'MaintenanceTasksByMotorcycleDocument',
   'ExpensesByMotorcycleDocument',
@@ -80,9 +84,12 @@ function sourceFiles(dir: string): string[] {
   });
 }
 
-/** `gqlFetcher(<Document>` with any whitespace, including a line break, in between. */
+/**
+ * `gqlFetcher(<Document>` with any whitespace, including a line break, in
+ * between, and with or without an explicit type argument (`gqlFetcher<...>(`).
+ */
 function fetchesDocument(source: string, document: string): boolean {
-  return new RegExp(`\\bgqlFetcher\\(\\s*${document}\\b`).test(source);
+  return new RegExp(`\\bgqlFetcher\\s*(?:<[^()]*>)?\\s*\\(\\s*${document}\\b`).test(source);
 }
 
 /** Relative source path -> the shared documents it fetches directly. */
@@ -95,6 +102,31 @@ function directFetchSites(): Map<string, string[]> {
   }
   return sites;
 }
+
+describe('the scan recognises a direct fetch', () => {
+  it.each([
+    ['plain call', 'gqlFetcher(MyMotorcyclesDocument)'],
+    ['line break', 'gqlFetcher(\n  MyMotorcyclesDocument,\n)'],
+    [
+      'explicit type argument',
+      'gqlFetcher<MyMotorcyclesQuery, MyMotorcyclesQueryVariables>(MyMotorcyclesDocument)',
+    ],
+  ])('%s', (_name, source) => {
+    expect(fetchesDocument(source, 'MyMotorcyclesDocument')).toBe(true);
+  });
+
+  it('ignores an import or a different document', () => {
+    expect(
+      fetchesDocument(
+        "import { MyMotorcyclesDocument } from '@motovault/graphql';",
+        'MyMotorcyclesDocument',
+      ),
+    ).toBe(false);
+    expect(fetchesDocument('gqlFetcher(MyMotorcyclesDocumentExtra)', 'MyMotorcyclesDocument')).toBe(
+      false,
+    );
+  });
+});
 
 describe('shared documents are fetched through their factory', () => {
   const sites = directFetchSites();

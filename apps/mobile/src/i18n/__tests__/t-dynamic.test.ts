@@ -18,8 +18,8 @@ describe('tDynamic', () => {
     expect(translated).not.toContain('{{');
   });
 
-  it('returns what t() returns for an unknown key', () => {
+  it('returns the key itself for an unknown key, as i18next does', () => {
     const key = 'nope.notAKey';
-    expect(tDynamic(i18n.t, key)).toBe(i18n.t(key as never));
+    expect(tDynamic(i18n.t, key)).toBe(key);
   });
 });
