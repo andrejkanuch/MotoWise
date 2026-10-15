@@ -15,11 +15,10 @@ import { useOnboardingColors } from '../../components/onboarding/onboarding-colo
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
 import { OB_ROUTE } from '../../config/onboarding';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
+import { useOAuthSignIn } from '../../hooks/use-oauth-sign-in';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { classifyAuthError, EMAIL_AUTH_ERROR, sendSignupCode } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
-import { reportUnexpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
-import { presentOAuthError } from '../../lib/oauth-error-alert';
 import { trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { supabase } from '../../lib/supabase';
 import { SYSTEM_WEIGHT, space, type } from '../../theme/type';
@@ -85,30 +84,7 @@ export default function OnboardingSignInScreen() {
     router.replace(OB_ROUTE.EXPERIENCE);
   };
 
-  const handleApple = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    try {
-      const { isNewUser } = await signInWithApple();
-      trackEvent(isNewUser ? AnalyticsEvent.USER_SIGNED_UP : AnalyticsEvent.USER_SIGNED_IN, {
-        auth_method: 'apple',
-      });
-    } catch (err) {
-      reportUnexpectedAuthError(err, captureException);
-      Alert.alert(t('common.error'), userFriendlyError(err));
-    }
-  };
-
-  const handleGoogle = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    try {
-      const { isNewUser } = await signInWithGoogle();
-      trackEvent(isNewUser ? AnalyticsEvent.USER_SIGNED_UP : AnalyticsEvent.USER_SIGNED_IN, {
-        auth_method: 'google',
-      });
-    } catch (err) {
-      presentOAuthError(err);
-    }
-  };
+  const { onApple, onGoogle } = useOAuthSignIn();
 
   const handleEmail = async () => {
     setBusy(true);
@@ -174,7 +150,7 @@ export default function OnboardingSignInScreen() {
           />
         ) : (
           <Animated.View entering={FadeIn.duration(200)} style={{ gap: space.sm }}>
-            <OAuthButtons onApple={handleApple} onGoogle={handleGoogle} />
+            <OAuthButtons onApple={onApple} onGoogle={onGoogle} />
             <AuthDivider label={t('onboarding.obAccountOrEmail')} />
             <View style={{ gap: space.md }}>
               <AuthField
