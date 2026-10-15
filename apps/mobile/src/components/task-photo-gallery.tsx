@@ -35,11 +35,10 @@ export function TaskPhotoGallery({
         upload: (uri) => uploadMaintenancePhoto(uri, userId, taskId),
         addPhoto: (photo) => gqlFetcher(AddTaskPhotoDocument, { input: { taskId, ...photo } }),
         deletePhoto: (photoId) => gqlFetcher(DeleteTaskPhotoDocument, { photoId }),
-        invalidate: (queryClient) => {
+        invalidate: (queryClient) =>
           queryClient.invalidateQueries({
             queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
-          });
-        },
+          }),
         labels: {
           uploadFailed: t('maintenance.photoUploadFailed', {
             defaultValue: 'Failed to upload photo',

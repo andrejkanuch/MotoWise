@@ -9,6 +9,7 @@ import {
   type Period,
   periodTotalOf,
 } from '../lib/expense-dashboard-period';
+import { QUERY_META } from '../lib/query-meta';
 import { expenseDashboardQueryOptions } from '../lib/query-options';
 
 export type { Period };
@@ -20,6 +21,8 @@ export function useExpenseDashboard(motorcycleId: string | undefined) {
   const { data, isPending, isError, refetch } = useQuery({
     ...expenseDashboardQueryOptions(motorcycleId ?? ''),
     enabled: !!motorcycleId,
+    // The dashboard renders its own error state and Retry; no global alert.
+    meta: QUERY_META.OWN_ERROR_UI,
   });
 
   const dashboard = data?.expenseDashboard;

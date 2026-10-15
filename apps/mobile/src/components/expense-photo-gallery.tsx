@@ -38,12 +38,15 @@ export function ExpensePhotoGallery({
         addPhoto: (photo) =>
           gqlFetcher(AddExpensePhotoDocument, { input: { expenseId, ...photo } }),
         deletePhoto: (photoId) => gqlFetcher(DeleteExpensePhotoDocument, { photoId }),
-        invalidate: (queryClient) => {
-          queryClient.invalidateQueries({
-            queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
-          });
-          queryClient.invalidateQueries({ queryKey: queryKeys.expensePhotos.byExpense(expenseId) });
-        },
+        invalidate: (queryClient) =>
+          Promise.all([
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
+            }),
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.expensePhotos.byExpense(expenseId),
+            }),
+          ]),
         labels: {
           uploadFailed: t('expenses.photoUploadFailed', { defaultValue: 'Failed to upload photo' }),
           addTitle: t('expenses.addReceipt', { defaultValue: 'Add Receipt' }),

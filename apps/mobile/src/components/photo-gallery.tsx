@@ -31,8 +31,12 @@ export type PhotoGalleryConfig = {
   /** Records the uploaded photo on this owner. */
   addPhoto: (photo: UploadedPhoto) => Promise<unknown>;
   deletePhoto: (photoId: string) => Promise<unknown>;
-  /** Runs after an add or a delete succeeds. */
-  invalidate: (queryClient: QueryClient) => void;
+  /**
+   * Runs after an add or a delete succeeds. Returns the refetch so the mutation
+   * stays pending until `photos` is fresh; a second tap on a photo that is
+   * already deleted would otherwise hit the server again and fail silently.
+   */
+  invalidate: (queryClient: QueryClient) => Promise<unknown>;
   labels: {
     uploadFailed: string;
     addTitle: string;
@@ -112,6 +116,7 @@ export function PhotoGallery({
   };
 
   const handleDeletePhoto = (photo: GalleryPhoto) => {
+    if (deletePhotoMutation.isPending) return;
     triggerImpact();
     Alert.alert(labels.deleteTitle, labels.deleteMessage, [
       { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
