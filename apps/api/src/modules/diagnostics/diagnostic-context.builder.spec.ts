@@ -1,8 +1,9 @@
 import { MeasurementSystem } from '@motovault/types';
 import { Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  BIKE_CONTEXT_TIMEOUT_MS,
   type BuildBikeContextParams,
   DiagnosticContextBuilder,
   MECHANICAL_EXPENSE_CATEGORIES,
@@ -12,7 +13,7 @@ import { BIKE_CONTEXT_SCOPE } from './diagnostic-context.format';
 
 type QueryResult = { data: unknown; error: { message: string } | null };
 type Filters = Record<string, unknown>;
-type Resolve = (table: string, filters: Filters) => QueryResult;
+type Resolve = (table: string, filters: Filters) => QueryResult | Promise<QueryResult>;
 
 const OK_EMPTY: QueryResult = { data: [], error: null };
 const COMPLETED = 'completed';
@@ -24,6 +25,7 @@ const COMPLETED = 'completed';
  */
 function mockSupabase(resolve: Resolve) {
   const tables: string[] = [];
+  const signals: AbortSignal[] = [];
   const client = {
     from: vi.fn((table: string) => {
       tables.push(table);
@@ -32,6 +34,10 @@ function mockSupabase(resolve: Resolve) {
       for (const method of ['select', 'gte', 'order', 'limit']) {
         builder[method] = vi.fn(() => builder);
       }
+      builder.abortSignal = vi.fn((signal: AbortSignal) => {
+        signals.push(signal);
+        return builder;
+      });
       for (const method of ['is', 'neq']) {
         builder[method] = vi.fn((column: string, value: unknown) => {
           filters[`${method}:${column}`] = value;
@@ -52,7 +58,7 @@ function mockSupabase(resolve: Resolve) {
       return builder;
     }),
   };
-  return { client: client as unknown as SupabaseClient, tables };
+  return { client: client as unknown as SupabaseClient, tables, signals };
 }
 
 const params = (overrides: Partial<BuildBikeContextParams> = {}): BuildBikeContextParams => ({
@@ -243,5 +249,74 @@ describe('DiagnosticContextBuilder.build', () => {
     const builder = new DiagnosticContextBuilder(client);
 
     expect(await builder.build(params())).toBeUndefined();
+  });
+});
+
+describe('DiagnosticContextBuilder.build deadline', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('gives up on a section that never answers, keeps the rest, and cancels the request', async () => {
+    // Arrange: notes hangs forever, every other section answers
+    const warn = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+    const { client, signals } = mockSupabase((table, filters) =>
+      table === 'notes' ? new Promise<QueryResult>(() => {}) : happyResolve(table, filters),
+    );
+    const builder = new DiagnosticContextBuilder(client);
+
+    // Act
+    const pending = builder.build(params());
+    await vi.advanceTimersByTimeAsync(BIKE_CONTEXT_TIMEOUT_MS);
+    const result = await pending;
+
+    // Assert
+    expect(result).toContain('Regulator');
+    expect(result).not.toContain("Owner's notes");
+    expect(signals.length).toBeGreaterThan(0);
+    expect(signals.every((signal) => signal.aborted)).toBe(true);
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining(`"notes" skipped for motorcycleId=bike-1: timed out after`),
+    );
+  });
+
+  it('resolves at the deadline even when every section hangs', async () => {
+    const { client } = mockSupabase(() => new Promise<QueryResult>(() => {}));
+    const builder = new DiagnosticContextBuilder(client);
+
+    const pending = builder.build(params());
+    await vi.advanceTimersByTimeAsync(BIKE_CONTEXT_TIMEOUT_MS);
+
+    await expect(pending).resolves.toBeUndefined();
+  });
+
+  it('clears the deadline on the fast path so nothing is aborted later', async () => {
+    const { client, signals } = mockSupabase(happyResolve);
+    const builder = new DiagnosticContextBuilder(client);
+
+    await builder.build(params());
+    await vi.advanceTimersByTimeAsync(BIKE_CONTEXT_TIMEOUT_MS * 2);
+
+    expect(signals.some((signal) => signal.aborted)).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('never rejects: an unexpected throw degrades to no context', async () => {
+    // Arrange: an unknown scope makes the section lookup itself throw
+    const warn = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+    const { client } = mockSupabase(happyResolve);
+    const builder = new DiagnosticContextBuilder(client);
+
+    // Act
+    const result = await builder.build(params({ scope: 'bogus' as never }));
+
+    // Assert
+    expect(result).toBeUndefined();
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('bike context skipped for motorcycleId=bike-1'),
+    );
   });
 });

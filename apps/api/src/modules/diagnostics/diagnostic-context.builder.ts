@@ -27,6 +27,14 @@ import {
  * has older items to choose from (e.g. a stator replaced 14 months ago behind
  * eight newer oil changes). Still bounded, newest first.
  */
+/**
+ * Whole fan-out budget for the history reads. Far below the 60s AI call: a
+ * hung read must cost the rider a few seconds of context, never leave the
+ * diagnosis stuck in "processing" (docs/solutions/ui-bugs/stuck-processing-
+ * diagnostics-infinite-spinner.md). Sections that finish in time are kept.
+ */
+export const BIKE_CONTEXT_TIMEOUT_MS = 4_000;
+
 const FETCH_LIMIT = 40;
 const RIDE_FETCH_LIMIT = 200;
 const RIDE_LOOKBACK_DAYS = 365;
@@ -113,6 +121,20 @@ export function resolveBikeContextScope(flags: {
 }
 
 /**
+ * Rejects with the deadline's reason as soon as `signal` aborts, whether or not
+ * `work` ever settles. `.abortSignal()` on the query cancels the request, but a
+ * read that hangs anywhere else must not hold the diagnosis either.
+ */
+function settleBy<T>(work: Promise<T>, signal: AbortSignal): Promise<T> {
+  if (signal.aborted) return Promise.reject(signal.reason);
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(signal.reason);
+    signal.addEventListener('abort', onAbort, { once: true });
+    work.then(resolve, reject).finally(() => signal.removeEventListener('abort', onAbort));
+  });
+}
+
+/**
  * supabase-js resolves `{ error }` instead of rejecting; turn it into a rejection for allSettled.
  * The Row aliases above must match each reader's select string — the untyped client does not check it.
  */
@@ -133,12 +155,40 @@ export class DiagnosticContextBuilder {
 
   constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
 
+  /** Never rejects: any failure, including the timeout, degrades to less (or no) context. */
   async build(params: BuildBikeContextParams): Promise<string | undefined> {
+    try {
+      return await this.buildWithDeadline(params);
+    } catch (error) {
+      this.logger.warn(
+        `bike context skipped for motorcycleId=${params.motorcycleId}: ${
+          error instanceof Error ? error.message : 'unknown error'
+        }`,
+      );
+      return undefined;
+    }
+  }
+
+  private async buildWithDeadline(params: BuildBikeContextParams): Promise<string | undefined> {
     const now = params.now ?? new Date();
     const sections = SCOPE_SECTIONS[params.scope];
-    const readers = this.sectionReaders(params, now);
+    // setTimeout + AbortController rather than AbortSignal.timeout(), so the
+    // deadline is cleared on the fast path and test fake timers can drive it.
+    const deadline = new AbortController();
+    const timer = setTimeout(
+      () => deadline.abort(new Error(`timed out after ${BIKE_CONTEXT_TIMEOUT_MS}ms`)),
+      BIKE_CONTEXT_TIMEOUT_MS,
+    );
+    const readers = this.sectionReaders(params, now, deadline.signal);
 
-    const settled = await Promise.allSettled(sections.map((key) => readers[key]()));
+    let settled: PromiseSettledResult<Partial<BikeContextData>>[];
+    try {
+      settled = await Promise.allSettled(
+        sections.map((key) => settleBy(readers[key](), deadline.signal)),
+      );
+    } finally {
+      clearTimeout(timer);
+    }
 
     const data: BikeContextData = PROFILE_SCOPES.has(params.scope)
       ? { profile: params.profile }
@@ -168,12 +218,15 @@ export class DiagnosticContextBuilder {
   private sectionReaders(
     params: BuildBikeContextParams,
     now: Date,
+    signal: AbortSignal,
   ): Record<SectionKey, () => Promise<Partial<BikeContextData>>> {
     const { userId, motorcycleId } = params;
     const forBike = (table: string, columns: string) =>
       this.supabase
         .from(table)
         .select(columns)
+        // cancels the HTTP request itself at the deadline, not just our wait for it
+        .abortSignal(signal)
         .eq('user_id', userId)
         .eq('motorcycle_id', motorcycleId);
 
