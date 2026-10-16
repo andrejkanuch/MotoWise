@@ -204,9 +204,12 @@ const splitKeys = (value?: string): string[] =>
 
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-/** Word-start match so "oil" does not hit "coil" while "batter" still hits "battery". */
-const matchesKeyword = (haystack: string, keyword: string) =>
-  new RegExp(`\\b${escapeRegExp(keyword)}`, 'i').test(haystack);
+/**
+ * One compiled word-start matcher for a keyword set, so "oil" does not hit
+ * "coil" while "batter" still hits "battery". `null` when there is nothing to match.
+ */
+const keywordMatcher = (keywords: readonly string[]): RegExp | null =>
+  keywords.length === 0 ? null : new RegExp(`\\b(?:${keywords.map(escapeRegExp).join('|')})`, 'i');
 
 /**
  * Derive the keyword set for the areas the rider's symptoms point at:
@@ -231,7 +234,7 @@ export function detectSymptomKeywords(input: SymptomInput): string[] {
     .join(' ');
   if (riderText) {
     for (const [area, keywords] of Object.entries(SYMPTOM_AREA_KEYWORDS)) {
-      if (keywords.some((keyword) => matchesKeyword(riderText, keyword))) areas.add(area);
+      if (keywordMatcher(keywords)?.test(riderText)) areas.add(area);
     }
   }
   return [...new Set([...areas].flatMap((area) => SYMPTOM_AREA_KEYWORDS[area] ?? []))];
@@ -248,13 +251,14 @@ export function pickRelevantFirst<T>(
   cap: number,
 ): T[] {
   if (items.length <= cap) return [...items];
-  const isRelevant = (item: T) => {
-    const text = textOf(item);
-    return keywords.some((keyword) => matchesKeyword(text, keyword));
-  };
-  const indexed = items.map((item, index) => ({ item, index }));
-  const relevant = indexed.filter(({ item }) => isRelevant(item));
-  const rest = indexed.filter(({ item }) => !isRelevant(item));
+  const matcher = keywordMatcher(keywords);
+  const indexed = items.map((item, index) => ({
+    item,
+    index,
+    relevant: matcher?.test(textOf(item)) ?? false,
+  }));
+  const relevant = indexed.filter((entry) => entry.relevant);
+  const rest = indexed.filter((entry) => !entry.relevant);
   return [...relevant, ...rest]
     .slice(0, cap)
     .sort((a, b) => a.index - b.index)
