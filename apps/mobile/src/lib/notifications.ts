@@ -1,6 +1,6 @@
 import { palette } from '@motovault/design-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { differenceInCalendarDays } from 'date-fns';
+import { differenceInCalendarDays, parseISO } from 'date-fns';
 import * as Notifications from 'expo-notifications';
 import i18n from '../i18n';
 import { logger } from './logger';
@@ -59,6 +59,20 @@ export const NOTIFICATION_ACTION = {
 // MOT-139: Map now stores an ARRAY of notification ids per task so we can
 // cancel all scheduled stages (30d / 7d / 1d) atomically.
 const NOTIFICATION_MAP_KEY = '@motovault/notification-map';
+
+/**
+ * Bumped when the rule that turns a due date into fire dates changes, so that
+ * stages already sitting in the OS are dropped once and scheduled again by the
+ * next reconcile. 1 (implicit, no key stored): due dates read as UTC midnight,
+ * a day early west of Greenwich. 2: due dates read as local midnight.
+ */
+const REMINDER_SCHEDULE_VERSION = 2;
+const REMINDER_SCHEDULE_VERSION_KEY = '@motovault/reminder-schedule-version';
+
+/** Document and parked-scan stages live in their own keyspaces of the same map. */
+const OTHER_KEYSPACE_PREFIXES = ['doc:', 'scan:'] as const;
+const isMaintenanceKey = (key: string): boolean =>
+  !OTHER_KEYSPACE_PREFIXES.some((prefix) => key.startsWith(prefix));
 
 // --- Internal helpers for taskId -> notificationId[] mapping ---
 
@@ -290,7 +304,11 @@ export async function scheduleMaintenanceReminder(
   task: ReminderTask,
   bikeName: string,
 ): Promise<void> {
-  const dueDate = new Date(task.dueDate);
+  // `due_date` is a date-only string (YYYY-MM-DD). `new Date('2026-10-20')`
+  // reads it as UTC midnight, which west of Greenwich is still the 19th, so
+  // every stage fired a day early in the Americas. `parseISO` reads a date-only
+  // string as local midnight (the same reading as `utils/days-until`).
+  const dueDate = parseISO(task.dueDate);
   const daysUntilDue = differenceInCalendarDays(dueDate, new Date());
 
   if (daysUntilDue < 0 || daysUntilDue > 90) return;
@@ -412,11 +430,9 @@ export async function scheduleDocumentExpiryReminder(
   doc: DocumentReminder,
   bikeName: string,
 ): Promise<void> {
-  // expiryDate is a date-only string (YYYY-MM-DD). `new Date('2026-08-01')` parses
-  // as UTC midnight, which in negative-UTC (Americas) timezones is the PREVIOUS
-  // calendar day locally — shifting every reminder stage one day early. Append a
-  // local time component so the date anchors to local midnight on the right day.
-  const expiry = new Date(`${doc.expiryDate}T00:00:00`);
+  // expiryDate is a date-only string (YYYY-MM-DD); `parseISO` reads it as local
+  // midnight, so the stages land on the right calendar day west of Greenwich too.
+  const expiry = parseISO(doc.expiryDate);
   const now = new Date();
   const daysUntil = differenceInCalendarDays(expiry, now);
 
@@ -629,7 +645,7 @@ export async function reconcileMaintenanceReminders(
 ): Promise<void> {
   if (!(await hasNotificationPermission())) return;
 
-  const map = await getNotificationMap();
+  const map = await dropMaintenanceStagesOnRuleChange(await getNotificationMap());
   const activeIds = new Set<string>();
 
   for (const task of tasks) {
@@ -657,9 +673,30 @@ export async function reconcileMaintenanceReminders(
   for (const key of Object.keys(map)) {
     // Skip other feature keyspaces — documents and parked scans reconcile
     // separately and must not be swept by the maintenance reconciler.
-    if (key.startsWith('doc:') || key.startsWith('scan:')) continue;
+    if (!isMaintenanceKey(key)) continue;
     if (!activeIds.has(key)) {
       await cancelTaskNotification(key);
     }
   }
+}
+
+/**
+ * Once per REMINDER_SCHEDULE_VERSION: cancel every stored maintenance stage and
+ * forget its ids, so the reconcile that follows schedules each active task
+ * again under the current rule. Document stages are left alone: nothing
+ * reconciles them, so dropping them would lose the reminder rather than move
+ * it; they are rescheduled when the rider edits the document.
+ */
+async function dropMaintenanceStagesOnRuleChange(
+  map: Record<string, string[]>,
+): Promise<Record<string, string[]>> {
+  const stored = await AsyncStorage.getItem(REMINDER_SCHEDULE_VERSION_KEY);
+  if (stored === String(REMINDER_SCHEDULE_VERSION)) return map;
+  for (const key of Object.keys(map)) {
+    if (!isMaintenanceKey(key)) continue;
+    await cancelTaskNotification(key);
+    delete map[key];
+  }
+  await AsyncStorage.setItem(REMINDER_SCHEDULE_VERSION_KEY, String(REMINDER_SCHEDULE_VERSION));
+  return map;
 }
