@@ -114,6 +114,37 @@ describe('useDiagnosticEntryGate', () => {
   });
 });
 
+describe('useDiagnosticEntryGate after the form is gone', () => {
+  it('neither presents nor navigates once the rider closed the form while offerings loaded', async () => {
+    mockFetcher.mockResolvedValue(quota(1));
+    let resolvePaywall: (result: string) => void = () => {};
+    let abortCheck: (() => boolean) | undefined;
+    mockPresentPaywall.mockImplementation((options: { shouldAbort?: () => boolean }) => {
+      abortCheck = options.shouldAbort;
+      return new Promise((resolve) => {
+        resolvePaywall = resolve;
+      });
+    });
+    const onBlocked = jest.fn();
+    const { unmount } = await renderHook(() => useDiagnosticEntryGate(onBlocked), { wrapper });
+    await waitFor(() => expect(mockPresentPaywall).toHaveBeenCalledTimes(1));
+
+    await unmount();
+    expect(abortCheck?.()).toBe(true);
+    await act(async () => resolvePaywall('not_presented'));
+    expect(onBlocked).not.toHaveBeenCalled();
+  });
+
+  it('still closes the form when the paywall fails to show, so the rider is not left in a blocked form', async () => {
+    mockFetcher.mockResolvedValue(quota(1));
+    mockPresentPaywall.mockResolvedValue('error');
+    const onBlocked = jest.fn();
+    await renderHook(() => useDiagnosticEntryGate(onBlocked), { wrapper });
+
+    await waitFor(() => expect(onBlocked).toHaveBeenCalledTimes(1));
+  });
+});
+
 describe('useStartDiagnosis', () => {
   it('opens the flow while the quota is still unknown (server limit is the backstop)', async () => {
     mockFetcher.mockReturnValue(new Promise(() => {}));

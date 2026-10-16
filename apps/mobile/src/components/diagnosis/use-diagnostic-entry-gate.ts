@@ -22,12 +22,26 @@ const DIAGNOSTIC_PAYWALL = {
 export function useDiagnosticEntryGate(onBlocked: () => void): void {
   const quota = useDiagnosticQuota();
   const checkedRef = useRef(false);
+  // The rider can close the form while offerings load: then neither present
+  // the paywall nor navigate back — "back" from the list would leave the tab.
+  const unmountedRef = useRef(false);
+  useEffect(
+    () => () => {
+      unmountedRef.current = true;
+    },
+    [],
+  );
   useEffect(() => {
     if (checkedRef.current || !quota.isKnown) return;
     checkedRef.current = true;
     if (!quota.isExhausted) return;
-    presentPaywall(DIAGNOSTIC_PAYWALL).finally(() => {
-      if (!useSubscriptionStore.getState().isPro) onBlocked();
-    });
+    presentPaywall({ ...DIAGNOSTIC_PAYWALL, shouldAbort: () => unmountedRef.current }).then(
+      (result) => {
+        if (unmountedRef.current) return;
+        const unlocked =
+          result === 'purchased' || result === 'restored' || useSubscriptionStore.getState().isPro;
+        if (!unlocked) onBlocked();
+      },
+    );
   });
 }
