@@ -22,9 +22,9 @@ export const BIKE_CONTEXT_CAPS = {
 } as const;
 
 export const MAX_LINE_CHARS = 160;
-export const MAX_NOTE_CHARS = 240;
+const MAX_NOTE_CHARS = 240;
 export const MAX_BIKE_CONTEXT_CHARS = 4000;
-export const RIDE_USAGE_WINDOW_DAYS = 90;
+const RIDE_USAGE_WINDOW_DAYS = 90;
 export const TRUNCATION_MARKER = '- (more history omitted to stay within budget)';
 
 /** What the rider's consent covers. `maintenance` is the legacy "maintenance history" toggle scope. */
@@ -39,7 +39,7 @@ export type BikeContextScope = (typeof BIKE_CONTEXT_SCOPE)[keyof typeof BIKE_CON
  * (sent comma-joined in `wizardAnswers.location`). English-only in v1: item
  * text written in another language simply falls back to recency ordering.
  */
-export const SYMPTOM_AREA_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
+const SYMPTOM_AREA_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
   electrical: [
     'batter',
     'stator',

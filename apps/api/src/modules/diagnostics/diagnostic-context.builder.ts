@@ -65,15 +65,13 @@ const SCOPE_SECTIONS: Record<BikeContextScope, readonly SectionKey[]> = {
   [BIKE_CONTEXT_SCOPE.FULL]: Object.values(SECTION),
 };
 
-type TaskRow = Pick<
+type CompletedTaskRow = Pick<
   Tables<'maintenance_tasks'>,
-  | 'title'
-  | 'description'
-  | 'completed_at'
-  | 'completed_mileage'
-  | 'due_date'
-  | 'target_mileage'
-  | 'priority'
+  'title' | 'description' | 'completed_at' | 'completed_mileage'
+>;
+type OpenTaskRow = Pick<
+  Tables<'maintenance_tasks'>,
+  'title' | 'description' | 'due_date' | 'target_mileage' | 'priority'
 >;
 type ExpenseRow = Pick<Tables<'expenses'>, 'category' | 'item_name' | 'description' | 'date'>;
 type NoteRow = Pick<Tables<'notes'>, 'body' | 'created_at' | 'odometer'>;
@@ -111,7 +109,10 @@ export function resolveBikeContextScope(flags: {
   return flags.includeMaintenanceHistory ? BIKE_CONTEXT_SCOPE.MAINTENANCE : null;
 }
 
-/** supabase-js resolves `{ error }` instead of rejecting; turn it into a rejection for allSettled. */
+/**
+ * supabase-js resolves `{ error }` instead of rejecting; turn it into a rejection for allSettled.
+ * The Row aliases above must match each reader's select string — the untyped client does not check it.
+ */
 function rowsOrThrow<T>(result: { data: unknown; error: PostgrestError | null }): T[] {
   if (result.error) throw new Error(result.error.message);
   return (result.data ?? []) as T[];
@@ -173,7 +174,7 @@ export class DiagnosticContextBuilder {
 
     return {
       [SECTION.COMPLETED_SERVICES]: async () => {
-        const rows = rowsOrThrow<TaskRow>(
+        const rows = rowsOrThrow<CompletedTaskRow>(
           await forBike('maintenance_tasks', 'title, description, completed_at, completed_mileage')
             .eq('status', MaintenanceTaskStatus.COMPLETED)
             .is('deleted_at', null)
@@ -191,7 +192,7 @@ export class DiagnosticContextBuilder {
       },
 
       [SECTION.OPEN_SERVICES]: async () => {
-        const rows = rowsOrThrow<TaskRow>(
+        const rows = rowsOrThrow<OpenTaskRow>(
           await forBike(
             'maintenance_tasks',
             'title, description, due_date, target_mileage, priority',
