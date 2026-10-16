@@ -22,6 +22,7 @@ import { DiagnosticsService } from './diagnostics.service';
 import { CreateDiagnosticInput } from './dto/create-diagnostic.input';
 import { SubmitDiagnosticInput } from './dto/submit-diagnostic.input';
 import { Diagnostic } from './models/diagnostic.model';
+import { DiagnosticQuota } from './models/diagnostic-quota.model';
 
 @Resolver(() => Diagnostic)
 export class DiagnosticsResolver {
@@ -39,6 +40,11 @@ export class DiagnosticsResolver {
   @Query(() => [Diagnostic])
   async myDiagnostics(@CurrentUser() user: AuthUser): Promise<Diagnostic[]> {
     return this.diagnosticsService.findByUser(user.id);
+  }
+
+  @Query(() => DiagnosticQuota)
+  async diagnosticQuota(@CurrentUser() user: AuthUser): Promise<DiagnosticQuota> {
+    return this.aiBudgetService.getFeatureUsage(user.id, AI_CONTENT_TYPES.DIAGNOSTIC);
   }
 
   @Query(() => Diagnostic, { nullable: true })

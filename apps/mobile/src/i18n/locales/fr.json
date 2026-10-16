@@ -204,6 +204,8 @@
     "shareReport": "Partager le rapport de diagnostic",
     "headerSubhead": "Décrivez un symptôme. Obtenez les causes probables et la marche à suivre.",
     "startCta": "Lancer un diagnostic",
+    "quotaRemaining": "Gratuit ce mois-ci : {{count}} diagnostic(s) restant(s) sur {{limit}}",
+    "quotaUsed": "Le diagnostic gratuit de ce mois est utilisé. Il revient le {{date}}, ou passez à Pro pour un accès illimité.",
     "emptyExplainer": "Décrivez ce que vous entendez, voyez ou ressentez, et ajoutez une photo si possible. Vous obtenez les causes probables, le degré d'urgence et les prochaines étapes.",
     "severityLevel": {
       "low": "Faible",

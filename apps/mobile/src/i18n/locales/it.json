@@ -204,6 +204,8 @@
     "shareReport": "Condividi rapporto diagnostico",
     "headerSubhead": "Descrivi un sintomo. Ottieni le cause probabili e cosa fare dopo.",
     "startCta": "Avvia una diagnosi",
+    "quotaRemaining": "Gratis questo mese: {{count}} di {{limit}} diagnosi rimaste",
+    "quotaUsed": "Hai usato la diagnosi gratuita di questo mese. Torna il {{date}}, oppure passa a Pro per diagnosi illimitate.",
     "emptyExplainer": "Racconta cosa senti, vedi o percepisci e aggiungi una foto se puoi. Ottieni le cause probabili, l'urgenza e i passi successivi.",
     "severityLevel": {
       "low": "Bassa",

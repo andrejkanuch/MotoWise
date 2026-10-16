@@ -17,6 +17,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
+import { useDiagnosticEntryGate } from '@/components/diagnosis/use-diagnostic-entry-gate';
+import { recordDiagnosisSubmitted } from '@/components/diagnosis/use-diagnostic-quota';
 import { useDiagnosticColors } from '@/components/diagnostic-flow/diagnostic-colors';
 import { DiagnosticProgressBar } from '@/components/diagnostic-flow/progress-bar';
 import { StepBikeSelection } from '@/components/diagnostic-flow/step-bike-selection';
@@ -30,7 +32,6 @@ import { GRAPHQL_ERROR_CODE } from '@/lib/graphql-error-classification';
 import { hasGraphQLCode } from '@/lib/graphql-errors';
 import { MetaAnalytics } from '@/lib/meta-analytics';
 import { isNetworkError } from '@/lib/network-error';
-import { queryKeys } from '@/lib/query-keys';
 import { useDiagnosticFlowStore } from '@/stores/diagnostic-flow.store';
 import { space } from '@/theme/type';
 
@@ -129,6 +130,8 @@ export default function NewDiagnosticScreen() {
     }
   };
 
+  useDiagnosticEntryGate(navigateBack);
+
   const handleClose = () => {
     if (useDiagnosticFlowStore.getState().isSubmitting) return;
     if (hasAnyData()) {
@@ -199,7 +202,7 @@ export default function NewDiagnosticScreen() {
         has_photo: !!state.photoUri,
         has_wizard_answers: !!hasWizardAnswers,
       });
-      queryClient.invalidateQueries({ queryKey: queryKeys.diagnostics.all });
+      recordDiagnosisSubmitted(queryClient);
       router.replace(`/(diagnose)/${result.submitDiagnostic.id}` as `/${string}`);
     } catch (error: unknown) {
       let message = 'Failed to analyze';

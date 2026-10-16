@@ -68,6 +68,13 @@ const AI_FEATURE_LIMIT_RULES = {
 
 export type LimitedAiFeature = keyof typeof AI_FEATURE_LIMIT_RULES;
 
+export interface FeatureUsage {
+  used: number;
+  limit: number;
+  /** ISO 8601 — start of the next period, UTC. */
+  resetDate: string;
+}
+
 const GENERATION_OUTCOMES = {
   SUCCESS: 'success',
   FAILED: 'failed',
@@ -327,6 +334,34 @@ export class AiBudgetService {
     const tier = (userData?.subscription_tier as 'free' | 'pro') ?? 'free';
     if (tier === 'pro') return;
 
+    const count = await this.countFeatureUsage(userId, feature);
+
+    if (count >= rule.limit) {
+      this.logger.warn(
+        `User ${userId} hit free-tier ${feature} limit: ${count}/${rule.limit} per ${rule.period}`,
+      );
+      throw new ForbiddenException(rule.upsell);
+    }
+  }
+
+  /**
+   * Tier-INDEPENDENT usage of a limited feature in its current period — the
+   * same count enforceFeatureLimit applies, so a client gate built on it can
+   * never disagree with the server. The client decides "exhausted" from
+   * `limit` + RevenueCat `isPro` (receipt-scan precedent, KTD-3), which lets
+   * the paywall open BEFORE the user fills in a form the server would reject.
+   */
+  async getFeatureUsage(userId: string, feature: LimitedAiFeature): Promise<FeatureUsage> {
+    const rule: FeatureLimitRule = AI_FEATURE_LIMIT_RULES[feature];
+    return {
+      used: await this.countFeatureUsage(userId, feature),
+      limit: rule.limit,
+      resetDate: this.periodEndUtc(rule.period).toISOString(),
+    };
+  }
+
+  private async countFeatureUsage(userId: string, feature: LimitedAiFeature): Promise<number> {
+    const rule: FeatureLimitRule = AI_FEATURE_LIMIT_RULES[feature];
     const periodStart = this.periodStartUtc(rule.period);
 
     const { count, error } = await this.adminClient
@@ -342,12 +377,7 @@ export class AiBudgetService {
       throw new InternalServerErrorException('Unable to verify your AI usage quota.');
     }
 
-    if ((count ?? 0) >= rule.limit) {
-      this.logger.warn(
-        `User ${userId} hit free-tier ${feature} limit: ${count}/${rule.limit} per ${rule.period}`,
-      );
-      throw new ForbiddenException(rule.upsell);
-    }
+    return count ?? 0;
   }
 
   // date-fns is not an apps/api dependency (root-only hoist), so this uses the
@@ -357,6 +387,14 @@ export class AiBudgetService {
     if (period === LIMIT_PERIODS.MONTH) start.setUTCDate(1);
     start.setUTCHours(0, 0, 0, 0);
     return start;
+  }
+
+  /** First instant of the NEXT period (UTC) — when the quota resets. */
+  private periodEndUtc(period: LimitPeriod): Date {
+    const end = this.periodStartUtc(period);
+    if (period === LIMIT_PERIODS.MONTH) end.setUTCMonth(end.getUTCMonth() + 1);
+    else end.setUTCDate(end.getUTCDate() + 1);
+    return end;
   }
 
   /** Admin: get current budget status */

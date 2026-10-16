@@ -204,6 +204,8 @@
     "shareReport": "Teşhis Raporunu Paylaş",
     "headerSubhead": "Bir belirtiyi anlat. Olası nedenleri ve sonraki adımları öğren.",
     "startCta": "Teşhis başlat",
+    "quotaRemaining": "Bu ay ücretsiz: {{limit}} teşhisten {{count}} kaldı",
+    "quotaUsed": "Bu ayın ücretsiz teşhisi kullanıldı. {{date}} tarihinde yenilenir ya da sınırsız kullanım için Pro'ya geçin.",
     "emptyExplainer": "Duyduğunu, gördüğünü veya hissettiğini anlat, mümkünse bir fotoğraf ekle. Olası nedenleri, aciliyeti ve sonraki adımları öğrenirsin.",
     "severityLevel": {
       "low": "Düşük",
