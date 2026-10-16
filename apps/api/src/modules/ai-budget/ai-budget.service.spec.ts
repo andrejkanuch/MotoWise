@@ -1,5 +1,6 @@
+import { FREE_TIER_LIMITS } from '@motovault/types';
 import { ForbiddenException, InternalServerErrorException } from '@nestjs/common';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AI_CONTENT_TYPES, AiBudgetService } from './ai-budget.service';
 
 describe('AiBudgetService', () => {
@@ -120,6 +121,49 @@ describe('AiBudgetService', () => {
       mockAdmin._chain.single.mockResolvedValue({ data: null, error: { message: 'db down' } });
 
       await expect(service.enforceFeatureLimit('u1', AI_CONTENT_TYPES.DIAGNOSTIC)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+  });
+
+  describe('getFeatureUsage', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('returns the same success count the limit enforces, with the limit and next-month reset', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-12-15T10:00:00Z'));
+      mockAdmin._chain.then.mockImplementation((resolve: (v: unknown) => void) =>
+        resolve({ count: 1, error: null }),
+      );
+
+      const usage = await service.getFeatureUsage('u1', AI_CONTENT_TYPES.DIAGNOSTIC);
+
+      expect(usage).toEqual({
+        used: 1,
+        limit: FREE_TIER_LIMITS.MAX_AI_DIAGNOSTICS_PER_MONTH,
+        resetDate: '2027-01-01T00:00:00.000Z',
+      });
+      expect(mockAdmin._chain.eq).toHaveBeenCalledWith('content_type', AI_CONTENT_TYPES.DIAGNOSTIC);
+      expect(mockAdmin._chain.eq).toHaveBeenCalledWith('status', 'success');
+      expect(mockAdmin._chain.gte).toHaveBeenCalledWith('created_at', '2026-12-01T00:00:00.000Z');
+    });
+
+    it('does not read the tier — usage is tier-independent', async () => {
+      mockAdmin._chain.then.mockImplementation((resolve: (v: unknown) => void) =>
+        resolve({ count: 0, error: null }),
+      );
+
+      await service.getFeatureUsage('u1', AI_CONTENT_TYPES.DIAGNOSTIC);
+
+      expect(mockAdmin._chain.single).not.toHaveBeenCalled();
+    });
+
+    it('fails closed (ISE) when the count errors', async () => {
+      mockAdmin._chain.then.mockImplementation((resolve: (v: unknown) => void) =>
+        resolve({ count: null, error: { message: 'db down' } }),
+      );
+
+      await expect(service.getFeatureUsage('u1', AI_CONTENT_TYPES.DIAGNOSTIC)).rejects.toThrow(
         InternalServerErrorException,
       );
     });

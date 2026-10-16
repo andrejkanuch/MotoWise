@@ -574,6 +574,12 @@ type Diagnostic {
   userId: String!
 }
 
+type DiagnosticQuota {
+  limit: Int!
+  resetDate: String!
+  used: Int!
+}
+
 enum DiagnosticSeverity {
   critical
   high
@@ -1504,6 +1510,7 @@ type Query {
   """Regions with population > 0 for a country slug"""
   browseRegionsByCountrySlug(countrySlug: String!): [BrowsePlace!]!
   diagnosticById(id: String!): Diagnostic
+  diagnosticQuota: DiagnosticQuota!
   discoverRiderTrips(after: String, first: Int = 5): TripConnection!
   documentCategories(includeHidden: Boolean): [DocumentCategory!]!
   documents(motorcycleId: String!): [Document!]!

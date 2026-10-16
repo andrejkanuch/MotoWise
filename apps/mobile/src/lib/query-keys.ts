@@ -9,6 +9,7 @@ export const queryKeys = {
   diagnostics: {
     all: ['diagnostics'] as const,
     detail: (id: string) => ['diagnostics', 'detail', id] as const,
+    quota: ['diagnostics', 'quota'] as const,
   },
   progress: {
     all: ['progress'] as const,

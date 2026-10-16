@@ -204,6 +204,8 @@
     "shareReport": "診断レポートを共有",
     "headerSubhead": "症状を伝えるだけで、考えられる原因と次にやることがわかります。",
     "startCta": "診断を始める",
+    "quotaRemaining": "今月の無料診断：残り {{count}} / {{limit}} 回",
+    "quotaUsed": "今月の無料診断は使用済みです。{{date}}に再び利用できます。Proなら無制限です。",
     "emptyExplainer": "聞こえる音、見えるもの、感じることを伝え、できれば写真も追加してください。考えられる原因、緊急度、次の手順がわかります。",
     "severityLevel": {
       "low": "低",

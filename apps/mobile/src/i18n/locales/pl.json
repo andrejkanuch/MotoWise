@@ -204,6 +204,8 @@
     "shareReport": "Udostępnij raport diagnostyczny",
     "headerSubhead": "Opisz objaw. Poznaj prawdopodobne przyczyny i kolejne kroki.",
     "startCta": "Rozpocznij diagnozę",
+    "quotaRemaining": "Za darmo w tym miesiącu: pozostało {{count}} z {{limit}} diagnoz",
+    "quotaUsed": "Darmowa diagnoza w tym miesiącu została wykorzystana. Wróci {{date}} — albo przejdź na Pro bez limitu.",
     "emptyExplainer": "Opisz, co słyszysz, widzisz lub czujesz, i dodaj zdjęcie, jeśli możesz. Otrzymasz prawdopodobne przyczyny, pilność i kolejne kroki.",
     "severityLevel": {
       "low": "Niska",
