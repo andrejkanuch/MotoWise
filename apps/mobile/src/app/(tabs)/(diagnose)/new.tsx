@@ -192,6 +192,8 @@ export default function NewDiagnosticScreen() {
             : undefined,
           dataSharingOptedIn: state.dataSharingOptedIn,
           includeMaintenanceHistory: state.includeMaintenanceHistory,
+          // Same toggle; this flag tells the API the rider saw the full bike-history copy.
+          includeBikeHistory: state.includeMaintenanceHistory,
         },
       });
 

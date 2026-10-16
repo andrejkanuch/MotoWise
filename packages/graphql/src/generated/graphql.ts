@@ -3112,6 +3112,7 @@ export type SubmitDiagnosticInput = {
   additionalNotes?: InputMaybe<Scalars['String']['input']>;
   dataSharingOptedIn?: Scalars['Boolean']['input'];
   freeTextDescription?: InputMaybe<Scalars['String']['input']>;
+  includeBikeHistory?: InputMaybe<Scalars['Boolean']['input']>;
   includeMaintenanceHistory?: Scalars['Boolean']['input'];
   manualBikeInfo?: InputMaybe<ManualBikeInfoInput>;
   motorcycleId?: InputMaybe<Scalars['String']['input']>;
