@@ -27,6 +27,7 @@ import {
   SeverityChip,
   URGENT_SEVERITIES,
 } from '@/components/diagnosis/severity-chip';
+import { useStartDiagnosis } from '@/hooks/use-diagnostic-quota';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { exportDiagnosticReport } from '@/lib/pdf-export';
 import { queryKeys } from '@/lib/query-keys';
@@ -111,7 +112,7 @@ export default function DiagnosticResultScreen() {
     }
   };
 
-  const startNew = () => router.push('/(diagnose)/new');
+  const startNew = useStartDiagnosis();
 
   if (isLoading) {
     return <ProcessingState label={t('diagnose.processing')} />;

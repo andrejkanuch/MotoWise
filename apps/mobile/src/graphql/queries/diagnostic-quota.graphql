@@ -1,0 +1,7 @@
+query DiagnosticQuota {
+  diagnosticQuota {
+    used
+    limit
+    resetDate
+  }
+}

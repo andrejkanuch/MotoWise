@@ -204,6 +204,8 @@
     "shareReport": "Compartilhar relatório diagnóstico",
     "headerSubhead": "Descreva um sintoma. Veja as causas prováveis e o que fazer em seguida.",
     "startCta": "Iniciar um diagnóstico",
+    "quotaRemaining": "Grátis este mês: {{count}} de {{limit}} diagnósticos restantes",
+    "quotaUsed": "O diagnóstico grátis deste mês já foi usado. Ele volta em {{date}}, ou assine o Pro para diagnósticos ilimitados.",
     "emptyExplainer": "Conte o que você ouve, vê ou sente e adicione uma foto se puder. Você recebe as causas prováveis, a urgência e os próximos passos.",
     "severityLevel": {
       "low": "Baixa",

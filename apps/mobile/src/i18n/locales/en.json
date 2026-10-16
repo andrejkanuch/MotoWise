@@ -204,6 +204,8 @@
     "shareReport": "Share Diagnostic Report",
     "headerSubhead": "Describe a symptom. Get likely causes and what to do next.",
     "startCta": "Start a diagnosis",
+    "quotaRemaining": "Free this month: {{count}} of {{limit}} diagnoses left",
+    "quotaUsed": "This month's free diagnosis is used. It's back on {{date}}, or go Pro for unlimited.",
     "emptyExplainer": "Tell it what you hear, see or feel, and add a photo if you can. You get the likely causes, how urgent it is and the next steps.",
     "severityLevel": {
       "low": "Low",

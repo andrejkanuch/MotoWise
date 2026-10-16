@@ -25,7 +25,9 @@ import {
   formatDiagnosisDate,
   isStuckProcessing,
 } from '@/components/diagnosis/diagnostic-status';
+import { QuotaNote } from '@/components/diagnosis/quota-note';
 import { SeverityChip, useSeverityLabel } from '@/components/diagnosis/severity-chip';
+import { useStartDiagnosis } from '@/hooks/use-diagnostic-quota';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
@@ -100,9 +102,10 @@ export default function DiagnoseScreen() {
     trackEvent(AnalyticsEvent.DIAGNOSTIC_LIST_VIEWED);
   }, []);
 
+  const startDiagnosis = useStartDiagnosis();
   const handleNewDiagnostic = () => {
     triggerImpact();
-    router.push('/(diagnose)/new');
+    startDiagnosis();
   };
 
   const recent = diagnostics.slice(0, RECENT_LIMIT);
@@ -157,6 +160,8 @@ export default function DiagnoseScreen() {
           <ScanLine size={20} color={theme.onWarm} strokeWidth={2} />
           <Text style={[type.bodyStrong, { color: theme.onWarm }]}>{t('diagnose.startCta')}</Text>
         </Pressable>
+
+        <QuotaNote />
 
         {recent.length === 0 ? (
           <View style={{ marginTop: space.xxl }}>

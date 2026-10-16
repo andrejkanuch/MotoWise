@@ -23,6 +23,7 @@ import { StepBikeSelection } from '@/components/diagnostic-flow/step-bike-select
 import { StepPhotoDetails } from '@/components/diagnostic-flow/step-photo-details';
 import { StepProblemDescription } from '@/components/diagnostic-flow/step-problem-description';
 import { StepReviewSubmit } from '@/components/diagnostic-flow/step-review-submit';
+import { useDiagnosticEntryGate } from '@/hooks/use-diagnostic-quota';
 import { useProGate } from '@/hooks/use-pro-gate';
 import { AnalyticsEvent, captureException, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
@@ -128,6 +129,8 @@ export default function NewDiagnosticScreen() {
       router.replace('/(diagnose)/' as `/${string}`);
     }
   };
+
+  useDiagnosticEntryGate(navigateBack);
 
   const handleClose = () => {
     if (useDiagnosticFlowStore.getState().isSubmitting) return;

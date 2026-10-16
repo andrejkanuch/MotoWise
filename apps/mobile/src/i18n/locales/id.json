@@ -204,6 +204,8 @@
     "shareReport": "Bagikan Laporan Diagnostik",
     "headerSubhead": "Jelaskan gejalanya. Dapatkan kemungkinan penyebab dan langkah berikutnya.",
     "startCta": "Mulai diagnosis",
+    "quotaRemaining": "Gratis bulan ini: sisa {{count}} dari {{limit}} diagnosis",
+    "quotaUsed": "Diagnosis gratis bulan ini sudah terpakai. Tersedia lagi pada {{date}}, atau upgrade ke Pro untuk tanpa batas.",
     "emptyExplainer": "Ceritakan apa yang kamu dengar, lihat, atau rasakan, dan tambahkan foto jika bisa. Kamu akan mendapat kemungkinan penyebab, tingkat urgensi, dan langkah berikutnya.",
     "severityLevel": {
       "low": "Rendah",
