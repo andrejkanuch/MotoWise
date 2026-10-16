@@ -195,6 +195,7 @@ export default function NewDiagnosticScreen() {
             : undefined,
           dataSharingOptedIn: state.dataSharingOptedIn,
           includeMaintenanceHistory: state.includeMaintenanceHistory,
+          includeBikeHistory: state.includeMaintenanceHistory,
         },
       });
 

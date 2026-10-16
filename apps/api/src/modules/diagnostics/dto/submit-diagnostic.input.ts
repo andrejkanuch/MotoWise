@@ -45,4 +45,13 @@ export class SubmitDiagnosticInput {
 
   @Field({ defaultValue: false })
   includeMaintenanceHistory: boolean;
+
+  /**
+   * Consent to send the bike's full history (services, parts/mods, riding,
+   * owner notes, earlier assessments) to the AI. Sent only by builds whose
+   * toggle copy discloses that scope; when absent, `includeMaintenanceHistory`
+   * keeps its original services-only meaning.
+   */
+  @Field(() => Boolean, { nullable: true })
+  includeBikeHistory?: boolean | null;
 }

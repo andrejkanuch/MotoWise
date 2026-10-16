@@ -2122,6 +2122,7 @@ input SubmitDiagnosticInput {
   additionalNotes: String
   dataSharingOptedIn: Boolean! = false
   freeTextDescription: String
+  includeBikeHistory: Boolean
   includeMaintenanceHistory: Boolean! = false
   manualBikeInfo: ManualBikeInfoInput
   motorcycleId: String

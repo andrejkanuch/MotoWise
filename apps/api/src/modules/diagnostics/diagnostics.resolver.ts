@@ -14,10 +14,11 @@ import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { THROTTLE_PRESETS } from '../../config/constants';
 import { AI_CONTENT_TYPES, AiBudgetService } from '../ai-budget/ai-budget.service';
-import { MaintenanceTasksService } from '../maintenance-tasks/maintenance-tasks.service';
+import type { Motorcycle } from '../motorcycles/models/motorcycle.model';
 import { MotorcyclesService } from '../motorcycles/motorcycles.service';
 import { UsersService } from '../users/users.service';
 import { DiagnosticAiService } from './diagnostic-ai.service';
+import { DiagnosticContextBuilder, resolveBikeContextScope } from './diagnostic-context.builder';
 import { DiagnosticsService } from './diagnostics.service';
 import { CreateDiagnosticInput } from './dto/create-diagnostic.input';
 import { SubmitDiagnosticInput } from './dto/submit-diagnostic.input';
@@ -32,7 +33,7 @@ export class DiagnosticsResolver {
     private readonly diagnosticsService: DiagnosticsService,
     private readonly diagnosticAiService: DiagnosticAiService,
     private readonly motorcyclesService: MotorcyclesService,
-    private readonly maintenanceTasksService: MaintenanceTasksService,
+    private readonly diagnosticContextBuilder: DiagnosticContextBuilder,
     private readonly usersService: UsersService,
     private readonly aiBudgetService: AiBudgetService,
   ) {}
@@ -77,6 +78,7 @@ export class DiagnosticsResolver {
         hasPhoto: !!input.photoBase64,
         urgency: input.urgency,
         includeMaintenanceHistory: input.includeMaintenanceHistory,
+        includeBikeHistory: input.includeBikeHistory,
       })}`,
     );
 
@@ -111,10 +113,11 @@ export class DiagnosticsResolver {
     let motorcycleType: string | undefined;
     let mileage: number | undefined;
     let engineCc: number | undefined;
+    let motorcycle: Motorcycle | null = null;
 
     if (input.motorcycleId) {
       // Fetch the one bike directly instead of pulling the whole garage to .find() it.
-      const motorcycle = await this.motorcyclesService.findById(user.id, input.motorcycleId);
+      motorcycle = await this.motorcyclesService.findById(user.id, input.motorcycleId);
       if (!motorcycle) {
         throw new BadRequestException('Motorcycle not found');
       }
@@ -131,33 +134,32 @@ export class DiagnosticsResolver {
       motorcycleType = input.manualBikeInfo.type;
     }
 
-    // 2b. Fetch maintenance history if user opted in and motorcycle is from garage
-    const MAX_MAINTENANCE_HISTORY_TASKS = 30;
-    let maintenanceHistory: string | undefined;
-    if (input.includeMaintenanceHistory && input.motorcycleId) {
-      const tasks = await this.maintenanceTasksService.findAllHistory(
-        user.id,
-        input.motorcycleId,
-        MAX_MAINTENANCE_HISTORY_TASKS,
-      );
-      if (tasks.length > 0) {
-        const unit = mileageUnit;
-        const sanitize = (text: string) =>
-          text.replace(/[<>]/g, '').replace(/\n/g, ' ').trim().slice(0, 200);
-        maintenanceHistory = tasks
-          .map((task) => {
-            const parts = [sanitize(task.title)];
-            if (task.status === 'completed' && task.completedAt) {
-              parts.push(`completed ${task.completedAt.split('T')[0]}`);
-            } else {
-              parts.push(`status: ${task.status}`);
-            }
-            if (task.completedMileage != null) parts.push(`at ${task.completedMileage} ${unit}`);
-            return `- ${parts.join(' | ')}`;
+    // 2b. Per-bike history (services, open items, parts/mods, riding, notes,
+    // earlier assessments) — only for a garage bike, only within the scope the
+    // rider's toggle consented to. Bounded and best effort; see the builder.
+    const bikeContextScope = resolveBikeContextScope(input);
+    const bikeContext =
+      motorcycle && bikeContextScope
+        ? await this.diagnosticContextBuilder.build({
+            userId: user.id,
+            motorcycleId: motorcycle.id,
+            currentDiagnosticId: diagnostic.id,
+            scope: bikeContextScope,
+            measurementSystem,
+            currentMileage: motorcycle.currentMileage,
+            profile: {
+              variant: motorcycle.variant,
+              purchaseDate: motorcycle.purchaseDate,
+              mileageUpdatedAt: motorcycle.mileageUpdatedAt,
+            },
+            symptoms: {
+              location: input.wizardAnswers?.location,
+              symptoms: input.wizardAnswers?.symptoms,
+              freeTextDescription: input.freeTextDescription,
+              additionalNotes: input.additionalNotes,
+            },
           })
-          .join('\n');
-      }
-    }
+        : undefined;
 
     // 3. Fetch user preferences for AI enrichment
     const prefs = (userRecord.preferences ?? {}) as Record<string, unknown>;
@@ -179,7 +181,7 @@ export class DiagnosticsResolver {
       mileageUnit,
       engineCc,
       hasPhoto: !!input.photoBase64,
-      maintenanceHistory,
+      bikeContext,
     });
 
     // 5. Return the updated diagnostic
