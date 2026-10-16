@@ -27,7 +27,7 @@ import {
   SeverityChip,
   URGENT_SEVERITIES,
 } from '@/components/diagnosis/severity-chip';
-import { useStartDiagnosis } from '@/hooks/use-diagnostic-quota';
+import { useStartDiagnosis } from '@/components/diagnosis/use-start-diagnosis';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { exportDiagnosticReport } from '@/lib/pdf-export';
 import { queryKeys } from '@/lib/query-keys';

@@ -20,9 +20,9 @@ import { UsersService } from '../users/users.service';
 import { DiagnosticAiService } from './diagnostic-ai.service';
 import { DiagnosticsService } from './diagnostics.service';
 import { CreateDiagnosticInput } from './dto/create-diagnostic.input';
-import { DiagnosticQuota } from './dto/diagnostic-quota.dto';
 import { SubmitDiagnosticInput } from './dto/submit-diagnostic.input';
 import { Diagnostic } from './models/diagnostic.model';
+import { DiagnosticQuota } from './models/diagnostic-quota.model';
 
 @Resolver(() => Diagnostic)
 export class DiagnosticsResolver {

@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { Text } from 'react-native';
-import { useDiagnosticQuota } from '@/hooks/use-diagnostic-quota';
 import { useEditorialTheme } from '@/theme/editorial';
 import { space, type } from '@/theme/type';
 import { formatQuotaResetDate } from './diagnostic-status';
+import { useDiagnosticQuota } from './use-diagnostic-quota';
 
 /**
  * Free riders see their monthly allowance next to the diagnose CTA, so the
@@ -13,9 +13,9 @@ export function QuotaNote() {
   const { t, i18n } = useTranslation();
   const { t: theme } = useEditorialTheme();
   const quota = useDiagnosticQuota();
-  // No resetDate = quota not loaded (or the query failed): say nothing rather
-  // than a "1 of 1 left" the server may contradict.
-  if (quota.isPro || !quota.resetDate) return null;
+  // Unknown = count not loaded (or failed) or RevenueCat not hydrated: say
+  // nothing rather than a "1 of 1 left" a Pro rider or the server contradicts.
+  if (!quota.isKnown || quota.isPro || !quota.resetDate) return null;
 
   const text = quota.isExhausted
     ? t('diagnose.quotaUsed', { date: formatQuotaResetDate(quota.resetDate, i18n.language) })

@@ -27,7 +27,7 @@ import {
 } from '@/components/diagnosis/diagnostic-status';
 import { QuotaNote } from '@/components/diagnosis/quota-note';
 import { SeverityChip, useSeverityLabel } from '@/components/diagnosis/severity-chip';
-import { useStartDiagnosis } from '@/hooks/use-diagnostic-quota';
+import { useStartDiagnosis } from '@/components/diagnosis/use-start-diagnosis';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';

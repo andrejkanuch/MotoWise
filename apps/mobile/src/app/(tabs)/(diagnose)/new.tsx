@@ -17,13 +17,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
+import { useDiagnosticEntryGate } from '@/components/diagnosis/use-diagnostic-entry-gate';
+import { recordDiagnosisSubmitted } from '@/components/diagnosis/use-diagnostic-quota';
 import { useDiagnosticColors } from '@/components/diagnostic-flow/diagnostic-colors';
 import { DiagnosticProgressBar } from '@/components/diagnostic-flow/progress-bar';
 import { StepBikeSelection } from '@/components/diagnostic-flow/step-bike-selection';
 import { StepPhotoDetails } from '@/components/diagnostic-flow/step-photo-details';
 import { StepProblemDescription } from '@/components/diagnostic-flow/step-problem-description';
 import { StepReviewSubmit } from '@/components/diagnostic-flow/step-review-submit';
-import { useDiagnosticEntryGate } from '@/hooks/use-diagnostic-quota';
 import { useProGate } from '@/hooks/use-pro-gate';
 import { AnalyticsEvent, captureException, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
@@ -31,7 +32,6 @@ import { GRAPHQL_ERROR_CODE } from '@/lib/graphql-error-classification';
 import { hasGraphQLCode } from '@/lib/graphql-errors';
 import { MetaAnalytics } from '@/lib/meta-analytics';
 import { isNetworkError } from '@/lib/network-error';
-import { queryKeys } from '@/lib/query-keys';
 import { useDiagnosticFlowStore } from '@/stores/diagnostic-flow.store';
 import { space } from '@/theme/type';
 
@@ -202,7 +202,7 @@ export default function NewDiagnosticScreen() {
         has_photo: !!state.photoUri,
         has_wizard_answers: !!hasWizardAnswers,
       });
-      queryClient.invalidateQueries({ queryKey: queryKeys.diagnostics.all });
+      recordDiagnosisSubmitted(queryClient);
       router.replace(`/(diagnose)/${result.submitDiagnostic.id}` as `/${string}`);
     } catch (error: unknown) {
       let message = 'Failed to analyze';
