@@ -38,13 +38,13 @@ const DIAGNOSTIC_STATUS_COMPLETED = 'completed';
 
 const OPEN_TASK_STATUSES = [MaintenanceTaskStatus.PENDING, MaintenanceTaskStatus.IN_PROGRESS];
 
+const CATCH_ALL_EXPENSE_CATEGORY: ExpenseCategory = 'other';
+
 /**
  * Expense categories whose money stays in the machine (parts, service, tyres,
  * accessories, mods). `other` is excluded: it is flagged as investment for the
  * dashboard split but says nothing mechanical.
  */
-const CATCH_ALL_EXPENSE_CATEGORY: ExpenseCategory = 'other';
-
 export const MECHANICAL_EXPENSE_CATEGORIES: readonly string[] = EXPENSE_CATEGORY_META.filter(
   (meta) => meta.investment && meta.key !== CATCH_ALL_EXPENSE_CATEGORY,
 ).map((meta) => meta.key);
@@ -58,6 +58,9 @@ const SECTION = {
   NOTES: 'notes',
 } as const;
 type SectionKey = (typeof SECTION)[keyof typeof SECTION];
+
+/** Scopes whose consent copy covers the bike profile (variant, ownership start, odometer date). */
+const PROFILE_SCOPES: ReadonlySet<BikeContextScope> = new Set([BIKE_CONTEXT_SCOPE.FULL]);
 
 /** Which sections each consent scope covers. */
 const SCOPE_SECTIONS: Record<BikeContextScope, readonly SectionKey[]> = {
@@ -137,7 +140,9 @@ export class DiagnosticContextBuilder {
 
     const settled = await Promise.allSettled(sections.map((key) => readers[key]()));
 
-    const data: BikeContextData = { profile: params.profile };
+    const data: BikeContextData = PROFILE_SCOPES.has(params.scope)
+      ? { profile: params.profile }
+      : {};
     settled.forEach((outcome, index) => {
       const key = sections[index];
       if (outcome.status === 'fulfilled') {

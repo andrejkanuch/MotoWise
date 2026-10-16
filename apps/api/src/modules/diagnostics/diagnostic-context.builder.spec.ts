@@ -18,8 +18,9 @@ const OK_EMPTY: QueryResult = { data: [], error: null };
 const COMPLETED = 'completed';
 
 /**
- * Chainable, awaitable PostgREST builder mock. Records `eq`/`in` filters so a
- * test can answer per table (and per status) without tracking call order.
+ * Chainable, awaitable PostgREST builder mock. Records `eq`/`in` filters by
+ * column, and `is`/`neq` as `is:<column>` / `neq:<column>`, so a test can
+ * answer per table (and per status) without tracking call order.
  */
 function mockSupabase(resolve: Resolve) {
   const tables: string[] = [];
@@ -28,8 +29,14 @@ function mockSupabase(resolve: Resolve) {
       tables.push(table);
       const filters: Filters = {};
       const builder: Record<string, unknown> = {};
-      for (const method of ['select', 'is', 'gte', 'neq', 'order', 'limit']) {
+      for (const method of ['select', 'gte', 'order', 'limit']) {
         builder[method] = vi.fn(() => builder);
+      }
+      for (const method of ['is', 'neq']) {
+        builder[method] = vi.fn((column: string, value: unknown) => {
+          filters[`${method}:${column}`] = value;
+          return builder;
+        });
       }
       builder.eq = vi.fn((column: string, value: unknown) => {
         filters[column] = value;
@@ -190,6 +197,45 @@ describe('DiagnosticContextBuilder.build', () => {
     expect(seen.expenses.category).toEqual([...MECHANICAL_EXPENSE_CATEGORIES]);
     expect(seen.rides.status).toBe(COMPLETED);
     expect(seen.expenses).toMatchObject({ user_id: 'user-1', motorcycle_id: 'bike-1' });
+  });
+
+  it('excludes soft-deleted rows, unfinished diagnoses and the diagnosis being generated', async () => {
+    // Arrange
+    const queries: { table: string; filters: Filters }[] = [];
+    const { client } = mockSupabase((table, filters) => {
+      queries.push({ table, filters });
+      return OK_EMPTY;
+    });
+    const builder = new DiagnosticContextBuilder(client);
+
+    // Act
+    await builder.build(params());
+
+    // Assert
+    const softDeletable = queries.filter(({ table }) => table !== 'diagnostics');
+    expect(softDeletable.map(({ table }) => table).sort()).toEqual(
+      ['expenses', 'maintenance_tasks', 'maintenance_tasks', 'notes', 'rides'].sort(),
+    );
+    for (const { filters } of softDeletable) {
+      expect(filters['is:deleted_at']).toBeNull();
+    }
+    const diagnoses = queries.find(({ table }) => table === 'diagnostics')?.filters;
+    expect(diagnoses).toMatchObject({ status: COMPLETED, 'neq:id': 'diag-now' });
+  });
+
+  it('keeps the bike profile out of the legacy maintenance-history scope', async () => {
+    // Arrange
+    const { client } = mockSupabase(happyResolve);
+    const builder = new DiagnosticContextBuilder(client);
+    const profile = { variant: 'FXDWG', purchaseDate: '2019-04-02' };
+
+    // Act
+    const legacy = await builder.build(params({ scope: BIKE_CONTEXT_SCOPE.MAINTENANCE, profile }));
+    const full = await builder.build(params({ scope: BIKE_CONTEXT_SCOPE.FULL, profile }));
+
+    // Assert
+    expect(legacy).not.toContain('Bike profile:');
+    expect(full).toContain('- Variant: FXDWG');
   });
 
   it('returns undefined when the bike has no history', async () => {
