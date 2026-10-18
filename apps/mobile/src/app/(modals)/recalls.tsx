@@ -17,7 +17,7 @@ import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } 
 import Animated, { FadeIn, FadeInUp, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRecallAcknowledgement } from '../../hooks/use-recall-acknowledgement';
-import { formatFullDate } from '../../lib/bike-hub/format';
+import { formatFullDate, formatRecallReportDate } from '../../lib/bike-hub/format';
 import {
   RECALL_ACK_ACTION,
   type RecallAckAction,
@@ -255,7 +255,9 @@ export default function RecallsScreen() {
                   >
                     {recall.component}
                   </Text>
-                  <Text style={{ ...type.caption, color: mutedText }}>{recall.reportDate}</Text>
+                  <Text style={{ ...type.caption, color: mutedText }}>
+                    {formatRecallReportDate(recall.reportDate, i18n.language)}
+                  </Text>
                 </View>
 
                 <Text style={{ ...type.subhead, color: textColor }}>{recall.summary}</Text>

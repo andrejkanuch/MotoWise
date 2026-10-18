@@ -1,9 +1,12 @@
+import type { TFunction } from 'i18next';
 import {
   buildAnnualRecap,
   buildHeatmapFeatureCollection,
   buildLifetimeTotals,
+  buildRecapShareMessage,
   decodePolyline,
   encodePolyline,
+  heatmapBounds,
 } from '../ride-heatmap';
 
 describe('decodePolyline', () => {
@@ -125,5 +128,73 @@ describe('buildLifetimeTotals', () => {
       totalDistanceM: 300_000,
       countries: ['AT', 'DE'],
     });
+  });
+});
+
+describe('heatmapBounds', () => {
+  it('frames every ridden line in [lng, lat]', () => {
+    const fc = buildHeatmapFeatureCollection([
+      {
+        id: 'a',
+        startedAt: '2026-05-01T10:00:00Z',
+        routePolyline: encodePolyline([
+          [38.5, -120.2],
+          [40.7, -120.95],
+        ]),
+      },
+      {
+        id: 'b',
+        startedAt: '2026-06-01T10:00:00Z',
+        routePolyline: encodePolyline([
+          [36.1, -115.1],
+          [36.2, -115.3],
+        ]),
+      },
+    ]);
+    const bounds = heatmapBounds(fc);
+    expect(bounds?.paddingTop).toBe(40);
+    expect(bounds?.ne[0]).toBeCloseTo(-115.1, 4);
+    expect(bounds?.ne[1]).toBeCloseTo(40.7, 4);
+    expect(bounds?.sw[0]).toBeCloseTo(-120.95, 4);
+    expect(bounds?.sw[1]).toBeCloseTo(36.1, 4);
+  });
+
+  it('is null when no ride has a line', () => {
+    expect(heatmapBounds({ type: 'FeatureCollection', features: [] })).toBeNull();
+  });
+});
+
+describe('buildRecapShareMessage', () => {
+  const fakeT = ((key: string, opts?: Record<string, unknown>) =>
+    `${key}${opts ? ` ${JSON.stringify(opts)}` : ''}`) as unknown as TFunction;
+  const miles = (m: number) => `${Math.round(m / 1609.344)} mi`;
+
+  it('passes counts for pluralisation and formats distance in the rider unit', () => {
+    const message = buildRecapShareMessage(
+      {
+        year: 2026,
+        rideCount: 1,
+        totalDistanceM: 415_200,
+        countries: ['US'],
+        longestRide: { id: 'a', distanceM: 415_200, name: 'Tail of the Dragon' },
+      },
+      fakeT,
+      miles,
+    );
+    expect(message.split('\n')).toEqual([
+      'heatmap.shareIntro {"year":2026,"distance":"258 mi","count":1}',
+      'heatmap.shareCountries {"count":1,"list":"US"}',
+      'heatmap.shareTopRide {"name":"Tail of the Dragon","distance":"258 mi"}',
+      'heatmap.shareVia',
+    ]);
+  });
+
+  it('leaves out countries and the top ride when there are none', () => {
+    const message = buildRecapShareMessage(
+      { year: 2026, rideCount: 2, totalDistanceM: 0, countries: [] },
+      fakeT,
+      miles,
+    );
+    expect(message.split('\n')).toHaveLength(2);
   });
 });
