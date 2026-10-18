@@ -43,6 +43,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import {
   CATEGORY_LABELS,
   formatCurrencyInput,
+  formatMoney,
   serviceTypeLabel,
 } from '../../lib/expense-constants';
 import { motorcyclesOptions } from '../../lib/query-options';
@@ -50,6 +51,7 @@ import { EDITORIAL_SCHEME, editorialThemes, tint, useEditorialTheme } from '../.
 import { SYSTEM_WEIGHT, type as textRole } from '../../theme/type';
 import { triggerSelection } from '../../utils/haptics';
 import { localDateFromISODate, toISODateInput } from '../../utils/trip-form-dates';
+import { breakdownOverTotal } from './receipt-breakdown';
 import {
   RECEIPT_REVIEW_TYPE,
   type ReceiptExtraction,
@@ -367,17 +369,17 @@ export function ReviewCard({ handoff, bikeName, bikes, onPark, onClose, onSave }
   }, []);
 
   const parsedAmount = parseNumeric(amount);
-  // Mirror the server's reconcile gate (parts + labor + tax <= total). When the
-  // sum exceeds total the API falls back to total-only and silently drops the
-  // breakdown — block save here so that path is never reached from review.
-  const breakdownExceedsAmount =
-    isMaintenance(type) &&
-    (parsedAmount ?? 0) > 0 &&
-    (parseNumeric(partsCost) ?? 0) +
-      (parseNumeric(laborCost) ?? 0) +
-      (parseNumeric(taxAmount) ?? 0) >
-      (parsedAmount ?? 0) + 0.001;
-  const canSave = hasBike && (parsedAmount ?? 0) > 0 && !breakdownExceedsAmount;
+  // Mirror the server's reconcile gate: a breakdown over the total would be
+  // dropped silently by the API, so Save is blocked and the reason is shown.
+  const breakdownSum = isMaintenance(type)
+    ? breakdownOverTotal({
+        total: parsedAmount,
+        parts: parseNumeric(partsCost),
+        labor: parseNumeric(laborCost),
+        tax: parseNumeric(taxAmount),
+      })
+    : null;
+  const canSave = hasBike && (parsedAmount ?? 0) > 0 && breakdownSum == null;
 
   const handleSave = useCallback(() => {
     if (!canSave) return;
@@ -646,6 +648,17 @@ export function ReviewCard({ handoff, bikeName, bikes, onPark, onClose, onSave }
 
       {/* Bottom actions */}
       <View style={{ paddingBottom: 24, paddingTop: 8, gap: 10 }}>
+        {breakdownSum != null && (
+          <Text
+            accessibilityLiveRegion="polite"
+            style={{ ...textRole.caption, color: tk.danger, textAlign: 'center' }}
+          >
+            {t('receiptScan.review.breakdownOverTotal', {
+              sum: formatMoney(breakdownSum, currency.trim(), userCurrency),
+              total: formatMoney(parsedAmount ?? 0, currency.trim(), userCurrency),
+            })}
+          </Text>
+        )}
         <Pressable
           onPress={handleSave}
           disabled={!canSave}

@@ -17,7 +17,7 @@
 // The `MileageUnit`/`MeasurementSystem` types live in `./constants/enums` — we
 // import them here so there's a single canonical definition across the monorepo.
 
-import type { MeasurementSystem, MileageUnit } from './constants/enums';
+import { MeasurementSystem, type MileageUnit } from './constants/enums';
 
 export const METERS_PER_KM = 1000;
 export const METERS_PER_MILE = 1609.344;
@@ -47,6 +47,15 @@ export function mileageToDisplayUnit(km: number, system: MeasurementSystem): num
 /** A value in the user's measurement-system unit → km. */
 export function mileageFromDisplayUnit(value: number, system: MeasurementSystem): number {
   return system === 'imperial' ? milesToKm(value) : value;
+}
+
+const MEASUREMENT_SYSTEMS: ReadonlySet<string> = new Set(Object.values(MeasurementSystem));
+
+/** True when `value` is a measurement-system VALUE ('metric' | 'imperial'). The
+ *  `MeasurementSystem` object is keyed METRIC/IMPERIAL, so `value in
+ *  MeasurementSystem` is always false for a real value — compare values. */
+export function isMeasurementSystem(value: unknown): value is MeasurementSystem {
+  return typeof value === 'string' && MEASUREMENT_SYSTEMS.has(value);
 }
 
 /** Short unit label ('mi' | 'km') for a measurement system. */

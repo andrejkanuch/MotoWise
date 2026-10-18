@@ -13,6 +13,7 @@
 // preserve this module's historical [lat, lng] surface: `encodePolyline` is
 // identical, and heatmap's `decodePolyline` returns [lat, lng] pairs — exactly
 // what `decodePolylineLatLng` produces.
+import type { TFunction } from 'i18next';
 import { decodePolylineLatLng, encodePolyline } from './polyline';
 
 export { encodePolyline };
@@ -124,4 +125,72 @@ export function buildLifetimeTotals(rides: HeatmapRide[]): {
     totalDistanceM: total,
     countries: Array.from(countries).sort(),
   };
+}
+
+/** Space between the ridden lines and the map's edge, in points. */
+const HEATMAP_BOUNDS_PADDING = 40;
+
+/** [lng, lat] corners of the box around every ridden line, padded, as Mapbox's Camera takes them. */
+export interface HeatmapBounds {
+  ne: [number, number];
+  sw: [number, number];
+  paddingTop: number;
+  paddingBottom: number;
+  paddingLeft: number;
+  paddingRight: number;
+}
+
+/**
+ * The box around all of the rider's lines, so the map opens on where they ride
+ * instead of a whole-world view. Null when there is nothing to frame.
+ */
+export function heatmapBounds(collection: HeatmapFeatureCollection): HeatmapBounds | null {
+  let minLng = Number.POSITIVE_INFINITY;
+  let minLat = Number.POSITIVE_INFINITY;
+  let maxLng = Number.NEGATIVE_INFINITY;
+  let maxLat = Number.NEGATIVE_INFINITY;
+  for (const feature of collection.features) {
+    for (const [lng, lat] of feature.geometry.coordinates) {
+      minLng = Math.min(minLng, lng);
+      minLat = Math.min(minLat, lat);
+      maxLng = Math.max(maxLng, lng);
+      maxLat = Math.max(maxLat, lat);
+    }
+  }
+  if (!Number.isFinite(minLng)) return null;
+  return {
+    ne: [maxLng, maxLat],
+    sw: [minLng, minLat],
+    paddingTop: HEATMAP_BOUNDS_PADDING,
+    paddingBottom: HEATMAP_BOUNDS_PADDING,
+    paddingLeft: HEATMAP_BOUNDS_PADDING,
+    paddingRight: HEATMAP_BOUNDS_PADDING,
+  };
+}
+
+/** The text the rider shares for their year: localised, in their distance unit. */
+export function buildRecapShareMessage(
+  recap: AnnualRecap,
+  t: TFunction,
+  formatDistance: (meters: number) => string,
+): string {
+  const { countries, longestRide } = recap;
+  const lines = [
+    t('heatmap.shareIntro', {
+      year: recap.year,
+      distance: formatDistance(recap.totalDistanceM),
+      count: recap.rideCount,
+    }),
+  ];
+  if (countries.length > 0) {
+    lines.push(
+      t('heatmap.shareCountries', { count: countries.length, list: countries.join(', ') }),
+    );
+  }
+  if (longestRide?.name) {
+    const distance = formatDistance(longestRide.distanceM);
+    lines.push(t('heatmap.shareTopRide', { name: longestRide.name, distance }));
+  }
+  lines.push(t('heatmap.shareVia'));
+  return lines.join('\n');
 }

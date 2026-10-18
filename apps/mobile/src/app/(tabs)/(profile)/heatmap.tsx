@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { useMeasurementSystem } from '@/hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { rideHeatmapOptions } from '@/lib/query-options';
 import { tint, useEditorialTheme } from '@/theme/editorial';
@@ -20,20 +21,21 @@ import { GUTTER, radius, readableWidth, SYSTEM_WEIGHT, space, type } from '@/the
 import { triggerImpact } from '@/utils/haptics';
 import { MAP_STYLES } from '@/utils/map-styles';
 import { HEATMAP_MAX_PAGES, HEATMAP_PAGE_SIZE } from '@/utils/ride-constants';
+import { formatDistance } from '@/utils/ride-formatters';
 import {
   buildAnnualRecap,
   buildHeatmapFeatureCollection,
   buildLifetimeTotals,
+  buildRecapShareMessage,
   type HeatmapRide,
+  heatmapBounds,
 } from '@/utils/ride-heatmap';
-
-function formatKm(meters: number): string {
-  return `${(meters / 1000).toFixed(meters < 10_000 ? 1 : 0)} km`;
-}
 
 export default function RideHeatmapScreen() {
   const { t: i18n } = useTranslation();
   const { t: tok, isDark } = useEditorialTheme();
+  const system = useMeasurementSystem();
+  const formatDist = useCallback((meters: number) => formatDistance(meters, system), [system]);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery(
     rideHeatmapOptions(),
@@ -64,23 +66,15 @@ export default function RideHeatmapScreen() {
   // new page lands — keeping FeatureCollection identity stable across
   // same-page re-renders and preserving Mapbox's tile cache between renders.
   const geojson = useMemo(() => buildHeatmapFeatureCollection(allRides), [allRides]);
+  const bounds = useMemo(() => heatmapBounds(geojson), [geojson]);
   const lifetime = useMemo(() => buildLifetimeTotals(allRides), [allRides]);
   const year = new Date().getFullYear();
   const recap = useMemo(() => buildAnnualRecap(allRides, year), [allRides, year]);
 
   const handleShareRecap = useCallback(async () => {
-    const lines = [
-      `In ${recap.year} I rode ${formatKm(recap.totalDistanceM)} across ${recap.rideCount} rides.`,
-    ];
-    if (recap.countries.length > 0) {
-      lines.push(`${recap.countries.length} countries: ${recap.countries.join(', ')}`);
-    }
-    if (recap.longestRide?.name) {
-      lines.push(`Top ride: ${recap.longestRide.name} — ${formatKm(recap.longestRide.distanceM)}`);
-    }
-    lines.push('— via MotoWise');
-    await Share.share({ message: lines.join('\n') }).catch(() => {});
-  }, [recap]);
+    const message = buildRecapShareMessage(recap, i18n, formatDist);
+    await Share.share({ message }).catch(() => {});
+  }, [recap, formatDist, i18n]);
 
   const shareDisabled = recap.rideCount === 0;
 
@@ -163,10 +157,9 @@ export default function RideHeatmapScreen() {
               compassEnabled={false}
             >
               <MapboxGL.Camera
-                defaultSettings={{
-                  centerCoordinate: [0, 30],
-                  zoomLevel: 1.2,
-                }}
+                defaultSettings={{ centerCoordinate: [0, 30], zoomLevel: 1.2 }}
+                bounds={bounds ?? undefined}
+                animationDuration={0}
               />
               <MapboxGL.ShapeSource id="heatmap-source" shape={geojson as never}>
                 {/* Single line layer with lineBlur for glow — replaces the
@@ -257,7 +250,7 @@ export default function RideHeatmapScreen() {
           <Divider color={tok.line} />
           <Stat
             label={i18n('heatmap.lifetime')}
-            value={formatKm(lifetime.totalDistanceM)}
+            value={formatDist(lifetime.totalDistanceM)}
             ink={tok.ink}
             ink3={tok.ink3}
           />
@@ -293,7 +286,7 @@ export default function RideHeatmapScreen() {
             <>
               <Text style={[type.sectionTitle, { color: tok.ink }]}>
                 {i18n('heatmap.recapSummary', {
-                  distance: formatKm(recap.totalDistanceM),
+                  distance: formatDist(recap.totalDistanceM),
                   count: recap.rideCount,
                   countries:
                     recap.countries.length > 0
@@ -308,7 +301,7 @@ export default function RideHeatmapScreen() {
                     {recap.longestRide.name}
                   </Text>{' '}
                   {i18n('heatmap.topRideValue', {
-                    distance: formatKm(recap.longestRide.distanceM),
+                    distance: formatDist(recap.longestRide.distanceM),
                   })}
                 </Text>
               )}

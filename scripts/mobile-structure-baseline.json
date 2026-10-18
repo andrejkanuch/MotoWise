@@ -46,7 +46,7 @@
     "app/(modals)/create-group-ride.tsx": 401,
     "app/(modals)/create-trip.tsx": 1508,
     "app/(modals)/group-ride-detail.tsx": 539,
-    "app/(modals)/recalls.tsx": 443,
+    "app/(modals)/recalls.tsx": 445,
     "app/(modals)/ride-detail.tsx": 962,
     "app/(modals)/ride-flyover.tsx": 957,
     "app/(modals)/ride-hud.tsx": 469,
@@ -68,7 +68,7 @@
     "app/(tabs)/(garage)/bike-tasks.tsx": 315,
     "app/(tabs)/(garage)/document/[id].tsx": 357,
     "app/(tabs)/(garage)/edit-bike.tsx": 913,
-    "app/(tabs)/(garage)/expense-dashboard.tsx": 925,
+    "app/(tabs)/(garage)/expense-dashboard.tsx": 923,
     "app/(tabs)/(garage)/expense-detail.tsx": 651,
     "app/(tabs)/(garage)/health-report.tsx": 502,
     "app/(tabs)/(garage)/index.tsx": 451,
@@ -76,12 +76,12 @@
     "app/(tabs)/(learn)/article/[slug].tsx": 317,
     "app/(tabs)/(learn)/index.tsx": 796,
     "app/(tabs)/(profile)/edit-profile.tsx": 508,
-    "app/(tabs)/(profile)/heatmap.tsx": 374,
+    "app/(tabs)/(profile)/heatmap.tsx": 367,
     "app/(tabs)/(profile)/rides.tsx": 867,
     "app/(tabs)/(profile)/saved.tsx": 332,
     "app/(tabs)/(profile)/trips.tsx": 541,
     "app/(tabs)/_layout.tsx": 433,
-    "app/_layout.tsx": 1130,
+    "app/_layout.tsx": 1125,
     "app/t/[token]/index.tsx": 484
   }
 }

@@ -16,6 +16,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { CategoryDonut } from '@/components/expense-dashboard/category-donut';
+import { costPerDistance } from '@/components/expense-dashboard/cost-per-distance';
 import { MonthlyTrend } from '@/components/expense-dashboard/monthly-trend';
 import { SummaryCards } from '@/components/expense-dashboard/summary-cards';
 import { GARAGE_ROUTE } from '@/config/routes';
@@ -412,8 +413,6 @@ export default function ExpenseDashboardScreen() {
     return <EmptyState motorcycleId={motorcycleId} />;
   }
 
-  const mileageNum = currentMileage ? Number(currentMileage) : null;
-
   const monthsInPeriod = (() => {
     if (filteredBuckets.length === 0) return 1;
     const nonZero = filteredBuckets.filter((b) => b.total > 0);
@@ -432,8 +431,7 @@ export default function ExpenseDashboardScreen() {
   const yoyChange =
     previousYearTotal > 0 ? ((periodTotal - previousYearTotal) / previousYearTotal) * 100 : null;
 
-  const costPerUnit =
-    mileageNum != null && mileageNum > 0 ? selected.allTimeTotal / mileageNum : null;
+  const costPerUnit = costPerDistance(selected.allTimeTotal, bike?.currentMileage, currentMileage);
 
   // What the machine kept vs what riding used up. Deliberately reads
   // `selected.categoryTotals` (all-time, straight from the RPC) and NOT the

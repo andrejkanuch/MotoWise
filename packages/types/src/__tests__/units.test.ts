@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  isMeasurementSystem,
   KM_PER_MILE,
   mileageFromDisplayUnit,
   mileageToDisplayUnit,
@@ -42,5 +43,20 @@ describe('odometer km <-> display-unit helpers', () => {
 
   it('KM_PER_MILE constant is the statute-mile factor', () => {
     expect(KM_PER_MILE).toBeCloseTo(1.609344, 6);
+  });
+});
+
+describe('isMeasurementSystem', () => {
+  it('accepts the lowercase values the API returns', () => {
+    expect(isMeasurementSystem('imperial')).toBe(true);
+    expect(isMeasurementSystem('metric')).toBe(true);
+  });
+
+  it('rejects the object keys and anything else', () => {
+    expect(isMeasurementSystem('IMPERIAL')).toBe(false);
+    expect(isMeasurementSystem('METRIC')).toBe(false);
+    expect(isMeasurementSystem('us')).toBe(false);
+    expect(isMeasurementSystem(undefined)).toBe(false);
+    expect(isMeasurementSystem(null)).toBe(false);
   });
 });

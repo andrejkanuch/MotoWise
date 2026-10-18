@@ -4,7 +4,6 @@ import { BarlowCondensed_600SemiBold } from '@expo-google-fonts/barlow-condensed
 import { BarlowCondensed_700Bold } from '@expo-google-fonts/barlow-condensed/700Bold';
 import { palette } from '@motovault/design-system';
 import { CompleteMaintenanceTaskDocument } from '@motovault/graphql';
-import { Currency, MeasurementSystem } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
 import { useQuery } from '@tanstack/react-query';
 import * as Application from 'expo-application';
@@ -156,6 +155,7 @@ import { useExperimentStore } from '../stores/experiment.store';
 import { useOnboardingStore } from '../stores/onboarding.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
 import { PLATE_FONT } from '../theme/type';
+import { accountPreferenceUpdates } from '../utils/account-preferences';
 import { rideMMKV } from '../utils/ride-storage';
 import {
   clearDeliveredQueue,
@@ -266,17 +266,12 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
   const serverMeasurementSystem = meQuery.data?.me?.measurementSystem;
 
   useEffect(() => {
-    const state = useAuthStore.getState();
-    if (serverCurrency && serverCurrency in Currency && serverCurrency !== state.currency) {
-      setCurrency(serverCurrency as typeof state.currency);
-    }
-    if (
-      serverMeasurementSystem &&
-      serverMeasurementSystem in MeasurementSystem &&
-      serverMeasurementSystem !== state.measurementSystem
-    ) {
-      setMeasurementSystem(serverMeasurementSystem as typeof state.measurementSystem);
-    }
+    const { currency, measurementSystem } = accountPreferenceUpdates(
+      { currency: serverCurrency, measurementSystem: serverMeasurementSystem },
+      useAuthStore.getState(),
+    );
+    if (currency) setCurrency(currency);
+    if (measurementSystem) setMeasurementSystem(measurementSystem);
   }, [serverCurrency, serverMeasurementSystem, setCurrency, setMeasurementSystem]);
 
   // Sync user properties to PostHog for segmentation

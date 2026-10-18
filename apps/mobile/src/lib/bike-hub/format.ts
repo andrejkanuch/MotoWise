@@ -1,5 +1,5 @@
 import type { MyMotorcyclesQuery } from '@motovault/graphql';
-import { parseISO } from 'date-fns';
+import { isValid, parse, parseISO } from 'date-fns';
 import { HUB_UNIT, type HubUnit, NOUN_CAPITALISING_LANGUAGES } from './constants';
 
 type Motorcycle = MyMotorcyclesQuery['myMotorcycles'][number];
@@ -52,6 +52,20 @@ function toDate(value: string | Date): Date {
 /** "June 2022"-style month and year, in the given locale. */
 export function formatMonthYear(value: string | Date, locale: string): string {
   return toDate(value).toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+}
+
+/** NHTSA's recall `ReportReceivedDate` arrives as DD/MM/YYYY ("18/10/2022"). */
+const NHTSA_REPORT_DATE_FORMAT = 'dd/MM/yyyy';
+
+/**
+ * A recall's report date in the rider's locale ("Oct 18, 2022"). Accepts NHTSA's
+ * DD/MM/YYYY or an ISO date; anything else is shown as received rather than
+ * hidden or guessed at.
+ */
+export function formatRecallReportDate(raw: string, locale: string): string {
+  const nhtsa = parse(raw, NHTSA_REPORT_DATE_FORMAT, new Date());
+  const date = isValid(nhtsa) ? nhtsa : parseISO(raw);
+  return isValid(date) ? formatFullDate(date, locale) : raw;
 }
 
 /** "Sep 28"-style short date, in the given locale. */
