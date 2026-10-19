@@ -27,6 +27,16 @@ import { BASE_URL } from '@/lib/constants';
 const APP_STORE_URL = 'https://apps.apple.com/us/app/motovault/id6760291360';
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.motovault.app';
 
+/** Legal operator of MotoVault. Registered in the Commercial Register of the Slovak Republic. */
+export const LEGAL_NAME = 'Kan Consult s.r.o.';
+export const LEGAL_ADDRESS = {
+  '@type': 'PostalAddress',
+  streetAddress: 'Štefana Hozu 1577/21',
+  postalCode: '053 11',
+  addressLocality: 'Smižany',
+  addressCountry: 'SK',
+} as const;
+
 type JsonLdNode = Record<string, unknown>;
 
 // ---- Entity @ids (stable across all pages) ----
@@ -48,6 +58,8 @@ export function buildOrganization(args: {
     '@type': 'Organization',
     '@id': SCHEMA_IDS.organization,
     name: args.name,
+    legalName: LEGAL_NAME,
+    address: LEGAL_ADDRESS,
     url: BASE_URL,
     logo: {
       '@type': 'ImageObject',
@@ -63,6 +75,7 @@ export function buildOrganization(args: {
             '@type': 'Person',
             name: args.founder.name,
             url: `${BASE_URL}/about`,
+            worksFor: { '@id': SCHEMA_IDS.organization },
             ...(args.founder.jobTitle ? { jobTitle: args.founder.jobTitle } : {}),
             ...(args.founder.sameAs?.length ? { sameAs: args.founder.sameAs } : {}),
           },

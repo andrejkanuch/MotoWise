@@ -4,6 +4,7 @@ import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { LEGAL_ADDRESS, LEGAL_NAME } from '@/lib/seo/schema';
 
 export async function generateMetadata({
   params,
@@ -129,6 +130,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'MotoVault',
+    legalName: LEGAL_NAME,
     url: BASE_URL,
     logo: `${BASE_URL}/icon.png`,
     description: t('metaDescription'),
@@ -139,11 +141,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       jobTitle: 'Founder & Developer',
       url: `${BASE_URL}/about`,
     },
-    address: {
-      '@type': 'PostalAddress',
-      addressCountry: 'SK',
-      addressRegion: 'European Union',
-    },
+    address: LEGAL_ADDRESS,
     contactPoint: {
       '@type': 'ContactPoint',
       email: 'support@motovault.app',
@@ -165,6 +163,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       worksFor: {
         '@type': 'Organization',
         name: 'MotoVault',
+        legalName: LEGAL_NAME,
         url: BASE_URL,
       },
       description: t('founderBio'),
@@ -310,6 +309,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                 </a>
               </div>
             </div>
+            <p className="mt-6 text-sm text-neutral-400">{t('operatedBy')}</p>
             <div className="mt-8">
               <Link
                 href="/"

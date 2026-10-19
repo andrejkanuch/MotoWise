@@ -3,6 +3,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { BASE_URL } from '@/lib/constants';
+import { LEGAL_ADDRESS, LEGAL_NAME } from '@/lib/seo/schema';
 
 export async function generateMetadata({
   params,
@@ -67,6 +68,8 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'MotoVault',
+    legalName: LEGAL_NAME,
+    address: LEGAL_ADDRESS,
     url: BASE_URL,
     logo: `${BASE_URL}/icon.png`,
     description:
