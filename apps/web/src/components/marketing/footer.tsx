@@ -124,6 +124,7 @@ export async function Footer() {
         <span>{t('bottomBar')}</span>
         <span>motovault.app</span>
       </div>
+      <div className="mv-footer-operator">{t('operatorLine')}</div>
     </footer>
   );
 }
