@@ -1,5 +1,6 @@
 'use client';
 
+import { palette } from '@motovault/design-system';
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { storeAnchorProps } from '@/components/marketing/store-buttons';
 import { trackEvent, WebEvent } from '@/lib/analytics';
@@ -41,17 +42,17 @@ type CheckedState = Record<string, Set<number>>;
 
 /**
  * The printed sheet is a standalone document opened in a new window, so it
- * cannot read the site's CSS custom properties. These are the Race Plate
- * values from packages/design-system (paper ramp, near-black ink, copper,
- * go-green) written out once for print only — never used in the page itself.
+ * cannot read the site's CSS custom properties. It takes the Race Plate paper
+ * values straight from `palette` (paper ramp, near-black ink, copper,
+ * go-green) — print only, never used in the page itself.
  */
-const PRINT_INK = '#141517';
-const PRINT_INK_2 = '#45464a';
-const PRINT_INK_3 = '#6b6c70';
-const PRINT_LINE = '#dedbd4';
-const PRINT_SURFACE = '#ebe9e4';
-const PRINT_COPPER = '#b8501f';
-const PRINT_GO = '#2e8a55';
+const PRINT_INK = palette.plateLightInk;
+const PRINT_INK_2 = palette.plateLightInk2;
+const PRINT_INK_3 = palette.plateLightInk3;
+const PRINT_LINE = palette.plateLightG3;
+const PRINT_SURFACE = palette.plateLightG2;
+const PRINT_COPPER = palette.plateLightCopper;
+const PRINT_GO = palette.plateLightGo;
 
 function formatTime(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);

@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import type { Metadata, Viewport } from 'next';
 
 /** Shared by both root layouts (see root-shell.tsx). */
@@ -25,7 +26,7 @@ export const rootViewport: Viewport = {
   // env(safe-area-inset-*) resolves only under cover: the fixed bars pad by it.
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f3f2ef' },
-    { media: '(prefers-color-scheme: dark)', color: '#111214' },
+    { media: '(prefers-color-scheme: light)', color: palette.plateLightG0 },
+    { media: '(prefers-color-scheme: dark)', color: palette.plateG0 },
   ],
 };

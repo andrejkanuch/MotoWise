@@ -113,8 +113,8 @@ export async function CtaSection() {
                 linear-gradient(
                   180deg,
                   var(--cta-edge-top) 0%,
-                  rgba(17, 18, 20, 0.58) 38%,
-                  rgba(17, 18, 20, 0.58) 62%,
+                  color-mix(in srgb, var(--mv-bg) 58%, transparent) 38%,
+                  color-mix(in srgb, var(--mv-bg) 58%, transparent) 62%,
                   var(--cta-edge-bottom) 100%
                 );
             }

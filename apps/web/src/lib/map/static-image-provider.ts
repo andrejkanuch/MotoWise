@@ -12,6 +12,14 @@ function mapboxTokenForStaticImages(): string {
     ''
   );
 }
+/**
+ * For URLs rendered into page HTML (the browser fetches them): only the public,
+ * URL-restricted token. `MAPBOX_ACCESS_TOKEN` is server-only (apps/web/CLAUDE.md)
+ * and must never reach markup; without a public token the hero stays bare.
+ */
+function publicMapboxToken(): string {
+  return process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ?? '';
+}
 const BASE = 'https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static';
 
 /** Mapbox Static API has a ~8192 char URL limit. Keep well under. */
@@ -175,7 +183,8 @@ export interface RouteHeroMapOptions {
  * without waypoints gets `null` and keeps the bare hero.
  */
 export function buildRouteHeroMapUrl(opts: RouteHeroMapOptions): string | null {
-  const token = mapboxTokenForStaticImages();
+  // The URL lands in the page's HTML, so it carries the public token only.
+  const token = publicMapboxToken();
   if (!token || opts.waypoints.length === 0) return null;
 
   const { color, width = 1200, height = 675, padding = 60 } = opts;

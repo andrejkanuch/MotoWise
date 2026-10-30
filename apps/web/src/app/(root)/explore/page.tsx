@@ -85,6 +85,20 @@ async function fetchTopTrips(limit = 4, country?: string): Promise<TripTemplateN
   return fetchTrips(limit, { country });
 }
 
+/**
+ * An API failure outside `next build` THROWS instead of rendering the notice.
+ * Every runtime render of this force-static page is an ISR regeneration with a
+ * good copy already cached, and a failed regeneration keeps that copy; baking
+ * the notice in would serve it to everyone for the whole revalidate window
+ * (and its "Try again" link reloads the same cached HTML). The build has no
+ * earlier copy, so it still renders the notice rather than failing the deploy.
+ */
+function failUnlessBuilding(what: string): void {
+  if (process.env.NEXT_PHASE !== 'phase-production-build') {
+    throw new Error(`/explore: ${what} did not load; keeping the cached page`);
+  }
+}
+
 /* ── API-down notice: name what happened and the next step ──────── */
 
 function LoadFailedNotice() {
@@ -123,8 +137,11 @@ async function PopularSection({
     fetchTopTrips(4),
     ...local.map((c) => fetchTopTrips(4, c.code.toLowerCase())),
   ]);
-  // The ledger already said the API is down; say it once.
-  if (world === null) return countriesFailed ? null : <LoadFailedNotice />;
+  if (world === null) {
+    failUnlessBuilding('popular routes');
+    // The ledger already said the API is down; say it once.
+    return countriesFailed ? null : <LoadFailedNotice />;
+  }
 
   const byCountry: Record<string, { name: string; trips: PopularTrip[] }> = {};
   local.forEach((c, i) => {
@@ -177,6 +194,7 @@ export default async function ExplorePage() {
         routeCount: p.routeCount,
       }));
   } catch {
+    failUnlessBuilding('countries');
     countriesFailed = true;
   }
 

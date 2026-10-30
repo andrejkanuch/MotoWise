@@ -129,6 +129,22 @@ function grantPostHog(posthog: PostHog, announce: boolean) {
   }
 }
 
+function denyPostHog(posthog: PostHog | null) {
+  try {
+    posthog?.opt_out_capturing();
+  } catch {
+    // Blocked storage (see grantPostHog).
+  }
+}
+
+/**
+ * Bumped on every consent decision. A "yes" that has to wait for the SDK chunk
+ * only applies if no later decision replaced it: an Undo or Reject made while
+ * posthog-js is still downloading must win over the earlier Accept.
+ */
+let consentGeneration = 0;
+let latestConsentGranted = false;
+
 /**
  * Apply the stored consent decision to PostHog. Runs on every page load for a
  * visitor who already decided, so `announce` is true only when the decision is
@@ -138,6 +154,8 @@ function grantPostHog(posthog: PostHog, announce: boolean) {
  */
 export function applyPostHogConsent(granted: boolean, { announce = false } = {}) {
   if (typeof window === 'undefined') return;
+  const generation = ++consentGeneration;
+  latestConsentGranted = granted;
   if (granted) {
     const loaded = getPostHog();
     if (loaded) {
@@ -145,7 +163,15 @@ export function applyPostHogConsent(granted: boolean, { announce = false } = {})
       return;
     }
     loadPostHog().then(
-      (posthog) => grantPostHog(posthog, announce),
+      (posthog) => {
+        if (generation === consentGeneration) {
+          grantPostHog(posthog, announce);
+        } else if (!latestConsentGranted) {
+          // The "no" arrived before the SDK did, so it had nothing to opt out.
+          denyPostHog(posthog);
+        }
+        // A later "yes" applies itself from its own pending load.
+      },
       () => {
         // The SDK chunk failed to load (offline, blocked): no analytics, no error.
       },
@@ -154,11 +180,7 @@ export function applyPostHogConsent(granted: boolean, { announce = false } = {})
   }
   dropQueuedPostHogCalls();
   clearFirstTouch();
-  try {
-    getPostHog()?.opt_out_capturing();
-  } catch {
-    // Blocked storage (see grantPostHog).
-  }
+  denyPostHog(getPostHog());
 }
 
 // ---------------------------------------------------------------------------

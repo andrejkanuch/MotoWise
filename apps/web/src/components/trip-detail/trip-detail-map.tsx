@@ -4,15 +4,9 @@ import { palette } from '@motovault/design-system';
 import { useEffect, useRef, useState } from 'react';
 import { type ResolvedTheme, Theme, useTheme } from '@/providers/theme-provider';
 
-interface Waypoint {
-  lat: number;
-  lng: number;
-  name: string;
-  type: string;
-  dayIndex: number;
-  sortOrder: number;
-  notes?: string | null;
-}
+import { buildPopupContent, type PopupWaypoint } from './popup-content';
+
+type Waypoint = PopupWaypoint;
 
 interface TripDetailMapProps {
   waypoints: Waypoint[];
@@ -85,82 +79,9 @@ const PIN_STYLE = `
   transition: transform var(--mv-dur-2) var(--mv-ease-expo), background-color var(--mv-dur-1), border-color var(--mv-dur-1), color var(--mv-dur-1);
 `;
 
-const POPUP_STYLE = `
-  font-family: var(--mv-font-body);
-  background: var(--mv-surface-2);
-  color: var(--mv-ink);
-  padding: 16px;
-  border-radius: var(--mv-radius-control);
-  border: 1px solid var(--mv-line);
-  box-shadow: none;
-`;
-
-const POPUP_HEAD_STYLE = 'display: flex; align-items: center; gap: 8px; margin-bottom: 8px;';
-
-const POPUP_NUM_STYLE = `
-  width: 24px; height: 24px; border-radius: var(--mv-radius-pill);
-  background: var(--mv-surface-3); color: var(--mv-ink);
-  display: grid; place-items: center;
-  font-family: var(--mv-font-display); font-size: 13px; font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
-`;
-
-const POPUP_NAME_STYLE = 'font-size: 15px; font-weight: 600; line-height: 1.45;';
-
-const POPUP_CHIPS_STYLE = `
-  display: flex; gap: 6px; flex-wrap: wrap;
-  font-size: 13px; line-height: 18px; font-weight: 500;
-  letter-spacing: 0;
-  color: var(--mv-ink-2);
-`;
-
-const POPUP_CHIP_STYLE =
-  'background: var(--mv-surface-3); padding: 2px 8px; border-radius: var(--mv-radius-small);';
-
-const POPUP_NOTES_STYLE =
-  'font-size: 13px; color: var(--mv-ink-3); margin-top: 8px; line-height: 18px;';
-
-function sentenceCase(s: string): string {
-  const words = s.replace(/_/g, ' ');
-  return words.charAt(0).toUpperCase() + words.slice(1);
-}
-
 function getDayColor(scheme: MapScheme, dayIndex: number): string {
   const colors = DAY_COLORS[scheme];
   return colors[dayIndex % colors.length];
-}
-
-/** A styled element whose text is set through textContent — never markup. */
-function el(tag: string, style: string, text?: string): HTMLElement {
-  const node = document.createElement(tag);
-  node.style.cssText = style;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
-
-/**
- * The stop popup, built from DOM nodes. Waypoint names and notes are written
- * by the trip's organiser, so they are user data: setting them through
- * textContent is what keeps a `<img onerror>` in a note from running on every
- * reader of a public trip page. Never build this with setHTML.
- */
-function buildPopupContent(wp: Waypoint, num: number, dayCount: number): HTMLElement {
-  const root = el('div', POPUP_STYLE);
-
-  const head = el('div', POPUP_HEAD_STYLE);
-  head.appendChild(el('span', POPUP_NUM_STYLE, String(num)));
-  head.appendChild(el('span', POPUP_NAME_STYLE, wp.name));
-  root.appendChild(head);
-
-  const chips = el('div', POPUP_CHIPS_STYLE);
-  if (dayCount > 1) chips.appendChild(el('span', POPUP_CHIP_STYLE, `Day ${wp.dayIndex + 1}`));
-  chips.appendChild(el('span', POPUP_CHIP_STYLE, sentenceCase(wp.type)));
-  root.appendChild(chips);
-
-  if (wp.notes) root.appendChild(el('div', POPUP_NOTES_STYLE, wp.notes));
-
-  return root;
 }
 
 function decodePolyline(encoded: string): [number, number][] {
@@ -233,6 +154,31 @@ function useMapboxLoadState(): MapboxLoadState {
   return state;
 }
 
+/**
+ * Adds one line layer with its own GeoJSON source, replacing any earlier copy:
+ * a theme toggle before the first `load`, or two quick toggles, can draw twice,
+ * and a duplicate addSource throws.
+ */
+function putLine(
+  map: MapboxGl,
+  sourceId: string,
+  layerId: string,
+  coords: [number, number][],
+  paint: Record<string, unknown>,
+) {
+  if (map.getLayer(layerId)) map.removeLayer(layerId);
+  if (map.getSource(sourceId)) map.removeSource(sourceId);
+  map.addSource(sourceId, {
+    type: 'geojson',
+    data: {
+      type: 'Feature',
+      properties: {},
+      geometry: { type: 'LineString', coordinates: coords },
+    },
+  });
+  map.addLayer({ id: layerId, type: 'line', source: sourceId, paint });
+}
+
 /** Route and day lines are style layers, so they are redrawn after every setStyle. */
 function drawLines(
   map: MapboxGl,
@@ -243,24 +189,11 @@ function drawLines(
   if (polyline) {
     const coords = decodePolyline(polyline);
     if (coords.length > 1) {
-      map.addSource('route-line', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: {},
-          geometry: { type: 'LineString', coordinates: coords },
-        },
-      });
       // The route is the one highlighted object: copper, no glow
-      map.addLayer({
-        id: 'route-main',
-        type: 'line',
-        source: 'route-line',
-        paint: {
-          'line-color': ROUTE_COLOR[scheme],
-          'line-width': 3,
-          'line-opacity': 0.9,
-        },
+      putLine(map, 'route-line', 'route-main', coords, {
+        'line-color': ROUTE_COLOR[scheme],
+        'line-width': 3,
+        'line-opacity': 0.9,
       });
     }
     return;
@@ -278,24 +211,11 @@ function drawLines(
     if (sorted.length < 2) continue;
 
     const coords: [number, number][] = sorted.map((wp) => [wp.lng, wp.lat]);
-    map.addSource(`day-line-${dayIndex}`, {
-      type: 'geojson',
-      data: {
-        type: 'Feature',
-        properties: {},
-        geometry: { type: 'LineString', coordinates: coords },
-      },
-    });
-    map.addLayer({
-      id: `day-line-${dayIndex}`,
-      type: 'line',
-      source: `day-line-${dayIndex}`,
-      paint: {
-        'line-color': getDayColor(scheme, dayIndex),
-        'line-width': 2.5,
-        'line-opacity': 0.7,
-        'line-dasharray': [3, 2],
-      },
+    putLine(map, `day-line-${dayIndex}`, `day-line-${dayIndex}`, coords, {
+      'line-color': getDayColor(scheme, dayIndex),
+      'line-width': 2.5,
+      'line-opacity': 0.7,
+      'line-dasharray': [3, 2],
     });
   }
 }
@@ -398,6 +318,8 @@ function TripDetailMapInner({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapboxGl>(null);
   const schemeRef = useRef(scheme);
+  /** The one pending post-setStyle redraw; a newer toggle replaces it. */
+  const pendingRedrawRef = useRef<(() => void) | null>(null);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: map init once; the scheme effect below handles changes
   useEffect(() => {
@@ -461,7 +383,13 @@ function TripDetailMapInner({
     schemeRef.current = scheme;
     const map = mapRef.current;
     if (!map) return;
-    map.once('style.load', () => drawLines(map, waypoints, polyline, scheme));
+    if (pendingRedrawRef.current) map.off('style.load', pendingRedrawRef.current);
+    const redraw = () => {
+      pendingRedrawRef.current = null;
+      drawLines(map, waypoints, polyline, schemeRef.current);
+    };
+    pendingRedrawRef.current = redraw;
+    map.once('style.load', redraw);
     map.setStyle(MAP_STYLE[scheme]);
   }, [scheme, waypoints, polyline]);
 

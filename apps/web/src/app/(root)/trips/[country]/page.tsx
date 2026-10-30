@@ -19,12 +19,13 @@ const MAP_PIN_COLOR = palette.plateCopper.replace('#', '');
 /** The hero band's bottom edge, read OUTSIDE .mv-dark-scene so it blends into the page ground. */
 const HERO_EDGE_STYLE = { '--rh-edge-bottom': 'var(--mv-bg)' } as React.CSSProperties;
 
-// Static (ISR) like the canonical slug page: the hub was rendered per request
-// although its data only changes on publish. Slugged trips 308 to the canonical
-// URL, unknown ids are a real 404 (no loading.tsx above this route); both are
-// cached for the day; /api/revalidate clears a path on demand.
+// Static (ISR) like the canonical slug page: the hub was rendered per request.
+// Slugged trips 308 to the canonical URL, unknown ids are a real 404 (no
+// loading.tsx above this route). The window stays short because this page also
+// serves riders' own public trips and nothing revalidates /trips/<id> when a
+// rider makes one private or deletes it; 300 s matches the old fetch window.
 export const dynamic = 'force-static';
-export const revalidate = 86400;
+export const revalidate = 300;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -85,41 +86,59 @@ interface PageParams {
   params: Promise<{ country: string }>;
 }
 
+/** Per-request timeout, matching the public GraphQL fetcher (lib/graphql-server.ts). */
+const LOOKUP_TIMEOUT_MS = 8_000;
+
+/**
+ * POSTs one public query and returns its `data` field, or `null` when the API
+ * answered definitively that there is nothing (no data, or GraphQL errors in
+ * the body). A network error, timeout, 5xx or a body that is not GraphQL
+ * THROWS: turning those into null would make the page
+ * call notFound(), and under ISR that false 404 is cached for the whole window
+ * (docs/solutions/runtime-errors/nextjs-streaming-swallows-404s-and-redirects.md).
+ * A throw keeps the last good page during regeneration instead.
+ */
+async function postPublicQuery<T>(
+  query: string,
+  variables: Record<string, unknown>,
+): Promise<T | null> {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables }),
+    next: { revalidate },
+    signal: AbortSignal.timeout(LOOKUP_TIMEOUT_MS),
+  });
+  // 5xx is the API not answering. A 4xx that carries GraphQL errors IS an
+  // answer (validation or not-found): discoverTripById, for one, is not in the
+  // API schema and always answers 400, so treating 4xx as an outage would turn
+  // every by-id trip into an error page.
+  if (res.status >= 500) throw new Error(`Trip lookup failed: HTTP ${res.status}`);
+  const json = (await res.json().catch(() => {
+    throw new Error(`Trip lookup failed: HTTP ${res.status}, body is not JSON`);
+  })) as { data?: T | null; errors?: unknown[] };
+  if (Array.isArray(json.errors) && json.errors.length > 0) return null;
+  if (!res.ok) throw new Error(`Trip lookup failed: HTTP ${res.status}`);
+  return json.data ?? null;
+}
+
 // cache() dedupes the generateMetadata + page-body lookups into one request.
 const lookupTrip = cache(async (id: string): Promise<TripData | null> => {
-  // Try discover trips — if it has a slug, we redirect
-  try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: DISCOVER_TRIP_BY_ID_QUERY, variables: { id } }),
-      next: { revalidate },
-    });
-    const json = await res.json();
-    const trip = json?.data?.discoverTripById;
-    if (trip?.slug && trip?.countryCode) {
-      return { ...trip, _redirect: true } as TripData & { _redirect: boolean };
-    }
-  } catch {
-    // fall through
+  // Discover trips with a slug redirect to their canonical page.
+  const discover = await postPublicQuery<{
+    discoverTripById: { slug: string | null; countryCode: string | null } | null;
+  }>(DISCOVER_TRIP_BY_ID_QUERY, { id });
+  const discovered = discover?.discoverTripById;
+  if (discovered?.slug && discovered.countryCode) {
+    return { ...discovered, _redirect: true } as unknown as TripData;
   }
 
   // Full trip detail (user trips + templates without slug)
-  try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: TRIP_DETAIL_FULL_QUERY, variables: { tripId: id } }),
-      next: { revalidate },
-    });
-    const json = await res.json();
-    const trip = json?.data?.tripDetail;
-    if (trip?.countryCode) return trip;
-  } catch {
-    // fall through
-  }
-
-  return null;
+  const detail = await postPublicQuery<{ tripDetail: TripData | null }>(TRIP_DETAIL_FULL_QUERY, {
+    tripId: id,
+  });
+  const trip = detail?.tripDetail;
+  return trip?.countryCode ? trip : null;
 });
 
 export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
