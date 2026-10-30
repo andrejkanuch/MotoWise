@@ -53,11 +53,13 @@ export function SavedRoutesClient({ handle, initialEndCursor }: SavedRoutesClien
   const [endCursor, setEndCursor] = useState(initialEndCursor);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [failed, setFailed] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const loadMore = useCallback(async () => {
     if (loading || !hasNextPage || !endCursor) return;
     setLoading(true);
+    setFailed(false);
 
     try {
       const res = await fetch(API_URL, {
@@ -70,14 +72,18 @@ export function SavedRoutesClient({ handle, initialEndCursor }: SavedRoutesClien
       });
       const json = await res.json();
       const data = json.data?.publicSavedTrips;
-      if (!data) return;
+      if (!data) {
+        setFailed(true);
+        return;
+      }
 
       const newRoutes = data.edges.map((edge: { node: SavedTripNode }) => edge.node);
       setRoutes((prev) => [...prev, ...newRoutes]);
       setEndCursor(data.pageInfo.endCursor);
       setHasNextPage(data.pageInfo.hasNextPage);
     } catch {
-      // Silently fail — user can scroll again
+      // The sentinel would re-fire on every scroll with no feedback; show a retry.
+      setFailed(true);
     } finally {
       setLoading(false);
     }
@@ -111,8 +117,16 @@ export function SavedRoutesClient({ handle, initialEndCursor }: SavedRoutesClien
         </ul>
       )}
 
-      {/* Intersection observer sentinel */}
-      {hasNextPage && (
+      {/* Intersection observer sentinel, or the retry when a page didn't load */}
+      {hasNextPage && failed && (
+        <p className="sp-loading" role="alert">
+          More routes didn&apos;t load.{' '}
+          <button type="button" className="mv-link" onClick={loadMore}>
+            Try again
+          </button>
+        </p>
+      )}
+      {hasNextPage && !failed && (
         <div ref={sentinelRef} className="sp-loading" aria-live="polite">
           {loading ? 'Loading more routes…' : ''}
         </div>

@@ -1,7 +1,9 @@
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { StoreLink } from '@/components/marketing/store-buttons';
+import { ShareUnavailable } from '@/components/share-unavailable';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
+import { settleUpstream } from '@/lib/upstream-error';
 import { fetchProfile } from '../../../lib/fetch-profile';
 import '@/components/marketing/design-system.css';
 import '@/components/share-page.css';
@@ -20,8 +22,12 @@ export default async function UserProfileLayout({
   params: Promise<{ handle: string }>;
 }) {
   const { handle } = await params;
-  const profile = await fetchProfile(handle);
+  // undefined = the API never answered (outage), null = no such rider
+  const profile = await settleUpstream(fetchProfile(handle));
 
+  if (profile === undefined) {
+    return <ShareUnavailable what="The rider's page" path={`/u/${handle}/saved`} />;
+  }
   if (!profile) {
     notFound();
   }
@@ -31,6 +37,13 @@ export default async function UserProfileLayout({
 
   return (
     <div className="mv-marketing sp">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:px-4 focus:py-2"
+        style={{ background: 'var(--mv-copper)', color: 'var(--mv-on-copper)' }}
+      >
+        Skip to content
+      </a>
       <div className="sp-brand">
         <a href="/">
           <Image src="/images/marketing/MotoVault.png" alt="" width={28} height={28} />
@@ -38,7 +51,7 @@ export default async function UserProfileLayout({
         </a>
       </div>
 
-      <main className="sp-main sp-main-tall">
+      <main id="main-content" className="sp-main sp-main-tall">
         <header className="sp-header">
           {profile.avatarUrl ? (
             // biome-ignore lint/performance/noImgElement: user avatar from Supabase storage

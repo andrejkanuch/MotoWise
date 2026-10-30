@@ -1,6 +1,5 @@
 'use client';
 
-import { Bike } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import {
   BetterInAppCard,
@@ -77,33 +76,6 @@ export function EmptyStartHero({
           showLabel={false}
         />
       </div>
-    </section>
-  );
-}
-
-/** "This is where your bike lives": a dashed ghost of the Bike Plate. */
-export function BikePreview() {
-  const t = useTranslations('GarageV2');
-  return (
-    <section className="gv-preview" aria-label={t('previewRegion')}>
-      <div className="gv-preview-art" aria-hidden="true">
-        <div className="gv-preview-photo gv-stripes">
-          <Bike size={40} strokeWidth={1.25} />
-        </div>
-        <div className="gv-preview-plate">
-          <span
-            className="gv-preview-bar gv-preview-bar--strong"
-            style={{ width: 150, height: 40 }}
-          />
-          <span className="gv-preview-bar" style={{ width: 200, height: 12 }} />
-          <span className="gv-preview-rule" />
-          <span className="gv-preview-bar" style={{ width: 120, height: 10 }} />
-        </div>
-      </div>
-      <span className="gv-preview-pill">
-        <span className="gv-preview-dot" aria-hidden="true" />
-        {t('previewLabel')}
-      </span>
     </section>
   );
 }

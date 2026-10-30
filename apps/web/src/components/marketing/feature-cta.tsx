@@ -53,18 +53,6 @@ export async function FeatureCta({
             <span>{t('googlePlay')}</span>
           </StoreLink>
         </div>
-
-        <p
-          style={{
-            margin: '20px 0 0',
-            fontSize: '13px',
-            lineHeight: '18px',
-            fontWeight: 500,
-            color: 'var(--mv-ink-3)',
-          }}
-        >
-          {t('socialProof')}
-        </p>
       </div>
     </section>
   );

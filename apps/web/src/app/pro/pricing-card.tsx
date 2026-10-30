@@ -1,18 +1,9 @@
 'use client';
 
-import {
-  ArrowRight,
-  Bike,
-  Download,
-  Lock,
-  MapPin,
-  Receipt,
-  ScanSearch,
-  Sparkles,
-} from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { PRO_FEATURE_KEYS, PRO_FEATURES, WEB_OFFER_COPY } from '@/lib/pro-plan';
+import { PRO_FEATURES, WEB_OFFER_COPY } from '@/lib/pro-plan';
 import { STATIC_WEB_PLANS, WEB_PLAN_IDS, type WebPlanId } from '@/lib/web-pricing';
 
 /** Static marketing prices; checkout renders the live RevenueCat price instead. */
@@ -22,16 +13,6 @@ const PLAN_LABEL: Record<WebPlanId, string> = {
   [WEB_PLAN_IDS.MONTHLY]: 'Monthly',
   [WEB_PLAN_IDS.ANNUAL]: 'Annual',
 };
-
-/** Icon per benefit row; copy comes from lib/pro-plan.ts. */
-const BENEFIT_ICONS = {
-  [PRO_FEATURE_KEYS.BIKES]: Bike,
-  [PRO_FEATURE_KEYS.AI_DIAGNOSTICS]: ScanSearch,
-  [PRO_FEATURE_KEYS.AI_EXTRAS]: Sparkles,
-  [PRO_FEATURE_KEYS.RECEIPT_SCANS]: Receipt,
-  [PRO_FEATURE_KEYS.GPX_EXPORT]: Download,
-  [PRO_FEATURE_KEYS.OFFLINE_MAPS]: MapPin,
-} as const;
 
 /** The one card on the plan page: plan toggle, price, what it unlocks, the copper action. */
 export function PricingCard() {
@@ -62,16 +43,13 @@ export function PricingCard() {
         <p className="mvp-price-sub">{p.sub}</p>
       </div>
 
+      {/* Text rows: the titles say what they are (copy in lib/pro-plan.ts). */}
       <ul className="mv-rows is-open mvp-benefits">
-        {PRO_FEATURES.map((f) => {
-          const Icon = BENEFIT_ICONS[f.key];
-          return (
-            <li key={f.key} className="mv-row">
-              <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
-              {f.title}
-            </li>
-          );
-        })}
+        {PRO_FEATURES.map((f) => (
+          <li key={f.key} className="mv-row">
+            {f.title}
+          </li>
+        ))}
       </ul>
 
       <div>
@@ -79,10 +57,7 @@ export function PricingCard() {
           {WEB_OFFER_COPY.finalCta}
           <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />
         </Link>
-        <p className="mvp-footnote">
-          <Lock size={13} strokeWidth={2} aria-hidden="true" />
-          {WEB_OFFER_COPY.cardFootnote}
-        </p>
+        <p className="mvp-footnote">{WEB_OFFER_COPY.cardFootnote}</p>
       </div>
     </div>
   );

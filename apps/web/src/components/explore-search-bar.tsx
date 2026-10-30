@@ -17,6 +17,13 @@ type TypeaheadData = SearchTypeaheadQuery['searchTypeahead'];
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 const DEBOUNCE_MS = 250;
 const MIN_QUERY_LENGTH = 2;
+const LISTBOX_ID = 'typeahead-listbox';
+const HINT_ID = 'search-keyboard-hints';
+const SHORT_QUERY_HINT_ID = 'search-short-query';
+
+/** Why the suggestions are not showing, when it is not "nothing matched". */
+const SuggestStatus = { Idle: 'idle', Error: 'error' } as const;
+type SuggestStatus = (typeof SuggestStatus)[keyof typeof SuggestStatus];
 
 const TYPEAHEAD_QUERY = `
   query SearchTypeahead($q: String, $limit: Int) {
@@ -111,6 +118,9 @@ export function ExploreSearchBar({
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [suggestStatus, setSuggestStatus] = useState<SuggestStatus>(SuggestStatus.Idle);
+  // Set when "Search routes" is pressed with nothing to search for.
+  const [shortQuery, setShortQuery] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -145,6 +155,7 @@ export function ExploreSearchBar({
       setData(null);
       setIsOpen(false);
       setIsLoading(false);
+      setSuggestStatus(SuggestStatus.Idle);
       return;
     }
 
@@ -156,6 +167,7 @@ export function ExploreSearchBar({
         .then((result) => {
           if (controller.signal.aborted) return;
           setData(result);
+          setSuggestStatus(SuggestStatus.Idle);
           setIsOpen(result.routes.length > 0 || result.places.length > 0);
           setActiveIndex(-1);
         })
@@ -163,6 +175,8 @@ export function ExploreSearchBar({
           if (err instanceof Error && err.name === 'AbortError') return;
           setData(null);
           setIsOpen(false);
+          // Offline or the API is down: say so; the search itself still works.
+          setSuggestStatus(SuggestStatus.Error);
         })
         .finally(() => {
           if (!controller.signal.aborted) setIsLoading(false);
@@ -212,19 +226,29 @@ export function ExploreSearchBar({
     inputRef.current?.focus();
   }, []);
 
+  const canSubmit = query.trim().length >= MIN_QUERY_LENGTH || country !== '' || duration !== '';
+
+  const handleSearch = useCallback(() => {
+    if (!canSubmit) {
+      setShortQuery(true);
+      inputRef.current?.focus();
+      return;
+    }
+    setShortQuery(false);
+    const params = new URLSearchParams();
+    if (query.trim()) params.set('q', query.trim());
+    if (country) params.set('country', country);
+    if (duration) params.set('duration', duration);
+    router.push(`/explore/search?${params.toString()}`);
+  }, [canSubmit, query, country, duration, router]);
+
   // Keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (!isOpen || allItems.length === 0) {
-        const canSubmit =
-          query.trim().length >= MIN_QUERY_LENGTH || country !== '' || duration !== '';
-        if (e.key === 'Enter' && canSubmit) {
+        if (e.key === 'Enter') {
           e.preventDefault();
-          const params = new URLSearchParams();
-          if (query.trim()) params.set('q', query.trim());
-          if (country) params.set('country', country);
-          if (duration) params.set('duration', duration);
-          router.push(`/explore/search?${params.toString()}`);
+          handleSearch();
         }
         return;
       }
@@ -255,20 +279,14 @@ export function ExploreSearchBar({
           break;
       }
     },
-    [isOpen, allItems, activeIndex, navigate, query, country, duration, router],
+    [isOpen, allItems, activeIndex, navigate, handleSearch],
   );
 
-  const handleSearch = useCallback(() => {
-    const canSubmit = query.trim().length >= MIN_QUERY_LENGTH || country !== '' || duration !== '';
-    if (!canSubmit) return;
-    const params = new URLSearchParams();
-    if (query.trim()) params.set('q', query.trim());
-    if (country) params.set('country', country);
-    if (duration) params.set('duration', duration);
-    router.push(`/explore/search?${params.toString()}`);
-  }, [query, country, duration, router]);
-
   const placesCount = data?.places.length ?? 0;
+  const showShortQueryHint = shortQuery && !canSubmit;
+  const describedBy = [HINT_ID, showShortQueryHint ? SHORT_QUERY_HINT_ID : '']
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div ref={containerRef}>
@@ -293,11 +311,12 @@ export function ExploreSearchBar({
                 }}
                 onKeyDown={handleKeyDown}
                 placeholder="Search a pass, a coast, a town"
-                aria-describedby="search-keyboard-hints"
+                aria-describedby={describedBy}
+                aria-invalid={showShortQueryHint || undefined}
                 role="combobox"
                 aria-expanded={isOpen}
                 aria-haspopup="listbox"
-                aria-controls="typeahead-listbox"
+                aria-controls={LISTBOX_ID}
                 aria-activedescendant={
                   activeIndex >= 0 ? `typeahead-item-${activeIndex}` : undefined
                 }
@@ -355,79 +374,102 @@ export function ExploreSearchBar({
           </button>
         </div>
 
-        {/* Typeahead dropdown */}
-        {isOpen && allItems.length > 0 && (
-          <div id="typeahead-listbox" role="listbox" className="xp-dropdown">
-            {data && data.places.length > 0 && (
-              <div>
-                <div className="xp-dropdown-head">
-                  <span className="xp-label">Places</span>
+        {/* The combobox's description, present whether or not the list is open */}
+        <span id={HINT_ID} className="sr-only">
+          Arrow keys move through suggestions, Enter opens one, Escape closes the list.
+        </span>
+
+        {/* Typeahead dropdown: the listbox exists whenever the field does, so
+            aria-controls never dangles; it shows only with suggestions in it */}
+        <div
+          id={LISTBOX_ID}
+          role="listbox"
+          aria-label="Suggestions"
+          className="xp-dropdown mv-enter-down"
+          hidden={!(isOpen && allItems.length > 0)}
+        >
+          {data && data.places.length > 0 && (
+            <div role="presentation">
+              <div className="xp-dropdown-head">
+                <span className="xp-label">Places</span>
+              </div>
+              {data.places.map((place, i) => (
+                <div
+                  key={`place-${place.id}`}
+                  id={`typeahead-item-${i}`}
+                  role="option"
+                  tabIndex={-1}
+                  aria-selected={activeIndex === i}
+                  className="xp-option"
+                  onMouseEnter={() => setActiveIndex(i)}
+                  onClick={() => navigate(buildPlaceHref(place))}
+                  onKeyDown={handleKeyDown}
+                >
+                  <span className="xp-option-icon">
+                    <Icon name={PLACE_KIND_ICON[place.kind] ?? 'building'} size={16} />
+                  </span>
+                  <span className="xp-option-name">{place.name}</span>
+                  <span className="xp-option-kind">{placeKindLabel(place.kind)}</span>
                 </div>
-                {data.places.map((place, i) => (
-                  <button
-                    key={`place-${place.id}`}
-                    id={`typeahead-item-${i}`}
+              ))}
+            </div>
+          )}
+
+          {data && data.routes.length > 0 && (
+            <div role="presentation">
+              {placesCount > 0 && <div className="xp-dropdown-rule" aria-hidden="true" />}
+              <div className="xp-dropdown-head">
+                <span className="xp-label">Routes</span>
+              </div>
+              {data.routes.map((route, i) => {
+                const idx = placesCount + i;
+                return (
+                  <div
+                    key={`route-${route.id}`}
+                    id={`typeahead-item-${idx}`}
                     role="option"
-                    type="button"
-                    aria-selected={activeIndex === i}
+                    tabIndex={-1}
+                    aria-selected={activeIndex === idx}
                     className="xp-option"
-                    onMouseEnter={() => setActiveIndex(i)}
-                    onClick={() => navigate(buildPlaceHref(place))}
+                    onMouseEnter={() => setActiveIndex(idx)}
+                    onClick={() => navigate(buildRouteHref(route))}
+                    onKeyDown={handleKeyDown}
                   >
                     <span className="xp-option-icon">
-                      <Icon name={PLACE_KIND_ICON[place.kind] ?? 'building'} size={16} />
+                      <Icon name="map" size={16} />
                     </span>
-                    <span className="xp-option-name">{place.name}</span>
-                    <span className="xp-option-kind">{placeKindLabel(place.kind)}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {data && data.routes.length > 0 && (
-              <div>
-                {placesCount > 0 && <div className="xp-dropdown-rule" aria-hidden="true" />}
-                <div className="xp-dropdown-head">
-                  <span className="xp-label">Routes</span>
-                </div>
-                {data.routes.map((route, i) => {
-                  const idx = placesCount + i;
-                  return (
-                    <button
-                      key={`route-${route.id}`}
-                      id={`typeahead-item-${idx}`}
-                      role="option"
-                      type="button"
-                      aria-selected={activeIndex === idx}
-                      className="xp-option"
-                      onMouseEnter={() => setActiveIndex(idx)}
-                      onClick={() => navigate(buildRouteHref(route))}
-                    >
-                      <span className="xp-option-icon">
-                        <Icon name="map" size={16} />
-                      </span>
-                      <span className="xp-option-name">{route.name}</span>
-                      <span className="xp-option-kind">{route.countryCode}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            <div id="search-keyboard-hints" className="xp-dropdown-foot">
-              <span>
-                <kbd className="xp-kbd">↑</kbd> <kbd className="xp-kbd">↓</kbd> to move
-              </span>
-              <span>
-                <kbd className="xp-kbd">Enter</kbd> to open
-              </span>
-              <span>
-                <kbd className="xp-kbd">Esc</kbd> to close
-              </span>
+                    <span className="xp-option-name">{route.name}</span>
+                    <span className="xp-option-kind">{route.countryCode}</span>
+                  </div>
+                );
+              })}
             </div>
+          )}
+
+          <div className="xp-dropdown-foot" aria-hidden="true">
+            <span>
+              <kbd className="xp-kbd">↑</kbd> <kbd className="xp-kbd">↓</kbd> to move
+            </span>
+            <span>
+              <kbd className="xp-kbd">Enter</kbd> to open
+            </span>
+            <span>
+              <kbd className="xp-kbd">Esc</kbd> to close
+            </span>
           </div>
-        )}
+        </div>
       </div>
+
+      {suggestStatus === SuggestStatus.Error && (
+        <p className="xp-typeahead-status" role="status">
+          Suggestions didn't load. Press Enter to search anyway.
+        </p>
+      )}
+      {showShortQueryHint && (
+        <p id={SHORT_QUERY_HINT_ID} className="xp-typeahead-status" role="status">
+          Type at least {MIN_QUERY_LENGTH} characters, or pick a country or a length.
+        </p>
+      )}
 
       {/* Quick chips + shortcut hint */}
       <div className="xp-search-foot">

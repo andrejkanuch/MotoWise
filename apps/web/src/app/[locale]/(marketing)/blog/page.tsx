@@ -67,7 +67,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
     <>
       <JsonLd data={blogSchema} />
       <section className="mv-index">
-        <header className="mv-reveal">
+        <header>
           <h1 className="mv-index-h1">{t('title')}</h1>
           <p className="mv-index-lede">{t('description')}</p>
         </header>

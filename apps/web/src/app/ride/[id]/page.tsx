@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { StoreLink } from '@/components/marketing/store-buttons';
+import { ShareUnavailable } from '@/components/share-unavailable';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
+import { settleUpstream } from '@/lib/upstream-error';
 import { fetchRide } from '../../../lib/fetch-ride';
 import { formatDate, formatDistance, formatDuration } from '../../../lib/format-utils';
 import '@/components/marketing/design-system.css';
@@ -14,7 +16,8 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const ride = await fetchRide(id);
+  const ride = await settleUpstream(fetchRide(id));
+  if (ride === undefined) return { title: 'MotoVault ride', robots: { index: false } };
   if (!ride) return { title: 'Ride not found' };
 
   const title = ride.name ?? 'MotoVault ride';
@@ -47,8 +50,12 @@ function splitUnit(value: string): [string, string | null] {
 
 export default async function RidePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const ride = await fetchRide(id);
+  // undefined = the API never answered (outage), null = no such public ride
+  const ride = await settleUpstream(fetchRide(id));
 
+  if (ride === undefined) {
+    return <ShareUnavailable what="The ride" path={`/ride/${id}`} />;
+  }
   if (!ride) {
     notFound();
   }
@@ -118,9 +125,6 @@ export default async function RidePage({ params }: { params: Promise<{ id: strin
             >
               Get the app
             </StoreLink>
-            <a href={`https://motovault.app/ride/${ride.id}`} className="mv-btn mv-btn-ghost">
-              Open in the app
-            </a>
           </div>
         </div>
       </footer>

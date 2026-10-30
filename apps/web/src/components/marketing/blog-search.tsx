@@ -183,7 +183,7 @@ export function BlogSearch({
       </div>
 
       {isActive && (
-        <div className="mv-active-filters">
+        <div className="mv-active-filters mv-enter-down">
           <span>Showing</span>
           {q && <FilterChip label={`“${q}”`} onRemove={() => setParams((p) => p.delete('q'))} />}
           {type && (
@@ -211,11 +211,13 @@ export function BlogSearch({
       )}
 
       {status === 'error' ? (
-        <p className="mv-empty">Search is temporarily unavailable. Browse by category instead.</p>
+        <p className="mv-empty mv-enter-down" role="status">
+          Search didn't load. Pick a category above, or try the search again in a moment.
+        </p>
       ) : searchPending ? (
         <RowSkeletons />
       ) : showResults && results.length === 0 ? (
-        <div className="mv-empty">
+        <div className="mv-empty mv-enter-down" role="status">
           <p style={{ margin: 0 }}>No articles match{q ? ` “${q}”` : ' these filters'}.</p>
           <button
             type="button"
@@ -227,7 +229,11 @@ export function BlogSearch({
           </button>
         </div>
       ) : (
-        showResults && <ArticleFeed articles={results} strings={strings} featured={false} />
+        showResults && (
+          <div className="mv-enter-down">
+            <ArticleFeed articles={results} strings={strings} featured={false} />
+          </div>
+        )
       )}
 
       {/* The unfiltered base feed — present in the static HTML, hidden once a
@@ -240,7 +246,9 @@ export function BlogSearch({
 function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
     <span className="mv-chip" data-active="true">
-      {label}
+      <span className="mv-chip-label" title={label}>
+        {label}
+      </span>
       <button type="button" onClick={onRemove} aria-label={`Remove ${label} filter`}>
         <svg
           width="14"
@@ -262,7 +270,7 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
 
 function RowSkeletons() {
   return (
-    <div className="mv-skeleton-rows" aria-hidden="true">
+    <div className="mv-skeleton-rows" role="status" aria-label="Searching articles">
       <div />
       <div />
       <div />

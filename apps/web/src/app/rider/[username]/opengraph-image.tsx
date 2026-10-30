@@ -67,7 +67,10 @@ function splitUnit(value: string): [string, string | null] {
 export default async function OGImage({ params }: { params: Promise<{ username: string }> }) {
   // Next 16: route params are async
   const { username } = await params;
-  const [profile, fonts] = await Promise.all([fetchProfile(username), loadFonts()]);
+  const [profile, fonts] = await Promise.all([
+    fetchProfile(username).catch(() => null),
+    loadFonts(),
+  ]);
 
   const displayName = profile?.displayName ?? profile?.publicUsername ?? username;
   const publicUsername = profile?.publicUsername ?? username;

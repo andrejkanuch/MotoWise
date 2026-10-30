@@ -106,7 +106,7 @@ export default async function ExplorePage({ params }: PageProps) {
       <section className="mv-index">
         <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Explore' }]} />
 
-        <header className="mv-reveal">
+        <header>
           <h1 className="mv-index-h1">Motorcycle routes by country</h1>
           <p className="mv-index-lede">
             {totalRoutes > 0 ? (
@@ -148,10 +148,11 @@ export default async function ExplorePage({ params }: PageProps) {
           </h2>
           <div className="mv-read-faq">
             {EXPLORE_FAQ.map((item) => (
-              <details key={item.question}>
+              <details key={item.question} className="mv-disclosure is-plus">
                 <summary>
                   {item.question}
                   <svg
+                    className="mv-disclosure-mark"
                     width="18"
                     height="18"
                     viewBox="0 0 24 24"

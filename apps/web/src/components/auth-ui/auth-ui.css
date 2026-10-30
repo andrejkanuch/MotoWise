@@ -98,23 +98,14 @@
 .mva-panel .mva-brand {
   color: var(--mv-plate-bone);
 }
-/* The one authored object on the page: a Bike Plate settling onto the
-   scene (its own 240ms settle lives in design-system.css). */
+/* The shared object on the page: the demo bike's plate, still (no settle:
+   an Operate surface, decoration beside a form). */
 .mva-panel-plate {
   align-self: flex-start;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
   max-width: 360px;
 }
 .mva-panel-plate .mv-plate {
   min-width: 280px;
-}
-.mva-panel-note {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.45;
-  color: var(--mv-plate-bone);
 }
 
 /* ── Header bar (<1024) ─────────────────────────────────────────── */
@@ -170,6 +161,20 @@
 @media (min-width: 1280px) {
   .mva-main {
     padding: 64px 120px;
+  }
+}
+/* Short landscape viewports (1024×600 tablets): a centred sign-up form is
+   taller than the screen, so start at the top and let the panel scroll. */
+@media (min-width: 1024px) and (max-height: 760px) {
+  .mva-main {
+    justify-content: flex-start;
+    padding-top: 48px;
+  }
+  .mva-panel {
+    position: static;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 }
 
@@ -393,6 +398,7 @@
   padding: 24px;
   border-radius: var(--mv-radius-card);
   background: var(--mv-surface);
+  border: 1px solid var(--mv-line);
 }
 .mva-check-copy {
   display: flex;
@@ -459,7 +465,18 @@
   padding: 16px;
   background: color-mix(in oklch, var(--mv-bg) 72%, transparent);
 }
+/* Click-outside target: fills the scrim behind the dialog, no visual. */
+.mva-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+}
 .mva-modal {
+  position: relative;
   width: 100%;
   max-width: 400px;
   max-height: calc(100vh - 32px);
@@ -493,8 +510,10 @@
   border-top: none;
 }
 
+/* Reduced motion: the loop stops; the arc stays as the static busy mark
+   (the entrances and feedback are handled by the kit's policy). */
 @media (prefers-reduced-motion: reduce) {
   .mva-spinner {
-    animation-duration: 2.4s;
+    animation: none;
   }
 }

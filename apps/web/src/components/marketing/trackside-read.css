@@ -55,6 +55,7 @@
   letter-spacing: 0.002em;
   color: var(--mv-ink);
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 .mv-index-h1 {
   margin: 0;
@@ -65,6 +66,7 @@
   letter-spacing: 0.002em;
   color: var(--mv-ink);
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 /* Crumbs → H1 40, H1 → lede 28, lede → meta 20 */
 .mv-read-lede,
@@ -280,12 +282,15 @@
   border: 0;
   border-bottom: 1px solid var(--mv-line-step);
   vertical-align: bottom;
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 .mv-read-body td {
   padding: 12px 16px 12px 0;
   border: 0;
   border-bottom: 1px solid var(--mv-line);
   vertical-align: top;
+  overflow-wrap: anywhere;
 }
 .mv-read-body tr > :last-child {
   padding-right: 0;
@@ -328,10 +333,6 @@
 }
 .mv-read-toc summary svg {
   color: var(--mv-ink-4);
-  transition: transform 0.25s var(--mv-ease);
-}
-.mv-read-toc[open] summary svg {
-  transform: rotate(180deg);
 }
 .mv-read-toc ol {
   margin: 16px 0 0;
@@ -357,9 +358,6 @@
 
 /* ── Note / disclaimer: hairline, no card ── */
 .mv-read-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
   margin: 48px 0 0;
   padding: 16px 0 0;
   border-top: 1px solid var(--mv-line);
@@ -368,11 +366,6 @@
   color: var(--mv-ink-3);
   max-width: 66ch;
   text-wrap: pretty;
-}
-.mv-read-note svg {
-  flex-shrink: 0;
-  margin-top: 2px;
-  color: var(--mv-ink-3);
 }
 .mv-read-note p {
   margin: 0;
@@ -407,10 +400,6 @@
   flex-shrink: 0;
   margin-top: 3px;
   color: var(--mv-ink-4);
-  transition: transform 0.25s var(--mv-ease);
-}
-.mv-read-faq details[open] summary svg {
-  transform: rotate(45deg);
 }
 .mv-read-faq .mv-read-faq-answer {
   margin: 0;
@@ -573,6 +562,7 @@
   gap: 20px;
   margin: 64px 0;
   padding: 32px;
+  border: 1px solid var(--mv-line);
   border-radius: var(--mv-radius-card);
   background: var(--mv-surface);
 }
@@ -655,7 +645,11 @@
   letter-spacing: 0.002em;
   color: var(--mv-ink);
   text-wrap: balance;
+  overflow-wrap: anywhere;
   transition: color 0.2s;
+}
+.mv-feed-item a .mv-h2 {
+  overflow-wrap: anywhere;
 }
 /* The featured item's title is the shared .mv-h2 (markup), not a clone */
 .mv-feed-item a .mv-h2 {
@@ -749,8 +743,19 @@
   font-size: 15px;
   color: var(--mv-ink-3);
 }
+.mv-active-filters .mv-chip {
+  max-width: 100%;
+}
+.mv-active-filters .mv-chip-label {
+  min-width: 0;
+  max-width: 28ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .mv-active-filters .mv-chip button {
   display: inline-flex;
+  flex-shrink: 0;
   padding: 0;
   margin: 0 -4px 0 0;
   border: 0;
@@ -874,6 +879,7 @@
   font-weight: 600;
   line-height: 1.4;
   color: var(--mv-ink);
+  overflow-wrap: anywhere;
   transition: color 0.2s;
 }
 .mv-route-row:hover .mv-route-name {
@@ -1033,7 +1039,7 @@
   border-radius: 50%;
   background: var(--mv-on-copper);
   transform: scale(0);
-  transition: transform 0.2s var(--mv-ease);
+  transition: transform 0.2s var(--mv-ease-expo);
 }
 .mv-choice input:checked {
   border-color: var(--mv-copper);
@@ -1074,6 +1080,7 @@
   position: sticky;
   top: 96px;
   padding: 32px;
+  border: 1px solid var(--mv-line);
   border-radius: var(--mv-radius-card);
   background: var(--mv-surface);
 }
@@ -1101,7 +1108,8 @@
   font-size: 20px;
   line-height: 22px;
   color: var(--mv-ink);
-  white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 .mv-tool-row.is-total {
   padding: 16px 0 4px;
@@ -1255,10 +1263,13 @@
   overflow: hidden;
 }
 .mv-progress > div {
+  width: 100%;
   height: 100%;
   border-radius: var(--mv-radius-track);
   background: var(--mv-ink-3);
-  transition: width 0.4s var(--mv-ease), background 0.3s;
+  transform-origin: left;
+  transform: scaleX(var(--mv-p, 0));
+  transition: transform 400ms var(--mv-ease-expo), background-color 300ms;
 }
 .mv-progress > div.is-done {
   background: var(--mv-go);
@@ -1278,7 +1289,7 @@
   font-weight: 700;
   font-size: 40px;
   line-height: 1;
-  color: var(--mv-ink-4);
+  color: var(--mv-ink-3);
   transition: color 0.3s;
 }
 .mv-check-head.is-done .mv-check-letter {
@@ -1345,7 +1356,7 @@
 .mv-check-box svg {
   opacity: 0;
   transform: scale(0.6);
-  transition: opacity 0.18s, transform 0.18s var(--mv-ease);
+  transition: opacity 0.18s, transform 0.18s var(--mv-ease-expo);
 }
 .mv-check-item:hover .mv-check-box {
   border-color: var(--mv-line-step);

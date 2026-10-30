@@ -38,7 +38,8 @@
   color: var(--mv-ink-2);
 }
 
-/* ── Card shell: one step up the ramp, radius 16, no hairline ──── */
+/* ── Card shell: one step up the ramp, radius 16. On paper the step is
+   1.1:1, so the light scheme draws the card's edge as a hairline. ──── */
 
 .mvg-card {
   background: var(--mv-surface);
@@ -46,6 +47,9 @@
   color: var(--mv-ink);
   font-family: var(--mv-font-body);
   min-width: 0;
+}
+html:not(.dark) .mvg-card {
+  border: 1px solid var(--mv-line);
 }
 .mvg-card--raised {
   background: var(--mv-surface-2);
@@ -373,15 +377,7 @@
   padding: 24px;
 }
 .mvg-handoff-heading {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.mvg-handoff-sub {
   margin: 0;
-  font-size: 16px;
-  line-height: 1.45;
-  color: var(--mv-ink-2);
 }
 
 /* ── Band (768–1023) ───────────────────────────────────────────── */
@@ -404,8 +400,11 @@
   min-width: 0;
 }
 
-/* ── Bar (< 768): opaque, one step up the ramp, no blur; sits above
-   the cookie banner (--mv-cookie-banner-h) rather than under it ──── */
+/* ── Bar (< 768): opaque, one step up the ramp, no blur; pinned to the
+   bottom and lifted by `translate` over the cookie banner
+   (--mv-cookie-banner-h), never by animating `bottom`. It enters from
+   below as a transition from @starting-style, so a stalled frame still
+   shows the bar in place. ──────────────────────────────────────────── */
 
 .mvg-bar,
 .mvg-bar-spacer {
@@ -416,7 +415,8 @@
     position: fixed;
     left: 0;
     right: 0;
-    bottom: var(--mv-cookie-banner-h, 0px);
+    bottom: 0;
+    translate: 0 calc(-1 * var(--mv-cookie-banner-h, 0px));
     z-index: 40;
     display: flex;
     align-items: center;
@@ -425,25 +425,24 @@
     background: var(--mv-surface-2);
     border-top: 1px solid var(--mv-line);
     font-family: var(--mv-font-body);
-    animation: mvg-bar-in 240ms var(--mv-ease-expo) both;
-    transition: bottom 0.25s var(--mv-ease);
+    transition:
+      translate 250ms var(--mv-ease-expo),
+      opacity 240ms var(--mv-ease-expo);
+  }
+  @starting-style {
+    .mvg-bar {
+      opacity: 0;
+      translate: 0 calc(8px - var(--mv-cookie-banner-h, 0px));
+    }
   }
   .mvg-bar-spacer {
     display: block;
     height: calc(72px + env(safe-area-inset-bottom) + var(--mv-cookie-banner-h, 0px));
   }
 }
-@keyframes mvg-bar-in {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
+/* The bar sits outside .mv-marketing's enter utilities, so it keeps its own guard. */
 @media (prefers-reduced-motion: reduce) {
   .mvg-bar {
-    animation: none;
     transition: none;
   }
 }

@@ -1,7 +1,7 @@
 import type { TripByShareTokenQuery } from '@motovault/graphql';
 import Image from 'next/image';
-import { StoreLink } from '@/components/marketing/store-buttons';
-import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
+import { OpenInAppActions } from '@/components/open-in-app-link';
+import { CtaPageType } from '@/lib/cta-taxonomy';
 import '@/components/marketing/design-system.css';
 import '@/components/share-page.css';
 
@@ -110,29 +110,11 @@ export function SharedTripView({ data }: { data: SharedTrip }) {
             Open the trip in the app to see the route on the map, join the group and record the
             ride.
           </p>
-          <div className="sp-cta-actions">
-            <a href={`motovault://trip/${data.id}`} className="mv-btn mv-btn-primary">
-              Open in the app
-            </a>
-            <StoreLink
-              platform={StorePlatform.Ios}
-              pageType={CtaPageType.SharedTrip}
-              placement={CtaPlacement.Footer}
-              slug={data.id}
-              className="mv-btn mv-btn-ghost"
-            >
-              Download for iOS
-            </StoreLink>
-            <StoreLink
-              platform={StorePlatform.Android}
-              pageType={CtaPageType.SharedTrip}
-              placement={CtaPlacement.Footer}
-              slug={data.id}
-              className="mv-btn mv-btn-ghost"
-            >
-              Download for Android
-            </StoreLink>
-          </div>
+          <OpenInAppActions
+            deepLink={`motovault://trip/${data.id}`}
+            pageType={CtaPageType.SharedTrip}
+            slug={data.id}
+          />
         </div>
       </footer>
     </div>

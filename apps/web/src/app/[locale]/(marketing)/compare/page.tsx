@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import {
   COMPARE_CHECKED_DATE,
-  COMPARE_PAGES,
   COMPARE_SECTION,
   CompareBreadcrumb,
   CompareFaq,
@@ -17,7 +16,6 @@ import {
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { StoreButtons } from '@/components/marketing/store-buttons';
-import { Link } from '@/i18n/navigation';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { CtaPageType, CtaPlacement } from '@/lib/cta-taxonomy';
 
@@ -61,7 +59,8 @@ type FeatureField = (typeof FEATURES)[number]['field'];
 
 interface AppRow extends Record<FeatureField, boolean> {
   key: string;
-  /** The head-to-head page for this app, when one exists. */
+  /** The head-to-head page for this app, when one exists (the matrix column
+   *  and the comparisons list below share this id). */
   page?: ComparePageId;
 }
 
@@ -272,22 +271,23 @@ export default async function ComparePage({ params }: PageProps) {
       <JsonLd data={faqSchema} />
       <JsonLd data={softwareAppSchema} />
 
-      {/* Hero: one condensed H1, the lede, the date, then the store buttons */}
+      {/* Hero: one condensed H1, the lede, then the store buttons. The check
+          date is printed once, under the matrix. */}
       <header className={`mv-cmp-wrap ${COMPARE_SECTION.header}`}>
         <CompareBreadcrumb current={t('heroTitle')} underCompare={false} />
         <h1 className="mv-section-title">{t('heroTitle')}</h1>
         <p className="mv-section-sub">{t('heroSubtitle')}</p>
-        <p className="mv-cmp-meta mt-5">{t('updatedAt', dated)}</p>
-        {/* Comparison intent is decision intent: the store buttons sit above
-            the matrix, not only at the end. */}
+        {/* Comparison intent is decision intent: the store pair sits in the
+            hero and at the closing CTA, nowhere in between. */}
         <div className="mt-10">
           <StoreButtons pageType={CtaPageType.Compare} placement={CtaPlacement.Hero} />
         </div>
       </header>
 
       {/* The matrix: ten apps across, nine features down, on the page surface.
-          Its reveal is the page's one authored entrance. */}
-      <section className={`mv-cmp-wrap mv-reveal ${COMPARE_SECTION.weight}`}>
+          It starts inside the first viewport, so no entrance: a Read page
+          gets no load choreography. */}
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.weight}`}>
         <h2 className="mv-h2">{t('matrixTitle')}</h2>
         <p className="mv-cmp-note mt-4">{t('matrixSubtitle')}</p>
         <div className="mt-8 overflow-x-auto">
@@ -311,7 +311,7 @@ export default async function ComparePage({ params }: PageProps) {
             <tbody>
               {FEATURES.map(({ labelKey, field }) => (
                 <tr key={field}>
-                  <th scope="row" className="is-sticky" style={{ whiteSpace: 'nowrap' }}>
+                  <th scope="row" className="is-sticky">
                     {t(labelKey)}
                   </th>
                   {APPS.map((app) => {
@@ -348,47 +348,16 @@ export default async function ComparePage({ params }: PageProps) {
         </p>
       </section>
 
-      {/* The comparisons: every head-to-head, then the two guides */}
+      {/* The comparisons: every head-to-head, then the two guides. One list
+          per app: the matrix already carries each app's price. */}
       <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
         <CompareLinkList ids={HEAD_TO_HEAD_IDS} heading={t('comparisonsTitle')} />
-        <p className="mv-cmp-note mt-5">{t('comparisonsSubtitle')}</p>
         <div className="mt-12">
           <CompareLinkList ids={GUIDE_IDS} />
         </div>
       </section>
 
-      {/* The apps: name and tagline, what it does, what it costs and where it runs */}
-      <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
-        <h2 className="mv-h2">{t('appsTitle')}</h2>
-        <p className="mv-cmp-note mt-4">{t('appsSubtitle')}</p>
-        <ul className="mv-rows mt-10">
-          {APPS.map((app) => (
-            <li key={app.key} className="mv-row mv-cmp-grid-row md:grid-cols-[240px_1fr_200px]">
-              <div>
-                <h3 className="mv-h3">{t(`${app.key}.name`)}</h3>
-                <p className="mv-cmp-note mt-1">{t(`${app.key}.tagline`)}</p>
-              </div>
-              <div>
-                <p className="mv-cmp-body is-compact is-full">{t(`${app.key}.description`)}</p>
-                <p className="mv-cmp-body is-compact is-ink mt-3">{t(`${app.key}.best`)}</p>
-                {app.page ? (
-                  <Link href={COMPARE_PAGES[app.page].href} className="mv-link mt-4 inline-block">
-                    {t('readComparison')}
-                  </Link>
-                ) : null}
-              </div>
-              <div className="md:text-right">
-                <p className="mv-figure" style={{ margin: 0, fontSize: 20, lineHeight: '22px' }}>
-                  {t(`${app.key}.price`)}
-                </p>
-                <p className="mv-cmp-meta mt-1">{t(`${app.key}.platforms`)}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* The verdict: four questions as hairline rows, then the decision CTA */}
+      {/* The verdict: four questions as hairline rows */}
       <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
         <h2 className="mv-h2">{t('verdictTitle')}</h2>
         <p className="mv-cmp-note mt-4">{t('verdictSubtitle')}</p>
@@ -400,10 +369,6 @@ export default async function ComparePage({ params }: PageProps) {
             </li>
           ))}
         </ul>
-        <div className="mt-12 flex flex-col items-start gap-4">
-          <p className="mv-cmp-sub">{t('verdictCtaTitle')}</p>
-          <StoreButtons pageType={CtaPageType.Compare} placement={CtaPlacement.MidArticle} />
-        </div>
       </section>
 
       {/* FAQ */}

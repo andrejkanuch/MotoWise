@@ -139,23 +139,10 @@ export default async function RegionPage({ params }: PageProps) {
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 'calc(100dvh - 72px)',
-      }}
-    >
-      {/* Desktop */}
-      <div
-        className="hidden md:flex md:flex-col"
-        // Definite height (not just min-height) so the inner grid bounds the
-        // scrollable list and gives the map a real height instead of stretching
-        // to the full list content. `flex: none` overrides `md:flex-1` (flex-basis
-        // 0%, which would otherwise override `height`). Harmless on mobile — this
-        // block is display:none there.
-        style={{ minHeight: 0, height: 'calc(100dvh - 72px)', flex: 'none' }}
-      >
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+      {/* Desktop. `.xp-results-shell` gives the block a definite height so the
+          inner grid bounds the scrollable list and the map gets a real height. */}
+      <div className="hidden md:flex xp-results-shell">
         <Suspense>
           <ResultsDesktop
             allTrips={trips}

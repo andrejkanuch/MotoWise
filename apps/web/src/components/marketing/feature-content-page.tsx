@@ -49,7 +49,7 @@ export interface FeatureTable {
   rows: string[][];
 }
 
-/** The sibling feature pages a page can point to. Titles come from `FeaturesIndex`. */
+/** The seven feature pages this template lays out. */
 export type FeatureRoute =
   | '/features/trip-planning'
   | '/features/ai-diagnostics'
@@ -58,16 +58,6 @@ export type FeatureRoute =
   | '/features/maintenance'
   | '/features/expense-tracking'
   | '/features/ride-tracking';
-
-const FEATURE_ROUTE_TITLE_KEY: Record<FeatureRoute, string> = {
-  '/features/trip-planning': 'tripPlanningTitle',
-  '/features/ai-diagnostics': 'diagnosticsTitle',
-  '/features/garage-management': 'garageTitle',
-  '/features/learning-paths': 'learningTitle',
-  '/features/maintenance': 'maintenanceTitle',
-  '/features/expense-tracking': 'expensesTitle',
-  '/features/ride-tracking': 'ridesTitle',
-};
 
 const DEFAULT_FAQ_COUNT = 4;
 
@@ -88,7 +78,6 @@ interface FeatureContentPageProps {
   longForm?: { title: string; intro: string; sections: FeatureSection[] };
   /** Defaults to `faq.0…faq.3` of the namespace. */
   faqItems?: FeatureFaqItem[];
-  related?: FeatureRoute[];
 }
 
 /** Reading copy: Body 17/1.6 on a 68ch measure. */
@@ -103,15 +92,6 @@ const BODY_STYLE = {
 
 /** Compact body for list rows, table cells and FAQ answers: 16/1.55. */
 const BODY_COMPACT_STYLE = { ...BODY_STYLE, fontSize: '16px', lineHeight: 1.55 } as const;
-
-/** Meta line: 13/18 500 in ink-3. */
-const META_STYLE = {
-  margin: 0,
-  fontSize: '13px',
-  lineHeight: '18px',
-  fontWeight: 500,
-  color: 'var(--mv-ink-3)',
-} as const;
 
 const PARAGRAPH_GAP = { first: '16px', rest: '24px' } as const;
 
@@ -178,7 +158,8 @@ function Paragraphs({ body }: { body: string | string[] }) {
  * read on the deeper ramp step. Pages with a flow, a unique depiction or a
  * comparison pass those in as slots; nothing is wrapped in a card, numbers
  * appear only where the order means something (steps), and copper is spent on
- * links and the closing primary action alone. Every heading sits on the shared
+ * the /compare link and the closing primary action alone. The store buttons
+ * appear twice: the hero and the closing CTA. Every heading sits on the shared
  * scale (`.mv-section-title`, `.mv-h2`, `.mv-h3`), every hairline list is
  * `.mv-rows`, and the page runs on two rhythm intervals: 96 for the light
  * sections, 120–160 for the two deeper bands. Every colour is a `--mv-*`
@@ -196,13 +177,11 @@ export async function FeatureContentPage({
   table,
   longForm,
   faqItems: faqItemsProp,
-  related = [],
 }: FeatureContentPageProps) {
   const t = await getTranslations(namespace);
-  // The /compare inbound link and the sibling-feature titles live in their own
-  // namespaces so the copy is written once, not per feature.
+  // The /compare inbound link lives in its own namespace so the copy is
+  // written once, not per feature.
   const tCompare = await getTranslations('Compare');
-  const tIndex = await getTranslations('FeaturesIndex');
   const canonical = getCanonicalUrl(locale, route);
 
   const faqItems =
@@ -276,7 +255,10 @@ export async function FeatureContentPage({
             style={{ alignItems: 'end' }}
           >
             <div>
-              <h1 className="mv-section-title" style={{ maxWidth: '14ch' }}>
+              <h1
+                className="mv-section-title"
+                style={{ maxWidth: '14ch', overflowWrap: 'anywhere' }}
+              >
                 {t('heroTitle')}
               </h1>
               <p className="mv-section-sub">{t('heroSubtitle')}</p>
@@ -394,7 +376,7 @@ export async function FeatureContentPage({
             </h2>
             {table.body ? <p className="mv-section-sub">{table.body}</p> : null}
           </div>
-          <div style={{ marginTop: '40px', overflowX: 'auto' }}>
+          <div style={{ marginTop: '40px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <table className="mv-table" style={{ minWidth: '560px', color: 'var(--mv-ink-2)' }}>
               <thead>
                 <tr>
@@ -446,7 +428,7 @@ export async function FeatureContentPage({
             {faqItems.map(({ question, answer }, index) => (
               <details
                 key={question}
-                className="group"
+                className="mv-disclosure"
                 open={index === 0}
                 style={{ borderBottom: '1px solid var(--mv-line)' }}
               >
@@ -473,8 +455,7 @@ export async function FeatureContentPage({
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="transition-transform duration-300 group-open:rotate-180"
-                    style={{ marginLeft: 'auto' }}
+                    style={{ marginLeft: 'auto', flex: 'none' }}
                     aria-hidden="true"
                   >
                     <polyline points="6 9 12 15 18 9" />
@@ -485,44 +466,15 @@ export async function FeatureContentPage({
             ))}
           </div>
 
-          <p
-            style={{
-              margin: '40px 0 0',
-              fontSize: '15px',
-              lineHeight: 1.45,
-              color: 'var(--mv-ink-3)',
-            }}
-          >
-            {t('faqMore')}{' '}
-            <Link href="/support" className="mv-link">
-              {t('faqSupportLink')}
-            </Link>
-          </p>
           {/* Hub-and-spoke inbound link: every feature page feeds the /compare
               money page for internal-link equity + discovery. */}
-          <p style={{ margin: '16px 0 0', fontSize: '15px', lineHeight: 1.45 }}>
+          <p style={{ margin: '40px 0 0', fontSize: '15px', lineHeight: 1.45 }}>
             <Link href="/compare" className="mv-link is-tall">
               {tCompare('compareInboundLink')}
               <ArrowIcon />
             </Link>
           </p>
         </div>
-
-        {related.length > 0 ? (
-          <div style={{ marginTop: '64px' }}>
-            <p style={META_STYLE}>{tIndex('relatedTitle')}</p>
-            <ul className="mv-rows grid md:grid-cols-2 md:gap-x-20" style={{ marginTop: '16px' }}>
-              {related.map((href) => (
-                <li key={href}>
-                  <Link href={href} className="mv-row">
-                    <span className="mv-h3">{tIndex(FEATURE_ROUTE_TITLE_KEY[href])}</span>
-                    <ArrowIcon />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
       </section>
 
       <FeatureCta />

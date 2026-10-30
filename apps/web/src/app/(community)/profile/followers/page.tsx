@@ -4,8 +4,9 @@ import type { GetFollowersQuery } from '@motovault/graphql';
 import { GetFollowersDocument, GetFollowingDocument, MeDocument } from '@motovault/graphql';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { Avatar } from '../avatar';
 import '@/app/(community)/garage/garage.css';
 
 type FollowEdge = GetFollowersQuery['getFollowers']['edges'][number];
@@ -21,7 +22,6 @@ type Tab = (typeof TAB_KEYS)[number];
 export default function FollowersPage() {
   const t = useTranslations('Followers');
   const [activeTab, setActiveTab] = useState<Tab>('followers');
-  const tabsId = useId();
 
   const { data: meData } = useQuery({
     queryKey: ['me'],
@@ -73,15 +73,13 @@ export default function FollowersPage() {
       <div className="garage-inner">
         <h1 className="mv-section-title prof-title">{t('title')}</h1>
 
-        <div className="mv-segmented prof-tabs" role="tablist" aria-label={t('title')}>
+        {/* The segmented control's own grammar (pressed buttons), not ARIA tabs: both stay in the Tab order. */}
+        <div className="mv-segmented prof-tabs">
           {TAB_KEYS.map((tab) => (
             <button
               key={tab}
               type="button"
-              role="tab"
-              id={`${tabsId}-${tab}`}
-              aria-selected={activeTab === tab}
-              aria-controls={`${tabsId}-panel`}
+              aria-pressed={activeTab === tab}
               onClick={() => setActiveTab(tab)}
             >
               {t(tab)}
@@ -89,15 +87,24 @@ export default function FollowersPage() {
           ))}
         </div>
 
-        <div
-          id={`${tabsId}-panel`}
-          role="tabpanel"
-          aria-labelledby={`${tabsId}-${activeTab}`}
-          aria-busy={activeQuery.isLoading || undefined}
-        >
+        <div aria-busy={activeQuery.isLoading || undefined}>
           {activeQuery.isLoading ? (
             <div className="prof-empty">
               <div className="prof-spinner" role="status" aria-label={t('loading')} />
+            </div>
+          ) : activeQuery.isError ? (
+            // A failed load is not an empty list: name it and offer the retry.
+            <div className="prof-empty" role="alert">
+              <p className="prof-quiet">
+                {t('failedToLoad')} {t('failedBody')}
+              </p>
+              <button
+                type="button"
+                className="mv-btn mv-btn-ghost"
+                onClick={() => activeQuery.refetch()}
+              >
+                {t('retry')}
+              </button>
             </div>
           ) : edges.length === 0 ? (
             <div className="prof-empty">
@@ -112,29 +119,33 @@ export default function FollowersPage() {
                   const name = node.displayName ?? node.publicUsername ?? 'Rider';
                   const initial = name.charAt(0).toUpperCase();
                   const username = node.publicUsername;
-                  const href = username ? `/rider/${username}` : '#';
+                  const person = (
+                    <>
+                      <Avatar
+                        src={node.avatarUrl}
+                        alt=""
+                        initial={initial}
+                        className="prof-person-avatar"
+                      />
+                      <span className="prof-person-text">
+                        <span className="mv-row-title prof-person-name">{name}</span>
+                        {username && (
+                          <span className="mv-row-sub prof-person-handle">@{username}</span>
+                        )}
+                      </span>
+                    </>
+                  );
 
+                  // A rider without a public username has no page: a row, not a link to nowhere.
                   return (
                     <li key={`${node.followerId}-${node.followingId}`}>
-                      <a href={href} className="mv-row prof-person">
-                        {node.avatarUrl ? (
-                          // biome-ignore lint/performance/noImgElement: user avatar from Supabase storage
-                          <img src={node.avatarUrl} alt="" className="prof-person-avatar" />
-                        ) : (
-                          <span
-                            className="prof-person-avatar prof-person-avatar--initial"
-                            aria-hidden="true"
-                          >
-                            {initial}
-                          </span>
-                        )}
-                        <span className="prof-person-text">
-                          <span className="mv-row-title prof-person-name">{name}</span>
-                          {username && (
-                            <span className="mv-row-sub prof-person-handle">@{username}</span>
-                          )}
-                        </span>
-                      </a>
+                      {username ? (
+                        <a href={`/rider/${username}`} className="mv-row prof-person">
+                          {person}
+                        </a>
+                      ) : (
+                        <span className="mv-row prof-person">{person}</span>
+                      )}
                     </li>
                   );
                 })}

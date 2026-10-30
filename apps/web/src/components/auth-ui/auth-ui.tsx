@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import type { InputHTMLAttributes, ReactNode } from 'react';
 import { AppleMark, GoogleMark } from '@/components/garage-ui/brand-icons';
 import { BikePlate } from '@/components/marketing/bike-plate';
+import { MAIN_CONTENT_ID, SkipLink } from '@/components/skip-link';
 import '@/components/marketing/design-system.css';
 import './auth-ui.css';
 
@@ -42,13 +43,17 @@ export const HOME_LABEL = 'MotoVault home';
 const HERO_PHOTO = '/images/marketing/hero-dusk-ride-portrait.jpg';
 const BRAND_LOGO = '/images/marketing/MotoVault.png';
 
-/** The Bike Plate on the photo panel: the one object the site shares with the app. */
+/**
+ * The Bike Plate on the photo panel: the one object the site shares with the
+ * app. Same demo bike and ledger as the home hero (hero.tsx) and the explore
+ * app promo, verbatim, so the plate tells one story across pages.
+ */
 const PANEL_PLATE = {
-  figure: '2,400',
+  figure: '24,318',
   unit: 'km',
-  caption: 'Ready · next service in 2,400 km',
+  caption: 'Ready · chain service in 1,882 km',
   racingNumber: '27',
-  identity: 'Honda Africa Twin · 2022',
+  identity: 'Africa Twin · 2022',
 } as const;
 
 function Brand({ label }: { label: string }) {
@@ -67,19 +72,19 @@ type AuthShellProps = {
   headerLink: { href: string; label: string };
   /** Accessible name of the brand link (AuthV2 `homeLabel` or {@link HOME_LABEL}). */
   homeLabel: string;
-  /** One line under the plate on the photo panel. */
-  panelNote?: string;
   children: ReactNode;
 };
 
 /**
  * Page frame: photo panel + 640 form column at ≥1024, header bar + centred
  * form below. The photo is decorative (the brand's own marketing shot); the
- * Bike Plate on it is the page's one authored moment.
+ * Bike Plate on it is the shared object, still (Operate surface: no settle).
+ * The subtitle under the H1 is the page's one line of copy.
  */
-export function AuthShell({ headerLink, homeLabel, panelNote, children }: AuthShellProps) {
+export function AuthShell({ headerLink, homeLabel, children }: AuthShellProps) {
   return (
     <div className="mv-root mva-root">
+      <SkipLink />
       <div className="mva-panel">
         {/* `fill` needs a relative/absolute/fixed parent; the panel is sticky
             (and static while hidden), which next/image warns about on every load. */}
@@ -96,7 +101,6 @@ export function AuthShell({ headerLink, homeLabel, panelNote, children }: AuthSh
         <Brand label={homeLabel} />
         <div className="mva-panel-plate" aria-hidden="true">
           <BikePlate {...PANEL_PLATE} state="ready" />
-          {panelNote && <p className="mva-panel-note">{panelNote}</p>}
         </div>
       </div>
       <header className="mva-header">
@@ -105,7 +109,7 @@ export function AuthShell({ headerLink, homeLabel, panelNote, children }: AuthSh
           {headerLink.label}
         </Link>
       </header>
-      <main className="mva-main">
+      <main id={MAIN_CONTENT_ID} className="mva-main">
         <div className="mva-stack">{children}</div>
       </main>
     </div>
@@ -322,6 +326,11 @@ export function AuthField({
   const hintId = `${id}-hint`;
   const describedBy = [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(' ');
   const labelEl = <label htmlFor={id}>{label}</label>;
+  // iOS capitalises and autocorrects the first letter of an address otherwise.
+  const emailAttrs =
+    input.type === 'email'
+      ? ({ autoCapitalize: 'none', autoCorrect: 'off', spellCheck: false } as const)
+      : undefined;
   return (
     <div className="mv-field">
       {labelAside ? (
@@ -338,6 +347,7 @@ export function AuthField({
           className={toggle ? 'mv-field-input is-tall mva-input--toggle' : 'mv-field-input is-tall'}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy || undefined}
+          {...emailAttrs}
           {...input}
         />
         {toggle && (

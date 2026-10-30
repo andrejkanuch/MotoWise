@@ -33,7 +33,7 @@ export default async function AccountDeletionPage() {
 
   return (
     <article className="mv-read">
-      <header className="mv-reveal">
+      <header>
         <h1 className="mv-read-h1">{t('title')}</h1>
         <p className="mv-read-lede">{t('subtitle')}</p>
       </header>

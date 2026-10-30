@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { StoreLink } from '@/components/marketing/store-buttons';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
+import { settleUpstream } from '@/lib/upstream-error';
 import { fetchProfile } from '../../../../lib/fetch-profile';
 import { fetchSavedTrips } from '../../../../lib/fetch-saved-routes';
 import { SavedRouteRow, SavedRoutesClient } from './saved-routes-client';
@@ -12,7 +13,8 @@ export async function generateMetadata({
   params: Promise<{ handle: string }>;
 }): Promise<Metadata> {
   const { handle } = await params;
-  const profile = await fetchProfile(handle);
+  const profile = await settleUpstream(fetchProfile(handle));
+  if (profile === undefined) return { title: 'Saved routes', robots: { index: false } };
   if (!profile) return { title: 'Rider not found' };
 
   const displayName = profile.displayName ?? profile.publicUsername;
@@ -39,16 +41,28 @@ export async function generateMetadata({
 
 export default async function SavedRoutesPage({ params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params;
-  const profile = await fetchProfile(handle);
+  // The layout above already rendered the outage view when the profile didn't
+  // load; this page then renders nothing of its own.
+  const profile = await settleUpstream(fetchProfile(handle));
 
+  if (profile === undefined) return null;
   if (!profile) {
     notFound();
   }
 
   const savedRoutes = await fetchSavedTrips(handle);
 
+  // null = the fetch failed; an empty list is `edges.length === 0` below
   if (!savedRoutes) {
-    return <EmptyState handle={profile.publicUsername} />;
+    return (
+      <p className="sp-prose" role="alert">
+        Saved routes didn&apos;t load.{' '}
+        <a href={`/u/${handle}/saved`} className="mv-link">
+          Try again
+        </a>
+        .
+      </p>
+    );
   }
 
   const { edges, pageInfo } = savedRoutes;

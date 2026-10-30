@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
+import { StoreButtons } from '@/components/marketing/store-buttons';
 import { Link } from '@/i18n/navigation';
 import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
+import { CtaPageType, CtaPlacement } from '@/lib/cta-taxonomy';
 import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
 export const revalidate = 604800; // 7 days — repo-sourced, rebuilds on deploy
@@ -154,7 +156,8 @@ export default async function FeaturesPage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
 
-      {/* Hero: breadcrumb + condensed headline, left-aligned on the ground */}
+      {/* Hero: breadcrumb + condensed headline, left-aligned on the ground.
+          No lede: the two group sentences below say what the lede said. */}
       <header className="mv-section-hero" style={{ paddingTop: '120px', paddingBottom: '48px' }}>
         <div style={{ maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
           <nav aria-label="Breadcrumb" style={{ marginBottom: '40px' }}>
@@ -169,10 +172,14 @@ export default async function FeaturesPage({ params }: PageProps) {
             </ol>
           </nav>
 
-          <h1 className="mv-section-title" style={{ maxWidth: '14ch' }}>
+          <h1 className="mv-section-title" style={{ maxWidth: '14ch', overflowWrap: 'anywhere' }}>
             {t('heroTitle')}
           </h1>
-          <p className="mv-section-sub">{t('heroSubtitle')}</p>
+          {/* The page's first verb: the store pair here and at the closing
+              CTA, nowhere in between. */}
+          <div style={{ marginTop: '32px' }}>
+            <StoreButtons pageType={CtaPageType.Feature} placement={CtaPlacement.Hero} />
+          </div>
         </div>
       </header>
 

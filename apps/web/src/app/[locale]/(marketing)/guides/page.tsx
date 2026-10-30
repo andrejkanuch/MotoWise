@@ -88,7 +88,7 @@ export default async function GuidesPage({ params }: GuidesPageProps) {
     <>
       <JsonLdGraph nodes={graph} />
       <section className="mv-index">
-        <header className="mv-reveal">
+        <header>
           <h1 className="mv-index-h1">Motorcycle guides</h1>
           <p className="mv-index-lede">
             Routes, seasons, gear and local knowledge for the next trip, with the roads named and

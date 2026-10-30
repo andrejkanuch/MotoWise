@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { StoreLink } from '@/components/marketing/store-buttons';
+import { ShareUnavailable } from '@/components/share-unavailable';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
+import { settleUpstream } from '@/lib/upstream-error';
 import { fetchProfile } from '../../../lib/fetch-profile';
 import { formatDistance } from '../../../lib/format-utils';
 import '@/components/marketing/design-system.css';
@@ -14,7 +16,8 @@ export async function generateMetadata({
   params: Promise<{ username: string }>;
 }): Promise<Metadata> {
   const { username } = await params;
-  const profile = await fetchProfile(username);
+  const profile = await settleUpstream(fetchProfile(username));
+  if (profile === undefined) return { title: 'Rider profile', robots: { index: false } };
   if (!profile) return { title: 'Rider not found' };
 
   const description = profile.bio
@@ -60,8 +63,12 @@ export default async function RiderProfilePage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = await params;
-  const profile = await fetchProfile(username);
+  // undefined = the API never answered (outage), null = no such rider
+  const profile = await settleUpstream(fetchProfile(username));
 
+  if (profile === undefined) {
+    return <ShareUnavailable what="The rider's profile" path={`/rider/${username}`} />;
+  }
   if (!profile) {
     notFound();
   }
@@ -113,10 +120,6 @@ export default async function RiderProfilePage({
               {distanceUnit && <small>{distanceUnit}</small>}
             </span>
             <span className="sp-figure-label">Distance ridden</span>
-          </div>
-          <div className="sp-figure">
-            <span className="mv-figure sp-figure-value">{profile.followerCount}</span>
-            <span className="sp-figure-label">Followers</span>
           </div>
         </div>
 

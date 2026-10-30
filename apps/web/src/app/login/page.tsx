@@ -14,11 +14,12 @@ import {
   LegalNote,
   mutedChunk,
   OAuthButtons,
-  type OAuthProvider,
+  OAuthProvider,
   OrWithEmail,
   RESEND_LABEL_KEY,
   SubmitButton,
 } from '@/components/auth-ui/auth-ui';
+import { useOAuthRedirect } from '@/components/auth-ui/use-oauth-redirect';
 import { identifyUser, trackEvent, WebEvent } from '@/lib/analytics';
 import {
   type AuthErrorRecovery,
@@ -29,9 +30,6 @@ import {
   recoveryForAttempt,
 } from '@/lib/auth-errors';
 import { postAuthDestination, signUpEmailRedirectTo } from '@/lib/post-auth-redirect';
-
-/** One line under the Bike Plate on the photo panel (root route, English only). */
-const PANEL_NOTE = 'Service history, real costs and every ride, kept in one logbook.';
 
 export default function LoginPage() {
   const t = useTranslations('AuthV2');
@@ -50,7 +48,12 @@ export default function LoginPage() {
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [loading, setLoading] = useState(false);
-  const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null);
+  // Owns "Redirecting…": released on a provider error, a blocked redirect or a
+  // bfcache return, so the buttons can never stick.
+  const oauth = useOAuthRedirect((message) => {
+    setError(message);
+    setRecovery(null);
+  });
   const [showPassword, setShowPassword] = useState(false);
 
   // A sent confirmation can still go missing: after the cooldown the button is
@@ -121,27 +124,16 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setOauthLoading('google');
-    trackEvent(WebEvent.SIGN_IN_OAUTH_CLICKED, { provider: 'google' });
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || '/garage')}`,
-      },
+  const handleOAuth = (provider: OAuthProvider) =>
+    oauth.start(provider, () => {
+      trackEvent(WebEvent.SIGN_IN_OAUTH_CLICKED, { provider });
+      return supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || '/garage')}`,
+        },
+      });
     });
-  };
-
-  const handleAppleSignIn = async () => {
-    setOauthLoading('apple');
-    trackEvent(WebEvent.SIGN_IN_OAUTH_CLICKED, { provider: 'apple' });
-    await supabase.auth.signInWithOAuth({
-      provider: 'apple',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || '/garage')}`,
-      },
-    });
-  };
 
   const recoveryAction: Record<NonNullable<AuthErrorRecovery>, React.ReactNode> = {
     reset_password: (
@@ -165,7 +157,6 @@ export default function LoginPage() {
     <AuthShell
       headerLink={{ href: '/signup', label: t('signIn.altCta') }}
       homeLabel={t('homeLabel')}
-      panelNote={PANEL_NOTE}
     >
       <AuthHead
         title={t.rich('signIn.title', { muted: mutedChunk })}
@@ -179,9 +170,9 @@ export default function LoginPage() {
       </AuthErrorRegion>
 
       <OAuthButtons
-        loading={oauthLoading}
-        onGoogle={handleGoogleSignIn}
-        onApple={handleAppleSignIn}
+        loading={oauth.provider}
+        onGoogle={() => handleOAuth(OAuthProvider.Google)}
+        onApple={() => handleOAuth(OAuthProvider.Apple)}
       />
 
       <OrWithEmail />
@@ -224,7 +215,7 @@ export default function LoginPage() {
         />
         <SubmitButton
           busy={loading}
-          disabled={oauthLoading !== null}
+          disabled={oauth.provider !== null}
           label={t('signIn.submit')}
           busyLabel={t('signIn.submitting')}
         />

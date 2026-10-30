@@ -1,15 +1,16 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AuthBanner,
   AuthErrorRegion,
   AuthField,
   AuthNote,
-  type OAuthProvider,
+  OAuthProvider,
   Spinner,
   SubmitButton,
 } from '@/components/auth-ui/auth-ui';
+import { useOAuthRedirect } from '@/components/auth-ui/use-oauth-redirect';
 import { readExplicitConsent } from '@/components/cookie-consent';
 import { AppleMark, GoogleMark } from '@/components/garage-ui/brand-icons';
 import { useModal } from '@/hooks/use-modal';
@@ -65,6 +66,8 @@ const RESEND_LABEL: Record<ResendState, string> = {
 const CONFIRMATION_SENT =
   'We sent a confirmation link to your email. Open it to finish signing up.';
 
+const CLOSE_LABEL = 'Close';
+
 export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps) {
   // Constructed lazily inside the submit handlers, NOT in a useMemo. A client
   // component's hooks still run during the server render pass, so a useMemo here
@@ -86,11 +89,25 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
   const [resendState, setResendState] = useState<ResendState>('idle');
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
-  const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
+  // Owns "Redirecting…": released on a provider error, a blocked redirect or
+  // a bfcache return, so the buttons can never stick.
+  const oauth = useOAuthRedirect((message) => {
+    setError(message);
+    setRecovery(null);
+  });
 
+  // Focus trap, Escape, scroll lock (hooks/use-modal.ts) …
   useModal(open, onClose, dialogRef);
+  // … and the focus goes back to whatever opened the dialog when it closes.
+  useEffect(() => {
+    if (!open) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    return () => {
+      if (opener?.isConnected) opener.focus();
+    };
+  }, [open]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -157,16 +174,16 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
     }
   }, [email, resendState]);
 
-  const handleOAuth = useCallback(async (provider: OAuthProvider) => {
-    setOauthLoading(provider);
-    const supabase = getSupabaseBrowserClient();
-    await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(window.location.pathname)}`,
-      },
+  const handleOAuth = (provider: OAuthProvider) =>
+    oauth.start(provider, () => {
+      const supabase = getSupabaseBrowserClient();
+      return supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(window.location.pathname)}`,
+        },
+      });
     });
-  }, []);
 
   const switchMode = (next: Mode) => {
     setMode(next);
@@ -197,22 +214,30 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
     ),
   };
   const providers = [
-    { id: 'google', label: 'Continue with Google', icon: <GoogleMark size={16} /> },
-    { id: 'apple', label: 'Continue with Apple', icon: <AppleMark size={16} /> },
+    { id: OAuthProvider.Google, label: 'Continue with Google', icon: <GoogleMark size={16} /> },
+    { id: OAuthProvider.Apple, label: 'Continue with Apple', icon: <AppleMark size={16} /> },
   ] as const;
 
   return (
-    <div
-      className="mv-root mva-modal-scrim"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      onKeyDown={() => {}}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="auth-modal-title"
-    >
-      <div ref={dialogRef} tabIndex={-1} className="mva-modal">
+    <div className="mv-root mva-modal-scrim">
+      {/* A real control behind the dialog: click outside closes. Out of the
+          tab order (Escape is the keyboard way out), so the trap stays inside
+          the dialog. */}
+      <button
+        type="button"
+        className="mva-modal-backdrop"
+        aria-label={CLOSE_LABEL}
+        tabIndex={-1}
+        onClick={onClose}
+      />
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        className="mva-modal mv-enter-up"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-modal-title"
+      >
         <h2 id="auth-modal-title" className="mva-modal-title">
           {copy.heading} to {action}
         </h2>
@@ -230,14 +255,14 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
 
         <div className="mva-oauth">
           {providers.map((p) => {
-            const busy = oauthLoading === p.id;
+            const busy = oauth.provider === p.id;
             return (
               <button
                 key={p.id}
                 type="button"
                 className="mv-btn mv-btn-ghost mv-btn-block"
                 onClick={() => handleOAuth(p.id)}
-                disabled={oauthLoading !== null}
+                disabled={oauth.provider !== null}
                 aria-busy={busy || undefined}
               >
                 {busy ? (
@@ -293,11 +318,18 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
           />
           <SubmitButton
             busy={loading}
-            disabled={oauthLoading !== null}
+            disabled={oauth.provider !== null}
             label={copy.submit}
             busyLabel={copy.submitting}
           />
         </form>
+
+        {mode === 'signup' && (
+          <p className="mva-legal">
+            By continuing you confirm you've read and accepted our <a href="/terms">Terms</a> and{' '}
+            <a href="/privacy">Privacy Policy</a>.
+          </p>
+        )}
 
         <div className="mva-alt">
           {copy.altPrompt}

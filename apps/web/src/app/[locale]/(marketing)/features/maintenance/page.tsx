@@ -41,7 +41,6 @@ export default async function Page({ params }: PageProps) {
           alt: 'MotoVault upcoming service reminders and overdue tasks',
         },
       ]}
-      related={['/features/garage-management', '/features/expense-tracking']}
     />
   );
 }

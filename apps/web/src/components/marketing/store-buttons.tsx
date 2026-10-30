@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { trackStoreCtaClick } from '@/lib/analytics';
 import { buildPlayReferrer, getCampaignParams } from '@/lib/campaign';
 import { CtaPlacement, type StoreCtaContext, StorePlatform } from '@/lib/cta-taxonomy';
@@ -105,6 +106,7 @@ export function StoreButtons({
 }: Omit<StoreCtaContext, 'placement' | 'sameTab'> & {
   placement?: CtaPlacement;
 }) {
+  const t = useTranslations('Cta');
   const ctx: StoreCtaContext = { pageType, placement, slug, referrerParams };
 
   return (
@@ -112,11 +114,11 @@ export function StoreButtons({
       <style>{STORE_BUTTONS_CSS}</style>
       <a {...storeAnchorProps(StorePlatform.Ios, ctx)} className="mv-btn mv-btn-primary">
         <AppleIcon />
-        Download for iOS
+        {t('appStore')}
       </a>
       <a {...storeAnchorProps(StorePlatform.Android, ctx)} className="mv-btn mv-btn-ghost">
         <PlayIcon />
-        Download for Android
+        {t('googlePlay')}
       </a>
     </div>
   );

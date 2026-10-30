@@ -1,12 +1,21 @@
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { BikePlate } from './bike-plate';
 
 type FeatureKey = 'expenses' | 'maintenance' | 'rides' | 'trip';
 
-/** Ordered by validated demand (PostHog): expenses → maintenance → rides → trips.
- *  AI diagnostics has its own section (DiagnosticsDemo) further down the page. */
+/** Ordered by validated demand (PostHog): expenses → maintenance → rides → trips. */
 const KEYS: readonly FeatureKey[] = ['expenses', 'maintenance', 'rides', 'trip'];
+
+/** Each block's one verb: the link to its feature page (the badge key is the
+ *  page's name, so the link text says where it goes). */
+const FEATURE_PAGES: Record<FeatureKey, string> = {
+  expenses: '/features/expense-tracking',
+  maintenance: '/features/maintenance',
+  rides: '/features/ride-tracking',
+  trip: '/features/trip-planning',
+};
 
 /** Screenshot paths are a contract: the files are replaced 1:1 with Race Plate
  *  captures, so the src strings never change here. */
@@ -20,21 +29,12 @@ const SCREENSHOTS: Record<FeatureKey, string> = {
 const SCREENSHOT_WIDTH = 1206;
 const SCREENSHOT_HEIGHT = 2622;
 
-interface Figure {
-  value: string;
-  label: string;
-}
-
-/** Blocks that carry the figure pair. Two, not four: one stat row per page
- *  is the proof section's; a second pair of figures appears only where the
- *  depiction cannot carry the number itself (the plate carries maintenance's,
- *  the trips block ends in one sentence instead). */
-const FIGURE_BLOCKS: ReadonlySet<FeatureKey> = new Set(['expenses', 'rides']);
-
 /**
  * The four records, as an editorial sequence rather than a scrubbed stage:
  * server-rendered, no JavaScript, each block a condensed headline, two or
- * three sentences in the logbook voice, and one depiction of the app. The
+ * three sentences in the logbook voice, one link to the feature page, and
+ * one depiction of the app. One stat row per page: the proof row above
+ * carries the numbers, so no block repeats them. The
  * composition alternates so adjacent blocks differ — the page's single full
  * device frame (expenses), a Bike Plate instead of a screenshot (maintenance),
  * a deeper band with a screen bled off its bottom edge (rides), a screen bled
@@ -48,17 +48,11 @@ export function FeaturesGrid() {
   const copy = (key: FeatureKey) => ({
     title: t(`grid.${key}.title`),
     body: t(`grid.${key}.body`),
-    figures: FIGURE_BLOCKS.has(key)
-      ? ([
-          { value: t(`grid.${key}.fig1Value`), label: t(`grid.${key}.fig1Label`) },
-          { value: t(`grid.${key}.fig2Value`), label: t(`grid.${key}.fig2Label`) },
-        ] satisfies Figure[])
-      : undefined,
+    link: { href: FEATURE_PAGES[key], label: t(`grid.${key}.badge`) },
     alt: t('grid.screenshotAlt', { feature: t(`grid.${key}.badge`) }),
   });
 
   const [expenses, maintenance, rides, trip] = KEYS.map(copy);
-  const tripProof = t('grid.trip.proof');
 
   return (
     <section id="features" className="fx-section">
@@ -68,7 +62,6 @@ export function FeaturesGrid() {
             {t('grid.sectionTitleLead')}{' '}
             <span className="fx-muted">{t('grid.sectionTitleEmphasis')}</span>
           </p>
-          <p className="mv-section-sub">{t('grid.sectionSub')}</p>
         </div>
 
         {/* 1 · Expenses — copy left, the page's one full device frame right */}
@@ -126,7 +119,7 @@ export function FeaturesGrid() {
       {/* 4 · Trips — copy left, the screen bled off the right edge */}
       <div className="fx-container">
         <article className="fx-block fx-block-trips">
-          <FeatureCopy {...trip} proof={tripProof} />
+          <FeatureCopy {...trip} />
           <div className="fx-art fx-art-bleed">
             <Image
               src={SCREENSHOTS.trip}
@@ -151,32 +144,23 @@ export function FeaturesGrid() {
 function FeatureCopy({
   title,
   body,
-  figures,
-  proof,
+  link,
   className,
 }: {
   title: string;
   body: string;
-  figures?: Figure[];
-  /** One plain sentence in place of the figure pair. */
-  proof?: string;
+  link: { href: string; label: string };
   className?: string;
 }) {
   return (
     <div className={className ? `fx-copy ${className}` : 'fx-copy'}>
       <h2 className="mv-h2">{title}</h2>
       <p className="fx-body">{body}</p>
-      {figures && (
-        <dl className="fx-figures">
-          {figures.map((figure) => (
-            <div key={figure.label} className="fx-figure">
-              <dt className="mv-figure fx-figure-value">{figure.value}</dt>
-              <dd className="fx-figure-label">{figure.label}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-      {proof && <p className="fx-proof">{proof}</p>}
+      <p className="fx-link">
+        <Link href={link.href} className="mv-link is-tall">
+          {link.label}
+        </Link>
+      </p>
     </div>
   );
 }
@@ -208,32 +192,7 @@ const FEATURES_CSS = `
   letter-spacing: 0;
   text-wrap: pretty;
 }
-.fx-proof {
-  margin: 24px 0 0;
-  font-size: 15px;
-  line-height: 1.45;
-  color: var(--mv-ink-3);
-  text-wrap: pretty;
-}
-.fx-figures {
-  display: flex;
-  gap: 48px;
-  margin: 32px 0 0;
-  padding: 0;
-}
-.fx-figure { margin: 0; max-width: 220px; }
-.fx-figure-value {
-  font-size: 40px;
-  line-height: 42px;
-  color: var(--mv-ink);
-}
-.fx-figure-label {
-  margin: 8px 0 0;
-  font-size: 15px;
-  line-height: 1.45;
-  color: var(--mv-ink-3);
-  letter-spacing: 0;
-}
+.fx-link { margin: 16px 0 0; font-size: 15px; line-height: 20px; }
 
 .fx-art { position: relative; }
 .fx-art-phone { display: flex; justify-content: center; }
@@ -299,11 +258,9 @@ const FEATURES_CSS = `
   .fx-band-copy { padding: 96px 0 0; }
   .fx-art-cut { width: 300px; height: 380px; margin: 48px 0 0; }
   .fx-art-bleed { margin-right: 0; height: 420px; border-right: 1px solid var(--mv-line); border-radius: var(--mv-radius-screen); }
-  .fx-figures { gap: 32px; }
 }
 @media (max-width: 480px) {
   .fx-container { padding: 0 20px; }
-  .fx-figures { flex-direction: column; gap: 20px; }
   .fx-art-cut { width: 100%; height: 320px; }
   .fx-art-bleed { height: 340px; }
 }

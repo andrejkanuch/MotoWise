@@ -31,7 +31,6 @@ const COPY = {
   updated: 'Your password is updated.',
   signIn: 'Sign in with the new password',
   headerLink: 'Sign in',
-  panelNote: 'Your garage, service history and rides stay exactly where you left them.',
 } as const;
 
 export default function ResetPasswordPage() {
@@ -83,11 +82,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <AuthShell
-      headerLink={{ href: '/login', label: COPY.headerLink }}
-      homeLabel={HOME_LABEL}
-      panelNote={COPY.panelNote}
-    >
+    <AuthShell headerLink={{ href: '/login', label: COPY.headerLink }} homeLabel={HOME_LABEL}>
       <AuthHead title={COPY.title} subtitle={COPY.subtitle} />
 
       <AuthErrorRegion>{error && !mismatch && <AuthBanner message={error} />}</AuthErrorRegion>

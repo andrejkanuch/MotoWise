@@ -167,7 +167,7 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
       <JsonLd data={articleSchema} />
 
       <section className="mv-wide" style={{ paddingBottom: 0 }}>
-        <header className="mv-reveal mv-tool">
+        <header className="mv-tool">
           <h1 className="mv-index-h1">
             {t('heroTitleAccent')} <span className="mv-muted">{t('heroTitleRest')}</span>
           </h1>
@@ -261,10 +261,11 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
             </h2>
             <div className="mv-read-faq">
               {faq.map((item) => (
-                <details key={item.question}>
+                <details key={item.question} className="mv-disclosure is-plus">
                   <summary>
                     {item.question}
                     <svg
+                      className="mv-disclosure-mark"
                       width="18"
                       height="18"
                       viewBox="0 0 24 24"
@@ -283,13 +284,6 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
               ))}
             </div>
           </section>
-
-          <div className="mv-read-body mv-read-section print:hidden">
-            <h2>{t('seoTitle')}</h2>
-            <p>{t('seoP1')}</p>
-            <p>{t('seoP2')}</p>
-            <p>{t('seoP3')}</p>
-          </div>
         </article>
       </section>
     </>

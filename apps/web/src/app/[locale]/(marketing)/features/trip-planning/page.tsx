@@ -28,8 +28,7 @@ type Translator = Awaited<ReturnType<typeof getTranslations>>;
 const FEATURE_INDEXES = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 const STEP_INDEXES = [1, 2, 3, 4] as const;
 const FAQ_INDEXES = [0, 1, 2, 3, 4, 5] as const;
-const WALKTHROUGH_INDEXES = [1, 2, 3, 4] as const;
-const VISIBILITY_LEVELS = ['Private', 'Unlisted', 'Public'] as const;
+const WALKTHROUGH_INDEXES = [1, 2] as const;
 
 const ROUTE_PATH = 'M 60 330 Q 150 280 190 230 T 300 170 Q 360 120 420 100 T 540 50';
 
@@ -174,16 +173,6 @@ export default async function TripPlanningPage({ params }: PageProps) {
         title: t('howItWorksTitle'),
         items: STEP_INDEXES.map((i) => ({ title: t(`step${i}Title`), body: t(`step${i}Desc`) })),
       }}
-      table={{
-        title: t('visibilityTitle'),
-        body: t('visibilityBody'),
-        columns: [t('visibilityColLevel'), t('visibilityColWho'), t('visibilityColWhere')],
-        rows: VISIBILITY_LEVELS.map((level) => [
-          t(`vis${level}`),
-          t(`vis${level}Who`),
-          t(`vis${level}Where`),
-        ]),
-      }}
       longForm={{
         title: t('seoHeading'),
         intro: t('seoIntro'),
@@ -200,7 +189,6 @@ export default async function TripPlanningPage({ params }: PageProps) {
         question: t(`faq${i}Question`),
         answer: t(`faq${i}Answer`),
       }))}
-      related={['/features/ride-tracking', '/features/garage-management']}
     />
   );
 }

@@ -1,26 +1,27 @@
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
-import { ExternalLink } from '@/components/marketing/external-link';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Link } from '@/i18n/navigation';
-import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
-import { StoreLink } from './store-buttons';
+
+const MAILTO_PREFIX = 'mailto:';
 
 function FooterColumn({
   title,
   links,
 }: {
   title: string;
-  links: ReadonlyArray<{ label: string; href: string; external?: boolean }>;
+  links: ReadonlyArray<{ label: string; href: string }>;
 }) {
   return (
     <div>
       <div className="mv-footer-col-title">{title}</div>
       {links.map((link) =>
-        link.external ? (
-          <ExternalLink key={link.label} href={link.href} className="mv-footer-link">
+        // A mail link stays in the same tab: a new tab with no mail handler
+        // would sit empty.
+        link.href.startsWith(MAILTO_PREFIX) ? (
+          <a key={link.label} href={link.href} className="mv-footer-link">
             {link.label}
-          </ExternalLink>
+          </a>
         ) : (
           <Link key={link.label} href={link.href} className="mv-footer-link">
             {link.label}
@@ -31,6 +32,10 @@ function FooterColumn({
   );
 }
 
+/** The footer lists every feature page and both tools so no page needs a
+ *  "related" list of its own; the store buttons are not repeated here —
+ *  every page closes with a pair 200–300px above, and the sticky bar covers
+ *  scroll depth. The outlined wordmark stays as the one decoration. */
 export async function Footer() {
   const t = await getTranslations('Footer');
   const tNav = await getTranslations('Navbar');
@@ -42,13 +47,16 @@ export async function Footer() {
     { label: t('linkMaintenance'), href: '/features/maintenance' },
     { label: t('linkExpenseTracking'), href: '/features/expense-tracking' },
     { label: t('linkRideTracking'), href: '/features/ride-tracking' },
+    { label: t('linkGarage'), href: '/features/garage-management' },
+    { label: t('linkLearningPaths'), href: '/features/learning-paths' },
   ] as const;
 
   const resourceLinks = [
     { label: t('linkGuides'), href: '/guides' },
+    { label: t('linkCostCalculator'), href: '/tools/cost-calculator' },
+    { label: t('linkTclocsChecklist'), href: '/tools/tclocs-checklist' },
     { label: t('faq'), href: '/#faq' },
-    { label: t('riders'), href: '/#proof' },
-    { label: t('contact'), href: 'mailto:support@motovault.app', external: true },
+    { label: t('contact'), href: `${MAILTO_PREFIX}support@motovault.app` },
   ] as const;
 
   const legalLinks = [
@@ -69,42 +77,6 @@ export async function Footer() {
             MotoVault
           </Link>
           <p className="mv-footer-brand-text">{t('brandText')}</p>
-          <div className="mv-footer-stores">
-            <StoreLink
-              platform={StorePlatform.Ios}
-              pageType={CtaPageType.Home}
-              placement={CtaPlacement.Footer}
-              className="mv-footer-store"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M17.5 12.5c0-2.4 2-3.6 2-3.6-1.1-1.6-2.8-1.8-3.4-1.9-1.4-.1-2.8.8-3.5.8-.7 0-1.9-.8-3.1-.8-1.6 0-3.1.9-3.9 2.4-1.7 2.9-.4 7.2 1.2 9.5.8 1.1 1.7 2.4 2.9 2.4 1.2 0 1.6-.8 3-.8s1.8.8 3.1.8c1.3 0 2.1-1.2 2.9-2.3.9-1.3 1.3-2.6 1.3-2.7-.1 0-2.5-1-2.5-3.8zM15.3 5.5c.6-.8 1.1-1.9.9-3-1 0-2.2.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1.1.1 2.3-.6 2.9-1.4z" />
-              </svg>
-              {t('appStore')}
-            </StoreLink>
-            <StoreLink
-              platform={StorePlatform.Android}
-              pageType={CtaPageType.Home}
-              placement={CtaPlacement.Footer}
-              className="mv-footer-store"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M3.6 2.8c-.3.3-.5.7-.5 1.3v15.8c0 .6.2 1 .5 1.3l9-9-9-9.4zM14.6 13.6l2.8 1.6-11.2 6.4c-.5.3-1 .2-1.3 0l9.7-8zM18.3 11.4l-3 1.7-2.6-2.5 2.6-2.6 3 1.8c.9.5.9 1.2 0 1.6zM4.9 2.4c.3-.2.8-.2 1.3 0l11.2 6.4-2.8 1.7-9.7-8.1z" />
-              </svg>
-              {t('googlePlay')}
-            </StoreLink>
-          </div>
         </div>
 
         {/* Product */}
@@ -122,11 +94,10 @@ export async function Footer() {
         MotoVault
       </div>
 
-      {/* ── Bottom row: operator, domain, the scheme switch ── */}
+      {/* ── Bottom row: copyright and the scheme switch ── */}
       <div className="mv-footer-bottom">
         <span>{t('bottomBar')}</span>
         <span className="mv-footer-bottom-right">
-          <span>motovault.app</span>
           <ThemeToggle className="mv-icon-btn" labels={themeLabels} />
         </span>
       </div>

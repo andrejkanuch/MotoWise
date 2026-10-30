@@ -88,32 +88,6 @@ export async function CtaSection() {
               {t('googlePlay')}
             </StoreLink>
           </div>
-
-          {/* Trust line: plain, true sentences in the body face */}
-          <div
-            style={{
-              marginTop: '32px',
-              color: 'var(--mv-ink-3)',
-              fontSize: '13px',
-              lineHeight: '18px',
-              fontWeight: 500,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'baseline',
-              gap: '12px',
-              flexWrap: 'wrap',
-            }}
-          >
-            <span>{t('trustFree')}</span>
-            <span aria-hidden="true" style={{ color: 'var(--mv-ink-4)' }}>
-              ·
-            </span>
-            <span>{t('trustNoCreditCard')}</span>
-            <span aria-hidden="true" style={{ color: 'var(--mv-ink-4)' }}>
-              ·
-            </span>
-            <span>{t('trustPlatforms')}</span>
-          </div>
         </div>
 
         <style

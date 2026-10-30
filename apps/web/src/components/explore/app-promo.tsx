@@ -12,10 +12,7 @@ export function AppPromo() {
       <div className="xp-wrap xp-band-grid">
         <div>
           <h2 className="mv-h2">Take the route with you</h2>
-          <p className="xp-sub">
-            Open any route in the MotoVault app, ride it, and keep the record: the ride itself, the
-            fuel it took, and the service it brings closer.
-          </p>
+          <p className="xp-sub">Open any route in the app, ride it, and keep the record.</p>
           <div className="xp-cta-row">
             <StoreLink
               platform={StorePlatform.Ios}
@@ -35,13 +32,14 @@ export function AppPromo() {
             </StoreLink>
           </div>
         </div>
+        {/* The demo bike's one ledger: the same figures as the home hero plate */}
         <div className="xp-band-plate">
           <BikePlate
-            figure="1,240"
+            figure="24,318"
             unit="km"
-            caption="Ready · chain and sprockets in 1,240 km"
+            caption="Ready · chain service in 1,882 km"
             racingNumber="27"
-            identity="Honda Africa Twin · 2022"
+            identity="Africa Twin · 2022"
             state="ready"
           />
         </div>

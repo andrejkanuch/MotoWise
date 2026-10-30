@@ -222,7 +222,9 @@
   color: var(--mv-ink-3);
   text-decoration: none;
   border-bottom: 2px solid transparent;
-  transition: color 0.2s var(--mv-ease);
+  transition:
+    color 160ms var(--mv-ease-expo),
+    border-color 160ms var(--mv-ease-expo);
 }
 
 .sp-tabs a:hover {
@@ -274,6 +276,7 @@ a.sp-row:hover .sp-row-title {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 10px;
+  font-variant-numeric: tabular-nums;
 }
 
 .sp-row-meta svg {
@@ -439,5 +442,30 @@ a.sp-row:hover .sp-row-title {
 
   .sp-row-aside {
     white-space: normal;
+  }
+}
+
+/* ── Print: the shared service history is the one page a rider hands to a
+      buyer or a mechanic. The brand line, the title, the figures and the
+      records print as hairline rows that do not break across pages; the
+      store band and the soft wall stay on screen. The light ramp under
+      print lives in mv-tokens.css (owner). ── */
+@media print {
+  .sp-cta,
+  .sp-wall,
+  .sp-cta-actions {
+    display: none !important;
+  }
+
+  .sp-main {
+    padding: 0;
+  }
+
+  .sp .mv-row {
+    break-inside: avoid;
+  }
+
+  .sp-figures {
+    gap: 16px 32px;
   }
 }

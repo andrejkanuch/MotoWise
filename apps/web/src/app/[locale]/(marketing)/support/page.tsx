@@ -58,7 +58,7 @@ export default async function SupportPage() {
     <>
       <JsonLd data={faqSchema} />
       <article className="mv-read">
-        <header className="mv-reveal">
+        <header>
           <h1 className="mv-read-h1">{t('title')}</h1>
           <p className="mv-read-lede">{t('subtitle')}</p>
         </header>
@@ -69,6 +69,7 @@ export default async function SupportPage() {
           </h2>
           <div className="mv-read-body">
             <p>{t('contactDescription')}</p>
+            <p>{t('bugsAndIdeas')}</p>
           </div>
           <dl className="mv-defs">
             <div>
@@ -92,10 +93,11 @@ export default async function SupportPage() {
           </h2>
           <div className="mv-read-faq">
             {faqItems.map(({ q, a }) => (
-              <details key={q}>
+              <details key={q} className="mv-disclosure is-plus">
                 <summary>
                   {t(q)}
                   <svg
+                    className="mv-disclosure-mark"
                     width="18"
                     height="18"
                     viewBox="0 0 24 24"
@@ -112,24 +114,6 @@ export default async function SupportPage() {
                 <p className="mv-read-faq-answer">{t(a)}</p>
               </details>
             ))}
-          </div>
-        </section>
-
-        <section className="mv-read-section" aria-labelledby="bug-heading">
-          <h2 id="bug-heading" className="mv-read-h2">
-            {t('bugReportTitle')}
-          </h2>
-          <div className="mv-read-body">
-            <p>{t('bugReportDescription')}</p>
-          </div>
-        </section>
-
-        <section className="mv-read-section" aria-labelledby="feature-heading">
-          <h2 id="feature-heading" className="mv-read-h2">
-            {t('featureRequestTitle')}
-          </h2>
-          <div className="mv-read-body">
-            <p>{t('featureRequestDescription')}</p>
           </div>
         </section>
       </article>

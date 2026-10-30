@@ -1,10 +1,11 @@
 'use client';
 
-import { MileageUnit } from '@motovault/types';
+import { palette } from '@motovault/design-system';
+import { type ExpenseCategory, MileageUnit } from '@motovault/types';
 import { ArrowUpRight, Camera, CircleCheck, Route, TriangleAlert } from 'lucide-react';
 import Image from 'next/image';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
 import { APP_HANDOFF_URL, MonoLabel, Skeleton } from '@/components/garage-ui';
 import { BikePlate } from '@/components/marketing/bike-plate';
 import { expenseCategoryMessageKey } from '@/lib/expense-category-label';
@@ -78,13 +79,22 @@ function SectionHead({
   );
 }
 
-/** A section whose body could not load (the rest of the page still renders). */
-export function CardFailed({ heading }: { heading: string }) {
+/**
+ * A section whose body could not load (the rest of the page still renders):
+ * names what happened and offers the way out, a retry of that section's
+ * own queries.
+ */
+export function CardFailed({ heading, onRetry }: { heading: string; onRetry: () => void }) {
   const t = useTranslations('GarageV2');
   return (
-    <section className="gv-section">
+    <section className="gv-section" role="alert">
       <h2 className="gv-h2">{heading}</h2>
-      <p className="gv-quiet">{t('cardFailed')}</p>
+      <p className="gv-empty-line">
+        {t('cardFailed')} <span>{t('cardFailedBody')}</span>
+      </p>
+      <button type="button" className="mv-btn mv-btn-ghost is-compact gv-action" onClick={onRetry}>
+        {t('retry')}
+      </button>
     </section>
   );
 }
@@ -218,6 +228,21 @@ const STATE_LABEL_KEY = {
   [PlateState.Overdue]: 'plateStateOverdue',
 } as const;
 
+/** The plate edge holds one line; past this the variant gives way to "make model · year". */
+const PLATE_IDENTITY_MAX = 40;
+
+/**
+ * The identity printed on the plate edge: "make model · variant · year", or
+ * "make model · year" when the full string would not fit the edge (the plate
+ * truncates with an ellipsis as the backstop; `title` keeps the full text).
+ */
+export function plateIdentity(bike: Pick<Bike, 'make' | 'model' | 'variant' | 'year'>): string {
+  const name = `${bike.make} ${bike.model}`;
+  const year = String(bike.year);
+  const full = [name, bike.variant, year].filter(Boolean).join(' · ');
+  return full.length > PLATE_IDENTITY_MAX ? `${name} · ${year}` : full;
+}
+
 function BikePhoto({ bike, sizes }: { bike: Bike; sizes: string }) {
   const t = useTranslations('GarageV2');
   if (!bike.primaryPhotoUrl) {
@@ -317,9 +342,7 @@ export function BikeHero({
   });
   const stateWord = t(STATE_LABEL_KEY[plate.state]);
   const overdueCount = schedule?.overdueCount ?? 0;
-  const identity = [`${bike.make} ${bike.model}`, bike.variant, String(bike.year)]
-    .filter(Boolean)
-    .join(' · ');
+  const identity = plateIdentity(bike);
 
   return (
     <section className="gv-bike" aria-label={t('bikeRegion')}>
@@ -333,6 +356,8 @@ export function BikeHero({
             racingNumber={racingNumber}
             identity={identity}
             state={plate.state}
+            stateLabel={stateWord}
+            settle
           />
         </div>
         {(bike.currentMileage != null && !plate.figureIsOdometer) || overdueCount > 0 ? (
@@ -501,20 +526,60 @@ function CategoryLabel({ category }: { category: string }) {
   return <>{t.has(key) ? t(key as Parameters<typeof t>[0]) : category}</>;
 }
 
+/**
+ * One hue per category, the app's own (bike-hub tokens): the dark set on the
+ * graphite ramp, the plate-light set on paper, each ≥3:1 on its ground. Never
+ * copper (a verb) or a status colour. The hue only ever sits beside the
+ * category's name; an unknown category falls back to "other".
+ */
+const CATEGORY_HUE: Record<ExpenseCategory, { dark: string; light: string }> = {
+  fuel: { dark: palette.hubCatFuel, light: palette.plateLightCatFuel },
+  maintenance: { dark: palette.hubCatService, light: palette.plateLightCatService },
+  parts: { dark: palette.hubCatParts, light: palette.plateLightCatParts },
+  tires: { dark: palette.hubCatTires, light: palette.plateLightCatTires },
+  gear: { dark: palette.hubCatGear, light: palette.plateLightCatGear },
+  accessories: { dark: palette.hubCatAccessories, light: palette.plateLightCatAccessories },
+  modifications: { dark: palette.hubCatMods, light: palette.plateLightCatMods },
+  insurance: { dark: palette.hubCatInsurance, light: palette.plateLightCatInsurance },
+  registration: { dark: palette.hubCatRegistration, light: palette.plateLightCatRegistration },
+  taxes_fees: { dark: palette.hubCatTaxes, light: palette.plateLightCatTaxes },
+  tolls: { dark: palette.hubCatTolls, light: palette.plateLightCatTolls },
+  parking: { dark: palette.hubCatParking, light: palette.plateLightCatParking },
+  training: { dark: palette.hubCatTraining, light: palette.plateLightCatTraining },
+  other: { dark: palette.hubCatOther, light: palette.plateLightCatOther },
+};
+
+function isExpenseCategory(category: string): category is ExpenseCategory {
+  return category in CATEGORY_HUE;
+}
+
+/** The bar's hue for both schemes, as custom properties garage-view.css reads per scheme. */
+function categoryHueStyle(category: string, width: number): CSSProperties {
+  const hue = CATEGORY_HUE[isExpenseCategory(category) ? category : 'other'];
+  return {
+    width: `${width}%`,
+    '--gv-cat-dark': hue.dark,
+    '--gv-cat-light': hue.light,
+  } as CSSProperties;
+}
+
 function CategorySplit({ spend }: { spend: CurrencySpend }) {
   const fmt = useGarageFormat();
   const largest = spend.categories[0]?.total ?? 0;
   return (
     <ul className="mv-rows is-open">
-      {spend.categories.map(({ category, total }, index) => (
+      {spend.categories.map(({ category, total }) => (
         <li key={category} className="mv-row gv-cat">
           <span className="gv-cat-name">
             <CategoryLabel category={category} />
           </span>
           <span className="gv-cat-track" aria-hidden="true">
             <span
-              className={index === 0 ? 'gv-cat-fill gv-cat-fill--top' : 'gv-cat-fill'}
-              style={{ width: `${largest > 0 ? Math.max(1, (total / largest) * 100) : 0}%` }}
+              className="gv-cat-fill"
+              style={categoryHueStyle(
+                category,
+                largest > 0 ? Math.max(1, (total / largest) * 100) : 0,
+              )}
             />
           </span>
           <span className="gv-cat-amt mv-figure">

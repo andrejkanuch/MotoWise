@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { BikePlate } from '@/components/marketing/bike-plate';
 import { MvLoader } from '@/components/marketing/loader';
 import { clearProStatusCache } from '@/hooks/use-pro-status';
@@ -45,6 +45,26 @@ const POLL_SCHEDULE = [
 ] as const;
 
 const SESSION_KEY = 'mv_pro_poll_start';
+
+/**
+ * sessionStorage throws (SecurityError) in Safari private mode and with
+ * blocked storage; a paid checkout must never crash to error.tsx over the
+ * tab-resume bookkeeping.
+ */
+const pollStart = {
+  mark() {
+    try {
+      if (!sessionStorage.getItem(SESSION_KEY)) {
+        sessionStorage.setItem(SESSION_KEY, Date.now().toString());
+      }
+    } catch {}
+  },
+  clear() {
+    try {
+      pollStart.clear();
+    } catch {}
+  },
+};
 
 /** Icon per Pro feature; labels come from lib/pro-plan.ts so they match /pro. */
 const FEATURE_ICONS: Record<ProFeatureKey, LucideIcon> = {
@@ -98,9 +118,7 @@ function CheckoutSuccessContent() {
 
   // Persist poll start time for tab-resume
   useEffect(() => {
-    if (!sessionStorage.getItem(SESSION_KEY)) {
-      sessionStorage.setItem(SESSION_KEY, Date.now().toString());
-    }
+    pollStart.mark();
   }, []);
 
   // Resolve user ID on mount
@@ -138,7 +156,7 @@ function CheckoutSuccessContent() {
     if (isPro) {
       setIsTrialing(trialing);
       setStatus('activated');
-      sessionStorage.removeItem(SESSION_KEY);
+      pollStart.clear();
       clearProStatusCache();
       // checkout_completed fires once, on the checkout page when the purchase
       // resolves (with plan, transaction id and source) — not again here.
@@ -148,7 +166,7 @@ function CheckoutSuccessContent() {
     const nextIndex = index + 1;
     if (nextIndex >= POLL_SCHEDULE.length) {
       setStatus('timeout');
-      sessionStorage.removeItem(SESSION_KEY);
+      pollStart.clear();
       return;
     }
 
@@ -174,7 +192,7 @@ function CheckoutSuccessContent() {
         if (cancelledRef.current) return;
         if (alreadyPro) {
           setStatus('already_pro');
-          sessionStorage.removeItem(SESSION_KEY);
+          pollStart.clear();
           return;
         }
       }
@@ -218,7 +236,7 @@ function CheckoutSuccessContent() {
               Confirming your subscription. This usually takes a few seconds.
             </p>
           </div>
-          <div className="mvp-progress" aria-live="polite">
+          <div className="mvp-progress" role="status" aria-live="polite">
             <MvLoader size="sm" />
             <span>
               Check {pollIndex + 1} of {POLL_SCHEDULE.length}
@@ -239,6 +257,8 @@ function CheckoutSuccessContent() {
             </p>
           </div>
 
+          {/* State-earned: the plate mounts only once polling confirms Pro,
+              so its settle is the page's one moment. */}
           <div className="mvp-success-plate" aria-hidden="true">
             <BikePlate
               figure={PRO_PLATE.figure}
@@ -247,14 +267,15 @@ function CheckoutSuccessContent() {
               racingNumber={PRO_PLATE.racingNumber}
               identity="MotoVault Pro · every device"
               state="ready"
+              settle
             />
           </div>
 
-          <ul className="mv-rows mvp-unlocked" aria-label="Unlocked with Pro">
-            {PRO_FEATURES.map((feature) => {
+          <ul className="mv-rows mvp-unlocked mv-enter-list" aria-label="Unlocked with Pro">
+            {PRO_FEATURES.map((feature, i) => {
               const Icon = FEATURE_ICONS[feature.key];
               return (
-                <li key={feature.key} className="mv-row">
+                <li key={feature.key} className="mv-row" style={{ '--i': i } as CSSProperties}>
                   <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
                   {feature.title}
                 </li>

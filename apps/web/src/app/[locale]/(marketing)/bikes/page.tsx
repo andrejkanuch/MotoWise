@@ -100,7 +100,7 @@ export default async function BikesIndexPage({ params }: PageProps) {
       <section className="mv-index">
         <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Bikes' }]} />
 
-        <header className="mv-reveal">
+        <header>
           <h1 className="mv-index-h1">Guides by make, model and year</h1>
           <p className="mv-index-lede">
             Owner guides for specific motorcycles: the maintenance schedule, the problems owners

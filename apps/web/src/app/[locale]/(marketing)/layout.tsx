@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Footer } from '@/components/marketing/footer';
 import { Navbar } from '@/components/marketing/navbar';
 import { StickyAppBar } from '@/components/marketing/sticky-app-bar';
+import { SkipLink } from '@/components/skip-link';
 import { routing } from '@/i18n/routing';
 import { BASE_URL } from '@/lib/constants';
 import '@/components/marketing/design-system.css';
@@ -72,13 +73,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="mv-marketing">
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:px-4 focus:py-2"
-        style={{ background: 'var(--mv-copper)', color: 'var(--mv-on-copper)' }}
-      >
-        Skip to content
-      </a>
+      <SkipLink />
       <link rel="preconnect" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />
       <link
         rel="preload"

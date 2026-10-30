@@ -1,26 +1,7 @@
-import {
-  ArrowRight,
-  Bike,
-  Check,
-  ChevronDown,
-  Download,
-  type LucideIcon,
-  MapPin,
-  Minus,
-  Receipt,
-  ScanSearch,
-  Sparkles,
-} from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, Minus } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import {
-  type ComparisonValue,
-  FREE_VS_PRO,
-  PRO_FEATURE_KEYS,
-  PRO_FEATURES,
-  type ProFeatureKey,
-  WEB_OFFER_COPY,
-} from '@/lib/pro-plan';
+import { type ComparisonValue, FREE_VS_PRO, WEB_OFFER_COPY } from '@/lib/pro-plan';
 import { STATIC_WEB_PLANS } from '@/lib/web-pricing';
 import { PricingCard } from './pricing-card';
 import './pro.css';
@@ -33,25 +14,13 @@ export const metadata: Metadata = {
 
 /* ── Data ─────────────────────────────────────────────────────── */
 
-/** Icon per Pro feature; the copy itself lives in lib/pro-plan.ts. */
-const FEATURE_ICONS: Record<ProFeatureKey, LucideIcon> = {
-  [PRO_FEATURE_KEYS.BIKES]: Bike,
-  [PRO_FEATURE_KEYS.AI_DIAGNOSTICS]: ScanSearch,
-  [PRO_FEATURE_KEYS.AI_EXTRAS]: Sparkles,
-  [PRO_FEATURE_KEYS.RECEIPT_SCANS]: Receipt,
-  [PRO_FEATURE_KEYS.GPX_EXPORT]: Download,
-  [PRO_FEATURE_KEYS.OFFLINE_MAPS]: MapPin,
-};
+const CHECKOUT_HREF = '/pro/checkout?plan=annual';
 
 const FAQ = [
   WEB_OFFER_COPY.billingFaq,
   {
     q: 'How do I cancel?',
     a: 'If you subscribed on the web, open your profile and choose “Manage subscription” on the Pro banner — that opens the billing portal, where cancelling takes one click. If you subscribed on iPhone or iPad, cancel in Settings › your name › Subscriptions; on Android, in Google Play › Payments & subscriptions. Pro stays active until the end of the period you have paid for.',
-  },
-  {
-    q: 'Is there a lock-in?',
-    a: 'No. Cancel whenever you like from the same place you subscribed, and you keep Pro until the end of the period you have already paid for.',
   },
   {
     q: 'Why a subscription rather than a one-off payment?',
@@ -103,48 +72,16 @@ export default function ProPage() {
             <p className="mvp-lead">
               One subscription lifts the limits on bikes, AI diagnostics and receipt scans, and adds
               GPX export and offline trip maps. Maintenance, expenses, rides and trips are free for
-              every rider, for good.
+              every rider, for good, on iPhone, Android and the web.
             </p>
-            <ul className="mvp-check-list">
-              {[...WEB_OFFER_COPY.heroBullets, 'Works on iPhone, Android and the web'].map(
-                (line) => (
-                  <li key={line}>
-                    <Check size={16} strokeWidth={2} aria-hidden="true" />
-                    {line}
-                  </li>
-                ),
-              )}
-            </ul>
           </div>
 
           <PricingCard />
         </div>
       </section>
 
-      {/* What Pro adds: a hairline list, icons inline with the title */}
-      <section className="mvp-section mvp-section--features">
-        <h2 className="mv-h2">What Pro adds</h2>
-        <p className="mvp-sub">
-          Pro is one bundle, not a tier ladder. It lifts the limits on bikes and AI and adds GPX
-          export and offline maps. Everything you log stays free.
-        </p>
-        <ul className="mvp-features">
-          {PRO_FEATURES.map((f) => {
-            const Icon = FEATURE_ICONS[f.key];
-            return (
-              <li key={f.key} className="mvp-feature">
-                <h3 className="mvp-feature-title">
-                  <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
-                  {f.title}
-                </h3>
-                <p className="mvp-feature-body">{f.description}</p>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      {/* Free vs Pro: hairline rows, the Pro column carried as the one card */}
+      {/* Free vs Pro: hairline rows, the Pro column carried as the one card.
+          The card beside the H1 already lists what Pro adds. */}
       <section className="mvp-section mvp-section--compare" aria-labelledby="mvp-compare-title">
         <h2 id="mvp-compare-title" className="mv-h2">
           Free and Pro, side by side
@@ -197,6 +134,12 @@ export default function ProPage() {
             </tbody>
           </table>
         </div>
+        <p className="mvp-compare-after">
+          <Link href={CHECKOUT_HREF} className="mv-link">
+            {WEB_OFFER_COPY.finalCta}
+            <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />
+          </Link>
+        </p>
       </section>
 
       {/* FAQ: hairline details */}
@@ -204,7 +147,7 @@ export default function ProPage() {
         <h2 className="mv-h2">Questions, answered</h2>
         <div className="mvp-faq">
           {FAQ.map((item) => (
-            <details key={item.q}>
+            <details key={item.q} className="mv-disclosure">
               <summary>
                 {item.q}
                 <ChevronDown size={18} strokeWidth={2} aria-hidden="true" />
@@ -218,9 +161,8 @@ export default function ProPage() {
       {/* Final: the one centred block on the page */}
       <section className="mvp-section mvp-section--final">
         <h2 className="mv-h2">Ready when you are</h2>
-        <p className="mvp-final-line">{WEB_OFFER_COPY.finalLine}</p>
         <div className="mvp-final-cta">
-          <Link href="/pro/checkout?plan=annual" className="mv-btn mv-btn-primary">
+          <Link href={CHECKOUT_HREF} className="mv-btn mv-btn-primary">
             {WEB_OFFER_COPY.finalCta}
             <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />
           </Link>

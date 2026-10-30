@@ -68,7 +68,7 @@ function splitUnit(value: string): [string, string | null] {
 export default async function OGImage({ params }: { params: Promise<{ id: string }> }) {
   // Next 16: route params are async
   const { id } = await params;
-  const [ride, fonts] = await Promise.all([fetchRide(id), loadFonts()]);
+  const [ride, fonts] = await Promise.all([fetchRide(id).catch(() => null), loadFonts()]);
 
   const title = ride?.name ?? 'MotoVault ride';
   const figures: Array<{ label: string; value: string }> = [

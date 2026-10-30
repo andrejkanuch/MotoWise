@@ -7,21 +7,25 @@ import { usePathname, useRouter } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
 
 /**
- * Routes under [locale]/(marketing) support locale-prefixed URLs.
- * All other routes (trips, explore, pro, profile, etc.) do not.
- * For non-i18n routes, we set the NEXT_LOCALE cookie and reload
- * instead of rewriting the URL (which would 404).
+ * Routes under [locale]/(marketing) support locale-prefixed URLs — one entry
+ * per folder in that route group. All other routes (trips, pro, profile,
+ * etc.) do not: there we set the NEXT_LOCALE cookie and reload instead of
+ * rewriting the URL (which would 404).
  */
 const I18N_ROUTE_PREFIXES = [
-  '/features',
-  '/privacy',
-  '/terms',
   '/about',
   '/account-deletion',
-  '/press',
-  '/tools',
+  '/bikes',
+  '/blog',
+  '/compare',
+  '/explore',
+  '/features',
   '/guides',
-  '/contact',
+  '/press',
+  '/privacy',
+  '/support',
+  '/terms',
+  '/tools',
 ];
 
 function isI18nRoute(path: string | null): boolean {
@@ -90,8 +94,9 @@ export function LanguageSwitcher() {
       intlRouter.replace(intlPathname, { locale: newLocale });
     } else {
       // Non-i18n route — set cookie and reload to pick up new translations
+      const secure = location.protocol === 'https:' ? ';Secure' : '';
       // biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API not universally supported
-      document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
+      document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000;SameSite=Lax${secure}`;
       window.location.reload();
     }
   }

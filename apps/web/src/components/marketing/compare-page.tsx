@@ -11,13 +11,15 @@ import { CtaPageType } from '@/lib/cta-taxonomy';
  *
  * - The shared kit carries the type and the devices: `.mv-section-title`,
  *   `.mv-h2`, `.mv-h3`, `.mv-section-sub`, `.mv-crumbs`, `.mv-rows` /
- *   `.mv-row`, `.mv-table`, `.mv-link`, `.mv-figure`. Only the compare-specific
- *   grammar (mark cells, the sticky matrix column, the FAQ marker, the one
- *   verdict card) lives in the sheet below.
- * - Everything sits on the page surface with --mv-line hairlines. The final
- *   verdict is the one card-styled element a page may carry.
+ *   `.mv-row`, `.mv-table`, `.mv-link`, `.mv-figure`, `.mv-disclosure`. Only
+ *   the compare-specific grammar (mark cells, the sticky matrix column, the
+ *   directory rows) lives in the sheet below.
+ * - Everything sits on the page surface with --mv-line hairlines; no card.
+ *   The verdict is one prose paragraph and the check date is printed once per
+ *   page (under the spec sheet, or in the header where there is no sheet).
  * - Yes / partial / no are Lucide marks in ink (yes) and ink-3 (partial, no),
- *   each with a text alternative. Copper marks links only.
+ *   each with a text alternative. Copper marks links only; directory rows
+ *   are ink and take copper on hover, so the verb keeps its rarity.
  * - Shared strings (breadcrumb, section titles, mark labels) live in the
  *   `Compare` namespace; per-competitor copy stays in its `Vs*` namespace in
  *   either the flat or the nested key style.
@@ -33,13 +35,14 @@ export type CompareMark = 'yes' | 'partial' | 'no';
 /**
  * The one date every compare page quotes: when features and prices were last
  * checked against the store listings. Interpolated as `{date}` into the
- * `updatedAt`, `testingPreamble`, `pricingTableTitle` and `methodology` copy.
+ * `testingPreamble` / `methodology` copy (or `updatedAt` on pages without a
+ * spec sheet) — once per page.
  */
 export const COMPARE_CHECKED_DATE = 'April 2026';
 
 /** Section rhythm: Tailwind padding classes for the two intervals. */
 export const COMPARE_SECTION = {
-  /** Tables, the matrix, the verdict card: 96 / 128. */
+  /** Tables, the matrix: 96 / 128. */
   weight: 'pt-24 md:pt-32',
   /** Prose, lists, related links: 64 / 96. */
   prose: 'pt-16 md:pt-24',
@@ -96,7 +99,6 @@ export interface VsComparePageConfig {
   breadcrumbLabel: string;
   titleKey: string;
   subtitleKey: string;
-  updatedAtKey?: string;
   /** RideLog carries a "same name, different app" note. */
   disambiguation?: { titleKey: string; noteKey: string };
   testingPreambleKey?: string;
@@ -110,13 +112,6 @@ export interface VsComparePageConfig {
     /** Per-row yes/partial/no for the MotoVault and competitor cells. */
     marks: ReadonlyArray<{ mv: CompareMark; comp: CompareMark }>;
   };
-  wins?: {
-    mvTitleKey: string;
-    compTitleKey: string;
-    mvItemPrefix: string;
-    compItemPrefix: string;
-    count: number;
-  };
   whenToChoose?: { titleKey: string; bodyKey: string };
   pricing: {
     keyStyle: 'flat' | 'nested';
@@ -125,18 +120,20 @@ export interface VsComparePageConfig {
     narrativeKey?: string;
   };
   sources?: { headingKey: string; noteKey: string; links: ReadonlyArray<CompareSourceLink> };
-  verdict: { titleKey?: string; bodyKey: string };
+  /** Pages without a `quickVerdictKey` close with one prose verdict instead. */
+  verdict?: { titleKey: string; bodyKey: string };
   faqCount: number;
   related: ReadonlyArray<ComparePageId>;
 }
 
 /* ── Scoped styles: one sheet per page, unique `mv-cmp-` prefix ──
    Only what the shared kit does not carry: the container's gutters, the
-   compare text registers, mark cells, matrix modifiers, the FAQ marker and
-   the verdict card. */
+   compare text registers, mark cells, matrix modifiers, the directory rows
+   and the FAQ summary. */
 
 const COMPARE_CSS = `
 .mv-cmp-page { color: var(--mv-ink); }
+.mv-cmp-page .mv-section-title { overflow-wrap: anywhere; }
 .mv-cmp-wrap { max-width: var(--mv-container); margin: 0 auto; padding-left: 40px; padding-right: 40px; }
 @media (max-width: 900px) { .mv-cmp-wrap { padding-left: 24px; padding-right: 24px; } }
 @media (max-width: 480px) { .mv-cmp-wrap { padding-left: 20px; padding-right: 20px; } }
@@ -147,12 +144,15 @@ const COMPARE_CSS = `
 .mv-cmp-body.is-ink { color: var(--mv-ink); font-weight: 500; }
 .mv-cmp-body.is-full { max-width: none; }
 .mv-cmp-note { color: var(--mv-ink-3); font-size: 13px; line-height: 18px; max-width: 68ch; margin: 0; text-wrap: pretty; }
-.mv-cmp-meta { color: var(--mv-ink-4); font-size: 13px; line-height: 18px; margin: 0; font-variant-numeric: tabular-nums; }
+.mv-cmp-meta { color: var(--mv-ink-3); font-size: 13px; line-height: 18px; margin: 0; font-variant-numeric: tabular-nums; }
 .mv-cmp-page .mv-cmp-grid-row { display: grid; align-items: start; gap: 4px 40px; }
 .mv-cmp-page .mv-rows .mv-link { font-size: 16px; line-height: 1.55; }
+.mv-cmp-dirlink { font-size: 17px; font-weight: 600; line-height: 1.45; color: var(--mv-ink); text-decoration: none; }
+.mv-cmp-dirlink:hover { color: var(--mv-copper-text); text-decoration: underline; text-underline-offset: 3px; }
 .mv-cmp-sources { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.45; }
 .mv-cmp-tablewrap { max-width: 1040px; overflow-x: auto; }
 .mv-cmp-table thead th { white-space: nowrap; }
+.mv-cmp-table th.is-sticky { min-width: 140px; max-width: 220px; }
 .mv-cmp-table th.is-mv { color: var(--mv-ink); font-weight: 600; }
 .mv-cmp-table .is-label { color: var(--mv-ink); font-weight: 500; }
 .mv-cmp-table .is-note { color: var(--mv-ink-3); }
@@ -165,17 +165,11 @@ const COMPARE_CSS = `
 .mv-cmp-mark[data-mark='yes'] { color: var(--mv-ink); }
 .mv-cmp-mark[data-mark='partial'], .mv-cmp-mark[data-mark='no'] { color: var(--mv-ink-3); }
 .mv-cmp-rule { background: var(--mv-line); }
-.mv-cmp-stack { border-top: 1px solid var(--mv-line); padding-top: 32px; margin-top: 48px; }
 .mv-cmp-faq details { border-bottom: 1px solid var(--mv-line); }
 .mv-cmp-faq summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; padding: 12px 0; cursor: pointer; font-size: 17px; font-weight: 600; line-height: 1.45; color: var(--mv-ink); list-style: none; }
 .mv-cmp-faq summary::-webkit-details-marker { display: none; }
-.mv-cmp-faq summary svg { flex: none; color: var(--mv-ink-4); transition: transform 0.25s var(--mv-ease); }
-.mv-cmp-faq details[open] summary svg { transform: rotate(180deg); }
+.mv-cmp-faq summary svg { flex: none; }
 .mv-cmp-faq .mv-cmp-body { padding: 0 0 16px; }
-.mv-cmp-card { background: var(--mv-surface); border-radius: var(--mv-radius-card); padding: clamp(24px, 4vw, 40px); }
-@media (prefers-reduced-motion: reduce) {
-  .mv-cmp-faq summary svg { transition: none; }
-}
 `;
 
 export function CompareStyles() {
@@ -262,7 +256,8 @@ export async function CompareBreadcrumb({
   );
 }
 
-/* ── FAQ: hairline <details> on the page surface ── */
+/* ── FAQ: hairline <details> on the page surface; `.mv-disclosure` turns the
+   chevron and eases the height (kit) ── */
 
 export async function CompareFaq({
   items,
@@ -275,7 +270,7 @@ export async function CompareFaq({
       <h2 className="mv-h2">{tc('faqTitle')}</h2>
       <div className="mv-cmp-faq mv-rows mt-8" style={{ maxWidth: 760 }}>
         {items.map(({ question, answer }) => (
-          <details key={question}>
+          <details key={question} className="mv-disclosure">
             <summary>
               <span>{question}</span>
               <ChevronDown size={18} strokeWidth={2} aria-hidden="true" />
@@ -288,7 +283,8 @@ export async function CompareFaq({
   );
 }
 
-/* ── Comparison list: title link and a one-line verdict per row ── */
+/* ── Directory rows: the title is the link (ink, copper on hover), the
+   one-line verdict beside it ── */
 
 export async function CompareLinkList({
   ids,
@@ -304,7 +300,7 @@ export async function CompareLinkList({
       <ul className="mv-rows mt-6">
         {ids.map((id) => (
           <li key={id} className="mv-row mv-cmp-grid-row md:grid-cols-[260px_1fr]">
-            <Link href={COMPARE_PAGES[id].href} className="mv-link is-quiet">
+            <Link href={COMPARE_PAGES[id].href} className="mv-cmp-dirlink">
               {tc(`pages.${id}.title`)}
             </Link>
             <p className="mv-cmp-body is-compact is-full">{tc(`pages.${id}.verdict`)}</p>
@@ -323,7 +319,7 @@ export async function VsComparePage(config: VsComparePageConfig) {
     getTranslations('Compare'),
     getCompareMarkLabels(),
   ]);
-  const { comparison, pricing, wins } = config;
+  const { comparison, pricing } = config;
   const flat = comparison.keyStyle === 'flat';
   const pricingFlat = pricing.keyStyle === 'flat';
   const dated = { date: COMPARE_CHECKED_DATE };
@@ -376,25 +372,16 @@ export async function VsComparePage(config: VsComparePageConfig) {
     notes: pricingFlat ? t(`pricingRow${i}Notes`) : null,
   }));
 
-  const winColumns = wins
-    ? [
-        { titleKey: wins.mvTitleKey, itemPrefix: wins.mvItemPrefix },
-        { titleKey: wins.compTitleKey, itemPrefix: wins.compItemPrefix },
-      ]
-    : [];
-
   return (
     <div className="mv-cmp-page">
       <CompareStyles />
 
-      {/* Hero: breadcrumb, one condensed H1, the lede, the date. Left-aligned. */}
+      {/* Hero: breadcrumb, one condensed H1, the lede. Left-aligned; the
+          check date is printed once, under the spec sheet. */}
       <header className={`mv-cmp-wrap ${COMPARE_SECTION.header}`}>
         <CompareBreadcrumb current={config.breadcrumbLabel} />
         <h1 className="mv-section-title">{t(config.titleKey)}</h1>
         <p className="mv-section-sub">{t(config.subtitleKey)}</p>
-        {config.updatedAtKey ? (
-          <p className="mv-cmp-meta mt-5">{t(config.updatedAtKey, dated)}</p>
-        ) : null}
       </header>
 
       {/* Disambiguation (RideLog shares its name with other apps) */}
@@ -409,7 +396,7 @@ export async function VsComparePage(config: VsComparePageConfig) {
         </section>
       ) : null}
 
-      {/* Quick verdict: plain prose */}
+      {/* The verdict: one prose paragraph, stated once */}
       {config.quickVerdictKey ? (
         <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
           <h2 className="mv-h2">{tc('quickVerdictTitle')}</h2>
@@ -435,8 +422,9 @@ export async function VsComparePage(config: VsComparePageConfig) {
         </section>
       ) : null}
 
-      {/* The spec sheet: how it was checked, then one table with hairline rows.
-          The reveal is this page's one authored entrance. */}
+      {/* The spec sheet: how it was checked (the page's one date), then one
+          table with hairline rows. The reveal is this page's one authored
+          entrance: it sits below the fold on every page of the family. */}
       <section className={`mv-cmp-wrap mv-reveal ${COMPARE_SECTION.weight}`}>
         <h2 className="mv-h2">
           {comparison.titleKey ? t(comparison.titleKey) : tc('specSheetTitle')}
@@ -481,31 +469,9 @@ export async function VsComparePage(config: VsComparePageConfig) {
         </div>
       </section>
 
-      {/* Where each wins: two stacked hairline lists, the second ruled off */}
-      {wins ? (
-        <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
-          {winColumns.map(({ titleKey, itemPrefix }, col) => (
-            <div key={titleKey} className={col === 1 ? 'mv-cmp-stack' : undefined}>
-              <h2 className="mv-h2">{t(titleKey)}</h2>
-              <ul className="mv-rows mt-5">
-                {Array.from({ length: wins.count }, (_, i) => `${itemPrefix}${i}`).map(
-                  (itemKey) => (
-                    <li key={itemKey} className="mv-row">
-                      <span className="mv-cmp-body is-compact is-full">{t(itemKey)}</span>
-                    </li>
-                  ),
-                )}
-              </ul>
-            </div>
-          ))}
-        </section>
-      ) : null}
-
       {/* Pricing: the table, then the narrative. Figures in the condensed face. */}
       <section className={`mv-cmp-wrap ${COMPARE_SECTION.weight}`}>
-        <h2 className="mv-h2">
-          {pricing.titleKey ? t(pricing.titleKey, dated) : tc('pricingTitle')}
-        </h2>
+        <h2 className="mv-h2">{pricing.titleKey ? t(pricing.titleKey) : tc('pricingTitle')}</h2>
         <div className="mv-cmp-tablewrap mt-8">
           <table
             className="mv-table mv-cmp-table"
@@ -538,7 +504,7 @@ export async function VsComparePage(config: VsComparePageConfig) {
         ) : null}
       </section>
 
-      {/* When the competitor is the right pick */}
+      {/* When the competitor is the right pick: the closing prose */}
       {config.whenToChoose ? (
         <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
           <h2 className="mv-h2">{t(config.whenToChoose.titleKey)}</h2>
@@ -563,15 +529,14 @@ export async function VsComparePage(config: VsComparePageConfig) {
         </section>
       ) : null}
 
-      {/* Final verdict: the one card on the page */}
-      <section className={`mv-cmp-wrap ${COMPARE_SECTION.weight}`}>
-        <div className="mv-cmp-card">
-          <h2 className="mv-h2">
-            {config.verdict.titleKey ? t(config.verdict.titleKey) : tc('finalVerdictTitle')}
-          </h2>
+      {/* The verdict on pages that open with app descriptions instead of a
+          quick verdict: one prose paragraph, no card */}
+      {config.verdict ? (
+        <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
+          <h2 className="mv-h2">{t(config.verdict.titleKey)}</h2>
           <p className="mv-cmp-body is-strong mt-5">{t(config.verdict.bodyKey)}</p>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       {/* Related comparisons: title and one-line verdict per row */}
       <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>

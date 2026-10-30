@@ -110,9 +110,9 @@ export default async function MaintVsRidePage({ params }: PageProps) {
         <p className="mv-cmp-meta mt-5">{t('updatedAt', dated)}</p>
       </header>
 
-      {/* The two categories side by side, hairline between.
-          The reveal is this page's one authored entrance. */}
-      <section className={`mv-cmp-wrap mv-reveal ${COMPARE_SECTION.weight}`}>
+      {/* The two categories side by side, hairline between. First viewport,
+          so no entrance. */}
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.weight}`}>
         <div className="grid gap-12 lg:grid-cols-[1fr_1px_1fr]">
           {CATEGORIES.map(({ titleKey, subtitleKey, featurePrefix, appsKey }, col) => (
             <div key={titleKey} className={col === 1 ? 'lg:col-start-3' : undefined}>
@@ -162,12 +162,10 @@ export default async function MaintVsRidePage({ params }: PageProps) {
         </ul>
       </section>
 
-      {/* Recommendation: the one card on the page */}
-      <section className={`mv-cmp-wrap ${COMPARE_SECTION.weight}`}>
-        <div className="mv-cmp-card">
-          <h2 className="mv-h2">{t('verdictTitle')}</h2>
-          <p className="mv-cmp-body is-strong mt-5">{t('verdict')}</p>
-        </div>
+      {/* Recommendation: one prose paragraph */}
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
+        <h2 className="mv-h2">{t('verdictTitle')}</h2>
+        <p className="mv-cmp-body is-strong mt-5">{t('verdict')}</p>
       </section>
 
       {/* Related comparisons */}

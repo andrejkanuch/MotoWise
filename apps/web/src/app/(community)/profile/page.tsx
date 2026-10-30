@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import { DoInAppHint } from '@/components/do-in-app-hint';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { Avatar } from './avatar';
 import { ProBanner } from './pro-banner';
 import '@/app/(community)/garage/garage.css';
 
@@ -32,6 +33,7 @@ export default function ProfilePage() {
     data: meData,
     isLoading: meLoading,
     isError: meError,
+    refetch: refetchMe,
   } = useQuery({
     queryKey: ['me'],
     queryFn: () => gqlFetcher(MeDocument),
@@ -63,25 +65,21 @@ export default function ProfilePage() {
     );
   }
 
-  if (meError) {
+  // A failed query, or a resolved one with no rider in it: the same state,
+  // named, with the retry (never a blank page under the nav).
+  if (meError || !user) {
     return (
       <div className="garage-page">
         <div className="garage-inner prof-state" role="alert">
           <h1 className="mv-section-title prof-title">{t('failedToLoad')}</h1>
           <p className="prof-quiet">{t('somethingWentWrong')}</p>
-          <button
-            type="button"
-            className="mv-btn mv-btn-ghost"
-            onClick={() => window.location.reload()}
-          >
+          <button type="button" className="mv-btn mv-btn-ghost" onClick={() => refetchMe()}>
             {t('retry')}
           </button>
         </div>
       </div>
     );
   }
-
-  if (!user) return null;
 
   // Read-only (#277): the public profile is set up and edited in the app. The
   // ProBanner stays so a Pro rider without a public username still reaches the
@@ -122,18 +120,12 @@ export default function ProfilePage() {
 
         <header className="prof-head">
           <div className="prof-identity">
-            {user.avatarUrl ? (
-              // biome-ignore lint/performance/noImgElement: user avatar from Supabase storage
-              <img
-                src={user.avatarUrl}
-                alt={user.displayName ?? 'Avatar'}
-                className="prof-avatar"
-              />
-            ) : (
-              <div className="prof-avatar prof-avatar--initial" aria-hidden="true">
-                {initial}
-              </div>
-            )}
+            <Avatar
+              src={user.avatarUrl}
+              alt={user.displayName ?? t('rider')}
+              initial={initial}
+              className="prof-avatar"
+            />
             <div style={{ minWidth: 0 }}>
               <h1 className="mv-section-title prof-title">
                 {user.displayName ?? user.fullName ?? t('rider')}

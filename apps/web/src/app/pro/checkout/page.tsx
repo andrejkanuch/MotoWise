@@ -47,6 +47,7 @@ const OFFERING_STATUS = {
 type OfferingStatus = (typeof OFFERING_STATUS)[keyof typeof OFFERING_STATUS];
 
 const PRICE_PLACEHOLDER = '—';
+const PRICES_PENDING = 'Loading prices…';
 
 function packageFor(offering: Offering | null, plan: PlanId): Package | null {
   if (!offering) return null;
@@ -83,7 +84,7 @@ async function loadWebOffering(userId: string): Promise<Offering | null> {
 
 function Waiting() {
   return (
-    <div className="mvp-wait">
+    <div className="mvp-wait" role="status" aria-live="polite">
       <MvLoader size="sm" label="Loading" />
     </div>
   );
@@ -228,16 +229,18 @@ function CheckoutContent() {
     ? null
     : durationToDays(rcPackage?.product.freeTrialPhase?.periodDuration);
 
+  // The trial ends on a local day, in the rider's own locale: a UTC date
+  // showed yesterday east of UTC after 22:00. `undefined` = the browser's
+  // default locale (the locale-contract test forbids a dynamic tag here).
   const trialEndDate = useMemo(() => {
     if (!trialDays) return null;
     const date = new Date();
     date.setDate(date.getDate() + trialDays);
-    return date.toLocaleDateString('en-US', {
-      timeZone: 'UTC',
+    return new Intl.DateTimeFormat(undefined, {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
-    });
+    }).format(date);
   }, [trialDays]);
 
   const handleCheckout = useCallback(async () => {
@@ -329,7 +332,15 @@ function CheckoutContent() {
     return <Waiting />;
   }
 
+  const pricesLoading = offeringStatus === OFFERING_STATUS.LOADING;
   const priceLine = `${planPrice} / ${plan.period}`;
+  /** A figure slot while the offering loads: says so instead of a dash. */
+  const figureOrPending = (figure: string) =>
+    pricesLoading ? (
+      <span className="mvp-summary-pending">{PRICES_PENDING}</span>
+    ) : (
+      <span className="mv-figure">{figure}</span>
+    );
 
   return (
     <section className="mvp-section mvp-section--operate">
@@ -371,10 +382,10 @@ function CheckoutContent() {
         </fieldset>
 
         {/* Order summary: the one card */}
-        <div className="mvp-summary" aria-live="polite">
+        <div className="mvp-summary" aria-live="polite" aria-busy={pricesLoading || undefined}>
           <div className="mvp-summary-row">
             <strong>{plan.name}</strong>
-            <span className="mv-figure">{priceLine}</span>
+            {figureOrPending(priceLine)}
           </div>
           {trialDays && (
             <div className="mvp-summary-row">
@@ -384,20 +395,15 @@ function CheckoutContent() {
           )}
           <div className="mvp-summary-row mvp-summary-row--total">
             <strong>Due today</strong>
-            <span className="mv-figure">{trialDays ? nothingDue : planPrice}</span>
+            {figureOrPending(trialDays ? nothingDue : planPrice)}
           </div>
-          <p className="mvp-summary-note">
-            {trialDays ? (
-              <>
-                After the trial ends on {trialEndDate} you are charged <strong>{priceLine}</strong>.
-                Cancel before then and nothing is charged.
-              </>
-            ) : (
-              <>
-                Billed <strong>{priceLine}</strong> today and on each renewal. Cancel any time.
-              </>
-            )}
-          </p>
+          {/* Without a trial the "Due today" row says it all. */}
+          {trialDays && (
+            <p className="mvp-summary-note">
+              After the trial ends on {trialEndDate} you are charged <strong>{priceLine}</strong>.
+              Cancel before then and nothing is charged.
+            </p>
+          )}
         </div>
 
         {/* Offering could not be loaded: say so instead of a dead Pay button. */}

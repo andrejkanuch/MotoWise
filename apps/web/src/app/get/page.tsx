@@ -143,9 +143,10 @@ export default async function GetPage({ searchParams }: { searchParams: SearchPa
 
   const rawCode = Array.isArray(sp.code) ? sp.code[0] : sp.code;
   const discountCode = rawCode && DISCOUNT_CODE_PATTERN.test(rawCode) ? rawCode : null;
+  // Only a code earns a second action here; without one the page has one job.
   const proHref = discountCode
     ? `/pro/checkout?plan=annual&discount_code=${encodeURIComponent(discountCode)}`
-    : '/pro';
+    : null;
 
   // The QR code points back at this same URL, so the phone that scans it takes
   // the per-platform redirect above with the source intact. The modules inherit
@@ -202,12 +203,15 @@ export default async function GetPage({ searchParams }: { searchParams: SearchPa
                 </StoreLink>
               </div>
               <p style={S.note}>
-                Free on iPhone and Android.{' '}
-                <Link href={proHref} className="mv-link">
-                  {discountCode
-                    ? 'Redeem your code for Pro on the web'
-                    : 'Buy Pro on the web (no app needed)'}
-                </Link>
+                Free on iPhone and Android.
+                {proHref && (
+                  <>
+                    {' '}
+                    <Link href={proHref} className="mv-link">
+                      Redeem your code for Pro on the web
+                    </Link>
+                  </>
+                )}
               </p>
             </div>
 

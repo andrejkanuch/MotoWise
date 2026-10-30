@@ -1,11 +1,15 @@
 import type { TripTemplateNode } from '@/lib/fetch-places';
-import { distanceParts, Icon } from './primitives';
+import { distanceParts } from './primitives';
 import { formatDuration, tripHref } from './utils';
 
 interface PopularStripProps {
   trips: TripTemplateNode[];
+  /** A country name, or {@link WORLD} when no country was detected. */
   countryName: string;
 }
+
+/** The sentinel the explore page passes when geo-IP found no country. */
+export const WORLD = 'the world';
 
 function tripShortTitle(trip: TripTemplateNode): string {
   return (trip.title ?? 'Unnamed route').split('—')[0].trim();
@@ -18,16 +22,11 @@ function tripShortTitle(trip: TripTemplateNode): string {
 export function PopularStrip({ trips, countryName }: PopularStripProps) {
   if (trips.length === 0) return null;
   const display = trips.slice(0, 4);
-  const inCountry = countryName !== 'the world';
+  const inCountry = countryName !== WORLD;
 
   return (
     <section className="xp-wrap xp-section-tight">
       <h2 className="mv-h2">{inCountry ? `Start in ${countryName}` : 'Start here'}</h2>
-      <p className="xp-sub">
-        {inCountry
-          ? `Routes in ${countryName}, where you seem to be riding from.`
-          : 'A few routes from across the atlas.'}
-      </p>
       <div className="mv-chips xp-chips-strip">
         {display.map((t) => {
           const distance = t.distanceM != null ? distanceParts(t.distanceM) : null;
@@ -42,7 +41,6 @@ export function PopularStrip({ trips, countryName }: PopularStripProps) {
                 </span>
               )}
               {time && <span className="xp-chip-muted">{time}</span>}
-              <Icon name="arrow-right" size={14} color="var(--mv-ink-3)" />
             </a>
           );
         })}

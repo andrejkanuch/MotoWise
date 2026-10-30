@@ -128,7 +128,7 @@ export default async function BikeLeafPage({ params }: PageProps) {
           ]}
         />
 
-        <header className="mv-reveal">
+        <header>
           <h1 className="mv-read-h1">{page.h1}</h1>
           <p className="mv-read-lede">{page.description}</p>
         </header>

@@ -23,6 +23,8 @@
   text-rendering: optimizeLegibility;
   caret-color: var(--mv-copper);
   -webkit-tap-highlight-color: var(--mv-copper-tint);
+  /* Navbar height, for anything that sticks below it (trip tabnav, explore shells) */
+  --mv-nav-h: 64px;
 }
 .mv-marketing {
   overflow-x: hidden;
@@ -1168,7 +1170,7 @@ html:not(.dark) .mv-dark-scene .mv-plate {
   }
   .mv-plate[data-settle] .mv-plate-stripe { transform: rotate(45deg) !important; }
   .mv-loader::after, .mv-loader-tread, .mv-loader-hub, .mv-loader-text .mv-dots::after,
-  .mv-navprogress-bar { animation: none; }
+  .mv-skeleton-rows > div, .mv-navprogress-bar { animation: none; }
   .mv-loader-text .mv-dots::after { content: "…"; }
   .mv-btn-primary:hover, .mv-btn-ghost:hover { translate: 0 0; }
   .mv-btn:active, .mv-btn-ghost:active, .mv-icon-btn:active, .mv-chip:active { scale: 1; }

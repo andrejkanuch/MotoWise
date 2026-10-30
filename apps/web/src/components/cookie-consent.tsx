@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useModal } from '@/hooks/use-modal';
 import { clearAccountConsent, writeAccountConsent } from '@/lib/account-consent';
 import { clearFirstTouch, firstTouchProperties, persistFirstTouch } from '@/lib/campaign';
 
@@ -223,13 +224,16 @@ export function useCookieConsent(): ConsentContextValue {
 // Banner UI — the Trackside chrome: tokens only, body face, copper on the one
 // confirming action, radius 16, no blur, no shadow, both schemes. The surface
 // mounts outside `.mv-marketing`, so it carries `.mv-root` for the shared
-// selection and focus grammar.
+// selection and focus grammar. The bar and the settled note enter with the
+// kit's `.mv-enter-up`; the kit's reduced-motion policy covers them.
 // ---------------------------------------------------------------------------
 
 /**
- * Published on <html> while a consent surface is on screen, as that surface's
- * height, so the sticky app bar (components/marketing/sticky-app-bar.tsx) can
- * stack above it instead of fighting it for the bottom edge.
+ * Published on <html> while the consent BAR is on screen, as its height, so
+ * every fixed bottom bar (sticky app bar, trip bar, garage bar, explore FAB)
+ * can stack above it instead of fighting it for the bottom edge. The settings
+ * sheet and the settled note do not publish: the sheet is a dialog that sits
+ * over those bars, and the note is a corner toast.
  */
 const SURFACE_HEIGHT_VAR = '--mv-cookie-banner-h';
 
@@ -382,7 +386,7 @@ const COOKIE_UI_CSS = `
   width: 20px; height: 20px;
   border-radius: 50%;
   background: var(--mv-ink-2);
-  transition: transform .2s var(--mv-ease), background .2s;
+  transition: transform 160ms var(--mv-ease-expo), background .2s;
 }
 .mv-cc-switch[aria-checked="true"] .mv-cc-switch-knob,
 .mv-cc-switch[aria-disabled="true"] .mv-cc-switch-knob { transform: translateX(18px); background: var(--mv-bg); }
@@ -402,35 +406,44 @@ const COOKIE_UI_CSS = `
 }
 .mv-cc-toast svg { flex-shrink: 0; color: var(--mv-go); }
 .mv-cc-toast-msg { font-size: 15px; line-height: 20px; }
+/* The kit's policy stops the entrances; the knob's slide is the one local move. */
 @media (prefers-reduced-motion: reduce) {
-  .mv-cc, .mv-cc * { transition-duration: 0.01ms !important; }
+  .mv-cc-switch-knob { transition: background .2s; }
 }
 `;
 
 /** Keeps the root's {@link SURFACE_HEIGHT_VAR} equal to this surface's height while it is mounted. */
-function usePublishSurfaceHeight(ref: RefObject<HTMLElement | null>) {
+function usePublishSurfaceHeight(ref: RefObject<HTMLElement | null>, publish: boolean) {
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || !publish) return;
     const root = document.documentElement;
-    const publish = () => root.style.setProperty(SURFACE_HEIGHT_VAR, `${el.offsetHeight}px`);
-    publish();
-    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(publish);
+    const write = () => root.style.setProperty(SURFACE_HEIGHT_VAR, `${el.offsetHeight}px`);
+    write();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(write);
     observer?.observe(el);
     return () => {
       observer?.disconnect();
       root.style.removeProperty(SURFACE_HEIGHT_VAR);
     };
-  }, [ref]);
+  }, [ref, publish]);
 }
 
 function ConsentSurface({
   className,
   children,
+  publish = false,
+  surfaceRef,
   ...rest
-}: React.HTMLAttributes<HTMLDivElement> & { className: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  usePublishSurfaceHeight(ref);
+}: React.HTMLAttributes<HTMLDivElement> & {
+  className: string;
+  /** Publish this surface's height for the fixed bars to stack on. */
+  publish?: boolean;
+  surfaceRef?: RefObject<HTMLDivElement | null>;
+}) {
+  const ownRef = useRef<HTMLDivElement>(null);
+  const ref = surfaceRef ?? ownRef;
+  usePublishSurfaceHeight(ref, publish);
   return (
     <div ref={ref} className={`mv-root mv-cc ${className}`} {...rest}>
       <style>{COOKIE_UI_CSS}</style>
@@ -450,10 +463,29 @@ export function CookieConsentBanner() {
   const [view, setView] = useState<'main' | 'list' | 'settled'>('main');
   const [settledMsg, setSettledMsg] = useState('');
   const [toggles, setToggles] = useState<CookieToggles>(DEFAULT_TOGGLES);
+  const settingsButtonRef = useRef<HTMLButtonElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const sheetTitleRef = useRef<HTMLHeadingElement>(null);
+  const returnToSettingsRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Opening "Settings" unmounts the button that was clicked, so the sheet is
+  // a modal dialog: its title takes focus, Tab stays inside, Escape and
+  // "Back" return to the bar, and focus returns to the Settings button.
+  const closeSheet = useCallback(() => {
+    returnToSettingsRef.current = true;
+    setView('main');
+  }, []);
+  useModal(view === 'list', closeSheet, sheetRef, sheetTitleRef);
+  useEffect(() => {
+    if (view === 'main' && returnToSettingsRef.current) {
+      returnToSettingsRef.current = false;
+      settingsButtonRef.current?.focus();
+    }
+  }, [view]);
 
   const settle = useCallback((msg: string, action: () => void) => {
     action();
@@ -494,10 +526,11 @@ export function CookieConsentBanner() {
   if (view === 'main') {
     return (
       <ConsentSurface
-        className="mv-cc-bar"
+        className="mv-cc-bar mv-enter-up"
         role="dialog"
         aria-labelledby="cb-title"
         aria-describedby="cb-body"
+        publish
       >
         <div className="mv-cc-bar-inner">
           <span id="cb-title" hidden>
@@ -513,7 +546,12 @@ export function CookieConsentBanner() {
             <button type="button" className="mv-btn mv-btn-ghost" onClick={handleDecline}>
               {t('decline')}
             </button>
-            <button type="button" className="mv-cc-text" onClick={() => setView('list')}>
+            <button
+              ref={settingsButtonRef}
+              type="button"
+              className="mv-cc-text"
+              onClick={() => setView('list')}
+            >
               {t('settings')}
             </button>
           </div>
@@ -524,21 +562,24 @@ export function CookieConsentBanner() {
 
   return (
     <ConsentSurface
-      className="mv-cc-sheet"
+      className="mv-cc-sheet mv-enter-up"
       role="dialog"
+      aria-modal="true"
       aria-labelledby="cb-list-title"
       aria-describedby="cb-body"
+      surfaceRef={sheetRef}
     >
       <span id="cb-body" hidden>
         {t('stamp')}
       </span>
       <ListView
         t={t}
+        titleRef={sheetTitleRef}
         toggles={toggles}
         onToggle={toggle}
         onSave={handleSave}
         onAcceptAll={handleAcceptAll}
-        onBack={() => setView('main')}
+        onBack={closeSheet}
       />
     </ConsentSurface>
   );
@@ -550,6 +591,7 @@ export function CookieConsentBanner() {
 
 function ListView({
   t,
+  titleRef,
   toggles,
   onToggle,
   onSave,
@@ -557,6 +599,7 @@ function ListView({
   onBack,
 }: {
   t: ReturnType<typeof useTranslations>;
+  titleRef: RefObject<HTMLHeadingElement | null>;
   toggles: CookieToggles;
   onToggle: (key: keyof CookieToggles) => void;
   onSave: () => void;
@@ -566,7 +609,7 @@ function ListView({
   return (
     <>
       <div className="mv-cc-sheet-head">
-        <h2 id="cb-list-title" className="mv-h3">
+        <h2 id="cb-list-title" ref={titleRef} tabIndex={-1} className="mv-h3">
           {t('list.whatWeUse')}
         </h2>
         <span className="mv-cc-sheet-count">{t('list.count')}</span>
@@ -697,7 +740,7 @@ function SettledToast({
   if (!visible) return null;
 
   return (
-    <ConsentSurface className="mv-cc-toast" role="status">
+    <ConsentSurface className="mv-cc-toast mv-enter-up" role="status">
       <Check size={18} strokeWidth={2.2} aria-hidden="true" />
       <span className="mv-cc-toast-msg">{message}</span>
       <button type="button" className="mv-cc-text" onClick={onUndo}>

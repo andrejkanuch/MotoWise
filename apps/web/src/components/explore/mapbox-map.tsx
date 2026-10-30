@@ -3,6 +3,7 @@
 import Script from 'next/script';
 import { useEffect, useRef, useState } from 'react';
 import type { TripTemplateNode } from '@/lib/fetch-places';
+import { type ResolvedTheme, Theme, useTheme } from '@/providers/theme-provider';
 
 interface MapboxMapProps {
   trips: TripTemplateNode[];
@@ -28,6 +29,27 @@ type MarkerEntry = {
   marker: MarkerInstance;
   lng: number;
   lat: number;
+};
+
+const MAPBOX_GL_VERSION = 'v3.6.0';
+const MAPBOX_GL_CSS = `https://api.mapbox.com/mapbox-gl-js/${MAPBOX_GL_VERSION}/mapbox-gl.css`;
+const MAPBOX_GL_JS = `https://api.mapbox.com/mapbox-gl-js/${MAPBOX_GL_VERSION}/mapbox-gl.js`;
+
+/** The map follows the page's scheme: graphite under dark, paper under light. */
+const MAP_STYLE: Record<ResolvedTheme, string> = {
+  [Theme.Dark]: 'mapbox://styles/mapbox/dark-v11',
+  [Theme.Light]: 'mapbox://styles/mapbox/light-v11',
+};
+
+/** How long the CDN gets before the box says the map did not load. */
+const MAP_LOAD_GIVE_UP_MS = 15_000;
+
+const MapState = { Loading: 'loading', Ready: 'ready', Unavailable: 'unavailable' } as const;
+type MapState = (typeof MapState)[keyof typeof MapState];
+
+const MAP_STATE_TEXT: Record<Exclude<MapState, typeof MapState.Ready>, string> = {
+  [MapState.Loading]: 'Loading map…',
+  [MapState.Unavailable]: "The map didn't load. The route list still works.",
 };
 
 /**
@@ -74,6 +96,41 @@ function useMapboxReady(): [boolean, () => void] {
   return [ready, notifyMapboxReady];
 }
 
+/**
+ * True once the element has been on screen. The country/region pages keep
+ * both the desktop and the mobile tree in the DOM; the hidden one must not
+ * initialise a map (and bill tiles) on every phone visit.
+ */
+function useSeen(ref: React.RefObject<HTMLElement | null>): boolean {
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || seen) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setSeen(true);
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) setSeen(true);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref, seen]);
+  return seen;
+}
+
+/** The selected route mark is the one copper object on the map. Targets the
+ *  inner div — never `el.style.transform`, which Mapbox uses for positioning. */
+function stylePin({ el }: MarkerEntry, isActive: boolean) {
+  const inner = el.querySelector('.mv-pin-inner') as HTMLDivElement | null;
+  if (!inner) return;
+  inner.style.transform = isActive ? 'scale(1.4)' : 'scale(1)';
+  inner.style.background = isActive ? 'var(--mv-copper)' : 'var(--mv-surface-2)';
+  inner.style.borderColor = isActive ? 'var(--mv-copper)' : 'var(--mv-line-step)';
+  inner.style.color = isActive ? 'var(--mv-on-copper)' : 'var(--mv-ink)';
+  el.style.zIndex = isActive ? '10' : '1';
+}
+
 function MapboxMapInner({
   trips,
   hoveredId,
@@ -82,16 +139,27 @@ function MapboxMapInner({
   center,
   zoom,
   visibleIds,
-}: MapboxMapProps) {
+  scriptFailed,
+}: MapboxMapProps & { scriptFailed: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapInstance>(null);
+  const appliedStyleRef = useRef<string | null>(null);
   const markersRef = useRef<MarkerEntry[]>([]);
   const onPinClickRef = useRef(onPinClick);
   onPinClickRef.current = onPinClick;
+  // Markers arrive on 'load', after the first hover/focus effect has run.
+  const activeRef = useRef<{ hoveredId: string | null; focusedId: string | null }>({
+    hoveredId,
+    focusedId,
+  });
+  activeRef.current = { hoveredId, focusedId };
+  const { resolvedTheme } = useTheme();
+  const seen = useSeen(containerRef);
+  const [state, setState] = useState<MapState>(MapState.Loading);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: map init runs once per mount — trips are static per page load
+  // biome-ignore lint/correctness/useExhaustiveDependencies: map init runs once per mount — trips are static per page load; the scheme is applied by setStyle below
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !seen) return;
 
     // biome-ignore lint/suspicious/noExplicitAny: globalThis access for CDN-loaded mapbox
     const mapboxgl = (globalThis as Record<string, any>).mapboxgl as MapboxGl;
@@ -99,13 +167,16 @@ function MapboxMapInner({
 
     const token =
       process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ?? '';
-    if (!token) return;
+    if (!token) {
+      setState(MapState.Unavailable);
+      return;
+    }
 
     mapboxgl.accessToken = token;
 
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: MAP_STYLE[resolvedTheme],
       center: center ?? [-98, 39],
       zoom: zoom ?? 3.4,
       pitch: 0,
@@ -116,8 +187,10 @@ function MapboxMapInner({
 
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
     mapRef.current = map;
+    appliedStyleRef.current = MAP_STYLE[resolvedTheme];
 
     map.on('load', () => {
+      setState(MapState.Ready);
       // Add markers for ALL trips (visibility toggled via CSS)
       trips.forEach((t, i) => {
         const lat = t.startLat;
@@ -141,7 +214,7 @@ function MapboxMapInner({
           font-family: var(--mv-font-display); font-size: 13px; font-weight: 600;
           font-variant-numeric: tabular-nums;
           box-shadow: none;
-          transition: transform .2s var(--mv-ease), background .2s, color .2s, border-color .2s;
+          transition: transform 160ms var(--mv-ease-expo), background-color 160ms, color 160ms, border-color 160ms;
         `;
         inner.textContent = String(i + 1);
         el.appendChild(inner);
@@ -153,13 +226,37 @@ function MapboxMapInner({
         const marker = new mapboxgl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map);
         markersRef.current.push({ id: t.id, marker, el, lng, lat });
       });
+      const { hoveredId: h, focusedId: f } = activeRef.current;
+      for (const entry of markersRef.current) stylePin(entry, entry.id === h || entry.id === f);
     });
 
     return () => {
       map.remove();
+      mapRef.current = null;
       markersRef.current = [];
     };
-  }, [center, zoom]);
+  }, [center, zoom, seen]);
+
+  // The scheme toggle restyles the live map; DOM markers survive setStyle.
+  useEffect(() => {
+    const map = mapRef.current;
+    const next = MAP_STYLE[resolvedTheme];
+    if (!map || appliedStyleRef.current === next) return;
+    appliedStyleRef.current = next;
+    map.setStyle(next);
+  }, [resolvedTheme]);
+
+  // The CDN never answered, or its script failed: say so instead of a blank box.
+  useEffect(() => {
+    if (scriptFailed) setState(MapState.Unavailable);
+  }, [scriptFailed]);
+  useEffect(() => {
+    if (state !== MapState.Loading || !seen) return;
+    const timer = setTimeout(() => {
+      setState((s) => (s === MapState.Loading ? MapState.Unavailable : s));
+    }, MAP_LOAD_GIVE_UP_MS);
+    return () => clearTimeout(timer);
+  }, [state, seen]);
 
   // Toggle marker visibility based on filters (no map re-render)
   useEffect(() => {
@@ -169,46 +266,47 @@ function MapboxMapInner({
     }
   }, [visibleIds]);
 
-  // Update hover/focus pin styles (target inner div — never touch el.style.transform)
+  // Update hover/focus pin styles
   useEffect(() => {
-    for (const { id, el } of markersRef.current) {
-      const inner = el.querySelector('.mv-pin-inner') as HTMLDivElement | null;
-      if (!inner) continue;
-      const isActive = id === hoveredId || id === focusedId;
-      // The selected route mark is the one copper object on the map.
-      inner.style.transform = isActive ? 'scale(1.4)' : 'scale(1)';
-      inner.style.background = isActive ? 'var(--mv-copper)' : 'var(--mv-surface-2)';
-      inner.style.borderColor = isActive ? 'var(--mv-copper)' : 'var(--mv-line-step)';
-      inner.style.color = isActive ? 'var(--mv-on-copper)' : 'var(--mv-ink)';
-      el.style.zIndex = isActive ? '10' : '1';
+    for (const entry of markersRef.current) {
+      stylePin(entry, entry.id === hoveredId || entry.id === focusedId);
     }
   }, [hoveredId, focusedId]);
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        width: '100%',
-        height: '100%',
-        minHeight: 600,
-        background: 'var(--mv-bg-2)',
-      }}
-    />
+    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: 600 }}>
+      <div
+        ref={containerRef}
+        style={{
+          width: '100%',
+          height: '100%',
+          minHeight: 600,
+          background: 'var(--mv-bg-2)',
+        }}
+      />
+      {state !== MapState.Ready && (
+        <p className="xp-map-state" role="status">
+          {MAP_STATE_TEXT[state]}
+        </p>
+      )}
+    </div>
   );
 }
 
 // Dynamic import wrapper — load Mapbox GL CSS + JS only on client
 export function MapboxMap(props: MapboxMapProps) {
   const [ready, onReady] = useMapboxReady();
+  const [scriptFailed, setScriptFailed] = useState(false);
   return (
     <>
-      <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" />
+      <link rel="stylesheet" href={MAPBOX_GL_CSS} />
       <Script
-        src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"
+        src={MAPBOX_GL_JS}
         strategy="afterInteractive"
         onLoad={onReady}
+        onError={() => setScriptFailed(true)}
       />
-      <MapboxMapInner key={ready ? 'ready' : 'loading'} {...props} />
+      <MapboxMapInner key={ready ? 'ready' : 'loading'} {...props} scriptFailed={scriptFailed} />
     </>
   );
 }

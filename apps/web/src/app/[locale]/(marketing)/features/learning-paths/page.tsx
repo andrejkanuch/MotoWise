@@ -172,13 +172,10 @@ export default async function LearningPathsPage({ params }: PageProps) {
       ]}
       features={{
         title: t('coursesTitle'),
-        items: [
-          ...COURSE_INDEXES.map((i) => ({
-            title: t(`course${i}Title`),
-            desc: t(`course${i}Desc`),
-          })),
-          { title: t('quizTitle'), desc: t('quizDesc') },
-        ],
+        items: COURSE_INDEXES.map((i) => ({
+          title: t(`course${i}Title`),
+          desc: t(`course${i}Desc`),
+        })),
       }}
       demo={{
         title: t('curriculumTitle'),
@@ -197,7 +194,6 @@ export default async function LearningPathsPage({ params }: PageProps) {
         question: t(`faq.${i}.question`),
         answer: t(`faq.${i}.answer`),
       }))}
-      related={['/features/ai-diagnostics', '/features/maintenance']}
     />
   );
 }

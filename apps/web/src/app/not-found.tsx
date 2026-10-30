@@ -18,10 +18,13 @@ const WHERE_TO_LINKS = [
  * Two columns on the ramp: the message on the ground (the shared hero shell
  * for its padding), a quiet map stage one step deeper. H1 at the page-title
  * size, body face, one copper action, the links as one hairline row list.
- * The route drawing is authored SVG in tokens and does not move.
+ * The route drawing is authored SVG in tokens and does not move. On phones
+ * the stage shrinks so the 404 itself is above the fold.
+ * app/[locale]/not-found.tsx carries the same stage with translated copy;
+ * the two must stay in step.
  */
 const NOT_FOUND_CSS = `
-.nf { min-height: 100vh; display: grid; grid-template-columns: 1.1fr 1fr; }
+.nf { min-height: 100svh; display: grid; grid-template-columns: 1.1fr 1fr; }
 .nf-msg {
   display: flex; flex-direction: column; justify-content: center;
   background: var(--mv-bg);
@@ -52,7 +55,10 @@ const NOT_FOUND_CSS = `
   .nf-msg.mv-section-hero { padding: 48px 24px 64px; }
 }
 @media (max-width: 600px) { .nf-links { grid-template-columns: 1fr; } }
-@media (max-width: 480px) { .nf-msg.mv-section-hero { padding: 48px 20px 64px; } }
+@media (max-width: 480px) {
+  .nf-stage { min-height: 24vh; }
+  .nf-msg.mv-section-hero { padding: 48px 20px 64px; }
+}
 `;
 
 export default function NotFound() {

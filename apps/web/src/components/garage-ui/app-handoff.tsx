@@ -25,16 +25,13 @@ type HandoffProps = {
   promoted: PromotedHandoff | null;
 };
 
-/** "Open in the app" (an .mv-h3) over "iPhone and Android", shared by the rail and the band. */
+/** "Open in the app" (an .mv-h3), shared by the rail and the band; the QR tile and store links below say where. */
 function HandoffHeading({ id }: { id: string }) {
   const t = useTranslations('AppHandoff');
   return (
-    <div className="mvg-handoff-heading">
-      <h2 id={id} className="mv-h3">
-        {t('openInTheApp')}
-      </h2>
-      <p className="mvg-handoff-sub">{t('railEyebrow')}</p>
-    </div>
+    <h2 id={id} className="mv-h3 mvg-handoff-heading">
+      {t('openInTheApp')}
+    </h2>
   );
 }
 
@@ -112,7 +109,7 @@ function BarCopy({ promoted }: { promoted: PromotedHandoff }) {
  *
  * Renders nothing on the server and until mounted: whether it was dismissed
  * is only knowable in the browser, so reading it during render would break
- * hydration. It then slides in (240 ms; none under reduced motion). Includes a
+ * hydration. It then enters from below (250 ms; none under reduced motion). Includes a
  * spacer so the bar never covers the end of the page. Hidden ≥ 768 px by CSS.
  */
 export function AppHandoffBar({ promoted }: { promoted: PromotedHandoff | null }) {

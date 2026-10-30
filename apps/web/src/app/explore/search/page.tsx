@@ -15,6 +15,7 @@ import { COUNTRY_NAMES } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 
 const VALID_COUNTRIES = new Set(Object.keys(COUNTRY_NAMES));
+const HEADING_QUERY_MAX = 40;
 
 /* ── Helpers ─────────────────────────────────────────────────── */
 
@@ -106,7 +107,15 @@ export default async function ExploreSearchPage({
   const durationLabel = duration ? DURATION_LABELS[duration] : undefined;
   const summarize = (parts: Array<string | undefined | false>) => parts.filter(Boolean).join(' · ');
 
+  // The H1 echoes the query at display size: clamp it there (the search itself
+  // keeps the full 100 characters).
+  const headingQuery = q && q.length > HEADING_QUERY_MAX ? `${q.slice(0, HEADING_QUERY_MAX)}…` : q;
   const searchSummary = summarize([q && `"${q}"`, countryName, durationLabel]);
+  const headingSummary = summarize([
+    headingQuery && `"${headingQuery}"`,
+    countryName,
+    durationLabel,
+  ]);
   const keptSummary = summarize([
     !dropped.includes('query') && q && `"${q}"`,
     !dropped.includes('country') && countryName,
@@ -127,10 +136,10 @@ export default async function ExploreSearchPage({
           {count > 0 ? (
             <>
               {count} {count === 1 ? 'route' : 'routes'}
-              {!isFallback && searchSummary ? ` for ${searchSummary}` : ''}
+              {!isFallback && headingSummary ? ` for ${headingSummary}` : ''}
             </>
           ) : (
-            <>No routes{searchSummary ? ` for ${searchSummary}` : ''}</>
+            <>No routes{headingSummary ? ` for ${headingSummary}` : ''}</>
           )}
         </h1>
         <div style={{ marginTop: 32 }}>

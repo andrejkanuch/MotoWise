@@ -182,7 +182,7 @@ export default async function RegionPage({ params }: PageProps) {
           ]}
         />
 
-        <header className="mv-reveal">
+        <header>
           <h1 className="mv-index-h1">
             Motorcycle routes in {regionName}, {countryName}
           </h1>

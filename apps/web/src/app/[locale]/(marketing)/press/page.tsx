@@ -111,7 +111,7 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
       <JsonLd data={organizationSchema} />
 
       <article className="mv-read">
-        <header className="mv-reveal">
+        <header>
           <h1 className="mv-read-h1">Press kit</h1>
           <p className="mv-read-lede">
             What MotoVault is, who makes it and the assets you can use. For anything else, write to

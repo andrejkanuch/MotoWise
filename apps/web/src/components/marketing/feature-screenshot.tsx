@@ -11,7 +11,6 @@ const SCREENSHOT_PAIR_CSS = `
   width: min(440px, 100%);
   aspect-ratio: 4 / 5;
   background: var(--mv-surface);
-  border: 1px solid var(--mv-line);
   border-radius: var(--mv-radius-card);
   overflow: hidden;
   justify-self: start;
@@ -27,7 +26,8 @@ const SCREENSHOT_PAIR_CSS = `
 /**
  * The feature page's screenshot moment: one real device frame (the page's
  * single `.mv-phone-mockup`, Direction: max one per page) beside a second
- * shot cropped onto a surface panel with a hairline keyline. Asymmetric by
+ * shot cropped onto a surface panel (the screenshot carries the app's own
+ * chrome, so the panel draws no keyline of its own). Asymmetric by
  * construction: two treatments, baselines aligned, no tilt, no glows. This is
  * the page's one authored entrance (`.mv-reveal`, scroll-timeline driven).
  */

@@ -108,7 +108,7 @@ export default async function CostCalculatorPage({ params }: PageProps) {
       <JsonLd data={webAppSchema} />
 
       <section className="mv-wide" style={{ paddingBottom: 0 }}>
-        <header className="mv-reveal mv-tool">
+        <header className="mv-tool">
           <h1 className="mv-index-h1">
             {t('heroTitle')} <span className="mv-muted">{t('heroTitleAccent')}</span>
           </h1>
@@ -160,14 +160,6 @@ export default async function CostCalculatorPage({ params }: PageProps) {
               maintenance reminders, and shows your cost per mile over time. No spreadsheets, no
               guesswork.
             </p>
-
-            <h2>{t('seoTitle1')}</h2>
-            <p>{t('seoP1')}</p>
-            <p>{t('seoP2')}</p>
-            <p>{t('seoP3')}</p>
-
-            <h2>{t('seoTitle2')}</h2>
-            <p>{t('seoP4')}</p>
           </div>
         </article>
       </section>

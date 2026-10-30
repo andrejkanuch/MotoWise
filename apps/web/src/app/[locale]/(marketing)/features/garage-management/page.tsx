@@ -28,71 +28,6 @@ const FEATURE_KEYS = ['multiBike', 'nhtsa', 'history', 'reminders'] as const;
 
 const LONG_FORM_KEYS = ['MultiBike', 'Scheduling', 'Resale'] as const;
 
-/** The depicted service timeline: one bike's log, as the app shows it. */
-const MAINT_ROWS = [
-  { index: 1, status: 'done' },
-  { index: 2, status: 'due' },
-  { index: 3, status: 'done' },
-  { index: 4, status: 'upcoming' },
-  { index: 5, status: 'done' },
-] as const;
-
-/** Status ink inside the depiction only (Triad Belongs to State Rule). */
-const MAINT_STATUS_INK: Record<(typeof MAINT_ROWS)[number]['status'], string> = {
-  done: 'var(--mv-go)',
-  due: 'var(--mv-due-ink)',
-  upcoming: 'var(--mv-ink-3)',
-};
-
-function MaintenanceTimeline({ t }: { t: Awaited<ReturnType<typeof getTranslations>> }) {
-  return (
-    <div style={{ overflowX: 'auto' }}>
-      <table className="mv-table" style={{ minWidth: '640px', color: 'var(--mv-ink-2)' }}>
-        <thead>
-          <tr>
-            {[t('maintColTask'), t('maintColWhen'), t('maintColOdometer'), t('maintColStatus')].map(
-              (column) => (
-                <th key={column} scope="col">
-                  {column}
-                </th>
-              ),
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {MAINT_ROWS.map(({ index, status }) => (
-            <tr key={index}>
-              <th scope="row">
-                <span style={{ display: 'block', fontWeight: 600 }}>{t(`maint${index}Label`)}</span>
-                <span
-                  style={{
-                    display: 'block',
-                    fontSize: '13px',
-                    lineHeight: '18px',
-                    fontWeight: 400,
-                    color: 'var(--mv-ink-3)',
-                  }}
-                >
-                  {t(`maint${index}Sub`)}
-                </span>
-              </th>
-              <td className="mv-figure">{t(`maint${index}Date`)}</td>
-              <td className="mv-figure" style={{ color: 'var(--mv-ink-3)' }}>
-                {t(`maint${index}Miles`)}
-              </td>
-              <td
-                style={{ fontWeight: 500, whiteSpace: 'nowrap', color: MAINT_STATUS_INK[status] }}
-              >
-                {t(`maint${index}Status`)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 export default async function GarageManagementPage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -114,6 +49,9 @@ export default async function GarageManagementPage({ params }: PageProps) {
         },
       ]}
       heroVisual={
+        // The feature-page family's one signature moment: the hero plate
+        // settles and lays its stripe. The screenshot pair below keeps the
+        // scroll reveal; the two never share an object.
         <BikePlate
           figure="14,820"
           unit="mi"
@@ -121,17 +59,13 @@ export default async function GarageManagementPage({ params }: PageProps) {
           racingNumber="07"
           identity={t('plateIdentity')}
           state="due"
+          stateLabel={t('plateStateLabel')}
+          settle
         />
       }
       features={{
         title: t('featuresTitle'),
         items: FEATURE_KEYS.map((key) => ({ title: t(`${key}Title`), desc: t(`${key}Desc`) })),
-      }}
-      demo={{
-        title: t('maintTitle'),
-        body: t('maintSubtitle'),
-        content: <MaintenanceTimeline t={t} />,
-        wide: true,
       }}
       longForm={{
         title: t('longFormTitle'),
@@ -145,7 +79,6 @@ export default async function GarageManagementPage({ params }: PageProps) {
         question: t(`faq.${i}.question`),
         answer: t(`faq.${i}.answer`),
       }))}
-      related={['/features/maintenance', '/features/expense-tracking']}
     />
   );
 }

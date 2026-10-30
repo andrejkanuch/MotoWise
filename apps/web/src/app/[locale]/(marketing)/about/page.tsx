@@ -125,7 +125,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       <JsonLd data={profilePageSchema} />
 
       <article className="mv-read">
-        <header className="mv-reveal">
+        <header>
           <h1 className="mv-read-h1">{t('heroTitle')}</h1>
           <p className="mv-read-lede">{t('heroSubtitle')}</p>
         </header>

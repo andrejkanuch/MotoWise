@@ -41,7 +41,6 @@ export default async function Page({ params }: PageProps) {
           alt: 'MotoVault dashboard showing monthly spending trends',
         },
       ]}
-      related={['/features/maintenance', '/features/ride-tracking']}
     />
   );
 }

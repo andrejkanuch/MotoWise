@@ -143,41 +143,41 @@ const WAYPOINT_LABELS: Record<string, string> = {
 
 const WAYPOINT_ICONS: Record<string, React.ReactNode> = {
   start: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>Start</title>
       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
       <circle cx="12" cy="10" r="3" />
     </svg>
   ),
   end: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>End</title>
       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
       <circle cx="12" cy="10" r="3" />
     </svg>
   ),
   fuel: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>Fuel</title>
       <path d="M3 22V5a2 2 0 012-2h8a2 2 0 012 2v17" />
       <path d="M15 10h2a2 2 0 012 2v3a2 2 0 002 2h0" />
     </svg>
   ),
   scenic: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>Scenic</title>
       <path d="M3 18l4-8 5 6 4-4 5 6" />
       <circle cx="6" cy="7" r="2" />
     </svg>
   ),
   overnight: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>Overnight</title>
       <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
     </svg>
   ),
   photo: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>Photo</title>
       <rect x="3" y="3" width="18" height="18" rx="2" />
       <circle cx="9" cy="9" r="2" />
@@ -185,7 +185,7 @@ const WAYPOINT_ICONS: Record<string, React.ReactNode> = {
     </svg>
   ),
   pass_summit: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>Pass</title>
       <path d="M3 18l4-8 5 6 4-4 5 6" />
     </svg>
@@ -195,7 +195,7 @@ const WAYPOINT_ICONS: Record<string, React.ReactNode> = {
 function getWaypointIcon(type: string): React.ReactNode {
   return (
     WAYPOINT_ICONS[type] ?? (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
         <title>Waypoint</title>
         <circle cx="12" cy="12" r="10" />
       </svg>
@@ -284,7 +284,6 @@ export default async function TripByIdPage({ params }: PageParams) {
     year: 'numeric',
   });
   const hasRating = trip.averageRating != null && trip.reviewCount > 0;
-  const reviewsLabel = trip.reviewCount === 1 ? 'review' : 'reviews';
 
   const sections: Array<{ id: string; label: string }> = [{ id: 'overview', label: 'Overview' }];
   if (trip.waypoints.length > 0) sections.push({ id: 'days', label: 'Day by day' });
@@ -406,15 +405,6 @@ export default async function TripByIdPage({ params }: PageParams) {
               {sec.label}
             </a>
           ))}
-          <StoreLink
-            platform={StorePlatform.Unknown}
-            pageType={CtaPageType.Trip}
-            placement={CtaPlacement.Navbar}
-            slug={segment}
-            className="mv-btn mv-btn-primary tabnav-cta"
-          >
-            Get the app
-          </StoreLink>
         </div>
       </nav>
 
@@ -462,10 +452,6 @@ export default async function TripByIdPage({ params }: PageParams) {
                 <dd>{trip.cloneCount.toLocaleString('en-US')}</dd>
               </div>
             )}
-            <div className="mv-row">
-              <dt>Curated by</dt>
-              <dd>{trip.organiser.displayName}</dd>
-            </div>
           </dl>
         </div>
       </section>
@@ -497,12 +483,6 @@ export default async function TripByIdPage({ params }: PageParams) {
                 ? `${trip.dayCount} days, stop by stop`
                 : 'The route, stop by stop'}
             </h2>
-            {trip.dayCount > 1 && (
-              <p className="rsec-aside">
-                A suggested split across {trip.dayCount} days, with {trip.waypoints.length}{' '}
-                waypoints along the way.
-              </p>
-            )}
           </div>
 
           <div className="itinerary">
@@ -550,17 +530,11 @@ export default async function TripByIdPage({ params }: PageParams) {
         <section className="rsec rsec--reviews" id="reviews">
           <div className="rsec-head">
             <h2 className="mv-h2">From riders who rode it</h2>
-            <p className="rsec-aside">
-              {trip.reviewCount} {reviewsLabel} from riders who rode it.
-            </p>
           </div>
           <div className="reviews-score">
             <span className="mv-figure reviews-score-num">{trip.averageRating?.toFixed(1)}</span>
             <span className="reviews-score-out">/5</span>
           </div>
-          <p className="reviews-count">
-            {trip.reviewCount} {reviewsLabel}
-          </p>
         </section>
       )}
 

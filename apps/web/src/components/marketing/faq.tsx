@@ -1,13 +1,16 @@
 import { useTranslations } from 'next-intl';
 
-const FAQ_INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+/** The six home-page questions, by `Faq.items` index, strongest first so the
+ *  JSON-LD FAQPage (built from the same list in page.tsx) leads with them:
+ *  what it is, is it free, reminders, several bikes, vs REVER/Calimoto, data. */
+export const HOME_FAQ_ITEMS = [0, 1, 8, 9, 7, 4] as const;
 
 /** Hairline `<details>` list straight on the page surface — no cards, no
  *  section marker, body face, sentence case. The section sits on the 1240
  *  edge like every other; the reading column inside is capped at 880 so the
  *  H2 starts where the neighbouring sections' H2s start. Native disclosure
  *  needs no JS, so this stays a server component; the first item ships open.
- *  The "+" turns a quarter turn into "×" when an item opens (CSS only). */
+ *  The kit's `.mv-disclosure.is-plus` turns the "+" into "×" on open. */
 export function Faq() {
   const t = useTranslations('Faq');
 
@@ -22,17 +25,17 @@ export function Faq() {
           <a href="mailto:support@motovault.app" className="mv-link">
             {t('introLink')}
           </a>
-          {t('introTrailing')}
+          .
         </p>
       </div>
 
       {/* Hairline disclosure list */}
       <div className="faq-column faq-list">
-        {FAQ_INDICES.map((index) => (
-          <details key={index} className="faq-item" open={index === 0}>
+        {HOME_FAQ_ITEMS.map((index, position) => (
+          <details key={index} className="faq-item mv-disclosure is-plus" open={position === 0}>
             <summary className="faq-q">
               <span>{t(`items.${index}.question`)}</span>
-              <span className="faq-mark" aria-hidden="true">
+              <span className="faq-mark mv-disclosure-mark" aria-hidden="true">
                 +
               </span>
             </summary>
@@ -76,9 +79,8 @@ export function Faq() {
               color: var(--mv-ink-3);
               flex-shrink: 0;
               transform-origin: center;
-              transition: transform 0.3s var(--mv-ease), color 0.2s;
             }
-            .faq-item[open] .faq-mark { transform: rotate(45deg); color: var(--mv-ink); }
+            .faq-item[open] .faq-mark { color: var(--mv-ink); }
             .faq-a {
               padding: 0 0 24px;
               color: var(--mv-ink-2);

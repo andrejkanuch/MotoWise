@@ -160,7 +160,7 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
         </div>
 
         {menuOpen && (
-          <div id={menuId} ref={menuRef} className="nav-mobile-menu">
+          <div id={menuId} ref={menuRef} className="nav-mobile-menu mv-enter-down">
             <p className="nav-menu-name">{displayName ?? t('rider')}</p>
             <div className="mv-rows is-open">
               {NAV_LINKS.map((link) => {

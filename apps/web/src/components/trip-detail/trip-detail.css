@@ -6,8 +6,8 @@
    sentence. The ramp is the shadow: no drop shadows, no blur, no glow.
    Shared grammar comes from design-system.css: .mv-section-title,
    .mv-h2, .mv-figure, .mv-crumbs, .mv-rows/.mv-row, .mv-btn*,
-   .mv-scroll-row. Classes other components depend on: .rsec
-   (gpx-download-button.tsx), .mv-wp-popup (trip-detail-map.tsx).
+   .mv-scroll-row. Classes other components depend on: .mv-wp-popup
+   (trip-detail-map.tsx).
    Gutters: 40 → 24 at ≤900 → 20 at ≤480.
    ═══════════════════════════════════════════════════════════════ */
 
@@ -62,10 +62,14 @@
   margin-bottom: 40px;
 }
 
-/* The page title: the H1 step (.mv-section-title), ink, a short measure */
+/* The page title: the H1 step (.mv-section-title), ink, a short measure.
+   Titles come from data (Großglockner-Hochalpenstraße): one unbroken word
+   may still break rather than clip at 320px. */
 .rh-title {
   color: var(--mv-ink);
-  max-width: 14ch;
+  max-width: 20ch;
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 .rh-context {
@@ -139,10 +143,12 @@
   font-weight: 500;
 }
 
-/* ── In-page nav (sticky, solid: the blur budget belongs to the navbar) ── */
+/* ── In-page nav (sticky, solid: the blur budget belongs to the navbar).
+      It sticks under the fixed navbar, never behind it: the offset is the
+      scrolled bar's height (64px), or --mv-nav-h when the navbar publishes it. ── */
 .tabnav {
   position: sticky;
-  top: 0;
+  top: var(--mv-nav-h, 64px);
   z-index: 40;
   background: var(--mv-bg);
   border-top: 1px solid var(--mv-line);
@@ -173,15 +179,6 @@
 
 .tabnav-tab:hover {
   color: var(--mv-ink);
-}
-
-/* The bar's action is the shared primary button; this only places it and
-   keeps the 44px target inside a 52px bar */
-.tabnav-cta {
-  margin-left: auto;
-  min-height: 44px;
-  padding: 0 16px;
-  white-space: nowrap;
 }
 
 /* ── Sections: one interval (0 / 96) between them, the itinerary carries
@@ -217,14 +214,6 @@
   max-width: 16ch;
 }
 
-.rsec-aside {
-  color: var(--mv-ink-3);
-  font-size: 15px;
-  line-height: 1.55;
-  max-width: 360px;
-  margin: 0;
-}
-
 /* ── Overview: prose at reading measure, details as hairline rows ── */
 .overview-grid {
   display: grid;
@@ -250,7 +239,8 @@
   margin-bottom: 0;
 }
 
-/* Key / value facts on .mv-rows: the key in ink-3, the value in ink */
+/* Key / value facts on .mv-rows: the key in ink-3, the value in ink,
+   figures tabular so the column lines up */
 .rfacts .mv-row {
   align-items: baseline;
   font-size: 15px;
@@ -266,15 +256,15 @@
   color: var(--mv-ink);
   font-weight: 500;
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ── Map: the one card in its section ── */
+/* ── Map: one container. The frame clips to the card radius; the map has
+      its own edge, so no keyline and no surface behind it ── */
 .map-card {
   position: relative;
-  border: 1px solid var(--mv-line);
   border-radius: var(--mv-radius-card);
   overflow: hidden;
-  background: var(--mv-surface);
 }
 
 .map-frame {
@@ -287,12 +277,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.map-foot {
-  display: flex;
-  justify-content: flex-end;
-  padding: 16px 0 0;
 }
 
 /* ── Day by day: hairline rows, no boxes ── */
@@ -414,8 +398,9 @@
   height: 16px;
 }
 
-.reviews-count {
-  margin: 12px 0 0;
+/* "Ratings only" / "Reviews didn't load" under the score */
+.reviews-note {
+  margin: 16px 0 0;
   font-size: 15px;
   line-height: 1.45;
   color: var(--mv-ink-3);
@@ -530,10 +515,13 @@
   flex-wrap: wrap;
 }
 
-/* ── Sticky bar on phones: raised one step, solid, above the cookie bar ── */
+/* ── Sticky bar on phones: raised one step, solid, above the cookie bar.
+      Pinned at bottom: 0 and lifted with `translate` (a compositor property),
+      so the cookie bar's height change never animates layout. It carries
+      .mv-enter-up from the kit for its entrance. ── */
 .trip-sticky {
   position: fixed;
-  bottom: var(--mv-cookie-banner-h, 0px);
+  bottom: 0;
   left: 0;
   right: 0;
   z-index: 50;
@@ -543,7 +531,10 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  transition: bottom 0.25s var(--mv-ease);
+  translate: 0 calc(-1 * var(--mv-cookie-banner-h, 0px));
+  transition:
+    translate 250ms var(--mv-ease-expo),
+    opacity 240ms var(--mv-ease-expo);
 }
 
 .trip-sticky-body {
@@ -610,10 +601,6 @@
     align-items: flex-start;
     gap: 16px;
     margin-bottom: 32px;
-  }
-
-  .rsec-aside {
-    max-width: 100%;
   }
 
   .overview-grid {

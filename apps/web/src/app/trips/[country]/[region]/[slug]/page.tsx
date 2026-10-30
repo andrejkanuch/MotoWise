@@ -4,7 +4,7 @@ import {
   WebTripReviewsDocument,
   type WebTripReviewsQuery,
 } from '@motovault/graphql';
-import { ArrowRight, ChevronRight, Share2, Star } from 'lucide-react';
+import { ArrowRight, ChevronRight, Star } from 'lucide-react';
 import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { cache } from 'react';
@@ -56,7 +56,13 @@ const fetchTrip = cache(
   },
 );
 
-async function fetchReviews(country: string, region: string, slug: string): Promise<TripReview[]> {
+// `null` = the reviews didn't load (presentation-only, so the page still renders);
+// `[]` = the API answered and there are ratings but no written reviews.
+async function fetchReviews(
+  country: string,
+  region: string,
+  slug: string,
+): Promise<TripReview[] | null> {
   try {
     const data = await gqlServerFetcher(WebTripReviewsDocument, {
       country,
@@ -66,7 +72,7 @@ async function fetchReviews(country: string, region: string, slug: string): Prom
     });
     return data.tripReviews ?? [];
   } catch {
-    return [];
+    return null;
   }
 }
 
@@ -162,48 +168,48 @@ const WAYPOINT_LABELS: Record<string, string> = {
 
 const WAYPOINT_ICONS: Record<string, React.ReactNode> = {
   start: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>Start</title>
       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
       <circle cx="12" cy="10" r="3" />
     </svg>
   ),
   end: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>End</title>
       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
       <circle cx="12" cy="10" r="3" />
     </svg>
   ),
   fuel: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>Fuel</title>
       <path d="M3 22V5a2 2 0 012-2h8a2 2 0 012 2v17" />
       <path d="M15 10h2a2 2 0 012 2v3a2 2 0 002 2h0" />
     </svg>
   ),
   food: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>Food</title>
       <path d="M3 8L21 8 21 19 3 19 3 8z" />
       <path d="M3 8L12 14 21 8" />
     </svg>
   ),
   scenic: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>Scenic</title>
       <path d="M3 18l4-8 5 6 4-4 5 6" />
       <circle cx="6" cy="7" r="2" />
     </svg>
   ),
   overnight: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>Overnight</title>
       <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
     </svg>
   ),
   photo: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>Photo</title>
       <rect x="3" y="3" width="18" height="18" rx="2" />
       <circle cx="9" cy="9" r="2" />
@@ -211,13 +217,13 @@ const WAYPOINT_ICONS: Record<string, React.ReactNode> = {
     </svg>
   ),
   pass_summit: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>Pass</title>
       <path d="M3 18l4-8 5 6 4-4 5 6" />
     </svg>
   ),
   rally_point: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
       <title>Rally</title>
       <circle cx="12" cy="12" r="10" />
       <path d="M3 12L21 12" />
@@ -228,7 +234,7 @@ const WAYPOINT_ICONS: Record<string, React.ReactNode> = {
 function getWaypointIcon(type: string): React.ReactNode {
   return (
     WAYPOINT_ICONS[type] ?? (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
         <title>Waypoint</title>
         <circle cx="12" cy="12" r="10" />
       </svg>
@@ -534,16 +540,11 @@ export default async function TripPage({ params }: PageParams) {
             >
               Get the app
             </StoreLink>
-            <a className="mv-btn mv-btn-ghost" href={`/trips/${country}/${region}/${slug}`}>
-              <Share2 size={16} aria-hidden="true" />
-              Share
-            </a>
             <GpxDownloadButton
               country={country}
               region={region}
               slug={slug}
               routeName={trip.title}
-              variant="hero"
             />
           </div>
           <p className="rh-author">
@@ -560,15 +561,6 @@ export default async function TripPage({ params }: PageParams) {
               {sec.label}
             </a>
           ))}
-          <StoreLink
-            platform={StorePlatform.Unknown}
-            pageType={CtaPageType.Trip}
-            placement={CtaPlacement.Navbar}
-            slug={slug}
-            className="mv-btn mv-btn-primary tabnav-cta"
-          >
-            Get the app
-          </StoreLink>
         </div>
       </nav>
 
@@ -616,10 +608,6 @@ export default async function TripPage({ params }: PageParams) {
                 <dd>{trip.cloneCount.toLocaleString('en-US')}</dd>
               </div>
             )}
-            <div className="mv-row">
-              <dt>Curated by</dt>
-              <dd>{trip.organiser.displayName}</dd>
-            </div>
           </dl>
         </div>
       </section>
@@ -643,15 +631,6 @@ export default async function TripPage({ params }: PageParams) {
               />
             </div>
           </div>
-          <div className="map-foot">
-            <GpxDownloadButton
-              country={country}
-              region={region}
-              slug={slug}
-              routeName={trip.title}
-              variant="map"
-            />
-          </div>
         </section>
       )}
 
@@ -662,12 +641,6 @@ export default async function TripPage({ params }: PageParams) {
             <h2 className="mv-h2">
               {dayCount > 1 ? `${dayCount} days, stop by stop` : 'The route, stop by stop'}
             </h2>
-            {dayCount > 1 && (
-              <p className="rsec-aside">
-                A suggested split across {dayCount} days, with {waypoints.length} waypoints along
-                the way.
-              </p>
-            )}
           </div>
 
           <div className="itinerary">
@@ -713,9 +686,6 @@ export default async function TripPage({ params }: PageParams) {
         <section className="rsec rsec--reviews" id="reviews">
           <div className="rsec-head">
             <h2 className="mv-h2">From riders who rode it</h2>
-            <p className="rsec-aside">
-              {trip.reviewCount} {reviewsLabel} from riders who rode it.
-            </p>
           </div>
 
           <div className="reviews-score">
@@ -723,11 +693,19 @@ export default async function TripPage({ params }: PageParams) {
             <span className="reviews-score-out">/5</span>
           </div>
           <StarRow rating={Math.round(trip.averageRating ?? 0)} idPrefix="summary" />
-          <p className="reviews-count">
-            {trip.reviewCount} {reviewsLabel}
-          </p>
 
-          {reviews.length > 0 && (
+          {reviews === null && (
+            <p className="reviews-note" role="status">
+              Reviews didn&apos;t load. Reload the page to try again.
+            </p>
+          )}
+          {reviews?.length === 0 && (
+            <p className="reviews-note">
+              {trip.reviewCount} {reviewsLabel} as ratings only; written reviews appear here.
+            </p>
+          )}
+
+          {reviews && reviews.length > 0 && (
             <ul className="mv-rows review-list">
               {reviews.map((review) => {
                 const authorName = review.author?.displayName ?? 'Anonymous';
@@ -776,15 +754,6 @@ export default async function TripPage({ params }: PageParams) {
         </section>
       )}
 
-      {/* ══════════ GPX DOWNLOAD ══════════ */}
-      <GpxDownloadButton
-        country={country}
-        region={region}
-        slug={slug}
-        routeName={trip.title}
-        variant="bottom"
-      />
-
       {/* ══════════ MORE ROUTES (internal-link cluster) ══════════ */}
       <SiblingRoutesSection
         routes={siblingRoutes}
@@ -817,7 +786,7 @@ export default async function TripPage({ params }: PageParams) {
 
       {/* ══════════ STICKY PHONE CTA ══════════ */}
       <div className="trip-sticky-spacer" aria-hidden="true" />
-      <div className="trip-sticky">
+      <div className="trip-sticky mv-enter-up">
         <div className="trip-sticky-body">
           <div className="trip-sticky-title">{trip.title}</div>
           <div className="trip-sticky-sub">Copy it into your planner and record the ride</div>

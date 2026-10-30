@@ -82,15 +82,27 @@ function ResultsHeader({
   );
 }
 
-/* ── Empty state ──────────────────────────────────────────────── */
+/* ── Empty and failed states ──────────────────────────────────── */
 
 function EmptyState({ onClear }: { onClear: () => void }) {
   return (
     <div className="xp-empty">
-      <h3 className="mv-h3 xp-h3">No routes match these filters</h3>
+      <h2 className="mv-h3 xp-h3">No routes match these filters</h2>
       <p>Clear a filter, or browse a neighbouring region from the map.</p>
       <button type="button" className="mv-link is-tall" onClick={onClear}>
         Clear filters
+      </button>
+    </div>
+  );
+}
+
+export function LoadFailedState() {
+  return (
+    <div className="xp-empty">
+      <h2 className="mv-h3 xp-h3">Routes didn't load</h2>
+      <p>The route list is out of reach right now. Try again in a minute.</p>
+      <button type="button" className="mv-link is-tall" onClick={() => window.location.reload()}>
+        Try again
       </button>
     </div>
   );
@@ -100,6 +112,8 @@ function EmptyState({ onClear }: { onClear: () => void }) {
 
 interface ResultsDesktopProps {
   allTrips: TripTemplateNode[];
+  /** The API did not answer: say so instead of "no routes match". */
+  loadFailed?: boolean;
   country: string;
   countryCode: string;
   region?: string | null;
@@ -110,6 +124,7 @@ interface ResultsDesktopProps {
 
 export function ResultsDesktop({
   allTrips,
+  loadFailed = false,
   country,
   countryCode,
   region,
@@ -161,20 +176,15 @@ export function ResultsDesktop({
       />
       <FilterBar filters={filters} onFilterChange={setFilters} />
 
-      <div
-        style={{
-          flex: 1,
-          display: 'grid',
-          gridTemplateColumns: 'clamp(360px, 38vw, 520px) 1fr',
-          minHeight: 0,
-        }}
-      >
+      <div className="xp-split">
         {/* List */}
         {/* min-height:0 (in .xp-results-list) lets this grid item scroll
             internally; without it the item keeps its intrinsic content height,
             ballooning the grid row (and the height:100% map next to it). */}
         <div className="xp-results-list">
-          {trips.length === 0 ? (
+          {loadFailed ? (
+            <LoadFailedState />
+          ) : trips.length === 0 ? (
             <EmptyState onClear={clearFilters} />
           ) : (
             <>

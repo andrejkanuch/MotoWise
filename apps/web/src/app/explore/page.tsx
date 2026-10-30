@@ -7,7 +7,7 @@ import { AppPromo } from '@/components/explore/app-promo';
 import { CountryLedger } from '@/components/explore/country-ledger';
 import { EditorsLedger } from '@/components/explore/editors-ledger';
 import { HeroBold } from '@/components/explore/hero-bold';
-import { PopularStrip } from '@/components/explore/popular-strip';
+import { PopularStrip, WORLD } from '@/components/explore/popular-strip';
 import { SkeletonRows } from '@/components/explore/primitives';
 import { BASE_URL } from '@/lib/constants';
 import { fetchCountries } from '@/lib/fetch-places';
@@ -52,10 +52,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /* ── Data fetching ───────────────────────────────────────────── */
 
+/** `null` means the API did not answer; `[]` means it answered with nothing. */
 async function fetchTrips(
   first: number,
   options: { country?: string } = {},
-): Promise<TripTemplateNode[]> {
+): Promise<TripTemplateNode[] | null> {
   try {
     const data = await gqlServerFetcher(TripTemplatesDocument, {
       filter: {
@@ -65,17 +66,32 @@ async function fetchTrips(
     });
     return data.tripTemplates.edges.map((e) => e.node);
   } catch {
-    return [];
+    return null;
   }
 }
 
-async function fetchStaffPicks(): Promise<TripTemplateNode[]> {
+async function fetchStaffPicks(): Promise<TripTemplateNode[] | null> {
   const trips = await fetchTrips(12);
-  return trips.filter((t) => t.isMotovaultPick).slice(0, 6);
+  return trips?.filter((t) => t.isMotovaultPick).slice(0, 6) ?? null;
 }
 
-async function fetchTopTrips(limit = 4, country?: string): Promise<TripTemplateNode[]> {
+async function fetchTopTrips(limit = 4, country?: string): Promise<TripTemplateNode[] | null> {
   return fetchTrips(limit, { country });
+}
+
+/* ── API-down notice: name what happened and the next step ──────── */
+
+function LoadFailedNotice() {
+  return (
+    <div className="xp-wrap xp-section-tight">
+      <output className="xp-notice">
+        Routes didn't load.{' '}
+        <a href="/explore" className="mv-link">
+          Try again
+        </a>
+      </output>
+    </div>
+  );
 }
 
 /* ── Country detection ──────────────────────────────────────── */
@@ -148,16 +164,24 @@ const jsonLd = {
 
 /* ── Async sections (Suspense boundaries) ────────────────────── */
 
-async function PopularSection({ countryCode }: { countryCode: string | undefined }) {
+async function PopularSection({
+  countryCode,
+  countriesFailed,
+}: {
+  countryCode: string | undefined;
+  countriesFailed: boolean;
+}) {
   const trips = await fetchTopTrips(4, countryCode);
+  // The ledger already said the API is down; say it once.
+  if (trips === null) return countriesFailed ? null : <LoadFailedNotice />;
   if (trips.length === 0) return null;
-  const countryName = countryCode ? (COUNTRY_NAMES[countryCode] ?? countryCode) : 'the world';
+  const countryName = countryCode ? (COUNTRY_NAMES[countryCode] ?? countryCode) : WORLD;
   return <PopularStrip trips={trips} countryName={countryName} />;
 }
 
 async function EditorSection() {
   const picks = await fetchStaffPicks();
-  if (picks.length === 0) return null;
+  if (!picks || picks.length === 0) return null;
   return <EditorsLedger picks={picks} />;
 }
 
@@ -180,8 +204,10 @@ export default async function ExplorePage() {
   const hdrs = await headers();
   const countryCode = detectCountry(hdrs);
 
-  // Fetch countries for the ledger and stats
+  // Fetch countries for the ledger and stats. A failure is tracked, not
+  // swallowed: an outage must not read as "no routes".
   let allCountries: Array<{ code: string; name: string; routeCount: number }> = [];
+  let countriesFailed = false;
   try {
     const places = await fetchCountries();
     allCountries = places
@@ -193,7 +219,7 @@ export default async function ExplorePage() {
         routeCount: p.routeCount,
       }));
   } catch {
-    // fallback: empty
+    countriesFailed = true;
   }
 
   const totalCountries = allCountries.length;
@@ -217,9 +243,11 @@ export default async function ExplorePage() {
         countries={allCountries.map((c) => ({ code: c.code, label: c.name }))}
       />
 
+      {countriesFailed && <LoadFailedNotice />}
+
       {/* ===== POPULAR IN YOUR COUNTRY ===== */}
       <Suspense fallback={<SectionSkeleton />}>
-        <PopularSection countryCode={countryCode} />
+        <PopularSection countryCode={countryCode} countriesFailed={countriesFailed} />
       </Suspense>
 
       {/* ===== EDITOR'S PICKS ===== */}

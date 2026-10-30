@@ -20,11 +20,8 @@
   padding-top: 160px;
   padding-bottom: 96px;
 }
-.mvp-section--features {
-  padding-top: 32px;
-  padding-bottom: 96px;
-}
 .mvp-section--compare {
+  padding-top: 32px;
   padding-bottom: 120px;
 }
 .mvp-section--faq {
@@ -47,9 +44,6 @@
   }
   .mvp-section--hero {
     padding-top: 96px;
-    padding-bottom: 64px;
-  }
-  .mvp-section--features {
     padding-bottom: 64px;
   }
   .mvp-section--compare,
@@ -119,31 +113,11 @@
   }
 }
 
-.mvp-check-list {
-  list-style: none;
-  margin: 32px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.mvp-check-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--mv-ink-2);
-}
-.mvp-check-list svg {
-  flex: none;
-  margin-top: 3px;
-  color: var(--mv-ink-2);
-}
-
-/* Pricing card: one step up the ramp, no border, radius 16 */
+/* Pricing card: one step up the ramp with a hairline (the step alone is
+   1.1:1, invisible on paper in light), radius 16 */
 .mvp-card {
   background: var(--mv-surface);
+  border: 1px solid var(--mv-line);
   border-radius: var(--mv-radius-card);
   padding: 28px;
   display: flex;
@@ -156,11 +130,17 @@
   }
 }
 
-/* Plan toggle: the shared segmented control, two equal halves */
+/* Plan toggle: the shared segmented control, two equal halves. Labels may
+   wrap ("Pro annual −33%" at 320px) instead of clipping on the radius. */
 .mvp-seg {
   display: grid;
   grid-template-columns: 1fr 1fr;
   min-width: 0;
+}
+.mvp-seg > button {
+  white-space: normal;
+  line-height: 1.2;
+  padding: 6px 10px;
 }
 .mvp-sr-only {
   position: absolute;
@@ -219,7 +199,7 @@
   color: var(--mv-ink-2);
 }
 
-/* Benefit rows: hairline rows inside the card, no rule at the top */
+/* Benefit rows (card) and unlocked rows (success): hairline rows, text */
 .mvp-benefits .mv-row,
 .mvp-unlocked .mv-row {
   justify-content: flex-start;
@@ -227,7 +207,6 @@
   font-size: 15px;
   color: var(--mv-ink);
 }
-.mvp-benefits svg,
 .mvp-unlocked svg {
   flex: none;
   color: var(--mv-ink-2);
@@ -235,59 +214,10 @@
 
 .mvp-footnote {
   margin: 12px 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+  text-align: center;
   font-size: 13px;
   line-height: 18px;
   color: var(--mv-ink-3);
-}
-.mvp-footnote svg {
-  flex: none;
-}
-
-/* ── Features: two-column hairline list, icon inline with the title ── */
-
-.mvp-features {
-  list-style: none;
-  margin: 48px 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 64px;
-}
-.mvp-feature {
-  padding: 24px 0;
-  border-top: 1px solid var(--mv-line);
-}
-.mvp-feature-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-  font-family: var(--mv-font-body);
-  font-size: 20px;
-  line-height: 1.25;
-  font-weight: 600;
-  color: var(--mv-ink);
-}
-.mvp-feature-title svg {
-  flex: none;
-  color: var(--mv-ink-2);
-}
-.mvp-feature-body {
-  margin: 8px 0 0 30px;
-  font-size: 15px;
-  line-height: 1.55;
-  color: var(--mv-ink-2);
-  text-wrap: pretty;
-}
-@media (max-width: 900px) {
-  .mvp-features {
-    grid-template-columns: minmax(0, 1fr);
-    margin-top: 40px;
-  }
 }
 
 /* ── Free vs Pro: the shared spec table, the Pro column as the one card ── */
@@ -351,6 +281,16 @@
   font-size: 20px;
   font-weight: 600;
 }
+/* The one verb between the hero and the final block */
+.mvp-compare-after {
+  margin: 24px 0 0;
+  font-size: 16px;
+}
+.mvp-compare-after .mv-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 @media (max-width: 640px) {
   .mvp-compare-wrap {
     margin-top: 32px;
@@ -372,7 +312,7 @@
   }
 }
 
-/* ── FAQ: hairline details ────────────────────────────────────── */
+/* ── FAQ: hairline details; the chevron turns via .mv-disclosure ── */
 
 .mvp-faq {
   margin-top: 40px;
@@ -401,10 +341,6 @@
 .mvp-faq summary svg {
   flex: none;
   color: var(--mv-ink-3);
-  transition: transform 0.25s var(--mv-ease);
-}
-.mvp-faq details[open] summary svg {
-  transform: rotate(180deg);
 }
 .mvp-faq-body {
   margin: 0;
@@ -418,14 +354,6 @@
 
 /* ── Final: centred, the one place centring is allowed ────────── */
 
-.mvp-final-line {
-  margin: 20px auto 0;
-  max-width: 48ch;
-  font-size: 16px;
-  line-height: 1.55;
-  color: var(--mv-ink-2);
-  text-wrap: pretty;
-}
 .mvp-final-cta {
   margin-top: 32px;
   display: flex;
@@ -474,8 +402,14 @@
 /* Order summary: the one card in the checkout stack */
 .mvp-summary {
   background: var(--mv-surface);
+  border: 1px solid var(--mv-line);
   border-radius: var(--mv-radius-card);
   padding: 8px 20px;
+}
+/* While the prices load the figures say so, one ink step down */
+.mvp-summary-pending {
+  font-size: 15px;
+  color: var(--mv-ink-3);
 }
 .mvp-summary-row {
   display: flex;
@@ -576,8 +510,9 @@
   justify-content: center;
 }
 
-/* Success: the Bike Plate settles in (its 240ms settle lives in
-   design-system.css); everything else is already there. */
+/* Success: the Bike Plate settles in with its stripe (opt-in `settle` on
+   the plate, design-system.css) the moment Pro is confirmed; the unlocked
+   rows follow as a list (.mv-enter-list). */
 .mvp-success-plate {
   margin-top: 32px;
 }
@@ -614,8 +549,10 @@
   flex: none;
 }
 
+/* Reduced motion: the loop stops; the arc stays as the static busy mark
+   (entrances, the settle and the list follow the kit's policy). */
 @media (prefers-reduced-motion: reduce) {
   .mvp-spinner {
-    animation-duration: 2.4s;
+    animation: none;
   }
 }

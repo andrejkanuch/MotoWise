@@ -19,10 +19,15 @@ def set_path(tree, dotted, value):
     parts = dotted.split('.')
     node = tree
     for part in parts[:-1]:
-        node = node.setdefault(part, {})
-        if not isinstance(node, dict):
+        # A numeric part indexes an existing list (e.g. Faq.items.3.answer).
+        node = node[int(part)] if isinstance(node, list) and part.isdigit() else node.setdefault(part, {})
+        if not isinstance(node, (dict, list)):
             raise SystemExit(f'{dotted}: "{part}" is a string, not an object')
-    node[parts[-1]] = value
+    last = parts[-1]
+    if isinstance(node, list):
+        node[int(last)] = value
+    else:
+        node[last] = value
 
 
 def main():

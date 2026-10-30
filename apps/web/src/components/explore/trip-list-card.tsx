@@ -20,16 +20,10 @@ export function TripListCard({
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
 }) {
+  // place · surface · difficulty — the pick is marked by its section, and
+  // ratings live on the detail page where they are real.
   const place = [trip.city ?? trip.regionCode, trip.countryCode].filter(Boolean).join(', ');
-  const meta = [
-    place,
-    surfaceLabel(trip.surfaceType),
-    difficultyLabel(trip.difficulty),
-    trip.isMotovaultPick ? "Editor's pick" : '',
-    trip.averageRating != null && trip.reviewCount > 0
-      ? `Rated ${trip.averageRating.toFixed(1)} by ${trip.reviewCount} rider${trip.reviewCount === 1 ? '' : 's'}`
-      : '',
-  ]
+  const meta = [place, surfaceLabel(trip.surfaceType), difficultyLabel(trip.difficulty)]
     .filter(Boolean)
     .join(' · ');
 

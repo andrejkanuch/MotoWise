@@ -32,11 +32,6 @@ export function EditorsLedger({ picks }: EditorsLedgerProps) {
   return (
     <section className="xp-wrap xp-section">
       <h2 className="mv-h2">Editor&apos;s picks</h2>
-      <p className="xp-sub">
-        {picks.length === 1
-          ? 'One route picked by hand.'
-          : `${picks.length} routes picked by hand.`}
-      </p>
 
       <div className="xp-picks">
         <a href={tripHref(lead)} className="xp-tile">

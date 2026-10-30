@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { storeAnchorProps } from '@/components/marketing/store-buttons';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { CtaPageType, CtaPlacement } from '@/lib/cta-taxonomy';
@@ -308,7 +308,7 @@ export function TclocsChecklist({
             </>
           ) : (
             <>
-              <span className="mv-figure" style={{ color: 'var(--mv-ink-4)' }}>
+              <span className="mv-figure" style={{ color: 'var(--mv-ink-3)' }}>
                 0s
               </span>
               <p className="mv-check-timer-sub">{labels.timerStart}</p>
@@ -319,7 +319,7 @@ export function TclocsChecklist({
       <div className="mv-progress" aria-hidden="true">
         <div
           className={allComplete ? 'is-done' : undefined}
-          style={{ width: `${overallPercent}%` }}
+          style={{ '--mv-p': overallPercent / 100 } as CSSProperties}
         />
       </div>
 

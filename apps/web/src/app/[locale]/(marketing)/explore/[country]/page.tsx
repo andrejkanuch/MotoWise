@@ -141,7 +141,7 @@ export default async function CountryPage({ params }: PageProps) {
           ]}
         />
 
-        <header className="mv-reveal">
+        <header>
           <h1 className="mv-index-h1">Motorcycle routes in {country.name}</h1>
           <p className="mv-index-lede">
             <span className="mv-figure">{country.routeCount}</span>{' '}

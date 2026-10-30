@@ -12,7 +12,6 @@ import { AuthorByline } from '@/components/marketing/author-byline';
 import { Breadcrumb } from '@/components/marketing/breadcrumb';
 import { ContextualAppCta } from '@/components/marketing/contextual-app-cta';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
-import { RelatedResources } from '@/components/marketing/related-resources';
 import { TableOfContents } from '@/components/marketing/table-of-contents';
 import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
@@ -295,7 +294,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           ]}
         />
 
-        <header className="mv-reveal">
+        <header>
           <h1 className="mv-read-h1">{article.title}</h1>
           <p className="mv-read-lede">{article.excerpt}</p>
           <AuthorByline author={author} date={article.date} />
@@ -330,6 +329,9 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
         <TableOfContents headings={headings} />
 
+        {/* One app CTA per post: mid-article after the second H2 when the body
+            splits, otherwise once after the body (short posts, or a split that
+            landed inside a code fence). */}
         <div className="mv-read-body">
           {head}
           {tail && (
@@ -342,23 +344,17 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           )}
           {tail}
         </div>
+        {!tail && (
+          <ContextualAppCta
+            angle={ctaAngle}
+            model={ctaModel}
+            makeModel={ctaMakeModel}
+            slug={slug}
+            placement={CtaPlacement.EndArticle}
+          />
+        )}
 
         <section aria-label="Data disclaimer" className="mv-read-note">
-          <svg
-            aria-hidden="true"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 16v-4" />
-            <path d="M12 8h.01" />
-          </svg>
           <p>
             {article.specData === true
               ? "The figures in this article are informative only and can vary by model year and market. Always verify every specification against your official owner's and service manual before performing any maintenance."
@@ -373,10 +369,11 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             </h2>
             <div className="mv-read-faq">
               {article.faq.map((item) => (
-                <details key={item.question}>
+                <details key={item.question} className="mv-disclosure is-plus">
                   <summary>
                     {item.question}
                     <svg
+                      className="mv-disclosure-mark"
                       width="18"
                       height="18"
                       viewBox="0 0 24 24"
@@ -398,18 +395,6 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
         )}
 
         <AuthorBio author={author} />
-
-        <RelatedResources angle={ctaAngle} />
-
-        <div className="mv-read-section">
-          <ContextualAppCta
-            angle={ctaAngle}
-            model={ctaModel}
-            makeModel={ctaMakeModel}
-            slug={slug}
-            placement={CtaPlacement.EndArticle}
-          />
-        </div>
 
         {related.length > 0 && (
           <section className="mv-read-section" aria-labelledby="related-heading">

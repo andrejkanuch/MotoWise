@@ -14,12 +14,13 @@ import {
   MailIcon,
   mutedChunk,
   OAuthButtons,
-  type OAuthProvider,
+  OAuthProvider,
   OrWithEmail,
   RESEND_LABEL_KEY,
   type ResendState,
   SubmitButton,
 } from '@/components/auth-ui/auth-ui';
+import { useOAuthRedirect } from '@/components/auth-ui/use-oauth-redirect';
 import { readExplicitConsent } from '@/components/cookie-consent';
 import { identifyUser, trackEvent, WebEvent } from '@/lib/analytics';
 import {
@@ -33,9 +34,6 @@ import { signUpConsentOptions } from '@/lib/signup-consent';
 
 /** Client-side check message; shown on the confirm field instead of the banner. */
 const PASSWORD_MISMATCH_MESSAGE = 'Passwords do not match.';
-/** One line under the Bike Plate on the photo panel (root route, English only). */
-const PANEL_NOTE = 'Logging service and spend is free. Pro lifts the limits.';
-
 export default function SignUpPage() {
   const t = useTranslations('AuthV2');
   const supabase = useMemo(
@@ -52,7 +50,9 @@ export default function SignUpPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null);
+  // Owns "Redirecting…": released on a provider error, a blocked redirect or a
+  // bfcache return, so the buttons can never stick.
+  const oauth = useOAuthRedirect(setError);
   const [showPassword, setShowPassword] = useState(false);
   const [resendState, setResendState] = useState<ResendState>('idle');
 
@@ -112,27 +112,16 @@ export default function SignUpPage() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setOauthLoading('google');
-    trackEvent(WebEvent.SIGN_UP_OAUTH_CLICKED, { provider: 'google' });
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || '/garage')}`,
-      },
+  const handleOAuth = (provider: OAuthProvider) =>
+    oauth.start(provider, () => {
+      trackEvent(WebEvent.SIGN_UP_OAUTH_CLICKED, { provider });
+      return supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || '/garage')}`,
+        },
+      });
     });
-  };
-
-  const handleAppleSignIn = async () => {
-    setOauthLoading('apple');
-    trackEvent(WebEvent.SIGN_UP_OAUTH_CLICKED, { provider: 'apple' });
-    await supabase.auth.signInWithOAuth({
-      provider: 'apple',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || '/garage')}`,
-      },
-    });
-  };
 
   const handleResendConfirmation = async () => {
     if (resendState === 'sending' || !email.trim()) return;
@@ -169,7 +158,6 @@ export default function SignUpPage() {
     <AuthShell
       headerLink={{ href: '/login', label: t('signUp.altCta') }}
       homeLabel={t('homeLabel')}
-      panelNote={PANEL_NOTE}
     >
       <AuthHead
         title={t.rich('signUp.title', { muted: mutedChunk })}
@@ -210,9 +198,9 @@ export default function SignUpPage() {
       ) : (
         <>
           <OAuthButtons
-            loading={oauthLoading}
-            onGoogle={handleGoogleSignIn}
-            onApple={handleAppleSignIn}
+            loading={oauth.provider}
+            onGoogle={() => handleOAuth(OAuthProvider.Google)}
+            onApple={() => handleOAuth(OAuthProvider.Apple)}
           />
 
           <OrWithEmail />
@@ -265,7 +253,7 @@ export default function SignUpPage() {
             />
             <SubmitButton
               busy={loading}
-              disabled={oauthLoading !== null}
+              disabled={oauth.provider !== null}
               label={t('signUp.submit')}
               busyLabel={t('signUp.submitting')}
             />

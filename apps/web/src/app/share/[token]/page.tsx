@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import { ShareUnavailable } from '@/components/share-unavailable';
+import { settleUpstream, UpstreamError } from '@/lib/upstream-error';
 import '@/components/marketing/design-system.css';
 import '@/components/share-page.css';
 
@@ -58,9 +60,13 @@ interface SharedBikeHistory {
   generatedAt: string;
 }
 
+// `null` only when the API answered and the link is gone; a network failure or
+// a non-200 status throws `UpstreamError` so the page says "didn't load", not
+// "expired", to a rider whose link is fine.
 async function fetchSharedHistory(token: string): Promise<SharedBikeHistory | null> {
+  let res: Response;
   try {
-    const res = await fetch(API_URL, {
+    res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -69,15 +75,17 @@ async function fetchSharedHistory(token: string): Promise<SharedBikeHistory | nu
       }),
       next: { revalidate: 60 },
     });
-
-    const json = await res.json();
-    if (json.errors || !json.data?.sharedBikeHistory) {
-      return null;
-    }
-    return json.data.sharedBikeHistory;
   } catch {
+    throw new UpstreamError('shared history fetch failed');
+  }
+  if (!res.ok) throw new UpstreamError(`shared history fetch ${res.status}`);
+  const json = await res.json().catch(() => {
+    throw new UpstreamError('shared history fetch bad json');
+  });
+  if (json.errors || !json.data?.sharedBikeHistory) {
     return null;
   }
+  return json.data.sharedBikeHistory;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -142,8 +150,12 @@ function ExpiredView() {
 
 export default async function SharePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  const history = await fetchSharedHistory(token);
+  // undefined = the API never answered (outage), null = the link is gone
+  const history = await settleUpstream(fetchSharedHistory(token));
 
+  if (history === undefined) {
+    return <ShareUnavailable what="The service history" path={`/share/${token}`} />;
+  }
   if (!history) {
     return <ExpiredView />;
   }
@@ -165,10 +177,6 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
         </p>
 
         <div className="sp-figures">
-          <div className="sp-figure">
-            <span className="mv-figure sp-figure-value">{tasks.length}</span>
-            <span className="sp-figure-label">{tasks.length === 1 ? 'Record' : 'Records'}</span>
-          </div>
           <div className="sp-figure">
             <span className="mv-figure sp-figure-value">{completedTasks.length}</span>
             <span className="sp-figure-label">Done</span>

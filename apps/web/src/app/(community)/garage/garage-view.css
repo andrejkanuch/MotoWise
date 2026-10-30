@@ -91,7 +91,7 @@
   }
 }
 
-/* ── Page head: one condensed title, a status line, an intro ───── */
+/* ── Page head: one condensed title, a status line (the empty garage adds an intro) ── */
 
 .gv-head {
   display: flex;
@@ -437,10 +437,11 @@
 .gv-split-group + .gv-split-group {
   padding-top: 8px;
 }
-/* Category rows (.mv-row): name, bar, amount on one grid. */
+/* Category rows (.mv-row): name, bar, amount on one grid. The name column
+   gives way to a long amount (7 digits) rather than overflowing it. */
 .mv-row.gv-cat {
   display: grid;
-  grid-template-columns: 104px minmax(0, 1fr) minmax(52px, auto);
+  grid-template-columns: minmax(96px, 1fr) minmax(40px, 2fr) auto;
   align-items: center;
   gap: 12px;
   font-size: 15px;
@@ -455,14 +456,17 @@
   border-radius: var(--mv-radius-track);
   background: var(--mv-fill);
 }
+/* The bar carries the category's own hue (the app's hub set on graphite, the
+   plate-light set on paper), set per row by garage-cards.tsx; it only ever
+   sits beside the category's name. */
 .gv-cat-fill {
   display: block;
   height: 4px;
   border-radius: var(--mv-radius-track);
-  background: var(--mv-ink-4);
+  background: var(--gv-cat-dark, var(--mv-ink-3));
 }
-.gv-cat-fill--top {
-  background: var(--mv-ink-2);
+html:not(.dark) .gv-cat-fill {
+  background: var(--gv-cat-light, var(--mv-ink-3));
 }
 .gv-cat-amt {
   font-size: 20px;
@@ -671,27 +675,13 @@
   background: var(--mv-line);
 }
 
-/* ── Empty garage ──────────────────────────────────────────────── */
+/* ── Empty garage: the start hero IS the handoff, on the page surface ── */
 
-.gv-empty-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-@media (min-width: 1024px) {
-  .gv-empty-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    gap: 48px;
-    align-items: start;
-  }
-}
-
-/* Start in the app: the hero IS the handoff, on the page surface. */
 .gv-start {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  max-width: 820px;
 }
 .gv-start-title {
   max-width: 16ch;
@@ -756,77 +746,5 @@
 @media (min-width: 1024px) {
   .gv-start-tablet-links {
     display: none;
-  }
-}
-
-/* "This is where your bike lives": a ghost of the plate, dashed. */
-.gv-preview {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 20px;
-  border-radius: var(--mv-radius-plate);
-  border: 1px dashed var(--mv-field-line);
-}
-.gv-preview-art {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.gv-preview-photo {
-  display: none;
-  height: 180px;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--mv-radius-card);
-  color: var(--mv-ink-4);
-}
-.gv-preview-plate {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 20px 24px 18px;
-  border-radius: var(--mv-radius-plate);
-  background: var(--mv-surface-2);
-}
-.gv-preview-bar {
-  display: block;
-  max-width: 100%;
-  border-radius: var(--mv-radius-track);
-  background: var(--mv-fill);
-}
-.gv-preview-bar--strong {
-  background: var(--mv-skel-shine);
-}
-.gv-preview-rule {
-  display: block;
-  height: 1px;
-  margin: 4px 0;
-  background: var(--mv-line);
-}
-.gv-preview-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  align-self: flex-start;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--mv-ink-2);
-}
-.gv-preview-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--mv-ink-3);
-}
-@media (min-width: 768px) {
-  .gv-preview-photo {
-    display: flex;
-  }
-}
-@media (min-width: 1024px) {
-  .gv-preview {
-    padding: 24px;
   }
 }

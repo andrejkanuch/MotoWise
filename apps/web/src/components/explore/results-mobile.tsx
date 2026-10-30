@@ -6,6 +6,7 @@ import type { TripTemplateNode } from '@/lib/fetch-places';
 import { DEFAULT_FILTERS, FilterBar, type FilterState } from './filter-bar';
 import { MapboxMap } from './mapbox-map';
 import { Icon, MetaLabel, RouteFigures } from './primitives';
+import { LoadFailedState } from './results-desktop';
 import { TripListCard } from './trip-list-card';
 import { applyFilters, formatNumber, tripHref } from './utils';
 
@@ -28,8 +29,9 @@ function MobileTopbar({
         <Icon name="arrow-left" size={18} />
       </a>
       <div style={{ flex: 1, minWidth: 0 }}>
+        {/* The phone's one heading: the desktop tree is display:none here */}
+        <h1 className="xp-mtop-title">Routes in {region ?? country}</h1>
         <MetaLabel>{region ? `Explore · ${country}` : 'Explore'}</MetaLabel>
-        <div className="xp-mtop-title">Routes in {region ?? country}</div>
       </div>
       <a href="/explore" className="mv-icon-btn" aria-label="Search routes">
         <Icon name="search" size={18} />
@@ -42,6 +44,8 @@ function MobileTopbar({
 
 interface ResultsMobileProps {
   allTrips: TripTemplateNode[];
+  /** The API did not answer: say so instead of "no routes match". */
+  loadFailed?: boolean;
   country: string;
   countryCode?: string;
   region?: string | null;
@@ -51,6 +55,7 @@ interface ResultsMobileProps {
 
 export function ResultsMobile({
   allTrips,
+  loadFailed = false,
   country,
   countryCode = '',
   region,
@@ -77,6 +82,7 @@ export function ResultsMobile({
 
   const focusedTrip = trips[0] ?? null;
   const countLabel = `${formatNumber(trips.length)} ${trips.length === 1 ? 'route' : 'routes'}`;
+  const placeName = region ?? country;
   const clearFilters = useCallback(
     () => setFilters((f) => ({ ...DEFAULT_FILTERS, sort: f.sort })),
     [],
@@ -92,10 +98,12 @@ export function ResultsMobile({
             <FilterBar filters={filters} onFilterChange={setFilters} />
           </div>
           <div className="xp-mlist">
-            {trips.length === 0 ? (
+            {loadFailed ? (
+              <LoadFailedState />
+            ) : trips.length === 0 ? (
               <div className="xp-empty">
-                <h3 className="mv-h3 xp-h3">No routes match these filters</h3>
-                <p>Clear a filter to see every route in {region ?? country}.</p>
+                <h2 className="mv-h3 xp-h3">No routes match these filters</h2>
+                <p>Clear a filter to see every route in {placeName}.</p>
                 <button type="button" className="mv-link is-tall" onClick={clearFilters}>
                   Clear filters
                 </button>
@@ -113,19 +121,24 @@ export function ResultsMobile({
               </>
             )}
           </div>
-          <button
-            type="button"
-            onClick={() => setMapMode(true)}
-            className="mv-btn mv-btn-primary xp-fab"
-          >
-            <Icon name="map" size={16} /> Show map
-          </button>
+          {!loadFailed && (
+            <button
+              type="button"
+              onClick={() => setMapMode(true)}
+              className="mv-btn mv-btn-primary xp-fab mv-enter-up"
+            >
+              <Icon name="map" size={16} /> Show map
+            </button>
+          )}
         </>
       )}
 
       {mapMode && (
         <>
-          <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
+          <section
+            aria-label={`Map of routes in ${placeName}`}
+            style={{ flex: 1, position: 'relative', minHeight: 0 }}
+          >
             <MapboxMap
               trips={trips}
               hoveredId={null}
@@ -134,7 +147,7 @@ export function ResultsMobile({
               zoom={mapZoom}
             />
             {focusedTrip && (
-              <a href={tripHref(focusedTrip)} className="xp-map-sheet">
+              <a href={tripHref(focusedTrip)} className="xp-map-sheet mv-enter-up">
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span className="mv-row-title" style={{ display: 'block' }}>
                     {focusedTrip.title ?? 'Unnamed route'}
@@ -151,11 +164,11 @@ export function ResultsMobile({
                 <Icon name="arrow-right" size={16} color="var(--mv-ink-3)" />
               </a>
             )}
-          </div>
+          </section>
           <button
             type="button"
             onClick={() => setMapMode(false)}
-            className="mv-btn mv-btn-primary xp-fab"
+            className="mv-btn mv-btn-primary xp-fab mv-enter-up"
           >
             <Icon name="list" size={16} /> Show list
           </button>

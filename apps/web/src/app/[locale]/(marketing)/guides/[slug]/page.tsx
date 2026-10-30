@@ -137,7 +137,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
           ]}
         />
 
-        <header className="mv-reveal">
+        <header>
           <h1 className="mv-read-h1">{frontmatter.title}</h1>
           <p className="mv-read-lede">{frontmatter.description}</p>
           <div className="mv-read-meta">

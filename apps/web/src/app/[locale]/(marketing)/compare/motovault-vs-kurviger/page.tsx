@@ -31,7 +31,6 @@ const CONFIG: VsComparePageConfig = {
   breadcrumbLabel: 'MotoVault vs Kurviger',
   titleKey: 'heroTitle',
   subtitleKey: 'heroSubtitle',
-  updatedAtKey: 'updatedAt',
   testingPreambleKey: 'testingPreamble',
   quickVerdictKey: 'quickVerdict',
   comparison: {
@@ -50,16 +49,8 @@ const CONFIG: VsComparePageConfig = {
       { mv: 'yes', comp: 'yes' }, // route sharing
     ],
   },
-  wins: {
-    mvTitleKey: 'mvWins',
-    compTitleKey: 'rvWins',
-    mvItemPrefix: 'mvWin',
-    compItemPrefix: 'rvWin',
-    count: 4,
-  },
   whenToChoose: { titleKey: 'whenToChooseCompetitorTitle', bodyKey: 'whenToChooseCompetitor' },
   pricing: { keyStyle: 'flat', titleKey: 'pricingTableTitle', rows: 3, narrativeKey: 'pricing' },
-  verdict: { bodyKey: 'verdict' },
   faqCount: 4,
   related: ['rever', 'scenic'],
 };

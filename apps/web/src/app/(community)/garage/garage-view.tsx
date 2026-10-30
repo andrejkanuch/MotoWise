@@ -23,7 +23,7 @@ import {
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { AccountSection } from './account-row';
-import { BikePreview, EmptyStartHero } from './empty-garage';
+import { EmptyStartHero } from './empty-garage';
 import {
   BikeHero,
   BikeHeroSkeleton,
@@ -96,9 +96,8 @@ function PageHead({ mode, bikeCount }: { mode: GarageMode; bikeCount: number }) 
           )}
         </span>
       </MonoLabel>
-      <p className={empty ? 'gv-intro gv-hide-phone' : 'gv-intro'}>
-        {empty ? t('emptyIntro') : t('intro')}
-      </p>
+      {/* The populated garage needs no intro: the status line says read-only and the handoff says open the app. */}
+      {empty && <p className="gv-intro gv-hide-phone">{t('emptyIntro')}</p>}
     </header>
   );
 }
@@ -239,9 +238,15 @@ export function GarageView({
     );
   }
 
+  // Retry only what failed; a successful query keeps its data.
+  function retryRides() {
+    for (const query of [rideCountQuery, profileQuery, rideOverviewQuery]) {
+      if (query.isError) query.refetch();
+    }
+  }
   const ridesCardByState: Record<RidesCardState, ReactNode> = {
     [RidesCardState.Ready]: <RidesCard totals={rides} unit={unit} />,
-    [RidesCardState.Failed]: <CardFailed heading={t('ridesAllTime')} />,
+    [RidesCardState.Failed]: <CardFailed heading={t('ridesAllTime')} onRetry={retryRides} />,
     [RidesCardState.Loading]: <RidesSkeleton />,
   };
   const ridesCard = ridesCardByState[ridesState];
@@ -252,10 +257,7 @@ export function GarageView({
       <div className="gv-page">
         <div className="gv-main">
           <PageHead mode={mode} bikeCount={0} />
-          <div className="gv-empty-grid">
-            <EmptyStartHero account={account} promoted={promoted} />
-            <BikePreview />
-          </div>
+          <EmptyStartHero account={account} promoted={promoted} />
           {/* Rides exist without a bike only when the bike was deleted: still the rider's data. A failed load shows its failed state: presence is then unknown. */}
           {(rides.hasRides || ridesState === RidesCardState.Failed) && ridesCard}
           <AccountSection account={account} />
@@ -285,14 +287,17 @@ export function GarageView({
             {schedule ? (
               <NextServiceCard schedule={schedule} unit={unit} />
             ) : maintenanceQuery.isError ? (
-              <CardFailed heading={t('nextService')} />
+              <CardFailed heading={t('nextService')} onRetry={() => maintenanceQuery.refetch()} />
             ) : (
               <NextServiceSkeleton />
             )}
             {spend ? (
               <SpendCard spend={spend} year={year} />
             ) : expensesQuery.isError ? (
-              <CardFailed heading={t('spentIn', { year })} />
+              <CardFailed
+                heading={t('spentIn', { year })}
+                onRetry={() => expensesQuery.refetch()}
+              />
             ) : (
               <SpendSkeleton />
             )}

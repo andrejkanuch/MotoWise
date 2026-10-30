@@ -41,7 +41,6 @@ export default async function Page({ params }: PageProps) {
           alt: 'MotoVault ride detail with route map and elevation profile',
         },
       ]}
-      related={['/features/maintenance', '/features/expense-tracking']}
     />
   );
 }

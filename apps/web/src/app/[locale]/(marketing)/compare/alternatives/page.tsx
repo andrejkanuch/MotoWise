@@ -79,17 +79,16 @@ export default async function AlternativesPage({ params }: PageProps) {
       <CompareStyles />
       <JsonLdGraph nodes={graph} />
 
-      {/* Hero */}
+      {/* Hero: the check date is printed once, under the next heading */}
       <header className={`mv-cmp-wrap ${COMPARE_SECTION.header}`}>
         <CompareBreadcrumb current={t('breadcrumbLabel')} />
         <h1 className="mv-section-title">{t('heroTitle')}</h1>
         <p className="mv-section-sub">{t('heroSubtitle')}</p>
-        <p className="mv-cmp-meta mt-5">{t('updatedAt', dated)}</p>
       </header>
 
       {/* Pick by priority: how it was checked, then one hairline row per
-          priority. The reveal is this page's one authored entrance. */}
-      <section className={`mv-cmp-wrap mv-reveal ${COMPARE_SECTION.prose}`}>
+          priority. First viewport, so no entrance. */}
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
         <h2 className="mv-h2">{t('bestForTitle')}</h2>
         <p className="mv-cmp-note mt-4">{t('testingPreamble', dated)}</p>
         <ul className="mv-rows mt-8">
@@ -104,7 +103,7 @@ export default async function AlternativesPage({ params }: PageProps) {
 
       {/* Pricing snapshot: hairline table, condensed figures */}
       <section className={`mv-cmp-wrap ${COMPARE_SECTION.weight}`}>
-        <h2 className="mv-h2">{t('pricingTableTitle', dated)}</h2>
+        <h2 className="mv-h2">{t('pricingTableTitle')}</h2>
         <div className="mv-cmp-tablewrap mt-8">
           <table className="mv-table mv-cmp-table" style={{ minWidth: 720 }}>
             <thead>

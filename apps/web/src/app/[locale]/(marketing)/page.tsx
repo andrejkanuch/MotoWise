@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { CtaSection } from '@/components/marketing/cta-section';
-import { DiagnosticsDemo } from '@/components/marketing/diagnostics-demo';
-import { Faq } from '@/components/marketing/faq';
+import { Faq, HOME_FAQ_ITEMS } from '@/components/marketing/faq';
 import { FeaturesGrid } from '@/components/marketing/features-grid';
 import { Hero } from '@/components/marketing/hero';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
@@ -45,12 +44,11 @@ export default async function HomePage({ params }: PageProps) {
   setRequestLocale(locale);
   const tJsonLd = await getTranslations('JsonLd');
   const tFaq = await getTranslations('Faq');
-  const tHome = await getTranslations('Home');
 
   const [rating, faqItems] = await Promise.all([
     getAppStoreRating(),
     Promise.resolve(
-      Array.from({ length: 4 }, (_, i) => ({
+      HOME_FAQ_ITEMS.map((i) => ({
         question: tFaq(`items.${i}.question`),
         answer: tFaq(`items.${i}.answer`),
       })),
@@ -87,13 +85,11 @@ export default async function HomePage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
       <Hero />
-      {/* The AI-extractable site definition opens the manifesto block, left-aligned
-          in the container; the proof row follows the quote so the "why believe it"
-          comes before the four feature blocks. */}
-      <ManifestoSection definition={tHome('siteDefinition')} />
+      {/* The proof row follows the quote so the "why believe it" comes before
+          the four feature blocks; the FAQ and the closing CTA end the page. */}
+      <ManifestoSection />
       <ProofSection appStoreRating={rating} />
       <FeaturesGrid />
-      <DiagnosticsDemo />
       <Faq />
       <CtaSection />
     </>

@@ -96,9 +96,9 @@ describe('GarageView: empty account (no bike, no data)', () => {
     });
   });
 
-  it('renders the start-in-the-app hero and the bike preview', () => {
+  it('renders the start-in-the-app hero (no preview plate: the hero is the page)', () => {
     expect(html).toContain('Add your bike in the app: make, model, year.');
-    expect(html).toContain('This is where your bike lives');
+    expect(html).not.toContain('gv-preview');
     expect(html).toContain('No bikes yet');
   });
 
@@ -274,7 +274,8 @@ describe('GarageView: ride count failed and no rider profile', () => {
 
   it('shows the rides card failed state instead of a skeleton forever', () => {
     expect(html).toContain('Rides · All time');
-    expect(html).toContain('This didn&#x27;t load. Refresh the page to try again.');
+    expect(html).toContain('This section didn&#x27;t load.');
+    expect(html).toContain('Try again');
     expect(html).not.toContain('gv-rides-skel');
   });
 });

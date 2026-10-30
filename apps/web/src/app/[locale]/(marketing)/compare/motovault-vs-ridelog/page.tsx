@@ -31,7 +31,6 @@ const CONFIG: VsComparePageConfig = {
   breadcrumbLabel: 'MotoVault vs RideLog',
   titleKey: 'heroTitle',
   subtitleKey: 'heroSubtitle',
-  updatedAtKey: 'updatedAt',
   disambiguation: { titleKey: 'disambiguationTitle', noteKey: 'disambiguationNote' },
   testingPreambleKey: 'testingPreamble',
   quickVerdictKey: 'quickVerdict',
@@ -51,16 +50,8 @@ const CONFIG: VsComparePageConfig = {
       { mv: 'yes', comp: 'partial' }, // route sharing
     ],
   },
-  wins: {
-    mvTitleKey: 'mvWins',
-    compTitleKey: 'rlWins',
-    mvItemPrefix: 'mvWin',
-    compItemPrefix: 'rlWin',
-    count: 4,
-  },
   whenToChoose: { titleKey: 'whenToChooseCompetitorTitle', bodyKey: 'whenToChooseCompetitor' },
   pricing: { keyStyle: 'flat', titleKey: 'pricingTableTitle', rows: 3, narrativeKey: 'pricing' },
-  verdict: { bodyKey: 'verdict' },
   faqCount: 4,
   related: ['rever', 'calimoto'],
 };

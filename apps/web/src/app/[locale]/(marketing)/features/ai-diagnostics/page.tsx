@@ -50,8 +50,9 @@ const FACT_STYLE = {
 /**
  * One diagnosis as the app returns it: the finding, its severity and
  * confidence, probable causes with their share, tools, difficulty and the
- * next step. A single surface step with hairline rows; status ink appears
- * because this is a depiction of the app (Triad Belongs to State Rule).
+ * next step. A single surface step (no keyline: the hairline rows are the
+ * only lines); status ink appears because this is a depiction of the app
+ * (Triad Belongs to State Rule).
  */
 function DiagnosisResult({ t }: { t: Translator }) {
   const facts = [
@@ -63,7 +64,6 @@ function DiagnosisResult({ t }: { t: Translator }) {
     <div
       style={{
         background: 'var(--mv-surface)',
-        border: '1px solid var(--mv-line)',
         borderRadius: 'var(--mv-radius-card)',
         padding: '24px',
       }}
@@ -206,7 +206,6 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
         question: t(`faq.${i}.question`),
         answer: t(`faq.${i}.answer`),
       }))}
-      related={['/features/maintenance', '/features/learning-paths']}
     />
   );
 }

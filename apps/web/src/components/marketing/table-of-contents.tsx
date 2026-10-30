@@ -9,7 +9,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
   if (headings.length === 0) return null;
 
   return (
-    <details open className="mv-read-toc">
+    <details open className="mv-read-toc mv-disclosure">
       <summary>
         In this article
         <svg

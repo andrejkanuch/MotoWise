@@ -6,8 +6,8 @@
    this file holds the layout. Colours only from the --mv-* tokens.
    Class prefix: wl-.
 
-     ≥ 1024   two columns: lead (intro, reasons, continue) | QR card
-     768–1023 one column: intro, reasons, QR card (row), continue
+     ≥ 1024   two columns: lead (H1, reasons, continue) | QR card
+     768–1023 one column: H1, reasons, QR card (row), continue
      < 768    phone: no QR (cannot scan its own screen); a button to
               motovault.app/get + the account line instead
    ═══════════════════════════════════════════════════════════════ */
@@ -49,18 +49,6 @@
   border-radius: var(--mv-radius-small);
   overflow: hidden;
 }
-.wl-signed-in {
-  margin: 0;
-  min-width: 0;
-  font-size: 13px;
-  color: var(--mv-ink-2);
-  overflow-wrap: anywhere;
-  text-align: right;
-}
-.wl-signed-in strong {
-  font-weight: 500;
-  color: var(--mv-ink);
-}
 
 /* ── Layout ────────────────────────────────────────────────────── */
 
@@ -83,21 +71,6 @@
   min-width: 0;
 }
 
-/* ── Intro: the H1, then the one sentence under it ─────────────── */
-
-.wl-intro {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-.wl-intro-sub {
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.55;
-  color: var(--mv-ink-2);
-  max-width: 48ch;
-  text-wrap: pretty;
-}
 
 /* ── Reasons: hairline rows, icon inline with the sentence ─────── */
 
@@ -138,6 +111,7 @@
   padding: 32px;
   border-radius: var(--mv-radius-card);
   background: var(--mv-surface);
+  border: 1px solid var(--mv-line);
 }
 .wl-card-row {
   display: flex;
@@ -236,9 +210,8 @@
   .wl-lead {
     display: contents;
   }
-  .wl-intro {
+  .wl-title {
     order: 1;
-    gap: 16px;
   }
   .wl-reasons {
     order: 2;
@@ -283,27 +256,14 @@
   .wl-header {
     padding: 6px 20px;
   }
-  /* The account line below names the address instead. */
-  .wl-signed-in {
-    display: none;
-  }
   .wl-main {
     max-width: none;
     padding: 48px 20px 64px;
     gap: 24px;
   }
-  .wl-intro {
-    gap: 16px;
-  }
-  .wl-intro-sub {
-    font-size: 17px;
-  }
   .wl-reason-icon svg {
     width: 18px;
     height: 18px;
-  }
-  .wl-reason-tag {
-    display: none;
   }
   .wl-card {
     display: none;

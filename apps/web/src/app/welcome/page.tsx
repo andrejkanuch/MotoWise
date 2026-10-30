@@ -17,6 +17,7 @@ import {
   SignInText,
   signInMethodFromProvider,
 } from '@/components/garage-ui';
+import { MAIN_CONTENT_ID, SkipLink } from '@/components/skip-link';
 import { DEFAULT_POST_AUTH_PATH, WELCOME_PATH } from '@/lib/post-auth-redirect';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import '@/components/marketing/design-system.css';
@@ -44,11 +45,10 @@ const BRAND_LOGO = '/images/marketing/MotoVault.png';
 const REASONS: ReadonlyArray<{
   icon: LucideIcon;
   title: 'ridesTitle' | 'remindersTitle' | 'receiptsTitle';
-  tag: 'ridesTag' | 'remindersTag' | 'receiptsTag';
 }> = [
-  { icon: Route, title: 'ridesTitle', tag: 'ridesTag' },
-  { icon: Bell, title: 'remindersTitle', tag: 'remindersTag' },
-  { icon: Camera, title: 'receiptsTitle', tag: 'receiptsTag' },
+  { icon: Route, title: 'ridesTitle' },
+  { icon: Bell, title: 'remindersTitle' },
+  { icon: Camera, title: 'receiptsTitle' },
 ];
 
 function SignInIcon({ method }: { method: SignInMethod }) {
@@ -91,11 +91,11 @@ export default async function WelcomePage() {
   };
   // The quieter tail of the title: the same condensed face, one ink step down.
   const muted = (chunks: React.ReactNode) => <span className="mv-muted">{chunks}</span>;
-  const bold = (chunks: React.ReactNode) => <strong>{chunks}</strong>;
 
   return (
     <NextIntlClientProvider messages={messages}>
       <div className="mv-root wl-page mvg-scope">
+        <SkipLink />
         <header className="wl-header">
           <a href="/" className="wl-brand" aria-label={t('homeLabel')}>
             <span className="wl-brand-mark" aria-hidden="true">
@@ -103,28 +103,21 @@ export default async function WelcomePage() {
             </span>
             MotoVault
           </a>
-          {account.email && (
-            <p className="wl-signed-in">
-              {t.rich('signedInAs', { email: account.email, b: bold })}
-            </p>
-          )}
         </header>
 
-        <main className="wl-main">
+        <main id={MAIN_CONTENT_ID} className="wl-main">
           <div className="wl-lead">
-            <div className="wl-intro">
-              <h1 className="mv-section-title wl-title">{t.rich('title', { muted })}</h1>
-              <p className="wl-intro-sub">{t('subtitle')}</p>
-            </div>
+            {/* The H1 alone: the rows under it are the reasons, the account
+                line in the card names the address. */}
+            <h1 className="mv-section-title wl-title">{t.rich('title', { muted })}</h1>
 
             <ul className="mv-rows wl-reasons" aria-label={t('reasonsLabel')}>
-              {REASONS.map(({ icon: Icon, title, tag }) => (
+              {REASONS.map(({ icon: Icon, title }) => (
                 <li key={title} className="mv-row wl-reason">
                   <span className="wl-reason-icon" aria-hidden="true">
                     <Icon strokeWidth={1.75} />
                   </span>
                   <span className="mv-row-title wl-reason-title">{t(title)}</span>
-                  <span className="mv-row-aside wl-reason-tag">{t(tag)}</span>
                 </li>
               ))}
             </ul>
@@ -156,11 +149,9 @@ export default async function WelcomePage() {
           {/* < 768: one copper button to motovault.app/get (it opens the
               phone's own store), then the account line. */}
           <section className="wl-phone" aria-label={t('getAppLabel')}>
-            <a
-              href={APP_HANDOFF_URL}
-              className="mv-btn mv-btn-primary mv-btn-block wl-get"
-              aria-label={t('getAppLabel')}
-            >
+            {/* The visible label is the accessible name (WCAG 2.5.3); the
+                store marks say where it goes. */}
+            <a href={APP_HANDOFF_URL} className="mv-btn mv-btn-primary mv-btn-block wl-get">
               <AppleMark size={20} />
               <GooglePlayMark size={18} />
               {t('getApp')}

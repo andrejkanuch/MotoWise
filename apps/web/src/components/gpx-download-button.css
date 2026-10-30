@@ -1,31 +1,28 @@
 /* ═══════════════════════════════════════════════════════════════
-   GPX download button (Trackside). Prefix .gpx-. The buttons are the
+   GPX download button (Trackside). Prefix .gpx-. The button is the
    shared .mv-btn; this file holds the quota note, the toast, the quota
-   dialog and the three entrance keyframes the component owns (they
-   used to live in globals.css). Tokens only; no shadows, no blur.
+   dialog and the spinner loop. Entrances come from the kit (.mv-enter-up
+   on the toast and the dialog; the scrim fades from @starting-style), so
+   the kit's reduced-motion policy covers them. Tokens only; no shadows,
+   no blur.
    ═══════════════════════════════════════════════════════════════ */
 
-@keyframes gpx-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes gpx-rise-in {
-  from { opacity: 0; transform: translate(-50%, 8px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
-}
-@keyframes gpx-scale-in {
-  from { opacity: 0; transform: scale(0.97); }
-  to { opacity: 1; transform: scale(1); }
+/* The in-flight spinner: the one loop this file owns */
+@keyframes gpx-spin {
+  to { transform: rotate(360deg); }
 }
 
-/* Bottom variant: the button and its quota line, left-aligned like the page */
-.gpx-bottom {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
+.gpx-spin {
+  animation: gpx-spin 0.7s linear infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .gpx-spin {
+    animation: none;
+  }
+}
+
+/* The quota line sits beside the button in the hero's action row */
 .gpx-quota {
   font-size: 13px;
   line-height: 18px;
@@ -53,10 +50,14 @@
   font-size: 15px;
   line-height: 1.45;
   font-weight: 500;
-  animation: gpx-rise-in 0.2s var(--mv-ease);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.gpx-toast[data-type='error'] {
+/* The failure mark: a glyph in overdue ink (3:1 holds), the text stays ink */
+.gpx-toast-mark {
+  flex: none;
   color: var(--mv-overdue-ink);
 }
 
@@ -70,7 +71,13 @@
   justify-content: center;
   padding: 20px;
   background: color-mix(in srgb, var(--mv-bg) 60%, transparent);
-  animation: gpx-fade-in 0.15s var(--mv-ease);
+  transition: opacity 150ms var(--mv-ease-expo);
+}
+
+@starting-style {
+  .gpx-scrim {
+    opacity: 0;
+  }
 }
 
 .gpx-dialog {
@@ -80,7 +87,7 @@
   border-radius: var(--mv-radius-card);
   background: var(--mv-surface-2);
   border: 1px solid var(--mv-line);
-  animation: gpx-scale-in 0.2s var(--mv-ease);
+  outline: none;
 }
 
 .gpx-dialog-body {
@@ -99,12 +106,4 @@
 .gpx-dialog-actions .mv-btn {
   flex: 1;
   justify-content: center;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .gpx-toast,
-  .gpx-scrim,
-  .gpx-dialog {
-    animation: none;
-  }
 }

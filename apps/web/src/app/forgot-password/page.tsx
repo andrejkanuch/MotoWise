@@ -28,7 +28,6 @@ const COPY = {
   sendAgain: 'Send it again',
   altPrompt: 'Remember it after all?',
   altCta: 'Sign in',
-  panelNote: 'Your garage, service history and rides stay exactly where you left them.',
 } as const;
 
 export default function ForgotPasswordPage() {
@@ -63,11 +62,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <AuthShell
-      headerLink={{ href: '/login', label: COPY.altCta }}
-      homeLabel={HOME_LABEL}
-      panelNote={COPY.panelNote}
-    >
+    <AuthShell headerLink={{ href: '/login', label: COPY.altCta }} homeLabel={HOME_LABEL}>
       <AuthHead title={COPY.title} subtitle={COPY.subtitle} />
 
       <AuthErrorRegion>{error && <AuthBanner message={error} />}</AuthErrorRegion>
