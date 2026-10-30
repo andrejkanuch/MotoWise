@@ -10,164 +10,52 @@
     "learning": "เรียนรู้",
     "garage": "โรงรถ",
     "faq": "คำถามที่พบบ่อย",
-    "download": "ดาวน์โหลดแอป",
     "getTheApp": "ดาวน์โหลดแอป",
     "login": "เข้าสู่ระบบ",
     "openMenu": "เปิดเมนูนำทาง",
     "closeMenu": "ปิดเมนูนำทาง",
-    "signup": "สมัครสมาชิก",
     "dashboard": "My Garage",
     "diagnostics": "การวินิจฉัย AI",
-    "maintenance": "บำรุงรักษา",
-    "expenses": "ค่าใช้จ่าย",
-    "rides": "การขับขี่",
     "tripPlanning": "Trip Planning",
-    "progress": "Progress Tracking",
-    "viewAllFeatures": "View all features",
-    "blog": "Blog",
     "riders": "ไรเดอร์",
     "pro": "Pro"
   },
   "Hero": {
-    "line1": "ติดตามรถของคุณ",
-    "line2": "ควบคุม",
-    "line3": "การขับขี่ของคุณ",
-    "subtitle": "บันทึกการบำรุงรักษา ติดตามค่าใช้จ่าย และบันทึกการขับขี่ — ทุกอย่างในแอปเดียว",
-    "downloadCta": "เริ่มติดตามฟรี",
-    "exploreFeatures": "สำรวจฟีเจอร์",
-    "scrollDown": "เลื่อนลง",
-    "seoTitle": "ตัวติดตามการบำรุงรักษามอเตอร์ไซค์และจัดการค่าใช้จ่าย",
-    "subtitleShort": "Maintenance tracking, trip planning, and expense logging — all in one free app for iOS and Android.",
-    "trustLine": "Free to download — no credit card required.",
     "badgeExpensesHook": "รู้ต้นทุนที่แท้จริงของมอเตอร์ไซค์คุณ"
   },
   "Features": {
-    "sectionLabel": "ฟีเจอร์",
-    "sectionTitle": "ทุกอย่างที่มอเตอร์ไซค์คุณต้องการ",
-    "sectionSubtitle": "ติดตามค่าใช้จ่าย จัดการการบำรุงรักษา บันทึกการขับขี่ และวินิจฉัยปัญหา — ทุกอย่างในแอปเดียว",
     "diag": {
       "title": "การวินิจฉัย AI",
-      "tagline": "ถ่ายรูป รับคำตอบ",
-      "description": "เล็งกล้องไปที่ชิ้นส่วน ไฟเตือน หรือปัญหาใดก็ได้ AI ของเราจะระบุชิ้นส่วน วินิจฉัยปัญหา และแนะนำการแก้ไข — ทั้งหมดในไม่กี่วินาที",
-      "badge": "< 5 วินาที"
+      "description": "เล็งกล้องไปที่ชิ้นส่วน ไฟเตือน หรือปัญหาใดก็ได้ AI ของเราจะระบุชิ้นส่วน วินิจฉัยปัญหา และแนะนำการแก้ไข — ทั้งหมดในไม่กี่วินาที"
     },
     "garage": {
       "title": "อู่ดิจิทัล",
-      "tagline": "รถทุกคันของคุณ ที่เดียว",
-      "description": "บันทึกรถทุกคันตามยี่ห้อ รุ่น และปี สเปคโหลดอัตโนมัติ แตะครั้งเดียวเพื่อดูการบำรุงรักษา ค่าใช้จ่าย และการขับขี่ของรถคันใดก็ได้",
-      "badge": "ไม่จำกัดจำนวนรถ"
+      "description": "บันทึกรถทุกคันตามยี่ห้อ รุ่น และปี สเปคโหลดอัตโนมัติ แตะครั้งเดียวเพื่อดูการบำรุงรักษา ค่าใช้จ่าย และการขับขี่ของรถคันใดก็ได้"
     },
     "trip": {
       "title": "Trip Planning",
-      "tagline": "Plan every mile of the ride.",
-      "description": "Build multi-day routes on a live map, drop typed waypoints (fuel, scenic, overnight, pass summit), and invite riders. Real road routing, not straight lines.",
-      "badge": "New · Founding feature"
+      "description": "Build multi-day routes on a live map, drop typed waypoints (fuel, scenic, overnight, pass summit), and invite riders. Real road routing, not straight lines."
     },
     "maintenance": {
       "title": "ตัวติดตามการบำรุงรักษา",
-      "tagline": "ไม่พลาดการเซอร์วิสอีกต่อไป",
-      "description": "บันทึกทุกการเปลี่ยนน้ำมัน หล่อโซ่ และเปลี่ยนยาง ตั้งการแจ้งเตือนตามระยะทางหรือเวลาที่จะแจ้งก่อนครบกำหนด ประวัติเซอร์วิสทั้งหมดในที่เดียว",
-      "badge": "แจ้งเตือนอัจฉริยะ"
+      "description": "บันทึกทุกการเปลี่ยนน้ำมัน หล่อโซ่ และเปลี่ยนยาง ตั้งการแจ้งเตือนตามระยะทางหรือเวลาที่จะแจ้งก่อนครบกำหนด ประวัติเซอร์วิสทั้งหมดในที่เดียว"
     },
     "expenses": {
       "title": "ตัวจัดการค่าใช้จ่าย",
-      "tagline": "รู้ว่ารถของคุณมีค่าใช้จ่ายจริงเท่าไร",
-      "description": "ติดตามน้ำมัน อุปกรณ์ อะไหล่ ประกัน และทุกค่าใช้จ่ายในการเป็นเจ้าของ ดูแนวโน้มการใช้จ่ายตามหมวดหมู่พร้อมการวิเคราะห์รายเดือนและต้นทุนต่อกิโลเมตร",
-      "badge": "วิเคราะห์ต้นทุน"
+      "description": "ติดตามน้ำมัน อุปกรณ์ อะไหล่ ประกัน และทุกค่าใช้จ่ายในการเป็นเจ้าของ ดูแนวโน้มการใช้จ่ายตามหมวดหมู่พร้อมการวิเคราะห์รายเดือนและต้นทุนต่อกิโลเมตร"
     },
     "rides": {
       "title": "บันทึกการขับขี่",
-      "tagline": "ทุกเส้นทาง ทำแผนที่และบันทึกไว้",
-      "description": "บันทึกเส้นทาง GPS พร้อมความเร็ว ความสูง และระยะทาง ดูสถิติการขับขี่ แชร์ไฮไลท์ และสร้างประวัติการขับขี่ที่สมบูรณ์",
-      "badge": "ติดตาม GPS"
-    },
-    "tripAlt": "MotoVault trip planning screen showing Dolomites Loop route on a map",
-    "maintenanceAlt": "MotoVault maintenance tracking with active service tasks and reminders",
-    "expensesAlt": "MotoVault expense tracking showing cost breakdowns by category",
-    "plusLine": "Plus ride logging, AI diagnostics, digital garage, and more."
-  },
-  "SocialProof": {
-    "riders": "Tools",
-    "ridersCount": "4",
-    "maintenance": "Platforms",
-    "maintenanceCount": "iOS + Android",
-    "bikes": "Price",
-    "bikesCount": "Free"
-  },
-  "HowItWorks": {
-    "sectionLabel": "วิธีการทำงาน",
-    "sectionTitle": "สามขั้นตอนสู่การควบคุมเต็มรูปแบบ",
-    "sectionSubtitle": "ตั้งค่าในไม่กี่นาที ติดตามได้หลายปี",
-    "step1Title": "เพิ่มรถของคุณ",
-    "step1Desc": "ค้นหาตามยี่ห้อ รุ่น และปี ข้อมูลจำเพาะของรถโหลดอัตโนมัติจากฐานข้อมูลทางการ",
-    "step2Title": "ติดตามทุกอย่าง",
-    "step2Desc": "บันทึกการบำรุงรักษา จดค่าใช้จ่าย และติดตามการขับขี่ ทุกข้อมูลสร้างประวัติที่สมบูรณ์ของรถคุณ",
-    "step3Title": "นำหน้าเสมอ",
-    "step3Desc": "รับการแจ้งเตือนเซอร์วิสอัจฉริยะ วิเคราะห์ต้นทุนต่อกิโลเมตร และวินิจฉัย AI — ไม่มีอะไรเซอร์ไพรส์คุณได้"
-  },
-  "Testimonials": {
-    "sectionLabel": "รีวิว",
-    "sectionTitle": "ไรเดอร์มอเตอร์ไซค์พูดถึงอะไร",
-    "badge": "ไรเดอร์ที่ยืนยันแล้ว",
-    "items": [
-      {
-        "name": "Alex R.",
-        "bike": "2022 Yamaha MT-07",
-        "quote": "MotoVault วินิจฉัยปัญหาโซ่ตึงที่ผมละเลยมาตลอด ช่วยไม่ให้เสียระหว่างทางไกลครับ",
-        "stars": 5
-      },
-      {
-        "name": "Maria G.",
-        "bike": "2021 Honda CB650R",
-        "quote": "เส้นทางการเรียนรู้เหมาะสำหรับมือใหม่ที่เพิ่งเริ่มซ่อม ฉันเปลี่ยนผ้าเบรกเองได้เพราะ MotoVault ค่ะ",
-        "stars": 5
-      },
-      {
-        "name": "Jake T.",
-        "bike": "2023 Kawasaki Z900",
-        "quote": "มีประวัติบำรุงรักษาทั้งหมดในที่เดียวเปลี่ยนเกมเลยครับ ไม่ต้องเดาอีกว่าเปลี่ยนน้ำมันครั้งล่าสุดเมื่อไหร่",
-        "stars": 4
-      },
-      {
-        "name": "Sarah K.",
-        "bike": "2020 BMW F 750 GS",
-        "quote": "การวินิจฉัย AI ทำให้ฉันทึ่งเลย เล็งกล้องไปที่ไฟเตือนแล้วได้คำอธิบายปัญหาในไม่กี่วินาทีค่ะ",
-        "stars": 5
-      },
-      {
-        "name": "Tom W.",
-        "bike": "2019 Ducati Monster 821",
-        "quote": "ในที่สุดก็มีแอปที่จริงจังกับการบำรุงรักษามอเตอร์ไซค์ แค่ฟีเจอร์โรงรถอย่างเดียวก็คุ้มแล้วครับ",
-        "stars": 4
-      }
-    ]
-  },
-  "AppShowcase": {
-    "sectionLabel": "ดูการทำงานจริง",
-    "sectionTitle": "ศูนย์บัญชาการมอเตอร์ไซค์ของคุณ",
-    "cap1Title": "ตัวติดตามการบำรุงรักษา",
-    "cap1Desc": "บันทึกทุกเซอร์วิสพร้อมวันที่ ระยะทาง และค่าใช้จ่าย แจ้งเตือนอัจฉริยะจะแจ้งก่อนถึงกำหนดเปลี่ยนน้ำมัน หล่อโซ่ หรือเช็คเบรค",
-    "cap1Alt": "หน้าจอติดตามการบำรุงรักษาของ MotoVault",
-    "cap2Title": "ตัวติดตามค่าใช้จ่าย",
-    "cap2Desc": "ดูค่าใช้จ่ายรถคุณอย่างชัดเจน ติดตามน้ำมัน อะไหล่ อุปกรณ์ และประกันพร้อมการวิเคราะห์รายเดือนและต้นทุนต่อกิโลเมตร",
-    "cap2Alt": "หน้าจอติดตามค่าใช้จ่ายของ MotoVault",
-    "cap3Title": "วินิจฉัย AI",
-    "cap3Desc": "เล็งกล้องไปที่ปัญหาใดก็ได้ รับการระบุชิ้นส่วน การประเมินความรุนแรง และวิธีแก้ไขทีละขั้นตอนในไม่กี่วินาที",
-    "cap3Alt": "หน้าจอผลวินิจฉัย AI ของ MotoVault",
-    "learnMore": "เรียนรู้เพิ่มเติม"
+      "description": "บันทึกเส้นทาง GPS พร้อมความเร็ว ความสูง และระยะทาง ดูสถิติการขับขี่ แชร์ไฮไลท์ และสร้างประวัติการขับขี่ที่สมบูรณ์"
+    }
   },
   "Cta": {
     "socialProof": "Built specifically for motorcycles",
     "headline": "หยุดเดา เริ่มติดตาม",
     "subtitle": "ฟรีบน iOS และ Android การบำรุงรักษา ค่าใช้จ่าย และการขับขี่ของรถคุณ — ในที่เดียวในที่สุด",
-    "trustFree": "เริ่มต้นฟรี",
-    "trustNoCard": "ไม่มีสแปม ตลอดไป",
-    "disclaimer": "พร้อมใช้งานแล้วบน iOS และ Android",
-    "personality": "มอเตอร์ไซค์คุณสมควรได้ดีกว่าสเปรดชีต"
+    "trustFree": "เริ่มต้นฟรี"
   },
   "Faq": {
-    "sectionLabel": "คำถามที่พบบ่อย",
-    "sectionTitle": "คำถามที่พบบ่อย",
     "items": [
       {
         "question": "MotoVault คืออะไร?",
@@ -197,20 +85,10 @@
   },
   "Footer": {
     "product": "ผลิตภัณฑ์",
-    "company": "บริษัท",
-    "tagline": "ติดตามทุกไมล์ รู้ทุกค่าใช้จ่าย",
-    "copyright": "© 2026 MotoVault สงวนลิขสิทธิ์",
-    "features": "ฟีเจอร์",
-    "learning": "เส้นทางการเรียนรู้",
-    "garage": "โรงรถ",
-    "download": "ดาวน์โหลดแอป",
     "faq": "คำถามที่พบบ่อย",
     "support": "ช่วยเหลือ",
     "privacy": "ความเป็นส่วนตัว",
-    "terms": "ข้อกำหนด",
-    "accountDeletion": "ลบบัญชี",
-    "builtWithAi": "ขับเคลื่อนด้วย AI",
-    "about": "เกี่ยวกับเรา"
+    "terms": "ข้อกำหนด"
   },
   "About": {
     "metaTitle": "เกี่ยวกับ MotoVault",
@@ -222,13 +100,6 @@
     "founderBio": "นักพัฒนาซอฟต์แวร์และผู้หลงใหลในมอเตอร์ไซค์จากสโลวาเกีย Andrej สร้าง MotoVault ด้วยวิสัยทัศน์เดียว: ทำให้ความรู้เรื่องมอเตอร์ไซค์เข้าถึงได้สำหรับผู้ขับขี่ทุกคน ไม่ว่าคุณจะเป็นช่างผู้เชี่ยวชาญหรือเพิ่งซื้อรถคันแรก MotoVault ใส่การวินิจฉัย AI การติดตามการบำรุงรักษา และทรัพยากรการเรียนรู้ไว้ในกระเป๋าของคุณ",
     "missionTitle": "ภารกิจของเรา",
     "missionDescription": "ผู้ขับขี่จำนวนมากประสบปัญหากับการบำรุงรักษาพื้นฐานเพราะความรู้กระจัดกระจายอยู่ตามฟอรัม วิดีโอ YouTube และคู่มือซ่อมที่แพงกว่าอะไหล่ MotoVault รวมทุกอย่างไว้ด้วย AI ที่เข้าใจรถของคุณและให้คำแนะนำที่ชัดเจนและปฏิบัติได้จริง",
-    "statsTitle": "MotoVault ในตัวเลข",
-    "stats": {
-      "riders": "ผู้ขับขี่ที่ใช้งาน",
-      "bikes": "รถในฐานข้อมูล",
-      "diagnoses": "การวินิจฉัย AI ที่ทำ",
-      "articles": "บทความการเรียนรู้"
-    },
     "valuesTitle": "สิ่งที่เรายืนหยัด",
     "values": {
       "aiPowered": {
@@ -408,9 +279,6 @@
     "description": "คู่มือจากผู้เชี่ยวชาญเกี่ยวกับการบำรุงรักษามอเตอร์ไซค์ การวินิจฉัย AI และเคล็ดลับการขี่ เรียนรู้การดูแลและวินิจฉัยรถอย่างมืออาชีพ",
     "readMore": "อ่านเพิ่มเติม",
     "readingTime": "นาทีอ่าน",
-    "publishedOn": "เผยแพร่เมื่อ",
-    "backToBlog": "กลับไปบทความทั้งหมด",
-    "by": "โดย",
     "relatedArticles": "บทความที่เกี่ยวข้อง",
     "ctaDownloadFree": "ดาวน์โหลดฟรี",
     "ctaMaintenanceHeadline": "ไม่ต้องคอยเปิดหาอีกต่อไป — MotoVault ติดตามรอบการเข้าศูนย์ของ {model} ให้อัตโนมัติ และเตือนคุณก่อนถึงกำหนดทุกครั้ง",
@@ -745,14 +613,10 @@
   "FeaturesTripPlanning": {
     "title": "แอปวางแผนทริปมอเตอร์ไซค์ — เครื่องมือสร้างเส้นทางและกำหนดการ",
     "description": "เครื่องมือวางแผนทริปของ MotoVault ให้คุณสร้างเส้นทางหลายวัน วางจุดแวะแบบมีประเภท และขับขี่ไปกับเพื่อน ๆ แผนที่สด เส้นทางจริง กำหนดการที่แชร์ได้",
-    "heroEyebrow": "ฟีเจอร์ผู้ก่อตั้ง",
     "heroTitle": "วางแผนทุกไมล์ของการขับขี่",
     "heroSubtitle": "เส้นทางหลายวัน จุดแวะแบบมีประเภท การคำนวณเส้นทางบนถนนจริง และแผนที่ที่เคลื่อนไหวไปพร้อมคุณ ฟีเจอร์แรกที่เราสร้าง — และเป็นฟีเจอร์ที่ยังคงหล่อหลอมส่วนที่เหลือของ MotoVault",
-    "heroCtaPrimary": "เริ่มวางแผน",
-    "heroCtaSecondary": "ดูทริปจริง",
     "positioningTitle": "ทำไมเราถึงสร้างสิ่งนี้ก่อน",
     "positioningBody": "นักขี่ทุกคนที่เราคุยด้วยมีปัญหาเดียวกัน: การวางแผนทริปมอเตอร์ไซค์จริง ๆ หมายถึงการสลับใช้ห้าแอป Google Maps สำหรับเส้นทาง แอปโน้ตสำหรับจุดแวะ แอปพยากรณ์อากาศสำหรับช่องเขา แชทสำหรับเพื่อน ๆ สเปรดชีตสำหรับงบน้ำมัน สะดุดทุกก้าว การวางแผนทริปคือฟีเจอร์แรกที่เราปล่อยออกมาเพราะมันเป็นสิ่งที่นักขี่ส่วนใหญ่ต้องการ — และเพราะถ้าเราทำสิ่งนี้ได้ดี ทุกอย่างที่เหลือใน MotoVault จะตามมาเอง",
-    "howItWorksLabel": "วิธีใช้งาน",
     "howItWorksTitle": "จากแผนที่เปล่าสู่ทริปที่บันทึกไว้ใน 4 ขั้นตอน",
     "step1Label": "เปิดผ้าใบ",
     "step1Title": "เริ่มด้วยแผนที่เปล่า",
@@ -766,16 +630,8 @@
     "step4Label": "บันทึกหรือเผยแพร่",
     "step4Title": "เก็บเป็นฉบับร่างหรือแชร์ลิงก์",
     "step4Desc": "บันทึกเป็นฉบับร่างเพื่อทำงานต่อ เผยแพร่เพื่อเชิญเพื่อน ๆ หรือตั้งเป็นสาธารณะให้คอมมิวนิตี้ค้นพบและเข้าร่วม ฉบับร่างอยู่ใน My Trips ของคุณ มองเห็นได้เฉพาะคุณ",
-    "galleryLabel": "ทริปจริง ข้อมูลจริง",
     "galleryTitle": "Dolomites Loop — 3 วัน",
     "galleryBody": "นี่คือทริปจริงที่สร้างด้วย MotoVault: Bolzano → Passo Sella → Cortina d'Ampezzo → Passo Pordoi → Canazei → Ortisei → Passo Gardena → Bolzano จุดแวะแบบมีประเภทแปดจุด สามวัน แสดงบนแผนที่สดด้วยการคำนวณเส้นทางถนนจริง ภาพหน้าจอทุกภาพด้านล่างถ่ายจากแอปจริง",
-    "gallery1Label": "ภาพรวมเส้นทาง",
-    "gallery1Subtitle": "แผนที่ วันที่ ผู้จัด ความยาก",
-    "gallery2Label": "กำหนดการรายวัน",
-    "gallery2Subtitle": "จุดแวะแบบมีประเภทพร้อมบันทึก",
-    "gallery3Label": "มุมมองหลายวันแบบเต็ม",
-    "gallery3Subtitle": "วันที่ 1 และ 2 เคียงข้างกัน",
-    "featuresLabel": "ครบในกล่องเดียว",
     "featuresTitle": "รายละเอียดที่ทำให้ทริปจริงเวิร์ก",
     "f1Title": "กำหนดการหลายวัน",
     "f1Desc": "จัดกลุ่มจุดแวะตามวัน วันที่ 1: Bolzano ไป Cortina วันที่ 2: ช่องเขาใหญ่ ๆ วันที่ 3: กลับบ้าน แอปรู้ว่าจุดแวะไหนอยู่วันไหน",
@@ -793,13 +649,11 @@
     "f7Desc": "Easy, Moderate, Challenging, Expert เพื่อไม่ให้ใครไปเข้าร่วมเส้นทาง expert โดยคิดว่าเป็นการขี่ชิลวันอาทิตย์",
     "f8Title": "แชร์ได้ทุกที่",
     "f8Desc": "ทุกทริปที่เผยแพร่มี URL มาตรฐาน ส่งในแชทกลุ่ม โพสต์บน Discord ทวีต — แสดงพร้อมเส้นทางเป็นพรีวิว",
-    "walkthroughLabel": "เบื้องหลัง",
     "walkthroughTitle": "เรื่องราวของทริปหนึ่ง — จากไอเดียสู่ปลายปากกา",
     "walkthroughP1": "นักขี่ตื่นเช้าวันเสาร์และคิดถึงสุดสัปดาห์ยาวที่กำลังจะมาถึง สามวันว่าง มอเตอร์ไซค์อยู่ในโรงรถ และไอเดียคร่าว ๆ — \"Dolomites ก็น่าจะดี\" เขาเปิด MotoVault แตะ Discover แล้วแตะ + เพื่อวางแผนทริปใหม่ แผนที่สีเข้มเปิดขึ้นที่ตำแหน่งปัจจุบัน",
     "walkthroughP2": "เขาซูมเข้าไปที่ Bolzano และกดค้างเพื่อวางจุดแวะ Start — \"Bolzano — Start, gear check & coffee before departure\" จากนั้นค้นหา Passo Sella และแตะผลลัพธ์ — มันลงเป็นจุดแวะ Scenic พร้อมบันทึก \"Iconic Dolomite pass, photo stop\" เขาทำต่อ: Cortina d'Ampezzo เป็น Overnight, Passo Pordoi เป็น Pass Summit, Canazei เป็น Fuel, Ortisei เป็น Overnight, Passo Gardena เป็น Scenic, Bolzano เป็น End แอปจัดกลุ่มให้อัตโนมัติเป็นวันที่ 1, วันที่ 2, วันที่ 3",
     "walkthroughP3": "เขาตั้งชื่อว่า \"Dolomites Loop — 3 Days\" เขียนคำอธิบาย เลือกความยาก Moderate กำหนด max riders เป็น 8 และปล่อยการมองเห็นเป็น Private บันทึกเป็นฉบับร่าง เขากลับไปสวนจิบกาแฟ ตอนเย็นเขานึกถึงที่พักค้างคืนที่ดีกว่าใน Ortisei สลับเข้าไป เปลี่ยนการมองเห็นเป็น Public แล้วกด Publish ทริปขึ้น live บน Discover แล้ว เพื่อนสองคนเข้าร่วมก่อนค่ำจะจบลง",
     "walkthroughP4": "นั่นคือทั้งเส้นเรื่อง — จากแผนที่เปล่าสู่ทริปที่มีคนเข้าร่วม — และมันทำงานบน Mapbox routing จริง แถว Postgres จริง และ bottom sheet ที่เลื่อนขึ้นเพื่อแสดงกำหนดการโดยไม่ต้องเสียแผนที่ ไม่มีสเปรดชีต ไม่มีการส่งต่อภาพหน้าจอเป็นทอด ๆ ไม่มีหมุดที่หายไป",
-    "faqLabel": "คำถามที่พบบ่อย",
     "faqTitle": "การวางแผนทริป คำถามที่นักขี่ถาม",
     "faq0Question": "แอปคำนวณเส้นทางบนถนนจริงหรือแค่วาดเส้นตรง?",
     "faq0Answer": "ถนนจริง ระหว่างจุดแวะสองจุด เราเรียก Mapbox Directions ด้วยการคำนวณที่เป็นมิตรต่อมอเตอร์ไซค์ และเรนเดอร์พอลีไลน์ที่คุณจะขับจริง ๆ ซูมเข้าไปที่ส่วนใดก็ได้ของ Dolomites Loop ด้านบน — คุณจะเห็นโค้งหักศอก",
@@ -812,9 +666,7 @@
     "faq4Question": "ทริปหนึ่งมีจุดแวะได้กี่จุด?",
     "faq4Answer": "ไม่มีเพดานตายตัวที่คุณจะเจอในการใช้งานปกติ ข้อจำกัดจริง ๆ คือการอ่านง่าย — เกิน 15 หรือ 16 จุดในหนึ่งวันกำหนดการจะแน่น แบ่งเป็นหลายวันให้สะอาด",
     "faq5Question": "ส่งออกทริปไปแอปอื่นได้ไหม?",
-    "faq5Answer": "ทุกทริปที่เผยแพร่มี URL มาตรฐานพร้อมพรีวิวเส้นทาง คุณยังแชร์จากหน้ารายละเอียดทริปได้ด้วย การแชร์แบบเนทีฟให้คุณวางใน Messages, Slack, Discord หรือโน้ตของคุณ",
-    "ctaTitle": "ลูปสามวันครั้งต่อไปของคุณเริ่มที่นี่",
-    "ctaBody": "การวางแผนทริปคือฟีเจอร์ผู้ก่อตั้งของ MotoVault ดาวน์โหลดแอป วางจุดแวะแรก แล้วดูว่าทำไมเราถึงสร้างมันก่อนอย่างอื่น"
+    "faq5Answer": "ทุกทริปที่เผยแพร่มี URL มาตรฐานพร้อมพรีวิวเส้นทาง คุณยังแชร์จากหน้ารายละเอียดทริปได้ด้วย การแชร์แบบเนทีฟให้คุณวางใน Messages, Slack, Discord หรือโน้ตของคุณ"
   },
   "Compare": {
     "title": "10 Best Motorcycle Apps in 2026 — Compared & Ranked",
@@ -976,14 +828,10 @@
   },
   "CookieBanner": {
     "stamp": "Legally-required cookie banner",
-    "title": "We bake <em>one cookie.</em> Eat it or send it back.",
     "body1": "MotoVault doesn’t sell, share, or whisper your data to ad networks. We use <strong>one in-house cookie</strong> to keep you signed in, plus optional crumbs to see which feature riders open most.",
-    "body2": "No third parties. No fingerprinting. No <strong>surveillance buffet</strong>. Just one tiny cookie that says “this is you” so the trip you planned at breakfast is still here at lunch.",
     "accept": "Accept the cookie",
     "decline": "No thanks",
-    "showList": "Show me what I’m eating",
     "settings": "Settings",
-    "privacyLink": "Honest privacy policy →",
     "list": {
       "whatWeUse": "What we use",
       "count": "4 cookies",
