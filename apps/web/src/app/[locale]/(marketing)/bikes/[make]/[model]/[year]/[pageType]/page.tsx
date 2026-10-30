@@ -165,7 +165,7 @@ export default async function BikeLeafPage({ params }: PageProps) {
                   <dt>{item.label}</dt>
                   <dd>
                     {item.value}
-                    <span className="mv-rows-sub">{item.source}</span>
+                    <span className="mv-row-sub">{item.source}</span>
                   </dd>
                 </div>
               ))}
@@ -181,7 +181,7 @@ export default async function BikeLeafPage({ params }: PageProps) {
             <div className="mv-read-body">
               {page.faqItems.map((item) => (
                 <div key={item.question}>
-                  <h3 style={{ fontSize: 22 }}>{item.question}</h3>
+                  <h3>{item.question}</h3>
                   <p>{item.answer}</p>
                 </div>
               ))}
@@ -196,8 +196,11 @@ export default async function BikeLeafPage({ params }: PageProps) {
           <ul className="mv-rows">
             {PAGE_TYPES.filter((pt) => pt !== page.pageType).map((pt) => (
               <li key={pt}>
-                <Link href={`/bikes/${page.makeSlug}/${page.modelSlug}/${page.year}/${pt}`}>
-                  {PAGE_TYPE_LABEL[pt]}
+                <Link
+                  href={`/bikes/${page.makeSlug}/${page.modelSlug}/${page.year}/${pt}`}
+                  className="mv-row"
+                >
+                  <span className="mv-row-title">{PAGE_TYPE_LABEL[pt]}</span>
                   <svg
                     width="16"
                     height="16"

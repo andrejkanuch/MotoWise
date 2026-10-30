@@ -1,9 +1,11 @@
 'use client';
 
 import * as Sentry from '@sentry/nextjs';
-import NextError from 'next/error';
 import { useEffect } from 'react';
 
+/** Replaces the root layout when it crashes, so no stylesheet or font is
+ *  loaded here: plain markup, the same copy as app/error.tsx (what failed
+ *  and the way out), one action. */
 export default function GlobalError({ error }: { error: Error & { digest?: string } }) {
   useEffect(() => {
     Sentry.captureException(error);
@@ -12,11 +14,20 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
   return (
     <html lang="en">
       <body>
-        {/* `NextError` is the default Next.js error page component. Its type
-        definition requires a `statusCode` prop. However, since the App Router
-        does not expose status codes for errors, we simply pass 0 to render a
-        generic error message. */}
-        <NextError statusCode={0} />
+        <main>
+          <p>Error</p>
+          <h1>This page didn&apos;t load.</h1>
+          <p>
+            Try again. If it keeps failing, write to{' '}
+            <a href="mailto:support@motovault.app">support@motovault.app</a>.
+          </p>
+          {error.digest && <p>Ref: {error.digest}</p>}
+          <p>
+            <button type="button" onClick={() => window.location.reload()}>
+              Try again
+            </button>
+          </p>
+        </main>
       </body>
     </html>
   );

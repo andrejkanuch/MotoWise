@@ -273,81 +273,83 @@ export function ExploreSearchBar({
   return (
     <div ref={containerRef}>
       <div style={{ position: 'relative' }}>
-        {/* The field: surface-2, hairline, radius 12, copper focus */}
+        {/* Three kit fields and the primary button in one row */}
         <div className="xp-field">
-          <div className="xp-field-main">
-            <Icon name="search" size={18} />
-            <input
-              ref={inputRef}
-              type="search"
-              className="xp-input"
-              value={query}
-              maxLength={100}
-              onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => {
-                if (data && (data.routes.length > 0 || data.places.length > 0)) {
-                  setIsOpen(true);
+          <label className="mv-field xp-field-main">
+            <span>Search routes</span>
+            <span className="xp-input-wrap">
+              <Icon name="search" size={18} />
+              <input
+                ref={inputRef}
+                type="search"
+                className="mv-field-input"
+                value={query}
+                maxLength={100}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => {
+                  if (data && (data.routes.length > 0 || data.places.length > 0)) {
+                    setIsOpen(true);
+                  }
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder="Search a pass, a coast, a town"
+                aria-describedby="search-keyboard-hints"
+                role="combobox"
+                aria-expanded={isOpen}
+                aria-haspopup="listbox"
+                aria-controls="typeahead-listbox"
+                aria-activedescendant={
+                  activeIndex >= 0 ? `typeahead-item-${activeIndex}` : undefined
                 }
-              }}
-              onKeyDown={handleKeyDown}
-              placeholder="Search a pass, a coast, a town"
-              aria-label="Search motorcycle routes"
-              aria-describedby="search-keyboard-hints"
-              role="combobox"
-              aria-expanded={isOpen}
-              aria-haspopup="listbox"
-              aria-controls="typeahead-listbox"
-              aria-activedescendant={activeIndex >= 0 ? `typeahead-item-${activeIndex}` : undefined}
-              autoComplete="off"
-            />
-            {isLoading && <span className="xp-spinner" aria-hidden="true" />}
-          </div>
-
-          <div className="xp-field-divider" aria-hidden="true" />
+                autoComplete="off"
+              />
+              {isLoading && <span className="xp-spinner" aria-hidden="true" />}
+            </span>
+          </label>
 
           {/* Country filter */}
-          <label className="xp-select-wrap">
-            <span className="xp-label">Country</span>
-            <select
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              className="xp-select"
-              aria-label="Filter by country"
-            >
-              {countryOptions.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-            <span className="xp-select-caret">
-              <Icon name="chevron-down" size={14} />
+          <label className="mv-field xp-field-select">
+            <span>Country</span>
+            <span className="mv-select">
+              <select
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                className="mv-field-input"
+              >
+                {countryOptions.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <Icon name="chevron-down" size={16} />
             </span>
           </label>
-
-          <div className="xp-field-divider" aria-hidden="true" />
 
           {/* Duration filter */}
-          <label className="xp-select-wrap">
-            <span className="xp-label">Length</span>
-            <select
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              className="xp-select"
-              aria-label="Filter by duration"
-            >
-              {DURATION_OPTIONS.map((d) => (
-                <option key={d.value} value={d.value}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
-            <span className="xp-select-caret">
-              <Icon name="chevron-down" size={14} />
+          <label className="mv-field xp-field-select">
+            <span>Length</span>
+            <span className="mv-select">
+              <select
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                className="mv-field-input"
+              >
+                {DURATION_OPTIONS.map((d) => (
+                  <option key={d.value} value={d.value}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
+              <Icon name="chevron-down" size={16} />
             </span>
           </label>
 
-          <button type="button" onClick={handleSearch} className="xp-field-submit">
+          <button
+            type="button"
+            onClick={handleSearch}
+            className="mv-btn mv-btn-primary xp-field-submit"
+          >
             Search routes
             <Icon name="arrow-right" size={14} />
           </button>
@@ -429,7 +431,7 @@ export function ExploreSearchBar({
 
       {/* Quick chips + shortcut hint */}
       <div className="xp-search-foot">
-        <div className="xp-chip-row" style={{ alignItems: 'center' }}>
+        <div className="mv-chips">
           <span className="xp-label" style={{ marginRight: 4 }}>
             Try
           </span>
@@ -438,8 +440,7 @@ export function ExploreSearchBar({
               key={chip.query}
               type="button"
               onClick={() => handleChipClick(chip.query)}
-              className="xp-chip"
-              style={{ padding: '0 12px', fontSize: 13.5 }}
+              className="mv-chip"
             >
               {chip.label}
             </button>

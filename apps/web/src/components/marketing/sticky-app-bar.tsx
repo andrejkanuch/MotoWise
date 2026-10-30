@@ -18,7 +18,8 @@ const DISMISS_KEY = 'mv_sticky_app_bar_dismissed';
 const COOKIE_BANNER_HEIGHT_VAR = '--mv-cookie-banner-h';
 
 /* A thin bar on the raised step with a hairline top; the one copper button
-   is the action, dismiss is a ghost icon. Honours the home-indicator inset. */
+   is the kit's primary, dismiss is the kit's icon button. Honours the
+   home-indicator inset and stacks above the cookie banner. */
 const STICKY_BAR_CSS = `
 .mv-appbar {
   position: fixed;
@@ -39,46 +40,13 @@ const STICKY_BAR_CSS = `
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 20px;
   color: var(--mv-ink-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.mv-appbar-cta {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 16px;
-  border-radius: var(--mv-radius-control);
-  background: var(--mv-copper);
-  color: var(--mv-on-copper);
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background .2s, transform .2s var(--mv-ease);
-}
-.mv-appbar-cta:hover { background: var(--mv-copper-hover); }
-.mv-appbar-cta:active { transform: scale(0.985); }
-.mv-appbar-dismiss {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px; height: 44px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--mv-radius-control);
-  background: transparent;
-  color: var(--mv-ink-3);
-  cursor: pointer;
-  transition: color .15s, background .15s;
-}
-.mv-appbar-dismiss:hover { color: var(--mv-ink); background: var(--mv-fill); }
-.mv-appbar :focus-visible { outline: 2px solid var(--mv-copper); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .mv-appbar, .mv-appbar * { transition-duration: 0.01ms; }
 }
@@ -114,11 +82,12 @@ export function StickyAppBar() {
   const visible = platform !== 'ios' && !dismissed;
 
   // Reserve space for the fixed bar so it never covers the last controls/links
-  // on a page. Only while visible; restored on dismiss, unmount, or iOS.
+  // on a page — including the cookie banner it stacks on. Only while visible;
+  // restored on dismiss, unmount, or iOS.
   useEffect(() => {
     if (!visible) return;
     const prev = document.body.style.paddingBottom;
-    document.body.style.paddingBottom = 'calc(env(safe-area-inset-bottom) + 64px)';
+    document.body.style.paddingBottom = `calc(env(safe-area-inset-bottom) + 68px + var(${COOKIE_BANNER_HEIGHT_VAR}, 0px))`;
     return () => {
       document.body.style.paddingBottom = prev;
     };
@@ -143,16 +112,11 @@ export function StickyAppBar() {
       <p className="mv-appbar-text">{t('message')}</p>
       <a
         {...storeAnchorProps(platform, { pageType, placement: CtaPlacement.StickyBar, slug })}
-        className="mv-appbar-cta"
+        className="mv-btn mv-btn-primary"
       >
         {t('cta')}
       </a>
-      <button
-        type="button"
-        onClick={dismiss}
-        aria-label={t('dismiss')}
-        className="mv-appbar-dismiss"
-      >
+      <button type="button" onClick={dismiss} aria-label={t('dismiss')} className="mv-icon-btn">
         <X size={18} aria-hidden="true" />
       </button>
     </div>

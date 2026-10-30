@@ -15,9 +15,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const ride = await fetchRide(id);
-  if (!ride) return { title: 'Ride Not Found' };
+  if (!ride) return { title: 'Ride not found' };
 
-  const title = ride.name ?? 'MotoVault Ride';
+  const title = ride.name ?? 'MotoVault ride';
   const description = `${formatDistance(ride.distanceM ?? 0)} ride tracked with MotoVault`;
 
   return {
@@ -83,7 +83,7 @@ export default async function RidePage({ params }: { params: Promise<{ id: strin
       ) : null}
 
       <main className={`sp-main${ride.routeThumbnailUri ? '' : ' sp-main-tall'}`}>
-        <h1 className="sp-title">{ride.name ?? 'MotoVault ride'}</h1>
+        <h1 className="mv-section-title sp-title">{ride.name ?? 'MotoVault ride'}</h1>
         <p className="sp-sub">{formatDate(ride.startedAt)}</p>
 
         <div className="sp-figures">
@@ -91,7 +91,7 @@ export default async function RidePage({ params }: { params: Promise<{ id: strin
             const [num, unit] = splitUnit(value);
             return (
               <div className="sp-figure" key={label}>
-                <span className="sp-figure-value">
+                <span className="mv-figure sp-figure-value">
                   {num}
                   {unit && <small>{unit}</small>}
                 </span>
@@ -104,7 +104,7 @@ export default async function RidePage({ params }: { params: Promise<{ id: strin
 
       <footer className="sp-cta">
         <div className="sp-cta-inner">
-          <h2 className="sp-cta-title">See the full ride in MotoVault</h2>
+          <h2 className="mv-h2">See the full ride in MotoVault</h2>
           <p className="sp-cta-sub">
             The route, speed and elevation, the bike it was ridden on, and every ride before it.
           </p>

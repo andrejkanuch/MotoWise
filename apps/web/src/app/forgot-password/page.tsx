@@ -78,7 +78,11 @@ export default function ForgotPasswordPage() {
             {COPY.sentLead} <strong>{email}</strong>.
           </p>
           <p className="mva-note-small">{COPY.sentHint}</p>
-          <button type="button" className="mva-link-btn" onClick={() => setSuccess(false)}>
+          <button
+            type="button"
+            className="mv-link is-quiet is-tall"
+            onClick={() => setSuccess(false)}
+          >
             {COPY.sendAgain}
           </button>
         </AuthNote>

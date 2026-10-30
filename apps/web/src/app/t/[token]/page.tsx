@@ -12,8 +12,8 @@ export const dynamic = 'force-dynamic';
  */
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'You have been invited to view a trip on MotoVault',
-    description: 'Open MotoVault to see the route, waypoints, and details.',
+    title: 'A trip shared from MotoVault',
+    description: 'Open it in the app to see the plan, the waypoints and who is going.',
     robots: {
       index: false,
       follow: false,
@@ -21,8 +21,8 @@ export async function generateMetadata(): Promise<Metadata> {
       googleBot: { index: false, follow: false, noimageindex: true },
     },
     openGraph: {
-      title: 'You have been invited to view a trip on MotoVault',
-      description: 'Open MotoVault to see the route.',
+      title: 'A trip shared from MotoVault',
+      description: 'Open it in the app to see the plan.',
       images: [{ url: '/og/trip-teaser.png' }],
     },
   };

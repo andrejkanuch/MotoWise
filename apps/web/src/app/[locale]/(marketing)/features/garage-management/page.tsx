@@ -44,40 +44,15 @@ const MAINT_STATUS_INK: Record<(typeof MAINT_ROWS)[number]['status'], string> = 
   upcoming: 'var(--mv-ink-3)',
 };
 
-const CELL_STYLE = {
-  padding: '16px 24px 16px 0',
-  borderTop: '1px solid var(--mv-line)',
-  verticalAlign: 'top',
-} as const;
-
 function MaintenanceTimeline({ t }: { t: Awaited<ReturnType<typeof getTranslations>> }) {
   return (
     <div style={{ overflowX: 'auto' }}>
-      <table
-        style={{
-          width: '100%',
-          minWidth: '640px',
-          borderCollapse: 'collapse',
-          fontSize: '15px',
-          lineHeight: 1.45,
-          color: 'var(--mv-ink-2)',
-        }}
-      >
+      <table className="mv-table" style={{ minWidth: '640px', color: 'var(--mv-ink-2)' }}>
         <thead>
           <tr>
             {[t('maintColTask'), t('maintColWhen'), t('maintColOdometer'), t('maintColStatus')].map(
               (column) => (
-                <th
-                  key={column}
-                  scope="col"
-                  style={{
-                    textAlign: 'left',
-                    fontWeight: 500,
-                    fontSize: '13px',
-                    color: 'var(--mv-ink-3)',
-                    padding: '0 24px 12px 0',
-                  }}
-                >
+                <th key={column} scope="col">
                   {column}
                 </th>
               ),
@@ -87,31 +62,26 @@ function MaintenanceTimeline({ t }: { t: Awaited<ReturnType<typeof getTranslatio
         <tbody>
           {MAINT_ROWS.map(({ index, status }) => (
             <tr key={index}>
-              <th scope="row" style={{ ...CELL_STYLE, textAlign: 'left', fontWeight: 400 }}>
-                <span style={{ display: 'block', fontWeight: 600, color: 'var(--mv-ink)' }}>
-                  {t(`maint${index}Label`)}
-                </span>
-                <span style={{ display: 'block', fontSize: '13px', color: 'var(--mv-ink-3)' }}>
+              <th scope="row">
+                <span style={{ display: 'block', fontWeight: 600 }}>{t(`maint${index}Label`)}</span>
+                <span
+                  style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    lineHeight: '18px',
+                    fontWeight: 400,
+                    color: 'var(--mv-ink-3)',
+                  }}
+                >
                   {t(`maint${index}Sub`)}
                 </span>
               </th>
-              <td className="mv-figure" style={{ ...CELL_STYLE, fontSize: '17px' }}>
-                {t(`maint${index}Date`)}
-              </td>
-              <td
-                className="mv-figure"
-                style={{ ...CELL_STYLE, fontSize: '17px', color: 'var(--mv-ink-3)' }}
-              >
+              <td className="mv-figure">{t(`maint${index}Date`)}</td>
+              <td className="mv-figure" style={{ color: 'var(--mv-ink-3)' }}>
                 {t(`maint${index}Miles`)}
               </td>
               <td
-                style={{
-                  ...CELL_STYLE,
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  whiteSpace: 'nowrap',
-                  color: MAINT_STATUS_INK[status],
-                }}
+                style={{ fontWeight: 500, whiteSpace: 'nowrap', color: MAINT_STATUS_INK[status] }}
               >
                 {t(`maint${index}Status`)}
               </td>

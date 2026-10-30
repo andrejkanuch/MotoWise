@@ -19,6 +19,7 @@ import {
 } from '@/components/garage-ui';
 import { DEFAULT_POST_AUTH_PATH, WELCOME_PATH } from '@/lib/post-auth-redirect';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import '@/components/marketing/design-system.css';
 import './welcome.css';
 
 /**
@@ -88,13 +89,13 @@ export default async function WelcomePage() {
     method: signInMethodFromProvider(user.app_metadata?.provider),
     email: user.email ?? null,
   };
-  // The former serif accent renders in the same condensed face.
-  const serif = (chunks: React.ReactNode) => <span className="wl-em">{chunks}</span>;
+  // The quieter tail of the title: the same condensed face, one ink step down.
+  const muted = (chunks: React.ReactNode) => <span className="mv-muted">{chunks}</span>;
   const bold = (chunks: React.ReactNode) => <strong>{chunks}</strong>;
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <div className="wl-page mvg-scope">
+      <div className="mv-root wl-page mvg-scope">
         <header className="wl-header">
           <a href="/" className="wl-brand" aria-label={t('homeLabel')}>
             <span className="wl-brand-mark" aria-hidden="true">
@@ -112,23 +113,23 @@ export default async function WelcomePage() {
         <main className="wl-main">
           <div className="wl-lead">
             <div className="wl-intro">
-              <h1 className="wl-title">{t.rich('title', { serif })}</h1>
+              <h1 className="mv-section-title wl-title">{t.rich('title', { muted })}</h1>
               <p className="wl-intro-sub">{t('subtitle')}</p>
             </div>
 
-            <ul className="wl-reasons" aria-label={t('reasonsLabel')}>
+            <ul className="mv-rows wl-reasons" aria-label={t('reasonsLabel')}>
               {REASONS.map(({ icon: Icon, title, tag }) => (
-                <li key={title} className="wl-reason">
+                <li key={title} className="mv-row wl-reason">
                   <span className="wl-reason-icon" aria-hidden="true">
                     <Icon strokeWidth={1.75} />
                   </span>
-                  <span className="wl-reason-title">{t(title)}</span>
-                  <span className="wl-reason-tag">{t(tag)}</span>
+                  <span className="mv-row-title wl-reason-title">{t(title)}</span>
+                  <span className="mv-row-aside wl-reason-tag">{t(tag)}</span>
                 </li>
               ))}
             </ul>
 
-            <a href={DEFAULT_POST_AUTH_PATH} className="wl-continue">
+            <a href={DEFAULT_POST_AUTH_PATH} className="mv-link is-quiet is-tall wl-continue">
               {t('continue')}
               <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />
             </a>
@@ -141,7 +142,7 @@ export default async function WelcomePage() {
               <QrCode size={QrSize.Spotlight} label={tHandoff('qrAlt')} />
               <div className="wl-card-text">
                 <div className="wl-card-copy">
-                  <h2 id="wl-qr-title" className="wl-card-title">
+                  <h2 id="wl-qr-title" className="mv-h3">
                     {t('qrTitle')}
                   </h2>
                   <p className="wl-card-body">{t('qrBody')}</p>
@@ -155,7 +156,11 @@ export default async function WelcomePage() {
           {/* < 768: one copper button to motovault.app/get (it opens the
               phone's own store), then the account line. */}
           <section className="wl-phone" aria-label={t('getAppLabel')}>
-            <a href={APP_HANDOFF_URL} className="wl-get" aria-label={t('getAppLabel')}>
+            <a
+              href={APP_HANDOFF_URL}
+              className="mv-btn mv-btn-primary mv-btn-block wl-get"
+              aria-label={t('getAppLabel')}
+            >
               <AppleMark size={20} />
               <GooglePlayMark size={18} />
               {t('getApp')}

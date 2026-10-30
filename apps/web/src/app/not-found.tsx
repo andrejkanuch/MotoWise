@@ -8,63 +8,37 @@ import { GoBackButton, TelemetryPath } from '@/components/not-found-client';
 // See: https://next-intl.dev/docs/environments/error-files
 
 const WHERE_TO_LINKS = [
-  { href: '/explore', title: 'Explore routes', desc: 'Rides by country and region' },
+  { href: '/explore', title: 'Explore routes', desc: 'Routes by country and region' },
   { href: '/features/trip-planning', title: 'Trip planning', desc: 'Multi-day routes and GPX' },
   { href: '/features/garage-management', title: 'Garage', desc: 'Every bike, every record' },
   { href: '/features/maintenance', title: 'Maintenance', desc: 'Service history and reminders' },
 ] as const;
 
 /*
- * Two columns on the ramp: the message on the ground, a quiet map stage one
- * step deeper. Condensed headline, body face, one copper action. The route
- * drawing is authored SVG in tokens and does not move.
+ * Two columns on the ramp: the message on the ground (the shared hero shell
+ * for its padding), a quiet map stage one step deeper. H1 at the page-title
+ * size, body face, one copper action, the links as one hairline row list.
+ * The route drawing is authored SVG in tokens and does not move.
  */
 const NOT_FOUND_CSS = `
 .nf { min-height: 100vh; display: grid; grid-template-columns: 1.1fr 1fr; }
 .nf-msg {
   display: flex; flex-direction: column; justify-content: center;
-  padding: 140px 72px 80px;
   background: var(--mv-bg);
 }
 .nf-status {
   display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline;
   margin: 0 0 24px;
-  font-size: 14px; line-height: 20px; color: var(--mv-ink-3);
+  font-size: 15px; line-height: 20px; color: var(--mv-ink-3);
 }
-.nf-status .mv-figure { font-size: 18px; color: var(--mv-ink-2); }
-.nf-title {
-  margin: 0 0 20px;
-  font-family: var(--mv-font-display); font-weight: 700;
-  font-size: clamp(64px, 9vw, 128px); line-height: 0.92; letter-spacing: 0.002em;
-  color: var(--mv-ink); text-wrap: balance;
-}
+.nf-status .mv-figure { font-size: 20px; color: var(--mv-ink-2); }
+.nf-title { margin: 0 0 20px; color: var(--mv-ink); }
 .nf-lede { max-width: 46ch; margin: 0 0 12px; font-size: 17px; line-height: 1.55; color: var(--mv-ink-2); text-wrap: pretty; }
-.nf-path { margin: 0 0 36px; font-size: 14px; line-height: 20px; color: var(--mv-ink-3); overflow-wrap: anywhere; }
+.nf-path { margin: 0 0 32px; font-size: 15px; line-height: 20px; color: var(--mv-ink-3); overflow-wrap: anywhere; }
 .nf-telemetry-val { font-family: var(--mv-font-mono); font-size: 13px; color: var(--mv-ink-2); }
-.nf-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 56px; }
-.nf-btn {
-  display: inline-flex; align-items: center; gap: 10px;
-  min-height: 48px; padding: 0 22px;
-  border-radius: var(--mv-radius-control);
-  font-family: var(--mv-font-body); font-weight: 600; font-size: 14px; cursor: pointer;
-}
-.nf-btn-ghost {
-  background: var(--mv-surface-2); color: var(--mv-ink); border: 1px solid var(--mv-line);
-  transition: background .2s, border-color .2s, transform .2s var(--mv-ease);
-}
-.nf-btn-ghost:hover { background: var(--mv-surface-3); border-color: var(--mv-line-step); transform: translateY(-1px); }
-.nf-whereto-label { margin: 0 0 4px; font-size: 14px; font-weight: 500; color: var(--mv-ink-3); }
+.nf-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 48px; }
+.nf-whereto-label { margin: 0 0 8px; font-size: 13px; line-height: 18px; font-weight: 500; color: var(--mv-ink-3); }
 .nf-links { display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; max-width: 560px; }
-.nf-link {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  min-height: 60px; padding: 12px 0;
-  border-top: 1px solid var(--mv-line);
-  color: var(--mv-ink); text-decoration: none;
-}
-.nf-link-title { font-size: 15px; font-weight: 500; line-height: 20px; }
-.nf-link-desc { margin-top: 2px; font-size: 13px; line-height: 18px; color: var(--mv-ink-3); }
-.nf-link svg { flex-shrink: 0; color: var(--mv-ink-3); transition: color .15s, transform .25s var(--mv-ease); }
-.nf-link:hover svg { color: var(--mv-copper-text); transform: translateX(3px); }
 .nf-stage { position: relative; overflow: hidden; background: var(--mv-bg-2); border-left: 1px solid var(--mv-line); }
 .nf-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .nf-topo path { fill: none; stroke: var(--mv-line-step); stroke-width: .7; opacity: .45; }
@@ -75,9 +49,10 @@ const NOT_FOUND_CSS = `
 @media (max-width: 900px) {
   .nf { grid-template-columns: 1fr; }
   .nf-stage { order: -1; min-height: 38vh; border-left: 0; border-bottom: 1px solid var(--mv-line); }
-  .nf-msg { padding: 40px 24px 72px; }
+  .nf-msg.mv-section-hero { padding: 48px 24px 64px; }
 }
 @media (max-width: 600px) { .nf-links { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .nf-msg.mv-section-hero { padding: 48px 20px 64px; } }
 `;
 
 export default function NotFound() {
@@ -85,17 +60,17 @@ export default function NotFound() {
     <div className="mv-marketing">
       <style>{NOT_FOUND_CSS}</style>
       <main className="nf">
-        <section className="nf-msg">
+        <section className="nf-msg mv-section-hero">
           <p className="nf-status">
             <span className="mv-figure">404</span>
             <span>Page not found</span>
           </p>
 
-          <h1 className="nf-title">Wrong turn.</h1>
+          <h1 className="mv-section-title nf-title">Wrong turn.</h1>
 
           <p className="nf-lede">
-            There is no page at this address. It may have moved, or one letter is off. The rest of
-            the site is still open road.
+            There is no page at this address. It may have moved, or one letter is off. Try one of
+            these instead.
           </p>
           <p className="nf-path">
             Nothing at <TelemetryPath />
@@ -103,26 +78,26 @@ export default function NotFound() {
 
           <div className="nf-actions">
             <Link className="mv-btn mv-btn-primary" href="/">
-              Take me home
+              Back to the home page
             </Link>
             <GoBackButton />
           </div>
 
           <div>
             <p className="nf-whereto-label">Where to instead</p>
-            <div className="nf-links">
+            <ul className="mv-rows nf-links">
               {WHERE_TO_LINKS.map((link) => (
-                <Link key={link.href} className="nf-link" href={link.href}>
-                  <span>
-                    <span className="nf-link-title">{link.title}</span>
-                    <span className="nf-link-desc" style={{ display: 'block' }}>
-                      {link.desc}
+                <li key={link.href}>
+                  <Link className="mv-row" href={link.href}>
+                    <span>
+                      <span className="mv-row-title">{link.title}</span>
+                      <span className="mv-row-sub">{link.desc}</span>
                     </span>
-                  </span>
-                  <ArrowRight size={16} aria-hidden="true" />
-                </Link>
+                    <ArrowRight size={16} aria-hidden="true" />
+                  </Link>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         </section>
 

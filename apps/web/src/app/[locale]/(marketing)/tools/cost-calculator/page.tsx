@@ -118,56 +118,59 @@ export default async function CostCalculatorPage({ params }: PageProps) {
 
       <CostCalculator labels={labels} />
 
-      <article className="mv-read" style={{ paddingTop: 96 }}>
-        <div className="mv-read-body">
-          <h2>What a motorcycle really costs to own</h2>
-          <p>
-            The true cost of owning a motorcycle goes far beyond the purchase price and monthly fuel
-            bill. Insurance, regular maintenance, tires, gear replacement, registration, and
-            unexpected repairs all add up over a riding season. Knowing your total cost of ownership
-            helps you budget accurately, compare bike options, and see where you can save without
-            compromising safety.
-          </p>
+      {/* The article sits in the same 1040 column as the hero and the tool: one left edge */}
+      <section className="mv-wide" style={{ paddingTop: 96 }}>
+        <article className="mv-tool">
+          <div className="mv-read-body">
+            <h2>What a motorcycle really costs to own</h2>
+            <p>
+              The true cost of owning a motorcycle goes far beyond the purchase price and monthly
+              fuel bill. Insurance, regular maintenance, tires, gear replacement, registration, and
+              unexpected repairs all add up over a riding season. Knowing your total cost of
+              ownership helps you budget accurately, compare bike options, and see where you can
+              save without compromising safety.
+            </p>
 
-          <h3>What this calculator covers</h3>
-          <p>
-            This calculator estimates your annual motorcycle cost of ownership across six
-            categories: fuel consumption based on your riding distance and the bike&apos;s fuel
-            efficiency, scheduled maintenance (oil changes, filters, valve adjustments), tire
-            replacement based on mileage, insurance premiums, registration and road tax, and gear
-            amortisation. Enter your own numbers or use the defaults for a typical riding profile.
-          </p>
+            <h3>What this calculator covers</h3>
+            <p>
+              This calculator estimates your annual motorcycle cost of ownership across six
+              categories: fuel consumption based on your riding distance and the bike&apos;s fuel
+              efficiency, scheduled maintenance (oil changes, filters, valve adjustments), tire
+              replacement based on mileage, insurance premiums, registration and road tax, and gear
+              amortisation. Enter your own numbers or use the defaults for a typical riding profile.
+            </p>
 
-          <h3>Common cost categories</h3>
-          <p>
-            <strong>Fuel</strong> is the most visible ongoing cost, varying from 3–7 litres per 100
-            km depending on engine size and riding style. <strong>Maintenance</strong> includes oil
-            changes ($30–80 DIY, $150–300 at a dealer), brake pads ($30–60 per set), and valve
-            adjustments ($200–600 at service intervals). <strong>Tires</strong> last 5,000–15,000
-            miles depending on type and riding; sport tires wear fastest. <strong>Insurance</strong>{' '}
-            ranges from $200 to $2,000+ a year depending on your age, location, and bike type.{' '}
-            <strong>Gear</strong> should be budgeted at $500–1,500 a year for helmet replacement
-            (every 5 years), gloves, boots, and jacket upkeep.
-          </p>
+            <h3>Common cost categories</h3>
+            <p>
+              <strong>Fuel</strong> is the most visible ongoing cost, varying from 3–7 litres per
+              100 km depending on engine size and riding style. <strong>Maintenance</strong>{' '}
+              includes oil changes ($30–80 DIY, $150–300 at a dealer), brake pads ($30–60 per set),
+              and valve adjustments ($200–600 at service intervals). <strong>Tires</strong> last
+              5,000–15,000 miles depending on type and riding; sport tires wear fastest.{' '}
+              <strong>Insurance</strong> ranges from $200 to $2,000+ a year depending on your age,
+              location, and bike type. <strong>Gear</strong> should be budgeted at $500–1,500 a year
+              for helmet replacement (every 5 years), gloves, boots, and jacket upkeep.
+            </p>
 
-          <h3>Why track the real numbers</h3>
-          <p>
-            Tracking costs reveals patterns you would otherwise miss: how much more a sport bike
-            costs in tire wear than a touring bike, or how DIY maintenance can cut your annual costs
-            by 40–60%. MotoVault&apos;s garage records every expense against the bike, sets
-            maintenance reminders, and shows your cost per mile over time. No spreadsheets, no
-            guesswork.
-          </p>
+            <h3>Why track the real numbers</h3>
+            <p>
+              Tracking costs reveals patterns you would otherwise miss: how much more a sport bike
+              costs in tire wear than a touring bike, or how DIY maintenance can cut your annual
+              costs by 40–60%. MotoVault&apos;s garage records every expense against the bike, sets
+              maintenance reminders, and shows your cost per mile over time. No spreadsheets, no
+              guesswork.
+            </p>
 
-          <h2>{t('seoTitle1')}</h2>
-          <p>{t('seoP1')}</p>
-          <p>{t('seoP2')}</p>
-          <p>{t('seoP3')}</p>
+            <h2>{t('seoTitle1')}</h2>
+            <p>{t('seoP1')}</p>
+            <p>{t('seoP2')}</p>
+            <p>{t('seoP3')}</p>
 
-          <h2>{t('seoTitle2')}</h2>
-          <p>{t('seoP4')}</p>
-        </div>
-      </article>
+            <h2>{t('seoTitle2')}</h2>
+            <p>{t('seoP4')}</p>
+          </div>
+        </article>
+      </section>
     </>
   );
 }

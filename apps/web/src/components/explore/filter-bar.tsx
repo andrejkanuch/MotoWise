@@ -59,16 +59,13 @@ function Segmented({
   onChange: (value: string) => void;
 }) {
   return (
-    <fieldset className="xp-filter-group" style={{ border: 'none', margin: 0, padding: 0 }}>
-      <legend className="xp-label" style={{ float: 'left', padding: 0 }}>
-        {label}
-      </legend>
-      <div className="xp-seg">
+    <fieldset className="xp-filter-group">
+      <legend className="xp-label">{label}</legend>
+      <div className="mv-segmented">
         {options.map((opt) => (
           <button
             key={opt.value}
             type="button"
-            className="xp-seg-btn"
             aria-pressed={value === opt.value}
             onClick={() => onChange(opt.value)}
           >
@@ -98,7 +95,7 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
   );
 
   return (
-    <div className="xp-filters">
+    <div className="xp-filters mv-scroll-row">
       {GROUPS.map((g) => (
         <Segmented
           key={g.key}
@@ -111,7 +108,7 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
       {hasActive && (
         <button
           type="button"
-          className="xp-text-btn"
+          className="mv-link is-quiet is-tall"
           onClick={() => onFilterChange({ ...DEFAULT_FILTERS, sort: filters.sort })}
         >
           Clear filters

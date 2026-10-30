@@ -36,7 +36,8 @@ function isI18nRoute(path: string | null): boolean {
 }
 
 /* A native select dressed as a ghost control: body face, 44px tall,
-   control radius, copper focus ring. Options sit on the raised step. */
+   control radius; focus comes from the root grammar. Options sit on the
+   raised step. */
 const SWITCHER_CSS = `
 .mv-lang {
   position: relative;
@@ -52,7 +53,7 @@ const SWITCHER_CSS = `
   border-radius: var(--mv-radius-control);
   background: transparent;
   font-family: var(--mv-font-body);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--mv-ink-2);
   cursor: pointer;
@@ -61,10 +62,6 @@ const SWITCHER_CSS = `
 .mv-lang-select:hover {
   color: var(--mv-ink);
   background: var(--mv-fill);
-}
-.mv-lang-select:focus-visible {
-  outline: 2px solid var(--mv-copper);
-  outline-offset: 2px;
 }
 .mv-lang-select option {
   background: var(--mv-surface-2);

@@ -104,7 +104,7 @@ export function SavedRoutesClient({ handle, initialEndCursor }: SavedRoutesClien
     <>
       {/* Additional loaded routes continue the same hairline list */}
       {routes.length > 0 && (
-        <ul className="sp-list" style={{ borderTop: 'none' }}>
+        <ul className="mv-rows is-open">
           {routes.map((route) => (
             <SavedRouteRow key={route.id} route={route} />
           ))}
@@ -122,7 +122,7 @@ export function SavedRoutesClient({ handle, initialEndCursor }: SavedRoutesClien
 }
 
 /**
- * One saved route as a hairline row (a 56px link target). Shared by the
+ * One saved route as a hairline row on the shared .mv-row grammar. Shared by the
  * server-rendered first page and the client-loaded pages, so both read alike.
  */
 export function SavedRouteRow({
@@ -148,7 +148,7 @@ export function SavedRouteRow({
 
   return (
     <li>
-      <a className="sp-row" href={`/trips/${route.id}`}>
+      <a className="mv-row sp-row" href={`/trips/${route.id}`}>
         <div className="sp-row-body">
           <div className="sp-row-title">{route.title || 'Unnamed route'}</div>
           <div className="sp-row-meta">

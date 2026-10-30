@@ -49,15 +49,16 @@ export function CopyLinkField({
   }
 
   return (
-    <div
-      className={['mvg-linkfield', primary ? 'mvg-linkfield--primary' : null, className]
-        .filter(Boolean)
-        .join(' ')}
-    >
+    <div className={className ? `mvg-linkfield ${className}` : 'mvg-linkfield'}>
       <a href={APP_HANDOFF_URL} className="mvg-linkfield-url">
         {APP_HANDOFF_DISPLAY}
       </a>
-      <button type="button" className="mvg-copy" aria-label={t('copyLabel')} onClick={copy}>
+      <button
+        type="button"
+        className={`mv-btn ${primary ? 'mv-btn-primary' : 'mv-btn-ghost'} is-compact mvg-copy`}
+        aria-label={t('copyLabel')}
+        onClick={copy}
+      >
         {copied ? (
           <Check size={14} strokeWidth={2} aria-hidden="true" />
         ) : (

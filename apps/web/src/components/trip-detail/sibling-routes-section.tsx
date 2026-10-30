@@ -5,8 +5,8 @@ import { relativeTrip } from '@/lib/seo/canonical';
 /**
  * "More routes in {scope}" internal-link cluster shown on a trip detail page.
  * Server-rendered; links are lowercased via relativeTrip so they match the
- * canonical trip URLs. Styled by trip-detail.css (.sib-*): a hairline list,
- * one route per row, 56px targets.
+ * canonical trip URLs. A hairline list on the shared .mv-rows grammar, one
+ * route per row; trip-detail.css (.sib) only places the block.
  */
 export function SiblingRoutesSection({
   routes,
@@ -21,10 +21,10 @@ export function SiblingRoutesSection({
 
   return (
     <section className="sib" aria-labelledby="sibling-routes-title">
-      <h2 className="sib-title" id="sibling-routes-title">
+      <h2 className="mv-h2" id="sibling-routes-title">
         More routes in {scopeLabel}
       </h2>
-      <ul className="sib-list">
+      <ul className="mv-rows">
         {routes.map((r) => {
           const href = relativeTrip(r.countryCode ?? '', r.regionCode ?? '', r.slug ?? '');
           const km = r.distanceM ? Math.round(r.distanceM / 1000) : null;
@@ -38,9 +38,9 @@ export function SiblingRoutesSection({
             .join(' · ');
           return (
             <li key={r.id}>
-              <a className="sib-row" href={href}>
-                <span className="sib-row-title">{r.title}</span>
-                {meta && <span className="sib-row-meta">{meta}</span>}
+              <a className="mv-row" href={href}>
+                <span className="mv-row-title">{r.title}</span>
+                {meta && <span className="mv-row-aside">{meta}</span>}
               </a>
             </li>
           );

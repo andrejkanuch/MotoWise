@@ -3,8 +3,10 @@ import type { ReactNode } from 'react';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { FeatureScreenshotPair } from '@/components/marketing/feature-screenshot';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
+import { StoreButtons } from '@/components/marketing/store-buttons';
 import { Link } from '@/i18n/navigation';
 import { getCanonicalUrl } from '@/lib/constants';
+import { CtaPageType, CtaPlacement } from '@/lib/cta-taxonomy';
 import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
 /** One entry of the feature list. A description is optional for catalogue rows. */
@@ -89,36 +91,29 @@ interface FeatureContentPageProps {
   related?: FeatureRoute[];
 }
 
-const H2_STYLE = {
-  margin: 0,
-  fontSize: 'clamp(34px, 4.2vw, 56px)',
-  fontWeight: 700,
-  lineHeight: 1.02,
-  color: 'var(--mv-ink)',
-  textWrap: 'balance',
-} as const;
-
-const H3_STYLE = {
-  margin: 0,
-  fontSize: '19px',
-  fontWeight: 600,
-  lineHeight: 1.3,
-  color: 'var(--mv-ink)',
-  letterSpacing: '-0.005em',
-} as const;
-
+/** Reading copy: Body 17/1.6 on a 68ch measure. */
 const BODY_STYLE = {
   margin: 0,
-  fontSize: '16px',
-  lineHeight: 1.65,
+  fontSize: '17px',
+  lineHeight: 1.6,
   color: 'var(--mv-ink-2)',
+  maxWidth: '68ch',
+  textWrap: 'pretty',
 } as const;
 
-const LINK_STYLE = {
-  color: 'var(--mv-copper-text)',
-  textDecoration: 'underline',
-  textUnderlineOffset: '4px',
+/** Compact body for list rows, table cells and FAQ answers: 16/1.55. */
+const BODY_COMPACT_STYLE = { ...BODY_STYLE, fontSize: '16px', lineHeight: 1.55 } as const;
+
+/** Meta line: 13/18 500 in ink-3. */
+const META_STYLE = {
+  margin: 0,
+  fontSize: '13px',
+  lineHeight: '18px',
+  fontWeight: 500,
+  color: 'var(--mv-ink-3)',
 } as const;
+
+const PARAGRAPH_GAP = { first: '16px', rest: '24px' } as const;
 
 function ArrowIcon() {
   return (
@@ -139,12 +134,36 @@ function ArrowIcon() {
   );
 }
 
-function Paragraphs({ body, style }: { body: string | string[]; style: typeof BODY_STYLE }) {
+function CrumbSeparator() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="9 6 15 12 9 18" />
+    </svg>
+  );
+}
+
+function Paragraphs({ body }: { body: string | string[] }) {
   const paragraphs = Array.isArray(body) ? body : [body];
   return (
     <>
       {paragraphs.map((paragraph, index) => (
-        <p key={paragraph} style={{ ...style, marginTop: index === 0 ? '16px' : '20px' }}>
+        <p
+          key={paragraph}
+          style={{
+            ...BODY_STYLE,
+            marginTop: index === 0 ? PARAGRAPH_GAP.first : PARAGRAPH_GAP.rest,
+          }}
+        >
           {paragraph}
         </p>
       ))}
@@ -159,8 +178,11 @@ function Paragraphs({ body, style }: { body: string | string[]; style: typeof BO
  * read on the deeper ramp step. Pages with a flow, a unique depiction or a
  * comparison pass those in as slots; nothing is wrapped in a card, numbers
  * appear only where the order means something (steps), and copper is spent on
- * links and the closing primary action alone. Every colour is a `--mv-*` token,
- * so both schemes work.
+ * links and the closing primary action alone. Every heading sits on the shared
+ * scale (`.mv-section-title`, `.mv-h2`, `.mv-h3`), every hairline list is
+ * `.mv-rows`, and the page runs on two rhythm intervals: 96 for the light
+ * sections, 120–160 for the two deeper bands. Every colour is a `--mv-*`
+ * token, so both schemes work.
  */
 export async function FeatureContentPage({
   locale,
@@ -229,44 +251,22 @@ export async function FeatureContentPage({
     <>
       <JsonLdGraph nodes={graph} />
 
-      {/* Hero: breadcrumb + condensed headline on the ground, an app object beside it when the page has one */}
-      <header className="mv-section-hero" style={{ paddingTop: '128px', paddingBottom: '64px' }}>
+      {/* Hero: breadcrumb, condensed headline, the lede and the store buttons
+          on the ground; an app object beside it when the page has one */}
+      <header className="mv-section-hero" style={{ paddingTop: '120px', paddingBottom: '64px' }}>
         <div style={{ maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
           <nav aria-label="Breadcrumb" style={{ marginBottom: '40px' }}>
-            <ol
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                gap: '10px',
-                listStyle: 'none',
-                margin: 0,
-                padding: 0,
-                fontSize: '13px',
-                fontWeight: 500,
-                color: 'var(--mv-ink-3)',
-              }}
-            >
+            <ol className="mv-crumbs" style={{ margin: 0 }}>
               <li>
-                <Link href="/" style={{ color: 'var(--mv-ink-3)', textDecoration: 'none' }}>
-                  {t('breadcrumbHome')}
-                </Link>
-              </li>
-              <li aria-hidden="true" style={{ color: 'var(--mv-ink-4)' }}>
-                /
+                <Link href="/">{t('breadcrumbHome')}</Link>
               </li>
               <li>
-                <Link href="/features" style={{ color: 'var(--mv-ink-3)', textDecoration: 'none' }}>
-                  {t('breadcrumbFeatures')}
-                </Link>
-              </li>
-              <li aria-hidden="true" style={{ color: 'var(--mv-ink-4)' }}>
-                /
+                <CrumbSeparator />
+                <Link href="/features">{t('breadcrumbFeatures')}</Link>
               </li>
               <li>
-                <span aria-current="page" style={{ color: 'var(--mv-ink)' }}>
-                  {breadcrumbTitle}
-                </span>
+                <CrumbSeparator />
+                <span aria-current="page">{breadcrumbTitle}</span>
               </li>
             </ol>
           </nav>
@@ -276,10 +276,13 @@ export async function FeatureContentPage({
             style={{ alignItems: 'end' }}
           >
             <div>
-              <h1 className="mv-section-title" style={{ maxWidth: '14ch', textWrap: 'balance' }}>
+              <h1 className="mv-section-title" style={{ maxWidth: '14ch' }}>
                 {t('heroTitle')}
               </h1>
               <p className="mv-section-sub">{t('heroSubtitle')}</p>
+              <div style={{ marginTop: '32px' }}>
+                <StoreButtons pageType={CtaPageType.Feature} placement={CtaPlacement.Hero} />
+              </div>
             </div>
             {heroVisual ? (
               <div style={{ maxWidth: '440px', width: '100%' }} className="md:justify-self-end">
@@ -295,70 +298,50 @@ export async function FeatureContentPage({
 
       {/* Feature list: a plain hairline list on the ground. Short lists sit
           beside their title; catalogues of five or more run in two columns. */}
-      <section className="mv-section" style={{ paddingTop: '120px', paddingBottom: '120px' }}>
+      <section className="mv-section" style={{ paddingTop: '96px', paddingBottom: '96px' }}>
         <div
           className={
             wideFeatureList ? '' : 'grid gap-12 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]'
           }
           style={{ alignItems: 'start' }}
         >
-          <h2 style={{ ...H2_STYLE, maxWidth: '18ch' }} className="mv-display">
+          <h2 className="mv-h2" style={{ maxWidth: '18ch' }}>
             {featureBlock.title}
           </h2>
           <ul
-            className={wideFeatureList ? 'grid md:grid-cols-2 md:gap-x-20' : ''}
-            style={{
-              listStyle: 'none',
-              margin: wideFeatureList ? '48px 0 0' : 0,
-              padding: 0,
-              borderBottom: '1px solid var(--mv-line)',
-            }}
+            className={wideFeatureList ? 'mv-rows grid md:grid-cols-2 md:gap-x-20' : 'mv-rows'}
+            style={{ marginTop: wideFeatureList ? '48px' : 0 }}
           >
             {featureBlock.items.map((item) => (
-              <li
-                key={item.title}
-                style={{ padding: '22px 0', borderTop: '1px solid var(--mv-line)' }}
-              >
-                <h3 style={{ ...H3_STYLE, fontSize: '17px' }}>{item.title}</h3>
-                {item.desc ? (
-                  <p
-                    style={{
-                      ...BODY_STYLE,
-                      marginTop: '8px',
-                      fontSize: '15px',
-                      lineHeight: 1.6,
-                      maxWidth: '56ch',
-                    }}
-                  >
-                    {item.desc}
-                  </p>
-                ) : null}
+              <li key={item.title} className="mv-row" style={{ alignItems: 'start' }}>
+                <div>
+                  <h3 className="mv-h3">{item.title}</h3>
+                  {item.desc ? (
+                    <p style={{ ...BODY_COMPACT_STYLE, marginTop: '8px', maxWidth: '56ch' }}>
+                      {item.desc}
+                    </p>
+                  ) : null}
+                </div>
               </li>
             ))}
           </ul>
         </div>
       </section>
 
-      {/* Steps: the one numbered list, because the order is the point */}
+      {/* Steps: the one numbered list, because the order is the point. The
+          numeral stays a margin figure at every width. */}
       {steps ? (
         <section style={{ background: 'var(--mv-bg-2)' }}>
           <div className="mv-section-inner">
-            <h2 style={{ ...H2_STYLE, maxWidth: '20ch' }} className="mv-display">
+            <h2 className="mv-h2" style={{ maxWidth: '20ch' }}>
               {steps.title}
             </h2>
-            <ol
-              style={{
-                listStyle: 'none',
-                margin: '56px 0 0',
-                padding: 0,
-                borderBottom: '1px solid var(--mv-line)',
-              }}
-            >
+            <ol className="mv-rows" style={{ marginTop: '48px' }}>
               {steps.items.map((step, index) => (
                 <li
                   key={step.title}
-                  className="grid gap-x-10 gap-y-3 md:grid-cols-[64px_minmax(0,5fr)_minmax(0,7fr)]"
-                  style={{ padding: '28px 0', borderTop: '1px solid var(--mv-line)' }}
+                  className="mv-row grid-cols-[48px_minmax(0,1fr)] md:grid-cols-[64px_minmax(0,5fr)_minmax(0,7fr)]"
+                  style={{ display: 'grid', alignItems: 'start', gap: '12px 40px' }}
                 >
                   <span
                     className="mv-figure"
@@ -367,8 +350,13 @@ export async function FeatureContentPage({
                   >
                     {index + 1}
                   </span>
-                  <h3 style={{ ...H3_STYLE, fontSize: '20px' }}>{step.title}</h3>
-                  <p style={{ ...BODY_STYLE, fontSize: '15px', maxWidth: '58ch' }}>{step.body}</p>
+                  <h3 className="mv-h3">{step.title}</h3>
+                  <p
+                    className="col-start-2 md:col-start-auto"
+                    style={{ ...BODY_COMPACT_STYLE, maxWidth: '58ch' }}
+                  >
+                    {step.body}
+                  </p>
                 </li>
               ))}
             </ol>
@@ -378,18 +366,16 @@ export async function FeatureContentPage({
 
       {/* Demo: the block unique to this page, restyled to tokens */}
       {demo ? (
-        <section className="mv-section" style={{ paddingTop: '120px', paddingBottom: '120px' }}>
+        <section className="mv-section" style={{ paddingTop: '96px', paddingBottom: '48px' }}>
           <div
-            className={demo.wide ? '' : 'grid gap-12 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]'}
-            style={{ alignItems: 'center' }}
+            className={demo.wide ? '' : 'grid gap-16 md:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]'}
+            style={{ alignItems: 'start' }}
           >
-            <div style={{ maxWidth: '520px' }}>
-              <h2 style={{ ...H2_STYLE, maxWidth: '16ch' }} className="mv-display">
+            <div>
+              <h2 className="mv-h2" style={{ maxWidth: '16ch' }}>
                 {demo.title}
               </h2>
-              {demo.body ? (
-                <p style={{ ...BODY_STYLE, marginTop: '20px', fontSize: '17px' }}>{demo.body}</p>
-              ) : null}
+              {demo.body ? <p className="mv-section-sub">{demo.body}</p> : null}
             </div>
             <div style={{ marginTop: demo.wide ? '48px' : 0, minWidth: 0 }}>{demo.content}</div>
           </div>
@@ -400,44 +386,20 @@ export async function FeatureContentPage({
       {table ? (
         <section
           className="mv-section"
-          style={{ paddingTop: demo ? 0 : '120px', paddingBottom: '120px' }}
+          style={{ paddingTop: demo ? 0 : '96px', paddingBottom: '96px' }}
         >
           <div style={{ maxWidth: '820px' }}>
-            <h2 style={{ ...H2_STYLE, maxWidth: '16ch' }} className="mv-display">
+            <h2 className="mv-h2" style={{ maxWidth: '16ch' }}>
               {table.title}
             </h2>
-            {table.body ? (
-              <p style={{ ...BODY_STYLE, marginTop: '20px', fontSize: '17px', maxWidth: '56ch' }}>
-                {table.body}
-              </p>
-            ) : null}
+            {table.body ? <p className="mv-section-sub">{table.body}</p> : null}
           </div>
           <div style={{ marginTop: '40px', overflowX: 'auto' }}>
-            <table
-              style={{
-                width: '100%',
-                minWidth: '560px',
-                borderCollapse: 'collapse',
-                fontSize: '15px',
-                lineHeight: 1.5,
-                color: 'var(--mv-ink-2)',
-              }}
-            >
+            <table className="mv-table" style={{ minWidth: '560px', color: 'var(--mv-ink-2)' }}>
               <thead>
                 <tr>
                   {table.columns.map((column) => (
-                    <th
-                      key={column}
-                      scope="col"
-                      style={{
-                        textAlign: 'left',
-                        fontWeight: 500,
-                        fontSize: '13px',
-                        color: 'var(--mv-ink-3)',
-                        padding: '0 24px 14px 0',
-                        borderBottom: '1px solid var(--mv-line)',
-                      }}
-                    >
+                    <th key={column} scope="col">
                       {column}
                     </th>
                   ))}
@@ -446,30 +408,9 @@ export async function FeatureContentPage({
               <tbody>
                 {table.rows.map(([head, ...cells]) => (
                   <tr key={head}>
-                    <th
-                      scope="row"
-                      style={{
-                        textAlign: 'left',
-                        fontWeight: 600,
-                        color: 'var(--mv-ink)',
-                        padding: '18px 24px 18px 0',
-                        borderBottom: '1px solid var(--mv-line)',
-                        verticalAlign: 'top',
-                      }}
-                    >
-                      {head}
-                    </th>
+                    <th scope="row">{head}</th>
                     {cells.map((cell) => (
-                      <td
-                        key={cell}
-                        style={{
-                          padding: '18px 24px 18px 0',
-                          borderBottom: '1px solid var(--mv-line)',
-                          verticalAlign: 'top',
-                        }}
-                      >
-                        {cell}
-                      </td>
+                      <td key={cell}>{cell}</td>
                     ))}
                   </tr>
                 ))}
@@ -479,21 +420,18 @@ export async function FeatureContentPage({
         </section>
       ) : null}
 
-      {/* Long-form: the deeper ramp step carries the editorial read; the band
-          itself separates, so no dividers inside. */}
+      {/* Long-form: the deeper ramp step carries the editorial read — the
+          heaviest block, so it gets the generous interval. The band itself
+          separates, so no dividers inside. */}
       <section style={{ background: 'var(--mv-bg-2)' }}>
-        <div className="mv-section-inner">
+        <div className="mv-section-inner" style={{ paddingBottom: '160px' }}>
           <div style={{ maxWidth: '820px' }}>
-            <h2 className="mv-display" style={H2_STYLE}>
-              {longFormBlock.title}
-            </h2>
-            <p style={{ ...BODY_STYLE, marginTop: '28px', fontSize: '18px', lineHeight: 1.6 }}>
-              {longFormBlock.intro}
-            </p>
+            <h2 className="mv-h2">{longFormBlock.title}</h2>
+            <p className="mv-section-sub">{longFormBlock.intro}</p>
             {longFormBlock.sections.map((section) => (
               <div key={section.title} style={{ marginTop: '64px' }}>
-                <h3 style={H3_STYLE}>{section.title}</h3>
-                <Paragraphs body={section.body} style={BODY_STYLE} />
+                <h3 className="mv-h3">{section.title}</h3>
+                <Paragraphs body={section.body} />
               </div>
             ))}
           </div>
@@ -501,37 +439,27 @@ export async function FeatureContentPage({
       </section>
 
       {/* FAQ: hairline <details> rows directly on the page surface */}
-      <section className="mv-section" style={{ paddingTop: '120px', paddingBottom: '120px' }}>
+      <section className="mv-section" style={{ paddingTop: '96px', paddingBottom: '96px' }}>
         <div style={{ maxWidth: '820px' }}>
-          <h2 className="mv-display" style={H2_STYLE}>
-            {t('faqTitle')}
-          </h2>
-          <div style={{ marginTop: '40px', borderBottom: '1px solid var(--mv-line)' }}>
+          <h2 className="mv-h2">{t('faqTitle')}</h2>
+          <div className="mv-rows" style={{ marginTop: '40px' }}>
             {faqItems.map(({ question, answer }, index) => (
               <details
                 key={question}
                 className="group"
                 open={index === 0}
-                style={{ borderTop: '1px solid var(--mv-line)' }}
+                style={{ borderBottom: '1px solid var(--mv-line)' }}
               >
                 <summary
-                  className="[&::-webkit-details-marker]:hidden"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    padding: '20px 0',
-                    minHeight: '44px',
-                    cursor: 'pointer',
-                    listStyle: 'none',
-                  }}
+                  className="mv-row [&::-webkit-details-marker]:hidden"
+                  style={{ cursor: 'pointer', listStyle: 'none' }}
                 >
                   <span
                     style={{
                       fontSize: '17px',
-                      fontWeight: 500,
+                      fontWeight: 600,
+                      lineHeight: 1.45,
                       color: 'var(--mv-ink)',
-                      letterSpacing: '-0.005em',
                     }}
                   >
                     {question}
@@ -546,45 +474,34 @@ export async function FeatureContentPage({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     className="transition-transform duration-300 group-open:rotate-180"
-                    style={{ marginLeft: 'auto', flexShrink: 0, color: 'var(--mv-ink-4)' }}
+                    style={{ marginLeft: 'auto' }}
                     aria-hidden="true"
                   >
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </summary>
-                <p
-                  style={{
-                    ...BODY_STYLE,
-                    padding: '0 40px 24px 0',
-                    fontSize: '15px',
-                    maxWidth: '64ch',
-                  }}
-                >
-                  {answer}
-                </p>
+                <p style={{ ...BODY_COMPACT_STYLE, padding: '0 40px 16px 0' }}>{answer}</p>
               </details>
             ))}
           </div>
 
-          <p style={{ margin: '40px 0 0', fontSize: '15px', color: 'var(--mv-ink-3)' }}>
+          <p
+            style={{
+              margin: '40px 0 0',
+              fontSize: '15px',
+              lineHeight: 1.45,
+              color: 'var(--mv-ink-3)',
+            }}
+          >
             {t('faqMore')}{' '}
-            <Link href="/support" style={LINK_STYLE}>
+            <Link href="/support" className="mv-link">
               {t('faqSupportLink')}
             </Link>
           </p>
           {/* Hub-and-spoke inbound link: every feature page feeds the /compare
               money page for internal-link equity + discovery. */}
-          <p style={{ margin: '12px 0 0', fontSize: '15px' }}>
-            <Link
-              href="/compare"
-              style={{
-                ...LINK_STYLE,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontWeight: 500,
-              }}
-            >
+          <p style={{ margin: '16px 0 0', fontSize: '15px', lineHeight: 1.45 }}>
+            <Link href="/compare" className="mv-link is-tall">
               {tCompare('compareInboundLink')}
               <ArrowIcon />
             </Link>
@@ -592,43 +509,14 @@ export async function FeatureContentPage({
         </div>
 
         {related.length > 0 ? (
-          <div style={{ marginTop: '96px' }}>
-            <h2
-              style={{ ...H3_STYLE, fontSize: '15px', color: 'var(--mv-ink-3)', fontWeight: 500 }}
-            >
-              {tIndex('relatedTitle')}
-            </h2>
-            <ul
-              className="grid md:grid-cols-2 md:gap-x-20"
-              style={{
-                listStyle: 'none',
-                margin: '16px 0 0',
-                padding: 0,
-                borderBottom: '1px solid var(--mv-line)',
-              }}
-            >
+          <div style={{ marginTop: '64px' }}>
+            <p style={META_STYLE}>{tIndex('relatedTitle')}</p>
+            <ul className="mv-rows grid md:grid-cols-2 md:gap-x-20" style={{ marginTop: '16px' }}>
               {related.map((href) => (
-                <li key={href} style={{ borderTop: '1px solid var(--mv-line)' }}>
-                  <Link
-                    href={href}
-                    className="mv-display"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '16px',
-                      padding: '24px 0',
-                      fontSize: 'clamp(26px, 2.6vw, 34px)',
-                      fontWeight: 600,
-                      lineHeight: 1.05,
-                      color: 'var(--mv-ink)',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    {tIndex(FEATURE_ROUTE_TITLE_KEY[href])}
-                    <span style={{ color: 'var(--mv-copper-text)', display: 'inline-flex' }}>
-                      <ArrowIcon />
-                    </span>
+                <li key={href}>
+                  <Link href={href} className="mv-row">
+                    <span className="mv-h3">{tIndex(FEATURE_ROUTE_TITLE_KEY[href])}</span>
+                    <ArrowIcon />
                   </Link>
                 </li>
               ))}

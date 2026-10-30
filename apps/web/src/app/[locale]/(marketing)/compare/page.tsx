@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import {
+  COMPARE_CHECKED_DATE,
   COMPARE_PAGES,
+  COMPARE_SECTION,
   CompareBreadcrumb,
   CompareFaq,
   CompareLinkList,
@@ -260,6 +262,8 @@ export default async function ComparePage({ params }: PageProps) {
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
   };
 
+  const dated = { date: COMPARE_CHECKED_DATE };
+
   return (
     <div className="mv-cmp-page">
       <CompareStyles />
@@ -268,26 +272,26 @@ export default async function ComparePage({ params }: PageProps) {
       <JsonLd data={faqSchema} />
       <JsonLd data={softwareAppSchema} />
 
-      {/* Hero: one condensed H1, the lede, the store buttons, the date */}
-      <header className="mv-cmp-wrap is-wide pt-28 md:pt-32">
+      {/* Hero: one condensed H1, the lede, the date, then the store buttons */}
+      <header className={`mv-cmp-wrap ${COMPARE_SECTION.header}`}>
         <CompareBreadcrumb current={t('heroTitle')} underCompare={false} />
-        <h1 className="mv-cmp-h1 mt-8">{t('heroTitle')}</h1>
-        <p className="mv-cmp-lede mt-6">{t('heroSubtitle')}</p>
+        <h1 className="mv-section-title">{t('heroTitle')}</h1>
+        <p className="mv-section-sub">{t('heroSubtitle')}</p>
+        <p className="mv-cmp-meta mt-5">{t('updatedAt', dated)}</p>
         {/* Comparison intent is decision intent: the store buttons sit above
             the matrix, not only at the end. */}
-        <div className="mt-8">
+        <div className="mt-10">
           <StoreButtons pageType={CtaPageType.Compare} placement={CtaPlacement.Hero} />
         </div>
-        <p className="mv-cmp-meta mt-5">{t('updatedAt')}</p>
       </header>
 
       {/* The matrix: ten apps across, nine features down, on the page surface.
           Its reveal is the page's one authored entrance. */}
-      <section className="mv-cmp-wrap is-wide pt-20 md:pt-28">
-        <h2 className="mv-cmp-h2">{t('matrixTitle')}</h2>
+      <section className={`mv-cmp-wrap mv-reveal ${COMPARE_SECTION.weight}`}>
+        <h2 className="mv-h2">{t('matrixTitle')}</h2>
         <p className="mv-cmp-note mt-4">{t('matrixSubtitle')}</p>
-        <div className="mv-reveal mt-8 overflow-x-auto">
-          <table className="mv-cmp-table" style={{ minWidth: 880 }}>
+        <div className="mt-8 overflow-x-auto">
+          <table className="mv-table mv-cmp-table" style={{ minWidth: 880 }}>
             <thead>
               <tr>
                 <th scope="col" className="is-sticky">
@@ -307,7 +311,7 @@ export default async function ComparePage({ params }: PageProps) {
             <tbody>
               {FEATURES.map(({ labelKey, field }) => (
                 <tr key={field}>
-                  <th scope="row" className="is-row is-sticky" style={{ whiteSpace: 'nowrap' }}>
+                  <th scope="row" className="is-sticky" style={{ whiteSpace: 'nowrap' }}>
                     {t(labelKey)}
                   </th>
                   {APPS.map((app) => {
@@ -321,16 +325,16 @@ export default async function ComparePage({ params }: PageProps) {
                 </tr>
               ))}
               <tr>
-                <th scope="row" className="is-row is-sticky">
+                <th scope="row" className="is-sticky">
                   {t('headerPricing')}
                 </th>
                 {APPS.map((app) => (
                   <td
                     key={`${app.key}-price`}
                     className={
-                      app.key === 'app0' ? 'is-center is-figure' : 'is-center is-figure is-comp'
+                      app.key === 'app0' ? 'is-center mv-figure' : 'is-center mv-figure is-comp'
                     }
-                    style={{ fontSize: 14, minWidth: 120 }}
+                    style={{ minWidth: 120 }}
                   >
                     {t(`${app.key}.price`)}
                   </td>
@@ -339,13 +343,13 @@ export default async function ComparePage({ params }: PageProps) {
             </tbody>
           </table>
         </div>
-        <p className="mv-cmp-meta mt-5" style={{ maxWidth: '80ch' }}>
-          {t('methodology')}
+        <p className="mv-cmp-meta mt-5" style={{ maxWidth: '72ch' }}>
+          {t('methodology', dated)}
         </p>
       </section>
 
       {/* The comparisons: every head-to-head, then the two guides */}
-      <section className="mv-cmp-wrap is-wide pt-20 md:pt-28">
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
         <CompareLinkList ids={HEAD_TO_HEAD_IDS} heading={t('comparisonsTitle')} />
         <p className="mv-cmp-note mt-5">{t('comparisonsSubtitle')}</p>
         <div className="mt-12">
@@ -354,35 +358,27 @@ export default async function ComparePage({ params }: PageProps) {
       </section>
 
       {/* The apps: name and tagline, what it does, what it costs and where it runs */}
-      <section className="mv-cmp-wrap is-wide pt-20 md:pt-28">
-        <h2 className="mv-cmp-h2">{t('appsTitle')}</h2>
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
+        <h2 className="mv-h2">{t('appsTitle')}</h2>
         <p className="mv-cmp-note mt-4">{t('appsSubtitle')}</p>
-        <ul className="mv-cmp-list mt-10">
+        <ul className="mv-rows mt-10">
           {APPS.map((app) => (
-            <li key={app.key} className="grid gap-x-10 gap-y-3 py-8 md:grid-cols-[240px_1fr_200px]">
+            <li key={app.key} className="mv-row mv-cmp-grid-row md:grid-cols-[240px_1fr_200px]">
               <div>
-                <h3 className="mv-cmp-h3">{t(`${app.key}.name`)}</h3>
+                <h3 className="mv-h3">{t(`${app.key}.name`)}</h3>
                 <p className="mv-cmp-note mt-1">{t(`${app.key}.tagline`)}</p>
               </div>
               <div>
-                <p className="mv-cmp-body is-full" style={{ fontSize: 15 }}>
-                  {t(`${app.key}.description`)}
-                </p>
-                <p className="mv-cmp-sub mt-3" style={{ fontSize: 14, fontWeight: 500 }}>
-                  {t(`${app.key}.best`)}
-                </p>
+                <p className="mv-cmp-body is-compact is-full">{t(`${app.key}.description`)}</p>
+                <p className="mv-cmp-body is-compact is-ink mt-3">{t(`${app.key}.best`)}</p>
                 {app.page ? (
-                  <Link
-                    href={COMPARE_PAGES[app.page].href}
-                    className="mv-cmp-link mt-4 inline-block"
-                    style={{ fontSize: 14 }}
-                  >
+                  <Link href={COMPARE_PAGES[app.page].href} className="mv-link mt-4 inline-block">
                     {t('readComparison')}
                   </Link>
                 ) : null}
               </div>
               <div className="md:text-right">
-                <p className="mv-cmp-figure" style={{ fontSize: 18 }}>
+                <p className="mv-figure" style={{ margin: 0, fontSize: 20, lineHeight: '22px' }}>
                   {t(`${app.key}.price`)}
                 </p>
                 <p className="mv-cmp-meta mt-1">{t(`${app.key}.platforms`)}</p>
@@ -392,30 +388,26 @@ export default async function ComparePage({ params }: PageProps) {
         </ul>
       </section>
 
-      {/* The verdict: four questions, two columns, then the decision CTA */}
-      <section className="mv-cmp-wrap is-wide pt-20 md:pt-28">
-        <h2 className="mv-cmp-h2">{t('verdictTitle')}</h2>
+      {/* The verdict: four questions as hairline rows, then the decision CTA */}
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
+        <h2 className="mv-h2">{t('verdictTitle')}</h2>
         <p className="mv-cmp-note mt-4">{t('verdictSubtitle')}</p>
-        <div className="mt-10 grid gap-x-12 gap-y-8 sm:grid-cols-2">
+        <ul className="mv-rows mt-10">
           {VERDICT_INDICES.map((n) => (
-            <div key={n} className="pt-4" style={{ borderTop: '1px solid var(--mv-line)' }}>
+            <li key={n} className="mv-row mv-cmp-grid-row md:grid-cols-[240px_1fr]">
               <h3 className="mv-cmp-sub">{t(`verdict${n}Title`)}</h3>
-              <p className="mv-cmp-body is-full mt-2" style={{ fontSize: 15 }}>
-                {t(`verdict${n}`)}
-              </p>
-            </div>
+              <p className="mv-cmp-body is-compact is-full">{t(`verdict${n}`)}</p>
+            </li>
           ))}
-        </div>
+        </ul>
         <div className="mt-12 flex flex-col items-start gap-4">
-          <p className="mv-cmp-sub" style={{ fontSize: 17 }}>
-            {t('verdictCtaTitle')}
-          </p>
+          <p className="mv-cmp-sub">{t('verdictCtaTitle')}</p>
           <StoreButtons pageType={CtaPageType.Compare} placement={CtaPlacement.MidArticle} />
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="mv-cmp-wrap is-wide py-20 md:py-28">
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.faq}`}>
         <CompareFaq items={faqItems} />
       </section>
 

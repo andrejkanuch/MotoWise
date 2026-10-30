@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { TripTemplateNode } from '@/lib/fetch-places';
 import { DEFAULT_FILTERS, FilterBar, type FilterState } from './filter-bar';
 import { MapboxMap } from './mapbox-map';
@@ -24,25 +24,14 @@ function MobileTopbar({
   const backLabel = region ? `Back to ${country}` : 'Back to explore';
   return (
     <div className="xp-mtop">
-      <a href={backHref} className="xp-icon-btn" aria-label={backLabel}>
+      <a href={backHref} className="mv-icon-btn" aria-label={backLabel}>
         <Icon name="arrow-left" size={18} />
       </a>
       <div style={{ flex: 1, minWidth: 0 }}>
         <MetaLabel>{region ? `Explore · ${country}` : 'Explore'}</MetaLabel>
-        <div
-          className="xp-h3"
-          style={{
-            marginTop: 2,
-            fontSize: 24,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          Routes in {region ?? country}
-        </div>
+        <div className="xp-mtop-title">Routes in {region ?? country}</div>
       </div>
-      <a href="/explore" className="xp-icon-btn" aria-label="Search routes">
+      <a href="/explore" className="mv-icon-btn" aria-label="Search routes">
         <Icon name="search" size={18} />
       </a>
     </div>
@@ -88,35 +77,35 @@ export function ResultsMobile({
 
   const focusedTrip = trips[0] ?? null;
   const countLabel = `${formatNumber(trips.length)} ${trips.length === 1 ? 'route' : 'routes'}`;
+  const clearFilters = useCallback(
+    () => setFilters((f) => ({ ...DEFAULT_FILTERS, sort: f.sort })),
+    [],
+  );
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100dvh',
-        position: 'relative',
-      }}
-    >
+    <div className="xp-mresults">
       <MobileTopbar country={country} countryCode={countryCode} region={region} />
 
       {!mapMode && (
         <>
-          <div style={{ position: 'sticky', top: 65, zIndex: 9 }}>
+          <div className="xp-mfilters">
             <FilterBar filters={filters} onFilterChange={setFilters} />
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 112px' }}>
+          <div className="xp-mlist">
             {trips.length === 0 ? (
               <div className="xp-empty">
-                <h3 className="xp-h3">No routes match these filters</h3>
+                <h3 className="mv-h3 xp-h3">No routes match these filters</h3>
                 <p>Clear a filter to see every route in {region ?? country}.</p>
+                <button type="button" className="mv-link is-tall" onClick={clearFilters}>
+                  Clear filters
+                </button>
               </div>
             ) : (
               <>
                 <div style={{ paddingBottom: 12 }}>
                   <MetaLabel>Showing {countLabel}</MetaLabel>
                 </div>
-                <div className="xp-rows">
+                <div className="mv-rows">
                   {trips.map((t) => (
                     <TripListCard key={t.id} trip={t} />
                   ))}
@@ -147,10 +136,10 @@ export function ResultsMobile({
             {focusedTrip && (
               <a href={tripHref(focusedTrip)} className="xp-map-sheet">
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  <span className="xp-row-title" style={{ display: 'block' }}>
+                  <span className="mv-row-title" style={{ display: 'block' }}>
                     {focusedTrip.title ?? 'Unnamed route'}
                   </span>
-                  <span className="xp-row-meta" style={{ display: 'block' }}>
+                  <span className="mv-row-sub">
                     {[focusedTrip.city ?? focusedTrip.regionCode, focusedTrip.countryCode]
                       .filter(Boolean)
                       .join(', ')}

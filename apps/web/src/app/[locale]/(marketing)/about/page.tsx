@@ -80,7 +80,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     founder: {
       '@type': 'Person',
       name: 'Andrej Kanuch',
-      jobTitle: 'Founder & Developer',
+      jobTitle: 'Founder and developer',
       url: `${BASE_URL}/about`,
     },
     address: LEGAL_ADDRESS,
@@ -101,7 +101,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     mainEntity: {
       '@type': 'Person',
       name: 'Andrej Kanuch',
-      jobTitle: 'Founder & Developer',
+      jobTitle: 'Founder and developer',
       worksFor: {
         '@type': 'Organization',
         name: 'MotoVault',
@@ -132,10 +132,10 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
 
         {/* What it is for: one pull line, then the sentence that earns it */}
         <section className="mv-read-section" aria-labelledby="mission-heading">
-          <h2 id="mission-heading" className="mv-pull">
+          <h2 id="mission-heading" className="mv-read-h2">
             {t('missionTitle')}
           </h2>
-          <div className="mv-read-body" style={{ marginTop: 24 }}>
+          <div className="mv-read-body">
             <p>{t('missionDescription')}</p>
           </div>
         </section>

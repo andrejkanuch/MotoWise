@@ -23,7 +23,8 @@ export default async function CommunityLayout({ children }: { children: React.Re
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <div style={{ minHeight: '100vh', background: 'var(--mv-bg)' }}>
+      {/* .mv-root: the face, the ground, selection and the focus ring for every signed-in surface. */}
+      <div className="mv-root" style={{ minHeight: '100vh' }}>
         <CommunityNav displayName={displayName} />
         <main>{children}</main>
       </div>

@@ -3,6 +3,9 @@
    web → app handoff, in the Trackside world (DIRECTION.md):
    graphite/paper ramp, bone ink, copper as the only verb, the display
    face for figures and titles, the system face for every sentence.
+   Buttons, links, titles and hairline rows are the shared kit in
+   design-system.css (.mv-btn, .mv-link, .mv-h3, .mv-rows / .mv-row);
+   selection and focus come from .mv-root on the page's root wrapper.
    Colours come only from the --mv-* tokens (mv-tokens.css) and work
    in both schemes. Class prefix: mvg-.
 
@@ -13,82 +16,32 @@
    The empty garage renders none of them: its hero is the handoff.
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Focus, links, shared text ─────────────────────────────────── */
+/* ── Caption (section caption, row caption) ────────────────────── */
 
-.mvg-scope a:focus-visible,
-.mvg-scope button:focus-visible,
-.mvg-focusable:focus-visible {
-  outline: 2px solid var(--mv-focus);
-  outline-offset: 3px;
-}
-.mvg-scope ::selection {
-  background: var(--mv-ink);
-  color: var(--mv-bg);
-}
-
-/* Copper action link ("Mark it done in the app", "Manage subscription"). */
-.mvg-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  font-family: var(--mv-font-body);
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--mv-copper-text);
-  text-decoration: none;
-  border-radius: 4px;
-  transition: color 150ms var(--mv-ease);
-}
-.mvg-link:hover {
-  color: var(--mv-copper-hover);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-.mvg-link svg {
-  flex: none;
-}
-.mvg-link:focus-visible {
-  outline: 2px solid var(--mv-focus);
-  outline-offset: 3px;
-}
-
-/* Display accent inside a title: the condensed face, same ink. (The
-   class name is historical; the serif is retired.) */
-.mvg-serif {
-  font-family: var(--mv-font-display);
-  font-style: normal;
-  font-weight: 600;
-  color: inherit;
-}
-
-/* ── Label (section caption, row caption) ──────────────────────── */
-
-/* A sentence-case caption in the system face: "Odometer", "Also in your
-   garage · 2", the page's status line. Never uppercase, never tracked. */
-.mvg-eyebrow {
+/* A sentence-case caption in the system face at the Meta step (13/18,
+   500, ink-3): "Odometer", "Also in your garage · 2", the page's status
+   line. Never uppercase, never tracked, never copper. */
+.mvg-caption {
   margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
   font-family: var(--mv-font-body);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 18px;
   letter-spacing: 0;
   text-transform: none;
   color: var(--mv-ink-3);
 }
-.mvg-eyebrow--copper {
-  color: var(--mv-copper-text);
+.mvg-caption--strong {
+  color: var(--mv-ink-2);
 }
 
-/* ── Card shell: one step up the ramp, hairline, radius 16 ─────── */
+/* ── Card shell: one step up the ramp, radius 16, no hairline ──── */
 
 .mvg-card {
   background: var(--mv-surface);
-  border: 1px solid var(--mv-line);
   border-radius: var(--mv-radius-card);
   color: var(--mv-ink);
   font-family: var(--mv-font-body);
@@ -176,7 +129,7 @@
 }
 .mvg-qr--hero {
   padding: 14px;
-  border-radius: 14px;
+  border-radius: var(--mv-radius-card);
 }
 .mvg-qr--hero svg {
   width: 148px;
@@ -222,7 +175,7 @@
 }
 .mvg-qrh-body {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.45;
   color: var(--mv-ink-2);
   overflow-wrap: anywhere;
@@ -242,75 +195,51 @@
   gap: 12px;
 }
 .mvg-qrh--hero .mvg-qrh-title {
-  font-size: 18px;
+  font-size: 17px;
 }
 .mvg-qrh--hero .mvg-qrh-body {
-  font-size: 15px;
+  font-size: 16px;
 }
 .mvg-qrh--hero .mvg-linkfield {
   max-width: 380px;
 }
 
-/* ── Link field + copy button ──────────────────────────────────── */
+/* ── Link field + copy button (.mv-btn.is-compact) ─────────────── */
 
 .mvg-linkfield {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 4px 4px 4px 14px;
-  border-radius: var(--mv-radius-field);
+  border-radius: var(--mv-radius-control);
   background: var(--mv-bg);
   border: 1px solid var(--mv-line);
   min-width: 0;
+}
+/* Inside a card the field is fill only: no hairline nested in a surface. */
+.mvg-card .mvg-linkfield {
+  border-color: transparent;
 }
 .mvg-linkfield-url {
   flex: 1;
   min-width: 0;
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  min-height: 36px;
   font-family: var(--mv-font-body);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--mv-ink-2);
   text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  border-radius: 4px;
 }
 .mvg-linkfield-url:hover {
   color: var(--mv-ink);
 }
-/* Copy: a quiet control one step up the ramp… */
 .mvg-copy {
   flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 0 14px;
-  border-radius: var(--mv-radius-control);
-  border: 1px solid var(--mv-line);
-  background: var(--mv-surface-2);
-  color: var(--mv-ink);
-  font: 600 14px var(--mv-font-body);
-  cursor: pointer;
-  transition: background-color 150ms var(--mv-ease), border-color 150ms var(--mv-ease);
-}
-.mvg-copy:hover {
-  background: var(--mv-surface-3);
-  border-color: var(--mv-line-step);
-}
-/* …or, where it is the one action of the section, copper. */
-.mvg-linkfield--primary .mvg-copy {
-  background: var(--mv-copper);
-  border-color: var(--mv-copper);
-  color: var(--mv-on-copper);
-}
-.mvg-linkfield--primary .mvg-copy:hover {
-  background: var(--mv-copper-hover);
-  border-color: var(--mv-copper-hover);
 }
 
 /* ── Sign-in account line ──────────────────────────────────────── */
@@ -322,7 +251,7 @@
   padding: 12px 0;
   border-top: 1px solid var(--mv-line);
   font-family: var(--mv-font-body);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.45;
   color: var(--mv-ink-2);
 }
@@ -335,31 +264,18 @@
   overflow-wrap: anywhere;
 }
 
-/* ── "Better in the app" reasons: hairline rows, icon inline ───── */
+/* ── "Better in the app" reasons: .mv-rows, icon inline ────────── */
 
-.mvg-reasons {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-}
-.mvg-reasons > li + li {
-  border-top: 1px solid var(--mv-line);
-}
 .mvg-reasons-label {
   padding: 0 0 4px;
 }
 
-.mvg-reason {
+/* One reason is an .mv-row laid out as icon | text. */
+.mv-row.mvg-reason {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
   column-gap: 12px;
   align-items: start;
-  padding: 12px 0;
-  color: var(--mv-ink);
-  font-family: var(--mv-font-body);
-  text-decoration: none;
 }
 .mvg-reason-icon {
   display: flex;
@@ -368,6 +284,12 @@
   width: 18px;
   height: 20px;
   color: var(--mv-ink-3);
+}
+/* The icon keeps its own ink and never nudges on hover (an .mv-row link would). */
+.mvg-reason .mvg-reason-icon svg,
+.mvg-reason:hover .mvg-reason-icon svg {
+  color: inherit;
+  transform: none;
 }
 .mvg-reason-text {
   display: flex;
@@ -381,79 +303,42 @@
   line-height: 1.35;
 }
 .mvg-reason-body {
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.45;
   color: var(--mv-ink-2);
 }
 .mvg-reason-cta {
   margin-top: 4px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--mv-copper-text);
+  font-size: 15px;
 }
 
 /* Promoted: max one per page; the whole row is one link to /get. */
-.mvg-reason--promoted {
-  border-radius: 4px;
-}
 .mvg-reason--promoted .mvg-reason-icon {
   color: var(--mv-copper-text);
 }
-.mvg-reason--promoted:hover .mvg-reason-title,
+.mvg-reason--promoted:hover .mvg-reason-title {
+  color: var(--mv-copper-hover);
+}
 .mvg-reason--promoted:hover .mvg-reason-cta {
   color: var(--mv-copper-hover);
+  text-decoration: underline;
 }
 .mvg-reason--promoted .mvg-reason-text {
   gap: 4px;
 }
 
-/* Compact density (tablet band). */
-.mvg-reason--compact {
-  padding: 10px 0;
-}
-
 /* Tile layout (empty-garage hero row): the same row, stacked in a grid. */
-.mvg-reason--tile {
+.mv-row.mvg-reason--tile {
   padding: 0;
+  min-height: 0;
 }
 
-/* ── Store buttons ─────────────────────────────────────────────── */
+/* ── Store buttons (.mv-btn.mv-btn-block) ──────────────────────── */
 
 .mvg-store {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-.mvg-store-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  height: 52px;
-  padding: 0 20px;
-  border-radius: var(--mv-radius-control);
-  background: var(--mv-surface-2);
-  border: 1px solid var(--mv-line);
-  color: var(--mv-ink);
-  font-family: var(--mv-font-body);
-  font-size: 16px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background-color 150ms var(--mv-ease), border-color 150ms var(--mv-ease);
-}
-.mvg-store-btn:hover {
-  background: var(--mv-surface-3);
-  border-color: var(--mv-line-step);
-}
-/* The first store is the one copper action of the phone hero. */
-.mvg-store-btn--primary {
-  background: var(--mv-copper);
-  border-color: var(--mv-copper);
-  color: var(--mv-on-copper);
-}
-.mvg-store-btn--primary:hover {
-  background: var(--mv-copper-hover);
-  border-color: var(--mv-copper-hover);
 }
 .mvg-store-inline {
   display: flex;
@@ -461,7 +346,7 @@
   align-items: center;
   gap: 4px 14px;
   font-family: var(--mv-font-body);
-  font-size: 14px;
+  font-size: 15px;
   color: var(--mv-ink-2);
 }
 
@@ -484,7 +369,7 @@
 .mvg-handoff-panel {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   padding: 24px;
 }
 .mvg-handoff-heading {
@@ -492,18 +377,9 @@
   flex-direction: column;
   gap: 4px;
 }
-.mvg-handoff-title {
-  margin: 0;
-  font-family: var(--mv-font-display);
-  font-size: 30px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.002em;
-  color: var(--mv-ink);
-}
 .mvg-handoff-sub {
   margin: 0;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.45;
   color: var(--mv-ink-2);
 }
@@ -517,8 +393,8 @@
   .mvg-band {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 28px;
-    padding: 28px;
+    gap: 24px;
+    padding: 24px;
   }
 }
 .mvg-band-main {
@@ -528,7 +404,8 @@
   min-width: 0;
 }
 
-/* ── Bar (< 768): opaque, one step up the ramp, no blur ────────── */
+/* ── Bar (< 768): opaque, one step up the ramp, no blur; sits above
+   the cookie banner (--mv-cookie-banner-h) rather than under it ──── */
 
 .mvg-bar,
 .mvg-bar-spacer {
@@ -539,7 +416,7 @@
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: var(--mv-cookie-banner-h, 0px);
     z-index: 40;
     display: flex;
     align-items: center;
@@ -549,10 +426,11 @@
     border-top: 1px solid var(--mv-line);
     font-family: var(--mv-font-body);
     animation: mvg-bar-in 240ms var(--mv-ease-expo) both;
+    transition: bottom 0.25s var(--mv-ease);
   }
   .mvg-bar-spacer {
     display: block;
-    height: calc(72px + env(safe-area-inset-bottom));
+    height: calc(72px + env(safe-area-inset-bottom) + var(--mv-cookie-banner-h, 0px));
   }
 }
 @keyframes mvg-bar-in {
@@ -566,6 +444,7 @@
 @media (prefers-reduced-motion: reduce) {
   .mvg-bar {
     animation: none;
+    transition: none;
   }
 }
 .mvg-bar-icon {
@@ -580,44 +459,15 @@
   flex: 1;
   min-width: 0;
   font-size: 13px;
-  line-height: 1.35;
+  line-height: 18px;
   color: var(--mv-ink);
 }
 .mvg-bar-text span {
   color: var(--mv-ink-2);
 }
-.mvg-bar-open {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 16px;
-  border-radius: var(--mv-radius-control);
-  background: var(--mv-copper);
-  color: var(--mv-on-copper);
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-}
-.mvg-bar-open:hover {
-  background: var(--mv-copper-hover);
-}
+.mvg-bar-open,
 .mvg-bar-dismiss {
   flex: none;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: var(--mv-radius-control);
-  background: transparent;
-  color: var(--mv-ink-2);
-  cursor: pointer;
-}
-.mvg-bar-dismiss:hover {
-  color: var(--mv-ink);
-  background: var(--mv-fill);
 }
 
 /* Visually hidden, still announced (copy confirmation). */

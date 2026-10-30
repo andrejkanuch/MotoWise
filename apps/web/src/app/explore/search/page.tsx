@@ -43,7 +43,7 @@ function splitColumns<T>(items: T[]): [T[], T[]] {
 /* ── Metadata ────────────────────────────────────────────────── */
 
 export const metadata: Metadata = {
-  title: 'Search Routes | MotoVault',
+  title: { absolute: 'Search routes | MotoVault' },
   robots: { index: false, follow: true },
 };
 
@@ -113,8 +113,8 @@ export default async function ExploreSearchPage({
     !dropped.includes('duration') && durationLabel,
   ]);
   const fallbackNotice = keptSummary
-    ? `No exact matches for ${searchSummary} — showing the closest routes (${keptSummary}).`
-    : `No exact matches for ${searchSummary} — here are some popular routes to explore.`;
+    ? `No routes match ${searchSummary}. Here are the closest routes (${keptSummary}) instead.`
+    : `No routes match ${searchSummary}. Here are the most-ridden routes instead.`;
 
   const count = trips.length;
   const [left, right] = splitColumns(trips.map(withRidingTime));
@@ -122,8 +122,8 @@ export default async function ExploreSearchPage({
   return (
     <>
       {/* ===== SEARCH HERO ===== */}
-      <section className="xp-wrap" style={{ paddingTop: 136 }}>
-        <h1 className="xp-h1 xp-h1-sm xp-rise">
+      <section className="xp-wrap" style={{ paddingTop: 120 }}>
+        <h1 className="mv-section-title xp-h1 xp-h1-sm xp-rise">
           {count > 0 ? (
             <>
               {count} {count === 1 ? 'route' : 'routes'}
@@ -145,13 +145,13 @@ export default async function ExploreSearchPage({
         {isFallback && <output className="xp-notice">{fallbackNotice}</output>}
         {count > 0 ? (
           <div className="xp-rows-2">
-            <div className="xp-rows">
+            <div className="mv-rows">
               {left.map((trip) => (
                 <TripListCard key={trip.id} trip={trip} />
               ))}
             </div>
             {right.length > 0 && (
-              <div className="xp-rows">
+              <div className="mv-rows">
                 {right.map((trip) => (
                   <TripListCard key={trip.id} trip={trip} />
                 ))}
@@ -160,7 +160,7 @@ export default async function ExploreSearchPage({
           </div>
         ) : (
           <div className="xp-empty" style={{ padding: '24px 0 0' }}>
-            <p style={{ fontSize: 16 }}>
+            <p>
               Try a shorter search, another country, or any length. Every route we hold is on the
               explore page, grouped by country.
             </p>

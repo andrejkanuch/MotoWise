@@ -25,13 +25,13 @@ type HandoffProps = {
   promoted: PromotedHandoff | null;
 };
 
-/** "Open in the app" (condensed) over "iPhone & Android", shared by the rail and the band. */
+/** "Open in the app" (an .mv-h3) over "iPhone and Android", shared by the rail and the band. */
 function HandoffHeading({ id }: { id: string }) {
   const t = useTranslations('AppHandoff');
   return (
     <div className="mvg-handoff-heading">
-      <h2 id={id} className="mvg-handoff-title">
-        {t('openIn')} {t('theApp')}
+      <h2 id={id} className="mv-h3">
+        {t('openInTheApp')}
       </h2>
       <p className="mvg-handoff-sub">{t('railEyebrow')}</p>
     </div>
@@ -47,7 +47,7 @@ function HandoffHeading({ id }: { id: string }) {
 export function AppHandoffRail({ account, promoted }: HandoffProps) {
   const headingId = useId();
   return (
-    <aside className="mvg-rail mvg-scope" aria-labelledby={headingId}>
+    <aside className="mvg-rail" aria-labelledby={headingId}>
       <GarageCard as="div" tone={CardTone.Card} padding="none" className="mvg-handoff-panel">
         <HandoffHeading id={headingId} />
         <QrHandoff account={account} variant={QrHandoffVariant.Rail} />
@@ -68,7 +68,7 @@ export function AppHandoffBand({ account, promoted }: HandoffProps) {
     <GarageCard
       tone={CardTone.Card}
       padding="none"
-      className="mvg-band mvg-scope"
+      className="mvg-band"
       aria-labelledby={headingId}
     >
       <div className="mvg-band-main">
@@ -106,8 +106,8 @@ function BarCopy({ promoted }: { promoted: PromotedHandoff }) {
 
 /**
  * < 768 px: a slim, dismissible bottom bar (no QR on a phone), opaque and one
- * step up the ramp. Copy follows the promoted reason, or reads "Better in the
- * app." with none. Dismissal is remembered per device (localStorage, every
+ * step up the ramp, offset by the cookie banner's height. Copy follows the
+ * promoted reason, or names what lives in the app with none. Dismissal is remembered per device (localStorage, every
  * access wrapped).
  *
  * Renders nothing on the server and until mounted: whether it was dismissed
@@ -134,19 +134,19 @@ export function AppHandoffBar({ promoted }: { promoted: PromotedHandoff | null }
   return (
     <>
       <div className="mvg-bar-spacer" aria-hidden="true" />
-      <section className="mvg-bar mvg-scope" aria-label={t('barRegion')}>
+      <section className="mvg-bar" aria-label={t('barRegion')}>
         <span className="mvg-bar-icon" aria-hidden="true">
           <Icon size={18} strokeWidth={1.75} />
         </span>
         <p className="mvg-bar-text" style={{ margin: 0 }}>
           {promoted ? <BarCopy promoted={promoted} /> : t('barDefault')}
         </p>
-        <a href={APP_HANDOFF_URL} className="mvg-bar-open">
+        <a href={APP_HANDOFF_URL} className="mv-btn mv-btn-primary mvg-bar-open">
           {t('barOpen')}
         </a>
         <button
           type="button"
-          className="mvg-bar-dismiss"
+          className="mv-icon-btn mvg-bar-dismiss"
           aria-label={t('barDismiss')}
           onClick={dismiss}
         >

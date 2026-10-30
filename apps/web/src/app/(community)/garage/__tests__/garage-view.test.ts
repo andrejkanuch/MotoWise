@@ -97,9 +97,9 @@ describe('GarageView: empty account (no bike, no data)', () => {
   });
 
   it('renders the start-in-the-app hero and the bike preview', () => {
-    expect(html).toContain('Add your bike in the app. It takes 30 seconds.');
+    expect(html).toContain('Add your bike in the app: make, model, year.');
     expect(html).toContain('This is where your bike lives');
-    expect(html).toContain('Garage · No bikes yet');
+    expect(html).toContain('No bikes yet');
   });
 
   it('renders no rail and no band (the hero is the handoff)', () => {

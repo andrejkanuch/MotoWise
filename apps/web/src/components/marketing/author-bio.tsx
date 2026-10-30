@@ -47,7 +47,13 @@ export function AuthorBio({ author }: AuthorBioProps) {
         {links.length > 0 && (
           <div className="mv-read-author-links">
             {links.map((link) => (
-              <a key={link.href} href={link.href} rel="noopener noreferrer me" target="_blank">
+              <a
+                key={link.href}
+                href={link.href}
+                rel="noopener noreferrer me"
+                target="_blank"
+                className="mv-link is-quiet"
+              >
                 {link.label}
               </a>
             ))}

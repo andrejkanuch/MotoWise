@@ -37,9 +37,9 @@ export const BetterInAppLayout = {
 export type BetterInAppLayout = (typeof BetterInAppLayout)[keyof typeof BetterInAppLayout];
 
 export const BetterInAppDensity = {
-  /** Rail / desktop: 12 px rows. */
+  /** Rail / desktop. */
   Regular: 'regular',
-  /** Tablet band: 10 px rows. */
+  /** Tablet band. Rows keep the site's one row padding; the modifier is a hook only. */
   Compact: 'compact',
 } as const;
 export type BetterInAppDensity = (typeof BetterInAppDensity)[keyof typeof BetterInAppDensity];
@@ -76,7 +76,7 @@ type BetterInAppCardProps = {
   | {
       /** Promoted row: the whole row is one link to motovault.app/get. */
       promoted: PromotedHandoff;
-      /** Adds the "Open MotoVault →" line (desktop rail only). */
+      /** Adds the "Open in the app" line (desktop rail only). */
       showCta?: boolean;
       reason?: undefined;
     }
@@ -92,6 +92,7 @@ export function BetterInAppCard(props: BetterInAppCardProps) {
   const { layout = BetterInAppLayout.Row, density = BetterInAppDensity.Regular } = props;
   const classes = (promoted: boolean) =>
     [
+      'mv-row',
       'mvg-reason',
       promoted ? 'mvg-reason--promoted' : null,
       layout === BetterInAppLayout.Tile ? 'mvg-reason--tile' : null,
@@ -152,7 +153,7 @@ function PromotedCard({
       <span className="mvg-reason-text">
         <span className="mvg-reason-title">{title}</span>
         <span className="mvg-reason-body">{body}</span>
-        {showCta && <span className="mvg-reason-cta">{t('openMotoVault')}</span>}
+        {showCta && <span className="mv-link is-quiet mvg-reason-cta">{t('openMotoVault')}</span>}
       </span>
     </a>
   );
@@ -160,7 +161,7 @@ function PromotedCard({
 
 /**
  * The "Better in the app" list: the promoted row (if any) first, then the
- * calm reasons, never repeating the promoted one. Hairline rows, no card.
+ * calm reasons, never repeating the promoted one. Hairline rows (.mv-rows), no card.
  */
 export function BetterInAppList({
   promoted,
@@ -172,12 +173,14 @@ export function BetterInAppList({
   density?: BetterInAppDensity;
   /** The "Better in the app" caption above the list (rail: yes, band: no). */
   showLabel?: boolean;
-  /** "Open MotoVault →" inside the promoted row (rail only). */
+  /** "Open in the app" inside the promoted row (rail only). */
   showCta?: boolean;
 }) {
   const t = useTranslations('AppHandoff');
   const listClass =
-    density === BetterInAppDensity.Compact ? 'mvg-reasons mvg-reasons--compact' : 'mvg-reasons';
+    density === BetterInAppDensity.Compact
+      ? 'mv-rows is-open mvg-reasons mvg-reasons--compact'
+      : 'mv-rows is-open mvg-reasons';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {showLabel && <MonoLabel className="mvg-reasons-label">{t('betterInApp')}</MonoLabel>}

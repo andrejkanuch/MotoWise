@@ -12,12 +12,12 @@ import {
   AuthHead,
   AuthShell,
   LegalNote,
+  mutedChunk,
   OAuthButtons,
   type OAuthProvider,
   OrWithEmail,
   RESEND_LABEL_KEY,
   SubmitButton,
-  serifChunk,
 } from '@/components/auth-ui/auth-ui';
 import { identifyUser, trackEvent, WebEvent } from '@/lib/analytics';
 import {
@@ -145,14 +145,14 @@ export default function LoginPage() {
 
   const recoveryAction: Record<NonNullable<AuthErrorRecovery>, React.ReactNode> = {
     reset_password: (
-      <Link href="/forgot-password" className="mva-banner-link">
+      <Link href="/forgot-password" className="mv-link is-quiet is-tall">
         {t('signIn.resetPassword')}
       </Link>
     ),
     resend_confirmation: (
       <button
         type="button"
-        className="mva-btn-secondary"
+        className="mv-btn mv-btn-ghost"
         onClick={handleResendConfirmation}
         disabled={resendState !== 'idle'}
       >
@@ -168,7 +168,7 @@ export default function LoginPage() {
       panelNote={PANEL_NOTE}
     >
       <AuthHead
-        title={t.rich('signIn.title', { serif: serifChunk })}
+        title={t.rich('signIn.title', { muted: mutedChunk })}
         subtitle={t('signIn.subtitle')}
       />
 
@@ -204,7 +204,7 @@ export default function LoginPage() {
           id="login-password"
           label={t('passwordLabel')}
           labelAside={
-            <Link href="/forgot-password" className="mva-label-link">
+            <Link href="/forgot-password" className="mv-link is-quiet is-tall">
               {t('signIn.forgot')}
             </Link>
           }

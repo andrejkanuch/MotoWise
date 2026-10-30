@@ -31,19 +31,19 @@ export function SharedTripView({ data }: { data: SharedTrip }) {
       </div>
 
       <main className="sp-main sp-main-tall">
-        <h1 className="sp-title">{data.title}</h1>
+        <h1 className="mv-section-title sp-title">{data.title}</h1>
         <p className="sp-sub">{context}</p>
 
         <div className="sp-figures">
           <div className="sp-figure">
-            <span className="sp-figure-value">
+            <span className="mv-figure sp-figure-value">
               {data.participantCount}
               <small>of {data.maxRiders}</small>
             </span>
             <span className="sp-figure-label">Riders on the trip</span>
           </div>
           <div className="sp-figure">
-            <span className="sp-figure-value">{waypoints.length}</span>
+            <span className="mv-figure sp-figure-value">{waypoints.length}</span>
             <span className="sp-figure-label">
               {waypoints.length === 1 ? 'Waypoint' : 'Waypoints'}
             </span>
@@ -60,9 +60,9 @@ export function SharedTripView({ data }: { data: SharedTrip }) {
         {sortedWaypoints.length > 0 && (
           <section className="sp-section">
             <h2 className="sp-section-title">Waypoints</h2>
-            <ol className="sp-list">
+            <ol className="mv-rows">
               {sortedWaypoints.map((wp, index) => (
-                <li key={wp.id} className="sp-row">
+                <li key={wp.id} className="mv-row sp-row">
                   <span className="sp-row-num" aria-hidden="true">
                     {index + 1}
                   </span>
@@ -83,9 +83,9 @@ export function SharedTripView({ data }: { data: SharedTrip }) {
         {participants.length > 0 && (
           <section className="sp-section">
             <h2 className="sp-section-title">Riders</h2>
-            <ul className="sp-list">
+            <ul className="mv-rows">
               {participants.map((p) => (
-                <li key={p.anonId} className="sp-row" style={{ alignItems: 'center' }}>
+                <li key={p.anonId} className="mv-row">
                   {p.avatarUrl ? (
                     // biome-ignore lint/performance/noImgElement: tiny avatar thumbnail, edge runtime
                     <img src={p.avatarUrl} alt="" className="sp-row-avatar" />
@@ -105,9 +105,9 @@ export function SharedTripView({ data }: { data: SharedTrip }) {
 
       <footer className="sp-cta">
         <div className="sp-cta-inner">
-          <h2 className="sp-cta-title">Ride it with them</h2>
+          <h2 className="mv-h2">Ride it with them</h2>
           <p className="sp-cta-sub">
-            Open the trip in MotoVault to see the route on the map, join the group and track the
+            Open the trip in the app to see the route on the map, join the group and record the
             ride.
           </p>
           <div className="sp-cta-actions">
@@ -121,7 +121,7 @@ export function SharedTripView({ data }: { data: SharedTrip }) {
               slug={data.id}
               className="mv-btn mv-btn-ghost"
             >
-              App Store
+              Download for iOS
             </StoreLink>
             <StoreLink
               platform={StorePlatform.Android}
@@ -130,7 +130,7 @@ export function SharedTripView({ data }: { data: SharedTrip }) {
               slug={data.id}
               className="mv-btn mv-btn-ghost"
             >
-              Google Play
+              Download for Android
             </StoreLink>
           </div>
         </div>

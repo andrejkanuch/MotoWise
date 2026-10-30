@@ -79,22 +79,19 @@ function PageHead({ mode, bikeCount }: { mode: GarageMode; bikeCount: number }) 
   const empty = mode === GarageMode.Empty;
   return (
     <header className="gv-head">
-      <h1 className="gv-title">
-        {t('titleLead')} {t('titleSerif')}
-      </h1>
-      {/* One status line under the title: section · count · read-only. */}
+      <h1 className="mv-section-title gv-title">{t('title')}</h1>
+      {/* One status line under the title: count · read-only. */}
       <MonoLabel className="gv-meta">
         <span>
-          {t('eyebrowGarage')}
           {empty ? (
-            <> · {t('eyebrowNoBikes')}</>
+            t('eyebrowNoBikes')
           ) : (
             <>
               {mode === GarageMode.Populated && (
-                <span className="gv-hide-phone"> · {t('eyebrowBikes', { count: bikeCount })}</span>
+                <span className="gv-hide-phone">{t('eyebrowBikes', { count: bikeCount })} · </span>
               )}
-              <span className="gv-show-desktop"> · {t('eyebrowReadOnlyWeb')}</span>
-              <span className="gv-hide-desktop"> · {t('eyebrowReadOnly')}</span>
+              <span className="gv-show-desktop">{t('eyebrowReadOnlyWeb')}</span>
+              <span className="gv-hide-desktop">{t('eyebrowReadOnly')}</span>
             </>
           )}
         </span>
@@ -206,13 +203,17 @@ export function GarageView({
   // ─── Error ───
   if (mode === GarageMode.Error) {
     return (
-      <div className="gv-page mvg-scope">
+      <div className="gv-page">
         <div className="gv-main">
           <PageHead mode={mode} bikeCount={0} />
           <div className="gv-error" role="alert">
             <p className="gv-error-title">{t('failedToLoad')}</p>
             <p className="gv-quiet">{t('failedToLoadBody')}</p>
-            <button type="button" className="gv-retry" onClick={() => bikesQuery.refetch()}>
+            <button
+              type="button"
+              className="mv-btn mv-btn-ghost"
+              onClick={() => bikesQuery.refetch()}
+            >
               {t('retry')}
             </button>
           </div>
@@ -224,7 +225,7 @@ export function GarageView({
   // ─── Loading ───
   if (mode === GarageMode.Loading) {
     return (
-      <div className="gv-page mvg-scope">
+      <div className="gv-page">
         <div className="gv-main">
           <PageHead mode={mode} bikeCount={0} />
           <BikeHeroSkeleton />
@@ -248,7 +249,7 @@ export function GarageView({
   // ─── Empty: no bike. The start hero is the handoff: no rail, band or bar. ───
   if (mode === GarageMode.Empty) {
     return (
-      <div className="gv-page gv-page--empty mvg-scope">
+      <div className="gv-page">
         <div className="gv-main">
           <PageHead mode={mode} bikeCount={0} />
           <div className="gv-empty-grid">
@@ -267,7 +268,7 @@ export function GarageView({
   const leadBike = lead as Bike;
   return (
     <>
-      <div className="gv-page mvg-scope">
+      <div className="gv-page">
         <div className="gv-main">
           <PageHead mode={mode} bikeCount={bikes?.length ?? 0} />
           <BikeHero

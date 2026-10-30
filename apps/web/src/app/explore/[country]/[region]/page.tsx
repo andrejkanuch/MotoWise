@@ -76,11 +76,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!result) return {};
 
   const { countryName, regionName } = result;
-  const title = `Motorcycle Routes in ${regionName}, ${countryName}`;
+  const title = `Motorcycle routes in ${regionName}, ${countryName}`;
   const rc = result.trips.length;
   const description =
     rc > 0
-      ? `Explore ${rc} motorcycle route${rc === 1 ? '' : 's'} in ${regionName}, ${countryName}. Twisty roads, scenic passes, and rides rated by the community.`
+      ? `Explore ${rc} motorcycle route${rc === 1 ? '' : 's'} in ${regionName}, ${countryName}. Twisty roads, scenic passes and routes rated by riders.`
       : `Motorcycle routes in ${regionName}, ${countryName} are coming soon. Browse nearby regions on MotoVault.`;
 
   const canonical = getCanonicalUrl('en', `/explore/${countrySlug}/${regionSlug}`);

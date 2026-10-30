@@ -42,8 +42,8 @@ export async function RelatedResources({ angle }: { angle: CtaAngle }) {
       <ul className="mv-rows">
         {links.map((link) => (
           <li key={link.href}>
-            <Link href={link.href}>
-              {t(link.labelKey)}
+            <Link href={link.href} className="mv-row">
+              <span className="mv-row-title">{t(link.labelKey)}</span>
               <svg
                 width="16"
                 height="16"

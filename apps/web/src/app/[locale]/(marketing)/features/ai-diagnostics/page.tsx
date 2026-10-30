@@ -43,7 +43,8 @@ const FACT_STYLE = {
   gap: '16px',
   padding: '12px 0',
   borderTop: '1px solid var(--mv-line)',
-  fontSize: '14px',
+  fontSize: '15px',
+  lineHeight: 1.45,
 } as const;
 
 /**
@@ -83,21 +84,12 @@ function DiagnosisResult({ t }: { t: Translator }) {
         </span>
         <span>
           {t('resultConfidenceLabel')}{' '}
-          <span className="mv-figure" style={{ fontSize: '14px', color: 'var(--mv-ink)' }}>
+          <span className="mv-figure" style={{ fontSize: '15px', color: 'var(--mv-ink)' }}>
             {t('resultConfidenceValue')}
           </span>
         </span>
       </div>
-      <h3
-        className="mv-display"
-        style={{
-          margin: '12px 0 0',
-          fontSize: '32px',
-          fontWeight: 600,
-          lineHeight: 1.05,
-          color: 'var(--mv-ink)',
-        }}
-      >
+      <h3 className="mv-h3" style={{ marginTop: '12px' }}>
         {t('scanTitle')}
       </h3>
       <p
@@ -119,7 +111,8 @@ function DiagnosisResult({ t }: { t: Translator }) {
                 display: 'flex',
                 justifyContent: 'space-between',
                 gap: '16px',
-                fontSize: '14px',
+                fontSize: '15px',
+                lineHeight: 1.45,
                 color: 'var(--mv-ink)',
               }}
             >
@@ -133,7 +126,7 @@ function DiagnosisResult({ t }: { t: Translator }) {
               style={{
                 marginTop: '8px',
                 height: '4px',
-                borderRadius: '2px',
+                borderRadius: 'var(--mv-radius-track)',
                 background: 'var(--mv-surface-3)',
               }}
             >
@@ -141,7 +134,7 @@ function DiagnosisResult({ t }: { t: Translator }) {
                 style={{
                   width: `${share}%`,
                   height: '100%',
-                  borderRadius: '2px',
+                  borderRadius: 'var(--mv-radius-track)',
                   background: 'var(--mv-ink-2)',
                 }}
               />

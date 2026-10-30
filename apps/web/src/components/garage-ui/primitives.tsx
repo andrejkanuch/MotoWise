@@ -69,15 +69,16 @@ type MonoLabelProps = {
   id?: string;
   /** Kept for callers; the label carries no rule in the Trackside world. */
   rule?: boolean;
-  /** Copper text (--mv-copper-text): only when the label names an action. */
+  /** One step darker (--mv-ink-2) for a caption that carries a value. Copper is a verb, never a label. */
   accent?: boolean;
   className?: string;
   children: ReactNode;
 };
 
 /**
- * A sentence-case caption in the system face at --mv-ink-3 ("Odometer",
- * "Also in your garage · 2"). The name is historical: it is no longer mono,
+ * A sentence-case caption in the system face at the Meta step (13/18, 500,
+ * --mv-ink-3): "Odometer", "Also in your garage · 2". The export name is
+ * historical (index.ts keeps it): it renders `.mvg-caption`, never mono,
  * never uppercase and never letter-spaced (the Plain Voice Rule).
  */
 export function MonoLabel({
@@ -87,7 +88,7 @@ export function MonoLabel({
   className,
   children,
 }: MonoLabelProps) {
-  const classes = ['mvg-eyebrow', accent ? 'mvg-eyebrow--copper' : null, className]
+  const classes = ['mvg-caption', accent ? 'mvg-caption--strong' : null, className]
     .filter(Boolean)
     .join(' ');
   return (
@@ -119,7 +120,7 @@ export function Skeleton({ width = '100%', height, radius = 8, className }: Skel
   );
 }
 
-/** Condensed display accent inside a title (same ink). The serif is retired. */
+/** Condensed display accent inside a title (same ink): the shared `.mv-display`. The serif is retired. */
 export function SerifAccent({ children }: { children: ReactNode }) {
-  return <span className="mvg-serif">{children}</span>;
+  return <span className="mv-display">{children}</span>;
 }

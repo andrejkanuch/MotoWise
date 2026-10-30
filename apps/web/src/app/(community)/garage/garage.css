@@ -3,17 +3,18 @@
    and /profile/followers pages and the "Do this in the app" hint, in
    the Trackside world. The /garage page styles live in garage-view.css;
    the handoff kit in components/garage-ui/garage-ui.css.
-   Colours only from the --mv-* tokens (mv-tokens.css), both schemes.
+   The face, ground, selection and focus ring come from .mv-root on the
+   (community) layout wrapper; buttons, links, rows and the segmented
+   control are the shared kit in design-system.css. Colours only from
+   the --mv-* tokens (mv-tokens.css), both schemes.
+   Gutters 40 → 24 (≤900) → 20 (≤480), the site's container (1240).
    ═══════════════════════════════════════════════════════════════ */
 
 /* ─── Page shell ─── */
 .garage-page {
   box-sizing: border-box;
-  padding: 40px 16px 80px;
+  padding: 40px 20px 80px;
   min-height: 100vh;
-  color: var(--mv-ink);
-  font-family: var(--mv-font-body);
-  -webkit-font-smoothing: antialiased;
 }
 .garage-page *,
 .garage-page *::before,
@@ -24,22 +25,23 @@
   max-width: 780px;
   margin: 0 auto;
 }
-@media (min-width: 768px) {
+@media (min-width: 481px) {
   .garage-page {
-    padding: 48px 32px 96px;
+    padding: 40px 24px 80px;
+  }
+}
+@media (min-width: 901px) {
+  .garage-page {
+    padding: 48px 40px 96px;
   }
 }
 
 /* ─── Shared text ─── */
+/* Operate H1: the section-title face, capped at 44 so the page stays
+   spatially predictable (the H1-operate step). */
 .prof-title {
-  margin: 0;
-  font-family: var(--mv-font-display);
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 0.96;
-  letter-spacing: 0.002em;
-  color: var(--mv-ink);
-  text-wrap: balance;
+  font-size: 44px;
+  line-height: 0.98;
   overflow-wrap: anywhere;
 }
 .prof-quiet {
@@ -47,17 +49,6 @@
   font-size: 15px;
   line-height: 1.5;
   color: var(--mv-ink-2);
-}
-.prof-caption {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.45;
-  color: var(--mv-ink-3);
-}
-@media (min-width: 768px) {
-  .prof-title {
-    font-size: 52px;
-  }
 }
 
 /* ─── Centred states (loading, error, no public profile) ─── */
@@ -69,7 +60,7 @@
   padding-top: 24px;
 }
 .prof-state .mv-btn,
-.prof-state .app-hint {
+.prof-state .mv-link {
   margin-top: 12px;
 }
 
@@ -106,7 +97,9 @@
   align-items: center;
   gap: 8px;
   margin-top: 2px;
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
   color: var(--mv-ink-3);
 }
 .prof-banner-meta .dot {
@@ -121,48 +114,16 @@
   align-items: flex-start;
   gap: 4px;
 }
-/* The manage link / button (web billing): a copper text action. */
-.prof-banner-manage {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font-family: var(--mv-font-body);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--mv-copper-text);
-  text-decoration: none;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: color 150ms var(--mv-ease);
-}
-.prof-banner-manage:hover {
-  color: var(--mv-copper-hover);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-.prof-banner-manage:disabled {
-  cursor: progress;
-  color: var(--mv-ink-3);
-  text-decoration: none;
-}
+/* The manage link / button is .mv-link.is-quiet.is-tall (shared kit). */
 .prof-banner-manage-help {
   margin: 0;
-  max-width: 40ch;
-  font-size: 14px;
+  max-width: 48ch;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--mv-ink-2);
 }
-.prof-banner-manage-help a {
-  color: var(--mv-copper-text);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
 .prof-banner-manage-note {
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.45;
   color: var(--mv-ink-2);
 }
@@ -195,7 +156,7 @@
   align-items: center;
   justify-content: center;
   font-family: var(--mv-font-display);
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 600;
   color: var(--mv-ink);
 }
@@ -209,7 +170,7 @@
   align-items: center;
   gap: 6px;
   margin-top: 6px;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--mv-ink-3);
 }
 .prof-bio {
@@ -218,9 +179,10 @@
   font-size: 16px;
   line-height: 1.6;
   color: var(--mv-ink-2);
+  text-wrap: pretty;
 }
 
-/* ─── Stats: condensed figures over system-face labels, hairline rows ─── */
+/* ─── Stats: condensed figures over system-face labels, one hairline ─── */
 .prof-stats {
   margin: 40px 0 0;
   padding-top: 24px;
@@ -239,82 +201,41 @@
   margin: 0;
 }
 .prof-stat dt {
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
   color: var(--mv-ink-3);
 }
 .prof-stat-num {
-  font-size: 36px;
-  line-height: 1;
+  font-size: 40px;
+  line-height: 42px;
   color: var(--mv-ink);
 }
 .prof-stat-num .unit {
   margin-left: 4px;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 500;
   color: var(--mv-ink-2);
 }
 @media (min-width: 640px) {
   .prof-stats {
-    grid-template-columns: repeat(5, minmax(0, auto));
+    grid-template-columns: repeat(auto-fit, minmax(96px, max-content));
     justify-content: space-between;
     gap: 24px;
   }
-  .prof-stat-num {
-    font-size: 40px;
-  }
 }
 
-/* ─── Followers ─── */
+/* ─── Followers: .mv-segmented tabs, .mv-rows of people ─── */
 .prof-tabs {
-  display: inline-flex;
-  gap: 4px;
   margin-top: 24px;
-  padding: 4px;
-  border-radius: var(--mv-radius-control);
-  background: var(--mv-surface-2);
-  border: 1px solid var(--mv-line);
-}
-.prof-tab {
-  min-height: 36px;
-  padding: 0 16px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  font: 500 15px var(--mv-font-body);
-  color: var(--mv-ink-2);
-  cursor: pointer;
-  transition: background-color 150ms var(--mv-ease), color 150ms var(--mv-ease);
-}
-.prof-tab:hover {
-  color: var(--mv-ink);
-}
-.prof-tab[aria-selected='true'] {
-  background: var(--mv-surface-3);
-  color: var(--mv-ink);
-  font-weight: 600;
 }
 .prof-list {
-  margin: 16px 0 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
+  margin-top: 16px;
 }
-.prof-list > li + li {
-  border-top: 1px solid var(--mv-line);
-}
-.prof-person {
-  display: flex;
-  align-items: center;
+/* A person row: avatar, then name over handle, flush left. */
+.mv-row.prof-person {
+  justify-content: flex-start;
   gap: 12px;
-  min-height: 56px;
-  padding: 8px 0;
-  color: var(--mv-ink);
-  text-decoration: none;
-  border-radius: 4px;
-}
-.prof-person:hover .prof-person-name {
-  color: var(--mv-copper-text);
 }
 .prof-person-avatar {
   flex: none;
@@ -330,26 +251,23 @@
   align-items: center;
   justify-content: center;
   font-family: var(--mv-font-display);
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--mv-ink);
 }
 .prof-person-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
   min-width: 0;
 }
 .prof-person-name {
-  font-size: 16px;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .prof-person-handle {
-  font-size: 14px;
-  color: var(--mv-ink-3);
+  margin-top: 2px;
 }
 .prof-more {
   display: flex;
@@ -380,55 +298,8 @@
   }
 }
 
-/* ─── "Do this in the app" hint (DoInAppHint): a copper text action ─── */
-.app-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--mv-copper-text);
-  text-decoration: none;
-  border-radius: 4px;
-  transition: color 150ms var(--mv-ease);
-}
-.app-hint:hover {
-  color: var(--mv-copper-hover);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-.app-hint svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-.app-hint-cta {
-  color: inherit;
-}
 .app-hint-spaced {
   margin-top: 16px;
-}
-
-/* ─── Skeletons ─── */
-.skeleton {
-  background: var(--mv-skel);
-  border-radius: 8px;
-  animation: skeleton-pulse 1.5s ease-in-out infinite;
-}
-@keyframes skeleton-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .skeleton {
-    animation: none;
-  }
 }
 
 /* ─── Community nav: a flat bar on the ground, one hairline, no blur ─── */
@@ -436,26 +307,25 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  min-height: 64px;
-  padding: 0 32px;
+  padding: 0 40px;
   background: var(--mv-bg);
   border-bottom: 1px solid var(--mv-line);
-  color: var(--mv-ink);
-  font-family: var(--mv-font-body);
-  -webkit-font-smoothing: antialiased;
 }
 .community-nav *,
 .community-nav *::before,
 .community-nav *::after {
   box-sizing: border-box;
 }
-.community-nav :focus-visible {
-  outline: 2px solid var(--mv-focus);
-  outline-offset: 3px;
+/* The site's container: the brand sits on the same left edge as every H1. */
+.nav-inner {
+  position: relative;
+  max-width: var(--mv-container);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 64px;
 }
 
 .nav-brand {
@@ -464,10 +334,8 @@
   min-height: 44px;
   font-size: 17px;
   font-weight: 600;
-  letter-spacing: -0.01em;
   color: var(--mv-ink);
   text-decoration: none;
-  border-radius: 4px;
   flex-shrink: 0;
 }
 
@@ -485,7 +353,6 @@
   font-weight: 500;
   color: var(--mv-ink-2);
   text-decoration: none;
-  border-radius: 4px;
   transition: color 150ms var(--mv-ease);
 }
 .nav-link:hover {
@@ -515,41 +382,9 @@
   min-width: 0;
 }
 
+/* "Pro": .mv-link.is-quiet.is-tall, padded like its neighbour links. */
 .nav-upgrade {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
   padding: 0 12px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--mv-copper-text);
-  text-decoration: none;
-  border-radius: 4px;
-  transition: color 150ms var(--mv-ease);
-}
-.nav-upgrade:hover {
-  color: var(--mv-copper-hover);
-}
-
-/* Icon control (theme toggle, menu): a ghost square, radius 12. */
-.nav-icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  border: 0;
-  border-radius: var(--mv-radius-control);
-  background: transparent;
-  color: var(--mv-ink-2);
-  cursor: pointer;
-  transition: background-color 150ms var(--mv-ease), color 150ms var(--mv-ease);
-}
-.nav-icon-btn:hover {
-  background: var(--mv-fill);
-  color: var(--mv-ink);
 }
 
 .nav-user {
@@ -576,7 +411,7 @@
 }
 /* Usually an email address: never let it set the bar's width. */
 .nav-name-text {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--mv-ink-2);
   max-width: 220px;
   min-width: 0;
@@ -602,36 +437,17 @@
   color: var(--mv-ink-3);
 }
 
-.nav-signout-btn {
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: var(--mv-radius-control);
-  background: var(--mv-surface-2);
-  border: 1px solid var(--mv-line);
-  font: 600 14px var(--mv-font-body);
-  color: var(--mv-ink);
-  cursor: pointer;
-  transition: background-color 150ms var(--mv-ease), border-color 150ms var(--mv-ease);
-}
-.nav-signout-btn:hover {
-  background: var(--mv-surface-3);
-  border-color: var(--mv-line-step);
-}
-.nav-signout-btn:disabled {
-  cursor: progress;
-  color: var(--mv-ink-3);
-}
-
 .nav-menu-btn {
   display: none;
 }
 
-/* The account menu (< 720): one step up the ramp, hairline, radius 16. */
+/* The account menu (< 720): one step up the ramp, hairline, radius 16;
+   the links are .mv-rows / .mv-row. */
 .nav-mobile-menu {
   position: absolute;
   top: calc(100% + 8px);
-  right: 12px;
-  left: 12px;
+  right: 0;
+  left: 0;
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -643,42 +459,40 @@
 .nav-menu-name {
   margin: 0;
   padding: 10px 0;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--mv-ink-3);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   border-bottom: 1px solid var(--mv-line);
 }
-.nav-menu-link {
-  display: flex;
-  align-items: center;
-  min-height: 48px;
-  font-size: 16px;
+.mv-row.nav-menu-link {
   font-weight: 500;
   color: var(--mv-ink-2);
-  text-decoration: none;
-  border-bottom: 1px solid var(--mv-line);
 }
-.nav-menu-link.active {
+.mv-row.nav-menu-link.active {
   color: var(--mv-ink);
   font-weight: 600;
 }
-.nav-menu-link.nav-upgrade {
-  padding: 0;
-  color: var(--mv-copper-text);
+.mv-row.nav-menu-link.nav-upgrade {
+  padding: 12px 0;
 }
-.nav-mobile-menu .nav-signout-btn {
+.nav-mobile-menu .nav-signout {
   align-self: flex-start;
   margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+  .community-nav {
+    padding: 0 24px;
+  }
 }
 
 /* < 720: the bar keeps brand, theme toggle, avatar (+ plan) and the menu
    button; the name, links, upgrade and sign-out move into the menu. */
 @media (max-width: 720px) {
-  .community-nav {
+  .nav-inner {
     min-height: 56px;
-    padding: 0 12px 0 16px;
     gap: 12px;
   }
   .nav-links,
@@ -698,8 +512,14 @@
   }
 }
 
+@media (max-width: 480px) {
+  .community-nav {
+    padding: 0 20px;
+  }
+}
+
 /* The menu belongs to the narrow layout only: if the viewport widens while it
-   is open (rotation, resize), hide it instead of showing a second Upgrade and
+   is open (rotation, resize), hide it instead of showing a second Pro and
    Sign out next to the desktop ones. */
 @media (min-width: 721px) {
   .nav-mobile-menu {

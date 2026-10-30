@@ -15,7 +15,7 @@ export async function generateMetadata({
   setRequestLocale(locale);
 
   return {
-    title: 'Press Kit | MotoVault',
+    title: 'Press kit | MotoVault',
     description:
       'Download MotoVault brand assets, logos, screenshots, and company information for press and media coverage.',
     alternates: {
@@ -174,9 +174,9 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
           <ul className="mv-rows">
             {logos.map((logo) => (
               <li key={logo.href}>
-                <a href={logo.href} download>
-                  {logo.label}
-                  <span className="mv-rows-aside">PNG, 1024 × 1024</span>
+                <a href={logo.href} download className="mv-row">
+                  <span className="mv-row-title">{logo.label}</span>
+                  <span className="mv-row-aside">PNG, 1024 × 1024</span>
                 </a>
               </li>
             ))}

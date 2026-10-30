@@ -32,14 +32,14 @@ const DISCOUNT_CODE_PATTERN = /^[A-Za-z0-9_-]{1,40}$/;
 const BRAND_LOGO = '/images/marketing/MotoVault.png';
 
 export const metadata: Metadata = {
-  title: 'Get MotoVault — your bike, every ride and every service',
+  title: { absolute: 'Get MotoVault: your bike, every ride and every service' },
   description:
-    'Log rides, track every expense and never miss a service. MotoVault is free on iPhone and Android.',
+    'Log rides, track every expense and get service reminders before they are due. MotoVault is free on iPhone and Android.',
   robots: { index: false, follow: false },
   alternates: { canonical: `${SITE_URL}${GET_PATH}` },
   openGraph: {
     title: 'Get MotoVault',
-    description: 'Log rides, track every expense and never miss a service.',
+    description: 'Log rides, track every expense and get service reminders before they are due.',
     url: `${SITE_URL}${GET_PATH}`,
     type: 'website',
   },
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
 const BENEFITS = [
   { icon: Route, label: 'Log every ride' },
   { icon: Receipt, label: 'Track every expense' },
-  { icon: Bell, label: 'Never miss a service' },
+  { icon: Bell, label: 'Service reminders before they are due' },
 ] as const;
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -60,10 +60,11 @@ const S = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '64px 24px',
     boxSizing: 'border-box' as const,
   },
-  inner: { width: '100%', maxWidth: 920 },
+  inner: { width: '100%', maxWidth: 'var(--mv-container)' },
+  /* The reading column keeps the 920 cap; the shell is the 1240/40 edge. */
+  copy: { maxWidth: 920 },
   brand: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -74,17 +75,13 @@ const S = {
     fontWeight: 600,
     color: 'var(--mv-ink)',
     textDecoration: 'none',
-    letterSpacing: '-0.01em',
   },
-  brandMark: { width: 24, height: 24, borderRadius: 7, overflow: 'hidden', display: 'flex' },
-  h1: {
-    fontFamily: 'var(--mv-font-display)',
-    fontWeight: 600,
-    fontSize: 'clamp(48px, 7vw, 84px)',
-    lineHeight: 0.96,
-    letterSpacing: '0.002em',
-    margin: 0,
-    textWrap: 'balance' as const,
+  brandMark: {
+    width: 24,
+    height: 24,
+    borderRadius: 'var(--mv-radius-small)',
+    overflow: 'hidden',
+    display: 'flex',
   },
   list: {
     listStyle: 'none',
@@ -92,7 +89,7 @@ const S = {
     padding: 0,
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: 14,
+    gap: 16,
   },
   item: {
     display: 'flex',
@@ -103,12 +100,7 @@ const S = {
   },
   icon: { flex: 'none', color: 'var(--mv-ink-2)' },
   ctas: { display: 'flex', flexWrap: 'wrap' as const, gap: 12, marginTop: 40 },
-  note: { margin: '24px 0 0', fontSize: 14, color: 'var(--mv-ink-3)' },
-  noteLink: {
-    color: 'var(--mv-copper-text)',
-    textDecoration: 'underline',
-    textUnderlineOffset: 4,
-  },
+  note: { margin: '24px 0 0', fontSize: 15, color: 'var(--mv-ink-3)' },
   figure: { margin: 0, width: 232 },
   /* The QR tile is fixed-light in both schemes so every phone camera reads it. */
   qr: {
@@ -119,7 +111,7 @@ const S = {
     background: 'var(--mv-qr-tile)',
     color: 'var(--mv-qr-ink)',
   },
-  caption: { fontSize: 14, color: 'var(--mv-ink-2)', textAlign: 'center' as const },
+  caption: { fontSize: 15, color: 'var(--mv-ink-2)', textAlign: 'center' as const },
 } as const;
 
 export default async function GetPage({ searchParams }: { searchParams: SearchParams }) {
@@ -167,7 +159,11 @@ export default async function GetPage({ searchParams }: { searchParams: SearchPa
 
   return (
     <div className="mv-marketing">
-      <main style={S.main}>
+      {/* Gutters 40 → 24 (≤900) → 20 (≤480), vertical 96 → 64, as the section shells. */}
+      <main
+        style={S.main}
+        className="px-5 py-16 min-[481px]:px-6 min-[901px]:px-10 min-[901px]:py-24"
+      >
         <div style={S.inner}>
           <Link href="/" style={S.brand} aria-label="MotoVault home">
             <span style={S.brandMark} aria-hidden="true">
@@ -177,8 +173,10 @@ export default async function GetPage({ searchParams }: { searchParams: SearchPa
           </Link>
 
           <div className="grid items-center gap-14 md:grid-cols-[minmax(0,1fr)_auto]">
-            <div>
-              <h1 style={S.h1}>Your bike, every ride and every service, in one place.</h1>
+            <div style={S.copy}>
+              <h1 className="mv-section-title">
+                Your bike, every ride and every service, in one place.
+              </h1>
               <ul style={S.list}>
                 {BENEFITS.map(({ icon: Icon, label }) => (
                   <li key={label} style={S.item}>
@@ -205,8 +203,10 @@ export default async function GetPage({ searchParams }: { searchParams: SearchPa
               </div>
               <p style={S.note}>
                 Free on iPhone and Android.{' '}
-                <Link href={proHref} style={S.noteLink}>
-                  {discountCode ? 'Get Pro on the web with your code' : 'Get Pro on the web'}
+                <Link href={proHref} className="mv-link">
+                  {discountCode
+                    ? 'Redeem your code for Pro on the web'
+                    : 'Buy Pro on the web (no app needed)'}
                 </Link>
               </p>
             </div>

@@ -61,10 +61,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!result) return {};
 
   const { countryName, regionName, routeCount } = result;
-  const title = `Motorcycle Routes in ${regionName}, ${countryName}`;
+  const title = `Motorcycle routes in ${regionName}, ${countryName}`;
   const description =
     routeCount > 0
-      ? `Explore ${routeCount} motorcycle route${routeCount === 1 ? '' : 's'} in ${regionName}, ${countryName}. Find the best twisty roads, scenic passes, and rides rated by the community.`
+      ? `${routeCount} motorcycle route${routeCount === 1 ? '' : 's'} in ${regionName}, ${countryName}, each with distance, climb and riding time, rated by riders.`
       : `Motorcycle routes in ${regionName}, ${countryName} are coming soon. Browse nearby regions on MotoVault.`;
 
   // Explore content is not translated — always canonical to the non-localized version
@@ -113,8 +113,8 @@ export default async function RegionPage({ params }: PageProps) {
 
   const { routes, countryName, regionName, routeCount } = result;
 
-  const title = `Motorcycle Routes in ${regionName}, ${countryName}`;
-  const description = `Explore ${routeCount} motorcycle routes in ${regionName}, ${countryName}.`;
+  const title = `Motorcycle routes in ${regionName}, ${countryName}`;
+  const description = `${routeCount} motorcycle routes in ${regionName}, ${countryName}, rated by riders.`;
   // Explore content is not translated — the page canonicalizes to the unprefixed
   // English URL (see generateMetadata), so JSON-LD/breadcrumb URLs use the same
   // EN URL to avoid mixed canonical signals in Search Console.
@@ -187,11 +187,9 @@ export default async function RegionPage({ params }: PageProps) {
             Motorcycle routes in {regionName}, {countryName}
           </h1>
           <p className="mv-index-lede">
-            <span className="mv-figure" style={{ fontSize: '1.15em' }}>
-              {routeCount}
-            </span>{' '}
-            {routeCount === 1 ? 'route' : 'routes'} in {regionName}, sorted by rider rating.
-            Distance, climb and an estimated riding time for each.
+            <span className="mv-figure">{routeCount}</span> {routeCount === 1 ? 'route' : 'routes'}{' '}
+            in {regionName}, sorted by rider rating. Distance, climb and an estimated riding time
+            for each.
           </p>
         </header>
 

@@ -50,7 +50,7 @@ function AppLink({
   arrow?: boolean;
 }) {
   return (
-    <a href={APP_HANDOFF_URL} className="mvg-link gv-action">
+    <a href={APP_HANDOFF_URL} className="mv-link is-quiet is-tall gv-action">
       {icon}
       <span>{children}</span>
       {arrow && <ArrowUpRight size={14} strokeWidth={2} aria-hidden="true" />}
@@ -247,9 +247,9 @@ function OtherBikes({ bikes, unit }: { bikes: Bike[]; unit: string }) {
   return (
     <div className="gv-section" style={{ gap: 4 }}>
       <MonoLabel>{t('alsoInGarage', { count: bikes.length })}</MonoLabel>
-      <ul className="gv-thumbs">
+      <ul className="mv-rows is-open">
         {bikes.map((bike) => (
-          <li key={bike.id} className="gv-thumb">
+          <li key={bike.id} className="mv-row gv-thumb">
             {bike.primaryPhotoUrl ? (
               <span className="gv-thumb-photo">
                 <Image
@@ -336,9 +336,9 @@ export function BikeHero({
           />
         </div>
         {(bike.currentMileage != null && !plate.figureIsOdometer) || overdueCount > 0 ? (
-          <ul className="gv-rows gv-ident">
+          <ul className="mv-rows is-open gv-ident">
             {bike.currentMileage != null && !plate.figureIsOdometer && (
-              <li className="gv-row">
+              <li className="mv-row gv-row">
                 <span className="gv-ident-label">{t('odometer')}</span>
                 <span className="gv-odo-value mv-figure">
                   {formatInteger(bike.currentMileage, fmt)}
@@ -347,7 +347,7 @@ export function BikeHero({
               </li>
             )}
             {overdueCount > 0 && (
-              <li className="gv-row">
+              <li className="mv-row gv-row">
                 <span className="gv-ident-label">{t('nextService')}</span>
                 <OverdueMark>{t('overdueCount', { count: overdueCount })}</OverdueMark>
               </li>
@@ -400,7 +400,9 @@ function ServiceMeta({
       </div>
     );
   }
-  return <span className="gv-row-meta">{[day, distance].filter(Boolean).join(' · ')}</span>;
+  return (
+    <span className="mv-row-aside gv-row-meta">{[day, distance].filter(Boolean).join(' · ')}</span>
+  );
 }
 
 const OVERDUE_LABEL = {
@@ -445,7 +447,7 @@ export function NextServiceCard({ schedule, unit }: { schedule: ServiceSchedule;
         ) : (
           <MonoLabel>{t('nextUp')}</MonoLabel>
         )}
-        <h3 className="gv-lead-title">{lead.task.title}</h3>
+        <h3 className="mv-h3">{lead.task.title}</h3>
         <ServiceMeta row={lead} unit={unit} withDuePrefix />
       </div>
       {rest.length > 0 && (
@@ -453,10 +455,10 @@ export function NextServiceCard({ schedule, unit }: { schedule: ServiceSchedule;
           <MonoLabel className="gv-rows-label">
             {restHasOverdue ? t('alsoDue') : t('comingUp')}
           </MonoLabel>
-          <ul className="gv-rows">
+          <ul className="mv-rows is-open">
             {rest.map((row) => (
-              <li key={row.task.id} className="gv-row">
-                <span className="gv-row-title">
+              <li key={row.task.id} className="mv-row gv-row">
+                <span className="mv-row-title gv-row-title">
                   {row.task.title}
                   {row.overdue && <OverdueMark>{t('overdueTag')}</OverdueMark>}
                 </span>
@@ -503,9 +505,9 @@ function CategorySplit({ spend }: { spend: CurrencySpend }) {
   const fmt = useGarageFormat();
   const largest = spend.categories[0]?.total ?? 0;
   return (
-    <ul className="gv-cats">
+    <ul className="mv-rows is-open">
       {spend.categories.map(({ category, total }, index) => (
-        <li key={category} className="gv-cat">
+        <li key={category} className="mv-row gv-cat">
           <span className="gv-cat-name">
             <CategoryLabel category={category} />
           </span>

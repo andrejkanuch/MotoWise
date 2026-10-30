@@ -26,7 +26,7 @@ import { PricingCard } from './pricing-card';
 import './pro.css';
 
 export const metadata: Metadata = {
-  title: 'Pro — More Bikes, Unlimited AI | MotoVault',
+  title: { absolute: 'MotoVault Pro: unlimited bikes and AI' },
   description: `MotoVault Pro adds unlimited bikes, unlimited AI diagnostics, unlimited receipt scans, GPX export and offline trip maps. Maintenance and expense logging stay free. ${WEB_OFFER_COPY.metaCallToAction}`,
   alternates: { canonical: 'https://motovault.app/pro' },
 };
@@ -55,7 +55,7 @@ const FAQ = [
   },
   {
     q: 'Why a subscription rather than a one-off payment?',
-    a: 'AI diagnostics, receipt scanning and offline map data cost us something every time you use them (AI models, Mapbox, Supabase). A subscription pays for that usage and lets us keep shipping, while logging maintenance and expenses stays free for everyone.',
+    a: 'AI diagnostics, receipt scanning and offline map data cost us something every time you use them (the AI, map and hosting bills). A subscription pays for that usage and lets us keep shipping, while logging maintenance and expenses stays free for everyone.',
   },
   {
     q: 'Is my data private?',
@@ -95,10 +95,10 @@ export default function ProPage() {
       <section className="mvp-section mvp-section--hero">
         <div className="mvp-hero-grid">
           <div>
-            <h1 className="mvp-title">
+            <h1 className="mv-section-title">
               More bikes. More AI.
               <br />
-              <span className="mvp-muted">Logging stays free.</span>
+              <span className="mv-muted">Logging stays free.</span>
             </h1>
             <p className="mvp-lead">
               One subscription lifts the limits on bikes, AI diagnostics and receipt scans, and adds
@@ -123,7 +123,7 @@ export default function ProPage() {
 
       {/* What Pro adds: a hairline list, icons inline with the title */}
       <section className="mvp-section mvp-section--features">
-        <h2 className="mvp-h2">What Pro adds</h2>
+        <h2 className="mv-h2">What Pro adds</h2>
         <p className="mvp-sub">
           Pro is one bundle, not a tier ladder. It lifts the limits on bikes and AI and adds GPX
           export and offline maps. Everything you log stays free.
@@ -146,60 +146,62 @@ export default function ProPage() {
 
       {/* Free vs Pro: hairline rows, the Pro column carried as the one card */}
       <section className="mvp-section mvp-section--compare" aria-labelledby="mvp-compare-title">
-        <h2 id="mvp-compare-title" className="mvp-h2">
+        <h2 id="mvp-compare-title" className="mv-h2">
           Free and Pro, side by side
         </h2>
-        <table className="mvp-compare">
-          <colgroup>
-            <col />
-            <col className="mvp-compare-col--value" />
-            <col className="mvp-compare-col--pro" />
-          </colgroup>
-          <thead>
-            <tr>
-              <th scope="col" className="mvp-compare-cell mvp-compare-cell--head">
-                What you get
-              </th>
-              <th
-                scope="col"
-                className="mvp-compare-cell mvp-compare-cell--head mvp-compare-cell--value"
-              >
-                Free
-              </th>
-              <th
-                scope="col"
-                className="mvp-compare-cell mvp-compare-cell--head mvp-compare-cell--value mvp-compare-cell--pro"
-              >
-                Pro
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {FREE_VS_PRO.map((row, i) => {
-              const last = i === lastRow ? ' mvp-compare-cell--last' : '';
-              return (
-                <tr key={row.name}>
-                  <th scope="row" className={`mvp-compare-cell${last}`}>
-                    {row.name}
-                  </th>
-                  <td className={`mvp-compare-cell mvp-compare-cell--value${last}`}>
-                    <ComparisonCell value={row.free} />
-                  </td>
-                  <td
-                    className={`mvp-compare-cell mvp-compare-cell--value mvp-compare-cell--pro${last}`}
-                  >
-                    <ComparisonCell value={row.pro} />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="mvp-compare-wrap">
+          <table className="mv-table mvp-compare">
+            <colgroup>
+              <col />
+              <col className="mvp-compare-col--value" />
+              <col className="mvp-compare-col--pro" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th scope="col" className="mvp-compare-cell mvp-compare-cell--head">
+                  What you get
+                </th>
+                <th
+                  scope="col"
+                  className="mvp-compare-cell mvp-compare-cell--head mvp-compare-cell--value"
+                >
+                  Free
+                </th>
+                <th
+                  scope="col"
+                  className="mvp-compare-cell mvp-compare-cell--head mvp-compare-cell--value mvp-compare-cell--pro"
+                >
+                  Pro
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {FREE_VS_PRO.map((row, i) => {
+                const last = i === lastRow ? ' mvp-compare-cell--last' : '';
+                return (
+                  <tr key={row.name}>
+                    <th scope="row" className={`mvp-compare-cell${last}`}>
+                      {row.name}
+                    </th>
+                    <td className={`mvp-compare-cell mvp-compare-cell--value${last}`}>
+                      <ComparisonCell value={row.free} />
+                    </td>
+                    <td
+                      className={`mvp-compare-cell mvp-compare-cell--value mvp-compare-cell--pro${last}`}
+                    >
+                      <ComparisonCell value={row.pro} />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       {/* FAQ: hairline details */}
       <section className="mvp-section mvp-section--faq">
-        <h2 className="mvp-h2">Questions, answered</h2>
+        <h2 className="mv-h2">Questions, answered</h2>
         <div className="mvp-faq">
           {FAQ.map((item) => (
             <details key={item.q}>
@@ -215,7 +217,7 @@ export default function ProPage() {
 
       {/* Final: the one centred block on the page */}
       <section className="mvp-section mvp-section--final">
-        <h2 className="mvp-h2">Ready when you are</h2>
+        <h2 className="mv-h2">Ready when you are</h2>
         <p className="mvp-final-line">{WEB_OFFER_COPY.finalLine}</p>
         <div className="mvp-final-cta">
           <Link href="/pro/checkout?plan=annual" className="mv-btn mv-btn-primary">

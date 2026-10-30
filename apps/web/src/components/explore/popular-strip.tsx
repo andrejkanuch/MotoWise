@@ -22,18 +22,18 @@ export function PopularStrip({ trips, countryName }: PopularStripProps) {
 
   return (
     <section className="xp-wrap xp-section-tight">
-      <h2 className="xp-h2">{inCountry ? `Start in ${countryName}` : 'Start here'}</h2>
+      <h2 className="mv-h2">{inCountry ? `Start in ${countryName}` : 'Start here'}</h2>
       <p className="xp-sub">
         {inCountry
           ? `Routes in ${countryName}, where you seem to be riding from.`
           : 'A few routes from across the atlas.'}
       </p>
-      <div className="xp-chip-row" style={{ marginTop: 24 }}>
+      <div className="mv-chips xp-chips-strip">
         {display.map((t) => {
           const distance = t.distanceM != null ? distanceParts(t.distanceM) : null;
           const time = formatDuration(t.estimatedDurationMinutes);
           return (
-            <a key={t.id} href={tripHref(t)} className="xp-chip">
+            <a key={t.id} href={tripHref(t)} className="mv-chip is-tall">
               <span>{tripShortTitle(t)}</span>
               {distance && (
                 <span className="mv-figure xp-figure-value">

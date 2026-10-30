@@ -121,10 +121,19 @@ function RouteDepiction({ t }: { t: Translator }) {
         >
           {figures.map((figure) => (
             <div key={figure.label}>
-              <dt style={{ fontSize: '12px', color: 'var(--mv-ink-3)' }}>{figure.label}</dt>
+              <dt
+                style={{
+                  fontSize: '13px',
+                  lineHeight: '18px',
+                  fontWeight: 500,
+                  color: 'var(--mv-ink-3)',
+                }}
+              >
+                {figure.label}
+              </dt>
               <dd
                 className="mv-figure"
-                style={{ margin: 0, fontSize: '24px', lineHeight: 1.1, color: 'var(--mv-ink)' }}
+                style={{ margin: 0, fontSize: '28px', lineHeight: '30px', color: 'var(--mv-ink)' }}
               >
                 {figure.value}
               </dd>

@@ -35,7 +35,7 @@ export function EmptyStartHero({
   const t = useTranslations('GarageV2');
   return (
     <section className="gv-start" aria-labelledby="gv-start-h">
-      <h2 id="gv-start-h" className="gv-start-title">
+      <h2 id="gv-start-h" className="mv-section-title gv-start-title">
         {t('startTitle')}
       </h2>
 

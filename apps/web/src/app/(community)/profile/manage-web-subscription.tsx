@@ -23,11 +23,11 @@ type Phase = (typeof PHASE)[keyof typeof PHASE];
  * Stripe error), shows how to cancel anyway: the link in the Stripe receipt
  * email, or support — a subscriber must never be left without a cancel path.
  *
- * `className` restyles the button (the garage account row renders it as a
- * copper text link); the default is the /profile Pro row's copper text action.
+ * `className` restyles the button; the default is the shared quiet copper
+ * text link (.mv-link.is-quiet.is-tall), as on the /profile Pro row.
  */
 export function ManageWebSubscription({
-  className = 'prof-banner-manage',
+  className = 'mv-link is-quiet is-tall',
 }: {
   className?: string;
 } = {}) {
@@ -68,7 +68,11 @@ export function ManageWebSubscription({
         <p className="prof-banner-manage-help" role="status">
           {t.rich('manageWebFallback', {
             email: SUPPORT_EMAIL,
-            link: (chunks) => <a href={`mailto:${SUPPORT_EMAIL}`}>{chunks}</a>,
+            link: (chunks) => (
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="mv-link">
+                {chunks}
+              </a>
+            ),
           })}
         </p>
       )}

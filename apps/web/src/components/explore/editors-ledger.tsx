@@ -31,18 +31,18 @@ export function EditorsLedger({ picks }: EditorsLedgerProps) {
 
   return (
     <section className="xp-wrap xp-section">
-      <h2 className="xp-h2">Editor&apos;s picks</h2>
+      <h2 className="mv-h2">Editor&apos;s picks</h2>
       <p className="xp-sub">
         {picks.length === 1
-          ? 'One route the MotoVault team picked by hand.'
-          : `${picks.length} routes the MotoVault team picked by hand.`}
+          ? 'One route picked by hand.'
+          : `${picks.length} routes picked by hand.`}
       </p>
 
       <div className="xp-picks">
         <a href={tripHref(lead)} className="xp-tile">
           <div>
             <MetaLabel>{leadMeta}</MetaLabel>
-            <h3 className="xp-tile-title">{lead.title ?? 'Unnamed route'}</h3>
+            <h3 className="mv-h3 xp-h3 xp-tile-title">{lead.title ?? 'Unnamed route'}</h3>
             {lead.description && (
               <p className="xp-tile-desc">
                 {lead.description.length > 180
@@ -55,7 +55,7 @@ export function EditorsLedger({ picks }: EditorsLedgerProps) {
         </a>
 
         {rest.length > 0 && (
-          <div className="xp-rows">
+          <div className="mv-rows">
             {rest.map((trip) => (
               <TripListCard key={trip.id} trip={trip} />
             ))}

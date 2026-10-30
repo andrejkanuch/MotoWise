@@ -4,7 +4,7 @@ import '@/components/marketing/design-system.css';
 import '@/components/share-page.css';
 
 export const metadata: Metadata = {
-  title: 'Shared Maintenance History',
+  title: 'Shared service history',
   robots: { index: false, follow: false },
 };
 
@@ -125,14 +125,14 @@ function ExpiredView() {
     <div className="mv-marketing sp">
       <Brand />
       <main className="sp-main sp-main-tall">
-        <h1 className="sp-title">This link has expired</h1>
+        <h1 className="mv-section-title sp-title">This link has expired</h1>
         <p className="sp-prose" style={{ marginTop: 16 }}>
           The rider who shared this service history has stopped sharing it, or the link is no longer
           valid. Ask them for a new one.
         </p>
         <div className="sp-cta-actions">
           <a href="https://motovault.app" className="mv-btn mv-btn-primary">
-            Go to MotoVault
+            Get the app
           </a>
         </div>
       </main>
@@ -159,22 +159,22 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
       <Brand />
 
       <main className="sp-main sp-main-tall">
-        <h1 className="sp-title">{bikeName}</h1>
+        <h1 className="mv-section-title sp-title">{bikeName}</h1>
         <p className="sp-sub">
           {bike.nickname ? `${bikeLine} · ` : ''}Service history, shared {formatDate(generatedAt)}
         </p>
 
         <div className="sp-figures">
           <div className="sp-figure">
-            <span className="sp-figure-value">{tasks.length}</span>
+            <span className="mv-figure sp-figure-value">{tasks.length}</span>
             <span className="sp-figure-label">{tasks.length === 1 ? 'Record' : 'Records'}</span>
           </div>
           <div className="sp-figure">
-            <span className="sp-figure-value">{completedTasks.length}</span>
+            <span className="mv-figure sp-figure-value">{completedTasks.length}</span>
             <span className="sp-figure-label">Done</span>
           </div>
           <div className="sp-figure">
-            <span className="sp-figure-value">{pendingTasks.length}</span>
+            <span className="mv-figure sp-figure-value">{pendingTasks.length}</span>
             <span className="sp-figure-label">Still to do</span>
           </div>
         </div>
@@ -184,18 +184,20 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
           {tasks.length === 0 ? (
             <p className="sp-prose">No service records yet.</p>
           ) : (
-            <ul className="sp-list">
+            <ul className="mv-rows">
               {tasks.map((task) => {
                 const details: string[] = [];
                 if (task.dueDate) details.push(`Due ${formatDate(task.dueDate)}`);
                 if (task.completedAt) details.push(`Done ${formatDate(task.completedAt)}`);
                 if (task.completedMileage != null) {
-                  details.push(`at ${task.completedMileage.toLocaleString('en-US')} on the clock`);
+                  details.push(
+                    `at ${task.completedMileage.toLocaleString('en-US')} on the odometer`,
+                  );
                 }
                 return (
                   <li
                     key={`${task.title}-${task.status}-${task.completedAt ?? task.dueDate ?? ''}`}
-                    className="sp-row"
+                    className="mv-row sp-row"
                   >
                     <div className="sp-row-body">
                       <div className="sp-row-title">{task.title}</div>
@@ -233,14 +235,14 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
 
       <footer className="sp-cta">
         <div className="sp-cta-inner">
-          <h2 className="sp-cta-title">Service history that travels with the bike</h2>
+          <h2 className="mv-h2">Service history that travels with the bike</h2>
           <p className="sp-cta-sub">
             MotoVault keeps every service, part and cost against each bike, and shares the record
             with a link like this one.
           </p>
           <div className="sp-cta-actions">
             <a href="https://motovault.app" className="mv-btn mv-btn-primary">
-              Get MotoVault
+              Get the app
             </a>
           </div>
         </div>

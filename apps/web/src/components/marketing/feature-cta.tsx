@@ -7,10 +7,10 @@ import { StoreLink } from './store-buttons';
 // page rather than mislabeling them as `feature`.
 //
 // Trackside closing CTA: the one centered moment on the page (Direction:
-// "center at most the final CTA"). Condensed display headline on the deeper
-// ramp step, copper strictly on the primary action, ghost for the second
-// store — no glows, no gradients, no entrance of its own (the page's one
-// authored moment is the screenshot pair). Placement stays `inline` so the
+// "center at most the final CTA"). Section headline on the shared H2 scale,
+// the lede under it, copper strictly on the primary action, ghost for the
+// second store — no glows, no gradients, no entrance of its own (the page's
+// one authored moment is the screenshot pair). Placement stays `inline` so the
 // store_cta_click taxonomy is unchanged from the previous StoreButtons wiring.
 export async function FeatureCta({
   pageType = CtaPageType.Feature,
@@ -23,25 +23,10 @@ export async function FeatureCta({
   return (
     <section className="mv-section-cta" style={{ background: 'var(--mv-bg-2)' }}>
       <div style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'center' }}>
-        <h2
-          className="mv-display"
-          style={{
-            margin: 0,
-            fontSize: 'clamp(44px, 7vw, 88px)',
-            fontWeight: 700,
-            lineHeight: 0.96,
-          }}
-        >
-          {t('headline')}
-        </h2>
+        <h2 className="mv-h2">{t('headline')}</h2>
         <p
-          style={{
-            margin: '24px auto 0',
-            maxWidth: '46ch',
-            fontSize: '17px',
-            lineHeight: 1.55,
-            color: 'var(--mv-ink-2)',
-          }}
+          className="mv-section-sub"
+          style={{ marginLeft: 'auto', marginRight: 'auto', maxWidth: '46ch' }}
         >
           {t('subtitle')}
         </p>
@@ -73,6 +58,7 @@ export async function FeatureCta({
           style={{
             margin: '20px 0 0',
             fontSize: '13px',
+            lineHeight: '18px',
             fontWeight: 500,
             color: 'var(--mv-ink-3)',
           }}

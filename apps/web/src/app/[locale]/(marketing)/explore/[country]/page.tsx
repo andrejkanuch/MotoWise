@@ -37,11 +37,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const country = await fetchCountryBySlug(countrySlug);
   if (!country) return {};
 
-  const title = `Motorcycle Routes in ${country.name}`;
+  const title = `Motorcycle routes in ${country.name}`;
   const rc = country.routeCount;
   const description =
     rc > 0
-      ? `Discover the best motorcycle routes in ${country.name}. Browse ${rc} route${rc === 1 ? '' : 's'} across regions — twisty roads, scenic passes, and epic rides.`
+      ? `Motorcycle routes in ${country.name}: ${rc} route${rc === 1 ? '' : 's'} by region, each with distance, climb and riding time, rated by riders.`
       : `Motorcycle routes in ${country.name} are coming soon. Browse other countries on MotoVault or share a ride from the app.`;
 
   // Explore content is not translated — always canonical to the non-localized version
@@ -95,8 +95,8 @@ export default async function CountryPage({ params }: PageProps) {
 
   const introContent = COUNTRY_INTROS[countrySlug] ?? null;
 
-  const title = `Motorcycle Routes in ${country.name}`;
-  const description = `Discover the best motorcycle routes in ${country.name}. Browse ${country.routeCount} routes across regions.`;
+  const title = `Motorcycle routes in ${country.name}`;
+  const description = `Motorcycle routes in ${country.name}: ${country.routeCount} routes by region, rated by riders.`;
   const canonical = getCanonicalUrl(locale, `/explore/${countrySlug}`);
 
   const graph = buildGraph(
@@ -144,21 +144,17 @@ export default async function CountryPage({ params }: PageProps) {
         <header className="mv-reveal">
           <h1 className="mv-index-h1">Motorcycle routes in {country.name}</h1>
           <p className="mv-index-lede">
-            <span className="mv-figure" style={{ fontSize: '1.15em' }}>
-              {country.routeCount}
-            </span>{' '}
+            <span className="mv-figure">{country.routeCount}</span>{' '}
             {country.routeCount === 1 ? 'route' : 'routes'} across{' '}
             {regions.length > 0 ? (
               <>
-                <span className="mv-figure" style={{ fontSize: '1.15em' }}>
-                  {regions.length}
-                </span>{' '}
+                <span className="mv-figure">{regions.length}</span>{' '}
                 {regions.length === 1 ? 'region' : 'regions'}
               </>
             ) : (
               'the country'
             )}
-            , shared and rated by riders. Open any route in the app to ride it.
+            , shared and rated by riders. Open any route in the app to export the GPX.
           </p>
         </header>
 

@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type { TripTemplateNode } from '@/lib/fetch-places';
 import { DEFAULT_FILTERS, FilterBar, type FilterState } from './filter-bar';
 import { MapboxMap } from './mapbox-map';
-import { MetaLabel } from './primitives';
+import { Icon, MetaLabel } from './primitives';
 import { TripListCard } from './trip-list-card';
 import { applyFilters, formatNumber } from './utils';
 
@@ -21,18 +21,29 @@ function ResultsBreadcrumb({
 }) {
   const countryHref = `/explore/${countryCode.toLowerCase()}`;
   return (
-    <nav className="xp-crumbs" aria-label="Breadcrumb">
-      <a href="/explore">Explore</a>
-      <span aria-hidden="true">/</span>
-      {region ? (
-        <>
-          <a href={countryHref}>{country}</a>
-          <span aria-hidden="true">/</span>
-          <span aria-current="page">{region}</span>
-        </>
-      ) : (
-        <span aria-current="page">{country}</span>
-      )}
+    <nav aria-label="Breadcrumb">
+      <ol className="mv-crumbs">
+        <li>
+          <a href="/explore">Explore</a>
+        </li>
+        {region ? (
+          <>
+            <li>
+              <Icon name="chevron-right" size={14} />
+              <a href={countryHref}>{country}</a>
+            </li>
+            <li>
+              <Icon name="chevron-right" size={14} />
+              <span aria-current="page">{region}</span>
+            </li>
+          </>
+        ) : (
+          <li>
+            <Icon name="chevron-right" size={14} />
+            <span aria-current="page">{country}</span>
+          </li>
+        )}
+      </ol>
     </nav>
   );
 }
@@ -76,9 +87,9 @@ function ResultsHeader({
 function EmptyState({ onClear }: { onClear: () => void }) {
   return (
     <div className="xp-empty">
-      <h3 className="xp-h3">No routes match these filters</h3>
+      <h3 className="mv-h3 xp-h3">No routes match these filters</h3>
       <p>Clear a filter, or browse a neighbouring region from the map.</p>
-      <button type="button" className="xp-text-btn" style={{ padding: 0 }} onClick={onClear}>
+      <button type="button" className="mv-link is-tall" onClick={onClear}>
         Clear filters
       </button>
     </div>
@@ -159,18 +170,10 @@ export function ResultsDesktop({
         }}
       >
         {/* List */}
-        <div
-          style={{
-            borderRight: '1px solid var(--mv-line)',
-            // minHeight:0 lets this grid item scroll internally; without it the
-            // item keeps its intrinsic content height, ballooning the grid row
-            // (and the height:100% map next to it) to the full list height.
-            minHeight: 0,
-            overflowY: 'auto',
-            padding: '16px 28px 64px',
-            background: 'var(--mv-bg)',
-          }}
-        >
+        {/* min-height:0 (in .xp-results-list) lets this grid item scroll
+            internally; without it the item keeps its intrinsic content height,
+            ballooning the grid row (and the height:100% map next to it). */}
+        <div className="xp-results-list">
           {trips.length === 0 ? (
             <EmptyState onClear={clearFilters} />
           ) : (
@@ -180,7 +183,7 @@ export function ResultsDesktop({
                   Showing {formatNumber(trips.length)} {trips.length === 1 ? 'route' : 'routes'}
                 </MetaLabel>
               </div>
-              <div className="xp-rows">
+              <div className="mv-rows">
                 {trips.map((t) => (
                   <TripListCard
                     key={t.id}

@@ -33,11 +33,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const country = await fetchCountryBySlug(countrySlug);
   if (!country) return {};
 
-  const title = `Motorcycle Routes in ${country.name}`;
+  const title = `Motorcycle routes in ${country.name}`;
   const rc = country.routeCount;
   const description =
     rc > 0
-      ? `Explore ${rc} motorcycle route${rc === 1 ? '' : 's'} in ${country.name}. Twisty roads, scenic passes, and rides rated by riders on MotoVault.`
+      ? `Explore ${rc} motorcycle route${rc === 1 ? '' : 's'} in ${country.name}. Twisty roads, scenic passes and routes rated by riders.`
       : `Motorcycle routes in ${country.name} are coming soon. Browse other countries on MotoVault.`;
 
   const canonical = `${BASE_URL}/explore/${countrySlug}`;

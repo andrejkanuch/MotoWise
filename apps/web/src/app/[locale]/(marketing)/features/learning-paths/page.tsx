@@ -77,21 +77,15 @@ function ModuleProgress({ t }: { t: Translator }) {
           gap: '16px',
         }}
       >
-        <h3
-          className="mv-display"
-          style={{
-            margin: 0,
-            fontSize: '30px',
-            fontWeight: 600,
-            lineHeight: 1.05,
-            color: 'var(--mv-ink)',
-          }}
-        >
-          {t('demoModule')}
-        </h3>
+        <h3 className="mv-h3">{t('demoModule')}</h3>
         <span
           className="mv-figure"
-          style={{ fontSize: '17px', color: 'var(--mv-ink-2)', whiteSpace: 'nowrap' }}
+          style={{
+            fontSize: '20px',
+            lineHeight: '22px',
+            color: 'var(--mv-ink-2)',
+            whiteSpace: 'nowrap',
+          }}
         >
           {t('demoProgress')}
         </span>
@@ -112,7 +106,7 @@ function ModuleProgress({ t }: { t: Translator }) {
             <span
               className="mv-figure"
               aria-hidden="true"
-              style={{ fontSize: '17px', color: 'var(--mv-ink-3)' }}
+              style={{ fontSize: '20px', lineHeight: '22px', color: 'var(--mv-ink-3)' }}
             >
               {index}
             </span>
@@ -128,7 +122,14 @@ function ModuleProgress({ t }: { t: Translator }) {
               >
                 {t(`demoLesson${index}Title`)}
               </span>
-              <span style={{ display: 'block', fontSize: '12px', color: 'var(--mv-ink-3)' }}>
+              <span
+                style={{
+                  display: 'block',
+                  fontSize: '13px',
+                  lineHeight: '18px',
+                  color: 'var(--mv-ink-3)',
+                }}
+              >
                 {t(`demoLesson${index}Meta`)}
               </span>
             </span>

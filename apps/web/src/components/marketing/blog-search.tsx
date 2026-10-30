@@ -13,6 +13,18 @@ type SearchStatus = 'idle' | 'loading' | 'error';
 
 const TYPE_OPTIONS = Object.values(BlogPostType);
 
+/** Chip labels are cased in the source string, never by CSS (Rule 5). */
+const TYPE_LABEL: Record<BlogPostType, string> = {
+  [BlogPostType.GUIDE]: 'Guide',
+  [BlogPostType.MAINTENANCE]: 'Maintenance',
+  [BlogPostType.TRIP]: 'Trip',
+  [BlogPostType.GEAR]: 'Gear',
+};
+
+function typeLabel(value: string): string {
+  return TYPE_LABEL[value as BlogPostType] ?? value;
+}
+
 /** Reading-time strings arrive as "7 min" / "7"; keep the figure condensed. */
 function splitReadingTime(value: string): { figure: string; rest: string } {
   const match = /^(\d+)\s*(.*)$/.exec(value.trim());
@@ -138,6 +150,7 @@ export function BlogSearch({
           onChange={(e) => setInput(e.target.value)}
           placeholder="Search articles"
           aria-label="Search articles"
+          className="mv-field-input"
         />
         <button type="submit" className="mv-btn mv-btn-primary">
           Search
@@ -152,9 +165,8 @@ export function BlogSearch({
             onClick={() => toggleParam('type', t)}
             aria-pressed={type === t}
             className="mv-chip"
-            style={{ textTransform: 'capitalize' }}
           >
-            {t}
+            {TYPE_LABEL[t]}
           </button>
         ))}
         {categories.map((c) => (
@@ -174,7 +186,12 @@ export function BlogSearch({
         <div className="mv-active-filters">
           <span>Showing</span>
           {q && <FilterChip label={`“${q}”`} onRemove={() => setParams((p) => p.delete('q'))} />}
-          {type && <FilterChip label={type} onRemove={() => setParams((p) => p.delete('type'))} />}
+          {type && (
+            <FilterChip
+              label={typeLabel(type)}
+              onRemove={() => setParams((p) => p.delete('type'))}
+            />
+          )}
           {category && (
             <FilterChip
               label={categoryName(category)}
@@ -187,8 +204,8 @@ export function BlogSearch({
               onRemove={() => setParams((p) => p.delete('keyword'))}
             />
           )}
-          <button type="button" onClick={clearAll} className="mv-text-action">
-            Clear all
+          <button type="button" onClick={clearAll} className="mv-link is-quiet">
+            Clear all filters
           </button>
         </div>
       )}
@@ -203,10 +220,10 @@ export function BlogSearch({
           <button
             type="button"
             onClick={clearAll}
-            className="mv-text-action"
-            style={{ marginTop: 10 }}
+            className="mv-link is-quiet"
+            style={{ marginTop: 8 }}
           >
-            Clear search
+            Clear the search
           </button>
         </div>
       ) : (
@@ -296,10 +313,12 @@ function ArticleFeed({
                 </span>
               </div>
               <div>
-                <h2 className="mv-feed-title">{article.title}</h2>
+                {/* The whole row is the link, so the title is the link text; the
+                    featured "read" line is decoration for sighted readers only. */}
+                <h2 className={isFeatured ? 'mv-h2' : 'mv-feed-title'}>{article.title}</h2>
                 <p className="mv-feed-excerpt">{article.excerpt}</p>
                 {isFeatured && (
-                  <span className="mv-feed-more">
+                  <span className="mv-feed-more" aria-hidden="true">
                     {strings.readMore}
                     <svg
                       width="16"

@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ChevronRight } from 'lucide-react';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { cache } from 'react';
@@ -284,7 +284,7 @@ export default async function TripByIdPage({ params }: PageParams) {
     year: 'numeric',
   });
   const hasRating = trip.averageRating != null && trip.reviewCount > 0;
-  const ridesLabel = trip.reviewCount === 1 ? 'verified ride' : 'verified rides';
+  const reviewsLabel = trip.reviewCount === 1 ? 'review' : 'reviews';
 
   const sections: Array<{ id: string; label: string }> = [{ id: 'overview', label: 'Overview' }];
   if (trip.waypoints.length > 0) sections.push({ id: 'days', label: 'Day by day' });
@@ -302,21 +302,29 @@ export default async function TripByIdPage({ params }: PageParams) {
         ) : null}
 
         <div className="rh-inner">
-          <nav className="rh-crumb" aria-label="Breadcrumb">
-            <a href="/explore">Explore</a>
-            <span className="rh-crumb-sep">/</span>
-            <a href={`/explore/${trip.countryCode.toLowerCase()}`}>{countryName}</a>
-            {regionName && (
-              <>
-                <span className="rh-crumb-sep">/</span>
-                <span>{regionName}</span>
-              </>
-            )}
-            <span className="rh-crumb-sep">/</span>
-            <span className="current">{trip.title}</span>
+          <nav aria-label="Breadcrumb">
+            <ol className="mv-crumbs">
+              <li>
+                <a href="/explore">Explore</a>
+              </li>
+              <li>
+                <ChevronRight size={14} aria-hidden="true" />
+                <a href={`/explore/${trip.countryCode.toLowerCase()}`}>{countryName}</a>
+              </li>
+              {regionName && (
+                <li>
+                  <ChevronRight size={14} aria-hidden="true" />
+                  <span>{regionName}</span>
+                </li>
+              )}
+              <li>
+                <ChevronRight size={14} aria-hidden="true" />
+                <span aria-current="page">{trip.title}</span>
+              </li>
+            </ol>
           </nav>
 
-          <h1 className="rh-title">{trip.title}</h1>
+          <h1 className="mv-section-title rh-title">{trip.title}</h1>
 
           <p className="rh-context">
             <span>
@@ -329,7 +337,7 @@ export default async function TripByIdPage({ params }: PageParams) {
           <div className="rh-figures">
             {distanceKm != null && (
               <div className="rh-figure">
-                <span className="rh-figure-value">
+                <span className="mv-figure rh-figure-value">
                   {formatDistance(trip.distanceM ?? 0)}
                   <small>km</small>
                 </span>
@@ -338,7 +346,7 @@ export default async function TripByIdPage({ params }: PageParams) {
             )}
             {trip.dayCount > 0 && (
               <div className="rh-figure">
-                <span className="rh-figure-value">
+                <span className="mv-figure rh-figure-value">
                   {trip.dayCount}
                   <small>{trip.dayCount === 1 ? 'day' : 'days'}</small>
                 </span>
@@ -347,13 +355,13 @@ export default async function TripByIdPage({ params }: PageParams) {
             )}
             {durationFormatted && (
               <div className="rh-figure">
-                <span className="rh-figure-value">{durationFormatted}</span>
+                <span className="mv-figure rh-figure-value">{durationFormatted}</span>
                 <span className="rh-figure-label">Riding time</span>
               </div>
             )}
             {elevationM != null && elevationM > 0 && (
               <div className="rh-figure">
-                <span className="rh-figure-value">
+                <span className="mv-figure rh-figure-value">
                   {formatElevation(trip.elevationGainM ?? 0)}
                   <small>m</small>
                 </span>
@@ -362,7 +370,7 @@ export default async function TripByIdPage({ params }: PageParams) {
             )}
             {hasRating && (
               <div className="rh-figure">
-                <span className="rh-figure-value">
+                <span className="mv-figure rh-figure-value">
                   {trip.averageRating?.toFixed(1)}
                   <small>/ 5</small>
                 </span>
@@ -381,7 +389,7 @@ export default async function TripByIdPage({ params }: PageParams) {
               slug={segment}
               className="mv-btn mv-btn-primary"
             >
-              Clone in the app
+              Get the app
             </StoreLink>
           </div>
           <p className="rh-author">
@@ -392,7 +400,7 @@ export default async function TripByIdPage({ params }: PageParams) {
 
       {/* ══════════ IN-PAGE NAV ══════════ */}
       <nav className="tabnav" aria-label="On this page">
-        <div className="tabnav-inner">
+        <div className="tabnav-inner mv-scroll-row">
           {sections.map((sec) => (
             <a key={sec.id} className="tabnav-tab" href={`#${sec.id}`}>
               {sec.label}
@@ -403,17 +411,17 @@ export default async function TripByIdPage({ params }: PageParams) {
             pageType={CtaPageType.Trip}
             placement={CtaPlacement.Navbar}
             slug={segment}
-            className="tabnav-cta"
+            className="mv-btn mv-btn-primary tabnav-cta"
           >
-            Open in the app
+            Get the app
           </StoreLink>
         </div>
       </nav>
 
       {/* ══════════ OVERVIEW ══════════ */}
-      <section className="rsec" id="overview">
+      <section className="rsec rsec--lead" id="overview">
         <div className="rsec-head">
-          <h2 className="rsec-title">About the route</h2>
+          <h2 className="mv-h2">About the route</h2>
         </div>
 
         <div className="overview-grid">
@@ -425,38 +433,38 @@ export default async function TripByIdPage({ params }: PageParams) {
             )}
           </div>
 
-          <dl className="rfacts">
-            <div className="rfacts-row">
-              <dt className="rfacts-key">Difficulty</dt>
-              <dd className="rfacts-val">{capitalize(trip.difficulty)}</dd>
+          <dl className="mv-rows rfacts">
+            <div className="mv-row">
+              <dt>Difficulty</dt>
+              <dd>{capitalize(trip.difficulty)}</dd>
             </div>
             {surfaceLabel && (
-              <div className="rfacts-row">
-                <dt className="rfacts-key">Surface</dt>
-                <dd className="rfacts-val">{surfaceLabel}</dd>
+              <div className="mv-row">
+                <dt>Surface</dt>
+                <dd>{surfaceLabel}</dd>
               </div>
             )}
             {trip.waypoints.length > 0 && (
-              <div className="rfacts-row">
-                <dt className="rfacts-key">Waypoints</dt>
-                <dd className="rfacts-val">{trip.waypoints.length}</dd>
+              <div className="mv-row">
+                <dt>Waypoints</dt>
+                <dd>{trip.waypoints.length}</dd>
               </div>
             )}
             {fuelStopCount > 0 && (
-              <div className="rfacts-row">
-                <dt className="rfacts-key">Fuel stops</dt>
-                <dd className="rfacts-val">{fuelStopCount} along the route</dd>
+              <div className="mv-row">
+                <dt>Fuel stops</dt>
+                <dd>{fuelStopCount}</dd>
               </div>
             )}
             {trip.cloneCount > 0 && (
-              <div className="rfacts-row">
-                <dt className="rfacts-key">Cloned by riders</dt>
-                <dd className="rfacts-val">{trip.cloneCount.toLocaleString('en-US')}</dd>
+              <div className="mv-row">
+                <dt>Saved by riders</dt>
+                <dd>{trip.cloneCount.toLocaleString('en-US')}</dd>
               </div>
             )}
-            <div className="rfacts-row">
-              <dt className="rfacts-key">Curated by</dt>
-              <dd className="rfacts-val">{trip.organiser.displayName}</dd>
+            <div className="mv-row">
+              <dt>Curated by</dt>
+              <dd>{trip.organiser.displayName}</dd>
             </div>
           </dl>
         </div>
@@ -464,7 +472,7 @@ export default async function TripByIdPage({ params }: PageParams) {
 
       {/* ══════════ MAP ══════════ */}
       {mapUrl && (
-        <section className="rsec" style={{ paddingTop: 0 }}>
+        <section className="rsec">
           <div className="map-card">
             <div className="map-frame">
               {/* biome-ignore lint/performance/noImgElement: Mapbox static URL */}
@@ -482,9 +490,9 @@ export default async function TripByIdPage({ params }: PageParams) {
 
       {/* ══════════ DAY BY DAY ══════════ */}
       {days.length > 0 && (
-        <section className="rsec mv-reveal" id="days">
+        <section className="rsec rsec--itinerary mv-reveal" id="days">
           <div className="rsec-head">
-            <h2 className="rsec-title">
+            <h2 className="mv-h2">
               {trip.dayCount > 1
                 ? `${trip.dayCount} days, stop by stop`
                 : 'The route, stop by stop'}
@@ -512,7 +520,7 @@ export default async function TripByIdPage({ params }: PageParams) {
                     </div>
                     {dayLabel && <div className="day-route">{dayLabel}</div>}
                     <div className="day-stats">
-                      <strong>{waypoints.length}</strong>{' '}
+                      <span className="mv-figure">{waypoints.length}</span>{' '}
                       {waypoints.length === 1 ? 'stop' : 'stops'}
                     </div>
                   </div>
@@ -539,28 +547,28 @@ export default async function TripByIdPage({ params }: PageParams) {
 
       {/* ══════════ REVIEWS ══════════ */}
       {hasRating && (
-        <section className="rsec" id="reviews">
+        <section className="rsec rsec--reviews" id="reviews">
           <div className="rsec-head">
-            <h2 className="rsec-title">From riders who rode it</h2>
+            <h2 className="mv-h2">From riders who rode it</h2>
             <p className="rsec-aside">
-              {trip.reviewCount} {ridesLabel} logged on this route.
+              {trip.reviewCount} {reviewsLabel} from riders who rode it.
             </p>
           </div>
           <div className="reviews-score">
-            <span className="reviews-score-num">{trip.averageRating?.toFixed(1)}</span>
-            <span className="reviews-score-out">/ 5</span>
+            <span className="mv-figure reviews-score-num">{trip.averageRating?.toFixed(1)}</span>
+            <span className="reviews-score-out">/5</span>
           </div>
           <p className="reviews-count">
-            {trip.reviewCount} {ridesLabel}
+            {trip.reviewCount} {reviewsLabel}
           </p>
         </section>
       )}
 
       {/* ══════════ END CTA ══════════ */}
       <section className="end-cta">
-        <h2 className="end-cta-title">Save this route to your phone</h2>
+        <h2 className="mv-h2 end-cta-title">Save this route to your phone</h2>
         <p className="end-cta-sub">
-          Clone it into your planner, change the dates and stops, then ride it. Free.
+          Copy it into your trip planner, change the dates and stops, then ride it. Free.
         </p>
         <div className="end-cta-actions">
           <StoreLink

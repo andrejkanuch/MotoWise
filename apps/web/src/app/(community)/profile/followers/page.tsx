@@ -14,9 +14,9 @@ const TAB_KEYS = ['followers', 'following'] as const;
 type Tab = (typeof TAB_KEYS)[number];
 
 /**
- * /profile/followers: the rider's connections as hairline rows (44 px+
- * targets) under a segmented control; selection is a raised surface, never
- * copper. Read-only: following happens in the app.
+ * /profile/followers: the rider's followers and following as hairline rows
+ * (.mv-rows, 44 px+ targets) under an .mv-segmented control; selection is a
+ * raised surface, never copper. Read-only: following happens in the app.
  */
 export default function FollowersPage() {
   const t = useTranslations('Followers');
@@ -71,9 +71,9 @@ export default function FollowersPage() {
   return (
     <div className="garage-page">
       <div className="garage-inner">
-        <h1 className="prof-title">{t('title')}</h1>
+        <h1 className="mv-section-title prof-title">{t('title')}</h1>
 
-        <div className="prof-tabs" role="tablist" aria-label={t('title')}>
+        <div className="mv-segmented prof-tabs" role="tablist" aria-label={t('title')}>
           {TAB_KEYS.map((tab) => (
             <button
               key={tab}
@@ -83,7 +83,6 @@ export default function FollowersPage() {
               aria-selected={activeTab === tab}
               aria-controls={`${tabsId}-panel`}
               onClick={() => setActiveTab(tab)}
-              className="prof-tab"
             >
               {t(tab)}
             </button>
@@ -108,7 +107,7 @@ export default function FollowersPage() {
             </div>
           ) : (
             <>
-              <ul className="prof-list">
+              <ul className="mv-rows is-open prof-list">
                 {edges.map(({ node }) => {
                   const name = node.displayName ?? node.publicUsername ?? 'Rider';
                   const initial = name.charAt(0).toUpperCase();
@@ -117,7 +116,7 @@ export default function FollowersPage() {
 
                   return (
                     <li key={`${node.followerId}-${node.followingId}`}>
-                      <a href={href} className="prof-person">
+                      <a href={href} className="mv-row prof-person">
                         {node.avatarUrl ? (
                           // biome-ignore lint/performance/noImgElement: user avatar from Supabase storage
                           <img src={node.avatarUrl} alt="" className="prof-person-avatar" />
@@ -130,8 +129,10 @@ export default function FollowersPage() {
                           </span>
                         )}
                         <span className="prof-person-text">
-                          <span className="prof-person-name">{name}</span>
-                          {username && <span className="prof-person-handle">@{username}</span>}
+                          <span className="mv-row-title prof-person-name">{name}</span>
+                          {username && (
+                            <span className="mv-row-sub prof-person-handle">@{username}</span>
+                          )}
                         </span>
                       </a>
                     </li>

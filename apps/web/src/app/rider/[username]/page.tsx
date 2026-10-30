@@ -15,7 +15,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { username } = await params;
   const profile = await fetchProfile(username);
-  if (!profile) return { title: 'Rider Not Found' };
+  if (!profile) return { title: 'Rider not found' };
 
   const description = profile.bio
     ? profile.bio.slice(0, 155)
@@ -91,7 +91,7 @@ export default async function RiderProfilePage({
             </div>
           )}
           <div style={{ minWidth: 0 }}>
-            <h1 className="sp-title">{displayName}</h1>
+            <h1 className="mv-section-title sp-title">{displayName}</h1>
             <p className="sp-sub">{meta}</p>
           </div>
         </header>
@@ -104,18 +104,18 @@ export default async function RiderProfilePage({
 
         <div className="sp-figures">
           <div className="sp-figure">
-            <span className="sp-figure-value">{profile.rideStats.totalRides}</span>
+            <span className="mv-figure sp-figure-value">{profile.rideStats.totalRides}</span>
             <span className="sp-figure-label">Rides logged</span>
           </div>
           <div className="sp-figure">
-            <span className="sp-figure-value">
+            <span className="mv-figure sp-figure-value">
               {distanceNum}
               {distanceUnit && <small>{distanceUnit}</small>}
             </span>
             <span className="sp-figure-label">Distance ridden</span>
           </div>
           <div className="sp-figure">
-            <span className="sp-figure-value">{profile.followerCount}</span>
+            <span className="mv-figure sp-figure-value">{profile.followerCount}</span>
             <span className="sp-figure-label">Followers</span>
           </div>
         </div>
@@ -123,9 +123,9 @@ export default async function RiderProfilePage({
         {profile.bikes.length > 0 && (
           <section className="sp-section">
             <h2 className="sp-section-title">Garage</h2>
-            <ul className="sp-list">
+            <ul className="mv-rows">
               {profile.bikes.map((bike) => (
-                <li key={`${bike.year}-${bike.make}-${bike.model}`} className="sp-row">
+                <li key={`${bike.year}-${bike.make}-${bike.model}`} className="mv-row sp-row">
                   <div className="sp-row-body">
                     <div className="sp-row-title">
                       {bike.nickname ?? `${bike.year} ${bike.make} ${bike.model}`}
@@ -151,7 +151,7 @@ export default async function RiderProfilePage({
 
       <footer className="sp-cta">
         <div className="sp-cta-inner">
-          <h2 className="sp-cta-title">Keep your own logbook</h2>
+          <h2 className="mv-h2">Keep your own logbook</h2>
           <p className="sp-cta-sub">
             Every ride, every service, every cost, for each bike you own. Free to start.
           </p>
@@ -172,7 +172,7 @@ export default async function RiderProfilePage({
               slug={username}
               className="mv-btn mv-btn-ghost"
             >
-              Get it on Android
+              Download for Android
             </StoreLink>
           </div>
         </div>

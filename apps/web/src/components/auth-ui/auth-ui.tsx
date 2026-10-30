@@ -46,7 +46,7 @@ const BRAND_LOGO = '/images/marketing/MotoVault.png';
 const PANEL_PLATE = {
   figure: '2,400',
   unit: 'km',
-  caption: 'Next service in 2,400 km',
+  caption: 'Ready · next service in 2,400 km',
   racingNumber: '27',
   identity: 'Honda Africa Twin · 2022',
 } as const;
@@ -79,7 +79,7 @@ type AuthShellProps = {
  */
 export function AuthShell({ headerLink, homeLabel, panelNote, children }: AuthShellProps) {
   return (
-    <div className="mva-root">
+    <div className="mv-root mva-root">
       <div className="mva-panel">
         {/* `fill` needs a relative/absolute/fixed parent; the panel is sticky
             (and static while hidden), which next/image warns about on every load. */}
@@ -101,7 +101,7 @@ export function AuthShell({ headerLink, homeLabel, panelNote, children }: AuthSh
       </div>
       <header className="mva-header">
         <Brand label={homeLabel} />
-        <Link href={headerLink.href} className="mva-header-link">
+        <Link href={headerLink.href} className="mv-link is-quiet is-tall mva-header-link">
           {headerLink.label}
         </Link>
       </header>
@@ -117,22 +117,22 @@ type AuthHeadProps = {
   subtitle: string;
 };
 
-/** Condensed title, system-face subtitle. No eyebrow (Plain Voice Rule). */
+/** Operate H1 (the shared title class capped at 44), system-face subtitle. No eyebrow. */
 export function AuthHead({ title, subtitle }: AuthHeadProps) {
   return (
     <div className="mva-head">
-      <h1 className="mva-title">{title}</h1>
+      <h1 className="mv-section-title mva-title">{title}</h1>
       <p className="mva-subtitle">{subtitle}</p>
     </div>
   );
 }
 
 /**
- * Rich-text tag renderer for `<serif>…</serif>` in AuthV2 titles. The serif
- * is retired: the chunk renders in the same condensed display face.
+ * Rich-text tag renderer for `<muted>…</muted>` in AuthV2 titles: the same
+ * condensed face, one ink step quieter (`.mv-section-title .mv-muted`).
  */
-export function serifChunk(chunks: ReactNode) {
-  return <span className="mva-em">{chunks}</span>;
+export function mutedChunk(chunks: ReactNode) {
+  return <span className="mv-muted">{chunks}</span>;
 }
 
 export function AlertIcon({ size = 18 }: { size?: number }) {
@@ -212,10 +212,8 @@ type AuthBannerProps = {
 
 export function AuthBanner({ message, action }: AuthBannerProps) {
   return (
-    <div role="alert" className="mva-banner">
-      <span className="mva-banner-icon">
-        <AlertIcon />
-      </span>
+    <div role="alert" className="mv-alert mva-banner">
+      <AlertIcon />
       <span className={action ? 'mva-banner-body mva-banner-body--actions' : 'mva-banner-body'}>
         <span>{message}</span>
         {action}
@@ -269,7 +267,7 @@ export function OAuthButtons({ loading, onGoogle, onApple }: OAuthButtonsProps) 
           <button
             key={p.id}
             type="button"
-            className="mva-oauth-btn"
+            className="mv-btn mv-btn-ghost mv-btn-block"
             onClick={p.onClick}
             disabled={loading !== null}
             aria-busy={busy || undefined}
@@ -301,23 +299,31 @@ export function OrWithEmail() {
 type AuthFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'className'> & {
   id: string;
   label: string;
-  /** Element beside the label (e.g. "Forgot?"). */
+  /** Element beside the label (e.g. "Forgot password?"). */
   labelAside?: ReactNode;
+  /** Persistent helper line under the field (a rule, never a placeholder). */
+  hint?: string;
   /** Field-level error, linked with aria-describedby + aria-invalid. */
   error?: string;
   /** Show/hide toggle inside the field (password fields), with its accessible names. */
   toggle?: { shown: boolean; onToggle: () => void; showLabel: string; hideLabel: string };
 };
 
-export function AuthField({ id, label, labelAside, error, toggle, ...input }: AuthFieldProps) {
+export function AuthField({
+  id,
+  label,
+  labelAside,
+  hint,
+  error,
+  toggle,
+  ...input
+}: AuthFieldProps) {
   const errorId = `${id}-error`;
-  const labelEl = (
-    <label htmlFor={id} className="mva-label">
-      {label}
-    </label>
-  );
+  const hintId = `${id}-hint`;
+  const describedBy = [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(' ');
+  const labelEl = <label htmlFor={id}>{label}</label>;
   return (
-    <div className={labelAside ? 'mva-field mva-field--row' : 'mva-field'}>
+    <div className="mv-field">
       {labelAside ? (
         <div className="mva-label-row">
           {labelEl}
@@ -329,15 +335,15 @@ export function AuthField({ id, label, labelAside, error, toggle, ...input }: Au
       <div className="mva-input-wrap">
         <input
           id={id}
-          className={toggle ? 'mva-input mva-input--toggle' : 'mva-input'}
+          className={toggle ? 'mv-field-input is-tall mva-input--toggle' : 'mv-field-input is-tall'}
           aria-invalid={error ? true : undefined}
-          aria-describedby={error ? errorId : undefined}
+          aria-describedby={describedBy || undefined}
           {...input}
         />
         {toggle && (
           <button
             type="button"
-            className="mva-toggle"
+            className="mv-icon-btn mva-toggle"
             onClick={toggle.onToggle}
             aria-label={toggle.shown ? toggle.hideLabel : toggle.showLabel}
             aria-pressed={toggle.shown}
@@ -346,8 +352,13 @@ export function AuthField({ id, label, labelAside, error, toggle, ...input }: Au
           </button>
         )}
       </div>
+      {hint && !error && (
+        <span id={hintId} className="mv-field-hint">
+          {hint}
+        </span>
+      )}
       {error && (
-        <span id={errorId} role="alert" className="mva-field-error">
+        <span id={errorId} role="alert" className="mv-field-error mva-field-error">
           <AlertIcon size={14} />
           {error}
         </span>
@@ -368,7 +379,7 @@ export function SubmitButton({ busy, disabled, label, busyLabel }: SubmitButtonP
   return (
     <button
       type="submit"
-      className="mva-submit"
+      className="mv-btn mv-btn-primary mv-btn-block mva-submit"
       disabled={busy || disabled}
       aria-busy={busy || undefined}
     >
@@ -392,12 +403,12 @@ export function LegalNote() {
 
 type AltLinkProps = { prompt: string; href: string; label: string };
 
-/** "Already a rider? Sign in" / "No account yet? Create account". */
+/** "Already have an account? Sign in" / "No account yet? Create account". */
 export function AltLink({ prompt, href, label }: AltLinkProps) {
   return (
     <div className="mva-alt">
       {prompt}
-      <Link href={href} className="mva-alt-link">
+      <Link href={href} className="mv-link is-quiet is-tall">
         {label}
       </Link>
     </div>

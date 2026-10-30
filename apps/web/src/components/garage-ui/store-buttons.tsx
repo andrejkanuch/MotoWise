@@ -12,10 +12,10 @@ import './garage-ui.css';
  * shared `storeAnchorProps`: new tab, Play install referrer, one
  * `store_cta_click` tagged `page_type: garage`.
  *
- * The official badge artwork is not in the repo, so these are text buttons
- * with the platform marks, radius 12: the App Store one is the copper action,
- * Google Play one step up the ramp (as the marketing hero pairs them). Swap in
- * the official badges here, in one place, if they are ever added.
+ * The official badge artwork is not in the repo, so these are .mv-btn-block
+ * buttons with the platform marks: "Download for iOS" is the copper action,
+ * "Download for Android" one step up the ramp (as the marketing hero pairs
+ * them). Swap in the official badges here, in one place, if they are ever added.
  */
 export function StoreButtons({ placement = CtaPlacement.Inline }: { placement?: CtaPlacement }) {
   const t = useTranslations('AppHandoff');
@@ -24,12 +24,15 @@ export function StoreButtons({ placement = CtaPlacement.Inline }: { placement?: 
     <div className="mvg-store">
       <a
         {...storeAnchorProps(StorePlatform.Ios, ctx)}
-        className="mvg-store-btn mvg-store-btn--primary mvg-focusable"
+        className="mv-btn mv-btn-primary mv-btn-block"
       >
         <AppleMark size={20} />
         {t('appStore')}
       </a>
-      <a {...storeAnchorProps(StorePlatform.Android, ctx)} className="mvg-store-btn mvg-focusable">
+      <a
+        {...storeAnchorProps(StorePlatform.Android, ctx)}
+        className="mv-btn mv-btn-ghost mv-btn-block"
+      >
         <GooglePlayMark size={18} />
         {t('googlePlay')}
       </a>
@@ -37,17 +40,17 @@ export function StoreButtons({ placement = CtaPlacement.Inline }: { placement?: 
   );
 }
 
-/** "On this tablet? App Store · Google Play" as inline text links (tablet band). */
+/** "On this tablet? Download for iOS · Download for Android" as inline text links (tablet band). */
 export function StoreTextLinks({ placement = CtaPlacement.Inline }: { placement?: CtaPlacement }) {
   const t = useTranslations('AppHandoff');
   const ctx = { pageType: CtaPageType.Garage, placement };
   return (
     <p className="mvg-store-inline" style={{ margin: 0 }}>
       {t('onThisTablet')}
-      <a {...storeAnchorProps(StorePlatform.Ios, ctx)} className="mvg-link">
+      <a {...storeAnchorProps(StorePlatform.Ios, ctx)} className="mv-link is-quiet is-tall">
         {t('appStore')}
       </a>
-      <a {...storeAnchorProps(StorePlatform.Android, ctx)} className="mvg-link">
+      <a {...storeAnchorProps(StorePlatform.Android, ctx)} className="mv-link is-quiet is-tall">
         {t('googlePlay')}
       </a>
     </p>

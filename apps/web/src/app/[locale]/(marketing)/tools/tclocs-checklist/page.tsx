@@ -132,9 +132,6 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
     timerStart: t('timerStart'),
     timerRunning: t('timerRunning'),
     timerComplete: t('timerComplete'),
-    personalBest: t('personalBest'),
-    newRecord: t('newRecord'),
-    noBestYet: t('noBestYet'),
     downloadPdf: t('downloadPdf'),
     pdfTitle: t('pdfTitle'),
     pdfDate: t('pdfDate'),
@@ -170,134 +167,131 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
       <JsonLd data={articleSchema} />
 
       <section className="mv-wide" style={{ paddingBottom: 0 }}>
-        <header className="mv-reveal mv-tool" style={{ maxWidth: 760 }}>
+        <header className="mv-reveal mv-tool">
           <h1 className="mv-index-h1">
             {t('heroTitleAccent')} <span className="mv-muted">{t('heroTitleRest')}</span>
           </h1>
-          <p className="mv-index-lede">
-            {t('heroSubtitle')}{' '}
-            <strong style={{ color: 'var(--mv-ink)', fontWeight: 600 }}>
-              {t('heroCategories')}
-            </strong>
-            .
-          </p>
+          <p className="mv-index-lede">{t('heroSubtitle')}</p>
         </header>
       </section>
 
       <TclocsChecklist categories={categories} labels={labels} />
 
-      <article className="mv-read" style={{ paddingTop: 96 }}>
-        <div className="mv-read-body">
-          <h2>The complete guide to the TCLOCS pre-ride inspection</h2>
-          <p>
-            TCLOCS is a systematic motorcycle safety inspection developed by the Motorcycle Safety
-            Foundation (MSF). The acronym stands for Tires, Controls, Lights, Oil, Chassis, and
-            Stands: six categories that cover every critical system on your motorcycle. A thorough
-            TCLOCS check takes about 10 minutes and should be performed before every ride.
-          </p>
+      {/* The article sits in the same 1040 column as the hero and the checklist */}
+      <section className="mv-wide" style={{ paddingTop: 96 }}>
+        <article className="mv-tool">
+          <div className="mv-read-body">
+            <h2>The complete guide to the TCLOCS pre-ride inspection</h2>
+            <p>
+              TCLOCS is a systematic motorcycle safety inspection developed by the Motorcycle Safety
+              Foundation (MSF). The acronym stands for Tires, Controls, Lights, Oil, Chassis, and
+              Stands: six categories that cover every critical system on your motorcycle. A thorough
+              TCLOCS check takes about 10 minutes and should be performed before every ride.
+            </p>
 
-          <h3>T: tires and wheels</h3>
-          <p>
-            Tires are your only contact with the road. Check air pressure with a gauge (cold, before
-            riding) and compare to the spec on the sidewall or owner&apos;s manual. Under-inflation
-            causes sluggish handling and overheating, while over-inflation reduces grip. Inspect
-            tread depth across the full surface; the legal minimum is 1 mm in most regions, but
-            replace tires before reaching that point. Look for cracks, cuts, bulges, or embedded
-            objects like nails. Check that wheel axle nuts are tight and inspect spoked wheels for
-            loose or broken spokes.
-          </p>
+            <h3>T: tires and wheels</h3>
+            <p>
+              Tires are your only contact with the road. Check air pressure with a gauge (cold,
+              before riding) and compare to the spec on the sidewall or owner&apos;s manual.
+              Under-inflation causes sluggish handling and overheating, while over-inflation reduces
+              grip. Inspect tread depth across the full surface; the legal minimum is 1 mm in most
+              regions, but replace tires before reaching that point. Look for cracks, cuts, bulges,
+              or embedded objects like nails. Check that wheel axle nuts are tight and inspect
+              spoked wheels for loose or broken spokes.
+            </p>
 
-          <h3>C: controls</h3>
-          <p>
-            Controls include everything you operate with your hands and feet. Squeeze both brake
-            levers: they should feel firm with no sponginess. Check clutch lever free play and cable
-            condition. Verify the throttle snaps closed when released (a sticking throttle is a
-            serious hazard). Test the horn and kill switch. Ensure foot pegs are secure and fold
-            properly, and check that shift and brake pedals have correct height and travel.
-          </p>
+            <h3>C: controls</h3>
+            <p>
+              Controls include everything you operate with your hands and feet. Squeeze both brake
+              levers: they should feel firm with no sponginess. Check clutch lever free play and
+              cable condition. Verify the throttle snaps closed when released (a sticking throttle
+              is a serious hazard). Test the horn and kill switch. Ensure foot pegs are secure and
+              fold properly, and check that shift and brake pedals have correct height and travel.
+            </p>
 
-          <h3>L: lights and electrics</h3>
-          <p>
-            Visibility saves lives. Turn on the ignition and verify that the headlight (low beam and
-            high beam), tail light, brake light (activated by both front lever and rear pedal), and
-            all turn signals are working. Check that the instrument panel lights up correctly with
-            no persistent warning indicators. A dead brake light or turn signal is one of the most
-            common causes of motorcycle rear-end collisions.
-          </p>
+            <h3>L: lights and electrics</h3>
+            <p>
+              Visibility saves lives. Turn on the ignition and verify that the headlight (low beam
+              and high beam), tail light, brake light (activated by both front lever and rear
+              pedal), and all turn signals are working. Check that the instrument panel lights up
+              correctly with no persistent warning indicators. A dead brake light or turn signal is
+              one of the most common causes of motorcycle rear-end collisions.
+            </p>
 
-          <h3>O: oil and fluids</h3>
-          <p>
-            Check engine oil level via the sight glass or dipstick with the bike upright on level
-            ground. Inspect both brake fluid reservoirs (front handlebar and rear frame): fluid
-            should be above the minimum line and clear or amber in colour. Dark or cloudy brake
-            fluid needs replacement. For liquid-cooled bikes, check the coolant reservoir. Look
-            under the bike for fresh puddles or drips that indicate new leaks.
-          </p>
+            <h3>O: oil and fluids</h3>
+            <p>
+              Check engine oil level via the sight glass or dipstick with the bike upright on level
+              ground. Inspect both brake fluid reservoirs (front handlebar and rear frame): fluid
+              should be above the minimum line and clear or amber in colour. Dark or cloudy brake
+              fluid needs replacement. For liquid-cooled bikes, check the coolant reservoir. Look
+              under the bike for fresh puddles or drips that indicate new leaks.
+            </p>
 
-          <h3>C: chassis and chain</h3>
-          <p>
-            Inspect chain tension by pushing up on the lower run. Correct slack is typically 25–35
-            mm, but check your manual. The chain should be clean and lubricated with no tight spots
-            or excessive rust. Check sprocket teeth for hooking or wear. Verify the frame has no
-            visible cracks, especially around welds and mounting points. Push down on the front
-            forks and rear shock to check for smooth operation and look for oil weeping from fork
-            seals.
-          </p>
+            <h3>C: chassis and chain</h3>
+            <p>
+              Inspect chain tension by pushing up on the lower run. Correct slack is typically 25–35
+              mm, but check your manual. The chain should be clean and lubricated with no tight
+              spots or excessive rust. Check sprocket teeth for hooking or wear. Verify the frame
+              has no visible cracks, especially around welds and mounting points. Push down on the
+              front forks and rear shock to check for smooth operation and look for oil weeping from
+              fork seals.
+            </p>
 
-          <h3>S: stands</h3>
-          <p>
-            Verify the side stand retracts fully and the return spring pulls it up firmly. Test the
-            side stand engine cut-off switch: on most modern motorcycles, the engine will not start
-            or will cut out if the side stand is down with a gear engaged. If your bike has a centre
-            stand, check that it deploys and retracts smoothly and holds the bike stable.
-          </p>
+            <h3>S: stands</h3>
+            <p>
+              Verify the side stand retracts fully and the return spring pulls it up firmly. Test
+              the side stand engine cut-off switch: on most modern motorcycles, the engine will not
+              start or will cut out if the side stand is down with a gear engaged. If your bike has
+              a centre stand, check that it deploys and retracts smoothly and holds the bike stable.
+            </p>
 
-          <h3>Why TCLOCS matters</h3>
-          <p>
-            Mechanical failure accounts for a significant share of motorcycle incidents, and most
-            failures are preventable with basic pre-ride checks. A nail in a tire, a dead brake
-            light, or a low oil level can all be caught in under a minute, but only if you look.
-            Making TCLOCS a habit before every ride is the single cheapest safety improvement any
-            rider can make.
-          </p>
-        </div>
-
-        <section className="mv-read-section" aria-labelledby="tclocs-faq-heading">
-          <h2 id="tclocs-faq-heading" className="mv-read-h2">
-            Questions riders ask
-          </h2>
-          <div className="mv-read-faq">
-            {faq.map((item) => (
-              <details key={item.question}>
-                <summary>
-                  {item.question}
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                </summary>
-                <p className="mv-read-faq-answer">{item.answer}</p>
-              </details>
-            ))}
+            <h3>Why TCLOCS matters</h3>
+            <p>
+              Mechanical failure accounts for a significant share of motorcycle incidents, and most
+              failures are preventable with basic pre-ride checks. A nail in a tire, a dead brake
+              light, or a low oil level can all be caught in under a minute, but only if you look.
+              Making TCLOCS a habit before every ride is the single cheapest safety improvement any
+              rider can make.
+            </p>
           </div>
-        </section>
 
-        <div className="mv-read-body mv-read-section print:hidden">
-          <h2>{t('seoTitle')}</h2>
-          <p>{t('seoP1')}</p>
-          <p>{t('seoP2')}</p>
-          <p>{t('seoP3')}</p>
-        </div>
-      </article>
+          <section className="mv-read-section" aria-labelledby="tclocs-faq-heading">
+            <h2 id="tclocs-faq-heading" className="mv-read-h2">
+              Questions riders ask
+            </h2>
+            <div className="mv-read-faq">
+              {faq.map((item) => (
+                <details key={item.question}>
+                  <summary>
+                    {item.question}
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                  </summary>
+                  <p className="mv-read-faq-answer">{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+
+          <div className="mv-read-body mv-read-section print:hidden">
+            <h2>{t('seoTitle')}</h2>
+            <p>{t('seoP1')}</p>
+            <p>{t('seoP2')}</p>
+            <p>{t('seoP3')}</p>
+          </div>
+        </article>
+      </section>
     </>
   );
 }

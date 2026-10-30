@@ -4,14 +4,17 @@
    mv-tokens.css (dark on :root, light under html:not(.dark)).
    Condensed face for the title and figures, the system face for every
    sentence. The ramp is the shadow: no drop shadows, no blur, no glow.
-   Classes other components depend on: .rh-icon-btn and .rsec
+   Shared grammar comes from design-system.css: .mv-section-title,
+   .mv-h2, .mv-figure, .mv-crumbs, .mv-rows/.mv-row, .mv-btn*,
+   .mv-scroll-row. Classes other components depend on: .rsec
    (gpx-download-button.tsx), .mv-wp-popup (trip-detail-map.tsx).
+   Gutters: 40 → 24 at ≤900 → 20 at ≤480.
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── Hero ── */
 .rh {
   position: relative;
-  padding: 140px 40px 72px;
+  padding: 120px 40px 64px;
   isolation: isolate;
   overflow: hidden;
   background: var(--mv-bg);
@@ -54,52 +57,25 @@
   width: 100%;
 }
 
-.rh-crumb {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: var(--mv-ink-3);
+/* Crumbs → H1 is 40px */
+.rh .mv-crumbs {
+  margin-bottom: 40px;
 }
 
-.rh-crumb a {
-  color: var(--mv-ink-3);
-  text-decoration: none;
-  transition: color 0.2s var(--mv-ease);
-}
-
-.rh-crumb a:hover {
-  color: var(--mv-copper-text);
-}
-
-.rh-crumb-sep {
-  color: var(--mv-ink-4);
-}
-
-.rh-crumb .current {
-  color: var(--mv-ink-2);
-}
-
+/* The page title: the H1 step (.mv-section-title), ink, a short measure */
 .rh-title {
-  margin: 40px 0 0;
-  font-family: var(--mv-font-display);
-  font-weight: 700;
-  font-size: clamp(52px, 8vw, 128px);
-  line-height: 0.94;
-  letter-spacing: 0.002em;
   color: var(--mv-ink);
   max-width: 14ch;
-  text-wrap: balance;
 }
 
 .rh-context {
-  margin-top: 20px;
+  margin-top: 28px;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 6px 16px;
   font-size: 17px;
+  line-height: 1.5;
   color: var(--mv-ink-2);
 }
 
@@ -119,29 +95,27 @@
 .rh-figure {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   min-width: 96px;
 }
 
 .rh-figure-value {
-  font-family: var(--mv-font-display);
-  font-weight: 600;
-  font-size: 44px;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum';
+  font-size: 40px;
+  line-height: 42px;
   color: var(--mv-ink);
 }
 
 .rh-figure-value small {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 500;
   color: var(--mv-ink-2);
   margin-left: 4px;
 }
 
 .rh-figure-label {
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
   color: var(--mv-ink-3);
 }
 
@@ -150,43 +124,13 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-}
-
-/* Secondary hero action: one step up the ramp, radius 12, 44px target */
-.rh-icon-btn {
-  display: inline-flex;
-  align-items: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 11px 18px;
-  border-radius: var(--mv-radius-control);
-  background: var(--mv-surface-2);
-  border: 1px solid var(--mv-line);
-  color: var(--mv-ink);
-  font-family: var(--mv-font-body);
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition:
-    background 0.2s var(--mv-ease),
-    border-color 0.2s var(--mv-ease);
-}
-
-.rh-icon-btn:hover {
-  background: var(--mv-surface-3);
-  border-color: var(--mv-line-step);
-}
-
-.rh-icon-btn:disabled {
-  opacity: 0.6;
-  cursor: default;
 }
 
 .rh-author {
   margin-top: 28px;
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.45;
   color: var(--mv-ink-3);
 }
 
@@ -212,12 +156,6 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.tabnav-inner::-webkit-scrollbar {
-  display: none;
 }
 
 .tabnav-tab {
@@ -227,7 +165,7 @@
   padding: 0 14px;
   color: var(--mv-ink-3);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   white-space: nowrap;
   transition: color 0.2s var(--mv-ease);
@@ -237,31 +175,33 @@
   color: var(--mv-ink);
 }
 
+/* The bar's action is the shared primary button; this only places it and
+   keeps the 44px target inside a 52px bar */
 .tabnav-cta {
   margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 16px;
-  background: var(--mv-copper);
-  color: var(--mv-on-copper);
-  border-radius: var(--mv-radius-control);
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
   white-space: nowrap;
-  transition: background 0.2s var(--mv-ease);
 }
 
-.tabnav-cta:hover {
-  background: var(--mv-copper-hover);
-}
-
-/* ── Sections ── */
+/* ── Sections: one interval (0 / 96) between them, the itinerary carries
+      the page's weight, reviews breathe less ── */
 .rsec {
-  padding: 96px 40px;
+  padding: 0 40px 96px;
   max-width: var(--mv-container);
   margin: 0 auto;
+}
+
+.rsec--lead {
+  padding-top: 96px;
+}
+
+.rsec--itinerary {
+  padding-bottom: 120px;
+}
+
+.rsec--reviews {
+  padding-bottom: 64px;
 }
 
 .rsec-head {
@@ -273,16 +213,8 @@
   flex-wrap: wrap;
 }
 
-.rsec-title {
-  font-family: var(--mv-font-display);
-  font-size: clamp(36px, 4.5vw, 64px);
-  font-weight: 700;
-  line-height: 0.96;
-  letter-spacing: 0.002em;
-  margin: 0;
+.rsec-head .mv-h2 {
   max-width: 16ch;
-  text-wrap: balance;
-  color: var(--mv-ink);
 }
 
 .rsec-aside {
@@ -290,6 +222,7 @@
   font-size: 15px;
   line-height: 1.55;
   max-width: 360px;
+  margin: 0;
 }
 
 /* ── Overview: prose at reading measure, details as hairline rows ── */
@@ -303,40 +236,33 @@
 
 .overview-text {
   font-size: 17px;
-  line-height: 1.65;
+  line-height: 1.6;
   color: var(--mv-ink-2);
   max-width: 68ch;
+  text-wrap: pretty;
 }
 
 .overview-text p {
-  margin: 0 0 22px;
+  margin: 0 0 24px;
 }
 
 .overview-text p:last-child {
   margin-bottom: 0;
 }
 
-.rfacts {
-  display: flex;
-  flex-direction: column;
-  border-top: 1px solid var(--mv-line);
-}
-
-.rfacts-row {
-  display: flex;
-  justify-content: space-between;
+/* Key / value facts on .mv-rows: the key in ink-3, the value in ink */
+.rfacts .mv-row {
   align-items: baseline;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--mv-line);
   font-size: 15px;
+  line-height: 1.45;
 }
 
-.rfacts-key {
+.rfacts dt {
   color: var(--mv-ink-3);
 }
 
-.rfacts-val {
+.rfacts dd {
+  margin: 0;
   color: var(--mv-ink);
   font-weight: 500;
   text-align: right;
@@ -366,7 +292,7 @@
 .map-foot {
   display: flex;
   justify-content: flex-end;
-  padding: 12px 0 0;
+  padding: 16px 0 0;
 }
 
 /* ── Day by day: hairline rows, no boxes ── */
@@ -383,7 +309,8 @@
 }
 
 .day-num {
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 18px;
   font-weight: 500;
   color: var(--mv-ink-3);
 }
@@ -393,19 +320,18 @@
   font-size: 20px;
   font-weight: 600;
   line-height: 1.25;
-  letter-spacing: -0.01em;
   color: var(--mv-ink);
 }
 
 .day-stats {
   margin-top: 8px;
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.45;
   color: var(--mv-ink-3);
 }
 
-.day-stats strong {
+.day-stats .mv-figure {
   color: var(--mv-ink-2);
-  font-weight: 500;
 }
 
 .day-stops {
@@ -416,7 +342,7 @@
 .stop {
   display: grid;
   grid-template-columns: 20px minmax(0, 1fr);
-  gap: 14px;
+  gap: 16px;
   align-items: start;
   padding: 12px 0;
   border-top: 1px solid var(--mv-line-2);
@@ -443,6 +369,7 @@
 
 .stop-name {
   font-size: 15px;
+  line-height: 1.45;
   color: var(--mv-ink);
 }
 
@@ -450,6 +377,7 @@
   display: block;
   margin-top: 2px;
   font-size: 13px;
+  line-height: 18px;
   color: var(--mv-ink-3);
 }
 
@@ -457,22 +385,22 @@
 .reviews-score {
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 8px;
 }
 
 .reviews-score-num {
-  font-family: var(--mv-font-display);
-  font-weight: 600;
   font-size: 64px;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum';
+  line-height: 64px;
   color: var(--mv-ink);
 }
 
+/* The unit at half the figure, in the display face */
 .reviews-score-out {
-  font-size: 18px;
-  color: var(--mv-ink-3);
+  font-family: var(--mv-font-display);
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 1;
+  color: var(--mv-ink-2);
 }
 
 .reviews-stars {
@@ -487,18 +415,18 @@
 }
 
 .reviews-count {
-  margin-top: 12px;
+  margin: 12px 0 0;
   font-size: 15px;
+  line-height: 1.45;
   color: var(--mv-ink-3);
 }
 
 .review-list {
-  border-top: 1px solid var(--mv-line);
+  margin-top: 40px;
 }
 
 .review {
   padding: 24px 0;
-  border-bottom: 1px solid var(--mv-line);
 }
 
 .review-head {
@@ -528,6 +456,7 @@
 
 .review-author {
   font-size: 15px;
+  line-height: 1.45;
   font-weight: 600;
   color: var(--mv-ink);
 }
@@ -537,93 +466,51 @@
   flex-wrap: wrap;
   gap: 8px;
   font-size: 13px;
+  line-height: 18px;
   color: var(--mv-ink-3);
 }
 
 .review-text {
   margin: 12px 0 0;
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: 16px;
+  line-height: 1.55;
   color: var(--mv-ink-2);
   max-width: 68ch;
+  text-wrap: pretty;
 }
 
 .review-tags {
-  margin-top: 8px;
+  margin: 8px 0 0;
   font-size: 13px;
+  line-height: 18px;
   color: var(--mv-ink-3);
 }
 
-/* ── More routes: hairline list ── */
+/* ── More routes: hairline list on .mv-rows ── */
 .sib {
   max-width: var(--mv-container);
   margin: 0 auto;
   padding: 8px 40px 96px;
 }
 
-.sib-title {
-  font-family: var(--mv-font-display);
-  font-size: clamp(32px, 4vw, 52px);
-  font-weight: 700;
-  line-height: 0.98;
-  letter-spacing: 0.002em;
-  margin: 0;
-  color: var(--mv-ink);
+.sib .mv-rows {
+  margin-top: 28px;
 }
 
-.sib-list {
-  list-style: none;
-  margin: 28px 0 0;
-  padding: 0;
-  border-top: 1px solid var(--mv-line);
-}
-
-.sib-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 56px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--mv-line);
-  color: inherit;
-  text-decoration: none;
-}
-
-.sib-row-title {
-  font-size: 16px;
+.sib .mv-row-title {
   font-weight: 600;
-  color: var(--mv-ink);
-  transition: color 0.2s var(--mv-ease);
-}
-
-.sib-row:hover .sib-row-title {
-  color: var(--mv-copper-text);
-}
-
-.sib-row-meta {
-  font-size: 14px;
-  color: var(--mv-ink-3);
-  white-space: nowrap;
 }
 
 /* ── Final call: the one centred block on the page ── */
 .end-cta {
-  padding: 140px 40px;
+  padding: 160px 40px;
   text-align: center;
   background: var(--mv-bg-2);
 }
 
 .end-cta-title {
-  font-family: var(--mv-font-display);
-  font-size: clamp(40px, 6vw, 88px);
-  font-weight: 700;
-  line-height: 0.96;
-  letter-spacing: 0.002em;
   max-width: 14ch;
   margin: 0 auto;
-  text-wrap: balance;
-  color: var(--mv-ink);
 }
 
 .end-cta-sub {
@@ -632,90 +519,90 @@
   color: var(--mv-ink-2);
   font-size: 17px;
   line-height: 1.55;
+  text-wrap: pretty;
 }
 
 .end-cta-actions {
-  margin-top: 36px;
+  margin-top: 32px;
   display: flex;
   justify-content: center;
   gap: 12px;
   flex-wrap: wrap;
 }
 
-/* ── Sticky bar on phones: raised one step, solid ── */
+/* ── Sticky bar on phones: raised one step, solid, above the cookie bar ── */
 .trip-sticky {
   position: fixed;
-  bottom: 0;
+  bottom: var(--mv-cookie-banner-h, 0px);
   left: 0;
   right: 0;
   z-index: 50;
-  padding: 12px 16px;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
   background: var(--mv-surface-2);
   border-top: 1px solid var(--mv-line);
   display: flex;
   align-items: center;
   gap: 12px;
+  transition: bottom 0.25s var(--mv-ease);
+}
+
+.trip-sticky-body {
+  flex: 1;
+  min-width: 0;
 }
 
 .trip-sticky-title {
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.45;
   font-weight: 600;
   color: var(--mv-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .trip-sticky-sub {
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 18px;
   color: var(--mv-ink-3);
 }
 
+/* Keeps the last section clear of the fixed bar */
+.trip-sticky-spacer {
+  height: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
 @media (min-width: 1024px) {
-  .trip-sticky {
+  .trip-sticky,
+  .trip-sticky-spacer {
     display: none;
   }
 }
 
 /* ── Responsive ── */
 @media (max-width: 900px) {
-  .overview-grid {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-}
-
-@media (max-width: 800px) {
-  .day {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-}
-
-@media (max-width: 720px) {
   .rh {
-    padding: 112px 24px 48px;
-  }
-
-  .rh-title {
-    font-size: clamp(40px, 12vw, 80px);
-  }
-
-  .rh-figures {
-    gap: 20px 32px;
-  }
-
-  .rh-figure-value {
-    font-size: 36px;
-  }
-
-  .rh-figure-value small {
-    font-size: 20px;
+    padding: 96px 24px 48px;
   }
 
   .tabnav-inner {
-    padding: 0 16px;
+    padding: 0 24px;
   }
 
   .rsec {
-    padding: 64px 24px;
+    padding: 0 24px 64px;
+  }
+
+  .rsec--lead {
+    padding-top: 64px;
+  }
+
+  .rsec--itinerary {
+    padding-bottom: 96px;
+  }
+
+  .rsec--reviews {
+    padding-bottom: 48px;
   }
 
   .rsec-head {
@@ -729,18 +616,66 @@
     max-width: 100%;
   }
 
-  .sib {
-    padding: 8px 24px 72px;
+  .overview-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
   }
 
-  .sib-row {
+  .sib {
+    padding: 8px 24px 64px;
+  }
+
+  .end-cta {
+    padding: 96px 24px;
+  }
+}
+
+@media (max-width: 800px) {
+  .day {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rh {
+    padding: 96px 20px 48px;
+  }
+
+  .rh-figures {
+    gap: 20px 32px;
+  }
+
+  .rh-figure-value {
+    font-size: 28px;
+    line-height: 30px;
+  }
+
+  .rh-figure-value small {
+    font-size: 14px;
+  }
+
+  .tabnav-inner {
+    padding: 0 20px;
+  }
+
+  .rsec {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .sib {
+    padding: 8px 20px 64px;
+  }
+
+  .sib .mv-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
 
   .end-cta {
-    padding: 88px 24px;
+    padding: 96px 20px;
   }
 }
 

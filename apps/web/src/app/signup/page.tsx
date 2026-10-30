@@ -12,13 +12,13 @@ import {
   AuthShell,
   LegalNote,
   MailIcon,
+  mutedChunk,
   OAuthButtons,
   type OAuthProvider,
   OrWithEmail,
   RESEND_LABEL_KEY,
   type ResendState,
   SubmitButton,
-  serifChunk,
 } from '@/components/auth-ui/auth-ui';
 import { readExplicitConsent } from '@/components/cookie-consent';
 import { identifyUser, trackEvent, WebEvent } from '@/lib/analytics';
@@ -172,7 +172,7 @@ export default function SignUpPage() {
       panelNote={PANEL_NOTE}
     >
       <AuthHead
-        title={t.rich('signUp.title', { serif: serifChunk })}
+        title={t.rich('signUp.title', { muted: mutedChunk })}
         subtitle={t('signUp.subtitle')}
       />
 
@@ -183,7 +183,7 @@ export default function SignUpPage() {
           <div className="mva-check-copy">
             <h2 className="mva-check-title">
               <MailIcon />
-              <span>{t.rich('checkEmail.title', { serif: serifChunk })}</span>
+              <span>{t.rich('checkEmail.title', { muted: mutedChunk })}</span>
             </h2>
             <p className="mva-check-body">{t('checkEmail.body')}</p>
             <p className="mva-check-email">{email.trim()}</p>
@@ -192,13 +192,17 @@ export default function SignUpPage() {
             {t('checkEmail.nothingArrived')}
             <button
               type="button"
-              className="mva-btn-secondary"
+              className="mv-btn mv-btn-ghost"
               onClick={handleResendConfirmation}
               disabled={resendState !== 'idle'}
             >
               {t(RESEND_LABEL_KEY[resendState])}
             </button>
-            <button type="button" className="mva-link-btn" onClick={handleDifferentEmail}>
+            <button
+              type="button"
+              className="mv-link is-quiet is-tall"
+              onClick={handleDifferentEmail}
+            >
               {t('checkEmail.differentEmail')}
             </button>
           </div>
@@ -234,7 +238,7 @@ export default function SignUpPage() {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={t('signUp.passwordPlaceholder')}
+              hint={t('signUp.passwordHint')}
               autoComplete="new-password"
               minLength={6}
               maxLength={128}

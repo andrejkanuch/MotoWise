@@ -4,7 +4,7 @@ import {
   WebTripReviewsDocument,
   type WebTripReviewsQuery,
 } from '@motovault/graphql';
-import { ArrowRight, Share2, Star } from 'lucide-react';
+import { ArrowRight, ChevronRight, Share2, Star } from 'lucide-react';
 import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { cache } from 'react';
@@ -91,13 +91,13 @@ async function fetchSiblingRoutes(
 export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
   const { country, region, slug } = await params;
   const trip = await fetchTrip(country, region, slug);
-  if (!trip) return { title: 'Trip Not Found' };
+  if (!trip) return { title: 'Route not found' };
 
   const countryCode = trip.countryCode ?? country.toUpperCase();
   const countryName = countryDisplayName(countryCode);
   const regionName = trip.regionCode ? regionDisplayName(countryCode, trip.regionCode) : null;
   const dayCount = trip.dayCount ?? 1;
-  const title = `${trip.title} — ${dayCount}-Day Motorcycle Trip${regionName ? ` in ${regionName}` : ''}, ${countryName}`;
+  const title = `${trip.title}: ${dayCount}-day motorcycle trip${regionName ? ` in ${regionName}` : ''}, ${countryName}`;
   const description = trip.description.slice(0, 155);
   // Lowercase canonical — the route is case-insensitive, so a page reached via an
   // uppercased path must still canonicalize to the single lowercase URL.
@@ -422,7 +422,7 @@ export default async function TripPage({ params }: PageParams) {
   };
 
   const hasRating = trip.averageRating != null && trip.reviewCount > 0;
-  const ridesLabel = trip.reviewCount === 1 ? 'verified ride' : 'verified rides';
+  const reviewsLabel = trip.reviewCount === 1 ? 'review' : 'reviews';
 
   return (
     <>
@@ -445,21 +445,29 @@ export default async function TripPage({ params }: PageParams) {
       {/* ══════════ HERO ══════════ */}
       <section className="rh">
         <div className="rh-inner">
-          <nav className="rh-crumb" aria-label="Breadcrumb">
-            <a href="/explore">Explore</a>
-            <span className="rh-crumb-sep">/</span>
-            <a href={`/explore/${country}`}>{countryName}</a>
-            {regionName && (
-              <>
-                <span className="rh-crumb-sep">/</span>
-                <a href={`/explore/${country}/${region}`}>{regionName}</a>
-              </>
-            )}
-            <span className="rh-crumb-sep">/</span>
-            <span className="current">{trip.title}</span>
+          <nav aria-label="Breadcrumb">
+            <ol className="mv-crumbs">
+              <li>
+                <a href="/explore">Explore</a>
+              </li>
+              <li>
+                <ChevronRight size={14} aria-hidden="true" />
+                <a href={`/explore/${country}`}>{countryName}</a>
+              </li>
+              {regionName && (
+                <li>
+                  <ChevronRight size={14} aria-hidden="true" />
+                  <a href={`/explore/${country}/${region}`}>{regionName}</a>
+                </li>
+              )}
+              <li>
+                <ChevronRight size={14} aria-hidden="true" />
+                <span aria-current="page">{trip.title}</span>
+              </li>
+            </ol>
           </nav>
 
-          <h1 className="rh-title">{trip.title}</h1>
+          <h1 className="mv-section-title rh-title">{trip.title}</h1>
 
           <p className="rh-context">
             <span>
@@ -472,7 +480,7 @@ export default async function TripPage({ params }: PageParams) {
           <div className="rh-figures">
             {distanceKm != null && (
               <div className="rh-figure">
-                <span className="rh-figure-value">
+                <span className="mv-figure rh-figure-value">
                   {formatDistance(trip.distanceM ?? 0)}
                   <small>km</small>
                 </span>
@@ -481,7 +489,7 @@ export default async function TripPage({ params }: PageParams) {
             )}
             {dayCount > 0 && (
               <div className="rh-figure">
-                <span className="rh-figure-value">
+                <span className="mv-figure rh-figure-value">
                   {dayCount}
                   <small>{dayCount === 1 ? 'day' : 'days'}</small>
                 </span>
@@ -490,13 +498,13 @@ export default async function TripPage({ params }: PageParams) {
             )}
             {durationFormatted && (
               <div className="rh-figure">
-                <span className="rh-figure-value">{durationFormatted}</span>
+                <span className="mv-figure rh-figure-value">{durationFormatted}</span>
                 <span className="rh-figure-label">Riding time</span>
               </div>
             )}
             {elevationM != null && elevationM > 0 && (
               <div className="rh-figure">
-                <span className="rh-figure-value">
+                <span className="mv-figure rh-figure-value">
                   {formatElevation(trip.elevationGainM ?? 0)}
                   <small>m</small>
                 </span>
@@ -505,7 +513,7 @@ export default async function TripPage({ params }: PageParams) {
             )}
             {hasRating && (
               <div className="rh-figure">
-                <span className="rh-figure-value">
+                <span className="mv-figure rh-figure-value">
                   {trip.averageRating?.toFixed(1)}
                   <small>/ 5</small>
                 </span>
@@ -524,9 +532,9 @@ export default async function TripPage({ params }: PageParams) {
               slug={slug}
               className="mv-btn mv-btn-primary"
             >
-              Clone in the app
+              Get the app
             </StoreLink>
-            <a className="rh-icon-btn" href={`/trips/${country}/${region}/${slug}`}>
+            <a className="mv-btn mv-btn-ghost" href={`/trips/${country}/${region}/${slug}`}>
               <Share2 size={16} aria-hidden="true" />
               Share
             </a>
@@ -546,7 +554,7 @@ export default async function TripPage({ params }: PageParams) {
 
       {/* ══════════ IN-PAGE NAV ══════════ */}
       <nav className="tabnav" aria-label="On this page">
-        <div className="tabnav-inner">
+        <div className="tabnav-inner mv-scroll-row">
           {sections.map((sec) => (
             <a key={sec.id} className="tabnav-tab" href={`#${sec.id}`}>
               {sec.label}
@@ -557,17 +565,17 @@ export default async function TripPage({ params }: PageParams) {
             pageType={CtaPageType.Trip}
             placement={CtaPlacement.Navbar}
             slug={slug}
-            className="tabnav-cta"
+            className="mv-btn mv-btn-primary tabnav-cta"
           >
-            Open in the app
+            Get the app
           </StoreLink>
         </div>
       </nav>
 
       {/* ══════════ OVERVIEW ══════════ */}
-      <section className="rsec" id="overview">
+      <section className="rsec rsec--lead" id="overview">
         <div className="rsec-head">
-          <h2 className="rsec-title">About the route</h2>
+          <h2 className="mv-h2">About the route</h2>
         </div>
 
         <div className="overview-grid">
@@ -579,38 +587,38 @@ export default async function TripPage({ params }: PageParams) {
             )}
           </div>
 
-          <dl className="rfacts">
-            <div className="rfacts-row">
-              <dt className="rfacts-key">Difficulty</dt>
-              <dd className="rfacts-val">{capitalize(trip.difficulty)}</dd>
+          <dl className="mv-rows rfacts">
+            <div className="mv-row">
+              <dt>Difficulty</dt>
+              <dd>{capitalize(trip.difficulty)}</dd>
             </div>
             {surfaceLabel && (
-              <div className="rfacts-row">
-                <dt className="rfacts-key">Surface</dt>
-                <dd className="rfacts-val">{surfaceLabel}</dd>
+              <div className="mv-row">
+                <dt>Surface</dt>
+                <dd>{surfaceLabel}</dd>
               </div>
             )}
             {waypoints.length > 0 && (
-              <div className="rfacts-row">
-                <dt className="rfacts-key">Waypoints</dt>
-                <dd className="rfacts-val">{waypoints.length}</dd>
+              <div className="mv-row">
+                <dt>Waypoints</dt>
+                <dd>{waypoints.length}</dd>
               </div>
             )}
             {fuelStopCount > 0 && (
-              <div className="rfacts-row">
-                <dt className="rfacts-key">Fuel stops</dt>
-                <dd className="rfacts-val">{fuelStopCount} along the route</dd>
+              <div className="mv-row">
+                <dt>Fuel stops</dt>
+                <dd>{fuelStopCount}</dd>
               </div>
             )}
             {trip.cloneCount > 0 && (
-              <div className="rfacts-row">
-                <dt className="rfacts-key">Cloned by riders</dt>
-                <dd className="rfacts-val">{trip.cloneCount.toLocaleString('en-US')}</dd>
+              <div className="mv-row">
+                <dt>Saved by riders</dt>
+                <dd>{trip.cloneCount.toLocaleString('en-US')}</dd>
               </div>
             )}
-            <div className="rfacts-row">
-              <dt className="rfacts-key">Curated by</dt>
-              <dd className="rfacts-val">{trip.organiser.displayName}</dd>
+            <div className="mv-row">
+              <dt>Curated by</dt>
+              <dd>{trip.organiser.displayName}</dd>
             </div>
           </dl>
         </div>
@@ -618,7 +626,7 @@ export default async function TripPage({ params }: PageParams) {
 
       {/* ══════════ INTERACTIVE MAP ══════════ */}
       {waypoints.length > 0 && (
-        <section className="rsec" style={{ paddingTop: 0 }}>
+        <section className="rsec">
           <div className="map-card">
             <div className="map-frame" style={{ height: 500 }}>
               <TripDetailMap
@@ -649,9 +657,9 @@ export default async function TripPage({ params }: PageParams) {
 
       {/* ══════════ DAY BY DAY ══════════ */}
       {days.length > 0 && (
-        <section className="rsec mv-reveal" id="days">
+        <section className="rsec rsec--itinerary mv-reveal" id="days">
           <div className="rsec-head">
-            <h2 className="rsec-title">
+            <h2 className="mv-h2">
               {dayCount > 1 ? `${dayCount} days, stop by stop` : 'The route, stop by stop'}
             </h2>
             {dayCount > 1 && (
@@ -675,7 +683,7 @@ export default async function TripPage({ params }: PageParams) {
                     <div className="day-num">{dayCount > 1 ? `Day ${dayIndex + 1}` : 'Route'}</div>
                     {dayLabel && <div className="day-route">{dayLabel}</div>}
                     <div className="day-stats">
-                      <strong>{waypoints.length}</strong>{' '}
+                      <span className="mv-figure">{waypoints.length}</span>{' '}
                       {waypoints.length === 1 ? 'stop' : 'stops'}
                     </div>
                   </div>
@@ -702,25 +710,25 @@ export default async function TripPage({ params }: PageParams) {
 
       {/* ══════════ REVIEWS ══════════ */}
       {hasRating && (
-        <section className="rsec" id="reviews">
+        <section className="rsec rsec--reviews" id="reviews">
           <div className="rsec-head">
-            <h2 className="rsec-title">From riders who rode it</h2>
+            <h2 className="mv-h2">From riders who rode it</h2>
             <p className="rsec-aside">
-              {trip.reviewCount} {ridesLabel} logged on this route.
+              {trip.reviewCount} {reviewsLabel} from riders who rode it.
             </p>
           </div>
 
           <div className="reviews-score">
-            <span className="reviews-score-num">{trip.averageRating?.toFixed(1)}</span>
-            <span className="reviews-score-out">/ 5</span>
+            <span className="mv-figure reviews-score-num">{trip.averageRating?.toFixed(1)}</span>
+            <span className="reviews-score-out">/5</span>
           </div>
           <StarRow rating={Math.round(trip.averageRating ?? 0)} idPrefix="summary" />
           <p className="reviews-count">
-            {trip.reviewCount} {ridesLabel}
+            {trip.reviewCount} {reviewsLabel}
           </p>
 
           {reviews.length > 0 && (
-            <div className="review-list" style={{ marginTop: 40 }}>
+            <ul className="mv-rows review-list">
               {reviews.map((review) => {
                 const authorName = review.author?.displayName ?? 'Anonymous';
                 const initials = getInitials(authorName);
@@ -731,37 +739,39 @@ export default async function TripPage({ params }: PageParams) {
                 });
 
                 return (
-                  <article key={review.id} className="review">
-                    <div className="review-head">
-                      <div className="review-avatar" aria-hidden="true">
-                        {initials}
-                      </div>
-                      <div className="review-who">
-                        <div className="review-author">{authorName}</div>
-                        <div className="review-meta">
-                          {review.bike && (
-                            <span>
-                              {review.bike.year} {review.bike.make} {review.bike.model}
-                            </span>
-                          )}
-                          <span>{reviewDate}</span>
+                  <li key={review.id}>
+                    <article className="review">
+                      <div className="review-head">
+                        <div className="review-avatar" aria-hidden="true">
+                          {initials}
                         </div>
+                        <div className="review-who">
+                          <div className="review-author">{authorName}</div>
+                          <div className="review-meta">
+                            {review.bike && (
+                              <span>
+                                {review.bike.year} {review.bike.make} {review.bike.model}
+                              </span>
+                            )}
+                            <span>{reviewDate}</span>
+                          </div>
+                        </div>
+                        <StarRow rating={review.rating} idPrefix={review.id} />
                       </div>
-                      <StarRow rating={review.rating} idPrefix={review.id} />
-                    </div>
 
-                    {review.text && <p className="review-text">{review.text}</p>}
+                      {review.text && <p className="review-text">{review.text}</p>}
 
-                    {review.conditionTags && review.conditionTags.length > 0 && (
-                      <p className="review-tags">
-                        Conditions:{' '}
-                        {review.conditionTags.map((tag) => tag.replace(/_/g, ' ')).join(', ')}
-                      </p>
-                    )}
-                  </article>
+                      {review.conditionTags && review.conditionTags.length > 0 && (
+                        <p className="review-tags">
+                          Conditions:{' '}
+                          {review.conditionTags.map((tag) => tag.replace(/_/g, ' ')).join(', ')}
+                        </p>
+                      )}
+                    </article>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           )}
         </section>
       )}
@@ -784,9 +794,9 @@ export default async function TripPage({ params }: PageParams) {
 
       {/* ══════════ END CTA ══════════ */}
       <section className="end-cta">
-        <h2 className="end-cta-title">Save this route to your phone</h2>
+        <h2 className="mv-h2 end-cta-title">Save this route to your phone</h2>
         <p className="end-cta-sub">
-          Clone it into your planner, change the dates and stops, then ride it. Free.
+          Copy it into your trip planner, change the dates and stops, then ride it. Free.
         </p>
         <div className="end-cta-actions">
           <StoreLink
@@ -806,10 +816,11 @@ export default async function TripPage({ params }: PageParams) {
       </section>
 
       {/* ══════════ STICKY PHONE CTA ══════════ */}
+      <div className="trip-sticky-spacer" aria-hidden="true" />
       <div className="trip-sticky">
-        <div style={{ flex: 1 }}>
-          <div className="trip-sticky-title">Open in MotoVault</div>
-          <div className="trip-sticky-sub">Ride this route with turn-by-turn GPS</div>
+        <div className="trip-sticky-body">
+          <div className="trip-sticky-title">{trip.title}</div>
+          <div className="trip-sticky-sub">Copy it into your planner and record the ride</div>
         </div>
         <StoreLink
           platform={StorePlatform.Unknown}
@@ -817,9 +828,8 @@ export default async function TripPage({ params }: PageParams) {
           placement={CtaPlacement.StickyBar}
           slug={slug}
           className="mv-btn mv-btn-primary"
-          style={{ padding: '10px 20px', fontSize: 13 }}
         >
-          Open
+          Get the app
         </StoreLink>
       </div>
     </>

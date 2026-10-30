@@ -26,9 +26,6 @@ interface Labels {
   timerStart: string;
   timerRunning: string;
   timerComplete: string;
-  personalBest: string;
-  newRecord: string;
-  noBestYet: string;
   downloadPdf: string;
   pdfTitle: string;
   pdfDate: string;
@@ -41,8 +38,6 @@ interface Labels {
 }
 
 type CheckedState = Record<string, Set<number>>;
-
-const BEST_TIME_KEY = 'motovault-tclocs-best';
 
 /**
  * The printed sheet is a standalone document opened in a new window, so it
@@ -103,21 +98,12 @@ export function TclocsChecklist({
     return state;
   });
 
-  // Timer state
+  // Timer state: a plain "time taken" readout. No records, no personal bests
+  // (a pre-ride check is not a race).
   const [timerStartMs, setTimerStartMs] = useState<number | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [completionTime, setCompletionTime] = useState<number | null>(null);
-  const [bestTime, setBestTime] = useState<number | null>(null);
-  const [isNewRecord, setIsNewRecord] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Load best time from localStorage
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(BEST_TIME_KEY);
-      if (saved) setBestTime(Number.parseInt(saved, 10));
-    } catch {}
-  }, []);
 
   // Timer tick
   useEffect(() => {
@@ -156,17 +142,8 @@ export function TclocsChecklist({
         completion_time_ms: time,
         total_items: totalItems,
       });
-
-      // Check for new record
-      if (!bestTime || time < bestTime) {
-        setBestTime(time);
-        setIsNewRecord(true);
-        try {
-          localStorage.setItem(BEST_TIME_KEY, String(time));
-        } catch {}
-      }
     }
-  }, [allComplete, totalChecked, timerStartMs, completionTime, bestTime, totalItems]);
+  }, [allComplete, totalChecked, timerStartMs, completionTime, totalItems]);
 
   const toggleItem = useCallback(
     (categoryId: string, itemIndex: number) => {
@@ -200,7 +177,6 @@ export function TclocsChecklist({
     setTimerStartMs(null);
     setElapsedMs(0);
     setCompletionTime(null);
-    setIsNewRecord(false);
     if (timerRef.current) clearInterval(timerRef.current);
   }, [categories]);
 
@@ -307,7 +283,7 @@ export function TclocsChecklist({
   const timerFigure = timerStartMs ? formatTime(elapsedMs) : null;
 
   return (
-    <section className="mv-tool" style={{ paddingTop: 56, maxWidth: 760 }}>
+    <section className="mv-tool" style={{ paddingTop: 48 }}>
       {/* Progress + timer: figures in the condensed face, one hairline below */}
       <div className="mv-check-summary" aria-live="polite">
         <div>
@@ -327,11 +303,7 @@ export function TclocsChecklist({
             <>
               <span className={`mv-figure${completionTime ? ' is-done' : ''}`}>{timerFigure}</span>
               <p className={`mv-check-timer-sub${completionTime ? ' is-done' : ''}`}>
-                {isNewRecord
-                  ? labels.newRecord
-                  : completionTime
-                    ? labels.timerComplete
-                    : labels.timerRunning}
+                {completionTime ? labels.timerComplete : labels.timerRunning}
               </p>
             </>
           ) : (
@@ -342,15 +314,6 @@ export function TclocsChecklist({
               <p className="mv-check-timer-sub">{labels.timerStart}</p>
             </>
           )}
-          {bestTime && !isNewRecord && (
-            <p className="mv-check-timer-sub">
-              {labels.personalBest}{' '}
-              <span className="mv-figure" style={{ fontSize: 15, color: 'var(--mv-ink-2)' }}>
-                {formatTime(bestTime)}
-              </span>
-            </p>
-          )}
-          {!bestTime && !timerStartMs && <p className="mv-check-timer-sub">{labels.noBestYet}</p>}
         </div>
       </div>
       <div className="mv-progress" aria-hidden="true">
@@ -425,7 +388,7 @@ export function TclocsChecklist({
           {labels.downloadPdf}
         </button>
         {totalChecked > 0 && (
-          <button type="button" onClick={resetAll} className="mv-text-action">
+          <button type="button" onClick={resetAll} className="mv-link is-quiet">
             {labels.resetAll}
           </button>
         )}

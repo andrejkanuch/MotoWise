@@ -221,7 +221,9 @@ export function useCookieConsent(): ConsentContextValue {
 
 // ---------------------------------------------------------------------------
 // Banner UI — the Trackside chrome: tokens only, body face, copper on the one
-// confirming action, radius 16, no blur, no shadow, both schemes.
+// confirming action, radius 16, no blur, no shadow, both schemes. The surface
+// mounts outside `.mv-marketing`, so it carries `.mv-root` for the shared
+// selection and focus grammar.
 // ---------------------------------------------------------------------------
 
 /**
@@ -239,7 +241,6 @@ const COOKIE_UI_CSS = `
   color: var(--mv-ink);
   -webkit-font-smoothing: antialiased;
 }
-.mv-cc :focus-visible { outline: 2px solid var(--mv-copper); outline-offset: 2px; }
 .mv-cc p { margin: 0; }
 
 /* The bar: full width on the raised step with a hairline top */
@@ -255,12 +256,14 @@ const COOKIE_UI_CSS = `
   gap: 12px 24px;
   max-width: var(--mv-container);
   margin: 0 auto;
-  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  padding: 12px 40px calc(12px + env(safe-area-inset-bottom));
 }
+@media (max-width: 900px) { .mv-cc-bar-inner { padding-left: 24px; padding-right: 24px; } }
+@media (max-width: 480px) { .mv-cc-bar-inner { padding-left: 20px; padding-right: 20px; } }
 .mv-cc-body {
   flex: 1 1 360px;
   min-width: 0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 20px;
   color: var(--mv-ink-2);
 }
@@ -273,29 +276,7 @@ const COOKIE_UI_CSS = `
   flex: 0 0 auto;
 }
 
-/* Controls: radius 12, 44px tall */
-.mv-cc-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 0 16px;
-  border: 1px solid transparent;
-  border-radius: var(--mv-radius-control);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.005em;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background .2s, border-color .2s, color .2s, transform .2s var(--mv-ease);
-}
-.mv-cc-btn:active { transform: scale(0.985); }
-.mv-cc-primary { background: var(--mv-copper); color: var(--mv-on-copper); }
-.mv-cc-primary:hover { background: var(--mv-copper-hover); }
-.mv-cc-ghost { background: transparent; color: var(--mv-ink); border-color: var(--mv-field-line); }
-.mv-cc-ghost:hover { background: var(--mv-fill); border-color: var(--mv-line-step); }
+/* Buttons are the kit's .mv-btn; the quiet text action stays local */
 .mv-cc-text {
   display: inline-flex;
   align-items: center;
@@ -305,7 +286,7 @@ const COOKIE_UI_CSS = `
   border-radius: var(--mv-radius-control);
   background: transparent;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--mv-ink-3);
   text-decoration: underline;
@@ -345,14 +326,6 @@ const COOKIE_UI_CSS = `
   padding-bottom: 12px;
   border-bottom: 1px solid var(--mv-line);
 }
-.mv-cc-sheet-title {
-  margin: 0;
-  font-family: var(--mv-font-display);
-  font-size: 26px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.002em;
-}
 .mv-cc-sheet-count {
   font-family: var(--mv-font-display);
   font-size: 18px;
@@ -365,7 +338,8 @@ const COOKIE_UI_CSS = `
   grid-template-columns: 18px 1fr auto;
   column-gap: 12px;
   align-items: start;
-  padding: 14px 0;
+  min-height: 44px;
+  padding: 12px 0;
   border-bottom: 1px solid var(--mv-line);
 }
 .mv-cc-row:last-of-type { border-bottom: 0; }
@@ -377,7 +351,7 @@ const COOKIE_UI_CSS = `
   line-height: 20px;
   color: var(--mv-ink);
 }
-.mv-cc-row-tag { font-family: var(--mv-font-body); font-size: 13px; font-weight: 400; color: var(--mv-ink-3); }
+.mv-cc-row-tag { font-family: var(--mv-font-body); font-size: 13px; color: var(--mv-ink-3); }
 .mv-cc-row-desc { margin-top: 2px; font-size: 13px; line-height: 18px; color: var(--mv-ink-3); }
 .mv-cc-sheet-actions {
   display: flex;
@@ -395,7 +369,7 @@ const COOKIE_UI_CSS = `
   margin-top: 2px;
   padding: 0;
   border: 0;
-  border-radius: 13px;
+  border-radius: var(--mv-radius-pill);
   background: var(--mv-surface-3);
   cursor: pointer;
   transition: background .2s;
@@ -427,7 +401,7 @@ const COOKIE_UI_CSS = `
   border-radius: var(--mv-radius-card);
 }
 .mv-cc-toast svg { flex-shrink: 0; color: var(--mv-go); }
-.mv-cc-toast-msg { font-size: 14px; line-height: 20px; }
+.mv-cc-toast-msg { font-size: 15px; line-height: 20px; }
 @media (prefers-reduced-motion: reduce) {
   .mv-cc, .mv-cc * { transition-duration: 0.01ms !important; }
 }
@@ -458,7 +432,7 @@ function ConsentSurface({
   const ref = useRef<HTMLDivElement>(null);
   usePublishSurfaceHeight(ref);
   return (
-    <div ref={ref} className={`mv-cc ${className}`} {...rest}>
+    <div ref={ref} className={`mv-root mv-cc ${className}`} {...rest}>
       <style>{COOKIE_UI_CSS}</style>
       {children}
     </div>
@@ -533,10 +507,10 @@ export function CookieConsentBanner() {
             {t.rich('body1', { strong: (chunks) => <strong>{chunks}</strong> })}
           </p>
           <div className="mv-cc-actions">
-            <button type="button" className="mv-cc-btn mv-cc-primary" onClick={handleAccept}>
+            <button type="button" className="mv-btn mv-btn-primary" onClick={handleAccept}>
               {t('accept')}
             </button>
-            <button type="button" className="mv-cc-btn mv-cc-ghost" onClick={handleDecline}>
+            <button type="button" className="mv-btn mv-btn-ghost" onClick={handleDecline}>
               {t('decline')}
             </button>
             <button type="button" className="mv-cc-text" onClick={() => setView('list')}>
@@ -592,7 +566,7 @@ function ListView({
   return (
     <>
       <div className="mv-cc-sheet-head">
-        <h2 id="cb-list-title" className="mv-cc-sheet-title">
+        <h2 id="cb-list-title" className="mv-h3">
           {t('list.whatWeUse')}
         </h2>
         <span className="mv-cc-sheet-count">{t('list.count')}</span>
@@ -635,10 +609,10 @@ function ListView({
       />
 
       <div className="mv-cc-sheet-actions">
-        <button type="button" className="mv-cc-btn mv-cc-primary" onClick={onSave}>
+        <button type="button" className="mv-btn mv-btn-primary" onClick={onSave}>
           {t('list.save')}
         </button>
-        <button type="button" className="mv-cc-btn mv-cc-ghost" onClick={onAcceptAll}>
+        <button type="button" className="mv-btn mv-btn-ghost" onClick={onAcceptAll}>
           {t('list.acceptAll')}
         </button>
         <button type="button" className="mv-cc-text" onClick={onBack}>

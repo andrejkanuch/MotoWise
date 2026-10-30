@@ -6,7 +6,9 @@ import { StoreLink } from './store-buttons';
 
 const CTA_PHOTO = '/images/marketing/cta-night.jpg';
 
-/** Final CTA — the one section allowed to center, and the page's closing
+/** Final CTA — the one section allowed to center, the home page's one
+ *  headline at H1 scale (the manifesto statement is the other allowed
+ *  exception; nothing but the hero goes larger), and the page's closing
  *  photo moment: a night ride under graphite scrims mixed from the ramp
  *  (dark scheme). In the light scheme the photo steps out and the band is
  *  the deeper paper step, so bone ink never has to be forced over paper
@@ -34,32 +36,11 @@ export async function CtaSection() {
         <div
           style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center', position: 'relative' }}
         >
-          <h2
-            className="mv-display"
-            style={{
-              fontSize: 'clamp(52px, 8vw, 128px)',
-              fontWeight: 700,
-              lineHeight: 0.94,
-              letterSpacing: '0.002em',
-              color: 'var(--mv-ink)',
-              margin: 0,
-              textWrap: 'balance',
-            }}
-          >
-            {t('headlineLead')}{' '}
-            <span style={{ color: 'var(--mv-ink-3)' }}>{t('headlineEmphasis')}</span>
+          <h2 className="mv-section-title" style={{ color: 'var(--mv-ink)' }}>
+            {t('headlineLead')} <span className="mv-muted">{t('headlineEmphasis')}</span>
           </h2>
 
-          <p
-            style={{
-              margin: '28px auto 0',
-              maxWidth: '500px',
-              fontSize: '18px',
-              color: 'var(--mv-ink-2)',
-              lineHeight: 1.55,
-              letterSpacing: '-0.01em',
-            }}
-          >
+          <p className="mv-section-sub" style={{ margin: '28px auto 0', maxWidth: '500px' }}>
             {t('subtitleDownload')}
           </p>
 
@@ -111,9 +92,10 @@ export async function CtaSection() {
           {/* Trust line: plain, true sentences in the body face */}
           <div
             style={{
-              marginTop: '36px',
+              marginTop: '32px',
               color: 'var(--mv-ink-3)',
-              fontSize: '14px',
+              fontSize: '13px',
+              lineHeight: '18px',
               fontWeight: 500,
               display: 'flex',
               justifyContent: 'center',

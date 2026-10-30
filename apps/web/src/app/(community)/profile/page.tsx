@@ -56,7 +56,7 @@ export default function ProfilePage() {
     return (
       <div className="garage-page">
         <div className="garage-inner prof-state" aria-busy="true">
-          <h1 className="prof-title">{t('title')}</h1>
+          <h1 className="mv-section-title prof-title">{t('title')}</h1>
           <div className="prof-spinner" role="status" aria-label={t('title')} />
         </div>
       </div>
@@ -67,7 +67,7 @@ export default function ProfilePage() {
     return (
       <div className="garage-page">
         <div className="garage-inner prof-state" role="alert">
-          <h1 className="prof-title">{t('failedToLoad')}</h1>
+          <h1 className="mv-section-title prof-title">{t('failedToLoad')}</h1>
           <p className="prof-quiet">{t('somethingWentWrong')}</p>
           <button
             type="button"
@@ -92,7 +92,7 @@ export default function ProfilePage() {
         <div className="garage-inner">
           <ProBanner />
           <div className="prof-state" style={{ paddingTop: 0 }}>
-            <h1 className="prof-title">{t('setupProfile')}</h1>
+            <h1 className="mv-section-title prof-title">{t('setupProfile')}</h1>
             <p className="prof-quiet" style={{ maxWidth: '44ch' }}>
               {t('setupDesc')}
             </p>
@@ -135,7 +135,9 @@ export default function ProfilePage() {
               </div>
             )}
             <div style={{ minWidth: 0 }}>
-              <h1 className="prof-title">{user.displayName ?? user.fullName ?? t('rider')}</h1>
+              <h1 className="mv-section-title prof-title">
+                {user.displayName ?? user.fullName ?? t('rider')}
+              </h1>
               <div className="prof-handle">@{user.publicUsername}</div>
               {user.city && (
                 <div className="prof-city">

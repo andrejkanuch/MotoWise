@@ -20,6 +20,7 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { CUSTOM_PAYWALL_IDS, trackCustomPaywallImpression } from '@/lib/revenuecat';
 import {
   annualSavingsPercent,
+  formatMicros,
   WEB_PLAN_IDS,
   type WebPlanId,
   type WebPrice,
@@ -46,7 +47,6 @@ const OFFERING_STATUS = {
 type OfferingStatus = (typeof OFFERING_STATUS)[keyof typeof OFFERING_STATUS];
 
 const PRICE_PLACEHOLDER = '—';
-const NOTHING_DUE = '$0.00';
 
 function packageFor(offering: Offering | null, plan: PlanId): Package | null {
   if (!offering) return null;
@@ -214,6 +214,11 @@ function CheckoutContent() {
   const plan = PLAN_CONFIG[selectedPlan];
   const rcPackage = packageFor(webOffering, selectedPlan);
   const planPrice = rcPackage?.product.currentPrice.formattedPrice ?? PRICE_PLACEHOLDER;
+  // Zero in the package's own currency: the trial rows must never show "$" to a
+  // rider who is billed in euros.
+  const nothingDue = rcPackage
+    ? formatMicros(0, rcPackage.product.currentPrice.currency)
+    : PRICE_PLACEHOLDER;
   const savingsPercent = annualSavingsPercent(
     priceOf(packageFor(webOffering, WEB_PLAN_IDS.MONTHLY)),
     priceOf(packageFor(webOffering, WEB_PLAN_IDS.ANNUAL)),
@@ -248,7 +253,9 @@ function CheckoutContent() {
     try {
       const offering = webOffering ?? (await loadWebOffering(userId));
       if (!offering) {
-        throw new Error('No offerings available. Please try again later.');
+        throw new Error(
+          `The plans didn't load. Try again in a few minutes, or write to ${SUPPORT_EMAIL}.`,
+        );
       }
 
       const pkg = selectedPlan === 'annual' ? offering.annual : offering.monthly;
@@ -326,13 +333,13 @@ function CheckoutContent() {
 
   return (
     <section className="mvp-section mvp-section--operate">
-      <Link href="/pro" className="mvp-back">
+      <Link href="/pro" className="mv-link is-quiet is-tall mvp-back">
         <ArrowLeft size={16} strokeWidth={2} aria-hidden="true" />
         Back to plans
       </Link>
 
       <div className="mvp-operate-head">
-        <h1 className="mvp-h2 mvp-h2--operate">
+        <h1 className="mv-section-title mvp-operate-title">
           {trialDays ? `Start your ${trialDays}-day free trial` : 'Upgrade to Pro'}
         </h1>
         <p className="mvp-operate-sub">
@@ -344,14 +351,13 @@ function CheckoutContent() {
 
       <div className="mvp-operate-stack">
         {/* Plan toggle */}
-        <fieldset className="mvp-seg">
+        <fieldset className="mv-segmented mvp-seg">
           <legend className="mvp-sr-only">Plan</legend>
           {(Object.entries(PLAN_CONFIG) as [PlanId, (typeof PLAN_CONFIG)[PlanId]][]).map(
             ([id, cfg]) => (
               <button
                 key={id}
                 type="button"
-                className="mvp-seg-btn"
                 aria-pressed={selectedPlan === id}
                 onClick={() => setSelectedPlan(id)}
               >
@@ -373,12 +379,12 @@ function CheckoutContent() {
           {trialDays && (
             <div className="mvp-summary-row">
               <span>{trialDays}-day free trial</span>
-              <span className="mv-figure">{NOTHING_DUE}</span>
+              <span className="mv-figure">{nothingDue}</span>
             </div>
           )}
           <div className="mvp-summary-row mvp-summary-row--total">
             <strong>Due today</strong>
-            <span className="mv-figure">{trialDays ? NOTHING_DUE : planPrice}</span>
+            <span className="mv-figure">{trialDays ? nothingDue : planPrice}</span>
           </div>
           <p className="mvp-summary-note">
             {trialDays ? (
@@ -396,14 +402,15 @@ function CheckoutContent() {
 
         {/* Offering could not be loaded: say so instead of a dead Pay button. */}
         {offeringStatus === OFFERING_STATUS.UNAVAILABLE && !error && (
-          <div role="alert" className="mvp-alert">
+          <div role="alert" className="mv-alert mvp-alert">
             <CircleAlert size={18} strokeWidth={2} aria-hidden="true" />
             <div>
-              <p>
-                Checkout is temporarily unavailable. Try again in a few minutes, or contact{' '}
-                {SUPPORT_EMAIL}.
-              </p>
-              <button type="button" onClick={retryOfferingLoad} className="mvp-alert-action">
+              <p>The plans didn't load. Try again in a few minutes, or write to {SUPPORT_EMAIL}.</p>
+              <button
+                type="button"
+                onClick={retryOfferingLoad}
+                className="mv-link is-quiet is-tall mvp-alert-action"
+              >
                 Try again
               </button>
             </div>
@@ -411,7 +418,7 @@ function CheckoutContent() {
         )}
 
         {error && (
-          <div role="alert" className="mvp-alert">
+          <div role="alert" className="mv-alert mvp-alert">
             <CircleAlert size={18} strokeWidth={2} aria-hidden="true" />
             <p>{error}</p>
           </div>
@@ -423,7 +430,7 @@ function CheckoutContent() {
             onClick={handleCheckout}
             disabled={loading || !canPurchase}
             aria-busy={loading || undefined}
-            className="mv-btn mv-btn-primary mvp-pay"
+            className="mv-btn mv-btn-primary mv-btn-block"
           >
             {loading ? (
               <>
@@ -456,7 +463,7 @@ function CheckoutContent() {
           <div className="mvp-legal">
             <Link href="/terms">Terms of service</Link>
             <Link href="/privacy">Privacy policy</Link>
-            <a href={`mailto:${SUPPORT_EMAIL}`}>Refund policy</a>
+            <a href={`mailto:${SUPPORT_EMAIL}`}>Refunds: email {SUPPORT_EMAIL}</a>
           </div>
         </div>
       </div>

@@ -1,12 +1,14 @@
 /* ═══════════════════════════════════════════════════════════════
    /pro and its checkout — Trackside.
-   Lives inside .mv-marketing (app/pro/layout.tsx), so the tokens,
-   .mv-btn, .mv-figure and .mv-plate come from design-system.css.
+   Lives inside .mv-marketing (app/pro/layout.tsx), so the tokens and
+   the shared kit (.mv-section-title, .mv-h2, .mv-btn(-block), .mv-link,
+   .mv-segmented, .mv-rows/.mv-row, .mv-table, .mv-alert, .mv-figure)
+   come from design-system.css. This file holds the page layout only.
    Every colour is a --mv-* token and holds in both schemes.
    Class prefix: mvp-.
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Shared shell ─────────────────────────────────────────────── */
+/* ── Shared shell: 1240/40, gutters 24 at ≤900 and 20 at ≤480 ──── */
 
 .mvp-section {
   max-width: var(--mv-container);
@@ -15,83 +17,75 @@
   box-sizing: border-box;
 }
 .mvp-section--hero {
-  padding-top: 150px;
+  padding-top: 160px;
   padding-bottom: 96px;
 }
 .mvp-section--features {
   padding-top: 32px;
-  padding-bottom: 112px;
+  padding-bottom: 96px;
 }
 .mvp-section--compare {
-  padding-bottom: 128px;
+  padding-bottom: 120px;
 }
 .mvp-section--faq {
-  padding-bottom: 128px;
+  padding-bottom: 96px;
 }
 .mvp-section--final {
   padding-top: 24px;
   padding-bottom: 160px;
   text-align: center;
 }
+/* Checkout, success, cancel: a focused 560 column with an explicit gutter. */
 .mvp-section--operate {
   max-width: 560px;
-  padding-top: 140px;
-  padding-bottom: 140px;
+  padding: 120px 40px;
 }
-@media (max-width: 820px) {
+@media (max-width: 900px) {
+  .mvp-section {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .mvp-section--hero {
+    padding-top: 96px;
+    padding-bottom: 64px;
+  }
+  .mvp-section--features {
+    padding-bottom: 64px;
+  }
+  .mvp-section--compare,
+  .mvp-section--faq {
+    padding-bottom: 96px;
+  }
+  .mvp-section--final {
+    padding-bottom: 120px;
+  }
+  .mvp-section--operate {
+    padding: 96px 24px;
+  }
+}
+@media (max-width: 480px) {
   .mvp-section {
     padding-left: 20px;
     padding-right: 20px;
   }
-  .mvp-section--hero {
-    padding-top: 112px;
-    padding-bottom: 64px;
-  }
-  .mvp-section--features {
-    padding-bottom: 80px;
-  }
-  .mvp-section--compare,
-  .mvp-section--faq {
-    padding-bottom: 88px;
-  }
-  .mvp-section--final {
-    padding-bottom: 112px;
-  }
   .mvp-section--operate {
-    padding-top: 104px;
-    padding-bottom: 96px;
+    padding: 96px 20px;
   }
 }
 
-.mvp-title {
-  font-family: var(--mv-font-display);
-  font-weight: 700;
-  font-size: clamp(52px, 7vw, 104px);
-  line-height: 0.94;
-  letter-spacing: 0.002em;
-  margin: 0;
-  text-wrap: balance;
-}
-.mvp-title .mvp-muted {
-  color: var(--mv-ink-3);
-}
-.mvp-h2 {
-  font-family: var(--mv-font-display);
-  font-weight: 700;
-  font-size: clamp(40px, 5vw, 72px);
-  line-height: 0.96;
-  letter-spacing: 0.002em;
-  margin: 0;
-}
-.mvp-h2--operate {
-  font-size: clamp(36px, 5vw, 48px);
+/* Operate H1: the shared title held at the /pro H2 size, 44 on phones.
+   Never smaller than the H2 of the page it follows. */
+.mvp-operate-title {
+  font-size: clamp(44px, 4.2vw, 56px);
+  line-height: 0.98;
 }
 .mvp-lead {
-  margin: 24px 0 0;
+  margin: 28px 0 0;
   max-width: 54ch;
   font-size: 18px;
   line-height: 1.55;
   color: var(--mv-ink-2);
+  text-wrap: pretty;
 }
 .mvp-sub {
   margin: 20px 0 0;
@@ -99,19 +93,7 @@
   font-size: 17px;
   line-height: 1.55;
   color: var(--mv-ink-2);
-}
-.mvp-small {
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--mv-ink-3);
-}
-.mvp-link {
-  color: var(--mv-copper-text);
-  text-decoration: none;
-  text-underline-offset: 4px;
-}
-.mvp-link:hover {
-  text-decoration: underline;
+  text-wrap: pretty;
 }
 .mvp-quiet-link {
   color: inherit;
@@ -127,7 +109,7 @@
 .mvp-hero-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 400px;
-  gap: 72px;
+  gap: 64px;
   align-items: start;
 }
 @media (max-width: 1000px) {
@@ -174,17 +156,11 @@
   }
 }
 
-/* Segmented plan toggle: a raised track, the selection one step higher */
+/* Plan toggle: the shared segmented control, two equal halves */
 .mvp-seg {
-  margin: 0;
-  border: none;
-  min-width: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  padding: 4px;
-  border-radius: var(--mv-radius-control);
-  background: var(--mv-surface-2);
+  min-width: 0;
 }
 .mvp-sr-only {
   position: absolute;
@@ -197,42 +173,19 @@
   white-space: nowrap;
   border: 0;
 }
-.mvp-seg-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 0 12px;
-  border: none;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--mv-ink-2);
-  font-family: var(--mv-font-body);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
-}
-.mvp-seg-btn:hover {
-  color: var(--mv-ink);
-}
-.mvp-seg-btn[aria-pressed="true"] {
-  background: var(--mv-surface-3);
-  color: var(--mv-ink);
-  font-weight: 600;
-}
 .mvp-seg-saving {
   font-family: var(--mv-font-display);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   font-variant-numeric: tabular-nums;
   color: var(--mv-ink-3);
 }
-.mvp-seg-btn[aria-pressed="true"] .mvp-seg-saving {
+.mv-segmented > [aria-pressed="true"] .mvp-seg-saving {
   color: var(--mv-ink-2);
 }
 
+/* Price: the plate figure (64), its period at 0.5× in display 500,
+   the crossed twelve-months figure one step down */
 .mvp-price {
   display: flex;
   align-items: baseline;
@@ -247,52 +200,39 @@
 .mvp-price-period {
   font-family: var(--mv-font-display);
   font-weight: 500;
-  font-size: 22px;
-  color: var(--mv-ink-3);
+  font-size: 32px;
+  line-height: 1;
+  color: var(--mv-ink-2);
 }
 .mvp-price-crossed {
   margin-left: auto;
-  font-size: 16px;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
   color: var(--mv-ink-3);
   text-decoration: line-through;
 }
 .mvp-price-sub {
-  margin: 6px 0 0;
-  font-size: 14px;
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 18px;
   color: var(--mv-ink-2);
 }
 
-.mvp-benefits {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-.mvp-benefits li {
-  display: flex;
-  align-items: center;
+/* Benefit rows: hairline rows inside the card, no rule at the top */
+.mvp-benefits .mv-row,
+.mvp-unlocked .mv-row {
+  justify-content: flex-start;
   gap: 12px;
-  padding: 11px 0;
-  border-top: 1px solid var(--mv-line);
   font-size: 15px;
   color: var(--mv-ink);
 }
-.mvp-benefits li:first-child {
-  border-top: none;
-  padding-top: 0;
-}
-.mvp-benefits svg {
+.mvp-benefits svg,
+.mvp-unlocked svg {
   flex: none;
   color: var(--mv-ink-2);
 }
 
-.mvp-card .mv-btn {
-  width: 100%;
-  justify-content: center;
-  padding: 16px 22px;
-  font-size: 15px;
-}
 .mvp-footnote {
   margin: 12px 0 0;
   display: flex;
@@ -300,6 +240,7 @@
   justify-content: center;
   gap: 6px;
   font-size: 13px;
+  line-height: 18px;
   color: var(--mv-ink-3);
 }
 .mvp-footnote svg {
@@ -310,7 +251,7 @@
 
 .mvp-features {
   list-style: none;
-  margin: 56px 0 0;
+  margin: 48px 0 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -326,7 +267,8 @@
   gap: 10px;
   margin: 0;
   font-family: var(--mv-font-body);
-  font-size: 18px;
+  font-size: 20px;
+  line-height: 1.25;
   font-weight: 600;
   color: var(--mv-ink);
 }
@@ -339,19 +281,22 @@
   font-size: 15px;
   line-height: 1.55;
   color: var(--mv-ink-2);
+  text-wrap: pretty;
 }
-@media (max-width: 820px) {
+@media (max-width: 900px) {
   .mvp-features {
     grid-template-columns: minmax(0, 1fr);
     margin-top: 40px;
   }
 }
 
-/* ── Free vs Pro: hairline rows, the Pro column as the one card ──── */
+/* ── Free vs Pro: the shared spec table, the Pro column as the one card ── */
 
-.mvp-compare {
-  width: 100%;
+.mvp-compare-wrap {
   margin-top: 48px;
+  overflow-x: auto;
+}
+.mvp-compare {
   border-collapse: separate;
   border-spacing: 0;
 }
@@ -361,58 +306,53 @@
 .mvp-compare col.mvp-compare-col--pro {
   width: 170px;
 }
-.mvp-compare-cell {
+.mvp-compare .mvp-compare-cell {
   height: 56px;
-  padding: 0 16px 0 0;
-  border-bottom: 1px solid var(--mv-line);
-  font-size: 15px;
-  font-weight: 400;
-  text-align: left;
   vertical-align: middle;
   color: var(--mv-ink);
+  font-weight: 400;
 }
-.mvp-compare-cell--head {
+.mvp-compare .mvp-compare-cell--head {
   font-family: var(--mv-font-display);
   font-weight: 600;
-  font-size: 22px;
+  font-size: 26px;
+  line-height: 1.1;
   color: var(--mv-ink-2);
 }
-.mvp-compare-cell--value {
+.mvp-compare .mvp-compare-cell--value {
   text-align: center;
-  padding: 0 12px;
   color: var(--mv-ink-2);
 }
-.mvp-compare-cell--value > * {
+.mvp-compare .mvp-compare-cell--value > * {
   vertical-align: middle;
 }
-.mvp-compare-cell--pro {
+.mvp-compare .mvp-compare-cell--pro {
   background: var(--mv-surface);
   color: var(--mv-ink);
-  border-bottom-color: var(--mv-line);
 }
-.mvp-compare-cell--pro.mvp-compare-cell--head {
+.mvp-compare .mvp-compare-cell--pro.mvp-compare-cell--head {
   color: var(--mv-ink);
   border-radius: var(--mv-radius-card) var(--mv-radius-card) 0 0;
 }
-.mvp-compare-cell--pro.mvp-compare-cell--last {
+.mvp-compare .mvp-compare-cell--pro.mvp-compare-cell--last {
   border-bottom: none;
   border-radius: 0 0 var(--mv-radius-card) var(--mv-radius-card);
 }
-.mvp-compare-cell--last:not(.mvp-compare-cell--pro) {
+.mvp-compare .mvp-compare-cell--last:not(.mvp-compare-cell--pro) {
   border-bottom: none;
 }
-.mvp-compare-cell svg {
+.mvp-compare .mvp-compare-cell svg {
   flex: none;
 }
-.mvp-compare-cell--value .mvp-no {
+.mvp-compare .mvp-compare-cell--value .mvp-no {
   color: var(--mv-ink-3);
 }
-.mvp-compare-cell--value .mv-figure {
-  font-size: 18px;
+.mvp-compare .mvp-compare-cell--value .mv-figure {
+  font-size: 20px;
   font-weight: 600;
 }
 @media (max-width: 640px) {
-  .mvp-compare {
+  .mvp-compare-wrap {
     margin-top: 32px;
   }
   .mvp-compare col.mvp-compare-col--value {
@@ -421,18 +361,14 @@
   .mvp-compare col.mvp-compare-col--pro {
     width: 104px;
   }
-  .mvp-compare-cell {
-    font-size: 14px;
+  .mvp-compare .mvp-compare-cell {
     height: 52px;
   }
-  .mvp-compare-cell--value {
-    padding: 0 6px;
+  .mvp-compare .mvp-compare-cell--head {
+    font-size: 20px;
   }
-  .mvp-compare-cell--head {
-    font-size: 19px;
-  }
-  .mvp-compare-cell--value .mv-figure {
-    font-size: 16px;
+  .mvp-compare .mvp-compare-cell--value .mv-figure {
+    font-size: 1em;
   }
 }
 
@@ -456,6 +392,7 @@
   cursor: pointer;
   font-size: 17px;
   font-weight: 500;
+  line-height: 1.45;
   color: var(--mv-ink);
 }
 .mvp-faq summary::-webkit-details-marker {
@@ -471,11 +408,12 @@
 }
 .mvp-faq-body {
   margin: 0;
-  padding: 0 0 22px;
+  padding: 0 0 24px;
   max-width: 68ch;
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: 16px;
+  line-height: 1.55;
   color: var(--mv-ink-2);
+  text-wrap: pretty;
 }
 
 /* ── Final: centred, the one place centring is allowed ────────── */
@@ -484,62 +422,56 @@
   margin: 20px auto 0;
   max-width: 48ch;
   font-size: 16px;
+  line-height: 1.55;
   color: var(--mv-ink-2);
+  text-wrap: pretty;
 }
 .mvp-final-cta {
   margin-top: 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
 }
 .mvp-final-price {
   display: inline-flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--mv-ink-3);
 }
 .mvp-final-price .mv-figure {
   font-size: 28px;
+  line-height: 30px;
   color: var(--mv-ink);
 }
 
 /* ── Checkout + success + cancel (Operate mode) ───────────────── */
 
 .mvp-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
   margin-bottom: 20px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--mv-copper-text);
-  text-decoration: none;
-  text-underline-offset: 4px;
-}
-.mvp-back:hover {
-  text-decoration: underline;
+  font-size: 15px;
 }
 .mvp-operate-head {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 .mvp-operate-sub {
   margin: 0;
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--mv-ink-2);
+  text-wrap: pretty;
 }
 .mvp-operate-stack {
-  margin-top: 36px;
+  margin-top: 32px;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
+/* Order summary: the one card in the checkout stack */
 .mvp-summary {
   background: var(--mv-surface);
   border-radius: var(--mv-radius-card);
@@ -550,7 +482,9 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 0;
+  padding: 12px 0;
+  min-height: 44px;
+  box-sizing: border-box;
   border-top: 1px solid var(--mv-line);
   font-size: 15px;
   color: var(--mv-ink-2);
@@ -563,77 +497,39 @@
   color: var(--mv-ink);
 }
 .mvp-summary-row .mv-figure {
-  font-size: 22px;
+  font-size: 20px;
+  line-height: 22px;
   color: var(--mv-ink);
 }
 .mvp-summary-row--total .mv-figure {
-  font-size: 34px;
-  line-height: 1;
+  font-size: 40px;
+  line-height: 42px;
 }
 .mvp-summary-note {
   margin: 0;
-  padding: 14px 0 10px;
+  padding: 12px 0 8px;
   border-top: 1px solid var(--mv-line);
   font-size: 13px;
-  line-height: 1.55;
+  line-height: 18px;
   color: var(--mv-ink-3);
+  text-wrap: pretty;
 }
 .mvp-summary-note strong {
   font-weight: 500;
   color: var(--mv-ink-2);
 }
 
+/* The shared alert as a hairline: the summary stays the one card */
 .mvp-alert {
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  gap: 10px;
-  padding: 14px 16px;
-  border-radius: var(--mv-radius-control);
-  background: var(--mv-danger-tint);
-  border: 1px solid var(--mv-danger-border);
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--mv-ink);
-}
-.mvp-alert svg {
-  color: var(--mv-overdue-ink);
-  margin-top: 1px;
-}
-.mvp-alert p {
-  margin: 0;
+  padding: 14px 0;
+  border-width: 1px 0;
+  border-radius: 0;
+  background: transparent;
 }
 .mvp-alert-action {
-  display: inline-flex;
-  align-items: center;
-  min-height: 36px;
   margin-top: 4px;
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--mv-copper-text);
-  font: 600 14px var(--mv-font-body);
-  text-underline-offset: 4px;
-  cursor: pointer;
-}
-.mvp-alert-action:hover {
-  text-decoration: underline;
 }
 
-.mvp-pay {
-  width: 100%;
-  justify-content: center;
-  padding: 16px 22px;
-  font-size: 16px;
-}
-.mvp-pay:disabled {
-  background: color-mix(in oklch, var(--mv-copper) 60%, var(--mv-bg));
-  color: color-mix(in oklch, var(--mv-on-copper) 80%, transparent);
-  cursor: not-allowed;
-  transform: none;
-}
-.mvp-pay[aria-busy="true"] {
-  cursor: progress;
-}
 .mvp-spinner {
   flex: none;
   animation: mvp-spin 0.8s linear infinite;
@@ -650,6 +546,7 @@
   justify-content: center;
   gap: 6px;
   font-size: 13px;
+  line-height: 18px;
   color: var(--mv-ink-3);
 }
 .mvp-legal {
@@ -659,6 +556,7 @@
   justify-content: center;
   gap: 8px 20px;
   font-size: 13px;
+  line-height: 18px;
   color: var(--mv-ink-3);
 }
 .mvp-legal a {
@@ -681,7 +579,7 @@
 /* Success: the Bike Plate settles in (its 240ms settle lives in
    design-system.css); everything else is already there. */
 .mvp-success-plate {
-  margin-top: 36px;
+  margin-top: 32px;
 }
 .mvp-success-plate .mv-plate {
   width: 100%;
@@ -689,23 +587,7 @@
   box-sizing: border-box;
 }
 .mvp-unlocked {
-  list-style: none;
-  margin: 32px 0 0;
-  padding: 0;
-  border-top: 1px solid var(--mv-line);
-}
-.mvp-unlocked li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--mv-line);
-  font-size: 15px;
-  color: var(--mv-ink);
-}
-.mvp-unlocked svg {
-  flex: none;
-  color: var(--mv-ink-2);
+  margin-top: 32px;
 }
 .mvp-actions {
   margin-top: 32px;
@@ -713,16 +595,10 @@
   flex-direction: column;
   gap: 12px;
 }
-.mvp-actions .mv-btn {
-  width: 100%;
-  justify-content: center;
-  padding: 16px 22px;
-  font-size: 15px;
-}
 .mvp-after {
   margin: 20px 0 0;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 18px;
   color: var(--mv-ink-3);
 }
 .mvp-progress {
@@ -730,7 +606,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 18px;
   color: var(--mv-ink-3);
 }
 .mvp-progress svg {

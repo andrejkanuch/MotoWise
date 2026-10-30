@@ -87,26 +87,12 @@ export default async function HomePage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
       <Hero />
-      {/* AI-extractable site definition — visible to crawlers, quiet for riders:
-          body face, ink-3, left-aligned inside the container */}
-      <div style={{ maxWidth: 'var(--mv-container)', margin: '0 auto', padding: '24px 40px 0' }}>
-        <p
-          style={{
-            margin: 0,
-            maxWidth: '72ch',
-            fontFamily: 'var(--mv-font-body)',
-            fontSize: '13px',
-            lineHeight: 1.5,
-            color: 'var(--mv-ink-3)',
-            textAlign: 'left',
-          }}
-        >
-          {tHome('siteDefinition')}
-        </p>
-      </div>
-      <ManifestoSection />
-      <FeaturesGrid />
+      {/* The AI-extractable site definition opens the manifesto block, left-aligned
+          in the container; the proof row follows the quote so the "why believe it"
+          comes before the four feature blocks. */}
+      <ManifestoSection definition={tHome('siteDefinition')} />
       <ProofSection appStoreRating={rating} />
+      <FeaturesGrid />
       <DiagnosticsDemo />
       <Faq />
       <CtaSection />

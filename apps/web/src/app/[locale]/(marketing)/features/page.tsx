@@ -40,19 +40,14 @@ const RIDE_FEATURES: readonly FeatureEntry[] = [
   { titleKey: 'learningTitle', descKey: 'learningDesc', href: '/features/learning-paths' },
 ];
 
-const ROW_TITLE_STYLE = {
-  margin: 0,
-  fontWeight: 600,
-  lineHeight: 1.05,
-  color: 'var(--mv-ink)',
-} as const;
-
+/** Compact body for list rows: 16/1.55. */
 const ROW_DESC_STYLE = {
-  margin: '10px 0 0',
-  fontSize: '15px',
-  lineHeight: 1.6,
+  margin: '8px 0 0',
+  fontSize: '16px',
+  lineHeight: 1.55,
   color: 'var(--mv-ink-2)',
   maxWidth: '52ch',
+  textWrap: 'pretty',
 } as const;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -87,6 +82,49 @@ function ArrowIcon() {
   );
 }
 
+function CrumbSeparator() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="9 6 15 12 9 18" />
+    </svg>
+  );
+}
+
+/** One feature as a hairline row: the title is the link, the arrow its verb. */
+function FeatureRow({
+  feature,
+  title,
+  desc,
+}: {
+  feature: FeatureEntry;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <li>
+      <Link href={feature.href} className="mv-row" style={{ alignItems: 'start' }}>
+        <span>
+          <h3 className="mv-h3">{title}</h3>
+          <p style={ROW_DESC_STYLE}>{desc}</p>
+        </span>
+        <span style={{ marginTop: '8px', display: 'inline-flex' }}>
+          <ArrowIcon />
+        </span>
+      </Link>
+    </li>
+  );
+}
+
 export default async function FeaturesPage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -117,193 +155,78 @@ export default async function FeaturesPage({ params }: PageProps) {
       <JsonLdGraph nodes={graph} />
 
       {/* Hero: breadcrumb + condensed headline, left-aligned on the ground */}
-      <header className="mv-section-hero" style={{ paddingTop: '128px', paddingBottom: '48px' }}>
+      <header className="mv-section-hero" style={{ paddingTop: '120px', paddingBottom: '48px' }}>
         <div style={{ maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
           <nav aria-label="Breadcrumb" style={{ marginBottom: '40px' }}>
-            <ol
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                gap: '10px',
-                listStyle: 'none',
-                margin: 0,
-                padding: 0,
-                fontSize: '13px',
-                fontWeight: 500,
-                color: 'var(--mv-ink-3)',
-              }}
-            >
+            <ol className="mv-crumbs" style={{ margin: 0 }}>
               <li>
-                <Link href="/" style={{ color: 'var(--mv-ink-3)', textDecoration: 'none' }}>
-                  {t('breadcrumbHome')}
-                </Link>
-              </li>
-              <li aria-hidden="true" style={{ color: 'var(--mv-ink-4)' }}>
-                /
+                <Link href="/">{t('breadcrumbHome')}</Link>
               </li>
               <li>
-                <span aria-current="page" style={{ color: 'var(--mv-ink)' }}>
-                  {t('title')}
-                </span>
+                <CrumbSeparator />
+                <span aria-current="page">{t('title')}</span>
               </li>
             </ol>
           </nav>
 
-          <h1 className="mv-section-title" style={{ maxWidth: '14ch', textWrap: 'balance' }}>
+          <h1 className="mv-section-title" style={{ maxWidth: '14ch' }}>
             {t('heroTitle')}
           </h1>
           <p className="mv-section-sub">{t('heroSubtitle')}</p>
         </div>
       </header>
 
-      {/* The logbook: the four record features, large, beside the group's
-          one sentence. Hairline rows on the ground; copper on the arrow only. */}
+      {/* The logbook: the four record features beside the group's one
+          sentence. Hairline rows on the ground; the arrow is the verb. */}
       <section className="mv-section" style={{ paddingTop: '64px', paddingBottom: '120px' }}>
         <div
           className="grid gap-12 md:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]"
           style={{ alignItems: 'start' }}
         >
           <div>
-            <h2
-              className="mv-display"
-              style={{
-                margin: 0,
-                fontSize: 'clamp(34px, 4.2vw, 56px)',
-                fontWeight: 700,
-                lineHeight: 1.02,
-                color: 'var(--mv-ink)',
-              }}
-            >
-              {t('groupLogbookTitle')}
-            </h2>
-            <p
-              style={{
-                margin: '20px 0 0',
-                fontSize: '17px',
-                lineHeight: 1.6,
-                color: 'var(--mv-ink-2)',
-                maxWidth: '32ch',
-              }}
-            >
+            <h2 className="mv-h2">{t('groupLogbookTitle')}</h2>
+            <p className="mv-section-sub" style={{ maxWidth: '48ch' }}>
               {t('groupLogbookBody')}
             </p>
           </div>
-          <ul
-            style={{
-              listStyle: 'none',
-              margin: 0,
-              padding: 0,
-              borderBottom: '1px solid var(--mv-line)',
-            }}
-          >
+          <ul className="mv-rows">
             {LOGBOOK_FEATURES.map((feature) => (
-              <li key={feature.href} style={{ borderTop: '1px solid var(--mv-line)' }}>
-                <Link
-                  href={feature.href}
-                  className="group"
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'minmax(0, 1fr) auto',
-                    alignItems: 'start',
-                    gap: '24px',
-                    padding: '32px 0',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                  }}
-                >
-                  <span>
-                    <h3
-                      className="mv-display"
-                      style={{ ...ROW_TITLE_STYLE, fontSize: 'clamp(30px, 3.4vw, 44px)' }}
-                    >
-                      {t(feature.titleKey)}
-                    </h3>
-                    <p style={ROW_DESC_STYLE}>{t(feature.descKey)}</p>
-                  </span>
-                  <span
-                    className="transition-transform duration-300 group-hover:translate-x-1"
-                    style={{ color: 'var(--mv-copper-text)', marginTop: '10px' }}
-                  >
-                    <ArrowIcon />
-                  </span>
-                </Link>
-              </li>
+              <FeatureRow
+                key={feature.href}
+                feature={feature}
+                title={t(feature.titleKey)}
+                desc={t(feature.descKey)}
+              />
             ))}
           </ul>
         </div>
       </section>
 
-      {/* Around the ride: the three features built on the logbook, in a
-          tighter two-column list on the deeper ramp step. */}
+      {/* Around the ride: the three features built on the logbook, in the
+          same row grammar on the deeper ramp step. */}
       <section style={{ background: 'var(--mv-bg-2)' }}>
-        <div className="mv-section-inner">
-          <h2
-            className="mv-display"
-            style={{
-              margin: 0,
-              fontSize: 'clamp(30px, 3.6vw, 48px)',
-              fontWeight: 700,
-              lineHeight: 1.02,
-              color: 'var(--mv-ink)',
-            }}
+        <div className="mv-section-inner" style={{ paddingTop: '96px', paddingBottom: '120px' }}>
+          <div
+            className="grid gap-12 md:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]"
+            style={{ alignItems: 'start' }}
           >
-            {t('groupMoreTitle')}
-          </h2>
-          <p
-            style={{
-              margin: '16px 0 0',
-              fontSize: '17px',
-              lineHeight: 1.6,
-              color: 'var(--mv-ink-2)',
-              maxWidth: '44ch',
-            }}
-          >
-            {t('groupMoreBody')}
-          </p>
-          <ul
-            className="grid md:grid-cols-3 md:gap-x-12"
-            style={{ listStyle: 'none', margin: '48px 0 0', padding: 0 }}
-          >
-            {RIDE_FEATURES.map((feature) => (
-              <li key={feature.href} style={{ borderTop: '1px solid var(--mv-line)' }}>
-                <Link
-                  href={feature.href}
-                  className="group"
-                  style={{
-                    display: 'block',
-                    padding: '24px 0 32px',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                  }}
-                >
-                  <h3
-                    className="mv-display"
-                    style={{ ...ROW_TITLE_STYLE, fontSize: 'clamp(26px, 2.6vw, 34px)' }}
-                  >
-                    {t(feature.titleKey)}
-                  </h3>
-                  <p style={{ ...ROW_DESC_STYLE, maxWidth: '36ch' }}>{t(feature.descKey)}</p>
-                  <span
-                    style={{
-                      marginTop: '16px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      color: 'var(--mv-copper-text)',
-                    }}
-                  >
-                    {t('learnMore')}
-                    <span className="transition-transform duration-300 group-hover:translate-x-1">
-                      <ArrowIcon />
-                    </span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+            <div>
+              <h2 className="mv-h2">{t('groupMoreTitle')}</h2>
+              <p className="mv-section-sub" style={{ maxWidth: '48ch' }}>
+                {t('groupMoreBody')}
+              </p>
+            </div>
+            <ul className="mv-rows">
+              {RIDE_FEATURES.map((feature) => (
+                <FeatureRow
+                  key={feature.href}
+                  feature={feature}
+                  title={t(feature.titleKey)}
+                  desc={t(feature.descKey)}
+                />
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 

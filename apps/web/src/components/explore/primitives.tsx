@@ -4,6 +4,7 @@ import {
   Building2,
   Check,
   ChevronDown,
+  ChevronRight,
   Clock,
   Globe,
   List,
@@ -34,6 +35,7 @@ const ICONS = {
   'arrow-right': ArrowRight,
   'arrow-left': ArrowLeft,
   'chevron-down': ChevronDown,
+  'chevron-right': ChevronRight,
   sliders: SlidersHorizontal,
   close: X,
   map: MapIcon,
@@ -149,10 +151,10 @@ const SKELETON_ROW_KEYS = ['a', 'b', 'c', 'd', 'e', 'f'] as const;
 
 export function SkeletonRows({ count = 4 }: { count?: number }) {
   return (
-    <div className="xp-rows" aria-hidden="true">
+    <div className="mv-rows" aria-hidden="true">
       {SKELETON_ROW_KEYS.slice(0, count).map((key) => (
-        <div key={key} className="xp-row">
-          <span>
+        <div key={key} className="mv-row xp-row">
+          <span className="xp-row-body">
             <span className="xp-skel" style={{ width: '46%' }} />
             <span className="xp-skel" style={{ width: '28%', height: 11, marginTop: 8 }} />
           </span>

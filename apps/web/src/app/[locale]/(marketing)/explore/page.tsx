@@ -20,27 +20,29 @@ interface PageProps {
   params: Promise<{ locale: string }>;
 }
 
-const PAGE_TITLE = 'Discover the Best Motorcycle Routes Worldwide';
+const PAGE_TITLE = 'Motorcycle routes by country';
 const PAGE_DESCRIPTION =
-  'Discover the best motorcycle routes worldwide. Browse by country and region to find twisty mountain passes, scenic coastal roads, and epic multi-day touring routes curated by real riders.';
+  'Motorcycle routes by country and region: mountain passes, coastal roads and multi-day touring routes, each with distance, climb and riding time, shared and rated by riders.';
 
 // Explore is intentionally non-translated (English-only, canonical to /explore),
 // so this route-discovery FAQ copy stays inline rather than going through i18n.
+// The app has no turn-by-turn navigation: a route is opened in the app, exported
+// as GPX and copied into the rider's planner.
 const EXPLORE_FAQ = [
   {
     question: 'Are MotoVault routes free to browse?',
     answer:
-      'Yes. Every motorcycle route on MotoVault is free to browse on the web — by country and region — with no account required. Routes are also free to ride in the MotoVault app for iOS and Android with turn-by-turn navigation.',
+      'Yes. Every motorcycle route on MotoVault is free to browse on the web, by country and region, with no account required. Opening a route in the MotoVault app for iOS and Android is free too.',
   },
   {
     question: 'Where do MotoVault routes come from?',
     answer:
-      'Routes are shared by real riders in the MotoVault community and rated by other riders, so the highest-rated twisty passes, scenic coastal roads, and multi-day touring routes rise to the top of each country and region.',
+      'Routes are shared by riders on MotoVault and rated by other riders, so the highest-rated passes, coastal roads and multi-day touring routes rise to the top of each country and region.',
   },
   {
     question: 'How do I ride a route I find on MotoVault?',
     answer:
-      'Open the route in the free MotoVault app for iOS or Android to navigate it with turn-by-turn directions. You can also review the full details — distance, elevation, surface type, and community rating — right here on the web before you go.',
+      'Open the route in the free MotoVault app for iOS or Android, export the GPX and copy it into your planner. Distance, climb, surface and the rider rating are on the route page here before you go.',
   },
 ];
 
@@ -109,16 +111,14 @@ export default async function ExplorePage({ params }: PageProps) {
           <p className="mv-index-lede">
             {totalRoutes > 0 ? (
               <>
-                <span className="mv-figure" style={{ fontSize: '1.15em' }}>
-                  {totalRoutes.toLocaleString('en-US')}
-                </span>{' '}
-                routes shared and rated by riders, free to browse. Pick a country, then a region,
-                and open any route in the app to ride it with turn-by-turn directions.
+                <span className="mv-figure">{totalRoutes.toLocaleString('en-US')}</span> routes
+                shared and rated by riders, free to browse. Pick a country, then a region, and open
+                any route in the app to export the GPX.
               </>
             ) : (
               <>
                 Routes shared and rated by riders, free to browse. Pick a country, then a region,
-                and open any route in the app to ride it with turn-by-turn directions.
+                and open any route in the app to export the GPX.
               </>
             )}
           </p>

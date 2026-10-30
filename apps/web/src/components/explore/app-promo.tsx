@@ -11,7 +11,7 @@ export function AppPromo() {
     <section className="xp-band">
       <div className="xp-wrap xp-band-grid">
         <div>
-          <h2 className="xp-h2">Take the route with you</h2>
+          <h2 className="mv-h2">Take the route with you</h2>
           <p className="xp-sub">
             Open any route in the MotoVault app, ride it, and keep the record: the ride itself, the
             fuel it took, and the service it brings closer.
@@ -31,7 +31,7 @@ export function AppPromo() {
               placement={CtaPlacement.Inline}
               className="mv-btn mv-btn-ghost"
             >
-              Get it on Google Play
+              Download for Android
             </StoreLink>
           </div>
         </div>
@@ -39,7 +39,7 @@ export function AppPromo() {
           <BikePlate
             figure="1,240"
             unit="km"
-            caption="Ready. Chain and sprockets due in 1,240 km."
+            caption="Ready · chain and sprockets in 1,240 km"
             racingNumber="27"
             identity="Honda Africa Twin · 2022"
             state="ready"

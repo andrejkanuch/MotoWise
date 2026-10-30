@@ -25,8 +25,8 @@ function Chevron() {
 
 /**
  * Breadcrumb trail in the Trackside voice: body face, ink-3, hairline-weight
- * chevrons, the current page in ink. Styles live in `trackside-read.css`
- * (`.mv-crumbs`), which the page that renders this imports.
+ * chevrons, the current page in ink. Styles live in `design-system.css`
+ * (`.mv-crumbs`, the shared kit), loaded by the marketing layout.
  */
 export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
   return (

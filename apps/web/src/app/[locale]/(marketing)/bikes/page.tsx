@@ -15,7 +15,7 @@ interface PageProps {
   params: Promise<{ locale: string }>;
 }
 
-const PAGE_TITLE = 'Motorcycle Guides by Make, Model & Year';
+const PAGE_TITLE = 'Motorcycle guides by make, model and year';
 const PAGE_DESCRIPTION =
   'Owner-oriented guides for popular motorcycles: real maintenance schedules, common problems, cost of ownership and service intervals.';
 
@@ -121,6 +121,7 @@ export default async function BikesIndexPage({ params }: PageProps) {
                     <li key={pageType}>
                       <Link
                         href={`/bikes/${bike.makeSlug}/${bike.modelSlug}/${bike.year}/${pageType}`}
+                        className="mv-link is-quiet"
                       >
                         {PAGE_TYPE_LABEL[pageType]}
                       </Link>

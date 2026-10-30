@@ -31,7 +31,7 @@ Copy: full repositioning (logbook/records voice, kill trust-killer lines, fix Cl
 
 ## Impeccable commands
 Iteration 1 — DIAGNOSE: [x] /critique [x] /audit (brainstorm covered)
-Iteration 2 — SYSTEMATIZE: [~] /normalize [~] /typeset [~] /arrange [~] /clarify (research reports in lens/it2-*.md)
+Iteration 2 — SYSTEMATIZE: [x] /normalize [x] /typeset [x] /arrange [x] /clarify (reports lens/it2-*.md, decisions lens/APPLY-DECISIONS.md, applied by 7 file-group agents)
 Iteration 3 — ENHANCE: [ ] /animate [ ] /delight [ ] /distill [ ] /harden [ ] /colorize
 Iteration 4 — POLISH: [ ] /adapt [ ] /onboard [ ] /optimize [ ] /polish [ ] /extract [ ] /bolder [ ] /overdrive
 
@@ -47,4 +47,5 @@ Iteration 4 — POLISH: [ ] /adapt [ ] /onboard [ ] /optimize [ ] /polish [ ] /e
 
 ## Iteration log
 - It.1 (diagnose): brainstorm synthesis, direction picked (2026-10-19).
+- It.2 (systematize, 2026-10-30): 4 research lenses → one shared kit in design-system.css (.mv-root/.mv-h2/.mv-h3/.mv-h1-operate/.mv-table/.mv-link/.mv-icon-btn/.mv-segmented/.mv-field*/.mv-rows/.mv-crumbs/.mv-chip/.mv-alert/.mv-scroll-row), one type scale, one spacing scale, one container; 684 dead i18n keys identified (prune at the end); product-truth copy fixed (no vendor names, no invented tests, no typed prices, 12,000+ models, 14 categories, 10 waypoint types); owner flags (d1–d15) in lens/it2-clarify.md.
 - Build (2026-10-30): foundation + 9 parallel build agents (home, chrome, features, compare, content, auth/pro, rider, explore, trips) → commits adf361f2, c953269d, 3b415384. Visual pass in both schemes at 1440 and 375.

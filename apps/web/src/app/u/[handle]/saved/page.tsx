@@ -5,8 +5,6 @@ import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { fetchProfile } from '../../../../lib/fetch-profile';
 import { fetchSavedTrips } from '../../../../lib/fetch-saved-routes';
 import { SavedRouteRow, SavedRoutesClient } from './saved-routes-client';
-import '@/components/marketing/design-system.css';
-import '@/components/share-page.css';
 
 export async function generateMetadata({
   params,
@@ -15,11 +13,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { handle } = await params;
   const profile = await fetchProfile(handle);
-  if (!profile) return { title: 'User Not Found' };
+  if (!profile) return { title: 'Rider not found' };
 
   const displayName = profile.displayName ?? profile.publicUsername;
-  const title = `Saved Routes by ${displayName} (@${profile.publicUsername})`;
-  const description = `Browse motorcycle routes saved by ${displayName} on MotoVault. Discover scenic rides, twisty roads, and epic adventures.`;
+  const title = `Saved routes by ${displayName} (@${profile.publicUsername})`;
+  const description = `Motorcycle routes saved by ${displayName} on MotoVault, with distance, climb and surface.`;
 
   return {
     title,
@@ -60,13 +58,13 @@ export default async function SavedRoutesPage({ params }: { params: Promise<{ ha
   }
 
   return (
-    <div className="mv-marketing sp sp-panel">
+    <>
       <div className="sp-section-head">
         <h2 className="sp-section-title">Saved routes</h2>
         <span className="sp-section-count">by @{profile.publicUsername}</span>
       </div>
 
-      <ul className="sp-list">
+      <ul className="mv-rows">
         {edges.map(({ node }) => (
           <SavedRouteRow key={node.id} route={node} />
         ))}
@@ -79,17 +77,15 @@ export default async function SavedRoutesPage({ params }: { params: Promise<{ ha
 
       {/* Soft wall for visitors without the app */}
       <SoftWall handle={handle} />
-    </div>
+    </>
   );
 }
 
 function EmptyState({ handle }: { handle: string }) {
   return (
-    <div className="mv-marketing sp sp-panel">
-      <div className="sp-empty">
-        <h2 className="sp-section-title">No saved routes yet</h2>
-        <p className="sp-prose">@{handle} hasn't saved any routes.</p>
-      </div>
+    <div className="sp-empty">
+      <h2 className="sp-section-title">No saved routes yet</h2>
+      <p className="sp-prose">@{handle} hasn't saved any routes.</p>
     </div>
   );
 }
@@ -97,9 +93,9 @@ function EmptyState({ handle }: { handle: string }) {
 function SoftWall({ handle }: { handle: string }) {
   return (
     <div className="sp-wall">
-      <h2 className="sp-cta-title">Save routes of your own</h2>
+      <h2 className="mv-h2">Save routes of your own</h2>
       <p className="sp-cta-sub">
-        Browse routes in MotoVault, save the ones you want to ride, and follow them on the road.
+        Browse routes in MotoVault, save the ones you want to ride, and copy them into your planner.
       </p>
       <div className="sp-cta-actions">
         <StoreLink
@@ -118,7 +114,7 @@ function SoftWall({ handle }: { handle: string }) {
           slug={handle}
           className="mv-btn mv-btn-ghost"
         >
-          Get it on Android
+          Download for Android
         </StoreLink>
       </div>
     </div>

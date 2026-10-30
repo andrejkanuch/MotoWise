@@ -24,9 +24,9 @@ export async function generateMetadata({ params }: GuidesPageProps): Promise<Met
   const alternates = getEnglishOnlyAlternates('/guides');
 
   return {
-    title: 'Motorcycle Guides — Routes, Tips & Riding Advice',
+    title: 'Motorcycle guides: routes, seasons and riding advice',
     description:
-      'In-depth motorcycle guides covering the best routes in Europe, South America, and the Alps. Trip planning, gear advice, and riding tips from the MotoVault team.',
+      'Motorcycle guides to routes in Europe, South America and the Alps: trip planning, gear advice and riding tips, with the trips linked.',
     keywords: [
       'motorcycle guides',
       'motorcycle routes',
@@ -36,9 +36,9 @@ export async function generateMetadata({ params }: GuidesPageProps): Promise<Met
     ],
     alternates,
     openGraph: {
-      title: 'Motorcycle Guides — Routes, Tips & Riding Advice',
+      title: 'Motorcycle guides: routes, seasons and riding advice',
       description:
-        'In-depth motorcycle guides covering the best routes in Europe, South America, and the Alps.',
+        'Motorcycle guides to routes in Europe, South America and the Alps: trip planning, gear advice and riding tips.',
       type: 'website',
       url: alternates.canonical,
     },
@@ -68,9 +68,9 @@ export default async function GuidesPage({ params }: GuidesPageProps) {
   const graph = buildGraph(
     buildWebPage({
       url: canonical,
-      name: 'Motorcycle Guides',
+      name: 'Motorcycle guides',
       description:
-        'In-depth motorcycle guides covering the best routes in Europe, South America, and the Alps.',
+        'Motorcycle guides to routes in Europe, South America and the Alps: trip planning, gear advice and riding tips.',
       locale,
       pageKey: '/guides',
     }),
@@ -121,10 +121,14 @@ export default async function GuidesPage({ params }: GuidesPageProps) {
                     <span>{guide.frontmatter.author}</span>
                   </div>
                   <div>
-                    <h2 className="mv-feed-title">{guide.frontmatter.title}</h2>
+                    {/* The whole row is the link, so the title is the link text; the
+                        featured "read" line is decoration for sighted readers only. */}
+                    <h2 className={isFeatured ? 'mv-h2' : 'mv-feed-title'}>
+                      {guide.frontmatter.title}
+                    </h2>
                     <p className="mv-feed-excerpt">{guide.frontmatter.description}</p>
                     {isFeatured && (
-                      <span className="mv-feed-more">
+                      <span className="mv-feed-more" aria-hidden="true">
                         Read the guide
                         <svg
                           width="16"

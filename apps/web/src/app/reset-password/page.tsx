@@ -95,7 +95,7 @@ export default function ResetPasswordPage() {
       {success ? (
         <AuthNote>
           <p>{COPY.updated}</p>
-          <Link href="/login" className="mva-link-btn">
+          <Link href="/login" className="mv-link is-quiet is-tall">
             {COPY.signIn}
           </Link>
         </AuthNote>

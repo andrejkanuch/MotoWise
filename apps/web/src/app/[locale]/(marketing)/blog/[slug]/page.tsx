@@ -421,12 +421,12 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                 const reading = splitReadingTime(relatedArticle.readingTime);
                 return (
                   <li key={relatedArticle.slug}>
-                    <Link href={`/blog/${relatedArticle.slug}`}>
+                    <Link href={`/blog/${relatedArticle.slug}`} className="mv-row">
                       <span>
-                        {relatedArticle.title}
-                        <span className="mv-rows-sub">{relatedArticle.excerpt}</span>
+                        <span className="mv-row-title">{relatedArticle.title}</span>
+                        <span className="mv-row-sub">{relatedArticle.excerpt}</span>
                       </span>
-                      <span className="mv-rows-aside">
+                      <span className="mv-row-aside">
                         <span className="mv-figure">{reading.figure}</span>
                         {reading.rest ? ` ${reading.rest}` : ''} {t('readingTime')}
                       </span>

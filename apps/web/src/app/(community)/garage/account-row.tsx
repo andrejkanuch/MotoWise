@@ -29,7 +29,7 @@ function ExternalManageLink({ href, children }: { href: string; children: string
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="mvg-link"
+      className="mv-link is-quiet is-tall"
       onClick={() => trackEvent(WebEvent.MANAGE_SUBSCRIPTION_CLICKED)}
     >
       {children}
@@ -54,7 +54,7 @@ function ManageLink() {
     case 'web':
       return <ExternalManageLink href={manage.url}>{t('manageSubscription')}</ExternalManageLink>;
     case 'web_portal':
-      return <ManageWebSubscription className="mvg-link gv-linkbtn" />;
+      return <ManageWebSubscription className="mv-link is-quiet is-tall" />;
     case 'store':
       return manage.store ? (
         <ExternalManageLink href={STORE_SUBSCRIPTIONS_URL[manage.store]}>
@@ -107,7 +107,7 @@ export function AccountSection({ account }: { account: HandoffAccount }) {
         </span>
         <span className="gv-account-free">
           {t('freePlan')} ·
-          <Link href="/pro" className="mvg-link">
+          <Link href="/pro" className="mv-link is-quiet is-tall">
             {t('seePro')}
           </Link>
         </span>

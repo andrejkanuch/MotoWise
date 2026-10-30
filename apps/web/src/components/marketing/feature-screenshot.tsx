@@ -1,5 +1,29 @@
 import Image from 'next/image';
 
+/* The pair shares one axis: the phone closes to the end of its column and the
+   panel starts its own, so the two objects meet around the 48px gap. Below
+   900px they stack and both start at the gutter. The frame is capped at 280px
+   on this surface (the hero above it carries the page's headline). */
+const SCREENSHOT_PAIR_CSS = `
+.mv-shot-pair .mv-phone-mockup { width: 280px; margin: 0; justify-self: end; }
+.mv-shot-screen { overflow: hidden; border-radius: var(--mv-radius-screen); height: 100%; }
+.mv-shot-panel {
+  width: min(440px, 100%);
+  aspect-ratio: 4 / 5;
+  background: var(--mv-surface);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-radius-card);
+  overflow: hidden;
+  justify-self: start;
+}
+@media (max-width: 900px) {
+  .mv-shot-pair .mv-phone-mockup { width: 240px; justify-self: start; }
+}
+@media (max-width: 480px) {
+  .mv-shot-pair .mv-phone-mockup { width: 220px; }
+}
+`;
+
 /**
  * The feature page's screenshot moment: one real device frame (the page's
  * single `.mv-phone-mockup`, Direction: max one per page) beside a second
@@ -16,16 +40,23 @@ export function FeatureScreenshotPair({
   if (!first) return null;
 
   return (
-    <div className="mv-section-inner mv-reveal" style={{ paddingTop: 0, paddingBottom: 0 }}>
+    <div
+      className="mv-section-inner mv-reveal mv-shot-pair"
+      style={{ paddingTop: 0, paddingBottom: 0 }}
+    >
+      <style
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: static CSS
+        dangerouslySetInnerHTML={{ __html: SCREENSHOT_PAIR_CSS }}
+      />
       <div className="mv-grid-2" style={{ alignItems: 'end', gap: '48px' }}>
-        <div className="mv-phone-mockup" style={{ margin: '0 auto' }}>
-          <div style={{ overflow: 'hidden', borderRadius: '35px', height: '100%' }}>
+        <div className="mv-phone-mockup">
+          <div className="mv-shot-screen">
             <Image
               src={first.src}
               alt={first.alt}
               width={1206}
               height={2622}
-              sizes="320px"
+              sizes="280px"
               loading="lazy"
               style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
             />
@@ -33,17 +64,7 @@ export function FeatureScreenshotPair({
         </div>
 
         {second ? (
-          <div
-            style={{
-              width: 'min(440px, 100%)',
-              aspectRatio: '4 / 5',
-              background: 'var(--mv-surface)',
-              border: '1px solid var(--mv-line)',
-              borderRadius: 'var(--mv-radius-card)',
-              overflow: 'hidden',
-              justifySelf: 'start',
-            }}
-          >
+          <div className="mv-shot-panel">
             <Image
               src={second.src}
               alt={second.alt}

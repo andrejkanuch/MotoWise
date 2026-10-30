@@ -23,14 +23,14 @@ export function HeroBold({ totalRoutes, totalCountries, countries }: HeroBoldPro
   return (
     <section className="xp-wrap xp-hero">
       <div className="xp-hero-copy">
-        <h1 className="xp-h1 xp-rise">Routes worth the detour</h1>
+        <h1 className="mv-section-title xp-h1 xp-rise">Routes worth the detour</h1>
         <p className="xp-lede xp-rise xp-rise-2">
           Motorcycle routes mapped by riders, each with its distance, climb and riding time. Search
           a place, or pick a country from the list below.
         </p>
 
         {hasCounts && (
-          <div className="xp-figures xp-rise xp-rise-2" style={{ marginTop: 28, gap: '12px 40px' }}>
+          <div className="xp-figures xp-hero-figures xp-rise xp-rise-2">
             <Figure value={formatNumber(totalRoutes)} label="routes" size="xl" />
             <Figure value={formatNumber(totalCountries)} label="countries" size="xl" />
           </div>

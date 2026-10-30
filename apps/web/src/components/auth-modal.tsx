@@ -33,21 +33,24 @@ interface AuthModalProps {
 type Mode = 'signin' | 'signup';
 type ResendState = 'idle' | 'sending' | 'sent';
 
-/** English-only: the modal sits on root routes (trip pages) without an intl provider. */
+/**
+ * English-only: the modal sits on root routes (trip pages) without an intl
+ * provider. The wording mirrors the AuthV2 catalogue (/login, /signup).
+ */
 const COPY = {
   signin: {
     heading: 'Sign in',
     submit: 'Sign in',
     submitting: 'Signing in…',
-    altPrompt: 'No account?',
-    altCta: 'Create one',
+    altPrompt: 'No account yet?',
+    altCta: 'Create account',
     emptyFields: EMPTY_FIELDS_MESSAGE,
   },
   signup: {
     heading: 'Create account',
     submit: 'Create account',
     submitting: 'Creating account…',
-    altPrompt: 'Have an account?',
+    altPrompt: 'Already have an account?',
     altCta: 'Sign in',
     emptyFields: 'Enter your email and password to create an account.',
   },
@@ -178,14 +181,14 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
   const copy = COPY[mode];
   const recoveryAction: Record<NonNullable<AuthErrorRecovery>, React.ReactNode> = {
     reset_password: (
-      <a href="/forgot-password" className="mva-banner-link">
+      <a href="/forgot-password" className="mv-link is-quiet is-tall">
         Reset your password
       </a>
     ),
     resend_confirmation: (
       <button
         type="button"
-        className="mva-btn-secondary"
+        className="mv-btn mv-btn-ghost"
         onClick={handleResendConfirmation}
         disabled={resendState !== 'idle'}
       >
@@ -200,7 +203,7 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
 
   return (
     <div
-      className="mva-root mva-modal-scrim"
+      className="mv-root mva-modal-scrim"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -232,7 +235,7 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
               <button
                 key={p.id}
                 type="button"
-                className="mva-oauth-btn"
+                className="mv-btn mv-btn-ghost mv-btn-block"
                 onClick={() => handleOAuth(p.id)}
                 disabled={oauthLoading !== null}
                 aria-busy={busy || undefined}
@@ -280,6 +283,7 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
             autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
             minLength={6}
             maxLength={128}
+            hint={mode === 'signup' ? 'At least 6 characters' : undefined}
             toggle={{
               shown: showPassword,
               onToggle: () => setShowPassword(!showPassword),
@@ -299,7 +303,7 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
           {copy.altPrompt}
           <button
             type="button"
-            className="mva-link-btn"
+            className="mv-link is-quiet is-tall"
             onClick={() => switchMode(mode === 'signin' ? 'signup' : 'signin')}
           >
             {copy.altCta}

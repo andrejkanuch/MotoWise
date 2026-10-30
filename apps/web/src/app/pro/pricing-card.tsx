@@ -41,16 +41,10 @@ export function PricingCard() {
 
   return (
     <div className="mvp-card">
-      <fieldset className="mvp-seg">
+      <fieldset className="mv-segmented mvp-seg">
         <legend className="mvp-sr-only">Billing period</legend>
         {(Object.keys(PLAN_LABEL) as WebPlanId[]).map((id) => (
-          <button
-            key={id}
-            type="button"
-            className="mvp-seg-btn"
-            aria-pressed={plan === id}
-            onClick={() => setPlan(id)}
-          >
+          <button key={id} type="button" aria-pressed={plan === id} onClick={() => setPlan(id)}>
             {PLAN_LABEL[id]}
             {id === WEB_PLAN_IDS.ANNUAL && saving !== null && (
               <span className="mvp-seg-saving">&minus;{saving}%</span>
@@ -63,16 +57,16 @@ export function PricingCard() {
         <div className="mvp-price">
           <span className="mv-figure mvp-price-figure">{p.price}</span>
           <span className="mvp-price-period">{p.period}</span>
-          {p.crossed && <s className="mvp-price-crossed">{p.crossed}</s>}
+          {p.crossed && <s className="mv-figure mvp-price-crossed">{p.crossed}</s>}
         </div>
         <p className="mvp-price-sub">{p.sub}</p>
       </div>
 
-      <ul className="mvp-benefits">
+      <ul className="mv-rows is-open mvp-benefits">
         {PRO_FEATURES.map((f) => {
           const Icon = BENEFIT_ICONS[f.key];
           return (
-            <li key={f.key}>
+            <li key={f.key} className="mv-row">
               <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
               {f.title}
             </li>
@@ -81,7 +75,7 @@ export function PricingCard() {
       </ul>
 
       <div>
-        <Link href={`/pro/checkout?plan=${plan}`} className="mv-btn mv-btn-primary">
+        <Link href={`/pro/checkout?plan=${plan}`} className="mv-btn mv-btn-primary mv-btn-block">
           {WEB_OFFER_COPY.finalCta}
           <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />
         </Link>

@@ -39,19 +39,15 @@ export function TripListCard({
       data-trip-id={trip.id}
       data-hovered={hovered ? 'true' : undefined}
       data-focused={focused ? 'true' : undefined}
-      className="xp-row"
+      className="mv-row xp-row"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <span style={{ minWidth: 0 }}>
-        <span className="xp-row-title" style={{ display: 'block' }}>
+      <span className="xp-row-body">
+        <span className="mv-row-title" style={{ display: 'block' }}>
           {trip.title ?? 'Unnamed route'}
         </span>
-        {meta && (
-          <span className="xp-row-meta" style={{ display: 'block' }}>
-            {meta}
-          </span>
-        )}
+        {meta && <span className="mv-row-sub">{meta}</span>}
       </span>
       <span className="xp-row-figs">
         <RouteFigures trip={trip} />

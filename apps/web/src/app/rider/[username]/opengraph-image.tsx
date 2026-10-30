@@ -1,21 +1,86 @@
+import { palette } from '@motovault/design-system';
 import { ImageResponse } from 'next/og';
 import { fetchProfile } from '../../../lib/fetch-profile';
 import { formatDistance } from '../../../lib/format-utils';
 
 export const runtime = 'edge';
-export const alt = 'MotoVault Rider Profile';
+export const alt = 'Rider profile';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 export const revalidate = 3600;
 
-export default async function OGImage({ params }: { params: { username: string } }) {
-  const profile = await fetchProfile(params.username);
+// The OG renderer (Satori) cannot read CSS variables, so the card takes its
+// colours from the sanctioned JS source: the Race Plate graphite ground, bone
+// ink, copper for the figures.
+const GROUND = palette.plateG0;
+const PANEL = palette.plateG2;
+const INK = palette.plateBone;
+const INK_2 = palette.plateInk2;
+const INK_3 = palette.plateInk3;
+const FIGURE = palette.plateCopper;
+// The site's two faces: the condensed display for the title and figures, the
+// body face for every label (the root layout loads both from Google Fonts).
+const DISPLAY = 'Barlow Condensed';
+const BODY = 'Plus Jakarta Sans';
 
-  const displayName = profile?.displayName ?? profile?.publicUsername ?? params.username;
-  const publicUsername = profile?.publicUsername ?? params.username;
+// An older WebKit UA makes Google Fonts answer with TrueType, which Satori reads.
+const TTF_USER_AGENT =
+  'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/533.21.1 (KHTML, like Gecko) Version/5.0.5 Safari/533.21.1';
+
+interface OgFont {
+  name: string;
+  data: ArrayBuffer;
+  weight: 500 | 700;
+  style: 'normal';
+}
+
+/** One Google Fonts face as a Satori font; null when the fetch fails (Satori falls back). */
+async function loadFont(family: string, weight: 500 | 700): Promise<OgFont | null> {
+  try {
+    const cssUrl = `https://fonts.googleapis.com/css2?family=${family.replace(/ /g, '+')}:wght@${weight}&display=swap`;
+    const css = await fetch(cssUrl, {
+      headers: { 'User-Agent': TTF_USER_AGENT },
+      cache: 'force-cache',
+    }).then((r) => r.text());
+    const url = css.match(/src: url\((.+?)\) format\('(?:opentype|truetype)'\)/)?.[1];
+    if (!url) return null;
+    const res = await fetch(url, { cache: 'force-cache' });
+    if (!res.ok) return null;
+    return { name: family, data: await res.arrayBuffer(), weight, style: 'normal' };
+  } catch {
+    return null;
+  }
+}
+
+function loadFonts(): Promise<OgFont[]> {
+  return Promise.all([loadFont(DISPLAY, 700), loadFont(BODY, 500)]).then((fonts) =>
+    fonts.filter((f): f is OgFont => f !== null),
+  );
+}
+
+/** "1.2k km" → ["1.2k", "km"] so the unit sits small beside the figure. */
+function splitUnit(value: string): [string, string | null] {
+  const match = value.match(/^(.*?)\s*([a-z%]+)$/i);
+  return match ? [match[1], match[2]] : [value, null];
+}
+
+export default async function OGImage({ params }: { params: Promise<{ username: string }> }) {
+  // Next 16: route params are async
+  const { username } = await params;
+  const [profile, fonts] = await Promise.all([fetchProfile(username), loadFonts()]);
+
+  const displayName = profile?.displayName ?? profile?.publicUsername ?? username;
+  const publicUsername = profile?.publicUsername ?? username;
   const totalRides = profile?.rideStats.totalRides ?? 0;
-  const totalDistance = profile?.rideStats.totalDistance ?? 0;
+  const [distanceNum, distanceUnit] = splitUnit(
+    formatDistance(profile?.rideStats.totalDistance ?? 0),
+  );
   const city = profile?.city;
+  const meta = [`@${publicUsername}`, city].filter(Boolean).join(' · ');
+  const figures: Array<{ label: string; num: string; unit: string | null }> = [
+    { label: 'Rides logged', num: String(totalRides), unit: null },
+    { label: 'Distance ridden', num: distanceNum, unit: distanceUnit },
+  ];
 
   return new ImageResponse(
     <div
@@ -24,69 +89,101 @@ export default async function OGImage({ params }: { params: { username: string }
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
-        padding: '60px',
-        background: 'linear-gradient(135deg, #0a1540 0%, #1f40a0 50%, #3366e6 100%)',
-        fontFamily: 'sans-serif',
+        justifyContent: 'space-between',
+        padding: '56px 64px',
+        background: GROUND,
+        color: INK,
+        fontFamily: BODY,
+        fontWeight: 500,
       }}
     >
-      {/* Avatar placeholder */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '100px',
-          height: '100px',
-          borderRadius: '50px',
-          backgroundColor: 'rgba(255,255,255,0.15)',
-          fontSize: '42px',
-          fontWeight: 700,
-          color: 'white',
-          marginBottom: '24px',
-        }}
-      >
-        {displayName.charAt(0).toUpperCase()}
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <div style={{ fontSize: '48px', fontWeight: 700, color: 'white' }}>{displayName}</div>
-        <div style={{ fontSize: '24px', color: 'rgba(255,255,255,0.6)' }}>
-          @{publicUsername}
-          {city ? ` · ${city}` : ''}
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div style={{ display: 'flex', gap: '40px', marginTop: '40px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <div style={{ fontSize: '36px', fontWeight: 700, color: 'white' }}>{totalRides}</div>
-          <div style={{ fontSize: '16px', color: 'rgba(255,255,255,0.5)' }}>Rides</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 104,
+            height: 104,
+            borderRadius: 52,
+            background: PANEL,
+            fontFamily: DISPLAY,
+            fontSize: 48,
+            fontWeight: 700,
+            color: INK_2,
+          }}
+        >
+          {displayName.charAt(0).toUpperCase()}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <div style={{ fontSize: '36px', fontWeight: 700, color: 'white' }}>
-            {formatDistance(totalDistance)}
+          <div
+            style={{
+              display: 'flex',
+              fontFamily: DISPLAY,
+              fontSize: 72,
+              fontWeight: 700,
+              lineHeight: 0.96,
+              color: INK,
+            }}
+          >
+            {displayName}
           </div>
-          <div style={{ fontSize: '16px', color: 'rgba(255,255,255,0.5)' }}>Distance</div>
+          <div style={{ display: 'flex', fontSize: 26, color: INK_3, marginTop: 12 }}>{meta}</div>
         </div>
       </div>
 
-      {/* Branding */}
+      <div style={{ display: 'flex', gap: 64 }}>
+        {figures.map(({ label, num, unit }) => (
+          <div key={label} style={{ display: 'flex', flexDirection: 'column' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                fontFamily: DISPLAY,
+                fontWeight: 700,
+                fontSize: 80,
+                lineHeight: 1,
+                color: FIGURE,
+              }}
+            >
+              {num}
+              {unit ? (
+                <span style={{ fontSize: 40, color: INK_2, marginLeft: 8 }}>{unit}</span>
+              ) : null}
+            </div>
+            <div style={{ display: 'flex', fontSize: 22, color: INK_3, marginTop: 10 }}>
+              {label}
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div
         style={{
-          position: 'absolute',
-          bottom: '40px',
-          right: '60px',
           display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+          fontSize: 24,
+          color: INK_3,
         }}
       >
-        <div style={{ fontSize: '20px', fontWeight: 700, color: 'rgba(255,255,255,0.5)' }}>
+        <div style={{ display: 'flex' }}>Rides with MotoVault</div>
+        <div
+          style={{
+            display: 'flex',
+            fontFamily: DISPLAY,
+            fontSize: 28,
+            fontWeight: 700,
+            color: INK,
+          }}
+        >
           MotoVault
         </div>
       </div>
     </div>,
-    { ...size },
+    {
+      ...size,
+      fonts,
+    },
   );
 }

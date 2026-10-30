@@ -166,7 +166,7 @@ export function CostCalculator({ labels }: { labels: Labels }) {
   };
 
   return (
-    <section className="mv-tool" style={{ paddingTop: 56 }}>
+    <section className="mv-tool" style={{ paddingTop: 48 }}>
       <div className="mv-tool-grid">
         {/* Inputs sit on the page: labels in the body face, fields on surface-2 */}
         <form onSubmit={(e) => e.preventDefault()}>
@@ -306,7 +306,7 @@ export function CostCalculator({ labels }: { labels: Labels }) {
             />
             <CostRow label={labels.tires} amount={results.tires} />
             <CostRow label={labels.registrationFees} amount={results.registration} />
-            <div className="mv-tool-row is-total">
+            <div className="mv-row mv-tool-row is-total">
               <dt>{labels.annualTotal}</dt>
               <dd className="mv-figure">{formatCurrency(results.total)}</dd>
             </div>
@@ -372,7 +372,7 @@ function CostRow({
   amount: number;
 }) {
   return (
-    <div className="mv-tool-row">
+    <div className="mv-row mv-tool-row">
       <dt>
         {label}
         {sublabel && <span>{sublabel}</span>}

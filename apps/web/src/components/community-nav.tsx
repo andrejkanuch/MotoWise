@@ -18,10 +18,11 @@ const NAV_LINKS = [
 ] as const;
 
 /**
- * The signed-in bar: a flat strip on the ground with one hairline, body-face
- * links (the current one carries a copper dot), the theme toggle, the
- * account (avatar, name, plan status in ink) and sign-out. Below 720 px the
- * links, name, upgrade and sign-out move into a menu one step up the ramp.
+ * The signed-in bar: a flat strip on the ground with one hairline, its
+ * contents in the site's 1240 container, body-face links (the current one
+ * carries a copper dot), the theme toggle, the account (avatar, name, plan
+ * status in ink) and sign-out. Below 720 px the links, name, "Pro" and
+ * sign-out move into a menu one step up the ramp.
  */
 export function CommunityNav({ displayName }: { displayName?: string | null }) {
   const t = useTranslations('CommunityNav');
@@ -74,121 +75,129 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
 
   return (
     <nav className="community-nav">
-      <a href="/" className="nav-brand">
-        MotoVault
-      </a>
+      <div className="nav-inner">
+        <a href="/" className="nav-brand">
+          MotoVault
+        </a>
 
-      <div className="nav-links">
-        {NAV_LINKS.map((link) => {
-          const isActive = pathname.startsWith(link.href);
-          return (
-            <a
-              key={link.href}
-              href={link.href}
-              className={isActive ? 'nav-link active' : 'nav-link'}
-              aria-current={isActive ? 'page' : undefined}
-            >
-              {t(link.labelKey)}
-            </a>
-          );
-        })}
-      </div>
-
-      <div className="nav-right">
-        {showUpgrade && (
-          <a href="/pro" className="nav-upgrade nav-desktop-only">
-            {t('upgrade')}
-          </a>
-        )}
-
-        <ThemeToggle className="nav-icon-btn" labels={themeLabels} />
-
-        <div className="nav-user">
-          <div className="nav-avatar" aria-hidden="true">
-            {initial}
-          </div>
-          <span className="nav-name-text" title={displayName ?? undefined}>
-            {displayName ?? t('rider')}
-          </span>
-
-          {isPro && !isTrialing && (
-            <span className="nav-badge">
-              <Crown aria-hidden="true" />
-              <span className="nav-badge-word">Pro</span>
-            </span>
-          )}
-
-          {isTrialing && (
-            <span className="nav-badge">
-              <Crown aria-hidden="true" />
-              <span className="nav-badge-word">{t('trial')}</span>
-              {trialDaysLeft != null && (
-                <span className="nav-trial-days">
-                  {` · ${t('daysLeft', { days: trialDaysLeft })}`}
-                </span>
-              )}
-            </span>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={handleSignOut}
-          disabled={signingOut}
-          className="nav-signout-btn nav-desktop-only"
-        >
-          {signingOut ? t('signingOut') : t('signOut')}
-        </button>
-
-        <button
-          type="button"
-          ref={menuButtonRef}
-          onClick={() => setMenuOpen((open) => !open)}
-          className="nav-icon-btn nav-menu-btn"
-          aria-expanded={menuOpen}
-          aria-controls={menuId}
-          aria-label={menuOpen ? t('menu') : t('account')}
-        >
-          {menuOpen ? (
-            <X size={20} strokeWidth={1.75} aria-hidden="true" />
-          ) : (
-            <Menu size={20} strokeWidth={1.75} aria-hidden="true" />
-          )}
-        </button>
-      </div>
-
-      {menuOpen && (
-        <div id={menuId} ref={menuRef} className="nav-mobile-menu">
-          <p className="nav-menu-name">{displayName ?? t('rider')}</p>
+        <div className="nav-links">
           {NAV_LINKS.map((link) => {
             const isActive = pathname.startsWith(link.href);
             return (
               <a
                 key={link.href}
                 href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className={isActive ? 'nav-menu-link active' : 'nav-menu-link'}
+                className={isActive ? 'nav-link active' : 'nav-link'}
                 aria-current={isActive ? 'page' : undefined}
               >
                 {t(link.labelKey)}
               </a>
             );
           })}
+        </div>
+
+        <div className="nav-right">
           {showUpgrade && (
-            <a href="/pro" onClick={() => setMenuOpen(false)} className="nav-menu-link nav-upgrade">
+            <a href="/pro" className="mv-link is-quiet is-tall nav-upgrade nav-desktop-only">
               {t('upgrade')}
             </a>
           )}
+
+          <ThemeToggle className="mv-icon-btn" labels={themeLabels} />
+
+          <div className="nav-user">
+            <div className="nav-avatar" aria-hidden="true">
+              {initial}
+            </div>
+            <span className="nav-name-text" title={displayName ?? undefined}>
+              {displayName ?? t('rider')}
+            </span>
+
+            {isPro && !isTrialing && (
+              <span className="nav-badge">
+                <Crown aria-hidden="true" />
+                <span className="nav-badge-word">Pro</span>
+              </span>
+            )}
+
+            {isTrialing && (
+              <span className="nav-badge">
+                <Crown aria-hidden="true" />
+                <span className="nav-badge-word">{t('trial')}</span>
+                {trialDaysLeft != null && (
+                  <span className="nav-trial-days">
+                    {` · ${t('daysLeft', { days: trialDaysLeft })}`}
+                  </span>
+                )}
+              </span>
+            )}
+          </div>
+
           <button
             type="button"
             onClick={handleSignOut}
             disabled={signingOut}
-            className="nav-signout-btn"
+            className="mv-btn mv-btn-ghost is-compact nav-desktop-only"
           >
             {signingOut ? t('signingOut') : t('signOut')}
           </button>
+
+          <button
+            type="button"
+            ref={menuButtonRef}
+            onClick={() => setMenuOpen((open) => !open)}
+            className="mv-icon-btn nav-menu-btn"
+            aria-expanded={menuOpen}
+            aria-controls={menuId}
+            aria-label={menuOpen ? t('menu') : t('account')}
+          >
+            {menuOpen ? (
+              <X size={20} strokeWidth={1.75} aria-hidden="true" />
+            ) : (
+              <Menu size={20} strokeWidth={1.75} aria-hidden="true" />
+            )}
+          </button>
         </div>
-      )}
+
+        {menuOpen && (
+          <div id={menuId} ref={menuRef} className="nav-mobile-menu">
+            <p className="nav-menu-name">{displayName ?? t('rider')}</p>
+            <div className="mv-rows is-open">
+              {NAV_LINKS.map((link) => {
+                const isActive = pathname.startsWith(link.href);
+                return (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={isActive ? 'mv-row nav-menu-link active' : 'mv-row nav-menu-link'}
+                    aria-current={isActive ? 'page' : undefined}
+                  >
+                    {t(link.labelKey)}
+                  </a>
+                );
+              })}
+              {showUpgrade && (
+                <a
+                  href="/pro"
+                  onClick={() => setMenuOpen(false)}
+                  className="mv-row mv-link is-quiet nav-menu-link nav-upgrade"
+                >
+                  {t('upgrade')}
+                </a>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="mv-btn mv-btn-ghost is-compact nav-signout"
+            >
+              {signingOut ? t('signingOut') : t('signOut')}
+            </button>
+          </div>
+        )}
+      </div>
     </nav>
   );
 }

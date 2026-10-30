@@ -12,6 +12,12 @@ Dark (default) / light via `html:not(.dark)` — always use the var, never a lit
 - Type: `--mv-font-display` (Barlow Condensed — headlines + numbers, weights 500/600/700, use `.mv-display`/`.mv-figure` or the var), `--mv-font-body` (system stack — every sentence)
 - DEPRECATED, do not use in new code: `--mv-warm-*`, `--mv-page`, `--mv-card`, `--mv-copper-400/500/600`, `--mv-font-sans/serif`, `.mv-serif` (aliases; replace with the canonical token when touching a line)
 
+## Type scale (every size snaps to a step; 14px is not a step)
+Display clamp(56,9.6vw,150) hero only · H1 `.mv-section-title` clamp(44,5.5vw,84) (Read pages clamp(38,5.4vw,62), Operate pages 44) · H2 `.mv-h2` clamp(34,4.2vw,56) (Read/Operate 34/1.05 600) · H3 `.mv-h3` 26 · Operate section head 20/1.25 body 600 · lede 18/1.55 · body 17/1.6 (compact 16) · small 15 · meta 13/18 · caption 12 · figures `.mv-figure` 64 / 40 / 28 / 20 tabular 600, units 0.5× display 500 ink-2. Exceptions: the manifesto statement and the home closing CTA may use the H1 size; the outlined footer wordmark (aria-hidden) is decoration, not type.
+
+## Spacing
+Scale 4/8/16/24/32/48/64/96/120/160; 40 only as the desktop gutter. Gutters 40 → 24 (≤900) → 20 (≤480). Every page container is `var(--mv-container)` (1240) unless it is a reading column (≤70ch). Two intervals per page: weight sections 96–128 above, prose sections 64–96. Crumbs → H1 40, H1 → lede 28, lede → meta 20. Hairline rows share one padding (`.mv-row`: 12px 0, min-height 44).
+
 ## Shared classes (src/components/marketing/design-system.css)
 - Buttons: `.mv-btn .mv-btn-primary` (the copper verb), `.mv-btn .mv-btn-ghost`, `.mv-icon-btn` (44px ghost icon control, e.g. the ThemeToggle), `.mv-link` (copper text link)
 - Type: `.mv-display`, `.mv-figure` (tabular numerals), `.mv-section-title` (H1-scale), `.mv-h2` (section headline)

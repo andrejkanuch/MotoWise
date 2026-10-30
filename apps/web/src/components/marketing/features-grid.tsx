@@ -25,15 +25,22 @@ interface Figure {
   label: string;
 }
 
+/** Blocks that carry the figure pair. Two, not four: one stat row per page
+ *  is the proof section's; a second pair of figures appears only where the
+ *  depiction cannot carry the number itself (the plate carries maintenance's,
+ *  the trips block ends in one sentence instead). */
+const FIGURE_BLOCKS: ReadonlySet<FeatureKey> = new Set(['expenses', 'rides']);
+
 /**
  * The four records, as an editorial sequence rather than a scrubbed stage:
  * server-rendered, no JavaScript, each block a condensed headline, two or
- * three sentences in the logbook voice, two honest figures in the condensed
- * face, and one depiction of the app. The composition alternates so adjacent
- * blocks differ — the page's single full device frame (expenses), a Bike
- * Plate instead of a screenshot (maintenance), a deeper band with a screen
- * bled off its bottom edge (rides), a screen bled off the right edge (trips).
- * Entrances: visible by default; `.mv-reveal` lifts the plate block only.
+ * three sentences in the logbook voice, and one depiction of the app. The
+ * composition alternates so adjacent blocks differ — the page's single full
+ * device frame (expenses), a Bike Plate instead of a screenshot (maintenance),
+ * a deeper band with a screen bled off its bottom edge (rides), a screen bled
+ * off the right edge (trips). Each block headline is the section's real
+ * heading (`.mv-h2`); the intro statement above them is a sentence, not a
+ * heading. Entrances: visible by default; `.mv-reveal` lifts the plate only.
  */
 export function FeaturesGrid() {
   const t = useTranslations('Features');
@@ -41,23 +48,26 @@ export function FeaturesGrid() {
   const copy = (key: FeatureKey) => ({
     title: t(`grid.${key}.title`),
     body: t(`grid.${key}.body`),
-    figures: [
-      { value: t(`grid.${key}.fig1Value`), label: t(`grid.${key}.fig1Label`) },
-      { value: t(`grid.${key}.fig2Value`), label: t(`grid.${key}.fig2Label`) },
-    ] satisfies Figure[],
+    figures: FIGURE_BLOCKS.has(key)
+      ? ([
+          { value: t(`grid.${key}.fig1Value`), label: t(`grid.${key}.fig1Label`) },
+          { value: t(`grid.${key}.fig2Value`), label: t(`grid.${key}.fig2Label`) },
+        ] satisfies Figure[])
+      : undefined,
     alt: t('grid.screenshotAlt', { feature: t(`grid.${key}.badge`) }),
   });
 
   const [expenses, maintenance, rides, trip] = KEYS.map(copy);
+  const tripProof = t('grid.trip.proof');
 
   return (
     <section id="features" className="fx-section">
       <div className="fx-container">
         <div className="fx-head">
-          <h2 className="mv-section-title">
+          <p className="mv-h2">
             {t('grid.sectionTitleLead')}{' '}
-            <span className="mv-muted">{t('grid.sectionTitleEmphasis')}</span>
-          </h2>
+            <span className="fx-muted">{t('grid.sectionTitleEmphasis')}</span>
+          </p>
           <p className="mv-section-sub">{t('grid.sectionSub')}</p>
         </div>
 
@@ -116,7 +126,7 @@ export function FeaturesGrid() {
       {/* 4 · Trips — copy left, the screen bled off the right edge */}
       <div className="fx-container">
         <article className="fx-block fx-block-trips">
-          <FeatureCopy {...trip} />
+          <FeatureCopy {...trip} proof={tripProof} />
           <div className="fx-art fx-art-bleed">
             <Image
               src={SCREENSHOTS.trip}
@@ -142,83 +152,87 @@ function FeatureCopy({
   title,
   body,
   figures,
+  proof,
   className,
 }: {
   title: string;
   body: string;
-  figures: Figure[];
+  figures?: Figure[];
+  /** One plain sentence in place of the figure pair. */
+  proof?: string;
   className?: string;
 }) {
   return (
     <div className={className ? `fx-copy ${className}` : 'fx-copy'}>
-      <h3 className="fx-title">{title}</h3>
+      <h2 className="mv-h2">{title}</h2>
       <p className="fx-body">{body}</p>
-      <dl className="fx-figures">
-        {figures.map((figure) => (
-          <div key={figure.label} className="fx-figure">
-            <dt className="mv-figure fx-figure-value">{figure.value}</dt>
-            <dd className="fx-figure-label">{figure.label}</dd>
-          </div>
-        ))}
-      </dl>
+      {figures && (
+        <dl className="fx-figures">
+          {figures.map((figure) => (
+            <div key={figure.label} className="fx-figure">
+              <dt className="mv-figure fx-figure-value">{figure.value}</dt>
+              <dd className="fx-figure-label">{figure.label}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {proof && <p className="fx-proof">{proof}</p>}
     </div>
   );
 }
 
 const FEATURES_CSS = `
-.fx-section { padding: 120px 0 0; }
+.fx-section { padding: 120px 0 0; overflow-x: clip; }
 .fx-container { max-width: var(--mv-container); margin: 0 auto; padding: 0 40px; }
 .fx-head { max-width: 880px; }
+.fx-muted { color: var(--mv-ink-3); }
 
 .fx-block {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 80px;
+  gap: 64px;
   align-items: center;
-  padding: 72px 0;
+  padding: 64px 0;
 }
-.fx-head + .fx-block { margin-top: 64px; }
+.fx-head + .fx-block { margin-top: 48px; }
 .fx-block-rev .fx-copy { order: 2; }
 .fx-block-rev .fx-art { order: 1; }
-.fx-block-trips { padding: 120px 0 0; align-items: start; }
+.fx-block-trips { padding: 120px 0 96px; align-items: start; }
 
 .fx-copy { max-width: 520px; }
-.fx-title {
-  font-family: var(--mv-font-display);
-  font-weight: 600;
-  font-size: clamp(34px, 3.8vw, 56px);
-  line-height: 1;
-  letter-spacing: 0.002em;
-  color: var(--mv-ink);
-  margin: 0;
-  text-wrap: balance;
-}
 .fx-body {
   margin: 20px 0 0;
   font-size: 17px;
   line-height: 1.6;
   color: var(--mv-ink-2);
-  letter-spacing: -0.01em;
-  max-width: 46ch;
+  letter-spacing: 0;
+  text-wrap: pretty;
+}
+.fx-proof {
+  margin: 24px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--mv-ink-3);
+  text-wrap: pretty;
 }
 .fx-figures {
   display: flex;
   gap: 48px;
-  margin: 36px 0 0;
+  margin: 32px 0 0;
   padding: 0;
 }
 .fx-figure { margin: 0; max-width: 220px; }
 .fx-figure-value {
-  font-size: 44px;
-  line-height: 1;
+  font-size: 40px;
+  line-height: 42px;
   color: var(--mv-ink);
 }
 .fx-figure-label {
   margin: 8px 0 0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.45;
   color: var(--mv-ink-3);
-  letter-spacing: -0.005em;
+  letter-spacing: 0;
 }
 
 .fx-art { position: relative; }
@@ -227,7 +241,7 @@ const FEATURES_CSS = `
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 35px;
+  border-radius: var(--mv-radius-screen);
   overflow: hidden;
   background: var(--mv-surface);
 }
@@ -235,58 +249,60 @@ const FEATURES_CSS = `
 
 /* Rides: a deeper step of the ramp, full width; the screen is cut by the
    band's bottom edge, keyline on the three visible sides. */
-.fx-band { background: var(--mv-bg-2); margin-top: 72px; overflow: hidden; }
+.fx-band { background: var(--mv-bg-2); margin-top: 96px; overflow: hidden; }
 .fx-band-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 80px;
+  gap: 64px;
   align-items: end;
 }
 .fx-band-copy { padding: 120px 0; }
 .fx-art-cut {
   align-self: end;
+  justify-self: start;
   width: 380px;
   max-width: 100%;
-  margin: 96px auto 0;
+  margin: 96px 0 0;
   height: 520px;
   overflow: hidden;
   border: 1px solid var(--mv-line);
   border-bottom: 0;
-  border-radius: 28px 28px 0 0;
+  border-radius: var(--mv-radius-screen) var(--mv-radius-screen) 0 0;
   background: var(--mv-surface);
 }
 .fx-cut-img { width: 100%; height: auto; display: block; }
 
-/* Trips: the screen runs off the right edge of the viewport. */
+/* Trips: the screen runs off the right edge of the viewport; the section
+   clips the overshoot so the page never relies on body overflow. */
 .fx-art-bleed {
   margin-right: calc(-1 * ((100vw - min(100vw, var(--mv-container))) / 2 + 40px));
   height: 560px;
   overflow: hidden;
   border: 1px solid var(--mv-line);
   border-right: 0;
-  border-radius: 28px 0 0 28px;
+  border-radius: var(--mv-radius-screen) 0 0 var(--mv-radius-screen);
   background: var(--mv-surface);
 }
 .fx-bleed-img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
 
 @media (max-width: 900px) {
   .fx-container { padding: 0 24px; }
-  .fx-section { padding-top: 100px; }
-  .fx-block { grid-template-columns: 1fr; gap: 40px; padding: 56px 0; }
+  .fx-section { padding-top: 96px; }
+  .fx-block { grid-template-columns: 1fr; gap: 40px; padding: 48px 0; }
   .fx-head + .fx-block { margin-top: 40px; }
   .fx-block-rev .fx-copy { order: 1; }
   .fx-block-rev .fx-art { order: 2; }
-  .fx-block-trips { padding: 72px 0 0; }
+  .fx-block-trips { padding: 72px 0 64px; }
   .fx-art-phone { justify-content: flex-start; }
-  .fx-band { margin-top: 40px; }
+  .fx-band { margin-top: 64px; }
   .fx-band-grid { grid-template-columns: 1fr; gap: 0; }
-  .fx-band-copy { padding: 80px 0 0; }
+  .fx-band-copy { padding: 96px 0 0; }
   .fx-art-cut { width: 300px; height: 380px; margin: 48px 0 0; }
-  .fx-art-bleed { margin-right: 0; height: 420px; border-right: 1px solid var(--mv-line); border-radius: 28px; }
+  .fx-art-bleed { margin-right: 0; height: 420px; border-right: 1px solid var(--mv-line); border-radius: var(--mv-radius-screen); }
   .fx-figures { gap: 32px; }
-  .fx-figure-value { font-size: 36px; }
 }
 @media (max-width: 480px) {
+  .fx-container { padding: 0 20px; }
   .fx-figures { flex-direction: column; gap: 20px; }
   .fx-art-cut { width: 100%; height: 320px; }
   .fx-art-bleed { height: 340px; }

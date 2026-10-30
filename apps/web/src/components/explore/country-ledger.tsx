@@ -22,7 +22,7 @@ export function CountryLedger({ countries }: CountryLedgerProps) {
 
   return (
     <section className="xp-wrap xp-section">
-      <h2 className="xp-h2">Every country with routes</h2>
+      <h2 className="mv-h2">Every country with routes</h2>
       <p className="xp-sub">
         {formatNumber(countries.length)} {countries.length === 1 ? 'country' : 'countries'}, grouped
         by continent and sorted by how many routes we hold there.
@@ -34,24 +34,28 @@ export function CountryLedger({ countries }: CountryLedgerProps) {
           return (
             <div key={g.continent} className="xp-continent">
               <div className="xp-continent-head">
-                <h3 className="xp-h3">{g.continent}</h3>
+                <h3 className="mv-h3 xp-h3">{g.continent}</h3>
                 <MetaLabel>
                   {formatNumber(g.list.length)} {g.list.length === 1 ? 'country' : 'countries'} ·{' '}
                   {formatNumber(total)} {total === 1 ? 'route' : 'routes'}
                 </MetaLabel>
               </div>
-              {g.list.map((c) => (
-                <a key={c.code} href={`/explore/${c.code.toLowerCase()}`} className="xp-crow">
-                  <span>{c.name}</span>
-                  <Figure
-                    value={formatNumber(c.routeCount)}
-                    unit={c.routeCount === 1 ? 'route' : 'routes'}
-                  />
-                  <span className="xp-crow-arrow">
+              <div className="mv-rows">
+                {g.list.map((c) => (
+                  <a
+                    key={c.code}
+                    href={`/explore/${c.code.toLowerCase()}`}
+                    className="mv-row xp-crow"
+                  >
+                    <span className="mv-row-title">{c.name}</span>
+                    <Figure
+                      value={formatNumber(c.routeCount)}
+                      unit={c.routeCount === 1 ? 'route' : 'routes'}
+                    />
                     <Icon name="arrow-right" size={14} />
-                  </span>
-                </a>
-              ))}
+                  </a>
+                ))}
+              </div>
             </div>
           );
         })}

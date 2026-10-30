@@ -86,8 +86,8 @@ export function StoreLink({
   );
 }
 
-/* Primary = copper (the verb), secondary = one step up the ramp. Both are
-   control-radius, body face, 44px+ tall, with the copper focus ring. */
+/* The pair uses the kit: copper primary (the verb) and a ghost one step up
+   the ramp; focus comes from the root grammar. */
 const STORE_BUTTONS_CSS = `
 .mv-store {
   display: flex;
@@ -95,69 +95,28 @@ const STORE_BUTTONS_CSS = `
   align-items: center;
   gap: 12px;
 }
-.mv-store-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-height: 48px;
-  padding: 0 22px;
-  border-radius: var(--mv-radius-control);
-  font-family: var(--mv-font-body);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.005em;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background .2s, border-color .2s, transform .2s var(--mv-ease);
-}
-.mv-store-btn:active { transform: translateY(0) scale(0.985); }
-.mv-store-btn:focus-visible { outline: 2px solid var(--mv-copper); outline-offset: 2px; }
-.mv-store-primary {
-  background: var(--mv-copper);
-  color: var(--mv-on-copper);
-}
-.mv-store-primary:hover { background: var(--mv-copper-hover); transform: translateY(-1px); }
-.mv-store-secondary {
-  background: var(--mv-surface-2);
-  color: var(--mv-ink);
-  border: 1px solid var(--mv-line);
-}
-.mv-store-secondary:hover { background: var(--mv-surface-3); border-color: var(--mv-line-step); transform: translateY(-1px); }
-.mv-store-sm .mv-store-btn { min-height: 44px; padding: 0 18px; font-size: 14px; }
-.mv-store-lg .mv-store-btn { min-height: 56px; padding: 0 28px; font-size: 16px; }
-@media (prefers-reduced-motion: reduce) {
-  .mv-store-btn { transition-duration: 0.01ms; }
-}
 `;
 
-const SIZE_CLASS = { sm: 'mv-store-sm', md: '', lg: 'mv-store-lg' } as const;
-
 export function StoreButtons({
-  size = 'md',
   pageType,
   placement = CtaPlacement.Inline,
   slug,
   referrerParams,
 }: Omit<StoreCtaContext, 'placement' | 'sameTab'> & {
-  size?: 'sm' | 'md' | 'lg';
   placement?: CtaPlacement;
 }) {
   const ctx: StoreCtaContext = { pageType, placement, slug, referrerParams };
 
   return (
-    <div className={`mv-store ${SIZE_CLASS[size]}`}>
+    <div className="mv-store">
       <style>{STORE_BUTTONS_CSS}</style>
-      <a {...storeAnchorProps(StorePlatform.Ios, ctx)} className="mv-store-btn mv-store-primary">
+      <a {...storeAnchorProps(StorePlatform.Ios, ctx)} className="mv-btn mv-btn-primary">
         <AppleIcon />
-        App Store
+        Download for iOS
       </a>
-      <a
-        {...storeAnchorProps(StorePlatform.Android, ctx)}
-        className="mv-store-btn mv-store-secondary"
-      >
+      <a {...storeAnchorProps(StorePlatform.Android, ctx)} className="mv-btn mv-btn-ghost">
         <PlayIcon />
-        Google Play
+        Download for Android
       </a>
     </div>
   );

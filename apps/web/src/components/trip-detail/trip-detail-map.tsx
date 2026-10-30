@@ -1,5 +1,6 @@
 'use client';
 
+import { palette } from '@motovault/design-system';
 import { useEffect, useRef, useState } from 'react';
 
 interface Waypoint {
@@ -20,16 +21,36 @@ interface TripDetailMapProps {
 // biome-ignore lint/suspicious/noExplicitAny: Mapbox GL loaded via CDN
 type MapboxGl = any;
 
+// Day legend for the dashed day-to-day lines (no polyline). Copper is the
+// ridden-route mark (apps/mobile/DESIGN.md); the rest come from the palette's
+// categorical set. Mapbox paint wants bare colour strings, not CSS vars.
 const DAY_COLORS = [
-  '#e0a040', // warm gold
-  '#60b0e0', // sky blue
-  '#70c070', // green
-  '#e07070', // red
-  '#c080e0', // purple
-  '#e09060', // orange
-  '#50c0c0', // teal
-  '#e0b060', // amber
+  palette.plateCopper,
+  palette.hubCatService,
+  palette.hubCatAccessories,
+  palette.hubCatInsurance,
+  palette.hubCatFuel,
+  palette.hubCatTires,
+  palette.hubCatParts,
+  palette.hubCatMods,
 ];
+
+// Pins and popups are DOM, so they read the page's tokens (both schemes)
+const PIN_STYLE = `
+  border-radius: var(--mv-radius-pill);
+  background: var(--mv-surface-2);
+  border: 1px solid var(--mv-line-step);
+  color: var(--mv-ink);
+  display: grid; place-items: center;
+  font-family: var(--mv-font-display); font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: transform .15s ease, background .15s ease, color .15s ease;
+`;
+
+function sentenceCase(s: string): string {
+  const words = s.replace(/_/g, ' ');
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
 
 function getDayColor(dayIndex: number): string {
   return DAY_COLORS[dayIndex % DAY_COLORS.length];
@@ -131,27 +152,15 @@ function TripDetailMapInner({ waypoints, polyline }: TripDetailMapProps) {
               geometry: { type: 'LineString', coordinates: coords },
             },
           });
-          // Glow
-          map.addLayer({
-            id: 'route-glow',
-            type: 'line',
-            source: 'route-line',
-            paint: {
-              'line-color': '#e0a040',
-              'line-width': 8,
-              'line-blur': 6,
-              'line-opacity': 0.35,
-            },
-          });
-          // Main line
+          // The route is the one highlighted object: copper, no glow
           map.addLayer({
             id: 'route-main',
             type: 'line',
             source: 'route-line',
             paint: {
-              'line-color': '#e0a040',
+              'line-color': palette.plateCopper,
               'line-width': 3,
-              'line-opacity': 0.8,
+              'line-opacity': 0.9,
             },
           });
         }
@@ -205,7 +214,6 @@ function TripDetailMapInner({ waypoints, polyline }: TripDetailMapProps) {
 
       for (let i = 0; i < sorted.length; i++) {
         const wp = sorted[i];
-        const color = getDayColor(wp.dayIndex);
         const isStart = wp.type === 'start';
         const isEnd = wp.type === 'end';
         const num = i + 1;
@@ -217,35 +225,28 @@ function TripDetailMapInner({ waypoints, polyline }: TripDetailMapProps) {
         // Numbered pin (inner element — safe to transform)
         const el = document.createElement('div');
         const size = isStart || isEnd ? 34 : 28;
-        el.style.cssText = `
-          width: ${size}px; height: ${size}px; border-radius: 999px;
-          background: oklch(0.13 0.01 55 / 0.95);
-          border: 1.5px solid ${color};
-          color: ${color};
-          display: grid; place-items: center;
-          font-family: 'Geist Mono', monospace; font-size: ${isStart || isEnd ? 13 : 11}px; font-weight: 600;
-          box-shadow: 0 4px 12px -2px oklch(0 0 0 / 0.5);
-          transition: transform .15s ease, background .15s ease, color .15s ease;
-        `;
+        el.style.cssText = `${PIN_STYLE} width: ${size}px; height: ${size}px; font-size: ${isStart || isEnd ? 15 : 13}px;`;
         el.textContent = String(num);
         wrapper.appendChild(el);
 
-        // Hover: scale inner pin + fill
+        // Hover: scale the pin and fill it copper (selection is copper)
         wrapper.addEventListener('mouseenter', () => {
           el.style.transform = 'scale(1.3)';
-          el.style.background = color;
-          el.style.color = '#1a1410';
+          el.style.background = 'var(--mv-copper)';
+          el.style.borderColor = 'var(--mv-copper)';
+          el.style.color = 'var(--mv-on-copper)';
           el.style.zIndex = '10';
         });
         wrapper.addEventListener('mouseleave', () => {
           el.style.transform = 'scale(1)';
-          el.style.background = 'oklch(0.13 0.01 55 / 0.95)';
-          el.style.color = color;
+          el.style.background = 'var(--mv-surface-2)';
+          el.style.borderColor = 'var(--mv-line-step)';
+          el.style.color = 'var(--mv-ink)';
           el.style.zIndex = '';
         });
 
-        // Click popup with stop details (high-contrast dark theme)
-        const typeLabel = wp.type.replace(/_/g, ' ');
+        // Click popup with stop details: the ramp, the body face, sentence case
+        const typeLabel = sentenceCase(wp.type);
         const dayLine = dayCount > 1 ? `Day ${wp.dayIndex + 1}` : '';
         const popup = new mapboxgl.Popup({
           offset: 18,
@@ -255,34 +256,35 @@ function TripDetailMapInner({ waypoints, polyline }: TripDetailMapProps) {
           className: 'mv-wp-popup',
         }).setHTML(`
           <div style="
-            font-family: 'Geist', sans-serif;
-            background: oklch(0.13 0.01 55);
-            color: oklch(0.92 0.02 55);
-            padding: 14px 16px;
-            border-radius: 12px;
-            border: 1px solid oklch(0.25 0.01 55);
-            box-shadow: 0 8px 24px -4px oklch(0 0 0 / 0.6);
+            font-family: var(--mv-font-body);
+            background: var(--mv-surface-2);
+            color: var(--mv-ink);
+            padding: 16px;
+            border-radius: var(--mv-radius-control);
+            border: 1px solid var(--mv-line);
+            box-shadow: none;
           ">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
               <span style="
-                width: 22px; height: 22px; border-radius: 999px;
-                background: ${color}; color: #1a1410;
+                width: 24px; height: 24px; border-radius: var(--mv-radius-pill);
+                background: var(--mv-surface-3); color: var(--mv-ink);
                 display: grid; place-items: center;
-                font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700;
+                font-family: var(--mv-font-display); font-size: 13px; font-weight: 600;
+                font-variant-numeric: tabular-nums;
                 flex-shrink: 0;
               ">${num}</span>
-              <span style="font-size: 14px; font-weight: 600; line-height: 1.3;">${wp.name}</span>
+              <span style="font-size: 15px; font-weight: 600; line-height: 1.45;">${wp.name}</span>
             </div>
             <div style="
               display: flex; gap: 6px; flex-wrap: wrap;
-              font-family: 'Geist Mono', monospace; font-size: 10px;
-              letter-spacing: 0.06em; text-transform: uppercase;
-              color: oklch(0.65 0.04 55);
+              font-size: 13px; line-height: 18px; font-weight: 500;
+              letter-spacing: 0;
+              color: var(--mv-ink-2);
             ">
-              ${dayLine ? `<span style="background: oklch(0.2 0.01 55); padding: 2px 8px; border-radius: 4px;">${dayLine}</span>` : ''}
-              <span style="background: oklch(0.2 0.01 55); padding: 2px 8px; border-radius: 4px;">${typeLabel}</span>
+              ${dayLine ? `<span style="background: var(--mv-surface-3); padding: 2px 8px; border-radius: var(--mv-radius-small);">${dayLine}</span>` : ''}
+              <span style="background: var(--mv-surface-3); padding: 2px 8px; border-radius: var(--mv-radius-small);">${typeLabel}</span>
             </div>
-            ${wp.notes ? `<div style="font-size: 12px; color: oklch(0.72 0.02 55); margin-top: 8px; line-height: 1.5;">${wp.notes}</div>` : ''}
+            ${wp.notes ? `<div style="font-size: 13px; color: var(--mv-ink-3); margin-top: 8px; line-height: 18px;">${wp.notes}</div>` : ''}
           </div>
         `);
 
@@ -333,7 +335,7 @@ function TripDetailMapInner({ waypoints, polyline }: TripDetailMapProps) {
         width: '100%',
         height: '100%',
         minHeight: 500,
-        borderRadius: 16,
+        borderRadius: 'var(--mv-radius-card)',
         overflow: 'hidden',
       }}
     />
@@ -356,15 +358,16 @@ export function TripDetailMap(props: TripDetailMapProps) {
           style={{
             width: '100%',
             minHeight: 500,
-            borderRadius: 16,
-            background: 'oklch(0.10 0.009 55)',
+            borderRadius: 'var(--mv-radius-card)',
+            background: 'var(--mv-bg-2)',
             display: 'grid',
             placeItems: 'center',
             color: 'var(--mv-ink-3)',
             fontSize: 13,
+            fontWeight: 500,
           }}
         >
-          Loading map...
+          Loading map…
         </div>
       )}
     </>

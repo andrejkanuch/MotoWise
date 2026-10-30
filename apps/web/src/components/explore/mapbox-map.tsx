@@ -133,14 +133,15 @@ function MapboxMapInner({
         const inner = document.createElement('div');
         inner.className = 'mv-pin-inner';
         inner.style.cssText = `
-          width: 30px; height: 30px; border-radius: 999px;
-          background: oklch(0.13 0.01 55 / 0.95);
-          border: 1.5px solid oklch(0.84 0.15 68);
-          color: oklch(0.92 0.16 68);
+          width: 30px; height: 30px; border-radius: var(--mv-radius-pill);
+          background: var(--mv-surface-2);
+          border: 1px solid var(--mv-line-step);
+          color: var(--mv-ink);
           display: grid; place-items: center;
-          font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600;
-          box-shadow: 0 6px 14px -4px oklch(0 0 0 / 0.6);
-          transition: all .2s ease;
+          font-family: var(--mv-font-display); font-size: 13px; font-weight: 600;
+          font-variant-numeric: tabular-nums;
+          box-shadow: none;
+          transition: transform .2s var(--mv-ease), background .2s, color .2s, border-color .2s;
         `;
         inner.textContent = String(i + 1);
         el.appendChild(inner);
@@ -174,9 +175,11 @@ function MapboxMapInner({
       const inner = el.querySelector('.mv-pin-inner') as HTMLDivElement | null;
       if (!inner) continue;
       const isActive = id === hoveredId || id === focusedId;
+      // The selected route mark is the one copper object on the map.
       inner.style.transform = isActive ? 'scale(1.4)' : 'scale(1)';
-      inner.style.background = isActive ? 'oklch(0.84 0.15 68)' : 'oklch(0.13 0.01 55 / 0.95)';
-      inner.style.color = isActive ? '#1a1410' : 'oklch(0.92 0.16 68)';
+      inner.style.background = isActive ? 'var(--mv-copper)' : 'var(--mv-surface-2)';
+      inner.style.borderColor = isActive ? 'var(--mv-copper)' : 'var(--mv-line-step)';
+      inner.style.color = isActive ? 'var(--mv-on-copper)' : 'var(--mv-ink)';
       el.style.zIndex = isActive ? '10' : '1';
     }
   }, [hoveredId, focusedId]);
@@ -188,7 +191,7 @@ function MapboxMapInner({
         width: '100%',
         height: '100%',
         minHeight: 600,
-        background: 'var(--mv-bg-2, oklch(0.10 0.009 55))',
+        background: 'var(--mv-bg-2)',
       }}
     />
   );

@@ -6,6 +6,7 @@ import { AuthModal } from '@/components/auth-modal';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
+import './gpx-download-button.css';
 
 const EXPORT_MUTATION = /* GraphQL */ `
   mutation ExportTripGPX($country: String!, $region: String!, $slug: String!) {
@@ -151,7 +152,7 @@ export function GpxDownloadButton({
         setShowAuthModal(true);
         return;
       }
-      setToast({ message: errMsg || 'Failed to download GPX', type: 'error' });
+      setToast({ message: "The GPX file didn't download. Try again.", type: 'error' });
     } finally {
       setIsDownloading(false);
     }
@@ -193,15 +194,16 @@ export function GpxDownloadButton({
           type="button"
           onClick={handleClick}
           disabled={isDownloading}
-          className="rh-icon-btn"
+          className="mv-btn mv-btn-ghost"
+          aria-busy={isDownloading || undefined}
           aria-label={`Download GPX for ${routeName}`}
         >
           {isDownloading ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            <Loader2 size={16} className="animate-spin" aria-hidden="true" />
           ) : (
             <svg
-              width="14"
-              height="14"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -215,7 +217,7 @@ export function GpxDownloadButton({
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
           )}
-          {isDownloading ? 'Exporting...' : 'Download GPX'}
+          {isDownloading ? 'Exporting…' : 'Download GPX'}
         </button>
         <Modals
           showAuthModal={showAuthModal}
@@ -238,15 +240,15 @@ export function GpxDownloadButton({
           onClick={handleClick}
           disabled={isDownloading}
           aria-label={`Download GPX for ${routeName}`}
-          className="mv-btn mv-btn-ghost disabled:opacity-60"
-          style={{ padding: '10px 16px' }}
+          aria-busy={isDownloading || undefined}
+          className="mv-btn mv-btn-ghost"
         >
           {isDownloading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 size={16} className="animate-spin" aria-hidden="true" />
           ) : (
-            <Download className="h-4 w-4" />
+            <Download size={16} aria-hidden="true" />
           )}
-          {isDownloading ? 'Exporting...' : 'Download GPX'}
+          {isDownloading ? 'Exporting…' : 'Download GPX'}
         </button>
         <Modals
           showAuthModal={showAuthModal}
@@ -265,36 +267,27 @@ export function GpxDownloadButton({
   return (
     <>
       <section className="rsec">
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 8,
-            padding: '24px 0',
-          }}
-        >
+        <div className="gpx-bottom">
           <button
             type="button"
             onClick={handleClick}
             disabled={isDownloading}
             aria-label={`Download GPX for ${routeName}`}
-            className="mv-btn mv-btn-ghost disabled:opacity-60"
+            aria-busy={isDownloading || undefined}
+            className="mv-btn mv-btn-ghost"
           >
             {isDownloading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 size={16} className="animate-spin" aria-hidden="true" />
             ) : (
-              <Download className="h-4 w-4" />
+              <Download size={16} aria-hidden="true" />
             )}
-            {isDownloading ? 'Exporting...' : 'Download GPX'}
+            {isDownloading ? 'Exporting…' : 'Download GPX'}
           </button>
           {authChecked && isAuthenticated && remaining !== null && (
             <span
-              className="text-[11px] leading-none"
-              style={{
-                color:
-                  remaining === -1 || remaining > 0 ? 'var(--mv-ink-3)' : 'var(--mv-overdue-ink)',
-              }}
+              className="gpx-quota"
+              data-exhausted={remaining === 0 ? 'true' : undefined}
+              role="status"
             >
               {remaining === -1
                 ? 'Unlimited exports with Pro'
@@ -323,14 +316,7 @@ export function GpxDownloadButton({
 function Toast({ toast }: { toast: { message: string; type: 'success' | 'error' } | null }) {
   if (!toast) return null;
   return (
-    <div
-      className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-[fadeInUp_200ms_ease-out] rounded-xl px-4 py-2.5 text-sm font-medium"
-      style={{
-        backgroundColor: 'var(--mv-surface-3)',
-        color: toast.type === 'success' ? 'var(--mv-ink)' : 'var(--mv-overdue-ink)',
-        border: '1px solid var(--mv-line-step)',
-      }}
-    >
+    <div className="gpx-toast" data-type={toast.type} role="status">
       {toast.message}
     </div>
   );
@@ -356,8 +342,7 @@ function Modals({
       <AuthModal open={showAuthModal} onClose={onAuthClose} action="download GPX" />
       {showPaywall && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-[fadeIn_150ms_ease-out]"
-          style={{ backgroundColor: 'rgba(17, 18, 20, 0.6)' }}
+          className="gpx-scrim"
           onClick={(e) => {
             if (e.target === e.currentTarget) onPaywallClose();
           }}
@@ -366,31 +351,14 @@ function Modals({
           aria-modal="true"
           aria-label="Export limit reached"
         >
-          <div
-            ref={paywallDialogRef}
-            className="w-full max-w-md rounded-2xl border p-6 animate-[scaleIn_200ms_ease-out]"
-            style={{ backgroundColor: 'var(--mv-surface-2)', borderColor: 'var(--mv-line)' }}
-          >
-            <h3
-              className="mb-2 text-2xl"
-              style={{
-                fontFamily: 'var(--mv-font-display)',
-                fontWeight: 600,
-                color: 'var(--mv-ink)',
-              }}
-            >
-              GPX export limit reached
-            </h3>
-            <p className="mb-6 text-sm leading-relaxed" style={{ color: 'var(--mv-ink-2)' }}>
-              You&apos;ve used all your free GPX exports this month. Upgrade to MotoVault Pro for
-              unlimited exports and more premium features.
+          <div ref={paywallDialogRef} className="gpx-dialog">
+            <h3 className="mv-h3">GPX export limit reached</h3>
+            <p className="gpx-dialog-body">
+              You&apos;ve used this month&apos;s free GPX exports. MotoVault Pro has no export
+              limit.
             </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={onPaywallClose}
-                className="mv-btn mv-btn-ghost flex-1 justify-center"
-              >
+            <div className="gpx-dialog-actions">
+              <button type="button" onClick={onPaywallClose} className="mv-btn mv-btn-ghost">
                 Maybe later
               </button>
               <button
@@ -399,9 +367,9 @@ function Modals({
                   onPaywallClose();
                   window.location.href = `/pro/checkout?redirect=${encodeURIComponent(returnUrl)}`;
                 }}
-                className="mv-btn mv-btn-primary flex-1 justify-center"
+                className="mv-btn mv-btn-primary"
               >
-                Upgrade to Pro
+                Get MotoVault Pro
               </button>
             </div>
           </div>

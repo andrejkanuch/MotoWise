@@ -204,7 +204,7 @@ function CheckoutSuccessContent() {
       {/* Already Pro — redirect notice */}
       {status === 'already_pro' && (
         <div className="mvp-operate-head">
-          <h1 className="mvp-h2 mvp-h2--operate">You already have Pro</h1>
+          <h1 className="mv-section-title mvp-operate-title">You already have Pro</h1>
           <p className="mvp-operate-sub">Taking you back to the plan page.</p>
         </div>
       )}
@@ -213,7 +213,7 @@ function CheckoutSuccessContent() {
       {status === 'polling' && (
         <>
           <div className="mvp-operate-head">
-            <h1 className="mvp-h2 mvp-h2--operate">Activating Pro</h1>
+            <h1 className="mv-section-title mvp-operate-title">Activating Pro</h1>
             <p className="mvp-operate-sub">
               Confirming your subscription. This usually takes a few seconds.
             </p>
@@ -231,7 +231,7 @@ function CheckoutSuccessContent() {
       {status === 'activated' && (
         <>
           <div className="mvp-operate-head">
-            <h1 className="mvp-h2 mvp-h2--operate">Pro is active</h1>
+            <h1 className="mv-section-title mvp-operate-title">Pro is active</h1>
             <p className="mvp-operate-sub">
               {isTrialing
                 ? 'Your free trial has started. Every Pro limit is lifted on this account.'
@@ -250,11 +250,11 @@ function CheckoutSuccessContent() {
             />
           </div>
 
-          <ul className="mvp-unlocked" aria-label="Unlocked with Pro">
+          <ul className="mv-rows mvp-unlocked" aria-label="Unlocked with Pro">
             {PRO_FEATURES.map((feature) => {
               const Icon = FEATURE_ICONS[feature.key];
               return (
-                <li key={feature.key}>
+                <li key={feature.key} className="mv-row">
                   <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
                   {feature.title}
                 </li>
@@ -263,7 +263,7 @@ function CheckoutSuccessContent() {
           </ul>
 
           <div className="mvp-actions">
-            <Link href={redirectTo} className="mv-btn mv-btn-primary">
+            <Link href={redirectTo} className="mv-btn mv-btn-primary mv-btn-block">
               {continueLabel}
             </Link>
           </div>
@@ -282,7 +282,7 @@ function CheckoutSuccessContent() {
       {status === 'timeout' && (
         <>
           <div className="mvp-operate-head">
-            <h1 className="mvp-h2 mvp-h2--operate">Still activating</h1>
+            <h1 className="mv-section-title mvp-operate-title">Still activating</h1>
             <p className="mvp-operate-sub">
               Your payment went through, but activation is taking longer than usual. Pro switches on
               within a few minutes.
@@ -294,10 +294,10 @@ function CheckoutSuccessContent() {
           </div>
 
           <div className="mvp-actions">
-            <Link href={redirectTo} className="mv-btn mv-btn-primary">
+            <Link href={redirectTo} className="mv-btn mv-btn-primary mv-btn-block">
               {continueLabel}
             </Link>
-            <Link href="/pro" className="mv-btn mv-btn-ghost">
+            <Link href="/pro" className="mv-btn mv-btn-ghost mv-btn-block">
               View Pro plans
             </Link>
           </div>

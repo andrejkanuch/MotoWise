@@ -1,8 +1,8 @@
 {
   "Metadata": {
-    "title": "MotoVault: Motorcycle Trip Planning, Maintenance Tracking & AI Diagnostics",
+    "title": "MotoVault: motorcycle maintenance, expense and ride tracker",
     "titleTemplate": "%s | MotoVault",
-    "description": "Free motorcycle app: plan multi-day trips, track maintenance costs, and diagnose issues with AI photo scanning. 12,000+ models supported. iOS & Android.",
+    "description": "Rides, service history and real costs for every bike in your garage. Free on iOS and Android, built by a rider.",
     "ogDescription": "Free motorcycle companion app for iOS and Android: maintenance, expenses, rides, multi-day trip planning, and AI photo diagnostics — no OBD hardware required."
   },
   "Navbar": {
@@ -51,7 +51,7 @@
     "tickerTripsLabel": "Trips",
     "tickerTripsSub": "Plan multi-day routes",
     "tickerMaintenanceLabel": "Maintenance",
-    "tickerMaintenanceSub": "Never miss a service",
+    "tickerMaintenanceSub": "Reminders before they're due",
     "tickerExpensesLabel": "Expenses",
     "tickerExpensesSub": "Know your real cost",
     "tickerDiagnosticsLabel": "AI diagnostics",
@@ -69,7 +69,7 @@
     "description": "Rides, service and costs — one logbook for every bike in your garage. Free, and built by a rider.",
     "downloadIos": "Download for iOS",
     "trustLineStrip": "Free · iOS + Android · Built for motorcycles",
-    "plateCaption": "Ready to ride · chain service in 1,900 km",
+    "plateCaption": "Ready · chain service in 1,900 km",
     "plateIdentity": "Africa Twin · 2022"
   },
   "Features": {
@@ -84,9 +84,9 @@
     },
     "maintenance": {
       "title": "Maintenance Tracker",
-      "tagline": "Never miss a service again.",
+      "tagline": "Service reminders before they are due.",
       "description": "Log every oil change, chain lube, and tire swap. Set mileage-based or time-based reminders that notify you before you're overdue. Full service history at a glance.",
-      "badge": "Smart reminders"
+      "badge": "Reminders by distance or date"
     },
     "expenses": {
       "title": "Expense Tracker",
@@ -137,16 +137,17 @@
         "fig1Value": "10",
         "fig1Label": "waypoint types, from fuel stop to pass summit",
         "fig2Value": "2",
-        "fig2Label": "ways to take the route with you: GPX for the sat-nav, Google Maps for the phone"
+        "fig2Label": "ways to take the route with you: GPX for the sat-nav, Google Maps for the phone",
+        "proof": "Share the plan as a web link; the route and its waypoints travel with it."
       },
       "diag": {
         "title": "Snap a photo. Get answers.",
-        "body": "Point the camera at a warning light, an oil leak, or a suspicious part. A vision model tells you what it is and what to do — in under five seconds.",
+        "body": "Point the camera at a warning light, an oil leak or a suspicious part. A vision model names what it is and what to do next, with a confidence level.",
         "kv1Label": "Hardware",
         "kv1Value": "No OBD needed",
         "kv2Label": "Input",
         "kv2Value": "Photo or text",
-        "badge": "AI Diagnostics",
+        "badge": "AI diagnostics",
         "chip1Label": "Scan result",
         "chip1Value": "Chain tension low",
         "chip2Label": "Powered by",
@@ -175,7 +176,7 @@
       },
       "expenses": {
         "title": "Know what your bike really costs.",
-        "body": "Fuel, tyres, insurance, the chain you replaced in March — every cost logged against the bike it belongs to. Photograph a receipt and it becomes an entry. The app works out what each kilometre costs, by month and by category.",
+        "body": "Fuel, tyres, insurance, the chain you replaced in March — every cost logged against the bike it belongs to. Photograph a receipt and it becomes an entry. The app works out what each kilometre or mile costs, by month and by category.",
         "kv1Label": "Breakdown",
         "kv1Value": "Per-mile cost",
         "kv2Label": "Categories",
@@ -281,8 +282,8 @@
   },
   "Cta": {
     "socialProof": "Built specifically for motorcycles",
-    "headline": "Stop guessing. Start tracking.",
-    "subtitle": "Free on iOS and Android. Your bike's maintenance, expenses, and rides — finally in one place.",
+    "headline": "Start the logbook before the next ride.",
+    "subtitle": "Free on iOS and Android. Maintenance, expenses and rides, one record per bike.",
     "trustFree": "Free to start",
     "trustNoCard": "No spam, ever",
     "disclaimer": "Available now on iOS and Android.",
@@ -290,9 +291,9 @@
     "metaLabel": "Download · free forever",
     "headlineLead": "Start the logbook",
     "headlineEmphasis": "before the next ride.",
-    "subtitleDownload": "Free on iOS and Android. Set up your garage in under 90 seconds.",
-    "appStore": "App Store",
-    "googlePlay": "Google Play",
+    "subtitleDownload": "Free on iOS and Android. Add a bike: make, model, year.",
+    "appStore": "Download for iOS",
+    "googlePlay": "Download for Android",
     "trustFreeForever": "Free forever",
     "trustNoCreditCard": "No credit card",
     "trustUnlimitedBikes": "Unlimited bikes",
@@ -304,27 +305,27 @@
     "items": [
       {
         "question": "What is MotoVault?",
-        "answer": "MotoVault is a free iOS and Android app that unifies the four things every motorcycle rider needs into a single platform: multi-day trip planning with turn-by-turn navigation, predictive maintenance tracking, per-bike expense management, and AI-powered photo diagnostics. The app supports over 12,000 motorcycle models sourced from the NHTSA vPIC Database, covering every major manufacturer from the last 30 years. Riders can plan routes, log service history, photograph mechanical issues for instant AI analysis, and track total cost of ownership across their entire garage. No OBD-II hardware is required, and no subscription is needed to get started. MotoVault was built by riders who were tired of juggling five separate apps for tasks that belong together. Source: NHTSA vPIC Database for model catalog."
+        "answer": "MotoVault is a free iOS and Android app that keeps the four records a rider needs in one place: multi-day trip planning with GPX export, maintenance history with reminders by distance or date, per-bike expense tracking, and photo diagnostics with a vision model. The bike catalogue covers 12,000+ models from the NHTSA vPIC Database, every major manufacturer from the last 30 years. No OBD-II hardware is required and no subscription is needed to start. MotoVault is built by one rider who was tired of juggling five separate apps for records that belong together. Source: NHTSA vPIC Database for the model catalogue."
       },
       {
         "question": "Is MotoVault really free?",
-        "answer": "MotoVault is free forever for its core feature set, which includes one motorcycle in your garage (upgrade to Pro for unlimited bikes), full maintenance tracking with service history, expense logging with per-bike cost breakdowns, ride recording with GPS traces, the full trip planner, and one AI diagnostic scan per month. There is no trial period and no feature lockout after 30 days. MotoVault Pro costs $9.99 per month or $59.99–$79.99 per year in the app ($5.99 per month or $49.99 per year on the web) and unlocks unlimited bikes, unlimited AI diagnostic scans and other AI features, unlimited receipt scans, unlimited GPX exports, and offline trip maps. Every core feature needed to maintain and manage your motorcycle is available on the free tier."
+        "answer": "MotoVault is free for its core feature set: one motorcycle in your garage, full maintenance tracking with service history, expense logging with per-bike cost breakdowns, ride recording with GPS traces, the full trip planner, and one AI diagnostic scan a month. There is no trial period and no feature lockout after 30 days. Pro is a monthly or yearly subscription, with a lifetime option; prices are shown in the store and on /pro. It unlocks unlimited bikes, unlimited AI diagnostic scans and other AI features, unlimited receipt scans, unlimited GPX exports, and offline trip maps. Every core feature needed to maintain and manage your motorcycle is on the free tier."
       },
       {
         "question": "How does AI diagnostics work?",
-        "answer": "MotoVault AI diagnostics is powered by Claude AI vision model from Anthropic, one of the most advanced multimodal AI systems available. To use it, open the diagnostic camera within the app, frame the part, warning light, or area of concern, and tap the shutter button. The vision model identifies what it is looking at, cross-references known failure modes for your specific motorcycle make and model, and returns a structured diagnosis including probable cause, severity rating, and a recommended next step. Most results appear in under five seconds. The system provides a confidence rating of low, medium, or high for each assessment. AI diagnostics is designed to help you understand potential issues and decide urgency, not to replace a qualified motorcycle mechanic for complex repairs."
+        "answer": "MotoVault reads the photo with a vision model. Open the diagnostic camera in the app, frame the part, warning light or area of concern, and tap the shutter. The model names what it sees, lists the likely causes for your bike's make and model, and returns a diagnosis with a severity estimate and a recommended next step. Each result carries a confidence level of low, medium or high; treat it as a first opinion and confirm anything safety-critical with a mechanic. The full answer is saved to the bike's history."
       },
       {
         "question": "What motorcycles does MotoVault support?",
-        "answer": "MotoVault supports every major motorcycle make and model manufactured in the last 30 years, totaling over 12,000 distinct models in the database. Model specifications including engine displacement, service intervals, and recommended fluids load automatically when you add a bike to your garage. Coverage spans all major manufacturers including Honda, Yamaha, Kawasaki, Suzuki, BMW, Ducati, KTM, Harley-Davidson, Triumph, Royal Enfield, Aprilia, and Indian. The model catalog is sourced from the NHTSA Vehicle Product Information Catalog, which is the United States federal government authoritative database for vehicle identification. If your specific model is not listed, you can add any custom motorcycle manually with your own service intervals. Source: NHTSA Vehicle Product Information Catalog, maintained by the National Highway Traffic Safety Administration."
+        "answer": "MotoVault's catalogue covers every major motorcycle make and model from the last 30 years, 12,000+ models in all, sourced from the NHTSA Vehicle Product Information Catalog, the United States federal database for vehicle identification. Coverage spans Honda, Yamaha, Kawasaki, Suzuki, BMW, Ducati, KTM, Harley-Davidson, Triumph, Royal Enfield, Aprilia and Indian. Pick the make, model and year; then set each service interval once and the app counts down from your odometer. If your model is not listed, add it manually with your own intervals. Source: NHTSA Vehicle Product Information Catalog, maintained by the National Highway Traffic Safety Administration."
       },
       {
         "question": "Is my data safe?",
-        "answer": "MotoVault takes data security seriously with enterprise-grade protections applied to every rider account. All data including ride GPS traces, maintenance records, expense logs, and diagnostic images is encrypted in transit using TLS 1.3 and encrypted at rest using AES-256 on EU-hosted infrastructure. The platform is fully GDPR-compliant, meaning European riders have complete data portability and right-to-erasure protections. You can export your entire history as structured data or delete everything permanently with a single tap in settings. MotoVault never sells rider data to third parties, never shares location history with advertisers, and never uses your diagnostic photos for purposes other than generating your result. Row-level security ensures each rider can only access their own records, even at the database layer."
+        "answer": "Your records — ride GPS traces, maintenance entries, expenses and diagnostic photos — are stored on EU servers (Supabase), encrypted in transit and at rest, and deleted on request. Row-level security means each rider can read only their own records, down to the database layer. MotoVault does not sell rider data, does not share location history with advertisers, and uses diagnostic photos only to generate your result. You can delete your account and everything in it from the app. Details: /privacy."
       },
       {
         "question": "How does trip planning work?",
-        "answer": "MotoVault trip planning lets you build multi-day motorcycle routes with typed waypoints that riders actually need: fuel stops, scenic overlooks, border crossings, ferry terminals, restaurants, and overnight accommodations. Each waypoint type displays its own icon on the map for quick visual scanning. The planner includes elevation profiles so you can anticipate mountain passes and plan for altitude changes that affect engine performance. Routes can be rearranged with drag-and-drop, and the system calculates estimated fuel stops based on your specific bike tank capacity. Once finalized, any route exports as a standard GPX file for offline use on Garmin, TomTom, or any compatible GPS unit. Trip planning and saved routes are unlimited on the free tier; MotoVault Pro adds unlimited GPX route exports and unlimited AI trip-assistant questions."
+        "answer": "MotoVault trip planning builds multi-day motorcycle routes on a live map with real road routing. Waypoints are typed — fuel, food, overnight, scenic, photo, mechanical, ferry, pass summit, rally point and stop — and each type has its own icon on the map. Invite the riders who are coming, and when the plan is final export it as a standard GPX file for a Garmin, TomTom or any unit that reads GPX. Trip planning and saved routes are unlimited on the free tier; MotoVault Pro adds unlimited GPX exports and unlimited AI trip-assistant questions."
       },
       {
         "question": "Can I use MotoVault offline?",
@@ -332,11 +333,11 @@
       },
       {
         "question": "How is MotoVault different from REVER or Calimoto?",
-        "answer": "REVER and Calimoto are excellent navigation-focused apps, but they each solve only one piece of the motorcycle ownership puzzle. MotoVault is an all-in-one platform that combines trip planning, maintenance tracking, expense management, and AI-powered diagnostics into a single app with a unified garage. Instead of switching between Calimoto for routes, a spreadsheet for expenses, a notes app for service history, and Google for diagnosing warning lights, MotoVault handles all four in one place. This means your fuel expense data informs your trip planner range estimates, your maintenance history feeds into diagnostic context, and your ride recordings automatically update odometer readings for service reminders. The integrated approach eliminates duplicate data entry and gives you a complete picture of each motorcycle you own."
+        "answer": "REVER and Calimoto plan and navigate routes. MotoVault keeps the bike's records — rides, service history, costs — and plans multi-day trips; it does not navigate. Recorded rides move the odometer, so service reminders count down on their own, and every expense sits against the bike it belongs to. If you want turn-by-turn directions, export the GPX and copy it into your planner."
       },
       {
         "question": "What maintenance reminders does MotoVault send?",
-        "answer": "MotoVault sends smart maintenance reminders based on either mileage or time elapsed, whichever threshold you reach first. Standard service categories include oil and filter changes, chain cleaning and adjustment, tire inspection and replacement, brake pad wear, coolant flush, valve clearance checks, air filter replacement, and spark plug service. Each reminder adapts to your specific motorcycle service schedule rather than using generic intervals, because a sportbike at track days needs oil changes far more frequently than a touring bike on highways. When you add a bike with a supported model, recommended intervals pre-populate from manufacturer specifications. You can customize any interval, add custom service categories unique to your bike, and snooze reminders when a service has already been scheduled with your mechanic."
+        "answer": "MotoVault sends maintenance reminders by distance or by time, whichever comes first. Typical jobs: oil and filter, chain cleaning and adjustment, tyre inspection and replacement, brake pads, coolant, valve clearance, air filter and spark plugs. Set each interval once for your bike and the app counts down from the odometer; recorded rides move the odometer, so the countdown moves with them. Add jobs unique to your bike and change any interval at any time."
       },
       {
         "question": "Can I track expenses for multiple bikes?",
@@ -352,7 +353,7 @@
       },
       {
         "question": "What countries are motorcycle routes available in?",
-        "answer": "MotoVault routes are available across more than 40 countries worldwide, with the strongest coverage in the United States, Germany, Austria, Switzerland, Italy, France, Spain, and Norway. These countries have the most complete road data including surface type indicators, elevation accuracy, and curvature ratings that help identify the most enjoyable riding roads. Coverage also extends across the United Kingdom, Portugal, Greece, Croatia, the Czech Republic, Canada, Mexico, Argentina, Brazil, Colombia, Australia, New Zealand, Japan, and Thailand. Community-contributed routes are growing daily as riders share their favorite roads and touring itineraries through the app. Route coverage depends on OpenStreetMap road data quality for each region, which means well-mapped European and North American roads have the richest metadata for motorcycle-specific routing."
+        "answer": "Routes on /explore are grouped by country and region; each one shows distance, climb, riding time and surface, and opens on a map. Coverage follows the curated routes published so far, strongest in Europe and North America, and grows as new regions are added."
       },
       {
         "question": "How accurate is the AI diagnostic feature?",
@@ -363,7 +364,7 @@
     "titleLead": "Questions,",
     "titleAccent": "answered.",
     "introLead": "Everything you'd ask in the first five minutes. If we missed yours,",
-    "introLink": "write to us",
+    "introLink": "write to support@motovault.app",
     "introTrailing": "."
   },
   "Footer": {
@@ -382,14 +383,14 @@
     "accountDeletion": "Account Deletion",
     "builtWithAi": "Powered by AI",
     "about": "About",
-    "brandText": "The rider's companion. Plan, track, maintain and diagnose — all in one free app, made by riders.",
-    "appStore": "App Store",
-    "googlePlay": "Google Play",
+    "brandText": "The rider's logbook: rides, service history and real costs for every bike in your garage. Free, built by a rider.",
+    "appStore": "Download for iOS",
+    "googlePlay": "Download for Android",
     "resources": "Resources",
     "legal": "Legal",
     "riders": "Riders",
     "contact": "Contact",
-    "bottomBar": "© 2026 Kan Consult s.r.o. · MotoVault is a product of Kan Consult s.r.o. · Made for riders, by riders.",
+    "bottomBar": "© 2026 Kan Consult s.r.o. · MotoVault is a product of Kan Consult s.r.o. · Built by a rider.",
     "operatorLine": "Kan Consult s.r.o., Štefana Hozu 1577/21, 053 11 Smižany, Slovakia · IČO 57 860 157",
     "linkGuides": "Guides",
     "linkTripPlanning": "Trip planning",
@@ -404,7 +405,7 @@
     "heroTitle": "About MotoVault",
     "heroSubtitle": "The rider's logbook: rides, real costs, service history and the garage. Built by one rider in Slovakia.",
     "founderName": "Andrej",
-    "founderRole": "Founder & Developer",
+    "founderRole": "Founder and developer",
     "founderBio": "A rider and software developer from Slovakia, Andrej builds MotoVault as the logbook he wanted for his own bikes: the rides, what each bike costs and when the next service is due, in one place.",
     "missionTitle": "What MotoVault is for",
     "missionDescription": "Service history gets lost between forums, receipts and a shop manual nobody opens. MotoVault keeps the records in one place: every ride, every expense and every service, with the next one due in plain sight.",
@@ -516,29 +517,29 @@
   },
   "Support": {
     "title": "Help and support",
-    "subtitle": "We're here to help you get the most out of MotoVault.",
+    "subtitle": "Questions and bugs go to support@motovault.app.",
     "contactTitle": "Contact us",
-    "contactDescription": "Have a question or need help? Our support team is ready to assist you.",
+    "contactDescription": "MotoVault is built by one rider; you write to him directly.",
     "emailLabel": "Email",
     "responseTimeLabel": "Response time",
     "responseTime": "Within 24 hours on business days",
     "faqTitle": "Frequently asked questions",
     "faq1Question": "How do I add a motorcycle to my garage?",
-    "faq1Answer": "Go to the Garage tab, tap the + button, and search for your motorcycle by make, model, and year. Your bike's specs are loaded automatically from official databases.",
+    "faq1Answer": "Go to the Garage tab, tap +, and pick the make, model and year. Set each service interval once and the app counts down from your odometer.",
     "faq2Question": "How does AI diagnostics work?",
     "faq2Answer": "Take a photo of any part of your motorcycle or describe your symptoms. Our AI analyzes the image and provides a diagnostic assessment with severity ratings and recommended actions.",
     "faq3Question": "Is MotoVault free?",
-    "faq3Answer": "Yes! MotoVault offers a free tier with basic learning content, one bike in your garage, and limited AI diagnostics. Maintenance and expense logging, ride recording and trip planning are free for everyone. MotoVault Pro adds unlimited bikes, unlimited AI diagnostics and receipt scans, GPX export and offline trip maps.",
+    "faq3Answer": "Yes. The free plan covers one bike in your garage, the learning content and a limited number of AI diagnoses. Maintenance and expense logging, ride recording and trip planning are free for everyone. MotoVault Pro adds unlimited bikes, unlimited AI diagnostics and receipt scans, GPX export and offline trip maps.",
     "faq4Question": "How do I cancel my subscription?",
     "faq4Answer": "MotoVault Pro subscriptions are managed through the App Store (iOS) or Google Play (Android). Go to your device's subscription settings to cancel or manage your plan.",
     "faq5Question": "Can I delete my account?",
-    "faq5Answer": "Yes. You can delete your account from Settings > Privacy & Data > Delete My Account within the app, or visit our Account Deletion page for more details.",
+    "faq5Answer": "Yes. In the app, go to Settings › Privacy › Delete account, or read the account deletion page for the details.",
     "faq6Question": "What motorcycles are supported?",
-    "faq6Answer": "MotoVault supports all motorcycle makes and models using official NHTSA vehicle data, covering thousands of makes and models across all years.",
+    "faq6Answer": "MotoVault uses the official NHTSA vehicle database: 12,000+ models across every make and model year.",
     "bugReportTitle": "Report a bug",
-    "bugReportDescription": "Found something that doesn't work right? Email us at support@motovault.app with a description of the issue, your device model, and app version. Screenshots are helpful!",
+    "bugReportDescription": "Found something that doesn't work? Email support@motovault.app with what happened, your device model and the app version. Screenshots help.",
     "featureRequestTitle": "Feature requests",
-    "featureRequestDescription": "Have an idea for MotoVault? We'd love to hear it! Send your suggestions to support@motovault.app and our team will review them."
+    "featureRequestDescription": "Have an idea for MotoVault? Send it to support@motovault.app. Every message is read."
   },
   "AccountDeletion": {
     "title": "Account deletion",
@@ -546,14 +547,14 @@
     "howToDeleteTitle": "How to delete your account",
     "howToDeleteIntro": "You can delete your MotoVault account directly from the app:",
     "step1": "Open MotoVault and go to your Profile tab.",
-    "step2": "Navigate to Settings > Privacy & Data.",
-    "step3": "Tap \"Delete My Account\".",
+    "step2": "Go to Settings › Privacy.",
+    "step3": "Tap \"Delete account\".",
     "step4": "Confirm the deletion. This action is permanent and cannot be undone.",
     "whatDeletedTitle": "What gets deleted",
     "whatDeletedDescription": "When you delete your account, the following data is permanently removed:",
     "deletedItem1": "Your email address and profile information",
     "deletedItem2": "All motorcycles in your garage and their maintenance history",
-    "deletedItem3": "Your learning progress, quiz scores, and earned badges",
+    "deletedItem3": "Your learning progress and quiz scores",
     "deletedItem4": "AI diagnostic history and uploaded photos",
     "deletedItem5": "All preferences and settings",
     "retentionTitle": "Data retention after deletion",
@@ -567,12 +568,12 @@
     "label": "Page not found",
     "code": "404",
     "message": "Wrong turn. This road doesn't exist.",
-    "backHome": "Ride back home"
+    "backHome": "Back to the home page"
   },
   "Error": {
     "label": "Error",
-    "title": "Something went wrong",
-    "message": "An unexpected error occurred. Please try again.",
+    "title": "This page didn't load.",
+    "message": "Try again. If it keeps failing, write to support@motovault.app.",
     "retry": "Try again"
   },
   "LanguageSwitcher": {
@@ -593,19 +594,19 @@
   "Blog": {
     "title": "Motorcycle maintenance blog",
     "description": "Maintenance guides, cost breakdowns and riding know-how, written for owners who keep their own records.",
-    "readMore": "Read more",
+    "readMore": "Read the article",
     "readingTime": "min read",
     "publishedOn": "Published on",
     "backToBlog": "Back to all articles",
     "by": "By",
     "relatedArticles": "Related articles",
-    "ctaDownloadFree": "Download free",
-    "ctaMaintenanceHeadline": "Stop looking this up — MotoVault tracks your {model} service intervals automatically and reminds you before each one.",
+    "ctaDownloadFree": "Get the app",
+    "ctaMaintenanceHeadline": "Keep the {model} service history in one place and get reminded before the next job.",
     "ctaCostHeadline": "Log every {model} expense and see your true cost per year.",
     "ctaGuideHeadline": "Keep a service history for your {model} so the next warning light makes sense.",
     "ctaModelFallback": "motorcycle",
     "relatedResourcesTitle": "Keep going",
-    "relatedFeatureMaintenance": "Maintenance tracking & reminders",
+    "relatedFeatureMaintenance": "Maintenance tracking",
     "relatedFeatureExpenses": "Motorcycle expense tracker",
     "relatedToolChecklist": "Free pre-ride TCLOCS checklist",
     "relatedToolCost": "Motorcycle cost calculator",
@@ -614,13 +615,13 @@
   },
   "JsonLd": {
     "organizationName": "MotoVault",
-    "organizationDescription": "AI-powered motorcycle learning & diagnostics platform"
+    "organizationDescription": "The rider's logbook: rides, service history and costs for every bike in the garage."
   },
   "FeaturesDiagnostics": {
-    "title": "AI Motorcycle Diagnostics — Free Photo Scanner",
-    "description": "Point your camera at any motorcycle problem. Get an instant AI diagnosis with severity rating and fix steps. Free for all 18,000+ bike models.",
+    "title": "AI motorcycle diagnostics from a photo",
+    "description": "Photograph a motorcycle problem and get a first opinion: the likely cause, its severity, a confidence level and the next step. Free for 12,000+ models.",
     "heroTitle": "A diagnosis from a photo",
-    "heroSubtitle": "MotoVault's AI diagnostics identifies motorcycle problems from a single photo — no OBD hardware required. Point your camera at any part, warning light, or symptom, and the AI names the likely issue, rates its severity, and suggests fixes in seconds.",
+    "heroSubtitle": "MotoVault's AI diagnostics names motorcycle problems from a single photo — no OBD hardware required. Point your camera at a part, a warning light or a symptom; the app names the likely issue, rates its severity, states its confidence and suggests the next step.",
     "howItWorksTitle": "How a diagnosis works",
     "step1Label": "Bike",
     "step1Title": "Select your motorcycle",
@@ -656,7 +657,7 @@
       },
       {
         "question": "Is AI motorcycle diagnostics accurate?",
-        "answer": "MotoVault's AI provides highly accurate initial assessments based on visual analysis and cross-referencing thousands of known issues. Each diagnosis comes with a confidence score indicating the AI's certainty level. For critical safety issues like brake failure or structural damage, we always recommend confirming with a qualified mechanic. Think of MotoVault as a knowledgeable riding companion that helps you understand problems — not a replacement for professional service when it matters most."
+        "answer": "Every result carries a confidence level. Treat it as a first opinion: it tells you what the problem most likely is and what to check next. Confirm anything safety-critical — brakes, steering, structural damage — with a mechanic before you ride."
       },
       {
         "question": "Do I need special equipment for AI diagnostics?",
@@ -670,11 +671,11 @@
     "longFormTitle": "How AI motorcycle diagnostics works",
     "longFormIntro": "Motorcycle diagnostics has traditionally been the domain of experienced mechanics with specialized tools. MotoVault changes that by putting AI-powered diagnostic capabilities directly in your pocket. Whether you are a seasoned rider who has been wrenching for decades or a new rider who just bought their first bike, MotoVault's AI diagnostics helps you understand what is happening with your motorcycle — quickly, accurately, and without expensive equipment.",
     "longFormHowTitle": "From photo to diagnosis",
-    "longFormHow": "The process is straightforward. Open MotoVault, point your camera at the part or issue you want analyzed, and snap a photo. You can also describe symptoms you have noticed — unusual sounds, vibrations, or changes in performance. Our AI engine processes the image using advanced computer vision, identifying components, detecting wear patterns, and cross-referencing known issues for your specific motorcycle make, model, and year. Within seconds, you receive a detailed diagnosis that includes what the issue is, how severe it is on a scale from minor to critical, recommended next steps, and estimated repair costs. The AI draws from a vast database of motorcycle-specific knowledge covering over 18,000 bike models.",
+    "longFormHow": "The process is straightforward. Open MotoVault, point your camera at the part or issue you want analysed, and take a photo. You can also describe symptoms you have noticed — unusual sounds, vibrations or changes in performance. A vision model reads the image, identifies components and wear patterns, and reasons about them for your specific make, model and year. You get back a diagnosis that names the issue, rates its severity from minor to critical, states a confidence level and recommends the next step. The bike catalogue covers 12,000+ models.",
     "longFormExamplesTitle": "Real-world diagnostic examples",
     "longFormExamples": "Riders use MotoVault diagnostics in countless real-world scenarios. A rider notices a puddle under their parked bike — they snap a photo and MotoVault identifies it as a coolant leak from the water pump seal, rated as moderate severity with a recommendation to replace the seal before the next long ride. Another rider sees a dashboard warning light they do not recognize — a quick photo identifies it as a lean fuel mixture indicator, likely caused by a dirty air filter. A new rider inspecting their used purchase photographs the chain — MotoVault detects excessive stretch and worn sprocket teeth, recommending a full chain and sprocket replacement. These are the kinds of everyday situations where having an AI mechanic in your pocket saves time, money, and prevents breakdowns.",
     "longFormComparisonTitle": "AI diagnostics vs. traditional tools",
-    "longFormComparison": "Traditional motorcycle diagnostics relies on OBD2 scanners (limited to newer bikes with compatible ports), multimeters for electrical testing, and the trained eye of an experienced mechanic. MotoVault does not replace these tools entirely — instead, it complements them by providing an accessible first line of diagnosis. Where an OBD scanner reads stored error codes, MotoVault visually identifies problems that have no error code: worn brake pads, corroded terminals, leaking fork seals, or a chain that needs adjustment. Where a mechanic uses years of experience to spot issues, MotoVault uses AI trained on thousands of motorcycle problems to give you a similar level of insight. The result is faster, more informed decisions about your motorcycle's health — whether you fix it yourself or take it to a shop with a clear understanding of the problem.",
+    "longFormComparison": "Traditional motorcycle diagnostics relies on OBD2 scanners (limited to newer bikes with compatible ports), multimeters for electrical testing, and the trained eye of an experienced mechanic. MotoVault does not replace these tools — it gives you an accessible first opinion. Where an OBD scanner reads stored error codes, MotoVault sees problems that have no error code: worn brake pads, corroded terminals, leaking fork seals, or a chain that needs adjustment. Each result carries a confidence level, so you know how much weight to give it. The result is a more informed decision about your motorcycle — whether you fix it yourself or take it to a shop with a clear description of the problem.",
     "statsSourceNote": "Stats per MotoVault internal telemetry, 2026-Q1. Updated quarterly.",
     "heroMeta": "Feature · 02 · Powered by AI",
     "heroHeading1": "Point. Tap.",
@@ -690,7 +691,7 @@
     "howTitle": "From photo to fix in",
     "howTitleSerif": "under five seconds.",
     "step1Title2": "Frame the issue.",
-    "step1Body": "Open the MotoVault camera and point at a warning light, a leak, an odd noise’s source, or a part you don’t recognize. No special framing — the model is robust to lighting and angle.",
+    "step1Body": "Open the MotoVault camera and point at a warning light, a leak, the source of an odd noise, or a part you don't recognise. No special framing — any angle works.",
     "step1KvLabel": "Camera",
     "step1KvValue": "Built-in · on-device",
     "step2Title2": "Model analyzes.",
@@ -757,7 +758,7 @@
     "nextFeature2Serif": "paths.",
     "nextFeature2Sub": "Novice to expert.",
     "faqLabel": "Got Questions?",
-    "faqTitle": "Frequently asked questions",
+    "faqTitle": "Questions, answered",
     "faqSupportLabel": "Have more questions?",
     "faqSupportLink": "Visit our support page",
     "showcaseAlt": "MotoVault AI diagnostic result showing chain tension analysis",
@@ -783,10 +784,10 @@
     "breadcrumbFeatures": "Features"
   },
   "FeaturesLearning": {
-    "title": "Motorcycle Learning Paths & Quizzes",
+    "title": "Motorcycle learning paths and quizzes",
     "description": "Master motorcycle maintenance with structured courses, interactive quizzes, and progress tracking. From basics to advanced.",
     "heroTitle": "Learn how your bike works",
-    "heroSubtitle": "Structured courses, interactive quizzes, and hands-on challenges — from beginner to expert.",
+    "heroSubtitle": "Four modules and articles written for your bike, with a quiz per module.",
     "coursesTitle": "Four modules, plus articles written for your bike",
     "course1Title": "Engine internals",
     "course1Desc": "Understand how your engine works, from combustion basics to valve timing and common failure points.",
@@ -797,15 +798,15 @@
     "course4Title": "Routine maintenance",
     "course4Desc": "Oil changes, chain care, brake inspection, tire pressure — everything for regular upkeep.",
     "quizTitle": "Test what you learned",
-    "quizDesc": "Interactive quizzes after every lesson. Track your scores, earn badges, and build real expertise.",
+    "quizDesc": "A quiz at the end of every module. Your results are kept with the module.",
     "faq": [
       {
         "question": "What topics are covered in the learning paths?",
-        "answer": "MotoVault's learning paths cover a comprehensive range of motorcycle maintenance topics including oil changes and fluid management, brake pad inspection and replacement, chain cleaning, lubrication, and adjustment, tire care and pressure monitoring, electrical system basics and battery maintenance, seasonal preparation and storage, suspension setup and tuning, and engine fundamentals. New courses are added regularly based on rider feedback and emerging topics."
+        "answer": "MotoVault's learning paths cover a wide range of motorcycle maintenance topics including oil changes and fluid management, brake pad inspection and replacement, chain cleaning, lubrication and adjustment, tire care and pressure monitoring, electrical system basics and battery maintenance, seasonal preparation and storage, suspension setup and tuning, and engine fundamentals. New articles are added based on rider feedback."
       },
       {
         "question": "Is this suitable for beginners with no mechanical experience?",
-        "answer": "Absolutely. MotoVault's learning paths are designed with a structured progression that starts with the fundamentals. You do not need any prior mechanical experience. Each course begins with basic concepts — what the parts are, why they matter, and how they work — before progressing to hands-on maintenance tasks. Visual guides, step-by-step instructions, and AI-powered explanations ensure you always understand the 'why' behind each procedure."
+        "answer": "Yes. MotoVault's learning paths start with the fundamentals and you do not need any prior mechanical experience. Each module begins with the basic concepts — what the parts are, why they matter and how they work — before moving on to the maintenance tasks themselves, with step-by-step instructions and an explanation of the why behind each procedure."
       },
       {
         "question": "How long does each lesson take?",
@@ -813,11 +814,11 @@
       },
       {
         "question": "Are there practical exercises included?",
-        "answer": "Yes. Many lessons include guided hands-on tasks that walk you through real maintenance procedures on your own motorcycle. These practical exercises include step-by-step photo guides, safety checklists, tool lists, and expected outcomes so you know exactly what to do and what to look for. Completing practical exercises earns bonus progress points and achievement badges."
+        "answer": "Not as separate exercises. The articles describe each procedure on your own motorcycle — the steps, the tools and what to look for — and each module ends with a quiz on what you have read."
       },
       {
         "question": "Can I track my learning progress?",
-        "answer": "Yes. MotoVault includes a full progress tracking system with skill trees that visualize your learning journey, completion percentages for each course and module, quiz scores and performance history, achievement badges for milestones, and learning streaks to keep you motivated. You can see exactly where you stand and what topics to focus on next."
+        "answer": "Yes. Each module shows what you have read and what is next, and your quiz results are kept with it, so you can see where you stand and which topic to open next."
       }
     ],
     "longFormTitle": "Structured motorcycle learning, from beginner to expert",
@@ -825,7 +826,7 @@
     "longFormCurriculumTitle": "Curriculum overview",
     "longFormCurriculum": "The MotoVault curriculum is organized into progressive learning modules. Routine Maintenance covers the essentials every rider should know: oil and filter changes, chain cleaning and adjustment, brake pad inspection, coolant checks, and tire pressure monitoring. Engine Internals goes deeper into how your motorcycle's powerplant works — combustion cycles, valve timing, cooling systems, and how to recognize early signs of engine trouble. Electrical Systems demystifies batteries, charging systems, fuses, starter motors, and basic wiring — the area where most riders feel least confident. Suspension Tuning teaches you to set up preload, rebound, and compression for your weight and riding style, transforming how your bike handles. Each module builds on previous knowledge, creating a connected learning experience rather than isolated tips.",
     "longFormProgressionTitle": "Skill progression",
-    "longFormProgression": "MotoVault uses a skill tree system that maps your learning journey visually. As you complete lessons, pass quizzes, and finish hands-on exercises, you unlock new branches of knowledge. The system identifies your strengths and suggests areas where you can improve. Beginners start with foundational knowledge — understanding what each part of their motorcycle does and why maintenance matters. Intermediate learners tackle hands-on procedures with guided step-by-step instructions. Advanced content covers diagnostics, tuning, and the kind of knowledge that saves you from expensive shop visits. This progression ensures you are never thrown into content that is too advanced, and you are never bored reviewing material you have already mastered.",
+    "longFormProgression": "The modules run in order, from fundamentals to the jobs that save a shop visit. Each module shows what you have read and what is next, and ends with a quiz on its content. Beginners start with foundational knowledge — understanding what each part of their motorcycle does and why maintenance matters. Intermediate readers tackle procedures with step-by-step instructions. Advanced content covers diagnostics and tuning. The order means you are never thrown into content that is too advanced, and never asked to re-read material you already know.",
     "longFormLessonTitle": "Lesson format",
     "longFormLesson": "Each lesson follows a proven format designed for retention and practical application. Lessons begin with a clear learning objective — what you will understand or be able to do after completing it. Visual explanations with diagrams and annotated photos make complex systems easy to understand. Key concepts are highlighted and reinforced through interactive quizzes that test comprehension in real time. Many lessons conclude with a practical exercise: a guided, step-by-step task you perform on your own motorcycle, complete with safety reminders and tool requirements. This combination of theory and practice means you do not just memorize facts — you build real skills you can use in your garage. The AI adapts explanations to your specific bike when possible, making the content directly relevant to the motorcycle you ride.",
     "heroMeta": "Feature · 04",
@@ -936,7 +937,7 @@
     "nextFeature2Serif": "diagnostics.",
     "nextFeature2Sub": "Point. Tap. Answered.",
     "faqLabel": "Got Questions?",
-    "faqTitle": "Frequently asked questions",
+    "faqTitle": "Questions, answered",
     "breadcrumbTitle": "Learning paths",
     "curriculumTitle": "A module, one article at a time",
     "curriculumBody": "Each module is a short sequence of articles, with a quiz at the end. Progress is kept per account, so a module read on the phone in the garage picks up where it left off.",
@@ -963,13 +964,13 @@
     "breadcrumbFeatures": "Features"
   },
   "FeaturesGarage": {
-    "title": "Motorcycle Garage Management — Track Every Bike",
-    "description": "Track multiple bikes, log maintenance, set service reminders. Supports 18,000+ models via NHTSA database.",
+    "title": "Motorcycle garage app: track every bike",
+    "description": "Track every bike you own, log service and set reminders by distance or date. 12,000+ models from the NHTSA catalogue. Free on iOS and Android.",
     "heroTitle": "Every bike, one garage",
     "heroSubtitle": "Track every bike you own. Log maintenance, set reminders, and keep a complete service history.",
     "multiBikeTitle": "Every bike you own",
     "multiBikeDesc": "Add unlimited motorcycles to your digital garage. Each bike gets its own maintenance timeline and service history.",
-    "nhtsaTitle": "18,000+ models to pick from",
+    "nhtsaTitle": "12,000+ models to pick from",
     "nhtsaDesc": "Search by make, model, and year. Our database uses official NHTSA vehicle data covering every major manufacturer.",
     "historyTitle": "A complete service history",
     "historyDesc": "Log every oil change, tire swap, and service visit. Never forget when you last maintained a critical component.",
@@ -1026,7 +1027,7 @@
     "pillar6KvLabel": "Export",
     "pillar6KvValue": "PDF",
     "maintLabel": "Maintenance timeline",
-    "maintTitle": "Never be surprised by a service again",
+    "maintTitle": "Service history with what is due next",
     "maintTitleSerif": "a service again.",
     "maintSubtitle": "A live timeline of what’s done, what’s due and what’s coming — per bike, in one view.",
     "maint1Label": "Oil change",
@@ -1098,7 +1099,7 @@
     "nextFeature2Serif": "planning.",
     "nextFeature2Sub": "Multi-day routes.",
     "faqLabel": "Support",
-    "faqTitle": "Frequently asked questions",
+    "faqTitle": "Questions, answered",
     "breadcrumbHome": "Home",
     "breadcrumbFeatures": "Features",
     "faq": [
@@ -1108,11 +1109,11 @@
       },
       {
         "question": "What maintenance records can I log?",
-        "answer": "MotoVault supports logging a comprehensive range of maintenance tasks including oil and filter changes, tire replacements and rotations, brake pad and fluid service, chain cleaning, lubrication, and replacement, coolant and hydraulic fluid changes, valve adjustments, spark plug replacements, battery replacements, and fully customizable tasks for any service specific to your bike. Each record includes the date, mileage, cost, notes, and optional photos."
+        "answer": "MotoVault logs a wide range of maintenance tasks including oil and filter changes, tire replacements and rotations, brake pad and fluid service, chain cleaning, lubrication and replacement, coolant and hydraulic fluid changes, valve adjustments, spark plug replacements, battery replacements, and custom tasks for any service specific to your bike. Each record includes the date, odometer reading, cost, notes and optional photos."
       },
       {
         "question": "Does MotoVault remind me about upcoming maintenance?",
-        "answer": "Yes. MotoVault includes a smart reminder system that notifies you based on either mileage intervals or time intervals — or both. For example, you can set an oil change reminder every 5,000 miles or every 6 months, whichever comes first. Reminders are customizable per bike and per task, so your sport bike and touring bike can have different schedules."
+        "answer": "Yes. Reminders go by distance, by date, or both — set an oil change every 5,000 miles or every 6 months, whichever comes first. Reminders are set per bike and per task, so your sport bike and touring bike can follow different schedules."
       },
       {
         "question": "Can I track maintenance expenses?",
@@ -1120,17 +1121,17 @@
       },
       {
         "question": "Is my garage data backed up and synced?",
-        "answer": "Yes. All your garage data is securely stored in the cloud and synced across your devices automatically. Your maintenance history, bike details, reminders, and expense records are backed up with enterprise-grade encryption. If you switch phones or reinstall the app, simply log in and everything is restored instantly."
+        "answer": "Yes. Your records are stored on EU servers (Supabase), encrypted in transit and at rest, and deleted on request; details at /privacy. Sign in on a new phone and your garage is there."
       }
     ],
     "longFormTitle": "Garage management that keeps every bike on track",
-    "longFormIntro": "Owning a motorcycle means staying on top of maintenance — and if you own more than one, keeping track of service schedules, part replacements, and expenses becomes a real challenge. MotoVault's digital garage gives you a single, organized hub for every bike you own, with complete maintenance histories, smart reminders, and expense tracking that helps you ride with confidence.",
+    "longFormIntro": "Owning a motorcycle means staying on top of maintenance — and if you own more than one, keeping track of service schedules, part replacements and expenses becomes a real job. MotoVault's garage gives you one organised place for every bike you own, with complete service histories, reminders you set by distance or date, and expense tracking.",
     "longFormMultiBikeTitle": "Multi-bike support for every rider",
-    "longFormMultiBike": "Whether you ride a single daily commuter or manage a collection of motorcycles, MotoVault's garage scales to fit your needs. Each bike in your garage is stored with its full specifications — make, model, year, VIN, and current mileage — sourced automatically from the NHTSA database covering over 18,000 motorcycle models. Every bike gets its own dedicated maintenance timeline, so you can instantly see the complete service history at a glance. Compare maintenance costs across bikes, identify which motorcycle needs attention next, and keep your entire fleet in peak condition. Riders with multiple bikes particularly appreciate having all their records in one place instead of scattered across notebooks, spreadsheets, and shoe boxes of receipts.",
+    "longFormMultiBike": "Whether you ride a single daily commuter or keep a collection, MotoVault's garage scales to fit. Each bike is stored with its specifications — make, model, year, VIN and current odometer reading — picked from the NHTSA catalogue of 12,000+ motorcycle models. Every bike gets its own service timeline, so you can see the complete history at a glance. Compare maintenance costs across bikes, see which motorcycle needs attention next, and keep every record in one place instead of scattered across notebooks, spreadsheets and shoe boxes of receipts.",
     "longFormSchedulingTitle": "Maintenance scheduling that works",
     "longFormScheduling": "MotoVault's reminder system is built around how real riders maintain their bikes. Set reminders by mileage interval, time interval, or both — and MotoVault notifies you when service is coming due. Oil changes every 5,000 miles or 6 months. Chain lubrication every 500 miles. Tire inspection every spring. Coolant flush every 2 years. Each reminder is customizable per bike, because your sportbike and your touring bike have different needs. When you complete a maintenance task, simply log it and the next reminder is automatically scheduled. No more guessing when you last changed the oil or whether the brake fluid is overdue.",
     "longFormResaleTitle": "Documentation that protects your investment",
-    "longFormResale": "A complete, documented maintenance history is one of the most valuable things you can show a potential buyer. MotoVault's garage creates a professional, verifiable record of every service performed on your motorcycle — dates, mileage, costs, parts used, and notes. When it comes time to sell, you can export a comprehensive maintenance report that demonstrates responsible ownership and justifies your asking price. Buyers pay more for bikes with documented service histories, and MotoVault makes maintaining that documentation effortless. Even if you never plan to sell, having a complete record helps you spot patterns, plan ahead for major services, and ensure nothing falls through the cracks.",
+    "longFormResale": "A complete, documented service history is one of the most valuable things you can show a buyer. MotoVault's garage keeps a verifiable record of every service performed on your motorcycle — dates, odometer readings, costs, parts used and notes. When it comes time to sell, you can share the bike's service history as a read-only web link that shows responsible ownership and supports your asking price. Even if you never plan to sell, a complete record helps you spot patterns, plan ahead for major services and make sure nothing is forgotten.",
     "breadcrumbTitle": "Garage",
     "featuresTitle": "What the garage keeps for each bike",
     "plateCaption": "Oil change due in 120 mi",
@@ -1143,11 +1144,11 @@
     "faqSupportLink": "Visit our support page"
   },
   "CostCalculator": {
-    "title": "Motorcycle Cost of Ownership Calculator",
-    "description": "Calculate the true cost of owning a motorcycle. Estimate fuel, insurance, maintenance, tires, and registration costs. Find out how much a motorcycle costs to maintain per year and per mile.",
+    "title": "Motorcycle cost of ownership calculator",
+    "description": "Estimate what a motorcycle costs per year and per mile: fuel, insurance, maintenance, tires and registration.",
     "heroTitle": "Motorcycle cost of ownership",
     "heroTitleAccent": "calculator",
-    "heroSubtitle": "Find out the true cost of owning your motorcycle. Estimate annual expenses including fuel, insurance, maintenance, and more — then see your cost per mile and 5-year projection.",
+    "heroSubtitle": "Estimate what your motorcycle costs each year: fuel, insurance, maintenance and more, then the cost per mile and a five-year total. Figures are in US dollars and miles.",
     "ridingProfile": "Your riding profile",
     "bikeType": "Bike type",
     "annualMileage": "Annual mileage",
@@ -1179,22 +1180,22 @@
     "shareResults": "Share these results — the URL updates automatically with your inputs.",
     "copyLink": "Copy link",
     "trackActualCosts": "Track your <strong>actual</strong> costs with MotoVault",
-    "getEarlyAccess": "Download free",
-    "seoTitle1": "How Much Does a Motorcycle Cost to Own?",
+    "getEarlyAccess": "Get the app",
+    "seoTitle1": "How much does a motorcycle cost to own?",
     "seoP1": "The purchase price is only the beginning. Annual motorcycle ownership costs typically range from $1,500 to $5,000+ depending on your riding habits, bike type, and maintenance preferences. Understanding these costs helps you budget effectively and avoid surprises.",
     "seoP2": "Fuel costs vary significantly by motorcycle type. Touring bikes average around 38 MPG while adventure bikes can achieve 50+ MPG. Your annual mileage is the biggest factor in fuel expenses.",
     "seoP3": "Regular maintenance is essential for safety and longevity. Basic maintenance (oil changes, chain lube) costs around $300/year, while premium care including dealer servicing can exceed $1,200 annually.",
-    "seoTitle2": "Track Your Actual Costs with MotoVault",
+    "seoTitle2": "Track your actual costs in MotoVault",
     "seoP4": "This calculator provides estimates, but real costs vary. MotoVault tracks your actual maintenance expenses, fuel fill-ups, and service history — giving you precise cost-per-mile data for every bike in your garage.",
     "perYear": "/yr",
     "mpgAvg": "mpg average"
   },
   "TclocsChecklist": {
-    "title": "TCLOCS Motorcycle Pre-Ride Checklist",
-    "description": "Interactive TCLOCS pre-ride inspection checklist for motorcycles. Check Tires, Controls, Lights, Oil, Chassis, and Stands before every ride. Print-friendly.",
+    "title": "TCLOCS motorcycle pre-ride checklist",
+    "description": "Interactive TCLOCS pre-ride inspection checklist for motorcycles: tires, controls, lights, oil, chassis and stands before every ride. Print-friendly.",
     "heroTitleAccent": "TCLOCS",
     "heroTitleRest": "pre-ride checklist",
-    "heroSubtitle": "The Motorcycle Safety Foundation recommends the TCLOCS inspection before every ride. Tap each item to check it off —",
+    "heroSubtitle": "The Motorcycle Safety Foundation recommends the TCLOCS inspection before every ride. Tap each item to check it off: tires, controls, lights, oil, chassis, stands.",
     "heroCategories": "Tires, Controls, Lights, Oil, Chassis, Stands",
     "overallProgress": "Checked",
     "items": "items",
@@ -1203,7 +1204,7 @@
     "printChecklist": "Print checklist",
     "ctaTitle": "Get pre-ride reminders on your phone",
     "ctaDesc": "MotoVault reminds you before a ride and keeps the maintenance history, so a missed check never turns into a missed service.",
-    "getEarlyAccess": "Download free",
+    "getEarlyAccess": "Get the app",
     "catTires": "Tires",
     "catControls": "Controls",
     "catLights": "Lights",
@@ -1240,9 +1241,9 @@
     "seoP1": "TCLOCS is a pre-ride inspection acronym developed by the Motorcycle Safety Foundation (MSF). It stands for Tires, Controls, Lights, Oil, Chassis, and Stands — the six critical areas to check before every motorcycle ride.",
     "seoP2": "A thorough pre-ride inspection takes about 5-10 minutes and can prevent mechanical failures, accidents, and costly breakdowns. Professional riders and safety instructors consider it an essential habit for every motorcyclist.",
     "seoP3": "This interactive checklist lets you track your inspection progress. You can also print it to keep in your garage or tank bag for quick reference.",
-    "timerTitle": "Timed check",
-    "timerStart": "Timer starts on first check",
-    "timerRunning": "Time",
+    "timerTitle": "Time taken",
+    "timerStart": "Starts with the first check",
+    "timerRunning": "Running",
     "timerComplete": "Completed in",
     "personalBest": "Personal best",
     "newRecord": "New personal best",
@@ -1251,20 +1252,20 @@
     "pdfTitle": "TCLOCS Pre-Ride Inspection",
     "pdfDate": "Date",
     "pdfStatus": "Status",
-    "pdfComplete": "PASS — All checks complete",
-    "pdfIncomplete": "INCOMPLETE — {checked}/{total} items checked",
-    "pdfFooter": "Generated by MotoVault — AI-powered motorcycle diagnostics & maintenance",
-    "pdfCta": "Download MotoVault for automated pre-ride reminders, AI diagnostics, and maintenance tracking.",
+    "pdfComplete": "Pass — all checks complete",
+    "pdfIncomplete": "Incomplete — {checked}/{total} items checked",
+    "pdfFooter": "Generated by MotoVault, the rider's logbook",
+    "pdfCta": "Keep the service history in MotoVault and get reminded before the next job.",
     "pdfWebsite": "motovault.app"
   },
   "Compare": {
-    "title": "10 Best Motorcycle Apps in 2026 — Compared & Ranked",
-    "description": "Compare the best motorcycle maintenance, ride tracking, and diagnostic apps in 2026. Feature matrix, pricing, and honest reviews to help you choose the right app.",
+    "title": "Ten motorcycle apps compared (2026)",
+    "description": "Ten motorcycle apps compared on the same jobs — expenses, maintenance, reminders, rides and route planning. Feature matrix and pricing, checked against each store listing.",
     "heroLabel": "Comparison Guide",
     "heroTitle": "Best motorcycle apps in 2026",
     "heroSubtitle": "We put ten motorcycle apps through the same jobs — expense tracking, maintenance, reminders, ride logging and route planning — and recorded what each one does.",
-    "updatedAt": "Last updated: March 2026",
-    "methodology": "Methodology: Features verified from official app stores, websites, and documentation. Pricing accurate as of March 2026.",
+    "updatedAt": "Checked {date}",
+    "methodology": "Features checked against the official app stores, websites and documentation in {date}. MotoVault Pro prices are shown in the store and on /pro.",
     "matrixTitle": "Feature matrix",
     "matrixSubtitle": "What each app covers, feature by feature. A dash means the feature is partial or limited.",
     "featureMaintenance": "Maintenance tracking",
@@ -1282,12 +1283,12 @@
     "appsSubtitle": "What each one does, what it costs and where it runs.",
     "app0": {
       "name": "MotoVault",
-      "tagline": "All-in-one: maintenance, expenses, rides, trip planning, AI diagnostics, and learning",
+      "tagline": "Rides, service and costs in one app, plus trip planning, diagnostics and learning",
       "best": "Best for: Riders who want one app for everything",
       "description": "MotoVault combines maintenance tracking, expense logging, GPS ride recording (with route maps, max speed, avg speed, elevation profiles, and interactive charts), multi-day trip planning with typed waypoints (fuel, food, hotels, passes, ferries) and rider RSVPs, AI-powered photo diagnostics, and structured learning paths in a single app.",
-      "pros": "All-in-one platform, multi-day trip planning with typed waypoints, AI diagnostics without hardware, learning content with quizzes, multi-bike support, free tier available",
+      "pros": "Maintenance, expenses, rides and multi-day trip planning with typed waypoints in one app; AI diagnostics without hardware; learning content with quizzes; multi-bike; free tier",
       "cons": "Newer app — smaller community, no bend-weighted curvy-road turn-by-turn navigation",
-      "price": "Free / Pro from $9.99/mo",
+      "price": "Free / Pro subscription",
       "platforms": "iOS, Android"
     },
     "app1": {
@@ -1344,7 +1345,7 @@
       "name": "AUTOsist",
       "tagline": "Vehicle history reports and document storage for all vehicles",
       "best": "Best for: Multi-vehicle owners who want transferable service records",
-      "description": "AUTOsist creates transferable vehicle history reports — useful when selling. It stores documents (insurance, registration), logs services, and exports to Excel. Not motorcycle-specific, but comprehensive for record-keeping.",
+      "description": "AUTOsist creates transferable vehicle history reports — useful when selling. It stores documents (insurance, registration), logs services, and exports to Excel. Not motorcycle-specific, but thorough for record-keeping.",
       "pros": "Transferable history reports, document storage, web + mobile, fleet plans available",
       "cons": "Not motorcycle-specific, no ride logging, no diagnostics, dated UI",
       "price": "Free tier / paid plans (priced per vehicle)",
@@ -1409,10 +1410,10 @@
       },
       "4": {
         "question": "Which app is best for tracking motorcycle expenses?",
-        "answer": "MotoVault and RideLog both offer comprehensive expense tracking with category breakdowns and spending analytics. MotoVault adds an expense dashboard with cost-per-mile calculations and yearly trends."
+        "answer": "MotoVault and RideLog both track expenses with category breakdowns and spending summaries. MotoVault adds an expense dashboard with cost-per-mile figures and yearly trends."
       }
     },
-    "verdictCtaTitle": "Get the all-in-one motorcycle app — free.",
+    "verdictCtaTitle": "Get MotoVault free.",
     "compareInboundLink": "See how MotoVault compares to 10 other motorcycle apps",
     "breadcrumbHome": "Home",
     "breadcrumbCompare": "Compare",
@@ -1427,7 +1428,7 @@
     "specSheetTitle": "Feature by feature",
     "finalVerdictTitle": "Final verdict",
     "relatedTitle": "Related comparisons",
-    "faqTitle": "Frequently asked questions",
+    "faqTitle": "Questions, answered",
     "comparisonsTitle": "The comparisons",
     "comparisonsSubtitle": "Each page was written after running both apps on the same rides and the same service log. Dates and versions are on the page.",
     "readComparison": "Read the comparison",
@@ -1479,21 +1480,21 @@
     }
   },
   "CompareAlternatives": {
-    "title": "Motorcycle App Alternatives — Find the Right App for Your Ride",
+    "title": "Motorcycle app alternatives: which app fits how you ride",
     "description": "Looking for alternatives to REVER, RideLog, or Calimoto? Compare top motorcycle apps for maintenance, ride tracking, and diagnostics. Find the best fit for your riding style.",
     "heroLabel": "Alternatives Guide",
     "heroTitle": "Motorcycle app alternatives",
     "heroSubtitle": "Switching from another app or starting fresh: here is how the top motorcycle apps compare and which one fits how you ride.",
-    "updatedAt": "Last updated: April 2026",
-    "testingPreamble": "Tested April 2026 on iOS 18.3 and Android 15. We spent a week running every app below on real rides — commutes, a two-day touring loop, and a garage session logging service history — then compared how each handled ownership, navigation, and diagnostics. Notes below are first-hand and dated, not paraphrased marketing copy.",
-    "pricingTableTitle": "Pricing snapshot (retrieved September 2026)",
+    "updatedAt": "Checked {date}",
+    "testingPreamble": "Features and prices checked against each app's store listing and documentation in {date}. We have not ridden with the other apps.",
+    "pricingTableTitle": "Pricing snapshot ({date})",
     "pricingHeaderApp": "App",
     "pricingHeaderFree": "Free tier",
     "pricingHeaderPaid": "Paid tier",
     "pricingHeaderNotes": "Notes",
     "pricingRow0App": "MotoVault",
     "pricingRow0Free": "All core features free",
-    "pricingRow0Paid": "Pro $9.99/mo or $59.99–$79.99/yr",
+    "pricingRow0Paid": "Pro: monthly or yearly subscription, with a lifetime option; price in the store and on /pro",
     "pricingRow0Notes": "Free tier includes maintenance, expenses, rides, trip planning, and limited AI diagnostics.",
     "pricingRow1App": "REVER",
     "pricingRow1Free": "Free with route limits",
@@ -1512,10 +1513,10 @@
     "pricingRow4Paid": "King €3.99/mo or €29.99/yr",
     "pricingRow4Notes": "Vehicle database is strong, but nothing for rides or diagnostics.",
     "bestForTitle": "Pick by priority",
-    "bestFor0Title": "Best overall companion: MotoVault",
-    "bestFor0Body": "MotoVault is our recommendation for riders who want one app to cover ownership end-to-end: maintenance reminders that know your bike’s OEM intervals, expense tracking with cost-per-mile analytics, ride recording, multi-day trip planning with typed waypoints and rider RSVPs, and AI photo diagnostics that don’t need an OBD dongle. Free on iOS and Android, Pro at $9.99/month or $59.99–$79.99/year. In our testing week it was the only app that handled a service log, a touring plan, and an unexpected coolant-leak diagnosis from a single phone without bouncing us out to another tool. If you don’t have a strong reason to pick a specialist, start here.",
+    "bestFor0Title": "If you want one app for the records: MotoVault",
+    "bestFor0Body": "MotoVault is the pick for riders who want one app to keep the records of ownership: service reminders you set once by distance or date, expense tracking with cost-per-mile figures, ride recording, multi-day trip planning with typed waypoints and rider RSVPs, and AI photo diagnostics that need no OBD dongle. Free on iOS and Android; Pro is a monthly or yearly subscription with a lifetime option, priced in the store and on /pro. If you don't have a strong reason to pick a specialist, start here.",
     "bestFor1Title": "Best for navigation: Calimoto",
-    "bestFor1Body": "Calimoto is the app to beat if turn-by-turn navigation and curvy-road discovery are your biggest priorities and you're happy to pay a premium for them. Its curvy algorithm surfaces the kind of roads you'd only otherwise find by local knowledge, the round-trip generator is genuinely useful for planning a Sunday loop, and the offline map experience held up cleanly in the dead zones we tested. Downsides: no maintenance tracking, no expenses, no diagnostics, and the weekly subscription model can catch riders off guard. Pair it with MotoVault if you want navigation without losing the garage side.",
+    "bestFor1Body": "Calimoto is the app to beat if turn-by-turn navigation and curvy-road discovery are your biggest priorities and you're happy to pay a premium for them. Its curvy algorithm surfaces the kind of roads you'd otherwise find only by local knowledge, the round-trip generator is useful for planning a Sunday loop, and its offline maps are a documented strength. Downsides: no maintenance tracking, no expenses, no diagnostics, and the weekly subscription can catch riders off guard. Pair it with MotoVault if you want navigation without losing the garage side.",
     "bestFor2Title": "Best for community and events: REVER",
     "bestFor2Body": "REVER has the biggest established motorcycle social graph and is our pick for riders whose priority is discovering public routes, joining group events, and posting rides after the fact. Butler Maps integration, friend tracking, and curated community routes make it feel like the Strava of motorcycling. REVER Pro at around $39.99 a year adds offline maps and turn-by-turn navigation. As with Calimoto, it stops at the edge of the road — there's no service log, no expense tracking, and no diagnostics — so it pairs well with an ownership-focused app rather than standing alone.",
     "bestFor3Title": "Best for passive ride logging: RideLog (iOS)",
@@ -1568,8 +1569,8 @@
       "consider": "MotoVault's AI diagnostics work without hardware — describe symptoms or snap a photo. Plus you get maintenance tracking and ride logging.",
       "keywords": "MotoScan alternative, MotoScan replacement, app like MotoScan"
     },
-    "switchTitle": "Why riders switch to MotoVault",
-    "switchSubtitle": "The most common reasons riders consolidate into one app.",
+    "switchTitle": "What one app replaces",
+    "switchSubtitle": "The jobs riders usually spread across several apps.",
     "switch0": {
       "title": "Too many apps",
       "description": "Most riders use two or three separate apps for rides, maintenance and fuel. MotoVault covers all three."
@@ -1608,12 +1609,12 @@
     "considerLabel": "Consider MotoVault"
   },
   "CompareMaintVsRide": {
-    "title": "Maintenance Apps vs Ride Tracking Apps — Do You Need Both?",
+    "title": "Maintenance apps vs ride tracking apps: do you need both?",
     "description": "Motorcycle maintenance trackers and ride logging apps serve different needs. Learn the difference, see which apps do what, and find out if one app can do both.",
     "heroLabel": "Buyer's Guide",
     "heroTitle": "Maintenance apps vs ride tracking apps",
     "heroSubtitle": "Two categories of motorcycle app, two different jobs. How they differ, and whether one app can do both.",
-    "updatedAt": "Last updated: March 2026",
+    "updatedAt": "Checked {date}",
     "maintTitle": "What maintenance apps do",
     "maintSubtitle": "Service logs, reminders, and cost tracking to keep your bike healthy.",
     "maintFeatures": {
@@ -1700,16 +1701,16 @@
     "breadcrumbLabel": "Maintenance vs ride apps"
   },
   "VsRideLog": {
-    "title": "MotoVault vs RideLog: Which Motorcycle App Is Better? (2026)",
+    "title": "MotoVault vs RideLog: which motorcycle app is better? (2026)",
     "description": "MotoVault vs RideLog — detailed comparison of features, pricing, and platforms. Both track maintenance and rides, but MotoVault adds AI diagnostics and learning. See which fits your needs.",
     "heroLabel": "Head-to-Head",
     "heroTitle": "MotoVault vs RideLog",
     "heroSubtitle": "Both apps combine maintenance tracking with ride logging. But MotoVault adds AI diagnostics, structured learning, and Android support. Here's the full breakdown.",
-    "updatedAt": "Last updated: April 2026",
+    "updatedAt": "Checked {date}",
     "disambiguationTitle": "Which RideLog are we talking about?",
     "disambiguationNote": "Multiple apps share the RideLog name on the App Store and Google Play. This comparison refers to the iOS motorcycle trip recorder that uses automatic ride detection via iPhone motion sensors (the most-searched variant as of April 2026). If you're evaluating a different app named RideLog — a car mileage tracker, a bicycle logger, or a fleet tool — the competitive dynamics below may not apply.",
-    "testingPreamble": "Tested April 2026 on iOS 18.3 and Android 15. MotoVault version 1.4.x, RideLog as of its April 2026 App Store build. We installed both apps, logged a week of real commutes plus two weekend rides, and pushed each feature until it broke. Findings reflect hands-on use, not marketing claims.",
-    "pricingTableTitle": "Pricing comparison (retrieved April 2026)",
+    "testingPreamble": "Features and prices checked against each app's store listing and documentation in {date}. We have not ridden with the other app.",
+    "pricingTableTitle": "Pricing comparison ({date})",
     "pricingHeaderPlan": "Plan",
     "pricingHeaderMv": "MotoVault",
     "pricingHeaderCompetitor": "RideLog",
@@ -1719,7 +1720,7 @@
     "pricingRow0Competitor": "Limited free tier",
     "pricingRow0Notes": "MotoVault's free tier includes maintenance, expenses, rides, and limited AI diagnostics.",
     "pricingRow1Plan": "Paid tier",
-    "pricingRow1Mv": "Pro $9.99/mo or $59.99–$79.99/yr",
+    "pricingRow1Mv": "Pro subscription, monthly or yearly, with a lifetime option; price in the store and on /pro",
     "pricingRow1Competitor": "Premium (price not publicly listed)",
     "pricingRow1Notes": "RideLog's paywall price isn't shown on marketing pages — confirm in-app before subscribing.",
     "pricingRow2Plan": "Free trial",
@@ -1794,7 +1795,7 @@
     "rlWin1": "Find My Motorcycle feature — see where you parked on a map",
     "rlWin2": "Dynamic Island and Live Activities integration on iPhone",
     "rlWin3": "Polished iOS-native experience with deep Apple ecosystem integration",
-    "pricing": "RideLog is freemium with a premium subscription (price not publicly listed). MotoVault offers a free tier with Pro at $9.99/month or $59.99–$79.99/year. Both have free options for core maintenance and ride features.",
+    "pricing": "RideLog is freemium with a premium subscription (price not publicly listed). MotoVault has a free tier; Pro is a monthly or yearly subscription, with a lifetime option, and prices are shown in the store and on /pro. Both have free options for core maintenance and ride features.",
     "verdict": "If you're an iPhone-only user who wants passive ride tracking with minimal effort, RideLog is excellent. If you want AI diagnostics, want to learn how your bike works, need Android support, or want deeper expense analytics, MotoVault is the clear choice. MotoVault covers more ground: maintenance, expenses, rides, diagnostics, and learning in one app.",
     "faq": {
       "0": {
@@ -1811,19 +1812,19 @@
       },
       "3": {
         "question": "Which app is cheaper, MotoVault or RideLog?",
-        "answer": "Both apps offer free tiers. MotoVault Pro is $9.99/month or $59.99–$79.99/year; the iOS annual plan includes a 7-day free trial. RideLog's premium pricing is not publicly listed. For the features included, MotoVault offers more since it includes AI diagnostics and learning content alongside maintenance and ride tracking."
+        "answer": "Both apps have free tiers. MotoVault Pro is a monthly or yearly subscription with a lifetime option; prices are shown in the store and on /pro, and the iOS annual plan includes a 7-day free trial. RideLog's premium pricing is not publicly listed. For the features included, MotoVault covers more, since it adds AI diagnostics and learning content alongside maintenance and ride tracking."
       }
     }
   },
   "VsRever": {
-    "title": "MotoVault vs REVER: Maintenance & Diagnostics vs Route Planning (2026)",
+    "title": "MotoVault vs REVER: records vs route planning (2026)",
     "description": "MotoVault vs REVER comparison — maintenance tracking and AI diagnostics vs route planning and community rides. Different apps for different needs. See which one you need.",
     "heroLabel": "Head-to-Head",
     "heroTitle": "MotoVault vs REVER",
     "heroSubtitle": "MotoVault helps you maintain and understand your bike. REVER helps you plan where to ride it. Different tools for different jobs — here's when to use each.",
-    "updatedAt": "Last updated: April 2026",
-    "testingPreamble": "Tested April 2026 on iOS 18.3 and Android 15. MotoVault version 1.4.x, REVER version as of its April 2026 App Store and Play Store builds. We rode two multi-day loops using REVER for navigation and MotoVault for the garage side, then swapped to see where each broke. All findings below are first-hand — we do not repeat marketing copy.",
-    "pricingTableTitle": "Pricing comparison (retrieved April 2026)",
+    "updatedAt": "Checked {date}",
+    "testingPreamble": "Features and prices checked against each app's store listing and documentation in {date}. We have not ridden with the other app.",
+    "pricingTableTitle": "Pricing comparison ({date})",
     "pricingHeaderPlan": "Plan",
     "pricingHeaderMv": "MotoVault",
     "pricingHeaderCompetitor": "REVER",
@@ -1833,7 +1834,7 @@
     "pricingRow0Competitor": "Free with route limits",
     "pricingRow0Notes": "REVER's free tier records rides and views routes; advanced planning and offline maps are Pro.",
     "pricingRow1Plan": "Paid tier",
-    "pricingRow1Mv": "Pro $9.99/mo or $59.99–$79.99/yr",
+    "pricingRow1Mv": "Pro subscription, monthly or yearly, with a lifetime option; price in the store and on /pro",
     "pricingRow1Competitor": "REVER Pro ~$39.99/yr",
     "pricingRow1Notes": "Comparable annual price, but you're paying for different things — navigation vs. ownership management.",
     "pricingRow2Plan": "Free trial",
@@ -1886,7 +1887,7 @@
     "parityRow9Competitor": "Yes",
     "parityRow9Notes": "Roughly at parity.",
     "whenToChooseCompetitorTitle": "When to choose REVER instead",
-    "whenToChooseCompetitor": "Pick REVER if route planning, curvy-road discovery, and offline turn-by-turn navigation are your single biggest needs and you don't care about maintenance tracking, expense analytics, or AI diagnostics. REVER's Butler Maps integration, rider community, and battle-tested offline caching are legitimately best-in-class for touring. We'd also point riders there if they already pair a dedicated maintenance app on the side and only want REVER for the navigation half of the story.",
+    "whenToChooseCompetitor": "Pick REVER if route planning, curvy-road discovery and offline turn-by-turn navigation are your single biggest needs and you don't care about maintenance tracking, expense figures or AI diagnostics. REVER's Butler Maps integration, rider community and offline caching are its strengths for touring. We'd also point riders there if they already keep a maintenance app on the side and only want REVER for the navigation half of the story.",
     "quickVerdict": "These apps solve different problems. MotoVault covers maintenance, expenses, multi-day trip planning, AI diagnostics, and learning. REVER specializes in curvy-road turn-by-turn navigation and community ride discovery. Many riders use both.",
     "featureMaintenance": "Maintenance Tracking",
     "featureExpenses": "Expense Tracking",
@@ -1908,7 +1909,7 @@
     "rvWin1": "Turn-by-turn navigation with offline maps (Pro) for touring and road trips",
     "rvWin2": "Real-time friend tracker — share your location with riding buddies",
     "rvWin3": "Large community of riders sharing and rating routes worldwide",
-    "pricing": "REVER is free for basic features; Pro is listed at $39.99/year and adds offline maps, Butler Maps, and navigation. MotoVault is free with Pro at $9.99/month or $59.99–$79.99/year for unlimited bikes, unlimited AI diagnostics and offline trip maps.",
+    "pricing": "REVER is free for basic features; Pro is listed at $39.99/year and adds offline maps, Butler Maps and navigation. MotoVault is free; Pro is a monthly or yearly subscription, with a lifetime option, for unlimited bikes, unlimited AI diagnostics and offline trip maps — prices are shown in the store and on /pro.",
     "verdict": "Don't choose between them — use both. REVER is the best motorcycle route planner available, but it doesn't track your maintenance, expenses, or help you diagnose issues. MotoVault handles everything off the road: maintenance, expenses, diagnostics, and learning. Together they cover the full riding experience.",
     "faq": {
       "0": {
@@ -1930,14 +1931,14 @@
     }
   },
   "VsKurviger": {
-    "title": "MotoVault vs Kurviger: All-in-One Motorcycle Companion vs Curvy-Road Navigation (2026)",
+    "title": "MotoVault vs Kurviger: logbook vs curvy-road routing (2026)",
     "description": "MotoVault vs Kurviger comparison — maintenance tracking, expenses, and AI diagnostics vs bend-weighted curvy-road routing and offline touring maps for Europe.",
     "heroLabel": "Head-to-Head",
     "heroTitle": "MotoVault vs Kurviger",
     "heroSubtitle": "MotoVault keeps your bike healthy, organised, and understood. Kurviger plots the twistiest line between two points. They barely overlap — here's when to use each.",
-    "updatedAt": "Last updated: April 2026",
-    "testingPreamble": "Tested April 2026 on iOS 18.3 and Android 15. MotoVault version 1.4.x, Kurviger version as of its April 2026 App Store and Play Store builds. We rode a three-day curvy-road loop through the Black Forest and into the northern Alps using Kurviger for navigation and MotoVault for the garage side, then swapped roles to stress-test each app outside its comfort zone. All findings below are first-hand — we do not repeat marketing copy.",
-    "pricingTableTitle": "Pricing comparison (retrieved April 2026)",
+    "updatedAt": "Checked {date}",
+    "testingPreamble": "Features and prices checked against each app's store listing and documentation in {date}. We have not ridden with the other app.",
+    "pricingTableTitle": "Pricing comparison ({date})",
     "pricingHeaderPlan": "Plan",
     "pricingHeaderMv": "MotoVault",
     "pricingHeaderCompetitor": "Kurviger",
@@ -1947,7 +1948,7 @@
     "pricingRow0Competitor": "Free with online routing",
     "pricingRow0Notes": "Kurviger's free tier plans curvy routes online; offline maps and advanced features require Pro.",
     "pricingRow1Plan": "Paid tier",
-    "pricingRow1Mv": "Pro $9.99/mo or $59.99–$79.99/yr",
+    "pricingRow1Mv": "Pro subscription, monthly or yearly, with a lifetime option; price in the store and on /pro",
     "pricingRow1Competitor": "Paid tiers from about €15/yr",
     "pricingRow1Notes": "Kurviger Pro is cheaper, but you're paying for routing only — not maintenance, expenses, or diagnostics.",
     "pricingRow2Plan": "Free trial",
@@ -2022,12 +2023,12 @@
     "rvWin1": "Offline maps (Pro) tuned for dead-zone Alpine passes and multi-country touring",
     "rvWin2": "Battle-tested across the Alps, Black Forest, and Dolomites by a highly engaged European community",
     "rvWin3": "Clean GPX export and shareable route links that play nicely with Garmin and other dedicated GPS units",
-    "pricing": "Kurviger is free for online curvy-road planning, with paid yearly tiers starting at roughly €15 a year that unlock offline maps and advanced routing — check kurviger.com for the current tiers. MotoVault is free with Pro at $9.99/month or $59.99–$79.99/year for more bikes, unlimited AI diagnostics, and offline trip maps — maintenance and expense logging are free. The two aren’t really competing on price — they’re priced for different jobs.",
+    "pricing": "Kurviger is free for online curvy-road planning, with paid yearly tiers starting at roughly €15 a year that unlock offline maps and advanced routing — check kurviger.com for the current tiers. MotoVault is free; Pro is a monthly or yearly subscription, with a lifetime option, for more bikes, unlimited AI diagnostics and offline trip maps, priced in the store and on /pro — maintenance and expense logging are free. The two aren't really competing on price — they're priced for different jobs.",
     "verdict": "Don't choose between them — use both. Kurviger is one of the best curvy-road route planners in Europe, but it doesn't track a single service interval, fuel receipt, or warning light. MotoVault covers everything off the bike: maintenance, expenses, diagnostics, and learning. Run Kurviger on the bar for the ride and MotoVault in the garage afterwards, and you've covered the whole riding experience without either app stepping on the other's toes.",
     "faq": {
       "0": {
         "question": "Can MotoVault replace Kurviger?",
-        "answer": "Not for curvy-road routing. MotoVault doesn't offer bend-weighted route planning or offline turn-by-turn navigation, which is Kurviger's entire focus. MotoVault handles everything Kurviger doesn't: maintenance tracking, expenses, AI diagnostics, and learning content. Most riders we spoke to run both apps side by side."
+        "answer": "Not for curvy-road routing. MotoVault doesn't offer bend-weighted route planning or offline turn-by-turn navigation, which is Kurviger's entire focus. MotoVault handles everything Kurviger doesn't: maintenance tracking, expenses, AI diagnostics and learning content. The two apps sit side by side without overlap."
       },
       "1": {
         "question": "Does Kurviger track motorcycle maintenance?",
@@ -2044,14 +2045,14 @@
     }
   },
   "VsEatSleepRide": {
-    "title": "MotoVault vs EatSleepRIDE: Maintenance + Diagnostics vs Community & Crash Detection (2026)",
+    "title": "MotoVault vs EatSleepRIDE: logbook vs community (2026)",
     "description": "MotoVault vs EatSleepRIDE — maintenance, expenses, and AI diagnostics compared with community feed, group rides, and CRASH Light crash detection. See which you need.",
     "heroLabel": "Head-to-Head",
     "heroTitle": "MotoVault vs EatSleepRIDE",
     "heroSubtitle": "MotoVault is built around owning and maintaining your motorcycle. EatSleepRIDE is built around the community you ride with and the safety net behind you. Different jobs — here's when each one fits.",
-    "updatedAt": "Last updated: April 2026",
-    "testingPreamble": "Tested April 2026 on iOS 18.3 and Android 15. MotoVault version 1.4.x, EatSleepRIDE as of its April 2026 App Store and Play Store builds. We ran both apps side by side for a full month of daily commuting plus one organised group ride through backroads. CRASH Light stayed armed the whole time and, fortunately, never triggered — so we note the feature exists and leave real-world reliability to riders with more unlucky data points. Everything below is first-hand, not marketing copy.",
-    "pricingTableTitle": "Pricing comparison (retrieved April 2026)",
+    "updatedAt": "Checked {date}",
+    "testingPreamble": "Features and prices checked against each app's store listing and documentation in {date}. We have not ridden with the other app.",
+    "pricingTableTitle": "Pricing comparison ({date})",
     "pricingHeaderPlan": "Plan",
     "pricingHeaderMv": "MotoVault",
     "pricingHeaderCompetitor": "EatSleepRIDE",
@@ -2061,7 +2062,7 @@
     "pricingRow0Competitor": "Free with full community access",
     "pricingRow0Notes": "EatSleepRIDE's free tier includes the social feed, ride recording, and basic CRASH Light alerts.",
     "pricingRow1Plan": "Paid tier",
-    "pricingRow1Mv": "Pro $9.99/mo or $59.99–$79.99/yr",
+    "pricingRow1Mv": "Pro subscription, monthly or yearly, with a lifetime option; price in the store and on /pro",
     "pricingRow1Competitor": "CRASHLIGHT US$49/yr",
     "pricingRow1Notes": "EatSleepRIDE Pro unlocks advanced CRASH Light settings, extra stats, and ad-free browsing.",
     "pricingRow2Plan": "Free trial",
@@ -2128,7 +2129,7 @@
     "featureReminders": "Service Reminders",
     "mvWins": "Where MotoVault wins",
     "mvWin0": "Complete maintenance tracking with service history, mileage + time reminders, and full service log per bike",
-    "mvWin1": "AI-powered diagnostics — describe symptoms or snap a photo, get probable causes and repair steps in seconds",
+    "mvWin1": "Photo diagnostics — snap a photo or describe the symptom and get the likely causes, a confidence level and the next step",
     "mvWin2": "Expense tracking with cost-per-mile analytics, category breakdowns, and yearly ownership trends",
     "mvWin3": "Structured learning paths with quizzes that teach motorcycle mechanics from basics to advanced topics",
     "rvWins": "Where EatSleepRIDE wins",
@@ -2136,7 +2137,7 @@
     "rvWin1": "Active social feed with posts, photos, and comments — the everyday rider community MotoVault doesn't try to replicate",
     "rvWin2": "Ride sharing built for the community — your rides surface naturally to friends and nearby riders",
     "rvWin3": "Group riding with RSVPs and live location sharing, ideal for organising and running real-world group rides",
-    "pricing": "EatSleepRIDE is free for the core community and ride recording, and CRASHLIGHT crash detection is an upgrade at US$49 a year. MotoVault is free with Pro at $9.99/month or $59.99–$79.99/year for more bikes, unlimited AI diagnostics, and offline trip maps — maintenance and expense logging are free. They price for different jobs — safety alerting versus ownership tracking.",
+    "pricing": "EatSleepRIDE is free for the core community and ride recording, and CRASHLIGHT crash detection is an upgrade at US$49 a year. MotoVault is free; Pro is a monthly or yearly subscription, with a lifetime option, for more bikes, unlimited AI diagnostics and offline trip maps, priced in the store and on /pro — maintenance and expense logging are free. They price for different jobs — safety alerting versus ownership tracking.",
     "verdict": "Don't frame this as a winner-takes-all. EatSleepRIDE is the strongest community and crash-detection layer we've tried, and MotoVault is the strongest ownership-management layer we know of. They're complementary, not competitive: one watches your bike, the other watches your back. If you ride often enough to care about both, running them side by side costs little and covers the whole picture.",
     "faq": {
       "0": {
@@ -2158,14 +2159,14 @@
     }
   },
   "VsScenic": {
-    "title": "MotoVault vs Scenic: Cross-Platform Maintenance Companion vs iOS-Only Route Planner (2026)",
+    "title": "MotoVault vs Scenic: logbook vs iOS route planner (2026)",
     "description": "MotoVault vs Scenic comparison — cross-platform maintenance, expenses, and AI diagnostics vs Scenic's iOS-only curvy-road planner. See which fits your ride.",
     "heroLabel": "Head-to-Head",
     "heroTitle": "MotoVault vs Scenic",
     "heroSubtitle": "Scenic is an iOS-only curvy-road planner. MotoVault runs on both iOS and Android and covers maintenance, expenses, diagnostics and learning: the half of ownership Scenic doesn't touch.",
-    "updatedAt": "Last updated: April 2026",
-    "testingPreamble": "Tested April 2026 on an iPhone 15 Pro running iOS 18.3, paired with an Apple Watch Series 9, alongside MotoVault 1.4.x on the same device and on a Pixel 8 running Android 15. We planned and rode two curvy day loops with Scenic's route engine, then tracked fuel, service, and ride logs in MotoVault. Scenic's route rendering and waypoint editing are genuinely gorgeous — but the iOS-only reality kept coming up the moment we tried to share anything with an Android-riding friend. Everything below is first-hand; we don't repeat marketing copy.",
-    "pricingTableTitle": "Pricing comparison (retrieved April 2026)",
+    "updatedAt": "Checked {date}",
+    "testingPreamble": "Features and prices checked against each app's store listing and documentation in {date}. We have not ridden with the other app.",
+    "pricingTableTitle": "Pricing comparison ({date})",
     "pricingHeaderPlan": "Plan",
     "pricingHeaderMv": "MotoVault",
     "pricingHeaderCompetitor": "Scenic",
@@ -2175,7 +2176,7 @@
     "pricingRow0Competitor": "Free app with a Premium subscription",
     "pricingRow0Notes": "Scenic is a free download; Premium unlocks the paid features.",
     "pricingRow1Plan": "Paid tier",
-    "pricingRow1Mv": "Pro $9.99/mo or $59.99–$79.99/yr",
+    "pricingRow1Mv": "Pro subscription, monthly or yearly, with a lifetime option; price in the store and on /pro",
     "pricingRow1Competitor": "Premium $4.99/mo billed annually",
     "pricingRow1Notes": "Scenic also sells monthly and quarterly plans, and the price varies by region.",
     "pricingRow2Plan": "Free trial",
@@ -2193,11 +2194,11 @@
     "parityRow0Notes": "Scenic has no Android build and none has ever been announced.",
     "parityRow1Feature": "Curvy-road route planning",
     "parityRow1Mv": "Partial — multi-day trips with typed waypoints",
-    "parityRow1Competitor": "Yes — best-in-class curvy algorithm",
+    "parityRow1Competitor": "Yes — Scenic's curvy routing is stronger",
     "parityRow1Notes": "Scenic's twisty-road routing is arguably the best we've used on any platform.",
     "parityRow2Feature": "Offline maps",
     "parityRow2Mv": "Partial",
-    "parityRow2Competitor": "Yes — robust offline map packs",
+    "parityRow2Competitor": "Yes — offline map packs",
     "parityRow2Notes": "Scenic's offline story is a core strength; MotoVault is catching up.",
     "parityRow3Feature": "Waypoint editing on the map",
     "parityRow3Mv": "Yes — typed waypoints with RSVPs",
@@ -2228,7 +2229,7 @@
     "parityRow9Competitor": "No",
     "parityRow9Notes": "Scenic is a solo planning tool rather than a social network.",
     "whenToChooseCompetitorTitle": "When to choose Scenic instead",
-    "whenToChooseCompetitor": "Pick Scenic if you’re already committed to the Apple ecosystem and route planning is the single biggest thing you want from a motorcycle app. Scenic’s curvy-road algorithm, offline map packs, waypoint editing, and Apple Watch companion are genuinely best-in-class for solo iOS riders who don’t need maintenance tracking, expense analytics, or AI diagnostics. It is also the cheaper subscription of the two if navigation is all you need, and it is the right answer if you want to support a respected indie developer.",
+    "whenToChooseCompetitor": "Pick Scenic if you're already committed to the Apple ecosystem and route planning is the single biggest thing you want from a motorcycle app. Scenic's curvy-road algorithm, offline map packs, waypoint editing and Apple Watch companion are its strengths for solo iOS riders who don't need maintenance tracking, expense figures or AI diagnostics. It is also the cheaper subscription of the two if navigation is all you need, and the right answer if you want to support a respected indie developer.",
     "quickVerdict": "These apps barely overlap. Scenic is an iOS-only route planner; MotoVault is a cross-platform ownership companion covering maintenance, expenses, diagnostics and learning. If you ride with an iPhone, the usual setup is both: Scenic for the road, MotoVault for the garage.",
     "featureMaintenance": "Maintenance Tracking",
     "featureExpenses": "Expense Tracking",
@@ -2246,11 +2247,11 @@
     "mvWin2": "AI-powered diagnostics — snap a photo or describe symptoms and get probable causes plus repair steps",
     "mvWin3": "Flexible subscription with a free tier and a 7-day trial on the iOS annual plan, so you can evaluate before paying",
     "rvWins": "Where Scenic wins",
-    "rvWin0": "Best-in-class curvy-road routing algorithm built specifically for motorcyclists who chase twisties",
-    "rvWin1": "Robust offline map packs that keep working deep in dead-zone touring territory",
+    "rvWin0": "Curvy-road routing built for riders who chase twisties",
+    "rvWin1": "Offline map packs that keep working in dead-zone touring territory",
     "rvWin2": "Polished Apple Watch companion with turn-by-turn directions on the wrist",
     "rvWin3": "Lower monthly price than most full motorcycle platforms, with a free tier to try first",
-    "pricing": "Scenic is a free download with a Premium subscription — $4.99/month billed annually, with monthly and quarterly plans also available and pricing that varies by region. MotoVault is free for core features with Pro at $9.99/month or $59.99–$79.99/year, which adds more bikes, unlimited AI diagnostics, GPX export and offline trip maps on both iOS and Android. If you only need route planning on iPhone, Scenic is the cheaper subscription.",
+    "pricing": "Scenic is a free download with a Premium subscription — $4.99/month billed annually, with monthly and quarterly plans also available and pricing that varies by region. MotoVault is free for core features; Pro is a monthly or yearly subscription, with a lifetime option, that adds more bikes, unlimited AI diagnostics, GPX export and offline trip maps on both iOS and Android — prices are shown in the store and on /pro. If you only need route planning on iPhone, Scenic is the cheaper subscription.",
     "verdict": "Honestly, these apps barely overlap — there's no real head-to-head winner. Scenic is a lovingly built indie iOS app that does route planning better than most full teams manage. MotoVault handles everything Scenic doesn't: maintenance, expenses, diagnostics, learning, and the Android half of the rider world. If you own an iPhone, just use both. If you ride Android, MotoVault is the only one of the two you can actually install — and its maintenance and diagnostics features stand on their own either way.",
     "faq": {
       "0": {
@@ -2272,14 +2273,14 @@
     }
   },
   "VsMotoScan": {
-    "title": "MotoVault vs MotoScan: AI Diagnostics (No Hardware) vs OBD Dongle Reader (2026)",
+    "title": "MotoVault vs MotoScan: photo diagnosis vs OBD reader (2026)",
     "description": "MotoVault vs MotoScan — AI-powered motorcycle diagnostics that work on any bike with no hardware vs MotoScan's dealer-level OBD dongle reader. See which you need.",
     "heroLabel": "Head-to-Head",
     "heroTitle": "MotoVault vs MotoScan",
     "heroSubtitle": "MotoVault is software-only AI diagnostics that work on any motorcycle without extra hardware. MotoScan is a hardware-based ECU reader that pairs with a dedicated OBD dongle — fundamentally different tools for different jobs.",
-    "updatedAt": "Last updated: April 2026",
-    "testingPreamble": "Tested April 2026 side-by-side on a BMW R1250GS with a MotoScan adapter plugged into the diagnostic port. We used MotoScan to pull real stored fault codes, live sensor streams, and battery health data. In parallel, we ran MotoVault's AI diagnostics to describe symptoms and snap photos of the bike. Both apps have legitimate, non-overlapping roles — one reads the ECU directly, the other reasons about the bike from outside.",
-    "pricingTableTitle": "Pricing comparison (retrieved April 2026)",
+    "updatedAt": "Checked {date}",
+    "testingPreamble": "Features and prices checked against each app's store listing and documentation in {date}. We have not ridden with the other app.",
+    "pricingTableTitle": "Pricing comparison ({date})",
     "pricingHeaderPlan": "Plan",
     "pricingHeaderMv": "MotoVault",
     "pricingHeaderCompetitor": "MotoScan",
@@ -2289,7 +2290,7 @@
     "pricingRow0Competitor": "Free Lite tier",
     "pricingRow0Notes": "MotoScan has a free Lite tier, but it does nothing without a paid OBD hardware adapter.",
     "pricingRow1Plan": "Paid tier",
-    "pricingRow1Mv": "Pro $9.99/mo or $59.99–$79.99/yr",
+    "pricingRow1Mv": "Pro subscription, monthly or yearly, with a lifetime option; price in the store and on /pro",
     "pricingRow1Competitor": "Paid app tiers + OBD adapter ~$60–$100 (one-time)",
     "pricingRow1Notes": "Most of MotoScan's cost is the dongle — a one-time hardware purchase, not a subscription.",
     "pricingRow2Plan": "Free trial",
@@ -2364,7 +2365,7 @@
     "rvWin1": "Clears and resets fault codes after a DIY repair — turns the service light off",
     "rvWin2": "Live sensor data streams: coolant temp, O2 readings, fuel pressure, RPM telemetry",
     "rvWin3": "Real-time battery voltage and charging system monitoring via the adapter",
-    "pricing": "MotoScan sells the app in tiers (a free Lite version plus paid unlocks) and needs a compatible OBD adapter that costs roughly $60–$100 — a one-time hardware purchase. MotoVault is free for core features with Pro at $9.99/month or $59.99–$79.99/year. MotoScan is a hardware commitment tied to specific bike brands, while MotoVault is software that works on any motorcycle.",
+    "pricing": "MotoScan sells the app in tiers (a free Lite version plus paid unlocks) and needs a compatible OBD adapter that costs roughly $60–$100 — a one-time hardware purchase. MotoVault is free for core features; Pro is a monthly or yearly subscription, with a lifetime option, priced in the store and on /pro. MotoScan is a hardware commitment tied to specific bike brands, while MotoVault is software that works on any motorcycle.",
     "verdict": "These are complementary tools, not competitors. MotoScan gives you genuine hardware-level ECU reads on supported BMW, KTM, Kawasaki, and Ducati bikes — nothing else does that from a consumer app. MotoVault gives you AI symptom diagnosis, maintenance tracking, expense analytics, and learning content on any motorcycle with no hardware. Serious wrenchers on supported bikes will want both: MotoScan for the bike's own voice, MotoVault for everything around it.",
     "faq": {
       "0": {
@@ -2386,14 +2387,14 @@
     }
   },
   "VsCalimoto": {
-    "title": "MotoVault vs Calimoto: AI Diagnostics vs Curvy-Road Navigation (2026)",
-    "description": "MotoVault vs Calimoto — all-in-one maintenance and diagnostics app vs dedicated curvy-road navigation. Full feature comparison, pricing, and recommendations.",
+    "title": "MotoVault vs Calimoto: logbook vs curvy navigation (2026)",
+    "description": "MotoVault vs Calimoto — the bike's records and photo diagnostics vs dedicated curvy-road navigation. Full feature comparison, pricing and recommendations.",
     "heroLabel": "Head-to-Head",
     "heroTitle": "MotoVault vs Calimoto",
-    "heroSubtitle": "MotoVault is an all-in-one motorcycle platform with AI diagnostics. Calimoto is the curvy-road navigation specialist. They don't overlap much — here's the full picture.",
-    "updatedAt": "Last updated: April 2026",
-    "testingPreamble": "Tested April 2026 on iOS 18.3 and Android 15. MotoVault version 1.4.x, Calimoto as of its April 2026 builds on both stores. We ran Calimoto for a week of Alpine day rides while logging fuel, service, and expenses in MotoVault — then forced each app to cover the other's territory to find where the seams showed. All notes are hands-on.",
-    "pricingTableTitle": "Pricing comparison (retrieved April 2026)",
+    "heroSubtitle": "MotoVault keeps the bike's records and adds photo diagnostics. Calimoto is the curvy-road navigation specialist. They barely overlap — here's the full picture.",
+    "updatedAt": "Checked {date}",
+    "testingPreamble": "Features and prices checked against each app's store listing and documentation in {date}. We have not ridden with the other app.",
+    "pricingTableTitle": "Pricing comparison ({date})",
     "pricingHeaderPlan": "Plan",
     "pricingHeaderMv": "MotoVault",
     "pricingHeaderCompetitor": "Calimoto",
@@ -2403,7 +2404,7 @@
     "pricingRow0Competitor": "Free trial region, limited afterwards",
     "pricingRow0Notes": "Calimoto's free experience is essentially an on-ramp to the paid tier.",
     "pricingRow1Plan": "Paid tier",
-    "pricingRow1Mv": "Pro $9.99/mo or $59.99–$79.99/yr",
+    "pricingRow1Mv": "Pro subscription, monthly or yearly, with a lifetime option; price in the store and on /pro",
     "pricingRow1Competitor": "Subscription — weekly or yearly, priced by region",
     "pricingRow1Notes": "Calimoto is one of the most expensive motorcycle apps, especially on the weekly plan.",
     "pricingRow2Plan": "Free trial",
@@ -2472,18 +2473,18 @@
     "mvWin0": "Complete maintenance platform — service history, reminders, expenses, and multi-bike garage",
     "mvWin1": "AI diagnostics from photos or symptom descriptions — no hardware needed",
     "mvWin2": "Learning paths with quizzes to build real mechanical knowledge",
-    "mvWin3": "Cheaper for what you get: free tier plus Pro from $9.99/mo, against a navigation-only subscription",
+    "mvWin3": "Free tier plus a Pro subscription, against a navigation-only subscription — and the free tier covers the records",
     "cmWins": "Where Calimoto wins",
     "cmWin0": "Curvy-road algorithm specifically designed to find the most exciting motorcycle roads",
     "cmWin1": "Full turn-by-turn voice navigation with offline map support",
     "cmWin2": "Lean angle tracking — see how far you leaned in every corner",
     "cmWin3": "Round-trip generation — set a distance, get a loop ride with maximum curves",
-    "pricing": "Calimoto is subscription-only, sold weekly or yearly with prices set by region — it is among the more expensive motorcycle apps, so check the figure the app shows you before subscribing. MotoVault is free with Pro from $9.99/month. For riders who don’t need curvy-road navigation, MotoVault offers far more features per dollar.",
+    "pricing": "Calimoto is subscription-only, sold weekly or yearly with prices set by region — it is among the more expensive motorcycle apps, so check the figure the app shows you before subscribing. MotoVault is free; Pro is a monthly or yearly subscription, with a lifetime option, priced in the store and on /pro. For riders who don't need curvy-road navigation, MotoVault covers far more.",
     "verdict": "These apps barely overlap. Calimoto is a navigation tool for riders who chase curves. MotoVault is a maintenance, diagnostics, and learning platform for riders who want to take care of their bike. If you love canyon roads, get Calimoto for navigation and MotoVault for everything else.",
     "faq": {
       "0": {
         "question": "Is MotoVault cheaper than Calimoto?",
-        "answer": "For what each app covers, yes. MotoVault has a free tier and Pro costs $9.99/month or $59.99–$79.99/year, and that includes maintenance tracking, AI diagnostics, and learning content — features Calimoto doesn’t offer at any price. Calimoto is navigation-only and subscription-only, with weekly and yearly plans priced by region."
+        "answer": "For what each app covers, yes. MotoVault has a free tier, and Pro — a monthly or yearly subscription with a lifetime option, priced in the store and on /pro — includes maintenance tracking, AI diagnostics and learning content, features Calimoto doesn't offer at any price. Calimoto is navigation-only and subscription-only, with weekly and yearly plans priced by region."
       },
       "1": {
         "question": "Does MotoVault have route planning like Calimoto?",
@@ -2500,12 +2501,12 @@
     }
   },
   "VsMotorManage": {
-    "title": "MotoVault vs MotorManage — Which Motorcycle App Is Better?",
+    "title": "MotoVault vs MotorManage: which motorcycle app is better?",
     "description": "Compare MotoVault and MotorManage side by side. See which motorcycle maintenance app offers better features for tracking service schedules, expenses, and diagnostics.",
     "h1": "MotoVault vs MotorManage",
     "subtitle": "A service log with a deep OEM database against a companion that also records rides, costs and diagnostics.",
     "mvHeading": "MotoVault",
-    "mvDescription": "MotoVault is an all-in-one motorcycle companion app combining maintenance tracking, expense logging, ride recording, multi-day trip planning, route discovery, and AI photo diagnostics — available on iOS and Android.",
+    "mvDescription": "MotoVault keeps a motorcycle's records — service history, expenses, rides — and adds multi-day trip planning, route discovery and AI photo diagnostics, on iOS and Android.",
     "compHeading": "MotorManage",
     "compDescription": "MotorManage specializes in manufacturer-specific maintenance schedules for over 600 motorcycle brands. It provides detailed service interval tracking based on your exact make, model, and year with OEM-recommended procedures.",
     "featureMaintenance": "Maintenance tracking",
@@ -2521,7 +2522,7 @@
     "parity": {
       "0": {
         "label": "Maintenance tracking",
-        "mv": "Smart reminders",
+        "mv": "Reminders by distance or date",
         "comp": "OEM intervals for 600+ brands"
       },
       "1": {
@@ -2578,7 +2579,7 @@
       },
       "1": {
         "label": "Pro price",
-        "mv": "$9.99/month or $59.99–$79.99/year",
+        "mv": "Monthly or yearly subscription, with a lifetime option; price in the store and on /pro",
         "comp": "Free for 2 bikes / King €3.99 per month or €29.99 per year"
       },
       "2": {
@@ -2588,11 +2589,11 @@
       }
     },
     "verdictHeading": "Which should you choose?",
-    "verdictText": "Choose MotorManage if you want detailed manufacturer-specific service schedules for your exact bike and a lean garage tool with a low-cost subscription. Choose MotoVault if you want an all-in-one platform that goes beyond maintenance to include trip planning, route discovery, AI diagnostics, and learning content on both iOS and Android.",
+    "verdictText": "Choose MotorManage if you want detailed manufacturer-specific service schedules for your exact bike and a lean garage tool with a low-cost subscription. Choose MotoVault if you want one app that goes beyond maintenance to include trip planning, route discovery, AI diagnostics and learning content on both iOS and Android.",
     "faq": {
       "0": {
         "question": "Is MotorManage better than MotoVault for maintenance tracking?",
-        "answer": "MotorManage excels at manufacturer-specific service schedules with OEM intervals for over 600 brands. MotoVault offers smart custom reminders with expense tracking and AI diagnostics. If OEM-spec schedules are your priority, MotorManage has the edge. If you want an all-in-one platform, MotoVault is the better choice."
+        "answer": "MotorManage excels at manufacturer-specific service schedules with OEM intervals for over 600 brands. MotoVault's reminders are set by the rider, by distance or date, and sit beside expense tracking and AI diagnostics. If OEM-spec schedules are your priority, MotorManage has the edge. If you want one app for the records, MotoVault is the better choice."
       },
       "1": {
         "question": "Does MotorManage work on iPhone?",
@@ -2604,17 +2605,17 @@
       },
       "3": {
         "question": "Which app is cheaper?",
-        "answer": "MotorManage is free for two motorcycles, and its King plan is €3.99 a month or €29.99 a year. MotoVault offers a free tier with Pro at $9.99/month or $59.99–$79.99/year. For basic maintenance tracking on one or two bikes, MotorManage costs less. For the full feature set, MotoVault Pro provides significantly more value."
+        "answer": "MotorManage is free for two motorcycles, and its King plan is €3.99 a month or €29.99 a year. MotoVault has a free tier; Pro is a monthly or yearly subscription with a lifetime option, priced in the store and on /pro. For basic maintenance tracking on one or two bikes, MotorManage costs less. For the full feature set, MotoVault Pro covers more."
       }
     }
   },
   "VsMotoShed": {
-    "title": "MotoVault vs Moto Shed — Which Motorcycle App Is Better?",
+    "title": "MotoVault vs Moto Shed: which motorcycle app is better?",
     "description": "Compare MotoVault and Moto Shed side by side. See which motorcycle app offers better maintenance tracking, expense management, and overall riding features.",
     "h1": "MotoVault vs Moto Shed",
-    "subtitle": "Compare a $0.99 one-time service logger with a full motorcycle companion platform.",
+    "subtitle": "A $0.99 one-time service logger against an app that keeps the whole logbook.",
     "mvHeading": "MotoVault",
-    "mvDescription": "MotoVault is an all-in-one motorcycle companion app combining maintenance tracking, expense logging, ride recording, multi-day trip planning, route discovery, and AI photo diagnostics — available on iOS and Android.",
+    "mvDescription": "MotoVault keeps a motorcycle's records — service history, expenses, rides — and adds multi-day trip planning, route discovery and AI photo diagnostics, on iOS and Android.",
     "compHeading": "Moto Shed",
     "compDescription": "Moto Shed is a clean, focused maintenance tracker for iOS and Android that logs services, repairs, fuel, parts, and manuals, with VIN-based recall monitoring and local device reminders. Your data stays on your device, and it is a $0.99 one-time purchase — no subscription, no ads.",
     "featureMaintenance": "Maintenance tracking",
@@ -2640,7 +2641,7 @@
       },
       "2": {
         "label": "Service reminders",
-        "mv": "Smart date/mileage reminders",
+        "mv": "Reminders by date or distance",
         "comp": "Basic reminders"
       },
       "3": {
@@ -2687,7 +2688,7 @@
       },
       "1": {
         "label": "Price",
-        "mv": "$9.99/month or $59.99–$79.99/year (Pro)",
+        "mv": "Pro: monthly or yearly subscription, with a lifetime option; price in the store and on /pro",
         "comp": "One-time $0.99"
       },
       "2": {
@@ -2697,7 +2698,7 @@
       }
     },
     "verdictHeading": "Which should you choose?",
-    "verdictText": "Choose Moto Shed if you want a dead-simple service logger for a $0.99 one-time purchase with no subscription — it covers bikes plus the cars and trucks in your garage, on both iOS and Android. Choose MotoVault if you want a comprehensive platform that goes beyond maintenance logging to include trip planning, route discovery, expense analytics, AI diagnostics, and learning content.",
+    "verdictText": "Choose Moto Shed if you want a simple service logger for a $0.99 one-time purchase with no subscription — it covers bikes plus the cars and trucks in your garage, on both iOS and Android. Choose MotoVault if you want one app that goes beyond maintenance logging to include trip planning, route discovery, expense figures, AI diagnostics and learning content.",
     "faq": {
       "0": {
         "question": "Is Moto Shed simpler than MotoVault?",
@@ -2709,11 +2710,11 @@
       },
       "2": {
         "question": "Which app is better value?",
-        "answer": "Moto Shed is a $0.99 one-time purchase for service logging with no subscription and no ads — by lifetime cost it is far cheaper. MotoVault's free tier includes more features than Moto Shed, and Pro ($9.99/month or $59.99–$79.99/year) adds unlimited bikes, unlimited AI diagnostics and receipt scans, GPX export, and offline trip maps. For pure service logging, Moto Shed is the better value. For everything else, MotoVault's free tier is hard to beat."
+        "answer": "Moto Shed is a $0.99 one-time purchase for service logging with no subscription and no ads — by lifetime cost it is far cheaper. MotoVault's free tier includes more features than Moto Shed, and Pro — a monthly or yearly subscription with a lifetime option, priced in the store and on /pro — adds unlimited bikes, unlimited AI diagnostics and receipt scans, GPX export and offline trip maps. For pure service logging, Moto Shed is the better value. For everything else, MotoVault's free tier is hard to beat."
       },
       "3": {
         "question": "Can I switch from Moto Shed to MotoVault?",
-        "answer": "Yes — you'll need to manually re-enter your service history, but MotoVault's maintenance tracking covers everything Moto Shed offers plus expense analytics, smart reminders, and AI diagnostics."
+        "answer": "Yes — you'll need to re-enter your service history by hand, but MotoVault's maintenance tracking covers everything Moto Shed offers plus expense figures, reminders by distance or date, and AI diagnostics."
       }
     },
     "sourcesHeading": "Check Moto Shed for yourself",
@@ -2727,7 +2728,7 @@
     "description": "Everything MotoVault does — trip planning, AI diagnostics, garage tracking, learning and progress.",
     "sectionLabel": "What MotoVault Does",
     "heroTitle": "One app for the whole ride",
-    "heroSubtitle": "From planning the next three-day loop to diagnosing a mystery rattle, MotoVault handles every stage of motorcycle ownership.",
+    "heroSubtitle": "From the next three-day loop to a mystery rattle: MotoVault keeps the records of ownership — rides, service, costs — and helps you plan, diagnose and learn.",
     "learnMore": "Learn more",
     "tripPlanningTitle": "Trip planning",
     "tripPlanningDesc": "Plot multi-day routes, drop typed waypoints, lock in overnights and fuel stops, and invite riders — all on a living map.",
@@ -2751,13 +2752,13 @@
     "relatedTitle": "Other features"
   },
   "FeaturesTripPlanning": {
-    "title": "Motorcycle Trip Planning App — Multi-Day Routes & Navigation",
-    "description": "MotoVault's motorcycle trip planner app builds multi-day routes with typed waypoints (fuel, food, hotels, passes, ferries), real road routing, and rider RSVPs. Offline-capable on iOS and Android.",
+    "title": "Motorcycle trip planner: multi-day routes and GPX export",
+    "description": "Plan multi-day motorcycle trips with typed waypoints and real road routing, invite riders, export GPX. Free on iOS and Android.",
     "heroEyebrow": "Multi-Day Routes · Offline Maps",
     "heroTitle": "Plan every mile of the ride",
-    "heroSubtitle": "Multi-day routes, typed waypoints, real road routing, and a map that moves with you. The first feature we built — and the one that still shapes the rest of MotoVault.",
+    "heroSubtitle": "Multi-day routes, typed waypoints, real road routing and a live map. The first feature we built — and the one that still shapes the rest of MotoVault.",
     "seoHeading": "A motorcycle trip planner for multi-day routes",
-    "seoIntro": "MotoVault is a motorcycle trip planning app for multi-day tours. Build a route in minutes with typed waypoints — fuel, food, scenic stops, overnights, passes, ferries — on a live map with real motorcycle-friendly road routing. Invite riders, share the link, and ride offline-capable on iOS and Android.",
+    "seoIntro": "MotoVault is a motorcycle trip planning app for multi-day tours. Build a route with typed waypoints — fuel, food, scenic stops, overnights, passes, ferries — on a live map with real motorcycle-friendly road routing. Invite riders, share the link, export GPX for your planner or GPS. Free on iOS and Android.",
     "statStripLabel": "At a glance",
     "stat1Value": "11",
     "stat1Label": "Waypoint types",
@@ -2778,9 +2779,9 @@
     "step1Desc": "Tap the + button in Discover and a full-screen dark map opens, ready for your next adventure. Long-press anywhere to drop a stop, or search for a city, pass, coffee spot or fuel station.",
     "step2Label": "Drop Waypoints",
     "step2Title": "Add typed waypoints along the route",
-    "step2Desc": "Each stop is more than a pin. Choose from 11 types — start, end, fuel, food, scenic, overnight, photo, mechanical, ferry, pass summit, rally point — and add notes. The stepper groups waypoints by day automatically.",
+    "step2Desc": "Each stop is more than a pin. Choose from ten types — fuel, food, overnight, scenic, photo, mechanical, ferry, pass summit, rally point or a plain stop — and add notes. The stepper groups waypoints by day.",
     "step3Label": "Set Details",
-    "step3Title": "Name the ride, pick the vibe",
+    "step3Title": "Name the trip, set the difficulty",
     "step3Desc": "Title, description, start and end dates, difficulty (Easy, Moderate, Challenging, Expert), max riders, and visibility (Private, Unlisted, Public). Every field is optional at first — you can come back and polish before publishing.",
     "step4Label": "Save or Publish",
     "step4Title": "Keep it as a draft or share the link",
@@ -2798,28 +2799,28 @@
     "featuresTitle": "The details that make a real trip work",
     "f1Title": "Multi-day itineraries",
     "f1Desc": "Group waypoints by day. Day 1: Bolzano to Cortina. Day 2: the big passes. Day 3: head home. The app knows which stops belong to which day.",
-    "f2Title": "11 waypoint types",
-    "f2Desc": "Start, end, fuel, food, scenic, overnight, photo, mechanical, ferry, pass summit, rally point — each with its own icon on the map and in the itinerary list.",
+    "f2Title": "Ten waypoint types, from fuel stop to pass summit",
+    "f2Desc": "Fuel, food, overnight, scenic, photo, mechanical, ferry, pass summit, rally point and a plain stop — each with its own icon on the map and in the itinerary list.",
     "f3Title": "Real road routing",
     "f3Desc": "Mapbox Directions computes the actual motorcycle-friendly route between stops. No straight-line approximations — real tarmac, real mileage.",
     "f4Title": "Privacy controls",
     "f4Desc": "Three visibility levels. Private means only you. Unlisted means anyone with the link. Public means discoverable in the Discover feed.",
     "f5Title": "Invite riders",
     "f5Desc": "Organiser invites specific riders, or opens a public trip up to a cap. Each rider can RSVP Going, Maybe or Declined — and pick which bike they're bringing.",
-    "f6Title": "Drafts before ink",
+    "f6Title": "Drafts",
     "f6Desc": "Save half-finished trips as drafts. Only you see them. Come back, add the last three stops, then publish when you're ready to share.",
     "f7Title": "Difficulty tags",
     "f7Desc": "Easy, Moderate, Challenging, Expert. So nobody joins an expert pass route thinking it's a Sunday cruise.",
     "f8Title": "Share anywhere",
     "f8Desc": "Every published trip has a canonical URL. Send it to a group chat, post it to Discord, tweet it — it renders with the route as a preview.",
     "walkthroughLabel": "Under the Hood",
-    "walkthroughTitle": "The story of a trip, from idea to ink",
+    "walkthroughTitle": "A trip, from first draft to the ride",
     "walkthroughP1": "A rider wakes up on Saturday and thinks about the long weekend coming up. Three days free, bike in the garage, and a rough idea — \"the Dolomites, maybe\". They open MotoVault, tap Discover, then + to plan a new trip. A dark map opens to their current location.",
     "walkthroughP2": "They zoom into Bolzano and long-press to drop a Start waypoint — \"Bolzano — Start, gear check & coffee before departure\". Then they search Passo Sella and tap the result — it drops as a Scenic stop with the note \"Iconic Dolomite pass, photo stop\". They keep going: Cortina d'Ampezzo as Overnight, Passo Pordoi as Pass Summit, Canazei as Fuel, Ortisei as Overnight, Passo Gardena as Scenic, Bolzano as End. The app groups them into Day 1, Day 2, Day 3 automatically.",
     "walkthroughP3": "They name it — \"Dolomites Loop — 3 Days\" — write a description, pick Moderate difficulty, set max riders to 8, and leave visibility as Private. Save as draft. They go back to their garden for coffee. Later that evening they remember a better overnight in Ortisei, swap it in, toggle visibility to Public, and hit Publish. The trip is now live on Discover; two riding friends join by the end of the night.",
     "walkthroughP4": "That's the whole arc — from blank map to joined trip — and it runs on real Mapbox routing, real Postgres rows, and a bottom sheet that slides up to show the itinerary without losing the map. No spreadsheets, no screenshot chains, no lost pins.",
     "faqLabel": "Common Questions",
-    "faqTitle": "Trip planning, questions riders ask",
+    "faqTitle": "Questions, answered",
     "faq0Question": "Does the app actually route on real roads, or does it draw straight lines?",
     "faq0Answer": "Real roads. Between any two waypoints, we call Mapbox Directions with motorcycle-friendly routing and render the actual polyline you would ride. Zoom in on any segment of the Dolomites Loop above — you can see the hairpins.",
     "faq1Question": "Can I plan a trip before I invite anyone?",
@@ -2831,7 +2832,7 @@
     "faq4Question": "How many waypoints can one trip have?",
     "faq4Answer": "There's no hard cap you would hit in normal use. The real constraint is readability — past 15 or 16 stops on a single day the itinerary gets busy. Split into multiple days to keep it clean.",
     "faq5Question": "Can I export the trip to another app?",
-    "faq5Answer": "Every published trip has a canonical URL with a route preview. You can also share from the trip detail screen; native share lets you paste it into Messages, Slack, Discord, or your notes.",
+    "faq5Answer": "Yes. Export the trip as a GPX file from the trip screen and import it into your planner or GPS. Every published trip also has a web link with a route preview; share it from the trip screen and viewers do not need the app.",
     "ctaTitle": "Your next three-day loop starts here.",
     "ctaBody": "Trip planning is the founding feature of MotoVault. Download the app, drop your first waypoint, and see why we built it before anything else.",
     "heroMeta": "Feature · 01",
@@ -2942,14 +2943,14 @@
     "breadcrumbFeatures": "Features"
   },
   "CookieBanner": {
-    "stamp": "Legally-required cookie banner",
+    "stamp": "Cookies",
     "title": "We bake <em>one cookie.</em> Eat it or send it back.",
-    "body1": "MotoVault doesn't sell, share, or whisper your data to ad networks. We use <strong>one in-house cookie</strong> to keep you signed in, plus optional crumbs to see which feature riders open most.",
+    "body1": "One required cookie keeps you signed in. Three optional ones remember your settings, count which features riders open, and record a crash so we can fix it. Nothing goes to ad networks.",
     "body2": "No third parties. No fingerprinting. No <strong>surveillance buffet</strong>. Just one tiny cookie that says \"this is you\" so the trip you planned at breakfast is still here at lunch.",
-    "accept": "Accept the cookie",
-    "decline": "No thanks",
+    "accept": "Accept all",
+    "decline": "Only required",
     "showList": "Show me what I'm eating",
-    "settings": "Settings",
+    "settings": "Choose cookies",
     "privacyLink": "Honest privacy policy →",
     "list": {
       "whatWeUse": "What we use",
@@ -2970,30 +2971,30 @@
         "tag": "Bug reports",
         "desc": "Records the last 30 seconds of a crash, so we can fix it. 1 cookie · session · first-party"
       },
-      "save": "Save my choices",
+      "save": "Save choices",
       "acceptAll": "Accept all",
       "back": "Back",
       "requiredAlwaysOn": "Required, always on",
       "toggleCookie": "Toggle {name}"
     },
     "settled": {
-      "accepted": "Cookie noted. Ride on.",
-      "declined": "No cookies set. Ride on.",
-      "saved": "Preferences saved. Ride on.",
-      "undo": "Change mind",
+      "accepted": "Saved. All cookies on.",
+      "declined": "Saved. Only the required cookie.",
+      "saved": "Saved.",
+      "undo": "Change choice",
       "done": "Done"
     }
   },
   "CommunityNav": {
     "garage": "Garage",
     "profile": "Profile",
-    "upgrade": "Upgrade",
+    "upgrade": "Pro",
     "rider": "Rider",
-    "signingOut": "Signing out...",
-    "signOut": "Sign Out",
+    "signingOut": "Signing out…",
+    "signOut": "Sign out",
     "menu": "Menu",
     "trial": "Trial",
-    "daysLeft": "{days}d left",
+    "daysLeft": "{days, plural, one {# day left} other {# days left}}",
     "themeToLight": "Switch to light mode",
     "themeToDark": "Switch to dark mode",
     "account": "Account"
@@ -3046,8 +3047,8 @@
     "alsoDue": "Also due",
     "markDone": "Mark it done in the app",
     "noService": "No service scheduled.",
-    "noServiceBody": "The app builds a schedule from your bike's model.",
-    "openMotoVault": "Open MotoVault",
+    "noServiceBody": "Add the first interval in the app and it counts down from your odometer.",
+    "openMotoVault": "Open in the app",
     "spentIn": "Spent in {year}",
     "nothingLogged": "Nothing logged in {year}.",
     "snapReceipt": "Snap a receipt in the app and it fills itself in.",
@@ -3070,12 +3071,12 @@
     "signedInGoogle": "Signed in with Google",
     "signedInApple": "Signed in with Apple",
     "manageSubscription": "Manage subscription",
-    "manageAppStore": "Manage in App Store",
+    "manageAppStore": "Manage in the App Store",
     "manageGooglePlay": "Manage in Google Play",
-    "manageInStore": "Manage it in your app store.",
+    "manageInStore": "Manage it in the app store you subscribed through.",
     "newTab": "(opens in a new tab)",
     "startEyebrow": "Start in the app",
-    "startTitle": "Add your bike in the app. It takes 30 seconds.",
+    "startTitle": "Add your bike in the app: make, model, year.",
     "previewRegion": "Bike preview",
     "previewLabel": "This is where your bike lives",
     "plateNoServiceDue": "No service due",
@@ -3087,12 +3088,13 @@
     "plateStateDue": "Due soon",
     "plateStateOverdue": "Overdue",
     "plateRegion": "Bike plate: {state}",
-    "openTheApp": "Open the app"
+    "openTheApp": "Open the app",
+    "title": "Your garage"
   },
   "Profile": {
-    "failedToLoad": "Failed to load profile",
-    "somethingWentWrong": "Something went wrong. Please try again.",
-    "retry": "Retry",
+    "failedToLoad": "Your profile didn't load.",
+    "somethingWentWrong": "Check your connection and try again.",
+    "retry": "Try again",
     "setupProfile": "Set up your rider profile",
     "setupDesc": "Set up a public profile in the MotoVault app so other riders can find and follow you.",
     "rider": "Rider",
@@ -3103,16 +3105,19 @@
     "memberSince": "Member since",
     "proBannerTitle": "MotoVault Pro",
     "trial": "Trial",
-    "daysRemaining": "{days} days remaining",
+    "daysRemaining": "{days, plural, one {# day left} other {# days left}}",
     "active": "Active",
     "daysLeft": "{days} days left",
     "manageSubscription": "Manage subscription",
-    "manageInStore": "Manage in your app store",
+    "manageInStore": "Manage it in the app store you subscribed through.",
     "manageOrCancel": "Manage or cancel",
     "manageOpening": "Opening…",
     "manageWebFallback": "To cancel, use the “Manage subscription” link in your Stripe receipt email, or <link>email {email}</link> and we’ll cancel it for you.",
     "memberSinceValue": "{month} {year}",
-    "title": "Profile"
+    "title": "Profile",
+    "manageAppStore": "Manage in the App Store",
+    "manageGooglePlay": "Manage in Google Play",
+    "newTab": "(opens in a new tab)"
   },
   "AppHandoff": {
     "doInApp": "Do this in the MotoVault app",
@@ -3127,13 +3132,13 @@
     "copyLabel": "Copy link to the app",
     "linkCopied": "Link copied",
     "onThisTablet": "On this tablet?",
-    "appStore": "App Store",
-    "googlePlay": "Google Play",
-    "railEyebrow": "iPhone & Android",
+    "appStore": "Download for iOS",
+    "googlePlay": "Download for Android",
+    "railEyebrow": "iPhone and Android",
     "openIn": "Open in",
     "theApp": "the app",
     "betterInApp": "Better in the app",
-    "openMotoVault": "Open MotoVault →",
+    "openMotoVault": "Open in the app",
     "reasonRecordRidesTitle": "Record rides",
     "reasonRecordRidesBody": "Only the phone has GPS.",
     "reasonServiceRemindersTitle": "Service reminders",
@@ -3141,7 +3146,7 @@
     "reasonScanReceiptsTitle": "Scan receipts",
     "reasonScanReceiptsBody": "The camera fills in the expense.",
     "reasonMarkServiceDoneTitle": "Mark service done",
-    "reasonMarkServiceDoneBody": "Mark it done in the app.",
+    "reasonMarkServiceDoneBody": "Logs the odometer and resets the reminder.",
     "promotedOverdueTitle": "{task} is overdue",
     "promotedNoRidesTitle": "No rides yet",
     "promotedNoRidesBody": "Record your next ride. Only the phone has GPS.",
@@ -3150,29 +3155,30 @@
     "barOverdue": "{task} overdue.",
     "barNoRides": "No rides yet.",
     "barNoExpenses": "Nothing logged in {year}.",
-    "barDefault": "Better in the app.",
-    "barOpen": "Open app",
+    "barDefault": "Rides, receipts and reminders live in the app.",
+    "barOpen": "Open in the app",
     "barDismiss": "Dismiss",
-    "barRegion": "Get the app"
+    "barRegion": "Get the app",
+    "openInTheApp": "Open in the app"
   },
   "Followers": {
-    "title": "Connections",
+    "title": "Followers",
     "followers": "Followers",
     "following": "Following",
-    "noFollowers": "No followers yet.",
-    "noFollowing": "You are not following anyone yet.",
+    "noFollowers": "No followers yet. Share your rider profile from the app.",
+    "noFollowing": "You are not following anyone yet. Follow riders from their profile in the app.",
     "loadMore": "Load more",
-    "loading": "Loading..."
+    "loading": "Loading riders…"
   },
   "FeaturesMaintenance": {
-    "title": "Motorcycle Maintenance Tracker — Service History & Reminders",
+    "title": "Motorcycle maintenance tracker: service history and reminders",
     "description": "Log every service, set mileage and time-based reminders, and keep a full maintenance history for every motorcycle in your garage. Free on iOS and Android.",
     "sectionLabel": "Maintenance Tracking",
-    "heroTitle": "Never miss a service again",
+    "heroTitle": "Service reminders before they're due",
     "heroSubtitle": "MotoVault's maintenance tracker keeps a complete service history for every motorcycle you own and reminds you before work is due — based on mileage, time, or both. Log oil changes, chain lube, brake service, and custom tasks with date, mileage, cost, and photos, so nothing slips and your bike's records stay resale-ready.",
     "featuresLabel": "Stay on schedule",
-    "featuresTitle": "Maintenance that manages itself",
-    "f1Title": "Smart service reminders",
+    "featuresTitle": "Reminders set from your odometer",
+    "f1Title": "Reminders by distance or date",
     "f1Desc": "Set reminders by mileage interval, time interval, or both. MotoVault notifies you before service is due — not after it's overdue — and resets automatically when you log the task.",
     "f2Title": "Complete service history",
     "f2Desc": "Every job is logged with date, mileage, cost, category, notes, and photos. Build a documented timeline for each bike that increases resale value and simplifies insurance claims.",
@@ -3181,14 +3187,14 @@
     "longFormLabel": "Under the hood",
     "longFormTitle": "Motorcycle maintenance tracking that keeps your bike healthy",
     "longFormIntro": "Motorcycle maintenance is a long-term commitment, and missed intervals are expensive. MotoVault's maintenance tracker replaces the shoebox of receipts and the spreadsheet with a single, organized service history per bike — plus reminders that reach you before a service slips.",
-    "s1Title": "Log every job in seconds",
+    "s1Title": "Log a job: task, odometer, cost",
     "s1Body": "Record maintenance with date, odometer reading, cost, category, and detailed notes, and attach photos of parts or receipts. Tasks are organized into overdue, upcoming, and completed tabs so you always know what needs attention next.",
     "s2Title": "Reminders based on how you actually ride",
     "s2Body": "Set reminders on mileage (oil every 5,000 mi), time (brake fluid every 2 years), or both. Because reminders are per bike, a daily commuter and a weekend tourer can follow completely different schedules. Log a completed task and the next reminder resets automatically.",
     "s3Title": "Records that pay you back",
-    "s3Body": "Export a full maintenance report for any bike — dates, mileage, costs, and notes. A documented service history reassures buyers, supports insurance and warranty claims, and can meaningfully raise resale value.",
+    "s3Body": "Share a bike's service history as a read-only web link from the app — dates, odometer readings, costs and notes. A documented service history reassures buyers, supports insurance and warranty claims, and can raise resale value.",
     "faqLabel": "Got questions?",
-    "faqTitle": "Frequently asked questions",
+    "faqTitle": "Questions, answered",
     "faq": [
       {
         "question": "Does MotoVault track maintenance for multiple motorcycles?",
@@ -3200,11 +3206,11 @@
       },
       {
         "question": "Can I export my motorcycle's service history?",
-        "answer": "Yes. MotoVault exports a complete maintenance report for any bike, including dates, mileage, costs, and notes — ideal for resale documentation, insurance claims, or your own records."
+        "answer": "Not yet. You can share a bike's service history as a read-only web link from the app."
       },
       {
         "question": "Is the maintenance tracker free?",
-        "answer": "Yes. Maintenance tracking is free on iOS and Android. An optional MotoVault Pro subscription ($9.99/month in the app, $5.99/month on the web) adds more bikes, unlimited AI diagnostics and receipt scans, GPX export and offline trip maps."
+        "answer": "Yes. Maintenance tracking is free on iOS and Android. MotoVault Pro adds more bikes, unlimited AI diagnostics and receipt scans, GPX export and offline trip maps. Pro is a monthly or yearly subscription, with a lifetime option; prices are shown in the store and on /pro."
       }
     ],
     "faqMore": "Have more questions?",
@@ -3214,15 +3220,15 @@
     "breadcrumbTitle": "Maintenance"
   },
   "FeaturesExpenses": {
-    "title": "Motorcycle Expense Tracker — Fuel, Parts & Cost-per-Mile",
+    "title": "Motorcycle expense tracker: fuel, parts and cost per mile",
     "description": "Track every motorcycle expense by category, see cost-per-mile, and compare spending across bikes and years. Free on iOS and Android.",
     "sectionLabel": "Expense Tracking",
     "heroTitle": "Know exactly what your bike costs",
-    "heroSubtitle": "MotoVault's expense tracker logs every motorcycle cost — fuel, maintenance, parts, and gear — and turns it into clear analytics: year-to-date spending, cost-per-mile, monthly trends, and per-bike comparisons. Finally see the true cost of ownership instead of guessing.",
+    "heroSubtitle": "MotoVault's expense tracker logs every motorcycle cost — fuel, service, parts, gear, insurance — and turns it into clear figures: year-to-date spending, cost per mile, monthly trends and per-bike comparisons. See the true cost of ownership.",
     "featuresLabel": "Follow the money",
     "featuresTitle": "Every cost, categorized and clear",
-    "f1Title": "Four expense categories",
-    "f1Desc": "Log fuel, maintenance, parts, and gear in seconds. Each expense ties to a specific bike so multi-bike owners can see exactly where the money goes.",
+    "f1Title": "Fourteen expense categories, from fuel to taxes and fees",
+    "f1Desc": "Log an expense: category, amount, date, bike. Each expense ties to one bike, so multi-bike owners see exactly where the money goes.",
     "f2Title": "Cost-per-mile analytics",
     "f2Desc": "MotoVault calculates cost-per-mile and per-kilometer automatically, so you can compare bikes and understand what each motorcycle really costs to run.",
     "f3Title": "Trends and comparisons",
@@ -3230,22 +3236,22 @@
     "longFormLabel": "Under the hood",
     "longFormTitle": "Motorcycle expense tracking that reveals the true cost of ownership",
     "longFormIntro": "Most riders underestimate what their motorcycle costs because the spending is scattered across fuel receipts, parts orders, and service invoices. MotoVault's expense tracker pulls all of it into one place and turns raw costs into the metrics that actually matter — cost-per-mile, category breakdowns, and year-over-year trends.",
-    "s1Title": "Log expenses in four clear categories",
+    "s1Title": "Log expenses in fourteen categories",
     "s1Body": "Fuel, maintenance, parts, and gear — every expense is recorded against a specific motorcycle with date, amount, and notes. For multi-bike owners, that means you can see which machine is draining your budget and which is cheap to keep.",
     "s2Title": "Turn spending into cost-per-mile",
     "s2Body": "MotoVault automatically computes cost-per-mile and cost-per-kilometer from your logged expenses and ride distances. It's the single most useful number for comparing bikes, deciding whether to keep or sell, and budgeting for the year ahead.",
     "s3Title": "Spot trends before they surprise you",
     "s3Body": "The expense dashboard shows year-to-date totals with category bars, monthly spending trends, and a current-year-versus-all-time comparison. If maintenance costs are creeping up on an older bike, you'll see it early — in your choice of metric or imperial units.",
     "faqLabel": "Got questions?",
-    "faqTitle": "Frequently asked questions",
+    "faqTitle": "Questions, answered",
     "faq": [
       {
         "question": "Is the expense tracker free?",
-        "answer": "Yes. Expense tracking is free on iOS and Android. An optional MotoVault Pro subscription ($9.99/month in the app, $5.99/month on the web) adds more bikes, unlimited AI diagnostics and receipt scans, GPX export and offline trip maps."
+        "answer": "Yes. Expense tracking is free on iOS and Android. MotoVault Pro adds more bikes, unlimited AI diagnostics and receipt scans, GPX export and offline trip maps. Pro is a monthly or yearly subscription, with a lifetime option; prices are shown in the store and on /pro."
       },
       {
         "question": "What expenses can I track?",
-        "answer": "MotoVault tracks four categories: fuel, maintenance, parts, and gear. Each expense is tied to a specific motorcycle, with date, amount, and notes, so your spending is organized per bike."
+        "answer": "MotoVault has fourteen expense categories: fuel, maintenance, parts, gear, tires, insurance, registration, tolls, parking, modifications, training, accessories, taxes and fees, and other. Each expense is tied to one motorcycle, with date, amount and notes, so spending is organised per bike."
       },
       {
         "question": "Does MotoVault calculate cost-per-mile?",
@@ -3263,7 +3269,7 @@
     "breadcrumbTitle": "Expense tracking"
   },
   "FeaturesRides": {
-    "title": "Motorcycle Ride Tracker — GPS Logging & Ride Analytics",
+    "title": "Motorcycle ride tracker: GPS logging and ride stats",
     "description": "Record every ride with GPS — distance, speed, elevation, and an interactive route map — linked to the right bike in your garage. Free on iOS and Android.",
     "sectionLabel": "Ride Tracking",
     "heroTitle": "Record every ride in detail",
@@ -3272,7 +3278,7 @@
     "featuresTitle": "GPS tracking built for riders",
     "f1Title": "Full GPS recording",
     "f1Desc": "Capture distance, duration, moving vs paused time, max and average speed, and elevation gain and loss — rendered as an interactive route map.",
-    "f2Title": "Speed & elevation profiles",
+    "f2Title": "Speed and elevation profiles",
     "f2Desc": "Each ride includes interactive speed and elevation charts plotted over distance, with per-waypoint altitude, speed, and GPS accuracy.",
     "f3Title": "Linked to your garage",
     "f3Desc": "Rides attach to a specific bike, so each motorcycle's mileage and usage sit right alongside its maintenance history and expenses.",
@@ -3282,15 +3288,15 @@
     "s1Title": "Rich GPS data on every ride",
     "s1Body": "MotoVault captures distance, duration with moving and paused time, max and average speed, and elevation gain and loss, then renders the full route as an interactive polyline map. Per-waypoint data includes altitude, speed, and GPS accuracy.",
     "s2Title": "Profiles that tell the story",
-    "s2Body": "The ride detail screen plots an interactive speed profile and elevation profile over distance, with hover tooltips. It's an easy way to relive a route and to see how a bike performs — all in metric or imperial units.",
+    "s2Body": "The ride detail screen plots a speed profile and an elevation profile over distance; tap a point for its value. It's an easy way to relive a route and to see how a bike performs — in metric or imperial units.",
     "s3Title": "Every ride feeds your bike's record",
     "s3Body": "Because each ride is linked to a motorcycle in your garage, your mileage stays current automatically — which keeps mileage-based maintenance reminders accurate and cost-per-mile analytics honest.",
     "faqLabel": "Got questions?",
-    "faqTitle": "Frequently asked questions",
+    "faqTitle": "Questions, answered",
     "faq": [
       {
         "question": "Is ride tracking free?",
-        "answer": "Yes. GPS ride tracking is free on iOS and Android. An optional MotoVault Pro subscription ($9.99/month in the app, $5.99/month on the web) adds more bikes, unlimited AI diagnostics and receipt scans, GPX export and offline trip maps."
+        "answer": "Yes. GPS ride tracking is free on iOS and Android. MotoVault Pro adds more bikes, unlimited AI diagnostics and receipt scans, GPX export and offline trip maps. Pro is a monthly or yearly subscription, with a lifetime option; prices are shown in the store and on /pro."
       },
       {
         "question": "What data does MotoVault record on a ride?",
@@ -3298,7 +3304,7 @@
       },
       {
         "question": "Can I see speed and elevation for a ride?",
-        "answer": "Yes. Every ride includes interactive speed and elevation profile charts plotted over distance, with hover tooltips, in both metric and imperial units."
+        "answer": "Yes. Every ride has a speed profile and an elevation profile plotted over distance; tap a point for its value, in metric or imperial units."
       },
       {
         "question": "Do rides connect to my motorcycles?",
@@ -3313,14 +3319,14 @@
   },
   "Manifesto": {
     "eyebrow": "Our promise",
-    "lead": "Your bike's whole story — every ride, every service, every euro —",
+    "lead": "Your bike's whole story — every ride, every service, every cost —",
     "emphasis": "kept in your pocket, not a shoebox of receipts."
   },
   "Proof": {
     "toolsLabel": "Tools in one app: expenses, maintenance, rides, trips, diagnostics.",
     "obdSuffix": "OBD hardware",
     "cameraLabel": "Point your camera. Get the answer.",
-    "freeLabel": "Of the logbook is free: costs, service, rides and trips. No trial, no card.",
+    "freeLabel": "of the logbook is free: costs, service, rides and trips. No trial, no card.",
     "ratingLabel": "App Store rating from real riders.",
     "nativeLabel": "Native apps, built for motorcycles.",
     "ratingOutOf": "/ 5",
@@ -3330,18 +3336,18 @@
     "aiTag": "Powered by AI",
     "titleLead": "Point. Tap.",
     "titleEmphasis": "Answered.",
-    "description": "Our vision model identifies parts, reads warning lights, and diagnoses issues from a single photo. No forum threads. No $1,200 OBD tool. Just the answer.",
+    "description": "A vision model names the part, reads the warning light and lists the likely causes from one photo. No OBD hardware.",
     "step1": "Open camera, frame the issue.",
     "step2": "AI identifies and analyzes the issue.",
-    "step3": "Get a diagnosis + recommended fix.",
+    "step3": "Get a diagnosis and a recommended fix.",
     "screenAlt": "AI diagnostics screen",
     "scanComplete": "Scan complete",
     "resultTitle": "Chain tension low",
     "resultDesc": "Adjust to 25-35mm slack per owner's manual."
   },
   "StickyBar": {
-    "message": "Your whole moto life in one app.",
-    "cta": "Get MotoVault",
+    "message": "Rides, service and costs for every bike. Free.",
+    "cta": "Get the app",
     "dismiss": "Dismiss"
   },
   "Welcome": {
@@ -3349,7 +3355,7 @@
     "homeLabel": "MotoVault home",
     "signedInAs": "Signed in as <b>{email}</b>",
     "eyebrow": "Account created",
-    "title": "You're in. Now put MotoVault <serif>in your pocket.</serif>",
+    "title": "Signed in. Now get the app <muted>on your phone.</muted>",
     "reasonsLabel": "What the app adds",
     "ridesTitle": "Record rides with GPS",
     "ridesTag": "GPS",
@@ -3371,7 +3377,7 @@
     "apple": "Apple",
     "continueWithGoogle": "Continue with Google",
     "continueWithApple": "Continue with Apple",
-    "redirecting": "Redirecting...",
+    "redirecting": "Redirecting…",
     "emailLabel": "Email",
     "emailPlaceholder": "you@example.com",
     "passwordLabel": "Password",
@@ -3383,34 +3389,35 @@
     "resendSent": "Confirmation email sent — check your inbox.",
     "signIn": {
       "eyebrow": "Sign in",
-      "title": "Welcome <serif>back.</serif>",
-      "subtitle": "Pick up where you left off — your garage, routes and history sync across all devices.",
-      "forgot": "Forgot?",
+      "title": "Welcome <muted>back.</muted>",
+      "subtitle": "Your garage, rides and service history, synced to every device.",
+      "forgot": "Forgot password?",
       "submit": "Sign in",
-      "submitting": "One moment…",
+      "submitting": "Signing in…",
       "resetPassword": "Reset your password",
       "altPrompt": "No account yet?",
       "altCta": "Create account"
     },
     "signUp": {
       "eyebrow": "Create account",
-      "title": "Start your <serif>logbook.</serif>",
+      "title": "Start your <muted>logbook.</muted>",
       "subtitle": "Free forever for logging. Pro removes the limits.",
       "passwordPlaceholder": "At least 6 characters",
       "confirmPasswordLabel": "Confirm password",
       "submit": "Create account",
       "submitting": "Creating account…",
-      "altPrompt": "Already a rider?",
-      "altCta": "Sign in"
+      "altPrompt": "Already have an account?",
+      "altCta": "Sign in",
+      "passwordHint": "At least 6 characters"
     },
     "checkEmail": {
-      "title": "Check your <serif>email.</serif>",
-      "body": "Check your email for a confirmation link to complete your registration.",
+      "title": "Check your <muted>email.</muted>",
+      "body": "Open the link in the email to finish creating your account.",
       "nothingArrived": "Nothing arrived?",
       "differentEmail": "Use a different email"
     }
   },
   "Home": {
-    "siteDefinition": "MotoVault is a free motorcycle management app that combines trip planning, maintenance tracking, expense logging, and AI-powered diagnostics in a single platform for riders. Available on iOS and Android, MotoVault supports over 12,000 motorcycle models from the NHTSA Vehicle Product Information Catalog database."
+    "siteDefinition": "MotoVault is a free motorcycle app for iOS and Android that keeps maintenance records, expenses, recorded rides and multi-day trip plans for every bike in a rider's garage, and reads a photo of a fault with a vision model. The bike catalogue covers 12,000+ models from the NHTSA Vehicle Product Information Catalog."
   }
 }

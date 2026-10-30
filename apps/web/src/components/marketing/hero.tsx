@@ -36,7 +36,6 @@ export function Hero() {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        padding: '120px 40px 120px',
         isolation: 'isolate',
       }}
       className="hero-section mv-dark-scene"

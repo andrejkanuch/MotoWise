@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 export function GoBackButton() {
   return (
-    <button type="button" className="nf-btn nf-btn-ghost" onClick={() => history.back()}>
+    <button type="button" className="mv-btn mv-btn-ghost" onClick={() => history.back()}>
       Go back
     </button>
   );

@@ -1,0 +1,110 @@
+/* ═══════════════════════════════════════════════════════════════
+   GPX download button (Trackside). Prefix .gpx-. The buttons are the
+   shared .mv-btn; this file holds the quota note, the toast, the quota
+   dialog and the three entrance keyframes the component owns (they
+   used to live in globals.css). Tokens only; no shadows, no blur.
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes gpx-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes gpx-rise-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes gpx-scale-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Bottom variant: the button and its quota line, left-aligned like the page */
+.gpx-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.gpx-quota {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--mv-ink-3);
+}
+
+.gpx-quota[data-exhausted='true'] {
+  color: var(--mv-overdue-ink);
+}
+
+/* Toast: one step up the ramp, above the cookie bar */
+.gpx-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + var(--mv-cookie-banner-h, 0px));
+  z-index: 60;
+  transform: translateX(-50%);
+  max-width: calc(100vw - 40px);
+  padding: 12px 16px;
+  border-radius: var(--mv-radius-control);
+  background: var(--mv-surface-3);
+  border: 1px solid var(--mv-line-step);
+  color: var(--mv-ink);
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 500;
+  animation: gpx-rise-in 0.2s var(--mv-ease);
+}
+
+.gpx-toast[data-type='error'] {
+  color: var(--mv-overdue-ink);
+}
+
+/* Quota dialog: a graphite scrim, one raised panel, two actions */
+.gpx-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: color-mix(in srgb, var(--mv-bg) 60%, transparent);
+  animation: gpx-fade-in 0.15s var(--mv-ease);
+}
+
+.gpx-dialog {
+  width: 100%;
+  max-width: 448px;
+  padding: 24px;
+  border-radius: var(--mv-radius-card);
+  background: var(--mv-surface-2);
+  border: 1px solid var(--mv-line);
+  animation: gpx-scale-in 0.2s var(--mv-ease);
+}
+
+.gpx-dialog-body {
+  margin: 8px 0 24px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--mv-ink-2);
+  text-wrap: pretty;
+}
+
+.gpx-dialog-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.gpx-dialog-actions .mv-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gpx-toast,
+  .gpx-scrim,
+  .gpx-dialog {
+    animation: none;
+  }
+}

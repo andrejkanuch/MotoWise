@@ -25,9 +25,9 @@ export const revalidate = 3600;
 const EXPLORE_OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const title = 'Discover Motorcycle Routes | MotoVault';
+  const title = 'Motorcycle routes by country | MotoVault';
   const description =
-    "Browse the best motorcycle routes worldwide. Editor's picks, top-rated rides, and routes near you — curated by riders, for riders.";
+    "Motorcycle routes by country and region, each with distance, climb and riding time. Editor's picks and the most-ridden routes.";
 
   return {
     title: { absolute: title },
@@ -35,8 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: { canonical: `${BASE_URL}/explore` },
     openGraph: {
       title,
-      description:
-        "Browse the best motorcycle routes worldwide. Editor's picks, top-rated rides, and routes near you.",
+      description,
       url: `${BASE_URL}/explore`,
       siteName: 'MotoVault',
       type: 'website',
@@ -45,7 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
       title,
-      description: 'Browse the best motorcycle routes worldwide — curated by riders, for riders.',
+      description,
       images: [EXPLORE_OG_IMAGE],
     },
   };

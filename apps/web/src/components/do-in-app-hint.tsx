@@ -1,4 +1,4 @@
-import { Smartphone } from 'lucide-react';
+import { ArrowRight, Smartphone } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { GET_PATH } from '@/lib/get-link';
@@ -16,12 +16,13 @@ import '@/app/(community)/garage/garage.css';
 export function DoInAppHint({ className }: { className?: string }) {
   const t = useTranslations('AppHandoff');
   return (
-    <Link href={GET_PATH} className={className ? `app-hint ${className}` : 'app-hint'}>
-      <Smartphone aria-hidden="true" />
+    <Link
+      href={GET_PATH}
+      className={className ? `mv-link is-quiet is-tall ${className}` : 'mv-link is-quiet is-tall'}
+    >
+      <Smartphone size={16} aria-hidden="true" />
       <span>{t('doInApp')}</span>
-      <span className="app-hint-cta" aria-hidden="true">
-        &rarr;
-      </span>
+      <ArrowRight size={16} aria-hidden="true" />
     </Link>
   );
 }
