@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import type { BlogListItem } from '@/lib/blog';
-import { applyBlogFilters } from '@/lib/blog-filters';
+import { applyBlogFilters, dedupeFacets, formatReadingTime, humaniseTag } from '@/lib/blog-filters';
 
 type Category = { slug: string; name: string };
 type SearchStatus = 'idle' | 'loading' | 'error';
@@ -23,12 +23,6 @@ const TYPE_LABEL: Record<BlogPostType, string> = {
 
 function typeLabel(value: string): string {
   return TYPE_LABEL[value as BlogPostType] ?? value;
-}
-
-/** Reading-time strings arrive as "7 min" / "7"; keep the figure condensed. */
-function splitReadingTime(value: string): { figure: string; rest: string } {
-  const match = /^(\d+)\s*(.*)$/.exec(value.trim());
-  return match ? { figure: match[1], rest: match[2] } : { figure: value, rest: '' };
 }
 
 function formatDate(date: string): string {
@@ -138,7 +132,13 @@ export function BlogSearch({
     [articles, q, searchSlugs, type, category, keyword],
   );
 
-  const categoryName = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
+  // Category facets after the type chips: humanised, one chip per label.
+  const categoryChips = useMemo(
+    () => dedupeFacets(categories, Object.values(TYPE_LABEL)),
+    [categories],
+  );
+  const categoryName = (slug: string) =>
+    humaniseTag(categories.find((c) => c.slug === slug)?.name ?? slug);
   const showResults = isActive;
   const searchPending = Boolean(q) && status === 'loading';
 
@@ -170,7 +170,7 @@ export function BlogSearch({
             {TYPE_LABEL[t]}
           </button>
         ))}
-        {categories.map((c) => (
+        {categoryChips.map((c) => (
           <button
             key={c.slug}
             type="button"
@@ -178,7 +178,7 @@ export function BlogSearch({
             aria-pressed={category === c.slug}
             className="mv-chip"
           >
-            {c.name}
+            {humaniseTag(c.name)}
           </button>
         ))}
       </div>
@@ -201,7 +201,7 @@ export function BlogSearch({
           )}
           {keyword && (
             <FilterChip
-              label={`#${keyword}`}
+              label={humaniseTag(keyword)}
               onRemove={() => setParams((p) => p.delete('keyword'))}
             />
           )}
@@ -297,7 +297,6 @@ function ArticleFeed({
     <ol className="mv-feed">
       {articles.map((article, index) => {
         const isFeatured = featured && index === 0;
-        const reading = splitReadingTime(article.readingTime);
         return (
           <li key={article.slug} className={`mv-feed-item${isFeatured ? ' is-featured' : ''}`}>
             <Link href={`/blog/${article.slug}`}>
@@ -315,11 +314,7 @@ function ArticleFeed({
               )}
               <div className="mv-feed-meta">
                 <time dateTime={article.date}>{formatDate(article.date)}</time>
-                <span>
-                  <span className="mv-figure">{reading.figure}</span>{' '}
-                  {reading.rest ? `${reading.rest} ` : ''}
-                  {strings.readingTime}
-                </span>
+                <span>{formatReadingTime(article.readingTime, strings.readingTime)}</span>
               </div>
               <div>
                 {/* The whole row is the link, so the title is the link text; the

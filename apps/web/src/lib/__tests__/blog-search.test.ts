@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Article } from '@/lib/blog';
-import { applyBlogFilters } from '@/lib/blog-filters';
+import { applyBlogFilters, dedupeFacets, formatReadingTime, humaniseTag } from '@/lib/blog-filters';
 
 function article(over: Partial<Article> & { slug: string }): Article {
   return {
@@ -67,5 +67,30 @@ describe('applyBlogFilters', () => {
 
   it('yields an empty list when filters match nothing', () => {
     expect(applyBlogFilters(all, { type: 'maintenance' })).toEqual([]);
+  });
+});
+
+describe('blog index meta and facets', () => {
+  it('renders the reading-time unit exactly once, whatever the stored value', () => {
+    for (const stored of ['8', '8 min', '8 min read', ' 8 ']) {
+      expect(formatReadingTime(stored, 'min read')).toBe('8 min read');
+    }
+    expect(formatReadingTime('7 min', 'Min. Lesezeit')).toBe('7 Min. Lesezeit');
+  });
+
+  it('humanises tag slugs into sentence case', () => {
+    expect(humaniseTag('brand-guide')).toBe('Brand guide');
+    expect(humaniseTag('Seasonal')).toBe('Seasonal');
+    expect(humaniseTag('diy')).toBe('DIY');
+  });
+
+  it('dedupes facets case-insensitively and across a plural s, including against labels already shown', () => {
+    const facets = [
+      { slug: 'maintenance', name: 'maintenance' },
+      { slug: 'touring', name: 'touring' },
+      { slug: 'Touring-2', name: 'Touring' },
+      { slug: 'guides', name: 'guides' },
+    ];
+    expect(dedupeFacets(facets, ['Maintenance', 'Guide']).map((f) => f.slug)).toEqual(['touring']);
   });
 });

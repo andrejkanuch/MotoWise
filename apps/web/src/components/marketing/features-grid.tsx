@@ -197,6 +197,10 @@ const FEATURES_CSS = `
 
 .fx-art { position: relative; }
 .fx-art-phone { display: flex; justify-content: center; }
+/* The expense capture ends in the app's floating tab bar with the copper Save
+   bar showing beneath it; the frame stops short of both (screen ≈ the top 86%
+   of the capture, cut just under the Details field). */
+.fx-art-phone .mv-phone-mockup { aspect-ratio: 9 / 16.4; }
 .fx-screen {
   position: relative;
   width: 100%;
@@ -236,16 +240,19 @@ const FEATURES_CSS = `
 /* Trips: the screen runs off the right edge of the viewport; the section
    clips the overshoot so the page never relies on body overflow. Container
    units measure the section, never the scrollbar. */
+/* The window keeps one aspect at every width, so it always holds the same
+   slice of the capture: from just above the map's town label to just under
+   the route's southern end, stopping before the sheet's title line. */
 .fx-art-bleed {
   margin-right: calc(-1 * (max(0px, (100cqw - var(--mv-container)) / 2) + 40px));
-  height: 560px;
+  aspect-ratio: 6 / 5;
   overflow: hidden;
   border: 1px solid var(--mv-line);
   border-right: 0;
   border-radius: var(--mv-radius-crop) 0 0 var(--mv-radius-crop);
   background: var(--mv-surface);
 }
-.fx-bleed-img { width: 100%; height: 100%; object-fit: cover; object-position: center 8%; display: block; }
+.fx-bleed-img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; display: block; }
 
 /* The stripe is laid down by the scroll. The plate's two signature
    keyframes (mv-plate-settle, mv-plate-stripe-lay) run on the plate's own
@@ -286,7 +293,7 @@ const FEATURES_CSS = `
   .fx-band-grid { gap: 40px; }
   .fx-band-copy { padding: 96px 0; }
   .fx-art-cut { width: 300px; height: 380px; margin: 64px 0 0; }
-  .fx-art-bleed { margin-right: -24px; height: 420px; }
+  .fx-art-bleed { margin-right: -24px; }
 }
 @media (max-width: 767px) {
   .fx-block { grid-template-columns: minmax(0, 1fr); }
@@ -301,6 +308,5 @@ const FEATURES_CSS = `
 @media (max-width: 480px) {
   .fx-container { padding: 0 20px; }
   .fx-art-cut { width: 100%; height: 320px; }
-  .fx-art-bleed { height: 340px; }
 }
 `;

@@ -1076,6 +1076,15 @@ html:not(.dark) .mv-dark-scene {
   --mv-overdue-ink: #f0675a;
   color-scheme: dark;
 }
+/* A dark scene ends on a hard edge in the light scheme: a fade from graphite
+   into paper reads as a grey smoke band. The scrims' edge stops (read from
+   outside the scene in dark, where they blend into the page) are pinned to
+   the scene's own graphite here, so they only fade between graphite stops. */
+html:not(.dark) .mv-dark-scene {
+  --cta-edge-top: var(--mv-bg-2);
+  --cta-edge-bottom: var(--mv-bg);
+  --rh-edge-bottom: var(--mv-bg);
+}
 html:not(.dark) .mv-dark-scene .mv-plate::after {
   box-shadow: none;
 }

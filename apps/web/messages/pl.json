@@ -43,8 +43,10 @@
     "description": "Przejazdy, serwis i koszty: jeden dziennik dla każdego motocykla w twoim garażu. Za darmo, stworzony przez motocyklistę.",
     "downloadIos": "Pobierz na iOS",
     "trustLineStrip": "Za darmo · iOS + Android · Stworzony dla motocykli",
-    "plateCaption": "Gotowy · serwis łańcucha za 1,882 km",
-    "plateIdentity": "Africa Twin · 2022"
+    "plateCaption": "Gotowy · przegląd za 2,446 km",
+    "plateIdentity": "Street Glide Special · 2022",
+    "plateFigure": "37,787",
+    "plateUnit": "km"
   },
   "Features": {
     "trip": {
@@ -99,10 +101,10 @@
         "fig1Label": "sposoby ustawienia serwisu: według przebiegu lub daty",
         "fig2Value": "3",
         "fig2Label": "stany tablicy: gotowy, wkrótce, po terminie",
-        "plateFigure": "26,118",
+        "plateFigure": "40,073",
         "plateUnit": "km",
-        "plateCaption": "Wkrótce · serwis łańcucha za 82 km",
-        "plateIdentity": "Africa Twin · 2022"
+        "plateCaption": "Wkrótce · przegląd za 161 km",
+        "plateIdentity": "Street Glide Special · 2022"
       },
       "expenses": {
         "title": "Dowiedz się, ile naprawdę kosztuje Twój motocykl.",
@@ -2744,7 +2746,8 @@
     "ratingOutOf": "/ 5",
     "ratingLabelCount": "Ocena w App Store od {count, plural, one {# motocyklisty} few {# motocyklistów} many {# motocyklistów} other {# motocyklisty}}.",
     "modelsLabel": "modeli w katalogu motocykli, z bazy pojazdów NHTSA.",
-    "categoriesLabel": "kategorii wydatków, od paliwa i ubezpieczenia po części i odzież."
+    "categoriesLabel": "kategorii wydatków, od paliwa i ubezpieczenia po części i odzież.",
+    "routesLabel": "tras motocyklowych do odkrycia, w {countries, plural, one {# kraju} few {# krajach} many {# krajach} other {# krajach}}."
   },
   "DiagnosticsDemo": {
     "aiTag": "Napędzane przez AI",

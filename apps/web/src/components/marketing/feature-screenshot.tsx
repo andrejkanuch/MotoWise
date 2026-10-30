@@ -2,8 +2,9 @@ import Image from 'next/image';
 
 /* The screen's radius comes from the kit (`.mv-phone-mockup > *`: 36 / 30 /
    26, concentric with the frame at each breakpoint). When the hero has taken
-   the first shot (feature-content-page's cut), the frame is the pair's only
-   child and starts at the gutter.
+   the first shot (feature-content-page's cut), the pair is `frameless`: the
+   next capture sits on a crop panel (radius 28, keyline, no device frame),
+   so the hero's screen is not shown twice in two treatments.
    The pair shares one axis: the phone closes to the end of its column and the
    panel starts its own, so the two objects meet around the 48px gap. Below
    900px they stack and both start at the gutter. The frame is capped at 280px
@@ -20,6 +21,17 @@ const SCREENSHOT_PAIR_CSS = `
   overflow: hidden;
   justify-self: start;
 }
+.mv-shot-crop {
+  width: min(440px, 100%);
+  aspect-ratio: 4 / 5;
+  background: var(--mv-surface);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-radius-crop);
+  overflow: hidden;
+  justify-self: start;
+}
+/* A crop never ends on a sliced line of text: the last stretch fades out. */
+.mv-shot-fade { mask-image: linear-gradient(to bottom, black calc(100% - 80px), transparent); }
 @media (max-width: 900px) {
   .mv-shot-pair .mv-phone-mockup { width: 240px; justify-self: start; }
 }
@@ -39,13 +51,42 @@ const SCREENSHOT_PAIR_CSS = `
 export function FeatureScreenshotPair({
   screenshots,
   paddingTop = 0,
+  frameless = false,
 }: {
   screenshots: { src: string; alt: string }[];
   /** Space above the pair; the hero cut sits on its own hairline, so the pair opens a new interval. */
   paddingTop?: number;
+  /** The hero already shows a capture: draw the next one as a crop panel, no device frame. */
+  frameless?: boolean;
 }) {
   const [first, second] = screenshots;
   if (!first) return null;
+
+  if (frameless) {
+    return (
+      <div
+        className="mv-section-inner mv-reveal mv-shot-pair"
+        style={{ paddingTop, paddingBottom: 0 }}
+      >
+        <style
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: static CSS
+          dangerouslySetInnerHTML={{ __html: SCREENSHOT_PAIR_CSS }}
+        />
+        <div className="mv-shot-crop">
+          <Image
+            src={first.src}
+            alt={first.alt}
+            width={1206}
+            height={2622}
+            sizes="440px"
+            loading="lazy"
+            className="mv-shot-fade"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

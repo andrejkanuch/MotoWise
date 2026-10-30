@@ -35,9 +35,7 @@ export function Faq() {
           <details key={index} className="faq-item mv-disclosure is-plus" open={position === 0}>
             <summary className="faq-q">
               <span>{t(`items.${index}.question`)}</span>
-              <span className="faq-mark mv-disclosure-mark" aria-hidden="true">
-                +
-              </span>
+              <span className="faq-mark mv-disclosure-mark" aria-hidden="true" />
             </summary>
             <div className="faq-a">{t(`items.${index}.answer`)}</div>
           </details>
@@ -71,15 +69,31 @@ export function Faq() {
             }
             .faq-q::-webkit-details-marker { display: none; }
             .faq-q:hover { color: var(--mv-copper-text); }
+            /* A 16px plus drawn in two 2px bars (a glyph rendered ~8px in
+               the condensed face); the kit turns it to × on open. */
             .faq-mark {
-              font-family: var(--mv-font-display);
-              font-size: 20px;
-              font-weight: 600;
-              line-height: 1;
-              color: var(--mv-ink-3);
+              position: relative;
+              width: 16px;
+              height: 16px;
+              /* centred on the question's first line (17px × 1.45) */
+              align-self: flex-start;
+              margin-top: 4px;
+              color: var(--mv-ink-2);
               flex-shrink: 0;
               transform-origin: center;
             }
+            .faq-mark::before,
+            .faq-mark::after {
+              content: '';
+              position: absolute;
+              left: 0;
+              top: 7px;
+              width: 16px;
+              height: 2px;
+              border-radius: 1px;
+              background: currentColor;
+            }
+            .faq-mark::after { transform: rotate(90deg); }
             .faq-item[open] .faq-mark { color: var(--mv-ink); }
             .faq-a {
               padding: 0 0 24px;

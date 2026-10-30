@@ -24,6 +24,7 @@ import {
   getRelatedArticles,
 } from '@/lib/blog';
 import { extractMakeModel, extractModel, resolveCtaAngle } from '@/lib/blog-cta';
+import { formatReadingTime } from '@/lib/blog-filters';
 import { stripHtmlComments } from '@/lib/blog-mdx';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { CtaPlacement } from '@/lib/cta-taxonomy';
@@ -111,12 +112,6 @@ const mdxComponents = {
     </div>
   ),
 };
-
-/** Reading-time strings arrive as "7 min" / "7"; keep the figure condensed. */
-function splitReadingTime(value: string): { figure: string; rest: string } {
-  const match = /^(\d+)\s*(.*)$/.exec(value.trim());
-  return match ? { figure: match[1], rest: match[2] } : { figure: value, rest: '' };
-}
 
 function formatDate(date: string): string {
   return new Date(date).toLocaleDateString('en-US', {
@@ -229,7 +224,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
   const related = await getRelatedArticles(slug, article.category, locale);
   const author = getAuthor(article.author) ?? getDefaultAuthor();
-  const readingTime = splitReadingTime(article.readingTime);
+  const readingTime = formatReadingTime(article.readingTime, t('readingTime'));
 
   // Use the canonical URL (English for fallback locales) so the JSON-LD graph
   // self-identifies as the same URL as <link rel="canonical">, rather than the
@@ -299,10 +294,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           <p className="mv-read-lede">{article.excerpt}</p>
           <AuthorByline author={author} date={article.date} />
           <div className="mv-read-meta">
-            <span>
-              <span className="mv-figure">{readingTime.figure}</span>
-              {readingTime.rest ? ` ${readingTime.rest}` : ''} {t('readingTime')}
-            </span>
+            <span>{readingTime}</span>
             {article.dateModified && article.dateModified !== article.date && (
               <>
                 <span aria-hidden="true">·</span>
@@ -402,23 +394,19 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
               {t('relatedArticles')}
             </h2>
             <ul className="mv-rows">
-              {related.map((relatedArticle) => {
-                const reading = splitReadingTime(relatedArticle.readingTime);
-                return (
-                  <li key={relatedArticle.slug}>
-                    <Link href={`/blog/${relatedArticle.slug}`} className="mv-row">
-                      <span>
-                        <span className="mv-row-title">{relatedArticle.title}</span>
-                        <span className="mv-row-sub">{relatedArticle.excerpt}</span>
-                      </span>
-                      <span className="mv-row-aside">
-                        <span className="mv-figure">{reading.figure}</span>
-                        {reading.rest ? ` ${reading.rest}` : ''} {t('readingTime')}
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
+              {related.map((relatedArticle) => (
+                <li key={relatedArticle.slug}>
+                  <Link href={`/blog/${relatedArticle.slug}`} className="mv-row">
+                    <span>
+                      <span className="mv-row-title">{relatedArticle.title}</span>
+                      <span className="mv-row-sub">{relatedArticle.excerpt}</span>
+                    </span>
+                    <span className="mv-row-aside">
+                      {formatReadingTime(relatedArticle.readingTime, t('readingTime'))}
+                    </span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </section>
         )}

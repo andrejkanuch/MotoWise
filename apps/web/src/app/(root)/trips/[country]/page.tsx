@@ -4,8 +4,9 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { cache } from 'react';
 import { StoreLink } from '@/components/marketing/store-buttons';
+import { curatorName, humanRegionName } from '@/components/trip-detail/display-names';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
-import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
+import { countryDisplayName } from '@/lib/geo-names';
 import { buildRouteHeroMapUrl } from '@/lib/map/static-image-provider';
 import { isTargetMarket } from '@/lib/seo/market-indexing';
 import '@/components/trip-detail/trip-detail.css';
@@ -253,7 +254,8 @@ export default async function TripByIdPage({ params }: PageParams) {
   // --- Render the full page for trips without slugs ---
 
   const countryName = countryDisplayName(trip.countryCode);
-  const regionName = trip.regionCode ? regionDisplayName(trip.countryCode, trip.regionCode) : null;
+  const regionName = humanRegionName(trip.countryCode, trip.regionCode);
+  const curator = curatorName(trip.organiser.displayName);
 
   // Group waypoints by day
   const waypointsByDay = new Map<number, TripData['waypoints']>();
@@ -393,7 +395,12 @@ export default async function TripByIdPage({ params }: PageParams) {
               </StoreLink>
             </div>
             <p className="rh-author">
-              Curated by <strong>{trip.organiser.displayName}</strong> · {createdLabel}
+              {curator && (
+                <>
+                  Curated by <strong>{curator}</strong> ·{' '}
+                </>
+              )}
+              {createdLabel}
             </p>
           </div>
         </section>

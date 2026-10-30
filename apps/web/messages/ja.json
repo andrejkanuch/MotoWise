@@ -43,8 +43,10 @@
     "description": "ライド、メンテナンス、費用。ガレージのすべてのバイクを1冊の記録帳に。無料で、ライダーが作っています。",
     "downloadIos": "iOS版をダウンロード",
     "trustLineStrip": "無料 · iOS + Android · バイク専用",
-    "plateCaption": "良好 · チェーン整備まであと1,882 km",
-    "plateIdentity": "Africa Twin · 2022"
+    "plateCaption": "良好 · 定期点検まであと2,446 km",
+    "plateIdentity": "Street Glide Special · 2022",
+    "plateFigure": "37,787",
+    "plateUnit": "km"
   },
   "Features": {
     "trip": {
@@ -99,10 +101,10 @@
         "fig1Label": "メンテナンスの設定方法：距離または日付",
         "fig2Value": "3",
         "fig2Label": "プレートの状態：良好、まもなく、期限超過",
-        "plateFigure": "26,118",
+        "plateFigure": "40,073",
         "plateUnit": "km",
-        "plateCaption": "まもなく · チェーン整備まであと82 km",
-        "plateIdentity": "Africa Twin · 2022"
+        "plateCaption": "まもなく · 定期点検まであと161 km",
+        "plateIdentity": "Street Glide Special · 2022"
       },
       "expenses": {
         "title": "バイクの本当のコストを知ろう。",
@@ -2744,7 +2746,8 @@
     "ratingOutOf": "/ 5",
     "ratingLabelCount": "{count, plural, other {#人のライダーによるApp Storeの評価。}}",
     "modelsLabel": "のモデルをカタログに収録。NHTSAの車両データベースから。",
-    "categoriesLabel": "の費用カテゴリ。燃料や保険から部品、ギアまで。"
+    "categoriesLabel": "の費用カテゴリ。燃料や保険から部品、ギアまで。",
+    "routesLabel": "本のツーリングルート。{countries}か国から探せます。"
   },
   "DiagnosticsDemo": {
     "aiTag": "AI搭載",

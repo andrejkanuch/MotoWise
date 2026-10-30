@@ -18,7 +18,9 @@ export async function CtaSection() {
 
   return (
     // The edge colours are read on this wrapper, OUTSIDE the dark scene, so
-    // the band blends into the page ground above and below in both schemes.
+    // in dark the band blends into the page ground above and below. In light,
+    // design-system.css pins them to the scene's graphite: a hard edge, no
+    // grey fade into paper.
     <div
       style={
         {

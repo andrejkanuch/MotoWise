@@ -7,8 +7,8 @@ import { PricingCard } from './pricing-card';
 import './pro.css';
 
 export const metadata: Metadata = {
-  title: { absolute: 'MotoVault Pro: unlimited bikes and AI' },
-  description: `MotoVault Pro adds unlimited bikes, unlimited AI diagnostics, unlimited receipt scans, GPX export and offline trip maps. Maintenance and expense logging stay free. ${WEB_OFFER_COPY.metaCallToAction}`,
+  title: { absolute: 'MotoVault Pro: unlimited bikes and offline trip maps' },
+  description: `MotoVault Pro adds unlimited bikes, offline trip maps, unlimited GPX export and receipt scans, and uncapped AI diagnostics. Maintenance and expense logging stay free. ${WEB_OFFER_COPY.metaCallToAction}`,
   alternates: { canonical: 'https://motovault.app/pro' },
 };
 
@@ -24,7 +24,7 @@ const FAQ = [
   },
   {
     q: 'Why a subscription rather than a one-off payment?',
-    a: 'AI diagnostics, receipt scanning and offline map data cost us something every time you use them (the AI, map and hosting bills). A subscription pays for that usage and lets us keep shipping, while logging maintenance and expenses stays free for everyone.',
+    a: 'Offline map data, receipt scanning and AI diagnostics cost us something every time you use them (the AI, map and hosting bills). A subscription pays for that usage and lets us keep shipping, while logging maintenance and expenses stays free for everyone.',
   },
   {
     q: 'Is my data private?',
@@ -65,14 +65,15 @@ export default function ProPage() {
         <div className="mvp-hero-grid">
           <div>
             <h1 className="mv-section-title">
-              More bikes. More AI.
+              More bikes. Offline maps.
               <br />
               <span className="mv-muted">Logging stays free.</span>
             </h1>
             <p className="mvp-lead">
-              One subscription lifts the limits on bikes, AI diagnostics and receipt scans, and adds
-              GPX export and offline trip maps. Maintenance, expenses, rides and trips are free for
-              every rider, for good, on iPhone, Android and the web.
+              One subscription puts every bike in your garage, saves trip maps for offline riding
+              and lifts the caps on GPX export, receipt scans and AI diagnostics. Maintenance,
+              expenses, rides and trips are free for every rider, for good, on iPhone, Android and
+              the web.
             </p>
           </div>
 

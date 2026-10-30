@@ -43,8 +43,10 @@
     "description": "Trajets, entretien et coûts : un carnet de bord pour chaque moto de ton garage. Gratuit, et conçu par un motard.",
     "downloadIos": "Télécharger pour iOS",
     "trustLineStrip": "Gratuit · iOS + Android · Conçu pour la moto",
-    "plateCaption": "Prête · entretien chaîne dans 1 882 km",
-    "plateIdentity": "Africa Twin · 2022"
+    "plateCaption": "Prête · révision dans 2 446 km",
+    "plateIdentity": "Street Glide Special · 2022",
+    "plateFigure": "37 787",
+    "plateUnit": "km"
   },
   "Features": {
     "trip": {
@@ -99,10 +101,10 @@
         "fig1Label": "façons de programmer un entretien : par distance ou par date",
         "fig2Value": "3",
         "fig2Label": "états de la plaque : prête, bientôt dû, en retard",
-        "plateFigure": "26 118",
+        "plateFigure": "40 073",
         "plateUnit": "km",
-        "plateCaption": "Bientôt dû · entretien chaîne dans 82 km",
-        "plateIdentity": "Africa Twin · 2022"
+        "plateCaption": "Bientôt dû · révision dans 161 km",
+        "plateIdentity": "Street Glide Special · 2022"
       },
       "expenses": {
         "title": "Sachez ce que votre moto coûte vraiment.",
@@ -2744,7 +2746,8 @@
     "ratingOutOf": "/ 5",
     "ratingLabelCount": "Note App Store donnée par {count, plural, one {# motard} other {# motards}}.",
     "modelsLabel": "modèles dans le catalogue, issus de la base de véhicules NHTSA.",
-    "categoriesLabel": "catégories de dépenses, du carburant et de l'assurance aux pièces et à l'équipement."
+    "categoriesLabel": "catégories de dépenses, du carburant et de l'assurance aux pièces et à l'équipement.",
+    "routesLabel": "itinéraires moto à explorer, dans {countries, plural, one {# pays} other {# pays}}."
   },
   "DiagnosticsDemo": {
     "aiTag": "Propulsé par l'IA",

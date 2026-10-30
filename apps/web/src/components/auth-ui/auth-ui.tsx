@@ -45,15 +45,17 @@ const BRAND_LOGO = '/images/marketing/MotoVault.png';
 
 /**
  * The Bike Plate on the photo panel: the one object the site shares with the
- * app. Same demo bike and ledger as the home hero (hero.tsx) and the explore
- * app promo, verbatim, so the plate tells one story across pages.
+ * app. Same demo bike and ledger as the home hero (`Hero.plate*` in
+ * messages/en.json) and the app captures (Street Glide Special, 23,480 mi),
+ * verbatim, so the plate tells one story across pages. The auth pages are
+ * English-only, so the plate reads in miles like the English hero.
  */
 const PANEL_PLATE = {
-  figure: '24,318',
-  unit: 'km',
-  caption: 'Ready · chain service in 1,882 km',
+  figure: '23,480',
+  unit: 'mi',
+  caption: 'Ready · next service in 1,520 mi',
   racingNumber: '27',
-  identity: 'Africa Twin · 2022',
+  identity: 'Street Glide Special · 2022',
 } as const;
 
 function Brand({ label }: { label: string }) {

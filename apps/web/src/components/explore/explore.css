@@ -559,13 +559,20 @@ html:not(.dark) .xp-tile {
       one row; each control carries its own hairline and copper focus ── */
 .xp-field {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   gap: 8px;
 }
 
+/* The query takes the whole first row (it was crushed to an icon stub
+   beside two selects and the button); filters and submit wrap below. */
 .xp-field-main {
-  flex: 1;
+  flex: 1 1 100%;
   min-width: 0;
+}
+
+.xp-field-main > :first-child {
+  white-space: nowrap;
 }
 
 .xp-field-select {
@@ -884,12 +891,6 @@ html:not(.dark) .xp-tile {
   .xp-continents {
     grid-template-columns: 1fr;
     gap: 0;
-  }
-  .xp-field {
-    flex-wrap: wrap;
-  }
-  .xp-field-main {
-    flex-basis: 100%;
   }
   .xp-field-select {
     flex: 1;

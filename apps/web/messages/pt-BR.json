@@ -43,8 +43,10 @@
     "description": "Rolês, manutenção e custos — um diário de bordo para cada moto da sua garagem. Grátis, e feito por um motociclista.",
     "downloadIos": "Baixar para iOS",
     "trustLineStrip": "Grátis · iOS + Android · Feito para motos",
-    "plateCaption": "Em dia · revisão da corrente em 1,882 km",
-    "plateIdentity": "Africa Twin · 2022"
+    "plateCaption": "Em dia · revisão em 2,446 km",
+    "plateIdentity": "Street Glide Special · 2022",
+    "plateFigure": "37,787",
+    "plateUnit": "km"
   },
   "Features": {
     "trip": {
@@ -99,10 +101,10 @@
         "fig1Label": "formas de agendar uma revisão: por distância ou por data",
         "fig2Value": "3",
         "fig2Label": "estados da placa: em dia, vence em breve, atrasada",
-        "plateFigure": "26,118",
+        "plateFigure": "40,073",
         "plateUnit": "km",
-        "plateCaption": "Vence em breve · revisão da corrente em 82 km",
-        "plateIdentity": "Africa Twin · 2022"
+        "plateCaption": "Vence em breve · revisão em 161 km",
+        "plateIdentity": "Street Glide Special · 2022"
       },
       "expenses": {
         "title": "Saiba quanto sua moto realmente custa.",
@@ -2744,7 +2746,8 @@
     "ratingOutOf": "/ 5",
     "ratingLabelCount": "Nota na App Store de {count, plural, one {# motociclista} other {# motociclistas}}.",
     "modelsLabel": "modelos no catálogo de motos, da base de dados de veículos da NHTSA.",
-    "categoriesLabel": "categorias de despesa, de combustível e seguro a peças e equipamento."
+    "categoriesLabel": "categorias de despesa, de combustível e seguro a peças e equipamento.",
+    "routesLabel": "rotas de moto para explorar, em {countries, plural, one {# país} other {# países}}."
   },
   "DiagnosticsDemo": {
     "aiTag": "Com tecnologia de IA",

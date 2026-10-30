@@ -1,6 +1,6 @@
 import type { TripTemplateNode } from '@/lib/fetch-places';
-import { regionDisplayName } from '@/lib/geo-names';
 import { relativeTrip } from '@/lib/seo/canonical';
+import { humanRegionName } from './display-names';
 
 /**
  * "More routes in {scope}" internal-link cluster shown on a trip detail page.
@@ -29,9 +29,7 @@ export function SiblingRoutesSection({
           const href = relativeTrip(r.countryCode ?? '', r.regionCode ?? '', r.slug ?? '');
           const km = r.distanceM ? Math.round(r.distanceM / 1000) : null;
           const meta = [
-            r.regionCode
-              ? regionDisplayName(r.countryCode ?? fallbackCountryCode, r.regionCode)
-              : null,
+            humanRegionName(r.countryCode ?? fallbackCountryCode, r.regionCode),
             km ? `${km.toLocaleString('en-US')} km` : null,
           ]
             .filter(Boolean)

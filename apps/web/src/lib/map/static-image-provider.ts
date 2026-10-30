@@ -161,6 +161,12 @@ export interface RouteHeroMapOptions {
   color: string;
   width?: number;
   height?: number;
+  /**
+   * Mapbox `padding` around the auto-fitted overlays: one number, or
+   * `top,right,bottom,left` in image pixels. A wide left value frames the
+   * route in the right half, clear of copy laid over the left.
+   */
+  padding?: number | string;
 }
 
 /**
@@ -172,14 +178,14 @@ export function buildRouteHeroMapUrl(opts: RouteHeroMapOptions): string | null {
   const token = mapboxTokenForStaticImages();
   if (!token || opts.waypoints.length === 0) return null;
 
-  const { color, width = 1200, height = 675 } = opts;
+  const { color, width = 1200, height = 675, padding = 60 } = opts;
   const pins = [...opts.waypoints]
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .slice(0, MAX_HERO_PINS)
     .map((wp) => `pin-s+${color}(${wp.lng.toFixed(5)},${wp.lat.toFixed(5)})`);
 
   const build = (overlays: string[]) =>
-    `${DARK_BASE}/${overlays.join(',')}/auto/${width}x${height}@2x?padding=60&access_token=${token}`;
+    `${DARK_BASE}/${overlays.join(',')}/auto/${width}x${height}@2x?padding=${padding}&access_token=${token}`;
 
   if (opts.polyline) {
     for (const points of HERO_POLYLINE_POINTS) {

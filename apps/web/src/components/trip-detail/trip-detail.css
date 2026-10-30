@@ -14,7 +14,7 @@
 /* ── Hero ── */
 .rh {
   position: relative;
-  padding: 120px 40px 64px;
+  padding: 120px 0 64px;
   isolation: isolate;
   overflow: hidden;
   background: var(--mv-bg);
@@ -24,14 +24,16 @@
    then sits in .mv-dark-scene (graphite tokens in both schemes); the scrim's
    last stop is --rh-edge-bottom, read on a wrapper OUTSIDE the scene (the
    closing CTA's pattern), so the band blends into the page ground below. The
-   map is desaturated and dimmed so the bone ink holds 4.5:1 everywhere. */
+   map keeps most of its colour so the route reads; the image is padded so
+   the line sits in the right half, and the scrim darkens only the left half
+   where the copy sits (bone ink holds 4.5:1 there). */
 .rh-map-bg {
   position: absolute;
   inset: 0;
   z-index: -2;
   background-size: cover;
   background-position: center;
-  filter: saturate(0.5) brightness(0.7);
+  filter: saturate(0.85) brightness(0.95);
 }
 
 .rh-scrim {
@@ -41,15 +43,13 @@
   background:
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--mv-bg) 88%, transparent) 0%,
-      color-mix(in srgb, var(--mv-bg) 56%, transparent) 50%,
-      color-mix(in srgb, var(--mv-bg) 28%, transparent) 100%
+      color-mix(in srgb, var(--mv-bg) 92%, transparent) 0%,
+      color-mix(in srgb, var(--mv-bg) 72%, transparent) 32%,
+      transparent 52%
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--mv-bg) 55%, transparent) 0%,
-      transparent 30%,
-      color-mix(in srgb, var(--mv-bg) 88%, transparent) 78%,
+      transparent 84%,
       var(--rh-edge-bottom, var(--mv-bg)) 100%
     );
 }
@@ -57,6 +57,7 @@
 .rh-inner {
   max-width: var(--mv-container);
   margin: 0 auto;
+  padding: 0 40px;
   width: 100%;
 }
 
@@ -176,7 +177,8 @@
 .tabnav-inner {
   max-width: var(--mv-container);
   margin: 0 auto;
-  padding: 0 40px;
+  /* The tabs carry 14px of padding: their labels line up with the hero copy */
+  padding: 0 26px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -619,11 +621,30 @@
 /* ── Responsive ── */
 @media (max-width: 900px) {
   .rh {
-    padding: 96px 24px 48px;
+    padding: 96px 0 48px;
+  }
+
+  .rh-inner {
+    padding: 0 24px;
+  }
+
+  /* The copy spans the full width here: the route (framed right) shows
+     through an even scrim instead of the desktop's left-half one */
+  .rh-map-bg {
+    background-position: 75% center;
+  }
+
+  .rh-scrim {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--mv-bg) 70%, transparent) 0%,
+      color-mix(in srgb, var(--mv-bg) 82%, transparent) 84%,
+      var(--rh-edge-bottom, var(--mv-bg)) 100%
+    );
   }
 
   .tabnav-inner {
-    padding: 0 24px;
+    padding: 0 10px;
   }
 
   .rsec {
@@ -672,7 +693,11 @@
 
 @media (max-width: 480px) {
   .rh {
-    padding: 96px 20px 48px;
+    padding: 96px 0 48px;
+  }
+
+  .rh-inner {
+    padding: 0 20px;
   }
 
   .rh-figures {
@@ -690,7 +715,7 @@
   }
 
   .tabnav-inner {
-    padding: 0 20px;
+    padding: 0 6px;
   }
 
   .rsec {

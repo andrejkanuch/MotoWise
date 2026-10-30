@@ -136,8 +136,7 @@
 }
 
 /* Plan toggle: the shared segmented control, two equal halves at the 44px
-   touch height. "Annual −30%" stays on one line from 400; below it the
-   saving drops under the word and the 44 holds both lines. */
+   touch height. "Annual −30%" stays on one line at every width down to 320. */
 .mvp-seg {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -148,13 +147,6 @@
   white-space: nowrap;
   line-height: 1.2;
   padding: 4px 10px;
-}
-@media (max-width: 399px) {
-  .mvp-seg > button {
-    flex-direction: column;
-    gap: 0;
-    white-space: normal;
-  }
 }
 .mvp-sr-only {
   position: absolute;

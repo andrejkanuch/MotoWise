@@ -11,6 +11,7 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import { cache } from 'react';
 import { GpxDownloadButton } from '@/components/gpx-download-button';
 import { StoreLink } from '@/components/marketing/store-buttons';
+import { curatorName, humanRegionName } from '@/components/trip-detail/display-names';
 import { SiblingRoutesSection } from '@/components/trip-detail/sibling-routes-section';
 import { TripDetailMap } from '@/components/trip-detail/trip-detail-map';
 import { BASE_URL } from '@/lib/constants';
@@ -20,7 +21,7 @@ import {
   fetchTripTemplatesByCountry,
   type TripTemplateNode,
 } from '@/lib/fetch-places';
-import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
+import { countryDisplayName } from '@/lib/geo-names';
 import { gqlServerFetcher, isDefinitiveGraphQLError } from '@/lib/graphql-server';
 import { buildRouteHeroMapUrl } from '@/lib/map/static-image-provider';
 import { relativeTrip } from '@/lib/seo/canonical';
@@ -36,6 +37,12 @@ type TripData = NonNullable<WebTripBySlugQuery['tripBySlug']>;
 // place copper is a data mark (apps/mobile/DESIGN.md, "Ridden-route copper").
 // Mapbox wants bare hex.
 const MAP_ROUTE_COLOR = palette.plateCopper.replace('#', '');
+
+/**
+ * The hero map frames the route in its right half, clear of the copy on the
+ * left: Mapbox padding (top,right,bottom,left) on the 1200×675 image.
+ */
+const HERO_MAP_PADDING = '72,72,72,660';
 
 /** The hero band's bottom edge, read OUTSIDE .mv-dark-scene so it blends into the page ground. */
 const HERO_EDGE_STYLE = { '--rh-edge-bottom': 'var(--mv-bg)' } as React.CSSProperties;
@@ -111,7 +118,7 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
 
   const countryCode = trip.countryCode ?? country.toUpperCase();
   const countryName = countryDisplayName(countryCode);
-  const regionName = trip.regionCode ? regionDisplayName(countryCode, trip.regionCode) : null;
+  const regionName = humanRegionName(countryCode, trip.regionCode);
   const dayCount = trip.dayCount ?? 1;
   const title = `${trip.title}: ${dayCount}-day motorcycle trip${regionName ? ` in ${regionName}` : ''}, ${countryName}`;
   const description = trip.description.slice(0, 155);
@@ -336,7 +343,7 @@ export default async function TripPage({ params }: PageParams) {
   const countryCode = trip.countryCode ?? country.toUpperCase();
   const dayCount = trip.dayCount ?? 1;
   const countryName = countryDisplayName(countryCode);
-  const regionName = trip.regionCode ? regionDisplayName(countryCode, trip.regionCode) : null;
+  const regionName = humanRegionName(countryCode, trip.regionCode);
   // Label the "More routes" cluster by region only when every sibling is actually
   // in this region; selectSiblingRoutes falls back to country-wide when the region
   // has < 3 siblings, and a region heading over country-wide cards is misleading.
@@ -374,7 +381,9 @@ export default async function TripPage({ params }: PageParams) {
     waypoints,
     polyline: trip.polyline,
     color: MAP_ROUTE_COLOR,
+    padding: HERO_MAP_PADDING,
   });
+  const curator = curatorName(trip.organiser.displayName);
   const updatedDate = new Date(trip.updatedAt ?? trip.createdAt);
   const updatedLabel = updatedDate.toLocaleDateString('en-US', {
     timeZone: 'UTC',
@@ -573,7 +582,12 @@ export default async function TripPage({ params }: PageParams) {
             </div>
             <p className="rh-why">Free. Copy the route into your planner and record the ride.</p>
             <p className="rh-author">
-              Curated by <strong>{trip.organiser.displayName}</strong> · Updated {updatedLabel}
+              {curator && (
+                <>
+                  Curated by <strong>{curator}</strong> ·{' '}
+                </>
+              )}
+              Updated {updatedLabel}
             </p>
           </div>
         </section>

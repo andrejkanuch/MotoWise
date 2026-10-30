@@ -43,8 +43,10 @@
     "description": "Uscite, manutenzione e costi: un registro per ogni moto del tuo garage. Gratis, e creato da un motociclista.",
     "downloadIos": "Scarica per iOS",
     "trustLineStrip": "Gratis · iOS + Android · Pensata per le moto",
-    "plateCaption": "In regola · manutenzione catena tra 1,882 km",
-    "plateIdentity": "Africa Twin · 2022"
+    "plateCaption": "In regola · tagliando tra 2,446 km",
+    "plateIdentity": "Street Glide Special · 2022",
+    "plateFigure": "37,787",
+    "plateUnit": "km"
   },
   "Features": {
     "trip": {
@@ -99,10 +101,10 @@
         "fig1Label": "modi per impostare un tagliando: per distanza o per data",
         "fig2Value": "3",
         "fig2Label": "stati della targa: in regola, in scadenza, scaduto",
-        "plateFigure": "26,118",
+        "plateFigure": "40,073",
         "plateUnit": "km",
-        "plateCaption": "In scadenza · manutenzione catena tra 82 km",
-        "plateIdentity": "Africa Twin · 2022"
+        "plateCaption": "In scadenza · tagliando tra 161 km",
+        "plateIdentity": "Street Glide Special · 2022"
       },
       "expenses": {
         "title": "Scopri quanto ti costa davvero la moto.",
@@ -2744,7 +2746,8 @@
     "ratingOutOf": "/ 5",
     "ratingLabelCount": "Valutazione sull'App Store da {count, plural, one {# motociclista} other {# motociclisti}}.",
     "modelsLabel": "modelli nel catalogo moto, dal database dei veicoli NHTSA.",
-    "categoriesLabel": "categorie di spesa, da carburante e assicurazione a ricambi e abbigliamento."
+    "categoriesLabel": "categorie di spesa, da carburante e assicurazione a ricambi e abbigliamento.",
+    "routesLabel": "percorsi in moto da esplorare, in {countries, plural, one {# paese} other {# paesi}}."
   },
   "DiagnosticsDemo": {
     "aiTag": "Basato sull'IA",

@@ -43,8 +43,10 @@
     "description": "Rides, service and costs — one logbook for every bike in your garage. Free, and built by a rider.",
     "downloadIos": "Download for iOS",
     "trustLineStrip": "Free · iOS + Android · Built for motorcycles",
-    "plateCaption": "Ready · chain service in 1,882 km",
-    "plateIdentity": "Africa Twin · 2022"
+    "plateCaption": "Ready · next service in 1,520 mi",
+    "plateIdentity": "Street Glide Special · 2022",
+    "plateFigure": "23,480",
+    "plateUnit": "mi"
   },
   "Features": {
     "trip": {
@@ -99,10 +101,10 @@
         "fig1Label": "ways to set a service: by distance or by date",
         "fig2Value": "3",
         "fig2Label": "plate states: ready, due soon, overdue",
-        "plateFigure": "26,118",
-        "plateUnit": "km",
-        "plateCaption": "Due soon · chain service in 82 km",
-        "plateIdentity": "Africa Twin · 2022"
+        "plateFigure": "24,900",
+        "plateUnit": "mi",
+        "plateCaption": "Due soon · next service in 100 mi",
+        "plateIdentity": "Street Glide Special · 2022"
       },
       "expenses": {
         "title": "Know what your bike really costs.",
@@ -2744,7 +2746,8 @@
     "ratingOutOf": "/ 5",
     "ratingLabelCount": "App Store rating from {count, plural, one {# rider} other {# riders}}.",
     "modelsLabel": "models in the bike catalogue, from the NHTSA vehicle database.",
-    "categoriesLabel": "expense categories, from fuel and insurance to parts and gear."
+    "categoriesLabel": "expense categories, from fuel and insurance to parts and gear.",
+    "routesLabel": "riding routes to explore, across {countries, plural, one {# country} other {# countries}}."
   },
   "DiagnosticsDemo": {
     "aiTag": "Powered by AI",

@@ -138,16 +138,23 @@ const COMPARE_CSS = `
 @media (max-width: 900px) { .mv-cmp-wrap { padding-left: 24px; padding-right: 24px; } }
 @media (max-width: 480px) { .mv-cmp-wrap { padding-left: 20px; padding-right: 20px; } }
 .mv-cmp-sub { font-size: 20px; font-weight: 600; line-height: 1.25; color: var(--mv-ink); margin: 0; }
-.mv-cmp-body { color: var(--mv-ink-2); font-size: 17px; line-height: 1.6; max-width: var(--mv-measure); margin: 0; text-wrap: pretty; }
+/* No margin shorthand on the text registers: this sheet is unlayered, so a
+   \`margin: 0\` here beat every Tailwind \`mt-*\` on them and collapsed the
+   H2 → body interval (Tailwind's preflight already zeroes <p> margins). */
+.mv-cmp-body { color: var(--mv-ink-2); font-size: 17px; line-height: 1.6; max-width: var(--mv-measure); text-wrap: pretty; }
 .mv-cmp-body.is-compact { font-size: 16px; line-height: 1.55; }
 .mv-cmp-body.is-strong { color: var(--mv-ink); }
 .mv-cmp-body.is-ink { color: var(--mv-ink); font-weight: 500; }
 .mv-cmp-body.is-full { max-width: none; }
-.mv-cmp-note { color: var(--mv-ink-3); font-size: 13px; line-height: 18px; max-width: var(--mv-measure); margin: 0; text-wrap: pretty; }
+.mv-cmp-note { color: var(--mv-ink-3); font-size: 15px; line-height: 1.45; max-width: var(--mv-measure); text-wrap: pretty; }
 .mv-cmp-meta { color: var(--mv-ink-3); font-size: 13px; line-height: 18px; margin: 0; font-variant-numeric: tabular-nums; text-wrap: pretty; }
 .mv-cmp-page .mv-cmp-grid-row { display: grid; align-items: start; gap: 4px 40px; }
 .mv-cmp-page .mv-cmp-grid-row > p { max-width: var(--mv-measure); }
 .mv-cmp-page .mv-rows .mv-link { font-size: 16px; line-height: 1.55; }
+/* The kit's \`.mv-rows { margin: 0 }\` is unlayered too, so the H2 → list
+   interval is set here: 24 to a directory list, 32 to the FAQ. */
+.mv-cmp-page .mv-h2 + .mv-rows { margin-top: 24px; }
+.mv-cmp-page .mv-h2 + .mv-cmp-faq { margin-top: 32px; }
 .mv-cmp-dirlink { font-size: 17px; font-weight: 600; line-height: 1.45; color: var(--mv-ink); text-decoration: none; }
 .mv-cmp-dirlink:hover { color: var(--mv-copper-text); text-decoration: underline; text-underline-offset: 3px; }
 .mv-cmp-sources { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.45; }

@@ -43,8 +43,10 @@
     "description": "Rutas, servicio y costes: una bitácora para cada moto de tu garaje. Gratis, y creada por un motociclista.",
     "downloadIos": "Descargar para iOS",
     "trustLineStrip": "Gratis · iOS + Android · Hecha para motos",
-    "plateCaption": "Al día · servicio de cadena en 1,882 km",
-    "plateIdentity": "Africa Twin · 2022"
+    "plateCaption": "Al día · revisión en 2,446 km",
+    "plateIdentity": "Street Glide Special · 2022",
+    "plateFigure": "37,787",
+    "plateUnit": "km"
   },
   "Features": {
     "trip": {
@@ -99,10 +101,10 @@
         "fig1Label": "formas de programar un servicio: por distancia o por fecha",
         "fig2Value": "3",
         "fig2Label": "estados de la placa: al día, próximo, vencido",
-        "plateFigure": "26,118",
+        "plateFigure": "40,073",
         "plateUnit": "km",
-        "plateCaption": "Próximo · servicio de cadena en 82 km",
-        "plateIdentity": "Africa Twin · 2022"
+        "plateCaption": "Próximo · revisión en 161 km",
+        "plateIdentity": "Street Glide Special · 2022"
       },
       "expenses": {
         "title": "Conoce lo que realmente cuesta tu moto.",
@@ -2744,7 +2746,8 @@
     "ratingOutOf": "/ 5",
     "ratingLabelCount": "Valoración en el App Store de {count, plural, one {# motociclista} other {# motociclistas}}.",
     "modelsLabel": "modelos en el catálogo de motos, de la base de datos de vehículos de la NHTSA.",
-    "categoriesLabel": "categorías de gasto, del combustible y el seguro a las piezas y la equipación."
+    "categoriesLabel": "categorías de gasto, del combustible y el seguro a las piezas y la equipación.",
+    "routesLabel": "rutas en moto para explorar, en {countries, plural, one {# país} other {# países}}."
   },
   "DiagnosticsDemo": {
     "aiTag": "Impulsado por IA",

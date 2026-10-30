@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormatter, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { detectPlatform, type Platform } from '@/lib/store-links';
@@ -24,7 +24,6 @@ const HERO_SOURCES = {
 const PORTRAIT_MEDIA = '(max-aspect-ratio: 1/1)';
 const LANDSCAPE_MEDIA = '(min-aspect-ratio: 1/1)';
 const HERO_SIZES = '100vw';
-const PLATE_FIGURE = 24318;
 
 const STORE_GLYPH_SIZE = 16;
 
@@ -106,7 +105,6 @@ function HeroPreloads() {
 export function Hero() {
   const t = useTranslations('Hero');
   const tCta = useTranslations('Cta');
-  const format = useFormatter();
   const [platform, setPlatform] = useState<Platform>('unknown');
   useEffect(() => {
     setPlatform(detectPlatform());
@@ -182,8 +180,8 @@ export function Hero() {
           <BikePlate
             size="hero"
             settle="late"
-            figure={format.number(PLATE_FIGURE)}
-            unit="km"
+            figure={t('plateFigure')}
+            unit={t('plateUnit')}
             caption={t('plateCaption')}
             racingNumber="27"
             identity={t('plateIdentity')}

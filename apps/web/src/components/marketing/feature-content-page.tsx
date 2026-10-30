@@ -107,8 +107,9 @@ const PAIR_GAP_AFTER_CUT = 96;
 
 /* Template-scoped styles (the pair's own `<style>` pattern):
    - The hero cut: the first screenshot stands on the hero's bottom hairline,
-     cropped by it, on a frameless crop radius (the page's one device frame
-     stays in the pair below).
+     cropped by it, on a frameless crop radius; the pair below then shows the
+     next capture on a frameless crop panel too (no second treatment of one
+     screen).
    - The comparison table scrolls inside a focusable region with the row
      header pinned, like the compare matrix. */
 const FEATURE_PAGE_CSS = `
@@ -123,6 +124,9 @@ const FEATURE_PAGE_CSS = `
   background: var(--mv-surface);
 }
 .mv-hero-cut img { width: 100%; height: auto; display: block; }
+/* The cut stands on the hairline mid-capture; its last stretch fades out so
+   it never ends on a sliced line of text (the capture's rows differ per page). */
+.mv-hero-cut { mask-image: linear-gradient(to bottom, black calc(100% - 80px), transparent); }
 @media (max-width: 900px) {
   .mv-hero-cut { width: 300px; height: 340px; }
 }
@@ -346,6 +350,7 @@ export async function FeatureContentPage({
       <FeatureScreenshotPair
         screenshots={pairScreenshots}
         paddingTop={heroShot ? PAIR_GAP_AFTER_CUT : 0}
+        frameless={Boolean(heroShot)}
       />
 
       {/* Feature list: a plain hairline list on the ground. Short lists sit

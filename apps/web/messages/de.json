@@ -43,8 +43,10 @@
     "description": "Fahrten, Service und Kosten – ein Logbuch für jedes Motorrad in deiner Garage. Kostenlos und von einem Fahrer gebaut.",
     "downloadIos": "Für iOS herunterladen",
     "trustLineStrip": "Kostenlos · iOS + Android · Für Motorräder gebaut",
-    "plateCaption": "Bereit · Kettenservice in 1.882 km",
-    "plateIdentity": "Africa Twin · 2022"
+    "plateCaption": "Bereit · Inspektion in 2.446 km",
+    "plateIdentity": "Street Glide Special · 2022",
+    "plateFigure": "37.787",
+    "plateUnit": "km"
   },
   "Features": {
     "trip": {
@@ -99,10 +101,10 @@
         "fig1Label": "Wege, einen Service festzulegen: nach Strecke oder nach Datum",
         "fig2Value": "3",
         "fig2Label": "Status der Plakette: bereit, bald fällig, überfällig",
-        "plateFigure": "26.118",
+        "plateFigure": "40.073",
         "plateUnit": "km",
-        "plateCaption": "Bald fällig · Kettenservice in 82 km",
-        "plateIdentity": "Africa Twin · 2022"
+        "plateCaption": "Bald fällig · Inspektion in 161 km",
+        "plateIdentity": "Street Glide Special · 2022"
       },
       "expenses": {
         "title": "Erfahre, was dein Motorrad wirklich kostet.",
@@ -2744,7 +2746,8 @@
     "ratingOutOf": "/ 5",
     "ratingLabelCount": "App-Store-Bewertung von {count, plural, one {# Fahrer} other {# Fahrern}}.",
     "modelsLabel": "Modelle im Motorradkatalog, aus der Fahrzeugdatenbank der NHTSA.",
-    "categoriesLabel": "Ausgabenkategorien, von Sprit und Versicherung bis zu Teilen und Ausrüstung."
+    "categoriesLabel": "Ausgabenkategorien, von Sprit und Versicherung bis zu Teilen und Ausrüstung.",
+    "routesLabel": "Motorradrouten zum Entdecken, in {countries, plural, one {# Land} other {# Ländern}}."
   },
   "DiagnosticsDemo": {
     "aiTag": "Mit KI",
