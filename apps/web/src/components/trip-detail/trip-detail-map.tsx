@@ -65,6 +65,10 @@ const DAY_COLORS: Record<MapScheme, string[]> = {
 /** The CDN script gets this long to define `mapboxgl` before the map gives up. */
 const MAPBOX_LOAD_TIMEOUT_MS = 10_000;
 const MAPBOX_POLL_MS = 50;
+/** A resize settles (rotation, address bar) before the route is fitted again. */
+const REFIT_DEBOUNCE_MS = 150;
+const MAPBOX_ORIGIN = 'https://api.mapbox.com';
+const MAPBOX_GL_VERSION = 'v3.6.0';
 
 const MAPBOX_TOKEN =
   process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ?? '';
@@ -416,13 +420,35 @@ function TripDetailMapInner({
 
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
 
+    // The frame's height comes from its aspect ratio on phones, so a rotation
+    // or a viewport change resizes the canvas: resize the map and fit the
+    // route again, otherwise the markers can sit outside the new frame.
+    let loaded = false;
+    let refitTimer: ReturnType<typeof setTimeout> | undefined;
+    const observer =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(() => {
+            if (!loaded) return;
+            map.resize();
+            clearTimeout(refitTimer);
+            refitTimer = setTimeout(
+              () => fitToRoute(map, mapboxgl, waypoints, polyline),
+              REFIT_DEBOUNCE_MS,
+            );
+          });
+
     map.on('load', () => {
       drawLines(map, waypoints, polyline, schemeRef.current);
       addMarkers(map, mapboxgl, waypoints);
       fitToRoute(map, mapboxgl, waypoints, polyline);
+      loaded = true;
+      if (containerRef.current) observer?.observe(containerRef.current);
     });
 
     return () => {
+      clearTimeout(refitTimer);
+      observer?.disconnect();
       map.remove();
       mapRef.current = null;
     };
@@ -445,7 +471,6 @@ function TripDetailMapInner({
       style={{
         width: '100%',
         height: '100%',
-        minHeight: 500,
         borderRadius: 'var(--mv-radius-card)',
         overflow: 'hidden',
       }}
@@ -455,7 +480,7 @@ function TripDetailMapInner({
 
 const PLACEHOLDER_STYLE: React.CSSProperties = {
   width: '100%',
-  minHeight: 500,
+  height: '100%',
   borderRadius: 'var(--mv-radius-card)',
   background: 'var(--mv-bg-2)',
   display: 'grid',
@@ -476,8 +501,14 @@ export function TripDetailMap(props: TripDetailMapProps) {
 
   return (
     <>
-      <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" />
-      <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js" async />
+      {/* preconnect + a hoisted stylesheet: the map paints sooner on a cold load */}
+      <link rel="preconnect" href={MAPBOX_ORIGIN} crossOrigin="" />
+      <link
+        rel="stylesheet"
+        href={`${MAPBOX_ORIGIN}/mapbox-gl-js/${MAPBOX_GL_VERSION}/mapbox-gl.css`}
+        precedence="default"
+      />
+      <script src={`${MAPBOX_ORIGIN}/mapbox-gl-js/${MAPBOX_GL_VERSION}/mapbox-gl.js`} async />
       {loadState === 'ready' && <TripDetailMapInner {...props} scheme={scheme} />}
       {loadState === 'loading' && (
         <div style={PLACEHOLDER_STYLE} aria-busy="true">

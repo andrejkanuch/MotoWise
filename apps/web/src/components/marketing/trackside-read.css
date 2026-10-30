@@ -3,7 +3,7 @@
    Blog, guides, legal, bikes, explore, tools. Every colour is a
    --mv-* token (packages/design-system/src/mv-tokens.css), so the
    whole file works in dark (:root) and light (html:not(.dark)).
-   Read mode: comprehension first, a 66ch measure, condensed face
+   Read mode: comprehension first, a 60ch measure (ledes 52ch), condensed face
    only for titles and figures, hairlines instead of cards.
    Type steps (web): H1-read clamp(38,5.4vw,62) · H2-read 34/1.05 600 ·
    H3 26/1.1 · section head 20/1.25 body 600 · lede 18/1.55 · body 17/1.6
@@ -72,7 +72,7 @@
 .mv-read-lede,
 .mv-index-lede {
   margin: 28px 0 0;
-  max-width: 60ch;
+  max-width: 52ch;
   font-size: 18px;
   line-height: 1.55;
   color: var(--mv-ink-2);
@@ -95,7 +95,7 @@
 }
 .mv-read-hero {
   position: relative;
-  aspect-ratio: 21 / 9;
+  aspect-ratio: 1.91 / 1;
   margin: 48px 0 0;
   overflow: hidden;
   border-radius: var(--mv-radius-card);
@@ -124,7 +124,7 @@
 
 /* ── Prose: the reading column ── */
 .mv-read-body {
-  max-width: 66ch;
+  max-width: 60ch;
   font-size: 17px;
   line-height: 1.6;
   color: var(--mv-ink-2);
@@ -171,7 +171,7 @@
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
   text-decoration-color: var(--mv-copper-border);
-  transition: color 0.2s, text-decoration-color 0.2s;
+  transition: color var(--mv-dur-1), text-decoration-color var(--mv-dur-1);
 }
 .mv-read-body a:hover {
   color: var(--mv-copper-hover);
@@ -350,7 +350,7 @@
   line-height: 1.45;
   color: var(--mv-ink-2);
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color var(--mv-dur-1);
 }
 .mv-read-toc a:hover {
   color: var(--mv-copper-text);
@@ -364,7 +364,7 @@
   font-size: 15px;
   line-height: 1.45;
   color: var(--mv-ink-3);
-  max-width: 66ch;
+  max-width: 60ch;
   text-wrap: pretty;
 }
 .mv-read-note p {
@@ -374,7 +374,7 @@
 /* ── FAQ: details on hairlines ── */
 .mv-read-faq {
   border-top: 1px solid var(--mv-line);
-  max-width: 66ch;
+  max-width: 60ch;
 }
 .mv-read-faq details {
   border-bottom: 1px solid var(--mv-line);
@@ -464,7 +464,7 @@
   margin: 64px 0 0;
   padding: 24px 0 0;
   border-top: 1px solid var(--mv-line);
-  max-width: 66ch;
+  max-width: 60ch;
 }
 .mv-read-author-name {
   margin: 0;
@@ -517,7 +517,7 @@
 .mv-defs {
   margin: 0;
   border-top: 1px solid var(--mv-line);
-  max-width: 66ch;
+  max-width: 60ch;
 }
 .mv-defs > div {
   display: grid;
@@ -540,7 +540,7 @@
 }
 @media (max-width: 520px) {
   .mv-defs > div {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 4px;
   }
 }
@@ -646,14 +646,14 @@
   color: var(--mv-ink);
   text-wrap: balance;
   overflow-wrap: anywhere;
-  transition: color 0.2s;
+  transition: color var(--mv-dur-1);
 }
 .mv-feed-item a .mv-h2 {
   overflow-wrap: anywhere;
 }
 /* The featured item's title is the shared .mv-h2 (markup), not a clone */
 .mv-feed-item a .mv-h2 {
-  transition: color 0.2s;
+  transition: color var(--mv-dur-1);
 }
 .mv-feed-item a:hover .mv-feed-title,
 .mv-feed-item a:hover .mv-h2 {
@@ -696,7 +696,7 @@
 }
 .mv-feed-hero {
   position: relative;
-  aspect-ratio: 2 / 1;
+  aspect-ratio: 1.91 / 1;
   overflow: hidden;
   border-radius: var(--mv-radius-card);
   background: var(--mv-surface);
@@ -780,9 +780,10 @@
   border-top: 1px solid var(--mv-line);
 }
 .mv-skeleton-rows > div {
-  height: 96px;
-  margin: 20px 0;
-  border-radius: var(--mv-radius-control);
+  height: 88px;
+  margin: 0;
+  border-radius: 0;
+  border-bottom: 1px solid var(--mv-line);
   background: linear-gradient(90deg, var(--mv-skel) 0%, var(--mv-skel-shine) 50%, var(--mv-skel) 100%);
   background-size: 200% 100%;
   animation: mv-skel-shimmer 1.4s linear infinite;
@@ -818,7 +819,7 @@
   padding: 12px 0;
   color: var(--mv-ink);
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color var(--mv-dur-1);
 }
 .mv-places a:hover {
   color: var(--mv-copper-text);
@@ -880,7 +881,7 @@
   line-height: 1.4;
   color: var(--mv-ink);
   overflow-wrap: anywhere;
-  transition: color 0.2s;
+  transition: color var(--mv-dur-1);
 }
 .mv-route-row:hover .mv-route-name {
   color: var(--mv-copper-text);
@@ -1030,7 +1031,7 @@
   background: var(--mv-surface-2);
   display: grid;
   place-content: center;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color var(--mv-dur-1), background var(--mv-dur-1);
 }
 .mv-choice input::before {
   content: '';
@@ -1039,7 +1040,7 @@
   border-radius: 50%;
   background: var(--mv-on-copper);
   transform: scale(0);
-  transition: transform 0.2s var(--mv-ease-expo);
+  transition: transform var(--mv-dur-2) var(--mv-ease-expo);
 }
 .mv-choice input:checked {
   border-color: var(--mv-copper);
@@ -1269,7 +1270,7 @@
   background: var(--mv-ink-3);
   transform-origin: left;
   transform: scaleX(var(--mv-p, 0));
-  transition: transform 400ms var(--mv-ease-expo), background-color 300ms;
+  transition: transform var(--mv-dur-4) var(--mv-ease-expo), background-color var(--mv-dur-3);
 }
 .mv-progress > div.is-done {
   background: var(--mv-go);
@@ -1290,7 +1291,7 @@
   font-size: 40px;
   line-height: 1;
   color: var(--mv-ink-3);
-  transition: color 0.3s;
+  transition: color var(--mv-dur-3);
 }
 .mv-check-head.is-done .mv-check-letter {
   color: var(--mv-go);
@@ -1351,12 +1352,12 @@
   border: 1px solid var(--mv-field-line);
   background: var(--mv-surface-2);
   color: var(--mv-on-copper);
-  transition: background 0.18s, border-color 0.18s;
+  transition: background var(--mv-dur-1), border-color var(--mv-dur-1);
 }
 .mv-check-box svg {
   opacity: 0;
   transform: scale(0.6);
-  transition: opacity 0.18s, transform 0.18s var(--mv-ease-expo);
+  transition: opacity var(--mv-dur-2), transform var(--mv-dur-2) var(--mv-ease-expo);
 }
 .mv-check-item:hover .mv-check-box {
   border-color: var(--mv-line-step);
@@ -1377,7 +1378,7 @@
   font-size: 16px;
   line-height: 1.5;
   color: var(--mv-ink);
-  transition: color 0.18s;
+  transition: color var(--mv-dur-1);
 }
 .mv-check-item input:checked ~ .mv-check-text {
   color: var(--mv-ink-3);
@@ -1433,14 +1434,95 @@
   }
 }
 
-/* ── Print ── */
+/* ── Print: the kit (design-system.css) hides the chrome; these are the
+      read-page extras — the article keeps its measure, links show their
+      destination, chapters never start on the last line of a page ── */
 @media print {
   .mv-crumbs,
   .mv-read-cta,
   .mv-tool-cta,
   .mv-search,
-  .mv-chips {
+  .mv-chips,
+  .mv-active-filters,
+  .mv-read-toc,
+  .mv-skeleton-rows {
     display: none !important;
+  }
+  .mv-read,
+  .mv-index,
+  .mv-wide {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .mv-read-hero,
+  .mv-feed-hero {
+    aspect-ratio: auto;
+    max-height: 70mm;
+    border-radius: 0;
+  }
+  .mv-read-body a {
+    color: inherit;
+    text-decoration-color: currentColor;
+  }
+  .mv-read-body a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 13px;
+    color: var(--mv-ink-3);
+    overflow-wrap: anywhere;
+  }
+  .mv-read-body h2,
+  .mv-read-body h3,
+  .mv-read-h2,
+  .mv-read-label {
+    break-after: avoid;
+  }
+  .mv-read-body figure,
+  .mv-read-body img,
+  .mv-read-body pre,
+  .mv-read-body blockquote,
+  .mv-read-body tr,
+  .mv-read-faq details,
+  .mv-defs > div,
+  .mv-values > div,
+  .mv-feed-item,
+  .mv-route-list > li,
+  .mv-check-items > li {
+    break-inside: avoid;
+  }
+  .mv-read-body pre {
+    white-space: pre-wrap;
+    overflow: visible;
+  }
+  .mv-tool-results {
+    position: static;
+  }
+}
+
+/* ── Forced colors: the progress fill and the drawn checkbox are state, not
+      decoration — keep their author colours; the kit handles hairlines ── */
+@media (forced-colors: active) {
+  .mv-progress > div,
+  .mv-check-box,
+  .mv-choice input {
+    forced-color-adjust: none;
+  }
+  .mv-check-box,
+  .mv-choice input {
+    border-color: ButtonText;
+  }
+  .mv-check-item input:checked + .mv-check-box,
+  .mv-choice input:checked {
+    background: Highlight;
+    border-color: Highlight;
+  }
+  .mv-check-item input:checked + .mv-check-box svg {
+    color: HighlightText;
+  }
+  .mv-choice input:checked::before {
+    background: HighlightText;
+  }
+  .mv-progress > div {
+    background: Highlight;
   }
 }
 

@@ -33,7 +33,7 @@ function ExternalManageLink({ href, children }: { href: string; children: string
       onClick={() => trackEvent(WebEvent.MANAGE_SUBSCRIPTION_CLICKED)}
     >
       {children}
-      <ArrowUpRight size={14} strokeWidth={2} aria-hidden="true" />
+      <ArrowUpRight size={16} strokeWidth={2} aria-hidden="true" />
       <span className="mvg-sr-only">{t('newTab')}</span>
     </a>
   );

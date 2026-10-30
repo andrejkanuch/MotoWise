@@ -60,7 +60,7 @@ export function ProBanner({ className }: { className?: string }) {
   return (
     <div className={className ? `prof-banner ${className}` : 'prof-banner'}>
       <div className="prof-banner-left">
-        <Crown size={18} strokeWidth={1.75} aria-hidden="true" />
+        <Crown size={20} strokeWidth={1.75} aria-hidden="true" />
         <div>
           <div className="prof-banner-title">{t('proBannerTitle')}</div>
           <div className="prof-banner-meta">

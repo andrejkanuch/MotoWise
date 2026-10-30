@@ -24,7 +24,7 @@ import '@/components/marketing/trackside-read.css';
 export const dynamic = 'force-static';
 export const revalidate = 86400; // 24 hours
 
-const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
+const OG_IMAGE = `${BASE_URL}/images/hero-explore-og.jpg`; // 1200×630 crop under 300 KB (the 732 KB source was fetched raw by every crawler)
 
 interface PageProps {
   params: Promise<{ locale: string; country: string }>;

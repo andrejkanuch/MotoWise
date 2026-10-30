@@ -97,7 +97,7 @@ function PageHead({ mode, bikeCount }: { mode: GarageMode; bikeCount: number }) 
         </span>
       </MonoLabel>
       {/* The populated garage needs no intro: the status line says read-only and the handoff says open the app. */}
-      {empty && <p className="gv-intro gv-hide-phone">{t('emptyIntro')}</p>}
+      {empty && <p className="gv-intro">{t('emptyIntro')}</p>}
     </header>
   );
 }
@@ -257,7 +257,8 @@ export function GarageView({
       <div className="gv-page">
         <div className="gv-main">
           <PageHead mode={mode} bikeCount={0} />
-          <EmptyStartHero account={account} promoted={promoted} />
+          {/* Calm reasons only: with no bike, the one step is adding the bike; a promoted "record a ride" would compete with it. */}
+          <EmptyStartHero account={account} promoted={null} />
           {/* Rides exist without a bike only when the bike was deleted: still the rider's data. A failed load shows its failed state: presence is then unknown. */}
           {(rides.hasRides || ridesState === RidesCardState.Failed) && ridesCard}
           <AccountSection account={account} />

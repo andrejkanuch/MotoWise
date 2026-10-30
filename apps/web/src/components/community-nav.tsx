@@ -152,9 +152,9 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
             aria-label={menuOpen ? t('menu') : t('account')}
           >
             {menuOpen ? (
-              <X size={20} strokeWidth={1.75} aria-hidden="true" />
+              <X size={18} strokeWidth={1.75} aria-hidden="true" />
             ) : (
-              <Menu size={20} strokeWidth={1.75} aria-hidden="true" />
+              <Menu size={18} strokeWidth={1.75} aria-hidden="true" />
             )}
           </button>
         </div>

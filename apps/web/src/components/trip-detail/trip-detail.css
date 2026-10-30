@@ -20,8 +20,11 @@
   background: var(--mv-bg);
 }
 
-/* A static route map behind the hero (by-id trips only). The photo
-   carries the emotion; graphite scrims keep the type readable. */
+/* A static route map behind the hero when the trip has waypoints. The hero
+   then sits in .mv-dark-scene (graphite tokens in both schemes); the scrim's
+   last stop is --rh-edge-bottom, read on a wrapper OUTSIDE the scene (the
+   closing CTA's pattern), so the band blends into the page ground below. The
+   map is desaturated and dimmed so the bone ink holds 4.5:1 everywhere. */
 .rh-map-bg {
   position: absolute;
   inset: 0;
@@ -47,7 +50,7 @@
       color-mix(in srgb, var(--mv-bg) 55%, transparent) 0%,
       transparent 30%,
       color-mix(in srgb, var(--mv-bg) 88%, transparent) 78%,
-      var(--mv-bg) 100%
+      var(--rh-edge-bottom, var(--mv-bg)) 100%
     );
 }
 
@@ -110,10 +113,10 @@
 }
 
 .rh-figure-value small {
-  font-size: 20px;
+  font-size: 0.5em;
   font-weight: 500;
   color: var(--mv-ink-2);
-  margin-left: 4px;
+  margin-left: 0.15em;
 }
 
 .rh-figure-label {
@@ -129,6 +132,21 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+}
+
+.rh-why {
+  margin: 16px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--mv-ink-2);
+  max-width: var(--mv-measure-lede, 52ch);
+  text-wrap: pretty;
+}
+
+@media (max-width: 1023px) {
+  .rh-why {
+    display: none;
+  }
 }
 
 .rh-author {
@@ -174,11 +192,17 @@
   font-size: 15px;
   font-weight: 500;
   white-space: nowrap;
-  transition: color 0.2s var(--mv-ease);
+  transition: color var(--mv-dur-2, 200ms) var(--mv-ease);
 }
 
 .tabnav-tab:hover {
   color: var(--mv-ink);
+}
+
+/* The current tab carries the same 2px ink underline as .sp-tabs */
+.tabnav-tab[aria-current] {
+  color: var(--mv-ink);
+  box-shadow: inset 0 -2px var(--mv-ink);
 }
 
 /* ── Sections: one interval (0 / 96) between them, the itinerary carries
@@ -217,7 +241,7 @@
 /* ── Overview: prose at reading measure, details as hairline rows ── */
 .overview-grid {
   display: grid;
-  grid-template-columns: minmax(0, 68ch) minmax(240px, 360px);
+  grid-template-columns: minmax(0, var(--mv-measure, 60ch)) minmax(240px, 360px);
   justify-content: space-between;
   gap: 64px;
   align-items: start;
@@ -227,7 +251,7 @@
   font-size: 17px;
   line-height: 1.6;
   color: var(--mv-ink-2);
-  max-width: 68ch;
+  max-width: var(--mv-measure, 60ch);
   text-wrap: pretty;
 }
 
@@ -260,7 +284,9 @@
 }
 
 /* ── Map: one container. The frame clips to the card radius; the map has
-      its own edge, so no keyline and no surface behind it ── */
+      its own edge, so no keyline and no surface behind it. The height comes
+      from the aspect ratio alone on phones (a fixed 500px + 16/9 made the
+      frame 889px wide at 360); desktop keeps the 500px frame ── */
 .map-card {
   position: relative;
   border-radius: var(--mv-radius-card);
@@ -270,7 +296,25 @@
 .map-frame {
   position: relative;
   aspect-ratio: 16 / 9;
+  min-height: 240px;
   overflow: hidden;
+}
+
+@media (min-width: 901px) {
+  .map-frame {
+    aspect-ratio: auto;
+    height: 500px;
+  }
+}
+
+.map-frame .mapboxgl-map {
+  height: 100%;
+}
+
+/* Mapbox's 29px zoom controls, lifted to the 44px floor */
+.map-frame .mapboxgl-ctrl-group button {
+  width: 44px;
+  height: 44px;
 }
 
 .map-frame img {
@@ -460,7 +504,7 @@
   font-size: 16px;
   line-height: 1.55;
   color: var(--mv-ink-2);
-  max-width: 68ch;
+  max-width: var(--mv-measure, 60ch);
   text-wrap: pretty;
 }
 
@@ -526,6 +570,8 @@
   right: 0;
   z-index: 50;
   padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
   background: var(--mv-surface-2);
   border-top: 1px solid var(--mv-line);
   display: flex;
@@ -533,8 +579,8 @@
   gap: 12px;
   translate: 0 calc(-1 * var(--mv-cookie-banner-h, 0px));
   transition:
-    translate 250ms var(--mv-ease-expo),
-    opacity 240ms var(--mv-ease-expo);
+    translate var(--mv-dur-3, 240ms) var(--mv-ease-expo),
+    opacity var(--mv-dur-3, 240ms) var(--mv-ease-expo);
 }
 
 .trip-sticky-body {
@@ -638,8 +684,9 @@
     line-height: 30px;
   }
 
-  .rh-figure-value small {
-    font-size: 14px;
+  /* One line in the bar: the title and the button; the spacer's 72px holds */
+  .trip-sticky-sub {
+    display: none;
   }
 
   .tabnav-inner {
@@ -663,6 +710,30 @@
 
   .end-cta {
     padding: 96px 20px;
+  }
+}
+
+/* ── Print: the route and its stops print; the fixed bar, the in-page nav,
+      the store band and the hero's map scene stay on screen ── */
+@media print {
+  .trip-sticky,
+  .trip-sticky-spacer,
+  .tabnav,
+  .end-cta,
+  .rh-actions,
+  .rh-map-bg,
+  .rh-scrim {
+    display: none !important;
+  }
+
+  .rh {
+    padding-top: 0;
+  }
+
+  .day,
+  .stop,
+  .review {
+    break-inside: avoid;
   }
 }
 

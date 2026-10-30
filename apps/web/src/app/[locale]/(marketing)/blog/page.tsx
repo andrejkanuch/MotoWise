@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { BlogSearch } from '@/components/marketing/blog-search';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { routing } from '@/i18n/routing';
-import { getArticles, getBlogCategories } from '@/lib/blog';
+import { getArticles, getBlogCategories, toBlogListItem } from '@/lib/blog';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import '@/components/marketing/trackside-read.css';
 
@@ -74,7 +74,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
 
         <Suspense fallback={null}>
           <BlogSearch
-            articles={articles}
+            articles={articles.map(toBlogListItem)}
             categories={categories}
             locale={locale}
             strings={{ readingTime: t('readingTime'), readMore: t('readMore') }}

@@ -6,11 +6,14 @@
    Every colour is an --mv-* token and ships both schemes.
    Class prefix: mva-.
    Breakpoints:
-     <768      phone: header bar, 16px gutters, stacked "Continue with …"
+     <768      phone: header bar, 20px gutters, stacked "Continue with …"
                OAuth buttons.
-     768–1023  header bar, form centred at 440.
-     ≥1024     photo panel | 640px form column, form max 400.
+     768–1179  header bar, form centred at 440.
+     ≥1180     photo panel | 480–640px form column, form max 400 (the
+               panel keeps at least 540px, so the plate never sits in a sliver).
    Field text stays 16px at every width (iOS Safari zooms under 16px).
+   Fields are 52 (.is-tall) and the block buttons beside them 52, so the
+   form reads as one column of equal controls.
    ═══════════════════════════════════════════════════════════════ */
 
 .mva-root {
@@ -18,10 +21,10 @@
   min-height: 100dvh;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1180px) {
   .mva-root {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 640px;
+    grid-template-columns: minmax(0, 1fr) minmax(480px, 640px);
   }
 }
 
@@ -45,12 +48,14 @@
   flex: none;
 }
 
-/* ── Photo panel (≥1024) ────────────────────────────────────────── */
+/* ── Photo panel (≥1180) ────────────────────────────────────────── */
 
 .mva-panel {
   display: none;
+  /* The plate's stripe ground matches the panel, not the page. */
+  --mv-plate-ground: var(--mv-bg-2);
 }
-@media (min-width: 1024px) {
+@media (min-width: 1180px) {
   .mva-panel {
     position: sticky;
     top: 0;
@@ -108,14 +113,14 @@
   min-width: 280px;
 }
 
-/* ── Header bar (<1024) ─────────────────────────────────────────── */
+/* ── Header bar (<1180) ─────────────────────────────────────────── */
 
 .mva-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 6px 16px;
+  padding: 6px 20px;
   border-bottom: 1px solid var(--mv-line);
 }
 @media (min-width: 768px) {
@@ -123,7 +128,7 @@
     padding: 12px 24px;
   }
 }
-@media (min-width: 1024px) {
+@media (min-width: 1180px) {
   .mva-header {
     display: none;
   }
@@ -136,7 +141,7 @@
 
 .mva-main {
   display: block;
-  padding: 32px 16px 48px;
+  padding: 32px 20px 48px;
 }
 @media (min-width: 768px) {
   .mva-main {
@@ -145,7 +150,7 @@
     padding: 64px 0 96px;
   }
 }
-@media (min-width: 1024px) {
+@media (min-width: 1180px) {
   .mva-main {
     max-width: none;
     margin: 0;
@@ -165,7 +170,7 @@
 }
 /* Short landscape viewports (1024×600 tablets): a centred sign-up form is
    taller than the screen, so start at the top and let the panel scroll. */
-@media (min-width: 1024px) and (max-height: 760px) {
+@media (min-width: 1180px) and (max-height: 760px) {
   .mva-main {
     justify-content: flex-start;
     padding-top: 48px;
@@ -185,10 +190,18 @@
   width: 100%;
   min-width: 0;
 }
-@media (min-width: 1024px) {
+@media (min-width: 1180px) {
   .mva-stack {
     max-width: 400px;
   }
+}
+/* Block buttons sit beside 52px fields: the same 52, content centred. */
+.mva-stack .mv-btn-block,
+.mva-modal .mv-btn-block {
+  min-height: 52px;
+  padding-top: 0;
+  padding-bottom: 0;
+  box-sizing: border-box;
 }
 
 /* ── Heading block: Operate H1 (44 fixed), system-face subtitle ──── */
@@ -297,13 +310,13 @@
   }
 }
 
-/* ── Divider: a sentence between two hairlines ──────────────────── */
+/* ── Divider: a sentence between two hairlines (body size, not meta) ── */
 
 .mva-divider {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--mv-ink-3);
 }
 .mva-divider::before,
@@ -371,6 +384,11 @@
   text-align: left;
 }
 .mva-legal a {
+  /* Inline text links are exempt from 44, but a 16px line is thin: the
+     padding grows the target to 32px without moving the text. */
+  display: inline-block;
+  padding: 8px 0;
+  margin: -8px 0;
   color: var(--mv-ink);
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -515,5 +533,37 @@
 @media (prefers-reduced-motion: reduce) {
   .mva-spinner {
     animation: none;
+  }
+}
+
+/* Forced colours: the divider's hairlines are backgrounds, which the OS
+   drops; draw them in the text colour. The modal scrim keeps its own edge. */
+@media (forced-colors: active) {
+  .mva-divider::before,
+  .mva-divider::after {
+    background: CanvasText;
+  }
+  .mva-modal {
+    border-color: CanvasText;
+  }
+}
+
+/* Print: the form alone. The photo panel, the header bar and the
+   show/hide toggle are screen chrome; the kit hides the shared bars. */
+@media print {
+  .mva-root {
+    display: block;
+    min-height: 0;
+  }
+  .mva-panel,
+  .mva-header,
+  .mva-toggle,
+  .mva-oauth,
+  .mva-divider {
+    display: none;
+  }
+  .mva-main {
+    min-height: 0;
+    padding: 0;
   }
 }

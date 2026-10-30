@@ -4,6 +4,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
+import { AUTH_ERROR_MESSAGE_KEY, readAuthErrorCode } from '@/components/auth-ui/auth-query';
 import {
   AltLink,
   AuthBanner,
@@ -55,6 +56,16 @@ export default function LoginPage() {
     setRecovery(null);
   });
   const [showPassword, setShowPassword] = useState(false);
+
+  // /auth/callback lands here with ?error=link_expired when a confirmation
+  // link is expired or reused (auth-query.ts). Read after mount: the page is
+  // prerendered, and the banner is a polite live region anyway.
+  useEffect(() => {
+    const code = readAuthErrorCode(window.location.search);
+    if (!code) return;
+    setError(t(AUTH_ERROR_MESSAGE_KEY[code]));
+    setRecovery(null);
+  }, [t]);
 
   // A sent confirmation can still go missing: after the cooldown the button is
   // usable again for the same address.

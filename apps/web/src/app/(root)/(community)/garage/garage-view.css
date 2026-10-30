@@ -46,7 +46,7 @@
 
 .gv-page {
   box-sizing: border-box;
-  max-width: calc(var(--mv-container) + 2 * 40px);
+  max-width: var(--mv-container);
   margin: 0 auto;
   padding: 32px 20px 64px;
 }
@@ -270,6 +270,18 @@
   margin-top: 14px;
   padding-top: 10px;
 }
+/* The stripe was drawn for the 264 px plate; on this 560 px one it is
+   scaled ×1.2 so the band keeps its proportion and clears the corner. */
+.gv-plate-slot .mv-plate-stripe {
+  top: 18px;
+  right: -52px;
+  width: 168px;
+  height: 10px;
+}
+.gv-plate-slot .mv-plate-stripe::after {
+  top: 15px;
+  height: 5px;
+}
 .gv-photo {
   position: relative;
   display: block;
@@ -293,8 +305,8 @@
   color: var(--mv-ink);
 }
 .gv-odo-unit {
-  margin-left: 5px;
-  font-size: 14px;
+  margin-left: 0.15em;
+  font-size: 0.5em;
   font-weight: 500;
   color: var(--mv-ink-2);
 }
@@ -334,10 +346,10 @@
     grid-template-columns: minmax(0, 1fr) 300px;
     gap: 32px;
   }
+  /* 768–1279: the 300 px column keeps the 4:3 crop (full height would
+     stretch a landscape bike into a portrait). */
   .gv-photo {
-    aspect-ratio: auto;
-    min-height: 100%;
-    height: 100%;
+    align-self: start;
   }
   .gv-plate-slot .mv-plate-figure {
     font-size: 64px;
@@ -352,6 +364,12 @@
   .gv-bike {
     grid-template-columns: minmax(0, 1fr) 440px;
     gap: 40px;
+  }
+  .gv-photo {
+    align-self: stretch;
+    aspect-ratio: auto;
+    min-height: 100%;
+    height: 100%;
   }
 }
 
@@ -400,6 +418,10 @@
 .gv-rows-label {
   padding: 10px 0 6px;
   border-top: 1px solid var(--mv-line);
+}
+/* The label already rules the top: the list under it draws no second hairline. */
+.gv-rows-label + .mv-rows {
+  border-top: 0;
 }
 
 /* ── This-year spend ───────────────────────────────────────────── */
@@ -667,12 +689,6 @@ html:not(.dark) .gv-cat-fill {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-.gv-skel-rule {
-  display: block;
-  height: 1px;
-  margin: 6px 0;
-  background: var(--mv-line);
 }
 
 /* ── Empty garage: the start hero IS the handoff, on the page surface ── */

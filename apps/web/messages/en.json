@@ -3432,12 +3432,13 @@
       "submitting": "Signing in…",
       "resetPassword": "Reset your password",
       "altPrompt": "No account yet?",
-      "altCta": "Create account"
+      "altCta": "Create account",
+      "linkExpired": "That confirmation link has expired or was already used. Sign in, or create the account again for a new link."
     },
     "signUp": {
       "eyebrow": "Create account",
       "title": "Start your <muted>logbook.</muted>",
-      "subtitle": "Free forever for logging. Pro removes the limits.",
+      "subtitle": "Free forever for logging. The app logs; your web garage shows the record.",
       "passwordPlaceholder": "At least 6 characters",
       "confirmPasswordLabel": "Confirm password",
       "submit": "Create account",

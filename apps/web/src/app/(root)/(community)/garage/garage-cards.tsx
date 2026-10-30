@@ -34,7 +34,7 @@ function useGarageFormat(): GarageFormat {
 function OverdueMark({ children }: { children: ReactNode }) {
   return (
     <span className="gv-overdue">
-      <TriangleAlert size={14} strokeWidth={2} aria-hidden="true" />
+      <TriangleAlert size={16} strokeWidth={2} aria-hidden="true" />
       {children}
     </span>
   );
@@ -54,7 +54,7 @@ function AppLink({
     <a href={APP_HANDOFF_URL} className="mv-link is-quiet is-tall gv-action">
       {icon}
       <span>{children}</span>
-      {arrow && <ArrowUpRight size={14} strokeWidth={2} aria-hidden="true" />}
+      {arrow && <ArrowUpRight size={16} strokeWidth={2} aria-hidden="true" />}
     </a>
   );
 }

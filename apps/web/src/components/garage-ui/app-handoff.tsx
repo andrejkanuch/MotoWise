@@ -133,7 +133,7 @@ export function AppHandoffBar({ promoted }: { promoted: PromotedHandoff | null }
       <div className="mvg-bar-spacer" aria-hidden="true" />
       <section className="mvg-bar" aria-label={t('barRegion')}>
         <span className="mvg-bar-icon" aria-hidden="true">
-          <Icon size={18} strokeWidth={1.75} />
+          <Icon size={20} strokeWidth={1.75} />
         </span>
         <p className="mvg-bar-text" style={{ margin: 0 }}>
           {promoted ? <BarCopy promoted={promoted} /> : t('barDefault')}

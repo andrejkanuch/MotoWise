@@ -28,6 +28,7 @@ export function BikePlate({
   state = 'ready',
   stateLabel,
   settle,
+  size,
   style,
 }: {
   figure: string;
@@ -41,6 +42,8 @@ export function BikePlate({
   /** The signature settle (plate + stripe). One per page family; 'late'
    *  delays it so the home hero reads photo-settles → stripe-lays. */
   settle?: boolean | 'late';
+  /** 'hero' = DESIGN.md's hero anatomy (figure 64); default is the compact plate. */
+  size?: 'hero';
   style?: CSSProperties;
 }) {
   // The visible text already reads in order (figure, caption, identity); the
@@ -51,6 +54,7 @@ export function BikePlate({
       className="mv-plate"
       data-state={state}
       data-settle={settle === true ? '' : settle || undefined}
+      data-size={size}
       style={style}
     >
       <span className="mv-plate-stripe" aria-hidden="true" />

@@ -60,9 +60,9 @@ export function CopyLinkField({
         onClick={copy}
       >
         {copied ? (
-          <Check size={14} strokeWidth={2} aria-hidden="true" />
+          <Check size={16} strokeWidth={2} aria-hidden="true" />
         ) : (
-          <Copy size={14} strokeWidth={2} aria-hidden="true" />
+          <Copy size={16} strokeWidth={2} aria-hidden="true" />
         )}
         {copied ? t('copied') : t('copy')}
       </button>
@@ -91,11 +91,11 @@ export function SignInText({ account }: { account: HandoffAccount }) {
 export function SignInHint({ account }: { account: HandoffAccount }) {
   const icon =
     account.method === SignInMethod.Google ? (
-      <GoogleMark size={18} />
+      <GoogleMark size={16} />
     ) : account.method === SignInMethod.Apple ? (
-      <AppleMark size={18} />
+      <AppleMark size={16} />
     ) : (
-      <Mail size={18} strokeWidth={1.75} aria-hidden="true" />
+      <Mail size={16} strokeWidth={1.75} aria-hidden="true" />
     );
   return (
     <p className="mvg-signin" style={{ margin: 0 }}>

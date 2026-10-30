@@ -76,7 +76,7 @@ type AuthShellProps = {
 };
 
 /**
- * Page frame: photo panel + 640 form column at ≥1024, header bar + centred
+ * Page frame: photo panel + 480–640 form column at ≥1180, header bar + centred
  * form below. The photo is decorative (the brand's own marketing shot); the
  * Bike Plate on it is the shared object, still (Operate surface: no settle).
  * The subtitle under the H1 is the page's one line of copy.
@@ -94,7 +94,7 @@ export function AuthShell({ headerLink, homeLabel, children }: AuthShellProps) {
             alt=""
             fill
             priority
-            sizes="(min-width: 1024px) calc(100vw - 640px), 1px"
+            sizes="(min-width: 1180px) calc(100vw - 640px), 1px"
             className="mva-panel-photo"
           />
         </div>
@@ -465,11 +465,12 @@ function EyeOffIcon() {
   );
 }
 
+/** Lead glyph of the check-email card: the list-lead size (20). */
 export function MailIcon() {
   return (
     <svg
-      width="22"
-      height="22"
+      width="20"
+      height="20"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

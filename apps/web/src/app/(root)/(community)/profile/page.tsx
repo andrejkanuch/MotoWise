@@ -133,7 +133,7 @@ export default function ProfilePage() {
               <div className="prof-handle">@{user.publicUsername}</div>
               {user.city && (
                 <div className="prof-city">
-                  <MapPin size={14} strokeWidth={1.75} aria-hidden="true" />
+                  <MapPin size={16} strokeWidth={1.75} aria-hidden="true" />
                   {user.city}
                 </div>
               )}

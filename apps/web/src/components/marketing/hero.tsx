@@ -78,6 +78,7 @@ export function Hero() {
         {/* The shared object: a real Bike Plate, exactly as the app draws it */}
         <div className="hero-plate-slot">
           <BikePlate
+            size="hero"
             settle="late"
             figure="24,318"
             unit="km"

@@ -298,16 +298,11 @@
   }
 }
 
-.app-hint-spaced {
-  margin-top: 16px;
-}
-
 /* ─── Community nav: a flat bar on the ground, one hairline, no blur ─── */
 .community-nav {
   position: sticky;
   top: 0;
   z-index: 50;
-  padding: 0 40px;
   background: var(--mv-bg);
   border-bottom: 1px solid var(--mv-line);
 }
@@ -316,16 +311,21 @@
 .community-nav *::after {
   box-sizing: border-box;
 }
-/* The site's container: the brand sits on the same left edge as every H1. */
+/* The site's container with the gutter inside it (40 → 24 → 20, like
+   .mv-section): the brand sits on the same left edge as every H1. The
+   gutters never go under a notch in landscape (viewport-fit=cover). The
+   bar's height is the one the kit publishes (--mv-nav-h, 72). */
 .nav-inner {
   position: relative;
   max-width: var(--mv-container);
   margin: 0 auto;
+  padding-left: max(40px, env(safe-area-inset-left));
+  padding-right: max(40px, env(safe-area-inset-right));
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  min-height: 64px;
+  min-height: var(--mv-nav-h, 72px);
 }
 
 .nav-brand {
@@ -353,7 +353,7 @@
   font-weight: 500;
   color: var(--mv-ink-2);
   text-decoration: none;
-  transition: color 150ms var(--mv-ease);
+  transition: color var(--mv-dur-1, 160ms) var(--mv-ease);
 }
 .nav-link:hover {
   color: var(--mv-ink);
@@ -446,11 +446,13 @@
 .nav-mobile-menu {
   position: absolute;
   top: calc(100% + 8px);
-  right: 0;
-  left: 0;
+  right: max(20px, env(safe-area-inset-right));
+  left: max(20px, env(safe-area-inset-left));
   z-index: 50;
   display: flex;
   flex-direction: column;
+  max-height: calc(100dvh - var(--mv-nav-h, 72px) - 16px);
+  overflow-y: auto;
   padding: 8px 16px 12px;
   border-radius: var(--mv-radius-card);
   background: var(--mv-surface-2);
@@ -483,8 +485,9 @@
 }
 
 @media (max-width: 900px) {
-  .community-nav {
-    padding: 0 24px;
+  .nav-inner {
+    padding-left: max(24px, env(safe-area-inset-left));
+    padding-right: max(24px, env(safe-area-inset-right));
   }
 }
 
@@ -492,7 +495,6 @@
    button; the name, links, upgrade and sign-out move into the menu. */
 @media (max-width: 720px) {
   .nav-inner {
-    min-height: 56px;
     gap: 12px;
   }
   .nav-links,
@@ -513,8 +515,9 @@
 }
 
 @media (max-width: 480px) {
-  .community-nav {
-    padding: 0 20px;
+  .nav-inner {
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
   }
 }
 
@@ -533,5 +536,24 @@
 @media (max-width: 380px) {
   .nav-badge-word {
     display: none;
+  }
+}
+
+/* Forced colours: the current-section dot is a background, which the OS
+   paints over; draw it as a border so it survives. */
+@media (forced-colors: active) {
+  .nav-link.active::after {
+    width: 0;
+    height: 0;
+    background: none;
+    border: 2px solid CanvasText;
+  }
+}
+
+/* Print: the sticky bar and its menu are chrome, not the record. */
+@media print {
+  .community-nav,
+  .nav-mobile-menu {
+    display: none !important;
   }
 }

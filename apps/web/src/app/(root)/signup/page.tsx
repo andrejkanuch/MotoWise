@@ -32,8 +32,6 @@ import {
 import { postAuthDestination, signUpEmailRedirectTo } from '@/lib/post-auth-redirect';
 import { signUpConsentOptions } from '@/lib/signup-consent';
 
-/** Client-side check message; shown on the confirm field instead of the banner. */
-const PASSWORD_MISMATCH_MESSAGE = 'Passwords do not match.';
 export default function SignUpPage() {
   const t = useTranslations('AuthV2');
   const supabase = useMemo(
@@ -46,7 +44,6 @@ export default function SignUpPage() {
   );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -69,10 +66,6 @@ export default function SignUpPage() {
     if (loading) return;
     if (!hasCredentials(email, password)) {
       setError(SIGNUP_EMPTY_FIELDS_MESSAGE);
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError(PASSWORD_MISMATCH_MESSAGE);
       return;
     }
     setLoading(true);
@@ -151,9 +144,6 @@ export default function SignUpPage() {
     setResendState('idle');
   };
 
-  const mismatch = error === PASSWORD_MISMATCH_MESSAGE;
-  const bannerError = mismatch ? '' : error;
-
   return (
     <AuthShell
       headerLink={{ href: '/login', label: t('signUp.altCta') }}
@@ -164,7 +154,7 @@ export default function SignUpPage() {
         subtitle={t('signUp.subtitle')}
       />
 
-      <AuthErrorRegion>{bannerError && <AuthBanner message={bannerError} />}</AuthErrorRegion>
+      <AuthErrorRegion>{error && <AuthBanner message={error} />}</AuthErrorRegion>
 
       {success ? (
         <div role="status" className="mva-check">
@@ -219,6 +209,8 @@ export default function SignUpPage() {
               maxLength={255}
               required
             />
+            {/* One password field: the show/hide toggle covers the typo a
+                confirm field used to guard (onboard row 11). */}
             <AuthField
               id="signup-password"
               label={t('passwordLabel')}
@@ -237,19 +229,6 @@ export default function SignUpPage() {
                 showLabel: t('showPassword'),
                 hideLabel: t('hidePassword'),
               }}
-            />
-            <AuthField
-              id="signup-confirm-password"
-              label={t('signUp.confirmPasswordLabel')}
-              name="confirm-password"
-              type={showPassword ? 'text' : 'password'}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
-              minLength={6}
-              maxLength={128}
-              required
-              error={mismatch ? error : undefined}
             />
             <SubmitButton
               busy={loading}

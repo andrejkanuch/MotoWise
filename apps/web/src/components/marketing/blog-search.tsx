@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from '@/i18n/navigation';
-import type { Article } from '@/lib/blog';
+import type { BlogListItem } from '@/lib/blog';
 import { applyBlogFilters } from '@/lib/blog-filters';
 
 type Category = { slug: string; name: string };
@@ -41,9 +41,10 @@ function formatDate(date: string): string {
 }
 
 /**
- * Reader search + filters (plan U8). The full article list is passed in from the
- * statically-generated page; type/category/keyword filtering runs client-side
- * over it, while free-text search hits the FTS RPC via `/api/blog/search`.
+ * Reader search + filters (plan U8). The list-only article shape (no body, no
+ * FAQ, no author — see `BlogListItem`) is passed in from the statically-generated
+ * page; type/category/keyword filtering runs client-side over it, while free-text
+ * search hits the FTS RPC via `/api/blog/search`.
  * Search state lives in the URL (`?q/type/category/keyword`) so results are
  * shareable; the unfiltered view renders the full editorial feed (the static base).
  */
@@ -53,7 +54,7 @@ export function BlogSearch({
   locale,
   strings,
 }: {
-  articles: Article[];
+  articles: BlogListItem[];
   categories: Category[];
   locale: string;
   strings: { readingTime: string; readMore: string };
@@ -251,8 +252,8 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
       </span>
       <button type="button" onClick={onRemove} aria-label={`Remove ${label} filter`}>
         <svg
-          width="14"
-          height="14"
+          width="16"
+          height="16"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -288,7 +289,7 @@ function ArticleFeed({
   strings,
   featured,
 }: {
-  articles: Article[];
+  articles: BlogListItem[];
   strings: { readingTime: string; readMore: string };
   featured: boolean;
 }) {

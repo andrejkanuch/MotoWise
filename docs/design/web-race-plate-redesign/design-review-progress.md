@@ -33,7 +33,7 @@ Copy: full repositioning (logbook/records voice, kill trust-killer lines, fix Cl
 Iteration 1 — DIAGNOSE: [x] /critique [x] /audit (brainstorm covered)
 Iteration 2 — SYSTEMATIZE: [x] /normalize [x] /typeset [x] /arrange [x] /clarify (reports lens/it2-*.md, decisions lens/APPLY-DECISIONS.md, applied by 7 file-group agents)
 Iteration 3 — ENHANCE: [x] /animate [x] /delight [x] /distill [x] /harden [x] /colorize (reports lens/it3-*.md, decisions lens/APPLY-DECISIONS-3.md)
-Iteration 4 — POLISH: [ ] /adapt [ ] /onboard [ ] /optimize [ ] /polish [ ] /extract [ ] /bolder [ ] /overdrive
+Iteration 4 — POLISH: [~] /adapt [~] /onboard [~] /optimize [~] /polish [ ] /extract (documenter) [~] /bolder [~] /overdrive (research in lens/it4-*.md)
 
 ## Guardrails (binding)
 - Tokens only: no neutral-*/emerald-*/primary-* Tailwind colors in (marketing); no raw oklch in components
@@ -47,6 +47,7 @@ Iteration 4 — POLISH: [ ] /adapt [ ] /onboard [ ] /optimize [ ] /polish [ ] /e
 
 ## Iteration log
 - It.1 (diagnose): brainstorm synthesis, direction picked (2026-10-19).
+- Locale fix (2026-10-30, e4d2c00a): every /de,/fr… page had served English in production since the marketing layout went force-static (root layout resolved the locale before [locale] could); root-only routes moved to app/(root)/, [locale] is a root layout, i18n/request.ts reads next/root-params.
 - It.3 (enhance + harden, 2026-10-30): the plate settle is the one signature motion; reduced-motion policy; enter utilities; contrast tokens; distill cuts (diagnostics band, FAQ 14→6, hero hook/strip, site-definition paragraph, console note, footer store buttons, compare verdict cards, /pro What-Pro-adds, feature figure pairs); harden: stored XSS in the map popup, real outage states instead of false 404s, OAuth redirect recovery, focus traps, skip links, explore pages under the navbar; Mapbox follows the scheme.
 - It.2 (systematize, 2026-10-30): 4 research lenses → one shared kit in design-system.css (.mv-root/.mv-h2/.mv-h3/.mv-h1-operate/.mv-table/.mv-link/.mv-icon-btn/.mv-segmented/.mv-field*/.mv-rows/.mv-crumbs/.mv-chip/.mv-alert/.mv-scroll-row), one type scale, one spacing scale, one container; 684 dead i18n keys identified (prune at the end); product-truth copy fixed (no vendor names, no invented tests, no typed prices, 12,000+ models, 14 categories, 10 waypoint types); owner flags (d1–d15) in lens/it2-clarify.md.
 - Build (2026-10-30): foundation + 9 parallel build agents (home, chrome, features, compare, content, auth/pro, rider, explore, trips) → commits adf361f2, c953269d, 3b415384. Visual pass in both schemes at 1440 and 375.

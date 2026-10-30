@@ -51,6 +51,10 @@
 html:not(.dark) .mvg-card {
   border: 1px solid var(--mv-line);
 }
+/* A plate inside a card: the stripe's ground band is the card's surface. */
+.mvg-card {
+  --mv-plate-ground: var(--mv-surface);
+}
 .mvg-card--raised {
   background: var(--mv-surface-2);
 }
@@ -277,15 +281,16 @@ html:not(.dark) .mvg-card {
 /* One reason is an .mv-row laid out as icon | text. */
 .mv-row.mvg-reason {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
+  grid-template-columns: 20px minmax(0, 1fr);
   column-gap: 12px;
   align-items: start;
 }
+/* A list lead: the kit's 20 px glyph step. */
 .mvg-reason-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
+  width: 20px;
   height: 20px;
   color: var(--mv-ink-3);
 }
@@ -421,13 +426,14 @@ html:not(.dark) .mvg-card {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 8px calc(10px + env(safe-area-inset-bottom)) 16px;
+    padding: 10px max(8px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom))
+      max(16px, env(safe-area-inset-left));
     background: var(--mv-surface-2);
     border-top: 1px solid var(--mv-line);
     font-family: var(--mv-font-body);
     transition:
-      translate 250ms var(--mv-ease-expo),
-      opacity 240ms var(--mv-ease-expo);
+      translate var(--mv-dur-3, 240ms) var(--mv-ease-expo),
+      opacity var(--mv-dur-3, 240ms) var(--mv-ease-expo);
   }
   @starting-style {
     .mvg-bar {
@@ -454,9 +460,14 @@ html:not(.dark) .mvg-card {
   width: 20px;
   color: var(--mv-ink-2);
 }
+/* Two lines at most on a 360 px phone; the dismiss keeps its 44 px. */
 .mvg-bar-text {
   flex: 1;
   min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
   font-size: 13px;
   line-height: 18px;
   color: var(--mv-ink);
@@ -467,6 +478,17 @@ html:not(.dark) .mvg-card {
 .mvg-bar-open,
 .mvg-bar-dismiss {
   flex: none;
+}
+.mvg-bar-open {
+  white-space: nowrap;
+}
+
+/* Print: the bottom bar is chrome, not the record. */
+@media print {
+  .mvg-bar,
+  .mvg-bar-spacer {
+    display: none !important;
+  }
 }
 
 /* Visually hidden, still announced (copy confirmation). */

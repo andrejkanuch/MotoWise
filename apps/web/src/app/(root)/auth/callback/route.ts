@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
+import { AuthErrorCode, loginErrorPath } from '@/components/auth-ui/auth-query';
 import { postAuthDestination } from '@/lib/post-auth-redirect';
 
 export async function GET(request: NextRequest) {
@@ -8,8 +9,10 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code');
   const redirect = searchParams.get('redirect');
 
+  // No code: Supabase sends an expired or already-used link back here with
+  // error params instead of a code. /login names the failure (onboard row 9).
   if (!code) {
-    return NextResponse.redirect(`${origin}/login`);
+    return NextResponse.redirect(`${origin}${loginErrorPath(AuthErrorCode.LinkExpired)}`);
   }
 
   // If redirect points to the mobile app scheme, forward the code
@@ -43,7 +46,7 @@ export async function GET(request: NextRequest) {
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    return NextResponse.redirect(`${origin}/login`);
+    return NextResponse.redirect(`${origin}${loginErrorPath(AuthErrorCode.LinkExpired)}`);
   }
 
   // Redirect within the web app (same-origin internal path only). A rider's

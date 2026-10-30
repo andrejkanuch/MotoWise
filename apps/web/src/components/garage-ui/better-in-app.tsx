@@ -117,7 +117,7 @@ function ReasonIcon({ reason }: { reason: HandoffReason }) {
   const Icon = REASON_ICON[reason];
   return (
     <span className="mvg-reason-icon" aria-hidden="true">
-      <Icon size={18} strokeWidth={1.75} />
+      <Icon size={20} strokeWidth={1.75} />
     </span>
   );
 }
