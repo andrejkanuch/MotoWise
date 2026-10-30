@@ -89,9 +89,14 @@
   --mv-radius-control: 12px;
   --mv-radius-card: 16px;
   --mv-radius-plate: 20px;
-  --mv-radius-field: 12px;
-  --mv-radius-inner: 12px;
-  --mv-radius: 16px;
+  --mv-radius-small: 6px; /* ≤32px marks, checkboxes, kbd, inline code */
+  --mv-radius-track: 2px; /* ≤4px bars and progress tracks */
+  --mv-radius-pill: 999px;
+  --mv-radius-screen: 28px; /* phone-screen crops inside a device frame */
+  /* Aliases of the control/card radii — migrate call sites, then delete */
+  --mv-radius-field: var(--mv-radius-control);
+  --mv-radius-inner: var(--mv-radius-control);
+  --mv-radius: var(--mv-radius-card);
 
   /* Motion */
   --mv-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -108,7 +113,9 @@
   --mv-font-mono: var(--font-geist-mono, "Geist Mono"), ui-monospace, Menlo, monospace;
 
   /* ── Deprecated aliases: migrate call sites, then delete ────────
-     Kept so every untouched consumer keeps rendering in the new world. */
+     Kept so every untouched consumer keeps rendering in the new world
+     (last in-scope consumers: pro.css, auth-ui.css; out of scope:
+     components/builder/builder-client.tsx). */
   --mv-page: var(--mv-bg);
   --mv-card: var(--mv-surface);
   --mv-on-accent: var(--mv-on-copper);

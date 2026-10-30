@@ -5,111 +5,6 @@
 @source "../../../../packages/";
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Scroll-driven reveal animation (progressive enhancement) */
-@supports (animation-timeline: view()) {
-  .reveal-on-scroll {
-    animation: reveal-up 0.6s ease both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 35%;
-  }
-
-  @keyframes reveal-up {
-    from {
-      opacity: 0;
-      transform: translateY(24px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-}
-
-/* Fallback for browsers without animation-timeline support */
-@supports not (animation-timeline: view()) {
-  .reveal-on-scroll {
-    opacity: 1;
-  }
-}
-
-/* ── Custom easing ── */
-:root {
-  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* ── Button micro-interactions ── */
-.cta-primary {
-  transition: transform 150ms var(--ease-out-quart), background-color 200ms ease;
-}
-.cta-primary:hover {
-  transform: translateY(-1px);
-}
-.cta-primary:active {
-  transform: translateY(0) scale(0.98);
-  transition-duration: 80ms;
-}
-
-/* ── CTA ambient glow pulse ── */
-.cta-glow {
-  position: relative;
-}
-.cta-glow::after {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  box-shadow: 0 0 20px 4px oklch(0.76 0.13 70 / 0.35);
-  opacity: 0;
-  animation: glow-pulse 3s ease-in-out infinite;
-  pointer-events: none;
-}
-@keyframes glow-pulse {
-  0%, 100% { opacity: 0; }
-  50%      { opacity: 1; }
-}
-
-/* ── Success state entrance ── */
-@keyframes success-pop {
-  from { opacity: 0; transform: scale(0.92); }
-  to   { opacity: 1; transform: scale(1); }
-}
-.success-enter {
-  animation: success-pop 400ms var(--ease-out-expo) both;
-}
-
-/* ── FAQ answer accent-line draw ── */
-.faq-accent-line {
-  position: relative;
-}
-.faq-accent-line::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--color-warm-500);
-  transform: scaleY(0);
-  transform-origin: top;
-  transition: transform 400ms var(--ease-out-expo);
-}
-.faq-accent-line[data-open="true"]::before {
-  transform: scaleY(1);
-  transition-delay: 150ms;
-}
-
-.cta-secondary {
-  transition: transform 150ms var(--ease-out-quart), border-color 200ms ease, color 200ms ease;
-}
-.cta-secondary:hover {
-  transform: translateY(-1px);
-}
-.cta-secondary:active {
-  transform: translateY(0) scale(0.98);
-  transition-duration: 80ms;
-}
-
 /* ── Modal animations ── */
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -122,25 +17,6 @@
 @keyframes scaleIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
-}
-
-/* Reduce motion: disable animations and transitions */
-@media (prefers-reduced-motion: reduce) {
-  .cta-primary,
-  .cta-secondary {
-    transition: none !important;
-    transform: none !important;
-  }
-  .cta-glow::after {
-    animation: none !important;
-    opacity: 0;
-  }
-  .success-enter {
-    animation: none !important;
-  }
-  .faq-accent-line::before {
-    transition: none !important;
-  }
 }
 
 /* Paint containment for below-fold sections — avoids layout/paint work until visible */

@@ -12,37 +12,41 @@
    imported once by src/app/globals.css. This file holds only marketing
    component styles. Never redeclare a token here. */
 
-/* ── Base ── */
+/* ── Root grammar: every Trackside surface (marketing, auth, welcome,
+      garage, share) shares the face, the ground, selection and focus ── */
+.mv-root,
 .mv-marketing {
   font-family: var(--mv-font-body);
   color: var(--mv-ink);
   background: var(--mv-bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+.mv-marketing {
   overflow-x: hidden;
 }
 
+.mv-root ::selection,
 .mv-marketing ::selection {
   background: var(--mv-ink);
   color: var(--mv-bg);
 }
 
+.mv-root img,
 .mv-marketing img {
   display: block;
   max-width: 100%;
 }
 
+.mv-root :focus-visible,
 .mv-marketing :focus-visible {
-  outline: 2px solid var(--mv-copper);
+  outline: 2px solid var(--mv-focus);
   outline-offset: 2px;
 }
 
 /* ── Typography helpers ── */
 
-/* Display face: Barlow Condensed. Historically this class was the serif
-   italic; it is re-pointed so every consumer joins the Race Plate world.
-   TODO(rename): migrate call sites to .mv-display, then delete. */
-.mv-serif,
+/* Display face: Barlow Condensed — headlines and numbers only */
 .mv-display {
   font-family: var(--mv-font-display);
   font-weight: 600;
@@ -61,7 +65,7 @@
 
 /* Data/meta small print only — never headings, never uppercase strips */
 .mv-mono {
-  font-family: var(--font-geist-mono, 'Geist Mono', monospace);
+  font-family: var(--mv-font-mono);
 }
 
 /* ── Section shell ── */
@@ -129,7 +133,7 @@
   aspect-ratio: 9 / 19.5;
   border-radius: 44px;
   background: var(--mv-surface-2);
-  padding: 9px;
+  padding: 8px;
   box-shadow: 0 0 0 1px var(--mv-line);
 }
 
@@ -137,7 +141,7 @@
   .mv-phone-mockup { width: 260px; border-radius: 38px; }
 }
 @media (max-width: 480px) {
-  .mv-phone-mockup { width: 220px; border-radius: 34px; padding: 7px; }
+  .mv-phone-mockup { width: 220px; border-radius: 34px; padding: 8px; }
 }
 
 /* ── Section marker: the plate chip (the one sanctioned Plain Voice
@@ -284,20 +288,17 @@ html:not(.dark) .mv-plate-chip {
   transition: translate 0.2s var(--mv-ease), scale 0.2s var(--mv-ease), background 0.25s, border-color 0.25s;
 }
 
-.mv-btn-primary,
-.hero-btn-copper {
+.mv-btn-primary {
   background: var(--mv-copper);
   color: var(--mv-on-copper);
 }
 
-.mv-btn-primary:hover,
-.hero-btn-copper:hover {
+.mv-btn-primary:hover {
   background: var(--mv-copper-hover);
   translate: 0 -1px;
 }
 
 .mv-btn-primary:active,
-.hero-btn-copper:active,
 .mv-btn-ghost:active {
   translate: 0 0;
   scale: 0.985;
@@ -337,17 +338,208 @@ html:not(.dark) .mv-plate-chip {
   background: var(--mv-fill);
 }
 
-/* Text link: copper is the verb */
+/* ── Button modifiers (the base .mv-btn / .mv-btn-primary / .mv-btn-ghost stay as they are) ── */
+.mv-btn-block { width: 100%; justify-content: center; padding: 16px 22px; font-size: 15px; }
+.mv-btn.is-compact { min-height: 36px; padding: 0 16px; font-size: 13px; }
+.mv-btn:disabled,
+.mv-btn[aria-disabled='true'] {
+  cursor: not-allowed;
+  translate: 0 0;
+  scale: 1;
+}
+.mv-btn-primary:disabled {
+  background: color-mix(in oklch, var(--mv-copper) 60%, var(--mv-bg));
+  color: color-mix(in oklch, var(--mv-on-copper) 80%, transparent);
+}
+.mv-btn-ghost:disabled { color: var(--mv-ink-3); background: var(--mv-surface-2); }
+.mv-btn[aria-busy='true'] { cursor: progress; }
+
+/* ── Text link (ONE definition; replaces the trackside-read copy) ── */
 .mv-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 500;
   color: var(--mv-copper-text);
-  text-decoration: none;
-  text-underline-offset: 3px;
-  transition: color 0.15s;
-}
-.mv-link:hover {
-  color: var(--mv-copper-hover);
   text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--mv-copper-border);
+  cursor: pointer;
+  transition: color 0.2s, text-decoration-color 0.2s;
 }
+.mv-link:hover { color: var(--mv-copper-hover); text-decoration-color: currentColor; }
+.mv-link.is-quiet { text-decoration: none; }           /* action links in rows and nav */
+.mv-link.is-quiet:hover { text-decoration: underline; }
+.mv-link.is-tall { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+.mv-link:disabled { color: var(--mv-ink-3); cursor: progress; text-decoration: none; }
+
+/* ── H3-scale condensed title (sub-section, card, sheet) ── */
+.mv-h3 {
+  margin: 0;
+  font-family: var(--mv-font-display);
+  font-weight: 600;
+  font-size: 30px;
+  line-height: 1.05;
+  letter-spacing: 0.002em;
+  color: var(--mv-ink);
+  text-wrap: balance;
+}
+
+/* ── Segmented control: raised track, selection one step higher, never copper ── */
+.mv-segmented {
+  display: inline-flex;
+  gap: 2px;
+  margin: 0;
+  padding: 2px;
+  border: 0;
+  border-radius: var(--mv-radius-control);
+  background: var(--mv-surface-2);
+}
+.mv-segmented > button,
+.mv-segmented > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: calc(var(--mv-radius-control) - 2px);
+  background: transparent;
+  color: var(--mv-ink-2);
+  font-family: var(--mv-font-body);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s var(--mv-ease), color 0.15s var(--mv-ease);
+}
+.mv-segmented > :hover { color: var(--mv-ink); }
+.mv-segmented > [aria-pressed='true'],
+.mv-segmented > [aria-selected='true'],
+.mv-segmented > [aria-current] {
+  background: var(--mv-surface-3);
+  color: var(--mv-ink);
+  font-weight: 600;
+}
+
+/* ── Field: label wrapper + input (promoted from trackside-read.css) ── */
+.mv-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.mv-field > label,
+.mv-field > span { font-size: 15px; font-weight: 500; line-height: 1.4; color: var(--mv-ink-2); }
+.mv-field-hint { font-size: 14px; color: var(--mv-ink-3); }
+.mv-field-error { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--mv-overdue-ink); }
+.mv-field-input {
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  border-radius: var(--mv-radius-control);
+  border: 1px solid var(--mv-field-line);
+  background: var(--mv-surface-2);
+  color: var(--mv-ink);
+  caret-color: var(--mv-copper);
+  font-family: var(--mv-font-body);
+  font-size: 16px;          /* never below 16: iOS Safari zooms */
+  line-height: 1;
+  appearance: none;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.mv-field-input::placeholder { color: var(--mv-ink-3); opacity: 1; }
+.mv-field-input:hover:not(:disabled) { border-color: var(--mv-line-step); }
+.mv-field-input:focus-visible { border-color: var(--mv-copper); outline: 2px solid var(--mv-copper); outline-offset: 2px; }
+.mv-field-input[aria-invalid='true'] { border-color: var(--mv-overdue-ink); }
+.mv-field-input:disabled { color: var(--mv-ink-3); }
+.mv-field-input.is-tall { height: 52px; }   /* phone auth fields */
+.mv-select { position: relative; }
+.mv-select .mv-field-input { padding-right: 44px; cursor: pointer; }
+.mv-select > svg { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--mv-ink-3); }
+
+/* ── Hairline row list (promoted + generalised from .mv-rows) ── */
+.mv-rows { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--mv-line); }
+.mv-rows.is-open { border-top: 0; }                       /* no rule at the top (garage, pro cards) */
+.mv-rows > li,
+.mv-rows > .mv-row { border-bottom: 1px solid var(--mv-line); }
+.mv-rows.is-open > :last-child { border-bottom: 0; }
+.mv-row,
+.mv-rows > li > a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 44px;
+  padding: 12px 0;
+  color: var(--mv-ink);
+  text-decoration: none;
+  border-radius: 0;
+  transition: color 0.2s;
+}
+.mv-row-title { font-size: 16px; font-weight: 500; line-height: 1.4; color: var(--mv-ink); transition: color 0.2s; }
+.mv-row-sub { display: block; margin-top: 4px; font-size: 14px; line-height: 1.5; color: var(--mv-ink-3); }
+.mv-row-aside { flex-shrink: 0; font-size: 14px; color: var(--mv-ink-3); white-space: nowrap; text-align: right; }
+.mv-row-aside.mv-figure { font-size: 17px; color: var(--mv-ink-2); }
+a.mv-row:hover .mv-row-title,
+.mv-rows > li > a:hover { color: var(--mv-copper-text); }
+.mv-row svg { flex-shrink: 0; color: var(--mv-ink-4); transition: color 0.2s, transform 0.2s var(--mv-ease); }
+a.mv-row:hover svg { color: var(--mv-copper-text); transform: translateX(2px); }
+
+/* ── Breadcrumb (promoted from trackside-read.css, unchanged) ── */
+.mv-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0 0 28px; padding: 0; list-style: none; font-size: 14px; line-height: 1.4; color: var(--mv-ink-3); }
+.mv-crumbs li { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.mv-crumbs a { color: var(--mv-ink-3); text-decoration: none; transition: color 0.2s; }
+.mv-crumbs a:hover { color: var(--mv-ink); }
+.mv-crumbs svg { color: var(--mv-ink-4); flex-shrink: 0; }
+.mv-crumbs [aria-current='page'] { color: var(--mv-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 42ch; }
+
+/* ── Chip (promoted; radius corrected to the control scale) ── */
+.mv-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.mv-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: var(--mv-radius-control);
+  border: 1px solid var(--mv-line);
+  background: var(--mv-surface-2);
+  color: var(--mv-ink-2);
+  font-family: var(--mv-font-body);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.mv-chip:hover { background: var(--mv-surface-3); border-color: var(--mv-line-step); color: var(--mv-ink); }
+.mv-chip[aria-pressed='true'],
+.mv-chip[data-active='true'] { border-color: var(--mv-copper); color: var(--mv-copper-text); }
+.mv-chip.is-tall { min-height: 44px; }    /* explore filter chips */
+
+/* ── Alert (auth banner + pro alert; overdue ink on the danger tint, never copper) ── */
+.mv-alert {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--mv-radius-control);
+  background: var(--mv-danger-tint);
+  border: 1px solid var(--mv-danger-border);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--mv-ink);
+}
+.mv-alert > svg { color: var(--mv-overdue-ink); margin-top: 1px; }
+.mv-alert p { margin: 0; }
+
+/* ── Horizontal scroll row without a visible scrollbar (strips, tab bars, filter rows) ── */
+.mv-scroll-row { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.mv-scroll-row::-webkit-scrollbar { display: none; }
 
 /* Section headline (H2): one condensed title per section */
 .mv-h2 {
@@ -466,7 +658,7 @@ html:not(.dark) .mv-plate {
 .mv-plate-edge {
   margin-top: 10px;
   padding-top: 8px;
-  border-top: 1px solid rgba(18, 19, 21, 0.16);
+  border-top: 1px solid color-mix(in srgb, var(--mv-plate-ink) 16%, transparent);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -483,7 +675,7 @@ html:not(.dark) .mv-plate {
 .mv-plate-edge-identity {
   font-family: var(--mv-font-body);
   font-weight: 500;
-  color: rgba(18, 19, 21, 0.68);
+  color: color-mix(in srgb, var(--mv-plate-ink) 68%, transparent);
 }
 
 /* Settle-in: once, 240ms, exponential ease-out (mirrors the app) */
@@ -544,7 +736,7 @@ html:not(.dark) .mv-plate {
 }
 
 .mv-footer-brand-mark img {
-  border-radius: 6px;
+  border-radius: var(--mv-radius-small);
 }
 
 .mv-footer-brand-text {
@@ -566,7 +758,7 @@ html:not(.dark) .mv-plate {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 14px;
+  padding: 8px 14px;
   background: var(--mv-surface);
   border: 1px solid var(--mv-line);
   border-radius: var(--mv-radius-control);

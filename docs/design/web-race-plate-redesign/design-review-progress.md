@@ -1,7 +1,9 @@
 # Web Race Plate Redesign — Compound Design Loop progress
 
 Direction: **Trackside** (ride photography + Race Plate voice). Owner picked 2026-10-19.
-Scope: full marketing surface — tokens, homepage, feature + compare templates, navbar/footer, 8 locales.
+Scope (widened 2026-10-30 by the owner): the whole web app except admin/builder — marketing, rider
+pages (/garage, /profile), auth, /welcome, /get, /pro + checkout, root /explore, trips/routes/ride/
+share/rider/u pages — in BOTH schemes, 8 locales translated at the end, one PR.
 Copy: full repositioning (logbook/records voice, kill trust-killer lines, fix Claude-AI chip → on-device/AI wording).
 
 ## Design team (brainstorm, done)
@@ -11,21 +13,25 @@ Copy: full repositioning (logbook/records voice, kill trust-killer lines, fix Cl
 - Ecosystem strategist — token map plate*→--mv-*; deprecate --mv-warm-*; Barlow Condensed display + Geist body; dual --mv-* definition hazard
 
 ## Execution checklist
-- [ ] Foundation: re-point --mv-* to palette.plate*/plateLight* (both schemes), add --mv-copper-*, delete grain/cursor/serif/mono-eyebrow helpers
-- [ ] Fonts: Barlow Condensed (500/600/700, tnum) as --font-plate; retire Instrument Serif
-- [ ] BikePlate web component (hero + reusable)
-- [ ] Hero: Trackside rebuild (photo regraded to graphite scrims, condensed H1, plate, copper CTA, static figure strip; kill HUD/haze/stagger/magnetic/cursor)
-- [ ] Homepage sections: features-grid, proof (real numbers), manifesto, CTA, FAQ restyle
-- [ ] Copy repositioning in messages/en.json
-- [ ] feature-content-page.tsx rebuild on tokens (fixes 7 pages)
-- [ ] Compare template rebuild (Spec treatment; fixes 10 pages)
-- [ ] Navbar + footer restyle (blur budget: navbar only)
-- [ ] Locales: de, es, fr, it, ja, pl, pt-BR retranslation
-- [ ] apps/web/CLAUDE.md design brief rewritten to the new world
+- [x] Foundation: ONE token source `packages/design-system/src/mv-tokens.css` (dark :root, light html:not(.dark), deprecated aliases), theme provider light/dark/system + hashed pre-paint script, ThemeToggle (2026-10-30, adf361f2)
+- [x] Fonts: Barlow Condensed (500/600/700, tnum) as --font-plate; Instrument Serif removed from every layout
+- [x] BikePlate web component (hero, garage, feature pages, auth panel, checkout success)
+- [x] Hero: Trackside rebuild; entrances are transform-only (a stalled animation can never hide content)
+- [x] Homepage sections rebuilt without GSAP (c953269d); real Race Plate captures from marketing/screenshots/en-US in /images/marketing/mw
+- [x] Copy repositioning in messages/en.json (English; other locales pending)
+- [x] feature-content-page.tsx is the one layout for all 7 feature pages (slots: steps/demo/table/longForm)
+- [x] Compare "Spec Sheet" template + index/alternatives/maint-vs-ride
+- [x] Navbar + footer + sticky bar + cookie banner + 404/error (blur: navbar only)
+- [x] Blog/guides/bikes/tools/legal/about/press (trackside-read.css)
+- [x] Auth/welcome/get/pro/checkout; garage/profile/followers + community nav; root explore; trips/ride/share/rider/u
+- [x] Routing fix: /reset-password, /share, /u added to the root-only lists (they 404ed in prod)
+- [ ] Locales: de, es, fr, it, ja, pl, pt-BR retranslation (end of the pass)
+- [x] apps/web/CLAUDE.md design brief rewritten to the new world (token location to be updated at the end)
+- [ ] apps/web/DESIGN.md + .impeccable/design.json via the documenter (end of the pass)
 
 ## Impeccable commands
 Iteration 1 — DIAGNOSE: [x] /critique [x] /audit (brainstorm covered)
-Iteration 2 — SYSTEMATIZE: [ ] /normalize [ ] /typeset [ ] /arrange [ ] /clarify
+Iteration 2 — SYSTEMATIZE: [~] /normalize [~] /typeset [~] /arrange [~] /clarify (research reports in lens/it2-*.md)
 Iteration 3 — ENHANCE: [ ] /animate [ ] /delight [ ] /distill [ ] /harden [ ] /colorize
 Iteration 4 — POLISH: [ ] /adapt [ ] /onboard [ ] /optimize [ ] /polish [ ] /extract [ ] /bolder [ ] /overdrive
 
@@ -40,4 +46,5 @@ Iteration 4 — POLISH: [ ] /adapt [ ] /onboard [ ] /optimize [ ] /polish [ ] /e
 - One stat row max per page, real numbers only
 
 ## Iteration log
-- It.1 (diagnose): brainstorm synthesis, direction picked.
+- It.1 (diagnose): brainstorm synthesis, direction picked (2026-10-19).
+- Build (2026-10-30): foundation + 9 parallel build agents (home, chrome, features, compare, content, auth/pro, rider, explore, trips) → commits adf361f2, c953269d, 3b415384. Visual pass in both schemes at 1440 and 375.
