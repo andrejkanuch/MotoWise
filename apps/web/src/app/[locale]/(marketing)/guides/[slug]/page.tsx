@@ -63,6 +63,26 @@ export async function generateMetadata({ params }: GuidePageProps): Promise<Meta
   };
 }
 
+// Typography-plugin colours routed through the Trackside tokens so the page
+// follows both schemes (prose-invert hardcoded dark-only greys).
+const proseTokens = {
+  '--tw-prose-body': 'var(--mv-ink-2)',
+  '--tw-prose-headings': 'var(--mv-ink)',
+  '--tw-prose-links': 'var(--mv-copper-text)',
+  '--tw-prose-bold': 'var(--mv-ink)',
+  '--tw-prose-counters': 'var(--mv-ink-3)',
+  '--tw-prose-bullets': 'var(--mv-ink-4)',
+  '--tw-prose-hr': 'var(--mv-line)',
+  '--tw-prose-quotes': 'var(--mv-ink)',
+  '--tw-prose-quote-borders': 'var(--mv-line)',
+  '--tw-prose-captions': 'var(--mv-ink-3)',
+  '--tw-prose-code': 'var(--mv-ink)',
+  '--tw-prose-pre-code': 'var(--mv-ink-2)',
+  '--tw-prose-pre-bg': 'var(--mv-surface)',
+  '--tw-prose-th-borders': 'var(--mv-line-step)',
+  '--tw-prose-td-borders': 'var(--mv-line)',
+} as React.CSSProperties;
+
 export default async function GuidePage({ params }: GuidePageProps) {
   const { slug, locale } = await params;
   setRequestLocale(locale);
@@ -117,21 +137,21 @@ export default async function GuidePage({ params }: GuidePageProps) {
     <>
       <JsonLdGraph nodes={graph} />
       <article className="mx-auto max-w-3xl px-6 py-24">
-        <nav className="mb-8 flex items-center gap-2 text-sm text-neutral-500">
-          <Link href="/" className="hover:text-neutral-300">
+        <nav className="mb-8 flex items-center gap-2 text-sm text-(--mv-ink-3)">
+          <Link href="/" className="hover:text-(--mv-ink)">
             Home
           </Link>
           <span aria-hidden="true">/</span>
-          <Link href="/guides" className="hover:text-neutral-300">
+          <Link href="/guides" className="hover:text-(--mv-ink)">
             Guides
           </Link>
           <span aria-hidden="true">/</span>
-          <span className="truncate text-neutral-400">{frontmatter.title}</span>
+          <span className="truncate text-(--mv-ink-2)">{frontmatter.title}</span>
         </nav>
 
         <Link
           href="/guides"
-          className="mb-6 inline-block text-sm font-medium text-amber-400 transition-colors hover:text-amber-300"
+          className="mb-6 inline-block text-sm font-medium text-(--mv-copper-text) transition-colors hover:text-(--mv-copper-hover)"
         >
           &larr; All Guides
         </Link>
@@ -149,10 +169,10 @@ export default async function GuidePage({ params }: GuidePageProps) {
               />
             </div>
           )}
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-(--mv-ink) sm:text-4xl">
             {frontmatter.title}
           </h1>
-          <div className="mt-4 flex items-center gap-3 text-sm text-neutral-500">
+          <div className="mt-4 flex items-center gap-3 text-sm text-(--mv-ink-3)">
             <span>{frontmatter.author}</span>
             <span aria-hidden="true">&middot;</span>
             <time dateTime={frontmatter.date}>
@@ -168,13 +188,15 @@ export default async function GuidePage({ params }: GuidePageProps) {
 
         <TableOfContents headings={headings} />
 
-        <div className="prose prose-invert max-w-none">{content}</div>
+        <div className="prose max-w-none" style={proseTokens}>
+          {content}
+        </div>
 
-        <div className="mt-16 rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 text-center">
-          <h2 className="mb-3 text-xl font-semibold text-neutral-100">
+        <div className="mt-16 rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-8 text-center">
+          <h2 className="mb-3 text-xl font-semibold text-(--mv-ink)">
             Plan your next motorcycle trip with MotoVault
           </h2>
-          <p className="mb-6 text-neutral-400">
+          <p className="mb-6 text-(--mv-ink-2)">
             Discover curated routes, track your rides, and plan multi-day trips with waypoints, GPX
             export, and community reviews.
           </p>

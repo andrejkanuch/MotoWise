@@ -11,15 +11,26 @@ interface FeatureContentPageProps {
   namespace: string;
   route: string;
   screenshots: { src: string; alt: string }[];
-  featureIcons: readonly [string, string, string];
+  /**
+   * Kept for backward compatibility with the seven feature pages. The
+   * Trackside direction replaced the icon-tile grid with a numbered
+   * editorial list (plate-chip markers), so the icons are no longer drawn.
+   */
+  featureIcons?: readonly [string, string, string];
 }
 
+/**
+ * Shared feature-page template in the Trackside voice: condensed display
+ * headlines, left-aligned editorial sections sitting directly on the graphite
+ * ramp (no card wrappers), plate-chip numerals instead of icon tiles, and
+ * copper strictly on actions. All colours come from the `--mv-*` tokens so
+ * both schemes work.
+ */
 export async function FeatureContentPage({
   locale,
   namespace,
   route,
   screenshots,
-  featureIcons,
 }: FeatureContentPageProps) {
   const t = await getTranslations(namespace);
   // Second translator for the shared /compare inbound link — keeps the copy in
@@ -69,239 +80,288 @@ export async function FeatureContentPage({
     <>
       <JsonLdGraph nodes={graph} />
 
-      <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
-        <ol className="mx-auto flex max-w-7xl items-center gap-2 text-sm text-neutral-500">
-          <li>
-            <Link href="/" className="transition-colors hover:text-neutral-300">
-              {t('breadcrumbHome')}
-            </Link>
-          </li>
-          <li aria-hidden="true">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-neutral-600"
+      {/* Hero: breadcrumb + condensed display headline, left-aligned on the ground */}
+      <header className="mv-section-hero" style={{ paddingTop: '128px', paddingBottom: '72px' }}>
+        <div style={{ maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
+          <nav aria-label="Breadcrumb" style={{ marginBottom: '40px' }}>
+            <ol
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: '10px',
+                listStyle: 'none',
+                margin: 0,
+                padding: 0,
+                fontSize: '13px',
+                fontWeight: 500,
+                color: 'var(--mv-ink-3)',
+              }}
             >
-              <title>Separator</title>
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </li>
-          <li>
-            <Link href="/features" className="transition-colors hover:text-neutral-300">
-              {t('breadcrumbFeatures')}
-            </Link>
-          </li>
-          <li aria-hidden="true">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-neutral-600"
-            >
-              <title>Separator</title>
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </li>
-          <li>
-            <span className="text-neutral-300" aria-current="page">
-              {t('title')}
-            </span>
-          </li>
-        </ol>
-      </nav>
+              <li>
+                <Link href="/" style={{ color: 'var(--mv-ink-3)', textDecoration: 'none' }}>
+                  {t('breadcrumbHome')}
+                </Link>
+              </li>
+              <li aria-hidden="true" style={{ color: 'var(--mv-ink-4)' }}>
+                /
+              </li>
+              <li>
+                <Link href="/features" style={{ color: 'var(--mv-ink-3)', textDecoration: 'none' }}>
+                  {t('breadcrumbFeatures')}
+                </Link>
+              </li>
+              <li aria-hidden="true" style={{ color: 'var(--mv-ink-4)' }}>
+                /
+              </li>
+              <li>
+                <span aria-current="page" style={{ color: 'var(--mv-ink)' }}>
+                  {t('title')}
+                </span>
+              </li>
+            </ol>
+          </nav>
 
-      <section className="px-6 pb-16 pt-8 md:pt-12">
-        <div className="reveal-on-scroll mx-auto max-w-4xl text-center">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            {t('sectionLabel')}
-          </p>
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
+          <h1 className="mv-section-title" style={{ maxWidth: '16ch' }}>
             {t('heroTitle')}
           </h1>
-          <div className="mx-auto mt-6 h-1.5 w-32 rounded-full bg-signature-500" />
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">
-            {t('heroSubtitle')}
-          </p>
+          <p className="mv-section-sub">{t('heroSubtitle')}</p>
         </div>
-      </section>
+      </header>
 
       <FeatureScreenshotPair screenshots={screenshots} />
 
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      <section className="px-6 py-24">
-        <div className="mx-auto max-w-5xl">
-          <div className="reveal-on-scroll mb-16 text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              {t('featuresLabel')}
-            </p>
-            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-              {t('featuresTitle')}
-            </h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
+      {/* Feature list: asymmetric editorial split — big title left, numbered
+          plate-chip list right. No cards, no icon tiles; spacing separates. */}
+      <section className="mv-section">
+        <div className="mv-grid-2" style={{ alignItems: 'start' }}>
+          <h2 className="mv-section-title reveal-on-scroll">{t('featuresTitle')}</h2>
+          <ol
+            className="reveal-on-scroll"
+            style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '48px',
+            }}
+          >
             {features.map(({ titleKey, descKey }, index) => (
-              <article
-                key={titleKey}
-                className="card-lift reveal-on-scroll group relative overflow-hidden rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-8 backdrop-blur-sm transition-colors hover:border-warm-500/40"
-                style={{ animationDelay: `${index * 60}ms` }}
-              >
-                <div
-                  className="pointer-events-none absolute inset-0 opacity-40 transition-opacity duration-300 group-hover:opacity-100"
-                  style={{
-                    background:
-                      'radial-gradient(ellipse at 50% 0%, oklch(0.76 0.13 70 / 0.08), transparent 70%)',
-                  }}
-                  aria-hidden="true"
-                />
-                <div className="absolute inset-x-0 bottom-0 h-[3px] transition-colors group-hover:bg-warm-500" />
-                <div className="relative z-10">
-                  <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-neutral-800/80 text-warm-400">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="size-6"
-                      aria-hidden="true"
-                    >
-                      <path d={featureIcons[index]} />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-neutral-50">{t(titleKey)}</h3>
-                  <p className="mt-3 text-sm leading-relaxed text-neutral-300">{t(descKey)}</p>
+              <li key={titleKey} style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                <span className="mv-plate-chip" aria-hidden="true" style={{ marginTop: '2px' }}>
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <div>
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize: '17px',
+                      fontWeight: 600,
+                      color: 'var(--mv-ink)',
+                      letterSpacing: '-0.005em',
+                    }}
+                  >
+                    {t(titleKey)}
+                  </h3>
+                  <p
+                    style={{
+                      margin: '8px 0 0',
+                      fontSize: '15px',
+                      lineHeight: 1.6,
+                      color: 'var(--mv-ink-2)',
+                      maxWidth: '52ch',
+                    }}
+                  >
+                    {t(descKey)}
+                  </p>
                 </div>
-              </article>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      <section className="reveal-on-scroll px-6 py-24">
-        <div className="mx-auto max-w-3xl">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            {t('longFormLabel')}
-          </p>
-          <h2 className="reveal-on-scroll text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
+      {/* Long-form: a deeper step on the ramp carries the editorial read —
+          the band itself separates, so no dividers anywhere inside. */}
+      <section style={{ background: 'var(--mv-bg-2)' }}>
+        <div className="mv-section-inner" style={{ maxWidth: '820px' }}>
+          <h2
+            className="mv-display reveal-on-scroll"
+            style={{
+              margin: 0,
+              fontSize: 'clamp(36px, 4.5vw, 56px)',
+              fontWeight: 700,
+              lineHeight: 1.02,
+            }}
+          >
             {t('longFormTitle')}
           </h2>
-          <p className="mt-6 text-lg leading-relaxed text-neutral-300">{t('longFormIntro')}</p>
+          <p
+            style={{
+              margin: '28px 0 0',
+              fontSize: '18px',
+              lineHeight: 1.6,
+              color: 'var(--mv-ink-2)',
+            }}
+          >
+            {t('longFormIntro')}
+          </p>
           {sections.map(({ titleKey, bodyKey }) => (
-            <div key={titleKey}>
-              <div
-                className="my-12 h-px w-full bg-gradient-to-r from-transparent via-neutral-700/50 to-transparent"
-                aria-hidden="true"
-              />
-              <h3 className="text-2xl font-semibold text-neutral-50">{t(titleKey)}</h3>
-              <p className="mt-4 leading-relaxed text-neutral-300">{t(bodyKey)}</p>
+            <div key={titleKey} style={{ marginTop: '72px' }}>
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: '19px',
+                  fontWeight: 600,
+                  color: 'var(--mv-ink)',
+                  letterSpacing: '-0.005em',
+                }}
+              >
+                {t(titleKey)}
+              </h3>
+              <p
+                style={{
+                  margin: '16px 0 0',
+                  fontSize: '16px',
+                  lineHeight: 1.65,
+                  color: 'var(--mv-ink-2)',
+                }}
+              >
+                {t(bodyKey)}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      <section className="reveal-on-scroll px-6 py-24">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-16 text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              {t('faqLabel')}
-            </p>
-            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-              {t('faqTitle')}
-            </h2>
-          </div>
-          <div className="flex flex-col gap-2">
-            {faqItems.map(({ question, answer }, index) => (
-              <details
-                key={question}
-                className="group border-b border-neutral-800/50"
-                open={index === 0}
-              >
-                <summary className="flex min-h-[44px] cursor-pointer items-center gap-3 py-4 text-left text-neutral-400 transition-colors hover:text-neutral-200 group-open:text-neutral-50 [&::-webkit-details-marker]:hidden">
-                  <span className="text-sm font-medium text-warm-500">
-                    {String(index + 1).padStart(2, '0')}.
-                  </span>
-                  <span className="text-lg font-medium">{question}</span>
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="ml-auto shrink-0 text-neutral-500 transition-transform duration-300 group-open:rotate-180"
-                    aria-hidden="true"
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </summary>
-                <div className="pb-4 pl-4 text-base leading-7 text-neutral-300 lg:max-w-2xl">
-                  {answer}
-                </div>
-              </details>
-            ))}
-          </div>
-          <p className="mt-12 text-center text-neutral-500">
-            {t('faqMore')}{' '}
-            <Link
-              href="/support"
-              className="text-warm-400 underline underline-offset-4 transition-colors hover:text-warm-300"
+      {/* FAQ: hairline <details> rows directly on the page surface */}
+      <section className="mv-section" style={{ maxWidth: '820px' }}>
+        <h2
+          className="mv-display reveal-on-scroll"
+          style={{
+            margin: 0,
+            fontSize: 'clamp(32px, 4vw, 48px)',
+            fontWeight: 700,
+            lineHeight: 1.02,
+          }}
+        >
+          {t('faqTitle')}
+        </h2>
+        <div style={{ marginTop: '48px', borderBottom: '1px solid var(--mv-line)' }}>
+          {faqItems.map(({ question, answer }, index) => (
+            <details
+              key={question}
+              className="group"
+              open={index === 0}
+              style={{ borderTop: '1px solid var(--mv-line)' }}
             >
-              {t('faqSupportLink')}
-            </Link>
-          </p>
-          {/* Hub-and-spoke inbound link: every feature page feeds the /compare
-              money page for internal-link equity + discovery. */}
-          <p className="mt-4 text-center text-neutral-500">
-            <Link
-              href="/compare"
-              className="inline-flex items-center gap-1.5 font-medium text-warm-400 underline underline-offset-4 transition-colors hover:text-warm-300"
-            >
-              {tCompare('compareInboundLink')}
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
+              <summary
+                className="[&::-webkit-details-marker]:hidden"
+                style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  gap: '16px',
+                  padding: '20px 0',
+                  minHeight: '44px',
+                  cursor: 'pointer',
+                  listStyle: 'none',
+                }}
               >
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </Link>
-          </p>
+                <span
+                  className="mv-figure"
+                  aria-hidden="true"
+                  style={{ fontSize: '16px', color: 'var(--mv-ink-4)' }}
+                >
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span
+                  style={{
+                    fontSize: '17px',
+                    fontWeight: 500,
+                    color: 'var(--mv-ink)',
+                    letterSpacing: '-0.005em',
+                  }}
+                >
+                  {question}
+                </span>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="transition-transform duration-300 group-open:rotate-180"
+                  style={{ marginLeft: 'auto', flexShrink: 0, color: 'var(--mv-ink-4)' }}
+                  aria-hidden="true"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </summary>
+              <p
+                style={{
+                  margin: 0,
+                  padding: '0 0 24px 34px',
+                  fontSize: '15px',
+                  lineHeight: 1.65,
+                  color: 'var(--mv-ink-2)',
+                  maxWidth: '62ch',
+                }}
+              >
+                {answer}
+              </p>
+            </details>
+          ))}
         </div>
+
+        <p style={{ margin: '40px 0 0', fontSize: '15px', color: 'var(--mv-ink-3)' }}>
+          {t('faqMore')}{' '}
+          <Link
+            href="/support"
+            style={{
+              color: 'var(--mv-copper-text)',
+              textDecoration: 'underline',
+              textUnderlineOffset: '4px',
+            }}
+          >
+            {t('faqSupportLink')}
+          </Link>
+        </p>
+        {/* Hub-and-spoke inbound link: every feature page feeds the /compare
+            money page for internal-link equity + discovery. */}
+        <p style={{ margin: '12px 0 0', fontSize: '15px' }}>
+          <Link
+            href="/compare"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontWeight: 500,
+              color: 'var(--mv-copper-text)',
+              textDecoration: 'underline',
+              textUnderlineOffset: '4px',
+            }}
+          >
+            {tCompare('compareInboundLink')}
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </Link>
+        </p>
       </section>
 
       <FeatureCta />

@@ -39,6 +39,26 @@ function JsonLd({ data }: { data: Record<string, unknown> }) {
   );
 }
 
+// Typography-plugin colours routed through the Trackside tokens so the page
+// follows both schemes (prose-invert hardcoded dark-only greys).
+const proseTokens = {
+  '--tw-prose-body': 'var(--mv-ink-2)',
+  '--tw-prose-headings': 'var(--mv-ink)',
+  '--tw-prose-links': 'var(--mv-copper-text)',
+  '--tw-prose-bold': 'var(--mv-ink)',
+  '--tw-prose-counters': 'var(--mv-ink-3)',
+  '--tw-prose-bullets': 'var(--mv-ink-4)',
+  '--tw-prose-hr': 'var(--mv-line)',
+  '--tw-prose-quotes': 'var(--mv-ink)',
+  '--tw-prose-quote-borders': 'var(--mv-line)',
+  '--tw-prose-captions': 'var(--mv-ink-3)',
+  '--tw-prose-code': 'var(--mv-ink)',
+  '--tw-prose-pre-code': 'var(--mv-ink-2)',
+  '--tw-prose-pre-bg': 'var(--mv-surface)',
+  '--tw-prose-th-borders': 'var(--mv-line-step)',
+  '--tw-prose-td-borders': 'var(--mv-line)',
+} as React.CSSProperties;
+
 export default async function SupportPage() {
   const t = await getTranslations('Support');
 
@@ -67,9 +87,9 @@ export default async function SupportPage() {
   return (
     <>
       <JsonLd data={faqSchema} />
-      <article className="prose prose-invert mx-auto max-w-3xl px-6 py-24">
+      <article className="prose mx-auto max-w-3xl px-6 py-24" style={proseTokens}>
         <h1>{t('title')}</h1>
-        <p className="text-lg text-neutral-300">{t('subtitle')}</p>
+        <p className="text-lg text-(--mv-ink-2)">{t('subtitle')}</p>
 
         <section>
           <h2>{t('contactTitle')}</h2>
@@ -77,7 +97,7 @@ export default async function SupportPage() {
           <ul>
             <li>
               <strong>{t('emailLabel')}:</strong>{' '}
-              <a href="mailto:support@motovault.app" className="text-blue-400 hover:text-blue-300">
+              <a href="mailto:support@motovault.app" className="text-(--mv-copper-text) hover:text-(--mv-copper-hover)">
                 support@motovault.app
               </a>
             </li>
@@ -90,11 +110,11 @@ export default async function SupportPage() {
         <section>
           <h2>{t('faqTitle')}</h2>
           {faqItems.map(({ q, a }) => (
-            <details key={q} className="group border-b border-neutral-800 py-4">
-              <summary className="cursor-pointer text-base font-medium text-neutral-100 group-open:text-white">
+            <details key={q} className="group border-b border-(--mv-line) py-4">
+              <summary className="cursor-pointer text-base font-medium text-(--mv-ink)">
                 {t(q)}
               </summary>
-              <p className="mt-2 text-neutral-400">{t(a)}</p>
+              <p className="mt-2 text-(--mv-ink-2)">{t(a)}</p>
             </details>
           ))}
         </section>

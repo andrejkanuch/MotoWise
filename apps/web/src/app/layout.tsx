@@ -1,6 +1,6 @@
 import { GeistMono } from 'geist/font/mono';
 import type { Metadata, Viewport } from 'next';
-import { Plus_Jakarta_Sans } from 'next/font/google';
+import { Barlow_Condensed, Plus_Jakarta_Sans } from 'next/font/google';
 import Script from 'next/script';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
@@ -19,6 +19,16 @@ const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-sans',
+});
+
+// The Race Plate display face (apps/mobile/DESIGN.md): condensed numerals
+// and headlines. Loaded at the root so every surface that imports the
+// marketing design system resolves --font-plate.
+const barlowCondensed = Barlow_Condensed({
+  weight: ['500', '600', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-plate',
 });
 
 export const metadata: Metadata = {
@@ -42,7 +52,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#0a0a0a',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f3f2ef' },
+    { media: '(prefers-color-scheme: dark)', color: '#111214' },
+  ],
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -69,7 +82,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang={locale}
-      className={`${plusJakarta.variable} ${GeistMono.variable} antialiased`}
+      className={`${plusJakarta.variable} ${barlowCondensed.variable} ${GeistMono.variable} antialiased`}
       suppressHydrationWarning
     >
       <head>

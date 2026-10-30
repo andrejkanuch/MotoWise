@@ -1,95 +1,41 @@
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 
+/**
+ * Diagnostics demo in the Trackside voice: content sits on the ramp (a deeper
+ * band, no card wrapper), condensed display headline, plate-chip step markers
+ * replaced by condensed figures, and the in-app depiction rendered as solid
+ * surface panels with hairlines — status colour only on the real app status.
+ */
 export async function DiagnosticsDemo() {
   const t = await getTranslations('DiagnosticsDemo');
 
   return (
-    <section
-      id="diag"
-      style={{
-        padding: '200px 40px',
-        maxWidth: 'var(--mv-container)',
-        margin: '0 auto',
-      }}
-    >
+    <section id="diag" style={{ background: 'var(--mv-bg-2)' }}>
       <div
+        className="diag-inner-grid"
         style={{
-          background: 'linear-gradient(145deg, oklch(0.18 0.02 55), oklch(0.12 0.01 55))',
-          border: '1px solid var(--mv-line)',
-          borderRadius: '32px',
-          padding: '80px',
+          padding: '160px 40px',
+          maxWidth: 'var(--mv-container)',
+          margin: '0 auto',
           display: 'grid',
           gridTemplateColumns: '1.1fr 1fr',
           gap: '80px',
           alignItems: 'center',
-          position: 'relative',
-          overflow: 'hidden',
         }}
-        className="diag-inner-grid"
       >
-        {/* Radial glow */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'radial-gradient(circle at 80% 20%, oklch(0.76 0.18 60 / 0.12), transparent 50%)',
-            pointerEvents: 'none',
-          }}
-        />
-
         {/* Left content */}
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          {/* AI tag */}
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 12px',
-              borderRadius: '999px',
-              background: 'oklch(0.76 0.18 60 / 0.15)',
-              color: 'var(--mv-warm-400)',
-              fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
-              fontSize: '11px',
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-            }}
-          >
-            <span
-              style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: 'var(--mv-warm-400)',
-                boxShadow: '0 0 8px var(--mv-warm-400)',
-              }}
-            />
-            {t('aiTag')}
-          </div>
-
-          {/* Title */}
+        <div>
           <h2
+            className="mv-display"
             style={{
-              fontSize: 'clamp(36px, 4.5vw, 56px)',
-              fontWeight: 500,
-              lineHeight: 1,
-              letterSpacing: '-0.035em',
-              margin: '20px 0 0',
+              fontSize: 'clamp(40px, 4.8vw, 64px)',
+              fontWeight: 700,
+              lineHeight: 0.98,
+              margin: 0,
             }}
           >
-            {t('titleLead')}{' '}
-            <span
-              style={{
-                fontFamily: "var(--font-instrument-serif, 'Instrument Serif', serif)",
-                fontStyle: 'italic',
-                color: 'var(--mv-warm-400)',
-              }}
-            >
-              {t('titleEmphasis')}
-            </span>
+            {t('titleLead')} {t('titleEmphasis')}
           </h2>
 
           <p
@@ -106,33 +52,24 @@ export async function DiagnosticsDemo() {
           </p>
 
           {/* Steps */}
-          <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
             {[t('step1'), t('step2'), t('step3')].map((text, i) => (
               <div
                 key={text}
                 style={{
                   display: 'flex',
                   gap: '14px',
-                  alignItems: 'center',
-                  fontSize: '14px',
+                  alignItems: 'baseline',
+                  fontSize: '15px',
                   color: 'var(--mv-ink-2)',
                 }}
               >
                 <span
-                  style={{
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '50%',
-                    border: '1px solid var(--mv-line)',
-                    display: 'grid',
-                    placeItems: 'center',
-                    fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
-                    fontSize: '11px',
-                    color: 'var(--mv-ink-3)',
-                    flexShrink: 0,
-                  }}
+                  className="mv-figure"
+                  aria-hidden="true"
+                  style={{ fontSize: '16px', color: 'var(--mv-ink-4)', flexShrink: 0 }}
                 >
-                  {i + 1}
+                  {String(i + 1).padStart(2, '0')}
                 </span>
                 {text}
               </div>
@@ -140,45 +77,17 @@ export async function DiagnosticsDemo() {
           </div>
         </div>
 
-        {/* Right: phone mockup with scan animation */}
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            maxWidth: '340px',
-            margin: '0 auto',
-            aspectRatio: '9/19.5',
-            borderRadius: '40px',
-            background: '#080808',
-            padding: '9px',
-            boxShadow: '0 50px 100px -20px oklch(0 0 0 / 0.7)',
-          }}
-        >
-          {/* Notch */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              top: '14px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '110px',
-              height: '28px',
-              background: '#000',
-              borderRadius: '999px',
-              zIndex: 3,
-            }}
-          />
-
+        {/* Right: phone mockup — flat on the ramp, hairline keyline */}
+        <div className="mv-phone-mockup" style={{ margin: '0 auto' }}>
           {/* Screen */}
           <div
             style={{
               width: '100%',
               height: '100%',
-              borderRadius: '32px',
+              borderRadius: '35px',
               overflow: 'hidden',
               position: 'relative',
-              background: '#111',
+              background: 'var(--mv-surface)',
             }}
           >
             <Image
@@ -190,55 +99,26 @@ export async function DiagnosticsDemo() {
             />
           </div>
 
-          {/* Scan line overlay */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              inset: '9px',
-              borderRadius: '32px',
-              overflow: 'hidden',
-              pointerEvents: 'none',
-              zIndex: 2,
-            }}
-          >
-            <div
-              style={{
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                height: '2px',
-                background: 'linear-gradient(90deg, transparent, var(--mv-warm-400), transparent)',
-                boxShadow: '0 0 16px var(--mv-warm-400)',
-                animation: 'mv-scan 3.2s ease-in-out infinite',
-                top: '10%',
-              }}
-            />
-          </div>
-
-          {/* Result popup */}
+          {/* Result panel — solid surface step, hairline, status colour only on
+              the depicted app status */}
           <div
             style={{
               position: 'absolute',
               bottom: '40px',
               left: '20px',
               right: '20px',
-              background: 'oklch(0.14 0.01 55 / 0.95)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid oklch(0.76 0.18 60 / 0.3)',
+              background: 'var(--mv-surface-2)',
+              border: '1px solid var(--mv-line)',
               borderRadius: '14px',
               padding: '14px',
               zIndex: 4,
-              animation: 'mv-result-in 3.2s ease-in-out infinite',
             }}
           >
             <div
               style={{
-                fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
-                fontSize: '9px',
-                color: 'var(--mv-warm-400)',
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
+                fontSize: '12px',
+                fontWeight: 500,
+                color: 'var(--mv-go)',
               }}
             >
               {t('scanComplete')}
@@ -249,6 +129,7 @@ export async function DiagnosticsDemo() {
                 fontWeight: 600,
                 marginTop: '4px',
                 letterSpacing: '-0.01em',
+                color: 'var(--mv-ink)',
               }}
             >
               {t('resultTitle')}
@@ -273,7 +154,7 @@ export async function DiagnosticsDemo() {
         dangerouslySetInnerHTML={{
           __html: `
             @media (max-width: 900px) {
-              .diag-inner-grid { grid-template-columns: 1fr !important; padding: 48px 28px !important; gap: 48px !important; }
+              .diag-inner-grid { grid-template-columns: 1fr !important; padding: 100px 24px !important; gap: 48px !important; }
             }
           `,
         }}

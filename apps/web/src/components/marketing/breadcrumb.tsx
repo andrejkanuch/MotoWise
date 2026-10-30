@@ -12,7 +12,7 @@ export interface BreadcrumbItem {
 export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
   return (
     <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
-      <ol className="mx-auto flex max-w-7xl items-center gap-2 text-sm text-neutral-500">
+      <ol className="mx-auto flex max-w-7xl items-center gap-2 text-sm text-(--mv-ink-3)">
         {items.map((item, i) => {
           const isLast = i === items.length - 1;
           return (
@@ -27,7 +27,7 @@ export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="text-neutral-600"
+                  className="text-(--mv-ink-4)"
                   aria-hidden="true"
                 >
                   <polyline points="9 18 15 12 9 6" />
@@ -35,13 +35,13 @@ export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
               )}
               {isLast || !item.href ? (
                 <span
-                  className={isLast ? 'text-neutral-300' : undefined}
+                  className={isLast ? 'text-(--mv-ink)' : undefined}
                   aria-current={isLast ? 'page' : undefined}
                 >
                   {item.label}
                 </span>
               ) : (
-                <Link href={item.href} className="transition-colors hover:text-neutral-300">
+                <Link href={item.href} className="transition-colors hover:text-(--mv-ink)">
                   {item.label}
                 </Link>
               )}

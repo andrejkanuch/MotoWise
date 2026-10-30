@@ -16,7 +16,6 @@ import {
   SignInText,
   signInMethodFromProvider,
 } from '@/components/garage-ui';
-import { mvFontsClassName } from '@/lib/fonts';
 import { DEFAULT_POST_AUTH_PATH, WELCOME_PATH } from '@/lib/post-auth-redirect';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import './welcome.css';
@@ -91,7 +90,7 @@ export default async function WelcomePage() {
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <div className={`${mvFontsClassName} wl-page mvg-scope`}>
+      <div className="wl-page mvg-scope">
         <header className="wl-header">
           <a href="/" className="wl-brand" aria-label={t('homeLabel')}>
             <span className="wl-brand-mark" aria-hidden="true">

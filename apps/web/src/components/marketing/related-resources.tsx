@@ -34,8 +34,8 @@ export async function RelatedResources({ angle }: { angle: CtaAngle }) {
   const links = LINKS_BY_ANGLE[angle];
 
   return (
-    <section className="mt-16 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6">
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.15em] text-neutral-400">
+    <section className="mt-16 border-t border-(--mv-line) pt-8">
+      <h2 className="mb-4 text-sm font-medium text-(--mv-ink-3)">
         {t('relatedResourcesTitle')}
       </h2>
       <ul className="grid gap-2 sm:grid-cols-3">
@@ -43,7 +43,7 @@ export async function RelatedResources({ angle }: { angle: CtaAngle }) {
           <li key={link.href}>
             <Link
               href={link.href}
-              className="block rounded-xl border border-neutral-800 px-4 py-3 text-sm font-medium text-neutral-200 transition-colors hover:border-signature-500/40 hover:text-neutral-50"
+              className="block rounded-xl border border-(--mv-line) px-4 py-3 text-sm font-medium text-(--mv-ink-2) transition-colors hover:border-(--mv-line-step) hover:text-(--mv-ink)"
             >
               {t(link.labelKey)}
             </Link>

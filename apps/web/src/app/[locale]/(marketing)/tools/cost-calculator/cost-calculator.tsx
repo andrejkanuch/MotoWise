@@ -148,14 +148,14 @@ export function CostCalculator({ labels }: { labels: Labels }) {
       <div className="mx-auto max-w-5xl">
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Input Panel */}
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8">
-            <h2 className="mb-6 text-xl font-bold text-neutral-50">{labels.ridingProfile}</h2>
+          <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-8">
+            <h2 className="mb-6 text-xl font-bold text-(--mv-ink)">{labels.ridingProfile}</h2>
 
             {/* Bike Type */}
             <div className="mb-6">
               <label
                 htmlFor="bike-type"
-                className="mb-2 block text-sm font-medium text-neutral-300"
+                className="mb-2 block text-sm font-medium text-(--mv-ink-2)"
               >
                 {labels.bikeType}
               </label>
@@ -163,7 +163,7 @@ export function CostCalculator({ labels }: { labels: Labels }) {
                 id="bike-type"
                 value={bikeType}
                 onChange={(e) => updateParam('type', e.target.value)}
-                className="w-full rounded-xl border border-neutral-700 bg-neutral-900/80 px-4 py-3 text-sm text-neutral-100 outline-none transition-colors focus:border-warm-400 focus:ring-1 focus:ring-warm-400/50"
+                className="w-full rounded-xl border border-(--mv-line-step) bg-(--mv-surface-2) px-4 py-3 text-sm text-(--mv-ink) outline-none transition-colors focus:border-(--mv-copper)"
               >
                 {Object.entries(BIKE_TYPES).map(([key, { mpg }]) => (
                   <option key={key} value={key}>
@@ -175,7 +175,7 @@ export function CostCalculator({ labels }: { labels: Labels }) {
 
             {/* Annual Mileage */}
             <div className="mb-6">
-              <label htmlFor="mileage" className="mb-2 block text-sm font-medium text-neutral-300">
+              <label htmlFor="mileage" className="mb-2 block text-sm font-medium text-(--mv-ink-2)">
                 {labels.annualMileage}
               </label>
               <input
@@ -186,7 +186,7 @@ export function CostCalculator({ labels }: { labels: Labels }) {
                 step={500}
                 value={mileage}
                 onChange={(e) => updateParam('miles', e.target.value)}
-                className="w-full rounded-xl border border-neutral-700 bg-neutral-900/80 px-4 py-3 text-sm text-neutral-100 outline-none transition-colors focus:border-warm-400 focus:ring-1 focus:ring-warm-400/50"
+                className="w-full rounded-xl border border-(--mv-line-step) bg-(--mv-surface-2) px-4 py-3 text-sm text-(--mv-ink) outline-none transition-colors focus:border-(--mv-copper)"
               />
             </div>
 
@@ -194,7 +194,7 @@ export function CostCalculator({ labels }: { labels: Labels }) {
             <div className="mb-6">
               <label
                 htmlFor="fuel-price"
-                className="mb-2 block text-sm font-medium text-neutral-300"
+                className="mb-2 block text-sm font-medium text-(--mv-ink-2)"
               >
                 {labels.fuelPriceLabel}
               </label>
@@ -206,7 +206,7 @@ export function CostCalculator({ labels }: { labels: Labels }) {
                 step={0.1}
                 value={fuelPrice}
                 onChange={(e) => updateParam('fuel', e.target.value)}
-                className="w-full rounded-xl border border-neutral-700 bg-neutral-900/80 px-4 py-3 text-sm text-neutral-100 outline-none transition-colors focus:border-warm-400 focus:ring-1 focus:ring-warm-400/50"
+                className="w-full rounded-xl border border-(--mv-line-step) bg-(--mv-surface-2) px-4 py-3 text-sm text-(--mv-ink) outline-none transition-colors focus:border-(--mv-copper)"
               />
             </div>
 
@@ -214,7 +214,7 @@ export function CostCalculator({ labels }: { labels: Labels }) {
             <div className="mb-6">
               <label
                 htmlFor="insurance"
-                className="mb-2 block text-sm font-medium text-neutral-300"
+                className="mb-2 block text-sm font-medium text-(--mv-ink-2)"
               >
                 {labels.insuranceLabel}
               </label>
@@ -226,13 +226,13 @@ export function CostCalculator({ labels }: { labels: Labels }) {
                 step={50}
                 value={insurance}
                 onChange={(e) => updateParam('insurance', e.target.value)}
-                className="w-full rounded-xl border border-neutral-700 bg-neutral-900/80 px-4 py-3 text-sm text-neutral-100 outline-none transition-colors focus:border-warm-400 focus:ring-1 focus:ring-warm-400/50"
+                className="w-full rounded-xl border border-(--mv-line-step) bg-(--mv-surface-2) px-4 py-3 text-sm text-(--mv-ink) outline-none transition-colors focus:border-(--mv-copper)"
               />
             </div>
 
             {/* Maintenance Tier */}
             <div>
-              <span className="mb-3 block text-sm font-medium text-neutral-300">
+              <span className="mb-3 block text-sm font-medium text-(--mv-ink-2)">
                 {labels.maintenanceTier}
               </span>
               <div className="space-y-3">
@@ -244,8 +244,8 @@ export function CostCalculator({ labels }: { labels: Labels }) {
                       key={key}
                       className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${
                         maintenance === key
-                          ? 'border-warm-400/50 bg-warm-400/5'
-                          : 'border-neutral-700 bg-neutral-900/30 hover:border-neutral-600'
+                          ? 'border-(--mv-copper) bg-(--mv-surface-2)'
+                          : 'border-(--mv-line) bg-(--mv-surface) hover:border-(--mv-line-step)'
                       }`}
                     >
                       <input
@@ -254,17 +254,17 @@ export function CostCalculator({ labels }: { labels: Labels }) {
                         value={key}
                         checked={maintenance === key}
                         onChange={(e) => updateParam('maintenance', e.target.value)}
-                        className="mt-0.5 accent-[#D4622E]"
+                        className="mt-0.5 accent-(--mv-copper)"
                       />
                       <div>
-                        <span className="font-medium text-neutral-100">
+                        <span className="font-medium text-(--mv-ink)">
                           {tier?.label ?? key}{' '}
-                          <span className="text-neutral-500">
+                          <span className="text-(--mv-ink-3)">
                             &mdash; {formatCurrency(cost)}
                             {labels.perYear}
                           </span>
                         </span>
-                        <p className="mt-0.5 text-xs text-neutral-500">{tier?.desc}</p>
+                        <p className="mt-0.5 text-xs text-(--mv-ink-3)">{tier?.desc}</p>
                       </div>
                     </label>
                   );
@@ -276,8 +276,8 @@ export function CostCalculator({ labels }: { labels: Labels }) {
           {/* Results Panel */}
           <div>
             <div className="sticky top-24 space-y-6">
-              <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8">
-                <h2 className="mb-6 text-xl font-bold text-neutral-50">{labels.annualBreakdown}</h2>
+              <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-8">
+                <h2 className="mb-6 text-xl font-bold text-(--mv-ink)">{labels.annualBreakdown}</h2>
                 <div className="space-y-4">
                   <CostRow
                     label={labels.fuel}
@@ -292,12 +292,12 @@ export function CostCalculator({ labels }: { labels: Labels }) {
                   />
                   <CostRow label={labels.tires} amount={results.tires} />
                   <CostRow label={labels.registrationFees} amount={results.registration} />
-                  <div className="border-t border-neutral-700 pt-4">
+                  <div className="border-t border-(--mv-line-step) pt-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-neutral-50">
+                      <span className="text-lg font-bold text-(--mv-ink)">
                         {labels.annualTotal}
                       </span>
-                      <span className="text-2xl font-extrabold text-warm-400">
+                      <span className="mv-figure text-2xl text-(--mv-ink)">
                         {formatCurrency(results.total)}
                       </span>
                     </div>
@@ -306,31 +306,31 @@ export function CostCalculator({ labels }: { labels: Labels }) {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 text-center">
-                  <p className="text-sm text-neutral-400">{labels.costPerMile}</p>
-                  <p className="mt-1 text-2xl font-extrabold text-neutral-50">
+                <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6 text-center">
+                  <p className="text-sm text-(--mv-ink-3)">{labels.costPerMile}</p>
+                  <p className="mv-figure mt-1 text-2xl text-(--mv-ink)">
                     {formatCurrencyPrecise(results.costPerMile)}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 text-center">
-                  <p className="text-sm text-neutral-400">{labels.fiveYearProjection}</p>
-                  <p className="mt-1 text-2xl font-extrabold text-neutral-50">
+                <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6 text-center">
+                  <p className="text-sm text-(--mv-ink-3)">{labels.fiveYearProjection}</p>
+                  <p className="mv-figure mt-1 text-2xl text-(--mv-ink)">
                     {formatCurrency(results.fiveYear)}
                   </p>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-warm-400/20 bg-warm-400/5 p-6 text-center">
-                <p className="text-sm text-neutral-400">{labels.monthlyAverage}</p>
-                <p className="mt-1 text-3xl font-extrabold text-warm-400">
+              <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6 text-center">
+                <p className="text-sm text-(--mv-ink-3)">{labels.monthlyAverage}</p>
+                <p className="mv-figure mt-1 text-3xl text-(--mv-ink)">
                   {formatCurrency(results.total / 12)}
                 </p>
-                <p className="mt-1 text-xs text-neutral-500">{labels.perMonth}</p>
+                <p className="mt-1 text-xs text-(--mv-ink-3)">{labels.perMonth}</p>
               </div>
 
               {hasInput && (
-                <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 text-center">
-                  <p className="mb-3 text-sm text-neutral-400">{labels.shareResults}</p>
+                <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6 text-center">
+                  <p className="mb-3 text-sm text-(--mv-ink-3)">{labels.shareResults}</p>
                   <button
                     type="button"
                     onClick={() => {
@@ -345,16 +345,16 @@ export function CostCalculator({ labels }: { labels: Labels }) {
                         maintenance_tier: maintenance,
                       });
                     }}
-                    className="rounded-full bg-neutral-800 px-6 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-700"
+                    className="rounded-full bg-(--mv-surface-2) px-6 py-2 text-sm font-medium text-(--mv-ink) transition-colors hover:bg-(--mv-surface-3)"
                   >
                     {labels.copyLink}
                   </button>
                 </div>
               )}
 
-              <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 text-center">
+              <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6 text-center">
                 <p
-                  className="mb-3 text-sm text-neutral-300"
+                  className="mb-3 text-sm text-(--mv-ink-2)"
                   // biome-ignore lint/security/noDangerouslySetInnerHtml: translated HTML with <strong>
                   dangerouslySetInnerHTML={{ __html: labels.trackActualCosts }}
                 />
@@ -365,7 +365,7 @@ export function CostCalculator({ labels }: { labels: Labels }) {
                     slug: 'cost-calculator',
                     referrerParams: { utm_source: 'tool', utm_campaign: 'cost_calculator' },
                   })}
-                  className="inline-block rounded-full bg-warm-500 px-8 py-3 text-sm font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
+                  className="inline-block rounded-full bg-(--mv-copper) px-8 py-3 text-sm font-semibold text-(--mv-on-copper) transition-colors hover:bg-(--mv-copper-hover)"
                 >
                   {labels.getEarlyAccess}
                 </a>
@@ -390,10 +390,10 @@ function CostRow({
   return (
     <div className="flex items-center justify-between">
       <div>
-        <span className="text-neutral-200">{label}</span>
-        {sublabel && <span className="ml-2 text-xs text-neutral-500">({sublabel})</span>}
+        <span className="text-(--mv-ink-2)">{label}</span>
+        {sublabel && <span className="ml-2 text-xs text-(--mv-ink-3)">({sublabel})</span>}
       </div>
-      <span className="font-semibold text-neutral-100">{formatCurrency(amount)}</span>
+      <span className="mv-figure font-semibold text-(--mv-ink)">{formatCurrency(amount)}</span>
     </div>
   );
 }

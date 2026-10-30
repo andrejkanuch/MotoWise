@@ -67,10 +67,10 @@ export default async function BlogPage({ params }: BlogPageProps) {
       <JsonLd data={blogSchema} />
       <section className="mx-auto max-w-5xl px-6 py-24">
         <div className="mb-16 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-neutral-50 sm:text-5xl">
+          <h1 className="text-4xl font-bold tracking-tight text-(--mv-ink) sm:text-5xl">
             {t('title')}
           </h1>
-          <p className="mt-4 text-lg text-neutral-400">{t('description')}</p>
+          <p className="mt-4 text-lg text-(--mv-ink-2)">{t('description')}</p>
         </div>
 
         <Suspense fallback={null}>

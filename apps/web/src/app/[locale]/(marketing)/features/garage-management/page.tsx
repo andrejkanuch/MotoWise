@@ -53,7 +53,6 @@ const BIKE_VISUALS = [
     subKey: 'bike1Sub',
     statusKey: 'bike1Status',
     statusWarn: false,
-    bg: 'linear-gradient(135deg, oklch(0.7 0.2 40), oklch(0.35 0.12 30))',
     hasMeta: false,
   },
   {
@@ -62,7 +61,6 @@ const BIKE_VISUALS = [
     subKey: 'bike2Sub',
     statusKey: 'bike2Status',
     statusWarn: true,
-    bg: 'linear-gradient(135deg, oklch(0.75 0.18 240), oklch(0.3 0.12 240))',
     hasMeta: true,
   },
   {
@@ -71,7 +69,6 @@ const BIKE_VISUALS = [
     subKey: 'bike3Sub',
     statusKey: 'bike3Status',
     statusWarn: false,
-    bg: 'linear-gradient(135deg, oklch(0.8 0.15 110), oklch(0.35 0.1 120))',
     hasMeta: false,
   },
   {
@@ -80,7 +77,6 @@ const BIKE_VISUALS = [
     subKey: 'bike4Sub',
     statusKey: 'bike4Status',
     statusWarn: false,
-    bg: 'linear-gradient(135deg, oklch(0.72 0.14 340), oklch(0.3 0.09 340))',
     hasMeta: false,
   },
 ] as const;
@@ -140,6 +136,13 @@ const MAINT_ROW_VISUALS = [
   },
 ] as const;
 
+/** Depicted app status → ink token (status colour only inside app depictions) */
+const MAINT_STATUS_COLOR: Record<string, string> = {
+  done: 'var(--mv-go)',
+  due: 'var(--mv-due-ink)',
+  wait: 'var(--mv-ink-3)',
+};
+
 export default async function GarageManagementPage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -177,12 +180,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
       <JsonLdGraph nodes={graph} />
 
       {/* ════ HERO ════ */}
-      <section
-        className="mv-section-hero"
-        style={{
-          position: 'relative',
-        }}
-      >
+      <section className="mv-section-hero" style={{ position: 'relative' }}>
         {/* Breadcrumb */}
         <nav
           aria-label="Breadcrumb"
@@ -190,12 +188,10 @@ export default async function GarageManagementPage({ params }: PageProps) {
             display: 'flex',
             alignItems: 'center',
             gap: 10,
-            fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
-            fontSize: 11,
+            fontSize: 13,
+            fontWeight: 500,
             color: 'var(--mv-ink-3)',
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            marginBottom: 32,
+            marginBottom: 40,
           }}
         >
           <Link href="/" style={{ color: 'var(--mv-ink-3)', textDecoration: 'none' }}>
@@ -206,30 +202,27 @@ export default async function GarageManagementPage({ params }: PageProps) {
             {t('breadcrumbFeatures')}
           </Link>
           <span style={{ color: 'var(--mv-ink-4)' }}>/</span>
-          <span style={{ color: 'var(--mv-warm-400)' }}>{t('title')}</span>
+          <span style={{ color: 'var(--mv-ink)' }}>{t('title')}</span>
         </nav>
 
         <div className="mv-grid-hero">
           {/* Text column */}
           <div>
-            <div className="mv-section-meta">{t('heroLabel')}</div>
             <h1
+              className="mv-display"
               style={{
-                fontSize: 'clamp(48px, 7.5vw, 112px)',
-                fontWeight: 500,
-                lineHeight: 0.92,
-                letterSpacing: '-0.045em',
-                margin: '24px 0 0',
+                fontSize: 'clamp(48px, 7vw, 104px)',
+                fontWeight: 700,
+                lineHeight: 0.94,
+                margin: 0,
               }}
             >
               <span style={{ display: 'block' }}>{t('heroHeading1')}</span>
-              <span style={{ display: 'block' }}>
-                <em className="mv-serif">{t('heroHeading2')}</em>
-              </span>
+              <span style={{ display: 'block' }}>{t('heroHeading2')}</span>
             </h1>
             <p
               style={{
-                marginTop: 32,
+                marginTop: 28,
                 color: 'var(--mv-ink-2)',
                 fontSize: 18,
                 lineHeight: 1.55,
@@ -239,7 +232,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
             >
               {t('heroSubtitle')}
             </p>
-            <div style={{ marginTop: 40, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ marginTop: 36, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <Link href="/#download" className="mv-btn mv-btn-primary">
                 <span>{t('heroCta')}</span>
                 <ArrowIcon />
@@ -250,7 +243,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Garage stack visual */}
+          {/* Garage stack visual — depicted app rows as solid surface steps */}
           <div style={{ position: 'relative', display: 'grid', placeItems: 'center' }}>
             <div
               style={{ position: 'relative', width: '100%', maxWidth: 520, aspectRatio: '4/4.3' }}
@@ -264,14 +257,10 @@ export default async function GarageManagementPage({ params }: PageProps) {
                       position: 'absolute',
                       left: 0,
                       right: 0,
-                      background:
-                        'linear-gradient(145deg, oklch(0.18 0.015 55), oklch(0.12 0.01 55))',
+                      background: 'var(--mv-surface-2)',
                       border: '1px solid var(--mv-line)',
-                      borderRadius: 22,
+                      borderRadius: 'var(--mv-radius-card)',
                       padding: '22px 24px',
-                      boxShadow: '0 30px 60px -20px oklch(0 0 0 / 0.7)',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
                       top: pos.top,
                       transform: pos.transform,
                       zIndex: pos.zIndex,
@@ -280,18 +269,18 @@ export default async function GarageManagementPage({ params }: PageProps) {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                       <div
+                        className="mv-display"
                         style={{
                           width: 52,
                           height: 52,
-                          borderRadius: 12,
+                          borderRadius: 'var(--mv-radius-control)',
                           display: 'grid',
                           placeItems: 'center',
                           flexShrink: 0,
-                          background: bike.bg,
-                          color: 'var(--mv-bg)',
+                          background: 'var(--mv-surface-3)',
+                          color: 'var(--mv-ink)',
                           fontWeight: 600,
-                          fontSize: 11,
-                          letterSpacing: '-0.02em',
+                          fontSize: 16,
                         }}
                       >
                         {bike.abbr}
@@ -300,40 +289,32 @@ export default async function GarageManagementPage({ params }: PageProps) {
                         <div
                           style={{
                             fontSize: 16,
-                            fontWeight: 500,
+                            fontWeight: 600,
                             letterSpacing: '-0.01em',
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
+                            color: 'var(--mv-ink)',
                           }}
                         >
                           {t(bike.nameKey)}
                         </div>
                         <div
-                          className="mv-mono"
                           style={{
-                            fontSize: 11,
+                            fontSize: 12,
                             color: 'var(--mv-ink-3)',
                             marginTop: 4,
-                            letterSpacing: '0.05em',
                           }}
                         >
                           {t(bike.subKey)}
                         </div>
                       </div>
                       <div
-                        className="mv-mono"
                         style={{
-                          padding: '5px 10px',
-                          borderRadius: 999,
-                          background: bike.statusWarn
-                            ? 'oklch(0.76 0.18 60 / 0.15)'
-                            : 'oklch(0.72 0.2 145 / 0.15)',
-                          border: `1px solid ${bike.statusWarn ? 'oklch(0.76 0.18 60 / 0.35)' : 'oklch(0.72 0.2 145 / 0.35)'}`,
-                          color: bike.statusWarn ? 'var(--mv-warm-400)' : 'var(--mv-success)',
-                          fontSize: 10,
-                          letterSpacing: '0.1em',
-                          textTransform: 'uppercase',
+                          fontSize: 12,
+                          fontWeight: 500,
+                          whiteSpace: 'nowrap',
+                          color: bike.statusWarn ? 'var(--mv-due-ink)' : 'var(--mv-go)',
                         }}
                       >
                         {t(bike.statusKey)}
@@ -356,24 +337,18 @@ export default async function GarageManagementPage({ params }: PageProps) {
                         ].map((m) => (
                           <div
                             key={m.label}
-                            className="mv-mono"
                             style={{
-                              fontSize: 10,
+                              fontSize: 11,
                               color: 'var(--mv-ink-3)',
-                              letterSpacing: '0.08em',
-                              textTransform: 'uppercase',
                             }}
                           >
                             {m.label}
                             <strong
+                              className="mv-figure"
                               style={{
                                 display: 'block',
-                                fontFamily: "var(--font-geist, 'Geist', sans-serif)",
-                                fontSize: 13,
+                                fontSize: 15,
                                 color: 'var(--mv-ink)',
-                                fontWeight: 500,
-                                textTransform: 'none',
-                                letterSpacing: '-0.005em',
                                 marginTop: 2,
                               }}
                             >
@@ -394,23 +369,12 @@ export default async function GarageManagementPage({ params }: PageProps) {
       {/* ════ PILLARS ════ */}
       <section className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
-          <div className="mv-section-meta">{t('pillarsLabel')}</div>
           <h2 className="mv-section-title">
-            {t('pillarsTitle')} <span className="mv-serif">{t('pillarsTitleSerif')}</span>
+            {t('pillarsTitle')} <span className="mv-muted">{t('pillarsTitleSerif')}</span>
           </h2>
         </div>
 
-        <div
-          className="mv-grid-3"
-          style={{
-            marginTop: 80,
-            gap: 2,
-            background: 'var(--mv-line)',
-            border: '1px solid var(--mv-line)',
-            borderRadius: 24,
-            overflow: 'hidden',
-          }}
-        >
+        <div className="mv-grid-3" style={{ marginTop: 72, columnGap: 48, rowGap: 56 }}>
           {[
             {
               num: '01',
@@ -455,70 +419,45 @@ export default async function GarageManagementPage({ params }: PageProps) {
               kvValue: t('pillar6KvValue'),
             },
           ].map((p) => (
-            <div
-              key={p.num}
-              style={{
-                background: 'var(--mv-bg)',
-                padding: 40,
-                minHeight: 260,
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
-              <div
-                className="mv-mono"
-                style={{ fontSize: 11, color: 'var(--mv-warm-400)', letterSpacing: '0.15em' }}
-              >
+            <div key={p.num}>
+              <div className="mv-figure" style={{ fontSize: 18, color: 'var(--mv-ink-4)' }}>
                 {p.num}
               </div>
               <div
                 style={{
-                  fontSize: 22,
-                  fontWeight: 500,
-                  letterSpacing: '-0.02em',
-                  lineHeight: 1.15,
-                  margin: '32px 0 14px',
+                  fontSize: 18,
+                  fontWeight: 600,
+                  letterSpacing: '-0.005em',
+                  lineHeight: 1.25,
+                  margin: '20px 0 10px',
+                  color: 'var(--mv-ink)',
                 }}
               >
                 {p.title}
               </div>
               <div
                 style={{
-                  color: 'var(--mv-ink-3)',
-                  fontSize: 14,
-                  lineHeight: 1.55,
+                  color: 'var(--mv-ink-2)',
+                  fontSize: 15,
+                  lineHeight: 1.6,
                   letterSpacing: '-0.005em',
-                  flex: 1,
                 }}
               >
                 {p.body}
               </div>
               <div
-                className="mv-mono"
                 style={{
-                  marginTop: 24,
-                  paddingTop: 24,
-                  borderTop: '1px solid var(--mv-line)',
+                  marginTop: 18,
                   display: 'flex',
                   justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: 11,
+                  alignItems: 'baseline',
+                  gap: 12,
+                  fontSize: 13,
                   color: 'var(--mv-ink-3)',
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
                 }}
               >
                 {p.kvLabel}
-                <strong
-                  style={{
-                    fontFamily: "var(--font-geist, 'Geist', sans-serif)",
-                    fontSize: 14,
-                    color: 'var(--mv-warm-400)',
-                    fontWeight: 500,
-                    textTransform: 'none',
-                    letterSpacing: '-0.005em',
-                  }}
-                >
+                <strong className="mv-figure" style={{ fontSize: 18, color: 'var(--mv-ink)' }}>
                   {p.kvValue}
                 </strong>
               </div>
@@ -528,52 +467,33 @@ export default async function GarageManagementPage({ params }: PageProps) {
       </section>
 
       {/* ════ MAINTENANCE TIMELINE ════ */}
-      <section id="maint" className="mv-section-inner">
-        <div style={{ maxWidth: 860 }}>
-          <div className="mv-section-meta">{t('maintLabel')}</div>
-          <h2 className="mv-section-title">
-            {t('maintTitle')} <span className="mv-serif">{t('maintTitleSerif')}</span>
-          </h2>
-          <p className="mv-section-sub">{t('maintSubtitle')}</p>
-        </div>
+      <section style={{ background: 'var(--mv-bg-2)' }}>
+        <div id="maint" className="mv-section-inner">
+          <div style={{ maxWidth: 860 }}>
+            <h2 className="mv-section-title">
+              {t('maintTitle')} <span className="mv-muted">{t('maintTitleSerif')}</span>
+            </h2>
+            <p className="mv-section-sub">{t('maintSubtitle')}</p>
+          </div>
 
-        <div
-          style={{
-            marginTop: 60,
-            border: '1px solid var(--mv-line)',
-            borderRadius: 18,
-            overflow: 'hidden',
-          }}
-        >
-          {MAINT_ROW_VISUALS.map((row, i, arr) => (
-            <div
-              key={row.labelKey}
-              className="mv-grid-table"
-              style={{
-                gap: 20,
-                padding: '20px 24px',
-                borderBottom: i < arr.length - 1 ? '1px solid var(--mv-line)' : 'none',
-                alignItems: 'center',
-              }}
-            >
+          <div style={{ marginTop: 56, borderBottom: '1px solid var(--mv-line)' }}>
+            {MAINT_ROW_VISUALS.map((row) => (
               <div
+                key={row.labelKey}
+                className="mv-grid-table"
                 style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: 'oklch(1 0 0 / 0.04)',
-                  border: '1px solid var(--mv-line)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  color: 'var(--mv-warm-400)',
+                  gap: 20,
+                  padding: '20px 0',
+                  borderTop: '1px solid var(--mv-line)',
+                  alignItems: 'center',
                 }}
               >
                 <svg
-                  width="16"
-                  height="16"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="currentColor"
+                  stroke="var(--mv-ink-3)"
                   strokeWidth="1.8"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -581,83 +501,60 @@ export default async function GarageManagementPage({ params }: PageProps) {
                 >
                   <path d={row.icon} />
                 </svg>
-              </div>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em' }}>
-                  {t(row.labelKey)}
+                <div>
+                  <div
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 600,
+                      letterSpacing: '-0.005em',
+                      color: 'var(--mv-ink)',
+                    }}
+                  >
+                    {t(row.labelKey)}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: 'var(--mv-ink-3)',
+                      marginTop: 3,
+                    }}
+                  >
+                    {t(row.subKey)}
+                  </div>
+                </div>
+                <div className="mv-figure" style={{ fontSize: 14, color: 'var(--mv-ink-2)' }}>
+                  {t(row.dateKey)}
+                </div>
+                <div className="mv-figure" style={{ fontSize: 14, color: 'var(--mv-ink-3)' }}>
+                  {t(row.milesKey)}
                 </div>
                 <div
-                  className="mv-mono"
                   style={{
-                    fontSize: 12,
-                    color: 'var(--mv-ink-3)',
-                    marginTop: 3,
-                    letterSpacing: '0.04em',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    whiteSpace: 'nowrap',
+                    color: MAINT_STATUS_COLOR[row.statusType],
                   }}
                 >
-                  {t(row.subKey)}
+                  {t(row.statusKey)}
                 </div>
               </div>
-              <div
-                className="mv-mono"
-                style={{ fontSize: 12, color: 'var(--mv-ink-2)', letterSpacing: '0.04em' }}
-              >
-                {t(row.dateKey)}
-              </div>
-              <div
-                className="mv-mono"
-                style={{ fontSize: 12, color: 'var(--mv-ink-3)', letterSpacing: '0.04em' }}
-              >
-                {t(row.milesKey)}
-              </div>
-              <div
-                className="mv-mono"
-                style={{
-                  padding: '5px 11px',
-                  borderRadius: 999,
-                  fontSize: 10,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  whiteSpace: 'nowrap',
-                  background:
-                    row.statusType === 'done'
-                      ? 'oklch(0.72 0.2 145 / 0.15)'
-                      : row.statusType === 'due'
-                        ? 'oklch(0.76 0.18 60 / 0.15)'
-                        : 'oklch(1 0 0 / 0.04)',
-                  color:
-                    row.statusType === 'done'
-                      ? 'var(--mv-success)'
-                      : row.statusType === 'due'
-                        ? 'var(--mv-warm-400)'
-                        : 'var(--mv-ink-3)',
-                }}
-              >
-                {t(row.statusKey)}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ════ EXPENSES -- donut chart ════ */}
+      {/* ════ EXPENSES — donut chart ════ */}
       <section className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
-          <div className="mv-section-meta">{t('expensesLabel')}</div>
           <h2 className="mv-section-title">
-            {t('expensesTitle')} <span className="mv-serif">{t('expensesTitleSerif')}</span>
+            {t('expensesTitle')} <span className="mv-muted">{t('expensesTitleSerif')}</span>
           </h2>
           <p className="mv-section-sub">{t('expensesSubtitle')}</p>
         </div>
 
-        <div
-          className="mv-grid-2"
-          style={{
-            marginTop: 80,
-            gap: 48,
-          }}
-        >
-          {/* Donut */}
+        <div className="mv-grid-2" style={{ marginTop: 72, gap: 48 }}>
+          {/* Donut — tonal graphite ramp, no decorative hues */}
           <div
             style={{
               position: 'relative',
@@ -676,7 +573,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                 cx="50"
                 cy="50"
                 r="40"
-                stroke="oklch(1 0 0 / 0.04)"
+                stroke="var(--mv-surface-2)"
                 strokeWidth="14"
                 fill="none"
               />
@@ -684,7 +581,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                 cx="50"
                 cy="50"
                 r="40"
-                stroke="oklch(0.76 0.18 60)"
+                stroke="var(--mv-ink)"
                 strokeWidth="14"
                 fill="none"
                 strokeDasharray="88 251.33"
@@ -695,7 +592,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                 cx="50"
                 cy="50"
                 r="40"
-                stroke="oklch(0.84 0.15 68)"
+                stroke="var(--mv-ink-2)"
                 strokeWidth="14"
                 fill="none"
                 strokeDasharray="63 251.33"
@@ -706,7 +603,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                 cx="50"
                 cy="50"
                 r="40"
-                stroke="oklch(0.6 0.13 60)"
+                stroke="var(--mv-ink-3)"
                 strokeWidth="14"
                 fill="none"
                 strokeDasharray="48 251.33"
@@ -717,7 +614,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                 cx="50"
                 cy="50"
                 r="40"
-                stroke="oklch(0.45 0.1 60)"
+                stroke="var(--mv-ink-4)"
                 strokeWidth="14"
                 fill="none"
                 strokeDasharray="52 251.33"
@@ -736,23 +633,20 @@ export default async function GarageManagementPage({ params }: PageProps) {
             >
               <div>
                 <div
+                  className="mv-figure"
                   style={{
                     fontSize: 42,
-                    fontWeight: 500,
-                    letterSpacing: '-0.04em',
                     lineHeight: 1,
-                    fontVariantNumeric: 'tabular-nums',
+                    color: 'var(--mv-ink)',
                   }}
                 >
                   {t('donutValue')}
                 </div>
                 <div
-                  className="mv-mono"
                   style={{
-                    fontSize: 11,
+                    fontSize: 13,
+                    fontWeight: 500,
                     color: 'var(--mv-ink-3)',
-                    letterSpacing: '0.15em',
-                    textTransform: 'uppercase',
                     marginTop: 8,
                   }}
                 >
@@ -765,25 +659,25 @@ export default async function GarageManagementPage({ params }: PageProps) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             {[
               {
-                color: 'oklch(0.76 0.18 60)',
+                color: 'var(--mv-ink)',
                 label: t('expense1Label'),
                 sub: t('expense1Sub'),
                 value: t('expense1Value'),
               },
               {
-                color: 'oklch(0.84 0.15 68)',
+                color: 'var(--mv-ink-2)',
                 label: t('expense2Label'),
                 sub: t('expense2Sub'),
                 value: t('expense2Value'),
               },
               {
-                color: 'oklch(0.6 0.13 60)',
+                color: 'var(--mv-ink-3)',
                 label: t('expense3Label'),
                 sub: t('expense3Sub'),
                 value: t('expense3Value'),
               },
               {
-                color: 'oklch(0.45 0.1 60)',
+                color: 'var(--mv-ink-4)',
                 label: t('expense4Label'),
                 sub: t('expense4Sub'),
                 value: t('expense4Value'),
@@ -809,27 +703,20 @@ export default async function GarageManagementPage({ params }: PageProps) {
                   }}
                 />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, letterSpacing: '-0.005em' }}>{item.label}</div>
+                  <div style={{ fontSize: 14, letterSpacing: '-0.005em', color: 'var(--mv-ink)' }}>
+                    {item.label}
+                  </div>
                   <div
                     style={{
-                      fontSize: 11,
+                      fontSize: 12,
                       color: 'var(--mv-ink-3)',
                       marginTop: 2,
-                      letterSpacing: '0.03em',
                     }}
                   >
                     {item.sub}
                   </div>
                 </div>
-                <div
-                  className="mv-mono"
-                  style={{
-                    fontSize: 14,
-                    color: 'var(--mv-ink)',
-                    letterSpacing: '0.02em',
-                    fontVariantNumeric: 'tabular-nums',
-                  }}
-                >
+                <div className="mv-figure" style={{ fontSize: 16, color: 'var(--mv-ink)' }}>
                   {item.value}
                 </div>
               </div>
@@ -848,21 +735,15 @@ export default async function GarageManagementPage({ params }: PageProps) {
         ].map((s) => (
           <div key={s.label} style={{ borderLeft: '1px solid var(--mv-line)', paddingLeft: 24 }}>
             <div
+              className="mv-figure"
               style={{
                 fontSize: 'clamp(32px, 3.6vw, 52px)',
-                fontWeight: 500,
-                letterSpacing: '-0.04em',
                 lineHeight: 1,
                 color: 'var(--mv-ink)',
-                fontVariantNumeric: 'tabular-nums',
               }}
             >
               {s.value}
-              {s.unit && (
-                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  {s.unit}
-                </span>
-              )}
+              {s.unit && <span style={{ color: 'var(--mv-ink-3)' }}>{s.unit}</span>}
             </div>
             <div
               style={{
@@ -879,33 +760,10 @@ export default async function GarageManagementPage({ params }: PageProps) {
       </section>
 
       {/* ════ CTA ════ */}
-      <section
-        className="mv-section-cta"
-        style={{
-          position: 'relative',
-          overflow: 'hidden',
-          isolation: 'isolate',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'radial-gradient(ellipse 70% 80% at 50% 50%, oklch(0.76 0.18 60 / 0.16), transparent 70%), linear-gradient(180deg, oklch(0.09 0.008 55 / 0.7), oklch(0.09 0.008 55 / 0.95))',
-            zIndex: -1,
-          }}
-          aria-hidden="true"
-        />
+      <section className="mv-section-cta" style={{ background: 'var(--mv-bg-2)' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
-          <div className="mv-section-meta" style={{ justifyContent: 'center' }}>
-            {t('ctaLabel')}
-          </div>
           <h2 className="mv-section-title" style={{ textAlign: 'center' }}>
-            {t('ctaTitle')}{' '}
-            <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-              {t('ctaTitleSerif')}
-            </span>
+            {t('ctaTitle')} {t('ctaTitleSerif')}
           </h2>
           <p
             style={{
@@ -938,134 +796,65 @@ export default async function GarageManagementPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* ════ NEXT FEATURE CARDS ════ */}
+      {/* ════ NEXT FEATURES ════ */}
       <section className="mv-section-nav">
-        <div
-          className="mv-grid-cards"
-          style={{
-            background: 'var(--mv-line)',
-            border: '1px solid var(--mv-line)',
-            borderRadius: 24,
-            overflow: 'hidden',
-          }}
-        >
-          <Link
-            href="/features/learning-paths"
-            style={{
-              background: 'var(--mv-bg)',
-              padding: 48,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              minHeight: 260,
-              textDecoration: 'none',
-              color: 'inherit',
-            }}
-          >
-            <div>
-              <div
-                className="mv-mono"
-                style={{
-                  fontSize: 11,
-                  color: 'var(--mv-ink-3)',
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {t('nextFeature1Label')}
-              </div>
-              <div
-                style={{
-                  fontSize: 'clamp(28px, 3vw, 40px)',
-                  fontWeight: 500,
-                  letterSpacing: '-0.03em',
-                  lineHeight: 1,
-                  marginTop: 16,
-                }}
-              >
-                {t('nextFeature1Title')}{' '}
-                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  {t('nextFeature1Serif')}
-                </span>
-              </div>
-            </div>
-            <div
+        <div className="mv-grid-cards" style={{ columnGap: 80, rowGap: 0 }}>
+          {[
+            {
+              href: '/features/learning-paths' as const,
+              title: `${t('nextFeature1Title')} ${t('nextFeature1Serif')}`,
+              sub: t('nextFeature1Sub'),
+            },
+            {
+              href: '/features/trip-planning' as const,
+              title: `${t('nextFeature2Title')} ${t('nextFeature2Serif')}`,
+              sub: t('nextFeature2Sub'),
+            },
+          ].map((next) => (
+            <Link
+              key={next.href}
+              href={next.href}
               style={{
-                marginTop: 32,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                fontSize: 14,
-                color: 'var(--mv-warm-400)',
-                fontWeight: 500,
+                display: 'block',
+                padding: '32px 0',
+                borderTop: '1px solid var(--mv-line)',
+                textDecoration: 'none',
+                color: 'inherit',
               }}
             >
-              {t('nextFeature1Sub')}
-              <ArrowIcon />
-            </div>
-          </Link>
-          <Link
-            href="/features/trip-planning"
-            style={{
-              background: 'var(--mv-bg)',
-              padding: 48,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              minHeight: 260,
-              textDecoration: 'none',
-              color: 'inherit',
-            }}
-          >
-            <div>
               <div
-                className="mv-mono"
-                style={{
-                  fontSize: 11,
-                  color: 'var(--mv-ink-3)',
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {t('nextFeature2Label')}
-              </div>
-              <div
+                className="mv-display"
                 style={{
                   fontSize: 'clamp(28px, 3vw, 40px)',
-                  fontWeight: 500,
-                  letterSpacing: '-0.03em',
+                  fontWeight: 600,
                   lineHeight: 1,
-                  marginTop: 16,
+                  color: 'var(--mv-ink)',
                 }}
               >
-                {t('nextFeature2Title')}{' '}
-                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  {t('nextFeature2Serif')}
-                </span>
+                {next.title}
               </div>
-            </div>
-            <div
-              style={{
-                marginTop: 32,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                fontSize: 14,
-                color: 'var(--mv-warm-400)',
-                fontWeight: 500,
-              }}
-            >
-              {t('nextFeature2Sub')}
-              <ArrowIcon />
-            </div>
-          </Link>
+              <div
+                style={{
+                  marginTop: 16,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 14,
+                  color: 'var(--mv-copper-text)',
+                  fontWeight: 500,
+                }}
+              >
+                {next.sub}
+                <ArrowIcon />
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 
       {/* ════ FAQ ════ */}
       <section className="mv-section-inner">
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <div className="mv-section-meta">{t('faqLabel')}</div>
           <h2 className="mv-section-title">{t('faqTitle')}</h2>
           <div style={{ marginTop: 48 }}>
             <GarageManagementFaq items={faqItems} />

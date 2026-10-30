@@ -109,10 +109,10 @@ export default async function CostCalculatorPage({ params }: PageProps) {
       {/* Hero */}
       <section className="px-4 pb-8 pt-24 md:pt-32">
         <div className="mx-auto max-w-4xl text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-neutral-50 sm:text-5xl md:text-6xl">
-            {t('heroTitle')} <span className="text-warm-400">{t('heroTitleAccent')}</span>
+          <h1 className="text-4xl font-extrabold tracking-tight text-(--mv-ink) sm:text-5xl md:text-6xl">
+            {t('heroTitle')} <span className="text-(--mv-ink-3)">{t('heroTitleAccent')}</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400">{t('heroSubtitle')}</p>
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-(--mv-ink-2)">{t('heroSubtitle')}</p>
         </div>
       </section>
 
@@ -121,11 +121,11 @@ export default async function CostCalculatorPage({ params }: PageProps) {
 
       {/* Written guide */}
       <section className="mx-auto max-w-3xl px-6 pb-16 pt-4">
-        <h2 className="mb-6 text-2xl font-bold text-neutral-50">
+        <h2 className="mb-6 text-2xl font-bold text-(--mv-ink)">
           Understanding Motorcycle Cost of Ownership
         </h2>
 
-        <p className="mb-6 text-base leading-relaxed text-neutral-300">
+        <p className="mb-6 text-base leading-relaxed text-(--mv-ink-2)">
           The true cost of owning a motorcycle goes far beyond the purchase price and monthly fuel
           bill. Insurance, regular maintenance, tires, gear replacement, registration, and
           unexpected repairs all add up over a riding season. Understanding your total cost of
@@ -133,10 +133,10 @@ export default async function CostCalculatorPage({ params }: PageProps) {
           save money without compromising safety.
         </p>
 
-        <h3 className="mb-3 mt-8 text-lg font-semibold text-neutral-100">
+        <h3 className="mb-3 mt-8 text-lg font-semibold text-(--mv-ink)">
           What This Calculator Covers
         </h3>
-        <p className="mb-4 text-base leading-relaxed text-neutral-300">
+        <p className="mb-4 text-base leading-relaxed text-(--mv-ink-2)">
           This calculator estimates your annual motorcycle cost of ownership across six categories:
           fuel consumption based on your riding distance and bike&apos;s fuel efficiency, scheduled
           maintenance (oil changes, filters, valve adjustments), tire replacement based on mileage,
@@ -144,22 +144,22 @@ export default async function CostCalculatorPage({ params }: PageProps) {
           numbers or use the defaults for a typical riding profile.
         </p>
 
-        <h3 className="mb-3 mt-8 text-lg font-semibold text-neutral-100">Common Cost Categories</h3>
-        <p className="mb-4 text-base leading-relaxed text-neutral-300">
-          <strong className="text-neutral-200">Fuel</strong> is the most visible ongoing cost,
+        <h3 className="mb-3 mt-8 text-lg font-semibold text-(--mv-ink)">Common Cost Categories</h3>
+        <p className="mb-4 text-base leading-relaxed text-(--mv-ink-2)">
+          <strong className="text-(--mv-ink)">Fuel</strong> is the most visible ongoing cost,
           varying from 3–7 litres per 100km depending on engine size and riding style.{' '}
-          <strong className="text-neutral-200">Maintenance</strong> includes oil changes ($30–80
+          <strong className="text-(--mv-ink)">Maintenance</strong> includes oil changes ($30–80
           DIY, $150–300 at a dealer), brake pads ($30–60 per set), and valve adjustments ($200–600
-          at service intervals). <strong className="text-neutral-200">Tires</strong> last
+          at service intervals). <strong className="text-(--mv-ink)">Tires</strong> last
           5,000–15,000 miles depending on type and riding — sport tires wear fastest.{' '}
-          <strong className="text-neutral-200">Insurance</strong> ranges from $200 to $2,000+
+          <strong className="text-(--mv-ink)">Insurance</strong> ranges from $200 to $2,000+
           annually depending on your age, location, and bike type.{' '}
-          <strong className="text-neutral-200">Gear</strong> should be budgeted at $500–1,500 per
+          <strong className="text-(--mv-ink)">Gear</strong> should be budgeted at $500–1,500 per
           year for helmet replacement (every 5 years), gloves, boots, and jacket maintenance.
         </p>
 
-        <h3 className="mb-3 mt-8 text-lg font-semibold text-neutral-100">Why Track Your Costs?</h3>
-        <p className="mb-4 text-base leading-relaxed text-neutral-300">
+        <h3 className="mb-3 mt-8 text-lg font-semibold text-(--mv-ink)">Why Track Your Costs?</h3>
+        <p className="mb-4 text-base leading-relaxed text-(--mv-ink-2)">
           Tracking costs reveals patterns you would otherwise miss — like how much more a sport bike
           costs in tire wear compared to a touring bike, or how DIY maintenance can cut your annual
           costs by 40–60%. MotoVault&apos;s garage feature automates this tracking: log every
@@ -171,15 +171,15 @@ export default async function CostCalculatorPage({ params }: PageProps) {
       {/* SEO Content */}
       <section className="px-4 py-16">
         <div className="mx-auto max-w-3xl">
-          <h2 className="text-2xl font-bold text-neutral-50">{t('seoTitle1')}</h2>
-          <div className="mt-6 space-y-4 text-neutral-400">
+          <h2 className="text-2xl font-bold text-(--mv-ink)">{t('seoTitle1')}</h2>
+          <div className="mt-6 space-y-4 text-(--mv-ink-2)">
             <p>{t('seoP1')}</p>
             <p>{t('seoP2')}</p>
             <p>{t('seoP3')}</p>
           </div>
 
-          <h2 className="mt-12 text-2xl font-bold text-neutral-50">{t('seoTitle2')}</h2>
-          <p className="mt-4 text-neutral-400">{t('seoP4')}</p>
+          <h2 className="mt-12 text-2xl font-bold text-(--mv-ink)">{t('seoTitle2')}</h2>
+          <p className="mt-4 text-(--mv-ink-2)">{t('seoP4')}</p>
         </div>
       </section>
     </>

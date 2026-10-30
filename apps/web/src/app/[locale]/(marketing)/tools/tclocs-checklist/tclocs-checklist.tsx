@@ -286,28 +286,28 @@ export function TclocsChecklist({
         {/* Timer + Progress Row */}
         <div className="mb-8 grid gap-4 md:grid-cols-[1fr_auto]">
           {/* Overall Progress */}
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6">
+          <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-neutral-400">{labels.overallProgress}</p>
-                <p className="mt-1 text-3xl font-extrabold text-neutral-50">
+                <p className="text-sm font-medium text-(--mv-ink-3)">{labels.overallProgress}</p>
+                <p className="mv-figure mt-1 text-3xl text-(--mv-ink)">
                   {totalChecked}/{totalItems} {labels.items}
                 </p>
               </div>
               <div className="text-right">
                 <p
-                  className={`text-3xl font-extrabold ${allComplete ? 'text-green-400' : 'text-warm-400'}`}
+                  className={`mv-figure text-3xl ${allComplete ? 'text-(--mv-go)' : 'text-(--mv-ink)'}`}
                 >
                   {overallPercent}%
                 </p>
                 {allComplete && (
-                  <p className="mt-1 text-sm font-medium text-green-400">{labels.readyToRide}</p>
+                  <p className="mt-1 text-sm font-medium text-(--mv-go)">{labels.readyToRide}</p>
                 )}
               </div>
             </div>
-            <div className="mt-4 h-3 overflow-hidden rounded-full bg-neutral-800">
+            <div className="mt-4 h-3 overflow-hidden rounded-full bg-(--mv-surface-2)">
               <div
-                className={`h-full rounded-full transition-all duration-500 ease-out ${allComplete ? 'bg-green-500' : 'bg-warm-400'}`}
+                className={`h-full rounded-full transition-all duration-500 ease-out ${allComplete ? 'bg-(--mv-go)' : 'bg-(--mv-ink-3)'}`}
                 style={{ width: `${overallPercent}%` }}
               />
             </div>
@@ -315,7 +315,7 @@ export function TclocsChecklist({
               <button
                 type="button"
                 onClick={resetAll}
-                className="mt-4 text-sm text-neutral-500 transition-colors hover:text-neutral-300"
+                className="mt-4 text-sm text-(--mv-ink-3) transition-colors hover:text-(--mv-ink)"
               >
                 {labels.resetAll}
               </button>
@@ -323,41 +323,41 @@ export function TclocsChecklist({
           </div>
 
           {/* Speed Run Timer */}
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 md:w-48">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-warm-400">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6 md:w-48">
+            <p className="mb-1 text-xs font-medium text-(--mv-ink-3)">
               {labels.timerTitle}
             </p>
             {!timerStartMs ? (
-              <p className="mt-2 text-center text-xs text-neutral-500">{labels.timerStart}</p>
+              <p className="mt-2 text-center text-xs text-(--mv-ink-3)">{labels.timerStart}</p>
             ) : (
               <>
                 <p
-                  className={`mt-1 font-mono text-3xl font-bold tabular-nums ${completionTime ? 'text-green-400' : 'text-neutral-50'}`}
+                  className={`mv-figure mt-1 text-3xl tabular-nums ${completionTime ? 'text-(--mv-go)' : 'text-(--mv-ink)'}`}
                 >
                   {formatTime(elapsedMs)}
                 </p>
-                <p className="mt-1 text-xs text-neutral-500">
+                <p className="mt-1 text-xs text-(--mv-ink-3)">
                   {completionTime ? labels.timerComplete : labels.timerRunning}
                 </p>
                 {isNewRecord && (
-                  <p className="mt-2 animate-pulse text-xs font-bold text-warm-400">
+                  <p className="mt-2 text-xs font-bold text-(--mv-go)">
                     {labels.newRecord}
                   </p>
                 )}
               </>
             )}
             {bestTime && !isNewRecord && (
-              <div className="mt-3 border-t border-neutral-800 pt-3 text-center">
-                <p className="text-[10px] uppercase tracking-wider text-neutral-600">
+              <div className="mt-3 border-t border-(--mv-line) pt-3 text-center">
+                <p className="text-[10px] text-(--mv-ink-4)">
                   {labels.personalBest}
                 </p>
-                <p className="font-mono text-sm font-semibold text-neutral-400">
+                <p className="mv-figure text-sm text-(--mv-ink-2)">
                   {formatTime(bestTime)}
                 </p>
               </div>
             )}
             {!bestTime && !timerStartMs && (
-              <p className="mt-2 text-center text-[10px] text-neutral-600">{labels.noBestYet}</p>
+              <p className="mt-2 text-center text-[10px] text-(--mv-ink-4)">{labels.noBestYet}</p>
             )}
           </div>
         </div>
@@ -375,8 +375,8 @@ export function TclocsChecklist({
                 key={category.id}
                 className={`rounded-2xl border p-6 transition-colors ${
                   catComplete
-                    ? 'border-green-500/30 bg-green-500/5'
-                    : 'border-neutral-800 bg-neutral-900/50'
+                    ? 'border-(--mv-go)/30 bg-(--mv-go)/5'
+                    : 'border-(--mv-line) bg-(--mv-surface)'
                 }`}
               >
                 <div className="mb-4 flex items-center justify-between">
@@ -384,24 +384,24 @@ export function TclocsChecklist({
                     <div
                       className={`flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold ${
                         catComplete
-                          ? 'bg-green-500/20 text-green-400'
-                          : 'bg-warm-400/10 text-warm-400'
+                          ? 'bg-(--mv-go)/20 text-(--mv-go)'
+                          : 'bg-(--mv-surface-2) text-(--mv-ink-2)'
                       }`}
                     >
                       {category.letter}
                     </div>
-                    <h2 className="text-xl font-bold text-neutral-50">{category.name}</h2>
+                    <h2 className="text-xl font-bold text-(--mv-ink)">{category.name}</h2>
                   </div>
                   <span
-                    className={`text-sm font-medium ${catComplete ? 'text-green-400' : 'text-neutral-500'}`}
+                    className={`text-sm font-medium ${catComplete ? 'text-(--mv-go)' : 'text-(--mv-ink-3)'}`}
                   >
                     {catChecked}/{catTotal}
                   </span>
                 </div>
 
-                <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-neutral-800">
+                <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-(--mv-surface-2)">
                   <div
-                    className={`h-full rounded-full transition-all duration-300 ease-out ${catComplete ? 'bg-green-500' : 'bg-warm-400'}`}
+                    className={`h-full rounded-full transition-all duration-300 ease-out ${catComplete ? 'bg-(--mv-go)' : 'bg-(--mv-ink-3)'}`}
                     style={{ width: `${catPercent}%` }}
                   />
                 </div>
@@ -416,13 +416,13 @@ export function TclocsChecklist({
                           onClick={() => toggleItem(category.id, index)}
                           className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-all ${
                             isChecked
-                              ? 'bg-green-500/10'
-                              : 'bg-neutral-800/30 hover:bg-neutral-800/60'
+                              ? 'bg-(--mv-go)/10'
+                              : 'bg-(--mv-surface-2) hover:bg-(--mv-surface-3)'
                           }`}
                         >
                           <span
                             className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-all ${
-                              isChecked ? 'border-green-500 bg-green-500' : 'border-neutral-600'
+                              isChecked ? 'border-(--mv-go) bg-(--mv-go)' : 'border-(--mv-line-step)'
                             }`}
                           >
                             {isChecked && (
@@ -445,7 +445,7 @@ export function TclocsChecklist({
                           </span>
                           <span
                             className={`text-sm transition-all ${
-                              isChecked ? 'text-neutral-500 line-through' : 'text-neutral-200'
+                              isChecked ? 'text-(--mv-ink-3) line-through' : 'text-(--mv-ink)'
                             }`}
                           >
                             {item}
@@ -465,7 +465,7 @@ export function TclocsChecklist({
           <button
             type="button"
             onClick={generatePdf}
-            className="flex items-center gap-2 rounded-full bg-warm-500 px-8 py-3 text-sm font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
+            className="flex items-center gap-2 rounded-full bg-(--mv-copper) px-8 py-3 text-sm font-semibold text-(--mv-on-copper) transition-colors hover:bg-(--mv-copper-hover)"
           >
             <svg
               width="16"
@@ -485,9 +485,9 @@ export function TclocsChecklist({
         </div>
 
         {/* CTA */}
-        <div className="mt-8 rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 text-center">
-          <h2 className="text-xl font-bold text-neutral-50">{labels.ctaTitle}</h2>
-          <p className="mt-3 text-neutral-400">{labels.ctaDesc}</p>
+        <div className="mt-8 rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-8 text-center">
+          <h2 className="text-xl font-bold text-(--mv-ink)">{labels.ctaTitle}</h2>
+          <p className="mt-3 text-(--mv-ink-2)">{labels.ctaDesc}</p>
           <a
             {...storeAnchorProps(platform, {
               pageType: CtaPageType.Tool,
@@ -495,7 +495,7 @@ export function TclocsChecklist({
               slug: 'tclocs-checklist',
               referrerParams: { utm_source: 'tool', utm_campaign: 'tclocs_checklist' },
             })}
-            className="mt-6 inline-block rounded-full bg-warm-500 px-8 py-3 text-sm font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
+            className="mt-6 inline-block rounded-full bg-(--mv-copper) px-8 py-3 text-sm font-semibold text-(--mv-on-copper) transition-colors hover:bg-(--mv-copper-hover)"
           >
             {labels.getEarlyAccess}
           </a>

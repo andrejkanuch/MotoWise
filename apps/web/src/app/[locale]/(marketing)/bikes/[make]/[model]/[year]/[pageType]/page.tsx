@@ -125,15 +125,15 @@ export default async function BikeLeafPage({ params }: PageProps) {
       <JsonLdGraph nodes={graph} />
 
       <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
-        <ol className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 text-sm text-neutral-500">
+        <ol className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 text-sm text-(--mv-ink-3)">
           <li>
-            <Link href="/" className="transition-colors hover:text-neutral-300">
+            <Link href="/" className="transition-colors hover:text-(--mv-ink)">
               Home
             </Link>
           </li>
           <li aria-hidden="true">/</li>
           <li>
-            <Link href="/bikes" className="transition-colors hover:text-neutral-300">
+            <Link href="/bikes" className="transition-colors hover:text-(--mv-ink)">
               Bikes
             </Link>
           </li>
@@ -141,14 +141,14 @@ export default async function BikeLeafPage({ params }: PageProps) {
           <li>
             <Link
               href={`/bikes/${page.makeSlug}/${page.modelSlug}/${page.year}/overview`}
-              className="transition-colors hover:text-neutral-300"
+              className="transition-colors hover:text-(--mv-ink)"
             >
               {page.year} {page.make} {page.model}
             </Link>
           </li>
           <li aria-hidden="true">/</li>
           <li>
-            <span className="text-neutral-300" aria-current="page">
+            <span className="text-(--mv-ink)" aria-current="page">
               {pageTypeLabel(page.pageType)}
             </span>
           </li>
@@ -157,17 +157,17 @@ export default async function BikeLeafPage({ params }: PageProps) {
 
       <section className="px-6 pb-10 pt-8 md:pt-12">
         <div className="mx-auto max-w-3xl">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
+          <p className="mb-3 text-sm font-medium text-(--mv-ink-3)">
             {page.year} {page.make} {page.model}
           </p>
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
+          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-(--mv-ink) sm:text-4xl lg:text-5xl">
             {page.h1}
           </h1>
         </div>
       </section>
 
       <section className="px-6 py-10">
-        <div className="mx-auto max-w-3xl space-y-6 text-neutral-300 leading-relaxed">
+        <div className="mx-auto max-w-3xl space-y-6 text-(--mv-ink-2) leading-relaxed">
           {page.bodyParagraphs.map((paragraph, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: static fixture ordering is stable
             <p key={i}>{paragraph}</p>
@@ -177,24 +177,24 @@ export default async function BikeLeafPage({ params }: PageProps) {
 
       <section className="px-6 py-10">
         <div className="mx-auto max-w-3xl">
-          <h2 className="mb-4 text-2xl font-semibold tracking-tight text-neutral-50">
+          <h2 className="mb-4 text-2xl font-semibold tracking-tight text-(--mv-ink)">
             Key specifications
           </h2>
-          <div className="overflow-hidden rounded-xl border border-neutral-800/60">
+          <div className="overflow-hidden rounded-xl border border-(--mv-line)">
             <table className="w-full">
               <tbody>
                 {page.specs.map((spec) => (
                   <tr
                     key={spec.label}
-                    className="border-b border-neutral-800/40 last:border-b-0 odd:bg-neutral-900/30"
+                    className="border-b border-(--mv-line) last:border-b-0 odd:bg-(--mv-surface)"
                   >
                     <th
                       scope="row"
-                      className="px-4 py-3 text-left text-sm font-medium text-neutral-400 sm:px-6"
+                      className="px-4 py-3 text-left text-sm font-medium text-(--mv-ink-3) sm:px-6"
                     >
                       {spec.label}
                     </th>
-                    <td className="px-4 py-3 text-sm text-neutral-200 sm:px-6">{spec.value}</td>
+                    <td className="px-4 py-3 text-sm text-(--mv-ink) sm:px-6">{spec.value}</td>
                   </tr>
                 ))}
               </tbody>
@@ -205,15 +205,15 @@ export default async function BikeLeafPage({ params }: PageProps) {
 
       {page.telemetry && page.telemetry.length > 0 && (
         <section className="px-6 py-10">
-          <div className="mx-auto max-w-3xl rounded-xl border border-warm-500/30 bg-warm-500/5 p-6 md:p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-warm-400">
+          <div className="mx-auto max-w-3xl rounded-xl border border-(--mv-line) bg-(--mv-surface) p-6 md:p-8">
+            <p className="text-sm font-medium text-(--mv-ink-3)">
               From MotoVault owners
             </p>
             <ul className="mt-4 space-y-3">
               {page.telemetry.map((item) => (
-                <li key={item.label} className="text-sm text-neutral-300">
-                  <span className="font-semibold text-neutral-100">{item.label}:</span> {item.value}{' '}
-                  <span className="text-xs text-neutral-500">({item.source})</span>
+                <li key={item.label} className="text-sm text-(--mv-ink-2)">
+                  <span className="font-semibold text-(--mv-ink)">{item.label}:</span> {item.value}{' '}
+                  <span className="text-xs text-(--mv-ink-3)">({item.source})</span>
                 </li>
               ))}
             </ul>
@@ -223,17 +223,14 @@ export default async function BikeLeafPage({ params }: PageProps) {
 
       <section className="px-6 py-10">
         <div className="mx-auto max-w-3xl">
-          <h2 className="mb-6 text-2xl font-semibold tracking-tight text-neutral-50">
+          <h2 className="mb-6 text-2xl font-semibold tracking-tight text-(--mv-ink)">
             Frequently asked questions
           </h2>
-          <div className="space-y-4">
+          <div className="divide-y divide-(--mv-line) border-y border-(--mv-line)">
             {page.faqItems.map((item) => (
-              <div
-                key={item.question}
-                className="rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6"
-              >
-                <h3 className="font-semibold text-neutral-100">{item.question}</h3>
-                <p className="mt-3 text-sm text-neutral-400 leading-relaxed">{item.answer}</p>
+              <div key={item.question} className="py-5">
+                <h3 className="font-semibold text-(--mv-ink)">{item.question}</h3>
+                <p className="mt-3 text-sm text-(--mv-ink-2) leading-relaxed">{item.answer}</p>
               </div>
             ))}
           </div>
@@ -242,7 +239,7 @@ export default async function BikeLeafPage({ params }: PageProps) {
 
       <section className="px-6 py-10">
         <div className="mx-auto max-w-3xl">
-          <h2 className="mb-4 text-lg font-semibold text-neutral-200">
+          <h2 className="mb-4 text-lg font-semibold text-(--mv-ink)">
             More on the {page.year} {page.make} {page.model}
           </h2>
           <ul className="grid gap-3 sm:grid-cols-2">
@@ -250,7 +247,7 @@ export default async function BikeLeafPage({ params }: PageProps) {
               <li key={pt}>
                 <Link
                   href={`/bikes/${page.makeSlug}/${page.modelSlug}/${page.year}/${pt}`}
-                  className="block rounded-lg border border-neutral-800/60 bg-neutral-950/60 px-4 py-3 text-sm text-neutral-300 transition-colors hover:border-warm-500/40 hover:text-neutral-100"
+                  className="block rounded-lg border border-(--mv-line) bg-(--mv-surface-2) px-4 py-3 text-sm text-(--mv-ink-2) transition-colors hover:border-(--mv-line-step) hover:text-(--mv-ink)"
                 >
                   {pageTypeLabel(pt)}
                 </Link>

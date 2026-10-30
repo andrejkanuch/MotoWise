@@ -153,11 +153,11 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
       {/* Hero */}
       <section className="px-4 pb-8 pt-24 md:pt-32">
         <div className="mx-auto max-w-4xl text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-neutral-50 sm:text-5xl md:text-6xl">
-            <span className="text-warm-400">{t('heroTitleAccent')}</span> {t('heroTitleRest')}
+          <h1 className="text-4xl font-extrabold tracking-tight text-(--mv-ink) sm:text-5xl md:text-6xl">
+            <span className="text-(--mv-ink-3)">{t('heroTitleAccent')}</span> {t('heroTitleRest')}
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400">
-            {t('heroSubtitle')} <strong className="text-neutral-300">{t('heroCategories')}</strong>.
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-(--mv-ink-2)">
+            {t('heroSubtitle')} <strong className="text-(--mv-ink)">{t('heroCategories')}</strong>.
           </p>
         </div>
       </section>
@@ -167,19 +167,19 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
 
       {/* Written guide */}
       <section className="mx-auto max-w-3xl px-6 pb-16 pt-4">
-        <h2 className="mb-6 text-2xl font-bold text-neutral-50">
+        <h2 className="mb-6 text-2xl font-bold text-(--mv-ink)">
           The Complete Guide to TCLOCS Motorcycle Pre-Ride Inspection
         </h2>
 
-        <p className="mb-6 text-base leading-relaxed text-neutral-300">
+        <p className="mb-6 text-base leading-relaxed text-(--mv-ink-2)">
           TCLOCS is a systematic motorcycle safety inspection developed by the Motorcycle Safety
           Foundation (MSF). The acronym stands for Tires, Controls, Lights, Oil, Chassis, and Stands
           — six categories that cover every critical system on your motorcycle. A thorough TCLOCS
           check takes about 10 minutes and should be performed before every ride.
         </p>
 
-        <h3 className="mb-3 mt-8 text-lg font-semibold text-neutral-100">T — Tires &amp; Wheels</h3>
-        <p className="mb-4 text-base leading-relaxed text-neutral-300">
+        <h3 className="mb-3 mt-8 text-lg font-semibold text-(--mv-ink)">T — Tires &amp; Wheels</h3>
+        <p className="mb-4 text-base leading-relaxed text-(--mv-ink-2)">
           Tires are your only contact with the road. Check air pressure with a gauge (cold, before
           riding) and compare to the spec on the sidewall or owner&apos;s manual — under-inflation
           causes sluggish handling and overheating, while over-inflation reduces grip. Inspect tread
@@ -188,8 +188,8 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
           Check that wheel axle nuts are tight and inspect spoked wheels for loose or broken spokes.
         </p>
 
-        <h3 className="mb-3 mt-8 text-lg font-semibold text-neutral-100">C — Controls</h3>
-        <p className="mb-4 text-base leading-relaxed text-neutral-300">
+        <h3 className="mb-3 mt-8 text-lg font-semibold text-(--mv-ink)">C — Controls</h3>
+        <p className="mb-4 text-base leading-relaxed text-(--mv-ink-2)">
           Controls include everything you operate with your hands and feet. Squeeze both brake
           levers — they should feel firm with no sponginess. Check clutch lever free play and cable
           condition. Verify the throttle snaps closed when released (a sticking throttle is a
@@ -197,10 +197,10 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
           properly, and check that shift and brake pedals have correct height and travel.
         </p>
 
-        <h3 className="mb-3 mt-8 text-lg font-semibold text-neutral-100">
+        <h3 className="mb-3 mt-8 text-lg font-semibold text-(--mv-ink)">
           L — Lights &amp; Electrics
         </h3>
-        <p className="mb-4 text-base leading-relaxed text-neutral-300">
+        <p className="mb-4 text-base leading-relaxed text-(--mv-ink-2)">
           Visibility saves lives. Turn on the ignition and verify that headlight (low beam and high
           beam), tail light, brake light (activated by both front lever and rear pedal), and all
           turn signals are functioning. Check that the instrument panel lights up correctly with no
@@ -208,8 +208,8 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
           causes of motorcycle rear-end collisions.
         </p>
 
-        <h3 className="mb-3 mt-8 text-lg font-semibold text-neutral-100">O — Oil &amp; Fluids</h3>
-        <p className="mb-4 text-base leading-relaxed text-neutral-300">
+        <h3 className="mb-3 mt-8 text-lg font-semibold text-(--mv-ink)">O — Oil &amp; Fluids</h3>
+        <p className="mb-4 text-base leading-relaxed text-(--mv-ink-2)">
           Check engine oil level via the sight glass or dipstick with the bike upright on level
           ground. Inspect both brake fluid reservoirs (front handlebar and rear frame) — fluid
           should be above the minimum line and clear/amber in color. Dark or cloudy brake fluid
@@ -217,10 +217,10 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
           bike for fresh puddles or drips that indicate new leaks.
         </p>
 
-        <h3 className="mb-3 mt-8 text-lg font-semibold text-neutral-100">
+        <h3 className="mb-3 mt-8 text-lg font-semibold text-(--mv-ink)">
           C — Chassis &amp; Chain
         </h3>
-        <p className="mb-4 text-base leading-relaxed text-neutral-300">
+        <p className="mb-4 text-base leading-relaxed text-(--mv-ink-2)">
           Inspect chain tension by pushing up on the lower run — correct slack is typically 25–35mm
           but check your manual. The chain should be clean and lubricated with no tight spots or
           excessive rust. Check sprocket teeth for hooking or wear. Verify the frame has no visible
@@ -228,16 +228,16 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
           shock to check for smooth operation and look for oil weeping from fork seals.
         </p>
 
-        <h3 className="mb-3 mt-8 text-lg font-semibold text-neutral-100">S — Stands</h3>
-        <p className="mb-4 text-base leading-relaxed text-neutral-300">
+        <h3 className="mb-3 mt-8 text-lg font-semibold text-(--mv-ink)">S — Stands</h3>
+        <p className="mb-4 text-base leading-relaxed text-(--mv-ink-2)">
           Verify the side stand retracts fully and the return spring pulls it up firmly. Test the
           side stand engine cut-off switch — on most modern motorcycles, the engine will not start
           or will cut out if the side stand is down with a gear engaged. If your bike has a center
           stand, check that it deploys and retracts smoothly and holds the bike stable.
         </p>
 
-        <h3 className="mb-3 mt-8 text-lg font-semibold text-neutral-100">Why TCLOCS Matters</h3>
-        <p className="mb-4 text-base leading-relaxed text-neutral-300">
+        <h3 className="mb-3 mt-8 text-lg font-semibold text-(--mv-ink)">Why TCLOCS Matters</h3>
+        <p className="mb-4 text-base leading-relaxed text-(--mv-ink-2)">
           Mechanical failure accounts for a significant percentage of motorcycle incidents, and most
           failures are preventable with basic pre-ride checks. A nail in a tire, a dead brake light,
           or a low oil level can all be caught in under a minute — but only if you look. Making
@@ -246,35 +246,35 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
         </p>
 
         {/* FAQ */}
-        <h3 className="mb-4 mt-10 text-lg font-semibold text-neutral-100">
+        <h3 className="mb-4 mt-10 text-lg font-semibold text-(--mv-ink)">
           Frequently Asked Questions
         </h3>
         <dl className="space-y-4">
           <div>
-            <dt className="text-base font-medium text-neutral-200">
+            <dt className="text-base font-medium text-(--mv-ink)">
               How long does a TCLOCS inspection take?
             </dt>
-            <dd className="mt-1 text-sm leading-relaxed text-neutral-400">
+            <dd className="mt-1 text-sm leading-relaxed text-(--mv-ink-2)">
               A thorough TCLOCS check takes about 10 minutes once you know the routine. With
               practice, you can complete a quick visual scan in under 5 minutes for daily rides,
               reserving the full inspection for weekly or pre-trip checks.
             </dd>
           </div>
           <div>
-            <dt className="text-base font-medium text-neutral-200">
+            <dt className="text-base font-medium text-(--mv-ink)">
               Should I do TCLOCS before every single ride?
             </dt>
-            <dd className="mt-1 text-sm leading-relaxed text-neutral-400">
+            <dd className="mt-1 text-sm leading-relaxed text-(--mv-ink-2)">
               The MSF recommends a check before every ride. In practice, a full TCLOCS weekly or
               before trips and a quick tire/light/leak scan before daily rides is a reasonable
               approach. If the bike has been sitting for more than a week, always do the full check.
             </dd>
           </div>
           <div>
-            <dt className="text-base font-medium text-neutral-200">
+            <dt className="text-base font-medium text-(--mv-ink)">
               What should I do if I find a problem during TCLOCS?
             </dt>
-            <dd className="mt-1 text-sm leading-relaxed text-neutral-400">
+            <dd className="mt-1 text-sm leading-relaxed text-(--mv-ink-2)">
               It depends on the severity. Critical issues (brake failure, flat tire, major leak)
               mean do not ride until fixed. Minor issues (low tire pressure, dirty chain) can often
               be addressed immediately. When in doubt, err on the side of caution — riding with a
@@ -287,8 +287,8 @@ export default async function TclocsChecklistPage({ params }: PageProps) {
       {/* SEO Content */}
       <section className="px-4 py-16 print:hidden">
         <div className="mx-auto max-w-3xl">
-          <h2 className="text-2xl font-bold text-neutral-50">{t('seoTitle')}</h2>
-          <div className="mt-6 space-y-4 text-neutral-400">
+          <h2 className="text-2xl font-bold text-(--mv-ink)">{t('seoTitle')}</h2>
+          <div className="mt-6 space-y-4 text-(--mv-ink-2)">
             <p>{t('seoP1')}</p>
             <p>{t('seoP2')}</p>
             <p>{t('seoP3')}</p>

@@ -21,39 +21,15 @@ export default function MarketingError({
         justifyContent: 'center',
         padding: '120px 24px',
         textAlign: 'center',
-        position: 'relative',
-        isolation: 'isolate',
       }}
     >
-      {/* Radial glow */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          top: '40%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '600px',
-          height: '400px',
-          background:
-            'radial-gradient(ellipse 60% 50% at 50% 50%, oklch(0.76 0.18 60 / 0.05), transparent 70%)',
-          zIndex: -1,
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Mono label */}
-      <div className="mv-section-meta" style={{ justifyContent: 'center', display: 'inline-flex' }}>
-        {t('label')}
-      </div>
-
-      {/* Icon */}
+      {/* Icon: one step up the ramp, hairline — no glow */}
       <div
         style={{
           width: '64px',
           height: '64px',
-          borderRadius: '16px',
-          background: 'oklch(1 0 0 / 0.04)',
+          borderRadius: 'var(--mv-radius-card)',
+          background: 'var(--mv-surface)',
           border: '1px solid var(--mv-line)',
           display: 'flex',
           alignItems: 'center',
@@ -66,7 +42,7 @@ export default function MarketingError({
           height="28"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="var(--mv-warm-500)"
+          stroke="var(--mv-ink-2)"
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -79,10 +55,10 @@ export default function MarketingError({
       </div>
 
       <h2
+        className="mv-display"
         style={{
-          fontSize: 'clamp(28px, 4vw, 44px)',
-          fontWeight: 500,
-          letterSpacing: '-0.03em',
+          fontSize: 'clamp(32px, 4.5vw, 52px)',
+          fontWeight: 700,
           lineHeight: 1,
           margin: 0,
           color: 'var(--mv-ink)',
@@ -105,37 +81,22 @@ export default function MarketingError({
 
       {error.digest && (
         <p
-          className="mv-mono"
+          className="mv-figure"
           style={{
             marginTop: '12px',
-            fontSize: '11px',
+            fontSize: '13px',
             color: 'var(--mv-ink-4)',
-            letterSpacing: '0.04em',
           }}
         >
-          REF: {error.digest}
+          Ref: {error.digest}
         </p>
       )}
 
       <button
         onClick={reset}
         type="button"
-        style={{
-          marginTop: '40px',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '14px 28px',
-          borderRadius: '999px',
-          fontWeight: 600,
-          fontSize: '14px',
-          cursor: 'pointer',
-          letterSpacing: '-0.005em',
-          background: 'var(--mv-ink)',
-          color: 'oklch(0.15 0.02 55)',
-          border: 'none',
-          transition: 'opacity 0.2s',
-        }}
+        className="mv-btn mv-btn-primary"
+        style={{ marginTop: '40px' }}
       >
         <svg
           width="16"

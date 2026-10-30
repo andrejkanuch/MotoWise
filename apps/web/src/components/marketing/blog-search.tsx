@@ -123,11 +123,11 @@ export function BlogSearch({
           onChange={(e) => setInput(e.target.value)}
           placeholder="Search articles…"
           aria-label="Search articles"
-          className="flex-1 rounded-xl border border-neutral-800 bg-neutral-900/60 px-4 py-3 text-neutral-100 placeholder:text-neutral-500 focus:border-neutral-600 focus:outline-none"
+          className="flex-1 rounded-xl border border-(--mv-line) bg-(--mv-surface) px-4 py-3 text-(--mv-ink) placeholder:text-(--mv-ink-3) focus:border-(--mv-copper) focus:outline-none"
         />
         <button
           type="submit"
-          className="rounded-xl bg-amber-500 px-5 py-3 text-sm font-semibold text-neutral-950 transition-colors hover:bg-amber-400"
+          className="rounded-xl bg-(--mv-copper) px-5 py-3 text-sm font-semibold text-(--mv-on-copper) transition-colors hover:bg-(--mv-copper-hover)"
         >
           Search
         </button>
@@ -142,8 +142,8 @@ export function BlogSearch({
             onClick={() => toggleParam('type', t)}
             className={`rounded-full border px-3 py-1 text-sm capitalize transition-colors ${
               type === t
-                ? 'border-amber-500 bg-amber-500/15 text-amber-300'
-                : 'border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200'
+                ? 'border-(--mv-copper) bg-(--mv-surface-2) text-(--mv-copper-text)'
+                : 'border-(--mv-line) text-(--mv-ink-3) hover:border-(--mv-line-step) hover:text-(--mv-ink)'
             }`}
           >
             {t}
@@ -156,8 +156,8 @@ export function BlogSearch({
             onClick={() => toggleParam('category', c.slug)}
             className={`rounded-full border px-3 py-1 text-sm transition-colors ${
               category === c.slug
-                ? 'border-amber-500 bg-amber-500/15 text-amber-300'
-                : 'border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200'
+                ? 'border-(--mv-copper) bg-(--mv-surface-2) text-(--mv-copper-text)'
+                : 'border-(--mv-line) text-(--mv-ink-3) hover:border-(--mv-line-step) hover:text-(--mv-ink)'
             }`}
           >
             {c.name}
@@ -168,7 +168,7 @@ export function BlogSearch({
       {/* Active filters */}
       {isActive && (
         <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-neutral-500">Filters:</span>
+          <span className="text-(--mv-ink-3)">Filters:</span>
           {q && <FilterChip label={`“${q}”`} onRemove={() => setParams((p) => p.delete('q'))} />}
           {type && <FilterChip label={type} onRemove={() => setParams((p) => p.delete('type'))} />}
           {category && (
@@ -186,7 +186,7 @@ export function BlogSearch({
           <button
             type="button"
             onClick={clearAll}
-            className="ml-1 text-amber-400 underline-offset-2 hover:underline"
+            className="ml-1 text-(--mv-copper-text) underline-offset-2 hover:underline"
           >
             Clear all
           </button>
@@ -196,18 +196,18 @@ export function BlogSearch({
       {/* Results / states */}
       <div className="mt-10">
         {status === 'error' ? (
-          <p className="text-neutral-400">
+          <p className="text-(--mv-ink-2)">
             Search is temporarily unavailable — browse by category above instead.
           </p>
         ) : searchPending ? (
           <CardSkeletons />
         ) : showResults && results.length === 0 ? (
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-10 text-center">
-            <p className="text-neutral-300">No posts found{q ? ` for “${q}”` : ''}.</p>
+          <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-10 text-center">
+            <p className="text-(--mv-ink-2)">No posts found{q ? ` for “${q}”` : ''}.</p>
             <button
               type="button"
               onClick={clearAll}
-              className="mt-3 text-sm font-medium text-amber-400 hover:text-amber-300"
+              className="mt-3 text-sm font-medium text-(--mv-copper-text) hover:text-(--mv-copper-hover)"
             >
               Clear search
             </button>
@@ -226,13 +226,13 @@ export function BlogSearch({
 
 function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-800 px-3 py-1 text-neutral-200">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-(--mv-surface-2) px-3 py-1 text-(--mv-ink-2)">
       {label}
       <button
         type="button"
         onClick={onRemove}
         aria-label={`Remove ${label} filter`}
-        className="text-neutral-400 hover:text-neutral-100"
+        className="text-(--mv-ink-3) hover:text-(--mv-ink)"
       >
         ✕
       </button>
@@ -246,7 +246,7 @@ function CardSkeletons() {
       {[0, 1, 2].map((i) => (
         <div
           key={i}
-          className="h-44 animate-pulse rounded-2xl border border-neutral-800 bg-neutral-900/50"
+          className="h-44 animate-pulse rounded-2xl border border-(--mv-line) bg-(--mv-surface)"
         />
       ))}
     </div>
@@ -266,9 +266,9 @@ function ArticleGrid({
         <Link
           key={article.slug}
           href={`/blog/${article.slug}`}
-          className="group rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 transition-colors hover:border-neutral-700 hover:bg-neutral-900/80"
+          className="group rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6 transition-colors hover:border-(--mv-line-step) hover:bg-(--mv-surface-2)"
         >
-          <div className="mb-3 flex items-center gap-3 text-sm text-neutral-500">
+          <div className="mb-3 flex items-center gap-3 text-sm text-(--mv-ink-3)">
             <time dateTime={article.date}>
               {new Date(article.date).toLocaleDateString('en-US', {
                 timeZone: 'UTC',
@@ -282,11 +282,11 @@ function ArticleGrid({
               {article.readingTime} {strings.readingTime}
             </span>
           </div>
-          <h2 className="mb-3 text-xl font-semibold text-neutral-100 transition-colors group-hover:text-white">
+          <h2 className="mb-3 text-xl font-semibold text-(--mv-ink)">
             {article.title}
           </h2>
-          <p className="mb-4 text-sm leading-relaxed text-neutral-400">{article.excerpt}</p>
-          <span className="text-sm font-medium text-amber-400 transition-colors group-hover:text-amber-300">
+          <p className="mb-4 text-sm leading-relaxed text-(--mv-ink-2)">{article.excerpt}</p>
+          <span className="text-sm font-medium text-(--mv-copper-text) transition-colors group-hover:text-(--mv-copper-hover)">
             {strings.readMore} &rarr;
           </span>
         </Link>

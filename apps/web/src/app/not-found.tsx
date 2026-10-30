@@ -37,95 +37,71 @@ export default function NotFound() {
         @media(max-width:900px){.nf{grid-template-columns:1fr}.nf-stage{min-height:52vh;order:-1}}
         .nf-msg{padding:160px 72px 80px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:2;background:var(--mv-bg)}
         @media(max-width:900px){.nf-msg{padding:40px 28px 72px}}
-        .nf-code{font-family:var(--font-geist-mono,'Geist Mono',monospace);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--mv-ink-3);display:flex;align-items:center;gap:10px;margin-bottom:28px}
-        .nf-code .dot{width:6px;height:6px;border-radius:50%;background:var(--mv-warm-500);box-shadow:0 0 16px var(--mv-warm-500);animation:nfPulse 2s ease-in-out infinite}
-        @keyframes nfPulse{0%,100%{opacity:.5;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
-        .nf-title{font-weight:400;font-size:clamp(64px,9vw,132px);line-height:.9;letter-spacing:-.03em;color:var(--mv-ink);margin:0 0 28px}
-        .nf-title .stroke{font-style:italic;color:var(--mv-warm-400);position:relative}
-        .nf-title .stroke::after{content:"";position:absolute;left:0;right:0;bottom:12%;height:3px;background:var(--mv-warm-500);transform-origin:left;animation:strokeIn 1.2s var(--mv-ease-expo) .4s both}
-        @keyframes strokeIn{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+        .nf-code{font-family:var(--mv-font-body);font-size:13px;font-weight:500;color:var(--mv-ink-3);margin-bottom:28px}
+        .nf-title{font-family:var(--mv-font-display);font-weight:700;font-size:clamp(64px,9vw,132px);line-height:.92;letter-spacing:.002em;color:var(--mv-ink);margin:0 0 28px}
         .nf-lede{max-width:440px;font-size:17px;line-height:1.55;color:var(--mv-ink-2);margin:0 0 40px;text-wrap:pretty}
-        .nf-lede em{font-style:italic;color:var(--mv-ink)}
         .nf-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:56px}
-        .nf-btn{display:inline-flex;align-items:center;gap:10px;padding:13px 22px;border-radius:999px;font-weight:500;font-size:14px;text-decoration:none;transition:transform .4s var(--mv-ease),background .3s,border-color .3s,color .3s;cursor:pointer;border:1px solid transparent;font-family:inherit}
-        .nf-btn-primary{background:var(--mv-ink);color:oklch(.15 .02 55)}
-        .nf-btn-primary:hover{transform:translateY(-1px);background:var(--mv-warm-400)}
-        .nf-btn-ghost{border-color:var(--mv-line);color:var(--mv-ink-2);background:transparent}
-        .nf-btn-ghost:hover{border-color:var(--mv-warm-500);color:var(--mv-ink);transform:translateY(-1px)}
-        .nf-btn svg{transition:transform .4s var(--mv-ease)}
-        .nf-btn:hover svg{transform:translateX(3px)}
+        .nf-btn{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:var(--mv-radius-control);font-family:var(--mv-font-body);font-weight:600;font-size:14px;cursor:pointer}
+        .nf-btn-ghost{background:var(--mv-surface-2);color:var(--mv-ink);border:1px solid var(--mv-line);transition:background .25s,border-color .25s,transform .2s var(--mv-ease)}
+        .nf-btn-ghost:hover{background:var(--mv-surface-3);border-color:var(--mv-line-step);transform:translateY(-1px)}
         .nf-whereto{border-top:1px solid var(--mv-line);padding-top:28px}
-        .nf-whereto-label{font-family:var(--font-geist-mono,'Geist Mono',monospace);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--mv-ink-3);margin-bottom:18px}
-        .nf-links{display:grid;grid-template-columns:1fr 1fr;gap:2px;max-width:560px}
+        .nf-whereto-label{font-family:var(--mv-font-body);font-size:13px;font-weight:500;color:var(--mv-ink-3);margin-bottom:10px}
+        .nf-links{display:grid;grid-template-columns:1fr 1fr;column-gap:40px;max-width:560px}
         @media(max-width:600px){.nf-links{grid-template-columns:1fr}}
-        .nf-link{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;text-decoration:none;color:var(--mv-ink);background:oklch(1 0 0/.02);border:1px solid var(--mv-line);border-radius:14px;transition:background .3s,border-color .3s,transform .4s var(--mv-ease)}
-        .nf-link:hover{background:oklch(1 0 0/.04);border-color:var(--mv-warm-500);transform:translateY(-2px)}
+        .nf-link{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;text-decoration:none;color:var(--mv-ink);border-top:1px solid var(--mv-line);transition:color .2s}
         .nf-link-title{font-size:14px;font-weight:500}
         .nf-link-desc{font-size:12px;color:var(--mv-ink-3);margin-top:4px}
-        .nf-link svg{color:var(--mv-ink-3);transition:color .3s,transform .4s var(--mv-ease);flex-shrink:0}
-        .nf-link:hover svg{color:var(--mv-warm-400);transform:translate(3px,-3px)}
-        .nf-stage{position:relative;overflow:hidden;background:linear-gradient(150deg,oklch(.14 .02 60) 0%,oklch(.09 .008 55) 100%);border-left:1px solid var(--mv-line)}
+        .nf-link svg{color:var(--mv-ink-3);transition:color .2s,transform .4s var(--mv-ease);flex-shrink:0}
+        .nf-link:hover svg{color:var(--mv-copper-text);transform:translate(3px,-3px)}
+        .nf-stage{position:relative;overflow:hidden;background:var(--mv-bg-2);border-left:1px solid var(--mv-line)}
         @media(max-width:900px){.nf-stage{border-left:0;border-bottom:1px solid var(--mv-line)}}
-        .nf-glow{position:absolute;top:-20%;right:-20%;width:120%;height:80%;background:radial-gradient(ellipse at center,oklch(.76 .18 60/.25),transparent 60%);filter:blur(40px);pointer-events:none}
-        .nf-topo{position:absolute;inset:0;opacity:.5}
-        .nf-topo path{fill:none;stroke:var(--mv-warm-500);stroke-width:.6;opacity:.35}
+        .nf-topo{position:absolute;inset:0}
+        .nf-topo path{fill:none;stroke:var(--mv-line-step);stroke-width:.6;opacity:.35}
         .nf-topo .topo-far{opacity:.12}
         .nf-route{position:absolute;inset:0;z-index:2}
-        .nf-route .road{fill:none;stroke:var(--mv-ink);stroke-width:2.4;stroke-linecap:round;opacity:.9;stroke-dasharray:8 6;animation:roadDash 4s linear infinite}
-        .nf-route .road-glow{fill:none;stroke:var(--mv-warm-400);stroke-width:8;stroke-linecap:round;opacity:.35;filter:blur(6px)}
-        @keyframes roadDash{to{stroke-dashoffset:-140}}
-        .nf-route .pin{fill:var(--mv-warm-500)}
-        .nf-route .pin-ring{fill:none;stroke:var(--mv-warm-500);stroke-width:2;transform-origin:center;animation:pinPulse 2.2s ease-out infinite}
-        @keyframes pinPulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.6);opacity:0}}
-        .nf-compass{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(58%,440px);aspect-ratio:1;z-index:3;pointer-events:none;animation:compassFloat 8s ease-in-out infinite}
-        @keyframes compassFloat{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,calc(-50% - 14px))}}
-        .nf-compass-ring{position:absolute;inset:0;border-radius:50%;border:1px solid oklch(1 0 0/.12)}
-        .nf-compass-ring.ring-2{inset:8%;border-color:oklch(1 0 0/.08)}
-        .nf-compass-ring.ring-3{inset:18%;border-color:oklch(1 0 0/.05)}
-        .nf-compass-ticks{position:absolute;inset:0;animation:compassSpin 60s linear infinite}
-        @keyframes compassSpin{to{transform:rotate(360deg)}}
-        .nf-compass-needle{position:absolute;top:50%;left:50%;width:3px;height:44%;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(0deg);animation:needleWobble 3.2s ease-in-out infinite}
+        .nf-route .road{fill:none;stroke:var(--mv-ink-3);stroke-width:2.4;stroke-linecap:round;opacity:.9;stroke-dasharray:8 6}
+        .nf-route .pin{fill:var(--mv-ink-3)}
+        .nf-compass{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(58%,440px);aspect-ratio:1;z-index:3;pointer-events:none}
+        .nf-compass-ring{position:absolute;inset:0;border-radius:50%;border:1px solid var(--mv-line)}
+        .nf-compass-ring.ring-2{inset:8%;border-color:var(--mv-line-2)}
+        .nf-compass-ring.ring-3{inset:18%;border-color:var(--mv-line-2)}
+        .nf-compass-needle{position:absolute;top:50%;left:50%;width:3px;height:44%;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(-38deg)}
         .nf-compass-needle::before,.nf-compass-needle::after{content:"";position:absolute;left:50%;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent}
-        .nf-compass-needle::before{top:0;border-bottom:50px solid var(--mv-warm-500);transform:translateX(-50%)}
-        .nf-compass-needle::after{bottom:0;border-top:40px solid oklch(.4 .012 60);transform:translateX(-50%)}
-        @keyframes needleWobble{0%,100%{transform:translate(-50%,-100%) rotate(-38deg)}25%{transform:translate(-50%,-100%) rotate(42deg)}50%{transform:translate(-50%,-100%) rotate(-12deg)}75%{transform:translate(-50%,-100%) rotate(58deg)}}
-        .nf-compass-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:var(--mv-bg);border:2px solid var(--mv-warm-500);box-shadow:0 0 24px var(--mv-warm-500)}
-        .nf-compass-label{position:absolute;font-family:var(--font-geist-mono,'Geist Mono',monospace);font-size:12px;font-weight:500;letter-spacing:.15em;color:var(--mv-ink)}
+        .nf-compass-needle::before{top:0;border-bottom:50px solid var(--mv-ink-2);transform:translateX(-50%)}
+        .nf-compass-needle::after{bottom:0;border-top:40px solid var(--mv-ink-4);transform:translateX(-50%)}
+        .nf-compass-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:var(--mv-bg);border:2px solid var(--mv-line-step)}
+        .nf-compass-label{position:absolute;font-family:var(--mv-font-display);font-size:14px;font-weight:600;color:var(--mv-ink)}
         .nf-compass-label.n{top:4%;left:50%;transform:translateX(-50%)}
         .nf-compass-label.s{bottom:4%;left:50%;transform:translateX(-50%);color:var(--mv-ink-3)}
         .nf-compass-label.e{right:4%;top:50%;transform:translateY(-50%);color:var(--mv-ink-3)}
         .nf-compass-label.w{left:4%;top:50%;transform:translateY(-50%);color:var(--mv-ink-3)}
-        .nf-telemetry{position:absolute;bottom:32px;left:32px;display:flex;flex-direction:column;gap:4px;font-family:var(--font-geist-mono,'Geist Mono',monospace);font-size:11px;color:var(--mv-ink-3);z-index:4}
+        .nf-telemetry{position:absolute;bottom:32px;left:32px;display:flex;flex-direction:column;gap:4px;font-family:var(--mv-font-body);font-size:12px;color:var(--mv-ink-3);z-index:4}
         .nf-telemetry-row{display:flex;gap:14px;align-items:baseline}
-        .nf-telemetry-key{color:var(--mv-ink-4);text-transform:uppercase;letter-spacing:.18em;min-width:68px}
-        .nf-telemetry-val{color:var(--mv-ink);font-variant-numeric:tabular-nums}
-        .nf-telemetry-val.warn{color:var(--mv-warm-400)}
-        .nf-stagetag{position:absolute;top:32px;right:32px;font-family:var(--font-geist-mono,'Geist Mono',monospace);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--mv-ink-3);display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--mv-line);border-radius:999px;background:oklch(1 0 0/.02);backdrop-filter:blur(10px);z-index:4}
-        .nf-stagetag::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--mv-warm-500);box-shadow:0 0 10px var(--mv-warm-500)}
+        .nf-telemetry-key{color:var(--mv-ink-4);min-width:68px;font-weight:500}
+        .nf-telemetry-val{color:var(--mv-ink);font-family:var(--mv-font-display);font-weight:600;font-variant-numeric:tabular-nums}
+        .nf-telemetry-val.warn{color:var(--mv-ink-2)}
+        .nf-stagetag{position:absolute;top:32px;right:32px;font-family:var(--mv-font-body);font-size:12px;font-weight:500;color:var(--mv-ink-2);display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--mv-line);border-radius:999px;background:var(--mv-surface);z-index:4}
       `}</style>
 
       <main className="nf">
         {/* LEFT: message */}
         <section className="nf-msg">
-          <div className="nf-code">
-            <span className="dot" />
-            Error 404 &middot; Route not found
-          </div>
+          <div className="nf-code">Error 404 &middot; Route not found</div>
 
-          <h1 className="nf-title mv-serif">
+          <h1 className="nf-title">
             Wrong
             <br />
-            <span className="stroke">turn.</span>
+            turn.
           </h1>
 
           <p className="nf-lede">
-            Looks like the road you were following <em className="mv-serif">doesn&apos;t exist</em>{' '}
-            anymore — maybe it was re-routed, maybe you just typed one letter wrong. Either way,
-            there&apos;s plenty of open asphalt from here.
+            Looks like the road you were following doesn&apos;t exist anymore — maybe it was
+            re-routed, maybe you just typed one letter wrong. Either way, there&apos;s plenty of
+            open asphalt from here.
           </p>
 
           <div className="nf-actions">
-            <Link className="nf-btn nf-btn-primary" href="/">
+            <Link className="mv-btn mv-btn-primary" href="/">
               Take me home
               <svg
                 width="14"
@@ -162,8 +138,6 @@ export default function NotFound() {
 
         {/* RIGHT: stage */}
         <section className="nf-stage">
-          <div className="nf-glow" />
-
           {/* Topographic lines */}
           <svg
             className="nf-topo"
@@ -195,18 +169,13 @@ export default function NotFound() {
             aria-hidden="true"
           >
             <path
-              className="road-glow"
-              d="M 80 720 C 160 620, 120 500, 240 460 S 380 400, 360 300 S 260 200, 340 120 L 420 100"
-            />
-            <path
               className="road"
               d="M 80 720 C 160 620, 120 500, 240 460 S 380 400, 360 300 S 260 200, 340 120 L 420 100"
             />
             {/* Start pin */}
             <circle className="pin" cx="80" cy="720" r="6" />
-            {/* End pin (destination doesn't exist) w/ ring pulse */}
+            {/* End pin (destination doesn't exist) */}
             <g transform="translate(420 100)">
-              <circle className="pin-ring" r="7" />
               <circle className="pin" r="7" />
               <line
                 x1="-14"
@@ -234,9 +203,9 @@ export default function NotFound() {
             <div className="nf-compass-ring" />
             <div className="nf-compass-ring ring-2" />
             <div className="nf-compass-ring ring-3" />
-            <svg className="nf-compass-ticks" viewBox="0 0 100 100" aria-hidden="true">
+            <svg viewBox="0 0 100 100" aria-hidden="true" style={{ position: 'absolute', inset: 0 }}>
               <title>Compass ticks</title>
-              <g stroke="oklch(1 0 0 / 0.25)" strokeLinecap="round">
+              <g stroke="var(--mv-line-step)" strokeLinecap="round">
                 <line x1="50" y1="3" x2="50" y2="8" />
                 <line x1="73.5" y1="9.3" x2="71" y2="13.7" />
                 <line x1="90.7" y1="26.5" x2="86.3" y2="29" />

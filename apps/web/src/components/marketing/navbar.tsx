@@ -121,11 +121,12 @@ const S = {
     borderBottomStyle: 'solid' as const,
     borderBottomColor: 'transparent',
   },
+  /* The one sanctioned blur on the site (Ramp Is the Shadow Rule budget) */
   navScrolled: {
     padding: '12px 40px',
-    background: 'oklch(0.09 0.008 55 / 0.7)',
-    backdropFilter: 'blur(24px) saturate(140%)',
-    WebkitBackdropFilter: 'blur(24px) saturate(140%)',
+    background: 'color-mix(in srgb, var(--mv-bg) 72%, transparent)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
     borderBottomColor: 'var(--mv-line)',
   },
   brand: {
@@ -161,10 +162,11 @@ const S = {
     gap: '2px',
     alignItems: 'center',
     padding: '4px',
-    background: 'oklch(1 0 0 / 0.02)',
+    background: 'color-mix(in srgb, var(--mv-bg) 55%, transparent)',
     border: '1px solid var(--mv-line)',
     borderRadius: '999px',
     backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
     position: 'relative' as const,
   },
   navLink: {
@@ -183,8 +185,8 @@ const S = {
     fontFamily: 'inherit',
   },
   navLinkHover: {
-    color: 'var(--mv-ink)',
-    background: 'oklch(1 0 0 / 0.04)',
+    color: 'var(--mv-copper-text)',
+    background: 'var(--mv-line-2)',
   },
   dropdown: {
     position: 'relative' as const,
@@ -195,22 +197,20 @@ const S = {
     gap: '5px',
     cursor: 'pointer',
   },
+  /* Solid surface + hairline — no blur, no glass (blur budget is the bar) */
   dropdownMenu: {
     position: 'absolute' as const,
     top: 'calc(100% + 10px)',
     left: '50%',
     transform: 'translateX(-50%) translateY(-8px)',
-    minWidth: '340px',
-    background: 'oklch(0.12 0.01 55 / 0.96)',
-    backdropFilter: 'blur(24px) saturate(140%)',
-    WebkitBackdropFilter: 'blur(24px) saturate(140%)',
+    minWidth: '320px',
+    background: 'var(--mv-surface)',
     border: '1px solid var(--mv-line)',
-    borderRadius: '18px',
-    padding: '10px',
+    borderRadius: 'var(--mv-radius-card)',
+    padding: '8px',
     opacity: 0,
     visibility: 'hidden' as const,
     transition: 'opacity .3s var(--mv-ease), transform .3s var(--mv-ease), visibility .3s',
-    boxShadow: '0 40px 80px -20px oklch(0 0 0 / 0.7)',
   },
   dropdownMenuOpen: {
     opacity: 1,
@@ -226,27 +226,26 @@ const S = {
     height: '14px',
   },
   dropdownItem: {
-    display: 'flex',
-    gap: '14px',
-    alignItems: 'flex-start',
-    padding: '12px 14px',
-    borderRadius: '12px',
+    display: 'block',
+    padding: '11px 12px',
+    borderRadius: 'var(--mv-radius-control)',
     color: 'var(--mv-ink)',
     textDecoration: 'none',
-    transition: 'background .2s',
+    transition: 'background .2s, color .2s',
   },
   dropdownItemHover: {
-    background: 'oklch(1 0 0 / 0.04)',
+    background: 'var(--mv-line-2)',
+    color: 'var(--mv-copper-text)',
   },
-  dropdownIcon: {
-    width: '34px',
-    height: '34px',
-    borderRadius: '10px',
-    background: 'oklch(1 0 0 / 0.04)',
-    border: '1px solid var(--mv-line)',
-    display: 'grid',
-    placeItems: 'center',
-    color: 'var(--mv-warm-400)',
+  /* Icon inline next to the label — no tile boxes (anti-slop guardrail) */
+  dropdownTitleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  dropdownItemIcon: {
+    display: 'inline-flex',
+    color: 'var(--mv-ink-3)',
     flexShrink: 0,
   },
   dropdownTitle: {
@@ -258,7 +257,8 @@ const S = {
   dropdownSub: {
     fontSize: '12px',
     color: 'var(--mv-ink-3)',
-    marginTop: '2px',
+    marginTop: '3px',
+    paddingLeft: '26px',
     letterSpacing: '-0.005em',
     lineHeight: 1.35,
   },
@@ -275,12 +275,13 @@ const S = {
     padding: '9px 14px',
     transition: 'color .2s',
   },
+  /* Copper is the verb: the one primary action in the bar, control radius */
   navCta: {
     padding: '9px 16px',
-    borderRadius: '999px',
+    borderRadius: 'var(--mv-radius-control)',
     whiteSpace: 'nowrap' as const,
-    background: 'var(--mv-ink)',
-    color: 'var(--mv-bg)',
+    background: 'var(--mv-copper)',
+    color: 'var(--mv-on-copper)',
     fontWeight: 600,
     fontSize: '13px',
     textDecoration: 'none',
@@ -289,7 +290,7 @@ const S = {
     display: 'inline-block',
   },
   navCtaHover: {
-    background: 'var(--mv-warm-500)',
+    background: 'var(--mv-copper-hover)',
     transform: 'translateY(-1px)',
   },
   chevronSvg: {
@@ -310,18 +311,18 @@ const S = {
     border: 'none',
     color: 'var(--mv-ink-2)',
     cursor: 'pointer',
-    borderRadius: '12px',
+    borderRadius: 'var(--mv-radius-control)',
     transition: 'color .2s',
   },
+  /* Solid surface + hairline — no blur, no glass */
   mobileOverlay: {
     position: 'fixed' as const,
     inset: 0,
     zIndex: 99,
     display: 'flex',
     flexDirection: 'column' as const,
-    background: 'oklch(0.09 0.008 55 / 0.96)',
-    backdropFilter: 'blur(24px) saturate(140%)',
-    WebkitBackdropFilter: 'blur(24px) saturate(140%)',
+    background: 'var(--mv-surface)',
+    borderTop: '1px solid var(--mv-line)',
   },
   mobileInner: {
     flex: 1,
@@ -344,9 +345,9 @@ const S = {
   mobileCta: {
     marginTop: '16px',
     padding: '14px 32px',
-    borderRadius: '999px',
-    background: 'var(--mv-ink)',
-    color: 'var(--mv-bg)',
+    borderRadius: 'var(--mv-radius-control)',
+    background: 'var(--mv-copper)',
+    color: 'var(--mv-on-copper)',
     fontWeight: 600,
     fontSize: '15px',
     textDecoration: 'none',
@@ -506,6 +507,8 @@ export function Navbar() {
   return (
     <>
       <nav
+        className="mv-navbar"
+        data-scrolled={scrolled ? 'true' : undefined}
         style={{
           ...S.nav,
           ...(scrolled ? S.navScrolled : {}),
@@ -595,11 +598,11 @@ export function Navbar() {
                   onMouseEnter={() => setHoveredDropdownItem(item.key)}
                   onMouseLeave={() => setHoveredDropdownItem(null)}
                 >
-                  <span style={S.dropdownIcon}>{item.icon}</span>
-                  <div>
-                    <div style={S.dropdownTitle}>{t(item.key)}</div>
-                    <div style={S.dropdownSub}>{item.sub}</div>
+                  <div style={S.dropdownTitleRow}>
+                    <span style={S.dropdownItemIcon}>{item.icon}</span>
+                    <span style={S.dropdownTitle}>{t(item.key)}</span>
                   </div>
+                  <div style={S.dropdownSub}>{item.sub}</div>
                 </Link>
               ))}
             </div>
@@ -644,7 +647,7 @@ export function Navbar() {
                 className="mv-nav-signin"
                 style={{
                   ...S.navSignin,
-                  ...(signinHover ? { color: 'var(--mv-ink)' } : {}),
+                  ...(signinHover ? { color: 'var(--mv-copper-text)' } : {}),
                 }}
                 onMouseEnter={() => setSigninHover(true)}
                 onMouseLeave={() => setSigninHover(false)}
@@ -756,6 +759,11 @@ export function Navbar() {
           .mv-nav-links, .mv-nav-right .mv-nav-signin { display: none !important; }
           .mv-nav-right { display: none !important; }
           .mv-hamburger { display: flex !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .mv-navbar, .mv-navbar * {
+            transition-duration: 0.01ms !important;
+          }
         }
       `}</style>
     </>

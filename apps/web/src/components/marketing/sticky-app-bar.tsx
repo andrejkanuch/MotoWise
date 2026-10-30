@@ -1,6 +1,5 @@
 'use client';
 
-import { palette } from '@motovault/design-system';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { usePathname } from '@/i18n/navigation';
@@ -66,15 +65,23 @@ export function StickyAppBar() {
   return (
     <div
       className="fixed inset-x-0 bottom-0 z-50 flex items-center gap-3 border-t px-4 py-3"
-      style={{ backgroundColor: palette.neutral950, borderColor: palette.neutral800 }}
+      style={{
+        backgroundColor: 'var(--mv-surface)',
+        borderColor: 'var(--mv-line)',
+        fontFamily: 'var(--mv-font-body)',
+      }}
     >
-      <p className="min-w-0 flex-1 truncate text-sm" style={{ color: palette.neutral200 }}>
+      <p className="min-w-0 flex-1 truncate text-sm" style={{ color: 'var(--mv-ink-2)' }}>
         {t('message')}
       </p>
       <a
         {...storeAnchorProps(platform, { pageType, placement: CtaPlacement.StickyBar, slug })}
-        className="shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-        style={{ backgroundColor: palette.signature500, color: palette.white }}
+        className="shrink-0 px-4 py-2 text-sm font-semibold motion-safe:transition-opacity hover:opacity-90"
+        style={{
+          backgroundColor: 'var(--mv-copper)',
+          color: 'var(--mv-on-copper)',
+          borderRadius: 'var(--mv-radius-control)',
+        }}
       >
         {t('cta')}
       </a>
@@ -82,8 +89,8 @@ export function StickyAppBar() {
         type="button"
         onClick={dismiss}
         aria-label={t('dismiss')}
-        className="shrink-0 rounded-full p-1.5 transition-opacity hover:opacity-70"
-        style={{ color: palette.neutral400 }}
+        className="shrink-0 p-1.5 motion-safe:transition-opacity hover:opacity-70"
+        style={{ color: 'var(--mv-ink-3)', borderRadius: 'var(--mv-radius-control)' }}
       >
         <svg
           width="18"

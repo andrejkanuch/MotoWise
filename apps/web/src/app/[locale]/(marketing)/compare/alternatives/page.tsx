@@ -1,8 +1,16 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import {
+  CompareBreadcrumb,
+  CompareFaq,
+  CompareRelatedLinks,
+  compareBodyStyle,
+  compareH1Style,
+  compareH2Style,
+  compareH3Style,
+} from '@/components/marketing/compare-page';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
-import { Link } from '@/i18n/navigation';
 import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
 import { CtaPageType } from '@/lib/cta-taxonomy';
 import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
@@ -30,6 +38,47 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 const ALT_INDICES = [0, 1, 2, 3, 4, 5] as const;
 const BEST_FOR_INDICES = [0, 1, 2, 3, 4] as const;
 const PRICING_ROWS = [0, 1, 2, 3, 4] as const;
+
+const RELATED_LINKS = [
+  {
+    href: '/compare',
+    title: 'Best Motorcycle Apps 2026',
+    description: 'Full feature matrix and ranking of 10 motorcycle apps.',
+  },
+  {
+    href: '/compare/maintenance-vs-ride-apps',
+    title: 'Maintenance Apps vs. Ride Trackers',
+    description: 'Two categories, two jobs. Do you need both?',
+  },
+] as const;
+
+const thStyle = {
+  fontSize: 13,
+  fontWeight: 500,
+  color: 'var(--mv-ink-3)',
+  textAlign: 'left',
+  padding: '0 20px 10px 0',
+  borderBottom: '1px solid var(--mv-line-step)',
+  whiteSpace: 'nowrap',
+} as const;
+
+const tdStyle = {
+  fontSize: 14,
+  lineHeight: 1.5,
+  padding: '13px 20px 13px 0',
+  borderBottom: '1px solid var(--mv-line)',
+  verticalAlign: 'top',
+} as const;
+
+/** Price cells: condensed tabular figures. */
+const priceCellStyle = {
+  ...tdStyle,
+  fontFamily: 'var(--mv-font-display)',
+  fontWeight: 500,
+  fontVariantNumeric: 'tabular-nums',
+  fontSize: 15,
+  color: 'var(--mv-ink)',
+} as const;
 
 export default async function AlternativesPage({ params }: PageProps) {
   const { locale } = await params;
@@ -67,318 +116,161 @@ export default async function AlternativesPage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
 
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
-        <ol className="mx-auto flex max-w-7xl items-center gap-2 text-sm text-neutral-500">
-          <li>
-            <Link href="/" className="transition-colors hover:text-neutral-300">
-              Home
-            </Link>
-          </li>
-          <li aria-hidden="true">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-neutral-600"
-              aria-hidden="true"
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </li>
-          <li>
-            <Link href="/compare" className="transition-colors hover:text-neutral-300">
-              Compare
-            </Link>
-          </li>
-          <li aria-hidden="true">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-neutral-600"
-              aria-hidden="true"
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </li>
-          <li>
-            <span className="text-neutral-300" aria-current="page">
-              Alternatives
-            </span>
-          </li>
-        </ol>
-      </nav>
+      {/* Hero — one condensed H1, left-aligned */}
+      <header className="mx-auto max-w-5xl px-6 pt-28 md:pt-32">
+        <CompareBreadcrumb
+          items={[
+            { label: 'Home', href: '/' },
+            { label: 'Compare', href: '/compare' },
+            { label: 'Alternatives' },
+          ]}
+        />
+        <h1 className="mt-8" style={compareH1Style}>
+          {t('heroTitle')}
+        </h1>
+        <p className="mt-6" style={{ ...compareBodyStyle, fontSize: 17, maxWidth: '58ch' }}>
+          {t('heroSubtitle')}
+        </p>
+        <p className="mt-3" style={{ fontSize: 13, color: 'var(--mv-ink-4)' }}>
+          {t('updatedAt')}
+        </p>
+      </header>
 
-      {/* Hero */}
-      <section className="px-6 pb-16 pt-8 md:pb-24 md:pt-12">
-        <div className="reveal-on-scroll mx-auto max-w-4xl text-center">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            {t('heroLabel')}
-          </p>
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
-            {t('heroTitle')}
-          </h1>
-          <div className="mx-auto mt-6 h-1.5 w-32 rounded-full bg-signature-500" />
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">
-            {t('heroSubtitle')}
-          </p>
-          <p className="mt-4 text-sm text-neutral-500">{t('updatedAt')}</p>
+      {/* Best-for guide — hairline list, no cards */}
+      <section className="mx-auto max-w-5xl px-6 pt-16 md:pt-20">
+        <h2 style={compareH2Style}>{t('bestForTitle')}</h2>
+        <p className="mt-4" style={{ ...compareBodyStyle, fontSize: 14, color: 'var(--mv-ink-3)' }}>
+          {t('testingPreamble')}
+        </p>
+        <div className="mt-8" style={{ borderBottom: '1px solid var(--mv-line)' }}>
+          {BEST_FOR_INDICES.map((i) => (
+            <article key={i} className="py-6" style={{ borderTop: '1px solid var(--mv-line)' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--mv-ink)', margin: 0 }}>
+                {t(`bestFor${i}Title`)}
+              </h3>
+              <p className="mt-2" style={{ ...compareBodyStyle, fontSize: 15 }}>
+                {t(`bestFor${i}Body`)}
+              </p>
+            </article>
+          ))}
         </div>
       </section>
 
-      {/* Testing preamble */}
-      <section className="px-6">
-        <div className="mx-auto max-w-3xl rounded-xl border border-neutral-800/60 bg-neutral-900/40 p-6 md:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">
-            How we tested
-          </p>
-          <p className="mt-3 text-neutral-300 leading-relaxed">{t('testingPreamble')}</p>
-        </div>
-      </section>
-
-      {/* Best-for guide */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="mb-10 text-center text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-            {t('bestForTitle')}
-          </h2>
-          <div className="space-y-6">
-            {BEST_FOR_INDICES.map((i) => (
-              <article
-                key={i}
-                className="reveal-on-scroll rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6 md:p-8"
-              >
-                <h3 className="text-xl font-bold text-neutral-50">{t(`bestFor${i}Title`)}</h3>
-                <p className="mt-3 text-neutral-300 leading-relaxed">{t(`bestFor${i}Body`)}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Pricing table */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="mb-8 text-center text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-            {t('pricingTableTitle')}
-          </h2>
-          <div className="overflow-x-auto rounded-xl border border-neutral-800/60">
-            <table className="w-full min-w-[720px]">
-              <thead>
-                <tr className="border-b border-neutral-800/60 bg-neutral-900/80">
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
-                    {t('pricingHeaderApp')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
-                    {t('pricingHeaderFree')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
-                    {t('pricingHeaderPaid')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
-                    {t('pricingHeaderNotes')}
-                  </th>
+      {/* Pricing snapshot — hairline table, condensed figures */}
+      <section className="mx-auto max-w-5xl px-6 pt-20 md:pt-28">
+        <h2 style={compareH2Style}>{t('pricingTableTitle')}</h2>
+        <div className="mt-8 overflow-x-auto">
+          <table className="w-full" style={{ borderCollapse: 'collapse', minWidth: 720 }}>
+            <thead>
+              <tr>
+                <th style={thStyle}>{t('pricingHeaderApp')}</th>
+                <th style={thStyle}>{t('pricingHeaderFree')}</th>
+                <th style={thStyle}>{t('pricingHeaderPaid')}</th>
+                <th style={thStyle}>{t('pricingHeaderNotes')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {PRICING_ROWS.map((i) => (
+                <tr key={i}>
+                  <td style={{ ...tdStyle, color: 'var(--mv-ink)', fontWeight: 500 }}>
+                    {t(`pricingRow${i}App`)}
+                  </td>
+                  <td style={{ ...priceCellStyle, color: 'var(--mv-ink-2)' }}>
+                    {t(`pricingRow${i}Free`)}
+                  </td>
+                  <td style={priceCellStyle}>{t(`pricingRow${i}Paid`)}</td>
+                  <td style={{ ...tdStyle, color: 'var(--mv-ink-3)' }}>
+                    {t(`pricingRow${i}Notes`)}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {PRICING_ROWS.map((i) => (
-                  <tr
-                    key={i}
-                    className="border-b border-neutral-800/40 last:border-b-0 odd:bg-neutral-900/30 align-top"
-                  >
-                    <td className="px-4 py-3 text-sm font-medium text-neutral-200 sm:px-6">
-                      {t(`pricingRow${i}App`)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-neutral-300 sm:px-6">
-                      {t(`pricingRow${i}Free`)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-neutral-300 sm:px-6">
-                      {t(`pricingRow${i}Paid`)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-neutral-400 sm:px-6">
-                      {t(`pricingRow${i}Notes`)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Existing Alternatives Cards */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-5xl">
-          <div className="reveal-on-scroll mb-12 text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              {t('altToTitle')}
-            </p>
-            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-              {t('altToSubtitle')}
-            </h2>
-          </div>
-
-          <div className="space-y-6">
-            {ALT_INDICES.map((i) => (
-              <article
-                key={i}
-                id={t(`alt${i}.appName`).toLowerCase().replace(/\s+/g, '-')}
-                className="reveal-on-scroll rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6 md:p-8 transition-colors hover:border-neutral-700/60"
-              >
-                <h3 className="text-xl font-bold text-neutral-50">{t(`alt${i}.title`)}</h3>
-                <p className="mt-3 text-neutral-300 leading-relaxed">{t(`alt${i}.why`)}</p>
-                <div className="mt-4 rounded-lg border border-warm-500/20 bg-warm-500/5 p-4">
-                  <p className="text-sm font-medium text-warm-400">Consider MotoVault</p>
-                  <p className="mt-1 text-sm text-neutral-300 leading-relaxed">
-                    {t(`alt${i}.consider`)}
-                  </p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* When to choose a specialist */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-            {t('whenToChooseCompetitorTitle')}
-          </h2>
-          <p className="mt-6 text-lg text-neutral-300 leading-relaxed">
-            {t('whenToChooseCompetitor')}
-          </p>
-        </div>
-      </section>
-
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Why Riders Switch */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-5xl">
-          <div className="reveal-on-scroll mb-12 text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              {t('switchTitle')}
-            </p>
-            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-              {t('switchSubtitle')}
-            </h2>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2">
-            {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="reveal-on-scroll rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6"
-                style={{ animationDelay: `${i * 80}ms` }}
-              >
-                <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-warm-500/10">
-                  <span className="text-lg font-bold text-warm-400">{i + 1}</span>
-                </div>
-                <h3 className="font-semibold text-neutral-50">{t(`switch${i}.title`)}</h3>
-                <p className="mt-2 text-sm text-neutral-400 leading-relaxed">
-                  {t(`switch${i}.description`)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Related Pages */}
-      <section className="px-6 py-16">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="mb-6 text-center text-xl font-bold text-neutral-50">
-            Related Comparisons
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Link
-              href="/compare"
-              className="group rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-5 transition-colors hover:border-warm-500/40"
+      {/* Alternatives to popular apps — hairline articles */}
+      <section className="mx-auto max-w-5xl px-6 pt-20 md:pt-28">
+        <h2 style={compareH2Style}>{t('altToTitle')}</h2>
+        <p className="mt-4" style={{ ...compareBodyStyle, fontSize: 15, color: 'var(--mv-ink-3)' }}>
+          {t('altToSubtitle')}
+        </p>
+        <div className="mt-8" style={{ borderBottom: '1px solid var(--mv-line)' }}>
+          {ALT_INDICES.map((i) => (
+            <article
+              key={i}
+              id={t(`alt${i}.appName`).toLowerCase().replace(/\s+/g, '-')}
+              className="py-8"
+              style={{ borderTop: '1px solid var(--mv-line)' }}
             >
-              <p className="font-semibold text-neutral-200 transition-colors group-hover:text-warm-400">
-                Best Motorcycle Apps 2026
+              <h3 style={compareH3Style}>{t(`alt${i}.title`)}</h3>
+              <p className="mt-3" style={{ ...compareBodyStyle, fontSize: 15 }}>
+                {t(`alt${i}.why`)}
               </p>
-              <p className="mt-1 text-sm text-neutral-500">
-                Full feature matrix and ranking of 10 motorcycle apps.
+              <p className="mt-3" style={{ ...compareBodyStyle, fontSize: 15 }}>
+                <strong style={{ color: 'var(--mv-ink)', fontWeight: 600 }}>
+                  Consider MotoVault
+                </strong>{' '}
+                — {t(`alt${i}.consider`)}
               </p>
-            </Link>
-            <Link
-              href="/compare/maintenance-vs-ride-apps"
-              className="group rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-5 transition-colors hover:border-warm-500/40"
-            >
-              <p className="font-semibold text-neutral-200 transition-colors group-hover:text-warm-400">
-                Maintenance Apps vs. Ride Trackers
-              </p>
-              <p className="mt-1 text-sm text-neutral-500">
-                Two categories, two jobs. Do you need both?
-              </p>
-            </Link>
-          </div>
+            </article>
+          ))}
         </div>
       </section>
 
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
+      {/* When a specialist wins */}
+      <section className="mx-auto max-w-5xl px-6 pt-20 md:pt-28">
+        <h2 style={compareH2Style}>{t('whenToChooseCompetitorTitle')}</h2>
+        <p className="mt-5" style={compareBodyStyle}>
+          {t('whenToChooseCompetitor')}
+        </p>
+      </section>
 
-      {/* FAQ */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-3xl">
-          <div className="reveal-on-scroll mb-12 text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              Got Questions?
-            </p>
-            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-              Frequently Asked Questions
-            </h2>
-          </div>
-          <div className="space-y-6">
-            {faqItems.map(({ question, answer }) => (
-              <div
-                key={question}
-                className="rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6"
+      {/* Why riders switch — plain two-column grid */}
+      <section className="mx-auto max-w-5xl px-6 pt-20 md:pt-28">
+        <h2 style={compareH2Style}>{t('switchTitle')}</h2>
+        <p className="mt-4" style={{ ...compareBodyStyle, fontSize: 15, color: 'var(--mv-ink-3)' }}>
+          {t('switchSubtitle')}
+        </p>
+        <div className="mt-10 grid gap-x-12 gap-y-8 sm:grid-cols-2">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="pt-4" style={{ borderTop: '1px solid var(--mv-line)' }}>
+              <h3
+                className="flex items-baseline gap-3"
+                style={{ fontSize: 15, fontWeight: 600, color: 'var(--mv-ink)', margin: 0 }}
               >
-                <h3 className="font-semibold text-neutral-100">{question}</h3>
-                <p className="mt-3 text-sm text-neutral-400 leading-relaxed">{answer}</p>
-              </div>
-            ))}
-          </div>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    fontFamily: 'var(--mv-font-display)',
+                    fontWeight: 600,
+                    fontVariantNumeric: 'tabular-nums',
+                    fontSize: 18,
+                    color: 'var(--mv-ink-4)',
+                  }}
+                >
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                {t(`switch${i}.title`)}
+              </h3>
+              <p className="mt-2" style={{ ...compareBodyStyle, fontSize: 14, maxWidth: 'none' }}>
+                {t(`switch${i}.description`)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Related comparisons — plain links */}
+      <section className="mx-auto max-w-5xl px-6 pt-20 md:pt-28">
+        <CompareRelatedLinks links={RELATED_LINKS} />
+      </section>
+
+      {/* FAQ — hairline details */}
+      <section className="mx-auto max-w-5xl px-6 py-20 md:py-28">
+        <h2 style={compareH2Style}>Frequently asked questions</h2>
+        <div className="mt-8" style={{ maxWidth: 760 }}>
+          <CompareFaq items={faqItems} />
         </div>
       </section>
 

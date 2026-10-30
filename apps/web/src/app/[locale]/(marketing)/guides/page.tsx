@@ -78,10 +78,10 @@ export default async function GuidesPage({ params }: GuidesPageProps) {
       <JsonLdGraph nodes={graph} />
       <section className="mx-auto max-w-5xl px-6 py-24">
         <div className="mb-16 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-neutral-50 sm:text-5xl">
+          <h1 className="text-4xl font-bold tracking-tight text-(--mv-ink) sm:text-5xl">
             Motorcycle Guides
           </h1>
-          <p className="mt-4 text-lg text-neutral-400">
+          <p className="mt-4 text-lg text-(--mv-ink-2)">
             In-depth guides for planning your next motorcycle adventure — routes, seasons, gear, and
             local tips.
           </p>
@@ -92,9 +92,9 @@ export default async function GuidesPage({ params }: GuidesPageProps) {
             <Link
               key={guide.slug}
               href={`/guides/${guide.slug}`}
-              className="group rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 transition-colors hover:border-neutral-700 hover:bg-neutral-900/80"
+              className="group rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6 transition-colors hover:border-(--mv-line-step) hover:bg-(--mv-surface-2)"
             >
-              <div className="mb-3 flex items-center gap-3 text-sm text-neutral-500">
+              <div className="mb-3 flex items-center gap-3 text-sm text-(--mv-ink-3)">
                 <time dateTime={guide.frontmatter.date}>
                   {new Date(guide.frontmatter.date).toLocaleDateString('en-US', {
                     timeZone: 'UTC',
@@ -104,13 +104,13 @@ export default async function GuidesPage({ params }: GuidesPageProps) {
                   })}
                 </time>
               </div>
-              <h2 className="mb-3 text-xl font-semibold text-neutral-100 transition-colors group-hover:text-white">
+              <h2 className="mb-3 text-xl font-semibold text-(--mv-ink)">
                 {guide.frontmatter.title}
               </h2>
-              <p className="mb-4 text-sm leading-relaxed text-neutral-400">
+              <p className="mb-4 text-sm leading-relaxed text-(--mv-ink-2)">
                 {guide.frontmatter.description}
               </p>
-              <span className="text-sm font-medium text-amber-400 transition-colors group-hover:text-amber-300">
+              <span className="text-sm font-medium text-(--mv-copper-text) transition-colors group-hover:text-(--mv-copper-hover)">
                 Read guide &rarr;
               </span>
             </Link>

@@ -103,15 +103,15 @@ export default async function BikesIndexPage({ params }: PageProps) {
       <JsonLdGraph nodes={graph} />
 
       <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
-        <ol className="mx-auto flex max-w-7xl items-center gap-2 text-sm text-neutral-500">
+        <ol className="mx-auto flex max-w-7xl items-center gap-2 text-sm text-(--mv-ink-3)">
           <li>
-            <Link href="/" className="transition-colors hover:text-neutral-300">
+            <Link href="/" className="transition-colors hover:text-(--mv-ink)">
               Home
             </Link>
           </li>
           <li aria-hidden="true">/</li>
           <li>
-            <span className="text-neutral-300" aria-current="page">
+            <span className="text-(--mv-ink)" aria-current="page">
               Bikes
             </span>
           </li>
@@ -120,10 +120,10 @@ export default async function BikesIndexPage({ params }: PageProps) {
 
       <section className="px-6 pb-16 pt-8 md:pb-24 md:pt-12">
         <div className="mx-auto max-w-4xl">
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
+          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-(--mv-ink) sm:text-4xl lg:text-5xl">
             {PAGE_TITLE}
           </h1>
-          <p className="mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">{PAGE_DESCRIPTION}</p>
+          <p className="mt-6 max-w-2xl text-lg text-(--mv-ink-2) md:text-xl">{PAGE_DESCRIPTION}</p>
         </div>
       </section>
 
@@ -132,9 +132,9 @@ export default async function BikesIndexPage({ params }: PageProps) {
           {bikes.map((bike) => (
             <article
               key={`${bike.makeSlug}-${bike.modelSlug}-${bike.year}`}
-              className="rounded-xl border border-neutral-800/60 bg-neutral-900/40 p-6 md:p-8"
+              className="rounded-xl border border-(--mv-line) bg-(--mv-surface) p-6 md:p-8"
             >
-              <h2 className="text-2xl font-semibold tracking-tight text-neutral-50">
+              <h2 className="text-2xl font-semibold tracking-tight text-(--mv-ink)">
                 {bike.year} {bike.make} {bike.model}
               </h2>
               <ul className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -142,7 +142,7 @@ export default async function BikesIndexPage({ params }: PageProps) {
                   <li key={pageType}>
                     <Link
                       href={`/bikes/${bike.makeSlug}/${bike.modelSlug}/${bike.year}/${pageType}`}
-                      className="block rounded-lg border border-neutral-800/60 bg-neutral-950/60 px-4 py-3 text-sm text-neutral-300 transition-colors hover:border-warm-500/40 hover:text-neutral-100"
+                      className="block rounded-lg border border-(--mv-line) bg-(--mv-surface-2) px-4 py-3 text-sm text-(--mv-ink-2) transition-colors hover:border-(--mv-line-step) hover:text-(--mv-ink)"
                     >
                       {pageTypeLabel(pageType)}
                     </Link>

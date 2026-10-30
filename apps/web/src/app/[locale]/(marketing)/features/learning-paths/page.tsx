@@ -50,15 +50,13 @@ function ArrowIcon() {
 const PATH_NODE_STATES = ['done', 'done', 'done', 'active', 'default'] as const;
 
 const PATH_CARD_META = [
-  { progress: 55, statusColor: undefined },
-  { progress: 0, statusColor: undefined },
-  { progress: 100, statusColor: 'var(--mv-success)' },
-  { progress: 0, statusColor: undefined },
-  { progress: 25, statusColor: undefined },
-  { progress: 0, statusColor: undefined },
+  { progress: 55, completed: false },
+  { progress: 0, completed: false },
+  { progress: 100, completed: true },
+  { progress: 0, completed: false },
+  { progress: 25, completed: false },
+  { progress: 0, completed: false },
 ] as const;
-
-const LEVEL_NUMERALS = ['i', 'ii', 'iii', 'iv'] as const;
 
 export default async function LearningPathsPage({ params }: PageProps) {
   const { locale } = await params;
@@ -97,12 +95,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
       <JsonLdGraph nodes={graph} />
 
       {/* ════ HERO ════ */}
-      <section
-        className="mv-section-hero"
-        style={{
-          position: 'relative',
-        }}
-      >
+      <section className="mv-section-hero" style={{ position: 'relative' }}>
         {/* Breadcrumb */}
         <nav
           aria-label="Breadcrumb"
@@ -110,12 +103,10 @@ export default async function LearningPathsPage({ params }: PageProps) {
             display: 'flex',
             alignItems: 'center',
             gap: 10,
-            fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
-            fontSize: 11,
+            fontSize: 13,
+            fontWeight: 500,
             color: 'var(--mv-ink-3)',
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            marginBottom: 32,
+            marginBottom: 40,
           }}
         >
           <Link href="/" style={{ color: 'var(--mv-ink-3)', textDecoration: 'none' }}>
@@ -126,30 +117,27 @@ export default async function LearningPathsPage({ params }: PageProps) {
             Features
           </Link>
           <span style={{ color: 'var(--mv-ink-4)' }}>/</span>
-          <span style={{ color: 'var(--mv-warm-400)' }}>{t('title')}</span>
+          <span style={{ color: 'var(--mv-ink)' }}>{t('title')}</span>
         </nav>
 
         <div className="mv-grid-hero">
           {/* Text column */}
           <div>
-            <div className="mv-section-meta">{t('heroMeta')}</div>
             <h1
+              className="mv-display"
               style={{
-                fontSize: 'clamp(48px, 7.5vw, 112px)',
-                fontWeight: 500,
-                lineHeight: 0.92,
-                letterSpacing: '-0.045em',
-                margin: '24px 0 0',
+                fontSize: 'clamp(48px, 7vw, 104px)',
+                fontWeight: 700,
+                lineHeight: 0.94,
+                margin: 0,
               }}
             >
               <span style={{ display: 'block' }}>{t('heroHeading1')}</span>
-              <span style={{ display: 'block' }}>
-                <em className="mv-serif">{t('heroHeading2')}</em>
-              </span>
+              <span style={{ display: 'block' }}>{t('heroHeading2')}</span>
             </h1>
             <p
               style={{
-                marginTop: 32,
+                marginTop: 28,
                 color: 'var(--mv-ink-2)',
                 fontSize: 18,
                 lineHeight: 1.55,
@@ -159,7 +147,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
             >
               {t('heroSubtitle')}
             </p>
-            <div style={{ marginTop: 40, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ marginTop: 36, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <Link href="/#download" className="mv-btn mv-btn-primary">
                 <span>{t('heroCta')}</span>
                 <ArrowIcon />
@@ -170,7 +158,8 @@ export default async function LearningPathsPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Path progress visual */}
+          {/* Path progress visual — a depicted app panel: solid surface,
+              hairlines, status colour only on real progress states */}
           <div style={{ position: 'relative', display: 'grid', placeItems: 'center' }}>
             <div
               style={{
@@ -178,69 +167,46 @@ export default async function LearningPathsPage({ params }: PageProps) {
                 width: '100%',
                 maxWidth: 520,
                 aspectRatio: '1/1.08',
-                background: 'linear-gradient(145deg, oklch(0.16 0.012 55), oklch(0.1 0.008 55))',
+                background: 'var(--mv-surface)',
                 border: '1px solid var(--mv-line)',
-                borderRadius: 24,
+                borderRadius: 'var(--mv-radius-plate)',
                 padding: 32,
                 overflow: 'hidden',
-                boxShadow: '0 40px 80px -20px oklch(0 0 0 / 0.7)',
               }}
             >
-              {/* Warm glow */}
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background:
-                    'radial-gradient(circle at 80% 20%, oklch(0.76 0.18 60 / 0.12), transparent 60%)',
-                  pointerEvents: 'none',
-                }}
-                aria-hidden="true"
-              />
-
               {/* Header */}
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'flex-start',
-                  position: 'relative',
-                  zIndex: 1,
                 }}
               >
                 <div>
-                  <div
-                    className="mv-mono"
-                    style={{
-                      fontSize: 10,
-                      color: 'var(--mv-warm-400)',
-                      letterSpacing: '0.15em',
-                      textTransform: 'uppercase',
-                    }}
-                  >
+                  <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--mv-ink-3)' }}>
                     {t('pathVisualLabel')}
                   </div>
                   <div
                     style={{
                       fontSize: 18,
-                      fontWeight: 500,
+                      fontWeight: 600,
                       marginTop: 6,
                       letterSpacing: '-0.01em',
+                      color: 'var(--mv-ink)',
                     }}
                   >
                     {t('pathVisualTitle')}
                   </div>
                 </div>
                 <div
-                  className="mv-mono"
+                  className="mv-figure"
                   style={{
                     padding: '6px 12px',
                     borderRadius: 999,
-                    background: 'oklch(0.76 0.18 60 / 0.15)',
-                    border: '1px solid oklch(0.76 0.18 60 / 0.3)',
-                    color: 'var(--mv-warm-400)',
-                    fontSize: 11,
-                    letterSpacing: '0.05em',
+                    background: 'var(--mv-surface-2)',
+                    border: '1px solid var(--mv-line)',
+                    color: 'var(--mv-ink)',
+                    fontSize: 13,
                   }}
                 >
                   {t('pathVisualProgress')}
@@ -255,7 +221,6 @@ export default async function LearningPathsPage({ params }: PageProps) {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 18,
-                  zIndex: 1,
                 }}
               >
                 {/* Vertical progress line */}
@@ -267,7 +232,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                     left: 14,
                     width: 2,
                     background:
-                      'linear-gradient(to bottom, var(--mv-warm-500) 0%, var(--mv-warm-500) 55%, var(--mv-line) 55%, var(--mv-line) 100%)',
+                      'linear-gradient(to bottom, var(--mv-go) 0%, var(--mv-go) 55%, var(--mv-line) 55%, var(--mv-line) 100%)',
                   }}
                   aria-hidden="true"
                 />
@@ -289,7 +254,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                     >
                       {/* Dot */}
                       <div
-                        className="mv-mono"
+                        className="mv-figure"
                         style={{
                           width: 30,
                           height: 30,
@@ -297,28 +262,25 @@ export default async function LearningPathsPage({ params }: PageProps) {
                           display: 'grid',
                           placeItems: 'center',
                           flexShrink: 0,
-                          fontSize: 10,
-                          background: isDone ? 'var(--mv-warm-500)' : 'var(--mv-bg)',
-                          border: `2px solid ${isDone ? 'var(--mv-warm-500)' : isActive ? 'var(--mv-warm-400)' : 'var(--mv-line)'}`,
+                          fontSize: 12,
+                          background: isDone ? 'var(--mv-go)' : 'var(--mv-surface)',
+                          border: `2px solid ${isDone ? 'var(--mv-go)' : isActive ? 'var(--mv-ink)' : 'var(--mv-line-step)'}`,
                           color: isDone
-                            ? '#000'
+                            ? 'var(--mv-surface)'
                             : isActive
-                              ? 'var(--mv-warm-400)'
+                              ? 'var(--mv-ink)'
                               : 'var(--mv-ink-3)',
-                          boxShadow: isActive ? '0 0 0 4px oklch(0.76 0.18 60 / 0.18)' : 'none',
                         }}
                       >
-                        {isDone ? '\u2713' : String(i + 1).padStart(2, '0')}
+                        {isDone ? '✓' : String(i + 1).padStart(2, '0')}
                       </div>
                       {/* Body */}
                       <div
                         style={{
                           flex: 1,
-                          background: isActive
-                            ? 'oklch(0.76 0.18 60 / 0.06)'
-                            : 'oklch(1 0 0 / 0.02)',
-                          border: `1px solid ${isActive ? 'oklch(0.76 0.18 60 / 0.3)' : 'var(--mv-line)'}`,
-                          borderRadius: 12,
+                          background: isActive ? 'var(--mv-surface-3)' : 'var(--mv-surface-2)',
+                          border: '1px solid var(--mv-line)',
+                          borderRadius: 'var(--mv-radius-control)',
                           padding: '12px 16px',
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -331,34 +293,30 @@ export default async function LearningPathsPage({ params }: PageProps) {
                               fontSize: 14,
                               fontWeight: 500,
                               letterSpacing: '-0.005em',
+                              color: 'var(--mv-ink)',
                             }}
                           >
                             {nodeTitle}
                           </div>
                           <div
-                            className="mv-mono"
                             style={{
-                              fontSize: 10,
+                              fontSize: 11,
                               color: 'var(--mv-ink-3)',
                               marginTop: 3,
-                              letterSpacing: '0.05em',
                             }}
                           >
                             {t(`pathNode${idx}Meta`)}
                           </div>
                         </div>
                         <div
-                          className="mv-mono"
                           style={{
-                            fontSize: 10,
-                            padding: '4px 8px',
-                            border: `1px solid ${isDone ? 'oklch(0.72 0.2 145 / 0.3)' : isActive ? 'oklch(0.76 0.18 60 / 0.4)' : 'var(--mv-line)'}`,
-                            borderRadius: 999,
-                            letterSpacing: '0.05em',
+                            fontSize: 11,
+                            fontWeight: 500,
+                            whiteSpace: 'nowrap',
                             color: isDone
-                              ? 'var(--mv-success)'
+                              ? 'var(--mv-go)'
                               : isActive
-                                ? 'var(--mv-warm-400)'
+                                ? 'var(--mv-ink)'
                                 : 'var(--mv-ink-3)',
                           }}
                         >
@@ -377,207 +335,131 @@ export default async function LearningPathsPage({ params }: PageProps) {
       {/* ════ RIDER LEVELS ════ */}
       <section className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
-          <div className="mv-section-meta">{t('levelsLabel')}</div>
           <h2 className="mv-section-title">
-            {t('levelsTitle')} <span className="mv-serif">{t('levelsTitleSerif')}</span>
+            {t('levelsTitle')} <span className="mv-muted">{t('levelsTitleSerif')}</span>
           </h2>
           <p className="mv-section-sub">{t('levelsSubtitle')}</p>
         </div>
 
-        <div
-          className="mv-grid-4"
-          style={{
-            marginTop: 60,
-            gap: 2,
-            background: 'var(--mv-line)',
-            border: '1px solid var(--mv-line)',
-            borderRadius: 20,
-            overflow: 'hidden',
-          }}
-        >
-          {LEVEL_NUMERALS.map((numeral, i) => {
-            const idx = i + 1;
-            return (
+        <div className="mv-grid-4" style={{ marginTop: 56, columnGap: 48, rowGap: 32 }}>
+          {([1, 2, 3, 4] as const).map((idx) => (
+            <div key={idx} style={{ borderTop: '1px solid var(--mv-line)', paddingTop: 20 }}>
+              <div className="mv-figure" style={{ fontSize: 16, color: 'var(--mv-ink-4)' }}>
+                {t(`level${idx}Num`)}
+              </div>
               <div
-                key={idx}
                 style={{
-                  background: 'var(--mv-bg)',
-                  padding: '32px 24px',
-                  textAlign: 'left',
+                  fontSize: 18,
+                  fontWeight: 600,
+                  letterSpacing: '-0.005em',
+                  marginTop: 10,
+                  lineHeight: 1.25,
+                  color: 'var(--mv-ink)',
                 }}
               >
-                <div
-                  style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: '50%',
-                    display: 'grid',
-                    placeItems: 'center',
-                    fontFamily: "var(--font-instrument-serif, 'Instrument Serif', serif)",
-                    fontStyle: 'italic',
-                    fontSize: 22,
-                    color: 'var(--mv-warm-400)',
-                    background: 'oklch(0.76 0.18 60 / 0.12)',
-                    border: '1px solid oklch(0.76 0.18 60 / 0.3)',
-                    marginBottom: 20,
-                  }}
-                >
-                  {numeral}
-                </div>
-                <div
-                  className="mv-mono"
-                  style={{
-                    fontSize: 11,
-                    color: 'var(--mv-ink-3)',
-                    letterSpacing: '0.15em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {t(`level${idx}Num`)}
-                </div>
-                <div
-                  style={{
-                    fontSize: 20,
-                    fontWeight: 500,
-                    letterSpacing: '-0.02em',
-                    marginTop: 6,
-                    lineHeight: 1.15,
-                  }}
-                >
-                  {t(`level${idx}Title`)}
-                </div>
-                <div
-                  style={{
-                    marginTop: 14,
-                    color: 'var(--mv-ink-3)',
-                    fontSize: 13,
-                    lineHeight: 1.55,
-                  }}
-                >
-                  {t(`level${idx}Body`)}
-                </div>
+                {t(`level${idx}Title`)}
               </div>
-            );
-          })}
+              <div
+                style={{
+                  marginTop: 12,
+                  color: 'var(--mv-ink-2)',
+                  fontSize: 14,
+                  lineHeight: 1.55,
+                }}
+              >
+                {t(`level${idx}Body`)}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* ════ FEATURED PATHS ════ */}
-      <section id="paths" className="mv-section-inner">
-        <div style={{ maxWidth: 860 }}>
-          <div className="mv-section-meta">{t('pathsLabel')}</div>
-          <h2 className="mv-section-title">
-            {t('pathsTitle')} <span className="mv-serif">{t('pathsTitleSerif')}</span>
-          </h2>
-          <p className="mv-section-sub">{t('pathsSubtitle')}</p>
-        </div>
+      <section style={{ background: 'var(--mv-bg-2)' }}>
+        <div id="paths" className="mv-section-inner">
+          <div style={{ maxWidth: 860 }}>
+            <h2 className="mv-section-title">
+              {t('pathsTitle')} <span className="mv-muted">{t('pathsTitleSerif')}</span>
+            </h2>
+            <p className="mv-section-sub">{t('pathsSubtitle')}</p>
+          </div>
 
-        <div
-          className="mv-grid-3"
-          style={{
-            marginTop: 60,
-            gap: 20,
-          }}
-        >
-          {PATH_CARD_META.map((card, i) => {
-            const idx = i + 1;
-            return (
-              <div
-                key={idx}
-                style={{
-                  background: 'var(--mv-surface)',
-                  border: '1px solid var(--mv-line)',
-                  borderRadius: 18,
-                  padding: 28,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  minHeight: 280,
-                }}
-              >
+          <div className="mv-grid-3" style={{ marginTop: 56, columnGap: 48, rowGap: 48 }}>
+            {PATH_CARD_META.map((card, i) => {
+              const idx = i + 1;
+              return (
                 <div
-                  className="mv-mono"
+                  key={idx}
                   style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    fontSize: 10,
-                    color: 'var(--mv-warm-400)',
-                    letterSpacing: '0.15em',
-                    textTransform: 'uppercase',
+                    borderTop: '1px solid var(--mv-line)',
+                    paddingTop: 20,
+                    display: 'flex',
+                    flexDirection: 'column',
                   }}
                 >
-                  <span
-                    style={{
-                      width: 5,
-                      height: 5,
-                      borderRadius: '50%',
-                      background: 'var(--mv-warm-500)',
-                    }}
-                  />
-                  {t(`pathCard${idx}Tag`)}
-                </div>
-                <div
-                  style={{
-                    fontSize: 20,
-                    fontWeight: 500,
-                    letterSpacing: '-0.02em',
-                    marginTop: 20,
-                    lineHeight: 1.2,
-                  }}
-                >
-                  {t(`pathCard${idx}Title`)}
-                </div>
-                <div
-                  style={{
-                    flex: 1,
-                    marginTop: 10,
-                    color: 'var(--mv-ink-3)',
-                    fontSize: 13,
-                    lineHeight: 1.55,
-                  }}
-                >
-                  {t(`pathCard${idx}Body`)}
-                </div>
-                {/* Progress bar */}
-                <div
-                  style={{
-                    marginTop: 18,
-                    height: 4,
-                    borderRadius: 2,
-                    background: 'oklch(1 0 0 / 0.04)',
-                    overflow: 'hidden',
-                  }}
-                >
+                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--mv-ink-3)' }}>
+                    {t(`pathCard${idx}Tag`)}
+                  </div>
                   <div
                     style={{
-                      height: '100%',
-                      width: `${card.progress}%`,
-                      background: 'linear-gradient(90deg, var(--mv-warm-500), var(--mv-warm-400))',
+                      fontSize: 18,
+                      fontWeight: 600,
+                      letterSpacing: '-0.005em',
+                      marginTop: 12,
+                      lineHeight: 1.25,
+                      color: 'var(--mv-ink)',
                     }}
-                  />
+                  >
+                    {t(`pathCard${idx}Title`)}
+                  </div>
+                  <div
+                    style={{
+                      flex: 1,
+                      marginTop: 10,
+                      color: 'var(--mv-ink-2)',
+                      fontSize: 14,
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    {t(`pathCard${idx}Body`)}
+                  </div>
+                  {/* Progress bar — depicted app progress */}
+                  <div
+                    style={{
+                      marginTop: 18,
+                      height: 4,
+                      borderRadius: 2,
+                      background: 'var(--mv-surface-2)',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${card.progress}%`,
+                        background: 'var(--mv-go)',
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 14,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: 13,
+                      color: 'var(--mv-ink-3)',
+                    }}
+                  >
+                    <span>{t(`pathCard${idx}Lessons`)}</span>
+                    <span style={card.completed ? { color: 'var(--mv-go)' } : undefined}>
+                      {t(`pathCard${idx}Status`)}
+                    </span>
+                  </div>
                 </div>
-                <div
-                  className="mv-mono"
-                  style={{
-                    marginTop: 24,
-                    paddingTop: 20,
-                    borderTop: '1px solid var(--mv-line)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    fontSize: 11,
-                    color: 'var(--mv-ink-3)',
-                    letterSpacing: '0.05em',
-                  }}
-                >
-                  <span>{t(`pathCard${idx}Lessons`)}</span>
-                  <span style={card.statusColor ? { color: card.statusColor } : undefined}>
-                    {t(`pathCard${idx}Status`)}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -585,27 +467,16 @@ export default async function LearningPathsPage({ params }: PageProps) {
       <section className="mv-section-inner">
         <div className="mv-grid-2">
           <div>
-            <div
-              className="mv-mono"
-              style={{
-                fontSize: 11,
-                color: 'var(--mv-warm-400)',
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {t('showcaseLabel')}
-            </div>
             <h3
+              className="mv-display"
               style={{
                 fontSize: 'clamp(32px, 3.8vw, 54px)',
-                fontWeight: 500,
+                fontWeight: 700,
                 lineHeight: 1,
-                letterSpacing: '-0.035em',
-                margin: '18px 0 0',
+                margin: 0,
               }}
             >
-              {t('showcaseTitle')} <span className="mv-serif">{t('showcaseTitleSerif')}</span>
+              {t('showcaseTitle')} {t('showcaseTitleSerif')}
             </h3>
             <p
               style={{
@@ -626,75 +497,41 @@ export default async function LearningPathsPage({ params }: PageProps) {
                   key={n}
                   style={{
                     display: 'flex',
-                    gap: 14,
+                    gap: 12,
                     alignItems: 'flex-start',
-                    fontSize: 14,
+                    fontSize: 15,
                     color: 'var(--mv-ink-2)',
                   }}
                 >
-                  <span
-                    style={{
-                      flexShrink: 0,
-                      width: 18,
-                      height: 18,
-                      borderRadius: '50%',
-                      background: 'oklch(0.76 0.18 60 / 0.18)',
-                      border: '1px solid var(--mv-warm-500)',
-                      backgroundImage:
-                        "url(\"data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23e9a76a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E\")",
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: 'center',
-                      marginTop: 2,
-                    }}
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--mv-ink-3)"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     aria-hidden="true"
-                  />
+                    style={{ flexShrink: 0, marginTop: 3 }}
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                   {t(`showcaseCheck${n}`)}
                 </div>
               ))}
             </div>
           </div>
-          {/* Phone mockup */}
+          {/* Phone mockup — the one full device frame on this page */}
           <div style={{ position: 'relative', display: 'grid', placeItems: 'center' }}>
-            <div
-              style={{
-                position: 'absolute',
-                inset: '-40px -20px',
-                background:
-                  'radial-gradient(ellipse 50% 50% at 50% 50%, var(--mv-warm-900), transparent 70%)',
-                filter: 'blur(60px)',
-                opacity: 0.55,
-                zIndex: 0,
-              }}
-              aria-hidden="true"
-            />
-            <div
-              className="mv-phone-mockup"
-              style={{
-                position: 'relative',
-              }}
-            >
-              {/* Dynamic island */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 14,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 110,
-                  height: 28,
-                  background: '#000',
-                  borderRadius: 999,
-                  zIndex: 3,
-                }}
-                aria-hidden="true"
-              />
+            <div className="mv-phone-mockup">
               <div
                 style={{
                   width: '100%',
                   height: '100%',
                   borderRadius: 35,
                   overflow: 'hidden',
-                  background: '#111',
+                  background: 'var(--mv-surface)',
                 }}
               >
                 <Image
@@ -721,19 +558,15 @@ export default async function LearningPathsPage({ params }: PageProps) {
         {([1, 2, 3, 4] as const).map((n) => (
           <div key={n} style={{ borderLeft: '1px solid var(--mv-line)', paddingLeft: 24 }}>
             <div
+              className="mv-figure"
               style={{
                 fontSize: 'clamp(32px, 3.6vw, 52px)',
-                fontWeight: 500,
-                letterSpacing: '-0.04em',
                 lineHeight: 1,
                 color: 'var(--mv-ink)',
-                fontVariantNumeric: 'tabular-nums',
               }}
             >
               {t(`stat${n}Value`)}
-              <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                {t(`stat${n}Unit`)}
-              </span>
+              <span style={{ color: 'var(--mv-ink-3)' }}>{t(`stat${n}Unit`)}</span>
             </div>
             <div
               style={{
@@ -750,33 +583,10 @@ export default async function LearningPathsPage({ params }: PageProps) {
       </section>
 
       {/* ════ CTA ════ */}
-      <section
-        className="mv-section-cta"
-        style={{
-          position: 'relative',
-          overflow: 'hidden',
-          isolation: 'isolate',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'radial-gradient(ellipse 70% 80% at 50% 50%, oklch(0.76 0.18 60 / 0.16), transparent 70%), linear-gradient(180deg, oklch(0.09 0.008 55 / 0.7), oklch(0.09 0.008 55 / 0.95))',
-            zIndex: -1,
-          }}
-          aria-hidden="true"
-        />
+      <section className="mv-section-cta" style={{ background: 'var(--mv-bg-2)' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
-          <div className="mv-section-meta" style={{ justifyContent: 'center' }}>
-            {t('ctaLabel')}
-          </div>
           <h2 className="mv-section-title" style={{ textAlign: 'center' }}>
-            {t('ctaTitle')}{' '}
-            <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-              {t('ctaTitleSerif')}
-            </span>
+            {t('ctaTitle')} {t('ctaTitleSerif')}
           </h2>
           <p
             style={{
@@ -809,134 +619,65 @@ export default async function LearningPathsPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* ════ NEXT FEATURE CARDS ════ */}
+      {/* ════ NEXT FEATURES ════ */}
       <section className="mv-section-nav">
-        <div
-          className="mv-grid-cards"
-          style={{
-            background: 'var(--mv-line)',
-            border: '1px solid var(--mv-line)',
-            borderRadius: 24,
-            overflow: 'hidden',
-          }}
-        >
-          <Link
-            href="/features/trip-planning"
-            style={{
-              background: 'var(--mv-bg)',
-              padding: 48,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              minHeight: 260,
-              textDecoration: 'none',
-              color: 'inherit',
-            }}
-          >
-            <div>
-              <div
-                className="mv-mono"
-                style={{
-                  fontSize: 11,
-                  color: 'var(--mv-ink-3)',
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {t('nextFeature1Label')}
-              </div>
-              <div
-                style={{
-                  fontSize: 'clamp(28px, 3vw, 40px)',
-                  fontWeight: 500,
-                  letterSpacing: '-0.03em',
-                  lineHeight: 1,
-                  marginTop: 16,
-                }}
-              >
-                {t('nextFeature1Title')}{' '}
-                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  {t('nextFeature1Serif')}
-                </span>
-              </div>
-            </div>
-            <div
+        <div className="mv-grid-cards" style={{ columnGap: 80, rowGap: 0 }}>
+          {[
+            {
+              href: '/features/trip-planning' as const,
+              title: `${t('nextFeature1Title')} ${t('nextFeature1Serif')}`,
+              sub: t('nextFeature1Sub'),
+            },
+            {
+              href: '/features/ai-diagnostics' as const,
+              title: `${t('nextFeature2Title')} ${t('nextFeature2Serif')}`,
+              sub: t('nextFeature2Sub'),
+            },
+          ].map((next) => (
+            <Link
+              key={next.href}
+              href={next.href}
               style={{
-                marginTop: 32,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                fontSize: 14,
-                color: 'var(--mv-warm-400)',
-                fontWeight: 500,
+                display: 'block',
+                padding: '32px 0',
+                borderTop: '1px solid var(--mv-line)',
+                textDecoration: 'none',
+                color: 'inherit',
               }}
             >
-              {t('nextFeature1Sub')}
-              <ArrowIcon />
-            </div>
-          </Link>
-          <Link
-            href="/features/ai-diagnostics"
-            style={{
-              background: 'var(--mv-bg)',
-              padding: 48,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              minHeight: 260,
-              textDecoration: 'none',
-              color: 'inherit',
-            }}
-          >
-            <div>
               <div
-                className="mv-mono"
-                style={{
-                  fontSize: 11,
-                  color: 'var(--mv-ink-3)',
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {t('nextFeature2Label')}
-              </div>
-              <div
+                className="mv-display"
                 style={{
                   fontSize: 'clamp(28px, 3vw, 40px)',
-                  fontWeight: 500,
-                  letterSpacing: '-0.03em',
+                  fontWeight: 600,
                   lineHeight: 1,
-                  marginTop: 16,
+                  color: 'var(--mv-ink)',
                 }}
               >
-                {t('nextFeature2Title')}{' '}
-                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  {t('nextFeature2Serif')}
-                </span>
+                {next.title}
               </div>
-            </div>
-            <div
-              style={{
-                marginTop: 32,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                fontSize: 14,
-                color: 'var(--mv-warm-400)',
-                fontWeight: 500,
-              }}
-            >
-              {t('nextFeature2Sub')}
-              <ArrowIcon />
-            </div>
-          </Link>
+              <div
+                style={{
+                  marginTop: 16,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 14,
+                  color: 'var(--mv-copper-text)',
+                  fontWeight: 500,
+                }}
+              >
+                {next.sub}
+                <ArrowIcon />
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 
       {/* ════ FAQ ════ */}
       <section className="mv-section-inner">
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <div className="mv-section-meta">{t('faqLabel')}</div>
           <h2 className="mv-section-title">{t('faqTitle')}</h2>
           <div style={{ marginTop: 48 }}>
             <LearningFaq items={faqItems} />

@@ -183,14 +183,10 @@ export default async function RegionPage({ params }: PageProps) {
       {/* Hero */}
       <section className="px-6 pb-16 pt-8 md:pb-24 md:pt-12">
         <div className="reveal-on-scroll mx-auto max-w-4xl">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            {countryName}
-          </p>
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
+          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-(--mv-ink) sm:text-4xl lg:text-5xl">
             {title}
           </h1>
-          <div className="mx-auto mt-6 h-1.5 w-32 rounded-full bg-signature-500" />
-          <p className="mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">
+          <p className="mt-6 max-w-2xl text-lg text-(--mv-ink-2) md:text-xl">
             {routeCount} {routeCount === 1 ? 'route' : 'routes'} in {regionName}. Sorted by
             community rating.
           </p>
@@ -201,7 +197,7 @@ export default async function RegionPage({ params }: PageProps) {
       <section className="px-6 pb-24">
         <div className="mx-auto max-w-5xl">
           {routes.length === 0 ? (
-            <p className="text-center text-neutral-500">
+            <p className="text-center text-(--mv-ink-3)">
               No routes available in {regionName} yet. Check back soon!
             </p>
           ) : (

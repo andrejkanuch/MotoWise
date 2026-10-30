@@ -100,12 +100,10 @@ export default async function TripPlanningPage({ params }: PageProps) {
             display: 'flex',
             alignItems: 'center',
             gap: 10,
-            fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
-            fontSize: 11,
+            fontSize: 13,
+            fontWeight: 500,
             color: 'var(--mv-ink-3)',
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            marginBottom: 32,
+            marginBottom: 40,
           }}
         >
           <Link href="/" style={{ color: 'var(--mv-ink-3)', textDecoration: 'none' }}>
@@ -116,30 +114,27 @@ export default async function TripPlanningPage({ params }: PageProps) {
             Features
           </Link>
           <span style={{ color: 'var(--mv-ink-4)' }}>/</span>
-          <span style={{ color: 'var(--mv-warm-400)' }}>{t('title')}</span>
+          <span style={{ color: 'var(--mv-ink)' }}>{t('title')}</span>
         </nav>
 
         <div className="mv-grid-hero">
           {/* Text column */}
           <div>
-            <div className="mv-section-meta">{t('heroMeta')}</div>
             <h1
+              className="mv-display"
               style={{
-                fontSize: 'clamp(48px, 7.5vw, 112px)',
-                fontWeight: 500,
-                lineHeight: 0.92,
-                letterSpacing: '-0.045em',
-                margin: '24px 0 0',
+                fontSize: 'clamp(48px, 7vw, 104px)',
+                fontWeight: 700,
+                lineHeight: 0.94,
+                margin: 0,
               }}
             >
               <span style={{ display: 'block' }}>{t('heroHeading1')}</span>
-              <span style={{ display: 'block' }}>
-                <em className="mv-serif">{t('heroHeading2')}</em>
-              </span>
+              <span style={{ display: 'block' }}>{t('heroHeading2')}</span>
             </h1>
             <p
               style={{
-                marginTop: 32,
+                marginTop: 28,
                 color: 'var(--mv-ink-2)',
                 fontSize: 18,
                 lineHeight: 1.55,
@@ -149,7 +144,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
             >
               {t('heroSubtitle')}
             </p>
-            <div style={{ marginTop: 40, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ marginTop: 36, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <Link href="/#download" className="mv-btn mv-btn-primary">
                 <span>{t('heroCta')}</span>
                 <ArrowIcon />
@@ -160,7 +155,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Visual column — animated route map */}
+          {/* Visual column — route map, an app depiction on a solid surface */}
           <div style={{ position: 'relative', display: 'grid', placeItems: 'center' }}>
             <div
               style={{
@@ -168,27 +163,12 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 width: '100%',
                 aspectRatio: '4/3',
                 maxWidth: 600,
-                borderRadius: 24,
+                borderRadius: 'var(--mv-radius-plate)',
                 overflow: 'hidden',
-                background:
-                  'radial-gradient(circle at 30% 30%, oklch(0.2 0.015 55), oklch(0.1 0.008 55))',
+                background: 'var(--mv-surface)',
                 border: '1px solid var(--mv-line)',
-                boxShadow: '0 40px 80px -20px oklch(0 0 0 / 0.6)',
               }}
             >
-              {/* Grid overlay */}
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  backgroundImage:
-                    'linear-gradient(to right, oklch(1 0 0 / 0.03) 1px, transparent 1px), linear-gradient(to bottom, oklch(1 0 0 / 0.03) 1px, transparent 1px)',
-                  backgroundSize: '40px 40px',
-                  maskImage: 'radial-gradient(ellipse 80% 90% at 50% 50%, black, transparent 90%)',
-                  WebkitMaskImage:
-                    'radial-gradient(ellipse 80% 90% at 50% 50%, black, transparent 90%)',
-                }}
-              />
               <svg
                 viewBox="0 0 600 450"
                 fill="none"
@@ -197,7 +177,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
               >
                 <path
                   d="M 80 380 Q 160 320 200 280 T 320 220 Q 380 170 430 140 T 520 80"
-                  stroke="oklch(0.84 0.15 68)"
+                  stroke="var(--mv-info)"
                   strokeWidth="10"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -206,85 +186,60 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 />
                 <path
                   d="M 80 380 Q 160 320 200 280 T 320 220 Q 380 170 430 140 T 520 80"
-                  stroke="oklch(0.84 0.15 68)"
+                  stroke="var(--mv-info)"
                   strokeWidth="3"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   fill="none"
                 />
                 {/* Start waypoint */}
-                <circle cx="80" cy="380" r="7" fill="oklch(0.72 0.2 145)" />
-                <circle cx="80" cy="380" r="3" fill="var(--mv-bg)" />
+                <circle cx="80" cy="380" r="7" fill="var(--mv-go)" />
+                <circle cx="80" cy="380" r="3" fill="var(--mv-surface)" />
                 {/* Mid waypoints */}
-                <circle cx="200" cy="280" r="6" fill="oklch(0.84 0.15 68)" />
-                <circle cx="200" cy="280" r="2.5" fill="var(--mv-bg)" />
-                <text
-                  x="215"
-                  y="275"
-                  fontFamily="Geist Mono, monospace"
-                  fontSize="10"
-                  fill="oklch(0.78 0.012 70)"
-                  letterSpacing="0.05em"
-                >
-                  FUEL
+                <circle cx="200" cy="280" r="6" fill="var(--mv-ink-2)" />
+                <circle cx="200" cy="280" r="2.5" fill="var(--mv-surface)" />
+                <text x="215" y="275" fontSize="11" fontWeight="500" fill="var(--mv-ink-3)">
+                  Fuel
                 </text>
-                <circle cx="320" cy="220" r="6" fill="oklch(0.84 0.15 68)" />
-                <circle cx="320" cy="220" r="2.5" fill="var(--mv-bg)" />
-                <text
-                  x="335"
-                  y="215"
-                  fontFamily="Geist Mono, monospace"
-                  fontSize="10"
-                  fill="oklch(0.78 0.012 70)"
-                  letterSpacing="0.05em"
-                >
-                  SCENIC
+                <circle cx="320" cy="220" r="6" fill="var(--mv-ink-2)" />
+                <circle cx="320" cy="220" r="2.5" fill="var(--mv-surface)" />
+                <text x="335" y="215" fontSize="11" fontWeight="500" fill="var(--mv-ink-3)">
+                  Scenic
                 </text>
-                <circle cx="430" cy="140" r="6" fill="oklch(0.84 0.15 68)" />
-                <circle cx="430" cy="140" r="2.5" fill="var(--mv-bg)" />
-                <text
-                  x="445"
-                  y="135"
-                  fontFamily="Geist Mono, monospace"
-                  fontSize="10"
-                  fill="oklch(0.78 0.012 70)"
-                  letterSpacing="0.05em"
-                >
-                  PASS
+                <circle cx="430" cy="140" r="6" fill="var(--mv-ink-2)" />
+                <circle cx="430" cy="140" r="2.5" fill="var(--mv-surface)" />
+                <text x="445" y="135" fontSize="11" fontWeight="500" fill="var(--mv-ink-3)">
+                  Pass
                 </text>
                 {/* End waypoint */}
-                <circle cx="520" cy="80" r="7" fill="oklch(0.76 0.18 60)" />
-                <circle cx="520" cy="80" r="3" fill="var(--mv-bg)" />
+                <circle cx="520" cy="80" r="7" fill="var(--mv-ink)" />
+                <circle cx="520" cy="80" r="3" fill="var(--mv-surface)" />
               </svg>
 
-              {/* Route info overlay */}
+              {/* Route info overlay — a raised ramp step, no blur */}
               <div
                 style={{
                   position: 'absolute',
                   top: 20,
                   left: 20,
-                  background: 'oklch(0.12 0.01 55 / 0.85)',
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
+                  background: 'var(--mv-surface-2)',
                   border: '1px solid var(--mv-line)',
-                  borderRadius: 14,
+                  borderRadius: 'var(--mv-radius-card)',
                   padding: '14px 16px',
                   minWidth: 200,
                 }}
               >
-                <div
-                  className="mv-mono"
-                  style={{
-                    fontSize: 10,
-                    color: 'var(--mv-warm-400)',
-                    letterSpacing: '0.15em',
-                    textTransform: 'uppercase',
-                  }}
-                >
+                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--mv-ink-3)' }}>
                   {t('routeLabel')}
                 </div>
                 <div
-                  style={{ fontSize: 15, fontWeight: 500, marginTop: 4, letterSpacing: '-0.01em' }}
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 600,
+                    marginTop: 4,
+                    letterSpacing: '-0.01em',
+                    color: 'var(--mv-ink)',
+                  }}
                 >
                   {t('routeName')}
                 </div>
@@ -300,19 +255,28 @@ export default async function TripPlanningPage({ params }: PageProps) {
                   }}
                 >
                   <div>
-                    <strong style={{ color: 'var(--mv-ink)', fontWeight: 500, display: 'block' }}>
+                    <strong
+                      className="mv-figure"
+                      style={{ color: 'var(--mv-ink)', fontSize: 14, display: 'block' }}
+                    >
                       {t('routeDistance')}
                     </strong>
                     {t('routeDistanceLabel')}
                   </div>
                   <div>
-                    <strong style={{ color: 'var(--mv-ink)', fontWeight: 500, display: 'block' }}>
+                    <strong
+                      className="mv-figure"
+                      style={{ color: 'var(--mv-ink)', fontSize: 14, display: 'block' }}
+                    >
                       {t('routeRiding')}
                     </strong>
                     {t('routeRidingLabel')}
                   </div>
                   <div>
-                    <strong style={{ color: 'var(--mv-ink)', fontWeight: 500, display: 'block' }}>
+                    <strong
+                      className="mv-figure"
+                      style={{ color: 'var(--mv-ink)', fontSize: 14, display: 'block' }}
+                    >
                       {t('routeStops')}
                     </strong>
                     {t('routeStopsLabel')}
@@ -320,26 +284,22 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* GPX exported badge */}
+              {/* GPX exported badge — app status, solid chip */}
               <div
-                className="mv-mono"
                 style={{
                   position: 'absolute',
                   bottom: 20,
                   right: 20,
-                  background: 'oklch(0.72 0.2 145 / 0.15)',
-                  border: '1px solid oklch(0.72 0.2 145 / 0.4)',
-                  backdropFilter: 'blur(12px)',
-                  WebkitBackdropFilter: 'blur(12px)',
+                  background: 'var(--mv-surface-2)',
+                  border: '1px solid var(--mv-line)',
                   borderRadius: 999,
-                  padding: '8px 14px 8px 10px',
+                  padding: '8px 14px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
                   fontSize: 12,
-                  color: 'var(--mv-success)',
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
+                  fontWeight: 500,
+                  color: 'var(--mv-go)',
                 }}
               >
                 <span
@@ -347,8 +307,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
                     width: 6,
                     height: 6,
                     borderRadius: '50%',
-                    background: 'var(--mv-success)',
-                    boxShadow: '0 0 8px var(--mv-success)',
+                    background: 'var(--mv-go)',
                   }}
                 />
                 {t('gpxBadge')}
@@ -361,23 +320,12 @@ export default async function TripPlanningPage({ params }: PageProps) {
       {/* ════ PILLARS — How it works ════ */}
       <section id="how" className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
-          <div className="mv-section-meta">{t('howLabel')}</div>
           <h2 className="mv-section-title">
-            {t('howTitle')} <span className="mv-serif">{t('howTitleSerif')}</span>
+            {t('howTitle')} <span className="mv-muted">{t('howTitleSerif')}</span>
           </h2>
         </div>
 
-        <div
-          className="mv-grid-3"
-          style={{
-            marginTop: 80,
-            gap: 2,
-            background: 'var(--mv-line)',
-            border: '1px solid var(--mv-line)',
-            borderRadius: 24,
-            overflow: 'hidden',
-          }}
-        >
+        <div className="mv-grid-3" style={{ marginTop: 72, columnGap: 48, rowGap: 56 }}>
           {([1, 2, 3, 4, 5, 6] as const)
             .map((i) => ({
               num: `0${i}`,
@@ -387,70 +335,45 @@ export default async function TripPlanningPage({ params }: PageProps) {
               kvValue: t(`pillar${i}KvValue`),
             }))
             .map((p) => (
-              <div
-                key={p.num}
-                style={{
-                  background: 'var(--mv-bg)',
-                  padding: 40,
-                  minHeight: 260,
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <div
-                  className="mv-mono"
-                  style={{ fontSize: 11, color: 'var(--mv-warm-400)', letterSpacing: '0.15em' }}
-                >
+              <div key={p.num}>
+                <div className="mv-figure" style={{ fontSize: 18, color: 'var(--mv-ink-4)' }}>
                   {p.num}
                 </div>
                 <div
                   style={{
-                    fontSize: 22,
-                    fontWeight: 500,
-                    letterSpacing: '-0.02em',
-                    lineHeight: 1.15,
-                    margin: '32px 0 14px',
+                    fontSize: 18,
+                    fontWeight: 600,
+                    letterSpacing: '-0.005em',
+                    lineHeight: 1.25,
+                    margin: '20px 0 10px',
+                    color: 'var(--mv-ink)',
                   }}
                 >
                   {p.title}
                 </div>
                 <div
                   style={{
-                    color: 'var(--mv-ink-3)',
-                    fontSize: 14,
-                    lineHeight: 1.55,
+                    color: 'var(--mv-ink-2)',
+                    fontSize: 15,
+                    lineHeight: 1.6,
                     letterSpacing: '-0.005em',
-                    flex: 1,
                   }}
                 >
                   {p.body}
                 </div>
                 <div
-                  className="mv-mono"
                   style={{
-                    marginTop: 24,
-                    paddingTop: 24,
-                    borderTop: '1px solid var(--mv-line)',
+                    marginTop: 18,
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center',
-                    fontSize: 11,
+                    alignItems: 'baseline',
+                    gap: 12,
+                    fontSize: 13,
                     color: 'var(--mv-ink-3)',
-                    letterSpacing: '0.05em',
-                    textTransform: 'uppercase',
                   }}
                 >
                   {p.kvLabel}
-                  <strong
-                    style={{
-                      fontFamily: "var(--font-geist, 'Geist', sans-serif)",
-                      fontSize: 14,
-                      color: 'var(--mv-warm-400)',
-                      fontWeight: 500,
-                      textTransform: 'none',
-                      letterSpacing: '-0.005em',
-                    }}
-                  >
+                  <strong className="mv-figure" style={{ fontSize: 18, color: 'var(--mv-ink)' }}>
                     {p.kvValue}
                   </strong>
                 </div>
@@ -460,178 +383,103 @@ export default async function TripPlanningPage({ params }: PageProps) {
       </section>
 
       {/* ════ SHOWCASE 1 — Waypoints ════ */}
-      <section className="mv-section-inner">
-        <div className="mv-grid-2">
-          <div>
-            <div
-              className="mv-mono"
-              style={{
-                fontSize: 11,
-                color: 'var(--mv-warm-400)',
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {t('waypointsLabel')}
-            </div>
-            <h3
-              style={{
-                fontSize: 'clamp(32px, 3.8vw, 54px)',
-                fontWeight: 500,
-                lineHeight: 1,
-                letterSpacing: '-0.035em',
-                margin: '18px 0 0',
-              }}
-            >
-              {t('waypointsTitle')} <span className="mv-serif">{t('waypointsTitleSerif')}</span>
-            </h3>
-            <p
-              style={{
-                marginTop: 20,
-                color: 'var(--mv-ink-2)',
-                fontSize: 16,
-                lineHeight: 1.6,
-                maxWidth: 500,
-                letterSpacing: '-0.005em',
-              }}
-            >
-              {t('waypointsBody')}
-            </p>
-            {/* Waypoint type cards */}
-            <div
-              className="mv-grid-4"
-              style={{
-                gap: 16,
-                marginTop: 60,
-              }}
-            >
-              {[
-                {
-                  icon: 'M3 22h12 M5 22V4a2 2 0 012-2h4a2 2 0 012 2v18 M3 10h10 M17 5l3 3v9a2 2 0 01-2 2',
-                  label: t('wp1Label'),
-                  sub: t('wp1Sub'),
-                },
-                {
-                  icon: 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z M12 13a3 3 0 100-6 3 3 0 000 6z',
-                  label: t('wp2Label'),
-                  sub: t('wp2Sub'),
-                },
-                {
-                  icon: 'M2 4v16 M2 8h18a2 2 0 012 2v10 M2 17h20 M6 8v9',
-                  label: t('wp3Label'),
-                  sub: t('wp3Sub'),
-                },
-                {
-                  icon: 'M12 2L22 22H2L12 2z',
-                  label: t('wp4Label'),
-                  sub: t('wp4Sub'),
-                },
-              ].map((wp) => (
-                <div
-                  key={wp.label}
-                  style={{
-                    background: 'var(--mv-surface)',
-                    border: '1px solid var(--mv-line)',
-                    borderRadius: 16,
-                    padding: 24,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 10,
-                      background: 'oklch(1 0 0 / 0.04)',
-                      border: '1px solid var(--mv-line)',
-                      display: 'grid',
-                      placeItems: 'center',
-                      color: 'var(--mv-warm-400)',
-                      marginBottom: 24,
-                    }}
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d={wp.icon} />
-                    </svg>
-                  </div>
-                  <div style={{ fontSize: 15, fontWeight: 500, letterSpacing: '-0.01em' }}>
-                    {wp.label}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      color: 'var(--mv-ink-3)',
-                      marginTop: 6,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {wp.sub}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* Phone mockup */}
-          <div style={{ position: 'relative', display: 'grid', placeItems: 'center' }}>
-            <div
-              style={{
-                position: 'absolute',
-                inset: '-40px -20px',
-                background:
-                  'radial-gradient(ellipse 50% 50% at 50% 50%, var(--mv-warm-900), transparent 70%)',
-                filter: 'blur(60px)',
-                opacity: 0.55,
-                zIndex: 0,
-              }}
-              aria-hidden="true"
-            />
-            <div className="mv-phone-mockup">
-              {/* Dynamic island */}
-              <div
+      <section style={{ background: 'var(--mv-bg-2)' }}>
+        <div className="mv-section-inner">
+          <div className="mv-grid-2">
+            <div>
+              <h3
+                className="mv-display"
                 style={{
-                  position: 'absolute',
-                  top: 14,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 110,
-                  height: 28,
-                  background: '#000',
-                  borderRadius: 999,
-                  zIndex: 3,
-                }}
-                aria-hidden="true"
-              />
-              <div
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: 35,
-                  overflow: 'hidden',
-                  background: '#111',
+                  fontSize: 'clamp(32px, 3.8vw, 54px)',
+                  fontWeight: 700,
+                  lineHeight: 1,
+                  margin: 0,
                 }}
               >
-                <Image
-                  src="/images/marketing/mw/trip-planning-new.png"
-                  alt="MotoVault trip planner showing a new route on a dark map"
-                  width={640}
-                  height={1386}
+                {t('waypointsTitle')} {t('waypointsTitleSerif')}
+              </h3>
+              <p
+                style={{
+                  marginTop: 20,
+                  color: 'var(--mv-ink-2)',
+                  fontSize: 16,
+                  lineHeight: 1.6,
+                  maxWidth: 500,
+                  letterSpacing: '-0.005em',
+                }}
+              >
+                {t('waypointsBody')}
+              </p>
+              {/* Waypoint types — list on the band, no icon tiles */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  columnGap: 40,
+                  rowGap: 0,
+                  marginTop: 48,
+                }}
+              >
+                {[
+                  { label: t('wp1Label'), sub: t('wp1Sub') },
+                  { label: t('wp2Label'), sub: t('wp2Sub') },
+                  { label: t('wp3Label'), sub: t('wp3Sub') },
+                  { label: t('wp4Label'), sub: t('wp4Sub') },
+                ].map((wp) => (
+                  <div
+                    key={wp.label}
+                    style={{ borderTop: '1px solid var(--mv-line)', padding: '18px 0' }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 600,
+                        letterSpacing: '-0.005em',
+                        color: 'var(--mv-ink)',
+                      }}
+                    >
+                      {wp.label}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: 'var(--mv-ink-3)',
+                        marginTop: 6,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {wp.sub}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Phone mockup — the one full device frame on this page */}
+            <div style={{ position: 'relative', display: 'grid', placeItems: 'center' }}>
+              <div className="mv-phone-mockup">
+                <div
                   style={{
                     width: '100%',
                     height: '100%',
-                    objectFit: 'cover',
-                    objectPosition: 'top',
+                    borderRadius: 35,
+                    overflow: 'hidden',
+                    background: 'var(--mv-surface)',
                   }}
-                  sizes="320px"
-                />
+                >
+                  <Image
+                    src="/images/marketing/mw/trip-planning-new.png"
+                    alt="MotoVault trip planner showing a new route on a dark map"
+                    width={640}
+                    height={1386}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      objectPosition: 'top',
+                    }}
+                    sizes="320px"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -642,27 +490,16 @@ export default async function TripPlanningPage({ params }: PageProps) {
       <section className="mv-section-inner">
         <div className="mv-grid-2-rev">
           <div>
-            <div
-              className="mv-mono"
-              style={{
-                fontSize: 11,
-                color: 'var(--mv-warm-400)',
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {t('exportLabel')}
-            </div>
             <h3
+              className="mv-display"
               style={{
                 fontSize: 'clamp(32px, 3.8vw, 54px)',
-                fontWeight: 500,
+                fontWeight: 700,
                 lineHeight: 1,
-                letterSpacing: '-0.035em',
-                margin: '18px 0 0',
+                margin: 0,
               }}
             >
-              {t('exportTitle')} <span className="mv-serif">{t('exportTitleSerif')}</span>
+              {t('exportTitle')} {t('exportTitleSerif')}
             </h3>
             <p
               style={{
@@ -684,130 +521,83 @@ export default async function TripPlanningPage({ params }: PageProps) {
                     key={item}
                     style={{
                       display: 'flex',
-                      gap: 14,
+                      gap: 12,
                       alignItems: 'flex-start',
-                      fontSize: 14,
+                      fontSize: 15,
                       color: 'var(--mv-ink-2)',
                     }}
                   >
-                    <span
-                      style={{
-                        flexShrink: 0,
-                        width: 18,
-                        height: 18,
-                        borderRadius: '50%',
-                        background: 'oklch(0.76 0.18 60 / 0.18)',
-                        border: '1px solid var(--mv-warm-500)',
-                        backgroundImage:
-                          "url(\"data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23e9a76a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E\")",
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'center',
-                        marginTop: 2,
-                      }}
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="var(--mv-ink-3)"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                       aria-hidden="true"
-                    />
+                      style={{ flexShrink: 0, marginTop: 3 }}
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
                     {item}
                   </div>
                 ),
               )}
             </div>
-            {/* Export chips */}
+            {/* Export formats */}
             <div
               style={{
                 marginTop: 40,
                 display: 'flex',
-                gap: 10,
+                gap: 8,
                 flexWrap: 'wrap',
-                padding: 20,
-                background: 'var(--mv-surface)',
-                border: '1px solid var(--mv-line)',
-                borderRadius: 14,
               }}
             >
-              {['GPX', 'KML', 'GeoJSON', 'APPLE MAPS', 'GOOGLE MAPS', 'GARMIN', 'REVER'].map(
+              {['GPX', 'KML', 'GeoJSON', 'Apple Maps', 'Google Maps', 'Garmin', 'Rever'].map(
                 (chip) => (
                   <span
                     key={chip}
-                    className="mv-mono"
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 8,
                       padding: '8px 14px',
-                      background: 'oklch(1 0 0 / 0.03)',
+                      background: 'var(--mv-surface)',
                       border: '1px solid var(--mv-line)',
                       borderRadius: 999,
-                      fontSize: 12,
+                      fontSize: 13,
+                      fontWeight: 500,
                       color: 'var(--mv-ink-2)',
-                      letterSpacing: '0.02em',
                     }}
                   >
-                    <span
-                      style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: '50%',
-                        background: 'var(--mv-warm-500)',
-                      }}
-                    />
                     {chip}
                   </span>
                 ),
               )}
             </div>
           </div>
-          {/* Phone mockup */}
+          {/* Screenshot — cropped on a surface panel (no second device frame) */}
           <div style={{ position: 'relative', display: 'grid', placeItems: 'center' }}>
             <div
               style={{
-                position: 'absolute',
-                inset: '-40px -20px',
-                background:
-                  'radial-gradient(ellipse 50% 50% at 50% 50%, var(--mv-warm-900), transparent 70%)',
-                filter: 'blur(60px)',
-                opacity: 0.55,
-                zIndex: 0,
+                position: 'relative',
+                width: '100%',
+                maxWidth: 420,
+                aspectRatio: '4/5',
+                borderRadius: 'var(--mv-radius-card)',
+                overflow: 'hidden',
+                background: 'var(--mv-surface)',
+                border: '1px solid var(--mv-line)',
               }}
-              aria-hidden="true"
-            />
-            <div className="mv-phone-mockup">
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 14,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 110,
-                  height: 28,
-                  background: '#000',
-                  borderRadius: 999,
-                  zIndex: 3,
-                }}
-                aria-hidden="true"
+            >
+              <Image
+                src="/images/marketing/mw/trip-detail-hero.png"
+                alt="MotoVault trip detail showing Dolomites route overview"
+                fill
+                style={{ objectFit: 'cover', objectPosition: 'top' }}
+                sizes="420px"
               />
-              <div
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: 35,
-                  overflow: 'hidden',
-                  background: '#111',
-                }}
-              >
-                <Image
-                  src="/images/marketing/mw/trip-detail-hero.png"
-                  alt="MotoVault trip detail showing Dolomites route overview"
-                  width={640}
-                  height={1386}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    objectPosition: 'top',
-                  }}
-                  sizes="320px"
-                />
-              </div>
             </div>
           </div>
         </div>
@@ -824,19 +614,15 @@ export default async function TripPlanningPage({ params }: PageProps) {
           .map((s) => (
             <div key={s.label} style={{ borderLeft: '1px solid var(--mv-line)', paddingLeft: 24 }}>
               <div
+                className="mv-figure"
                 style={{
                   fontSize: 'clamp(32px, 3.6vw, 52px)',
-                  fontWeight: 500,
-                  letterSpacing: '-0.04em',
                   lineHeight: 1,
                   color: 'var(--mv-ink)',
-                  fontVariantNumeric: 'tabular-nums',
                 }}
               >
                 {s.value}
-                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  {s.unit}
-                </span>
+                <span style={{ color: 'var(--mv-ink-3)' }}>{s.unit}</span>
               </div>
               <div
                 style={{
@@ -853,26 +639,10 @@ export default async function TripPlanningPage({ params }: PageProps) {
       </section>
 
       {/* ════ CTA ════ */}
-      <section className="mv-section-cta">
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'radial-gradient(ellipse 70% 80% at 50% 50%, oklch(0.76 0.18 60 / 0.16), transparent 70%), linear-gradient(180deg, oklch(0.09 0.008 55 / 0.7), oklch(0.09 0.008 55 / 0.95))',
-            zIndex: -1,
-          }}
-          aria-hidden="true"
-        />
+      <section className="mv-section-cta" style={{ background: 'var(--mv-bg-2)' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
-          <div className="mv-section-meta" style={{ justifyContent: 'center' }}>
-            {t('ctaLabel')}
-          </div>
           <h2 className="mv-section-title" style={{ textAlign: 'center' }}>
-            {t('ctaSectionTitle')}{' '}
-            <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-              {t('ctaSectionTitleSerif')}
-            </span>
+            {t('ctaSectionTitle')} {t('ctaSectionTitleSerif')}
           </h2>
           <p
             style={{
@@ -905,134 +675,65 @@ export default async function TripPlanningPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* ════ NEXT FEATURE CARDS ════ */}
+      {/* ════ NEXT FEATURES ════ */}
       <section className="mv-section-nav">
-        <div
-          className="mv-grid-cards"
-          style={{
-            background: 'var(--mv-line)',
-            border: '1px solid var(--mv-line)',
-            borderRadius: 24,
-            overflow: 'hidden',
-          }}
-        >
-          <Link
-            href="/features/ai-diagnostics"
-            style={{
-              background: 'var(--mv-bg)',
-              padding: 48,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              minHeight: 260,
-              textDecoration: 'none',
-              color: 'inherit',
-            }}
-          >
-            <div>
-              <div
-                className="mv-mono"
-                style={{
-                  fontSize: 11,
-                  color: 'var(--mv-ink-3)',
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {t('nextFeature1Label')}
-              </div>
-              <div
-                style={{
-                  fontSize: 'clamp(28px, 3vw, 40px)',
-                  fontWeight: 500,
-                  letterSpacing: '-0.03em',
-                  lineHeight: 1,
-                  marginTop: 16,
-                }}
-              >
-                {t('nextFeature1Title')}{' '}
-                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  {t('nextFeature1Serif')}
-                </span>
-              </div>
-            </div>
-            <div
+        <div className="mv-grid-cards" style={{ columnGap: 80, rowGap: 0 }}>
+          {[
+            {
+              href: '/features/ai-diagnostics' as const,
+              title: `${t('nextFeature1Title')} ${t('nextFeature1Serif')}`,
+              sub: t('nextFeature1Sub'),
+            },
+            {
+              href: '/features/garage-management' as const,
+              title: `${t('nextFeature2Title')} ${t('nextFeature2Serif')}`,
+              sub: t('nextFeature2Sub'),
+            },
+          ].map((next) => (
+            <Link
+              key={next.href}
+              href={next.href}
               style={{
-                marginTop: 32,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                fontSize: 14,
-                color: 'var(--mv-warm-400)',
-                fontWeight: 500,
+                display: 'block',
+                padding: '32px 0',
+                borderTop: '1px solid var(--mv-line)',
+                textDecoration: 'none',
+                color: 'inherit',
               }}
             >
-              {t('nextFeature1Sub')}
-              <ArrowIcon />
-            </div>
-          </Link>
-          <Link
-            href="/features/garage-management"
-            style={{
-              background: 'var(--mv-bg)',
-              padding: 48,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              minHeight: 260,
-              textDecoration: 'none',
-              color: 'inherit',
-            }}
-          >
-            <div>
               <div
-                className="mv-mono"
-                style={{
-                  fontSize: 11,
-                  color: 'var(--mv-ink-3)',
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {t('nextFeature2Label')}
-              </div>
-              <div
+                className="mv-display"
                 style={{
                   fontSize: 'clamp(28px, 3vw, 40px)',
-                  fontWeight: 500,
-                  letterSpacing: '-0.03em',
+                  fontWeight: 600,
                   lineHeight: 1,
-                  marginTop: 16,
+                  color: 'var(--mv-ink)',
                 }}
               >
-                {t('nextFeature2Title')}{' '}
-                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  {t('nextFeature2Serif')}
-                </span>
+                {next.title}
               </div>
-            </div>
-            <div
-              style={{
-                marginTop: 32,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                fontSize: 14,
-                color: 'var(--mv-warm-400)',
-                fontWeight: 500,
-              }}
-            >
-              {t('nextFeature2Sub')}
-              <ArrowIcon />
-            </div>
-          </Link>
+              <div
+                style={{
+                  marginTop: 16,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 14,
+                  color: 'var(--mv-copper-text)',
+                  fontWeight: 500,
+                }}
+              >
+                {next.sub}
+                <ArrowIcon />
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 
       {/* ════ FAQ ════ */}
       <section className="mv-section-inner">
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <div className="mv-section-meta">{t('faqLabel')}</div>
           <h2 className="mv-section-title">{t('faqTitle')}</h2>
           <div style={{ marginTop: 48 }}>
             <TripPlanningFaq items={faqItems} />

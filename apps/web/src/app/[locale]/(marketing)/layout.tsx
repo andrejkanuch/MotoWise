@@ -1,20 +1,10 @@
-import { Instrument_Serif } from 'next/font/google';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { CursorDot } from '@/components/marketing/cursor-dot';
 import { Footer } from '@/components/marketing/footer';
 import { Navbar } from '@/components/marketing/navbar';
 import { StickyAppBar } from '@/components/marketing/sticky-app-bar';
 import { routing } from '@/i18n/routing';
 import { BASE_URL } from '@/lib/constants';
 import '@/components/marketing/design-system.css';
-
-const instrumentSerif = Instrument_Serif({
-  weight: '400',
-  style: ['normal', 'italic'],
-  subsets: ['latin'],
-  variable: '--font-instrument-serif',
-  display: 'swap',
-});
 
 // force-static + this segment config makes every marketing page statically
 // prerendered (ISR via each page's `revalidate`). Without it the shared root
@@ -81,11 +71,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`mv-marketing ${instrumentSerif.variable}`}>
+    <div className="mv-marketing">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:px-4 focus:py-2 focus:text-white"
-        style={{ background: 'var(--mv-warm-500)' }}
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:px-4 focus:py-2"
+        style={{ background: 'var(--mv-copper)', color: 'var(--mv-on-copper)' }}
       >
         Skip to content
       </a>
@@ -104,7 +94,6 @@ export default async function MarketingLayout({ children }: { children: React.Re
         media="(max-aspect-ratio: 4/5)"
         fetchPriority="high"
       />
-      <CursorDot />
       <Navbar />
       <main id="main-content">{children}</main>
       <Footer />

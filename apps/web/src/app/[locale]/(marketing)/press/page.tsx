@@ -105,10 +105,10 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
       {/* Hero */}
       <section className="px-4 pb-16 pt-24 md:pt-32">
         <div className="reveal-on-scroll mx-auto max-w-4xl text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-neutral-50 sm:text-5xl md:text-6xl">
+          <h1 className="text-4xl font-extrabold tracking-tight text-(--mv-ink) sm:text-5xl md:text-6xl">
             MotoVault Press Kit
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400">
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-(--mv-ink-2)">
             Everything you need to write about MotoVault. Brand assets, company information, and
             media resources.
           </p>
@@ -118,23 +118,23 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
       {/* About Section */}
       <section className="px-4 py-16">
         <div className="mx-auto max-w-4xl">
-          <h2 className="reveal-on-scroll text-3xl font-extrabold tracking-tight text-neutral-50">
+          <h2 className="reveal-on-scroll text-3xl font-extrabold tracking-tight text-(--mv-ink)">
             About MotoVault
           </h2>
 
-          <div className="mt-8 space-y-6">
-            <div className="reveal-on-scroll rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8">
-              <h3 className="mb-4 text-lg font-bold text-warm-400">Short Description</h3>
-              <p className="text-neutral-300">
+          <div className="mt-8 space-y-12">
+            <div className="reveal-on-scroll">
+              <h3 className="mb-4 text-lg font-bold text-(--mv-ink)">Short Description</h3>
+              <p className="text-(--mv-ink-2)">
                 MotoVault is a free, AI-powered motorcycle companion app that helps riders maintain
                 their bikes, diagnose issues, and expand their mechanical knowledge — all from their
                 phone.
               </p>
             </div>
 
-            <div className="reveal-on-scroll rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8">
-              <h3 className="mb-4 text-lg font-bold text-warm-400">Long Description</h3>
-              <div className="space-y-4 text-neutral-300">
+            <div className="reveal-on-scroll">
+              <h3 className="mb-4 text-lg font-bold text-(--mv-ink)">Long Description</h3>
+              <div className="space-y-4 text-(--mv-ink-2)">
                 <p>
                   MotoVault is an AI-powered motorcycle platform designed to be every rider&apos;s
                   digital garage companion. Built for both seasoned mechanics and new riders alike,
@@ -165,17 +165,14 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
       {/* Key Stats */}
       <section className="px-4 py-16">
         <div className="mx-auto max-w-5xl">
-          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-neutral-50">
+          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-(--mv-ink)">
             Key Facts
           </h2>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {stats.map((stat) => (
-              <div
-                key={stat.label}
-                className="reveal-on-scroll rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 text-center"
-              >
-                <p className="text-lg font-bold text-neutral-50">{stat.label}</p>
-                <p className="mt-2 text-sm text-neutral-400">{stat.detail}</p>
+              <div key={stat.label} className="reveal-on-scroll text-center">
+                <p className="text-lg font-bold text-(--mv-ink)">{stat.label}</p>
+                <p className="mt-2 text-sm text-(--mv-ink-3)">{stat.detail}</p>
               </div>
             ))}
           </div>
@@ -185,19 +182,19 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
       {/* App Screenshots */}
       <section className="px-4 py-16">
         <div className="mx-auto max-w-5xl">
-          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-neutral-50">
+          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-(--mv-ink)">
             App Screenshots
           </h2>
-          <p className="mt-4 text-center text-neutral-400">
+          <p className="mt-4 text-center text-(--mv-ink-3)">
             High-resolution screenshots for press use
           </p>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {screenshots.map((label) => (
               <div
                 key={label}
-                className="reveal-on-scroll flex aspect-[9/16] items-center justify-center rounded-2xl border border-neutral-800 bg-neutral-800 p-6"
+                className="reveal-on-scroll flex aspect-[9/16] items-center justify-center rounded-2xl border border-(--mv-line) bg-(--mv-surface-2) p-6"
               >
-                <p className="text-center text-sm font-medium text-neutral-400">{label}</p>
+                <p className="text-center text-sm font-medium text-(--mv-ink-3)">{label}</p>
               </div>
             ))}
           </div>
@@ -207,15 +204,15 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
       {/* Logo */}
       <section className="px-4 py-16">
         <div className="mx-auto max-w-4xl">
-          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-neutral-50">
+          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-(--mv-ink)">
             Logo &amp; Brand Assets
           </h2>
-          <div className="reveal-on-scroll mt-12 rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8">
+          <div className="reveal-on-scroll mt-12 rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-8">
             <div className="flex flex-col items-center gap-8 md:flex-row">
-              <div className="flex h-32 w-32 items-center justify-center rounded-2xl bg-neutral-800">
+              <div className="flex h-32 w-32 items-center justify-center rounded-2xl bg-(--mv-surface-2)">
                 {/* biome-ignore lint/a11y/noSvgWithoutTitle: decorative logo placeholder */}
                 <svg
-                  className="h-16 w-16 text-warm-400"
+                  className="h-16 w-16 text-(--mv-ink-3)"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -226,17 +223,17 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
                 </svg>
               </div>
               <div className="text-center md:text-left">
-                <h3 className="text-xl font-bold text-neutral-50">MotoVault</h3>
-                <p className="mt-2 text-neutral-400">
+                <h3 className="text-xl font-bold text-(--mv-ink)">MotoVault</h3>
+                <p className="mt-2 text-(--mv-ink-2)">
                   Please use the official MotoVault logo without modification. Maintain clear space
                   around the logo equal to the height of the &quot;M&quot; in MotoVault. Do not
                   change the colors, proportions, or add effects to the logo.
                 </p>
-                <p className="mt-4 text-sm text-neutral-500">
+                <p className="mt-4 text-sm text-(--mv-ink-3)">
                   Logo downloads coming soon. Contact{' '}
                   <a
                     href="mailto:support@motovault.app"
-                    className="text-warm-400 underline underline-offset-2 hover:text-warm-300"
+                    className="text-(--mv-copper-text) underline underline-offset-2 hover:text-(--mv-copper-hover)"
                   >
                     support@motovault.app
                   </a>{' '}
@@ -251,26 +248,26 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
       {/* Press Contact */}
       <section className="px-4 py-16 pb-24">
         <div className="mx-auto max-w-4xl">
-          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-neutral-50">
+          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-(--mv-ink)">
             Press Contact
           </h2>
-          <div className="reveal-on-scroll mt-12 rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 text-center">
-            <p className="text-neutral-300">
+          <div className="reveal-on-scroll mt-12 rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-8 text-center">
+            <p className="text-(--mv-ink-2)">
               For press inquiries, interview requests, or additional assets, please reach out to:
             </p>
             <a
               href="mailto:support@motovault.app"
-              className="mt-4 inline-block text-xl font-bold text-warm-400 underline underline-offset-4 hover:text-warm-300"
+              className="mt-4 inline-block text-xl font-bold text-(--mv-copper-text) underline underline-offset-4 hover:text-(--mv-copper-hover)"
             >
               support@motovault.app
             </a>
-            <p className="mt-6 text-sm text-neutral-500">
+            <p className="mt-6 text-sm text-(--mv-ink-3)">
               We aim to respond to all press inquiries within 24 hours.
             </p>
             <div className="mt-8">
               <Link
                 href="/"
-                className="text-sm text-neutral-400 underline underline-offset-2 hover:text-neutral-300"
+                className="text-sm text-(--mv-ink-3) underline underline-offset-2 hover:text-(--mv-ink)"
               >
                 Back to Home
               </Link>

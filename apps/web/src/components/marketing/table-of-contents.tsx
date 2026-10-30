@@ -10,9 +10,9 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
   return (
     <details
       open
-      className="mb-10 rounded-xl border border-neutral-800 bg-neutral-800/60 px-6 py-4"
+      className="mb-10 rounded-xl border border-(--mv-line) bg-(--mv-surface) px-6 py-4"
     >
-      <summary className="cursor-pointer text-sm font-semibold text-amber-500 select-none">
+      <summary className="cursor-pointer text-sm font-semibold text-(--mv-ink) select-none">
         Table of Contents
       </summary>
       <nav aria-label="Table of contents" className="mt-3">
@@ -21,7 +21,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
             <li key={heading.id} className={heading.level === 3 ? 'pl-4' : ''}>
               <a
                 href={`#${heading.id}`}
-                className="text-sm text-neutral-300 transition-colors hover:text-amber-400"
+                className="text-sm text-(--mv-ink-2) transition-colors hover:text-(--mv-copper-text)"
               >
                 {heading.text}
               </a>

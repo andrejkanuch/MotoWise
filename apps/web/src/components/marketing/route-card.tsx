@@ -20,9 +20,8 @@ function twistLabel(curvatureIndex: number): string {
 }
 
 function twistColorClass(curvatureIndex: number): string {
-  if (curvatureIndex >= 0.06) return 'bg-accent-500/20 text-accent-400';
-  if (curvatureIndex >= 0.03) return 'bg-primary-500/20 text-primary-400';
-  return 'bg-neutral-700/40 text-neutral-400';
+  if (curvatureIndex >= 0.03) return 'bg-(--mv-surface-2) text-(--mv-ink)';
+  return 'bg-(--mv-surface-2) text-(--mv-ink-2)';
 }
 
 function surfaceLabel(surfaceType: string): string {
@@ -45,12 +44,12 @@ function getDifficulty(
   const ci = curvature ?? 0;
   const elev = elevation ?? 0;
   if (ci >= 0.06 || elev >= 2000)
-    return { label: 'Expert', colorClass: 'bg-red-500/15 text-red-400' };
+    return { label: 'Expert', colorClass: 'bg-(--mv-surface-2) text-(--mv-ink)' };
   if (ci >= 0.03 || elev >= 1000)
-    return { label: 'Hard', colorClass: 'bg-orange-500/15 text-orange-400' };
+    return { label: 'Hard', colorClass: 'bg-(--mv-surface-2) text-(--mv-ink)' };
   if (ci >= 0.015 || elev >= 500)
-    return { label: 'Moderate', colorClass: 'bg-yellow-500/15 text-yellow-400' };
-  return { label: 'Easy', colorClass: 'bg-green-500/15 text-green-400' };
+    return { label: 'Moderate', colorClass: 'bg-(--mv-surface-2) text-(--mv-ink-2)' };
+  return { label: 'Easy', colorClass: 'bg-(--mv-surface-2) text-(--mv-ink-2)' };
 }
 
 function estimateTime(distanceM: number, surfaceType?: string | null): string {
@@ -83,7 +82,7 @@ export function RouteCard({ route }: { route: RouteListItem }) {
   return (
     <Link
       href={href}
-      className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-800/40 bg-neutral-900/40 transition-all duration-300 hover:border-neutral-700/60 hover:bg-neutral-900/60"
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-(--mv-line) bg-(--mv-surface) transition-all duration-300 hover:border-(--mv-line-step) hover:bg-(--mv-surface-2)"
     >
       {/* Map thumbnail */}
       <div className="relative aspect-[5/3] w-full overflow-hidden">
@@ -96,13 +95,11 @@ export function RouteCard({ route }: { route: RouteListItem }) {
           loading="lazy"
         />
 
-        {/* Gradient overlay */}
-        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-neutral-950/60 to-transparent" />
 
         {/* Twist score badge */}
         {route.curvatureIndex != null && route.curvatureIndex > 0 && (
           <span
-            className={`absolute right-3 top-3 z-10 rounded-full px-2 py-0.5 text-xs font-semibold backdrop-blur-sm ${twistColorClass(route.curvatureIndex)}`}
+            className={`absolute right-3 top-3 z-10 rounded-full px-2 py-0.5 text-xs font-semibold ${twistColorClass(route.curvatureIndex)}`}
           >
             {twistLabel(route.curvatureIndex)}
           </span>
@@ -111,12 +108,12 @@ export function RouteCard({ route }: { route: RouteListItem }) {
 
       {/* Content */}
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 text-base font-semibold leading-snug text-neutral-50 transition-colors group-hover:text-warm-400">
+        <h3 className="line-clamp-2 text-base font-semibold leading-snug text-(--mv-ink) transition-colors group-hover:text-(--mv-copper-text)">
           {name}
         </h3>
 
         {/* Stats row */}
-        <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-neutral-400">
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-(--mv-ink-2)">
           <span className="flex items-center gap-1">
             <svg
               viewBox="0 0 24 24"
@@ -174,8 +171,8 @@ export function RouteCard({ route }: { route: RouteListItem }) {
                     viewBox="0 0 20 20"
                     className={`size-3.5 ${
                       starIndex < Math.round(route.ratingAvg ?? 0)
-                        ? 'fill-warm-400 text-warm-400'
-                        : 'fill-neutral-700 text-neutral-700'
+                        ? 'fill-(--mv-ink-2) text-(--mv-ink-2)'
+                        : 'fill-(--mv-surface-3) text-(--mv-surface-3)'
                     }`}
                     aria-hidden="true"
                   >
@@ -183,14 +180,14 @@ export function RouteCard({ route }: { route: RouteListItem }) {
                   </svg>
                 ))}
               </div>
-              <span className="text-xs text-neutral-400">{route.ratingAvg.toFixed(1)}</span>
+              <span className="text-xs text-(--mv-ink-3)">{route.ratingAvg.toFixed(1)}</span>
             </div>
           )}
           <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${diff.colorClass}`}>
             {diff.label}
           </span>
           {route.surfaceType && route.surfaceType !== 'unknown' && (
-            <span className="text-xs text-neutral-500">{surfaceLabel(route.surfaceType)}</span>
+            <span className="text-xs text-(--mv-ink-3)">{surfaceLabel(route.surfaceType)}</span>
           )}
         </div>
       </div>

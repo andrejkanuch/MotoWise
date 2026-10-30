@@ -99,42 +99,62 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
   };
 }
 
+// Typography-plugin colours routed through the Trackside tokens so the page
+// follows both schemes (prose-invert hardcoded dark-only greys).
+const proseTokens = {
+  '--tw-prose-body': 'var(--mv-ink-2)',
+  '--tw-prose-headings': 'var(--mv-ink)',
+  '--tw-prose-links': 'var(--mv-copper-text)',
+  '--tw-prose-bold': 'var(--mv-ink)',
+  '--tw-prose-counters': 'var(--mv-ink-3)',
+  '--tw-prose-bullets': 'var(--mv-ink-4)',
+  '--tw-prose-hr': 'var(--mv-line)',
+  '--tw-prose-quotes': 'var(--mv-ink)',
+  '--tw-prose-quote-borders': 'var(--mv-line)',
+  '--tw-prose-captions': 'var(--mv-ink-3)',
+  '--tw-prose-code': 'var(--mv-ink)',
+  '--tw-prose-pre-code': 'var(--mv-ink-2)',
+  '--tw-prose-pre-bg': 'var(--mv-surface)',
+  '--tw-prose-th-borders': 'var(--mv-line-step)',
+  '--tw-prose-td-borders': 'var(--mv-line)',
+} as React.CSSProperties;
+
 const mdxComponents = {
   h2: (props: React.ComponentProps<'h2'>) => (
-    <h2 className="mt-12 mb-4 text-2xl font-bold text-neutral-50" {...props} />
+    <h2 className="mt-12 mb-4 text-2xl font-bold text-(--mv-ink)" {...props} />
   ),
   h3: (props: React.ComponentProps<'h3'>) => (
-    <h3 className="mt-8 mb-3 text-xl font-semibold text-neutral-100" {...props} />
+    <h3 className="mt-8 mb-3 text-xl font-semibold text-(--mv-ink)" {...props} />
   ),
   p: (props: React.ComponentProps<'p'>) => (
-    <p className="mb-4 leading-relaxed text-neutral-300" {...props} />
+    <p className="mb-4 leading-relaxed text-(--mv-ink-2)" {...props} />
   ),
   a: (props: React.ComponentProps<'a'>) => (
-    <a className="text-amber-400 underline hover:text-amber-300" {...props} />
+    <a className="text-(--mv-copper-text) underline hover:text-(--mv-copper-hover)" {...props} />
   ),
   ul: (props: React.ComponentProps<'ul'>) => (
-    <ul className="mb-4 list-disc space-y-1 pl-6 text-neutral-300" {...props} />
+    <ul className="mb-4 list-disc space-y-1 pl-6 text-(--mv-ink-2)" {...props} />
   ),
   ol: (props: React.ComponentProps<'ol'>) => (
-    <ol className="mb-4 list-decimal space-y-1 pl-6 text-neutral-300" {...props} />
+    <ol className="mb-4 list-decimal space-y-1 pl-6 text-(--mv-ink-2)" {...props} />
   ),
-  li: (props: React.ComponentProps<'li'>) => <li className="text-neutral-300" {...props} />,
+  li: (props: React.ComponentProps<'li'>) => <li className="text-(--mv-ink-2)" {...props} />,
   strong: (props: React.ComponentProps<'strong'>) => (
-    <strong className="text-neutral-200" {...props} />
+    <strong className="text-(--mv-ink)" {...props} />
   ),
   table: (props: React.ComponentProps<'table'>) => (
     <div className="mb-6 overflow-x-auto">
-      <table className="w-full border-collapse text-sm text-neutral-300" {...props} />
+      <table className="w-full border-collapse text-sm text-(--mv-ink-2)" {...props} />
     </div>
   ),
   th: (props: React.ComponentProps<'th'>) => (
     <th
-      className="border border-neutral-700 bg-neutral-800 px-4 py-2 text-left font-semibold text-neutral-200"
+      className="border border-(--mv-line-step) bg-(--mv-surface-2) px-4 py-2 text-left font-semibold text-(--mv-ink)"
       {...props}
     />
   ),
   td: (props: React.ComponentProps<'td'>) => (
-    <td className="border border-neutral-800 px-4 py-2" {...props} />
+    <td className="border border-(--mv-line) px-4 py-2" {...props} />
   ),
 };
 
@@ -296,21 +316,21 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     <>
       <JsonLdGraph nodes={graph} />
       <article className="mx-auto max-w-3xl px-6 py-24">
-        <nav className="mb-8 flex items-center gap-2 text-sm text-neutral-500">
-          <Link href="/" className="hover:text-neutral-300">
+        <nav className="mb-8 flex items-center gap-2 text-sm text-(--mv-ink-3)">
+          <Link href="/" className="hover:text-(--mv-ink)">
             Home
           </Link>
           <span aria-hidden="true">/</span>
-          <Link href="/blog" className="hover:text-neutral-300">
+          <Link href="/blog" className="hover:text-(--mv-ink)">
             Blog
           </Link>
           <span aria-hidden="true">/</span>
-          <span className="text-neutral-400 truncate">{article.title}</span>
+          <span className="text-(--mv-ink-2) truncate">{article.title}</span>
         </nav>
 
         <Link
           href="/blog"
-          className="mb-6 inline-block text-sm font-medium text-amber-400 transition-colors hover:text-amber-300"
+          className="mb-6 inline-block text-sm font-medium text-(--mv-copper-text) transition-colors hover:text-(--mv-copper-hover)"
         >
           &larr; {t('backToBlog')}
         </Link>
@@ -328,13 +348,13 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
               />
             </div>
           )}
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-(--mv-ink) sm:text-4xl">
             {article.title}
           </h1>
           <div className="mt-5">
             <AuthorByline author={author} date={article.date} />
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-neutral-500">
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-(--mv-ink-3)">
             <span>
               {article.readingTime} {t('readingTime')}
             </span>
@@ -343,7 +363,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
         <TableOfContents headings={headings} />
 
-        <div className="prose prose-invert max-w-none">
+        <div className="prose max-w-none" style={proseTokens}>
           {head}
           {tail && (
             <div className="not-prose">
@@ -360,7 +380,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
         <section
           aria-label="Data disclaimer"
-          className="mt-12 flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-neutral-900/50 p-5"
+          className="mt-12 flex items-start gap-3 rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-5"
         >
           <svg
             aria-hidden="true"
@@ -370,13 +390,13 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="mt-0.5 h-5 w-5 shrink-0 text-amber-400"
+            className="mt-0.5 h-5 w-5 shrink-0 text-(--mv-ink-3)"
           >
             <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
             <path d="M12 9v4" />
             <path d="M12 17h.01" />
           </svg>
-          <p className="text-sm leading-relaxed text-amber-200/90">
+          <p className="text-sm leading-relaxed text-(--mv-ink-2)">
             {article.specData === true
               ? "The figures in this article are informative only and can vary by model year and market. Always verify every specification against your official owner's and service manual before performing any maintenance."
               : "This article is for general information only. Always confirm details against official manufacturer documentation and your owner's manual before acting on them."}
@@ -385,22 +405,22 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
         {article.faq && article.faq.length > 0 && (
           <section className="mt-16" aria-labelledby="faq-heading">
-            <h2 id="faq-heading" className="mb-6 text-2xl font-bold text-neutral-50">
+            <h2 id="faq-heading" className="mb-6 text-2xl font-bold text-(--mv-ink)">
               Frequently Asked Questions
             </h2>
-            <div className="divide-y divide-neutral-800 border-y border-neutral-800">
+            <div className="divide-y divide-(--mv-line) border-y border-(--mv-line)">
               {article.faq.map((item) => (
                 <details key={item.question} className="group py-4">
-                  <summary className="flex cursor-pointer items-center justify-between gap-4 text-base font-semibold text-neutral-100 marker:content-none">
+                  <summary className="flex cursor-pointer items-center justify-between gap-4 text-base font-semibold text-(--mv-ink) marker:content-none">
                     {item.question}
                     <span
                       aria-hidden="true"
-                      className="text-amber-400 transition-transform group-open:rotate-45"
+                      className="text-(--mv-ink-4) transition-transform group-open:rotate-45"
                     >
                       +
                     </span>
                   </summary>
-                  <p className="mt-3 leading-relaxed text-neutral-300">{item.answer}</p>
+                  <p className="mt-3 leading-relaxed text-(--mv-ink-2)">{item.answer}</p>
                 </details>
               ))}
             </div>
@@ -425,19 +445,19 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
         {related.length > 0 && (
           <section className="mt-16">
-            <h2 className="mb-6 text-xl font-semibold text-neutral-100">Related Articles</h2>
+            <h2 className="mb-6 text-xl font-semibold text-(--mv-ink)">Related Articles</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((relatedArticle) => (
                 <Link
                   key={relatedArticle.slug}
                   href={`/blog/${relatedArticle.slug}`}
-                  className="group rounded-xl border border-neutral-800 bg-neutral-900/50 p-5 transition-colors hover:border-amber-500/30"
+                  className="group rounded-xl border border-(--mv-line) bg-(--mv-surface) p-5 transition-colors hover:border-(--mv-line-step)"
                 >
-                  <h3 className="mb-2 text-sm font-semibold text-neutral-200 group-hover:text-amber-400 line-clamp-2">
+                  <h3 className="mb-2 text-sm font-semibold text-(--mv-ink) group-hover:text-(--mv-copper-text) line-clamp-2">
                     {relatedArticle.title}
                   </h3>
-                  <p className="text-xs text-neutral-500 line-clamp-2">{relatedArticle.excerpt}</p>
-                  <span className="mt-3 inline-block text-xs text-amber-400">
+                  <p className="text-xs text-(--mv-ink-3) line-clamp-2">{relatedArticle.excerpt}</p>
+                  <span className="mt-3 inline-block text-xs text-(--mv-ink-3)">
                     {relatedArticle.readingTime} min read
                   </span>
                 </Link>

@@ -1,14 +1,23 @@
 import { getTranslations } from 'next-intl/server';
-import { ProofStat } from './proof-stat';
 
 interface ProofSectionProps {
   appStoreRating?: { ratingValue: string; reviewCount: string } | null;
 }
 
+interface ProofStat {
+  value: string;
+  suffix?: string;
+  label: string;
+}
+
+/** The page's one stat row: honest figures in the condensed face with tabular
+ *  numerals, left-aligned on the page surface, hairlines above and below
+ *  (the `.mv-section-stats` shell). Server-rendered — crawlers and no-JS
+ *  users always see the real numbers. */
 export async function ProofSection({ appStoreRating }: ProofSectionProps) {
   const t = await getTranslations('Proof');
 
-  const stats = [
+  const stats: ProofStat[] = [
     { value: '4', label: t('toolsLabel') },
     { value: '0', suffix: ` ${t('obdSuffix')}`, label: t('cameraLabel') },
     { value: '100', suffix: '%', label: t('freeLabel') },
@@ -24,34 +33,38 @@ export async function ProofSection({ appStoreRating }: ProofSectionProps) {
   ];
 
   return (
-    <section
-      id="proof"
-      style={{
-        padding: '120px 40px',
-        maxWidth: 'var(--mv-container)',
-        margin: '0 auto',
-        borderTop: '1px solid var(--mv-line)',
-        borderBottom: '1px solid var(--mv-line)',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '48px',
-      }}
-      className="proof-grid"
-    >
+    <section id="proof" className="mv-section-stats mv-grid-stats">
       {stats.map((stat) => (
-        <ProofStat key={stat.label} value={stat.value} suffix={stat.suffix} label={stat.label} />
+        <div key={stat.label}>
+          <div
+            className="mv-figure"
+            style={{
+              fontSize: 'clamp(40px, 4.5vw, 64px)',
+              lineHeight: 1,
+              color: 'var(--mv-ink)',
+            }}
+          >
+            {stat.value}
+            {stat.suffix && (
+              <span style={{ fontSize: '0.45em', fontWeight: 500, color: 'var(--mv-ink-2)' }}>
+                {stat.suffix}
+              </span>
+            )}
+          </div>
+          <div
+            style={{
+              marginTop: '12px',
+              color: 'var(--mv-ink-3)',
+              fontSize: '14px',
+              lineHeight: 1.5,
+              maxWidth: '240px',
+              letterSpacing: '-0.005em',
+            }}
+          >
+            {stat.label}
+          </div>
+        </div>
       ))}
-
-      <style
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: static CSS
-        dangerouslySetInnerHTML={{
-          __html: `
-            @media (max-width: 820px) {
-              .proof-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 40px !important; padding: 80px 24px !important; }
-            }
-          `,
-        }}
-      />
     </section>
   );
 }

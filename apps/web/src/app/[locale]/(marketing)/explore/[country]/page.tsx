@@ -142,14 +142,10 @@ export default async function CountryPage({ params }: PageProps) {
       {/* Hero */}
       <section className="px-6 pb-16 pt-8 md:pb-24 md:pt-12">
         <div className="reveal-on-scroll mx-auto max-w-4xl">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            {country.name}
-          </p>
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
+          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-(--mv-ink) sm:text-4xl lg:text-5xl">
             {title}
           </h1>
-          <div className="mx-auto mt-6 h-1.5 w-32 rounded-full bg-signature-500" />
-          <p className="mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">{description}</p>
+          <p className="mt-6 max-w-2xl text-lg text-(--mv-ink-2) md:text-xl">{description}</p>
 
           {/* Country intro content */}
           {introContent && (
@@ -157,7 +153,7 @@ export default async function CountryPage({ params }: PageProps) {
               {introContent.map((paragraph) => (
                 <p
                   key={paragraph.slice(0, 40)}
-                  className="text-base leading-relaxed text-neutral-400"
+                  className="text-base leading-relaxed text-(--mv-ink-2)"
                 >
                   {paragraph}
                 </p>
@@ -171,22 +167,21 @@ export default async function CountryPage({ params }: PageProps) {
       {regions.length > 0 && (
         <section className="px-6 pb-16">
           <div className="mx-auto max-w-5xl">
-            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-neutral-50">Regions</h2>
+            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-(--mv-ink)">Regions</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {regions.map((region) => (
                 <Link
                   key={region.id}
                   href={`/explore/${countrySlug}/${region.slug}`}
-                  className="group relative overflow-hidden rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6 backdrop-blur-sm transition-colors hover:border-warm-500/40"
+                  className="group relative overflow-hidden rounded-xl border border-(--mv-line) bg-(--mv-surface) p-6 transition-colors hover:border-(--mv-line-step)"
                 >
-                  <div className="absolute inset-x-0 bottom-0 h-[3px] bg-transparent transition-colors duration-300 group-hover:bg-warm-500" />
-                  <h3 className="text-lg font-semibold text-neutral-50 transition-colors group-hover:text-warm-400">
+                  <h3 className="text-lg font-semibold text-(--mv-ink) transition-colors group-hover:text-(--mv-copper-text)">
                     {region.name}
                   </h3>
-                  <p className="mt-2 text-sm text-neutral-400">
+                  <p className="mt-2 text-sm text-(--mv-ink-2)">
                     {region.routeCount} {region.routeCount === 1 ? 'route' : 'routes'}
                   </p>
-                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-warm-400 transition-colors group-hover:text-warm-300">
+                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-(--mv-copper-text) transition-colors group-hover:text-(--mv-copper-hover)">
                     View routes
                     <svg
                       width="16"
@@ -214,7 +209,7 @@ export default async function CountryPage({ params }: PageProps) {
       {topRoutes.length > 0 && (
         <section className="px-6 pb-24">
           <div className="mx-auto max-w-5xl">
-            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-neutral-50">
+            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-(--mv-ink)">
               Top Routes in {country.name}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -230,7 +225,7 @@ export default async function CountryPage({ params }: PageProps) {
       {regions.length === 0 && topRoutes.length === 0 && (
         <section className="px-6 pb-24">
           <div className="mx-auto max-w-4xl text-center">
-            <p className="text-neutral-500">
+            <p className="text-(--mv-ink-3)">
               No routes available in {country.name} yet. Check back soon!
             </p>
           </div>

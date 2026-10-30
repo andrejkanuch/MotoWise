@@ -54,26 +54,26 @@ export async function AuthorByline({ author, date }: AuthorBylineProps) {
     <div className="flex items-center gap-3">
       <div
         aria-hidden="true"
-        className="flex size-10 shrink-0 items-center justify-center rounded-full border border-neutral-800 bg-neutral-900 text-xs font-semibold text-neutral-300"
+        className="flex size-10 shrink-0 items-center justify-center rounded-full border border-(--mv-line) bg-(--mv-surface-2) text-xs font-semibold text-(--mv-ink-2)"
       >
         {initials}
       </div>
       <div className="flex flex-col leading-tight">
-        <span className="text-sm text-neutral-300">
-          <span className="text-neutral-500">By </span>
-          <span className="font-medium text-neutral-200">{author.name}</span>
+        <span className="text-sm text-(--mv-ink-2)">
+          <span className="text-(--mv-ink-3)">By </span>
+          <span className="font-medium text-(--mv-ink)">{author.name}</span>
           {formattedDate && (
             <>
-              <span className="mx-1.5 text-neutral-600" aria-hidden="true">
+              <span className="mx-1.5 text-(--mv-ink-4)" aria-hidden="true">
                 ·
               </span>
-              <time dateTime={date} className="text-neutral-500">
+              <time dateTime={date} className="text-(--mv-ink-3)">
                 {formattedDate}
               </time>
             </>
           )}
         </span>
-        <span className="text-xs text-neutral-500">{author.role}</span>
+        <span className="text-xs text-(--mv-ink-3)">{author.role}</span>
       </div>
     </div>
   );

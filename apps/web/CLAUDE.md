@@ -46,12 +46,21 @@ Public marketing and SEO pages, signed-in rider pages (`/garage`, `/profile`, `/
 Mobile has its own: `apps/mobile/DESIGN.md` and `apps/mobile/PRODUCT.md`.
 
 - **Users**: motorcycle riders in Europe and the Americas who want one app for their moto life — rides, expenses, maintenance, the garage. Hands-on people who value their machines and want to feel in command of every detail.
-- **Brand**: rugged, premium, confident. A precision instrument built for riders, not a generic utility app: forged steel with a leather grip. The signature "exhaust copper" (#D4622E) anchors the identity.
-- **Tone**: dark, warm surfaces, never cold blue-gray; neutrals carry a 2-4% warm tint. Premium automotive meets activity tracker.
-- **References**: Strava/Komoot (data-rich but clean) and the Porsche/BMW companion apps (dark surfaces, precise typography).
-- **Anti-references**: generic SaaS dashboards, gamification (badges, streaks, cartoon icons), cluttered forum aesthetics, minimalism that loses personality.
-- **Theme**: dark only today — `src/providers/theme-provider.tsx` pins `dark`.
-- **Type**: Plus Jakarta Sans for UI, Instrument Serif for editorial and display moments, Geist Mono for data and code.
-- **Colour**: oklch tokens with full scales. Primary blue (trust), accent teal (growth), signature copper (identity), warm amber (encouragement); editorial warm tokens for content pages.
-- **Surfaces**: elevation by subtle transparency, not drop shadows. Cards are warm dark (#1E1C19, `--mv-card`), not pure black.
-- **Principles**: (1) rider-first hierarchy — surface what matters for the next ride, service or decision; (2) warm precision — engineered, never clinical; (3) confident density — depth without clutter, every element earns its space; (4) platform-native craft — web is a premium editorial experience (magazine layouts, rich typography), never mobile idioms forced onto it; (5) dark surfaces, bright data — bright colour only for interactive elements and key metrics.
+- **Brand**: rugged, premium, confident. A precision instrument built for riders, not a generic utility app. The signature "exhaust copper" (#D4622E) anchors the identity.
+- **World**: the marketing site speaks the mobile app's Race Plate system (`apps/mobile/DESIGN.md`) at web scale — direction "Trackside": ride photography carries emotion, the Race Plate voice carries everything else. The direction contract is `docs/design/web-race-plate-redesign/DIRECTION.md`; read it before styling any marketing surface.
+- **Colour**: graphite ramp + bone ink from `palette.plate*` / `palette.plateLight*`, exposed as `--mv-*` tokens in `src/components/marketing/design-system.css` (dark default, light under `html:not(.dark)`). Copper is the only action colour ("copper is a verb" — never status, never decoration, never glows). The bone/signal/red triad appears only inside depictions of the app (the Bike Plate, `src/components/marketing/bike-plate.tsx`). `--mv-warm-*` and `.mv-serif` are deprecated aliases — do not use in new code.
+- **Type**: Barlow Condensed (`--mv-font-display`, loaded in the root layout as `--font-plate`) for headlines and numbers (tabular figures); the system stack (`--mv-font-body`) for every sentence. No serif, no italic display, no mono labels, no letter-spaced uppercase, sentence case everywhere.
+- **Surfaces**: flat and tonal — lift by stepping up the ramp (bg → surface → surface-2 → surface-3), never drop shadows; blur budget is the navbar only. Controls radius 12, cards 16, the plate 20.
+- **Theme**: marketing pages ship BOTH schemes; the signed-in app (`src/providers/theme-provider.tsx`) still pins `dark`.
+- **Anti-references**: generic SaaS dashboards, gamification, AI-slop tells (card-wrapped everything, identical icon grids, centered everything, gradient text, glassmorphism, glows).
+- **Principles**: (1) rider-first hierarchy; (2) honest proof — real app objects and real numbers over decoration and vanity stats; (3) ≤1 card per section, spacing over dividers; (4) web-scale layouts and photography, never app chrome cosplay; (5) the logbook voice — records, service history, real costs; specific, honest, sentence case.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
