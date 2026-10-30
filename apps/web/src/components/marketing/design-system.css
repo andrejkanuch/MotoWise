@@ -488,8 +488,8 @@ html:not(.dark) .mv-plate {
 
 /* Settle-in: once, 240ms, exponential ease-out (mirrors the app) */
 @keyframes mv-plate-settle {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
+  from { transform: scale(0.98); }
+  to { transform: scale(1); }
 }
 .mv-plate {
   animation: mv-plate-settle 240ms var(--mv-ease-expo) both;
@@ -794,9 +794,6 @@ html:not(.dark) .mv-plate {
   margin: 24px 0 0;
   color: var(--mv-ink);
   max-width: 14ch;
-  opacity: 0;
-  transform: translateY(16px);
-  animation: mv-rise 0.6s 0.05s var(--mv-ease-expo) forwards;
 }
 
 .hero-hook {
@@ -808,9 +805,6 @@ html:not(.dark) .mv-plate {
   color: var(--mv-copper-text);
   text-decoration: none;
   letter-spacing: -0.005em;
-  opacity: 0;
-  transform: translateY(8px);
-  animation: mv-rise 0.6s var(--mv-ease-expo) forwards;
 }
 .hero-hook:hover { color: var(--mv-copper-hover); }
 .hero-hook svg { transition: transform 0.3s var(--mv-ease); }
@@ -823,16 +817,10 @@ html:not(.dark) .mv-plate {
   color: var(--mv-ink-2);
   margin: 24px 0 0;
   letter-spacing: -0.01em;
-  opacity: 0;
-  transform: translateY(12px);
-  animation: mv-rise 0.7s 0.3s var(--mv-ease-expo) forwards;
 }
 
 .hero-plate-slot {
   margin-top: 32px;
-  opacity: 0;
-  transform: translateY(12px);
-  animation: mv-rise 0.7s 0.45s var(--mv-ease-expo) forwards;
 }
 
 .hero-cta-row {
@@ -840,9 +828,6 @@ html:not(.dark) .mv-plate {
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 28px;
-  opacity: 0;
-  transform: translateY(12px);
-  animation: mv-rise 0.7s 0.6s var(--mv-ease-expo) forwards;
 }
 
 .hero-trust {
@@ -854,8 +839,6 @@ html:not(.dark) .mv-plate {
   font-weight: 500;
   letter-spacing: 0;
   margin-top: 20px;
-  opacity: 0;
-  animation: mv-rise 0.7s 0.75s var(--mv-ease-expo) forwards;
 }
 
 /* While the navbar floats over the hero photo (not scrolled) on a page
@@ -922,6 +905,18 @@ html:not(.dark) .mv-dark-scene .mv-plate {
     linear-gradient(180deg, rgba(17, 18, 20, 0.55) 0%, transparent 24%, transparent 55%, rgba(12, 13, 14, 0.92) 92%, var(--mv-bg-2) 100%);
 }
 
+/* Hero entrance: ONE authored rise on the content block. Load-time
+   entrances animate transform only — never opacity — so a stalled or
+   throttled animation can shift content, never hide it. (Scroll-driven
+   reveals may fade: their progress is position, not the clock.) */
+@keyframes hero-content-rise {
+  from { transform: translateY(18px); }
+  to { transform: translateY(0); }
+}
+.hero-content {
+  animation: hero-content-rise 0.8s var(--mv-ease-expo);
+}
+
 /* Hero photo settle: once, no loops */
 @keyframes hero-photo-settle {
   from { transform: scale(1.06); }
@@ -979,8 +974,7 @@ html:not(.dark) .mv-dark-scene .mv-plate {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-headline, .hero-hook, .hero-desc, .hero-plate-slot,
-  .hero-cta-row, .hero-trust, .hero-photo, .mv-plate {
+  .hero-content, .hero-photo, .mv-plate {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;

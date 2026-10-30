@@ -33,11 +33,11 @@ export default async function Page({ params }: PageProps) {
       route="/features/expense-tracking"
       screenshots={[
         {
-          src: '/images/features/expenses.png',
+          src: '/images/marketing/mw/flow-add-expense.png',
           alt: 'MotoVault expense dashboard with category breakdown and cost-per-mile',
         },
         {
-          src: '/images/features/home-dashboard.jpg',
+          src: '/images/marketing/mw/expense-insights.png',
           alt: 'MotoVault dashboard showing monthly spending trends',
         },
       ]}

@@ -37,7 +37,7 @@ export default async function Page({ params }: PageProps) {
           alt: 'MotoVault ride list with distance and speed',
         },
         {
-          src: '/images/features/home.png',
+          src: '/images/marketing/mw/trip-detail-hero.png',
           alt: 'MotoVault ride detail with route map and elevation profile',
         },
       ]}

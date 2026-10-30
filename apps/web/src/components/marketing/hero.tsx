@@ -68,6 +68,7 @@ export function Hero() {
 
       {/* Main content */}
       <div
+        className="hero-content"
         style={{
           maxWidth: 'var(--mv-container)',
           margin: '0 auto',

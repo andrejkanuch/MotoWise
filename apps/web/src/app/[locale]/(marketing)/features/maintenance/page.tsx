@@ -33,11 +33,11 @@ export default async function Page({ params }: PageProps) {
       route="/features/maintenance"
       screenshots={[
         {
-          src: '/images/features/maintenance.png',
+          src: '/images/marketing/mw/flow-add-maintenance.png',
           alt: 'MotoVault maintenance log with service history and reminders',
         },
         {
-          src: '/images/features/alerts.png',
+          src: '/images/marketing/mw/service-history.png',
           alt: 'MotoVault upcoming service reminders and overdue tasks',
         },
       ]}
