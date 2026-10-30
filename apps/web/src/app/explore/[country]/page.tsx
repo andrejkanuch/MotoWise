@@ -154,6 +154,7 @@ export default async function CountryPage({ params }: PageProps) {
           <ResultsMobile
             allTrips={trips}
             country={country.name}
+            countryCode={code}
             mapCenter={center}
             mapZoom={zoom}
           />

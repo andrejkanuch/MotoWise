@@ -23,6 +23,8 @@ type MaintenanceTier = keyof typeof MAINTENANCE_COSTS;
 const TIRES_ANNUAL = 400;
 const REGISTRATION_ANNUAL = 200;
 
+const COPIED_RESET_MS = 2000;
+
 function parseNum(val: string | null, fallback: number): number {
   if (!val) return fallback;
   const n = Number.parseFloat(val);
@@ -98,6 +100,7 @@ export function CostCalculator({ labels }: { labels: Labels }) {
     () => (searchParams.get('maintenance') as MaintenanceTier) || 'moderate',
   );
   const [hasInput, setHasInput] = useState(() => searchParams.toString().length > 0);
+  const [copied, setCopied] = useState(false);
 
   // Dispatch table: URL param key → local state updater. Avoids a per-field
   // branch and keeps the JSX onChange handlers unchanged.
@@ -143,235 +146,216 @@ export function CostCalculator({ labels }: { labels: Labels }) {
     };
   }, [bikeType, mileage, fuelPrice, insurance, maintenance]);
 
-  return (
-    <section className="px-4 py-8">
-      <div className="mx-auto max-w-5xl">
-        <div className="grid gap-8 lg:grid-cols-2">
-          {/* Input Panel */}
-          <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-8">
-            <h2 className="mb-6 text-xl font-bold text-(--mv-ink)">{labels.ridingProfile}</h2>
+  const copyLink = () => {
+    // Swallow rejection — clipboard can be blocked in insecure contexts /
+    // restricted webviews.
+    navigator.clipboard
+      ?.writeText(window.location.href)
+      .then(() => {
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), COPIED_RESET_MS);
+      })
+      .catch(() => {});
+    trackEvent(WebEvent.TOOL_USED, {
+      tool: 'cost_calculator',
+      action: 'result_shared',
+      bike_type: bikeType,
+      annual_mileage: mileage,
+      maintenance_tier: maintenance,
+    });
+  };
 
-            {/* Bike Type */}
-            <div className="mb-6">
-              <label
-                htmlFor="bike-type"
-                className="mb-2 block text-sm font-medium text-(--mv-ink-2)"
-              >
-                {labels.bikeType}
-              </label>
+  return (
+    <section className="mv-tool" style={{ paddingTop: 56 }}>
+      <div className="mv-tool-grid">
+        {/* Inputs sit on the page: labels in the body face, fields on surface-2 */}
+        <form onSubmit={(e) => e.preventDefault()}>
+          <h2 className="mv-tool-h2">{labels.ridingProfile}</h2>
+
+          <div className="mv-field">
+            <label htmlFor="bike-type">{labels.bikeType}</label>
+            <div className="mv-select">
               <select
                 id="bike-type"
                 value={bikeType}
                 onChange={(e) => updateParam('type', e.target.value)}
-                className="w-full rounded-xl border border-(--mv-line-step) bg-(--mv-surface-2) px-4 py-3 text-sm text-(--mv-ink) outline-none transition-colors focus:border-(--mv-copper)"
+                className="mv-field-input"
               >
                 {Object.entries(BIKE_TYPES).map(([key, { mpg }]) => (
                   <option key={key} value={key}>
-                    {labels.bikeTypes[key] ?? key} (~{mpg} MPG)
+                    {labels.bikeTypes[key] ?? key} · {mpg} {labels.mpgAvg}
                   </option>
                 ))}
               </select>
-            </div>
-
-            {/* Annual Mileage */}
-            <div className="mb-6">
-              <label htmlFor="mileage" className="mb-2 block text-sm font-medium text-(--mv-ink-2)">
-                {labels.annualMileage}
-              </label>
-              <input
-                id="mileage"
-                type="number"
-                min={0}
-                max={100000}
-                step={500}
-                value={mileage}
-                onChange={(e) => updateParam('miles', e.target.value)}
-                className="w-full rounded-xl border border-(--mv-line-step) bg-(--mv-surface-2) px-4 py-3 text-sm text-(--mv-ink) outline-none transition-colors focus:border-(--mv-copper)"
-              />
-            </div>
-
-            {/* Fuel Price */}
-            <div className="mb-6">
-              <label
-                htmlFor="fuel-price"
-                className="mb-2 block text-sm font-medium text-(--mv-ink-2)"
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
               >
-                {labels.fuelPriceLabel}
-              </label>
-              <input
-                id="fuel-price"
-                type="number"
-                min={0}
-                max={20}
-                step={0.1}
-                value={fuelPrice}
-                onChange={(e) => updateParam('fuel', e.target.value)}
-                className="w-full rounded-xl border border-(--mv-line-step) bg-(--mv-surface-2) px-4 py-3 text-sm text-(--mv-ink) outline-none transition-colors focus:border-(--mv-copper)"
-              />
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
             </div>
+          </div>
 
-            {/* Insurance */}
-            <div className="mb-6">
-              <label
-                htmlFor="insurance"
-                className="mb-2 block text-sm font-medium text-(--mv-ink-2)"
-              >
-                {labels.insuranceLabel}
-              </label>
-              <input
-                id="insurance"
-                type="number"
-                min={0}
-                max={50000}
-                step={50}
-                value={insurance}
-                onChange={(e) => updateParam('insurance', e.target.value)}
-                className="w-full rounded-xl border border-(--mv-line-step) bg-(--mv-surface-2) px-4 py-3 text-sm text-(--mv-ink) outline-none transition-colors focus:border-(--mv-copper)"
-              />
+          <div className="mv-field">
+            <label htmlFor="mileage">{labels.annualMileage}</label>
+            <input
+              id="mileage"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={100000}
+              step={500}
+              value={mileage}
+              onChange={(e) => updateParam('miles', e.target.value)}
+              className="mv-field-input"
+              style={{ fontVariantNumeric: 'tabular-nums' }}
+            />
+          </div>
+
+          <div className="mv-field">
+            <label htmlFor="fuel-price">{labels.fuelPriceLabel}</label>
+            <input
+              id="fuel-price"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              max={20}
+              step={0.1}
+              value={fuelPrice}
+              onChange={(e) => updateParam('fuel', e.target.value)}
+              className="mv-field-input"
+              style={{ fontVariantNumeric: 'tabular-nums' }}
+            />
+          </div>
+
+          <div className="mv-field">
+            <label htmlFor="insurance">{labels.insuranceLabel}</label>
+            <input
+              id="insurance"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={50000}
+              step={50}
+              value={insurance}
+              onChange={(e) => updateParam('insurance', e.target.value)}
+              className="mv-field-input"
+              style={{ fontVariantNumeric: 'tabular-nums' }}
+            />
+          </div>
+
+          <fieldset className="mv-field" style={{ border: 0, padding: 0, margin: 0 }}>
+            <legend
+              style={{
+                padding: 0,
+                marginBottom: 4,
+                fontSize: 15,
+                fontWeight: 500,
+                color: 'var(--mv-ink-2)',
+              }}
+            >
+              {labels.maintenanceTier}
+            </legend>
+            <div className="mv-choice-list">
+              {(Object.keys(MAINTENANCE_COSTS) as MaintenanceTier[]).map((key) => {
+                const tier = labels.maintenanceTiers[key];
+                const cost = MAINTENANCE_COSTS[key];
+                return (
+                  <label key={key} className="mv-choice">
+                    <input
+                      type="radio"
+                      name="maintenance"
+                      value={key}
+                      checked={maintenance === key}
+                      onChange={(e) => updateParam('maintenance', e.target.value)}
+                    />
+                    <span className="mv-choice-title">{tier?.label ?? key}</span>
+                    <span className="mv-figure">
+                      {formatCurrency(cost)}
+                      <span className="mv-route-unit">{labels.perYear}</span>
+                    </span>
+                    <span className="mv-choice-desc">{tier?.desc}</span>
+                  </label>
+                );
+              })}
             </div>
+          </fieldset>
+        </form>
 
-            {/* Maintenance Tier */}
+        {/* Results: the one surface on the page, figures in the condensed face */}
+        <div className="mv-tool-results" aria-live="polite">
+          <h2 className="mv-tool-h2">{labels.annualBreakdown}</h2>
+          <dl className="mv-tool-rows">
+            <CostRow
+              label={labels.fuel}
+              sublabel={`${results.mpg} ${labels.mpgAvg}`}
+              amount={results.fuelCost}
+            />
+            <CostRow label={labels.insurance} amount={results.insurance} />
+            <CostRow
+              label={labels.maintenance}
+              sublabel={labels.maintenanceTiers[maintenance]?.label}
+              amount={results.maintenanceCost}
+            />
+            <CostRow label={labels.tires} amount={results.tires} />
+            <CostRow label={labels.registrationFees} amount={results.registration} />
+            <div className="mv-tool-row is-total">
+              <dt>{labels.annualTotal}</dt>
+              <dd className="mv-figure">{formatCurrency(results.total)}</dd>
+            </div>
+          </dl>
+
+          <div className="mv-tool-stats">
             <div>
-              <span className="mb-3 block text-sm font-medium text-(--mv-ink-2)">
-                {labels.maintenanceTier}
+              <span className="mv-figure">{formatCurrencyPrecise(results.costPerMile)}</span>
+              <span>{labels.costPerMile}</span>
+            </div>
+            <div>
+              <span className="mv-figure">{formatCurrency(results.total / 12)}</span>
+              <span>
+                {labels.monthlyAverage}, {labels.perMonth}
               </span>
-              <div className="space-y-3">
-                {(Object.keys(MAINTENANCE_COSTS) as MaintenanceTier[]).map((key) => {
-                  const tier = labels.maintenanceTiers[key];
-                  const cost = MAINTENANCE_COSTS[key];
-                  return (
-                    <label
-                      key={key}
-                      className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${
-                        maintenance === key
-                          ? 'border-(--mv-copper) bg-(--mv-surface-2)'
-                          : 'border-(--mv-line) bg-(--mv-surface) hover:border-(--mv-line-step)'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="maintenance"
-                        value={key}
-                        checked={maintenance === key}
-                        onChange={(e) => updateParam('maintenance', e.target.value)}
-                        className="mt-0.5 accent-(--mv-copper)"
-                      />
-                      <div>
-                        <span className="font-medium text-(--mv-ink)">
-                          {tier?.label ?? key}{' '}
-                          <span className="text-(--mv-ink-3)">
-                            &mdash; {formatCurrency(cost)}
-                            {labels.perYear}
-                          </span>
-                        </span>
-                        <p className="mt-0.5 text-xs text-(--mv-ink-3)">{tier?.desc}</p>
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
+            </div>
+            <div>
+              <span className="mv-figure">{formatCurrency(results.fiveYear)}</span>
+              <span>{labels.fiveYearProjection}</span>
             </div>
           </div>
 
-          {/* Results Panel */}
-          <div>
-            <div className="sticky top-24 space-y-6">
-              <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-8">
-                <h2 className="mb-6 text-xl font-bold text-(--mv-ink)">{labels.annualBreakdown}</h2>
-                <div className="space-y-4">
-                  <CostRow
-                    label={labels.fuel}
-                    sublabel={`${results.mpg} ${labels.mpgAvg}`}
-                    amount={results.fuelCost}
-                  />
-                  <CostRow label={labels.insurance} amount={results.insurance} />
-                  <CostRow
-                    label={labels.maintenance}
-                    sublabel={labels.maintenanceTiers[maintenance]?.label}
-                    amount={results.maintenanceCost}
-                  />
-                  <CostRow label={labels.tires} amount={results.tires} />
-                  <CostRow label={labels.registrationFees} amount={results.registration} />
-                  <div className="border-t border-(--mv-line-step) pt-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-(--mv-ink)">
-                        {labels.annualTotal}
-                      </span>
-                      <span className="mv-figure text-2xl text-(--mv-ink)">
-                        {formatCurrency(results.total)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6 text-center">
-                  <p className="text-sm text-(--mv-ink-3)">{labels.costPerMile}</p>
-                  <p className="mv-figure mt-1 text-2xl text-(--mv-ink)">
-                    {formatCurrencyPrecise(results.costPerMile)}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6 text-center">
-                  <p className="text-sm text-(--mv-ink-3)">{labels.fiveYearProjection}</p>
-                  <p className="mv-figure mt-1 text-2xl text-(--mv-ink)">
-                    {formatCurrency(results.fiveYear)}
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6 text-center">
-                <p className="text-sm text-(--mv-ink-3)">{labels.monthlyAverage}</p>
-                <p className="mv-figure mt-1 text-3xl text-(--mv-ink)">
-                  {formatCurrency(results.total / 12)}
-                </p>
-                <p className="mt-1 text-xs text-(--mv-ink-3)">{labels.perMonth}</p>
-              </div>
-
-              {hasInput && (
-                <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6 text-center">
-                  <p className="mb-3 text-sm text-(--mv-ink-3)">{labels.shareResults}</p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // Swallow rejection — clipboard can be blocked in
-                      // insecure contexts / restricted webviews.
-                      navigator.clipboard?.writeText(window.location.href).catch(() => {});
-                      trackEvent(WebEvent.TOOL_USED, {
-                        tool: 'cost_calculator',
-                        action: 'result_shared',
-                        bike_type: bikeType,
-                        annual_mileage: mileage,
-                        maintenance_tier: maintenance,
-                      });
-                    }}
-                    className="rounded-full bg-(--mv-surface-2) px-6 py-2 text-sm font-medium text-(--mv-ink) transition-colors hover:bg-(--mv-surface-3)"
-                  >
-                    {labels.copyLink}
-                  </button>
-                </div>
-              )}
-
-              <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6 text-center">
-                <p
-                  className="mb-3 text-sm text-(--mv-ink-2)"
-                  // biome-ignore lint/security/noDangerouslySetInnerHtml: translated HTML with <strong>
-                  dangerouslySetInnerHTML={{ __html: labels.trackActualCosts }}
-                />
-                <a
-                  {...storeAnchorProps(platform, {
-                    pageType: CtaPageType.Tool,
-                    placement: CtaPlacement.Inline,
-                    slug: 'cost-calculator',
-                    referrerParams: { utm_source: 'tool', utm_campaign: 'cost_calculator' },
-                  })}
-                  className="inline-block rounded-full bg-(--mv-copper) px-8 py-3 text-sm font-semibold text-(--mv-on-copper) transition-colors hover:bg-(--mv-copper-hover)"
-                >
-                  {labels.getEarlyAccess}
-                </a>
-              </div>
-            </div>
+          <div className="mv-tool-actions">
+            <a
+              {...storeAnchorProps(platform, {
+                pageType: CtaPageType.Tool,
+                placement: CtaPlacement.Inline,
+                slug: 'cost-calculator',
+                referrerParams: { utm_source: 'tool', utm_campaign: 'cost_calculator' },
+              })}
+              className="mv-btn mv-btn-primary"
+            >
+              {labels.getEarlyAccess}
+            </a>
+            {hasInput && (
+              <button type="button" onClick={copyLink} className="mv-btn mv-btn-ghost">
+                {copied ? 'Link copied' : labels.copyLink}
+              </button>
+            )}
           </div>
+          <p
+            className="mv-tool-footnote"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: translated HTML with <strong>
+            dangerouslySetInnerHTML={{
+              __html: hasInput
+                ? `${labels.trackActualCosts}. ${labels.shareResults}`
+                : labels.trackActualCosts,
+            }}
+          />
         </div>
       </div>
     </section>
@@ -388,12 +372,12 @@ function CostRow({
   amount: number;
 }) {
   return (
-    <div className="flex items-center justify-between">
-      <div>
-        <span className="text-(--mv-ink-2)">{label}</span>
-        {sublabel && <span className="ml-2 text-xs text-(--mv-ink-3)">({sublabel})</span>}
-      </div>
-      <span className="mv-figure font-semibold text-(--mv-ink)">{formatCurrency(amount)}</span>
+    <div className="mv-tool-row">
+      <dt>
+        {label}
+        {sublabel && <span>{sublabel}</span>}
+      </dt>
+      <dd className="mv-figure">{formatCurrency(amount)}</dd>
     </div>
   );
 }

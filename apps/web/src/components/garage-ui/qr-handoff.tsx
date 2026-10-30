@@ -16,7 +16,14 @@ const COPIED_RESET_MS = 2000;
  * Copied state: the button reads "Copied" and a polite live region announces
  * it; it reverts after 2 s.
  */
-export function CopyLinkField({ className }: { className?: string }) {
+export function CopyLinkField({
+  className,
+  primary = false,
+}: {
+  className?: string;
+  /** Copper Copy button: only where it is the section's one action (the empty-garage hero). */
+  primary?: boolean;
+}) {
   const t = useTranslations('AppHandoff');
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -42,7 +49,11 @@ export function CopyLinkField({ className }: { className?: string }) {
   }
 
   return (
-    <div className={className ? `mvg-linkfield ${className}` : 'mvg-linkfield'}>
+    <div
+      className={['mvg-linkfield', primary ? 'mvg-linkfield--primary' : null, className]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <a href={APP_HANDOFF_URL} className="mvg-linkfield-url">
         {APP_HANDOFF_DISPLAY}
       </a>
@@ -75,7 +86,7 @@ export function SignInText({ account }: { account: HandoffAccount }) {
   return <>{t.rich('signInSameAccount', { email: account.email, b: bold })}</>;
 }
 
-/** The bordered account line (icon + {@link SignInText}), e.g. on the handoff page. */
+/** The ruled account line (icon + {@link SignInText}), e.g. on the handoff page. */
 export function SignInHint({ account }: { account: HandoffAccount }) {
   const icon =
     account.method === SignInMethod.Google ? (
@@ -133,7 +144,7 @@ export function QrHandoff({
           <p className="mvg-qrh-body">
             <SignInText account={account} />
           </p>
-          {isHero && <CopyLinkField />}
+          {isHero && <CopyLinkField primary />}
         </div>
       </div>
       {!isHero && <CopyLinkField />}

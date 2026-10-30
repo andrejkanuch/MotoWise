@@ -1,4 +1,7 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
+import '@/components/marketing/design-system.css';
+import '@/components/share-page.css';
 
 export const metadata: Metadata = {
   title: 'Shared Maintenance History',
@@ -77,51 +80,25 @@ async function fetchSharedHistory(token: string): Promise<SharedBikeHistory | nu
   }
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    completed: 'bg-success-500/10 text-success-500',
-    pending: 'bg-warning-500/10 text-warning-500',
-    in_progress: 'bg-primary-500/10 text-primary-500',
-    overdue: 'bg-danger-500/10 text-danger-500',
-  };
+const STATUS_LABELS: Record<string, string> = {
+  completed: 'Done',
+  pending: 'Pending',
+  in_progress: 'In progress',
+  overdue: 'Overdue',
+};
 
-  const labels: Record<string, string> = {
-    completed: 'Completed',
-    pending: 'Pending',
-    in_progress: 'In Progress',
-    overdue: 'Overdue',
-  };
+// Status is a word in a text-safe ink, never a copper or plate fill
+const STATUS_CLASS: Record<string, string> = {
+  completed: 'sp-status-done',
+  overdue: 'sp-status-overdue',
+};
 
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${colors[status] ?? 'bg-neutral-100 text-neutral-800'}`}
-    >
-      {labels[status] ?? status}
-    </span>
-  );
-}
-
-function PriorityIndicator({ priority }: { priority: string }) {
-  const colors: Record<string, string> = {
-    critical: 'text-danger-500',
-    high: 'text-warning-500',
-    medium: 'text-warning-500',
-    low: 'text-neutral-500',
-  };
-
-  const labels: Record<string, string> = {
-    critical: 'Critical',
-    high: 'High',
-    medium: 'Medium',
-    low: 'Low',
-  };
-
-  return (
-    <span className={`text-xs font-medium ${colors[priority] ?? 'text-neutral-500'}`}>
-      {labels[priority] ?? priority}
-    </span>
-  );
-}
+const PRIORITY_LABELS: Record<string, string> = {
+  critical: 'Critical priority',
+  high: 'High priority',
+  medium: 'Medium priority',
+  low: 'Low priority',
+};
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', {
@@ -132,20 +109,33 @@ function formatDate(dateStr: string): string {
   });
 }
 
+function Brand() {
+  return (
+    <div className="sp-brand">
+      <a href="/">
+        <Image src="/images/marketing/MotoVault.png" alt="" width={28} height={28} />
+        MotoVault
+      </a>
+    </div>
+  );
+}
+
 function ExpiredView() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4">
-      <div className="w-full max-w-md text-center">
-        <div className="mb-6 text-6xl">🔗</div>
-        <h1 className="mb-3 text-2xl font-bold text-neutral-900">Link Unavailable</h1>
-        <p className="mb-8 text-neutral-600">This link has expired or is no longer available.</p>
-        <a
-          href="https://motovault.app"
-          className="inline-flex items-center rounded-lg bg-neutral-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-800"
-        >
-          Visit MotoVault
-        </a>
-      </div>
+    <div className="mv-marketing sp">
+      <Brand />
+      <main className="sp-main sp-main-tall">
+        <h1 className="sp-title">This link has expired</h1>
+        <p className="sp-prose" style={{ marginTop: 16 }}>
+          The rider who shared this service history has stopped sharing it, or the link is no longer
+          valid. Ask them for a new one.
+        </p>
+        <div className="sp-cta-actions">
+          <a href="https://motovault.app" className="mv-btn mv-btn-primary">
+            Go to MotoVault
+          </a>
+        </div>
+      </main>
     </div>
   );
 }
@@ -160,135 +150,99 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
 
   const { bike, tasks, generatedAt } = history;
   const bikeName = bike.nickname ?? `${bike.year} ${bike.make} ${bike.model}`;
+  const bikeLine = `${bike.year} ${bike.make} ${bike.model}`;
   const completedTasks = tasks.filter((t) => t.status === 'completed');
   const pendingTasks = tasks.filter((t) => t.status !== 'completed');
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      {/* Header */}
-      <header className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-neutral-500">Maintenance History</p>
-              <h1 className="mt-1 truncate text-2xl font-bold text-neutral-900">{bikeName}</h1>
-              <p className="mt-1 text-sm text-neutral-500">
-                {bike.year} {bike.make} {bike.model}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-neutral-400">Generated</p>
-              <p className="text-sm text-neutral-600">{formatDate(generatedAt)}</p>
-            </div>
-          </div>
+    <div className="mv-marketing sp">
+      <Brand />
 
-          {/* Summary stats */}
-          <div className="mt-6 grid grid-cols-3 gap-4">
-            <div className="rounded-lg bg-neutral-50 p-3 text-center">
-              <p className="text-2xl font-bold text-neutral-900">{tasks.length}</p>
-              <p className="text-xs text-neutral-500">Total Tasks</p>
-            </div>
-            <div className="rounded-lg bg-success-500/10 p-3 text-center">
-              <p className="text-2xl font-bold text-success-500">{completedTasks.length}</p>
-              <p className="text-xs text-neutral-500">Completed</p>
-            </div>
-            <div className="rounded-lg bg-warning-500/10 p-3 text-center">
-              <p className="text-2xl font-bold text-warning-500">{pendingTasks.length}</p>
-              <p className="text-xs text-neutral-500">Pending</p>
-            </div>
+      <main className="sp-main sp-main-tall">
+        <h1 className="sp-title">{bikeName}</h1>
+        <p className="sp-sub">
+          {bike.nickname ? `${bikeLine} · ` : ''}Service history, shared {formatDate(generatedAt)}
+        </p>
+
+        <div className="sp-figures">
+          <div className="sp-figure">
+            <span className="sp-figure-value">{tasks.length}</span>
+            <span className="sp-figure-label">{tasks.length === 1 ? 'Record' : 'Records'}</span>
+          </div>
+          <div className="sp-figure">
+            <span className="sp-figure-value">{completedTasks.length}</span>
+            <span className="sp-figure-label">Done</span>
+          </div>
+          <div className="sp-figure">
+            <span className="sp-figure-value">{pendingTasks.length}</span>
+            <span className="sp-figure-label">Still to do</span>
           </div>
         </div>
-      </header>
 
-      {/* Task List */}
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-        {tasks.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-neutral-500">No maintenance tasks recorded yet.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {tasks.map((task) => (
-              <div
-                key={`${task.title}-${task.status}-${task.completedAt ?? task.dueDate ?? ''}`}
-                className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm"
-              >
-                <div className="p-4 sm:p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <h3 className="truncate font-semibold text-neutral-900">{task.title}</h3>
-                      <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                        <StatusBadge status={task.status} />
-                        <PriorityIndicator priority={task.priority} />
+        <section className="sp-section">
+          <h2 className="sp-section-title">Records</h2>
+          {tasks.length === 0 ? (
+            <p className="sp-prose">No service records yet.</p>
+          ) : (
+            <ul className="sp-list">
+              {tasks.map((task) => {
+                const details: string[] = [];
+                if (task.dueDate) details.push(`Due ${formatDate(task.dueDate)}`);
+                if (task.completedAt) details.push(`Done ${formatDate(task.completedAt)}`);
+                if (task.completedMileage != null) {
+                  details.push(`at ${task.completedMileage.toLocaleString('en-US')} on the clock`);
+                }
+                return (
+                  <li
+                    key={`${task.title}-${task.status}-${task.completedAt ?? task.dueDate ?? ''}`}
+                    className="sp-row"
+                  >
+                    <div className="sp-row-body">
+                      <div className="sp-row-title">{task.title}</div>
+                      <div className="sp-row-meta">
+                        <span className={STATUS_CLASS[task.status]}>
+                          {STATUS_LABELS[task.status] ?? task.status}
+                        </span>
+                        <span>{PRIORITY_LABELS[task.priority] ?? task.priority}</span>
+                        {details.map((d) => (
+                          <span key={d}>{d}</span>
+                        ))}
                       </div>
+                      {task.notes && <p className="sp-row-note">{task.notes}</p>}
+                      {task.photoUrls.length > 0 && (
+                        <div className="sp-photos">
+                          {task.photoUrls.map((url) => (
+                            // biome-ignore lint/performance/noImgElement: external Supabase storage URLs
+                            <img
+                              key={url}
+                              src={url}
+                              alt={`${task.title} service record`}
+                              loading="lazy"
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-
-                  {/* Details */}
-                  <div className="mt-3 space-y-1.5 text-sm text-neutral-600">
-                    {task.dueDate && (
-                      <p>
-                        <span className="font-medium text-neutral-700">Due:</span>{' '}
-                        {formatDate(task.dueDate)}
-                      </p>
-                    )}
-                    {task.completedAt && (
-                      <p>
-                        <span className="font-medium text-neutral-700">Completed:</span>{' '}
-                        {formatDate(task.completedAt)}
-                      </p>
-                    )}
-                    {task.completedMileage != null && (
-                      <p>
-                        <span className="font-medium text-neutral-700">Mileage at completion:</span>{' '}
-                        {task.completedMileage.toLocaleString()}
-                      </p>
-                    )}
-                    {task.notes && (
-                      <p>
-                        <span className="font-medium text-neutral-700">Notes:</span>{' '}
-                        <span className="line-clamp-3">{task.notes}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Photos */}
-                  {task.photoUrls.length > 0 && (
-                    <div className="mt-4 flex gap-2 overflow-x-auto">
-                      {task.photoUrls.map((url) => (
-                        // biome-ignore lint/performance/noImgElement: external Supabase storage URLs
-                        <img
-                          key={url}
-                          src={url}
-                          alt={`${task.title} maintenance record`}
-                          className="h-20 w-20 flex-shrink-0 rounded-lg object-cover"
-                          loading="lazy"
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-neutral-200 bg-white py-8">
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <p className="text-sm text-neutral-500">
-            Powered by{' '}
-            <a
-              href="https://motovault.app"
-              className="font-medium text-neutral-900 hover:underline"
-            >
-              MotoVault
+      <footer className="sp-cta">
+        <div className="sp-cta-inner">
+          <h2 className="sp-cta-title">Service history that travels with the bike</h2>
+          <p className="sp-cta-sub">
+            MotoVault keeps every service, part and cost against each bike, and shares the record
+            with a link like this one.
+          </p>
+          <div className="sp-cta-actions">
+            <a href="https://motovault.app" className="mv-btn mv-btn-primary">
+              Get MotoVault
             </a>
-          </p>
-          <p className="mt-1 text-xs text-neutral-400">
-            AI-powered motorcycle maintenance tracking
-          </p>
+          </div>
         </div>
       </footer>
     </div>

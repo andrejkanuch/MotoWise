@@ -61,23 +61,7 @@ const CONFIG: VsComparePageConfig = {
   pricing: { keyStyle: 'flat', titleKey: 'pricingTableTitle', rows: 3, narrativeKey: 'pricing' },
   verdict: { bodyKey: 'verdict' },
   faqCount: 4,
-  related: [
-    {
-      href: '/compare',
-      title: 'Best Motorcycle Apps 2026',
-      description: 'Full feature matrix and ranking of 10 motorcycle apps.',
-    },
-    {
-      href: '/compare/motovault-vs-eatsleepride',
-      title: 'MotoVault vs EatSleepRIDE',
-      description: 'Ownership management vs community and crash detection.',
-    },
-    {
-      href: '/compare/motovault-vs-rever',
-      title: 'MotoVault vs REVER',
-      description: 'Maintenance and diagnostics vs route planning and community.',
-    },
-  ],
+  related: ['eatsleepride', 'rever'],
 };
 
 export default async function VsMotoScanPage({ params }: PageProps) {

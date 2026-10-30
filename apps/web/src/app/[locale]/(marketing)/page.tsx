@@ -45,6 +45,7 @@ export default async function HomePage({ params }: PageProps) {
   setRequestLocale(locale);
   const tJsonLd = await getTranslations('JsonLd');
   const tFaq = await getTranslations('Faq');
+  const tHome = await getTranslations('Home');
 
   const [rating, faqItems] = await Promise.all([
     getAppStoreRating(),
@@ -86,23 +87,23 @@ export default async function HomePage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
       <Hero />
-      {/* AI-extractable site definition — visible to crawlers, subtle for users */}
-      <p
-        style={{
-          maxWidth: '48rem',
-          margin: '0 auto',
-          padding: '16px 24px 0',
-          textAlign: 'center',
-          fontSize: '12px',
-          lineHeight: '1.5',
-          color: 'var(--mv-ink-3)',
-        }}
-      >
-        MotoVault is a free motorcycle management app that combines trip planning, maintenance
-        tracking, expense logging, and AI-powered diagnostics in a single platform for riders.
-        Available on iOS and Android, MotoVault supports over 12,000 motorcycle models from the
-        NHTSA Vehicle Product Information Catalog database.
-      </p>
+      {/* AI-extractable site definition — visible to crawlers, quiet for riders:
+          body face, ink-3, left-aligned inside the container */}
+      <div style={{ maxWidth: 'var(--mv-container)', margin: '0 auto', padding: '24px 40px 0' }}>
+        <p
+          style={{
+            margin: 0,
+            maxWidth: '72ch',
+            fontFamily: 'var(--mv-font-body)',
+            fontSize: '13px',
+            lineHeight: 1.5,
+            color: 'var(--mv-ink-3)',
+            textAlign: 'left',
+          }}
+        >
+          {tHome('siteDefinition')}
+        </p>
+      </div>
       <ManifestoSection />
       <FeaturesGrid />
       <ProofSection appStoreRating={rating} />

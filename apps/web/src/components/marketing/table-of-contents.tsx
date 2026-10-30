@@ -4,27 +4,33 @@ interface TableOfContentsProps {
   headings: TocHeading[];
 }
 
+/** A plain hairline list of the article's headings (`.mv-read-toc`). */
 export function TableOfContents({ headings }: TableOfContentsProps) {
   if (headings.length === 0) return null;
 
   return (
-    <details
-      open
-      className="mb-10 rounded-xl border border-(--mv-line) bg-(--mv-surface) px-6 py-4"
-    >
-      <summary className="cursor-pointer text-sm font-semibold text-(--mv-ink) select-none">
-        Table of Contents
+    <details open className="mv-read-toc">
+      <summary>
+        In this article
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
       </summary>
-      <nav aria-label="Table of contents" className="mt-3">
-        <ol className="list-none space-y-1">
+      <nav aria-label="Table of contents">
+        <ol>
           {headings.map((heading) => (
-            <li key={heading.id} className={heading.level === 3 ? 'pl-4' : ''}>
-              <a
-                href={`#${heading.id}`}
-                className="text-sm text-(--mv-ink-2) transition-colors hover:text-(--mv-copper-text)"
-              >
-                {heading.text}
-              </a>
+            <li key={heading.id} data-level={heading.level}>
+              <a href={`#${heading.id}`}>{heading.text}</a>
             </li>
           ))}
         </ol>

@@ -13,6 +13,7 @@ import {
 } from '@/lib/fetch-places';
 import { COUNTRY_INTROS } from '@/lib/seo/country-intros';
 import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
+import '@/components/marketing/trackside-read.css';
 
 // Prerendered (ISR) so `notFound()` returns a REAL 404. What made it a 200 was
 // `app/loading.tsx` streaming a shell before the page resolved — `notFound()`
@@ -131,106 +132,84 @@ export default async function CountryPage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
 
-      <Breadcrumb
-        items={[
-          { label: 'Home', href: '/' },
-          { label: 'Explore', href: '/explore' },
-          { label: country.name },
-        ]}
-      />
+      <section className="mv-index">
+        <Breadcrumb
+          items={[
+            { label: 'Home', href: '/' },
+            { label: 'Explore', href: '/explore' },
+            { label: country.name },
+          ]}
+        />
 
-      {/* Hero */}
-      <section className="px-6 pb-16 pt-8 md:pb-24 md:pt-12">
-        <div className="reveal-on-scroll mx-auto max-w-4xl">
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-(--mv-ink) sm:text-4xl lg:text-5xl">
-            {title}
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg text-(--mv-ink-2) md:text-xl">{description}</p>
+        <header className="mv-reveal">
+          <h1 className="mv-index-h1">Motorcycle routes in {country.name}</h1>
+          <p className="mv-index-lede">
+            <span className="mv-figure" style={{ fontSize: '1.15em' }}>
+              {country.routeCount}
+            </span>{' '}
+            {country.routeCount === 1 ? 'route' : 'routes'} across{' '}
+            {regions.length > 0 ? (
+              <>
+                <span className="mv-figure" style={{ fontSize: '1.15em' }}>
+                  {regions.length}
+                </span>{' '}
+                {regions.length === 1 ? 'region' : 'regions'}
+              </>
+            ) : (
+              'the country'
+            )}
+            , shared and rated by riders. Open any route in the app to ride it.
+          </p>
+        </header>
 
-          {/* Country intro content */}
-          {introContent && (
-            <div className="mx-auto mt-8 max-w-3xl space-y-4">
-              {introContent.map((paragraph) => (
-                <p
-                  key={paragraph.slice(0, 40)}
-                  className="text-base leading-relaxed text-(--mv-ink-2)"
-                >
-                  {paragraph}
-                </p>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Regions grid */}
-      {regions.length > 0 && (
-        <section className="px-6 pb-16">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-(--mv-ink)">Regions</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {regions.map((region) => (
-                <Link
-                  key={region.id}
-                  href={`/explore/${countrySlug}/${region.slug}`}
-                  className="group relative overflow-hidden rounded-xl border border-(--mv-line) bg-(--mv-surface) p-6 transition-colors hover:border-(--mv-line-step)"
-                >
-                  <h3 className="text-lg font-semibold text-(--mv-ink) transition-colors group-hover:text-(--mv-copper-text)">
-                    {region.name}
-                  </h3>
-                  <p className="mt-2 text-sm text-(--mv-ink-2)">
-                    {region.routeCount} {region.routeCount === 1 ? 'route' : 'routes'}
-                  </p>
-                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-(--mv-copper-text) transition-colors group-hover:text-(--mv-copper-hover)">
-                    View routes
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="transition-transform group-hover:translate-x-0.5"
-                      aria-hidden="true"
-                    >
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  </span>
-                </Link>
-              ))}
-            </div>
+        {introContent && (
+          <div className="mv-read-body" style={{ marginTop: 40 }}>
+            {introContent.map((paragraph) => (
+              <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+            ))}
           </div>
-        </section>
-      )}
+        )}
 
-      {/* Top routes */}
-      {topRoutes.length > 0 && (
-        <section className="px-6 pb-24">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-(--mv-ink)">
-              Top Routes in {country.name}
+        {regions.length > 0 && (
+          <section className="mv-read-section" aria-labelledby="regions-heading">
+            <h2 id="regions-heading" className="mv-read-h2">
+              Regions
             </h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {topRoutes.map((route) => (
-                <RouteCard key={route.id} route={route} />
+            <ul className="mv-places" style={{ marginTop: 8 }}>
+              {regions.map((region) => (
+                <li key={region.id}>
+                  <Link href={`/explore/${countrySlug}/${region.slug}`}>
+                    <span className="mv-places-name">{region.name}</span>
+                    <span className="mv-places-count">
+                      <span className="mv-figure">{region.routeCount}</span>
+                      {region.routeCount === 1 ? 'route' : 'routes'}
+                    </span>
+                  </Link>
+                </li>
               ))}
-            </div>
-          </div>
-        </section>
-      )}
+            </ul>
+          </section>
+        )}
 
-      {/* Empty state */}
-      {regions.length === 0 && topRoutes.length === 0 && (
-        <section className="px-6 pb-24">
-          <div className="mx-auto max-w-4xl text-center">
-            <p className="text-(--mv-ink-3)">
-              No routes available in {country.name} yet. Check back soon!
-            </p>
-          </div>
-        </section>
-      )}
+        {topRoutes.length > 0 && (
+          <section className="mv-read-section" aria-labelledby="top-routes-heading">
+            <h2 id="top-routes-heading" className="mv-read-h2">
+              Top-rated routes in {country.name}
+            </h2>
+            <ul className="mv-route-list" style={{ marginTop: 8 }}>
+              {topRoutes.map((route) => (
+                <li key={route.id}>
+                  <RouteCard route={route} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {regions.length === 0 && topRoutes.length === 0 && (
+          <p className="mv-empty">No routes published in {country.name} yet. Check back soon.</p>
+        )}
+      </section>
     </>
   );
 }

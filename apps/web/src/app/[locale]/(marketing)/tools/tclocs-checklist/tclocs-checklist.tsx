@@ -44,12 +44,44 @@ type CheckedState = Record<string, Set<number>>;
 
 const BEST_TIME_KEY = 'motovault-tclocs-best';
 
+/**
+ * The printed sheet is a standalone document opened in a new window, so it
+ * cannot read the site's CSS custom properties. These are the Race Plate
+ * values from packages/design-system (paper ramp, near-black ink, copper,
+ * go-green) written out once for print only — never used in the page itself.
+ */
+const PRINT_INK = '#141517';
+const PRINT_INK_2 = '#45464a';
+const PRINT_INK_3 = '#6b6c70';
+const PRINT_LINE = '#dedbd4';
+const PRINT_SURFACE = '#ebe9e4';
+const PRINT_COPPER = '#b8501f';
+const PRINT_GO = '#2e8a55';
+
 function formatTime(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   if (minutes > 0) return `${minutes}:${String(seconds).padStart(2, '0')}`;
   return `${seconds}s`;
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M5 13l4 4L19 7" />
+    </svg>
+  );
 }
 
 export function TclocsChecklist({
@@ -197,21 +229,21 @@ export function TclocsChecklist({
         const itemsHtml = cat.items
           .map((item, i) => {
             const done = catChecked.has(i);
-            return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0f0;">
-              <div style="width:18px;height:18px;border-radius:4px;border:2px solid ${done ? '#22c55e' : '#d1d5db'};background:${done ? '#22c55e' : 'white'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid ${PRINT_LINE};">
+              <div style="width:18px;height:18px;border-radius:5px;border:1.5px solid ${done ? PRINT_COPPER : PRINT_INK_3};background:${done ? PRINT_COPPER : 'white'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 ${done ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>' : ''}
               </div>
-              <span style="font-size:13px;color:${done ? '#6b7280' : '#1f2937'};${done ? 'text-decoration:line-through;' : ''}">${item}</span>
+              <span style="font-size:13px;color:${done ? PRINT_INK_3 : PRINT_INK};">${item}</span>
             </div>`;
           })
           .join('');
 
         const catDone = catChecked.size === cat.items.length;
-        return `<div style="margin-bottom:20px;">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-            <div style="width:32px;height:32px;border-radius:50%;background:${catDone ? '#dcfce7' : '#fef3c7'};color:${catDone ? '#16a34a' : '#d97706'};display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:15px;">${cat.letter}</div>
-            <span style="font-weight:700;font-size:16px;color:#111827;">${cat.name}</span>
-            <span style="margin-left:auto;font-size:12px;color:${catDone ? '#16a34a' : '#6b7280'};">${catChecked.size}/${cat.items.length}</span>
+        return `<div style="margin-bottom:22px;">
+          <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px;">
+            <span style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:28px;line-height:1;color:${catDone ? PRINT_GO : PRINT_INK_3};">${cat.letter}</span>
+            <span style="font-weight:600;font-size:16px;color:${PRINT_INK};">${cat.name}</span>
+            <span style="margin-left:auto;font-size:12px;color:${catDone ? PRINT_GO : PRINT_INK_3};">${catChecked.size}/${cat.items.length}</span>
           </div>
           ${itemsHtml}
         </div>`;
@@ -219,45 +251,37 @@ export function TclocsChecklist({
       .join('');
 
     const timerHtml = completionTime
-      ? `<div style="text-align:center;padding:12px;background:#f0fdf4;border-radius:8px;margin-bottom:16px;">
-            <span style="font-size:13px;color:#16a34a;font-weight:600;">${labels.timerComplete} ${formatTime(completionTime)}</span>
-          </div>`
+      ? `<p style="margin:0 0 16px;font-size:13px;color:${PRINT_GO};font-weight:600;">${labels.timerComplete} ${formatTime(completionTime)}</p>`
       : '';
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${labels.pdfTitle}</title>
       <style>
         @page { margin: 20mm; size: A4; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 0; color: #1f2937; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; color: ${PRINT_INK}; }
       </style>
     </head><body>
       <div style="max-width:600px;margin:0 auto;">
-        <!-- Header -->
-        <div style="text-align:center;padding-bottom:20px;border-bottom:3px solid #D4622E;margin-bottom:24px;">
-          <div style="font-size:28px;font-weight:800;color:#111827;letter-spacing:-0.5px;">Moto<span style="color:#D4622E;">Vault</span></div>
-          <div style="font-size:20px;font-weight:700;color:#374151;margin-top:8px;">${labels.pdfTitle}</div>
-          <div style="font-size:13px;color:#6b7280;margin-top:6px;">${labels.pdfDate}: ${dateStr} — ${timeStr}</div>
+        <div style="padding-bottom:16px;border-bottom:1px solid ${PRINT_INK};margin-bottom:20px;">
+          <div style="font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:34px;font-weight:700;line-height:1;color:${PRINT_INK};">${labels.pdfTitle}</div>
+          <div style="font-size:13px;color:${PRINT_INK_3};margin-top:8px;">${labels.pdfDate}: ${dateStr} — ${timeStr}</div>
         </div>
 
-        <!-- Status -->
-        <div style="padding:16px;border-radius:12px;background:${allComplete ? '#f0fdf4' : '#fff7ed'};border:1px solid ${allComplete ? '#bbf7d0' : '#fed7aa'};margin-bottom:20px;text-align:center;">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:4px;">${labels.pdfStatus}</div>
-          <div style="font-size:18px;font-weight:700;color:${allComplete ? '#16a34a' : '#ea580c'};">${statusText}</div>
+        <div style="padding:12px 16px;border-radius:12px;background:${PRINT_SURFACE};margin-bottom:16px;">
+          <div style="font-size:12px;color:${PRINT_INK_3};margin-bottom:2px;">${labels.pdfStatus}</div>
+          <div style="font-size:17px;font-weight:600;color:${allComplete ? PRINT_GO : PRINT_INK};">${statusText}</div>
         </div>
 
         ${timerHtml}
 
-        <!-- Categories -->
         ${categoriesHtml}
 
-        <!-- CTA -->
-        <div style="margin-top:32px;padding:20px;border-radius:12px;background:linear-gradient(135deg,#1e1b4b,#312e81);text-align:center;">
-          <div style="font-size:20px;font-weight:800;color:white;letter-spacing:-0.3px;">Moto<span style="color:#D4A26E;">Vault</span></div>
-          <p style="font-size:13px;color:rgba(255,255,255,0.7);margin:10px 0 0;line-height:1.5;">${labels.pdfCta}</p>
-          <div style="margin-top:12px;font-size:14px;font-weight:600;color:#D4A26E;">${labels.pdfWebsite}</div>
+        <div style="margin-top:28px;padding-top:16px;border-top:1px solid ${PRINT_LINE};">
+          <div style="font-size:15px;font-weight:600;color:${PRINT_INK};">MotoVault</div>
+          <p style="font-size:13px;color:${PRINT_INK_2};margin:6px 0 0;line-height:1.5;">${labels.pdfCta}</p>
+          <div style="margin-top:6px;font-size:13px;font-weight:600;color:${PRINT_COPPER};">${labels.pdfWebsite}</div>
         </div>
 
-        <!-- Footer -->
-        <p style="text-align:center;font-size:11px;color:#9ca3af;margin-top:20px;">${labels.pdfFooter}</p>
+        <p style="font-size:11px;color:${PRINT_INK_3};margin-top:20px;">${labels.pdfFooter}</p>
       </div>
     </body></html>`;
 
@@ -280,226 +304,147 @@ export function TclocsChecklist({
     }, 300);
   }, [categories, checked, allComplete, totalChecked, totalItems, completionTime, labels]);
 
+  const timerFigure = timerStartMs ? formatTime(elapsedMs) : null;
+
   return (
-    <section className="px-4 py-8">
-      <div className="mx-auto max-w-4xl">
-        {/* Timer + Progress Row */}
-        <div className="mb-8 grid gap-4 md:grid-cols-[1fr_auto]">
-          {/* Overall Progress */}
-          <div className="rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-(--mv-ink-3)">{labels.overallProgress}</p>
-                <p className="mv-figure mt-1 text-3xl text-(--mv-ink)">
-                  {totalChecked}/{totalItems} {labels.items}
-                </p>
-              </div>
-              <div className="text-right">
-                <p
-                  className={`mv-figure text-3xl ${allComplete ? 'text-(--mv-go)' : 'text-(--mv-ink)'}`}
-                >
-                  {overallPercent}%
-                </p>
-                {allComplete && (
-                  <p className="mt-1 text-sm font-medium text-(--mv-go)">{labels.readyToRide}</p>
-                )}
-              </div>
-            </div>
-            <div className="mt-4 h-3 overflow-hidden rounded-full bg-(--mv-surface-2)">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ease-out ${allComplete ? 'bg-(--mv-go)' : 'bg-(--mv-ink-3)'}`}
-                style={{ width: `${overallPercent}%` }}
-              />
-            </div>
-            {totalChecked > 0 && (
-              <button
-                type="button"
-                onClick={resetAll}
-                className="mt-4 text-sm text-(--mv-ink-3) transition-colors hover:text-(--mv-ink)"
-              >
-                {labels.resetAll}
-              </button>
-            )}
-          </div>
-
-          {/* Speed Run Timer */}
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-6 md:w-48">
-            <p className="mb-1 text-xs font-medium text-(--mv-ink-3)">
-              {labels.timerTitle}
+    <section className="mv-tool" style={{ paddingTop: 56, maxWidth: 760 }}>
+      {/* Progress + timer: figures in the condensed face, one hairline below */}
+      <div className="mv-check-summary" aria-live="polite">
+        <div>
+          <span className="mv-check-summary-label">
+            {labels.overallProgress} · {overallPercent}%
+          </span>
+          <span className={`mv-figure${allComplete ? ' is-done' : ''}`}>
+            {totalChecked}/{totalItems}
+          </span>
+          <p className={`mv-check-summary-note${allComplete ? ' is-done' : ''}`}>
+            {allComplete ? labels.readyToRide : `${totalItems - totalChecked} ${labels.items} left`}
+          </p>
+        </div>
+        <div className="mv-check-timer">
+          <span className="mv-check-summary-label">{labels.timerTitle}</span>
+          {timerFigure ? (
+            <>
+              <span className={`mv-figure${completionTime ? ' is-done' : ''}`}>{timerFigure}</span>
+              <p className={`mv-check-timer-sub${completionTime ? ' is-done' : ''}`}>
+                {isNewRecord
+                  ? labels.newRecord
+                  : completionTime
+                    ? labels.timerComplete
+                    : labels.timerRunning}
+              </p>
+            </>
+          ) : (
+            <>
+              <span className="mv-figure" style={{ color: 'var(--mv-ink-4)' }}>
+                0s
+              </span>
+              <p className="mv-check-timer-sub">{labels.timerStart}</p>
+            </>
+          )}
+          {bestTime && !isNewRecord && (
+            <p className="mv-check-timer-sub">
+              {labels.personalBest}{' '}
+              <span className="mv-figure" style={{ fontSize: 15, color: 'var(--mv-ink-2)' }}>
+                {formatTime(bestTime)}
+              </span>
             </p>
-            {!timerStartMs ? (
-              <p className="mt-2 text-center text-xs text-(--mv-ink-3)">{labels.timerStart}</p>
-            ) : (
-              <>
-                <p
-                  className={`mv-figure mt-1 text-3xl tabular-nums ${completionTime ? 'text-(--mv-go)' : 'text-(--mv-ink)'}`}
-                >
-                  {formatTime(elapsedMs)}
-                </p>
-                <p className="mt-1 text-xs text-(--mv-ink-3)">
-                  {completionTime ? labels.timerComplete : labels.timerRunning}
-                </p>
-                {isNewRecord && (
-                  <p className="mt-2 text-xs font-bold text-(--mv-go)">
-                    {labels.newRecord}
-                  </p>
-                )}
-              </>
-            )}
-            {bestTime && !isNewRecord && (
-              <div className="mt-3 border-t border-(--mv-line) pt-3 text-center">
-                <p className="text-[10px] text-(--mv-ink-4)">
-                  {labels.personalBest}
-                </p>
-                <p className="mv-figure text-sm text-(--mv-ink-2)">
-                  {formatTime(bestTime)}
-                </p>
-              </div>
-            )}
-            {!bestTime && !timerStartMs && (
-              <p className="mt-2 text-center text-[10px] text-(--mv-ink-4)">{labels.noBestYet}</p>
-            )}
-          </div>
+          )}
+          {!bestTime && !timerStartMs && <p className="mv-check-timer-sub">{labels.noBestYet}</p>}
         </div>
+      </div>
+      <div className="mv-progress" aria-hidden="true">
+        <div
+          className={allComplete ? 'is-done' : undefined}
+          style={{ width: `${overallPercent}%` }}
+        />
+      </div>
 
-        {/* Categories */}
-        <div className="space-y-6">
-          {categories.map((category) => {
-            const catChecked = checked[category.id]?.size ?? 0;
-            const catTotal = category.items.length;
-            const catPercent = catTotal > 0 ? Math.round((catChecked / catTotal) * 100) : 0;
-            const catComplete = catChecked === catTotal;
+      {/* Six groups: a big letter, the name, a real checkbox per item */}
+      {categories.map((category) => {
+        const catChecked = checked[category.id]?.size ?? 0;
+        const catTotal = category.items.length;
+        const catComplete = catChecked === catTotal;
 
-            return (
-              <div
-                key={category.id}
-                className={`rounded-2xl border p-6 transition-colors ${
-                  catComplete
-                    ? 'border-(--mv-go)/30 bg-(--mv-go)/5'
-                    : 'border-(--mv-line) bg-(--mv-surface)'
-                }`}
-              >
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold ${
-                        catComplete
-                          ? 'bg-(--mv-go)/20 text-(--mv-go)'
-                          : 'bg-(--mv-surface-2) text-(--mv-ink-2)'
-                      }`}
-                    >
-                      {category.letter}
-                    </div>
-                    <h2 className="text-xl font-bold text-(--mv-ink)">{category.name}</h2>
-                  </div>
-                  <span
-                    className={`text-sm font-medium ${catComplete ? 'text-(--mv-go)' : 'text-(--mv-ink-3)'}`}
-                  >
-                    {catChecked}/{catTotal}
-                  </span>
-                </div>
-
-                <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-(--mv-surface-2)">
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ease-out ${catComplete ? 'bg-(--mv-go)' : 'bg-(--mv-ink-3)'}`}
-                    style={{ width: `${catPercent}%` }}
-                  />
-                </div>
-
-                <ul className="space-y-2">
-                  {category.items.map((item, index) => {
-                    const isChecked = checked[category.id]?.has(index) ?? false;
-                    return (
-                      <li key={item}>
-                        <button
-                          type="button"
-                          onClick={() => toggleItem(category.id, index)}
-                          className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-all ${
-                            isChecked
-                              ? 'bg-(--mv-go)/10'
-                              : 'bg-(--mv-surface-2) hover:bg-(--mv-surface-3)'
-                          }`}
-                        >
-                          <span
-                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-all ${
-                              isChecked ? 'border-(--mv-go) bg-(--mv-go)' : 'border-(--mv-line-step)'
-                            }`}
-                          >
-                            {isChecked && (
-                              <svg
-                                className="h-4 w-4 text-white"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={3}
-                                aria-label="Checked"
-                                role="img"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
-                            )}
-                          </span>
-                          <span
-                            className={`text-sm transition-all ${
-                              isChecked ? 'text-(--mv-ink-3) line-through' : 'text-(--mv-ink)'
-                            }`}
-                          >
-                            {item}
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <button
-            type="button"
-            onClick={generatePdf}
-            className="flex items-center gap-2 rounded-full bg-(--mv-copper) px-8 py-3 text-sm font-semibold text-(--mv-on-copper) transition-colors hover:bg-(--mv-copper-hover)"
+        return (
+          <fieldset
+            key={category.id}
+            className="mv-check-group"
+            style={{ border: 0, padding: 0, margin: '40px 0 0', minWidth: 0 }}
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-            </svg>
-            {labels.downloadPdf}
+            <legend className="sr-only">{category.name}</legend>
+            <div className={`mv-check-head${catComplete ? ' is-done' : ''}`}>
+              <span className="mv-check-letter" aria-hidden="true">
+                {category.letter}
+              </span>
+              <h2 className="mv-check-name">{category.name}</h2>
+              <span className="mv-check-count mv-figure">
+                {catChecked}/{catTotal}
+              </span>
+            </div>
+
+            <ul className="mv-check-items">
+              {category.items.map((item, index) => {
+                const isChecked = checked[category.id]?.has(index) ?? false;
+                return (
+                  <li key={item}>
+                    <label className="mv-check-item">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleItem(category.id, index)}
+                      />
+                      <span className="mv-check-box" aria-hidden="true">
+                        <CheckIcon />
+                      </span>
+                      <span className="mv-check-text">{item}</span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          </fieldset>
+        );
+      })}
+
+      <div className="mv-tool-actions" style={{ marginTop: 40 }}>
+        <button type="button" onClick={generatePdf} className="mv-btn mv-btn-ghost">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+          </svg>
+          {labels.downloadPdf}
+        </button>
+        {totalChecked > 0 && (
+          <button type="button" onClick={resetAll} className="mv-text-action">
+            {labels.resetAll}
           </button>
-        </div>
+        )}
+      </div>
 
-        {/* CTA */}
-        <div className="mt-8 rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-8 text-center">
-          <h2 className="text-xl font-bold text-(--mv-ink)">{labels.ctaTitle}</h2>
-          <p className="mt-3 text-(--mv-ink-2)">{labels.ctaDesc}</p>
-          <a
-            {...storeAnchorProps(platform, {
-              pageType: CtaPageType.Tool,
-              placement: CtaPlacement.Inline,
-              slug: 'tclocs-checklist',
-              referrerParams: { utm_source: 'tool', utm_campaign: 'tclocs_checklist' },
-            })}
-            className="mt-6 inline-block rounded-full bg-(--mv-copper) px-8 py-3 text-sm font-semibold text-(--mv-on-copper) transition-colors hover:bg-(--mv-copper-hover)"
-          >
-            {labels.getEarlyAccess}
-          </a>
-        </div>
+      <div className="mv-tool-cta">
+        <h2>{labels.ctaTitle}</h2>
+        <p>{labels.ctaDesc}</p>
+        <a
+          {...storeAnchorProps(platform, {
+            pageType: CtaPageType.Tool,
+            placement: CtaPlacement.Inline,
+            slug: 'tclocs-checklist',
+            referrerParams: { utm_source: 'tool', utm_campaign: 'tclocs_checklist' },
+          })}
+          className="mv-btn mv-btn-primary"
+        >
+          {labels.getEarlyAccess}
+        </a>
       </div>
     </section>
   );

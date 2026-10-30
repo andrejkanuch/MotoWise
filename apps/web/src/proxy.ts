@@ -168,7 +168,14 @@ function applySecurityHeaders(response: NextResponse, nonce: string | null) {
 const MARKETING_CACHEABLE_RE =
   /^\/($|explore|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|piel|(?:en|de|fr|es|it|ja|pl|pt-BR)(?:\/|$))/;
 
-const NOINDEX_PREFIXES = ['/login', '/signup', '/forgot-password', '/explore/search', '/get'];
+const NOINDEX_PREFIXES = [
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/reset-password',
+  '/explore/search',
+  '/get',
+];
 
 function isNoIndexRoute(pathname: string): boolean {
   return NOINDEX_PREFIXES.some(
@@ -182,9 +189,12 @@ function isMarketingCacheable(pathname: string): boolean {
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
     pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/reset-password') ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/rider/') ||
     pathname.startsWith('/ride/') ||
+    pathname.startsWith('/share/') ||
+    pathname.startsWith('/u/') ||
     pathname.startsWith('/feed') ||
     pathname.startsWith('/garage') ||
     pathname.startsWith('/profile') ||
@@ -433,9 +443,12 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
     pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/reset-password') ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/rider/') ||
     pathname.startsWith('/ride/') ||
+    pathname.startsWith('/share/') ||
+    pathname.startsWith('/u/') ||
     pathname.startsWith('/explore') ||
     pathname.startsWith('/route/') ||
     pathname.startsWith('/routes/') ||
@@ -446,7 +459,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/ingest')
   ) {
     // Auth + public community routes + explore + route/trip detail + pro + /get bio link + PostHog proxy (/ingest → next.config rewrites): skip locale processing.
-    // NOTE: the root-only sections here (trips/route/routes/ride/rider/pro/get)
+    // NOTE: the root-only sections here (trips/route/routes/ride/rider/share/u/pro/get)
     // are mirrored by NON_LOCALIZED_ROUTE_SECTIONS in next.config.ts, which strips
     // stray locale prefixes off them. Keep the two lists aligned so /{locale}/… of a
     // root-only section 308-consolidates instead of 404ing.

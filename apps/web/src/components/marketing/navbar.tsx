@@ -1,97 +1,25 @@
 'use client';
 
+import { BookOpen, Camera, ChevronDown, Map as MapIcon, Menu, Warehouse, X } from 'lucide-react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Link, usePathname } from '@/i18n/navigation';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { LanguageSwitcher } from './language-switcher';
 
-/* ── Dropdown feature items with icons ── */
+/* ── Features dropdown: label + one-line subtitle, both from i18n ── */
 const FEATURE_ITEMS = [
   {
     key: 'tripPlanning',
+    subKey: 'tripPlanningSub',
     href: '/features/trip-planning',
-    sub: 'Multi-day routes & GPX export.',
-    icon: (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-        <circle cx="12" cy="10" r="3" />
-      </svg>
-    ),
+    Icon: MapIcon,
   },
-  {
-    key: 'diagnostics',
-    href: '/features/ai-diagnostics',
-    sub: 'Snap a photo, get the answer.',
-    icon: (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-        <circle cx="12" cy="13" r="4" />
-      </svg>
-    ),
-  },
-  {
-    key: 'garage',
-    href: '/features/garage-management',
-    sub: 'Unlimited bikes, one vault.',
-    icon: (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-        <polyline points="9 22 9 12 15 12 15 22" />
-      </svg>
-    ),
-  },
-  {
-    key: 'learning',
-    href: '/features/learning-paths',
-    sub: 'Go from novice to expert.',
-    icon: (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2zM22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
-      </svg>
-    ),
-  },
+  { key: 'diagnostics', subKey: 'diagnosticsSub', href: '/features/ai-diagnostics', Icon: Camera },
+  { key: 'garage', subKey: 'garageSub', href: '/features/garage-management', Icon: Warehouse },
+  { key: 'learning', subKey: 'learningSub', href: '/features/learning-paths', Icon: BookOpen },
 ] as const;
 
 const NAV_LINKS = [
@@ -102,266 +30,308 @@ const NAV_LINKS = [
 
 const SCROLL_ACTIVATE = 80;
 const SCROLL_DEACTIVATE = 20;
+const DROPDOWN_CLOSE_DELAY_MS = 80;
+const FEATURES_KEY = 'features';
 
-/* ── Styles ── */
-const S = {
-  nav: {
-    position: 'fixed' as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,
-    padding: '20px 40px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    transition:
-      'padding .4s var(--mv-ease), background .4s var(--mv-ease), backdrop-filter .4s var(--mv-ease), border-color .4s',
-    borderBottomWidth: '1px',
-    borderBottomStyle: 'solid' as const,
-    borderBottomColor: 'transparent',
-  },
-  /* The one sanctioned blur on the site (Ramp Is the Shadow Rule budget) */
-  navScrolled: {
-    padding: '12px 40px',
-    background: 'color-mix(in srgb, var(--mv-bg) 72%, transparent)',
-    backdropFilter: 'blur(16px)',
-    WebkitBackdropFilter: 'blur(16px)',
-    borderBottomColor: 'var(--mv-line)',
-  },
-  brand: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    fontWeight: 600,
-    fontSize: '17px',
-    letterSpacing: '-0.02em',
-    color: 'var(--mv-ink)',
-    textDecoration: 'none',
-  },
-  brandMark: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '9px',
-    overflow: 'hidden' as const,
-    display: 'grid',
-    placeItems: 'center',
-    transition: 'transform .5s var(--mv-ease-expo)',
-  },
-  brandMarkHover: {
-    transform: 'rotate(-8deg) scale(1.05)',
-  },
-  brandImg: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover' as const,
-    display: 'block',
-  },
-  navLinks: {
-    display: 'flex',
-    gap: '2px',
-    alignItems: 'center',
-    padding: '4px',
-    background: 'color-mix(in srgb, var(--mv-bg) 55%, transparent)',
-    border: '1px solid var(--mv-line)',
-    borderRadius: '999px',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    position: 'relative' as const,
-  },
-  navLink: {
-    color: 'var(--mv-ink-2)',
-    textDecoration: 'none',
-    fontSize: '13px',
-    fontWeight: 500,
-    padding: '9px 16px',
-    borderRadius: '999px',
-    transition: 'color .2s, background .2s',
-    letterSpacing: '-0.005em',
-    position: 'relative' as const,
-    cursor: 'pointer',
-    background: 'transparent',
-    border: 'none',
-    fontFamily: 'inherit',
-  },
-  navLinkHover: {
-    color: 'var(--mv-copper-text)',
-    background: 'var(--mv-line-2)',
-  },
-  dropdown: {
-    position: 'relative' as const,
-  },
-  dropdownTrigger: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '5px',
-    cursor: 'pointer',
-  },
-  /* Solid surface + hairline — no blur, no glass (blur budget is the bar) */
-  dropdownMenu: {
-    position: 'absolute' as const,
-    top: 'calc(100% + 10px)',
-    left: '50%',
-    transform: 'translateX(-50%) translateY(-8px)',
-    minWidth: '320px',
-    background: 'var(--mv-surface)',
-    border: '1px solid var(--mv-line)',
-    borderRadius: 'var(--mv-radius-card)',
-    padding: '8px',
-    opacity: 0,
-    visibility: 'hidden' as const,
-    transition: 'opacity .3s var(--mv-ease), transform .3s var(--mv-ease), visibility .3s',
-  },
-  dropdownMenuOpen: {
-    opacity: 1,
-    visibility: 'visible' as const,
-    transform: 'translateX(-50%) translateY(0)',
-  },
-  dropdownBridge: {
-    content: '""',
-    position: 'absolute' as const,
-    top: '100%',
-    left: '-20px',
-    right: '-20px',
-    height: '14px',
-  },
-  dropdownItem: {
-    display: 'block',
-    padding: '11px 12px',
-    borderRadius: 'var(--mv-radius-control)',
-    color: 'var(--mv-ink)',
-    textDecoration: 'none',
-    transition: 'background .2s, color .2s',
-  },
-  dropdownItemHover: {
-    background: 'var(--mv-line-2)',
-    color: 'var(--mv-copper-text)',
-  },
-  /* Icon inline next to the label — no tile boxes (anti-slop guardrail) */
-  dropdownTitleRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  dropdownItemIcon: {
-    display: 'inline-flex',
-    color: 'var(--mv-ink-3)',
-    flexShrink: 0,
-  },
-  dropdownTitle: {
-    fontSize: '14px',
-    fontWeight: 500,
-    letterSpacing: '-0.01em',
-    lineHeight: 1.2,
-  },
-  dropdownSub: {
-    fontSize: '12px',
-    color: 'var(--mv-ink-3)',
-    marginTop: '3px',
-    paddingLeft: '26px',
-    letterSpacing: '-0.005em',
-    lineHeight: 1.35,
-  },
-  navRight: {
-    display: 'flex',
-    gap: '10px',
-    alignItems: 'center',
-  },
-  navSignin: {
-    color: 'var(--mv-ink-2)',
-    fontSize: '13px',
-    fontWeight: 500,
-    textDecoration: 'none',
-    padding: '9px 14px',
-    transition: 'color .2s',
-  },
-  /* Copper is the verb: the one primary action in the bar, control radius */
-  navCta: {
-    padding: '9px 16px',
-    borderRadius: 'var(--mv-radius-control)',
-    whiteSpace: 'nowrap' as const,
-    background: 'var(--mv-copper)',
-    color: 'var(--mv-on-copper)',
-    fontWeight: 600,
-    fontSize: '13px',
-    textDecoration: 'none',
-    transition: 'transform .2s var(--mv-ease), background .2s',
-    letterSpacing: '-0.005em',
-    display: 'inline-block',
-  },
-  navCtaHover: {
-    background: 'var(--mv-copper-hover)',
-    transform: 'translateY(-1px)',
-  },
-  chevronSvg: {
-    transition: 'transform .3s var(--mv-ease)',
-    opacity: 0.7,
-  },
-  chevronOpen: {
-    transform: 'rotate(180deg)',
-  },
-  /* Mobile */
-  hamburger: {
-    display: 'none',
-    width: '48px',
-    height: '48px',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'transparent',
-    border: 'none',
-    color: 'var(--mv-ink-2)',
-    cursor: 'pointer',
-    borderRadius: 'var(--mv-radius-control)',
-    transition: 'color .2s',
-  },
-  /* Solid surface + hairline — no blur, no glass */
-  mobileOverlay: {
-    position: 'fixed' as const,
-    inset: 0,
-    zIndex: 99,
-    display: 'flex',
-    flexDirection: 'column' as const,
-    background: 'var(--mv-surface)',
-    borderTop: '1px solid var(--mv-line)',
-  },
-  mobileInner: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column' as const,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '24px',
-    overflowY: 'auto' as const,
-    padding: '32px 24px',
-  },
-  mobileLink: {
-    fontSize: '24px',
-    fontWeight: 500,
-    color: 'var(--mv-ink-2)',
-    textDecoration: 'none',
-    transition: 'color .2s',
-    letterSpacing: '-0.02em',
-  },
-  mobileCta: {
-    marginTop: '16px',
-    padding: '14px 32px',
-    borderRadius: 'var(--mv-radius-control)',
-    background: 'var(--mv-copper)',
-    color: 'var(--mv-on-copper)',
-    fontWeight: 600,
-    fontSize: '15px',
-    textDecoration: 'none',
-    transition: 'transform .2s var(--mv-ease), background .2s',
-    letterSpacing: '-0.005em',
-  },
-  mobileSignin: {
-    color: 'var(--mv-ink-2)',
-    fontSize: '15px',
-    fontWeight: 500,
-    textDecoration: 'none',
-    padding: '9px 14px',
-  },
-};
+/*
+ * The bar is flat on the ramp. Transparent at the top of the page; once
+ * scrolled it sits on the raised glass step with the site's ONE backdrop
+ * blur (12px). design-system.css keys the light-scheme hero overrides on
+ * `.mv-navbar[data-scrolled]` / `.mv-navbar:not([data-scrolled])`, so the
+ * open mobile sheet also sets data-scrolled: it leaves the dark hero scene
+ * and sits on the same ground as the sheet (opaque, no blur).
+ */
+const NAVBAR_CSS = `
+.mv-navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 72px;
+  padding: 14px 40px;
+  font-family: var(--mv-font-body);
+  color: var(--mv-ink);
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background .3s var(--mv-ease), border-color .3s var(--mv-ease), padding .3s var(--mv-ease);
+}
+.mv-navbar[data-scrolled] {
+  padding: 10px 40px;
+  min-height: 64px;
+  background: var(--mv-surface-2-glass);
+  border-bottom-color: var(--mv-line);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.mv-navbar[data-menu-open] {
+  background: var(--mv-bg);
+  border-bottom-color: var(--mv-line);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.mv-nav-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--mv-ink);
+  text-decoration: none;
+  border-radius: var(--mv-radius-control);
+}
+.mv-nav-brand img {
+  width: 32px; height: 32px;
+  border-radius: 9px;
+  display: block;
+}
+.mv-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.mv-nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--mv-radius-control);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--mv-ink-2);
+  background: transparent;
+  border: 0;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color .15s, background .15s;
+}
+.mv-nav-link:hover,
+.mv-nav-link[aria-expanded="true"] {
+  color: var(--mv-ink);
+  background: var(--mv-fill);
+}
+.mv-nav-link svg {
+  color: var(--mv-ink-3);
+  transition: transform .2s var(--mv-ease);
+}
+.mv-nav-link[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.mv-nav-dropdown {
+  position: relative;
+}
+/* A hover bridge so the pointer can cross the gap to the menu */
+.mv-nav-dropdown::after {
+  content: "";
+  position: absolute;
+  top: 100%; left: -16px; right: -16px;
+  height: 12px;
+}
+/* One step up the ramp: surface-2, hairline, card radius, no shadow */
+.mv-nav-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 300px;
+  padding: 8px;
+  background: var(--mv-surface-2);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-radius-card);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity .18s var(--mv-ease), transform .18s var(--mv-ease), visibility .18s;
+}
+.mv-nav-menu[data-open] {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.mv-nav-item {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  column-gap: 12px;
+  align-items: start;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: var(--mv-radius-control);
+  color: var(--mv-ink);
+  text-decoration: none;
+  transition: background .15s;
+}
+.mv-nav-item:hover {
+  background: var(--mv-surface-3);
+}
+.mv-nav-item svg {
+  margin-top: 2px;
+  color: var(--mv-ink-3);
+}
+.mv-nav-item-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+.mv-nav-item-sub {
+  display: block;
+  margin-top: 1px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--mv-ink-3);
+}
+.mv-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.mv-nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px; height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--mv-radius-control);
+  background: transparent;
+  color: var(--mv-ink-2);
+  cursor: pointer;
+  transition: color .15s, background .15s;
+}
+.mv-nav-icon:hover {
+  color: var(--mv-ink);
+  background: var(--mv-fill);
+}
+.mv-nav-signin {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--mv-radius-control);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mv-ink-2);
+  text-decoration: none;
+  transition: color .15s;
+}
+.mv-nav-signin:hover {
+  color: var(--mv-copper-text);
+}
+/* Copper is the verb: the one primary action in the bar */
+.mv-nav-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-left: 6px;
+  padding: 0 16px;
+  border-radius: var(--mv-radius-control);
+  background: var(--mv-copper);
+  color: var(--mv-on-copper);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background .2s, transform .2s var(--mv-ease);
+}
+.mv-nav-cta:hover {
+  background: var(--mv-copper-hover);
+  transform: translateY(-1px);
+}
+.mv-nav-cta:active {
+  transform: translateY(0) scale(0.985);
+}
+.mv-nav-burger {
+  display: none;
+}
+/* Mobile sheet: full height on the ground, no blur */
+.mv-nav-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  padding-top: 72px;
+  background: var(--mv-bg);
+  font-family: var(--mv-font-body);
+  color: var(--mv-ink);
+}
+.mv-nav-sheet-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 16px 24px calc(24px + env(safe-area-inset-bottom));
+}
+.mv-nav-sheet-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+.mv-nav-sheet-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+  padding: 0 4px;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 28px;
+  color: var(--mv-ink);
+  text-decoration: none;
+  border-radius: var(--mv-radius-control);
+}
+.mv-nav-sheet-link svg {
+  color: var(--mv-ink-3);
+}
+.mv-nav-sheet-link-sub {
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--mv-ink-3);
+}
+.mv-nav-sheet-small .mv-nav-sheet-link {
+  font-size: 17px;
+  min-height: 48px;
+}
+.mv-nav-sheet-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0;
+  border-top: 1px solid var(--mv-line);
+}
+.mv-nav-sheet-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+.mv-nav-sheet-actions .mv-nav-cta,
+.mv-nav-sheet-actions .mv-nav-signin {
+  justify-content: center;
+  min-height: 52px;
+  margin: 0;
+  font-size: 16px;
+}
+@media (max-width: 960px) {
+  .mv-navbar, .mv-navbar[data-scrolled] { padding-left: 20px; padding-right: 20px; }
+  .mv-nav-links, .mv-nav-right { display: none; }
+  .mv-nav-burger { display: inline-flex; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mv-navbar, .mv-navbar * { transition-duration: 0.01ms !important; }
+}
+`;
 
 export function Navbar() {
   const pathname = usePathname();
@@ -369,12 +339,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [brandHover, setBrandHover] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [hoveredLink, setHoveredLink] = useState<string | null>(null);
-  const [ctaHover, setCtaHover] = useState(false);
-  const [signinHover, setSigninHover] = useState(false);
-  const [hoveredDropdownItem, setHoveredDropdownItem] = useState<string | null>(null);
 
   const scrolledRef = useRef(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -382,6 +347,8 @@ export function Navbar() {
   const dropdownTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
   const dropdownTriggerRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
+
+  const themeLabels = { toLight: t('themeToLight'), toDark: t('themeToDark') };
 
   // Check auth state on mount
   useEffect(() => {
@@ -422,11 +389,7 @@ export function Navbar() {
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
     return () => {
       document.body.style.overflow = '';
     };
@@ -459,7 +422,7 @@ export function Navbar() {
   }, []);
 
   const handleDropdownLeave = useCallback(() => {
-    dropdownTimeoutRef.current = setTimeout(() => setDropdownOpen(false), 80);
+    dropdownTimeoutRef.current = setTimeout(() => setDropdownOpen(false), DROPDOWN_CLOSE_DELAY_MS);
   }, []);
 
   const handleDropdownKeyDown = useCallback(
@@ -504,268 +467,150 @@ export function Navbar() {
     [dropdownOpen],
   );
 
+  const accountAction = isLoggedIn ? (
+    <a href="/garage" className="mv-nav-cta" onClick={closeMobile}>
+      {t('dashboard')}
+    </a>
+  ) : (
+    <>
+      <a href="/login" className="mv-nav-signin" onClick={closeMobile}>
+        {t('login')}
+      </a>
+      <Link href="/#download" className="mv-nav-cta" onClick={closeMobile}>
+        {t('getTheApp')}
+      </Link>
+    </>
+  );
+
   return (
     <>
+      <style>{NAVBAR_CSS}</style>
       <nav
         className="mv-navbar"
-        data-scrolled={scrolled ? 'true' : undefined}
-        style={{
-          ...S.nav,
-          ...(scrolled ? S.navScrolled : {}),
-        }}
+        data-scrolled={scrolled || mobileOpen ? 'true' : undefined}
+        data-menu-open={mobileOpen ? 'true' : undefined}
       >
         {/* Brand */}
-        <Link
-          href="/"
-          style={S.brand}
-          onMouseEnter={() => setBrandHover(true)}
-          onMouseLeave={() => setBrandHover(false)}
-        >
-          <span style={{ ...S.brandMark, ...(brandHover ? S.brandMarkHover : {}) }}>
-            <Image
-              src="/images/marketing/MotoVault.png"
-              alt="MotoVault"
-              width={32}
-              height={32}
-              style={S.brandImg}
-            />
-          </span>
+        <Link href="/" className="mv-nav-brand">
+          <Image src="/images/marketing/MotoVault.png" alt="" width={32} height={32} />
           MotoVault
         </Link>
 
-        {/* Desktop nav-links pill */}
-        <div className="mv-nav-links" style={S.navLinks}>
-          {/* Features dropdown */}
+        {/* Desktop links */}
+        <div className="mv-nav-links">
           {/* biome-ignore lint/a11y/noStaticElementInteractions: dropdown hover container */}
           <div
-            style={S.dropdown}
+            className="mv-nav-dropdown"
             onMouseEnter={handleDropdownEnter}
             onMouseLeave={handleDropdownLeave}
             onFocus={handleDropdownEnter}
             onBlur={handleDropdownLeave}
             onKeyDown={handleDropdownKeyDown}
           >
-            {/* Bridge element for hover gap */}
-            <div style={S.dropdownBridge} />
             <button
               ref={dropdownTriggerRef}
               type="button"
-              style={{
-                ...S.navLink,
-                ...S.dropdownTrigger,
-                ...(hoveredLink === 'features' || dropdownOpen ? S.navLinkHover : {}),
-              }}
+              className="mv-nav-link"
               aria-haspopup="menu"
               aria-expanded={dropdownOpen}
-              onMouseEnter={() => setHoveredLink('features')}
-              onMouseLeave={() => setHoveredLink(null)}
+              onClick={() => setDropdownOpen((open) => !open)}
             >
-              {t('features')}
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                aria-hidden="true"
-                style={{
-                  ...S.chevronSvg,
-                  ...(dropdownOpen ? S.chevronOpen : {}),
-                }}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
+              {t(FEATURES_KEY)}
+              <ChevronDown size={14} aria-hidden="true" />
             </button>
             <div
               ref={dropdownMenuRef}
               role="menu"
-              style={{
-                ...S.dropdownMenu,
-                ...(dropdownOpen ? S.dropdownMenuOpen : {}),
-              }}
+              className="mv-nav-menu"
+              data-open={dropdownOpen ? 'true' : undefined}
             >
-              {FEATURE_ITEMS.map((item) => (
-                <Link
-                  key={item.key}
-                  href={item.href}
-                  role="menuitem"
-                  style={{
-                    ...S.dropdownItem,
-                    ...(hoveredDropdownItem === item.key ? S.dropdownItemHover : {}),
-                  }}
-                  onMouseEnter={() => setHoveredDropdownItem(item.key)}
-                  onMouseLeave={() => setHoveredDropdownItem(null)}
-                >
-                  <div style={S.dropdownTitleRow}>
-                    <span style={S.dropdownItemIcon}>{item.icon}</span>
-                    <span style={S.dropdownTitle}>{t(item.key)}</span>
-                  </div>
-                  <div style={S.dropdownSub}>{item.sub}</div>
+              {FEATURE_ITEMS.map(({ key, subKey, href, Icon }) => (
+                <Link key={key} href={href} role="menuitem" className="mv-nav-item">
+                  <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
+                  <span>
+                    <span className="mv-nav-item-title">{t(key)}</span>
+                    <span className="mv-nav-item-sub">{t(subKey)}</span>
+                  </span>
                 </Link>
               ))}
             </div>
           </div>
 
-          {/* Explore, FAQ, Pro */}
           {NAV_LINKS.map((link) => (
-            <Link
-              key={link.key}
-              href={link.href}
-              style={{
-                ...S.navLink,
-                ...(hoveredLink === link.key ? S.navLinkHover : {}),
-              }}
-              onMouseEnter={() => setHoveredLink(link.key)}
-              onMouseLeave={() => setHoveredLink(null)}
-            >
+            <Link key={link.key} href={link.href} className="mv-nav-link">
               {t(link.key)}
             </Link>
           ))}
         </div>
 
         {/* Right side */}
-        <div className="mv-nav-right" style={S.navRight}>
+        <div className="mv-nav-right">
           <LanguageSwitcher />
-          {isLoggedIn ? (
-            <a
-              href="/garage"
-              style={{
-                ...S.navCta,
-                ...(ctaHover ? S.navCtaHover : {}),
-              }}
-              onMouseEnter={() => setCtaHover(true)}
-              onMouseLeave={() => setCtaHover(false)}
-            >
-              {t('dashboard', { defaultValue: 'My Garage' })}
-            </a>
-          ) : (
-            <>
-              <a
-                href="/login"
-                className="mv-nav-signin"
-                style={{
-                  ...S.navSignin,
-                  ...(signinHover ? { color: 'var(--mv-copper-text)' } : {}),
-                }}
-                onMouseEnter={() => setSigninHover(true)}
-                onMouseLeave={() => setSigninHover(false)}
-              >
-                {t('login', { defaultValue: 'Sign in' })}
-              </a>
-              <a
-                href="/#download"
-                style={{
-                  ...S.navCta,
-                  ...(ctaHover ? S.navCtaHover : {}),
-                }}
-                onMouseEnter={() => setCtaHover(true)}
-                onMouseLeave={() => setCtaHover(false)}
-              >
-                {t('getTheApp', { defaultValue: 'Get the app' })}
-              </a>
-            </>
-          )}
+          <ThemeToggle className="mv-nav-icon" labels={themeLabels} />
+          {accountAction}
         </div>
 
         {/* Hamburger (mobile) */}
         <button
           ref={menuButtonRef}
           type="button"
-          className="mv-hamburger"
-          style={S.hamburger}
+          className="mv-nav-icon mv-nav-burger"
           onClick={() => setMobileOpen((prev) => !prev)}
           aria-expanded={mobileOpen}
           aria-controls="mobile-menu"
           aria-label={mobileOpen ? t('closeMenu') : t('openMenu')}
         >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            {mobileOpen ? (
-              <>
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </>
-            ) : (
-              <>
-                <line x1="4" y1="8" x2="20" y2="8" />
-                <line x1="4" y1="16" x2="20" y2="16" />
-              </>
-            )}
-          </svg>
+          {mobileOpen ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
         </button>
       </nav>
 
-      {/* Mobile overlay */}
+      {/* Mobile sheet */}
       {mobileOpen && (
         <div
           id="mobile-menu"
           role="dialog"
           aria-modal="true"
-          aria-label={t('openMenu')}
-          style={{ ...S.mobileOverlay, top: '72px' }}
+          aria-label={t('menu')}
+          className="mv-nav-sheet"
         >
-          <div style={S.mobileInner}>
-            {FEATURE_ITEMS.map((item, i) => (
-              <Link
-                key={item.key}
-                ref={i === 0 ? firstLinkRef : undefined}
-                href={item.href}
-                onClick={closeMobile}
-                style={S.mobileLink}
-              >
-                {t(item.key)}
-              </Link>
-            ))}
-            {NAV_LINKS.map((link) => (
-              <Link key={link.key} href={link.href} onClick={closeMobile} style={S.mobileLink}>
-                {t(link.key)}
-              </Link>
-            ))}
-            <LanguageSwitcher />
-            {isLoggedIn ? (
-              <a href="/garage" onClick={closeMobile} style={S.mobileCta}>
-                {t('dashboard', { defaultValue: 'My Garage' })}
-              </a>
-            ) : (
-              <>
-                <a href="/login" onClick={closeMobile} style={S.mobileSignin}>
-                  {t('login', { defaultValue: 'Sign in' })}
-                </a>
-                <a href="/#download" style={S.mobileCta}>
-                  {t('getTheApp', { defaultValue: 'Get the app' })}
-                </a>
-              </>
-            )}
+          <div className="mv-nav-sheet-inner">
+            <div className="mv-nav-sheet-group">
+              {FEATURE_ITEMS.map(({ key, subKey, href, Icon }, i) => (
+                <Link
+                  key={key}
+                  ref={i === 0 ? firstLinkRef : undefined}
+                  href={href}
+                  onClick={closeMobile}
+                  className="mv-nav-sheet-link"
+                >
+                  <Icon size={20} strokeWidth={1.8} aria-hidden="true" />
+                  <span>
+                    {t(key)}
+                    <span className="mv-nav-sheet-link-sub">{t(subKey)}</span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+            <div className="mv-nav-sheet-group mv-nav-sheet-small">
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.key}
+                  href={link.href}
+                  onClick={closeMobile}
+                  className="mv-nav-sheet-link"
+                >
+                  {t(link.key)}
+                </Link>
+              ))}
+            </div>
+            <div className="mv-nav-sheet-row">
+              <LanguageSwitcher />
+              <ThemeToggle className="mv-nav-icon" labels={themeLabels} />
+            </div>
+            <div className="mv-nav-sheet-actions">{accountAction}</div>
           </div>
         </div>
       )}
-
-      {/* Responsive styles — hide nav-links + signin at <=960px, show hamburger */}
-      <style>{`
-        .mv-nav-links, .mv-nav-right .mv-nav-signin { display: flex; }
-        .mv-hamburger { display: none !important; }
-        @media (max-width: 960px) {
-          .mv-nav-links, .mv-nav-right .mv-nav-signin { display: none !important; }
-          .mv-nav-right { display: none !important; }
-          .mv-hamburger { display: flex !important; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .mv-navbar, .mv-navbar * {
-            transition-duration: 0.01ms !important;
-          }
-        }
-      `}</style>
     </>
   );
 }

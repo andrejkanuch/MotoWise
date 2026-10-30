@@ -1,5 +1,6 @@
 'use client';
 
+import { ChevronDown } from 'lucide-react';
 import { usePathname as useNextPathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/navigation';
@@ -34,6 +35,51 @@ function isI18nRoute(path: string | null): boolean {
   return I18N_ROUTE_PREFIXES.some((prefix) => stripped.startsWith(prefix));
 }
 
+/* A native select dressed as a ghost control: body face, 44px tall,
+   control radius, copper focus ring. Options sit on the raised step. */
+const SWITCHER_CSS = `
+.mv-lang {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.mv-lang-select {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 44px;
+  padding: 0 32px 0 12px;
+  border: 0;
+  border-radius: var(--mv-radius-control);
+  background: transparent;
+  font-family: var(--mv-font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mv-ink-2);
+  cursor: pointer;
+  transition: color .15s, background .15s;
+}
+.mv-lang-select:hover {
+  color: var(--mv-ink);
+  background: var(--mv-fill);
+}
+.mv-lang-select:focus-visible {
+  outline: 2px solid var(--mv-copper);
+  outline-offset: 2px;
+}
+.mv-lang-select option {
+  background: var(--mv-surface-2);
+  color: var(--mv-ink);
+}
+.mv-lang-chevron {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--mv-ink-3);
+}
+`;
+
 export function LanguageSwitcher() {
   const locale = useLocale();
   const intlRouter = useRouter();
@@ -54,31 +100,21 @@ export function LanguageSwitcher() {
   }
 
   return (
-    <div className="relative">
+    <div className="mv-lang">
+      <style>{SWITCHER_CSS}</style>
       <select
         value={locale}
         onChange={(e) => handleChange(e.target.value)}
-        className="appearance-none bg-transparent text-sm text-neutral-400 hover:text-neutral-200 cursor-pointer pr-6 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-neutral-950 rounded"
+        className="mv-lang-select"
         aria-label={t('selectLanguage')}
       >
         {routing.locales.map((loc) => (
-          <option key={loc} value={loc} className="bg-neutral-900 text-neutral-200">
+          <option key={loc} value={loc}>
             {t(loc)}
           </option>
         ))}
       </select>
-      <svg
-        className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 size-4 text-neutral-500"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <polyline points="6 9 12 15 18 9" />
-      </svg>
+      <ChevronDown size={14} aria-hidden="true" className="mv-lang-chevron" />
     </div>
   );
 }

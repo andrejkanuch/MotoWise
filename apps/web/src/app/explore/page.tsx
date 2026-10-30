@@ -8,7 +8,7 @@ import { CountryLedger } from '@/components/explore/country-ledger';
 import { EditorsLedger } from '@/components/explore/editors-ledger';
 import { HeroBold } from '@/components/explore/hero-bold';
 import { PopularStrip } from '@/components/explore/popular-strip';
-import { SkeletonCard } from '@/components/explore/primitives';
+import { SkeletonRows } from '@/components/explore/primitives';
 import { BASE_URL } from '@/lib/constants';
 import { fetchCountries } from '@/lib/fetch-places';
 import { COUNTRY_NAMES } from '@/lib/geo-names';
@@ -166,17 +166,10 @@ async function EditorSection() {
 
 function SectionSkeleton() {
   return (
-    <div style={{ padding: '90px 40px', maxWidth: 1320, margin: '0 auto' }}>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: 14,
-        }}
-      >
-        {[0, 1, 2, 3].map((i) => (
-          <SkeletonCard key={i} />
-        ))}
+    <div className="xp-wrap xp-section-tight">
+      <span className="xp-skel" style={{ width: 240, height: 36 }} />
+      <div style={{ marginTop: 24 }}>
+        <SkeletonRows count={3} />
       </div>
     </div>
   );
@@ -239,11 +232,7 @@ export default async function ExplorePage() {
       <CountryLedger countries={allCountries} />
 
       {/* ===== APP PROMO ===== */}
-      <div style={{ padding: '120px 40px 0', maxWidth: 1320, margin: '0 auto' }}>
-        <AppPromo />
-      </div>
-
-      <div style={{ height: 80 }} />
+      <AppPromo />
     </>
   );
 }

@@ -9,7 +9,7 @@ export async function AuthIntlLayout({ children }: { children: React.ReactNode }
   const messages = (await getMessages()) as Record<string, unknown>;
   return (
     <NextIntlClientProvider messages={{ AuthV2: messages.AuthV2 } as typeof messages}>
-      <>{children}</>
+      {children}
     </NextIntlClientProvider>
   );
 }

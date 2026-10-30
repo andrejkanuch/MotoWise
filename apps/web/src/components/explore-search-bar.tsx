@@ -3,6 +3,7 @@
 import type { SearchTypeaheadQuery } from '@motovault/graphql';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Icon, type IconName } from '@/components/explore/primitives';
 import { DURATION_OPTIONS } from '@/lib/explore-filters';
 
 /* ── Types ────────────────────────────────────────────────────── */
@@ -48,6 +49,17 @@ const FALLBACK_COUNTRIES = [
   { code: 'NO', label: 'Norway' },
 ] as const;
 
+const PLACE_KIND_ICON: Record<string, IconName> = {
+  country: 'globe',
+  region: 'pin',
+};
+
+const PLACE_KIND_LABEL: Record<string, string> = {
+  country: 'Country',
+  region: 'Region',
+  city: 'City',
+};
+
 /* ── Helpers ──────────────────────────────────────────────────── */
 
 async function fetchTypeahead(q: string, signal?: AbortSignal): Promise<TypeaheadData> {
@@ -73,119 +85,9 @@ function buildPlaceHref(p: PlaceSuggestion): string {
   return `/explore/${p.countryCode.toLowerCase()}`;
 }
 
-/* ── Icons ────────────────────────────────────────────────────── */
-
-function GlobeIcon() {
-  return (
-    <svg
-      className="h-4 w-4 shrink-0 text-neutral-500"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.5}
-      stroke="currentColor"
-      aria-hidden="true"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"
-      />
-    </svg>
-  );
+function placeKindLabel(kind: string): string {
+  return PLACE_KIND_LABEL[kind] ?? kind.charAt(0).toUpperCase() + kind.slice(1);
 }
-
-function PinIcon() {
-  return (
-    <svg
-      className="h-4 w-4 shrink-0 text-neutral-500"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.5}
-      stroke="currentColor"
-      aria-hidden="true"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
-      />
-    </svg>
-  );
-}
-
-function BuildingIcon() {
-  return (
-    <svg
-      className="h-4 w-4 shrink-0 text-neutral-500"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.5}
-      stroke="currentColor"
-      aria-hidden="true"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3H21"
-      />
-    </svg>
-  );
-}
-
-function MapIcon() {
-  return (
-    <svg
-      className="h-4 w-4 shrink-0 text-neutral-500"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.5}
-      stroke="currentColor"
-      aria-hidden="true"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z"
-      />
-    </svg>
-  );
-}
-
-function KindIcon({ kind }: { kind: string }) {
-  switch (kind) {
-    case 'country':
-      return <GlobeIcon />;
-    case 'region':
-      return <PinIcon />;
-    default:
-      return <BuildingIcon />;
-  }
-}
-
-/* ── Styles ───────────────────────────────────────────────────── */
-
-const selectStyle: React.CSSProperties = {
-  appearance: 'none',
-  background: 'transparent',
-  border: 'none',
-  color: 'var(--mv-ink)',
-  fontSize: 13,
-  fontWeight: 500,
-  fontFamily: 'inherit',
-  cursor: 'pointer',
-  paddingRight: 16,
-  width: '100%',
-};
-
-const selectLabelStyle: React.CSSProperties = {
-  fontFamily: 'var(--font-geist-mono, monospace)',
-  fontSize: 9,
-  color: 'var(--mv-ink-3)',
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  lineHeight: 1,
-};
 
 /* ── Component ────────────────────────────────────────────────── */
 
@@ -370,49 +272,15 @@ export function ExploreSearchBar({
 
   return (
     <div ref={containerRef}>
-      {/* Glassmorphic Search Bar */}
-      <div style={{ marginTop: 40, position: 'relative' }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'stretch',
-            background: 'oklch(0.15 0.012 55 / 0.7)',
-            backdropFilter: 'blur(24px)',
-            border: '1px solid var(--mv-line)',
-            borderRadius: 20,
-            padding: 8,
-            boxShadow: '0 30px 60px -30px oklch(0 0 0 / 0.7)',
-          }}
-        >
-          {/* Search input */}
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-              padding: '0 20px',
-              minWidth: 0,
-            }}
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="var(--mv-ink-2)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ flexShrink: 0 }}
-            >
-              <title>Search</title>
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
+      <div style={{ position: 'relative' }}>
+        {/* The field: surface-2, hairline, radius 12, copper focus */}
+        <div className="xp-field">
+          <div className="xp-field-main">
+            <Icon name="search" size={18} />
             <input
               ref={inputRef}
               type="search"
+              className="xp-input"
               value={query}
               maxLength={100}
               onChange={(e) => setQuery(e.target.value)}
@@ -422,18 +290,7 @@ export function ExploreSearchBar({
                 }
               }}
               onKeyDown={handleKeyDown}
-              placeholder='Try "Alps" &middot; "coastal Portugal" &middot; "weekend near Barcelona"'
-              style={{
-                flex: 1,
-                minWidth: 0,
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                color: 'var(--mv-ink)',
-                fontSize: 15,
-                fontFamily: 'inherit',
-                letterSpacing: '-0.005em',
-              }}
+              placeholder="Search a pass, a coast, a town"
               aria-label="Search motorcycle routes"
               aria-describedby="search-keyboard-hints"
               role="combobox"
@@ -443,211 +300,66 @@ export function ExploreSearchBar({
               aria-activedescendant={activeIndex >= 0 ? `typeahead-item-${activeIndex}` : undefined}
               autoComplete="off"
             />
-            {isLoading && (
-              <span
-                style={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: '50%',
-                  border: '2px solid var(--mv-line)',
-                  borderTopColor: 'var(--mv-warm-400)',
-                  animation: 'spin 0.6s linear infinite',
-                  flexShrink: 0,
-                }}
-              />
-            )}
+            {isLoading && <span className="xp-spinner" aria-hidden="true" />}
           </div>
 
-          {/* Divider */}
-          <div
-            style={{
-              width: 1,
-              alignSelf: 'stretch',
-              margin: '8px 0',
-              background: 'var(--mv-line)',
-            }}
-          />
+          <div className="xp-field-divider" aria-hidden="true" />
 
           {/* Country filter */}
-          <div
-            style={{
-              padding: '8px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              minWidth: 110,
-              position: 'relative',
-            }}
-          >
-            <span style={selectLabelStyle}>Country</span>
-            <div style={{ position: 'relative' }}>
-              <select
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                style={selectStyle}
-                aria-label="Filter by country"
-              >
-                {countryOptions.map((c) => (
-                  <option key={c.code} value={c.code} style={{ background: '#1a1a1a' }}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--mv-ink-3)"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  pointerEvents: 'none',
-                }}
-              >
-                <title>Expand</title>
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </div>
-          </div>
+          <label className="xp-select-wrap">
+            <span className="xp-label">Country</span>
+            <select
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              className="xp-select"
+              aria-label="Filter by country"
+            >
+              {countryOptions.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+            <span className="xp-select-caret">
+              <Icon name="chevron-down" size={14} />
+            </span>
+          </label>
 
-          {/* Divider */}
-          <div
-            style={{
-              width: 1,
-              alignSelf: 'stretch',
-              margin: '8px 0',
-              background: 'var(--mv-line)',
-            }}
-          />
+          <div className="xp-field-divider" aria-hidden="true" />
 
           {/* Duration filter */}
-          <div
-            style={{
-              padding: '8px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              minWidth: 110,
-              position: 'relative',
-            }}
-          >
-            <span style={selectLabelStyle}>Duration</span>
-            <div style={{ position: 'relative' }}>
-              <select
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                style={selectStyle}
-                aria-label="Filter by duration"
-              >
-                {DURATION_OPTIONS.map((d) => (
-                  <option key={d.value} value={d.value} style={{ background: '#1a1a1a' }}>
-                    {d.label}
-                  </option>
-                ))}
-              </select>
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--mv-ink-3)"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  pointerEvents: 'none',
-                }}
-              >
-                <title>Expand</title>
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </div>
-          </div>
-
-          {/* Search button */}
-          <button
-            type="button"
-            onClick={handleSearch}
-            style={{
-              padding: '0 28px',
-              background: 'var(--mv-warm-500)',
-              color: 'var(--mv-bg)',
-              border: 'none',
-              borderRadius: 14,
-              fontFamily: 'inherit',
-              fontSize: 14,
-              fontWeight: 600,
-              letterSpacing: '-0.005em',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              transition: 'background 0.2s, transform 0.2s',
-              flexShrink: 0,
-            }}
-          >
-            Search
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <label className="xp-select-wrap">
+            <span className="xp-label">Length</span>
+            <select
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              className="xp-select"
+              aria-label="Filter by duration"
             >
-              <title>Go</title>
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
+              {DURATION_OPTIONS.map((d) => (
+                <option key={d.value} value={d.value}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+            <span className="xp-select-caret">
+              <Icon name="chevron-down" size={14} />
+            </span>
+          </label>
+
+          <button type="button" onClick={handleSearch} className="xp-field-submit">
+            Search routes
+            <Icon name="arrow-right" size={14} />
           </button>
         </div>
 
         {/* Typeahead dropdown */}
         {isOpen && allItems.length > 0 && (
-          <div
-            id="typeahead-listbox"
-            role="listbox"
-            style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              marginTop: 8,
-              zIndex: 50,
-              overflow: 'hidden',
-              borderRadius: 16,
-              border: '1px solid var(--mv-line)',
-              background: 'oklch(0.12 0.01 55 / 0.95)',
-              backdropFilter: 'blur(24px)',
-              boxShadow: '0 30px 60px -15px oklch(0 0 0 / 0.6)',
-            }}
-          >
-            {/* Places */}
+          <div id="typeahead-listbox" role="listbox" className="xp-dropdown">
             {data && data.places.length > 0 && (
               <div>
-                <div
-                  style={{
-                    padding: '10px 16px 4px',
-                    fontFamily: 'var(--font-geist-mono, monospace)',
-                    fontSize: 10,
-                    color: 'var(--mv-ink-3)',
-                    letterSpacing: '0.12em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Locations
+                <div className="xp-dropdown-head">
+                  <span className="xp-label">Places</span>
                 </div>
                 {data.places.map((place, i) => (
                   <button
@@ -656,69 +368,25 @@ export function ExploreSearchBar({
                     role="option"
                     type="button"
                     aria-selected={activeIndex === i}
-                    style={{
-                      display: 'flex',
-                      width: '100%',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: '10px 16px',
-                      border: 'none',
-                      background: activeIndex === i ? 'oklch(0.76 0.18 60 / 0.08)' : 'transparent',
-                      color: activeIndex === i ? 'var(--mv-ink)' : 'var(--mv-ink-2)',
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      fontSize: 14,
-                      transition: 'background 0.15s',
-                    }}
+                    className="xp-option"
                     onMouseEnter={() => setActiveIndex(i)}
                     onClick={() => navigate(buildPlaceHref(place))}
                   >
-                    <KindIcon kind={place.kind} />
-                    <span
-                      style={{
-                        flex: 1,
-                        fontWeight: 500,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {place.name}
+                    <span className="xp-option-icon">
+                      <Icon name={PLACE_KIND_ICON[place.kind] ?? 'building'} size={16} />
                     </span>
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-geist-mono, monospace)',
-                        fontSize: 10,
-                        color: 'var(--mv-ink-3)',
-                        letterSpacing: '0.08em',
-                        textTransform: 'capitalize',
-                      }}
-                    >
-                      {place.kind}
-                    </span>
+                    <span className="xp-option-name">{place.name}</span>
+                    <span className="xp-option-kind">{placeKindLabel(place.kind)}</span>
                   </button>
                 ))}
               </div>
             )}
 
-            {/* Routes */}
             {data && data.routes.length > 0 && (
               <div>
-                {placesCount > 0 && (
-                  <div style={{ margin: '0 16px', borderTop: '1px solid var(--mv-line)' }} />
-                )}
-                <div
-                  style={{
-                    padding: '10px 16px 4px',
-                    fontFamily: 'var(--font-geist-mono, monospace)',
-                    fontSize: 10,
-                    color: 'var(--mv-ink-3)',
-                    letterSpacing: '0.12em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Routes
+                {placesCount > 0 && <div className="xp-dropdown-rule" aria-hidden="true" />}
+                <div className="xp-dropdown-head">
+                  <span className="xp-label">Routes</span>
                 </div>
                 {data.routes.map((route, i) => {
                   const idx = placesCount + i;
@@ -729,214 +397,59 @@ export function ExploreSearchBar({
                       role="option"
                       type="button"
                       aria-selected={activeIndex === idx}
-                      style={{
-                        display: 'flex',
-                        width: '100%',
-                        alignItems: 'center',
-                        gap: 12,
-                        padding: '10px 16px',
-                        border: 'none',
-                        background:
-                          activeIndex === idx ? 'oklch(0.76 0.18 60 / 0.08)' : 'transparent',
-                        color: activeIndex === idx ? 'var(--mv-ink)' : 'var(--mv-ink-2)',
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        fontSize: 14,
-                        transition: 'background 0.15s',
-                      }}
+                      className="xp-option"
                       onMouseEnter={() => setActiveIndex(idx)}
                       onClick={() => navigate(buildRouteHref(route))}
                     >
-                      <MapIcon />
-                      <span
-                        style={{
-                          flex: 1,
-                          fontWeight: 500,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {route.name}
+                      <span className="xp-option-icon">
+                        <Icon name="map" size={16} />
                       </span>
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-geist-mono, monospace)',
-                          fontSize: 10,
-                          color: 'var(--mv-ink-3)',
-                          letterSpacing: '0.08em',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        {route.countryCode}
-                      </span>
+                      <span className="xp-option-name">{route.name}</span>
+                      <span className="xp-option-kind">{route.countryCode}</span>
                     </button>
                   );
                 })}
               </div>
             )}
 
-            {/* Footer hint */}
-            <div
-              id="search-keyboard-hints"
-              style={{
-                borderTop: '1px solid var(--mv-line)',
-                padding: '8px 16px',
-                fontFamily: 'var(--font-geist-mono, monospace)',
-                fontSize: 11,
-                color: 'var(--mv-ink-4)',
-              }}
-            >
-              <kbd
-                style={{
-                  padding: '2px 6px',
-                  borderRadius: 4,
-                  background: 'oklch(0.2 0.01 55)',
-                  fontSize: 10,
-                }}
-              >
-                &uarr;&darr;
-              </kbd>{' '}
-              navigate{' '}
-              <kbd
-                style={{
-                  padding: '2px 6px',
-                  borderRadius: 4,
-                  background: 'oklch(0.2 0.01 55)',
-                  fontSize: 10,
-                  marginLeft: 4,
-                }}
-              >
-                Enter
-              </kbd>{' '}
-              select{' '}
-              <kbd
-                style={{
-                  padding: '2px 6px',
-                  borderRadius: 4,
-                  background: 'oklch(0.2 0.01 55)',
-                  fontSize: 10,
-                  marginLeft: 4,
-                }}
-              >
-                Esc
-              </kbd>{' '}
-              close
+            <div id="search-keyboard-hints" className="xp-dropdown-foot">
+              <span>
+                <kbd className="xp-kbd">↑</kbd> <kbd className="xp-kbd">↓</kbd> to move
+              </span>
+              <span>
+                <kbd className="xp-kbd">Enter</kbd> to open
+              </span>
+              <span>
+                <kbd className="xp-kbd">Esc</kbd> to close
+              </span>
             </div>
           </div>
         )}
       </div>
 
-      {/* Quick Chips + Shortcut hint */}
-      <div
-        style={{
-          marginTop: 22,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 18,
-          flexWrap: 'wrap',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            columnGap: 8,
-            rowGap: 10,
-            alignItems: 'center',
-            flex: 1,
-            minWidth: 0,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: 'var(--font-geist-mono, monospace)',
-              fontSize: 10,
-              color: 'var(--mv-ink-3)',
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              marginRight: 6,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Popular:
+      {/* Quick chips + shortcut hint */}
+      <div className="xp-search-foot">
+        <div className="xp-chip-row" style={{ alignItems: 'center' }}>
+          <span className="xp-label" style={{ marginRight: 4 }}>
+            Try
           </span>
           {FILTER_CHIPS.map((chip) => (
             <button
               key={chip.query}
               type="button"
               onClick={() => handleChipClick(chip.query)}
-              style={{
-                padding: '7px 13px 7px 10px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 7,
-                borderRadius: 999,
-                background: 'oklch(1 0 0 / 0.03)',
-                border: '1px solid var(--mv-line)',
-                color: 'var(--mv-ink-2)',
-                fontSize: 12.5,
-                fontWeight: 500,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                transition: 'all 0.2s',
-              }}
+              className="xp-chip"
+              style={{ padding: '0 12px', fontSize: 13.5 }}
             >
-              <span
-                style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: '50%',
-                  background: 'var(--mv-warm-500)',
-                }}
-              />
               {chip.label}
             </button>
           ))}
         </div>
 
-        {/* Cmd+K hint */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            fontFamily: 'var(--font-geist-mono, monospace)',
-            fontSize: 10,
-            color: 'var(--mv-ink-4)',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-          }}
-        >
-          <kbd
-            style={{
-              padding: '3px 7px',
-              borderRadius: 5,
-              border: '1px solid var(--mv-line)',
-              background: 'oklch(0.15 0.01 55)',
-              fontSize: 10,
-              lineHeight: 1,
-            }}
-          >
-            &#8984;
-          </kbd>
-          <kbd
-            style={{
-              padding: '3px 7px',
-              borderRadius: 5,
-              border: '1px solid var(--mv-line)',
-              background: 'oklch(0.15 0.01 55)',
-              fontSize: 10,
-              lineHeight: 1,
-            }}
-          >
-            K
-          </kbd>
-          <span style={{ marginLeft: 2 }}>to search anywhere</span>
+        <div className="xp-search-hint">
+          <kbd className="xp-kbd">⌘</kbd>
+          <kbd className="xp-kbd">K</kbd>
+          <span>focuses the search from anywhere on the page</span>
         </div>
       </div>
     </div>

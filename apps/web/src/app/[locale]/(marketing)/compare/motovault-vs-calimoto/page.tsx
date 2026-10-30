@@ -61,23 +61,7 @@ const CONFIG: VsComparePageConfig = {
   pricing: { keyStyle: 'flat', titleKey: 'pricingTableTitle', rows: 3, narrativeKey: 'pricing' },
   verdict: { bodyKey: 'verdict' },
   faqCount: 4,
-  related: [
-    {
-      href: '/compare',
-      title: 'Best Motorcycle Apps 2026',
-      description: 'Full feature matrix and ranking of 10 motorcycle apps.',
-    },
-    {
-      href: '/compare/motovault-vs-ridelog',
-      title: 'MotoVault vs RideLog',
-      description: 'Two maintenance-first apps compared side by side.',
-    },
-    {
-      href: '/compare/motovault-vs-rever',
-      title: 'MotoVault vs REVER',
-      description: 'Social riding vs. ownership management — which fits you?',
-    },
-  ],
+  related: ['ridelog', 'rever'],
 };
 
 export default async function VsCalimotoPage({ params }: PageProps) {

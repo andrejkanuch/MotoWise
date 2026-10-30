@@ -41,11 +41,7 @@ export default async function Page({ params }: PageProps) {
           alt: 'MotoVault upcoming service reminders and overdue tasks',
         },
       ]}
-      featureIcons={[
-        'M14.7 6.3a4 4 0 0 0-5.6 5.6L3 18l3 3 6.1-6.1a4 4 0 0 0 5.6-5.6l-2.5 2.5-2.8-2.8 2.5-2.5z',
-        'M12 8v4l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
-        'M3 6h18M3 12h18M3 18h12',
-      ]}
+      related={['/features/garage-management', '/features/expense-tracking']}
     />
   );
 }

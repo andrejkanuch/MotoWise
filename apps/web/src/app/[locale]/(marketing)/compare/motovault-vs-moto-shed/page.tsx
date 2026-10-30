@@ -65,23 +65,7 @@ const CONFIG: VsComparePageConfig = {
   },
   verdict: { titleKey: 'verdictHeading', bodyKey: 'verdictText' },
   faqCount: 4,
-  related: [
-    {
-      href: '/compare',
-      title: 'Best Motorcycle Apps 2026',
-      description: 'Full feature matrix and ranking of 10 motorcycle apps.',
-    },
-    {
-      href: '/compare/motovault-vs-motormanage',
-      title: 'MotoVault vs MotorManage',
-      description: 'All-in-one platform vs OEM service schedule specialist.',
-    },
-    {
-      href: '/compare/motovault-vs-ridelog',
-      title: 'MotoVault vs RideLog',
-      description: 'Full-featured companion vs automatic ride detection.',
-    },
-  ],
+  related: ['motormanage', 'ridelog'],
 };
 
 export default async function VsMotoShedPage({ params }: PageProps) {

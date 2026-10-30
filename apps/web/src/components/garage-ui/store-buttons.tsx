@@ -12,16 +12,20 @@ import './garage-ui.css';
  * shared `storeAnchorProps`: new tab, Play install referrer, one
  * `store_cta_click` tagged `page_type: garage`.
  *
- * The official badge artwork is not in the repo, so these are clean text
- * buttons with the platform marks (spec: 56px height). Swap in the official
- * badges here, in one place, if they are ever added.
+ * The official badge artwork is not in the repo, so these are text buttons
+ * with the platform marks, radius 12: the App Store one is the copper action,
+ * Google Play one step up the ramp (as the marketing hero pairs them). Swap in
+ * the official badges here, in one place, if they are ever added.
  */
 export function StoreButtons({ placement = CtaPlacement.Inline }: { placement?: CtaPlacement }) {
   const t = useTranslations('AppHandoff');
   const ctx = { pageType: CtaPageType.Garage, placement };
   return (
     <div className="mvg-store">
-      <a {...storeAnchorProps(StorePlatform.Ios, ctx)} className="mvg-store-btn mvg-focusable">
+      <a
+        {...storeAnchorProps(StorePlatform.Ios, ctx)}
+        className="mvg-store-btn mvg-store-btn--primary mvg-focusable"
+      >
         <AppleMark size={20} />
         {t('appStore')}
       </a>

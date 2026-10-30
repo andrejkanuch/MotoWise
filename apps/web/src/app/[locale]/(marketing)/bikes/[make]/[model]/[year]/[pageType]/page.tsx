@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
+import { Breadcrumb } from '@/components/marketing/breadcrumb';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
 import {
@@ -13,6 +14,7 @@ import {
 import { scoreBikePage } from '@/lib/bikes/quality-gate';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
+import '@/components/marketing/trackside-read.css';
 
 export const dynamic = 'force-static';
 export const dynamicParams = false;
@@ -38,20 +40,13 @@ export async function generateStaticParams() {
   }));
 }
 
-function pageTypeLabel(pageType: PageType): string {
-  switch (pageType) {
-    case 'overview':
-      return 'Overview';
-    case 'maintenance-schedule':
-      return 'Maintenance Schedule';
-    case 'common-problems':
-      return 'Common Problems';
-    case 'cost-of-ownership':
-      return 'Cost of Ownership';
-    case 'service-intervals':
-      return 'Service Intervals';
-  }
-}
+const PAGE_TYPE_LABEL: Record<PageType, string> = {
+  overview: 'Overview',
+  'maintenance-schedule': 'Maintenance schedule',
+  'common-problems': 'Common problems',
+  'cost-of-ownership': 'Cost of ownership',
+  'service-intervals': 'Service intervals',
+};
 
 function pageUrl(page: BikePageData): string {
   return `/bikes/${page.makeSlug}/${page.modelSlug}/${page.year}/${page.pageType}`;
@@ -92,6 +87,8 @@ export default async function BikeLeafPage({ params }: PageProps) {
 
   const canonical = getCanonicalUrl(p.locale, pageUrl(page));
   const pageKey = pageUrl(page);
+  const bikeName = `${page.year} ${page.make} ${page.model}`;
+  const overviewHref = `/bikes/${page.makeSlug}/${page.modelSlug}/${page.year}/overview`;
 
   const graph = buildGraph(
     buildWebPage({
@@ -106,13 +103,10 @@ export default async function BikeLeafPage({ params }: PageProps) {
         { name: 'Home', url: getCanonicalUrl(p.locale) },
         { name: 'Bikes', url: getCanonicalUrl(p.locale, '/bikes') },
         {
-          name: `${page.year} ${page.make} ${page.model}`,
-          url: getCanonicalUrl(
-            p.locale,
-            `/bikes/${page.makeSlug}/${page.modelSlug}/${page.year}/overview`,
-          ),
+          name: bikeName,
+          url: getCanonicalUrl(p.locale, overviewHref),
         },
-        { name: pageTypeLabel(page.pageType), url: canonical },
+        { name: PAGE_TYPE_LABEL[page.pageType], url: canonical },
       ],
       p.locale,
       pageKey,
@@ -124,138 +118,105 @@ export default async function BikeLeafPage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
 
-      <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
-        <ol className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 text-sm text-(--mv-ink-3)">
-          <li>
-            <Link href="/" className="transition-colors hover:text-(--mv-ink)">
-              Home
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <Link href="/bikes" className="transition-colors hover:text-(--mv-ink)">
-              Bikes
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <Link
-              href={`/bikes/${page.makeSlug}/${page.modelSlug}/${page.year}/overview`}
-              className="transition-colors hover:text-(--mv-ink)"
-            >
-              {page.year} {page.make} {page.model}
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <span className="text-(--mv-ink)" aria-current="page">
-              {pageTypeLabel(page.pageType)}
-            </span>
-          </li>
-        </ol>
-      </nav>
+      <article className="mv-read">
+        <Breadcrumb
+          items={[
+            { label: 'Home', href: '/' },
+            { label: 'Bikes', href: '/bikes' },
+            { label: bikeName, href: overviewHref },
+            { label: PAGE_TYPE_LABEL[page.pageType] },
+          ]}
+        />
 
-      <section className="px-6 pb-10 pt-8 md:pt-12">
-        <div className="mx-auto max-w-3xl">
-          <p className="mb-3 text-sm font-medium text-(--mv-ink-3)">
-            {page.year} {page.make} {page.model}
-          </p>
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-(--mv-ink) sm:text-4xl lg:text-5xl">
-            {page.h1}
-          </h1>
-        </div>
-      </section>
+        <header className="mv-reveal">
+          <h1 className="mv-read-h1">{page.h1}</h1>
+          <p className="mv-read-lede">{page.description}</p>
+        </header>
 
-      <section className="px-6 py-10">
-        <div className="mx-auto max-w-3xl space-y-6 text-(--mv-ink-2) leading-relaxed">
+        <div className="mv-read-body" style={{ marginTop: 40 }}>
           {page.bodyParagraphs.map((paragraph, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: static fixture ordering is stable
             <p key={i}>{paragraph}</p>
           ))}
         </div>
-      </section>
 
-      <section className="px-6 py-10">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="mb-4 text-2xl font-semibold tracking-tight text-(--mv-ink)">
+        <section className="mv-read-section" aria-labelledby="specs-heading">
+          <h2 id="specs-heading" className="mv-read-h2">
             Key specifications
           </h2>
-          <div className="overflow-hidden rounded-xl border border-(--mv-line)">
-            <table className="w-full">
-              <tbody>
-                {page.specs.map((spec) => (
-                  <tr
-                    key={spec.label}
-                    className="border-b border-(--mv-line) last:border-b-0 odd:bg-(--mv-surface)"
-                  >
-                    <th
-                      scope="row"
-                      className="px-4 py-3 text-left text-sm font-medium text-(--mv-ink-3) sm:px-6"
-                    >
-                      {spec.label}
-                    </th>
-                    <td className="px-4 py-3 text-sm text-(--mv-ink) sm:px-6">{spec.value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {page.telemetry && page.telemetry.length > 0 && (
-        <section className="px-6 py-10">
-          <div className="mx-auto max-w-3xl rounded-xl border border-(--mv-line) bg-(--mv-surface) p-6 md:p-8">
-            <p className="text-sm font-medium text-(--mv-ink-3)">
-              From MotoVault owners
-            </p>
-            <ul className="mt-4 space-y-3">
-              {page.telemetry.map((item) => (
-                <li key={item.label} className="text-sm text-(--mv-ink-2)">
-                  <span className="font-semibold text-(--mv-ink)">{item.label}:</span> {item.value}{' '}
-                  <span className="text-xs text-(--mv-ink-3)">({item.source})</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-      )}
-
-      <section className="px-6 py-10">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="mb-6 text-2xl font-semibold tracking-tight text-(--mv-ink)">
-            Frequently asked questions
-          </h2>
-          <div className="divide-y divide-(--mv-line) border-y border-(--mv-line)">
-            {page.faqItems.map((item) => (
-              <div key={item.question} className="py-5">
-                <h3 className="font-semibold text-(--mv-ink)">{item.question}</h3>
-                <p className="mt-3 text-sm text-(--mv-ink-2) leading-relaxed">{item.answer}</p>
+          <dl className="mv-defs">
+            {page.specs.map((spec) => (
+              <div key={spec.label}>
+                <dt>{spec.label}</dt>
+                <dd>{spec.value}</dd>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
+          </dl>
+        </section>
 
-      <section className="px-6 py-10">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="mb-4 text-lg font-semibold text-(--mv-ink)">
-            More on the {page.year} {page.make} {page.model}
+        {page.telemetry && page.telemetry.length > 0 && (
+          <section className="mv-read-section" aria-labelledby="telemetry-heading">
+            <h2 id="telemetry-heading" className="mv-read-h2">
+              From MotoVault owners
+            </h2>
+            <dl className="mv-defs">
+              {page.telemetry.map((item) => (
+                <div key={item.label}>
+                  <dt>{item.label}</dt>
+                  <dd>
+                    {item.value}
+                    <span className="mv-rows-sub">{item.source}</span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
+
+        {page.faqItems.length > 0 && (
+          <section className="mv-read-section" aria-labelledby="faq-heading">
+            <h2 id="faq-heading" className="mv-read-h2">
+              Questions owners ask
+            </h2>
+            <div className="mv-read-body">
+              {page.faqItems.map((item) => (
+                <div key={item.question}>
+                  <h3 style={{ fontSize: 22 }}>{item.question}</h3>
+                  <p>{item.answer}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="mv-read-section" aria-labelledby="more-heading">
+          <h2 id="more-heading" className="mv-read-label">
+            More on the {bikeName}
           </h2>
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul className="mv-rows">
             {PAGE_TYPES.filter((pt) => pt !== page.pageType).map((pt) => (
               <li key={pt}>
-                <Link
-                  href={`/bikes/${page.makeSlug}/${page.modelSlug}/${page.year}/${pt}`}
-                  className="block rounded-lg border border-(--mv-line) bg-(--mv-surface-2) px-4 py-3 text-sm text-(--mv-ink-2) transition-colors hover:border-(--mv-line-step) hover:text-(--mv-ink)"
-                >
-                  {pageTypeLabel(pt)}
+                <Link href={`/bikes/${page.makeSlug}/${page.modelSlug}/${page.year}/${pt}`}>
+                  {PAGE_TYPE_LABEL[pt]}
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
                 </Link>
               </li>
             ))}
           </ul>
-        </div>
-      </section>
+        </section>
+      </article>
     </>
   );
 }

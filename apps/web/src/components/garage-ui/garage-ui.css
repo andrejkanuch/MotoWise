@@ -1,13 +1,15 @@
 /* ═══════════════════════════════════════════════════════════════
-   Garage UI: shared primitives for the read-only web garage/profile
-   and the web → app handoff. Values follow the redesign spec 1:1.
-   Colours come only from the --mv-* tokens (@motovault/design-system,
-   mv-tokens.css). Class prefix: mvg-.
+   Garage UI: shared primitives for the signed-in rider pages and the
+   web → app handoff, in the Trackside world (DIRECTION.md):
+   graphite/paper ramp, bone ink, copper as the only verb, the display
+   face for figures and titles, the system face for every sentence.
+   Colours come only from the --mv-* tokens (mv-tokens.css) and work
+   in both schemes. Class prefix: mvg-.
 
    Breakpoints (handoff):
      ≥ 1024   .mvg-rail   sticky 320 px "Open in the app" rail with QR
-     768–1023 .mvg-band   inline QR band below the cards
-     < 768    .mvg-bar    dismissible sticky bottom bar (no QR)
+     768–1023 .mvg-band   inline QR band below the sections
+     < 768    .mvg-bar    dismissible bottom bar (no QR)
    The empty garage renders none of them: its hero is the handoff.
    ═══════════════════════════════════════════════════════════════ */
 
@@ -19,6 +21,10 @@
   outline: 2px solid var(--mv-focus);
   outline-offset: 3px;
 }
+.mvg-scope ::selection {
+  background: var(--mv-ink);
+  color: var(--mv-bg);
+}
 
 /* Copper action link ("Mark it done in the app", "Manage subscription"). */
 .mvg-link {
@@ -26,17 +32,19 @@
   align-items: center;
   gap: 8px;
   min-height: 44px;
-  font-family: var(--mv-font-sans);
-  font-size: 14px;
+  font-family: var(--mv-font-body);
+  font-size: 15px;
   font-weight: 600;
   line-height: 1.35;
-  color: var(--mv-copper-400);
+  color: var(--mv-copper-text);
   text-decoration: none;
   border-radius: 4px;
   transition: color 150ms var(--mv-ease);
 }
 .mvg-link:hover {
-  color: var(--mv-warm-400);
+  color: var(--mv-copper-hover);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 .mvg-link svg {
   flex: none;
@@ -46,48 +54,44 @@
   outline-offset: 3px;
 }
 
-/* Instrument Serif accent inside a sans heading: upright, same ink. */
+/* Display accent inside a title: the condensed face, same ink. (The
+   class name is historical; the serif is retired.) */
 .mvg-serif {
-  font-family: var(--mv-font-serif);
+  font-family: var(--mv-font-display);
   font-style: normal;
-  font-weight: 400;
+  font-weight: 600;
   color: inherit;
 }
 
-/* ── Mono eyebrow label ────────────────────────────────────────── */
+/* ── Label (section caption, row caption) ──────────────────────── */
 
+/* A sentence-case caption in the system face: "Odometer", "Also in your
+   garage · 2", the page's status line. Never uppercase, never tracked. */
 .mvg-eyebrow {
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-family: var(--mv-font-mono);
-  font-size: 11px;
+  gap: 8px;
+  font-family: var(--mv-font-body);
+  font-size: 14px;
   font-weight: 500;
-  line-height: 1.3;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--mv-ink-2);
-}
-.mvg-eyebrow--rule::before {
-  content: "";
-  flex: none;
-  width: 24px;
-  height: 1px;
-  background: var(--mv-ink-3);
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--mv-ink-3);
 }
 .mvg-eyebrow--copper {
-  color: var(--mv-copper-400);
+  color: var(--mv-copper-text);
 }
 
-/* ── Card shell ────────────────────────────────────────────────── */
+/* ── Card shell: one step up the ramp, hairline, radius 16 ─────── */
 
 .mvg-card {
-  background: var(--mv-card);
+  background: var(--mv-surface);
   border: 1px solid var(--mv-line);
   border-radius: var(--mv-radius-card);
   color: var(--mv-ink);
-  font-family: var(--mv-font-sans);
+  font-family: var(--mv-font-body);
   min-width: 0;
 }
 .mvg-card--raised {
@@ -147,7 +151,7 @@
   }
 }
 
-/* ── QR tile ───────────────────────────────────────────────────── */
+/* ── QR tile: fixed light in every scheme, for the camera ──────── */
 
 .mvg-qr {
   flex: none;
@@ -155,7 +159,7 @@
   background: var(--mv-qr-tile);
   color: var(--mv-qr-ink);
   padding: 12px;
-  border-radius: 12px;
+  border-radius: var(--mv-radius-control);
 }
 .mvg-qr svg {
   display: block;
@@ -180,7 +184,7 @@
 }
 .mvg-qr--spotlight {
   padding: 18px;
-  border-radius: 16px;
+  border-radius: var(--mv-radius-card);
 }
 .mvg-qr--spotlight svg {
   width: 208px;
@@ -192,16 +196,13 @@
 .mvg-qrh {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  font-family: var(--mv-font-sans);
+  gap: 16px;
+  font-family: var(--mv-font-body);
   color: var(--mv-ink);
 }
 .mvg-qrh-row {
   display: flex;
   align-items: center;
-  gap: 16px;
-}
-.mvg-qrh--band {
   gap: 16px;
 }
 .mvg-qrh--band .mvg-qrh-row {
@@ -215,19 +216,19 @@
 }
 .mvg-qrh-title {
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   line-height: 1.35;
 }
 .mvg-qrh-body {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.45;
   color: var(--mv-ink-2);
   overflow-wrap: anywhere;
 }
 .mvg-qrh-body strong {
-  font-weight: 400;
+  font-weight: 600;
   color: var(--mv-ink);
 }
 .mvg-qrh--hero {
@@ -244,13 +245,10 @@
   font-size: 18px;
 }
 .mvg-qrh--hero .mvg-qrh-body {
-  font-size: 14px;
-}
-.mvg-qrh--hero .mvg-qrh-body strong {
-  font-weight: 600;
+  font-size: 15px;
 }
 .mvg-qrh--hero .mvg-linkfield {
-  max-width: 360px;
+  max-width: 380px;
 }
 
 /* ── Link field + copy button ──────────────────────────────────── */
@@ -261,7 +259,7 @@
   gap: 8px;
   padding: 4px 4px 4px 14px;
   border-radius: var(--mv-radius-field);
-  background: var(--mv-page);
+  background: var(--mv-bg);
   border: 1px solid var(--mv-line);
   min-width: 0;
 }
@@ -271,8 +269,9 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  font-family: var(--mv-font-mono);
-  font-size: 13px;
+  font-family: var(--mv-font-body);
+  font-size: 14px;
+  font-weight: 500;
   color: var(--mv-ink-2);
   text-decoration: none;
   overflow: hidden;
@@ -283,23 +282,35 @@
 .mvg-linkfield-url:hover {
   color: var(--mv-ink);
 }
+/* Copy: a quiet control one step up the ramp… */
 .mvg-copy {
   flex: none;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-height: 44px;
-  padding: 0 12px;
-  border-radius: var(--mv-radius-field);
+  padding: 0 14px;
+  border-radius: var(--mv-radius-control);
   border: 1px solid var(--mv-line);
-  background: var(--mv-fill);
+  background: var(--mv-surface-2);
   color: var(--mv-ink);
-  font: 600 13px var(--mv-font-sans);
+  font: 600 14px var(--mv-font-body);
   cursor: pointer;
-  transition: background-color 150ms var(--mv-ease);
+  transition: background-color 150ms var(--mv-ease), border-color 150ms var(--mv-ease);
 }
 .mvg-copy:hover {
-  background: var(--mv-fill-icon);
+  background: var(--mv-surface-3);
+  border-color: var(--mv-line-step);
+}
+/* …or, where it is the one action of the section, copper. */
+.mvg-linkfield--primary .mvg-copy {
+  background: var(--mv-copper);
+  border-color: var(--mv-copper);
+  color: var(--mv-on-copper);
+}
+.mvg-linkfield--primary .mvg-copy:hover {
+  background: var(--mv-copper-hover);
+  border-color: var(--mv-copper-hover);
 }
 
 /* ── Sign-in account line ──────────────────────────────────────── */
@@ -308,10 +319,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
-  border-radius: var(--mv-radius-inner);
-  border: 1px solid var(--mv-line);
-  font-family: var(--mv-font-sans);
+  padding: 12px 0;
+  border-top: 1px solid var(--mv-line);
+  font-family: var(--mv-font-body);
   font-size: 14px;
   line-height: 1.45;
   color: var(--mv-ink-2);
@@ -325,28 +335,39 @@
   overflow-wrap: anywhere;
 }
 
-/* ── "Better in the app" reason cards ──────────────────────────── */
+/* ── "Better in the app" reasons: hairline rows, icon inline ───── */
+
+.mvg-reasons {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.mvg-reasons > li + li {
+  border-top: 1px solid var(--mv-line);
+}
+.mvg-reasons-label {
+  padding: 0 0 4px;
+}
 
 .mvg-reason {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
-  gap: 12px;
-  align-items: center;
-  padding: 12px 16px;
-  border-radius: var(--mv-radius-inner);
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: start;
+  padding: 12px 0;
   color: var(--mv-ink);
-  font-family: var(--mv-font-sans);
+  font-family: var(--mv-font-body);
   text-decoration: none;
 }
 .mvg-reason-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: var(--mv-fill-icon);
-  color: var(--mv-ink-2);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 18px;
+  height: 20px;
+  color: var(--mv-ink-3);
 }
 .mvg-reason-text {
   display: flex;
@@ -355,35 +376,32 @@
   min-width: 0;
 }
 .mvg-reason-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   line-height: 1.35;
 }
 .mvg-reason-body {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.45;
   color: var(--mv-ink-2);
 }
 .mvg-reason-cta {
-  font-size: 13px;
+  margin-top: 4px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--mv-copper-400);
+  color: var(--mv-copper-text);
 }
 
-/* Promoted: max one per page; the whole card is one link to /get. */
+/* Promoted: max one per page; the whole row is one link to /get. */
 .mvg-reason--promoted {
-  align-items: start;
-  padding: 16px;
-  background: var(--mv-copper-tint);
-  border: 1px solid var(--mv-copper-border);
-  transition: border-color 150ms var(--mv-ease);
-}
-.mvg-reason--promoted:hover {
-  border-color: var(--mv-copper-400);
+  border-radius: 4px;
 }
 .mvg-reason--promoted .mvg-reason-icon {
-  background: var(--mv-copper-500);
-  color: var(--mv-on-accent);
+  color: var(--mv-copper-text);
+}
+.mvg-reason--promoted:hover .mvg-reason-title,
+.mvg-reason--promoted:hover .mvg-reason-cta {
+  color: var(--mv-copper-hover);
 }
 .mvg-reason--promoted .mvg-reason-text {
   gap: 4px;
@@ -391,46 +409,12 @@
 
 /* Compact density (tablet band). */
 .mvg-reason--compact {
-  padding: 10px 14px;
-}
-.mvg-reason--promoted.mvg-reason--compact {
-  padding: 14px;
+  padding: 10px 0;
 }
 
-/* Tile layout (empty-garage hero row): icon above text. */
+/* Tile layout (empty-garage hero row): the same row, stacked in a grid. */
 .mvg-reason--tile {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 16px;
-  border: 1px solid var(--mv-line);
-}
-.mvg-reason--tile .mvg-reason-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-}
-.mvg-reason--tile .mvg-reason-text {
-  gap: 10px;
-}
-.mvg-reason--tile.mvg-reason--promoted {
-  border-color: var(--mv-copper-border);
-}
-
-.mvg-reasons {
-  margin: 0;
   padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.mvg-reasons--compact {
-  gap: 6px;
-}
-.mvg-reasons-label {
-  padding: 8px 4px 4px;
 }
 
 /* ── Store buttons ─────────────────────────────────────────────── */
@@ -445,28 +429,39 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  height: 56px;
+  height: 52px;
   padding: 0 20px;
-  border-radius: var(--mv-radius-inner);
-  background: var(--mv-page);
-  border: 1px solid var(--mv-field-line);
+  border-radius: var(--mv-radius-control);
+  background: var(--mv-surface-2);
+  border: 1px solid var(--mv-line);
   color: var(--mv-ink);
-  font-family: var(--mv-font-sans);
+  font-family: var(--mv-font-body);
   font-size: 16px;
   font-weight: 600;
   text-decoration: none;
-  transition: border-color 150ms var(--mv-ease);
+  transition: background-color 150ms var(--mv-ease), border-color 150ms var(--mv-ease);
 }
 .mvg-store-btn:hover {
-  border-color: var(--mv-ink-3);
+  background: var(--mv-surface-3);
+  border-color: var(--mv-line-step);
+}
+/* The first store is the one copper action of the phone hero. */
+.mvg-store-btn--primary {
+  background: var(--mv-copper);
+  border-color: var(--mv-copper);
+  color: var(--mv-on-copper);
+}
+.mvg-store-btn--primary:hover {
+  background: var(--mv-copper-hover);
+  border-color: var(--mv-copper-hover);
 }
 .mvg-store-inline {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 14px;
-  font-family: var(--mv-font-sans);
-  font-size: 13px;
+  font-family: var(--mv-font-body);
+  font-size: 14px;
   color: var(--mv-ink-2);
 }
 
@@ -480,10 +475,10 @@
     width: 320px;
     flex: none;
     position: sticky;
-    top: 88px;
+    top: 84px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
   }
 }
 .mvg-handoff-panel {
@@ -499,16 +494,18 @@
 }
 .mvg-handoff-title {
   margin: 0;
-  font-family: var(--mv-font-sans);
-  font-size: 24px;
+  font-family: var(--mv-font-display);
+  font-size: 30px;
   font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  line-height: 1;
+  letter-spacing: 0.002em;
   color: var(--mv-ink);
 }
-.mvg-handoff-title .mvg-serif {
-  font-size: 1.1em;
-  letter-spacing: 0;
+.mvg-handoff-sub {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--mv-ink-2);
 }
 
 /* ── Band (768–1023) ───────────────────────────────────────────── */
@@ -521,7 +518,6 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 28px;
-    margin-top: 12px;
     padding: 28px;
   }
 }
@@ -532,7 +528,7 @@
   min-width: 0;
 }
 
-/* ── Bar (< 768) ───────────────────────────────────────────────── */
+/* ── Bar (< 768): opaque, one step up the ramp, no blur ────────── */
 
 .mvg-bar,
 .mvg-bar-spacer {
@@ -549,11 +545,10 @@
     align-items: center;
     gap: 10px;
     padding: 10px 8px calc(10px + env(safe-area-inset-bottom)) 16px;
-    background: var(--mv-surface-2-glass);
-    backdrop-filter: blur(20px);
+    background: var(--mv-surface-2);
     border-top: 1px solid var(--mv-line);
-    font-family: var(--mv-font-sans);
-    animation: mvg-bar-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    font-family: var(--mv-font-body);
+    animation: mvg-bar-in 240ms var(--mv-ease-expo) both;
   }
   .mvg-bar-spacer {
     display: block;
@@ -575,14 +570,11 @@
 }
 .mvg-bar-icon {
   flex: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: var(--mv-copper-tint-strong);
-  color: var(--mv-copper-400);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 20px;
+  color: var(--mv-ink-2);
 }
 .mvg-bar-text {
   flex: 1;
@@ -600,12 +592,15 @@
   align-items: center;
   min-height: 44px;
   padding: 0 16px;
-  border-radius: var(--mv-radius-field);
-  background: var(--mv-copper-500);
-  color: var(--mv-on-accent);
+  border-radius: var(--mv-radius-control);
+  background: var(--mv-copper);
+  color: var(--mv-on-copper);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
+}
+.mvg-bar-open:hover {
+  background: var(--mv-copper-hover);
 }
 .mvg-bar-dismiss {
   flex: none;
@@ -615,13 +610,14 @@
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: var(--mv-radius-field);
+  border-radius: var(--mv-radius-control);
   background: transparent;
   color: var(--mv-ink-2);
   cursor: pointer;
 }
 .mvg-bar-dismiss:hover {
   color: var(--mv-ink);
+  background: var(--mv-fill);
 }
 
 /* Visually hidden, still announced (copy confirmation). */

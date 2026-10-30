@@ -9,7 +9,8 @@ import { StoreLink } from './store-buttons';
 // Trackside closing CTA: the one centered moment on the page (Direction:
 // "center at most the final CTA"). Condensed display headline on the deeper
 // ramp step, copper strictly on the primary action, ghost for the second
-// store — no glows, no gradients. Placement stays `inline` so the
+// store — no glows, no gradients, no entrance of its own (the page's one
+// authored moment is the screenshot pair). Placement stays `inline` so the
 // store_cta_click taxonomy is unchanged from the previous StoreButtons wiring.
 export async function FeatureCta({
   pageType = CtaPageType.Feature,
@@ -21,10 +22,7 @@ export async function FeatureCta({
 
   return (
     <section className="mv-section-cta" style={{ background: 'var(--mv-bg-2)' }}>
-      <div
-        className="reveal-on-scroll"
-        style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'center' }}
-      >
+      <div style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'center' }}>
         <h2
           className="mv-display"
           style={{

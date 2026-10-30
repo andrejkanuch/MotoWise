@@ -4,10 +4,11 @@ import { GetTrialEligibilityDocument } from '@motovault/graphql';
 import type { Offering, Package } from '@revenuecat/purchases-js';
 import * as Sentry from '@sentry/nextjs';
 import { createBrowserClient } from '@supabase/ssr';
-import { Crown, Lock, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CircleAlert, Lock, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { MvLoader } from '@/components/marketing/loader';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { getCampaignParams } from '@/lib/campaign';
 import {
@@ -23,14 +24,15 @@ import {
   type WebPlanId,
   type WebPrice,
 } from '@/lib/web-pricing';
+import '../pro.css';
 
 /**
  * Display names and billing periods only. Prices come from the RevenueCat
  * package (`product.currentPrice`) — what Stripe will actually charge.
  */
 const PLAN_CONFIG = {
-  [WEB_PLAN_IDS.MONTHLY]: { name: 'Pro Monthly', period: 'month' },
-  [WEB_PLAN_IDS.ANNUAL]: { name: 'Pro Annual', period: 'year' },
+  [WEB_PLAN_IDS.MONTHLY]: { name: 'Pro monthly', period: 'month' },
+  [WEB_PLAN_IDS.ANNUAL]: { name: 'Pro annual', period: 'year' },
 } as const;
 
 type PlanId = WebPlanId;
@@ -43,7 +45,8 @@ const OFFERING_STATUS = {
 
 type OfferingStatus = (typeof OFFERING_STATUS)[keyof typeof OFFERING_STATUS];
 
-const PRICE_PLACEHOLDER = '\u2014';
+const PRICE_PLACEHOLDER = '—';
+const NOTHING_DUE = '$0.00';
 
 function packageFor(offering: Offering | null, plan: PlanId): Package | null {
   if (!offering) return null;
@@ -76,6 +79,14 @@ async function loadWebOffering(userId: string): Promise<Offering | null> {
   }
   const offerings = await Purchases.getSharedInstance().getOfferings();
   return offerings.all[WEB_OFFERING_ID] ?? offerings.current ?? null;
+}
+
+function Waiting() {
+  return (
+    <div className="mvp-wait">
+      <MvLoader size="sm" label="Loading" />
+    </div>
+  );
 }
 
 function CheckoutContent() {
@@ -308,192 +319,154 @@ function CheckoutContent() {
   ]);
 
   if (!authChecked) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-950">
-        <div className="size-8 animate-spin rounded-full border-2 border-neutral-700 border-t-warm-500" />
-      </div>
-    );
+    return <Waiting />;
   }
 
+  const priceLine = `${planPrice} / ${plan.period}`;
+
   return (
-    <div className="dark flex min-h-screen items-center justify-center bg-neutral-950 px-4 pb-32 pt-24 text-neutral-50">
-      <div className="w-full max-w-[480px]">
-        <Link
-          href="/pro"
-          className="mb-6 inline-block text-sm text-neutral-500 transition-colors hover:text-neutral-300"
-        >
-          &larr; Back to plans
-        </Link>
+    <section className="mvp-section mvp-section--operate">
+      <Link href="/pro" className="mvp-back">
+        <ArrowLeft size={16} strokeWidth={2} aria-hidden="true" />
+        Back to plans
+      </Link>
 
-        <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8">
-          {/* Header */}
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-warm-500/10">
-              <Crown className="size-5 text-warm-400" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-neutral-50">Upgrade to Pro</h1>
-              <p className="text-sm text-neutral-400">
-                {trialDays ? `Start your ${trialDays}-day free trial` : 'Upgrade to MotoVault Pro'}
-              </p>
-            </div>
+      <div className="mvp-operate-head">
+        <h1 className="mvp-h2 mvp-h2--operate">
+          {trialDays ? `Start your ${trialDays}-day free trial` : 'Upgrade to Pro'}
+        </h1>
+        <p className="mvp-operate-sub">
+          {trialDays
+            ? 'Full Pro access from today. Nothing is charged until the trial ends.'
+            : 'Full Pro access the moment you subscribe. Cancel any time from your profile.'}
+        </p>
+      </div>
+
+      <div className="mvp-operate-stack">
+        {/* Plan toggle */}
+        <fieldset className="mvp-seg">
+          <legend className="mvp-sr-only">Plan</legend>
+          {(Object.entries(PLAN_CONFIG) as [PlanId, (typeof PLAN_CONFIG)[PlanId]][]).map(
+            ([id, cfg]) => (
+              <button
+                key={id}
+                type="button"
+                className="mvp-seg-btn"
+                aria-pressed={selectedPlan === id}
+                onClick={() => setSelectedPlan(id)}
+              >
+                {cfg.name}
+                {id === WEB_PLAN_IDS.ANNUAL && savingsPercent !== null && (
+                  <span className="mvp-seg-saving">&minus;{savingsPercent}%</span>
+                )}
+              </button>
+            ),
+          )}
+        </fieldset>
+
+        {/* Order summary: the one card */}
+        <div className="mvp-summary" aria-live="polite">
+          <div className="mvp-summary-row">
+            <strong>{plan.name}</strong>
+            <span className="mv-figure">{priceLine}</span>
           </div>
-
-          {/* Plan Toggle */}
-          <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl bg-neutral-800/50 p-1">
-            {(Object.entries(PLAN_CONFIG) as [PlanId, (typeof PLAN_CONFIG)[PlanId]][]).map(
-              ([id, cfg]) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setSelectedPlan(id)}
-                  className={`relative rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
-                    selectedPlan === id
-                      ? 'bg-neutral-700 text-neutral-50 shadow-sm'
-                      : 'text-neutral-400 hover:text-neutral-300'
-                  }`}
-                >
-                  {cfg.name}
-                  {id === WEB_PLAN_IDS.ANNUAL && savingsPercent !== null && (
-                    <span className="ml-1.5 inline-block rounded-full bg-warm-500/20 px-1.5 py-0.5 text-[10px] font-bold text-warm-400">
-                      -{savingsPercent}%
-                    </span>
-                  )}
-                </button>
-              ),
+          {trialDays && (
+            <div className="mvp-summary-row">
+              <span>{trialDays}-day free trial</span>
+              <span className="mv-figure">{NOTHING_DUE}</span>
+            </div>
+          )}
+          <div className="mvp-summary-row mvp-summary-row--total">
+            <strong>Due today</strong>
+            <span className="mv-figure">{trialDays ? NOTHING_DUE : planPrice}</span>
+          </div>
+          <p className="mvp-summary-note">
+            {trialDays ? (
+              <>
+                After the trial ends on {trialEndDate} you are charged <strong>{priceLine}</strong>.
+                Cancel before then and nothing is charged.
+              </>
+            ) : (
+              <>
+                Billed <strong>{priceLine}</strong> today and on each renewal. Cancel any time.
+              </>
             )}
-          </div>
+          </p>
+        </div>
 
-          {/* Order Summary */}
-          <div className="mb-6 rounded-xl border border-neutral-800/60 bg-neutral-900/80 p-5">
-            <h2 className="mb-4 text-sm font-medium text-neutral-400">Order summary</h2>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-neutral-300">{plan.name}</span>
-                <span className="font-semibold text-neutral-50">
-                  {planPrice}/{plan.period}
-                </span>
-              </div>
-
-              <div className="h-px bg-neutral-800" />
-
-              {trialDays && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-neutral-300">{trialDays}-day free trial</span>
-                  <span className="text-sm font-medium text-accent-400">Free</span>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-neutral-300">Due today</span>
-                <span className="text-lg font-bold text-neutral-50">
-                  {trialDays ? '$0.00' : planPrice}
-                </span>
-              </div>
-
-              <div className="h-px bg-neutral-800" />
-
-              {trialDays ? (
-                <p className="text-xs text-neutral-500">
-                  After your trial ends on {trialEndDate}, you will be charged{' '}
-                  <span className="text-neutral-400">
-                    {planPrice}/{plan.period}
-                  </span>
-                  . Cancel anytime before then and you won&apos;t be charged.
-                </p>
-              ) : (
-                <p className="text-xs text-neutral-500">
-                  Billed{' '}
-                  <span className="text-neutral-400">
-                    {planPrice}/{plan.period}
-                  </span>{' '}
-                  today and on each renewal. Cancel anytime.
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Offering could not be loaded: say so instead of a dead Pay button. */}
-          {offeringStatus === OFFERING_STATUS.UNAVAILABLE && !error && (
-            <div role="alert" className="mb-4 text-sm text-danger-500">
+        {/* Offering could not be loaded: say so instead of a dead Pay button. */}
+        {offeringStatus === OFFERING_STATUS.UNAVAILABLE && !error && (
+          <div role="alert" className="mvp-alert">
+            <CircleAlert size={18} strokeWidth={2} aria-hidden="true" />
+            <div>
               <p>
-                Checkout is temporarily unavailable. Please try again in a few minutes, or contact{' '}
+                Checkout is temporarily unavailable. Try again in a few minutes, or contact{' '}
                 {SUPPORT_EMAIL}.
               </p>
-              <button
-                type="button"
-                onClick={retryOfferingLoad}
-                className="mt-2 font-medium text-neutral-300 underline underline-offset-2 transition-colors hover:text-neutral-50"
-              >
+              <button type="button" onClick={retryOfferingLoad} className="mvp-alert-action">
                 Try again
               </button>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Error */}
-          {error && (
-            <p role="alert" className="mb-4 text-sm text-danger-500">
-              {error}
-            </p>
-          )}
+        {error && (
+          <div role="alert" className="mvp-alert">
+            <CircleAlert size={18} strokeWidth={2} aria-hidden="true" />
+            <p>{error}</p>
+          </div>
+        )}
 
-          {/* CTA */}
+        <div>
           <button
             type="button"
             onClick={handleCheckout}
             disabled={loading || !canPurchase}
-            className="cta-primary flex w-full items-center justify-center gap-2 rounded-full bg-warm-500 px-6 py-3.5 font-semibold text-neutral-950 transition-colors hover:bg-warm-400 disabled:cursor-not-allowed disabled:opacity-50"
+            aria-busy={loading || undefined}
+            className="mv-btn mv-btn-primary mvp-pay"
           >
             {loading ? (
               <>
-                <div className="size-5 animate-spin rounded-full border-2 border-neutral-950/30 border-t-neutral-950" />
-                Processing...
+                <svg
+                  className="mvp-spinner"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M21 12a9 9 0 1 1-6.22-8.56" />
+                </svg>
+                Opening secure checkout…
               </>
             ) : (
               <>
-                <Lock className="size-4" />
-                Confirm &amp; Pay
+                <Lock size={16} strokeWidth={2} aria-hidden="true" />
+                {trialDays ? 'Start free trial' : 'Confirm and pay'}
               </>
             )}
           </button>
-
-          {/* Security note */}
-          <div className="mt-4 flex items-center justify-center gap-2 text-xs text-neutral-500">
-            <ShieldCheck className="size-3.5" />
-            <span>Secured by Stripe via RevenueCat</span>
-          </div>
-
-          {/* Legal */}
-          <div className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-neutral-500">
-            <Link href="/terms" className="transition-colors hover:text-neutral-300">
-              Terms of Service
-            </Link>
-            <Link href="/privacy" className="transition-colors hover:text-neutral-300">
-              Privacy Policy
-            </Link>
-            <a
-              href={`mailto:${SUPPORT_EMAIL}`}
-              className="transition-colors hover:text-neutral-300"
-            >
-              Refund Policy
-            </a>
+          <p className="mvp-secure">
+            <ShieldCheck size={14} strokeWidth={2} aria-hidden="true" />
+            Secured by Stripe via RevenueCat
+          </p>
+          <div className="mvp-legal">
+            <Link href="/terms">Terms of service</Link>
+            <Link href="/privacy">Privacy policy</Link>
+            <a href={`mailto:${SUPPORT_EMAIL}`}>Refund policy</a>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
 export default function CheckoutPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-neutral-950">
-          <div className="size-8 animate-spin rounded-full border-2 border-neutral-700 border-t-warm-500" />
-        </div>
-      }
-    >
+    <Suspense fallback={<Waiting />}>
       <CheckoutContent />
     </Suspense>
   );

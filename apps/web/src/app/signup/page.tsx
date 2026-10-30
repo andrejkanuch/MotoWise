@@ -33,6 +33,8 @@ import { signUpConsentOptions } from '@/lib/signup-consent';
 
 /** Client-side check message; shown on the confirm field instead of the banner. */
 const PASSWORD_MISMATCH_MESSAGE = 'Passwords do not match.';
+/** One line under the Bike Plate on the photo panel (root route, English only). */
+const PANEL_NOTE = 'Logging service and spend is free. Pro lifts the limits.';
 
 export default function SignUpPage() {
   const t = useTranslations('AuthV2');
@@ -164,9 +166,12 @@ export default function SignUpPage() {
   const bannerError = mismatch ? '' : error;
 
   return (
-    <AuthShell headerLink={{ href: '/login', label: t('signUp.altCta') }}>
+    <AuthShell
+      headerLink={{ href: '/login', label: t('signUp.altCta') }}
+      homeLabel={t('homeLabel')}
+      panelNote={PANEL_NOTE}
+    >
       <AuthHead
-        eyebrow={t('signUp.eyebrow')}
         title={t.rich('signUp.title', { serif: serifChunk })}
         subtitle={t('signUp.subtitle')}
       />
@@ -175,11 +180,11 @@ export default function SignUpPage() {
 
       {success ? (
         <div role="status" className="mva-check">
-          <span className="mva-check-icon">
-            <MailIcon />
-          </span>
           <div className="mva-check-copy">
-            <h2 className="mva-check-title">{t.rich('checkEmail.title', { serif: serifChunk })}</h2>
+            <h2 className="mva-check-title">
+              <MailIcon />
+              <span>{t.rich('checkEmail.title', { serif: serifChunk })}</span>
+            </h2>
             <p className="mva-check-body">{t('checkEmail.body')}</p>
             <p className="mva-check-email">{email.trim()}</p>
           </div>
@@ -234,7 +239,12 @@ export default function SignUpPage() {
               minLength={6}
               maxLength={128}
               required
-              toggle={{ shown: showPassword, onToggle: () => setShowPassword(!showPassword) }}
+              toggle={{
+                shown: showPassword,
+                onToggle: () => setShowPassword(!showPassword),
+                showLabel: t('showPassword'),
+                hideLabel: t('hidePassword'),
+              }}
             />
             <AuthField
               id="signup-confirm-password"

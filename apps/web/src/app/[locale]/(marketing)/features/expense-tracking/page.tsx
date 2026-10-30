@@ -41,11 +41,7 @@ export default async function Page({ params }: PageProps) {
           alt: 'MotoVault dashboard showing monthly spending trends',
         },
       ]}
-      featureIcons={[
-        'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
-        'M18 20V10M12 20V4M6 20v-6',
-        'M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
-      ]}
+      related={['/features/maintenance', '/features/ride-tracking']}
     />
   );
 }

@@ -67,30 +67,29 @@ function ManageLink() {
 }
 
 /**
- * The Account section: plan + account, one quiet row. Pro (or trial) shows the
- * badge and the manage link for its billing source; Free shows the sign-in
- * method and "See what Pro adds". Free copy never mentions limits: logging is
- * free for everyone.
+ * The Account section: plan + account, one hairline row on the page surface.
+ * Pro (or trial) names the plan in ink (status is never copper) and carries the
+ * one copper action, the manage link for its billing source; Free shows the
+ * sign-in method and "See what Pro adds". Free copy never mentions limits:
+ * logging is free for everyone.
  */
 export function AccountSection({ account }: { account: HandoffAccount }) {
   const t = useTranslations('GarageV2');
   const { isPro, isTrialing, trialDaysLeft, isLoading } = useProStatus();
-  const mono = (chunks: React.ReactNode) => <span className="gv-mono">{chunks}</span>;
+  const figure = (chunks: React.ReactNode) => <span className="mv-figure">{chunks}</span>;
 
   let row: React.ReactNode;
   if (isLoading) {
-    row = <Skeleton height={60} radius={12} />;
+    row = <Skeleton height={44} radius={8} />;
   } else if (isPro) {
     row = (
       <div className="gv-account-row gv-account-row--pro">
         <div className="gv-account-plan">
-          <span className={isTrialing ? 'gv-badge gv-badge--trial' : 'gv-badge'}>
-            {isTrialing ? t('trialBadge') : t('proBadge')}
-          </span>
+          <span className="gv-badge">{isTrialing ? t('trialBadge') : t('proBadge')}</span>
           <span className="gv-account-name">
             {isTrialing ? t('proTrial') : t('proName')}
             {isTrialing && trialDaysLeft != null && (
-              <> · {t.rich('trialDaysLeft', { days: trialDaysLeft, n: mono })}</>
+              <> · {t.rich('trialDaysLeft', { days: trialDaysLeft, n: figure })}</>
             )}
           </span>
           {account.email && <span className="gv-account-email">· {account.email}</span>}

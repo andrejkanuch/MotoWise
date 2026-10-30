@@ -1,85 +1,92 @@
 'use client';
 
-import { Lock } from 'lucide-react';
+import {
+  ArrowRight,
+  Bike,
+  Download,
+  Lock,
+  MapPin,
+  Receipt,
+  ScanSearch,
+  Sparkles,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { PRO_BENEFIT_BULLETS, WEB_OFFER_COPY } from '@/lib/pro-plan';
-import { STATIC_WEB_PLANS } from '@/lib/web-pricing';
+import { PRO_FEATURE_KEYS, PRO_FEATURES, WEB_OFFER_COPY } from '@/lib/pro-plan';
+import { STATIC_WEB_PLANS, WEB_PLAN_IDS, type WebPlanId } from '@/lib/web-pricing';
 
 /** Static marketing prices; checkout renders the live RevenueCat price instead. */
 const PLANS = STATIC_WEB_PLANS.plans;
 
-type Plan = keyof typeof PLANS;
+const PLAN_LABEL: Record<WebPlanId, string> = {
+  [WEB_PLAN_IDS.MONTHLY]: 'Monthly',
+  [WEB_PLAN_IDS.ANNUAL]: 'Annual',
+};
 
+/** Icon per benefit row; copy comes from lib/pro-plan.ts. */
+const BENEFIT_ICONS = {
+  [PRO_FEATURE_KEYS.BIKES]: Bike,
+  [PRO_FEATURE_KEYS.AI_DIAGNOSTICS]: ScanSearch,
+  [PRO_FEATURE_KEYS.AI_EXTRAS]: Sparkles,
+  [PRO_FEATURE_KEYS.RECEIPT_SCANS]: Receipt,
+  [PRO_FEATURE_KEYS.GPX_EXPORT]: Download,
+  [PRO_FEATURE_KEYS.OFFLINE_MAPS]: MapPin,
+} as const;
+
+/** The one card on the plan page: plan toggle, price, what it unlocks, the copper action. */
 export function PricingCard() {
-  const [plan, setPlan] = useState<Plan>('annual');
+  const [plan, setPlan] = useState<WebPlanId>(WEB_PLAN_IDS.ANNUAL);
   const p = PLANS[plan];
+  const saving = STATIC_WEB_PLANS.savingsPercent;
 
   return (
-    <div className="w-full max-w-sm md:ml-auto">
-      <div className="rounded-2xl border border-neutral-800/60 bg-neutral-900/40 p-6">
-        {/* Plan toggle */}
-        <div className="flex rounded-full border border-neutral-800 bg-neutral-900/60 p-1">
+    <div className="mvp-card">
+      <fieldset className="mvp-seg">
+        <legend className="mvp-sr-only">Billing period</legend>
+        {(Object.keys(PLAN_LABEL) as WebPlanId[]).map((id) => (
           <button
+            key={id}
             type="button"
-            onClick={() => setPlan('monthly')}
-            className={`flex-1 rounded-full py-2 text-center text-xs transition-colors ${
-              plan === 'monthly'
-                ? 'bg-neutral-800 font-medium text-neutral-200'
-                : 'text-neutral-500'
-            }`}
+            className="mvp-seg-btn"
+            aria-pressed={plan === id}
+            onClick={() => setPlan(id)}
           >
-            Monthly
-          </button>
-          <button
-            type="button"
-            onClick={() => setPlan('annual')}
-            className={`flex-1 items-center justify-center gap-2 rounded-full py-2 text-center text-xs transition-colors ${
-              plan === 'annual' ? 'bg-neutral-800 font-medium text-neutral-200' : 'text-neutral-500'
-            }`}
-          >
-            Annual{' '}
-            {STATIC_WEB_PLANS.savingsPercent !== null && (
-              <span className="ml-1.5 inline-flex rounded-full bg-warm-500 px-2 py-0.5 text-[10px] font-bold text-neutral-950">
-                &minus;{STATIC_WEB_PLANS.savingsPercent}%
-              </span>
+            {PLAN_LABEL[id]}
+            {id === WEB_PLAN_IDS.ANNUAL && saving !== null && (
+              <span className="mvp-seg-saving">&minus;{saving}%</span>
             )}
           </button>
-        </div>
+        ))}
+      </fieldset>
 
-        {/* Price */}
-        <div className="mt-6 flex items-baseline gap-2">
-          <span className="text-5xl font-bold tabular-nums tracking-tight">{p.price}</span>
-          <span className="text-sm text-neutral-500">{p.period}</span>
-          {p.crossed && (
-            <span className="ml-auto text-sm text-neutral-600 line-through">{p.crossed}</span>
-          )}
+      <div>
+        <div className="mvp-price">
+          <span className="mv-figure mvp-price-figure">{p.price}</span>
+          <span className="mvp-price-period">{p.period}</span>
+          {p.crossed && <s className="mvp-price-crossed">{p.crossed}</s>}
         </div>
-        <p className="mt-1 font-mono text-[10.5px] tracking-[0.1em] text-warm-400 uppercase">
-          {p.sub}
-        </p>
+        <p className="mvp-price-sub">{p.sub}</p>
+      </div>
 
-        {/* Benefits list */}
-        <ul className="mt-6 space-y-3">
-          {PRO_BENEFIT_BULLETS.map((b) => (
-            <li key={b} className="flex items-center gap-3 text-[13px] text-neutral-300">
-              <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-warm-500/20">
-                <span className="size-1.5 rounded-full bg-warm-500" />
-              </span>
-              {b}
+      <ul className="mvp-benefits">
+        {PRO_FEATURES.map((f) => {
+          const Icon = BENEFIT_ICONS[f.key];
+          return (
+            <li key={f.key}>
+              <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
+              {f.title}
             </li>
-          ))}
-        </ul>
+          );
+        })}
+      </ul>
 
-        {/* CTA */}
-        <Link
-          href={`/pro/checkout?plan=${plan}`}
-          className="mt-7 flex items-center justify-center gap-2 rounded-full border border-neutral-700 bg-neutral-900 px-6 py-3.5 text-sm font-medium text-neutral-200 transition-colors hover:border-warm-500/40 hover:bg-neutral-800"
-        >
-          {WEB_OFFER_COPY.cardCta}
+      <div>
+        <Link href={`/pro/checkout?plan=${plan}`} className="mv-btn mv-btn-primary">
+          {WEB_OFFER_COPY.finalCta}
+          <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />
         </Link>
-        <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-neutral-600">
-          <Lock className="size-3" />
+        <p className="mvp-footnote">
+          <Lock size={13} strokeWidth={2} aria-hidden="true" />
           {WEB_OFFER_COPY.cardFootnote}
         </p>
       </div>

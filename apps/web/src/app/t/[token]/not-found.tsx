@@ -1,29 +1,61 @@
 import { StoreLink } from '@/components/marketing/store-buttons';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
+import '@/components/marketing/design-system.css';
 
+/**
+ * A shared trip that is private, revoked or gone. Root-only route (English).
+ * The ground, a condensed headline, one copper action and a ghost one, in
+ * both schemes.
+ */
 export default function SharedTripNotFound() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4">
-      <div className="max-w-md text-center">
-        {/* Brand gradient from design-system primary scale (tokens.css) */}
-        <div className="mx-auto mb-6 h-16 w-16 rounded-2xl bg-gradient-to-br from-primary-950 to-primary-500" />
-        <h1 className="text-2xl font-bold text-neutral-900">This trip isn't available</h1>
-        <p className="mt-3 text-sm text-neutral-500">
-          The rider may have made it private or the link has been revoked.
+    <div
+      className="mv-marketing"
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '64px 24px',
+      }}
+    >
+      <div style={{ maxWidth: 560, margin: '0 auto', width: '100%' }}>
+        <h1
+          className="mv-display"
+          style={{
+            margin: 0,
+            fontSize: 'clamp(44px, 8vw, 72px)',
+            fontWeight: 700,
+            lineHeight: 0.96,
+            color: 'var(--mv-ink)',
+            textWrap: 'balance',
+          }}
+        >
+          This trip isn't available
+        </h1>
+        <p
+          style={{
+            margin: '20px 0 0',
+            maxWidth: '48ch',
+            fontSize: 17,
+            lineHeight: 1.55,
+            color: 'var(--mv-ink-2)',
+          }}
+        >
+          The rider may have made it private, or the link has been revoked.
         </p>
-        <div className="mt-8 flex items-center justify-center gap-3">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 36 }}>
           <StoreLink
             platform={StorePlatform.Unknown}
             pageType={CtaPageType.SharedTrip}
             placement={CtaPlacement.Inline}
-            className="inline-flex items-center rounded-xl bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
+            className="mv-btn mv-btn-primary"
           >
             Get MotoVault
           </StoreLink>
           <a
             href="https://motovault.app"
             aria-label="Learn more about MotoVault"
-            className="inline-flex items-center rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50"
+            className="mv-btn mv-btn-ghost"
           >
             Learn more
           </a>

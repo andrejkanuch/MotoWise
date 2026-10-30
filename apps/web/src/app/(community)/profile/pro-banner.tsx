@@ -9,7 +9,8 @@ import '@/app/(community)/garage/garage.css';
 import { ManageWebSubscription } from './manage-web-subscription';
 
 /**
- * Pro membership banner with self-serve subscription management.
+ * The Pro row: a hairline row naming the plan and its state in ink, with the
+ * one copper action at the end, the self-serve subscription management.
  *
  * Renders only for Pro users. The management affordance adapts to how the user
  * subscribed:
@@ -17,11 +18,11 @@ import { ManageWebSubscription } from './manage-web-subscription';
  *   (cancel/update in one click).
  * - Stripe without a management URL → "Manage or cancel", which opens a Stripe
  *   Customer Portal session from the API, with a support fallback.
- * - App Store / Google Play → static "manage in your app store" copy, since
- *   store subscriptions can't be cancelled from the web.
+ * - App Store / Google Play → "manage in your app store" copy, since store
+ *   subscriptions can't be cancelled from the web.
  * - Still resolving → nothing, to avoid flashing the wrong option.
  *
- * Lives in its own component (not inline in the profile card) so it renders in
+ * Lives in its own component (not inline in the profile head) so it renders in
  * both /profile states, including the one for a Pro user who hasn't set up a
  * public username, who would otherwise never reach the cancel link.
  */
@@ -35,9 +36,7 @@ export function ProBanner({ className }: { className?: string }) {
   return (
     <div className={className ? `prof-banner ${className}` : 'prof-banner'}>
       <div className="prof-banner-left">
-        <div className="prof-banner-icon">
-          <Crown className="h-5 w-5" />
-        </div>
+        <Crown size={18} strokeWidth={1.75} aria-hidden="true" />
         <div>
           <div className="prof-banner-title">{t('proBannerTitle')}</div>
           <div className="prof-banner-meta">
@@ -58,9 +57,6 @@ export function ProBanner({ className }: { className?: string }) {
         </div>
       </div>
       <div className="prof-banner-right">
-        <div className="prof-banner-price">
-          {isTrialing ? t('daysLeft', { days: trialDaysLeft ?? '?' }) : t('active')}
-        </div>
         {manage.status === 'web' && (
           <a
             href={manage.url}

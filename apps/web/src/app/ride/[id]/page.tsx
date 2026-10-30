@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { StoreLink } from '@/components/marketing/store-buttons';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { fetchRide } from '../../../lib/fetch-ride';
 import { formatDate, formatDistance, formatDuration } from '../../../lib/format-utils';
+import '@/components/marketing/design-system.css';
+import '@/components/share-page.css';
 
 export async function generateMetadata({
   params,
@@ -36,6 +39,12 @@ export async function generateMetadata({
   };
 }
 
+/** "412.3 km" → ["412.3", "km"] so the unit can sit small beside the figure. */
+function splitUnit(value: string): [string, string | null] {
+  const match = value.match(/^(.*?)\s*([a-z%]+)$/i);
+  return match ? [match[1], match[2]] : [value, null];
+}
+
 export default async function RidePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const ride = await fetchRide(id);
@@ -44,78 +53,77 @@ export default async function RidePage({ params }: { params: Promise<{ id: strin
     notFound();
   }
 
+  const figures: Array<{ label: string; value: string }> = [
+    { label: 'Distance', value: formatDistance(ride.distanceM ?? 0) },
+  ];
+  if (ride.durationS != null && ride.durationS > 0) {
+    figures.push({ label: 'Moving time', value: formatDuration(ride.durationS) });
+  }
+  if ((ride.elevationGain ?? 0) > 0) {
+    figures.push({ label: 'Climb', value: `${Math.round(ride.elevationGain ?? 0)} m` });
+  }
+  if ((ride.elevationLoss ?? 0) > 0) {
+    figures.push({ label: 'Descent', value: `${Math.round(ride.elevationLoss ?? 0)} m` });
+  }
+
   return (
-    <div className="min-h-screen bg-neutral-50">
-      {/* Route thumbnail hero */}
+    <div className="mv-marketing sp">
+      <div className="sp-brand">
+        <a href="/">
+          <Image src="/images/marketing/MotoVault.png" alt="" width={28} height={28} />
+          MotoVault
+        </a>
+      </div>
+
       {ride.routeThumbnailUri ? (
-        <div className="relative h-64 w-full bg-neutral-200 sm:h-80">
+        <div className="sp-photo">
           {/* biome-ignore lint/performance/noImgElement: route thumbnail from Supabase storage */}
-          <img
-            src={ride.routeThumbnailUri}
-            alt="Route map"
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-neutral-50 to-transparent" />
+          <img src={ride.routeThumbnailUri} alt="Map of the route" />
         </div>
-      ) : (
-        <div className="h-20 w-full bg-gradient-to-br from-primary-950 to-primary-500" />
-      )}
+      ) : null}
 
-      <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-        {/* Title */}
-        <h1 className="text-2xl font-bold text-neutral-900">{ride.name ?? 'MotoVault Ride'}</h1>
-        <p className="mt-1 text-sm text-neutral-500">{formatDate(ride.startedAt)}</p>
+      <main className={`sp-main${ride.routeThumbnailUri ? '' : ' sp-main-tall'}`}>
+        <h1 className="sp-title">{ride.name ?? 'MotoVault ride'}</h1>
+        <p className="sp-sub">{formatDate(ride.startedAt)}</p>
 
-        {/* Stats grid */}
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Distance" value={formatDistance(ride.distanceM ?? 0)} />
-          {ride.durationS != null && ride.durationS > 0 && (
-            <StatCard label="Duration" value={formatDuration(ride.durationS)} />
-          )}
-          {(ride.elevationGain ?? 0) > 0 && (
-            <StatCard label="Elevation Gain" value={`${Math.round(ride.elevationGain ?? 0)}m`} />
-          )}
-          {(ride.elevationLoss ?? 0) > 0 && (
-            <StatCard label="Elevation Loss" value={`${Math.round(ride.elevationLoss ?? 0)}m`} />
-          )}
+        <div className="sp-figures">
+          {figures.map(({ label, value }) => {
+            const [num, unit] = splitUnit(value);
+            return (
+              <div className="sp-figure" key={label}>
+                <span className="sp-figure-value">
+                  {num}
+                  {unit && <small>{unit}</small>}
+                </span>
+                <span className="sp-figure-label">{label}</span>
+              </div>
+            );
+          })}
         </div>
       </main>
 
-      {/* CTA */}
-      <footer className="border-t border-neutral-200 bg-white py-10">
-        <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
-          <p className="text-lg font-bold text-neutral-900">View full ride in MotoVault</p>
-          <p className="mt-1 text-sm text-neutral-500">
-            Track your rides, maintain your bike, diagnose issues
+      <footer className="sp-cta">
+        <div className="sp-cta-inner">
+          <h2 className="sp-cta-title">See the full ride in MotoVault</h2>
+          <p className="sp-cta-sub">
+            The route, speed and elevation, the bike it was ridden on, and every ride before it.
           </p>
-          <div className="mt-6 flex items-center justify-center gap-3">
-            <a
-              href={`https://motovault.app/ride/${ride.id}`}
-              className="inline-flex items-center rounded-xl bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
-            >
-              Open in App
-            </a>
+          <div className="sp-cta-actions">
             <StoreLink
               platform={StorePlatform.Unknown}
               pageType={CtaPageType.Ride}
               placement={CtaPlacement.Footer}
               slug={ride.id}
-              className="inline-flex items-center rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50"
+              className="mv-btn mv-btn-primary"
             >
-              Get MotoVault
+              Get the app
             </StoreLink>
+            <a href={`https://motovault.app/ride/${ride.id}`} className="mv-btn mv-btn-ghost">
+              Open in the app
+            </a>
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4 text-center">
-      <p className="text-xl font-bold text-neutral-900">{value}</p>
-      <p className="text-xs text-neutral-500">{label}</p>
     </div>
   );
 }

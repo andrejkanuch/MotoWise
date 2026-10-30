@@ -1,7 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════
-   Post-signup "Get the app" screen (/welcome).
-   Spec: Handoff-1440 / Handoff-768 / Handoff-390, values 1:1.
-   Colours only from the --mv-* tokens. Class prefix: wl-.
+   Post-signup "Get the app" screen (/welcome) — Trackside.
+   Colours only from the --mv-* tokens, both schemes. Class prefix: wl-.
+   Condensed headline, system face for every sentence, the QR tile on
+   its fixed-light tile, store buttons as ghost controls and the one
+   copper primary (the phone's "Get the app").
 
      ≥ 1024   two columns: lead (intro, reasons, continue) | QR card
      768–1023 one 600px column: intro, reasons, QR card (row), continue
@@ -13,10 +15,14 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--mv-page);
+  background: var(--mv-bg);
   color: var(--mv-ink);
-  font-family: var(--mv-font-sans);
+  font-family: var(--mv-font-body);
   -webkit-font-smoothing: antialiased;
+}
+.wl-page ::selection {
+  background: var(--mv-ink);
+  color: var(--mv-bg);
 }
 
 /* ── Header ────────────────────────────────────────────────────── */
@@ -36,7 +42,7 @@
   min-height: 44px;
   font-size: 16px;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   color: var(--mv-ink);
   text-decoration: none;
   border-radius: 4px;
@@ -45,15 +51,11 @@
   flex: none;
   width: 24px;
   height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   border-radius: 7px;
-  background: linear-gradient(135deg, var(--mv-warm-400), var(--mv-warm-500));
-  color: var(--mv-on-accent);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0;
+  overflow: hidden;
+}
+.wl-brand-mark img {
+  display: block;
 }
 .wl-signed-in {
   margin: 0;
@@ -64,7 +66,7 @@
   text-align: right;
 }
 .wl-signed-in strong {
-  font-weight: 400;
+  font-weight: 500;
   color: var(--mv-ink);
 }
 
@@ -89,47 +91,36 @@
   min-width: 0;
 }
 
-/* ── Intro ─────────────────────────────────────────────────────── */
+/* ── Intro: condensed title, no eyebrow ────────────────────────── */
 
 .wl-intro {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
-.wl-eyebrow {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--mv-font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--mv-ink-2);
-}
-.wl-eyebrow::before {
-  content: "";
-  flex: none;
-  width: 24px;
-  height: 1px;
-  background: var(--mv-ink-3);
-}
 .wl-title {
   margin: 0;
-  font-size: 64px;
-  font-weight: 500;
-  letter-spacing: -0.04em;
-  line-height: 1.02;
+  font-family: var(--mv-font-display);
+  font-size: 76px;
+  font-weight: 600;
+  letter-spacing: 0.002em;
+  line-height: 0.96;
   text-wrap: balance;
 }
-/* Instrument Serif accent: upright (.mvg-serif sets font-style: normal). */
-.wl-serif {
-  letter-spacing: -0.02em;
-  font-size: 1.08em;
+/* The former serif accent: the same condensed face, a quieter ink. */
+.wl-em {
+  font: inherit;
+  color: var(--mv-ink-3);
+}
+.wl-intro-sub {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--mv-ink-2);
+  max-width: 48ch;
 }
 
-/* ── Reasons list ──────────────────────────────────────────────── */
+/* ── Reasons: hairline rows, icon inline with the sentence ─────── */
 
 .wl-reasons {
   list-style: none;
@@ -140,26 +131,15 @@
   border-top: 1px solid var(--mv-line);
 }
 .wl-reason {
-  display: grid;
-  grid-template-columns: 40px 40px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 16px;
-  padding: 20px 0;
-  border-bottom: 1px solid var(--mv-line);
-}
-.wl-reason-num {
-  font-family: var(--mv-font-mono);
-  font-size: 13px;
-  color: var(--mv-copper-400);
-}
-.wl-reason-icon {
-  width: 40px;
-  height: 40px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  background: var(--mv-fill-icon);
+  gap: 14px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--mv-line);
+}
+.wl-reason-icon {
+  flex: none;
+  display: flex;
   color: var(--mv-ink-2);
 }
 .wl-reason-icon svg {
@@ -167,39 +147,41 @@
   height: 20px;
 }
 .wl-reason-title {
-  font-size: 19px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  flex: 1;
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
 }
 .wl-reason-tag {
-  font-family: var(--mv-font-mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--mv-ink-2);
+  flex: none;
+  font-size: 14px;
+  color: var(--mv-ink-3);
 }
 
-/* ── Continue link ─────────────────────────────────────────────── */
+/* ── Continue link: a text action in copper ────────────────────── */
 
 .wl-continue {
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
+  gap: 8px;
   min-height: 44px;
   font-size: 15px;
-  font-weight: 500;
-  color: var(--mv-ink-2);
-  text-decoration: underline;
+  font-weight: 600;
+  color: var(--mv-copper-text);
+  text-decoration: none;
   text-underline-offset: 4px;
-  text-decoration-color: var(--mv-ink-3);
   border-radius: 4px;
-  transition: color 150ms var(--mv-ease);
 }
 .wl-continue:hover {
-  color: var(--mv-ink);
+  text-decoration: underline;
+}
+.wl-continue svg {
+  flex: none;
 }
 
-/* ── QR card (≥ 768) ───────────────────────────────────────────── */
+/* ── QR card (≥ 768): the one card on the page ─────────────────── */
 
 .wl-card {
   min-width: 0;
@@ -208,8 +190,7 @@
   gap: 24px;
   padding: 36px;
   border-radius: var(--mv-radius-card);
-  background: var(--mv-surface-2);
-  border: 1px solid var(--mv-line);
+  background: var(--mv-surface);
 }
 .wl-card-row {
   display: flex;
@@ -232,9 +213,11 @@
 }
 .wl-card-title {
   margin: 0;
-  font-size: 24px;
+  font-family: var(--mv-font-display);
+  font-size: 30px;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.002em;
+  line-height: 1;
 }
 .wl-card-body {
   margin: 0;
@@ -245,6 +228,10 @@
 .wl-linkfield {
   text-align: left;
 }
+/* The link field sits on the card: one step up from it. */
+.wl-card .mvg-linkfield {
+  background: var(--mv-surface-2);
+}
 
 /* ── Account line ──────────────────────────────────────────────── */
 
@@ -252,7 +239,7 @@
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   font-size: 14px;
   line-height: 1.45;
   color: var(--mv-ink-2);
@@ -265,13 +252,7 @@
 }
 .wl-signin-icon {
   flex: none;
-  width: 36px;
-  height: 36px;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: var(--mv-fill-icon);
   color: var(--mv-ink-2);
 }
 .wl-signin--card {
@@ -281,17 +262,12 @@
 .wl-signin--box {
   margin-top: 4px;
   padding: 14px 16px;
-  border-radius: var(--mv-radius-inner);
-  background: var(--mv-line-2);
-  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-radius-control);
+  background: var(--mv-surface);
   font-size: 13.5px;
 }
-.wl-signin--box .wl-signin-icon {
-  width: 32px;
-  height: 32px;
-}
 
-/* ── Phone CTA (< 768) ─────────────────────────────────────────── */
+/* ── Phone CTA (< 768): the one copper primary ─────────────────── */
 
 .wl-phone {
   display: none;
@@ -305,17 +281,19 @@
   gap: 10px;
   height: 56px;
   padding: 0 20px;
-  border-radius: var(--mv-radius-inner);
-  background: var(--mv-page);
-  border: 1px solid var(--mv-field-line);
-  color: var(--mv-ink);
+  border-radius: var(--mv-radius-control);
+  background: var(--mv-copper);
+  color: var(--mv-on-copper);
   font-size: 16px;
   font-weight: 600;
   text-decoration: none;
-  transition: border-color 150ms var(--mv-ease);
+  transition: background-color 150ms var(--mv-ease), transform 150ms var(--mv-ease);
 }
 .wl-get:hover {
-  border-color: var(--mv-ink-3);
+  background: var(--mv-copper-hover);
+}
+.wl-get:active {
+  transform: scale(0.985);
 }
 .wl-get svg + svg {
   margin-left: -4px;
@@ -356,17 +334,13 @@
     align-self: center;
   }
   .wl-title {
-    font-size: 52px;
-    line-height: 1.03;
+    font-size: 64px;
   }
   .wl-reason {
-    grid-template-columns: 32px 40px minmax(0, 1fr) auto;
-    gap: 14px;
-    padding: 18px 0;
+    padding: 16px 0;
   }
   .wl-reason-title {
     font-size: 17px;
-    letter-spacing: 0;
   }
   .wl-card {
     gap: 20px;
@@ -386,7 +360,7 @@
     gap: 12px;
   }
   .wl-card-title {
-    font-size: 22px;
+    font-size: 28px;
   }
   .wl-card .mvg-qr--spotlight {
     flex: none;
@@ -408,8 +382,7 @@
   .wl-header {
     padding: 6px 16px;
   }
-  /* The artboard drops "Signed in as" here; the account line below names
-     the address instead. */
+  /* The account line below names the address instead. */
   .wl-signed-in {
     display: none;
   }
@@ -421,30 +394,15 @@
   .wl-intro {
     gap: 14px;
   }
-  .wl-eyebrow {
-    gap: 10px;
-    font-size: 10.5px;
-    letter-spacing: 0.16em;
-  }
-  .wl-eyebrow::before {
-    width: 20px;
-  }
   .wl-title {
-    font-size: 38px;
-    line-height: 1.05;
+    font-size: 48px;
+  }
+  .wl-intro-sub {
+    font-size: 16px;
   }
   .wl-reason {
-    grid-template-columns: 24px 36px minmax(0, 1fr);
     gap: 12px;
     padding: 14px 0;
-  }
-  .wl-reason-num {
-    font-size: 12px;
-  }
-  .wl-reason-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
   }
   .wl-reason-icon svg {
     width: 18px;
@@ -465,7 +423,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wl-continue,
   .wl-get {
     transition: none;
   }

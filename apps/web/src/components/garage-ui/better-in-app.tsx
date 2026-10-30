@@ -29,17 +29,17 @@ const CALM_COPY = {
 } as const;
 
 export const BetterInAppLayout = {
-  /** Icon left (36px tile), text right: rail and band lists. */
+  /** A hairline row: icon inline, text beside it (rail and band lists). */
   Row: 'row',
-  /** Icon above text (32px tile): the empty-garage hero's 3-up row. */
+  /** The same row without its hairline, for a grid (the empty-garage hero). */
   Tile: 'tile',
 } as const;
 export type BetterInAppLayout = (typeof BetterInAppLayout)[keyof typeof BetterInAppLayout];
 
 export const BetterInAppDensity = {
-  /** Rail / desktop: 12×16 calm, 16 promoted. */
+  /** Rail / desktop: 12 px rows. */
   Regular: 'regular',
-  /** Tablet band: 10×14 calm, 14 promoted. */
+  /** Tablet band: 10 px rows. */
   Compact: 'compact',
 } as const;
 export type BetterInAppDensity = (typeof BetterInAppDensity)[keyof typeof BetterInAppDensity];
@@ -68,13 +68,13 @@ type BetterInAppCardProps = {
   density?: BetterInAppDensity;
 } & (
   | {
-      /** Calm card: informational, not a link (spec: no fill, no link). */
+      /** Calm row: informational, not a link. */
       reason: HandoffReason;
       promoted?: undefined;
       showCta?: undefined;
     }
   | {
-      /** Promoted card: copper, the whole card is one link to motovault.app/get. */
+      /** Promoted row: the whole row is one link to motovault.app/get. */
       promoted: PromotedHandoff;
       /** Adds the "Open MotoVault →" line (desktop rail only). */
       showCta?: boolean;
@@ -83,9 +83,10 @@ type BetterInAppCardProps = {
 );
 
 /**
- * One "Better in the app" reason. Calm by default; at most one promoted card
- * per page (overdue service › no rides › nothing logged this year — see
- * `pickPromotedHandoff`).
+ * One "Better in the app" reason as a row: icon inline next to the text, no
+ * tile, no box. Calm by default; at most one promoted row per page (overdue
+ * service › no rides › nothing logged this year — see `pickPromotedHandoff`),
+ * and that row is the section's copper action.
  */
 export function BetterInAppCard(props: BetterInAppCardProps) {
   const { layout = BetterInAppLayout.Row, density = BetterInAppDensity.Regular } = props;
@@ -105,37 +106,27 @@ export function BetterInAppCard(props: BetterInAppCardProps) {
         promoted={props.promoted}
         showCta={props.showCta ?? false}
         className={classes(true)}
-        layout={layout}
       />
     );
   }
-  return <CalmCard reason={props.reason} className={classes(false)} layout={layout} />;
+  return <CalmCard reason={props.reason} className={classes(false)} />;
 }
 
-function ReasonIcon({ reason, layout }: { reason: HandoffReason; layout: BetterInAppLayout }) {
+function ReasonIcon({ reason }: { reason: HandoffReason }) {
   const Icon = REASON_ICON[reason];
-  const size = layout === BetterInAppLayout.Tile ? 16 : 18;
   return (
     <span className="mvg-reason-icon" aria-hidden="true">
-      <Icon size={size} strokeWidth={1.75} />
+      <Icon size={18} strokeWidth={1.75} />
     </span>
   );
 }
 
-function CalmCard({
-  reason,
-  className,
-  layout,
-}: {
-  reason: HandoffReason;
-  className: string;
-  layout: BetterInAppLayout;
-}) {
+function CalmCard({ reason, className }: { reason: HandoffReason; className: string }) {
   const t = useTranslations('AppHandoff');
   const copy = CALM_COPY[reason];
   return (
     <div className={className}>
-      <ReasonIcon reason={reason} layout={layout} />
+      <ReasonIcon reason={reason} />
       <span className="mvg-reason-text">
         <span className="mvg-reason-title">{t(copy.title)}</span>
         <span className="mvg-reason-body">{t(copy.body)}</span>
@@ -148,18 +139,16 @@ function PromotedCard({
   promoted,
   showCta,
   className,
-  layout,
 }: {
   promoted: PromotedHandoff;
   showCta: boolean;
   className: string;
-  layout: BetterInAppLayout;
 }) {
   const t = useTranslations('AppHandoff');
   const { title, body } = usePromotedCopy(promoted);
   return (
     <a href={APP_HANDOFF_URL} className={className}>
-      <ReasonIcon reason={promoted.reason} layout={layout} />
+      <ReasonIcon reason={promoted.reason} />
       <span className="mvg-reason-text">
         <span className="mvg-reason-title">{title}</span>
         <span className="mvg-reason-body">{body}</span>
@@ -170,8 +159,8 @@ function PromotedCard({
 }
 
 /**
- * The "Better in the app" list: the promoted card (if any) first, then the
- * calm reasons, never repeating the promoted one.
+ * The "Better in the app" list: the promoted row (if any) first, then the
+ * calm reasons, never repeating the promoted one. Hairline rows, no card.
  */
 export function BetterInAppList({
   promoted,
@@ -181,16 +170,16 @@ export function BetterInAppList({
 }: {
   promoted: PromotedHandoff | null;
   density?: BetterInAppDensity;
-  /** The "Better in the app" mono label above the list (rail: yes, band: no). */
+  /** The "Better in the app" caption above the list (rail: yes, band: no). */
   showLabel?: boolean;
-  /** "Open MotoVault →" inside the promoted card (rail only). */
+  /** "Open MotoVault →" inside the promoted row (rail only). */
   showCta?: boolean;
 }) {
   const t = useTranslations('AppHandoff');
   const listClass =
     density === BetterInAppDensity.Compact ? 'mvg-reasons mvg-reasons--compact' : 'mvg-reasons';
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {showLabel && <MonoLabel className="mvg-reasons-label">{t('betterInApp')}</MonoLabel>}
       <ul className={listClass}>
         {promoted && (

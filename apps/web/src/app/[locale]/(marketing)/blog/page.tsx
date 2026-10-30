@@ -6,6 +6,7 @@ import { JsonLd } from '@/components/marketing/json-ld';
 import { routing } from '@/i18n/routing';
 import { getArticles, getBlogCategories } from '@/lib/blog';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import '@/components/marketing/trackside-read.css';
 
 interface BlogPageProps {
   params: Promise<{ locale: string }>;
@@ -65,13 +66,11 @@ export default async function BlogPage({ params }: BlogPageProps) {
   return (
     <>
       <JsonLd data={blogSchema} />
-      <section className="mx-auto max-w-5xl px-6 py-24">
-        <div className="mb-16 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-(--mv-ink) sm:text-5xl">
-            {t('title')}
-          </h1>
-          <p className="mt-4 text-lg text-(--mv-ink-2)">{t('description')}</p>
-        </div>
+      <section className="mv-index">
+        <header className="mv-reveal">
+          <h1 className="mv-index-h1">{t('title')}</h1>
+          <p className="mv-index-lede">{t('description')}</p>
+        </header>
 
         <Suspense fallback={null}>
           <BlogSearch

@@ -1,15 +1,17 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
-import { DownloadAppButton } from '@/components/download-app-button';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { Breadcrumb } from '@/components/marketing/breadcrumb';
+import { ContextualAppCta } from '@/components/marketing/contextual-app-cta';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { TableOfContents } from '@/components/marketing/table-of-contents';
-import { Link } from '@/i18n/navigation';
+import { CtaAngle } from '@/lib/blog-cta';
 import { BASE_URL, getEnglishOnlyAlternates } from '@/lib/constants';
-import { CtaPageType } from '@/lib/cta-taxonomy';
+import { CtaPageType, CtaPlacement } from '@/lib/cta-taxonomy';
 import { compileGuide, getGuideBySlug, getGuideSlugs } from '@/lib/guides';
 import { buildArticle, buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
+import '@/components/marketing/trackside-read.css';
 
 export const revalidate = 604800; // 7 days — repo-sourced, rebuilds on deploy
 
@@ -63,29 +65,19 @@ export async function generateMetadata({ params }: GuidePageProps): Promise<Meta
   };
 }
 
-// Typography-plugin colours routed through the Trackside tokens so the page
-// follows both schemes (prose-invert hardcoded dark-only greys).
-const proseTokens = {
-  '--tw-prose-body': 'var(--mv-ink-2)',
-  '--tw-prose-headings': 'var(--mv-ink)',
-  '--tw-prose-links': 'var(--mv-copper-text)',
-  '--tw-prose-bold': 'var(--mv-ink)',
-  '--tw-prose-counters': 'var(--mv-ink-3)',
-  '--tw-prose-bullets': 'var(--mv-ink-4)',
-  '--tw-prose-hr': 'var(--mv-line)',
-  '--tw-prose-quotes': 'var(--mv-ink)',
-  '--tw-prose-quote-borders': 'var(--mv-line)',
-  '--tw-prose-captions': 'var(--mv-ink-3)',
-  '--tw-prose-code': 'var(--mv-ink)',
-  '--tw-prose-pre-code': 'var(--mv-ink-2)',
-  '--tw-prose-pre-bg': 'var(--mv-surface)',
-  '--tw-prose-th-borders': 'var(--mv-line-step)',
-  '--tw-prose-td-borders': 'var(--mv-line)',
-} as React.CSSProperties;
+function formatDate(date: string): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
 
 export default async function GuidePage({ params }: GuidePageProps) {
   const { slug, locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations('Blog');
 
   const compiled = await compileGuide(slug);
   if (!compiled) {
@@ -136,71 +128,50 @@ export default async function GuidePage({ params }: GuidePageProps) {
   return (
     <>
       <JsonLdGraph nodes={graph} />
-      <article className="mx-auto max-w-3xl px-6 py-24">
-        <nav className="mb-8 flex items-center gap-2 text-sm text-(--mv-ink-3)">
-          <Link href="/" className="hover:text-(--mv-ink)">
-            Home
-          </Link>
-          <span aria-hidden="true">/</span>
-          <Link href="/guides" className="hover:text-(--mv-ink)">
-            Guides
-          </Link>
-          <span aria-hidden="true">/</span>
-          <span className="truncate text-(--mv-ink-2)">{frontmatter.title}</span>
-        </nav>
+      <article className="mv-read">
+        <Breadcrumb
+          items={[
+            { label: 'Home', href: '/' },
+            { label: 'Guides', href: '/guides' },
+            { label: frontmatter.title },
+          ]}
+        />
 
-        <Link
-          href="/guides"
-          className="mb-6 inline-block text-sm font-medium text-(--mv-copper-text) transition-colors hover:text-(--mv-copper-hover)"
-        >
-          &larr; All Guides
-        </Link>
-
-        <header className="mb-12">
+        <header className="mv-reveal">
+          <h1 className="mv-read-h1">{frontmatter.title}</h1>
+          <p className="mv-read-lede">{frontmatter.description}</p>
+          <div className="mv-read-meta">
+            <span>{frontmatter.author}</span>
+            <span aria-hidden="true">·</span>
+            <time dateTime={frontmatter.date}>{formatDate(frontmatter.date)}</time>
+          </div>
           {frontmatter.heroImage && (
-            <div className="relative mb-8 aspect-[21/9] overflow-hidden rounded-2xl">
+            <div className="mv-read-hero">
               <Image
                 src={frontmatter.heroImage}
                 alt={frontmatter.title}
                 fill
                 className="object-cover"
                 priority
-                sizes="(max-width: 768px) 100vw, 768px"
+                sizes="(max-width: 768px) 100vw, 760px"
               />
             </div>
           )}
-          <h1 className="text-3xl font-bold tracking-tight text-(--mv-ink) sm:text-4xl">
-            {frontmatter.title}
-          </h1>
-          <div className="mt-4 flex items-center gap-3 text-sm text-(--mv-ink-3)">
-            <span>{frontmatter.author}</span>
-            <span aria-hidden="true">&middot;</span>
-            <time dateTime={frontmatter.date}>
-              {new Date(frontmatter.date).toLocaleDateString('en-US', {
-                timeZone: 'UTC',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </time>
-          </div>
         </header>
 
         <TableOfContents headings={headings} />
 
-        <div className="prose max-w-none" style={proseTokens}>
-          {content}
-        </div>
+        <div className="mv-read-body">{content}</div>
 
-        <div className="mt-16 rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-8 text-center">
-          <h2 className="mb-3 text-xl font-semibold text-(--mv-ink)">
-            Plan your next motorcycle trip with MotoVault
-          </h2>
-          <p className="mb-6 text-(--mv-ink-2)">
-            Discover curated routes, track your rides, and plan multi-day trips with waypoints, GPX
-            export, and community reviews.
-          </p>
-          <DownloadAppButton pageType={CtaPageType.Guide} slug={slug} />
+        <div className="mv-read-section">
+          <ContextualAppCta
+            angle={CtaAngle.Guide}
+            model={null}
+            slug={slug}
+            placement={CtaPlacement.EndArticle}
+            pageType={CtaPageType.Guide}
+            headline={t('ctaTripHeadline')}
+          />
         </div>
       </article>
     </>

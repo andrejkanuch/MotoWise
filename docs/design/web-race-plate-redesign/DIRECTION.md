@@ -2,7 +2,7 @@
 
 The marketing site adopts the mobile app's Race Plate system (apps/mobile/DESIGN.md) at web scale: ride photography carries emotion, the Race Plate voice carries everything else. The shared object is the Bike Plate (`src/components/marketing/bike-plate.tsx`, CSS `.mv-plate*`).
 
-## Tokens (defined in src/components/marketing/design-system.css — do NOT edit that file)
+## Tokens (defined in packages/design-system/src/mv-tokens.css, imported once by src/app/globals.css — do NOT redeclare a token anywhere else)
 Dark (default) / light via `html:not(.dark)` — always use the var, never a literal:
 - Ground ramp: `--mv-bg`, `--mv-bg-2` (deeper alternating step), `--mv-surface` (card), `--mv-surface-2` (raised), `--mv-surface-3` (option), `--mv-line-step`
 - Ink: `--mv-ink`, `--mv-ink-2`, `--mv-ink-3`, `--mv-ink-4`; hairlines `--mv-line`, `--mv-line-2`
@@ -10,7 +10,17 @@ Dark (default) / light via `html:not(.dark)` — always use the var, never a lit
 - Status (only inside app depictions): `--mv-plate-bone/signal/red`, `--mv-plate-ink`, `--mv-due-ink`, `--mv-overdue-ink`; general success `--mv-go`, info `--mv-info`
 - Radii: `--mv-radius-control` 12 (buttons/controls), `--mv-radius-card` 16, `--mv-radius-plate` 20
 - Type: `--mv-font-display` (Barlow Condensed — headlines + numbers, weights 500/600/700, use `.mv-display`/`.mv-figure` or the var), `--mv-font-body` (system stack — every sentence)
-- DEPRECATED, do not use in new code: `--mv-warm-*`, `.mv-serif` (now aliases; replace with copper/display equivalents when touching a line)
+- DEPRECATED, do not use in new code: `--mv-warm-*`, `--mv-page`, `--mv-card`, `--mv-copper-400/500/600`, `--mv-font-sans/serif`, `.mv-serif` (aliases; replace with the canonical token when touching a line)
+
+## Shared classes (src/components/marketing/design-system.css)
+- Buttons: `.mv-btn .mv-btn-primary` (the copper verb), `.mv-btn .mv-btn-ghost`, `.mv-icon-btn` (44px ghost icon control, e.g. the ThemeToggle), `.mv-link` (copper text link)
+- Type: `.mv-display`, `.mv-figure` (tabular numerals), `.mv-section-title` (H1-scale), `.mv-h2` (section headline)
+- Tables: `.mv-table` — hairline spec table on the page surface
+- Scenes: `.mv-dark-scene` keeps a band on a dark photograph in the graphite scene under the light scheme (hero, closing CTA); read the band's edge colours from a wrapper OUTSIDE the scene so it blends into the page ground
+- Motion: `.mv-reveal` / `.mv-reveal-stagger` are scroll-timeline driven, visible by default, no JS; at most one or two per page
+- The Bike Plate: `<BikePlate>` from `src/components/marketing/bike-plate.tsx`, states ready | due | overdue
+- Theme: `<ThemeToggle labels>` from `src/components/theme-toggle.tsx`; the ThemeProvider toggles `html.dark`, the pre-paint script in the root layout resolves storage → OS preference
+- Cross-component contract: the cookie banner publishes its height as `--mv-cookie-banner-h` on `<html>`; any fixed bottom bar (sticky app bar) offsets by it
 
 ## Named rules (binding)
 1. **Copper is a verb** — primary action, link, or selection only. Never status, never decoration, never gradient text, never glows (box-shadow with copper is banned).

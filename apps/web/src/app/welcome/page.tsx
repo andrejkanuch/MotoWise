@@ -1,5 +1,6 @@
-import { Bell, Camera, type LucideIcon, Mail, Route } from 'lucide-react';
+import { ArrowRight, Bell, Camera, type LucideIcon, Mail, Route } from 'lucide-react';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
@@ -21,7 +22,7 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 import './welcome.css';
 
 /**
- * Post-signup "Get the app" screen (spec: Handoff-1440/768/390).
+ * Post-signup "Get the app" screen (Trackside; layout from Handoff-1440/768/390).
  *
  * Reached from `postAuthDestination` (lib/post-auth-redirect.ts) on a rider's
  * first session; a returning sign-in goes to /garage. Auth-gated twice: by the
@@ -35,6 +36,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Welcome');
   return { title: t('metaTitle'), robots: { index: false, follow: false } };
 }
+
+const BRAND_LOGO = '/images/marketing/MotoVault.png';
 
 /** The three things only the app can do, in the spec's order. */
 const REASONS: ReadonlyArray<{
@@ -53,7 +56,7 @@ function SignInIcon({ method }: { method: SignInMethod }) {
   return <Mail size={16} strokeWidth={1.75} aria-hidden="true" />;
 }
 
-/** "Sign in with the same account: …" with the method's icon in a round tile. */
+/** "Sign in with the same account: …" with the method's mark inline. */
 function AccountLine({ account, className }: { account: HandoffAccount; className: string }) {
   return (
     <p className={`wl-signin ${className}`}>
@@ -85,7 +88,8 @@ export default async function WelcomePage() {
     method: signInMethodFromProvider(user.app_metadata?.provider),
     email: user.email ?? null,
   };
-  const serif = (chunks: React.ReactNode) => <span className="mvg-serif wl-serif">{chunks}</span>;
+  // The former serif accent renders in the same condensed face.
+  const serif = (chunks: React.ReactNode) => <span className="wl-em">{chunks}</span>;
   const bold = (chunks: React.ReactNode) => <strong>{chunks}</strong>;
 
   return (
@@ -94,7 +98,7 @@ export default async function WelcomePage() {
         <header className="wl-header">
           <a href="/" className="wl-brand" aria-label={t('homeLabel')}>
             <span className="wl-brand-mark" aria-hidden="true">
-              M
+              <Image src={BRAND_LOGO} alt="" width={24} height={24} />
             </span>
             MotoVault
           </a>
@@ -108,16 +112,13 @@ export default async function WelcomePage() {
         <main className="wl-main">
           <div className="wl-lead">
             <div className="wl-intro">
-              <p className="wl-eyebrow">{t('eyebrow')}</p>
               <h1 className="wl-title">{t.rich('title', { serif })}</h1>
+              <p className="wl-intro-sub">{t('subtitle')}</p>
             </div>
 
-            <ol className="wl-reasons" aria-label={t('reasonsLabel')}>
-              {REASONS.map(({ icon: Icon, title, tag }, index) => (
+            <ul className="wl-reasons" aria-label={t('reasonsLabel')}>
+              {REASONS.map(({ icon: Icon, title, tag }) => (
                 <li key={title} className="wl-reason">
-                  <span className="wl-reason-num" aria-hidden="true">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
                   <span className="wl-reason-icon" aria-hidden="true">
                     <Icon strokeWidth={1.75} />
                   </span>
@@ -125,10 +126,11 @@ export default async function WelcomePage() {
                   <span className="wl-reason-tag">{t(tag)}</span>
                 </li>
               ))}
-            </ol>
+            </ul>
 
             <a href={DEFAULT_POST_AUTH_PATH} className="wl-continue">
               {t('continue')}
+              <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />
             </a>
           </div>
 
@@ -150,8 +152,8 @@ export default async function WelcomePage() {
             <AccountLine account={account} className="wl-signin--card" />
           </section>
 
-          {/* < 768: one button to motovault.app/get (it opens the phone's own
-              store), then the account line. */}
+          {/* < 768: one copper button to motovault.app/get (it opens the
+              phone's own store), then the account line. */}
           <section className="wl-phone" aria-label={t('getAppLabel')}>
             <a href={APP_HANDOFF_URL} className="wl-get" aria-label={t('getAppLabel')}>
               <AppleMark size={20} />

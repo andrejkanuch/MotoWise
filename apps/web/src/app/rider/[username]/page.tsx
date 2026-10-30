@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { StoreLink } from '@/components/marketing/store-buttons';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { fetchProfile } from '../../../lib/fetch-profile';
 import { formatDistance } from '../../../lib/format-utils';
+import '@/components/marketing/design-system.css';
+import '@/components/share-page.css';
 
 export async function generateMetadata({
   params,
@@ -45,6 +48,12 @@ function formatJoinDate(dateStr: string): string {
   });
 }
 
+/** "1.2k km" → ["1.2k", "km"] so the unit sits small beside the figure. */
+function splitUnit(value: string): [string, string | null] {
+  const match = value.match(/^(.*?)\s*([a-z%]+)$/i);
+  return match ? [match[1], match[2]] : [value, null];
+}
+
 export default async function RiderProfilePage({
   params,
 }: {
@@ -59,112 +68,111 @@ export default async function RiderProfilePage({
 
   const displayName = profile.displayName ?? profile.publicUsername;
   const initial = displayName.charAt(0).toUpperCase();
+  const [distanceNum, distanceUnit] = splitUnit(formatDistance(profile.rideStats.totalDistance));
+  const meta = [`@${profile.publicUsername}`, profile.city].filter(Boolean).join(' · ');
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      {/* Hero header */}
-      <header className="bg-gradient-to-br from-neutral-950 to-neutral-800 text-white">
-        <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-          <div className="flex items-center gap-5">
-            {profile.avatarUrl ? (
-              // biome-ignore lint/performance/noImgElement: user avatar from Supabase storage
-              <img
-                src={profile.avatarUrl}
-                alt={displayName}
-                className="h-20 w-20 rounded-full border-3 border-warm-500/30 object-cover"
-              />
-            ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-warm-500/15 text-3xl font-bold text-warm-400">
-                {initial}
-              </div>
-            )}
-            <div>
-              <h1 className="text-2xl font-bold">{displayName}</h1>
-              <p className="text-white/70">@{profile.publicUsername}</p>
-              {profile.city && <p className="mt-1 text-sm text-white/60">{profile.city}</p>}
-            </div>
-          </div>
-          {profile.bio && (
-            <p className="mt-4 text-sm leading-relaxed text-white/80">{profile.bio}</p>
-          )}
+    <div className="mv-marketing sp">
+      <div className="sp-brand">
+        <a href="/">
+          <Image src="/images/marketing/MotoVault.png" alt="" width={28} height={28} />
+          MotoVault
+        </a>
+      </div>
 
-          {/* Stats */}
-          <div className="mt-8 grid grid-cols-3 gap-4">
-            <div className="rounded-xl bg-white/10 p-3 text-center border border-warm-500/10">
-              <p className="text-2xl font-bold">{profile.rideStats.totalRides}</p>
-              <p className="text-xs text-white/60">Rides</p>
+      <main className="sp-main sp-main-tall">
+        <header className="sp-header">
+          {profile.avatarUrl ? (
+            // biome-ignore lint/performance/noImgElement: user avatar from Supabase storage
+            <img src={profile.avatarUrl} alt="" className="sp-avatar" />
+          ) : (
+            <div className="sp-avatar" aria-hidden="true">
+              {initial}
             </div>
-            <div className="rounded-xl bg-white/10 p-3 text-center border border-warm-500/10">
-              <p className="text-2xl font-bold">
-                {formatDistance(profile.rideStats.totalDistance)}
-              </p>
-              <p className="text-xs text-white/60">Distance</p>
-            </div>
-            <div className="rounded-xl bg-white/10 p-3 text-center border border-warm-500/10">
-              <p className="text-2xl font-bold">{profile.followerCount}</p>
-              <p className="text-xs text-white/60">Followers</p>
-            </div>
+          )}
+          <div style={{ minWidth: 0 }}>
+            <h1 className="sp-title">{displayName}</h1>
+            <p className="sp-sub">{meta}</p>
+          </div>
+        </header>
+
+        {profile.bio && (
+          <p className="sp-prose" style={{ marginTop: 24 }}>
+            {profile.bio}
+          </p>
+        )}
+
+        <div className="sp-figures">
+          <div className="sp-figure">
+            <span className="sp-figure-value">{profile.rideStats.totalRides}</span>
+            <span className="sp-figure-label">Rides logged</span>
+          </div>
+          <div className="sp-figure">
+            <span className="sp-figure-value">
+              {distanceNum}
+              {distanceUnit && <small>{distanceUnit}</small>}
+            </span>
+            <span className="sp-figure-label">Distance ridden</span>
+          </div>
+          <div className="sp-figure">
+            <span className="sp-figure-value">{profile.followerCount}</span>
+            <span className="sp-figure-label">Followers</span>
           </div>
         </div>
-      </header>
 
-      {/* Bikes */}
-      <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
         {profile.bikes.length > 0 && (
-          <section>
-            <h2 className="mb-4 text-lg font-bold text-neutral-900">Garage</h2>
-            <div className="space-y-3">
+          <section className="sp-section">
+            <h2 className="sp-section-title">Garage</h2>
+            <ul className="sp-list">
               {profile.bikes.map((bike) => (
-                <div
-                  key={`${bike.year}-${bike.make}-${bike.model}`}
-                  className="rounded-xl border border-neutral-200 bg-white p-4"
-                >
-                  <p className="font-semibold text-neutral-900">
-                    {bike.nickname ?? `${bike.year} ${bike.make} ${bike.model}`}
-                  </p>
-                  {bike.nickname && (
-                    <p className="text-sm text-neutral-500">
-                      {bike.year} {bike.make} {bike.model}
-                    </p>
-                  )}
-                </div>
+                <li key={`${bike.year}-${bike.make}-${bike.model}`} className="sp-row">
+                  <div className="sp-row-body">
+                    <div className="sp-row-title">
+                      {bike.nickname ?? `${bike.year} ${bike.make} ${bike.model}`}
+                    </div>
+                    {bike.nickname && (
+                      <div className="sp-row-meta">
+                        {bike.year} {bike.make} {bike.model}
+                      </div>
+                    )}
+                  </div>
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
         )}
 
         {profile.rideStats.joinDate && (
-          <p className="mt-6 text-xs text-neutral-400">
-            Riding since {formatJoinDate(profile.rideStats.joinDate)}
+          <p className="sp-foot-note">
+            Riding with MotoVault since {formatJoinDate(profile.rideStats.joinDate)}
           </p>
         )}
       </main>
 
-      {/* CTA footer */}
-      <footer className="border-t border-neutral-200 bg-white py-10">
-        <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
-          <p className="text-lg font-bold text-neutral-900">Track your rides with MotoVault</p>
-          <p className="mt-1 text-sm text-neutral-500">
-            AI-powered motorcycle maintenance, diagnostics & ride tracking
+      <footer className="sp-cta">
+        <div className="sp-cta-inner">
+          <h2 className="sp-cta-title">Keep your own logbook</h2>
+          <p className="sp-cta-sub">
+            Every ride, every service, every cost, for each bike you own. Free to start.
           </p>
-          <div className="mt-6 flex items-center justify-center gap-3">
+          <div className="sp-cta-actions">
             <StoreLink
               platform={StorePlatform.Ios}
               pageType={CtaPageType.Rider}
               placement={CtaPlacement.Footer}
               slug={username}
-              className="inline-flex items-center rounded-xl bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
+              className="mv-btn mv-btn-primary"
             >
-              Download on iOS
+              Download for iOS
             </StoreLink>
             <StoreLink
               platform={StorePlatform.Android}
               pageType={CtaPageType.Rider}
               placement={CtaPlacement.Footer}
               slug={username}
-              className="inline-flex items-center rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50"
+              className="mv-btn mv-btn-ghost"
             >
-              Get on Android
+              Get it on Android
             </StoreLink>
           </div>
         </div>

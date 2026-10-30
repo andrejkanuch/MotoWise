@@ -1,339 +1,167 @@
+import {
+  ArrowLeft,
+  ArrowRight,
+  Building2,
+  Check,
+  ChevronDown,
+  Clock,
+  Globe,
+  List,
+  type LucideIcon,
+  Map as MapIcon,
+  MapPin,
+  Mountain,
+  Route,
+  Search,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react';
 import type { ReactNode } from 'react';
+import type { TripTemplateNode } from '@/lib/fetch-places';
+import './explore.css';
+import { formatDuration, formatNumber } from './utils';
 
-/* ── MonoLabel ──────────────────────────────────────────────────── */
+/* ── MetaLabel: a sentence-case body-face label ───────────────── */
 
-export function MonoLabel({ children, size = 10.5 }: { children: ReactNode; size?: number }) {
-  return (
-    <span
-      style={{
-        fontFamily: 'var(--font-geist-mono, monospace)',
-        fontSize: size,
-        color: 'var(--mv-ink-3)',
-        letterSpacing: '0.14em',
-        textTransform: 'uppercase',
-      }}
-    >
-      {children}
-    </span>
-  );
+export function MetaLabel({ children, className }: { children: ReactNode; className?: string }) {
+  return <span className={className ? `xp-label ${className}` : 'xp-label'}>{children}</span>;
 }
 
-/* ── Icon ───────────────────────────────────────────────────────── */
+/* ── Icon: Lucide, one stroke weight ──────────────────────────── */
+
+const ICONS = {
+  search: Search,
+  'arrow-right': ArrowRight,
+  'arrow-left': ArrowLeft,
+  'chevron-down': ChevronDown,
+  sliders: SlidersHorizontal,
+  close: X,
+  map: MapIcon,
+  list: List,
+  pin: MapPin,
+  building: Building2,
+  distance: Route,
+  elev: Mountain,
+  time: Clock,
+  check: Check,
+  globe: Globe,
+} satisfies Record<string, LucideIcon>;
+
+export type IconName = keyof typeof ICONS;
 
 export function Icon({
   name,
-  size = 14,
+  size = 16,
   color = 'currentColor',
 }: {
-  name: string;
+  name: IconName;
   size?: number;
   color?: string;
 }) {
-  const common = {
-    width: size,
-    height: size,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: color,
-    strokeWidth: 1.6,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-    'aria-hidden': true as const,
-  };
-  switch (name) {
-    case 'search':
-      return (
-        <svg {...common}>
-          <title>Search</title>
-          <circle cx="11" cy="11" r="7" />
-          <path d="M20 20l-3.5-3.5" />
-        </svg>
-      );
-    case 'arrow-right':
-      return (
-        <svg {...common}>
-          <title>Arrow</title>
-          <path d="M5 12h14M13 5l7 7-7 7" />
-        </svg>
-      );
-    case 'chevron-down':
-      return (
-        <svg {...common}>
-          <title>Expand</title>
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      );
-    case 'sliders':
-      return (
-        <svg {...common}>
-          <title>Filters</title>
-          <path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h14M18 18h2" />
-          <circle cx="16" cy="6" r="2" />
-          <circle cx="8" cy="12" r="2" />
-          <circle cx="16" cy="18" r="2" />
-        </svg>
-      );
-    case 'close':
-      return (
-        <svg {...common}>
-          <title>Close</title>
-          <path d="M6 6l12 12M18 6L6 18" />
-        </svg>
-      );
-    case 'map':
-      return (
-        <svg {...common}>
-          <title>Map</title>
-          <path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v16M15 6v16" />
-        </svg>
-      );
-    case 'list':
-      return (
-        <svg {...common}>
-          <title>List</title>
-          <path d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      );
-    case 'pin':
-      return (
-        <svg {...common}>
-          <title>Pin</title>
-          <path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" />
-          <circle cx="12" cy="9" r="2.5" />
-        </svg>
-      );
-    case 'distance':
-      return (
-        <svg {...common}>
-          <title>Distance</title>
-          <path d="M4 12h16M4 12l4-4M4 12l4 4M20 12l-4-4M20 12l-4 4" />
-        </svg>
-      );
-    case 'elev':
-      return (
-        <svg {...common}>
-          <title>Elevation</title>
-          <path d="M3 18l6-9 4 6 3-4 5 7H3z" />
-        </svg>
-      );
-    case 'time':
-      return (
-        <svg {...common}>
-          <title>Time</title>
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 7v5l3 2" />
-        </svg>
-      );
-    case 'bookmark':
-      return (
-        <svg {...common}>
-          <title>Bookmark</title>
-          <path d="M6 4h12v17l-6-4-6 4V4z" />
-        </svg>
-      );
-    case 'check':
-      return (
-        <svg {...common}>
-          <title>Check</title>
-          <path d="M5 12l4 4 10-10" />
-        </svg>
-      );
-    case 'globe':
-      return (
-        <svg {...common}>
-          <title>Globe</title>
-          <circle cx="12" cy="12" r="9" />
-          <path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18" />
-        </svg>
-      );
-    default:
-      return (
-        <svg {...common}>
-          <title>Icon</title>
-          <circle cx="12" cy="12" r="3" />
-        </svg>
-      );
-  }
+  const Glyph = ICONS[name];
+  return <Glyph size={size} color={color} strokeWidth={1.75} aria-hidden="true" />;
 }
 
-/* ── Flag ───────────────────────────────────────────────────────── */
+/* ── Figure: a condensed, tabular number with its unit and label ── */
 
-export function Flag({ code, w = 22, h = 15 }: { code: string; w?: number; h?: number }) {
-  const hash = (code || 'XX').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-  const hue = (hash * 47) % 360;
-  return (
-    <span
-      style={{
-        display: 'inline-block',
-        width: w,
-        height: h,
-        borderRadius: 3,
-        background: `linear-gradient(135deg, oklch(0.55 0.13 ${hue}), oklch(0.34 0.08 ${(hue + 30) % 360}))`,
-        position: 'relative',
-        overflow: 'hidden',
-        flexShrink: 0,
-        boxShadow: 'inset 0 0 0 1px oklch(1 0 0 / 0.08)',
-      }}
-    >
-      <span
-        style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'grid',
-          placeItems: 'center',
-          fontFamily: 'var(--font-geist-mono, monospace)',
-          fontSize: Math.round(h * 0.55),
-          fontWeight: 600,
-          color: 'oklch(0.98 0.01 80 / 0.95)',
-          letterSpacing: 0,
-        }}
-      >
-        {code}
-      </span>
-    </span>
-  );
-}
-
-/* ── Difficulty ─────────────────────────────────────────────────── */
-
-const DIFFICULTY_MAP = {
-  Easy: { dots: 1, color: 'oklch(0.78 0.16 145)' },
-  Moderate: { dots: 2, color: 'oklch(0.84 0.15 80)' },
-  Hard: { dots: 3, color: 'oklch(0.72 0.18 35)' },
-  Expert: { dots: 4, color: 'oklch(0.66 0.20 18)' },
-} as const;
-
-export function Difficulty({
-  kind = 'Moderate',
+export function Figure({
+  value,
+  unit,
+  label,
+  size = 'md',
 }: {
-  kind?: 'Easy' | 'Moderate' | 'Hard' | 'Expert';
+  value: string;
+  unit?: string;
+  label?: string;
+  size?: 'md' | 'lg' | 'xl';
 }) {
-  const m = DIFFICULTY_MAP[kind] ?? DIFFICULTY_MAP.Moderate;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-      <span style={{ display: 'inline-flex', gap: 2 }}>
-        {[0, 1, 2, 3].map((i) => (
-          <span
-            key={i}
-            style={{
-              width: 5,
-              height: 5,
-              borderRadius: 99,
-              background: i < m.dots ? m.color : 'oklch(1 0 0 / 0.12)',
-            }}
-          />
-        ))}
+    <span className={`xp-figure xp-figure-${size}`}>
+      <span className="mv-figure xp-figure-value">
+        {value}
+        {unit && <span className="xp-figure-unit">{unit}</span>}
       </span>
-      <span
-        style={{
-          fontFamily: 'var(--font-geist-mono, monospace)',
-          fontSize: 10,
-          color: 'var(--mv-ink-2)',
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-        }}
-      >
-        {kind}
-      </span>
+      {label && <span className="xp-figure-label">{label}</span>}
     </span>
   );
 }
 
-/* ── Stars ──────────────────────────────────────────────────────── */
+/* ── Route figures: distance, climb, time for one trip ─────────── */
 
-export function Stars({ value, size = 12 }: { value: number; size?: number }) {
+export function distanceParts(meters: number): { value: string; unit: string } {
+  const km = meters / 1000;
+  return { value: km >= 100 ? formatNumber(Math.round(km)) : km.toFixed(1), unit: 'km' };
+}
+
+type RouteFigureSource = Pick<
+  TripTemplateNode,
+  'distanceM' | 'elevationGainM' | 'estimatedDurationMinutes'
+>;
+
+export function RouteFigures({
+  trip,
+  withLabels = true,
+  size = 'md',
+}: {
+  trip: RouteFigureSource;
+  withLabels?: boolean;
+  size?: 'md' | 'lg';
+}) {
+  const figures: Array<{ key: string; value: string; unit?: string; label: string }> = [];
+  if (trip.distanceM != null) {
+    const d = distanceParts(trip.distanceM);
+    figures.push({ key: 'distance', value: d.value, unit: d.unit, label: 'Distance' });
+  }
+  if (trip.elevationGainM != null) {
+    figures.push({
+      key: 'climb',
+      value: formatNumber(trip.elevationGainM),
+      unit: 'm',
+      label: 'Climb',
+    });
+  }
+  if (trip.estimatedDurationMinutes != null) {
+    figures.push({
+      key: 'time',
+      value: formatDuration(trip.estimatedDurationMinutes),
+      label: 'Riding time',
+    });
+  }
+  if (figures.length === 0) return null;
   return (
-    <span style={{ display: 'inline-flex', gap: 1, color: 'var(--mv-warm-400)' }}>
-      {[0, 1, 2, 3, 4].map((i) => {
-        const fill = i < Math.floor(value) ? 1 : i < value ? value - i : 0;
-        const gradientId = `star-${i}-${size}-${Math.round(value * 10)}`;
-        return (
-          <svg
-            key={i}
-            width={size}
-            height={size}
-            viewBox="0 0 24 24"
-            style={{ display: 'block' }}
-            aria-hidden="true"
-          >
-            <defs>
-              <linearGradient id={gradientId}>
-                <stop offset={`${fill * 100}%`} stopColor="currentColor" />
-                <stop offset={`${fill * 100}%`} stopColor="oklch(1 0 0 / 0.12)" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M12 2l2.9 6.7 7.1.7-5.4 4.8 1.7 7.1L12 17.6 5.7 21.3l1.7-7.1L2 9.4l7.1-.7L12 2z"
-              fill={`url(#${gradientId})`}
-            />
-          </svg>
-        );
-      })}
+    <span className="xp-figures">
+      {figures.map((f) => (
+        <Figure
+          key={f.key}
+          value={f.value}
+          unit={f.unit}
+          label={withLabels ? f.label : undefined}
+          size={size}
+        />
+      ))}
     </span>
   );
 }
 
-/* ── SkeletonCard ──────────────────────────────────────────────── */
+/* ── Skeleton rows (static — no shimmer loop) ──────────────────── */
 
-export function SkeletonCard() {
+const SKELETON_ROW_KEYS = ['a', 'b', 'c', 'd', 'e', 'f'] as const;
+
+export function SkeletonRows({ count = 4 }: { count?: number }) {
   return (
-    <div
-      style={{
-        background: 'var(--mv-surface)',
-        border: '1px solid var(--mv-line)',
-        borderRadius: 14,
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          aspectRatio: '16/9',
-          background: 'oklch(1 0 0 / 0.04)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(90deg, transparent, oklch(1 0 0 / 0.04), transparent)',
-            animation: 'shimmer 1.6s ease-in-out infinite',
-          }}
-        />
-      </div>
-      <div style={{ padding: 16 }}>
-        <div
-          style={{ height: 10, background: 'oklch(1 0 0 / 0.04)', borderRadius: 99, width: '40%' }}
-        />
-        <div
-          style={{
-            height: 14,
-            background: 'oklch(1 0 0 / 0.06)',
-            borderRadius: 99,
-            width: '85%',
-            marginTop: 10,
-          }}
-        />
-        <div
-          style={{
-            height: 14,
-            background: 'oklch(1 0 0 / 0.06)',
-            borderRadius: 99,
-            width: '60%',
-            marginTop: 6,
-          }}
-        />
-        <div
-          style={{
-            height: 10,
-            background: 'oklch(1 0 0 / 0.04)',
-            borderRadius: 99,
-            width: '70%',
-            marginTop: 18,
-          }}
-        />
-      </div>
+    <div className="xp-rows" aria-hidden="true">
+      {SKELETON_ROW_KEYS.slice(0, count).map((key) => (
+        <div key={key} className="xp-row">
+          <span>
+            <span className="xp-skel" style={{ width: '46%' }} />
+            <span className="xp-skel" style={{ width: '28%', height: 11, marginTop: 8 }} />
+          </span>
+          <span className="xp-row-figs">
+            <span className="xp-skel" style={{ width: 56, height: 20 }} />
+            <span className="xp-skel" style={{ width: 56, height: 20 }} />
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

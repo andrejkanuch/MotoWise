@@ -30,6 +30,9 @@ import {
 } from '@/lib/auth-errors';
 import { postAuthDestination, signUpEmailRedirectTo } from '@/lib/post-auth-redirect';
 
+/** One line under the Bike Plate on the photo panel (root route, English only). */
+const PANEL_NOTE = 'Service history, real costs and every ride, kept in one logbook.';
+
 export default function LoginPage() {
   const t = useTranslations('AuthV2');
   const supabase = useMemo(
@@ -159,9 +162,12 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthShell headerLink={{ href: '/signup', label: t('signIn.altCta') }}>
+    <AuthShell
+      headerLink={{ href: '/signup', label: t('signIn.altCta') }}
+      homeLabel={t('homeLabel')}
+      panelNote={PANEL_NOTE}
+    >
       <AuthHead
-        eyebrow={t('signIn.eyebrow')}
         title={t.rich('signIn.title', { serif: serifChunk })}
         subtitle={t('signIn.subtitle')}
       />
@@ -209,7 +215,12 @@ export default function LoginPage() {
           autoComplete="current-password"
           maxLength={128}
           required
-          toggle={{ shown: showPassword, onToggle: () => setShowPassword(!showPassword) }}
+          toggle={{
+            shown: showPassword,
+            onToggle: () => setShowPassword(!showPassword),
+            showLabel: t('showPassword'),
+            hideLabel: t('hidePassword'),
+          }}
         />
         <SubmitButton
           busy={loading}

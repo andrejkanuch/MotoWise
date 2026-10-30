@@ -86,6 +86,53 @@ export function StoreLink({
   );
 }
 
+/* Primary = copper (the verb), secondary = one step up the ramp. Both are
+   control-radius, body face, 44px+ tall, with the copper focus ring. */
+const STORE_BUTTONS_CSS = `
+.mv-store {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.mv-store-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: var(--mv-radius-control);
+  font-family: var(--mv-font-body);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .2s, border-color .2s, transform .2s var(--mv-ease);
+}
+.mv-store-btn:active { transform: translateY(0) scale(0.985); }
+.mv-store-btn:focus-visible { outline: 2px solid var(--mv-copper); outline-offset: 2px; }
+.mv-store-primary {
+  background: var(--mv-copper);
+  color: var(--mv-on-copper);
+}
+.mv-store-primary:hover { background: var(--mv-copper-hover); transform: translateY(-1px); }
+.mv-store-secondary {
+  background: var(--mv-surface-2);
+  color: var(--mv-ink);
+  border: 1px solid var(--mv-line);
+}
+.mv-store-secondary:hover { background: var(--mv-surface-3); border-color: var(--mv-line-step); transform: translateY(-1px); }
+.mv-store-sm .mv-store-btn { min-height: 44px; padding: 0 18px; font-size: 14px; }
+.mv-store-lg .mv-store-btn { min-height: 56px; padding: 0 28px; font-size: 16px; }
+@media (prefers-reduced-motion: reduce) {
+  .mv-store-btn { transition-duration: 0.01ms; }
+}
+`;
+
+const SIZE_CLASS = { sm: 'mv-store-sm', md: '', lg: 'mv-store-lg' } as const;
+
 export function StoreButtons({
   size = 'md',
   pageType,
@@ -97,32 +144,20 @@ export function StoreButtons({
   placement?: CtaPlacement;
 }) {
   const ctx: StoreCtaContext = { pageType, placement, slug, referrerParams };
-  const styles = {
-    sm: 'px-5 py-2.5 text-sm gap-3',
-    md: 'px-6 sm:px-8 py-3.5 text-base gap-4',
-    lg: 'px-6 sm:px-10 py-4 text-base sm:text-lg gap-4',
-  } as const;
 
   return (
-    <div className={`flex flex-wrap items-center ${styles[size]}`}>
-      <a
-        {...storeAnchorProps(StorePlatform.Ios, ctx)}
-        className="cta-primary cta-glow group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-6 sm:px-10 py-4 text-base sm:text-lg font-semibold text-neutral-950 shadow-lg shadow-warm-500/25 transition hover:bg-warm-400 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
-      >
-        <span className="absolute inset-0 -translate-x-full bg-warm-300 transition-transform duration-300 ease-out group-hover:translate-x-0" />
-        <span className="relative flex items-center gap-2">
-          <AppleIcon />
-          App Store
-        </span>
+    <div className={`mv-store ${SIZE_CLASS[size]}`}>
+      <style>{STORE_BUTTONS_CSS}</style>
+      <a {...storeAnchorProps(StorePlatform.Ios, ctx)} className="mv-store-btn mv-store-primary">
+        <AppleIcon />
+        App Store
       </a>
       <a
         {...storeAnchorProps(StorePlatform.Android, ctx)}
-        className="cta-secondary inline-flex items-center justify-center rounded-full border-2 border-neutral-600 px-6 sm:px-8 py-3.5 text-neutral-300 transition hover:border-neutral-500 hover:text-neutral-100 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+        className="mv-store-btn mv-store-secondary"
       >
-        <span className="flex items-center gap-2">
-          <PlayIcon />
-          Google Play
-        </span>
+        <PlayIcon />
+        Google Play
       </a>
     </div>
   );

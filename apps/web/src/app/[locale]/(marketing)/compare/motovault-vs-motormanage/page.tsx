@@ -50,23 +50,7 @@ const CONFIG: VsComparePageConfig = {
   pricing: { keyStyle: 'nested', rows: 3 },
   verdict: { titleKey: 'verdictHeading', bodyKey: 'verdictText' },
   faqCount: 4,
-  related: [
-    {
-      href: '/compare',
-      title: 'Best Motorcycle Apps 2026',
-      description: 'Full feature matrix and ranking of 10 motorcycle apps.',
-    },
-    {
-      href: '/compare/motovault-vs-moto-shed',
-      title: 'MotoVault vs Moto Shed',
-      description: 'Simple service logger vs full motorcycle companion platform.',
-    },
-    {
-      href: '/compare/motovault-vs-motoscan',
-      title: 'MotoVault vs MotoScan',
-      description: 'AI diagnostics vs hardware OBD-II scanning.',
-    },
-  ],
+  related: ['motoShed', 'motoscan'],
 };
 
 export default async function VsMotorManagePage({ params }: PageProps) {

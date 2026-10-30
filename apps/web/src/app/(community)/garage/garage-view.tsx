@@ -19,7 +19,6 @@ import {
   type HandoffAccount,
   MonoLabel,
   pickPromotedHandoff,
-  SerifAccent,
 } from '@/components/garage-ui';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
@@ -69,13 +68,22 @@ function useToday(initialToday: string): string {
   return today;
 }
 
+/** The plate's racing number: the bike's place in the garage, two digits. */
+function racingNumberOf(bikes: readonly Bike[], bike: Bike): string {
+  const index = bikes.findIndex((candidate) => candidate.id === bike.id);
+  return String((index < 0 ? 0 : index) + 1).padStart(2, '0');
+}
+
 function PageHead({ mode, bikeCount }: { mode: GarageMode; bikeCount: number }) {
   const t = useTranslations('GarageV2');
   const empty = mode === GarageMode.Empty;
   return (
     <header className="gv-head">
-      <MonoLabel rule className="gv-eyebrow">
-        {/* One inline run: the label is a flex row, so loose text would be spaced apart. */}
+      <h1 className="gv-title">
+        {t('titleLead')} {t('titleSerif')}
+      </h1>
+      {/* One status line under the title: section · count · read-only. */}
+      <MonoLabel className="gv-meta">
         <span>
           {t('eyebrowGarage')}
           {empty ? (
@@ -91,9 +99,6 @@ function PageHead({ mode, bikeCount }: { mode: GarageMode; bikeCount: number }) 
           )}
         </span>
       </MonoLabel>
-      <h1 className="gv-title">
-        {t('titleLead')} <SerifAccent>{t('titleSerif')}</SerifAccent>
-      </h1>
       <p className={empty ? 'gv-intro gv-hide-phone' : 'gv-intro'}>
         {empty ? t('emptyIntro') : t('intro')}
       </p>
@@ -105,7 +110,7 @@ function PageHead({ mode, bikeCount }: { mode: GarageMode; bikeCount: number }) 
  * Client view for /garage: the read-only garage (the web displays, the app
  * does, #277). Every action links to motovault.app/get. Data is prefetched in
  * page.tsx under the same query keys, so this paints with content on first
- * render; each card shows its own skeleton while its query is pending.
+ * render; each section shows its own skeleton while its query is pending.
  */
 export function GarageView({
   initialToday,
@@ -250,7 +255,7 @@ export function GarageView({
             <EmptyStartHero account={account} promoted={promoted} />
             <BikePreview />
           </div>
-          {/* Rides exist without a bike only when the bike was deleted: still the rider's data. A failed load shows its failed card: presence is then unknown. */}
+          {/* Rides exist without a bike only when the bike was deleted: still the rider's data. A failed load shows its failed state: presence is then unknown. */}
           {(rides.hasRides || ridesState === RidesCardState.Failed) && ridesCard}
           <AccountSection account={account} />
         </div>
@@ -269,7 +274,9 @@ export function GarageView({
             bike={leadBike}
             others={otherBikes(bikes ?? [], leadBike)}
             unit={unit}
-            overdueCount={schedule?.overdueCount ?? null}
+            schedule={maintenanceQuery.isError ? null : schedule}
+            today={today}
+            racingNumber={racingNumberOf(bikes ?? [], leadBike)}
           />
 
           {/* ─── Free logging: service + spend (never gated, #271) ─── */}

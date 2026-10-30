@@ -1,6 +1,30 @@
 'use client';
 
+import { RotateCw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+
+/* Inside the marketing layout: the fixed navbar sits above, so the block
+   clears it. Condensed headline, body face, one copper action, left-aligned. */
+const ERROR_CSS = `
+.merr {
+  min-height: 70vh;
+  display: flex; flex-direction: column; justify-content: center;
+  max-width: var(--mv-container);
+  margin: 0 auto;
+  padding: 140px 40px 96px;
+}
+.merr-status { margin: 0 0 24px; font-size: 14px; color: var(--mv-ink-3); }
+.merr-title {
+  margin: 0 0 20px;
+  font-family: var(--mv-font-display); font-weight: 700;
+  font-size: clamp(48px, 7vw, 96px); line-height: 0.94; letter-spacing: 0.002em;
+  color: var(--mv-ink); text-wrap: balance;
+}
+.merr-message { max-width: 50ch; margin: 0; font-size: 17px; line-height: 1.55; color: var(--mv-ink-2); }
+.merr-ref { margin: 12px 0 0; font-family: var(--mv-font-mono); font-size: 12px; color: var(--mv-ink-3); overflow-wrap: anywhere; }
+.merr-actions { margin-top: 36px; }
+@media (max-width: 600px) { .merr { padding: 110px 24px 64px; } }
+`;
 
 export default function MarketingError({
   error,
@@ -12,108 +36,18 @@ export default function MarketingError({
   const t = useTranslations('Error');
 
   return (
-    <div
-      style={{
-        minHeight: '60vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '120px 24px',
-        textAlign: 'center',
-      }}
-    >
-      {/* Icon: one step up the ramp, hairline — no glow */}
-      <div
-        style={{
-          width: '64px',
-          height: '64px',
-          borderRadius: 'var(--mv-radius-card)',
-          background: 'var(--mv-surface)',
-          border: '1px solid var(--mv-line)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '32px',
-        }}
-      >
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="var(--mv-ink-2)"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-          <line x1="12" y1="9" x2="12" y2="13" />
-          <line x1="12" y1="17" x2="12.01" y2="17" />
-        </svg>
+    <div className="merr">
+      <style>{ERROR_CSS}</style>
+      <p className="merr-status">{t('label')}</p>
+      <h2 className="merr-title">{t('title')}</h2>
+      <p className="merr-message">{t('message')}</p>
+      {error.digest && <p className="merr-ref">Ref: {error.digest}</p>}
+      <div className="merr-actions">
+        <button onClick={reset} type="button" className="mv-btn mv-btn-primary">
+          <RotateCw size={16} aria-hidden="true" />
+          {t('retry')}
+        </button>
       </div>
-
-      <h2
-        className="mv-display"
-        style={{
-          fontSize: 'clamp(32px, 4.5vw, 52px)',
-          fontWeight: 700,
-          lineHeight: 1,
-          margin: 0,
-          color: 'var(--mv-ink)',
-        }}
-      >
-        {t('title')}
-      </h2>
-
-      <p
-        style={{
-          marginTop: '16px',
-          fontSize: '16px',
-          color: 'var(--mv-ink-3)',
-          lineHeight: 1.55,
-          maxWidth: '420px',
-        }}
-      >
-        {t('message')}
-      </p>
-
-      {error.digest && (
-        <p
-          className="mv-figure"
-          style={{
-            marginTop: '12px',
-            fontSize: '13px',
-            color: 'var(--mv-ink-4)',
-          }}
-        >
-          Ref: {error.digest}
-        </p>
-      )}
-
-      <button
-        onClick={reset}
-        type="button"
-        className="mv-btn mv-btn-primary"
-        style={{ marginTop: '40px' }}
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M23 4v6h-6M1 20v-6h6" />
-          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
-        </svg>
-        {t('retry')}
-      </button>
     </div>
   );
 }

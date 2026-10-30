@@ -1,14 +1,16 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import {
+  COMPARE_PAGES,
   CompareBreadcrumb,
   CompareFaq,
-  CompareRelatedLinks,
-  compareBodyStyle,
-  compareH1Style,
-  compareH2Style,
-  compareH3Style,
-  MarkGlyph,
+  CompareLinkList,
+  CompareMarkCell,
+  type ComparePageId,
+  CompareStyles,
+  GUIDE_IDS,
+  getCompareMarkLabels,
+  HEAD_TO_HEAD_IDS,
 } from '@/components/marketing/compare-page';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLd } from '@/components/marketing/json-ld';
@@ -36,7 +38,32 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-const APPS = [
+// Row order = differentiation priority. Lead with the jobs riders pay for
+// (expense tracking first; maintenance and reminders next), then the ride,
+// route and garage basics. AI diagnostics and learning sit near the bottom:
+// supporting features, not the headline. The i18n key and the APPS boolean
+// for each row sit side by side so they cannot drift apart.
+const FEATURES = [
+  { labelKey: 'featureExpenses', field: 'expenses' },
+  { labelKey: 'featureMaintenance', field: 'maintenance' },
+  { labelKey: 'featureReminders', field: 'reminders' },
+  { labelKey: 'featureRides', field: 'rides' },
+  { labelKey: 'featureRoutes', field: 'routes' },
+  { labelKey: 'featureMultiBike', field: 'multiBike' },
+  { labelKey: 'featureLearning', field: 'learning' },
+  { labelKey: 'featureDiagnostics', field: 'diagnostics' },
+  { labelKey: 'featureFree', field: 'free' },
+] as const;
+
+type FeatureField = (typeof FEATURES)[number]['field'];
+
+interface AppRow extends Record<FeatureField, boolean> {
+  key: string;
+  /** The head-to-head page for this app, when one exists. */
+  page?: ComparePageId;
+}
+
+const APPS: ReadonlyArray<AppRow> = [
   {
     key: 'app0',
     maintenance: true,
@@ -46,15 +73,16 @@ const APPS = [
     learning: true,
     multiBike: true,
     reminders: true,
-    // Trip planning (multi-day routes, 11 typed waypoints, rider RSVPs, real road
-    // routing) is a shipped feature — see /features/trip-planning. Treat it as
-    // route planning for the top-level matrix; the per-competitor pages surface
-    // the nuance that we don't do bend-weighted curvy-road turn-by-turn.
+    // Trip planning (multi-day routes, typed waypoints, rider RSVPs, real road
+    // routing) is a shipped feature — see /features/trip-planning. It counts as
+    // route planning here; the head-to-head pages carry the nuance that we do
+    // not do bend-weighted curvy-road turn-by-turn.
     routes: true,
     free: true,
   },
   {
     key: 'app1',
+    page: 'ridelog',
     maintenance: true,
     expenses: true,
     rides: true,
@@ -67,6 +95,7 @@ const APPS = [
   },
   {
     key: 'app2',
+    page: 'rever',
     maintenance: false,
     expenses: false,
     rides: true,
@@ -79,6 +108,7 @@ const APPS = [
   },
   {
     key: 'app3',
+    page: 'calimoto',
     maintenance: false,
     expenses: false,
     rides: true,
@@ -91,6 +121,7 @@ const APPS = [
   },
   {
     key: 'app4',
+    page: 'motormanage',
     maintenance: true,
     expenses: true,
     rides: false,
@@ -103,6 +134,7 @@ const APPS = [
   },
   {
     key: 'app5',
+    page: 'motoShed',
     maintenance: true,
     expenses: true,
     rides: false,
@@ -127,6 +159,7 @@ const APPS = [
   },
   {
     key: 'app7',
+    page: 'eatsleepride',
     maintenance: false,
     expenses: false,
     rides: true,
@@ -139,6 +172,7 @@ const APPS = [
   },
   {
     key: 'app8',
+    page: 'scenic',
     maintenance: false,
     expenses: false,
     rides: true,
@@ -151,6 +185,7 @@ const APPS = [
   },
   {
     key: 'app9',
+    page: 'motoscan',
     maintenance: false,
     expenses: false,
     rides: false,
@@ -161,74 +196,15 @@ const APPS = [
     routes: false,
     free: false,
   },
-] as const;
+];
 
-// Row order = differentiation priority. Lead with the jobs riders actually pay
-// for (expense tracking is the #1 paid feature; maintenance + reminders next),
-// then the ride/route/garage basics. AI diagnostics + learning sit near the
-// bottom — they're supporting features, not the headline (a lead-with-AI matrix
-// over-indexed on a low-intent differentiator). FEATURES (i18n keys) and
-// FEATURE_KEYS (APPS booleans) are zipped by index, so they MUST stay in sync.
-const FEATURES = [
-  'featureExpenses',
-  'featureMaintenance',
-  'featureReminders',
-  'featureRides',
-  'featureRoutes',
-  'featureMultiBike',
-  'featureLearning',
-  'featureDiagnostics',
-  'featureFree',
-] as const;
-
-const FEATURE_KEYS = [
-  'expenses',
-  'maintenance',
-  'reminders',
-  'rides',
-  'routes',
-  'multiBike',
-  'learning',
-  'diagnostics',
-  'free',
-] as const;
-
-// Deep links from each ranked app to its in-depth head-to-head page. This wires
-// the hub (/compare) to its spokes (/compare/motovault-vs-*) for internal-link
-// equity + discovery. Apps without a dedicated comparison page are omitted.
-const VS_PAGE_SLUG: Record<string, string> = {
-  app1: 'motovault-vs-ridelog',
-  app2: 'motovault-vs-rever',
-  app3: 'motovault-vs-calimoto',
-  app4: 'motovault-vs-motormanage',
-  app5: 'motovault-vs-moto-shed',
-  app7: 'motovault-vs-eatsleepride',
-  app8: 'motovault-vs-scenic',
-  app9: 'motovault-vs-motoscan',
-};
-
-const RELATED_LINKS = [
-  {
-    href: '/compare/motovault-vs-kurviger',
-    title: 'MotoVault vs Kurviger',
-    description: 'All-in-one companion vs curvy-road navigation — features and pricing compared.',
-  },
-  {
-    href: '/compare/alternatives',
-    title: 'Motorcycle App Alternatives',
-    description: 'Switching from REVER, RideLog, or Calimoto? See how alternatives compare.',
-  },
-  {
-    href: '/compare/maintenance-vs-ride-apps',
-    title: 'Maintenance Apps vs. Ride Trackers',
-    description: 'Two categories, two jobs. Do you need both? Find out.',
-  },
-] as const;
+const VERDICT_INDICES = [1, 2, 3, 4] as const;
+const FAQ_INDICES = [0, 1, 2, 3, 4] as const;
 
 export default async function ComparePage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations('Compare');
+  const [t, markLabels] = await Promise.all([getTranslations('Compare'), getCompareMarkLabels()]);
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -258,7 +234,7 @@ export default async function ComparePage({ params }: PageProps) {
     })),
   };
 
-  const faqItems = [0, 1, 2, 3, 4].map((i) => ({
+  const faqItems = FAQ_INDICES.map((i) => ({
     question: t(`faq.${i}.question`),
     answer: t(`faq.${i}.answer`),
   }));
@@ -285,67 +261,43 @@ export default async function ComparePage({ params }: PageProps) {
   };
 
   return (
-    <>
+    <div className="mv-cmp-page">
+      <CompareStyles />
       <JsonLd data={breadcrumbSchema} />
       <JsonLd data={itemListSchema} />
       <JsonLd data={faqSchema} />
       <JsonLd data={softwareAppSchema} />
 
-      {/* Hero — one condensed H1, left-aligned */}
-      <header className="mx-auto max-w-6xl px-6 pt-28 md:pt-32">
-        <CompareBreadcrumb items={[{ label: 'Home', href: '/' }, { label: t('heroTitle') }]} />
-        <h1 className="mt-8" style={compareH1Style}>
-          {t('heroTitle')}
-        </h1>
-        <p className="mt-6" style={{ ...compareBodyStyle, fontSize: 17, maxWidth: '58ch' }}>
-          {t('heroSubtitle')}
-        </p>
-        {/* Above-the-fold store CTA — this is a money page (comparison intent);
-            capture the decision before the reader scrolls the matrix. */}
+      {/* Hero: one condensed H1, the lede, the store buttons, the date */}
+      <header className="mv-cmp-wrap is-wide pt-28 md:pt-32">
+        <CompareBreadcrumb current={t('heroTitle')} underCompare={false} />
+        <h1 className="mv-cmp-h1 mt-8">{t('heroTitle')}</h1>
+        <p className="mv-cmp-lede mt-6">{t('heroSubtitle')}</p>
+        {/* Comparison intent is decision intent: the store buttons sit above
+            the matrix, not only at the end. */}
         <div className="mt-8">
           <StoreButtons pageType={CtaPageType.Compare} placement={CtaPlacement.Hero} />
         </div>
-        <p className="mt-4" style={{ fontSize: 13, color: 'var(--mv-ink-4)' }}>
-          {t('updatedAt')}
-        </p>
+        <p className="mv-cmp-meta mt-5">{t('updatedAt')}</p>
       </header>
 
-      {/* Feature matrix — hairline spec table on the page surface */}
-      <section className="mx-auto max-w-6xl px-6 pt-20 md:pt-28">
-        <h2 style={compareH2Style}>{t('matrixTitle')}</h2>
-        <p className="mt-4" style={{ ...compareBodyStyle, fontSize: 15, color: 'var(--mv-ink-3)' }}>
-          {t('matrixSubtitle')}
-        </p>
-        <div className="mt-8 overflow-x-auto">
-          <table className="w-full" style={{ borderCollapse: 'collapse', minWidth: 860 }}>
+      {/* The matrix: ten apps across, nine features down, on the page surface.
+          Its reveal is the page's one authored entrance. */}
+      <section className="mv-cmp-wrap is-wide pt-20 md:pt-28">
+        <h2 className="mv-cmp-h2">{t('matrixTitle')}</h2>
+        <p className="mv-cmp-note mt-4">{t('matrixSubtitle')}</p>
+        <div className="mv-reveal mt-8 overflow-x-auto">
+          <table className="mv-cmp-table" style={{ minWidth: 880 }}>
             <thead>
               <tr>
-                <th
-                  className="sticky left-0 z-10"
-                  style={{
-                    background: 'var(--mv-bg)',
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: 'var(--mv-ink-3)',
-                    textAlign: 'left',
-                    padding: '0 20px 10px 0',
-                    borderBottom: '1px solid var(--mv-line-step)',
-                  }}
-                >
-                  Feature
+                <th scope="col" className="is-sticky">
+                  {t('headerFeature')}
                 </th>
                 {APPS.map((app) => (
                   <th
                     key={app.key}
-                    style={{
-                      fontSize: 13,
-                      fontWeight: app.key === 'app0' ? 600 : 500,
-                      color: app.key === 'app0' ? 'var(--mv-ink)' : 'var(--mv-ink-3)',
-                      textAlign: 'center',
-                      padding: '0 10px 10px',
-                      borderBottom: '1px solid var(--mv-line-step)',
-                      whiteSpace: 'nowrap',
-                    }}
+                    scope="col"
+                    className={app.key === 'app0' ? 'is-center is-mv' : 'is-center'}
                   >
                     {t(`${app.key}.name`)}
                   </th>
@@ -353,66 +305,32 @@ export default async function ComparePage({ params }: PageProps) {
               </tr>
             </thead>
             <tbody>
-              {FEATURES.map((featureKey, fi) => (
-                <tr key={featureKey}>
-                  <td
-                    className="sticky left-0 z-10"
-                    style={{
-                      background: 'var(--mv-bg)',
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: 'var(--mv-ink)',
-                      padding: '12px 20px 12px 0',
-                      borderBottom: '1px solid var(--mv-line)',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {t(featureKey)}
-                  </td>
-                  {APPS.map((app) => (
-                    <td
-                      key={`${app.key}-${featureKey}`}
-                      style={{
-                        textAlign: 'center',
-                        padding: '12px 10px',
-                        borderBottom: '1px solid var(--mv-line)',
-                      }}
-                    >
-                      <span className="inline-flex justify-center">
-                        <MarkGlyph mark={app[FEATURE_KEYS[fi]] ? 'yes' : 'no'} />
-                      </span>
-                    </td>
-                  ))}
+              {FEATURES.map(({ labelKey, field }) => (
+                <tr key={field}>
+                  <th scope="row" className="is-row is-sticky" style={{ whiteSpace: 'nowrap' }}>
+                    {t(labelKey)}
+                  </th>
+                  {APPS.map((app) => {
+                    const mark = app[field] ? 'yes' : 'no';
+                    return (
+                      <td key={`${app.key}-${field}`} className="is-center">
+                        <CompareMarkCell mark={mark} label={markLabels[mark]} />
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
-              {/* Pricing row — condensed tabular figures */}
               <tr>
-                <td
-                  className="sticky left-0 z-10"
-                  style={{
-                    background: 'var(--mv-bg)',
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: 'var(--mv-ink)',
-                    padding: '12px 20px 12px 0',
-                    borderBottom: '1px solid var(--mv-line)',
-                  }}
-                >
-                  Pricing
-                </td>
+                <th scope="row" className="is-row is-sticky">
+                  {t('headerPricing')}
+                </th>
                 {APPS.map((app) => (
                   <td
                     key={`${app.key}-price`}
-                    style={{
-                      textAlign: 'center',
-                      padding: '12px 10px',
-                      borderBottom: '1px solid var(--mv-line)',
-                      fontFamily: 'var(--mv-font-display)',
-                      fontWeight: 500,
-                      fontVariantNumeric: 'tabular-nums',
-                      fontSize: 14,
-                      color: 'var(--mv-ink-2)',
-                    }}
+                    className={
+                      app.key === 'app0' ? 'is-center is-figure' : 'is-center is-figure is-comp'
+                    }
+                    style={{ fontSize: 14, minWidth: 120 }}
                   >
                     {t(`${app.key}.price`)}
                   </td>
@@ -421,210 +339,87 @@ export default async function ComparePage({ params }: PageProps) {
             </tbody>
           </table>
         </div>
-        <p className="mt-4" style={{ fontSize: 13, color: 'var(--mv-ink-4)', maxWidth: '80ch' }}>
+        <p className="mv-cmp-meta mt-5" style={{ maxWidth: '80ch' }}>
           {t('methodology')}
         </p>
       </section>
 
-      {/* Ranked apps — hairline rows, no cards */}
-      <section className="mx-auto max-w-6xl px-6 pt-20 md:pt-28">
-        <h2 style={compareH2Style}>{t('appsTitle')}</h2>
-        <p className="mt-4" style={{ ...compareBodyStyle, fontSize: 15, color: 'var(--mv-ink-3)' }}>
-          {t('appsSubtitle')}
-        </p>
-
-        <div className="mt-10" style={{ borderBottom: '1px solid var(--mv-line)' }}>
-          {APPS.map((app, index) => (
-            <article
-              key={app.key}
-              className="grid gap-x-8 gap-y-4 py-10 md:grid-cols-[64px_1fr]"
-              style={{ borderTop: '1px solid var(--mv-line)' }}
-            >
-              <span
-                aria-hidden="true"
-                style={{
-                  fontFamily: 'var(--mv-font-display)',
-                  fontWeight: 600,
-                  fontVariantNumeric: 'tabular-nums',
-                  fontSize: 34,
-                  lineHeight: 1,
-                  color: 'var(--mv-ink-4)',
-                }}
-              >
-                {String(index + 1).padStart(2, '0')}
-              </span>
-              <div>
-                <div className="flex flex-col gap-x-6 gap-y-2 md:flex-row md:items-baseline md:justify-between">
-                  <div className="flex flex-wrap items-baseline gap-x-3">
-                    <h3 style={compareH3Style}>{t(`${app.key}.name`)}</h3>
-                    {app.key === 'app0' && (
-                      <span
-                        style={{ color: 'var(--mv-copper-text)', fontSize: 13, fontWeight: 600 }}
-                      >
-                        Our pick
-                      </span>
-                    )}
-                    <span style={{ fontSize: 14, color: 'var(--mv-ink-3)' }}>
-                      {t(`${app.key}.tagline`)}
-                    </span>
-                  </div>
-                  <div className="shrink-0 md:text-right">
-                    <p
-                      style={{
-                        fontFamily: 'var(--mv-font-display)',
-                        fontWeight: 500,
-                        fontVariantNumeric: 'tabular-nums',
-                        fontSize: 15,
-                        color: 'var(--mv-ink)',
-                        margin: 0,
-                      }}
-                    >
-                      {t(`${app.key}.price`)}
-                    </p>
-                    <p style={{ fontSize: 13, color: 'var(--mv-ink-4)', margin: '2px 0 0' }}>
-                      {t(`${app.key}.platforms`)}
-                    </p>
-                  </div>
-                </div>
-                <p className="mt-3" style={{ ...compareBodyStyle, fontSize: 15 }}>
-                  {t(`${app.key}.description`)}
-                </p>
-                <p
-                  className="mt-2"
-                  style={{ fontSize: 14, fontWeight: 500, color: 'var(--mv-ink-2)' }}
-                >
-                  {t(`${app.key}.best`)}
-                </p>
-
-                <div className="mt-5 grid gap-x-12 gap-y-4 sm:grid-cols-2">
-                  <div>
-                    <p
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: 'var(--mv-ink-3)',
-                        margin: '0 0 6px',
-                      }}
-                    >
-                      Pros
-                    </p>
-                    <ul className="space-y-1.5">
-                      {t(`${app.key}.pros`)
-                        .split(', ')
-                        .map((pro) => (
-                          <li
-                            key={pro}
-                            className="flex items-start gap-2"
-                            style={{ fontSize: 14, color: 'var(--mv-ink-2)' }}
-                          >
-                            <MarkGlyph mark="yes" />
-                            {pro}
-                          </li>
-                        ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <p
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: 'var(--mv-ink-3)',
-                        margin: '0 0 6px',
-                      }}
-                    >
-                      Cons
-                    </p>
-                    <ul className="space-y-1.5">
-                      {t(`${app.key}.cons`)
-                        .split(', ')
-                        .map((con) => (
-                          <li
-                            key={con}
-                            className="flex items-start gap-2"
-                            style={{ fontSize: 14, color: 'var(--mv-ink-2)' }}
-                          >
-                            <MarkGlyph mark="no" />
-                            {con}
-                          </li>
-                        ))}
-                    </ul>
-                  </div>
-                </div>
-
-                {VS_PAGE_SLUG[app.key] ? (
-                  <Link
-                    href={`/compare/${VS_PAGE_SLUG[app.key]}`}
-                    className="mt-5 inline-flex items-center gap-1.5 transition-colors"
-                    style={{ color: 'var(--mv-copper-text)', fontSize: 14, fontWeight: 600 }}
-                  >
-                    MotoVault vs {t(`${app.key}.name`)} — full comparison
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                      <polyline points="12 5 19 12 12 19" />
-                    </svg>
-                  </Link>
-                ) : null}
-              </div>
-            </article>
-          ))}
+      {/* The comparisons: every head-to-head, then the two guides */}
+      <section className="mv-cmp-wrap is-wide pt-20 md:pt-28">
+        <CompareLinkList ids={HEAD_TO_HEAD_IDS} heading={t('comparisonsTitle')} />
+        <p className="mv-cmp-note mt-5">{t('comparisonsSubtitle')}</p>
+        <div className="mt-12">
+          <CompareLinkList ids={GUIDE_IDS} />
         </div>
       </section>
 
-      {/* Verdict — plain two-column Q&A, no cards */}
-      <section className="mx-auto max-w-6xl px-6 pt-20 md:pt-28">
-        <h2 style={compareH2Style}>{t('verdictTitle')}</h2>
-        <p className="mt-4" style={{ ...compareBodyStyle, fontSize: 15, color: 'var(--mv-ink-3)' }}>
-          {t('verdictSubtitle')}
-        </p>
+      {/* The apps: name and tagline, what it does, what it costs and where it runs */}
+      <section className="mv-cmp-wrap is-wide pt-20 md:pt-28">
+        <h2 className="mv-cmp-h2">{t('appsTitle')}</h2>
+        <p className="mv-cmp-note mt-4">{t('appsSubtitle')}</p>
+        <ul className="mv-cmp-list mt-10">
+          {APPS.map((app) => (
+            <li key={app.key} className="grid gap-x-10 gap-y-3 py-8 md:grid-cols-[240px_1fr_200px]">
+              <div>
+                <h3 className="mv-cmp-h3">{t(`${app.key}.name`)}</h3>
+                <p className="mv-cmp-note mt-1">{t(`${app.key}.tagline`)}</p>
+              </div>
+              <div>
+                <p className="mv-cmp-body is-full" style={{ fontSize: 15 }}>
+                  {t(`${app.key}.description`)}
+                </p>
+                <p className="mv-cmp-sub mt-3" style={{ fontSize: 14, fontWeight: 500 }}>
+                  {t(`${app.key}.best`)}
+                </p>
+                {app.page ? (
+                  <Link
+                    href={COMPARE_PAGES[app.page].href}
+                    className="mv-cmp-link mt-4 inline-block"
+                    style={{ fontSize: 14 }}
+                  >
+                    {t('readComparison')}
+                  </Link>
+                ) : null}
+              </div>
+              <div className="md:text-right">
+                <p className="mv-cmp-figure" style={{ fontSize: 18 }}>
+                  {t(`${app.key}.price`)}
+                </p>
+                <p className="mv-cmp-meta mt-1">{t(`${app.key}.platforms`)}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
 
+      {/* The verdict: four questions, two columns, then the decision CTA */}
+      <section className="mv-cmp-wrap is-wide pt-20 md:pt-28">
+        <h2 className="mv-cmp-h2">{t('verdictTitle')}</h2>
+        <p className="mv-cmp-note mt-4">{t('verdictSubtitle')}</p>
         <div className="mt-10 grid gap-x-12 gap-y-8 sm:grid-cols-2">
-          {[1, 2, 3, 4].map((n) => (
+          {VERDICT_INDICES.map((n) => (
             <div key={n} className="pt-4" style={{ borderTop: '1px solid var(--mv-line)' }}>
-              <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--mv-ink)', margin: 0 }}>
-                {t(`verdict${n}Title`)}
-              </h3>
-              <p className="mt-2" style={{ ...compareBodyStyle, fontSize: 14, maxWidth: 'none' }}>
+              <h3 className="mv-cmp-sub">{t(`verdict${n}Title`)}</h3>
+              <p className="mv-cmp-body is-full mt-2" style={{ fontSize: 15 }}>
                 {t(`verdict${n}`)}
               </p>
             </div>
           ))}
         </div>
-
-        {/* Decision-moment CTA — the reader has just read the verdict; capture
-            the download here rather than only at the page-end FeatureCta. */}
         <div className="mt-12 flex flex-col items-start gap-4">
-          <p style={{ fontSize: 17, fontWeight: 600, color: 'var(--mv-ink)', margin: 0 }}>
+          <p className="mv-cmp-sub" style={{ fontSize: 17 }}>
             {t('verdictCtaTitle')}
           </p>
           <StoreButtons pageType={CtaPageType.Compare} placement={CtaPlacement.MidArticle} />
         </div>
       </section>
 
-      {/* Related comparisons — plain links */}
-      <section className="mx-auto max-w-6xl px-6 pt-20 md:pt-28">
-        <CompareRelatedLinks links={RELATED_LINKS} />
+      {/* FAQ */}
+      <section className="mv-cmp-wrap is-wide py-20 md:py-28">
+        <CompareFaq items={faqItems} />
       </section>
 
-      {/* FAQ — hairline details */}
-      <section className="mx-auto max-w-6xl px-6 py-20 md:py-28">
-        <h2 style={compareH2Style}>Frequently asked questions</h2>
-        <div className="mt-8" style={{ maxWidth: 760 }}>
-          <CompareFaq items={faqItems} />
-        </div>
-      </section>
-
-      {/* CTA */}
       <FeatureCta pageType={CtaPageType.Compare} />
-    </>
+    </div>
   );
 }

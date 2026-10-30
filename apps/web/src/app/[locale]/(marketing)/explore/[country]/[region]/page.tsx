@@ -11,6 +11,7 @@ import { definitiveOrThrow } from '@/lib/graphql-server';
 import { relativeTrip } from '@/lib/seo/canonical';
 import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
+import '@/components/marketing/trackside-read.css';
 
 // Prerendered (ISR) so `notFound()` returns a REAL 404. What made it a 200 was
 // `app/loading.tsx` streaming a shell before the page resolved — `notFound()`
@@ -171,43 +172,40 @@ export default async function RegionPage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
 
-      <Breadcrumb
-        items={[
-          { label: 'Home', href: '/' },
-          { label: 'Explore', href: '/explore' },
-          { label: countryName, href: `/explore/${countrySlug}` },
-          { label: regionName },
-        ]}
-      />
+      <section className="mv-index">
+        <Breadcrumb
+          items={[
+            { label: 'Home', href: '/' },
+            { label: 'Explore', href: '/explore' },
+            { label: countryName, href: `/explore/${countrySlug}` },
+            { label: regionName },
+          ]}
+        />
 
-      {/* Hero */}
-      <section className="px-6 pb-16 pt-8 md:pb-24 md:pt-12">
-        <div className="reveal-on-scroll mx-auto max-w-4xl">
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-(--mv-ink) sm:text-4xl lg:text-5xl">
-            {title}
+        <header className="mv-reveal">
+          <h1 className="mv-index-h1">
+            Motorcycle routes in {regionName}, {countryName}
           </h1>
-          <p className="mt-6 max-w-2xl text-lg text-(--mv-ink-2) md:text-xl">
-            {routeCount} {routeCount === 1 ? 'route' : 'routes'} in {regionName}. Sorted by
-            community rating.
+          <p className="mv-index-lede">
+            <span className="mv-figure" style={{ fontSize: '1.15em' }}>
+              {routeCount}
+            </span>{' '}
+            {routeCount === 1 ? 'route' : 'routes'} in {regionName}, sorted by rider rating.
+            Distance, climb and an estimated riding time for each.
           </p>
-        </div>
-      </section>
+        </header>
 
-      {/* Routes grid */}
-      <section className="px-6 pb-24">
-        <div className="mx-auto max-w-5xl">
-          {routes.length === 0 ? (
-            <p className="text-center text-(--mv-ink-3)">
-              No routes available in {regionName} yet. Check back soon!
-            </p>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {routes.map((route) => (
-                <RouteCard key={route.id} route={route} />
-              ))}
-            </div>
-          )}
-        </div>
+        {routes.length === 0 ? (
+          <p className="mv-empty">No routes published in {regionName} yet. Check back soon.</p>
+        ) : (
+          <ul className="mv-route-list" style={{ marginTop: 48 }}>
+            {routes.map((route) => (
+              <li key={route.id}>
+                <RouteCard route={route} />
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </>
   );

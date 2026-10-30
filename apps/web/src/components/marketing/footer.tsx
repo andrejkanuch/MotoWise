@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { ExternalLink } from '@/components/marketing/external-link';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Link } from '@/i18n/navigation';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { StoreLink } from './store-buttons';
@@ -32,6 +33,8 @@ function FooterColumn({
 
 export async function Footer() {
   const t = await getTranslations('Footer');
+  const tNav = await getTranslations('Navbar');
+  const themeLabels = { toLight: tNav('themeToLight'), toDark: tNav('themeToDark') };
 
   const productLinks = [
     { label: t('linkTripPlanning'), href: '/features/trip-planning' },
@@ -119,10 +122,13 @@ export async function Footer() {
         MotoVault
       </div>
 
-      {/* ── Bottom bar ── */}
+      {/* ── Bottom row: operator, domain, the scheme switch ── */}
       <div className="mv-footer-bottom">
         <span>{t('bottomBar')}</span>
-        <span>motovault.app</span>
+        <span className="mv-footer-bottom-right">
+          <span>motovault.app</span>
+          <ThemeToggle className="mv-icon-btn" labels={themeLabels} />
+        </span>
       </div>
       <div className="mv-footer-operator">{t('operatorLine')}</div>
     </footer>

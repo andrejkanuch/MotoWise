@@ -39,7 +39,7 @@ export function Hero() {
         padding: '120px 40px 120px',
         isolation: 'isolate',
       }}
-      className="hero-section"
+      className="hero-section mv-dark-scene"
     >
       {/* Background photo — desktop landscape / mobile portrait */}
       <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: -3 }}>

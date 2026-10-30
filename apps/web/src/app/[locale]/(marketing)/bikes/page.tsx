@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
+import { Breadcrumb } from '@/components/marketing/breadcrumb';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
 import { BIKE_FIXTURES, PAGE_TYPES, type PageType } from '@/lib/bikes/bike-data';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
+import '@/components/marketing/trackside-read.css';
 
 export const dynamic = 'force-static';
 export const revalidate = 604800; // 7 days — repo-sourced, rebuilds on deploy
@@ -58,20 +60,13 @@ function groupBikes(): BikeGroup[] {
   return Array.from(seen.values());
 }
 
-function pageTypeLabel(pageType: PageType): string {
-  switch (pageType) {
-    case 'overview':
-      return 'Overview';
-    case 'maintenance-schedule':
-      return 'Maintenance Schedule';
-    case 'common-problems':
-      return 'Common Problems';
-    case 'cost-of-ownership':
-      return 'Cost of Ownership';
-    case 'service-intervals':
-      return 'Service Intervals';
-  }
-}
+const PAGE_TYPE_LABEL: Record<PageType, string> = {
+  overview: 'Overview',
+  'maintenance-schedule': 'Maintenance schedule',
+  'common-problems': 'Common problems',
+  'cost-of-ownership': 'Cost of ownership',
+  'service-intervals': 'Service intervals',
+};
 
 export default async function BikesIndexPage({ params }: PageProps) {
   const { locale } = await params;
@@ -102,56 +97,40 @@ export default async function BikesIndexPage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
 
-      <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
-        <ol className="mx-auto flex max-w-7xl items-center gap-2 text-sm text-(--mv-ink-3)">
-          <li>
-            <Link href="/" className="transition-colors hover:text-(--mv-ink)">
-              Home
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <span className="text-(--mv-ink)" aria-current="page">
-              Bikes
-            </span>
-          </li>
-        </ol>
-      </nav>
+      <section className="mv-index">
+        <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Bikes' }]} />
 
-      <section className="px-6 pb-16 pt-8 md:pb-24 md:pt-12">
-        <div className="mx-auto max-w-4xl">
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-(--mv-ink) sm:text-4xl lg:text-5xl">
-            {PAGE_TITLE}
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg text-(--mv-ink-2) md:text-xl">{PAGE_DESCRIPTION}</p>
-        </div>
-      </section>
+        <header className="mv-reveal">
+          <h1 className="mv-index-h1">Guides by make, model and year</h1>
+          <p className="mv-index-lede">
+            Owner guides for specific motorcycles: the maintenance schedule, the problems owners
+            report, what the bike costs to run and when each service is due.
+          </p>
+        </header>
 
-      <section className="px-6 pb-24">
-        <div className="mx-auto max-w-4xl space-y-10">
+        <ul className="mv-bike-list">
           {bikes.map((bike) => (
-            <article
-              key={`${bike.makeSlug}-${bike.modelSlug}-${bike.year}`}
-              className="rounded-xl border border-(--mv-line) bg-(--mv-surface) p-6 md:p-8"
-            >
-              <h2 className="text-2xl font-semibold tracking-tight text-(--mv-ink)">
-                {bike.year} {bike.make} {bike.model}
-              </h2>
-              <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                {PAGE_TYPES.map((pageType) => (
-                  <li key={pageType}>
-                    <Link
-                      href={`/bikes/${bike.makeSlug}/${bike.modelSlug}/${bike.year}/${pageType}`}
-                      className="block rounded-lg border border-(--mv-line) bg-(--mv-surface-2) px-4 py-3 text-sm text-(--mv-ink-2) transition-colors hover:border-(--mv-line-step) hover:text-(--mv-ink)"
-                    >
-                      {pageTypeLabel(pageType)}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </article>
+            <li key={`${bike.makeSlug}-${bike.modelSlug}-${bike.year}`}>
+              <span className="mv-bike-year">{bike.year}</span>
+              <div>
+                <h2 className="mv-bike-name">
+                  {bike.make} {bike.model}
+                </h2>
+                <ul className="mv-bike-pages">
+                  {PAGE_TYPES.map((pageType) => (
+                    <li key={pageType}>
+                      <Link
+                        href={`/bikes/${bike.makeSlug}/${bike.modelSlug}/${bike.year}/${pageType}`}
+                      >
+                        {PAGE_TYPE_LABEL[pageType]}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
     </>
   );

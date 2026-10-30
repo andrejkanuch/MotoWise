@@ -5,12 +5,18 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { InputHTMLAttributes, ReactNode } from 'react';
 import { AppleMark, GoogleMark } from '@/components/garage-ui/brand-icons';
+import { BikePlate } from '@/components/marketing/bike-plate';
+import '@/components/marketing/design-system.css';
 import './auth-ui.css';
 
 /**
- * Presentational pieces of the redesigned /login and /signup ("Auth"
- * artboards). They hold no auth logic: the pages own Supabase, analytics and
- * redirects and pass state in.
+ * Presentational pieces of /login, /signup, /forgot-password and
+ * /reset-password (Trackside, Operate mode). They hold no auth logic: the
+ * pages own Supabase, analytics and redirects and pass state in.
+ *
+ * Only the pieces that read the AuthV2 catalogue (OAuthButtons, OrWithEmail,
+ * LegalNote) need an intl provider; everything else takes its strings as
+ * props so the English-only recovery pages can use the same frame.
  */
 
 /** OAuth providers offered on both auth pages. */
@@ -30,13 +36,24 @@ export const RESEND_LABEL_KEY = {
   sent: 'resendSent',
 } as const satisfies Record<ResendState, string>;
 
+/** English-only recovery pages share the brand's accessible name. */
+export const HOME_LABEL = 'MotoVault home';
+
 const HERO_PHOTO = '/images/marketing/hero-dusk-ride-portrait.jpg';
 const BRAND_LOGO = '/images/marketing/MotoVault.png';
 
-function Brand() {
-  const t = useTranslations('AuthV2');
+/** The Bike Plate on the photo panel: the one object the site shares with the app. */
+const PANEL_PLATE = {
+  figure: '2,400',
+  unit: 'km',
+  caption: 'Next service in 2,400 km',
+  racingNumber: '27',
+  identity: 'Honda Africa Twin · 2022',
+} as const;
+
+function Brand({ label }: { label: string }) {
   return (
-    <a href="/" className="mva-brand" aria-label={t('homeLabel')}>
+    <a href="/" className="mva-brand" aria-label={label}>
       <span className="mva-brand-logo">
         <Image src={BRAND_LOGO} alt="" width={24} height={24} />
       </span>
@@ -48,14 +65,19 @@ function Brand() {
 type AuthShellProps = {
   /** Link in the phone/tablet header bar (the other auth page). */
   headerLink: { href: string; label: string };
+  /** Accessible name of the brand link (AuthV2 `homeLabel` or {@link HOME_LABEL}). */
+  homeLabel: string;
+  /** One line under the plate on the photo panel. */
+  panelNote?: string;
   children: ReactNode;
 };
 
 /**
  * Page frame: photo panel + 640 form column at ≥1024, header bar + centred
- * form below. The photo is decorative (the brand's own marketing shot).
+ * form below. The photo is decorative (the brand's own marketing shot); the
+ * Bike Plate on it is the page's one authored moment.
  */
-export function AuthShell({ headerLink, children }: AuthShellProps) {
+export function AuthShell({ headerLink, homeLabel, panelNote, children }: AuthShellProps) {
   return (
     <div className="mva-root">
       <div className="mva-panel">
@@ -71,10 +93,14 @@ export function AuthShell({ headerLink, children }: AuthShellProps) {
             className="mva-panel-photo"
           />
         </div>
-        <Brand />
+        <Brand label={homeLabel} />
+        <div className="mva-panel-plate" aria-hidden="true">
+          <BikePlate {...PANEL_PLATE} state="ready" />
+          {panelNote && <p className="mva-panel-note">{panelNote}</p>}
+        </div>
       </div>
       <header className="mva-header">
-        <Brand />
+        <Brand label={homeLabel} />
         <Link href={headerLink.href} className="mva-header-link">
           {headerLink.label}
         </Link>
@@ -87,24 +113,26 @@ export function AuthShell({ headerLink, children }: AuthShellProps) {
 }
 
 type AuthHeadProps = {
-  eyebrow: string;
   title: ReactNode;
   subtitle: string;
 };
 
-export function AuthHead({ eyebrow, title, subtitle }: AuthHeadProps) {
+/** Condensed title, system-face subtitle. No eyebrow (Plain Voice Rule). */
+export function AuthHead({ title, subtitle }: AuthHeadProps) {
   return (
     <div className="mva-head">
-      <div className="mva-eyebrow">{eyebrow}</div>
       <h1 className="mva-title">{title}</h1>
       <p className="mva-subtitle">{subtitle}</p>
     </div>
   );
 }
 
-/** Rich-text tag renderer for `<serif>…</serif>` in AuthV2 titles. */
+/**
+ * Rich-text tag renderer for `<serif>…</serif>` in AuthV2 titles. The serif
+ * is retired: the chunk renders in the same condensed display face.
+ */
 export function serifChunk(chunks: ReactNode) {
-  return <span className="mva-serif">{chunks}</span>;
+  return <span className="mva-em">{chunks}</span>;
 }
 
 export function AlertIcon({ size = 18 }: { size?: number }) {
@@ -123,6 +151,25 @@ export function AlertIcon({ size = 18 }: { size?: number }) {
       <circle cx="12" cy="12" r="10" />
       <path d="M12 8v4" />
       <path d="M12 16h.01" />
+    </svg>
+  );
+}
+
+export function CheckIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="m8.5 12.5 2.5 2.5 4.5-5" />
     </svg>
   );
 }
@@ -177,13 +224,25 @@ export function AuthBanner({ message, action }: AuthBannerProps) {
   );
 }
 
+/** Success note that replaces a form (reset link sent, password updated). */
+export function AuthNote({ children }: { children: ReactNode }) {
+  return (
+    <div role="status" className="mva-note">
+      <span className="mva-note-icon">
+        <CheckIcon />
+      </span>
+      <div className="mva-note-body">{children}</div>
+    </div>
+  );
+}
+
 type OAuthButtonsProps = {
   loading: OAuthProvider | null;
   onGoogle: () => void;
   onApple: () => void;
 };
 
-/** Google + Apple. Side by side at ≥768, stacked "Continue with …" below. */
+/** Google + Apple as ghost controls. Side by side at ≥768, stacked "Continue with …" below. */
 export function OAuthButtons({ loading, onGoogle, onApple }: OAuthButtonsProps) {
   const t = useTranslations('AuthV2');
   const providers = [
@@ -246,12 +305,11 @@ type AuthFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'className'> &
   labelAside?: ReactNode;
   /** Field-level error, linked with aria-describedby + aria-invalid. */
   error?: string;
-  /** Show/hide toggle inside the field (password fields). */
-  toggle?: { shown: boolean; onToggle: () => void };
+  /** Show/hide toggle inside the field (password fields), with its accessible names. */
+  toggle?: { shown: boolean; onToggle: () => void; showLabel: string; hideLabel: string };
 };
 
 export function AuthField({ id, label, labelAside, error, toggle, ...input }: AuthFieldProps) {
-  const t = useTranslations('AuthV2');
   const errorId = `${id}-error`;
   const labelEl = (
     <label htmlFor={id} className="mva-label">
@@ -281,7 +339,7 @@ export function AuthField({ id, label, labelAside, error, toggle, ...input }: Au
             type="button"
             className="mva-toggle"
             onClick={toggle.onToggle}
-            aria-label={toggle.shown ? t('hidePassword') : t('showPassword')}
+            aria-label={toggle.shown ? toggle.hideLabel : toggle.showLabel}
             aria-pressed={toggle.shown}
           >
             {toggle.shown ? <EyeOffIcon /> : <EyeIcon />}
@@ -305,6 +363,7 @@ type SubmitButtonProps = {
   busyLabel: string;
 };
 
+/** The one copper control on the page. */
 export function SubmitButton({ busy, disabled, label, busyLabel }: SubmitButtonProps) {
   return (
     <button

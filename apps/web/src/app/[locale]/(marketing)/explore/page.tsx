@@ -12,6 +12,7 @@ import {
   buildItemList,
   buildWebPage,
 } from '@/lib/seo/schema';
+import '@/components/marketing/trackside-read.css';
 
 export const revalidate = 86400; // 24 hours
 
@@ -65,6 +66,7 @@ export default async function ExplorePage({ params }: PageProps) {
 
   const countries = await fetchCountries();
   const canonical = getCanonicalUrl(locale, '/explore');
+  const totalRoutes = countries.reduce((sum, country) => sum + country.routeCount, 0);
 
   const graph = buildGraph(
     buildWebPage({
@@ -99,69 +101,75 @@ export default async function ExplorePage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
 
-      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Explore' }]} />
+      <section className="mv-index">
+        <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Explore' }]} />
 
-      {/* Hero */}
-      <section className="px-6 pb-16 pt-8 md:pb-24 md:pt-12">
-        <div className="reveal-on-scroll mx-auto max-w-4xl">
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-(--mv-ink) sm:text-4xl lg:text-5xl">
-            {PAGE_TITLE}
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg text-(--mv-ink-2) md:text-xl">{PAGE_DESCRIPTION}</p>
-        </div>
-      </section>
+        <header className="mv-reveal">
+          <h1 className="mv-index-h1">Motorcycle routes by country</h1>
+          <p className="mv-index-lede">
+            {totalRoutes > 0 ? (
+              <>
+                <span className="mv-figure" style={{ fontSize: '1.15em' }}>
+                  {totalRoutes.toLocaleString('en-US')}
+                </span>{' '}
+                routes shared and rated by riders, free to browse. Pick a country, then a region,
+                and open any route in the app to ride it with turn-by-turn directions.
+              </>
+            ) : (
+              <>
+                Routes shared and rated by riders, free to browse. Pick a country, then a region,
+                and open any route in the app to ride it with turn-by-turn directions.
+              </>
+            )}
+          </p>
+        </header>
 
-      <div className="mx-auto max-w-3xl px-6 pb-8 text-center">
-        <p className="text-base leading-relaxed text-(--mv-ink-2)">
-          Every route on MotoVault is shared by real riders and rated by the community. Browse
-          countries below to explore twisty passes, coastal roads, and epic touring routes — or open
-          MotoVault on your phone to navigate any route with turn-by-turn directions.
-        </p>
-      </div>
-
-      {/* Country grid */}
-      <section className="px-6 pb-24">
-        <div className="mx-auto max-w-5xl">
-          {countries.length === 0 ? (
-            <p className="text-center text-(--mv-ink-3)">
-              No routes available yet. Check back soon!
-            </p>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {countries.map((country) => (
-                <Link
-                  key={country.id}
-                  href={`/explore/${country.slug}`}
-                  className="group relative overflow-hidden rounded-xl border border-(--mv-line) bg-(--mv-surface) p-6 transition-colors hover:border-(--mv-line-step)"
-                >
-                  <h2 className="text-lg font-semibold text-(--mv-ink) transition-colors group-hover:text-(--mv-copper-text)">
-                    {country.name}
-                  </h2>
-                  <p className="mt-2 text-sm text-(--mv-ink-2)">
-                    {country.routeCount} {country.routeCount === 1 ? 'route' : 'routes'}
-                  </p>
-                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-(--mv-copper-text) transition-colors group-hover:text-(--mv-copper-hover)">
-                    View regions
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="transition-transform group-hover:translate-x-0.5"
-                      aria-hidden="true"
-                    >
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
+        {countries.length === 0 ? (
+          <p className="mv-empty">No routes published yet. Check back soon.</p>
+        ) : (
+          <ul className="mv-places">
+            {countries.map((country) => (
+              <li key={country.id}>
+                <Link href={`/explore/${country.slug}`}>
+                  <span className="mv-places-name">{country.name}</span>
+                  <span className="mv-places-count">
+                    <span className="mv-figure">{country.routeCount}</span>
+                    {country.routeCount === 1 ? 'route' : 'routes'}
                   </span>
                 </Link>
-              ))}
-            </div>
-          )}
-        </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <section className="mv-read-section" aria-labelledby="explore-faq-heading">
+          <h2 id="explore-faq-heading" className="mv-read-h2">
+            Questions riders ask
+          </h2>
+          <div className="mv-read-faq">
+            {EXPLORE_FAQ.map((item) => (
+              <details key={item.question}>
+                <summary>
+                  {item.question}
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                </summary>
+                <p className="mv-read-faq-answer">{item.answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
       </section>
     </>
   );

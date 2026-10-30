@@ -281,7 +281,7 @@ html:not(.dark) .mv-plate-chip {
   border: none;
   cursor: pointer;
   letter-spacing: -0.005em;
-  transition: transform 0.2s var(--mv-ease), background 0.25s, border-color 0.25s;
+  transition: translate 0.2s var(--mv-ease), scale 0.2s var(--mv-ease), background 0.25s, border-color 0.25s;
 }
 
 .mv-btn-primary,
@@ -293,13 +293,14 @@ html:not(.dark) .mv-plate-chip {
 .mv-btn-primary:hover,
 .hero-btn-copper:hover {
   background: var(--mv-copper-hover);
-  transform: translateY(-1px);
+  translate: 0 -1px;
 }
 
 .mv-btn-primary:active,
 .hero-btn-copper:active,
 .mv-btn-ghost:active {
-  transform: translateY(0) scale(0.985);
+  translate: 0 0;
+  scale: 0.985;
 }
 
 /* Ghost: one step up the ramp, no blur (Ramp Is the Shadow Rule) */
@@ -312,8 +313,86 @@ html:not(.dark) .mv-plate-chip {
 .mv-btn-ghost:hover {
   background: var(--mv-surface-3);
   border-color: var(--mv-line-step);
-  transform: translateY(-1px);
+  translate: 0 -1px;
 }
+
+/* Ghost icon button: 44px target, control radius, no fill until hover.
+   Theme toggle, menu buttons, dismiss controls. */
+.mv-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--mv-radius-control);
+  background: transparent;
+  color: var(--mv-ink-2);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+.mv-icon-btn:hover {
+  color: var(--mv-ink);
+  background: var(--mv-fill);
+}
+
+/* Text link: copper is the verb */
+.mv-link {
+  color: var(--mv-copper-text);
+  text-decoration: none;
+  text-underline-offset: 3px;
+  transition: color 0.15s;
+}
+.mv-link:hover {
+  color: var(--mv-copper-hover);
+  text-decoration: underline;
+}
+
+/* Section headline (H2): one condensed title per section */
+.mv-h2 {
+  font-family: var(--mv-font-display);
+  font-size: clamp(34px, 4.2vw, 56px);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: 0.002em;
+  margin: 0;
+  color: var(--mv-ink);
+  text-wrap: balance;
+}
+
+/* Hairline spec table on the page surface: no zebra, no cards */
+.mv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.mv-table th,
+.mv-table td {
+  padding: 14px 12px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--mv-line);
+}
+.mv-table th {
+  font-family: var(--mv-font-body);
+  font-weight: 500;
+  color: var(--mv-ink-3);
+}
+.mv-table thead th {
+  border-bottom-color: var(--mv-line-step);
+}
+.mv-table th[scope='row'] {
+  color: var(--mv-ink);
+}
+.mv-table .mv-figure {
+  font-variant-numeric: tabular-nums;
+}
+.mv-table td:first-child,
+.mv-table th:first-child { padding-left: 0; }
+.mv-table td:last-child,
+.mv-table th:last-child { padding-right: 0; }
 
 /* ── Bike Plate — the shared object between site and app ── */
 .mv-plate {
@@ -490,12 +569,13 @@ html:not(.dark) .mv-plate {
   padding: 9px 14px;
   background: var(--mv-surface);
   border: 1px solid var(--mv-line);
-  border-radius: 10px;
+  border-radius: var(--mv-radius-control);
   color: var(--mv-ink-2);
   text-decoration: none;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: -0.005em;
+  min-height: 44px;
   transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
@@ -510,7 +590,7 @@ html:not(.dark) .mv-plate {
   font-family: var(--mv-font-body);
   font-size: 13px;
   font-weight: 500;
-  color: var(--mv-ink-4);
+  color: var(--mv-ink-3);
   letter-spacing: 0;
   text-transform: none;
   margin-bottom: 20px;
@@ -521,7 +601,8 @@ html:not(.dark) .mv-plate {
   color: var(--mv-ink-2);
   text-decoration: none;
   font-size: 14px;
-  padding: 7px 0;
+  padding: 11px 0; /* 44px rows */
+  line-height: 22px;
   transition: color 0.2s;
   letter-spacing: -0.005em;
 }
@@ -551,13 +632,19 @@ html:not(.dark) .mv-plate {
   align-items: center;
   padding-top: 32px;
   border-top: 1px solid var(--mv-line);
-  color: var(--mv-ink-4);
+  color: var(--mv-ink-3);
   font-size: 12px;
+}
+
+.mv-footer-bottom-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .mv-footer-operator {
   padding-top: 10px;
-  color: var(--mv-ink-4);
+  color: var(--mv-ink-3);
   font-size: 11px;
 }
 
@@ -795,24 +882,33 @@ html:not(.dark) .mv-marketing:has(.hero-section) .mv-navbar[data-scrolled] {
   background: var(--mv-bg) !important;
 }
 
-/* The hero is always a dark photo scene: keep bone ink and dark-scene
-   tokens inside it even in the light scheme, and skip the light-ground
-   plate keyline there. */
-html:not(.dark) .hero-section {
+/* Dark scene: any band that sits on a dark photograph keeps the graphite
+   scene's tokens in the light scheme too (hero, closing CTA). Values mirror
+   palette.plate* — the one place a component may stay dark under light. */
+html:not(.dark) .mv-dark-scene {
+  --mv-bg: #111214;
+  --mv-bg-2: #0c0d0e;
+  --mv-surface: #1a1b1e;
+  --mv-surface-2: #232427;
+  --mv-surface-3: #2e3034;
+  --mv-line-step: #3d3f44;
   --mv-ink: #ece6da;
   --mv-ink-2: #bdb8ae;
   --mv-ink-3: #8e8a83;
+  --mv-ink-4: #5f5c57;
+  --mv-line: rgba(236, 230, 218, 0.09);
+  --mv-line-2: rgba(236, 230, 218, 0.05);
   --mv-copper: #d4622e;
   --mv-copper-hover: #e8723a;
   --mv-copper-text: #ec8a5a;
   --mv-on-copper: #121315;
   --mv-go: #4fb47a;
-  --mv-surface-2: #232427;
-  --mv-surface-3: #2e3034;
-  --mv-line: rgba(236, 230, 218, 0.09);
-  --mv-line-step: #3d3f44;
+  --mv-info: #6c9bf2;
+  --mv-due-ink: #f2c230;
+  --mv-overdue-ink: #e5483a;
+  color-scheme: dark;
 }
-html:not(.dark) .hero-section .mv-plate {
+html:not(.dark) .mv-dark-scene .mv-plate {
   box-shadow: none;
 }
 

@@ -1,0 +1,421 @@
+/* ═══════════════════════════════════════════════════════════════
+   Public share pages (Trackside): /ride/[id], /rider/[username],
+   /share/[token], /t/[token], /u/[handle]/saved.
+   Prefix .sp-. Every colour is a --mv-* token (dark on :root, light
+   under html:not(.dark)); the wrapper also carries .mv-marketing so
+   the body face, selection colour and copper focus ring apply.
+   A narrow reading column, condensed figures, hairline rows, one
+   copper action. No cards, no shadows, no blur.
+   ═══════════════════════════════════════════════════════════════ */
+
+.sp {
+  min-height: 100vh;
+  background: var(--mv-bg);
+  color: var(--mv-ink);
+  font-family: var(--mv-font-body);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Embedded inside another layout (the /u/[handle] shell): a panel, not a page */
+.sp-panel {
+  min-height: 0;
+  border-radius: var(--mv-radius-card);
+  padding: 24px;
+}
+
+.sp-brand {
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px 24px 0;
+}
+
+.sp-brand a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mv-ink);
+  text-decoration: none;
+}
+
+.sp-brand img {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: block;
+}
+
+/* The ride's own map carries the emotion; graphite fades it into the page */
+.sp-photo {
+  position: relative;
+  height: clamp(220px, 42vh, 440px);
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.sp-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sp-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--mv-bg) 30%, transparent) 0%,
+    transparent 30%,
+    color-mix(in srgb, var(--mv-bg) 70%, transparent) 72%,
+    var(--mv-bg) 100%
+  );
+}
+
+.sp-main {
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+  flex: 1;
+}
+
+.sp-main-tall {
+  padding-top: 64px;
+}
+
+.sp-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.sp-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--mv-surface-2);
+  display: grid;
+  place-items: center;
+  font-family: var(--mv-font-display);
+  font-weight: 600;
+  font-size: 32px;
+  color: var(--mv-ink-2);
+  flex: none;
+}
+
+.sp-title {
+  margin: 0;
+  font-family: var(--mv-font-display);
+  font-weight: 700;
+  font-size: clamp(40px, 7vw, 72px);
+  line-height: 0.96;
+  letter-spacing: 0.002em;
+  color: var(--mv-ink);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.sp-sub {
+  margin: 10px 0 0;
+  font-size: 16px;
+  color: var(--mv-ink-3);
+}
+
+.sp-prose {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--mv-ink-2);
+  max-width: 68ch;
+  white-space: pre-wrap;
+}
+
+/* Figures: condensed, tabular, body-face labels, left-aligned */
+.sp-figures {
+  margin-top: 36px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 40px;
+}
+
+.sp-figure {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 88px;
+}
+
+.sp-figure-value {
+  font-family: var(--mv-font-display);
+  font-weight: 600;
+  font-size: 40px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  color: var(--mv-ink);
+}
+
+.sp-figure-value small {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--mv-ink-2);
+  margin-left: 3px;
+}
+
+.sp-figure-label {
+  font-size: 14px;
+  color: var(--mv-ink-3);
+}
+
+.sp-section {
+  margin-top: 48px;
+}
+
+.sp-section-title {
+  margin: 0 0 16px;
+  font-family: var(--mv-font-display);
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 1.05;
+  letter-spacing: 0.002em;
+  color: var(--mv-ink);
+}
+
+.sp-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.sp-section-head .sp-section-title {
+  margin: 0;
+}
+
+.sp-section-count {
+  font-size: 14px;
+  color: var(--mv-ink-3);
+}
+
+/* Hairline rows, 44px+ targets */
+.sp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--mv-line);
+}
+
+.sp-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-height: 56px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--mv-line);
+  color: inherit;
+  text-decoration: none;
+}
+
+a.sp-row {
+  transition: background 0.2s var(--mv-ease);
+}
+
+a.sp-row:hover .sp-row-title {
+  color: var(--mv-copper-text);
+}
+
+.sp-row-num {
+  font-family: var(--mv-font-display);
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  color: var(--mv-ink-3);
+  min-width: 28px;
+}
+
+.sp-row-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.sp-row-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mv-ink);
+  transition: color 0.2s var(--mv-ease);
+}
+
+.sp-row-meta {
+  margin-top: 3px;
+  font-size: 14px;
+  color: var(--mv-ink-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.sp-row-meta svg {
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  margin-right: 3px;
+}
+
+.sp-row-note {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--mv-ink-2);
+}
+
+.sp-row-aside {
+  font-size: 14px;
+  color: var(--mv-ink-3);
+  white-space: nowrap;
+  padding-top: 2px;
+}
+
+.sp-row-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--mv-surface-2);
+  flex: none;
+}
+
+.sp-photos {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  overflow-x: auto;
+}
+
+.sp-photos img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--mv-radius-control);
+  flex: none;
+}
+
+/* Status words on the ground: text-safe inks, never the plate fills */
+.sp-status-done {
+  color: var(--mv-go);
+}
+
+.sp-status-overdue {
+  color: var(--mv-overdue-ink);
+}
+
+.sp-foot-note {
+  margin: 24px 0 0;
+  font-size: 14px;
+  color: var(--mv-ink-3);
+}
+
+.sp-loading {
+  padding: 24px 0;
+  font-size: 14px;
+  color: var(--mv-ink-3);
+}
+
+.sp-empty {
+  padding: 48px 0;
+}
+
+.sp-empty .sp-section-title {
+  margin-bottom: 8px;
+}
+
+/* The one call to action: copper, left-aligned, in a hairline band */
+.sp-cta {
+  margin-top: auto;
+  border-top: 1px solid var(--mv-line);
+  background: var(--mv-bg-2);
+  padding: 56px 24px 64px;
+}
+
+.sp-cta-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.sp-cta-title {
+  margin: 0;
+  font-family: var(--mv-font-display);
+  font-weight: 700;
+  font-size: clamp(32px, 5vw, 48px);
+  line-height: 0.98;
+  letter-spacing: 0.002em;
+  color: var(--mv-ink);
+  text-wrap: balance;
+}
+
+.sp-cta-sub {
+  margin: 12px 0 0;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--mv-ink-2);
+  max-width: 52ch;
+}
+
+.sp-cta-actions {
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.sp-cta-foot {
+  margin: 32px 0 0;
+  font-size: 14px;
+  color: var(--mv-ink-3);
+}
+
+.sp-cta-foot a,
+.sp-link {
+  color: var(--mv-copper-text);
+  text-decoration: none;
+}
+
+.sp-cta-foot a:hover,
+.sp-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* The soft wall on saved routes: a plain block, no fade, no card */
+.sp-wall {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid var(--mv-line);
+}
+
+@media (max-width: 600px) {
+  .sp-main {
+    padding: 32px 20px 48px;
+  }
+
+  .sp-figure-value {
+    font-size: 34px;
+  }
+
+  .sp-figure-value small {
+    font-size: 18px;
+  }
+
+  .sp-row-aside {
+    white-space: normal;
+  }
+}

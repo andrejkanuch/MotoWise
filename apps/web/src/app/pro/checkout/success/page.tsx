@@ -2,25 +2,26 @@
 
 import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import {
-  Brain,
-  CheckCircle2,
+  Bike,
   Clock,
-  Crown,
   Download,
   type LucideIcon,
   MapPin,
-  PartyPopper,
   Receipt,
+  ScanSearch,
   Sparkles,
-  Zap,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { BikePlate } from '@/components/marketing/bike-plate';
+import { MvLoader } from '@/components/marketing/loader';
 import { clearProStatusCache } from '@/hooks/use-pro-status';
+import { SUPPORT_EMAIL } from '@/lib/checkout-errors';
 import { PRO_FEATURE_KEYS, PRO_FEATURES, type ProFeatureKey } from '@/lib/pro-plan';
 import { getRevenueCatCustomerInfo } from '@/lib/revenuecat';
 import { safeRedirectPath } from '@/lib/safe-redirect';
+import '../../pro.css';
 
 // ---------------------------------------------------------------------------
 // Polling configuration — progressive back-off via setTimeout chaining
@@ -47,17 +48,23 @@ const SESSION_KEY = 'mv_pro_poll_start';
 
 /** Icon per Pro feature; labels come from lib/pro-plan.ts so they match /pro. */
 const FEATURE_ICONS: Record<ProFeatureKey, LucideIcon> = {
-  [PRO_FEATURE_KEYS.BIKES]: Zap,
-  [PRO_FEATURE_KEYS.AI_DIAGNOSTICS]: Brain,
+  [PRO_FEATURE_KEYS.BIKES]: Bike,
+  [PRO_FEATURE_KEYS.AI_DIAGNOSTICS]: ScanSearch,
   [PRO_FEATURE_KEYS.AI_EXTRAS]: Sparkles,
   [PRO_FEATURE_KEYS.RECEIPT_SCANS]: Receipt,
   [PRO_FEATURE_KEYS.GPX_EXPORT]: Download,
   [PRO_FEATURE_KEYS.OFFLINE_MAPS]: MapPin,
 };
 
+/** The Bike Plate that settles in once Pro is live: the page's one authored moment. */
+const PRO_PLATE = {
+  figure: 'Unlimited',
+  unit: 'bikes',
+  racingNumber: '27',
+} as const;
+
 type Status = 'polling' | 'activated' | 'timeout' | 'already_pro';
 
-/** Check RevenueCat entitlements for 'pro' */
 /** Pro entitlement state after checkout; `trialing` drives the welcome copy. */
 async function checkProEntitlement(
   userId: string,
@@ -190,137 +197,120 @@ function CheckoutSuccessContent() {
     return () => clearTimeout(timer);
   }, [status, router]);
 
+  const continueLabel = redirectTo === '/garage' ? 'Open your garage' : 'Back to the trip';
+
   return (
-    <div className="dark flex min-h-screen items-center justify-center bg-neutral-950 px-4 pb-32 pt-24 text-neutral-50">
-      <div className="w-full max-w-[480px] text-center">
-        <div className="success-enter rounded-2xl border border-warm-500/30 bg-neutral-900/50 p-8 md:p-10">
-          {/* Already Pro — redirect notice */}
-          {status === 'already_pro' && (
-            <>
-              <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-accent-500/10">
-                <CheckCircle2 className="size-8 text-accent-400" />
-              </div>
-              <h1 className="text-3xl font-bold">You&apos;re already a Pro member</h1>
-              <p className="mx-auto mt-3 max-w-sm text-neutral-400">
-                Redirecting you to your Pro dashboard...
-              </p>
-            </>
-          )}
-
-          {/* Polling — waiting for activation */}
-          {status === 'polling' && (
-            <>
-              <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-warm-500/10">
-                <div className="size-8 animate-spin rounded-full border-[3px] border-neutral-700 border-t-warm-400" />
-              </div>
-              <h1 className="text-3xl font-bold">Activating your Pro membership...</h1>
-              <p className="mx-auto mt-3 max-w-sm text-neutral-400">
-                We&apos;re confirming your subscription. This usually takes a few seconds.
-              </p>
-              <div className="mt-6 flex items-center justify-center gap-2 text-xs text-neutral-500">
-                <Clock className="size-3.5" />
-                <span>
-                  Check {pollIndex + 1} of {POLL_SCHEDULE.length}
-                </span>
-              </div>
-            </>
-          )}
-
-          {/* Activated — success state */}
-          {status === 'activated' && (
-            <>
-              <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-warm-500/10">
-                <PartyPopper className="size-8 text-warm-400" />
-              </div>
-
-              <h1 className="text-3xl font-bold">Welcome to Pro!</h1>
-              <p className="mx-auto mt-3 max-w-sm text-neutral-400">
-                {isTrialing
-                  ? 'Your free trial is active. All Pro features are now unlocked.'
-                  : 'Your subscription is active. All Pro features are now unlocked.'}
-              </p>
-
-              {/* Features unlocked */}
-              <div className="mt-8 rounded-xl border border-neutral-800/60 bg-neutral-900/80 p-5">
-                <div className="mb-3 flex items-center justify-center gap-2">
-                  <Crown className="size-4 text-warm-400" />
-                  <span className="text-sm font-semibold text-warm-400">Features unlocked</span>
-                </div>
-                <ul className="space-y-3">
-                  {PRO_FEATURES.map((feature) => {
-                    const Icon = FEATURE_ICONS[feature.key];
-                    return (
-                      <li key={feature.key} className="flex items-center gap-3 text-left">
-                        <Icon className="size-4 shrink-0 text-accent-400" />
-                        <span className="text-sm text-neutral-300">{feature.title}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-
-              {/* CTA */}
-              <Link
-                href={redirectTo}
-                className="cta-primary mt-8 inline-block w-full rounded-full bg-warm-500 px-6 py-3.5 font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
-              >
-                {redirectTo === '/garage' ? 'Start exploring' : 'Back to trip'}
-              </Link>
-
-              <p className="mt-4 text-xs text-neutral-500">
-                Manage or cancel your subscription anytime from your{' '}
-                <Link
-                  href="/profile"
-                  className="underline transition-colors hover:text-neutral-300"
-                >
-                  profile
-                </Link>
-                .
-              </p>
-            </>
-          )}
-
-          {/* Timeout — still processing */}
-          {status === 'timeout' && (
-            <>
-              <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-warm-500/10">
-                <Clock className="size-8 text-warm-400" />
-              </div>
-
-              <h1 className="text-3xl font-bold">Still processing...</h1>
-              <p className="mx-auto mt-3 max-w-sm text-neutral-400">
-                Your payment was received but activation is taking longer than usual. Your Pro
-                features will activate within a few minutes.
-              </p>
-
-              <div className="mt-8 flex flex-col gap-3">
-                <Link
-                  href={redirectTo}
-                  className="cta-primary inline-block w-full rounded-full bg-warm-500 px-6 py-3.5 font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
-                >
-                  {redirectTo === '/garage' ? 'Continue to feed' : 'Back to trip'}
-                </Link>
-                <Link
-                  href="/pro"
-                  className="inline-block w-full rounded-full border border-neutral-700 px-6 py-3 text-sm font-medium text-neutral-300 transition-colors hover:border-neutral-600 hover:text-neutral-200"
-                >
-                  View Pro plans
-                </Link>
-              </div>
-
-              <p className="mt-4 text-xs text-neutral-500">
-                If features don&apos;t activate within 10 minutes, contact{' '}
-                <a
-                  href="mailto:support@motovault.app"
-                  className="underline transition-colors hover:text-neutral-300"
-                >
-                  support@motovault.app
-                </a>
-              </p>
-            </>
-          )}
+    <section className="mvp-section mvp-section--operate">
+      {/* Already Pro — redirect notice */}
+      {status === 'already_pro' && (
+        <div className="mvp-operate-head">
+          <h1 className="mvp-h2 mvp-h2--operate">You already have Pro</h1>
+          <p className="mvp-operate-sub">Taking you back to the plan page.</p>
         </div>
-      </div>
-    </div>
+      )}
+
+      {/* Polling — waiting for activation */}
+      {status === 'polling' && (
+        <>
+          <div className="mvp-operate-head">
+            <h1 className="mvp-h2 mvp-h2--operate">Activating Pro</h1>
+            <p className="mvp-operate-sub">
+              Confirming your subscription. This usually takes a few seconds.
+            </p>
+          </div>
+          <div className="mvp-progress" aria-live="polite">
+            <MvLoader size="sm" />
+            <span>
+              Check {pollIndex + 1} of {POLL_SCHEDULE.length}
+            </span>
+          </div>
+        </>
+      )}
+
+      {/* Activated — success state: the plate settles in */}
+      {status === 'activated' && (
+        <>
+          <div className="mvp-operate-head">
+            <h1 className="mvp-h2 mvp-h2--operate">Pro is active</h1>
+            <p className="mvp-operate-sub">
+              {isTrialing
+                ? 'Your free trial has started. Every Pro limit is lifted on this account.'
+                : 'Your subscription is live. Every Pro limit is lifted on this account.'}
+            </p>
+          </div>
+
+          <div className="mvp-success-plate" aria-hidden="true">
+            <BikePlate
+              figure={PRO_PLATE.figure}
+              unit={PRO_PLATE.unit}
+              caption={isTrialing ? 'Pro trial active' : 'Pro active'}
+              racingNumber={PRO_PLATE.racingNumber}
+              identity="MotoVault Pro · every device"
+              state="ready"
+            />
+          </div>
+
+          <ul className="mvp-unlocked" aria-label="Unlocked with Pro">
+            {PRO_FEATURES.map((feature) => {
+              const Icon = FEATURE_ICONS[feature.key];
+              return (
+                <li key={feature.key}>
+                  <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
+                  {feature.title}
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="mvp-actions">
+            <Link href={redirectTo} className="mv-btn mv-btn-primary">
+              {continueLabel}
+            </Link>
+          </div>
+
+          <p className="mvp-after">
+            Manage or cancel the subscription any time from your{' '}
+            <Link href="/profile" className="mvp-quiet-link">
+              profile
+            </Link>
+            .
+          </p>
+        </>
+      )}
+
+      {/* Timeout — still processing */}
+      {status === 'timeout' && (
+        <>
+          <div className="mvp-operate-head">
+            <h1 className="mvp-h2 mvp-h2--operate">Still activating</h1>
+            <p className="mvp-operate-sub">
+              Your payment went through, but activation is taking longer than usual. Pro switches on
+              within a few minutes.
+            </p>
+          </div>
+          <div className="mvp-progress">
+            <Clock size={16} strokeWidth={2} aria-hidden="true" />
+            <span>Checked {POLL_SCHEDULE.length} times</span>
+          </div>
+
+          <div className="mvp-actions">
+            <Link href={redirectTo} className="mv-btn mv-btn-primary">
+              {continueLabel}
+            </Link>
+            <Link href="/pro" className="mv-btn mv-btn-ghost">
+              View Pro plans
+            </Link>
+          </div>
+
+          <p className="mvp-after">
+            If nothing has changed after 10 minutes, write to{' '}
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="mvp-quiet-link">
+              {SUPPORT_EMAIL}
+            </a>
+            .
+          </p>
+        </>
+      )}
+    </section>
   );
 }

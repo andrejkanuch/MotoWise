@@ -13,7 +13,7 @@ import {
   type PromotedHandoff,
   rememberAppBarDismissed,
 } from './handoff';
-import { CardTone, GarageCard, MonoLabel, SerifAccent } from './primitives';
+import { CardTone, GarageCard } from './primitives';
 import { QrHandoff, QrHandoffVariant } from './qr-handoff';
 import { StoreTextLinks } from './store-buttons';
 import './garage-ui.css';
@@ -25,22 +25,22 @@ type HandoffProps = {
   promoted: PromotedHandoff | null;
 };
 
-/** "iPhone & Android" + "Open in the app" heading shared by the rail and the band. */
+/** "Open in the app" (condensed) over "iPhone & Android", shared by the rail and the band. */
 function HandoffHeading({ id }: { id: string }) {
   const t = useTranslations('AppHandoff');
   return (
     <div className="mvg-handoff-heading">
-      <MonoLabel>{t('railEyebrow')}</MonoLabel>
       <h2 id={id} className="mvg-handoff-title">
-        {t('openIn')} <SerifAccent>{t('theApp')}</SerifAccent>
+        {t('openIn')} {t('theApp')}
       </h2>
+      <p className="mvg-handoff-sub">{t('railEyebrow')}</p>
     </div>
   );
 }
 
 /**
  * ≥ 1024 px: the sticky 320 px "Open in the app" rail with the QR code and the
- * "Better in the app" list. Place it as the last child of a flex row beside the
+ * "Better in the app" rows. Place it as the last child of a flex row beside the
  * content column (`display: flex; gap: 40px; align-items: flex-start`); it
  * never overlays the content. Hidden below 1024 px by CSS.
  */
@@ -48,7 +48,7 @@ export function AppHandoffRail({ account, promoted }: HandoffProps) {
   const headingId = useId();
   return (
     <aside className="mvg-rail mvg-scope" aria-labelledby={headingId}>
-      <GarageCard as="div" tone={CardTone.Raised} padding="none" className="mvg-handoff-panel">
+      <GarageCard as="div" tone={CardTone.Card} padding="none" className="mvg-handoff-panel">
         <HandoffHeading id={headingId} />
         <QrHandoff account={account} variant={QrHandoffVariant.Rail} />
       </GarageCard>
@@ -58,7 +58,7 @@ export function AppHandoffRail({ account, promoted }: HandoffProps) {
 }
 
 /**
- * 768–1023 px: the rail becomes an inline band below the cards. QR + copy
+ * 768–1023 px: the rail becomes an inline band below the sections. QR + copy
  * link + "On this tablet?" store links on the left, the reasons on the right.
  * Hidden outside 768–1023 px by CSS.
  */
@@ -66,7 +66,7 @@ export function AppHandoffBand({ account, promoted }: HandoffProps) {
   const headingId = useId();
   return (
     <GarageCard
-      tone={CardTone.Raised}
+      tone={CardTone.Card}
       padding="none"
       className="mvg-band mvg-scope"
       aria-labelledby={headingId}
@@ -105,9 +105,10 @@ function BarCopy({ promoted }: { promoted: PromotedHandoff }) {
 }
 
 /**
- * < 768 px: a slim, dismissible sticky bottom bar (no QR on a phone). Copy
- * follows the promoted reason, or reads "Better in the app." with none.
- * Dismissal is remembered per device (localStorage, every access wrapped).
+ * < 768 px: a slim, dismissible bottom bar (no QR on a phone), opaque and one
+ * step up the ramp. Copy follows the promoted reason, or reads "Better in the
+ * app." with none. Dismissal is remembered per device (localStorage, every
+ * access wrapped).
  *
  * Renders nothing on the server and until mounted: whether it was dismissed
  * is only knowable in the browser, so reading it during render would break
@@ -135,7 +136,7 @@ export function AppHandoffBar({ promoted }: { promoted: PromotedHandoff | null }
       <div className="mvg-bar-spacer" aria-hidden="true" />
       <section className="mvg-bar mvg-scope" aria-label={t('barRegion')}>
         <span className="mvg-bar-icon" aria-hidden="true">
-          <Icon size={16} strokeWidth={2} />
+          <Icon size={18} strokeWidth={1.75} />
         </span>
         <p className="mvg-bar-text" style={{ margin: 0 }}>
           {promoted ? <BarCopy promoted={promoted} /> : t('barDefault')}

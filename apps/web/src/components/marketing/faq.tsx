@@ -2,9 +2,10 @@ import { useTranslations } from 'next-intl';
 
 const FAQ_INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
-/** Hairline `<details>` list straight on the page surface — no cards, body
- *  face, sentence case. Native disclosure needs no JS, so this stays a
- *  server component; the first item ships open. */
+/** Hairline `<details>` list straight on the page surface — no cards, no
+ *  section marker, body face, sentence case. Native disclosure needs no JS,
+ *  so this stays a server component; the first item ships open. The "+"
+ *  turns a quarter turn into "×" when an item opens (CSS only). */
 export function Faq() {
   const t = useTranslations('Faq');
 
@@ -17,11 +18,7 @@ export function Faq() {
         margin: '0 auto',
       }}
     >
-      {/* Section header */}
       <div>
-        <div className="mv-section-meta">
-          <span className="mv-plate-chip">02</span>
-        </div>
         <h2 className="mv-section-title">
           {t('titleLead')} <span className="mv-muted">{t('titleAccent')}</span>
         </h2>
@@ -36,10 +33,7 @@ export function Faq() {
           }}
         >
           {t('introLead')}{' '}
-          <a
-            href="mailto:support@motovault.app"
-            style={{ color: 'var(--mv-copper-text)', textDecoration: 'none' }}
-          >
+          <a href="mailto:support@motovault.app" className="faq-link">
             {t('introLink')}
           </a>
           {t('introTrailing')}
@@ -65,6 +59,8 @@ export function Faq() {
         // biome-ignore lint/security/noDangerouslySetInnerHtml: static CSS
         dangerouslySetInnerHTML={{
           __html: `
+            .faq-link { color: var(--mv-copper-text); text-decoration: none; }
+            .faq-link:hover { text-decoration: underline; text-underline-offset: 3px; }
             .faq-item { border-bottom: 1px solid var(--mv-line); }
             .faq-q {
               display: flex;
@@ -89,9 +85,10 @@ export function Faq() {
               line-height: 1;
               color: var(--mv-ink-3);
               flex-shrink: 0;
-              transition: transform 0.3s var(--mv-ease);
+              transform-origin: center;
+              transition: transform 0.3s var(--mv-ease), color 0.2s;
             }
-            .faq-item[open] .faq-mark { transform: rotate(45deg); }
+            .faq-item[open] .faq-mark { transform: rotate(45deg); color: var(--mv-ink); }
             .faq-a {
               padding: 0 0 28px;
               color: var(--mv-ink-2);
@@ -99,6 +96,10 @@ export function Faq() {
               line-height: 1.6;
               max-width: 680px;
               letter-spacing: -0.005em;
+            }
+            @media (max-width: 720px) {
+              #faq { padding: 80px 24px 100px !important; }
+              .faq-q { font-size: 17px; padding: 20px 0; }
             }
           `,
         }}

@@ -15,6 +15,16 @@ import '@/app/(community)/garage/garage.css';
 type User = MeQuery['me'];
 type RideStats = GetRiderProfileQuery['getRiderProfile']['rideStats'];
 
+/** One profile stat: a condensed figure over its system-face label. */
+function Stat({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="prof-stat">
+      <dt>{label}</dt>
+      <dd className="prof-stat-num mv-figure">{children}</dd>
+    </div>
+  );
+}
+
 export default function ProfilePage() {
   const t = useTranslations('Profile');
 
@@ -44,38 +54,29 @@ export default function ProfilePage() {
 
   if (meLoading) {
     return (
-      <div
-        className="garage-page"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-        }}
-      >
-        <div
-          className="h-8 w-8 animate-spin rounded-full border-2"
-          style={{ borderColor: 'var(--mv-line)', borderTopColor: 'var(--mv-warm-400)' }}
-        />
+      <div className="garage-page">
+        <div className="garage-inner prof-state" aria-busy="true">
+          <h1 className="prof-title">{t('title')}</h1>
+          <div className="prof-spinner" role="status" aria-label={t('title')} />
+        </div>
       </div>
     );
   }
 
   if (meError) {
     return (
-      <div className="garage-page" style={{ textAlign: 'center', paddingTop: '80px' }}>
-        <p style={{ fontSize: '18px', color: 'var(--mv-ink-2)' }}>{t('failedToLoad')}</p>
-        <p style={{ fontSize: '14px', color: 'var(--mv-ink-3)', marginTop: '4px' }}>
-          {t('somethingWentWrong')}
-        </p>
-        <button
-          type="button"
-          className="mv-btn primary"
-          style={{ marginTop: '16px' }}
-          onClick={() => window.location.reload()}
-        >
-          {t('retry')}
-        </button>
+      <div className="garage-page">
+        <div className="garage-inner prof-state" role="alert">
+          <h1 className="prof-title">{t('failedToLoad')}</h1>
+          <p className="prof-quiet">{t('somethingWentWrong')}</p>
+          <button
+            type="button"
+            className="mv-btn mv-btn-ghost"
+            onClick={() => window.location.reload()}
+          >
+            {t('retry')}
+          </button>
+        </div>
       </div>
     );
   }
@@ -87,23 +88,17 @@ export default function ProfilePage() {
   // manage/cancel path.
   if (!user.publicUsername) {
     return (
-      <div className="garage-page" style={{ textAlign: 'center', paddingTop: '80px' }}>
-        <div className="garage-inner" style={{ maxWidth: '780px', textAlign: 'left' }}>
+      <div className="garage-page">
+        <div className="garage-inner">
           <ProBanner />
+          <div className="prof-state" style={{ paddingTop: 0 }}>
+            <h1 className="prof-title">{t('setupProfile')}</h1>
+            <p className="prof-quiet" style={{ maxWidth: '44ch' }}>
+              {t('setupDesc')}
+            </p>
+            <DoInAppHint />
+          </div>
         </div>
-        <p style={{ fontSize: '18px', color: 'var(--mv-ink-2)' }}>{t('setupProfile')}</p>
-        <p
-          style={{
-            fontSize: '14px',
-            color: 'var(--mv-ink-3)',
-            marginTop: '4px',
-            maxWidth: '320px',
-            margin: '4px auto 0',
-          }}
-        >
-          {t('setupDesc')}
-        </p>
-        <DoInAppHint className="app-hint-spaced" />
       </div>
     );
   }
@@ -115,148 +110,59 @@ export default function ProfilePage() {
   // year would disagree with it across a New Year boundary (e.g. "Dec '25" rendered
   // as "Dec '26" for a visitor already in the new year).
   const memberYear = `'${memberSince.getUTCFullYear().toString().slice(-2)}`;
+  const distanceKm = rideStats?.totalDistance
+    ? (rideStats.totalDistance / 1000).toLocaleString('en-US', { maximumFractionDigits: 0 })
+    : '0';
 
   return (
-    <div className="garage-page" style={{ paddingTop: '40px', paddingBottom: '60px' }}>
-      <div className="garage-inner" style={{ maxWidth: '780px' }}>
-        {/* Pro Banner — Pro users only (self-serve subscription management) */}
+    <div className="garage-page">
+      <div className="garage-inner">
+        {/* Pro row — Pro users only (self-serve subscription management) */}
         <ProBanner />
 
-        {/* Profile Card */}
-        <div className="prof-card">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'space-between',
-              gap: '24px',
-              flexWrap: 'wrap',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-              {user.avatarUrl ? (
-                // biome-ignore lint/performance/noImgElement: user avatar from Supabase storage
-                <img
-                  src={user.avatarUrl}
-                  alt={user.displayName ?? 'Avatar'}
-                  style={{
-                    width: '72px',
-                    height: '72px',
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    border: '1px solid var(--mv-line)',
-                  }}
-                />
-              ) : (
-                <div
-                  style={{
-                    width: '72px',
-                    height: '72px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, oklch(0.4 0.05 50), oklch(0.22 0.03 50))',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '28px',
-                    fontWeight: 500,
-                    color: 'var(--mv-ink)',
-                    border: '1px solid var(--mv-line)',
-                  }}
-                >
-                  {initial}
+        <header className="prof-head">
+          <div className="prof-identity">
+            {user.avatarUrl ? (
+              // biome-ignore lint/performance/noImgElement: user avatar from Supabase storage
+              <img
+                src={user.avatarUrl}
+                alt={user.displayName ?? 'Avatar'}
+                className="prof-avatar"
+              />
+            ) : (
+              <div className="prof-avatar prof-avatar--initial" aria-hidden="true">
+                {initial}
+              </div>
+            )}
+            <div style={{ minWidth: 0 }}>
+              <h1 className="prof-title">{user.displayName ?? user.fullName ?? t('rider')}</h1>
+              <div className="prof-handle">@{user.publicUsername}</div>
+              {user.city && (
+                <div className="prof-city">
+                  <MapPin size={14} strokeWidth={1.75} aria-hidden="true" />
+                  {user.city}
                 </div>
               )}
-              <div>
-                <h2
-                  style={{
-                    fontSize: '26px',
-                    fontWeight: 500,
-                    letterSpacing: '-0.02em',
-                    lineHeight: 1.1,
-                    margin: '0 0 5px',
-                    color: 'var(--mv-ink)',
-                  }}
-                >
-                  {user.displayName ?? user.fullName ?? t('rider')}
-                </h2>
-                <div
-                  style={{
-                    fontSize: '13.5px',
-                    color: 'var(--mv-ink-3)',
-                    fontFamily: "'Geist Mono', monospace",
-                    letterSpacing: '0.02em',
-                  }}
-                >
-                  @{user.publicUsername}
-                </div>
-                {user.city && (
-                  <div
-                    style={{
-                      fontSize: '12.5px',
-                      color: 'var(--mv-ink-3)',
-                      marginTop: '6px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
-                  >
-                    <MapPin className="h-3 w-3" />
-                    {user.city}
-                  </div>
-                )}
-              </div>
-            </div>
-            <DoInAppHint />
-          </div>
-
-          {user.bio && (
-            <p
-              style={{
-                marginTop: '20px',
-                fontSize: '14.5px',
-                lineHeight: 1.6,
-                color: 'var(--mv-ink-2)',
-                maxWidth: '60ch',
-                letterSpacing: '-0.005em',
-              }}
-            >
-              {user.bio}
-            </p>
-          )}
-
-          {/* Stats Row — 5 columns */}
-          <div className="prof-stats">
-            <div className="prof-stat">
-              <div className="prof-stat-num">{user.followerCount ?? 0}</div>
-              <div className="prof-stat-lbl">{t('followers')}</div>
-            </div>
-            <div className="prof-stat">
-              <div className="prof-stat-num">{user.followingCount ?? 0}</div>
-              <div className="prof-stat-lbl">{t('following')}</div>
-            </div>
-            <div className="prof-stat">
-              <div className="prof-stat-num">{rideStats?.totalRides ?? 0}</div>
-              <div className="prof-stat-lbl">{t('totalRides')}</div>
-            </div>
-            <div className="prof-stat">
-              <div className="prof-stat-num">
-                {rideStats?.totalDistance
-                  ? (rideStats.totalDistance / 1000).toLocaleString('en-US', {
-                      maximumFractionDigits: 0,
-                    })
-                  : '0'}
-                <span className="unit">km</span>
-              </div>
-              <div className="prof-stat-lbl">{t('distance')}</div>
-            </div>
-            <div className="prof-stat">
-              <div className="prof-stat-num">
-                <span className="serif">{memberMonth}</span> {memberYear}
-              </div>
-              <div className="prof-stat-lbl">{t('memberSince')}</div>
             </div>
           </div>
-        </div>
+          <DoInAppHint />
+        </header>
+
+        {user.bio && <p className="prof-bio">{user.bio}</p>}
+
+        {/* Stats: five figures on one hairline, honest numbers only */}
+        <dl className="prof-stats">
+          <Stat label={t('followers')}>{user.followerCount ?? 0}</Stat>
+          <Stat label={t('following')}>{user.followingCount ?? 0}</Stat>
+          <Stat label={t('totalRides')}>{rideStats?.totalRides ?? 0}</Stat>
+          <Stat label={t('distance')}>
+            {distanceKm}
+            <span className="unit">km</span>
+          </Stat>
+          <Stat label={t('memberSince')}>
+            {t('memberSinceValue', { month: memberMonth, year: memberYear })}
+          </Stat>
+        </dl>
       </div>
     </div>
   );

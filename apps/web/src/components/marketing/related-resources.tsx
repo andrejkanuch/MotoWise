@@ -29,23 +29,34 @@ const LINKS_BY_ANGLE: Record<CtaAngle, ResourceLink[]> = {
   [CtaAngle.Guide]: [FEATURE_MAINTENANCE, TOOL_CHECKLIST, COMPARE],
 };
 
+/** A hairline list of three next steps (`.mv-rows`), not a card grid. */
 export async function RelatedResources({ angle }: { angle: CtaAngle }) {
   const t = await getTranslations('Blog');
   const links = LINKS_BY_ANGLE[angle];
 
   return (
-    <section className="mt-16 border-t border-(--mv-line) pt-8">
-      <h2 className="mb-4 text-sm font-medium text-(--mv-ink-3)">
+    <section className="mv-read-section" aria-labelledby="related-resources-heading">
+      <h2 id="related-resources-heading" className="mv-read-label">
         {t('relatedResourcesTitle')}
       </h2>
-      <ul className="grid gap-2 sm:grid-cols-3">
+      <ul className="mv-rows">
         {links.map((link) => (
           <li key={link.href}>
-            <Link
-              href={link.href}
-              className="block rounded-xl border border-(--mv-line) px-4 py-3 text-sm font-medium text-(--mv-ink-2) transition-colors hover:border-(--mv-line-step) hover:text-(--mv-ink)"
-            >
+            <Link href={link.href}>
               {t(link.labelKey)}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
             </Link>
           </li>
         ))}

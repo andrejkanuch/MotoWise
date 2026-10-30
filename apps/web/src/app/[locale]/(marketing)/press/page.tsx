@@ -4,6 +4,7 @@ import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { BASE_URL } from '@/lib/constants';
 import { LEGAL_ADDRESS, LEGAL_NAME } from '@/lib/seo/schema';
+import '@/components/marketing/trackside-read.css';
 
 export async function generateMetadata({
   params,
@@ -25,20 +26,27 @@ export async function generateMetadata({
   };
 }
 
-const stats = [
-  { label: '5 Locales Supported', detail: 'EN, ES, DE, FR, IT' },
-  { label: 'AI-Powered Diagnostics', detail: 'Powered by Claude AI' },
-  { label: 'Available on iOS & Android', detail: 'Built with Expo' },
-  { label: 'Free to Use', detail: 'No subscription required' },
+// Facts a journalist can check. No rider counts, no ratings, no "beautifully
+// simple": the store listings and the company register carry the proof.
+const facts = [
+  {
+    label: 'What it is',
+    value: 'A logbook app for riders: rides, expenses, maintenance and the garage',
+  },
+  { label: 'Platforms', value: 'iOS and Android' },
+  { label: 'Price', value: 'Free to download; MotoVault Pro is an optional subscription' },
+  {
+    label: 'Website languages',
+    value: 'English, German, French, Spanish, Italian, Polish, Portuguese (Brazil) and Japanese',
+  },
+  { label: 'Founded', value: '2025, Slovakia' },
+  { label: 'Operator', value: `${LEGAL_NAME}, registered in Slovakia` },
+  { label: 'Press contact', value: 'support@motovault.app' },
 ] as const;
 
-const screenshots = [
-  'Home Dashboard',
-  'AI Diagnostics Chat',
-  'Bike Garage',
-  'Maintenance Log',
-  'Article Reader',
-  'Quiz Mode',
+const logos = [
+  { label: 'App icon, light background', href: '/images/marketing/MotoVault.png' },
+  { label: 'App icon, dark background', href: '/images/marketing/MotoVaultDark.png' },
 ] as const;
 
 export default async function PressPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -73,7 +81,7 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
     url: BASE_URL,
     logo: `${BASE_URL}/icon.png`,
     description:
-      'MotoVault is an AI-powered motorcycle companion app that helps riders maintain, diagnose, and learn about their motorcycles.',
+      'MotoVault is a logbook app for motorcycle riders: ride tracking, expenses, maintenance reminders and service history for every bike in the garage.',
     foundingDate: '2025',
     founder: {
       '@type': 'Person',
@@ -102,179 +110,101 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
       <JsonLd data={breadcrumbSchema} />
       <JsonLd data={organizationSchema} />
 
-      {/* Hero */}
-      <section className="px-4 pb-16 pt-24 md:pt-32">
-        <div className="reveal-on-scroll mx-auto max-w-4xl text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-(--mv-ink) sm:text-5xl md:text-6xl">
-            MotoVault Press Kit
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-(--mv-ink-2)">
-            Everything you need to write about MotoVault. Brand assets, company information, and
-            media resources.
+      <article className="mv-read">
+        <header className="mv-reveal">
+          <h1 className="mv-read-h1">Press kit</h1>
+          <p className="mv-read-lede">
+            What MotoVault is, who makes it and the assets you can use. For anything else, write to
+            us and you will hear back within a working day.
           </p>
-        </div>
-      </section>
+        </header>
 
-      {/* About Section */}
-      <section className="px-4 py-16">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="reveal-on-scroll text-3xl font-extrabold tracking-tight text-(--mv-ink)">
+        <section className="mv-read-section" aria-labelledby="about-heading">
+          <h2 id="about-heading" className="mv-read-h2">
             About MotoVault
           </h2>
-
-          <div className="mt-8 space-y-12">
-            <div className="reveal-on-scroll">
-              <h3 className="mb-4 text-lg font-bold text-(--mv-ink)">Short Description</h3>
-              <p className="text-(--mv-ink-2)">
-                MotoVault is a free, AI-powered motorcycle companion app that helps riders maintain
-                their bikes, diagnose issues, and expand their mechanical knowledge — all from their
-                phone.
-              </p>
-            </div>
-
-            <div className="reveal-on-scroll">
-              <h3 className="mb-4 text-lg font-bold text-(--mv-ink)">Long Description</h3>
-              <div className="space-y-4 text-(--mv-ink-2)">
-                <p>
-                  MotoVault is an AI-powered motorcycle platform designed to be every rider&apos;s
-                  digital garage companion. Built for both seasoned mechanics and new riders alike,
-                  MotoVault combines artificial intelligence with deep motorcycle knowledge to
-                  provide instant diagnostics, personalized maintenance tracking, and educational
-                  content tailored to each rider&apos;s bike.
-                </p>
-                <p>
-                  At its core, MotoVault features an AI diagnostics engine powered by Claude AI that
-                  can help riders identify and troubleshoot mechanical issues by describing symptoms
-                  in plain language. Whether it&apos;s a strange noise, an electrical gremlin, or a
-                  performance drop, the AI provides actionable guidance with estimated difficulty
-                  levels and safety warnings.
-                </p>
-                <p>
-                  Beyond diagnostics, MotoVault offers a comprehensive learning platform with
-                  curated articles, interactive quizzes, and a digital garage where riders can track
-                  their motorcycles, maintenance history, and upcoming service intervals. Available
-                  in five languages and on both iOS and Android, MotoVault is building the future of
-                  motorcycle ownership.
-                </p>
-              </div>
-            </div>
+          <div className="mv-read-body">
+            <p>
+              <strong>Short description.</strong> MotoVault is a logbook app for motorcycle riders.
+              It records rides, tracks what each bike costs, reminds riders when a service is due
+              and keeps the service history for every bike in the garage, on iOS and Android.
+            </p>
+            <p>
+              <strong>Long description.</strong> Most riders keep their service history in a notes
+              app, a folder of receipts and a shop manual nobody opens. MotoVault puts the records
+              in one place. A ride is recorded with the route, distance and time. An expense is
+              logged against the bike, so the real cost per year and per kilometre is always
+              current. Maintenance tasks carry an interval in days or distance, and the app reminds
+              the rider before the next one is due. The garage shows every bike with its readiness
+              at a glance.
+            </p>
+            <p>
+              MotoVault is built in Slovakia by a rider and software developer, and operated by{' '}
+              {LEGAL_NAME}. The app is free to download; MotoVault Pro is an optional subscription
+              for riders who want the deeper ride insights and sharing.
+            </p>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Key Stats */}
-      <section className="px-4 py-16">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-(--mv-ink)">
-            Key Facts
+        <section className="mv-read-section" aria-labelledby="facts-heading">
+          <h2 id="facts-heading" className="mv-read-h2">
+            Facts
           </h2>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {stats.map((stat) => (
-              <div key={stat.label} className="reveal-on-scroll text-center">
-                <p className="text-lg font-bold text-(--mv-ink)">{stat.label}</p>
-                <p className="mt-2 text-sm text-(--mv-ink-3)">{stat.detail}</p>
+          <dl className="mv-defs">
+            {facts.map((fact) => (
+              <div key={fact.label}>
+                <dt>{fact.label}</dt>
+                <dd>{fact.value}</dd>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
+          </dl>
+        </section>
 
-      {/* App Screenshots */}
-      <section className="px-4 py-16">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-(--mv-ink)">
-            App Screenshots
+        <section className="mv-read-section" aria-labelledby="assets-heading">
+          <h2 id="assets-heading" className="mv-read-h2">
+            Logo and brand assets
           </h2>
-          <p className="mt-4 text-center text-(--mv-ink-3)">
-            High-resolution screenshots for press use
+          <div className="mv-read-body">
+            <p>
+              Use the MotoVault icon as supplied: no recolouring, no effects, and clear space around
+              it at least the height of the &ldquo;M&rdquo;. The wordmark is set in Barlow
+              Condensed; the brand colour is exhaust copper.
+            </p>
+          </div>
+          <ul className="mv-rows">
+            {logos.map((logo) => (
+              <li key={logo.href}>
+                <a href={logo.href} download>
+                  {logo.label}
+                  <span className="mv-rows-aside">PNG, 1024 × 1024</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <p className="mv-read-note">
+            Screenshots of the current app, in light and dark, are available on request at the
+            address below.
           </p>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {screenshots.map((label) => (
-              <div
-                key={label}
-                className="reveal-on-scroll flex aspect-[9/16] items-center justify-center rounded-2xl border border-(--mv-line) bg-(--mv-surface-2) p-6"
-              >
-                <p className="text-center text-sm font-medium text-(--mv-ink-3)">{label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Logo */}
-      <section className="px-4 py-16">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-(--mv-ink)">
-            Logo &amp; Brand Assets
+        <section className="mv-read-section" aria-labelledby="contact-heading">
+          <h2 id="contact-heading" className="mv-read-h2">
+            Press contact
           </h2>
-          <div className="reveal-on-scroll mt-12 rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-8">
-            <div className="flex flex-col items-center gap-8 md:flex-row">
-              <div className="flex h-32 w-32 items-center justify-center rounded-2xl bg-(--mv-surface-2)">
-                {/* biome-ignore lint/a11y/noSvgWithoutTitle: decorative logo placeholder */}
-                <svg
-                  className="h-16 w-16 text-(--mv-ink-3)"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 6v6l4 2" />
-                </svg>
-              </div>
-              <div className="text-center md:text-left">
-                <h3 className="text-xl font-bold text-(--mv-ink)">MotoVault</h3>
-                <p className="mt-2 text-(--mv-ink-2)">
-                  Please use the official MotoVault logo without modification. Maintain clear space
-                  around the logo equal to the height of the &quot;M&quot; in MotoVault. Do not
-                  change the colors, proportions, or add effects to the logo.
-                </p>
-                <p className="mt-4 text-sm text-(--mv-ink-3)">
-                  Logo downloads coming soon. Contact{' '}
-                  <a
-                    href="mailto:support@motovault.app"
-                    className="text-(--mv-copper-text) underline underline-offset-2 hover:text-(--mv-copper-hover)"
-                  >
-                    support@motovault.app
-                  </a>{' '}
-                  for assets in the meantime.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Press Contact */}
-      <section className="px-4 py-16 pb-24">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-(--mv-ink)">
-            Press Contact
-          </h2>
-          <div className="reveal-on-scroll mt-12 rounded-2xl border border-(--mv-line) bg-(--mv-surface) p-8 text-center">
-            <p className="text-(--mv-ink-2)">
-              For press inquiries, interview requests, or additional assets, please reach out to:
+          <div className="mv-read-body">
+            <p>
+              Interviews, additional assets and fact checks:{' '}
+              <a href="mailto:support@motovault.app">support@motovault.app</a>. We answer within a
+              working day.
             </p>
-            <a
-              href="mailto:support@motovault.app"
-              className="mt-4 inline-block text-xl font-bold text-(--mv-copper-text) underline underline-offset-4 hover:text-(--mv-copper-hover)"
-            >
-              support@motovault.app
-            </a>
-            <p className="mt-6 text-sm text-(--mv-ink-3)">
-              We aim to respond to all press inquiries within 24 hours.
-            </p>
-            <div className="mt-8">
-              <Link
-                href="/"
-                className="text-sm text-(--mv-ink-3) underline underline-offset-2 hover:text-(--mv-ink)"
-              >
-                Back to Home
-              </Link>
-            </div>
           </div>
-        </div>
-      </section>
+          <p style={{ marginTop: 32 }}>
+            <Link href="/" className="mv-quiet-link">
+              Back to home
+            </Link>
+          </p>
+        </section>
+      </article>
     </>
   );
 }

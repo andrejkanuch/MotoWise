@@ -1,47 +1,39 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { TripTemplateNode } from '@/lib/fetch-places';
-import { FilterBar, type FilterState } from './filter-bar';
+import { DEFAULT_FILTERS, FilterBar, type FilterState } from './filter-bar';
 import { MapboxMap } from './mapbox-map';
-import { Flag, Icon, MonoLabel } from './primitives';
+import { MetaLabel } from './primitives';
 import { TripListCard } from './trip-list-card';
-import { applyFilters } from './utils';
+import { applyFilters, formatNumber } from './utils';
 
 /* ── Breadcrumb ───────────────────────────────────────────────── */
 
-function ResultsBreadcrumb({ items }: { items: string[] }) {
+function ResultsBreadcrumb({
+  country,
+  countryCode,
+  region,
+}: {
+  country: string;
+  countryCode: string;
+  region?: string | null;
+}) {
+  const countryHref = `/explore/${countryCode.toLowerCase()}`;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-      {items.map((it, i) => (
-        <span key={it} style={{ display: 'contents' }}>
-          <a
-            href={i === 0 ? '/explore' : '#'}
-            style={{
-              fontFamily: 'var(--font-geist-mono, monospace)',
-              fontSize: 10.5,
-              color: i === items.length - 1 ? 'var(--mv-warm-400)' : 'var(--mv-ink-3)',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              textDecoration: 'none',
-            }}
-          >
-            {it}
-          </a>
-          {i < items.length - 1 && (
-            <span
-              style={{
-                fontFamily: 'var(--font-geist-mono, monospace)',
-                color: 'var(--mv-ink-4)',
-                fontSize: 10,
-              }}
-            >
-              /
-            </span>
-          )}
-        </span>
-      ))}
-    </div>
+    <nav className="xp-crumbs" aria-label="Breadcrumb">
+      <a href="/explore">Explore</a>
+      <span aria-hidden="true">/</span>
+      {region ? (
+        <>
+          <a href={countryHref}>{country}</a>
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">{region}</span>
+        </>
+      ) : (
+        <span aria-current="page">{country}</span>
+      )}
+    </nav>
   );
 }
 
@@ -61,82 +53,34 @@ function ResultsHeader({
   routeCount: number;
 }) {
   return (
-    <div style={{ padding: '24px 28px 20px', borderBottom: '1px solid var(--mv-line)' }}>
-      <ResultsBreadcrumb items={region ? ['Explore', country, region] : ['Explore', country]} />
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          gap: 12,
-          flexWrap: 'wrap',
-        }}
-      >
-        <Flag code={countryCode} w={28} h={20} />
-        <h1
-          style={{
-            fontSize: 26,
-            fontWeight: 500,
-            margin: 0,
-            letterSpacing: '-0.025em',
-          }}
-        >
-          Routes in{' '}
-          <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-            {region ?? country}
-          </span>
-        </h1>
-        <MonoLabel>
-          {routeCount} routes · {regionCount} regions
-        </MonoLabel>
-      </div>
+    <div className="xp-results-head">
+      <ResultsBreadcrumb country={country} countryCode={countryCode} region={region} />
+      <h1 className="xp-results-title">Routes in {region ?? country}</h1>
+      <p className="xp-results-count">
+        <span className="mv-figure">{formatNumber(routeCount)}</span>{' '}
+        {routeCount === 1 ? 'route' : 'routes'}
+        {!region && regionCount > 0 && (
+          <>
+            {' · '}
+            <span className="mv-figure">{formatNumber(regionCount)}</span>{' '}
+            {regionCount === 1 ? 'region' : 'regions'}
+          </>
+        )}
+      </p>
     </div>
   );
 }
 
 /* ── Empty state ──────────────────────────────────────────────── */
 
-function EmptyState() {
+function EmptyState({ onClear }: { onClear: () => void }) {
   return (
-    <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-      <div
-        style={{
-          width: 64,
-          height: 64,
-          margin: '0 auto',
-          borderRadius: 999,
-          border: '1px solid var(--mv-line)',
-          display: 'grid',
-          placeItems: 'center',
-          color: 'var(--mv-ink-3)',
-        }}
-      >
-        <Icon name="search" size={24} />
-      </div>
-      <h3
-        style={{
-          marginTop: 22,
-          fontSize: 20,
-          fontWeight: 500,
-          letterSpacing: '-0.01em',
-        }}
-      >
-        No routes{' '}
-        <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-          match these filters.
-        </span>
-      </h3>
-      <p
-        style={{
-          marginTop: 10,
-          color: 'var(--mv-ink-3)',
-          fontSize: 13.5,
-          lineHeight: 1.55,
-          maxWidth: 320,
-          margin: '10px auto 0',
-        }}
-      >
-        Try clearing a filter, widening the distance range, or browsing a neighbouring region.
-      </p>
+    <div className="xp-empty">
+      <h3 className="xp-h3">No routes match these filters</h3>
+      <p>Clear a filter, or browse a neighbouring region from the map.</p>
+      <button type="button" className="xp-text-btn" style={{ padding: 0 }} onClick={onClear}>
+        Clear filters
+      </button>
     </div>
   );
 }
@@ -164,12 +108,7 @@ export function ResultsDesktop({
 }: ResultsDesktopProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [focusedId, setFocusedId] = useState<string | null>(null);
-  const [filters, setFilters] = useState<FilterState>({
-    difficulty: '',
-    surface: '',
-    sort: 'rating',
-  });
-  const listRef = useRef<HTMLDivElement>(null);
+  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
 
   // Build URLSearchParams from local state for applyFilters
   const filterParams = useMemo(() => {
@@ -190,9 +129,15 @@ export function ResultsDesktop({
     setHoveredId(id);
     const el = document.querySelector(`[data-trip-id="${CSS.escape(id)}"]`);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
     }
   }, []);
+
+  const clearFilters = useCallback(
+    () => setFilters((f) => ({ ...DEFAULT_FILTERS, sort: f.sort })),
+    [],
+  );
 
   return (
     <>
@@ -209,13 +154,12 @@ export function ResultsDesktop({
         style={{
           flex: 1,
           display: 'grid',
-          gridTemplateColumns: 'clamp(320px, 35vw, 440px) 1fr',
+          gridTemplateColumns: 'clamp(360px, 38vw, 520px) 1fr',
           minHeight: 0,
         }}
       >
         {/* List */}
         <div
-          ref={listRef}
           style={{
             borderRight: '1px solid var(--mv-line)',
             // minHeight:0 lets this grid item scroll internally; without it the
@@ -223,30 +167,24 @@ export function ResultsDesktop({
             // (and the height:100% map next to it) to the full list height.
             minHeight: 0,
             overflowY: 'auto',
-            padding: '20px 20px 60px',
-            background: 'var(--mv-bg, oklch(0.12 0.01 55))',
+            padding: '16px 28px 64px',
+            background: 'var(--mv-bg)',
           }}
         >
           {trips.length === 0 ? (
-            <EmptyState />
+            <EmptyState onClear={clearFilters} />
           ) : (
             <>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '4px 4px 14px',
-                }}
-              >
-                <MonoLabel>Showing {trips.length} routes</MonoLabel>
+              <div style={{ padding: '4px 0 12px' }}>
+                <MetaLabel>
+                  Showing {formatNumber(trips.length)} {trips.length === 1 ? 'route' : 'routes'}
+                </MetaLabel>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {trips.map((t, i) => (
+              <div className="xp-rows">
+                {trips.map((t) => (
                   <TripListCard
                     key={t.id}
                     trip={t}
-                    idx={i}
                     hovered={hoveredId === t.id}
                     focused={focusedId === t.id}
                     onMouseEnter={() => setHoveredId(t.id)}
@@ -269,31 +207,9 @@ export function ResultsDesktop({
             zoom={mapZoom}
             visibleIds={visibleIds}
           />
-          <div
-            style={{
-              position: 'absolute',
-              top: 16,
-              left: 16,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '8px 14px',
-              borderRadius: 999,
-              background: 'oklch(0.1 0.008 55 / 0.85)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid var(--mv-line)',
-            }}
-          >
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 999,
-                background: 'var(--mv-warm-500)',
-                boxShadow: '0 0 8px var(--mv-warm-500)',
-              }}
-            />
-            <MonoLabel size={10}>{trips.length} routes shown</MonoLabel>
+          <div className="xp-map-badge">
+            <span className="mv-figure">{formatNumber(trips.length)}</span>
+            {trips.length === 1 ? 'route on the map' : 'routes on the map'}
           </div>
         </div>
       </div>

@@ -41,11 +41,7 @@ export default async function Page({ params }: PageProps) {
           alt: 'MotoVault ride detail with route map and elevation profile',
         },
       ]}
-      featureIcons={[
-        'M12 22s7-7.58 7-13a7 7 0 1 0-14 0c0 5.42 7 13 7 13zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
-        'M22 12h-4l-3 9L9 3l-3 9H2',
-        'm8 3 4 8 5-5 5 15H2L8 3z',
-      ]}
+      related={['/features/maintenance', '/features/expense-tracking']}
     />
   );
 }

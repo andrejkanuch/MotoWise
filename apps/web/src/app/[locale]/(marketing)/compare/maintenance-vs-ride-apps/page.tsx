@@ -3,11 +3,8 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import {
   CompareBreadcrumb,
   CompareFaq,
-  CompareRelatedLinks,
-  compareBodyStyle,
-  compareH1Style,
-  compareH2Style,
-  compareH3Style,
+  CompareLinkList,
+  CompareStyles,
 } from '@/components/marketing/compare-page';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLd } from '@/components/marketing/json-ld';
@@ -36,18 +33,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-const RELATED_LINKS = [
+const CATEGORIES = [
   {
-    href: '/compare',
-    title: 'Best Motorcycle Apps 2026',
-    description: 'Full feature matrix and ranking of 10 motorcycle apps.',
+    titleKey: 'maintTitle',
+    subtitleKey: 'maintSubtitle',
+    featurePrefix: 'maintFeatures',
+    appsKey: 'maintApps',
   },
   {
-    href: '/compare/alternatives',
-    title: 'Motorcycle App Alternatives',
-    description: 'Switching from REVER, RideLog, or Calimoto? See how alternatives compare.',
+    titleKey: 'rideTitle',
+    subtitleKey: 'rideSubtitle',
+    featurePrefix: 'rideFeatures',
+    appsKey: 'rideApps',
   },
 ] as const;
+
+const FEATURE_INDICES = [0, 1, 2, 3] as const;
+const WHY_BOTH_INDICES = [0, 1, 2] as const;
+const FAQ_INDICES = [0, 1, 2, 3] as const;
 
 export default async function MaintVsRidePage({ params }: PageProps) {
   const { locale } = await params;
@@ -74,7 +77,7 @@ export default async function MaintVsRidePage({ params }: PageProps) {
     ],
   };
 
-  const faqItems = [0, 1, 2, 3].map((i) => ({
+  const faqItems = FAQ_INDICES.map((i) => ({
     question: t(`faq.${i}.question`),
     answer: t(`faq.${i}.answer`),
   }));
@@ -89,119 +92,71 @@ export default async function MaintVsRidePage({ params }: PageProps) {
     })),
   };
 
-  const categories = [
-    {
-      titleKey: 'maintTitle',
-      subtitleKey: 'maintSubtitle',
-      featurePrefix: 'maintFeatures',
-      appsKey: 'maintApps',
-    },
-    {
-      titleKey: 'rideTitle',
-      subtitleKey: 'rideSubtitle',
-      featurePrefix: 'rideFeatures',
-      appsKey: 'rideApps',
-    },
-  ] as const;
-
   return (
-    <>
+    <div className="mv-cmp-page">
+      <CompareStyles />
       <JsonLd data={breadcrumbSchema} />
       <JsonLd data={faqSchema} />
 
-      {/* Hero — one condensed H1, left-aligned */}
-      <header className="mx-auto max-w-5xl px-6 pt-28 md:pt-32">
-        <CompareBreadcrumb
-          items={[
-            { label: 'Home', href: '/' },
-            { label: 'Compare', href: '/compare' },
-            { label: 'Maintenance vs. Ride Apps' },
-          ]}
-        />
-        <h1 className="mt-8" style={compareH1Style}>
-          {t('heroTitle')}
-        </h1>
-        <p className="mt-6" style={{ ...compareBodyStyle, fontSize: 17, maxWidth: '58ch' }}>
-          {t('heroSubtitle')}
-        </p>
-        <p className="mt-3" style={{ fontSize: 13, color: 'var(--mv-ink-4)' }}>
-          {t('updatedAt')}
-        </p>
+      {/* Hero */}
+      <header className="mv-cmp-wrap pt-28 md:pt-32">
+        <CompareBreadcrumb current={t('breadcrumbLabel')} />
+        <h1 className="mv-cmp-h1 mt-8">{t('heroTitle')}</h1>
+        <p className="mv-cmp-lede mt-6">{t('heroSubtitle')}</p>
+        <p className="mv-cmp-meta mt-4">{t('updatedAt')}</p>
       </header>
 
-      {/* Two categories — plain typographic columns, hairline between */}
-      <section className="mx-auto max-w-5xl px-6 pt-20 md:pt-28">
-        <div className="grid gap-12 lg:grid-cols-[1fr_1px_1fr]">
-          {categories.map(({ titleKey, subtitleKey, featurePrefix, appsKey }, col) => (
+      {/* The two categories side by side, hairline between.
+          The reveal is this page's one authored entrance. */}
+      <section className="mv-cmp-wrap pt-20 md:pt-28">
+        <div className="mv-reveal grid gap-12 lg:grid-cols-[1fr_1px_1fr]">
+          {CATEGORIES.map(({ titleKey, subtitleKey, featurePrefix, appsKey }, col) => (
             <div key={titleKey} className={col === 1 ? 'lg:col-start-3' : undefined}>
-              <h2 style={compareH2Style}>{t(titleKey)}</h2>
-              <p
-                className="mt-3"
-                style={{ ...compareBodyStyle, fontSize: 15, color: 'var(--mv-ink-3)' }}
-              >
-                {t(subtitleKey)}
-              </p>
-              <div className="mt-6" style={{ borderBottom: '1px solid var(--mv-line)' }}>
-                {[0, 1, 2, 3].map((i) => (
-                  <div key={i} className="py-4" style={{ borderTop: '1px solid var(--mv-line)' }}>
-                    <h3
-                      style={{ fontSize: 15, fontWeight: 600, color: 'var(--mv-ink)', margin: 0 }}
-                    >
+              <h2 className="mv-cmp-h2">{t(titleKey)}</h2>
+              <p className="mv-cmp-note mt-3">{t(subtitleKey)}</p>
+              <ul className="mv-cmp-list mt-6">
+                {FEATURE_INDICES.map((i) => (
+                  <li key={i} className="py-4">
+                    <h3 className="mv-cmp-sub" style={{ fontSize: 15 }}>
                       {t(`${featurePrefix}.${i}.title`)}
                     </h3>
-                    <p
-                      className="mt-1.5"
-                      style={{ ...compareBodyStyle, fontSize: 14, maxWidth: 'none' }}
-                    >
+                    <p className="mv-cmp-body is-full mt-1.5" style={{ fontSize: 14 }}>
                       {t(`${featurePrefix}.${i}.description`)}
                     </p>
-                  </div>
+                  </li>
                 ))}
-              </div>
-              <p className="mt-4" style={{ fontSize: 13, color: 'var(--mv-ink-4)' }}>
-                {t(appsKey)}
-              </p>
+              </ul>
+              <p className="mv-cmp-meta mt-4">{t(appsKey)}</p>
             </div>
           ))}
           <div
             aria-hidden="true"
-            className="hidden lg:col-start-2 lg:row-start-1 lg:block"
-            style={{ background: 'var(--mv-line)' }}
+            className="mv-cmp-rule hidden lg:col-start-2 lg:row-start-1 lg:block"
           />
         </div>
       </section>
 
-      {/* The gap */}
-      <section className="mx-auto max-w-5xl px-6 pt-20 md:pt-28">
-        <h2 style={compareH2Style}>{t('gapTitle')}</h2>
-        <p className="mt-4" style={{ ...compareBodyStyle, fontSize: 15, color: 'var(--mv-ink-3)' }}>
-          {t('gapSubtitle')}
-        </p>
-        <p className="mt-6" style={compareBodyStyle}>
-          {t('gapContent')}
-        </p>
+      {/* The gap, and the apps that bridge it */}
+      <section className="mv-cmp-wrap pt-20 md:pt-28">
+        <h2 className="mv-cmp-h2">{t('gapTitle')}</h2>
+        <p className="mv-cmp-note mt-4">{t('gapSubtitle')}</p>
+        <p className="mv-cmp-body mt-6">{t('gapContent')}</p>
 
-        <h3 className="mt-12" style={compareH3Style}>
-          {t('bridgeTitle')}
-        </h3>
-        <p className="mt-4" style={compareBodyStyle}>
-          {t('bridgeContent')}
-        </p>
+        <h3 className="mv-cmp-h3 mt-12">{t('bridgeTitle')}</h3>
+        <p className="mv-cmp-body mt-4">{t('bridgeContent')}</p>
       </section>
 
-      {/* Why you need both — plain three-column grid */}
-      <section className="mx-auto max-w-5xl px-6 pt-20 md:pt-28">
-        <h2 style={compareH2Style}>{t('whyBothTitle')}</h2>
-        <p className="mt-4" style={{ ...compareBodyStyle, fontSize: 15, color: 'var(--mv-ink-3)' }}>
-          {t('whyBothSubtitle')}
-        </p>
+      {/* Why both: three reasons across */}
+      <section className="mv-cmp-wrap pt-20 md:pt-28">
+        <h2 className="mv-cmp-h2">{t('whyBothTitle')}</h2>
+        <p className="mv-cmp-note mt-4">{t('whyBothSubtitle')}</p>
         <div className="mt-10 grid gap-x-12 gap-y-8 sm:grid-cols-3">
-          {[0, 1, 2].map((i) => (
+          {WHY_BOTH_INDICES.map((i) => (
             <div key={i} className="pt-4" style={{ borderTop: '1px solid var(--mv-line)' }}>
-              <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--mv-ink)', margin: 0 }}>
+              <h3 className="mv-cmp-sub" style={{ fontSize: 15 }}>
                 {t(`whyBoth.${i}.title`)}
               </h3>
-              <p className="mt-2" style={{ ...compareBodyStyle, fontSize: 14, maxWidth: 'none' }}>
+              <p className="mv-cmp-body is-full mt-2" style={{ fontSize: 14 }}>
                 {t(`whyBoth.${i}.description`)}
               </p>
             </div>
@@ -209,38 +164,25 @@ export default async function MaintVsRidePage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Recommendation — the one allowed card on the page */}
-      <section className="mx-auto max-w-5xl px-6 pt-20 md:pt-28">
-        <div
-          style={{
-            background: 'var(--mv-surface)',
-            border: '1px solid var(--mv-line)',
-            borderRadius: 'var(--mv-radius-card)',
-            padding: 'clamp(24px, 4vw, 40px)',
-          }}
-        >
-          <h2 style={compareH2Style}>{t('verdictTitle')}</h2>
-          <p className="mt-5" style={{ ...compareBodyStyle, fontSize: 17, color: 'var(--mv-ink)' }}>
-            {t('verdict')}
-          </p>
+      {/* Recommendation: the one card on the page */}
+      <section className="mv-cmp-wrap pt-20 md:pt-28">
+        <div className="mv-cmp-card">
+          <h2 className="mv-cmp-h2">{t('verdictTitle')}</h2>
+          <p className="mv-cmp-body is-strong mt-5">{t('verdict')}</p>
         </div>
       </section>
 
-      {/* Related comparisons — plain links */}
-      <section className="mx-auto max-w-5xl px-6 pt-20 md:pt-28">
-        <CompareRelatedLinks links={RELATED_LINKS} />
+      {/* Related comparisons */}
+      <section className="mv-cmp-wrap pt-20 md:pt-28">
+        <CompareLinkList ids={['alternatives', 'ridelog', 'rever']} />
       </section>
 
-      {/* FAQ — hairline details */}
-      <section className="mx-auto max-w-5xl px-6 py-20 md:py-28">
-        <h2 style={compareH2Style}>Frequently asked questions</h2>
-        <div className="mt-8" style={{ maxWidth: 760 }}>
-          <CompareFaq items={faqItems} />
-        </div>
+      {/* FAQ */}
+      <section className="mv-cmp-wrap py-20 md:py-28">
+        <CompareFaq items={faqItems} />
       </section>
 
-      {/* CTA */}
       <FeatureCta pageType={CtaPageType.Compare} />
-    </>
+    </div>
   );
 }

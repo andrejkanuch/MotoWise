@@ -61,23 +61,7 @@ const CONFIG: VsComparePageConfig = {
   pricing: { keyStyle: 'flat', titleKey: 'pricingTableTitle', rows: 3, narrativeKey: 'pricing' },
   verdict: { bodyKey: 'verdict' },
   faqCount: 4,
-  related: [
-    {
-      href: '/compare',
-      title: 'Best Motorcycle Apps 2026',
-      description: 'Full feature matrix and ranking of 10 motorcycle apps.',
-    },
-    {
-      href: '/compare/motovault-vs-rever',
-      title: 'MotoVault vs REVER',
-      description: 'Maintenance and diagnostics vs route planning head to head.',
-    },
-    {
-      href: '/compare/motovault-vs-scenic',
-      title: 'MotoVault vs Scenic',
-      description: 'iOS-only route planner vs cross-platform companion.',
-    },
-  ],
+  related: ['rever', 'scenic'],
 };
 
 export default async function VsKurvigerPage({ params }: PageProps) {

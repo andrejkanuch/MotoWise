@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { CommunityNav } from '@/components/community-nav';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import '@/components/marketing/design-system.css';
 
 export default async function CommunityLayout({ children }: { children: React.ReactNode }) {
   const supabase = await getSupabaseServerClient();

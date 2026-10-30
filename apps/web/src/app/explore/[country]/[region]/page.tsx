@@ -175,6 +175,7 @@ export default async function RegionPage({ params }: PageProps) {
           <ResultsMobile
             allTrips={trips}
             country={countryName}
+            countryCode={code}
             region={regionName}
             mapCenter={center}
             mapZoom={7}

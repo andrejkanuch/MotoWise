@@ -1,5 +1,6 @@
 'use client';
 
+import { Star } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { SavedTripNode } from '../../../../lib/fetch-saved-routes';
 import { formatDistance } from '../../../../lib/format-utils';
@@ -35,6 +36,12 @@ const PUBLIC_SAVED_TRIPS_QUERY = `
     }
   }
 `;
+
+const SURFACE_LABELS: Record<string, string> = {
+  paved: 'Paved',
+  mixed: 'Mixed',
+  'off-road': 'Off-road',
+};
 
 interface SavedRoutesClientProps {
   handle: string;
@@ -95,94 +102,77 @@ export function SavedRoutesClient({ handle, initialEndCursor }: SavedRoutesClien
 
   return (
     <>
-      {/* Additional loaded routes */}
+      {/* Additional loaded routes continue the same hairline list */}
       {routes.length > 0 && (
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <ul className="sp-list" style={{ borderTop: 'none' }}>
           {routes.map((route) => (
-            <ClientRouteCard key={route.id} route={route} />
+            <SavedRouteRow key={route.id} route={route} />
           ))}
-        </div>
+        </ul>
       )}
 
       {/* Intersection observer sentinel */}
       {hasNextPage && (
-        <div ref={sentinelRef} className="flex justify-center py-6">
-          {loading && (
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-900" />
-          )}
+        <div ref={sentinelRef} className="sp-loading" aria-live="polite">
+          {loading ? 'Loading more routes…' : ''}
         </div>
       )}
     </>
   );
 }
 
-function ClientRouteCard({ route }: { route: SavedTripNode }) {
-  const surfaceLabel =
-    route.surfaceType === 'paved'
-      ? 'Paved'
-      : route.surfaceType === 'mixed'
-        ? 'Mixed'
-        : route.surfaceType === 'off-road'
-          ? 'Off-road'
-          : null;
+/**
+ * One saved route as a hairline row (a 56px link target). Shared by the
+ * server-rendered first page and the client-loaded pages, so both read alike.
+ */
+export function SavedRouteRow({
+  route,
+}: {
+  route: {
+    id: string;
+    title: string;
+    distanceM?: number | null;
+    elevationGainM?: number | null;
+    surfaceType?: string | null;
+    isMotovaultPick: boolean;
+    averageRating?: number | null;
+    reviewCount: number;
+    organiser: { displayName: string; publicUsername?: string | null };
+  };
+}) {
+  const surfaceLabel = route.surfaceType ? SURFACE_LABELS[route.surfaceType] : null;
+  const hasRating = route.averageRating != null && route.reviewCount > 0;
+  const by = `by ${route.organiser.displayName}${
+    route.organiser.publicUsername ? ` @${route.organiser.publicUsername}` : ''
+  }`;
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4 transition-shadow hover:shadow-sm">
-      <div className="flex items-center gap-2">
-        <svg
-          className="h-4 w-4 shrink-0 text-blue-600"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <title>Route</title>
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"
-          />
-        </svg>
-        <h3 className="flex-1 truncate text-sm font-semibold text-neutral-900">
-          {route.title || 'Unnamed Route'}
-        </h3>
-        {route.isMotovaultPick && (
-          <span className="shrink-0 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
-            Pick
-          </span>
-        )}
-      </div>
-
-      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-neutral-600">
-        {route.distanceM != null && (
-          <span className="font-medium">{formatDistance(route.distanceM)}</span>
-        )}
-        {(route.elevationGainM ?? 0) > 0 && (
-          <span>{Math.round(route.elevationGainM ?? 0)}m elev.</span>
-        )}
-        {surfaceLabel && <span>{surfaceLabel}</span>}
-        {route.averageRating != null && route.reviewCount > 0 && (
-          <span className="flex items-center gap-1">
-            <svg
-              className="h-3 w-3 text-amber-500"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              aria-hidden="true"
-            >
-              <title>Rating</title>
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            {route.averageRating.toFixed(1)} ({route.reviewCount})
-          </span>
-        )}
-        {route.reviewCount > 0 && !route.averageRating && <span>{route.reviewCount} reviews</span>}
-      </div>
-
-      <p className="mt-2 text-xs text-neutral-400">
-        by {route.organiser.displayName}
-        {route.organiser.publicUsername ? ` @${route.organiser.publicUsername}` : ''}
-      </p>
-    </div>
+    <li>
+      <a className="sp-row" href={`/trips/${route.id}`}>
+        <div className="sp-row-body">
+          <div className="sp-row-title">{route.title || 'Unnamed route'}</div>
+          <div className="sp-row-meta">
+            {route.distanceM != null && <span>{formatDistance(route.distanceM)}</span>}
+            {(route.elevationGainM ?? 0) > 0 && (
+              <span>{Math.round(route.elevationGainM ?? 0)} m climb</span>
+            )}
+            {surfaceLabel && <span>{surfaceLabel}</span>}
+            {hasRating && (
+              <span>
+                <Star size={14} aria-hidden="true" fill="currentColor" />
+                {route.averageRating?.toFixed(1)} ({route.reviewCount})
+              </span>
+            )}
+            {!hasRating && route.reviewCount > 0 && (
+              <span>
+                {route.reviewCount} {route.reviewCount === 1 ? 'review' : 'reviews'}
+              </span>
+            )}
+            {route.isMotovaultPick && <span>Editor's pick</span>}
+            <span>{by}</span>
+          </div>
+        </div>
+      </a>
+    </li>
   );
 }

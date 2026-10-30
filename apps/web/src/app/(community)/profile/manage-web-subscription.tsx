@@ -24,7 +24,7 @@ type Phase = (typeof PHASE)[keyof typeof PHASE];
  * email, or support — a subscriber must never be left without a cancel path.
  *
  * `className` restyles the button (the garage account row renders it as a
- * copper text link); the default is the /profile banner's button.
+ * copper text link); the default is the /profile Pro row's copper text action.
  */
 export function ManageWebSubscription({
   className = 'prof-banner-manage',

@@ -4,17 +4,24 @@ import type { GetFollowersQuery } from '@motovault/graphql';
 import { GetFollowersDocument, GetFollowingDocument, MeDocument } from '@motovault/graphql';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { gqlFetcher } from '@/lib/graphql-client';
+import '@/app/(community)/garage/garage.css';
 
 type FollowEdge = GetFollowersQuery['getFollowers']['edges'][number];
 
 const TAB_KEYS = ['followers', 'following'] as const;
 type Tab = (typeof TAB_KEYS)[number];
 
+/**
+ * /profile/followers: the rider's connections as hairline rows (44 px+
+ * targets) under a segmented control; selection is a raised surface, never
+ * copper. Read-only: following happens in the app.
+ */
 export default function FollowersPage() {
   const t = useTranslations('Followers');
   const [activeTab, setActiveTab] = useState<Tab>('followers');
+  const tabsId = useId();
 
   const { data: meData } = useQuery({
     queryKey: ['me'],
@@ -62,87 +69,92 @@ export default function FollowersPage() {
       : (followingQuery.data?.pages.flatMap((p) => p.getFollowing.edges) ?? []);
 
   return (
-    <div>
-      <h1 className="text-xl font-bold text-neutral-50">{t('title')}</h1>
+    <div className="garage-page">
+      <div className="garage-inner">
+        <h1 className="prof-title">{t('title')}</h1>
 
-      {/* Tabs */}
-      <div className="mt-4 flex border-b border-neutral-800">
-        {TAB_KEYS.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors ${
-              activeTab === tab
-                ? 'border-b-2 border-warm-400 text-warm-400'
-                : 'text-neutral-500 hover:text-neutral-300'
-            }`}
-          >
-            {t(tab)}
-          </button>
-        ))}
-      </div>
-
-      {/* List */}
-      {activeQuery.isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-700 border-t-warm-400" />
+        <div className="prof-tabs" role="tablist" aria-label={t('title')}>
+          {TAB_KEYS.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              role="tab"
+              id={`${tabsId}-${tab}`}
+              aria-selected={activeTab === tab}
+              aria-controls={`${tabsId}-panel`}
+              onClick={() => setActiveTab(tab)}
+              className="prof-tab"
+            >
+              {t(tab)}
+            </button>
+          ))}
         </div>
-      ) : edges.length === 0 ? (
-        <div className="py-12 text-center">
-          <p className="text-neutral-500">
-            {activeTab === 'followers' ? t('noFollowers') : t('noFollowing')}
-          </p>
-        </div>
-      ) : (
-        <div className="mt-4 space-y-2">
-          {edges.map(({ node }) => {
-            const name = node.displayName ?? node.publicUsername ?? 'Rider';
-            const initial = name.charAt(0).toUpperCase();
-            const username = node.publicUsername;
-            const href = username ? `/rider/${username}` : '#';
 
-            return (
-              <a
-                key={`${node.followerId}-${node.followingId}`}
-                href={href}
-                className="flex items-center gap-3 rounded-xl border border-neutral-800 bg-neutral-900/50 p-3 transition-colors hover:border-neutral-700"
-              >
-                {node.avatarUrl ? (
-                  // biome-ignore lint/performance/noImgElement: user avatar from Supabase storage
-                  <img
-                    src={node.avatarUrl}
-                    alt={name}
-                    className="h-10 w-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-800 text-sm font-bold text-neutral-300">
-                    {initial}
-                  </div>
-                )}
-                <div>
-                  <p className="text-sm font-semibold text-neutral-100">{name}</p>
-                  {username && <p className="text-xs text-neutral-500">@{username}</p>}
-                </div>
-              </a>
-            );
-          })}
-
-          {/* Load more */}
-          {activeQuery.hasNextPage && (
-            <div className="flex justify-center py-4">
-              <button
-                type="button"
-                onClick={() => activeQuery.fetchNextPage()}
-                disabled={activeQuery.isFetchingNextPage}
-                className="rounded-full bg-neutral-800 px-6 py-2.5 text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-700 disabled:opacity-50"
-              >
-                {activeQuery.isFetchingNextPage ? t('loading') : t('loadMore')}
-              </button>
+        <div
+          id={`${tabsId}-panel`}
+          role="tabpanel"
+          aria-labelledby={`${tabsId}-${activeTab}`}
+          aria-busy={activeQuery.isLoading || undefined}
+        >
+          {activeQuery.isLoading ? (
+            <div className="prof-empty">
+              <div className="prof-spinner" role="status" aria-label={t('loading')} />
             </div>
+          ) : edges.length === 0 ? (
+            <div className="prof-empty">
+              <p className="prof-quiet">
+                {activeTab === 'followers' ? t('noFollowers') : t('noFollowing')}
+              </p>
+            </div>
+          ) : (
+            <>
+              <ul className="prof-list">
+                {edges.map(({ node }) => {
+                  const name = node.displayName ?? node.publicUsername ?? 'Rider';
+                  const initial = name.charAt(0).toUpperCase();
+                  const username = node.publicUsername;
+                  const href = username ? `/rider/${username}` : '#';
+
+                  return (
+                    <li key={`${node.followerId}-${node.followingId}`}>
+                      <a href={href} className="prof-person">
+                        {node.avatarUrl ? (
+                          // biome-ignore lint/performance/noImgElement: user avatar from Supabase storage
+                          <img src={node.avatarUrl} alt="" className="prof-person-avatar" />
+                        ) : (
+                          <span
+                            className="prof-person-avatar prof-person-avatar--initial"
+                            aria-hidden="true"
+                          >
+                            {initial}
+                          </span>
+                        )}
+                        <span className="prof-person-text">
+                          <span className="prof-person-name">{name}</span>
+                          {username && <span className="prof-person-handle">@{username}</span>}
+                        </span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {activeQuery.hasNextPage && (
+                <div className="prof-more">
+                  <button
+                    type="button"
+                    onClick={() => activeQuery.fetchNextPage()}
+                    disabled={activeQuery.isFetchingNextPage}
+                    className="mv-btn mv-btn-ghost"
+                  >
+                    {activeQuery.isFetchingNextPage ? t('loading') : t('loadMore')}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
