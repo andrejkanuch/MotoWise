@@ -44,7 +44,7 @@ Public marketing and SEO pages, signed-in rider pages (`/garage`, `/profile`, `/
 - Mapbox: `MAPBOX_ACCESS_TOKEN` is server-only (static previews). **Interactive** `mapbox-gl` needs a **public** token in the bundle, `NEXT_PUBLIC_MAPBOX_TOKEN` or `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`, in `.env.local` (see `.env.example`). Do not rely on server-only tokens for `mapbox-gl` in the browser
 
 ## Design brief (web only)
-Mobile has its own: `apps/mobile/DESIGN.md` and `apps/mobile/PRODUCT.md`.
+The web design system as shipped (tokens, type scale, kit, named rules) is `apps/web/DESIGN.md`, with the sidecar `.impeccable/design.json`; read it before styling any surface. Mobile has its own: `apps/mobile/DESIGN.md` and `apps/mobile/PRODUCT.md`.
 
 - **Users**: motorcycle riders in Europe and the Americas who want one app for their moto life — rides, expenses, maintenance, the garage. Hands-on people who value their machines and want to feel in command of every detail.
 - **Brand**: rugged, premium, confident. A precision instrument built for riders, not a generic utility app. The signature "exhaust copper" (#D4622E) anchors the identity.

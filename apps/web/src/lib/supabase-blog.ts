@@ -161,11 +161,10 @@ export const listPublishedArticles = unstable_cache(
     return ((data ?? []) as unknown as RawListRow[]).map((row) => toArticle(row, locale));
   },
   ['blog-list'],
-  // Same window as the detail/taxonomy reads. A shorter one here dragged every
-  // blog page (this list feeds getRelatedArticles) to hourly ISR across 8 locales.
-  // The `blog` tag is purged on demand by /api/revalidate on publish; a pg_cron
-  // scheduled -> published flip must call it too (it has no revalidation of its own).
-  { revalidate: 604800, tags: [CACHE_TAGS.blog] },
+  // Hourly, not the detail reads' week: the pg_cron scheduled -> published flip
+  // (00157) never calls /api/revalidate, so this window is how long a scheduled
+  // post can stay off /blog. Publishing from the admin purges the `blog` tag at once.
+  { revalidate: 3600, tags: [CACHE_TAGS.blog] },
 );
 
 /** Body MDX (`body_raw`) for one post in one locale. Cached + tagged `blog`. */

@@ -128,7 +128,7 @@
 
   /* ── Deprecated aliases: migrate call sites, then delete ────────
      Kept so every untouched consumer keeps rendering in the new world
-     (last in-scope consumers: pro.css, auth-ui.css; out of scope:
+     (no in-scope consumers left; out of scope:
      components/builder/builder-client.tsx). */
   --mv-page: var(--mv-bg);
   --mv-card: var(--mv-surface);
