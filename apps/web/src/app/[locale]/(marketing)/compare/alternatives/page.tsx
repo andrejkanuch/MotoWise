@@ -104,7 +104,8 @@ export default async function AlternativesPage({ params }: PageProps) {
       {/* Pricing snapshot: hairline table, condensed figures */}
       <section className={`mv-cmp-wrap ${COMPARE_SECTION.weight}`}>
         <h2 className="mv-h2">{t('pricingTableTitle')}</h2>
-        <div className="mv-cmp-tablewrap mt-8">
+        {/* biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be keyboard-reachable */}
+        <section className="mv-cmp-tablewrap mt-8" tabIndex={0} aria-label={t('pricingTableTitle')}>
           <table className="mv-table mv-cmp-table" style={{ minWidth: 720 }}>
             <thead>
               <tr>
@@ -125,7 +126,7 @@ export default async function AlternativesPage({ params }: PageProps) {
               ))}
             </tbody>
           </table>
-        </div>
+        </section>
       </section>
 
       {/* Alternatives to each popular app */}

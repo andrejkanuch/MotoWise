@@ -139,7 +139,7 @@ function ExpiredView() {
           valid. Ask them for a new one.
         </p>
         <div className="sp-cta-actions">
-          <a href="https://motovault.app" className="mv-btn mv-btn-primary">
+          <a href="/get" className="mv-btn mv-btn-primary">
             Get the app
           </a>
         </div>
@@ -249,7 +249,7 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
             with a link like this one.
           </p>
           <div className="sp-cta-actions">
-            <a href="https://motovault.app" className="mv-btn mv-btn-primary">
+            <a href="/get" className="mv-btn mv-btn-primary">
               Get the app
             </a>
           </div>

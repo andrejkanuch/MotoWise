@@ -101,9 +101,9 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
 }
 
 // The reading column is styled once in trackside-read.css (`.mv-read-body`):
-// condensed h2/h3, 17.5px body at 1.6, hairline tables, mono only for code.
+// condensed h2/h3, 17px body at 1.6, hairline tables, mono only for code.
 // MDX elements render as plain HTML; tables get a scroll wrapper so a wide
-// spec table never breaks the 70ch measure on a phone.
+// spec table never breaks the 60ch measure on a phone.
 const mdxComponents = {
   table: (props: React.ComponentProps<'table'>) => (
     <div className="mv-read-table">
@@ -374,8 +374,8 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
                     {item.question}
                     <svg
                       className="mv-disclosure-mark"
-                      width="18"
-                      height="18"
+                      width="16"
+                      height="16"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"

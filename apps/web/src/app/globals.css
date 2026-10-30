@@ -10,10 +10,25 @@
 /* Scrollbars on the ramp, both schemes */
 html { scrollbar-color: var(--mv-line-step) var(--mv-bg); }
 
-/* Paint containment for below-fold sections — avoids layout/paint work until visible */
-section:not(:first-child) {
+/* Paint containment for below-fold marketing sections only — never the hero
+   (the first section), never the garage/share/explore shells. Each estimate is
+   close to the section's real height so the scrollbar does not jump as
+   sections resolve; `auto` remembers the real size once rendered. */
+.mv-marketing > main > section:not(:first-of-type) {
   content-visibility: auto;
-  contain-intrinsic-size: auto 600px;
+  contain-intrinsic-size: auto 900px;
+}
+.mv-marketing > main > section.faq-section {
+  contain-intrinsic-size: auto 480px;
+}
+.mv-marketing > main > section.cta-band {
+  contain-intrinsic-size: auto 720px;
+}
+/* Print and anchor jumps need the real boxes */
+@media print {
+  .mv-marketing > main > section {
+    content-visibility: visible;
+  }
 }
 
 /* ── Navigation progress bar ───────────────────────────────────────────────

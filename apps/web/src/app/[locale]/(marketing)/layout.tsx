@@ -75,20 +75,6 @@ export default async function MarketingLayout({ children }: { children: React.Re
     <div className="mv-marketing">
       <SkipLink />
       <link rel="preconnect" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />
-      <link
-        rel="preload"
-        as="image"
-        href="/images/marketing/hero-dusk-ride.jpg"
-        media="(min-aspect-ratio: 4/5)"
-        fetchPriority="high"
-      />
-      <link
-        rel="preload"
-        as="image"
-        href="/images/marketing/hero-dusk-ride-portrait.jpg"
-        media="(max-aspect-ratio: 4/5)"
-        fetchPriority="high"
-      />
       <Navbar />
       <main id="main-content">{children}</main>
       <Footer />

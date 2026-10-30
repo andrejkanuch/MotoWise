@@ -1,16 +1,38 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { TripTemplateNode } from '@/lib/fetch-places';
 import { DEFAULT_FILTERS, FilterBar, type FilterState } from './filter-bar';
 import { MapboxMap } from './mapbox-map';
 import { Icon, MetaLabel, RouteFigures } from './primitives';
-import { LoadFailedState } from './results-desktop';
+import { LoadFailedState, ZeroRoutesState } from './results-desktop';
 import { TripListCard } from './trip-list-card';
 import { applyFilters, formatNumber, tripHref } from './utils';
 
 /* ── Mobile topbar: opaque ground, hairline, 44px targets ─────── */
+
+/**
+ * The topbar collapses to one line past COLLAPSE_AT px of page scroll and
+ * opens again under EXPAND_AT. The gap is wider than the 17px the bar loses,
+ * so scroll anchoring's compensation can never flip it back and forth.
+ */
+const TOPBAR_COLLAPSE_AT = 64;
+const TOPBAR_EXPAND_AT = 8;
+
+function useTopbarCollapsed(): boolean {
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    const update = () =>
+      setCollapsed((was) =>
+        was ? window.scrollY > TOPBAR_EXPAND_AT : window.scrollY > TOPBAR_COLLAPSE_AT,
+      );
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    return () => window.removeEventListener('scroll', update);
+  }, []);
+  return collapsed;
+}
 
 function MobileTopbar({
   country,
@@ -23,8 +45,9 @@ function MobileTopbar({
 }) {
   const backHref = region ? `/explore/${countryCode.toLowerCase()}` : '/explore';
   const backLabel = region ? `Back to ${country}` : 'Back to explore';
+  const scrolled = useTopbarCollapsed();
   return (
-    <div className="xp-mtop">
+    <div className="xp-mtop" data-scrolled={scrolled || undefined}>
       <a href={backHref} className="mv-icon-btn" aria-label={backLabel}>
         <Icon name="arrow-left" size={18} />
       </a>
@@ -100,6 +123,8 @@ export function ResultsMobile({
           <div className="xp-mlist">
             {loadFailed ? (
               <LoadFailedState />
+            ) : allTrips.length === 0 ? (
+              <ZeroRoutesState country={country} countryCode={countryCode} region={region} />
             ) : trips.length === 0 ? (
               <div className="xp-empty">
                 <h2 className="mv-h3 xp-h3">No routes match these filters</h2>

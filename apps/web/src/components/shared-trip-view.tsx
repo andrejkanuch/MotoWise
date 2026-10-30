@@ -69,7 +69,7 @@ export function SharedTripView({ data }: { data: SharedTrip }) {
                   <div className="sp-row-body">
                     <div className="sp-row-title">{wp.name}</div>
                     <div className="sp-row-meta">
-                      <span>{capitalize(wp.type.replace(/_/g, ' '))}</span>
+                      <span>{capitalize(wp.type)}</span>
                       {wp.dayIndex != null && <span>Day {wp.dayIndex + 1}</span>}
                     </div>
                     {wp.notes && <p className="sp-row-note">{wp.notes}</p>}
@@ -121,8 +121,10 @@ export function SharedTripView({ data }: { data: SharedTrip }) {
   );
 }
 
+/** "in_progress" → "In progress": enum values never print an underscore. */
 function capitalize(s: string): string {
-  return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1);
+  const words = s.replace(/_/g, ' ');
+  return words.length === 0 ? words : words[0].toUpperCase() + words.slice(1);
 }
 
 function formatDate(iso: string): string {

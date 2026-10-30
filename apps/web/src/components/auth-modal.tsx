@@ -44,11 +44,12 @@ const COPY = {
     submit: 'Sign in',
     submitting: 'Signing in…',
     altPrompt: 'No account yet?',
-    altCta: 'Create account',
+    // The wall names its price: the account is free (onboard row 21).
+    altCta: 'Create a free account',
     emptyFields: EMPTY_FIELDS_MESSAGE,
   },
   signup: {
-    heading: 'Create account',
+    heading: 'Create a free account',
     submit: 'Create account',
     submitting: 'Creating account…',
     altPrompt: 'Already have an account?',

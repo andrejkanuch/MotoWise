@@ -46,6 +46,9 @@ const POLL_SCHEDULE = [
 
 const SESSION_KEY = 'mv_pro_poll_start';
 
+/** /get sends a phone to its store and shows desktop the QR + both stores. */
+const GET_APP_PATH = '/get';
+
 /**
  * sessionStorage throws (SecurityError) in Safari private mode and with
  * blocked storage; a paid checkout must never crash to error.tsx over the
@@ -61,7 +64,7 @@ const pollStart = {
   },
   clear() {
     try {
-      pollStart.clear();
+      sessionStorage.removeItem(SESSION_KEY);
     } catch {}
   },
 };
@@ -283,10 +286,21 @@ function CheckoutSuccessContent() {
             })}
           </ul>
 
+          {/* Every Pro feature lives in the app: say how to reach it before
+              the actions (onboard row 15). */}
+          <p className="mvp-handoff">
+            On your phone, open the MotoVault app and sign in with the same account; Pro is already
+            on. If it still says Free, go to Settings › Restore purchases.
+          </p>
+
           <div className="mvp-actions">
             <Link href={redirectTo} className="mv-btn mv-btn-primary mv-btn-block">
               {continueLabel}
             </Link>
+            {/* A plain anchor: /get answers a phone with a redirect to its store. */}
+            <a href={GET_APP_PATH} className="mv-btn mv-btn-ghost mv-btn-block">
+              Get the app
+            </a>
           </div>
 
           <p className="mvp-after">

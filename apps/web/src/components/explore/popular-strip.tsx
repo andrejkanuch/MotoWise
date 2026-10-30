@@ -2,16 +2,34 @@ import type { TripTemplateNode } from '@/lib/fetch-places';
 import { distanceParts } from './primitives';
 import { formatDuration, tripHref } from './utils';
 
+/** The fields a chip prints; the explore page ships only these to the client. */
+export type PopularTrip = Pick<
+  TripTemplateNode,
+  'id' | 'title' | 'slug' | 'countryCode' | 'regionCode' | 'distanceM' | 'estimatedDurationMinutes'
+>;
+
+export function toPopularTrip(t: TripTemplateNode): PopularTrip {
+  return {
+    id: t.id,
+    title: t.title,
+    slug: t.slug,
+    countryCode: t.countryCode,
+    regionCode: t.regionCode,
+    distanceM: t.distanceM,
+    estimatedDurationMinutes: t.estimatedDurationMinutes,
+  };
+}
+
 interface PopularStripProps {
-  trips: TripTemplateNode[];
+  trips: PopularTrip[];
   /** A country name, or {@link WORLD} when no country was detected. */
   countryName: string;
 }
 
-/** The sentinel the explore page passes when geo-IP found no country. */
+/** The sentinel passed when no country was detected for the visitor. */
 export const WORLD = 'the world';
 
-function tripShortTitle(trip: TripTemplateNode): string {
+function tripShortTitle(trip: PopularTrip): string {
   return (trip.title ?? 'Unnamed route').split('—')[0].trim();
 }
 

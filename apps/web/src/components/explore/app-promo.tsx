@@ -1,6 +1,11 @@
 import { BikePlate } from '@/components/marketing/bike-plate';
 import { StoreLink } from '@/components/marketing/store-buttons';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
+import { formatNumber } from './utils';
+
+/** The demo bike's ledger, shared with the home hero plate (English-only page). */
+const DEMO_ODOMETER_KM = 24318;
+const DEMO_CHAIN_DUE_KM = 1882;
 
 /**
  * The app hand-off: a deeper step of the ramp (not a card), one copper
@@ -35,9 +40,9 @@ export function AppPromo() {
         {/* The demo bike's one ledger: the same figures as the home hero plate */}
         <div className="xp-band-plate">
           <BikePlate
-            figure="24,318"
+            figure={formatNumber(DEMO_ODOMETER_KM)}
             unit="km"
-            caption="Ready · chain service in 1,882 km"
+            caption={`Ready · chain service in ${formatNumber(DEMO_CHAIN_DUE_KM)} km`}
             racingNumber="27"
             identity="Africa Twin · 2022"
             state="ready"

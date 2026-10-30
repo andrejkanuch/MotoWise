@@ -22,7 +22,7 @@ const WHERE_TO_LINKS = [
  * On phones the stage shrinks so the 404 itself is above the fold.
  */
 const NOT_FOUND_CSS = `
-.nf { min-height: 100svh; display: grid; grid-template-columns: 1.1fr 1fr; }
+.nf { min-height: 100svh; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
 .nf-msg {
   display: flex; flex-direction: column; justify-content: center;
   background: var(--mv-bg);
@@ -39,7 +39,7 @@ const NOT_FOUND_CSS = `
 .nf-telemetry-val { font-family: var(--mv-font-mono); font-size: 13px; color: var(--mv-ink-2); }
 .nf-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 48px; }
 .nf-whereto-label { margin: 0 0 8px; font-size: 13px; line-height: 18px; font-weight: 500; color: var(--mv-ink-3); }
-.nf-links { display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; max-width: 560px; }
+.nf-links { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 40px; max-width: 560px; }
 .nf-stage { position: relative; overflow: hidden; background: var(--mv-bg-2); border-left: 1px solid var(--mv-line); }
 .nf-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .nf-topo path { fill: none; stroke: var(--mv-line-step); stroke-width: .7; opacity: .45; }
@@ -48,14 +48,19 @@ const NOT_FOUND_CSS = `
 .nf-pin { fill: var(--mv-ink-3); }
 .nf-cross { stroke: var(--mv-ink); stroke-width: 2.4; stroke-linecap: round; }
 @media (max-width: 900px) {
-  .nf { grid-template-columns: 1fr; }
+  .nf { grid-template-columns: minmax(0, 1fr); }
   .nf-stage { order: -1; min-height: 38vh; border-left: 0; border-bottom: 1px solid var(--mv-line); }
   .nf-msg.mv-section-hero { padding: 48px 24px 64px; }
 }
-@media (max-width: 600px) { .nf-links { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .nf-links { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 480px) {
   .nf-stage { min-height: 24vh; }
   .nf-msg.mv-section-hero { padding: 48px 20px 64px; }
+}
+/* A landscape phone: the message keeps the first screen, the stage sits beside it. */
+@media (max-height: 500px) {
+  .nf { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+  .nf-stage { order: 0; min-height: 0; border-left: 1px solid var(--mv-line); border-bottom: 0; }
 }
 `;
 

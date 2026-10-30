@@ -178,6 +178,8 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
           alt: 'MotoVault diagnose hub with past diagnoses for the bike',
         },
       ]}
+      // No current capture of the diagnosis screens: keep them out of the hero.
+      heroCut={false}
       features={{
         title: t('issuesTitle'),
         items: ISSUE_INDEXES.map((i) => ({ title: t(`issue${i}`) })),

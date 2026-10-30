@@ -9,7 +9,7 @@ import '@/components/marketing/design-system.css';
  * The namespaces the signed-in client subtree reads (`useTranslations('X')`
  * in the garage, profile, followers pages, the nav and the handoff kit).
  * Only these cross to the client: the whole catalogue is ~300 KB of RSC
- * payload. `__tests__/community-intl-contract.test.ts` walks the tree and
+ * payload. `src/app/__tests__/intl-provider-contract.test.ts` walks the tree and
  * fails when a client component reads a namespace that is not listed here
  * (a layout file may export only Next's fields, so the test reads this AST).
  */

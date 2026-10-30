@@ -632,6 +632,14 @@ html:not(.dark) .mv-plate::after {
   overflow-wrap: anywhere; /* a missing-key path must not widen the plate past the column */
 }
 
+/* A unit beside a figure (km, mi, €): half the figure's size, one gap
+   grammar everywhere (≈3px at 20, 6px at 40, 10px at 64). */
+.mv-unit {
+  margin-left: 0.15em;
+  font: 500 0.5em/1 var(--mv-font-display);
+  color: var(--mv-ink-2);
+}
+
 .mv-plate-unit {
   font-family: var(--mv-font-display);
   font-weight: 500;
@@ -1020,7 +1028,7 @@ html:not(.dark) .mv-plate::after {
 
 /* While the navbar floats over the hero photo (not scrolled) on a page
    that has one, it lives in the dark scene even in the light scheme. */
-html:not(.dark) .mv-marketing:has(.hero-section) .mv-navbar:not([data-scrolled]) {
+html:not(.dark) .mv-marketing:has(.hero-section, .rh.mv-dark-scene) .mv-navbar:not([data-scrolled]) {
   --mv-bg: #111214;
   --mv-surface: #1a1b1e;
   --mv-surface-2: #232427;
@@ -1038,7 +1046,7 @@ html:not(.dark) .mv-marketing:has(.hero-section) .mv-navbar:not([data-scrolled])
 
 /* Scrolled over the hero photo in light, the translucent paper bar turns
    milky against the dark scene — make it opaque so ink stays readable. */
-html:not(.dark) .mv-marketing:has(.hero-section) .mv-navbar[data-scrolled] {
+html:not(.dark) .mv-marketing:has(.hero-section, .rh.mv-dark-scene) .mv-navbar[data-scrolled] {
   background: var(--mv-bg) !important;
 }
 
@@ -1165,7 +1173,7 @@ html:not(.dark) .mv-dark-scene .mv-plate::after {
   .mv-btn:active, .mv-btn-ghost:active, .mv-icon-btn:active, .mv-chip:active { scale: 1; }
   a.mv-row:hover svg { transform: none; }
   .mv-disclosure::details-content { transition: none; }
-  .mv-disclosure > summary svg, .mv-disclosure > summary .mv-disclosure-mark { transition: color 160ms; }
+  .mv-disclosure > summary svg, .mv-disclosure > summary .mv-disclosure-mark { transition: color var(--mv-dur-1); }
   [data-theme-toggle] svg { transition: none; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }

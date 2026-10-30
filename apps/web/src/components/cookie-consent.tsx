@@ -2,7 +2,7 @@
 
 import { Bug, ChartNoAxesColumn, Check, Lock, SlidersHorizontal } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import posthog from 'posthog-js';
+import type { PostHog } from 'posthog-js';
 import {
   createContext,
   type RefObject,
@@ -15,6 +15,7 @@ import {
 import { useModal } from '@/hooks/use-modal';
 import { clearAccountConsent, writeAccountConsent } from '@/lib/account-consent';
 import { clearFirstTouch, firstTouchProperties, persistFirstTouch } from '@/lib/campaign';
+import { dropQueuedPostHogCalls, getPostHog, loadPostHog } from '@/lib/posthog-client';
 
 // ---------------------------------------------------------------------------
 // Consent primitives (cookie read/write, PostHog opt-in/out, geo detection)
@@ -107,35 +108,56 @@ function writeConsent(decision: Decision, source: ConsentSource) {
 /** Super property marking that this browser's first touch already reached PostHog. */
 const FIRST_TOUCH_SENT = 'ft_sent';
 
-/**
- * Apply the stored consent decision to PostHog. Runs on every page load for a
- * visitor who already decided, so `announce` is true only when the decision is
- * made right now — `$consent_granted` fires once per person, not once per page.
- */
-export function applyPostHogConsent(granted: boolean, { announce = false } = {}) {
-  if (typeof window === 'undefined') return;
+function grantPostHog(posthog: PostHog, announce: boolean) {
   try {
-    if (granted) {
-      posthog.set_config({ persistence: 'localStorage+cookie' });
-      posthog.opt_in_capturing();
-      if (announce) posthog.capture('$consent_granted');
-      const touch = persistFirstTouch();
-      if (touch && posthog.get_property(FIRST_TOUCH_SENT) === undefined) {
-        const props = firstTouchProperties(touch);
-        // Super properties put the source on every later event (store click,
-        // checkout); $set_once keeps the person's first source permanently.
-        posthog.register({ ...props, [FIRST_TOUCH_SENT]: true });
-        posthog.setPersonProperties(undefined, props);
-      }
-    } else {
-      posthog.opt_out_capturing();
-      clearFirstTouch();
+    posthog.set_config({ persistence: 'localStorage+cookie' });
+    posthog.opt_in_capturing();
+    if (announce) posthog.capture('$consent_granted');
+    const touch = persistFirstTouch();
+    if (touch && posthog.get_property(FIRST_TOUCH_SENT) === undefined) {
+      const props = firstTouchProperties(touch);
+      // Super properties put the source on every later event (store click,
+      // checkout); $set_once keeps the person's first source permanently.
+      posthog.register({ ...props, [FIRST_TOUCH_SENT]: true });
+      posthog.setPersonProperties(undefined, props);
     }
   } catch {
     // In private mode / blocked-storage, set_config + opt_in/out_capturing touch
     // localStorage/cookies and throw a SecurityError (DOMException 18) as an
     // unhandled rejection (Sentry MOTOVAULT-WEB-T). PostHog falls back to memory
     // persistence internally, so swallowing the storage error is safe.
+  }
+}
+
+/**
+ * Apply the stored consent decision to PostHog. Runs on every page load for a
+ * visitor who already decided, so `announce` is true only when the decision is
+ * made right now — `$consent_granted` fires once per person, not once per page.
+ * A "yes" loads the SDK (lib/posthog-client.ts) if it is not in yet; a "no"
+ * never downloads it, and opts an already-loaded SDK out.
+ */
+export function applyPostHogConsent(granted: boolean, { announce = false } = {}) {
+  if (typeof window === 'undefined') return;
+  if (granted) {
+    const loaded = getPostHog();
+    if (loaded) {
+      grantPostHog(loaded, announce);
+      return;
+    }
+    loadPostHog().then(
+      (posthog) => grantPostHog(posthog, announce),
+      () => {
+        // The SDK chunk failed to load (offline, blocked): no analytics, no error.
+      },
+    );
+    return;
+  }
+  dropQueuedPostHogCalls();
+  clearFirstTouch();
+  try {
+    getPostHog()?.opt_out_capturing();
+  } catch {
+    // Blocked storage (see grantPostHog).
   }
 }
 
@@ -240,7 +262,7 @@ const SURFACE_HEIGHT_VAR = '--mv-cookie-banner-h';
 const COOKIE_UI_CSS = `
 .mv-cc {
   position: fixed;
-  z-index: 9999;
+  z-index: 110;
   font-family: var(--mv-font-body);
   color: var(--mv-ink);
   -webkit-font-smoothing: antialiased;
@@ -260,10 +282,18 @@ const COOKIE_UI_CSS = `
   gap: 12px 24px;
   max-width: var(--mv-container);
   margin: 0 auto;
-  padding: 12px 40px calc(12px + env(safe-area-inset-bottom));
+  padding: 12px max(var(--mv-cc-gutter), env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(var(--mv-cc-gutter), env(safe-area-inset-left));
+  --mv-cc-gutter: 40px;
 }
-@media (max-width: 900px) { .mv-cc-bar-inner { padding-left: 24px; padding-right: 24px; } }
-@media (max-width: 480px) { .mv-cc-bar-inner { padding-left: 20px; padding-right: 20px; } }
+@media (max-width: 900px) { .mv-cc-bar-inner { --mv-cc-gutter: 24px; } }
+@media (max-width: 480px) { .mv-cc-bar-inner { --mv-cc-gutter: 20px; } }
+/* A landscape phone: one row, tighter type, the two choices still equal. */
+@media (max-height: 500px) {
+  .mv-cc-bar-inner { flex-wrap: nowrap; padding-top: 8px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+  .mv-cc-body { font-size: 13px; line-height: 18px; }
+  .mv-cc-actions { flex-wrap: nowrap; }
+  .mv-cc-actions .mv-btn { min-height: 40px; padding: 0 14px; }
+}
 .mv-cc-body {
   flex: 1 1 360px;
   min-width: 0;
@@ -298,7 +328,7 @@ const COOKIE_UI_CSS = `
   text-decoration-color: var(--mv-line-step);
   white-space: nowrap;
   cursor: pointer;
-  transition: color .15s;
+  transition: color var(--mv-dur-1);
 }
 .mv-cc-text:hover { color: var(--mv-ink); }
 
@@ -315,7 +345,7 @@ const COOKIE_UI_CSS = `
 }
 @media (min-width: 640px) {
   .mv-cc-sheet {
-    left: 20px; right: auto; bottom: 20px;
+    left: max(20px, env(safe-area-inset-left)); right: auto; bottom: calc(20px + env(safe-area-inset-bottom));
     width: min(540px, calc(100vw - 40px));
     padding: 24px;
     border-bottom: 1px solid var(--mv-line);
@@ -352,7 +382,7 @@ const COOKIE_UI_CSS = `
   font-family: var(--mv-font-mono);
   font-size: 13px;
   font-weight: 500;
-  line-height: 20px;
+  line-height: 18px;
   color: var(--mv-ink);
 }
 .mv-cc-row-tag { font-family: var(--mv-font-body); font-size: 13px; color: var(--mv-ink-3); }
@@ -366,34 +396,38 @@ const COOKIE_UI_CSS = `
 }
 .mv-cc-sheet-actions .mv-cc-text { margin-left: auto; }
 
-/* Switch: ink when on (selection, not status), raised step when off */
+/* Switch: ink when on (selection, not status), raised step when off. The
+   26px track sits inside a 44px target (the padding is the hit area; the
+   fill is clipped to the track). */
 .mv-cc-switch {
   position: relative;
+  box-sizing: content-box;
   width: 44px; height: 26px;
-  margin-top: 2px;
-  padding: 0;
+  margin-top: -7px;
+  padding: 9px 0;
   border: 0;
   border-radius: var(--mv-radius-pill);
   background: var(--mv-surface-3);
+  background-clip: content-box;
   cursor: pointer;
-  transition: background .2s;
+  transition: background var(--mv-dur-1);
 }
 .mv-cc-switch[aria-checked="true"] { background: var(--mv-ink); }
 .mv-cc-switch[aria-disabled="true"] { background: var(--mv-line-step); cursor: not-allowed; }
 .mv-cc-switch-knob {
   position: absolute;
-  top: 3px; left: 3px;
+  top: 12px; left: 3px;
   width: 20px; height: 20px;
   border-radius: 50%;
   background: var(--mv-ink-2);
-  transition: transform 160ms var(--mv-ease-expo), background .2s;
+  transition: transform var(--mv-dur-2) var(--mv-ease-expo), background var(--mv-dur-1);
 }
 .mv-cc-switch[aria-checked="true"] .mv-cc-switch-knob,
 .mv-cc-switch[aria-disabled="true"] .mv-cc-switch-knob { transform: translateX(18px); background: var(--mv-bg); }
 
 /* The settled note */
 .mv-cc-toast {
-  left: 20px; right: 20px; bottom: 20px;
+  left: max(20px, env(safe-area-inset-left)); right: 20px; bottom: calc(20px + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   gap: 12px;
@@ -408,7 +442,7 @@ const COOKIE_UI_CSS = `
 .mv-cc-toast-msg { font-size: 15px; line-height: 20px; }
 /* The kit's policy stops the entrances; the knob's slide is the one local move. */
 @media (prefers-reduced-motion: reduce) {
-  .mv-cc-switch-knob { transition: background .2s; }
+  .mv-cc-switch-knob { transition: background var(--mv-dur-1); }
 }
 `;
 

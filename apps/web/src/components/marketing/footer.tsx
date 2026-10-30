@@ -98,6 +98,9 @@ export async function Footer() {
       <div className="mv-footer-bottom">
         <span>{t('bottomBar')}</span>
         <span className="mv-footer-bottom-right">
+          {/* The visible name of the one unlabelled control here; the button
+              keeps its own action label for assistive tech. */}
+          <span aria-hidden="true">{t('theme')}</span>
           <ThemeToggle className="mv-icon-btn" labels={themeLabels} />
         </span>
       </div>

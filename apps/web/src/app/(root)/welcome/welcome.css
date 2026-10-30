@@ -70,6 +70,21 @@
   gap: 40px;
   min-width: 0;
 }
+/* H1 → lede 28 (the spacing contract). */
+.wl-head {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 0;
+}
+.wl-subtitle {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--mv-ink-2);
+  text-wrap: pretty;
+}
 
 
 /* ── Reasons: hairline rows, icon inline with the sentence ─────── */
@@ -210,7 +225,7 @@
   .wl-lead {
     display: contents;
   }
-  .wl-title {
+  .wl-head {
     order: 1;
   }
   .wl-reasons {

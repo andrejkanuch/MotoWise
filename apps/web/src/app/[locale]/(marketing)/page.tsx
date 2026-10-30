@@ -18,8 +18,9 @@ import {
   buildWebSite,
 } from '@/lib/seo/schema';
 
-// Edge cache for 1 hour, stale-while-revalidate for 24 hours.
-export const revalidate = 3600;
+// A day: the page's only external data, the App Store rating, is itself
+// cached for a day, so an hourly regeneration only paid ISR writes.
+export const revalidate = 86400;
 
 interface PageProps {
   params: Promise<{ locale: string }>;

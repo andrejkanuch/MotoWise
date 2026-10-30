@@ -290,7 +290,12 @@ export default async function ComparePage({ params }: PageProps) {
       <section className={`mv-cmp-wrap ${COMPARE_SECTION.weight}`}>
         <h2 className="mv-h2">{t('matrixTitle')}</h2>
         <p className="mv-cmp-note mt-4">{t('matrixSubtitle')}</p>
-        <div className="mt-8 overflow-x-auto">
+        <section
+          className="mv-cmp-tablewrap is-wide mt-8"
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be keyboard-reachable
+          tabIndex={0}
+          aria-label={t('matrixTitle')}
+        >
           <table className="mv-table mv-cmp-table" style={{ minWidth: 880 }}>
             <thead>
               <tr>
@@ -317,7 +322,10 @@ export default async function ComparePage({ params }: PageProps) {
                   {APPS.map((app) => {
                     const mark = app[field] ? 'yes' : 'no';
                     return (
-                      <td key={`${app.key}-${field}`} className="is-center">
+                      <td
+                        key={`${app.key}-${field}`}
+                        className={app.key === 'app0' ? 'is-center is-mv' : 'is-center'}
+                      >
                         <CompareMarkCell mark={mark} label={markLabels[mark]} />
                       </td>
                     );
@@ -332,7 +340,9 @@ export default async function ComparePage({ params }: PageProps) {
                   <td
                     key={`${app.key}-price`}
                     className={
-                      app.key === 'app0' ? 'is-center mv-figure' : 'is-center mv-figure is-comp'
+                      app.key === 'app0'
+                        ? 'is-center is-mv mv-figure'
+                        : 'is-center mv-figure is-comp'
                     }
                     style={{ minWidth: 120 }}
                   >
@@ -342,7 +352,7 @@ export default async function ComparePage({ params }: PageProps) {
               </tr>
             </tbody>
           </table>
-        </div>
+        </section>
         <p className="mv-cmp-meta mt-5" style={{ maxWidth: '72ch' }}>
           {t('methodology', dated)}
         </p>

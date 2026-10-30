@@ -82,7 +82,7 @@ const PIN_STYLE = `
   display: grid; place-items: center;
   font-family: var(--mv-font-display); font-weight: 600;
   font-variant-numeric: tabular-nums;
-  transition: transform 160ms var(--mv-ease-expo), background-color 160ms, border-color 160ms, color 160ms;
+  transition: transform var(--mv-dur-2) var(--mv-ease-expo), background-color var(--mv-dur-1), border-color var(--mv-dur-1), color var(--mv-dur-1);
 `;
 
 const POPUP_STYLE = `

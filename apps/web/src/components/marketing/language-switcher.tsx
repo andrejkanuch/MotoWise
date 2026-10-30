@@ -41,7 +41,7 @@ function isI18nRoute(path: string | null): boolean {
 
 /* A native select dressed as a ghost control: body face, 44px tall,
    control radius; focus comes from the root grammar. Options sit on the
-   raised step. */
+   raised step. The transparent border is what forced colours draw. */
 const SWITCHER_CSS = `
 .mv-lang {
   position: relative;
@@ -53,7 +53,7 @@ const SWITCHER_CSS = `
   -webkit-appearance: none;
   min-height: 44px;
   padding: 0 32px 0 12px;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: var(--mv-radius-control);
   background: transparent;
   font-family: var(--mv-font-body);
@@ -61,7 +61,7 @@ const SWITCHER_CSS = `
   font-weight: 500;
   color: var(--mv-ink-2);
   cursor: pointer;
-  transition: color .15s, background .15s;
+  transition: color var(--mv-dur-1), background var(--mv-dur-1);
 }
 .mv-lang-select:hover {
   color: var(--mv-ink);
@@ -116,7 +116,7 @@ export function LanguageSwitcher() {
           </option>
         ))}
       </select>
-      <ChevronDown size={14} aria-hidden="true" className="mv-lang-chevron" />
+      <ChevronDown size={16} aria-hidden="true" className="mv-lang-chevron" />
     </div>
   );
 }

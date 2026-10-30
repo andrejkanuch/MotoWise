@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import Link from 'next/link';
 
 /**
@@ -23,6 +24,9 @@ export const metadata: Metadata = {
   description: 'Piel — a personalized skincare companion. Privacy and support.',
 };
 
+// Piel's own face, loaded only here (the MotoVault shell no longer ships it).
+const plusJakarta = Plus_Jakarta_Sans({ subsets: ['latin'], display: 'swap' });
+
 const PIEL = {
   bg: '#F8F4EC',
   surface: '#FFFFFF',
@@ -39,7 +43,7 @@ export default function PielLayout({ children }: { children: React.ReactNode }) 
         minHeight: '100vh',
         background: PIEL.bg,
         color: PIEL.ink,
-        fontFamily: 'var(--font-sans), system-ui, sans-serif',
+        fontFamily: `${plusJakarta.style.fontFamily}, system-ui, sans-serif`,
       }}
     >
       <header

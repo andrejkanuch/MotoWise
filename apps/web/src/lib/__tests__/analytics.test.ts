@@ -6,6 +6,8 @@ vi.mock('posthog-js', () => ({
 
 const posthog = (await import('posthog-js')).default;
 const { trackStoreCtaClick } = await import('../analytics');
+// The SDK is loaded after consent; these tests run with it loaded.
+await (await import('../posthog-client')).loadPostHog();
 const { CtaPageType, CtaPlacement, StorePlatform } = await import('../cta-taxonomy');
 
 describe('trackStoreCtaClick', () => {

@@ -1,5 +1,4 @@
-import { GeistMono } from 'geist/font/mono';
-import { Barlow_Condensed, Plus_Jakarta_Sans } from 'next/font/google';
+import { Barlow_Condensed } from 'next/font/google';
 import Script from 'next/script';
 import { NextIntlClientProvider } from 'next-intl';
 import { AnalyticsWithConsent } from '@/components/analytics-consent';
@@ -13,14 +12,10 @@ import { QueryProvider } from '@/providers/query-provider';
 import { ThemeProvider } from '@/providers/theme-provider';
 import './globals.css';
 
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-sans',
-});
-
 // The Race Plate display face (apps/mobile/DESIGN.md): condensed numerals
-// and headlines. Loaded here so every surface resolves --font-plate.
+// and headlines. Loaded here so every surface resolves --font-plate. It is the
+// only web font in the shell: sentences use the system stack (--mv-font-body),
+// code the system mono (--mv-font-mono); Piel loads its own face.
 const barlowCondensed = Barlow_Condensed({
   weight: ['500', '600', '700'],
   subsets: ['latin'],
@@ -53,7 +48,7 @@ export function RootShell({
   return (
     <html
       lang={locale}
-      className={`${plusJakarta.variable} ${barlowCondensed.variable} ${GeistMono.variable} antialiased`}
+      className={`${barlowCondensed.variable} antialiased`}
       suppressHydrationWarning
     >
       <head>

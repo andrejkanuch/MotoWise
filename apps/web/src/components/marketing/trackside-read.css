@@ -577,14 +577,6 @@
   color: var(--mv-ink);
   text-wrap: balance;
 }
-.mv-read-cta .mv-read-cta-sub {
-  font-family: var(--mv-font-body);
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 1.55;
-  color: var(--mv-ink-2);
-  max-width: 56ch;
-}
 .mv-read-cta .mv-btn {
   align-self: flex-start;
 }
@@ -1079,7 +1071,7 @@
 /* Results: the one card-styled element on the tool page */
 .mv-tool-results {
   position: sticky;
-  top: 96px;
+  top: calc(var(--mv-nav-h, 72px) + 24px);
   padding: 32px;
   border: 1px solid var(--mv-line);
   border-radius: var(--mv-radius-card);

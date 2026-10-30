@@ -43,6 +43,7 @@ const securityError = () => {
 
 import React, { act, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
+import { loadPostHog } from '@/lib/posthog-client';
 import {
   applyPostHogConsent,
   CookieConsentProvider,
@@ -50,7 +51,14 @@ import {
   useCookieConsent,
 } from '../cookie-consent';
 
-afterEach(() => {
+// PostHog is loaded after consent; these tests run with the SDK already in,
+// so every consent call reaches it synchronously.
+await loadPostHog();
+
+afterEach(async () => {
+  // Let lazy account-consent writes from this test land before the mocks reset.
+  await vi.dynamicImportSettled();
+  await new Promise((resolve) => setTimeout(resolve, 0));
   window.sessionStorage.clear();
   // biome-ignore lint/suspicious/noDocumentCookie: test reset of the attribution cookie
   document.cookie = 'mv_ft=; path=/; max-age=0';
@@ -240,7 +248,9 @@ describe('CookieConsentProvider reset (banner Undo)', () => {
     act(() => root.render(createElement(CookieConsentProvider, null, createElement(Probe))));
     return { probe, root };
   };
+  // The Supabase client is a lazy import inside the account-consent writes.
   const settle = async () => {
+    await vi.dynamicImportSettled();
     for (let i = 0; i < 5; i++) await Promise.resolve();
   };
 

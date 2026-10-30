@@ -7,7 +7,6 @@ import { type CSSProperties, useCallback, useEffect, useRef, useState } from 're
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useModal } from '@/hooks/use-modal';
 import { Link, usePathname } from '@/i18n/navigation';
-import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { LanguageSwitcher } from './language-switcher';
 
 /* Three plain links: the features index, the route directory, Pro. No
@@ -17,6 +16,20 @@ const NAV_LINKS = [
   { key: 'explore', href: '/explore' },
   { key: 'pro', href: '/pro' },
 ] as const;
+
+const IDLE_TIMEOUT_MS = 2000;
+const IDLE_FALLBACK_MS = 200;
+
+/** Runs `fn` once the main thread is idle (a short timeout where
+ *  requestIdleCallback is missing); returns the cancel. */
+function whenIdle(fn: () => void): () => void {
+  if (typeof window.requestIdleCallback === 'function') {
+    const id = window.requestIdleCallback(fn, { timeout: IDLE_TIMEOUT_MS });
+    return () => window.cancelIdleCallback(id);
+  }
+  const id = window.setTimeout(fn, IDLE_FALLBACK_MS);
+  return () => window.clearTimeout(id);
+}
 
 const SCROLL_ACTIVATE = 80;
 const SCROLL_DEACTIVATE = 20;
@@ -33,9 +46,11 @@ const COOKIE_BANNER_HEIGHT_VAR = '--mv-cookie-banner-h';
  * `.mv-navbar[data-scrolled]` / `.mv-navbar:not([data-scrolled])`, so the
  * open mobile sheet also sets data-scrolled: it leaves the dark hero scene
  * and sits on the same ground as the sheet (opaque, no blur). Only colour
- * transitions on the scroll flip; the 8px padding step snaps. The bar
- * collapses to the sheet below 1024px so the German, Spanish and Polish
- * labels never wrap inside it. Reduced motion is the kit's policy.
+ * transitions on the scroll flip; the 8px padding step snaps. The gutter
+ * lives on the inner container (40/24/20, never under a notch), so the
+ * wordmark shares the content edge with every section. The bar collapses
+ * to the sheet at the kit's 900 step; 901–1024 tightens the link padding
+ * so the German, Spanish and Polish labels never wrap inside it. Reduced motion is the kit's policy.
  */
 const NAVBAR_CSS = `
 .mv-navbar {
@@ -43,15 +58,15 @@ const NAVBAR_CSS = `
   top: 0; left: 0; right: 0;
   z-index: 100;
   min-height: 72px;
-  padding: 14px 40px;
+  padding: 14px 0;
   font-family: var(--mv-font-body);
   color: var(--mv-ink);
   background: transparent;
   border-bottom: 1px solid transparent;
-  transition: background .3s var(--mv-ease), border-color .3s var(--mv-ease);
+  transition: background var(--mv-dur-3) var(--mv-ease), border-color var(--mv-dur-3) var(--mv-ease);
 }
 .mv-navbar[data-scrolled] {
-  padding: 10px 40px;
+  padding: 10px 0;
   min-height: 64px;
   background: var(--mv-surface-2-glass);
   border-bottom-color: var(--mv-line);
@@ -72,6 +87,8 @@ const NAVBAR_CSS = `
   width: 100%;
   max-width: var(--mv-container);
   margin: 0 auto;
+  padding: 0 max(var(--mv-nav-gutter), env(safe-area-inset-right)) 0 max(var(--mv-nav-gutter), env(safe-area-inset-left));
+  --mv-nav-gutter: 40px;
 }
 .mv-nav-brand {
   display: inline-flex;
@@ -114,12 +131,16 @@ const NAVBAR_CSS = `
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
-  transition: color .15s, background .15s;
+  transition: color var(--mv-dur-1), background var(--mv-dur-1);
 }
 .mv-nav-link:hover {
   color: var(--mv-ink);
   background: var(--mv-fill);
 }
+/* Over the hero photograph the scrim is lightest where the links sit:
+   resting links read in full ink there. */
+.mv-navbar:not([data-scrolled]) .mv-nav-link,
+.mv-navbar:not([data-scrolled]) .mv-lang-select { color: var(--mv-ink); }
 .mv-nav-right {
   display: flex;
   align-items: center;
@@ -128,7 +149,7 @@ const NAVBAR_CSS = `
 /* The icon buttons are the kit's .mv-icon-btn; the account action is the
    kit's .mv-btn (.is-compact in the bar, .mv-btn-block in the sheet) and the
    sign-in link shares .mv-nav-link with the rest of the bar. */
-.mv-nav-burger {
+.mv-icon-btn.mv-nav-burger {
   display: none;
 }
 /* Mobile sheet: full height on the ground, no blur. Its actions clear the
@@ -149,7 +170,7 @@ const NAVBAR_CSS = `
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  padding: 16px 24px calc(24px + env(safe-area-inset-bottom) + var(${COOKIE_BANNER_HEIGHT_VAR}, 0px));
+  padding: 16px max(24px, env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom) + var(${COOKIE_BANNER_HEIGHT_VAR}, 0px)) max(24px, env(safe-area-inset-left));
 }
 .mv-nav-sheet-group {
   display: flex;
@@ -184,15 +205,25 @@ const NAVBAR_CSS = `
   margin-top: auto;
   padding-top: 16px;
 }
+/* 901–1024: the full bar still fits in every locale once the links tighten. */
 @media (max-width: 1024px) {
-  .mv-nav-links, .mv-nav-right { display: none; }
-  .mv-nav-burger { display: inline-flex; }
+  .mv-nav-link { padding: 0 8px; }
+  .mv-nav-right { gap: 0; }
 }
 @media (max-width: 900px) {
-  .mv-navbar, .mv-navbar[data-scrolled] { padding-left: 24px; padding-right: 24px; }
+  .mv-nav-links, .mv-nav-right { display: none; }
+  .mv-icon-btn.mv-nav-burger { display: inline-flex; }
+  .mv-navbar-inner { --mv-nav-gutter: 24px; }
 }
 @media (max-width: 480px) {
-  .mv-navbar, .mv-navbar[data-scrolled] { padding-left: 20px; padding-right: 20px; }
+  .mv-navbar-inner { --mv-nav-gutter: 20px; }
+}
+/* A landscape phone: the sheet's copper action stays above the fold. */
+@media (max-height: 500px) {
+  .mv-nav-sheet { padding-top: 56px; }
+  .mv-nav-sheet-link { min-height: 44px; font-size: 18px; line-height: 24px; }
+  .mv-nav-sheet-actions { flex-direction: row; }
+  .mv-nav-sheet-actions > * { flex: 1; }
 }
 `;
 
@@ -211,18 +242,37 @@ export function Navbar() {
 
   const themeLabels = { toLight: t('themeToLight'), toDark: t('themeToDark') };
 
-  // Check auth state on mount
+  // Auth state, once the page is idle: the Supabase client is a lazy chunk,
+  // so it never sits in the first-load bundle of a marketing page. Until it
+  // answers the bar shows the signed-out actions (the common case).
   useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsLoggedIn(!!session);
-    });
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session);
-    });
-    return () => subscription.unsubscribe();
+    let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
+    const check = async () => {
+      const { getSupabaseBrowserClient } = await import('@/lib/supabase-browser');
+      if (cancelled) return;
+      const supabase = getSupabaseBrowserClient();
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!cancelled) setIsLoggedIn(!!session);
+      });
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        setIsLoggedIn(!!session);
+      });
+      unsubscribe = () => subscription.unsubscribe();
+    };
+    const run = () => {
+      check().catch(() => {
+        // A failed chunk load leaves the signed-out actions, which still work.
+      });
+    };
+    const cancelIdle = whenIdle(run);
+    return () => {
+      cancelled = true;
+      cancelIdle();
+      unsubscribe?.();
+    };
   }, []);
 
   // Scroll hysteresis
@@ -335,9 +385,9 @@ export function Navbar() {
             aria-label={mobileOpen ? t('closeMenu') : t('openMenu')}
           >
             {mobileOpen ? (
-              <X size={22} aria-hidden="true" />
+              <X size={18} aria-hidden="true" />
             ) : (
-              <Menu size={22} aria-hidden="true" />
+              <Menu size={18} aria-hidden="true" />
             )}
           </button>
         </div>

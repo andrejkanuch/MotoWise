@@ -40,7 +40,8 @@ const SCREENSHOT_HEIGHT = 2622;
  * a deeper band with a screen bled off its bottom edge (rides), a screen bled
  * off the right edge (trips). Each block headline is the section's real
  * heading (`.mv-h2`); the intro statement above them is a sentence, not a
- * heading. Entrances: visible by default; `.mv-reveal` lifts the plate only.
+ * heading. Motion: visible by default; the maintenance plate lays its stripe
+ * on its own scroll timeline (no `.mv-reveal` on that object).
  */
 export function FeaturesGrid() {
   const t = useTranslations('Features');
@@ -85,7 +86,7 @@ export function FeaturesGrid() {
         {/* 2 · Maintenance — the Bike Plate left, copy right */}
         <article className="fx-block fx-block-rev">
           <FeatureCopy {...maintenance} />
-          <div className="fx-art fx-art-plate mv-reveal">
+          <div className="fx-art fx-art-plate fx-plate-lay">
             <BikePlate
               figure={t('grid.maintenance.plateFigure')}
               unit={t('grid.maintenance.plateUnit')}
@@ -166,14 +167,14 @@ function FeatureCopy({
 }
 
 const FEATURES_CSS = `
-.fx-section { padding: 120px 0 0; overflow-x: clip; }
+.fx-section { padding: 120px 0 0; overflow-x: clip; container-type: inline-size; }
 .fx-container { max-width: var(--mv-container); margin: 0 auto; padding: 0 40px; }
 .fx-head { max-width: 880px; }
 .fx-muted { color: var(--mv-ink-3); }
 
 .fx-block {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 64px;
   align-items: center;
   padding: 64px 0;
@@ -207,11 +208,12 @@ const FEATURES_CSS = `
 .fx-art-plate { display: flex; justify-content: flex-start; }
 
 /* Rides: a deeper step of the ramp, full width; the screen is cut by the
-   band's bottom edge, keyline on the three visible sides. */
+   band's bottom edge, keyline on the three visible sides. The crop starts
+   below the capture's status bar. */
 .fx-band { background: var(--mv-bg-2); margin-top: 96px; overflow: hidden; }
 .fx-band-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 64px;
   align-items: end;
 }
@@ -226,38 +228,75 @@ const FEATURES_CSS = `
   overflow: hidden;
   border: 1px solid var(--mv-line);
   border-bottom: 0;
-  border-radius: var(--mv-radius-screen) var(--mv-radius-screen) 0 0;
+  border-radius: var(--mv-radius-crop) var(--mv-radius-crop) 0 0;
   background: var(--mv-surface);
 }
-.fx-cut-img { width: 100%; height: auto; display: block; }
+.fx-cut-img { width: 100%; height: 100%; object-fit: cover; object-position: center 8%; display: block; }
 
 /* Trips: the screen runs off the right edge of the viewport; the section
-   clips the overshoot so the page never relies on body overflow. */
+   clips the overshoot so the page never relies on body overflow. Container
+   units measure the section, never the scrollbar. */
 .fx-art-bleed {
-  margin-right: calc(-1 * ((100vw - min(100vw, var(--mv-container))) / 2 + 40px));
+  margin-right: calc(-1 * (max(0px, (100cqw - var(--mv-container)) / 2) + 40px));
   height: 560px;
   overflow: hidden;
   border: 1px solid var(--mv-line);
   border-right: 0;
-  border-radius: var(--mv-radius-screen) 0 0 var(--mv-radius-screen);
+  border-radius: var(--mv-radius-crop) 0 0 var(--mv-radius-crop);
   background: var(--mv-surface);
 }
-.fx-bleed-img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+.fx-bleed-img { width: 100%; height: 100%; object-fit: cover; object-position: center 8%; display: block; }
 
+/* The stripe is laid down by the scroll. The plate's two signature
+   keyframes (mv-plate-settle, mv-plate-stripe-lay) run on the plate's own
+   view timeline: the settle over the first part of its entry, the stripe
+   over the rest. Entrance only, transform only, clipped by the plate.
+   Without scroll-timeline support the plate is simply complete. The fill
+   never animates: the state is a record. */
+@supports (animation-timeline: view()) {
+  .fx-plate-lay .mv-plate {
+    view-timeline: --fx-plate block;
+    animation: mv-plate-settle var(--mv-ease-expo) both;
+    animation-duration: auto;
+    animation-timeline: --fx-plate;
+    animation-range: entry 5% entry 45%;
+  }
+  .fx-plate-lay .mv-plate-stripe {
+    animation: mv-plate-stripe-lay var(--mv-ease-expo) both;
+    animation-duration: auto;
+    animation-timeline: --fx-plate;
+    animation-range: entry 15% entry 70%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fx-plate-lay .mv-plate,
+  .fx-plate-lay .mv-plate-stripe { animation: none; }
+  .fx-plate-lay .mv-plate-stripe { transform: rotate(45deg); }
+}
+
+/* Tablet keeps the two-up pairs (a 260px phone beside 328px of copy fits
+   from 768); only the gutter steps down. */
 @media (max-width: 900px) {
   .fx-container { padding: 0 24px; }
   .fx-section { padding-top: 96px; }
-  .fx-block { grid-template-columns: 1fr; gap: 40px; padding: 48px 0; }
+  .fx-block { gap: 40px; padding: 48px 0; }
   .fx-head + .fx-block { margin-top: 40px; }
+  .fx-block-trips { padding: 72px 0 64px; }
+  .fx-band { margin-top: 64px; }
+  .fx-band-grid { gap: 40px; }
+  .fx-band-copy { padding: 96px 0; }
+  .fx-art-cut { width: 300px; height: 380px; margin: 64px 0 0; }
+  .fx-art-bleed { margin-right: -24px; height: 420px; }
+}
+@media (max-width: 767px) {
+  .fx-block { grid-template-columns: minmax(0, 1fr); }
   .fx-block-rev .fx-copy { order: 1; }
   .fx-block-rev .fx-art { order: 2; }
-  .fx-block-trips { padding: 72px 0 64px; }
   .fx-art-phone { justify-content: flex-start; }
-  .fx-band { margin-top: 64px; }
-  .fx-band-grid { grid-template-columns: 1fr; gap: 0; }
+  .fx-band-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .fx-band-copy { padding: 96px 0 0; }
-  .fx-art-cut { width: 300px; height: 380px; margin: 48px 0 0; }
-  .fx-art-bleed { margin-right: 0; height: 420px; border-right: 1px solid var(--mv-line); border-radius: var(--mv-radius-screen); }
+  .fx-art-cut { margin: 48px 0 0; }
+  .fx-art-bleed { margin-right: 0; border-right: 1px solid var(--mv-line); border-radius: var(--mv-radius-crop); }
 }
 @media (max-width: 480px) {
   .fx-container { padding: 0 20px; }

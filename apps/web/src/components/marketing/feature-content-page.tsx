@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { FeatureCta } from '@/components/marketing/feature-cta';
@@ -69,6 +70,12 @@ interface FeatureContentPageProps {
   screenshots: { src: string; alt: string }[];
   /** An app object (a Bike Plate, a route) that sits beside the headline. */
   heroVisual?: ReactNode;
+  /**
+   * Without a `heroVisual`, the first screenshot is cut into the hero's right
+   * column (the band's bottom edge crops it) and the pair below keeps the
+   * rest. Pass `false` when the first shot is too small to carry that size.
+   */
+  heroCut?: boolean;
   /** Defaults to `featuresTitle` + `f1…f3` keys of the namespace. */
   features?: { title: string; items: FeatureItem[] };
   steps?: { title: string; items: FeatureStep[] };
@@ -80,13 +87,13 @@ interface FeatureContentPageProps {
   faqItems?: FeatureFaqItem[];
 }
 
-/** Reading copy: Body 17/1.6 on a 68ch measure. */
+/** Reading copy: Body 17/1.6 on the shared prose measure (60ch, ~75–80 characters). */
 const BODY_STYLE = {
   margin: 0,
   fontSize: '17px',
   lineHeight: 1.6,
   color: 'var(--mv-ink-2)',
-  maxWidth: '68ch',
+  maxWidth: 'var(--mv-measure)',
   textWrap: 'pretty',
 } as const;
 
@@ -95,11 +102,39 @@ const BODY_COMPACT_STYLE = { ...BODY_STYLE, fontSize: '16px', lineHeight: 1.55 }
 
 const PARAGRAPH_GAP = { first: '16px', rest: '24px' } as const;
 
+/** Space between the hero's hairline and the phone frame when the hero took the first shot. */
+const PAIR_GAP_AFTER_CUT = 96;
+
+/* Template-scoped styles (the pair's own `<style>` pattern):
+   - The hero cut: the first screenshot stands on the hero's bottom hairline,
+     cropped by it, on a frameless crop radius (the page's one device frame
+     stays in the pair below).
+   - The comparison table scrolls inside a focusable region with the row
+     header pinned, like the compare matrix. */
+const FEATURE_PAGE_CSS = `
+.mv-hero-cut {
+  width: 380px;
+  max-width: 100%;
+  height: 440px;
+  overflow: hidden;
+  border: 1px solid var(--mv-line);
+  border-bottom: 0;
+  border-radius: var(--mv-radius-crop) var(--mv-radius-crop) 0 0;
+  background: var(--mv-surface);
+}
+.mv-hero-cut img { width: 100%; height: auto; display: block; }
+@media (max-width: 900px) {
+  .mv-hero-cut { width: 300px; height: 340px; }
+}
+.mv-feature-tablewrap { margin-top: 40px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.mv-feature-tablewrap th[scope='row'] { position: sticky; left: 0; z-index: 1; padding-right: 16px; background: var(--mv-bg); }
+`;
+
 function ArrowIcon() {
   return (
     <svg
-      width="15"
-      height="15"
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -117,8 +152,8 @@ function ArrowIcon() {
 function CrumbSeparator() {
   return (
     <svg
-      width="14"
-      height="14"
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -171,6 +206,7 @@ export async function FeatureContentPage({
   route,
   screenshots,
   heroVisual,
+  heroCut = true,
   features,
   steps,
   demo,
@@ -226,57 +262,91 @@ export async function FeatureContentPage({
 
   const wideFeatureList = featureBlock.items.length > 4;
 
+  // B2: a page without an app object opens on its first screenshot instead
+  // of on text alone; that one image is the hero's, so it loads eagerly at high
+  // priority (Next 16 deprecates `priority`; the docs prefer this pair).
+  const heroShot = !heroVisual && heroCut ? (screenshots[0] ?? null) : null;
+  const pairScreenshots = heroShot ? screenshots.slice(1) : screenshots;
+  const heroHasAside = Boolean(heroVisual || heroShot);
+
   return (
     <>
       <JsonLdGraph nodes={graph} />
+      <style
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: static CSS
+        dangerouslySetInnerHTML={{ __html: FEATURE_PAGE_CSS }}
+      />
 
       {/* Hero: breadcrumb, condensed headline, the lede and the store buttons
-          on the ground; an app object beside it when the page has one */}
-      <header className="mv-section-hero" style={{ paddingTop: '120px', paddingBottom: '64px' }}>
-        <div style={{ maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
-          <nav aria-label="Breadcrumb" style={{ marginBottom: '40px' }}>
-            <ol className="mv-crumbs" style={{ margin: 0 }}>
-              <li>
-                <Link href="/">{t('breadcrumbHome')}</Link>
-              </li>
-              <li>
-                <CrumbSeparator />
-                <Link href="/features">{t('breadcrumbFeatures')}</Link>
-              </li>
-              <li>
-                <CrumbSeparator />
-                <span aria-current="page">{breadcrumbTitle}</span>
-              </li>
-            </ol>
-          </nav>
+          on the ground; an app object beside it when the page has one, else
+          the first screenshot cut by the hero's bottom hairline */}
+      <header
+        className="mv-section-hero"
+        style={{ paddingTop: '120px', paddingBottom: heroShot ? 0 : '64px' }}
+      >
+        <nav aria-label="Breadcrumb" style={{ marginBottom: '40px' }}>
+          <ol className="mv-crumbs" style={{ margin: 0 }}>
+            <li>
+              <Link href="/">{t('breadcrumbHome')}</Link>
+            </li>
+            <li>
+              <CrumbSeparator />
+              <Link href="/features">{t('breadcrumbFeatures')}</Link>
+            </li>
+            <li>
+              <CrumbSeparator />
+              <span aria-current="page">{breadcrumbTitle}</span>
+            </li>
+          </ol>
+        </nav>
 
-          <div
-            className={heroVisual ? 'grid gap-12 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]' : ''}
-            style={{ alignItems: 'end' }}
-          >
-            <div>
-              <h1
-                className="mv-section-title"
-                style={{ maxWidth: '14ch', overflowWrap: 'anywhere' }}
-              >
-                {t('heroTitle')}
-              </h1>
-              <p className="mv-section-sub">{t('heroSubtitle')}</p>
-              <div style={{ marginTop: '32px' }}>
-                <StoreButtons pageType={CtaPageType.Feature} placement={CtaPlacement.Hero} />
-              </div>
+        <div
+          className={
+            heroHasAside ? 'grid gap-12 min-[901px]:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]' : ''
+          }
+          style={{
+            alignItems: 'end',
+            borderBottom: heroShot ? '1px solid var(--mv-line)' : undefined,
+          }}
+        >
+          <div className={heroShot ? 'min-[901px]:pb-16' : undefined}>
+            <h1 className="mv-section-title" style={{ maxWidth: '14ch', overflowWrap: 'anywhere' }}>
+              {t('heroTitle')}
+            </h1>
+            <p className="mv-section-sub">{t('heroSubtitle')}</p>
+            <div style={{ marginTop: '32px' }}>
+              <StoreButtons pageType={CtaPageType.Feature} placement={CtaPlacement.Hero} />
             </div>
-            {heroVisual ? (
-              <div style={{ maxWidth: '440px', width: '100%' }} className="md:justify-self-end">
-                {heroVisual}
-              </div>
-            ) : null}
           </div>
+          {heroVisual ? (
+            <div
+              style={{ maxWidth: '440px', width: '100%' }}
+              className="min-[901px]:justify-self-end"
+            >
+              {heroVisual}
+            </div>
+          ) : null}
+          {heroShot ? (
+            <div className="mv-hero-cut min-[901px]:justify-self-end">
+              <Image
+                src={heroShot.src}
+                alt={heroShot.alt}
+                width={1206}
+                height={2622}
+                sizes="(max-width: 900px) 300px, 380px"
+                loading="eager"
+                fetchPriority="high"
+              />
+            </div>
+          ) : null}
         </div>
       </header>
 
-      {/* The page's one authored moment: the phone frame and its panel rise in */}
-      <FeatureScreenshotPair screenshots={screenshots} />
+      {/* The page's one authored moment: the phone frame (and its panel) rise in */}
+      <FeatureScreenshotPair
+        screenshots={pairScreenshots}
+        paddingTop={heroShot ? PAIR_GAP_AFTER_CUT : 0}
+      />
 
       {/* Feature list: a plain hairline list on the ground. Short lists sit
           beside their title; catalogues of five or more run in two columns. */}
@@ -376,7 +446,8 @@ export async function FeatureContentPage({
             </h2>
             {table.body ? <p className="mv-section-sub">{table.body}</p> : null}
           </div>
-          <div style={{ marginTop: '40px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          {/* biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be keyboard-reachable */}
+          <section className="mv-feature-tablewrap" tabIndex={0} aria-label={table.title}>
             <table className="mv-table" style={{ minWidth: '560px', color: 'var(--mv-ink-2)' }}>
               <thead>
                 <tr>
@@ -398,7 +469,7 @@ export async function FeatureContentPage({
                 ))}
               </tbody>
             </table>
-          </div>
+          </section>
         </section>
       ) : null}
 
@@ -447,8 +518,8 @@ export async function FeatureContentPage({
                     {question}
                   </span>
                   <svg
-                    width="18"
-                    height="18"
+                    width="16"
+                    height="16"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"

@@ -144,3 +144,49 @@ export function buildStaticMapUrl(opts: StaticMapOptions): string {
 
   return url;
 }
+
+/* ── Route hero map: waypoint pins (and the route line when there is one) ── */
+
+const DARK_BASE = 'https://api.mapbox.com/styles/v1/mapbox/dark-v11/static';
+/** Mapbox caps a static image's overlays; 20 pins keep the URL short too. */
+const MAX_HERO_PINS = 20;
+/** Polyline sample sizes tried in turn until the URL fits. */
+const HERO_POLYLINE_POINTS = [120, 50] as const;
+
+export interface RouteHeroMapOptions {
+  waypoints: ReadonlyArray<{ lat: number; lng: number; sortOrder: number }>;
+  /** Encoded polyline (Google format); null when the route has only waypoints. */
+  polyline?: string | null;
+  /** Pin and line colour as hex without '#' (the ridden-route copper). */
+  color: string;
+  width?: number;
+  height?: number;
+}
+
+/**
+ * A dark static map of a route for the trip hero: a pin per waypoint and,
+ * when the trip has a GPX polyline, the line itself. Real data only: a trip
+ * without waypoints gets `null` and keeps the bare hero.
+ */
+export function buildRouteHeroMapUrl(opts: RouteHeroMapOptions): string | null {
+  const token = mapboxTokenForStaticImages();
+  if (!token || opts.waypoints.length === 0) return null;
+
+  const { color, width = 1200, height = 675 } = opts;
+  const pins = [...opts.waypoints]
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .slice(0, MAX_HERO_PINS)
+    .map((wp) => `pin-s+${color}(${wp.lng.toFixed(5)},${wp.lat.toFixed(5)})`);
+
+  const build = (overlays: string[]) =>
+    `${DARK_BASE}/${overlays.join(',')}/auto/${width}x${height}@2x?padding=60&access_token=${token}`;
+
+  if (opts.polyline) {
+    for (const points of HERO_POLYLINE_POINTS) {
+      const path = encodeURIComponent(simplifyEncodedPolyline(opts.polyline, points));
+      const url = build([`path-4+${color}-0.9(${path})`, ...pins]);
+      if (url.length <= MAX_URL_LENGTH) return url;
+    }
+  }
+  return build(pins);
+}

@@ -138,22 +138,33 @@ const COMPARE_CSS = `
 @media (max-width: 900px) { .mv-cmp-wrap { padding-left: 24px; padding-right: 24px; } }
 @media (max-width: 480px) { .mv-cmp-wrap { padding-left: 20px; padding-right: 20px; } }
 .mv-cmp-sub { font-size: 20px; font-weight: 600; line-height: 1.25; color: var(--mv-ink); margin: 0; }
-.mv-cmp-body { color: var(--mv-ink-2); font-size: 17px; line-height: 1.6; max-width: 68ch; margin: 0; text-wrap: pretty; }
+.mv-cmp-body { color: var(--mv-ink-2); font-size: 17px; line-height: 1.6; max-width: var(--mv-measure); margin: 0; text-wrap: pretty; }
 .mv-cmp-body.is-compact { font-size: 16px; line-height: 1.55; }
 .mv-cmp-body.is-strong { color: var(--mv-ink); }
 .mv-cmp-body.is-ink { color: var(--mv-ink); font-weight: 500; }
 .mv-cmp-body.is-full { max-width: none; }
-.mv-cmp-note { color: var(--mv-ink-3); font-size: 13px; line-height: 18px; max-width: 68ch; margin: 0; text-wrap: pretty; }
-.mv-cmp-meta { color: var(--mv-ink-3); font-size: 13px; line-height: 18px; margin: 0; font-variant-numeric: tabular-nums; }
+.mv-cmp-note { color: var(--mv-ink-3); font-size: 13px; line-height: 18px; max-width: var(--mv-measure); margin: 0; text-wrap: pretty; }
+.mv-cmp-meta { color: var(--mv-ink-3); font-size: 13px; line-height: 18px; margin: 0; font-variant-numeric: tabular-nums; text-wrap: pretty; }
 .mv-cmp-page .mv-cmp-grid-row { display: grid; align-items: start; gap: 4px 40px; }
+.mv-cmp-page .mv-cmp-grid-row > p { max-width: var(--mv-measure); }
 .mv-cmp-page .mv-rows .mv-link { font-size: 16px; line-height: 1.55; }
 .mv-cmp-dirlink { font-size: 17px; font-weight: 600; line-height: 1.45; color: var(--mv-ink); text-decoration: none; }
 .mv-cmp-dirlink:hover { color: var(--mv-copper-text); text-decoration: underline; text-underline-offset: 3px; }
 .mv-cmp-sources { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.45; }
-.mv-cmp-tablewrap { max-width: 1040px; overflow-x: auto; }
+.mv-cmp-tablewrap { max-width: 1040px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.mv-cmp-tablewrap.is-wide { max-width: none; }
+.mv-cmp-tablewrap:focus-visible { outline-offset: -2px; }
+@supports (animation-timeline: scroll()) {
+  .mv-cmp-tablewrap { animation: mv-cmp-edge linear both; animation-timeline: scroll(self inline); }
+}
+@keyframes mv-cmp-edge {
+  0%, 99% { mask-image: linear-gradient(90deg, black calc(100% - 24px), transparent); }
+  100% { mask-image: none; }
+}
 .mv-cmp-table thead th { white-space: nowrap; }
 .mv-cmp-table th.is-sticky { min-width: 140px; max-width: 220px; }
 .mv-cmp-table th.is-mv { color: var(--mv-ink); font-weight: 600; }
+.mv-cmp-table th.is-mv, .mv-cmp-table td.is-mv { background: var(--mv-surface); }
 .mv-cmp-table .is-label { color: var(--mv-ink); font-weight: 500; }
 .mv-cmp-table .is-note { color: var(--mv-ink-3); }
 .mv-cmp-table .is-comp { color: var(--mv-ink-2); }
@@ -216,7 +227,7 @@ export function CompareMarkCell({
   const { Icon } = MARKS[mark];
   return (
     <span className={children ? 'mv-cmp-mark' : 'mv-cmp-mark is-solo'} data-mark={mark}>
-      <Icon size={15} strokeWidth={mark === 'yes' ? 2.5 : 2} aria-hidden="true" />
+      <Icon size={16} strokeWidth={mark === 'yes' ? 2.5 : 2} aria-hidden="true" />
       <span className="sr-only">{label}</span>
       {children ? <span>{children}</span> : null}
     </span>
@@ -243,7 +254,7 @@ export async function CompareBreadcrumb({
       <ol className="mv-crumbs" style={{ margin: 0 }}>
         {trail.map((item, i) => (
           <li key={item.label}>
-            {i > 0 ? <ChevronRight size={14} strokeWidth={2} aria-hidden="true" /> : null}
+            {i > 0 ? <ChevronRight size={16} strokeWidth={2} aria-hidden="true" /> : null}
             {item.href ? (
               <Link href={item.href}>{item.label}</Link>
             ) : (
@@ -273,7 +284,7 @@ export async function CompareFaq({
           <details key={question} className="mv-disclosure">
             <summary>
               <span>{question}</span>
-              <ChevronDown size={18} strokeWidth={2} aria-hidden="true" />
+              <ChevronDown size={16} strokeWidth={2} aria-hidden="true" />
             </summary>
             <p className="mv-cmp-body is-compact">{answer}</p>
           </details>
@@ -432,7 +443,12 @@ export async function VsComparePage(config: VsComparePageConfig) {
         {config.testingPreambleKey ? (
           <p className="mv-cmp-note mt-4">{t(config.testingPreambleKey, dated)}</p>
         ) : null}
-        <div className="mv-cmp-tablewrap mt-8">
+        <section
+          className="mv-cmp-tablewrap mt-8"
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be keyboard-reachable
+          tabIndex={0}
+          aria-label={comparison.titleKey ? t(comparison.titleKey) : tc('specSheetTitle')}
+        >
           <table
             className="mv-table mv-cmp-table"
             style={{ minWidth: comparisonHead.notes ? 760 : 560 }}
@@ -451,7 +467,7 @@ export async function VsComparePage(config: VsComparePageConfig) {
               {comparisonRows.map((row) => (
                 <tr key={row.feature}>
                   <th scope="row">{row.feature}</th>
-                  <td>
+                  <td className="is-mv">
                     <CompareMarkCell mark={row.marks.mv} label={markLabels[row.marks.mv]}>
                       {row.mv}
                     </CompareMarkCell>
@@ -466,13 +482,18 @@ export async function VsComparePage(config: VsComparePageConfig) {
               ))}
             </tbody>
           </table>
-        </div>
+        </section>
       </section>
 
       {/* Pricing: the table, then the narrative. Figures in the condensed face. */}
       <section className={`mv-cmp-wrap ${COMPARE_SECTION.weight}`}>
         <h2 className="mv-h2">{pricing.titleKey ? t(pricing.titleKey) : tc('pricingTitle')}</h2>
-        <div className="mv-cmp-tablewrap mt-8">
+        <section
+          className="mv-cmp-tablewrap mt-8"
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be keyboard-reachable
+          tabIndex={0}
+          aria-label={pricing.titleKey ? t(pricing.titleKey) : tc('pricingTitle')}
+        >
           <table
             className="mv-table mv-cmp-table"
             style={{ minWidth: pricingHead.notes ? 680 : 520 }}
@@ -491,14 +512,14 @@ export async function VsComparePage(config: VsComparePageConfig) {
               {pricingRows.map((row) => (
                 <tr key={row.plan}>
                   <td className="is-label">{row.plan}</td>
-                  <td className="mv-figure">{row.mv}</td>
+                  <td className="mv-figure is-mv">{row.mv}</td>
                   <td className="mv-figure is-comp">{row.comp}</td>
                   {row.notes !== null ? <td className="is-note">{row.notes}</td> : null}
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </section>
         {pricing.narrativeKey ? (
           <p className="mv-cmp-body mt-8">{t(pricing.narrativeKey)}</p>
         ) : null}

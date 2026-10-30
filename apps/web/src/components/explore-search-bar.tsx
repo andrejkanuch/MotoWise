@@ -370,7 +370,7 @@ export function ExploreSearchBar({
             className="mv-btn mv-btn-primary xp-field-submit"
           >
             Search routes
-            <Icon name="arrow-right" size={14} />
+            <Icon name="arrow-right" size={16} />
           </button>
         </div>
 

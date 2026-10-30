@@ -1,6 +1,6 @@
-import posthog from 'posthog-js';
 import type { CampaignParams } from '@/lib/campaign';
 import { CtaPageType, CtaPlacement, type StoreCtaContext, StorePlatform } from '@/lib/cta-taxonomy';
+import { withPostHog } from '@/lib/posthog-client';
 
 export type { StoreCtaContext };
 // Re-export the taxonomy so existing `@/lib/analytics` imports keep working.
@@ -10,7 +10,7 @@ export { CtaPageType, CtaPlacement, StorePlatform };
 // Web Analytics Wrapper (PostHog)
 // -------------------------------------------------------------------
 // Central typed event tracking for the MotoVault web app. PostHog is
-// initialized in instrumentation-client.ts with opt_out_capturing_by_default.
+// loaded after consent by lib/posthog-client.ts (opt_out_capturing_by_default).
 // Events are no-ops until the user grants consent via the cookie banner.
 //
 // Legacy gtag events (app_store_click, waitlist_signup, blog_read) are
@@ -159,15 +159,15 @@ export function trackEvent<E extends TypedEvent>(event: E, properties: WebEventP
 export function trackEvent(event: UntypedEvent, properties?: Record<string, unknown>): void;
 export function trackEvent(event: WebEventName, properties?: Record<string, unknown>): void;
 export function trackEvent(event: WebEventName, properties?: Record<string, unknown>) {
-  posthog.capture(event, properties);
+  withPostHog((posthog) => posthog.capture(event, properties));
 }
 
 export function identifyUser(userId: string, properties?: Record<string, unknown>) {
-  posthog.identify(userId, properties);
+  withPostHog((posthog) => posthog.identify(userId, properties));
 }
 
 export function resetUser() {
-  posthog.reset();
+  withPostHog((posthog) => posthog.reset());
 }
 
 /**
@@ -193,9 +193,11 @@ export function trackStoreCtaClick(
   };
   // send_instantly beats the page unload when the CTA navigates in the same tab.
   if (ctx.sameTab) {
-    posthog.capture(WebEvent.STORE_CTA_CLICK, props, { send_instantly: true });
+    withPostHog((posthog) =>
+      posthog.capture(WebEvent.STORE_CTA_CLICK, props, { send_instantly: true }),
+    );
   } else {
-    posthog.capture(WebEvent.STORE_CTA_CLICK, props);
+    withPostHog((posthog) => posthog.capture(WebEvent.STORE_CTA_CLICK, props));
   }
   pingCtaCounter({
     page_type: ctx.pageType,

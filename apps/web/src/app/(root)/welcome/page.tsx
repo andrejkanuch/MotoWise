@@ -80,11 +80,16 @@ export default async function WelcomePage() {
     redirect(`/login?redirect=${encodeURIComponent(WELCOME_PATH)}`);
   }
 
-  const [t, tHandoff, messages] = await Promise.all([
+  const [t, tHandoff, allMessages] = await Promise.all([
     getTranslations('Welcome'),
     getTranslations('AppHandoff'),
     getMessages(),
   ]);
+  // The client subtree (QR, copy-link field, sign-in line from garage-ui)
+  // reads only AppHandoff; the page's own Welcome copy renders on the server.
+  const messages = {
+    AppHandoff: (allMessages as Record<string, unknown>).AppHandoff,
+  } as typeof allMessages;
   const account: HandoffAccount = {
     method: signInMethodFromProvider(user.app_metadata?.provider),
     email: user.email ?? null,
@@ -107,9 +112,12 @@ export default async function WelcomePage() {
 
         <main id={MAIN_CONTENT_ID} className="wl-main">
           <div className="wl-lead">
-            {/* The H1 alone: the rows under it are the reasons, the account
-                line in the card names the address. */}
-            <h1 className="mv-section-title wl-title">{t.rich('title', { muted })}</h1>
+            {/* The H1 and the one sentence that splits the work: the app
+                records, the web garage keeps the record (onboard row 12). */}
+            <div className="wl-head">
+              <h1 className="mv-section-title wl-title">{t.rich('title', { muted })}</h1>
+              <p className="wl-subtitle">{t('subtitle')}</p>
+            </div>
 
             <ul className="mv-rows wl-reasons" aria-label={t('reasonsLabel')}>
               {REASONS.map(({ icon: Icon, title }) => (

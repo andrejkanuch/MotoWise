@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { StoreLink } from '@/components/marketing/store-buttons';
+import { GetAppLink } from '@/components/open-in-app-link';
 import { ShareUnavailable } from '@/components/share-unavailable';
-import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
+import { CtaPageType, CtaPlacement } from '@/lib/cta-taxonomy';
 import { fetchRide } from '@/lib/fetch-ride';
 import { formatDate, formatDistance, formatDuration } from '@/lib/format-utils';
 import { settleUpstream } from '@/lib/upstream-error';
@@ -91,7 +91,7 @@ export default async function RidePage({ params }: { params: Promise<{ id: strin
 
       <main className={`sp-main${ride.routeThumbnailUri ? '' : ' sp-main-tall'}`}>
         <h1 className="mv-section-title sp-title">{ride.name ?? 'MotoVault ride'}</h1>
-        <p className="sp-sub">{formatDate(ride.startedAt)}</p>
+        <p className="sp-sub">{formatDate(ride.startedAt)} · A ride recorded with MotoVault</p>
 
         <div className="sp-figures">
           {figures.map(({ label, value }) => {
@@ -116,15 +116,14 @@ export default async function RidePage({ params }: { params: Promise<{ id: strin
             The route, speed and elevation, the bike it was ridden on, and every ride before it.
           </p>
           <div className="sp-cta-actions">
-            <StoreLink
-              platform={StorePlatform.Unknown}
+            <GetAppLink
               pageType={CtaPageType.Ride}
               placement={CtaPlacement.Footer}
               slug={ride.id}
               className="mv-btn mv-btn-primary"
             >
               Get the app
-            </StoreLink>
+            </GetAppLink>
           </div>
         </div>
       </footer>

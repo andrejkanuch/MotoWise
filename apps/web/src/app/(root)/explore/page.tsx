@@ -1,13 +1,13 @@
 import type { TripTemplatesQuery } from '@motovault/graphql';
 import { TripTemplatesDocument } from '@motovault/graphql';
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { Suspense } from 'react';
 import { AppPromo } from '@/components/explore/app-promo';
 import { CountryLedger } from '@/components/explore/country-ledger';
 import { EditorsLedger } from '@/components/explore/editors-ledger';
 import { HeroBold } from '@/components/explore/hero-bold';
-import { PopularStrip, WORLD } from '@/components/explore/popular-strip';
+import { PopularLocal } from '@/components/explore/popular-local';
+import { type PopularTrip, toPopularTrip } from '@/components/explore/popular-strip';
 import { SkeletonRows } from '@/components/explore/primitives';
 import { BASE_URL } from '@/lib/constants';
 import { fetchCountries } from '@/lib/fetch-places';
@@ -18,11 +18,17 @@ type TripTemplateNode = TripTemplatesQuery['tripTemplates']['edges'][number]['no
 
 /* ── Revalidation ─────────────────────────────────────────────── */
 
+// Static: the visitor's country is resolved client-side (PopularLocal), so
+// nothing in the render path reads request headers and the hour of ISR holds.
+export const dynamic = 'force-static';
 export const revalidate = 3600;
+
+/** How many country strips the static page carries for the client to pick from. */
+const LOCAL_STRIP_COUNTRIES = 12;
 
 /* ── Metadata ─────────────────────────────────────────────────── */
 
-const EXPLORE_OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
+const EXPLORE_OG_IMAGE = `${BASE_URL}/images/hero-explore-og.jpg`; // 1200×630, under 300 KB
 
 export async function generateMetadata(): Promise<Metadata> {
   const title = 'Motorcycle routes by country | MotoVault';
@@ -94,65 +100,6 @@ function LoadFailedNotice() {
   );
 }
 
-/* ── Country detection ──────────────────────────────────────── */
-
-function detectCountry(hdrs: Headers): string | undefined {
-  const cf = hdrs.get('cf-ipcountry');
-  if (cf && cf !== 'XX' && cf !== 'T1') return cf.toUpperCase();
-
-  const vercel = hdrs.get('x-vercel-ip-country');
-  if (vercel) return vercel.toUpperCase();
-
-  const custom = hdrs.get('x-country-code');
-  if (custom) return custom.toUpperCase();
-
-  const acceptLang = hdrs.get('accept-language');
-  if (acceptLang) {
-    const regionMatch = acceptLang.match(/[a-z]{2}-([A-Z]{2})/);
-    if (regionMatch) return regionMatch[1];
-
-    const langMatch = acceptLang.match(/^([a-z]{2})/);
-    if (langMatch) {
-      const LANG_TO_COUNTRY: Record<string, string> = {
-        sk: 'SK',
-        cs: 'CZ',
-        de: 'DE',
-        fr: 'FR',
-        it: 'IT',
-        es: 'ES',
-        pt: 'PT',
-        nl: 'NL',
-        pl: 'PL',
-        ro: 'RO',
-        hr: 'HR',
-        el: 'GR',
-        no: 'NO',
-        sv: 'SE',
-        da: 'DK',
-        fi: 'FI',
-        hu: 'HU',
-        bg: 'BG',
-        sl: 'SI',
-        et: 'EE',
-        lv: 'LV',
-        lt: 'LT',
-        ga: 'IE',
-        en: 'US',
-        ja: 'JP',
-        ko: 'KR',
-        zh: 'CN',
-        ar: 'SA',
-        tr: 'TR',
-        ru: 'RU',
-      };
-      const mapped = LANG_TO_COUNTRY[langMatch[1]];
-      if (mapped) return mapped;
-    }
-  }
-
-  return undefined;
-}
-
 /* ── JSON-LD ──────────────────────────────────────────────────── */
 
 const jsonLd = {
@@ -165,18 +112,32 @@ const jsonLd = {
 /* ── Async sections (Suspense boundaries) ────────────────────── */
 
 async function PopularSection({
-  countryCode,
+  countries,
   countriesFailed,
 }: {
-  countryCode: string | undefined;
+  countries: Array<{ code: string; name: string }>;
   countriesFailed: boolean;
 }) {
-  const trips = await fetchTopTrips(4, countryCode);
+  const local = countries.slice(0, LOCAL_STRIP_COUNTRIES);
+  const [world, ...perCountry] = await Promise.all([
+    fetchTopTrips(4),
+    ...local.map((c) => fetchTopTrips(4, c.code.toLowerCase())),
+  ]);
   // The ledger already said the API is down; say it once.
-  if (trips === null) return countriesFailed ? null : <LoadFailedNotice />;
-  if (trips.length === 0) return null;
-  const countryName = countryCode ? (COUNTRY_NAMES[countryCode] ?? countryCode) : WORLD;
-  return <PopularStrip trips={trips} countryName={countryName} />;
+  if (world === null) return countriesFailed ? null : <LoadFailedNotice />;
+
+  const byCountry: Record<string, { name: string; trips: PopularTrip[] }> = {};
+  local.forEach((c, i) => {
+    const trips = perCountry[i];
+    if (trips && trips.length > 0) {
+      byCountry[c.code] = {
+        name: COUNTRY_NAMES[c.code] ?? c.name,
+        trips: trips.slice(0, 4).map(toPopularTrip),
+      };
+    }
+  });
+
+  return <PopularLocal world={world.slice(0, 4).map(toPopularTrip)} byCountry={byCountry} />;
 }
 
 async function EditorSection() {
@@ -201,9 +162,6 @@ function SectionSkeleton() {
 /* ── Page ─────────────────────────────────────────────────────── */
 
 export default async function ExplorePage() {
-  const hdrs = await headers();
-  const countryCode = detectCountry(hdrs);
-
   // Fetch countries for the ledger and stats. A failure is tracked, not
   // swallowed: an outage must not read as "no routes".
   let allCountries: Array<{ code: string; name: string; routeCount: number }> = [];
@@ -245,9 +203,9 @@ export default async function ExplorePage() {
 
       {countriesFailed && <LoadFailedNotice />}
 
-      {/* ===== POPULAR IN YOUR COUNTRY ===== */}
+      {/* ===== POPULAR IN YOUR COUNTRY (picked after mount) ===== */}
       <Suspense fallback={<SectionSkeleton />}>
-        <PopularSection countryCode={countryCode} countriesFailed={countriesFailed} />
+        <PopularSection countries={allCountries} countriesFailed={countriesFailed} />
       </Suspense>
 
       {/* ===== EDITOR'S PICKS ===== */}

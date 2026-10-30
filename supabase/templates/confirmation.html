@@ -41,7 +41,51 @@
     </table>
   </body>
 </html>
-{{ else }}<h2>Confirm your signup</h2>
-
-<p>Follow this link to confirm your user:</p>
-<p><a href="{{ .ConfirmationURL }}">Confirm your mail</a></p>{{ end }}
+{{ else }}<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light only" />
+    <title>Confirm your MotoVault email</title>
+  </head>
+  <body style="margin:0;padding:0;background-color:#F5F3F0;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F5F3F0;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background-color:#FFFFFF;border-radius:12px;">
+            <tr>
+              <td style="padding:32px 28px 8px 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1E1C19;">
+                <p style="margin:0 0 24px 0;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A84A1C;">MotoVault</p>
+                <h1 style="margin:0 0 12px 0;font-size:22px;line-height:28px;font-weight:700;color:#1E1C19;">Confirm your email</h1>
+                <p style="margin:0 0 24px 0;font-size:16px;line-height:24px;color:#4A4642;">Tap the link to finish creating your MotoVault account.</p>
+              </td>
+            </tr>
+            <tr>
+              <td align="left" style="padding:0 28px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="border-radius:10px;background-color:#A84A1C;">
+                      <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:20px;font-weight:600;color:#FFFFFF;text-decoration:none;border-radius:10px;">Confirm email</a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 28px 8px 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#4A4642;">
+                <p style="margin:0 0 24px 0;font-size:15px;line-height:22px;">The link is valid for 1 hour. If you did not sign up for MotoVault, ignore this email.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 28px 28px 28px;border-top:1px solid #E8E4DF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+                <p style="margin:0;font-size:13px;line-height:20px;color:#6B655F;">If the button does not open, copy this address into your browser:<br /><a href="{{ .ConfirmationURL }}" style="color:#A84A1C;text-decoration:underline;word-break:break-all;">{{ .ConfirmationURL }}</a></p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+{{ end }}

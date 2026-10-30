@@ -9,10 +9,12 @@
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── Layout ── */
-/* The explore layout's navbar is fixed (72px at every width, navbar.tsx);
-   the results shell offsets by it once, here. */
-.mv-marketing {
-  --xp-nav-h: 72px;
+/* The navbar's height is published once by the kit (--mv-nav-h: 72 at rest,
+   64 once scrolled). Sticky bars read it; the static offsets below use the
+   resting 72 so nothing in the flow jumps when the bar shrinks. */
+.xp-results-shell,
+.xp-mresults {
+  --xp-nav-rest: 72px;
 }
 
 .xp-wrap {
@@ -97,7 +99,7 @@
 }
 
 .xp-figure-unit {
-  font-size: 0.5em;
+  font-size: max(13px, 0.5em);
   margin-left: 0.12em;
   color: var(--mv-ink-2);
   font-weight: 500;
@@ -136,10 +138,20 @@
   min-width: 0;
 }
 
+/* The photograph runs off the right edge of the viewport and stands the
+   hero's full height (the home's bleed): the page about places lets the
+   place carry the emotion instead of framing it as a card. The wrapper
+   clips the 100vw arithmetic (a classic scrollbar is inside 100vw). */
+.xp-hero-bleed {
+  overflow-x: clip;
+}
+
 .xp-hero-photo {
   position: relative;
-  aspect-ratio: 4 / 5;
-  border-radius: var(--mv-radius-card);
+  align-self: stretch;
+  min-height: 640px;
+  margin-right: calc(-1 * ((100vw - min(100vw, var(--mv-container))) / 2 + 40px));
+  border-radius: var(--mv-radius-card) 0 0 var(--mv-radius-card);
   overflow: hidden;
   background: var(--mv-surface);
 }
@@ -183,6 +195,10 @@
 
 .mv-chip .xp-figure-value {
   font-size: 20px;
+}
+
+.mv-chip .xp-figure-unit {
+  font-size: 13px;
 }
 
 .xp-chip-muted {
@@ -259,7 +275,7 @@
   background: var(--mv-surface);
   color: inherit;
   text-decoration: none;
-  transition: background-color 160ms var(--mv-ease-expo);
+  transition: background-color var(--mv-dur-1) var(--mv-ease-expo);
 }
 
 /* A white tile on paper is a 1.12:1 step; the hairline carries its edge. */
@@ -328,7 +344,7 @@ html:not(.dark) .xp-tile {
 }
 
 .xp-results-head {
-  padding: calc(var(--xp-nav-h) + 24px) 40px 20px;
+  padding: calc(var(--xp-nav-rest) + 24px) 40px 20px;
   border-bottom: 1px solid var(--mv-line);
 }
 
@@ -408,8 +424,7 @@ html:not(.dark) .xp-tile {
   min-height: 36px;
   padding: 0 12px;
   border-radius: var(--mv-radius-control);
-  border: 1px solid var(--mv-line);
-  background: var(--mv-surface-2);
+  background: var(--mv-surface-2-glass);
   color: var(--mv-ink-2);
   font-size: 15px;
 }
@@ -438,29 +453,45 @@ html:not(.dark) .xp-tile {
 }
 
 /* Mobile results chrome: opaque ground, hairline, no blur.
-   The page is the scroller; the topbar and the filter bar stick to the
-   document under the fixed navbar. The topbar height is published once
-   so the filter bar's offset never carries a magic number. */
+   The page is the scroller; only the topbar sticks under the fixed navbar
+   (three stacked bars took 28% of a 740px phone before the first row). */
 .xp-mresults {
-  --xp-mtop-h: 65px;
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
-  padding-top: var(--xp-nav-h);
+  padding-top: var(--xp-nav-rest);
   position: relative;
 }
 
 .xp-mtop {
   position: sticky;
-  top: var(--xp-nav-h);
+  top: var(--mv-nav-h, 72px);
   z-index: 10;
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: var(--xp-mtop-h);
+  min-height: 65px;
   padding: 10px 16px;
   background: var(--mv-bg);
   border-bottom: 1px solid var(--mv-line);
+}
+
+/* Once the list scrolls, the bar collapses to one 48px line: the place name
+   stays, the meta line goes. Only this bar sticks (the filters scroll away),
+   so the phone keeps its rows in view. */
+.xp-mtop[data-scrolled] {
+  min-height: 48px;
+  padding: 2px 16px;
+}
+
+.xp-mtop[data-scrolled] .xp-mtop-title {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  font-size: 17px;
+}
+
+.xp-mtop[data-scrolled] .xp-mtop-title + .xp-label {
+  display: none;
 }
 
 /* Operate section head: 20/1.25 body 600; the region name is the one thing
@@ -486,14 +517,13 @@ html:not(.dark) .xp-tile {
 }
 
 .xp-mfilters {
-  position: sticky;
-  top: calc(var(--xp-nav-h) + var(--xp-mtop-h));
-  z-index: 9;
+  position: static;
 }
 
 .xp-mlist {
   flex: 1;
-  padding: 16px 20px calc(112px + var(--mv-cookie-banner-h, 0px));
+  padding: 16px 20px
+    calc(112px + env(safe-area-inset-bottom, 0px) + var(--mv-cookie-banner-h, 0px));
 }
 
 /* The mode switch: fixed, centred by its margins (its `translate` is the
@@ -501,7 +531,7 @@ html:not(.dark) .xp-tile {
    offset is static — nothing transitions `bottom`. */
 .xp-fab {
   position: fixed;
-  bottom: calc(24px + var(--mv-cookie-banner-h, 0px));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px) + var(--mv-cookie-banner-h, 0px));
   left: 0;
   right: 0;
   width: max-content;
@@ -630,7 +660,7 @@ html:not(.dark) .xp-tile {
   font-size: 15px;
   text-align: left;
   cursor: pointer;
-  transition: background-color 120ms var(--mv-ease-expo);
+  transition: background-color var(--mv-dur-1) var(--mv-ease-expo);
 }
 
 .xp-option[aria-selected='true'] {
@@ -690,7 +720,7 @@ html:not(.dark) .xp-tile {
   background: var(--mv-surface-3);
   color: var(--mv-ink-2);
   font-family: var(--mv-font-body);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
 }
 
@@ -713,7 +743,13 @@ html:not(.dark) .xp-tile {
   gap: 6px;
   color: var(--mv-ink-3);
   font-size: 13px;
-  white-space: nowrap;
+}
+
+/* A keyboard hint means nothing on a touch phone */
+@media (hover: none) {
+  .xp-search-hint {
+    display: none;
+  }
 }
 
 /* ── App promo: a deeper step of the ramp, not a card ── */
@@ -795,7 +831,10 @@ html:not(.dark) .xp-tile {
     align-items: flex-start;
   }
   .xp-hero-photo {
+    margin-right: 0;
+    min-height: 0;
     aspect-ratio: 16 / 9;
+    border-radius: var(--mv-radius-card);
     order: -1;
   }
   .xp-picks,
@@ -822,7 +861,7 @@ html:not(.dark) .xp-tile {
     padding: 12px 24px;
   }
   .xp-results-head {
-    padding: calc(var(--xp-nav-h) + 24px) 24px 20px;
+    padding: calc(var(--xp-nav-rest) + 24px) 24px 20px;
   }
   .xp-results-list {
     padding: 16px 24px 64px;

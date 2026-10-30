@@ -22,6 +22,8 @@ export const rootMetadata: Metadata = {
 export const rootViewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  // env(safe-area-inset-*) resolves only under cover: the fixed bars pad by it.
+  viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#f3f2ef' },
     { media: '(prefers-color-scheme: dark)', color: '#111214' },

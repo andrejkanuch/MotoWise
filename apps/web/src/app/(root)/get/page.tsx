@@ -111,7 +111,13 @@ const S = {
     background: 'var(--mv-qr-tile)',
     color: 'var(--mv-qr-ink)',
   },
-  caption: { fontSize: 15, color: 'var(--mv-ink-2)', textAlign: 'center' as const },
+  caption: {
+    fontSize: 15,
+    lineHeight: 1.45,
+    color: 'var(--mv-ink-2)',
+    textAlign: 'center' as const,
+    textWrap: 'balance' as const,
+  },
 } as const;
 
 export default async function GetPage({ searchParams }: { searchParams: SearchParams }) {
@@ -222,7 +228,9 @@ export default async function GetPage({ searchParams }: { searchParams: SearchPa
                 // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG generated server-side by uqr from our own URL
                 dangerouslySetInnerHTML={{ __html: qrSvg }}
               />
-              <figcaption style={S.caption}>Scan with your phone camera</figcaption>
+              <figcaption style={S.caption}>
+                Scan with your phone camera. It opens the App Store or Google Play.
+              </figcaption>
             </figure>
           </div>
         </div>

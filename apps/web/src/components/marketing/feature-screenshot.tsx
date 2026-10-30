@@ -1,12 +1,17 @@
 import Image from 'next/image';
 
-/* The pair shares one axis: the phone closes to the end of its column and the
+/* The screen's radius comes from the kit (`.mv-phone-mockup > *`: 36 / 30 /
+   26, concentric with the frame at each breakpoint). When the hero has taken
+   the first shot (feature-content-page's cut), the frame is the pair's only
+   child and starts at the gutter.
+   The pair shares one axis: the phone closes to the end of its column and the
    panel starts its own, so the two objects meet around the 48px gap. Below
    900px they stack and both start at the gutter. The frame is capped at 280px
    on this surface (the hero above it carries the page's headline). */
 const SCREENSHOT_PAIR_CSS = `
 .mv-shot-pair .mv-phone-mockup { width: 280px; margin: 0; justify-self: end; }
-.mv-shot-screen { overflow: hidden; border-radius: var(--mv-radius-screen); height: 100%; }
+.mv-shot-pair .mv-phone-mockup:only-child { justify-self: start; }
+.mv-shot-screen { overflow: hidden; height: 100%; }
 .mv-shot-panel {
   width: min(440px, 100%);
   aspect-ratio: 4 / 5;
@@ -33,8 +38,11 @@ const SCREENSHOT_PAIR_CSS = `
  */
 export function FeatureScreenshotPair({
   screenshots,
+  paddingTop = 0,
 }: {
   screenshots: { src: string; alt: string }[];
+  /** Space above the pair; the hero cut sits on its own hairline, so the pair opens a new interval. */
+  paddingTop?: number;
 }) {
   const [first, second] = screenshots;
   if (!first) return null;
@@ -42,7 +50,7 @@ export function FeatureScreenshotPair({
   return (
     <div
       className="mv-section-inner mv-reveal mv-shot-pair"
-      style={{ paddingTop: 0, paddingBottom: 0 }}
+      style={{ paddingTop, paddingBottom: 0 }}
     >
       <style
         // biome-ignore lint/security/noDangerouslySetInnerHtml: static CSS

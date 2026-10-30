@@ -110,7 +110,7 @@
   max-width: 360px;
 }
 .mva-panel-plate .mv-plate {
-  min-width: 280px;
+  min-width: min(280px, 100%);
 }
 
 /* ── Header bar (<1180) ─────────────────────────────────────────── */

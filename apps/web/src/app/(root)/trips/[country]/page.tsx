@@ -6,14 +6,24 @@ import { cache } from 'react';
 import { StoreLink } from '@/components/marketing/store-buttons';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
+import { buildRouteHeroMapUrl } from '@/lib/map/static-image-provider';
 import { isTargetMarket } from '@/lib/seo/market-indexing';
 import '@/components/trip-detail/trip-detail.css';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
-const MAPBOX_TOKEN = process.env.MAPBOX_ACCESS_TOKEN ?? '';
 // Waypoint pins are the rider's route on a map: the one place copper is a data
 // mark (apps/mobile/DESIGN.md, "Ridden-route copper"). Mapbox wants bare hex.
 const MAP_PIN_COLOR = palette.plateCopper.replace('#', '');
+
+/** The hero band's bottom edge, read OUTSIDE .mv-dark-scene so it blends into the page ground. */
+const HERO_EDGE_STYLE = { '--rh-edge-bottom': 'var(--mv-bg)' } as React.CSSProperties;
+
+// Static (ISR) like the canonical slug page: the hub was rendered per request
+// although its data only changes on publish. Slugged trips 308 to the canonical
+// URL, unknown ids are a real 404 (no loading.tsx above this route); both are
+// cached for the day; /api/revalidate clears a path on demand.
+export const dynamic = 'force-static';
+export const revalidate = 86400;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -82,7 +92,7 @@ const lookupTrip = cache(async (id: string): Promise<TripData | null> => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: DISCOVER_TRIP_BY_ID_QUERY, variables: { id } }),
-      next: { revalidate: 300 },
+      next: { revalidate },
     });
     const json = await res.json();
     const trip = json?.data?.discoverTripById;
@@ -99,7 +109,7 @@ const lookupTrip = cache(async (id: string): Promise<TripData | null> => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: TRIP_DETAIL_FULL_QUERY, variables: { tripId: id } }),
-      next: { revalidate: 300 },
+      next: { revalidate },
     });
     const json = await res.json();
     const trip = json?.data?.tripDetail;
@@ -223,16 +233,6 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function getMapboxStaticUrl(trip: TripData): string | null {
-  if (!trip.waypoints.length || !MAPBOX_TOKEN) return null;
-  const pins = trip.waypoints
-    .sort((a, b) => a.sortOrder - b.sortOrder)
-    .slice(0, 20)
-    .map((wp) => `pin-s+${MAP_PIN_COLOR}(${wp.lng},${wp.lat})`)
-    .join(',');
-  return `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${pins}/auto/1200x675@2x?padding=60&access_token=${MAPBOX_TOKEN}`;
-}
-
 export default async function TripByIdPage({ params }: PageParams) {
   const { country: segment } = await params;
 
@@ -276,7 +276,7 @@ export default async function TripByIdPage({ params }: PageParams) {
     : null;
   const fuelStopCount = trip.waypoints.filter((wp) => wp.type === 'fuel').length;
   const surfaceLabel = trip.surfaceType ? capitalize(trip.surfaceType.replace(/_/g, ' ')) : null;
-  const mapUrl = getMapboxStaticUrl(trip);
+  const mapUrl = buildRouteHeroMapUrl({ waypoints: trip.waypoints, color: MAP_PIN_COLOR });
   const createdDate = new Date(trip.createdAt);
   const createdLabel = createdDate.toLocaleDateString('en-US', {
     timeZone: 'UTC',
@@ -292,110 +292,112 @@ export default async function TripByIdPage({ params }: PageParams) {
   return (
     <>
       {/* ══════════ HERO ══════════ */}
-      <section className="rh">
-        {mapUrl ? (
-          <>
-            <div className="rh-map-bg" style={{ backgroundImage: `url(${mapUrl})` }} />
-            <div className="rh-scrim" aria-hidden="true" />
-          </>
-        ) : null}
+      <div style={HERO_EDGE_STYLE}>
+        <section className={mapUrl ? 'rh mv-dark-scene' : 'rh'}>
+          {mapUrl ? (
+            <>
+              <div className="rh-map-bg" style={{ backgroundImage: `url("${mapUrl}")` }} />
+              <div className="rh-scrim" aria-hidden="true" />
+            </>
+          ) : null}
 
-        <div className="rh-inner">
-          <nav aria-label="Breadcrumb">
-            <ol className="mv-crumbs">
-              <li>
-                <a href="/explore">Explore</a>
-              </li>
-              <li>
-                <ChevronRight size={14} aria-hidden="true" />
-                <a href={`/explore/${trip.countryCode.toLowerCase()}`}>{countryName}</a>
-              </li>
-              {regionName && (
+          <div className="rh-inner">
+            <nav aria-label="Breadcrumb">
+              <ol className="mv-crumbs">
                 <li>
-                  <ChevronRight size={14} aria-hidden="true" />
-                  <span>{regionName}</span>
+                  <a href="/explore">Explore</a>
                 </li>
+                <li>
+                  <ChevronRight size={16} aria-hidden="true" />
+                  <a href={`/explore/${trip.countryCode.toLowerCase()}`}>{countryName}</a>
+                </li>
+                {regionName && (
+                  <li>
+                    <ChevronRight size={16} aria-hidden="true" />
+                    <span>{regionName}</span>
+                  </li>
+                )}
+                <li>
+                  <ChevronRight size={16} aria-hidden="true" />
+                  <span aria-current="page">{trip.title}</span>
+                </li>
+              </ol>
+            </nav>
+
+            <h1 className="mv-section-title rh-title">{trip.title}</h1>
+
+            <p className="rh-context">
+              <span>
+                {trip.city ? `${trip.city}, ` : ''}
+                {countryName}
+              </span>
+              {trip.isMotovaultPick && <span className="rh-pick">Editor's pick</span>}
+            </p>
+
+            <div className="rh-figures">
+              {distanceKm != null && (
+                <div className="rh-figure">
+                  <span className="mv-figure rh-figure-value">
+                    {formatDistance(trip.distanceM ?? 0)}
+                    <small>km</small>
+                  </span>
+                  <span className="rh-figure-label">Distance</span>
+                </div>
               )}
-              <li>
-                <ChevronRight size={14} aria-hidden="true" />
-                <span aria-current="page">{trip.title}</span>
-              </li>
-            </ol>
-          </nav>
+              {trip.dayCount > 0 && (
+                <div className="rh-figure">
+                  <span className="mv-figure rh-figure-value">
+                    {trip.dayCount}
+                    <small>{trip.dayCount === 1 ? 'day' : 'days'}</small>
+                  </span>
+                  <span className="rh-figure-label">On the road</span>
+                </div>
+              )}
+              {durationFormatted && (
+                <div className="rh-figure">
+                  <span className="mv-figure rh-figure-value">{durationFormatted}</span>
+                  <span className="rh-figure-label">Riding time</span>
+                </div>
+              )}
+              {elevationM != null && elevationM > 0 && (
+                <div className="rh-figure">
+                  <span className="mv-figure rh-figure-value">
+                    {formatElevation(trip.elevationGainM ?? 0)}
+                    <small>m</small>
+                  </span>
+                  <span className="rh-figure-label">Climb</span>
+                </div>
+              )}
+              {hasRating && (
+                <div className="rh-figure">
+                  <span className="mv-figure rh-figure-value">
+                    {trip.averageRating?.toFixed(1)}
+                    <small>/ 5</small>
+                  </span>
+                  <span className="rh-figure-label">
+                    {trip.reviewCount} {trip.reviewCount === 1 ? 'review' : 'reviews'}
+                  </span>
+                </div>
+              )}
+            </div>
 
-          <h1 className="mv-section-title rh-title">{trip.title}</h1>
-
-          <p className="rh-context">
-            <span>
-              {trip.city ? `${trip.city}, ` : ''}
-              {countryName}
-            </span>
-            {trip.isMotovaultPick && <span className="rh-pick">Editor's pick</span>}
-          </p>
-
-          <div className="rh-figures">
-            {distanceKm != null && (
-              <div className="rh-figure">
-                <span className="mv-figure rh-figure-value">
-                  {formatDistance(trip.distanceM ?? 0)}
-                  <small>km</small>
-                </span>
-                <span className="rh-figure-label">Distance</span>
-              </div>
-            )}
-            {trip.dayCount > 0 && (
-              <div className="rh-figure">
-                <span className="mv-figure rh-figure-value">
-                  {trip.dayCount}
-                  <small>{trip.dayCount === 1 ? 'day' : 'days'}</small>
-                </span>
-                <span className="rh-figure-label">On the road</span>
-              </div>
-            )}
-            {durationFormatted && (
-              <div className="rh-figure">
-                <span className="mv-figure rh-figure-value">{durationFormatted}</span>
-                <span className="rh-figure-label">Riding time</span>
-              </div>
-            )}
-            {elevationM != null && elevationM > 0 && (
-              <div className="rh-figure">
-                <span className="mv-figure rh-figure-value">
-                  {formatElevation(trip.elevationGainM ?? 0)}
-                  <small>m</small>
-                </span>
-                <span className="rh-figure-label">Climb</span>
-              </div>
-            )}
-            {hasRating && (
-              <div className="rh-figure">
-                <span className="mv-figure rh-figure-value">
-                  {trip.averageRating?.toFixed(1)}
-                  <small>/ 5</small>
-                </span>
-                <span className="rh-figure-label">
-                  {trip.reviewCount} {trip.reviewCount === 1 ? 'review' : 'reviews'}
-                </span>
-              </div>
-            )}
+            <div className="rh-actions">
+              <StoreLink
+                platform={StorePlatform.Unknown}
+                pageType={CtaPageType.Trip}
+                placement={CtaPlacement.Hero}
+                slug={segment}
+                className="mv-btn mv-btn-primary"
+              >
+                Get the app
+              </StoreLink>
+            </div>
+            <p className="rh-author">
+              Curated by <strong>{trip.organiser.displayName}</strong> · {createdLabel}
+            </p>
           </div>
-
-          <div className="rh-actions">
-            <StoreLink
-              platform={StorePlatform.Unknown}
-              pageType={CtaPageType.Trip}
-              placement={CtaPlacement.Hero}
-              slug={segment}
-              className="mv-btn mv-btn-primary"
-            >
-              Get the app
-            </StoreLink>
-          </div>
-          <p className="rh-author">
-            Curated by <strong>{trip.organiser.displayName}</strong> · {createdLabel}
-          </p>
-        </div>
-      </section>
+        </section>
+      </div>
 
       {/* ══════════ IN-PAGE NAV ══════════ */}
       <nav className="tabnav" aria-label="On this page">

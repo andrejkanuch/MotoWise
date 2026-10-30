@@ -214,7 +214,7 @@ function MapboxMapInner({
           font-family: var(--mv-font-display); font-size: 13px; font-weight: 600;
           font-variant-numeric: tabular-nums;
           box-shadow: none;
-          transition: transform 160ms var(--mv-ease-expo), background-color 160ms, color 160ms, border-color 160ms;
+          transition: transform var(--mv-dur-2) var(--mv-ease-expo), background-color var(--mv-dur-1), color var(--mv-dur-1), border-color var(--mv-dur-1);
         `;
         inner.textContent = String(i + 1);
         el.appendChild(inner);

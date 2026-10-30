@@ -192,7 +192,7 @@
   font-size: 15px;
   font-weight: 500;
   white-space: nowrap;
-  transition: color var(--mv-dur-2, 200ms) var(--mv-ease);
+  transition: color var(--mv-dur-1) var(--mv-ease);
 }
 
 .tabnav-tab:hover {
@@ -579,8 +579,8 @@
   gap: 12px;
   translate: 0 calc(-1 * var(--mv-cookie-banner-h, 0px));
   transition:
-    translate var(--mv-dur-3, 240ms) var(--mv-ease-expo),
-    opacity var(--mv-dur-3, 240ms) var(--mv-ease-expo);
+    translate var(--mv-dur-3) var(--mv-ease-expo),
+    opacity var(--mv-dur-3) var(--mv-ease-expo);
 }
 
 .trip-sticky-body {

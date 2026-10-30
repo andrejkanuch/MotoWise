@@ -33,8 +33,8 @@ export default async function Page({ params }: PageProps) {
       route="/features/ride-tracking"
       screenshots={[
         {
-          src: '/screenshots/home-rides-expenses.png',
-          alt: 'MotoVault ride list with distance and speed',
+          src: '/images/marketing/mw/roads-ridden.png',
+          alt: 'MotoVault roads ridden map with ride count, lifetime distance and countries',
         },
         {
           src: '/images/marketing/mw/trip-detail-hero.png',

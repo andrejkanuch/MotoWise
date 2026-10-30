@@ -401,7 +401,8 @@
     "linkGarage": "Garage",
     "linkLearningPaths": "Learning paths",
     "linkCostCalculator": "Cost calculator",
-    "linkTclocsChecklist": "TCLOCS checklist"
+    "linkTclocsChecklist": "TCLOCS checklist",
+    "theme": "Theme"
   },
   "About": {
     "metaTitle": "About MotoVault",

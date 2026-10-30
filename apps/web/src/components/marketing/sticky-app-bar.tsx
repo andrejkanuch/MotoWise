@@ -3,6 +3,7 @@
 import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
+import { useCookieConsent } from '@/components/cookie-consent';
 import { usePathname } from '@/i18n/navigation';
 import { CtaPlacement, pageContextFromPathname } from '@/lib/cta-taxonomy';
 import { detectPlatform, type Platform } from '@/lib/store-links';
@@ -36,12 +37,12 @@ const STICKY_BAR_CSS = `
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 12px calc(8px + env(safe-area-inset-bottom)) 16px;
+  padding: 8px max(12px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   background: var(--mv-surface-2);
   border-top: 1px solid var(--mv-line);
   font-family: var(--mv-font-body);
   color: var(--mv-ink);
-  transition: translate 250ms var(--mv-ease-expo), opacity 240ms var(--mv-ease-expo);
+  transition: translate var(--mv-dur-3) var(--mv-ease-expo), opacity var(--mv-dur-3) var(--mv-ease-expo);
 }
 .mv-appbar-text {
   flex: 1 1 auto;
@@ -55,6 +56,17 @@ const STICKY_BAR_CSS = `
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
+.mv-appbar > .mv-btn { flex: none; white-space: nowrap; }
+.mv-appbar > .mv-icon-btn { flex: none; }
+/* One line on a phone: the message clamps, the verb and the 44px dismiss
+   never shrink. */
+@media (max-width: 480px) {
+  .mv-appbar-text { -webkit-line-clamp: 1; }
+}
+/* A landscape phone has no height to spare: no bar (and no reserve). */
+@media (max-height: 500px) {
+  .mv-appbar { display: none; }
+}
 `;
 
 /**
@@ -66,10 +78,14 @@ const STICKY_BAR_CSS = `
  * clear of Google's intrusive-interstitial penalty on search-landing pages.
  * Renders client-only after mount, so it's absent from SSR HTML and can't be
  * seen by crawlers as landing-page content.
+ *
+ * Waits for the cookie decision: while the consent bar is up (consent is
+ * null) the first screen carries one bar, not two.
  */
 export function StickyAppBar() {
   const t = useTranslations('StickyBar');
   const pathname = usePathname();
+  const { consent } = useCookieConsent();
   const [platform, setPlatform] = useState<Platform>('unknown');
   const [dismissed, setDismissed] = useState(true); // hidden until mounted
   const [closingCtaInView, setClosingCtaInView] = useState(false);
@@ -85,8 +101,9 @@ export function StickyAppBar() {
     }
   }, []);
 
-  // iOS handled by the Smart App Banner; never show there.
-  const visible = platform !== 'ios' && !dismissed && !closingCtaInView;
+  // iOS handled by the Smart App Banner; never show there. Never beside the
+  // undecided cookie bar either.
+  const visible = platform !== 'ios' && consent !== null && !dismissed && !closingCtaInView;
 
   // Step aside while the page's own closing CTA is on screen.
   // biome-ignore lint/correctness/useExhaustiveDependencies: re-find the CTA when the route changes
@@ -106,14 +123,18 @@ export function StickyAppBar() {
   // Reserve space for the fixed bar so it never covers the last controls/links
   // on a page — including the cookie banner it stacks on. The bar's real
   // height is measured (the message may wrap to two lines). Only while
-  // visible; restored on dismiss, unmount, or iOS.
+  // visible; restored on dismiss, unmount, or iOS — and on a landscape phone,
+  // where the CSS hides the bar (height 0), nothing is reserved.
   useEffect(() => {
     if (!visible) return;
     const el = barRef.current;
     if (!el) return;
     const prev = document.body.style.paddingBottom;
     const reserve = () => {
-      document.body.style.paddingBottom = `calc(${el.offsetHeight}px + var(${COOKIE_BANNER_HEIGHT_VAR}, 0px))`;
+      document.body.style.paddingBottom =
+        el.offsetHeight === 0
+          ? prev
+          : `calc(${el.offsetHeight}px + var(${COOKIE_BANNER_HEIGHT_VAR}, 0px))`;
     };
     reserve();
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(reserve);

@@ -112,7 +112,7 @@ function buildCsp(scriptInlineToken: string): string {
 
   return [
     "default-src 'self'",
-    `script-src 'self' ${scriptInlineToken} https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://va.vercel-scripts.com https://api.mapbox.com https://js.stripe.com${isDev ? " 'unsafe-eval'" : ''}`,
+    `script-src 'self' ${scriptInlineToken} https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://va.vercel-scripts.com https://api.mapbox.com https://js.stripe.com https://browser.sentry-cdn.com${isDev ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline' https://api.mapbox.com",
     "img-src 'self' data: https: https://www.facebook.com",
     "font-src 'self' https://fonts.gstatic.com",
@@ -387,6 +387,21 @@ function applyRegionCookie(request: NextRequest, response: NextResponse) {
   );
 }
 
+const COUNTRY_COOKIE = 'mv_country';
+
+function applyCountryCookie(request: NextRequest, response: NextResponse) {
+  // The static /explore page picks the visitor's local routes on the client
+  // (components/explore/popular-local.tsx); this gives it the edge's country.
+  const country = request.headers.get('x-vercel-ip-country')?.toUpperCase();
+  if (!country || !/^[A-Z]{2}$/.test(country)) return;
+  if (request.cookies.get(COUNTRY_COOKIE)?.value === country) return;
+  const secure = request.nextUrl.protocol === 'https:' ? '; Secure' : '';
+  response.headers.append(
+    'Set-Cookie',
+    `${COUNTRY_COOKIE}=${country}; Path=/; Max-Age=2592000; SameSite=Lax${secure}`,
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const { pathname } = request.nextUrl;
@@ -492,6 +507,7 @@ export async function proxy(request: NextRequest) {
 
   // Set mv_region cookie (EU vs OTHER) for client-side consent logic.
   applyRegionCookie(request, response);
+  applyCountryCookie(request, response);
 
   return response;
 }

@@ -100,6 +100,13 @@ function EmptyState({ handle }: { handle: string }) {
     <div className="sp-empty">
       <h2 className="sp-section-title">No saved routes yet</h2>
       <p className="sp-prose">@{handle} hasn't saved any routes.</p>
+      <p className="sp-prose">
+        Routes worth the detour are on the{' '}
+        <a href="/explore" className="mv-link">
+          explore page
+        </a>
+        .
+      </p>
     </div>
   );
 }

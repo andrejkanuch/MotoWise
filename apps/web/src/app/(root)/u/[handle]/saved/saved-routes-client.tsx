@@ -173,7 +173,7 @@ export function SavedRouteRow({
             {surfaceLabel && <span>{surfaceLabel}</span>}
             {hasRating && (
               <span>
-                <Star size={14} aria-hidden="true" fill="currentColor" />
+                <Star size={16} aria-hidden="true" fill="currentColor" />
                 {route.averageRating?.toFixed(1)} ({route.reviewCount})
               </span>
             )}
@@ -182,7 +182,7 @@ export function SavedRouteRow({
                 {route.reviewCount} {route.reviewCount === 1 ? 'review' : 'reviews'}
               </span>
             )}
-            {route.isMotovaultPick && <span>Editor's pick</span>}
+            {route.isMotovaultPick && <span>MotoVault pick</span>}
             <span>{by}</span>
           </div>
         </div>

@@ -170,6 +170,9 @@ export default async function LearningPathsPage({ params }: PageProps) {
           alt: 'MotoVault home dashboard with learning progress',
         },
       ]}
+      // The first shot is a 368px-wide export: cut at the hero's 380px it would
+      // upscale, so this page keeps both shots in the pair below the text.
+      heroCut={false}
       features={{
         title: t('coursesTitle'),
         items: COURSE_INDEXES.map((i) => ({

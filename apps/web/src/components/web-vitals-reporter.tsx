@@ -11,7 +11,6 @@
  * consistent.
  */
 
-import posthog from 'posthog-js';
 import { useEffect } from 'react';
 import {
   type CLSMetricWithAttribution,
@@ -26,6 +25,7 @@ import {
   onTTFB,
   type TTFBMetricWithAttribution,
 } from 'web-vitals/attribution';
+import { withPostHog } from '@/lib/posthog-client';
 
 const SAMPLE_RATE = 0.2;
 const SAMPLE_KEY = '__mv_wv_sampled';
@@ -55,14 +55,15 @@ function sendMetric(metric: AttrMetric) {
   if (!isSampled()) return;
 
   // Primary PostHog built-in Web Vitals dashboard event.
-  posthog.capture('$web_vitals', {
+  const vitals = {
     $web_vitals_metric: metric.name,
     $web_vitals_value: metric.value,
     $web_vitals_rating: (metric as Metric).rating,
     $web_vitals_id: metric.id,
     $web_vitals_navigation_type: (metric as Metric).navigationType,
     path: window.location.pathname,
-  });
+  };
+  withPostHog((posthog) => posthog.capture('$web_vitals', vitals));
 
   // Rich attribution event for debugging — separate from $web_vitals so
   // we don't clobber PostHog's own web-vitals dashboard schema.
@@ -122,7 +123,8 @@ function sendMetric(metric: AttrMetric) {
       // FCP attribution in v5 is minimal — no extras beyond base.
       break;
   }
-  posthog.capture('web_vitals_attribution', { ...base, ...extra });
+  const attribution = { ...base, ...extra };
+  withPostHog((posthog) => posthog.capture('web_vitals_attribution', attribution));
 }
 
 export function WebVitalsReporter() {

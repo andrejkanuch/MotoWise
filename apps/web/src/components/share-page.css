@@ -154,10 +154,11 @@
 }
 
 .sp-figure-value small {
-  font-size: 20px;
+  /* The unit is half the figure at every size (20 at 40, 14 at 28). */
+  font-size: 0.5em;
   font-weight: 500;
   color: var(--mv-ink-2);
-  margin-left: 4px;
+  margin-left: 0.15em;
 }
 
 .sp-figure-label {
@@ -214,17 +215,17 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: 0 4px;
-  margin-right: 20px;
-  margin-bottom: -1px;
+  /* The 2px underline spans the label and its padding, nothing more. */
+  padding: 0 12px;
+  margin: 0 0 -1px;
   font-size: 15px;
   font-weight: 500;
   color: var(--mv-ink-3);
   text-decoration: none;
   border-bottom: 2px solid transparent;
   transition:
-    color 160ms var(--mv-ease-expo),
-    border-color 160ms var(--mv-ease-expo);
+    color var(--mv-dur-1, 160ms) var(--mv-ease-expo),
+    border-color var(--mv-dur-1, 160ms) var(--mv-ease-expo);
 }
 
 .sp-tabs a:hover {
@@ -265,7 +266,7 @@ a.sp-row:hover .sp-row-title {
   line-height: 1.4;
   font-weight: 600;
   color: var(--mv-ink);
-  transition: color 0.2s var(--mv-ease);
+  transition: color var(--mv-dur-1, 160ms) var(--mv-ease);
 }
 
 .sp-row-meta {
@@ -436,12 +437,15 @@ a.sp-row:hover .sp-row-title {
     line-height: 30px;
   }
 
-  .sp-figure-value small {
-    font-size: 14px;
-  }
-
   .sp-row-aside {
     white-space: normal;
+  }
+}
+
+/* Phone landscape: a short photo band keeps the H1 above the fold. */
+@media (max-height: 500px) {
+  .sp-photo {
+    height: 140px;
   }
 }
 
@@ -453,8 +457,14 @@ a.sp-row:hover .sp-row-title {
 @media print {
   .sp-cta,
   .sp-wall,
-  .sp-cta-actions {
+  .sp-cta-actions,
+  .mv-cc,
+  .sp-photo::after {
     display: none !important;
+  }
+
+  .sp-photo {
+    height: 160px;
   }
 
   .sp-main {
@@ -467,5 +477,9 @@ a.sp-row:hover .sp-row-title {
 
   .sp-figures {
     gap: 16px 32px;
+  }
+
+  @page {
+    margin: 16mm;
   }
 }

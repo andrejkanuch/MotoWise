@@ -29,17 +29,17 @@ function ResultsBreadcrumb({
         {region ? (
           <>
             <li>
-              <Icon name="chevron-right" size={14} />
+              <Icon name="chevron-right" size={16} />
               <a href={countryHref}>{country}</a>
             </li>
             <li>
-              <Icon name="chevron-right" size={14} />
+              <Icon name="chevron-right" size={16} />
               <span aria-current="page">{region}</span>
             </li>
           </>
         ) : (
           <li>
-            <Icon name="chevron-right" size={14} />
+            <Icon name="chevron-right" size={16} />
             <span aria-current="page">{country}</span>
           </li>
         )}
@@ -92,6 +92,35 @@ function EmptyState({ onClear }: { onClear: () => void }) {
       <button type="button" className="mv-link is-tall" onClick={onClear}>
         Clear filters
       </button>
+    </div>
+  );
+}
+
+/**
+ * The place exists in the taxonomy but holds no published routes yet: say
+ * that, not "clear a filter" (no filter is set), and point one step up.
+ */
+export function ZeroRoutesState({
+  country,
+  countryCode,
+  region,
+}: {
+  country: string;
+  countryCode: string;
+  region?: string | null;
+}) {
+  const up = region
+    ? { href: `/explore/${countryCode.toLowerCase()}`, label: `Browse ${country}` }
+    : { href: '/explore', label: 'Browse every country' };
+  return (
+    <div className="xp-empty">
+      <h2 className="mv-h3 xp-h3">No routes in {region ?? country} yet</h2>
+      <p>
+        {`Routes are added region by region. Browse ${region ? country : 'another country'}, or search another place.`}
+      </p>
+      <a href={up.href} className="mv-link is-tall">
+        {up.label}
+      </a>
     </div>
   );
 }
@@ -184,6 +213,8 @@ export function ResultsDesktop({
         <div className="xp-results-list">
           {loadFailed ? (
             <LoadFailedState />
+          ) : allTrips.length === 0 ? (
+            <ZeroRoutesState country={country} countryCode={countryCode} region={region} />
           ) : trips.length === 0 ? (
             <EmptyState onClear={clearFilters} />
           ) : (

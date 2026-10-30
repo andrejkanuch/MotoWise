@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import {
   WebTripBySlugDocument,
   type WebTripBySlugQuery,
@@ -21,6 +22,7 @@ import {
 } from '@/lib/fetch-places';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { gqlServerFetcher, isDefinitiveGraphQLError } from '@/lib/graphql-server';
+import { buildRouteHeroMapUrl } from '@/lib/map/static-image-provider';
 import { relativeTrip } from '@/lib/seo/canonical';
 import { isTargetMarket } from '@/lib/seo/market-indexing';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
@@ -29,6 +31,14 @@ import { selectSiblingRoutes, siblingsAreRegionScoped } from '@/lib/trips/siblin
 import '@/components/trip-detail/trip-detail.css';
 
 type TripData = NonNullable<WebTripBySlugQuery['tripBySlug']>;
+
+// Waypoint pins and the route line are the rider's route on a map: the one
+// place copper is a data mark (apps/mobile/DESIGN.md, "Ridden-route copper").
+// Mapbox wants bare hex.
+const MAP_ROUTE_COLOR = palette.plateCopper.replace('#', '');
+
+/** The hero band's bottom edge, read OUTSIDE .mv-dark-scene so it blends into the page ground. */
+const HERO_EDGE_STYLE = { '--rh-edge-bottom': 'var(--mv-bg)' } as React.CSSProperties;
 
 interface PageParams {
   params: Promise<{ country: string; region: string; slug: string }>;
@@ -358,6 +368,13 @@ export default async function TripPage({ params }: PageParams) {
   const fuelStopCount = waypoints.filter((wp) => wp.type === 'fuel').length;
   const surfaceLabel = trip.surfaceType ? capitalize(trip.surfaceType.replace(/_/g, ' ')) : null;
   const sections = buildSections(trip);
+  // The hero carries the route itself (pins, and the line when there is a
+  // GPX) as a static map; a trip without waypoints keeps the bare hero.
+  const heroMapUrl = buildRouteHeroMapUrl({
+    waypoints,
+    polyline: trip.polyline,
+    color: MAP_ROUTE_COLOR,
+  });
   const updatedDate = new Date(trip.updatedAt ?? trip.createdAt);
   const updatedLabel = updatedDate.toLocaleDateString('en-US', {
     timeZone: 'UTC',
@@ -449,109 +466,118 @@ export default async function TripPage({ params }: PageParams) {
       />
 
       {/* ══════════ HERO ══════════ */}
-      <section className="rh">
-        <div className="rh-inner">
-          <nav aria-label="Breadcrumb">
-            <ol className="mv-crumbs">
-              <li>
-                <a href="/explore">Explore</a>
-              </li>
-              <li>
-                <ChevronRight size={14} aria-hidden="true" />
-                <a href={`/explore/${country}`}>{countryName}</a>
-              </li>
-              {regionName && (
+      <div style={HERO_EDGE_STYLE}>
+        <section className={heroMapUrl ? 'rh mv-dark-scene' : 'rh'}>
+          {heroMapUrl && (
+            <>
+              <div className="rh-map-bg" style={{ backgroundImage: `url("${heroMapUrl}")` }} />
+              <div className="rh-scrim" aria-hidden="true" />
+            </>
+          )}
+          <div className="rh-inner">
+            <nav aria-label="Breadcrumb">
+              <ol className="mv-crumbs">
                 <li>
-                  <ChevronRight size={14} aria-hidden="true" />
-                  <a href={`/explore/${country}/${region}`}>{regionName}</a>
+                  <a href="/explore">Explore</a>
                 </li>
+                <li>
+                  <ChevronRight size={16} aria-hidden="true" />
+                  <a href={`/explore/${country}`}>{countryName}</a>
+                </li>
+                {regionName && (
+                  <li>
+                    <ChevronRight size={16} aria-hidden="true" />
+                    <a href={`/explore/${country}/${region}`}>{regionName}</a>
+                  </li>
+                )}
+                <li>
+                  <ChevronRight size={16} aria-hidden="true" />
+                  <span aria-current="page">{trip.title}</span>
+                </li>
+              </ol>
+            </nav>
+
+            <h1 className="mv-section-title rh-title">{trip.title}</h1>
+
+            <p className="rh-context">
+              <span>
+                {trip.city ? `${trip.city}, ` : ''}
+                {countryName}
+              </span>
+              {trip.isMotovaultPick && <span className="rh-pick">Editor's pick</span>}
+            </p>
+
+            <div className="rh-figures">
+              {distanceKm != null && (
+                <div className="rh-figure">
+                  <span className="mv-figure rh-figure-value">
+                    {formatDistance(trip.distanceM ?? 0)}
+                    <small>km</small>
+                  </span>
+                  <span className="rh-figure-label">Distance</span>
+                </div>
               )}
-              <li>
-                <ChevronRight size={14} aria-hidden="true" />
-                <span aria-current="page">{trip.title}</span>
-              </li>
-            </ol>
-          </nav>
+              {dayCount > 0 && (
+                <div className="rh-figure">
+                  <span className="mv-figure rh-figure-value">
+                    {dayCount}
+                    <small>{dayCount === 1 ? 'day' : 'days'}</small>
+                  </span>
+                  <span className="rh-figure-label">On the road</span>
+                </div>
+              )}
+              {durationFormatted && (
+                <div className="rh-figure">
+                  <span className="mv-figure rh-figure-value">{durationFormatted}</span>
+                  <span className="rh-figure-label">Riding time</span>
+                </div>
+              )}
+              {elevationM != null && elevationM > 0 && (
+                <div className="rh-figure">
+                  <span className="mv-figure rh-figure-value">
+                    {formatElevation(trip.elevationGainM ?? 0)}
+                    <small>m</small>
+                  </span>
+                  <span className="rh-figure-label">Climb</span>
+                </div>
+              )}
+              {hasRating && (
+                <div className="rh-figure">
+                  <span className="mv-figure rh-figure-value">
+                    {trip.averageRating?.toFixed(1)}
+                    <small>/ 5</small>
+                  </span>
+                  <span className="rh-figure-label">
+                    {trip.reviewCount} {trip.reviewCount === 1 ? 'review' : 'reviews'}
+                  </span>
+                </div>
+              )}
+            </div>
 
-          <h1 className="mv-section-title rh-title">{trip.title}</h1>
-
-          <p className="rh-context">
-            <span>
-              {trip.city ? `${trip.city}, ` : ''}
-              {countryName}
-            </span>
-            {trip.isMotovaultPick && <span className="rh-pick">Editor's pick</span>}
-          </p>
-
-          <div className="rh-figures">
-            {distanceKm != null && (
-              <div className="rh-figure">
-                <span className="mv-figure rh-figure-value">
-                  {formatDistance(trip.distanceM ?? 0)}
-                  <small>km</small>
-                </span>
-                <span className="rh-figure-label">Distance</span>
-              </div>
-            )}
-            {dayCount > 0 && (
-              <div className="rh-figure">
-                <span className="mv-figure rh-figure-value">
-                  {dayCount}
-                  <small>{dayCount === 1 ? 'day' : 'days'}</small>
-                </span>
-                <span className="rh-figure-label">On the road</span>
-              </div>
-            )}
-            {durationFormatted && (
-              <div className="rh-figure">
-                <span className="mv-figure rh-figure-value">{durationFormatted}</span>
-                <span className="rh-figure-label">Riding time</span>
-              </div>
-            )}
-            {elevationM != null && elevationM > 0 && (
-              <div className="rh-figure">
-                <span className="mv-figure rh-figure-value">
-                  {formatElevation(trip.elevationGainM ?? 0)}
-                  <small>m</small>
-                </span>
-                <span className="rh-figure-label">Climb</span>
-              </div>
-            )}
-            {hasRating && (
-              <div className="rh-figure">
-                <span className="mv-figure rh-figure-value">
-                  {trip.averageRating?.toFixed(1)}
-                  <small>/ 5</small>
-                </span>
-                <span className="rh-figure-label">
-                  {trip.reviewCount} {trip.reviewCount === 1 ? 'review' : 'reviews'}
-                </span>
-              </div>
-            )}
+            <div className="rh-actions">
+              <StoreLink
+                platform={StorePlatform.Unknown}
+                pageType={CtaPageType.Trip}
+                placement={CtaPlacement.Hero}
+                slug={slug}
+                className="mv-btn mv-btn-primary"
+              >
+                Get the app
+              </StoreLink>
+              <GpxDownloadButton
+                country={country}
+                region={region}
+                slug={slug}
+                routeName={trip.title}
+              />
+            </div>
+            <p className="rh-why">Free. Copy the route into your planner and record the ride.</p>
+            <p className="rh-author">
+              Curated by <strong>{trip.organiser.displayName}</strong> · Updated {updatedLabel}
+            </p>
           </div>
-
-          <div className="rh-actions">
-            <StoreLink
-              platform={StorePlatform.Unknown}
-              pageType={CtaPageType.Trip}
-              placement={CtaPlacement.Hero}
-              slug={slug}
-              className="mv-btn mv-btn-primary"
-            >
-              Get the app
-            </StoreLink>
-            <GpxDownloadButton
-              country={country}
-              region={region}
-              slug={slug}
-              routeName={trip.title}
-            />
-          </div>
-          <p className="rh-author">
-            Curated by <strong>{trip.organiser.displayName}</strong> · Updated {updatedLabel}
-          </p>
-        </div>
-      </section>
+        </section>
+      </div>
 
       {/* ══════════ IN-PAGE NAV ══════════ */}
       <nav className="tabnav" aria-label="On this page">
@@ -616,7 +642,7 @@ export default async function TripPage({ params }: PageParams) {
       {waypoints.length > 0 && (
         <section className="rsec">
           <div className="map-card">
-            <div className="map-frame" style={{ height: 500 }}>
+            <div className="map-frame">
               <TripDetailMap
                 waypoints={waypoints.map((wp) => ({
                   lat: wp.lat,

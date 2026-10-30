@@ -107,8 +107,8 @@ describe('GarageView: empty account (no bike, no data)', () => {
     expect(html).not.toContain(BAND);
   });
 
-  it('promotes "No rides yet" (known zero rides)', () => {
-    expect(html).toContain('No rides yet');
+  it('promotes nothing above the one step (adding the bike comes first)', () => {
+    expect(html).not.toContain('No rides yet');
   });
 
   it('renders no bike, service or spend card, and no placeholder data', () => {
