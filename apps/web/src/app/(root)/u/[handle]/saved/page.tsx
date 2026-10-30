@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { StoreLink } from '@/components/marketing/store-buttons';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
+import { fetchProfile } from '@/lib/fetch-profile';
+import { fetchSavedTrips } from '@/lib/fetch-saved-routes';
 import { settleUpstream } from '@/lib/upstream-error';
-import { fetchProfile } from '../../../../lib/fetch-profile';
-import { fetchSavedTrips } from '../../../../lib/fetch-saved-routes';
 import { SavedRouteRow, SavedRoutesClient } from './saved-routes-client';
 
 export async function generateMetadata({

@@ -16,15 +16,15 @@ import { WEB_TRIAL_DAYS, webOfferCopy } from '@/lib/pro-plan';
  */
 
 const SRC = path.join(process.cwd(), 'src');
-const GARAGE_DIR = path.join(SRC, 'app/(community)/garage');
-const PROFILE_DIR = path.join(SRC, 'app/(community)/profile');
+const GARAGE_DIR = path.join(SRC, 'app/(root)/(community)/garage');
+const PROFILE_DIR = path.join(SRC, 'app/(root)/(community)/profile');
 const GARAGE_VIEW = path.join(GARAGE_DIR, 'garage-view.tsx');
 const GARAGE_CARDS = path.join(GARAGE_DIR, 'garage-cards.tsx');
 const GENERATED_GRAPHQL = path.join(
   process.cwd(),
   '../../packages/graphql/src/generated/graphql.ts',
 );
-const PRO_DIR = path.join(SRC, 'app/pro');
+const PRO_DIR = path.join(SRC, 'app/(root)/pro');
 const MESSAGES_DIR = path.join(process.cwd(), 'messages');
 
 const FREE_LOGGING_START = 'Free logging: service + spend';

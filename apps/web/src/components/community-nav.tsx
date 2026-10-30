@@ -10,7 +10,7 @@ import { resetUser } from '@/lib/analytics';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 // The shared Trackside component styles (.mv-plate, .mv-btn, .mv-figure):
 // loaded here so every signed-in page draws the same objects as the site.
-import '@/app/(community)/garage/garage.css';
+import '@/app/(root)/(community)/garage/garage.css';
 
 const NAV_LINKS = [
   { href: '/garage', labelKey: 'garage' },

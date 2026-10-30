@@ -11,7 +11,7 @@ import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { Avatar } from './avatar';
 import { ProBanner } from './pro-banner';
-import '@/app/(community)/garage/garage.css';
+import '@/app/(root)/(community)/garage/garage.css';
 
 type User = MeQuery['me'];
 type RideStats = GetRiderProfileQuery['getRiderProfile']['rideStats'];

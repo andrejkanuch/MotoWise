@@ -58,14 +58,14 @@ each app and package. `pnpm check:agent-docs` fails if a path cited here stops e
 
 | Path | Purpose |
 |---|---|
-| `apps/web/src/app/layout.tsx` | Root layout: fonts, providers, the dark-theme script |
+| `apps/web/src/app/root-shell.tsx` | The `<html>`/`<body>` shell shared by the two root layouts (`[locale]/layout.tsx`, `(root)/layout.tsx`): fonts, providers, the theme script |
 | `apps/web/src/proxy.ts` | Next 16 proxy (there is no `middleware.ts`): locale handling, admin and signed-in gates, edge-cache rules |
 | `apps/web/next.config.ts` | Security headers, `NON_LOCALIZED_ROUTE_SECTIONS`, redirects, the Turbopack cache flag |
 | `apps/web/vercel.json` | Build and deployment rules. Authoritative over the dashboard |
 | `apps/web/src/app/[locale]/(marketing)/` | Localised marketing pages (next-intl) |
-| `apps/web/src/app/(community)/` | Signed-in pages: feed, garage, profile |
-| `apps/web/src/app/admin/` | Admin dashboard |
-| `apps/web/src/app/pro/` | Web checkout |
+| `apps/web/src/app/(root)/(community)/` | Signed-in pages: feed, garage, profile |
+| `apps/web/src/app/(root)/admin/` | Admin dashboard |
+| `apps/web/src/app/(root)/pro/` | Web checkout |
 | `apps/web/src/app/api/` | Route handlers |
 | `apps/web/src/app/__tests__/not-found-contract.test.ts` | Structural guard for the 404 contract |
 | `apps/web/src/components/` | Components by area (`marketing`, `explore`, `trip-detail`, `builder`, `garage-ui`, `auth-ui`, `admin`, `guides`) and flat shared ones |

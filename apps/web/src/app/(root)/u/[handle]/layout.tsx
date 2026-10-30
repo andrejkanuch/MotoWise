@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation';
 import { StoreLink } from '@/components/marketing/store-buttons';
 import { ShareUnavailable } from '@/components/share-unavailable';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
+import { fetchProfile } from '@/lib/fetch-profile';
 import { settleUpstream } from '@/lib/upstream-error';
-import { fetchProfile } from '../../../lib/fetch-profile';
 import '@/components/marketing/design-system.css';
 import '@/components/share-page.css';
 

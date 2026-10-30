@@ -1,7 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { ImageResponse } from 'next/og';
-import { fetchProfile } from '../../../lib/fetch-profile';
-import { formatDistance } from '../../../lib/format-utils';
+import { fetchProfile } from '@/lib/fetch-profile';
+import { formatDistance } from '@/lib/format-utils';
 
 export const runtime = 'edge';
 export const alt = 'Rider profile';

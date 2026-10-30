@@ -1,7 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { ImageResponse } from 'next/og';
-import { fetchRide } from '../../../lib/fetch-ride';
-import { formatDistance, formatDuration } from '../../../lib/format-utils';
+import { fetchRide } from '@/lib/fetch-ride';
+import { formatDistance, formatDuration } from '@/lib/format-utils';
 
 export const runtime = 'edge';
 export const alt = 'MotoVault ride';

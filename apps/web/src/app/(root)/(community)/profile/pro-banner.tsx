@@ -6,7 +6,7 @@ import { useManageSubscription } from '@/hooks/use-manage-subscription';
 import { useProStatus } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { AppStoreKind, STORE_SUBSCRIPTIONS_URL } from '@/lib/manage-subscription';
-import '@/app/(community)/garage/garage.css';
+import '@/app/(root)/(community)/garage/garage.css';
 import { ManageWebSubscription } from './manage-web-subscription';
 
 const STORE_MANAGE_KEY = {

@@ -2,7 +2,7 @@ import { ArrowRight, Smartphone } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { GET_PATH } from '@/lib/get-link';
-import '@/app/(community)/garage/garage.css';
+import '@/app/(root)/(community)/garage/garage.css';
 
 /**
  * "Do this in the MotoVault app" — a small, non-blocking pointer shown where the

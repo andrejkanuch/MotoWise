@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { Avatar } from '../avatar';
-import '@/app/(community)/garage/garage.css';
+import '@/app/(root)/(community)/garage/garage.css';
 
 type FollowEdge = GetFollowersQuery['getFollowers']['edges'][number];
 
