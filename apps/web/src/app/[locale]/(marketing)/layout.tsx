@@ -98,17 +98,6 @@ export default async function MarketingLayout({ children }: { children: React.Re
       <main id="main-content">{children}</main>
       <Footer />
       <StickyAppBar />
-
-      {/* Console easter egg for curious riders. No nonce: marketing routes are
-          statically prerendered and served with a nonce-free CSP that permits
-          inline scripts (see buildNonceFreeCsp in proxy.ts). */}
-      <script
-        suppressHydrationWarning
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: static console message
-        dangerouslySetInnerHTML={{
-          __html: `console.log("%c\\u{1F3CD}\\uFE0F MotoVault","font-size:24px;font-weight:900;color:#D4622E;");console.log("%cYour bike deserves better than a spreadsheet.","font-size:14px;color:#a3a3a3;");console.log("%cBuilding something cool? support@motovault.app","font-size:12px;color:#737373;");`,
-        }}
-      />
     </div>
   );
 }

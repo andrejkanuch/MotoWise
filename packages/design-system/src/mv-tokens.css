@@ -4,7 +4,10 @@
    auth, Pro, explore/trips. Imported once by apps/web globals.css.
 
    Values mirror palette.plate* (dark) and palette.plateLight* (light)
-   in ./palette.ts — change them there first, then here.
+   in ./palette.ts — change them there first, then here. Web-only
+   deviations (WCAG on the web's longer text runs, 2026-10-30 colorize
+   lens): ink-4 lifted to the 3:1 glyph floor, light ink-3 #606165,
+   overdue/go/due inks at ≥4.5:1 on every raised step, field lines at 3:1.
    Dark is the :root default; light applies under html:not(.dark).
    The ThemeProvider (apps/web src/providers/theme-provider.tsx)
    toggles the class; the pre-paint script in the root layout sets
@@ -37,10 +40,10 @@
   --mv-ink: #ece6da;
   --mv-ink-2: #bdb8ae;
   --mv-ink-3: #8e8a83;
-  --mv-ink-4: #5f5c57;
+  --mv-ink-4: #716e66;
   --mv-line: rgba(236, 230, 218, 0.09);
   --mv-line-2: rgba(236, 230, 218, 0.05);
-  --mv-field-line: rgba(236, 230, 218, 0.16);
+  --mv-field-line: rgba(236, 230, 218, 0.38);
   --mv-fill: rgba(236, 230, 218, 0.04);
   --mv-fill-icon: rgba(236, 230, 218, 0.05);
   --mv-skel: rgba(236, 230, 218, 0.06);
@@ -61,7 +64,7 @@
   --mv-plate-red: #e5483a;
   --mv-plate-ink: #121315;
   --mv-due-ink: #f2c230;
-  --mv-overdue-ink: #e5483a;
+  --mv-overdue-ink: #f0675a;
 
   /* General status (text-safe on the ramp) */
   --mv-go: #4fb47a;
@@ -148,11 +151,11 @@ html:not(.dark) {
 
   --mv-ink: #141517;
   --mv-ink-2: #45464a;
-  --mv-ink-3: #6b6c70;
-  --mv-ink-4: #9c9da1;
+  --mv-ink-3: #606165;
+  --mv-ink-4: #86878b;
   --mv-line: rgba(20, 21, 23, 0.1);
   --mv-line-2: rgba(20, 21, 23, 0.05);
-  --mv-field-line: rgba(20, 21, 23, 0.18);
+  --mv-field-line: rgba(20, 21, 23, 0.46);
   --mv-fill: rgba(20, 21, 23, 0.04);
   --mv-fill-icon: rgba(20, 21, 23, 0.05);
   --mv-skel: rgba(20, 21, 23, 0.06);
@@ -167,10 +170,10 @@ html:not(.dark) {
   --mv-copper-border: rgba(184, 80, 31, 0.45);
 
   /* Triad fills stay; text-safe inks shift (Both-Schemes Rule) */
-  --mv-due-ink: #8a6700;
-  --mv-overdue-ink: #c8352a;
+  --mv-due-ink: #7a5b00;
+  --mv-overdue-ink: #b13026;
 
-  --mv-go: #2e8a55;
+  --mv-go: #246e44;
   --mv-info: #2f64c8;
   --mv-danger-tint: rgba(200, 53, 42, 0.08);
   --mv-danger-border: rgba(200, 53, 42, 0.3);
@@ -178,4 +181,31 @@ html:not(.dark) {
   --mv-surface-2-glass: rgba(235, 233, 228, 0.92);
 
   --mv-warm-900: #7a3417;
+}
+
+/* Print: the logbook on paper. Bone ink would print near-white, so the
+   light ramp applies regardless of the chosen scheme. */
+@media print {
+  :root,
+  html.dark {
+    color-scheme: light;
+    --mv-bg: #ffffff;
+    --mv-bg-2: #ffffff;
+    --mv-surface: #ffffff;
+    --mv-surface-2: #f3f2ef;
+    --mv-surface-3: #ebe9e4;
+    --mv-line-step: #c9c5bc;
+    --mv-ink: #141517;
+    --mv-ink-2: #45464a;
+    --mv-ink-3: #606165;
+    --mv-ink-4: #86878b;
+    --mv-line: rgba(20, 21, 23, 0.1);
+    --mv-line-2: rgba(20, 21, 23, 0.05);
+    --mv-copper: #b8501f;
+    --mv-copper-text: #a6461a;
+    --mv-on-copper: #ffffff;
+    --mv-go: #246e44;
+    --mv-due-ink: #7a5b00;
+    --mv-overdue-ink: #b13026;
+  }
 }

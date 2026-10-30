@@ -69,7 +69,7 @@
     "description": "Rides, service and costs — one logbook for every bike in your garage. Free, and built by a rider.",
     "downloadIos": "Download for iOS",
     "trustLineStrip": "Free · iOS + Android · Built for motorcycles",
-    "plateCaption": "Ready · chain service in 1,900 km",
+    "plateCaption": "Ready · chain service in 1,882 km",
     "plateIdentity": "Africa Twin · 2022"
   },
   "Features": {
@@ -169,9 +169,9 @@
         "fig1Label": "ways to set a service: by distance or by date",
         "fig2Value": "3",
         "fig2Label": "plate states: ready, due soon, overdue",
-        "plateFigure": "25,078",
+        "plateFigure": "26,118",
         "plateUnit": "km",
-        "plateCaption": "Due soon · chain lube in 240 km",
+        "plateCaption": "Due soon · chain service in 82 km",
         "plateIdentity": "Africa Twin · 2022"
       },
       "expenses": {

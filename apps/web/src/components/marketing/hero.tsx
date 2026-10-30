@@ -20,13 +20,6 @@ export function Hero() {
   const iosLink = storeAnchorProps(StorePlatform.Ios, heroCtx);
   const androidLink = storeAnchorProps(StorePlatform.Android, heroCtx);
 
-  const stripItems = [
-    { label: t('tickerExpensesLabel'), sub: t('tickerExpensesSub') },
-    { label: t('tickerMaintenanceLabel'), sub: t('tickerMaintenanceSub') },
-    { label: t('tickerTripsLabel'), sub: t('tickerTripsSub') },
-    { label: t('tickerFreeLabel'), sub: t('tickerFreeSub') },
-  ];
-
   return (
     <section
       style={{
@@ -75,24 +68,6 @@ export function Hero() {
           position: 'relative',
         }}
       >
-        <a href="#features" className="hero-hook">
-          {t('badgeExpensesHook')}
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </a>
-
         <h1 className="hero-headline">
           <span style={{ display: 'block' }}>{t('titleLine1')}</span>
           <span style={{ display: 'block' }}>{t('titleLine2')}</span>
@@ -103,6 +78,7 @@ export function Hero() {
         {/* The shared object: a real Bike Plate, exactly as the app draws it */}
         <div className="hero-plate-slot">
           <BikePlate
+            settle="late"
             figure="24,318"
             unit="km"
             caption={t('plateCaption')}
@@ -127,30 +103,7 @@ export function Hero() {
           </a>
         </div>
 
-        <div className="hero-trust">
-          <span
-            style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              background: 'var(--mv-go)',
-              flexShrink: 0,
-            }}
-          />
-          <span>{t('trustLineStrip')}</span>
-        </div>
-      </div>
-
-      {/* Static figure strip on the ground band (no loops) */}
-      <div className="hero-strip">
-        <div className="hero-strip-inner">
-          {stripItems.map((item) => (
-            <span key={item.label} className="hero-strip-item">
-              <span className="hero-strip-figure">{item.label}</span>
-              <span className="hero-strip-label">{item.sub}</span>
-            </span>
-          ))}
-        </div>
+        <p className="hero-trust">{t('trustLineStrip')}</p>
       </div>
     </section>
   );

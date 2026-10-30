@@ -21,10 +21,13 @@
   background: var(--mv-bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  caret-color: var(--mv-copper);
+  -webkit-tap-highlight-color: var(--mv-copper-tint);
 }
 .mv-marketing {
   overflow-x: hidden;
 }
+.mv-table td, .mv-row-aside, .mv-row dd, .mv-row time { font-variant-numeric: tabular-nums; }
 
 .mv-root ::selection,
 .mv-marketing ::selection {
@@ -237,11 +240,6 @@ html:not(.dark) .mv-plate-chip {
     animation-timeline: view();
     animation-range: entry 0% entry 30%;
   }
-  .mv-reveal-stagger > * {
-    animation: mv-reveal-rise 0.6s var(--mv-ease-expo) both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 35%;
-  }
 }
 @keyframes mv-reveal-rise {
   from { opacity: 0; transform: translateY(18px); }
@@ -249,40 +247,6 @@ html:not(.dark) .mv-plate-chip {
 }
 
 /* ── Shared keyframes ── */
-@keyframes mv-rise {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes mv-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
-}
-
-@keyframes mv-chip-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes mv-scan {
-  0%, 100% { top: 8%; opacity: 0; }
-  15% { opacity: 1; }
-  85% { opacity: 1; }
-  50% { top: 85%; }
-}
-
-@keyframes mv-result-in {
-  0%, 60% { opacity: 0; transform: translateY(10px); }
-  75%, 100% { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes mv-pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(0.8); }
-}
-
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -334,6 +298,43 @@ html:not(.dark) .mv-plate-chip {
   translate: 0 -1px;
 }
 
+/* ── Motion kit ──
+   Disclosure: chevron + height (height is the one layout property earned
+   here — the state IS the height; ::details-content is progressive). */
+.mv-disclosure > summary svg,
+.mv-disclosure > summary .mv-disclosure-mark { transition: transform 240ms var(--mv-ease-expo), color 160ms; }
+.mv-disclosure[open] > summary svg { transform: rotate(180deg); }
+.mv-disclosure.is-plus[open] > summary .mv-disclosure-mark { transform: rotate(45deg); }
+.mv-disclosure::details-content { height: 0; overflow: clip; transition: height 240ms var(--mv-ease-expo), content-visibility 240ms allow-discrete; }
+.mv-disclosure[open]::details-content { height: auto; }
+/* Press feedback */
+.mv-btn:active, .mv-icon-btn:active, .mv-chip:active { transition-duration: 60ms; }
+.mv-icon-btn:active, .mv-chip:active { scale: 0.97; }
+/* Enter utilities for things that mount after hydration (sheets, bars,
+   toasts, errors): transitions from @starting-style — the resting state is
+   the default, so a stall shows the final frame. `translate` composes with
+   any existing transform. */
+.mv-enter-down, .mv-enter-up { transition: opacity 200ms var(--mv-ease-expo), translate 200ms var(--mv-ease-expo); }
+@starting-style {
+  .mv-enter-down { opacity: 0; translate: 0 -6px; }
+  .mv-enter-up { opacity: 0; translate: 0 8px; }
+}
+.mv-enter-list > * { transition: opacity 200ms var(--mv-ease-expo), translate 200ms var(--mv-ease-expo); transition-delay: min(calc(var(--i, 0) * 30ms), 210ms); }
+@starting-style { .mv-enter-list > * { opacity: 0; translate: 0 6px; } }
+.mv-field-error, .mv-alert[role='alert'] { transition: opacity 160ms var(--mv-ease-expo), translate 160ms var(--mv-ease-expo); }
+@starting-style { .mv-field-error, .mv-alert[role='alert'] { opacity: 0; translate: 0 -4px; } }
+/* Theme cross-fade (startViewTransition in the provider, user click only) */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 200ms; animation-timing-function: var(--mv-ease-expo); mix-blend-mode: normal; }
+/* Theme toggle: both icons rendered, html.dark selects — right at first
+   paint, and the swap is a quarter-turn cross-fade */
+[data-theme-toggle] { position: relative; }
+[data-theme-toggle] svg { position: absolute; top: 50%; left: 50%; margin: -9px 0 0 -9px; transition: opacity 0.2s var(--mv-ease), transform 0.35s var(--mv-ease-expo); }
+.mv-toggle-sun { opacity: 0; transform: rotate(-90deg) scale(0.8); }
+.mv-toggle-moon { opacity: 1; transform: none; }
+html.dark .mv-toggle-sun { opacity: 1; transform: none; }
+html.dark .mv-toggle-moon { opacity: 0; transform: rotate(90deg) scale(0.8); }
+[data-theme-toggle]:active svg { transition-duration: 60ms; }
+
 /* Ghost icon button: 44px target, control radius, no fill until hover.
    Theme toggle, menu buttons, dismiss controls. */
 .mv-icon-btn {
@@ -365,8 +366,9 @@ html:not(.dark) .mv-plate-chip {
   scale: 1;
 }
 .mv-btn-primary:disabled {
-  background: color-mix(in oklch, var(--mv-copper) 60%, var(--mv-bg));
-  color: color-mix(in oklch, var(--mv-on-copper) 80%, transparent);
+  background: var(--mv-copper);
+  color: var(--mv-on-copper);
+  opacity: 0.5;
 }
 .mv-btn-ghost:disabled { color: var(--mv-ink-3); background: var(--mv-surface-2); }
 .mv-btn[aria-busy='true'] { cursor: progress; }
@@ -444,7 +446,7 @@ html:not(.dark) .mv-plate-chip {
   white-space: nowrap;
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.15s var(--mv-ease), color 0.15s var(--mv-ease);
+  transition: background-color 160ms var(--mv-ease-expo), color 160ms var(--mv-ease-expo);
 }
 .mv-segmented.is-block { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
 .mv-segmented > :hover { color: var(--mv-ink); }
@@ -453,7 +455,6 @@ html:not(.dark) .mv-plate-chip {
 .mv-segmented > [aria-current] {
   background: var(--mv-surface-3);
   color: var(--mv-ink);
-  font-weight: 600;
 }
 
 /* ── Field: label wrapper + input (promoted from trackside-read.css) ── */
@@ -549,6 +550,8 @@ a.mv-row:hover svg { color: var(--mv-copper-text); transform: translateX(2px); }
 .mv-chip:hover { background: var(--mv-surface-3); border-color: var(--mv-line-step); color: var(--mv-ink); }
 .mv-chip[aria-pressed='true'],
 .mv-chip[data-active='true'] { border-color: var(--mv-copper); color: var(--mv-copper-text); }
+.mv-chip[aria-pressed='true']:hover,
+.mv-chip[data-active='true']:hover { background: var(--mv-surface-2); }
 .mv-chip.is-tall { min-height: 44px; }    /* explore filter chips */
 
 /* ── Alert (auth banner + pro alert; overdue ink on the danger tint, never copper) ── */
@@ -715,16 +718,36 @@ html:not(.dark) .mv-plate {
   font-family: var(--mv-font-body);
   font-weight: 500;
   color: color-mix(in srgb, var(--mv-plate-ink) 68%, transparent);
+  /* One line: a long make + model + variant truncates instead of wrapping
+     the plate (the full text sits in the title attribute) */
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Settle-in: once, 240ms, exponential ease-out (mirrors the app) */
+/* The signature moment, opt-in (data-settle): the plate settles 0.98 → 1
+   and, 120ms in, the livery stripe slides along its own 45° axis from off
+   the top-right corner into place. Transform only, clipped by the plate's
+   overflow: a stalled first frame is a plate without its stripe — never a
+   missing plate. One per page family; never inside .mv-reveal. */
 @keyframes mv-plate-settle {
   from { transform: scale(0.98); }
   to { transform: scale(1); }
 }
-.mv-plate {
-  animation: mv-plate-settle 240ms var(--mv-ease-expo) both;
+@keyframes mv-plate-stripe-lay {
+  from { transform: rotate(45deg) translateX(120%); }
+  to { transform: rotate(45deg) translateX(0); }
 }
+.mv-plate { transition: background-color 240ms var(--mv-ease-expo); }
+.mv-plate[data-settle] { animation: mv-plate-settle 240ms var(--mv-ease-expo) both; }
+.mv-plate[data-settle] .mv-plate-stripe { animation: mv-plate-stripe-lay 420ms var(--mv-ease-expo) 120ms both; }
+.mv-plate[data-settle='late'] { animation-delay: 240ms; }
+.mv-plate[data-settle='late'] .mv-plate-stripe { animation-delay: 360ms; }
+/* Overdue plate: the identity line keeps full plate ink (4.7:1 on red) */
+.mv-plate[data-state='overdue'] .mv-plate-edge-identity { color: var(--mv-plate-ink); }
+/* Selecting text on a plate inverts the plate instead of vanishing */
+.mv-plate ::selection { background: var(--mv-plate-ink); color: var(--mv-plate-bone); }
 
 /* ── Footer ── */
 .mv-footer {
@@ -1005,15 +1028,6 @@ html:not(.dark) .mv-plate {
   75%  { content: "..."; }
 }
 
-/* ── Reduced motion ── */
-@media (prefers-reduced-motion: reduce) {
-  .mv-marketing *,
-  .mv-marketing *::before,
-  .mv-marketing *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
 
 /* ── Hero (Trackside) ── */
 .hero-headline {
@@ -1026,20 +1040,6 @@ html:not(.dark) .mv-plate {
   color: var(--mv-ink);
   max-width: 14ch;
 }
-
-.hero-hook {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--mv-copper-text);
-  text-decoration: none;
-  letter-spacing: 0;
-}
-.hero-hook:hover { color: var(--mv-copper-hover); }
-.hero-hook svg { transition: transform 0.3s var(--mv-ease); }
-.hero-hook:hover svg { transform: translateX(3px); }
 
 .hero-desc {
   max-width: 440px;
@@ -1110,7 +1110,7 @@ html:not(.dark) .mv-dark-scene {
   --mv-ink: #ece6da;
   --mv-ink-2: #bdb8ae;
   --mv-ink-3: #8e8a83;
-  --mv-ink-4: #5f5c57;
+  --mv-ink-4: #716e66;
   --mv-line: rgba(236, 230, 218, 0.09);
   --mv-line-2: rgba(236, 230, 218, 0.05);
   --mv-copper: #d4622e;
@@ -1120,7 +1120,7 @@ html:not(.dark) .mv-dark-scene {
   --mv-go: #4fb47a;
   --mv-info: #6c9bf2;
   --mv-due-ink: #f2c230;
-  --mv-overdue-ink: #e5483a;
+  --mv-overdue-ink: #f0675a;
   color-scheme: dark;
 }
 html:not(.dark) .mv-dark-scene .mv-plate {
@@ -1137,82 +1137,44 @@ html:not(.dark) .mv-dark-scene .mv-plate {
     linear-gradient(180deg, rgba(17, 18, 20, 0.55) 0%, transparent 24%, transparent 55%, rgba(12, 13, 14, 0.92) 92%, var(--mv-bg-2) 100%);
 }
 
-/* Hero entrance: ONE authored rise on the content block. Load-time
-   entrances animate transform only — never opacity — so a stalled or
-   throttled animation can shift content, never hide it. (Scroll-driven
-   reveals may fade: their progress is position, not the clock.) */
-@keyframes hero-content-rise {
-  from { transform: translateY(18px); }
-  to { transform: translateY(0); }
-}
-.hero-content {
-  animation: hero-content-rise 0.8s var(--mv-ease-expo);
-}
-
 /* Hero photo settle: once, no loops */
 @keyframes hero-photo-settle {
   from { transform: scale(1.06); }
   to { transform: scale(1); }
 }
 .hero-photo {
-  animation: hero-photo-settle 1.6s var(--mv-ease-expo) both;
-}
-
-/* Static figure strip on a card-step band (replaces the ticker) */
-.hero-strip {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  border-top: 1px solid var(--mv-line);
-  background: var(--mv-bg);
-  z-index: 1;
-}
-.hero-strip-inner {
-  max-width: var(--mv-container);
-  margin: 0 auto;
-  padding: 16px 40px;
-  display: flex;
-  gap: 40px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.hero-strip-inner::-webkit-scrollbar { display: none; }
-.hero-strip-item {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  white-space: nowrap;
-}
-.hero-strip-figure {
-  font-family: var(--mv-font-display);
-  font-weight: 600;
-  font-size: 20px;
-  line-height: 22px;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum';
-  color: var(--mv-ink);
-}
-.hero-strip-label {
-  font-size: 13px;
-  color: var(--mv-ink-3);
-  font-weight: 500;
+  animation: hero-photo-settle 700ms var(--mv-ease-expo) both;
 }
 
 .hero-section { padding: 120px 40px; }
 @media (max-width: 820px) {
   .hero-section { padding: 96px 24px 120px; }
   .hero-desc { max-width: 90%; }
-  .hero-strip-inner { padding: 14px 24px; gap: 28px; }
 }
 @media (max-width: 480px) {
   .hero-section { padding: 96px 20px 120px; }
 }
 
+/* ── Reduced motion policy ──
+   Entrances: none (content is visible by default, nothing is lost).
+   Loops still signal activity without motion. Feedback keeps its colour;
+   spatial movement goes. Colour transitions ≤300ms stay: they carry state. */
 @media (prefers-reduced-motion: reduce) {
-  .hero-content, .hero-photo, .mv-plate {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
+  .mv-reveal, .hero-photo,
+  .mv-plate[data-settle], .mv-plate[data-settle] .mv-plate-stripe,
+  .mv-enter-up, .mv-enter-down, .mv-enter-list > *,
+  .mv-field-error, .mv-alert[role='alert'] {
+    animation: none !important; transition: none !important; opacity: 1 !important; transform: none !important; translate: none !important;
   }
+  .mv-plate[data-settle] .mv-plate-stripe { transform: rotate(45deg) !important; }
+  .mv-loader::after, .mv-loader-tread, .mv-loader-hub, .mv-loader-text .mv-dots::after,
+  .mv-navprogress-bar { animation: none; }
+  .mv-loader-text .mv-dots::after { content: "…"; }
+  .mv-btn-primary:hover, .mv-btn-ghost:hover { translate: 0 0; }
+  .mv-btn:active, .mv-btn-ghost:active, .mv-icon-btn:active, .mv-chip:active { scale: 1; }
+  a.mv-row:hover svg { transform: none; }
+  .mv-disclosure::details-content { transition: none; }
+  .mv-disclosure > summary svg, .mv-disclosure > summary .mv-disclosure-mark { transition: color 160ms; }
+  [data-theme-toggle] svg { transition: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }

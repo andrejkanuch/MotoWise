@@ -5,7 +5,9 @@ import { Theme, useTheme } from '@/providers/theme-provider';
 
 /**
  * One control, two schemes: flips between light and dark and stores the
- * choice. Renders as a ghost icon button so it sits in any bar; pass
+ * choice. Both icons are rendered and `html.dark` (set by the pre-paint
+ * script) selects the visible one, so the icon is right before React runs
+ * and the swap is a quarter-turn cross-fade (design-system.css). Pass
  * `className` for the host bar's own control styling.
  */
 export function ThemeToggle({
@@ -28,7 +30,8 @@ export function ThemeToggle({
       title={label}
       data-theme-toggle
     >
-      {isDark ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
+      <Sun size={18} aria-hidden="true" className="mv-toggle-sun" />
+      <Moon size={18} aria-hidden="true" className="mv-toggle-moon" />
     </button>
   );
 }

@@ -5,6 +5,11 @@
 @source "../../../../packages/";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Keyword interpolation lets .mv-disclosure animate height: auto where supported */
+:root { interpolate-size: allow-keywords; }
+/* Scrollbars on the ramp, both schemes */
+html { scrollbar-color: var(--mv-line-step) var(--mv-bg); }
+
 /* Paint containment for below-fold sections — avoids layout/paint work until visible */
 section:not(:first-child) {
   content-visibility: auto;

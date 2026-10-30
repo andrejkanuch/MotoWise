@@ -8,9 +8,6 @@ export const Theme = { Light: 'light', Dark: 'dark', System: 'system' } as const
 export type Theme = (typeof Theme)[keyof typeof Theme];
 export type ResolvedTheme = typeof Theme.Light | typeof Theme.Dark;
 
-/** Browser-chrome colour per scheme: the graphite and paper grounds (palette.plateG0 / plateLightG0). */
-const THEME_COLOR: Record<ResolvedTheme, string> = { dark: '#111214', light: '#f3f2ef' };
-
 const DARK_QUERY = '(prefers-color-scheme: dark)';
 
 interface ThemeContextValue {
@@ -36,8 +33,24 @@ function systemTheme(): ResolvedTheme {
 
 function applyTheme(resolved: ResolvedTheme) {
   document.documentElement.classList.toggle('dark', resolved === Theme.Dark);
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', THEME_COLOR[resolved]);
+  // The browser chrome follows the page ground token, so it tracks the toggle,
+  // not only the OS preference the viewport meta encodes.
+  const ground = getComputedStyle(document.documentElement).getPropertyValue('--mv-bg').trim();
+  if (!ground) return;
+  for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
+    meta.content = ground;
+  }
+}
+
+/** The user's click cross-fades the whole page (view transition); first
+ *  paint and OS changes stay instant, and reduced motion opts out. */
+function applyThemeAnimated(resolved: ResolvedTheme) {
+  const vt = document.startViewTransition?.bind(document);
+  if (!vt || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    applyTheme(resolved);
+    return;
+  }
+  vt(() => applyTheme(resolved));
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -77,7 +90,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
     const resolved = next === Theme.System ? systemTheme() : next;
     setResolvedTheme(resolved);
-    applyTheme(resolved);
+    applyThemeAnimated(resolved);
   }, []);
 
   const value = useMemo(
