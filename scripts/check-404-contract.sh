@@ -70,6 +70,8 @@ CASES=$(cat <<'EOF'
 200 /guides/alpine-motorcycle-passes            guides:real
 308 /trips/us/ca/pacific-coast-highway          legacy-slug:redirect
 308 /trips/ch/vs/furka-pass                     bare-slug:redirect
+404 /trips/00000000-0000-4000-8000-000000000000 trip-by-id:bogus
+404 /de/definitely-not-a-route                  catchall-i18n:bogus
 404 /definitely-not-a-route                     control:bogus
 EOF
 )

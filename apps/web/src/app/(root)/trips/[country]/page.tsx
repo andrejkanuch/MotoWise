@@ -8,6 +8,7 @@ import { curatorName, humanRegionName } from '@/components/trip-detail/display-n
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
 import { countryDisplayName } from '@/lib/geo-names';
 import { buildRouteHeroMapUrl } from '@/lib/map/static-image-provider';
+import { postPublicQuery } from '@/lib/public-graphql';
 import { isTargetMarket } from '@/lib/seo/market-indexing';
 import '@/components/trip-detail/trip-detail.css';
 
@@ -28,14 +29,6 @@ export const dynamic = 'force-static';
 export const revalidate = 300;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-const DISCOVER_TRIP_BY_ID_QUERY = `
-  query DiscoverTripByIdRedirect($id: ID!) {
-    discoverTripById(id: $id) {
-      id slug countryCode regionCode
-    }
-  }
-`;
 
 const TRIP_DETAIL_FULL_QUERY = `
   query TripDetailFull($tripId: ID!) {
@@ -86,57 +79,18 @@ interface PageParams {
   params: Promise<{ country: string }>;
 }
 
-/** Per-request timeout, matching the public GraphQL fetcher (lib/graphql-server.ts). */
-const LOOKUP_TIMEOUT_MS = 8_000;
-
-/**
- * POSTs one public query and returns its `data` field, or `null` when the API
- * answered definitively that there is nothing (no data, or GraphQL errors in
- * the body). A network error, timeout, 5xx or a body that is not GraphQL
- * THROWS: turning those into null would make the page
- * call notFound(), and under ISR that false 404 is cached for the whole window
- * (docs/solutions/runtime-errors/nextjs-streaming-swallows-404s-and-redirects.md).
- * A throw keeps the last good page during regeneration instead.
- */
-async function postPublicQuery<T>(
-  query: string,
-  variables: Record<string, unknown>,
-): Promise<T | null> {
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, variables }),
-    next: { revalidate },
-    signal: AbortSignal.timeout(LOOKUP_TIMEOUT_MS),
-  });
-  // 5xx is the API not answering. A 4xx that carries GraphQL errors IS an
-  // answer (validation or not-found): discoverTripById, for one, is not in the
-  // API schema and always answers 400, so treating 4xx as an outage would turn
-  // every by-id trip into an error page.
-  if (res.status >= 500) throw new Error(`Trip lookup failed: HTTP ${res.status}`);
-  const json = (await res.json().catch(() => {
-    throw new Error(`Trip lookup failed: HTTP ${res.status}, body is not JSON`);
-  })) as { data?: T | null; errors?: unknown[] };
-  if (Array.isArray(json.errors) && json.errors.length > 0) return null;
-  if (!res.ok) throw new Error(`Trip lookup failed: HTTP ${res.status}`);
-  return json.data ?? null;
-}
-
 // cache() dedupes the generateMetadata + page-body lookups into one request.
 const lookupTrip = cache(async (id: string): Promise<TripData | null> => {
-  // Discover trips with a slug redirect to their canonical page.
-  const discover = await postPublicQuery<{
-    discoverTripById: { slug: string | null; countryCode: string | null } | null;
-  }>(DISCOVER_TRIP_BY_ID_QUERY, { id });
-  const discovered = discover?.discoverTripById;
-  if (discovered?.slug && discovered.countryCode) {
-    return { ...discovered, _redirect: true } as unknown as TripData;
-  }
-
-  // Full trip detail (user trips + templates without slug)
-  const detail = await postPublicQuery<{ tripDetail: TripData | null }>(TRIP_DETAIL_FULL_QUERY, {
-    tripId: id,
-  });
+  // tripDetail serves templates and riders' public trips alike; a slugged trip
+  // carries its slug and the page redirects to the canonical URL. Absent →
+  // null (notFound); an outage or any non-NOT_FOUND error throws so ISR keeps
+  // the last good page (lib/public-graphql.ts).
+  const detail = await postPublicQuery<{ tripDetail: TripData | null }>(
+    API_URL,
+    TRIP_DETAIL_FULL_QUERY,
+    { tripId: id },
+    revalidate,
+  );
   const trip = detail?.tripDetail;
   return trip?.countryCode ? trip : null;
 });
@@ -263,7 +217,7 @@ export default async function TripByIdPage({ params }: PageParams) {
   const trip = await lookupTrip(segment);
   if (!trip) notFound();
 
-  // If discover trip has a slug, redirect to canonical URL
+  // A slugged trip lives at its canonical URL
   if (trip.slug) {
     const c = trip.countryCode.toLowerCase();
     const r = (trip.regionCode ?? 'general').toLowerCase();
