@@ -4,6 +4,7 @@ import { Footer } from '@/components/marketing/footer';
 import { Navbar } from '@/components/marketing/navbar';
 import { MAIN_CONTENT_ID, SkipLink } from '@/components/skip-link';
 import '@/components/marketing/design-system.css';
+import { pickNamespaces } from '@/i18n/pick-namespaces';
 
 /**
  * The namespaces the /pro client subtree reads: the navbar and its language
@@ -12,13 +13,6 @@ import '@/components/marketing/design-system.css';
  * client: the whole catalogue is ~300 KB of RSC payload.
  */
 const PRO_CLIENT_NAMESPACES = ['Navbar', 'LanguageSwitcher'] as const;
-
-type Messages = Awaited<ReturnType<typeof getMessages>>;
-
-function pickNamespaces(messages: Messages, namespaces: readonly string[]): Messages {
-  const all = messages as Record<string, unknown>;
-  return Object.fromEntries(namespaces.map((ns) => [ns, all[ns]])) as Messages;
-}
 
 export default async function ProLayout({ children }: { children: React.ReactNode }) {
   const messages = pickNamespaces(await getMessages(), PRO_CLIENT_NAMESPACES);

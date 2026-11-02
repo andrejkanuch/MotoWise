@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
+import { pickNamespaces } from '@/i18n/pick-namespaces';
 import { routing } from '@/i18n/routing';
 import { RootShell } from '../root-shell';
 
@@ -23,13 +24,6 @@ const LOCALE_CLIENT_NAMESPACES = [
   'Navbar',
   'StickyBar',
 ] as const;
-
-type Messages = Awaited<ReturnType<typeof getMessages>>;
-
-function pickNamespaces(messages: Messages, namespaces: readonly string[]): Messages {
-  const all = messages as Record<string, unknown>;
-  return Object.fromEntries(namespaces.map((ns) => [ns, all[ns]])) as Messages;
-}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

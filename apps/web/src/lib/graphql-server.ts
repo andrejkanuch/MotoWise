@@ -1,5 +1,6 @@
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { GraphQLClient } from 'graphql-request';
+import { GRAPHQL_NOT_FOUND_CODE } from './public-graphql';
 import { getSupabaseServerClient } from './supabase-server';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
@@ -45,17 +46,16 @@ function isRetryableApiError(err: unknown): boolean {
 }
 
 /**
- * True when a thrown fetch error is a *definitive* GraphQL application error —
- * the API executed the query and returned a non-empty `errors` array at HTTP 200,
- * e.g. a resolver throwing `NotFoundException`. This distinguishes "the API told
- * us this resource is absent" from "we never reached a definitive answer"
- * (timeouts, network failures, and 4xx/5xx — including a gateway/5xx that happens
- * to carry an errors-shaped body — see {@link isRetryableApiError}).
+ * True when a thrown fetch error is a *definitive* "not found" — the API executed
+ * the query and answered at HTTP 200 with an `errors` array whose every entry has
+ * the NOT_FOUND code (a resolver's `NotFoundException`). This distinguishes "the
+ * API told us this resource is absent" from "we never reached a definitive answer"
+ * (timeouts, network failures, 4xx/5xx — including a gateway/5xx that happens to
+ * carry an errors-shaped body — see {@link isRetryableApiError}).
  *
- * The HTTP-200 guard matters: Apollo returns execution errors (a thrown resolver
- * exception) at 200, whereas request/transport failures use 4xx/5xx. Treating a
- * non-200 errors payload as "definitive" would let an infra blip short-circuit to
- * a 404. So we require status 200 explicitly.
+ * Both guards matter. Apollo returns every resolver exception at 200, so status
+ * alone is not enough: a DB outage surfaces as INTERNAL_SERVER_ERROR at 200 and
+ * must not become a cached 404. The codes decide, as in lib/public-graphql.ts.
  *
  * Callers that translate a null/absent result into `notFound()` MUST re-throw
  * when this returns `false`, so a transient API blip is never served (or, under
@@ -64,7 +64,11 @@ function isRetryableApiError(err: unknown): boolean {
 export function isDefinitiveGraphQLError(err: unknown): boolean {
   const response = (err as { response?: { status?: number; errors?: unknown } })?.response;
   if (response?.status !== 200) return false;
-  return Array.isArray(response.errors) && response.errors.length > 0;
+  const errors = response.errors;
+  if (!Array.isArray(errors) || errors.length === 0) return false;
+  return errors.every(
+    (e) => (e as { extensions?: { code?: unknown } })?.extensions?.code === GRAPHQL_NOT_FOUND_CODE,
+  );
 }
 
 /**

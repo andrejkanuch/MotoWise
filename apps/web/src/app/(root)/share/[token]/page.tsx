@@ -1,9 +1,19 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { ShareUnavailable } from '@/components/share-unavailable';
-import { settleUpstream, UpstreamError } from '@/lib/upstream-error';
+import {
+  GRAPHQL_BAD_REQUEST_CODE,
+  GRAPHQL_NOT_FOUND_CODE,
+  postPublicQuery,
+} from '@/lib/public-graphql';
+import { asUpstream, settleUpstream } from '@/lib/upstream-error';
 import '@/components/marketing/design-system.css';
 import '@/components/share-page.css';
+
+// Rendered per request, like /t: an API outage shows ShareUnavailable, and that
+// page must never be cached over a good copy. The fetch itself is still cached
+// in the data cache, so the API sees at most one call per revalidate window.
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Shared service history',
@@ -60,32 +70,26 @@ interface SharedBikeHistory {
   generatedAt: string;
 }
 
-// `null` only when the API answered and the link is gone; a network failure or
-// a non-200 status throws `UpstreamError` so the page says "didn't load", not
-// "expired", to a rider whose link is fine.
+/** The resolver rejects a malformed token with BAD_REQUEST: the link is gone. */
+const SHARE_ABSENT_CODES = [GRAPHQL_NOT_FOUND_CODE, GRAPHQL_BAD_REQUEST_CODE];
+const SHARE_REVALIDATE_SECONDS = 60;
+
+// `null` only when the API answered that the link is gone; anything else
+// (network failure, timeout, non-200, another GraphQL error) throws
+// `UpstreamError` so the page says "didn't load", not "expired", to a rider
+// whose link is fine.
 async function fetchSharedHistory(token: string): Promise<SharedBikeHistory | null> {
-  let res: Response;
-  try {
-    res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: SHARED_BIKE_HISTORY_QUERY,
-        variables: { token },
-      }),
-      next: { revalidate: 60 },
-    });
-  } catch {
-    throw new UpstreamError('shared history fetch failed');
-  }
-  if (!res.ok) throw new UpstreamError(`shared history fetch ${res.status}`);
-  const json = await res.json().catch(() => {
-    throw new UpstreamError('shared history fetch bad json');
-  });
-  if (json.errors || !json.data?.sharedBikeHistory) {
-    return null;
-  }
-  return json.data.sharedBikeHistory;
+  const data = await asUpstream(
+    postPublicQuery<{ sharedBikeHistory: SharedBikeHistory | null }>(
+      API_URL,
+      SHARED_BIKE_HISTORY_QUERY,
+      { token },
+      SHARE_REVALIDATE_SECONDS,
+      SHARE_ABSENT_CODES,
+    ),
+    'shared history',
+  );
+  return data?.sharedBikeHistory ?? null;
 }
 
 const STATUS_LABELS: Record<string, string> = {

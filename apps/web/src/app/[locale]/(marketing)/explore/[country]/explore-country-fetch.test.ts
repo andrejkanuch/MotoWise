@@ -3,8 +3,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 // The /explore/[country] page is a server component that pulls in next-intl and
 // next/navigation, so we exercise the data-fetch path it depends on rather than
 // rendering it. We mock the GraphQL fetcher to throw (simulating a transient
-// DB/API slowdown) and assert the page's parallel-fetch wrapper degrades to the
-// empty-state shape (`[[], []]`) instead of throwing a 500.
+// DB/API slowdown) and assert the error reaches the page: under the 30-day ISR
+// window a thrown regeneration keeps the last good page, while an empty list
+// would be cached for a month (lib/cache-windows.test.ts guards the page file).
 vi.mock('@/lib/graphql-server', () => ({
   gqlServerFetcher: vi.fn(),
 }));
@@ -20,15 +21,12 @@ import { gqlServerFetcher } from '@/lib/graphql-server';
 
 const mockedFetcher = vi.mocked(gqlServerFetcher);
 
-/**
- * Mirrors the resolution in CountryPage: the parallel fetch is wrapped so a
- * transient API error degrades to empty arrays and renders the empty state.
- */
+/** Mirrors the resolution in CountryPage: the parallel fetch, uncaught. */
 function resolveCountryData(countrySlug: string, countryCode: string) {
   return Promise.all([
     fetchRegionsByCountrySlug(countrySlug),
     fetchRoutesByCountry(countryCode, 12),
-  ]).catch(() => [[], []] as const);
+  ]);
 }
 
 describe('explore/[country] parallel fetch error boundary', () => {
@@ -36,13 +34,10 @@ describe('explore/[country] parallel fetch error boundary', () => {
     vi.clearAllMocks();
   });
 
-  it('degrades to empty arrays when the API errors instead of throwing', async () => {
+  it('lets an API error reach the page instead of an empty list', async () => {
     mockedFetcher.mockRejectedValue(new Error('Internal Server Error (500)'));
 
-    const [regions, topRoutes] = await resolveCountryData('us', 'US');
-
-    expect(regions).toEqual([]);
-    expect(topRoutes).toEqual([]);
+    await expect(resolveCountryData('us', 'US')).rejects.toThrow('Internal Server Error (500)');
   });
 
   it('returns fetched data on success', async () => {

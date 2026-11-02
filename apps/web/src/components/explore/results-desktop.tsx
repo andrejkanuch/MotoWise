@@ -125,24 +125,10 @@ export function ZeroRoutesState({
   );
 }
 
-export function LoadFailedState() {
-  return (
-    <div className="xp-empty">
-      <h2 className="mv-h3 xp-h3">Routes didn't load</h2>
-      <p>The route list is out of reach right now. Try again in a minute.</p>
-      <button type="button" className="mv-link is-tall" onClick={() => window.location.reload()}>
-        Try again
-      </button>
-    </div>
-  );
-}
-
 /* ── Main layout ──────────────────────────────────────────────── */
 
 interface ResultsDesktopProps {
   allTrips: TripTemplateNode[];
-  /** The API did not answer: say so instead of "no routes match". */
-  loadFailed?: boolean;
   country: string;
   countryCode: string;
   region?: string | null;
@@ -153,7 +139,6 @@ interface ResultsDesktopProps {
 
 export function ResultsDesktop({
   allTrips,
-  loadFailed = false,
   country,
   countryCode,
   region,
@@ -211,9 +196,7 @@ export function ResultsDesktop({
             internally; without it the item keeps its intrinsic content height,
             ballooning the grid row (and the height:100% map next to it). */}
         <div className="xp-results-list">
-          {loadFailed ? (
-            <LoadFailedState />
-          ) : allTrips.length === 0 ? (
+          {allTrips.length === 0 ? (
             <ZeroRoutesState country={country} countryCode={countryCode} region={region} />
           ) : trips.length === 0 ? (
             <EmptyState onClear={clearFilters} />

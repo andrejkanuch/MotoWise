@@ -85,13 +85,13 @@ export default async function CountryPage({ params }: PageProps) {
   const country = await fetchCountryBySlug(countrySlug);
   if (!country) notFound();
 
-  // A transient API/DB error on the parallel fetch must degrade to the empty
-  // state rather than 500 the whole page (see /pt-BR/explore/us incident). The
-  // notFound() above already handles genuinely missing countries.
+  // Uncaught on purpose, like the (root) twin: under the 30-day window an
+  // empty page from one API blip would be cached for a month, while a thrown
+  // regeneration keeps the last good page.
   const [regions, topRoutes] = await Promise.all([
     fetchRegionsByCountrySlug(countrySlug),
     fetchRoutesByCountry(country.countryCode, 12),
-  ]).catch(() => [[], []] as const);
+  ]);
 
   const introContent = COUNTRY_INTROS[countrySlug] ?? null;
 
