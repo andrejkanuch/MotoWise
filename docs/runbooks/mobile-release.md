@@ -37,7 +37,9 @@ caught it.
    serves the other arm and the gate cannot pass. Switch to
    `EXPECTED_ARM=<that arm>` only once `ASSIGNABLE` holds that arm alone and
    `ONBOARDING_EXPERIMENT.KILL_SWITCH` names it too: a disabled or unknown flag
-   assigns the kill-switch arm.
+   assigns the kill-switch arm. The runner checks this against the checkout it runs
+   from, not against the installed app, so run it from the exact commit the build
+   was cut from.
 
    Each run deletes its account on exit; the runner refuses an email that already has
    an account. Setup is
