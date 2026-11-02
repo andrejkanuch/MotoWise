@@ -70,22 +70,27 @@ admin() { # admin METHOD PATH [DATA] — DELETE fails loudly so a leaked user is
 # The account is created by the app, so look it up by email at teardown.
 # CREATED_AFTER limits the match to accounts created during this run, so a
 # TEST_EMAIL that names an existing account can never get it deleted.
+# Fails (non-zero) when the admin API returns no user list, so a failed lookup
+# is never read as "no account".
 user_id_for_email() {
   admin GET "users?filter=$(jq -rn --arg e "$TEST_EMAIL" '$e|@uri')&per_page=50" \
-    | jq -r --arg e "$TEST_EMAIL" --arg after "${CREATED_AFTER:-}" \
-      '.users[]? | select(.email == $e) | select($after == "" or .created_at >= $after) | .id' \
-    | head -1
+    | jq -er --arg e "$TEST_EMAIL" --arg after "${CREATED_AFTER:-}" \
+      '.users | map(select(.email == $e) | select($after == "" or .created_at >= $after) | .id) | first // ""'
 }
 
-if [ -n "$(user_id_for_email)" ]; then
+EXISTING=$(user_id_for_email) || { echo "error: could not check whether $TEST_EMAIL has an account"; exit 1; }
+if [ -n "$EXISTING" ]; then
   echo "error: an account already exists for $TEST_EMAIL — use a new address"
   exit 1
 fi
 CREATED_AFTER=$(date -u +%Y-%m-%dT%H:%M:%S)
+# Set once part 1 has created the account; teardown deletes only this id. The
+# email lookup is a fallback for a run that fails after signup but before then.
+USER_ID=""
 
 cleanup() {
   code=$?
-  USER_ID=$(user_id_for_email || true)
+  [ -n "$USER_ID" ] || USER_ID=$(user_id_for_email || true)
   if [ -n "$USER_ID" ]; then
     echo "→ teardown: deleting test user $USER_ID ($TEST_EMAIL)"
     admin DELETE "users/$USER_ID" >/dev/null 2>&1 || echo "  warning: user delete failed — remove $TEST_EMAIL manually"
@@ -100,6 +105,10 @@ echo "→ part 1: UI signup as $TEST_EMAIL (APP_ID=$APP_ID)"
 # shellcheck disable=SC2086
 maestro $DEVICE_ARGS test "$MOBILE_DIR/.maestro/flows/onboarding-email-code-signup.yaml" \
   --env APP_ID="$APP_ID" --env TEST_EMAIL="$TEST_EMAIL" --env TEST_PASSWORD="$TEST_PASSWORD"
+
+USER_ID=$(user_id_for_email) || true
+[ -n "$USER_ID" ] || { echo "error: part 1 passed but no new account exists for $TEST_EMAIL"; exit 1; }
+echo "  signed up user id=$USER_ID"
 
 echo "→ fetching a confirmation code for the pending signup"
 CODE=$(admin POST generate_link "$(jq -n --arg e "$TEST_EMAIL" --arg p "$TEST_PASSWORD" '{type:"signup",email:$e,password:$p}')" \
