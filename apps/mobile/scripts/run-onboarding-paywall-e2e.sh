@@ -23,7 +23,8 @@ set -eu
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 MAX_TRIES=${MAX_TRIES:-6}
 case "$MAX_TRIES" in
-  '' | *[!0-9]* | 0 | 0*) echo "error: MAX_TRIES must be a positive integer (got '$MAX_TRIES')"; exit 2 ;;
+  [1-9] | [1-9][0-9]) ;;
+  *) echo "error: MAX_TRIES must be an integer from 1 to 99 (got '$MAX_TRIES')"; exit 2 ;;
 esac
 # Ctrl-C stops the gate. Each run deletes its own account on the way out, so
 # leaving the retry loop is safe.
@@ -37,6 +38,13 @@ run_once() { # run_once ARM
 if [ -n "${EXPECTED_ARM:-}" ]; then
   run_once "$EXPECTED_ARM"
   exit 0
+fi
+
+# Every run of the two-arm gate needs a fresh address; an explicit TEST_EMAIL
+# keeps its account after the first run and fails every later preflight.
+if [ -n "${TEST_EMAIL:-}" ]; then
+  echo "error: TEST_EMAIL works only with EXPECTED_ARM (a single run); unset it for the two-arm gate"
+  exit 2
 fi
 
 for arm in commit_first garage_first; do

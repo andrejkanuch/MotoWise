@@ -35,7 +35,9 @@ caught it.
    that state, set the simulator's region to an EEA country, so analytics stays off
    before consent and each install draws on the device; otherwise the flag never
    serves the other arm and the gate cannot pass. Switch to
-   `EXPECTED_ARM=<that arm>` only once `ASSIGNABLE` holds that arm alone.
+   `EXPECTED_ARM=<that arm>` only once `ASSIGNABLE` holds that arm alone and
+   `ONBOARDING_EXPERIMENT.KILL_SWITCH` names it too: a disabled or unknown flag
+   assigns the kill-switch arm.
 
    Each run deletes its account on exit; the runner refuses an email that already has
    an account. Setup is
