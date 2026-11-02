@@ -143,7 +143,7 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
 // every 308 on the subtree back into a 200 (Sentry MOTOVAULT-WEB-Q, 74 events),
 // and dev mode cannot reproduce it — only a production build can.
 export const dynamic = 'force-static';
-export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand on publish/edit
+export const revalidate = 2592000; // 30 days — DB-sourced; invalidated on demand via /api/revalidate on publish/edit
 
 const WAYPOINT_LABELS: Record<string, string> = {
   start: 'Start',

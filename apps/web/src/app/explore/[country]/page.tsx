@@ -18,7 +18,7 @@ import { reportSoftNotFound } from '@/lib/seo/soft-404';
 // measured evidence (Sentry MOTOVAULT-WEB-R), and do not add a loading.tsx above
 // this route.
 export const dynamic = 'force-static';
-export const revalidate = 86400;
+export const revalidate = 2592000; // 30 days — DB-sourced; invalidated on demand via /api/revalidate on publish/edit
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 

@@ -20,7 +20,7 @@ import { reportSoftNotFound } from '@/lib/seo/soft-404';
 // `app/loading.tsx` (Sentry MOTOVAULT-WEB-P), now deleted. See the trip-detail
 // route for the measured evidence, and do not add a loading.tsx above this route.
 export const dynamic = 'force-static';
-export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand via /api/revalidate
+export const revalidate = 2592000; // 30 days — DB-sourced; invalidated on demand via /api/revalidate on publish/edit
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 

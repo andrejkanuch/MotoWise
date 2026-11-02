@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
-import { setRequestLocale } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
+import { pickClientMessages } from '@/i18n/client-messages';
 import { routing } from '@/i18n/routing';
 
 export function generateStaticParams() {
@@ -20,5 +21,7 @@ export default async function LocaleLayout({
   }
   setRequestLocale(locale);
 
-  return <NextIntlClientProvider>{children}</NextIntlClientProvider>;
+  // Only the client-read namespaces; a bare provider would ship the whole catalog.
+  const messages = pickClientMessages(await getMessages());
+  return <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>;
 }

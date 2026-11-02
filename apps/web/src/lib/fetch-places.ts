@@ -34,16 +34,18 @@ function gqlPlaceToPlace(p: BrowsePlaceFieldsFragment): BrowsePlace {
 
 // ---- Queries (GraphQL API) ----
 
-/** Fetch all countries that have at least 1 route. Cached for 1 hour. */
+/** Fetch all countries that have at least 1 route. Cached for 30 days. */
 export const fetchCountries = unstable_cache(
   async (): Promise<Place[]> => {
     const data = await gqlServerFetcher(BrowseCountriesDocument);
     return data.browseCountries.map(gqlPlaceToPlace);
   },
   ['browse-countries'],
-  // Taxonomy is effectively static; refresh daily and invalidate on-demand via
-  // revalidateTag(CACHE_TAGS.places) when the API mutates `places`.
-  { revalidate: 86400, tags: [CACHE_TAGS.places] },
+  // Taxonomy is effectively static; invalidated on demand via
+  // revalidateTag(CACHE_TAGS.places) when the API mutates `places`. Kept at the
+  // pages' 30-day window: a shorter one here would cap every explore page that
+  // reads it (a route regenerates at the lowest revalidate it touches).
+  { revalidate: 2592000, tags: [CACHE_TAGS.places] },
 );
 
 /** Fetch a country by its slug (lowercase country code, e.g. "it"). */

@@ -4,6 +4,7 @@ import {
   fetchArticleBody,
   listBlogCategories,
   listPublishedArticles,
+  listPublishedArticlesForArticlePages,
   listTranslatedLocales,
   searchArticleSlugs,
 } from './supabase-blog';
@@ -55,10 +56,26 @@ function isAllowed(locale: string): locale is (typeof ALLOWED_LOCALES)[number] {
  * file-pipeline behaviour where a missing/empty locale dir served English.
  */
 export async function getArticles(locale: string = 'en'): Promise<Article[]> {
+  return articlesWithFallback(listPublishedArticles, locale);
+}
+
+/**
+ * {@link getArticles} for article pages: same posts, long-lived cache. See
+ * `listPublishedArticlesForArticlePages` for why article pages must not read the
+ * hourly listing cache.
+ */
+function getArticlesForArticlePages(locale: string): Promise<Article[]> {
+  return articlesWithFallback(listPublishedArticlesForArticlePages, locale);
+}
+
+async function articlesWithFallback(
+  list: (locale: string) => Promise<Article[]>,
+  locale: string,
+): Promise<Article[]> {
   const effLocale = isAllowed(locale) ? locale : 'en';
-  const articles = await listPublishedArticles(effLocale);
+  const articles = await list(effLocale);
   if (articles.length === 0 && effLocale !== 'en') {
-    return listPublishedArticles('en');
+    return list('en');
   }
   return articles;
 }
@@ -72,14 +89,18 @@ export async function getArticleBySlug(
   slug: string,
   locale: string = 'en',
 ): Promise<Article | undefined> {
-  const meta = (await getArticles(locale)).find((a) => a.slug === slug);
+  // A post pg_cron published after the long-lived list was cached is missing from
+  // it; only then pay for the hourly list (so only that render gets the 1 h window).
+  const meta =
+    (await getArticlesForArticlePages(locale)).find((a) => a.slug === slug) ??
+    (await getArticles(locale)).find((a) => a.slug === slug);
   if (!meta) return undefined;
   const content = await fetchArticleBody(slug, meta.locale);
   return { ...meta, content: content ?? '' };
 }
 
 export async function getArticleSlugs(locale: string = 'en'): Promise<string[]> {
-  return (await getArticles(locale)).map((a) => a.slug);
+  return (await getArticlesForArticlePages(locale)).map((a) => a.slug);
 }
 
 export function getArticleUrl(slug: string, locale: string): string {
@@ -140,7 +161,7 @@ export async function getRelatedArticles(
   locale: string = 'en',
   limit: number = 3,
 ): Promise<Article[]> {
-  const articles = await getArticles(locale);
+  const articles = await getArticlesForArticlePages(locale);
   if (!category) return articles.filter((a) => a.slug !== currentSlug).slice(0, limit);
   const sameCategory = articles.filter((a) => a.slug !== currentSlug && a.category === category);
   const others = articles.filter((a) => a.slug !== currentSlug && a.category !== category);
