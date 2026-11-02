@@ -59,6 +59,7 @@ Do not move an existing domain.
 
 ## Release and dependencies
 - **OTA: publish with `--environment production` or the `Mobile OTA Update` workflow, never with a local env file.** It needs the owner's go-ahead and ships everything mobile on `main` since the store binary was cut. The runtime version is `version` in `app.config.ts`: an OTA reaches only builds with that version, which does not guard against a native mismatch. Read `docs/runbooks/mobile-ota.md` first
+- **Store build to production: `pnpm --filter @motovault/mobile test:e2e:onboarding-paywall` must pass on it first** (`docs/runbooks/mobile-release.md`, #326)
 - `expo` and `react-native` are declared in this app only. Run Expo CLI from this directory or via `pnpm --filter @motovault/mobile <script>`. `@sentry/react-native` stays in `expo.install.exclude` (pinned ahead of Expo's recommendation; re-check each SDK bump). Why: `docs/solutions/build-errors/renovate-dependabot-duplicate-bots.md`
 
 ## Common Mistakes

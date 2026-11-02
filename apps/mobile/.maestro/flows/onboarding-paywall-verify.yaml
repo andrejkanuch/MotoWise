@@ -1,0 +1,89 @@
+# Onboarding paywall E2E (#326), part 2 of 2: confirm the new account, then
+# REQUIRE the onboarding paywall at the position of whichever arm this install
+# was assigned. Part 1 is onboarding-email-code-signup.yaml.
+#
+# Builds 3.19–3.22 reached new riders with no onboarding paywall; the other
+# onboarding flows close the paywall with `optional: true`, so they still passed.
+# Here a missing paywall fails the run:
+#   - commit_first: the paywall is presented straight after the account step.
+#   - garage_first: no paywall after account; "Open my garage" presents it.
+#
+# The arm comes from the PostHog flag `onboarding_paywall_2026q4` on a release
+# build, so either may run. Pass EXPECTED_ARM=commit_first|garage_first to fail
+# when the install got the other arm (a dev build with EXPO_PUBLIC_OB_VARIANT).
+#
+# Run through scripts/run-onboarding-paywall-e2e.sh, which signs up a fresh
+# account (an existing account is routed out of onboarding before any paywall)
+# and passes the confirmation code as CONFIRMATION_CODE.
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+  EXPECTED_ARM: ""
+tags:
+  - email-code
+  - onboarding-paywall
+---
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible: "Enter your code"
+    timeout: 30000
+- tapOn: "Confirmation code"
+# Six digits auto-submit; no button to press.
+- inputText: ${CONFIRMATION_CODE}
+
+# The account exists now. commit_first presents the RevenueCat paywall (closed
+# with its × button); garage_first continues to heard-about.
+- extendedWaitUntil:
+    visible: "[×✕]|.*hear about us.*"
+    timeout: 90000
+- assertNotVisible: "Enter your code"
+- runFlow:
+    when:
+      visible: "[×✕]"
+    commands:
+      - evalScript: ${output.arm = 'commit_first'}
+      - tapOn: "[×✕]"
+- runFlow:
+    when:
+      true: ${output.arm !== 'commit_first'}
+    commands:
+      - evalScript: ${output.arm = 'garage_first'}
+- assertTrue:
+    condition: ${!EXPECTED_ARM || EXPECTED_ARM === output.arm}
+    label: "The install was assigned EXPECTED_ARM"
+
+# Post-account screens, the same for both arms.
+- extendedWaitUntil:
+    visible: ".*hear about us.*"
+    timeout: 30000
+- tapOn: "Instagram"
+- extendedWaitUntil:
+    visible: "Enable Notifications"
+    timeout: 30000
+- tapOn: "Maybe later"
+# Receipt-scan step between notifications and personalizing; skippable.
+- tapOn:
+    text: "Maybe later"
+    optional: true
+
+# Personalizing payoff. A fresh signup always gets the explicit CTA.
+- extendedWaitUntil:
+    visible: "Open my garage"
+    timeout: 60000
+- tapOn: "Open my garage"
+
+# garage_first: "Open my garage" MUST present the paywall.
+- runFlow:
+    when:
+      true: ${output.arm === 'garage_first'}
+    commands:
+      - extendedWaitUntil:
+          visible: "[×✕]"
+          timeout: 30000
+      - tapOn: "[×✕]"
+
+# Closing the paywall never blocks the rider: both arms land in the garage.
+- extendedWaitUntil:
+    visible: ".*Today in your garage.*"
+    timeout: 120000

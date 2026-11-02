@@ -1,8 +1,10 @@
 import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import {
   GOAL_TO_PLACEMENT,
+  getOnboardingPaywallPosition,
   getPrimaryGoal,
   MAINTENANCE_INTENT_PLACEMENT,
+  OB_PAYWALL_POSITION,
 } from '../config/onboarding';
 import type { useOnboardingStore } from '../stores/onboarding.store';
 import type { OnboardingPaywallSurface } from './paywall-surfaces';
@@ -45,6 +47,11 @@ export function resolveOnboardingPaywallPlacement(input: OnboardingPaywallInput)
     ? MAINTENANCE_INTENT_PLACEMENT
     : GOAL_TO_PLACEMENT[primaryGoal];
   return { primaryGoal, placement, goals: input.ridingGoals.join(',') };
+}
+
+/** Whether personalizing presents the onboarding paywall from "Open my garage" (`garage_first`). */
+export function isGarageCtaPaywall(variant: string): boolean {
+  return getOnboardingPaywallPosition(variant) === OB_PAYWALL_POSITION.GARAGE_CTA;
 }
 
 /**

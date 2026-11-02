@@ -25,7 +25,7 @@ import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { OnboardingBikePlate } from '../../components/onboarding/onboarding-bike-plate';
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
-import { getPrimaryGoal, getTotalScreens, OB_SCREEN, OB_VARIANT } from '../../config/onboarding';
+import { getPrimaryGoal, getTotalScreens, OB_SCREEN } from '../../config/onboarding';
 import { onboardingFeedbackContactInput } from '../../features/feedback/onboarding-contact-input';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
 import { tDynamic } from '../../i18n/t-dynamic';
@@ -40,6 +40,7 @@ import { MetaAnalytics } from '../../lib/meta-analytics';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import {
+  isGarageCtaPaywall,
   presentOnboardingPaywall,
   resolveOnboardingPaywallPlacement,
 } from '../../lib/onboarding-paywall';
@@ -132,9 +133,8 @@ export default function PersonalizingScreen() {
     setCompletionSent,
     reset,
   } = useOnboardingStore();
-  // garage_first presents the onboarding paywall from the payoff CTA. Never on
-  // the cold-start resume path: that rider already finished, it completes silently.
-  const showsGaragePaywall = variant === OB_VARIANT.GARAGE_FIRST && !isResumed;
+  // Never on the cold-start resume path: that rider already finished, it completes silently.
+  const showsGaragePaywall = isGarageCtaPaywall(variant) && !isResumed;
   const queryClient = useQueryClient();
 
   const { mutateAsync: completeOnboarding } = useMutation({

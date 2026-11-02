@@ -36,8 +36,10 @@ jest.mock('../lib/analytics', () => ({
 const {
   OB_VARIANT,
   OB_SCREEN,
+  OB_PAYWALL_POSITION,
   ONBOARDING_EXPERIMENT,
   getFlowScreens,
+  getOnboardingPaywallPosition,
   getNextRoute,
   getPreviousRoute,
   getResumeRoute,
@@ -151,6 +153,49 @@ describe('both variants keep the paywall after account (KTD2)', () => {
         expect(paywallAt).toBeGreaterThan(visited.indexOf(OB_SCREEN.ACCOUNT));
       }
     }
+  });
+});
+
+// Issue 326: builds 3.19–3.22 reached new riders with no onboarding paywall. Every
+// value a new install can be assigned must have a paywall surface.
+describe('every assignable variant and the kill switch show the paywall (issue 326)', () => {
+  const assignedToNewInstalls = [
+    ...new Set([...ONBOARDING_EXPERIMENT.ASSIGNABLE, ONBOARDING_EXPERIMENT.KILL_SWITCH]),
+  ];
+
+  it.each(assignedToNewInstalls)('%s has a paywall position', (variant) => {
+    expect(getOnboardingPaywallPosition(variant)).not.toBeNull();
+  });
+
+  it.each(assignedToNewInstalls)('%s keeps the screen its paywall is shown from', (variant) => {
+    const screens = getFlowScreens(variant);
+    const position = getOnboardingPaywallPosition(variant);
+    if (position === OB_PAYWALL_POSITION.STEP) {
+      expect(screens).toContain(OB_SCREEN.PAYWALL);
+      expect(screens.indexOf(OB_SCREEN.PAYWALL)).toBeGreaterThan(
+        screens.indexOf(OB_SCREEN.ACCOUNT),
+      );
+    } else {
+      expect(position).toBe(OB_PAYWALL_POSITION.GARAGE_CTA);
+      expect(screens).toContain(OB_SCREEN.PERSONALIZING);
+      expect(screens).not.toContain(OB_SCREEN.PAYWALL);
+    }
+  });
+
+  it('every walked path of an assigned variant passes its paywall surface', () => {
+    for (const variant of assignedToNewInstalls) {
+      const surface =
+        getOnboardingPaywallPosition(variant) === OB_PAYWALL_POSITION.STEP
+          ? OB_SCREEN.PAYWALL
+          : OB_SCREEN.PERSONALIZING;
+      for (const ctx of [withBike, noBike]) {
+        expect(walk(variant, ctx)).toContain(surface);
+      }
+    }
+  });
+
+  it('a variant this bundle does not know has no paywall position', () => {
+    expect(getOnboardingPaywallPosition('from_a_newer_bundle')).toBeNull();
   });
 });
 

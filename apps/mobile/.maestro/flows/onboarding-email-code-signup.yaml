@@ -1,0 +1,46 @@
+# Email-code confirmation E2E, part 1 of 2: sign up a NEW account at the
+# onboarding account step and land on the code step.
+#
+# Run through scripts/run-onboarding-email-code-e2e.sh, which then fetches a
+# code for TEST_EMAIL with the Supabase admin API and runs part 2
+# (onboarding-email-code-verify.yaml). Maestro fixes flow variables at launch,
+# so the code cannot be passed into this same flow.
+#
+# Needs a standalone/preview build (see .maestro/README.md). Supabase sends a
+# real confirmation email, so TEST_EMAIL must be deliverable without bouncing
+# (the runner uses Resend's delivered+<label>@resend.dev test address).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+tags:
+  - email-code
+---
+- runFlow: _shared/onboarding-to-account.yaml
+
+# Account step -> email form -> create the account
+- tapOn: "Continue with email"
+- tapOn: "Email"
+- inputText: ${TEST_EMAIL}
+- tapOn: "Password"
+- inputText: ${TEST_PASSWORD}
+# The app's keyboard controller ignores hideKeyboard; tap the subtitle to
+# dismiss the keyboard so it stops covering the button.
+- tapOn:
+    text: ".*Create an account to .*"
+    optional: true
+# The button slides down as the keyboard closes; a tap resolved mid-slide lands
+# on "Already have an account? Sign in" below it.
+- waitForAnimationToEnd
+- tapOn: "Create account"
+
+# The code step replaces the email form (no "check your email" alert).
+# Simulator prerequisite: Settings > General > AutoFill & Passwords > "AutoFill
+# Passwords and Passkeys" OFF. Otherwise iOS 27 raises "Save Password?" over the
+# code step once the form unmounts; Maestro sees neither that sheet nor the app
+# behind it, so the flow cannot dismiss it.
+- extendedWaitUntil:
+    visible: "Enter your code"
+    timeout: 30000
+- assertVisible: "We sent a 6-digit code to ${TEST_EMAIL}"
+- assertVisible: "Resend in .*s|Resend code"
+- assertVisible: "I already confirmed via the link"
