@@ -96,6 +96,8 @@ USER_ID=""
 
 cleanup() {
   code=${1:-$?}
+  # Run once: the exit below would fire the EXIT trap again after a signal.
+  trap - EXIT INT TERM
   if [ -n "$USER_ID" ] && [ -n "$EXPLICIT_EMAIL" ]; then
     echo "→ teardown: TEST_EMAIL was set, so not deleting — remove user $USER_ID ($TEST_EMAIL) manually"
   elif [ -n "$USER_ID" ]; then
