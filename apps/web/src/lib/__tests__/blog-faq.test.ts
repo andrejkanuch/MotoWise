@@ -6,9 +6,12 @@ vi.mock('@/lib/constants', () => ({ BASE_URL: 'https://motovault.app' }));
 // blog.ts reads from Postgres via supabase-blog; mock the reader so the
 // list/fallback/body-composition LOGIC is under test (not live data).
 const listPublishedArticles = vi.fn<(locale: string) => Promise<Article[]>>();
+const listPublishedArticlesForArticlePages = vi.fn<(locale: string) => Promise<Article[]>>();
 const fetchArticleBody = vi.fn<(slug: string, locale: string) => Promise<string | null>>();
 vi.mock('../supabase-blog', () => ({
   listPublishedArticles: (locale: string) => listPublishedArticles(locale),
+  listPublishedArticlesForArticlePages: (locale: string) =>
+    listPublishedArticlesForArticlePages(locale),
   fetchArticleBody: (slug: string, locale: string) => fetchArticleBody(slug, locale),
   listTranslatedLocales: vi.fn(async () => ['en']),
 }));
@@ -36,6 +39,7 @@ function article(over: Partial<Article> = {}): Article {
 
 beforeEach(() => {
   listPublishedArticles.mockReset();
+  listPublishedArticlesForArticlePages.mockReset();
   fetchArticleBody.mockReset();
 });
 
@@ -64,7 +68,7 @@ describe('getArticles locale fallback', () => {
 
 describe('getArticleBySlug', () => {
   it('hydrates the body for the resolved locale and carries faq through', async () => {
-    listPublishedArticles.mockResolvedValueOnce([
+    listPublishedArticlesForArticlePages.mockResolvedValueOnce([
       article({ slug: 'oil', faq: [{ question: 'Q', answer: 'A' }] }),
     ]);
     fetchArticleBody.mockResolvedValueOnce('## Body');
@@ -74,7 +78,28 @@ describe('getArticleBySlug', () => {
     expect(fetchArticleBody).toHaveBeenCalledWith('oil', 'en');
   });
 
+  it('reads only the long-lived list when it has the slug', async () => {
+    listPublishedArticlesForArticlePages.mockResolvedValueOnce([article({ slug: 'oil' })]);
+    await getArticleBySlug('oil', 'en');
+    expect(listPublishedArticles).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the hourly list for a post published after the long-lived list was cached', async () => {
+    listPublishedArticlesForArticlePages.mockResolvedValueOnce([article({ slug: 'old' })]);
+    listPublishedArticles.mockResolvedValueOnce([
+      article({ slug: 'new' }),
+      article({ slug: 'old' }),
+    ]);
+    fetchArticleBody.mockResolvedValueOnce('## New');
+    const found = await getArticleBySlug('new', 'en');
+    expect(found?.slug).toBe('new');
+    expect(found?.content).toBe('## New');
+  });
+
   it('returns undefined for a slug not in the locale set (e.g. en-only slug under es)', async () => {
+    listPublishedArticlesForArticlePages.mockResolvedValueOnce([
+      article({ slug: 'es-only', locale: 'es' }),
+    ]);
     listPublishedArticles.mockResolvedValueOnce([article({ slug: 'es-only', locale: 'es' })]);
     expect(await getArticleBySlug('oil', 'es')).toBeUndefined();
     expect(fetchArticleBody).not.toHaveBeenCalled();

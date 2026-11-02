@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/nextjs';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { unstable_cache } from 'next/cache';
+import { LONG_REVALIDATE_SECONDS } from '@/lib/cache-windows';
 import { CACHE_TAGS } from '@/lib/seo/cache-tags';
 import type { Article } from './blog';
 import type { FaqItem } from './seo/schema';
@@ -136,35 +137,53 @@ const LIST_SELECT = `
 
 /**
  * Published posts that have a translation in `locale`, newest first, WITHOUT
- * bodies (listings/sitemap/feed/related). Cached + tagged `blog` so an API
- * publish (`revalidateTag('blog')`) busts it.
+ * bodies. Uncached — read it through one of the two cached views below.
  */
-export const listPublishedArticles = unstable_cache(
-  async (locale: string): Promise<Article[]> => {
-    const supabase = blogClient();
-    if (!supabase) return [];
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .select(LIST_SELECT)
-      .eq('status', 'published')
-      .eq('blog_post_translations.locale', locale)
-      .order('published_at', { ascending: false });
-    if (error) {
-      // Surface a monitoring signal — an empty array would otherwise render a blank
-      // blog that's indistinguishable from "no posts yet" / a DB outage.
-      Sentry.captureException(error, {
-        tags: { area: 'blog', op: 'listPublishedArticles', locale },
-      });
-      console.error(`[supabase-blog] listPublishedArticles(${locale}) failed: ${error.message}`);
-      return [];
-    }
-    return ((data ?? []) as unknown as RawListRow[]).map((row) => toArticle(row, locale));
-  },
-  ['blog-list'],
+async function queryPublishedArticles(locale: string): Promise<Article[]> {
+  const supabase = blogClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .select(LIST_SELECT)
+    .eq('status', 'published')
+    .eq('blog_post_translations.locale', locale)
+    .order('published_at', { ascending: false });
+  if (error) {
+    // Every read in this file throws on a query error instead of returning an
+    // empty value: unstable_cache would store `[]` / `null` as a real answer and
+    // serve a blank blog or post for the whole (30-day) window, while a thrown
+    // read is not cached and ISR keeps serving the last good page.
+    Sentry.captureException(error, {
+      tags: { area: 'blog', op: 'listPublishedArticles', locale },
+    });
+    throw new Error(`[supabase-blog] listPublishedArticles(${locale}) failed: ${error.message}`);
+  }
+  return ((data ?? []) as unknown as RawListRow[]).map((row) => toArticle(row, locale));
+}
+
+/**
+ * The published-post list for LISTINGS (blog index, sitemap, feed). Cached +
+ * tagged `blog` so an API publish (`revalidateTag('blog')`) busts it.
+ */
+export const listPublishedArticles = unstable_cache(queryPublishedArticles, ['blog-list'], {
   // Shorter window than the rarely-changing detail/taxonomy reads: pg_cron flips
   // scheduled -> published in SQL with no on-demand revalidation, so bound how long
   // a freshly-published scheduled post can be missing from the listing.
-  { revalidate: 3600, tags: [CACHE_TAGS.blog] },
+  revalidate: 3600,
+  tags: [CACHE_TAGS.blog],
+});
+
+/**
+ * The same list for ARTICLE pages (lookup, related posts). A route regenerates
+ * at the lowest revalidate it reads, so reading the hourly list made every post
+ * page regenerate hourly — each one a full-page ISR write. Edits still bust it
+ * via the `blog` tag; a scheduled post this list has not seen yet is caught by
+ * the hourly fallback in `getArticleBySlug`.
+ */
+export const listPublishedArticlesForArticlePages = unstable_cache(
+  queryPublishedArticles,
+  ['blog-list-article-pages'],
+  { revalidate: LONG_REVALIDATE_SECONDS, tags: [CACHE_TAGS.blog] },
 );
 
 /** Body MDX (`body_raw`) for one post in one locale. Cached + tagged `blog`. */
@@ -181,8 +200,9 @@ export const fetchArticleBody = unstable_cache(
       .maybeSingle();
     if (error) {
       Sentry.captureException(error, { tags: { area: 'blog', op: 'fetchArticleBody', slug } });
-      console.error(`[supabase-blog] fetchArticleBody(${slug}/${locale}) failed: ${error.message}`);
-      return null;
+      throw new Error(
+        `[supabase-blog] fetchArticleBody(${slug}/${locale}) failed: ${error.message}`,
+      );
     }
     const tr = firstOf(
       (data as { blog_post_translations: { body_raw: string }[] | null } | null)
@@ -191,7 +211,7 @@ export const fetchArticleBody = unstable_cache(
     return tr?.body_raw ?? null;
   },
   ['blog-body'],
-  { revalidate: 604800, tags: [CACHE_TAGS.blog] },
+  { revalidate: LONG_REVALIDATE_SECONDS, tags: [CACHE_TAGS.blog] },
 );
 
 /**
@@ -239,13 +259,12 @@ export const listBlogCategories = unstable_cache(
       .order('name', { ascending: true });
     if (error) {
       Sentry.captureException(error, { tags: { area: 'blog', op: 'listBlogCategories' } });
-      console.error(`[supabase-blog] listBlogCategories failed: ${error.message}`);
-      return [];
+      throw new Error(`[supabase-blog] listBlogCategories failed: ${error.message}`);
     }
     return (data ?? []) as { slug: string; name: string }[];
   },
   ['blog-categories'],
-  { revalidate: 604800, tags: [CACHE_TAGS.blog] },
+  { revalidate: LONG_REVALIDATE_SECONDS, tags: [CACHE_TAGS.blog] },
 );
 
 /** Locales with a real published translation for `slug` (drives hreflang + canonical). */
@@ -261,8 +280,7 @@ export const listTranslatedLocales = unstable_cache(
       .maybeSingle();
     if (error) {
       Sentry.captureException(error, { tags: { area: 'blog', op: 'listTranslatedLocales', slug } });
-      console.error(`[supabase-blog] listTranslatedLocales(${slug}) failed: ${error.message}`);
-      return [];
+      throw new Error(`[supabase-blog] listTranslatedLocales(${slug}) failed: ${error.message}`);
     }
     const rows =
       (data as { blog_post_translations: { locale: string }[] | null } | null)
@@ -270,5 +288,5 @@ export const listTranslatedLocales = unstable_cache(
     return rows.map((r) => r.locale);
   },
   ['blog-translated-locales'],
-  { revalidate: 604800, tags: [CACHE_TAGS.blog] },
+  { revalidate: LONG_REVALIDATE_SECONDS, tags: [CACHE_TAGS.blog] },
 );

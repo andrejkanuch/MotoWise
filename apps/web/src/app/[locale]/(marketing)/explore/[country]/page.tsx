@@ -21,7 +21,7 @@ import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/
 // Sentry MOTOVAULT-WEB-R. The boundary is deleted; do not reintroduce one above
 // this route. See the trip-detail route for the measured evidence.
 export const dynamic = 'force-static';
-export const revalidate = 86400; // 24 hours
+export const revalidate = 2592000; // 30 days — DB-sourced; invalidated on demand via /api/revalidate on publish/edit
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 

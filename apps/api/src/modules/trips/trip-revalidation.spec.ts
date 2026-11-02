@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { tripTemplateRevalidation } from './trip-revalidation';
+import { templateRowRevalidation, tripTemplateRevalidation } from './trip-revalidation';
 
 describe('tripTemplateRevalidation', () => {
   it('always sends the places tag', () => {
@@ -40,5 +40,23 @@ describe('tripTemplateRevalidation', () => {
       '/explore/ca',
       '/trips/ca',
     ]);
+  });
+});
+
+describe('templateRowRevalidation', () => {
+  it('returns null for a non-template or missing row', () => {
+    expect(templateRowRevalidation(null)).toBeNull();
+    expect(templateRowRevalidation({ is_template: false, country_code: 'CA' })).toBeNull();
+  });
+
+  it('builds the template payload from the row columns', () => {
+    expect(
+      templateRowRevalidation({
+        is_template: true,
+        country_code: 'CA',
+        region_code: 'BC',
+        slug: 'Sea-To-Sky',
+      }),
+    ).toEqual(tripTemplateRevalidation('CA', 'BC', 'Sea-To-Sky'));
   });
 });

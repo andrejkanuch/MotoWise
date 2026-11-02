@@ -4,6 +4,7 @@ import { getMessages } from 'next-intl/server';
 import { CursorDot } from '@/components/marketing/cursor-dot';
 import { Footer } from '@/components/marketing/footer';
 import { Navbar } from '@/components/marketing/navbar';
+import { pickClientMessages } from '@/i18n/client-messages';
 import '@/components/marketing/design-system.css';
 
 const instrumentSerif = Instrument_Serif({
@@ -18,7 +19,7 @@ export default async function RoutesLayout({ children }: { children: React.React
   const messages = await getMessages();
 
   return (
-    <NextIntlClientProvider messages={messages}>
+    <NextIntlClientProvider messages={pickClientMessages(messages)}>
       <div className={`mv-marketing ${instrumentSerif.variable}`}>
         <CursorDot />
         <Navbar />

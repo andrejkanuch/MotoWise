@@ -6,6 +6,7 @@ import { TripReviewsLoader } from './loaders/trip-reviews.loader';
 import { TripSavedLoader } from './loaders/trip-saved.loader';
 import { TripGpxExportService } from './services/trip-gpx-export.service';
 import { TripLifecycleService } from './services/trip-lifecycle.service';
+import { TripPageRevalidator } from './services/trip-page-revalidator.service';
 import { TripParticipantsService } from './services/trip-participants.service';
 import { TripReviewsService } from './services/trip-reviews.service';
 import { TripSavesService } from './services/trip-saves.service';
@@ -18,6 +19,7 @@ import { TripsResolver } from './trips.resolver';
   imports: [EntitlementsModule, RevalidationModule],
   providers: [
     TripsResolver,
+    TripPageRevalidator,
     TripLifecycleService,
     TripWaypointsService,
     TripParticipantsService,

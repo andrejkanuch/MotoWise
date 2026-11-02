@@ -9,6 +9,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { buildConnection, decodeCursor, encodeCursor } from '../../../common/pagination/connection';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
+import { TripPageRevalidator } from './trip-page-revalidator.service';
 
 /** DB row shape for trip_reviews */
 interface ReviewRow {
@@ -90,6 +91,7 @@ export class TripReviewsService {
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
+    private readonly tripPages: TripPageRevalidator,
   ) {}
 
   async getReviewsForTrip(
@@ -161,6 +163,8 @@ export class TripReviewsService {
       throw new InternalServerErrorException('Failed to create review');
     }
 
+    // Reviews and the average rating render on the cached trip page.
+    await this.tripPages.forTrip(input.tripId);
     return this.mapRow(data as unknown as ReviewRow);
   }
 
@@ -171,10 +175,11 @@ export class TripReviewsService {
       .delete()
       .eq('id', reviewId)
       .eq('user_id', userId)
-      .select('id')
+      .select('id, trip_id')
       .single();
 
     if (error || !data) throw new NotFoundException('Review not found or not owned by you');
+    await this.tripPages.forTrip(data.trip_id as string);
     return true;
   }
 

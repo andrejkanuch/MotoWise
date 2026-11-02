@@ -50,7 +50,7 @@ import {
 // published after a deploy 404'd until the next unrelated merge. generateStaticParams
 // stays — it prerenders the known set at build time and unknown slugs now render
 // on demand.
-export const revalidate = 604800; // 7 days; invalidated on demand via /api/revalidate
+export const revalidate = 2592000; // 30 days; invalidated on demand via /api/revalidate
 
 interface BlogArticlePageProps {
   params: Promise<{ slug: string; locale: string }>;

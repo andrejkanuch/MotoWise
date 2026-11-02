@@ -19,8 +19,9 @@ import {
   buildWebSite,
 } from '@/lib/seo/schema';
 
-// Edge cache for 1 hour, stale-while-revalidate for 24 hours.
-export const revalidate = 3600;
+// Repo-sourced apart from the App Store rating, and every deploy rebuilds it, so a
+// long window is safe. An hourly one regenerated the page in all 8 locales 24×/day.
+export const revalidate = 2592000; // 30 days
 
 interface PageProps {
   params: Promise<{ locale: string }>;
