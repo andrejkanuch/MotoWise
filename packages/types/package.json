@@ -29,7 +29,7 @@
     "generate:types": "supabase gen types typescript --linked --workdir ../.. --schema public,graphql_public > src/database.types.ts.tmp && mv src/database.types.ts.tmp src/database.types.ts"
   },
   "dependencies": {
-    "zod": "^3.25.76"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@motovault/tsconfig": "workspace:*",
