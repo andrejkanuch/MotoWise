@@ -71,6 +71,10 @@ CASES=$(cat <<'EOF'
 308 /trips/us/ca/pacific-coast-highway          legacy-slug:redirect
 308 /trips/ch/vs/furka-pass                     bare-slug:redirect
 404 /trips/00000000-0000-4000-8000-000000000000 trip-by-id:bogus
+200 /reset-password                             reset-password:real
+404 /trips/usa/mt/x                             trip-detail:malformed
+404 /explore/us/not-a-region-code-at-all        explore-region:malformed
+404 /u/no-such-rider-zz9/saved                  rider-saved:bogus
 404 /de/definitely-not-a-route                  catchall-i18n:bogus
 404 /definitely-not-a-route                     control:bogus
 EOF
@@ -122,6 +126,36 @@ done <<EOF
 $CASES
 EOF
 
+# Content checks, for answers a status cannot tell apart. One line each:
+# <path>|<text the body must contain>|<label>
+#  - Localized pages must render in their own language: before the [locale]
+#    root layout, /de, /fr… returned 200 with English content and <html lang="en">.
+#  - An unknown share token shows the "expired" page, and an API outage shows a
+#    "didn't load" page: both are 200, so only the copy proves which one came back.
+CONTENT_CASES=$(cat <<'EOF'
+/de|<html lang="de"|locale-html:de
+/fr/explore/us|<html lang="fr"|locale-html:fr
+/ja|<html lang="ja"|locale-html:ja
+/share/not-a-real-share-token|This link has expired|share-expired
+EOF
+)
+
+while IFS='|' read -r path needle label; do
+  [ -n "${path:-}" ] || continue
+  checked=$((checked + 1))
+  # Read the whole body first: `curl | grep -q` exits on the first match, curl
+  # dies of SIGPIPE, and pipefail would report a correct page as a failure.
+  body=$(curl "${CURL_OPTS[@]}" "$BASE$path" | tr -d '\n')
+  if grep -qF "$needle" <<<"$body"; then
+    printf '  ok    body  %-28s %s\n' "$label" "$path"
+  else
+    printf '  FAIL  body lacks %s  %-16s %s\n' "$needle" "$label" "$path"
+    failures=$((failures + 1))
+  fi
+done <<EOF
+$CONTENT_CASES
+EOF
+
 printf '\n'
 if [ "$failures" -gt 0 ]; then
   echo "ERROR: $failures of $checked checks failed."
@@ -134,5 +168,5 @@ if [ "$failures" -gt 0 ]; then
   exit 1
 fi
 
-echo "OK: all $checked checks passed — unknown URLs 404, real URLs 200, legacy slugs 308."
+echo "OK: all $checked checks passed — unknown URLs 404, real URLs 200, legacy slugs 308, locales render in their language."
 exit 0

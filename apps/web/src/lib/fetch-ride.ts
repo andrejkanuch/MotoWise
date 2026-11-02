@@ -1,5 +1,6 @@
 import { cache } from 'react';
-import { UpstreamError } from './upstream-error';
+import { ABSENT_OR_MALFORMED_CODES, postPublicQuery } from './public-graphql';
+import { asUpstream } from './upstream-error';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 
@@ -35,33 +36,28 @@ export interface PublicRide {
   isPublic: boolean;
 }
 
+const RIDE_REVALIDATE_SECONDS = 300;
+
 // Wrapped in React cache() so generateMetadata + the page body (+ opengraph-image)
 // share ONE GraphQL POST per request (POST fetches aren't deduped by Next).
 //
-// Resolves `null` only when the API answered and the ride is absent or private.
-// A network failure or a non-200 status throws `UpstreamError`, so the page can
-// say it didn't load instead of serving a false 404.
+// Resolves `null` only when the API answered that the ride is absent or private.
+// Anything else (network failure, timeout, non-200, a GraphQL error other than
+// not-found) throws `UpstreamError`, so the page can say it didn't load instead
+// of serving a false 404.
 export const fetchRide = cache(async (id: string): Promise<PublicRide | null> => {
-  let res: Response;
-  try {
-    res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: PUBLIC_RIDE_QUERY,
-        variables: { id },
-      }),
-      next: { revalidate: 300 },
-    });
-  } catch {
-    throw new UpstreamError('ride fetch failed');
-  }
-  if (!res.ok) throw new UpstreamError(`ride fetch ${res.status}`);
-  const json = await res.json().catch(() => {
-    throw new UpstreamError('ride fetch bad json');
-  });
-  if (json.errors || !json.data?.getPublicRide) return null;
-  const ride = json.data.getPublicRide;
-  if (!ride.isPublic) return null;
+  const data = await asUpstream(
+    postPublicQuery<{ getPublicRide: PublicRide | null }>(
+      API_URL,
+      PUBLIC_RIDE_QUERY,
+      { id },
+      RIDE_REVALIDATE_SECONDS,
+      // A non-UUID id is rejected by the resolver's ParseUUIDPipe: no such ride.
+      ABSENT_OR_MALFORMED_CODES,
+    ),
+    'ride',
+  );
+  const ride = data?.getPublicRide;
+  if (!ride?.isPublic) return null;
   return ride;
 });

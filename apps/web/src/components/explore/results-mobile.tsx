@@ -6,7 +6,7 @@ import type { TripTemplateNode } from '@/lib/fetch-places';
 import { DEFAULT_FILTERS, FilterBar, type FilterState } from './filter-bar';
 import { MapboxMap } from './mapbox-map';
 import { Icon, MetaLabel, RouteFigures } from './primitives';
-import { LoadFailedState, ZeroRoutesState } from './results-desktop';
+import { ZeroRoutesState } from './results-desktop';
 import { TripListCard } from './trip-list-card';
 import { applyFilters, formatNumber, tripHref } from './utils';
 
@@ -67,8 +67,6 @@ function MobileTopbar({
 
 interface ResultsMobileProps {
   allTrips: TripTemplateNode[];
-  /** The API did not answer: say so instead of "no routes match". */
-  loadFailed?: boolean;
   country: string;
   countryCode?: string;
   region?: string | null;
@@ -78,7 +76,6 @@ interface ResultsMobileProps {
 
 export function ResultsMobile({
   allTrips,
-  loadFailed = false,
   country,
   countryCode = '',
   region,
@@ -121,9 +118,7 @@ export function ResultsMobile({
             <FilterBar filters={filters} onFilterChange={setFilters} />
           </div>
           <div className="xp-mlist">
-            {loadFailed ? (
-              <LoadFailedState />
-            ) : allTrips.length === 0 ? (
+            {allTrips.length === 0 ? (
               <ZeroRoutesState country={country} countryCode={countryCode} region={region} />
             ) : trips.length === 0 ? (
               <div className="xp-empty">
@@ -146,15 +141,13 @@ export function ResultsMobile({
               </>
             )}
           </div>
-          {!loadFailed && (
-            <button
-              type="button"
-              onClick={() => setMapMode(true)}
-              className="mv-btn mv-btn-primary xp-fab mv-enter-up"
-            >
-              <Icon name="map" size={16} /> Show map
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => setMapMode(true)}
+            className="mv-btn mv-btn-primary xp-fab mv-enter-up"
+          >
+            <Icon name="map" size={16} /> Show map
+          </button>
         </>
       )}
 

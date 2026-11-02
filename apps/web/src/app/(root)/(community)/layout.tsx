@@ -4,6 +4,7 @@ import { getMessages, getTranslations } from 'next-intl/server';
 import { CommunityNav } from '@/components/community-nav';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import '@/components/marketing/design-system.css';
+import { pickNamespaces } from '@/i18n/pick-namespaces';
 
 /**
  * The namespaces the signed-in client subtree reads (`useTranslations('X')`
@@ -21,13 +22,6 @@ const COMMUNITY_CLIENT_NAMESPACES = [
   'GarageV2',
   'Profile',
 ] as const;
-
-type Messages = Awaited<ReturnType<typeof getMessages>>;
-
-function pickNamespaces(messages: Messages, namespaces: readonly string[]): Messages {
-  const all = messages as Record<string, unknown>;
-  return Object.fromEntries(namespaces.map((ns) => [ns, all[ns]])) as Messages;
-}
 
 export default async function CommunityLayout({ children }: { children: React.ReactNode }) {
   const supabase = await getSupabaseServerClient();

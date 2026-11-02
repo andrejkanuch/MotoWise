@@ -1,92 +1,20 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { ShareUnavailable } from '@/components/share-unavailable';
-import { settleUpstream, UpstreamError } from '@/lib/upstream-error';
+import { fetchSharedHistory } from '@/lib/fetch-shared-history';
+import { settleUpstream } from '@/lib/upstream-error';
 import '@/components/marketing/design-system.css';
 import '@/components/share-page.css';
+
+// Rendered per request, like /t: an API outage shows ShareUnavailable, and that
+// page must never be cached over a good copy. The fetch itself is still cached
+// in the data cache, so the API sees at most one call per revalidate window.
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Shared service history',
   robots: { index: false, follow: false },
 };
-
-const API_URL = process.env.API_URL ?? 'https://motowise.onrender.com/graphql';
-
-const SHARED_BIKE_HISTORY_QUERY = `
-  query SharedBikeHistory($token: String!) {
-    sharedBikeHistory(token: $token) {
-      bike {
-        make
-        model
-        year
-        nickname
-      }
-      tasks {
-        title
-        status
-        priority
-        dueDate
-        completedAt
-        completedMileage
-        notes
-        photoUrls
-      }
-      generatedAt
-    }
-  }
-`;
-
-interface SharedBikeInfo {
-  make: string;
-  model: string;
-  year: number;
-  nickname?: string;
-}
-
-interface SharedTaskInfo {
-  title: string;
-  status: string;
-  priority: string;
-  dueDate?: string;
-  completedAt?: string;
-  completedMileage?: number;
-  notes?: string;
-  photoUrls: string[];
-}
-
-interface SharedBikeHistory {
-  bike: SharedBikeInfo;
-  tasks: SharedTaskInfo[];
-  generatedAt: string;
-}
-
-// `null` only when the API answered and the link is gone; a network failure or
-// a non-200 status throws `UpstreamError` so the page says "didn't load", not
-// "expired", to a rider whose link is fine.
-async function fetchSharedHistory(token: string): Promise<SharedBikeHistory | null> {
-  let res: Response;
-  try {
-    res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: SHARED_BIKE_HISTORY_QUERY,
-        variables: { token },
-      }),
-      next: { revalidate: 60 },
-    });
-  } catch {
-    throw new UpstreamError('shared history fetch failed');
-  }
-  if (!res.ok) throw new UpstreamError(`shared history fetch ${res.status}`);
-  const json = await res.json().catch(() => {
-    throw new UpstreamError('shared history fetch bad json');
-  });
-  if (json.errors || !json.data?.sharedBikeHistory) {
-    return null;
-  }
-  return json.data.sharedBikeHistory;
-}
 
 const STATUS_LABELS: Record<string, string> = {
   completed: 'Done',

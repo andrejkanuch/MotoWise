@@ -3,6 +3,7 @@ import { getMessages } from 'next-intl/server';
 import { Footer } from '@/components/marketing/footer';
 import { Navbar } from '@/components/marketing/navbar';
 import '@/components/marketing/design-system.css';
+import { pickNamespaces } from '@/i18n/pick-namespaces';
 
 /**
  * The namespaces this section's client subtree reads (`useTranslations('X')`
@@ -18,13 +19,6 @@ const CLIENT_NAMESPACES = [
   'Navbar',
   'StickyBar',
 ] as const;
-
-type Messages = Awaited<ReturnType<typeof getMessages>>;
-
-function pickNamespaces(messages: Messages, namespaces: readonly string[]): Messages {
-  const all = messages as Record<string, unknown>;
-  return Object.fromEntries(namespaces.map((ns) => [ns, all[ns]])) as Messages;
-}
 
 export default async function ExploreLayout({ children }: { children: React.ReactNode }) {
   const messages = pickNamespaces(await getMessages(), CLIENT_NAMESPACES);

@@ -30,6 +30,7 @@ import { reportSoftNotFound } from '@/lib/seo/soft-404';
 import { findBareSlugRedirect } from '@/lib/trips/bare-slug-redirect';
 import { selectSiblingRoutes, siblingsAreRegionScoped } from '@/lib/trips/sibling-routes';
 import '@/components/trip-detail/trip-detail.css';
+import { reviewsBlockRender } from '@/lib/trips/reviews-gate';
 
 type TripData = NonNullable<WebTripBySlugQuery['tripBySlug']>;
 
@@ -73,8 +74,9 @@ const fetchTrip = cache(
   },
 );
 
-// `null` = the reviews didn't load (presentation-only, so the page still renders);
-// `[]` = the API answered and there are ratings but no written reviews.
+// `null` = the reviews didn't load; the page throws if the trip has reviews to
+// show (lib/trips/reviews-gate.ts). `[]` = the API answered and there are ratings but no
+// written reviews.
 async function fetchReviews(
   country: string,
   region: string,
@@ -455,6 +457,9 @@ export default async function TripPage({ params }: PageParams) {
   };
 
   const hasRating = trip.averageRating != null && trip.reviewCount > 0;
+  if (reviewsBlockRender(hasRating, reviews)) {
+    throw new Error(`Trip reviews failed to load for ${country}/${region}/${slug}`);
+  }
   const reviewsLabel = trip.reviewCount === 1 ? 'review' : 'reviews';
 
   return (
@@ -735,11 +740,6 @@ export default async function TripPage({ params }: PageParams) {
           </div>
           <StarRow rating={Math.round(trip.averageRating ?? 0)} idPrefix="summary" />
 
-          {reviews === null && (
-            <p className="reviews-note" role="status">
-              Reviews didn&apos;t load. Reload the page to try again.
-            </p>
-          )}
           {reviews?.length === 0 && (
             <p className="reviews-note">
               {trip.reviewCount} {reviewsLabel} as ratings only; written reviews appear here.

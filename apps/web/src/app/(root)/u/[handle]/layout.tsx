@@ -8,6 +8,11 @@ import { settleUpstream } from '@/lib/upstream-error';
 import '@/components/marketing/design-system.css';
 import '@/components/share-page.css';
 
+// Rendered per request, like /t: an API outage shows ShareUnavailable, and that
+// page must never be cached over a good copy. The fetch itself is still cached
+// in the data cache, so the API sees at most one call per revalidate window.
+export const dynamic = 'force-dynamic';
+
 /**
  * The rider's public shell for /u/[handle]/*: brand, the rider header with a
  * hairline nav, the page, and one left-aligned call to action. Root-only

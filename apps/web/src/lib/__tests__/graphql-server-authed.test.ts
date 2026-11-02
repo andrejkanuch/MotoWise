@@ -104,14 +104,47 @@ describe('gqlServerFetcher (public, retry-on-transient)', () => {
 });
 
 // A graphql-request ClientError for a resolver-thrown error: HTTP 200 + errors[].
-const graphqlError = (message: string) =>
+const graphqlError = (message: string, code = 'NOT_FOUND') =>
   Object.assign(new Error(message), {
-    response: { status: 200, errors: [{ message }] },
+    response: { status: 200, errors: [{ message, extensions: { code } }] },
   });
 
 describe('isDefinitiveGraphQLError', () => {
   it('is true for a GraphQL application error (resolver NotFoundException → errors[])', () => {
     expect(isDefinitiveGraphQLError(graphqlError('Template not found'))).toBe(true);
+  });
+
+  it('is false for a resolver failure answered at HTTP 200 (INTERNAL_SERVER_ERROR)', () => {
+    // Apollo answers every resolver exception at 200, so a DB outage looks like
+    // this. Only the NOT_FOUND code means the resource is absent.
+    expect(
+      isDefinitiveGraphQLError(graphqlError('Internal server error', 'INTERNAL_SERVER_ERROR')),
+    ).toBe(false);
+    expect(
+      isDefinitiveGraphQLError(
+        Object.assign(new Error('x'), { response: { status: 200, errors: [{ message: 'x' }] } }),
+      ),
+    ).toBe(false);
+  });
+
+  it('is true for a resolver rejecting a malformed slug (BAD_REQUEST at HTTP 200)', () => {
+    // tripBySlug answers /trips/usa/mt/x this way: no trip can match, so it is a 404.
+    expect(isDefinitiveGraphQLError(graphqlError('Invalid country code', 'BAD_REQUEST'))).toBe(
+      true,
+    );
+  });
+
+  it('is false when a NOT_FOUND comes with any other error', () => {
+    const mixed = Object.assign(new Error('x'), {
+      response: {
+        status: 200,
+        errors: [
+          { message: 'x', extensions: { code: 'NOT_FOUND' } },
+          { message: 'y', extensions: { code: 'INTERNAL_SERVER_ERROR' } },
+        ],
+      },
+    });
+    expect(isDefinitiveGraphQLError(mixed)).toBe(false);
   });
 
   it('is false for gateway statuses (502/503/504) with no errors array', () => {

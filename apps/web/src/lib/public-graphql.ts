@@ -10,13 +10,32 @@
  * The API answers resolver failures inside an HTTP 200 body (Apollo; see
  * apps/api/src/common/filters/gql-exception.filter.ts), so the status alone
  * cannot tell them apart: the error codes decide. Only HTTP 200 with no data,
- * or with errors that are all NOT_FOUND, is "absent". Everything else throws:
+ * or with errors whose codes are all "absent" codes, is "absent": NOT_FOUND by
+ * default, plus BAD_REQUEST where a resolver rejects a malformed id, token or
+ * slug (ABSENT_OR_MALFORMED_CODES). Everything else throws:
  * a non-200 status (5xx, a 400 validation error from a web/API deploy skew,
  * 429), a body that is not JSON, or any other error code
  * (INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, a missing code…).
  */
 
 export const GRAPHQL_NOT_FOUND_CODE = 'NOT_FOUND';
+/** A resolver's BadRequestException (a malformed id or token), answered at HTTP 200. */
+export const GRAPHQL_BAD_REQUEST_CODE = 'BAD_REQUEST';
+
+const DEFAULT_ABSENT_CODES: readonly string[] = [GRAPHQL_NOT_FOUND_CODE];
+
+/**
+ * "No such thing" or "no such thing can exist": the public resolvers raise
+ * BAD_REQUEST at HTTP 200 only when an id, token, country, region or slug has
+ * a shape no record can have. A GraphQL schema mismatch (web/API deploy skew)
+ * is answered at HTTP 400 instead and still throws. Keep the web's URL shapes
+ * inside the API's validators (e.g. the tripTemplates region regex), or a real
+ * page would read as absent.
+ */
+export const ABSENT_OR_MALFORMED_CODES: readonly string[] = [
+  GRAPHQL_NOT_FOUND_CODE,
+  GRAPHQL_BAD_REQUEST_CODE,
+];
 
 /** Per-request timeout, matching the public GraphQL fetcher (lib/graphql-server.ts). */
 export const PUBLIC_QUERY_TIMEOUT_MS = 8_000;
@@ -32,6 +51,14 @@ interface GraphQLBody<T> {
   errors?: GraphQLErrorShape[] | null;
 }
 
+/** True when `errors` is a non-empty array whose every code is in `absentCodes`. */
+export function areAllErrorsAbsent(errors: unknown, absentCodes: readonly string[]): boolean {
+  if (!Array.isArray(errors) || errors.length === 0) return false;
+  return errors.every((e: GraphQLErrorShape | null) =>
+    absentCodes.includes(String(e?.extensions?.code)),
+  );
+}
+
 export class PublicQueryError extends Error {
   constructor(reason: string) {
     super(`Public GraphQL query failed: ${reason}`);
@@ -39,23 +66,27 @@ export class PublicQueryError extends Error {
   }
 }
 
-function isNotFoundError(error: GraphQLErrorShape): boolean {
-  return error?.extensions?.code === GRAPHQL_NOT_FOUND_CODE;
-}
-
 /**
  * Classifies one GraphQL response: its `data` when present, `null` when the
  * API answered definitively that the resource is absent, a thrown
  * PublicQueryError for anything that is not a real answer.
+ *
+ * `absentCodes` lists the error codes that mean "absent". It defaults to
+ * NOT_FOUND; a query whose resolver rejects a malformed argument with
+ * BAD_REQUEST can add that code so a junk URL is a 404, not an outage.
  */
-export function classifyPublicResponse<T>(status: number, body: unknown): T | null {
+export function classifyPublicResponse<T>(
+  status: number,
+  body: unknown,
+  absentCodes: readonly string[] = DEFAULT_ABSENT_CODES,
+): T | null {
   if (status !== HTTP_OK) throw new PublicQueryError(`HTTP ${status}`);
   if (body === null || typeof body !== 'object') {
     throw new PublicQueryError(`HTTP ${status}, body is not a GraphQL response`);
   }
   const { data, errors } = body as GraphQLBody<T>;
   if (Array.isArray(errors) && errors.length > 0) {
-    if (errors.every(isNotFoundError)) return null;
+    if (areAllErrorsAbsent(errors, absentCodes)) return null;
     const codes = errors.map((e) => String(e?.extensions?.code ?? 'no code')).join(', ');
     throw new PublicQueryError(`GraphQL errors (${codes})`);
   }
@@ -71,6 +102,7 @@ export async function postPublicQuery<T>(
   query: string,
   variables: Record<string, unknown>,
   revalidate: number,
+  absentCodes: readonly string[] = DEFAULT_ABSENT_CODES,
 ): Promise<T | null> {
   const res = await fetch(url, {
     method: 'POST',
@@ -82,5 +114,5 @@ export async function postPublicQuery<T>(
   const body: unknown = await res.json().catch(() => {
     throw new PublicQueryError(`HTTP ${res.status}, body is not JSON`);
   });
-  return classifyPublicResponse<T>(res.status, body);
+  return classifyPublicResponse<T>(res.status, body, absentCodes);
 }

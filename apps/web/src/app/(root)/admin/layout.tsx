@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import { AdminNav } from './admin-nav';
 
+// Admin pages read live data behind the auth check, so they must never be
+// prerendered at build: the root layout no longer forces every route dynamic.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Admin',
 };

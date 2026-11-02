@@ -72,7 +72,7 @@ each app and package. `pnpm check:agent-docs` fails if a path cited here stops e
 | `apps/web/src/lib/` | `graphql-client.ts` (browser), `graphql-server.ts` (server), `fetch-*.ts` page loaders, analytics, SEO, blog, Supabase clients |
 | `apps/web/src/graphql/` | `.graphql` operations: `fragments/`, `mutations/`, `queries/` |
 | `apps/web/src/i18n/`, `apps/web/messages/` | next-intl routing and request config; translation files |
-| `apps/web/src/providers/` | TanStack Query provider; theme provider (pins dark) |
+| `apps/web/src/providers/` | TanStack Query provider; theme provider (light, dark or system; a stored choice wins) |
 | `apps/web/content/`, `apps/web/src/content/` | Blog MDX; guide content |
 | `apps/web/scripts/check-route-css.mjs` | Post-build guard: fails if key routes lose their CSS tokens |
 | `apps/web/e2e/`, `apps/web/playwright.config.ts` | Playwright specs |

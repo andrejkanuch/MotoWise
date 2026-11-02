@@ -1,5 +1,6 @@
 import { cache } from 'react';
-import { UpstreamError } from './upstream-error';
+import { postPublicQuery } from './public-graphql';
+import { asUpstream } from './upstream-error';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 
@@ -57,32 +58,25 @@ export interface PublicProfile {
   rideStats: ProfileRideStats;
 }
 
+const PROFILE_REVALIDATE_SECONDS = 300;
+
 // Wrapped in React cache() so generateMetadata + the page body (+ opengraph-image)
 // share ONE GraphQL POST per request — POST fetches are never memoized by Next's
 // request dedup, so each render otherwise re-hit the API 2–3×.
 //
-// Resolves `null` only when the API answered and the rider is absent. A network
-// failure or a non-200 status throws `UpstreamError`, so the page can say it
-// didn't load instead of serving a false 404.
+// Resolves `null` only when the API answered that the rider is absent. Anything
+// else (network failure, timeout, non-200, a GraphQL error other than not-found)
+// throws `UpstreamError`, so the page can say it didn't load instead of serving
+// a false 404.
 export const fetchProfile = cache(async (username: string): Promise<PublicProfile | null> => {
-  let res: Response;
-  try {
-    res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: PUBLIC_PROFILE_QUERY,
-        variables: { username },
-      }),
-      next: { revalidate: 300 },
-    });
-  } catch {
-    throw new UpstreamError('profile fetch failed');
-  }
-  if (!res.ok) throw new UpstreamError(`profile fetch ${res.status}`);
-  const json = await res.json().catch(() => {
-    throw new UpstreamError('profile fetch bad json');
-  });
-  if (json.errors || !json.data?.getRiderProfile) return null;
-  return json.data.getRiderProfile;
+  const data = await asUpstream(
+    postPublicQuery<{ getRiderProfile: PublicProfile | null }>(
+      API_URL,
+      PUBLIC_PROFILE_QUERY,
+      { username },
+      PROFILE_REVALIDATE_SECONDS,
+    ),
+    'profile',
+  );
+  return data?.getRiderProfile ?? null;
 });

@@ -42,7 +42,24 @@ describe('long ISR window', () => {
 
   // A swallowed fetch error resolves to an empty list, which ISR then serves for the
   // whole window. The country page must let it throw so the last good render stays.
-  it('the explore country page does not turn a failed fetch into an empty list', () => {
-    expect(read('app/(root)/explore/[country]/page.tsx')).not.toMatch(/\.catch\(\(\) => \[\]\)/);
+  it.each([
+    'app/(root)/explore/[country]/page.tsx',
+    'app/[locale]/(marketing)/explore/[country]/page.tsx',
+  ])('%s does not turn a failed fetch into an empty list', (file) => {
+    expect(read(file)).not.toMatch(/\.catch\(\(\) => \[/);
+  });
+
+  // Since the root layout stopped forcing every route dynamic, these segments
+  // must opt out themselves: the share pages answer an API outage with a 200
+  // "didn't load" page that must never be cached, and admin reads live data.
+  it.each([
+    'app/(root)/ride/[id]/page.tsx',
+    'app/(root)/rider/[username]/page.tsx',
+    'app/(root)/share/[token]/page.tsx',
+    'app/(root)/u/[handle]/layout.tsx',
+    'app/(root)/t/[token]/page.tsx',
+    'app/(root)/admin/layout.tsx',
+  ])('%s renders per request', (file) => {
+    expect(read(file)).toMatch(/^export const dynamic = 'force-dynamic';$/m);
   });
 });
