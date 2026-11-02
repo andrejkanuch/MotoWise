@@ -109,9 +109,12 @@ export default async function CountryPage({ params }: PageProps) {
     notFound();
   }
 
+  // Errors are not caught here: this page is cached for 30 days, so an API blip
+  // swallowed into an empty list would ship a blank country page for a month.
+  // A thrown fetch fails the regeneration and ISR keeps the last good render.
   const [regions, trips] = await Promise.all([
-    fetchRegionsByCountrySlug(countrySlug).catch(() => []),
-    fetchTripTemplatesByCountry(country.countryCode, 50).catch(() => []),
+    fetchRegionsByCountrySlug(countrySlug),
+    fetchTripTemplatesByCountry(country.countryCode, 50),
   ]);
 
   const code = country.countryCode.toUpperCase();

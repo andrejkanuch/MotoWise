@@ -39,4 +39,10 @@ describe('long ISR window', () => {
       file === 'lib/supabase-blog.ts' ? ['revalidate: 3600'] : [],
     );
   });
+
+  // A swallowed fetch error resolves to an empty list, which ISR then serves for the
+  // whole window. The country page must let it throw so the last good render stays.
+  it('the explore country page does not turn a failed fetch into an empty list', () => {
+    expect(read('app/explore/[country]/page.tsx')).not.toMatch(/\.catch\(\(\) => \[\]\)/);
+  });
 });
