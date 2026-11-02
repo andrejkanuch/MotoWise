@@ -36,6 +36,14 @@ run_once() { # run_once ARM
 }
 
 if [ -n "${EXPECTED_ARM:-}" ]; then
+  # One arm is enough only when no install can get the other one: the config
+  # must assign that arm alone and fall back to it as the kill switch.
+  SOLE_ARM=$(cd "$SCRIPT_DIR/.." && npx tsx -e "import('$SCRIPT_DIR/../src/config/onboarding').then(({ ONBOARDING_EXPERIMENT: e }) => console.log(e.ASSIGNABLE.length === 1 && e.KILL_SWITCH === e.ASSIGNABLE[0] ? e.KILL_SWITCH : ''))") || {
+    echo "error: could not read ONBOARDING_EXPERIMENT from src/config/onboarding.ts"; exit 2; }
+  if [ "$SOLE_ARM" != "$EXPECTED_ARM" ]; then
+    echo "error: EXPECTED_ARM=$EXPECTED_ARM, but src/config/onboarding.ts can still assign another arm; run the two-arm gate"
+    exit 2
+  fi
   run_once "$EXPECTED_ARM"
   exit 0
 fi

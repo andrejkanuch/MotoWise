@@ -95,7 +95,7 @@ CREATED_AFTER=$(date -u +%Y-%m-%dT%H:%M:%S)
 USER_ID=""
 
 cleanup() {
-  code=$?
+  code=${1:-$?}
   if [ -n "$USER_ID" ] && [ -n "$EXPLICIT_EMAIL" ]; then
     echo "→ teardown: TEST_EMAIL was set, so not deleting — remove user $USER_ID ($TEST_EMAIL) manually"
   elif [ -n "$USER_ID" ]; then
@@ -106,7 +106,10 @@ cleanup() {
   fi
   exit $code
 }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
+# A signal exit keeps its conventional status, so the gate never reads it as a pass.
+trap 'cleanup 130' INT
+trap 'cleanup 143' TERM
 
 echo "→ part 1: UI signup as $TEST_EMAIL (APP_ID=$APP_ID)"
 PART1=0
