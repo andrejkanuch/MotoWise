@@ -57,6 +57,7 @@ jest.mock('../../lib/image-upload', () => ({ uploadBikePhoto: jest.fn() }));
 jest.mock('../../lib/subscription', () => ({ setSelfReportedSource: jest.fn() }));
 jest.mock('../../lib/onboarding-paywall', () => ({
   ONBOARDING_PAYWALL_SURFACE: {},
+  isGarageCtaPaywall: (variant: string) => variant === 'garage_first',
   presentOnboardingPaywall: jest.fn(),
   resolveOnboardingPaywallPlacement: () => ({
     primaryGoal: 'track_rides',

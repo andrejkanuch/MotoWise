@@ -218,6 +218,36 @@ export const ONBOARDING_FLOWS: Record<ObVariant, ReadonlyArray<OnboardingRoute>>
 };
 
 /**
+ * Where a variant shows the onboarding paywall. `STEP` is the paywall screen in
+ * the flow (`commit_first`); `GARAGE_CTA` is personalizing presenting it from
+ * "Open my garage" (`garage_first`). The read-only legacy variants have none.
+ *
+ * Builds 3.19–3.22 reached new riders with no onboarding paywall and nothing
+ * noticed (#326); the onboarding-paywall-ab test fails if an assignable variant
+ * or the kill switch maps to `null` here.
+ */
+export const OB_PAYWALL_POSITION = {
+  STEP: 'step',
+  GARAGE_CTA: 'garage_cta',
+} as const;
+
+export type ObPaywallPosition = (typeof OB_PAYWALL_POSITION)[keyof typeof OB_PAYWALL_POSITION];
+
+const ONBOARDING_PAYWALL_POSITIONS: Record<ObVariant, ObPaywallPosition | null> = {
+  [OB_VARIANT.GARAGE_FIRST]: OB_PAYWALL_POSITION.GARAGE_CTA,
+  [OB_VARIANT.COMMIT_FIRST]: OB_PAYWALL_POSITION.STEP,
+  [OB_VARIANT.SHIPPED]: null,
+  [OB_VARIANT.LEAN]: null,
+  [OB_VARIANT.INVESTED]: null,
+  [OB_VARIANT.CONTROL]: null,
+};
+
+/** Paywall position for a persisted variant; `null` for one this bundle does not know. */
+export function getOnboardingPaywallPosition(variant: string): ObPaywallPosition | null {
+  return isObVariant(variant) ? ONBOARDING_PAYWALL_POSITIONS[variant] : null;
+}
+
+/**
  * Flow for a variant — total over whatever string is actually persisted, not
  * just over `ObVariant`.
  *

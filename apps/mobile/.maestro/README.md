@@ -47,6 +47,15 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   `delivered+<label>@resend.dev` test inbox (reports delivered, never bounces). The server side of
   the same contract runs in CI on every relevant PR: `scripts/e2e-email-confirmation.sh`
   (`.github/workflows/email-confirmation-e2e.yml`).
+- **`flows/onboarding-paywall-verify.yaml`** — onboarding paywall gate (#326), required before a
+  build is promoted to production (`docs/runbooks/mobile-release.md`). Part 1 is the email-code
+  signup flow; part 2 confirms the account and fails unless the RevenueCat paywall is shown where
+  the assigned arm puts it: after account for `commit_first`, on "Open my garage" for
+  `garage_first`. Every other onboarding flow closes the paywall with `optional: true`, so they
+  pass without one. Pass `EXPECTED_ARM` to also check which arm the install got. Run it via:
+  ```bash
+  DEVICE=<simulator udid> pnpm --filter @motovault/mobile test:e2e:onboarding-paywall
+  ```
 - **`flows/edit-maintenance-task.yaml`** — edit/reschedule a maintenance task E2E. Composes
   `onboarding.yaml` as setup (signed-in user + a bike), then creates a task with a known title,
   opens it, edits the title + priority, and asserts the edit round-trips in place. Same build +

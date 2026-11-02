@@ -164,6 +164,9 @@ cut, not only the change you have in mind.**
    `git log --since="<upload time>" origin/main -- apps/mobile packages/types packages/design-system packages/graphql`.
    Those three packages are the workspace dependencies of the mobile app.
 3. Read the list. Everything in it goes out.
+4. If the list touches onboarding or the paywall (`src/app/(onboarding)/`,
+   `src/config/onboarding.ts`, `src/lib/onboarding-*`, `src/lib/subscription.ts`), run
+   the onboarding paywall E2E first (`docs/runbooks/mobile-release.md`, #326).
 
 ## Before you publish: the native-mismatch trap
 

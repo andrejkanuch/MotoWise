@@ -119,7 +119,7 @@ each app and package. `pnpm check:agent-docs` fails if a path cited here stops e
 | Path | Purpose |
 |---|---|
 | `docs/solutions/README.md` | Index of solved problems, one row per document |
-| `docs/runbooks/` | Procedures: OTA publishing, migrations, the confirmation email template |
+| `docs/runbooks/` | Procedures: store release checks, OTA publishing, migrations, the confirmation email template |
 | `docs/plans/`, `features/` | Plans and per-feature execution records |
 | `store/play/` | Play Store listing metadata and its checker (`pnpm check:store-copy`) |
 | `infra/social-worker/` | Cloudflare Worker for scheduled social posting |

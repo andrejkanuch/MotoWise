@@ -13,6 +13,9 @@
 #   pnpm --filter @motovault/mobile test:e2e:email-code
 #   DEVICE=<simulator udid> pnpm --filter @motovault/mobile test:e2e:email-code
 #
+# E2E_VERIFY_FLOW swaps part 2 (run-onboarding-paywall-e2e.sh uses it); any
+# EXPECTED_ARM is passed through to that flow.
+#
 # Targets whatever Supabase the installed build talks to. Supabase URL + anon key
 # come from apps/mobile/.env, the service-role key from apps/api/.env; export
 # SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY to override (they
@@ -28,6 +31,8 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 MOBILE_DIR=$(dirname "$SCRIPT_DIR")
 REPO_ROOT=$(cd "$MOBILE_DIR/../.." && pwd)
 APP_ID=${APP_ID:-com.motovault.app}
+E2E_VERIFY_FLOW=${E2E_VERIFY_FLOW:-onboarding-email-code-verify.yaml}
+E2E_LABEL=${E2E_LABEL:-email-code}
 
 get_env() { # get_env FILE KEY  -> prints value (empty if missing)
   [ -f "$1" ] || return 0
@@ -43,7 +48,7 @@ command -v maestro >/dev/null 2>&1 || { echo "error: maestro CLI not found. Inst
 command -v jq >/dev/null 2>&1 || { echo "error: jq not found (brew install jq)"; exit 1; }
 
 STAMP=$(date +%Y%m%d%H%M%S)
-TEST_EMAIL=${TEST_EMAIL:-"delivered+mv-e2e-email-code-${STAMP}@resend.dev"}
+TEST_EMAIL=${TEST_EMAIL:-"delivered+mv-e2e-${E2E_LABEL}-${STAMP}@resend.dev"}
 TEST_PASSWORD="E2e!$(date +%s)Aa"
 DEVICE_ARGS=""
 [ -n "${DEVICE:-}" ] && DEVICE_ARGS="--device $DEVICE"
@@ -91,9 +96,9 @@ CODE=$(admin POST generate_link "$(jq -n --arg e "$TEST_EMAIL" --arg p "$TEST_PA
   | jq -r '.email_otp // .properties.email_otp // empty')
 [ -n "$CODE" ] || { echo "error: generate_link returned no email_otp"; exit 1; }
 
-echo "→ part 2: typing the code"
+echo "→ part 2: typing the code ($E2E_VERIFY_FLOW)"
 # shellcheck disable=SC2086
-maestro $DEVICE_ARGS test "$MOBILE_DIR/.maestro/flows/onboarding-email-code-verify.yaml" \
-  --env APP_ID="$APP_ID" --env CONFIRMATION_CODE="$CODE"
-echo "✓ email-code confirmation E2E passed"
+maestro $DEVICE_ARGS test "$MOBILE_DIR/.maestro/flows/$E2E_VERIFY_FLOW" \
+  --env APP_ID="$APP_ID" --env CONFIRMATION_CODE="$CODE" --env EXPECTED_ARM="${EXPECTED_ARM:-}"
+echo "✓ $E2E_LABEL E2E passed"
 # cleanup() deletes the user on exit.
