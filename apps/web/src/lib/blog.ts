@@ -111,8 +111,12 @@ export async function getArticleSlugs(locale: string = 'en'): Promise<string[]> 
  */
 export async function getEnglishArticlePath(slug: string, locale: string): Promise<string | null> {
   if (locale === 'en') return null;
-  const english = await getArticlesForArticlePages('en');
-  return english.some((a) => a.slug === slug) ? `/blog/${slug}` : null;
+  const isSlug = (a: Article) => a.slug === slug;
+  // Same two-step lookup as getArticleBySlug, so a post pg_cron just published
+  // redirects too instead of 404ing until the long-lived list refreshes.
+  const exists =
+    (await getArticlesForArticlePages('en')).some(isSlug) || (await getArticles('en')).some(isSlug);
+  return exists ? `/blog/${slug}` : null;
 }
 
 export function getArticleUrl(slug: string, locale: string): string {
