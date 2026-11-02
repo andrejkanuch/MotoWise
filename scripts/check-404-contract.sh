@@ -72,7 +72,8 @@ CASES=$(cat <<'EOF'
 308 /trips/ch/vs/furka-pass                     bare-slug:redirect
 404 /trips/00000000-0000-4000-8000-000000000000 trip-by-id:bogus
 200 /reset-password                             reset-password:real
-200 /share/not-a-real-share-token               share-expired:real
+404 /trips/usa/mt/x                             trip-detail:malformed
+404 /explore/us/not-a-region-code-at-all        explore-region:malformed
 404 /u/no-such-rider-zz9/saved                  rider-saved:bogus
 404 /de/definitely-not-a-route                  catchall-i18n:bogus
 404 /definitely-not-a-route                     control:bogus
@@ -125,27 +126,31 @@ done <<EOF
 $CASES
 EOF
 
-# Localized pages must render in their own language: before the [locale] root
-# layout, /de, /fr… returned 200 with English content and <html lang="en">,
-# which no status check can see. One line each: <locale> <path>
-LANG_CASES=$(cat <<'EOF'
-de /de
-fr /fr/explore/us
-ja /ja
+# Content checks, for answers a status cannot tell apart. One line each:
+# <path>|<text the body must contain>|<label>
+#  - Localized pages must render in their own language: before the [locale]
+#    root layout, /de, /fr… returned 200 with English content and <html lang="en">.
+#  - An unknown share token shows the "expired" page, and an API outage shows a
+#    "didn't load" page: both are 200, so only the copy proves which one came back.
+CONTENT_CASES=$(cat <<'EOF'
+/de|<html lang="de"|locale-html:de
+/fr/explore/us|<html lang="fr"|locale-html:fr
+/ja|<html lang="ja"|locale-html:ja
+/share/not-a-real-share-token|This link has expired|share-expired
 EOF
 )
 
-while read -r locale path; do
-  [ -n "${locale:-}" ] || continue
+while IFS='|' read -r path needle label; do
+  [ -n "${path:-}" ] || continue
   checked=$((checked + 1))
-  if curl "${CURL_OPTS[@]}" "$BASE$path" | tr -d '\n' | grep -q "<html[^>]* lang=\"$locale\""; then
-    printf '  ok    lang=%-5s %-22s %s\n' "$locale" "locale-html" "$path"
+  if curl "${CURL_OPTS[@]}" "$BASE$path" | tr -d '\n' | grep -qF "$needle"; then
+    printf '  ok    body  %-28s %s\n' "$label" "$path"
   else
-    printf '  FAIL  want <html lang="%s">  %-14s %s\n' "$locale" "locale-html" "$path"
+    printf '  FAIL  body lacks %s  %-16s %s\n' "$needle" "$label" "$path"
     failures=$((failures + 1))
   fi
 done <<EOF
-$LANG_CASES
+$CONTENT_CASES
 EOF
 
 printf '\n'

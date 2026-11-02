@@ -1,9 +1,5 @@
 import { cache } from 'react';
-import {
-  GRAPHQL_BAD_REQUEST_CODE,
-  GRAPHQL_NOT_FOUND_CODE,
-  postPublicQuery,
-} from './public-graphql';
+import { ABSENT_OR_MALFORMED_CODES, postPublicQuery } from './public-graphql';
 import { asUpstream } from './upstream-error';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
@@ -40,8 +36,6 @@ export interface PublicRide {
   isPublic: boolean;
 }
 
-/** A non-UUID id is rejected by the resolver's ParseUUIDPipe: no such ride. */
-const RIDE_ABSENT_CODES = [GRAPHQL_NOT_FOUND_CODE, GRAPHQL_BAD_REQUEST_CODE];
 const RIDE_REVALIDATE_SECONDS = 300;
 
 // Wrapped in React cache() so generateMetadata + the page body (+ opengraph-image)
@@ -58,7 +52,8 @@ export const fetchRide = cache(async (id: string): Promise<PublicRide | null> =>
       PUBLIC_RIDE_QUERY,
       { id },
       RIDE_REVALIDATE_SECONDS,
-      RIDE_ABSENT_CODES,
+      // A non-UUID id is rejected by the resolver's ParseUUIDPipe: no such ride.
+      ABSENT_OR_MALFORMED_CODES,
     ),
     'ride',
   );

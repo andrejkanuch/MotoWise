@@ -1,12 +1,8 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { ShareUnavailable } from '@/components/share-unavailable';
-import {
-  GRAPHQL_BAD_REQUEST_CODE,
-  GRAPHQL_NOT_FOUND_CODE,
-  postPublicQuery,
-} from '@/lib/public-graphql';
-import { asUpstream, settleUpstream } from '@/lib/upstream-error';
+import { fetchSharedHistory } from '@/lib/fetch-shared-history';
+import { settleUpstream } from '@/lib/upstream-error';
 import '@/components/marketing/design-system.css';
 import '@/components/share-page.css';
 
@@ -19,78 +15,6 @@ export const metadata: Metadata = {
   title: 'Shared service history',
   robots: { index: false, follow: false },
 };
-
-const API_URL = process.env.API_URL ?? 'https://motowise.onrender.com/graphql';
-
-const SHARED_BIKE_HISTORY_QUERY = `
-  query SharedBikeHistory($token: String!) {
-    sharedBikeHistory(token: $token) {
-      bike {
-        make
-        model
-        year
-        nickname
-      }
-      tasks {
-        title
-        status
-        priority
-        dueDate
-        completedAt
-        completedMileage
-        notes
-        photoUrls
-      }
-      generatedAt
-    }
-  }
-`;
-
-interface SharedBikeInfo {
-  make: string;
-  model: string;
-  year: number;
-  nickname?: string;
-}
-
-interface SharedTaskInfo {
-  title: string;
-  status: string;
-  priority: string;
-  dueDate?: string;
-  completedAt?: string;
-  completedMileage?: number;
-  notes?: string;
-  photoUrls: string[];
-}
-
-interface SharedBikeHistory {
-  bike: SharedBikeInfo;
-  tasks: SharedTaskInfo[];
-  generatedAt: string;
-}
-
-/** The resolver rejects a malformed token with BAD_REQUEST: the link is gone. */
-const SHARE_ABSENT_CODES = [GRAPHQL_NOT_FOUND_CODE, GRAPHQL_BAD_REQUEST_CODE];
-const SHARE_REVALIDATE_SECONDS = 60;
-
-// `null` only when the API answered that the link is gone; anything else
-// (network failure, timeout, non-200, another GraphQL error) throws
-// `UpstreamError` so the page says "didn't load", not "expired", to a rider
-// whose link is fine.
-async function fetchSharedHistory(token: string): Promise<SharedBikeHistory | null> {
-  const data = await asUpstream(
-    postPublicQuery<{ sharedBikeHistory: SharedBikeHistory | null }>(
-      API_URL,
-      SHARED_BIKE_HISTORY_QUERY,
-      { token },
-      SHARE_REVALIDATE_SECONDS,
-      SHARE_ABSENT_CODES,
-    ),
-    'shared history',
-  );
-  return data?.sharedBikeHistory ?? null;
-}
 
 const STATUS_LABELS: Record<string, string> = {
   completed: 'Done',

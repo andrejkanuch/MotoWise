@@ -30,6 +30,7 @@ import { reportSoftNotFound } from '@/lib/seo/soft-404';
 import { findBareSlugRedirect } from '@/lib/trips/bare-slug-redirect';
 import { selectSiblingRoutes, siblingsAreRegionScoped } from '@/lib/trips/sibling-routes';
 import '@/components/trip-detail/trip-detail.css';
+import { reviewsBlockRender } from '@/lib/trips/reviews-gate';
 
 type TripData = NonNullable<WebTripBySlugQuery['tripBySlug']>;
 
@@ -74,7 +75,7 @@ const fetchTrip = cache(
 );
 
 // `null` = the reviews didn't load; the page throws if the trip has reviews to
-// show (see TripPage). `[]` = the API answered and there are ratings but no
+// show (lib/trips/reviews-gate.ts). `[]` = the API answered and there are ratings but no
 // written reviews.
 async function fetchReviews(
   country: string,
@@ -456,10 +457,7 @@ export default async function TripPage({ params }: PageParams) {
   };
 
   const hasRating = trip.averageRating != null && trip.reviewCount > 0;
-  // The page is cached for 30 days, so a "reviews didn't load" note would stick
-  // for the whole window. Throw instead: a failed regeneration keeps the last
-  // good page, and a first render is retried on the next request.
-  if (hasRating && reviews === null) {
+  if (reviewsBlockRender(hasRating, reviews)) {
     throw new Error(`Trip reviews failed to load for ${country}/${region}/${slug}`);
   }
   const reviewsLabel = trip.reviewCount === 1 ? 'review' : 'reviews';

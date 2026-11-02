@@ -127,6 +127,26 @@ describe('isDefinitiveGraphQLError', () => {
     ).toBe(false);
   });
 
+  it('is true for a resolver rejecting a malformed slug (BAD_REQUEST at HTTP 200)', () => {
+    // tripBySlug answers /trips/usa/mt/x this way: no trip can match, so it is a 404.
+    expect(isDefinitiveGraphQLError(graphqlError('Invalid country code', 'BAD_REQUEST'))).toBe(
+      true,
+    );
+  });
+
+  it('is false when a NOT_FOUND comes with any other error', () => {
+    const mixed = Object.assign(new Error('x'), {
+      response: {
+        status: 200,
+        errors: [
+          { message: 'x', extensions: { code: 'NOT_FOUND' } },
+          { message: 'y', extensions: { code: 'INTERNAL_SERVER_ERROR' } },
+        ],
+      },
+    });
+    expect(isDefinitiveGraphQLError(mixed)).toBe(false);
+  });
+
   it('is false for gateway statuses (502/503/504) with no errors array', () => {
     expect(isDefinitiveGraphQLError(httpError(503))).toBe(false);
     expect(isDefinitiveGraphQLError(httpError(500))).toBe(false);

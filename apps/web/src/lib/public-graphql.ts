@@ -10,7 +10,9 @@
  * The API answers resolver failures inside an HTTP 200 body (Apollo; see
  * apps/api/src/common/filters/gql-exception.filter.ts), so the status alone
  * cannot tell them apart: the error codes decide. Only HTTP 200 with no data,
- * or with errors that are all NOT_FOUND, is "absent". Everything else throws:
+ * or with errors whose codes are all "absent" codes, is "absent": NOT_FOUND by
+ * default, plus BAD_REQUEST where a resolver rejects a malformed id, token or
+ * slug (ABSENT_OR_MALFORMED_CODES). Everything else throws:
  * a non-200 status (5xx, a 400 validation error from a web/API deploy skew,
  * 429), a body that is not JSON, or any other error code
  * (INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, a missing code…).
@@ -21,6 +23,16 @@ export const GRAPHQL_NOT_FOUND_CODE = 'NOT_FOUND';
 export const GRAPHQL_BAD_REQUEST_CODE = 'BAD_REQUEST';
 
 const DEFAULT_ABSENT_CODES: readonly string[] = [GRAPHQL_NOT_FOUND_CODE];
+
+/**
+ * "No such thing" or "no such thing can exist": a resolver's input validation
+ * (BAD_REQUEST at HTTP 200) is deterministic for that URL, unlike a schema
+ * mismatch from a deploy skew, which Apollo answers at HTTP 400.
+ */
+export const ABSENT_OR_MALFORMED_CODES: readonly string[] = [
+  GRAPHQL_NOT_FOUND_CODE,
+  GRAPHQL_BAD_REQUEST_CODE,
+];
 
 /** Per-request timeout, matching the public GraphQL fetcher (lib/graphql-server.ts). */
 export const PUBLIC_QUERY_TIMEOUT_MS = 8_000;
@@ -34,6 +46,14 @@ interface GraphQLErrorShape {
 interface GraphQLBody<T> {
   data?: T | null;
   errors?: GraphQLErrorShape[] | null;
+}
+
+/** True when `errors` is a non-empty array whose every code is in `absentCodes`. */
+export function areAllErrorsAbsent(errors: unknown, absentCodes: readonly string[]): boolean {
+  if (!Array.isArray(errors) || errors.length === 0) return false;
+  return errors.every((e: GraphQLErrorShape | null) =>
+    absentCodes.includes(String(e?.extensions?.code)),
+  );
 }
 
 export class PublicQueryError extends Error {
@@ -63,7 +83,7 @@ export function classifyPublicResponse<T>(
   }
   const { data, errors } = body as GraphQLBody<T>;
   if (Array.isArray(errors) && errors.length > 0) {
-    if (errors.every((e) => absentCodes.includes(String(e?.extensions?.code)))) return null;
+    if (areAllErrorsAbsent(errors, absentCodes)) return null;
     const codes = errors.map((e) => String(e?.extensions?.code ?? 'no code')).join(', ');
     throw new PublicQueryError(`GraphQL errors (${codes})`);
   }

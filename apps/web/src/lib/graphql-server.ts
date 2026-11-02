@@ -1,6 +1,6 @@
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { GraphQLClient } from 'graphql-request';
-import { GRAPHQL_NOT_FOUND_CODE } from './public-graphql';
+import { ABSENT_OR_MALFORMED_CODES, areAllErrorsAbsent } from './public-graphql';
 import { getSupabaseServerClient } from './supabase-server';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
@@ -46,12 +46,14 @@ function isRetryableApiError(err: unknown): boolean {
 }
 
 /**
- * True when a thrown fetch error is a *definitive* "not found" — the API executed
- * the query and answered at HTTP 200 with an `errors` array whose every entry has
- * the NOT_FOUND code (a resolver's `NotFoundException`). This distinguishes "the
- * API told us this resource is absent" from "we never reached a definitive answer"
- * (timeouts, network failures, 4xx/5xx — including a gateway/5xx that happens to
- * carry an errors-shaped body — see {@link isRetryableApiError}).
+ * True when a thrown fetch error is a *definitive* "absent" — the API executed
+ * the query and answered at HTTP 200 with an `errors` array whose every entry is
+ * NOT_FOUND or BAD_REQUEST (a resolver's `NotFoundException`, or its input
+ * validation rejecting a malformed country, region or slug, which no real
+ * resource can match). This distinguishes "the API told us this resource is
+ * absent" from "we never reached a definitive answer" (timeouts, network
+ * failures, 4xx/5xx — including a gateway/5xx that happens to carry an
+ * errors-shaped body — see {@link isRetryableApiError}).
  *
  * Both guards matter. Apollo returns every resolver exception at 200, so status
  * alone is not enough: a DB outage surfaces as INTERNAL_SERVER_ERROR at 200 and
@@ -64,11 +66,7 @@ function isRetryableApiError(err: unknown): boolean {
 export function isDefinitiveGraphQLError(err: unknown): boolean {
   const response = (err as { response?: { status?: number; errors?: unknown } })?.response;
   if (response?.status !== 200) return false;
-  const errors = response.errors;
-  if (!Array.isArray(errors) || errors.length === 0) return false;
-  return errors.every(
-    (e) => (e as { extensions?: { code?: unknown } })?.extensions?.code === GRAPHQL_NOT_FOUND_CODE,
-  );
+  return areAllErrorsAbsent(response.errors, ABSENT_OR_MALFORMED_CODES);
 }
 
 /**
