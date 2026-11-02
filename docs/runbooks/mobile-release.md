@@ -20,8 +20,19 @@ caught it.
    - **`commit_first`:** after the account step.
    - **`garage_first`:** on "Open my garage".
 
-   The arm comes from the PostHog flag `onboarding_paywall_2026q4`, so a run covers
-   whichever arm the install draws. The script deletes the account on exit. Setup is
+   A release build cannot be forced onto an arm: each fresh install draws one from the
+   PostHog flag `onboarding_paywall_2026q4`, or on the device when the flag cannot be
+   asked. So the script needs one passing run per arm. It repeats the flow, pinned
+   first to `commit_first` and then to `garage_first`, until each arm has a passing
+   run, with at most 6 runs per arm (`MAX_TRIES`). A run that draws the other arm
+   fails the pin and is retried. Expect about four runs in total.
+
+   When the flag serves a single arm to everyone (after the 2026-11-15 decision, for
+   example), run it with `EXPECTED_ARM=<that arm>` instead. The other arm can no
+   longer be drawn.
+
+   Each run deletes its account on exit; the runner refuses an email that already has
+   an account. Setup is
    in `apps/mobile/.maestro/README.md`; the iOS AutoFill prerequisite is in
    `onboarding-email-code-signup.yaml`.
 2. **Unit tests pass:** run `pnpm verify:mobile`. It includes

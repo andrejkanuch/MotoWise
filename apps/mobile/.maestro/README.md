@@ -52,7 +52,9 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   signup flow; part 2 confirms the account and fails unless the RevenueCat paywall is shown where
   the assigned arm puts it: after account for `commit_first`, on "Open my garage" for
   `garage_first`. Every other onboarding flow closes the paywall with `optional: true`, so they
-  pass without one. Pass `EXPECTED_ARM` to also check which arm the install got. Run it via:
+  pass without one. A release build cannot be forced onto an arm, so the runner repeats the flow
+  pinned to each arm until both have a passing run (`MAX_TRIES` per arm, default 6); pass
+  `EXPECTED_ARM` to run one arm only. Run it via:
   ```bash
   DEVICE=<simulator udid> pnpm --filter @motovault/mobile test:e2e:onboarding-paywall
   ```

@@ -68,10 +68,20 @@ admin() { # admin METHOD PATH [DATA] — DELETE fails loudly so a leaked user is
 }
 
 # The account is created by the app, so look it up by email at teardown.
+# CREATED_AFTER limits the match to accounts created during this run, so a
+# TEST_EMAIL that names an existing account can never get it deleted.
 user_id_for_email() {
   admin GET "users?filter=$(jq -rn --arg e "$TEST_EMAIL" '$e|@uri')&per_page=50" \
-    | jq -r --arg e "$TEST_EMAIL" '.users[]? | select(.email == $e) | .id' | head -1
+    | jq -r --arg e "$TEST_EMAIL" --arg after "${CREATED_AFTER:-}" \
+      '.users[]? | select(.email == $e) | select($after == "" or .created_at >= $after) | .id' \
+    | head -1
 }
+
+if [ -n "$(user_id_for_email)" ]; then
+  echo "error: an account already exists for $TEST_EMAIL — use a new address"
+  exit 1
+fi
+CREATED_AFTER=$(date -u +%Y-%m-%dT%H:%M:%S)
 
 cleanup() {
   code=$?
