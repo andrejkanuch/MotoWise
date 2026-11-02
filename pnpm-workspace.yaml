@@ -60,7 +60,7 @@ overrides:
   picomatch@^2: ^2.3.2
   picomatch@^4: ^4.0.4
   postcss@^8: ^8.5.23
-  qs@^6: ^6.16.0
+  qs@^6: ^6.17.1
   sharp@~0.35: ~0.35.5
   smol-toml@^1: ^1.9.0
   source-map-js@^1: ^1.2.2
