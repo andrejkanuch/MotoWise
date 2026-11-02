@@ -27,9 +27,15 @@ caught it.
    run, with at most 6 runs per arm (`MAX_TRIES`). A run that draws the other arm
    fails the pin and is retried. Expect about four runs in total.
 
-   When the flag serves a single arm to everyone (after the 2026-11-15 decision, for
-   example), run it with `EXPECTED_ARM=<that arm>` instead. The other arm can no
-   longer be drawn.
+   Keep the two-arm run even when the PostHog flag serves a single arm (after the
+   2026-11-15 decision, for example). An install that cannot ask PostHog (EEA, UK and
+   CH riders before consent, or a flag fetch that fails or times out) still draws
+   on the device from `ONBOARDING_EXPERIMENT.ASSIGNABLE` in
+   `apps/mobile/src/config/onboarding.ts`, so riders can still get either arm. In
+   that state, set the simulator's region to an EEA country, so analytics stays off
+   before consent and each install draws on the device; otherwise the flag never
+   serves the other arm and the gate cannot pass. Switch to
+   `EXPECTED_ARM=<that arm>` only once `ASSIGNABLE` holds that arm alone.
 
    Each run deletes its account on exit; the runner refuses an email that already has
    an account. Setup is

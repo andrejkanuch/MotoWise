@@ -22,6 +22,12 @@
 set -eu
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 MAX_TRIES=${MAX_TRIES:-6}
+case "$MAX_TRIES" in
+  '' | *[!0-9]* | 0 | 0*) echo "error: MAX_TRIES must be a positive integer (got '$MAX_TRIES')"; exit 2 ;;
+esac
+# Ctrl-C stops the gate. Each run deletes its own account on the way out, so
+# leaving the retry loop is safe.
+trap 'exit 130' INT TERM
 
 run_once() { # run_once ARM
   EXPECTED_ARM=$1 E2E_VERIFY_FLOW=onboarding-paywall-verify.yaml E2E_LABEL=onboarding-paywall \
@@ -36,6 +42,8 @@ fi
 for arm in commit_first garage_first; do
   try=1
   until run_once "$arm"; do
+    rc=$?
+    [ "$rc" -lt 128 ] || exit "$rc"
     if [ "$try" -ge "$MAX_TRIES" ]; then
       echo "✗ no passing $arm run in $MAX_TRIES tries: that arm shows no paywall, or no install drew it"
       exit 1
