@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { buildConnection, decodeCursor, encodeCursor } from '../../../common/pagination/connection';
+import { RevalidationService } from '../../../common/revalidation/revalidation.service';
 import { PG_ERROR } from '../../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
@@ -20,6 +21,7 @@ import {
   throwTripDbError,
 } from '../errors/trip-db.errors';
 import type { Trip, TripConnection, TripWaypoint } from '../models/trip.model';
+import { TEMPLATE_LOCATION_COLUMNS, templateRowRevalidation } from '../trip-revalidation';
 
 /** Shape returned by trips + users join */
 export interface TripRow {
@@ -259,7 +261,14 @@ export class TripLifecycleService {
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
+    private readonly revalidation: RevalidationService,
   ) {}
+
+  /** Refresh the cached explore + trip pages when a template changed (best-effort). */
+  private revalidateTemplate(row: Parameters<typeof templateRowRevalidation>[0]): void {
+    const payload = templateRowRevalidation(row);
+    if (payload) this.revalidation.revalidate(payload);
+  }
 
   async getTrips(first: number, after?: string): Promise<TripConnection> {
     const limit = Math.min(first, 50);
@@ -756,6 +765,7 @@ export class TripLifecycleService {
     }
 
     const trip = mapRowToTrip(data as unknown as TripRow);
+    const location = await this.templateLocation(tripId);
 
     // Replace waypoints if provided. H11: the old path did a bare delete then a
     // separate insert — a failed insert (or a dropped request between them) left
@@ -806,20 +816,37 @@ export class TripLifecycleService {
       }
     }
 
+    this.revalidateTemplate(location);
     return trip;
   }
 
   async deleteTrip(userId: string, tripId: string): Promise<boolean> {
     await verifyOrganiser(this.supabase, this.logger, userId, tripId);
 
-    const { error } = await this.supabase.from('trips').delete().eq('id', tripId);
+    const { data: deleted, error } = await this.supabase
+      .from('trips')
+      .delete()
+      .eq('id', tripId)
+      .select(TEMPLATE_LOCATION_COLUMNS)
+      .maybeSingle();
 
     if (error) {
       this.logger.error(`deleteTrip failed: ${error.message} (${error.code})`);
       throw new InternalServerErrorException('Failed to delete trip');
     }
 
+    this.revalidateTemplate(deleted);
     return true;
+  }
+
+  /** Template + location columns of a trip, for {@link revalidateTemplate}. Never throws. */
+  private async templateLocation(tripId: string) {
+    const { data } = await this.supabase
+      .from('trips')
+      .select(TEMPLATE_LOCATION_COLUMNS)
+      .eq('id', tripId)
+      .maybeSingle();
+    return data;
   }
 
   async publishTrip(userId: string, tripId: string): Promise<Trip> {
@@ -941,6 +968,7 @@ export class TripLifecycleService {
       throw new InternalServerErrorException('Failed to share ride as trip');
     }
 
+    this.revalidateTemplate(tripData as unknown as Parameters<typeof templateRowRevalidation>[0]);
     return mapRowToTrip(tripData as unknown as TripRow, userId);
   }
 }

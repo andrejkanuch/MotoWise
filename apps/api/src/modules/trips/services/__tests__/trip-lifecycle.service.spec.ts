@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { RevalidationService } from '../../../../common/revalidation/revalidation.service';
 import { RIDE_ALREADY_SHARED_MESSAGE } from '../../errors/trip-db.errors';
 import { TripLifecycleService } from '../trip-lifecycle.service';
 
@@ -93,7 +94,9 @@ describe('TripLifecycleService', () => {
       return stub;
     });
     const client = { from } as unknown as SupabaseClient;
-    service = new TripLifecycleService(client, client);
+    service = new TripLifecycleService(client, client, {
+      revalidate: vi.fn(),
+    } as unknown as RevalidationService);
     // Silence the expected error logs.
     // biome-ignore lint/suspicious/noExplicitAny: test access to the private logger
     vi.spyOn((service as any).logger, 'error').mockImplementation(() => undefined);

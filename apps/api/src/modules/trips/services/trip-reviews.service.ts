@@ -7,8 +7,10 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { buildConnection, decodeCursor, encodeCursor } from '../../../common/pagination/connection';
+import { RevalidationService } from '../../../common/revalidation/revalidation.service';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
+import { TEMPLATE_LOCATION_COLUMNS, templateRowRevalidation } from '../trip-revalidation';
 
 /** DB row shape for trip_reviews */
 interface ReviewRow {
@@ -90,7 +92,27 @@ export class TripReviewsService {
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
+    private readonly revalidation: RevalidationService,
   ) {}
+
+  /**
+   * Reviews, the average rating and its JSON-LD render on the cached trip page,
+   * so refresh it after a review is added or removed. Best-effort: the review
+   * mutation has already succeeded, so a failed lookup only skips the refresh.
+   */
+  private async revalidateTrip(tripId: string): Promise<void> {
+    const { data, error } = await this.supabaseAdmin
+      .from('trips')
+      .select(TEMPLATE_LOCATION_COLUMNS)
+      .eq('id', tripId)
+      .maybeSingle();
+    if (error) {
+      this.logger.warn(`revalidateTrip lookup failed: ${error.message} (${error.code})`);
+      return;
+    }
+    const payload = templateRowRevalidation(data);
+    if (payload) this.revalidation.revalidate(payload);
+  }
 
   async getReviewsForTrip(
     tripId: string,
@@ -161,6 +183,7 @@ export class TripReviewsService {
       throw new InternalServerErrorException('Failed to create review');
     }
 
+    await this.revalidateTrip(input.tripId);
     return this.mapRow(data as unknown as ReviewRow);
   }
 
@@ -171,10 +194,11 @@ export class TripReviewsService {
       .delete()
       .eq('id', reviewId)
       .eq('user_id', userId)
-      .select('id')
+      .select('id, trip_id')
       .single();
 
     if (error || !data) throw new NotFoundException('Review not found or not owned by you');
+    await this.revalidateTrip(data.trip_id as string);
     return true;
   }
 
