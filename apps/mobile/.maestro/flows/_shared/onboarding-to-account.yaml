@@ -20,6 +20,16 @@ env:
 - clearKeychain
 - launchApp
 
+# 0. iOS App Tracking Transparency prompt. A fresh simulator asks on first
+# launch and the alert covers Welcome; decline it when it shows.
+- extendedWaitUntil:
+    visible: "Ask App Not to Track"
+    timeout: 15000
+    optional: true
+- tapOn:
+    text: "Ask App Not to Track"
+    optional: true
+
 # 1. Welcome
 - extendedWaitUntil:
     visible: "Let's get started"

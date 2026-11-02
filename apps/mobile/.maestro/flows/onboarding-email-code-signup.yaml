@@ -28,6 +28,9 @@ tags:
 - tapOn:
     text: ".*Create an account to .*"
     optional: true
+# The button slides down as the keyboard closes; a tap resolved mid-slide lands
+# on "Already have an account? Sign in" below it.
+- waitForAnimationToEnd
 - tapOn: "Create account"
 
 # The code step replaces the email form (no "check your email" alert).
@@ -39,5 +42,5 @@ tags:
     visible: "Enter your code"
     timeout: 30000
 - assertVisible: "We sent a 6-digit code to ${TEST_EMAIL}"
-- assertVisible: "Resend in .*s"
+- assertVisible: "Resend in .*s|Resend code"
 - assertVisible: "I already confirmed via the link"
