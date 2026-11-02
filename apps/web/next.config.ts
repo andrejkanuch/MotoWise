@@ -60,11 +60,14 @@ const NON_LOCALIZED_SECTION_REGEX_GROUP = NON_LOCALIZED_ROUTE_SECTIONS.join('|')
 const nextConfig: NextConfig = {
   cacheComponents: false,
   reactCompiler: true,
-  // Inline stylesheets as <style> tags instead of render-blocking <link>s.
-  // Removes the 3 render-blocking CSS requests from the critical path (~623ms
-  // FCP savings measured via Lighthouse on the homepage). Production builds only.
   experimental: {
-    inlineCss: true,
+    // CSS ships as cacheable <link> stylesheets, not inlined. inlineCss (on until
+    // 2026-11) saved ~623ms Lighthouse FCP on the homepage, but it put the ~113 KB
+    // stylesheet into every page three times (a <style> tag plus twice in the RSC
+    // payload) — ~570 KB of each ~880 KB page. Every ISR regeneration writes the
+    // whole page to Vercel's cache, so that weight was billed as ISR Writes, and
+    // visitors re-downloaded the CSS on every page instead of caching it once.
+    inlineCss: false,
     // Turbopack's persistent BUILD cache (default-on since Next 16.3) is off.
     // Vercel restores .next/cache from the previous deployment, and the PR #285
     // production build reused a stale compile of globals.css: the new

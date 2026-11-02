@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/nextjs';
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { compileMDX } from 'next-mdx-remote/rsc';
@@ -21,6 +21,7 @@ import {
   getArticleHreflangMap,
   getArticleSlugs,
   getCanonicalArticleUrl,
+  getEnglishArticlePath,
   getRelatedArticles,
 } from '@/lib/blog';
 import { extractMakeModel, extractModel, resolveCtaAngle } from '@/lib/blog-cta';
@@ -52,7 +53,7 @@ import '@/components/marketing/trackside-read.css';
 // published after a deploy 404'd until the next unrelated merge. generateStaticParams
 // stays — it prerenders the known set at build time and unknown slugs now render
 // on demand.
-export const revalidate = 604800; // 7 days; invalidated on demand via /api/revalidate
+export const revalidate = 2592000; // 30 days; invalidated on demand via /api/revalidate
 
 interface BlogArticlePageProps {
   params: Promise<{ slug: string; locale: string }>;
@@ -162,6 +163,10 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   const article = await getArticleBySlug(slug, locale);
 
   if (!article) {
+    // An untranslated post under /de, /es, /fr or /it goes to the English post
+    // (308) rather than 404ing; only a slug with no post at all is a 404.
+    const englishPath = await getEnglishArticlePath(slug, locale);
+    if (englishPath) permanentRedirect(englishPath);
     notFound();
   }
 

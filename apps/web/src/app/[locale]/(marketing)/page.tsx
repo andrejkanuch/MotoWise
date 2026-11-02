@@ -18,9 +18,9 @@ import {
   buildWebSite,
 } from '@/lib/seo/schema';
 
-// A day: the page's only external data, the App Store rating, is itself
-// cached for a day, so an hourly regeneration only paid ISR writes.
-export const revalidate = 86400;
+// Repo-sourced apart from the App Store rating, and every deploy rebuilds it, so a
+// long window is safe. An hourly one regenerated the page in all 8 locales 24×/day.
+export const revalidate = 2592000; // 30 days
 
 interface PageProps {
   params: Promise<{ locale: string }>;

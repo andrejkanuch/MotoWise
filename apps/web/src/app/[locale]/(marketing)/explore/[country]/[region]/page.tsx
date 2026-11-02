@@ -20,7 +20,7 @@ import '@/components/marketing/trackside-read.css';
 // Sentry MOTOVAULT-WEB-P. The boundary is deleted; do not reintroduce one above
 // this route. See the trip-detail route for the measured evidence.
 export const dynamic = 'force-static';
-export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand via /api/revalidate
+export const revalidate = 2592000; // 30 days — DB-sourced; invalidated on demand via /api/revalidate on publish/edit
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore-og.jpg`; // 1200×630 crop under 300 KB (the 732 KB source was fetched raw by every crawler)
 

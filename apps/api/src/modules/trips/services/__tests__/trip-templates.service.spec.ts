@@ -3,6 +3,7 @@ import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RevalidationService } from '../../../../common/revalidation/revalidation.service';
 import { RIDE_ALREADY_SHARED_MESSAGE } from '../../errors/trip-db.errors';
+import type { TripPageRevalidator } from '../trip-page-revalidator.service';
 import { TripTemplatesService } from '../trip-templates.service';
 
 /**
@@ -63,6 +64,7 @@ describe('TripTemplatesService.listTemplates', () => {
       {} as unknown as SupabaseClient,
       supabaseAdmin as unknown as SupabaseClient,
       { revalidate: vi.fn() } as unknown as RevalidationService,
+      { fromRow: vi.fn(), forTrip: vi.fn() } as unknown as TripPageRevalidator,
     );
     // Silence the expected error log on permanent failures.
     // biome-ignore lint/suspicious/noExplicitAny: test access to private logger
@@ -163,6 +165,7 @@ describe('TripTemplatesService.publishAsTemplate', () => {
       { from } as unknown as SupabaseClient,
       {} as unknown as SupabaseClient,
       { revalidate: vi.fn() } as unknown as RevalidationService,
+      { fromRow: vi.fn(), forTrip: vi.fn() } as unknown as TripPageRevalidator,
     );
     // biome-ignore lint/suspicious/noExplicitAny: test access to private logger
     vi.spyOn((service as any).logger, 'error').mockImplementation(() => undefined);

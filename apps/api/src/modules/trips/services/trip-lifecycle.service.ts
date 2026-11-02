@@ -20,6 +20,8 @@ import {
   throwTripDbError,
 } from '../errors/trip-db.errors';
 import type { Trip, TripConnection, TripWaypoint } from '../models/trip.model';
+import { TEMPLATE_LOCATION_COLUMNS } from '../trip-revalidation';
+import { TripPageRevalidator } from './trip-page-revalidator.service';
 
 /** Shape returned by trips + users join */
 export interface TripRow {
@@ -259,6 +261,7 @@ export class TripLifecycleService {
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
+    private readonly tripPages: TripPageRevalidator,
   ) {}
 
   async getTrips(first: number, after?: string): Promise<TripConnection> {
@@ -757,53 +760,59 @@ export class TripLifecycleService {
 
     const trip = mapRowToTrip(data as unknown as TripRow);
 
-    // Replace waypoints if provided. H11: the old path did a bare delete then a
-    // separate insert — a failed insert (or a dropped request between them) left
-    // the trip with zero waypoints and no rollback. replace_trip_waypoints
-    // (00148) does the delete + bulk insert atomically and checks organiser
-    // ownership via auth.uid() internally.
-    if (input.waypoints) {
-      const waypointPayload = input.waypoints.map((wp) => ({
-        type: wp.type,
-        name: wp.name,
-        lat: wp.lat,
-        lng: wp.lng,
-        notes: wp.notes ?? null,
-        sort_order: wp.sortOrder,
-        day_index: wp.dayIndex ?? 0,
-        period_of_day: wp.periodOfDay ?? null,
-      }));
+    // The trip row is already committed here, so refresh its cached page even
+    // when the waypoint replace below fails.
+    try {
+      // Replace waypoints if provided. H11: the old path did a bare delete then a
+      // separate insert — a failed insert (or a dropped request between them) left
+      // the trip with zero waypoints and no rollback. replace_trip_waypoints
+      // (00148) does the delete + bulk insert atomically and checks organiser
+      // ownership via auth.uid() internally.
+      if (input.waypoints) {
+        const waypointPayload = input.waypoints.map((wp) => ({
+          type: wp.type,
+          name: wp.name,
+          lat: wp.lat,
+          lng: wp.lng,
+          notes: wp.notes ?? null,
+          sort_order: wp.sortOrder,
+          day_index: wp.dayIndex ?? 0,
+          period_of_day: wp.periodOfDay ?? null,
+        }));
 
-      const { error: replaceError } = await this.supabase.rpc('replace_trip_waypoints', {
-        p_trip_id: tripId,
-        p_waypoints: waypointPayload,
-      });
+        const { error: replaceError } = await this.supabase.rpc('replace_trip_waypoints', {
+          p_trip_id: tripId,
+          p_waypoints: waypointPayload,
+        });
 
-      if (replaceError) {
-        this.logger.error(
-          `updateTrip waypoints failed: ${replaceError.message} (${replaceError.code})`,
-        );
-        throw new InternalServerErrorException('Failed to update trip waypoints');
-      }
-
-      if (waypointPayload.length > 0) {
-        const { data: waypointData, error: wpFetchError } = await this.supabase
-          .from('trip_waypoints')
-          .select('*')
-          .eq('trip_id', tripId)
-          .order('sort_order', { ascending: true });
-
-        if (wpFetchError) {
+        if (replaceError) {
           this.logger.error(
-            `updateTrip waypoint refetch failed: ${wpFetchError.message} (${wpFetchError.code})`,
+            `updateTrip waypoints failed: ${replaceError.message} (${replaceError.code})`,
           );
           throw new InternalServerErrorException('Failed to update trip waypoints');
         }
 
-        trip.waypoints = ((waypointData ?? []) as unknown as WaypointRow[]).map(mapRowToWaypoint);
-      } else {
-        trip.waypoints = [];
+        if (waypointPayload.length > 0) {
+          const { data: waypointData, error: wpFetchError } = await this.supabase
+            .from('trip_waypoints')
+            .select('*')
+            .eq('trip_id', tripId)
+            .order('sort_order', { ascending: true });
+
+          if (wpFetchError) {
+            this.logger.error(
+              `updateTrip waypoint refetch failed: ${wpFetchError.message} (${wpFetchError.code})`,
+            );
+            throw new InternalServerErrorException('Failed to update trip waypoints');
+          }
+
+          trip.waypoints = ((waypointData ?? []) as unknown as WaypointRow[]).map(mapRowToWaypoint);
+        } else {
+          trip.waypoints = [];
+        }
       }
+    } finally {
+      await this.tripPages.forTrip(tripId);
     }
 
     return trip;
@@ -812,13 +821,19 @@ export class TripLifecycleService {
   async deleteTrip(userId: string, tripId: string): Promise<boolean> {
     await verifyOrganiser(this.supabase, this.logger, userId, tripId);
 
-    const { error } = await this.supabase.from('trips').delete().eq('id', tripId);
+    const { data: deleted, error } = await this.supabase
+      .from('trips')
+      .delete()
+      .eq('id', tripId)
+      .select(TEMPLATE_LOCATION_COLUMNS)
+      .maybeSingle();
 
     if (error) {
       this.logger.error(`deleteTrip failed: ${error.message} (${error.code})`);
       throw new InternalServerErrorException('Failed to delete trip');
     }
 
+    this.tripPages.fromRow(deleted);
     return true;
   }
 
@@ -941,6 +956,8 @@ export class TripLifecycleService {
       throw new InternalServerErrorException('Failed to share ride as trip');
     }
 
-    return mapRowToTrip(tripData as unknown as TripRow, userId);
+    const row = tripData as unknown as TripRow;
+    this.tripPages.fromRow(row);
+    return mapRowToTrip(row, userId);
   }
 }

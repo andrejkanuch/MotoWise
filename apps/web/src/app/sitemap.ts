@@ -3,7 +3,7 @@ import type { MetadataRoute } from 'next';
 import { routing } from '@/i18n/routing';
 import { BIKE_FIXTURES } from '@/lib/bikes/bike-data';
 import { scoreBikePage } from '@/lib/bikes/quality-gate';
-import { getArticles } from '@/lib/blog';
+import { getArticleHreflangMap, getArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 import { getGuides } from '@/lib/guides';
@@ -136,38 +136,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   }));
 
-  // Blog posts: only emit hreflang alternates for locales that actually have
-  // a translated MDX file for the same slug. Prevents Google from seeing
-  // reciprocity errors for locales that fall back to English.
-  const articlesByLocale: Record<string, Set<string>> = Object.fromEntries(
-    await Promise.all(
-      locales.map(
-        async (locale) =>
-          [locale, new Set((await getArticles(locale)).map((a) => a.slug))] as const,
-      ),
-    ),
-  );
-
+  // Blog posts: hreflang alternates only for real translations — the same map
+  // the article page declares. `getArticles(locale)` is NOT a translation check:
+  // for ja/pl/pt-BR it falls back to the full English list, which advertised
+  // ~250 "translations" that canonicalize to English (2026-11-02 coverage audit).
   const englishArticles = await getArticles('en');
-  const blogEntries = englishArticles.map((article) => {
-    const localesWithTranslation = locales.filter((locale) =>
-      articlesByLocale[locale]?.has(article.slug),
-    );
-    return {
+  const blogEntries = await Promise.all(
+    englishArticles.map(async (article) => ({
       url: getLocalizedUrl('en', `/blog/${article.slug}`),
       lastModified: new Date(article.dateModified ?? article.date),
       images: article.heroImage ? [`${host}${article.heroImage}`] : [`${host}/og-image.png`],
-      alternates: {
-        languages: Object.fromEntries([
-          ...localesWithTranslation.map((locale) => [
-            locale,
-            getLocalizedUrl(locale, `/blog/${article.slug}`),
-          ]),
-          ['x-default', getLocalizedUrl('en', `/blog/${article.slug}`)],
-        ]),
-      },
-    };
-  });
+      alternates: { languages: await getArticleHreflangMap(article.slug) },
+    })),
+  );
 
   // Bike pages: English-only per programmatic SEO plan. No hreflang alternates —
   // translating 1500+ templated pages is deferred until tier-1 is traffic-proven.

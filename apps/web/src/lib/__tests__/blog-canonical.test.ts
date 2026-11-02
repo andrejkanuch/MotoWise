@@ -9,6 +9,7 @@ vi.mock('@/lib/constants', () => ({ BASE_URL: 'https://motovault.app' }));
 const listTranslatedLocales = vi.fn<(slug: string) => Promise<string[]>>();
 vi.mock('../supabase-blog', () => ({
   listPublishedArticles: vi.fn(async () => []),
+  listPublishedArticlesForArticlePages: vi.fn(async () => []),
   fetchArticleBody: vi.fn(async () => null),
   listTranslatedLocales: (slug: string) => listTranslatedLocales(slug),
 }));

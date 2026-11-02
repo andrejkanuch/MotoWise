@@ -30,3 +30,26 @@ export function tripTemplateRevalidation(
   if (cc && rc && slug) paths.push(`${WEB_PATHS.trips}/${cc}/${rc}/${slug.toLowerCase()}`);
   return { tags: [CACHE_TAGS.places], paths };
 }
+
+/** Trip columns {@link templateRowRevalidation} reads; add to a `.select()` that feeds it. */
+export const TEMPLATE_LOCATION_COLUMNS = 'is_template, country_code, region_code, slug';
+
+export interface TemplateLocationRow {
+  is_template?: boolean | null;
+  country_code?: string | null;
+  region_code?: string | null;
+  slug?: string | null;
+}
+
+/**
+ * Revalidation payload for a mutated trip row, or `null` when the trip is not a
+ * template (only templates are rendered on the static explore / trip pages).
+ * The web caches those pages for 30 days, so every mutation that changes what
+ * they show — edit, delete, moderation, a new or removed review — must call this.
+ */
+export function templateRowRevalidation(
+  row: TemplateLocationRow | null | undefined,
+): { tags: string[]; paths: string[] } | null {
+  if (!row?.is_template) return null;
+  return tripTemplateRevalidation(row.country_code, row.region_code, row.slug);
+}

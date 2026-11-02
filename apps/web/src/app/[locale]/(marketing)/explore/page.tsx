@@ -14,7 +14,7 @@ import {
 } from '@/lib/seo/schema';
 import '@/components/marketing/trackside-read.css';
 
-export const revalidate = 86400; // 24 hours
+export const revalidate = 2592000; // 30 days — DB-sourced; invalidated on demand via /api/revalidate on publish/edit
 
 interface PageProps {
   params: Promise<{ locale: string }>;

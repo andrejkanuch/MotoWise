@@ -167,7 +167,7 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
 // every 308 on the subtree back into a 200 (Sentry MOTOVAULT-WEB-Q, 74 events),
 // and dev mode cannot reproduce it — only a production build can.
 export const dynamic = 'force-static';
-export const revalidate = 86400; // 1 day — DB-sourced; invalidate on-demand on publish/edit
+export const revalidate = 2592000; // 30 days — DB-sourced; invalidated on demand via /api/revalidate on publish/edit
 
 const WAYPOINT_LABELS: Record<string, string> = {
   start: 'Start',
@@ -317,8 +317,9 @@ export default async function TripPage({ params }: PageParams) {
     // because of `force-static`, which is what PR #177's removal assumed.
     //
     // Swallow a failure of the ref fetch: the trip is already known to be
-    // definitively absent, so the only loss is a possible 308 on one of ~28 URLs
-    // and the cached 404 self-heals on the next revalidation. Re-throwing would
+    // definitively absent, so the only loss is a possible 308 on one of ~28 URLs,
+    // cached as a 404 until the next revalidation (up to the 30-day window, or
+    // sooner when a trip publish/edit revalidates this path). Re-throwing would
     // turn an API blip into a 500 on the far more common genuinely-bogus slug.
     const canonicalSlug = findBareSlugRedirect(
       await fetchPublishedTripSlugRefs().catch(() => []),
