@@ -9,8 +9,10 @@ interface TripCardProps {
 }
 
 /**
- * A styled link card for embedding trip references in MDX guides.
- * Renders as a static link — no GraphQL calls during MDX compilation.
+ * A trip reference embedded in MDX guides: one hairline row in the prose
+ * column (the shared `.mv-row`; the row rules for the reading column live in
+ * `trackside-read.css` as `.mv-read-body a.mv-trip-row`). No card, no icon
+ * tile. Renders as a static link — no GraphQL calls during MDX compilation.
  *
  * The href must be the canonical three-segment trip path
  * (/trips/{country}/{region}/{slug}). A one-segment /trips/{slug} has no route:
@@ -29,18 +31,24 @@ export function TripCard({ country, region, slug, name }: TripCardProps) {
       .replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
-    <Link
-      href={relativeTrip(country, region, slug)}
-      className="my-4 flex items-center gap-3 rounded-xl border border-neutral-800 bg-neutral-900/60 p-4 transition-colors hover:border-amber-500/40 hover:bg-neutral-900/80"
-    >
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-lg">
-        {'\u{1F3CD}'}
+    <Link href={relativeTrip(country, region, slug)} className="mv-row mv-trip-row">
+      <span>
+        <span className="mv-row-title">{displayName}</span>
+        <span className="mv-row-sub">Open the trip: route, waypoints and days</span>
       </span>
-      <div className="min-w-0 flex-1">
-        <span className="block text-sm font-semibold text-neutral-100">{displayName}</span>
-        <span className="block text-xs text-neutral-500">View trip details on MotoVault</span>
-      </div>
-      <span className="shrink-0 text-sm text-amber-400">&rarr;</span>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M5 12h14M12 5l7 7-7 7" />
+      </svg>
     </Link>
   );
 }

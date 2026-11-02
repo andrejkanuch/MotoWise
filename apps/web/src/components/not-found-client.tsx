@@ -1,36 +1,34 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-export function GoBackButton() {
+const PATH_MAX_CHARS = 48;
+const FALLBACK_PATH = '/404';
+
+export function GoBackButton({ label = 'Go back' }: { label?: string }) {
   return (
-    <button type="button" className="nf-btn nf-btn-ghost" onClick={() => history.back()}>
-      Go back
+    <button type="button" className="mv-btn mv-btn-ghost" onClick={() => history.back()}>
+      {label}
     </button>
   );
 }
 
-export function TelemetryHeading() {
-  const [deg, setDeg] = useState('---');
-  const tRef = useRef(0);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      tRef.current += 0.04;
-      const raw = Math.round(180 + Math.sin(tRef.current) * 60 + Math.cos(tRef.current * 1.7) * 20);
-      setDeg(String(((raw % 360) + 360) % 360).padStart(3, '0'));
-    }, 80);
-    return () => clearInterval(id);
-  }, []);
-
-  return <span className="nf-telemetry-val">{deg}&deg;</span>;
+/** Reads the path the visitor typed; percent-encoded letters are shown as
+ *  the letters (a malformed sequence falls back to the raw path). */
+function readPath(): string {
+  const raw = window.location.pathname || FALLBACK_PATH;
+  try {
+    return decodeURIComponent(raw).slice(0, PATH_MAX_CHARS);
+  } catch {
+    return raw.slice(0, PATH_MAX_CHARS);
+  }
 }
 
 export function TelemetryPath() {
-  const [path, setPath] = useState('/404');
+  const [path, setPath] = useState(FALLBACK_PATH);
 
   useEffect(() => {
-    setPath((window.location.pathname || '/404').slice(0, 48));
+    setPath(readPath());
   }, []);
 
   return <span className="nf-telemetry-val">{path}</span>;

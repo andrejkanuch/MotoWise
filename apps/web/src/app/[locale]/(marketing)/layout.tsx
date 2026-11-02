@@ -1,20 +1,11 @@
-import { Instrument_Serif } from 'next/font/google';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { CursorDot } from '@/components/marketing/cursor-dot';
 import { Footer } from '@/components/marketing/footer';
 import { Navbar } from '@/components/marketing/navbar';
 import { StickyAppBar } from '@/components/marketing/sticky-app-bar';
+import { SkipLink } from '@/components/skip-link';
 import { routing } from '@/i18n/routing';
 import { BASE_URL } from '@/lib/constants';
 import '@/components/marketing/design-system.css';
-
-const instrumentSerif = Instrument_Serif({
-  weight: '400',
-  style: ['normal', 'italic'],
-  subsets: ['latin'],
-  variable: '--font-instrument-serif',
-  display: 'swap',
-});
 
 // force-static + this segment config makes every marketing page statically
 // prerendered (ISR via each page's `revalidate`). Without it the shared root
@@ -81,45 +72,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`mv-marketing ${instrumentSerif.variable}`}>
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:px-4 focus:py-2 focus:text-white"
-        style={{ background: 'var(--mv-warm-500)' }}
-      >
-        Skip to content
-      </a>
+    <div className="mv-marketing">
+      <SkipLink />
       <link rel="preconnect" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />
-      <link
-        rel="preload"
-        as="image"
-        href="/images/marketing/hero-dusk-ride.jpg"
-        media="(min-aspect-ratio: 4/5)"
-        fetchPriority="high"
-      />
-      <link
-        rel="preload"
-        as="image"
-        href="/images/marketing/hero-dusk-ride-portrait.jpg"
-        media="(max-aspect-ratio: 4/5)"
-        fetchPriority="high"
-      />
-      <CursorDot />
       <Navbar />
       <main id="main-content">{children}</main>
       <Footer />
       <StickyAppBar />
-
-      {/* Console easter egg for curious riders. No nonce: marketing routes are
-          statically prerendered and served with a nonce-free CSP that permits
-          inline scripts (see buildNonceFreeCsp in proxy.ts). */}
-      <script
-        suppressHydrationWarning
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: static console message
-        dangerouslySetInnerHTML={{
-          __html: `console.log("%c\\u{1F3CD}\\uFE0F MotoVault","font-size:24px;font-weight:900;color:#D4622E;");console.log("%cYour bike deserves better than a spreadsheet.","font-size:14px;color:#a3a3a3;");console.log("%cBuilding something cool? support@motovault.app","font-size:12px;color:#737373;");`,
-        }}
-      />
     </div>
   );
 }

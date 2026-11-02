@@ -1,10 +1,8 @@
 'use client';
 
-import { palette } from '@motovault/design-system';
-import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
-import { CTA_SCREENSHOT, type CtaAngle } from '@/lib/blog-cta';
+import type { CtaAngle } from '@/lib/blog-cta';
 import { CtaPageType, CtaPlacement } from '@/lib/cta-taxonomy';
 import { detectPlatform, type Platform } from '@/lib/store-links';
 import { storeAnchorProps } from './store-buttons';
@@ -24,6 +22,10 @@ const ANGLE_HEADLINE_KEY: Record<CtaAngle, string> = {
  *  - cost        → the expense tracker (the #1 paid feature)
  *  - guide       → a service/health history (never AI-led)
  *
+ * One surface tile (`.mv-read-cta`): the headline in the display face, the
+ * copper button as the only verb. No screenshot — the old crops showed the
+ * retired blue-card UI, and a Race Plate crop is not in the repo yet.
+ *
  * Delegates to the shared store anchor {@link storeAnchorProps}: new tab, UTM +
  * Play referrer, single `store_cta_click` tagged with page_type/placement/slug.
  */
@@ -33,6 +35,8 @@ export function ContextualAppCta({
   makeModel,
   slug,
   placement = CtaPlacement.MidArticle,
+  pageType = CtaPageType.Blog,
+  headline,
 }: {
   angle: CtaAngle;
   /** Resolved bike model, or null → localized "your motorcycle" fallback. */
@@ -41,6 +45,10 @@ export function ContextualAppCta({
   makeModel?: { make: string; model: string } | null;
   slug: string;
   placement?: CtaPlacement;
+  /** Analytics page type — Blog by default, Guide on /guides. */
+  pageType?: CtaPageType;
+  /** Pre-translated headline that replaces the angle headline (guides). */
+  headline?: string;
 }) {
   const t = useTranslations('Blog');
   const [platform, setPlatform] = useState<Platform>('unknown');
@@ -53,50 +61,27 @@ export function ContextualAppCta({
   // Carry the article's channel + bike intent into the Android install referrer;
   // first-touch campaign UTMs still win over these defaults (see storeAnchorProps).
   const referrerParams: Record<string, string> = {
-    utm_source: 'blog',
+    utm_source: pageType === CtaPageType.Guide ? 'guide' : 'blog',
     utm_medium: 'content',
-    utm_campaign: `blog_${angle}`,
+    utm_campaign: `${pageType === CtaPageType.Guide ? 'guide' : 'blog'}_${angle}`,
     ...(makeModel?.make ? { mv_make: makeModel.make } : {}),
     ...(makeModel?.model ? { mv_model: makeModel.model } : {}),
   };
 
   return (
-    <aside
-      className="my-10 flex flex-col gap-5 overflow-hidden rounded-2xl border p-6 sm:flex-row sm:items-center"
-      style={{
-        borderColor: palette.neutral800,
-        backgroundColor: palette.neutral900,
-      }}
-    >
-      <div className="relative hidden h-28 w-28 shrink-0 overflow-hidden rounded-xl sm:block">
-        <Image
-          src={CTA_SCREENSHOT[angle]}
-          alt=""
-          fill
-          className="object-cover object-top"
-          sizes="112px"
-        />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p
-          className="mb-4 text-base font-semibold leading-snug"
-          style={{ color: palette.neutral50 }}
-        >
-          {t(ANGLE_HEADLINE_KEY[angle], { model: bike })}
-        </p>
-        <a
-          {...storeAnchorProps(platform, {
-            pageType: CtaPageType.Blog,
-            placement,
-            slug,
-            referrerParams,
-          })}
-          className="inline-block rounded-full px-6 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
-          style={{ backgroundColor: palette.signature500, color: palette.white }}
-        >
-          {t('ctaDownloadFree')}
-        </a>
-      </div>
+    <aside className="mv-read-cta">
+      <p>{headline ?? t(ANGLE_HEADLINE_KEY[angle], { model: bike })}</p>
+      <a
+        {...storeAnchorProps(platform, {
+          pageType,
+          placement,
+          slug,
+          referrerParams,
+        })}
+        className="mv-btn mv-btn-primary"
+      >
+        {t('ctaDownloadFree')}
+      </a>
     </aside>
   );
 }

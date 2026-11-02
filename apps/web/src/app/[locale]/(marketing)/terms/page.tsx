@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import '@/components/marketing/trackside-read.css';
 
 export async function generateMetadata({
   params,
@@ -53,16 +54,20 @@ export default async function TermsPage() {
   ] as const;
 
   return (
-    <article className="prose prose-invert mx-auto max-w-3xl px-6 py-24">
-      <h1>{t('title')}</h1>
-      <p className="text-neutral-400">{t('lastUpdated')}</p>
+    <article className="mv-read">
+      <header>
+        <h1 className="mv-read-h1">{t('title')}</h1>
+        <p className="mv-read-meta">{t('lastUpdated')}</p>
+      </header>
 
-      {sections.map(({ title, content }) => (
-        <section key={title}>
-          <h2>{t(title)}</h2>
-          <p>{t(content)}</p>
-        </section>
-      ))}
+      <div className="mv-read-body" style={{ marginTop: 40 }}>
+        {sections.map(({ title, content }) => (
+          <section key={title}>
+            <h2>{t(title)}</h2>
+            <p>{t(content)}</p>
+          </section>
+        ))}
+      </div>
     </article>
   );
 }

@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { setRequestLocale } from 'next-intl/server';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
 import { BASE_URL, getEnglishOnlyAlternates } from '@/lib/constants';
 import { getGuides } from '@/lib/guides';
 import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
+import '@/components/marketing/trackside-read.css';
 
 export const revalidate = 604800; // 7 days — repo-sourced, rebuilds on deploy
 
@@ -22,9 +24,9 @@ export async function generateMetadata({ params }: GuidesPageProps): Promise<Met
   const alternates = getEnglishOnlyAlternates('/guides');
 
   return {
-    title: 'Motorcycle Guides — Routes, Tips & Riding Advice',
+    title: 'Motorcycle guides: routes, seasons and riding advice',
     description:
-      'In-depth motorcycle guides covering the best routes in Europe, South America, and the Alps. Trip planning, gear advice, and riding tips from the MotoVault team.',
+      'Motorcycle guides to routes in Europe, South America and the Alps: trip planning, gear advice and riding tips, with the trips linked.',
     keywords: [
       'motorcycle guides',
       'motorcycle routes',
@@ -34,13 +36,22 @@ export async function generateMetadata({ params }: GuidesPageProps): Promise<Met
     ],
     alternates,
     openGraph: {
-      title: 'Motorcycle Guides — Routes, Tips & Riding Advice',
+      title: 'Motorcycle guides: routes, seasons and riding advice',
       description:
-        'In-depth motorcycle guides covering the best routes in Europe, South America, and the Alps.',
+        'Motorcycle guides to routes in Europe, South America and the Alps: trip planning, gear advice and riding tips.',
       type: 'website',
       url: alternates.canonical,
     },
   };
+}
+
+function formatDate(date: string): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 }
 
 export default async function GuidesPage({ params }: GuidesPageProps) {
@@ -57,9 +68,9 @@ export default async function GuidesPage({ params }: GuidesPageProps) {
   const graph = buildGraph(
     buildWebPage({
       url: canonical,
-      name: 'Motorcycle Guides',
+      name: 'Motorcycle guides',
       description:
-        'In-depth motorcycle guides covering the best routes in Europe, South America, and the Alps.',
+        'Motorcycle guides to routes in Europe, South America and the Alps: trip planning, gear advice and riding tips.',
       locale,
       pageKey: '/guides',
     }),
@@ -76,46 +87,70 @@ export default async function GuidesPage({ params }: GuidesPageProps) {
   return (
     <>
       <JsonLdGraph nodes={graph} />
-      <section className="mx-auto max-w-5xl px-6 py-24">
-        <div className="mb-16 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-neutral-50 sm:text-5xl">
-            Motorcycle Guides
-          </h1>
-          <p className="mt-4 text-lg text-neutral-400">
-            In-depth guides for planning your next motorcycle adventure — routes, seasons, gear, and
-            local tips.
+      <section className="mv-index">
+        <header>
+          <h1 className="mv-index-h1">Motorcycle guides</h1>
+          <p className="mv-index-lede">
+            Routes, seasons, gear and local knowledge for the next trip, with the roads named and
+            the trips linked.
           </p>
-        </div>
+        </header>
 
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {guides.map((guide) => (
-            <Link
-              key={guide.slug}
-              href={`/guides/${guide.slug}`}
-              className="group rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 transition-colors hover:border-neutral-700 hover:bg-neutral-900/80"
-            >
-              <div className="mb-3 flex items-center gap-3 text-sm text-neutral-500">
-                <time dateTime={guide.frontmatter.date}>
-                  {new Date(guide.frontmatter.date).toLocaleDateString('en-US', {
-                    timeZone: 'UTC',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </time>
-              </div>
-              <h2 className="mb-3 text-xl font-semibold text-neutral-100 transition-colors group-hover:text-white">
-                {guide.frontmatter.title}
-              </h2>
-              <p className="mb-4 text-sm leading-relaxed text-neutral-400">
-                {guide.frontmatter.description}
-              </p>
-              <span className="text-sm font-medium text-amber-400 transition-colors group-hover:text-amber-300">
-                Read guide &rarr;
-              </span>
-            </Link>
-          ))}
-        </div>
+        <ol className="mv-feed">
+          {guides.map((guide, index) => {
+            const isFeatured = index === 0;
+            return (
+              <li key={guide.slug} className={`mv-feed-item${isFeatured ? ' is-featured' : ''}`}>
+                <Link href={`/guides/${guide.slug}`}>
+                  {isFeatured && guide.frontmatter.heroImage && (
+                    <div className="mv-feed-hero">
+                      <Image
+                        src={guide.frontmatter.heroImage}
+                        alt=""
+                        fill
+                        sizes="(max-width: 920px) 100vw, 920px"
+                        className="object-cover"
+                        priority
+                      />
+                    </div>
+                  )}
+                  <div className="mv-feed-meta">
+                    <time dateTime={guide.frontmatter.date}>
+                      {formatDate(guide.frontmatter.date)}
+                    </time>
+                    <span>{guide.frontmatter.author}</span>
+                  </div>
+                  <div>
+                    {/* The whole row is the link, so the title is the link text; the
+                        featured "read" line is decoration for sighted readers only. */}
+                    <h2 className={isFeatured ? 'mv-h2' : 'mv-feed-title'}>
+                      {guide.frontmatter.title}
+                    </h2>
+                    <p className="mv-feed-excerpt">{guide.frontmatter.description}</p>
+                    {isFeatured && (
+                      <span className="mv-feed-more" aria-hidden="true">
+                        Read the guide
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+        </ol>
       </section>
     </>
   );

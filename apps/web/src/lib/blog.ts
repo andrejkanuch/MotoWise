@@ -41,6 +41,41 @@ export interface Article {
   faq?: FaqItem[];
 }
 
+/**
+ * The fields the /blog index needs per article: what the feed renders and what
+ * the reader filters match on. Everything else on {@link Article} (the empty
+ * `content`, `faq`, `keywords`, `author`, …) stays server-side so the client
+ * props — serialized into the HTML of every /blog locale — carry only the list.
+ */
+export type BlogListItem = Pick<
+  Article,
+  | 'slug'
+  | 'type'
+  | 'title'
+  | 'excerpt'
+  | 'date'
+  | 'readingTime'
+  | 'heroImage'
+  | 'heroAlt'
+  | 'categorySlugs'
+  | 'keywordSlugs'
+>;
+
+export function toBlogListItem(article: Article): BlogListItem {
+  return {
+    slug: article.slug,
+    type: article.type,
+    title: article.title,
+    excerpt: article.excerpt,
+    date: article.date,
+    readingTime: article.readingTime,
+    heroImage: article.heroImage,
+    heroAlt: article.heroAlt,
+    categorySlugs: article.categorySlugs,
+    keywordSlugs: article.keywordSlugs,
+  };
+}
+
 // Locales the blog is authored in (matches BLOG_LOCALES). The 8-locale site
 // routing keeps its en-fallback for the rest (plan KTD10).
 const ALLOWED_LOCALES = ['en', 'es', 'de', 'fr', 'it'] as const;

@@ -10,164 +10,52 @@
     "learning": "लर्निंग",
     "garage": "गैराज",
     "faq": "FAQ",
-    "download": "ऐप डाउनलोड करें",
     "getTheApp": "ऐप डाउनलोड करें",
     "login": "लॉग इन",
     "openMenu": "नेविगेशन मेनू खोलें",
     "closeMenu": "नेविगेशन मेनू बंद करें",
-    "signup": "साइन अप",
     "dashboard": "My Garage",
     "diagnostics": "AI डायग्नोस्टिक्स",
-    "maintenance": "रखरखाव",
-    "expenses": "खर्च",
-    "rides": "राइड्स",
     "tripPlanning": "Trip Planning",
-    "progress": "Progress Tracking",
-    "viewAllFeatures": "View all features",
-    "blog": "Blog",
     "riders": "राइडर्स",
     "pro": "Pro"
   },
   "Hero": {
-    "line1": "अपनी बाइक ट्रैक करो।",
-    "line2": "अपनी राइड",
-    "line3": "पर काबू रखो।",
-    "subtitle": "रखरखाव लॉग, खर्च ट्रैकिंग और राइड रिकॉर्डिंग — एक ही ऐप में सब कुछ।",
-    "downloadCta": "मुफ़्त ट्रैकिंग शुरू करें",
-    "exploreFeatures": "फीचर्स एक्सप्लोर करें",
-    "scrollDown": "नीचे स्क्रॉल करें",
-    "seoTitle": "मोटरसाइकिल रखरखाव ट्रैकर और खर्च प्रबंधक",
-    "subtitleShort": "Maintenance tracking, trip planning, and expense logging — all in one free app for iOS and Android.",
-    "trustLine": "Free to download — no credit card required.",
     "badgeExpensesHook": "जानें आपकी बाइक की असली लागत"
   },
   "Features": {
-    "sectionLabel": "फीचर्स",
-    "sectionTitle": "आपकी बाइक को जो चाहिए सब कुछ",
-    "sectionSubtitle": "खर्च ट्रैक करें, रखरखाव प्रबंधित करें, राइड्स लॉग करें और समस्याओं का निदान करें — सब एक ऐप में।",
     "diag": {
       "title": "AI डायग्नोस्टिक्स",
-      "tagline": "फोटो लो। जवाब पाओ।",
-      "description": "किसी भी पार्ट, वॉर्निंग लाइट या समस्या पर कैमरा पॉइंट करें। हमारा AI कंपोनेंट पहचानता है, समस्या डायग्नोज़ करता है, और सेकंडों में फिक्स सुझाता है।",
-      "badge": "< 5 सेकंड"
+      "description": "किसी भी पार्ट, वॉर्निंग लाइट या समस्या पर कैमरा पॉइंट करें। हमारा AI कंपोनेंट पहचानता है, समस्या डायग्नोज़ करता है, और सेकंडों में फिक्स सुझाता है।"
     },
     "garage": {
       "title": "डिजिटल गैराज",
-      "tagline": "आपकी सभी बाइक, एक जगह।",
-      "description": "हर बाइक को मेक, मॉडल और साल के अनुसार स्टोर करें। स्पेक्स अपने आप लोड होते हैं। किसी भी बाइक का रखरखाव, खर्च और राइड्स देखने के लिए एक टैप।",
-      "badge": "असीमित बाइक"
+      "description": "हर बाइक को मेक, मॉडल और साल के अनुसार स्टोर करें। स्पेक्स अपने आप लोड होते हैं। किसी भी बाइक का रखरखाव, खर्च और राइड्स देखने के लिए एक टैप।"
     },
     "trip": {
       "title": "Trip Planning",
-      "tagline": "Plan every mile of the ride.",
-      "description": "Build multi-day routes on a live map, drop typed waypoints (fuel, scenic, overnight, pass summit), and invite riders. Real road routing, not straight lines.",
-      "badge": "New · Founding feature"
+      "description": "Build multi-day routes on a live map, drop typed waypoints (fuel, scenic, overnight, pass summit), and invite riders. Real road routing, not straight lines."
     },
     "maintenance": {
       "title": "रखरखाव ट्रैकर",
-      "tagline": "कभी भी सर्विस मिस न करें।",
-      "description": "हर ऑइल चेंज, चेन ल्यूब और टायर बदलाव को लॉग करें। माइलेज-आधारित या समय-आधारित रिमाइंडर सेट करें जो ड्यू डेट से पहले आपको सूचित करें। पूरा सर्विस इतिहास एक नज़र में।",
-      "badge": "स्मार्ट रिमाइंडर"
+      "description": "हर ऑइल चेंज, चेन ल्यूब और टायर बदलाव को लॉग करें। माइलेज-आधारित या समय-आधारित रिमाइंडर सेट करें जो ड्यू डेट से पहले आपको सूचित करें। पूरा सर्विस इतिहास एक नज़र में।"
     },
     "expenses": {
       "title": "खर्च प्रबंधक",
-      "tagline": "जानें कि आपकी बाइक की असली लागत क्या है।",
-      "description": "ईंधन, गियर, पार्ट्स, बीमा और स्वामित्व की हर लागत ट्रैक करें। मासिक विश्लेषण और प्रति-किलोमीटर लागत के साथ श्रेणी अनुसार खर्च रुझान देखें।",
-      "badge": "लागत विश्लेषण"
+      "description": "ईंधन, गियर, पार्ट्स, बीमा और स्वामित्व की हर लागत ट्रैक करें। मासिक विश्लेषण और प्रति-किलोमीटर लागत के साथ श्रेणी अनुसार खर्च रुझान देखें।"
     },
     "rides": {
       "title": "राइड लॉगर",
-      "tagline": "हर राइड, मैप पर और सेव।",
-      "description": "स्पीड, ऊँचाई और दूरी के साथ GPS रूट रिकॉर्ड करें। राइड आँकड़े देखें, हाइलाइट्स शेयर करें और एक पूरी राइडिंग हिस्ट्री बनाएँ।",
-      "badge": "GPS ट्रैकिंग"
-    },
-    "tripAlt": "MotoVault trip planning screen showing Dolomites Loop route on a map",
-    "maintenanceAlt": "MotoVault maintenance tracking with active service tasks and reminders",
-    "expensesAlt": "MotoVault expense tracking showing cost breakdowns by category",
-    "plusLine": "Plus ride logging, AI diagnostics, digital garage, and more."
-  },
-  "SocialProof": {
-    "riders": "Tools",
-    "ridersCount": "4",
-    "maintenance": "Platforms",
-    "maintenanceCount": "iOS + Android",
-    "bikes": "Price",
-    "bikesCount": "Free"
-  },
-  "HowItWorks": {
-    "sectionLabel": "कैसे काम करता है",
-    "sectionTitle": "पूर्ण नियंत्रण के तीन कदम",
-    "sectionSubtitle": "मिनटों में सेटअप करें। सालों तक ट्रैक करें।",
-    "step1Title": "अपनी बाइक जोड़ें",
-    "step1Desc": "मेक, मॉडल और साल से सर्च करें। आपकी बाइक की स्पेक्स ऑफिशियल डेटाबेस से ऑटोमैटिक लोड होती हैं।",
-    "step2Title": "सब कुछ ट्रैक करें",
-    "step2Desc": "रखरखाव लॉग करें, खर्च रिकॉर्ड करें और राइड्स ट्रैक करें। हर डेटा पॉइंट आपकी बाइक की पूरी हिस्ट्री बनाता है।",
-    "step3Title": "हमेशा आगे रहें",
-    "step3Desc": "स्मार्ट सर्विस रिमाइंडर, प्रति-किलोमीटर लागत विश्लेषण और AI डायग्नोस्टिक्स पाएँ — ताकि कुछ भी अचानक न आए।"
-  },
-  "Testimonials": {
-    "sectionLabel": "प्रशंसापत्र",
-    "sectionTitle": "मोटरसाइकिल राइडर्स क्या कहते हैं",
-    "badge": "सत्यापित राइडर",
-    "items": [
-      {
-        "name": "Alex R.",
-        "bike": "2022 Yamaha MT-07",
-        "quote": "MotoVault ने एक चेन टेंशन समस्या डायग्नोज़ की जो मैं नज़रअंदाज़ कर रहा था। लंबी राइड पर ब्रेकडाउन से बचा लिया।",
-        "stars": 5
-      },
-      {
-        "name": "Maria G.",
-        "bike": "2021 Honda CB650R",
-        "quote": "लर्निंग पाथ उनके लिए परफेक्ट हैं जो रिपेयर में नए हैं। MotoVault की बदौलत मैंने अपने ब्रेक पैड खुद बदले।",
-        "stars": 5
-      },
-      {
-        "name": "Jake T.",
-        "bike": "2023 Kawasaki Z900",
-        "quote": "सारी मेंटेनेंस हिस्ट्री एक जगह होना गेम चेंजर है। अब आखिरी ऑयल चेंज का अंदाज़ा नहीं लगाना पड़ता।",
-        "stars": 4
-      },
-      {
-        "name": "Sarah K.",
-        "bike": "2020 BMW F 750 GS",
-        "quote": "AI डायग्नोस्टिक्स ने मुझे हैरान कर दिया। वॉर्निंग लाइट पर कैमरा पॉइंट किया और सेकंडों में सही समस्या पता चली।",
-        "stars": 5
-      },
-      {
-        "name": "Tom W.",
-        "bike": "2019 Ducati Monster 821",
-        "quote": "आखिरकार एक ऐप जो मोटरसाइकिल मेंटेनेंस को गंभीरता से लेता है। सिर्फ गैराज फीचर ही इसकी कीमत वसूल है।",
-        "stars": 4
-      }
-    ]
-  },
-  "AppShowcase": {
-    "sectionLabel": "इसे एक्शन में देखें",
-    "sectionTitle": "आपका मोटरसाइकिल कमांड सेंटर",
-    "cap1Title": "रखरखाव ट्रैकर",
-    "cap1Desc": "हर सर्विस को तारीख, माइलेज और लागत के साथ लॉग करें। स्मार्ट रिमाइंडर अगले ऑइल चेंज, चेन ल्यूब या ब्रेक चेक से पहले सूचित करते हैं।",
-    "cap1Alt": "MotoVault रखरखाव ट्रैकिंग स्क्रीन",
-    "cap2Title": "खर्च ट्रैकर",
-    "cap2Desc": "जानें कि आपकी बाइक पर कितना खर्च होता है। ईंधन, पार्ट्स, गियर और बीमा को मासिक विश्लेषण और प्रति-किलोमीटर लागत के साथ ट्रैक करें।",
-    "cap2Alt": "MotoVault खर्च ट्रैकिंग स्क्रीन",
-    "cap3Title": "AI डायग्नोस्टिक्स",
-    "cap3Desc": "किसी भी समस्या पर कैमरा पॉइंट करें। पार्ट पहचान, गंभीरता रेटिंग और स्टेप-बाय-स्टेप फिक्स सेकंडों में पाएँ।",
-    "cap3Alt": "MotoVault AI डायग्नोसिस परिणाम स्क्रीन",
-    "learnMore": "और जानें"
+      "description": "स्पीड, ऊँचाई और दूरी के साथ GPS रूट रिकॉर्ड करें। राइड आँकड़े देखें, हाइलाइट्स शेयर करें और एक पूरी राइडिंग हिस्ट्री बनाएँ।"
+    }
   },
   "Cta": {
     "socialProof": "Built specifically for motorcycles",
     "headline": "अंदाज़ा लगाना बंद करें। ट्रैकिंग शुरू करें।",
     "subtitle": "iOS और Android पर मुफ़्त। आपकी बाइक का रखरखाव, खर्च और राइड्स — आख़िरकार एक जगह पर।",
-    "trustFree": "मुफ्त शुरू करें",
-    "trustNoCard": "कोई स्पैम नहीं, कभी नहीं",
-    "disclaimer": "अभी iOS और Android पर उपलब्ध।",
-    "personality": "आपकी बाइक स्प्रेडशीट से बेहतर डिज़र्व करती है।"
+    "trustFree": "मुफ्त शुरू करें"
   },
   "Faq": {
-    "sectionLabel": "FAQ",
-    "sectionTitle": "अक्सर पूछे जाने वाले सवाल",
     "items": [
       {
         "question": "MotoVault क्या है?",
@@ -197,20 +85,10 @@
   },
   "Footer": {
     "product": "प्रोडक्ट",
-    "company": "कंपनी",
-    "tagline": "हर मील ट्रैक करें। हर लागत जानें।",
-    "copyright": "© 2026 MotoVault. सर्वाधिकार सुरक्षित।",
-    "features": "फीचर्स",
-    "learning": "लर्निंग पाथ",
-    "garage": "गैराज",
-    "download": "ऐप डाउनलोड करें",
     "faq": "FAQ",
     "support": "सपोर्ट",
     "privacy": "प्राइवेसी",
-    "terms": "शर्तें",
-    "accountDeletion": "अकाउंट डिलीशन",
-    "builtWithAi": "AI द्वारा संचालित",
-    "about": "हमारे बारे में"
+    "terms": "शर्तें"
   },
   "About": {
     "metaTitle": "MotoVault के बारे में",
@@ -222,13 +100,6 @@
     "founderBio": "स्लोवाकिया के एक मोटरसाइकिल उत्साही और सॉफ्टवेयर डेवलपर, Andrej ने एक ही दृष्टि के साथ MotoVault बनाया: हर राइडर के लिए मोटरसाइकिल ज्ञान को सुलभ बनाना। चाहे आप अनुभवी मैकेनिक हों या अभी अपनी पहली बाइक खरीदी हो, MotoVault AI डायग्नोस्टिक्स, रखरखाव ट्रैकिंग और सीखने के संसाधन आपकी जेब में रखता है।",
     "missionTitle": "हमारा मिशन",
     "missionDescription": "बहुत से राइडर बुनियादी रखरखाव से जूझते हैं क्योंकि ज्ञान फोरम, YouTube वीडियो और वर्कशॉप मैनुअल में बिखरा हुआ है। MotoVault सब कुछ AI के साथ एक जगह लाता है जो आपकी विशिष्ट बाइक को समझता है और स्पष्ट, व्यावहारिक मार्गदर्शन देता है।",
-    "statsTitle": "संख्याओं में MotoVault",
-    "stats": {
-      "riders": "सक्रिय राइडर",
-      "bikes": "डेटाबेस में बाइक",
-      "diagnoses": "AI डायग्नोसिस किए गए",
-      "articles": "सीखने के लेख"
-    },
     "valuesTitle": "हम किसके लिए खड़े हैं",
     "values": {
       "aiPowered": {
@@ -408,9 +279,6 @@
     "description": "मोटरसाइकिल मेंटेनेंस, AI डायग्नोस्टिक्स, और राइडिंग टिप्स पर एक्सपर्ट गाइड। प्रो की तरह अपनी बाइक का मेंटेनेंस और डायग्नोसिस सीखें।",
     "readMore": "और पढ़ें",
     "readingTime": "मिनट पढ़ने का समय",
-    "publishedOn": "प्रकाशित",
-    "backToBlog": "सभी आर्टिकल पर वापस",
-    "by": "द्वारा",
     "relatedArticles": "संबंधित आर्टिकल",
     "ctaDownloadFree": "मुफ़्त डाउनलोड करें",
     "ctaMaintenanceHeadline": "अब बार-बार देखने की ज़रूरत नहीं — MotoVault {model} के सर्विस इंटरवल अपने आप ट्रैक करता है और हर बार पहले याद दिलाता है।",
@@ -745,14 +613,10 @@
   "FeaturesTripPlanning": {
     "title": "मोटरसाइकिल ट्रिप प्लानिंग — रूट बिल्डर और इटिनरेरी",
     "description": "MotoVault का मोटरसाइकिल ट्रिप प्लानर आपको कई-दिन के रूट बनाने, टाइप-आधारित वेपॉइंट्स रखने और दोस्तों के साथ राइड करने की सुविधा देता है। लाइव मैप, वास्तविक रूटिंग, साझा करने योग्य इटिनरेरी।",
-    "heroEyebrow": "संस्थापक फीचर",
     "heroTitle": "सवारी के हर मील की योजना बनाइए",
     "heroSubtitle": "कई-दिन के रूट, टाइप-आधारित वेपॉइंट्स, वास्तविक सड़क रूटिंग, और आपके साथ चलने वाला एक मानचित्र। वह पहला फीचर जिसे हमने बनाया — और जो अब भी MotoVault के बाकी सब को आकार देता है।",
-    "heroCtaPrimary": "प्लानिंग शुरू करें",
-    "heroCtaSecondary": "एक असली ट्रिप देखें",
     "positioningTitle": "हमने सबसे पहले यही क्यों बनाया",
     "positioningBody": "जिस भी राइडर से हमने बात की, उसकी एक ही समस्या थी: एक असली मोटरसाइकिल ट्रिप प्लान करने का मतलब है पाँच ऐप्स को एक साथ संभालना। सड़कों के लिए Google Maps, स्टॉप्स के लिए नोट्स ऐप, दर्रे के लिए मौसम ऐप, दोस्तों के लिए मैसेजिंग थ्रेड, ईंधन बजट के लिए स्प्रेडशीट। हर कदम पर घर्षण। ट्रिप प्लानिंग हमारा पहला फीचर था क्योंकि यही वह है जो अधिकांश राइडर्स को चाहिए — और क्योंकि अगर हम इसे सही कर सकते हैं, तो MotoVault का बाकी सब इसी से निकलेगा।",
-    "howItWorksLabel": "यह कैसे काम करता है",
     "howItWorksTitle": "खाली मानचित्र से सहेजी गई राइड तक, चार कदम में",
     "step1Label": "कैनवास खोलें",
     "step1Title": "खाली मानचित्र से शुरू करें",
@@ -766,16 +630,8 @@
     "step4Label": "सहेजें या प्रकाशित करें",
     "step4Title": "ड्राफ्ट के रूप में रखें या लिंक साझा करें",
     "step4Desc": "पुनरावृत्ति जारी रखने के लिए ड्राफ्ट के रूप में सहेजें। दोस्तों को आमंत्रित करने के लिए प्रकाशित करें, या सार्वजनिक बनाएँ ताकि समुदाय इसे खोज सके और शामिल हो सके। ड्राफ्ट आपके My Trips में रहते हैं, केवल आपको दिखते हैं।",
-    "galleryLabel": "असली ट्रिप, असली डेटा",
     "galleryTitle": "डोलोमाइट्स लूप — 3 दिन",
     "galleryBody": "यह MotoVault से बनाई गई एक वास्तविक ट्रिप है: Bolzano → Passo Sella → Cortina d'Ampezzo → Passo Pordoi → Canazei → Ortisei → Passo Gardena → Bolzano। आठ टाइप-आधारित वेपॉइंट्स, तीन दिन, वास्तविक सड़क रूटिंग के साथ एक लाइव मानचित्र पर रेंडर किए गए। नीचे दिया गया हर स्क्रीनशॉट प्रोडक्शन ऐप से लिया गया है।",
-    "gallery1Label": "रूट अवलोकन",
-    "gallery1Subtitle": "मानचित्र, तिथियाँ, आयोजक, कठिनाई",
-    "gallery2Label": "दिन-प्रति-दिन इटिनरेरी",
-    "gallery2Subtitle": "नोट्स के साथ टाइप-आधारित वेपॉइंट्स",
-    "gallery3Label": "पूर्ण मल्टी-डे दृश्य",
-    "gallery3Subtitle": "दिन 1 और 2 साथ-साथ",
-    "featuresLabel": "सब कुछ डिब्बे में",
     "featuresTitle": "वे विवरण जो एक असली ट्रिप को चलाते हैं",
     "f1Title": "कई-दिन की इटिनरेरी",
     "f1Desc": "वेपॉइंट्स को दिन के अनुसार समूहबद्ध करें। दिन 1: Bolzano से Cortina। दिन 2: बड़े दर्रे। दिन 3: वापसी। ऐप को पता है कि कौन-सा स्टॉप किस दिन का है।",
@@ -793,13 +649,11 @@
     "f7Desc": "Easy, Moderate, Challenging, Expert। ताकि कोई भी एक expert दर्रा रूट को रविवार की सैर समझकर न जुड़े।",
     "f8Title": "कहीं भी साझा करें",
     "f8Desc": "हर प्रकाशित ट्रिप का एक कैनोनिकल URL होता है। इसे ग्रुप चैट में भेजें, Discord पर पोस्ट करें, ट्वीट करें — यह रूट के साथ प्रीव्यू के रूप में रेंडर होता है।",
-    "walkthroughLabel": "पर्दे के पीछे",
     "walkthroughTitle": "एक ट्रिप की कहानी — विचार से स्याही तक",
     "walkthroughP1": "एक राइडर शनिवार की सुबह उठता है और आने वाले लंबे सप्ताहांत के बारे में सोचता है। तीन दिन खाली, गैराज में बाइक, और एक मोटा विचार — \"शायद डोलोमाइट्स\"। वह MotoVault खोलता है, Discover पर टैप करता है, फिर नई ट्रिप प्लान करने के लिए +। उसके वर्तमान स्थान पर एक डार्क मानचित्र खुल जाता है।",
     "walkthroughP2": "वह Bolzano पर ज़ूम करता है और Start वेपॉइंट डालने के लिए लंबा दबाता है — \"Bolzano — Start, gear check & coffee before departure\"। फिर वह Passo Sella खोजता है और परिणाम पर टैप करता है — वह \"Iconic Dolomite pass, photo stop\" नोट के साथ Scenic स्टॉप के रूप में गिरता है। वह आगे बढ़ता है: Cortina d'Ampezzo को Overnight, Passo Pordoi को Pass Summit, Canazei को Fuel, Ortisei को Overnight, Passo Gardena को Scenic, Bolzano को End के रूप में। ऐप उन्हें स्वचालित रूप से दिन 1, दिन 2, दिन 3 में समूहबद्ध करता है।",
     "walkthroughP3": "वह इसे नाम देता है — \"Dolomites Loop — 3 Days\" — एक विवरण लिखता है, Moderate कठिनाई चुनता है, max riders को 8 पर सेट करता है, और दृश्यता Private ही छोड़ देता है। ड्राफ्ट के रूप में सहेजता है। वह कॉफ़ी के लिए अपने बगीचे में वापस जाता है। बाद में शाम को उसे Ortisei में एक बेहतर ओवरनाइट याद आता है, वह उसे बदलता है, दृश्यता Public करता है, और Publish दबाता है। ट्रिप अब Discover पर लाइव है; रात ख़त्म होने तक दो राइडर दोस्त शामिल हो जाते हैं।",
     "walkthroughP4": "यह पूरा चाप है — खाली मानचित्र से शामिल हुई ट्रिप तक — और यह असली Mapbox रूटिंग, असली Postgres पंक्तियों, और एक बॉटम शीट पर चलता है जो मानचित्र खोए बिना इटिनरेरी दिखाने के लिए ऊपर सरकती है। कोई स्प्रेडशीट नहीं, कोई स्क्रीनशॉट चेन नहीं, कोई खोई हुई पिन नहीं।",
-    "faqLabel": "सामान्य प्रश्न",
     "faqTitle": "ट्रिप प्लानिंग, राइडर्स के सवाल",
     "faq0Question": "क्या ऐप वास्तव में असली सड़कों पर रूट बनाता है, या सीधी रेखाएँ खींचता है?",
     "faq0Answer": "असली सड़कें। दो वेपॉइंट्स के बीच, हम मोटरसाइकिल-अनुकूल रूटिंग के साथ Mapbox Directions को कॉल करते हैं और वह वास्तविक पॉलीलाइन रेंडर करते हैं जिस पर आप चलेंगे। ऊपर डोलोमाइट्स लूप के किसी भी खंड पर ज़ूम कीजिए — आप hairpins देख सकते हैं।",
@@ -812,9 +666,7 @@
     "faq4Question": "एक ट्रिप में कितने वेपॉइंट्स हो सकते हैं?",
     "faq4Answer": "सामान्य उपयोग में आपको कोई कठोर सीमा नहीं मिलेगी। वास्तविक बाधा पठनीयता है — एक ही दिन में 15 या 16 स्टॉप से अधिक होने पर इटिनरेरी भारी हो जाती है। इसे साफ़ रखने के लिए कई दिनों में बाँटिए।",
     "faq5Question": "क्या मैं ट्रिप को किसी अन्य ऐप में निर्यात कर सकता हूँ?",
-    "faq5Answer": "हर प्रकाशित ट्रिप का रूट प्रीव्यू के साथ एक कैनोनिकल URL होता है। आप ट्रिप डिटेल स्क्रीन से भी साझा कर सकते हैं; नेटिव शेयर आपको इसे Messages, Slack, Discord या अपने नोट्स में पेस्ट करने देता है।",
-    "ctaTitle": "आपकी अगली तीन-दिन की लूप यहीं से शुरू होती है।",
-    "ctaBody": "ट्रिप प्लानिंग MotoVault का संस्थापक फीचर है। ऐप डाउनलोड कीजिए, अपना पहला वेपॉइंट डालिए, और देखिए कि हमने इसे किसी भी और चीज़ से पहले क्यों बनाया।"
+    "faq5Answer": "हर प्रकाशित ट्रिप का रूट प्रीव्यू के साथ एक कैनोनिकल URL होता है। आप ट्रिप डिटेल स्क्रीन से भी साझा कर सकते हैं; नेटिव शेयर आपको इसे Messages, Slack, Discord या अपने नोट्स में पेस्ट करने देता है।"
   },
   "Compare": {
     "title": "10 Best Motorcycle Apps in 2026 — Compared & Ranked",
@@ -976,14 +828,10 @@
   },
   "CookieBanner": {
     "stamp": "Legally-required cookie banner",
-    "title": "We bake <em>one cookie.</em> Eat it or send it back.",
     "body1": "MotoVault doesn’t sell, share, or whisper your data to ad networks. We use <strong>one in-house cookie</strong> to keep you signed in, plus optional crumbs to see which feature riders open most.",
-    "body2": "No third parties. No fingerprinting. No <strong>surveillance buffet</strong>. Just one tiny cookie that says “this is you” so the trip you planned at breakfast is still here at lunch.",
     "accept": "Accept the cookie",
     "decline": "No thanks",
-    "showList": "Show me what I’m eating",
     "settings": "Settings",
-    "privacyLink": "Honest privacy policy →",
     "list": {
       "whatWeUse": "What we use",
       "count": "4 cookies",

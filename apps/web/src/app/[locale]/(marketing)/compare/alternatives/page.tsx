@@ -1,8 +1,15 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import {
+  COMPARE_CHECKED_DATE,
+  COMPARE_SECTION,
+  CompareBreadcrumb,
+  CompareFaq,
+  CompareLinkList,
+  CompareStyles,
+} from '@/components/marketing/compare-page';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
-import { Link } from '@/i18n/navigation';
 import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
 import { CtaPageType } from '@/lib/cta-taxonomy';
 import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
@@ -30,6 +37,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 const ALT_INDICES = [0, 1, 2, 3, 4, 5] as const;
 const BEST_FOR_INDICES = [0, 1, 2, 3, 4] as const;
 const PRICING_ROWS = [0, 1, 2, 3, 4] as const;
+const SWITCH_INDICES = [0, 1, 2, 3] as const;
+const FAQ_INDICES = [0, 1, 2, 3] as const;
 
 export default async function AlternativesPage({ params }: PageProps) {
   const { locale } = await params;
@@ -38,7 +47,7 @@ export default async function AlternativesPage({ params }: PageProps) {
 
   const canonical = getCanonicalUrl(locale, '/compare/alternatives');
 
-  const faqItems = [0, 1, 2, 3].map((i) => ({
+  const faqItems = FAQ_INDICES.map((i) => ({
     question: t(`faq.${i}.question`),
     answer: t(`faq.${i}.answer`),
   }));
@@ -63,326 +72,120 @@ export default async function AlternativesPage({ params }: PageProps) {
     buildFAQPage(faqItems, `${locale}/compare/alternatives/faq`),
   );
 
+  const dated = { date: COMPARE_CHECKED_DATE };
+
   return (
-    <>
+    <div className="mv-cmp-page">
+      <CompareStyles />
       <JsonLdGraph nodes={graph} />
 
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
-        <ol className="mx-auto flex max-w-7xl items-center gap-2 text-sm text-neutral-500">
-          <li>
-            <Link href="/" className="transition-colors hover:text-neutral-300">
-              Home
-            </Link>
-          </li>
-          <li aria-hidden="true">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-neutral-600"
-              aria-hidden="true"
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </li>
-          <li>
-            <Link href="/compare" className="transition-colors hover:text-neutral-300">
-              Compare
-            </Link>
-          </li>
-          <li aria-hidden="true">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-neutral-600"
-              aria-hidden="true"
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </li>
-          <li>
-            <span className="text-neutral-300" aria-current="page">
-              Alternatives
-            </span>
-          </li>
-        </ol>
-      </nav>
+      {/* Hero: the check date is printed once, under the next heading */}
+      <header className={`mv-cmp-wrap ${COMPARE_SECTION.header}`}>
+        <CompareBreadcrumb current={t('breadcrumbLabel')} />
+        <h1 className="mv-section-title">{t('heroTitle')}</h1>
+        <p className="mv-section-sub">{t('heroSubtitle')}</p>
+      </header>
 
-      {/* Hero */}
-      <section className="px-6 pb-16 pt-8 md:pb-24 md:pt-12">
-        <div className="reveal-on-scroll mx-auto max-w-4xl text-center">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            {t('heroLabel')}
-          </p>
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
-            {t('heroTitle')}
-          </h1>
-          <div className="mx-auto mt-6 h-1.5 w-32 rounded-full bg-signature-500" />
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">
-            {t('heroSubtitle')}
-          </p>
-          <p className="mt-4 text-sm text-neutral-500">{t('updatedAt')}</p>
-        </div>
+      {/* Pick by priority: how it was checked, then one hairline row per
+          priority. First viewport, so no entrance. */}
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
+        <h2 className="mv-h2">{t('bestForTitle')}</h2>
+        <p className="mv-cmp-note mt-4">{t('testingPreamble', dated)}</p>
+        <ul className="mv-rows mt-8">
+          {BEST_FOR_INDICES.map((i) => (
+            <li key={i} className="mv-row mv-cmp-grid-row md:grid-cols-[240px_1fr]">
+              <h3 className="mv-cmp-sub">{t(`bestFor${i}Title`)}</h3>
+              <p className="mv-cmp-body is-compact is-full">{t(`bestFor${i}Body`)}</p>
+            </li>
+          ))}
+        </ul>
       </section>
 
-      {/* Testing preamble */}
-      <section className="px-6">
-        <div className="mx-auto max-w-3xl rounded-xl border border-neutral-800/60 bg-neutral-900/40 p-6 md:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">
-            How we tested
-          </p>
-          <p className="mt-3 text-neutral-300 leading-relaxed">{t('testingPreamble')}</p>
-        </div>
-      </section>
-
-      {/* Best-for guide */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="mb-10 text-center text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-            {t('bestForTitle')}
-          </h2>
-          <div className="space-y-6">
-            {BEST_FOR_INDICES.map((i) => (
-              <article
-                key={i}
-                className="reveal-on-scroll rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6 md:p-8"
-              >
-                <h3 className="text-xl font-bold text-neutral-50">{t(`bestFor${i}Title`)}</h3>
-                <p className="mt-3 text-neutral-300 leading-relaxed">{t(`bestFor${i}Body`)}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Pricing table */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="mb-8 text-center text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-            {t('pricingTableTitle')}
-          </h2>
-          <div className="overflow-x-auto rounded-xl border border-neutral-800/60">
-            <table className="w-full min-w-[720px]">
-              <thead>
-                <tr className="border-b border-neutral-800/60 bg-neutral-900/80">
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
-                    {t('pricingHeaderApp')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
-                    {t('pricingHeaderFree')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
-                    {t('pricingHeaderPaid')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
-                    {t('pricingHeaderNotes')}
-                  </th>
+      {/* Pricing snapshot: hairline table, condensed figures */}
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.weight}`}>
+        <h2 className="mv-h2">{t('pricingTableTitle')}</h2>
+        {/* biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be keyboard-reachable */}
+        <section className="mv-cmp-tablewrap mt-8" tabIndex={0} aria-label={t('pricingTableTitle')}>
+          <table className="mv-table mv-cmp-table" style={{ minWidth: 720 }}>
+            <thead>
+              <tr>
+                <th scope="col">{t('pricingHeaderApp')}</th>
+                <th scope="col">{t('pricingHeaderFree')}</th>
+                <th scope="col">{t('pricingHeaderPaid')}</th>
+                <th scope="col">{t('pricingHeaderNotes')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {PRICING_ROWS.map((i) => (
+                <tr key={i}>
+                  <th scope="row">{t(`pricingRow${i}App`)}</th>
+                  <td className="mv-figure is-comp">{t(`pricingRow${i}Free`)}</td>
+                  <td className="mv-figure">{t(`pricingRow${i}Paid`)}</td>
+                  <td className="is-note">{t(`pricingRow${i}Notes`)}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {PRICING_ROWS.map((i) => (
-                  <tr
-                    key={i}
-                    className="border-b border-neutral-800/40 last:border-b-0 odd:bg-neutral-900/30 align-top"
-                  >
-                    <td className="px-4 py-3 text-sm font-medium text-neutral-200 sm:px-6">
-                      {t(`pricingRow${i}App`)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-neutral-300 sm:px-6">
-                      {t(`pricingRow${i}Free`)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-neutral-300 sm:px-6">
-                      {t(`pricingRow${i}Paid`)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-neutral-400 sm:px-6">
-                      {t(`pricingRow${i}Notes`)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              ))}
+            </tbody>
+          </table>
+        </section>
       </section>
 
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Existing Alternatives Cards */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-5xl">
-          <div className="reveal-on-scroll mb-12 text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              {t('altToTitle')}
-            </p>
-            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-              {t('altToSubtitle')}
-            </h2>
-          </div>
-
-          <div className="space-y-6">
-            {ALT_INDICES.map((i) => (
-              <article
-                key={i}
-                id={t(`alt${i}.appName`).toLowerCase().replace(/\s+/g, '-')}
-                className="reveal-on-scroll rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6 md:p-8 transition-colors hover:border-neutral-700/60"
-              >
-                <h3 className="text-xl font-bold text-neutral-50">{t(`alt${i}.title`)}</h3>
-                <p className="mt-3 text-neutral-300 leading-relaxed">{t(`alt${i}.why`)}</p>
-                <div className="mt-4 rounded-lg border border-warm-500/20 bg-warm-500/5 p-4">
-                  <p className="text-sm font-medium text-warm-400">Consider MotoVault</p>
-                  <p className="mt-1 text-sm text-neutral-300 leading-relaxed">
-                    {t(`alt${i}.consider`)}
-                  </p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* When to choose a specialist */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-            {t('whenToChooseCompetitorTitle')}
-          </h2>
-          <p className="mt-6 text-lg text-neutral-300 leading-relaxed">
-            {t('whenToChooseCompetitor')}
-          </p>
-        </div>
-      </section>
-
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Why Riders Switch */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-5xl">
-          <div className="reveal-on-scroll mb-12 text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              {t('switchTitle')}
-            </p>
-            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-              {t('switchSubtitle')}
-            </h2>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2">
-            {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="reveal-on-scroll rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6"
-                style={{ animationDelay: `${i * 80}ms` }}
-              >
-                <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-warm-500/10">
-                  <span className="text-lg font-bold text-warm-400">{i + 1}</span>
-                </div>
-                <h3 className="font-semibold text-neutral-50">{t(`switch${i}.title`)}</h3>
-                <p className="mt-2 text-sm text-neutral-400 leading-relaxed">
-                  {t(`switch${i}.description`)}
+      {/* Alternatives to each popular app */}
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
+        <h2 className="mv-h2">{t('altToTitle')}</h2>
+        <p className="mv-cmp-note mt-4">{t('altToSubtitle')}</p>
+        <div className="mv-rows mt-8">
+          {ALT_INDICES.map((i) => (
+            <article
+              key={i}
+              id={t(`alt${i}.appName`).toLowerCase().replace(/\s+/g, '-')}
+              className="mv-row mv-cmp-grid-row md:grid-cols-[240px_1fr]"
+            >
+              <h3 className="mv-h3">{t(`alt${i}.title`)}</h3>
+              <div>
+                <p className="mv-cmp-body is-compact">{t(`alt${i}.why`)}</p>
+                <p className="mv-cmp-body is-compact mt-3">
+                  <strong style={{ color: 'var(--mv-ink)', fontWeight: 600 }}>
+                    {t('considerLabel')}
+                  </strong>{' '}
+                  {t(`alt${i}.consider`)}
                 </p>
               </div>
-            ))}
-          </div>
+            </article>
+          ))}
         </div>
       </section>
 
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Related Pages */}
-      <section className="px-6 py-16">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="mb-6 text-center text-xl font-bold text-neutral-50">
-            Related Comparisons
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Link
-              href="/compare"
-              className="group rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-5 transition-colors hover:border-warm-500/40"
-            >
-              <p className="font-semibold text-neutral-200 transition-colors group-hover:text-warm-400">
-                Best Motorcycle Apps 2026
-              </p>
-              <p className="mt-1 text-sm text-neutral-500">
-                Full feature matrix and ranking of 10 motorcycle apps.
-              </p>
-            </Link>
-            <Link
-              href="/compare/maintenance-vs-ride-apps"
-              className="group rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-5 transition-colors hover:border-warm-500/40"
-            >
-              <p className="font-semibold text-neutral-200 transition-colors group-hover:text-warm-400">
-                Maintenance Apps vs. Ride Trackers
-              </p>
-              <p className="mt-1 text-sm text-neutral-500">
-                Two categories, two jobs. Do you need both?
-              </p>
-            </Link>
-          </div>
-        </div>
+      {/* When a specialist wins */}
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
+        <h2 className="mv-h2">{t('whenToChooseCompetitorTitle')}</h2>
+        <p className="mv-cmp-body mt-5">{t('whenToChooseCompetitor')}</p>
       </section>
 
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
+      {/* What one app replaces: four jobs as hairline rows */}
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
+        <h2 className="mv-h2">{t('switchTitle')}</h2>
+        <p className="mv-cmp-note mt-4">{t('switchSubtitle')}</p>
+        <ul className="mv-rows mt-10">
+          {SWITCH_INDICES.map((i) => (
+            <li key={i} className="mv-row mv-cmp-grid-row md:grid-cols-[240px_1fr]">
+              <h3 className="mv-cmp-sub">{t(`switch${i}.title`)}</h3>
+              <p className="mv-cmp-body is-compact is-full">{t(`switch${i}.description`)}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* Related comparisons */}
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.prose}`}>
+        <CompareLinkList ids={['maintVsRide', 'rever', 'ridelog', 'calimoto']} />
+      </section>
 
       {/* FAQ */}
-      <section className="px-6 py-16 md:py-24">
-        <div className="mx-auto max-w-3xl">
-          <div className="reveal-on-scroll mb-12 text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              Got Questions?
-            </p>
-            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-              Frequently Asked Questions
-            </h2>
-          </div>
-          <div className="space-y-6">
-            {faqItems.map(({ question, answer }) => (
-              <div
-                key={question}
-                className="rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6"
-              >
-                <h3 className="font-semibold text-neutral-100">{question}</h3>
-                <p className="mt-3 text-sm text-neutral-400 leading-relaxed">{answer}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+      <section className={`mv-cmp-wrap ${COMPARE_SECTION.faq}`}>
+        <CompareFaq items={faqItems} />
       </section>
 
       <FeatureCta pageType={CtaPageType.Compare} />
-    </>
+    </div>
   );
 }

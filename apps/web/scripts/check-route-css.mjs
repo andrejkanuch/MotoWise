@@ -28,10 +28,10 @@ export const REQUIRED_TOKEN_DEFINITION = /--mv-page\s*:/;
 
 /** App-router route keys (as Next names them in the manifest). */
 export const ROUTES = [
-  '/login/page',
-  '/signup/page',
-  '/welcome/page',
-  '/(community)/garage/page',
+  '/(root)/login/page',
+  '/(root)/signup/page',
+  '/(root)/welcome/page',
+  '/(root)/(community)/garage/page',
   '/[locale]/(marketing)/page',
 ];
 

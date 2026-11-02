@@ -1,6 +1,9 @@
 import type { TripByShareTokenQuery } from '@motovault/graphql';
-import { StoreLink } from '@/components/marketing/store-buttons';
-import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
+import Image from 'next/image';
+import { OpenInAppActions } from '@/components/open-in-app-link';
+import { CtaPageType } from '@/lib/cta-taxonomy';
+import '@/components/marketing/design-system.css';
+import '@/components/share-page.css';
 
 type SharedTrip = NonNullable<TripByShareTokenQuery['tripByShareToken']>;
 
@@ -14,86 +17,85 @@ export function SharedTripView({ data }: { data: SharedTrip }) {
 
   const startDate = formatDate(data.startDate);
   const endDate = formatDate(data.endDate);
-  const dateRange = startDate === endDate ? startDate : `${startDate} — ${endDate}`;
+  const dateRange = startDate === endDate ? startDate : `${startDate} to ${endDate}`;
+  const context = [dateRange, capitalize(data.difficulty), capitalize(data.status)].join(' · ');
+  const sortedWaypoints = waypoints.slice().sort((a, b) => a.sortOrder - b.sortOrder);
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      {/* Hero — brand gradient from design-system primary scale (tokens.css) */}
-      <div className="h-20 w-full bg-gradient-to-br from-primary-950 to-primary-500" />
+    <div className="mv-marketing sp">
+      <div className="sp-brand">
+        <a href="/">
+          <Image src="/images/marketing/MotoVault.png" alt="" width={28} height={28} />
+          MotoVault
+        </a>
+      </div>
 
-      <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-        <h1 className="text-2xl font-bold text-neutral-900">{data.title}</h1>
-        <p className="mt-1 text-sm text-neutral-500">{dateRange}</p>
+      <main className="sp-main sp-main-tall">
+        <h1 className="mv-section-title sp-title">{data.title}</h1>
+        <p className="sp-sub">{context}</p>
 
-        {/* Quick facts */}
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Difficulty" value={capitalize(data.difficulty)} />
-          <StatCard label="Status" value={capitalize(data.status)} />
-          <StatCard label="Riders" value={`${data.participantCount}/${data.maxRiders}`} />
-          <StatCard label="Waypoints" value={String(waypoints.length)} />
+        <div className="sp-figures">
+          <div className="sp-figure">
+            <span className="mv-figure sp-figure-value">
+              {data.participantCount}
+              <small>of {data.maxRiders}</small>
+            </span>
+            <span className="sp-figure-label">Riders on the trip</span>
+          </div>
+          <div className="sp-figure">
+            <span className="mv-figure sp-figure-value">{waypoints.length}</span>
+            <span className="sp-figure-label">
+              {waypoints.length === 1 ? 'Waypoint' : 'Waypoints'}
+            </span>
+          </div>
         </div>
 
         {data.description && (
-          <section className="mt-8">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-              About
-            </h2>
-            <p className="mt-2 whitespace-pre-wrap text-base text-neutral-800">
-              {data.description}
-            </p>
+          <section className="sp-section">
+            <h2 className="sp-section-title">About the trip</h2>
+            <p className="sp-prose">{data.description}</p>
           </section>
         )}
 
-        {waypoints.length > 0 && (
-          <section className="mt-8">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-              Waypoints
-            </h2>
-            <ol className="mt-3 space-y-2">
-              {waypoints
-                .slice()
-                .sort((a, b) => a.sortOrder - b.sortOrder)
-                .map((wp, index) => (
-                  <li
-                    key={wp.id}
-                    className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-white p-4"
-                  >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
-                      {index + 1}
+        {sortedWaypoints.length > 0 && (
+          <section className="sp-section">
+            <h2 className="sp-section-title">Waypoints</h2>
+            <ol className="mv-rows">
+              {sortedWaypoints.map((wp, index) => (
+                <li key={wp.id} className="mv-row sp-row">
+                  <span className="sp-row-num" aria-hidden="true">
+                    {index + 1}
+                  </span>
+                  <div className="sp-row-body">
+                    <div className="sp-row-title">{wp.name}</div>
+                    <div className="sp-row-meta">
+                      <span>{capitalize(wp.type)}</span>
+                      {wp.dayIndex != null && <span>Day {wp.dayIndex + 1}</span>}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-neutral-900">{wp.name}</p>
-                      <p className="text-xs uppercase tracking-wide text-neutral-500">
-                        {wp.type}
-                        {wp.dayIndex != null ? ` • Day ${wp.dayIndex + 1}` : ''}
-                      </p>
-                      {wp.notes && <p className="mt-1 text-sm text-neutral-700">{wp.notes}</p>}
-                    </div>
-                  </li>
-                ))}
+                    {wp.notes && <p className="sp-row-note">{wp.notes}</p>}
+                  </div>
+                </li>
+              ))}
             </ol>
           </section>
         )}
 
         {participants.length > 0 && (
-          <section className="mt-8">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-              Riders
-            </h2>
-            <ul className="mt-3 flex flex-wrap gap-2">
+          <section className="sp-section">
+            <h2 className="sp-section-title">Riders</h2>
+            <ul className="mv-rows">
               {participants.map((p) => (
-                <li
-                  key={p.anonId}
-                  className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-800"
-                >
+                <li key={p.anonId} className="mv-row">
                   {p.avatarUrl ? (
                     // biome-ignore lint/performance/noImgElement: tiny avatar thumbnail, edge runtime
-                    <img src={p.avatarUrl} alt="" className="h-5 w-5 rounded-full object-cover" />
+                    <img src={p.avatarUrl} alt="" className="sp-row-avatar" />
                   ) : (
-                    <span className="h-5 w-5 rounded-full bg-neutral-200" />
+                    <span className="sp-row-avatar" aria-hidden="true" />
                   )}
-                  <span className="font-medium">{p.displayName}</span>
-                  <span className="text-xs text-neutral-500">{capitalize(p.role)}</span>
+                  <div className="sp-row-body">
+                    <div className="sp-row-title">{p.displayName}</div>
+                  </div>
+                  <span className="sp-row-aside">{capitalize(p.role)}</span>
                 </li>
               ))}
             </ul>
@@ -101,56 +103,28 @@ export function SharedTripView({ data }: { data: SharedTrip }) {
         )}
       </main>
 
-      {/* CTA */}
-      <footer className="border-t border-neutral-200 bg-white py-10">
-        <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
-          <p className="text-lg font-bold text-neutral-900">Open this trip in MotoVault</p>
-          <p className="mt-1 text-sm text-neutral-500">
-            Plan routes, track rides, and ride together
+      <footer className="sp-cta">
+        <div className="sp-cta-inner">
+          <h2 className="mv-h2">Ride it with them</h2>
+          <p className="sp-cta-sub">
+            Open the trip in the app to see the route on the map, join the group and record the
+            ride.
           </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <a
-              href={`motovault://trip/${data.id}`}
-              className="inline-flex items-center rounded-xl bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
-            >
-              Open in App
-            </a>
-            <StoreLink
-              platform={StorePlatform.Ios}
-              pageType={CtaPageType.SharedTrip}
-              placement={CtaPlacement.Footer}
-              slug={data.id}
-              className="inline-flex items-center rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50"
-            >
-              App Store
-            </StoreLink>
-            <StoreLink
-              platform={StorePlatform.Android}
-              pageType={CtaPageType.SharedTrip}
-              placement={CtaPlacement.Footer}
-              slug={data.id}
-              className="inline-flex items-center rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50"
-            >
-              Google Play
-            </StoreLink>
-          </div>
+          <OpenInAppActions
+            deepLink={`motovault://trip/${data.id}`}
+            pageType={CtaPageType.SharedTrip}
+            slug={data.id}
+          />
         </div>
       </footer>
     </div>
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4 text-center">
-      <p className="text-xl font-bold text-neutral-900">{value}</p>
-      <p className="text-xs text-neutral-500">{label}</p>
-    </div>
-  );
-}
-
+/** "in_progress" → "In progress": enum values never print an underscore. */
 function capitalize(s: string): string {
-  return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1);
+  const words = s.replace(/_/g, ' ');
+  return words.length === 0 ? words : words[0].toUpperCase() + words.slice(1);
 }
 
 function formatDate(iso: string): string {

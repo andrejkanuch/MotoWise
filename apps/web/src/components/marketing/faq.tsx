@@ -1,158 +1,115 @@
-'use client';
-
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
 
-const FAQ_INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+/** The six home-page questions, by `Faq.items` index, strongest first so the
+ *  JSON-LD FAQPage (built from the same list in page.tsx) leads with them:
+ *  what it is, is it free, reminders, several bikes, vs REVER/Calimoto, data. */
+export const HOME_FAQ_ITEMS = [0, 1, 8, 9, 7, 4] as const;
 
+/** Hairline `<details>` list straight on the page surface — no cards, no
+ *  section marker, body face, sentence case. The section sits on the 1240
+ *  edge like every other; the reading column inside is capped at 880 so the
+ *  H2 starts where the neighbouring sections' H2s start. Native disclosure
+ *  needs no JS, so this stays a server component; the first item ships open.
+ *  The kit's `.mv-disclosure.is-plus` turns the "+" into "×" on open. */
 export function Faq() {
   const t = useTranslations('Faq');
-  const [openIndex, setOpenIndex] = useState(0);
 
   return (
-    <section
-      id="faq"
-      style={{
-        padding: '120px 40px 160px',
-        maxWidth: '960px',
-        margin: '0 auto',
-      }}
-    >
-      {/* Split header */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1.2fr',
-          gap: '80px',
-          alignItems: 'end',
-        }}
-        className="faq-head-grid"
-      >
-        <div>
-          <div className="mv-section-meta">{t('sectionMeta')}</div>
-          <h2 className="mv-section-title">
-            {t('titleLead')} <span className="mv-serif mv-muted">{t('titleAccent')}</span>
-          </h2>
-        </div>
-        <p
-          style={{
-            margin: 0,
-            color: 'var(--mv-ink-2)',
-            fontSize: '18px',
-            lineHeight: 1.55,
-            maxWidth: '620px',
-            letterSpacing: '-0.01em',
-          }}
-        >
+    <section id="faq" className="faq-section">
+      <div className="faq-column">
+        <h2 className="mv-h2">
+          {t('titleLead')} <span className="faq-muted">{t('titleAccent')}</span>
+        </h2>
+        <p className="mv-section-sub">
           {t('introLead')}{' '}
-          <a
-            href="mailto:support@motovault.app"
-            style={{ color: 'var(--mv-warm-400)', textDecoration: 'none' }}
-          >
+          <a href="mailto:support@motovault.app" className="mv-link">
             {t('introLink')}
           </a>
-          {t('introTrailing')}
+          .
         </p>
       </div>
 
-      {/* Accordion */}
-      <div style={{ marginTop: '64px', borderTop: '1px solid var(--mv-line)' }}>
-        {FAQ_INDICES.map((index) => {
-          const isOpen = openIndex === index;
-          const question = t(`items.${index}.question`);
-          return (
-            <div key={question} style={{ borderBottom: '1px solid var(--mv-line)' }}>
-              <button
-                type="button"
-                onClick={() => setOpenIndex(isOpen ? -1 : index)}
-                style={{
-                  width: '100%',
-                  padding: '32px 0',
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'inherit',
-                  fontFamily: 'inherit',
-                  fontSize: '22px',
-                  fontWeight: 400,
-                  letterSpacing: '-0.025em',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'color .25s',
-                }}
-                id={`faq-question-${index}`}
-                aria-expanded={isOpen}
-                aria-controls={`faq-answer-${index}`}
-              >
-                {question}
-                <span
-                  style={{
-                    width: '28px',
-                    height: '28px',
-                    borderRadius: '50%',
-                    border: isOpen ? '1px solid var(--mv-warm-500)' : '1px solid var(--mv-line)',
-                    display: 'grid',
-                    placeItems: 'center',
-                    color: isOpen ? 'var(--mv-bg)' : 'var(--mv-ink-3)',
-                    background: isOpen ? 'var(--mv-warm-500)' : 'transparent',
-                    transition:
-                      'transform .4s var(--mv-ease-expo), background .3s, border-color .3s, color .3s',
-                    flexShrink: 0,
-                    marginLeft: '20px',
-                    transform: isOpen ? 'rotate(45deg)' : 'none',
-                  }}
-                >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    aria-hidden="true"
-                  >
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                </span>
-              </button>
-              <section
-                id={`faq-answer-${index}`}
-                aria-labelledby={`faq-question-${index}`}
-                style={{
-                  maxHeight: isOpen ? '1200px' : '0',
-                  overflow: 'hidden',
-                  transition: 'max-height .5s var(--mv-ease-expo)',
-                }}
-              >
-                <div
-                  style={{
-                    padding: '0 0 32px',
-                    color: 'var(--mv-ink-2)',
-                    fontSize: '16px',
-                    lineHeight: 1.6,
-                    maxWidth: '680px',
-                    letterSpacing: '-0.005em',
-                  }}
-                >
-                  {t(`items.${index}.answer`)}
-                </div>
-              </section>
-            </div>
-          );
-        })}
+      {/* Hairline disclosure list */}
+      <div className="faq-column faq-list">
+        {HOME_FAQ_ITEMS.map((index, position) => (
+          <details key={index} className="faq-item mv-disclosure is-plus" open={position === 0}>
+            <summary className="faq-q">
+              <span>{t(`items.${index}.question`)}</span>
+              <span className="faq-mark mv-disclosure-mark" aria-hidden="true" />
+            </summary>
+            <div className="faq-a">{t(`items.${index}.answer`)}</div>
+          </details>
+        ))}
       </div>
 
-      {/* Responsive */}
       <style
         // biome-ignore lint/security/noDangerouslySetInnerHtml: static CSS
         dangerouslySetInnerHTML={{
           __html: `
-            @media (max-width: 820px) {
-              .faq-head-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+            .faq-section { max-width: var(--mv-container); margin: 0 auto; padding: 120px 40px; }
+            .faq-column { max-width: 880px; }
+            .faq-muted { color: var(--mv-ink-3); }
+            .faq-list { margin-top: 64px; border-top: 1px solid var(--mv-line); }
+            .faq-item { border-bottom: 1px solid var(--mv-line); }
+            .faq-q {
+              display: flex;
+              justify-content: space-between;
+              align-items: baseline;
+              gap: 20px;
+              min-height: 44px;
+              padding: 20px 0;
+              font-family: var(--mv-font-body);
+              font-size: 17px;
+              font-weight: 600;
+              line-height: 1.45;
+              letter-spacing: 0;
+              color: var(--mv-ink);
+              cursor: pointer;
+              list-style: none;
+            }
+            .faq-q::-webkit-details-marker { display: none; }
+            .faq-q:hover { color: var(--mv-copper-text); }
+            /* A 16px plus drawn in two 2px bars (a glyph rendered ~8px in
+               the condensed face); the kit turns it to × on open. */
+            .faq-mark {
+              position: relative;
+              width: 16px;
+              height: 16px;
+              /* centred on the question's first line (17px × 1.45) */
+              align-self: flex-start;
+              margin-top: 4px;
+              color: var(--mv-ink-2);
+              flex-shrink: 0;
+              transform-origin: center;
+            }
+            .faq-mark::before,
+            .faq-mark::after {
+              content: '';
+              position: absolute;
+              left: 0;
+              top: 7px;
+              width: 16px;
+              height: 2px;
+              border-radius: 1px;
+              background: currentColor;
+            }
+            .faq-mark::after { transform: rotate(90deg); }
+            .faq-item[open] .faq-mark { color: var(--mv-ink); }
+            .faq-a {
+              padding: 0 0 24px;
+              color: var(--mv-ink-2);
+              font-size: 16px;
+              line-height: 1.55;
+              max-width: 62ch;
+              letter-spacing: 0;
+              text-wrap: pretty;
+            }
+            @media (max-width: 900px) {
+              .faq-section { padding: 96px 24px; }
+              .faq-list { margin-top: 48px; }
+            }
+            @media (max-width: 480px) {
+              .faq-section { padding: 96px 20px; }
             }
           `,
         }}

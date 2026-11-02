@@ -1,0 +1,318 @@
+'use client';
+
+import {
+  AllMaintenanceTasksDocument,
+  ExpenseDashboardDocument,
+  GetRiderProfileDocument,
+  MeDocument,
+  MyMotorcyclesDocument,
+  MyRideCountDocument,
+  RideOverviewDocument,
+} from '@motovault/graphql';
+import { useQuery } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
+import { type ReactNode, useEffect, useState } from 'react';
+import {
+  AppHandoffBand,
+  AppHandoffBar,
+  AppHandoffRail,
+  type HandoffAccount,
+  MonoLabel,
+  pickPromotedHandoff,
+} from '@/components/garage-ui';
+import { trackEvent, WebEvent } from '@/lib/analytics';
+import { gqlFetcher } from '@/lib/graphql-client';
+import { AccountSection } from './account-row';
+import { EmptyStartHero } from './empty-garage';
+import {
+  BikeHero,
+  BikeHeroSkeleton,
+  CardFailed,
+  NextServiceCard,
+  NextServiceSkeleton,
+  RidesCard,
+  RidesSkeleton,
+  SpendCard,
+  SpendSkeleton,
+} from './garage-cards';
+import {
+  type Bike,
+  distanceUnitFor,
+  GarageMode,
+  garageMode,
+  isoDay,
+  otherBikes,
+  pickLeadBike,
+  RidesCardState,
+  ridesCardState,
+  rideTotals,
+  serviceSchedule,
+  showsAppHandoff,
+  yearOf,
+  yearSpend,
+} from './garage-model';
+import { garageQueryKeys } from './query-keys';
+import '@/components/garage-ui/garage-ui.css';
+import './garage-view.css';
+
+/**
+ * Today as a local calendar day. Starts from the server's (UTC) day so the
+ * hydrated HTML matches, then switches to the browser's own day after mount;
+ * overdue and "this year" follow the rider's calendar, not the server's.
+ */
+function useToday(initialToday: string): string {
+  const [today, setToday] = useState(initialToday);
+  useEffect(() => {
+    setToday(isoDay());
+  }, []);
+  return today;
+}
+
+/** The plate's racing number: the bike's place in the garage, two digits. */
+function racingNumberOf(bikes: readonly Bike[], bike: Bike): string {
+  const index = bikes.findIndex((candidate) => candidate.id === bike.id);
+  return String((index < 0 ? 0 : index) + 1).padStart(2, '0');
+}
+
+function PageHead({ mode, bikeCount }: { mode: GarageMode; bikeCount: number }) {
+  const t = useTranslations('GarageV2');
+  const empty = mode === GarageMode.Empty;
+  return (
+    <header className="gv-head">
+      <h1 className="mv-section-title gv-title">{t('title')}</h1>
+      {/* One status line under the title: count · read-only. */}
+      <MonoLabel className="gv-meta">
+        <span>
+          {empty ? (
+            t('eyebrowNoBikes')
+          ) : (
+            <>
+              {mode === GarageMode.Populated && (
+                <span className="gv-hide-phone">{t('eyebrowBikes', { count: bikeCount })} · </span>
+              )}
+              <span className="gv-show-desktop">{t('eyebrowReadOnlyWeb')}</span>
+              <span className="gv-hide-desktop">{t('eyebrowReadOnly')}</span>
+            </>
+          )}
+        </span>
+      </MonoLabel>
+      {/* The populated garage needs no intro: the status line says read-only and the handoff says open the app. */}
+      {empty && <p className="gv-intro">{t('emptyIntro')}</p>}
+    </header>
+  );
+}
+
+/**
+ * Client view for /garage: the read-only garage (the web displays, the app
+ * does, #277). Every action links to motovault.app/get. Data is prefetched in
+ * page.tsx under the same query keys, so this paints with content on first
+ * render; each section shows its own skeleton while its query is pending.
+ */
+export function GarageView({
+  initialToday,
+  account,
+}: {
+  initialToday: string;
+  account: HandoffAccount;
+}) {
+  const t = useTranslations('GarageV2');
+  const today = useToday(initialToday);
+  const year = yearOf(today);
+
+  useEffect(() => {
+    trackEvent(WebEvent.GARAGE_VIEWED);
+  }, []);
+
+  // ─── Data ───
+  const { data: meData } = useQuery({
+    queryKey: garageQueryKeys.me,
+    queryFn: () => gqlFetcher(MeDocument),
+  });
+  const bikesQuery = useQuery({
+    queryKey: garageQueryKeys.motorcycles,
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+  });
+  const bikes = bikesQuery.data?.myMotorcycles;
+  const lead = pickLeadBike(bikes ?? []);
+  const me = meData?.me;
+
+  const expensesQuery = useQuery({
+    queryKey: garageQueryKeys.expenses(lead?.id),
+    queryFn: () => gqlFetcher(ExpenseDashboardDocument, { motorcycleId: lead?.id ?? '' }),
+    enabled: !!lead,
+  });
+  const maintenanceQuery = useQuery({
+    queryKey: garageQueryKeys.maintenance,
+    queryFn: () => gqlFetcher(AllMaintenanceTasksDocument),
+  });
+  const rideOverviewQuery = useQuery({
+    queryKey: garageQueryKeys.rideOverview,
+    queryFn: () => gqlFetcher(RideOverviewDocument),
+  });
+  const rideCountQuery = useQuery({
+    queryKey: garageQueryKeys.rideCount,
+    queryFn: () => gqlFetcher(MyRideCountDocument),
+  });
+  const profileQuery = useQuery({
+    queryKey: garageQueryKeys.profile(me?.publicUsername),
+    queryFn: () => gqlFetcher(GetRiderProfileDocument, { username: me?.publicUsername ?? '' }),
+    enabled: !!me?.publicUsername,
+  });
+
+  // ─── Derived ───
+  const mode = garageMode({
+    bikes,
+    isLoading: bikesQuery.isPending,
+    isError: bikesQuery.isError,
+  });
+  const unit = distanceUnitFor(me?.measurementSystem);
+  const schedule =
+    lead && maintenanceQuery.data
+      ? serviceSchedule(maintenanceQuery.data.allMaintenanceTasks, lead, today)
+      : null;
+  const spend = expensesQuery.data
+    ? yearSpend(expensesQuery.data.expenseDashboard, year, me?.currency ?? 'USD')
+    : null;
+  const rides = rideTotals({
+    profileStats: profileQuery.data?.getRiderProfile.rideStats,
+    rideCount: rideCountQuery.data?.myRides.totalCount,
+    lastRideDate: rideOverviewQuery.data?.rideOverview.lastRide?.date,
+    lastRideKnown: rideOverviewQuery.isSuccess,
+    unit,
+  });
+  const ridesState = ridesCardState({
+    countSucceeded: rideCountQuery.isSuccess,
+    countFailed: rideCountQuery.isError,
+    profileSucceeded: profileQuery.isSuccess,
+    profileFailed: profileQuery.isError,
+    profileEnabled: !!me?.publicUsername,
+    lastRidePending: rideOverviewQuery.isPending,
+  });
+
+  // At most one promoted "Better in the app" reason per page. Unknowns (still
+  // loading, or failed) never promote.
+  const overdueLead = schedule?.rows[0]?.overdue ? schedule.rows[0].task.title : null;
+  const promoted = pickPromotedHandoff({
+    overdueTaskTitle: overdueLead,
+    hasRides: rides.hasRides,
+    hasExpensesThisYear: spend ? spend.length > 0 : null,
+    year,
+  });
+
+  // ─── Error ───
+  if (mode === GarageMode.Error) {
+    return (
+      <div className="gv-page">
+        <div className="gv-main">
+          <PageHead mode={mode} bikeCount={0} />
+          <div className="gv-error" role="alert">
+            <p className="gv-error-title">{t('failedToLoad')}</p>
+            <p className="gv-quiet">{t('failedToLoadBody')}</p>
+            <button
+              type="button"
+              className="mv-btn mv-btn-ghost"
+              onClick={() => bikesQuery.refetch()}
+            >
+              {t('retry')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Loading ───
+  if (mode === GarageMode.Loading) {
+    return (
+      <div className="gv-page">
+        <div className="gv-main">
+          <PageHead mode={mode} bikeCount={0} />
+          <BikeHeroSkeleton />
+          <div className="gv-pair">
+            <NextServiceSkeleton />
+            <SpendSkeleton />
+          </div>
+          <RidesSkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  // Retry only what failed; a successful query keeps its data.
+  function retryRides() {
+    for (const query of [rideCountQuery, profileQuery, rideOverviewQuery]) {
+      if (query.isError) query.refetch();
+    }
+  }
+  const ridesCardByState: Record<RidesCardState, ReactNode> = {
+    [RidesCardState.Ready]: <RidesCard totals={rides} unit={unit} />,
+    [RidesCardState.Failed]: <CardFailed heading={t('ridesAllTime')} onRetry={retryRides} />,
+    [RidesCardState.Loading]: <RidesSkeleton />,
+  };
+  const ridesCard = ridesCardByState[ridesState];
+
+  // ─── Empty: no bike. The start hero is the handoff: no rail, band or bar. ───
+  if (mode === GarageMode.Empty) {
+    return (
+      <div className="gv-page">
+        <div className="gv-main">
+          <PageHead mode={mode} bikeCount={0} />
+          {/* Calm reasons only: with no bike, the one step is adding the bike; a promoted "record a ride" would compete with it. */}
+          <EmptyStartHero account={account} promoted={null} />
+          {/* Rides exist without a bike only when the bike was deleted: still the rider's data. A failed load shows its failed state: presence is then unknown. */}
+          {(rides.hasRides || ridesState === RidesCardState.Failed) && ridesCard}
+          <AccountSection account={account} />
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Populated ───
+  const leadBike = lead as Bike;
+  return (
+    <>
+      <div className="gv-page">
+        <div className="gv-main">
+          <PageHead mode={mode} bikeCount={bikes?.length ?? 0} />
+          <BikeHero
+            bike={leadBike}
+            others={otherBikes(bikes ?? [], leadBike)}
+            unit={unit}
+            schedule={maintenanceQuery.isError ? null : schedule}
+            today={today}
+            racingNumber={racingNumberOf(bikes ?? [], leadBike)}
+          />
+
+          {/* ─── Free logging: service + spend (never gated, #271) ─── */}
+          <div className="gv-pair">
+            {schedule ? (
+              <NextServiceCard schedule={schedule} unit={unit} />
+            ) : maintenanceQuery.isError ? (
+              <CardFailed heading={t('nextService')} onRetry={() => maintenanceQuery.refetch()} />
+            ) : (
+              <NextServiceSkeleton />
+            )}
+            {spend ? (
+              <SpendCard spend={spend} year={year} />
+            ) : expensesQuery.isError ? (
+              <CardFailed
+                heading={t('spentIn', { year })}
+                onRetry={() => expensesQuery.refetch()}
+              />
+            ) : (
+              <SpendSkeleton />
+            )}
+          </div>
+          {/* ─── End free logging ─── */}
+
+          {ridesCard}
+
+          {showsAppHandoff(mode) && <AppHandoffBand account={account} promoted={promoted} />}
+          <AccountSection account={account} />
+        </div>
+        {showsAppHandoff(mode) && <AppHandoffRail account={account} promoted={promoted} />}
+      </div>
+      {showsAppHandoff(mode) && <AppHandoffBar promoted={promoted} />}
+    </>
+  );
+}

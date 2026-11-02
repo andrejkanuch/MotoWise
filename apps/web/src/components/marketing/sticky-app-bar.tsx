@@ -1,14 +1,73 @@
 'use client';
 
-import { palette } from '@motovault/design-system';
+import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useCookieConsent } from '@/components/cookie-consent';
 import { usePathname } from '@/i18n/navigation';
 import { CtaPlacement, pageContextFromPathname } from '@/lib/cta-taxonomy';
 import { detectPlatform, type Platform } from '@/lib/store-links';
 import { storeAnchorProps } from './store-buttons';
 
 const DISMISS_KEY = 'mv_sticky_app_bar_dismissed';
+
+/**
+ * Published by the cookie banner (components/cookie-consent.tsx) on the root
+ * element while one of its surfaces is on screen: the height of that surface.
+ * The bar sits on top of it instead of underneath it.
+ */
+const COOKIE_BANNER_HEIGHT_VAR = '--mv-cookie-banner-h';
+
+/** The page's closing store-button pair; while it is on screen the bar would
+ *  be a third copper button in one viewport, so it steps aside. */
+const CLOSING_CTA_ID = 'download';
+
+/* A thin bar on the raised step with a hairline top; the one copper button
+   is the kit's primary, dismiss is the kit's icon button. Honours the
+   home-indicator inset and stacks above the cookie banner by translating,
+   never by animating `bottom`. Enters with the kit's `.mv-enter-up`; the
+   kit's reduced-motion policy covers it. */
+const STICKY_BAR_CSS = `
+.mv-appbar {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: 0;
+  translate: 0 calc(-1 * var(${COOKIE_BANNER_HEIGHT_VAR}, 0px));
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px max(12px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: var(--mv-surface-2);
+  border-top: 1px solid var(--mv-line);
+  font-family: var(--mv-font-body);
+  color: var(--mv-ink);
+  transition: translate var(--mv-dur-3) var(--mv-ease-expo), opacity var(--mv-dur-3) var(--mv-ease-expo);
+}
+.mv-appbar-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 15px;
+  line-height: 20px;
+  color: var(--mv-ink-2);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.mv-appbar > .mv-btn { flex: none; white-space: nowrap; }
+.mv-appbar > .mv-icon-btn { flex: none; }
+/* One line on a phone: the message clamps, the verb and the 44px dismiss
+   never shrink. */
+@media (max-width: 480px) {
+  .mv-appbar-text { -webkit-line-clamp: 1; }
+}
+/* A landscape phone has no height to spare: no bar (and no reserve). */
+@media (max-height: 500px) {
+  .mv-appbar { display: none; }
+}
+`;
 
 /**
  * Thin, dismissible bottom bar promoting the app on Android + desktop.
@@ -19,12 +78,18 @@ const DISMISS_KEY = 'mv_sticky_app_bar_dismissed';
  * clear of Google's intrusive-interstitial penalty on search-landing pages.
  * Renders client-only after mount, so it's absent from SSR HTML and can't be
  * seen by crawlers as landing-page content.
+ *
+ * Waits for the cookie decision: while the consent bar is up (consent is
+ * null) the first screen carries one bar, not two.
  */
 export function StickyAppBar() {
   const t = useTranslations('StickyBar');
   const pathname = usePathname();
+  const { consent } = useCookieConsent();
   const [platform, setPlatform] = useState<Platform>('unknown');
   const [dismissed, setDismissed] = useState(true); // hidden until mounted
+  const [closingCtaInView, setClosingCtaInView] = useState(false);
+  const barRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setPlatform(detectPlatform());
@@ -36,16 +101,46 @@ export function StickyAppBar() {
     }
   }, []);
 
-  // iOS handled by the Smart App Banner; never show there.
-  const visible = platform !== 'ios' && !dismissed;
+  // iOS handled by the Smart App Banner; never show there. Never beside the
+  // undecided cookie bar either.
+  const visible = platform !== 'ios' && consent !== null && !dismissed && !closingCtaInView;
+
+  // Step aside while the page's own closing CTA is on screen.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-find the CTA when the route changes
+  useEffect(() => {
+    const target = document.getElementById(CLOSING_CTA_ID);
+    if (!target || typeof IntersectionObserver === 'undefined') {
+      setClosingCtaInView(false);
+      return;
+    }
+    const observer = new IntersectionObserver(([entry]) =>
+      setClosingCtaInView(entry?.isIntersecting ?? false),
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [pathname]);
 
   // Reserve space for the fixed bar so it never covers the last controls/links
-  // on a page. Only while visible; restored on dismiss, unmount, or iOS.
+  // on a page — including the cookie banner it stacks on. The bar's real
+  // height is measured (the message may wrap to two lines). Only while
+  // visible; restored on dismiss, unmount, or iOS — and on a landscape phone,
+  // where the CSS hides the bar (height 0), nothing is reserved.
   useEffect(() => {
     if (!visible) return;
+    const el = barRef.current;
+    if (!el) return;
     const prev = document.body.style.paddingBottom;
-    document.body.style.paddingBottom = 'calc(env(safe-area-inset-bottom) + 64px)';
+    const reserve = () => {
+      document.body.style.paddingBottom =
+        el.offsetHeight === 0
+          ? prev
+          : `calc(${el.offsetHeight}px + var(${COOKIE_BANNER_HEIGHT_VAR}, 0px))`;
+    };
+    reserve();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(reserve);
+    observer?.observe(el);
     return () => {
+      observer?.disconnect();
       document.body.style.paddingBottom = prev;
     };
   }, [visible]);
@@ -64,39 +159,17 @@ export function StickyAppBar() {
   };
 
   return (
-    <div
-      className="fixed inset-x-0 bottom-0 z-50 flex items-center gap-3 border-t px-4 py-3"
-      style={{ backgroundColor: palette.neutral950, borderColor: palette.neutral800 }}
-    >
-      <p className="min-w-0 flex-1 truncate text-sm" style={{ color: palette.neutral200 }}>
-        {t('message')}
-      </p>
+    <div ref={barRef} className="mv-appbar mv-enter-up">
+      <style>{STICKY_BAR_CSS}</style>
+      <p className="mv-appbar-text">{t('message')}</p>
       <a
         {...storeAnchorProps(platform, { pageType, placement: CtaPlacement.StickyBar, slug })}
-        className="shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-        style={{ backgroundColor: palette.signature500, color: palette.white }}
+        className="mv-btn mv-btn-primary"
       >
         {t('cta')}
       </a>
-      <button
-        type="button"
-        onClick={dismiss}
-        aria-label={t('dismiss')}
-        className="shrink-0 rounded-full p-1.5 transition-opacity hover:opacity-70"
-        style={{ color: palette.neutral400 }}
-      >
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeLinecap="round"
-          aria-hidden="true"
-        >
-          <path d="M18 6 6 18M6 6l12 12" />
-        </svg>
+      <button type="button" onClick={dismiss} aria-label={t('dismiss')} className="mv-icon-btn">
+        <X size={18} aria-hidden="true" />
       </button>
     </div>
   );

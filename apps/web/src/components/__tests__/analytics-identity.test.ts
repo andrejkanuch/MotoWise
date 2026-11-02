@@ -16,7 +16,9 @@ let cookieChoice: boolean | null | undefined;
 const updateUser = vi.fn().mockResolvedValue({ error: null });
 let authCallbacks: AuthCallback[] = [];
 
-vi.mock('posthog-js', () => ({ default: { get_distinct_id: () => getDistinctId() } }));
+vi.mock('@/lib/posthog-client', () => ({
+  getPostHog: () => ({ get_distinct_id: () => getDistinctId() }),
+}));
 vi.mock('@/lib/analytics', () => ({
   identifyUser: (...args: unknown[]) => identifyUser(...args),
   resetUser: () => resetUser(),
@@ -51,9 +53,12 @@ const emit = (event: string, value: Session | null) => {
 // React warns when act() is used without this flag outside a test renderer.
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-function render(): Root {
+/** Renders and waits for the lazy Supabase chunk, so the auth listeners exist. */
+async function render(): Promise<Root> {
   const root = createRoot(document.createElement('div'));
   act(() => root.render(createElement(AnalyticsIdentity)));
+  await vi.dynamicImportSettled();
+  for (let i = 0; i < 5; i++) await Promise.resolve();
   return root;
 }
 
@@ -66,15 +71,15 @@ afterEach(() => {
 });
 
 describe('AnalyticsIdentity', () => {
-  it('does nothing until analytics consent is granted', () => {
+  it('does nothing until analytics consent is granted', async () => {
     consent = null;
-    render();
+    await render();
     expect(authCallbacks).toHaveLength(0);
   });
 
-  it('identifies a signed-in user once, not again for the same id', () => {
+  it('identifies a signed-in user once, not again for the same id', async () => {
     getDistinctId.mockReturnValue('anon-1');
-    render();
+    await render();
     emit('INITIAL_SESSION', session('user-a'));
     expect(identifyUser).toHaveBeenCalledWith('user-a');
 
@@ -83,8 +88,8 @@ describe('AnalyticsIdentity', () => {
     expect(identifyUser).toHaveBeenCalledTimes(1);
   });
 
-  it('resets on sign-out but never on an anonymous page load', () => {
-    render();
+  it('resets on sign-out but never on an anonymous page load', async () => {
+    await render();
     emit('INITIAL_SESSION', null);
     expect(resetUser).not.toHaveBeenCalled();
 
@@ -93,8 +98,8 @@ describe('AnalyticsIdentity', () => {
     expect(resetUser).toHaveBeenCalledTimes(1);
   });
 
-  it('unsubscribes on unmount', () => {
-    const root = render();
+  it('unsubscribes on unmount', async () => {
+    const root = await render();
     act(() => root.unmount());
     expect(unsubscribe).toHaveBeenCalledTimes(authCallbacks.length);
   });
@@ -103,8 +108,8 @@ describe('AnalyticsIdentity', () => {
 describe('AnalyticsIdentity — account consent sync', () => {
   /** Render, deliver one auth event, run the deferred write and drain the write queue. */
   const run = async (event: string, value: Session | null) => {
+    await render();
     vi.useFakeTimers();
-    render();
     emit(event, value);
     vi.runAllTimers();
     for (let i = 0; i < 5; i++) await Promise.resolve();
@@ -171,9 +176,9 @@ describe('AnalyticsIdentity — account consent sync', () => {
   });
 
   it('a change of decision cancels a write still queued for the old one (Undo race)', async () => {
-    vi.useFakeTimers();
     consent = true;
-    const root = render();
+    const root = await render();
+    vi.useFakeTimers();
     emit('INITIAL_SESSION', session('user-a', {}));
     // Undo before the deferred write runs: the effect re-runs with no decision.
     consent = null;

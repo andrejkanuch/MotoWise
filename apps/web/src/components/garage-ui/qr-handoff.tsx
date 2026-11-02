@@ -16,7 +16,14 @@ const COPIED_RESET_MS = 2000;
  * Copied state: the button reads "Copied" and a polite live region announces
  * it; it reverts after 2 s.
  */
-export function CopyLinkField({ className }: { className?: string }) {
+export function CopyLinkField({
+  className,
+  primary = false,
+}: {
+  className?: string;
+  /** Copper Copy button: only where it is the section's one action (the empty-garage hero). */
+  primary?: boolean;
+}) {
   const t = useTranslations('AppHandoff');
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -46,11 +53,16 @@ export function CopyLinkField({ className }: { className?: string }) {
       <a href={APP_HANDOFF_URL} className="mvg-linkfield-url">
         {APP_HANDOFF_DISPLAY}
       </a>
-      <button type="button" className="mvg-copy" aria-label={t('copyLabel')} onClick={copy}>
+      <button
+        type="button"
+        className={`mv-btn ${primary ? 'mv-btn-primary' : 'mv-btn-ghost'} is-compact mvg-copy`}
+        aria-label={t('copyLabel')}
+        onClick={copy}
+      >
         {copied ? (
-          <Check size={14} strokeWidth={2} aria-hidden="true" />
+          <Check size={16} strokeWidth={2} aria-hidden="true" />
         ) : (
-          <Copy size={14} strokeWidth={2} aria-hidden="true" />
+          <Copy size={16} strokeWidth={2} aria-hidden="true" />
         )}
         {copied ? t('copied') : t('copy')}
       </button>
@@ -75,15 +87,15 @@ export function SignInText({ account }: { account: HandoffAccount }) {
   return <>{t.rich('signInSameAccount', { email: account.email, b: bold })}</>;
 }
 
-/** The bordered account line (icon + {@link SignInText}), e.g. on the handoff page. */
+/** The ruled account line (icon + {@link SignInText}), e.g. on the handoff page. */
 export function SignInHint({ account }: { account: HandoffAccount }) {
   const icon =
     account.method === SignInMethod.Google ? (
-      <GoogleMark size={18} />
+      <GoogleMark size={16} />
     ) : account.method === SignInMethod.Apple ? (
-      <AppleMark size={18} />
+      <AppleMark size={16} />
     ) : (
-      <Mail size={18} strokeWidth={1.75} aria-hidden="true" />
+      <Mail size={16} strokeWidth={1.75} aria-hidden="true" />
     );
   return (
     <p className="mvg-signin" style={{ margin: 0 }}>
@@ -133,7 +145,7 @@ export function QrHandoff({
           <p className="mvg-qrh-body">
             <SignInText account={account} />
           </p>
-          {isHero && <CopyLinkField />}
+          {isHero && <CopyLinkField primary />}
         </div>
       </div>
       {!isHero && <CopyLinkField />}

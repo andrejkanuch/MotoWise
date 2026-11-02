@@ -101,7 +101,7 @@ function isPostAuthCallWithUser(sf: ts.SourceFile, call: ts.CallExpression): boo
 }
 
 describe('post-auth contract: /login', () => {
-  const sf = parse('login/page.tsx');
+  const sf = parse('(root)/login/page.tsx');
 
   it('imports postAuthDestination and no longer uses safeRedirectPath', () => {
     expect(importsFrom(sf, POST_AUTH_MODULE)).toContain(POST_AUTH_DESTINATION);
@@ -139,7 +139,7 @@ function expectResendsCarryEmailRedirectTo(sf: ts.SourceFile) {
 }
 
 describe('post-auth contract: /login resend', () => {
-  const sf = parse('login/page.tsx');
+  const sf = parse('(root)/login/page.tsx');
 
   it('imports signUpEmailRedirectTo', () => {
     expect(importsFrom(sf, POST_AUTH_MODULE)).toContain(SIGN_UP_EMAIL_REDIRECT_TO);
@@ -151,7 +151,7 @@ describe('post-auth contract: /login resend', () => {
 });
 
 describe('post-auth contract: /signup', () => {
-  const sf = parse('signup/page.tsx');
+  const sf = parse('(root)/signup/page.tsx');
 
   it('imports both post-auth helpers', () => {
     expect(importsFrom(sf, POST_AUTH_MODULE)).toEqual(
@@ -184,7 +184,7 @@ describe('post-auth contract: /signup', () => {
 
 describe('/signup empty submit', () => {
   it('checks for an email and password before calling supabase.auth.signUp', () => {
-    const source = parse('signup/page.tsx').getFullText();
+    const source = parse('(root)/signup/page.tsx').getFullText();
     const guard = source.indexOf('hasCredentials(email, password)');
     const signUp = source.indexOf('supabase.auth.signUp(');
     expect(guard).toBeGreaterThan(-1);
@@ -197,8 +197,8 @@ describe('trimmed email', () => {
   // A pasted address often carries a trailing space; Supabase rejects it as
   // invalid (or, on sign-in, as wrong credentials) instead of trimming it.
   it.each([
-    ['signup/page.tsx', 'signUp'],
-    ['login/page.tsx', 'signInWithPassword'],
+    ['(root)/signup/page.tsx', 'signUp'],
+    ['(root)/login/page.tsx', 'signInWithPassword'],
   ])('%s sends email.trim() to supabase.auth.%s', (file, method) => {
     const sf = parse(file);
     const [call] = authCalls(sf, method);

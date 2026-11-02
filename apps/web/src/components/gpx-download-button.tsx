@@ -1,12 +1,13 @@
 'use client';
 
-import { palette } from '@motovault/design-system';
-import { Download, Loader2 } from 'lucide-react';
+import { AlertCircle, Download, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AuthModal } from '@/components/auth-modal';
+import { useModal } from '@/hooks/use-modal';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
+import './gpx-download-button.css';
 
 const EXPORT_MUTATION = /* GraphQL */ `
   mutation ExportTripGPX($country: String!, $region: String!, $slug: String!) {
@@ -51,22 +52,18 @@ interface GpxDownloadButtonProps {
   region: string;
   slug: string;
   routeName: string;
-  /** Visual variant: "hero" = compact icon style, "map" = accent bar, "bottom" = full section */
-  variant?: 'hero' | 'map' | 'bottom';
 }
 
-export function GpxDownloadButton({
-  country,
-  region,
-  slug,
-  routeName,
-  variant = 'map',
-}: GpxDownloadButtonProps) {
+/**
+ * The one GPX control on a trip page: a ghost button in the hero's action row,
+ * with the signed-in rider's quota beside it. Signed-out riders get the auth
+ * modal; an exhausted quota gets the Pro dialog.
+ */
+export function GpxDownloadButton({ country, region, slug, routeName }: GpxDownloadButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
@@ -75,7 +72,6 @@ export function GpxDownloadButton({
     const supabase = getSupabaseBrowserClient();
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session?.user);
-      setAuthChecked(true);
     });
   }, []);
 
@@ -123,18 +119,7 @@ export function GpxDownloadButton({
         return;
       }
 
-      const res = await fetch(result.fileUrl);
-      if (!res.ok) throw new Error(`Download failed (${res.status})`);
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = result.fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await saveFile(result.fileUrl, result.fileName);
 
       if (remaining !== null && remaining > 0) {
         setRemaining(remaining - 1);
@@ -152,25 +137,11 @@ export function GpxDownloadButton({
         setShowAuthModal(true);
         return;
       }
-      setToast({ message: errMsg || 'Failed to download GPX', type: 'error' });
+      setToast({ message: "The GPX file didn't download. Try again.", type: 'error' });
     } finally {
       setIsDownloading(false);
     }
   }, [isAuthenticated, remaining, country, region, slug]);
-
-  const paywallDialogRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!showAuthModal && !showPaywall) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setShowAuthModal(false);
-        setShowPaywall(false);
-      }
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [showAuthModal, showPaywall]);
 
   // Re-check auth after auth modal closes (user may have signed in)
   const handleAuthModalClose = useCallback(() => {
@@ -183,225 +154,130 @@ export function GpxDownloadButton({
     });
   }, []);
 
+  const onPaywallClose = useCallback(() => setShowPaywall(false), []);
+
   const returnUrl = `/trips/${country}/${region}/${slug}`;
 
-  // ── Render variants ──
-
-  if (variant === 'hero') {
-    return (
-      <>
-        <button
-          type="button"
-          onClick={handleClick}
-          disabled={isDownloading}
-          className="rh-icon-btn"
-          aria-label={`Download GPX for ${routeName}`}
-        >
-          {isDownloading ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <title>Download GPX</title>
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-          )}
-          {isDownloading ? 'Exporting...' : 'Download GPX'}
-        </button>
-        <Modals
-          showAuthModal={showAuthModal}
-          showPaywall={showPaywall}
-          onAuthClose={handleAuthModalClose}
-          onPaywallClose={() => setShowPaywall(false)}
-          returnUrl={returnUrl}
-          paywallDialogRef={paywallDialogRef}
-        />
-        <Toast toast={toast} />
-      </>
-    );
-  }
-
-  if (variant === 'map') {
-    return (
-      <>
-        <button
-          type="button"
-          onClick={handleClick}
-          disabled={isDownloading}
-          aria-label={`Download GPX for ${routeName}`}
-          className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all hover:brightness-110 active:scale-[0.97] disabled:opacity-60"
-          style={{ backgroundColor: palette.accent500, color: palette.white }}
-        >
-          {isDownloading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Download className="h-4 w-4" />
-          )}
-          {isDownloading ? 'Exporting...' : 'Download GPX'}
-        </button>
-        <Modals
-          showAuthModal={showAuthModal}
-          showPaywall={showPaywall}
-          onAuthClose={handleAuthModalClose}
-          onPaywallClose={() => setShowPaywall(false)}
-          returnUrl={returnUrl}
-          paywallDialogRef={paywallDialogRef}
-        />
-        <Toast toast={toast} />
-      </>
-    );
-  }
-
-  // variant === 'bottom'
   return (
     <>
-      <section className="rsec">
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 8,
-            padding: '24px 0',
-          }}
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={isDownloading}
+        className="mv-btn mv-btn-ghost"
+        aria-busy={isDownloading || undefined}
+        aria-label={`Download GPX for ${routeName}`}
+      >
+        {isDownloading ? (
+          <Loader2 size={16} className="gpx-spin" aria-hidden="true" />
+        ) : (
+          <Download size={16} aria-hidden="true" />
+        )}
+        {isDownloading ? 'Exporting…' : 'Download GPX'}
+      </button>
+      {isAuthenticated && remaining !== null && (
+        <span
+          className="gpx-quota"
+          data-exhausted={remaining === 0 ? 'true' : undefined}
+          role="status"
         >
-          <button
-            type="button"
-            onClick={handleClick}
-            disabled={isDownloading}
-            aria-label={`Download GPX for ${routeName}`}
-            className="inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all hover:brightness-110 active:scale-[0.97] disabled:opacity-60"
-            style={{ backgroundColor: palette.accent500, color: palette.white }}
-          >
-            {isDownloading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4" />
-            )}
-            {isDownloading ? 'Exporting...' : 'Download GPX'}
-          </button>
-          {authChecked && isAuthenticated && remaining !== null && (
-            <span
-              className="text-[11px] leading-none"
-              style={{
-                color: remaining === -1 || remaining > 0 ? palette.neutral500 : palette.danger500,
-              }}
-            >
-              {remaining === -1
-                ? 'Unlimited exports with Pro'
-                : remaining > 0
-                  ? `${remaining} export${remaining === 1 ? '' : 's'} remaining`
-                  : 'Monthly limit reached'}
-            </span>
-          )}
-        </div>
-      </section>
-      <Modals
-        showAuthModal={showAuthModal}
-        showPaywall={showPaywall}
-        onAuthClose={handleAuthModalClose}
-        onPaywallClose={() => setShowPaywall(false)}
-        returnUrl={returnUrl}
-        paywallDialogRef={paywallDialogRef}
-      />
+          {quotaLabel(remaining)}
+        </span>
+      )}
+      <AuthModal open={showAuthModal} onClose={handleAuthModalClose} action="download GPX" />
+      {showPaywall && <PaywallDialog onClose={onPaywallClose} returnUrl={returnUrl} />}
       <Toast toast={toast} />
     </>
   );
+}
+
+function quotaLabel(remaining: number): string {
+  if (remaining === -1) return 'Unlimited exports with Pro';
+  if (remaining > 0) return `${remaining} export${remaining === 1 ? '' : 's'} remaining`;
+  return 'Monthly limit reached';
+}
+
+/**
+ * Save the exported file. The storage URL is fetched into a blob so the browser
+ * honours the file name; when that fetch is refused (a CORS-blocked bucket, a
+ * network error) the file is opened directly instead of failing with a toast.
+ */
+async function saveFile(fileUrl: string, fileName: string): Promise<void> {
+  let blob: Blob;
+  try {
+    const res = await fetch(fileUrl);
+    if (!res.ok) throw new Error(`Download failed (${res.status})`);
+    blob = await res.blob();
+  } catch {
+    window.open(fileUrl, '_blank', 'noopener');
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ── Shared sub-components ──
 
 function Toast({ toast }: { toast: { message: string; type: 'success' | 'error' } | null }) {
   if (!toast) return null;
+  // The text stays ink on the raised toast (overdue ink fails 3:1 there); the
+  // failure is said by the icon in overdue ink plus the sentence itself.
   return (
-    <div
-      className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-[fadeInUp_200ms_ease-out] rounded-xl px-4 py-2.5 text-sm font-medium shadow-lg"
-      style={{
-        backgroundColor: toast.type === 'success' ? palette.success500 : palette.danger500,
-        color: palette.white,
-      }}
-    >
+    <div className="gpx-toast mv-enter-up" data-type={toast.type} role="status">
+      {toast.type === 'error' && (
+        <AlertCircle size={16} className="gpx-toast-mark" aria-hidden="true" />
+      )}
       {toast.message}
     </div>
   );
 }
 
-function Modals({
-  showAuthModal,
-  showPaywall,
-  onAuthClose,
-  onPaywallClose,
-  returnUrl,
-  paywallDialogRef,
-}: {
-  showAuthModal: boolean;
-  showPaywall: boolean;
-  onAuthClose: () => void;
-  onPaywallClose: () => void;
-  returnUrl: string;
-  paywallDialogRef: React.RefObject<HTMLDivElement | null>;
-}) {
+/** The quota dialog: focus moves in, Tab cycles inside, Escape and the scrim close it. */
+function PaywallDialog({ onClose, returnUrl }: { onClose: () => void; returnUrl: string }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useModal(true, onClose, dialogRef);
+
   return (
-    <>
-      <AuthModal open={showAuthModal} onClose={onAuthClose} action="download GPX" />
-      {showPaywall && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-[fadeIn_150ms_ease-out]"
-          style={{ backgroundColor: palette.surfaceOverlay }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) onPaywallClose();
-          }}
-          onKeyDown={() => {}}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Export limit reached"
-        >
-          <div
-            ref={paywallDialogRef}
-            className="w-full max-w-md rounded-2xl border p-6 shadow-2xl animate-[scaleIn_200ms_ease-out]"
-            style={{ backgroundColor: palette.neutral950, borderColor: palette.neutral800 }}
+    <div
+      className="gpx-scrim"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      // Escape is handled by useModal; the scrim itself is not a focus target.
+      onKeyDown={() => {}}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="gpx-paywall-title"
+    >
+      <div ref={dialogRef} tabIndex={-1} className="gpx-dialog mv-enter-up">
+        <h3 id="gpx-paywall-title" className="mv-h3">
+          GPX export limit reached
+        </h3>
+        <p className="gpx-dialog-body">
+          You&apos;ve used this month&apos;s free GPX exports. MotoVault Pro has no export limit.
+        </p>
+        <div className="gpx-dialog-actions">
+          <button type="button" onClick={onClose} className="mv-btn mv-btn-ghost">
+            Maybe later
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              window.location.href = `/pro/checkout?redirect=${encodeURIComponent(returnUrl)}`;
+            }}
+            className="mv-btn mv-btn-primary"
           >
-            <h3 className="mb-2 text-lg font-bold" style={{ color: palette.neutral50 }}>
-              GPX export limit reached
-            </h3>
-            <p className="mb-6 text-sm leading-relaxed" style={{ color: palette.neutral400 }}>
-              You&apos;ve used all your free GPX exports this month. Upgrade to MotoVault Pro for
-              unlimited exports and more premium features.
-            </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={onPaywallClose}
-                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors hover:bg-neutral-700"
-                style={{ backgroundColor: palette.neutral800, color: palette.neutral300 }}
-              >
-                Maybe Later
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  onPaywallClose();
-                  window.location.href = `/pro/checkout?redirect=${encodeURIComponent(returnUrl)}`;
-                }}
-                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all hover:brightness-110 active:scale-[0.97]"
-                style={{ backgroundColor: palette.accent500, color: palette.white }}
-              >
-                Upgrade
-              </button>
-            </div>
-          </div>
+            Get MotoVault Pro
+          </button>
         </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 }

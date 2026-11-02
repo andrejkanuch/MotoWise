@@ -1,15 +1,17 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
-import { DownloadAppButton } from '@/components/download-app-button';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { Breadcrumb } from '@/components/marketing/breadcrumb';
+import { ContextualAppCta } from '@/components/marketing/contextual-app-cta';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { TableOfContents } from '@/components/marketing/table-of-contents';
-import { Link } from '@/i18n/navigation';
+import { CtaAngle } from '@/lib/blog-cta';
 import { BASE_URL, getEnglishOnlyAlternates } from '@/lib/constants';
-import { CtaPageType } from '@/lib/cta-taxonomy';
+import { CtaPageType, CtaPlacement } from '@/lib/cta-taxonomy';
 import { compileGuide, getGuideBySlug, getGuideSlugs } from '@/lib/guides';
 import { buildArticle, buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
+import '@/components/marketing/trackside-read.css';
 
 export const revalidate = 604800; // 7 days — repo-sourced, rebuilds on deploy
 
@@ -63,9 +65,19 @@ export async function generateMetadata({ params }: GuidePageProps): Promise<Meta
   };
 }
 
+function formatDate(date: string): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
 export default async function GuidePage({ params }: GuidePageProps) {
   const { slug, locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations('Blog');
 
   const compiled = await compileGuide(slug);
   if (!compiled) {
@@ -116,69 +128,50 @@ export default async function GuidePage({ params }: GuidePageProps) {
   return (
     <>
       <JsonLdGraph nodes={graph} />
-      <article className="mx-auto max-w-3xl px-6 py-24">
-        <nav className="mb-8 flex items-center gap-2 text-sm text-neutral-500">
-          <Link href="/" className="hover:text-neutral-300">
-            Home
-          </Link>
-          <span aria-hidden="true">/</span>
-          <Link href="/guides" className="hover:text-neutral-300">
-            Guides
-          </Link>
-          <span aria-hidden="true">/</span>
-          <span className="truncate text-neutral-400">{frontmatter.title}</span>
-        </nav>
+      <article className="mv-read">
+        <Breadcrumb
+          items={[
+            { label: 'Home', href: '/' },
+            { label: 'Guides', href: '/guides' },
+            { label: frontmatter.title },
+          ]}
+        />
 
-        <Link
-          href="/guides"
-          className="mb-6 inline-block text-sm font-medium text-amber-400 transition-colors hover:text-amber-300"
-        >
-          &larr; All Guides
-        </Link>
-
-        <header className="mb-12">
+        <header>
+          <h1 className="mv-read-h1">{frontmatter.title}</h1>
+          <p className="mv-read-lede">{frontmatter.description}</p>
+          <div className="mv-read-meta">
+            <span>{frontmatter.author}</span>
+            <span aria-hidden="true">·</span>
+            <time dateTime={frontmatter.date}>{formatDate(frontmatter.date)}</time>
+          </div>
           {frontmatter.heroImage && (
-            <div className="relative mb-8 aspect-[21/9] overflow-hidden rounded-2xl">
+            <div className="mv-read-hero">
               <Image
                 src={frontmatter.heroImage}
                 alt={frontmatter.title}
                 fill
                 className="object-cover"
                 priority
-                sizes="(max-width: 768px) 100vw, 768px"
+                sizes="(max-width: 768px) 100vw, 760px"
               />
             </div>
           )}
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
-            {frontmatter.title}
-          </h1>
-          <div className="mt-4 flex items-center gap-3 text-sm text-neutral-500">
-            <span>{frontmatter.author}</span>
-            <span aria-hidden="true">&middot;</span>
-            <time dateTime={frontmatter.date}>
-              {new Date(frontmatter.date).toLocaleDateString('en-US', {
-                timeZone: 'UTC',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </time>
-          </div>
         </header>
 
         <TableOfContents headings={headings} />
 
-        <div className="prose prose-invert max-w-none">{content}</div>
+        <div className="mv-read-body">{content}</div>
 
-        <div className="mt-16 rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 text-center">
-          <h2 className="mb-3 text-xl font-semibold text-neutral-100">
-            Plan your next motorcycle trip with MotoVault
-          </h2>
-          <p className="mb-6 text-neutral-400">
-            Discover curated routes, track your rides, and plan multi-day trips with waypoints, GPX
-            export, and community reviews.
-          </p>
-          <DownloadAppButton pageType={CtaPageType.Guide} slug={slug} />
+        <div className="mv-read-section">
+          <ContextualAppCta
+            angle={CtaAngle.Guide}
+            model={null}
+            slug={slug}
+            placement={CtaPlacement.EndArticle}
+            pageType={CtaPageType.Guide}
+            headline={t('ctaTripHeadline')}
+          />
         </div>
       </article>
     </>

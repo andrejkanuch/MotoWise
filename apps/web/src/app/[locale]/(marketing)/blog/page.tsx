@@ -4,8 +4,9 @@ import { Suspense } from 'react';
 import { BlogSearch } from '@/components/marketing/blog-search';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { routing } from '@/i18n/routing';
-import { getArticles, getBlogCategories } from '@/lib/blog';
+import { getArticles, getBlogCategories, toBlogListItem } from '@/lib/blog';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import '@/components/marketing/trackside-read.css';
 
 interface BlogPageProps {
   params: Promise<{ locale: string }>;
@@ -65,17 +66,15 @@ export default async function BlogPage({ params }: BlogPageProps) {
   return (
     <>
       <JsonLd data={blogSchema} />
-      <section className="mx-auto max-w-5xl px-6 py-24">
-        <div className="mb-16 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-neutral-50 sm:text-5xl">
-            {t('title')}
-          </h1>
-          <p className="mt-4 text-lg text-neutral-400">{t('description')}</p>
-        </div>
+      <section className="mv-index">
+        <header>
+          <h1 className="mv-index-h1">{t('title')}</h1>
+          <p className="mv-index-lede">{t('description')}</p>
+        </header>
 
         <Suspense fallback={null}>
           <BlogSearch
-            articles={articles}
+            articles={articles.map(toBlogListItem)}
             categories={categories}
             locale={locale}
             strings={{ readingTime: t('readingTime'), readMore: t('readMore') }}

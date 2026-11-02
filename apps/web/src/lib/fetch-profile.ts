@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { UpstreamError } from './upstream-error';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 
@@ -59,9 +60,14 @@ export interface PublicProfile {
 // Wrapped in React cache() so generateMetadata + the page body (+ opengraph-image)
 // share ONE GraphQL POST per request — POST fetches are never memoized by Next's
 // request dedup, so each render otherwise re-hit the API 2–3×.
+//
+// Resolves `null` only when the API answered and the rider is absent. A network
+// failure or a non-200 status throws `UpstreamError`, so the page can say it
+// didn't load instead of serving a false 404.
 export const fetchProfile = cache(async (username: string): Promise<PublicProfile | null> => {
+  let res: Response;
   try {
-    const res = await fetch(API_URL, {
+    res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -70,10 +76,13 @@ export const fetchProfile = cache(async (username: string): Promise<PublicProfil
       }),
       next: { revalidate: 300 },
     });
-    const json = await res.json();
-    if (json.errors || !json.data?.getRiderProfile) return null;
-    return json.data.getRiderProfile;
   } catch {
-    return null;
+    throw new UpstreamError('profile fetch failed');
   }
+  if (!res.ok) throw new UpstreamError(`profile fetch ${res.status}`);
+  const json = await res.json().catch(() => {
+    throw new UpstreamError('profile fetch bad json');
+  });
+  if (json.errors || !json.data?.getRiderProfile) return null;
+  return json.data.getRiderProfile;
 });

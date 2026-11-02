@@ -30,6 +30,8 @@ const NON_LOCALIZED_ROUTE_SECTIONS = [
   'routes',
   'ride',
   'rider',
+  'share',
+  'u',
   'pro',
   'piel',
   'get',

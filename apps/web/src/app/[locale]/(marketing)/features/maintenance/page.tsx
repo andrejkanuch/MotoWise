@@ -33,18 +33,13 @@ export default async function Page({ params }: PageProps) {
       route="/features/maintenance"
       screenshots={[
         {
-          src: '/images/features/maintenance.png',
+          src: '/images/marketing/mw/flow-add-maintenance.png',
           alt: 'MotoVault maintenance log with service history and reminders',
         },
         {
-          src: '/images/features/alerts.png',
+          src: '/images/marketing/mw/service-history.png',
           alt: 'MotoVault upcoming service reminders and overdue tasks',
         },
-      ]}
-      featureIcons={[
-        'M14.7 6.3a4 4 0 0 0-5.6 5.6L3 18l3 3 6.1-6.1a4 4 0 0 0 5.6-5.6l-2.5 2.5-2.8-2.8 2.5-2.5z',
-        'M12 8v4l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
-        'M3 6h18M3 12h18M3 18h12',
       ]}
     />
   );

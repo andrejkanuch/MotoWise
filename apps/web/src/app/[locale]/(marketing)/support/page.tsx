@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { JsonLd } from '@/components/marketing/json-ld';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import '@/components/marketing/trackside-read.css';
 
 export async function generateMetadata({
   params,
@@ -25,18 +27,6 @@ export async function generateMetadata({
       },
     },
   };
-}
-
-function JsonLd({ data }: { data: Record<string, unknown> }) {
-  return (
-    <script
-      type="application/ld+json"
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data requires dangerouslySetInnerHTML
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(data).replace(/</g, '\\u003c'),
-      }}
-    />
-  );
 }
 
 export default async function SupportPage() {
@@ -67,46 +57,64 @@ export default async function SupportPage() {
   return (
     <>
       <JsonLd data={faqSchema} />
-      <article className="prose prose-invert mx-auto max-w-3xl px-6 py-24">
-        <h1>{t('title')}</h1>
-        <p className="text-lg text-neutral-300">{t('subtitle')}</p>
+      <article className="mv-read">
+        <header>
+          <h1 className="mv-read-h1">{t('title')}</h1>
+          <p className="mv-read-lede">{t('subtitle')}</p>
+        </header>
 
-        <section>
-          <h2>{t('contactTitle')}</h2>
-          <p>{t('contactDescription')}</p>
-          <ul>
-            <li>
-              <strong>{t('emailLabel')}:</strong>{' '}
-              <a href="mailto:support@motovault.app" className="text-blue-400 hover:text-blue-300">
-                support@motovault.app
-              </a>
-            </li>
-            <li>
-              <strong>{t('responseTimeLabel')}:</strong> {t('responseTime')}
-            </li>
-          </ul>
+        <section className="mv-read-section" aria-labelledby="contact-heading">
+          <h2 id="contact-heading" className="mv-read-h2">
+            {t('contactTitle')}
+          </h2>
+          <div className="mv-read-body">
+            <p>{t('contactDescription')}</p>
+            <p>{t('bugsAndIdeas')}</p>
+          </div>
+          <dl className="mv-defs">
+            <div>
+              <dt>{t('emailLabel')}</dt>
+              <dd>
+                <a href="mailto:support@motovault.app" className="mv-link">
+                  support@motovault.app
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt>{t('responseTimeLabel')}</dt>
+              <dd>{t('responseTime')}</dd>
+            </div>
+          </dl>
         </section>
 
-        <section>
-          <h2>{t('faqTitle')}</h2>
-          {faqItems.map(({ q, a }) => (
-            <details key={q} className="group border-b border-neutral-800 py-4">
-              <summary className="cursor-pointer text-base font-medium text-neutral-100 group-open:text-white">
-                {t(q)}
-              </summary>
-              <p className="mt-2 text-neutral-400">{t(a)}</p>
-            </details>
-          ))}
-        </section>
-
-        <section>
-          <h2>{t('bugReportTitle')}</h2>
-          <p>{t('bugReportDescription')}</p>
-        </section>
-
-        <section>
-          <h2>{t('featureRequestTitle')}</h2>
-          <p>{t('featureRequestDescription')}</p>
+        <section className="mv-read-section" aria-labelledby="faq-heading">
+          <h2 id="faq-heading" className="mv-read-h2">
+            {t('faqTitle')}
+          </h2>
+          <div className="mv-read-faq">
+            {faqItems.map(({ q, a }) => (
+              <details key={q} className="mv-disclosure is-plus">
+                <summary>
+                  {t(q)}
+                  <svg
+                    className="mv-disclosure-mark"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                </summary>
+                <p className="mv-read-faq-answer">{t(a)}</p>
+              </details>
+            ))}
+          </div>
         </section>
       </article>
     </>

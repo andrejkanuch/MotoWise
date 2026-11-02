@@ -1,0 +1,766 @@
+/* ═══════════════════════════════════════════════════════════════
+   /garage: the read-only garage in the Trackside world.
+   The lead bike is a Bike Plate (.mv-plate from design-system.css, the
+   object the site shares with the app); every other section is a
+   condensed figure and hairline rows (.mv-rows / .mv-row, the shared
+   kit) on the page surface. The face, ground, selection and focus ring
+   come from .mv-root on the (community) layout. Colours only from the
+   --mv-* tokens (mv-tokens.css), both schemes. Prefix gv-.
+   Shared primitives (card, caption, handoff) are mvg- in
+   components/garage-ui/garage-ui.css.
+
+   Type steps (Operate): H1 44 fixed · section head 20/1.25 body 600 ·
+   lead title .mv-h3 · figures 64 (plate) / 40 / 28 / 20, units 0.5×.
+
+   Breakpoints
+     < 768       phone: one column, bottom app bar (.mvg-bar)
+     768–1023    tablet: two-up service/spend, inline handoff band
+     1024–1279   laptop: content + 320 px rail; sections stack
+     ≥ 1280      desktop: plate | photo, 7fr/5fr pair, ride strip
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Visibility helpers ────────────────────────────────────────── */
+
+@media (max-width: 767.98px) {
+  .gv-hide-phone {
+    display: none !important;
+  }
+}
+@media (min-width: 768px) {
+  .gv-show-phone {
+    display: none !important;
+  }
+}
+@media (max-width: 1023.98px) {
+  .gv-show-desktop {
+    display: none !important;
+  }
+}
+@media (min-width: 1024px) {
+  .gv-hide-desktop {
+    display: none !important;
+  }
+}
+
+/* ── Page shell: the site's container, gutters 40 → 24 → 20 ─────── */
+
+.gv-page {
+  box-sizing: border-box;
+  max-width: var(--mv-container);
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+.gv-page *,
+.gv-page *::before,
+.gv-page *::after {
+  box-sizing: border-box;
+}
+.gv-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+@media (min-width: 481px) {
+  .gv-page {
+    padding: 32px 24px 64px;
+  }
+}
+@media (min-width: 768px) {
+  .gv-page {
+    padding: 40px 24px 96px;
+  }
+  .gv-main {
+    gap: 48px;
+  }
+}
+@media (min-width: 901px) {
+  .gv-page {
+    padding: 48px 40px 96px;
+  }
+}
+@media (min-width: 1024px) {
+  .gv-page {
+    display: flex;
+    gap: 48px;
+    align-items: flex-start;
+  }
+  .gv-main {
+    gap: 56px;
+  }
+}
+
+/* ── Page head: one condensed title, a status line (the empty garage adds an intro) ── */
+
+.gv-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* Operate H1 (and the empty garage's start title): the section-title
+   face capped at 44 so the page stays spatially predictable. */
+.gv-title,
+.gv-start-title {
+  font-size: 44px;
+  line-height: 0.98;
+}
+.gv-intro {
+  margin: 4px 0 0;
+  max-width: 60ch;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--mv-ink-2);
+  text-wrap: pretty;
+}
+@media (min-width: 1024px) {
+  .gv-head {
+    gap: 10px;
+  }
+}
+
+/* ── Sections: a system-face title, then rows ──────────────────── */
+
+.gv-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.gv-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+/* Section head: 20/1.25 in the body face (mirrors the app's section title). */
+.gv-h2 {
+  margin: 0;
+  font-family: var(--mv-font-body);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--mv-ink);
+}
+.gv-count {
+  font-size: 15px;
+  color: var(--mv-ink-3);
+  white-space: nowrap;
+}
+.gv-quiet {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--mv-ink-2);
+}
+.gv-empty-line {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--mv-ink);
+}
+.gv-empty-line span {
+  color: var(--mv-ink-2);
+}
+.gv-action {
+  align-self: flex-start;
+}
+.gv-action span {
+  min-width: 0;
+}
+.gv-action svg {
+  flex: none;
+}
+
+/* Service rows (.mv-row): title over its due line on phone and tablet,
+   one line with the due line at the right from the laptop up. */
+.gv-row-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+.gv-row .gv-row-meta {
+  font-size: 15px;
+}
+@media (max-width: 1023.98px) {
+  .mv-row.gv-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .gv-row .gv-row-meta {
+    text-align: left;
+    white-space: normal;
+  }
+}
+
+/* Overdue: triangle + text in the overdue ink, never colour alone. */
+.gv-overdue {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mv-font-body);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--mv-overdue-ink);
+}
+.gv-overdue svg,
+.gv-row .gv-overdue svg {
+  flex: none;
+  color: inherit;
+}
+
+/* Striped photo placeholder (no label). */
+.gv-stripes {
+  background-color: var(--mv-surface-2);
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--mv-line) 0 12px,
+    transparent 12px 24px
+  );
+}
+.gv-stripes--fine {
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--mv-line) 0 6px,
+    transparent 6px 12px
+  );
+}
+
+/* ── The bike: plate, identity rows, photo ─────────────────────── */
+
+.gv-bike {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.gv-bike-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+.gv-plate-slot {
+  position: relative;
+}
+.gv-plate-slot .mv-plate {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  padding: 20px 24px 18px;
+}
+/* The one plate figure on the page: 64 (56 on phones), unit at 0.5×. */
+.gv-plate-slot .mv-plate-figure {
+  font-size: 56px;
+  line-height: 56px;
+}
+.gv-plate-slot .mv-plate-unit {
+  font-size: 28px;
+  line-height: 30px;
+}
+.gv-plate-slot .mv-plate-caption {
+  margin-top: 6px;
+  font-size: 15px;
+  line-height: 22px;
+}
+.gv-plate-slot .mv-plate-edge {
+  margin-top: 14px;
+  padding-top: 10px;
+}
+/* The stripe was drawn for the 264 px plate; on this 560 px one it is
+   scaled ×1.2 so the band keeps its proportion and clears the corner. */
+.gv-plate-slot .mv-plate-stripe {
+  top: 18px;
+  right: -52px;
+  width: 168px;
+  height: 10px;
+}
+.gv-plate-slot .mv-plate-stripe::after {
+  top: 15px;
+  height: 5px;
+}
+.gv-photo {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--mv-radius-card);
+  overflow: hidden;
+}
+/* Identity rows stay one line at every width. */
+.gv-ident .mv-row.gv-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+}
+.gv-ident-label {
+  font-size: 15px;
+  color: var(--mv-ink-2);
+}
+.gv-odo-value {
+  font-size: 28px;
+  line-height: 30px;
+  color: var(--mv-ink);
+}
+.gv-odo-unit {
+  margin-left: 0.15em;
+  font-size: 0.5em;
+  font-weight: 500;
+  color: var(--mv-ink-2);
+}
+/* The rest of the garage: thumbnail rows, flush left. */
+.mv-row.gv-thumb {
+  justify-content: flex-start;
+  gap: 12px;
+}
+.gv-thumb-photo {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--mv-radius-control);
+  overflow: hidden;
+}
+.gv-thumb-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.gv-thumb-name {
+  font-size: 15px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gv-thumb-meta {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--mv-ink-3);
+}
+@media (min-width: 768px) {
+  .gv-bike {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 32px;
+  }
+  /* 768–1279: the 300 px column keeps the 4:3 crop (full height would
+     stretch a landscape bike into a portrait). */
+  .gv-photo {
+    align-self: start;
+  }
+  .gv-plate-slot .mv-plate-figure {
+    font-size: 64px;
+    line-height: 64px;
+  }
+  .gv-plate-slot .mv-plate-unit {
+    font-size: 32px;
+    line-height: 34px;
+  }
+}
+@media (min-width: 1280px) {
+  .gv-bike {
+    grid-template-columns: minmax(0, 1fr) 440px;
+    gap: 40px;
+  }
+  .gv-photo {
+    align-self: stretch;
+    aspect-ratio: auto;
+    min-height: 100%;
+    height: 100%;
+  }
+}
+
+/* ── Service + spend pair ──────────────────────────────────────── */
+
+.gv-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+}
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .gv-pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  .gv-pair {
+    gap: 48px;
+  }
+}
+@media (min-width: 1280px) {
+  .gv-pair {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 64px;
+  }
+}
+
+/* ── Next service: the lead task is an .mv-h3 under the section head ── */
+
+.gv-lead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding-bottom: 14px;
+}
+.gv-lead-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 15px;
+  color: var(--mv-ink-2);
+}
+.gv-rows-label {
+  padding: 10px 0 6px;
+  border-top: 1px solid var(--mv-line);
+}
+/* The label already rules the top: the list under it draws no second hairline. */
+.gv-rows-label + .mv-rows {
+  border-top: 0;
+}
+
+/* ── This-year spend ───────────────────────────────────────────── */
+
+.gv-spend-total {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  font-size: 40px;
+  line-height: 42px;
+  color: var(--mv-ink);
+}
+.gv-spend-part {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 14px;
+}
+.gv-spend-sep {
+  font-size: 20px;
+  color: var(--mv-ink-3);
+}
+.gv-split {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+}
+.gv-split-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gv-split-group + .gv-split-group {
+  padding-top: 8px;
+}
+/* Category rows (.mv-row): name, bar, amount on one grid. The name column
+   gives way to a long amount (7 digits) rather than overflowing it. */
+.mv-row.gv-cat {
+  display: grid;
+  grid-template-columns: minmax(96px, 1fr) minmax(40px, 2fr) auto;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+}
+.gv-cat-name {
+  color: var(--mv-ink-2);
+  overflow-wrap: anywhere;
+}
+.gv-cat-track {
+  display: block;
+  height: 4px;
+  border-radius: var(--mv-radius-track);
+  background: var(--mv-fill);
+}
+/* The bar carries the category's own hue (the app's hub set on graphite, the
+   plate-light set on paper), set per row by garage-cards.tsx; it only ever
+   sits beside the category's name. */
+.gv-cat-fill {
+  display: block;
+  height: 4px;
+  border-radius: var(--mv-radius-track);
+  background: var(--gv-cat-dark, var(--mv-ink-3));
+}
+html:not(.dark) .gv-cat-fill {
+  background: var(--gv-cat-light, var(--mv-ink-3));
+}
+.gv-cat-amt {
+  font-size: 20px;
+  line-height: 22px;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--mv-ink);
+}
+
+/* ── Rides ─────────────────────────────────────────────────────── */
+
+.gv-ride-stats {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+  align-items: end;
+}
+.gv-ride-stat {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 4px;
+  min-width: 0;
+}
+.gv-ride-stat dt {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--mv-ink-3);
+}
+.gv-ride-stat dd {
+  margin: 0;
+}
+.gv-ride-num {
+  font-size: 40px;
+  line-height: 42px;
+  color: var(--mv-ink);
+}
+.gv-ride-unit {
+  margin-left: 5px;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--mv-ink-2);
+}
+.gv-ride-date {
+  font-size: 20px;
+  line-height: 22px;
+  color: var(--mv-ink);
+}
+/* Phone: the last ride is its own ruled row. */
+@media (max-width: 767.98px) {
+  .gv-ride-stat--last {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-top: 12px;
+    border-top: 1px solid var(--mv-line);
+  }
+}
+@media (min-width: 768px) {
+  .gv-ride-stats {
+    grid-template-columns: repeat(var(--gv-ride-stats, 3), minmax(0, 1fr));
+  }
+}
+/* Desktop: one horizontal strip. */
+@media (min-width: 1280px) {
+  .gv-rides:not(.gv-rides--empty) .gv-rides-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 40px;
+  }
+  .gv-rides:not(.gv-rides--empty) .gv-ride-stats {
+    gap: 40px;
+  }
+  .gv-rides:not(.gv-rides--empty) .gv-action {
+    max-width: 260px;
+    line-height: 1.35;
+  }
+}
+.gv-rides-skel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* ── Account ───────────────────────────────────────────────────── */
+
+.gv-account {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--mv-line);
+}
+.gv-account-h {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--mv-ink);
+}
+.gv-account-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 44px;
+  padding: 8px 0 0;
+  font-size: 15px;
+  color: var(--mv-ink-2);
+}
+.gv-account-plan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.gv-account-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mv-ink);
+}
+.gv-account-email {
+  display: none;
+  overflow-wrap: anywhere;
+}
+.gv-account-email-line {
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+.gv-account-row .gv-quiet {
+  overflow-wrap: anywhere;
+}
+.gv-account-free {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.gv-badge {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mv-ink);
+}
+.gv-account .prof-banner-manage-help {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--mv-ink-2);
+}
+@media (min-width: 768px) {
+  .gv-account-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 24px;
+  }
+  .gv-account-plan {
+    gap: 10px;
+  }
+  .gv-account-email {
+    display: inline;
+  }
+  .gv-account-email-line {
+    display: none;
+  }
+}
+
+/* ── Error ─────────────────────────────────────────────────────── */
+
+.gv-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 20px 0;
+  border-top: 1px solid var(--mv-line);
+  border-bottom: 1px solid var(--mv-line);
+}
+.gv-error-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.gv-error .mv-btn {
+  margin-top: 8px;
+}
+
+/* ── Skeleton helpers ──────────────────────────────────────────── */
+
+.gv-skel-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Empty garage: the start hero IS the handoff, on the page surface ── */
+
+.gv-start {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 820px;
+}
+.gv-start-title {
+  max-width: 16ch;
+}
+.gv-start-qr,
+.gv-start-tiles {
+  display: none;
+}
+.gv-start-phone {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.gv-start-signin {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--mv-ink-2);
+}
+.gv-start-signin strong {
+  font-weight: 600;
+  color: var(--mv-ink);
+  overflow-wrap: anywhere;
+}
+.gv-start-list {
+  padding-top: 8px;
+}
+@media (min-width: 768px) {
+  .gv-start {
+    gap: 28px;
+  }
+  .gv-start-phone,
+  .gv-start-list {
+    display: none;
+  }
+  .gv-start-qr {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .gv-start-tiles {
+    margin: 0;
+    padding: 20px 0 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    border-top: 1px solid var(--mv-line);
+  }
+  .gv-start-tiles > li {
+    display: flex;
+    min-width: 0;
+  }
+  .gv-start-tiles .mvg-reason {
+    flex: 1;
+  }
+  /* "On this tablet?" sits under the link field, aligned with the text column. */
+  .gv-start-tablet-links {
+    padding-left: calc(148px + 28px + 24px);
+  }
+}
+@media (min-width: 1024px) {
+  .gv-start-tablet-links {
+    display: none;
+  }
+}

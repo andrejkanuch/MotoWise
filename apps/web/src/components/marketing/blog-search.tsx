@@ -1,23 +1,46 @@
 'use client';
 
 import { BlogPostType } from '@motovault/types';
+import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from '@/i18n/navigation';
-import type { Article } from '@/lib/blog';
-import { applyBlogFilters } from '@/lib/blog-filters';
+import type { BlogListItem } from '@/lib/blog';
+import { applyBlogFilters, dedupeFacets, formatReadingTime, humaniseTag } from '@/lib/blog-filters';
 
 type Category = { slug: string; name: string };
 type SearchStatus = 'idle' | 'loading' | 'error';
 
 const TYPE_OPTIONS = Object.values(BlogPostType);
 
+/** Chip labels are cased in the source string, never by CSS (Rule 5). */
+const TYPE_LABEL: Record<BlogPostType, string> = {
+  [BlogPostType.GUIDE]: 'Guide',
+  [BlogPostType.MAINTENANCE]: 'Maintenance',
+  [BlogPostType.TRIP]: 'Trip',
+  [BlogPostType.GEAR]: 'Gear',
+};
+
+function typeLabel(value: string): string {
+  return TYPE_LABEL[value as BlogPostType] ?? value;
+}
+
+function formatDate(date: string): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
 /**
- * Reader search + filters (plan U8). The full article list is passed in from the
- * statically-generated page; type/category/keyword filtering runs client-side
- * over it, while free-text search hits the FTS RPC via `/api/blog/search`.
+ * Reader search + filters (plan U8). The list-only article shape (no body, no
+ * FAQ, no author — see `BlogListItem`) is passed in from the statically-generated
+ * page; type/category/keyword filtering runs client-side over it, while free-text
+ * search hits the FTS RPC via `/api/blog/search`.
  * Search state lives in the URL (`?q/type/category/keyword`) so results are
- * shareable; the unfiltered view renders the full grid (the static base).
+ * shareable; the unfiltered view renders the full editorial feed (the static base).
  */
 export function BlogSearch({
   articles,
@@ -25,7 +48,7 @@ export function BlogSearch({
   locale,
   strings,
 }: {
-  articles: Article[];
+  articles: BlogListItem[];
   categories: Category[];
   locale: string;
   strings: { readingTime: string; readMore: string };
@@ -109,68 +132,67 @@ export function BlogSearch({
     [articles, q, searchSlugs, type, category, keyword],
   );
 
-  const categoryName = (slug: string) => categories.find((c) => c.slug === slug)?.name ?? slug;
+  // Category facets after the type chips: humanised, one chip per label.
+  const categoryChips = useMemo(
+    () => dedupeFacets(categories, Object.values(TYPE_LABEL)),
+    [categories],
+  );
+  const categoryName = (slug: string) =>
+    humaniseTag(categories.find((c) => c.slug === slug)?.name ?? slug);
   const showResults = isActive;
   const searchPending = Boolean(q) && status === 'loading';
 
   return (
-    <div className="mb-12">
-      {/* Search bar */}
-      <form onSubmit={submitQuery} className="flex gap-2">
+    <div>
+      <form onSubmit={submitQuery} className="mv-search">
         <input
           type="search"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Search articles…"
+          placeholder="Search articles"
           aria-label="Search articles"
-          className="flex-1 rounded-xl border border-neutral-800 bg-neutral-900/60 px-4 py-3 text-neutral-100 placeholder:text-neutral-500 focus:border-neutral-600 focus:outline-none"
+          className="mv-field-input"
         />
-        <button
-          type="submit"
-          className="rounded-xl bg-amber-500 px-5 py-3 text-sm font-semibold text-neutral-950 transition-colors hover:bg-amber-400"
-        >
+        <button type="submit" className="mv-btn mv-btn-primary">
           Search
         </button>
       </form>
 
-      {/* Browse facets */}
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mv-chips">
         {TYPE_OPTIONS.map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => toggleParam('type', t)}
-            className={`rounded-full border px-3 py-1 text-sm capitalize transition-colors ${
-              type === t
-                ? 'border-amber-500 bg-amber-500/15 text-amber-300'
-                : 'border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200'
-            }`}
+            aria-pressed={type === t}
+            className="mv-chip"
           >
-            {t}
+            {TYPE_LABEL[t]}
           </button>
         ))}
-        {categories.map((c) => (
+        {categoryChips.map((c) => (
           <button
             key={c.slug}
             type="button"
             onClick={() => toggleParam('category', c.slug)}
-            className={`rounded-full border px-3 py-1 text-sm transition-colors ${
-              category === c.slug
-                ? 'border-amber-500 bg-amber-500/15 text-amber-300'
-                : 'border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200'
-            }`}
+            aria-pressed={category === c.slug}
+            className="mv-chip"
           >
-            {c.name}
+            {humaniseTag(c.name)}
           </button>
         ))}
       </div>
 
-      {/* Active filters */}
       {isActive && (
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-neutral-500">Filters:</span>
+        <div className="mv-active-filters mv-enter-down">
+          <span>Showing</span>
           {q && <FilterChip label={`“${q}”`} onRemove={() => setParams((p) => p.delete('q'))} />}
-          {type && <FilterChip label={type} onRemove={() => setParams((p) => p.delete('type'))} />}
+          {type && (
+            <FilterChip
+              label={typeLabel(type)}
+              onRemove={() => setParams((p) => p.delete('type'))}
+            />
+          )}
           {category && (
             <FilterChip
               label={categoryName(category)}
@@ -179,118 +201,149 @@ export function BlogSearch({
           )}
           {keyword && (
             <FilterChip
-              label={`#${keyword}`}
+              label={humaniseTag(keyword)}
               onRemove={() => setParams((p) => p.delete('keyword'))}
             />
           )}
-          <button
-            type="button"
-            onClick={clearAll}
-            className="ml-1 text-amber-400 underline-offset-2 hover:underline"
-          >
-            Clear all
+          <button type="button" onClick={clearAll} className="mv-link is-quiet">
+            Clear all filters
           </button>
         </div>
       )}
 
-      {/* Results / states */}
-      <div className="mt-10">
-        {status === 'error' ? (
-          <p className="text-neutral-400">
-            Search is temporarily unavailable — browse by category above instead.
-          </p>
-        ) : searchPending ? (
-          <CardSkeletons />
-        ) : showResults && results.length === 0 ? (
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-10 text-center">
-            <p className="text-neutral-300">No posts found{q ? ` for “${q}”` : ''}.</p>
-            <button
-              type="button"
-              onClick={clearAll}
-              className="mt-3 text-sm font-medium text-amber-400 hover:text-amber-300"
-            >
-              Clear search
-            </button>
+      {status === 'error' ? (
+        <p className="mv-empty mv-enter-down" role="status">
+          Search didn't load. Pick a category above, or try the search again in a moment.
+        </p>
+      ) : searchPending ? (
+        <RowSkeletons />
+      ) : showResults && results.length === 0 ? (
+        <div className="mv-empty mv-enter-down" role="status">
+          <p style={{ margin: 0 }}>No articles match{q ? ` “${q}”` : ' these filters'}.</p>
+          <button
+            type="button"
+            onClick={clearAll}
+            className="mv-link is-quiet"
+            style={{ marginTop: 8 }}
+          >
+            Clear the search
+          </button>
+        </div>
+      ) : (
+        showResults && (
+          <div className="mv-enter-down">
+            <ArticleFeed articles={results} strings={strings} featured={false} />
           </div>
-        ) : (
-          showResults && <ArticleGrid articles={results} strings={strings} />
-        )}
-      </div>
+        )
+      )}
 
-      {/* The unfiltered base grid — present in the static HTML, hidden once a
+      {/* The unfiltered base feed — present in the static HTML, hidden once a
           filter/search is active (so crawlers always get the full listing). */}
-      {!isActive && <ArticleGrid articles={articles} strings={strings} />}
+      {!isActive && <ArticleFeed articles={articles} strings={strings} featured />}
     </div>
   );
 }
 
 function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-800 px-3 py-1 text-neutral-200">
-      {label}
-      <button
-        type="button"
-        onClick={onRemove}
-        aria-label={`Remove ${label} filter`}
-        className="text-neutral-400 hover:text-neutral-100"
-      >
-        ✕
+    <span className="mv-chip" data-active="true">
+      <span className="mv-chip-label" title={label}>
+        {label}
+      </span>
+      <button type="button" onClick={onRemove} aria-label={`Remove ${label} filter`}>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
       </button>
     </span>
   );
 }
 
-function CardSkeletons() {
+function RowSkeletons() {
   return (
-    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-      {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          className="h-44 animate-pulse rounded-2xl border border-neutral-800 bg-neutral-900/50"
-        />
-      ))}
+    <div className="mv-skeleton-rows" role="status" aria-label="Searching articles">
+      <div />
+      <div />
+      <div />
     </div>
   );
 }
 
-function ArticleGrid({
+/**
+ * Editorial feed: hairline rows with the date and reading time in the margin.
+ * The first item of the unfiltered feed is featured — larger title, hero image
+ * when the article has one — so the page has a front, not a grid.
+ */
+function ArticleFeed({
   articles,
   strings,
+  featured,
 }: {
-  articles: Article[];
+  articles: BlogListItem[];
   strings: { readingTime: string; readMore: string };
+  featured: boolean;
 }) {
   return (
-    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-      {articles.map((article) => (
-        <Link
-          key={article.slug}
-          href={`/blog/${article.slug}`}
-          className="group rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 transition-colors hover:border-neutral-700 hover:bg-neutral-900/80"
-        >
-          <div className="mb-3 flex items-center gap-3 text-sm text-neutral-500">
-            <time dateTime={article.date}>
-              {new Date(article.date).toLocaleDateString('en-US', {
-                timeZone: 'UTC',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </time>
-            <span aria-hidden="true">&middot;</span>
-            <span>
-              {article.readingTime} {strings.readingTime}
-            </span>
-          </div>
-          <h2 className="mb-3 text-xl font-semibold text-neutral-100 transition-colors group-hover:text-white">
-            {article.title}
-          </h2>
-          <p className="mb-4 text-sm leading-relaxed text-neutral-400">{article.excerpt}</p>
-          <span className="text-sm font-medium text-amber-400 transition-colors group-hover:text-amber-300">
-            {strings.readMore} &rarr;
-          </span>
-        </Link>
-      ))}
-    </div>
+    <ol className="mv-feed">
+      {articles.map((article, index) => {
+        const isFeatured = featured && index === 0;
+        return (
+          <li key={article.slug} className={`mv-feed-item${isFeatured ? ' is-featured' : ''}`}>
+            <Link href={`/blog/${article.slug}`}>
+              {isFeatured && article.heroImage && (
+                <div className="mv-feed-hero">
+                  <Image
+                    src={article.heroImage}
+                    alt={article.heroAlt || ''}
+                    fill
+                    sizes="(max-width: 920px) 100vw, 920px"
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+              )}
+              <div className="mv-feed-meta">
+                <time dateTime={article.date}>{formatDate(article.date)}</time>
+                <span>{formatReadingTime(article.readingTime, strings.readingTime)}</span>
+              </div>
+              <div>
+                {/* The whole row is the link, so the title is the link text; the
+                    featured "read" line is decoration for sighted readers only. */}
+                <h2 className={isFeatured ? 'mv-h2' : 'mv-feed-title'}>{article.title}</h2>
+                <p className="mv-feed-excerpt">{article.excerpt}</p>
+                {isFeatured && (
+                  <span className="mv-feed-more" aria-hidden="true">
+                    {strings.readMore}
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                )}
+              </div>
+            </Link>
+          </li>
+        );
+      })}
+    </ol>
   );
 }

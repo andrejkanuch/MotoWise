@@ -1,0 +1,509 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-30T20:44:08+00:00",
+  "title": "Design System: MotoVault Web — Trackside",
+  "extensions": {
+    "colorMeta": {
+      "exhaust-copper": {
+        "role": "primary",
+        "displayName": "Exhaust Copper",
+        "canonical": "#d4622e",
+        "tonalRamp": [
+          "#4a1f0c",
+          "#7a3417",
+          "#a6461a",
+          "#b8501f",
+          "#d4622e",
+          "#e8723a",
+          "#ec8a5a",
+          "#f6c9b0"
+        ]
+      },
+      "light-copper": {
+        "role": "primary",
+        "displayName": "Exhaust Copper (light scheme)",
+        "canonical": "#b8501f",
+        "tonalRamp": [
+          "#4a1f0c",
+          "#7a3417",
+          "#a6461a",
+          "#b8501f",
+          "#d4622e",
+          "#e8723a",
+          "#ec8a5a",
+          "#f6c9b0"
+        ]
+      },
+      "copper-text": {
+        "role": "primary",
+        "displayName": "Copper Text",
+        "canonical": "#ec8a5a",
+        "tonalRamp": [
+          "#4a1f0c",
+          "#7a3417",
+          "#a6461a",
+          "#b8501f",
+          "#d4622e",
+          "#e8723a",
+          "#ec8a5a",
+          "#f6c9b0"
+        ]
+      },
+      "plate-bone": {
+        "role": "tertiary",
+        "displayName": "Plate Bone (ready)",
+        "canonical": "#ece6da"
+      },
+      "plate-signal": {
+        "role": "tertiary",
+        "displayName": "Signal Yellow (due soon)",
+        "canonical": "#f2c230",
+        "tonalRamp": [
+          "#3d3008",
+          "#7a5b00",
+          "#a8820c",
+          "#d4a21a",
+          "#f2c230",
+          "#f6d260",
+          "#f9e192",
+          "#fdf1c8"
+        ]
+      },
+      "plate-red": {
+        "role": "tertiary",
+        "displayName": "Plate Red (overdue)",
+        "canonical": "#e5483a",
+        "tonalRamp": [
+          "#3d120e",
+          "#7a2219",
+          "#b13026",
+          "#c8352a",
+          "#e5483a",
+          "#f0675a",
+          "#f59a90",
+          "#fbd2cd"
+        ]
+      },
+      "plate-ink": {
+        "role": "neutral",
+        "displayName": "Plate Ink",
+        "canonical": "#121315"
+      },
+      "graphite-ground": {
+        "role": "neutral",
+        "displayName": "Graphite Ground",
+        "canonical": "#111214",
+        "tonalRamp": [
+          "#0c0d0e",
+          "#111214",
+          "#1a1b1e",
+          "#232427",
+          "#2e3034",
+          "#3d3f44",
+          "#8e8a83",
+          "#ece6da"
+        ]
+      },
+      "graphite-card": {
+        "role": "neutral",
+        "displayName": "Graphite Card",
+        "canonical": "#1a1b1e",
+        "tonalRamp": [
+          "#0c0d0e",
+          "#111214",
+          "#1a1b1e",
+          "#232427",
+          "#2e3034",
+          "#3d3f44",
+          "#8e8a83",
+          "#ece6da"
+        ]
+      },
+      "graphite-raised": {
+        "role": "neutral",
+        "displayName": "Graphite Raised",
+        "canonical": "#232427",
+        "tonalRamp": [
+          "#0c0d0e",
+          "#111214",
+          "#1a1b1e",
+          "#232427",
+          "#2e3034",
+          "#3d3f44",
+          "#8e8a83",
+          "#ece6da"
+        ]
+      },
+      "bone-ink": {
+        "role": "neutral",
+        "displayName": "Bone Ink",
+        "canonical": "#ece6da",
+        "tonalRamp": [
+          "#0c0d0e",
+          "#111214",
+          "#1a1b1e",
+          "#232427",
+          "#2e3034",
+          "#3d3f44",
+          "#8e8a83",
+          "#ece6da"
+        ]
+      },
+      "paper-ground": {
+        "role": "neutral",
+        "displayName": "Paper Ground",
+        "canonical": "#f3f2ef",
+        "tonalRamp": [
+          "#141517",
+          "#45464a",
+          "#86878b",
+          "#c9c5bc",
+          "#dedbd4",
+          "#ebe9e4",
+          "#f3f2ef",
+          "#ffffff"
+        ]
+      },
+      "paper-card": {
+        "role": "neutral",
+        "displayName": "Paper Card",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#141517",
+          "#45464a",
+          "#86878b",
+          "#c9c5bc",
+          "#dedbd4",
+          "#ebe9e4",
+          "#f3f2ef",
+          "#ffffff"
+        ]
+      },
+      "light-ink": {
+        "role": "neutral",
+        "displayName": "Light Ink",
+        "canonical": "#141517",
+        "tonalRamp": [
+          "#141517",
+          "#45464a",
+          "#86878b",
+          "#c9c5bc",
+          "#dedbd4",
+          "#ebe9e4",
+          "#f3f2ef",
+          "#ffffff"
+        ]
+      },
+      "go-green": {
+        "role": "secondary",
+        "displayName": "Go Green",
+        "canonical": "#4fb47a"
+      },
+      "info-blue": {
+        "role": "secondary",
+        "displayName": "Info Blue",
+        "canonical": "#6c9bf2"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Home hero headline only, two forced lines."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Persuade page H1 (.mv-section-title)."
+      },
+      "headline-read": {
+        "displayName": "Headline (Read)",
+        "purpose": "Read page H1: blog, guides, explore, trips, legal."
+      },
+      "headline-operate": {
+        "displayName": "Headline (Operate)",
+        "purpose": "Operate page H1: auth, garage, share."
+      },
+      "section": {
+        "displayName": "Section",
+        "purpose": "Persuade H2 (.mv-h2)."
+      },
+      "section-compact": {
+        "displayName": "Section (Read/Operate)",
+        "purpose": "Read and Operate H2."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "H3 for sub-sections, sheets, cards (.mv-h3)."
+      },
+      "plate": {
+        "displayName": "Plate",
+        "purpose": "Hero Bike Plate figure."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Compact plate figure and large stats."
+      },
+      "figure-small": {
+        "displayName": "Figure small",
+        "purpose": "Row asides, plate units at hero size halves."
+      },
+      "operate-head": {
+        "displayName": "Operate head",
+        "purpose": "System-face section heads on Operate pages."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "Section subtitle and page lede, max 52ch."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Read-page prose, max 60ch."
+      },
+      "body-compact": {
+        "displayName": "Body compact",
+        "purpose": "Rows and inputs; inputs never below 16px."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Workhorse step: nav links, chips, tables, alerts, footer links."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Button labels."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Crumbs, captions, hints, errors, footer titles; the 13px floor."
+      }
+    },
+    "shadows": [
+      {
+        "name": "keyline-ring",
+        "value": "0 0 0 1px var(--mv-line)",
+        "purpose": "Phone mockup edge."
+      },
+      {
+        "name": "plate-keyline",
+        "value": "inset 0 0 0 2px var(--mv-plate-ink)",
+        "purpose": "Bike Plate on light grounds, above the stripe."
+      },
+      {
+        "name": "tab-underline",
+        "value": "inset 0 -2px var(--mv-ink)",
+        "purpose": "Active trip tab."
+      },
+      {
+        "name": "navbar-glass",
+        "value": "background: rgba(35,36,39,0.92) dark / rgba(235,233,228,0.92) light; backdrop-filter: blur(12px)",
+        "purpose": "Scrolled navbar only; the whole blur budget."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "State transitions (hover, colour, lift)."
+      },
+      {
+        "name": "ease-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Entrances, disclosure, plate settle."
+      },
+      {
+        "name": "dur-1",
+        "value": "160ms",
+        "purpose": "Colour, background, border."
+      },
+      {
+        "name": "dur-2",
+        "value": "200ms",
+        "purpose": "Translate, scale, opacity; theme view transition."
+      },
+      {
+        "name": "dur-3",
+        "value": "240ms",
+        "purpose": "Height, disclosure, plate settle and fill cross-fade."
+      },
+      {
+        "name": "dur-4",
+        "value": "420ms",
+        "purpose": "The livery stripe only."
+      },
+      {
+        "name": "plate-settle",
+        "value": "scale 0.98→1 over dur-3 ease-expo; stripe translateX(120%)→0 along 45° over dur-4, 120ms delay; 'late' +240ms",
+        "purpose": "The one signature motion; one per page family."
+      },
+      {
+        "name": "reveal",
+        "value": "opacity 0→1, translateY 18px→0, 700ms ease-expo, scroll timeline entry 0–30%",
+        "purpose": "Visible-by-default entrance; one or two per page."
+      },
+      {
+        "name": "press",
+        "value": "scale 0.985 (buttons) / 0.97 (chips, icon buttons), 60ms",
+        "purpose": "Press feedback."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "480px"
+      },
+      {
+        "name": "footer",
+        "value": "820px"
+      },
+      {
+        "name": "tablet",
+        "value": "900px"
+      },
+      {
+        "name": "container",
+        "value": "1240px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary-dark",
+      "description": "The copper verb: store CTAs, form submit, checkout.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Download for iOS</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:10px;box-sizing:border-box;min-height:44px;padding:12px 22px;border-radius:var(--mv-radius-control,12px);font-family:var(--mv-font-body,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif);font-weight:600;font-size:15px;line-height:1.2;border:1px solid transparent;cursor:pointer;transition:translate 200ms cubic-bezier(0.2,0.8,0.2,1),scale 200ms cubic-bezier(0.2,0.8,0.2,1),background 240ms,border-color 240ms}.ds-btn-primary{background:var(--mv-copper,#d4622e);color:var(--mv-on-copper,#121315)}.ds-btn-primary:hover{background:var(--mv-copper-hover,#e8723a);translate:0 -1px}.ds-btn-primary:active{translate:0 0;scale:.985;transition-duration:60ms}.ds-btn:focus-visible{outline:2px solid var(--mv-focus,#d4622e);outline-offset:2px}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost-dark",
+      "description": "Secondary action one step up the ramp.",
+      "html": "<button class=\"ds-btn ds-btn-ghost\">Get it on Google Play</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:10px;box-sizing:border-box;min-height:44px;padding:12px 22px;border-radius:var(--mv-radius-control,12px);font-family:var(--mv-font-body,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif);font-weight:600;font-size:15px;line-height:1.2;border:1px solid transparent;cursor:pointer;transition:translate 200ms,background 240ms,border-color 240ms}.ds-btn-ghost{background:var(--mv-surface-2,#232427);color:var(--mv-ink,#ece6da);border-color:var(--mv-line,rgba(236,230,218,.09))}.ds-btn-ghost:hover{background:var(--mv-surface-3,#2e3034);border-color:var(--mv-line-step,#3d3f44);translate:0 -1px}.ds-btn-ghost:active{translate:0 0;scale:.985}.ds-btn:focus-visible{outline:2px solid var(--mv-focus,#d4622e);outline-offset:2px}"
+    },
+    {
+      "name": "Text Link",
+      "kind": "button",
+      "refersTo": "copper-text",
+      "description": "Copper text action, underlined at the copper border.",
+      "html": "<a class=\"ds-link\" href=\"#\">See the full service history</a>",
+      "css": ".ds-link{font-family:var(--mv-font-body,-apple-system,sans-serif);font-weight:500;color:var(--mv-copper-text,#ec8a5a);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--mv-copper-border,rgba(236,138,90,.45));transition:color 200ms,text-decoration-color 200ms}.ds-link:hover{color:var(--mv-copper-hover,#e8723a);text-decoration-color:currentColor}.ds-link:focus-visible{outline:2px solid var(--mv-focus,#d4622e);outline-offset:2px}"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "field-input-dark",
+      "description": "Label, raised input with a 3:1 field line, copper focus.",
+      "html": "<label class=\"ds-field\"><span>Email</span><input class=\"ds-field-input\" placeholder=\"you@example.com\"></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:8px;font-family:var(--mv-font-body,-apple-system,sans-serif)}.ds-field>span{font-size:15px;font-weight:500;color:var(--mv-ink-2,#bdb8ae)}.ds-field-input{height:48px;padding:0 14px;border-radius:var(--mv-radius-control,12px);border:1px solid var(--mv-field-line,rgba(236,230,218,.38));background:var(--mv-surface-2,#232427);color:var(--mv-ink,#ece6da);caret-color:var(--mv-copper,#d4622e);font:16px/1 var(--mv-font-body,-apple-system,sans-serif);outline:none;transition:border-color 200ms,background 200ms}.ds-field-input::placeholder{color:var(--mv-ink-3,#8e8a83)}.ds-field-input:hover{border-color:var(--mv-line-step,#3d3f44)}.ds-field-input:focus-visible{border-color:var(--mv-copper,#d4622e);outline:2px solid var(--mv-focus,#d4622e);outline-offset:0}"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip-dark",
+      "description": "Filter chip; selected is a copper border and copper-text label.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip\" aria-pressed=\"true\">Alps</button><button class=\"ds-chip\">Pyrenees</button></div>",
+      "css": ".ds-chips{display:flex;gap:8px}.ds-chip{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:var(--mv-radius-control,12px);border:1px solid var(--mv-line,rgba(236,230,218,.09));background:var(--mv-surface-2,#232427);color:var(--mv-ink-2,#bdb8ae);font:500 15px/1 var(--mv-font-body,-apple-system,sans-serif);cursor:pointer;transition:border-color 200ms,color 200ms,background 200ms}.ds-chip:hover{background:var(--mv-surface-3,#2e3034);border-color:var(--mv-line-step,#3d3f44);color:var(--mv-ink,#ece6da)}.ds-chip[aria-pressed=true]{border-color:var(--mv-copper,#d4622e);color:var(--mv-copper-text,#ec8a5a)}.ds-chip:active{scale:.97}.ds-chip:focus-visible{outline:2px solid var(--mv-focus,#d4622e);outline-offset:2px}"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "chip",
+      "refersTo": "segmented-selected-dark",
+      "description": "Raised track; selection is one step higher, never copper.",
+      "html": "<div class=\"ds-seg\"><button aria-pressed=\"true\">km</button><button>mi</button></div>",
+      "css": ".ds-seg{display:inline-flex;gap:2px;padding:2px;border-radius:var(--mv-radius-control,12px);background:var(--mv-surface-2,#232427)}.ds-seg>button{min-height:40px;padding:0 14px;border:0;border-radius:10px;background:transparent;color:var(--mv-ink-2,#bdb8ae);font:500 15px var(--mv-font-body,-apple-system,sans-serif);cursor:pointer;transition:background-color 160ms,color 160ms}.ds-seg>button:hover{color:var(--mv-ink,#ece6da)}.ds-seg>[aria-pressed=true]{background:var(--mv-surface-3,#2e3034);color:var(--mv-ink,#ece6da)}.ds-seg>button:focus-visible{outline:2px solid var(--mv-focus,#d4622e);outline-offset:-2px}"
+    },
+    {
+      "name": "Hairline Rows",
+      "kind": "card",
+      "refersTo": "hairline-row",
+      "description": "The card substitute: rows ruled by 1px lines on the page surface.",
+      "html": "<ul class=\"ds-rows\"><li><a class=\"ds-row\" href=\"#\"><span>Oil and filter</span><span class=\"ds-aside\">2,400 km</span></a></li><li><a class=\"ds-row\" href=\"#\"><span>Chain adjust</span><span class=\"ds-aside\">600 km</span></a></li></ul>",
+      "css": ".ds-rows{margin:0;padding:0;list-style:none;border-top:1px solid var(--mv-line,rgba(236,230,218,.09));font-family:var(--mv-font-body,-apple-system,sans-serif)}.ds-rows>li{border-bottom:1px solid var(--mv-line,rgba(236,230,218,.09))}.ds-row{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:44px;padding:12px 0;color:var(--mv-ink,#ece6da);text-decoration:none;font-size:16px;font-weight:500;transition:color 200ms}.ds-row:hover{color:var(--mv-copper-text,#ec8a5a)}.ds-aside{font:600 20px/22px var(--mv-font-display,'Barlow Condensed','Arial Narrow',sans-serif);font-variant-numeric:tabular-nums;color:var(--mv-ink-2,#bdb8ae)}"
+    },
+    {
+      "name": "Navbar",
+      "kind": "nav",
+      "refersTo": "navbar-scrolled-dark",
+      "description": "Scrolled state: 64px glass bar, the only blur.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-brand\" href=\"#\">MotoVault</a><div><a class=\"ds-navlink\" href=\"#\">Features</a><a class=\"ds-navlink\" href=\"#\">Guides</a><a class=\"ds-navlink\" href=\"#\">Pro</a></div></nav>",
+      "css": ".ds-nav{display:flex;justify-content:space-between;align-items:center;min-height:64px;padding:10px 24px;box-sizing:border-box;background:var(--mv-surface-2-glass,rgba(35,36,39,.92));border-bottom:1px solid var(--mv-line,rgba(236,230,218,.09));backdrop-filter:blur(12px);font-family:var(--mv-font-body,-apple-system,sans-serif)}.ds-brand{font-size:17px;font-weight:600;color:var(--mv-ink,#ece6da);text-decoration:none}.ds-navlink{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:12px;font-size:15px;font-weight:500;color:var(--mv-ink-2,#bdb8ae);text-decoration:none;transition:color 160ms,background 160ms}.ds-navlink:hover{color:var(--mv-ink,#ece6da);background:var(--mv-fill,rgba(236,230,218,.04))}.ds-navlink:focus-visible{outline:2px solid var(--mv-focus,#d4622e);outline-offset:2px}"
+    },
+    {
+      "name": "Bike Plate",
+      "kind": "custom",
+      "refersTo": "bike-plate-ready",
+      "description": "The signature object: readiness as fill, condensed tabular figure, livery stripe, identity edge.",
+      "html": "<div class=\"ds-plate\"><span class=\"ds-stripe\"></span><div class=\"ds-fig\"><span class=\"ds-n\">12,480</span><span class=\"ds-u\">km</span></div><div class=\"ds-cap\">Next service in 1,520 km</div><div class=\"ds-edge\"><b>27</b><span>Yamaha MT-07 · 2021</span></div></div>",
+      "css": ".ds-plate{position:relative;display:inline-block;min-width:264px;padding:16px 20px 14px;border-radius:var(--mv-radius-plate,20px);background:var(--mv-plate-bone,#ece6da);color:var(--mv-plate-ink,#121315);overflow:hidden;animation:ds-settle 240ms cubic-bezier(0.16,1,0.3,1) both}.ds-stripe{position:absolute;top:14px;right:-46px;width:140px;height:9px;background:var(--mv-copper,#d4622e);transform:rotate(45deg);animation:ds-lay 420ms cubic-bezier(0.16,1,0.3,1) 120ms both}.ds-stripe::after{content:'';position:absolute;top:13px;left:0;width:100%;height:4.5px;background:var(--mv-bg,#111214)}.ds-fig{display:flex;align-items:baseline;gap:8px;font-family:var(--mv-font-display,'Barlow Condensed','Arial Narrow',sans-serif)}.ds-n{font-weight:600;font-size:40px;line-height:42px;font-variant-numeric:tabular-nums}.ds-u{font-weight:500;font-size:20px;line-height:22px}.ds-cap{margin-top:4px;font:500 15px/20px var(--mv-font-body,-apple-system,sans-serif)}.ds-edge{display:flex;gap:8px;margin-top:10px;padding-top:8px;border-top:1px solid rgba(18,19,21,.16);font:13px/18px var(--mv-font-body,-apple-system,sans-serif)}.ds-edge b{font-family:var(--mv-font-display,'Barlow Condensed',sans-serif);font-weight:700}.ds-edge span{font-weight:500;color:rgba(18,19,21,.68)}@keyframes ds-settle{from{transform:scale(.98)}to{transform:scale(1)}}@keyframes ds-lay{from{transform:rotate(45deg) translateX(120%)}to{transform:rotate(45deg) translateX(0)}}@media (prefers-reduced-motion:reduce){.ds-plate,.ds-stripe{animation:none}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Trackside",
+    "overview": "**Creative North Star: \"Trackside\"**\n\nThe web is the Race Plate world (`apps/mobile/DESIGN.md`) seen from the edge of the track: a full-bleed ride photograph carries the emotion, and everything else speaks in the plate's voice. The one object the site shares with the app is the Bike Plate, a rounded panel whose fill is a bike's readiness, drawn exactly as the app draws it, including on the home hero.\n\nAround the plate the site is quiet and mechanical. A graphite ramp with bone ink is the default; a warm paper ramp with near-black ink is the light scheme, and both are first-class. Barlow Condensed carries headlines and numbers; every sentence, label and button is the system face. Copper is reserved for the act: the primary button, the link, the current selection. Content sits on the page, separated by spacing and hairlines rather than cards, and surfaces lift by stepping up the ramp rather than by casting shadows.\n\nThe world retires the earlier editorial web (serif display, mono labels, warm-gradient copper, eyebrows above titles) and borrows nothing from it. The livery stripe on the plate is the one diagonal on any viewport.",
+    "keyCharacteristics": [
+      "One token source: `packages/design-system/src/mv-tokens.css`. Dark on `:root`, light on `html:not(.dark)`; the theme provider toggles the class and a pre-paint script resolves storage, then OS preference.",
+      "The Bike Plate is the signature; its triad colours appear nowhere else.",
+      "Condensed numerals and headlines against a native system face.",
+      "Flat and tonal: no card shadows, blur budget spent on the navbar only.",
+      "Hairline rows and spec tables instead of cards; at most one card-styled element per section.",
+      "Motion is visible-by-default and transform-only; one authored moment per page."
+    ],
+    "rules": [
+      {
+        "name": "The Copper Is a Verb Rule",
+        "body": "Copper marks a primary action, a link or the current selection. Never status, never a heading accent, never gradient text, never a glow (no copper box-shadow). The livery stripe is the plate's own device, not decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Triad Belongs to State Rule",
+        "body": "Bone, signal and red appear only inside depictions of the app: the Bike Plate and app screenshots.",
+        "section": "colors"
+      },
+      {
+        "name": "The Both-Schemes Rule",
+        "body": "Every colour is a `var(--mv-*)` with a value in both schemes. Text inks clear 4.5:1 on ground, card and raised in each; due/overdue/go shift to darker inks in light.",
+        "section": "colors"
+      },
+      {
+        "name": "The Condensed Means Number Rule",
+        "body": "`--mv-font-display` sets H1, H2, H3 and figures, with tabular numerals for every figure, table cell and row aside. Every sentence, label and button is `--mv-font-body`.",
+        "section": "typography"
+      },
+      {
+        "name": "The Plain Voice Rule",
+        "body": "Sentence case everywhere, headings and buttons included. No eyebrows or kickers above titles, no section numbers, no letter-spaced uppercase, no italic display, no serif, no mono labels. A status line sits under a title, never above it.",
+        "section": "typography"
+      },
+      {
+        "name": "The Ramp Is the Shadow Rule",
+        "body": "No drop shadows on cards or rows; no blur outside the navbar.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Signature Motion",
+        "body": "`data-settle` makes the plate settle (scale 0.98 → 1 over `dur-3`, expo ease) and, 120ms in, the livery stripe slides along its own 45° axis into place over `dur-4` (420ms). Transform only and clipped by the plate, so a stalled frame is a plate without its stripe, never a missing plate. `settle=\"late\"` adds 240ms so the home hero reads photo settles, then stripe lays. One per page family, never inside `.mv-reveal`; used on the home hero and the Pro checkout success page. A state change cross-fades the fill over `dur-3`.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Do** read every colour, radius, font, easing and duration from `var(--mv-*)` in `mv-tokens.css`, and check the result in dark and light.",
+      "**Do** show readiness with `<BikePlate>` (triad fill, plate ink), and give it the settle on at most one plate per page family.",
+      "**Do** use copper only for the primary action, a link, the focus ring or the current selection, with `on-copper` as its ink.",
+      "**Do** set H1/H2/H3 and every figure in Barlow Condensed with tabular numerals, and every sentence, label and button in the system face.",
+      "**Do** snap type to the steps above (13 floor, 15 workhorse, 16 inputs) and spacing to 4–160 as listed.",
+      "**Do** separate content with spacing and hairline rows; keep to one card-styled element per section.",
+      "**Do** keep every target at 44px and every shell inside the 1240px container with the 40 / 24 / 20 gutter.",
+      "**Do** wrap any band over a dark photograph in `.mv-dark-scene`, and offset fixed bottom bars by `--mv-cookie-banner-h`.",
+      "**Do** keep entrances transform/opacity only, visible by default, and honour `prefers-reduced-motion`."
+    ],
+    "donts": [
+      "**Don't** use bone, signal or red outside a depiction of the app, or use copper for status, headings, gradients or glows.",
+      "**Don't** add drop shadows to cards or rows, or blur anywhere but the scrolled navbar.",
+      "**Don't** place an eyebrow, kicker or section number above a title, or set labels in letter-spaced uppercase, serif, italic display or mono.",
+      "**Don't** add a second diagonal; the livery stripe is the only one, at most one per viewport.",
+      "**Don't** use more than one full device frame per page, or identical icon-tile grids.",
+      "**Don't** add infinite loops, parallax, magnetic buttons or scroll-scrubbed scenes; the loader is the only loop.",
+      "**Don't** use Tailwind palette classes or raw hex in Trackside surfaces, or the deprecated aliases (`--mv-warm-*`, `--mv-page`, `--mv-card`, `--mv-copper-400/500/600`, `--mv-font-sans/serif`, `--mv-on-accent`, `--mv-success/warning/danger`)."
+    ]
+  }
+}

@@ -12,6 +12,14 @@ function mapboxTokenForStaticImages(): string {
     ''
   );
 }
+/**
+ * For URLs rendered into page HTML (the browser fetches them): only the public,
+ * URL-restricted token. `MAPBOX_ACCESS_TOKEN` is server-only (apps/web/CLAUDE.md)
+ * and must never reach markup; without a public token the hero stays bare.
+ */
+function publicMapboxToken(): string {
+  return process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ?? '';
+}
 const BASE = 'https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static';
 
 /** Mapbox Static API has a ~8192 char URL limit. Keep well under. */
@@ -143,4 +151,57 @@ export function buildStaticMapUrl(opts: StaticMapOptions): string {
   }
 
   return url;
+}
+
+/* ── Route hero map: waypoint pins (and the route line when there is one) ── */
+
+const DARK_BASE = 'https://api.mapbox.com/styles/v1/mapbox/dark-v11/static';
+/** Mapbox caps a static image's overlays; 20 pins keep the URL short too. */
+const MAX_HERO_PINS = 20;
+/** Polyline sample sizes tried in turn until the URL fits. */
+const HERO_POLYLINE_POINTS = [120, 50] as const;
+
+export interface RouteHeroMapOptions {
+  waypoints: ReadonlyArray<{ lat: number; lng: number; sortOrder: number }>;
+  /** Encoded polyline (Google format); null when the route has only waypoints. */
+  polyline?: string | null;
+  /** Pin and line colour as hex without '#' (the ridden-route copper). */
+  color: string;
+  width?: number;
+  height?: number;
+  /**
+   * Mapbox `padding` around the auto-fitted overlays: one number, or
+   * `top,right,bottom,left` in image pixels. A wide left value frames the
+   * route in the right half, clear of copy laid over the left.
+   */
+  padding?: number | string;
+}
+
+/**
+ * A dark static map of a route for the trip hero: a pin per waypoint and,
+ * when the trip has a GPX polyline, the line itself. Real data only: a trip
+ * without waypoints gets `null` and keeps the bare hero.
+ */
+export function buildRouteHeroMapUrl(opts: RouteHeroMapOptions): string | null {
+  // The URL lands in the page's HTML, so it carries the public token only.
+  const token = publicMapboxToken();
+  if (!token || opts.waypoints.length === 0) return null;
+
+  const { color, width = 1200, height = 675, padding = 60 } = opts;
+  const pins = [...opts.waypoints]
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .slice(0, MAX_HERO_PINS)
+    .map((wp) => `pin-s+${color}(${wp.lng.toFixed(5)},${wp.lat.toFixed(5)})`);
+
+  const build = (overlays: string[]) =>
+    `${DARK_BASE}/${overlays.join(',')}/auto/${width}x${height}@2x?padding=${padding}&access_token=${token}`;
+
+  if (opts.polyline) {
+    for (const points of HERO_POLYLINE_POINTS) {
+      const path = encodeURIComponent(simplifyEncodedPolyline(opts.polyline, points));
+      const url = build([`path-4+${color}-0.9(${path})`, ...pins]);
+      if (url.length <= MAX_URL_LENGTH) return url;
+    }
+  }
+  return build(pins);
 }

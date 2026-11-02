@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { trackStoreCtaClick } from '@/lib/analytics';
 import { buildPlayReferrer, getCampaignParams } from '@/lib/campaign';
 import { CtaPlacement, type StoreCtaContext, StorePlatform } from '@/lib/cta-taxonomy';
@@ -86,43 +87,38 @@ export function StoreLink({
   );
 }
 
+/* The pair uses the kit: copper primary (the verb) and a ghost one step up
+   the ramp; focus comes from the root grammar. */
+const STORE_BUTTONS_CSS = `
+.mv-store {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+`;
+
 export function StoreButtons({
-  size = 'md',
   pageType,
   placement = CtaPlacement.Inline,
   slug,
   referrerParams,
 }: Omit<StoreCtaContext, 'placement' | 'sameTab'> & {
-  size?: 'sm' | 'md' | 'lg';
   placement?: CtaPlacement;
 }) {
+  const t = useTranslations('Cta');
   const ctx: StoreCtaContext = { pageType, placement, slug, referrerParams };
-  const styles = {
-    sm: 'px-5 py-2.5 text-sm gap-3',
-    md: 'px-6 sm:px-8 py-3.5 text-base gap-4',
-    lg: 'px-6 sm:px-10 py-4 text-base sm:text-lg gap-4',
-  } as const;
 
   return (
-    <div className={`flex flex-wrap items-center ${styles[size]}`}>
-      <a
-        {...storeAnchorProps(StorePlatform.Ios, ctx)}
-        className="cta-primary cta-glow group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-6 sm:px-10 py-4 text-base sm:text-lg font-semibold text-neutral-950 shadow-lg shadow-warm-500/25 transition hover:bg-warm-400 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
-      >
-        <span className="absolute inset-0 -translate-x-full bg-warm-300 transition-transform duration-300 ease-out group-hover:translate-x-0" />
-        <span className="relative flex items-center gap-2">
-          <AppleIcon />
-          App Store
-        </span>
+    <div className="mv-store">
+      <style>{STORE_BUTTONS_CSS}</style>
+      <a {...storeAnchorProps(StorePlatform.Ios, ctx)} className="mv-btn mv-btn-primary">
+        <AppleIcon />
+        {t('appStore')}
       </a>
-      <a
-        {...storeAnchorProps(StorePlatform.Android, ctx)}
-        className="cta-secondary inline-flex items-center justify-center rounded-full border-2 border-neutral-600 px-6 sm:px-8 py-3.5 text-neutral-300 transition hover:border-neutral-500 hover:text-neutral-100 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
-      >
-        <span className="flex items-center gap-2">
-          <PlayIcon />
-          Google Play
-        </span>
+      <a {...storeAnchorProps(StorePlatform.Android, ctx)} className="mv-btn mv-btn-ghost">
+        <PlayIcon />
+        {t('googlePlay')}
       </a>
     </div>
   );

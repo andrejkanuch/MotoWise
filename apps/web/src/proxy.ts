@@ -112,7 +112,7 @@ function buildCsp(scriptInlineToken: string): string {
 
   return [
     "default-src 'self'",
-    `script-src 'self' ${scriptInlineToken} https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://va.vercel-scripts.com https://api.mapbox.com https://js.stripe.com${isDev ? " 'unsafe-eval'" : ''}`,
+    `script-src 'self' ${scriptInlineToken} https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://va.vercel-scripts.com https://api.mapbox.com https://js.stripe.com https://browser.sentry-cdn.com${isDev ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline' https://api.mapbox.com",
     "img-src 'self' data: https: https://www.facebook.com",
     "font-src 'self' https://fonts.gstatic.com",
@@ -168,7 +168,14 @@ function applySecurityHeaders(response: NextResponse, nonce: string | null) {
 const MARKETING_CACHEABLE_RE =
   /^\/($|explore|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|piel|(?:en|de|fr|es|it|ja|pl|pt-BR)(?:\/|$))/;
 
-const NOINDEX_PREFIXES = ['/login', '/signup', '/forgot-password', '/explore/search', '/get'];
+const NOINDEX_PREFIXES = [
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/reset-password',
+  '/explore/search',
+  '/get',
+];
 
 function isNoIndexRoute(pathname: string): boolean {
   return NOINDEX_PREFIXES.some(
@@ -182,9 +189,12 @@ function isMarketingCacheable(pathname: string): boolean {
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
     pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/reset-password') ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/rider/') ||
     pathname.startsWith('/ride/') ||
+    pathname.startsWith('/share/') ||
+    pathname.startsWith('/u/') ||
     pathname.startsWith('/feed') ||
     pathname.startsWith('/garage') ||
     pathname.startsWith('/profile') ||
@@ -377,6 +387,21 @@ function applyRegionCookie(request: NextRequest, response: NextResponse) {
   );
 }
 
+const COUNTRY_COOKIE = 'mv_country';
+
+function applyCountryCookie(request: NextRequest, response: NextResponse) {
+  // The static /explore page picks the visitor's local routes on the client
+  // (components/explore/popular-local.tsx); this gives it the edge's country.
+  const country = request.headers.get('x-vercel-ip-country')?.toUpperCase();
+  if (!country || !/^[A-Z]{2}$/.test(country)) return;
+  if (request.cookies.get(COUNTRY_COOKIE)?.value === country) return;
+  const secure = request.nextUrl.protocol === 'https:' ? '; Secure' : '';
+  response.headers.append(
+    'Set-Cookie',
+    `${COUNTRY_COOKIE}=${country}; Path=/; Max-Age=2592000; SameSite=Lax${secure}`,
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const { pathname } = request.nextUrl;
@@ -433,9 +458,12 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
     pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/reset-password') ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/rider/') ||
     pathname.startsWith('/ride/') ||
+    pathname.startsWith('/share/') ||
+    pathname.startsWith('/u/') ||
     pathname.startsWith('/explore') ||
     pathname.startsWith('/route/') ||
     pathname.startsWith('/routes/') ||
@@ -446,7 +474,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/ingest')
   ) {
     // Auth + public community routes + explore + route/trip detail + pro + /get bio link + PostHog proxy (/ingest → next.config rewrites): skip locale processing.
-    // NOTE: the root-only sections here (trips/route/routes/ride/rider/pro/get)
+    // NOTE: the root-only sections here (trips/route/routes/ride/rider/share/u/pro/get)
     // are mirrored by NON_LOCALIZED_ROUTE_SECTIONS in next.config.ts, which strips
     // stray locale prefixes off them. Keep the two lists aligned so /{locale}/… of a
     // root-only section 308-consolidates instead of 404ing.
@@ -479,6 +507,7 @@ export async function proxy(request: NextRequest) {
 
   // Set mv_region cookie (EU vs OTHER) for client-side consent logic.
   applyRegionCookie(request, response);
+  applyCountryCookie(request, response);
 
   return response;
 }

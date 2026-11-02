@@ -17,8 +17,9 @@ function getInitials(name: string): string {
 }
 
 /**
- * Compact byline rendered near an article title. Avatar initials + name + role
- * + optional publish date. Server component — no client JS.
+ * Compact byline rendered under an article title: initials, name, role and
+ * the publish date, all in the body face (`.mv-read-byline`). Server
+ * component — no client JS.
  *
  * Formatting goes through next-intl's `getFormatter()` rather than
  * `toLocaleDateString(locale)`. This is not a style preference: the component
@@ -51,29 +52,21 @@ export async function AuthorByline({ author, date }: AuthorBylineProps) {
     : null;
 
   return (
-    <div className="flex items-center gap-3">
-      <div
-        aria-hidden="true"
-        className="flex size-10 shrink-0 items-center justify-center rounded-full border border-neutral-800 bg-neutral-900 text-xs font-semibold text-neutral-300"
-      >
+    <div className="mv-read-byline">
+      <span aria-hidden="true" className="mv-read-avatar">
         {initials}
-      </div>
-      <div className="flex flex-col leading-tight">
-        <span className="text-sm text-neutral-300">
-          <span className="text-neutral-500">By </span>
-          <span className="font-medium text-neutral-200">{author.name}</span>
+      </span>
+      <div className="mv-read-byline-text">
+        <span>
+          <strong>{author.name}</strong>
           {formattedDate && (
             <>
-              <span className="mx-1.5 text-neutral-600" aria-hidden="true">
-                ·
-              </span>
-              <time dateTime={date} className="text-neutral-500">
-                {formattedDate}
-              </time>
+              <span aria-hidden="true"> · </span>
+              <time dateTime={date}>{formattedDate}</time>
             </>
           )}
         </span>
-        <span className="text-xs text-neutral-500">{author.role}</span>
+        <span className="mv-read-byline-role">{author.role}</span>
       </div>
     </div>
   );

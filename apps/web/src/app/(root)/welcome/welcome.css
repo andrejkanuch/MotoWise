@@ -1,0 +1,289 @@
+/* ═══════════════════════════════════════════════════════════════
+   Post-signup "Get the app" screen (/welcome) — Trackside.
+   Root grammar, the H1, the hairline rows, the copper link and the
+   phone's block button come from design-system.css (.mv-root,
+   .mv-section-title, .mv-rows/.mv-row, .mv-link, .mv-btn-block);
+   this file holds the layout. Colours only from the --mv-* tokens.
+   Class prefix: wl-.
+
+     ≥ 1024   two columns: lead (H1, reasons, continue) | QR card
+     768–1023 one column: H1, reasons, QR card (row), continue
+     < 768    phone: no QR (cannot scan its own screen); a button to
+              motovault.app/get + the account line instead
+   ═══════════════════════════════════════════════════════════════ */
+
+.wl-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header: the same 1240/40 edge as the main column ──────────── */
+
+.wl-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  max-width: var(--mv-container);
+  margin: 0 auto;
+  padding: 14px 40px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--mv-line);
+}
+.wl-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mv-ink);
+  text-decoration: none;
+}
+.wl-brand-mark {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--mv-radius-small);
+  overflow: hidden;
+}
+
+/* ── Layout ────────────────────────────────────────────────────── */
+
+.wl-main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--mv-container);
+  margin: 0 auto;
+  padding: 96px 40px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 96px;
+  align-items: center;
+}
+.wl-lead {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  min-width: 0;
+}
+/* H1 → lede 28 (the spacing contract). */
+.wl-head {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 0;
+}
+.wl-subtitle {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--mv-ink-2);
+  text-wrap: pretty;
+}
+
+
+/* ── Reasons: hairline rows, icon inline with the sentence ─────── */
+
+.wl-reason {
+  justify-content: flex-start;
+}
+.wl-reason-icon {
+  flex: none;
+  display: flex;
+  color: var(--mv-ink-2);
+}
+.wl-reason-icon svg {
+  width: 20px;
+  height: 20px;
+}
+.wl-reason-title {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Continue link: the copper text action ─────────────────────── */
+
+.wl-continue {
+  align-self: flex-start;
+  font-size: 15px;
+}
+.wl-continue svg {
+  flex: none;
+}
+
+/* ── QR card (≥ 768): the one card on the page ─────────────────── */
+
+.wl-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px;
+  border-radius: var(--mv-radius-card);
+  background: var(--mv-surface);
+  border: 1px solid var(--mv-line);
+}
+.wl-card-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 24px;
+  text-align: left;
+}
+/* Only the QR tile sits centred; the copy stays left-aligned. */
+.wl-card-row > .mvg-qr {
+  align-self: center;
+}
+.wl-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+.wl-card-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wl-card-body {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--mv-ink-2);
+}
+/* The link field sits on the card: one step up from it. */
+.wl-card .mvg-linkfield {
+  background: var(--mv-surface-2);
+}
+
+/* ── Account line ──────────────────────────────────────────────── */
+
+.wl-signin {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--mv-ink-2);
+  text-align: left;
+}
+.wl-signin strong {
+  font-weight: 600;
+  color: var(--mv-ink);
+  overflow-wrap: anywhere;
+}
+.wl-signin-icon {
+  flex: none;
+  display: flex;
+  color: var(--mv-ink-2);
+}
+.wl-signin--card {
+  padding-top: 20px;
+  border-top: 1px solid var(--mv-line);
+}
+.wl-signin--box {
+  margin-top: 4px;
+  padding: 14px 16px;
+  border-radius: var(--mv-radius-control);
+  background: var(--mv-surface);
+  font-size: 13px;
+}
+
+/* ── Phone CTA (< 768): the one copper primary ─────────────────── */
+
+.wl-phone {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+.wl-get svg + svg {
+  margin-left: -4px;
+}
+
+/* ── Tablet (768–1023) ─────────────────────────────────────────── */
+
+@media (max-width: 1023px) {
+  .wl-header {
+    padding: 14px 24px;
+  }
+  .wl-main {
+    max-width: 600px;
+    padding: 64px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 32px;
+  }
+  /* The lead's children join the single column so the card can sit
+     between the reasons and the continue link. */
+  .wl-lead {
+    display: contents;
+  }
+  .wl-head {
+    order: 1;
+  }
+  .wl-reasons {
+    order: 2;
+  }
+  .wl-card,
+  .wl-phone {
+    order: 3;
+  }
+  .wl-continue {
+    order: 4;
+    align-self: center;
+  }
+  .wl-card {
+    gap: 24px;
+    padding: 24px;
+  }
+  .wl-card-row {
+    flex-direction: row;
+    align-items: center;
+  }
+  .wl-card-text {
+    flex: 1;
+    gap: 16px;
+  }
+  .wl-card .mvg-qr--spotlight {
+    flex: none;
+    padding: 16px;
+    border-radius: var(--mv-radius-card);
+  }
+  .wl-card .mvg-qr--spotlight svg {
+    width: 148px;
+    height: 148px;
+  }
+  .wl-signin--card {
+    padding-top: 16px;
+  }
+}
+
+/* ── Phone (< 768) ─────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .wl-header {
+    padding: 6px 20px;
+  }
+  .wl-main {
+    max-width: none;
+    padding: 48px 20px 64px;
+    gap: 24px;
+  }
+  .wl-reason-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .wl-card {
+    display: none;
+  }
+  .wl-phone {
+    display: flex;
+  }
+}

@@ -12,6 +12,7 @@ import {
   buildItemList,
   buildWebPage,
 } from '@/lib/seo/schema';
+import '@/components/marketing/trackside-read.css';
 
 export const revalidate = 2592000; // 30 days — DB-sourced; invalidated on demand via /api/revalidate on publish/edit
 
@@ -19,27 +20,29 @@ interface PageProps {
   params: Promise<{ locale: string }>;
 }
 
-const PAGE_TITLE = 'Discover the Best Motorcycle Routes Worldwide';
+const PAGE_TITLE = 'Motorcycle routes by country';
 const PAGE_DESCRIPTION =
-  'Discover the best motorcycle routes worldwide. Browse by country and region to find twisty mountain passes, scenic coastal roads, and epic multi-day touring routes curated by real riders.';
+  'Motorcycle routes by country and region: mountain passes, coastal roads and multi-day touring routes, each with distance, climb and riding time, shared and rated by riders.';
 
 // Explore is intentionally non-translated (English-only, canonical to /explore),
 // so this route-discovery FAQ copy stays inline rather than going through i18n.
+// The app has no turn-by-turn navigation: a route is opened in the app, exported
+// as GPX and copied into the rider's planner.
 const EXPLORE_FAQ = [
   {
     question: 'Are MotoVault routes free to browse?',
     answer:
-      'Yes. Every motorcycle route on MotoVault is free to browse on the web — by country and region — with no account required. Routes are also free to ride in the MotoVault app for iOS and Android with turn-by-turn navigation.',
+      'Yes. Every motorcycle route on MotoVault is free to browse on the web, by country and region, with no account required. Opening a route in the MotoVault app for iOS and Android is free too.',
   },
   {
     question: 'Where do MotoVault routes come from?',
     answer:
-      'Routes are shared by real riders in the MotoVault community and rated by other riders, so the highest-rated twisty passes, scenic coastal roads, and multi-day touring routes rise to the top of each country and region.',
+      'Routes are shared by riders on MotoVault and rated by other riders, so the highest-rated passes, coastal roads and multi-day touring routes rise to the top of each country and region.',
   },
   {
     question: 'How do I ride a route I find on MotoVault?',
     answer:
-      'Open the route in the free MotoVault app for iOS or Android to navigate it with turn-by-turn directions. You can also review the full details — distance, elevation, surface type, and community rating — right here on the web before you go.',
+      'Open the route in the free MotoVault app for iOS or Android, export the GPX and copy it into your planner. Distance, climb, surface and the rider rating are on the route page here before you go.',
   },
 ];
 
@@ -65,6 +68,7 @@ export default async function ExplorePage({ params }: PageProps) {
 
   const countries = await fetchCountries();
   const canonical = getCanonicalUrl(locale, '/explore');
+  const totalRoutes = countries.reduce((sum, country) => sum + country.routeCount, 0);
 
   const graph = buildGraph(
     buildWebPage({
@@ -99,74 +103,74 @@ export default async function ExplorePage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
 
-      <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Explore' }]} />
+      <section className="mv-index">
+        <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Explore' }]} />
 
-      {/* Hero */}
-      <section className="px-6 pb-16 pt-8 md:pb-24 md:pt-12">
-        <div className="reveal-on-scroll mx-auto max-w-4xl">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            Route Discovery
+        <header>
+          <h1 className="mv-index-h1">Motorcycle routes by country</h1>
+          <p className="mv-index-lede">
+            {totalRoutes > 0 ? (
+              <>
+                <span className="mv-figure">{totalRoutes.toLocaleString('en-US')}</span> routes
+                shared and rated by riders, free to browse. Pick a country, then a region, and open
+                any route in the app to export the GPX.
+              </>
+            ) : (
+              <>
+                Routes shared and rated by riders, free to browse. Pick a country, then a region,
+                and open any route in the app to export the GPX.
+              </>
+            )}
           </p>
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
-            {PAGE_TITLE}
-          </h1>
-          <div className="mx-auto mt-6 h-1.5 w-32 rounded-full bg-signature-500" />
-          <p className="mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">{PAGE_DESCRIPTION}</p>
-        </div>
-      </section>
+        </header>
 
-      <div className="mx-auto max-w-3xl px-6 pb-8 text-center">
-        <p className="text-base leading-relaxed text-neutral-400">
-          Every route on MotoVault is shared by real riders and rated by the community. Browse
-          countries below to explore twisty passes, coastal roads, and epic touring routes — or open
-          MotoVault on your phone to navigate any route with turn-by-turn directions.
-        </p>
-      </div>
-
-      {/* Country grid */}
-      <section className="px-6 pb-24">
-        <div className="mx-auto max-w-5xl">
-          {countries.length === 0 ? (
-            <p className="text-center text-neutral-500">
-              No routes available yet. Check back soon!
-            </p>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {countries.map((country) => (
-                <Link
-                  key={country.id}
-                  href={`/explore/${country.slug}`}
-                  className="group relative overflow-hidden rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6 backdrop-blur-sm transition-colors hover:border-warm-500/40"
-                >
-                  <div className="absolute inset-x-0 bottom-0 h-[3px] bg-transparent transition-colors duration-300 group-hover:bg-warm-500" />
-                  <h2 className="text-lg font-semibold text-neutral-50 transition-colors group-hover:text-warm-400">
-                    {country.name}
-                  </h2>
-                  <p className="mt-2 text-sm text-neutral-400">
-                    {country.routeCount} {country.routeCount === 1 ? 'route' : 'routes'}
-                  </p>
-                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-warm-400 transition-colors group-hover:text-warm-300">
-                    View regions
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="transition-transform group-hover:translate-x-0.5"
-                      aria-hidden="true"
-                    >
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
+        {countries.length === 0 ? (
+          <p className="mv-empty">No routes published yet. Check back soon.</p>
+        ) : (
+          <ul className="mv-places">
+            {countries.map((country) => (
+              <li key={country.id}>
+                <Link href={`/explore/${country.slug}`}>
+                  <span className="mv-places-name">{country.name}</span>
+                  <span className="mv-places-count">
+                    <span className="mv-figure">{country.routeCount}</span>
+                    {country.routeCount === 1 ? 'route' : 'routes'}
                   </span>
                 </Link>
-              ))}
-            </div>
-          )}
-        </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <section className="mv-read-section" aria-labelledby="explore-faq-heading">
+          <h2 id="explore-faq-heading" className="mv-read-h2">
+            Questions riders ask
+          </h2>
+          <div className="mv-read-faq">
+            {EXPLORE_FAQ.map((item) => (
+              <details key={item.question} className="mv-disclosure is-plus">
+                <summary>
+                  {item.question}
+                  <svg
+                    className="mv-disclosure-mark"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                </summary>
+                <p className="mv-read-faq-answer">{item.answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
       </section>
     </>
   );

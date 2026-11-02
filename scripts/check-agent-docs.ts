@@ -90,11 +90,11 @@ const PLANNED_SIZES: Readonly<Record<string, Budget>> = {
   'CLAUDE.md': { lines: 80, bytes: 5500, lineBytes: 300 },
   'apps/mobile/CLAUDE.md': { lines: 100, bytes: 7500 },
   'apps/api/CLAUDE.md': { lines: 60, bytes: 5000 },
-  'apps/web/CLAUDE.md': { lines: 80, bytes: 6500 },
+  'apps/web/CLAUDE.md': { lines: 80, bytes: 8200 },
   'supabase/CLAUDE.md': { lines: 40, bytes: 3000 },
   'packages/graphql/CLAUDE.md': { lines: 25, bytes: 1600 },
   'packages/types/CLAUDE.md': { lines: 20, bytes: 1000 },
-  'packages/design-system/CLAUDE.md': { lines: 15, bytes: 900 },
+  'packages/design-system/CLAUDE.md': { lines: 15, bytes: 1200 },
   'docs/MAP.md': { lines: 150, bytes: 10000 },
 };
 

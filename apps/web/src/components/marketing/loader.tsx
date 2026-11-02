@@ -12,10 +12,17 @@ export function MvLoader({ size, label }: { size?: 'sm' | 'lg'; label?: string }
     </div>
   );
 
-  if (!label) return spinner;
+  if (!label) {
+    return (
+      <div role="status" aria-live="polite">
+        {spinner}
+        <span className="sr-only">Loading</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="mv-loader-wrap">
+    <div className="mv-loader-wrap" role="status" aria-live="polite">
       {spinner}
       <div className="mv-loader-text">
         {label}

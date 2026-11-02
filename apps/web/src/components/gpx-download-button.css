@@ -1,0 +1,109 @@
+/* ═══════════════════════════════════════════════════════════════
+   GPX download button (Trackside). Prefix .gpx-. The button is the
+   shared .mv-btn; this file holds the quota note, the toast, the quota
+   dialog and the spinner loop. Entrances come from the kit (.mv-enter-up
+   on the toast and the dialog; the scrim fades from @starting-style), so
+   the kit's reduced-motion policy covers them. Tokens only; no shadows,
+   no blur.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* The in-flight spinner: the one loop this file owns */
+@keyframes gpx-spin {
+  to { transform: rotate(360deg); }
+}
+
+.gpx-spin {
+  animation: gpx-spin 0.7s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gpx-spin {
+    animation: none;
+  }
+}
+
+/* The quota line sits beside the button in the hero's action row */
+.gpx-quota {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--mv-ink-3);
+}
+
+.gpx-quota[data-exhausted='true'] {
+  color: var(--mv-overdue-ink);
+}
+
+/* Toast: one step up the ramp, above the cookie bar */
+.gpx-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + var(--mv-cookie-banner-h, 0px));
+  z-index: 60;
+  transform: translateX(-50%);
+  max-width: calc(100vw - 40px);
+  padding: 12px 16px;
+  border-radius: var(--mv-radius-control);
+  background: var(--mv-surface-3);
+  border: 1px solid var(--mv-line-step);
+  color: var(--mv-ink);
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The failure mark: a glyph in overdue ink (3:1 holds), the text stays ink */
+.gpx-toast-mark {
+  flex: none;
+  color: var(--mv-overdue-ink);
+}
+
+/* Quota dialog: a graphite scrim, one raised panel, two actions */
+.gpx-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: color-mix(in srgb, var(--mv-bg) 60%, transparent);
+  transition: opacity 150ms var(--mv-ease-expo);
+}
+
+@starting-style {
+  .gpx-scrim {
+    opacity: 0;
+  }
+}
+
+.gpx-dialog {
+  width: 100%;
+  max-width: 448px;
+  padding: 24px;
+  border-radius: var(--mv-radius-card);
+  background: var(--mv-surface-2);
+  border: 1px solid var(--mv-line);
+  outline: none;
+}
+
+.gpx-dialog-body {
+  margin: 8px 0 24px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--mv-ink-2);
+  text-wrap: pretty;
+}
+
+.gpx-dialog-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.gpx-dialog-actions .mv-btn {
+  flex: 1;
+  justify-content: center;
+}

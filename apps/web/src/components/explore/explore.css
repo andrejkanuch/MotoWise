@@ -1,0 +1,940 @@
+/* ═══════════════════════════════════════════════════════════════
+   Explore (route atlas) — component styles for the Trackside world.
+   Scoped with the `xp-` prefix; every colour, radius, font and easing
+   is a --mv-* token from packages/design-system/src/mv-tokens.css, so
+   both schemes come for free. No shadows, no blur, no uppercase.
+   Shared grammar (buttons, links, rows, chips, crumbs, fields, the
+   segmented control, H2/H3) comes from design-system.css; this file
+   holds only what is explore-specific.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Layout ── */
+/* The navbar's height is published once by the kit (--mv-nav-h: 72 at rest,
+   64 once scrolled). Sticky bars read it; the static offsets below use the
+   resting 72 so nothing in the flow jumps when the bar shrinks. */
+.xp-results-shell,
+.xp-mresults {
+  --xp-nav-rest: 72px;
+}
+
+.xp-wrap {
+  max-width: var(--mv-container);
+  margin: 0 auto;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+.xp-section {
+  padding-top: 120px;
+}
+
+.xp-section-tight {
+  padding-top: 64px;
+}
+
+/* ── Type ── */
+/* The page title sits on .mv-section-title; this only caps the measure. */
+.xp-h1 {
+  max-width: 12ch;
+  color: var(--mv-ink);
+  text-wrap: balance;
+}
+
+/* Search results title: the Read H1 step */
+.xp-h1-sm {
+  font-size: clamp(38px, 5.4vw, 62px);
+  line-height: 1;
+  max-width: 20ch;
+  overflow-wrap: anywhere;
+}
+
+/* H3 step (26/1.1) on top of .mv-h3 */
+.xp-h3 {
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.xp-lede {
+  margin: 28px 0 0;
+  color: var(--mv-ink-2);
+  font-size: 18px;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+  max-width: 58ch;
+  text-wrap: pretty;
+}
+
+.xp-sub {
+  margin: 12px 0 0;
+  color: var(--mv-ink-2);
+  font-size: 16px;
+  line-height: 1.55;
+  max-width: 56ch;
+  text-wrap: pretty;
+}
+
+.xp-label {
+  font-family: var(--mv-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--mv-ink-3);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ── Figures: condensed, tabular (Condensed Means Number Rule) ── */
+.xp-figure {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.xp-figure-value {
+  color: var(--mv-ink);
+  font-size: 20px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.xp-figure-unit {
+  font-size: max(13px, 0.5em);
+  margin-left: 0.12em;
+  color: var(--mv-ink-2);
+  font-weight: 500;
+}
+
+.xp-figure-lg .xp-figure-value {
+  font-size: 40px;
+}
+
+.xp-figure-xl .xp-figure-value {
+  font-size: 64px;
+}
+
+.xp-figure-label {
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--mv-ink-3);
+}
+
+.xp-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+}
+
+/* ── Hero ── */
+.xp-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: end;
+  padding-top: 120px;
+}
+
+.xp-hero-copy {
+  min-width: 0;
+}
+
+/* The photograph runs off the right edge of the viewport and stands the
+   hero's full height (the home's bleed): the page about places lets the
+   place carry the emotion instead of framing it as a card. The wrapper
+   clips the 100vw arithmetic (a classic scrollbar is inside 100vw). */
+.xp-hero-bleed {
+  overflow-x: clip;
+}
+
+.xp-hero-photo {
+  position: relative;
+  align-self: stretch;
+  min-height: 640px;
+  margin-right: calc(-1 * ((100vw - min(100vw, var(--mv-container))) / 2 + 40px));
+  border-radius: var(--mv-radius-card) 0 0 var(--mv-radius-card);
+  overflow: hidden;
+  background: var(--mv-surface);
+}
+
+.xp-hero-photo img {
+  object-fit: cover;
+  object-position: 62% center;
+}
+
+.xp-hero-figures {
+  margin-top: 32px;
+}
+
+.xp-hero-search {
+  margin-top: 32px;
+}
+
+/* One authored moment: the headline and figures settle in once */
+.xp-rise {
+  animation: xp-rise 0.6s var(--mv-ease-expo) both;
+}
+
+.xp-rise-2 {
+  animation-delay: 0.08s;
+}
+
+/* Transform only: a stalled load-time animation shifts, never hides. */
+@keyframes xp-rise {
+  from {
+    transform: translateY(14px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ── Chips: .mv-chip carries the chip; these only size its figure ── */
+.xp-chips-strip {
+  margin-top: 24px;
+}
+
+.mv-chip .xp-figure-value {
+  font-size: 20px;
+}
+
+.mv-chip .xp-figure-unit {
+  font-size: 13px;
+}
+
+.xp-chip-muted {
+  color: var(--mv-ink-3);
+  font-weight: 400;
+}
+
+/* ── Rows: .mv-rows / .mv-row carry the hairline grammar; the explore
+      row adds the map-linked hover and focus states ── */
+.xp-row[data-hovered='true'] .mv-row-title {
+  color: var(--mv-copper-text);
+}
+
+.xp-row[data-focused='true'] {
+  background: var(--mv-surface);
+}
+
+.xp-row-body {
+  display: block;
+  min-width: 0;
+  flex: 1;
+}
+
+.xp-row-figs {
+  display: flex;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.xp-row-figs .xp-figures {
+  flex-wrap: nowrap;
+  gap: 20px;
+}
+
+.xp-row-figs .xp-figure {
+  min-width: 64px;
+  align-items: flex-end;
+}
+
+/* Country rows: name, routes figure, arrow (on .mv-row) */
+.xp-crow .mv-row-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.xp-continents {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 64px;
+  margin-top: 48px;
+  border-top: 1px solid var(--mv-line);
+}
+
+.xp-continent {
+  padding: 24px 0 32px;
+}
+
+.xp-continent-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+/* ── The one larger tile per section ── */
+.xp-tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 24px;
+  border-radius: var(--mv-radius-card);
+  background: var(--mv-surface);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color var(--mv-dur-1) var(--mv-ease-expo);
+}
+
+/* A white tile on paper is a 1.12:1 step; the hairline carries its edge. */
+html:not(.dark) .xp-tile {
+  border: 1px solid var(--mv-line);
+}
+
+.xp-tile:hover {
+  background: var(--mv-surface-2);
+}
+
+.xp-tile-title {
+  margin-top: 12px;
+}
+
+.xp-tile-desc {
+  margin: 16px 0 0;
+  color: var(--mv-ink-2);
+  font-size: 15px;
+  line-height: 1.55;
+  max-width: 48ch;
+  text-wrap: pretty;
+}
+
+.xp-picks {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 24px 48px;
+  margin-top: 48px;
+  align-items: start;
+}
+
+/* ── Filter bar: a scroll row of .mv-segmented groups ── */
+.xp-filters {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 40px;
+  border-bottom: 1px solid var(--mv-line);
+  background: var(--mv-bg);
+}
+
+.xp-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.xp-filter-group legend {
+  float: left;
+  padding: 0;
+}
+
+/* ── Results shell (country / region pages) ── */
+/* Desktop: the shell fills the viewport; the fixed navbar covers its first
+   72px, so the head carries that offset in its padding. */
+.xp-results-shell {
+  flex-direction: column;
+  min-height: 0;
+  height: 100dvh;
+  flex: none;
+}
+
+.xp-results-head {
+  padding: calc(var(--xp-nav-rest) + 24px) 40px 20px;
+  border-bottom: 1px solid var(--mv-line);
+}
+
+/* Operate H1: 44, shrinking on a narrow list column; one long region name
+   ("Mecklenburg-Vorpommern") may break rather than overflow. */
+.xp-results-title {
+  font-family: var(--mv-font-display);
+  font-weight: 700;
+  font-size: clamp(32px, 9vw, 44px);
+  line-height: 0.98;
+  letter-spacing: 0.002em;
+  color: var(--mv-ink);
+  margin: 0;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* The list/map split: bounded at 1600px so the badge and the map controls
+   stay within reach of each other on wide screens. */
+.xp-split {
+  flex: 1;
+  display: grid;
+  grid-template-columns: clamp(360px, 38vw, 520px) 1fr;
+  min-height: 0;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+@media (min-width: 1601px) {
+  .xp-split {
+    border-left: 1px solid var(--mv-line);
+    border-right: 1px solid var(--mv-line);
+  }
+}
+
+/* Loading / unavailable map: text on the map ground, never a blank box */
+.xp-map-state {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  margin: 0;
+  text-align: center;
+  color: var(--mv-ink-2);
+  font-size: 15px;
+  line-height: 1.5;
+  pointer-events: none;
+}
+
+.xp-results-count {
+  margin-top: 8px;
+  font-size: 15px;
+  color: var(--mv-ink-3);
+}
+
+.xp-results-count .mv-figure {
+  color: var(--mv-ink-2);
+  font-size: 1em;
+}
+
+.xp-results-list {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 40px 64px;
+  background: var(--mv-bg);
+  border-right: 1px solid var(--mv-line);
+}
+
+.xp-map-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--mv-radius-control);
+  background: var(--mv-surface-2-glass);
+  color: var(--mv-ink-2);
+  font-size: 15px;
+}
+
+.xp-map-badge .mv-figure {
+  color: var(--mv-ink);
+  font-size: 20px;
+  margin-right: 6px;
+}
+
+.xp-empty {
+  padding: 48px 0;
+  max-width: 36ch;
+}
+
+.xp-empty p {
+  margin: 8px 0 0;
+  color: var(--mv-ink-3);
+  font-size: 15px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.xp-empty .mv-link {
+  margin-top: 16px;
+}
+
+/* Mobile results chrome: opaque ground, hairline, no blur.
+   The page is the scroller; only the topbar sticks under the fixed navbar
+   (three stacked bars took 28% of a 740px phone before the first row). */
+.xp-mresults {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding-top: var(--xp-nav-rest);
+  position: relative;
+}
+
+.xp-mtop {
+  position: sticky;
+  top: var(--mv-nav-h, 72px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 65px;
+  padding: 10px 16px;
+  background: var(--mv-bg);
+  border-bottom: 1px solid var(--mv-line);
+}
+
+/* Once the list scrolls, the bar collapses to one 48px line: the place name
+   stays, the meta line goes. Only this bar sticks (the filters scroll away),
+   so the phone keeps its rows in view. */
+.xp-mtop[data-scrolled] {
+  min-height: 48px;
+  padding: 2px 16px;
+}
+
+.xp-mtop[data-scrolled] .xp-mtop-title {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  font-size: 17px;
+}
+
+.xp-mtop[data-scrolled] .xp-mtop-title + .xp-label {
+  display: none;
+}
+
+/* Operate section head: 20/1.25 body 600; the region name is the one thing
+   the bar must say, so it may take two lines before it clips. */
+.xp-mtop-title {
+  margin: 0;
+  font-family: var(--mv-font-body);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--mv-ink);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.xp-mtop-title + .xp-label {
+  display: block;
+  margin-top: 2px;
+}
+
+.xp-mfilters {
+  position: static;
+}
+
+.xp-mlist {
+  flex: 1;
+  padding: 16px 20px
+    calc(112px + env(safe-area-inset-bottom, 0px) + var(--mv-cookie-banner-h, 0px));
+}
+
+/* The mode switch: fixed, centred by its margins (its `translate` is the
+   entrance, `.mv-enter-up`, and the kit's hover nudge). The cookie bar
+   offset is static — nothing transitions `bottom`. */
+.xp-fab {
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px) + var(--mv-cookie-banner-h, 0px));
+  left: 0;
+  right: 0;
+  width: max-content;
+  margin-inline: auto;
+  z-index: 5;
+}
+
+.xp-map-sheet {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(96px + var(--mv-cookie-banner-h, 0px));
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: var(--mv-radius-card);
+  border: 1px solid var(--mv-line);
+  background: var(--mv-surface-2);
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ── Search field: three .mv-field controls and the primary button in
+      one row; each control carries its own hairline and copper focus ── */
+.xp-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* The query takes the whole first row (it was crushed to an icon stub
+   beside two selects and the button); filters and submit wrap below. */
+.xp-field-main {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.xp-field-main > :first-child {
+  white-space: nowrap;
+}
+
+.xp-field-select {
+  flex: 0 0 auto;
+  min-width: 148px;
+}
+
+.xp-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.xp-input-wrap > svg {
+  position: absolute;
+  left: 14px;
+  color: var(--mv-ink-3);
+  pointer-events: none;
+}
+
+.xp-input-wrap .mv-field-input {
+  padding-left: 44px;
+  padding-right: 40px;
+}
+
+.xp-input-wrap .mv-field-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.xp-field-submit {
+  flex-shrink: 0;
+  min-height: 48px;
+}
+
+.xp-spinner {
+  position: absolute;
+  right: 14px;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--mv-line);
+  border-top-color: var(--mv-ink-2);
+  animation: xp-spin 0.7s linear infinite;
+}
+
+@keyframes xp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Typeahead dropdown: surface-2, hairline, radius 16, flat; never
+   taller than the space above the cookie banner */
+.xp-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  z-index: 50;
+  overflow: hidden auto;
+  max-height: calc(100dvh - 160px - var(--mv-cookie-banner-h, 0px));
+  border-radius: var(--mv-radius-card);
+  border: 1px solid var(--mv-line);
+  background: var(--mv-surface-2);
+  padding: 8px;
+}
+
+.xp-dropdown-head {
+  padding: 8px 12px 4px;
+}
+
+.xp-dropdown-rule {
+  margin: 8px 12px;
+  border-top: 1px solid var(--mv-line);
+}
+
+.xp-option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--mv-radius-control);
+  background: transparent;
+  color: var(--mv-ink-2);
+  font-family: var(--mv-font-body);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--mv-dur-1) var(--mv-ease-expo);
+}
+
+.xp-option[aria-selected='true'] {
+  background: var(--mv-surface-3);
+  color: var(--mv-ink);
+}
+
+/* ink-3 on surface-3 is 3.8:1 — not text; the selected row's kind steps up */
+.xp-option[aria-selected='true'] .xp-option-kind {
+  color: var(--mv-ink-2);
+}
+
+/* Suggestions unavailable: one line in the dropdown's place */
+.xp-typeahead-status {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--mv-ink-3);
+}
+
+.xp-option-name {
+  flex: 1;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xp-option-kind {
+  font-size: 13px;
+  color: var(--mv-ink-3);
+}
+
+.xp-option-icon {
+  display: inline-flex;
+  color: var(--mv-ink-3);
+  flex-shrink: 0;
+}
+
+.xp-dropdown-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 8px;
+  padding: 8px 12px 4px;
+  border-top: 1px solid var(--mv-line);
+  font-size: 13px;
+  color: var(--mv-ink-3);
+}
+
+.xp-kbd {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 6px;
+  border-radius: var(--mv-radius-small);
+  background: var(--mv-surface-3);
+  color: var(--mv-ink-2);
+  font-family: var(--mv-font-body);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.xp-search-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-top: 16px;
+}
+
+.xp-search-foot .mv-chips {
+  align-items: center;
+}
+
+.xp-search-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--mv-ink-3);
+  font-size: 13px;
+}
+
+/* A keyboard hint means nothing on a touch phone */
+@media (hover: none) {
+  .xp-search-hint {
+    display: none;
+  }
+}
+
+/* ── App promo: a deeper step of the ramp, not a card ── */
+.xp-band {
+  margin-top: 120px;
+  padding: 120px 0;
+  background: var(--mv-bg-2);
+}
+
+.xp-band-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: center;
+}
+
+.xp-band-plate {
+  max-width: 420px;
+  justify-self: end;
+  width: 100%;
+}
+
+.xp-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+/* ── Notice (search fallback) ── */
+.xp-notice {
+  display: block;
+  margin: 0 0 24px;
+  padding: 14px 16px;
+  border-radius: var(--mv-radius-control);
+  border: 1px solid var(--mv-line);
+  background: var(--mv-surface);
+  color: var(--mv-ink-2);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.xp-rows-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 48px;
+}
+
+.xp-rows-2 .mv-rows {
+  border-top: none;
+}
+
+.xp-rows-2 .mv-rows:first-child {
+  border-top: 1px solid var(--mv-line);
+}
+
+/* ── Skeleton rows (static, no loop) ── */
+.xp-skel {
+  display: block;
+  height: 14px;
+  border-radius: var(--mv-radius-track);
+  background: var(--mv-skel);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .xp-hero {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  /* The split's list column is 360px here: figures go under the title */
+  .xp-results-list .xp-row {
+    flex-wrap: wrap;
+  }
+  .xp-results-list .xp-row-body {
+    flex-basis: 100%;
+  }
+  .xp-results-list .xp-row-figs .xp-figure {
+    align-items: flex-start;
+  }
+  .xp-hero-photo {
+    margin-right: 0;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--mv-radius-card);
+    order: -1;
+  }
+  .xp-picks,
+  .xp-band-grid {
+    grid-template-columns: 1fr;
+  }
+  .xp-band-plate {
+    justify-self: start;
+  }
+  .xp-rows-2 {
+    grid-template-columns: 1fr;
+  }
+  .xp-rows-2 .mv-rows {
+    border-top: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .xp-wrap {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .xp-filters {
+    padding: 12px 24px;
+  }
+  .xp-results-head {
+    padding: calc(var(--xp-nav-rest) + 24px) 24px 20px;
+  }
+  .xp-results-list {
+    padding: 16px 24px 64px;
+  }
+}
+
+@media (max-width: 768px) {
+  .xp-section {
+    padding-top: 96px;
+  }
+  .xp-section-tight {
+    padding-top: 48px;
+  }
+  .xp-hero {
+    padding-top: 96px;
+  }
+  .xp-figure-xl .xp-figure-value {
+    font-size: 56px;
+  }
+  .xp-continents {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .xp-field-select {
+    flex: 1;
+    min-width: 0;
+  }
+  .xp-field-submit {
+    flex-basis: 100%;
+    justify-content: center;
+  }
+  .xp-row {
+    flex-wrap: wrap;
+  }
+  .xp-row-body {
+    flex-basis: 100%;
+  }
+  .xp-row-figs .xp-figure {
+    align-items: flex-start;
+  }
+  .xp-band {
+    margin-top: 96px;
+    padding: 64px 0;
+  }
+  .xp-filters {
+    padding: 10px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .xp-wrap {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+/* ── Reduced motion: the explore entrance and the one loop stop here; the
+      kit's policy (design-system.css) covers the enter utilities, and
+      colour transitions keep running — they carry state, not motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .xp-rise,
+  .xp-rise-2 {
+    animation: none;
+  }
+  .xp-spinner {
+    animation: none;
+    border-top-color: var(--mv-ink-2);
+  }
+}

@@ -1,101 +1,131 @@
 import Image from 'next/image';
 
-interface FeatureScreenshotProps {
-  src: string;
-  alt: string;
-  side?: 'left' | 'right';
-  className?: string;
+/* The screen's radius comes from the kit (`.mv-phone-mockup > *`: 36 / 30 /
+   26, concentric with the frame at each breakpoint). When the hero has taken
+   the first shot (feature-content-page's cut), the pair is `frameless`: the
+   next capture sits on a crop panel (radius 28, keyline, no device frame),
+   so the hero's screen is not shown twice in two treatments.
+   The pair shares one axis: the phone closes to the end of its column and the
+   panel starts its own, so the two objects meet around the 48px gap. Below
+   900px they stack and both start at the gutter. The frame is capped at 280px
+   on this surface (the hero above it carries the page's headline). */
+const SCREENSHOT_PAIR_CSS = `
+.mv-shot-pair .mv-phone-mockup { width: 280px; margin: 0; justify-self: end; }
+.mv-shot-pair .mv-phone-mockup:only-child { justify-self: start; }
+.mv-shot-screen { overflow: hidden; height: 100%; }
+.mv-shot-panel {
+  width: min(440px, 100%);
+  aspect-ratio: 4 / 5;
+  background: var(--mv-surface);
+  border-radius: var(--mv-radius-card);
+  overflow: hidden;
+  justify-self: start;
 }
-
-export function FeatureScreenshot({
-  src,
-  alt,
-  side = 'right',
-  className = '',
-}: FeatureScreenshotProps) {
-  return (
-    <div
-      className={`reveal-on-scroll mx-auto flex max-w-6xl items-center gap-8 px-6 py-16 ${
-        side === 'left' ? 'md:flex-row-reverse' : ''
-      } ${className}`}
-    >
-      <div className="relative mx-auto w-[260px] shrink-0 md:w-[280px]">
-        {/* Phone frame */}
-        <div className="relative rounded-[2.5rem] border-[6px] border-neutral-800 bg-neutral-900 p-1.5 shadow-2xl shadow-primary-500/10 ring-1 ring-neutral-700/50">
-          {/* Dynamic Island */}
-          <div className="absolute left-1/2 top-0 z-10 h-5 w-24 -translate-x-1/2 rounded-b-2xl bg-neutral-800" />
-
-          {/* Screen */}
-          <div className="overflow-hidden rounded-[2rem]">
-            <Image
-              src={src}
-              alt={alt}
-              width={1206}
-              height={2622}
-              className="block w-full"
-              sizes="280px"
-              loading="lazy"
-            />
-          </div>
-
-          {/* Home indicator */}
-          <div className="mx-auto mt-1.5 h-1 w-20 rounded-full bg-neutral-700" />
-        </div>
-
-        {/* Glow behind phone */}
-        <div
-          className="pointer-events-none absolute inset-0 -z-10 blur-3xl"
-          style={{
-            background:
-              'radial-gradient(ellipse 80% 60% at 50% 50%, oklch(0.55 0.17 230 / 0.15), transparent)',
-          }}
-          aria-hidden="true"
-        />
-      </div>
-    </div>
-  );
+.mv-shot-crop {
+  width: min(440px, 100%);
+  aspect-ratio: 4 / 5;
+  background: var(--mv-surface);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-radius-crop);
+  overflow: hidden;
+  justify-self: start;
 }
+/* A crop never ends on a sliced line of text: the last stretch fades out. */
+.mv-shot-fade { mask-image: linear-gradient(to bottom, black calc(100% - 80px), transparent); }
+@media (max-width: 900px) {
+  .mv-shot-pair .mv-phone-mockup { width: 240px; justify-self: start; }
+}
+@media (max-width: 480px) {
+  .mv-shot-pair .mv-phone-mockup { width: 220px; }
+}
+`;
 
+/**
+ * The feature page's screenshot moment: one real device frame (the page's
+ * single `.mv-phone-mockup`, Direction: max one per page) beside a second
+ * shot cropped onto a surface panel (the screenshot carries the app's own
+ * chrome, so the panel draws no keyline of its own). Asymmetric by
+ * construction: two treatments, baselines aligned, no tilt, no glows. This is
+ * the page's one authored entrance (`.mv-reveal`, scroll-timeline driven).
+ */
 export function FeatureScreenshotPair({
   screenshots,
+  paddingTop = 0,
+  frameless = false,
 }: {
   screenshots: { src: string; alt: string }[];
+  /** Space above the pair; the hero cut sits on its own hairline, so the pair opens a new interval. */
+  paddingTop?: number;
+  /** The hero already shows a capture: draw the next one as a crop panel, no device frame. */
+  frameless?: boolean;
 }) {
-  return (
-    <div className="reveal-on-scroll mx-auto flex max-w-4xl items-center justify-center gap-6 px-6 py-16 md:gap-10">
-      {screenshots.map((shot, i) => (
-        <div key={shot.src} className="relative w-[220px] shrink-0 md:w-[260px]">
-          <div
-            className="relative rounded-[2.5rem] border-[6px] border-neutral-800 bg-neutral-900 p-1.5 shadow-2xl shadow-primary-500/10 ring-1 ring-neutral-700/50"
-            style={{
-              transform: i === 0 ? 'rotate(-3deg)' : 'rotate(3deg)',
-            }}
-          >
-            <div className="absolute left-1/2 top-0 z-10 h-5 w-24 -translate-x-1/2 rounded-b-2xl bg-neutral-800" />
-            <div className="overflow-hidden rounded-[2rem]">
-              <Image
-                src={shot.src}
-                alt={shot.alt}
-                width={1206}
-                height={2622}
-                className="block w-full"
-                sizes="260px"
-                loading="lazy"
-              />
-            </div>
-            <div className="mx-auto mt-1.5 h-1 w-20 rounded-full bg-neutral-700" />
-          </div>
+  const [first, second] = screenshots;
+  if (!first) return null;
 
-          <div
-            className="pointer-events-none absolute inset-0 -z-10 blur-3xl"
-            style={{
-              background:
-                'radial-gradient(ellipse 80% 60% at 50% 50%, oklch(0.55 0.17 230 / 0.12), transparent)',
-            }}
-            aria-hidden="true"
+  if (frameless) {
+    return (
+      <div
+        className="mv-section-inner mv-reveal mv-shot-pair"
+        style={{ paddingTop, paddingBottom: 0 }}
+      >
+        <style
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: static CSS
+          dangerouslySetInnerHTML={{ __html: SCREENSHOT_PAIR_CSS }}
+        />
+        <div className="mv-shot-crop">
+          <Image
+            src={first.src}
+            alt={first.alt}
+            width={1206}
+            height={2622}
+            sizes="440px"
+            loading="lazy"
+            className="mv-shot-fade"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
           />
         </div>
-      ))}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="mv-section-inner mv-reveal mv-shot-pair"
+      style={{ paddingTop, paddingBottom: 0 }}
+    >
+      <style
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: static CSS
+        dangerouslySetInnerHTML={{ __html: SCREENSHOT_PAIR_CSS }}
+      />
+      <div className="mv-grid-2" style={{ alignItems: 'end', gap: '48px' }}>
+        <div className="mv-phone-mockup">
+          <div className="mv-shot-screen">
+            <Image
+              src={first.src}
+              alt={first.alt}
+              width={1206}
+              height={2622}
+              sizes="280px"
+              loading="lazy"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+            />
+          </div>
+        </div>
+
+        {second ? (
+          <div className="mv-shot-panel">
+            <Image
+              src={second.src}
+              alt={second.alt}
+              width={1206}
+              height={2622}
+              sizes="440px"
+              loading="lazy"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+            />
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

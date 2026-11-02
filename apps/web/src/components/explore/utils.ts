@@ -1,7 +1,9 @@
 import type { TripTemplateNode } from '@/lib/fetch-places';
 import { relativeTrip } from '@/lib/seo/canonical';
 
-export function tripHref(trip: TripTemplateNode): string {
+export function tripHref(
+  trip: Pick<TripTemplateNode, 'id' | 'slug' | 'countryCode' | 'regionCode'>,
+): string {
   if (trip.slug && trip.countryCode && trip.regionCode) {
     // Lowercase to match the canonical trip URL — the route is case-insensitive,
     // so an uppercased link would self-canonicalize to a duplicate.

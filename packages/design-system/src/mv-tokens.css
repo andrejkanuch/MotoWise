@@ -1,103 +1,246 @@
 /* ═══════════════════════════════════════════════════════════════
-   MotoVault web app surface tokens (--mv-*)
-   Signed-in web app: /garage, /profile, the app handoff.
-   ═══════════════════════════════════════════════════════════════
-   Dark values only. The signed-in web app is dark-first and the
-   ThemeProvider pins `html.dark`, so there is no light variant to
-   honour yet. The marketing site keeps its own light override in
-   apps/web/src/components/marketing/design-system.css
-   (`html:not(.dark)`); its dark values match these exactly.
+   MotoVault web tokens (--mv-*) — the Race Plate world at web scale.
+   ONE source for every web surface: marketing, signed-in rider pages,
+   auth, Pro, explore/trips. Imported once by apps/web globals.css.
 
-   Colours are oklch to match the web redesign spec 1:1. Two values
-   are hex on purpose:
-   - --mv-card is the brand card colour (palette.cardDark).
-   - --mv-qr-ink is the QR module colour. It stays fixed in every
-     theme for scan reliability (dark modules on a light tile).
+   Values mirror palette.plate* (dark) and palette.plateLight* (light)
+   in ./palette.ts — change them there first, then here. Web-only
+   deviations (WCAG on the web's longer text runs, 2026-10-30 colorize
+   lens): ink-4 lifted to the 3:1 glyph floor, light ink-3 #606165,
+   overdue/go/due inks at ≥4.5:1 on every raised step, field lines at 3:1.
+   Dark is the :root default; light applies under html:not(.dark).
+   The ThemeProvider (apps/web src/providers/theme-provider.tsx)
+   toggles the class; the pre-paint script in the root layout sets
+   it before first paint.
+
+   Rules (apps/mobile/DESIGN.md, docs/design/web-race-plate-redesign/
+   DIRECTION.md):
+   - Copper is a verb: actions, links, selection. Never status, never
+     decoration, never a glow.
+   - The bone/signal/red triad appears only inside depictions of the
+     app (the Bike Plate).
+   - The ramp is the shadow: lift by stepping bg → surface → surface-2
+     → surface-3. No drop shadows on cards, blur budget = navbar only.
+   - Condensed means number and headline (--mv-font-display); every
+     sentence is the system face (--mv-font-body).
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Surfaces, darkest first */
-  --mv-page: oklch(0.085 0.008 55);
-  --mv-bg-2: oklch(0.09 0.008 55);
-  --mv-bg: oklch(0.12 0.01 55);
-  --mv-surface: oklch(0.15 0.012 55);
-  --mv-surface-2: oklch(0.18 0.014 55);
-  --mv-card: #1e1c19;
-  /* Raised bar over content (surface-2 at 92%) */
-  --mv-surface-2-glass: oklch(0.18 0.014 55 / 0.92);
+  color-scheme: dark;
 
-  /* Ink */
-  --mv-ink: oklch(0.98 0.006 80);
-  --mv-ink-2: oklch(0.78 0.012 70);
-  --mv-ink-3: oklch(0.58 0.012 65);
-  --mv-ink-4: oklch(0.4 0.012 60);
-  --mv-on-accent: oklch(0.17 0.01 55);
+  /* Graphite ramp: ground → card → raised → option → line-step */
+  --mv-bg: #111214;
+  --mv-bg-2: #0c0d0e; /* web-only deeper step for alternating sections */
+  --mv-surface: #1a1b1e;
+  --mv-surface-2: #232427;
+  --mv-surface-3: #2e3034;
+  --mv-line-step: #3d3f44;
 
-  /* Lines and fills (white at low alpha) */
-  --mv-line: oklch(1 0 0 / 0.07);
-  --mv-line-2: oklch(1 0 0 / 0.03);
-  --mv-field-line: oklch(1 0 0 / 0.14);
-  --mv-fill: oklch(1 0 0 / 0.04);
-  --mv-fill-icon: oklch(1 0 0 / 0.05);
-  --mv-skel: oklch(1 0 0 / 0.06);
-  --mv-skel-shine: oklch(1 0 0 / 0.1);
+  /* Bone ink */
+  --mv-ink: #ece6da;
+  --mv-ink-2: #bdb8ae;
+  --mv-ink-3: #8e8a83;
+  --mv-ink-4: #716e66;
+  --mv-line: rgba(236, 230, 218, 0.09);
+  --mv-line-2: rgba(236, 230, 218, 0.05);
+  --mv-field-line: rgba(236, 230, 218, 0.38);
+  --mv-fill: rgba(236, 230, 218, 0.04);
+  --mv-fill-icon: rgba(236, 230, 218, 0.05);
+  --mv-skel: rgba(236, 230, 218, 0.06);
+  --mv-skel-shine: rgba(236, 230, 218, 0.1);
 
-  /* Signature copper. Text uses 400 only (5.6:1 on card), never 500. */
-  --mv-copper-400: oklch(0.68 0.15 45);
-  --mv-copper-500: oklch(0.6 0.16 45);
-  --mv-copper-600: oklch(0.52 0.15 45);
-  --mv-copper-tint: oklch(0.6 0.16 45 / 0.1);
-  --mv-copper-tint-strong: oklch(0.6 0.16 45 / 0.16);
-  --mv-copper-border: oklch(0.68 0.15 45 / 0.45);
+  /* Copper is a verb */
+  --mv-copper: #d4622e;
+  --mv-copper-hover: #e8723a;
+  --mv-copper-text: #ec8a5a;
+  --mv-on-copper: #121315;
+  --mv-copper-tint: rgba(212, 98, 46, 0.1);
+  --mv-copper-tint-strong: rgba(212, 98, 46, 0.16);
+  --mv-copper-border: rgba(236, 138, 90, 0.45);
 
-  /* Warm amber */
-  --mv-warm-500: oklch(0.76 0.18 60);
-  --mv-warm-400: oklch(0.84 0.15 68);
-  --mv-warm-300: oklch(0.9 0.11 72);
-  --mv-warm-900: oklch(0.32 0.1 55);
-  --mv-warm-tint: oklch(0.84 0.15 68 / 0.12);
-  --mv-warm-border: oklch(0.84 0.15 68 / 0.25);
+  /* Plate-state triad — ONLY inside depictions of the app (Bike Plate) */
+  --mv-plate-bone: #ece6da;
+  --mv-plate-signal: #f2c230;
+  --mv-plate-red: #e5483a;
+  --mv-plate-ink: #121315;
+  --mv-due-ink: #f2c230;
+  --mv-overdue-ink: #f0675a;
 
-  /* Status */
-  --mv-success: oklch(0.72 0.2 145);
-  --mv-warning: oklch(0.75 0.15 80);
-  --mv-danger: oklch(0.7 0.21 25);
-  --mv-danger-tint: oklch(0.7 0.21 25 / 0.07);
-  --mv-danger-border: oklch(0.7 0.21 25 / 0.28);
+  /* General status (text-safe on the ramp) */
+  --mv-go: #4fb47a;
+  --mv-info: #6c9bf2;
+  --mv-danger-tint: rgba(229, 72, 58, 0.08);
+  --mv-danger-border: rgba(229, 72, 58, 0.28);
 
-  /* QR handoff tile */
-  --mv-qr-tile: oklch(0.97 0.01 80);
-  --mv-qr-ink: #1a1714;
+  /* Raised bar over content (surface-2 at 92%) — navbar only */
+  --mv-surface-2-glass: rgba(35, 36, 39, 0.92);
 
-  /* Google "G" mark: the official brand colours (Google's guidelines
-     forbid recolouring the mark), used by the sign-in account line. */
+  /* QR handoff tile: fixed in every theme for scan reliability */
+  --mv-qr-tile: #f3f2ef;
+  --mv-qr-ink: #121315;
+
+  /* Google "G" mark: official brand colours (never recoloured) */
   --mv-google-blue: #4285f4;
   --mv-google-green: #34a853;
   --mv-google-yellow: #fbbc05;
   --mv-google-red: #ea4335;
 
   /* Focus ring */
-  --mv-focus: var(--mv-warm-400);
+  --mv-focus: var(--mv-copper);
 
-  /* Shape and motion */
-  --mv-radius: 20px;
-  --mv-radius-card: 20px;
-  --mv-radius-inner: 12px;
-  --mv-radius-field: 8px;
+  /* Shape: controls 12, cards 16, the plate 20 */
+  --mv-radius-control: 12px;
+  --mv-radius-card: 16px;
+  --mv-radius-plate: 20px;
+  --mv-radius-small: 6px; /* ≤32px marks, checkboxes, kbd, inline code */
+  --mv-radius-track: 2px; /* ≤4px bars and progress tracks */
+  --mv-radius-pill: 999px;
+  --mv-radius-crop: 28px; /* frameless screenshot crops and bleeds */
+  --mv-radius-screen: 36px; /* the screen inside .mv-phone-mockup (frame 44 − 8 padding) */
+  /* Aliases of the control/card radii — migrate call sites, then delete */
+  --mv-radius-field: var(--mv-radius-control);
+  --mv-radius-inner: var(--mv-radius-control);
+  --mv-radius: var(--mv-radius-card);
+
+  /* Motion: one easing pair, four durations. 1 = colour/background/border,
+     2 = translate/scale/opacity, 3 = height/disclosure/theme icon,
+     4 = the livery stripe. Every transition snaps to a step. */
   --mv-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --mv-ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --mv-dur-1: 160ms;
+  --mv-dur-2: 200ms;
+  --mv-dur-3: 240ms;
+  --mv-dur-4: 420ms;
+
+  /* Layout */
+  --mv-container: 1240px;
+  /* Reading measures: the system face runs ~1.3 chars per `ch`, so 60ch is
+     75–80 characters of prose and 52ch a lede. */
+  --mv-measure: 60ch;
+  --mv-measure-lede: 52ch;
+
+  /* Type: condensed for numbers + headlines, system face for sentences.
+     --font-plate is set by next/font in the root layout. */
+  --mv-font-display: var(--font-plate, "Barlow Condensed", "Arial Narrow", sans-serif);
+  --mv-font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --mv-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* ── Deprecated aliases: migrate call sites, then delete ────────
+     Kept so every untouched consumer keeps rendering in the new world
+     (no in-scope consumers left; out of scope:
+     components/builder/builder-client.tsx). */
+  --mv-page: var(--mv-bg);
+  --mv-card: var(--mv-surface);
+  --mv-on-accent: var(--mv-on-copper);
+  --mv-copper-400: var(--mv-copper-text);
+  --mv-copper-500: var(--mv-copper);
+  --mv-copper-600: var(--mv-copper-hover);
+  --mv-warm-500: var(--mv-copper);
+  --mv-warm-400: var(--mv-copper-hover);
+  --mv-warm-300: var(--mv-copper-text);
+  --mv-warm-900: #7a3417;
+  --mv-warm-tint: var(--mv-copper-tint);
+  --mv-warm-border: var(--mv-copper-border);
+  --mv-success: var(--mv-go);
+  --mv-warning: var(--mv-due-ink);
+  --mv-danger: var(--mv-overdue-ink);
+  --mv-font-sans: var(--mv-font-body);
+  --mv-font-serif: var(--mv-font-display);
 }
 
-/* Type families. The --font-* variables come from next/font in apps/web:
-   the root layout sets --font-sans (Plus Jakarta Sans) and --font-geist-mono
-   on <html>; Instrument Serif is set by the layout that needs it, on its own
-   wrapper. A custom property's var() resolves where it is declared, so these
-   are declared on :root AND on .mv-fonts: put `mv-fonts` on the element that
-   carries the Instrument Serif variable class (apps/web src/lib/fonts.ts,
-   `mvFontsClassName`). The quoted names are the fallback when a page did not
-   load that next/font. */
-:root,
-.mv-fonts {
-  --mv-font-sans: var(--font-sans, "Plus Jakarta Sans"), ui-sans-serif, system-ui, sans-serif;
-  --mv-font-serif: var(--font-instrument-serif, "Instrument Serif"), Georgia, serif;
-  --mv-font-mono: var(--font-geist-mono, "Geist Mono"), ui-monospace, Menlo, monospace;
+/* Light — the paper ramp (palette.plateLight*), not an inversion */
+html:not(.dark) {
+  color-scheme: light;
+
+  --mv-bg: #f3f2ef;
+  --mv-bg-2: #ebe9e4;
+  --mv-surface: #ffffff;
+  --mv-surface-2: #ebe9e4;
+  --mv-surface-3: #dedbd4;
+  --mv-line-step: #c9c5bc;
+
+  --mv-ink: #141517;
+  --mv-ink-2: #45464a;
+  --mv-ink-3: #606165;
+  --mv-ink-4: #86878b;
+  --mv-line: rgba(20, 21, 23, 0.1);
+  --mv-line-2: rgba(20, 21, 23, 0.05);
+  --mv-field-line: rgba(20, 21, 23, 0.46);
+  --mv-fill: rgba(20, 21, 23, 0.04);
+  --mv-fill-icon: rgba(20, 21, 23, 0.05);
+  --mv-skel: rgba(20, 21, 23, 0.06);
+  --mv-skel-shine: rgba(20, 21, 23, 0.1);
+
+  --mv-copper: #b8501f;
+  --mv-copper-hover: #a6461a;
+  --mv-copper-text: #a6461a;
+  --mv-on-copper: #ffffff;
+  --mv-copper-tint: rgba(184, 80, 31, 0.1);
+  --mv-copper-tint-strong: rgba(184, 80, 31, 0.16);
+  --mv-copper-border: rgba(184, 80, 31, 0.45);
+
+  /* Triad fills stay; text-safe inks shift (Both-Schemes Rule) */
+  --mv-due-ink: #7a5b00;
+  --mv-overdue-ink: #b13026;
+
+  --mv-go: #246e44;
+  --mv-info: #2f64c8;
+  --mv-danger-tint: rgba(200, 53, 42, 0.08);
+  --mv-danger-border: rgba(200, 53, 42, 0.3);
+
+  --mv-surface-2-glass: rgba(235, 233, 228, 0.92);
+
+  --mv-warm-900: #7a3417;
+}
+
+/* High contrast: hairlines at 0.09 alpha vanish — step them up to a
+   visible ink mix; the field line follows. */
+@media (prefers-contrast: more) {
+  :root,
+  html:not(.dark) {
+    --mv-line: color-mix(in srgb, var(--mv-ink) 30%, transparent);
+    --mv-line-2: color-mix(in srgb, var(--mv-ink) 18%, transparent);
+    --mv-field-line: color-mix(in srgb, var(--mv-ink) 60%, transparent);
+  }
+}
+
+/* Forced colours (Windows high contrast): the UA repaints ink and ground,
+   so hairlines become CanvasText and focus is the system Highlight. */
+@media (forced-colors: active) {
+  :root,
+  html:not(.dark) {
+    --mv-line: CanvasText;
+    --mv-line-2: CanvasText;
+    --mv-line-step: CanvasText;
+    --mv-field-line: CanvasText;
+    --mv-focus: Highlight;
+  }
+}
+
+/* Print: the logbook on paper. Bone ink would print near-white, so the
+   light ramp applies regardless of the chosen scheme. */
+@media print {
+  :root,
+  html.dark {
+    color-scheme: light;
+    --mv-bg: #ffffff;
+    --mv-bg-2: #ffffff;
+    --mv-surface: #ffffff;
+    --mv-surface-2: #f3f2ef;
+    --mv-surface-3: #ebe9e4;
+    --mv-line-step: #c9c5bc;
+    --mv-ink: #141517;
+    --mv-ink-2: #45464a;
+    --mv-ink-3: #606165;
+    --mv-ink-4: #86878b;
+    --mv-line: rgba(20, 21, 23, 0.1);
+    --mv-line-2: rgba(20, 21, 23, 0.05);
+    --mv-copper: #b8501f;
+    --mv-copper-text: #a6461a;
+    --mv-on-copper: #ffffff;
+    --mv-go: #246e44;
+    --mv-due-ink: #7a5b00;
+    --mv-overdue-ink: #b13026;
+  }
 }

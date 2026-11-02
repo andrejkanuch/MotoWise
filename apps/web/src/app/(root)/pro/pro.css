@@ -1,0 +1,588 @@
+/* ═══════════════════════════════════════════════════════════════
+   /pro and its checkout — Trackside.
+   Lives inside .mv-marketing (app/pro/layout.tsx), so the tokens and
+   the shared kit (.mv-section-title, .mv-h2, .mv-btn(-block), .mv-link,
+   .mv-segmented, .mv-rows/.mv-row, .mv-table, .mv-alert, .mv-figure)
+   come from design-system.css. This file holds the page layout only.
+   Every colour is a --mv-* token and holds in both schemes.
+   Class prefix: mvp-.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Shared shell: 1240/40, gutters 24 at ≤900 and 20 at ≤480 ──── */
+
+.mvp-section {
+  max-width: var(--mv-container);
+  margin: 0 auto;
+  padding: 0 40px;
+  box-sizing: border-box;
+}
+.mvp-section--hero {
+  padding-top: 160px;
+  padding-bottom: 96px;
+}
+.mvp-section--compare {
+  padding-top: 32px;
+  padding-bottom: 120px;
+}
+.mvp-section--faq {
+  padding-bottom: 96px;
+}
+.mvp-section--final {
+  padding-top: 24px;
+  padding-bottom: 160px;
+  text-align: center;
+}
+/* Checkout, success, cancel: a focused 560 column with an explicit gutter. */
+.mvp-section--operate {
+  max-width: 560px;
+  padding: 120px 40px;
+}
+@media (max-width: 900px) {
+  .mvp-section {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .mvp-section--hero {
+    padding-top: 96px;
+    padding-bottom: 64px;
+  }
+  .mvp-section--compare,
+  .mvp-section--faq {
+    padding-bottom: 96px;
+  }
+  .mvp-section--final {
+    padding-bottom: 120px;
+  }
+  .mvp-section--operate {
+    padding: 96px 24px;
+  }
+}
+@media (max-width: 480px) {
+  .mvp-section {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .mvp-section--operate {
+    padding: 96px 20px;
+  }
+}
+
+/* Operate H1: the shared title held at the /pro H2 size, 44 on phones.
+   Never smaller than the H2 of the page it follows. */
+.mvp-operate-title {
+  font-size: clamp(44px, 4.2vw, 56px);
+  line-height: 0.98;
+}
+.mvp-lead {
+  margin: 28px 0 0;
+  max-width: 54ch;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--mv-ink-2);
+  text-wrap: pretty;
+}
+.mvp-quiet-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.mvp-quiet-link:hover {
+  color: var(--mv-ink);
+}
+.mvp-quiet-link {
+  transition: color var(--mv-dur-1) var(--mv-ease);
+}
+
+/* ── Hero: headline + the one card (pricing) ──────────────────── */
+
+.mvp-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: 64px;
+  align-items: start;
+}
+/* 901–1100: the card narrows to 360 and keeps its column beside the H1
+   instead of stretching to a 720px card with a 400px hole in it. */
+@media (max-width: 1100px) {
+  .mvp-hero-grid {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 48px;
+  }
+}
+@media (max-width: 900px) {
+  .mvp-hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mvp-hero-grid .mvp-card {
+    max-width: 440px;
+  }
+}
+
+/* Pricing card: one step up the ramp with a hairline (the step alone is
+   1.1:1, invisible on paper in light), radius 16 */
+.mvp-card {
+  background: var(--mv-surface);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-radius-card);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+@media (max-width: 480px) {
+  .mvp-card {
+    padding: 20px;
+  }
+}
+
+/* Plan toggle: the shared segmented control, two equal halves at the 44px
+   touch height. "Annual −30%" stays on one line at every width down to 320. */
+.mvp-seg {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-width: 0;
+}
+.mvp-seg > button {
+  min-height: 44px;
+  white-space: nowrap;
+  line-height: 1.2;
+  padding: 4px 10px;
+}
+.mvp-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.mvp-seg-saving {
+  font-family: var(--mv-font-display);
+  font-weight: 600;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--mv-ink-3);
+}
+.mv-segmented > [aria-pressed="true"] .mvp-seg-saving {
+  color: var(--mv-ink-2);
+}
+
+/* Price: the plate figure (64), its period at 0.5× in display 500,
+   the crossed twelve-months figure one step down */
+.mvp-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mvp-price-figure {
+  font-size: 64px;
+  line-height: 1;
+  color: var(--mv-ink);
+}
+.mvp-price-period {
+  font-family: var(--mv-font-display);
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 1;
+  color: var(--mv-ink-2);
+}
+.mvp-price-crossed {
+  margin-left: auto;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--mv-ink-3);
+  text-decoration: line-through;
+}
+.mvp-price-sub {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--mv-ink-2);
+}
+
+/* Benefit rows (card) and unlocked rows (success): hairline rows, text */
+.mvp-benefits .mv-row,
+.mvp-unlocked .mv-row {
+  justify-content: flex-start;
+  gap: 12px;
+  font-size: 15px;
+  color: var(--mv-ink);
+}
+.mvp-unlocked svg {
+  flex: none;
+  color: var(--mv-ink-2);
+}
+
+.mvp-footnote {
+  margin: 12px 0 0;
+  text-align: center;
+  text-wrap: pretty;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--mv-ink-3);
+}
+
+/* ── Free vs Pro: the shared spec table, the Pro column as the one card ── */
+
+.mvp-compare-wrap {
+  margin-top: 48px;
+  overflow-x: auto;
+}
+.mvp-compare {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.mvp-compare col.mvp-compare-col--value {
+  width: 150px;
+}
+.mvp-compare col.mvp-compare-col--pro {
+  width: 170px;
+}
+.mvp-compare .mvp-compare-cell {
+  height: 56px;
+  vertical-align: middle;
+  color: var(--mv-ink);
+  font-weight: 400;
+}
+.mvp-compare .mvp-compare-cell--head {
+  font-family: var(--mv-font-display);
+  font-weight: 600;
+  font-size: 26px;
+  line-height: 1.1;
+  color: var(--mv-ink-2);
+}
+.mvp-compare .mvp-compare-cell--value {
+  text-align: center;
+  color: var(--mv-ink-2);
+}
+.mvp-compare .mvp-compare-cell--value > * {
+  vertical-align: middle;
+}
+.mvp-compare .mvp-compare-cell--pro {
+  background: var(--mv-surface);
+  color: var(--mv-ink);
+}
+.mvp-compare .mvp-compare-cell--pro.mvp-compare-cell--head {
+  color: var(--mv-ink);
+  /* 12, not 16: a 16px radius on a 56px cell reads as a pill end. */
+  border-radius: var(--mv-radius-control) var(--mv-radius-control) 0 0;
+}
+.mvp-compare .mvp-compare-cell--pro.mvp-compare-cell--last {
+  border-bottom: none;
+  border-radius: 0 0 var(--mv-radius-control) var(--mv-radius-control);
+}
+.mvp-compare .mvp-compare-cell--last:not(.mvp-compare-cell--pro) {
+  border-bottom: none;
+}
+.mvp-compare .mvp-compare-cell svg {
+  flex: none;
+}
+.mvp-compare .mvp-compare-cell--value .mvp-no {
+  color: var(--mv-ink-3);
+}
+.mvp-compare .mvp-compare-cell--value .mv-figure {
+  font-size: 20px;
+  font-weight: 600;
+}
+/* The one verb between the hero and the final block */
+.mvp-compare-after {
+  margin: 24px 0 0;
+  font-size: 16px;
+}
+.mvp-compare-after .mv-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+/* Phones: the table scrolls sideways; the row label stays put, like the
+   compare pages' .mv-cmp-table. */
+@media (max-width: 640px) {
+  .mvp-compare-wrap {
+    margin-top: 32px;
+  }
+  .mvp-compare .mvp-compare-cell:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--mv-bg);
+  }
+  .mvp-compare col.mvp-compare-col--value {
+    width: 88px;
+  }
+  .mvp-compare col.mvp-compare-col--pro {
+    width: 104px;
+  }
+  .mvp-compare .mvp-compare-cell {
+    height: 52px;
+  }
+  .mvp-compare .mvp-compare-cell--head {
+    font-size: 20px;
+  }
+  .mvp-compare .mvp-compare-cell--value .mv-figure {
+    font-size: 1em;
+  }
+}
+
+/* ── FAQ: hairline details; the chevron turns via .mv-disclosure ── */
+
+.mvp-faq {
+  margin-top: 40px;
+  border-top: 1px solid var(--mv-line);
+  max-width: 820px;
+}
+.mvp-faq details {
+  border-bottom: 1px solid var(--mv-line);
+}
+.mvp-faq summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 0;
+  list-style: none;
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--mv-ink);
+}
+.mvp-faq summary::-webkit-details-marker {
+  display: none;
+}
+.mvp-faq summary svg {
+  flex: none;
+  color: var(--mv-ink-3);
+}
+.mvp-faq-body {
+  margin: 0;
+  padding: 0 0 24px;
+  max-width: 68ch;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--mv-ink-2);
+  text-wrap: pretty;
+}
+
+/* ── Final: centred, the one place centring is allowed ────────── */
+
+.mvp-final-cta {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.mvp-final-price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--mv-ink-3);
+}
+.mvp-final-price .mv-figure {
+  font-size: 28px;
+  line-height: 30px;
+  color: var(--mv-ink);
+}
+
+/* ── Checkout + success + cancel (Operate mode) ───────────────── */
+
+.mvp-back {
+  margin-bottom: 20px;
+  font-size: 15px;
+}
+.mvp-operate-head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mvp-operate-sub {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--mv-ink-2);
+  text-wrap: pretty;
+}
+.mvp-operate-stack {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Order summary: the one card in the checkout stack */
+.mvp-summary {
+  /* A plate's stripe ground inside this card matches the card. */
+  --mv-plate-ground: var(--mv-surface);
+  background: var(--mv-surface);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-radius-card);
+  padding: 8px 20px;
+}
+/* While the prices load the figures say so, one ink step down */
+.mvp-summary-pending {
+  font-size: 15px;
+  color: var(--mv-ink-3);
+}
+.mvp-summary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  border-top: 1px solid var(--mv-line);
+  font-size: 15px;
+  color: var(--mv-ink-2);
+}
+.mvp-summary-row:first-child {
+  border-top: none;
+}
+.mvp-summary-row strong {
+  font-weight: 500;
+  color: var(--mv-ink);
+}
+.mvp-summary-row .mv-figure {
+  font-size: 20px;
+  line-height: 22px;
+  color: var(--mv-ink);
+}
+.mvp-summary-row--total .mv-figure {
+  font-size: 40px;
+  line-height: 42px;
+}
+.mvp-summary-note {
+  margin: 0;
+  padding: 12px 0 8px;
+  border-top: 1px solid var(--mv-line);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--mv-ink-3);
+  text-wrap: pretty;
+}
+.mvp-summary-note strong {
+  font-weight: 500;
+  color: var(--mv-ink-2);
+}
+
+/* The shared alert as a hairline: the summary stays the one card */
+.mvp-alert {
+  padding: 14px 0;
+  border-width: 1px 0;
+  border-radius: 0;
+  background: transparent;
+}
+.mvp-alert-action {
+  margin-top: 4px;
+}
+
+.mvp-spinner {
+  flex: none;
+  animation: mvp-spin 0.8s linear infinite;
+}
+@keyframes mvp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.mvp-secure {
+  margin: 12px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--mv-ink-3);
+}
+.mvp-legal {
+  margin: 24px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 20px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--mv-ink-3);
+}
+.mvp-legal a {
+  color: inherit;
+  text-decoration: none;
+  text-underline-offset: 4px;
+  transition: color var(--mv-dur-1) var(--mv-ease);
+}
+.mvp-legal a:hover {
+  color: var(--mv-ink);
+  text-decoration: underline;
+}
+
+.mvp-wait {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Success: the Bike Plate settles in with its stripe (opt-in `settle` on
+   the plate, design-system.css) the moment Pro is confirmed; the unlocked
+   rows follow as a list (.mv-enter-list). */
+.mvp-success-plate {
+  margin-top: 32px;
+}
+.mvp-success-plate .mv-plate {
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+}
+.mvp-unlocked {
+  margin-top: 32px;
+}
+.mvp-handoff {
+  margin: 32px 0 0;
+  max-width: 52ch;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--mv-ink);
+  text-wrap: pretty;
+}
+.mvp-handoff + .mvp-actions {
+  margin-top: 24px;
+}
+.mvp-actions {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mvp-after {
+  margin: 20px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--mv-ink-3);
+}
+.mvp-progress {
+  margin: 20px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--mv-ink-3);
+}
+.mvp-progress svg {
+  flex: none;
+}
+
+/* Reduced motion: the loop stops; the arc stays as the static busy mark
+   (entrances, the settle and the list follow the kit's policy). */
+@media (prefers-reduced-motion: reduce) {
+  .mvp-spinner {
+    animation: none;
+  }
+}

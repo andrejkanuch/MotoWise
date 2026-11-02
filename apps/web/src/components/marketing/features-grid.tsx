@@ -1,28 +1,24 @@
-'use client';
-
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { useEffect, useRef, useState } from 'react';
-import { gsap, ScrollTrigger } from './motion';
+import { Link } from '@/i18n/navigation';
+import { BikePlate } from './bike-plate';
 
 type FeatureKey = 'expenses' | 'maintenance' | 'rides' | 'trip';
 
-interface FeatureData {
-  key: FeatureKey;
-  num: string;
-  title: string;
-  body: string;
-  kv: { label: string; value: string }[];
-  screenshot: string;
-  badgeLabel: string;
-  chip1: { label: string; value: string };
-  chip2: { label: string; value: string };
-}
+/** Ordered by validated demand (PostHog): expenses → maintenance → rides → trips. */
+const KEYS: readonly FeatureKey[] = ['expenses', 'maintenance', 'rides', 'trip'];
 
-/** Ordered by validated demand (PostHog): expenses → maintenance → rides → trips.
- *  AI diagnostics lives in its own DiagnosticsDemo section below. */
-const KEYS: FeatureKey[] = ['expenses', 'maintenance', 'rides', 'trip'];
+/** Each block's one verb: the link to its feature page (the badge key is the
+ *  page's name, so the link text says where it goes). */
+const FEATURE_PAGES: Record<FeatureKey, string> = {
+  expenses: '/features/expense-tracking',
+  maintenance: '/features/maintenance',
+  rides: '/features/ride-tracking',
+  trip: '/features/trip-planning',
+};
 
+/** Screenshot paths are a contract: the files are replaced 1:1 with Race Plate
+ *  captures, so the src strings never change here. */
 const SCREENSHOTS: Record<FeatureKey, string> = {
   expenses: '/images/marketing/mw/flow-add-expense.png',
   maintenance: '/images/marketing/mw/flow-add-maintenance.png',
@@ -30,567 +26,287 @@ const SCREENSHOTS: Record<FeatureKey, string> = {
   trip: '/images/marketing/mw/trip-detail-hero.png',
 };
 
+const SCREENSHOT_WIDTH = 1206;
+const SCREENSHOT_HEIGHT = 2622;
+
+/**
+ * The four records, as an editorial sequence rather than a scrubbed stage:
+ * server-rendered, no JavaScript, each block a condensed headline, two or
+ * three sentences in the logbook voice, one link to the feature page, and
+ * one depiction of the app. One stat row per page: the proof row above
+ * carries the numbers, so no block repeats them. The
+ * composition alternates so adjacent blocks differ — the page's single full
+ * device frame (expenses), a Bike Plate instead of a screenshot (maintenance),
+ * a deeper band with a screen bled off its bottom edge (rides), a screen bled
+ * off the right edge (trips). Each block headline is the section's real
+ * heading (`.mv-h2`); the intro statement above them is a sentence, not a
+ * heading. Motion: visible by default; the maintenance plate lays its stripe
+ * on its own scroll timeline (no `.mv-reveal` on that object).
+ */
 export function FeaturesGrid() {
   const t = useTranslations('Features');
-  const [active, setActive] = useState<FeatureKey>('expenses');
-  const [chipsVisible, setChipsVisible] = useState(true);
-  const panelsRef = useRef<HTMLDivElement>(null);
 
-  const FEATURES: FeatureData[] = KEYS.map((key, i) => ({
-    key,
-    num: `0${i + 1}`,
+  const copy = (key: FeatureKey) => ({
     title: t(`grid.${key}.title`),
     body: t(`grid.${key}.body`),
-    kv: [
-      { label: t(`grid.${key}.kv1Label`), value: t(`grid.${key}.kv1Value`) },
-      { label: t(`grid.${key}.kv2Label`), value: t(`grid.${key}.kv2Value`) },
-    ],
-    screenshot: SCREENSHOTS[key],
-    badgeLabel: t(`grid.${key}.badge`),
-    chip1: { label: t(`grid.${key}.chip1Label`), value: t(`grid.${key}.chip1Value`) },
-    chip2: { label: t(`grid.${key}.chip2Label`), value: t(`grid.${key}.chip2Value`) },
-  }));
+    link: { href: FEATURE_PAGES[key], label: t(`grid.${key}.badge`) },
+    alt: t('grid.screenshotAlt', { feature: t(`grid.${key}.badge`) }),
+  });
 
-  const activeFeature = FEATURES.find((f) => f.key === active) ?? FEATURES[0];
-
-  // Re-pop the floating chips whenever the active feature changes.
-  const isFirstRender = useRef(true);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: `active` is the trigger — the effect reacts to the active feature changing, it does not read it.
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    setChipsVisible(false);
-    const timer = setTimeout(() => setChipsVisible(true), 200);
-    return () => clearTimeout(timer);
-  }, [active]);
-
-  useEffect(() => {
-    const panels = panelsRef.current;
-    if (!panels) return;
-
-    const mm = gsap.matchMedia();
-
-    // Scroll-driven activation: as each panel crosses the viewport center,
-    // it becomes the active feature and the pinned phone crossfades.
-    mm.add('(min-width: 1041px)', () => {
-      const triggers = Array.from(panels.querySelectorAll<HTMLElement>('[data-feature-panel]')).map(
-        (panel) =>
-          ScrollTrigger.create({
-            trigger: panel,
-            start: 'top 55%',
-            end: 'bottom 55%',
-            onToggle: (self) => {
-              if (self.isActive) setActive(panel.dataset.featurePanel as FeatureKey);
-            },
-          }),
-      );
-      return () => {
-        for (const st of triggers) st.kill();
-      };
-    });
-
-    // Entrance rise for each panel (skipped for reduced motion).
-    mm.add('(prefers-reduced-motion: no-preference)', () => {
-      const tweens = Array.from(panels.querySelectorAll<HTMLElement>('[data-feature-panel]')).map(
-        (panel) =>
-          gsap.from(panel, {
-            y: 48,
-            autoAlpha: 0,
-            duration: 1,
-            ease: 'expo.out',
-            scrollTrigger: { trigger: panel, start: 'top 82%', once: true },
-          }),
-      );
-      return () => {
-        for (const tw of tweens) tw.kill();
-      };
-    });
-
-    return () => mm.revert();
-  }, []);
+  const [expenses, maintenance, rides, trip] = KEYS.map(copy);
 
   return (
-    <section
-      id="features"
-      style={{
-        padding: '120px 40px 200px',
-        maxWidth: 'var(--mv-container)',
-        margin: '0 auto',
-      }}
-    >
-      {/* Section header */}
-      <div style={{ maxWidth: '880px' }}>
-        <div className="mv-section-meta">{t('grid.sectionMeta')}</div>
-        <h2 className="mv-section-title">
-          {t('grid.sectionTitleLead')}{' '}
-          <span className="mv-serif mv-muted">{t('grid.sectionTitleEmphasis')}</span>
-        </h2>
-        <p className="mv-section-sub">{t('grid.sectionSub')}</p>
-      </div>
-
-      {/* Feature stage: scrolling panels + sticky phone */}
-      <div
-        style={{
-          marginTop: '96px',
-          display: 'grid',
-          gridTemplateColumns: '1fr clamp(320px, 35vw, 420px)',
-          gap: '96px',
-          alignItems: 'flex-start',
-        }}
-        className="features-stage-grid"
-      >
-        {/* Left: feature panels */}
-        <div ref={panelsRef} style={{ display: 'flex', flexDirection: 'column' }}>
-          {FEATURES.map((feature) => {
-            const isActive = active === feature.key;
-            return (
-              <article
-                key={feature.key}
-                data-feature-panel={feature.key}
-                className="feature-panel"
-                style={{
-                  opacity: isActive ? 1 : 0.35,
-                  transition: 'opacity .5s var(--mv-ease)',
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
-                    fontSize: '12px',
-                    letterSpacing: '0.12em',
-                    color: isActive ? 'var(--mv-warm-400)' : 'var(--mv-ink-4)',
-                    transition: 'color .4s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '14px',
-                  }}
-                >
-                  {feature.num}
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      height: '1px',
-                      width: '48px',
-                      background: isActive ? 'var(--mv-warm-500)' : 'var(--mv-line)',
-                      transition: 'background .4s',
-                    }}
-                  />
-                </div>
-                <h3
-                  style={{
-                    fontSize: 'clamp(28px, 3.4vw, 44px)',
-                    fontWeight: 500,
-                    letterSpacing: '-0.03em',
-                    lineHeight: 1.08,
-                    color: 'var(--mv-ink)',
-                    margin: '18px 0 0',
-                  }}
-                >
-                  {feature.title}
-                </h3>
-                <p
-                  style={{
-                    fontSize: '16px',
-                    lineHeight: 1.6,
-                    color: 'var(--mv-ink-2)',
-                    maxWidth: '460px',
-                    margin: '18px 0 0',
-                  }}
-                >
-                  {feature.body}
-                </p>
-                <div style={{ display: 'flex', gap: '40px', marginTop: '28px' }}>
-                  {feature.kv.map((item) => (
-                    <div
-                      key={item.label}
-                      style={{
-                        fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
-                        fontSize: '11px',
-                        color: 'var(--mv-ink-3)',
-                        letterSpacing: '0.04em',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {item.label}
-                      <strong
-                        style={{
-                          display: 'block',
-                          fontFamily: "var(--font-geist, 'Geist', sans-serif)",
-                          fontSize: '18px',
-                          color: 'var(--mv-ink)',
-                          fontWeight: 500,
-                          textTransform: 'none',
-                          letterSpacing: '-0.01em',
-                          marginTop: '4px',
-                        }}
-                      >
-                        {item.value}
-                      </strong>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Inline screenshot — mobile only (the sticky phone is hidden there) */}
-                <div className="feature-panel-shot">
-                  <Image
-                    src={feature.screenshot}
-                    alt={t('grid.screenshotAlt', { feature: feature.badgeLabel })}
-                    width={360}
-                    height={780}
-                    sizes="(max-width: 1040px) 80vw, 360px"
-                    style={{
-                      width: '100%',
-                      maxWidth: '320px',
-                      height: 'auto',
-                      borderRadius: '28px',
-                      border: '1px solid var(--mv-line)',
-                      boxShadow: '0 40px 80px -24px oklch(0 0 0 / 0.7)',
-                    }}
-                  />
-                </div>
-              </article>
-            );
-          })}
+    <section id="features" className="fx-section">
+      <div className="fx-container">
+        <div className="fx-head">
+          <p className="mv-h2">
+            {t('grid.sectionTitleLead')}{' '}
+            <span className="fx-muted">{t('grid.sectionTitleEmphasis')}</span>
+          </p>
         </div>
 
-        {/* Right: sticky phone mockup */}
-        <div
-          style={{ position: 'sticky', top: 'max(96px, calc(50vh - 390px))', paddingTop: '24px' }}
-          className="feature-preview-wrap"
-        >
-          <div
-            style={{
-              position: 'relative',
-              width: 'clamp(240px, min(50vw, 38vh), 360px)',
-              margin: '0 auto',
-              perspective: '2200px',
-            }}
-          >
-            {/* Halo glow */}
-            <div
-              aria-hidden="true"
-              style={{
-                position: 'absolute',
-                inset: '-80px -60px',
-                background:
-                  'radial-gradient(ellipse 55% 55% at 30% 40%, var(--mv-warm-900), transparent 70%), radial-gradient(ellipse 45% 45% at 75% 70%, oklch(0.3 0.1 260 / 0.5), transparent 70%)',
-                filter: 'blur(70px)',
-                opacity: 0.75,
-                zIndex: 0,
-              }}
-            />
-
-            {/* Grid background */}
-            <div
-              aria-hidden="true"
-              style={{
-                position: 'absolute',
-                inset: '-10% -15%',
-                zIndex: 0,
-                backgroundImage:
-                  'linear-gradient(to right, oklch(1 0 0 / 0.04) 1px, transparent 1px), linear-gradient(to bottom, oklch(1 0 0 / 0.04) 1px, transparent 1px)',
-                backgroundSize: '44px 44px',
-                maskImage: 'radial-gradient(ellipse 70% 70% at 50% 50%, #000, transparent 80%)',
-                pointerEvents: 'none',
-              }}
-            />
-
-            {/* Badge */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '-14px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 5,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '6px 14px',
-                fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
-                fontSize: '10px',
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                color: 'var(--mv-ink-2)',
-                background: 'oklch(0.14 0.01 55 / 0.92)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid var(--mv-line)',
-                borderRadius: '999px',
-                whiteSpace: 'nowrap',
-                boxShadow: '0 12px 24px -8px oklch(0 0 0 / 0.6)',
-              }}
-            >
-              <span
-                style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  background: 'var(--mv-warm-400)',
-                  boxShadow: '0 0 0 4px var(--mv-warm-900)',
-                  animation: 'mv-pulse-dot 1.8s infinite ease-in-out',
-                }}
-              />
-              {activeFeature.badgeLabel}
-            </div>
-
-            {/* Floating chip 1 */}
-            <div
-              style={{
-                position: 'absolute',
-                zIndex: 4,
-                background: 'oklch(0.15 0.01 55 / 0.9)',
-                backdropFilter: 'blur(18px)',
-                border: '1px solid var(--mv-line)',
-                borderRadius: '14px',
-                padding: '12px 14px',
-                display: 'flex',
-                gap: '12px',
-                alignItems: 'center',
-                boxShadow: '0 20px 40px -12px oklch(0 0 0 / 0.7)',
-                top: '22%',
-                left: '-80px',
-                opacity: chipsVisible ? 1 : 0,
-                transform: chipsVisible ? 'translateY(0)' : 'translateY(16px)',
-                transition: 'opacity .6s var(--mv-ease-expo), transform .6s var(--mv-ease-expo)',
-                animation: 'mv-chip-float 6s ease-in-out infinite',
-              }}
-            >
-              <div
-                style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '10px',
-                  display: 'grid',
-                  placeItems: 'center',
-                  flexShrink: 0,
-                  background: 'oklch(0.72 0.2 145 / 0.18)',
-                  color: 'var(--mv-success)',
-                }}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  aria-hidden="true"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
-                    fontSize: '10px',
-                    color: 'var(--mv-ink-3)',
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {activeFeature.chip1.label}
-                </div>
-                <div
-                  style={{
-                    fontSize: '14px',
-                    color: 'var(--mv-ink)',
-                    fontWeight: 500,
-                    letterSpacing: '-0.01em',
-                    marginTop: '2px',
-                  }}
-                >
-                  {activeFeature.chip1.value}
-                </div>
-              </div>
-            </div>
-
-            {/* Floating chip 2 */}
-            <div
-              style={{
-                position: 'absolute',
-                zIndex: 4,
-                background: 'oklch(0.15 0.01 55 / 0.9)',
-                backdropFilter: 'blur(18px)',
-                border: '1px solid var(--mv-line)',
-                borderRadius: '14px',
-                padding: '12px 14px',
-                display: 'flex',
-                gap: '12px',
-                alignItems: 'center',
-                boxShadow: '0 20px 40px -12px oklch(0 0 0 / 0.7)',
-                bottom: '18%',
-                right: '-60px',
-                opacity: chipsVisible ? 1 : 0,
-                transform: chipsVisible ? 'translateY(0)' : 'translateY(16px)',
-                transition: 'opacity .6s var(--mv-ease-expo), transform .6s var(--mv-ease-expo)',
-                animation: 'mv-chip-float 7s 1.5s ease-in-out infinite reverse',
-              }}
-            >
-              <div
-                style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '10px',
-                  display: 'grid',
-                  placeItems: 'center',
-                  flexShrink: 0,
-                  background: 'var(--mv-warm-500)',
-                  color: 'var(--mv-bg)',
-                }}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  aria-hidden="true"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                </svg>
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
-                    fontSize: '10px',
-                    color: 'var(--mv-ink-3)',
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {activeFeature.chip2.label}
-                </div>
-                <div
-                  style={{
-                    fontSize: '14px',
-                    color: 'var(--mv-ink)',
-                    fontWeight: 500,
-                    letterSpacing: '-0.01em',
-                    marginTop: '2px',
-                  }}
-                >
-                  {activeFeature.chip2.value}
-                </div>
-              </div>
-            </div>
-
-            {/* Phone frame */}
-            <div
-              style={{
-                position: 'relative',
-                width: '100%',
-                aspectRatio: '9/19.5',
-                borderRadius: '48px',
-                background: 'linear-gradient(160deg, #1a1a1c, #0a0a0a)',
-                padding: '10px',
-                boxShadow:
-                  '0 0 0 1px oklch(1 0 0 / 0.08), 0 0 0 8px oklch(0 0 0 / 0.35), inset 0 1px 0 oklch(1 0 0 / 0.12), 0 80px 140px -30px oklch(0 0 0 / 0.9), 0 40px 60px -20px oklch(0.2 0.08 60 / 0.4)',
-                zIndex: 1,
-                transform: 'rotateY(-6deg) rotateX(2deg)',
-                transition: 'transform .8s var(--mv-ease-expo)',
-              }}
-            >
-              {/* Notch */}
-              <div
-                aria-hidden="true"
-                style={{
-                  position: 'absolute',
-                  top: '16px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '108px',
-                  height: '28px',
-                  background: '#000',
-                  borderRadius: '999px',
-                  zIndex: 3,
-                  boxShadow: 'inset 0 0 0 1px oklch(1 0 0 / 0.05)',
-                }}
-              />
-              {/* Side button */}
-              <div
-                aria-hidden="true"
-                style={{
-                  position: 'absolute',
-                  right: '-3px',
-                  top: '120px',
-                  bottom: '180px',
-                  width: '3px',
-                  background:
-                    'linear-gradient(180deg, transparent, oklch(0.25 0.01 55) 10%, oklch(0.25 0.01 55) 90%, transparent)',
-                  borderRadius: '2px',
-                }}
-              />
-              {/* Screen */}
-              <div
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: '35px',
-                  overflow: 'hidden',
-                  background: '#111',
-                  position: 'relative',
-                }}
-              >
-                {FEATURES.map((feature) => (
-                  <Image
-                    key={feature.key}
-                    src={feature.screenshot}
-                    alt={t('grid.screenshotAlt', { feature: feature.badgeLabel })}
-                    fill
-                    sizes="360px"
-                    style={{
-                      objectFit: 'cover',
-                      objectPosition: 'center top',
-                      opacity: active === feature.key ? 1 : 0,
-                      transform: active === feature.key ? 'scale(1)' : 'scale(1.04)',
-                      transition:
-                        'opacity .7s var(--mv-ease-expo), transform .9s var(--mv-ease-expo)',
-                    }}
-                  />
-                ))}
+        {/* 1 · Expenses — copy left, the page's one full device frame right */}
+        <article className="fx-block">
+          <FeatureCopy {...expenses} />
+          <div className="fx-art fx-art-phone">
+            <div className="mv-phone-mockup">
+              <div className="fx-screen">
+                <Image
+                  src={SCREENSHOTS.expenses}
+                  alt={expenses.alt}
+                  fill
+                  sizes="(max-width: 900px) 260px, 320px"
+                  style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                />
               </div>
             </div>
           </div>
-        </div>
+        </article>
+
+        {/* 2 · Maintenance — the Bike Plate left, copy right */}
+        <article className="fx-block fx-block-rev">
+          <FeatureCopy {...maintenance} />
+          <div className="fx-art fx-art-plate fx-plate-lay">
+            <BikePlate
+              figure={t('grid.maintenance.plateFigure')}
+              unit={t('grid.maintenance.plateUnit')}
+              caption={t('grid.maintenance.plateCaption')}
+              racingNumber="27"
+              identity={t('grid.maintenance.plateIdentity')}
+              state="due"
+              style={{ width: '100%', maxWidth: '440px' }}
+            />
+          </div>
+        </article>
       </div>
 
-      {/* Responsive */}
+      {/* 3 · Rides — a deeper band; the screen is cut by the band's bottom edge */}
+      <article className="fx-band">
+        <div className="fx-container fx-band-grid">
+          <FeatureCopy {...rides} className="fx-band-copy" />
+          <div className="fx-art fx-art-cut">
+            <Image
+              src={SCREENSHOTS.rides}
+              alt={rides.alt}
+              width={SCREENSHOT_WIDTH}
+              height={SCREENSHOT_HEIGHT}
+              sizes="(max-width: 900px) 300px, 380px"
+              className="fx-cut-img"
+            />
+          </div>
+        </div>
+      </article>
+
+      {/* 4 · Trips — copy left, the screen bled off the right edge */}
+      <div className="fx-container">
+        <article className="fx-block fx-block-trips">
+          <FeatureCopy {...trip} />
+          <div className="fx-art fx-art-bleed">
+            <Image
+              src={SCREENSHOTS.trip}
+              alt={trip.alt}
+              width={SCREENSHOT_WIDTH}
+              height={SCREENSHOT_HEIGHT}
+              sizes="(max-width: 900px) 100vw, 620px"
+              className="fx-bleed-img"
+            />
+          </div>
+        </article>
+      </div>
+
       <style
         // biome-ignore lint/security/noDangerouslySetInnerHtml: static CSS
-        dangerouslySetInnerHTML={{
-          __html: `
-            .feature-panel {
-              min-height: 64vh;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-              padding: 48px 0;
-            }
-            .feature-panel-shot { display: none; }
-            @media (max-width: 1040px) {
-              .features-stage-grid { grid-template-columns: 1fr !important; gap: 0 !important; }
-              .feature-preview-wrap { display: none; }
-              .feature-panel {
-                min-height: 0;
-                opacity: 1 !important;
-                padding: 56px 0;
-                border-bottom: 1px solid var(--mv-line-2);
-              }
-              .feature-panel:last-child { border-bottom: none; }
-              .feature-panel-shot { display: block; margin-top: 36px; }
-            }
-          `,
-        }}
+        dangerouslySetInnerHTML={{ __html: FEATURES_CSS }}
       />
     </section>
   );
 }
+
+function FeatureCopy({
+  title,
+  body,
+  link,
+  className,
+}: {
+  title: string;
+  body: string;
+  link: { href: string; label: string };
+  className?: string;
+}) {
+  return (
+    <div className={className ? `fx-copy ${className}` : 'fx-copy'}>
+      <h2 className="mv-h2">{title}</h2>
+      <p className="fx-body">{body}</p>
+      <p className="fx-link">
+        <Link href={link.href} className="mv-link is-tall">
+          {link.label}
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+const FEATURES_CSS = `
+.fx-section { padding: 120px 0 0; overflow-x: clip; container-type: inline-size; }
+.fx-container { max-width: var(--mv-container); margin: 0 auto; padding: 0 40px; }
+.fx-head { max-width: 880px; }
+.fx-muted { color: var(--mv-ink-3); }
+
+.fx-block {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 64px;
+  align-items: center;
+  padding: 64px 0;
+}
+.fx-head + .fx-block { margin-top: 48px; }
+.fx-block-rev .fx-copy { order: 2; }
+.fx-block-rev .fx-art { order: 1; }
+.fx-block-trips { padding: 120px 0 96px; align-items: start; }
+
+.fx-copy { max-width: 520px; }
+.fx-body {
+  margin: 20px 0 0;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--mv-ink-2);
+  letter-spacing: 0;
+  text-wrap: pretty;
+}
+.fx-link { margin: 16px 0 0; font-size: 15px; line-height: 20px; }
+
+.fx-art { position: relative; }
+.fx-art-phone { display: flex; justify-content: center; }
+/* The expense capture ends in the app's floating tab bar with the copper Save
+   bar showing beneath it; the frame stops short of both (screen ≈ the top 86%
+   of the capture, cut just under the Details field). */
+.fx-art-phone .mv-phone-mockup { aspect-ratio: 9 / 16.4; }
+.fx-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--mv-radius-screen);
+  overflow: hidden;
+  background: var(--mv-surface);
+}
+.fx-art-plate { display: flex; justify-content: flex-start; }
+
+/* Rides: a deeper step of the ramp, full width; the screen is cut by the
+   band's bottom edge, keyline on the three visible sides. The crop starts
+   below the capture's status bar. */
+.fx-band { background: var(--mv-bg-2); margin-top: 96px; overflow: hidden; }
+.fx-band-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 64px;
+  align-items: end;
+}
+.fx-band-copy { padding: 120px 0; }
+.fx-art-cut {
+  align-self: end;
+  justify-self: start;
+  width: 380px;
+  max-width: 100%;
+  margin: 96px 0 0;
+  height: 520px;
+  overflow: hidden;
+  border: 1px solid var(--mv-line);
+  border-bottom: 0;
+  border-radius: var(--mv-radius-crop) var(--mv-radius-crop) 0 0;
+  background: var(--mv-surface);
+}
+.fx-cut-img { width: 100%; height: 100%; object-fit: cover; object-position: center 8%; display: block; }
+
+/* Trips: the screen runs off the right edge of the viewport; the section
+   clips the overshoot so the page never relies on body overflow. Container
+   units measure the section, never the scrollbar. */
+/* The window keeps one aspect at every width, so it always holds the same
+   slice of the capture: from just above the map's town label to just under
+   the route's southern end, stopping before the sheet's title line. */
+.fx-art-bleed {
+  margin-right: calc(-1 * (max(0px, (100cqw - var(--mv-container)) / 2) + 40px));
+  aspect-ratio: 6 / 5;
+  overflow: hidden;
+  border: 1px solid var(--mv-line);
+  border-right: 0;
+  border-radius: var(--mv-radius-crop) 0 0 var(--mv-radius-crop);
+  background: var(--mv-surface);
+}
+.fx-bleed-img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; display: block; }
+
+/* The stripe is laid down by the scroll. The plate's two signature
+   keyframes (mv-plate-settle, mv-plate-stripe-lay) run on the plate's own
+   view timeline: the settle over the first part of its entry, the stripe
+   over the rest. Entrance only, transform only, clipped by the plate.
+   Without scroll-timeline support the plate is simply complete. The fill
+   never animates: the state is a record. */
+@supports (animation-timeline: view()) {
+  .fx-plate-lay .mv-plate {
+    view-timeline: --fx-plate block;
+    animation: mv-plate-settle var(--mv-ease-expo) both;
+    animation-duration: auto;
+    animation-timeline: --fx-plate;
+    animation-range: entry 5% entry 45%;
+  }
+  .fx-plate-lay .mv-plate-stripe {
+    animation: mv-plate-stripe-lay var(--mv-ease-expo) both;
+    animation-duration: auto;
+    animation-timeline: --fx-plate;
+    animation-range: entry 15% entry 70%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fx-plate-lay .mv-plate,
+  .fx-plate-lay .mv-plate-stripe { animation: none; }
+  .fx-plate-lay .mv-plate-stripe { transform: rotate(45deg); }
+}
+
+/* Tablet keeps the two-up pairs (a 260px phone beside 328px of copy fits
+   from 768); only the gutter steps down. */
+@media (max-width: 900px) {
+  .fx-container { padding: 0 24px; }
+  .fx-section { padding-top: 96px; }
+  .fx-block { gap: 40px; padding: 48px 0; }
+  .fx-head + .fx-block { margin-top: 40px; }
+  .fx-block-trips { padding: 72px 0 64px; }
+  .fx-band { margin-top: 64px; }
+  .fx-band-grid { gap: 40px; }
+  .fx-band-copy { padding: 96px 0; }
+  .fx-art-cut { width: 300px; height: 380px; margin: 64px 0 0; }
+  .fx-art-bleed { margin-right: -24px; }
+}
+@media (max-width: 767px) {
+  .fx-block { grid-template-columns: minmax(0, 1fr); }
+  .fx-block-rev .fx-copy { order: 1; }
+  .fx-block-rev .fx-art { order: 2; }
+  .fx-art-phone { justify-content: flex-start; }
+  .fx-band-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .fx-band-copy { padding: 96px 0 0; }
+  .fx-art-cut { margin: 48px 0 0; }
+  .fx-art-bleed { margin-right: 0; border-right: 1px solid var(--mv-line); border-radius: var(--mv-radius-crop); }
+}
+@media (max-width: 480px) {
+  .fx-container { padding: 0 20px; }
+  .fx-art-cut { width: 100%; height: 320px; }
+}
+`;

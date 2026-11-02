@@ -13,6 +13,7 @@ import {
 } from '@/lib/fetch-places';
 import { COUNTRY_INTROS } from '@/lib/seo/country-intros';
 import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
+import '@/components/marketing/trackside-read.css';
 
 // Prerendered (ISR) so `notFound()` returns a REAL 404. What made it a 200 was
 // `app/loading.tsx` streaming a shell before the page resolved — `notFound()`
@@ -23,7 +24,7 @@ import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/
 export const dynamic = 'force-static';
 export const revalidate = 2592000; // 30 days — DB-sourced; invalidated on demand via /api/revalidate on publish/edit
 
-const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
+const OG_IMAGE = `${BASE_URL}/images/hero-explore-og.jpg`; // 1200×630 crop under 300 KB (the 732 KB source was fetched raw by every crawler)
 
 interface PageProps {
   params: Promise<{ locale: string; country: string }>;
@@ -36,11 +37,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const country = await fetchCountryBySlug(countrySlug);
   if (!country) return {};
 
-  const title = `Motorcycle Routes in ${country.name}`;
+  const title = `Motorcycle routes in ${country.name}`;
   const rc = country.routeCount;
   const description =
     rc > 0
-      ? `Discover the best motorcycle routes in ${country.name}. Browse ${rc} route${rc === 1 ? '' : 's'} across regions — twisty roads, scenic passes, and epic rides.`
+      ? `Motorcycle routes in ${country.name}: ${rc} route${rc === 1 ? '' : 's'} by region, each with distance, climb and riding time, rated by riders.`
       : `Motorcycle routes in ${country.name} are coming soon. Browse other countries on MotoVault or share a ride from the app.`;
 
   // Explore content is not translated — always canonical to the non-localized version
@@ -94,8 +95,8 @@ export default async function CountryPage({ params }: PageProps) {
 
   const introContent = COUNTRY_INTROS[countrySlug] ?? null;
 
-  const title = `Motorcycle Routes in ${country.name}`;
-  const description = `Discover the best motorcycle routes in ${country.name}. Browse ${country.routeCount} routes across regions.`;
+  const title = `Motorcycle routes in ${country.name}`;
+  const description = `Motorcycle routes in ${country.name}: ${country.routeCount} routes by region, rated by riders.`;
   const canonical = getCanonicalUrl(locale, `/explore/${countrySlug}`);
 
   const graph = buildGraph(
@@ -131,111 +132,80 @@ export default async function CountryPage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
 
-      <Breadcrumb
-        items={[
-          { label: 'Home', href: '/' },
-          { label: 'Explore', href: '/explore' },
-          { label: country.name },
-        ]}
-      />
+      <section className="mv-index">
+        <Breadcrumb
+          items={[
+            { label: 'Home', href: '/' },
+            { label: 'Explore', href: '/explore' },
+            { label: country.name },
+          ]}
+        />
 
-      {/* Hero */}
-      <section className="px-6 pb-16 pt-8 md:pb-24 md:pt-12">
-        <div className="reveal-on-scroll mx-auto max-w-4xl">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            {country.name}
+        <header>
+          <h1 className="mv-index-h1">Motorcycle routes in {country.name}</h1>
+          <p className="mv-index-lede">
+            <span className="mv-figure">{country.routeCount}</span>{' '}
+            {country.routeCount === 1 ? 'route' : 'routes'} across{' '}
+            {regions.length > 0 ? (
+              <>
+                <span className="mv-figure">{regions.length}</span>{' '}
+                {regions.length === 1 ? 'region' : 'regions'}
+              </>
+            ) : (
+              'the country'
+            )}
+            , shared and rated by riders. Open any route in the app to export the GPX.
           </p>
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
-            {title}
-          </h1>
-          <div className="mx-auto mt-6 h-1.5 w-32 rounded-full bg-signature-500" />
-          <p className="mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">{description}</p>
+        </header>
 
-          {/* Country intro content */}
-          {introContent && (
-            <div className="mx-auto mt-8 max-w-3xl space-y-4">
-              {introContent.map((paragraph) => (
-                <p
-                  key={paragraph.slice(0, 40)}
-                  className="text-base leading-relaxed text-neutral-400"
-                >
-                  {paragraph}
-                </p>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Regions grid */}
-      {regions.length > 0 && (
-        <section className="px-6 pb-16">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-neutral-50">Regions</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {regions.map((region) => (
-                <Link
-                  key={region.id}
-                  href={`/explore/${countrySlug}/${region.slug}`}
-                  className="group relative overflow-hidden rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6 backdrop-blur-sm transition-colors hover:border-warm-500/40"
-                >
-                  <div className="absolute inset-x-0 bottom-0 h-[3px] bg-transparent transition-colors duration-300 group-hover:bg-warm-500" />
-                  <h3 className="text-lg font-semibold text-neutral-50 transition-colors group-hover:text-warm-400">
-                    {region.name}
-                  </h3>
-                  <p className="mt-2 text-sm text-neutral-400">
-                    {region.routeCount} {region.routeCount === 1 ? 'route' : 'routes'}
-                  </p>
-                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-warm-400 transition-colors group-hover:text-warm-300">
-                    View routes
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="transition-transform group-hover:translate-x-0.5"
-                      aria-hidden="true"
-                    >
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  </span>
-                </Link>
-              ))}
-            </div>
+        {introContent && (
+          <div className="mv-read-body" style={{ marginTop: 40 }}>
+            {introContent.map((paragraph) => (
+              <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+            ))}
           </div>
-        </section>
-      )}
+        )}
 
-      {/* Top routes */}
-      {topRoutes.length > 0 && (
-        <section className="px-6 pb-24">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-neutral-50">
-              Top Routes in {country.name}
+        {regions.length > 0 && (
+          <section className="mv-read-section" aria-labelledby="regions-heading">
+            <h2 id="regions-heading" className="mv-read-h2">
+              Regions
             </h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {topRoutes.map((route) => (
-                <RouteCard key={route.id} route={route} />
+            <ul className="mv-places" style={{ marginTop: 8 }}>
+              {regions.map((region) => (
+                <li key={region.id}>
+                  <Link href={`/explore/${countrySlug}/${region.slug}`}>
+                    <span className="mv-places-name">{region.name}</span>
+                    <span className="mv-places-count">
+                      <span className="mv-figure">{region.routeCount}</span>
+                      {region.routeCount === 1 ? 'route' : 'routes'}
+                    </span>
+                  </Link>
+                </li>
               ))}
-            </div>
-          </div>
-        </section>
-      )}
+            </ul>
+          </section>
+        )}
 
-      {/* Empty state */}
-      {regions.length === 0 && topRoutes.length === 0 && (
-        <section className="px-6 pb-24">
-          <div className="mx-auto max-w-4xl text-center">
-            <p className="text-neutral-500">
-              No routes available in {country.name} yet. Check back soon!
-            </p>
-          </div>
-        </section>
-      )}
+        {topRoutes.length > 0 && (
+          <section className="mv-read-section" aria-labelledby="top-routes-heading">
+            <h2 id="top-routes-heading" className="mv-read-h2">
+              Top-rated routes in {country.name}
+            </h2>
+            <ul className="mv-route-list" style={{ marginTop: 8 }}>
+              {topRoutes.map((route) => (
+                <li key={route.id}>
+                  <RouteCard route={route} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {regions.length === 0 && topRoutes.length === 0 && (
+          <p className="mv-empty">No routes published in {country.name} yet. Check back soon.</p>
+        )}
+      </section>
     </>
   );
 }

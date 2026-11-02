@@ -5,45 +5,42 @@ export interface BreadcrumbItem {
   href?: string;
 }
 
+function Chevron() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  );
+}
+
 /**
- * Accessible breadcrumb navigation following the pattern used across
- * MotoVault marketing pages (bikes, features, etc.).
+ * Breadcrumb trail in the Trackside voice: body face, ink-3, hairline-weight
+ * chevrons, the current page in ink. Styles live in `design-system.css`
+ * (`.mv-crumbs`, the shared kit), loaded by the marketing layout.
  */
 export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
   return (
-    <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
-      <ol className="mx-auto flex max-w-7xl items-center gap-2 text-sm text-neutral-500">
+    <nav aria-label="Breadcrumb">
+      <ol className="mv-crumbs">
         {items.map((item, i) => {
           const isLast = i === items.length - 1;
           return (
-            <li key={item.label} className="flex items-center gap-2">
-              {i > 0 && (
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-neutral-600"
-                  aria-hidden="true"
-                >
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              )}
+            <li key={item.label}>
+              {i > 0 && <Chevron />}
               {isLast || !item.href ? (
-                <span
-                  className={isLast ? 'text-neutral-300' : undefined}
-                  aria-current={isLast ? 'page' : undefined}
-                >
-                  {item.label}
-                </span>
+                <span aria-current={isLast ? 'page' : undefined}>{item.label}</span>
               ) : (
-                <Link href={item.href} className="transition-colors hover:text-neutral-300">
-                  {item.label}
-                </Link>
+                <Link href={item.href}>{item.label}</Link>
               )}
             </li>
           );

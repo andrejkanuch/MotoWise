@@ -5,12 +5,19 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { InputHTMLAttributes, ReactNode } from 'react';
 import { AppleMark, GoogleMark } from '@/components/garage-ui/brand-icons';
+import { BikePlate } from '@/components/marketing/bike-plate';
+import { MAIN_CONTENT_ID, SkipLink } from '@/components/skip-link';
+import '@/components/marketing/design-system.css';
 import './auth-ui.css';
 
 /**
- * Presentational pieces of the redesigned /login and /signup ("Auth"
- * artboards). They hold no auth logic: the pages own Supabase, analytics and
- * redirects and pass state in.
+ * Presentational pieces of /login, /signup, /forgot-password and
+ * /reset-password (Trackside, Operate mode). They hold no auth logic: the
+ * pages own Supabase, analytics and redirects and pass state in.
+ *
+ * Only the pieces that read the AuthV2 catalogue (OAuthButtons, OrWithEmail,
+ * LegalNote) need an intl provider; everything else takes its strings as
+ * props so the English-only recovery pages can use the same frame.
  */
 
 /** OAuth providers offered on both auth pages. */
@@ -30,13 +37,30 @@ export const RESEND_LABEL_KEY = {
   sent: 'resendSent',
 } as const satisfies Record<ResendState, string>;
 
+/** English-only recovery pages share the brand's accessible name. */
+export const HOME_LABEL = 'MotoVault home';
+
 const HERO_PHOTO = '/images/marketing/hero-dusk-ride-portrait.jpg';
 const BRAND_LOGO = '/images/marketing/MotoVault.png';
 
-function Brand() {
-  const t = useTranslations('AuthV2');
+/**
+ * The Bike Plate on the photo panel: the one object the site shares with the
+ * app. Same demo bike and ledger as the home hero (`Hero.plate*` in
+ * messages/en.json) and the app captures (Street Glide Special, 23,480 mi),
+ * verbatim, so the plate tells one story across pages. The auth pages are
+ * English-only, so the plate reads in miles like the English hero.
+ */
+const PANEL_PLATE = {
+  figure: '23,480',
+  unit: 'mi',
+  caption: 'Ready · next service in 1,520 mi',
+  racingNumber: '27',
+  identity: 'Street Glide Special · 2022',
+} as const;
+
+function Brand({ label }: { label: string }) {
   return (
-    <a href="/" className="mva-brand" aria-label={t('homeLabel')}>
+    <a href="/" className="mva-brand" aria-label={label}>
       <span className="mva-brand-logo">
         <Image src={BRAND_LOGO} alt="" width={24} height={24} />
       </span>
@@ -48,16 +72,21 @@ function Brand() {
 type AuthShellProps = {
   /** Link in the phone/tablet header bar (the other auth page). */
   headerLink: { href: string; label: string };
+  /** Accessible name of the brand link (AuthV2 `homeLabel` or {@link HOME_LABEL}). */
+  homeLabel: string;
   children: ReactNode;
 };
 
 /**
- * Page frame: photo panel + 640 form column at ≥1024, header bar + centred
- * form below. The photo is decorative (the brand's own marketing shot).
+ * Page frame: photo panel + 480–640 form column at ≥1180, header bar + centred
+ * form below. The photo is decorative (the brand's own marketing shot); the
+ * Bike Plate on it is the shared object, still (Operate surface: no settle).
+ * The subtitle under the H1 is the page's one line of copy.
  */
-export function AuthShell({ headerLink, children }: AuthShellProps) {
+export function AuthShell({ headerLink, homeLabel, children }: AuthShellProps) {
   return (
-    <div className="mva-root">
+    <div className="mv-root mva-root">
+      <SkipLink />
       <div className="mva-panel">
         {/* `fill` needs a relative/absolute/fixed parent; the panel is sticky
             (and static while hidden), which next/image warns about on every load. */}
@@ -67,19 +96,22 @@ export function AuthShell({ headerLink, children }: AuthShellProps) {
             alt=""
             fill
             priority
-            sizes="(min-width: 1024px) calc(100vw - 640px), 1px"
+            sizes="(min-width: 1180px) calc(100vw - 640px), 1px"
             className="mva-panel-photo"
           />
         </div>
-        <Brand />
+        <Brand label={homeLabel} />
+        <div className="mva-panel-plate" aria-hidden="true">
+          <BikePlate {...PANEL_PLATE} state="ready" />
+        </div>
       </div>
       <header className="mva-header">
-        <Brand />
-        <Link href={headerLink.href} className="mva-header-link">
+        <Brand label={homeLabel} />
+        <Link href={headerLink.href} className="mv-link is-quiet is-tall mva-header-link">
           {headerLink.label}
         </Link>
       </header>
-      <main className="mva-main">
+      <main id={MAIN_CONTENT_ID} className="mva-main">
         <div className="mva-stack">{children}</div>
       </main>
     </div>
@@ -87,24 +119,26 @@ export function AuthShell({ headerLink, children }: AuthShellProps) {
 }
 
 type AuthHeadProps = {
-  eyebrow: string;
   title: ReactNode;
   subtitle: string;
 };
 
-export function AuthHead({ eyebrow, title, subtitle }: AuthHeadProps) {
+/** Operate H1 (the shared title class capped at 44), system-face subtitle. No eyebrow. */
+export function AuthHead({ title, subtitle }: AuthHeadProps) {
   return (
     <div className="mva-head">
-      <div className="mva-eyebrow">{eyebrow}</div>
-      <h1 className="mva-title">{title}</h1>
+      <h1 className="mv-section-title mva-title">{title}</h1>
       <p className="mva-subtitle">{subtitle}</p>
     </div>
   );
 }
 
-/** Rich-text tag renderer for `<serif>…</serif>` in AuthV2 titles. */
-export function serifChunk(chunks: ReactNode) {
-  return <span className="mva-serif">{chunks}</span>;
+/**
+ * Rich-text tag renderer for `<muted>…</muted>` in AuthV2 titles: the same
+ * condensed face, one ink step quieter (`.mv-section-title .mv-muted`).
+ */
+export function mutedChunk(chunks: ReactNode) {
+  return <span className="mv-muted">{chunks}</span>;
 }
 
 export function AlertIcon({ size = 18 }: { size?: number }) {
@@ -123,6 +157,25 @@ export function AlertIcon({ size = 18 }: { size?: number }) {
       <circle cx="12" cy="12" r="10" />
       <path d="M12 8v4" />
       <path d="M12 16h.01" />
+    </svg>
+  );
+}
+
+export function CheckIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="m8.5 12.5 2.5 2.5 4.5-5" />
     </svg>
   );
 }
@@ -165,14 +218,24 @@ type AuthBannerProps = {
 
 export function AuthBanner({ message, action }: AuthBannerProps) {
   return (
-    <div role="alert" className="mva-banner">
-      <span className="mva-banner-icon">
-        <AlertIcon />
-      </span>
+    <div role="alert" className="mv-alert mva-banner">
+      <AlertIcon />
       <span className={action ? 'mva-banner-body mva-banner-body--actions' : 'mva-banner-body'}>
         <span>{message}</span>
         {action}
       </span>
+    </div>
+  );
+}
+
+/** Success note that replaces a form (reset link sent, password updated). */
+export function AuthNote({ children }: { children: ReactNode }) {
+  return (
+    <div role="status" className="mva-note">
+      <span className="mva-note-icon">
+        <CheckIcon />
+      </span>
+      <div className="mva-note-body">{children}</div>
     </div>
   );
 }
@@ -183,7 +246,7 @@ type OAuthButtonsProps = {
   onApple: () => void;
 };
 
-/** Google + Apple. Side by side at ≥768, stacked "Continue with …" below. */
+/** Google + Apple as ghost controls. Side by side at ≥768, stacked "Continue with …" below. */
 export function OAuthButtons({ loading, onGoogle, onApple }: OAuthButtonsProps) {
   const t = useTranslations('AuthV2');
   const providers = [
@@ -210,7 +273,7 @@ export function OAuthButtons({ loading, onGoogle, onApple }: OAuthButtonsProps) 
           <button
             key={p.id}
             type="button"
-            className="mva-oauth-btn"
+            className="mv-btn mv-btn-ghost mv-btn-block"
             onClick={p.onClick}
             disabled={loading !== null}
             aria-busy={busy || undefined}
@@ -242,24 +305,36 @@ export function OrWithEmail() {
 type AuthFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'className'> & {
   id: string;
   label: string;
-  /** Element beside the label (e.g. "Forgot?"). */
+  /** Element beside the label (e.g. "Forgot password?"). */
   labelAside?: ReactNode;
+  /** Persistent helper line under the field (a rule, never a placeholder). */
+  hint?: string;
   /** Field-level error, linked with aria-describedby + aria-invalid. */
   error?: string;
-  /** Show/hide toggle inside the field (password fields). */
-  toggle?: { shown: boolean; onToggle: () => void };
+  /** Show/hide toggle inside the field (password fields), with its accessible names. */
+  toggle?: { shown: boolean; onToggle: () => void; showLabel: string; hideLabel: string };
 };
 
-export function AuthField({ id, label, labelAside, error, toggle, ...input }: AuthFieldProps) {
-  const t = useTranslations('AuthV2');
+export function AuthField({
+  id,
+  label,
+  labelAside,
+  hint,
+  error,
+  toggle,
+  ...input
+}: AuthFieldProps) {
   const errorId = `${id}-error`;
-  const labelEl = (
-    <label htmlFor={id} className="mva-label">
-      {label}
-    </label>
-  );
+  const hintId = `${id}-hint`;
+  const describedBy = [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(' ');
+  const labelEl = <label htmlFor={id}>{label}</label>;
+  // iOS capitalises and autocorrects the first letter of an address otherwise.
+  const emailAttrs =
+    input.type === 'email'
+      ? ({ autoCapitalize: 'none', autoCorrect: 'off', spellCheck: false } as const)
+      : undefined;
   return (
-    <div className={labelAside ? 'mva-field mva-field--row' : 'mva-field'}>
+    <div className="mv-field">
       {labelAside ? (
         <div className="mva-label-row">
           {labelEl}
@@ -271,25 +346,31 @@ export function AuthField({ id, label, labelAside, error, toggle, ...input }: Au
       <div className="mva-input-wrap">
         <input
           id={id}
-          className={toggle ? 'mva-input mva-input--toggle' : 'mva-input'}
+          className={toggle ? 'mv-field-input is-tall mva-input--toggle' : 'mv-field-input is-tall'}
           aria-invalid={error ? true : undefined}
-          aria-describedby={error ? errorId : undefined}
+          aria-describedby={describedBy || undefined}
+          {...emailAttrs}
           {...input}
         />
         {toggle && (
           <button
             type="button"
-            className="mva-toggle"
+            className="mv-icon-btn mva-toggle"
             onClick={toggle.onToggle}
-            aria-label={toggle.shown ? t('hidePassword') : t('showPassword')}
+            aria-label={toggle.shown ? toggle.hideLabel : toggle.showLabel}
             aria-pressed={toggle.shown}
           >
             {toggle.shown ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         )}
       </div>
+      {hint && !error && (
+        <span id={hintId} className="mv-field-hint">
+          {hint}
+        </span>
+      )}
       {error && (
-        <span id={errorId} role="alert" className="mva-field-error">
+        <span id={errorId} role="alert" className="mv-field-error mva-field-error">
           <AlertIcon size={14} />
           {error}
         </span>
@@ -305,11 +386,12 @@ type SubmitButtonProps = {
   busyLabel: string;
 };
 
+/** The one copper control on the page. */
 export function SubmitButton({ busy, disabled, label, busyLabel }: SubmitButtonProps) {
   return (
     <button
       type="submit"
-      className="mva-submit"
+      className="mv-btn mv-btn-primary mv-btn-block mva-submit"
       disabled={busy || disabled}
       aria-busy={busy || undefined}
     >
@@ -333,12 +415,12 @@ export function LegalNote() {
 
 type AltLinkProps = { prompt: string; href: string; label: string };
 
-/** "Already a rider? Sign in" / "No account yet? Create account". */
+/** "Already have an account? Sign in" / "No account yet? Create account". */
 export function AltLink({ prompt, href, label }: AltLinkProps) {
   return (
     <div className="mva-alt">
       {prompt}
-      <Link href={href} className="mva-alt-link">
+      <Link href={href} className="mv-link is-quiet is-tall">
         {label}
       </Link>
     </div>
@@ -385,11 +467,12 @@ function EyeOffIcon() {
   );
 }
 
+/** Lead glyph of the check-email card: the list-lead size (20). */
 export function MailIcon() {
   return (
     <svg
-      width="22"
-      height="22"
+      width="20"
+      height="20"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

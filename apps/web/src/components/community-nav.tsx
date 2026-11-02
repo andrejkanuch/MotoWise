@@ -1,19 +1,29 @@
 'use client';
 
-import { Crown } from 'lucide-react';
+import { Crown, Menu, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { useProStatus } from '@/hooks/use-pro-status';
 import { resetUser } from '@/lib/analytics';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
-import '@/app/(community)/garage/garage.css';
+// The shared Trackside component styles (.mv-plate, .mv-btn, .mv-figure):
+// loaded here so every signed-in page draws the same objects as the site.
+import '@/app/(root)/(community)/garage/garage.css';
 
 const NAV_LINKS = [
   { href: '/garage', labelKey: 'garage' },
   { href: '/profile', labelKey: 'profile' },
 ] as const;
 
+/**
+ * The signed-in bar: a flat strip on the ground with one hairline, its
+ * contents in the site's 1240 container, body-face links (the current one
+ * carries a copper dot), the theme toggle, the account (avatar, name, plan
+ * status in ink) and sign-out. Below 720 px the links, name, "Pro" and
+ * sign-out move into a menu one step up the ramp.
+ */
 export function CommunityNav({ displayName }: { displayName?: string | null }) {
   const t = useTranslations('CommunityNav');
   const router = useRouter();
@@ -34,7 +44,7 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
     router.push('/login');
   }, [signingOut, router]);
 
-  // Close the mobile menu on an outside click or Escape. The toggle button is
+  // Close the menu on an outside click or Escape. The toggle button is
   // excluded from the outside test: otherwise its mousedown closes the menu and
   // the click that follows re-opens it, so the X could never close the menu.
   useEffect(() => {
@@ -58,173 +68,136 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
   }, [menuOpen]);
 
   const initial = displayName?.charAt(0)?.toUpperCase() ?? 'R';
+  // Gated on !isLoading so a Pro rider never sees a one-tick "Upgrade" flash
+  // before the status resolves after hydration.
+  const showUpgrade = !isLoading && !isPro && !isTrialing;
+  const themeLabels = { toLight: t('themeToLight'), toDark: t('themeToDark') };
 
   return (
     <nav className="community-nav">
-      {/* Brand */}
-      <a href="/" className="nav-brand">
-        <span className="nav-mark">M</span>
-        <span className="nav-brand-word">MotoVault</span>
-      </a>
+      <div className="nav-inner">
+        <a href="/" className="nav-brand">
+          MotoVault
+        </a>
 
-      {/* Desktop pill tabs */}
-      <div className="nav-pill">
-        {NAV_LINKS.map((link) => {
-          const isActive = pathname.startsWith(link.href);
-          return (
-            <a
-              key={link.href}
-              href={link.href}
-              className={`nav-pill-link${isActive ? ' active' : ''}`}
-            >
-              {isActive && <span className="dot" />}
-              {t(link.labelKey)}
-            </a>
-          );
-        })}
-      </div>
-
-      {/* Right side */}
-      <div className="nav-right">
-        {/* Free user upgrade link — gated on !isLoading so Pro users don't get
-            a one-tick "Upgrade" flash before status resolves post-hydration. */}
-        {!isLoading && !isPro && !isTrialing && (
-          <a href="/pro" className="nav-upgrade nav-desktop-only">
-            {t('upgrade')} <span style={{ fontSize: '11px' }}>&rarr;</span>
-          </a>
-        )}
-
-        <div className="nav-user">
-          <div className="nav-avatar">{initial}</div>
-          <span className="nav-name-text" title={displayName ?? undefined}>
-            {displayName ?? t('rider')}
-          </span>
-
-          {/* Pro badge */}
-          {isPro && !isTrialing && (
-            <span className="nav-badge pro">
-              <span className="nav-crown">
-                <Crown />
-              </span>
-              Pro
-            </span>
-          )}
-
-          {/* Trial badge */}
-          {isTrialing && (
-            <span className="nav-badge trial">
-              <span className="nav-crown">
-                <Crown />
-              </span>
-              {t('trial')}
-              {trialDaysLeft != null && (
-                <span className="nav-trial-days">
-                  {` \u00B7 ${t('daysLeft', { days: trialDaysLeft })}`}
-                </span>
-              )}
-            </span>
-          )}
+        <div className="nav-links">
+          {NAV_LINKS.map((link) => {
+            const isActive = pathname.startsWith(link.href);
+            return (
+              <a
+                key={link.href}
+                href={link.href}
+                className={isActive ? 'nav-link active' : 'nav-link'}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                {t(link.labelKey)}
+              </a>
+            );
+          })}
         </div>
 
-        <button
-          type="button"
-          onClick={handleSignOut}
-          disabled={signingOut}
-          className="nav-signout-btn nav-desktop-only"
-        >
-          {signingOut ? t('signingOut') : t('signOut')}
-        </button>
-
-        {/* Mobile hamburger */}
-        <button
-          type="button"
-          ref={menuButtonRef}
-          onClick={() => setMenuOpen((open) => !open)}
-          className="nav-menu-btn"
-          aria-expanded={menuOpen}
-          aria-controls={menuId}
-          aria-label={t('menu')}
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <title>{t('menu')}</title>
-            {menuOpen ? (
-              <path
-                d="M5 5l10 10M15 5L5 15"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            ) : (
-              <path
-                d="M3 5h14M3 10h14M3 15h14"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            )}
-          </svg>
-        </button>
-      </div>
-
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div
-          id={menuId}
-          ref={menuRef}
-          className="nav-mobile-menu"
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            // Opaque: at 95% alpha the page's large white headings showed
-            // through the open menu (the nav's own backdrop-filter means this
-            // nested blur never sees the page, so it cannot hide them either).
-            background: 'var(--mv-page)',
-            borderBottom: '1px solid var(--mv-line)',
-            padding: '16px 28px',
-            zIndex: 50,
-          }}
-        >
-          {/* Below 720px the bar keeps only the brand, avatar and menu button so
-              it fits a 320px phone; the name, upgrade link and sign-out live here. */}
-          <p className="nav-menu-name">{displayName ?? t('rider')}</p>
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              onClick={() => setMenuOpen(false)}
-              className="nav-pill-link"
-              style={{
-                display: 'block',
-                padding: '10px 0',
-                color: pathname.startsWith(link.href) ? 'var(--mv-warm-400)' : 'var(--mv-ink-2)',
-              }}
-            >
-              {t(link.labelKey)}
-            </a>
-          ))}
-          {!isLoading && !isPro && !isTrialing && (
-            <a
-              href="/pro"
-              onClick={() => setMenuOpen(false)}
-              className="nav-upgrade"
-              style={{ padding: '10px 0' }}
-            >
-              {t('upgrade')} <span style={{ fontSize: '11px' }}>&rarr;</span>
+        <div className="nav-right">
+          {showUpgrade && (
+            <a href="/pro" className="mv-link is-quiet is-tall nav-upgrade nav-desktop-only">
+              {t('upgrade')}
             </a>
           )}
+
+          <ThemeToggle className="mv-icon-btn" labels={themeLabels} />
+
+          <div className="nav-user">
+            <div className="nav-avatar" aria-hidden="true">
+              {initial}
+            </div>
+            <span className="nav-name-text" title={displayName ?? undefined}>
+              {displayName ?? t('rider')}
+            </span>
+
+            {isPro && !isTrialing && (
+              <span className="nav-badge">
+                <Crown aria-hidden="true" />
+                <span className="nav-badge-word">Pro</span>
+              </span>
+            )}
+
+            {isTrialing && (
+              <span className="nav-badge">
+                <Crown aria-hidden="true" />
+                <span className="nav-badge-word">{t('trial')}</span>
+                {trialDaysLeft != null && (
+                  <span className="nav-trial-days">
+                    {` · ${t('daysLeft', { days: trialDaysLeft })}`}
+                  </span>
+                )}
+              </span>
+            )}
+          </div>
+
           <button
             type="button"
             onClick={handleSignOut}
             disabled={signingOut}
-            className="nav-signout-btn"
-            style={{ display: 'block', marginTop: '8px' }}
+            className="mv-btn mv-btn-ghost is-compact nav-desktop-only"
           >
             {signingOut ? t('signingOut') : t('signOut')}
           </button>
+
+          <button
+            type="button"
+            ref={menuButtonRef}
+            onClick={() => setMenuOpen((open) => !open)}
+            className="mv-icon-btn nav-menu-btn"
+            aria-expanded={menuOpen}
+            aria-controls={menuId}
+            aria-label={menuOpen ? t('menu') : t('account')}
+          >
+            {menuOpen ? (
+              <X size={18} strokeWidth={1.75} aria-hidden="true" />
+            ) : (
+              <Menu size={18} strokeWidth={1.75} aria-hidden="true" />
+            )}
+          </button>
         </div>
-      )}
+
+        {menuOpen && (
+          <div id={menuId} ref={menuRef} className="nav-mobile-menu mv-enter-down">
+            <p className="nav-menu-name">{displayName ?? t('rider')}</p>
+            <div className="mv-rows is-open">
+              {NAV_LINKS.map((link) => {
+                const isActive = pathname.startsWith(link.href);
+                return (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={isActive ? 'mv-row nav-menu-link active' : 'mv-row nav-menu-link'}
+                    aria-current={isActive ? 'page' : undefined}
+                  >
+                    {t(link.labelKey)}
+                  </a>
+                );
+              })}
+              {showUpgrade && (
+                <a
+                  href="/pro"
+                  onClick={() => setMenuOpen(false)}
+                  className="mv-row mv-link is-quiet nav-menu-link nav-upgrade"
+                >
+                  {t('upgrade')}
+                </a>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="mv-btn mv-btn-ghost is-compact nav-signout"
+            >
+              {signingOut ? t('signingOut') : t('signOut')}
+            </button>
+          </div>
+        )}
+      </div>
     </nav>
   );
 }

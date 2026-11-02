@@ -11,6 +11,7 @@ import { definitiveOrThrow } from '@/lib/graphql-server';
 import { relativeTrip } from '@/lib/seo/canonical';
 import { buildBreadcrumbList, buildGraph, buildItemList, buildWebPage } from '@/lib/seo/schema';
 import { reportSoftNotFound } from '@/lib/seo/soft-404';
+import '@/components/marketing/trackside-read.css';
 
 // Prerendered (ISR) so `notFound()` returns a REAL 404. What made it a 200 was
 // `app/loading.tsx` streaming a shell before the page resolved — `notFound()`
@@ -21,7 +22,7 @@ import { reportSoftNotFound } from '@/lib/seo/soft-404';
 export const dynamic = 'force-static';
 export const revalidate = 2592000; // 30 days — DB-sourced; invalidated on demand via /api/revalidate on publish/edit
 
-const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
+const OG_IMAGE = `${BASE_URL}/images/hero-explore-og.jpg`; // 1200×630 crop under 300 KB (the 732 KB source was fetched raw by every crawler)
 
 interface PageProps {
   params: Promise<{ locale: string; country: string; region: string }>;
@@ -60,10 +61,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!result) return {};
 
   const { countryName, regionName, routeCount } = result;
-  const title = `Motorcycle Routes in ${regionName}, ${countryName}`;
+  const title = `Motorcycle routes in ${regionName}, ${countryName}`;
   const description =
     routeCount > 0
-      ? `Explore ${routeCount} motorcycle route${routeCount === 1 ? '' : 's'} in ${regionName}, ${countryName}. Find the best twisty roads, scenic passes, and rides rated by the community.`
+      ? `${routeCount} motorcycle route${routeCount === 1 ? '' : 's'} in ${regionName}, ${countryName}, each with distance, climb and riding time, rated by riders.`
       : `Motorcycle routes in ${regionName}, ${countryName} are coming soon. Browse nearby regions on MotoVault.`;
 
   // Explore content is not translated — always canonical to the non-localized version
@@ -112,8 +113,8 @@ export default async function RegionPage({ params }: PageProps) {
 
   const { routes, countryName, regionName, routeCount } = result;
 
-  const title = `Motorcycle Routes in ${regionName}, ${countryName}`;
-  const description = `Explore ${routeCount} motorcycle routes in ${regionName}, ${countryName}.`;
+  const title = `Motorcycle routes in ${regionName}, ${countryName}`;
+  const description = `${routeCount} motorcycle routes in ${regionName}, ${countryName}, rated by riders.`;
   // Explore content is not translated — the page canonicalizes to the unprefixed
   // English URL (see generateMetadata), so JSON-LD/breadcrumb URLs use the same
   // EN URL to avoid mixed canonical signals in Search Console.
@@ -171,47 +172,38 @@ export default async function RegionPage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
 
-      <Breadcrumb
-        items={[
-          { label: 'Home', href: '/' },
-          { label: 'Explore', href: '/explore' },
-          { label: countryName, href: `/explore/${countrySlug}` },
-          { label: regionName },
-        ]}
-      />
+      <section className="mv-index">
+        <Breadcrumb
+          items={[
+            { label: 'Home', href: '/' },
+            { label: 'Explore', href: '/explore' },
+            { label: countryName, href: `/explore/${countrySlug}` },
+            { label: regionName },
+          ]}
+        />
 
-      {/* Hero */}
-      <section className="px-6 pb-16 pt-8 md:pb-24 md:pt-12">
-        <div className="reveal-on-scroll mx-auto max-w-4xl">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            {countryName}
-          </p>
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
-            {title}
+        <header>
+          <h1 className="mv-index-h1">
+            Motorcycle routes in {regionName}, {countryName}
           </h1>
-          <div className="mx-auto mt-6 h-1.5 w-32 rounded-full bg-signature-500" />
-          <p className="mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">
-            {routeCount} {routeCount === 1 ? 'route' : 'routes'} in {regionName}. Sorted by
-            community rating.
+          <p className="mv-index-lede">
+            <span className="mv-figure">{routeCount}</span> {routeCount === 1 ? 'route' : 'routes'}{' '}
+            in {regionName}, sorted by rider rating. Distance, climb and an estimated riding time
+            for each.
           </p>
-        </div>
-      </section>
+        </header>
 
-      {/* Routes grid */}
-      <section className="px-6 pb-24">
-        <div className="mx-auto max-w-5xl">
-          {routes.length === 0 ? (
-            <p className="text-center text-neutral-500">
-              No routes available in {regionName} yet. Check back soon!
-            </p>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {routes.map((route) => (
-                <RouteCard key={route.id} route={route} />
-              ))}
-            </div>
-          )}
-        </div>
+        {routes.length === 0 ? (
+          <p className="mv-empty">No routes published in {regionName} yet. Check back soon.</p>
+        ) : (
+          <ul className="mv-route-list" style={{ marginTop: 48 }}>
+            {routes.map((route) => (
+              <li key={route.id}>
+                <RouteCard route={route} />
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </>
   );

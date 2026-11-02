@@ -1,0 +1,559 @@
+/* ═══════════════════════════════════════════════════════════════
+   Signed-in rider pages, shared shell: the community nav, the /profile
+   and /profile/followers pages and the "Do this in the app" hint, in
+   the Trackside world. The /garage page styles live in garage-view.css;
+   the handoff kit in components/garage-ui/garage-ui.css.
+   The face, ground, selection and focus ring come from .mv-root on the
+   (community) layout wrapper; buttons, links, rows and the segmented
+   control are the shared kit in design-system.css. Colours only from
+   the --mv-* tokens (mv-tokens.css), both schemes.
+   Gutters 40 → 24 (≤900) → 20 (≤480), the site's container (1240).
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Page shell ─── */
+.garage-page {
+  box-sizing: border-box;
+  padding: 40px 20px 80px;
+  min-height: 100vh;
+}
+.garage-page *,
+.garage-page *::before,
+.garage-page *::after {
+  box-sizing: border-box;
+}
+.garage-inner {
+  max-width: 780px;
+  margin: 0 auto;
+}
+@media (min-width: 481px) {
+  .garage-page {
+    padding: 40px 24px 80px;
+  }
+}
+@media (min-width: 901px) {
+  .garage-page {
+    padding: 48px 40px 96px;
+  }
+}
+
+/* ─── Shared text ─── */
+/* Operate H1: the section-title face, capped at 44 so the page stays
+   spatially predictable (the H1-operate step). */
+.prof-title {
+  font-size: 44px;
+  line-height: 0.98;
+  overflow-wrap: anywhere;
+}
+.prof-quiet {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--mv-ink-2);
+}
+
+/* ─── Centred states (loading, error, no public profile) ─── */
+.prof-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding-top: 24px;
+}
+.prof-state .mv-btn,
+.prof-state .mv-link {
+  margin-top: 12px;
+}
+
+/* ─── Pro row: plan in ink, the one copper action at the end ─── */
+.prof-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  min-height: 56px;
+  padding: 12px 0;
+  border-top: 1px solid var(--mv-line);
+  border-bottom: 1px solid var(--mv-line);
+  margin-bottom: 32px;
+}
+.prof-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.prof-banner-left svg {
+  flex: none;
+  color: var(--mv-ink-3);
+}
+.prof-banner-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mv-ink);
+}
+.prof-banner-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--mv-ink-3);
+}
+.prof-banner-meta .dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--mv-ink-4);
+}
+.prof-banner-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+/* The manage link / button is .mv-link.is-quiet.is-tall (shared kit). */
+.prof-banner-manage-help {
+  margin: 0;
+  max-width: 48ch;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--mv-ink-2);
+}
+.prof-banner-manage-note {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--mv-ink-2);
+}
+
+/* ─── Profile head ─── */
+.prof-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.prof-identity {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+.prof-avatar {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--mv-line);
+  background: var(--mv-surface-2);
+}
+.prof-avatar--initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mv-font-display);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--mv-ink);
+}
+.prof-handle {
+  margin-top: 6px;
+  font-size: 15px;
+  color: var(--mv-ink-3);
+}
+.prof-city {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 15px;
+  color: var(--mv-ink-3);
+}
+.prof-bio {
+  margin: 24px 0 0;
+  max-width: 60ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--mv-ink-2);
+  text-wrap: pretty;
+}
+
+/* ─── Stats: condensed figures over system-face labels, one hairline ─── */
+.prof-stats {
+  margin: 40px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--mv-line);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 32px;
+}
+.prof-stat {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+  min-width: 0;
+}
+.prof-stat dd {
+  margin: 0;
+}
+.prof-stat dt {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--mv-ink-3);
+}
+.prof-stat-num {
+  font-size: 40px;
+  line-height: 42px;
+  color: var(--mv-ink);
+}
+.prof-stat-num .unit {
+  margin-left: 4px;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--mv-ink-2);
+}
+@media (min-width: 640px) {
+  .prof-stats {
+    grid-template-columns: repeat(auto-fit, minmax(96px, max-content));
+    justify-content: space-between;
+    gap: 24px;
+  }
+}
+
+/* ─── Followers: .mv-segmented tabs, .mv-rows of people ─── */
+.prof-tabs {
+  margin-top: 24px;
+}
+.prof-list {
+  margin-top: 16px;
+}
+/* A person row: avatar, then name over handle, flush left. */
+.mv-row.prof-person {
+  justify-content: flex-start;
+  gap: 12px;
+}
+.prof-person-avatar {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--mv-surface-2);
+  border: 1px solid var(--mv-line);
+}
+.prof-person-avatar--initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mv-font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--mv-ink);
+}
+.prof-person-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.prof-person-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.prof-person-handle {
+  margin-top: 2px;
+}
+.prof-more {
+  display: flex;
+  justify-content: flex-start;
+  padding: 24px 0;
+}
+.prof-empty {
+  padding: 32px 0;
+}
+
+/* ─── Loader: a copper ring (the one authored moment on a loading page) ─── */
+.prof-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--mv-line);
+  border-top-color: var(--mv-copper);
+  animation: prof-spin 0.8s linear infinite;
+}
+@keyframes prof-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prof-spinner {
+    animation: none;
+  }
+}
+
+/* ─── Community nav: a flat bar on the ground, one hairline, no blur ─── */
+.community-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--mv-bg);
+  border-bottom: 1px solid var(--mv-line);
+}
+.community-nav *,
+.community-nav *::before,
+.community-nav *::after {
+  box-sizing: border-box;
+}
+/* The site's container with the gutter inside it (40 → 24 → 20, like
+   .mv-section): the brand sits on the same left edge as every H1. The
+   gutters never go under a notch in landscape (viewport-fit=cover). The
+   bar's height is the one the kit publishes (--mv-nav-h, 72). */
+.nav-inner {
+  position: relative;
+  max-width: var(--mv-container);
+  margin: 0 auto;
+  padding-left: max(40px, env(safe-area-inset-left));
+  padding-right: max(40px, env(safe-area-inset-right));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: var(--mv-nav-h, 72px);
+}
+
+.nav-brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--mv-ink);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.nav-links {
+  display: flex;
+  gap: 4px;
+}
+.nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--mv-ink-2);
+  text-decoration: none;
+  transition: color var(--mv-dur-1, 160ms) var(--mv-ease);
+}
+.nav-link:hover {
+  color: var(--mv-ink);
+}
+/* The current section: ink, semibold, a 4 px copper dot beneath (selection). */
+.nav-link.active {
+  color: var(--mv-ink);
+  font-weight: 600;
+}
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--mv-copper);
+  transform: translateX(-50%);
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* "Pro": .mv-link.is-quiet.is-tall, padded like its neighbour links. */
+.nav-upgrade {
+  padding: 0 12px;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 0 4px;
+}
+.nav-avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--mv-surface-2);
+  border: 1px solid var(--mv-line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mv-font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--mv-ink);
+}
+/* Usually an email address: never let it set the bar's width. */
+.nav-name-text {
+  font-size: 15px;
+  color: var(--mv-ink-2);
+  max-width: 220px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Plan status: ink, never copper (status is not a verb). */
+.nav-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mv-ink);
+  white-space: nowrap;
+}
+.nav-badge svg {
+  display: block;
+  width: 13px;
+  height: 13px;
+  color: var(--mv-ink-3);
+}
+
+.nav-menu-btn {
+  display: none;
+}
+
+/* The account menu (< 720): one step up the ramp, hairline, radius 16;
+   the links are .mv-rows / .mv-row. */
+.nav-mobile-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: max(20px, env(safe-area-inset-right));
+  left: max(20px, env(safe-area-inset-left));
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - var(--mv-nav-h, 72px) - 16px);
+  overflow-y: auto;
+  padding: 8px 16px 12px;
+  border-radius: var(--mv-radius-card);
+  background: var(--mv-surface-2);
+  border: 1px solid var(--mv-line);
+}
+.nav-menu-name {
+  margin: 0;
+  padding: 10px 0;
+  font-size: 15px;
+  color: var(--mv-ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--mv-line);
+}
+.mv-row.nav-menu-link {
+  font-weight: 500;
+  color: var(--mv-ink-2);
+}
+.mv-row.nav-menu-link.active {
+  color: var(--mv-ink);
+  font-weight: 600;
+}
+.mv-row.nav-menu-link.nav-upgrade {
+  padding: 12px 0;
+}
+.nav-mobile-menu .nav-signout {
+  align-self: flex-start;
+  margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+  .nav-inner {
+    padding-left: max(24px, env(safe-area-inset-left));
+    padding-right: max(24px, env(safe-area-inset-right));
+  }
+}
+
+/* < 720: the bar keeps brand, theme toggle, avatar (+ plan) and the menu
+   button; the name, links, upgrade and sign-out move into the menu. */
+@media (max-width: 720px) {
+  .nav-inner {
+    gap: 12px;
+  }
+  .nav-links,
+  .nav-desktop-only,
+  .nav-name-text,
+  .nav-trial-days {
+    display: none;
+  }
+  .nav-right {
+    gap: 4px;
+  }
+  .nav-user {
+    gap: 6px;
+  }
+  .nav-menu-btn {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-inner {
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+  }
+}
+
+/* The menu belongs to the narrow layout only: if the viewport widens while it
+   is open (rotation, resize), hide it instead of showing a second Pro and
+   Sign out next to the desktop ones. */
+@media (min-width: 721px) {
+  .nav-mobile-menu {
+    display: none;
+  }
+}
+
+/* Longer trial labels (pl "Okres próbny", de "Testphase", pt-BR "Avaliação")
+   push the badge into the menu button on the narrowest phones; the plan word
+   gives way, the avatar still identifies the account. */
+@media (max-width: 380px) {
+  .nav-badge-word {
+    display: none;
+  }
+}
+
+/* Forced colours: the current-section dot is a background, which the OS
+   paints over; draw it as a border so it survives. */
+@media (forced-colors: active) {
+  .nav-link.active::after {
+    width: 0;
+    height: 0;
+    background: none;
+    border: 2px solid CanvasText;
+  }
+}
+
+/* Print: the sticky bar and its menu are chrome, not the record. */
+@media print {
+  .community-nav,
+  .nav-mobile-menu {
+    display: none !important;
+  }
+}

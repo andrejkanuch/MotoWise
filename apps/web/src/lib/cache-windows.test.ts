@@ -12,9 +12,9 @@ const LONG_WINDOW_PAGES = [
   'app/[locale]/(marketing)/explore/page.tsx',
   'app/[locale]/(marketing)/explore/[country]/page.tsx',
   'app/[locale]/(marketing)/explore/[country]/[region]/page.tsx',
-  'app/explore/[country]/page.tsx',
-  'app/explore/[country]/[region]/page.tsx',
-  'app/trips/[country]/[region]/[slug]/page.tsx',
+  'app/(root)/explore/[country]/page.tsx',
+  'app/(root)/explore/[country]/[region]/page.tsx',
+  'app/(root)/trips/[country]/[region]/[slug]/page.tsx',
 ];
 
 /** Caches those pages read. A literal window here would cap every page that reads it. */
@@ -43,6 +43,6 @@ describe('long ISR window', () => {
   // A swallowed fetch error resolves to an empty list, which ISR then serves for the
   // whole window. The country page must let it throw so the last good render stays.
   it('the explore country page does not turn a failed fetch into an empty list', () => {
-    expect(read('app/explore/[country]/page.tsx')).not.toMatch(/\.catch\(\(\) => \[\]\)/);
+    expect(read('app/(root)/explore/[country]/page.tsx')).not.toMatch(/\.catch\(\(\) => \[\]\)/);
   });
 });

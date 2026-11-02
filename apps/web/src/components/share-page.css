@@ -1,0 +1,485 @@
+/* ═══════════════════════════════════════════════════════════════
+   Public share pages (Trackside): /ride/[id], /rider/[username],
+   /share/[token], /t/[token], /u/[handle]/saved.
+   Prefix .sp-. Every colour is a --mv-* token (dark on :root, light
+   under html:not(.dark)); the wrapper also carries .mv-marketing, which
+   sets the face, the ground, selection and focus. Shared grammar from
+   design-system.css: .mv-section-title (H1), .mv-h2 (CTA title),
+   .mv-figure, .mv-rows/.mv-row, .mv-btn*, .mv-link.
+   A narrow reading column (720), condensed figures, hairline rows, one
+   copper action. No cards, no shadows, no blur.
+   Gutters: 40 → 24 at ≤900 → 20 at ≤480.
+   ═══════════════════════════════════════════════════════════════ */
+
+.sp {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sp-brand {
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px 40px 0;
+}
+
+.sp-brand a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mv-ink);
+  text-decoration: none;
+}
+
+.sp-brand img {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--mv-radius-small);
+  display: block;
+}
+
+/* The ride's own map carries the emotion; graphite fades it into the page */
+.sp-photo {
+  position: relative;
+  height: clamp(220px, 42vh, 440px);
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.sp-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sp-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--mv-bg) 30%, transparent) 0%,
+    transparent 30%,
+    color-mix(in srgb, var(--mv-bg) 70%, transparent) 72%,
+    var(--mv-bg) 100%
+  );
+}
+
+.sp-main {
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 48px 40px 64px;
+  flex: 1;
+}
+
+.sp-main-tall {
+  padding-top: 64px;
+}
+
+.sp-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.sp-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--mv-surface-2);
+  display: grid;
+  place-items: center;
+  font-family: var(--mv-font-display);
+  font-weight: 600;
+  font-size: 28px;
+  color: var(--mv-ink-2);
+  flex: none;
+}
+
+/* The page title sits on .mv-section-title (H1); this adds ink and wrapping */
+.sp-title {
+  color: var(--mv-ink);
+  overflow-wrap: anywhere;
+}
+
+/* Operate surfaces (the /u/[handle] shell) keep the title at a fixed 44 */
+.sp-title.is-operate {
+  font-size: 44px;
+  line-height: 0.98;
+}
+
+.sp-sub {
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--mv-ink-3);
+}
+
+.sp-prose {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--mv-ink-2);
+  max-width: 68ch;
+  white-space: pre-wrap;
+  text-wrap: pretty;
+}
+
+/* Figures: condensed, tabular, body-face labels, left-aligned */
+.sp-figures {
+  margin-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px 40px;
+}
+
+.sp-figure {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 88px;
+}
+
+.sp-figure-value {
+  font-size: 40px;
+  line-height: 42px;
+  color: var(--mv-ink);
+}
+
+.sp-figure-value small {
+  /* The unit is half the figure at every size (20 at 40, 14 at 28). */
+  font-size: 0.5em;
+  font-weight: 500;
+  color: var(--mv-ink-2);
+  margin-left: 0.15em;
+}
+
+.sp-figure-label {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--mv-ink-3);
+}
+
+.sp-section {
+  margin-top: 48px;
+}
+
+/* Section title at the Read H2 step */
+.sp-section-title {
+  margin: 0 0 16px;
+  font-family: var(--mv-font-display);
+  font-weight: 600;
+  font-size: 34px;
+  line-height: 1.05;
+  letter-spacing: 0.002em;
+  color: var(--mv-ink);
+  text-wrap: balance;
+}
+
+.sp-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.sp-section-head .sp-section-title {
+  margin: 0;
+}
+
+.sp-section-count {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--mv-ink-3);
+}
+
+/* Hairline nav under the rider header (the /u/[handle] shell) */
+.sp-tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 32px;
+  border-bottom: 1px solid var(--mv-line);
+}
+
+.sp-tabs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  /* The 2px underline spans the label and its padding, nothing more. */
+  padding: 0 12px;
+  margin: 0 0 -1px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--mv-ink-3);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition:
+    color var(--mv-dur-1, 160ms) var(--mv-ease-expo),
+    border-color var(--mv-dur-1, 160ms) var(--mv-ease-expo);
+}
+
+.sp-tabs a:hover {
+  color: var(--mv-ink);
+}
+
+.sp-tabs a[aria-current='page'] {
+  color: var(--mv-ink);
+  border-bottom-color: var(--mv-ink);
+}
+
+/* Rows on the shared .mv-rows grammar; multi-line rows align to the top */
+.sp-row {
+  align-items: flex-start;
+}
+
+a.sp-row:hover .sp-row-title {
+  color: var(--mv-copper-text);
+}
+
+.sp-row-num {
+  font-family: var(--mv-font-display);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 22px;
+  font-variant-numeric: tabular-nums;
+  color: var(--mv-ink-3);
+  min-width: 28px;
+}
+
+.sp-row-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.sp-row-title {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--mv-ink);
+  transition: color var(--mv-dur-1, 160ms) var(--mv-ease);
+}
+
+.sp-row-meta {
+  margin-top: 4px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--mv-ink-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sp-row-meta svg {
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  margin-right: 3px;
+}
+
+.sp-row-note {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--mv-ink-2);
+  text-wrap: pretty;
+}
+
+.sp-row-aside {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--mv-ink-3);
+  white-space: nowrap;
+  padding-top: 2px;
+}
+
+.sp-row-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--mv-surface-2);
+  flex: none;
+}
+
+.sp-photos {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.sp-photos img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--mv-radius-control);
+  flex: none;
+}
+
+/* Status words on the ground: text-safe inks, never the plate fills */
+.sp-status-done {
+  color: var(--mv-go);
+}
+
+.sp-status-overdue {
+  color: var(--mv-overdue-ink);
+}
+
+.sp-foot-note {
+  margin: 24px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--mv-ink-3);
+}
+
+.sp-loading {
+  padding: 24px 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--mv-ink-3);
+}
+
+.sp-empty {
+  padding: 48px 0;
+}
+
+.sp-empty .sp-section-title {
+  margin-bottom: 8px;
+}
+
+/* The one call to action: copper, left-aligned, in a hairline band */
+.sp-cta {
+  margin-top: auto;
+  border-top: 1px solid var(--mv-line);
+  background: var(--mv-bg-2);
+  padding: 64px 40px 96px;
+}
+
+.sp-cta-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.sp-cta-sub {
+  margin: 16px 0 0;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--mv-ink-2);
+  max-width: 52ch;
+  text-wrap: pretty;
+}
+
+.sp-cta-actions {
+  margin-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sp-cta-foot {
+  margin: 32px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--mv-ink-3);
+}
+
+/* The soft wall on saved routes: a plain block, no fade, no card */
+.sp-wall {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid var(--mv-line);
+}
+
+@media (max-width: 900px) {
+  .sp-brand {
+    padding: 20px 24px 0;
+  }
+
+  .sp-main {
+    padding: 48px 24px 64px;
+  }
+
+  .sp-cta {
+    padding: 64px 24px 96px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sp-brand {
+    padding: 20px 20px 0;
+  }
+
+  .sp-main {
+    padding: 32px 20px 48px;
+  }
+
+  .sp-main-tall {
+    padding-top: 48px;
+  }
+
+  .sp-cta {
+    padding: 64px 20px 80px;
+  }
+
+  .sp-figure-value {
+    font-size: 28px;
+    line-height: 30px;
+  }
+
+  .sp-row-aside {
+    white-space: normal;
+  }
+}
+
+/* Phone landscape: a short photo band keeps the H1 above the fold. */
+@media (max-height: 500px) {
+  .sp-photo {
+    height: 140px;
+  }
+}
+
+/* ── Print: the shared service history is the one page a rider hands to a
+      buyer or a mechanic. The brand line, the title, the figures and the
+      records print as hairline rows that do not break across pages; the
+      store band and the soft wall stay on screen. The light ramp under
+      print lives in mv-tokens.css (owner). ── */
+@media print {
+  .sp-cta,
+  .sp-wall,
+  .sp-cta-actions,
+  .mv-cc,
+  .sp-photo::after {
+    display: none !important;
+  }
+
+  .sp-photo {
+    height: 160px;
+  }
+
+  .sp-main {
+    padding: 0;
+  }
+
+  .sp .mv-row {
+    break-inside: avoid;
+  }
+
+  .sp-figures {
+    gap: 16px 32px;
+  }
+
+  @page {
+    margin: 16mm;
+  }
+}

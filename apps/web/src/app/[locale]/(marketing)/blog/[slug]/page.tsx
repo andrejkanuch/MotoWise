@@ -9,9 +9,9 @@ import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
 import { AuthorBio } from '@/components/marketing/author-bio';
 import { AuthorByline } from '@/components/marketing/author-byline';
+import { Breadcrumb } from '@/components/marketing/breadcrumb';
 import { ContextualAppCta } from '@/components/marketing/contextual-app-cta';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
-import { RelatedResources } from '@/components/marketing/related-resources';
 import { TableOfContents } from '@/components/marketing/table-of-contents';
 import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
@@ -25,6 +25,7 @@ import {
   getRelatedArticles,
 } from '@/lib/blog';
 import { extractMakeModel, extractModel, resolveCtaAngle } from '@/lib/blog-cta';
+import { formatReadingTime } from '@/lib/blog-filters';
 import { stripHtmlComments } from '@/lib/blog-mdx';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { CtaPlacement } from '@/lib/cta-taxonomy';
@@ -37,6 +38,7 @@ import {
   buildGraph,
   buildWebPage,
 } from '@/lib/seo/schema';
+import '@/components/marketing/trackside-read.css';
 
 // An unknown slug was rendering `not-found` at HTTP 200 (a soft-404 Google
 // indexes as a real page). This route was never instrumented with
@@ -100,44 +102,26 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
   };
 }
 
+// The reading column is styled once in trackside-read.css (`.mv-read-body`):
+// condensed h2/h3, 17px body at 1.6, hairline tables, mono only for code.
+// MDX elements render as plain HTML; tables get a scroll wrapper so a wide
+// spec table never breaks the 60ch measure on a phone.
 const mdxComponents = {
-  h2: (props: React.ComponentProps<'h2'>) => (
-    <h2 className="mt-12 mb-4 text-2xl font-bold text-neutral-50" {...props} />
-  ),
-  h3: (props: React.ComponentProps<'h3'>) => (
-    <h3 className="mt-8 mb-3 text-xl font-semibold text-neutral-100" {...props} />
-  ),
-  p: (props: React.ComponentProps<'p'>) => (
-    <p className="mb-4 leading-relaxed text-neutral-300" {...props} />
-  ),
-  a: (props: React.ComponentProps<'a'>) => (
-    <a className="text-amber-400 underline hover:text-amber-300" {...props} />
-  ),
-  ul: (props: React.ComponentProps<'ul'>) => (
-    <ul className="mb-4 list-disc space-y-1 pl-6 text-neutral-300" {...props} />
-  ),
-  ol: (props: React.ComponentProps<'ol'>) => (
-    <ol className="mb-4 list-decimal space-y-1 pl-6 text-neutral-300" {...props} />
-  ),
-  li: (props: React.ComponentProps<'li'>) => <li className="text-neutral-300" {...props} />,
-  strong: (props: React.ComponentProps<'strong'>) => (
-    <strong className="text-neutral-200" {...props} />
-  ),
   table: (props: React.ComponentProps<'table'>) => (
-    <div className="mb-6 overflow-x-auto">
-      <table className="w-full border-collapse text-sm text-neutral-300" {...props} />
+    <div className="mv-read-table">
+      <table {...props} />
     </div>
   ),
-  th: (props: React.ComponentProps<'th'>) => (
-    <th
-      className="border border-neutral-700 bg-neutral-800 px-4 py-2 text-left font-semibold text-neutral-200"
-      {...props}
-    />
-  ),
-  td: (props: React.ComponentProps<'td'>) => (
-    <td className="border border-neutral-800 px-4 py-2" {...props} />
-  ),
 };
+
+function formatDate(date: string): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
 
 /** Inject the mid-article CTA after this many top-level H2 sections. */
 const MID_CTA_AFTER_H2 = 2;
@@ -245,6 +229,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
   const related = await getRelatedArticles(slug, article.category, locale);
   const author = getAuthor(article.author) ?? getDefaultAuthor();
+  const readingTime = formatReadingTime(article.readingTime, t('readingTime'));
 
   // Use the canonical URL (English for fallback locales) so the JSON-LD graph
   // self-identifies as the same URL as <link rel="canonical">, rather than the
@@ -300,125 +285,63 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   return (
     <>
       <JsonLdGraph nodes={graph} />
-      <article className="mx-auto max-w-3xl px-6 py-24">
-        <nav className="mb-8 flex items-center gap-2 text-sm text-neutral-500">
-          <Link href="/" className="hover:text-neutral-300">
-            Home
-          </Link>
-          <span aria-hidden="true">/</span>
-          <Link href="/blog" className="hover:text-neutral-300">
-            Blog
-          </Link>
-          <span aria-hidden="true">/</span>
-          <span className="text-neutral-400 truncate">{article.title}</span>
-        </nav>
+      <article className="mv-read">
+        <Breadcrumb
+          items={[
+            { label: 'Home', href: '/' },
+            { label: 'Blog', href: '/blog' },
+            { label: article.title },
+          ]}
+        />
 
-        <Link
-          href="/blog"
-          className="mb-6 inline-block text-sm font-medium text-amber-400 transition-colors hover:text-amber-300"
-        >
-          &larr; {t('backToBlog')}
-        </Link>
-
-        <header className="mb-12">
+        <header>
+          <h1 className="mv-read-h1">{article.title}</h1>
+          <p className="mv-read-lede">{article.excerpt}</p>
+          <AuthorByline author={author} date={article.date} />
+          <div className="mv-read-meta">
+            <span>{readingTime}</span>
+            {article.dateModified && article.dateModified !== article.date && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>
+                  Updated{' '}
+                  <time dateTime={article.dateModified}>{formatDate(article.dateModified)}</time>
+                </span>
+              </>
+            )}
+          </div>
           {article.heroImage && (
-            <div className="relative mb-8 aspect-[21/9] overflow-hidden rounded-2xl">
+            <div className="mv-read-hero">
               <Image
                 src={article.heroImage}
                 alt={article.heroAlt || article.title}
                 fill
                 className="object-cover"
                 priority
-                sizes="(max-width: 768px) 100vw, 768px"
+                sizes="(max-width: 768px) 100vw, 760px"
               />
             </div>
           )}
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
-            {article.title}
-          </h1>
-          <div className="mt-5">
-            <AuthorByline author={author} date={article.date} />
-          </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-neutral-500">
-            <span>
-              {article.readingTime} {t('readingTime')}
-            </span>
-          </div>
         </header>
 
         <TableOfContents headings={headings} />
 
-        <div className="prose prose-invert max-w-none">
+        {/* One app CTA per post: mid-article after the second H2 when the body
+            splits, otherwise once after the body (short posts, or a split that
+            landed inside a code fence). */}
+        <div className="mv-read-body">
           {head}
           {tail && (
-            <div className="not-prose">
-              <ContextualAppCta
-                angle={ctaAngle}
-                model={ctaModel}
-                makeModel={ctaMakeModel}
-                slug={slug}
-              />
-            </div>
+            <ContextualAppCta
+              angle={ctaAngle}
+              model={ctaModel}
+              makeModel={ctaMakeModel}
+              slug={slug}
+            />
           )}
           {tail}
         </div>
-
-        <section
-          aria-label="Data disclaimer"
-          className="mt-12 flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-neutral-900/50 p-5"
-        >
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="mt-0.5 h-5 w-5 shrink-0 text-amber-400"
-          >
-            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-            <path d="M12 9v4" />
-            <path d="M12 17h.01" />
-          </svg>
-          <p className="text-sm leading-relaxed text-amber-200/90">
-            {article.specData === true
-              ? "The figures in this article are informative only and can vary by model year and market. Always verify every specification against your official owner's and service manual before performing any maintenance."
-              : "This article is for general information only. Always confirm details against official manufacturer documentation and your owner's manual before acting on them."}
-          </p>
-        </section>
-
-        {article.faq && article.faq.length > 0 && (
-          <section className="mt-16" aria-labelledby="faq-heading">
-            <h2 id="faq-heading" className="mb-6 text-2xl font-bold text-neutral-50">
-              Frequently Asked Questions
-            </h2>
-            <div className="divide-y divide-neutral-800 border-y border-neutral-800">
-              {article.faq.map((item) => (
-                <details key={item.question} className="group py-4">
-                  <summary className="flex cursor-pointer items-center justify-between gap-4 text-base font-semibold text-neutral-100 marker:content-none">
-                    {item.question}
-                    <span
-                      aria-hidden="true"
-                      className="text-amber-400 transition-transform group-open:rotate-45"
-                    >
-                      +
-                    </span>
-                  </summary>
-                  <p className="mt-3 leading-relaxed text-neutral-300">{item.answer}</p>
-                </details>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <div className="mt-16">
-          <AuthorBio author={author} />
-        </div>
-
-        <RelatedResources angle={ctaAngle} />
-
-        <div className="mt-16">
+        {!tail && (
           <ContextualAppCta
             angle={ctaAngle}
             model={ctaModel}
@@ -426,28 +349,70 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             slug={slug}
             placement={CtaPlacement.EndArticle}
           />
-        </div>
+        )}
 
-        {related.length > 0 && (
-          <section className="mt-16">
-            <h2 className="mb-6 text-xl font-semibold text-neutral-100">Related Articles</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {related.map((relatedArticle) => (
-                <Link
-                  key={relatedArticle.slug}
-                  href={`/blog/${relatedArticle.slug}`}
-                  className="group rounded-xl border border-neutral-800 bg-neutral-900/50 p-5 transition-colors hover:border-amber-500/30"
-                >
-                  <h3 className="mb-2 text-sm font-semibold text-neutral-200 group-hover:text-amber-400 line-clamp-2">
-                    {relatedArticle.title}
-                  </h3>
-                  <p className="text-xs text-neutral-500 line-clamp-2">{relatedArticle.excerpt}</p>
-                  <span className="mt-3 inline-block text-xs text-amber-400">
-                    {relatedArticle.readingTime} min read
-                  </span>
-                </Link>
+        <section aria-label="Data disclaimer" className="mv-read-note">
+          <p>
+            {article.specData === true
+              ? "The figures in this article are informative only and can vary by model year and market. Always verify every specification against your official owner's and service manual before performing any maintenance."
+              : "This article is for general information only. Always confirm details against official manufacturer documentation and your owner's manual before acting on them."}
+          </p>
+        </section>
+
+        {article.faq && article.faq.length > 0 && (
+          <section className="mv-read-section" aria-labelledby="faq-heading">
+            <h2 id="faq-heading" className="mv-read-h2">
+              Questions riders ask
+            </h2>
+            <div className="mv-read-faq">
+              {article.faq.map((item) => (
+                <details key={item.question} className="mv-disclosure is-plus">
+                  <summary>
+                    {item.question}
+                    <svg
+                      className="mv-disclosure-mark"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                  </summary>
+                  <p className="mv-read-faq-answer">{item.answer}</p>
+                </details>
               ))}
             </div>
+          </section>
+        )}
+
+        <AuthorBio author={author} />
+
+        {related.length > 0 && (
+          <section className="mv-read-section" aria-labelledby="related-heading">
+            <h2 id="related-heading" className="mv-read-label">
+              {t('relatedArticles')}
+            </h2>
+            <ul className="mv-rows">
+              {related.map((relatedArticle) => (
+                <li key={relatedArticle.slug}>
+                  <Link href={`/blog/${relatedArticle.slug}`} className="mv-row">
+                    <span>
+                      <span className="mv-row-title">{relatedArticle.title}</span>
+                      <span className="mv-row-sub">{relatedArticle.excerpt}</span>
+                    </span>
+                    <span className="mv-row-aside">
+                      {formatReadingTime(relatedArticle.readingTime, t('readingTime'))}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
       </article>
