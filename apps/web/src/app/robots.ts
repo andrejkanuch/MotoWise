@@ -7,7 +7,10 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/*', '/_next/*', '/admin/*', '/login', '/signup', '/forgot-password'],
+        // `/_next/` stays crawlable: it serves every stylesheet, script and
+        // `/_next/image` URL, and Googlebot renders pages without them when it
+        // is blocked (it fetched zero `/_next` URLs while this was disallowed).
+        disallow: ['/api/*', '/admin/*', '/login', '/signup', '/forgot-password'],
       },
       // Allow AI search crawlers explicitly. Google-Extended is allowed so
       // MotoVault can be grounded in Google AI Overviews + Gemini. Applebot
