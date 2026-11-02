@@ -223,7 +223,7 @@ export const ONBOARDING_FLOWS: Record<ObVariant, ReadonlyArray<OnboardingRoute>>
  * "Open my garage" (`garage_first`). The read-only legacy variants have none.
  *
  * Builds 3.19–3.22 reached new riders with no onboarding paywall and nothing
- * noticed (#326); the onboarding-paywall-ab test fails if an assignable variant
+ * noticed (issue 326); the onboarding-paywall-ab test fails if an assignable variant
  * or the kill switch maps to `null` here.
  */
 export const OB_PAYWALL_POSITION = {

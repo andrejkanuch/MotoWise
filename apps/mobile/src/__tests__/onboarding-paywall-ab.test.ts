@@ -156,9 +156,9 @@ describe('both variants keep the paywall after account (KTD2)', () => {
   });
 });
 
-// #326: builds 3.19–3.22 reached new riders with no onboarding paywall. Every
+// Issue 326: builds 3.19–3.22 reached new riders with no onboarding paywall. Every
 // value a new install can be assigned must have a paywall surface.
-describe('every assignable variant and the kill switch show the paywall (#326)', () => {
+describe('every assignable variant and the kill switch show the paywall (issue 326)', () => {
   const assignedToNewInstalls = [
     ...new Set([...ONBOARDING_EXPERIMENT.ASSIGNABLE, ONBOARDING_EXPERIMENT.KILL_SWITCH]),
   ];
