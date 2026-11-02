@@ -48,7 +48,10 @@ command -v maestro >/dev/null 2>&1 || { echo "error: maestro CLI not found. Inst
 command -v jq >/dev/null 2>&1 || { echo "error: jq not found (brew install jq)"; exit 1; }
 
 STAMP=$(date +%Y%m%d%H%M%S)
-TEST_EMAIL=${TEST_EMAIL:-"delivered+mv-e2e-${E2E_LABEL}-${STAMP}@resend.dev"}
+# A random suffix keeps the default address unique to this run, so no other
+# run can create an account under it.
+NONCE=$(od -An -N4 -tx1 /dev/urandom | tr -d ' \n')
+TEST_EMAIL=${TEST_EMAIL:-"delivered+mv-e2e-${E2E_LABEL}-${STAMP}-${NONCE}@resend.dev"}
 TEST_PASSWORD="E2e!$(date +%s)Aa"
 DEVICE_ARGS=""
 [ -n "${DEVICE:-}" ] && DEVICE_ARGS="--device $DEVICE"
@@ -84,29 +87,33 @@ if [ -n "$EXISTING" ]; then
   exit 1
 fi
 CREATED_AFTER=$(date -u +%Y-%m-%dT%H:%M:%S)
-# Set once part 1 has created the account; teardown deletes only this id. The
-# email lookup is a fallback for a run that fails after signup but before then.
+# Recorded once, right after part 1 (pass or fail), for the account this run's
+# signup created. Teardown deletes only this id and never looks one up itself.
 USER_ID=""
 
 cleanup() {
   code=$?
-  [ -n "$USER_ID" ] || USER_ID=$(user_id_for_email || true)
   if [ -n "$USER_ID" ]; then
     echo "→ teardown: deleting test user $USER_ID ($TEST_EMAIL)"
     admin DELETE "users/$USER_ID" >/dev/null 2>&1 || echo "  warning: user delete failed — remove $TEST_EMAIL manually"
   else
-    echo "→ teardown: no user found for $TEST_EMAIL"
+    echo "→ teardown: no account recorded for this run — if one exists for $TEST_EMAIL, remove it manually"
   fi
   exit $code
 }
 trap cleanup EXIT INT TERM
 
 echo "→ part 1: UI signup as $TEST_EMAIL (APP_ID=$APP_ID)"
+PART1=0
 # shellcheck disable=SC2086
 maestro $DEVICE_ARGS test "$MOBILE_DIR/.maestro/flows/onboarding-email-code-signup.yaml" \
-  --env APP_ID="$APP_ID" --env TEST_EMAIL="$TEST_EMAIL" --env TEST_PASSWORD="$TEST_PASSWORD"
+  --env APP_ID="$APP_ID" --env TEST_EMAIL="$TEST_EMAIL" --env TEST_PASSWORD="$TEST_PASSWORD" || PART1=$?
 
-USER_ID=$(user_id_for_email) || true
+# The app, not this script, creates the account, so its id comes from the one
+# lookup here: an address that had no account at preflight and is unique to
+# this run, created after the run started.
+USER_ID=$(user_id_for_email) || USER_ID=""
+[ "$PART1" -eq 0 ] || exit "$PART1"
 [ -n "$USER_ID" ] || { echo "error: part 1 passed but no new account exists for $TEST_EMAIL"; exit 1; }
 echo "  signed up user id=$USER_ID"
 
