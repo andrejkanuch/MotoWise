@@ -32,6 +32,21 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   service-role key from `apps/api/.env`; override with `SUPABASE_URL` / `SUPABASE_ANON_KEY` /
   `SUPABASE_SERVICE_ROLE_KEY` to target local Supabase instead of prod. Because prod requires email
   confirmation, the flow signs IN the pre-created user rather than signing up through the UI.
+  Its steps up to the account screen live in `flows/_shared/onboarding-to-account.yaml` (outside
+  the `flows/*.yaml` glob, so it never runs on its own).
+- **`flows/onboarding-email-code-signup.yaml` + `flows/onboarding-email-code-verify.yaml`** —
+  email-code confirmation (signup through the UI, then the code). Two flows because Maestro fixes
+  flow variables at launch and the code only exists after the signup. Run both via:
+  ```bash
+  DEVICE=<simulator udid> pnpm --filter @motovault/mobile test:e2e:email-code
+  ```
+  `scripts/run-onboarding-email-code-e2e.sh` runs part 1 (the app signs up a new account and shows
+  the code step), gets a valid code from the admin `generate_link {type: signup}` API, runs part 2
+  (types it, finishes onboarding to Home), and deletes the account on exit. Supabase sends a real
+  confirmation email for the UI signup, so the default address is Resend's
+  `delivered+<label>@resend.dev` test inbox (reports delivered, never bounces). The server side of
+  the same contract runs in CI on every relevant PR: `scripts/e2e-email-confirmation.sh`
+  (`.github/workflows/email-confirmation-e2e.yml`).
 - **`flows/edit-maintenance-task.yaml`** — edit/reschedule a maintenance task E2E. Composes
   `onboarding.yaml` as setup (signed-in user + a bike), then creates a task with a known title,
   opens it, edits the title + priority, and asserts the edit round-trips in place. Same build +

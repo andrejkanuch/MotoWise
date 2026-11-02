@@ -1,0 +1,45 @@
+# Email-code confirmation E2E, part 2 of 2: type the code into the code step
+# left open by onboarding-email-code-signup.yaml and finish onboarding.
+#
+# Run through scripts/run-onboarding-email-code-e2e.sh, which passes the code it
+# fetched for TEST_EMAIL as CONFIRMATION_CODE. Does NOT clear state: it relies
+# on the app still showing the code step from part 1.
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+tags:
+  - email-code
+---
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible: "Enter your code"
+    timeout: 30000
+- tapOn: "Confirmation code"
+# Six digits auto-submit; no button to press.
+- inputText: ${CONFIRMATION_CODE}
+
+# Verified: the session lands and onboarding continues past the account step,
+# either through the post-signup screens or straight to Home.
+- extendedWaitUntil:
+    visible: ".*hear about us.*|.*Today in your garage.*"
+    timeout: 90000
+- assertNotVisible: "Enter your code"
+- runFlow:
+    when:
+      visible: ".*hear about us.*"
+    commands:
+      - tapOn: "Instagram"
+      - extendedWaitUntil:
+          visible: "Enable Notifications"
+          timeout: 30000
+      - tapOn: "Maybe later"
+      - tapOn:
+          text: "Maybe later"
+          optional: true
+      - tapOn:
+          text: "Open my garage"
+          optional: true
+- extendedWaitUntil:
+    visible: ".*Today in your garage.*"
+    timeout: 120000
