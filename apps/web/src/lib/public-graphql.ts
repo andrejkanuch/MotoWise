@@ -25,9 +25,12 @@ export const GRAPHQL_BAD_REQUEST_CODE = 'BAD_REQUEST';
 const DEFAULT_ABSENT_CODES: readonly string[] = [GRAPHQL_NOT_FOUND_CODE];
 
 /**
- * "No such thing" or "no such thing can exist": a resolver's input validation
- * (BAD_REQUEST at HTTP 200) is deterministic for that URL, unlike a schema
- * mismatch from a deploy skew, which Apollo answers at HTTP 400.
+ * "No such thing" or "no such thing can exist": the public resolvers raise
+ * BAD_REQUEST at HTTP 200 only when an id, token, country, region or slug has
+ * a shape no record can have. A GraphQL schema mismatch (web/API deploy skew)
+ * is answered at HTTP 400 instead and still throws. Keep the web's URL shapes
+ * inside the API's validators (e.g. the tripTemplates region regex), or a real
+ * page would read as absent.
  */
 export const ABSENT_OR_MALFORMED_CODES: readonly string[] = [
   GRAPHQL_NOT_FOUND_CODE,

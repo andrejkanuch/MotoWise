@@ -143,7 +143,10 @@ EOF
 while IFS='|' read -r path needle label; do
   [ -n "${path:-}" ] || continue
   checked=$((checked + 1))
-  if curl "${CURL_OPTS[@]}" "$BASE$path" | tr -d '\n' | grep -qF "$needle"; then
+  # Read the whole body first: `curl | grep -q` exits on the first match, curl
+  # dies of SIGPIPE, and pipefail would report a correct page as a failure.
+  body=$(curl "${CURL_OPTS[@]}" "$BASE$path" | tr -d '\n')
+  if grep -qF "$needle" <<<"$body"; then
     printf '  ok    body  %-28s %s\n' "$label" "$path"
   else
     printf '  FAIL  body lacks %s  %-16s %s\n' "$needle" "$label" "$path"
