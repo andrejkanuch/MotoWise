@@ -9,6 +9,7 @@ import {
 } from '@motovault/graphql';
 import type { BrowsePlace, RouteListItem } from '@motovault/types';
 import { unstable_cache } from 'next/cache';
+import { LONG_REVALIDATE_SECONDS } from '@/lib/cache-windows';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 import { CACHE_TAGS } from '@/lib/seo/cache-tags';
 import type { TripSlugRef } from '@/lib/trips/bare-slug-redirect';
@@ -45,7 +46,7 @@ export const fetchCountries = unstable_cache(
   // revalidateTag(CACHE_TAGS.places) when the API mutates `places`. Kept at the
   // pages' 30-day window: a shorter one here would cap every explore page that
   // reads it (a route regenerates at the lowest revalidate it touches).
-  { revalidate: 2592000, tags: [CACHE_TAGS.places] },
+  { revalidate: LONG_REVALIDATE_SECONDS, tags: [CACHE_TAGS.places] },
 );
 
 /** Fetch a country by its slug (lowercase country code, e.g. "it"). */

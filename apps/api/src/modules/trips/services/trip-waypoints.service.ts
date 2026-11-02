@@ -10,6 +10,7 @@ import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { TripWaypoint } from '../models/trip.model';
 import { mapRowToWaypoint, verifyOrganiser, type WaypointRow } from './trip-lifecycle.service';
+import { TripPageRevalidator } from './trip-page-revalidator.service';
 
 @Injectable()
 export class TripWaypointsService {
@@ -18,6 +19,8 @@ export class TripWaypointsService {
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
+    // Waypoints render on the cached trip page of a published template.
+    private readonly tripPages: TripPageRevalidator,
   ) {}
 
   async addWaypoint(
@@ -57,6 +60,7 @@ export class TripWaypointsService {
       throw new InternalServerErrorException('Failed to add waypoint');
     }
 
+    await this.tripPages.forTrip(input.tripId);
     return mapRowToWaypoint(data as unknown as WaypointRow);
   }
 
@@ -109,6 +113,7 @@ export class TripWaypointsService {
       throw new InternalServerErrorException('Failed to update waypoint');
     }
 
+    await this.tripPages.forTrip(wp.trip_id);
     return mapRowToWaypoint(data as unknown as WaypointRow);
   }
 
@@ -133,6 +138,7 @@ export class TripWaypointsService {
       throw new InternalServerErrorException('Failed to remove waypoint');
     }
 
+    await this.tripPages.forTrip(wp.trip_id);
     return true;
   }
 
@@ -150,6 +156,7 @@ export class TripWaypointsService {
       throw new InternalServerErrorException('Failed to reorder waypoints');
     }
 
+    await this.tripPages.forTrip(tripId);
     return true;
   }
 }

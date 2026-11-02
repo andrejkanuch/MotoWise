@@ -7,11 +7,12 @@
  *
  * PPR-safe: the project has `cacheComponents: false` so async fetches in
  * server components work without Suspense boundaries. The fetch itself uses
- * Next.js `revalidate: 2592000` (30 days), matching the homepage window — a shorter
+ * Next.js `revalidate: LONG_REVALIDATE_SECONDS` (30 days), matching the homepage window — a shorter
  * one here would cap the homepage's own revalidate (a route regenerates at the
  * lowest window it reads). Every deploy refreshes it anyway.
  */
 
+import { LONG_REVALIDATE_SECONDS } from '@/lib/cache-windows';
 import type { AggregateRatingInput } from './schema';
 
 const ITUNES_LOOKUP_URL = 'https://itunes.apple.com/lookup?id=6760291360&country=sk';
@@ -24,7 +25,7 @@ interface iTunesResult {
 export async function getAppStoreRating(): Promise<AggregateRatingInput | null> {
   try {
     const res = await fetch(ITUNES_LOOKUP_URL, {
-      next: { revalidate: 2592000 },
+      next: { revalidate: LONG_REVALIDATE_SECONDS },
     });
     if (!res.ok) return null;
     const data = (await res.json()) as { results?: iTunesResult[] };

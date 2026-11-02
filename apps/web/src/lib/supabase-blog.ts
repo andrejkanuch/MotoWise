@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/nextjs';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { unstable_cache } from 'next/cache';
+import { LONG_REVALIDATE_SECONDS } from '@/lib/cache-windows';
 import { CACHE_TAGS } from '@/lib/seo/cache-tags';
 import type { Article } from './blog';
 import type { FaqItem } from './seo/schema';
@@ -148,13 +149,14 @@ async function queryPublishedArticles(locale: string): Promise<Article[]> {
     .eq('blog_post_translations.locale', locale)
     .order('published_at', { ascending: false });
   if (error) {
-    // Surface a monitoring signal — an empty array would otherwise render a blank
-    // blog that's indistinguishable from "no posts yet" / a DB outage.
+    // Every read in this file throws on a query error instead of returning an
+    // empty value: unstable_cache would store `[]` / `null` as a real answer and
+    // serve a blank blog or post for the whole (30-day) window, while a thrown
+    // read is not cached and ISR keeps serving the last good page.
     Sentry.captureException(error, {
       tags: { area: 'blog', op: 'listPublishedArticles', locale },
     });
-    console.error(`[supabase-blog] listPublishedArticles(${locale}) failed: ${error.message}`);
-    return [];
+    throw new Error(`[supabase-blog] listPublishedArticles(${locale}) failed: ${error.message}`);
   }
   return ((data ?? []) as unknown as RawListRow[]).map((row) => toArticle(row, locale));
 }
@@ -181,7 +183,7 @@ export const listPublishedArticles = unstable_cache(queryPublishedArticles, ['bl
 export const listPublishedArticlesForArticlePages = unstable_cache(
   queryPublishedArticles,
   ['blog-list-article-pages'],
-  { revalidate: 2592000, tags: [CACHE_TAGS.blog] },
+  { revalidate: LONG_REVALIDATE_SECONDS, tags: [CACHE_TAGS.blog] },
 );
 
 /** Body MDX (`body_raw`) for one post in one locale. Cached + tagged `blog`. */
@@ -198,8 +200,9 @@ export const fetchArticleBody = unstable_cache(
       .maybeSingle();
     if (error) {
       Sentry.captureException(error, { tags: { area: 'blog', op: 'fetchArticleBody', slug } });
-      console.error(`[supabase-blog] fetchArticleBody(${slug}/${locale}) failed: ${error.message}`);
-      return null;
+      throw new Error(
+        `[supabase-blog] fetchArticleBody(${slug}/${locale}) failed: ${error.message}`,
+      );
     }
     const tr = firstOf(
       (data as { blog_post_translations: { body_raw: string }[] | null } | null)
@@ -208,7 +211,7 @@ export const fetchArticleBody = unstable_cache(
     return tr?.body_raw ?? null;
   },
   ['blog-body'],
-  { revalidate: 2592000, tags: [CACHE_TAGS.blog] },
+  { revalidate: LONG_REVALIDATE_SECONDS, tags: [CACHE_TAGS.blog] },
 );
 
 /**
@@ -256,13 +259,12 @@ export const listBlogCategories = unstable_cache(
       .order('name', { ascending: true });
     if (error) {
       Sentry.captureException(error, { tags: { area: 'blog', op: 'listBlogCategories' } });
-      console.error(`[supabase-blog] listBlogCategories failed: ${error.message}`);
-      return [];
+      throw new Error(`[supabase-blog] listBlogCategories failed: ${error.message}`);
     }
     return (data ?? []) as { slug: string; name: string }[];
   },
   ['blog-categories'],
-  { revalidate: 2592000, tags: [CACHE_TAGS.blog] },
+  { revalidate: LONG_REVALIDATE_SECONDS, tags: [CACHE_TAGS.blog] },
 );
 
 /** Locales with a real published translation for `slug` (drives hreflang + canonical). */
@@ -278,8 +280,7 @@ export const listTranslatedLocales = unstable_cache(
       .maybeSingle();
     if (error) {
       Sentry.captureException(error, { tags: { area: 'blog', op: 'listTranslatedLocales', slug } });
-      console.error(`[supabase-blog] listTranslatedLocales(${slug}) failed: ${error.message}`);
-      return [];
+      throw new Error(`[supabase-blog] listTranslatedLocales(${slug}) failed: ${error.message}`);
     }
     const rows =
       (data as { blog_post_translations: { locale: string }[] | null } | null)
@@ -287,5 +288,5 @@ export const listTranslatedLocales = unstable_cache(
     return rows.map((r) => r.locale);
   },
   ['blog-translated-locales'],
-  { revalidate: 2592000, tags: [CACHE_TAGS.blog] },
+  { revalidate: LONG_REVALIDATE_SECONDS, tags: [CACHE_TAGS.blog] },
 );

@@ -16,11 +16,7 @@ import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import { isRideAlreadySharedError, RIDE_ALREADY_SHARED_MESSAGE } from '../errors/trip-db.errors';
 import type { Trip, TripConnection } from '../models/trip.model';
-import {
-  TEMPLATE_LOCATION_COLUMNS,
-  templateRowRevalidation,
-  tripTemplateRevalidation,
-} from '../trip-revalidation';
+import { TEMPLATE_LOCATION_COLUMNS, tripTemplateRevalidation } from '../trip-revalidation';
 import {
   mapRowToTrip,
   mapRowToWaypoint,
@@ -28,6 +24,7 @@ import {
   type TripRow,
   type WaypointRow,
 } from './trip-lifecycle.service';
+import { TripPageRevalidator } from './trip-page-revalidator.service';
 
 export interface TemplatesFilter {
   country?: string;
@@ -47,6 +44,7 @@ export class TripTemplatesService {
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
     private readonly revalidation: RevalidationService,
+    private readonly tripPages: TripPageRevalidator,
   ) {}
 
   // ==========================================
@@ -394,8 +392,7 @@ export class TripTemplatesService {
     if (error || !data) throw new NotFoundException('Template not found');
     // A flagged template must drop off the cached explore + trip pages now, not
     // when their 30-day window lapses (best-effort).
-    const payload = templateRowRevalidation(data);
-    if (payload) this.revalidation.revalidate(payload);
+    this.tripPages.fromRow(data);
     return true;
   }
 

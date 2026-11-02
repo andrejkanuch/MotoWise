@@ -34,7 +34,7 @@ export function tripTemplateRevalidation(
 /** Trip columns {@link templateRowRevalidation} reads; add to a `.select()` that feeds it. */
 export const TEMPLATE_LOCATION_COLUMNS = 'is_template, country_code, region_code, slug';
 
-interface TemplateLocationRow {
+export interface TemplateLocationRow {
   is_template?: boolean | null;
   country_code?: string | null;
   region_code?: string | null;
