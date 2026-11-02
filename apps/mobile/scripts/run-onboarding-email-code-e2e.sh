@@ -51,6 +51,9 @@ STAMP=$(date +%Y%m%d%H%M%S)
 # A random suffix keeps the default address unique to this run, so no other
 # run can create an account under it.
 NONCE=$(od -An -N4 -tx1 /dev/urandom | tr -d ' \n')
+# An address passed in TEST_EMAIL has no nonce, so another run could sign up
+# under it too: teardown then reports the account instead of deleting it.
+EXPLICIT_EMAIL=${TEST_EMAIL:+1}
 TEST_EMAIL=${TEST_EMAIL:-"delivered+mv-e2e-${E2E_LABEL}-${STAMP}-${NONCE}@resend.dev"}
 TEST_PASSWORD="E2e!$(date +%s)Aa"
 DEVICE_ARGS=""
@@ -93,7 +96,9 @@ USER_ID=""
 
 cleanup() {
   code=$?
-  if [ -n "$USER_ID" ]; then
+  if [ -n "$USER_ID" ] && [ -n "$EXPLICIT_EMAIL" ]; then
+    echo "→ teardown: TEST_EMAIL was set, so not deleting — remove user $USER_ID ($TEST_EMAIL) manually"
+  elif [ -n "$USER_ID" ]; then
     echo "→ teardown: deleting test user $USER_ID ($TEST_EMAIL)"
     admin DELETE "users/$USER_ID" >/dev/null 2>&1 || echo "  warning: user delete failed — remove $TEST_EMAIL manually"
   else
