@@ -98,9 +98,11 @@ USER_ID=""
 cleanup() {
   code=${1:-$?}
   # Run once (the exit below would fire the EXIT trap again after a signal),
-  # and finish: a second Ctrl-C must not cut the DELETE short and leak the user.
+  # and finish: a second Ctrl-C, or a closed stdout (`| tee` killed by the same
+  # Ctrl-C), must not cut the DELETE short and leak the user.
   trap - EXIT
-  trap '' INT TERM
+  trap '' INT TERM PIPE
+  set +e
   if [ -n "$USER_ID" ] && [ -n "$EXPLICIT_EMAIL" ]; then
     echo "→ teardown: TEST_EMAIL was set, so not deleting — remove user $USER_ID ($TEST_EMAIL) manually"
   elif [ -n "$USER_ID" ]; then
