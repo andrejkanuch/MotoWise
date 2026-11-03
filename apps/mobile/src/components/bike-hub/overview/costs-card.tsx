@@ -1,11 +1,11 @@
-import { CURRENCY_TOTALS_SEPARATOR, type Currency } from '@motovault/types';
+import { CURRENCY_TOTALS_SEPARATOR } from '@motovault/types';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { useCurrency } from '@/hooks/use-currency';
 import { COSTS_REST_KEY, DELTA_DIRECTION, type DeltaDirection } from '@/lib/bike-hub/constants';
 import type { CostsShare, CostsSummary } from '@/lib/bike-hub/costs-summary';
-import { CATEGORY_LABELS, formatCurrency } from '@/lib/expense-constants';
+import { CATEGORY_LABELS, formatCurrency, formatCurrencyWhole } from '@/lib/expense-constants';
 import { HubCard } from '../ui/hub-card';
 import { REFRESH_BLOCK, RefreshFailed } from '../ui/refresh-failed';
 import { RowChevron } from '../ui/row-chevron';
@@ -29,15 +29,6 @@ const YOY_STYLE: Record<DeltaDirection, { arrow: string; color: HubColorKey }> =
   [DELTA_DIRECTION.DOWN]: { arrow: '▼', color: 'text' },
   [DELTA_DIRECTION.FLAT]: { arrow: '=', color: 'dim' },
 };
-
-/** Whole currency units ("€218") — for averages and the purchase price. */
-function formatWhole(amount: number, currency: Currency): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 function categoryLabel(key: string, t: TFunction): string {
   if (key === COSTS_REST_KEY) return t('bikeHub.costs.rest');
@@ -153,7 +144,7 @@ export function CostsCard({
           <Text style={{ ...SYSTEM_WEIGHT.regular, fontSize: 13, lineHeight: 17, color: hub.dim }}>
             {purchasePrice
               ? t('bikeHub.costs.emptyWithPrice', {
-                  price: formatWhole(purchasePrice, userCurrency),
+                  price: formatCurrencyWhole(purchasePrice, userCurrency),
                 })
               : t('bikeHub.costs.empty')}
           </Text>
@@ -259,7 +250,7 @@ export function CostsCard({
           <Stat
             compact
             eyebrow={t('bikeHub.costs.perMonth', { year })}
-            value={formatWhole(summary.perMonth, currency)}
+            value={formatCurrencyWhole(summary.perMonth, currency)}
             valueStyle={{ fontSize: 16 }}
           />
           {topCategory ? (

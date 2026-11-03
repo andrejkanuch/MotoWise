@@ -117,6 +117,13 @@ export const AI_BUDGET_LIMITS = {
 export const NOTE_TEXT_MAX = 4000;
 export const NOTE_PHOTOS_MAX = 3;
 
+/**
+ * Largest money amount (expense amount, bike purchase price) in the rider's own
+ * currency. It is the maximum of the DECIMAL(10,2) columns and mirrors the SQL
+ * CHECKs set in 00194, so COP/ARS/CLP riders can log real-world amounts.
+ */
+export const MONEY_AMOUNT_MAX = 99_999_999.99;
+
 /** Upper bound for an odometer value in either unit (seven digits). */
 export const ODOMETER_MAX = 9_999_999;
 /**

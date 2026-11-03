@@ -126,6 +126,11 @@ export function useCreateNote() {
         odometer: variables.odometer,
         createdAt: now,
         updatedAt: now,
+        linkedTaskId: null,
+        linkedTaskTitle: null,
+        linkedExpenseId: null,
+        linkedExpenseAmount: null,
+        linkedExpenseCurrency: null,
         photos: [],
       };
       queryClient.setQueryData<NotesByMotorcycleQuery>(key, {

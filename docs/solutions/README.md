@@ -45,6 +45,7 @@ One row per document. Search this file for a symptom or a module before debuggin
 | [ride-hud-reanimated-charts-mileage-patterns.md](integration-issues/ride-hud-reanimated-charts-mileage-patterns.md) | Ride HUD Redesign: Reanimated Patterns, Chart Tooltips, and Mileage Safety | rides, mobile HUD, API rides service | Lean gauge not responding, chart tooltips missing distance data, mileage race condition, sparkline interval resetting, HudControls re-rendering every second |
 | [scheduled-social-worker-cron-migration.md](integration-issues/scheduled-social-worker-cron-migration.md) | Scheduled social posting silently fails — migrate from Claude sandbox to Cloudflare cron triggers | social-worker | — |
 | [vercel-production-only-deployments.md](integration-issues/vercel-production-only-deployments.md) | Vercel builds for production only: git.deploymentEnabled plus ignoreCommand, both required | web deployment (apps/web/vercel.json) | Preview builds were about 75% of all builds and Build CPU Minutes was 45% of the Vercel bill |
+| [zod-4-upgrade-silent-validation-changes.md](integration-issues/zod-4-upgrade-silent-validation-changes.md) | zod 3 -> 4: validators that kept passing tests but changed what they accept or return | packages/types, apps/api | After the zod 4 bump, a partial update parsed { id } into create-time defaults and would overwrite omitted fields; UUID fixtures like 11111111-1111-1111-1111-111111111111 started failing |
 
 ## runtime-errors
 

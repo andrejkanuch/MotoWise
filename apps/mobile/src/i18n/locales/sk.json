@@ -1508,7 +1508,7 @@
     "confirmDeletePhoto": "Naozaj chceš vymazať túto fotografiu?",
     "deleteTitle": "Vymazať výdavok",
     "deleteMessage": "Naozaj chceš vymazať tento výdavok?",
-    "amountTooHigh": "Maximálna suma je 99 999,99",
+    "amountTooHigh": "Maximálna suma je 99 999 999,99",
     "receipts": "Účtenky",
     "dashboard": "Prehľad výdavkov",
     "seeAll_one": "Zobraziť všetko ({{count}})",

@@ -1501,7 +1501,7 @@
     "confirmDeletePhoto": "Supprimer cette photo ?",
     "deleteTitle": "Supprimer la dépense",
     "deleteMessage": "Supprimer cette dépense ?",
-    "amountTooHigh": "Montant maximum : 99 999,99",
+    "amountTooHigh": "Montant maximum : 99 999 999,99",
     "receipts": "Reçus",
     "dashboard": "Analyse des dépenses",
     "seeAll_one": "Tout voir ({{count}})",

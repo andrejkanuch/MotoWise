@@ -1466,7 +1466,7 @@
     "confirmDeletePhoto": "Bu fotoğrafı silmek istediğinize emin misiniz?",
     "deleteTitle": "Harcamayı Sil",
     "deleteMessage": "Bu harcamayı silmek istediğinize emin misiniz?",
-    "amountTooHigh": "Maksimum tutar 99.999,99",
+    "amountTooHigh": "Maksimum tutar 99.999.999,99",
     "receipts": "Makbuzlar",
     "dashboard": "Harcama Analizleri",
     "seeAll_one": "Tümünü gör ({{count}})",

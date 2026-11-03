@@ -1480,7 +1480,7 @@
     "confirmDeletePhoto": "Bist du sicher, dass du dieses Foto löschen möchtest?",
     "deleteTitle": "Ausgabe löschen",
     "deleteMessage": "Bist du sicher, dass du diese Ausgabe löschen möchtest?",
-    "amountTooHigh": "Maximalbetrag ist 99.999,99",
+    "amountTooHigh": "Maximalbetrag ist 99.999.999,99",
     "receipts": "Belege",
     "dashboard": "Ausgabenübersicht",
     "seeAll_one": "Alle anzeigen ({{count}})",

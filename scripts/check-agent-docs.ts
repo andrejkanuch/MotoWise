@@ -128,7 +128,7 @@ const SKIPPED_PATHS: Readonly<Record<string, string>> = {};
 
 /**
  * pnpm's own commands and their aliases: the word after `pnpm` is not a
- * package.json script. Taken from pnpm 11.9.0 (the `packageManager` version):
+ * package.json script. Taken from pnpm 11.28.10 (the `packageManager` version):
  * every command `pnpm help -a` lists, plus each word `pnpm help <word>`
  * prints a usage for. `run` is skipped by the parser. `test` and `start` are
  * left out on purpose: they run the script of that name, so one must exist.

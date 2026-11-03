@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { MAX_MOTORCYCLE_YEAR, MIN_MOTORCYCLE_YEAR } from '../constants/limits';
+import { MAX_MOTORCYCLE_YEAR, MIN_MOTORCYCLE_YEAR, MONEY_AMOUNT_MAX } from '../constants/limits';
 import { nullishToUndefined } from './nullish';
 
 /**
@@ -46,7 +46,7 @@ export const UpdateMotorcycleSchema = z.object({
    * a value's unit (it defaults 'mi' and is unreliable).
    */
   mileageUnit: nullishToUndefined(z.enum(['mi', 'km'])),
-  purchasePrice: z.number().min(0).max(999999.99).nullable().optional(),
+  purchasePrice: z.number().min(0).max(MONEY_AMOUNT_MAX).nullable().optional(),
   purchaseDate: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format')

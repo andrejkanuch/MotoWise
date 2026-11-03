@@ -50,23 +50,33 @@ export const BlogTranslationInputSchema = z.object({
 });
 export type BlogTranslationInput = z.infer<typeof BlogTranslationInputSchema>;
 
-// Base object (unrefined) so UpdateBlogPostInputSchema can still `.partial()` it —
-// `.refine()` returns a ZodEffects that has no `.partial()`.
-const BlogPostInputObject = z.object({
+// Fields without create-time defaults, so UpdateBlogPostInputSchema can `.partial()`
+// them: zod 4 runs an inner `.default()` even under `.partial()`, which would turn
+// an omitted field in an update into an overwrite.
+const BlogPostBaseObject = z.object({
   type: z.enum(types),
   slug: BlogSlugSchema,
-  status: z.enum(statuses).default(BlogPostStatus.DRAFT),
+  status: z.enum(statuses),
   author: z.string().max(120).optional(),
   coverImage: BlogCoverImageSchema.optional(),
   coverAlt: z.string().max(300).optional(),
-  specData: z.boolean().default(false),
-  isSafetyCritical: z.boolean().default(false),
+  specData: z.boolean(),
+  isSafetyCritical: z.boolean(),
   // Required when status === 'scheduled' (mirrors the DB CHECK).
   scheduledFor: z.string().datetime().optional(),
   typeData: BlogTypeDataSchema,
   translations: z.array(BlogTranslationInputSchema).min(1),
-  categoryIds: z.array(z.string().uuid()).default([]),
-  keywordIds: z.array(z.string().uuid()).default([]),
+  categoryIds: z.array(z.string().uuid()),
+  keywordIds: z.array(z.string().uuid()),
+});
+
+// Unrefined so it can still be extended — `.refine()` wraps the object.
+const BlogPostInputObject = BlogPostBaseObject.extend({
+  status: BlogPostBaseObject.shape.status.default(BlogPostStatus.DRAFT),
+  specData: BlogPostBaseObject.shape.specData.default(false),
+  isSafetyCritical: BlogPostBaseObject.shape.isSafetyCritical.default(false),
+  categoryIds: BlogPostBaseObject.shape.categoryIds.default([]),
+  keywordIds: BlogPostBaseObject.shape.keywordIds.default([]),
 });
 
 export const CreateBlogPostInputSchema = BlogPostInputObject
@@ -78,7 +88,7 @@ export const CreateBlogPostInputSchema = BlogPostInputObject
   });
 export type CreateBlogPostInput = z.infer<typeof CreateBlogPostInputSchema>;
 
-export const UpdateBlogPostInputSchema = BlogPostInputObject.partial().extend({
+export const UpdateBlogPostInputSchema = BlogPostBaseObject.partial().extend({
   id: z.string().uuid(),
 });
 export type UpdateBlogPostInput = z.infer<typeof UpdateBlogPostInputSchema>;

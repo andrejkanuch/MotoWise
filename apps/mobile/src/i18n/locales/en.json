@@ -1477,7 +1477,7 @@
     "confirmDeletePhoto": "Are you sure you want to delete this photo?",
     "deleteTitle": "Delete Expense",
     "deleteMessage": "Are you sure you want to delete this expense?",
-    "amountTooHigh": "Maximum amount is 99,999.99",
+    "amountTooHigh": "Maximum amount is 99,999,999.99",
     "receipts": "Receipts",
     "dashboard": "Expense Insights",
     "seeAll_one": "See all ({{count}})",

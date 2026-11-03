@@ -33,6 +33,7 @@ export const CURRENCY_LIST: CurrencyOption[] = [
   { code: 'CLP', symbol: CURRENCY_SYMBOLS.CLP, name: 'Chilean Peso' },
   { code: 'PEN', symbol: CURRENCY_SYMBOLS.PEN, name: 'Peruvian Sol' },
   { code: 'KES', symbol: CURRENCY_SYMBOLS.KES, name: 'Kenyan Shilling' },
+  { code: 'PHP', symbol: CURRENCY_SYMBOLS.PHP, name: 'Philippine Peso' },
 ];
 
 /** Supported currency codes as a Set for quick lookup. */

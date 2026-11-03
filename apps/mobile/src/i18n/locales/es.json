@@ -1487,7 +1487,7 @@
     "confirmDeletePhoto": "¿Quieres eliminar esta foto?",
     "deleteTitle": "Eliminar gasto",
     "deleteMessage": "¿Quieres eliminar este gasto?",
-    "amountTooHigh": "El monto máximo es 99,999.99",
+    "amountTooHigh": "El monto máximo es 99,999,999.99",
     "receipts": "Recibos",
     "dashboard": "Estadísticas de gastos",
     "seeAll_one": "Ver todo ({{count}})",

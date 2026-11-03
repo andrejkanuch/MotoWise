@@ -1,9 +1,7 @@
 import { NotificationFeedbackType } from 'expo-haptics';
 import {
-  Facebook,
   Globe,
   HelpCircle,
-  Instagram,
   MessagesSquare,
   MoreHorizontal,
   Music2,
@@ -11,12 +9,12 @@ import {
   Search,
   Sparkles,
   Users,
-  Youtube,
 } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TextInput } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { FacebookIcon, InstagramIcon, YoutubeIcon } from '../../components/onboarding/brand-icons';
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingOptionList } from '../../components/onboarding/onboarding-option-list';
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
@@ -37,9 +35,9 @@ import { triggerNotification } from '../../utils/haptics';
  */
 const HEARD_ABOUT_OPTIONS = [
   { id: 'tiktok', labelKey: 'heardAboutTiktok', icon: Music2 },
-  { id: 'instagram', labelKey: 'heardAboutInstagram', icon: Instagram },
-  { id: 'facebook', labelKey: 'heardAboutFacebook', icon: Facebook },
-  { id: 'youtube', labelKey: 'heardAboutYoutube', icon: Youtube },
+  { id: 'instagram', labelKey: 'heardAboutInstagram', icon: InstagramIcon },
+  { id: 'facebook', labelKey: 'heardAboutFacebook', icon: FacebookIcon },
+  { id: 'youtube', labelKey: 'heardAboutYoutube', icon: YoutubeIcon },
   { id: 'reddit', labelKey: 'heardAboutReddit', icon: MessagesSquare },
   { id: 'friend', labelKey: 'heardAboutFriend', icon: Users },
   { id: 'app_store_search', labelKey: 'heardAboutAppStore', icon: Search },

@@ -10,7 +10,7 @@ const REQUIRED = {
 };
 
 const USER_A = '6fb4b88f-c0eb-4bb2-b767-9f45b00c53f2';
-const USER_B = '22222222-2222-2222-2222-222222222222';
+const USER_B = '22222222-2222-4222-8222-222222222222';
 
 describe('REVENUECAT_SANDBOX_ALLOWED_USER_IDS', () => {
   const parse = (value?: string) =>
