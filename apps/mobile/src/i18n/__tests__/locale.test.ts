@@ -53,6 +53,19 @@ describe('resolveDeviceLocale', () => {
     expect(resolveDeviceLocale([device('nl-NL', 'NL'), device('de-DE', 'DE')])).toBe('de');
   });
 
+  it('maps other regional variants to their base locale', () => {
+    expect(resolveDeviceLocale([device('de-AT', 'AT')])).toBe('de');
+    expect(resolveDeviceLocale([device('en-GB', 'GB')])).toBe('en');
+  });
+
+  it('maps a bare Portuguese tag to pt-BR', () => {
+    expect(resolveDeviceLocale([device('pt')])).toBe('pt-BR');
+  });
+
+  it('skips an unsupported first language (Catalan) and uses the next one', () => {
+    expect(resolveDeviceLocale([device('ca-ES', 'ES'), device('fr-FR', 'FR')])).toBe('fr');
+  });
+
   it('falls back to English when nothing matches', () => {
     expect(resolveDeviceLocale([device('nl-NL', 'NL')])).toBe('en');
     expect(resolveDeviceLocale([])).toBe('en');
