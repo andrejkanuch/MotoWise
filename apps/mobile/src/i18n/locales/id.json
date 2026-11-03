@@ -20,7 +20,9 @@
     "tryAgain": "Coba Lagi",
     "all": "Semua",
     "ride": "Berkendara",
-    "deleting": "Menghapus..."
+    "deleting": "Menghapus...",
+    "openInAppleMaps": "Buka di Apple Maps",
+    "copyCoordinates": "Salin koordinat"
   },
   "auth": {
     "googlePlayServicesUnavailable": "Masuk dengan Google memerlukan layanan Google Play, yang tidak tersedia di perangkat ini. Silakan lanjutkan dengan email.",
@@ -1514,7 +1516,20 @@
     "periodAllTime": "Semua waktu",
     "totalSpentThisYear": "Total pengeluaran tahun ini",
     "totalSpentLastYear": "Total pengeluaran tahun lalu",
-    "totalSpentAllTime": "Total pengeluaran sepanjang waktu"
+    "totalSpentAllTime": "Total pengeluaran sepanjang waktu",
+    "retryLoadA11y": "Coba muat ulang data pengeluaran",
+    "periodSelectorA11y": "Pemilih periode pengeluaran",
+    "totalA11y": "Total: {{amount}}",
+    "yoyDownA11y": "Turun {{percent}} persen dibanding tahun lalu",
+    "yoyUpA11y": "Naik {{percent}} persen dibanding tahun lalu",
+    "topCategoryA11y": "Kategori teratas: {{category}}, {{amount}}",
+    "topCategoryPctA11y": "Kategori teratas: {{category}}, {{amount}}, {{percent}} persen",
+    "closeListA11y": "Tutup daftar pengeluaran",
+    "breakdownA11y": "Rincian pengeluaran: {{list}}",
+    "categoryRowA11y": "{{category}}: {{amount}}, {{percent}} persen. Ketuk untuk melihat pengeluaran.",
+    "trendChartA11y": "Grafik tren pengeluaran bulanan",
+    "legendA11y": "Keterangan grafik: {{list}}",
+    "summaryA11y": "Ringkasan pengeluaran"
   },
   "privacy": {
     "title": "Privasi",
@@ -1884,7 +1899,33 @@
     "defaultStopName": "Perhentian {{number}}",
     "moveToDayTitle": "Pindahkan ke Hari",
     "selectDayForStop": "Pilih hari untuk perhentian ini",
-    "addDayA11y": "Tambahkan hari lain ke perjalanan"
+    "addDayA11y": "Tambahkan hari lain ke perjalanan",
+    "visibilityChipPublic": "Publik",
+    "visibilityChipUnlisted": "Hanya lewat tautan",
+    "visibilityChipPrivate": "Pribadi",
+    "surfacePaved": "Beraspal",
+    "surfaceMixed": "Campuran",
+    "surfaceOffRoad": "Off-road",
+    "surfaceGravel": "Kerikil",
+    "itinerary": "Rencana perjalanan",
+    "sampleItinerary": "Contoh rencana perjalanan",
+    "gpxNeedsTwoStopsTitle": "Perlu minimal dua perhentian",
+    "gpxNeedsTwoStopsMessage": "File GPX butuh titik awal dan akhir. Tambahkan satu perhentian lagi lalu coba lagi.",
+    "waypointFallback": "Titik rute",
+    "organizerFallback": "Penyelenggara",
+    "briefShareTitle": "{{title}} — ringkasan tank bag",
+    "saveTripA11y": "Simpan perjalanan",
+    "unsaveTripA11y": "Hapus dari tersimpan",
+    "cloneThisTripHint": "Membuka perencana dengan titik rute perjalanan ini",
+    "exportGpxA11y": "Ekspor perjalanan sebagai GPX",
+    "dayUnit_other": "hari",
+    "stopUnit_other": "perhentian",
+    "stopCount_other": "{{count}} perhentian",
+    "reviewCount_other": "{{count}} ulasan",
+    "dayUnit_one": "hari",
+    "stopUnit_one": "perhentian",
+    "stopCount_one": "{{count}} perhentian",
+    "reviewCount_one": "{{count}} ulasan"
   },
   "groupRide": {
     "titleLabel": "Judul",
@@ -1948,7 +1989,27 @@
       "maxSpeed": "Kecepatan maks.",
       "ascent": "Tanjakan",
       "descent": "Turunan"
-    }
+    },
+    "smartName": {
+      "morning": "Perjalanan pagi hari {{day}}",
+      "afternoon": "Perjalanan siang hari {{day}}",
+      "evening": "Perjalanan sore hari {{day}}",
+      "night": "Perjalanan malam hari {{day}}"
+    },
+    "discardTitle": "Buang perjalanan ini?",
+    "discardMessage": "Data perjalanan ini akan dihapus permanen.",
+    "discardConfirm": "Buang",
+    "rideNameA11y": "Nama perjalanan",
+    "pbBadge": "PB",
+    "record": {
+      "longestDistance": "Perjalanan terjauh",
+      "longestDuration": "Durasi terlama",
+      "topSpeed": "Kecepatan tertinggi",
+      "maxElevationGain": "Tanjakan terbanyak",
+      "fallback": "Rekor pribadi baru"
+    },
+    "saveRide": "Simpan perjalanan",
+    "savingRideA11y": "Menyimpan perjalanan"
   },
   "heatmap": {
     "rides": "Perjalanan",
@@ -1966,12 +2027,13 @@
     "topRideLabel": "Perjalanan teratas:",
     "topRideValue": "— {{distance}}.",
     "shareRecap": "Bagikan rekap",
-    "shareIntro_one": "In {{year}} I rode {{distance}} across {{count}} ride.",
-    "shareIntro_other": "In {{year}} I rode {{distance}} across {{count}} rides.",
-    "shareCountries_one": "{{count}} country: {{list}}",
-    "shareCountries_other": "{{count}} countries: {{list}}",
-    "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise"
+    "shareTopRide": "Perjalanan terbaik: {{name}} — {{distance}}",
+    "shareVia": "— via MotoWise",
+    "shareYearRecapA11y": "Bagikan rekap tahunan",
+    "shareIntro_one": "Di {{year}} aku menempuh {{distance}} dalam {{count}} perjalanan.",
+    "shareIntro_other": "Di {{year}} aku menempuh {{distance}} dalam {{count}} perjalanan.",
+    "shareCountries_one": "{{count}} negara: {{list}}",
+    "shareCountries_other": "{{count}} negara: {{list}}"
   },
   "discoverSearch": {
     "notAvailableTitle": "Tidak tersedia",
@@ -2080,7 +2142,9 @@
     "leanAngle": "Kemiringan maks",
     "leanTooltip": "Sudut kemiringan diperkirakan dari sensor gerak ponselmu. Ini bukan alat ukur presisi — sudut sebenarnya bisa berbeda tergantung posisi dudukan ponsel dan kondisi jalan.",
     "private": "Pribadi",
-    "threeD": "3D"
+    "threeD": "3D",
+    "shareRideA11y": "Bagikan perjalanan",
+    "flyoverA11y": "Tampilan terbang 3D"
   },
   "startRide": {
     "subtitle": "Pilih motor dan berangkat. GPS, kecepatan, dan rute akan dilacak sampai Anda mengetuk selesai.",
@@ -2392,7 +2456,7 @@
       "viewReceipt": "Lihat foto struk",
       "closeReceipt": "Tutup",
       "save": "Simpan",
-      "breakdownOverTotal": "Parts, labor and tax add up to {{sum}}, more than the {{total}} total. Correct one so they fit to save.",
+      "breakdownOverTotal": "Suku cadang, jasa, dan pajak berjumlah {{sum}}, lebih dari total {{total}}. Perbaiki salah satunya agar pas, lalu simpan.",
       "checkAmount": "Cek jumlah",
       "checkCurrency": "Cek mata uang",
       "checkDate": "Cek tanggal",
@@ -2533,7 +2597,27 @@
     "needsAttention": "Perlu perhatian",
     "checksPass": "{{passed}}/{{total}} pemeriksaan lolos",
     "a11y": "{{headline}}. {{percent}} persen siap. Ketuk untuk melihat daftar periksa.",
-    "shareBrief": "Bagikan ringkasan tank bag"
+    "shareBrief": "Bagikan ringkasan tank bag",
+    "items": {
+      "route": "Rute punya titik awal dan akhir",
+      "dates": "Tanggal perjalanan sudah diatur",
+      "fuel": "Jarak tempuh BBM cukup untuk ruas terjauh",
+      "witness": "Ada yang tahu rutemu",
+      "bike": "Motor utama sudah dipilih",
+      "names": "Perhentian sudah diberi nama"
+    },
+    "notes": {
+      "routeNeedsTwoStops": "Perjalanan butuh minimal dua perhentian agar navigasi bisa menghitung rute.",
+      "datesInPast": "Tanggal mulai sudah lewat — perbarui sebelum berangkat.",
+      "datesMissing": "Tambahkan tanggal mulai supaya peserta tahu kapan harus datang.",
+      "fuelNoBike": "Tambahkan motor utama agar kami bisa mengecek jarak tempuh BBM untuk rutemu.",
+      "fuelGapTooLong": "Ruas terjauh {{gapKm}} km > jarak tempuh {{rangeKm}} km — tambahkan perhentian isi BBM.",
+      "fuelGapOk": "Ruas terjauh {{gapKm}} km / jarak tempuh {{rangeKm}} km",
+      "witnessMissing": "Undang rider lain, bagikan perjalanan, atau buat bisa diakses lewat tautan supaya ada yang tahu.",
+      "bikeMissing": "Pilih motor utama di Garasi supaya riwayat servis dipakai untuk pengecekan lainnya.",
+      "stopsUnnamed_other": "{{count}} perhentian masih memakai nama bawaan.",
+      "stopsUnnamed_one": "{{count}} perhentian masih memakai nama bawaan."
+    }
   },
   "tripSuggestions": {
     "title": "Saran",

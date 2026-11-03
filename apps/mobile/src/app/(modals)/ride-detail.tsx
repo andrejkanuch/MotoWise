@@ -203,7 +203,7 @@ export default function RideDetailScreen() {
     if (!ride || !rideId) return null;
     return {
       rideId,
-      rideName: ride.name ?? 'Ride',
+      rideName: ride.name ?? t('common.ride'),
       rideNumber: null,
       date: ride.startedAt ?? new Date().toISOString(),
       distanceM: ride.distanceM ?? 0,
@@ -224,7 +224,7 @@ export default function RideDetailScreen() {
       pbType: null,
       prevPbValue: null,
     };
-  }, [ride, rideId, waypoints, routeData, mapSnapshotUri, bikeName, system]);
+  }, [ride, rideId, waypoints, routeData, mapSnapshotUri, bikeName, system, t]);
 
   const handleDelete = useCallback(() => {
     if (!rideId) return;
@@ -556,7 +556,7 @@ export default function RideDetailScreen() {
           <Pressable
             onPress={() => router.back()}
             accessibilityRole="button"
-            accessibilityLabel="Go back"
+            accessibilityLabel={t('common.goBack')}
             style={{ ...fabStyle, ...fabShadow }}
           >
             <ArrowLeft size={18} color={theme.ink} />
@@ -577,7 +577,7 @@ export default function RideDetailScreen() {
           <Pressable
             onPress={handleShare}
             accessibilityRole="button"
-            accessibilityLabel="Share ride"
+            accessibilityLabel={t('rideDetail.shareRideA11y')}
             style={{ ...fabStyle, ...fabShadow }}
           >
             <Share2 size={18} color={theme.ink} />
@@ -625,7 +625,7 @@ export default function RideDetailScreen() {
               router.push({ pathname: '/(modals)/ride-flyover', params: { rideId } });
             }}
             accessibilityRole="button"
-            accessibilityLabel="3D flyover"
+            accessibilityLabel={t('rideDetail.flyoverA11y')}
             style={{
               width: 44,
               height: 44,
@@ -677,7 +677,7 @@ export default function RideDetailScreen() {
             <Animated.View entering={FadeInUp.duration(250)} style={{ gap: 2 }}>
               {/* Title */}
               <Text accessibilityRole="header" style={[type.sheetTitle, { color: theme.ink }]}>
-                {ride.name || 'Ride'}
+                {ride.name || t('common.ride')}
               </Text>
 
               {/* Date · bike */}
@@ -915,7 +915,7 @@ export default function RideDetailScreen() {
               <Pressable
                 onPress={handleDelete}
                 accessibilityRole="button"
-                accessibilityLabel="Delete ride"
+                accessibilityLabel={t('rideDetail.deleteRide')}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',

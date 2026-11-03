@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import type { TFunction } from 'i18next';
 import {
   ArrowDown,
   ArrowUp,
@@ -56,7 +57,7 @@ import {
   getDefaultMapStyle,
   MAP_STYLES,
 } from '../../utils/map-styles';
-import { RECORD_LABELS } from '../../utils/ride-constants';
+import { recordLabel } from '../../utils/ride-constants';
 import {
   formatDistance,
   formatDuration,
@@ -69,20 +70,15 @@ import { dropDeadLetteredRide, enqueueOrExecute } from '../../utils/ride-sync-qu
 const MAP_HEIGHT = 260;
 const SHEET_RADIUS = 28;
 
-/** Smart ride naming using time-of-day */
-function smartRideName(startedAt: number): string {
+/** Smart ride naming using time-of-day, in the app language ("Saturday Morning Ride"). */
+function smartRideName(startedAt: number, t: TFunction, locale: string): string {
   const date = new Date(startedAt);
   const hour = date.getHours();
-  const dayName = date.toLocaleDateString(undefined, { weekday: 'long' });
-
-  let timeOfDay: string;
-  if (hour < 6) timeOfDay = 'Night';
-  else if (hour < 12) timeOfDay = 'Morning';
-  else if (hour < 17) timeOfDay = 'Afternoon';
-  else if (hour < 21) timeOfDay = 'Evening';
-  else timeOfDay = 'Night';
-
-  return `${dayName} ${timeOfDay} Ride`;
+  const day = date.toLocaleDateString(locale, { weekday: 'long' });
+  if (hour < 6 || hour >= 21) return t('rideSummary.smartName.night', { day });
+  if (hour < 12) return t('rideSummary.smartName.morning', { day });
+  if (hour < 17) return t('rideSummary.smartName.afternoon', { day });
+  return t('rideSummary.smartName.evening', { day });
 }
 
 export default function RideSummaryScreen() {
@@ -114,7 +110,7 @@ export default function RideSummaryScreen() {
   const movingTimeS = Number(params.movingTimeS) || 0;
 
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { t: theme, isDark } = useEditorialTheme();
 
   // Android hardware back would leave without Save or Discard — the same stranded
@@ -127,7 +123,7 @@ export default function RideSummaryScreen() {
     }, []),
   );
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
-  const defaultRideName = useMemo(() => smartRideName(startedAtMs), [startedAtMs]);
+  const [defaultRideName] = useState(() => smartRideName(startedAtMs, t, i18n.language));
   const [rideName, setRideName] = useState(defaultRideName);
   const [isSaving, setIsSaving] = useState(false);
   const [shareToDiscover, setShareToDiscover] = useState(false);
@@ -353,10 +349,10 @@ export default function RideSummaryScreen() {
   ]);
 
   const handleDiscard = useCallback(() => {
-    Alert.alert('Discard Ride?', 'This ride data will be permanently deleted.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('rideSummary.discardTitle'), t('rideSummary.discardMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Discard',
+        text: t('rideSummary.discardConfirm'),
         style: 'destructive',
         onPress: () => {
           trackEvent(AnalyticsEvent.RIDE_DISCARDED, {
@@ -377,7 +373,7 @@ export default function RideSummaryScreen() {
         },
       },
     ]);
-  }, [rideId, router, distanceM, durationS, queryClient]);
+  }, [rideId, router, distanceM, durationS, queryClient, t]);
 
   const handleCycleMapStyle = useCallback(() => {
     // Compute next outside the state updater — firing inside it double-counts
@@ -542,7 +538,7 @@ export default function RideSummaryScreen() {
           <Pressable
             onPress={handleShare}
             accessibilityRole="button"
-            accessibilityLabel="Share ride"
+            accessibilityLabel={t('rideDetail.shareRideA11y')}
             style={{
               width: 40,
               height: 40,
@@ -644,7 +640,7 @@ export default function RideSummaryScreen() {
                 placeholder={t('rideSummary.namePlaceholder')}
                 placeholderTextColor={theme.ink4}
                 maxLength={100}
-                accessibilityLabel="Ride name"
+                accessibilityLabel={t('rideSummary.rideNameA11y')}
                 style={[type.sheetTitle, { flex: 1, color: theme.ink, padding: 0 }]}
               />
               <Pencil size={16} color={theme.ink3} />
@@ -700,11 +696,13 @@ export default function RideSummaryScreen() {
                         borderColor: theme.line2,
                       }}
                     >
-                      <Text style={[type.caption, { color: theme.ink2 }]}>PB</Text>
+                      <Text style={[type.caption, { color: theme.ink2 }]}>
+                        {t('rideSummary.pbBadge')}
+                      </Text>
                     </View>
                   </View>
                   <Text style={[type.bodyStrong, { color: theme.ink, marginTop: 2 }]}>
-                    {RECORD_LABELS[pbRecord.recordType] ?? 'New personal best'}
+                    {recordLabel(t, pbRecord.recordType, t('rideSummary.record.fallback'))}
                   </Text>
                   <Text
                     style={[
@@ -825,7 +823,9 @@ export default function RideSummaryScreen() {
               onPress={handleSave}
               disabled={isSaving}
               accessibilityRole="button"
-              accessibilityLabel={isSaving ? 'Saving ride' : 'Save ride'}
+              accessibilityLabel={t(
+                isSaving ? 'rideSummary.savingRideA11y' : 'rideSummary.saveRide',
+              )}
               style={({ pressed }) => ({
                 borderRadius: 999,
                 borderCurve: 'continuous',
@@ -857,7 +857,7 @@ export default function RideSummaryScreen() {
                   <Check size={11} color={theme.warm} strokeWidth={2.5} />
                 </View>
                 <Text style={[type.bodyStrong, { color: theme.onWarm }]}>
-                  {isSaving ? 'Saving...' : 'Save ride'}
+                  {t(isSaving ? 'common.saving' : 'rideSummary.saveRide')}
                 </Text>
               </View>
             </Pressable>
@@ -911,7 +911,7 @@ export default function RideSummaryScreen() {
             <Pressable
               onPress={handleDiscard}
               accessibilityRole="button"
-              accessibilityLabel="Discard ride"
+              accessibilityLabel={t('rideSummary.discardRide')}
               hitSlop={8}
               style={{
                 flexDirection: 'row',

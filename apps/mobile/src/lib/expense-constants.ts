@@ -9,6 +9,7 @@ import {
   groupTotalsByCurrency,
 } from '@motovault/types';
 import type { TFunction } from 'i18next';
+import { tDynamic } from '../i18n/t-dynamic';
 import { getNumberLocale } from './number-locale';
 
 export type { CurrencyTotal };
@@ -29,6 +30,14 @@ export const CATEGORY_COLORS: Record<string, string> = Object.fromEntries(
 export const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
   EXPENSE_CATEGORY_META.map((m) => [m.key, m.label]),
 );
+
+/** A category's on-screen name in the app language (`expenses.category_<key>`).
+ *  A category this build has no copy for falls back to its English label, then its key. */
+export function categoryLabel(t: TFunction, category: string): string {
+  return tDynamic(t, `expenses.category_${category}`, {
+    defaultValue: CATEGORY_LABELS[category] ?? category,
+  });
+}
 
 /** Categories shown as chips in the simple/default form state. */
 export const PRIMARY_CATEGORIES: ExpenseCategory[] = EXPENSE_CATEGORY_META.filter(

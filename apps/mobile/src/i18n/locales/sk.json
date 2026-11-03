@@ -20,7 +20,9 @@
     "tryAgain": "Skúsiť znova",
     "all": "Všetko",
     "ride": "Jazda",
-    "deleting": "Odstraňuje sa..."
+    "deleting": "Odstraňuje sa...",
+    "openInAppleMaps": "Otvoriť v Apple Mapách",
+    "copyCoordinates": "Kopírovať súradnice"
   },
   "auth": {
     "googlePlayServicesUnavailable": "Prihlásenie cez Google vyžaduje služby Google Play, ktoré toto zariadenie nemá. Pokračujte radšej e-mailom.",
@@ -1556,7 +1558,20 @@
     "periodAllTime": "Celkovo",
     "totalSpentThisYear": "Výdavky tento rok",
     "totalSpentLastYear": "Výdavky minulý rok",
-    "totalSpentAllTime": "Výdavky celkovo"
+    "totalSpentAllTime": "Výdavky celkovo",
+    "retryLoadA11y": "Skúsiť znova načítať výdavky",
+    "periodSelectorA11y": "Výber obdobia výdavkov",
+    "totalA11y": "Spolu: {{amount}}",
+    "yoyDownA11y": "O {{percent}} percent menej ako minulý rok",
+    "yoyUpA11y": "O {{percent}} percent viac ako minulý rok",
+    "topCategoryA11y": "Najväčšia kategória: {{category}}, {{amount}}",
+    "topCategoryPctA11y": "Najväčšia kategória: {{category}}, {{amount}}, {{percent}} percent",
+    "closeListA11y": "Zavrieť zoznam výdavkov",
+    "breakdownA11y": "Rozdelenie výdavkov: {{list}}",
+    "categoryRowA11y": "{{category}}: {{amount}}, {{percent}} percent. Ťukni a zobraz výdavky.",
+    "trendChartA11y": "Graf mesačných výdavkov",
+    "legendA11y": "Legenda grafu: {{list}}",
+    "summaryA11y": "Prehľad výdavkov"
   },
   "privacy": {
     "title": "Súkromie",
@@ -1926,7 +1941,41 @@
     "defaultStopName": "Zastávka {{number}}",
     "moveToDayTitle": "Presunúť na deň",
     "selectDayForStop": "Vyberte deň pre túto zastávku",
-    "addDayA11y": "Pridať ďalší deň do trasy"
+    "addDayA11y": "Pridať ďalší deň do trasy",
+    "visibilityChipPublic": "Verejná",
+    "visibilityChipUnlisted": "Len cez odkaz",
+    "visibilityChipPrivate": "Súkromná",
+    "surfacePaved": "Asfalt",
+    "surfaceMixed": "Zmiešaný",
+    "surfaceOffRoad": "Terén",
+    "surfaceGravel": "Šotolina",
+    "itinerary": "Itinerár",
+    "sampleItinerary": "Ukážkový itinerár",
+    "gpxNeedsTwoStopsTitle": "Potrebuješ aspoň dve zastávky",
+    "gpxNeedsTwoStopsMessage": "Súbor GPX potrebuje štart aj cieľ. Pridaj ešte jednu zastávku a skús to znova.",
+    "waypointFallback": "Bod trasy",
+    "organizerFallback": "Organizátor",
+    "briefShareTitle": "{{title}} — prehľad do tankvaku",
+    "saveTripA11y": "Uložiť jazdu",
+    "unsaveTripA11y": "Odstrániť z uložených",
+    "cloneThisTripHint": "Otvorí plánovač s bodmi tejto jazdy",
+    "exportGpxA11y": "Exportovať jazdu ako GPX",
+    "dayUnit_one": "deň",
+    "dayUnit_few": "dni",
+    "dayUnit_many": "dňa",
+    "dayUnit_other": "dní",
+    "stopUnit_one": "zastávka",
+    "stopUnit_few": "zastávky",
+    "stopUnit_many": "zastávky",
+    "stopUnit_other": "zastávok",
+    "stopCount_one": "{{count}} zastávka",
+    "stopCount_few": "{{count}} zastávky",
+    "stopCount_many": "{{count}} zastávky",
+    "stopCount_other": "{{count}} zastávok",
+    "reviewCount_one": "{{count}} recenzia",
+    "reviewCount_few": "{{count}} recenzie",
+    "reviewCount_many": "{{count}} recenzie",
+    "reviewCount_other": "{{count}} recenzií"
   },
   "groupRide": {
     "titleLabel": "Názov",
@@ -1990,7 +2039,27 @@
       "maxSpeed": "Max. rýchlosť",
       "ascent": "Stúpanie",
       "descent": "Klesanie"
-    }
+    },
+    "smartName": {
+      "morning": "Ranná jazda – {{day}}",
+      "afternoon": "Popoludňajšia jazda – {{day}}",
+      "evening": "Večerná jazda – {{day}}",
+      "night": "Nočná jazda – {{day}}"
+    },
+    "discardTitle": "Zahodiť jazdu?",
+    "discardMessage": "Údaje o tejto jazde sa natrvalo vymažú.",
+    "discardConfirm": "Zahodiť",
+    "rideNameA11y": "Názov jazdy",
+    "pbBadge": "Rekord",
+    "record": {
+      "longestDistance": "Najdlhšia jazda",
+      "longestDuration": "Najdlhšie trvanie",
+      "topSpeed": "Najvyššia rýchlosť",
+      "maxElevationGain": "Najväčšie prevýšenie",
+      "fallback": "Nový osobný rekord"
+    },
+    "saveRide": "Uložiť jazdu",
+    "savingRideA11y": "Ukladá sa jazda"
   },
   "heatmap": {
     "rides": "Jazdy",
@@ -2012,16 +2081,17 @@
     "topRideLabel": "Najlepšia jazda:",
     "topRideValue": "— {{distance}}.",
     "shareRecap": "Zdieľať zhrnutie",
-    "shareIntro_one": "In {{year}} I rode {{distance}} across {{count}} ride.",
-    "shareIntro_few": "In {{year}} I rode {{distance}} across {{count}} rides.",
-    "shareIntro_many": "In {{year}} I rode {{distance}} across {{count}} rides.",
-    "shareIntro_other": "In {{year}} I rode {{distance}} across {{count}} rides.",
-    "shareCountries_one": "{{count}} country: {{list}}",
-    "shareCountries_few": "{{count}} countries: {{list}}",
-    "shareCountries_many": "{{count}} countries: {{list}}",
-    "shareCountries_other": "{{count}} countries: {{list}}",
-    "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise"
+    "shareTopRide": "Top jazda: {{name}} — {{distance}}",
+    "shareVia": "— via MotoWise",
+    "shareYearRecapA11y": "Zdieľať zhrnutie roka",
+    "shareIntro_one": "Môj rok {{year}}: {{distance}} počas {{count}} jazdy.",
+    "shareIntro_few": "Môj rok {{year}}: {{distance}} počas {{count}} jázd.",
+    "shareIntro_many": "Môj rok {{year}}: {{distance}} počas {{count}} jazdy.",
+    "shareIntro_other": "Môj rok {{year}}: {{distance}} počas {{count}} jázd.",
+    "shareCountries_one": "{{count}} krajina: {{list}}",
+    "shareCountries_few": "{{count}} krajiny: {{list}}",
+    "shareCountries_many": "{{count}} krajiny: {{list}}",
+    "shareCountries_other": "{{count}} krajín: {{list}}"
   },
   "discoverSearch": {
     "notAvailableTitle": "Nedostupné",
@@ -2132,7 +2202,9 @@
     "leanAngle": "Max. náklon",
     "leanTooltip": "Uhol náklonu sa odhaduje z pohybových senzorov telefónu. Nie je to presný prístroj — skutočný náklon sa môže líšiť podľa uchytenia telefónu a stavu cesty.",
     "private": "Súkromná",
-    "threeD": "3D"
+    "threeD": "3D",
+    "shareRideA11y": "Zdieľať jazdu",
+    "flyoverA11y": "3D prelet"
   },
   "startRide": {
     "subtitle": "Vyber si motorku a vyraz. GPS, rýchlosť a trasa sa budú zaznamenávať, kým neklikneš na koniec.",
@@ -2446,7 +2518,7 @@
       "viewReceipt": "Zobraziť fotku účtenky",
       "closeReceipt": "Zavrieť",
       "save": "Uložiť",
-      "breakdownOverTotal": "Parts, labor and tax add up to {{sum}}, more than the {{total}} total. Correct one so they fit to save.",
+      "breakdownOverTotal": "Diely, práca a daň dávajú spolu {{sum}}, viac ako celková suma {{total}}. Oprav jednu z položiek, aby to sedelo, a potom ulož.",
       "checkAmount": "Skontroluj sumu",
       "checkCurrency": "Skontroluj menu",
       "checkDate": "Skontroluj dátum",
@@ -2587,7 +2659,29 @@
     "needsAttention": "Vyžaduje pozornosť",
     "checksPass": "{{passed}}/{{total}} kontrol splnených",
     "a11y": "{{headline}}. Pripravené na {{percent}} percent. Klepnutím zobrazíte zoznam.",
-    "shareBrief": "Zdieľať prehľad do tankvaku"
+    "shareBrief": "Zdieľať prehľad do tankvaku",
+    "items": {
+      "route": "Trasa má štart aj cieľ",
+      "dates": "Dátumy jazdy sú nastavené",
+      "fuel": "Dojazd pokryje najdlhší úsek",
+      "witness": "Niekto pozná tvoju trasu",
+      "bike": "Hlavná motorka je vybraná",
+      "names": "Zastávky majú názvy"
+    },
+    "notes": {
+      "routeNeedsTwoStops": "Jazda potrebuje aspoň dve zastávky, aby navigácia vedela vypočítať trasu.",
+      "datesInPast": "Dátum štartu je v minulosti — pred jazdou ho aktualizuj.",
+      "datesMissing": "Pridaj dátum štartu, aby účastníci vedeli, kedy prísť.",
+      "fuelNoBike": "Pridaj hlavnú motorku, aby sme vedeli overiť dojazd na tvojej trase.",
+      "fuelGapTooLong": "Najdlhší úsek {{gapKm}} km > {{rangeKm}} km dojazdu — pridaj zastávku na tankovanie.",
+      "fuelGapOk": "Najdlhší úsek {{gapKm}} km / {{rangeKm}} km dojazdu",
+      "witnessMissing": "Pozvi niekoho, zdieľaj jazdu alebo ju sprístupni cez odkaz, aby ho niekto mal.",
+      "bikeMissing": "Vyber hlavnú motorku v Garáži, aby servisná história poháňala ostatné kontroly.",
+      "stopsUnnamed_one": "{{count}} zastávka má stále predvolený názov.",
+      "stopsUnnamed_few": "{{count}} zastávky majú stále predvolený názov.",
+      "stopsUnnamed_many": "{{count}} zastávky má stále predvolený názov.",
+      "stopsUnnamed_other": "{{count}} zastávok má stále predvolený názov."
+    }
   },
   "tripSuggestions": {
     "title": "Návrhy",

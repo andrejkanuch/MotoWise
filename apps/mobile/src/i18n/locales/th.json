@@ -20,7 +20,9 @@
     "tryAgain": "ลองอีกครั้ง",
     "all": "ทั้งหมด",
     "ride": "การขับขี่",
-    "deleting": "กำลังลบ..."
+    "deleting": "กำลังลบ...",
+    "openInAppleMaps": "เปิดใน Apple Maps",
+    "copyCoordinates": "คัดลอกพิกัด"
   },
   "auth": {
     "googlePlayServicesUnavailable": "การลงชื่อเข้าใช้ด้วย Google ต้องใช้บริการ Google Play ซึ่งอุปกรณ์นี้ไม่มี โปรดดำเนินการต่อด้วยอีเมลแทน",
@@ -1514,7 +1516,20 @@
     "periodAllTime": "ทั้งหมด",
     "totalSpentThisYear": "ค่าใช้จ่ายรวมปีนี้",
     "totalSpentLastYear": "ค่าใช้จ่ายรวมปีที่แล้ว",
-    "totalSpentAllTime": "ค่าใช้จ่ายรวมทั้งหมด"
+    "totalSpentAllTime": "ค่าใช้จ่ายรวมทั้งหมด",
+    "retryLoadA11y": "โหลดข้อมูลค่าใช้จ่ายอีกครั้ง",
+    "periodSelectorA11y": "ตัวเลือกช่วงเวลาค่าใช้จ่าย",
+    "totalA11y": "รวม: {{amount}}",
+    "yoyDownA11y": "ลดลง {{percent}} เปอร์เซ็นต์เทียบกับปีที่แล้ว",
+    "yoyUpA11y": "เพิ่มขึ้น {{percent}} เปอร์เซ็นต์เทียบกับปีที่แล้ว",
+    "topCategoryA11y": "หมวดที่ใช้มากที่สุด: {{category}}, {{amount}}",
+    "topCategoryPctA11y": "หมวดที่ใช้มากที่สุด: {{category}}, {{amount}}, {{percent}} เปอร์เซ็นต์",
+    "closeListA11y": "ปิดรายการค่าใช้จ่าย",
+    "breakdownA11y": "สัดส่วนค่าใช้จ่าย: {{list}}",
+    "categoryRowA11y": "{{category}}: {{amount}}, {{percent}} เปอร์เซ็นต์ แตะเพื่อดูค่าใช้จ่าย",
+    "trendChartA11y": "กราฟแนวโน้มค่าใช้จ่ายรายเดือน",
+    "legendA11y": "คำอธิบายกราฟ: {{list}}",
+    "summaryA11y": "สรุปค่าใช้จ่าย"
   },
   "privacy": {
     "title": "ความเป็นส่วนตัว",
@@ -1884,7 +1899,33 @@
     "defaultStopName": "จุดแวะ {{number}}",
     "moveToDayTitle": "ย้ายไปยังวัน",
     "selectDayForStop": "เลือกวันสำหรับจุดแวะนี้",
-    "addDayA11y": "เพิ่มอีกวันในทริป"
+    "addDayA11y": "เพิ่มอีกวันในทริป",
+    "visibilityChipPublic": "สาธารณะ",
+    "visibilityChipUnlisted": "เฉพาะผู้มีลิงก์",
+    "visibilityChipPrivate": "ส่วนตัว",
+    "surfacePaved": "ถนนลาดยาง",
+    "surfaceMixed": "ผสม",
+    "surfaceOffRoad": "ออฟโรด",
+    "surfaceGravel": "ทางกรวด",
+    "itinerary": "แผนการเดินทาง",
+    "sampleItinerary": "ตัวอย่างแผนการเดินทาง",
+    "gpxNeedsTwoStopsTitle": "ต้องมีจุดแวะอย่างน้อยสองจุด",
+    "gpxNeedsTwoStopsMessage": "ไฟล์ GPX ต้องมีจุดเริ่มต้นและจุดสิ้นสุด เพิ่มจุดแวะอีกหนึ่งจุดแล้วลองอีกครั้ง",
+    "waypointFallback": "จุดผ่าน",
+    "organizerFallback": "ผู้จัด",
+    "briefShareTitle": "{{title}} — สรุปสำหรับกระเป๋าถัง",
+    "saveTripA11y": "บันทึกทริป",
+    "unsaveTripA11y": "เลิกบันทึกทริป",
+    "cloneThisTripHint": "เปิดตัววางแผนพร้อมจุดแวะของทริปนี้",
+    "exportGpxA11y": "ส่งออกทริปเป็น GPX",
+    "dayUnit_other": "วัน",
+    "stopUnit_other": "จุดแวะ",
+    "stopCount_other": "{{count}} จุดแวะ",
+    "reviewCount_other": "รีวิว {{count}} รายการ",
+    "dayUnit_one": "วัน",
+    "stopUnit_one": "จุดแวะ",
+    "stopCount_one": "{{count}} จุดแวะ",
+    "reviewCount_one": "รีวิว {{count}} รายการ"
   },
   "groupRide": {
     "titleLabel": "ชื่อ",
@@ -1948,7 +1989,27 @@
       "maxSpeed": "ความเร็วสูงสุด",
       "ascent": "ขึ้น",
       "descent": "ลง"
-    }
+    },
+    "smartName": {
+      "morning": "ขี่ตอนเช้า{{day}}",
+      "afternoon": "ขี่ตอนบ่าย{{day}}",
+      "evening": "ขี่ตอนเย็น{{day}}",
+      "night": "ขี่ตอนกลางคืน{{day}}"
+    },
+    "discardTitle": "ละทิ้งการขับขี่นี้?",
+    "discardMessage": "ข้อมูลการขับขี่นี้จะถูกลบถาวร",
+    "discardConfirm": "ละทิ้ง",
+    "rideNameA11y": "ชื่อการขับขี่",
+    "pbBadge": "PB",
+    "record": {
+      "longestDistance": "ขี่ไกลที่สุด",
+      "longestDuration": "ขี่นานที่สุด",
+      "topSpeed": "ความเร็วสูงสุด",
+      "maxElevationGain": "ไต่ระดับมากที่สุด",
+      "fallback": "สถิติส่วนตัวใหม่"
+    },
+    "saveRide": "บันทึกการขับขี่",
+    "savingRideA11y": "กำลังบันทึกการขับขี่"
   },
   "heatmap": {
     "rides": "การขับขี่",
@@ -1966,12 +2027,13 @@
     "topRideLabel": "การขับขี่ที่ดีที่สุด:",
     "topRideValue": "— {{distance}}.",
     "shareRecap": "แชร์สรุป",
-    "shareIntro_one": "In {{year}} I rode {{distance}} across {{count}} ride.",
-    "shareIntro_other": "In {{year}} I rode {{distance}} across {{count}} rides.",
-    "shareCountries_one": "{{count}} country: {{list}}",
-    "shareCountries_other": "{{count}} countries: {{list}}",
-    "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise"
+    "shareTopRide": "ทริปเด่น: {{name}} — {{distance}}",
+    "shareVia": "— via MotoWise",
+    "shareYearRecapA11y": "แชร์สรุปประจำปี",
+    "shareIntro_one": "ปี {{year}} ฉันขี่ไป {{distance}} จากการขับขี่ {{count}} ครั้ง",
+    "shareIntro_other": "ปี {{year}} ฉันขี่ไป {{distance}} จากการขับขี่ {{count}} ครั้ง",
+    "shareCountries_one": "{{count}} ประเทศ: {{list}}",
+    "shareCountries_other": "{{count}} ประเทศ: {{list}}"
   },
   "discoverSearch": {
     "notAvailableTitle": "ไม่พร้อมใช้งาน",
@@ -2080,7 +2142,9 @@
     "leanAngle": "มุมเอียงสูงสุด",
     "leanTooltip": "มุมเอียงประมาณจากเซ็นเซอร์การเคลื่อนไหวของโทรศัพท์ ไม่ใช่เครื่องมือวัดที่แม่นยำ — มุมเอียงจริงอาจต่างไปตามตำแหน่งที่ยึดโทรศัพท์และสภาพถนน",
     "private": "ส่วนตัว",
-    "threeD": "3D"
+    "threeD": "3D",
+    "shareRideA11y": "แชร์การขับขี่",
+    "flyoverA11y": "มุมมองบินผ่าน 3 มิติ"
   },
   "startRide": {
     "subtitle": "เลือกมอเตอร์ไซค์แล้วออกเดินทาง GPS ความเร็ว และเส้นทางจะถูกบันทึกจนกว่าคุณจะแตะสิ้นสุด",
@@ -2392,7 +2456,7 @@
       "viewReceipt": "ดูรูปใบเสร็จ",
       "closeReceipt": "ปิด",
       "save": "บันทึก",
-      "breakdownOverTotal": "Parts, labor and tax add up to {{sum}}, more than the {{total}} total. Correct one so they fit to save.",
+      "breakdownOverTotal": "ค่าอะไหล่ ค่าแรง และภาษีรวมเป็น {{sum}} มากกว่ายอดรวม {{total}} แก้ไขรายการใดรายการหนึ่งให้ลงตัวก่อนบันทึก",
       "checkAmount": "ตรวจสอบจำนวนเงิน",
       "checkCurrency": "ตรวจสอบสกุลเงิน",
       "checkDate": "ตรวจสอบวันที่",
@@ -2533,7 +2597,27 @@
     "needsAttention": "ต้องตรวจสอบ",
     "checksPass": "ผ่าน {{passed}}/{{total}} รายการ",
     "a11y": "{{headline}} พร้อม {{percent}} เปอร์เซ็นต์ แตะเพื่อดูรายการตรวจ",
-    "shareBrief": "แชร์สรุปสำหรับกระเป๋าถัง"
+    "shareBrief": "แชร์สรุปสำหรับกระเป๋าถัง",
+    "items": {
+      "route": "เส้นทางมีจุดเริ่มต้นและจุดหมาย",
+      "dates": "กำหนดวันที่ของทริปแล้ว",
+      "fuel": "ระยะต่อถังพอสำหรับช่วงที่ไกลที่สุด",
+      "witness": "มีคนรู้เส้นทางของคุณ",
+      "bike": "เลือกรถคันหลักแล้ว",
+      "names": "จุดแวะมีชื่อแล้ว"
+    },
+    "notes": {
+      "routeNeedsTwoStops": "ทริปต้องมีจุดแวะอย่างน้อยสองจุดเพื่อให้ระบบนำทางคำนวณเส้นทางได้",
+      "datesInPast": "วันเริ่มต้นผ่านไปแล้ว อัปเดตก่อนออกเดินทาง",
+      "datesMissing": "เพิ่มวันเริ่มต้นเพื่อให้ผู้ร่วมทริปรู้ว่าต้องมาเมื่อไร",
+      "fuelNoBike": "เพิ่มรถคันหลักเพื่อให้เราตรวจระยะต่อถังเทียบกับเส้นทางของคุณ",
+      "fuelGapTooLong": "ช่วงที่ไกลที่สุด {{gapKm}} กม. > ระยะต่อถัง {{rangeKm}} กม. เพิ่มจุดเติมน้ำมัน",
+      "fuelGapOk": "ช่วงที่ไกลที่สุด {{gapKm}} กม. / ระยะต่อถัง {{rangeKm}} กม.",
+      "witnessMissing": "ชวนเพื่อนร่วมทริป แชร์ทริป หรือตั้งให้เปิดได้ด้วยลิงก์ เพื่อให้มีคนรู้เส้นทาง",
+      "bikeMissing": "เลือกรถคันหลักในโรงรถ เพื่อใช้ประวัติการเข้าศูนย์กับการตรวจอื่นๆ",
+      "stopsUnnamed_other": "จุดแวะ {{count}} จุดยังใช้ชื่อเริ่มต้นอยู่",
+      "stopsUnnamed_one": "จุดแวะ {{count}} จุดยังใช้ชื่อเริ่มต้นอยู่"
+    }
   },
   "tripSuggestions": {
     "title": "ข้อเสนอแนะ",

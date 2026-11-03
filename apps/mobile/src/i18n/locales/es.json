@@ -20,7 +20,9 @@
     "tryAgain": "Reintentar",
     "all": "Todo",
     "ride": "Ruta",
-    "deleting": "Eliminando..."
+    "deleting": "Eliminando...",
+    "openInAppleMaps": "Abrir en Apple Maps",
+    "copyCoordinates": "Copiar coordenadas"
   },
   "auth": {
     "googlePlayServicesUnavailable": "El inicio de sesión con Google necesita los servicios de Google Play, que este dispositivo no tiene. Continúa con tu correo electrónico.",
@@ -1535,7 +1537,20 @@
     "periodAllTime": "Todo",
     "totalSpentThisYear": "Gasto total este año",
     "totalSpentLastYear": "Gasto total el año pasado",
-    "totalSpentAllTime": "Gasto total histórico"
+    "totalSpentAllTime": "Gasto total histórico",
+    "retryLoadA11y": "Reintentar la carga de gastos",
+    "periodSelectorA11y": "Selector de período de gastos",
+    "totalA11y": "Total: {{amount}}",
+    "yoyDownA11y": "{{percent}} por ciento menos que el año pasado",
+    "yoyUpA11y": "{{percent}} por ciento más que el año pasado",
+    "topCategoryA11y": "Categoría principal: {{category}}, {{amount}}",
+    "topCategoryPctA11y": "Categoría principal: {{category}}, {{amount}}, {{percent}} por ciento",
+    "closeListA11y": "Cerrar la lista de gastos",
+    "breakdownA11y": "Desglose de gastos: {{list}}",
+    "categoryRowA11y": "{{category}}: {{amount}}, {{percent}} por ciento. Toca para ver los gastos.",
+    "trendChartA11y": "Gráfico de gastos por mes",
+    "legendA11y": "Leyenda del gráfico: {{list}}",
+    "summaryA11y": "Resumen de gastos"
   },
   "privacy": {
     "title": "Privacidad",
@@ -1905,7 +1920,37 @@
     "defaultStopName": "Parada {{number}}",
     "moveToDayTitle": "Mover al día",
     "selectDayForStop": "Selecciona un día para esta parada",
-    "addDayA11y": "Añadir otro día al viaje"
+    "addDayA11y": "Añadir otro día al viaje",
+    "visibilityChipPublic": "Público",
+    "visibilityChipUnlisted": "Solo con enlace",
+    "visibilityChipPrivate": "Privado",
+    "surfacePaved": "Pavimentado",
+    "surfaceMixed": "Mixto",
+    "surfaceOffRoad": "Todoterreno",
+    "surfaceGravel": "Ripio",
+    "itinerary": "Itinerario",
+    "sampleItinerary": "Itinerario de ejemplo",
+    "gpxNeedsTwoStopsTitle": "Necesitas al menos dos paradas",
+    "gpxNeedsTwoStopsMessage": "Un archivo GPX necesita un inicio y un final. Agrega una parada más y vuelve a intentarlo.",
+    "waypointFallback": "Punto de ruta",
+    "organizerFallback": "Organizador",
+    "briefShareTitle": "{{title}} — resumen para la bolsa de depósito",
+    "saveTripA11y": "Guardar viaje",
+    "unsaveTripA11y": "Quitar de guardados",
+    "cloneThisTripHint": "Abre el planificador con las paradas de este viaje",
+    "exportGpxA11y": "Exportar viaje como GPX",
+    "dayUnit_one": "día",
+    "dayUnit_many": "días",
+    "dayUnit_other": "días",
+    "stopUnit_one": "parada",
+    "stopUnit_many": "paradas",
+    "stopUnit_other": "paradas",
+    "stopCount_one": "{{count}} parada",
+    "stopCount_many": "{{count}} paradas",
+    "stopCount_other": "{{count}} paradas",
+    "reviewCount_one": "{{count}} reseña",
+    "reviewCount_many": "{{count}} reseñas",
+    "reviewCount_other": "{{count}} reseñas"
   },
   "groupRide": {
     "titleLabel": "Título",
@@ -1969,7 +2014,27 @@
       "maxSpeed": "Vel. máxima",
       "ascent": "Ascenso",
       "descent": "Descenso"
-    }
+    },
+    "smartName": {
+      "morning": "Ruta del {{day}} por la mañana",
+      "afternoon": "Ruta del {{day}} por la tarde",
+      "evening": "Ruta del {{day}} al atardecer",
+      "night": "Ruta del {{day}} por la noche"
+    },
+    "discardTitle": "¿Descartar la ruta?",
+    "discardMessage": "Los datos de esta ruta se borrarán para siempre.",
+    "discardConfirm": "Descartar",
+    "rideNameA11y": "Nombre de la ruta",
+    "pbBadge": "RP",
+    "record": {
+      "longestDistance": "Ruta más larga",
+      "longestDuration": "Mayor duración",
+      "topSpeed": "Velocidad máxima",
+      "maxElevationGain": "Mayor desnivel",
+      "fallback": "Nuevo récord personal"
+    },
+    "saveRide": "Guardar ruta",
+    "savingRideA11y": "Guardando la ruta"
   },
   "heatmap": {
     "rides": "Rutas",
@@ -1987,12 +2052,15 @@
     "topRideLabel": "Mejor viaje:",
     "topRideValue": "— {{distance}}.",
     "shareRecap": "Compartir resumen",
-    "shareIntro_one": "In {{year}} I rode {{distance}} across {{count}} ride.",
-    "shareIntro_other": "In {{year}} I rode {{distance}} across {{count}} rides.",
-    "shareCountries_one": "{{count}} country: {{list}}",
-    "shareCountries_other": "{{count}} countries: {{list}}",
-    "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise"
+    "shareTopRide": "Ruta destacada: {{name}} — {{distance}}",
+    "shareVia": "— via MotoWise",
+    "shareYearRecapA11y": "Compartir resumen del año",
+    "shareIntro_one": "En {{year}} recorrí {{distance}} en {{count}} ruta.",
+    "shareIntro_many": "En {{year}} recorrí {{distance}} en {{count}} rutas.",
+    "shareIntro_other": "En {{year}} recorrí {{distance}} en {{count}} rutas.",
+    "shareCountries_one": "{{count}} país: {{list}}",
+    "shareCountries_many": "{{count}} países: {{list}}",
+    "shareCountries_other": "{{count}} países: {{list}}"
   },
   "discoverSearch": {
     "notAvailableTitle": "No disponible",
@@ -2102,7 +2170,9 @@
     "leanAngle": "Inclinación máx.",
     "leanTooltip": "El ángulo de inclinación se estima con los sensores de movimiento del móvil. No es un instrumento de precisión: el ángulo real puede variar según la posición del soporte y el estado de la carretera.",
     "private": "Privada",
-    "threeD": "3D"
+    "threeD": "3D",
+    "shareRideA11y": "Compartir ruta",
+    "flyoverA11y": "Recorrido en 3D"
   },
   "startRide": {
     "subtitle": "Elige una moto y arranca. Se registrarán GPS, velocidad y ruta hasta que toques finalizar.",
@@ -2415,7 +2485,7 @@
       "viewReceipt": "Ver foto del recibo",
       "closeReceipt": "Cerrar",
       "save": "Guardar",
-      "breakdownOverTotal": "Parts, labor and tax add up to {{sum}}, more than the {{total}} total. Correct one so they fit to save.",
+      "breakdownOverTotal": "Piezas, mano de obra e impuestos suman {{sum}}, más que el total de {{total}}. Corrige alguno para que cuadren y poder guardar.",
       "checkAmount": "Revisar importe",
       "checkCurrency": "Revisar moneda",
       "checkDate": "Revisar fecha",
@@ -2556,7 +2626,28 @@
     "needsAttention": "Requiere atención",
     "checksPass": "{{passed}}/{{total}} comprobaciones superadas",
     "a11y": "{{headline}}. Listo al {{percent}} por ciento. Toca para ver la lista.",
-    "shareBrief": "Compartir resumen para la bolsa de depósito"
+    "shareBrief": "Compartir resumen para la bolsa de depósito",
+    "items": {
+      "route": "La ruta tiene inicio y final",
+      "dates": "Fechas del viaje definidas",
+      "fuel": "La autonomía cubre el tramo más largo",
+      "witness": "Alguien conoce tu ruta",
+      "bike": "Moto principal elegida",
+      "names": "Las paradas tienen nombre"
+    },
+    "notes": {
+      "routeNeedsTwoStops": "Un viaje necesita al menos dos paradas para que la navegación pueda calcular la ruta.",
+      "datesInPast": "La fecha de inicio ya pasó: actualízala antes de salir.",
+      "datesMissing": "Agrega una fecha de inicio para que los participantes sepan cuándo presentarse.",
+      "fuelNoBike": "Agrega una moto principal para comprobar la autonomía frente a tu ruta.",
+      "fuelGapTooLong": "Tramo más largo {{gapKm}} km > {{rangeKm}} km de autonomía: agrega una parada para cargar combustible.",
+      "fuelGapOk": "Tramo más largo {{gapKm}} km / {{rangeKm}} km de autonomía",
+      "witnessMissing": "Invita a alguien, comparte el viaje o hazlo accesible con enlace para que alguien lo tenga.",
+      "bikeMissing": "Elige una moto principal en el Garaje para que su historial de servicio alimente las demás comprobaciones.",
+      "stopsUnnamed_one": "{{count}} parada todavía tiene el nombre predeterminado.",
+      "stopsUnnamed_many": "{{count}} paradas todavía tienen el nombre predeterminado.",
+      "stopsUnnamed_other": "{{count}} paradas todavía tienen el nombre predeterminado."
+    }
   },
   "tripSuggestions": {
     "title": "Sugerencias",

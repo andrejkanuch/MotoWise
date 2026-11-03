@@ -6,7 +6,7 @@ import { Pressable, Text, View } from 'react-native';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useEditorialTheme } from '../../theme/editorial';
 import { radius, type } from '../../theme/type';
-import { RECORD_LABELS } from '../../utils/ride-constants';
+import { recordLabel } from '../../utils/ride-constants';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
@@ -193,7 +193,7 @@ export const RideCard = memo(function RideCard({ ride, onPress, recordTypes }: R
                 }}
               >
                 <Trophy size={10} color={t.ink2} />
-                <Text style={[type.caption, { color: t.ink2 }]}>{RECORD_LABELS[rt] ?? rt}</Text>
+                <Text style={[type.caption, { color: t.ink2 }]}>{recordLabel(i18n, rt)}</Text>
               </View>
             ))}
           </View>

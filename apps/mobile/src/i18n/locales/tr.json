@@ -20,7 +20,9 @@
     "tryAgain": "Tekrar Dene",
     "all": "Tümü",
     "ride": "Sürüş",
-    "deleting": "Siliniyor..."
+    "deleting": "Siliniyor...",
+    "openInAppleMaps": "Apple Haritalar’da aç",
+    "copyCoordinates": "Koordinatları kopyala"
   },
   "auth": {
     "googlePlayServicesUnavailable": "Google ile giriş için bu cihazda bulunmayan Google Play Hizmetleri gerekir. Lütfen bunun yerine e-postayla devam edin.",
@@ -1514,7 +1516,20 @@
     "periodAllTime": "Tüm zamanlar",
     "totalSpentThisYear": "Bu yıl toplam harcama",
     "totalSpentLastYear": "Geçen yıl toplam harcama",
-    "totalSpentAllTime": "Tüm zamanların toplam harcaması"
+    "totalSpentAllTime": "Tüm zamanların toplam harcaması",
+    "retryLoadA11y": "Harcama verilerini yeniden yükle",
+    "periodSelectorA11y": "Harcama dönemi seçici",
+    "totalA11y": "Toplam: {{amount}}",
+    "yoyDownA11y": "Geçen yıla göre yüzde {{percent}} düşüş",
+    "yoyUpA11y": "Geçen yıla göre yüzde {{percent}} artış",
+    "topCategoryA11y": "En büyük kategori: {{category}}, {{amount}}",
+    "topCategoryPctA11y": "En büyük kategori: {{category}}, {{amount}}, yüzde {{percent}}",
+    "closeListA11y": "Harcama listesini kapat",
+    "breakdownA11y": "Harcama dağılımı: {{list}}",
+    "categoryRowA11y": "{{category}}: {{amount}}, yüzde {{percent}}. Harcamaları görmek için dokun.",
+    "trendChartA11y": "Aylık harcama grafiği",
+    "legendA11y": "Grafik açıklaması: {{list}}",
+    "summaryA11y": "Harcama özeti"
   },
   "privacy": {
     "title": "Gizlilik",
@@ -1884,7 +1899,33 @@
     "defaultStopName": "Durak {{number}}",
     "moveToDayTitle": "Güne Taşı",
     "selectDayForStop": "Bu durak için bir gün seçin",
-    "addDayA11y": "Geziye başka bir gün ekle"
+    "addDayA11y": "Geziye başka bir gün ekle",
+    "visibilityChipPublic": "Herkese açık",
+    "visibilityChipUnlisted": "Yalnızca bağlantıyla",
+    "visibilityChipPrivate": "Gizli",
+    "surfacePaved": "Asfalt",
+    "surfaceMixed": "Karışık",
+    "surfaceOffRoad": "Arazi",
+    "surfaceGravel": "Mıcır",
+    "itinerary": "Rota planı",
+    "sampleItinerary": "Örnek rota planı",
+    "gpxNeedsTwoStopsTitle": "En az iki durak gerekli",
+    "gpxNeedsTwoStopsMessage": "GPX dosyasının bir başlangıcı ve bir bitişi olmalı. Bir durak daha ekle ve tekrar dene.",
+    "waypointFallback": "Ara nokta",
+    "organizerFallback": "Organizatör",
+    "briefShareTitle": "{{title}} — depo çantası özeti",
+    "saveTripA11y": "Turu kaydet",
+    "unsaveTripA11y": "Kaydedilenlerden çıkar",
+    "cloneThisTripHint": "Planlayıcıyı bu turun ara noktalarıyla açar",
+    "exportGpxA11y": "Turu GPX olarak dışa aktar",
+    "dayUnit_one": "gün",
+    "dayUnit_other": "gün",
+    "stopUnit_one": "durak",
+    "stopUnit_other": "durak",
+    "stopCount_one": "{{count}} durak",
+    "stopCount_other": "{{count}} durak",
+    "reviewCount_one": "{{count}} değerlendirme",
+    "reviewCount_other": "{{count}} değerlendirme"
   },
   "groupRide": {
     "titleLabel": "Baslik",
@@ -1948,7 +1989,27 @@
       "maxSpeed": "Maks. hız",
       "ascent": "Tırmanış",
       "descent": "İniş"
-    }
+    },
+    "smartName": {
+      "morning": "{{day}} sabah sürüşü",
+      "afternoon": "{{day}} öğleden sonra sürüşü",
+      "evening": "{{day}} akşam sürüşü",
+      "night": "{{day}} gece sürüşü"
+    },
+    "discardTitle": "Sürüş silinsin mi?",
+    "discardMessage": "Bu sürüşün verileri kalıcı olarak silinecek.",
+    "discardConfirm": "Sil",
+    "rideNameA11y": "Sürüş adı",
+    "pbBadge": "KR",
+    "record": {
+      "longestDistance": "En uzun sürüş",
+      "longestDuration": "En uzun süre",
+      "topSpeed": "En yüksek hız",
+      "maxElevationGain": "En fazla tırmanış",
+      "fallback": "Yeni kişisel rekor"
+    },
+    "saveRide": "Sürüşü kaydet",
+    "savingRideA11y": "Sürüş kaydediliyor"
   },
   "heatmap": {
     "rides": "Sürüşler",
@@ -1966,12 +2027,13 @@
     "topRideLabel": "En iyi sürüş:",
     "topRideValue": "— {{distance}}.",
     "shareRecap": "Özeti paylaş",
-    "shareIntro_one": "In {{year}} I rode {{distance}} across {{count}} ride.",
-    "shareIntro_other": "In {{year}} I rode {{distance}} across {{count}} rides.",
-    "shareCountries_one": "{{count}} country: {{list}}",
-    "shareCountries_other": "{{count}} countries: {{list}}",
-    "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise"
+    "shareTopRide": "En iyi sürüş: {{name}} — {{distance}}",
+    "shareVia": "— via MotoWise",
+    "shareYearRecapA11y": "Yıl özetini paylaş",
+    "shareIntro_one": "{{year}} yılında {{count}} sürüşte {{distance}} yol yaptım.",
+    "shareIntro_other": "{{year}} yılında {{count}} sürüşte {{distance}} yol yaptım.",
+    "shareCountries_one": "{{count}} ülke: {{list}}",
+    "shareCountries_other": "{{count}} ülke: {{list}}"
   },
   "discoverSearch": {
     "notAvailableTitle": "Mevcut değil",
@@ -2080,7 +2142,9 @@
     "leanAngle": "Maks. yatış",
     "leanTooltip": "Yatış açısı telefonunun hareket sensörlerinden tahmin edilir. Hassas bir ölçüm aleti değildir — gerçek yatış açısı telefon tutucusunun konumuna ve yol koşullarına göre farklı olabilir.",
     "private": "Gizli",
-    "threeD": "3D"
+    "threeD": "3D",
+    "shareRideA11y": "Sürüşü paylaş",
+    "flyoverA11y": "3D uçuş"
   },
   "startRide": {
     "subtitle": "Bir motosiklet seç ve yola çık. Bitir'e dokunana kadar GPS, hız ve rota kaydedilecek.",
@@ -2392,7 +2456,7 @@
       "viewReceipt": "Fiş fotoğrafını gör",
       "closeReceipt": "Kapat",
       "save": "Kaydet",
-      "breakdownOverTotal": "Parts, labor and tax add up to {{sum}}, more than the {{total}} total. Correct one so they fit to save.",
+      "breakdownOverTotal": "Parça, işçilik ve vergi toplamı {{sum}}, yani {{total}} toplamından fazla. Kaydetmek için birini düzelt ki tutsun.",
       "checkAmount": "Tutarı kontrol et",
       "checkCurrency": "Para birimini kontrol et",
       "checkDate": "Tarihi kontrol et",
@@ -2533,7 +2597,27 @@
     "needsAttention": "Dikkat gerekiyor",
     "checksPass": "{{passed}}/{{total}} kontrol geçti",
     "a11y": "{{headline}}. Yüzde {{percent}} hazır. Kontrol listesini görmek için dokunun.",
-    "shareBrief": "Depo çantası özetini paylaş"
+    "shareBrief": "Depo çantası özetini paylaş",
+    "items": {
+      "route": "Rotanın başlangıcı ve bitişi var",
+      "dates": "Tur tarihleri belirlendi",
+      "fuel": "Menzil en uzun etabı karşılıyor",
+      "witness": "Rotanı bilen biri var",
+      "bike": "Ana motosiklet seçildi",
+      "names": "Durakların adı var"
+    },
+    "notes": {
+      "routeNeedsTwoStops": "Navigasyonun rota hesaplayabilmesi için turda en az iki durak olmalı.",
+      "datesInPast": "Başlangıç tarihi geçmişte kaldı — sürüşten önce güncelle.",
+      "datesMissing": "Katılımcılar ne zaman geleceğini bilsin diye bir başlangıç tarihi ekle.",
+      "fuelNoBike": "Menzili rotanla karşılaştırabilmemiz için bir ana motosiklet ekle.",
+      "fuelGapTooLong": "En uzun etap {{gapKm}} km > {{rangeKm}} km menzil — bir yakıt durağı ekle.",
+      "fuelGapOk": "En uzun etap {{gapKm}} km / {{rangeKm}} km menzil",
+      "witnessMissing": "Birini davet et, turu paylaş ya da bağlantıyla erişilebilir yap ki birinin elinde bağlantı olsun.",
+      "bikeMissing": "Garajda bir ana motosiklet seç ki bakım geçmişi diğer kontrollerde kullanılsın.",
+      "stopsUnnamed_one": "{{count}} durak hâlâ varsayılan adı kullanıyor.",
+      "stopsUnnamed_other": "{{count}} durak hâlâ varsayılan adı kullanıyor."
+    }
   },
   "tripSuggestions": {
     "title": "Öneriler",
