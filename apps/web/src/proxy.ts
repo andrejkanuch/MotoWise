@@ -4,6 +4,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import createIntlMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
 import { REGION_COOKIE, regionCookieUpdate } from './lib/consent-region';
+import { HERO_ASSIGN_SCRIPT_CSP_HASH } from './lib/hero-experiment';
 import { resolveUuidToSlug } from './lib/redirect/uuid-to-slug';
 import { THEME_INIT_SCRIPT_CSP_HASH } from './lib/theme-init-script';
 
@@ -123,12 +124,12 @@ function buildCsp(scriptInlineToken: string): string {
   ].join('; ');
 }
 
-// The root layout's inline theme script carries no nonce (it is raw inline
+// The root layout's inline theme and hero A/B scripts carry no nonce (it is raw inline
 // HTML, not a Next-managed script), so the strict CSP allows it by hash. Only
 // here: next to 'unsafe-inline' a hash would make browsers ignore
 // 'unsafe-inline' and break every other inline script on nonce-free routes.
 function buildCspHeader(nonce: string): string {
-  return buildCsp(`'nonce-${nonce}' ${THEME_INIT_SCRIPT_CSP_HASH}`);
+  return buildCsp(`'nonce-${nonce}' ${THEME_INIT_SCRIPT_CSP_HASH} ${HERO_ASSIGN_SCRIPT_CSP_HASH}`);
 }
 
 // Nonce-free CSP (the DEFAULT). A nonce-based CSP only works on dynamically

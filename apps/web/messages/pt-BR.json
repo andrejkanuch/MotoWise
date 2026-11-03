@@ -46,7 +46,20 @@
     "plateCaption": "Em dia · revisão em 2,446 km",
     "plateIdentity": "Street Glide Special · 2022",
     "plateFigure": "37,787",
-    "plateUnit": "km"
+    "plateUnit": "km",
+    "costTitleLine1": "Saiba o custo",
+    "costTitleLine2": "real da sua moto.",
+    "costDescription": "Combustível, manutenção, peças e equipamento somam rápido. Registre cada gasto e veja quanto cada quilômetro custa de verdade. Grátis, para cada moto da sua garagem.",
+    "costPlateFigure": "0,45",
+    "costPlateUnit": "R$/km",
+    "costPlateCaption": "Custo real por km · combustível, manutenção, peças",
+    "serviceTitleLine1": "Nunca perca",
+    "serviceTitleLine2": "uma revisão.",
+    "serviceDescription": "Lembretes antes da hora do óleo, da corrente e dos pneus, e todo o histórico de manutenção de cada moto. Grátis, e feito por um motociclista.",
+    "servicePlateFigure": "540",
+    "servicePlateUnit": "km",
+    "servicePlateCaption": "Até a troca de óleo · depois a corrente",
+    "servicePlateState": "Em breve"
   },
   "Features": {
     "trip": {

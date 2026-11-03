@@ -46,7 +46,20 @@
     "plateCaption": "良好 · 定期点検まであと2,446 km",
     "plateIdentity": "Street Glide Special · 2022",
     "plateFigure": "37,787",
-    "plateUnit": "km"
+    "plateUnit": "km",
+    "costTitleLine1": "バイクの本当の",
+    "costTitleLine2": "コストを知る。",
+    "costDescription": "燃料、整備、パーツ、装備。出費はすぐにかさみます。すべての出費を記録して、1kmあたりの本当のコストを確認。ガレージのすべてのバイクに、無料で。",
+    "costPlateFigure": "22",
+    "costPlateUnit": "円/km",
+    "costPlateCaption": "1kmあたりの実コスト · 燃料、整備、パーツ",
+    "serviceTitleLine1": "メンテナンスを、",
+    "serviceTitleLine2": "もう忘れない。",
+    "serviceDescription": "オイル、チェーン、タイヤの交換時期の前にお知らせ。すべてのバイクの整備履歴もひとまとめに。無料で、ライダーが作っています。",
+    "servicePlateFigure": "540",
+    "servicePlateUnit": "km",
+    "servicePlateCaption": "オイル交換まで · 次はチェーン",
+    "servicePlateState": "まもなく"
   },
   "Features": {
     "trip": {

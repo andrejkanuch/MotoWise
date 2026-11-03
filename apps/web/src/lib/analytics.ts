@@ -1,5 +1,6 @@
 import type { CampaignParams } from '@/lib/campaign';
 import { CtaPageType, CtaPlacement, type StoreCtaContext, StorePlatform } from '@/lib/cta-taxonomy';
+import { HERO_VARIANT_PROPERTY, type HeroVariant } from '@/lib/hero-experiment';
 import { withPostHog } from '@/lib/posthog-client';
 
 export type { StoreCtaContext };
@@ -37,6 +38,8 @@ export const WebEvent = {
   // open_in_app_clicked). In PostHog, app_store_click is aliased to this so
   // historical clicks still roll up. See docs/SEO-Conversion-Plan-2026-07-15.md.
   STORE_CTA_CLICK: 'store_cta_click',
+  // Home hero A/B test exposure (lib/hero-experiment.ts).
+  HERO_VIEWED: 'hero_viewed',
 
   // Pricing / Checkout
   CHECKOUT_INITIATED: 'checkout_initiated',
@@ -147,6 +150,7 @@ type WebEventProperties = {
   [WebEvent.BUILDER_SAVED]: { waypointCount: number; distanceKm: number };
   [WebEvent.BUILDER_SHARED]: { method: 'link' | 'social'; tripSlug: string };
   [WebEvent.AFFILIATE_CLICK]: { provider: 'booking' | 'eaglerider' | 'revzilla'; tripSlug: string };
+  [WebEvent.HERO_VIEWED]: { [HERO_VARIANT_PROPERTY]: HeroVariant };
 };
 
 /** Events that carry typed properties. */
@@ -231,6 +235,15 @@ function pingCtaCounter(payload: {
   } catch {
     // best-effort; attribution is never worth surfacing an error to the visitor
   }
+}
+
+/**
+ * Home hero A/B exposure: the variant rides on every later event as a super
+ * property, so `store_cta_click` (and anything after it) splits by variant.
+ */
+export function trackHeroVariant(variant: HeroVariant) {
+  withPostHog((posthog) => posthog.register({ [HERO_VARIANT_PROPERTY]: variant }));
+  trackEvent(WebEvent.HERO_VIEWED, { [HERO_VARIANT_PROPERTY]: variant });
 }
 
 export function trackBlogRead(slug: string) {

@@ -2,7 +2,9 @@
 
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
+import { trackHeroVariant } from '@/lib/analytics';
 import { CtaPageType, CtaPlacement, StorePlatform } from '@/lib/cta-taxonomy';
+import { HERO_VARIANT, type HeroVariant, readHeroVariant } from '@/lib/hero-experiment';
 import { detectPlatform, type Platform } from '@/lib/store-links';
 import { BikePlate } from './bike-plate';
 import { storeAnchorProps } from './store-buttons';
@@ -68,6 +70,45 @@ const STORE_ORDER: Record<Platform, readonly [keyof typeof STORES, keyof typeof 
 };
 
 /**
+ * The copy each A/B variant swaps (lib/hero-experiment.ts): headline,
+ * description and the Bike Plate's reading. Photo, CTAs and trust line stay.
+ */
+const HERO_COPY = {
+  [HERO_VARIANT.Control]: {
+    titleLine1: 'titleLine1',
+    titleLine2: 'titleLine2',
+    description: 'description',
+    plateFigure: 'plateFigure',
+    plateUnit: 'plateUnit',
+    plateCaption: 'plateCaption',
+    plateState: 'ready',
+    plateStateLabel: null,
+  },
+  [HERO_VARIANT.Cost]: {
+    titleLine1: 'costTitleLine1',
+    titleLine2: 'costTitleLine2',
+    description: 'costDescription',
+    plateFigure: 'costPlateFigure',
+    plateUnit: 'costPlateUnit',
+    plateCaption: 'costPlateCaption',
+    plateState: 'ready',
+    plateStateLabel: null,
+  },
+  [HERO_VARIANT.Service]: {
+    titleLine1: 'serviceTitleLine1',
+    titleLine2: 'serviceTitleLine2',
+    description: 'serviceDescription',
+    plateFigure: 'servicePlateFigure',
+    plateUnit: 'servicePlateUnit',
+    plateCaption: 'servicePlateCaption',
+    plateState: 'due',
+    plateStateLabel: 'servicePlateState',
+  },
+} as const satisfies Record<HeroVariant, unknown>;
+
+const HERO_VARIANT_ORDER = Object.values(HERO_VARIANT);
+
+/**
  * Preloads for the LCP photo live here, not in the marketing layout, so only
  * the home page fetches it. React 19 hoists these `<link>`s into `<head>`.
  */
@@ -108,6 +149,7 @@ export function Hero() {
   const [platform, setPlatform] = useState<Platform>('unknown');
   useEffect(() => {
     setPlatform(detectPlatform());
+    trackHeroVariant(readHeroVariant());
   }, []);
 
   const heroCtx = { pageType: CtaPageType.Home, placement: CtaPlacement.Hero };
@@ -168,26 +210,36 @@ export function Hero() {
 
       {/* Main content: the container and its gutters live in the kit (.hero-content) */}
       <div className="hero-content">
-        <h1 className="hero-headline">
-          <span style={{ display: 'block' }}>{t('titleLine1')}</span>
-          <span style={{ display: 'block' }}>{t('titleLine2')}</span>
-        </h1>
+        {/* A/B copy: the root shell's inline script picks the variant before paint; the kit
+            (.hero-variant) shows only the one matching html[data-hero]. */}
+        {HERO_VARIANT_ORDER.map((variant) => {
+          const copy = HERO_COPY[variant];
+          return (
+            <div key={variant} className="hero-variant" data-hero-variant={variant}>
+              <h1 className="hero-headline">
+                <span style={{ display: 'block' }}>{t(copy.titleLine1)}</span>
+                <span style={{ display: 'block' }}>{t(copy.titleLine2)}</span>
+              </h1>
 
-        <p className="hero-desc">{t('description')}</p>
+              <p className="hero-desc">{t(copy.description)}</p>
 
-        {/* The shared object: a real Bike Plate, exactly as the app draws it */}
-        <div className="hero-plate-slot">
-          <BikePlate
-            size="hero"
-            settle="late"
-            figure={t('plateFigure')}
-            unit={t('plateUnit')}
-            caption={t('plateCaption')}
-            racingNumber="27"
-            identity={t('plateIdentity')}
-            state="ready"
-          />
-        </div>
+              {/* The shared object: a real Bike Plate, exactly as the app draws it */}
+              <div className="hero-plate-slot">
+                <BikePlate
+                  size="hero"
+                  settle="late"
+                  figure={t(copy.plateFigure)}
+                  unit={t(copy.plateUnit)}
+                  caption={t(copy.plateCaption)}
+                  racingNumber="27"
+                  identity={t('plateIdentity')}
+                  state={copy.plateState}
+                  stateLabel={copy.plateStateLabel ? t(copy.plateStateLabel) : undefined}
+                />
+              </div>
+            </div>
+          );
+        })}
 
         <div className="hero-cta-row">
           <a {...storeAnchorProps(primary.platform, heroCtx)} className="mv-btn mv-btn-primary">

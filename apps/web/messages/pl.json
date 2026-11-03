@@ -46,7 +46,20 @@
     "plateCaption": "Gotowy · przegląd za 2,446 km",
     "plateIdentity": "Street Glide Special · 2022",
     "plateFigure": "37,787",
-    "plateUnit": "km"
+    "plateUnit": "km",
+    "costTitleLine1": "Poznaj swój",
+    "costTitleLine2": "prawdziwy koszt.",
+    "costDescription": "Paliwo, serwis, części i sprzęt szybko się sumują. Zapisuj każdy wydatek i zobacz, ile naprawdę kosztuje cię każdy kilometr. Za darmo, dla każdego motocykla w twoim garażu.",
+    "costPlateFigure": "0,60",
+    "costPlateUnit": "zł/km",
+    "costPlateCaption": "Realny koszt na km · paliwo, serwis, części",
+    "serviceTitleLine1": "Nie przegap",
+    "serviceTitleLine2": "żadnego serwisu.",
+    "serviceDescription": "Przypomnienia, zanim przyjdzie pora na olej, łańcuch i opony, oraz pełna historia serwisowa każdego motocykla. Za darmo, stworzony przez motocyklistę.",
+    "servicePlateFigure": "540",
+    "servicePlateUnit": "km",
+    "servicePlateCaption": "Do wymiany oleju · potem łańcuch",
+    "servicePlateState": "Wkrótce"
   },
   "Features": {
     "trip": {

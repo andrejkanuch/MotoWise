@@ -46,7 +46,20 @@
     "plateCaption": "In regola · tagliando tra 2,446 km",
     "plateIdentity": "Street Glide Special · 2022",
     "plateFigure": "37,787",
-    "plateUnit": "km"
+    "plateUnit": "km",
+    "costTitleLine1": "Scopri il tuo",
+    "costTitleLine2": "costo reale.",
+    "costDescription": "Benzina, manutenzione, ricambi e abbigliamento si sommano in fretta. Registra ogni spesa e scopri quanto ti costa davvero ogni chilometro. Gratis, per ogni moto del tuo garage.",
+    "costPlateFigure": "0,14",
+    "costPlateUnit": "€/km",
+    "costPlateCaption": "Costo reale al km · benzina, manutenzione, ricambi",
+    "serviceTitleLine1": "Mai più un",
+    "serviceTitleLine2": "tagliando saltato.",
+    "serviceDescription": "Promemoria prima della scadenza di olio, catena e gomme, e tutto lo storico della manutenzione di ogni moto. Gratis, e creato da un motociclista.",
+    "servicePlateFigure": "540",
+    "servicePlateUnit": "km",
+    "servicePlateCaption": "Al cambio olio · poi la catena",
+    "servicePlateState": "In scadenza"
   },
   "Features": {
     "trip": {

@@ -46,7 +46,20 @@
     "plateCaption": "Bereit · Inspektion in 2.446 km",
     "plateIdentity": "Street Glide Special · 2022",
     "plateFigure": "37.787",
-    "plateUnit": "km"
+    "plateUnit": "km",
+    "costTitleLine1": "Kenn deine",
+    "costTitleLine2": "echten Kosten.",
+    "costDescription": "Sprit, Service, Teile und Ausrüstung summieren sich schnell. Erfasse jede Ausgabe und sieh, was dich jeder Kilometer wirklich kostet. Kostenlos, für jedes Motorrad in deiner Garage.",
+    "costPlateFigure": "0,14",
+    "costPlateUnit": "€/km",
+    "costPlateCaption": "Echte Kosten pro km · Sprit, Service, Teile",
+    "serviceTitleLine1": "Nie wieder",
+    "serviceTitleLine2": "Service verpassen.",
+    "serviceDescription": "Erinnerungen, bevor Öl, Kette und Reifen fällig sind, und die ganze Servicehistorie jedes Motorrads. Kostenlos und von einem Fahrer gebaut.",
+    "servicePlateFigure": "540",
+    "servicePlateUnit": "km",
+    "servicePlateCaption": "Bis zum Ölwechsel · danach die Kette",
+    "servicePlateState": "Bald fällig"
   },
   "Features": {
     "trip": {
