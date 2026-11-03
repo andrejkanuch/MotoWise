@@ -22,7 +22,8 @@
     "ride": "Viagem",
     "deleting": "Excluindo...",
     "openInAppleMaps": "Abrir no Apple Maps",
-    "copyCoordinates": "Copiar coordenadas"
+    "copyCoordinates": "Copiar coordenadas",
+    "changeMapStyleA11y": "Mudar estilo do mapa"
   },
   "auth": {
     "googlePlayServicesUnavailable": "O login com o Google precisa do Google Play Services, que este aparelho não tem. Continue com o e-mail.",
@@ -2034,7 +2035,9 @@
       "fallback": "Novo recorde pessoal"
     },
     "saveRide": "Salvar pilotagem",
-    "savingRideA11y": "Salvando a pilotagem"
+    "savingRideA11y": "Salvando a pilotagem",
+    "pbDelta": "+{{pct}}% sobre seu recorde",
+    "shareMessage": "Acabei de fazer um rolê de {{distance}} em {{duration}} com o MotoVault!"
   },
   "heatmap": {
     "rides": "Passeios",

@@ -57,7 +57,7 @@ import {
   getDefaultMapStyle,
   MAP_STYLES,
 } from '../../utils/map-styles';
-import { recordLabel } from '../../utils/ride-constants';
+import { pbDeltaSuffix, recordLabel, rideShareMessage } from '../../utils/ride-constants';
 import {
   formatDistance,
   formatDuration,
@@ -258,7 +258,7 @@ export default function RideSummaryScreen() {
     triggerImpact();
     try {
       await Share.share({
-        message: `Just completed a ${formatDistance(distanceM, system)} ride in ${formatDuration(durationS)} with MotoVault!`,
+        message: rideShareMessage(t, formatDistance(distanceM, system), formatDuration(durationS)),
       });
       trackEvent(AnalyticsEvent.RIDE_SHARED, {
         distance_m: distanceM,
@@ -267,7 +267,7 @@ export default function RideSummaryScreen() {
     } catch {
       // User cancelled
     }
-  }, [distanceM, durationS, system]);
+  }, [distanceM, durationS, system, t]);
 
   // `handleSave` never awaits, so `isSaving` cannot disable the button before a
   // second tap lands; a ref guards it synchronously. Reset only on failure: on
@@ -518,7 +518,7 @@ export default function RideSummaryScreen() {
           <Pressable
             onPress={handleCycleMapStyle}
             accessibilityRole="button"
-            accessibilityLabel="Change map style"
+            accessibilityLabel={t('common.changeMapStyleA11y')}
             style={{
               width: 40,
               height: 40,
@@ -711,7 +711,7 @@ export default function RideSummaryScreen() {
                     ]}
                   >
                     {formatDistance(distanceM, system)}
-                    {pbDelta != null && pbDelta > 0 ? ` · +${pbDelta}% on previous best` : ''}
+                    {pbDeltaSuffix(t, pbDelta)}
                   </Text>
                 </View>
 

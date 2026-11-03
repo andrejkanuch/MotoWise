@@ -22,7 +22,8 @@
     "ride": "Jazda",
     "deleting": "Odstraňuje sa...",
     "openInAppleMaps": "Otvoriť v Apple Mapách",
-    "copyCoordinates": "Kopírovať súradnice"
+    "copyCoordinates": "Kopírovať súradnice",
+    "changeMapStyleA11y": "Zmeniť štýl mapy"
   },
   "auth": {
     "googlePlayServicesUnavailable": "Prihlásenie cez Google vyžaduje služby Google Play, ktoré toto zariadenie nemá. Pokračujte radšej e-mailom.",
@@ -2059,7 +2060,9 @@
       "fallback": "Nový osobný rekord"
     },
     "saveRide": "Uložiť jazdu",
-    "savingRideA11y": "Ukladá sa jazda"
+    "savingRideA11y": "Ukladá sa jazda",
+    "pbDelta": "+{{pct}} % oproti rekordu",
+    "shareMessage": "Práve som s MotoVault prešiel {{distance}} za {{duration}}!"
   },
   "heatmap": {
     "rides": "Jazdy",

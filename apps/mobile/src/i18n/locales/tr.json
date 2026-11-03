@@ -22,7 +22,8 @@
     "ride": "Sürüş",
     "deleting": "Siliniyor...",
     "openInAppleMaps": "Apple Haritalar’da aç",
-    "copyCoordinates": "Koordinatları kopyala"
+    "copyCoordinates": "Koordinatları kopyala",
+    "changeMapStyleA11y": "Harita stilini değiştir"
   },
   "auth": {
     "googlePlayServicesUnavailable": "Google ile giriş için bu cihazda bulunmayan Google Play Hizmetleri gerekir. Lütfen bunun yerine e-postayla devam edin.",
@@ -2009,7 +2010,9 @@
       "fallback": "Yeni kişisel rekor"
     },
     "saveRide": "Sürüşü kaydet",
-    "savingRideA11y": "Sürüş kaydediliyor"
+    "savingRideA11y": "Sürüş kaydediliyor",
+    "pbDelta": "önceki rekordan +%{{pct}}",
+    "shareMessage": "MotoVault ile {{duration}} sürede {{distance}} sürüşü tamamladım!"
   },
   "heatmap": {
     "rides": "Sürüşler",

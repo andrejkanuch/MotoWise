@@ -22,7 +22,8 @@
     "ride": "Ride",
     "deleting": "Deleting...",
     "openInAppleMaps": "Open in Apple Maps",
-    "copyCoordinates": "Copy coordinates"
+    "copyCoordinates": "Copy coordinates",
+    "changeMapStyleA11y": "Change map style"
   },
   "auth": {
     "googlePlayServicesUnavailable": "Google sign-in needs Google Play services, which this device doesn't have. Please continue with email instead.",
@@ -2114,7 +2115,9 @@
       "fallback": "New personal best"
     },
     "saveRide": "Save ride",
-    "savingRideA11y": "Saving ride"
+    "savingRideA11y": "Saving ride",
+    "pbDelta": "+{{pct}}% on previous best",
+    "shareMessage": "Just completed a {{distance}} ride in {{duration}} with MotoVault!"
   },
   "heatmap": {
     "rides": "Rides",

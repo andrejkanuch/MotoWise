@@ -22,7 +22,8 @@
     "ride": "Fahrt",
     "deleting": "Wird gelöscht...",
     "openInAppleMaps": "In Apple Karten öffnen",
-    "copyCoordinates": "Koordinaten kopieren"
+    "copyCoordinates": "Koordinaten kopieren",
+    "changeMapStyleA11y": "Kartenstil ändern"
   },
   "auth": {
     "googlePlayServicesUnavailable": "Die Google-Anmeldung benötigt Google Play-Dienste, die auf diesem Gerät nicht verfügbar sind. Bitte fahre stattdessen mit E-Mail fort.",
@@ -2009,7 +2010,9 @@
       "fallback": "Neue persönliche Bestleistung"
     },
     "saveRide": "Fahrt speichern",
-    "savingRideA11y": "Fahrt wird gespeichert"
+    "savingRideA11y": "Fahrt wird gespeichert",
+    "pbDelta": "+{{pct}} % gegenüber deiner Bestmarke",
+    "shareMessage": "Gerade eine Fahrt über {{distance}} in {{duration}} mit MotoVault beendet!"
   },
   "heatmap": {
     "rides": "Fahrten",

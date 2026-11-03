@@ -9,12 +9,18 @@ const DIFFICULTY_LABEL_KEY = {
   expert: 'trips.difficultyExpert',
 } as const;
 
+/** Keyed by the stored value: the DB CHECK allows 'paved' | 'mixed' | 'off-road' | 'unknown'
+ *  (00117). 'off_road' is the GraphQL-enum spelling, kept as an alias; 'gravel' is legacy. */
 const SURFACE_LABEL_KEY = {
   paved: 'trips.surfacePaved',
   mixed: 'trips.surfaceMixed',
+  'off-road': 'trips.surfaceOffRoad',
   off_road: 'trips.surfaceOffRoad',
   gravel: 'trips.surfaceGravel',
 } as const;
+
+/** Stored when the surface was never classified (ride-created trips default to it). */
+const SURFACE_UNKNOWN = 'unknown';
 
 const VISIBILITY_CHIP_KEY = {
   public: 'trips.visibilityChipPublic',
@@ -39,8 +45,13 @@ export function tripDifficultyLabel(t: TFunction, difficulty: string | null | un
   );
 }
 
-/** A route surface in the app language; an unknown surface is shown as stored. */
-export function tripSurfaceLabel(t: TFunction, surface: string): string {
+/**
+ * A route surface in the app language, or null when there is nothing to show: an unclassified
+ * ('unknown') surface hides the chip rather than printing the raw value. A value this build does
+ * not know is shown as stored.
+ */
+export function tripSurfaceLabel(t: TFunction, surface: string): string | null {
+  if (surface === SURFACE_UNKNOWN) return null;
   return isKeyOf(SURFACE_LABEL_KEY, surface) ? t(SURFACE_LABEL_KEY[surface]) : surface;
 }
 

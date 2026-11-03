@@ -957,7 +957,7 @@ export default function TripDetailScreen() {
                     marginBottom: 14,
                   }}
                 >
-                  {trip.surfaceType && (
+                  {trip.surfaceType && tripSurfaceLabel(i18n, trip.surfaceType) && (
                     <View
                       style={{
                         paddingHorizontal: 10,

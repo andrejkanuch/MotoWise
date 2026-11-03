@@ -22,7 +22,8 @@
     "ride": "Berkendara",
     "deleting": "Menghapus...",
     "openInAppleMaps": "Buka di Apple Maps",
-    "copyCoordinates": "Salin koordinat"
+    "copyCoordinates": "Salin koordinat",
+    "changeMapStyleA11y": "Ubah gaya peta"
   },
   "auth": {
     "googlePlayServicesUnavailable": "Masuk dengan Google memerlukan layanan Google Play, yang tidak tersedia di perangkat ini. Silakan lanjutkan dengan email.",
@@ -2009,7 +2010,9 @@
       "fallback": "Rekor pribadi baru"
     },
     "saveRide": "Simpan perjalanan",
-    "savingRideA11y": "Menyimpan perjalanan"
+    "savingRideA11y": "Menyimpan perjalanan",
+    "pbDelta": "+{{pct}}% dari rekor sebelumnya",
+    "shareMessage": "Baru saja menyelesaikan perjalanan {{distance}} dalam {{duration}} dengan MotoVault!"
   },
   "heatmap": {
     "rides": "Perjalanan",

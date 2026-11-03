@@ -22,7 +22,8 @@
     "ride": "Viaggio",
     "deleting": "Eliminazione...",
     "openInAppleMaps": "Apri in Mappe",
-    "copyCoordinates": "Copia coordinate"
+    "copyCoordinates": "Copia coordinate",
+    "changeMapStyleA11y": "Cambia stile mappa"
   },
   "auth": {
     "googlePlayServicesUnavailable": "L'accesso con Google richiede i servizi Google Play, non disponibili su questo dispositivo. Continua invece con l'email.",
@@ -2034,7 +2035,9 @@
       "fallback": "Nuovo record personale"
     },
     "saveRide": "Salva giro",
-    "savingRideA11y": "Salvataggio del giro"
+    "savingRideA11y": "Salvataggio del giro",
+    "pbDelta": "+{{pct}}% rispetto al tuo record",
+    "shareMessage": "Ho appena completato un giro di {{distance}} in {{duration}} con MotoVault!"
   },
   "heatmap": {
     "rides": "Uscite",

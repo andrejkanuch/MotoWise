@@ -22,7 +22,8 @@
     "ride": "Przejazd",
     "deleting": "Usuwanie...",
     "openInAppleMaps": "Otwórz w Mapach Apple",
-    "copyCoordinates": "Kopiuj współrzędne"
+    "copyCoordinates": "Kopiuj współrzędne",
+    "changeMapStyleA11y": "Zmień styl mapy"
   },
   "auth": {
     "googlePlayServicesUnavailable": "Logowanie przez Google wymaga usług Google Play, których to urządzenie nie ma. Kontynuuj za pomocą adresu e-mail.",
@@ -2059,7 +2060,9 @@
       "fallback": "Nowy rekord życiowy"
     },
     "saveRide": "Zapisz przejazd",
-    "savingRideA11y": "Zapisywanie przejazdu"
+    "savingRideA11y": "Zapisywanie przejazdu",
+    "pbDelta": "+{{pct}}% względem rekordu",
+    "shareMessage": "Właśnie przejechałem {{distance}} w {{duration}} z MotoVault!"
   },
   "heatmap": {
     "rides": "Jazdy",

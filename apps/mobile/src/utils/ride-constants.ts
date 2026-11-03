@@ -35,3 +35,13 @@ export const RIDE_FLYOVER_WAYPOINT_POINTS = 400;
  *  20 x 50 covers the most recent ~1000 rides; beyond that a footer hint shows. */
 export const HEATMAP_PAGE_SIZE = 50;
 export const HEATMAP_MAX_PAGES = 20;
+
+/** " · +12% on previous best" after the PB distance, or nothing when it is not an improvement. */
+export function pbDeltaSuffix(t: TFunction, pbDelta: number | null | undefined): string {
+  return pbDelta != null && pbDelta > 0 ? ` · ${t('rideSummary.pbDelta', { pct: pbDelta })}` : '';
+}
+
+/** The ride share-sheet text, e.g. "Just completed a 151 km ride in 3h 9m with MotoVault!". */
+export function rideShareMessage(t: TFunction, distance: string, duration: string): string {
+  return t('rideSummary.shareMessage', { distance, duration });
+}

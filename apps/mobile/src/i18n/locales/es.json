@@ -22,7 +22,8 @@
     "ride": "Ruta",
     "deleting": "Eliminando...",
     "openInAppleMaps": "Abrir en Apple Maps",
-    "copyCoordinates": "Copiar coordenadas"
+    "copyCoordinates": "Copiar coordenadas",
+    "changeMapStyleA11y": "Cambiar estilo del mapa"
   },
   "auth": {
     "googlePlayServicesUnavailable": "El inicio de sesión con Google necesita los servicios de Google Play, que este dispositivo no tiene. Continúa con tu correo electrónico.",
@@ -2034,7 +2035,9 @@
       "fallback": "Nuevo récord personal"
     },
     "saveRide": "Guardar ruta",
-    "savingRideA11y": "Guardando la ruta"
+    "savingRideA11y": "Guardando la ruta",
+    "pbDelta": "+{{pct}}% sobre tu mejor marca",
+    "shareMessage": "¡Acabo de completar una rodada de {{distance}} en {{duration}} con MotoVault!"
   },
   "heatmap": {
     "rides": "Rutas",

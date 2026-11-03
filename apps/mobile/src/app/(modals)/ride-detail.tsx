@@ -597,7 +597,7 @@ export default function RideDetailScreen() {
                 setShowMapPicker(true);
               }}
               accessibilityRole="button"
-              accessibilityLabel="Change map style"
+              accessibilityLabel={t('common.changeMapStyleA11y')}
               style={{ ...fabStyle, ...fabShadow }}
             >
               <Layers size={18} color={theme.ink} />

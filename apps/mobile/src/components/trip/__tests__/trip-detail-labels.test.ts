@@ -32,7 +32,9 @@ describe('trip detail labels', () => {
 
     expect(tripDifficultyLabel(t, 'challenging')).toBe(es.trips.difficultyChallenging);
     expect(tripDifficultyLabel(t, 'CHALLENGING')).toBe(es.trips.difficultyChallenging);
+    expect(tripSurfaceLabel(t, 'off-road')).toBe(es.trips.surfaceOffRoad);
     expect(tripSurfaceLabel(t, 'off_road')).toBe(es.trips.surfaceOffRoad);
+    expect(tripSurfaceLabel(t, 'unknown')).toBeNull();
     expect(tripVisibilityLabel(t, 'private')).toBe(es.trips.visibilityChipPrivate);
     expect(tripPeriodLabel(t, 'morning')).toBe(es.tripSuggestions.period.morning);
   });
