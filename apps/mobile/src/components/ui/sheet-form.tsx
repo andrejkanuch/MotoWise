@@ -1,5 +1,6 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { MaintenancePriority } from '@motovault/graphql';
+import { MONEY_AMOUNT_MAX } from '@motovault/types';
 import { Calendar, type LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -585,8 +586,8 @@ export function PriorityPicker({
 /** The amount reads as the sheet's one big figure (condensed, tabular). */
 const AMOUNT_FIGURE: TextStyle = { ...type.figure, fontSize: 40, lineHeight: 44 };
 const AMOUNT_ROW_HEIGHT = 76;
-/** Largest amount an expense accepts. */
-export const MAX_EXPENSE_AMOUNT = 99999.99;
+/** Largest amount an expense accepts (mirrors the SQL CHECK, 00194). */
+export const MAX_EXPENSE_AMOUNT = MONEY_AMOUNT_MAX;
 
 interface AmountFieldProps {
   label: string;
@@ -641,7 +642,7 @@ export function AmountField({ label, value, onChange, autoFocus, testID }: Amoun
             { color: theme.danger, marginTop: space.xs, marginLeft: space.xxs },
           ]}
         >
-          {t('expenses.amountTooHigh', { defaultValue: 'Maximum amount is 99,999.99' })}
+          {t('expenses.amountTooHigh', { defaultValue: 'Maximum amount is 99,999,999.99' })}
         </Text>
       ) : null}
     </View>

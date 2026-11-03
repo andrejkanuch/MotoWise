@@ -1463,7 +1463,7 @@
     "confirmDeletePhoto": "Apakah Anda yakin ingin menghapus foto ini?",
     "deleteTitle": "Hapus Pengeluaran",
     "deleteMessage": "Apakah Anda yakin ingin menghapus pengeluaran ini?",
-    "amountTooHigh": "Jumlah maksimum adalah 99.999,99",
+    "amountTooHigh": "Jumlah maksimum adalah 99.999.999,99",
     "receipts": "Struk",
     "dashboard": "Ringkasan Pengeluaran",
     "seeAll_one": "Lihat semua ({{count}})",

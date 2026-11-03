@@ -1484,7 +1484,7 @@
     "confirmDeletePhoto": "Sei sicuro di voler eliminare questa foto?",
     "deleteTitle": "Elimina spesa",
     "deleteMessage": "Sei sicuro di voler eliminare questa spesa?",
-    "amountTooHigh": "L'importo massimo è 99.999,99",
+    "amountTooHigh": "L'importo massimo è 99.999.999,99",
     "receipts": "Scontrini",
     "dashboard": "Panoramica spese",
     "seeAll_one": "Vedi tutto ({{count}})",

@@ -6,6 +6,7 @@ import { Text, View } from 'react-native';
 import { useCurrency } from '@/hooks/use-currency';
 import type { DocumentSignal } from '@/lib/bike-hub/documents';
 import { formatMonthYear } from '@/lib/bike-hub/format';
+import { formatCurrencyWhole } from '@/lib/expense-constants';
 import type { HubBike } from '../shell/use-bike-hub-data';
 import { HubCard } from '../ui/hub-card';
 import { ListRow } from '../ui/list-row';
@@ -30,13 +31,7 @@ export function bikeFacts(
   currency: Currency,
 ): string {
   const price =
-    bike.purchasePrice != null
-      ? new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency,
-          maximumFractionDigits: 0,
-        }).format(bike.purchasePrice)
-      : null;
+    bike.purchasePrice != null ? formatCurrencyWhole(bike.purchasePrice, currency) : null;
   return [
     bike.variant?.trim() || null,
     bike.purchaseDate

@@ -1484,7 +1484,7 @@
     "confirmDeletePhoto": "Tem certeza de que deseja excluir esta foto?",
     "deleteTitle": "Excluir despesa",
     "deleteMessage": "Tem certeza de que deseja excluir esta despesa?",
-    "amountTooHigh": "O valor máximo é 99.999,99",
+    "amountTooHigh": "O valor máximo é 99.999.999,99",
     "receipts": "Recibos",
     "dashboard": "Visão geral de despesas",
     "seeAll_one": "Ver tudo ({{count}})",

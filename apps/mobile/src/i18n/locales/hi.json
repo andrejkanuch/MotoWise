@@ -1463,7 +1463,7 @@
     "confirmDeletePhoto": "क्या आप वाकई यह फोटो हटाना चाहते हैं?",
     "deleteTitle": "खर्चा हटाएं",
     "deleteMessage": "क्या आप वाकई यह खर्चा हटाना चाहते हैं?",
-    "amountTooHigh": "अधिकतम राशि 99,999.99 है",
+    "amountTooHigh": "अधिकतम राशि 99,999,999.99 है",
     "receipts": "रसीदें",
     "dashboard": "खर्चा इनसाइट्स",
     "seeAll_one": "सभी देखें ({{count}})",
