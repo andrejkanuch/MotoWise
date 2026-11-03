@@ -29,6 +29,15 @@ describe('resolveDeviceLocale', () => {
     expect(resolveDeviceLocale([device('es-ES', 'ES')])).toBe('es');
   });
 
+  it('maps an Android Indonesian device (legacy languageCode "in") to id', () => {
+    expect(
+      resolveDeviceLocale([{ languageTag: 'id-ID', languageCode: 'in', regionCode: 'ID' }]),
+    ).toBe('id');
+    expect(
+      resolveDeviceLocale([{ languageTag: 'in-ID', languageCode: 'in', regionCode: 'ID' }]),
+    ).toBe('id');
+  });
+
   it('takes the first supported language in the device preference list', () => {
     expect(resolveDeviceLocale([device('nl-NL', 'NL'), device('de-DE', 'DE')])).toBe('de');
   });

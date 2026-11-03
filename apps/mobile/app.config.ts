@@ -69,6 +69,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Same reasoning: must run after @sentry/react-native's Gradle mod, so it is
     // registered before it. See its header.
     './plugins/with-sentry-agp-order',
+    // Same reasoning: must run after expo-localization's Gradle mod. Keeps the
+    // Android per-app language list but not its resource filter. See its header.
+    './plugins/with-all-locale-resources',
     [
       '@sentry/react-native/expo',
       {
@@ -119,6 +122,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-apple-authentication',
     // Declares the app's languages so iOS (Settings → MotoVault → Language) and
     // Android 13+ (App info → Language) offer a per-app language. Native: needs a store build.
+    // Its Android resourceConfigurations filter is removed by with-all-locale-resources.
     ['expo-localization', { supportedLocales: APP_LOCALES }],
     [
       '@react-native-google-signin/google-signin',

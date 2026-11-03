@@ -4,7 +4,7 @@ import { getLocales } from 'expo-localization';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { applyLocalePreference } from '../i18n';
-import { LOCALE_PREFERENCE, type LocalePreference } from '../i18n/locale';
+import { DEFAULT_LOCALE, LOCALE_PREFERENCE, type LocalePreference } from '../i18n/locale';
 import { AUTH_HYDRATION, type AuthHydration } from '../lib/auth-hydration';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 import { MAP_ORIENTATIONS, type MapOrientation } from '../utils/map-orientation';
@@ -35,6 +35,8 @@ interface AuthState {
   hydration: AuthHydration;
   /** `system` follows the device language (and per-app language in OS settings). */
   locale: LocalePreference;
+  /** Persisted marker: this install's `locale` already knows about `system`. See mergeAuthPreferences. */
+  localeSchema: number;
   colorScheme: ColorScheme;
   onboardingCompleted: boolean;
   /**
@@ -65,6 +67,7 @@ interface AuthState {
 export function partializeAuthState(state: AuthState) {
   return {
     locale: state.locale,
+    localeSchema: state.localeSchema,
     colorScheme: state.colorScheme,
     measurementSystem: state.measurementSystem,
     currency: state.currency,
@@ -74,19 +77,33 @@ export function partializeAuthState(state: AuthState) {
 }
 
 /**
- * v1: `locale` gained `system` (follow the device). Before v1 the store
- * defaulted to `en` without the rider choosing it, so a saved `en` there means
- * "never picked" — it becomes `system`. A rider who did pick English on a
- * non-English phone now follows the device and can pick English again.
+ * `locale` gained `system` (follow the device). Before that the store
+ * defaulted to `en` without the rider choosing it, so a saved `en` with no
+ * `localeSchema` means "never picked" and becomes `system`. A rider who did pick
+ * English on a non-English phone now follows the device and can pick it again.
+ *
+ * Deliberately NOT a persist `version` bump: zustand discards the whole stored
+ * blob when the stored version is newer than the running code's and there is no
+ * `migrate`, so any OTA built from older code (the hotfix-from-release-commit
+ * flow in docs/runbooks/mobile-ota.md) would wipe every rider's preferences and
+ * `hasAuthenticatedBefore`. Older code reads `system` as an unknown language and
+ * falls back to English, which is what it showed before.
  */
-export const AUTH_PREFERENCES_VERSION = 1;
+export const LOCALE_SCHEMA = 1;
 
-export function migrateAuthPreferences(persisted: unknown, version: number) {
-  const state = (persisted ?? {}) as Partial<ReturnType<typeof partializeAuthState>>;
-  if (version < 1 && (state.locale === undefined || state.locale === 'en')) {
-    return { ...state, locale: LOCALE_PREFERENCE.SYSTEM };
-  }
-  return state;
+type PersistedAuthPreferences = ReturnType<typeof partializeAuthState>;
+
+export function mergeAuthPreferences<T extends object>(persisted: unknown, current: T): T {
+  const saved = (persisted ?? {}) as Partial<PersistedAuthPreferences>;
+  const neverChose =
+    saved.localeSchema === undefined &&
+    (saved.locale === undefined || saved.locale === DEFAULT_LOCALE);
+  return {
+    ...current,
+    ...saved,
+    ...(neverChose && { locale: LOCALE_PREFERENCE.SYSTEM }),
+    localeSchema: LOCALE_SCHEMA,
+  };
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -96,6 +113,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: true,
       hydration: AUTH_HYDRATION.PENDING,
       locale: LOCALE_PREFERENCE.SYSTEM,
+      localeSchema: LOCALE_SCHEMA,
       colorScheme: 'system',
       onboardingCompleted: false,
       hasAuthenticatedBefore: false,
@@ -138,8 +156,7 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-preferences',
       storage: createJSONStorage(() => createZustandMMKVStorage('auth-preferences')),
       partialize: partializeAuthState,
-      version: AUTH_PREFERENCES_VERSION,
-      migrate: migrateAuthPreferences,
+      merge: mergeAuthPreferences,
     },
   ),
 );

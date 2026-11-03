@@ -13,10 +13,11 @@ jest.mock('expo-localization', () => ({ getLocales: () => [{ measurementSystem: 
 import type { Session } from '@supabase/supabase-js';
 import { applyLocalePreference } from '../../i18n';
 import { AUTH_HYDRATION } from '../../lib/auth-hydration';
+import { createZustandMMKVStorage } from '../../lib/mmkv-storage';
 import { MAP_ORIENTATIONS } from '../../utils/map-orientation';
 import {
-  AUTH_PREFERENCES_VERSION,
-  migrateAuthPreferences,
+  LOCALE_SCHEMA,
+  mergeAuthPreferences,
   partializeAuthState,
   useAuthStore,
 } from '../auth.store';
@@ -125,6 +126,7 @@ describe('partializeAuthState', () => {
       'currency',
       'hasAuthenticatedBefore',
       'locale',
+      'localeSchema',
       'mapOrientation',
       'measurementSystem',
     ]);
@@ -169,20 +171,43 @@ describe('auth.store locale preference', () => {
     expect(useAuthStore.getState().locale).toBe('fr');
   });
 
-  it('migrates the old never-chosen "en" default to system', () => {
-    expect(migrateAuthPreferences({ locale: 'en', currency: 'EUR' }, 0)).toEqual({
+  it('turns the old never-chosen "en" default into system', () => {
+    expect(mergeAuthPreferences({ locale: 'en', currency: 'EUR' }, {})).toEqual({
       locale: 'system',
       currency: 'EUR',
+      localeSchema: LOCALE_SCHEMA,
     });
   });
 
-  it('keeps an explicit non-English choice across the migration', () => {
-    expect(migrateAuthPreferences({ locale: 'pt-BR' }, 0)).toEqual({ locale: 'pt-BR' });
+  it('keeps an explicit non-English choice from before the schema', () => {
+    expect(mergeAuthPreferences({ locale: 'pt-BR' }, {})).toMatchObject({ locale: 'pt-BR' });
   });
 
-  it('leaves current-version state alone', () => {
-    expect(migrateAuthPreferences({ locale: 'en' }, AUTH_PREFERENCES_VERSION)).toEqual({
+  it('keeps an explicit English choice once the schema marker is saved', () => {
+    expect(mergeAuthPreferences({ locale: 'en', localeSchema: LOCALE_SCHEMA }, {})).toMatchObject({
       locale: 'en',
     });
+  });
+
+  it('hydrates a pre-schema blob without dropping the other preferences', async () => {
+    // The exact shape older builds wrote: persist version 0, locale "en".
+    const storage = createZustandMMKVStorage('auth-preferences');
+    storage.setItem(
+      'auth-preferences',
+      JSON.stringify({
+        version: 0,
+        state: { locale: 'en', currency: 'EUR', colorScheme: 'dark', hasAuthenticatedBefore: true },
+      }),
+    );
+    await useAuthStore.persist.rehydrate();
+    const s = useAuthStore.getState();
+    expect(s.locale).toBe('system');
+    expect(s.currency).toBe('EUR');
+    expect(s.colorScheme).toBe('dark');
+    expect(s.hasAuthenticatedBefore).toBe(true);
+  });
+
+  it('keeps the persist version at 0 so older OTAs can still read the blob', () => {
+    expect(useAuthStore.persist.getOptions().version ?? 0).toBe(0);
   });
 });

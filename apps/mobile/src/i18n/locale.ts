@@ -21,12 +21,22 @@ type DeviceLocale = Pick<Locale, 'languageTag' | 'languageCode' | 'regionCode'>;
 const isSupported = (tag: string): tag is SupportedLocale =>
   (SUPPORTED_LOCALES as readonly string[]).includes(tag);
 
-const baseLanguage = (tag: string) => tag.split('-')[0]?.toLowerCase() ?? '';
+/**
+ * ISO 639 codes Android's `Locale.getLanguage()` still reports in their
+ * withdrawn form (Indonesian is `in`, not `id`), mapped to the current code.
+ */
+const LEGACY_LANGUAGE_CODES: Record<string, string> = { in: 'id', iw: 'he', ji: 'yi' };
+
+const baseLanguage = (tag: string) => {
+  const language = tag.split(/[-_]/)[0]?.toLowerCase() ?? '';
+  return LEGACY_LANGUAGE_CODES[language] ?? language;
+};
 
 /** The supported locale for one device locale: exact tag first (`pt-BR`), then language (`pt` → `pt-BR`). */
 function matchDeviceLocale(device: DeviceLocale): SupportedLocale | null {
   if (isSupported(device.languageTag)) return device.languageTag;
-  const language = device.languageCode?.toLowerCase() ?? baseLanguage(device.languageTag);
+  // The tag first: it is canonical BCP-47 (`id-ID`), while `languageCode` can be legacy (`in`).
+  const language = baseLanguage(device.languageTag) || baseLanguage(device.languageCode ?? '');
   return SUPPORTED_LOCALES.find((locale) => baseLanguage(locale) === language) ?? null;
 }
 
