@@ -20,7 +20,10 @@
     "tryAgain": "Try Again",
     "all": "All",
     "ride": "Ride",
-    "deleting": "Deleting..."
+    "deleting": "Deleting...",
+    "openInAppleMaps": "Open in Apple Maps",
+    "copyCoordinates": "Copy coordinates",
+    "changeMapStyleA11y": "Change map style"
   },
   "auth": {
     "googlePlayServicesUnavailable": "Google sign-in needs Google Play services, which this device doesn't have. Please continue with email instead.",
@@ -1525,7 +1528,20 @@
     "periodAllTime": "All Time",
     "totalSpentThisYear": "Total spent this year",
     "totalSpentLastYear": "Total spent last year",
-    "totalSpentAllTime": "Total spent all time"
+    "totalSpentAllTime": "Total spent all time",
+    "retryLoadA11y": "Retry loading expense data",
+    "periodSelectorA11y": "Expense period selector",
+    "totalA11y": "Total: {{amount}}",
+    "yoyDownA11y": "Down {{percent}} percent versus last year",
+    "yoyUpA11y": "Up {{percent}} percent versus last year",
+    "topCategoryA11y": "Top category: {{category}}, {{amount}}",
+    "topCategoryPctA11y": "Top category: {{category}}, {{amount}}, {{percent}} percent",
+    "closeListA11y": "Close expense list",
+    "breakdownA11y": "Expense breakdown: {{list}}",
+    "categoryRowA11y": "{{category}}: {{amount}}, {{percent}} percent. Tap to view expenses.",
+    "trendChartA11y": "Monthly expense trend chart",
+    "legendA11y": "Chart legend: {{list}}",
+    "summaryA11y": "Expense summary metrics"
   },
   "privacy": {
     "title": "Privacy",
@@ -1895,7 +1911,33 @@
     "defaultStopName": "Stop {{number}}",
     "moveToDayTitle": "Move to Day",
     "selectDayForStop": "Select a day for this stop",
-    "addDayA11y": "Add another day to the trip"
+    "addDayA11y": "Add another day to the trip",
+    "visibilityChipPublic": "Public",
+    "visibilityChipUnlisted": "Link only",
+    "visibilityChipPrivate": "Private",
+    "surfacePaved": "Paved",
+    "surfaceMixed": "Mixed",
+    "surfaceOffRoad": "Off-road",
+    "surfaceGravel": "Gravel",
+    "itinerary": "Itinerary",
+    "sampleItinerary": "Sample itinerary",
+    "gpxNeedsTwoStopsTitle": "Need at least two stops",
+    "gpxNeedsTwoStopsMessage": "A GPX file needs a start and an end. Add one more stop and try again.",
+    "waypointFallback": "Waypoint",
+    "organizerFallback": "Organizer",
+    "briefShareTitle": "{{title}} — tank-bag brief",
+    "saveTripA11y": "Save trip",
+    "unsaveTripA11y": "Unsave trip",
+    "cloneThisTripHint": "Opens the planner pre-filled with this trip's waypoints",
+    "exportGpxA11y": "Export trip as GPX",
+    "dayUnit_one": "day",
+    "dayUnit_other": "days",
+    "stopUnit_one": "stop",
+    "stopUnit_other": "stops",
+    "stopCount_one": "{{count}} stop",
+    "stopCount_other": "{{count}} stops",
+    "reviewCount_one": "{{count}} review",
+    "reviewCount_other": "{{count}} reviews"
   },
   "groupRide": {
     "titleLabel": "Title",
@@ -1962,7 +2004,9 @@
     "leanAngle": "Max Lean",
     "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions.",
     "private": "Private",
-    "threeD": "3D"
+    "threeD": "3D",
+    "shareRideA11y": "Share ride",
+    "flyoverA11y": "3D flyover"
   },
   "startRide": {
     "subtitle": "Pick a bike and roll out. GPS, speed, and route will be tracked until you tap end.",
@@ -2051,7 +2095,29 @@
       "maxSpeed": "Max speed",
       "ascent": "Ascent",
       "descent": "Descent"
-    }
+    },
+    "smartName": {
+      "morning": "{{day}} Morning Ride",
+      "afternoon": "{{day}} Afternoon Ride",
+      "evening": "{{day}} Evening Ride",
+      "night": "{{day}} Night Ride"
+    },
+    "discardTitle": "Discard Ride?",
+    "discardMessage": "This ride data will be permanently deleted.",
+    "discardConfirm": "Discard",
+    "rideNameA11y": "Ride name",
+    "pbBadge": "PB",
+    "record": {
+      "longestDistance": "Longest ride",
+      "longestDuration": "Longest duration",
+      "topSpeed": "Top speed",
+      "maxElevationGain": "Most elevation",
+      "fallback": "New personal best"
+    },
+    "saveRide": "Save ride",
+    "savingRideA11y": "Saving ride",
+    "pbDelta": " · +{{pct}}% on previous best",
+    "shareMessage": "Just completed a {{distance}} ride in {{duration}} with MotoVault!"
   },
   "heatmap": {
     "rides": "Rides",
@@ -2074,7 +2140,8 @@
     "shareCountries_one": "{{count}} country: {{list}}",
     "shareCountries_other": "{{count}} countries: {{list}}",
     "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise"
+    "shareVia": "— via MotoWise",
+    "shareYearRecapA11y": "Share year recap"
   },
   "discoverSearch": {
     "notAvailableTitle": "Not available",
@@ -2533,7 +2600,27 @@
     "needsAttention": "Needs attention",
     "checksPass": "{{passed}}/{{total}} checks pass",
     "a11y": "{{headline}}. {{percent}} percent ready. Tap to see the checklist.",
-    "shareBrief": "Share tank-bag brief"
+    "shareBrief": "Share tank-bag brief",
+    "items": {
+      "route": "Route has a start and a finish",
+      "dates": "Trip dates set",
+      "fuel": "Fuel range covers longest gap",
+      "witness": "Someone knows your route",
+      "bike": "Primary bike selected",
+      "names": "Stops are named"
+    },
+    "notes": {
+      "routeNeedsTwoStops": "A trip needs at least two stops so navigation can compute a route.",
+      "datesInPast": "Start date is in the past — update it before you ride.",
+      "datesMissing": "Add a start date so participants know when to show up.",
+      "fuelNoBike": "Add a primary bike so we can check fuel range against your route.",
+      "fuelGapTooLong": "Longest gap {{gapKm}}km > {{rangeKm}}km range — add a fuel stop.",
+      "fuelGapOk": "Longest gap {{gapKm}}km / {{rangeKm}}km range",
+      "witnessMissing": "Invite a rider, share the trip, or make it unlisted so someone has the link.",
+      "bikeMissing": "Pick a primary bike in Garage so service history powers the other checks.",
+      "stopsUnnamed_one": "{{count}} stop is still using a default label.",
+      "stopsUnnamed_other": "{{count}} stops are still using a default label."
+    }
   },
   "tripSuggestions": {
     "title": "Suggestions",

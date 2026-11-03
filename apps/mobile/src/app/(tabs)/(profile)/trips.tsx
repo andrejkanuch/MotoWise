@@ -112,7 +112,7 @@ function MyTripCard({
   onLongPress: () => void;
 }) {
   const { t: theme, isDark } = useEditorialTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const difficultyColors = getDifficultyColors(theme);
   const diffKey = (trip.difficulty || 'easy').toLowerCase() as keyof typeof difficultyColors;
@@ -232,7 +232,7 @@ function MyTripCard({
         {/* Meta row */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
           <Text style={[type.caption, { color: theme.ink3 }]} numberOfLines={1}>
-            {formatTripDateRangeShort(trip.startDate, trip.endDate)}
+            {formatTripDateRangeShort(trip.startDate, trip.endDate, i18n.language)}
           </Text>
           <Text style={[type.caption, { color: theme.ink4 }]}>·</Text>
           <View

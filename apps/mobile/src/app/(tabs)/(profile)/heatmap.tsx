@@ -90,7 +90,7 @@ export default function RideHeatmapScreen() {
               }}
               hitSlop={12}
               accessibilityRole="button"
-              accessibilityLabel="Share year recap"
+              accessibilityLabel={i18n('heatmap.shareYearRecapA11y')}
               accessibilityState={{ disabled: shareDisabled }}
               disabled={shareDisabled}
               style={{
@@ -311,7 +311,7 @@ export default function RideHeatmapScreen() {
                   void handleShareRecap();
                 }}
                 accessibilityRole="button"
-                accessibilityLabel="Share recap"
+                accessibilityLabel={i18n('heatmap.shareRecap')}
                 android_ripple={{ color: tint(tok.onWarm, 0.2) }}
                 style={({ pressed }) => ({
                   marginTop: space.xxs,

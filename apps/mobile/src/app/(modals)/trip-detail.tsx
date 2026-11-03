@@ -64,6 +64,13 @@ import { ReadinessRing } from '../../components/trip/readiness-ring';
 import { useRolePicker } from '../../components/trip/role-picker-sheet';
 import { SuggestionsSection } from '../../components/trip/suggestions-section';
 import { TripAssistantSheet } from '../../components/trip/trip-assistant-sheet';
+import {
+  tripDayHeader,
+  tripDifficultyLabel,
+  tripPeriodLabel,
+  tripSurfaceLabel,
+  tripVisibilityLabel,
+} from '../../components/trip/trip-detail-labels';
 import { WaypointMarker } from '../../components/trip/waypoint-marker';
 import { getWaypointIcon } from '../../components/trip/waypoint-type-picker';
 import { TripShareSheet } from '../../components/trip-share-sheet';
@@ -99,26 +106,12 @@ type TripWaypoint = TripDetailQuery['tripDetail']['waypoints'] extends
   ? W
   : never;
 
-const DIFFICULTY_LABELS = {
-  easy: 'Chill',
-  moderate: 'Spirited',
-  challenging: 'Technical',
-  expert: 'Expert',
-} as const;
-
 /** RSVP status glyph + the theme token it is drawn in (resolved per scheme). */
 const STATUS_ICONS = {
   going: { Icon: CheckCircle, token: 'success' },
   maybe: { Icon: HelpCircle, token: 'dueInk' },
   declined: { Icon: XCircle, token: 'danger' },
 } as const satisfies Record<string, { Icon: unknown; token: keyof EditorialTokens }>;
-
-const SURFACE_LABELS: Record<string, string> = {
-  paved: 'Paved',
-  mixed: 'Mixed',
-  off_road: 'Off-road',
-  gravel: 'Gravel',
-};
 
 function AnimatedChevron({ collapsed, color }: { collapsed: boolean; color: string }) {
   const rotation = useSharedValue(collapsed ? 180 : 0);
@@ -272,7 +265,7 @@ function TemplateRouteStartEndLine({
 
 export default function TripDetailScreen() {
   const { t, isDark } = useEditorialTheme();
-  const { t: i18n } = useTranslation();
+  const { t: i18n, i18n: i18next } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { tripId } = useLocalSearchParams<{ tripId: string }>();
@@ -384,15 +377,19 @@ export default function TripDetailScreen() {
 
   const handleShareBrief = useCallback(async () => {
     if (!trip) return;
+    const tripTitle = trip.title ?? i18n('trips.untitledTrip');
     const brief = formatReadinessBrief({
-      tripTitle: trip.title ?? 'Trip',
+      tripTitle,
       startDate: trip.startDate,
       endDate: trip.endDate,
       waypoints: waypoints.map((wp) => ({ name: wp.name, notes: wp.notes })),
       readiness,
     });
     try {
-      await Share.share({ message: brief, title: `${trip.title ?? 'Trip'} — tank-bag brief` });
+      await Share.share({
+        message: brief,
+        title: i18n('trips.briefShareTitle', { title: tripTitle }),
+      });
       trackEvent(AnalyticsEvent.TRIP_BRIEF_SHARED, {
         trip_id: tripId,
         readiness_score: Math.round(readiness.score * 100),
@@ -400,7 +397,7 @@ export default function TripDetailScreen() {
     } catch {
       /* user cancelled */
     }
-  }, [trip, waypoints, readiness, tripId]);
+  }, [trip, waypoints, readiness, tripId, i18n]);
 
   const tripDays = useMemo(() => {
     // Templates and dateless showcases carry their day structure in dayCount,
@@ -437,16 +434,15 @@ export default function TripDetailScreen() {
   }, []);
 
   const formatDayDate = useCallback(
-    (dayIndex: number): string => {
-      // No calendar date for templates or dateless showcases — just "Day N".
-      if (trip?.isTemplate || trip?.datesPending) return `Day ${dayIndex + 1}`;
-      if (!trip?.startDate) return `Day ${dayIndex + 1}`;
-      const date = new Date(trip.startDate);
-      date.setDate(date.getDate() + dayIndex);
-      const formatted = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-      return `Day ${dayIndex + 1} — ${formatted}`;
-    },
-    [trip?.isTemplate, trip?.datesPending, trip?.startDate],
+    // No calendar date for templates or dateless showcases — just "Day N".
+    (dayIndex: number): string =>
+      tripDayHeader(
+        i18n,
+        dayIndex,
+        trip?.isTemplate || trip?.datesPending ? null : trip?.startDate,
+        i18next.language,
+      ),
+    [trip?.isTemplate, trip?.datesPending, trip?.startDate, i18n, i18next.language],
   );
 
   const waypointCoords = useMemo<[number, number][]>(
@@ -514,10 +510,7 @@ export default function TripDetailScreen() {
   const tripSuggestions = useTripSuggestions(tripId);
   const { showRolePicker } = useRolePicker({ tripId });
 
-  const difficultyKey = (
-    trip?.difficulty ?? 'easy'
-  ).toLowerCase() as keyof typeof DIFFICULTY_LABELS;
-  const difficultyLabel = DIFFICULTY_LABELS[difficultyKey] ?? 'Chill';
+  const difficultyLabel = tripDifficultyLabel(i18n, trip?.difficulty);
 
   const isTemplate = trip?.isTemplate === true;
   // A dateless trip (showcase / "Already rode it") carries sentinel dates +
@@ -567,10 +560,7 @@ export default function TripDetailScreen() {
     if (!trip) return;
     if (!requirePro('gpx_export')) return;
     if (waypoints.length < 2) {
-      Alert.alert(
-        'Need at least two stops',
-        'A GPX file needs a start and an end. Add one more stop and try again.',
-      );
+      Alert.alert(i18n('trips.gpxNeedsTwoStopsTitle'), i18n('trips.gpxNeedsTwoStopsMessage'));
       return;
     }
 
@@ -589,7 +579,7 @@ export default function TripDetailScreen() {
     });
 
     trackEvent(AnalyticsEvent.TRIP_SHARED, { trip_id: tripId, method: 'gpx' });
-  }, [trip, waypoints, tripId, requirePro]);
+  }, [trip, waypoints, tripId, requirePro, i18n]);
 
   const navWaypoints = useMemo(
     () =>
@@ -675,7 +665,8 @@ export default function TripDetailScreen() {
                 type={wp.type}
                 onPress={() =>
                   showMarkerActionSheet({
-                    title: wp.name || 'Waypoint',
+                    t: i18n,
+                    title: wp.name || i18n('trips.waypointFallback'),
                     lat: wp.lat,
                     lng: wp.lng,
                   })
@@ -792,7 +783,7 @@ export default function TripDetailScreen() {
                 <WifiOff size={14} color={t.dueInk} />
                 <Text style={{ fontSize: 13, color: t.dueInk, fontWeight: '500' }}>
                   {i18n('trips.offlineCopy')} ·{' '}
-                  {new Date(offlineMeta.downloadedAt).toLocaleDateString()}
+                  {new Date(offlineMeta.downloadedAt).toLocaleDateString(i18next.language)}
                 </Text>
               </Animated.View>
             )}
@@ -855,11 +846,7 @@ export default function TripDetailScreen() {
                             : t.ink3,
                     }}
                   >
-                    {trip.visibility === 'public'
-                      ? 'Public'
-                      : trip.visibility === 'unlisted'
-                        ? 'Link only'
-                        : 'Private'}
+                    {tripVisibilityLabel(i18n, trip.visibility)}
                   </Text>
                 </View>
               )}
@@ -885,7 +872,7 @@ export default function TripDetailScreen() {
               <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
                 <Text style={[type.figureSmall, { color: t.ink }]}>{tripDays}</Text>
                 <Text style={[type.caption, { color: t.ink3 }]}>
-                  {tripDays === 1 ? 'day' : 'days'}
+                  {i18n('trips.dayUnit', { count: tripDays })}
                 </Text>
               </View>
               <View
@@ -898,7 +885,7 @@ export default function TripDetailScreen() {
               <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
                 <Text style={[type.figureSmall, { color: t.ink }]}>{waypoints.length}</Text>
                 <Text style={[type.caption, { color: t.ink3 }]}>
-                  {waypoints.length === 1 ? 'stop' : 'stops'}
+                  {i18n('trips.stopUnit', { count: waypoints.length })}
                 </Text>
               </View>
               {showDates && (
@@ -936,7 +923,7 @@ export default function TripDetailScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Calendar size={13} color={subtitleColor} />
                   <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
-                    {formatTripDateRangeLong(trip.startDate, trip.endDate)}
+                    {formatTripDateRangeLong(trip.startDate, trip.endDate, i18next.language)}
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -970,7 +957,7 @@ export default function TripDetailScreen() {
                     marginBottom: 14,
                   }}
                 >
-                  {trip.surfaceType && (
+                  {trip.surfaceType && tripSurfaceLabel(i18n, trip.surfaceType) && (
                     <View
                       style={{
                         paddingHorizontal: 10,
@@ -989,7 +976,7 @@ export default function TripDetailScreen() {
                           color: subtitleColor,
                         }}
                       >
-                        {SURFACE_LABELS[trip.surfaceType] ?? trip.surfaceType}
+                        {tripSurfaceLabel(i18n, trip.surfaceType)}
                       </Text>
                     </View>
                   )}
@@ -1076,7 +1063,7 @@ export default function TripDetailScreen() {
                           </Text>
                         </View>
                         <Text style={[type.caption, { color: t.ink3 }]}>
-                          {trip.reviewCount} {trip.reviewCount === 1 ? 'review' : 'reviews'}
+                          {i18n('trips.reviewCount', { count: trip.reviewCount })}
                         </Text>
                       </View>
                     )}
@@ -1219,7 +1206,7 @@ export default function TripDetailScreen() {
                             </Text>
                           )}
                           <Text style={{ fontSize: 11, color: subtitleColor, marginTop: 4 }}>
-                            {new Date(review.createdAt).toLocaleDateString()}
+                            {new Date(review.createdAt).toLocaleDateString(i18next.language)}
                           </Text>
                         </Animated.View>
                       ))
@@ -1372,7 +1359,7 @@ export default function TripDetailScreen() {
                 style={{ marginBottom: 16 }}
               >
                 <Text style={[type.sectionTitle, { color: t.ink, marginBottom: 4 }]}>
-                  {isTemplate ? 'Sample itinerary' : 'Itinerary'}
+                  {i18n(isTemplate ? 'trips.sampleItinerary' : 'trips.itinerary')}
                 </Text>
                 {isTemplate && (
                   <Text
@@ -1415,7 +1402,7 @@ export default function TripDetailScreen() {
                         </Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                           <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
-                            {dayWaypoints.length} {dayWaypoints.length === 1 ? 'stop' : 'stops'}
+                            {i18n('trips.stopCount', { count: dayWaypoints.length })}
                           </Text>
                           <AnimatedChevron collapsed={isCollapsed} color={subtitleColor} />
                         </View>
@@ -1437,7 +1424,7 @@ export default function TripDetailScreen() {
                                   },
                                 ]}
                               >
-                                {group.label}
+                                {tripPeriodLabel(i18n, group.period)}
                               </Text>
                             )}
                             {group.items.map((wp, index) => (
@@ -1469,7 +1456,7 @@ export default function TripDetailScreen() {
                     onPress={handleCloneTemplate}
                     disabled={isOfflineCopy || cloneMutation.isPending}
                     accessibilityRole="button"
-                    accessibilityLabel="Add to My Trips"
+                    accessibilityLabel={i18n('trips.addToMyTrips')}
                     style={({ pressed }) => ({
                       backgroundColor: t.warm,
                       paddingVertical: 14,
@@ -1498,7 +1485,7 @@ export default function TripDetailScreen() {
                   onPress={handleToggleSave}
                   disabled={isOfflineCopy || saveMutation.isPending || unsaveMutation.isPending}
                   accessibilityRole="button"
-                  accessibilityLabel={isSaved ? 'Unsave trip' : 'Save trip'}
+                  accessibilityLabel={i18n(isSaved ? 'trips.unsaveTripA11y' : 'trips.saveTripA11y')}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -1578,7 +1565,7 @@ export default function TripDetailScreen() {
                       style={{ fontSize: 11, color: t.ink3, textAlign: 'center' }}
                       numberOfLines={1}
                     >
-                      {trip.organiser.displayName ?? 'Organizer'}
+                      {trip.organiser.displayName ?? i18n('trips.organizerFallback')}
                     </Text>
                     <Text
                       style={[
@@ -1697,8 +1684,8 @@ export default function TripDetailScreen() {
                       })
                     }
                     accessibilityRole="button"
-                    accessibilityLabel="Clone this trip"
-                    accessibilityHint="Opens the planner pre-filled with this trip's waypoints"
+                    accessibilityLabel={i18n('trips.cloneThisTrip')}
+                    accessibilityHint={i18n('trips.cloneThisTripHint')}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
@@ -1815,7 +1802,7 @@ export default function TripDetailScreen() {
                 <Pressable
                   onPress={handleExportGPX}
                   accessibilityRole="button"
-                  accessibilityLabel="Export trip as GPX"
+                  accessibilityLabel={i18n('trips.exportGpxA11y')}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -1855,7 +1842,10 @@ export default function TripDetailScreen() {
             Hidden while the assistant or ride-this sheets are open so it
             doesn't bleed through over their input/footer rows. */}
         {navWaypoints.length >= 2 && !isTemplate && !assistantOpen && !rideThis.visible && (
-          <RideThisStickyCta onPress={rideThis.open} subtitle={`${navWaypoints.length} stops`} />
+          <RideThisStickyCta
+            onPress={rideThis.open}
+            subtitle={i18n('trips.stopCount', { count: navWaypoints.length })}
+          />
         )}
 
         {/* Trip-context AI assistant sheet — triggered from the top-right AI button. */}

@@ -34,7 +34,7 @@ function dayCount(start: string, end: string): number {
 
 function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void }) {
   const { t } = useEditorialTheme();
-  const { t: tr } = useTranslation();
+  const { t: tr, i18n } = useTranslation();
 
   const waypointCount = trip.waypoints?.length ?? 0;
   const days = dayCount(trip.startDate, trip.endDate);
@@ -156,7 +156,7 @@ function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void 
       {/* Meta row: date range + organiser */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <Text style={[type.caption, { color: t.ink3 }]} numberOfLines={1}>
-          {formatTripDateRangeShort(trip.startDate, trip.endDate)}
+          {formatTripDateRangeShort(trip.startDate, trip.endDate, i18n.language)}
         </Text>
         <View
           style={{

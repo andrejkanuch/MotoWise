@@ -1,27 +1,18 @@
-import { type ExpenseCategory, resolveCurrency, splitExpenseTotals } from '@motovault/types';
+import { resolveCurrency, splitExpenseTotals } from '@motovault/types';
 import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { BarChart3, Info, Plus, X } from 'lucide-react-native';
+import { Info, X } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeInUp,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { CategoryDonut } from '@/components/expense-dashboard/category-donut';
 import { costPerDistance } from '@/components/expense-dashboard/cost-per-distance';
+import { ExpenseDashboardEmptyState } from '@/components/expense-dashboard/expense-dashboard-empty-state';
 import { MonthlyTrend } from '@/components/expense-dashboard/monthly-trend';
 import { SummaryCards } from '@/components/expense-dashboard/summary-cards';
-import { GARAGE_ROUTE } from '@/config/routes';
-import { ReceiptScanEntry } from '@/features/receipt-scan/receipt-scan-entry';
-import { SCAN_ENTRY_SURFACE } from '@/features/receipt-scan/scan-flow-constants';
 import { useCurrency } from '@/hooks/use-currency';
 import {
   PERIOD_OPTIONS,
@@ -33,7 +24,7 @@ import { useMileageUnit } from '@/hooks/use-mileage-unit';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import {
   CATEGORY_COLORS,
-  CATEGORY_LABELS,
+  categoryLabel,
   dominantCurrency,
   formatCurrencyTotals,
   formatMoney,
@@ -55,13 +46,6 @@ const PERIOD_TOTAL_KEY = {
   lastYear: 'expenses.totalSpentLastYear',
   allTime: 'expenses.totalSpentAllTime',
 } as const satisfies Record<Period, string>;
-
-/**
- * MOT-273: one-tap quick-add categories on the empty state. Prefilling the
- * category + landing on the form (amount-only) cuts the friction between
- * "I see the value" and "I logged my first expense".
- */
-const QUICK_ADD_CATEGORIES: ExpenseCategory[] = ['fuel', 'maintenance', 'insurance'];
 
 const STAT_LABEL_STYLE = type.label;
 
@@ -93,161 +77,6 @@ function StatColumn({
   );
 }
 
-function EmptyState({ motorcycleId }: { motorcycleId: string }) {
-  const { t } = useTranslation();
-  const { t: theme } = useEditorialTheme();
-  const ctaScale = useSharedValue(1);
-  const ctaAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: ctaScale.value }],
-  }));
-
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 40,
-        backgroundColor: theme.bg,
-      }}
-    >
-      <Animated.View entering={FadeIn.delay(100).duration(400)}>
-        <BarChart3 size={48} color={theme.ink3} />
-      </Animated.View>
-      <Animated.View entering={FadeInUp.delay(200).duration(300)}>
-        <Text
-          accessibilityRole="header"
-          style={{
-            ...type.sheetTitle,
-            color: theme.ink,
-            marginTop: space.md,
-            textAlign: 'center',
-          }}
-        >
-          {t('expenses.empty')}
-        </Text>
-      </Animated.View>
-      <Animated.View entering={FadeInUp.delay(280).duration(300)}>
-        <Text
-          style={{
-            ...type.subhead,
-            color: theme.ink2,
-            marginTop: space.xs,
-            textAlign: 'center',
-            maxWidth: 280,
-          }}
-        >
-          {t('expenses.emptyStateSubtitle')}
-        </Text>
-      </Animated.View>
-      {/* MOT-273: prefilled quick-add chips — one tap to an amount-only form. */}
-      <Animated.View
-        entering={FadeInUp.delay(320).duration(300)}
-        style={{
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          gap: 8,
-          marginTop: 20,
-        }}
-      >
-        {QUICK_ADD_CATEGORIES.map((cat) => (
-          <Pressable
-            key={cat}
-            onPress={() => {
-              triggerImpact(Haptics.ImpactFeedbackStyle.Light);
-              trackEvent(AnalyticsEvent.EXPENSE_QUICK_ADD_TAPPED, { category: cat });
-              router.push({
-                pathname: GARAGE_ROUTE.ADD_EXPENSE,
-                params: { motorcycleId, category: cat },
-              });
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={t(`expenses.category_${cat}`)}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 6,
-              paddingHorizontal: 14,
-              height: 38,
-              borderRadius: 19,
-              borderCurve: 'continuous',
-              backgroundColor: theme.surface,
-              borderWidth: 1,
-              borderColor: theme.line,
-            }}
-          >
-            <View
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: CATEGORY_COLORS[cat] ?? theme.warm,
-              }}
-            />
-            <Plus size={13} color={theme.ink3} strokeWidth={2} />
-            <Text style={{ ...type.label, fontSize: 14, color: theme.ink }}>
-              {t(`expenses.category_${cat}`)}
-            </Text>
-          </Pressable>
-        ))}
-      </Animated.View>
-      <Animated.View entering={FadeInUp.delay(420).duration(300)} style={ctaAnimatedStyle}>
-        <Pressable
-          onPressIn={() => {
-            ctaScale.value = withSpring(0.95, { damping: 15, stiffness: 150 });
-          }}
-          onPressOut={() => {
-            ctaScale.value = withSpring(1, { damping: 15, stiffness: 150 });
-          }}
-          onPress={() => {
-            triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
-            router.push({
-              pathname: GARAGE_ROUTE.ADD_EXPENSE,
-              params: { motorcycleId },
-            });
-          }}
-          accessibilityLabel="Add your first expense"
-          accessibilityRole="button"
-          style={{
-            backgroundColor: theme.warm,
-            paddingHorizontal: 32,
-            height: 48,
-            borderRadius: 24,
-            borderCurve: 'continuous',
-            marginTop: 24,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Text style={{ ...type.bodyStrong, color: theme.onWarm }}>
-            {t('expenses.addFirstExpense')}
-          </Text>
-        </Pressable>
-      </Animated.View>
-      {/* Scan-a-receipt alternative to manual entry — carries bike context (U8) */}
-      <View style={{ alignSelf: 'stretch', marginTop: 20 }}>
-        <ReceiptScanEntry
-          motorcycleId={motorcycleId}
-          surface={SCAN_ENTRY_SURFACE.EXPENSE_EMPTY}
-          delay={480}
-        />
-      </View>
-      <Animated.View entering={FadeIn.delay(560).duration(300)}>
-        <Text
-          style={{
-            ...type.subhead,
-            color: theme.ink3,
-            marginTop: space.sm,
-          }}
-        >
-          {t('expenses.emptyStateTip')}
-        </Text>
-      </Animated.View>
-    </View>
-  );
-}
-
 export default function ExpenseDashboardScreen() {
   const { motorcycleId, currentMileage } = useLocalSearchParams<{
     motorcycleId: string;
@@ -255,7 +84,7 @@ export default function ExpenseDashboardScreen() {
   }>();
   // Unit follows the user's profile preference, not the deprecated per-bike field.
   const mileageUnit = useMileageUnit();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [period, setPeriod] = useState<Period>('thisYear');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -392,7 +221,7 @@ export default function ExpenseDashboardScreen() {
         </Text>
         <Pressable
           onPress={() => refetch()}
-          accessibilityLabel="Retry loading expense data"
+          accessibilityLabel={t('expenses.retryLoadA11y')}
           accessibilityRole="button"
           style={{
             backgroundColor: theme.warm,
@@ -410,7 +239,7 @@ export default function ExpenseDashboardScreen() {
 
   // Empty state
   if (!dashboard || dashboard.expenseCount === 0 || !selected) {
-    return <EmptyState motorcycleId={motorcycleId} />;
+    return <ExpenseDashboardEmptyState motorcycleId={motorcycleId} />;
   }
 
   const monthsInPeriod = (() => {
@@ -473,7 +302,7 @@ export default function ExpenseDashboardScreen() {
       <Animated.View entering={FadeInUp.delay(40).duration(300)} style={{ marginTop: 20 }}>
         <View
           accessibilityRole="tablist"
-          accessibilityLabel="Expense period selector"
+          accessibilityLabel={t('expenses.periodSelectorA11y')}
           style={{
             flexDirection: 'row',
             backgroundColor: theme.surface,
@@ -565,7 +394,7 @@ export default function ExpenseDashboardScreen() {
         <Text
           adjustsFontSizeToFit
           numberOfLines={1}
-          accessibilityLabel={`Total: ${heroTotal}`}
+          accessibilityLabel={t('expenses.totalA11y', { amount: heroTotal })}
           style={{
             ...type.figure,
             fontSize: 52,
@@ -579,7 +408,9 @@ export default function ExpenseDashboardScreen() {
 
         {period === 'thisYear' && yoyChange !== null && previousYearTotal > 0 && (
           <Text
-            accessibilityLabel={`${yoyChange <= 0 ? 'Down' : 'Up'} ${Math.abs(yoyChange).toFixed(0)} percent versus last year`}
+            accessibilityLabel={t(yoyChange <= 0 ? 'expenses.yoyDownA11y' : 'expenses.yoyUpA11y', {
+              percent: Math.abs(yoyChange).toFixed(0),
+            })}
             style={{
               fontSize: 14,
               fontWeight: '500',
@@ -597,7 +428,14 @@ export default function ExpenseDashboardScreen() {
         {/* Top category pill */}
         {topCategory && topCategory.total > 0 && (
           <View
-            accessibilityLabel={`Top category: ${CATEGORY_LABELS[topCategory.category] ?? topCategory.category}, ${formatAgg(topCategory.total)}${topCategoryPct ? `, ${topCategoryPct} percent` : ''}`}
+            accessibilityLabel={t(
+              topCategoryPct ? 'expenses.topCategoryPctA11y' : 'expenses.topCategoryA11y',
+              {
+                category: categoryLabel(t, topCategory.category),
+                amount: formatAgg(topCategory.total),
+                percent: topCategoryPct,
+              },
+            )}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -628,7 +466,7 @@ export default function ExpenseDashboardScreen() {
                 flexShrink: 1,
               }}
             >
-              {CATEGORY_LABELS[topCategory.category] ?? topCategory.category}
+              {categoryLabel(t, topCategory.category)}
             </Text>
             <Text
               style={{
@@ -835,13 +673,13 @@ export default function ExpenseDashboardScreen() {
                   flex: 1,
                 }}
               >
-                {CATEGORY_LABELS[selectedCategory] ?? selectedCategory}{' '}
+                {categoryLabel(t, selectedCategory)}{' '}
                 <Text style={{ fontSize: 14, color: theme.ink3 }}>({categoryExpenses.length})</Text>
               </Text>
               <Pressable
                 onPress={() => setSelectedCategory(null)}
                 hitSlop={12}
-                accessibilityLabel="Close expense list"
+                accessibilityLabel={t('expenses.closeListA11y')}
               >
                 <X size={18} color={theme.ink3} />
               </Pressable>
@@ -874,8 +712,7 @@ export default function ExpenseDashboardScreen() {
                         color: theme.ink,
                       }}
                     >
-                      {expense.description ||
-                        (CATEGORY_LABELS[expense.category] ?? expense.category)}
+                      {expense.description || categoryLabel(t, expense.category)}
                     </Text>
                     <Text
                       style={{
@@ -884,7 +721,7 @@ export default function ExpenseDashboardScreen() {
                         marginTop: 2,
                       }}
                     >
-                      {new Date(expense.date).toLocaleDateString(undefined, {
+                      {new Date(expense.date).toLocaleDateString(i18n.language, {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',
