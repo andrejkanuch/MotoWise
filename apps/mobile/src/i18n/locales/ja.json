@@ -1477,7 +1477,7 @@
     "confirmDeletePhoto": "この写真を削除してもよろしいですか？",
     "deleteTitle": "経費を削除",
     "deleteMessage": "この経費を削除してもよろしいですか？",
-    "amountTooHigh": "最大金額は99,999.99です",
+    "amountTooHigh": "最大金額は99,999,999.99です",
     "receipts": "レシート",
     "dashboard": "経費の概要",
     "seeAll_one": "すべて見る ({{count}})",

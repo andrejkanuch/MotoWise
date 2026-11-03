@@ -86,6 +86,11 @@ describe('CompleteOnboardingInputSchema', () => {
     expect(result.currency).toBe('KES');
   });
 
+  it('accepts the PHP (Philippine peso) currency code', () => {
+    const result = CompleteOnboardingInputSchema.parse({ ...validBase, currency: 'PHP' });
+    expect(result.currency).toBe('PHP');
+  });
+
   it('rejects unsupported currency codes', () => {
     expect(() => CompleteOnboardingInputSchema.parse({ ...validBase, currency: 'KWD' })).toThrow();
   });

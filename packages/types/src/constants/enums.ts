@@ -208,6 +208,7 @@ export const Currency = {
   CLP: 'CLP',
   PEN: 'PEN',
   KES: 'KES',
+  PHP: 'PHP',
 } as const;
 export type Currency = (typeof Currency)[keyof typeof Currency];
 
@@ -238,6 +239,7 @@ export const CURRENCY_SYMBOLS: Record<Currency, string> = {
   CLP: '$',
   PEN: 'S/.',
   KES: 'KSh',
+  PHP: '\u20B1',
 };
 
 /**

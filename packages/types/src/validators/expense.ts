@@ -3,6 +3,7 @@ import { Currency } from '../constants/enums';
 // Categories live in the single source of truth (constants/expense-categories.ts),
 // surfaced on the main barrel. Imported here only to build the Zod enum.
 import { EXPENSE_CATEGORIES } from '../constants/expense-categories';
+import { MONEY_AMOUNT_MAX } from '../constants/limits';
 
 const currencyValues = Object.values(Currency) as [string, ...string[]];
 
@@ -18,7 +19,7 @@ const itemNameSchema = z
 
 export const LogExpenseSchema = z.object({
   motorcycleId: z.string().uuid(),
-  amount: z.number().positive().max(99999.99),
+  amount: z.number().positive().max(MONEY_AMOUNT_MAX),
   category: z.enum(EXPENSE_CATEGORIES),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format'),
   description: z.string().max(200).optional(),
@@ -28,7 +29,7 @@ export const LogExpenseSchema = z.object({
 export type LogExpense = z.infer<typeof LogExpenseSchema>;
 
 export const UpdateExpenseSchema = z.object({
-  amount: z.number().positive().max(99999.99).optional(),
+  amount: z.number().positive().max(MONEY_AMOUNT_MAX).optional(),
   category: z.enum(EXPENSE_CATEGORIES).optional(),
   date: z
     .string()
