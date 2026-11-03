@@ -68,3 +68,4 @@ overrides:
   undici@^7: ^7.30.1
   vite@^7: ^7.3.5
   yaml@^2: ^2.8.3
+  zod@^4: ^4.6.7
