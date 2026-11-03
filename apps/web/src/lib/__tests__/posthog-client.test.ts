@@ -16,6 +16,7 @@ const sdk = {
   opt_out_capturing: (...args: unknown[]) => optOut(...args),
   capture: (...args: unknown[]) => capture(...args),
   register: vi.fn(),
+  unregister: vi.fn(),
   setPersonProperties: vi.fn(),
   get_property: vi.fn(),
 };
@@ -181,6 +182,35 @@ describe('whenPostHogCapturing', () => {
     applyPostHogConsent(false);
     await settle();
     expect(ran).not.toHaveBeenCalled();
+  });
+});
+
+describe('hero A/B exposure and consent', () => {
+  it('a first-visit exposure is captured after the opt-in, not dropped', async () => {
+    holdImport();
+    const { applyPostHogConsent } = await import('@/components/cookie-consent');
+    const { trackHeroVariant } = await import('../analytics');
+    const order: string[] = [];
+    optIn.mockImplementation(() => order.push('opt-in'));
+    capture.mockImplementation((event: string) => order.push(event));
+    trackHeroVariant('cost');
+    applyPostHogConsent(true, { announce: true });
+
+    release();
+    await settle();
+    expect(order).toEqual(['opt-in', '$consent_granted', 'hero_viewed']);
+    expect(sdk.register).toHaveBeenCalledWith({ hero_variant: 'cost' });
+  });
+
+  it('a "no" clears the assignment cookie and the stored arm', async () => {
+    const { applyPostHogConsent } = await import('@/components/cookie-consent');
+    applyPostHogConsent(true);
+    await settle();
+    // biome-ignore lint/suspicious/noDocumentCookie: the A/B assignment cookie
+    document.cookie = 'mv_hero=cost; path=/';
+    applyPostHogConsent(false);
+    expect(document.cookie).not.toContain('mv_hero=');
+    expect(sdk.unregister).toHaveBeenCalledWith('hero_variant');
   });
 });
 

@@ -42,17 +42,18 @@ const OPT_OUT_REGION = 'OTHER';
 const ACCEPTED = 'accepted';
 const REJECTED = 'rejected';
 const EXPLICIT_SOURCE = 'explicit';
+const CONSENT_VERSION = 'v1';
 const CRAWLER_UA = 'bot|crawl|spider|slurp|lighthouse|headless';
 
 /** Built from the constants above so the cookie names and variants cannot drift. */
-export const HERO_ASSIGN_SCRIPT = `(function(){var V=${JSON.stringify(HERO_VARIANTS)},v=V[0];try{var c=document.cookie;var g=function(n){var m=c.match(new RegExp('(?:^|; )'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):null};var p=(g('${CONSENT_COOKIE}')||'').split(':');var k=p[1];var h=g('${HERO_COOKIE}');var s=location.protocol==='https:'?'; Secure':'';var ok=k!=='${REJECTED}'&&!new RegExp('${CRAWLER_UA}','i').test(navigator.userAgent)&&((k==='${ACCEPTED}'&&p[4]==='${EXPLICIT_SOURCE}')||g('${REGION_COOKIE}')==='${OPT_OUT_REGION}');if(!ok){if(h)document.cookie='${HERO_COOKIE}=; path=/; max-age=0'}else if(h&&V.indexOf(h)>-1){v=h}else{v=V[Math.floor(Math.random()*V.length)];document.cookie='${HERO_COOKIE}='+v+'; path=/; max-age=${HERO_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax'+s}}catch(e){}document.documentElement.setAttribute('${HERO_ATTRIBUTE}',v)})()`;
+export const HERO_ASSIGN_SCRIPT = `(function(){var V=${JSON.stringify(HERO_VARIANTS)},v=V[0];try{var c=document.cookie;var g=function(n){var m=c.match(new RegExp('(?:^|; )'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):null};var p=(g('${CONSENT_COOKIE}')||'').split(':');var k=p[1];var h=g('${HERO_COOKIE}');var s=location.protocol==='https:'?'; Secure':'';var ok=k!=='${REJECTED}'&&!new RegExp('${CRAWLER_UA}','i').test(navigator.userAgent)&&((p[0]==='${CONSENT_VERSION}'&&k==='${ACCEPTED}'&&p[4]==='${EXPLICIT_SOURCE}')||g('${REGION_COOKIE}')==='${OPT_OUT_REGION}');if(!ok){if(h)document.cookie='${HERO_COOKIE}=; path=/; max-age=0'}else if(h&&V.indexOf(h)>-1){v=h}else{v=V[Math.floor(Math.random()*V.length)];document.cookie='${HERO_COOKIE}='+v+'; path=/; max-age=${HERO_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax'+s}}catch(e){}document.documentElement.setAttribute('${HERO_ATTRIBUTE}',v)})()`;
 
 /**
  * CSP source for {@link HERO_ASSIGN_SCRIPT}, which the root shell inlines like
  * the theme script (see theme-init-script.ts for why a hash). Change the
  * script and the hash together (a unit test enforces it).
  */
-export const HERO_ASSIGN_SCRIPT_CSP_HASH = "'sha256-N8iepZt+oovL2evX6Lb73w70EjcRA+FqJEaCza1akac='";
+export const HERO_ASSIGN_SCRIPT_CSP_HASH = "'sha256-XNz/1MPZWud3AX4oGcHkqH/ZlVM/ipzOzARdfsbtAYk='";
 
 function isHeroVariant(value: string | null | undefined): value is HeroVariant {
   return HERO_VARIANTS.includes(value as HeroVariant);

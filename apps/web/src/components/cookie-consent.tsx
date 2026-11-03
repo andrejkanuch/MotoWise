@@ -15,7 +15,7 @@ import {
 import { useModal } from '@/hooks/use-modal';
 import { clearAccountConsent, writeAccountConsent } from '@/lib/account-consent';
 import { clearFirstTouch, firstTouchProperties, persistFirstTouch } from '@/lib/campaign';
-import { clearHeroAssignment } from '@/lib/hero-experiment';
+import { clearHeroAssignment, HERO_VARIANT_PROPERTY } from '@/lib/hero-experiment';
 import {
   dropQueuedPostHogCalls,
   getPostHog,
@@ -139,6 +139,9 @@ function grantPostHog(posthog: PostHog, announce: boolean) {
 function denyPostHog(posthog: PostHog | null) {
   try {
     posthog?.opt_out_capturing();
+    // The hero A/B arm ends with the assignment (clearHeroAssignment); a stored
+    // super property would otherwise tag later events with the old arm.
+    posthog?.unregister(HERO_VARIANT_PROPERTY);
   } catch {
     // Blocked storage (see grantPostHog).
   }

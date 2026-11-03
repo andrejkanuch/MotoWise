@@ -18,6 +18,7 @@ const REJECTED = `mv_consent=${encodeURIComponent('v1:rejected:1700000000:EU:exp
 // An automatic yes from outside the EU, or a cookie from before the source field.
 const IMPLIED = `mv_consent=${encodeURIComponent('v1:accepted:1700000000:EU:implied')}`;
 const LEGACY_ACCEPT = `mv_consent=${encodeURIComponent('v1:accepted:1700000000:EU')}`;
+const UNKNOWN_VERSION = `mv_consent=${encodeURIComponent('v2:accepted:1700000000:EU:explicit')}`;
 const CLEARED = `${HERO_COOKIE}=; path=/; max-age=0`;
 
 /** Runs the inline script against a fake document; returns the attribute and cookie writes. */
@@ -80,6 +81,7 @@ describe('hero A/B assignment script', () => {
   it.each([
     ['implied', IMPLIED],
     ['pre-source', LEGACY_ACCEPT],
+    ['unknown-version', UNKNOWN_VERSION],
   ])('treats an EU visitor with an %s yes as undecided', (_, consent) => {
     const { variant, writes } = runScript(
       `${OPT_IN_REGION}; ${consent}; ${HERO_COOKIE}=${HERO_VARIANT.Cost}`,
