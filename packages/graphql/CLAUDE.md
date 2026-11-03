@@ -17,6 +17,7 @@ Generated GraphQL client types (TypedDocumentNode) consumed by the mobile and we
 - GraphQL operations live in each app, not here
 - Every `.graphql` document must validate against the schema (pre-commit runs codegen)
 - Scalar mappings: UUID->string, DateTime->string, JSON->Record<string, unknown>
+- Keep `enumType: 'native'` in `codegen.ts`: apps use enums as values. client-preset 6 emits operation types only, and nullable result fields are required keys (set `null` in fixtures)
 
 ## Type safety (in the apps)
 - ALWAYS use generated types from @motovault/graphql — NEVER use `any` for GraphQL query/mutation data
