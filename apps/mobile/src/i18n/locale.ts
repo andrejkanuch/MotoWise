@@ -1,6 +1,5 @@
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@motovault/types';
 import { getLocales, type Locale } from 'expo-localization';
-import { Platform } from 'react-native';
 import { getAppLocales, isAppLocaleSupported } from '../../modules/app-locale';
 
 /** The language preference a rider stores: a fixed app locale, or "follow the device". */
@@ -58,8 +57,9 @@ export const LANGUAGE_CONTROL = {
 } as const;
 export type LanguageControl = (typeof LANGUAGE_CONTROL)[keyof typeof LANGUAGE_CONTROL];
 
-export function languageControl(): LanguageControl {
-  if (Platform.OS === 'ios') return LANGUAGE_CONTROL.OS_SETTINGS;
+/** `os` defaults to the build platform; tests pass it, since jest inlines EXPO_OS. */
+export function languageControl(os = process.env.EXPO_OS): LanguageControl {
+  if (os === 'ios') return LANGUAGE_CONTROL.OS_SETTINGS;
   return isAppLocaleSupported() ? LANGUAGE_CONTROL.OS_API : LANGUAGE_CONTROL.IN_APP;
 }
 
@@ -127,8 +127,8 @@ export function toI18nLanguage(
 }
 
 /** The OS per-app language list where the app manages it (Android 13+); else null. */
-export function readOsAppLocales(): readonly string[] | null {
-  return languageControl() === LANGUAGE_CONTROL.OS_API ? getAppLocales() : null;
+export function readOsAppLocales(control = languageControl()): readonly string[] | null {
+  return control === LANGUAGE_CONTROL.OS_API ? getAppLocales() : null;
 }
 
 function safeGetLocales(): DeviceLocale[] {

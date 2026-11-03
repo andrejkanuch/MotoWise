@@ -1,6 +1,5 @@
 import { UpdateUserDocument } from '@motovault/graphql';
 import { useEffect, useRef } from 'react';
-import { applyLocalePreference } from '../i18n';
 import { effectiveLocale } from '../i18n/locale';
 import { captureException } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
@@ -37,15 +36,4 @@ export function useAccountLocaleSync(
       .then(() => queryClient.invalidateQueries({ queryKey: queryKeys.user.me }))
       .catch((e) => captureException(e, { source: 'use-account-locale-sync' }));
   }, [userId, loaded, accountLocale, preference]);
-}
-
-/**
- * Once per launch: take the Android 13+ OS per-app language (App info →
- * Language may have changed while the app was closed), then load the language.
- */
-export function useLaunchLanguage(): void {
-  useEffect(() => {
-    useAuthStore.getState().syncLocaleWithOs();
-    applyLocalePreference(useAuthStore.getState().locale);
-  }, []);
 }

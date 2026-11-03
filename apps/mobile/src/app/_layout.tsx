@@ -59,8 +59,9 @@ import {
   receiveRideIdleResponse,
   rideIdleResponseKey,
 } from '../features/ride/ride-notification-response';
-import { useAccountLocaleSync, useLaunchLanguage } from '../hooks/use-account-locale-sync';
+import { useAccountLocaleSync } from '../hooks/use-account-locale-sync';
 import { useAnalyticsSuperProperties } from '../hooks/use-analytics-super-properties';
+import { useLaunchLanguage } from '../hooks/use-launch-language';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import { useReviewAppOpenScoring } from '../hooks/use-review-app-open-scoring';
 import { useRideIdleResponses } from '../hooks/use-ride-idle-responses';
@@ -763,7 +764,6 @@ function RootLayout() {
   }, []);
 
   useLaunchLanguage();
-
   useEffect(() => {
     return setupFocusManager();
   }, []);

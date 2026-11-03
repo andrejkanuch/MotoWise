@@ -17,9 +17,18 @@ jest.mock('../../../modules/app-locale', () => ({
     mockOsLocales.tags = [...tags];
   }),
 }));
+// Jest inlines EXPO_OS as 'ios', so the Android 13+ path is reached by
+// answering languageControl() from the mocked native module instead.
+jest.mock('../../i18n/locale', () => {
+  const actual = jest.requireActual('../../i18n/locale');
+  return {
+    ...actual,
+    languageControl: () =>
+      mockOsLocales.supported ? actual.LANGUAGE_CONTROL.OS_API : actual.languageControl(),
+  };
+});
 
 import type { Session } from '@supabase/supabase-js';
-import { Platform } from 'react-native';
 import { setAppLocales } from '../../../modules/app-locale';
 import { applyLocalePreference } from '../../i18n';
 import { AUTH_HYDRATION } from '../../lib/auth-hydration';
@@ -225,15 +234,12 @@ describe('auth.store locale preference', () => {
 });
 
 describe('auth.store OS per-app language (Android 13+)', () => {
-  let platform: jest.ReplaceProperty<typeof Platform.OS>;
   beforeEach(() => {
-    platform = jest.replaceProperty(Platform, 'OS', 'android');
     mockOsLocales.supported = true;
     mockOsLocales.tags = [];
     jest.mocked(setAppLocales).mockClear();
   });
   afterEach(() => {
-    platform.restore();
     mockOsLocales.supported = false;
   });
 

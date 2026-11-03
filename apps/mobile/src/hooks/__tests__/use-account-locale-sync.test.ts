@@ -44,6 +44,11 @@ it('tries once per locale, so a failing write does not loop', async () => {
   const { rerender } = await renderHook(({ prefs }) => useAccountLocaleSync('u1', prefs), {
     initialProps: { prefs: {} as Record<string, unknown> },
   });
-  await rerender({ prefs: { other: true } });
   await waitFor(() => expect(mockGqlFetcher).toHaveBeenCalledTimes(1));
+  // A refetch that changes preferences.locale re-runs the effect; the
+  // per-locale guard must still hold the write back.
+  await rerender({ prefs: { locale: 'en' } });
+  await rerender({ prefs: { locale: 'de' } });
+  await new Promise((r) => setTimeout(r, 0));
+  expect(mockGqlFetcher).toHaveBeenCalledTimes(1);
 });

@@ -2,7 +2,6 @@ const mockDeviceLocales = jest.fn();
 jest.mock('expo-localization', () => ({ getLocales: () => mockDeviceLocales() }));
 
 import { SUPPORTED_LOCALES } from '@motovault/types';
-import { Platform } from 'react-native';
 import { APP_LOCALES } from '../../../app.config';
 import i18n, { applyLocalePreference } from '..';
 import {
@@ -142,12 +141,10 @@ describe('OS per-app language', () => {
   });
 
   it('sends iOS to Settings and keeps the in-app list where the OS has no per-app API', () => {
-    const platform = jest.replaceProperty(Platform, 'OS', 'ios');
-    expect(languageControl()).toBe(LANGUAGE_CONTROL.OS_SETTINGS);
-    platform.replaceValue('android');
+    expect(languageControl('ios')).toBe(LANGUAGE_CONTROL.OS_SETTINGS);
     // Jest has no AppLocale native module, like Android 12 or an older binary.
-    expect(languageControl()).toBe(LANGUAGE_CONTROL.IN_APP);
-    platform.restore();
+    expect(languageControl('android')).toBe(LANGUAGE_CONTROL.IN_APP);
+    expect(languageControl('web')).toBe(LANGUAGE_CONTROL.IN_APP);
   });
 });
 

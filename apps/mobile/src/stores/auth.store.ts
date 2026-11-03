@@ -166,7 +166,7 @@ export const useAuthStore = create<AuthState>()(
         set({ locale });
       },
       syncLocaleWithOs: () => {
-        const osLocales = readOsAppLocales();
+        const osLocales = readOsAppLocales(languageControl());
         if (!osLocales) return;
         const { locale, localeSchema } = get();
         const { preference, writeOs } = reconcileWithAppLocales(
