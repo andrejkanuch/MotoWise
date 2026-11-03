@@ -15,3 +15,4 @@ Shared TypeScript types, Zod validation schemas, and constants for the MotoVault
 - QuizSchema lives in `validators/quiz.ts`, NOT in `article.ts`
 - database.types.ts is auto-generated — run `pnpm db:types` to update
 - This package is imported by all apps — keep it dependency-light (only zod)
+- zod 4: `.partial()`/`.optional()` still apply an inner `.default()`, so build `Update*` schemas from a base without defaults; `.uuid()` is RFC-strict. See `docs/solutions/integration-issues/zod-4-upgrade-silent-validation-changes.md`

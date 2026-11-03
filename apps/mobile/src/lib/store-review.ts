@@ -298,7 +298,7 @@ export async function requestRideReview(ride: RideReviewGateInput): Promise<void
   if (!gate.scores) return;
   const requested = await maybeRequestReview(REVIEW_MOMENT.RIDE, { eligible: gate.eligible });
   const holdMs = requested ? reviewDialogHoldMs(process.env.EXPO_OS) : 0;
-  if (holdMs > 0) await new Promise((resolve) => setTimeout(resolve, holdMs));
+  if (holdMs > 0) await new Promise<void>((resolve) => setTimeout(resolve, holdMs));
 }
 
 /** Share of the flyover that must actually play (not be scrubbed past) to count as watched. */
