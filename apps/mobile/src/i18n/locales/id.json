@@ -2011,7 +2011,7 @@
     },
     "saveRide": "Simpan perjalanan",
     "savingRideA11y": "Menyimpan perjalanan",
-    "pbDelta": "+{{pct}}% dari rekor sebelumnya",
+    "pbDelta": " · +{{pct}}% dari rekor sebelumnya",
     "shareMessage": "Baru saja menyelesaikan perjalanan {{distance}} dalam {{duration}} dengan MotoVault!"
   },
   "heatmap": {

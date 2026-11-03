@@ -2011,7 +2011,7 @@
     },
     "saveRide": "Sürüşü kaydet",
     "savingRideA11y": "Sürüş kaydediliyor",
-    "pbDelta": "önceki rekordan +%{{pct}}",
+    "pbDelta": " · önceki rekordan +%{{pct}}",
     "shareMessage": "MotoVault ile {{duration}} sürede {{distance}} sürüşü tamamladım!"
   },
   "heatmap": {

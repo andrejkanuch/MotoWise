@@ -2011,7 +2011,7 @@
     },
     "saveRide": "Fahrt speichern",
     "savingRideA11y": "Fahrt wird gespeichert",
-    "pbDelta": "+{{pct}} % gegenüber deiner Bestmarke",
+    "pbDelta": " · +{{pct}} % gegenüber deiner Bestmarke",
     "shareMessage": "Gerade eine Fahrt über {{distance}} in {{duration}} mit MotoVault beendet!"
   },
   "heatmap": {

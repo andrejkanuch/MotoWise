@@ -2011,7 +2011,7 @@
     },
     "saveRide": "บันทึกการขับขี่",
     "savingRideA11y": "กำลังบันทึกการขับขี่",
-    "pbDelta": "+{{pct}}% จากสถิติเดิม",
+    "pbDelta": " · +{{pct}}% จากสถิติเดิม",
     "shareMessage": "เพิ่งขี่ครบ {{distance}} ใน {{duration}} ด้วย MotoVault!"
   },
   "heatmap": {

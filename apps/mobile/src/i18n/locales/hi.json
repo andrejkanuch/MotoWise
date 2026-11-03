@@ -2011,7 +2011,7 @@
     },
     "saveRide": "राइड सेव करें",
     "savingRideA11y": "राइड सेव हो रही है",
-    "pbDelta": "पिछले सर्वश्रेष्ठ से +{{pct}}%",
+    "pbDelta": " · पिछले सर्वश्रेष्ठ से +{{pct}}%",
     "shareMessage": "MotoVault के साथ {{duration}} में {{distance}} की राइड पूरी की!"
   },
   "heatmap": {

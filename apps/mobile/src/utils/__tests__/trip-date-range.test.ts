@@ -1,4 +1,8 @@
-import { formatTripDateRangeLong, formatTripDateRangeShort } from '../trip-date-range';
+import {
+  calendarDate,
+  formatTripDateRangeLong,
+  formatTripDateRangeShort,
+} from '../trip-date-range';
 
 const JUNE_14 = '2026-06-14T12:00:00.000Z';
 const JULY_2 = '2026-07-02T12:00:00.000Z';
@@ -45,5 +49,14 @@ describe('formatTripDateRangeShort', () => {
 
   it('uses the app language for month names', () => {
     expect(formatTripDateRangeShort(JUNE_14, JUNE_14, 'de')).toContain('Juni');
+  });
+});
+
+describe('calendarDate', () => {
+  // Date-only trip dates are calendar days: `new Date('2026-06-14')` is UTC midnight, which is
+  // June 13 for a rider west of UTC. parseISO reads it as local midnight in every time zone.
+  it('keeps a date-only value on its own calendar day', () => {
+    const d = calendarDate('2026-06-14');
+    expect([d.getFullYear(), d.getMonth(), d.getDate(), d.getHours()]).toEqual([2026, 5, 14, 0]);
   });
 });

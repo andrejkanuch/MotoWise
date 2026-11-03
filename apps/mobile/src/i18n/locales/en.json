@@ -2116,7 +2116,7 @@
     },
     "saveRide": "Save ride",
     "savingRideA11y": "Saving ride",
-    "pbDelta": "+{{pct}}% on previous best",
+    "pbDelta": " · +{{pct}}% on previous best",
     "shareMessage": "Just completed a {{distance}} ride in {{duration}} with MotoVault!"
   },
   "heatmap": {

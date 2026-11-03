@@ -2036,7 +2036,7 @@
     },
     "saveRide": "Salvar pilotagem",
     "savingRideA11y": "Salvando a pilotagem",
-    "pbDelta": "+{{pct}}% sobre seu recorde",
+    "pbDelta": " · +{{pct}}% sobre seu recorde",
     "shareMessage": "Acabei de fazer um rolê de {{distance}} em {{duration}} com o MotoVault!"
   },
   "heatmap": {

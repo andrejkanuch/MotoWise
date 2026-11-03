@@ -1,5 +1,6 @@
 import type { TFunction } from 'i18next';
 import type { PeriodOfDay } from '../../utils/period-of-day';
+import { calendarDate } from '../../utils/trip-date-range';
 
 /** Ride-character label per difficulty ("Chill", "Spirited", ...). */
 const DIFFICULTY_LABEL_KEY = {
@@ -77,7 +78,7 @@ export function tripDayHeader(
 ): string {
   const day = dayIndex + 1;
   if (!start) return t('trips.dayHeaderShort', { day });
-  const date = new Date(start);
+  const date = calendarDate(start);
   date.setDate(date.getDate() + dayIndex);
   const formatted = date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
   return t('trips.dayHeader', { day, date: formatted });

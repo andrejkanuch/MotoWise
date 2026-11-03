@@ -2011,7 +2011,7 @@
     },
     "saveRide": "ライドを保存",
     "savingRideA11y": "ライドを保存中",
-    "pbDelta": "自己ベストより+{{pct}}%",
+    "pbDelta": " · 自己ベストより+{{pct}}%",
     "shareMessage": "MotoVaultで{{duration}}かけて{{distance}}のライドを走りました！"
   },
   "heatmap": {

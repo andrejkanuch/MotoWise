@@ -2036,7 +2036,7 @@
     },
     "saveRide": "Enregistrer le trajet",
     "savingRideA11y": "Enregistrement du trajet",
-    "pbDelta": "+{{pct}} % sur ton meilleur temps",
+    "pbDelta": " · +{{pct}} % sur ton meilleur temps",
     "shareMessage": "Je viens de faire une balade de {{distance}} en {{duration}} avec MotoVault !"
   },
   "heatmap": {

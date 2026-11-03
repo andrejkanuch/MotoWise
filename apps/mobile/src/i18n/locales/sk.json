@@ -2061,7 +2061,7 @@
     },
     "saveRide": "Uložiť jazdu",
     "savingRideA11y": "Ukladá sa jazda",
-    "pbDelta": "+{{pct}} % oproti rekordu",
+    "pbDelta": " · +{{pct}} % oproti rekordu",
     "shareMessage": "Práve som s MotoVault prešiel {{distance}} za {{duration}}!"
   },
   "heatmap": {

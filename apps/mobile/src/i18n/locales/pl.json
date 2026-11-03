@@ -2061,7 +2061,7 @@
     },
     "saveRide": "Zapisz przejazd",
     "savingRideA11y": "Zapisywanie przejazdu",
-    "pbDelta": "+{{pct}}% względem rekordu",
+    "pbDelta": " · +{{pct}}% względem rekordu",
     "shareMessage": "Właśnie przejechałem {{distance}} w {{duration}} z MotoVault!"
   },
   "heatmap": {

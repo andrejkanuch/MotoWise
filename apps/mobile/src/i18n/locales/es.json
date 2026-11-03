@@ -2036,7 +2036,7 @@
     },
     "saveRide": "Guardar ruta",
     "savingRideA11y": "Guardando la ruta",
-    "pbDelta": "+{{pct}}% sobre tu mejor marca",
+    "pbDelta": " · +{{pct}}% sobre tu mejor marca",
     "shareMessage": "¡Acabo de completar una rodada de {{distance}} en {{duration}} con MotoVault!"
   },
   "heatmap": {

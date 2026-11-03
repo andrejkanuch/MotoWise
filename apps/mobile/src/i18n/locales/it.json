@@ -2036,7 +2036,7 @@
     },
     "saveRide": "Salva giro",
     "savingRideA11y": "Salvataggio del giro",
-    "pbDelta": "+{{pct}}% rispetto al tuo record",
+    "pbDelta": " · +{{pct}}% rispetto al tuo record",
     "shareMessage": "Ho appena completato un giro di {{distance}} in {{duration}} con MotoVault!"
   },
   "heatmap": {
