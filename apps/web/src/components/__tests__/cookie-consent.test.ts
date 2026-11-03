@@ -21,6 +21,7 @@ vi.mock('posthog-js', () => ({
     opt_out_capturing: (...args: unknown[]) => optOut(...args),
     capture: (...args: unknown[]) => capture(...args),
     register: (...args: unknown[]) => register(...args),
+    unregister: vi.fn(),
     setPersonProperties: (...args: unknown[]) => setPersonProperties(...args),
     get_property: (...args: unknown[]) => getProperty(...args),
   },

@@ -1,13 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('posthog-js', () => ({
-  default: { capture: vi.fn(), identify: vi.fn(), reset: vi.fn() },
+  default: { capture: vi.fn(), identify: vi.fn(), reset: vi.fn(), register: vi.fn() },
 }));
 
 const posthog = (await import('posthog-js')).default;
-const { trackStoreCtaClick } = await import('../analytics');
-// The SDK is loaded after consent; these tests run with it loaded.
-await (await import('../posthog-client')).loadPostHog();
+const { trackHeroVariant, trackStoreCtaClick } = await import('../analytics');
+// The SDK is loaded after consent; these tests run with it loaded and capturing.
+const posthogClient = await import('../posthog-client');
+posthogClient.markPostHogCapturing(await posthogClient.loadPostHog());
 const { CtaPageType, CtaPlacement, StorePlatform } = await import('../cta-taxonomy');
 
 describe('trackStoreCtaClick', () => {
@@ -86,5 +87,15 @@ describe('trackStoreCtaClick', () => {
       { platform: 'ios', page_type: 'route', placement: 'inline' },
       { send_instantly: true },
     );
+  });
+});
+
+describe('trackHeroVariant', () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it('registers the variant on later events and captures the exposure', () => {
+    trackHeroVariant('cost');
+    expect(posthog.register).toHaveBeenCalledWith({ hero_variant: 'cost' });
+    expect(posthog.capture).toHaveBeenCalledWith('hero_viewed', { hero_variant: 'cost' });
   });
 });

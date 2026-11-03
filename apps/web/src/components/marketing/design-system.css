@@ -1007,6 +1007,16 @@ html:not(.dark) .mv-plate::after {
   margin-top: 32px;
 }
 
+/* Home hero A/B test (lib/hero-experiment.ts): the root shell's inline script
+   sets html[data-hero]; only that variant's copy shows. Without the attribute
+   (script blocked) the control shows. The variant names mirror HERO_VARIANT. */
+.hero-variant { display: none; }
+.hero-variant[data-hero-variant="control"],
+html[data-hero="cost"] .hero-variant[data-hero-variant="cost"],
+html[data-hero="service"] .hero-variant[data-hero-variant="service"] { display: contents; }
+html[data-hero="cost"] .hero-variant[data-hero-variant="control"],
+html[data-hero="service"] .hero-variant[data-hero-variant="control"] { display: none; }
+
 .hero-cta-row {
   display: flex;
   gap: 12px;

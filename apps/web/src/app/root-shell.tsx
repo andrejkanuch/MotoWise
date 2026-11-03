@@ -7,6 +7,7 @@ import { CookieConsentBanner, CookieConsentProvider } from '@/components/cookie-
 import { MetaPixel } from '@/components/meta-pixel';
 import { NavigationProgress } from '@/components/navigation-progress';
 import { WebVitalsReporter } from '@/components/web-vitals-reporter';
+import { HERO_ASSIGN_SCRIPT } from '@/lib/hero-experiment';
 import { THEME_INIT_SCRIPT } from '@/lib/theme-init-script';
 import { QueryProvider } from '@/providers/query-provider';
 import { ThemeProvider } from '@/providers/theme-provider';
@@ -56,6 +57,12 @@ export function RootShell({
           // biome-ignore lint/security/noDangerouslySetInnerHtml: inline script required to prevent FOUC on theme load
           dangerouslySetInnerHTML={{
             __html: THEME_INIT_SCRIPT,
+          }}
+        />
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: assigns the home hero A/B variant before first paint (lib/hero-experiment.ts)
+          dangerouslySetInnerHTML={{
+            __html: HERO_ASSIGN_SCRIPT,
           }}
         />
         <link rel="dns-prefetch" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />

@@ -46,7 +46,21 @@
     "plateCaption": "Prête · révision dans 2 446 km",
     "plateIdentity": "Street Glide Special · 2022",
     "plateFigure": "37 787",
-    "plateUnit": "km"
+    "plateUnit": "km",
+    "costTitleLine1": "Connais ton",
+    "costTitleLine2": "vrai coût.",
+    "costDescription": "Carburant, entretien, pièces et équipement : tout s'additionne vite. Note chaque dépense et vois ce que te coûte vraiment chaque kilomètre. Gratuit, pour chaque moto de ton garage.",
+    "costPlateFigure": "0,14",
+    "costPlateUnit": "€/km",
+    "costPlateCaption": "Coût réel au km · carburant, entretien, pièces",
+    "serviceTitleLine1": "Ne rate plus",
+    "serviceTitleLine2": "aucune révision.",
+    "serviceDescription": "Des rappels avant l'échéance de l'huile, de la chaîne et des pneus, et tout l'historique d'entretien de chaque moto. Gratuit, et conçu par un motard.",
+    "servicePlateFigure": "540",
+    "servicePlateUnit": "km",
+    "servicePlateCaption": "Jusqu'à la vidange · puis la chaîne",
+    "servicePlateState": "Bientôt",
+    "plateStateReady": "Prête"
   },
   "Features": {
     "trip": {

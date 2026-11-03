@@ -46,7 +46,21 @@
     "plateCaption": "Al día · revisión en 2,446 km",
     "plateIdentity": "Street Glide Special · 2022",
     "plateFigure": "37,787",
-    "plateUnit": "km"
+    "plateUnit": "km",
+    "costTitleLine1": "Conoce tu",
+    "costTitleLine2": "coste real.",
+    "costDescription": "Gasolina, servicio, recambios y equipo suman rápido. Registra cada gasto y descubre lo que te cuesta de verdad cada kilómetro. Gratis, para cada moto de tu garaje.",
+    "costPlateFigure": "0,14",
+    "costPlateUnit": "€/km",
+    "costPlateCaption": "Coste real por km · gasolina, servicio, recambios",
+    "serviceTitleLine1": "Nunca te saltes",
+    "serviceTitleLine2": "un servicio.",
+    "serviceDescription": "Avisos antes de que toque el aceite, la cadena o los neumáticos, y todo el historial de servicio de cada moto. Gratis, y creada por un motociclista.",
+    "servicePlateFigure": "540",
+    "servicePlateUnit": "km",
+    "servicePlateCaption": "Hasta el cambio de aceite · luego la cadena",
+    "servicePlateState": "Pronto",
+    "plateStateReady": "Al día"
   },
   "Features": {
     "trip": {

@@ -19,6 +19,8 @@ const MAX_QUEUED_CALLS = 50;
 let instance: PostHog | null = null;
 let loading: Promise<PostHog> | null = null;
 let queue: Array<(posthog: PostHog) => void> = [];
+let optInQueue: Array<(posthog: PostHog) => void> = [];
+let capturing = false;
 
 function runSafely(fn: (posthog: PostHog) => void, posthog: PostHog) {
   try {
@@ -78,6 +80,28 @@ export function withPostHog(fn: (posthog: PostHog) => void): void {
   if (queue.length < MAX_QUEUED_CALLS) queue.push(fn);
 }
 
+/**
+ * Runs `fn` once PostHog is loaded AND capturing for this visitor, so what it
+ * captures is never dropped. {@link withPostHog} runs before an opt-in is
+ * applied, which loses the event on a first-ever visit; an A/B exposure has to
+ * reach PostHog on every visit. Flushed by {@link markPostHogCapturing}.
+ */
+export function whenPostHogCapturing(fn: (posthog: PostHog) => void): void {
+  if (instance && capturing) {
+    runSafely(fn, instance);
+    return;
+  }
+  if (optInQueue.length < MAX_QUEUED_CALLS) optInQueue.push(fn);
+}
+
+/** Called right after opt-in (cookie-consent.tsx): runs what waited for capturing. */
+export function markPostHogCapturing(posthog: PostHog): void {
+  capturing = true;
+  const pending = optInQueue;
+  optInQueue = [];
+  for (const fn of pending) runSafely(fn, posthog);
+}
+
 /** The loaded SDK, or null before consent. */
 export function getPostHog(): PostHog | null {
   return instance;
@@ -86,4 +110,6 @@ export function getPostHog(): PostHog | null {
 /** A "no": nothing that waited for the SDK may run later. */
 export function dropQueuedPostHogCalls(): void {
   queue = [];
+  optInQueue = [];
+  capturing = false;
 }

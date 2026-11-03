@@ -46,7 +46,21 @@
     "plateCaption": "Ready · next service in 1,520 mi",
     "plateIdentity": "Street Glide Special · 2022",
     "plateFigure": "23,480",
-    "plateUnit": "mi"
+    "plateUnit": "mi",
+    "costTitleLine1": "Know your",
+    "costTitleLine2": "real cost.",
+    "costDescription": "Fuel, service, parts and gear add up fast. Log every expense and see what each mile really costs. Free, for every bike in your garage.",
+    "costPlateFigure": "0.18",
+    "costPlateUnit": "$/mi",
+    "costPlateCaption": "Real cost per mile · fuel, service, parts",
+    "serviceTitleLine1": "Never miss",
+    "serviceTitleLine2": "a service.",
+    "serviceDescription": "Reminders before oil, chain and tires are due, and the full service history of every bike. Free, and built by a rider.",
+    "servicePlateFigure": "340",
+    "servicePlateUnit": "mi",
+    "servicePlateCaption": "To the oil change · chain next",
+    "servicePlateState": "Due soon",
+    "plateStateReady": "Ready"
   },
   "Features": {
     "trip": {
