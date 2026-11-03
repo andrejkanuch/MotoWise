@@ -9,6 +9,7 @@ import {
   groupTotalsByCurrency,
 } from '@motovault/types';
 import type { TFunction } from 'i18next';
+import { getNumberLocale } from './number-locale';
 
 export type { CurrencyTotal };
 // Per-currency grouping lives in @motovault/types so the API, mobile and web
@@ -34,22 +35,34 @@ export const PRIMARY_CATEGORIES: ExpenseCategory[] = EXPENSE_CATEGORY_META.filte
   (m) => m.primary,
 ).map((m) => m.key);
 
-// Intl.NumberFormat construction is expensive (~0.5-1ms). Cache instances per currency.
-// With max 25 currencies, memory is ~25KB — negligible.
+// Intl.NumberFormat construction is expensive (~0.5-1ms). Cache instances per
+// locale, currency and fraction setting.
 const formatterCache = new Map<string, Intl.NumberFormat>();
 
-/** Format a numeric amount with the correct currency symbol and decimal places.
- *  Locale is hardcoded to en-US (app is English-only for now). */
-export function formatCurrency(amount: number, currency: Currency = 'USD'): string {
-  let formatter = formatterCache.get(currency);
+function moneyFormatter(currency: Currency, wholeUnits: boolean): Intl.NumberFormat {
+  const locale = getNumberLocale();
+  const key = `${locale}|${currency}|${wholeUnits ? 0 : 'auto'}`;
+  let formatter = formatterCache.get(key);
   if (!formatter) {
-    formatter = new Intl.NumberFormat('en-US', {
+    formatter = new Intl.NumberFormat(locale, {
       style: 'currency',
       currency,
+      ...(wholeUnits ? { maximumFractionDigits: 0 } : {}),
     });
-    formatterCache.set(currency, formatter);
+    formatterCache.set(key, formatter);
   }
-  return formatter.format(amount);
+  return formatter;
+}
+
+/** Format a numeric amount with the correct currency symbol and decimal places,
+ *  in the rider's number locale (app language + device region, see number-locale). */
+export function formatCurrency(amount: number, currency: Currency = 'USD'): string {
+  return moneyFormatter(currency, false).format(amount);
+}
+
+/** Whole currency units ("€218", "$ 14.000.000") for averages and prices. */
+export function formatCurrencyWhole(amount: number, currency: Currency = 'USD'): string {
+  return moneyFormatter(currency, true).format(amount);
 }
 
 /** Get the currency symbol for display (e.g., input prefix).

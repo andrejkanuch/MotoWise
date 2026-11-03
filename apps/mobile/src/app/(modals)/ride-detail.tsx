@@ -63,7 +63,7 @@ import { dropDeadLetteredRide, enqueueOrExecute } from '../../utils/ride-sync-qu
 type RideDetailPayload = NonNullable<GetRideQuery['ride'] | GetPublicRideQuery['getPublicRide']>;
 
 export default function RideDetailScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { t: theme, isDark } = useEditorialTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -343,7 +343,7 @@ export default function RideDetailScreen() {
 
   // Meta line under the title: "Saturday, May 24, 2026 · BMW R 1250 GS"
   const metaDate = ride.startedAt
-    ? new Date(ride.startedAt).toLocaleDateString('en-US', {
+    ? new Date(ride.startedAt).toLocaleDateString(i18n.language, {
         weekday: 'long',
         month: 'long',
         day: 'numeric',
