@@ -1,8 +1,8 @@
 import type { SupportedLocale } from '@motovault/types';
-import { SUPPORTED_LOCALES } from '@motovault/types';
 import { getLocales } from 'expo-localization';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { resolveSupportedLocale } from '../lib/device-locale';
 import { logger } from '../lib/logger';
 import de from './locales/de.json';
 import en from './locales/en.json';
@@ -18,10 +18,7 @@ import sk from './locales/sk.json';
 import th from './locales/th.json';
 import tr from './locales/tr.json';
 
-const deviceLang = getLocales()[0]?.languageCode ?? 'en';
-const resolvedLang: SupportedLocale = (SUPPORTED_LOCALES as readonly string[]).includes(deviceLang)
-  ? (deviceLang as SupportedLocale)
-  : 'en';
+const resolvedLang: SupportedLocale = resolveSupportedLocale(getLocales());
 
 i18n
   .use(initReactI18next)
