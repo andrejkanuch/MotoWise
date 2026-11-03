@@ -3,13 +3,23 @@
 // expo-localization so the store can be imported without native deps.
 
 jest.mock('react-native-mmkv', () => require('../../test/mocks').makeMmkvMock());
-jest.mock('../../i18n', () => ({ __esModule: true, default: { changeLanguage: jest.fn() } }));
+jest.mock('../../i18n', () => ({
+  __esModule: true,
+  default: { changeLanguage: jest.fn() },
+  applyLocalePreference: jest.fn(),
+}));
 jest.mock('expo-localization', () => ({ getLocales: () => [{ measurementSystem: 'metric' }] }));
 
 import type { Session } from '@supabase/supabase-js';
+import { applyLocalePreference } from '../../i18n';
 import { AUTH_HYDRATION } from '../../lib/auth-hydration';
 import { MAP_ORIENTATIONS } from '../../utils/map-orientation';
-import { partializeAuthState, useAuthStore } from '../auth.store';
+import {
+  AUTH_PREFERENCES_VERSION,
+  migrateAuthPreferences,
+  partializeAuthState,
+  useAuthStore,
+} from '../auth.store';
 
 const fakeSession = { access_token: 't', user: { id: 'u1' } } as unknown as Session;
 
@@ -145,5 +155,34 @@ describe('auth.store mapOrientation', () => {
   it('setMapOrientation updates state', () => {
     useAuthStore.getState().setMapOrientation('heading');
     expect(useAuthStore.getState().mapOrientation).toBe('heading');
+  });
+});
+
+describe('auth.store locale preference', () => {
+  it('defaults a fresh install to following the device language', () => {
+    expect(useAuthStore.getInitialState().locale).toBe('system');
+  });
+
+  it('applies the choice to i18n when the rider picks a language', () => {
+    useAuthStore.getState().setLocale('fr');
+    expect(applyLocalePreference).toHaveBeenCalledWith('fr');
+    expect(useAuthStore.getState().locale).toBe('fr');
+  });
+
+  it('migrates the old never-chosen "en" default to system', () => {
+    expect(migrateAuthPreferences({ locale: 'en', currency: 'EUR' }, 0)).toEqual({
+      locale: 'system',
+      currency: 'EUR',
+    });
+  });
+
+  it('keeps an explicit non-English choice across the migration', () => {
+    expect(migrateAuthPreferences({ locale: 'pt-BR' }, 0)).toEqual({ locale: 'pt-BR' });
+  });
+
+  it('leaves current-version state alone', () => {
+    expect(migrateAuthPreferences({ locale: 'en' }, AUTH_PREFERENCES_VERSION)).toEqual({
+      locale: 'en',
+    });
   });
 });

@@ -8,6 +8,7 @@ import {
 import { useColorScheme } from 'nativewind';
 import { useTranslation } from 'react-i18next';
 import { useUpdatePreference } from '../../hooks/use-profile-data';
+import { LOCALE_PREFERENCE, type LocalePreference, resolveDeviceLocale } from '../../i18n/locale';
 import { COLOR_SCHEME, type ColorScheme, useAuthStore } from '../../stores/auth.store';
 import { MAP_ORIENTATIONS, type MapOrientation } from '../../utils/map-orientation';
 import { APP_PREFERENCE_KEY, type AppPreferenceKey } from './constants';
@@ -83,9 +84,16 @@ export function useAppPreferences(): Record<AppPreferenceKey, AppPreference> {
   return {
     [APP_PREFERENCE_KEY.LANGUAGE]: build(
       t('profile.language'),
-      SUPPORTED_LOCALES.map((loc) => ({ value: loc, label: LOCALE_DISPLAY_NAMES[loc] })),
+      [
+        {
+          value: LOCALE_PREFERENCE.SYSTEM,
+          label: t('profile.languageSystem'),
+          subtitle: LOCALE_DISPLAY_NAMES[resolveDeviceLocale()],
+        },
+        ...SUPPORTED_LOCALES.map((loc) => ({ value: loc, label: LOCALE_DISPLAY_NAMES[loc] })),
+      ],
       store.locale,
-      (value) => store.setLocale(value as SupportedLocale),
+      (value) => store.setLocale(value as LocalePreference),
     ),
     [APP_PREFERENCE_KEY.THEME]: build(
       t('profile.theme'),

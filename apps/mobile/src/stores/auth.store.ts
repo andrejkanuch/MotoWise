@@ -1,9 +1,10 @@
-import type { Currency, MeasurementSystem, SupportedLocale } from '@motovault/types';
+import type { Currency, MeasurementSystem } from '@motovault/types';
 import type { Session } from '@supabase/supabase-js';
 import { getLocales } from 'expo-localization';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import i18n from '../i18n';
+import { applyLocalePreference } from '../i18n';
+import { LOCALE_PREFERENCE, type LocalePreference } from '../i18n/locale';
 import { AUTH_HYDRATION, type AuthHydration } from '../lib/auth-hydration';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 import { MAP_ORIENTATIONS, type MapOrientation } from '../utils/map-orientation';
@@ -32,7 +33,8 @@ interface AuthState {
    * from UNRESOLVED-null ("we do not know"). See lib/auth-hydration.
    */
   hydration: AuthHydration;
-  locale: SupportedLocale;
+  /** `system` follows the device language (and per-app language in OS settings). */
+  locale: LocalePreference;
   colorScheme: ColorScheme;
   onboardingCompleted: boolean;
   /**
@@ -51,7 +53,7 @@ interface AuthState {
   markHydrationUnresolved: () => void;
   /** The rider pressed "Sign in instead" on the restoring screen. */
   forceHydrationResolved: () => void;
-  setLocale: (locale: SupportedLocale) => void;
+  setLocale: (locale: LocalePreference) => void;
   setColorScheme: (colorScheme: ColorScheme) => void;
   setOnboardingCompleted: (completed: boolean) => void;
   setMeasurementSystem: (system: MeasurementSystem) => void;
@@ -71,13 +73,29 @@ export function partializeAuthState(state: AuthState) {
   };
 }
 
+/**
+ * v1: `locale` gained `system` (follow the device). Before v1 the store
+ * defaulted to `en` without the rider choosing it, so a saved `en` there means
+ * "never picked" — it becomes `system`. A rider who did pick English on a
+ * non-English phone now follows the device and can pick English again.
+ */
+export const AUTH_PREFERENCES_VERSION = 1;
+
+export function migrateAuthPreferences(persisted: unknown, version: number) {
+  const state = (persisted ?? {}) as Partial<ReturnType<typeof partializeAuthState>>;
+  if (version < 1 && (state.locale === undefined || state.locale === 'en')) {
+    return { ...state, locale: LOCALE_PREFERENCE.SYSTEM };
+  }
+  return state;
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       session: null,
       isLoading: true,
       hydration: AUTH_HYDRATION.PENDING,
-      locale: 'en',
+      locale: LOCALE_PREFERENCE.SYSTEM,
       colorScheme: 'system',
       onboardingCompleted: false,
       hasAuthenticatedBefore: false,
@@ -108,7 +126,7 @@ export const useAuthStore = create<AuthState>()(
       forceHydrationResolved: () => set({ hydration: AUTH_HYDRATION.RESOLVED, isLoading: false }),
       setOnboardingCompleted: (onboardingCompleted) => set({ onboardingCompleted }),
       setLocale: (locale) => {
-        i18n.changeLanguage(locale);
+        applyLocalePreference(locale);
         set({ locale });
       },
       setColorScheme: (colorScheme) => set({ colorScheme }),
@@ -120,6 +138,8 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-preferences',
       storage: createJSONStorage(() => createZustandMMKVStorage('auth-preferences')),
       partialize: partializeAuthState,
+      version: AUTH_PREFERENCES_VERSION,
+      migrate: migrateAuthPreferences,
     },
   ),
 );

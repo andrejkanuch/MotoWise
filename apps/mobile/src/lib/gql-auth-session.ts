@@ -1,4 +1,5 @@
 import type { Session } from '@supabase/supabase-js';
+import { effectiveLocale } from '../i18n/locale';
 import { useAuthStore } from '../stores/auth.store';
 import { AUTH_HYDRATION } from './auth-hydration';
 import { supabase } from './supabase';
@@ -131,7 +132,8 @@ async function materializeSession(): Promise<CachedAccess | null> {
  */
 export async function buildGqlRequestHeaders(): Promise<Record<string, string>> {
   const now = Date.now();
-  const locale = useAuthStore.getState().locale;
+  // The API speaks base locales only (`es`, never `es-ES`); `system` resolves to the device's.
+  const locale = effectiveLocale(useAuthStore.getState().locale);
 
   if (cachedAccess && cachedAccess.expiresAtMs - now > 60_000) {
     return headersFromToken(cachedAccess.accessToken, locale);

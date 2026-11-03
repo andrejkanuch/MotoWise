@@ -1,5 +1,22 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
+/** Mirrors SUPPORTED_LOCALES in @motovault/types (kept in sync by src/i18n/__tests__/locale.test.ts). */
+export const APP_LOCALES = [
+  'en',
+  'es',
+  'de',
+  'fr',
+  'it',
+  'pt-BR',
+  'ja',
+  'hi',
+  'th',
+  'id',
+  'tr',
+  'pl',
+  'sk',
+];
+
 const IS_PRODUCTION = process.env.APP_VARIANT === 'production';
 const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
 
@@ -100,7 +117,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-secure-store',
     'expo-web-browser',
     'expo-apple-authentication',
-    'expo-localization',
+    // Declares the app's languages so iOS (Settings → MotoVault → Language) and
+    // Android 13+ (App info → Language) offer a per-app language. Native: needs a store build.
+    ['expo-localization', { supportedLocales: APP_LOCALES }],
     [
       '@react-native-google-signin/google-signin',
       {
