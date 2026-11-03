@@ -17,8 +17,10 @@ import type { z } from 'zod';
  * so the null reaches the service.
  */
 export function nullishToUndefined<T extends z.ZodTypeAny>(schema: T) {
+  // `.optional()` goes last: zod 4 makes an object key required when a
+  // transform wraps the optional, which would break the `T | undefined` key.
   return schema
     .nullable()
-    .optional()
-    .transform((v): z.output<T> | undefined => v ?? undefined);
+    .transform((v): z.output<T> | undefined => v ?? undefined)
+    .optional();
 }

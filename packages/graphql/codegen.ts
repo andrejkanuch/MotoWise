@@ -14,6 +14,9 @@ const config: CodegenConfig = {
       },
       config: {
         useTypeImports: true,
+        // client-preset 6 defaults to string-literal unions; apps use the
+        // enums as runtime values (MaintenanceTaskStatus.Done, ...).
+        enumType: 'native',
         scalars: {
           UUID: 'string',
           DateTime: 'string',

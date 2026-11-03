@@ -1,82 +1,31 @@
 /* eslint-disable */
-import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
-export type Maybe<T> = T | null;
-export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+/** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-/** All built-in and custom scalars, mapped to their actual values */
-export type Scalars = {
-  ID: { input: string; output: string; }
-  String: { input: string; output: string; }
-  Boolean: { input: boolean; output: boolean; }
-  Int: { input: number; output: number; }
-  Float: { input: number; output: number; }
-  /** A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format. */
-  DateTime: { input: string; output: string; }
-  /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
-  JSON: { input: Record<string, unknown>; output: Record<string, unknown>; }
-};
-
+import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type AddDocumentCategoryInput = {
-  name: Scalars['String']['input'];
+  name: string;
 };
 
 export type AddExpensePhotoInput = {
-  bucket?: InputMaybe<Scalars['String']['input']>;
-  expenseId: Scalars['String']['input'];
-  fileSizeBytes?: InputMaybe<Scalars['Int']['input']>;
-  storagePath: Scalars['String']['input'];
+  bucket?: string | null | undefined;
+  expenseId: string;
+  fileSizeBytes?: number | null | undefined;
+  storagePath: string;
 };
 
 export type AddNotePhotoInput = {
-  fileSizeBytes?: InputMaybe<Scalars['Int']['input']>;
-  noteId: Scalars['String']['input'];
-  storagePath: Scalars['String']['input'];
+  fileSizeBytes?: number | null | undefined;
+  noteId: string;
+  storagePath: string;
 };
 
 export type AddTaskPhotoInput = {
-  bucket?: InputMaybe<Scalars['String']['input']>;
-  fileSizeBytes?: InputMaybe<Scalars['Int']['input']>;
-  storagePath: Scalars['String']['input'];
-  taskId: Scalars['String']['input'];
-};
-
-export type AdminMotorcycleSpecDraft = {
-  __typename?: 'AdminMotorcycleSpecDraft';
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  isSafetyCritical: Scalars['Boolean']['output'];
-  make: Scalars['String']['output'];
-  model?: Maybe<Scalars['String']['output']>;
-  sourceContext?: Maybe<Scalars['String']['output']>;
-  sourcePage?: Maybe<Scalars['String']['output']>;
-  sourceTitle?: Maybe<Scalars['String']['output']>;
-  specName: Scalars['String']['output'];
-  specType: Scalars['String']['output'];
-  unit: Scalars['String']['output'];
-  valueDisplay?: Maybe<Scalars['String']['output']>;
-  valueNumeric: Scalars['Float']['output'];
-  variant?: Maybe<Scalars['String']['output']>;
-};
-
-export type AdminOemScheduleDraft = {
-  __typename?: 'AdminOemScheduleDraft';
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  intervalDays?: Maybe<Scalars['Int']['output']>;
-  intervalKm?: Maybe<Scalars['Int']['output']>;
-  isSafetyCritical: Scalars['Boolean']['output'];
-  make: Scalars['String']['output'];
-  model?: Maybe<Scalars['String']['output']>;
-  priority: MaintenancePriority;
-  sourceContext?: Maybe<Scalars['String']['output']>;
-  sourcePage?: Maybe<Scalars['String']['output']>;
-  sourceTitle?: Maybe<Scalars['String']['output']>;
-  taskName: Scalars['String']['output'];
-  variant?: Maybe<Scalars['String']['output']>;
+  bucket?: string | null | undefined;
+  fileSizeBytes?: number | null | undefined;
+  storagePath: string;
+  taskId: string;
 };
 
 /** Affiliate partner for product recommendations */
@@ -86,41 +35,9 @@ export enum AffiliatePartner {
   RockyMountain = 'rocky_mountain'
 }
 
-export type AffiliateProduct = {
-  __typename?: 'AffiliateProduct';
-  affiliateUrl: Scalars['String']['output'];
-  partner: AffiliatePartner;
-  productUrl: Scalars['String']['output'];
-  tracked: Scalars['Boolean']['output'];
-};
-
-export type AiBudgetStatus = {
-  __typename?: 'AiBudgetStatus';
-  circuitBreakerOpen: Scalars['Boolean']['output'];
-  dailySpendCapCents: Scalars['Int']['output'];
-  todayGenerationCount: Scalars['Int']['output'];
-  todaySpendCents: Scalars['Int']['output'];
-};
-
 export type ApproveMaintenanceDraftInput = {
-  id: Scalars['ID']['input'];
-  kind: Scalars['String']['input'];
-};
-
-export type Article = {
-  __typename?: 'Article';
-  category: ArticleCategory;
-  contentJson?: Maybe<Scalars['JSON']['output']>;
-  difficulty: ArticleDifficulty;
-  generatedAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  isSafetyCritical: Scalars['Boolean']['output'];
-  keywords?: Maybe<Array<Scalars['String']['output']>>;
-  readTime?: Maybe<Scalars['Int']['output']>;
-  slug: Scalars['String']['output'];
-  title: Scalars['String']['output'];
-  updatedAt: Scalars['String']['output'];
-  viewCount: Scalars['Int']['output'];
+  id: string | number;
+  kind: string;
 };
 
 export enum ArticleCategory {
@@ -134,29 +51,16 @@ export enum ArticleCategory {
   Tires = 'tires'
 }
 
-export type ArticleConnection = {
-  __typename?: 'ArticleConnection';
-  edges: Array<ArticleEdge>;
-  pageInfo: PageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
 export enum ArticleDifficulty {
   Advanced = 'advanced',
   Beginner = 'beginner',
   Intermediate = 'intermediate'
 }
 
-export type ArticleEdge = {
-  __typename?: 'ArticleEdge';
-  cursor: Scalars['String']['output'];
-  node: Article;
-};
-
 export type AskTripAssistantInput = {
-  history?: InputMaybe<Array<TripAssistantHistoryMessage>>;
-  question: Scalars['String']['input'];
-  tripId: Scalars['ID']['input'];
+  history?: Array<TripAssistantHistoryMessage> | null | undefined;
+  question: string;
+  tripId: string | number;
 };
 
 /** Role of a message in the trip assistant conversation. */
@@ -164,14 +68,6 @@ export enum AssistantMessageRole {
   Assistant = 'assistant',
   User = 'user'
 }
-
-/** A one-time Stripe Customer Portal link for a web (Stripe) subscriber to manage or cancel. */
-export type BillingPortalSession = {
-  __typename?: 'BillingPortalSession';
-  status: BillingPortalStatus;
-  /** Short-lived portal URL; present only when status is ok. */
-  url?: Maybe<Scalars['String']['output']>;
-};
 
 /** Outcome of creating a Stripe billing portal session for a web subscriber. */
 export enum BillingPortalStatus {
@@ -181,434 +77,228 @@ export enum BillingPortalStatus {
   Unavailable = 'unavailable'
 }
 
-export type BlogCategory = {
-  __typename?: 'BlogCategory';
-  id: Scalars['ID']['output'];
-  isPrimary?: Maybe<Scalars['Boolean']['output']>;
-  name: Scalars['String']['output'];
-  parentId?: Maybe<Scalars['ID']['output']>;
-  slug: Scalars['String']['output'];
-};
-
-export type BlogKeyword = {
-  __typename?: 'BlogKeyword';
-  id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
-  slug: Scalars['String']['output'];
-};
-
-export type BlogPost = {
-  __typename?: 'BlogPost';
-  author?: Maybe<Scalars['String']['output']>;
-  categories: Array<BlogCategory>;
-  coverAlt?: Maybe<Scalars['String']['output']>;
-  coverImage?: Maybe<Scalars['String']['output']>;
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  isSafetyCritical: Scalars['Boolean']['output'];
-  keywords: Array<BlogKeyword>;
-  publishedAt?: Maybe<Scalars['String']['output']>;
-  scheduledFor?: Maybe<Scalars['String']['output']>;
-  slug: Scalars['String']['output'];
-  specData: Scalars['Boolean']['output'];
-  status: Scalars['String']['output'];
-  translations: Array<BlogTranslation>;
-  type: Scalars['String']['output'];
-  typeData?: Maybe<Scalars['JSON']['output']>;
-  updatedAt: Scalars['String']['output'];
-};
-
-export type BlogPostConnection = {
-  __typename?: 'BlogPostConnection';
-  edges: Array<BlogPostEdge>;
-  pageInfo: PageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
-export type BlogPostEdge = {
-  __typename?: 'BlogPostEdge';
-  cursor: Scalars['String']['output'];
-  node: BlogPost;
-};
-
-export type BlogPostVersion = {
-  __typename?: 'BlogPostVersion';
-  createdAt: Scalars['String']['output'];
-  createdBy?: Maybe<Scalars['ID']['output']>;
-  status?: Maybe<Scalars['String']['output']>;
-  title?: Maybe<Scalars['String']['output']>;
-  versionNum: Scalars['Int']['output'];
-};
-
-export type BlogTranslation = {
-  __typename?: 'BlogTranslation';
-  bodyRaw: Scalars['String']['output'];
-  excerpt?: Maybe<Scalars['String']['output']>;
-  faq?: Maybe<Scalars['JSON']['output']>;
-  locale: Scalars['String']['output'];
-  readingTime?: Maybe<Scalars['String']['output']>;
-  seoDescription?: Maybe<Scalars['String']['output']>;
-  seoTitle?: Maybe<Scalars['String']['output']>;
-  title: Scalars['String']['output'];
-  wordCount?: Maybe<Scalars['Int']['output']>;
-};
-
 export type BlogTranslationInput = {
-  bodyRaw: Scalars['String']['input'];
-  excerpt?: InputMaybe<Scalars['String']['input']>;
-  faq?: InputMaybe<Scalars['JSON']['input']>;
-  locale: Scalars['String']['input'];
-  readingTime?: InputMaybe<Scalars['String']['input']>;
-  seoDescription?: InputMaybe<Scalars['String']['input']>;
-  seoTitle?: InputMaybe<Scalars['String']['input']>;
-  title: Scalars['String']['input'];
-};
-
-export type BrowseExploreRegionResult = {
-  __typename?: 'BrowseExploreRegionResult';
-  country: BrowsePlace;
-  region: BrowsePlace;
-};
-
-/** Public place row for explore / browse (countries, regions) */
-export type BrowsePlace = {
-  __typename?: 'BrowsePlace';
-  countryCode: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  kind: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  parentId?: Maybe<Scalars['String']['output']>;
-  regionCode?: Maybe<Scalars['String']['output']>;
-  routeCount: Scalars['Int']['output'];
-  slug: Scalars['String']['output'];
-};
-
-export type CancelReceiptScanResult = CancelReceiptScanSuccess | ReceiptScanError;
-
-export type CancelReceiptScanSuccess = {
-  __typename?: 'CancelReceiptScanSuccess';
-  scanId: Scalars['String']['output'];
-  status: Scalars['String']['output'];
-};
-
-export type CategoryTotal = {
-  __typename?: 'CategoryTotal';
-  category: Scalars['String']['output'];
-  total: Scalars['Float']['output'];
-};
-
-export type Comment = {
-  __typename?: 'Comment';
-  author: CommentAuthor;
-  createdAt: Scalars['String']['output'];
-  flaggedCount: Scalars['Int']['output'];
-  id: Scalars['ID']['output'];
-  parentCommentId?: Maybe<Scalars['ID']['output']>;
-  replies?: Maybe<Array<Comment>>;
-  text: Scalars['String']['output'];
-};
-
-export type CommentAuthor = {
-  __typename?: 'CommentAuthor';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  displayName: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  publicUsername?: Maybe<Scalars['String']['output']>;
-};
-
-export type CommentConnection = {
-  __typename?: 'CommentConnection';
-  comments: Array<Comment>;
-  endCursor?: Maybe<Scalars['String']['output']>;
-  hasNextPage: Scalars['Boolean']['output'];
-  totalCount: Scalars['Int']['output'];
+  bodyRaw: string;
+  excerpt?: string | null | undefined;
+  faq?: Record<string, unknown> | null | undefined;
+  locale: string;
+  readingTime?: string | null | undefined;
+  seoDescription?: string | null | undefined;
+  seoTitle?: string | null | undefined;
+  title: string;
 };
 
 export type CompleteMaintenanceTaskInput = {
-  completedMileage?: InputMaybe<Scalars['Int']['input']>;
-  cost?: InputMaybe<Scalars['Float']['input']>;
-  currency?: InputMaybe<Scalars['String']['input']>;
-  laborCost?: InputMaybe<Scalars['Float']['input']>;
-  partsCost?: InputMaybe<Scalars['Float']['input']>;
+  completedMileage?: number | null | undefined;
+  cost?: number | null | undefined;
+  currency?: string | null | undefined;
+  laborCost?: number | null | undefined;
+  partsCost?: number | null | undefined;
 };
 
 export type CompleteOnboardingInput = {
   /** OEM schedule IDs the user accepted in the maintenance swipe screen */
-  acceptedOemScheduleIds?: InputMaybe<Array<Scalars['String']['input']>>;
-  annualRepairSpend?: InputMaybe<Scalars['String']['input']>;
-  bikeMake?: InputMaybe<Scalars['String']['input']>;
-  bikeMileage?: InputMaybe<Scalars['Int']['input']>;
-  bikeMileageUnit?: InputMaybe<Scalars['String']['input']>;
-  bikeModel?: InputMaybe<Scalars['String']['input']>;
-  bikeNickname?: InputMaybe<Scalars['String']['input']>;
-  bikePhotoUrl?: InputMaybe<Scalars['String']['input']>;
-  bikeType?: InputMaybe<Scalars['String']['input']>;
-  bikeYear?: InputMaybe<Scalars['Int']['input']>;
-  currency?: InputMaybe<Scalars['String']['input']>;
+  acceptedOemScheduleIds?: Array<string> | null | undefined;
+  annualRepairSpend?: string | null | undefined;
+  bikeMake?: string | null | undefined;
+  bikeMileage?: number | null | undefined;
+  bikeMileageUnit?: string | null | undefined;
+  bikeModel?: string | null | undefined;
+  bikeNickname?: string | null | undefined;
+  bikePhotoUrl?: string | null | undefined;
+  bikeType?: string | null | undefined;
+  bikeYear?: number | null | undefined;
+  currency?: string | null | undefined;
   /** UUID for client-server event deduplication with Meta CAPI */
-  eventId?: InputMaybe<Scalars['String']['input']>;
-  experienceLevel: Scalars['String']['input'];
+  eventId?: string | null | undefined;
+  experienceLevel: string;
   /** Meta click ID from deep link for CAPI attribution */
-  fbclid?: InputMaybe<Scalars['String']['input']>;
+  fbclid?: string | null | undefined;
   /** Sent only when the contact opt-in line was ticked; saved with the account email */
-  feedbackContactOptIn?: InputMaybe<FeedbackContactOptInInput>;
-  lastServiceDate?: InputMaybe<Scalars['String']['input']>;
-  learningFormats: Array<Scalars['String']['input']>;
-  maintenanceReminders?: InputMaybe<Scalars['Boolean']['input']>;
-  maintenanceStyle?: InputMaybe<Scalars['String']['input']>;
-  recallAlerts?: InputMaybe<Scalars['Boolean']['input']>;
-  reminderChannel?: InputMaybe<Scalars['String']['input']>;
-  ridingFrequency?: InputMaybe<Scalars['String']['input']>;
-  ridingGoals: Array<Scalars['String']['input']>;
-  seasonalTips?: InputMaybe<Scalars['Boolean']['input']>;
-  weeklySummary?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-export type CompleteTaskResult = {
-  __typename?: 'CompleteTaskResult';
-  /** The task that was marked as completed */
-  completed: MaintenanceTask;
-  /** The next occurrence if recurring and user opted in, null otherwise */
-  nextOccurrence?: Maybe<MaintenanceTask>;
-};
-
-export type ConditionAggregate = {
-  __typename?: 'ConditionAggregate';
-  condition: Scalars['String']['output'];
-  count: Scalars['Int']['output'];
-};
-
-export type ContentFlag = {
-  __typename?: 'ContentFlag';
-  articleId: Scalars['String']['output'];
-  comment: Scalars['String']['output'];
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  sectionReference?: Maybe<Scalars['String']['output']>;
-  status: FlagStatus;
-  userId: Scalars['String']['output'];
+  feedbackContactOptIn?: FeedbackContactOptInInput | null | undefined;
+  lastServiceDate?: string | null | undefined;
+  learningFormats: Array<string>;
+  maintenanceReminders?: boolean | null | undefined;
+  maintenanceStyle?: string | null | undefined;
+  recallAlerts?: boolean | null | undefined;
+  reminderChannel?: string | null | undefined;
+  ridingFrequency?: string | null | undefined;
+  ridingGoals: Array<string>;
+  seasonalTips?: boolean | null | undefined;
+  weeklySummary?: boolean | null | undefined;
 };
 
 export type CreateBlogCategoryInput = {
-  name: Scalars['String']['input'];
-  parentId?: InputMaybe<Scalars['ID']['input']>;
+  name: string;
+  parentId?: string | number | null | undefined;
 };
 
 export type CreateBlogKeywordInput = {
-  name: Scalars['String']['input'];
+  name: string;
 };
 
 export type CreateBlogPostInput = {
-  author?: InputMaybe<Scalars['String']['input']>;
-  categoryIds?: InputMaybe<Array<Scalars['ID']['input']>>;
-  coverAlt?: InputMaybe<Scalars['String']['input']>;
-  coverImage?: InputMaybe<Scalars['String']['input']>;
-  isSafetyCritical?: InputMaybe<Scalars['Boolean']['input']>;
-  keywordIds?: InputMaybe<Array<Scalars['ID']['input']>>;
-  scheduledFor?: InputMaybe<Scalars['String']['input']>;
-  slug: Scalars['String']['input'];
-  specData?: InputMaybe<Scalars['Boolean']['input']>;
-  status?: InputMaybe<Scalars['String']['input']>;
+  author?: string | null | undefined;
+  categoryIds?: Array<string | number> | null | undefined;
+  coverAlt?: string | null | undefined;
+  coverImage?: string | null | undefined;
+  isSafetyCritical?: boolean | null | undefined;
+  keywordIds?: Array<string | number> | null | undefined;
+  scheduledFor?: string | null | undefined;
+  slug: string;
+  specData?: boolean | null | undefined;
+  status?: string | null | undefined;
   translations: Array<BlogTranslationInput>;
-  type: Scalars['String']['input'];
-  typeData: Scalars['JSON']['input'];
+  type: string;
+  typeData: Record<string, unknown>;
 };
 
 export type CreateCommentInput = {
-  groupRideId?: InputMaybe<Scalars['ID']['input']>;
-  parentCommentId?: InputMaybe<Scalars['ID']['input']>;
-  rideId?: InputMaybe<Scalars['ID']['input']>;
-  routeId?: InputMaybe<Scalars['ID']['input']>;
-  text: Scalars['String']['input'];
-  tripId?: InputMaybe<Scalars['ID']['input']>;
+  groupRideId?: string | number | null | undefined;
+  parentCommentId?: string | number | null | undefined;
+  rideId?: string | number | null | undefined;
+  routeId?: string | number | null | undefined;
+  text: string;
+  tripId?: string | number | null | undefined;
 };
 
 export type CreateDiagnosticInput = {
-  dataSharingOptedIn?: Scalars['Boolean']['input'];
-  motorcycleId?: InputMaybe<Scalars['String']['input']>;
-  wizardAnswers?: InputMaybe<Scalars['JSON']['input']>;
+  dataSharingOptedIn?: boolean;
+  motorcycleId?: string | null | undefined;
+  wizardAnswers?: Record<string, unknown> | null | undefined;
 };
 
 export type CreateDocumentInput = {
-  categoryId: Scalars['String']['input'];
-  documentId: Scalars['String']['input'];
-  expiryDate?: InputMaybe<Scalars['String']['input']>;
+  categoryId: string;
+  documentId: string;
+  expiryDate?: string | null | undefined;
   files: Array<DocumentFileInput>;
-  motorcycleId: Scalars['String']['input'];
-  note?: InputMaybe<Scalars['String']['input']>;
-  title: Scalars['String']['input'];
+  motorcycleId: string;
+  note?: string | null | undefined;
+  title: string;
 };
 
 export type CreateFlagInput = {
-  articleId: Scalars['String']['input'];
-  comment: Scalars['String']['input'];
-  sectionReference?: InputMaybe<Scalars['String']['input']>;
+  articleId: string;
+  comment: string;
+  sectionReference?: string | null | undefined;
 };
 
 export type CreateGroupRideInput = {
-  dateTime: Scalars['String']['input'];
-  description: Scalars['String']['input'];
-  difficulty: Scalars['String']['input'];
-  maxRiders: Scalars['Int']['input'];
-  meetingPointLat: Scalars['Float']['input'];
-  meetingPointLng: Scalars['Float']['input'];
-  meetingPointName?: InputMaybe<Scalars['String']['input']>;
-  routeDescription?: InputMaybe<Scalars['String']['input']>;
-  routeId?: InputMaybe<Scalars['String']['input']>;
-  title: Scalars['String']['input'];
+  dateTime: string;
+  description: string;
+  difficulty: string;
+  maxRiders: number;
+  meetingPointLat: number;
+  meetingPointLng: number;
+  meetingPointName?: string | null | undefined;
+  routeDescription?: string | null | undefined;
+  routeId?: string | null | undefined;
+  title: string;
 };
 
 export type CreateMaintenanceTaskInput = {
-  completedAt?: InputMaybe<Scalars['String']['input']>;
-  completedMileage?: InputMaybe<Scalars['Int']['input']>;
-  cost?: InputMaybe<Scalars['Float']['input']>;
-  currency?: InputMaybe<Scalars['String']['input']>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  dueDate?: InputMaybe<Scalars['String']['input']>;
-  intervalDays?: InputMaybe<Scalars['Int']['input']>;
-  intervalKm?: InputMaybe<Scalars['Int']['input']>;
-  isRecurring?: InputMaybe<Scalars['Boolean']['input']>;
-  laborCost?: InputMaybe<Scalars['Float']['input']>;
-  motorcycleId: Scalars['String']['input'];
-  notes?: InputMaybe<Scalars['String']['input']>;
-  partsCost?: InputMaybe<Scalars['Float']['input']>;
-  partsNeeded?: InputMaybe<Array<Scalars['String']['input']>>;
-  priority?: InputMaybe<MaintenancePriority>;
-  remind1d?: InputMaybe<Scalars['Boolean']['input']>;
-  remind7d?: InputMaybe<Scalars['Boolean']['input']>;
-  remind30d?: InputMaybe<Scalars['Boolean']['input']>;
-  status?: InputMaybe<MaintenanceTaskStatus>;
-  targetMileage?: InputMaybe<Scalars['Int']['input']>;
-  title: Scalars['String']['input'];
+  completedAt?: string | null | undefined;
+  completedMileage?: number | null | undefined;
+  cost?: number | null | undefined;
+  currency?: string | null | undefined;
+  description?: string | null | undefined;
+  dueDate?: string | null | undefined;
+  intervalDays?: number | null | undefined;
+  intervalKm?: number | null | undefined;
+  isRecurring?: boolean | null | undefined;
+  laborCost?: number | null | undefined;
+  motorcycleId: string;
+  notes?: string | null | undefined;
+  partsCost?: number | null | undefined;
+  partsNeeded?: Array<string> | null | undefined;
+  priority?: MaintenancePriority | null | undefined;
+  remind1d?: boolean | null | undefined;
+  remind7d?: boolean | null | undefined;
+  remind30d?: boolean | null | undefined;
+  status?: MaintenanceTaskStatus | null | undefined;
+  targetMileage?: number | null | undefined;
+  title: string;
 };
 
 export type CreateMotorcycleInput = {
-  make: Scalars['String']['input'];
-  model: Scalars['String']['input'];
-  nickname?: InputMaybe<Scalars['String']['input']>;
-  variant?: InputMaybe<Scalars['String']['input']>;
-  year: Scalars['Int']['input'];
+  make: string;
+  model: string;
+  nickname?: string | null | undefined;
+  variant?: string | null | undefined;
+  year: number;
 };
 
 export type CreateNoteInput = {
-  alsoCreateTask?: InputMaybe<Scalars['Boolean']['input']>;
-  motorcycleId: Scalars['String']['input'];
-  odometer?: InputMaybe<Scalars['Int']['input']>;
-  text: Scalars['String']['input'];
+  alsoCreateTask?: boolean | null | undefined;
+  motorcycleId: string;
+  odometer?: number | null | undefined;
+  text: string;
 };
 
 export type CreateServiceReminderInput = {
-  intervalDays?: InputMaybe<Scalars['Int']['input']>;
-  intervalKm?: InputMaybe<Scalars['Int']['input']>;
-  motorcycleId: Scalars['String']['input'];
+  intervalDays?: number | null | undefined;
+  intervalKm?: number | null | undefined;
+  motorcycleId: string;
   serviceType: MaintenanceServiceType;
 };
 
 export type CreateShareLinkInput = {
-  expiresInDays?: InputMaybe<Scalars['Int']['input']>;
-  motorcycleId: Scalars['String']['input'];
+  expiresInDays?: number | null | undefined;
+  motorcycleId: string;
 };
 
 export type CreateTripInput = {
-  description: Scalars['String']['input'];
-  difficulty: Scalars['String']['input'];
-  endDate: Scalars['String']['input'];
-  maxRiders: Scalars['Int']['input'];
-  startDate: Scalars['String']['input'];
-  title: Scalars['String']['input'];
+  description: string;
+  difficulty: string;
+  endDate: string;
+  maxRiders: number;
+  startDate: string;
+  title: string;
 };
 
 export type CreateTripReviewInput = {
-  bikeId?: InputMaybe<Scalars['ID']['input']>;
-  conditionTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  rating: Scalars['Int']['input'];
-  text?: InputMaybe<Scalars['String']['input']>;
-  tripId: Scalars['ID']['input'];
+  bikeId?: string | number | null | undefined;
+  conditionTags?: Array<string> | null | undefined;
+  rating: number;
+  text?: string | null | undefined;
+  tripId: string | number;
 };
 
 export type CreateTripSuggestionInput = {
-  dayIndex?: InputMaybe<Scalars['Int']['input']>;
+  dayIndex?: number | null | undefined;
   kind?: TripSuggestionKind;
-  lat?: InputMaybe<Scalars['Float']['input']>;
-  lng?: InputMaybe<Scalars['Float']['input']>;
-  name: Scalars['String']['input'];
-  notes?: InputMaybe<Scalars['String']['input']>;
-  periodOfDay?: InputMaybe<PeriodOfDay>;
-  tripId: Scalars['ID']['input'];
+  lat?: number | null | undefined;
+  lng?: number | null | undefined;
+  name: string;
+  notes?: string | null | undefined;
+  periodOfDay?: PeriodOfDay | null | undefined;
+  tripId: string | number;
 };
 
 export type CreateTripWithWaypointsInput = {
-  dayCount?: InputMaybe<Scalars['Int']['input']>;
-  description: Scalars['String']['input'];
-  difficulty: Scalars['String']['input'];
-  endDate?: InputMaybe<Scalars['String']['input']>;
-  isShowcase?: InputMaybe<Scalars['Boolean']['input']>;
-  maxRiders: Scalars['Int']['input'];
-  startDate?: InputMaybe<Scalars['String']['input']>;
-  title: Scalars['String']['input'];
-  visibility?: InputMaybe<Scalars['String']['input']>;
+  dayCount?: number | null | undefined;
+  description: string;
+  difficulty: string;
+  endDate?: string | null | undefined;
+  isShowcase?: boolean | null | undefined;
+  maxRiders: number;
+  startDate?: string | null | undefined;
+  title: string;
+  visibility?: string | null | undefined;
   waypoints: Array<InlineWaypointInput>;
 };
 
 export type CreateWaypointInput = {
-  dayIndex?: Scalars['Int']['input'];
-  lat: Scalars['Float']['input'];
-  lng: Scalars['Float']['input'];
-  name: Scalars['String']['input'];
-  notes?: InputMaybe<Scalars['String']['input']>;
-  periodOfDay?: InputMaybe<PeriodOfDay>;
-  sortOrder: Scalars['Int']['input'];
-  tripId: Scalars['ID']['input'];
-  type: Scalars['String']['input'];
-};
-
-export type CurrencyTotal = {
-  __typename?: 'CurrencyTotal';
-  /** Number of expenses summed into total */
-  count: Scalars['Int']['output'];
-  /** ISO 4217 code */
-  currency: Scalars['String']['output'];
-  total: Scalars['Float']['output'];
-};
-
-export type DailyDistance = {
-  __typename?: 'DailyDistance';
-  date: Scalars['String']['output'];
-  distanceM: Scalars['Float']['output'];
-};
-
-export type DataExportRequest = {
-  __typename?: 'DataExportRequest';
-  completedAt?: Maybe<Scalars['String']['output']>;
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  requestedAt: Scalars['String']['output'];
-  status: Scalars['String']['output'];
-  userId: Scalars['String']['output'];
-};
-
-export type Diagnostic = {
-  __typename?: 'Diagnostic';
-  confidence?: Maybe<Scalars['Float']['output']>;
-  createdAt: Scalars['String']['output'];
-  dataSharingOptedIn: Scalars['Boolean']['output'];
-  description?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  motorcycleId?: Maybe<Scalars['String']['output']>;
-  photoUrl?: Maybe<Scalars['String']['output']>;
-  relatedArticleId?: Maybe<Scalars['String']['output']>;
-  resultJson?: Maybe<Scalars['JSON']['output']>;
-  severity?: Maybe<DiagnosticSeverity>;
-  status: Scalars['String']['output'];
-  urgency?: Maybe<Urgency>;
-  userId: Scalars['String']['output'];
-};
-
-export type DiagnosticQuota = {
-  __typename?: 'DiagnosticQuota';
-  limit: Scalars['Int']['output'];
-  resetDate: Scalars['String']['output'];
-  used: Scalars['Int']['output'];
+  dayIndex?: number;
+  lat: number;
+  lng: number;
+  name: string;
+  notes?: string | null | undefined;
+  periodOfDay?: PeriodOfDay | null | undefined;
+  sortOrder: number;
+  tripId: string | number;
+  type: string;
 };
 
 export enum DiagnosticSeverity {
@@ -618,188 +308,32 @@ export enum DiagnosticSeverity {
   Medium = 'medium'
 }
 
-export type Document = {
-  __typename?: 'Document';
-  categoryId: Scalars['String']['output'];
-  createdAt: Scalars['String']['output'];
-  expiryDate?: Maybe<Scalars['String']['output']>;
-  files: Array<DocumentFile>;
-  id: Scalars['ID']['output'];
-  isPinned: Scalars['Boolean']['output'];
-  motorcycleId: Scalars['String']['output'];
-  note?: Maybe<Scalars['String']['output']>;
-  title: Scalars['String']['output'];
-  updatedAt: Scalars['String']['output'];
-};
-
-export type DocumentCategory = {
-  __typename?: 'DocumentCategory';
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  isHidden: Scalars['Boolean']['output'];
-  kind: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  promptsExpiry: Scalars['Boolean']['output'];
-  updatedAt: Scalars['String']['output'];
-};
-
-export type DocumentFile = {
-  __typename?: 'DocumentFile';
-  createdAt: Scalars['String']['output'];
-  documentId: Scalars['String']['output'];
-  fileSizeBytes?: Maybe<Scalars['Int']['output']>;
-  id: Scalars['ID']['output'];
-  mimeType: Scalars['String']['output'];
-};
-
 export type DocumentFileInput = {
-  fileSizeBytes: Scalars['Int']['input'];
-  mimeType: Scalars['String']['input'];
-  storagePath: Scalars['String']['input'];
+  fileSizeBytes: number;
+  mimeType: string;
+  storagePath: string;
 };
 
 export type EndRideInput = {
-  autoPausedDurationS?: Scalars['Int']['input'];
-  avgSpeedMps?: InputMaybe<Scalars['Float']['input']>;
-  distanceM?: Scalars['Float']['input'];
-  elevationGain?: InputMaybe<Scalars['Float']['input']>;
-  elevationLoss?: InputMaybe<Scalars['Float']['input']>;
-  endedAt: Scalars['String']['input'];
-  gpsQuality?: InputMaybe<Scalars['Float']['input']>;
-  maxLeanAngle?: InputMaybe<Scalars['Float']['input']>;
-  maxSpeedMps?: InputMaybe<Scalars['Float']['input']>;
-  pausedDurationS?: Scalars['Int']['input'];
-  rideId: Scalars['String']['input'];
-  routePolyline?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type EndRideResponse = {
-  __typename?: 'EndRideResponse';
-  ride: Ride;
-  triggeredMaintenanceTasks: Array<TriggeredMaintenanceTask>;
-};
-
-export type Expense = {
-  __typename?: 'Expense';
-  amount: Scalars['Float']['output'];
-  category: Scalars['String']['output'];
-  createdAt: Scalars['String']['output'];
-  currency: Scalars['String']['output'];
-  date: Scalars['String']['output'];
-  description?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  itemName?: Maybe<Scalars['String']['output']>;
-  maintenanceTaskId?: Maybe<Scalars['String']['output']>;
-  motorcycleId: Scalars['String']['output'];
-  photos?: Maybe<Array<ExpensePhoto>>;
-};
-
-export type ExpenseCategory = {
-  __typename?: 'ExpenseCategory';
-  category: Scalars['String']['output'];
-  /** Per-currency totals, most-used currency first */
-  currencyTotals: Array<CurrencyTotal>;
-  expenses: Array<Expense>;
-  /** This category's spend in the bike's legacy currency (the one with the largest total, the same currency as ExpenseSummary.ytdTotal); 0 when the category has none. Never a cross-currency sum. Display currencyTotals instead. */
-  total: Scalars['Float']['output'];
-};
-
-export type ExpenseCurrencyBreakdown = {
-  __typename?: 'ExpenseCurrencyBreakdown';
-  allTimeTotal: Scalars['Float']['output'];
-  categoryTotals: Array<CategoryTotal>;
-  /** ISO 4217 code every figure in this breakdown is in */
-  currency: Scalars['String']['output'];
-  currentYearTotal: Scalars['Float']['output'];
-  expenseCount: Scalars['Int']['output'];
-  monthlyBuckets: Array<MonthlyBucket>;
-  previousYearTotal: Scalars['Float']['output'];
-};
-
-export type ExpenseDashboardSummary = {
-  __typename?: 'ExpenseDashboardSummary';
-  allTimeTotal: Scalars['Float']['output'];
-  categoryTotals: Array<CategoryTotal>;
-  /** One breakdown per currency, most-used first. Empty when there are no expenses. */
-  currencies: Array<ExpenseCurrencyBreakdown>;
-  /** Currency of the top-level money fields (the breakdown with the largest all-time total). Null when there are no expenses or the per-currency aggregate is unavailable. */
-  currency?: Maybe<Scalars['String']['output']>;
-  currentYearTotal: Scalars['Float']['output'];
-  expenseCount: Scalars['Int']['output'];
-  monthlyBuckets: Array<MonthlyBucket>;
-  previousYearTotal: Scalars['Float']['output'];
-};
-
-export type ExpensePhoto = {
-  __typename?: 'ExpensePhoto';
-  createdAt: Scalars['String']['output'];
-  expenseId: Scalars['String']['output'];
-  fileSizeBytes?: Maybe<Scalars['Int']['output']>;
-  id: Scalars['ID']['output'];
-  mimeType: Scalars['String']['output'];
-  publicUrl: Scalars['String']['output'];
-  storagePath: Scalars['String']['output'];
-};
-
-export type ExpenseSummary = {
-  __typename?: 'ExpenseSummary';
-  categories: Array<ExpenseCategory>;
-  /** Per-currency totals, most-used currency first. Empty when there are no expenses. */
-  currencyTotals: Array<CurrencyTotal>;
-  /** Total of the bike's currency with the largest total only, never a cross-currency sum. Display currencyTotals instead. */
-  ytdTotal: Scalars['Float']['output'];
-};
-
-export type FeedBike = {
-  __typename?: 'FeedBike';
-  make: Scalars['String']['output'];
-  model: Scalars['String']['output'];
-  nickname?: Maybe<Scalars['String']['output']>;
-  year: Scalars['Int']['output'];
-};
-
-export type FeedRide = {
-  __typename?: 'FeedRide';
-  aiSummary?: Maybe<Scalars['String']['output']>;
-  bike?: Maybe<FeedBike>;
-  commentCount: Scalars['Int']['output'];
-  distanceM?: Maybe<Scalars['Int']['output']>;
-  elevationGain?: Maybe<Scalars['Float']['output']>;
-  elevationLoss?: Maybe<Scalars['Float']['output']>;
-  endedAt?: Maybe<Scalars['String']['output']>;
-  hasKudos: Scalars['Boolean']['output'];
-  id: Scalars['ID']['output'];
-  kudosCount: Scalars['Int']['output'];
-  name?: Maybe<Scalars['String']['output']>;
-  rider: FeedRider;
-  routeThumbnailUri?: Maybe<Scalars['String']['output']>;
-  startedAt: Scalars['String']['output'];
-};
-
-export type FeedRideConnection = {
-  __typename?: 'FeedRideConnection';
-  edges: Array<FeedRideEdge>;
-  pageInfo: PageInfo;
-};
-
-export type FeedRideEdge = {
-  __typename?: 'FeedRideEdge';
-  cursor: Scalars['String']['output'];
-  node: FeedRide;
-};
-
-export type FeedRider = {
-  __typename?: 'FeedRider';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  displayName: Scalars['String']['output'];
-  publicUsername: Scalars['String']['output'];
+  autoPausedDurationS?: number;
+  avgSpeedMps?: number | null | undefined;
+  distanceM?: number;
+  elevationGain?: number | null | undefined;
+  elevationLoss?: number | null | undefined;
+  endedAt: string;
+  gpsQuality?: number | null | undefined;
+  maxLeanAngle?: number | null | undefined;
+  maxSpeedMps?: number | null | undefined;
+  pausedDurationS?: number;
+  rideId: string;
+  routePolyline?: string | null | undefined;
 };
 
 export type FeedbackContactOptInInput = {
   /** App locale the opt-in line was shown in */
-  locale: Scalars['String']['input'];
+  locale: string;
   /** FEEDBACK_CONTACT_WORDING_VERSION shown with the opt-in line */
-  wordingVersion: Scalars['Int']['input'];
+  wordingVersion: number;
 };
 
 export enum FlagStatus {
@@ -809,91 +343,29 @@ export enum FlagStatus {
   Reviewed = 'reviewed'
 }
 
-export type Follow = {
-  __typename?: 'Follow';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  createdAt: Scalars['String']['output'];
-  displayName?: Maybe<Scalars['String']['output']>;
-  followerId: Scalars['ID']['output'];
-  followingId: Scalars['ID']['output'];
-  publicUsername?: Maybe<Scalars['String']['output']>;
-};
-
-export type FollowConnection = {
-  __typename?: 'FollowConnection';
-  edges: Array<FollowEdge>;
-  pageInfo: PageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
-export type FollowEdge = {
-  __typename?: 'FollowEdge';
-  cursor: Scalars['String']['output'];
-  node: Follow;
-};
-
 export type FollowRiderInput = {
-  targetUserId: Scalars['String']['input'];
-};
-
-export type FuelRangeResult = {
-  __typename?: 'FuelRangeResult';
-  fuelStops: Array<FuelStop>;
-  rangeSummary: FuelRangeSummary;
-};
-
-export type FuelRangeSummary = {
-  __typename?: 'FuelRangeSummary';
-  effectiveRangeKm: Scalars['Float']['output'];
-  stopsRequired: Scalars['Int']['output'];
-  summary: Scalars['String']['output'];
-};
-
-export type FuelStop = {
-  __typename?: 'FuelStop';
-  amenity: Scalars['String']['output'];
-  lat: Scalars['Float']['output'];
-  lng: Scalars['Float']['output'];
-  name: Scalars['String']['output'];
-  osmId: Scalars['ID']['output'];
-};
-
-export type GpxExportError = {
-  __typename?: 'GPXExportError';
-  code: Scalars['String']['output'];
-  quotaRemaining?: Maybe<Scalars['Int']['output']>;
-  reason: Scalars['String']['output'];
-  upgradeUrl?: Maybe<Scalars['String']['output']>;
-};
-
-export type GpxExportResult = GpxExportError | GpxExportSuccess;
-
-export type GpxExportSuccess = {
-  __typename?: 'GPXExportSuccess';
-  fileName: Scalars['String']['output'];
-  fileUrl: Scalars['String']['output'];
-  message: Scalars['String']['output'];
+  targetUserId: string;
 };
 
 export type GenerateArticleInput = {
-  category?: InputMaybe<ArticleCategory>;
-  difficulty?: InputMaybe<ArticleDifficulty>;
-  topic: Scalars['String']['input'];
+  category?: ArticleCategory | null | undefined;
+  difficulty?: ArticleDifficulty | null | undefined;
+  topic: string;
 };
 
 export type GenerateInsightsInput = {
-  bikeMake?: InputMaybe<Scalars['String']['input']>;
-  bikeModel?: InputMaybe<Scalars['String']['input']>;
-  bikeType?: InputMaybe<Scalars['String']['input']>;
-  bikeYear?: InputMaybe<Scalars['Int']['input']>;
-  currentMileage?: InputMaybe<Scalars['Int']['input']>;
-  experienceLevel: Scalars['String']['input'];
-  maintenanceStyle?: InputMaybe<Scalars['String']['input']>;
-  ridingFrequency?: InputMaybe<Scalars['String']['input']>;
+  bikeMake?: string | null | undefined;
+  bikeModel?: string | null | undefined;
+  bikeType?: string | null | undefined;
+  bikeYear?: number | null | undefined;
+  currentMileage?: number | null | undefined;
+  experienceLevel: string;
+  maintenanceStyle?: string | null | undefined;
+  ridingFrequency?: string | null | undefined;
 };
 
 export type GenerateReportInput = {
-  bikeId: Scalars['String']['input'];
+  bikeId: string;
 };
 
 /** Status of AI content generation (e.g. ride summaries) */
@@ -903,73 +375,6 @@ export enum GenerationStatus {
   Pending = 'pending'
 }
 
-export type GroupRide = {
-  __typename?: 'GroupRide';
-  createdAt: Scalars['String']['output'];
-  dateTime: Scalars['String']['output'];
-  description: Scalars['String']['output'];
-  difficulty: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  maxRiders: Scalars['Int']['output'];
-  meetingPointLat: Scalars['Float']['output'];
-  meetingPointLng: Scalars['Float']['output'];
-  meetingPointName?: Maybe<Scalars['String']['output']>;
-  organiser: GroupRideOrganiser;
-  participantCount: Scalars['Int']['output'];
-  participants?: Maybe<Array<GroupRideParticipant>>;
-  routeDescription?: Maybe<Scalars['String']['output']>;
-  routeId?: Maybe<Scalars['ID']['output']>;
-  status: Scalars['String']['output'];
-  title: Scalars['String']['output'];
-};
-
-export type GroupRideConnection = {
-  __typename?: 'GroupRideConnection';
-  edges: Array<GroupRideEdge>;
-  pageInfo: GroupRidePageInfo;
-};
-
-export type GroupRideEdge = {
-  __typename?: 'GroupRideEdge';
-  cursor: Scalars['String']['output'];
-  node: GroupRide;
-};
-
-export type GroupRideOrganiser = {
-  __typename?: 'GroupRideOrganiser';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  displayName: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  publicUsername?: Maybe<Scalars['String']['output']>;
-};
-
-export type GroupRidePageInfo = {
-  __typename?: 'GroupRidePageInfo';
-  endCursor?: Maybe<Scalars['String']['output']>;
-  hasNextPage: Scalars['Boolean']['output'];
-};
-
-export type GroupRideParticipant = {
-  __typename?: 'GroupRideParticipant';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  displayName: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  joinedAt: Scalars['String']['output'];
-  publicUsername?: Maybe<Scalars['String']['output']>;
-};
-
-export type HealthReport = {
-  __typename?: 'HealthReport';
-  completedAt?: Maybe<Scalars['String']['output']>;
-  createdAt: Scalars['String']['output'];
-  iapTransactionId?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  motorcycleId?: Maybe<Scalars['ID']['output']>;
-  pdfUrl?: Maybe<Scalars['String']['output']>;
-  status: HealthReportStatus;
-  userId: Scalars['String']['output'];
-};
-
 /** Status of a bike health report generation */
 export enum HealthReportStatus {
   Completed = 'completed',
@@ -978,14 +383,14 @@ export enum HealthReportStatus {
 }
 
 export type InlineWaypointInput = {
-  dayIndex?: Scalars['Int']['input'];
-  lat: Scalars['Float']['input'];
-  lng: Scalars['Float']['input'];
-  name: Scalars['String']['input'];
-  notes?: InputMaybe<Scalars['String']['input']>;
-  periodOfDay?: InputMaybe<PeriodOfDay>;
-  sortOrder: Scalars['Int']['input'];
-  type: Scalars['String']['input'];
+  dayIndex?: number;
+  lat: number;
+  lng: number;
+  name: string;
+  notes?: string | null | undefined;
+  periodOfDay?: PeriodOfDay | null | undefined;
+  sortOrder: number;
+  type: string;
 };
 
 export enum InsightType {
@@ -995,75 +400,32 @@ export enum InsightType {
 }
 
 export type JoinTripInput = {
-  bikeId?: InputMaybe<Scalars['ID']['input']>;
-  status?: InputMaybe<Scalars['String']['input']>;
-  tripId: Scalars['ID']['input'];
-};
-
-export type KudosResult = {
-  __typename?: 'KudosResult';
-  hasKudos: Scalars['Boolean']['output'];
-  kudosCount: Scalars['Int']['output'];
-};
-
-export type KudosUser = {
-  __typename?: 'KudosUser';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  displayName?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  publicUsername?: Maybe<Scalars['String']['output']>;
-};
-
-export type LastRideSummary = {
-  __typename?: 'LastRideSummary';
-  date: Scalars['String']['output'];
-  distanceM: Scalars['Float']['output'];
-  durationS: Scalars['Int']['output'];
-  id: Scalars['String']['output'];
-  maxSpeedMps?: Maybe<Scalars['Float']['output']>;
-  motorcycleName?: Maybe<Scalars['String']['output']>;
-  summaryTitle?: Maybe<Scalars['String']['output']>;
-};
-
-export type LearningProgress = {
-  __typename?: 'LearningProgress';
-  articleId: Scalars['String']['output'];
-  articleRead: Scalars['Boolean']['output'];
-  firstReadAt?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  lastReadAt?: Maybe<Scalars['String']['output']>;
-  quizBestScore?: Maybe<Scalars['Int']['output']>;
-  quizCompleted: Scalars['Boolean']['output'];
-  userId: Scalars['String']['output'];
+  bikeId?: string | number | null | undefined;
+  status?: string | null | undefined;
+  tripId: string | number;
 };
 
 export type ListBlogPostsInput = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  status?: InputMaybe<Scalars['String']['input']>;
-  type?: InputMaybe<Scalars['String']['input']>;
+  after?: string | null | undefined;
+  first?: number | null | undefined;
+  status?: string | null | undefined;
+  type?: string | null | undefined;
 };
 
 export type LogExpenseInput = {
-  amount: Scalars['Float']['input'];
-  category: Scalars['String']['input'];
-  currency?: InputMaybe<Scalars['String']['input']>;
-  date: Scalars['String']['input'];
-  description?: InputMaybe<Scalars['String']['input']>;
-  itemName?: InputMaybe<Scalars['String']['input']>;
-  motorcycleId: Scalars['String']['input'];
+  amount: number;
+  category: string;
+  currency?: string | null | undefined;
+  date: string;
+  description?: string | null | undefined;
+  itemName?: string | null | undefined;
+  motorcycleId: string;
 };
 
 export type LogOdometerReadingInput = {
-  motorcycleId: Scalars['String']['input'];
-  recordedAt?: InputMaybe<Scalars['String']['input']>;
-  value: Scalars['Int']['input'];
-};
-
-export type MaintenanceDraftReview = {
-  __typename?: 'MaintenanceDraftReview';
-  schedules: Array<AdminOemScheduleDraft>;
-  specs: Array<AdminMotorcycleSpecDraft>;
+  motorcycleId: string;
+  recordedAt?: string | null | undefined;
+  value: number;
 };
 
 export enum MaintenancePriority {
@@ -1093,55 +455,6 @@ export enum MaintenanceServiceType {
   ValveClearance = 'valve_clearance'
 }
 
-export type MaintenanceTask = {
-  __typename?: 'MaintenanceTask';
-  completedAt?: Maybe<Scalars['String']['output']>;
-  completedMileage?: Maybe<Scalars['Int']['output']>;
-  cost?: Maybe<Scalars['Float']['output']>;
-  createdAt: Scalars['String']['output'];
-  currency?: Maybe<Scalars['String']['output']>;
-  description?: Maybe<Scalars['String']['output']>;
-  dueDate?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  intervalDays?: Maybe<Scalars['Int']['output']>;
-  intervalKm?: Maybe<Scalars['Int']['output']>;
-  isRecurring: Scalars['Boolean']['output'];
-  laborCost?: Maybe<Scalars['Float']['output']>;
-  lineItems: Array<MaintenanceTaskLineItem>;
-  motorcycleId: Scalars['String']['output'];
-  notes?: Maybe<Scalars['String']['output']>;
-  oemScheduleId?: Maybe<Scalars['String']['output']>;
-  partsCost?: Maybe<Scalars['Float']['output']>;
-  partsNeeded?: Maybe<Array<Scalars['String']['output']>>;
-  photos: Array<TaskPhoto>;
-  priority: MaintenancePriority;
-  remind1d: Scalars['Boolean']['output'];
-  remind7d: Scalars['Boolean']['output'];
-  remind30d: Scalars['Boolean']['output'];
-  source: MaintenanceTaskSource;
-  status: MaintenanceTaskStatus;
-  targetMileage?: Maybe<Scalars['Int']['output']>;
-  taxAmount?: Maybe<Scalars['Float']['output']>;
-  taxRate?: Maybe<Scalars['Float']['output']>;
-  title: Scalars['String']['output'];
-  totalAmount?: Maybe<Scalars['Float']['output']>;
-  updatedAt: Scalars['String']['output'];
-  userId: Scalars['String']['output'];
-};
-
-export type MaintenanceTaskLineItem = {
-  __typename?: 'MaintenanceTaskLineItem';
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  label: Scalars['String']['output'];
-  lineTotal?: Maybe<Scalars['Float']['output']>;
-  partRef?: Maybe<Scalars['String']['output']>;
-  quantity?: Maybe<Scalars['Float']['output']>;
-  serviceType: MaintenanceServiceType;
-  taskId: Scalars['String']['output'];
-  unitPrice?: Maybe<Scalars['Float']['output']>;
-};
-
 export enum MaintenanceTaskSource {
   Imported = 'imported',
   Oem = 'oem',
@@ -1156,76 +469,11 @@ export enum MaintenanceTaskStatus {
   Skipped = 'skipped'
 }
 
-/** Aggregated fleet stats for a motorcycle make */
-export type MakeStats = {
-  __typename?: 'MakeStats';
-  /** Make name (title case, e.g. "BMW") */
-  make: Scalars['String']['output'];
-  /** Distinct models tracked for this make */
-  models: Scalars['Int']['output'];
-  /** Popularity rank (1 = most riders) */
-  rank: Scalars['Int']['output'];
-  /** Distinct riders who own this make */
-  riders: Scalars['Int']['output'];
-  /** Total bikes of this make in the fleet */
-  totalBikes: Scalars['Int']['output'];
-};
-
 export type ManualBikeInfoInput = {
-  make?: InputMaybe<Scalars['String']['input']>;
-  model?: InputMaybe<Scalars['String']['input']>;
+  make?: string | null | undefined;
+  model?: string | null | undefined;
   type: MotorcycleType;
-  year?: InputMaybe<Scalars['Int']['input']>;
-};
-
-export type MonthlyBucket = {
-  __typename?: 'MonthlyBucket';
-  categories: Array<CategoryTotal>;
-  month: Scalars['Int']['output'];
-  total: Scalars['Float']['output'];
-  year: Scalars['Int']['output'];
-};
-
-export type Motorcycle = {
-  __typename?: 'Motorcycle';
-  createdAt: Scalars['String']['output'];
-  currentMileage?: Maybe<Scalars['Int']['output']>;
-  distanceUnit: Scalars['String']['output'];
-  documents: Array<Document>;
-  engineCc?: Maybe<Scalars['Int']['output']>;
-  id: Scalars['ID']['output'];
-  isPrimary: Scalars['Boolean']['output'];
-  make: Scalars['String']['output'];
-  /** @deprecated Unreliable legacy column (defaults to mi). Use distanceUnit. Dropped in the R6 cleanup. */
-  mileageUnit?: Maybe<Scalars['String']['output']>;
-  mileageUpdatedAt?: Maybe<Scalars['String']['output']>;
-  model: Scalars['String']['output'];
-  nickname?: Maybe<Scalars['String']['output']>;
-  odometerLastRideId?: Maybe<Scalars['String']['output']>;
-  odometerSyncSource?: Maybe<Scalars['String']['output']>;
-  primaryPhotoUrl?: Maybe<Scalars['String']['output']>;
-  purchaseDate?: Maybe<Scalars['String']['output']>;
-  purchasePrice?: Maybe<Scalars['Float']['output']>;
-  recallCount?: Maybe<Scalars['Int']['output']>;
-  recallLastCheckedAt?: Maybe<Scalars['String']['output']>;
-  type?: Maybe<MotorcycleType>;
-  userId: Scalars['String']['output'];
-  variant?: Maybe<Scalars['String']['output']>;
-  vin?: Maybe<Scalars['String']['output']>;
-  year: Scalars['Int']['output'];
-};
-
-export type MotorcycleMake = {
-  __typename?: 'MotorcycleMake';
-  isPopular: Scalars['Boolean']['output'];
-  makeId: Scalars['Int']['output'];
-  makeName: Scalars['String']['output'];
-};
-
-export type MotorcycleModelResult = {
-  __typename?: 'MotorcycleModelResult';
-  modelId: Scalars['Int']['output'];
-  modelName: Scalars['String']['output'];
+  year?: number | null | undefined;
 };
 
 /** Type/category of motorcycle */
@@ -1240,834 +488,12 @@ export enum MotorcycleType {
   Touring = 'touring'
 }
 
-export type Mutation = {
-  __typename?: 'Mutation';
-  acknowledgeRecall: RecallResult;
-  addDocumentCategory: DocumentCategory;
-  addExpensePhoto: ExpensePhoto;
-  addNotePhoto: NotePhoto;
-  addTaskPhoto: TaskPhoto;
-  addWaypoint: TripWaypoint;
-  approveMaintenanceDraft: Scalars['Boolean']['output'];
-  askTripAssistant: TripAssistantMessage;
-  cancelGroupRide: Scalars['Boolean']['output'];
-  cancelReceiptScan: CancelReceiptScanResult;
-  /** Returns the new trip ID */
-  cloneTrip: Scalars['ID']['output'];
-  completeMaintenanceTask: CompleteTaskResult;
-  completeOnboarding: User;
-  /** Creates a Stripe Customer Portal session for the current user's web subscription, so they can manage or cancel it. */
-  createBillingPortalSession: BillingPortalSession;
-  createBlogCategory: BlogCategory;
-  createBlogKeyword: BlogKeyword;
-  createBlogPost: BlogPost;
-  createComment: Comment;
-  createDiagnostic: Diagnostic;
-  createDocument: Document;
-  createFlag: ContentFlag;
-  createGroupRide: GroupRide;
-  createMaintenanceTask: MaintenanceTask;
-  createMotorcycle: Motorcycle;
-  createNote: Note;
-  createServiceReminder: MaintenanceTask;
-  createShareLink: ShareLink;
-  createTaskFromNote: Note;
-  createTrip: Trip;
-  createTripReview: TripReview;
-  createTripSuggestion: TripSuggestion;
-  createTripWithWaypoints: Trip;
-  deleteAccount: Scalars['Boolean']['output'];
-  deleteBlogPost: Scalars['Boolean']['output'];
-  deleteComment: Scalars['Boolean']['output'];
-  deleteDocument: Scalars['Boolean']['output'];
-  deleteDocumentCategory: Scalars['Boolean']['output'];
-  deleteExpense: Scalars['Boolean']['output'];
-  deleteExpensePhoto: Scalars['Boolean']['output'];
-  deleteMaintenanceTask: Scalars['Boolean']['output'];
-  deleteMotorcycle: Scalars['Boolean']['output'];
-  deleteNote: Scalars['Boolean']['output'];
-  deleteNotePhoto: Scalars['Boolean']['output'];
-  deleteRide: Scalars['Boolean']['output'];
-  deleteTaskPhoto: Scalars['Boolean']['output'];
-  deleteTrip: Scalars['Boolean']['output'];
-  deleteTripReview: Scalars['Boolean']['output'];
-  endRide: EndRideResponse;
-  /** Export a trip template as GPX. Metered for free users (1/month), unlimited for Pro. */
-  exportTripGPX: GpxExportResult;
-  flagComment: Scalars['Boolean']['output'];
-  followRider: Follow;
-  generateArticle: Article;
-  generateBikeHealthReport: HealthReport;
-  generateOnboardingInsights: Array<OnboardingInsight>;
-  importOemSchedule: Scalars['Int']['output'];
-  inviteToTrip: Scalars['Boolean']['output'];
-  joinGroupRide: Scalars['Boolean']['output'];
-  joinPremiumWaitlist: Scalars['Boolean']['output'];
-  joinTrip: Scalars['Boolean']['output'];
-  /** Submit email to join waitlist (public, no auth) */
-  joinWaitlist: Scalars['Boolean']['output'];
-  leaveGroupRide: Scalars['Boolean']['output'];
-  leaveTrip: Scalars['Boolean']['output'];
-  logExpense: Expense;
-  logOdometerReading: Motorcycle;
-  markArticleRead: LearningProgress;
-  publishAsTemplate: Trip;
-  publishBlogPost: BlogPost;
-  publishTrip: Trip;
-  regenerateRideSummary: RideSummary;
-  registerPushToken: RegisterPushTokenResult;
-  removeWaypoint: Scalars['Boolean']['output'];
-  reorderWaypoints: Scalars['Boolean']['output'];
-  reportSurface: SurfaceReport;
-  requestDataExport: DataExportRequest;
-  resetAiCircuitBreaker: Scalars['Boolean']['output'];
-  respondToTripInvite: Scalars['Boolean']['output'];
-  respondToTripSuggestion: TripSuggestion;
-  revertBlogPostVersion: BlogPost;
-  revokeShareLink: Scalars['Boolean']['output'];
-  rotateTripShareToken: Scalars['String']['output'];
-  saveReceiptScan: SaveReceiptScanResult;
-  saveTrip: Scalars['Boolean']['output'];
-  scanReceipt: ReceiptScanResult;
-  scheduleBlogPost: BlogPost;
-  /** Send a message to the developer. Saved, then emailed to the support inbox. Idempotent per clientId. */
-  sendFeedback: Scalars['Boolean']['output'];
-  setTripParticipantRole: Scalars['Boolean']['output'];
-  shareRide: Scalars['Boolean']['output'];
-  /** Share a completed ride as a published template trip on Discover. Replaces shareRideToDiscover. */
-  shareRideAsTrip: Trip;
-  startRide: Ride;
-  submitDiagnostic: Diagnostic;
-  submitQuiz: QuizAttempt;
-  toggleKudos: KudosResult;
-  trackAffiliateClick: AffiliateProduct;
-  trackSponsorshipClick: Scalars['Boolean']['output'];
-  trackSponsorshipImpression: Scalars['Boolean']['output'];
-  unacknowledgeRecall: RecallResult;
-  undoReceiptScanSave: UndoReceiptScanResult;
-  unfollowRider: Scalars['Boolean']['output'];
-  unpublishBlogPost: BlogPost;
-  unpublishTemplate: Scalars['Boolean']['output'];
-  unregisterPushToken: RegisterPushTokenResult;
-  unsaveTrip: Scalars['Boolean']['output'];
-  unshareRide: Scalars['Boolean']['output'];
-  updateBlogPost: BlogPost;
-  updateDocument: Document;
-  updateDocumentCategory: DocumentCategory;
-  updateGroupRide: GroupRide;
-  updateHandle: User;
-  updateMaintenanceTask: MaintenanceTask;
-  updateMotorcycle: Motorcycle;
-  updateMyProfile: User;
-  updateNote: Note;
-  updateParticipantStatus: Scalars['Boolean']['output'];
-  updateRide: Ride;
-  updateRideVisibility: Ride;
-  updateTrip: Trip;
-  updateUser: User;
-  updateWaypoint: TripWaypoint;
-  uploadWaypoints: Scalars['Int']['output'];
-};
-
-
-export type MutationAcknowledgeRecallArgs = {
-  campaignNumber: Scalars['String']['input'];
-  motorcycleId: Scalars['ID']['input'];
-};
-
-
-export type MutationAddDocumentCategoryArgs = {
-  input: AddDocumentCategoryInput;
-};
-
-
-export type MutationAddExpensePhotoArgs = {
-  input: AddExpensePhotoInput;
-};
-
-
-export type MutationAddNotePhotoArgs = {
-  input: AddNotePhotoInput;
-};
-
-
-export type MutationAddTaskPhotoArgs = {
-  input: AddTaskPhotoInput;
-};
-
-
-export type MutationAddWaypointArgs = {
-  input: CreateWaypointInput;
-};
-
-
-export type MutationApproveMaintenanceDraftArgs = {
-  input: ApproveMaintenanceDraftInput;
-};
-
-
-export type MutationAskTripAssistantArgs = {
-  input: AskTripAssistantInput;
-};
-
-
-export type MutationCancelGroupRideArgs = {
-  groupRideId: Scalars['ID']['input'];
-};
-
-
-export type MutationCancelReceiptScanArgs = {
-  scanId: Scalars['String']['input'];
-};
-
-
-export type MutationCloneTripArgs = {
-  tripId: Scalars['ID']['input'];
-};
-
-
-export type MutationCompleteMaintenanceTaskArgs = {
-  createNextOccurrence?: InputMaybe<Scalars['Boolean']['input']>;
-  id: Scalars['String']['input'];
-  input?: InputMaybe<CompleteMaintenanceTaskInput>;
-};
-
-
-export type MutationCompleteOnboardingArgs = {
-  input: CompleteOnboardingInput;
-};
-
-
-export type MutationCreateBlogCategoryArgs = {
-  input: CreateBlogCategoryInput;
-};
-
-
-export type MutationCreateBlogKeywordArgs = {
-  input: CreateBlogKeywordInput;
-};
-
-
-export type MutationCreateBlogPostArgs = {
-  input: CreateBlogPostInput;
-};
-
-
-export type MutationCreateCommentArgs = {
-  input: CreateCommentInput;
-};
-
-
-export type MutationCreateDiagnosticArgs = {
-  input: CreateDiagnosticInput;
-};
-
-
-export type MutationCreateDocumentArgs = {
-  input: CreateDocumentInput;
-};
-
-
-export type MutationCreateFlagArgs = {
-  input: CreateFlagInput;
-};
-
-
-export type MutationCreateGroupRideArgs = {
-  input: CreateGroupRideInput;
-};
-
-
-export type MutationCreateMaintenanceTaskArgs = {
-  input: CreateMaintenanceTaskInput;
-};
-
-
-export type MutationCreateMotorcycleArgs = {
-  input: CreateMotorcycleInput;
-};
-
-
-export type MutationCreateNoteArgs = {
-  input: CreateNoteInput;
-};
-
-
-export type MutationCreateServiceReminderArgs = {
-  input: CreateServiceReminderInput;
-};
-
-
-export type MutationCreateShareLinkArgs = {
-  input: CreateShareLinkInput;
-};
-
-
-export type MutationCreateTaskFromNoteArgs = {
-  noteId: Scalars['String']['input'];
-};
-
-
-export type MutationCreateTripArgs = {
-  input: CreateTripInput;
-};
-
-
-export type MutationCreateTripReviewArgs = {
-  input: CreateTripReviewInput;
-};
-
-
-export type MutationCreateTripSuggestionArgs = {
-  input: CreateTripSuggestionInput;
-};
-
-
-export type MutationCreateTripWithWaypointsArgs = {
-  input: CreateTripWithWaypointsInput;
-};
-
-
-export type MutationDeleteBlogPostArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type MutationDeleteCommentArgs = {
-  commentId: Scalars['ID']['input'];
-};
-
-
-export type MutationDeleteDocumentArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type MutationDeleteDocumentCategoryArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type MutationDeleteExpenseArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type MutationDeleteExpensePhotoArgs = {
-  photoId: Scalars['String']['input'];
-};
-
-
-export type MutationDeleteMaintenanceTaskArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type MutationDeleteMotorcycleArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type MutationDeleteNoteArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type MutationDeleteNotePhotoArgs = {
-  photoId: Scalars['String']['input'];
-};
-
-
-export type MutationDeleteRideArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type MutationDeleteTaskPhotoArgs = {
-  photoId: Scalars['ID']['input'];
-};
-
-
-export type MutationDeleteTripArgs = {
-  tripId: Scalars['ID']['input'];
-};
-
-
-export type MutationDeleteTripReviewArgs = {
-  reviewId: Scalars['ID']['input'];
-};
-
-
-export type MutationEndRideArgs = {
-  input: EndRideInput;
-};
-
-
-export type MutationExportTripGpxArgs = {
-  country: Scalars['String']['input'];
-  region: Scalars['String']['input'];
-  slug: Scalars['String']['input'];
-};
-
-
-export type MutationFlagCommentArgs = {
-  commentId: Scalars['ID']['input'];
-};
-
-
-export type MutationFollowRiderArgs = {
-  input: FollowRiderInput;
-};
-
-
-export type MutationGenerateArticleArgs = {
-  input: GenerateArticleInput;
-};
-
-
-export type MutationGenerateBikeHealthReportArgs = {
-  input: GenerateReportInput;
-};
-
-
-export type MutationGenerateOnboardingInsightsArgs = {
-  input: GenerateInsightsInput;
-};
-
-
-export type MutationImportOemScheduleArgs = {
-  motorcycleId: Scalars['String']['input'];
-};
-
-
-export type MutationInviteToTripArgs = {
-  invitedUserId: Scalars['ID']['input'];
-  tripId: Scalars['ID']['input'];
-};
-
-
-export type MutationJoinGroupRideArgs = {
-  groupRideId: Scalars['ID']['input'];
-};
-
-
-export type MutationJoinPremiumWaitlistArgs = {
-  feature: Scalars['String']['input'];
-};
-
-
-export type MutationJoinTripArgs = {
-  input: JoinTripInput;
-};
-
-
-export type MutationJoinWaitlistArgs = {
-  email: Scalars['String']['input'];
-};
-
-
-export type MutationLeaveGroupRideArgs = {
-  groupRideId: Scalars['ID']['input'];
-};
-
-
-export type MutationLeaveTripArgs = {
-  tripId: Scalars['ID']['input'];
-};
-
-
-export type MutationLogExpenseArgs = {
-  input: LogExpenseInput;
-};
-
-
-export type MutationLogOdometerReadingArgs = {
-  input: LogOdometerReadingInput;
-};
-
-
-export type MutationMarkArticleReadArgs = {
-  articleId: Scalars['String']['input'];
-};
-
-
-export type MutationPublishAsTemplateArgs = {
-  tripId: Scalars['ID']['input'];
-};
-
-
-export type MutationPublishBlogPostArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type MutationPublishTripArgs = {
-  tripId: Scalars['ID']['input'];
-};
-
-
-export type MutationRegenerateRideSummaryArgs = {
-  rideId: Scalars['String']['input'];
-};
-
-
-export type MutationRegisterPushTokenArgs = {
-  input: RegisterPushTokenInput;
-};
-
-
-export type MutationRemoveWaypointArgs = {
-  waypointId: Scalars['ID']['input'];
-};
-
-
-export type MutationReorderWaypointsArgs = {
-  input: ReorderWaypointsInput;
-};
-
-
-export type MutationReportSurfaceArgs = {
-  input: ReportSurfaceInput;
-};
-
-
-export type MutationRespondToTripInviteArgs = {
-  accept: Scalars['Boolean']['input'];
-  inviteId: Scalars['ID']['input'];
-};
-
-
-export type MutationRespondToTripSuggestionArgs = {
-  input: RespondToTripSuggestionInput;
-};
-
-
-export type MutationRevertBlogPostVersionArgs = {
-  id: Scalars['String']['input'];
-  versionNum: Scalars['Int']['input'];
-};
-
-
-export type MutationRevokeShareLinkArgs = {
-  linkId: Scalars['ID']['input'];
-};
-
-
-export type MutationRotateTripShareTokenArgs = {
-  tripId: Scalars['ID']['input'];
-};
-
-
-export type MutationSaveReceiptScanArgs = {
-  input: SaveReceiptScanInput;
-  scanId: Scalars['String']['input'];
-};
-
-
-export type MutationSaveTripArgs = {
-  tripId: Scalars['ID']['input'];
-};
-
-
-export type MutationScanReceiptArgs = {
-  isOnboarding?: InputMaybe<Scalars['Boolean']['input']>;
-  scanId: Scalars['String']['input'];
-};
-
-
-export type MutationScheduleBlogPostArgs = {
-  input: ScheduleBlogPostInput;
-};
-
-
-export type MutationSendFeedbackArgs = {
-  input: SendFeedbackInput;
-};
-
-
-export type MutationSetTripParticipantRoleArgs = {
-  input: SetParticipantRoleInput;
-};
-
-
-export type MutationShareRideArgs = {
-  rideId: Scalars['String']['input'];
-  sharedWithUserId: Scalars['String']['input'];
-};
-
-
-export type MutationShareRideAsTripArgs = {
-  input: ShareRideAsTripInput;
-};
-
-
-export type MutationStartRideArgs = {
-  input: StartRideInput;
-};
-
-
-export type MutationSubmitDiagnosticArgs = {
-  input: SubmitDiagnosticInput;
-};
-
-
-export type MutationSubmitQuizArgs = {
-  input: SubmitQuizInput;
-};
-
-
-export type MutationToggleKudosArgs = {
-  rideId: Scalars['String']['input'];
-};
-
-
-export type MutationTrackAffiliateClickArgs = {
-  input: TrackClickInput;
-};
-
-
-export type MutationTrackSponsorshipClickArgs = {
-  input: TrackSponsorshipClickInput;
-};
-
-
-export type MutationTrackSponsorshipImpressionArgs = {
-  input: TrackSponsorshipImpressionInput;
-};
-
-
-export type MutationUnacknowledgeRecallArgs = {
-  campaignNumber: Scalars['String']['input'];
-  motorcycleId: Scalars['ID']['input'];
-};
-
-
-export type MutationUndoReceiptScanSaveArgs = {
-  scanId: Scalars['String']['input'];
-};
-
-
-export type MutationUnfollowRiderArgs = {
-  input: UnfollowRiderInput;
-};
-
-
-export type MutationUnpublishBlogPostArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type MutationUnpublishTemplateArgs = {
-  tripId: Scalars['ID']['input'];
-};
-
-
-export type MutationUnregisterPushTokenArgs = {
-  input: UnregisterPushTokenInput;
-};
-
-
-export type MutationUnsaveTripArgs = {
-  tripId: Scalars['ID']['input'];
-};
-
-
-export type MutationUnshareRideArgs = {
-  rideId: Scalars['String']['input'];
-  sharedWithUserId: Scalars['String']['input'];
-};
-
-
-export type MutationUpdateBlogPostArgs = {
-  input: UpdateBlogPostInput;
-};
-
-
-export type MutationUpdateDocumentArgs = {
-  id: Scalars['String']['input'];
-  input: UpdateDocumentInput;
-};
-
-
-export type MutationUpdateDocumentCategoryArgs = {
-  id: Scalars['String']['input'];
-  input: UpdateDocumentCategoryInput;
-};
-
-
-export type MutationUpdateGroupRideArgs = {
-  input: UpdateGroupRideInput;
-};
-
-
-export type MutationUpdateHandleArgs = {
-  input: UpdateHandleInput;
-};
-
-
-export type MutationUpdateMaintenanceTaskArgs = {
-  id: Scalars['String']['input'];
-  input: UpdateMaintenanceTaskInput;
-};
-
-
-export type MutationUpdateMotorcycleArgs = {
-  id: Scalars['String']['input'];
-  input: UpdateMotorcycleInput;
-};
-
-
-export type MutationUpdateMyProfileArgs = {
-  input: UpdateProfileInput;
-};
-
-
-export type MutationUpdateNoteArgs = {
-  id: Scalars['String']['input'];
-  input: UpdateNoteInput;
-};
-
-
-export type MutationUpdateParticipantStatusArgs = {
-  input: UpdateParticipantStatusInput;
-};
-
-
-export type MutationUpdateRideArgs = {
-  input: UpdateRideInput;
-};
-
-
-export type MutationUpdateRideVisibilityArgs = {
-  rideId: Scalars['String']['input'];
-  visibility: Scalars['String']['input'];
-};
-
-
-export type MutationUpdateTripArgs = {
-  input: UpdateTripInput;
-};
-
-
-export type MutationUpdateUserArgs = {
-  input: UpdateUserInput;
-};
-
-
-export type MutationUpdateWaypointArgs = {
-  input: UpdateWaypointInput;
-};
-
-
-export type MutationUploadWaypointsArgs = {
-  input: UploadWaypointsInput;
-};
-
-export type Note = {
-  __typename?: 'Note';
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  linkedExpenseAmount?: Maybe<Scalars['Float']['output']>;
-  linkedExpenseCurrency?: Maybe<Scalars['String']['output']>;
-  linkedExpenseId?: Maybe<Scalars['String']['output']>;
-  linkedTaskId?: Maybe<Scalars['String']['output']>;
-  linkedTaskTitle?: Maybe<Scalars['String']['output']>;
-  motorcycleId: Scalars['String']['output'];
-  odometer?: Maybe<Scalars['Int']['output']>;
-  photos: Array<NotePhoto>;
-  text: Scalars['String']['output'];
-  updatedAt: Scalars['String']['output'];
-};
-
-export type NotePhoto = {
-  __typename?: 'NotePhoto';
-  createdAt: Scalars['String']['output'];
-  fileSizeBytes?: Maybe<Scalars['Int']['output']>;
-  id: Scalars['ID']['output'];
-  mimeType: Scalars['String']['output'];
-  noteId: Scalars['String']['output'];
-  publicUrl: Scalars['String']['output'];
-  storagePath: Scalars['String']['output'];
-};
-
-export type OdometerReading = {
-  __typename?: 'OdometerReading';
-  id: Scalars['ID']['output'];
-  recordedAt: Scalars['String']['output'];
-  rideId?: Maybe<Scalars['String']['output']>;
-  source: Scalars['String']['output'];
-  value: Scalars['Int']['output'];
-};
-
-export type OemSchedule = {
-  __typename?: 'OemSchedule';
-  createdAt: Scalars['String']['output'];
-  description?: Maybe<Scalars['String']['output']>;
-  engineCcMax?: Maybe<Scalars['Int']['output']>;
-  engineCcMin?: Maybe<Scalars['Int']['output']>;
-  engineType?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  intervalDays?: Maybe<Scalars['Int']['output']>;
-  intervalKm?: Maybe<Scalars['Int']['output']>;
-  make: Scalars['String']['output'];
-  model?: Maybe<Scalars['String']['output']>;
-  priority: MaintenancePriority;
-  serviceType: MaintenanceServiceType;
-  sortOrder: Scalars['Int']['output'];
-  taskName: Scalars['String']['output'];
-  yearFrom?: Maybe<Scalars['Int']['output']>;
-  yearTo?: Maybe<Scalars['Int']['output']>;
-};
-
-export type OnboardingInsight = {
-  __typename?: 'OnboardingInsight';
-  body: Scalars['String']['output'];
-  icon: Scalars['String']['output'];
-  title: Scalars['String']['output'];
-  type: InsightType;
-};
-
-export type OnboardingReveal = {
-  __typename?: 'OnboardingReveal';
-  insights: RevealInsights;
-  make: Scalars['String']['output'];
-  model?: Maybe<Scalars['String']['output']>;
-  /** Number of OEM scheduled tasks loaded for this bike. */
-  oemTaskCount: Scalars['Int']['output'];
-  /** Estimated first-year scheduled-service cost in EUR (hedged "about €X"). */
-  projectedYearlyCostEur?: Maybe<Scalars['Int']['output']>;
-  /** Open recall count. 0 is a positive, reassuring state. */
-  recallCount: Scalars['Int']['output'];
-  /** Open recalls (capped). Empty when none/unknown. */
-  recalls: Array<RevealRecall>;
-  /** False when recalls could not be checked (e.g. make-only capture, NHTSA down). */
-  recallsChecked: Scalars['Boolean']['output'];
-  /** Riders on MotoVault with this make. */
-  riderCount: Scalars['Int']['output'];
-  /** Year echoed back for client convenience. */
-  year: Scalars['Int']['output'];
-};
-
-export type PageInfo = {
-  __typename?: 'PageInfo';
-  endCursor?: Maybe<Scalars['String']['output']>;
-  hasNextPage: Scalars['Boolean']['output'];
-  hasPreviousPage: Scalars['Boolean']['output'];
-  startCursor?: Maybe<Scalars['String']['output']>;
-};
-
 /** Role of a trip participant. */
 export enum ParticipantRole {
   CoPlanner = 'co_planner',
   Organizer = 'organizer',
   Rider = 'rider'
 }
-
-export type PendingRideDistance = {
-  __typename?: 'PendingRideDistance';
-  distance: Scalars['Int']['output'];
-  rideCount: Scalars['Int']['output'];
-};
 
 /** Period of the day assigned to a waypoint or ride segment. */
 export enum PeriodOfDay {
@@ -2076,775 +502,22 @@ export enum PeriodOfDay {
   Morning = 'morning'
 }
 
-export type PlaceSuggestion = {
-  __typename?: 'PlaceSuggestion';
-  countryCode: Scalars['String']['output'];
-  id: Scalars['Int']['output'];
-  kind: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  population: Scalars['Int']['output'];
-  regionCode?: Maybe<Scalars['String']['output']>;
-};
-
-export type PublicRideStats = {
-  __typename?: 'PublicRideStats';
-  joinDate?: Maybe<Scalars['String']['output']>;
-  totalDistance: Scalars['Float']['output'];
-  totalRides: Scalars['Int']['output'];
-};
-
-export type PublicRiderBike = {
-  __typename?: 'PublicRiderBike';
-  make: Scalars['String']['output'];
-  model: Scalars['String']['output'];
-  nickname?: Maybe<Scalars['String']['output']>;
-  year: Scalars['Int']['output'];
-};
-
-export type PublicRiderProfile = {
-  __typename?: 'PublicRiderProfile';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  bikes: Array<PublicRiderBike>;
-  bio?: Maybe<Scalars['String']['output']>;
-  city?: Maybe<Scalars['String']['output']>;
-  displayName?: Maybe<Scalars['String']['output']>;
-  followerCount: Scalars['Int']['output'];
-  followingCount: Scalars['Int']['output'];
-  id: Scalars['ID']['output'];
-  isFollowing?: Maybe<Scalars['Boolean']['output']>;
-  publicUsername: Scalars['String']['output'];
-  rideStats: PublicRideStats;
-};
-
-export type Query = {
-  __typename?: 'Query';
-  adminBlogCategories: Array<BlogCategory>;
-  adminBlogKeywords: Array<BlogKeyword>;
-  adminBlogPost?: Maybe<BlogPost>;
-  adminBlogPostVersions: Array<BlogPostVersion>;
-  adminBlogPosts: BlogPostConnection;
-  aiBudgetStatus: AiBudgetStatus;
-  allMaintenanceTasks: Array<MaintenanceTask>;
-  articleBySlug?: Maybe<Article>;
-  articleBySlugFull?: Maybe<Article>;
-  /** All countries in the places taxonomy (browse / explore) */
-  browseCountries: Array<BrowsePlace>;
-  /** Country by URL slug (lowercase ISO code, e.g. it, de) */
-  browseCountryBySlug?: Maybe<BrowsePlace>;
-  /** Country + region for /explore/:country/:region marketing pages */
-  browseExploreRegion?: Maybe<BrowseExploreRegionResult>;
-  /** Regions with population > 0 for a country slug */
-  browseRegionsByCountrySlug: Array<BrowsePlace>;
-  diagnosticById?: Maybe<Diagnostic>;
-  diagnosticQuota: DiagnosticQuota;
-  discoverRiderTrips: TripConnection;
-  documentCategories: Array<DocumentCategory>;
-  documents: Array<Document>;
-  expenseDashboard: ExpenseDashboardSummary;
-  expensePhotos: Array<ExpensePhoto>;
-  expenses: ExpenseSummary;
-  expiringDocuments: Array<Document>;
-  fuelStops: Array<FuelStop>;
-  fuelStopsNearRoute: FuelRangeResult;
-  getComments: CommentConnection;
-  getDocumentSignedUrl: Scalars['String']['output'];
-  getFollowers: FollowConnection;
-  getFollowing: FollowConnection;
-  /** Returns current GPX export quota usage and limits for the authenticated user */
-  getGPXQuotaStatus: QuotaStatus;
-  getGroupRides: GroupRideConnection;
-  getMyHealthReports: Array<HealthReport>;
-  getPublicRide: Ride;
-  getRiderProfile: PublicRiderProfile;
-  getTrips: TripConnection;
-  groupRideDetail: GroupRide;
-  isTripSaved: Scalars['Boolean']['output'];
-  kudosList: Array<KudosUser>;
-  maintenanceDraftReview: MaintenanceDraftReview;
-  maintenanceTaskHistory: Array<MaintenanceTask>;
-  maintenanceTasks: Array<MaintenanceTask>;
-  /** Aggregated fleet stats per motorcycle make (riders, models, total bikes) */
-  makeStats: Array<MakeStats>;
-  me: User;
-  motorcycleMakes: Array<MotorcycleMake>;
-  motorcycleModels: Array<MotorcycleModelResult>;
-  motorcycleRecalls: RecallResult;
-  myDiagnostics: Array<Diagnostic>;
-  myMotorcycles: Array<Motorcycle>;
-  myProgress: Array<LearningProgress>;
-  myRides: RideConnection;
-  myShareLinks: Array<ShareLink>;
-  myTrips: TripConnection;
-  notes: Array<Note>;
-  odometerReadings: Array<OdometerReading>;
-  oemSchedulesForBike: Array<OemSchedule>;
-  oemSchedulesPreview: Array<OemSchedule>;
-  /** Composed Bike Dossier for the onboarding Reveal (recalls, plan, cost, AI flavor). */
-  onboardingReveal: OnboardingReveal;
-  pendingRideDistance: PendingRideDistance;
-  popularArticles: Array<Article>;
-  /** Public saved trips for a user by handle (public_username) */
-  publicSavedTrips: TripConnection;
-  quizByArticle?: Maybe<Quiz>;
-  receiptScanQuota: ReceiptScanQuota;
-  ride: Ride;
-  rideFeed: FeedRideConnection;
-  rideMilestoneStats: RideMilestoneStats;
-  rideOverview: RideOverview;
-  rideWaypoints: Array<Waypoint>;
-  routeConditions: RouteConditions;
-  routeSponsorships: Array<Sponsorship>;
-  savedTrips: TripConnection;
-  searchArticles: ArticleConnection;
-  searchTypeahead: TypeaheadResult;
-  sharedBikeHistory: SharedBikeHistory;
-  /** Find similar published trip templates by country + difficulty + duration */
-  similarTrips: Array<Trip>;
-  /** Published trip templates for XML sitemap generation */
-  sitemapPublishedTrips: Array<SitemapTripEntry>;
-  spendingSummary: SpendingSummary;
-  templateTripIdForRoute?: Maybe<Scalars['ID']['output']>;
-  tripByShareToken?: Maybe<SharedTrip>;
-  tripBySlug?: Maybe<Trip>;
-  tripDetail: Trip;
-  tripInvites: Array<TripInvite>;
-  /** Get reviews for a trip by ID or by slug (country+region+slug lookup) */
-  tripReviews: Array<TripReview>;
-  tripSuggestions: Array<TripSuggestion>;
-  tripTemplates: TripConnection;
-  unreviewedReceiptScans: Array<UnreviewedScan>;
-  user: User;
-};
-
-
-export type QueryAdminBlogPostArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type QueryAdminBlogPostVersionsArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type QueryAdminBlogPostsArgs = {
-  input?: InputMaybe<ListBlogPostsInput>;
-};
-
-
-export type QueryArticleBySlugArgs = {
-  slug: Scalars['String']['input'];
-};
-
-
-export type QueryArticleBySlugFullArgs = {
-  slug: Scalars['String']['input'];
-};
-
-
-export type QueryBrowseCountryBySlugArgs = {
-  slug: Scalars['String']['input'];
-};
-
-
-export type QueryBrowseExploreRegionArgs = {
-  countrySlug: Scalars['String']['input'];
-  regionSlug: Scalars['String']['input'];
-};
-
-
-export type QueryBrowseRegionsByCountrySlugArgs = {
-  countrySlug: Scalars['String']['input'];
-};
-
-
-export type QueryDiagnosticByIdArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type QueryDiscoverRiderTripsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryDocumentCategoriesArgs = {
-  includeHidden?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-
-export type QueryDocumentsArgs = {
-  motorcycleId: Scalars['String']['input'];
-};
-
-
-export type QueryExpenseDashboardArgs = {
-  motorcycleId: Scalars['String']['input'];
-};
-
-
-export type QueryExpensePhotosArgs = {
-  expenseId: Scalars['String']['input'];
-};
-
-
-export type QueryExpensesArgs = {
-  motorcycleId: Scalars['String']['input'];
-  year?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryExpiringDocumentsArgs = {
-  withinDays?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryFuelStopsArgs = {
-  radiusKm?: InputMaybe<Scalars['Float']['input']>;
-  routeId: Scalars['ID']['input'];
-};
-
-
-export type QueryFuelStopsNearRouteArgs = {
-  bikeId?: InputMaybe<Scalars['ID']['input']>;
-  radiusKm?: InputMaybe<Scalars['Float']['input']>;
-  routeId: Scalars['ID']['input'];
-};
-
-
-export type QueryGetCommentsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  groupRideId?: InputMaybe<Scalars['ID']['input']>;
-  rideId?: InputMaybe<Scalars['ID']['input']>;
-  routeId?: InputMaybe<Scalars['ID']['input']>;
-  tripId?: InputMaybe<Scalars['ID']['input']>;
-};
-
-
-export type QueryGetDocumentSignedUrlArgs = {
-  download?: InputMaybe<Scalars['Boolean']['input']>;
-  fileId: Scalars['String']['input'];
-};
-
-
-export type QueryGetFollowersArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  userId: Scalars['String']['input'];
-};
-
-
-export type QueryGetFollowingArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  userId: Scalars['String']['input'];
-};
-
-
-export type QueryGetGroupRidesArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  nearLat?: InputMaybe<Scalars['Float']['input']>;
-  nearLng?: InputMaybe<Scalars['Float']['input']>;
-  radiusKm?: InputMaybe<Scalars['Float']['input']>;
-};
-
-
-export type QueryGetPublicRideArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type QueryGetRiderProfileArgs = {
-  username: Scalars['String']['input'];
-};
-
-
-export type QueryGetTripsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryGroupRideDetailArgs = {
-  groupRideId: Scalars['ID']['input'];
-};
-
-
-export type QueryIsTripSavedArgs = {
-  tripId: Scalars['ID']['input'];
-};
-
-
-export type QueryKudosListArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rideId: Scalars['String']['input'];
-};
-
-
-export type QueryMaintenanceTaskHistoryArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  motorcycleId: Scalars['String']['input'];
-};
-
-
-export type QueryMaintenanceTasksArgs = {
-  motorcycleId: Scalars['String']['input'];
-};
-
-
-export type QueryMotorcycleModelsArgs = {
-  makeId: Scalars['Int']['input'];
-  year: Scalars['Int']['input'];
-};
-
-
-export type QueryMotorcycleRecallsArgs = {
-  motorcycleId: Scalars['String']['input'];
-};
-
-
-export type QueryMyRidesArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  motorcycleId?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type QueryMyShareLinksArgs = {
-  motorcycleId: Scalars['ID']['input'];
-};
-
-
-export type QueryMyTripsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryNotesArgs = {
-  motorcycleId: Scalars['String']['input'];
-};
-
-
-export type QueryOdometerReadingsArgs = {
-  limit?: Scalars['Int']['input'];
-  motorcycleId: Scalars['String']['input'];
-};
-
-
-export type QueryOemSchedulesForBikeArgs = {
-  motorcycleId: Scalars['String']['input'];
-};
-
-
-export type QueryOemSchedulesPreviewArgs = {
-  make: Scalars['String']['input'];
-  model?: InputMaybe<Scalars['String']['input']>;
-  variant?: InputMaybe<Scalars['String']['input']>;
-  year?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryOnboardingRevealArgs = {
-  make: Scalars['String']['input'];
-  model?: InputMaybe<Scalars['String']['input']>;
-  year: Scalars['Int']['input'];
-};
-
-
-export type QueryPendingRideDistanceArgs = {
-  motorcycleId: Scalars['String']['input'];
-};
-
-
-export type QueryPopularArticlesArgs = {
-  first?: Scalars['Int']['input'];
-};
-
-
-export type QueryPublicSavedTripsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  handle: Scalars['String']['input'];
-};
-
-
-export type QueryQuizByArticleArgs = {
-  articleId: Scalars['String']['input'];
-};
-
-
-export type QueryRideArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type QueryRideFeedArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryRideMilestoneStatsArgs = {
-  excludeRideId?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type QueryRideWaypointsArgs = {
-  maxPoints?: InputMaybe<Scalars['Int']['input']>;
-  rideId: Scalars['String']['input'];
-};
-
-
-export type QueryRouteConditionsArgs = {
-  routeId: Scalars['ID']['input'];
-};
-
-
-export type QueryRouteSponsorshipsArgs = {
-  routeId: Scalars['ID']['input'];
-};
-
-
-export type QuerySavedTripsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QuerySearchArticlesArgs = {
-  input: SearchArticlesInput;
-};
-
-
-export type QuerySearchTypeaheadArgs = {
-  limit?: Scalars['Int']['input'];
-  q?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type QuerySharedBikeHistoryArgs = {
-  token: Scalars['String']['input'];
-};
-
-
-export type QuerySimilarTripsArgs = {
-  country: Scalars['String']['input'];
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  region: Scalars['String']['input'];
-  slug: Scalars['String']['input'];
-};
-
-
-export type QuerySpendingSummaryArgs = {
-  motorcycleId: Scalars['String']['input'];
-};
-
-
-export type QueryTemplateTripIdForRouteArgs = {
-  routeId: Scalars['ID']['input'];
-};
-
-
-export type QueryTripByShareTokenArgs = {
-  shareToken: Scalars['String']['input'];
-};
-
-
-export type QueryTripBySlugArgs = {
-  country: Scalars['String']['input'];
-  region: Scalars['String']['input'];
-  slug: Scalars['String']['input'];
-};
-
-
-export type QueryTripDetailArgs = {
-  tripId: Scalars['ID']['input'];
-};
-
-
-export type QueryTripInvitesArgs = {
-  tripId: Scalars['ID']['input'];
-};
-
-
-export type QueryTripReviewsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  country?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  region?: InputMaybe<Scalars['String']['input']>;
-  slug?: InputMaybe<Scalars['String']['input']>;
-  tripId?: InputMaybe<Scalars['ID']['input']>;
-};
-
-
-export type QueryTripSuggestionsArgs = {
-  tripId: Scalars['ID']['input'];
-};
-
-
-export type QueryTripTemplatesArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<TripTemplateFilterInput>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-};
-
-export type Quiz = {
-  __typename?: 'Quiz';
-  articleId: Scalars['String']['output'];
-  generatedAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  questions: Array<QuizQuestion>;
-};
-
-export type QuizAttempt = {
-  __typename?: 'QuizAttempt';
-  completedAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  quizId: Scalars['String']['output'];
-  score: Scalars['Float']['output'];
-  totalQuestions: Scalars['Float']['output'];
-};
-
-export type QuizQuestion = {
-  __typename?: 'QuizQuestion';
-  explanation: Scalars['String']['output'];
-  options: Array<Scalars['String']['output']>;
-  question: Scalars['String']['output'];
-};
-
-/** Current quota usage for a gated feature */
-export type QuotaStatus = {
-  __typename?: 'QuotaStatus';
-  /** Feature identifier (e.g. gpx_export) */
-  feature: Scalars['String']['output'];
-  /** True when remaining = 0 (and limit is not unlimited) */
-  isExhausted: Scalars['Boolean']['output'];
-  /** Monthly limit (-1 = unlimited) */
-  limit: Scalars['Int']['output'];
-  /** Remaining uses this month (-1 = unlimited) */
-  remaining: Scalars['Int']['output'];
-  /** ISO date when quota resets (1st of next month) */
-  resetDate: Scalars['String']['output'];
-  /** Number of uses this month */
-  used: Scalars['Int']['output'];
-};
-
-export type Recall = {
-  __typename?: 'Recall';
-  acknowledged: Scalars['Boolean']['output'];
-  acknowledgedAt?: Maybe<Scalars['String']['output']>;
-  campaignNumber: Scalars['String']['output'];
-  component: Scalars['String']['output'];
-  consequence: Scalars['String']['output'];
-  remedy: Scalars['String']['output'];
-  reportDate: Scalars['String']['output'];
-  summary: Scalars['String']['output'];
-};
-
-export type RecallResult = {
-  __typename?: 'RecallResult';
-  acknowledgedCount: Scalars['Int']['output'];
-  checkedAt: Scalars['String']['output'];
-  count: Scalars['Int']['output'];
-  recalls: Array<Recall>;
-  vinUsed?: Maybe<Scalars['String']['output']>;
-};
-
-export type ReceiptExtractionResult = {
-  __typename?: 'ReceiptExtractionResult';
-  amount?: Maybe<Scalars['Float']['output']>;
-  category?: Maybe<Scalars['String']['output']>;
-  currency?: Maybe<Scalars['String']['output']>;
-  date?: Maybe<Scalars['String']['output']>;
-  fieldConfidence: ReceiptFieldConfidenceResult;
-  fuelLitres?: Maybe<Scalars['Float']['output']>;
-  itemName?: Maybe<Scalars['String']['output']>;
-  laborCost?: Maybe<Scalars['Float']['output']>;
-  legibilityNote?: Maybe<Scalars['String']['output']>;
-  lineItems: Array<ReceiptLineItemResult>;
-  needsCheck: Array<Scalars['String']['output']>;
-  odometerUnit?: Maybe<Scalars['String']['output']>;
-  odometerValue?: Maybe<Scalars['Float']['output']>;
-  partsCost?: Maybe<Scalars['Float']['output']>;
-  partsNeeded: Array<Scalars['String']['output']>;
-  taxAmount?: Maybe<Scalars['Float']['output']>;
-  taxRate?: Maybe<Scalars['Float']['output']>;
-  type: Scalars['String']['output'];
-  vendor?: Maybe<Scalars['String']['output']>;
-};
-
-export type ReceiptFieldConfidenceResult = {
-  __typename?: 'ReceiptFieldConfidenceResult';
-  amount: Scalars['Float']['output'];
-  category: Scalars['Float']['output'];
-  currency: Scalars['Float']['output'];
-  date: Scalars['Float']['output'];
-  odometer: Scalars['Float']['output'];
-  vendor: Scalars['Float']['output'];
-};
-
-export type ReceiptLineItemResult = {
-  __typename?: 'ReceiptLineItemResult';
-  label: Scalars['String']['output'];
-  lineTotal?: Maybe<Scalars['Float']['output']>;
-  partRef?: Maybe<Scalars['String']['output']>;
-  quantity?: Maybe<Scalars['Float']['output']>;
-  serviceType?: Maybe<Scalars['String']['output']>;
-  unitPrice?: Maybe<Scalars['Float']['output']>;
-};
-
-export type ReceiptScanError = {
-  __typename?: 'ReceiptScanError';
-  code: Scalars['String']['output'];
-  reason: Scalars['String']['output'];
-};
-
-export type ReceiptScanQuota = {
-  __typename?: 'ReceiptScanQuota';
-  limit: Scalars['Int']['output'];
-  resetDate: Scalars['String']['output'];
-  used: Scalars['Int']['output'];
-};
-
-export type ReceiptScanResult = ReceiptScanError | ReceiptScanSuccess;
-
-export type ReceiptScanSuccess = {
-  __typename?: 'ReceiptScanSuccess';
-  result: ReceiptExtractionResult;
-  scanId: Scalars['String']['output'];
-};
-
 export type RegisterPushTokenInput = {
   /** The device platform: 'ios' or 'android'. */
-  platform: Scalars['String']['input'];
+  platform: string;
   /** The Expo push token for this device. */
-  token: Scalars['String']['input'];
-};
-
-export type RegisterPushTokenResult = {
-  __typename?: 'RegisterPushTokenResult';
-  /** True when the token was registered/refreshed. */
-  success: Scalars['Boolean']['output'];
+  token: string;
 };
 
 export type ReorderWaypointsInput = {
-  tripId: Scalars['ID']['input'];
-  waypointIds: Array<Scalars['ID']['input']>;
-};
-
-export type ReportSurfaceInput = {
-  condition: Scalars['String']['input'];
-  note?: InputMaybe<Scalars['String']['input']>;
-  photoUrl?: InputMaybe<Scalars['String']['input']>;
-  routeId: Scalars['ID']['input'];
+  tripId: string | number;
+  waypointIds: Array<string | number>;
 };
 
 export type RespondToTripSuggestionInput = {
   decision: TripSuggestionDecision;
-  note?: InputMaybe<Scalars['String']['input']>;
-  suggestionId: Scalars['ID']['input'];
-};
-
-export type RevealInsights = {
-  __typename?: 'RevealInsights';
-  /** Hedged community observations. Empty unless status is "ready". */
-  knownIssues: Array<RevealKnownIssue>;
-  /** Generation status: 'pending' | 'ready' | 'failed'. */
-  status: Scalars['String']['output'];
-};
-
-export type RevealKnownIssue = {
-  __typename?: 'RevealKnownIssue';
-  detail: Scalars['String']['output'];
-  title: Scalars['String']['output'];
-};
-
-export type RevealRecall = {
-  __typename?: 'RevealRecall';
-  component: Scalars['String']['output'];
-  summary: Scalars['String']['output'];
-};
-
-export type Ride = {
-  __typename?: 'Ride';
-  autoPausedDurationS: Scalars['Int']['output'];
-  avgSpeedMps?: Maybe<Scalars['Float']['output']>;
-  createdAt: Scalars['String']['output'];
-  distanceM?: Maybe<Scalars['Int']['output']>;
-  durationS?: Maybe<Scalars['Int']['output']>;
-  elevationGain?: Maybe<Scalars['Float']['output']>;
-  elevationLoss?: Maybe<Scalars['Float']['output']>;
-  endedAt?: Maybe<Scalars['String']['output']>;
-  gpsQuality?: Maybe<Scalars['Float']['output']>;
-  id: Scalars['ID']['output'];
-  isPublic: Scalars['Boolean']['output'];
-  maxLeanAngle?: Maybe<Scalars['Float']['output']>;
-  maxSpeedMps?: Maybe<Scalars['Float']['output']>;
-  mileageApplied: Scalars['Boolean']['output'];
-  motorcycleId?: Maybe<Scalars['String']['output']>;
-  name?: Maybe<Scalars['String']['output']>;
-  pausedDurationS: Scalars['Int']['output'];
-  region?: Maybe<Scalars['String']['output']>;
-  routePolyline?: Maybe<Scalars['String']['output']>;
-  routeThumbnailUri?: Maybe<Scalars['String']['output']>;
-  startedAt: Scalars['String']['output'];
-  status: RideStatus;
-  updatedAt: Scalars['String']['output'];
-  userId: Scalars['String']['output'];
-  visibility: Scalars['String']['output'];
-};
-
-export type RideConnection = {
-  __typename?: 'RideConnection';
-  edges: Array<RideEdge>;
-  pageInfo: PageInfo;
-  totalCount: Scalars['Int']['output'];
-};
-
-export type RideEdge = {
-  __typename?: 'RideEdge';
-  cursor: Scalars['String']['output'];
-  node: Ride;
-};
-
-export type RideMilestoneStats = {
-  __typename?: 'RideMilestoneStats';
-  longestQualifyingDistanceM: Scalars['Int']['output'];
-  qualifyingRideCount: Scalars['Int']['output'];
-};
-
-export type RideOverview = {
-  __typename?: 'RideOverview';
-  currentStreak: Scalars['Int']['output'];
-  dailyDistances: Array<DailyDistance>;
-  last7Days: RidePeriodSummary;
-  last30Days: RidePeriodSummary;
-  lastRide?: Maybe<LastRideSummary>;
-  personalRecords: Array<RideRecord>;
-  thisMonth: RidePeriodSummary;
-  thisWeek: RidePeriodSummary;
-};
-
-export type RidePeriodSummary = {
-  __typename?: 'RidePeriodSummary';
-  distanceM: Scalars['Float']['output'];
-  durationS: Scalars['Int']['output'];
-  rideCount: Scalars['Int']['output'];
-};
-
-export type RideRecord = {
-  __typename?: 'RideRecord';
-  achievedAt: Scalars['String']['output'];
-  previousValue?: Maybe<Scalars['Float']['output']>;
-  recordType: Scalars['String']['output'];
-  rideId?: Maybe<Scalars['String']['output']>;
-  unit: Scalars['String']['output'];
-  value: Scalars['Float']['output'];
+  note?: string | null | undefined;
+  suggestionId: string | number;
 };
 
 /** Current status of a ride */
@@ -2854,489 +527,109 @@ export enum RideStatus {
   Recording = 'recording'
 }
 
-export type RideSummary = {
-  __typename?: 'RideSummary';
-  createdAt: Scalars['String']['output'];
-  generationStatus: GenerationStatus;
-  id: Scalars['ID']['output'];
-  locale: Scalars['String']['output'];
-  rideId: Scalars['String']['output'];
-  summaryText: Scalars['String']['output'];
-  updatedAt: Scalars['String']['output'];
-};
-
-export type RouteConditions = {
-  __typename?: 'RouteConditions';
-  aggregates: Array<ConditionAggregate>;
-  recentReports: Array<SurfaceReport>;
-};
-
-export type RouteSuggestion = {
-  __typename?: 'RouteSuggestion';
-  countryCode: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
-  regionCode?: Maybe<Scalars['String']['output']>;
-  slug: Scalars['String']['output'];
-};
-
 export type SaveReceiptScanInput = {
-  amount?: InputMaybe<Scalars['Float']['input']>;
-  applyOdometer?: InputMaybe<Scalars['Boolean']['input']>;
-  category?: InputMaybe<Scalars['String']['input']>;
-  currency?: InputMaybe<Scalars['String']['input']>;
-  date?: InputMaybe<Scalars['String']['input']>;
-  itemName?: InputMaybe<Scalars['String']['input']>;
-  laborCost?: InputMaybe<Scalars['Float']['input']>;
-  lineItems?: InputMaybe<Array<SaveReceiptScanLineItemInput>>;
-  motorcycleId: Scalars['String']['input'];
-  odometerUnit?: InputMaybe<Scalars['String']['input']>;
-  odometerValue?: InputMaybe<Scalars['Float']['input']>;
-  partsCost?: InputMaybe<Scalars['Float']['input']>;
-  taxAmount?: InputMaybe<Scalars['Float']['input']>;
-  taxRate?: InputMaybe<Scalars['Float']['input']>;
-  type: Scalars['String']['input'];
-  vendor?: InputMaybe<Scalars['String']['input']>;
+  amount?: number | null | undefined;
+  applyOdometer?: boolean | null | undefined;
+  category?: string | null | undefined;
+  currency?: string | null | undefined;
+  date?: string | null | undefined;
+  itemName?: string | null | undefined;
+  laborCost?: number | null | undefined;
+  lineItems?: Array<SaveReceiptScanLineItemInput> | null | undefined;
+  motorcycleId: string;
+  odometerUnit?: string | null | undefined;
+  odometerValue?: number | null | undefined;
+  partsCost?: number | null | undefined;
+  taxAmount?: number | null | undefined;
+  taxRate?: number | null | undefined;
+  type: string;
+  vendor?: string | null | undefined;
 };
 
 export type SaveReceiptScanLineItemInput = {
-  label: Scalars['String']['input'];
-  lineTotal?: InputMaybe<Scalars['Float']['input']>;
-  partRef?: InputMaybe<Scalars['String']['input']>;
-  quantity?: InputMaybe<Scalars['Float']['input']>;
-  serviceType?: InputMaybe<Scalars['String']['input']>;
-  unitPrice?: InputMaybe<Scalars['Float']['input']>;
-};
-
-export type SaveReceiptScanResult = ReceiptScanError | SaveReceiptScanSuccess;
-
-export type SaveReceiptScanSuccess = {
-  __typename?: 'SaveReceiptScanSuccess';
-  refs: SavedRecordRefs;
-  scanId: Scalars['String']['output'];
-};
-
-export type SavedOdometerRef = {
-  __typename?: 'SavedOdometerRef';
-  applied: Scalars['Float']['output'];
-  motorcycleId: Scalars['String']['output'];
-  previous?: Maybe<Scalars['Float']['output']>;
-};
-
-export type SavedRecordRefs = {
-  __typename?: 'SavedRecordRefs';
-  expenseId?: Maybe<Scalars['String']['output']>;
-  odometer?: Maybe<SavedOdometerRef>;
-  photoId?: Maybe<Scalars['String']['output']>;
-  recordType: Scalars['String']['output'];
-  taskId?: Maybe<Scalars['String']['output']>;
+  label: string;
+  lineTotal?: number | null | undefined;
+  partRef?: string | null | undefined;
+  quantity?: number | null | undefined;
+  serviceType?: string | null | undefined;
+  unitPrice?: number | null | undefined;
 };
 
 export type ScheduleBlogPostInput = {
-  id: Scalars['ID']['input'];
-  scheduledFor: Scalars['String']['input'];
+  id: string | number;
+  scheduledFor: string;
 };
 
 export type SearchArticlesInput = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  category?: InputMaybe<ArticleCategory>;
-  difficulty?: InputMaybe<ArticleDifficulty>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  query?: InputMaybe<Scalars['String']['input']>;
+  after?: string | null | undefined;
+  category?: ArticleCategory | null | undefined;
+  difficulty?: ArticleDifficulty | null | undefined;
+  first?: number | null | undefined;
+  query?: string | null | undefined;
 };
 
 export type SendFeedbackInput = {
-  appVersion: Scalars['String']['input'];
+  appVersion: string;
   /** Client-generated UUID per draft; reuse it on retry so the message is saved once */
-  clientId: Scalars['ID']['input'];
+  clientId: string | number;
   /** Email to reach the rider at; omit or null to use the account email */
-  contactEmail?: InputMaybe<Scalars['String']['input']>;
+  contactEmail?: string | null | undefined;
   /** The developer may contact me about my feedback */
-  contactOptIn: Scalars['Boolean']['input'];
+  contactOptIn: boolean;
   /** FEEDBACK_CONTACT_WORDING_VERSION shown with the opt-in */
-  contactWordingVersion: Scalars['Int']['input'];
+  contactWordingVersion: number;
   /** App locale the form was shown in */
-  locale: Scalars['String']['input'];
+  locale: string;
   /** 1-4000 characters after trimming */
-  message: Scalars['String']['input'];
+  message: string;
   /** ios | android */
-  platform: Scalars['String']['input'];
+  platform: string;
   /** love | wish | broken */
-  quickPick?: InputMaybe<Scalars['String']['input']>;
+  quickPick?: string | null | undefined;
   /** expo-updates update id, when running an update */
-  updateId?: InputMaybe<Scalars['String']['input']>;
+  updateId?: string | null | undefined;
 };
 
 export type SetParticipantRoleInput = {
   role: ParticipantRole;
-  tripId: Scalars['ID']['input'];
-  userId: Scalars['ID']['input'];
-};
-
-export type ShareLink = {
-  __typename?: 'ShareLink';
-  createdAt: Scalars['String']['output'];
-  expiresAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  motorcycleId: Scalars['String']['output'];
-  token?: Maybe<Scalars['String']['output']>;
-  url?: Maybe<Scalars['String']['output']>;
+  tripId: string | number;
+  userId: string | number;
 };
 
 export type ShareRideAsTripInput = {
-  name?: InputMaybe<Scalars['String']['input']>;
-  rideId: Scalars['ID']['input'];
-  surfaceType?: InputMaybe<Scalars['String']['input']>;
+  name?: string | null | undefined;
+  rideId: string | number;
+  surfaceType?: string | null | undefined;
 };
-
-export type SharedBikeHistory = {
-  __typename?: 'SharedBikeHistory';
-  bike: SharedBikeInfo;
-  generatedAt: Scalars['String']['output'];
-  tasks: Array<SharedTaskInfo>;
-};
-
-export type SharedBikeInfo = {
-  __typename?: 'SharedBikeInfo';
-  make: Scalars['String']['output'];
-  model: Scalars['String']['output'];
-  nickname?: Maybe<Scalars['String']['output']>;
-  year: Scalars['Int']['output'];
-};
-
-export type SharedTaskInfo = {
-  __typename?: 'SharedTaskInfo';
-  completedAt?: Maybe<Scalars['String']['output']>;
-  completedMileage?: Maybe<Scalars['Int']['output']>;
-  dueDate?: Maybe<Scalars['String']['output']>;
-  notes?: Maybe<Scalars['String']['output']>;
-  photoUrls: Array<Scalars['String']['output']>;
-  priority: Scalars['String']['output'];
-  status: Scalars['String']['output'];
-  title: Scalars['String']['output'];
-};
-
-export type SharedTrip = {
-  __typename?: 'SharedTrip';
-  coverImageUrl?: Maybe<Scalars['String']['output']>;
-  description?: Maybe<Scalars['String']['output']>;
-  difficulty: Scalars['String']['output'];
-  endDate: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  maxRiders: Scalars['Int']['output'];
-  participantCount: Scalars['Int']['output'];
-  participants: Array<SharedTripParticipant>;
-  startDate: Scalars['String']['output'];
-  status: Scalars['String']['output'];
-  title: Scalars['String']['output'];
-  waypoints: Array<SharedTripWaypoint>;
-};
-
-export type SharedTripParticipant = {
-  __typename?: 'SharedTripParticipant';
-  anonId: Scalars['String']['output'];
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  displayName: Scalars['String']['output'];
-  role: Scalars['String']['output'];
-  status: Scalars['String']['output'];
-};
-
-export type SharedTripWaypoint = {
-  __typename?: 'SharedTripWaypoint';
-  dayIndex?: Maybe<Scalars['Int']['output']>;
-  id: Scalars['ID']['output'];
-  lat: Scalars['Float']['output'];
-  lng: Scalars['Float']['output'];
-  name: Scalars['String']['output'];
-  notes?: Maybe<Scalars['String']['output']>;
-  periodOfDay?: Maybe<PeriodOfDay>;
-  sortOrder: Scalars['Int']['output'];
-  type: Scalars['String']['output'];
-};
-
-/** Minimal trip data for XML sitemap generation */
-export type SitemapTripEntry = {
-  __typename?: 'SitemapTripEntry';
-  countryCode: Scalars['String']['output'];
-  regionCode: Scalars['String']['output'];
-  slug: Scalars['String']['output'];
-  updatedAt: Scalars['String']['output'];
-};
-
-export type SpendingSummary = {
-  __typename?: 'SpendingSummary';
-  /** All-time spend in the most-used currency only, never a cross-currency sum. Display allTimeByCurrency instead. */
-  allTime: Scalars['Float']['output'];
-  /** All-time spend per currency, most-used first. Empty when there is none. */
-  allTimeByCurrency: Array<CurrencyTotal>;
-  /** This year's spend in the most-used currency only, never a cross-currency sum. Display thisYearByCurrency instead. */
-  thisYear: Scalars['Float']['output'];
-  /** This year's spend per currency, most-used first. Empty when there is none. */
-  thisYearByCurrency: Array<CurrencyTotal>;
-};
-
-export type Sponsorship = {
-  __typename?: 'Sponsorship';
-  clicksCount: Scalars['Int']['output'];
-  createdAt: Scalars['DateTime']['output'];
-  ctaText?: Maybe<Scalars['String']['output']>;
-  ctaUrl?: Maybe<Scalars['String']['output']>;
-  description?: Maybe<Scalars['String']['output']>;
-  endsAt?: Maybe<Scalars['DateTime']['output']>;
-  id: Scalars['ID']['output'];
-  imageUrl?: Maybe<Scalars['String']['output']>;
-  impressionsCount: Scalars['Int']['output'];
-  placementType: SponsorshipPlacementType;
-  routeId: Scalars['ID']['output'];
-  sponsorId: Scalars['ID']['output'];
-  startsAt: Scalars['DateTime']['output'];
-  status: SponsorshipStatus;
-  title: Scalars['String']['output'];
-  updatedAt: Scalars['DateTime']['output'];
-};
-
-/** Visual placement type for a sponsored slot */
-export enum SponsorshipPlacementType {
-  Banner = 'banner',
-  Card = 'card',
-  Pin = 'pin'
-}
-
-/** Status of a sponsorship slot */
-export enum SponsorshipStatus {
-  Active = 'active',
-  Deactivated = 'deactivated',
-  Expired = 'expired',
-  Paused = 'paused'
-}
 
 export type StartRideInput = {
-  motorcycleId?: InputMaybe<Scalars['String']['input']>;
-  rideId: Scalars['String']['input'];
-  startedAt: Scalars['String']['input'];
+  motorcycleId?: string | null | undefined;
+  rideId: string;
+  startedAt: string;
 };
 
 export type SubmitDiagnosticInput = {
-  additionalNotes?: InputMaybe<Scalars['String']['input']>;
-  dataSharingOptedIn?: Scalars['Boolean']['input'];
-  freeTextDescription?: InputMaybe<Scalars['String']['input']>;
-  includeBikeHistory?: InputMaybe<Scalars['Boolean']['input']>;
-  includeMaintenanceHistory?: Scalars['Boolean']['input'];
-  manualBikeInfo?: InputMaybe<ManualBikeInfoInput>;
-  motorcycleId?: InputMaybe<Scalars['String']['input']>;
-  photoBase64?: InputMaybe<Scalars['String']['input']>;
-  urgency?: InputMaybe<Urgency>;
-  wizardAnswers?: InputMaybe<Scalars['JSON']['input']>;
-};
-
-export type SubmitQuizInput = {
-  answers: Array<Scalars['Int']['input']>;
-  quizId: Scalars['String']['input'];
-};
-
-export type SurfaceReport = {
-  __typename?: 'SurfaceReport';
-  condition: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  note?: Maybe<Scalars['String']['output']>;
-  photoUrl?: Maybe<Scalars['String']['output']>;
-  reportedAt: Scalars['String']['output'];
-  routeId: Scalars['ID']['output'];
-  userId: Scalars['ID']['output'];
-};
-
-export type TaskPhoto = {
-  __typename?: 'TaskPhoto';
-  createdAt: Scalars['String']['output'];
-  fileSizeBytes?: Maybe<Scalars['Int']['output']>;
-  id: Scalars['ID']['output'];
-  mimeType: Scalars['String']['output'];
-  publicUrl: Scalars['String']['output'];
-  storagePath: Scalars['String']['output'];
-  taskId: Scalars['String']['output'];
+  additionalNotes?: string | null | undefined;
+  dataSharingOptedIn?: boolean;
+  freeTextDescription?: string | null | undefined;
+  includeBikeHistory?: boolean | null | undefined;
+  includeMaintenanceHistory?: boolean;
+  manualBikeInfo?: ManualBikeInfoInput | null | undefined;
+  motorcycleId?: string | null | undefined;
+  photoBase64?: string | null | undefined;
+  urgency?: Urgency | null | undefined;
+  wizardAnswers?: Record<string, unknown> | null | undefined;
 };
 
 export type TrackClickInput = {
-  diagnosisType?: InputMaybe<Scalars['String']['input']>;
+  diagnosisType?: string | null | undefined;
   partner: AffiliatePartner;
-  productUrl: Scalars['String']['input'];
-};
-
-export type TrackSponsorshipClickInput = {
-  sponsorshipId: Scalars['ID']['input'];
-};
-
-export type TrackSponsorshipImpressionInput = {
-  sponsorshipId: Scalars['ID']['input'];
-};
-
-export type TriggeredMaintenanceTask = {
-  __typename?: 'TriggeredMaintenanceTask';
-  id: Scalars['String']['output'];
-  priority: Scalars['String']['output'];
-  title: Scalars['String']['output'];
-};
-
-export type Trip = {
-  __typename?: 'Trip';
-  averageRating?: Maybe<Scalars['Float']['output']>;
-  city?: Maybe<Scalars['String']['output']>;
-  cloneCount: Scalars['Int']['output'];
-  clonedFromTripId?: Maybe<Scalars['ID']['output']>;
-  countryCode?: Maybe<Scalars['String']['output']>;
-  coverImageUrl?: Maybe<Scalars['String']['output']>;
-  createdAt: Scalars['String']['output'];
-  curvatureIndex?: Maybe<Scalars['Float']['output']>;
-  datesPending?: Maybe<Scalars['Boolean']['output']>;
-  dayCount?: Maybe<Scalars['Int']['output']>;
-  description: Scalars['String']['output'];
-  difficulty: Scalars['String']['output'];
-  distanceM?: Maybe<Scalars['Int']['output']>;
-  elevationGainM?: Maybe<Scalars['Int']['output']>;
-  endDate: Scalars['String']['output'];
-  estimatedDurationMinutes?: Maybe<Scalars['Int']['output']>;
-  forkedFromTripId?: Maybe<Scalars['ID']['output']>;
-  id: Scalars['ID']['output'];
-  isFeatured: Scalars['Boolean']['output'];
-  isFlagged: Scalars['Boolean']['output'];
-  isMotovaultPick: Scalars['Boolean']['output'];
-  isSaved?: Maybe<Scalars['Boolean']['output']>;
-  isTemplate: Scalars['Boolean']['output'];
-  maxRiders: Scalars['Int']['output'];
-  organiser: TripOrganiser;
-  participantCount: Scalars['Int']['output'];
-  participants?: Maybe<Array<TripParticipant>>;
-  polyline?: Maybe<Scalars['String']['output']>;
-  publishedAt?: Maybe<Scalars['String']['output']>;
-  regionCode?: Maybe<Scalars['String']['output']>;
-  reviewCount: Scalars['Int']['output'];
-  reviews?: Maybe<Array<TripReview>>;
-  slug?: Maybe<Scalars['String']['output']>;
-  startDate: Scalars['String']['output'];
-  startLat?: Maybe<Scalars['Float']['output']>;
-  startLng?: Maybe<Scalars['Float']['output']>;
-  status: Scalars['String']['output'];
-  surfaceType?: Maybe<Scalars['String']['output']>;
-  title: Scalars['String']['output'];
-  updatedAt?: Maybe<Scalars['String']['output']>;
-  viewCount: Scalars['Int']['output'];
-  visibility: Scalars['String']['output'];
-  waypoints?: Maybe<Array<TripWaypoint>>;
+  productUrl: string;
 };
 
 export type TripAssistantHistoryMessage = {
-  content: Scalars['String']['input'];
+  content: string;
   role: AssistantMessageRole;
-};
-
-export type TripAssistantMessage = {
-  __typename?: 'TripAssistantMessage';
-  message: Scalars['String']['output'];
-};
-
-export type TripConnection = {
-  __typename?: 'TripConnection';
-  edges: Array<TripEdge>;
-  pageInfo: TripPageInfo;
-};
-
-export type TripEdge = {
-  __typename?: 'TripEdge';
-  cursor: Scalars['String']['output'];
-  node: Trip;
-};
-
-export type TripInvite = {
-  __typename?: 'TripInvite';
-  acceptedAt?: Maybe<Scalars['String']['output']>;
-  declinedAt?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  invitedAt: Scalars['String']['output'];
-  invitedUserId: Scalars['String']['output'];
-};
-
-export type TripOrganiser = {
-  __typename?: 'TripOrganiser';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  displayName: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  publicUsername?: Maybe<Scalars['String']['output']>;
-};
-
-export type TripPageInfo = {
-  __typename?: 'TripPageInfo';
-  endCursor?: Maybe<Scalars['String']['output']>;
-  hasNextPage: Scalars['Boolean']['output'];
-};
-
-export type TripParticipant = {
-  __typename?: 'TripParticipant';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  bikeId?: Maybe<Scalars['String']['output']>;
-  displayName: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  joinedAt: Scalars['String']['output'];
-  publicUsername?: Maybe<Scalars['String']['output']>;
-  role: Scalars['String']['output'];
-  status: Scalars['String']['output'];
-};
-
-export type TripReview = {
-  __typename?: 'TripReview';
-  author?: Maybe<TripReviewAuthor>;
-  bike?: Maybe<TripReviewBike>;
-  bikeId?: Maybe<Scalars['String']['output']>;
-  conditionTags?: Maybe<Array<Scalars['String']['output']>>;
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  rating: Scalars['Int']['output'];
-  text?: Maybe<Scalars['String']['output']>;
-  tripId: Scalars['ID']['output'];
-  userId?: Maybe<Scalars['ID']['output']>;
-};
-
-export type TripReviewAuthor = {
-  __typename?: 'TripReviewAuthor';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  displayName: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  publicUsername?: Maybe<Scalars['String']['output']>;
-};
-
-export type TripReviewBike = {
-  __typename?: 'TripReviewBike';
-  make: Scalars['String']['output'];
-  model: Scalars['String']['output'];
-  type?: Maybe<Scalars['String']['output']>;
-  year: Scalars['Int']['output'];
-};
-
-export type TripSuggestion = {
-  __typename?: 'TripSuggestion';
-  author: TripSuggestionAuthor;
-  createdAt: Scalars['String']['output'];
-  dayIndex?: Maybe<Scalars['Int']['output']>;
-  decidedAt?: Maybe<Scalars['String']['output']>;
-  decidedBy?: Maybe<Scalars['String']['output']>;
-  decidedNote?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  kind: TripSuggestionKind;
-  lat?: Maybe<Scalars['Float']['output']>;
-  lng?: Maybe<Scalars['Float']['output']>;
-  name: Scalars['String']['output'];
-  notes?: Maybe<Scalars['String']['output']>;
-  periodOfDay?: Maybe<PeriodOfDay>;
-  status: TripSuggestionStatus;
-  tripId: Scalars['ID']['output'];
-  waypointId?: Maybe<Scalars['String']['output']>;
-};
-
-export type TripSuggestionAuthor = {
-  __typename?: 'TripSuggestionAuthor';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  displayName: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  publicUsername?: Maybe<Scalars['String']['output']>;
 };
 
 /** Decision applied to a pending trip suggestion. */
@@ -3361,188 +654,136 @@ export enum TripSuggestionStatus {
 }
 
 export type TripTemplateFilterInput = {
-  country?: InputMaybe<Scalars['String']['input']>;
-  dayCountMax?: InputMaybe<Scalars['Int']['input']>;
-  dayCountMin?: InputMaybe<Scalars['Int']['input']>;
-  difficulty?: InputMaybe<Scalars['String']['input']>;
-  region?: InputMaybe<Scalars['String']['input']>;
-  searchText?: InputMaybe<Scalars['String']['input']>;
-  surfaceType?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type TripWaypoint = {
-  __typename?: 'TripWaypoint';
-  createdAt: Scalars['String']['output'];
-  dayIndex: Scalars['Int']['output'];
-  id: Scalars['ID']['output'];
-  lat: Scalars['Float']['output'];
-  lng: Scalars['Float']['output'];
-  name: Scalars['String']['output'];
-  notes?: Maybe<Scalars['String']['output']>;
-  periodOfDay?: Maybe<PeriodOfDay>;
-  sortOrder: Scalars['Int']['output'];
-  tripId: Scalars['ID']['output'];
-  type: Scalars['String']['output'];
-};
-
-export type TypeaheadResult = {
-  __typename?: 'TypeaheadResult';
-  places: Array<PlaceSuggestion>;
-  routes: Array<RouteSuggestion>;
-};
-
-export type UndoReceiptScanResult = ReceiptScanError | UndoReceiptScanSuccess;
-
-export type UndoReceiptScanSuccess = {
-  __typename?: 'UndoReceiptScanSuccess';
-  scanId: Scalars['String']['output'];
-  status: Scalars['String']['output'];
+  country?: string | null | undefined;
+  dayCountMax?: number | null | undefined;
+  dayCountMin?: number | null | undefined;
+  difficulty?: string | null | undefined;
+  region?: string | null | undefined;
+  searchText?: string | null | undefined;
+  surfaceType?: string | null | undefined;
 };
 
 export type UnfollowRiderInput = {
-  targetUserId: Scalars['String']['input'];
+  targetUserId: string;
 };
 
 export type UnregisterPushTokenInput = {
   /** The Expo push token to remove from the signed-in account. */
-  token: Scalars['String']['input'];
-};
-
-export type UnreviewedScan = {
-  __typename?: 'UnreviewedScan';
-  createdAt: Scalars['String']['output'];
-  result?: Maybe<ReceiptExtractionResult>;
-  scanId: Scalars['String']['output'];
-  storagePath?: Maybe<Scalars['String']['output']>;
+  token: string;
 };
 
 export type UpdateBlogPostInput = {
-  author?: InputMaybe<Scalars['String']['input']>;
-  categoryIds?: InputMaybe<Array<Scalars['ID']['input']>>;
-  coverAlt?: InputMaybe<Scalars['String']['input']>;
-  coverImage?: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['ID']['input'];
-  isSafetyCritical?: InputMaybe<Scalars['Boolean']['input']>;
-  keywordIds?: InputMaybe<Array<Scalars['ID']['input']>>;
-  specData?: InputMaybe<Scalars['Boolean']['input']>;
-  translations?: InputMaybe<Array<BlogTranslationInput>>;
-  typeData?: InputMaybe<Scalars['JSON']['input']>;
+  author?: string | null | undefined;
+  categoryIds?: Array<string | number> | null | undefined;
+  coverAlt?: string | null | undefined;
+  coverImage?: string | null | undefined;
+  id: string | number;
+  isSafetyCritical?: boolean | null | undefined;
+  keywordIds?: Array<string | number> | null | undefined;
+  specData?: boolean | null | undefined;
+  translations?: Array<BlogTranslationInput> | null | undefined;
+  typeData?: Record<string, unknown> | null | undefined;
 };
 
 export type UpdateDocumentCategoryInput = {
-  isHidden?: InputMaybe<Scalars['Boolean']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
+  isHidden?: boolean | null | undefined;
+  name?: string | null | undefined;
 };
 
 export type UpdateDocumentInput = {
-  categoryId?: InputMaybe<Scalars['String']['input']>;
-  expiryDate?: InputMaybe<Scalars['String']['input']>;
-  isPinned?: InputMaybe<Scalars['Boolean']['input']>;
-  note?: InputMaybe<Scalars['String']['input']>;
-  title?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UpdateGroupRideInput = {
-  dateTime?: InputMaybe<Scalars['String']['input']>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  groupRideId: Scalars['ID']['input'];
-  maxRiders?: InputMaybe<Scalars['Int']['input']>;
-  meetingPointLat?: InputMaybe<Scalars['Float']['input']>;
-  meetingPointLng?: InputMaybe<Scalars['Float']['input']>;
-  meetingPointName?: InputMaybe<Scalars['String']['input']>;
-  title?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UpdateHandleInput = {
-  handle: Scalars['String']['input'];
+  categoryId?: string | null | undefined;
+  expiryDate?: string | null | undefined;
+  isPinned?: boolean | null | undefined;
+  note?: string | null | undefined;
+  title?: string | null | undefined;
 };
 
 export type UpdateMaintenanceTaskInput = {
-  description?: InputMaybe<Scalars['String']['input']>;
-  dueDate?: InputMaybe<Scalars['String']['input']>;
-  notes?: InputMaybe<Scalars['String']['input']>;
-  partsNeeded?: InputMaybe<Array<Scalars['String']['input']>>;
-  priority?: InputMaybe<MaintenancePriority>;
-  remind1d?: InputMaybe<Scalars['Boolean']['input']>;
-  remind7d?: InputMaybe<Scalars['Boolean']['input']>;
-  remind30d?: InputMaybe<Scalars['Boolean']['input']>;
-  targetMileage?: InputMaybe<Scalars['Int']['input']>;
-  title?: InputMaybe<Scalars['String']['input']>;
+  description?: string | null | undefined;
+  dueDate?: string | null | undefined;
+  notes?: string | null | undefined;
+  partsNeeded?: Array<string> | null | undefined;
+  priority?: MaintenancePriority | null | undefined;
+  remind1d?: boolean | null | undefined;
+  remind7d?: boolean | null | undefined;
+  remind30d?: boolean | null | undefined;
+  targetMileage?: number | null | undefined;
+  title?: string | null | undefined;
 };
 
 export type UpdateMotorcycleInput = {
-  currentMileage?: InputMaybe<Scalars['Int']['input']>;
-  isPrimary?: InputMaybe<Scalars['Boolean']['input']>;
-  make?: InputMaybe<Scalars['String']['input']>;
-  mileageUnit?: InputMaybe<Scalars['String']['input']>;
-  model?: InputMaybe<Scalars['String']['input']>;
-  nickname?: InputMaybe<Scalars['String']['input']>;
-  primaryPhotoUrl?: InputMaybe<Scalars['String']['input']>;
-  purchaseDate?: InputMaybe<Scalars['String']['input']>;
-  purchasePrice?: InputMaybe<Scalars['Float']['input']>;
-  variant?: InputMaybe<Scalars['String']['input']>;
-  vin?: InputMaybe<Scalars['String']['input']>;
-  year?: InputMaybe<Scalars['Int']['input']>;
+  currentMileage?: number | null | undefined;
+  isPrimary?: boolean | null | undefined;
+  make?: string | null | undefined;
+  mileageUnit?: string | null | undefined;
+  model?: string | null | undefined;
+  nickname?: string | null | undefined;
+  primaryPhotoUrl?: string | null | undefined;
+  purchaseDate?: string | null | undefined;
+  purchasePrice?: number | null | undefined;
+  variant?: string | null | undefined;
+  vin?: string | null | undefined;
+  year?: number | null | undefined;
 };
 
 export type UpdateNoteInput = {
-  odometer?: InputMaybe<Scalars['Int']['input']>;
-  text?: InputMaybe<Scalars['String']['input']>;
+  odometer?: number | null | undefined;
+  text?: string | null | undefined;
 };
 
 export type UpdateParticipantStatusInput = {
-  status: Scalars['String']['input'];
-  tripId: Scalars['ID']['input'];
+  status: string;
+  tripId: string | number;
 };
 
 export type UpdateProfileInput = {
-  bio?: InputMaybe<Scalars['String']['input']>;
-  city?: InputMaybe<Scalars['String']['input']>;
-  displayName?: InputMaybe<Scalars['String']['input']>;
-  isPublic?: InputMaybe<Scalars['Boolean']['input']>;
-  publicUsername?: InputMaybe<Scalars['String']['input']>;
+  bio?: string | null | undefined;
+  city?: string | null | undefined;
+  displayName?: string | null | undefined;
+  isPublic?: boolean | null | undefined;
+  publicUsername?: string | null | undefined;
 };
 
 export type UpdateRideInput = {
-  isPublic?: InputMaybe<Scalars['Boolean']['input']>;
-  mileageApplied?: InputMaybe<Scalars['Boolean']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  rideId: Scalars['String']['input'];
+  isPublic?: boolean | null | undefined;
+  mileageApplied?: boolean | null | undefined;
+  name?: string | null | undefined;
+  rideId: string;
 };
 
 export type UpdateTripInput = {
-  description?: InputMaybe<Scalars['String']['input']>;
-  difficulty?: InputMaybe<Scalars['String']['input']>;
-  endDate?: InputMaybe<Scalars['String']['input']>;
-  maxRiders?: InputMaybe<Scalars['Int']['input']>;
-  startDate?: InputMaybe<Scalars['String']['input']>;
-  title?: InputMaybe<Scalars['String']['input']>;
-  tripId: Scalars['ID']['input'];
-  visibility?: InputMaybe<Scalars['String']['input']>;
-  waypoints?: InputMaybe<Array<InlineWaypointInput>>;
+  description?: string | null | undefined;
+  difficulty?: string | null | undefined;
+  endDate?: string | null | undefined;
+  maxRiders?: number | null | undefined;
+  startDate?: string | null | undefined;
+  title?: string | null | undefined;
+  tripId: string | number;
+  visibility?: string | null | undefined;
+  waypoints?: Array<InlineWaypointInput> | null | undefined;
 };
 
 export type UpdateUserInput = {
-  currency?: InputMaybe<Scalars['String']['input']>;
-  fullName?: InputMaybe<Scalars['String']['input']>;
-  measurementSystem?: InputMaybe<Scalars['String']['input']>;
-  preferences?: InputMaybe<Scalars['JSON']['input']>;
+  currency?: string | null | undefined;
+  fullName?: string | null | undefined;
+  measurementSystem?: string | null | undefined;
+  preferences?: Record<string, unknown> | null | undefined;
 };
 
 export type UpdateWaypointInput = {
-  dayIndex?: InputMaybe<Scalars['Int']['input']>;
-  lat?: InputMaybe<Scalars['Float']['input']>;
-  lng?: InputMaybe<Scalars['Float']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  notes?: InputMaybe<Scalars['String']['input']>;
-  periodOfDay?: InputMaybe<PeriodOfDay>;
-  sortOrder?: InputMaybe<Scalars['Int']['input']>;
-  type?: InputMaybe<Scalars['String']['input']>;
-  waypointId: Scalars['ID']['input'];
+  dayIndex?: number | null | undefined;
+  lat?: number | null | undefined;
+  lng?: number | null | undefined;
+  name?: string | null | undefined;
+  notes?: string | null | undefined;
+  periodOfDay?: PeriodOfDay | null | undefined;
+  sortOrder?: number | null | undefined;
+  type?: string | null | undefined;
+  waypointId: string | number;
 };
 
 export type UploadWaypointsInput = {
-  rideId: Scalars['String']['input'];
+  rideId: string;
   waypoints: Array<WaypointInput>;
 };
 
@@ -3553,1393 +794,1373 @@ export enum Urgency {
   Stranded = 'stranded'
 }
 
-export type User = {
-  __typename?: 'User';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  bio?: Maybe<Scalars['String']['output']>;
-  city?: Maybe<Scalars['String']['output']>;
-  createdAt: Scalars['String']['output'];
-  currency: Scalars['String']['output'];
-  displayName?: Maybe<Scalars['String']['output']>;
-  email: Scalars['String']['output'];
-  followerCount?: Maybe<Scalars['Float']['output']>;
-  followingCount?: Maybe<Scalars['Float']['output']>;
-  fullName?: Maybe<Scalars['String']['output']>;
-  handle?: Maybe<Scalars['String']['output']>;
-  hasUsedTrial?: Maybe<Scalars['Boolean']['output']>;
-  id: Scalars['ID']['output'];
-  isPublic?: Maybe<Scalars['Boolean']['output']>;
-  measurementSystem?: Maybe<Scalars['String']['output']>;
-  preferences?: Maybe<Scalars['JSON']['output']>;
-  publicUsername?: Maybe<Scalars['String']['output']>;
-  role: UserRole;
-  showSavedPublicly?: Maybe<Scalars['Boolean']['output']>;
-  subscriptionTier?: Maybe<Scalars['String']['output']>;
-  updatedAt: Scalars['String']['output'];
-};
-
 export enum UserRole {
   Admin = 'admin',
   User = 'user'
 }
 
-export type Waypoint = {
-  __typename?: 'Waypoint';
-  accuracy?: Maybe<Scalars['Float']['output']>;
-  altitude?: Maybe<Scalars['Float']['output']>;
-  latitude: Scalars['Float']['output'];
-  longitude: Scalars['Float']['output'];
-  recordedAt: Scalars['String']['output'];
-  speedMps?: Maybe<Scalars['Float']['output']>;
-};
-
 export type WaypointInput = {
-  accuracy?: InputMaybe<Scalars['Float']['input']>;
-  altitude?: InputMaybe<Scalars['Float']['input']>;
-  heading?: InputMaybe<Scalars['Float']['input']>;
-  latitude: Scalars['Float']['input'];
-  longitude: Scalars['Float']['input'];
-  recordedAt: Scalars['String']['input'];
-  speedMps?: InputMaybe<Scalars['Float']['input']>;
+  accuracy?: number | null | undefined;
+  altitude?: number | null | undefined;
+  heading?: number | null | undefined;
+  latitude: number;
+  longitude: number;
+  recordedAt: string;
+  speedMps?: number | null | undefined;
 };
 
 export type AcknowledgeRecallMutationVariables = Exact<{
-  motorcycleId: Scalars['ID']['input'];
-  campaignNumber: Scalars['String']['input'];
+  motorcycleId: string | number;
+  campaignNumber: string;
 }>;
 
 
-export type AcknowledgeRecallMutation = { __typename?: 'Mutation', acknowledgeRecall: { __typename?: 'RecallResult', count: number, acknowledgedCount: number, checkedAt: string, vinUsed?: string | null, recalls: Array<{ __typename?: 'Recall', campaignNumber: string, reportDate: string, component: string, summary: string, consequence: string, remedy: string, acknowledged: boolean, acknowledgedAt?: string | null }> } };
+export type AcknowledgeRecallMutation = { acknowledgeRecall: { count: number, acknowledgedCount: number, checkedAt: string, vinUsed: string | null, recalls: Array<{ campaignNumber: string, reportDate: string, component: string, summary: string, consequence: string, remedy: string, acknowledged: boolean, acknowledgedAt: string | null }> } };
 
 export type AddDocumentCategoryMutationVariables = Exact<{
   input: AddDocumentCategoryInput;
 }>;
 
 
-export type AddDocumentCategoryMutation = { __typename?: 'Mutation', addDocumentCategory: { __typename?: 'DocumentCategory', id: string, name: string, kind: string, isHidden: boolean, promptsExpiry: boolean, createdAt: string, updatedAt: string } };
+export type AddDocumentCategoryMutation = { addDocumentCategory: { id: string, name: string, kind: string, isHidden: boolean, promptsExpiry: boolean, createdAt: string, updatedAt: string } };
 
 export type AddExpensePhotoMutationVariables = Exact<{
   input: AddExpensePhotoInput;
 }>;
 
 
-export type AddExpensePhotoMutation = { __typename?: 'Mutation', addExpensePhoto: { __typename?: 'ExpensePhoto', id: string, expenseId: string, storagePath: string, publicUrl: string, fileSizeBytes?: number | null, mimeType: string, createdAt: string } };
+export type AddExpensePhotoMutation = { addExpensePhoto: { id: string, expenseId: string, storagePath: string, publicUrl: string, fileSizeBytes: number | null, mimeType: string, createdAt: string } };
 
 export type AddNotePhotoMutationVariables = Exact<{
   input: AddNotePhotoInput;
 }>;
 
 
-export type AddNotePhotoMutation = { __typename?: 'Mutation', addNotePhoto: { __typename?: 'NotePhoto', id: string, noteId: string, storagePath: string, publicUrl: string, fileSizeBytes?: number | null, mimeType: string, createdAt: string } };
+export type AddNotePhotoMutation = { addNotePhoto: { id: string, noteId: string, storagePath: string, publicUrl: string, fileSizeBytes: number | null, mimeType: string, createdAt: string } };
 
 export type AddTaskPhotoMutationVariables = Exact<{
   input: AddTaskPhotoInput;
 }>;
 
 
-export type AddTaskPhotoMutation = { __typename?: 'Mutation', addTaskPhoto: { __typename?: 'TaskPhoto', id: string, taskId: string, storagePath: string, publicUrl: string, fileSizeBytes?: number | null, mimeType: string, createdAt: string } };
+export type AddTaskPhotoMutation = { addTaskPhoto: { id: string, taskId: string, storagePath: string, publicUrl: string, fileSizeBytes: number | null, mimeType: string, createdAt: string } };
 
 export type AddWaypointMutationVariables = Exact<{
   input: CreateWaypointInput;
 }>;
 
 
-export type AddWaypointMutation = { __typename?: 'Mutation', addWaypoint: { __typename?: 'TripWaypoint', id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay?: PeriodOfDay | null, type: string, name: string, notes?: string | null, lat: number, lng: number, createdAt: string } };
+export type AddWaypointMutation = { addWaypoint: { id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay: PeriodOfDay | null, type: string, name: string, notes: string | null, lat: number, lng: number, createdAt: string } };
 
 export type AskTripAssistantMutationVariables = Exact<{
   input: AskTripAssistantInput;
 }>;
 
 
-export type AskTripAssistantMutation = { __typename?: 'Mutation', askTripAssistant: { __typename?: 'TripAssistantMessage', message: string } };
+export type AskTripAssistantMutation = { askTripAssistant: { message: string } };
 
 export type CancelGroupRideMutationVariables = Exact<{
-  groupRideId: Scalars['ID']['input'];
+  groupRideId: string | number;
 }>;
 
 
-export type CancelGroupRideMutation = { __typename?: 'Mutation', cancelGroupRide: boolean };
+export type CancelGroupRideMutation = { cancelGroupRide: boolean };
 
 export type CancelReceiptScanMutationVariables = Exact<{
-  scanId: Scalars['String']['input'];
+  scanId: string;
 }>;
 
 
-export type CancelReceiptScanMutation = { __typename?: 'Mutation', cancelReceiptScan: { __typename: 'CancelReceiptScanSuccess', scanId: string, status: string } | { __typename: 'ReceiptScanError', code: string, reason: string } };
+export type CancelReceiptScanMutation = { cancelReceiptScan:
+    | { __typename: 'CancelReceiptScanSuccess', scanId: string, status: string }
+    | { __typename: 'ReceiptScanError', code: string, reason: string }
+   };
 
 export type CloneTripMutationVariables = Exact<{
-  tripId: Scalars['ID']['input'];
+  tripId: string | number;
 }>;
 
 
-export type CloneTripMutation = { __typename?: 'Mutation', cloneTrip: string };
+export type CloneTripMutation = { cloneTrip: string };
 
 export type CompleteMaintenanceTaskMutationVariables = Exact<{
-  id: Scalars['String']['input'];
-  input?: InputMaybe<CompleteMaintenanceTaskInput>;
-  createNextOccurrence?: InputMaybe<Scalars['Boolean']['input']>;
+  id: string;
+  input?: CompleteMaintenanceTaskInput | null | undefined;
+  createNextOccurrence?: boolean | null | undefined;
 }>;
 
 
-export type CompleteMaintenanceTaskMutation = { __typename?: 'Mutation', completeMaintenanceTask: { __typename?: 'CompleteTaskResult', completed: { __typename?: 'MaintenanceTask', id: string, status: MaintenanceTaskStatus, completedAt?: string | null, completedMileage?: number | null, cost?: number | null, partsCost?: number | null, laborCost?: number | null, currency?: string | null }, nextOccurrence?: { __typename?: 'MaintenanceTask', id: string, title: string, description?: string | null, dueDate?: string | null, targetMileage?: number | null, priority: MaintenancePriority, status: MaintenanceTaskStatus, isRecurring: boolean, intervalKm?: number | null, intervalDays?: number | null, source: MaintenanceTaskSource, motorcycleId: string, createdAt: string } | null } };
+export type CompleteMaintenanceTaskMutation = { completeMaintenanceTask: { completed: { id: string, status: MaintenanceTaskStatus, completedAt: string | null, completedMileage: number | null, cost: number | null, partsCost: number | null, laborCost: number | null, currency: string | null }, nextOccurrence: { id: string, title: string, description: string | null, dueDate: string | null, targetMileage: number | null, priority: MaintenancePriority, status: MaintenanceTaskStatus, isRecurring: boolean, intervalKm: number | null, intervalDays: number | null, source: MaintenanceTaskSource, motorcycleId: string, createdAt: string } | null } };
 
 export type CompleteOnboardingMutationVariables = Exact<{
   input: CompleteOnboardingInput;
 }>;
 
 
-export type CompleteOnboardingMutation = { __typename?: 'Mutation', completeOnboarding: { __typename?: 'User', id: string, preferences?: Record<string, unknown> | null, currency: string, createdAt: string, updatedAt: string } };
+export type CompleteOnboardingMutation = { completeOnboarding: { id: string, preferences: Record<string, unknown> | null, currency: string, createdAt: string, updatedAt: string } };
 
 export type CreateCommentMutationVariables = Exact<{
   input: CreateCommentInput;
 }>;
 
 
-export type CreateCommentMutation = { __typename?: 'Mutation', createComment: { __typename?: 'Comment', id: string, text: string, createdAt: string, flaggedCount: number, parentCommentId?: string | null, author: { __typename?: 'CommentAuthor', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null } } };
+export type CreateCommentMutation = { createComment: { id: string, text: string, createdAt: string, flaggedCount: number, parentCommentId: string | null, author: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null } } };
 
 export type CreateDiagnosticMutationVariables = Exact<{
   input: CreateDiagnosticInput;
 }>;
 
 
-export type CreateDiagnosticMutation = { __typename?: 'Mutation', createDiagnostic: { __typename?: 'Diagnostic', id: string, userId: string, motorcycleId?: string | null, severity?: DiagnosticSeverity | null, confidence?: number | null, relatedArticleId?: string | null, status: string, dataSharingOptedIn: boolean, createdAt: string } };
+export type CreateDiagnosticMutation = { createDiagnostic: { id: string, userId: string, motorcycleId: string | null, severity: DiagnosticSeverity | null, confidence: number | null, relatedArticleId: string | null, status: string, dataSharingOptedIn: boolean, createdAt: string } };
 
 export type CreateDocumentMutationVariables = Exact<{
   input: CreateDocumentInput;
 }>;
 
 
-export type CreateDocumentMutation = { __typename?: 'Mutation', createDocument: { __typename?: 'Document', id: string, motorcycleId: string, categoryId: string, title: string, expiryDate?: string | null, note?: string | null, isPinned: boolean, createdAt: string, updatedAt: string, files: Array<{ __typename?: 'DocumentFile', id: string, documentId: string, mimeType: string, fileSizeBytes?: number | null, createdAt: string }> } };
+export type CreateDocumentMutation = { createDocument: { id: string, motorcycleId: string, categoryId: string, title: string, expiryDate: string | null, note: string | null, isPinned: boolean, createdAt: string, updatedAt: string, files: Array<{ id: string, documentId: string, mimeType: string, fileSizeBytes: number | null, createdAt: string }> } };
 
 export type CreateFlagMutationVariables = Exact<{
   input: CreateFlagInput;
 }>;
 
 
-export type CreateFlagMutation = { __typename?: 'Mutation', createFlag: { __typename?: 'ContentFlag', id: string, articleId: string, userId: string, sectionReference?: string | null, comment: string, status: FlagStatus, createdAt: string } };
+export type CreateFlagMutation = { createFlag: { id: string, articleId: string, userId: string, sectionReference: string | null, comment: string, status: FlagStatus, createdAt: string } };
 
 export type CreateGroupRideMutationVariables = Exact<{
   input: CreateGroupRideInput;
 }>;
 
 
-export type CreateGroupRideMutation = { __typename?: 'Mutation', createGroupRide: { __typename?: 'GroupRide', id: string, title: string } };
+export type CreateGroupRideMutation = { createGroupRide: { id: string, title: string } };
 
 export type CreateMaintenanceTaskMutationVariables = Exact<{
   input: CreateMaintenanceTaskInput;
 }>;
 
 
-export type CreateMaintenanceTaskMutation = { __typename?: 'Mutation', createMaintenanceTask: { __typename?: 'MaintenanceTask', id: string, title: string, priority: MaintenancePriority, status: MaintenanceTaskStatus, dueDate?: string | null, targetMileage?: number | null, isRecurring: boolean, intervalKm?: number | null, intervalDays?: number | null, remind30d: boolean, remind7d: boolean, remind1d: boolean, createdAt: string } };
+export type CreateMaintenanceTaskMutation = { createMaintenanceTask: { id: string, title: string, priority: MaintenancePriority, status: MaintenanceTaskStatus, dueDate: string | null, targetMileage: number | null, isRecurring: boolean, intervalKm: number | null, intervalDays: number | null, remind30d: boolean, remind7d: boolean, remind1d: boolean, createdAt: string } };
 
 export type CreateMotorcycleMutationVariables = Exact<{
   input: CreateMotorcycleInput;
 }>;
 
 
-export type CreateMotorcycleMutation = { __typename?: 'Mutation', createMotorcycle: { __typename?: 'Motorcycle', id: string, make: string, model: string, year: number, nickname?: string | null, variant?: string | null, isPrimary: boolean, createdAt: string } };
+export type CreateMotorcycleMutation = { createMotorcycle: { id: string, make: string, model: string, year: number, nickname: string | null, variant: string | null, isPrimary: boolean, createdAt: string } };
 
 export type CreateNoteMutationVariables = Exact<{
   input: CreateNoteInput;
 }>;
 
 
-export type CreateNoteMutation = { __typename?: 'Mutation', createNote: { __typename?: 'Note', id: string, motorcycleId: string, text: string, odometer?: number | null, createdAt: string, updatedAt: string, linkedTaskId?: string | null, linkedTaskTitle?: string | null, linkedExpenseId?: string | null, linkedExpenseAmount?: number | null, linkedExpenseCurrency?: string | null, photos: Array<{ __typename?: 'NotePhoto', id: string, storagePath: string, publicUrl: string }> } };
+export type CreateNoteMutation = { createNote: { id: string, motorcycleId: string, text: string, odometer: number | null, createdAt: string, updatedAt: string, linkedTaskId: string | null, linkedTaskTitle: string | null, linkedExpenseId: string | null, linkedExpenseAmount: number | null, linkedExpenseCurrency: string | null, photos: Array<{ id: string, storagePath: string, publicUrl: string }> } };
 
 export type CreateServiceReminderMutationVariables = Exact<{
   input: CreateServiceReminderInput;
 }>;
 
 
-export type CreateServiceReminderMutation = { __typename?: 'Mutation', createServiceReminder: { __typename?: 'MaintenanceTask', id: string, title: string, dueDate?: string | null, isRecurring: boolean } };
+export type CreateServiceReminderMutation = { createServiceReminder: { id: string, title: string, dueDate: string | null, isRecurring: boolean } };
 
 export type CreateShareLinkMutationVariables = Exact<{
   input: CreateShareLinkInput;
 }>;
 
 
-export type CreateShareLinkMutation = { __typename?: 'Mutation', createShareLink: { __typename?: 'ShareLink', id: string, token?: string | null, motorcycleId: string, expiresAt: string, createdAt: string, url?: string | null } };
+export type CreateShareLinkMutation = { createShareLink: { id: string, token: string | null, motorcycleId: string, expiresAt: string, createdAt: string, url: string | null } };
 
 export type CreateTaskFromNoteMutationVariables = Exact<{
-  noteId: Scalars['String']['input'];
+  noteId: string;
 }>;
 
 
-export type CreateTaskFromNoteMutation = { __typename?: 'Mutation', createTaskFromNote: { __typename?: 'Note', id: string, motorcycleId: string, text: string, odometer?: number | null, createdAt: string, updatedAt: string, linkedTaskId?: string | null, linkedTaskTitle?: string | null, linkedExpenseId?: string | null, linkedExpenseAmount?: number | null, linkedExpenseCurrency?: string | null, photos: Array<{ __typename?: 'NotePhoto', id: string, storagePath: string, publicUrl: string }> } };
+export type CreateTaskFromNoteMutation = { createTaskFromNote: { id: string, motorcycleId: string, text: string, odometer: number | null, createdAt: string, updatedAt: string, linkedTaskId: string | null, linkedTaskTitle: string | null, linkedExpenseId: string | null, linkedExpenseAmount: number | null, linkedExpenseCurrency: string | null, photos: Array<{ id: string, storagePath: string, publicUrl: string }> } };
 
 export type CreateTripReviewMutationVariables = Exact<{
   input: CreateTripReviewInput;
 }>;
 
 
-export type CreateTripReviewMutation = { __typename?: 'Mutation', createTripReview: { __typename?: 'TripReview', id: string, rating: number, text?: string | null, conditionTags?: Array<string> | null, createdAt: string, tripId: string, userId?: string | null, bikeId?: string | null } };
+export type CreateTripReviewMutation = { createTripReview: { id: string, rating: number, text: string | null, conditionTags: Array<string> | null, createdAt: string, tripId: string, userId: string | null, bikeId: string | null } };
 
 export type CreateTripSuggestionMutationVariables = Exact<{
   input: CreateTripSuggestionInput;
 }>;
 
 
-export type CreateTripSuggestionMutation = { __typename?: 'Mutation', createTripSuggestion: { __typename?: 'TripSuggestion', id: string, tripId: string, status: TripSuggestionStatus, name: string, notes?: string | null, lat?: number | null, lng?: number | null, dayIndex?: number | null, periodOfDay?: PeriodOfDay | null, createdAt: string, author: { __typename?: 'TripSuggestionAuthor', id: string, displayName: string, avatarUrl?: string | null } } };
+export type CreateTripSuggestionMutation = { createTripSuggestion: { id: string, tripId: string, status: TripSuggestionStatus, name: string, notes: string | null, lat: number | null, lng: number | null, dayIndex: number | null, periodOfDay: PeriodOfDay | null, createdAt: string, author: { id: string, displayName: string, avatarUrl: string | null } } };
 
 export type CreateTripWithWaypointsMutationVariables = Exact<{
   input: CreateTripWithWaypointsInput;
 }>;
 
 
-export type CreateTripWithWaypointsMutation = { __typename?: 'Mutation', createTripWithWaypoints: { __typename?: 'Trip', id: string, title: string, description: string, startDate: string, endDate: string, datesPending?: boolean | null, difficulty: string, maxRiders: number, status: string, visibility: string, createdAt: string, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string }, waypoints?: Array<{ __typename?: 'TripWaypoint', id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay?: PeriodOfDay | null, type: string, name: string, notes?: string | null, lat: number, lng: number }> | null } };
+export type CreateTripWithWaypointsMutation = { createTripWithWaypoints: { id: string, title: string, description: string, startDate: string, endDate: string, datesPending: boolean | null, difficulty: string, maxRiders: number, status: string, visibility: string, createdAt: string, organiser: { id: string, displayName: string }, waypoints: Array<{ id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay: PeriodOfDay | null, type: string, name: string, notes: string | null, lat: number, lng: number }> | null } };
 
 export type CreateTripMutationVariables = Exact<{
   input: CreateTripInput;
 }>;
 
 
-export type CreateTripMutation = { __typename?: 'Mutation', createTrip: { __typename?: 'Trip', id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, status: string, createdAt: string, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string } } };
+export type CreateTripMutation = { createTrip: { id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, status: string, createdAt: string, organiser: { id: string, displayName: string } } };
 
 export type DeleteAccountMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type DeleteAccountMutation = { __typename?: 'Mutation', deleteAccount: boolean };
+export type DeleteAccountMutation = { deleteAccount: boolean };
 
 export type DeleteCommentMutationVariables = Exact<{
-  commentId: Scalars['ID']['input'];
+  commentId: string | number;
 }>;
 
 
-export type DeleteCommentMutation = { __typename?: 'Mutation', deleteComment: boolean };
+export type DeleteCommentMutation = { deleteComment: boolean };
 
 export type DeleteDocumentCategoryMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type DeleteDocumentCategoryMutation = { __typename?: 'Mutation', deleteDocumentCategory: boolean };
+export type DeleteDocumentCategoryMutation = { deleteDocumentCategory: boolean };
 
 export type DeleteDocumentMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type DeleteDocumentMutation = { __typename?: 'Mutation', deleteDocument: boolean };
+export type DeleteDocumentMutation = { deleteDocument: boolean };
 
 export type DeleteExpensePhotoMutationVariables = Exact<{
-  photoId: Scalars['String']['input'];
+  photoId: string;
 }>;
 
 
-export type DeleteExpensePhotoMutation = { __typename?: 'Mutation', deleteExpensePhoto: boolean };
+export type DeleteExpensePhotoMutation = { deleteExpensePhoto: boolean };
 
 export type DeleteExpenseMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type DeleteExpenseMutation = { __typename?: 'Mutation', deleteExpense: boolean };
+export type DeleteExpenseMutation = { deleteExpense: boolean };
 
 export type DeleteMaintenanceTaskMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type DeleteMaintenanceTaskMutation = { __typename?: 'Mutation', deleteMaintenanceTask: boolean };
+export type DeleteMaintenanceTaskMutation = { deleteMaintenanceTask: boolean };
 
 export type DeleteMotorcycleMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type DeleteMotorcycleMutation = { __typename?: 'Mutation', deleteMotorcycle: boolean };
+export type DeleteMotorcycleMutation = { deleteMotorcycle: boolean };
 
 export type DeleteNotePhotoMutationVariables = Exact<{
-  photoId: Scalars['String']['input'];
+  photoId: string;
 }>;
 
 
-export type DeleteNotePhotoMutation = { __typename?: 'Mutation', deleteNotePhoto: boolean };
+export type DeleteNotePhotoMutation = { deleteNotePhoto: boolean };
 
 export type DeleteNoteMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type DeleteNoteMutation = { __typename?: 'Mutation', deleteNote: boolean };
+export type DeleteNoteMutation = { deleteNote: boolean };
 
 export type DeleteRideMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type DeleteRideMutation = { __typename?: 'Mutation', deleteRide: boolean };
+export type DeleteRideMutation = { deleteRide: boolean };
 
 export type DeleteTaskPhotoMutationVariables = Exact<{
-  photoId: Scalars['ID']['input'];
+  photoId: string | number;
 }>;
 
 
-export type DeleteTaskPhotoMutation = { __typename?: 'Mutation', deleteTaskPhoto: boolean };
+export type DeleteTaskPhotoMutation = { deleteTaskPhoto: boolean };
 
 export type DeleteTripReviewMutationVariables = Exact<{
-  reviewId: Scalars['ID']['input'];
+  reviewId: string | number;
 }>;
 
 
-export type DeleteTripReviewMutation = { __typename?: 'Mutation', deleteTripReview: boolean };
+export type DeleteTripReviewMutation = { deleteTripReview: boolean };
 
 export type DeleteTripMutationVariables = Exact<{
-  tripId: Scalars['ID']['input'];
+  tripId: string | number;
 }>;
 
 
-export type DeleteTripMutation = { __typename?: 'Mutation', deleteTrip: boolean };
+export type DeleteTripMutation = { deleteTrip: boolean };
 
 export type EndRideMutationVariables = Exact<{
   input: EndRideInput;
 }>;
 
 
-export type EndRideMutation = { __typename?: 'Mutation', endRide: { __typename?: 'EndRideResponse', ride: { __typename?: 'Ride', id: string, status: RideStatus, endedAt?: string | null, distanceM?: number | null, maxSpeedMps?: number | null, avgSpeedMps?: number | null, elevationGain?: number | null, elevationLoss?: number | null, pausedDurationS: number, autoPausedDurationS: number, gpsQuality?: number | null, routePolyline?: string | null, mileageApplied: boolean }, triggeredMaintenanceTasks: Array<{ __typename?: 'TriggeredMaintenanceTask', id: string, title: string, priority: string }> } };
+export type EndRideMutation = { endRide: { ride: { id: string, status: RideStatus, endedAt: string | null, distanceM: number | null, maxSpeedMps: number | null, avgSpeedMps: number | null, elevationGain: number | null, elevationLoss: number | null, pausedDurationS: number, autoPausedDurationS: number, gpsQuality: number | null, routePolyline: string | null, mileageApplied: boolean }, triggeredMaintenanceTasks: Array<{ id: string, title: string, priority: string }> } };
 
 export type ExportTripGpxMutationVariables = Exact<{
-  slug: Scalars['String']['input'];
-  country: Scalars['String']['input'];
-  region: Scalars['String']['input'];
+  slug: string;
+  country: string;
+  region: string;
 }>;
 
 
-export type ExportTripGpxMutation = { __typename?: 'Mutation', exportTripGPX: { __typename?: 'GPXExportError', code: string, reason: string, quotaRemaining?: number | null, upgradeUrl?: string | null } | { __typename?: 'GPXExportSuccess', fileUrl: string, fileName: string, message: string } };
+export type ExportTripGpxMutation = { exportTripGPX:
+    | { code: string, reason: string, quotaRemaining: number | null, upgradeUrl: string | null }
+    | { fileUrl: string, fileName: string, message: string }
+   };
 
 export type FlagCommentMutationVariables = Exact<{
-  commentId: Scalars['ID']['input'];
+  commentId: string | number;
 }>;
 
 
-export type FlagCommentMutation = { __typename?: 'Mutation', flagComment: boolean };
+export type FlagCommentMutation = { flagComment: boolean };
 
 export type FollowRiderMutationVariables = Exact<{
   input: FollowRiderInput;
 }>;
 
 
-export type FollowRiderMutation = { __typename?: 'Mutation', followRider: { __typename?: 'Follow', followerId: string, followingId: string, createdAt: string } };
+export type FollowRiderMutation = { followRider: { followerId: string, followingId: string, createdAt: string } };
 
 export type GenerateArticleMutationVariables = Exact<{
   input: GenerateArticleInput;
 }>;
 
 
-export type GenerateArticleMutation = { __typename?: 'Mutation', generateArticle: { __typename?: 'Article', id: string, slug: string, title: string, difficulty: ArticleDifficulty, category: ArticleCategory, contentJson?: Record<string, unknown> | null, readTime?: number | null, generatedAt: string } };
+export type GenerateArticleMutation = { generateArticle: { id: string, slug: string, title: string, difficulty: ArticleDifficulty, category: ArticleCategory, contentJson: Record<string, unknown> | null, readTime: number | null, generatedAt: string } };
 
 export type GenerateBikeHealthReportMutationVariables = Exact<{
   input: GenerateReportInput;
 }>;
 
 
-export type GenerateBikeHealthReportMutation = { __typename?: 'Mutation', generateBikeHealthReport: { __typename?: 'HealthReport', id: string, userId: string, motorcycleId?: string | null, status: HealthReportStatus, pdfUrl?: string | null, iapTransactionId?: string | null, createdAt: string, completedAt?: string | null } };
+export type GenerateBikeHealthReportMutation = { generateBikeHealthReport: { id: string, userId: string, motorcycleId: string | null, status: HealthReportStatus, pdfUrl: string | null, iapTransactionId: string | null, createdAt: string, completedAt: string | null } };
 
 export type GenerateOnboardingInsightsMutationVariables = Exact<{
   input: GenerateInsightsInput;
 }>;
 
 
-export type GenerateOnboardingInsightsMutation = { __typename?: 'Mutation', generateOnboardingInsights: Array<{ __typename?: 'OnboardingInsight', icon: string, title: string, body: string, type: InsightType }> };
+export type GenerateOnboardingInsightsMutation = { generateOnboardingInsights: Array<{ icon: string, title: string, body: string, type: InsightType }> };
 
 export type ImportOemScheduleMutationVariables = Exact<{
-  motorcycleId: Scalars['String']['input'];
+  motorcycleId: string;
 }>;
 
 
-export type ImportOemScheduleMutation = { __typename?: 'Mutation', importOemSchedule: number };
+export type ImportOemScheduleMutation = { importOemSchedule: number };
 
 export type InviteToTripMutationVariables = Exact<{
-  tripId: Scalars['ID']['input'];
-  invitedUserId: Scalars['ID']['input'];
+  tripId: string | number;
+  invitedUserId: string | number;
 }>;
 
 
-export type InviteToTripMutation = { __typename?: 'Mutation', inviteToTrip: boolean };
+export type InviteToTripMutation = { inviteToTrip: boolean };
 
 export type JoinGroupRideMutationVariables = Exact<{
-  groupRideId: Scalars['ID']['input'];
+  groupRideId: string | number;
 }>;
 
 
-export type JoinGroupRideMutation = { __typename?: 'Mutation', joinGroupRide: boolean };
+export type JoinGroupRideMutation = { joinGroupRide: boolean };
 
 export type JoinPremiumWaitlistMutationVariables = Exact<{
-  feature: Scalars['String']['input'];
+  feature: string;
 }>;
 
 
-export type JoinPremiumWaitlistMutation = { __typename?: 'Mutation', joinPremiumWaitlist: boolean };
+export type JoinPremiumWaitlistMutation = { joinPremiumWaitlist: boolean };
 
 export type JoinTripMutationVariables = Exact<{
   input: JoinTripInput;
 }>;
 
 
-export type JoinTripMutation = { __typename?: 'Mutation', joinTrip: boolean };
+export type JoinTripMutation = { joinTrip: boolean };
 
 export type LeaveGroupRideMutationVariables = Exact<{
-  groupRideId: Scalars['ID']['input'];
+  groupRideId: string | number;
 }>;
 
 
-export type LeaveGroupRideMutation = { __typename?: 'Mutation', leaveGroupRide: boolean };
+export type LeaveGroupRideMutation = { leaveGroupRide: boolean };
 
 export type LeaveTripMutationVariables = Exact<{
-  tripId: Scalars['ID']['input'];
+  tripId: string | number;
 }>;
 
 
-export type LeaveTripMutation = { __typename?: 'Mutation', leaveTrip: boolean };
+export type LeaveTripMutation = { leaveTrip: boolean };
 
 export type LogExpenseMutationVariables = Exact<{
   input: LogExpenseInput;
 }>;
 
 
-export type LogExpenseMutation = { __typename?: 'Mutation', logExpense: { __typename?: 'Expense', id: string, amount: number, category: string, currency: string, description?: string | null, itemName?: string | null, date: string, createdAt: string } };
+export type LogExpenseMutation = { logExpense: { id: string, amount: number, category: string, currency: string, description: string | null, itemName: string | null, date: string, createdAt: string } };
 
 export type LogOdometerReadingMutationVariables = Exact<{
   input: LogOdometerReadingInput;
 }>;
 
 
-export type LogOdometerReadingMutation = { __typename?: 'Mutation', logOdometerReading: { __typename?: 'Motorcycle', id: string, currentMileage?: number | null, distanceUnit: string, mileageUpdatedAt?: string | null, odometerSyncSource?: string | null, odometerLastRideId?: string | null } };
+export type LogOdometerReadingMutation = { logOdometerReading: { id: string, currentMileage: number | null, distanceUnit: string, mileageUpdatedAt: string | null, odometerSyncSource: string | null, odometerLastRideId: string | null } };
 
 export type MarkArticleReadMutationVariables = Exact<{
-  articleId: Scalars['String']['input'];
+  articleId: string;
 }>;
 
 
-export type MarkArticleReadMutation = { __typename?: 'Mutation', markArticleRead: { __typename?: 'LearningProgress', id: string, userId: string, articleId: string, articleRead: boolean, quizCompleted: boolean, quizBestScore?: number | null, firstReadAt?: string | null, lastReadAt?: string | null } };
+export type MarkArticleReadMutation = { markArticleRead: { id: string, userId: string, articleId: string, articleRead: boolean, quizCompleted: boolean, quizBestScore: number | null, firstReadAt: string | null, lastReadAt: string | null } };
 
 export type PublishAsTemplateMutationVariables = Exact<{
-  tripId: Scalars['ID']['input'];
+  tripId: string | number;
 }>;
 
 
-export type PublishAsTemplateMutation = { __typename?: 'Mutation', publishAsTemplate: { __typename?: 'Trip', id: string, slug?: string | null, isTemplate: boolean, publishedAt?: string | null, status: string } };
+export type PublishAsTemplateMutation = { publishAsTemplate: { id: string, slug: string | null, isTemplate: boolean, publishedAt: string | null, status: string } };
 
 export type PublishTripMutationVariables = Exact<{
-  tripId: Scalars['ID']['input'];
+  tripId: string | number;
 }>;
 
 
-export type PublishTripMutation = { __typename?: 'Mutation', publishTrip: { __typename?: 'Trip', id: string, status: string } };
+export type PublishTripMutation = { publishTrip: { id: string, status: string } };
 
 export type RegenerateRideSummaryMutationVariables = Exact<{
-  rideId: Scalars['String']['input'];
+  rideId: string;
 }>;
 
 
-export type RegenerateRideSummaryMutation = { __typename?: 'Mutation', regenerateRideSummary: { __typename?: 'RideSummary', id: string, rideId: string, summaryText: string, generationStatus: GenerationStatus, locale: string, createdAt: string, updatedAt: string } };
+export type RegenerateRideSummaryMutation = { regenerateRideSummary: { id: string, rideId: string, summaryText: string, generationStatus: GenerationStatus, locale: string, createdAt: string, updatedAt: string } };
 
 export type RegisterPushTokenMutationVariables = Exact<{
   input: RegisterPushTokenInput;
 }>;
 
 
-export type RegisterPushTokenMutation = { __typename?: 'Mutation', registerPushToken: { __typename?: 'RegisterPushTokenResult', success: boolean } };
+export type RegisterPushTokenMutation = { registerPushToken: { success: boolean } };
 
 export type RemoveWaypointMutationVariables = Exact<{
-  waypointId: Scalars['ID']['input'];
+  waypointId: string | number;
 }>;
 
 
-export type RemoveWaypointMutation = { __typename?: 'Mutation', removeWaypoint: boolean };
+export type RemoveWaypointMutation = { removeWaypoint: boolean };
 
 export type ReorderWaypointsMutationVariables = Exact<{
   input: ReorderWaypointsInput;
 }>;
 
 
-export type ReorderWaypointsMutation = { __typename?: 'Mutation', reorderWaypoints: boolean };
+export type ReorderWaypointsMutation = { reorderWaypoints: boolean };
 
 export type RequestDataExportMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type RequestDataExportMutation = { __typename?: 'Mutation', requestDataExport: { __typename?: 'DataExportRequest', id: string, status: string, requestedAt: string } };
+export type RequestDataExportMutation = { requestDataExport: { id: string, status: string, requestedAt: string } };
 
 export type RespondToTripInviteMutationVariables = Exact<{
-  inviteId: Scalars['ID']['input'];
-  accept: Scalars['Boolean']['input'];
+  inviteId: string | number;
+  accept: boolean;
 }>;
 
 
-export type RespondToTripInviteMutation = { __typename?: 'Mutation', respondToTripInvite: boolean };
+export type RespondToTripInviteMutation = { respondToTripInvite: boolean };
 
 export type RespondToTripSuggestionMutationVariables = Exact<{
   input: RespondToTripSuggestionInput;
 }>;
 
 
-export type RespondToTripSuggestionMutation = { __typename?: 'Mutation', respondToTripSuggestion: { __typename?: 'TripSuggestion', id: string, status: TripSuggestionStatus, decidedBy?: string | null, decidedAt?: string | null, decidedNote?: string | null, waypointId?: string | null } };
+export type RespondToTripSuggestionMutation = { respondToTripSuggestion: { id: string, status: TripSuggestionStatus, decidedBy: string | null, decidedAt: string | null, decidedNote: string | null, waypointId: string | null } };
 
 export type RevokeShareLinkMutationVariables = Exact<{
-  linkId: Scalars['ID']['input'];
+  linkId: string | number;
 }>;
 
 
-export type RevokeShareLinkMutation = { __typename?: 'Mutation', revokeShareLink: boolean };
+export type RevokeShareLinkMutation = { revokeShareLink: boolean };
 
 export type RotateTripShareTokenMutationVariables = Exact<{
-  tripId: Scalars['ID']['input'];
+  tripId: string | number;
 }>;
 
 
-export type RotateTripShareTokenMutation = { __typename?: 'Mutation', rotateTripShareToken: string };
+export type RotateTripShareTokenMutation = { rotateTripShareToken: string };
 
 export type SaveReceiptScanMutationVariables = Exact<{
-  scanId: Scalars['String']['input'];
+  scanId: string;
   input: SaveReceiptScanInput;
 }>;
 
 
-export type SaveReceiptScanMutation = { __typename?: 'Mutation', saveReceiptScan: { __typename: 'ReceiptScanError', code: string, reason: string } | { __typename: 'SaveReceiptScanSuccess', scanId: string, refs: { __typename?: 'SavedRecordRefs', recordType: string, expenseId?: string | null, taskId?: string | null, photoId?: string | null, odometer?: { __typename?: 'SavedOdometerRef', motorcycleId: string, previous?: number | null, applied: number } | null } } };
+export type SaveReceiptScanMutation = { saveReceiptScan:
+    | { __typename: 'ReceiptScanError', code: string, reason: string }
+    | { __typename: 'SaveReceiptScanSuccess', scanId: string, refs: { recordType: string, expenseId: string | null, taskId: string | null, photoId: string | null, odometer: { motorcycleId: string, previous: number | null, applied: number } | null } }
+   };
 
 export type SaveTripMutationVariables = Exact<{
-  tripId: Scalars['ID']['input'];
+  tripId: string | number;
 }>;
 
 
-export type SaveTripMutation = { __typename?: 'Mutation', saveTrip: boolean };
+export type SaveTripMutation = { saveTrip: boolean };
 
 export type ScanReceiptMutationVariables = Exact<{
-  scanId: Scalars['String']['input'];
-  isOnboarding?: InputMaybe<Scalars['Boolean']['input']>;
+  scanId: string;
+  isOnboarding?: boolean | null | undefined;
 }>;
 
 
-export type ScanReceiptMutation = { __typename?: 'Mutation', scanReceipt: { __typename: 'ReceiptScanError', code: string, reason: string } | { __typename: 'ReceiptScanSuccess', scanId: string, result: { __typename?: 'ReceiptExtractionResult', type: string, amount?: number | null, currency?: string | null, date?: string | null, vendor?: string | null, itemName?: string | null, category?: string | null, partsCost?: number | null, laborCost?: number | null, taxAmount?: number | null, taxRate?: number | null, odometerValue?: number | null, odometerUnit?: string | null, fuelLitres?: number | null, partsNeeded: Array<string>, legibilityNote?: string | null, needsCheck: Array<string>, lineItems: Array<{ __typename?: 'ReceiptLineItemResult', label: string, serviceType?: string | null, partRef?: string | null, quantity?: number | null, unitPrice?: number | null, lineTotal?: number | null }>, fieldConfidence: { __typename?: 'ReceiptFieldConfidenceResult', amount: number, currency: number, date: number, vendor: number, category: number, odometer: number } } } };
+export type ScanReceiptMutation = { scanReceipt:
+    | { __typename: 'ReceiptScanError', code: string, reason: string }
+    | { __typename: 'ReceiptScanSuccess', scanId: string, result: { type: string, amount: number | null, currency: string | null, date: string | null, vendor: string | null, itemName: string | null, category: string | null, partsCost: number | null, laborCost: number | null, taxAmount: number | null, taxRate: number | null, odometerValue: number | null, odometerUnit: string | null, fuelLitres: number | null, partsNeeded: Array<string>, legibilityNote: string | null, needsCheck: Array<string>, lineItems: Array<{ label: string, serviceType: string | null, partRef: string | null, quantity: number | null, unitPrice: number | null, lineTotal: number | null }>, fieldConfidence: { amount: number, currency: number, date: number, vendor: number, category: number, odometer: number } } }
+   };
 
 export type SendFeedbackMutationVariables = Exact<{
   input: SendFeedbackInput;
 }>;
 
 
-export type SendFeedbackMutation = { __typename?: 'Mutation', sendFeedback: boolean };
+export type SendFeedbackMutation = { sendFeedback: boolean };
 
 export type SetTripParticipantRoleMutationVariables = Exact<{
   input: SetParticipantRoleInput;
 }>;
 
 
-export type SetTripParticipantRoleMutation = { __typename?: 'Mutation', setTripParticipantRole: boolean };
+export type SetTripParticipantRoleMutation = { setTripParticipantRole: boolean };
 
 export type ShareRideAsTripMutationVariables = Exact<{
   input: ShareRideAsTripInput;
 }>;
 
 
-export type ShareRideAsTripMutation = { __typename?: 'Mutation', shareRideAsTrip: { __typename?: 'Trip', id: string, title: string, distanceM?: number | null } };
+export type ShareRideAsTripMutation = { shareRideAsTrip: { id: string, title: string, distanceM: number | null } };
 
 export type ShareRideMutationVariables = Exact<{
-  rideId: Scalars['String']['input'];
-  sharedWithUserId: Scalars['String']['input'];
+  rideId: string;
+  sharedWithUserId: string;
 }>;
 
 
-export type ShareRideMutation = { __typename?: 'Mutation', shareRide: boolean };
+export type ShareRideMutation = { shareRide: boolean };
 
 export type StartRideMutationVariables = Exact<{
   input: StartRideInput;
 }>;
 
 
-export type StartRideMutation = { __typename?: 'Mutation', startRide: { __typename?: 'Ride', id: string, status: RideStatus, startedAt: string, motorcycleId?: string | null } };
+export type StartRideMutation = { startRide: { id: string, status: RideStatus, startedAt: string, motorcycleId: string | null } };
 
 export type SubmitDiagnosticMutationVariables = Exact<{
   input: SubmitDiagnosticInput;
 }>;
 
 
-export type SubmitDiagnosticMutation = { __typename?: 'Mutation', submitDiagnostic: { __typename?: 'Diagnostic', id: string, userId: string, motorcycleId?: string | null, severity?: DiagnosticSeverity | null, confidence?: number | null, relatedArticleId?: string | null, resultJson?: Record<string, unknown> | null, description?: string | null, photoUrl?: string | null, status: string, createdAt: string } };
+export type SubmitDiagnosticMutation = { submitDiagnostic: { id: string, userId: string, motorcycleId: string | null, severity: DiagnosticSeverity | null, confidence: number | null, relatedArticleId: string | null, resultJson: Record<string, unknown> | null, description: string | null, photoUrl: string | null, status: string, createdAt: string } };
 
 export type TrackAffiliateClickMutationVariables = Exact<{
   input: TrackClickInput;
 }>;
 
 
-export type TrackAffiliateClickMutation = { __typename?: 'Mutation', trackAffiliateClick: { __typename?: 'AffiliateProduct', partner: AffiliatePartner, affiliateUrl: string, productUrl: string, tracked: boolean } };
+export type TrackAffiliateClickMutation = { trackAffiliateClick: { partner: AffiliatePartner, affiliateUrl: string, productUrl: string, tracked: boolean } };
 
 export type UnacknowledgeRecallMutationVariables = Exact<{
-  motorcycleId: Scalars['ID']['input'];
-  campaignNumber: Scalars['String']['input'];
+  motorcycleId: string | number;
+  campaignNumber: string;
 }>;
 
 
-export type UnacknowledgeRecallMutation = { __typename?: 'Mutation', unacknowledgeRecall: { __typename?: 'RecallResult', count: number, acknowledgedCount: number, checkedAt: string, vinUsed?: string | null, recalls: Array<{ __typename?: 'Recall', campaignNumber: string, reportDate: string, component: string, summary: string, consequence: string, remedy: string, acknowledged: boolean, acknowledgedAt?: string | null }> } };
+export type UnacknowledgeRecallMutation = { unacknowledgeRecall: { count: number, acknowledgedCount: number, checkedAt: string, vinUsed: string | null, recalls: Array<{ campaignNumber: string, reportDate: string, component: string, summary: string, consequence: string, remedy: string, acknowledged: boolean, acknowledgedAt: string | null }> } };
 
 export type UndoReceiptScanSaveMutationVariables = Exact<{
-  scanId: Scalars['String']['input'];
+  scanId: string;
 }>;
 
 
-export type UndoReceiptScanSaveMutation = { __typename?: 'Mutation', undoReceiptScanSave: { __typename: 'ReceiptScanError', code: string, reason: string } | { __typename: 'UndoReceiptScanSuccess', scanId: string, status: string } };
+export type UndoReceiptScanSaveMutation = { undoReceiptScanSave:
+    | { __typename: 'ReceiptScanError', code: string, reason: string }
+    | { __typename: 'UndoReceiptScanSuccess', scanId: string, status: string }
+   };
 
 export type UnfollowRiderMutationVariables = Exact<{
   input: UnfollowRiderInput;
 }>;
 
 
-export type UnfollowRiderMutation = { __typename?: 'Mutation', unfollowRider: boolean };
+export type UnfollowRiderMutation = { unfollowRider: boolean };
 
 export type UnpublishTemplateMutationVariables = Exact<{
-  tripId: Scalars['ID']['input'];
+  tripId: string | number;
 }>;
 
 
-export type UnpublishTemplateMutation = { __typename?: 'Mutation', unpublishTemplate: boolean };
+export type UnpublishTemplateMutation = { unpublishTemplate: boolean };
 
 export type UnregisterPushTokenMutationVariables = Exact<{
   input: UnregisterPushTokenInput;
 }>;
 
 
-export type UnregisterPushTokenMutation = { __typename?: 'Mutation', unregisterPushToken: { __typename?: 'RegisterPushTokenResult', success: boolean } };
+export type UnregisterPushTokenMutation = { unregisterPushToken: { success: boolean } };
 
 export type UnsaveTripMutationVariables = Exact<{
-  tripId: Scalars['ID']['input'];
+  tripId: string | number;
 }>;
 
 
-export type UnsaveTripMutation = { __typename?: 'Mutation', unsaveTrip: boolean };
+export type UnsaveTripMutation = { unsaveTrip: boolean };
 
 export type UnshareRideMutationVariables = Exact<{
-  rideId: Scalars['String']['input'];
-  sharedWithUserId: Scalars['String']['input'];
+  rideId: string;
+  sharedWithUserId: string;
 }>;
 
 
-export type UnshareRideMutation = { __typename?: 'Mutation', unshareRide: boolean };
+export type UnshareRideMutation = { unshareRide: boolean };
 
 export type UpdateDocumentCategoryMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
   input: UpdateDocumentCategoryInput;
 }>;
 
 
-export type UpdateDocumentCategoryMutation = { __typename?: 'Mutation', updateDocumentCategory: { __typename?: 'DocumentCategory', id: string, name: string, kind: string, isHidden: boolean, promptsExpiry: boolean, updatedAt: string } };
+export type UpdateDocumentCategoryMutation = { updateDocumentCategory: { id: string, name: string, kind: string, isHidden: boolean, promptsExpiry: boolean, updatedAt: string } };
 
 export type UpdateDocumentMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
   input: UpdateDocumentInput;
 }>;
 
 
-export type UpdateDocumentMutation = { __typename?: 'Mutation', updateDocument: { __typename?: 'Document', id: string, motorcycleId: string, categoryId: string, title: string, expiryDate?: string | null, note?: string | null, isPinned: boolean, updatedAt: string } };
+export type UpdateDocumentMutation = { updateDocument: { id: string, motorcycleId: string, categoryId: string, title: string, expiryDate: string | null, note: string | null, isPinned: boolean, updatedAt: string } };
 
 export type UpdateMaintenanceTaskMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
   input: UpdateMaintenanceTaskInput;
 }>;
 
 
-export type UpdateMaintenanceTaskMutation = { __typename?: 'Mutation', updateMaintenanceTask: { __typename?: 'MaintenanceTask', id: string, title: string, description?: string | null, priority: MaintenancePriority, status: MaintenanceTaskStatus, dueDate?: string | null, targetMileage?: number | null, notes?: string | null, isRecurring: boolean, intervalKm?: number | null, intervalDays?: number | null, remind30d: boolean, remind7d: boolean, remind1d: boolean, updatedAt: string } };
+export type UpdateMaintenanceTaskMutation = { updateMaintenanceTask: { id: string, title: string, description: string | null, priority: MaintenancePriority, status: MaintenanceTaskStatus, dueDate: string | null, targetMileage: number | null, notes: string | null, isRecurring: boolean, intervalKm: number | null, intervalDays: number | null, remind30d: boolean, remind7d: boolean, remind1d: boolean, updatedAt: string } };
 
 export type UpdateMotorcycleMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
   input: UpdateMotorcycleInput;
 }>;
 
 
-export type UpdateMotorcycleMutation = { __typename?: 'Mutation', updateMotorcycle: { __typename?: 'Motorcycle', id: string, make: string, model: string, year: number, nickname?: string | null, variant?: string | null, isPrimary: boolean, primaryPhotoUrl?: string | null, currentMileage?: number | null, mileageUnit?: string | null, distanceUnit: string, mileageUpdatedAt?: string | null, purchasePrice?: number | null, purchaseDate?: string | null, vin?: string | null, recallCount?: number | null, recallLastCheckedAt?: string | null } };
+export type UpdateMotorcycleMutation = { updateMotorcycle: { id: string, make: string, model: string, year: number, nickname: string | null, variant: string | null, isPrimary: boolean, primaryPhotoUrl: string | null, currentMileage: number | null, mileageUnit: string | null, distanceUnit: string, mileageUpdatedAt: string | null, purchasePrice: number | null, purchaseDate: string | null, vin: string | null, recallCount: number | null, recallLastCheckedAt: string | null } };
 
 export type UpdateMyProfileMutationVariables = Exact<{
   input: UpdateProfileInput;
 }>;
 
 
-export type UpdateMyProfileMutation = { __typename?: 'Mutation', updateMyProfile: { __typename?: 'User', id: string, fullName?: string | null, publicUsername?: string | null, displayName?: string | null, bio?: string | null, city?: string | null, isPublic?: boolean | null, followerCount?: number | null, followingCount?: number | null } };
+export type UpdateMyProfileMutation = { updateMyProfile: { id: string, fullName: string | null, publicUsername: string | null, displayName: string | null, bio: string | null, city: string | null, isPublic: boolean | null, followerCount: number | null, followingCount: number | null } };
 
 export type UpdateNoteMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
   input: UpdateNoteInput;
 }>;
 
 
-export type UpdateNoteMutation = { __typename?: 'Mutation', updateNote: { __typename?: 'Note', id: string, motorcycleId: string, text: string, odometer?: number | null, createdAt: string, updatedAt: string, linkedTaskId?: string | null, linkedTaskTitle?: string | null, linkedExpenseId?: string | null, linkedExpenseAmount?: number | null, linkedExpenseCurrency?: string | null, photos: Array<{ __typename?: 'NotePhoto', id: string, storagePath: string, publicUrl: string }> } };
+export type UpdateNoteMutation = { updateNote: { id: string, motorcycleId: string, text: string, odometer: number | null, createdAt: string, updatedAt: string, linkedTaskId: string | null, linkedTaskTitle: string | null, linkedExpenseId: string | null, linkedExpenseAmount: number | null, linkedExpenseCurrency: string | null, photos: Array<{ id: string, storagePath: string, publicUrl: string }> } };
 
 export type UpdateParticipantStatusMutationVariables = Exact<{
   input: UpdateParticipantStatusInput;
 }>;
 
 
-export type UpdateParticipantStatusMutation = { __typename?: 'Mutation', updateParticipantStatus: boolean };
+export type UpdateParticipantStatusMutation = { updateParticipantStatus: boolean };
 
 export type UpdateRideVisibilityMutationVariables = Exact<{
-  rideId: Scalars['String']['input'];
-  visibility: Scalars['String']['input'];
+  rideId: string;
+  visibility: string;
 }>;
 
 
-export type UpdateRideVisibilityMutation = { __typename?: 'Mutation', updateRideVisibility: { __typename?: 'Ride', id: string, visibility: string, isPublic: boolean } };
+export type UpdateRideVisibilityMutation = { updateRideVisibility: { id: string, visibility: string, isPublic: boolean } };
 
 export type UpdateRideMutationVariables = Exact<{
   input: UpdateRideInput;
 }>;
 
 
-export type UpdateRideMutation = { __typename?: 'Mutation', updateRide: { __typename?: 'Ride', id: string, name?: string | null, mileageApplied: boolean, isPublic: boolean } };
+export type UpdateRideMutation = { updateRide: { id: string, name: string | null, mileageApplied: boolean, isPublic: boolean } };
 
 export type UpdateTripMutationVariables = Exact<{
   input: UpdateTripInput;
 }>;
 
 
-export type UpdateTripMutation = { __typename?: 'Mutation', updateTrip: { __typename?: 'Trip', id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, status: string, visibility: string, waypoints?: Array<{ __typename?: 'TripWaypoint', id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay?: PeriodOfDay | null, type: string, name: string, notes?: string | null, lat: number, lng: number }> | null } };
+export type UpdateTripMutation = { updateTrip: { id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, status: string, visibility: string, waypoints: Array<{ id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay: PeriodOfDay | null, type: string, name: string, notes: string | null, lat: number, lng: number }> | null } };
 
 export type UpdateUserMutationVariables = Exact<{
   input: UpdateUserInput;
 }>;
 
 
-export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'User', id: string, fullName?: string | null, preferences?: Record<string, unknown> | null, measurementSystem?: string | null, currency: string } };
+export type UpdateUserMutation = { updateUser: { id: string, fullName: string | null, preferences: Record<string, unknown> | null, measurementSystem: string | null, currency: string } };
 
 export type UpdateWaypointMutationVariables = Exact<{
   input: UpdateWaypointInput;
 }>;
 
 
-export type UpdateWaypointMutation = { __typename?: 'Mutation', updateWaypoint: { __typename?: 'TripWaypoint', id: string, sortOrder: number, dayIndex: number, periodOfDay?: PeriodOfDay | null, type: string, name: string, notes?: string | null, lat: number, lng: number } };
+export type UpdateWaypointMutation = { updateWaypoint: { id: string, sortOrder: number, dayIndex: number, periodOfDay: PeriodOfDay | null, type: string, name: string, notes: string | null, lat: number, lng: number } };
 
 export type UploadWaypointsMutationVariables = Exact<{
   input: UploadWaypointsInput;
 }>;
 
 
-export type UploadWaypointsMutation = { __typename?: 'Mutation', uploadWaypoints: number };
+export type UploadWaypointsMutation = { uploadWaypoints: number };
 
 export type AllMaintenanceTasksQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AllMaintenanceTasksQuery = { __typename?: 'Query', allMaintenanceTasks: Array<{ __typename?: 'MaintenanceTask', id: string, motorcycleId: string, title: string, dueDate?: string | null, targetMileage?: number | null, priority: MaintenancePriority, status: MaintenanceTaskStatus, completedAt?: string | null, remind30d: boolean, remind7d: boolean, remind1d: boolean }> };
+export type AllMaintenanceTasksQuery = { allMaintenanceTasks: Array<{ id: string, motorcycleId: string, title: string, dueDate: string | null, targetMileage: number | null, priority: MaintenancePriority, status: MaintenanceTaskStatus, completedAt: string | null, remind30d: boolean, remind7d: boolean, remind1d: boolean }> };
 
 export type ArticleBySlugFullQueryVariables = Exact<{
-  slug: Scalars['String']['input'];
+  slug: string;
 }>;
 
 
-export type ArticleBySlugFullQuery = { __typename?: 'Query', articleBySlugFull?: { __typename?: 'Article', id: string, slug: string, title: string, difficulty: ArticleDifficulty, category: ArticleCategory, viewCount: number, isSafetyCritical: boolean, contentJson?: Record<string, unknown> | null, readTime?: number | null, generatedAt: string, updatedAt: string } | null };
+export type ArticleBySlugFullQuery = { articleBySlugFull: { id: string, slug: string, title: string, difficulty: ArticleDifficulty, category: ArticleCategory, viewCount: number, isSafetyCritical: boolean, contentJson: Record<string, unknown> | null, readTime: number | null, generatedAt: string, updatedAt: string } | null };
 
 export type DiagnosticByIdQueryVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type DiagnosticByIdQuery = { __typename?: 'Query', diagnosticById?: { __typename?: 'Diagnostic', id: string, userId: string, motorcycleId?: string | null, severity?: DiagnosticSeverity | null, confidence?: number | null, relatedArticleId?: string | null, resultJson?: Record<string, unknown> | null, description?: string | null, photoUrl?: string | null, status: string, dataSharingOptedIn: boolean, createdAt: string } | null };
+export type DiagnosticByIdQuery = { diagnosticById: { id: string, userId: string, motorcycleId: string | null, severity: DiagnosticSeverity | null, confidence: number | null, relatedArticleId: string | null, resultJson: Record<string, unknown> | null, description: string | null, photoUrl: string | null, status: string, dataSharingOptedIn: boolean, createdAt: string } | null };
 
 export type DiagnosticQuotaQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type DiagnosticQuotaQuery = { __typename?: 'Query', diagnosticQuota: { __typename?: 'DiagnosticQuota', used: number, limit: number, resetDate: string } };
+export type DiagnosticQuotaQuery = { diagnosticQuota: { used: number, limit: number, resetDate: string } };
 
 export type DiscoverRiderTripsQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  first?: number | null | undefined;
+  after?: string | null | undefined;
 }>;
 
 
-export type DiscoverRiderTripsQuery = { __typename?: 'Query', discoverRiderTrips: { __typename?: 'TripConnection', edges: Array<{ __typename?: 'TripEdge', cursor: string, node: { __typename?: 'Trip', id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, participantCount: number, status: string, visibility: string, coverImageUrl?: string | null, createdAt: string, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null }, waypoints?: Array<{ __typename?: 'TripWaypoint', id: string, sortOrder: number, dayIndex: number, lat: number, lng: number }> | null } }>, pageInfo: { __typename?: 'TripPageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type DiscoverRiderTripsQuery = { discoverRiderTrips: { edges: Array<{ cursor: string, node: { id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, participantCount: number, status: string, visibility: string, coverImageUrl: string | null, createdAt: string, organiser: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null }, waypoints: Array<{ id: string, sortOrder: number, dayIndex: number, lat: number, lng: number }> | null } }>, pageInfo: { hasNextPage: boolean, endCursor: string | null } } };
 
 export type DocumentCategoriesQueryVariables = Exact<{
-  includeHidden?: InputMaybe<Scalars['Boolean']['input']>;
+  includeHidden?: boolean | null | undefined;
 }>;
 
 
-export type DocumentCategoriesQuery = { __typename?: 'Query', documentCategories: Array<{ __typename?: 'DocumentCategory', id: string, name: string, kind: string, isHidden: boolean, promptsExpiry: boolean, createdAt: string, updatedAt: string }> };
+export type DocumentCategoriesQuery = { documentCategories: Array<{ id: string, name: string, kind: string, isHidden: boolean, promptsExpiry: boolean, createdAt: string, updatedAt: string }> };
 
 export type GetDocumentSignedUrlQueryVariables = Exact<{
-  fileId: Scalars['String']['input'];
-  download?: InputMaybe<Scalars['Boolean']['input']>;
+  fileId: string;
+  download?: boolean | null | undefined;
 }>;
 
 
-export type GetDocumentSignedUrlQuery = { __typename?: 'Query', getDocumentSignedUrl: string };
+export type GetDocumentSignedUrlQuery = { getDocumentSignedUrl: string };
 
 export type DocumentsByMotorcycleQueryVariables = Exact<{
-  motorcycleId: Scalars['String']['input'];
+  motorcycleId: string;
 }>;
 
 
-export type DocumentsByMotorcycleQuery = { __typename?: 'Query', documents: Array<{ __typename?: 'Document', id: string, motorcycleId: string, categoryId: string, title: string, expiryDate?: string | null, note?: string | null, isPinned: boolean, createdAt: string, updatedAt: string, files: Array<{ __typename?: 'DocumentFile', id: string, documentId: string, mimeType: string, fileSizeBytes?: number | null, createdAt: string }> }> };
+export type DocumentsByMotorcycleQuery = { documents: Array<{ id: string, motorcycleId: string, categoryId: string, title: string, expiryDate: string | null, note: string | null, isPinned: boolean, createdAt: string, updatedAt: string, files: Array<{ id: string, documentId: string, mimeType: string, fileSizeBytes: number | null, createdAt: string }> }> };
 
 export type ExpenseDashboardQueryVariables = Exact<{
-  motorcycleId: Scalars['String']['input'];
+  motorcycleId: string;
 }>;
 
 
-export type ExpenseDashboardQuery = { __typename?: 'Query', expenseDashboard: { __typename?: 'ExpenseDashboardSummary', currency?: string | null, currentYearTotal: number, previousYearTotal: number, allTimeTotal: number, expenseCount: number, monthlyBuckets: Array<{ __typename?: 'MonthlyBucket', month: number, year: number, total: number, categories: Array<{ __typename?: 'CategoryTotal', category: string, total: number }> }>, categoryTotals: Array<{ __typename?: 'CategoryTotal', category: string, total: number }>, currencies: Array<{ __typename?: 'ExpenseCurrencyBreakdown', currency: string, currentYearTotal: number, previousYearTotal: number, allTimeTotal: number, expenseCount: number, monthlyBuckets: Array<{ __typename?: 'MonthlyBucket', month: number, year: number, total: number, categories: Array<{ __typename?: 'CategoryTotal', category: string, total: number }> }>, categoryTotals: Array<{ __typename?: 'CategoryTotal', category: string, total: number }> }> } };
+export type ExpenseDashboardQuery = { expenseDashboard: { currency: string | null, currentYearTotal: number, previousYearTotal: number, allTimeTotal: number, expenseCount: number, monthlyBuckets: Array<{ month: number, year: number, total: number, categories: Array<{ category: string, total: number }> }>, categoryTotals: Array<{ category: string, total: number }>, currencies: Array<{ currency: string, currentYearTotal: number, previousYearTotal: number, allTimeTotal: number, expenseCount: number, monthlyBuckets: Array<{ month: number, year: number, total: number, categories: Array<{ category: string, total: number }> }>, categoryTotals: Array<{ category: string, total: number }> }> } };
 
 export type ExpensePhotosQueryVariables = Exact<{
-  expenseId: Scalars['String']['input'];
+  expenseId: string;
 }>;
 
 
-export type ExpensePhotosQuery = { __typename?: 'Query', expensePhotos: Array<{ __typename?: 'ExpensePhoto', id: string, expenseId: string, storagePath: string, publicUrl: string, fileSizeBytes?: number | null, mimeType: string, createdAt: string }> };
+export type ExpensePhotosQuery = { expensePhotos: Array<{ id: string, expenseId: string, storagePath: string, publicUrl: string, fileSizeBytes: number | null, mimeType: string, createdAt: string }> };
 
 export type ExpensesByMotorcycleQueryVariables = Exact<{
-  motorcycleId: Scalars['String']['input'];
-  year: Scalars['Int']['input'];
+  motorcycleId: string;
+  year: number;
 }>;
 
 
-export type ExpensesByMotorcycleQuery = { __typename?: 'Query', expenses: { __typename?: 'ExpenseSummary', ytdTotal: number, currencyTotals: Array<{ __typename?: 'CurrencyTotal', currency: string, total: number, count: number }>, categories: Array<{ __typename?: 'ExpenseCategory', category: string, total: number, currencyTotals: Array<{ __typename?: 'CurrencyTotal', currency: string, total: number, count: number }>, expenses: Array<{ __typename?: 'Expense', id: string, amount: number, category: string, currency: string, description?: string | null, itemName?: string | null, maintenanceTaskId?: string | null, date: string, createdAt: string }> }> } };
+export type ExpensesByMotorcycleQuery = { expenses: { ytdTotal: number, currencyTotals: Array<{ currency: string, total: number, count: number }>, categories: Array<{ category: string, total: number, currencyTotals: Array<{ currency: string, total: number, count: number }>, expenses: Array<{ id: string, amount: number, category: string, currency: string, description: string | null, itemName: string | null, maintenanceTaskId: string | null, date: string, createdAt: string }> }> } };
 
 export type ExpiringDocumentsQueryVariables = Exact<{
-  withinDays?: InputMaybe<Scalars['Int']['input']>;
+  withinDays?: number | null | undefined;
 }>;
 
 
-export type ExpiringDocumentsQuery = { __typename?: 'Query', expiringDocuments: Array<{ __typename?: 'Document', id: string, motorcycleId: string, categoryId: string, title: string, expiryDate?: string | null, isPinned: boolean }> };
+export type ExpiringDocumentsQuery = { expiringDocuments: Array<{ id: string, motorcycleId: string, categoryId: string, title: string, expiryDate: string | null, isPinned: boolean }> };
 
 export type GetArticleBySlugQueryVariables = Exact<{
-  slug: Scalars['String']['input'];
+  slug: string;
 }>;
 
 
-export type GetArticleBySlugQuery = { __typename?: 'Query', articleBySlug?: { __typename?: 'Article', id: string, slug: string, title: string, difficulty: ArticleDifficulty, category: ArticleCategory, viewCount: number, isSafetyCritical: boolean, generatedAt: string, updatedAt: string } | null };
+export type GetArticleBySlugQuery = { articleBySlug: { id: string, slug: string, title: string, difficulty: ArticleDifficulty, category: ArticleCategory, viewCount: number, isSafetyCritical: boolean, generatedAt: string, updatedAt: string } | null };
 
 export type GetCommentsQueryVariables = Exact<{
-  rideId?: InputMaybe<Scalars['ID']['input']>;
-  routeId?: InputMaybe<Scalars['ID']['input']>;
-  groupRideId?: InputMaybe<Scalars['ID']['input']>;
-  tripId?: InputMaybe<Scalars['ID']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  rideId?: string | number | null | undefined;
+  routeId?: string | number | null | undefined;
+  groupRideId?: string | number | null | undefined;
+  tripId?: string | number | null | undefined;
+  first?: number | null | undefined;
+  after?: string | null | undefined;
 }>;
 
 
-export type GetCommentsQuery = { __typename?: 'Query', getComments: { __typename?: 'CommentConnection', hasNextPage: boolean, endCursor?: string | null, totalCount: number, comments: Array<{ __typename?: 'Comment', id: string, text: string, createdAt: string, flaggedCount: number, parentCommentId?: string | null, author: { __typename?: 'CommentAuthor', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null }, replies?: Array<{ __typename?: 'Comment', id: string, text: string, createdAt: string, flaggedCount: number, parentCommentId?: string | null, author: { __typename?: 'CommentAuthor', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null } }> | null }> } };
+export type GetCommentsQuery = { getComments: { hasNextPage: boolean, endCursor: string | null, totalCount: number, comments: Array<{ id: string, text: string, createdAt: string, flaggedCount: number, parentCommentId: string | null, author: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null }, replies: Array<{ id: string, text: string, createdAt: string, flaggedCount: number, parentCommentId: string | null, author: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null } }> | null }> } };
 
 export type GetFollowersQueryVariables = Exact<{
-  userId: Scalars['String']['input'];
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  userId: string;
+  first?: number | null | undefined;
+  after?: string | null | undefined;
 }>;
 
 
-export type GetFollowersQuery = { __typename?: 'Query', getFollowers: { __typename?: 'FollowConnection', totalCount: number, edges: Array<{ __typename?: 'FollowEdge', cursor: string, node: { __typename?: 'Follow', followerId: string, followingId: string, createdAt: string, displayName?: string | null, publicUsername?: string | null, avatarUrl?: string | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type GetFollowersQuery = { getFollowers: { totalCount: number, edges: Array<{ cursor: string, node: { followerId: string, followingId: string, createdAt: string, displayName: string | null, publicUsername: string | null, avatarUrl: string | null } }>, pageInfo: { hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null, endCursor: string | null } } };
 
 export type GetFollowingQueryVariables = Exact<{
-  userId: Scalars['String']['input'];
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  userId: string;
+  first?: number | null | undefined;
+  after?: string | null | undefined;
 }>;
 
 
-export type GetFollowingQuery = { __typename?: 'Query', getFollowing: { __typename?: 'FollowConnection', totalCount: number, edges: Array<{ __typename?: 'FollowEdge', cursor: string, node: { __typename?: 'Follow', followerId: string, followingId: string, createdAt: string, displayName?: string | null, publicUsername?: string | null, avatarUrl?: string | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type GetFollowingQuery = { getFollowing: { totalCount: number, edges: Array<{ cursor: string, node: { followerId: string, followingId: string, createdAt: string, displayName: string | null, publicUsername: string | null, avatarUrl: string | null } }>, pageInfo: { hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null, endCursor: string | null } } };
 
 export type GetGroupRidesQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  first?: number | null | undefined;
+  after?: string | null | undefined;
 }>;
 
 
-export type GetGroupRidesQuery = { __typename?: 'Query', getGroupRides: { __typename?: 'GroupRideConnection', edges: Array<{ __typename?: 'GroupRideEdge', cursor: string, node: { __typename?: 'GroupRide', id: string, title: string, description: string, dateTime: string, meetingPointLat: number, meetingPointLng: number, meetingPointName?: string | null, routeId?: string | null, difficulty: string, maxRiders: number, participantCount: number, status: string, createdAt: string, organiser: { __typename?: 'GroupRideOrganiser', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null } } }>, pageInfo: { __typename?: 'GroupRidePageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type GetGroupRidesQuery = { getGroupRides: { edges: Array<{ cursor: string, node: { id: string, title: string, description: string, dateTime: string, meetingPointLat: number, meetingPointLng: number, meetingPointName: string | null, routeId: string | null, difficulty: string, maxRiders: number, participantCount: number, status: string, createdAt: string, organiser: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null } } }>, pageInfo: { hasNextPage: boolean, endCursor: string | null } } };
 
 export type GetOnboardingRevealQueryVariables = Exact<{
-  make: Scalars['String']['input'];
-  year: Scalars['Int']['input'];
-  model?: InputMaybe<Scalars['String']['input']>;
+  make: string;
+  year: number;
+  model?: string | null | undefined;
 }>;
 
 
-export type GetOnboardingRevealQuery = { __typename?: 'Query', onboardingReveal: { __typename?: 'OnboardingReveal', year: number, make: string, model?: string | null, recallCount: number, recallsChecked: boolean, oemTaskCount: number, projectedYearlyCostEur?: number | null, riderCount: number, recalls: Array<{ __typename?: 'RevealRecall', component: string, summary: string }>, insights: { __typename?: 'RevealInsights', status: string, knownIssues: Array<{ __typename?: 'RevealKnownIssue', title: string, detail: string }> } } };
+export type GetOnboardingRevealQuery = { onboardingReveal: { year: number, make: string, model: string | null, recallCount: number, recallsChecked: boolean, oemTaskCount: number, projectedYearlyCostEur: number | null, riderCount: number, recalls: Array<{ component: string, summary: string }>, insights: { status: string, knownIssues: Array<{ title: string, detail: string }> } } };
 
 export type GetPublicRideQueryVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type GetPublicRideQuery = { __typename?: 'Query', getPublicRide: { __typename?: 'Ride', id: string, userId: string, status: RideStatus, name?: string | null, startedAt: string, endedAt?: string | null, distanceM?: number | null, maxSpeedMps?: number | null, avgSpeedMps?: number | null, elevationGain?: number | null, elevationLoss?: number | null, pausedDurationS: number, autoPausedDurationS: number, durationS?: number | null, motorcycleId?: string | null, routePolyline?: string | null, routeThumbnailUri?: string | null, gpsQuality?: number | null, mileageApplied: boolean, isPublic: boolean, createdAt: string } };
+export type GetPublicRideQuery = { getPublicRide: { id: string, userId: string, status: RideStatus, name: string | null, startedAt: string, endedAt: string | null, distanceM: number | null, maxSpeedMps: number | null, avgSpeedMps: number | null, elevationGain: number | null, elevationLoss: number | null, pausedDurationS: number, autoPausedDurationS: number, durationS: number | null, motorcycleId: string | null, routePolyline: string | null, routeThumbnailUri: string | null, gpsQuality: number | null, mileageApplied: boolean, isPublic: boolean, createdAt: string } };
 
 export type GetRideWaypointsQueryVariables = Exact<{
-  rideId: Scalars['String']['input'];
-  maxPoints?: InputMaybe<Scalars['Int']['input']>;
+  rideId: string;
+  maxPoints?: number | null | undefined;
 }>;
 
 
-export type GetRideWaypointsQuery = { __typename?: 'Query', rideWaypoints: Array<{ __typename?: 'Waypoint', recordedAt: string, latitude: number, longitude: number, altitude?: number | null, speedMps?: number | null }> };
+export type GetRideWaypointsQuery = { rideWaypoints: Array<{ recordedAt: string, latitude: number, longitude: number, altitude: number | null, speedMps: number | null }> };
 
 export type GetRideQueryVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type GetRideQuery = { __typename?: 'Query', ride: { __typename?: 'Ride', id: string, status: RideStatus, name?: string | null, startedAt: string, endedAt?: string | null, distanceM?: number | null, maxSpeedMps?: number | null, avgSpeedMps?: number | null, maxLeanAngle?: number | null, elevationGain?: number | null, elevationLoss?: number | null, pausedDurationS: number, autoPausedDurationS: number, durationS?: number | null, motorcycleId?: string | null, routePolyline?: string | null, routeThumbnailUri?: string | null, gpsQuality?: number | null, mileageApplied: boolean, isPublic: boolean, createdAt: string } };
+export type GetRideQuery = { ride: { id: string, status: RideStatus, name: string | null, startedAt: string, endedAt: string | null, distanceM: number | null, maxSpeedMps: number | null, avgSpeedMps: number | null, maxLeanAngle: number | null, elevationGain: number | null, elevationLoss: number | null, pausedDurationS: number, autoPausedDurationS: number, durationS: number | null, motorcycleId: string | null, routePolyline: string | null, routeThumbnailUri: string | null, gpsQuality: number | null, mileageApplied: boolean, isPublic: boolean, createdAt: string } };
 
 export type GetRiderProfileQueryVariables = Exact<{
-  username: Scalars['String']['input'];
+  username: string;
 }>;
 
 
-export type GetRiderProfileQuery = { __typename?: 'Query', getRiderProfile: { __typename?: 'PublicRiderProfile', id: string, publicUsername: string, displayName?: string | null, bio?: string | null, city?: string | null, avatarUrl?: string | null, followerCount: number, followingCount: number, isFollowing?: boolean | null, bikes: Array<{ __typename?: 'PublicRiderBike', make: string, model: string, year: number, nickname?: string | null }>, rideStats: { __typename?: 'PublicRideStats', totalRides: number, totalDistance: number, joinDate?: string | null } } };
+export type GetRiderProfileQuery = { getRiderProfile: { id: string, publicUsername: string, displayName: string | null, bio: string | null, city: string | null, avatarUrl: string | null, followerCount: number, followingCount: number, isFollowing: boolean | null, bikes: Array<{ make: string, model: string, year: number, nickname: string | null }>, rideStats: { totalRides: number, totalDistance: number, joinDate: string | null } } };
 
 export type GetTripsQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  first?: number | null | undefined;
+  after?: string | null | undefined;
 }>;
 
 
-export type GetTripsQuery = { __typename?: 'Query', getTrips: { __typename?: 'TripConnection', edges: Array<{ __typename?: 'TripEdge', cursor: string, node: { __typename?: 'Trip', id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, participantCount: number, status: string, visibility: string, coverImageUrl?: string | null, createdAt: string, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null }, waypoints?: Array<{ __typename?: 'TripWaypoint', id: string, sortOrder: number, dayIndex: number, lat: number, lng: number }> | null } }>, pageInfo: { __typename?: 'TripPageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type GetTripsQuery = { getTrips: { edges: Array<{ cursor: string, node: { id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, participantCount: number, status: string, visibility: string, coverImageUrl: string | null, createdAt: string, organiser: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null }, waypoints: Array<{ id: string, sortOrder: number, dayIndex: number, lat: number, lng: number }> | null } }>, pageInfo: { hasNextPage: boolean, endCursor: string | null } } };
 
 export type GroupRideDetailQueryVariables = Exact<{
-  groupRideId: Scalars['ID']['input'];
+  groupRideId: string | number;
 }>;
 
 
-export type GroupRideDetailQuery = { __typename?: 'Query', groupRideDetail: { __typename?: 'GroupRide', id: string, title: string, description: string, dateTime: string, meetingPointLat: number, meetingPointLng: number, meetingPointName?: string | null, routeId?: string | null, routeDescription?: string | null, difficulty: string, maxRiders: number, participantCount: number, status: string, createdAt: string, organiser: { __typename?: 'GroupRideOrganiser', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null }, participants?: Array<{ __typename?: 'GroupRideParticipant', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null, joinedAt: string }> | null } };
+export type GroupRideDetailQuery = { groupRideDetail: { id: string, title: string, description: string, dateTime: string, meetingPointLat: number, meetingPointLng: number, meetingPointName: string | null, routeId: string | null, routeDescription: string | null, difficulty: string, maxRiders: number, participantCount: number, status: string, createdAt: string, organiser: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null }, participants: Array<{ id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null, joinedAt: string }> | null } };
 
 export type IsTripSavedQueryVariables = Exact<{
-  tripId: Scalars['ID']['input'];
+  tripId: string | number;
 }>;
 
 
-export type IsTripSavedQuery = { __typename?: 'Query', isTripSaved: boolean };
+export type IsTripSavedQuery = { isTripSaved: boolean };
 
 export type ListPopularArticlesQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
+  first?: number | null | undefined;
 }>;
 
 
-export type ListPopularArticlesQuery = { __typename?: 'Query', popularArticles: Array<{ __typename?: 'Article', id: string, slug: string, title: string, difficulty: ArticleDifficulty, category: ArticleCategory, viewCount: number, isSafetyCritical: boolean, generatedAt: string, readTime?: number | null, keywords?: Array<string> | null }> };
+export type ListPopularArticlesQuery = { popularArticles: Array<{ id: string, slug: string, title: string, difficulty: ArticleDifficulty, category: ArticleCategory, viewCount: number, isSafetyCritical: boolean, generatedAt: string, readTime: number | null, keywords: Array<string> | null }> };
 
 export type MaintenanceTaskHistoryQueryVariables = Exact<{
-  motorcycleId: Scalars['String']['input'];
-  limit?: InputMaybe<Scalars['Int']['input']>;
+  motorcycleId: string;
+  limit?: number | null | undefined;
 }>;
 
 
-export type MaintenanceTaskHistoryQuery = { __typename?: 'Query', maintenanceTaskHistory: Array<{ __typename?: 'MaintenanceTask', id: string, userId: string, motorcycleId: string, title: string, description?: string | null, dueDate?: string | null, targetMileage?: number | null, priority: MaintenancePriority, status: MaintenanceTaskStatus, notes?: string | null, partsNeeded?: Array<string> | null, completedAt?: string | null, completedMileage?: number | null, cost?: number | null, partsCost?: number | null, laborCost?: number | null, totalAmount?: number | null, taxAmount?: number | null, taxRate?: number | null, currency?: string | null, source: MaintenanceTaskSource, oemScheduleId?: string | null, intervalKm?: number | null, intervalDays?: number | null, isRecurring: boolean, createdAt: string, updatedAt: string, lineItems: Array<{ __typename?: 'MaintenanceTaskLineItem', id: string, serviceType: MaintenanceServiceType, label: string, lineTotal?: number | null }> }> };
+export type MaintenanceTaskHistoryQuery = { maintenanceTaskHistory: Array<{ id: string, userId: string, motorcycleId: string, title: string, description: string | null, dueDate: string | null, targetMileage: number | null, priority: MaintenancePriority, status: MaintenanceTaskStatus, notes: string | null, partsNeeded: Array<string> | null, completedAt: string | null, completedMileage: number | null, cost: number | null, partsCost: number | null, laborCost: number | null, totalAmount: number | null, taxAmount: number | null, taxRate: number | null, currency: string | null, source: MaintenanceTaskSource, oemScheduleId: string | null, intervalKm: number | null, intervalDays: number | null, isRecurring: boolean, createdAt: string, updatedAt: string, lineItems: Array<{ id: string, serviceType: MaintenanceServiceType, label: string, lineTotal: number | null }> }> };
 
 export type MaintenanceTasksByMotorcycleQueryVariables = Exact<{
-  motorcycleId: Scalars['String']['input'];
+  motorcycleId: string;
 }>;
 
 
-export type MaintenanceTasksByMotorcycleQuery = { __typename?: 'Query', maintenanceTasks: Array<{ __typename?: 'MaintenanceTask', id: string, userId: string, motorcycleId: string, title: string, description?: string | null, dueDate?: string | null, targetMileage?: number | null, priority: MaintenancePriority, status: MaintenanceTaskStatus, notes?: string | null, partsNeeded?: Array<string> | null, completedAt?: string | null, completedMileage?: number | null, cost?: number | null, partsCost?: number | null, laborCost?: number | null, totalAmount?: number | null, taxAmount?: number | null, taxRate?: number | null, currency?: string | null, source: MaintenanceTaskSource, isRecurring: boolean, intervalKm?: number | null, intervalDays?: number | null, remind30d: boolean, remind7d: boolean, remind1d: boolean, createdAt: string, updatedAt: string, photos: Array<{ __typename?: 'TaskPhoto', id: string, storagePath: string, publicUrl: string }>, lineItems: Array<{ __typename?: 'MaintenanceTaskLineItem', id: string, serviceType: MaintenanceServiceType, label: string, lineTotal?: number | null }> }> };
+export type MaintenanceTasksByMotorcycleQuery = { maintenanceTasks: Array<{ id: string, userId: string, motorcycleId: string, title: string, description: string | null, dueDate: string | null, targetMileage: number | null, priority: MaintenancePriority, status: MaintenanceTaskStatus, notes: string | null, partsNeeded: Array<string> | null, completedAt: string | null, completedMileage: number | null, cost: number | null, partsCost: number | null, laborCost: number | null, totalAmount: number | null, taxAmount: number | null, taxRate: number | null, currency: string | null, source: MaintenanceTaskSource, isRecurring: boolean, intervalKm: number | null, intervalDays: number | null, remind30d: boolean, remind7d: boolean, remind1d: boolean, createdAt: string, updatedAt: string, photos: Array<{ id: string, storagePath: string, publicUrl: string }>, lineItems: Array<{ id: string, serviceType: MaintenanceServiceType, label: string, lineTotal: number | null }> }> };
 
 export type MakeStatsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MakeStatsQuery = { __typename?: 'Query', makeStats: Array<{ __typename?: 'MakeStats', make: string, riders: number, models: number, totalBikes: number, rank: number }> };
+export type MakeStatsQuery = { makeStats: Array<{ make: string, riders: number, models: number, totalBikes: number, rank: number }> };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', id: string, email: string, fullName?: string | null, role: UserRole, preferences?: Record<string, unknown> | null, measurementSystem?: string | null, currency: string, publicUsername?: string | null, displayName?: string | null, bio?: string | null, city?: string | null, isPublic?: boolean | null, followerCount?: number | null, followingCount?: number | null, avatarUrl?: string | null, createdAt: string, updatedAt: string } };
+export type MeQuery = { me: { id: string, email: string, fullName: string | null, role: UserRole, preferences: Record<string, unknown> | null, measurementSystem: string | null, currency: string, publicUsername: string | null, displayName: string | null, bio: string | null, city: string | null, isPublic: boolean | null, followerCount: number | null, followingCount: number | null, avatarUrl: string | null, createdAt: string, updatedAt: string } };
 
 export type MotorcycleMakesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MotorcycleMakesQuery = { __typename?: 'Query', motorcycleMakes: Array<{ __typename?: 'MotorcycleMake', makeId: number, makeName: string, isPopular: boolean }> };
+export type MotorcycleMakesQuery = { motorcycleMakes: Array<{ makeId: number, makeName: string, isPopular: boolean }> };
 
 export type MotorcycleModelsQueryVariables = Exact<{
-  makeId: Scalars['Int']['input'];
-  year: Scalars['Int']['input'];
+  makeId: number;
+  year: number;
 }>;
 
 
-export type MotorcycleModelsQuery = { __typename?: 'Query', motorcycleModels: Array<{ __typename?: 'MotorcycleModelResult', modelId: number, modelName: string }> };
+export type MotorcycleModelsQuery = { motorcycleModels: Array<{ modelId: number, modelName: string }> };
 
 export type MotorcycleRecallsQueryVariables = Exact<{
-  motorcycleId: Scalars['String']['input'];
+  motorcycleId: string;
 }>;
 
 
-export type MotorcycleRecallsQuery = { __typename?: 'Query', motorcycleRecalls: { __typename?: 'RecallResult', count: number, acknowledgedCount: number, checkedAt: string, vinUsed?: string | null, recalls: Array<{ __typename?: 'Recall', campaignNumber: string, reportDate: string, component: string, summary: string, consequence: string, remedy: string, acknowledged: boolean, acknowledgedAt?: string | null }> } };
+export type MotorcycleRecallsQuery = { motorcycleRecalls: { count: number, acknowledgedCount: number, checkedAt: string, vinUsed: string | null, recalls: Array<{ campaignNumber: string, reportDate: string, component: string, summary: string, consequence: string, remedy: string, acknowledged: boolean, acknowledgedAt: string | null }> } };
 
 export type MyDiagnosticsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MyDiagnosticsQuery = { __typename?: 'Query', myDiagnostics: Array<{ __typename?: 'Diagnostic', id: string, userId: string, motorcycleId?: string | null, severity?: DiagnosticSeverity | null, confidence?: number | null, relatedArticleId?: string | null, status: string, dataSharingOptedIn: boolean, createdAt: string }> };
+export type MyDiagnosticsQuery = { myDiagnostics: Array<{ id: string, userId: string, motorcycleId: string | null, severity: DiagnosticSeverity | null, confidence: number | null, relatedArticleId: string | null, status: string, dataSharingOptedIn: boolean, createdAt: string }> };
 
 export type GetMyHealthReportsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetMyHealthReportsQuery = { __typename?: 'Query', getMyHealthReports: Array<{ __typename?: 'HealthReport', id: string, userId: string, motorcycleId?: string | null, status: HealthReportStatus, pdfUrl?: string | null, iapTransactionId?: string | null, createdAt: string, completedAt?: string | null }> };
+export type GetMyHealthReportsQuery = { getMyHealthReports: Array<{ id: string, userId: string, motorcycleId: string | null, status: HealthReportStatus, pdfUrl: string | null, iapTransactionId: string | null, createdAt: string, completedAt: string | null }> };
 
 export type MyMotorcyclesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MyMotorcyclesQuery = { __typename?: 'Query', myMotorcycles: Array<{ __typename?: 'Motorcycle', id: string, userId: string, make: string, model: string, year: number, nickname?: string | null, variant?: string | null, isPrimary: boolean, primaryPhotoUrl?: string | null, currentMileage?: number | null, mileageUnit?: string | null, distanceUnit: string, mileageUpdatedAt?: string | null, purchasePrice?: number | null, purchaseDate?: string | null, type?: MotorcycleType | null, engineCc?: number | null, vin?: string | null, recallCount?: number | null, recallLastCheckedAt?: string | null, odometerSyncSource?: string | null, odometerLastRideId?: string | null, createdAt: string }> };
+export type MyMotorcyclesQuery = { myMotorcycles: Array<{ id: string, userId: string, make: string, model: string, year: number, nickname: string | null, variant: string | null, isPrimary: boolean, primaryPhotoUrl: string | null, currentMileage: number | null, mileageUnit: string | null, distanceUnit: string, mileageUpdatedAt: string | null, purchasePrice: number | null, purchaseDate: string | null, type: MotorcycleType | null, engineCc: number | null, vin: string | null, recallCount: number | null, recallLastCheckedAt: string | null, odometerSyncSource: string | null, odometerLastRideId: string | null, createdAt: string }> };
 
 export type MyProgressQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MyProgressQuery = { __typename?: 'Query', myProgress: Array<{ __typename?: 'LearningProgress', id: string, userId: string, articleId: string, articleRead: boolean, quizCompleted: boolean, quizBestScore?: number | null, firstReadAt?: string | null, lastReadAt?: string | null }> };
+export type MyProgressQuery = { myProgress: Array<{ id: string, userId: string, articleId: string, articleRead: boolean, quizCompleted: boolean, quizBestScore: number | null, firstReadAt: string | null, lastReadAt: string | null }> };
 
 export type MyRidesForHeatmapQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  first?: number | null | undefined;
+  after?: string | null | undefined;
 }>;
 
 
-export type MyRidesForHeatmapQuery = { __typename?: 'Query', myRides: { __typename?: 'RideConnection', totalCount: number, edges: Array<{ __typename?: 'RideEdge', cursor: string, node: { __typename?: 'Ride', id: string, name?: string | null, startedAt: string, distanceM?: number | null, region?: string | null, routePolyline?: string | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type MyRidesForHeatmapQuery = { myRides: { totalCount: number, edges: Array<{ cursor: string, node: { id: string, name: string | null, startedAt: string, distanceM: number | null, region: string | null, routePolyline: string | null } }>, pageInfo: { hasNextPage: boolean, endCursor: string | null } } };
 
 export type MyRidesQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
-  motorcycleId?: InputMaybe<Scalars['String']['input']>;
+  first?: number | null | undefined;
+  after?: string | null | undefined;
+  motorcycleId?: string | null | undefined;
 }>;
 
 
-export type MyRidesQuery = { __typename?: 'Query', myRides: { __typename?: 'RideConnection', totalCount: number, edges: Array<{ __typename?: 'RideEdge', cursor: string, node: { __typename?: 'Ride', id: string, status: RideStatus, name?: string | null, startedAt: string, endedAt?: string | null, distanceM?: number | null, maxSpeedMps?: number | null, avgSpeedMps?: number | null, elevationGain?: number | null, pausedDurationS: number, autoPausedDurationS: number, durationS?: number | null, motorcycleId?: string | null, routePolyline?: string | null, routeThumbnailUri?: string | null, gpsQuality?: number | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type MyRidesQuery = { myRides: { totalCount: number, edges: Array<{ cursor: string, node: { id: string, status: RideStatus, name: string | null, startedAt: string, endedAt: string | null, distanceM: number | null, maxSpeedMps: number | null, avgSpeedMps: number | null, elevationGain: number | null, pausedDurationS: number, autoPausedDurationS: number, durationS: number | null, motorcycleId: string | null, routePolyline: string | null, routeThumbnailUri: string | null, gpsQuality: number | null } }>, pageInfo: { hasNextPage: boolean, endCursor: string | null } } };
 
 export type MyShareLinksQueryVariables = Exact<{
-  motorcycleId: Scalars['ID']['input'];
+  motorcycleId: string | number;
 }>;
 
 
-export type MyShareLinksQuery = { __typename?: 'Query', myShareLinks: Array<{ __typename?: 'ShareLink', id: string, motorcycleId: string, expiresAt: string, createdAt: string }> };
+export type MyShareLinksQuery = { myShareLinks: Array<{ id: string, motorcycleId: string, expiresAt: string, createdAt: string }> };
 
 export type MyTripsQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  first?: number | null | undefined;
+  after?: string | null | undefined;
 }>;
 
 
-export type MyTripsQuery = { __typename?: 'Query', myTrips: { __typename?: 'TripConnection', edges: Array<{ __typename?: 'TripEdge', cursor: string, node: { __typename?: 'Trip', id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, participantCount: number, status: string, visibility: string, coverImageUrl?: string | null, createdAt: string, waypoints?: Array<{ __typename?: 'TripWaypoint', id: string }> | null, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null } } }>, pageInfo: { __typename?: 'TripPageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type MyTripsQuery = { myTrips: { edges: Array<{ cursor: string, node: { id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, participantCount: number, status: string, visibility: string, coverImageUrl: string | null, createdAt: string, waypoints: Array<{ id: string }> | null, organiser: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null } } }>, pageInfo: { hasNextPage: boolean, endCursor: string | null } } };
 
 export type NotesByMotorcycleQueryVariables = Exact<{
-  motorcycleId: Scalars['String']['input'];
+  motorcycleId: string;
 }>;
 
 
-export type NotesByMotorcycleQuery = { __typename?: 'Query', notes: Array<{ __typename?: 'Note', id: string, motorcycleId: string, text: string, odometer?: number | null, createdAt: string, updatedAt: string, linkedTaskId?: string | null, linkedTaskTitle?: string | null, linkedExpenseId?: string | null, linkedExpenseAmount?: number | null, linkedExpenseCurrency?: string | null, photos: Array<{ __typename?: 'NotePhoto', id: string, storagePath: string, publicUrl: string }> }> };
+export type NotesByMotorcycleQuery = { notes: Array<{ id: string, motorcycleId: string, text: string, odometer: number | null, createdAt: string, updatedAt: string, linkedTaskId: string | null, linkedTaskTitle: string | null, linkedExpenseId: string | null, linkedExpenseAmount: number | null, linkedExpenseCurrency: string | null, photos: Array<{ id: string, storagePath: string, publicUrl: string }> }> };
 
 export type OdometerReadingsQueryVariables = Exact<{
-  motorcycleId: Scalars['String']['input'];
-  limit?: InputMaybe<Scalars['Int']['input']>;
+  motorcycleId: string;
+  limit?: number | null | undefined;
 }>;
 
 
-export type OdometerReadingsQuery = { __typename?: 'Query', odometerReadings: Array<{ __typename?: 'OdometerReading', id: string, value: number, recordedAt: string, source: string, rideId?: string | null }> };
+export type OdometerReadingsQuery = { odometerReadings: Array<{ id: string, value: number, recordedAt: string, source: string, rideId: string | null }> };
 
 export type OemSchedulesPreviewQueryVariables = Exact<{
-  make: Scalars['String']['input'];
-  model?: InputMaybe<Scalars['String']['input']>;
-  year?: InputMaybe<Scalars['Int']['input']>;
-  variant?: InputMaybe<Scalars['String']['input']>;
+  make: string;
+  model?: string | null | undefined;
+  year?: number | null | undefined;
+  variant?: string | null | undefined;
 }>;
 
 
-export type OemSchedulesPreviewQuery = { __typename?: 'Query', oemSchedulesPreview: Array<{ __typename?: 'OemSchedule', id: string, taskName: string, description?: string | null, intervalKm?: number | null, intervalDays?: number | null, priority: MaintenancePriority, sortOrder: number }> };
+export type OemSchedulesPreviewQuery = { oemSchedulesPreview: Array<{ id: string, taskName: string, description: string | null, intervalKm: number | null, intervalDays: number | null, priority: MaintenancePriority, sortOrder: number }> };
 
 export type PendingRideDistanceQueryVariables = Exact<{
-  motorcycleId: Scalars['String']['input'];
+  motorcycleId: string;
 }>;
 
 
-export type PendingRideDistanceQuery = { __typename?: 'Query', pendingRideDistance: { __typename?: 'PendingRideDistance', rideCount: number, distance: number } };
+export type PendingRideDistanceQuery = { pendingRideDistance: { rideCount: number, distance: number } };
 
 export type ReceiptScanQuotaQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ReceiptScanQuotaQuery = { __typename?: 'Query', receiptScanQuota: { __typename?: 'ReceiptScanQuota', used: number, limit: number, resetDate: string } };
+export type ReceiptScanQuotaQuery = { receiptScanQuota: { used: number, limit: number, resetDate: string } };
 
 export type RideMilestoneStatsQueryVariables = Exact<{
-  excludeRideId?: InputMaybe<Scalars['String']['input']>;
+  excludeRideId?: string | null | undefined;
 }>;
 
 
-export type RideMilestoneStatsQuery = { __typename?: 'Query', rideMilestoneStats: { __typename?: 'RideMilestoneStats', qualifyingRideCount: number, longestQualifyingDistanceM: number } };
+export type RideMilestoneStatsQuery = { rideMilestoneStats: { qualifyingRideCount: number, longestQualifyingDistanceM: number } };
 
 export type RideOverviewQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type RideOverviewQuery = { __typename?: 'Query', rideOverview: { __typename?: 'RideOverview', lastRide?: { __typename?: 'LastRideSummary', id: string, distanceM: number, durationS: number, maxSpeedMps?: number | null, date: string, motorcycleName?: string | null, summaryTitle?: string | null } | null, last7Days: { __typename?: 'RidePeriodSummary', rideCount: number, distanceM: number, durationS: number }, last30Days: { __typename?: 'RidePeriodSummary', rideCount: number, distanceM: number, durationS: number }, thisWeek: { __typename?: 'RidePeriodSummary', rideCount: number, distanceM: number, durationS: number }, thisMonth: { __typename?: 'RidePeriodSummary', rideCount: number, distanceM: number, durationS: number }, dailyDistances: Array<{ __typename?: 'DailyDistance', date: string, distanceM: number }>, personalRecords: Array<{ __typename?: 'RideRecord', recordType: string, value: number, unit: string, achievedAt: string, previousValue?: number | null, rideId?: string | null }> } };
+export type RideOverviewQuery = { rideOverview: { lastRide: { id: string, distanceM: number, durationS: number, maxSpeedMps: number | null, date: string, motorcycleName: string | null, summaryTitle: string | null } | null, last7Days: { rideCount: number, distanceM: number, durationS: number }, last30Days: { rideCount: number, distanceM: number, durationS: number }, thisWeek: { rideCount: number, distanceM: number, durationS: number }, thisMonth: { rideCount: number, distanceM: number, durationS: number }, dailyDistances: Array<{ date: string, distanceM: number }>, personalRecords: Array<{ recordType: string, value: number, unit: string, achievedAt: string, previousValue: number | null, rideId: string | null }> } };
 
 export type SavedTripsQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  first?: number | null | undefined;
+  after?: string | null | undefined;
 }>;
 
 
-export type SavedTripsQuery = { __typename?: 'Query', savedTrips: { __typename?: 'TripConnection', edges: Array<{ __typename?: 'TripEdge', cursor: string, node: { __typename?: 'Trip', id: string, slug?: string | null, title: string, description: string, difficulty: string, dayCount?: number | null, startLat?: number | null, startLng?: number | null, countryCode?: string | null, regionCode?: string | null, city?: string | null, distanceM?: number | null, elevationGainM?: number | null, surfaceType?: string | null, isFeatured: boolean, isMotovaultPick: boolean, viewCount: number, cloneCount: number, averageRating?: number | null, reviewCount: number, publishedAt?: string | null, isTemplate: boolean, isSaved?: boolean | null, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null } } }>, pageInfo: { __typename?: 'TripPageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type SavedTripsQuery = { savedTrips: { edges: Array<{ cursor: string, node: { id: string, slug: string | null, title: string, description: string, difficulty: string, dayCount: number | null, startLat: number | null, startLng: number | null, countryCode: string | null, regionCode: string | null, city: string | null, distanceM: number | null, elevationGainM: number | null, surfaceType: string | null, isFeatured: boolean, isMotovaultPick: boolean, viewCount: number, cloneCount: number, averageRating: number | null, reviewCount: number, publishedAt: string | null, isTemplate: boolean, isSaved: boolean | null, organiser: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null } } }>, pageInfo: { hasNextPage: boolean, endCursor: string | null } } };
 
 export type SearchArticlesQueryVariables = Exact<{
   input: SearchArticlesInput;
 }>;
 
 
-export type SearchArticlesQuery = { __typename?: 'Query', searchArticles: { __typename?: 'ArticleConnection', totalCount: number, edges: Array<{ __typename?: 'ArticleEdge', cursor: string, node: { __typename?: 'Article', id: string, slug: string, title: string, difficulty: ArticleDifficulty, category: ArticleCategory, viewCount: number, isSafetyCritical: boolean, generatedAt: string, updatedAt: string, keywords?: Array<string> | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type SearchArticlesQuery = { searchArticles: { totalCount: number, edges: Array<{ cursor: string, node: { id: string, slug: string, title: string, difficulty: ArticleDifficulty, category: ArticleCategory, viewCount: number, isSafetyCritical: boolean, generatedAt: string, updatedAt: string, keywords: Array<string> | null } }>, pageInfo: { hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null, endCursor: string | null } } };
 
 export type SearchTypeaheadQueryVariables = Exact<{
-  q?: InputMaybe<Scalars['String']['input']>;
-  limit?: InputMaybe<Scalars['Int']['input']>;
+  q?: string | null | undefined;
+  limit?: number | null | undefined;
 }>;
 
 
-export type SearchTypeaheadQuery = { __typename?: 'Query', searchTypeahead: { __typename?: 'TypeaheadResult', routes: Array<{ __typename?: 'RouteSuggestion', id: string, name: string, slug: string, countryCode: string, regionCode?: string | null }>, places: Array<{ __typename?: 'PlaceSuggestion', id: number, name: string, kind: string, countryCode: string, regionCode?: string | null, population: number }> } };
+export type SearchTypeaheadQuery = { searchTypeahead: { routes: Array<{ id: string, name: string, slug: string, countryCode: string, regionCode: string | null }>, places: Array<{ id: number, name: string, kind: string, countryCode: string, regionCode: string | null, population: number }> } };
 
 export type SpendingSummaryQueryVariables = Exact<{
-  motorcycleId: Scalars['String']['input'];
+  motorcycleId: string;
 }>;
 
 
-export type SpendingSummaryQuery = { __typename?: 'Query', spendingSummary: { __typename?: 'SpendingSummary', thisYear: number, allTime: number, thisYearByCurrency: Array<{ __typename?: 'CurrencyTotal', currency: string, total: number, count: number }>, allTimeByCurrency: Array<{ __typename?: 'CurrencyTotal', currency: string, total: number, count: number }> } };
+export type SpendingSummaryQuery = { spendingSummary: { thisYear: number, allTime: number, thisYearByCurrency: Array<{ currency: string, total: number, count: number }>, allTimeByCurrency: Array<{ currency: string, total: number, count: number }> } };
 
 export type TemplateTripIdForRouteQueryVariables = Exact<{
-  routeId: Scalars['ID']['input'];
+  routeId: string | number;
 }>;
 
 
-export type TemplateTripIdForRouteQuery = { __typename?: 'Query', templateTripIdForRoute?: string | null };
+export type TemplateTripIdForRouteQuery = { templateTripIdForRoute: string | null };
 
 export type TripByShareTokenQueryVariables = Exact<{
-  shareToken: Scalars['String']['input'];
+  shareToken: string;
 }>;
 
 
-export type TripByShareTokenQuery = { __typename?: 'Query', tripByShareToken?: { __typename?: 'SharedTrip', id: string, title: string, description?: string | null, status: string, difficulty: string, startDate: string, endDate: string, maxRiders: number, participantCount: number, coverImageUrl?: string | null, waypoints: Array<{ __typename?: 'SharedTripWaypoint', id: string, sortOrder: number, dayIndex?: number | null, periodOfDay?: PeriodOfDay | null, type: string, name: string, notes?: string | null, lat: number, lng: number }>, participants: Array<{ __typename?: 'SharedTripParticipant', anonId: string, role: string, status: string, displayName: string, avatarUrl?: string | null }> } | null };
+export type TripByShareTokenQuery = { tripByShareToken: { id: string, title: string, description: string | null, status: string, difficulty: string, startDate: string, endDate: string, maxRiders: number, participantCount: number, coverImageUrl: string | null, waypoints: Array<{ id: string, sortOrder: number, dayIndex: number | null, periodOfDay: PeriodOfDay | null, type: string, name: string, notes: string | null, lat: number, lng: number }>, participants: Array<{ anonId: string, role: string, status: string, displayName: string, avatarUrl: string | null }> } | null };
 
 export type TripBySlugQueryVariables = Exact<{
-  country: Scalars['String']['input'];
-  region: Scalars['String']['input'];
-  slug: Scalars['String']['input'];
+  country: string;
+  region: string;
+  slug: string;
 }>;
 
 
-export type TripBySlugQuery = { __typename?: 'Query', tripBySlug?: { __typename?: 'Trip', id: string, slug?: string | null, title: string, description: string, difficulty: string, dayCount?: number | null, startDate: string, endDate: string, maxRiders: number, participantCount: number, status: string, visibility: string, coverImageUrl?: string | null, isTemplate: boolean, polyline?: string | null, startLat?: number | null, startLng?: number | null, countryCode?: string | null, regionCode?: string | null, city?: string | null, distanceM?: number | null, elevationGainM?: number | null, estimatedDurationMinutes?: number | null, surfaceType?: string | null, curvatureIndex?: number | null, isFeatured: boolean, isMotovaultPick: boolean, viewCount: number, cloneCount: number, averageRating?: number | null, reviewCount: number, publishedAt?: string | null, isFlagged: boolean, clonedFromTripId?: string | null, forkedFromTripId?: string | null, createdAt: string, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null }, waypoints?: Array<{ __typename?: 'TripWaypoint', id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay?: PeriodOfDay | null, type: string, name: string, notes?: string | null, lat: number, lng: number, createdAt: string }> | null } | null };
+export type TripBySlugQuery = { tripBySlug: { id: string, slug: string | null, title: string, description: string, difficulty: string, dayCount: number | null, startDate: string, endDate: string, maxRiders: number, participantCount: number, status: string, visibility: string, coverImageUrl: string | null, isTemplate: boolean, polyline: string | null, startLat: number | null, startLng: number | null, countryCode: string | null, regionCode: string | null, city: string | null, distanceM: number | null, elevationGainM: number | null, estimatedDurationMinutes: number | null, surfaceType: string | null, curvatureIndex: number | null, isFeatured: boolean, isMotovaultPick: boolean, viewCount: number, cloneCount: number, averageRating: number | null, reviewCount: number, publishedAt: string | null, isFlagged: boolean, clonedFromTripId: string | null, forkedFromTripId: string | null, createdAt: string, organiser: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null }, waypoints: Array<{ id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay: PeriodOfDay | null, type: string, name: string, notes: string | null, lat: number, lng: number, createdAt: string }> | null } | null };
 
 export type TripDetailQueryVariables = Exact<{
-  tripId: Scalars['ID']['input'];
+  tripId: string | number;
 }>;
 
 
-export type TripDetailQuery = { __typename?: 'Query', tripDetail: { __typename?: 'Trip', id: string, title: string, description: string, startDate: string, endDate: string, datesPending?: boolean | null, difficulty: string, maxRiders: number, participantCount: number, status: string, visibility: string, coverImageUrl?: string | null, createdAt: string, isTemplate: boolean, slug?: string | null, polyline?: string | null, startLat?: number | null, startLng?: number | null, countryCode?: string | null, regionCode?: string | null, city?: string | null, distanceM?: number | null, elevationGainM?: number | null, estimatedDurationMinutes?: number | null, surfaceType?: string | null, curvatureIndex?: number | null, dayCount?: number | null, isFeatured: boolean, isMotovaultPick: boolean, viewCount: number, cloneCount: number, averageRating?: number | null, reviewCount: number, publishedAt?: string | null, isFlagged: boolean, isSaved?: boolean | null, clonedFromTripId?: string | null, forkedFromTripId?: string | null, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null }, waypoints?: Array<{ __typename?: 'TripWaypoint', id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay?: PeriodOfDay | null, type: string, name: string, notes?: string | null, lat: number, lng: number, createdAt: string }> | null, participants?: Array<{ __typename?: 'TripParticipant', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null, role: string, status: string, bikeId?: string | null, joinedAt: string }> | null } };
+export type TripDetailQuery = { tripDetail: { id: string, title: string, description: string, startDate: string, endDate: string, datesPending: boolean | null, difficulty: string, maxRiders: number, participantCount: number, status: string, visibility: string, coverImageUrl: string | null, createdAt: string, isTemplate: boolean, slug: string | null, polyline: string | null, startLat: number | null, startLng: number | null, countryCode: string | null, regionCode: string | null, city: string | null, distanceM: number | null, elevationGainM: number | null, estimatedDurationMinutes: number | null, surfaceType: string | null, curvatureIndex: number | null, dayCount: number | null, isFeatured: boolean, isMotovaultPick: boolean, viewCount: number, cloneCount: number, averageRating: number | null, reviewCount: number, publishedAt: string | null, isFlagged: boolean, isSaved: boolean | null, clonedFromTripId: string | null, forkedFromTripId: string | null, organiser: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null }, waypoints: Array<{ id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay: PeriodOfDay | null, type: string, name: string, notes: string | null, lat: number, lng: number, createdAt: string }> | null, participants: Array<{ id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null, role: string, status: string, bikeId: string | null, joinedAt: string }> | null } };
 
 export type TripInvitesQueryVariables = Exact<{
-  tripId: Scalars['ID']['input'];
+  tripId: string | number;
 }>;
 
 
-export type TripInvitesQuery = { __typename?: 'Query', tripInvites: Array<{ __typename?: 'TripInvite', id: string, invitedUserId: string, invitedAt: string, acceptedAt?: string | null, declinedAt?: string | null }> };
+export type TripInvitesQuery = { tripInvites: Array<{ id: string, invitedUserId: string, invitedAt: string, acceptedAt: string | null, declinedAt: string | null }> };
 
 export type TripReviewsQueryVariables = Exact<{
-  tripId: Scalars['ID']['input'];
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  tripId: string | number;
+  first?: number | null | undefined;
+  after?: string | null | undefined;
 }>;
 
 
-export type TripReviewsQuery = { __typename?: 'Query', tripReviews: Array<{ __typename?: 'TripReview', id: string, rating: number, text?: string | null, conditionTags?: Array<string> | null, createdAt: string, tripId: string, userId?: string | null, bikeId?: string | null, author?: { __typename?: 'TripReviewAuthor', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null } | null, bike?: { __typename?: 'TripReviewBike', make: string, model: string, year: number, type?: string | null } | null }> };
+export type TripReviewsQuery = { tripReviews: Array<{ id: string, rating: number, text: string | null, conditionTags: Array<string> | null, createdAt: string, tripId: string, userId: string | null, bikeId: string | null, author: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null } | null, bike: { make: string, model: string, year: number, type: string | null } | null }> };
 
 export type TripSuggestionsQueryVariables = Exact<{
-  tripId: Scalars['ID']['input'];
+  tripId: string | number;
 }>;
 
 
-export type TripSuggestionsQuery = { __typename?: 'Query', tripSuggestions: Array<{ __typename?: 'TripSuggestion', id: string, tripId: string, kind: TripSuggestionKind, name: string, notes?: string | null, lat?: number | null, lng?: number | null, dayIndex?: number | null, periodOfDay?: PeriodOfDay | null, status: TripSuggestionStatus, decidedBy?: string | null, decidedAt?: string | null, decidedNote?: string | null, waypointId?: string | null, createdAt: string, author: { __typename?: 'TripSuggestionAuthor', id: string, displayName: string, avatarUrl?: string | null, publicUsername?: string | null } }> };
+export type TripSuggestionsQuery = { tripSuggestions: Array<{ id: string, tripId: string, kind: TripSuggestionKind, name: string, notes: string | null, lat: number | null, lng: number | null, dayIndex: number | null, periodOfDay: PeriodOfDay | null, status: TripSuggestionStatus, decidedBy: string | null, decidedAt: string | null, decidedNote: string | null, waypointId: string | null, createdAt: string, author: { id: string, displayName: string, avatarUrl: string | null, publicUsername: string | null } }> };
 
 export type TripTemplatesQueryVariables = Exact<{
-  filter?: InputMaybe<TripTemplateFilterInput>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  filter?: TripTemplateFilterInput | null | undefined;
+  first?: number | null | undefined;
+  after?: string | null | undefined;
 }>;
 
 
-export type TripTemplatesQuery = { __typename?: 'Query', tripTemplates: { __typename?: 'TripConnection', edges: Array<{ __typename?: 'TripEdge', cursor: string, node: { __typename?: 'Trip', id: string, slug?: string | null, title: string, description: string, difficulty: string, dayCount?: number | null, startLat?: number | null, startLng?: number | null, countryCode?: string | null, regionCode?: string | null, city?: string | null, distanceM?: number | null, elevationGainM?: number | null, surfaceType?: string | null, polyline?: string | null, curvatureIndex?: number | null, estimatedDurationMinutes?: number | null, isFeatured: boolean, isMotovaultPick: boolean, coverImageUrl?: string | null, viewCount: number, cloneCount: number, averageRating?: number | null, reviewCount: number, publishedAt?: string | null, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null } } }>, pageInfo: { __typename?: 'TripPageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type TripTemplatesQuery = { tripTemplates: { edges: Array<{ cursor: string, node: { id: string, slug: string | null, title: string, description: string, difficulty: string, dayCount: number | null, startLat: number | null, startLng: number | null, countryCode: string | null, regionCode: string | null, city: string | null, distanceM: number | null, elevationGainM: number | null, surfaceType: string | null, polyline: string | null, curvatureIndex: number | null, estimatedDurationMinutes: number | null, isFeatured: boolean, isMotovaultPick: boolean, coverImageUrl: string | null, viewCount: number, cloneCount: number, averageRating: number | null, reviewCount: number, publishedAt: string | null, organiser: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null } } }>, pageInfo: { hasNextPage: boolean, endCursor: string | null } } };
 
 export type UnreviewedReceiptScansQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type UnreviewedReceiptScansQuery = { __typename?: 'Query', unreviewedReceiptScans: Array<{ __typename?: 'UnreviewedScan', scanId: string, storagePath?: string | null, createdAt: string, result?: { __typename?: 'ReceiptExtractionResult', type: string, amount?: number | null, currency?: string | null, date?: string | null, vendor?: string | null, itemName?: string | null, category?: string | null, partsCost?: number | null, laborCost?: number | null, taxAmount?: number | null, taxRate?: number | null, odometerValue?: number | null, odometerUnit?: string | null, fuelLitres?: number | null, partsNeeded: Array<string>, legibilityNote?: string | null, needsCheck: Array<string>, lineItems: Array<{ __typename?: 'ReceiptLineItemResult', label: string, serviceType?: string | null, partRef?: string | null, quantity?: number | null, unitPrice?: number | null, lineTotal?: number | null }>, fieldConfidence: { __typename?: 'ReceiptFieldConfidenceResult', amount: number, currency: number, date: number, vendor: number, category: number, odometer: number } } | null }> };
+export type UnreviewedReceiptScansQuery = { unreviewedReceiptScans: Array<{ scanId: string, storagePath: string | null, createdAt: string, result: { type: string, amount: number | null, currency: string | null, date: string | null, vendor: string | null, itemName: string | null, category: string | null, partsCost: number | null, laborCost: number | null, taxAmount: number | null, taxRate: number | null, odometerValue: number | null, odometerUnit: string | null, fuelLitres: number | null, partsNeeded: Array<string>, legibilityNote: string | null, needsCheck: Array<string>, lineItems: Array<{ label: string, serviceType: string | null, partRef: string | null, quantity: number | null, unitPrice: number | null, lineTotal: number | null }>, fieldConfidence: { amount: number, currency: number, date: number, vendor: number, category: number, odometer: number } } | null }> };
 
-export type BlogPostFieldsFragment = { __typename?: 'BlogPost', id: string, type: string, slug: string, status: string, publishedAt?: string | null, scheduledFor?: string | null, author?: string | null, coverImage?: string | null, coverAlt?: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData?: Record<string, unknown> | null, translations: Array<{ __typename?: 'BlogTranslation', locale: string, title: string, excerpt?: string | null, seoTitle?: string | null, seoDescription?: string | null, bodyRaw: string, faq?: Record<string, unknown> | null, readingTime?: string | null, wordCount?: number | null }>, categories: Array<{ __typename?: 'BlogCategory', id: string, slug: string, name: string, parentId?: string | null, isPrimary?: boolean | null }>, keywords: Array<{ __typename?: 'BlogKeyword', id: string, slug: string, name: string }> };
+export type BlogPostFieldsFragment = { id: string, type: string, slug: string, status: string, publishedAt: string | null, scheduledFor: string | null, author: string | null, coverImage: string | null, coverAlt: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData: Record<string, unknown> | null, translations: Array<{ locale: string, title: string, excerpt: string | null, seoTitle: string | null, seoDescription: string | null, bodyRaw: string, faq: Record<string, unknown> | null, readingTime: string | null, wordCount: number | null }>, categories: Array<{ id: string, slug: string, name: string, parentId: string | null, isPrimary: boolean | null }>, keywords: Array<{ id: string, slug: string, name: string }> };
 
 export type ApproveMaintenanceDraftMutationVariables = Exact<{
   input: ApproveMaintenanceDraftInput;
 }>;
 
 
-export type ApproveMaintenanceDraftMutation = { __typename?: 'Mutation', approveMaintenanceDraft: boolean };
+export type ApproveMaintenanceDraftMutation = { approveMaintenanceDraft: boolean };
 
 export type CreateBillingPortalSessionMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CreateBillingPortalSessionMutation = { __typename?: 'Mutation', createBillingPortalSession: { __typename?: 'BillingPortalSession', status: BillingPortalStatus, url?: string | null } };
+export type CreateBillingPortalSessionMutation = { createBillingPortalSession: { status: BillingPortalStatus, url: string | null } };
 
 export type CreateBlogCategoryMutationVariables = Exact<{
   input: CreateBlogCategoryInput;
 }>;
 
 
-export type CreateBlogCategoryMutation = { __typename?: 'Mutation', createBlogCategory: { __typename?: 'BlogCategory', id: string, slug: string, name: string, parentId?: string | null } };
+export type CreateBlogCategoryMutation = { createBlogCategory: { id: string, slug: string, name: string, parentId: string | null } };
 
 export type CreateBlogKeywordMutationVariables = Exact<{
   input: CreateBlogKeywordInput;
 }>;
 
 
-export type CreateBlogKeywordMutation = { __typename?: 'Mutation', createBlogKeyword: { __typename?: 'BlogKeyword', id: string, slug: string, name: string } };
+export type CreateBlogKeywordMutation = { createBlogKeyword: { id: string, slug: string, name: string } };
 
 export type CreateBlogPostMutationVariables = Exact<{
   input: CreateBlogPostInput;
 }>;
 
 
-export type CreateBlogPostMutation = { __typename?: 'Mutation', createBlogPost: { __typename?: 'BlogPost', id: string, type: string, slug: string, status: string, publishedAt?: string | null, scheduledFor?: string | null, author?: string | null, coverImage?: string | null, coverAlt?: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData?: Record<string, unknown> | null, translations: Array<{ __typename?: 'BlogTranslation', locale: string, title: string, excerpt?: string | null, seoTitle?: string | null, seoDescription?: string | null, bodyRaw: string, faq?: Record<string, unknown> | null, readingTime?: string | null, wordCount?: number | null }>, categories: Array<{ __typename?: 'BlogCategory', id: string, slug: string, name: string, parentId?: string | null, isPrimary?: boolean | null }>, keywords: Array<{ __typename?: 'BlogKeyword', id: string, slug: string, name: string }> } };
+export type CreateBlogPostMutation = { createBlogPost: { id: string, type: string, slug: string, status: string, publishedAt: string | null, scheduledFor: string | null, author: string | null, coverImage: string | null, coverAlt: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData: Record<string, unknown> | null, translations: Array<{ locale: string, title: string, excerpt: string | null, seoTitle: string | null, seoDescription: string | null, bodyRaw: string, faq: Record<string, unknown> | null, readingTime: string | null, wordCount: number | null }>, categories: Array<{ id: string, slug: string, name: string, parentId: string | null, isPrimary: boolean | null }>, keywords: Array<{ id: string, slug: string, name: string }> } };
 
 export type DeleteBlogPostMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type DeleteBlogPostMutation = { __typename?: 'Mutation', deleteBlogPost: boolean };
+export type DeleteBlogPostMutation = { deleteBlogPost: boolean };
 
 export type PublishBlogPostMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type PublishBlogPostMutation = { __typename?: 'Mutation', publishBlogPost: { __typename?: 'BlogPost', id: string, type: string, slug: string, status: string, publishedAt?: string | null, scheduledFor?: string | null, author?: string | null, coverImage?: string | null, coverAlt?: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData?: Record<string, unknown> | null, translations: Array<{ __typename?: 'BlogTranslation', locale: string, title: string, excerpt?: string | null, seoTitle?: string | null, seoDescription?: string | null, bodyRaw: string, faq?: Record<string, unknown> | null, readingTime?: string | null, wordCount?: number | null }>, categories: Array<{ __typename?: 'BlogCategory', id: string, slug: string, name: string, parentId?: string | null, isPrimary?: boolean | null }>, keywords: Array<{ __typename?: 'BlogKeyword', id: string, slug: string, name: string }> } };
+export type PublishBlogPostMutation = { publishBlogPost: { id: string, type: string, slug: string, status: string, publishedAt: string | null, scheduledFor: string | null, author: string | null, coverImage: string | null, coverAlt: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData: Record<string, unknown> | null, translations: Array<{ locale: string, title: string, excerpt: string | null, seoTitle: string | null, seoDescription: string | null, bodyRaw: string, faq: Record<string, unknown> | null, readingTime: string | null, wordCount: number | null }>, categories: Array<{ id: string, slug: string, name: string, parentId: string | null, isPrimary: boolean | null }>, keywords: Array<{ id: string, slug: string, name: string }> } };
 
 export type RevertBlogPostVersionMutationVariables = Exact<{
-  id: Scalars['String']['input'];
-  versionNum: Scalars['Int']['input'];
+  id: string;
+  versionNum: number;
 }>;
 
 
-export type RevertBlogPostVersionMutation = { __typename?: 'Mutation', revertBlogPostVersion: { __typename?: 'BlogPost', id: string, type: string, slug: string, status: string, publishedAt?: string | null, scheduledFor?: string | null, author?: string | null, coverImage?: string | null, coverAlt?: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData?: Record<string, unknown> | null, translations: Array<{ __typename?: 'BlogTranslation', locale: string, title: string, excerpt?: string | null, seoTitle?: string | null, seoDescription?: string | null, bodyRaw: string, faq?: Record<string, unknown> | null, readingTime?: string | null, wordCount?: number | null }>, categories: Array<{ __typename?: 'BlogCategory', id: string, slug: string, name: string, parentId?: string | null, isPrimary?: boolean | null }>, keywords: Array<{ __typename?: 'BlogKeyword', id: string, slug: string, name: string }> } };
+export type RevertBlogPostVersionMutation = { revertBlogPostVersion: { id: string, type: string, slug: string, status: string, publishedAt: string | null, scheduledFor: string | null, author: string | null, coverImage: string | null, coverAlt: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData: Record<string, unknown> | null, translations: Array<{ locale: string, title: string, excerpt: string | null, seoTitle: string | null, seoDescription: string | null, bodyRaw: string, faq: Record<string, unknown> | null, readingTime: string | null, wordCount: number | null }>, categories: Array<{ id: string, slug: string, name: string, parentId: string | null, isPrimary: boolean | null }>, keywords: Array<{ id: string, slug: string, name: string }> } };
 
 export type ScheduleBlogPostMutationVariables = Exact<{
   input: ScheduleBlogPostInput;
 }>;
 
 
-export type ScheduleBlogPostMutation = { __typename?: 'Mutation', scheduleBlogPost: { __typename?: 'BlogPost', id: string, type: string, slug: string, status: string, publishedAt?: string | null, scheduledFor?: string | null, author?: string | null, coverImage?: string | null, coverAlt?: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData?: Record<string, unknown> | null, translations: Array<{ __typename?: 'BlogTranslation', locale: string, title: string, excerpt?: string | null, seoTitle?: string | null, seoDescription?: string | null, bodyRaw: string, faq?: Record<string, unknown> | null, readingTime?: string | null, wordCount?: number | null }>, categories: Array<{ __typename?: 'BlogCategory', id: string, slug: string, name: string, parentId?: string | null, isPrimary?: boolean | null }>, keywords: Array<{ __typename?: 'BlogKeyword', id: string, slug: string, name: string }> } };
+export type ScheduleBlogPostMutation = { scheduleBlogPost: { id: string, type: string, slug: string, status: string, publishedAt: string | null, scheduledFor: string | null, author: string | null, coverImage: string | null, coverAlt: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData: Record<string, unknown> | null, translations: Array<{ locale: string, title: string, excerpt: string | null, seoTitle: string | null, seoDescription: string | null, bodyRaw: string, faq: Record<string, unknown> | null, readingTime: string | null, wordCount: number | null }>, categories: Array<{ id: string, slug: string, name: string, parentId: string | null, isPrimary: boolean | null }>, keywords: Array<{ id: string, slug: string, name: string }> } };
 
 export type UnpublishBlogPostMutationVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type UnpublishBlogPostMutation = { __typename?: 'Mutation', unpublishBlogPost: { __typename?: 'BlogPost', id: string, type: string, slug: string, status: string, publishedAt?: string | null, scheduledFor?: string | null, author?: string | null, coverImage?: string | null, coverAlt?: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData?: Record<string, unknown> | null, translations: Array<{ __typename?: 'BlogTranslation', locale: string, title: string, excerpt?: string | null, seoTitle?: string | null, seoDescription?: string | null, bodyRaw: string, faq?: Record<string, unknown> | null, readingTime?: string | null, wordCount?: number | null }>, categories: Array<{ __typename?: 'BlogCategory', id: string, slug: string, name: string, parentId?: string | null, isPrimary?: boolean | null }>, keywords: Array<{ __typename?: 'BlogKeyword', id: string, slug: string, name: string }> } };
+export type UnpublishBlogPostMutation = { unpublishBlogPost: { id: string, type: string, slug: string, status: string, publishedAt: string | null, scheduledFor: string | null, author: string | null, coverImage: string | null, coverAlt: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData: Record<string, unknown> | null, translations: Array<{ locale: string, title: string, excerpt: string | null, seoTitle: string | null, seoDescription: string | null, bodyRaw: string, faq: Record<string, unknown> | null, readingTime: string | null, wordCount: number | null }>, categories: Array<{ id: string, slug: string, name: string, parentId: string | null, isPrimary: boolean | null }>, keywords: Array<{ id: string, slug: string, name: string }> } };
 
 export type UpdateBlogPostMutationVariables = Exact<{
   input: UpdateBlogPostInput;
 }>;
 
 
-export type UpdateBlogPostMutation = { __typename?: 'Mutation', updateBlogPost: { __typename?: 'BlogPost', id: string, type: string, slug: string, status: string, publishedAt?: string | null, scheduledFor?: string | null, author?: string | null, coverImage?: string | null, coverAlt?: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData?: Record<string, unknown> | null, translations: Array<{ __typename?: 'BlogTranslation', locale: string, title: string, excerpt?: string | null, seoTitle?: string | null, seoDescription?: string | null, bodyRaw: string, faq?: Record<string, unknown> | null, readingTime?: string | null, wordCount?: number | null }>, categories: Array<{ __typename?: 'BlogCategory', id: string, slug: string, name: string, parentId?: string | null, isPrimary?: boolean | null }>, keywords: Array<{ __typename?: 'BlogKeyword', id: string, slug: string, name: string }> } };
+export type UpdateBlogPostMutation = { updateBlogPost: { id: string, type: string, slug: string, status: string, publishedAt: string | null, scheduledFor: string | null, author: string | null, coverImage: string | null, coverAlt: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData: Record<string, unknown> | null, translations: Array<{ locale: string, title: string, excerpt: string | null, seoTitle: string | null, seoDescription: string | null, bodyRaw: string, faq: Record<string, unknown> | null, readingTime: string | null, wordCount: number | null }>, categories: Array<{ id: string, slug: string, name: string, parentId: string | null, isPrimary: boolean | null }>, keywords: Array<{ id: string, slug: string, name: string }> } };
 
 export type AdminBlogPostVersionsQueryVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type AdminBlogPostVersionsQuery = { __typename?: 'Query', adminBlogPostVersions: Array<{ __typename?: 'BlogPostVersion', versionNum: number, title?: string | null, status?: string | null, createdBy?: string | null, createdAt: string }> };
+export type AdminBlogPostVersionsQuery = { adminBlogPostVersions: Array<{ versionNum: number, title: string | null, status: string | null, createdBy: string | null, createdAt: string }> };
 
 export type AdminBlogPostQueryVariables = Exact<{
-  id: Scalars['String']['input'];
+  id: string;
 }>;
 
 
-export type AdminBlogPostQuery = { __typename?: 'Query', adminBlogPost?: { __typename?: 'BlogPost', id: string, type: string, slug: string, status: string, publishedAt?: string | null, scheduledFor?: string | null, author?: string | null, coverImage?: string | null, coverAlt?: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData?: Record<string, unknown> | null, translations: Array<{ __typename?: 'BlogTranslation', locale: string, title: string, excerpt?: string | null, seoTitle?: string | null, seoDescription?: string | null, bodyRaw: string, faq?: Record<string, unknown> | null, readingTime?: string | null, wordCount?: number | null }>, categories: Array<{ __typename?: 'BlogCategory', id: string, slug: string, name: string, parentId?: string | null, isPrimary?: boolean | null }>, keywords: Array<{ __typename?: 'BlogKeyword', id: string, slug: string, name: string }> } | null };
+export type AdminBlogPostQuery = { adminBlogPost: { id: string, type: string, slug: string, status: string, publishedAt: string | null, scheduledFor: string | null, author: string | null, coverImage: string | null, coverAlt: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData: Record<string, unknown> | null, translations: Array<{ locale: string, title: string, excerpt: string | null, seoTitle: string | null, seoDescription: string | null, bodyRaw: string, faq: Record<string, unknown> | null, readingTime: string | null, wordCount: number | null }>, categories: Array<{ id: string, slug: string, name: string, parentId: string | null, isPrimary: boolean | null }>, keywords: Array<{ id: string, slug: string, name: string }> } | null };
 
 export type AdminBlogPostsQueryVariables = Exact<{
-  input?: InputMaybe<ListBlogPostsInput>;
+  input?: ListBlogPostsInput | null | undefined;
 }>;
 
 
-export type AdminBlogPostsQuery = { __typename?: 'Query', adminBlogPosts: { __typename?: 'BlogPostConnection', totalCount: number, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'BlogPostEdge', cursor: string, node: { __typename?: 'BlogPost', id: string, type: string, slug: string, status: string, publishedAt?: string | null, scheduledFor?: string | null, author?: string | null, coverImage?: string | null, coverAlt?: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData?: Record<string, unknown> | null, translations: Array<{ __typename?: 'BlogTranslation', locale: string, title: string, excerpt?: string | null, seoTitle?: string | null, seoDescription?: string | null, bodyRaw: string, faq?: Record<string, unknown> | null, readingTime?: string | null, wordCount?: number | null }>, categories: Array<{ __typename?: 'BlogCategory', id: string, slug: string, name: string, parentId?: string | null, isPrimary?: boolean | null }>, keywords: Array<{ __typename?: 'BlogKeyword', id: string, slug: string, name: string }> } }> } };
+export type AdminBlogPostsQuery = { adminBlogPosts: { totalCount: number, pageInfo: { hasNextPage: boolean, endCursor: string | null }, edges: Array<{ cursor: string, node: { id: string, type: string, slug: string, status: string, publishedAt: string | null, scheduledFor: string | null, author: string | null, coverImage: string | null, coverAlt: string | null, specData: boolean, isSafetyCritical: boolean, createdAt: string, updatedAt: string, typeData: Record<string, unknown> | null, translations: Array<{ locale: string, title: string, excerpt: string | null, seoTitle: string | null, seoDescription: string | null, bodyRaw: string, faq: Record<string, unknown> | null, readingTime: string | null, wordCount: number | null }>, categories: Array<{ id: string, slug: string, name: string, parentId: string | null, isPrimary: boolean | null }>, keywords: Array<{ id: string, slug: string, name: string }> } }> } };
 
 export type BlogTaxonomyQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type BlogTaxonomyQuery = { __typename?: 'Query', adminBlogCategories: Array<{ __typename?: 'BlogCategory', id: string, slug: string, name: string, parentId?: string | null }>, adminBlogKeywords: Array<{ __typename?: 'BlogKeyword', id: string, slug: string, name: string }> };
+export type BlogTaxonomyQuery = { adminBlogCategories: Array<{ id: string, slug: string, name: string, parentId: string | null }>, adminBlogKeywords: Array<{ id: string, slug: string, name: string }> };
 
-export type BrowsePlaceFieldsFragment = { __typename?: 'BrowsePlace', id: string, kind: string, name: string, countryCode: string, regionCode?: string | null, slug: string, parentId?: string | null, routeCount: number };
+export type BrowsePlaceFieldsFragment = { id: string, kind: string, name: string, countryCode: string, regionCode: string | null, slug: string, parentId: string | null, routeCount: number };
 
 export type BrowseCountriesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type BrowseCountriesQuery = { __typename?: 'Query', browseCountries: Array<{ __typename?: 'BrowsePlace', id: string, kind: string, name: string, countryCode: string, regionCode?: string | null, slug: string, parentId?: string | null, routeCount: number }> };
+export type BrowseCountriesQuery = { browseCountries: Array<{ id: string, kind: string, name: string, countryCode: string, regionCode: string | null, slug: string, parentId: string | null, routeCount: number }> };
 
 export type BrowseCountryBySlugQueryVariables = Exact<{
-  slug: Scalars['String']['input'];
+  slug: string;
 }>;
 
 
-export type BrowseCountryBySlugQuery = { __typename?: 'Query', browseCountryBySlug?: { __typename?: 'BrowsePlace', id: string, kind: string, name: string, countryCode: string, regionCode?: string | null, slug: string, parentId?: string | null, routeCount: number } | null };
+export type BrowseCountryBySlugQuery = { browseCountryBySlug: { id: string, kind: string, name: string, countryCode: string, regionCode: string | null, slug: string, parentId: string | null, routeCount: number } | null };
 
 export type BrowseRegionsByCountrySlugQueryVariables = Exact<{
-  countrySlug: Scalars['String']['input'];
+  countrySlug: string;
 }>;
 
 
-export type BrowseRegionsByCountrySlugQuery = { __typename?: 'Query', browseRegionsByCountrySlug: Array<{ __typename?: 'BrowsePlace', id: string, kind: string, name: string, countryCode: string, regionCode?: string | null, slug: string, parentId?: string | null, routeCount: number }> };
+export type BrowseRegionsByCountrySlugQuery = { browseRegionsByCountrySlug: Array<{ id: string, kind: string, name: string, countryCode: string, regionCode: string | null, slug: string, parentId: string | null, routeCount: number }> };
 
 export type BrowseExploreRegionQueryVariables = Exact<{
-  countrySlug: Scalars['String']['input'];
-  regionSlug: Scalars['String']['input'];
+  countrySlug: string;
+  regionSlug: string;
 }>;
 
 
-export type BrowseExploreRegionQuery = { __typename?: 'Query', browseExploreRegion?: { __typename?: 'BrowseExploreRegionResult', country: { __typename?: 'BrowsePlace', id: string, kind: string, name: string, countryCode: string, regionCode?: string | null, slug: string, parentId?: string | null, routeCount: number }, region: { __typename?: 'BrowsePlace', id: string, kind: string, name: string, countryCode: string, regionCode?: string | null, slug: string, parentId?: string | null, routeCount: number } } | null };
+export type BrowseExploreRegionQuery = { browseExploreRegion: { country: { id: string, kind: string, name: string, countryCode: string, regionCode: string | null, slug: string, parentId: string | null, routeCount: number }, region: { id: string, kind: string, name: string, countryCode: string, regionCode: string | null, slug: string, parentId: string | null, routeCount: number } } | null };
 
 export type GetGpxQuotaStatusQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetGpxQuotaStatusQuery = { __typename?: 'Query', getGPXQuotaStatus: { __typename?: 'QuotaStatus', feature: string, limit: number, used: number, remaining: number, resetDate: string, isExhausted: boolean } };
+export type GetGpxQuotaStatusQuery = { getGPXQuotaStatus: { feature: string, limit: number, used: number, remaining: number, resetDate: string, isExhausted: boolean } };
 
 export type GetTrialEligibilityQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetTrialEligibilityQuery = { __typename?: 'Query', me: { __typename?: 'User', id: string, hasUsedTrial?: boolean | null } };
+export type GetTrialEligibilityQuery = { me: { id: string, hasUsedTrial: boolean | null } };
 
 export type MaintenanceDraftReviewQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MaintenanceDraftReviewQuery = { __typename?: 'Query', maintenanceDraftReview: { __typename?: 'MaintenanceDraftReview', schedules: Array<{ __typename?: 'AdminOemScheduleDraft', id: string, make: string, model?: string | null, variant?: string | null, taskName: string, intervalKm?: number | null, intervalDays?: number | null, priority: MaintenancePriority, isSafetyCritical: boolean, sourcePage?: string | null, sourceContext?: string | null, sourceTitle?: string | null, createdAt: string }>, specs: Array<{ __typename?: 'AdminMotorcycleSpecDraft', id: string, make: string, model?: string | null, variant?: string | null, specType: string, specName: string, valueNumeric: number, valueDisplay?: string | null, unit: string, isSafetyCritical: boolean, sourcePage?: string | null, sourceContext?: string | null, sourceTitle?: string | null, createdAt: string }> } };
+export type MaintenanceDraftReviewQuery = { maintenanceDraftReview: { schedules: Array<{ id: string, make: string, model: string | null, variant: string | null, taskName: string, intervalKm: number | null, intervalDays: number | null, priority: MaintenancePriority, isSafetyCritical: boolean, sourcePage: string | null, sourceContext: string | null, sourceTitle: string | null, createdAt: string }>, specs: Array<{ id: string, make: string, model: string | null, variant: string | null, specType: string, specName: string, valueNumeric: number, valueDisplay: string | null, unit: string, isSafetyCritical: boolean, sourcePage: string | null, sourceContext: string | null, sourceTitle: string | null, createdAt: string }> } };
 
 export type MyRideCountQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MyRideCountQuery = { __typename?: 'Query', myRides: { __typename?: 'RideConnection', totalCount: number } };
+export type MyRideCountQuery = { myRides: { totalCount: number } };
 
 export type PublicSavedTripsQueryVariables = Exact<{
-  handle: Scalars['String']['input'];
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  handle: string;
+  first?: number | null | undefined;
+  after?: string | null | undefined;
 }>;
 
 
-export type PublicSavedTripsQuery = { __typename?: 'Query', publicSavedTrips: { __typename?: 'TripConnection', edges: Array<{ __typename?: 'TripEdge', cursor: string, node: { __typename?: 'Trip', id: string, title: string, distanceM?: number | null, elevationGainM?: number | null, surfaceType?: string | null, isMotovaultPick: boolean, averageRating?: number | null, reviewCount: number, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null } } }>, pageInfo: { __typename?: 'TripPageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type PublicSavedTripsQuery = { publicSavedTrips: { edges: Array<{ cursor: string, node: { id: string, title: string, distanceM: number | null, elevationGainM: number | null, surfaceType: string | null, isMotovaultPick: boolean, averageRating: number | null, reviewCount: number, organiser: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null } } }>, pageInfo: { hasNextPage: boolean, endCursor: string | null } } };
 
 export type SitemapPublishedTripsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SitemapPublishedTripsQuery = { __typename?: 'Query', sitemapPublishedTrips: Array<{ __typename?: 'SitemapTripEntry', countryCode: string, regionCode: string, slug: string, updatedAt: string }> };
+export type SitemapPublishedTripsQuery = { sitemapPublishedTrips: Array<{ countryCode: string, regionCode: string, slug: string, updatedAt: string }> };
 
 export type WebTripBySlugQueryVariables = Exact<{
-  country: Scalars['String']['input'];
-  region: Scalars['String']['input'];
-  slug: Scalars['String']['input'];
+  country: string;
+  region: string;
+  slug: string;
 }>;
 
 
-export type WebTripBySlugQuery = { __typename?: 'Query', tripBySlug?: { __typename?: 'Trip', id: string, slug?: string | null, title: string, description: string, difficulty: string, dayCount?: number | null, startLat?: number | null, startLng?: number | null, countryCode?: string | null, regionCode?: string | null, city?: string | null, distanceM?: number | null, elevationGainM?: number | null, estimatedDurationMinutes?: number | null, surfaceType?: string | null, isFeatured: boolean, isMotovaultPick: boolean, viewCount: number, polyline?: string | null, cloneCount: number, averageRating?: number | null, reviewCount: number, publishedAt?: string | null, updatedAt?: string | null, createdAt: string, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string, publicUsername?: string | null }, waypoints?: Array<{ __typename?: 'TripWaypoint', sortOrder: number, dayIndex: number, type: string, name: string, lat: number, lng: number, notes?: string | null }> | null } | null };
+export type WebTripBySlugQuery = { tripBySlug: { id: string, slug: string | null, title: string, description: string, difficulty: string, dayCount: number | null, startLat: number | null, startLng: number | null, countryCode: string | null, regionCode: string | null, city: string | null, distanceM: number | null, elevationGainM: number | null, estimatedDurationMinutes: number | null, surfaceType: string | null, isFeatured: boolean, isMotovaultPick: boolean, viewCount: number, polyline: string | null, cloneCount: number, averageRating: number | null, reviewCount: number, publishedAt: string | null, updatedAt: string | null, createdAt: string, organiser: { id: string, displayName: string, publicUsername: string | null }, waypoints: Array<{ sortOrder: number, dayIndex: number, type: string, name: string, lat: number, lng: number, notes: string | null }> | null } | null };
 
 export type WebTripPathByIdQueryVariables = Exact<{
-  tripId: Scalars['ID']['input'];
+  tripId: string | number;
 }>;
 
 
-export type WebTripPathByIdQuery = { __typename?: 'Query', tripDetail: { __typename?: 'Trip', id: string, slug?: string | null, countryCode?: string | null, regionCode?: string | null, title: string } };
+export type WebTripPathByIdQuery = { tripDetail: { id: string, slug: string | null, countryCode: string | null, regionCode: string | null, title: string } };
 
 export type WebTripReviewsQueryVariables = Exact<{
-  country: Scalars['String']['input'];
-  region: Scalars['String']['input'];
-  slug: Scalars['String']['input'];
-  first?: InputMaybe<Scalars['Int']['input']>;
+  country: string;
+  region: string;
+  slug: string;
+  first?: number | null | undefined;
 }>;
 
 
-export type WebTripReviewsQuery = { __typename?: 'Query', tripReviews: Array<{ __typename?: 'TripReview', id: string, rating: number, text?: string | null, conditionTags?: Array<string> | null, createdAt: string, author?: { __typename?: 'TripReviewAuthor', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null } | null, bike?: { __typename?: 'TripReviewBike', make: string, model: string, year: number } | null }> };
+export type WebTripReviewsQuery = { tripReviews: Array<{ id: string, rating: number, text: string | null, conditionTags: Array<string> | null, createdAt: string, author: { id: string, displayName: string, publicUsername: string | null, avatarUrl: string | null } | null, bike: { make: string, model: string, year: number } | null }> };
 
 export const BlogPostFieldsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BlogPostFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BlogPost"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"publishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"scheduledFor"}},{"kind":"Field","name":{"kind":"Name","value":"author"}},{"kind":"Field","name":{"kind":"Name","value":"coverImage"}},{"kind":"Field","name":{"kind":"Name","value":"coverAlt"}},{"kind":"Field","name":{"kind":"Name","value":"specData"}},{"kind":"Field","name":{"kind":"Name","value":"isSafetyCritical"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"typeData"}},{"kind":"Field","name":{"kind":"Name","value":"translations"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"locale"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"excerpt"}},{"kind":"Field","name":{"kind":"Name","value":"seoTitle"}},{"kind":"Field","name":{"kind":"Name","value":"seoDescription"}},{"kind":"Field","name":{"kind":"Name","value":"bodyRaw"}},{"kind":"Field","name":{"kind":"Name","value":"faq"}},{"kind":"Field","name":{"kind":"Name","value":"readingTime"}},{"kind":"Field","name":{"kind":"Name","value":"wordCount"}}]}},{"kind":"Field","name":{"kind":"Name","value":"categories"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"isPrimary"}}]}},{"kind":"Field","name":{"kind":"Name","value":"keywords"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<BlogPostFieldsFragment, unknown>;
 export const BrowsePlaceFieldsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BrowsePlaceFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BrowsePlace"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"kind"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"routeCount"}}]}}]} as unknown as DocumentNode<BrowsePlaceFieldsFragment, unknown>;

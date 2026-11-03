@@ -8,8 +8,8 @@ describe('CommentsResolver', () => {
   let resolver: CommentsResolver;
   let service: { getComments: ReturnType<typeof vi.fn> };
   const user = { id: 'u1' } as AuthUser;
-  const rideId = '11111111-1111-1111-1111-111111111111';
-  const routeId = '22222222-2222-2222-2222-222222222222';
+  const rideId = '11111111-1111-4111-8111-111111111111';
+  const routeId = '22222222-2222-4222-8222-222222222222';
 
   beforeEach(() => {
     service = { getComments: vi.fn().mockResolvedValue({ edges: [], pageInfo: {} }) };
