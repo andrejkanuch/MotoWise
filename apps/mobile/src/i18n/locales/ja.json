@@ -20,7 +20,10 @@
     "tryAgain": "再試行",
     "all": "すべて",
     "ride": "ライド",
-    "deleting": "削除中..."
+    "deleting": "削除中...",
+    "openInAppleMaps": "Appleマップで開く",
+    "copyCoordinates": "座標をコピー",
+    "changeMapStyleA11y": "地図のスタイルを変更"
   },
   "auth": {
     "googlePlayServicesUnavailable": "Google ログインには Google Play 開発者サービスが必要ですが、この端末にはありません。メールアドレスで続行してください。",
@@ -1517,7 +1520,20 @@
     "periodAllTime": "全期間",
     "totalSpentThisYear": "今年の合計支出",
     "totalSpentLastYear": "昨年の合計支出",
-    "totalSpentAllTime": "全期間の合計支出"
+    "totalSpentAllTime": "全期間の合計支出",
+    "retryLoadA11y": "支出データを再読み込み",
+    "periodSelectorA11y": "支出の期間を選択",
+    "totalA11y": "合計: {{amount}}",
+    "yoyDownA11y": "前年比 {{percent}}パーセント減",
+    "yoyUpA11y": "前年比 {{percent}}パーセント増",
+    "topCategoryA11y": "最多のカテゴリ: {{category}}、{{amount}}",
+    "topCategoryPctA11y": "最多のカテゴリ: {{category}}、{{amount}}、{{percent}}パーセント",
+    "closeListA11y": "支出リストを閉じる",
+    "breakdownA11y": "支出の内訳: {{list}}",
+    "categoryRowA11y": "{{category}}: {{amount}}、{{percent}}パーセント。タップして支出を表示。",
+    "trendChartA11y": "月別支出の推移グラフ",
+    "legendA11y": "グラフの凡例: {{list}}",
+    "summaryA11y": "支出の概要"
   },
   "privacy": {
     "title": "プライバシー",
@@ -1887,7 +1903,33 @@
     "defaultStopName": "スポット {{number}}",
     "moveToDayTitle": "日を移動",
     "selectDayForStop": "このスポットの日を選択",
-    "addDayA11y": "ツアーに別の日を追加"
+    "addDayA11y": "ツアーに別の日を追加",
+    "visibilityChipPublic": "公開",
+    "visibilityChipUnlisted": "リンクのみ",
+    "visibilityChipPrivate": "非公開",
+    "surfacePaved": "舗装",
+    "surfaceMixed": "ミックス",
+    "surfaceOffRoad": "オフロード",
+    "surfaceGravel": "グラベル",
+    "itinerary": "行程",
+    "sampleItinerary": "行程の例",
+    "gpxNeedsTwoStopsTitle": "ストップが2か所以上必要です",
+    "gpxNeedsTwoStopsMessage": "GPXファイルには出発地と目的地が必要です。ストップをもう1か所追加して、もう一度お試しください。",
+    "waypointFallback": "ウェイポイント",
+    "organizerFallback": "主催者",
+    "briefShareTitle": "{{title}} — タンクバッグ用メモ",
+    "saveTripA11y": "ツーリングを保存",
+    "unsaveTripA11y": "保存を解除",
+    "cloneThisTripHint": "このツーリングの地点が入った状態でプランナーを開きます",
+    "exportGpxA11y": "ツーリングをGPXでエクスポート",
+    "dayUnit_other": "日",
+    "stopUnit_other": "ストップ",
+    "stopCount_other": "{{count}}か所",
+    "reviewCount_other": "レビュー{{count}}件",
+    "dayUnit_one": "日",
+    "stopUnit_one": "ストップ",
+    "stopCount_one": "{{count}}か所",
+    "reviewCount_one": "レビュー{{count}}件"
   },
   "groupRide": {
     "titleLabel": "タイトル",
@@ -1951,7 +1993,29 @@
       "maxSpeed": "最高速度",
       "ascent": "上り",
       "descent": "下り"
-    }
+    },
+    "smartName": {
+      "morning": "{{day}}の朝ライド",
+      "afternoon": "{{day}}の午後ライド",
+      "evening": "{{day}}の夕方ライド",
+      "night": "{{day}}の夜ライド"
+    },
+    "discardTitle": "ライドを破棄しますか？",
+    "discardMessage": "このライドのデータは完全に削除されます。",
+    "discardConfirm": "破棄",
+    "rideNameA11y": "ライド名",
+    "pbBadge": "自己ベスト",
+    "record": {
+      "longestDistance": "最長距離",
+      "longestDuration": "最長時間",
+      "topSpeed": "最高速度",
+      "maxElevationGain": "最大獲得標高",
+      "fallback": "自己ベスト更新"
+    },
+    "saveRide": "ライドを保存",
+    "savingRideA11y": "ライドを保存中",
+    "pbDelta": " · 自己ベストより+{{pct}}%",
+    "shareMessage": "MotoVaultで{{duration}}かけて{{distance}}のライドを走りました！"
   },
   "heatmap": {
     "rides": "走行",
@@ -1969,12 +2033,13 @@
     "topRideLabel": "ベストライド:",
     "topRideValue": "— {{distance}}。",
     "shareRecap": "まとめを共有",
-    "shareIntro_one": "In {{year}} I rode {{distance}} across {{count}} ride.",
-    "shareIntro_other": "In {{year}} I rode {{distance}} across {{count}} rides.",
-    "shareCountries_one": "{{count}} country: {{list}}",
-    "shareCountries_other": "{{count}} countries: {{list}}",
-    "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoVault"
+    "shareIntro_one": "{{year}}年は{{count}}回のライドで{{distance}}走りました。",
+    "shareIntro_other": "{{year}}年は{{count}}回のライドで{{distance}}走りました。",
+    "shareCountries_one": "{{count}}か国: {{list}}",
+    "shareCountries_other": "{{count}}か国: {{list}}",
+    "shareTopRide": "ベストライド: {{name}} — {{distance}}",
+    "shareVia": "— via MotoVault",
+    "shareYearRecapA11y": "年間のまとめを共有"
   },
   "discoverSearch": {
     "notAvailableTitle": "利用不可",
@@ -2083,7 +2148,9 @@
     "leanAngle": "最大バンク角",
     "leanTooltip": "バンク角はスマホのモーションセンサーから推定した値です。精密な計測器ではないため、スマホの取り付け位置や路面状況によって実際のバンク角と異なる場合があります。",
     "private": "非公開",
-    "threeD": "3D"
+    "threeD": "3D",
+    "shareRideA11y": "ライドを共有",
+    "flyoverA11y": "3Dフライオーバー"
   },
   "startRide": {
     "subtitle": "バイクを選んで出発。終了をタップするまでGPS、速度、ルートが記録されます。",
@@ -2395,7 +2462,7 @@
       "viewReceipt": "レシート写真を表示",
       "closeReceipt": "閉じる",
       "save": "保存",
-      "breakdownOverTotal": "Parts, labor and tax add up to {{sum}}, more than the {{total}} total. Correct one so they fit to save.",
+      "breakdownOverTotal": "部品・工賃・税の合計が {{sum}} で、合計額 {{total}} を超えています。保存するには、どれかを修正して合計に収めてください。",
       "checkAmount": "金額を確認",
       "checkCurrency": "通貨を確認",
       "checkDate": "日付を確認",
@@ -2536,7 +2603,27 @@
     "needsAttention": "要確認",
     "checksPass": "{{passed}}/{{total}} 件のチェックに合格",
     "a11y": "{{headline}}。準備 {{percent}} パーセント。タップしてチェックリストを表示。",
-    "shareBrief": "タンクバッグ用メモを共有"
+    "shareBrief": "タンクバッグ用メモを共有",
+    "items": {
+      "route": "ルートに出発地と目的地がある",
+      "dates": "日程が決まっている",
+      "fuel": "航続距離が最長区間をカバー",
+      "witness": "誰かがルートを知っている",
+      "bike": "メインのバイクを選択済み",
+      "names": "ストップに名前がある"
+    },
+    "notes": {
+      "routeNeedsTwoStops": "ナビがルートを計算するには、ストップが2か所以上必要です。",
+      "datesInPast": "出発日が過ぎています。走る前に更新してください。",
+      "datesMissing": "参加者が集合日時を把握できるよう、出発日を追加してください。",
+      "fuelNoBike": "メインのバイクを追加すると、ルートに対する航続距離をチェックできます。",
+      "fuelGapTooLong": "最長区間 {{gapKm}}km > 航続距離 {{rangeKm}}km — 給油ストップを追加してください。",
+      "fuelGapOk": "最長区間 {{gapKm}}km / 航続距離 {{rangeKm}}km",
+      "witnessMissing": "ライダーを招待するか、ツーリングを共有するか、リンク限定公開にして、誰かがリンクを持てるようにしましょう。",
+      "bikeMissing": "ガレージでメインのバイクを選ぶと、整備履歴をほかのチェックに使えます。",
+      "stopsUnnamed_other": "{{count}}か所のストップがまだ初期名のままです。",
+      "stopsUnnamed_one": "{{count}}か所のストップがまだ初期名のままです。"
+    }
   },
   "tripSuggestions": {
     "title": "提案",

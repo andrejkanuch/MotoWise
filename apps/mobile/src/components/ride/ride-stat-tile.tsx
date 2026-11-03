@@ -17,7 +17,7 @@ interface RideStatTileProps {
   unit?: string;
   /** Primary stat (e.g., distance) — larger figure on a raised fill. Never copper: copper is action only. */
   copper?: boolean;
-  /** Render in top-right corner (e.g., "PRIVATE" pill) */
+  /** Pill at the end of the label row (e.g., "PRIVATE"); wraps below a long label instead of covering it */
   badge?: React.ReactNode;
   /** Render after the label (e.g., info button) */
   trailing?: React.ReactNode;
@@ -58,17 +58,41 @@ export function RideStatTile({
           borderWidth: 1,
           borderColor: border,
           minHeight: 76,
-          position: 'relative',
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-          {icon}
-          <Text style={[type.caption, { color: labelColor, flex: trailing ? 1 : undefined }]}>
-            {label}
-          </Text>
-          {trailing}
+        {/* The badge sits in the label row, not over it: it wraps onto its own line when a
+            long label (es "Vel. máxima", de "Höchstgeschw.") leaves no room beside it. */}
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            columnGap: 5,
+            rowGap: 4,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 5,
+              flexShrink: 1,
+              flexGrow: trailing ? 1 : 0,
+            }}
+          >
+            {icon}
+            <Text
+              style={[
+                type.caption,
+                { color: labelColor, flexShrink: 1, flex: trailing ? 1 : undefined },
+              ]}
+            >
+              {label}
+            </Text>
+            {trailing}
+          </View>
+          {badge && <View style={{ marginLeft: 'auto' }}>{badge}</View>}
         </View>
-        {badge && <View style={{ position: 'absolute', top: 11, right: 10 }}>{badge}</View>}
         <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 10 }}>
           <Text style={[copper ? type.figure : type.figureSmall, { color: valueColor }]}>
             {value}

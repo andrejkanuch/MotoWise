@@ -20,7 +20,10 @@
     "tryAgain": "फिर से प्रयास करें",
     "all": "सभी",
     "ride": "राइड",
-    "deleting": "हटाया जा रहा है..."
+    "deleting": "हटाया जा रहा है...",
+    "openInAppleMaps": "Apple Maps में खोलें",
+    "copyCoordinates": "कोऑर्डिनेट्स कॉपी करें",
+    "changeMapStyleA11y": "मैप स्टाइल बदलें"
   },
   "auth": {
     "googlePlayServicesUnavailable": "Google साइन-इन के लिए Google Play सेवाएँ चाहिए, जो इस डिवाइस पर नहीं हैं। कृपया इसके बजाय ईमेल से जारी रखें।",
@@ -1517,7 +1520,20 @@
     "periodAllTime": "अब तक",
     "totalSpentThisYear": "इस साल कुल खर्च",
     "totalSpentLastYear": "पिछले साल कुल खर्च",
-    "totalSpentAllTime": "अब तक का कुल खर्च"
+    "totalSpentAllTime": "अब तक का कुल खर्च",
+    "retryLoadA11y": "खर्च का डेटा फिर से लोड करें",
+    "periodSelectorA11y": "खर्च की अवधि चुनें",
+    "totalA11y": "कुल: {{amount}}",
+    "yoyDownA11y": "पिछले साल से {{percent}} प्रतिशत कम",
+    "yoyUpA11y": "पिछले साल से {{percent}} प्रतिशत ज़्यादा",
+    "topCategoryA11y": "सबसे बड़ी श्रेणी: {{category}}, {{amount}}",
+    "topCategoryPctA11y": "सबसे बड़ी श्रेणी: {{category}}, {{amount}}, {{percent}} प्रतिशत",
+    "closeListA11y": "खर्च की सूची बंद करें",
+    "breakdownA11y": "खर्च का ब्योरा: {{list}}",
+    "categoryRowA11y": "{{category}}: {{amount}}, {{percent}} प्रतिशत। खर्च देखने के लिए टैप करें।",
+    "trendChartA11y": "मासिक खर्च का चार्ट",
+    "legendA11y": "चार्ट की कुंजी: {{list}}",
+    "summaryA11y": "खर्च का सारांश"
   },
   "privacy": {
     "title": "प्राइवेसी",
@@ -1887,7 +1903,33 @@
     "defaultStopName": "पड़ाव {{number}}",
     "moveToDayTitle": "दिन पर ले जाएँ",
     "selectDayForStop": "इस पड़ाव के लिए एक दिन चुनें",
-    "addDayA11y": "यात्रा में एक और दिन जोड़ें"
+    "addDayA11y": "यात्रा में एक और दिन जोड़ें",
+    "visibilityChipPublic": "सार्वजनिक",
+    "visibilityChipUnlisted": "सिर्फ़ लिंक से",
+    "visibilityChipPrivate": "प्राइवेट",
+    "surfacePaved": "पक्की सड़क",
+    "surfaceMixed": "मिली-जुली",
+    "surfaceOffRoad": "ऑफ-रोड",
+    "surfaceGravel": "बजरी",
+    "itinerary": "यात्रा योजना",
+    "sampleItinerary": "नमूना यात्रा योजना",
+    "gpxNeedsTwoStopsTitle": "कम से कम दो स्टॉप चाहिए",
+    "gpxNeedsTwoStopsMessage": "GPX फ़ाइल के लिए शुरुआत और अंत दोनों चाहिए। एक और स्टॉप जोड़ें और फिर से कोशिश करें।",
+    "waypointFallback": "वेपॉइंट",
+    "organizerFallback": "आयोजक",
+    "briefShareTitle": "{{title}} — टैंक-बैग ब्रीफ़",
+    "saveTripA11y": "ट्रिप सेव करें",
+    "unsaveTripA11y": "सेव की गई ट्रिप से हटाएं",
+    "cloneThisTripHint": "इस ट्रिप के वेपॉइंट्स के साथ प्लानर खोलता है",
+    "exportGpxA11y": "ट्रिप को GPX में एक्सपोर्ट करें",
+    "dayUnit_one": "दिन",
+    "dayUnit_other": "दिन",
+    "stopUnit_one": "स्टॉप",
+    "stopUnit_other": "स्टॉप्स",
+    "stopCount_one": "{{count}} स्टॉप",
+    "stopCount_other": "{{count}} स्टॉप्स",
+    "reviewCount_one": "{{count}} रिव्यू",
+    "reviewCount_other": "{{count}} रिव्यू"
   },
   "groupRide": {
     "titleLabel": "शीर्षक",
@@ -1951,7 +1993,29 @@
       "maxSpeed": "अधिकतम गति",
       "ascent": "चढ़ाई",
       "descent": "उतराई"
-    }
+    },
+    "smartName": {
+      "morning": "{{day}} सुबह की राइड",
+      "afternoon": "{{day}} दोपहर की राइड",
+      "evening": "{{day}} शाम की राइड",
+      "night": "{{day}} रात की राइड"
+    },
+    "discardTitle": "राइड हटाएं?",
+    "discardMessage": "इस राइड का डेटा हमेशा के लिए हट जाएगा।",
+    "discardConfirm": "हटाएं",
+    "rideNameA11y": "राइड का नाम",
+    "pbBadge": "PB",
+    "record": {
+      "longestDistance": "सबसे लंबी राइड",
+      "longestDuration": "सबसे लंबी अवधि",
+      "topSpeed": "टॉप स्पीड",
+      "maxElevationGain": "सबसे ज़्यादा चढ़ाई",
+      "fallback": "नया व्यक्तिगत सर्वश्रेष्ठ"
+    },
+    "saveRide": "राइड सेव करें",
+    "savingRideA11y": "राइड सेव हो रही है",
+    "pbDelta": " · पिछले सर्वश्रेष्ठ से +{{pct}}%",
+    "shareMessage": "MotoVault के साथ {{duration}} में {{distance}} की राइड पूरी की!"
   },
   "heatmap": {
     "rides": "राइड्स",
@@ -1969,12 +2033,13 @@
     "topRideLabel": "टॉप राइड:",
     "topRideValue": "— {{distance}}.",
     "shareRecap": "सारांश शेयर करें",
-    "shareIntro_one": "In {{year}} I rode {{distance}} across {{count}} ride.",
-    "shareIntro_other": "In {{year}} I rode {{distance}} across {{count}} rides.",
-    "shareCountries_one": "{{count}} country: {{list}}",
-    "shareCountries_other": "{{count}} countries: {{list}}",
-    "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoVault"
+    "shareIntro_one": "{{year}} में मैंने {{count}} राइड में {{distance}} चलाई।",
+    "shareIntro_other": "{{year}} में मैंने {{count}} राइड्स में {{distance}} चलाई।",
+    "shareCountries_one": "{{count}} देश: {{list}}",
+    "shareCountries_other": "{{count}} देश: {{list}}",
+    "shareTopRide": "टॉप राइड: {{name}} — {{distance}}",
+    "shareVia": "— via MotoVault",
+    "shareYearRecapA11y": "साल का सारांश शेयर करें"
   },
   "discoverSearch": {
     "notAvailableTitle": "उपलब्ध नहीं",
@@ -2083,7 +2148,9 @@
     "leanAngle": "अधिकतम लीन",
     "leanTooltip": "लीन एंगल आपके फ़ोन के मोशन सेंसर से अनुमानित है। यह कोई सटीक उपकरण नहीं है — असली लीन एंगल फ़ोन माउंट की जगह और सड़क की हालत के हिसाब से अलग हो सकता है।",
     "private": "प्राइवेट",
-    "threeD": "3D"
+    "threeD": "3D",
+    "shareRideA11y": "राइड शेयर करें",
+    "flyoverA11y": "3D फ़्लाईओवर"
   },
   "startRide": {
     "subtitle": "बाइक चुनें और निकलें। GPS, गति और रूट तब तक ट्रैक होंगे जब तक आप समाप्त नहीं करते।",
@@ -2395,7 +2462,7 @@
       "viewReceipt": "रसीद फ़ोटो देखें",
       "closeReceipt": "बंद करें",
       "save": "सेव करें",
-      "breakdownOverTotal": "Parts, labor and tax add up to {{sum}}, more than the {{total}} total. Correct one so they fit to save.",
+      "breakdownOverTotal": "पार्ट्स, लेबर और टैक्स मिलाकर {{sum}} हैं, जो कुल {{total}} से ज़्यादा है। सेव करने के लिए किसी एक को ठीक करें ताकि जोड़ मेल खाए।",
       "checkAmount": "राशि जाँचें",
       "checkCurrency": "मुद्रा जाँचें",
       "checkDate": "तारीख जाँचें",
@@ -2536,7 +2603,27 @@
     "needsAttention": "ध्यान देने की ज़रूरत",
     "checksPass": "{{passed}}/{{total}} जांच पास",
     "a11y": "{{headline}}. {{percent}} प्रतिशत तैयार। चेकलिस्ट देखने के लिए टैप करें।",
-    "shareBrief": "टैंक-बैग ब्रीफ़ शेयर करें"
+    "shareBrief": "टैंक-बैग ब्रीफ़ शेयर करें",
+    "items": {
+      "route": "रूट में शुरुआत और अंत है",
+      "dates": "ट्रिप की तारीखें तय हैं",
+      "fuel": "फ्यूल रेंज सबसे लंबे हिस्से को कवर करती है",
+      "witness": "किसी को आपका रूट पता है",
+      "bike": "मुख्य बाइक चुनी गई",
+      "names": "स्टॉप्स के नाम दिए गए हैं"
+    },
+    "notes": {
+      "routeNeedsTwoStops": "नेविगेशन रूट बना सके, इसके लिए ट्रिप में कम से कम दो स्टॉप चाहिए।",
+      "datesInPast": "शुरुआत की तारीख बीत चुकी है — राइड से पहले इसे अपडेट करें।",
+      "datesMissing": "शुरुआत की तारीख जोड़ें ताकि साथियों को पता रहे कब पहुंचना है।",
+      "fuelNoBike": "मुख्य बाइक जोड़ें ताकि हम आपके रूट के हिसाब से फ्यूल रेंज जांच सकें।",
+      "fuelGapTooLong": "सबसे लंबा हिस्सा {{gapKm}} km > {{rangeKm}} km रेंज — एक फ्यूल स्टॉप जोड़ें।",
+      "fuelGapOk": "सबसे लंबा हिस्सा {{gapKm}} km / {{rangeKm}} km रेंज",
+      "witnessMissing": "किसी राइडर को बुलाएं, ट्रिप शेयर करें या उसे लिंक से खुलने लायक बनाएं ताकि किसी के पास लिंक रहे।",
+      "bikeMissing": "गैराज में मुख्य बाइक चुनें ताकि सर्विस हिस्ट्री बाकी जांचों में काम आए।",
+      "stopsUnnamed_one": "{{count}} स्टॉप का नाम अभी भी डिफ़ॉल्ट है।",
+      "stopsUnnamed_other": "{{count}} स्टॉप्स के नाम अभी भी डिफ़ॉल्ट हैं।"
+    }
   },
   "tripSuggestions": {
     "title": "सुझाव",

@@ -349,7 +349,9 @@
     "addDay": "Añadir día",
     "stopNotesPlaceholder": "Añade notas sobre esta parada…",
     "addToMyTrips": "Añadir a Mis viajes",
-    "addStopHint": "Busca arriba o mantén pulsado el mapa para añadir una parada"
+    "addStopHint": "Busca arriba o mantén pulsado el mapa para añadir una parada",
+    "briefShareTitle": "{{title}} — resumen para la bolsa sobredepósito",
+    "gpxNeedsTwoStopsMessage": "Un archivo GPX necesita un inicio y un final. Añade una parada más y vuelve a intentarlo."
   },
   "groupRide": {
     "titlePlaceholder": "p. ej. Salida del domingo por la mañana",
@@ -371,7 +373,8 @@
     "unavailable": "Esta salida ya no está disponible. Puede que se haya eliminado o que ahora sea privada.",
     "avgSpeed": "Vel. media",
     "deleteRide": "Eliminar salida",
-    "deleteTitle": "¿Eliminar salida?"
+    "deleteTitle": "¿Eliminar salida?",
+    "shareRideA11y": "Compartir salida"
   },
   "startRide": {
     "quickRideNoBike": "Salida rápida · sin moto",
@@ -410,7 +413,22 @@
     "discardRide": "Descartar salida",
     "stats": {
       "avgSpeed": "Vel. media"
-    }
+    },
+    "smartName": {
+      "morning": "Salida del {{day}} por la mañana",
+      "afternoon": "Salida del {{day}} por la tarde",
+      "evening": "Salida del {{day}} al atardecer",
+      "night": "Salida del {{day}} por la noche"
+    },
+    "discardTitle": "¿Descartar la salida?",
+    "discardMessage": "Los datos de esta salida se borrarán para siempre.",
+    "rideNameA11y": "Nombre de la salida",
+    "record": {
+      "longestDistance": "Salida más larga"
+    },
+    "saveRide": "Guardar salida",
+    "savingRideA11y": "Guardando la salida",
+    "shareMessage": "¡Acabo de completar una salida de {{distance}} en {{duration}} con MotoVault!"
   },
   "heatmap": {
     "rides": "Salidas",
@@ -423,7 +441,8 @@
     "topRideLabel": "Salida más larga:",
     "shareIntro_one": "En {{year}} hice {{distance}} en {{count}} salida.",
     "shareIntro_other": "En {{year}} hice {{distance}} en {{count}} salidas.",
-    "shareTopRide": "Salida más larga: {{name}}, {{distance}}"
+    "shareTopRide": "Salida más larga: {{name}}, {{distance}}",
+    "shareIntro_many": "En {{year}} hice {{distance}} en {{count}} salidas."
   },
   "shareSheet": {
     "title": "Compartir salida",
@@ -503,5 +522,12 @@
   },
   "rideThis": {
     "disclaimer": "No navegamos por ti: ruedas con la app que ya conoces. MotoVault solo prepara el plan y te lo entrega listo."
+  },
+  "tripReadiness": {
+    "notes": {
+      "datesMissing": "Añade una fecha de inicio para que los participantes sepan cuándo presentarse.",
+      "fuelNoBike": "Añade una moto principal para comprobar la autonomía frente a tu ruta.",
+      "fuelGapTooLong": "Tramo más largo {{gapKm}} km > {{rangeKm}} km de autonomía: añade una parada para repostar."
+    }
   }
 }

@@ -1,12 +1,14 @@
+import type { TFunction } from 'i18next';
 import { Check, ChevronDown, ChevronUp, Share2, X } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
+import { tDynamic } from '../../i18n/t-dynamic';
 import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
 import { SYSTEM_WEIGHT, type } from '../../theme/type';
-import type { ReadinessReport } from '../../utils/readiness';
+import type { ReadinessItem, ReadinessReport } from '../../utils/readiness';
 
 interface ReadinessRingProps {
   report: ReadinessReport;
@@ -17,6 +19,21 @@ const RING_SIZE = 56;
 const RING_STROKE = 6;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CIRCUM = 2 * Math.PI * RING_RADIUS;
+
+/** A check's title in the app language; a check this build has no copy for keeps its English label. */
+function itemLabel(tr: TFunction, item: ReadinessItem): string {
+  return tDynamic(tr, `tripReadiness.items.${item.key}`, { defaultValue: item.label });
+}
+
+/** A check's note in the app language, with the numbers it quotes. */
+function itemNote(tr: TFunction, item: ReadinessItem): string | undefined {
+  if (!item.note) return undefined;
+  if (!item.noteCode) return item.note;
+  return tDynamic(tr, `tripReadiness.notes.${item.noteCode}`, {
+    ...item.noteValues,
+    defaultValue: item.note,
+  });
+}
 
 function colorForScore(score: number, t: EditorialTokens): string {
   if (score >= 0.8) return t.success;
@@ -140,10 +157,12 @@ export function ReadinessRing({ report, onShareBrief }: ReadinessRingProps) {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 14, fontWeight: '600', color: titleColor }}>
-                    {item.label}
+                    {itemLabel(tr, item)}
                   </Text>
                   {item.note && (
-                    <Text style={{ fontSize: 12, color: subColor, marginTop: 2 }}>{item.note}</Text>
+                    <Text style={{ fontSize: 12, color: subColor, marginTop: 2 }}>
+                      {itemNote(tr, item)}
+                    </Text>
                   )}
                 </View>
               </View>

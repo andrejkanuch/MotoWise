@@ -1,8 +1,9 @@
 import type { Currency } from '@motovault/types';
 import { ChevronRight } from 'lucide-react-native';
 import { memo, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import { CATEGORY_COLORS, CATEGORY_LABELS, formatMoney } from '../../lib/expense-constants';
+import { CATEGORY_COLORS, categoryLabel, formatMoney } from '../../lib/expense-constants';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { type } from '../../theme/type';
 
@@ -27,6 +28,7 @@ export const CategoryDonut = memo(function CategoryDonut({
   onCategoryPress,
 }: CategoryDonutProps) {
   const { t: theme } = useEditorialTheme();
+  const { t } = useTranslation();
 
   const sorted = useMemo(
     () => [...categoryTotals].sort((a, b) => b.total - a.total),
@@ -47,14 +49,14 @@ export const CategoryDonut = memo(function CategoryDonut({
   });
 
   const barDescription = segments
-    .map((seg) => `${CATEGORY_LABELS[seg.category] ?? seg.category}: ${seg.pct.toFixed(0)}%`)
+    .map((seg) => `${categoryLabel(t, seg.category)}: ${seg.pct.toFixed(0)}%`)
     .join(', ');
 
   return (
     <View>
       {/* Proportional bar */}
       <View
-        accessibilityLabel={`Expense breakdown: ${barDescription}`}
+        accessibilityLabel={t('expenses.breakdownA11y', { list: barDescription })}
         accessibilityRole="summary"
         style={{
           flexDirection: 'row',
@@ -84,14 +86,18 @@ export const CategoryDonut = memo(function CategoryDonut({
         {sorted.map((cat, index) => {
           const pct = totalAmount > 0 ? ((cat.total / totalAmount) * 100).toFixed(0) : '0';
           const color = CATEGORY_COLORS[cat.category] ?? theme.ink3;
-          const label = CATEGORY_LABELS[cat.category] ?? cat.category;
+          const label = categoryLabel(t, cat.category);
           const isSelected = selectedCategory === cat.category;
 
           return (
             <View key={cat.category}>
               <Pressable
                 onPress={() => onCategoryPress?.(cat.category)}
-                accessibilityLabel={`${label}: ${formatMoney(cat.total, currency)}, ${pct} percent. Tap to view expenses.`}
+                accessibilityLabel={t('expenses.categoryRowA11y', {
+                  category: label,
+                  amount: formatMoney(cat.total, currency),
+                  percent: pct,
+                })}
                 accessibilityRole="button"
                 style={({ pressed }) => ({
                   flexDirection: 'row',

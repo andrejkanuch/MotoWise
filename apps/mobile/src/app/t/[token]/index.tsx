@@ -168,7 +168,7 @@ function ErrorView({ ctx }: { ctx: RenderCtx }) {
 type SharedTripData = NonNullable<TripByShareTokenQuery['tripByShareToken']>;
 
 function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: RenderCtx }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const sectionLabelColor = ctx.isDark ? palette.neutral500 : palette.neutral400;
   const dividerColor = ctx.isDark ? palette.neutral800 : palette.neutral200;
 
@@ -250,7 +250,7 @@ function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: Rend
           marginBottom: 6,
         }}
       >
-        {formatTripDateRangeLong(trip.startDate, trip.endDate)}
+        {formatTripDateRangeLong(trip.startDate, trip.endDate, i18n.language)}
       </Animated.Text>
 
       {/* Meta row */}

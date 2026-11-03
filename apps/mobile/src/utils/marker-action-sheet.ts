@@ -1,8 +1,11 @@
 import * as Clipboard from 'expo-clipboard';
+import type { TFunction } from 'i18next';
 import { Linking } from 'react-native';
 import { showActionSheet } from './action-sheet';
 
 export interface MarkerActionOptions {
+  /** The caller's `t`, so the sheet's verbs follow the app language. */
+  t: TFunction;
   title: string;
   lat: number;
   lng: number;
@@ -45,7 +48,7 @@ const openAppleMaps = async (lat: number, lng: number, title?: string) => {
  * screen-specific actions (e.g. "Add to trip", "View details").
  */
 export function showMarkerActionSheet(opts: MarkerActionOptions) {
-  const { title, lat, lng, extraActions = [], message } = opts;
+  const { t, title, lat, lng, extraActions = [], message } = opts;
   if (!isValidCoord(lat, lng)) return;
 
   const coords = formatCoords(lat, lng);
@@ -54,14 +57,14 @@ export function showMarkerActionSheet(opts: MarkerActionOptions) {
     title,
     [
       ...extraActions.map((a) => ({ label: a.label, onPress: a.onPress })),
-      { label: 'Open in Apple Maps', onPress: () => openAppleMaps(lat, lng, title) },
+      { label: t('common.openInAppleMaps'), onPress: () => openAppleMaps(lat, lng, title) },
       {
-        label: 'Copy coordinates',
+        label: t('common.copyCoordinates'),
         onPress: () => {
           Clipboard.setStringAsync(coords).catch(() => {});
         },
       },
-      { label: 'Cancel', onPress: () => {}, style: 'cancel' as const },
+      { label: t('common.cancel'), onPress: () => {}, style: 'cancel' as const },
     ],
     message ?? coords,
   );

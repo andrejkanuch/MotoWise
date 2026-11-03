@@ -20,7 +20,10 @@
     "tryAgain": "Spróbuj ponownie",
     "all": "Wszystko",
     "ride": "Przejazd",
-    "deleting": "Usuwanie..."
+    "deleting": "Usuwanie...",
+    "openInAppleMaps": "Otwórz w Mapach Apple",
+    "copyCoordinates": "Kopiuj współrzędne",
+    "changeMapStyleA11y": "Zmień styl mapy"
   },
   "auth": {
     "googlePlayServicesUnavailable": "Logowanie przez Google wymaga usług Google Play, których to urządzenie nie ma. Kontynuuj za pomocą adresu e-mail.",
@@ -1559,7 +1562,20 @@
     "periodAllTime": "Cały okres",
     "totalSpentThisYear": "Wydatki w tym roku",
     "totalSpentLastYear": "Wydatki w zeszłym roku",
-    "totalSpentAllTime": "Wydatki łącznie"
+    "totalSpentAllTime": "Wydatki łącznie",
+    "retryLoadA11y": "Spróbuj ponownie wczytać wydatki",
+    "periodSelectorA11y": "Wybór okresu wydatków",
+    "totalA11y": "Razem: {{amount}}",
+    "yoyDownA11y": "O {{percent}} procent mniej niż w zeszłym roku",
+    "yoyUpA11y": "O {{percent}} procent więcej niż w zeszłym roku",
+    "topCategoryA11y": "Największa kategoria: {{category}}, {{amount}}",
+    "topCategoryPctA11y": "Największa kategoria: {{category}}, {{amount}}, {{percent}} procent",
+    "closeListA11y": "Zamknij listę wydatków",
+    "breakdownA11y": "Podział wydatków: {{list}}",
+    "categoryRowA11y": "{{category}}: {{amount}}, {{percent}} procent. Stuknij, aby zobaczyć wydatki.",
+    "trendChartA11y": "Wykres miesięcznych wydatków",
+    "legendA11y": "Legenda wykresu: {{list}}",
+    "summaryA11y": "Podsumowanie wydatków"
   },
   "privacy": {
     "title": "Prywatność",
@@ -1929,7 +1945,41 @@
     "defaultStopName": "Przystanek {{number}}",
     "moveToDayTitle": "Przenieś do dnia",
     "selectDayForStop": "Wybierz dzień dla tego przystanku",
-    "addDayA11y": "Dodaj kolejny dzień do trasy"
+    "addDayA11y": "Dodaj kolejny dzień do trasy",
+    "visibilityChipPublic": "Publiczna",
+    "visibilityChipUnlisted": "Tylko z linkiem",
+    "visibilityChipPrivate": "Prywatna",
+    "surfacePaved": "Asfalt",
+    "surfaceMixed": "Mieszana",
+    "surfaceOffRoad": "Teren",
+    "surfaceGravel": "Szuter",
+    "itinerary": "Plan trasy",
+    "sampleItinerary": "Przykładowy plan trasy",
+    "gpxNeedsTwoStopsTitle": "Potrzebne są co najmniej dwa przystanki",
+    "gpxNeedsTwoStopsMessage": "Plik GPX potrzebuje startu i mety. Dodaj jeszcze jeden przystanek i spróbuj ponownie.",
+    "waypointFallback": "Punkt trasy",
+    "organizerFallback": "Organizator",
+    "briefShareTitle": "{{title}} — ściąga do tankbaga",
+    "saveTripA11y": "Zapisz trasę",
+    "unsaveTripA11y": "Usuń z zapisanych",
+    "cloneThisTripHint": "Otwiera planer z punktami tej trasy",
+    "exportGpxA11y": "Eksportuj trasę jako GPX",
+    "dayUnit_one": "dzień",
+    "dayUnit_few": "dni",
+    "dayUnit_many": "dni",
+    "dayUnit_other": "dnia",
+    "stopUnit_one": "przystanek",
+    "stopUnit_few": "przystanki",
+    "stopUnit_many": "przystanków",
+    "stopUnit_other": "przystanku",
+    "stopCount_one": "{{count}} przystanek",
+    "stopCount_few": "{{count}} przystanki",
+    "stopCount_many": "{{count}} przystanków",
+    "stopCount_other": "{{count}} przystanku",
+    "reviewCount_one": "{{count}} recenzja",
+    "reviewCount_few": "{{count}} recenzje",
+    "reviewCount_many": "{{count}} recenzji",
+    "reviewCount_other": "{{count}} recenzji"
   },
   "groupRide": {
     "titleLabel": "Tytuł",
@@ -1993,7 +2043,29 @@
       "maxSpeed": "Maks. prędkość",
       "ascent": "Podjazdy",
       "descent": "Zjazdy"
-    }
+    },
+    "smartName": {
+      "morning": "Poranny przejazd – {{day}}",
+      "afternoon": "Popołudniowy przejazd – {{day}}",
+      "evening": "Wieczorny przejazd – {{day}}",
+      "night": "Nocny przejazd – {{day}}"
+    },
+    "discardTitle": "Odrzucić przejazd?",
+    "discardMessage": "Dane tego przejazdu zostaną trwale usunięte.",
+    "discardConfirm": "Odrzuć",
+    "rideNameA11y": "Nazwa przejazdu",
+    "pbBadge": "PB",
+    "record": {
+      "longestDistance": "Najdłuższy przejazd",
+      "longestDuration": "Najdłuższy czas",
+      "topSpeed": "Prędkość maksymalna",
+      "maxElevationGain": "Największe przewyższenie",
+      "fallback": "Nowy rekord życiowy"
+    },
+    "saveRide": "Zapisz przejazd",
+    "savingRideA11y": "Zapisywanie przejazdu",
+    "pbDelta": " · +{{pct}}% względem rekordu",
+    "shareMessage": "Właśnie przejechałem {{distance}} w {{duration}} z MotoVault!"
   },
   "heatmap": {
     "rides": "Jazdy",
@@ -2015,16 +2087,17 @@
     "topRideLabel": "Najlepszy przejazd:",
     "topRideValue": "— {{distance}}.",
     "shareRecap": "Udostępnij podsumowanie",
-    "shareIntro_one": "In {{year}} I rode {{distance}} across {{count}} ride.",
-    "shareIntro_few": "In {{year}} I rode {{distance}} across {{count}} rides.",
-    "shareIntro_many": "In {{year}} I rode {{distance}} across {{count}} rides.",
-    "shareIntro_other": "In {{year}} I rode {{distance}} across {{count}} rides.",
-    "shareCountries_one": "{{count}} country: {{list}}",
-    "shareCountries_few": "{{count}} countries: {{list}}",
-    "shareCountries_many": "{{count}} countries: {{list}}",
-    "shareCountries_other": "{{count}} countries: {{list}}",
-    "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoVault"
+    "shareIntro_one": "Mój {{year}}: {{distance}} w {{count}} przejeździe.",
+    "shareIntro_few": "Mój {{year}}: {{distance}} w {{count}} przejazdach.",
+    "shareIntro_many": "Mój {{year}}: {{distance}} w {{count}} przejazdach.",
+    "shareIntro_other": "Mój {{year}}: {{distance}} w {{count}} przejazdu.",
+    "shareCountries_one": "{{count}} kraj: {{list}}",
+    "shareCountries_few": "{{count}} kraje: {{list}}",
+    "shareCountries_many": "{{count}} krajów: {{list}}",
+    "shareCountries_other": "{{count}} kraju: {{list}}",
+    "shareTopRide": "Najlepszy przejazd: {{name}} — {{distance}}",
+    "shareVia": "— via MotoVault",
+    "shareYearRecapA11y": "Udostępnij podsumowanie roku"
   },
   "discoverSearch": {
     "notAvailableTitle": "Niedostępne",
@@ -2135,7 +2208,9 @@
     "leanAngle": "Maks. przechył",
     "leanTooltip": "Kąt przechyłu jest szacowany na podstawie czujników ruchu telefonu. To nie jest precyzyjny przyrząd — rzeczywisty kąt może się różnić w zależności od mocowania telefonu i stanu drogi.",
     "private": "Prywatna",
-    "threeD": "3D"
+    "threeD": "3D",
+    "shareRideA11y": "Udostępnij przejazd",
+    "flyoverA11y": "Przelot 3D"
   },
   "startRide": {
     "subtitle": "Wybierz motor i ruszaj. GPS, prędkość i trasa będą rejestrowane do momentu zakończenia.",
@@ -2449,7 +2524,7 @@
       "viewReceipt": "Zobacz zdjęcie paragonu",
       "closeReceipt": "Zamknij",
       "save": "Zapisz",
-      "breakdownOverTotal": "Parts, labor and tax add up to {{sum}}, more than the {{total}} total. Correct one so they fit to save.",
+      "breakdownOverTotal": "Części, robocizna i podatek dają razem {{sum}}, więcej niż suma {{total}}. Popraw jedną z kwot, żeby się zgadzało, i zapisz.",
       "checkAmount": "Sprawdź kwotę",
       "checkCurrency": "Sprawdź walutę",
       "checkDate": "Sprawdź datę",
@@ -2590,7 +2665,29 @@
     "needsAttention": "Wymaga uwagi",
     "checksPass": "{{passed}}/{{total}} kontroli zaliczonych",
     "a11y": "{{headline}}. Gotowość {{percent}} procent. Stuknij, aby zobaczyć listę.",
-    "shareBrief": "Udostępnij ściągę do tankbaga"
+    "shareBrief": "Udostępnij ściągę do tankbaga",
+    "items": {
+      "route": "Trasa ma start i metę",
+      "dates": "Daty trasy ustalone",
+      "fuel": "Zasięg pokrywa najdłuższy odcinek",
+      "witness": "Ktoś zna Twoją trasę",
+      "bike": "Wybrano główny motocykl",
+      "names": "Przystanki mają nazwy"
+    },
+    "notes": {
+      "routeNeedsTwoStops": "Trasa potrzebuje co najmniej dwóch przystanków, żeby nawigacja mogła ją wyznaczyć.",
+      "datesInPast": "Data startu już minęła — zaktualizuj ją przed wyjazdem.",
+      "datesMissing": "Dodaj datę startu, żeby uczestnicy wiedzieli, kiedy się stawić.",
+      "fuelNoBike": "Dodaj główny motocykl, żebyśmy mogli sprawdzić zasięg na Twojej trasie.",
+      "fuelGapTooLong": "Najdłuższy odcinek {{gapKm}} km > {{rangeKm}} km zasięgu — dodaj postój na tankowanie.",
+      "fuelGapOk": "Najdłuższy odcinek {{gapKm}} km / {{rangeKm}} km zasięgu",
+      "witnessMissing": "Zaproś kogoś, udostępnij trasę albo ustaw dostęp przez link, żeby ktoś go miał.",
+      "bikeMissing": "Wybierz główny motocykl w Garażu, żeby historia serwisu zasilała pozostałe kontrole.",
+      "stopsUnnamed_one": "{{count}} przystanek wciąż ma domyślną nazwę.",
+      "stopsUnnamed_few": "{{count}} przystanki wciąż mają domyślne nazwy.",
+      "stopsUnnamed_many": "{{count}} przystanków wciąż ma domyślne nazwy.",
+      "stopsUnnamed_other": "{{count}} przystanku wciąż ma domyślne nazwy."
+    }
   },
   "tripSuggestions": {
     "title": "Propozycje",

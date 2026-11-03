@@ -20,7 +20,10 @@
     "tryAgain": "Réessayer",
     "all": "Tout",
     "ride": "Sortie",
-    "deleting": "Suppression…"
+    "deleting": "Suppression…",
+    "openInAppleMaps": "Ouvrir dans Plans",
+    "copyCoordinates": "Copier les coordonnées",
+    "changeMapStyleA11y": "Changer le style de carte"
   },
   "auth": {
     "googlePlayServicesUnavailable": "La connexion Google nécessite les services Google Play, absents de cet appareil. Continue plutôt avec ton e-mail.",
@@ -1538,7 +1541,20 @@
     "periodAllTime": "Depuis le début",
     "totalSpentThisYear": "Total dépensé cette année",
     "totalSpentLastYear": "Total dépensé l'an dernier",
-    "totalSpentAllTime": "Total dépensé depuis le début"
+    "totalSpentAllTime": "Total dépensé depuis le début",
+    "retryLoadA11y": "Recharger les dépenses",
+    "periodSelectorA11y": "Choix de la période des dépenses",
+    "totalA11y": "Total : {{amount}}",
+    "yoyDownA11y": "{{percent}} pour cent de moins que l'an dernier",
+    "yoyUpA11y": "{{percent}} pour cent de plus que l'an dernier",
+    "topCategoryA11y": "Catégorie principale : {{category}}, {{amount}}",
+    "topCategoryPctA11y": "Catégorie principale : {{category}}, {{amount}}, {{percent}} pour cent",
+    "closeListA11y": "Fermer la liste des dépenses",
+    "breakdownA11y": "Répartition des dépenses : {{list}}",
+    "categoryRowA11y": "{{category}} : {{amount}}, {{percent}} pour cent. Touche pour voir les dépenses.",
+    "trendChartA11y": "Graphique des dépenses par mois",
+    "legendA11y": "Légende du graphique : {{list}}",
+    "summaryA11y": "Résumé des dépenses"
   },
   "privacy": {
     "title": "Confidentialité",
@@ -1908,7 +1924,37 @@
     "defaultStopName": "Arrêt {{number}}",
     "moveToDayTitle": "Déplacer vers un jour",
     "selectDayForStop": "Choisis un jour pour cet arrêt",
-    "addDayA11y": "Ajouter un jour au voyage"
+    "addDayA11y": "Ajouter un jour au voyage",
+    "visibilityChipPublic": "Public",
+    "visibilityChipUnlisted": "Sur lien",
+    "visibilityChipPrivate": "Privé",
+    "surfacePaved": "Goudron",
+    "surfaceMixed": "Mixte",
+    "surfaceOffRoad": "Tout-terrain",
+    "surfaceGravel": "Gravier",
+    "itinerary": "Itinéraire",
+    "sampleItinerary": "Exemple d'itinéraire",
+    "gpxNeedsTwoStopsTitle": "Il faut au moins deux arrêts",
+    "gpxNeedsTwoStopsMessage": "Un fichier GPX a besoin d'un départ et d'une arrivée. Ajoute un arrêt et réessaie.",
+    "waypointFallback": "Point de passage",
+    "organizerFallback": "Organisateur",
+    "briefShareTitle": "{{title}} — fiche sacoche de réservoir",
+    "saveTripA11y": "Enregistrer le voyage",
+    "unsaveTripA11y": "Retirer des voyages enregistrés",
+    "cloneThisTripHint": "Ouvre le planificateur avec les étapes de ce voyage",
+    "exportGpxA11y": "Exporter le voyage en GPX",
+    "dayUnit_one": "jour",
+    "dayUnit_many": "jours",
+    "dayUnit_other": "jours",
+    "stopUnit_one": "arrêt",
+    "stopUnit_many": "arrêts",
+    "stopUnit_other": "arrêts",
+    "stopCount_one": "{{count}} arrêt",
+    "stopCount_many": "{{count}} arrêts",
+    "stopCount_other": "{{count}} arrêts",
+    "reviewCount_one": "{{count}} avis",
+    "reviewCount_many": "{{count}} avis",
+    "reviewCount_other": "{{count}} avis"
   },
   "groupRide": {
     "titleLabel": "Titre",
@@ -1972,7 +2018,29 @@
       "maxSpeed": "Vitesse max.",
       "ascent": "D+",
       "descent": "D-"
-    }
+    },
+    "smartName": {
+      "morning": "Sortie du {{day}} matin",
+      "afternoon": "Sortie du {{day}} après-midi",
+      "evening": "Sortie du {{day}} soir",
+      "night": "Sortie nocturne du {{day}}"
+    },
+    "discardTitle": "Supprimer la sortie ?",
+    "discardMessage": "Les données de cette sortie seront définitivement supprimées.",
+    "discardConfirm": "Supprimer",
+    "rideNameA11y": "Nom de la sortie",
+    "pbBadge": "RP",
+    "record": {
+      "longestDistance": "Plus longue sortie",
+      "longestDuration": "Plus longue durée",
+      "topSpeed": "Vitesse max.",
+      "maxElevationGain": "Plus de dénivelé",
+      "fallback": "Nouveau record personnel"
+    },
+    "saveRide": "Enregistrer la sortie",
+    "savingRideA11y": "Enregistrement de la sortie",
+    "pbDelta": " · +{{pct}} % sur ton meilleur temps",
+    "shareMessage": "Je viens de faire une sortie de {{distance}} en {{duration}} avec MotoVault !"
   },
   "heatmap": {
     "rides": "Sorties",
@@ -1995,7 +2063,10 @@
     "shareCountries_one": "{{count}} pays : {{list}}",
     "shareCountries_other": "{{count}} pays : {{list}}",
     "shareTopRide": "Plus longue sortie : {{name}}, {{distance}}",
-    "shareVia": "via MotoVault"
+    "shareVia": "via MotoVault",
+    "shareYearRecapA11y": "Partager le bilan de l'année",
+    "shareIntro_many": "En {{year}}, j'ai roulé {{distance}} en {{count}} sorties.",
+    "shareCountries_many": "{{count}} pays : {{list}}"
   },
   "discoverSearch": {
     "notAvailableTitle": "Non disponible",
@@ -2105,7 +2176,9 @@
     "leanAngle": "Angle max",
     "leanTooltip": "L'angle d'inclinaison est estimé à partir des capteurs de mouvement de ton téléphone. Ce n'est pas un instrument de précision : l'angle réel peut varier selon la position du support et l'état de la route.",
     "private": "Privée",
-    "threeD": "3D"
+    "threeD": "3D",
+    "shareRideA11y": "Partager la sortie",
+    "flyoverA11y": "Survol en 3D"
   },
   "startRide": {
     "lastRideSummary": "Dernière : {{distance}} · {{date}}",
@@ -2559,7 +2632,28 @@
     "needsAttention": "À vérifier",
     "checksPass": "{{passed}}/{{total}} vérifications validées",
     "a11y": "{{headline}}. Prêt à {{percent}} %. Touche pour voir la check-list.",
-    "shareBrief": "Partager la fiche sacoche réservoir"
+    "shareBrief": "Partager la fiche sacoche réservoir",
+    "items": {
+      "route": "L'itinéraire a un départ et une arrivée",
+      "dates": "Dates du voyage définies",
+      "fuel": "L'autonomie couvre la plus longue étape",
+      "witness": "Quelqu'un connaît ton itinéraire",
+      "bike": "Moto principale choisie",
+      "names": "Les arrêts ont un nom"
+    },
+    "notes": {
+      "routeNeedsTwoStops": "Un voyage a besoin d'au moins deux arrêts pour que la navigation calcule un itinéraire.",
+      "datesInPast": "La date de départ est passée — mets-la à jour avant de rouler.",
+      "datesMissing": "Ajoute une date de départ pour que les participants sachent quand venir.",
+      "fuelNoBike": "Ajoute une moto principale pour qu'on vérifie l'autonomie sur ton itinéraire.",
+      "fuelGapTooLong": "Plus longue étape {{gapKm}} km > {{rangeKm}} km d'autonomie — ajoute un arrêt carburant.",
+      "fuelGapOk": "Plus longue étape {{gapKm}} km / {{rangeKm}} km d'autonomie",
+      "witnessMissing": "Invite un motard, partage le voyage ou rends-le accessible par lien pour que quelqu'un l'ait.",
+      "bikeMissing": "Choisis une moto principale dans le Garage pour que son historique d'entretien alimente les autres vérifications.",
+      "stopsUnnamed_one": "{{count}} arrêt porte encore le nom par défaut.",
+      "stopsUnnamed_many": "{{count}} arrêts portent encore le nom par défaut.",
+      "stopsUnnamed_other": "{{count}} arrêts portent encore le nom par défaut."
+    }
   },
   "tripSuggestions": {
     "title": "Suggestions",

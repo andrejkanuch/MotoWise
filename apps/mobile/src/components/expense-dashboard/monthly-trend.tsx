@@ -1,8 +1,9 @@
 import { EXPENSE_CATEGORIES } from '@motovault/types';
 import { memo, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
-import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../lib/expense-constants';
+import { CATEGORY_COLORS, categoryLabel } from '../../lib/expense-constants';
 import { useEditorialTheme } from '../../theme/editorial';
 
 interface MonthlyBucket {
@@ -17,23 +18,15 @@ interface MonthlyTrendProps {
   isDark: boolean;
 }
 
-const MONTH_LABELS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
+/** A month's short name in the app language ("Jan", "ene", "Jan."); `month` is 1-12. */
+function monthLabel(month: number, locale: string): string {
+  return new Date(2000, month - 1, 1).toLocaleDateString(locale, { month: 'short' });
+}
 
 export const MonthlyTrend = memo(function MonthlyTrend({ buckets }: MonthlyTrendProps) {
   const { t: theme } = useEditorialTheme();
+  const { t, i18n } = useTranslation();
+  const { language } = i18n;
 
   const { stackData, maxValue, allZero, presentCategories } = useMemo(() => {
     const isEmpty = buckets.length === 0 || buckets.every((b) => b.total === 0);
@@ -54,7 +47,7 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets }: MonthlyTrend
 
       return {
         stacks: stacks.length > 0 ? stacks : [{ value: 0, color: 'transparent' }],
-        label: MONTH_LABELS[bucket.month - 1] ?? '',
+        label: bucket.month >= 1 && bucket.month <= 12 ? monthLabel(bucket.month, language) : '',
       };
     });
 
@@ -66,13 +59,13 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets }: MonthlyTrend
       allZero: false,
       presentCategories: EXPENSE_CATEGORIES.filter((cat) => catSet.has(cat)),
     };
-  }, [buckets]);
+  }, [buckets, language]);
 
   if (allZero) return null;
 
   return (
     <View
-      accessibilityLabel="Monthly expense trend chart"
+      accessibilityLabel={t('expenses.trendChartA11y')}
       style={{
         backgroundColor: theme.surface,
         borderRadius: 14,
@@ -109,7 +102,9 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets }: MonthlyTrend
 
       {/* Legend */}
       <View
-        accessibilityLabel={`Chart legend: ${presentCategories.map((c) => CATEGORY_LABELS[c]).join(', ')}`}
+        accessibilityLabel={t('expenses.legendA11y', {
+          list: presentCategories.map((c) => categoryLabel(t, c)).join(', '),
+        })}
         style={{
           flexDirection: 'row',
           flexWrap: 'wrap',
@@ -127,7 +122,7 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets }: MonthlyTrend
                 backgroundColor: CATEGORY_COLORS[cat],
               }}
             />
-            <Text style={{ fontSize: 12, color: theme.ink3 }}>{CATEGORY_LABELS[cat]}</Text>
+            <Text style={{ fontSize: 12, color: theme.ink3 }}>{categoryLabel(t, cat)}</Text>
           </View>
         ))}
       </View>

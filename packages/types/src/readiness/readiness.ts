@@ -12,11 +12,30 @@
 
 export type Severity = 'required' | 'recommended';
 
+/**
+ * Which note an item carries, so a client can show it in the rider's language
+ * (`note` stays the English text). `noteValues` holds the numbers the note quotes.
+ */
+export const READINESS_NOTE = {
+  routeNeedsTwoStops: 'routeNeedsTwoStops',
+  datesInPast: 'datesInPast',
+  datesMissing: 'datesMissing',
+  fuelNoBike: 'fuelNoBike',
+  fuelGapTooLong: 'fuelGapTooLong',
+  fuelGapOk: 'fuelGapOk',
+  witnessMissing: 'witnessMissing',
+  bikeMissing: 'bikeMissing',
+  stopsUnnamed: 'stopsUnnamed',
+} as const;
+export type ReadinessNoteCode = (typeof READINESS_NOTE)[keyof typeof READINESS_NOTE];
+
 export interface ReadinessItem {
   key: string;
   label: string;
   /** Short note shown when expanded / when the check fails. */
   note?: string;
+  noteCode?: ReadinessNoteCode;
+  noteValues?: Record<string, number>;
   passed: boolean;
   severity: Severity;
 }
@@ -109,28 +128,33 @@ export function computeReadiness(
     note: hasRoute
       ? undefined
       : 'A trip needs at least two stops so navigation can compute a route.',
+    noteCode: hasRoute ? undefined : READINESS_NOTE.routeNeedsTwoStops,
     severity: 'required',
   });
 
   // 2. Trip dates sane — start not in the past
   let datesOk = true;
   let datesNote: string | undefined;
+  let datesNoteCode: ReadinessNoteCode | undefined;
   if (trip.startDate) {
     const start = new Date(trip.startDate);
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     if (start.getTime() < today.getTime()) {
       datesOk = false;
       datesNote = 'Start date is in the past — update it before you ride.';
+      datesNoteCode = READINESS_NOTE.datesInPast;
     }
   } else {
     datesOk = false;
     datesNote = 'Add a start date so participants know when to show up.';
+    datesNoteCode = READINESS_NOTE.datesMissing;
   }
   items.push({
     key: 'dates',
     label: 'Trip dates set',
     passed: datesOk,
     note: datesNote,
+    noteCode: datesNoteCode,
     severity: 'required',
   });
 
@@ -140,20 +164,30 @@ export function computeReadiness(
   const longestLegKm = legs.length > 0 ? Math.max(...legs) : 0;
   let fuelOk = true;
   let fuelNote: string | undefined;
+  let fuelNoteCode: ReadinessNoteCode | undefined;
+  const fuelNoteValues = range
+    ? { gapKm: Math.round(longestLegKm), rangeKm: Math.round(range) }
+    : undefined;
   if (!bike) {
     fuelOk = false;
     fuelNote = 'Add a primary bike so we can check fuel range against your route.';
+    fuelNoteCode = READINESS_NOTE.fuelNoBike;
   } else if (range && longestLegKm > range) {
     fuelOk = false;
     fuelNote = `Longest gap ${Math.round(longestLegKm)}km > ${Math.round(range)}km range — add a fuel stop.`;
+    fuelNoteCode = READINESS_NOTE.fuelGapTooLong;
   } else if (range) {
     fuelNote = `Longest gap ${Math.round(longestLegKm)}km / ${Math.round(range)}km range`;
+    fuelNoteCode = READINESS_NOTE.fuelGapOk;
   }
   items.push({
     key: 'fuel',
     label: 'Fuel range covers longest gap',
     passed: fuelOk,
     note: fuelNote,
+    noteCode: fuelNoteCode,
+    noteValues:
+      fuelNoteCode && fuelNoteCode !== READINESS_NOTE.fuelNoBike ? fuelNoteValues : undefined,
     severity: 'required',
   });
 
@@ -169,6 +203,7 @@ export function computeReadiness(
     note: hasWitness
       ? undefined
       : 'Invite a rider, share the trip, or make it unlisted so someone has the link.',
+    noteCode: hasWitness ? undefined : READINESS_NOTE.witnessMissing,
     severity: 'recommended',
   });
 
@@ -180,6 +215,7 @@ export function computeReadiness(
     note: bike?.id
       ? undefined
       : 'Pick a primary bike in Garage so service history powers the other checks.',
+    noteCode: bike?.id ? undefined : READINESS_NOTE.bikeMissing,
     severity: 'recommended',
   });
 
@@ -195,6 +231,8 @@ export function computeReadiness(
       unnamedCount === 0
         ? undefined
         : `${unnamedCount} ${unnamedCount === 1 ? 'stop is' : 'stops are'} still using a default label.`,
+    noteCode: unnamedCount === 0 ? undefined : READINESS_NOTE.stopsUnnamed,
+    noteValues: unnamedCount === 0 ? undefined : { count: unnamedCount },
     severity: 'recommended',
   });
 

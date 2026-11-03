@@ -46,7 +46,7 @@ export const SummaryCards = memo(function SummaryCards({
   ];
 
   return (
-    <View accessibilityLabel="Expense summary metrics" style={{ flexDirection: 'row', gap: 8 }}>
+    <View accessibilityLabel={t('expenses.summaryA11y')} style={{ flexDirection: 'row', gap: 8 }}>
       {pills.map((pill) => (
         <View
           key={pill.label}
