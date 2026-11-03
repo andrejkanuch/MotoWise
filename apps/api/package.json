@@ -46,7 +46,7 @@
     "openai": "^6.29.0",
     "react": "19.2.3",
     "reflect-metadata": "^0.2.0",
-    "resend": "^4.8.0",
+    "resend": "^6.37.0",
     "rxjs": "^7.8.2",
     "slugify": "^1.6.9",
     "ws": "^8.22.0",
