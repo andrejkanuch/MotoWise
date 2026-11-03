@@ -1,4 +1,4 @@
-import { CURRENCY_TOTALS_SEPARATOR, type Currency } from '@motovault/types';
+import { CURRENCY_TOTALS_SEPARATOR } from '@motovault/types';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
