@@ -308,6 +308,7 @@
     "editProfile": "Edit profile",
     "support": "Support",
     "language": "Language",
+    "languageSystem": "Device language",
     "theme": "Theme",
     "themeSystem": "System",
     "themeLight": "Light",
@@ -2074,7 +2075,7 @@
     "shareCountries_one": "{{count}} country: {{list}}",
     "shareCountries_other": "{{count}} countries: {{list}}",
     "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise"
+    "shareVia": "— via MotoVault"
   },
   "discoverSearch": {
     "notAvailableTitle": "Not available",

@@ -308,6 +308,7 @@
     "editProfile": "แก้ไขโปรไฟล์",
     "support": "ช่วยเหลือ",
     "language": "ภาษา",
+    "languageSystem": "ภาษาของอุปกรณ์",
     "theme": "ธีม",
     "themeSystem": "ตามระบบ",
     "themeLight": "สว่าง",
@@ -1971,7 +1972,7 @@
     "shareCountries_one": "{{count}} country: {{list}}",
     "shareCountries_other": "{{count}} countries: {{list}}",
     "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise"
+    "shareVia": "— via MotoVault"
   },
   "discoverSearch": {
     "notAvailableTitle": "ไม่พร้อมใช้งาน",

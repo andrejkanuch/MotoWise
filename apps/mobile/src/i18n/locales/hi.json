@@ -308,6 +308,7 @@
     "editProfile": "प्रोफाइल एडिट करें",
     "support": "सपोर्ट",
     "language": "भाषा",
+    "languageSystem": "डिवाइस की भाषा",
     "theme": "थीम",
     "themeSystem": "सिस्टम",
     "themeLight": "लाइट",
@@ -1971,7 +1972,7 @@
     "shareCountries_one": "{{count}} country: {{list}}",
     "shareCountries_other": "{{count}} countries: {{list}}",
     "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise"
+    "shareVia": "— via MotoVault"
   },
   "discoverSearch": {
     "notAvailableTitle": "उपलब्ध नहीं",

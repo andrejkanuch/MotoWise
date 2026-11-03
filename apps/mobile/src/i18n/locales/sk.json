@@ -310,6 +310,7 @@
     "editProfile": "Upraviť profil",
     "support": "Podpora",
     "language": "Jazyk",
+    "languageSystem": "Jazyk zariadenia",
     "theme": "Téma",
     "themeSystem": "Systémový",
     "themeLight": "Svetlý",
@@ -2021,7 +2022,7 @@
     "shareCountries_many": "{{count}} countries: {{list}}",
     "shareCountries_other": "{{count}} countries: {{list}}",
     "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise"
+    "shareVia": "— via MotoVault"
   },
   "discoverSearch": {
     "notAvailableTitle": "Nedostupné",

@@ -308,6 +308,7 @@
     "editProfile": "Edit Profil",
     "support": "Dukungan",
     "language": "Bahasa",
+    "languageSystem": "Bahasa perangkat",
     "theme": "Tema",
     "themeSystem": "Sistem",
     "themeLight": "Terang",
@@ -1971,7 +1972,7 @@
     "shareCountries_one": "{{count}} country: {{list}}",
     "shareCountries_other": "{{count}} countries: {{list}}",
     "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise"
+    "shareVia": "— via MotoVault"
   },
   "discoverSearch": {
     "notAvailableTitle": "Tidak tersedia",

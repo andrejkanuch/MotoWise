@@ -1,0 +1,505 @@
+{
+  "common": {
+    "ride": "Salida"
+  },
+  "auth": {
+    "codeTitle": "Introduce tu código",
+    "codeNotConfirmedYet": "Tu correo aún no está confirmado. Introduce el código del correo más reciente."
+  },
+  "home": {
+    "emptyValueMaintenance": "Que no se te pase ninguna revisión",
+    "emptyAddBike": "Añade tu primera moto",
+    "planNextTripDesc": "Descubre rutas seleccionadas y planea tu salida del fin de semana",
+    "focusRideHistory": "Historial de salidas",
+    "ridesLabel": "Salidas",
+    "noRidesRecorded": "Todavía no hay salidas registradas",
+    "recentRides": "Salidas recientes",
+    "defaultRideName": "Salida",
+    "addBike": "Añadir moto",
+    "plateCaptionAt": "cuentakilómetros para {{task}}",
+    "noServiceDue": "Ninguna revisión pendiente"
+  },
+  "diagnose": {
+    "emptyExplainer": "Cuenta lo que oyes, ves o sientes, y añade una foto si puedes. Recibes las causas probables, cómo de urgente es y los siguientes pasos."
+  },
+  "garage": {
+    "addBike": "Añadir moto",
+    "addFirstBike": "Añade tu primera moto",
+    "addExpense": "Añadir gasto",
+    "addPhoto": "Añadir foto",
+    "emptySubtitle": "Añade tu primera moto para recibir diagnósticos y mantenimiento a su medida",
+    "odometerSection": "Cuentakilómetros",
+    "vinHelp": "Se usa para consultar campañas de revisión de seguridad en la NHTSA.",
+    "settingsSection": "Ajustes",
+    "addMaintenanceTask": "Añadir tarea",
+    "moreBikesPro": "Añade más motos con Pro"
+  },
+  "profile": {
+    "proDescription": "Desbloquea garaje, IA, mapas sin conexión e historial avanzado de salidas",
+    "proActiveDesc": "Garaje, IA, mapas sin conexión e historial avanzado de salidas desbloqueados",
+    "myRidesTitle": "Mis salidas",
+    "myRidesDescription": "Historial de salidas, estadísticas y mapas de recorrido",
+    "ridesEmptyTitle": "Aún no hay salidas",
+    "ridesEmptySubtitle": "Registra tu primera salida para ver estadísticas, recorridos y gastos",
+    "ridesEmptyStartRide": "Iniciar salida",
+    "ridesEmptyAddBike": "Añade tu primera moto",
+    "roadsTitle": "Carreteras que he recorrido",
+    "appSettings": "Ajustes de la app",
+    "sectionRiding": "Salidas",
+    "rideMap": "Mapa de la salida"
+  },
+  "onboarding": {
+    "beginnerDesc": "Estoy empezando o pensando en llevar moto",
+    "intermediateDesc": "Ya llevo la moto con soltura y estoy aprendiendo mantenimiento",
+    "addBikeTitle": "Añade tu primera moto",
+    "goalWeekend": "Salidas de fin de semana",
+    "goalLearning": "Aprender a conducir una moto",
+    "ridingFrequencyTitle": "¿Con qué frecuencia sales en moto?",
+    "ridingGoal_improve_riding": "Conducir mejor",
+    "bikeYearInvalid": "Introduce un año entre 1970 y el actual",
+    "bikePhotoSubtitle": "Añade una foto de tu moto",
+    "takePhoto": "Hacer foto",
+    "addLater": "Los añado después",
+    "cameraPermissionDeniedMessage": "Necesitamos acceso a la cámara para hacer una foto. Actívalo en los Ajustes de tu dispositivo.",
+    "maintenanceRemindersDesc": "Te avisaremos cuando toque una revisión",
+    "recallAlertsLabel": "Alertas de campañas de revisión y seguridad",
+    "recallAlertsDesc": "Alertas inmediatas si una campaña de revisión afecta a tu moto",
+    "weeklySummaryLabel": "Resumen semanal de salidas",
+    "lastServiceTitle": "¿Cuándo fue tu última revisión?",
+    "v2WelcomeHeadline": "Tus salidas.\nTu moto.\nTu camino.",
+    "v2WelcomeSubtitle": "Registra salidas, controla gastos y descubre rutas, todo en un solo lugar.",
+    "v2ExperienceBeginner": "Acabo de empezar",
+    "v2ExperienceBeginnerPreview": "Lo mantendremos simple: equipo básico, listas para tu primera salida y recordatorios amables.",
+    "v2ExperienceIntermediatePreview": "Es hora de ir más allá: registra kilómetros, anota cada revisión y planea tu próximo viaje.",
+    "v2GoalTrackRides": "Registrar mis salidas",
+    "v2GoalTrackRidesDesc": "Registro GPS, estadísticas, historial de salidas",
+    "v2GoalManageExpensesDesc": "Combustible, reparaciones, seguro, coste total de propiedad",
+    "v2GoalMaintainBikeDesc": "Recordatorios de revisión, registros de mantenimiento",
+    "v2BikeSetupBridgeRides": "Para personalizar el registro de tus salidas, cuéntanos sobre tu moto.",
+    "v2BikeSetupSkip": "Añadiré mi moto más tarde",
+    "v2NotificationsOpenSettings": "Has desactivado las notificaciones. Abre Ajustes para activarlas.",
+    "v2NotificationsOpenSettingsBtn": "Abrir Ajustes",
+    "v2PersonalizingStepRides": "Tu registro de salidas está listo",
+    "v2MaintenanceSwipeInstruction": "Desliza cada tarjeta a la derecha para añadirla a tu {{bikeLabel}} o a la izquierda para omitirla.",
+    "v2MaintenanceAddLater": "por ahora. Las añadirás más tarde.",
+    "v2TaskCardAdd": "AÑADIR",
+    "obFreqEyebrow": "Tus salidas",
+    "obFreqTitleItalic": "sales en moto?",
+    "obFreqWhy": "Ajustaremos los intervalos de mantenimiento y los recordatorios a tu kilometraje real.",
+    "obStayServiceLabel": "No perderte ninguna revisión",
+    "obStayResaleSub": "Crea un historial de mantenimiento documentado",
+    "obStayIssuesSub": "Campañas de revisión y averías comunes de tu moto",
+    "obServiceWhy": "Para que tu plan de mantenimiento y tus costes arranquen desde el punto correcto.",
+    "obServiceLastLabel": "Última revisión",
+    "obServiceMileageHint": "Nos ayuda a calcular tu próxima revisión. Puedes ajustarlo después.",
+    "obBuildSubtitle": "Leyendo los datos reales de mantenimiento de tu moto",
+    "obBuildRecalls": "Revisando campañas de revisión de tu {{make}}…",
+    "obBuildSchedule": "Obteniendo tu plan de mantenimiento del fabricante…",
+    "obBuildCosts": "Estimando tus costes anuales…",
+    "obRevealSpecInterval": "Intervalo de mantenimiento",
+    "obRevealSpecRecalls": "Campañas abiertas",
+    "obRevealCostInService": "en mantenimiento programado.",
+    "obRevealRecallsClear": "{{count}} campañas de revisión abiertas en tu {{make}} {{model}} {{year}}.",
+    "obRevealRecallsWatch": "Seguiremos las campañas de revisión de {{make}} y te avisaremos de las nuevas.",
+    "obRevealClosing": "Cada revisión que registras construye un historial que vale dinero de verdad.",
+    "obCommitButtonIdle": "Mantén pulsado: me apunto",
+    "obCommitButtonHolding": "Sigue pulsando…",
+    "obCommitHint": "Mantén pulsado el botón para comprometerte",
+    "v2NotificationsBenefit1Subtitle": "Un aviso antes de que se te pase una revisión",
+    "v2BikeSetupSubtitleReward": "Desbloquea los datos reales de mantenimiento, la ficha técnica, las campañas de revisión y el historial de tu moto.",
+    "v2BikeSetupCta": "Añadir a mi garaje",
+    "v2MakeGridTeaser": "{{count}} motociclistas en MotoVault · campañas de revisión en directo",
+    "obFreqDailyPreview": "Si sales a diario, recibes avisos de revisión según tu kilometraje real, no según el calendario.",
+    "obFreqMonthlyPreview": "Vigilaremos las revisiones por tiempo para que no se te pase nada.",
+    "obFreqSeasonallyPreview": "Te avisaremos de las revisiones de pretemporada antes de tu primera salida del año.",
+    "obRevealScheduleProof": "Tu plan de mantenimiento del fabricante está listo para cargarse.",
+    "cpPromptBodyRide": "Crea una cuenta gratis para respaldar tu salida y sincronizarla en todos tus dispositivos.",
+    "v2BikeSetupVariantHelper": "Algunos modelos tienen caja de doble embrague (DCT) con su propio plan de mantenimiento.",
+    "obNoBikeSubtitle": "Añade tu moto cuando quieras. Esto es todo lo que MotoVault te ayuda a tener bajo control.",
+    "obNoBikeRidesTitle": "Registra cada salida",
+    "obNoBikeExpensesBody": "Combustible, recambios y revisiones: descubre cuánto te cuesta realmente salir en moto.",
+    "obNoBikeServiceTitle": "No te pierdas ninguna revisión",
+    "obNoBikeRoutesBody": "Encuentra buenas carreteras y organiza salidas en grupo cerca de ti.",
+    "obNoBikeAddBike": "Añadir mi moto ahora",
+    "scanSubtitle": "Apunta la cámara a un recibo de combustible, recambios o taller: MotoVault lee el importe, la fecha y el comercio, y lo registra por ti.",
+    "scanBulletExtract": "La IA extrae el importe, la fecha y el comercio",
+    "v2ExperienceHeadline": "¿Cuánto tiempo llevas conduciendo moto?"
+  },
+  "checklist": {
+    "seeFirstRideStats": "Mira las estadísticas de tu primera salida"
+  },
+  "bikeHub": {
+    "segment": {
+      "service": "Revisiones",
+      "serviceOverdueA11y_one": "Revisiones, {{count}} tarea vencida",
+      "serviceOverdueA11y_other": "Revisiones, {{count}} tareas vencidas",
+      "serviceOverdueA11y_many": "Revisiones, {{count}} tareas vencidas"
+    },
+    "header": {
+      "odometerA11y": "Cuentakilómetros {{value}} {{unit}}, toca para actualizar",
+      "setOdometer": "Introducir kilometraje",
+      "setOdometerA11y": "Kilometraje sin introducir, toca para introducirlo"
+    },
+    "rideStatus": {
+      "reason": {
+        "openRecalls_one": "{{count}} campaña de revisión abierta",
+        "openRecalls_other": "{{count}} campañas de revisión abiertas",
+        "openRecalls_many": "{{count}} campañas de revisión abiertas"
+      },
+      "untrackedHintNoRecalls": "Sin campañas de revisión abiertas. El estado para rodar aparece cuando hay una tarea o un documento."
+    },
+    "photo": {
+      "rides_one": "{{count}} salida",
+      "rides_other": "{{count}} salidas",
+      "add": "Añadir una foto",
+      "rides_many": "{{count}} salidas"
+    },
+    "attention": {
+      "allA11y": "Todas las tareas, abrir Revisiones",
+      "recallOne": "Campaña de revisión abierta · {{component}}",
+      "recallOneNoDetail": "Campaña de revisión abierta",
+      "recallMany_one": "{{count}} campaña de revisión abierta",
+      "recallMany_other": "{{count}} campañas de revisión abiertas",
+      "recallMany_many": "{{count}} campañas de revisión abiertas"
+    },
+    "setup": {
+      "import": "Importar el plan de mantenimiento de {{make}}",
+      "logWorkSub": "Revisión de rodaje, neumáticos, cualquier trabajo de antes de MotoVault",
+      "documents": "Añadir seguro y permiso de circulación"
+    },
+    "papers": {
+      "empty": "Seguro, permiso de circulación, documentación del vehículo e historial de mantenimiento"
+    },
+    "log": {
+      "expenseSub": "Combustible, recambios, seguro, peajes",
+      "pastWorkSub": "Va directo al historial de mantenimiento, con el coste si lo hay",
+      "documentSub": "Seguro, permiso de circulación, documentación del vehículo, justificante de revisión",
+      "odometer": "Cuentakilómetros",
+      "odometerSub": "Actualiza la lectura del cuadro"
+    },
+    "odometer": {
+      "title": "Cuentakilómetros",
+      "ridesChip_one": "+{{distance}} de {{count}} salida registrada",
+      "ridesChip_other": "+{{distance}} de {{count}} salidas registradas",
+      "backdatedNotice": "La fecha es anterior a tu última lectura: queda registrada y el cuentakilómetros sigue en {{last}} {{unit}}.",
+      "ridesChip_many": "+{{distance}} de {{count}} salidas registradas"
+    },
+    "noteSheet": {
+      "stampOff": "Sin kilometraje",
+      "stampA11yOn": "Registro del kilometraje, {{odometer}} {{unit}}, activado",
+      "stampA11yOff": "Registro del kilometraje, {{odometer}} {{unit}}, desactivado",
+      "addPhoto": "Añadir foto",
+      "addingPhotos": "Añadiendo fotos · {{done}} de {{total}}"
+    },
+    "notesScreen": {
+      "composerAdd": "Añadir",
+      "emptyBodyStamped": "Presión de neumáticos, un número de pieza, el taller que hizo el reglaje de válvulas. Escríbelo abajo: cada nota lleva el kilometraje de hoy.",
+      "emptyBody": "Presión de neumáticos, un número de pieza, el taller que hizo el reglaje de válvulas. Escríbelo abajo y queda guardado con esta moto."
+    },
+    "service": {
+      "serviceItems": "Trabajos de la revisión"
+    }
+  },
+  "maintenance": {
+    "takePhoto": "Hacer foto",
+    "odometer": "Cuentakilómetros",
+    "totalCost": "Coste",
+    "addPhoto": "Añadir foto",
+    "partsNeeded": "Recambios necesarios",
+    "addFirstTask": "Añade tu primera tarea de mantenimiento",
+    "noTasksHint": "Lleva el control de revisiones, reparaciones y mantenimiento",
+    "notesPlaceholder": "Añade notas…",
+    "taskAdded": "Tarea añadida"
+  },
+  "diagnoseV2": {
+    "cancelMessage": "Perderás toda la información que has introducido.",
+    "subtitle": {
+      "vibration": "Temblores raros que sientes en el manillar, el asiento o los estribos",
+      "warningLight": "Un testigo de advertencia se encendió en el cuadro",
+      "tires": "Los neumáticos, las ruedas o las llantas",
+      "turning": "Al inclinarte o girar el manillar",
+      "wobble": "El manillar o el chasis se sacuden de lado a lado",
+      "poorFuelEconomy": "Gasta más combustible de lo normal para las mismas salidas"
+    },
+    "takePhoto": "Hacer foto",
+    "howUrgent": "¿Cómo de urgente es?",
+    "urgencyStranded": "La moto no anda / no puedo salir",
+    "includeMaintenanceHint": "Revisiones, recambios y modificaciones, notas, salidas recientes y diagnósticos anteriores ayudan a la IA a diagnosticar tu moto",
+    "problemRequired": "Describe el problema o añade una foto para analizarlo. Toca para editar."
+  },
+  "notifications": {
+    "trialReminder": {
+      "body": "Si te quedas con Pro, tu suscripción empieza cuando termine la prueba. Adminístrala o cancélala cuando quieras en los ajustes de suscripciones de tu tienda."
+    },
+    "systemSettings": "Ajustes de notificaciones del sistema",
+    "systemSettingsDesc": "Permite o silencia MotoVault en este dispositivo, incluidos los recordatorios de salidas y de revisiones"
+  },
+  "expenses": {
+    "emptyHint": "Registra tus gastos de combustible, recambios y mantenimiento",
+    "category_maintenance": "Mantenimiento",
+    "category_parts": "Recambios",
+    "category_registration": "Impuesto de circulación",
+    "category_parking": "Aparcamiento",
+    "takeReceiptPhoto": "Hacer foto del recibo",
+    "addReceipt": "Añadir recibo",
+    "amountTooHigh": "El importe máximo es 99.999,99",
+    "emptyStateSubtitle": "Registra lo que gastas en combustible, mantenimiento, recambios y equipo.",
+    "addFirstExpense": "Añadir primer gasto",
+    "emptyStateTip": "Consejo: empieza con tu último repostaje",
+    "totalCostOfOwnership": "Coste total de propiedad",
+    "addPurchasePriceHint": "Añade el precio de compra de tu moto en Editar moto para ver el coste total de propiedad",
+    "serviceRecord": "Registro de mantenimiento",
+    "serviceRecordLoadFailed": "No se pudo cargar el registro de mantenimiento vinculado.",
+    "serviceRecordUnavailable": "El registro de mantenimiento vinculado ya no está disponible.",
+    "hasServiceRecord": "Tiene registro de mantenimiento",
+    "amountLabel": "Importe",
+    "avgPerMonth": "Media / mes",
+    "costPerKm": "Coste / km",
+    "costPerMi": "Coste / mi"
+  },
+  "settings": {
+    "fullNamePlaceholder": "Introduce tu nombre completo",
+    "goalTrackRides": "Registrar mis salidas"
+  },
+  "support": {
+    "faq1Question": "¿Cómo añado una moto?",
+    "faq2Answer": "Describe los síntomas de tu moto en la pestaña Diagnosticar. Nuestra IA analiza las averías más comunes y te indica las causas probables y qué hacer.",
+    "faq4Answer": "Ve a Perfil → Ajustes de la app → Idioma y elige el idioma que prefieras.",
+    "faq5Answer": "Sí. Usamos cifrado de extremo a extremo y seguimos las mejores prácticas de la industria. Puedes exportar o eliminar tus datos cuando quieras desde los ajustes de Privacidad."
+  },
+  "quickActions": {
+    "startRide": "Iniciar salida",
+    "addExpense": "Añadir gasto"
+  },
+  "community": {
+    "rides": "Salidas",
+    "noPublicRides": "Todavía no hay salidas públicas",
+    "publicProfileDesc": "Otros motociclistas podrán ver tu perfil, tus motos y tus salidas públicas",
+    "recentRides": "Salidas recientes"
+  },
+  "affiliate": {
+    "disclosure": "Enlace de afiliado: podemos recibir una comisión sin coste extra para ti."
+  },
+  "healthReport": {
+    "title": "Informe de mantenimiento",
+    "insufficientData": "Añade más historial de mantenimiento para generar un informe útil"
+  },
+  "whatsNew": {
+    "v3220": {
+      "overviewDesc": "Ahora cada moto abre en un Resumen: lo que requiere atención, lo próximo que vence, lo que llevas gastado, y tus notas y documentos. Revisiones, Gastos y Moto están a un toque en la barra superior.",
+      "notesDesc": "Guarda números de pieza, presión de neumáticos y datos del taller con la moto a la que pertenecen. Añade una foto a una nota, busca en tus notas cuando quieras o convierte una en tarea.",
+      "logDesc": "Toca Registrar en una moto para añadir un gasto, una tarea, un trabajo ya hecho, una nota o un documento. Para actualizar el cuentakilómetros ahora hay un teclado numérico, igual en iPhone y en Android."
+    },
+    "v380": {
+      "analyticsTitle": "Estadísticas de salidas",
+      "analyticsDesc": "Distancia total, tiempo de conducción y récords personales, actualizados después de cada salida. Tus estadísticas de un vistazo.",
+      "redesignedRidesTitle": "Salidas rediseñadas",
+      "redesignedRidesDesc": "Todas las pantallas de salidas, rehechas desde cero: banners en el mapa, insignias de récord, detalles más limpios y un guardado más fluido.",
+      "flyoverDesc": "Revive cualquier salida como un sobrevuelo por satélite de cine, con relieve, altitud y movimientos de cámara suaves.",
+      "shareTitle": "Comparte tus salidas",
+      "shareDesc": "Crea tarjetas visuales de tus salidas y compártelas donde quieras: Instagram, WhatsApp o tu galería.",
+      "widgetsDesc": "Próxima revisión, gastos, última salida y estadísticas de la semana, directo en tu pantalla de inicio y de bloqueo. Sin abrir la app."
+    },
+    "v360": {
+      "maintenanceDesc": "Desliza las tareas del fabricante para montar el plan de mantenimiento de tu moto durante la configuración. Acepta lo que importa y omite el resto.",
+      "bikeSetupDesc": "Ve estadísticas reales de motociclistas, intervalos de mantenimiento y un mensaje de bienvenida al añadir tu moto."
+    },
+    "v300": {
+      "rideRecordingTitle": "Registro de salidas más inteligente"
+    },
+    "v250": {
+      "groupRidesDesc": "Organiza salidas en grupo con puntos de encuentro en directo y recuento de motociclistas. Tu grupo, tus carreteras.",
+      "tripsDesc": "Traza rutas con varias paradas y puntos de paso. Comparte tu itinerario con tus compañeros de salida."
+    },
+    "v3110": {
+      "vaultDesc": "Seguro, permiso de circulación, documentación del vehículo, historial de mantenimiento: guarda todos los documentos importantes de cada moto en un lugar privado y seguro. Haz una foto o importa un PDF en segundos.",
+      "remindersDesc": "Añade una fecha de vencimiento y te avisamos 30, 7 y 1 día antes, para que tu seguro o tu permiso de circulación nunca caduquen.",
+      "cta": "Añade tu primer documento"
+    },
+    "v3191": {
+      "receiptDesc": "Apunta la cámara a un recibo de combustible, recambios o taller: MotoVault lee el importe, la fecha y el comercio, y rellena el gasto por ti. Revísalo, guárdalo y listo.",
+      "carplayDesc": "Registra tus salidas desde la pantalla de tu moto. Inicia, pausa y termina una salida en la pantalla sin tocar el teléfono, o deja que el modo Automático la inicie con la primera señal GPS."
+    },
+    "v3250": {
+      "plateDesc": "Ahora Inicio y Garaje muestran cada moto en una placa. De un vistazo sabes si está lista para rodar, si se acerca una revisión o si algo está vencido.",
+      "themeDesc": "Ahora cada pantalla tiene un estilo claro y uno oscuro, y sigue tu ajuste de Tema. Elige uno en Perfil › Ajustes de la app › Tema, o déjalo en Sistema para que siga a tu teléfono.",
+      "profileDesc": "El perfil ahora tiene secciones más claras, y el idioma, el tema, las unidades y la moneda están juntos en Ajustes de la app. Crear una cuenta nueva también es más fácil."
+    }
+  },
+  "oem": {
+    "disclaimer": "Esta información es solo orientativa. Antes de hacer cualquier mantenimiento, verifícala siempre con el manual del propietario y el manual de taller."
+  },
+  "recalls": {
+    "title": "Campañas de revisión",
+    "error": "No se pudieron consultar las campañas de revisión. Inténtalo de nuevo.",
+    "none": "No hay campañas de revisión abiertas",
+    "noneDescription": "Tu moto no tiene campañas de revisión de seguridad abiertas.",
+    "openCount_one": "{{count}} campaña de revisión abierta",
+    "openCount_other": "{{count}} campañas de revisión abiertas",
+    "openCount_few": "{{count}} campañas de revisión abiertas",
+    "openCount_many": "{{count}} campañas de revisión abiertas",
+    "attribution": "Datos de campañas de revisión de la NHTSA",
+    "markDoneConfirmTitle": "¿Marcar esta campaña de revisión como hecha?",
+    "ackError": "No se pudo actualizar esta campaña de revisión. Inténtalo de nuevo.",
+    "allDoneDescription": "Todas las campañas de revisión de esta moto están marcadas como hechas."
+  },
+  "trips": {
+    "addDay": "Añadir día",
+    "stopNotesPlaceholder": "Añade notas sobre esta parada…",
+    "addToMyTrips": "Añadir a Mis viajes",
+    "addStopHint": "Busca arriba o mantén pulsado el mapa para añadir una parada"
+  },
+  "groupRide": {
+    "titlePlaceholder": "p. ej. Salida del domingo por la mañana",
+    "descriptionPlaceholder": "Describe la salida, lo mejor de la ruta, qué llevar…",
+    "joinRide": "Unirme a la salida",
+    "leaveRide": "Abandonar la salida",
+    "cancelRide": "Cancelar la salida",
+    "createTitle": "Crear salida en grupo",
+    "createError": "No se pudo crear la salida. Inténtalo de nuevo."
+  },
+  "myRides": {
+    "rides": "Salidas",
+    "recentRides": "Salidas recientes",
+    "ride_one": "{{count}} salida",
+    "ride_other": "{{count}} salidas",
+    "ride_many": "{{count}} salidas"
+  },
+  "rideDetail": {
+    "unavailable": "Esta salida ya no está disponible. Puede que se haya eliminado o que ahora sea privada.",
+    "avgSpeed": "Vel. media",
+    "deleteRide": "Eliminar salida",
+    "deleteTitle": "¿Eliminar salida?"
+  },
+  "startRide": {
+    "quickRideNoBike": "Salida rápida · sin moto",
+    "unfinishedTitle": "Hay una salida sin terminar",
+    "endRide": "Terminar salida",
+    "previousRides": "Salidas anteriores",
+    "startButton": "Iniciar salida",
+    "resolveUnfinished": "Resuelve la salida sin terminar de arriba para iniciar una nueva",
+    "locationMessage": "MotoVault necesita acceso a tu ubicación para registrar tu salida. Actívalo en Ajustes.",
+    "openSettings": "Abrir Ajustes",
+    "startError": "No se pudo iniciar la salida. Inténtalo de nuevo.",
+    "disclosureTitle": "Acceso a la ubicación para registrar salidas",
+    "disclosureBody": "MotoVault registra tu recorrido, distancia y velocidad mientras ruedas, también en segundo plano cuando la app está cerrada o la pantalla apagada, para que quede toda la salida. La ubicación solo se usa mientras hay una salida activa.",
+    "disclosureSettingsNote": "Es posible que se abra Ajustes: elige “Permitir todo el tiempo” para seguir registrando en segundo plano.",
+    "approximateBody": "Con la ubicación aproximada, MotoVault no puede registrar tu recorrido ni la distancia. Activa la ubicación precisa para MotoVault en Ajustes."
+  },
+  "rideHud": {
+    "gpsLostBody": "Se ha desactivado el permiso de ubicación y tu salida ya no se está grabando. Toca para solucionarlo o terminar la salida.",
+    "endRideTitle": "¿Terminar salida?",
+    "shortRideWarning": "Tu salida ha sido muy corta ({{seconds}} s, {{meters}} m). ¿Quieres terminarla?",
+    "reminderNudgeBody": "Tu salida sigue grabándose, pero llevas {{minutes}} minutos sin moverte. Termínala o sigue rodando.",
+    "reminderFinalTitle": "Tu salida sigue grabándose",
+    "reminderFinalBody": "Sin movimiento desde hace {{minutes}} minutos. Termina la salida para guardarla tal como estaba cuando te detuviste.",
+    "actionEndRide": "Terminar salida",
+    "rideAlertsChannel": "Avisos de salida",
+    "autoEndedTitle": "Salida guardada",
+    "autoEndedBody": "Llevabas {{minutes}} minutos sin moverte, así que hemos terminado tu salida y la hemos guardado hasta donde te detuviste.",
+    "serviceTitle": "MotoVault está grabando tu salida",
+    "serviceBody": "Toca para volver a tu salida. Termínala cuando te bajes de la moto.",
+    "noGpsTitle": "No hemos podido registrar esta salida"
+  },
+  "rideSummary": {
+    "namePlaceholder": "Ponle nombre a tu salida…",
+    "savedJustNow": "Salida guardada · justo ahora",
+    "addExpense": "Añadir gasto",
+    "discardRide": "Descartar salida",
+    "stats": {
+      "avgSpeed": "Vel. media"
+    }
+  },
+  "heatmap": {
+    "rides": "Salidas",
+    "emptyMap": "Tu mapa de calor se llena a medida que terminas salidas con registro GPS.",
+    "loadingRides": "Cargando salidas…",
+    "showingRecent": "Se muestran tus ~{{count}} salidas más recientes",
+    "noRidesThisYear": "Todavía no hay salidas este año. Cuando guardes algunas, aquí verás tu salida más larga y los países que has recorrido.",
+    "recapSummary_one": "{{distance}} en {{count}} salida{{countries}}.",
+    "recapSummary_other": "{{distance}} en {{count}} salidas{{countries}}.",
+    "topRideLabel": "Salida más larga:",
+    "shareIntro_one": "En {{year}} hice {{distance}} en {{count}} salida.",
+    "shareIntro_other": "En {{year}} hice {{distance}} en {{count}} salidas.",
+    "shareTopRide": "Salida más larga: {{name}}, {{distance}}"
+  },
+  "shareSheet": {
+    "title": "Compartir salida",
+    "openSettingsForPhotos": "Abre Ajustes para permitir que MotoVault guarde imágenes.",
+    "openSettings": "Abrir Ajustes",
+    "longestRide": "Salida más larga",
+    "rideNumber": "Salida n.º {{number}}"
+  },
+  "rideFlyover": {
+    "notEnoughDataBody": "Esta salida no tiene suficientes puntos GPS para un sobrevuelo en 3D."
+  },
+  "comments": {
+    "addPlaceholder": "Añade un comentario…"
+  },
+  "documents": {
+    "emptyHint": "Guarda el seguro, el permiso de circulación, la documentación del vehículo y los registros de mantenimiento.",
+    "addTitle": "Añadir un documento",
+    "addFiles": "Añadir archivos",
+    "addMoreFiles": "Añadir más ({{count}}/{{max}})"
+  },
+  "carplay": {
+    "hub": {
+      "intro": "Registra salidas desde la pantalla de tu moto. Los controles están en la pantalla; el teléfono solo confirma.",
+      "modeAutoDesc": "Las salidas se inician solas con la primera señal GPS y se pausan en paradas largas. Nada que tocar.",
+      "modeManualDesc": "No se registra nada hasta que tocas Iniciar salida en la pantalla. Control total, cero sorpresas."
+    },
+    "cues": {
+      "caution": "Con los dos desactivados, el inicio automático es silencioso. No sabrás que ha empezado una salida hasta que mires la pantalla."
+    },
+    "onboarding": {
+      "c1Title": "Tu salida, en el cuadro."
+    }
+  },
+  "receiptScan": {
+    "common": {
+      "enterManually": "Introducir los datos a mano"
+    },
+    "consent": {
+      "body": "Enviamos una foto de tu recibo a nuestra IA para leer el importe, la fecha y los detalles, así no tienes que escribirlos. La foto se guarda de forma privada en tu cuenta y nunca se comparte. Siempre puedes introducir los datos a mano si lo prefieres."
+    },
+    "capture": {
+      "title": "Haz una foto del recibo",
+      "takePhoto": "Hacer foto",
+      "openSettings": "Abrir Ajustes"
+    },
+    "analyzing": {
+      "skip": "Omitir e introducir a mano"
+    },
+    "error": {
+      "extractionFailedBody": "La foto ha salido borrosa o el texto no se leía bien. Puedes introducir los datos a mano.",
+      "imageInvalidBody": "No hemos podido usar esa imagen. Vuelve a hacer la foto o introduce los datos a mano.",
+      "quotaExceededBody": "Hazte Pro para escanear recibos sin límite, o introduce este a mano. Tu foto se ha guardado.",
+      "disabledBody": "El escaneo de recibos está en pausa por ahora. Aun así, puedes introducir este recibo a mano.",
+      "rateLimitedBody": "Hoy has escaneado muchos recibos. Inténtalo de nuevo mañana o introduce este a mano."
+    },
+    "review": {
+      "amount": "Importe",
+      "partsCost": "Recambios",
+      "odometer": "Cuentakilómetros",
+      "odometerFirstSet": "Registrar kilometraje",
+      "noBikePrompt": "Añade una moto para guardar este recibo.",
+      "addBike": "Añadir una moto",
+      "breakdownOverTotal": "Recambios, mano de obra e impuestos suman {{sum}}, más que el total de {{total}}. Corrige alguno para que cuadre y puedas guardar.",
+      "checkAmount": "Revisa el importe",
+      "checkOdometer": "Revisa el kilometraje",
+      "typeMaintenanceHint": "Se suma al historial de mantenimiento y a los gastos",
+      "lineItemsTitle": "Conceptos de la revisión",
+      "addLineItem": "Añadir concepto",
+      "lineItemPlaceholder": "Trabajo o recambio",
+      "serviceType": "Tipo de mantenimiento",
+      "remindTitle": "Recordatorios de la próxima revisión"
+    }
+  },
+  "serviceType": {
+    "valve_clearance": "Reglaje de válvulas",
+    "general_service": "Revisión general"
+  },
+  "rideThis": {
+    "disclaimer": "No navegamos por ti: ruedas con la app que ya conoces. MotoVault solo prepara el plan y te lo entrega listo."
+  }
+}

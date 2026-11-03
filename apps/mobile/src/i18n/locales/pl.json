@@ -310,6 +310,7 @@
     "editProfile": "Edytuj profil",
     "support": "Pomoc",
     "language": "Język",
+    "languageSystem": "Język urządzenia",
     "theme": "Motyw",
     "themeSystem": "Systemowy",
     "themeLight": "Jasny",
@@ -2021,7 +2022,7 @@
     "shareCountries_many": "{{count}} countries: {{list}}",
     "shareCountries_other": "{{count}} countries: {{list}}",
     "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise"
+    "shareVia": "— via MotoVault"
   },
   "discoverSearch": {
     "notAvailableTitle": "Niedostępne",

@@ -308,6 +308,7 @@
     "editProfile": "プロフィールを編集",
     "support": "サポート",
     "language": "言語",
+    "languageSystem": "端末の言語",
     "theme": "テーマ",
     "themeSystem": "システム",
     "themeLight": "ライト",
@@ -1971,7 +1972,7 @@
     "shareCountries_one": "{{count}} country: {{list}}",
     "shareCountries_other": "{{count}} countries: {{list}}",
     "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise"
+    "shareVia": "— via MotoVault"
   },
   "discoverSearch": {
     "notAvailableTitle": "利用不可",

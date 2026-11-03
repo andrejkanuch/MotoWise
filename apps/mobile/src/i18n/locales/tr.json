@@ -308,6 +308,7 @@
     "editProfile": "Profili Düzenle",
     "support": "Destek",
     "language": "Dil",
+    "languageSystem": "Cihaz dili",
     "theme": "Tema",
     "themeSystem": "Sistem",
     "themeLight": "Açık",
@@ -1971,7 +1972,7 @@
     "shareCountries_one": "{{count}} country: {{list}}",
     "shareCountries_other": "{{count}} countries: {{list}}",
     "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise"
+    "shareVia": "— via MotoVault"
   },
   "discoverSearch": {
     "notAvailableTitle": "Mevcut değil",

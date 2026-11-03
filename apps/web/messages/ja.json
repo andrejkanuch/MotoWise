@@ -762,6 +762,8 @@
     "breadcrumbTitle": "ガレージ",
     "featuresTitle": "ガレージがバイクごとに記録すること",
     "plateCaption": "オイル交換まであと120 mi",
+    "plateFigure": "14,820",
+    "plateUnit": "mi",
     "plateIdentity": "Yamaha MT-07 · 2022",
     "maintColTask": "作業",
     "maintColWhen": "時期",

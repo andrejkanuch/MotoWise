@@ -762,6 +762,8 @@
     "breadcrumbTitle": "Garage",
     "featuresTitle": "Cosa conserva il garage per ogni moto",
     "plateCaption": "Cambio d'olio tra 120 mi",
+    "plateFigure": "14.820",
+    "plateUnit": "mi",
     "plateIdentity": "Yamaha MT-07 · 2022",
     "maintColTask": "Intervento",
     "maintColWhen": "Quando",
