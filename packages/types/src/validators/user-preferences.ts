@@ -5,6 +5,7 @@ import {
   MaintenanceStyle,
   RidingFrequency,
   RidingGoal,
+  SUPPORTED_LOCALES,
 } from '../constants/enums';
 import { FeedbackContactSchema } from './feedback';
 import { nullishToUndefined } from './nullish';
@@ -24,6 +25,8 @@ export const UserPreferencesSchema = z
     maintenanceStyle: nullishToUndefined(z.enum(maintenanceStyleValues)),
     learningFormats: nullishToUndefined(z.array(z.enum(learningFormatValues)).max(4)),
     feedbackContact: nullishToUndefined(FeedbackContactSchema),
+    /** The app language the rider's device shows (base locale); server-sent copy (pushes) uses it. */
+    locale: nullishToUndefined(z.enum(SUPPORTED_LOCALES)),
   })
   .passthrough();
 

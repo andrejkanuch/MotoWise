@@ -309,6 +309,8 @@
     "support": "Support",
     "language": "Sprache",
     "languageSystem": "Gerätesprache",
+    "languageIosMessage": "MotoVault nutzt die Sprache deines iPhones. Um sie zu ändern, tippe auf dem nächsten Bildschirm auf „Sprache“. Nicht zu sehen? Füge die Sprache zuerst unter „Allgemein“ → „Sprache & Region“ hinzu.",
+    "languageOpenSettings": "Einstellungen öffnen",
     "theme": "Darstellung",
     "themeSystem": "System",
     "themeLight": "Hell",

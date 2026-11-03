@@ -1,5 +1,7 @@
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@motovault/types';
 import { getLocales, type Locale } from 'expo-localization';
+import { Platform } from 'react-native';
+import { getAppLocales, isAppLocaleSupported } from '../../modules/app-locale';
 
 /** The language preference a rider stores: a fixed app locale, or "follow the device". */
 export const LOCALE_PREFERENCE = { SYSTEM: 'system' } as const;
@@ -40,6 +42,65 @@ function matchDeviceLocale(device: DeviceLocale): SupportedLocale | null {
   return SUPPORTED_LOCALES.find((locale) => baseLanguage(locale) === language) ?? null;
 }
 
+/**
+ * Where the rider changes the app language:
+ * - OS_SETTINGS (iOS): Settings → MotoVault → Language. iOS has no public API to
+ *   set it, and restarts the app in the new language, so native and library text
+ *   (paywall, pickers, permission prompts) match ours.
+ * - OS_API (Android 13+): our in-app list, written to the OS per-app language
+ *   (LocaleManager), so App info → Language and the in-app list always agree.
+ * - IN_APP (Android 12 and older, web): our own stored choice only.
+ */
+export const LANGUAGE_CONTROL = {
+  OS_SETTINGS: 'os_settings',
+  OS_API: 'os_api',
+  IN_APP: 'in_app',
+} as const;
+export type LanguageControl = (typeof LANGUAGE_CONTROL)[keyof typeof LANGUAGE_CONTROL];
+
+export function languageControl(): LanguageControl {
+  if (Platform.OS === 'ios') return LANGUAGE_CONTROL.OS_SETTINGS;
+  return isAppLocaleSupported() ? LANGUAGE_CONTROL.OS_API : LANGUAGE_CONTROL.IN_APP;
+}
+
+/** The OS per-app language list for a preference: empty follows the system. */
+export function appLocalesFor(preference: LocalePreference): string[] {
+  return preference === LOCALE_PREFERENCE.SYSTEM ? [] : [preference];
+}
+
+/** The preference an OS per-app language list stands for. */
+export function preferenceFromAppLocales(tags: readonly string[]): LocalePreference {
+  const [first] = tags;
+  if (!first) return LOCALE_PREFERENCE.SYSTEM;
+  return (
+    matchDeviceLocale({ languageTag: first, languageCode: null, regionCode: null }) ??
+    LOCALE_PREFERENCE.SYSTEM
+  );
+}
+
+export type OsLocaleReconciliation = {
+  preference: LocalePreference;
+  /** Set when the OS per-app language must be written (a one-time carry-over). */
+  writeOs?: string[];
+};
+
+/**
+ * On Android 13+ the OS per-app language is the source of truth, because the
+ * rider can change it in App info while the app is closed. The one exception is
+ * the first launch on this scheme: a language picked in-app before it existed is
+ * carried into the OS setting instead of being reset to the device language.
+ */
+export function reconcileWithAppLocales(
+  stored: LocalePreference,
+  osLocales: readonly string[],
+  carryOver: boolean,
+): OsLocaleReconciliation {
+  if (carryOver && osLocales.length === 0 && stored !== LOCALE_PREFERENCE.SYSTEM) {
+    return { preference: stored, writeOs: appLocalesFor(stored) };
+  }
+  return { preference: preferenceFromAppLocales(osLocales) };
+}
+
 /** First supported locale in the device's preferred-language list, else English. */
 export function resolveDeviceLocale(
   devices: readonly DeviceLocale[] = safeGetLocales(),
@@ -63,6 +124,11 @@ export function toI18nLanguage(
 ): string {
   const variant = regionCode ? REGIONAL_VARIANTS[locale]?.[regionCode.toUpperCase()] : undefined;
   return variant ?? locale;
+}
+
+/** The OS per-app language list where the app manages it (Android 13+); else null. */
+export function readOsAppLocales(): readonly string[] | null {
+  return languageControl() === LANGUAGE_CONTROL.OS_API ? getAppLocales() : null;
 }
 
 function safeGetLocales(): DeviceLocale[] {

@@ -311,6 +311,8 @@
     "support": "Podpora",
     "language": "Jazyk",
     "languageSystem": "Jazyk zariadenia",
+    "languageIosMessage": "MotoVault používa jazyk tvojho iPhonu. Ak ho chceš zmeniť, ťukni na ďalšej obrazovke na Jazyk. Nevidíš ho? Najprv pridaj jazyk v časti Všeobecné → Jazyk a oblasť.",
+    "languageOpenSettings": "Otvoriť Nastavenia",
     "theme": "Téma",
     "themeSystem": "Systémový",
     "themeLight": "Svetlý",

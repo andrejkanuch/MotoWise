@@ -7,14 +7,20 @@ const { withAppBuildGradle } = require('expo/config-plugins');
  * (res/xml/locales_config.xml + android:localeConfig, i.e. the Android 13+
  * per-app language picker in App info → Language).
  *
- * resourceConfigurations makes AAPT drop every string resource outside the 13
- * app languages, including the ones bundled by libraries: RevenueCat's paywall
- * and Customer Center, Google sign-in, AndroidX/Material dialogs and pickers.
- * A Dutch or Swedish phone would get those in English instead of its own
- * language, and region-qualified folders (values-es-rUS, b+es+419) are dropped
- * because the filter only lists bare `b+es`. Our own copy lives in i18next JSON,
- * not Android resources, so the filter saves nothing that matters; Play already
- * ships only the device's languages through AAB language splits.
+ * resourceConfigurations makes AAPT drop every string resource outside the
+ * listed qualifiers, including the ones bundled by libraries, and it matches
+ * qualifiers exactly. Checked with aapt2 36.0.0 (`link -c`, then `dump
+ * configurations`) on 2026-11-03:
+ * - `b+es` keeps `values-es` only; `values-es-rUS`, `values-es-rMX` and
+ *   `values-b+es+419` are dropped. AndroidX ships its Latin American Spanish as
+ *   `values-es-rUS`, so LatAm phones would get Spain's library strings.
+ * - `b+id` keeps `values-b+id` only; `values-in` is dropped. AndroidX (and most
+ *   libraries) ship Indonesian ONLY as `values-in`, so Indonesian phones would
+ *   get English library strings inside an Indonesian app.
+ * Our own copy is i18next JSON, not Android resources, so the filter saves
+ * nothing that matters, and Play ships only the device's languages through AAB
+ * language splits. RevenueCat UI is pinned to the app language separately
+ * (Purchases.overridePreferredLocale in src/lib/subscription.ts).
  *
  * Must run AFTER expo-localization's mod, which means being registered BEFORE
  * it: Expo executes mods in reverse registration order (see

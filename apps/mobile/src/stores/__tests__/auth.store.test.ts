@@ -9,8 +9,18 @@ jest.mock('../../i18n', () => ({
   applyLocalePreference: jest.fn(),
 }));
 jest.mock('expo-localization', () => ({ getLocales: () => [{ measurementSystem: 'metric' }] }));
+const mockOsLocales = { supported: false, tags: [] as string[] };
+jest.mock('../../../modules/app-locale', () => ({
+  isAppLocaleSupported: () => mockOsLocales.supported,
+  getAppLocales: () => mockOsLocales.tags,
+  setAppLocales: jest.fn((tags: string[]) => {
+    mockOsLocales.tags = [...tags];
+  }),
+}));
 
 import type { Session } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
+import { setAppLocales } from '../../../modules/app-locale';
 import { applyLocalePreference } from '../../i18n';
 import { AUTH_HYDRATION } from '../../lib/auth-hydration';
 import { createZustandMMKVStorage } from '../../lib/mmkv-storage';
@@ -175,7 +185,7 @@ describe('auth.store locale preference', () => {
     expect(mergeAuthPreferences({ locale: 'en', currency: 'EUR' }, {})).toEqual({
       locale: 'system',
       currency: 'EUR',
-      localeSchema: LOCALE_SCHEMA,
+      localeSchema: LOCALE_SCHEMA.SYSTEM_AWARE,
     });
   });
 
@@ -184,7 +194,9 @@ describe('auth.store locale preference', () => {
   });
 
   it('keeps an explicit English choice once the schema marker is saved', () => {
-    expect(mergeAuthPreferences({ locale: 'en', localeSchema: LOCALE_SCHEMA }, {})).toMatchObject({
+    expect(
+      mergeAuthPreferences({ locale: 'en', localeSchema: LOCALE_SCHEMA.SYSTEM_AWARE }, {}),
+    ).toMatchObject({
       locale: 'en',
     });
   });
@@ -209,5 +221,59 @@ describe('auth.store locale preference', () => {
 
   it('keeps the persist version at 0 so older OTAs can still read the blob', () => {
     expect(useAuthStore.persist.getOptions().version ?? 0).toBe(0);
+  });
+});
+
+describe('auth.store OS per-app language (Android 13+)', () => {
+  let platform: jest.ReplaceProperty<typeof Platform.OS>;
+  beforeEach(() => {
+    platform = jest.replaceProperty(Platform, 'OS', 'android');
+    mockOsLocales.supported = true;
+    mockOsLocales.tags = [];
+    jest.mocked(setAppLocales).mockClear();
+  });
+  afterEach(() => {
+    platform.restore();
+    mockOsLocales.supported = false;
+  });
+
+  it('writes an in-app choice to the OS setting, and "device language" clears it', () => {
+    useAuthStore.getState().setLocale('fr');
+    expect(setAppLocales).toHaveBeenLastCalledWith(['fr']);
+    useAuthStore.getState().setLocale('system');
+    expect(setAppLocales).toHaveBeenLastCalledWith([]);
+  });
+
+  it('takes a language set in App info while the app was closed', () => {
+    useAuthStore.setState({ locale: 'system', localeSchema: LOCALE_SCHEMA.OS_SYNCED });
+    mockOsLocales.tags = ['pt-BR'];
+    useAuthStore.getState().syncLocaleWithOs();
+    expect(useAuthStore.getState().locale).toBe('pt-BR');
+  });
+
+  it('follows the device once App info is reset to the system language', () => {
+    useAuthStore.setState({ locale: 'de', localeSchema: LOCALE_SCHEMA.OS_SYNCED });
+    useAuthStore.getState().syncLocaleWithOs();
+    expect(useAuthStore.getState().locale).toBe('system');
+    expect(setAppLocales).not.toHaveBeenCalled();
+  });
+
+  it('carries a choice made in-app before this scheme into the OS setting, once', () => {
+    useAuthStore.setState({ locale: 'de', localeSchema: LOCALE_SCHEMA.SYSTEM_AWARE });
+    useAuthStore.getState().syncLocaleWithOs();
+    expect(setAppLocales).toHaveBeenCalledWith(['de']);
+    expect(useAuthStore.getState()).toMatchObject({
+      locale: 'de',
+      localeSchema: LOCALE_SCHEMA.OS_SYNCED,
+    });
+  });
+
+  it('leaves the stored choice alone where the OS has no per-app language', () => {
+    mockOsLocales.supported = false;
+    useAuthStore.setState({ locale: 'de', localeSchema: LOCALE_SCHEMA.SYSTEM_AWARE });
+    useAuthStore.getState().syncLocaleWithOs();
+    useAuthStore.getState().setLocale('it');
+    expect(useAuthStore.getState().locale).toBe('it');
+    expect(setAppLocales).not.toHaveBeenCalled();
   });
 });

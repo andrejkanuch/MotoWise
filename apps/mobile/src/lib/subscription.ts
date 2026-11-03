@@ -6,6 +6,7 @@ import {
 import type { JsonType } from '@posthog/core';
 import Constants from 'expo-constants';
 import type { CustomVariables } from 'react-native-purchases-ui';
+import i18n from '../i18n';
 import { useSubscriptionStore } from '../stores/subscription.store';
 import { AnalyticsEvent, addBreadcrumb, captureException, trackEvent } from './analytics';
 import { getStoredAnalyticsConsent } from './analytics-consent';
@@ -297,6 +298,16 @@ async function doInit(): Promise<(() => void) | null> {
     await Purchases.configure({ apiKey });
     useSubscriptionStore.getState().setAvailable(true);
 
+    // RevenueCat paywalls follow the APP language, not the phone's: they differ
+    // when the phone uses a language the app doesn't have (the app shows English)
+    // or after a choice in the app's own list. Best-effort, never breaks init.
+    const syncPaywallLocale = (language: string) =>
+      Promise.resolve()
+        .then(() => Purchases.overridePreferredLocale(language))
+        .catch((e) => reportRevenueCatError(e, 'revenuecat.overridePreferredLocale'));
+    void syncPaywallLocale(i18n.language);
+    i18n.on('languageChanged', syncPaywallLocale);
+
     // Best-effort attribution wiring (consent-gated, KTD-9), run before any
     // paywall/purchase so the write-once $mediaSource stamps the transaction
     // (KTD-6). Uses the local Purchases directly — calling configureRcAttribution()
@@ -339,6 +350,7 @@ async function doInit(): Promise<(() => void) | null> {
     // Return cleanup function for useEffect
     return () => {
       Purchases.removeCustomerInfoUpdateListener(listener);
+      i18n.off('languageChanged', syncPaywallLocale);
     };
   } catch (e) {
     reportRevenueCatError(e, 'revenuecat.doInit');

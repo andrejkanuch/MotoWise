@@ -47,7 +47,11 @@ export default function AppSettingsScreen() {
             icon={icon}
             title={preferences[key].title}
             value={preferences[key].selectedLabel}
-            onPress={() => openPreference(key)}
+            onPress={() => {
+              const { open } = preferences[key];
+              if (open) open();
+              else openPreference(key);
+            }}
           />
         ))}
       </ESettingsGroup>

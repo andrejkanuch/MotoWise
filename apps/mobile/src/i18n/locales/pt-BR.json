@@ -356,7 +356,9 @@
     "nameLabel": "Nome",
     "publicNameLabel": "Nome público (visível para outros motociclistas)",
     "sectionFeedback": "Feedback",
-    "languageSystem": "Idioma do aparelho"
+    "languageSystem": "Idioma do aparelho",
+    "languageIosMessage": "O MotoVault usa o idioma do seu iPhone. Para trocar, toque em Idioma na próxima tela. Não aparece? Primeiro adicione o idioma em Geral → Idioma e Região.",
+    "languageOpenSettings": "Abrir Ajustes"
   },
   "onboarding": {
     "welcomeTitle": "Boas-vindas ao MotoVault",

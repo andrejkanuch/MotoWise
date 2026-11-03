@@ -46,7 +46,9 @@
     "roadsTitle": "Carreteras que he recorrido",
     "appSettings": "Ajustes de la app",
     "sectionRiding": "Salidas",
-    "rideMap": "Mapa de la salida"
+    "rideMap": "Mapa de la salida",
+    "languageIosMessage": "MotoVault usa el idioma de tu iPhone. Para cambiarlo, toca Idioma en la siguiente pantalla. ¿No aparece? Primero añade el idioma en General → Idioma y región.",
+    "languageOpenSettings": "Abrir Ajustes"
   },
   "onboarding": {
     "beginnerDesc": "Estoy empezando o pensando en llevar moto",

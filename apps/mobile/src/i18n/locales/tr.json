@@ -309,6 +309,8 @@
     "support": "Destek",
     "language": "Dil",
     "languageSystem": "Cihaz dili",
+    "languageIosMessage": "MotoVault, iPhone'unun dilini kullanır. Değiştirmek için sonraki ekranda Dil'e dokun. Göremiyor musun? Önce dili Genel → Dil ve Bölge bölümünden ekle.",
+    "languageOpenSettings": "Ayarlar'ı Aç",
     "theme": "Tema",
     "themeSystem": "Sistem",
     "themeLight": "Açık",

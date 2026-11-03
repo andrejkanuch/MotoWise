@@ -2,9 +2,20 @@ const mockDeviceLocales = jest.fn();
 jest.mock('expo-localization', () => ({ getLocales: () => mockDeviceLocales() }));
 
 import { SUPPORTED_LOCALES } from '@motovault/types';
+import { Platform } from 'react-native';
 import { APP_LOCALES } from '../../../app.config';
 import i18n, { applyLocalePreference } from '..';
-import { effectiveLocale, LOCALE_PREFERENCE, resolveDeviceLocale, toI18nLanguage } from '../locale';
+import {
+  appLocalesFor,
+  effectiveLocale,
+  LANGUAGE_CONTROL,
+  LOCALE_PREFERENCE,
+  languageControl,
+  preferenceFromAppLocales,
+  reconcileWithAppLocales,
+  resolveDeviceLocale,
+  toI18nLanguage,
+} from '../locale';
 import esES from '../locales/es-ES.json';
 
 const device = (languageTag: string, regionCode: string | null = null) => ({
@@ -89,6 +100,41 @@ describe('applyLocalePreference', () => {
     const overridden = new Set(Object.keys((esES as { common?: object }).common ?? {}));
     const key = overridden.has('save') ? 'common.cancel' : 'common.save';
     expect(i18n.t(key)).toBe(i18n.getFixedT('es')(key));
+  });
+});
+
+describe('OS per-app language', () => {
+  it('maps a preference to the OS list and back', () => {
+    expect(appLocalesFor('pt-BR')).toEqual(['pt-BR']);
+    expect(appLocalesFor(LOCALE_PREFERENCE.SYSTEM)).toEqual([]);
+    expect(preferenceFromAppLocales(['pt-BR'])).toBe('pt-BR');
+    expect(preferenceFromAppLocales(['es-MX'])).toBe('es');
+    expect(preferenceFromAppLocales([])).toBe(LOCALE_PREFERENCE.SYSTEM);
+    expect(preferenceFromAppLocales(['nl-NL'])).toBe(LOCALE_PREFERENCE.SYSTEM);
+  });
+
+  it('lets the OS setting win once synced', () => {
+    expect(reconcileWithAppLocales('de', ['fr'], false)).toEqual({ preference: 'fr' });
+    expect(reconcileWithAppLocales('de', [], false)).toEqual({
+      preference: LOCALE_PREFERENCE.SYSTEM,
+    });
+  });
+
+  it('carries an earlier in-app choice into an empty OS setting on the first sync only', () => {
+    expect(reconcileWithAppLocales('de', [], true)).toEqual({ preference: 'de', writeOs: ['de'] });
+    expect(reconcileWithAppLocales('de', ['fr'], true)).toEqual({ preference: 'fr' });
+    expect(reconcileWithAppLocales(LOCALE_PREFERENCE.SYSTEM, [], true)).toEqual({
+      preference: LOCALE_PREFERENCE.SYSTEM,
+    });
+  });
+
+  it('sends iOS to Settings and keeps the in-app list where the OS has no per-app API', () => {
+    const platform = jest.replaceProperty(Platform, 'OS', 'ios');
+    expect(languageControl()).toBe(LANGUAGE_CONTROL.OS_SETTINGS);
+    platform.replaceValue('android');
+    // Jest has no AppLocale native module, like Android 12 or an older binary.
+    expect(languageControl()).toBe(LANGUAGE_CONTROL.IN_APP);
+    platform.restore();
   });
 });
 

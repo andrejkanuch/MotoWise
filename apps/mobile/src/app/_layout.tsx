@@ -59,12 +59,13 @@ import {
   receiveRideIdleResponse,
   rideIdleResponseKey,
 } from '../features/ride/ride-notification-response';
+import { useAccountLocaleSync, useLaunchLanguage } from '../hooks/use-account-locale-sync';
 import { useAnalyticsSuperProperties } from '../hooks/use-analytics-super-properties';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import { useReviewAppOpenScoring } from '../hooks/use-review-app-open-scoring';
 import { useRideIdleResponses } from '../hooks/use-ride-idle-responses';
 import { useScreenTracking } from '../hooks/use-screen-tracking';
-import i18n, { applyLocalePreference } from '../i18n';
+import i18n from '../i18n';
 import { effectiveLocale } from '../i18n/locale';
 import {
   AnalyticsEvent,
@@ -309,6 +310,7 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
       setCrashReportingEnabled(privacy.crashReportingEnabled);
     }
   }, [userPreferences, session]);
+  useAccountLocaleSync(session?.user?.id, userPreferences);
 
   useEffect(() => {
     if (!session?.user?.id || !meData) return;
@@ -760,9 +762,7 @@ function RootLayout() {
     return () => sub.remove();
   }, []);
 
-  useEffect(() => {
-    applyLocalePreference(useAuthStore.getState().locale);
-  }, []);
+  useLaunchLanguage();
 
   useEffect(() => {
     return setupFocusManager();
