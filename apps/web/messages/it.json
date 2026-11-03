@@ -59,7 +59,8 @@
     "servicePlateFigure": "540",
     "servicePlateUnit": "km",
     "servicePlateCaption": "Al cambio olio · poi la catena",
-    "servicePlateState": "In scadenza"
+    "servicePlateState": "In scadenza",
+    "plateStateReady": "In regola"
   },
   "Features": {
     "trip": {

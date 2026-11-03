@@ -59,7 +59,8 @@
     "servicePlateFigure": "340",
     "servicePlateUnit": "mi",
     "servicePlateCaption": "To the oil change · chain next",
-    "servicePlateState": "Due soon"
+    "servicePlateState": "Due soon",
+    "plateStateReady": "Ready"
   },
   "Features": {
     "trip": {

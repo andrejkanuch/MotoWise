@@ -59,7 +59,8 @@
     "servicePlateFigure": "540",
     "servicePlateUnit": "km",
     "servicePlateCaption": "Do wymiany oleju · potem łańcuch",
-    "servicePlateState": "Wkrótce"
+    "servicePlateState": "Wkrótce",
+    "plateStateReady": "Gotowy"
   },
   "Features": {
     "trip": {

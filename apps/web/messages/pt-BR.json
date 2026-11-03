@@ -59,7 +59,8 @@
     "servicePlateFigure": "540",
     "servicePlateUnit": "km",
     "servicePlateCaption": "Até a troca de óleo · depois a corrente",
-    "servicePlateState": "Em breve"
+    "servicePlateState": "Em breve",
+    "plateStateReady": "Em dia"
   },
   "Features": {
     "trip": {

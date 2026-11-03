@@ -59,7 +59,8 @@
     "servicePlateFigure": "540",
     "servicePlateUnit": "km",
     "servicePlateCaption": "Bis zum Ölwechsel · danach die Kette",
-    "servicePlateState": "Bald fällig"
+    "servicePlateState": "Bald fällig",
+    "plateStateReady": "Bereit"
   },
   "Features": {
     "trip": {

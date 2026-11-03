@@ -59,7 +59,8 @@
     "servicePlateFigure": "540",
     "servicePlateUnit": "km",
     "servicePlateCaption": "Jusqu'à la vidange · puis la chaîne",
-    "servicePlateState": "Bientôt"
+    "servicePlateState": "Bientôt",
+    "plateStateReady": "Prête"
   },
   "Features": {
     "trip": {

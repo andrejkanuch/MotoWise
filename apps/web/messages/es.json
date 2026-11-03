@@ -59,7 +59,8 @@
     "servicePlateFigure": "540",
     "servicePlateUnit": "km",
     "servicePlateCaption": "Hasta el cambio de aceite · luego la cadena",
-    "servicePlateState": "Pronto"
+    "servicePlateState": "Pronto",
+    "plateStateReady": "Al día"
   },
   "Features": {
     "trip": {

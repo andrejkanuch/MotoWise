@@ -1,7 +1,7 @@
 import type { CampaignParams } from '@/lib/campaign';
 import { CtaPageType, CtaPlacement, type StoreCtaContext, StorePlatform } from '@/lib/cta-taxonomy';
 import { HERO_VARIANT_PROPERTY, type HeroVariant } from '@/lib/hero-experiment';
-import { withPostHog } from '@/lib/posthog-client';
+import { whenPostHogCapturing, withPostHog } from '@/lib/posthog-client';
 
 export type { StoreCtaContext };
 // Re-export the taxonomy so existing `@/lib/analytics` imports keep working.
@@ -240,10 +240,14 @@ function pingCtaCounter(payload: {
 /**
  * Home hero A/B exposure: the variant rides on every later event as a super
  * property, so `store_cta_click` (and anything after it) splits by variant.
+ * Waits until PostHog is capturing: on a first-ever visit the opt-in lands
+ * after the SDK starts, and an exposure sent before it would be dropped.
  */
 export function trackHeroVariant(variant: HeroVariant) {
-  withPostHog((posthog) => posthog.register({ [HERO_VARIANT_PROPERTY]: variant }));
-  trackEvent(WebEvent.HERO_VIEWED, { [HERO_VARIANT_PROPERTY]: variant });
+  whenPostHogCapturing((posthog) => {
+    posthog.register({ [HERO_VARIANT_PROPERTY]: variant });
+    posthog.capture(WebEvent.HERO_VIEWED, { [HERO_VARIANT_PROPERTY]: variant });
+  });
 }
 
 export function trackBlogRead(slug: string) {

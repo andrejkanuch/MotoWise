@@ -59,7 +59,8 @@
     "servicePlateFigure": "540",
     "servicePlateUnit": "km",
     "servicePlateCaption": "オイル交換まで · 次はチェーン",
-    "servicePlateState": "まもなく"
+    "servicePlateState": "まもなく",
+    "plateStateReady": "良好"
   },
   "Features": {
     "trip": {

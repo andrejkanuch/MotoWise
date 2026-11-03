@@ -15,7 +15,13 @@ import {
 import { useModal } from '@/hooks/use-modal';
 import { clearAccountConsent, writeAccountConsent } from '@/lib/account-consent';
 import { clearFirstTouch, firstTouchProperties, persistFirstTouch } from '@/lib/campaign';
-import { dropQueuedPostHogCalls, getPostHog, loadPostHog } from '@/lib/posthog-client';
+import { clearHeroAssignment } from '@/lib/hero-experiment';
+import {
+  dropQueuedPostHogCalls,
+  getPostHog,
+  loadPostHog,
+  markPostHogCapturing,
+} from '@/lib/posthog-client';
 
 // ---------------------------------------------------------------------------
 // Consent primitives (cookie read/write, PostHog opt-in/out, geo detection)
@@ -127,6 +133,7 @@ function grantPostHog(posthog: PostHog, announce: boolean) {
     // unhandled rejection (Sentry MOTOVAULT-WEB-T). PostHog falls back to memory
     // persistence internally, so swallowing the storage error is safe.
   }
+  markPostHogCapturing(posthog);
 }
 
 function denyPostHog(posthog: PostHog | null) {
@@ -180,6 +187,7 @@ export function applyPostHogConsent(granted: boolean, { announce = false } = {})
   }
   dropQueuedPostHogCalls();
   clearFirstTouch();
+  clearHeroAssignment();
   denyPostHog(getPostHog());
 }
 

@@ -142,6 +142,48 @@ describe('applyPostHogConsent before the SDK has loaded', () => {
   });
 });
 
+describe('whenPostHogCapturing', () => {
+  it('waits for the opt-in on a first visit, then runs after it', async () => {
+    holdImport();
+    const { applyPostHogConsent } = await import('@/components/cookie-consent');
+    const { whenPostHogCapturing } = await import('../posthog-client');
+    const order: string[] = [];
+    optIn.mockImplementation(() => order.push('opt-in'));
+    whenPostHogCapturing(() => order.push('exposure'));
+    applyPostHogConsent(true, { announce: true });
+
+    release();
+    await settle();
+    expect(order).toEqual(['opt-in', 'exposure']);
+  });
+
+  it('runs at once while capturing, and not after a "no"', async () => {
+    const { applyPostHogConsent } = await import('@/components/cookie-consent');
+    const { whenPostHogCapturing } = await import('../posthog-client');
+    applyPostHogConsent(true);
+    await settle();
+    const now = vi.fn();
+    whenPostHogCapturing(now);
+    expect(now).toHaveBeenCalledTimes(1);
+
+    applyPostHogConsent(false);
+    const later = vi.fn();
+    whenPostHogCapturing(later);
+    await settle();
+    expect(later).not.toHaveBeenCalled();
+  });
+
+  it('runs nothing that waited when the visitor says no', async () => {
+    const { applyPostHogConsent } = await import('@/components/cookie-consent');
+    const { whenPostHogCapturing } = await import('../posthog-client');
+    const ran = vi.fn();
+    whenPostHogCapturing(ran);
+    applyPostHogConsent(false);
+    await settle();
+    expect(ran).not.toHaveBeenCalled();
+  });
+});
+
 describe('consent gate', () => {
   it('a "no" never downloads the SDK', async () => {
     const { applyPostHogConsent } = await import('@/components/cookie-consent');

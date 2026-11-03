@@ -10,9 +10,12 @@
  * captures `hero_viewed`, so store clicks can be split by variant.
  *
  * Only visitors analytics may track are randomized: an opt-out region
- * (mv_region=OTHER) or an explicit "accept". Everyone else, and crawlers, see
- * the control and get no cookie. Their visits could not be measured anyway.
- * A "reject" clears an earlier assignment.
+ * (mv_region=OTHER) that has not said no, or a clicked "accept". That mirrors
+ * cookie-consent.tsx, which asks an EU visitor again when their "yes" was only
+ * implied. Everyone else, and crawlers, see the control, and any earlier
+ * assignment is cleared. Exposure is only recorded for an assigned visitor
+ * ({@link readHeroAssignment}), so a visitor who accepts on the page is counted
+ * from the next page load, in the arm they are randomized into then.
  */
 
 export const HERO_VARIANT = {
@@ -38,25 +41,42 @@ const REGION_COOKIE = 'mv_region';
 const OPT_OUT_REGION = 'OTHER';
 const ACCEPTED = 'accepted';
 const REJECTED = 'rejected';
+const EXPLICIT_SOURCE = 'explicit';
 const CRAWLER_UA = 'bot|crawl|spider|slurp|lighthouse|headless';
 
 /** Built from the constants above so the cookie names and variants cannot drift. */
-export const HERO_ASSIGN_SCRIPT = `(function(){var V=${JSON.stringify(HERO_VARIANTS)},v=V[0];try{var c=document.cookie;var g=function(n){var m=c.match(new RegExp('(?:^|; )'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):null};var k=(g('${CONSENT_COOKIE}')||'').split(':')[1];var h=g('${HERO_COOKIE}');var s=location.protocol==='https:'?'; Secure':'';if(k==='${REJECTED}'){if(h)document.cookie='${HERO_COOKIE}=; path=/; max-age=0'}else if(!new RegExp('${CRAWLER_UA}','i').test(navigator.userAgent)&&(k==='${ACCEPTED}'||g('${REGION_COOKIE}')==='${OPT_OUT_REGION}')){if(h&&V.indexOf(h)>-1){v=h}else{v=V[Math.floor(Math.random()*V.length)];document.cookie='${HERO_COOKIE}='+v+'; path=/; max-age=${HERO_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax'+s}}}catch(e){}document.documentElement.setAttribute('${HERO_ATTRIBUTE}',v)})()`;
+export const HERO_ASSIGN_SCRIPT = `(function(){var V=${JSON.stringify(HERO_VARIANTS)},v=V[0];try{var c=document.cookie;var g=function(n){var m=c.match(new RegExp('(?:^|; )'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):null};var p=(g('${CONSENT_COOKIE}')||'').split(':');var k=p[1];var h=g('${HERO_COOKIE}');var s=location.protocol==='https:'?'; Secure':'';var ok=k!=='${REJECTED}'&&!new RegExp('${CRAWLER_UA}','i').test(navigator.userAgent)&&((k==='${ACCEPTED}'&&p[4]==='${EXPLICIT_SOURCE}')||g('${REGION_COOKIE}')==='${OPT_OUT_REGION}');if(!ok){if(h)document.cookie='${HERO_COOKIE}=; path=/; max-age=0'}else if(h&&V.indexOf(h)>-1){v=h}else{v=V[Math.floor(Math.random()*V.length)];document.cookie='${HERO_COOKIE}='+v+'; path=/; max-age=${HERO_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax'+s}}catch(e){}document.documentElement.setAttribute('${HERO_ATTRIBUTE}',v)})()`;
 
 /**
  * CSP source for {@link HERO_ASSIGN_SCRIPT}, which the root shell inlines like
  * the theme script (see theme-init-script.ts for why a hash). Change the
  * script and the hash together (a unit test enforces it).
  */
-export const HERO_ASSIGN_SCRIPT_CSP_HASH = "'sha256-GT9nd8KltBBLCsxh7YmXRayMCUzwNTM0klQEhxHP8S8='";
+export const HERO_ASSIGN_SCRIPT_CSP_HASH = "'sha256-N8iepZt+oovL2evX6Lb73w70EjcRA+FqJEaCza1akac='";
 
 function isHeroVariant(value: string | null | undefined): value is HeroVariant {
   return HERO_VARIANTS.includes(value as HeroVariant);
 }
 
-/** The variant the assignment script picked; control when it has not run. */
-export function readHeroVariant(): HeroVariant {
-  if (typeof document === 'undefined') return HERO_VARIANT.Control;
-  const value = document.documentElement.getAttribute(HERO_ATTRIBUTE);
-  return isHeroVariant(value) ? value : HERO_VARIANT.Control;
+function readHeroCookie(): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${HERO_COOKIE}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
+ * The variant this visitor was randomized into, or null when they were not
+ * (undecided EU, crawler, a "no", script blocked): they see the control but
+ * are not part of the test, so no exposure is recorded for them.
+ */
+export function readHeroAssignment(): HeroVariant | null {
+  if (typeof document === 'undefined') return null;
+  const shown = document.documentElement.getAttribute(HERO_ATTRIBUTE);
+  return isHeroVariant(shown) && shown === readHeroCookie() ? shown : null;
+}
+
+/** A "no" (or an Undo) ends the assignment now, not on the next page load. */
+export function clearHeroAssignment(): void {
+  if (typeof document === 'undefined' || readHeroCookie() === null) return;
+  // biome-ignore lint/suspicious/noDocumentCookie: the A/B assignment cookie, cleared on a "no"
+  document.cookie = `${HERO_COOKIE}=; path=/; max-age=0`;
 }
