@@ -311,6 +311,9 @@
     "editProfile": "Profil bearbeiten",
     "support": "Support",
     "language": "Sprache",
+    "languageSystem": "Gerätesprache",
+    "languageIosMessage": "MotoVault nutzt die Sprache deines iPhones. Um sie zu ändern, tippe auf dem nächsten Bildschirm auf „Sprache“. Nicht zu sehen? Füge die Sprache zuerst unter „Allgemein“ → „Sprache & Region“ hinzu.",
+    "languageOpenSettings": "Einstellungen öffnen",
     "theme": "Darstellung",
     "themeSystem": "System",
     "themeLight": "Hell",
@@ -2030,13 +2033,13 @@
     "topRideLabel": "Top-Fahrt:",
     "topRideValue": "— {{distance}}.",
     "shareRecap": "Rückblick teilen",
-    "shareTopRide": "Top-Fahrt: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise",
-    "shareYearRecapA11y": "Jahresrückblick teilen",
     "shareIntro_one": "{{year}} bin ich {{distance}} in {{count}} Fahrt gefahren.",
     "shareIntro_other": "{{year}} bin ich {{distance}} in {{count}} Fahrten gefahren.",
     "shareCountries_one": "{{count}} Land: {{list}}",
-    "shareCountries_other": "{{count}} Länder: {{list}}"
+    "shareCountries_other": "{{count}} Länder: {{list}}",
+    "shareTopRide": "Top-Fahrt: {{name}} — {{distance}}",
+    "shareVia": "— via MotoVault",
+    "shareYearRecapA11y": "Jahresrückblick teilen"
   },
   "discoverSearch": {
     "notAvailableTitle": "Nicht verfügbar",

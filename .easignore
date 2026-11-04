@@ -18,6 +18,9 @@ dist/
 .expo/
 ios/
 android/
+# Local Expo modules keep their native sources in the repo (the plain rule above
+# would hide modules/app-locale/android from git and from EAS uploads).
+!apps/mobile/modules/*/android/
 
 # Environment
 .env

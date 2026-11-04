@@ -762,6 +762,8 @@
     "breadcrumbTitle": "Garaż",
     "featuresTitle": "Co garaż przechowuje dla każdego motocykla",
     "plateCaption": "Wymiana oleju za 120 mi",
+    "plateFigure": "14,820",
+    "plateUnit": "mi",
     "plateIdentity": "Yamaha MT-07 · 2022",
     "maintColTask": "Czynność",
     "maintColWhen": "Kiedy",

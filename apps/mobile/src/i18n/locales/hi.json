@@ -311,6 +311,9 @@
     "editProfile": "प्रोफाइल एडिट करें",
     "support": "सपोर्ट",
     "language": "भाषा",
+    "languageSystem": "डिवाइस की भाषा",
+    "languageIosMessage": "MotoVault आपके iPhone की भाषा का उपयोग करता है। इसे बदलने के लिए, अगली स्क्रीन पर भाषा पर टैप करें। वहाँ नहीं दिख रहा? पहले सामान्य → भाषा और क्षेत्र में भाषा जोड़ें।",
+    "languageOpenSettings": "सेटिंग्स खोलें",
     "theme": "थीम",
     "themeSystem": "सिस्टम",
     "themeLight": "लाइट",
@@ -2030,13 +2033,13 @@
     "topRideLabel": "टॉप राइड:",
     "topRideValue": "— {{distance}}.",
     "shareRecap": "सारांश शेयर करें",
-    "shareTopRide": "टॉप राइड: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise",
-    "shareYearRecapA11y": "साल का सारांश शेयर करें",
     "shareIntro_one": "{{year}} में मैंने {{count}} राइड में {{distance}} चलाई।",
     "shareIntro_other": "{{year}} में मैंने {{count}} राइड्स में {{distance}} चलाई।",
     "shareCountries_one": "{{count}} देश: {{list}}",
-    "shareCountries_other": "{{count}} देश: {{list}}"
+    "shareCountries_other": "{{count}} देश: {{list}}",
+    "shareTopRide": "टॉप राइड: {{name}} — {{distance}}",
+    "shareVia": "— via MotoVault",
+    "shareYearRecapA11y": "साल का सारांश शेयर करें"
   },
   "discoverSearch": {
     "notAvailableTitle": "उपलब्ध नहीं",

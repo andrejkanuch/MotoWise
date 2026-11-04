@@ -313,6 +313,9 @@
     "editProfile": "Edytuj profil",
     "support": "Pomoc",
     "language": "Język",
+    "languageSystem": "Język urządzenia",
+    "languageIosMessage": "MotoVault korzysta z języka twojego iPhone’a. Aby go zmienić, stuknij Język na następnym ekranie. Nie widzisz tej opcji? Najpierw dodaj język w Ogólne → Język i region.",
+    "languageOpenSettings": "Otwórz Ustawienia",
     "theme": "Motyw",
     "themeSystem": "Systemowy",
     "themeLight": "Jasny",
@@ -2084,9 +2087,6 @@
     "topRideLabel": "Najlepszy przejazd:",
     "topRideValue": "— {{distance}}.",
     "shareRecap": "Udostępnij podsumowanie",
-    "shareTopRide": "Najlepszy przejazd: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise",
-    "shareYearRecapA11y": "Udostępnij podsumowanie roku",
     "shareIntro_one": "Mój {{year}}: {{distance}} w {{count}} przejeździe.",
     "shareIntro_few": "Mój {{year}}: {{distance}} w {{count}} przejazdach.",
     "shareIntro_many": "Mój {{year}}: {{distance}} w {{count}} przejazdach.",
@@ -2094,7 +2094,10 @@
     "shareCountries_one": "{{count}} kraj: {{list}}",
     "shareCountries_few": "{{count}} kraje: {{list}}",
     "shareCountries_many": "{{count}} krajów: {{list}}",
-    "shareCountries_other": "{{count}} kraju: {{list}}"
+    "shareCountries_other": "{{count}} kraju: {{list}}",
+    "shareTopRide": "Najlepszy przejazd: {{name}} — {{distance}}",
+    "shareVia": "— via MotoVault",
+    "shareYearRecapA11y": "Udostępnij podsumowanie roku"
   },
   "discoverSearch": {
     "notAvailableTitle": "Niedostępne",

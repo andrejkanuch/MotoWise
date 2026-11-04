@@ -313,6 +313,9 @@
     "editProfile": "Upraviť profil",
     "support": "Podpora",
     "language": "Jazyk",
+    "languageSystem": "Jazyk zariadenia",
+    "languageIosMessage": "MotoVault používa jazyk tvojho iPhonu. Ak ho chceš zmeniť, ťukni na ďalšej obrazovke na Jazyk. Nevidíš ho? Najprv pridaj jazyk v časti Všeobecné → Jazyk a oblasť.",
+    "languageOpenSettings": "Otvoriť Nastavenia",
     "theme": "Téma",
     "themeSystem": "Systémový",
     "themeLight": "Svetlý",
@@ -2084,9 +2087,6 @@
     "topRideLabel": "Najlepšia jazda:",
     "topRideValue": "— {{distance}}.",
     "shareRecap": "Zdieľať zhrnutie",
-    "shareTopRide": "Top jazda: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise",
-    "shareYearRecapA11y": "Zdieľať zhrnutie roka",
     "shareIntro_one": "Môj rok {{year}}: {{distance}} počas {{count}} jazdy.",
     "shareIntro_few": "Môj rok {{year}}: {{distance}} počas {{count}} jázd.",
     "shareIntro_many": "Môj rok {{year}}: {{distance}} počas {{count}} jazdy.",
@@ -2094,7 +2094,10 @@
     "shareCountries_one": "{{count}} krajina: {{list}}",
     "shareCountries_few": "{{count}} krajiny: {{list}}",
     "shareCountries_many": "{{count}} krajiny: {{list}}",
-    "shareCountries_other": "{{count}} krajín: {{list}}"
+    "shareCountries_other": "{{count}} krajín: {{list}}",
+    "shareTopRide": "Top jazda: {{name}} — {{distance}}",
+    "shareVia": "— via MotoVault",
+    "shareYearRecapA11y": "Zdieľať zhrnutie roka"
   },
   "discoverSearch": {
     "notAvailableTitle": "Nedostupné",

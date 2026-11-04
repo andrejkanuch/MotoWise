@@ -762,6 +762,8 @@
     "breadcrumbTitle": "Garage",
     "featuresTitle": "What the garage keeps for each bike",
     "plateCaption": "Oil change due in 120 mi",
+    "plateFigure": "14,820",
+    "plateUnit": "mi",
     "plateIdentity": "Yamaha MT-07 · 2022",
     "maintColTask": "Task",
     "maintColWhen": "When",

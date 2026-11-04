@@ -762,6 +762,8 @@
     "breadcrumbTitle": "Garage",
     "featuresTitle": "Was die Garage für jedes Motorrad festhält",
     "plateCaption": "Ölwechsel fällig in 120 mi",
+    "plateFigure": "14.820",
+    "plateUnit": "mi",
     "plateIdentity": "Yamaha MT-07 · 2022",
     "maintColTask": "Arbeit",
     "maintColWhen": "Wann",

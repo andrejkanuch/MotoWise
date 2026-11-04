@@ -311,6 +311,9 @@
     "editProfile": "Edit Profil",
     "support": "Dukungan",
     "language": "Bahasa",
+    "languageSystem": "Bahasa perangkat",
+    "languageIosMessage": "MotoVault mengikuti bahasa iPhone kamu. Untuk menggantinya, ketuk Bahasa di layar berikutnya. Tidak ada? Tambahkan dulu bahasanya di Umum → Bahasa & Wilayah.",
+    "languageOpenSettings": "Buka Pengaturan",
     "theme": "Tema",
     "themeSystem": "Sistem",
     "themeLight": "Terang",
@@ -2030,13 +2033,13 @@
     "topRideLabel": "Perjalanan teratas:",
     "topRideValue": "— {{distance}}.",
     "shareRecap": "Bagikan rekap",
-    "shareTopRide": "Perjalanan terbaik: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise",
-    "shareYearRecapA11y": "Bagikan rekap tahunan",
     "shareIntro_one": "Di {{year}} aku menempuh {{distance}} dalam {{count}} perjalanan.",
     "shareIntro_other": "Di {{year}} aku menempuh {{distance}} dalam {{count}} perjalanan.",
     "shareCountries_one": "{{count}} negara: {{list}}",
-    "shareCountries_other": "{{count}} negara: {{list}}"
+    "shareCountries_other": "{{count}} negara: {{list}}",
+    "shareTopRide": "Perjalanan terbaik: {{name}} — {{distance}}",
+    "shareVia": "— via MotoVault",
+    "shareYearRecapA11y": "Bagikan rekap tahunan"
   },
   "discoverSearch": {
     "notAvailableTitle": "Tidak tersedia",

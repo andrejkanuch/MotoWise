@@ -59,12 +59,15 @@ import {
   receiveRideIdleResponse,
   rideIdleResponseKey,
 } from '../features/ride/ride-notification-response';
+import { useAccountLocaleSync } from '../hooks/use-account-locale-sync';
 import { useAnalyticsSuperProperties } from '../hooks/use-analytics-super-properties';
+import { useLaunchLanguage } from '../hooks/use-launch-language';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import { useReviewAppOpenScoring } from '../hooks/use-review-app-open-scoring';
 import { useRideIdleResponses } from '../hooks/use-ride-idle-responses';
 import { useScreenTracking } from '../hooks/use-screen-tracking';
 import i18n from '../i18n';
+import { effectiveLocale } from '../i18n/locale';
 import {
   AnalyticsEvent,
   addBreadcrumb,
@@ -308,6 +311,7 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
       setCrashReportingEnabled(privacy.crashReportingEnabled);
     }
   }, [userPreferences, session]);
+  useAccountLocaleSync(session?.user?.id, userPreferences);
 
   useEffect(() => {
     if (!session?.user?.id || !meData) return;
@@ -316,7 +320,7 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
       // is_pro is mirrored by useAnalyticsSuperProperties once RevenueCat has
       // verified it; sending the store's unverified `false` here tagged Pro riders free.
       currency: meData.currency ?? null,
-      locale: useAuthStore.getState().locale,
+      locale: effectiveLocale(useAuthStore.getState().locale),
       app_version: Application.nativeApplicationVersion ?? null,
     });
   }, [session?.user?.id, meData, userPreferences]);
@@ -759,11 +763,7 @@ function RootLayout() {
     return () => sub.remove();
   }, []);
 
-  useEffect(() => {
-    const locale = useAuthStore.getState().locale;
-    if (locale !== 'en') i18n.changeLanguage(locale);
-  }, []);
-
+  useLaunchLanguage();
   useEffect(() => {
     return setupFocusManager();
   }, []);

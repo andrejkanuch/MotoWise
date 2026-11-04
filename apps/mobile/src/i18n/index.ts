@@ -1,12 +1,17 @@
-import type { SupportedLocale } from '@motovault/types';
-import { SUPPORTED_LOCALES } from '@motovault/types';
-import { getLocales } from 'expo-localization';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { logger } from '../lib/logger';
+import {
+  DEFAULT_LOCALE,
+  effectiveLocale,
+  type LocalePreference,
+  resolveDeviceLocale,
+  toI18nLanguage,
+} from './locale';
 import de from './locales/de.json';
 import en from './locales/en.json';
 import es from './locales/es.json';
+import esES from './locales/es-ES.json';
 import fr from './locales/fr.json';
 import hi from './locales/hi.json';
 import id from './locales/id.json';
@@ -18,17 +23,14 @@ import sk from './locales/sk.json';
 import th from './locales/th.json';
 import tr from './locales/tr.json';
 
-const deviceLang = getLocales()[0]?.languageCode ?? 'en';
-const resolvedLang: SupportedLocale = (SUPPORTED_LOCALES as readonly string[]).includes(deviceLang)
-  ? (deviceLang as SupportedLocale)
-  : 'en';
-
 i18n
   .use(initReactI18next)
   .init({
     resources: {
       en: { translation: en },
       es: { translation: es },
+      // Spain overrides only; falls back to `es`, then `en`.
+      'es-ES': { translation: esES },
       de: { translation: de },
       fr: { translation: fr },
       it: { translation: it },
@@ -41,11 +43,20 @@ i18n
       pl: { translation: pl },
       sk: { translation: sk },
     },
-    lng: resolvedLang,
-    fallbackLng: 'en',
+    lng: toI18nLanguage(resolveDeviceLocale()),
+    fallbackLng: { 'es-ES': ['es', DEFAULT_LOCALE], default: [DEFAULT_LOCALE] },
     interpolation: { escapeValue: false },
     react: { useSuspense: false },
   })
   .catch((error) => logger.warn('[i18n] init failed', error));
+
+/** Switch the UI to what a stored language preference means on this device. */
+export function applyLocalePreference(preference: LocalePreference) {
+  const language = toI18nLanguage(effectiveLocale(preference));
+  if (i18n.language === language) return;
+  i18n
+    .changeLanguage(language)
+    .catch((error) => logger.warn('[i18n] changeLanguage failed', error));
+}
 
 export default i18n;

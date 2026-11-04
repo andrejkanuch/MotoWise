@@ -53,8 +53,8 @@ export default async function GarageManagementPage({ params }: PageProps) {
         // settles and lays its stripe. The screenshot pair below keeps the
         // scroll reveal; the two never share an object.
         <BikePlate
-          figure="14,820"
-          unit="mi"
+          figure={t('plateFigure')}
+          unit={t('plateUnit')}
           caption={t('plateCaption')}
           racingNumber="07"
           identity={t('plateIdentity')}

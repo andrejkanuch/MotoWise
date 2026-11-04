@@ -311,6 +311,9 @@
     "editProfile": "แก้ไขโปรไฟล์",
     "support": "ช่วยเหลือ",
     "language": "ภาษา",
+    "languageSystem": "ภาษาของอุปกรณ์",
+    "languageIosMessage": "MotoVault ใช้ภาษาของ iPhone ของคุณ หากต้องการเปลี่ยน ให้แตะ ภาษา ในหน้าถัดไป หากไม่เห็นตัวเลือกนี้ ให้เพิ่มภาษาใน ทั่วไป → ภาษาและภูมิภาค ก่อน",
+    "languageOpenSettings": "เปิดการตั้งค่า",
     "theme": "ธีม",
     "themeSystem": "ตามระบบ",
     "themeLight": "สว่าง",
@@ -2030,13 +2033,13 @@
     "topRideLabel": "การขับขี่ที่ดีที่สุด:",
     "topRideValue": "— {{distance}}.",
     "shareRecap": "แชร์สรุป",
-    "shareTopRide": "ทริปเด่น: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise",
-    "shareYearRecapA11y": "แชร์สรุปประจำปี",
     "shareIntro_one": "ปี {{year}} ฉันขี่ไป {{distance}} จากการขับขี่ {{count}} ครั้ง",
     "shareIntro_other": "ปี {{year}} ฉันขี่ไป {{distance}} จากการขับขี่ {{count}} ครั้ง",
     "shareCountries_one": "{{count}} ประเทศ: {{list}}",
-    "shareCountries_other": "{{count}} ประเทศ: {{list}}"
+    "shareCountries_other": "{{count}} ประเทศ: {{list}}",
+    "shareTopRide": "ทริปเด่น: {{name}} — {{distance}}",
+    "shareVia": "— via MotoVault",
+    "shareYearRecapA11y": "แชร์สรุปประจำปี"
   },
   "discoverSearch": {
     "notAvailableTitle": "ไม่พร้อมใช้งาน",

@@ -311,6 +311,9 @@
     "editProfile": "Profili Düzenle",
     "support": "Destek",
     "language": "Dil",
+    "languageSystem": "Cihaz dili",
+    "languageIosMessage": "MotoVault, iPhone'unun dilini kullanır. Değiştirmek için sonraki ekranda Dil'e dokun. Göremiyor musun? Önce dili Genel → Dil ve Bölge bölümünden ekle.",
+    "languageOpenSettings": "Ayarlar'ı Aç",
     "theme": "Tema",
     "themeSystem": "Sistem",
     "themeLight": "Açık",
@@ -2030,13 +2033,13 @@
     "topRideLabel": "En iyi sürüş:",
     "topRideValue": "— {{distance}}.",
     "shareRecap": "Özeti paylaş",
-    "shareTopRide": "En iyi sürüş: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise",
-    "shareYearRecapA11y": "Yıl özetini paylaş",
     "shareIntro_one": "{{year}} yılında {{count}} sürüşte {{distance}} yol yaptım.",
     "shareIntro_other": "{{year}} yılında {{count}} sürüşte {{distance}} yol yaptım.",
     "shareCountries_one": "{{count}} ülke: {{list}}",
-    "shareCountries_other": "{{count}} ülke: {{list}}"
+    "shareCountries_other": "{{count}} ülke: {{list}}",
+    "shareTopRide": "En iyi sürüş: {{name}} — {{distance}}",
+    "shareVia": "— via MotoVault",
+    "shareYearRecapA11y": "Yıl özetini paylaş"
   },
   "discoverSearch": {
     "notAvailableTitle": "Mevcut değil",

@@ -7,7 +7,16 @@ import {
 } from '@motovault/types';
 import { useColorScheme } from 'nativewind';
 import { useTranslation } from 'react-i18next';
+import { Alert, Linking } from 'react-native';
 import { useUpdatePreference } from '../../hooks/use-profile-data';
+import {
+  effectiveLocale,
+  LANGUAGE_CONTROL,
+  LOCALE_PREFERENCE,
+  type LocalePreference,
+  languageControl,
+  resolveDeviceLocale,
+} from '../../i18n/locale';
 import { COLOR_SCHEME, type ColorScheme, useAuthStore } from '../../stores/auth.store';
 import { MAP_ORIENTATIONS, type MapOrientation } from '../../utils/map-orientation';
 import { APP_PREFERENCE_KEY, type AppPreferenceKey } from './constants';
@@ -54,6 +63,8 @@ export type AppPreference = {
   /** Label of the selected option, for the settings row's trailing value. */
   selectedLabel: string;
   select: (value: string) => void;
+  /** Set when the setting is changed outside the app: the row runs this instead of opening the list. */
+  open?: () => void;
 };
 
 /**
@@ -80,13 +91,46 @@ export function useAppPreferences(): Record<AppPreferenceKey, AppPreference> {
     select,
   });
 
+  const languageList = build(
+    t('profile.language'),
+    [
+      {
+        value: LOCALE_PREFERENCE.SYSTEM,
+        label: t('profile.languageSystem'),
+        subtitle: LOCALE_DISPLAY_NAMES[resolveDeviceLocale()],
+      },
+      ...SUPPORTED_LOCALES.map((loc) => ({ value: loc, label: LOCALE_DISPLAY_NAMES[loc] })),
+    ],
+    store.locale,
+    (value) => store.setLocale(value as LocalePreference),
+  );
+
+  // iOS: the language lives in Settings → MotoVault → Language (see LANGUAGE_CONTROL).
+  // Opening it drops any choice made in-app before, so whatever the rider picks
+  // there is what the app shows.
+  const openLanguageSettings = () =>
+    Alert.alert(t('profile.language'), t('profile.languageIosMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('profile.languageOpenSettings'),
+        onPress: () => {
+          if (store.locale !== LOCALE_PREFERENCE.SYSTEM) store.setLocale(LOCALE_PREFERENCE.SYSTEM);
+          void Linking.openSettings();
+        },
+      },
+    ]);
+
+  const language: AppPreference =
+    languageControl() === LANGUAGE_CONTROL.OS_SETTINGS
+      ? {
+          ...languageList,
+          selectedLabel: LOCALE_DISPLAY_NAMES[effectiveLocale(store.locale)],
+          open: openLanguageSettings,
+        }
+      : languageList;
+
   return {
-    [APP_PREFERENCE_KEY.LANGUAGE]: build(
-      t('profile.language'),
-      SUPPORTED_LOCALES.map((loc) => ({ value: loc, label: LOCALE_DISPLAY_NAMES[loc] })),
-      store.locale,
-      (value) => store.setLocale(value as SupportedLocale),
-    ),
+    [APP_PREFERENCE_KEY.LANGUAGE]: language,
     [APP_PREFERENCE_KEY.THEME]: build(
       t('profile.theme'),
       Object.values(COLOR_SCHEME).map((value) => ({ value, label: t(THEME_LABEL_KEYS[value]) })),

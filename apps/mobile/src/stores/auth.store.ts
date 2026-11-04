@@ -1,9 +1,20 @@
-import type { Currency, MeasurementSystem, SupportedLocale } from '@motovault/types';
+import type { Currency, MeasurementSystem } from '@motovault/types';
 import type { Session } from '@supabase/supabase-js';
 import { getLocales } from 'expo-localization';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import i18n from '../i18n';
+import { setAppLocales } from '../../modules/app-locale';
+import { applyLocalePreference } from '../i18n';
+import {
+  appLocalesFor,
+  DEFAULT_LOCALE,
+  LANGUAGE_CONTROL,
+  LOCALE_PREFERENCE,
+  type LocalePreference,
+  languageControl,
+  readOsAppLocales,
+  reconcileWithAppLocales,
+} from '../i18n/locale';
 import { AUTH_HYDRATION, type AuthHydration } from '../lib/auth-hydration';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 import { MAP_ORIENTATIONS, type MapOrientation } from '../utils/map-orientation';
@@ -32,7 +43,10 @@ interface AuthState {
    * from UNRESOLVED-null ("we do not know"). See lib/auth-hydration.
    */
   hydration: AuthHydration;
-  locale: SupportedLocale;
+  /** `system` follows the device language (and per-app language in OS settings). */
+  locale: LocalePreference;
+  /** Persisted marker: this install's `locale` already knows about `system`. See mergeAuthPreferences. */
+  localeSchema: number;
   colorScheme: ColorScheme;
   onboardingCompleted: boolean;
   /**
@@ -51,7 +65,9 @@ interface AuthState {
   markHydrationUnresolved: () => void;
   /** The rider pressed "Sign in instead" on the restoring screen. */
   forceHydrationResolved: () => void;
-  setLocale: (locale: SupportedLocale) => void;
+  setLocale: (locale: LocalePreference) => void;
+  /** Android 13+: take the OS per-app language (App info → Language) as the preference. */
+  syncLocaleWithOs: () => void;
   setColorScheme: (colorScheme: ColorScheme) => void;
   setOnboardingCompleted: (completed: boolean) => void;
   setMeasurementSystem: (system: MeasurementSystem) => void;
@@ -63,6 +79,7 @@ interface AuthState {
 export function partializeAuthState(state: AuthState) {
   return {
     locale: state.locale,
+    localeSchema: state.localeSchema,
     colorScheme: state.colorScheme,
     measurementSystem: state.measurementSystem,
     currency: state.currency,
@@ -71,13 +88,49 @@ export function partializeAuthState(state: AuthState) {
   };
 }
 
+/**
+ * `locale` gained `system` (follow the device). Before that the store
+ * defaulted to `en` without the rider choosing it, so a saved `en` with no
+ * `localeSchema` means "never picked" and becomes `system`. A rider who did pick
+ * English on a non-English phone now follows the device and can pick it again.
+ *
+ * Deliberately NOT a persist `version` bump: zustand discards the whole stored
+ * blob when the stored version is newer than the running code's and there is no
+ * `migrate`, so any OTA built from older code (the hotfix-from-release-commit
+ * flow in docs/runbooks/mobile-ota.md) would wipe every rider's preferences and
+ * `hasAuthenticatedBefore`. Older code reads `system` as an unknown language and
+ * falls back to English, which is what it showed before.
+ */
+export const LOCALE_SCHEMA = {
+  /** `locale` knows about `system`. */
+  SYSTEM_AWARE: 1,
+  /** Android 13+: any earlier in-app choice has been carried into the OS setting. */
+  OS_SYNCED: 2,
+} as const;
+
+type PersistedAuthPreferences = ReturnType<typeof partializeAuthState>;
+
+export function mergeAuthPreferences<T extends object>(persisted: unknown, current: T): T {
+  const saved = (persisted ?? {}) as Partial<PersistedAuthPreferences>;
+  const neverChose =
+    saved.localeSchema === undefined &&
+    (saved.locale === undefined || saved.locale === DEFAULT_LOCALE);
+  return {
+    ...current,
+    ...saved,
+    ...(neverChose && { locale: LOCALE_PREFERENCE.SYSTEM }),
+    localeSchema: saved.localeSchema ?? LOCALE_SCHEMA.SYSTEM_AWARE,
+  };
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       session: null,
       isLoading: true,
       hydration: AUTH_HYDRATION.PENDING,
-      locale: 'en',
+      locale: LOCALE_PREFERENCE.SYSTEM,
+      localeSchema: LOCALE_SCHEMA.SYSTEM_AWARE,
       colorScheme: 'system',
       onboardingCompleted: false,
       hasAuthenticatedBefore: false,
@@ -108,8 +161,21 @@ export const useAuthStore = create<AuthState>()(
       forceHydrationResolved: () => set({ hydration: AUTH_HYDRATION.RESOLVED, isLoading: false }),
       setOnboardingCompleted: (onboardingCompleted) => set({ onboardingCompleted }),
       setLocale: (locale) => {
-        i18n.changeLanguage(locale);
+        if (languageControl() === LANGUAGE_CONTROL.OS_API) setAppLocales(appLocalesFor(locale));
+        applyLocalePreference(locale);
         set({ locale });
+      },
+      syncLocaleWithOs: () => {
+        const osLocales = readOsAppLocales(languageControl());
+        if (!osLocales) return;
+        const { locale, localeSchema } = get();
+        const { preference, writeOs } = reconcileWithAppLocales(
+          locale,
+          osLocales,
+          localeSchema < LOCALE_SCHEMA.OS_SYNCED,
+        );
+        if (writeOs) setAppLocales(writeOs);
+        set({ locale: preference, localeSchema: LOCALE_SCHEMA.OS_SYNCED });
       },
       setColorScheme: (colorScheme) => set({ colorScheme }),
       setMeasurementSystem: (measurementSystem) => set({ measurementSystem }),
@@ -120,6 +186,7 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-preferences',
       storage: createJSONStorage(() => createZustandMMKVStorage('auth-preferences')),
       partialize: partializeAuthState,
+      merge: mergeAuthPreferences,
     },
   ),
 );

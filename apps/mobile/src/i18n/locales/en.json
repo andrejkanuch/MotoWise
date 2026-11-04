@@ -311,6 +311,9 @@
     "editProfile": "Edit profile",
     "support": "Support",
     "language": "Language",
+    "languageSystem": "Device language",
+    "languageIosMessage": "MotoVault follows your iPhone's language. To use another one, tap Language on the next screen. Not there? First add the language in General → Language & Region.",
+    "languageOpenSettings": "Open Settings",
     "theme": "Theme",
     "themeSystem": "System",
     "themeLight": "Light",
@@ -2140,7 +2143,7 @@
     "shareCountries_one": "{{count}} country: {{list}}",
     "shareCountries_other": "{{count}} countries: {{list}}",
     "shareTopRide": "Top ride: {{name}} — {{distance}}",
-    "shareVia": "— via MotoWise",
+    "shareVia": "— via MotoVault",
     "shareYearRecapA11y": "Share year recap"
   },
   "discoverSearch": {
