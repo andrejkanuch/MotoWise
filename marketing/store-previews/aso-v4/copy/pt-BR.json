@@ -1,0 +1,77 @@
+{
+  "locale": "pt-BR",
+  "slots": {
+    "ride_tracking": {
+      "headline": ["Grave cada rolê.", "Guarde a estrada."],
+      "sub": "Rota GPS, distância, subida e inclinação máxima, no automático."
+    },
+    "ride_stats": {
+      "headline": ["Cada rolê,", "em números."],
+      "sub": "Distância, tempo rodando, subida e inclinação máxima."
+    },
+    "expenses": {
+      "headline": ["Quanto sua moto", "custa de verdade."],
+      "sub": "Gasolina, peças, equipamento e oficina num só lugar. Grátis."
+    },
+    "receipt_scan": {
+      "headline": ["Uma nota,", "uma foto."],
+      "sub": "O MotoVault lê peças, mão de obra e total, e preenche o gasto."
+    },
+    "maintenance_reminders": {
+      "headline": ["Nunca perca", "uma revisão."],
+      "sub": "Lembretes por km ou por data: óleo, corrente, pneu e mais."
+    },
+    "service_history": {
+      "headline": ["Cada revisão,", "registrada."],
+      "sub": "Histórico completo de manutenção que valoriza a moto na revenda."
+    },
+    "garage": {
+      "headline": ["Sua moto,", "num só lugar."],
+      "sub": "Ficha, hodômetro, próxima revisão e custos num relance."
+    },
+    "trip_planning": {
+      "headline": ["Planeje a viagem.", "Aí é só rodar."],
+      "sub": "Trace a rota, marque paradas e compartilhe com a galera."
+    },
+    "season_summary": {
+      "headline": ["Sua temporada,", "num resumo."],
+      "sub": "Distância total, o rolê mais longo e por onde você passou."
+    },
+    "costs_overview": {
+      "headline": ["Cada quilômetro", "tem seu preço."],
+      "sub": "Custo por km, tendência mensal e o gasto do ano."
+    }
+  },
+  "order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history",
+    "costs_overview",
+    "season_summary"
+  ],
+  "order_play": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history"
+  ],
+  "feature_graphic": {
+    "headline": ["Sua moto,", "sob controle."]
+  },
+  "header": {
+    "headline": ["Sua moto,", "sob controle."]
+  },
+  "search": {
+    "headline": ["Rolês, gastos", "e revisões."],
+    "sub": "Rolês · Gastos · Manutenção"
+  }
+}

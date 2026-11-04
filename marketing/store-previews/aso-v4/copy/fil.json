@@ -1,0 +1,77 @@
+{
+  "locale": "fil",
+  "slots": {
+    "ride_tracking": {
+      "headline": ["I-track ang ride.", "Tandaan ang daan."],
+      "sub": "GPS route, layo, akyat at max lean, kusang nire-record."
+    },
+    "ride_stats": {
+      "headline": ["Bawat ride,", "sa numero."],
+      "sub": "Layo, oras sa biyahe, akyat at max lean ng bawat ride."
+    },
+    "expenses": {
+      "headline": ["Alamin ang gastos", "ng motor mo."],
+      "sub": "Gas, piyesa, gear at casa sa iisang lugar. Libre ang pag-log."
+    },
+    "receipt_scan": {
+      "headline": ["Kunan ang resibo.", "Tapos na."],
+      "sub": "Binabasa ng MotoVault ang piyesa, labor at total, saka pinupunan."
+    },
+    "maintenance_reminders": {
+      "headline": ["Wala nang", "nakalimutang PMS."],
+      "sub": "Paalala sa change oil at PMS, ayon sa km o petsa."
+    },
+    "service_history": {
+      "headline": ["Bawat service,", "nakatala."],
+      "sub": "Kumpletong maintenance record na may halaga kapag ibebenta mo."
+    },
+    "garage": {
+      "headline": ["Ang motor mo,", "nasa isang lugar."],
+      "sub": "Specs, odometer, susunod na service at gastos, isang tingin lang."
+    },
+    "trip_planning": {
+      "headline": ["Planuhin ang ride.", "Sakyan ang plano."],
+      "sub": "Gumuhit ng ruta, maglagay ng stop at i-share sa tropa."
+    },
+    "season_summary": {
+      "headline": ["Ang season mo,", "sa isang recap."],
+      "sub": "Kabuuang layo, pinakamahabang ride at mga napuntahan."
+    },
+    "costs_overview": {
+      "headline": ["Bawat kilometro", "may presyo."],
+      "sub": "Gastos kada km, buwanang trend at gastos ngayong taon."
+    }
+  },
+  "order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history",
+    "costs_overview",
+    "season_summary"
+  ],
+  "order_play": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history"
+  ],
+  "feature_graphic": {
+    "headline": ["Motor mo,", "kontrolado."]
+  },
+  "header": {
+    "headline": ["Motor mo,", "kontrolado."]
+  },
+  "search": {
+    "headline": ["I-track ang ride.", "Tandaan ang daan."],
+    "sub": "Ride · Gastos · PMS"
+  }
+}

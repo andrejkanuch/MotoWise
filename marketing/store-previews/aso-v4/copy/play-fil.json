@@ -1,0 +1,98 @@
+{
+  "platform": "google_play",
+  "locale": "fil",
+  "listing_type": "default",
+  "title": {
+    "value": "MotoVault: Motor PMS Tracker",
+    "chars": 28,
+    "limit": 30
+  },
+  "short_description": {
+    "value": "Ride tracker, gastos sa gas at piyesa, at paalala sa PMS at change oil.",
+    "chars": 71,
+    "limit": 80
+  },
+  "full_description": {
+    "value": "Ang MotoVault ay motorcycle tracker para sa mga rider: i-record ang ride gamit ang GPS, i-track ang gastos sa pag-scan ng resibo, at makakuha ng paalala sa PMS at change oil, sa app na gawa para sa motor, hindi para sa kotse.\n\nI-log ang bawat karga ng gas at bawat bayad sa casa, itabi ang kumpletong maintenance record, at huwag nang malimutan ang LTO registration.\n\n--------------------------\nANO ANG KAYA MONG GAWIN\n--------------------------\n\n* I-TRACK ANG BAWAT RIDE - Pindutin ang record at umarangkada. Nire-record ng MotoVault ang GPS route, layo, oras sa biyahe, akyat at max lean angle, at gumagawa ng logbook ng bawat kilometro. I-export ang kahit anong ride bilang GPX.\n\n* I-TRACK ANG BAWAT GASTOS - Bawat karga ng gas, bawat piyesa, bawat punta sa casa. Tingnan kung magkano talaga ang gastos ng motor mo kada km, kada buwan at kada taon. Libre at walang limit ang pag-log, palagi.\n\n* I-SCAN ANG RESIBO, HINDI NA I-TYPE - Itutok ang camera sa resibo ng gas, piyesa o casa. Binabasa ng MotoVault ang piyesa, labor, total at petsa, at ito na ang magpupuno ng gastos.\n\n* HINDI NA MALILIMUTAN ANG PMS - Change oil, adjust ng kadena, palit gulong, valve clearance. Mag-set ng paalala ayon sa km o petsa at maaabisuhan ka bago ang susunod na interval.\n\n* KUMPLETONG SERVICE RECORD - Bawat trabaho may petsa, odometer at gastos. Isang record na makakatulong kapag ibebenta mo ang motor.\n\n* ANG GARAHE MO - Specs, odometer, susunod na service at gastos ng motor mo sa iisang screen. Mahigit 12,000 modelo sa catalog.\n\n* PLANUHIN ANG BAWAT TRIP - Ang Sunday ride o ang long ride ng buhay mo. Mag-save ng ruta, maglagay ng waypoint at i-share sa tropa.\n\n* ANG SEASON MO SA ISANG RECAP - Kabuuang kilometro, rides, ang pinakamahaba mong ride at mga bansang napuntahan, handang i-share.\n\n--------------------------\nBAKIT LUMILIPAT ANG MGA RIDER SA MOTOVAULT\n--------------------------\n\n- Isang app imbes na tatlo: ride tracker, expense tracker at maintenance log\n- Paalala sa PMS ayon sa km o petsa, para hindi ka na manghula kung kailan ang change oil\n- Paalala sa petsa para sa LTO registration, insurance o anumang taunang bayarin\n- Binabasa ng scanner ang piyesa, labor at total: segundo lang ang pag-log ng gastos\n- Kilometro o milya, light o dark theme: sumusunod ang app sa gusto mo\n- Sa iyo ang data mo: pribado, puwedeng i-export, hindi ibinebenta\n\n--------------------------\nPARA KANINO\n--------------------------\n\n- Mga daily rider na gamit ang motor sa trabaho at commute\n- Weekend rider na naghahanap ng susunod na magandang daan\n- Touring rider na nagla-log ng mahahabang ride\n- Mga DIY na sila mismo ang nagcha-change oil at PMS\n- Kahit sinong sawa na sa mga app na para sa kotse\n\n--------------------------\nMOTOVAULT PRO\n--------------------------\n\nLibre habambuhay: 1 motor, walang limitasyong maintenance at gastos record, walang limitasyong pagre-record ng ride, 1 AI diagnostic at 3 receipt scan kada buwan. Ang MotoVault Pro ay nagdadagdag ng mas maraming motor, walang limitasyong AI diagnostics, walang limitasyong scan, walang limitasyong GPX export at offline na mapa ng trip.\n\nAwtomatikong nagre-renew ang subscription maliban kung kinansela nang hindi bababa sa 24 oras bago matapos ang kasalukuyang period. I-manage o i-cancel anumang oras sa settings ng iyong Google Play account. Makikita ang presyo sa app bago ka mag-confirm.\n\nPrivacy Policy: https://motovault.app/privacy\nTerms of Service: https://motovault.app/terms\n\n--------------------------\n\nMay tanong o feedback? Binabasa namin ang bawat email: support@motovault.app\n\nDalawang gulong. Isang app. Mas maayos na ride.",
+    "chars": 3606,
+    "limit": 4000
+  },
+  "screenshot_captions": {
+    "ride_tracking": {
+      "headline": ["I-track ang ride.", "Tandaan ang daan."],
+      "headline_chars": [17, 17],
+      "subline": "GPS route, layo, akyat at max lean, kusang nire-record.",
+      "subline_chars": 55
+    },
+    "ride_stats": {
+      "headline": ["Bawat ride,", "sa numero."],
+      "headline_chars": [11, 10],
+      "subline": "Layo, oras sa biyahe, akyat at max lean ng bawat ride.",
+      "subline_chars": 54
+    },
+    "expenses": {
+      "headline": ["Alamin ang gastos", "ng motor mo."],
+      "headline_chars": [17, 12],
+      "subline": "Gas, piyesa, gear at casa sa iisang lugar. Libre ang pag-log.",
+      "subline_chars": 61
+    },
+    "receipt_scan": {
+      "headline": ["Kunan ang resibo.", "Tapos na."],
+      "headline_chars": [17, 9],
+      "subline": "Binabasa ng MotoVault ang piyesa, labor at total, saka pinupunan.",
+      "subline_chars": 65
+    },
+    "maintenance_reminders": {
+      "headline": ["Wala nang", "nakalimutang PMS."],
+      "headline_chars": [9, 17],
+      "subline": "Paalala sa change oil at PMS, ayon sa km o petsa.",
+      "subline_chars": 49
+    },
+    "service_history": {
+      "headline": ["Bawat service,", "nakatala."],
+      "headline_chars": [14, 9],
+      "subline": "Kumpletong maintenance record na may halaga kapag ibebenta mo.",
+      "subline_chars": 62
+    },
+    "garage": {
+      "headline": ["Ang motor mo,", "nasa isang lugar."],
+      "headline_chars": [13, 17],
+      "subline": "Specs, odometer, susunod na service at gastos, isang tingin lang.",
+      "subline_chars": 65
+    },
+    "trip_planning": {
+      "headline": ["Planuhin ang ride.", "Sakyan ang plano."],
+      "headline_chars": [18, 17],
+      "subline": "Gumuhit ng ruta, maglagay ng stop at i-share sa tropa.",
+      "subline_chars": 54
+    },
+    "season_summary": {
+      "headline": ["Ang season mo,", "sa isang recap."],
+      "headline_chars": [14, 15],
+      "subline": "Kabuuang layo, pinakamahabang ride at mga napuntahan.",
+      "subline_chars": 53
+    },
+    "costs_overview": {
+      "headline": ["Bawat kilometro", "may presyo."],
+      "headline_chars": [15, 11],
+      "subline": "Gastos kada km, buwanang trend at gastos ngayong taon.",
+      "subline_chars": 54
+    }
+  },
+  "feature_graphic_headline": {
+    "value": "Motor mo, kontrolado.",
+    "words": 3,
+    "limit_words": 5
+  },
+  "rationale": "Filipino-language default listing. Taglish is how PH riders actually write: \"motor\", \"PMS\", \"change oil\", \"casa\", \"tropa\", \"LTO\". Title carries \"motor\" + \"PMS\" which no current Play title in the niche uses.",
+  "screenshot_order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history"
+  ]
+}

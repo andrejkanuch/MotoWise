@@ -1,0 +1,459 @@
+{
+  "cc": "US",
+  "market_name": "United States",
+  "app_language": "en",
+  "store_locales": {
+    "ios": "en-US",
+    "play": "en-US"
+  },
+  "device": {
+    "apple_languages": ["en-US", "en"],
+    "apple_locale": "en_US",
+    "metric": false
+  },
+  "measurement_system": "imperial",
+  "currency": "USD",
+  "timezone": "America/New_York",
+  "region_code": "US-NC",
+  "rider": {
+    "display_name": "Jake M.",
+    "city": "Asheville",
+    "home": [35.5951, -82.5515]
+  },
+  "bikes": [
+    {
+      "key": "primary",
+      "make": "HARLEY-DAVIDSON",
+      "model": "Street Glide",
+      "year": 2023,
+      "nickname": "The Glide",
+      "variant": "Milwaukee-Eight 117",
+      "type": "touring",
+      "engine_cc": 1923,
+      "odometer": 18420,
+      "odometer_jan1": 12900,
+      "purchase_date": "2023-04-15",
+      "purchase_price": 27999
+    },
+    {
+      "key": "second",
+      "make": "YAMAHA",
+      "model": "MT-07",
+      "year": 2022,
+      "nickname": "Canyon bike",
+      "type": "standard",
+      "engine_cc": 689,
+      "odometer": 9180,
+      "odometer_jan1": 7450,
+      "purchase_date": "2022-06-04",
+      "purchase_price": 7600
+    }
+  ],
+  "hero_ride": {
+    "name": "Tail of the Dragon",
+    "road": "US-129",
+    "date": "2026-10-10",
+    "start_time": "09:30",
+    "avg_speed_kmh": 44,
+    "max_speed_kmh": 72,
+    "max_lean_deg": 30,
+    "elevation_gain_m": null
+  },
+  "other_rides": [
+    {
+      "name": "Blue Ridge Parkway to Mount Mitchell",
+      "date": "2026-10-03",
+      "start_time": "09:20",
+      "distance_km": 160,
+      "avg_speed_kmh": 53,
+      "elevation_gain_m": 2100
+    },
+    {
+      "name": "Moonshiner 28",
+      "date": "2026-09-26",
+      "start_time": "08:40",
+      "distance_km": 290,
+      "avg_speed_kmh": 61,
+      "elevation_gain_m": 2600
+    },
+    {
+      "name": "Hot Springs via NC-209",
+      "date": "2026-09-19",
+      "bike": "second",
+      "distance_km": 175,
+      "avg_speed_kmh": 66,
+      "elevation_gain_m": 1500
+    },
+    {
+      "name": "Commute",
+      "date": "2026-10-07",
+      "start_time": "07:35",
+      "distance_km": 32,
+      "avg_speed_kmh": 60,
+      "elevation_gain_m": 90
+    }
+  ],
+  "season": {
+    "rides": 84,
+    "distance_km": 11600
+  },
+  "fuel": {
+    "label": "Premium 91",
+    "unit": "gal",
+    "price_per_unit": 3.85,
+    "fill_size": [3.9, 5.4],
+    "stations": [
+      "Shell, Patton Ave",
+      "Exxon, Weaverville",
+      "BP, Hendersonville Rd",
+      "Marathon, Robbinsville",
+      "Circle K, Black Mountain"
+    ]
+  },
+  "service": {
+    "title": "15,000-mile service",
+    "date": "2026-07-24",
+    "odometer": 15040,
+    "vendor": "Smoky Ridge V-Twin Service",
+    "tax_label": "Sales tax 7%",
+    "tax_rate": 0.07,
+    "tax_included": false,
+    "line_items": [
+      {
+        "label": "Synthetic 20W-50, 5 qt",
+        "service_type": "oil_change",
+        "amount": 79.75
+      },
+      {
+        "label": "Oil filter",
+        "service_type": "oil_filter",
+        "amount": 18.95
+      },
+      {
+        "label": "Primary chaincase lubricant",
+        "service_type": "transmission_oil",
+        "amount": 21.5
+      },
+      {
+        "label": "Brake fluid DOT 4",
+        "service_type": "brake_fluid",
+        "amount": 24.0
+      },
+      {
+        "label": "Shop supplies",
+        "service_type": "other",
+        "amount": 19.75
+      },
+      {
+        "label": "Labor 2.0 hrs @ $114.00",
+        "service_type": "general_service",
+        "amount": 228.0
+      }
+    ]
+  },
+  "service_interval": 5000,
+  "expenses": [
+    {
+      "category": "insurance",
+      "date": "2026-04-09",
+      "amount": 684.0,
+      "item": "Annual policy 2026",
+      "vendor": "Motorcycle insurance"
+    },
+    {
+      "category": "registration",
+      "date": "2026-03-31",
+      "amount": 46.0,
+      "item": "NC registration renewal",
+      "vendor": "NCDMV"
+    },
+    {
+      "category": "tires",
+      "date": "2026-09-05",
+      "amount": 349.0,
+      "item": "Rear tire + mounting",
+      "vendor": "Smoky Ridge V-Twin Service"
+    },
+    {
+      "category": "gear",
+      "date": "2026-03-14",
+      "amount": 110.0,
+      "item": "Rain suit",
+      "vendor": "Rider gear shop"
+    },
+    {
+      "category": "insurance",
+      "date": "2026-03-01",
+      "amount": 214.0,
+      "item": "Annual policy 2026",
+      "bike": "second"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Engine oil & filter",
+      "target_odometer": 18000,
+      "priority": "high"
+    },
+    {
+      "title": "20,000-mile service",
+      "target_odometer": 20000,
+      "priority": "medium"
+    },
+    {
+      "title": "Brake fluid flush",
+      "due_date": "2027-03-15",
+      "priority": "medium"
+    }
+  ],
+  "trip": {
+    "title": "Smokies weekend",
+    "description": "Two days on the Dragon and the Parkway",
+    "start_date": "2026-11-14",
+    "end_date": "2026-11-15",
+    "difficulty": "challenging",
+    "status": "draft",
+    "stops": [
+      {
+        "name": "Asheville",
+        "lat": 35.5951,
+        "lng": -82.5515,
+        "type": "start",
+        "day": 0
+      },
+      {
+        "name": "Waynesville coffee",
+        "lat": 35.4887,
+        "lng": -82.9887,
+        "type": "food",
+        "day": 0
+      },
+      {
+        "name": "Deals Gap",
+        "lat": 35.4672,
+        "lng": -83.9203,
+        "type": "scenic",
+        "day": 0
+      },
+      {
+        "name": "Robbinsville motel",
+        "lat": 35.3226,
+        "lng": -83.8074,
+        "type": "overnight",
+        "day": 0
+      },
+      {
+        "name": "Asheville",
+        "lat": 35.5951,
+        "lng": -82.5515,
+        "type": "end",
+        "day": 1
+      }
+    ]
+  },
+  "notes": "",
+  "generated": "2026-11-03",
+  "feature_usage": {
+    "n_users": 222,
+    "counts": {
+      "users": 222,
+      "rides_tracked": 15,
+      "rides_finished": 14,
+      "trips": 21,
+      "trip_building": 12,
+      "maintenance": 15,
+      "expenses": 6,
+      "receipt_scan": 2,
+      "ai_diagnosis": 10,
+      "bike_added": 118,
+      "onboarding_completed": 71
+    },
+    "local_ranking": [
+      {
+        "feature": "trips",
+        "users": 21,
+        "pct": 9.5
+      },
+      {
+        "feature": "rides_tracked",
+        "users": 15,
+        "pct": 6.8
+      },
+      {
+        "feature": "maintenance",
+        "users": 15,
+        "pct": 6.8
+      },
+      {
+        "feature": "ai_diagnosis",
+        "users": 10,
+        "pct": 4.5
+      },
+      {
+        "feature": "expenses",
+        "users": 6,
+        "pct": 2.7
+      }
+    ],
+    "onboarding_primary_goal": {
+      "track_rides": 38,
+      "just_exploring": 13,
+      "maintain_bike": 13,
+      "manage_expenses": 6,
+      "discover_routes": 1
+    },
+    "bike_makes_typed": "Harley-Davidson 35, Honda 22, Kawasaki 18, Yamaha 17, BMW 11, Suzuki 18",
+    "differs_from_global": "Close to global. Trips (21) edge out rides (15) and maintenance (15), and 12 of 21 actually built a trip, the highest share anywhere. n=222 is the only sample big enough to read, but a 6-user gap is still noise.",
+    "sample_strength": "readable",
+    "recommended_screenshot_order": ["rides", "trips", "maintenance", "expenses", "garage"],
+    "recommendation": "Global order with trips moved to slot 2 is defensible for the US only; otherwise use global."
+  },
+  "hero_route": {
+    "name_local": "Tail of the Dragon (US 129)",
+    "region": "Deals Gap, North Carolina / Tennessee line (Great Smoky Mountains)",
+    "start": "Deals Gap, NC",
+    "end": "Tabcat Creek bridge, TN (Foothills Parkway junction)",
+    "official_length": "11 mi / 17.7 km, '318 curves' (local claim)",
+    "official_elevation": "1,962 ft at Deals Gap to 877 ft at Tabcat Bridge",
+    "sources": [
+      "https://en.wikipedia.org/wiki/U.S._Route_129",
+      "https://tailofthedragon.com/info/",
+      "https://www.visitnc.com/tail-dragon"
+    ],
+    "polyline_note": "OSRM route Deals Gap -> US 129 northbound, trimmed at 17.7 km. Ride direction is downhill (NC to TN), so the profile shows more loss than gain.",
+    "polyline_file": "US-route.geojson",
+    "polyline_length_km": 17.7,
+    "polyline_length_mi": 11.0,
+    "polyline_elevation_srtm90m": {
+      "min_m": 383,
+      "max_m": 611,
+      "gain_m": 403,
+      "loss_m": 564,
+      "samples": 100
+    },
+    "elevation_note": "gain/loss from 100 SRTM 90 m samples along the polyline (opentopodata.org); treat as approximate",
+    "backups": [
+      {
+        "name": "Blue Ridge Parkway (VA/NC)",
+        "why": "469 mi scenic parkway, America's best-known touring road"
+      },
+      {
+        "name": "Pacific Coast Highway / CA-1 Big Sur",
+        "why": "coastal icon, recognisable from any photo"
+      }
+    ]
+  },
+  "demo_garage": {
+    "currency": "USD",
+    "units": {
+      "distance": "mi",
+      "fuel_volume": "gal (US)",
+      "fuel_economy": "mpg"
+    },
+    "bikes": [
+      {
+        "make": "Harley-Davidson",
+        "model": "Street Glide",
+        "year": 2023,
+        "odometer": "18,420 mi",
+        "why": "Harley-Davidson is the make US users type most in our onboarding (35 users); Street Glide is H-D's best-selling tourer per Cycle Trader 2025. Also already seeded on test@test.com.",
+        "sources": ["https://www.cycletrader.com/blog/2026/01/27/best-selling-motorcycles-of-2025/"]
+      },
+      {
+        "make": "Yamaha",
+        "model": "MT-07",
+        "year": 2022,
+        "odometer": "9,180 mi",
+        "why": "Already the second bike on the US test account; Kawasaki/Yamaha/Honda are the volume brands (Kawasaki #1 brand 2025).",
+        "sources": [
+          "https://powersportsbusiness.com/news/kawasaki/2025/12/10/kawasaki-surges-to-no-1-in-the-u-s-motorcycle-market-as-harley-falls-to-third-reports/"
+        ]
+      }
+    ],
+    "expenses": [
+      {
+        "type": "fuel",
+        "label": "Premium 91, 4.8 gal",
+        "amount": "$19.68",
+        "unit_price": "$4.10/gal premium (estimate)"
+      },
+      {
+        "type": "service",
+        "label": "5,000-mile service at H-D dealer",
+        "amount": "$389.00"
+      },
+      {
+        "type": "part",
+        "label": "Dunlop Elite 4 rear tire",
+        "amount": "$279.95"
+      }
+    ],
+    "maintenance": {
+      "bike": "Street Glide",
+      "overdue": {
+        "task": "Engine oil & filter",
+        "interval": "every 5,000 mi",
+        "status": "due at 18,000 mi, 420 mi overdue"
+      },
+      "upcoming": [
+        {
+          "task": "Primary chaincase & transmission fluid",
+          "interval": "every 10,000 mi",
+          "due": "20,000 mi"
+        },
+        {
+          "task": "Brake fluid flush",
+          "interval": "every 2 years",
+          "due": "Mar 2027"
+        }
+      ],
+      "interval_confidence": "medium: H-D Milwaukee-Eight schedule as commonly published; check the owner's manual"
+    }
+  },
+  "store_mapping": {
+    "app_store": {
+      "storefront_default_language": "English (US)",
+      "storefront_additional_languages": [
+        "Arabic",
+        "Chinese (Simplified)",
+        "Chinese (Traditional)",
+        "French",
+        "Korean",
+        "Portuguese (Brazil)",
+        "Russian",
+        "Spanish (Mexico)",
+        "Vietnamese"
+      ],
+      "best_localization_for_storefront": "en-US",
+      "motovault_ios_localizations_live_3_26_0": [
+        "de-DE",
+        "en-GB",
+        "en-US",
+        "es-MX",
+        "fr-FR",
+        "it",
+        "pt-BR"
+      ],
+      "shown_today": "en-US",
+      "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations"
+    },
+    "google_play": {
+      "listing_shown": "en-US (Spanish-language devices: es-US listing exists on Play)",
+      "how_chosen": "Default listing: translation picked by the user's device language, falling back to the default (en-US). Custom store listings: picked by country first, then the user's language within that listing.",
+      "motovault_play_translations": "Play default listing has 46 translations in store/play/metadata, incl. en-US, en-GB, en-CA, en-AU, es-419, es-ES, es-US, pt-BR, fr-FR, de-DE, it-IT, fil (no fr-CA).",
+      "source": "https://support.google.com/googleplay/android-developer/answer/9867158"
+    },
+    "targeting": "Play custom store listings can target countries (up to 50 listings, each country in only one listing, no auto-translation). Apple cannot target countries on the default product page; per-country screenshots on iOS need Custom Product Pages (reached only via their own URL/ads) or a localization that only that storefront uses."
+  },
+  "local_notes": {
+    "date": "MM/DD/YYYY (11/03/2026)",
+    "number": "1,234.5",
+    "words": {
+      "motorcycle": "motorcycle, bike, motorbike (rare)",
+      "ride": "ride, ride out, cruise; 'rider'"
+    },
+    "season_nov_mar": "Off-season in the North and Midwest (storage, winterizing); prime season in Florida, Arizona, Texas, SoCal. Tail of the Dragon stays open but is cold.",
+    "traffic": "right-hand",
+    "imagery": "Cruisers/baggers dominate the culture; bikers in jackets, wide open roads, fall foliage in the Smokies."
+  }
+}

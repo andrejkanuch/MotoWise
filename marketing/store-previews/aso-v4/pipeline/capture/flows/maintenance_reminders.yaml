@@ -1,0 +1,17 @@
+appId: com.motovault.app
+tags: [screenshots]
+---
+# Service, Active: the overdue job on top, then the upcoming ones (by date and by odometer).
+- runFlow:
+    file: _open.yaml
+    env:
+      LINK: "motovault://bike/${BIKE_ID}?segment=service"
+- tapOn:
+    id: "service-tab-active"
+- extendedWaitUntil:
+    visible: "${FIRST_TASK}.*"
+    timeout: 30000
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${OUT}/maintenance_reminders
+- runFlow: _no_paywall.yaml

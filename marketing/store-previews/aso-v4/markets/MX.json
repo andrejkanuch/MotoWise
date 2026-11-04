@@ -1,0 +1,420 @@
+{
+  "cc": "MX",
+  "market_name": "Mexico",
+  "app_language": "es",
+  "store_locales": {
+    "ios": "es-MX",
+    "play": "es-419"
+  },
+  "device": {
+    "apple_languages": ["es-MX", "es"],
+    "apple_locale": "es_MX",
+    "metric": true
+  },
+  "measurement_system": "metric",
+  "currency": "MXN",
+  "timezone": "America/Mazatlan",
+  "region_code": "MX-SIN",
+  "rider": {
+    "display_name": "Luis H.",
+    "city": "Durango",
+    "home": [24.0277, -104.6532]
+  },
+  "bikes": [
+    {
+      "key": "primary",
+      "make": "ITALIKA",
+      "model": "FT150",
+      "year": 2023,
+      "nickname": "La Chamba",
+      "type": "standard",
+      "engine_cc": 150,
+      "odometer": 21350,
+      "odometer_jan1": 12100,
+      "purchase_date": "2023-02-18",
+      "purchase_price": 27999
+    },
+    {
+      "key": "second",
+      "make": "YAMAHA",
+      "model": "FZ 2.0",
+      "year": 2022,
+      "nickname": "La Negra",
+      "type": "standard",
+      "engine_cc": 149,
+      "odometer": 14800,
+      "odometer_jan1": 11900,
+      "purchase_date": "2022-05-07",
+      "purchase_price": 46900
+    }
+  ],
+  "hero_ride": {
+    "name": "Espinazo del Diablo rumbo a Mazatlán",
+    "road": "MEX-40 libre",
+    "date": "2026-10-17",
+    "start_time": "07:30",
+    "avg_speed_kmh": 48,
+    "max_speed_kmh": 92,
+    "max_lean_deg": 30,
+    "elevation_gain_m": null
+  },
+  "other_rides": [
+    {
+      "name": "Rodada a Nombre de Dios",
+      "date": "2026-10-04",
+      "distance_km": 120,
+      "avg_speed_kmh": 62,
+      "elevation_gain_m": 450
+    },
+    {
+      "name": "Mexiquillo y El Salto",
+      "date": "2026-09-20",
+      "distance_km": 290,
+      "avg_speed_kmh": 58,
+      "elevation_gain_m": 1800
+    },
+    {
+      "name": "Al trabajo",
+      "date": "2026-10-28",
+      "distance_km": 18,
+      "avg_speed_kmh": 34,
+      "elevation_gain_m": 40
+    }
+  ],
+  "season": {
+    "rides": 210,
+    "distance_km": 9250
+  },
+  "fuel": {
+    "label": "Magna",
+    "unit": "L",
+    "price_per_unit": 23.9,
+    "fill_size": [8, 11.5],
+    "stations": [
+      "Pemex, Blvd. Felipe Pescador",
+      "Oxxo Gas, Av. 20 de Noviembre",
+      "Pemex, El Salto",
+      "G500, Concordia",
+      "Pemex, Mazatlán Centro"
+    ]
+  },
+  "service": {
+    "title": "Servicio 21,000 km",
+    "date": "2026-10-24",
+    "odometer": 21000,
+    "vendor": "Motos del Guadiana",
+    "tax_label": "IVA 16%",
+    "tax_rate": 0.16,
+    "tax_included": true,
+    "line_items": [
+      {
+        "label": "Aceite 20W-50, 1 L",
+        "service_type": "oil_change",
+        "amount": 180.0
+      },
+      {
+        "label": "Filtro de aceite",
+        "service_type": "oil_filter",
+        "amount": 95.0
+      },
+      {
+        "label": "Bujía",
+        "service_type": "spark_plug",
+        "amount": 120.0
+      },
+      {
+        "label": "Ajuste y lubricación de cadena",
+        "service_type": "chain",
+        "amount": 90.0
+      },
+      {
+        "label": "Mano de obra",
+        "service_type": "general_service",
+        "amount": 365.0
+      }
+    ]
+  },
+  "service_interval": 3000,
+  "expenses": [
+    {
+      "category": "insurance",
+      "date": "2026-02-15",
+      "amount": 2450.0,
+      "item": "Seguro anual 2026",
+      "vendor": "Seguro de moto"
+    },
+    {
+      "category": "registration",
+      "date": "2026-03-20",
+      "amount": 780.0,
+      "item": "Refrendo vehicular 2026",
+      "vendor": "Gobierno de Durango"
+    },
+    {
+      "category": "parts",
+      "date": "2026-08-09",
+      "amount": 690.0,
+      "item": "Kit de arrastre (cadena y sprockets)",
+      "vendor": "Motos del Guadiana"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Cambio de aceite",
+      "target_odometer": 21000,
+      "priority": "high"
+    },
+    {
+      "title": "Revisar balatas delanteras",
+      "target_odometer": 23000,
+      "priority": "medium"
+    },
+    {
+      "title": "Servicio 24,000 km",
+      "target_odometer": 24000,
+      "priority": "medium"
+    }
+  ],
+  "trip": {
+    "title": "Puente a Mazatlán",
+    "description": "Bajar por el Espinazo del Diablo y dormir frente al mar",
+    "start_date": "2026-11-14",
+    "end_date": "2026-11-16",
+    "difficulty": "challenging",
+    "status": "draft",
+    "stops": [
+      {
+        "name": "Durango",
+        "lat": 24.0277,
+        "lng": -104.6532,
+        "type": "start",
+        "day": 0
+      },
+      {
+        "name": "El Salto",
+        "lat": 23.779,
+        "lng": -105.36,
+        "type": "fuel",
+        "day": 0
+      },
+      {
+        "name": "Mirador Espinazo del Diablo",
+        "lat": 23.575,
+        "lng": -105.844,
+        "type": "scenic",
+        "day": 0
+      },
+      {
+        "name": "Concordia",
+        "lat": 23.288,
+        "lng": -106.067,
+        "type": "food",
+        "day": 0
+      },
+      {
+        "name": "Mazatlán",
+        "lat": 23.2494,
+        "lng": -106.4111,
+        "type": "end",
+        "day": 0
+      }
+    ]
+  },
+  "notes": "store_locales.ios es-MX is shared with CO and AR: one set of es-MX App Store screenshots serves all three. Play: es-419 is shared too; per-country screenshots need custom store listings.",
+  "generated": "2026-11-03",
+  "feature_usage": {
+    "n_users": 60,
+    "counts": {
+      "users": 60,
+      "rides_tracked": 6,
+      "rides_finished": 5,
+      "trips": 1,
+      "trip_building": 1,
+      "maintenance": 3,
+      "expenses": 5,
+      "receipt_scan": 0,
+      "ai_diagnosis": 6,
+      "bike_added": 42,
+      "onboarding_completed": 24
+    },
+    "local_ranking": [
+      {
+        "feature": "rides_tracked",
+        "users": 6,
+        "pct": 10.0
+      },
+      {
+        "feature": "ai_diagnosis",
+        "users": 6,
+        "pct": 10.0
+      },
+      {
+        "feature": "expenses",
+        "users": 5,
+        "pct": 8.3
+      },
+      {
+        "feature": "maintenance",
+        "users": 3,
+        "pct": 5.0
+      },
+      {
+        "feature": "trips",
+        "users": 1,
+        "pct": 1.7
+      }
+    ],
+    "onboarding_primary_goal": {
+      "track_rides": 10,
+      "manage_expenses": 6,
+      "maintain_bike": 6,
+      "just_exploring": 2
+    },
+    "bike_makes_typed": "Italika ~19 (often typed as 'i'), Yamaha 6, Vento 3, Honda 3",
+    "differs_from_global": "Expenses are unusually strong: 5 of 60 users (8%, global 4.5%) and 6 of 24 goal answers are manage_expenses. Two weak signals point the same way.",
+    "sample_strength": "thin",
+    "recommended_screenshot_order": ["rides", "expenses", "maintenance", "trips", "garage"],
+    "recommendation": "Expenses to slot 2. Weak evidence (n=60), but it agrees with the onboarding goals and with LatAm commuter use (fuel cost matters)."
+  },
+  "hero_route": {
+    "name_local": "Espinazo del Diablo (Carretera federal 40 libre Durango-Mazatlán)",
+    "region": "Durango / Sinaloa (Sierra Madre Occidental)",
+    "start": "El Salto, Durango",
+    "end": "Concordia, Sinaloa",
+    "official_length": "~280 km Durango-Mazatlán on the libre; the Espinazo ridge itself is a short stretch near km 168 at ~2,500 m; '3,000+ curves'",
+    "official_elevation": "~2,500-2,800 m down to near sea level",
+    "sources": [
+      "https://www.luznoticias.mx/2025-04-25/sinaloa/asi-cruzan-los-bikers-el-espinazo-del-diablo-rumbo-a-la-semana-de-la-moto-mazatlan--video/242330",
+      "https://www.posta.com.mx/durango/cuantas-curvas-tiene-la-carretera-libre-durango---mazatlan-visitada-por-top-gear/vl2045213",
+      "https://escapadas.mexicodesconocido.com.mx/carretera-mas-bonita-de-mexico/"
+    ],
+    "polyline_note": "OSRM El Salto -> Concordia with 9 via points snapped to 'Carretera Durango-Villa Unión' (MEX 40) so it stays off the Supercarretera MEX 40D. This is the mountain section (151 km), not the full city-to-city run.",
+    "culture": "Hundreds of bikers ride it each April to the Semana Internacional de la Moto in Mazatlán.",
+    "polyline_file": "MX-route.geojson",
+    "polyline_length_km": 151.2,
+    "polyline_length_mi": 94.0,
+    "polyline_elevation_srtm90m": {
+      "min_m": 133,
+      "max_m": 2817,
+      "gain_m": 1036,
+      "loss_m": 3670,
+      "samples": 100
+    },
+    "elevation_note": "gain/loss from 100 SRTM 90 m samples along the polyline (opentopodata.org); treat as approximate",
+    "backups": [
+      {
+        "name": "La Rumorosa (Baja California)",
+        "why": "famous mountain descent on MEX 2"
+      },
+      {
+        "name": "Sierra Gorda de Querétaro (MEX 120)",
+        "why": "popular weekend curves from CDMX/Querétaro"
+      }
+    ]
+  },
+  "demo_garage": {
+    "currency": "MXN",
+    "units": {
+      "distance": "km",
+      "fuel_volume": "L",
+      "fuel_economy": "km/L"
+    },
+    "bikes": [
+      {
+        "make": "Italika",
+        "model": "FT150",
+        "year": 2023,
+        "odometer": "21,350 km",
+        "why": "Italika sells about 2 of every 3 motorcycles in Mexico; FT150 is its classic work bike. Italika is also the top make our MX users type.",
+        "sources": [
+          "https://www.adn40.mx/videoteca-opinion/2025-08-04/mas-tiempo-y-libertad-las-motos-italika/",
+          "https://www.portalautomotriz.com/print/noticias/motociclismo/italika-vende-un-millon-de-motocicletas-en-mexico-alcanza-63-de-participacion",
+          "https://ahorraseguros.mx/seguros-para-motos/guias/venta-de-motos/"
+        ]
+      },
+      {
+        "make": "Yamaha",
+        "model": "FZ 2.0 (FZ-S 150)",
+        "year": 2022,
+        "odometer": "14,800 km",
+        "why": "Yamaha is the #2/#3 brand and the 2nd make our MX users type. No model-level sales ranking found.",
+        "sources": ["https://ahorraseguros.mx/seguros-para-motos/guias/venta-de-motos/"]
+      }
+    ],
+    "expenses": [
+      {
+        "type": "fuel",
+        "label": "Magna, 10.5 L",
+        "amount": "$252.00",
+        "unit_price": "~$24/L (estimate)"
+      },
+      {
+        "type": "service",
+        "label": "Servicio de mantenimiento en agencia Italika",
+        "amount": "$850.00"
+      },
+      {
+        "type": "part",
+        "label": "Kit de arrastre (cadena y sprockets)",
+        "amount": "$690.00"
+      }
+    ],
+    "maintenance": {
+      "bike": "Italika FT150",
+      "overdue": {
+        "task": "Cambio de aceite",
+        "interval": "cada 2,000 km (Italika service plan, approx.)",
+        "status": "vencido por 350 km"
+      },
+      "upcoming": [
+        {
+          "task": "Ajuste y lubricación de cadena",
+          "interval": "cada 500-1,000 km",
+          "due": "21,800 km"
+        },
+        {
+          "task": "Bujía",
+          "interval": "cada 6,000 km",
+          "due": "24,000 km"
+        }
+      ],
+      "interval_confidence": "low: Italika publishes a service plan by km; values here are typical for small 4T commuters, verify"
+    }
+  },
+  "store_mapping": {
+    "app_store": {
+      "storefront_default_language": "Spanish (Mexico)",
+      "storefront_additional_languages": ["English (U.K.)"],
+      "best_localization_for_storefront": "es-MX",
+      "motovault_ios_localizations_live_3_26_0": [
+        "de-DE",
+        "en-GB",
+        "en-US",
+        "es-MX",
+        "fr-FR",
+        "it",
+        "pt-BR"
+      ],
+      "shown_today": "es-MX",
+      "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations"
+    },
+    "google_play": {
+      "listing_shown": "es-419",
+      "how_chosen": "Default listing: translation picked by the user's device language, falling back to the default (en-US). Custom store listings: picked by country first, then the user's language within that listing.",
+      "motovault_play_translations": "Play default listing has 46 translations in store/play/metadata, incl. en-US, en-GB, en-CA, en-AU, es-419, es-ES, es-US, pt-BR, fr-FR, de-DE, it-IT, fil (no fr-CA).",
+      "source": "https://support.google.com/googleplay/android-developer/answer/9867158"
+    },
+    "targeting": "Play custom store listings can target countries (up to 50 listings, each country in only one listing, no auto-translation). Apple cannot target countries on the default product page; per-country screenshots on iOS need Custom Product Pages (reached only via their own URL/ads) or a localization that only that storefront uses."
+  },
+  "local_notes": {
+    "date": "DD/MM/AAAA (03/11/2026)",
+    "number": "1,234.5 (Mexico uses decimal point)",
+    "words": {
+      "motorcycle": "moto, motocicleta",
+      "ride": "rodada, salir a rodar; 'motociclista', 'biker' is common"
+    },
+    "season_nov_mar": "Dry season: the best riding months in most of Mexico.",
+    "traffic": "right-hand",
+    "imagery": "Commuting and delivery are a big share of riding; Italika everywhere. Rodadas to events (Semana de la Moto Mazatlán in April)."
+  }
+}

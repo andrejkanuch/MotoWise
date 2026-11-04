@@ -1,0 +1,77 @@
+{
+  "locale": "en-PH",
+  "slots": {
+    "ride_tracking": {
+      "headline": ["Track every ride.", "Keep every road."],
+      "sub": "GPS route, distance, climb and max lean, logged as you ride."
+    },
+    "ride_stats": {
+      "headline": ["Every ride,", "by the numbers."],
+      "sub": "Distance, moving time, climb and max lean for every ride."
+    },
+    "expenses": {
+      "headline": ["Know what", "your motor costs."],
+      "sub": "Gas, parts, accessories and casa bills in one place. Free to log."
+    },
+    "receipt_scan": {
+      "headline": ["Snap the receipt.", "Skip the typing."],
+      "sub": "MotoVault reads the parts, labor and total, then fills it in."
+    },
+    "maintenance_reminders": {
+      "headline": ["Never miss", "your PMS."],
+      "sub": "Change oil and PMS reminders by km or by date."
+    },
+    "service_history": {
+      "headline": ["Every service,", "on the record."],
+      "sub": "A full maintenance history that backs you up at resale."
+    },
+    "garage": {
+      "headline": ["Your motor,", "in one place."],
+      "sub": "Specs, odometer, next service and running costs at a glance."
+    },
+    "trip_planning": {
+      "headline": ["Plan the trip.", "Ride the plan."],
+      "sub": "Map the route, drop waypoints, share it with your group."
+    },
+    "season_summary": {
+      "headline": ["Your season,", "in one recap."],
+      "sub": "Total distance, rides, your longest, and where you went."
+    },
+    "costs_overview": {
+      "headline": ["Every kilometer", "has a price."],
+      "sub": "Cost per km, monthly trends and what you spent this year."
+    }
+  },
+  "order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history",
+    "costs_overview",
+    "season_summary"
+  ],
+  "order_play": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history"
+  ],
+  "feature_graphic": {
+    "headline": ["Rides. Costs.", "Service. Tracked."]
+  },
+  "header": {
+    "headline": ["Your motorcycle,", "fully tracked."]
+  },
+  "search": {
+    "headline": ["Track every ride.", "Keep every road."],
+    "sub": "Rides · Gas & parts · PMS"
+  }
+}

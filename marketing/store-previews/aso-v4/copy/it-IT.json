@@ -1,0 +1,77 @@
+{
+  "locale": "it-IT",
+  "slots": {
+    "ride_tracking": {
+      "headline": ["Registra il giro.", "Ricorda la strada."],
+      "sub": "Traccia GPS, distanza, dislivello e piega massima, in automatico."
+    },
+    "ride_stats": {
+      "headline": ["Ogni uscita,", "in numeri."],
+      "sub": "Distanza, tempo in marcia, dislivello e piega massima."
+    },
+    "expenses": {
+      "headline": ["Quanto ti costa", "davvero la moto."],
+      "sub": "Benzina, ricambi, abbigliamento e officina in un posto. Gratis."
+    },
+    "receipt_scan": {
+      "headline": ["Uno scontrino,", "una foto."],
+      "sub": "MotoVault legge ricambi, manodopera e totale, e compila la spesa."
+    },
+    "maintenance_reminders": {
+      "headline": ["Mai più un", "tagliando saltato."],
+      "sub": "Promemoria a km o a data: olio, catena, gomme e revisione."
+    },
+    "service_history": {
+      "headline": ["Ogni tagliando,", "agli atti."],
+      "sub": "Uno storico completo che vale oro quando vendi la moto."
+    },
+    "garage": {
+      "headline": ["La tua moto,", "in un solo posto."],
+      "sub": "Scheda, contachilometri, prossimo tagliando e costi a colpo d’occhio."
+    },
+    "trip_planning": {
+      "headline": ["Pianifica il giro.", "Poi si parte."],
+      "sub": "Traccia il percorso, aggiungi tappe e condividilo col gruppo."
+    },
+    "season_summary": {
+      "headline": ["La tua stagione,", "in un riepilogo."],
+      "sub": "Distanza totale, il giro più lungo e dove sei stato."
+    },
+    "costs_overview": {
+      "headline": ["Ogni chilometro", "ha il suo prezzo."],
+      "sub": "Costo al km, andamento mensile e spese dell’anno."
+    }
+  },
+  "order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history",
+    "costs_overview",
+    "season_summary"
+  ],
+  "order_play": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history"
+  ],
+  "feature_graphic": {
+    "headline": ["La tua moto,", "sotto controllo."]
+  },
+  "header": {
+    "headline": ["La tua moto,", "sotto controllo."]
+  },
+  "search": {
+    "headline": ["Giri, spese", "e tagliandi."],
+    "sub": "Giri · Spese · Manutenzione"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "locale": "de-DE",
+  "slots": {
+    "ride_tracking": {
+      "headline": ["Jede Tour", "im Kasten."],
+      "sub": "GPS-Strecke, Distanz, Höhenmeter und Schräglage, automatisch."
+    },
+    "ride_stats": {
+      "headline": ["Jede Fahrt,", "in Zahlen."],
+      "sub": "Distanz, Fahrzeit, Höhenmeter und maximale Schräglage."
+    },
+    "expenses": {
+      "headline": ["Was dein Motorrad", "wirklich kostet."],
+      "sub": "Sprit, Teile, Ausrüstung und Werkstatt an einem Ort. Kostenlos."
+    },
+    "receipt_scan": {
+      "headline": ["Beleg knipsen.", "Fertig."],
+      "sub": "MotoVault liest Teile, Arbeitslohn und Summe und füllt alles aus."
+    },
+    "maintenance_reminders": {
+      "headline": ["Keine Inspektion", "mehr verpassen."],
+      "sub": "Erinnerungen nach Kilometern oder Datum: Öl, Kette, Reifen, TÜV."
+    },
+    "service_history": {
+      "headline": ["Dein digitales", "Scheckheft."],
+      "sub": "Jede Wartung dokumentiert. Das zahlt sich beim Verkauf aus."
+    },
+    "garage": {
+      "headline": ["Dein Motorrad,", "alles im Blick."],
+      "sub": "Daten, Kilometerstand, nächster Service und Kosten auf einen Blick."
+    },
+    "trip_planning": {
+      "headline": ["Tour planen.", "Tour fahren."],
+      "sub": "Route zeichnen, Stopps setzen und mit der Gruppe teilen."
+    },
+    "season_summary": {
+      "headline": ["Deine Saison", "auf einen Blick."],
+      "sub": "Gesamtstrecke, deine längste Tour und wo du überall warst."
+    },
+    "costs_overview": {
+      "headline": ["Jeder Kilometer", "hat seinen Preis."],
+      "sub": "Kosten pro km, Monatsverlauf und Ausgaben des Jahres."
+    }
+  },
+  "order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history",
+    "costs_overview",
+    "season_summary"
+  ],
+  "order_play": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history"
+  ],
+  "feature_graphic": {
+    "headline": ["Dein Motorrad", "im Griff."]
+  },
+  "header": {
+    "headline": ["Dein Motorrad", "im Griff."]
+  },
+  "search": {
+    "headline": ["Touren, Kosten", "und Wartung."],
+    "sub": "Touren · Kosten · Wartung"
+  }
+}

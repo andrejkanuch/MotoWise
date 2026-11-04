@@ -1,0 +1,98 @@
+{
+  "platform": "google_play",
+  "locale": "es-ES",
+  "listing_type": "default",
+  "title": {
+    "value": "MotoVault: Mantenimiento Moto",
+    "chars": 29,
+    "limit": 30
+  },
+  "short_description": {
+    "value": "Mantenimiento de moto, gastos, rutas GPS y avisos de revisión e ITV.",
+    "chars": 68,
+    "limit": 80
+  },
+  "full_description": {
+    "value": "MotoVault es la app de mantenimiento de moto para moteros: graba tus rutas con GPS, controla los gastos escaneando tickets y recibe avisos de revisión, en una app hecha para motos, no para coches.\n\nApunta cada repostaje y cada factura del taller, guarda el historial de mantenimiento y no se te pase ni el cambio de aceite ni la ITV.\n\n--------------------------\nLO QUE PUEDES HACER\n--------------------------\n\n* GRABA CADA RUTA - Dale a grabar y a rodar. MotoVault registra el trazado GPS, la distancia, el tiempo en marcha, el desnivel y la inclinación máxima, y crea un diario de cada kilómetro. Exporta cualquier ruta en GPX.\n\n* APUNTA CADA GASTO - Cada repostaje, cada recambio, cada visita al taller. Mira lo que te cuesta la moto por kilómetro, por mes y por año. Registrar es gratis e ilimitado, siempre.\n\n* ESCANEA EL TICKET EN VEZ DE TECLEARLO - Apunta la cámara a un ticket de gasolina, recambios o taller. MotoVault lee los recambios, la mano de obra, el total y la fecha, y rellena el gasto por ti.\n\n* QUE NO SE TE PASE NINGUNA REVISIÓN - Cambio de aceite, tensado de cadena, neumáticos, reglaje de válvulas. Pon avisos por kilómetros o por fecha y te avisamos antes del próximo intervalo.\n\n* EL HISTORIAL COMPLETO - Cada trabajo con fecha, kilómetros y coste. Un registro completo que te respalda cuando vendas la moto.\n\n* TU GARAJE - Ficha técnica, cuentakilómetros, próxima revisión y costes de tu moto en una sola pantalla. Más de 12.000 modelos en el catálogo.\n\n* PLANIFICA CADA VIAJE - La ruta del domingo o el viaje de tu vida. Guarda rutas, añade paradas y compártelas con tu grupo.\n\n* TU TEMPORADA EN UN RESUMEN - Kilómetros totales, rutas, tu ruta más larga y los países que recorriste, listo para compartir.\n\n--------------------------\nPOR QUÉ LOS MOTEROS SE PASAN A MOTOVAULT\n--------------------------\n\n- Una sola app en lugar de tres: registro de rutas, control de gastos y libro de mantenimiento\n- Avisos por kilómetros o por fecha, para dejar de adivinar cuándo toca el aceite\n- Avisos por fecha para la ITV, el seguro o el impuesto de circulación\n- El escáner de tickets lee recambios, mano de obra y total: apuntar un gasto lleva segundos\n- Kilómetros o millas, tema claro u oscuro: la app sigue tu elección\n- Tus datos son tuyos: privados, exportables, nunca vendidos\n\n--------------------------\nPARA QUIÉN ES\n--------------------------\n\n- Quien va en moto a diario y la quiere siempre a punto\n- El motero de fin de semana que busca la próxima carretera de curvas\n- Quien hace viajes largos y quiere registrarlo todo\n- Quien le mete mano a su propia moto\n- Cualquiera harto de apps pensadas para coches\n\n--------------------------\nMOTOVAULT PRO\n--------------------------\n\nGratis para siempre: 1 moto, registro ilimitado de mantenimiento y gastos, grabación ilimitada de rodadas, 1 diagnóstico IA y 3 escaneos de recibos al mes.\n\nPro desbloquea: más motos, diagnósticos IA y escaneos de recibos ilimitados, exportaciones GPX ilimitadas y mapas de viaje sin conexión. Mensual o anual. El precio aparece en la app antes de confirmar.\n\nLas suscripciones se renuevan automáticamente salvo que se cancelen al menos 24 horas antes de que termine el periodo en curso. Gestiónalas o cancélalas cuando quieras en los ajustes de tu cuenta de Google Play.\n\nPrivacidad: https://motovault.app/privacy\nTérminos: https://motovault.app/terms\n\n--------------------------\n\n¿Dudas o comentarios? Leemos cada correo: support@motovault.app\n\nDos ruedas. Una app. Rueda mejor.",
+    "chars": 3484,
+    "limit": 4000
+  },
+  "screenshot_captions": {
+    "ride_tracking": {
+      "headline": ["Graba cada ruta.", "Guarda cada curva."],
+      "headline_chars": [16, 18],
+      "subline": "Trazado GPS, distancia, desnivel e inclinación máxima, sin tocar nada.",
+      "subline_chars": 70
+    },
+    "ride_stats": {
+      "headline": ["Cada ruta,", "en números."],
+      "headline_chars": [10, 11],
+      "subline": "Distancia, tiempo en marcha, desnivel e inclinación máxima.",
+      "subline_chars": 59
+    },
+    "expenses": {
+      "headline": ["Lo que tu moto", "cuesta de verdad."],
+      "headline_chars": [14, 17],
+      "subline": "Gasolina, recambios, equipación y taller en un solo sitio. Gratis.",
+      "subline_chars": 66
+    },
+    "receipt_scan": {
+      "headline": ["Un ticket,", "una foto."],
+      "headline_chars": [10, 9],
+      "subline": "MotoVault lee recambios, mano de obra y total, y rellena el gasto.",
+      "subline_chars": 66
+    },
+    "maintenance_reminders": {
+      "headline": ["Que no se te pase", "ninguna revisión."],
+      "headline_chars": [17, 17],
+      "subline": "Avisos por km o por fecha: aceite, cadena, ITV y lo que haga falta.",
+      "subline_chars": 67
+    },
+    "service_history": {
+      "headline": ["Cada revisión,", "registrada."],
+      "headline_chars": [14, 11],
+      "subline": "Un historial completo que te respalda cuando vendas la moto.",
+      "subline_chars": 60
+    },
+    "garage": {
+      "headline": ["Tu moto,", "en un solo sitio."],
+      "headline_chars": [8, 17],
+      "subline": "Ficha, cuentakilómetros, próxima revisión y costes de un vistazo.",
+      "subline_chars": 65
+    },
+    "trip_planning": {
+      "headline": ["Prepara el viaje.", "Luego, a rodar."],
+      "headline_chars": [17, 15],
+      "subline": "Traza la ruta, añade paradas y compártela con tu grupo.",
+      "subline_chars": 55
+    },
+    "season_summary": {
+      "headline": ["Tu temporada,", "en un resumen."],
+      "headline_chars": [13, 14],
+      "subline": "Distancia total, tu ruta más larga y por dónde pasaste.",
+      "subline_chars": 55
+    },
+    "costs_overview": {
+      "headline": ["Cada kilómetro", "tiene su precio."],
+      "headline_chars": [14, 16],
+      "subline": "Coste por km, tendencia mensual y lo gastado este año.",
+      "subline_chars": 54
+    }
+  },
+  "feature_graphic_headline": {
+    "value": "Rutas, gastos y revisiones. Controlados.",
+    "words": 5,
+    "limit_words": 5
+  },
+  "rationale": "Castilian: rutas, revisión, ITV, neumáticos, repostaje, motero.",
+  "screenshot_order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history"
+  ]
+}

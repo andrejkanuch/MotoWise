@@ -1,0 +1,119 @@
+{
+  "platform": "apple",
+  "locale": "it",
+  "name": {
+    "value": "MotoVault: Manutenzione Moto",
+    "chars": 28,
+    "limit": 30
+  },
+  "subtitle": {
+    "value": "Giri GPS, spese e tagliandi",
+    "chars": 27,
+    "limit": 30
+  },
+  "keywords": {
+    "value": "motociclista,percorsi,piega,benzina,gomme,olio,catena,promemoria,scontrino,km,viaggio,officina,tour",
+    "bytes": 99,
+    "limit": 100
+  },
+  "promotional_text": {
+    "value": "Registra il giro, fotografa lo scontrino, ricevi il promemoria del tagliando. Giri, spese e manutenzione della tua moto in una sola app.",
+    "chars": 136,
+    "limit": 170
+  },
+  "description": {
+    "value": "Registra ogni giro, ogni spesa e ogni tagliando della tua moto, in un’app pensata per i motociclisti, non per le auto.\n\nMotoVault registra le tue uscite col GPS, ti mostra quanto ti costa davvero la moto e ti avvisa prima del prossimo tagliando. Giri, spese e storico della manutenzione, tutto in un garage da tasca.\n\n--------------------------\nCOSA PUOI FARE\n--------------------------\n\n* REGISTRA OGNI GIRO - Premi registra e parti. MotoVault salva la traccia GPS, la distanza, il tempo in marcia, il dislivello e l’angolo di piega massimo, e tiene il diario di ogni chilometro. Esporta qualsiasi uscita in GPX.\n\n* TIENI TRACCIA DI OGNI SPESA - Ogni pieno, ogni ricambio, ogni passaggio in officina. Scopri quanto ti costa la moto al km, al mese e all’anno. Registrare è gratis e senza limiti, sempre.\n\n* SCANSIONA LO SCONTRINO INVECE DI DIGITARLO - Inquadra uno scontrino di benzina, ricambi o officina. MotoVault legge i ricambi, la manodopera, il totale e la data, e compila la spesa per te.\n\n* MAI PIÙ UN TAGLIANDO DIMENTICATO - Cambio olio, tensionamento catena, cambio gomme, gioco valvole. Imposta promemoria a chilometri o a data e ricevi un avviso prima della prossima scadenza.\n\n* STORICO COMPLETO - Ogni intervento con data, chilometri e costo. Un libretto completo che ti dà forza quando vendi la moto.\n\n* IL TUO GARAGE - Scheda tecnica, contachilometri, prossimo tagliando e costi della tua moto in un’unica schermata. Oltre 12.000 modelli in catalogo.\n\n* MOTOVAULT SU CARPLAY - Avvia, metti in pausa e chiudi un giro dallo schermo dell’auto, con distanza e tempo in marcia leggibili al volo.\n\n* PIANIFICA OGNI VIAGGIO - Il giro della domenica o il viaggio della vita. Salva percorsi, aggiungi tappe e condividili con il gruppo.\n\n* LA TUA STAGIONE IN UN RIEPILOGO - Chilometri totali, uscite, il giro più lungo e i paesi attraversati, pronti da condividere.\n\n--------------------------\nPENSATA PER I MOTOCICLISTI\n--------------------------\n\n- Chilometri o miglia: tutto il garage segue la tua scelta\n- Tema chiaro e scuro, leggibile anche in officina\n- I tuoi dati sono tuoi: privati, esportabili, mai venduti\n- Pensata per chi guida in Italia e in Europa\n\n--------------------------\nPER CHI È\n--------------------------\n\n- Chi usa la moto tutti i giorni e la vuole sempre a posto\n- Chi esce nel weekend a cercare la prossima strada di curve\n- Chi fa viaggi lunghi e vuole registrare tutto\n- Chi mette le mani sulla propria moto\n- Chi è stanco di app pensate per le auto\n\n--------------------------\nGRATIS E PRO\n--------------------------\n\nMotoVault è gratis e registrare non ha mai limiti: una moto, spese illimitate, storico manutenzione e promemoria illimitati, registrazione di giri e viaggi illimitata. Ogni mese hai anche 3 scansioni di scontrini e 1 esportazione GPX.\n\nMotoVault Pro aggiunge moto illimitate, scansioni illimitate, esportazioni GPX illimitate, mappe di viaggio offline e più aiuto dall’IA. Mensile, annuale o un unico acquisto a vita: i prezzi sono mostrati nell’app nella tua valuta.\n\nGli abbonamenti si rinnovano automaticamente se non vengono annullati almeno 24 ore prima della fine del periodo in corso. Gestiscili o annullali quando vuoi nelle impostazioni del tuo account App Store.\n\nPrivacy: https://motovault.app/privacy\nTermini: https://motovault.app/terms\n\nDomande o idee? Leggiamo ogni email: support@motovault.app\n\nDue ruote. Un’app. Guida meglio.",
+    "chars": 3398,
+    "limit": 4000
+  },
+  "whats_new": {
+    "value": "Registrazione dei giri più fluida, scansione degli scontrini più veloce e varie correzioni. Grazie per ogni messaggio: li leggiamo tutti.",
+    "chars": 137,
+    "limit": 4000
+  },
+  "screenshot_captions": {
+    "ride_tracking": {
+      "headline": ["Registra il giro.", "Ricorda la strada."],
+      "headline_chars": [17, 18],
+      "subline": "Traccia GPS, distanza, dislivello e piega massima, in automatico.",
+      "subline_chars": 65
+    },
+    "ride_stats": {
+      "headline": ["Ogni uscita,", "in numeri."],
+      "headline_chars": [12, 10],
+      "subline": "Distanza, tempo in marcia, dislivello e piega massima.",
+      "subline_chars": 54
+    },
+    "expenses": {
+      "headline": ["Quanto ti costa", "davvero la moto."],
+      "headline_chars": [15, 16],
+      "subline": "Benzina, ricambi, abbigliamento e officina in un posto. Gratis.",
+      "subline_chars": 63
+    },
+    "receipt_scan": {
+      "headline": ["Uno scontrino,", "una foto."],
+      "headline_chars": [14, 9],
+      "subline": "MotoVault legge ricambi, manodopera e totale, e compila la spesa.",
+      "subline_chars": 65
+    },
+    "maintenance_reminders": {
+      "headline": ["Mai più un", "tagliando saltato."],
+      "headline_chars": [10, 18],
+      "subline": "Promemoria a km o a data: olio, catena, gomme e revisione.",
+      "subline_chars": 58
+    },
+    "service_history": {
+      "headline": ["Ogni tagliando,", "agli atti."],
+      "headline_chars": [15, 10],
+      "subline": "Uno storico completo che vale oro quando vendi la moto.",
+      "subline_chars": 55
+    },
+    "garage": {
+      "headline": ["La tua moto,", "in un solo posto."],
+      "headline_chars": [12, 17],
+      "subline": "Scheda, contachilometri, prossimo tagliando e costi a colpo d’occhio.",
+      "subline_chars": 69
+    },
+    "trip_planning": {
+      "headline": ["Pianifica il giro.", "Poi si parte."],
+      "headline_chars": [18, 13],
+      "subline": "Traccia il percorso, aggiungi tappe e condividilo col gruppo.",
+      "subline_chars": 61
+    },
+    "season_summary": {
+      "headline": ["La tua stagione,", "in un riepilogo."],
+      "headline_chars": [16, 16],
+      "subline": "Distanza totale, il giro più lungo e dove sei stato.",
+      "subline_chars": 52
+    },
+    "costs_overview": {
+      "headline": ["Ogni chilometro", "ha il suo prezzo."],
+      "headline_chars": [15, 17],
+      "subline": "Costo al km, andamento mensile e spese dell’anno.",
+      "subline_chars": 49
+    }
+  },
+  "product_page_header_headline": {
+    "value": "La tua moto, sotto controllo.",
+    "chars": 29,
+    "limit": 40
+  },
+  "search_results_asset_headline": {
+    "value": "Giri, spese e tagliandi.",
+    "chars": 24,
+    "limit": 45
+  },
+  "rationale": "Italy hints: \"manutenzione moto\" (5 competitors use it as title), \"moto manutenzione, spese, note\", \"giri in moto\", \"percorsi moto\", \"moto gps\". MotoVault is #130 for \"manutenzione moto\" because the word is only in the keyword field. Name now carries it; \"piega\" is how Italians say lean angle.",
+  "screenshot_order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history",
+    "costs_overview",
+    "season_summary"
+  ]
+}

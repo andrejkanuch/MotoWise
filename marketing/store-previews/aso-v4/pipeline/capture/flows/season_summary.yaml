@@ -1,0 +1,16 @@
+appId: com.motovault.app
+tags: [screenshots]
+---
+# Roads ridden: lifetime heatmap + this year's recap. Since #320 the map frames the rider's
+# own lines, so no manual globe spinning.
+- runFlow:
+    file: _open.yaml
+    env:
+      LINK: "motovault://heatmap"
+- extendedWaitUntil:
+    visible: "${L_SHARE_RECAP}.*|Share recap.*"  # a11y label is English today
+    timeout: 30000
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: ${OUT}/season_summary
+- runFlow: _no_paywall.yaml

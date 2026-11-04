@@ -1,0 +1,433 @@
+{
+  "cc": "ES",
+  "market_name": "Spain",
+  "app_language": "es",
+  "store_locales": {
+    "ios": "es-ES",
+    "play": "es-ES"
+  },
+  "device": {
+    "apple_languages": ["es-ES", "es"],
+    "apple_locale": "es_ES",
+    "metric": true
+  },
+  "measurement_system": "metric",
+  "currency": "EUR",
+  "timezone": "Europe/Madrid",
+  "region_code": "ES-AN",
+  "rider": {
+    "display_name": "Javier G.",
+    "city": "Marbella",
+    "home": [36.5101, -4.8825]
+  },
+  "bikes": [
+    {
+      "key": "primary",
+      "make": "YAMAHA",
+      "model": "MT-07",
+      "year": 2022,
+      "nickname": "La Emeté",
+      "type": "standard",
+      "engine_cc": 689,
+      "odometer": 24300,
+      "odometer_jan1": 17900,
+      "purchase_date": "2022-03-26",
+      "purchase_price": 7899
+    },
+    {
+      "key": "second",
+      "make": "YAMAHA",
+      "model": "NMAX 125",
+      "year": 2023,
+      "nickname": "El scooter",
+      "type": "scooter",
+      "engine_cc": 125,
+      "odometer": 11200,
+      "odometer_jan1": 7300,
+      "purchase_date": "2023-05-13",
+      "purchase_price": 3699
+    }
+  ],
+  "hero_ride": {
+    "name": "Subida a Ronda por la A-397",
+    "road": "A-397",
+    "date": "2026-10-18",
+    "start_time": "09:45",
+    "avg_speed_kmh": 56,
+    "max_speed_kmh": 100,
+    "max_lean_deg": 40,
+    "elevation_gain_m": null
+  },
+  "other_rides": [
+    {
+      "name": "Grazalema y el Puerto de las Palomas",
+      "date": "2026-10-04",
+      "distance_km": 230,
+      "avg_speed_kmh": 55,
+      "elevation_gain_m": 2300
+    },
+    {
+      "name": "Costa hasta Estepona",
+      "date": "2026-10-25",
+      "distance_km": 60,
+      "avg_speed_kmh": 48,
+      "elevation_gain_m": 150
+    },
+    {
+      "name": "Valle del Genal",
+      "date": "2026-09-27",
+      "distance_km": 140,
+      "avg_speed_kmh": 50,
+      "elevation_gain_m": 1800
+    }
+  ],
+  "season": {
+    "rides": 95,
+    "distance_km": 8400
+  },
+  "fuel": {
+    "label": "Gasolina 95",
+    "unit": "L",
+    "price_per_unit": 1.49,
+    "fill_size": [10, 13.5],
+    "stations": [
+      "Repsol, Av. Ricardo Soriano",
+      "Cepsa, San Pedro de Alcántara",
+      "BP, Ronda",
+      "Galp, Estepona",
+      "Shell, Puerto Banús"
+    ]
+  },
+  "service": {
+    "title": "Revisión 20.000 km",
+    "date": "2026-06-12",
+    "odometer": 20080,
+    "vendor": "Motos Sierra Bermeja",
+    "tax_label": "IVA 21%",
+    "tax_rate": 0.21,
+    "tax_included": true,
+    "line_items": [
+      {
+        "label": "Aceite Yamalube 10W-40, 3 L",
+        "service_type": "oil_change",
+        "amount": 48.9
+      },
+      {
+        "label": "Filtro de aceite",
+        "service_type": "oil_filter",
+        "amount": 14.5
+      },
+      {
+        "label": "Filtro de aire",
+        "service_type": "air_filter",
+        "amount": 29.9
+      },
+      {
+        "label": "Bujías (2)",
+        "service_type": "spark_plug",
+        "amount": 26.0
+      },
+      {
+        "label": "Kit de transmisión, limpieza y tensado",
+        "service_type": "chain",
+        "amount": 15.0
+      },
+      {
+        "label": "Mano de obra 2 h",
+        "service_type": "general_service",
+        "amount": 110.7
+      }
+    ]
+  },
+  "service_interval": 10000,
+  "expenses": [
+    {
+      "category": "insurance",
+      "date": "2026-03-01",
+      "amount": 289.0,
+      "item": "Seguro a terceros ampliado 2026",
+      "vendor": "Seguro moto"
+    },
+    {
+      "category": "taxes_fees",
+      "date": "2026-04-20",
+      "amount": 33.0,
+      "item": "Impuesto de circulación (IVTM)",
+      "vendor": "Ayuntamiento de Marbella"
+    },
+    {
+      "category": "parts",
+      "date": "2026-09-19",
+      "amount": 54.9,
+      "item": "Pastillas de freno delanteras",
+      "vendor": "Motos Sierra Bermeja"
+    },
+    {
+      "category": "taxes_fees",
+      "date": "2026-05-08",
+      "amount": 31.5,
+      "item": "ITV",
+      "vendor": "Estación ITV"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Cambio de aceite y filtro",
+      "target_odometer": 24000,
+      "priority": "high"
+    },
+    {
+      "title": "Revisión 30.000 km",
+      "target_odometer": 30000,
+      "priority": "medium"
+    },
+    {
+      "title": "Líquido de frenos",
+      "due_date": "2027-03-01",
+      "priority": "medium"
+    }
+  ],
+  "trip": {
+    "title": "Pueblos blancos",
+    "description": "Ronda, Grazalema y Zahara de la Sierra",
+    "start_date": "2026-11-21",
+    "end_date": "2026-11-22",
+    "difficulty": "moderate",
+    "status": "draft",
+    "stops": [
+      {
+        "name": "Marbella",
+        "lat": 36.5101,
+        "lng": -4.8825,
+        "type": "start",
+        "day": 0
+      },
+      {
+        "name": "Ronda",
+        "lat": 36.742,
+        "lng": -5.165,
+        "type": "food",
+        "day": 0
+      },
+      {
+        "name": "Grazalema",
+        "lat": 36.759,
+        "lng": -5.368,
+        "type": "scenic",
+        "day": 0
+      },
+      {
+        "name": "Zahara de la Sierra",
+        "lat": 36.84,
+        "lng": -5.391,
+        "type": "overnight",
+        "day": 0
+      },
+      {
+        "name": "Marbella",
+        "lat": 36.5101,
+        "lng": -4.8825,
+        "type": "end",
+        "day": 1
+      }
+    ]
+  },
+  "notes": "store_locales.ios es-ES does not exist on the App Store yet (only es-MX); it has to be added before upload, which also gives Spain its own screenshots.",
+  "generated": "2026-11-03",
+  "feature_usage": {
+    "n_users": 43,
+    "counts": {
+      "users": 43,
+      "rides_tracked": 1,
+      "rides_finished": 1,
+      "trips": 1,
+      "trip_building": 1,
+      "maintenance": 3,
+      "expenses": 1,
+      "receipt_scan": 0,
+      "ai_diagnosis": 1,
+      "bike_added": 26,
+      "onboarding_completed": 12
+    },
+    "local_ranking": [
+      {
+        "feature": "maintenance",
+        "users": 3,
+        "pct": 7.0
+      },
+      {
+        "feature": "rides_tracked",
+        "users": 1,
+        "pct": 2.3
+      },
+      {
+        "feature": "trips",
+        "users": 1,
+        "pct": 2.3
+      },
+      {
+        "feature": "expenses",
+        "users": 1,
+        "pct": 2.3
+      },
+      {
+        "feature": "ai_diagnosis",
+        "users": 1,
+        "pct": 2.3
+      }
+    ],
+    "onboarding_primary_goal": {
+      "maintain_bike": 5,
+      "track_rides": 3,
+      "just_exploring": 2,
+      "manage_expenses": 1
+    },
+    "bike_makes_typed": "Yamaha 6, Honda 6 (2 Africa Twin), SYM 4, BMW 2",
+    "differs_from_global": "Maintenance leads: 3 users vs 1 ride; maintain_bike is the top goal (5 of 11). Very small n=43.",
+    "sample_strength": "thin",
+    "recommended_screenshot_order": ["maintenance", "rides", "expenses", "trips", "garage"],
+    "recommendation": "Keep global by default; maintenance-first is the best candidate for a Spain-only test (Play custom listing or Apple PPO). Evidence is too thin to switch blind."
+  },
+  "hero_route": {
+    "name_local": "Carretera de Ronda (A-397)",
+    "region": "Andalucía, Málaga (Serranía de Ronda)",
+    "start": "San Pedro de Alcántara (Marbella)",
+    "end": "Ronda",
+    "official_length": "~50 km",
+    "official_elevation": "sea level to ~1,150 m (RIDE: ~3,800 ft)",
+    "sources": [
+      "https://andalucia.com/travel/itineraries/sanpedro-ronda.htm",
+      "https://www.pressreader.com/uk/ride-uk/20220201/282716230339011",
+      "https://bestbikingroads.nl/motorcycle-roads/spain/andalucia/ride/a397-ronda-san-pedro-de-alcantara"
+    ],
+    "polyline_note": "OSRM San Pedro -> Ronda, 43.5 km on the A-397.",
+    "caveat": "Locals call it the area's favourite moto road; also an accident blackspot. Madrid/Barcelona riders may know their local passes better.",
+    "polyline_file": "ES-route.geojson",
+    "polyline_length_km": 47.7,
+    "polyline_length_mi": 29.6,
+    "polyline_elevation_srtm90m": {
+      "min_m": 47,
+      "max_m": 1126,
+      "gain_m": 1227,
+      "loss_m": 561,
+      "samples": 100
+    },
+    "elevation_note": "gain/loss from 100 SRTM 90 m samples along the polyline (opentopodata.org); treat as approximate",
+    "backups": [
+      {
+        "name": "Puerto de Navacerrada / Los Leones (Madrid)",
+        "why": "the weekend run for Madrid riders"
+      },
+      {
+        "name": "Eje Pirenaico N-260",
+        "why": "Pyrenees crossing, Spain's long-distance classic"
+      }
+    ]
+  },
+  "demo_garage": {
+    "currency": "EUR",
+    "units": {
+      "distance": "km",
+      "fuel_volume": "L",
+      "fuel_economy": "L/100 km"
+    },
+    "bikes": [
+      {
+        "make": "Yamaha",
+        "model": "MT-07",
+        "year": 2022,
+        "odometer": "24.300 km",
+        "why": "Pillar of the big-bike segment (2,547 units 2025). Yamaha is the top make our ES users type.",
+        "sources": [
+          "https://soymotero.net/noticia/honda-lidera-voge-sorprende-y-el-scooter-domina-265-000-matriculaciones-y-el-mejor-dato-en-17-anos/"
+        ]
+      },
+      {
+        "make": "Yamaha",
+        "model": "NMAX 125",
+        "year": 2023,
+        "odometer": "11.200 km",
+        "why": "Spain's best-selling two-wheeler (3,721 in Q1 2025); scooters are 55% of the market.",
+        "sources": [
+          "https://www.autofacil.es/matriculaciones-2025/",
+          "https://www.anesdor.com/wp-content/uploads/2025/10/250930-Modelos-vn-septiembre.pdf"
+        ]
+      }
+    ],
+    "expenses": [
+      {
+        "type": "fuel",
+        "label": "Gasolina 95, 12,4 L",
+        "amount": "18,48 €",
+        "unit_price": "~1,49 €/L (estimate)"
+      },
+      {
+        "type": "service",
+        "label": "Revisión 20.000 km en concesionario Yamaha",
+        "amount": "245,00 €"
+      },
+      {
+        "type": "part",
+        "label": "Pastillas de freno delanteras",
+        "amount": "54,90 €"
+      }
+    ],
+    "maintenance": {
+      "bike": "Yamaha MT-07",
+      "overdue": {
+        "task": "Cambio de aceite y filtro",
+        "interval": "cada 10.000 km o 1 año",
+        "status": "vencido por 300 km"
+      },
+      "upcoming": [
+        {
+          "task": "Kit de transmisión (revisar/limpiar cadena)",
+          "interval": "cada 1.000 km",
+          "due": "24.800 km"
+        },
+        {
+          "task": "Holgura de válvulas",
+          "interval": "cada 40.000 km",
+          "due": "40.000 km"
+        }
+      ],
+      "interval_confidence": "medium: Yamaha EU schedule for CP2 engine as commonly published; verify"
+    }
+  },
+  "store_mapping": {
+    "app_store": {
+      "storefront_default_language": "Spanish (Spain)",
+      "storefront_additional_languages": ["Catalan", "English (U.K.)"],
+      "best_localization_for_storefront": "es-ES",
+      "motovault_ios_localizations_live_3_26_0": [
+        "de-DE",
+        "en-GB",
+        "en-US",
+        "es-MX",
+        "fr-FR",
+        "it",
+        "pt-BR"
+      ],
+      "shown_today": "en-GB (MotoVault has no es-ES App Store localization, so Spanish-speaking iPhones in Spain see the English (U.K.) page)",
+      "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations"
+    },
+    "google_play": {
+      "listing_shown": "es-ES",
+      "how_chosen": "Default listing: translation picked by the user's device language, falling back to the default (en-US). Custom store listings: picked by country first, then the user's language within that listing.",
+      "motovault_play_translations": "Play default listing has 46 translations in store/play/metadata, incl. en-US, en-GB, en-CA, en-AU, es-419, es-ES, es-US, pt-BR, fr-FR, de-DE, it-IT, fil (no fr-CA).",
+      "source": "https://support.google.com/googleplay/android-developer/answer/9867158"
+    },
+    "targeting": "Play custom store listings can target countries (up to 50 listings, each country in only one listing, no auto-translation). Apple cannot target countries on the default product page; per-country screenshots on iOS need Custom Product Pages (reached only via their own URL/ads) or a localization that only that storefront uses."
+  },
+  "local_notes": {
+    "date": "DD/MM/AAAA",
+    "number": "1.234,5",
+    "words": {
+      "motorcycle": "moto",
+      "ride": "ruta, salida, rutear; 'motero', 'motorista'"
+    },
+    "season_nov_mar": "Rideable all winter in Andalucía and the Mediterranean coast; cold and wet in the north.",
+    "traffic": "right-hand",
+    "imagery": "Scooters are 55% of sales; MotoGP culture is strong. ITV (inspection) is a known recurring cost."
+  }
+}

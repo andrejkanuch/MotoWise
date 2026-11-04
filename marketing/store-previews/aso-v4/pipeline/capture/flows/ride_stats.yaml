@@ -1,0 +1,18 @@
+appId: com.motovault.app
+tags: [screenshots]
+---
+# Same hero ride, the stats sheet lifted: distance, moving time, speed, lean, elevation.
+- runFlow:
+    file: _open.yaml
+    env:
+      LINK: "motovault://ride-detail?rideId=${HERO_RIDE_ID}"
+- extendedWaitUntil:
+    visible: "${L_SHARE_RIDE}|Share ride"
+    timeout: 30000
+- swipe:
+    start: "50%,90%"
+    end: "50%,30%"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: ${OUT}/ride_stats
+- runFlow: _no_paywall.yaml

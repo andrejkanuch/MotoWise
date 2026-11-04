@@ -1,0 +1,16 @@
+appId: com.motovault.app
+tags: [screenshots]
+---
+# Expense Insights for the primary bike, this year. YEAR_TOTAL is the seed's own total in the
+# app's money format (en-US Intl in every language, see labels.py).
+- runFlow:
+    file: _open.yaml
+    env:
+      LINK: "motovault://expense-dashboard?motorcycleId=${BIKE_ID}&currentMileage=${BIKE_MILEAGE}&mileageUnit=${MILEAGE_UNIT}"
+- extendedWaitUntil:
+    visible: ".*${YEAR_TOTAL}.*"
+    timeout: 30000
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: ${OUT}/expenses
+- runFlow: _no_paywall.yaml

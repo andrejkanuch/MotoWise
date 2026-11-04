@@ -1,0 +1,12 @@
+# Open an in-app route by deep link. iOS asks "Open in “MotoVault”?" only when the link arrives
+# while another app is in front; the button text follows the device language, so match the
+# common translations and tap only when it shows.
+appId: com.motovault.app
+---
+- openLink: ${LINK}
+- runFlow:
+    when:
+      visible: "Open|Abrir|Öffnen|Ouvrir|Apri"
+    commands:
+      - tapOn: "Open|Abrir|Öffnen|Ouvrir|Apri"
+- waitForAnimationToEnd

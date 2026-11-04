@@ -1,0 +1,17 @@
+appId: com.motovault.app
+tags: [screenshots]
+---
+# Service, History: newest first, the dealer service with its total and mileage.
+- runFlow:
+    file: _open.yaml
+    env:
+      LINK: "motovault://bike/${BIKE_ID}?segment=service"
+- tapOn:
+    id: "service-tab-history"
+- extendedWaitUntil:
+    visible:
+      id: "service-history-${SERVICE_TASK_ID}"
+    timeout: 30000
+- waitForAnimationToEnd
+- takeScreenshot: ${OUT}/service_history
+- runFlow: _no_paywall.yaml

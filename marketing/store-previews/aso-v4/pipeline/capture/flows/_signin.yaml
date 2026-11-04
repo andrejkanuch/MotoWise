@@ -1,0 +1,54 @@
+# Sign the market account in when the app is signed out; a no-op otherwise. Every visible
+# string comes from the app's locale file via capture/labels.py (L_* vars), never English.
+appId: com.motovault.app
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "${L_HAVE_ACCOUNT}|${L_HAVE_ACCOUNT_AUTH}|${L_HOME_TAB}.*|${L_CONSENT_DECLINE}"
+    timeout: 60000
+# Analytics consent (Block C) shows once on a fresh install: decline, so the demo account
+# never feeds PostHog (feedback: no local analytics).
+- runFlow:
+    when:
+      visible: "${L_CONSENT_DECLINE}"
+    commands:
+      - tapOn: "${L_CONSENT_DECLINE}"
+- runFlow:
+    when:
+      visible: "${L_HAVE_ACCOUNT}|${L_HAVE_ACCOUNT_AUTH}"
+    commands:
+      - tapOn: "${L_HAVE_ACCOUNT}|${L_HAVE_ACCOUNT_AUTH}"
+      # The consent sheet can also arrive a moment later, over the sign-in form: decline it again.
+      - waitForAnimationToEnd:
+          timeout: 3000
+      - runFlow:
+          when:
+            visible: "${L_CONSENT_DECLINE}"
+          commands:
+            - tapOn: "${L_CONSENT_DECLINE}"
+      - tapOn:
+          text: "${L_EMAIL}"
+          index: 1
+      - inputText: ${TEST_EMAIL}
+      # The custom keyboard ignores hideKeyboard and inputText concatenates if focus stays
+      # (apps/mobile/.maestro/README.md): move focus explicitly to the password field.
+      - tapOn:
+          text: "${L_PASSWORD}"
+          index: 1
+      - inputText: ${TEST_PASSWORD}
+      - tapOn: "${L_SIGN_IN}"
+      - extendedWaitUntil:
+          notVisible: "${L_SIGN_IN}"
+          timeout: 60000
+      # iOS "Save Password?" sheet.
+      - runFlow:
+          when:
+            visible: "Not Now|Ahora no|Agora não|Jetzt nicht|Plus tard|Non ora"
+          commands:
+            - tapOn: "Not Now|Ahora no|Agora não|Jetzt nicht|Plus tard|Non ora"
+- extendedWaitUntil:
+    visible: "${L_HOME_TAB}.*"
+    timeout: 30000
+# The account is onboarded by the seed (users.onboarding_completed_at). If the app still shows
+# onboarding, stop here: its last steps are the paywall.
+- runFlow: _no_paywall.yaml

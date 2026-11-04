@@ -1,0 +1,422 @@
+{
+  "cc": "IT",
+  "market_name": "Italy",
+  "app_language": "it",
+  "store_locales": {
+    "ios": "it",
+    "play": "it-IT"
+  },
+  "device": {
+    "apple_languages": ["it-IT", "it"],
+    "apple_locale": "it_IT",
+    "metric": true
+  },
+  "measurement_system": "metric",
+  "currency": "EUR",
+  "timezone": "Europe/Rome",
+  "region_code": "IT-SO",
+  "rider": {
+    "display_name": "Marco F.",
+    "city": "Sondrio",
+    "home": [46.1699, 9.8715]
+  },
+  "bikes": [
+    {
+      "key": "primary",
+      "make": "BMW",
+      "model": "R 1300 GS",
+      "year": 2024,
+      "nickname": "La Gessona",
+      "type": "dual_sport",
+      "engine_cc": 1300,
+      "odometer": 21400,
+      "odometer_jan1": 10900,
+      "purchase_date": "2024-02-24",
+      "purchase_price": 22900
+    },
+    {
+      "key": "second",
+      "make": "HONDA",
+      "model": "SH 125",
+      "year": 2022,
+      "nickname": "L'SH",
+      "type": "scooter",
+      "engine_cc": 125,
+      "odometer": 13700,
+      "odometer_jan1": 10800,
+      "purchase_date": "2022-04-09",
+      "purchase_price": 3990
+    }
+  ],
+  "hero_ride": {
+    "name": "Stelvio da Bormio a Prato",
+    "road": "SS38",
+    "date": "2026-10-04",
+    "start_time": "09:00",
+    "avg_speed_kmh": 38,
+    "max_speed_kmh": 85,
+    "max_lean_deg": 36,
+    "elevation_gain_m": null
+  },
+  "other_rides": [
+    {
+      "name": "Passo del Mortirolo",
+      "date": "2026-09-26",
+      "distance_km": 110,
+      "avg_speed_kmh": 42,
+      "elevation_gain_m": 1900
+    },
+    {
+      "name": "Giro del Lago di Como",
+      "date": "2026-10-25",
+      "distance_km": 170,
+      "avg_speed_kmh": 46,
+      "elevation_gain_m": 1100
+    },
+    {
+      "name": "Al lavoro",
+      "date": "2026-10-29",
+      "distance_km": 14,
+      "avg_speed_kmh": 30,
+      "elevation_gain_m": 40,
+      "bike": "second"
+    }
+  ],
+  "season": {
+    "rides": 90,
+    "distance_km": 11200
+  },
+  "fuel": {
+    "label": "Benzina self",
+    "unit": "L",
+    "price_per_unit": 1.72,
+    "fill_size": [15, 19],
+    "stations": ["Eni, Sondrio", "Q8, Tirano", "IP, Bormio", "Tamoil, Morbegno", "Esso, Colico"]
+  },
+  "service": {
+    "title": "Tagliando 20.000 km",
+    "date": "2026-08-29",
+    "odometer": 20020,
+    "vendor": "Valtellina Moto Service",
+    "tax_label": "IVA 22%",
+    "tax_rate": 0.22,
+    "tax_included": true,
+    "line_items": [
+      {
+        "label": "Olio motore 5W-40, 4 L",
+        "service_type": "oil_change",
+        "amount": 84.0
+      },
+      {
+        "label": "Filtro olio",
+        "service_type": "oil_filter",
+        "amount": 21.0
+      },
+      {
+        "label": "Controllo gioco valvole",
+        "service_type": "valve_clearance",
+        "amount": 95.0
+      },
+      {
+        "label": "Candele (2)",
+        "service_type": "spark_plug",
+        "amount": 44.0
+      },
+      {
+        "label": "Manodopera 2,5 h",
+        "service_type": "general_service",
+        "amount": 176.0
+      }
+    ]
+  },
+  "service_interval": 10000,
+  "expenses": [
+    {
+      "category": "insurance",
+      "date": "2026-02-24",
+      "amount": 380.0,
+      "item": "RC moto 2026",
+      "vendor": "Assicurazione moto"
+    },
+    {
+      "category": "taxes_fees",
+      "date": "2026-02-28",
+      "amount": 62.0,
+      "item": "Bollo moto 2026",
+      "vendor": "ACI"
+    },
+    {
+      "category": "tires",
+      "date": "2026-07-11",
+      "amount": 310.0,
+      "item": "Coppia gomme Anakee Road",
+      "vendor": "Valtellina Moto Service"
+    },
+    {
+      "category": "tolls",
+      "date": "2026-10-25",
+      "amount": 4.2,
+      "item": "Pedaggio",
+      "vendor": "Autostrade"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Tagliando (olio e filtro)",
+      "target_odometer": 20000,
+      "priority": "high"
+    },
+    {
+      "title": "Liquido freni",
+      "due_date": "2027-02-24",
+      "priority": "medium"
+    },
+    {
+      "title": "Tagliando 30.000 km",
+      "target_odometer": 30000,
+      "priority": "medium"
+    }
+  ],
+  "trip": {
+    "title": "Lago di Como d'autunno",
+    "description": "Bellagio, il Ghisallo e Varenna",
+    "start_date": "2026-11-15",
+    "end_date": "2026-11-15",
+    "difficulty": "easy",
+    "status": "draft",
+    "stops": [
+      {
+        "name": "Sondrio",
+        "lat": 46.1699,
+        "lng": 9.8715,
+        "type": "start",
+        "day": 0
+      },
+      {
+        "name": "Varenna",
+        "lat": 46.01,
+        "lng": 9.284,
+        "type": "scenic",
+        "day": 0
+      },
+      {
+        "name": "Bellagio",
+        "lat": 45.987,
+        "lng": 9.261,
+        "type": "food",
+        "day": 0
+      },
+      {
+        "name": "Madonna del Ghisallo",
+        "lat": 45.92,
+        "lng": 9.27,
+        "type": "pass_summit",
+        "day": 0
+      },
+      {
+        "name": "Sondrio",
+        "lat": 46.1699,
+        "lng": 9.8715,
+        "type": "end",
+        "day": 0
+      }
+    ]
+  },
+  "notes": "Stelvio closes for winter around early November; the hero ride date (4 Oct) is before that.",
+  "generated": "2026-11-03",
+  "feature_usage": {
+    "n_users": 21,
+    "counts": {
+      "users": 21,
+      "rides_tracked": 0,
+      "rides_finished": 0,
+      "trips": 1,
+      "trip_building": 1,
+      "maintenance": 4,
+      "expenses": 2,
+      "receipt_scan": 0,
+      "ai_diagnosis": 3,
+      "bike_added": 14,
+      "onboarding_completed": 9
+    },
+    "local_ranking": [
+      {
+        "feature": "maintenance",
+        "users": 4,
+        "pct": 19.0
+      },
+      {
+        "feature": "ai_diagnosis",
+        "users": 3,
+        "pct": 14.3
+      },
+      {
+        "feature": "expenses",
+        "users": 2,
+        "pct": 9.5
+      },
+      {
+        "feature": "trips",
+        "users": 1,
+        "pct": 4.8
+      },
+      {
+        "feature": "rides_tracked",
+        "users": 0,
+        "pct": 0.0
+      }
+    ],
+    "onboarding_primary_goal": {
+      "maintain_bike": 3,
+      "track_rides": 2,
+      "manage_expenses": 2,
+      "just_exploring": 2
+    },
+    "bike_makes_typed": "Yamaha 5, Honda 2, Vespa 1, Triumph 1",
+    "differs_from_global": "Maintenance leads: 4 of 21, diagnosis 3, expenses 2, rides 0; maintain_bike is the top goal (3 of 9).",
+    "sample_strength": "very thin",
+    "recommended_screenshot_order": ["maintenance", "rides", "expenses", "trips", "garage"],
+    "recommendation": "Same pattern as Spain on a smaller sample. Keep global by default; maintenance-first is a test candidate."
+  },
+  "hero_route": {
+    "name_local": "Passo dello Stelvio (SS38)",
+    "region": "Lombardia / Alto Adige (Valtellina - Val Venosta)",
+    "start": "Bormio",
+    "end": "Prato allo Stelvio (Prad am Stilfser Joch)",
+    "official_length": "~47 km Bormio-Prato over the pass; 48 hairpins on the Prato side, ~40 on the Bormio side; summit 2,757 m",
+    "official_elevation": "Bormio 1,225 m -> 2,757 m summit -> Prato ~915 m",
+    "sources": [
+      "https://www.insella.it/da-sapere/itinerari-moto-il-passo-dello-stelvio-168277",
+      "https://www.dolomiti.it/it/passi-e-montagne/il-passo-dello-stelvio",
+      "https://www.suedtirol.info/it/it/informazioni/mobilita/passi-in-alto-adige/passo-dello-stelvio"
+    ],
+    "polyline_note": "OSRM Bormio -> pass -> Trafoi -> Prato, all on SS38.",
+    "season_note": "Pass is closed in winter (typically about November to late May); a November-March screenshot of it is a summer memory, not a current ride.",
+    "polyline_file": "IT-route.geojson",
+    "polyline_length_km": 46.8,
+    "polyline_length_mi": 29.1,
+    "polyline_elevation_srtm90m": {
+      "min_m": 983,
+      "max_m": 2749,
+      "gain_m": 1603,
+      "loss_m": 1820,
+      "samples": 100
+    },
+    "elevation_note": "gain/loss from 100 SRTM 90 m samples along the polyline (opentopodata.org); treat as approximate",
+    "backups": [
+      {
+        "name": "Costiera Amalfitana (SS163)",
+        "why": "coastal icon, rideable in winter"
+      },
+      {
+        "name": "Passo Gavia / Sella Ronda (Dolomiti)",
+        "why": "Dolomites passes, the other famous Alpine set"
+      }
+    ]
+  },
+  "demo_garage": {
+    "currency": "EUR",
+    "units": {
+      "distance": "km",
+      "fuel_volume": "L",
+      "fuel_economy": "km/L"
+    },
+    "bikes": [
+      {
+        "make": "BMW",
+        "model": "R 1300 GS",
+        "year": 2024,
+        "odometer": "21.400 km",
+        "why": "Italy's best-selling motorcycle 2025 (3,977).",
+        "sources": [
+          "https://www.insella.it/news/mercato-2025-salvato-dagli-scooter-moto-calo-ecco-modelli-piu-richiesti-72049"
+        ]
+      },
+      {
+        "make": "Honda",
+        "model": "SH 125",
+        "year": 2022,
+        "odometer": "13.700 km",
+        "why": "Italy's best-selling two-wheeler 2025 (19,294); the city scooter every Italian rider knows.",
+        "sources": [
+          "https://tg24.sky.it/motori/moto/2026/01/20/moto-scooter-piu-venduti-2025-classifica"
+        ]
+      }
+    ],
+    "expenses": [
+      {
+        "type": "fuel",
+        "label": "Benzina self, 17,5 L",
+        "amount": "30,10 €",
+        "unit_price": "~1,72 €/L (estimate)"
+      },
+      {
+        "type": "service",
+        "label": "Tagliando 20.000 km concessionario BMW",
+        "amount": "420,00 €"
+      },
+      {
+        "type": "part",
+        "label": "Bollo moto (annuale)",
+        "amount": "62,00 €"
+      }
+    ],
+    "maintenance": {
+      "bike": "BMW R 1300 GS",
+      "overdue": {
+        "task": "Tagliando (olio e filtro)",
+        "interval": "ogni 10.000 km o 1 anno",
+        "status": "scaduto da 1.400 km"
+      },
+      "upcoming": [
+        {
+          "task": "Revisione ministeriale",
+          "interval": "a 4 anni dall'immatricolazione, poi ogni 2",
+          "due": "2028"
+        },
+        {
+          "task": "Gioco valvole",
+          "interval": "ogni 20.000 km",
+          "due": "40.000 km"
+        }
+      ],
+      "interval_confidence": "medium; revisione rule is national law (verify exact date per plate)"
+    }
+  },
+  "store_mapping": {
+    "app_store": {
+      "storefront_default_language": "Italian",
+      "storefront_additional_languages": ["English (U.K.)"],
+      "best_localization_for_storefront": "it",
+      "motovault_ios_localizations_live_3_26_0": [
+        "de-DE",
+        "en-GB",
+        "en-US",
+        "es-MX",
+        "fr-FR",
+        "it",
+        "pt-BR"
+      ],
+      "shown_today": "it",
+      "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations"
+    },
+    "google_play": {
+      "listing_shown": "it-IT",
+      "how_chosen": "Default listing: translation picked by the user's device language, falling back to the default (en-US). Custom store listings: picked by country first, then the user's language within that listing.",
+      "motovault_play_translations": "Play default listing has 46 translations in store/play/metadata, incl. en-US, en-GB, en-CA, en-AU, es-419, es-ES, es-US, pt-BR, fr-FR, de-DE, it-IT, fil (no fr-CA).",
+      "source": "https://support.google.com/googleplay/android-developer/answer/9867158"
+    },
+    "targeting": "Play custom store listings can target countries (up to 50 listings, each country in only one listing, no auto-translation). Apple cannot target countries on the default product page; per-country screenshots on iOS need Custom Product Pages (reached only via their own URL/ads) or a localization that only that storefront uses."
+  },
+  "local_notes": {
+    "date": "GG/MM/AAAA",
+    "number": "1.234,5",
+    "words": {
+      "motorcycle": "moto, motocicletta; scooter",
+      "ride": "giro in moto, giro, uscita; 'motociclista', 'centauro' (journalistic)"
+    },
+    "season_nov_mar": "Stelvio and high passes closed; Liguria, Amalfi, Sicily and Sardinia stay rideable; EICMA (Milan, November) is the moto event of the year.",
+    "traffic": "right-hand",
+    "imagery": "Scooters rule cities (SH, X-ADV); tagliando, bollo and revisione are the everyday costs."
+  }
+}

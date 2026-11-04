@@ -1,0 +1,433 @@
+{
+  "cc": "BR",
+  "market_name": "Brazil",
+  "app_language": "pt-BR",
+  "store_locales": {
+    "ios": "pt-BR",
+    "play": "pt-BR"
+  },
+  "device": {
+    "apple_languages": ["pt-BR", "pt"],
+    "apple_locale": "pt_BR",
+    "metric": true
+  },
+  "measurement_system": "metric",
+  "currency": "BRL",
+  "timezone": "America/Sao_Paulo",
+  "region_code": "BR-SC",
+  "rider": {
+    "display_name": "Rafael S.",
+    "city": "Criciúma",
+    "home": [-28.6775, -49.3697]
+  },
+  "bikes": [
+    {
+      "key": "primary",
+      "make": "HONDA",
+      "model": "CG 160 Titan",
+      "year": 2023,
+      "nickname": "Titanzinha",
+      "type": "standard",
+      "engine_cc": 162,
+      "odometer": 28900,
+      "odometer_jan1": 19800,
+      "purchase_date": "2023-03-11",
+      "purchase_price": 17990
+    },
+    {
+      "key": "second",
+      "make": "HONDA",
+      "model": "Biz 125",
+      "year": 2021,
+      "nickname": "Biz",
+      "type": "scooter",
+      "engine_cc": 125,
+      "odometer": 17400,
+      "odometer_jan1": 14900,
+      "purchase_date": "2021-08-21",
+      "purchase_price": 12990
+    }
+  ],
+  "hero_ride": {
+    "name": "Subida da Serra do Rio do Rastro",
+    "road": "SC-390",
+    "date": "2026-10-11",
+    "start_time": "08:10",
+    "avg_speed_kmh": 32,
+    "max_speed_kmh": 78,
+    "max_lean_deg": 30,
+    "elevation_gain_m": null
+  },
+  "other_rides": [
+    {
+      "name": "Rolê até Urussanga",
+      "date": "2026-10-25",
+      "distance_km": 70,
+      "avg_speed_kmh": 52,
+      "elevation_gain_m": 300
+    },
+    {
+      "name": "Praia do Rincão",
+      "date": "2026-10-03",
+      "distance_km": 64,
+      "avg_speed_kmh": 58,
+      "elevation_gain_m": 60
+    },
+    {
+      "name": "Trabalho",
+      "date": "2026-10-29",
+      "distance_km": 14,
+      "avg_speed_kmh": 31,
+      "elevation_gain_m": 30
+    }
+  ],
+  "season": {
+    "rides": 240,
+    "distance_km": 9100
+  },
+  "fuel": {
+    "label": "Gasolina comum",
+    "unit": "L",
+    "price_per_unit": 6.29,
+    "fill_size": [7.5, 11.5],
+    "stations": [
+      "Posto Ipiranga, Av. Centenário",
+      "Shell, Rod. Luiz Rosso",
+      "Petrobras BR, Lauro Müller",
+      "Posto Ale, Orleans",
+      "Ipiranga, Bom Jardim da Serra"
+    ]
+  },
+  "service": {
+    "title": "Revisão 24.000 km",
+    "date": "2026-07-18",
+    "odometer": 24050,
+    "vendor": "Sul Motos Criciúma",
+    "tax_label": "Tributos aprox. incl. (Lei 12.741)",
+    "tax_rate": 0.18,
+    "tax_included": true,
+    "line_items": [
+      {
+        "label": "Óleo Pro Honda 10W-30, 1 L",
+        "service_type": "oil_change",
+        "amount": 42.9
+      },
+      {
+        "label": "Filtro de óleo",
+        "service_type": "oil_filter",
+        "amount": 24.9
+      },
+      {
+        "label": "Vela de ignição",
+        "service_type": "spark_plug",
+        "amount": 38.0
+      },
+      {
+        "label": "Kit relação",
+        "service_type": "chain",
+        "amount": 189.9
+      },
+      {
+        "label": "Mão de obra revisão",
+        "service_type": "general_service",
+        "amount": 120.0
+      }
+    ]
+  },
+  "service_interval": 6000,
+  "expenses": [
+    {
+      "category": "taxes_fees",
+      "date": "2026-03-10",
+      "amount": 412.0,
+      "item": "IPVA 2026",
+      "vendor": "SEF-SC"
+    },
+    {
+      "category": "registration",
+      "date": "2026-04-15",
+      "amount": 186.0,
+      "item": "Licenciamento 2026",
+      "vendor": "Detran-SC"
+    },
+    {
+      "category": "tires",
+      "date": "2026-09-12",
+      "amount": 239.9,
+      "item": "Pneu traseiro + montagem",
+      "vendor": "Sul Motos Criciúma"
+    },
+    {
+      "category": "gear",
+      "date": "2026-06-06",
+      "amount": 349.0,
+      "item": "Capa de chuva",
+      "vendor": "Loja de equipamentos"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Troca de óleo",
+      "target_odometer": 28500,
+      "priority": "high"
+    },
+    {
+      "title": "Revisão 30.000 km",
+      "target_odometer": 30000,
+      "priority": "medium"
+    },
+    {
+      "title": "Lubrificar corrente",
+      "target_odometer": 29300,
+      "priority": "medium"
+    }
+  ],
+  "trip": {
+    "title": "Serra catarinense",
+    "description": "Rio do Rastro, Urubici e Corvo Branco",
+    "start_date": "2026-11-21",
+    "end_date": "2026-11-22",
+    "difficulty": "moderate",
+    "status": "draft",
+    "stops": [
+      {
+        "name": "Criciúma",
+        "lat": -28.6775,
+        "lng": -49.3697,
+        "type": "start",
+        "day": 0
+      },
+      {
+        "name": "Lauro Müller",
+        "lat": -28.392,
+        "lng": -49.396,
+        "type": "fuel",
+        "day": 0
+      },
+      {
+        "name": "Mirante da Serra do Rio do Rastro",
+        "lat": -28.388,
+        "lng": -49.548,
+        "type": "scenic",
+        "day": 0
+      },
+      {
+        "name": "Urubici",
+        "lat": -28.015,
+        "lng": -49.592,
+        "type": "overnight",
+        "day": 0
+      },
+      {
+        "name": "Criciúma",
+        "lat": -28.6775,
+        "lng": -49.3697,
+        "type": "end",
+        "day": 1
+      }
+    ]
+  },
+  "notes": "",
+  "generated": "2026-11-03",
+  "feature_usage": {
+    "n_users": 62,
+    "counts": {
+      "users": 62,
+      "rides_tracked": 4,
+      "rides_finished": 3,
+      "trips": 1,
+      "trip_building": 0,
+      "maintenance": 1,
+      "expenses": 0,
+      "receipt_scan": 0,
+      "ai_diagnosis": 0,
+      "bike_added": 39,
+      "onboarding_completed": 17
+    },
+    "local_ranking": [
+      {
+        "feature": "rides_tracked",
+        "users": 4,
+        "pct": 6.5
+      },
+      {
+        "feature": "trips",
+        "users": 1,
+        "pct": 1.6
+      },
+      {
+        "feature": "maintenance",
+        "users": 1,
+        "pct": 1.6
+      },
+      {
+        "feature": "expenses",
+        "users": 0,
+        "pct": 0.0
+      },
+      {
+        "feature": "ai_diagnosis",
+        "users": 0,
+        "pct": 0.0
+      }
+    ],
+    "onboarding_primary_goal": {
+      "track_rides": 14,
+      "discover_routes": 1,
+      "maintain_bike": 1,
+      "just_exploring": 1
+    },
+    "bike_makes_typed": "Honda 20, Yamaha 11, Suzuki 4, BMW 3",
+    "differs_from_global": "Almost no feature use beyond rides (4 of 62); 14 of 17 goal answers are track_rides.",
+    "sample_strength": "thin",
+    "recommended_screenshot_order": [
+      "rides (live ride / ride map + stats)",
+      "maintenance (reminders, overdue service)",
+      "expenses (incl. receipt scan)",
+      "trips (route planning)",
+      "garage (bike hub)"
+    ],
+    "recommendation": "Global order. Rides first is well supported."
+  },
+  "hero_route": {
+    "name_local": "Serra do Rio do Rastro (SC-390)",
+    "region": "Santa Catarina",
+    "start": "Lauro Müller",
+    "end": "Bom Jardim da Serra",
+    "official_length": "~24-35 km depending on endpoints, 284 curves",
+    "official_elevation": "~200 m to ~1,460 m (mirante)",
+    "sources": [
+      "https://autopapo.com.br/curta/serra-do-rio-do-rastro-a-historia-a-engenharia-e-o-roteiro-da-estrada-mais-sinuosa-do-brasil/",
+      "https://diariodocomercio.com.br/mix/24-km-284-curvas-e-risco-de-neve-conheca-a-estrada-mais-deslumbrante-do-brasil/",
+      "https://www.queroviajarmais.com/serra-do-rio-do-rastro/"
+    ],
+    "polyline_note": "OSRM Lauro Müller -> mirante -> Bom Jardim da Serra on SC-390.",
+    "polyline_file": "BR-route.geojson",
+    "polyline_length_km": 34.9,
+    "polyline_length_mi": 21.7,
+    "polyline_elevation_srtm90m": {
+      "min_m": 220,
+      "max_m": 1440,
+      "gain_m": 1548,
+      "loss_m": 517,
+      "samples": 100
+    },
+    "elevation_note": "gain/loss from 100 SRTM 90 m samples along the polyline (opentopodata.org); treat as approximate",
+    "backups": [
+      {
+        "name": "Estrada da Graciosa (PR-410)",
+        "why": "historic cobbled forest road near Curitiba"
+      },
+      {
+        "name": "Serra do Corvo Branco (SC-370)",
+        "why": "the other famous Santa Catarina serra"
+      }
+    ]
+  },
+  "demo_garage": {
+    "currency": "BRL",
+    "units": {
+      "distance": "km",
+      "fuel_volume": "L",
+      "fuel_economy": "km/L"
+    },
+    "bikes": [
+      {
+        "make": "Honda",
+        "model": "CG 160 Titan",
+        "year": 2023,
+        "odometer": "28,900 km",
+        "why": "Best-selling motorcycle in Brazil 2025 (224,750 units in H1). Honda is the top make our BR users type.",
+        "sources": [
+          "https://motonline.com.br/noticia/15-motos-mais-vendidas-2025-outubro/",
+          "https://garagem360.com.br/?p=300701"
+        ]
+      },
+      {
+        "make": "Honda",
+        "model": "Biz 125",
+        "year": 2021,
+        "odometer": "17,400 km",
+        "why": "#2 seller in Brazil 2025 (131,351 in H1).",
+        "sources": [
+          "https://www.vrum.com.br/motos/2025/07/7198130-veja-as-10-motos-mais-vendidas-no-brasil-em-2025.html"
+        ]
+      }
+    ],
+    "expenses": [
+      {
+        "type": "fuel",
+        "label": "Gasolina comum, 9,8 L",
+        "amount": "R$ 61,74",
+        "unit_price": "~R$ 6,30/L (estimate)"
+      },
+      {
+        "type": "service",
+        "label": "Revisão na concessionária Honda",
+        "amount": "R$ 320,00"
+      },
+      {
+        "type": "part",
+        "label": "Kit relação (corrente, coroa e pinhão)",
+        "amount": "R$ 189,90"
+      }
+    ],
+    "maintenance": {
+      "bike": "Honda CG 160 Titan",
+      "overdue": {
+        "task": "Troca de óleo",
+        "interval": "a cada 6.000 km (Honda manual; 1st at 1.000 km)",
+        "status": "vencida há 400 km"
+      },
+      "upcoming": [
+        {
+          "task": "Revisão periódica",
+          "interval": "a cada 6.000 km",
+          "due": "30.000 km"
+        },
+        {
+          "task": "Lubrificação da corrente",
+          "interval": "a cada 500 km",
+          "due": "29.300 km"
+        }
+      ],
+      "interval_confidence": "medium: Honda Brasil schedule as commonly published; verify"
+    }
+  },
+  "store_mapping": {
+    "app_store": {
+      "storefront_default_language": "Portuguese (Brazil)",
+      "storefront_additional_languages": ["English (U.K.)"],
+      "best_localization_for_storefront": "pt-BR",
+      "motovault_ios_localizations_live_3_26_0": [
+        "de-DE",
+        "en-GB",
+        "en-US",
+        "es-MX",
+        "fr-FR",
+        "it",
+        "pt-BR"
+      ],
+      "shown_today": "pt-BR",
+      "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations"
+    },
+    "google_play": {
+      "listing_shown": "pt-BR",
+      "how_chosen": "Default listing: translation picked by the user's device language, falling back to the default (en-US). Custom store listings: picked by country first, then the user's language within that listing.",
+      "motovault_play_translations": "Play default listing has 46 translations in store/play/metadata, incl. en-US, en-GB, en-CA, en-AU, es-419, es-ES, es-US, pt-BR, fr-FR, de-DE, it-IT, fil (no fr-CA).",
+      "source": "https://support.google.com/googleplay/android-developer/answer/9867158"
+    },
+    "targeting": "Play custom store listings can target countries (up to 50 listings, each country in only one listing, no auto-translation). Apple cannot target countries on the default product page; per-country screenshots on iOS need Custom Product Pages (reached only via their own URL/ads) or a localization that only that storefront uses."
+  },
+  "local_notes": {
+    "date": "DD/MM/AAAA",
+    "number": "1.234,5",
+    "words": {
+      "motorcycle": "moto; 'motoca' (informal, affectionate)",
+      "ride": "rolê, viagem, passeio de moto; 'motociclista' (neutral) vs 'motoqueiro' (often means courier)"
+    },
+    "season_nov_mar": "Summer and the rainy season in the Southeast; South (Serra do Rio do Rastro) is warm but foggy.",
+    "traffic": "right-hand",
+    "imagery": "Commuter bikes (CG, Biz) are the majority; 'motoboys' (couriers) are a strong cultural image, avoid making the app look like a courier tool."
+  }
+}

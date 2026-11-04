@@ -1,0 +1,15 @@
+appId: com.motovault.app
+tags: [screenshots]
+---
+# Bike hub, Costs: this year's total and breakdown, newest entries (fuel with litres/gallons).
+- runFlow:
+    file: _open.yaml
+    env:
+      LINK: "motovault://bike/${BIKE_ID}?segment=costs"
+- extendedWaitUntil:
+    visible:
+      id: "expenses-total"
+    timeout: 30000
+- waitForAnimationToEnd
+- takeScreenshot: ${OUT}/costs_overview
+- runFlow: _no_paywall.yaml
