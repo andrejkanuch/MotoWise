@@ -1,0 +1,17 @@
+appId: com.motovault.app
+tags: [screenshots]
+---
+# Garage: both bikes with their plates (overdue / due soon). Fresh launch so the tab is at its root.
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible: "${L_HOME_TAB}.*"
+    timeout: 60000
+- tapOn: "${L_GARAGE_TAB}.*"
+- extendedWaitUntil:
+    visible:
+      id: "garage-bike-plate-${BIKE_ID}"
+    timeout: 30000
+- waitForAnimationToEnd
+- takeScreenshot: ${OUT}/garage
+- runFlow: _no_paywall.yaml

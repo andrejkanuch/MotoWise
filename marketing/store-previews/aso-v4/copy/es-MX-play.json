@@ -1,0 +1,77 @@
+{
+  "locale": "es-MX-play",
+  "slots": {
+    "ride_tracking": {
+      "headline": ["Graba tu rodada.", "Guarda el camino."],
+      "sub": "Trazo GPS, distancia, desnivel e inclinación máxima, en automático."
+    },
+    "ride_stats": {
+      "headline": ["Cada rodada,", "en números."],
+      "sub": "Distancia, tiempo en marcha, desnivel e inclinación máxima."
+    },
+    "expenses": {
+      "headline": ["Lo que tu moto", "cuesta de verdad."],
+      "sub": "Gasolina, refacciones, equipo y taller en un lugar. Gratis."
+    },
+    "receipt_scan": {
+      "headline": ["Un recibo,", "una foto."],
+      "sub": "MotoVault lee refacciones, mano de obra y total, y llena el gasto."
+    },
+    "maintenance_reminders": {
+      "headline": ["Que no se te pase", "el servicio."],
+      "sub": "Recordatorios por km o por fecha, según los intervalos de tu moto."
+    },
+    "service_history": {
+      "headline": ["Cada servicio,", "registrado."],
+      "sub": "Un historial completo que te respalda cuando vendas la moto."
+    },
+    "garage": {
+      "headline": ["Tu moto,", "en un solo lugar."],
+      "sub": "Ficha, odómetro, próximo servicio y costos de un vistazo."
+    },
+    "trip_planning": {
+      "headline": ["Planea el viaje.", "Luego, a rodar."],
+      "sub": "Traza la ruta, agrega paradas y compártela con tu grupo."
+    },
+    "season_summary": {
+      "headline": ["Tu temporada,", "en un resumen."],
+      "sub": "Distancia total, tu rodada más larga y por dónde pasaste."
+    },
+    "costs_overview": {
+      "headline": ["Cada kilómetro", "tiene su precio."],
+      "sub": "Costo por km, tendencia mensual y lo gastado este año."
+    }
+  },
+  "order": [
+    "ride_tracking",
+    "expenses",
+    "receipt_scan",
+    "maintenance_reminders",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history",
+    "costs_overview",
+    "season_summary"
+  ],
+  "order_play": [
+    "ride_tracking",
+    "expenses",
+    "receipt_scan",
+    "maintenance_reminders",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history"
+  ],
+  "feature_graphic": {
+    "headline": ["Tu moto,", "bajo control."]
+  },
+  "header": {
+    "headline": ["Tu moto,", "bajo control."]
+  },
+  "search": {
+    "headline": ["Rodadas, gastos", "y servicio."],
+    "sub": "Rodadas · Gastos · Mantenimiento"
+  }
+}

@@ -1,0 +1,30 @@
+appId: com.motovault.app
+tags: [screenshots]
+---
+# Hero ride on the map, stats sheet at its resting height. Fresh launch so the ride is read
+# from the server. "Share ride" is a hard-coded English accessibility label in every language.
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible: "${L_HOME_TAB}.*"
+    timeout: 60000
+- runFlow:
+    file: _open.yaml
+    env:
+      LINK: "motovault://ride-detail?rideId=${HERO_RIDE_ID}"
+- extendedWaitUntil:
+    visible: "${L_SHARE_RIDE}|Share ride"
+    timeout: 30000
+# Mapbox tiles have no element to wait on.
+- waitForAnimationToEnd:
+    timeout: 8000
+# The sheet opens collapsed to its title; lift it to the middle detent so the stat tiles
+# (distance, moving time, climb) show under the route, as the owner asked on 2026-11-03.
+- swipe:
+    start: "50%,93%"
+    end: "50%,62%"
+    duration: 600
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: ${OUT}/ride_tracking
+- runFlow: _no_paywall.yaml

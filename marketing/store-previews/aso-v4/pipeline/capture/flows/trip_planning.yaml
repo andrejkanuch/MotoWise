@@ -1,0 +1,18 @@
+appId: com.motovault.app
+tags: [screenshots]
+---
+# The rider's own upcoming trip (seeded, status draft, private). An OWN trip id: the
+# discover-trip-by-id spinner bug (2026-10-18) does not apply.
+- runFlow:
+    file: _open.yaml
+    env:
+      LINK: "motovault://trip-detail?tripId=${TRIP_ID}"
+# The sheet's title text is not in the accessibility tree (only the sheet container is),
+# so wait on the sheet itself; its label is not localized.
+- extendedWaitUntil:
+    visible: "Bottom Sheet"
+    timeout: 30000
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: ${OUT}/trip_planning
+- runFlow: _no_paywall.yaml

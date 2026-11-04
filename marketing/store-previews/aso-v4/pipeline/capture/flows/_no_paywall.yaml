@@ -1,0 +1,7 @@
+# Tripwire run after every slot: the capture must never reach a paywall, the onboarding paywall
+# or a purchase/restore control. With RevenueCat unconfigured, any paywall request surfaces as
+# the "upgrade unavailable" alert, so its title is the signal. Fails the run if either shows.
+appId: com.motovault.app
+---
+- assertNotVisible: "${L_PAYWALL_UNAVAILABLE}.*"
+- assertNotVisible: "${L_RESTORE_PURCHASES}.*"

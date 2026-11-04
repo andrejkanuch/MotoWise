@@ -1,0 +1,100 @@
+{
+  "platform": "google_play",
+  "locale": "es-AR",
+  "listing_type": "custom_store_listing",
+  "target_country": "AR",
+  "language": "es-419",
+  "title": {
+    "value": "MotoVault: Service de tu Moto",
+    "chars": 29,
+    "limit": 30
+  },
+  "short_description": {
+    "value": "Service de tu moto, gastos y salidas con GPS. Recordatorios de VTV.",
+    "chars": 67,
+    "limit": 80
+  },
+  "full_description": {
+    "value": "MotoVault es la app de mantenimiento de moto para motoqueros: registrá tus salidas con GPS, controlá tus gastos escaneando tickets y recibí recordatorios de service, en una app hecha para motos, no para autos.\n\nAnotá cada carga de nafta y cada cuenta del taller, guardá el historial de mantenimiento y que no se te pase el cambio de aceite ni la VTV ni el seguro.\n\n--------------------------\nLO QUE PODÉS HACER\n--------------------------\n\n* REGISTRÁ CADA SALIDA - Tocá grabar y arrancá. MotoVault guarda el trazo GPS, la distancia, el tiempo en movimiento, el desnivel y la inclinación máxima, y arma una bitácora de cada kilómetro que hacés. Exportá cualquier salida en GPX.\n\n* ANOTÁ CADA GASTO - Cada carga de nafta, cada repuesto, cada visita al taller. Mirá lo que te cuesta la moto por km, por mes y por año. Registrar es gratis e ilimitado, siempre.\n\n* ESCANEÁ EL TICKET EN VEZ DE TIPEARLO - Apuntá la cámara a un ticket de nafta, repuestos o taller. MotoVault lee los repuestos, la mano de obra, el total y la fecha, y carga el gasto por vos.\n\n* QUE NO SE TE PASE EL SERVICE - Cambio de aceite, tensado de cadena, cubiertas, calibración de válvulas. Poné recordatorios por kilómetros o por fecha y te avisamos antes del próximo intervalo.\n\n* EL HISTORIAL COMPLETO - Cada trabajo con fecha, odómetro y costo. Un registro completo que te respalda cuando vendas la moto.\n\n* TU GARAJE - Ficha técnica, odómetro, próximo service y costos de tu moto en una sola pantalla. Más de 12.000 modelos en el catálogo.\n\n* ARMÁ CADA VIAJE - La salida del domingo o el viaje de tu vida. Guardá rutas, sumá paradas y compartilas con tu grupo.\n\n* TU TEMPORADA EN UN RESUMEN - Kilómetros totales, salidas, tu salida más larga y los países que recorriste, listo para compartir.\n\n--------------------------\nPOR QUÉ ELEGIR MOTOVAULT\n--------------------------\n\n- Una sola app en lugar de tres: registro de salidas, control de gastos y libreta de service\n- Recordatorios por kilómetros o por fecha, para dejar de adivinar cuándo toca el aceite\n- Recordatorios por fecha para la VTV, el seguro o la patente\n- El escáner de tickets lee repuestos, mano de obra y total: cargar un gasto lleva segundos\n- Kilómetros o millas, tema claro u oscuro: la app sigue tu elección\n- Tus datos son tuyos: privados, exportables, nunca vendidos\n\n--------------------------\nPARA QUIÉN ES\n--------------------------\n\n- Quien usa la moto todos los días y la quiere siempre a punto\n- El motoquero de fin de semana que sale a buscar ruta\n- Quien viaja largo y quiere registrar todo\n- Quien le mete mano a su propia moto\n- Cualquiera cansado de apps pensadas para autos\n\n--------------------------\nMOTOVAULT PRO\n--------------------------\n\nGratis para siempre incluye 1 moto, registro ilimitado de mantenimiento y gastos, grabación ilimitada de recorridos, 1 diagnóstico con IA y 3 escaneos de recibos por mes. MotoVault Pro agrega más motos, diagnósticos con IA ilimitados, escaneos ilimitados, exportaciones GPX ilimitadas y mapas de viaje sin conexión. Mensual o anual. El precio se muestra en la app antes de confirmar.\n\nLas suscripciones se renuevan automáticamente salvo que las canceles al menos 24 horas antes de que termine el período en curso. Gestionalas o cancelalas cuando quieras en la configuración de tu cuenta de Google Play.\n\nPrivacidad: https://motovault.app/privacy\nTérminos: https://motovault.app/terms\n\n--------------------------\n\n¿Dudas o comentarios? Leemos cada mail: support@motovault.app\n\nDos ruedas. Una app. Rodá mejor.",
+    "chars": 3508,
+    "limit": 4000
+  },
+  "screenshot_captions": {
+    "ride_tracking": {
+      "headline": ["Grabá tu salida.", "Guardá la ruta."],
+      "headline_chars": [16, 15],
+      "subline": "Trazo GPS, distancia, desnivel e inclinación máxima, en automático.",
+      "subline_chars": 67
+    },
+    "ride_stats": {
+      "headline": ["Cada salida,", "en números."],
+      "headline_chars": [12, 11],
+      "subline": "Distancia, tiempo en marcha, desnivel e inclinación máxima.",
+      "subline_chars": 59
+    },
+    "expenses": {
+      "headline": ["Lo que tu moto", "cuesta de verdad."],
+      "headline_chars": [14, 17],
+      "subline": "Nafta, repuestos, equipo y taller en un lugar. Gratis.",
+      "subline_chars": 54
+    },
+    "receipt_scan": {
+      "headline": ["Un ticket,", "una foto."],
+      "headline_chars": [10, 9],
+      "subline": "MotoVault lee repuestos, mano de obra y total, y carga el gasto.",
+      "subline_chars": 64
+    },
+    "maintenance_reminders": {
+      "headline": ["Que no se te pase", "el service."],
+      "headline_chars": [17, 11],
+      "subline": "Recordatorios por km o por fecha: aceite, cadena, VTV y más.",
+      "subline_chars": 60
+    },
+    "service_history": {
+      "headline": ["Cada service,", "anotado."],
+      "headline_chars": [13, 8],
+      "subline": "Un historial completo que te respalda cuando vendas la moto.",
+      "subline_chars": 60
+    },
+    "garage": {
+      "headline": ["Tu moto,", "en un solo lugar."],
+      "headline_chars": [8, 17],
+      "subline": "Ficha, odómetro, próximo service y costos de un vistazo.",
+      "subline_chars": 56
+    },
+    "trip_planning": {
+      "headline": ["Armá el viaje.", "Después, a rodar."],
+      "headline_chars": [14, 17],
+      "subline": "Trazá la ruta, sumá paradas y compartila con tu grupo.",
+      "subline_chars": 54
+    },
+    "season_summary": {
+      "headline": ["Tu temporada,", "en un resumen."],
+      "headline_chars": [13, 14],
+      "subline": "Distancia total, tu salida más larga y por dónde pasaste.",
+      "subline_chars": 57
+    },
+    "costs_overview": {
+      "headline": ["Cada kilómetro", "tiene su precio."],
+      "headline_chars": [14, 16],
+      "subline": "Costo por km, tendencia mensual y lo gastado este año.",
+      "subline_chars": 54
+    }
+  },
+  "feature_graphic_headline": {
+    "value": "Tu moto, al día.",
+    "words": 4,
+    "limit_words": 5
+  },
+  "rationale": "Custom store listing, Argentina, in voseo. Argentines \"hacen el service\", cargan nafta, cambian cubiertas and renew the VTV. \"Service\" is the word they search for maintenance.",
+  "screenshot_order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history"
+  ]
+}

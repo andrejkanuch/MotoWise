@@ -1,0 +1,242 @@
+{
+  "cc": "CO",
+  "market_name": "Colombia (STUB: currency-limit probe)",
+  "app_language": "es",
+  "store_locales": {
+    "ios": "es-MX",
+    "play": "es-419"
+  },
+  "device": {
+    "apple_languages": ["es-CO", "es"],
+    "apple_locale": "es_CO",
+    "metric": true
+  },
+  "measurement_system": "metric",
+  "currency": "COP",
+  "timezone": "America/Bogota",
+  "region_code": "CO-ANT",
+  "rider": {
+    "display_name": "Jake M.",
+    "city": "Asheville",
+    "home": [35.5951, -82.5515]
+  },
+  "bikes": [
+    {
+      "key": "primary",
+      "make": "HARLEY-DAVIDSON",
+      "model": "Street Glide Special",
+      "year": 2022,
+      "nickname": "The Glide",
+      "variant": "Milwaukee-Eight 114",
+      "type": "touring",
+      "engine_cc": 1868,
+      "odometer": 23480,
+      "odometer_jan1": 16680,
+      "purchase_date": "2022-04-09",
+      "purchase_price": 89900000
+    },
+    {
+      "key": "second",
+      "make": "YAMAHA",
+      "model": "MT-07",
+      "year": 2022,
+      "nickname": "Canyon bike",
+      "type": "standard",
+      "engine_cc": 689,
+      "odometer": 8950,
+      "odometer_jan1": 7450,
+      "purchase_date": "2022-06-04",
+      "purchase_price": 7600
+    }
+  ],
+  "hero_ride": {
+    "name": "Tail of the Dragon + Cherohala Skyway",
+    "road": "US-129 / Cherohala Skyway",
+    "date": "2026-10-10",
+    "start_time": "09:30",
+    "avg_speed_kmh": 59,
+    "max_speed_kmh": 109,
+    "max_lean_deg": 31,
+    "elevation_gain_m": 2678
+  },
+  "other_rides": [
+    {
+      "name": "Blue Ridge Parkway to Mount Mitchell",
+      "date": "2026-10-03",
+      "start_time": "09:20",
+      "waypoints": [
+        [35.5951, -82.5515],
+        [35.6998, -82.3794],
+        [35.7647, -82.2651],
+        [35.6998, -82.3794],
+        [35.5951, -82.5515]
+      ],
+      "avg_speed_kmh": 53,
+      "elevation_gain_m": 2100
+    },
+    {
+      "name": "Moonshiner 28",
+      "date": "2026-09-26",
+      "start_time": "08:40",
+      "waypoints": [
+        [35.5951, -82.5515],
+        [35.3737, -83.2257],
+        [35.1823, -83.3816],
+        [35.0526, -83.1968],
+        [35.1104, -83.096],
+        [35.2334, -82.7343],
+        [35.5951, -82.5515]
+      ],
+      "avg_speed_kmh": 61,
+      "elevation_gain_m": 2600
+    },
+    {
+      "name": "Hot Springs via NC-209",
+      "date": "2026-09-19",
+      "bike": "second",
+      "waypoints": [
+        [35.5951, -82.5515],
+        [35.7973, -82.6843],
+        [35.894, -82.829],
+        [35.4887, -82.9887],
+        [35.5951, -82.5515]
+      ],
+      "avg_speed_kmh": 66,
+      "elevation_gain_m": 1500
+    },
+    {
+      "name": "Commute",
+      "date": "2026-10-07",
+      "start_time": "07:35",
+      "distance_km": 32,
+      "avg_speed_kmh": 60,
+      "elevation_gain_m": 90
+    }
+  ],
+  "season": {
+    "rides": 90,
+    "distance_km": 13350
+  },
+  "fuel": {
+    "label": "Premium 91",
+    "unit": "gal",
+    "price_per_unit": 3.85,
+    "fill_size": [3.9, 5.4],
+    "stations": [
+      "Shell, Patton Ave",
+      "Exxon, Weaverville",
+      "BP, Hendersonville Rd",
+      "Marathon, Robbinsville",
+      "Circle K, Black Mountain"
+    ]
+  },
+  "service": {
+    "title": "Servicio de 20.000 km",
+    "date": "2026-07-24",
+    "odometer": 20050,
+    "vendor": "Blue Ridge V-Twin Service",
+    "tax_label": "IVA 19%",
+    "tax_rate": 0.19,
+    "tax_included": true,
+    "line_items": [
+      {
+        "label": "Aceite Motul 7100 10W-40, 3 L",
+        "service_type": "oil_change",
+        "amount": 186000
+      },
+      {
+        "label": "Filtro de aceite",
+        "service_type": "oil_filter",
+        "amount": 42000
+      },
+      {
+        "label": "Mano de obra",
+        "service_type": "general_service",
+        "amount": 120000
+      }
+    ]
+  },
+  "service_interval": 5000,
+  "expenses": [
+    {
+      "category": "insurance",
+      "date": "2026-02-10",
+      "amount": 1250000,
+      "item": "SOAT 2026"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Front tire tread check",
+      "due_date": "2026-10-01",
+      "priority": "high"
+    },
+    {
+      "title": "25,000-mile service",
+      "target_odometer": 25000,
+      "priority": "medium"
+    },
+    {
+      "title": "Brake fluid flush",
+      "due_date": "2027-04-18",
+      "priority": "medium"
+    },
+    {
+      "title": "Chain clean + lube",
+      "target_odometer": 9110,
+      "priority": "medium",
+      "bike": "second"
+    }
+  ],
+  "trip": {
+    "title": "Smokies weekend",
+    "description": "Two days on the Dragon, the Skyway and the Parkway",
+    "start_date": "2026-11-14",
+    "end_date": "2026-11-15",
+    "difficulty": "challenging",
+    "stops": [
+      {
+        "name": "Asheville",
+        "lat": 35.5951,
+        "lng": -82.5515,
+        "type": "start",
+        "day": 0
+      },
+      {
+        "name": "Waynesville coffee",
+        "lat": 35.4887,
+        "lng": -82.9887,
+        "type": "food",
+        "day": 0
+      },
+      {
+        "name": "Deals Gap",
+        "lat": 35.4672,
+        "lng": -83.9203,
+        "type": "scenic",
+        "day": 0
+      },
+      {
+        "name": "Robbinsville motel",
+        "lat": 35.3226,
+        "lng": -83.8074,
+        "type": "overnight",
+        "day": 0
+      },
+      {
+        "name": "Cherohala Skyway overlook",
+        "lat": 35.3576,
+        "lng": -83.9371,
+        "type": "pass_summit",
+        "day": 1
+      },
+      {
+        "name": "Asheville",
+        "lat": 35.5951,
+        "lng": -82.5515,
+        "type": "end",
+        "day": 1
+      }
+    ]
+  }
+}

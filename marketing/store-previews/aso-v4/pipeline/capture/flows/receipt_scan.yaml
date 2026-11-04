@@ -1,0 +1,22 @@
+appId: com.motovault.app
+tags: [screenshots]
+---
+# Receipt review, opened from the seeded success-but-unreviewed scan (receipt_scans row with
+# extraction_payload). No AI call, no monthly scan used. NEVER tap Save here: it would write a
+# second service record onto the account.
+- runFlow:
+    file: _open.yaml
+    env:
+      LINK: "motovault://scan-receipt?resumeScanId=${SCAN_ID}&motorcycleId=${BIKE_ID}"
+- extendedWaitUntil:
+    visible: "${L_REVIEW_TITLE}.*"
+    timeout: 30000
+- waitForAnimationToEnd
+- takeScreenshot: ${OUT}/receipt_scan
+# Leave without saving.
+- runFlow:
+    when:
+      visible: "Go back|Close|Cancel"
+    commands:
+      - tapOn: "Go back|Close|Cancel"
+- runFlow: _no_paywall.yaml

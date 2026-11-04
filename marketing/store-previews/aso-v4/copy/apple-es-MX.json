@@ -1,0 +1,119 @@
+{
+  "platform": "apple",
+  "locale": "es-MX",
+  "name": {
+    "value": "MotoVault: Mantenimiento Moto",
+    "chars": 29,
+    "limit": 30
+  },
+  "subtitle": {
+    "value": "Rodadas GPS, gastos y servicio",
+    "chars": 30,
+    "limit": 30
+  },
+  "keywords": {
+    "value": "motociclista,motero,motoquero,recordatorio,recibo,gasolina,nafta,llanta,aceite,repuesto,ruta,viaje",
+    "bytes": 98,
+    "limit": 100
+  },
+  "promotional_text": {
+    "value": "Graba la rodada, fotografía el recibo y recibe el aviso del próximo servicio. Rodadas, gastos y mantenimiento de tu moto en una sola app.",
+    "chars": 137,
+    "limit": 170
+  },
+  "description": {
+    "value": "Registra cada rodada, cada gasto y cada servicio de tu moto, en una app hecha para motos, no para autos.\n\nMotoVault graba tus rodadas con GPS, te muestra lo que de verdad te cuesta la moto y te avisa antes del próximo servicio. Tus rodadas, tus gastos y tu historial de mantenimiento, en un garaje que llevas en el bolsillo.\n\n--------------------------\nLO QUE PUEDES HACER\n--------------------------\n\n* REGISTRA CADA RODADA - Toca grabar y arranca. MotoVault guarda el trazo GPS, la distancia, el tiempo en movimiento, el desnivel y la inclinación máxima, y arma una bitácora de cada kilómetro que recorres. Exporta cualquier rodada en GPX.\n\n* REGISTRA CADA GASTO - Cada carga de gasolina, cada refacción, cada visita al taller. Mira lo que tu moto te cuesta por km, por mes y por año. Registrar es gratis e ilimitado, siempre.\n\n* ESCANEA EL RECIBO EN LUGAR DE ESCRIBIRLO - Apunta la cámara a un recibo de gasolina, refacciones o taller. MotoVault lee las refacciones, la mano de obra, el total y la fecha, y llena el gasto por ti.\n\n* NUNCA TE PIERDAS UN SERVICIO - Cambio de aceite, ajuste de cadena, cambio de llantas, calibración de válvulas. Crea recordatorios por kilómetros o por fecha y recibe un aviso antes del siguiente intervalo.\n\n* EL HISTORIAL COMPLETO - Cada trabajo con fecha, odómetro y costo. Un registro completo que te respalda cuando vendas la moto.\n\n* TU GARAJE - Ficha técnica, odómetro, próximo mantenimiento y costos de tu moto en una sola pantalla. Más de 12,000 modelos en el catálogo.\n\n* MOTOVAULT EN CARPLAY - Inicia, pausa y termina una rodada desde la pantalla del vehículo, con distancia y tiempo en movimiento legibles de un vistazo.\n\n* PLANEA CADA VIAJE - La rodada del domingo o el viaje de tu vida. Guarda rutas, agrega paradas y compártelas con tu grupo.\n\n* TU TEMPORADA EN UN RESUMEN - Kilómetros totales, rodadas, tu rodada más larga y los países que recorriste, listo para compartir.\n\n--------------------------\nHECHA PARA QUIEN DE VERDAD RUEDA\n--------------------------\n\n- Kilómetros o millas: todo tu garaje sigue tu elección\n- Tema claro y oscuro, pensado para leerse en el taller\n- Tus datos son tuyos: privados, exportables, nunca vendidos\n- Hecha para quien rueda en México y toda Latinoamérica\n\n--------------------------\nPARA QUIÉN ES\n--------------------------\n\n- Quien usa la moto a diario y la quiere siempre a punto\n- El motociclista de fin de semana que busca la próxima buena carretera\n- Quien viaja largo y quiere registrarlo todo\n- Quien le mete mano a su propia moto\n- Cualquiera cansado de apps hechas para autos\n\n--------------------------\nGRATIS Y PRO\n--------------------------\n\nMotoVault es gratis y registrar nunca tiene límite: una moto, gastos ilimitados, historial de servicio y recordatorios ilimitados, y grabación de rodadas y viajes ilimitada. Cada mes también tienes 3 escaneos de recibos y 1 exportación GPX.\n\nMotoVault Pro agrega motos ilimitadas, escaneos ilimitados, exportaciones GPX ilimitadas, mapas de viaje sin conexión y más ayuda con IA. Mensual, anual o un solo pago de por vida: los precios se muestran en la app en tu moneda.\n\nLas suscripciones se renuevan automáticamente salvo que se cancelen al menos 24 horas antes de que termine el periodo en curso. Adminístralas o cancélalas cuando quieras en los ajustes de tu cuenta de App Store.\n\nPrivacidad: https://motovault.app/privacy\nTérminos: https://motovault.app/terms\n\n¿Dudas o ideas? Leemos cada correo: support@motovault.app\n\nDos ruedas. Una app. Rueda mejor.",
+    "chars": 3498,
+    "limit": 4000
+  },
+  "whats_new": {
+    "value": "Grabación de rodadas más fluida, escaneo de recibos más rápido y varias correcciones. Gracias por cada mensaje: los leemos todos.",
+    "chars": 129,
+    "limit": 4000
+  },
+  "screenshot_captions": {
+    "ride_tracking": {
+      "headline": ["Graba tu rodada.", "Guarda el camino."],
+      "headline_chars": [16, 17],
+      "subline": "Trazo GPS, distancia, desnivel e inclinación máxima, en automático.",
+      "subline_chars": 67
+    },
+    "ride_stats": {
+      "headline": ["Cada rodada,", "en números."],
+      "headline_chars": [12, 11],
+      "subline": "Distancia, tiempo en marcha, desnivel e inclinación máxima.",
+      "subline_chars": 59
+    },
+    "expenses": {
+      "headline": ["Lo que tu moto", "cuesta de verdad."],
+      "headline_chars": [14, 17],
+      "subline": "Gasolina, refacciones, equipo y taller en un lugar. Gratis.",
+      "subline_chars": 59
+    },
+    "receipt_scan": {
+      "headline": ["Un recibo,", "una foto."],
+      "headline_chars": [10, 9],
+      "subline": "MotoVault lee refacciones, mano de obra y total, y llena el gasto.",
+      "subline_chars": 66
+    },
+    "maintenance_reminders": {
+      "headline": ["Que no se te pase", "el servicio."],
+      "headline_chars": [17, 12],
+      "subline": "Recordatorios por km o por fecha, según los intervalos de tu moto.",
+      "subline_chars": 66
+    },
+    "service_history": {
+      "headline": ["Cada servicio,", "registrado."],
+      "headline_chars": [14, 11],
+      "subline": "Un historial completo que te respalda cuando vendas la moto.",
+      "subline_chars": 60
+    },
+    "garage": {
+      "headline": ["Tu moto,", "en un solo lugar."],
+      "headline_chars": [8, 17],
+      "subline": "Ficha, odómetro, próximo servicio y costos de un vistazo.",
+      "subline_chars": 57
+    },
+    "trip_planning": {
+      "headline": ["Planea el viaje.", "Luego, a rodar."],
+      "headline_chars": [16, 15],
+      "subline": "Traza la ruta, agrega paradas y compártela con tu grupo.",
+      "subline_chars": 56
+    },
+    "season_summary": {
+      "headline": ["Tu temporada,", "en un resumen."],
+      "headline_chars": [13, 14],
+      "subline": "Distancia total, tu rodada más larga y por dónde pasaste.",
+      "subline_chars": 57
+    },
+    "costs_overview": {
+      "headline": ["Cada kilómetro", "tiene su precio."],
+      "headline_chars": [14, 16],
+      "subline": "Costo por km, tendencia mensual y lo gastado este año.",
+      "subline_chars": 54
+    }
+  },
+  "product_page_header_headline": {
+    "value": "Tu moto, bajo control.",
+    "chars": 22,
+    "limit": 40
+  },
+  "search_results_asset_headline": {
+    "value": "Rodadas, gastos y servicio.",
+    "chars": 27,
+    "limit": 45
+  },
+  "rationale": "\"Mantenimiento moto\" is the exact phrase every ranking competitor puts in its title in MX, CO, AR and ES (hint \"moto mantenimiento\", \"historial moto mantenimiento\"); MotoVault sits at #22 in MX with a subtitle that says \"Servicio\". Name now carries it verbatim. es-MX is the App Store language for Mexico, Colombia AND Argentina, so keywords mix MX (gasolina, refacción via llanta/aceite), CO (repuesto, motero) and AR (nafta, motoquero) vocabulary. It is also indexed in the US storefront, so it holds the Spanish terms and avoids every en-US word. \"Rodadas GPS\" covers \"moto gps\" / \"moto gps tracker\" hints.",
+  "screenshot_order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history",
+    "costs_overview",
+    "season_summary"
+  ]
+}

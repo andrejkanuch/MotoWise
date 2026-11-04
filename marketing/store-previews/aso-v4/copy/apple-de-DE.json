@@ -1,0 +1,119 @@
+{
+  "platform": "apple",
+  "locale": "de-DE",
+  "name": {
+    "value": "MotoVault: Motorrad Wartung",
+    "chars": 27,
+    "limit": 30
+  },
+  "subtitle": {
+    "value": "Tracker, Touren & Kosten",
+    "chars": 24,
+    "limit": 30
+  },
+  "keywords": {
+    "value": "schräglage,routen,fahrtenbuch,tankbuch,inspektion,scheckheft,ölwechsel,reifen,kette,beleg,tüv,km",
+    "bytes": 99,
+    "limit": 100
+  },
+  "promotional_text": {
+    "value": "Tour aufzeichnen, Beleg fotografieren, an die Inspektion erinnert werden. Touren, Kosten und Wartung deines Motorrads in einer App.",
+    "chars": 131,
+    "limit": 170
+  },
+  "description": {
+    "value": "Zeichne jede Tour auf, erfasse jede Ausgabe und verpasse keine Inspektion mehr, in einer App für Motorradfahrer, nicht für Autofahrer.\n\nMotoVault zeichnet deine Fahrten per GPS auf, zeigt dir, was dein Motorrad wirklich kostet, und erinnert dich vor der nächsten Wartung. Touren, Kosten und Wartungshistorie in einer Garage für die Hosentasche.\n\n--------------------------\nWAS DU DAMIT MACHST\n--------------------------\n\n* JEDE TOUR AUFZEICHNEN - Aufnahme starten und losfahren. MotoVault speichert GPS-Strecke, Distanz, Fahrzeit, Höhenmeter und maximale Schräglage und führt ein Fahrtenbuch über jeden Kilometer. Jede Fahrt als GPX exportieren.\n\n* JEDE AUSGABE ERFASSEN - Jede Tankfüllung, jedes Ersatzteil, jeder Werkstattbesuch. Sieh, was dein Motorrad pro Kilometer, pro Monat und pro Jahr kostet. Erfassen ist kostenlos und unbegrenzt, immer.\n\n* BELEG SCANNEN STATT TIPPEN - Kamera auf den Tank-, Teile- oder Werkstattbeleg halten. MotoVault liest Teile, Arbeitslohn, Summe und Datum und füllt die Ausgabe für dich aus.\n\n* KEINE INSPEKTION MEHR VERPASSEN - Ölwechsel, Kette spannen, Reifenwechsel, Ventilspiel. Erinnerungen nach Kilometerstand oder Datum, rechtzeitig vor dem nächsten Intervall.\n\n* DEIN DIGITALES SCHECKHEFT - Jede Wartung mit Datum, Kilometerstand und Kosten. Eine lückenlose Historie, die beim Verkauf überzeugt.\n\n* DEINE GARAGE - Technische Daten, Kilometerstand, nächster Service und laufende Kosten deines Motorrads auf einem Bildschirm. Über 12.000 Modelle im Katalog.\n\n* MOTOVAULT MIT CARPLAY - Fahrt am Display starten, pausieren und beenden, mit Distanz und Fahrzeit groß genug für einen schnellen Blick.\n\n* JEDE TOUR PLANEN - Die Feierabendrunde oder die große Alpentour. Routen speichern, Wegpunkte setzen und mit der Gruppe teilen.\n\n* DEINE SAISON IN EINEM RÜCKBLICK - Gefahrene Kilometer, Fahrten, deine längste Tour und die Länder, durch die du gefahren bist, bereit zum Teilen.\n\n--------------------------\nFÜR BIKER GEBAUT\n--------------------------\n\n- Kilometer oder Meilen: deine ganze Garage folgt deiner Wahl\n- Helles und dunkles Design, gut lesbar auch in der Werkstatt\n- Deine Daten gehören dir: privat, exportierbar, nie verkauft\n- Gemacht für Motorradfahrer in Deutschland und Europa\n\n--------------------------\nFÜR WEN\n--------------------------\n\n- Pendler, die ihr Motorrad täglich fahren und gut in Schuss halten\n- Wochenendfahrer auf der Suche nach der nächsten guten Kurvenstrecke\n- Reisende, die lange Touren festhalten wollen\n- Schrauber, die selbst Hand anlegen\n- Alle, die genug von Auto-Apps haben\n\n--------------------------\nKOSTENLOS UND PRO\n--------------------------\n\nMotoVault ist kostenlos, und Erfassen ist nie begrenzt: ein Motorrad, unbegrenzte Ausgaben, unbegrenzte Wartungshistorie und Erinnerungen, unbegrenzte Aufzeichnung von Fahrten und Touren. Jeden Monat dazu 3 Beleg-Scans und 1 GPX-Export.\n\nMotoVault Pro bringt unbegrenzt viele Motorräder, unbegrenzte Scans, unbegrenzte GPX-Exporte, Offline-Tourkarten und mehr KI-Hilfe. Monatlich, jährlich oder einmalig auf Lebenszeit: die Preise siehst du in der App in deiner Währung.\n\nAbos verlängern sich automatisch, sofern sie nicht mindestens 24 Stunden vor Ende des laufenden Zeitraums gekündigt werden. Verwalten oder kündigen jederzeit in den Einstellungen deines App-Store-Kontos.\n\nDatenschutz: https://motovault.app/privacy\nNutzungsbedingungen: https://motovault.app/terms\n\nFragen oder Ideen? Wir lesen jede E-Mail: support@motovault.app\n\nZwei Räder. Eine App. Besser fahren.",
+    "chars": 3498,
+    "limit": 4000
+  },
+  "whats_new": {
+    "value": "Stabilere Tour-Aufzeichnung, schnellerer Beleg-Scan und einige Fehlerbehebungen. Danke für jede Nachricht: wir lesen alle.",
+    "chars": 122,
+    "limit": 4000
+  },
+  "screenshot_captions": {
+    "ride_tracking": {
+      "headline": ["Jede Tour", "im Kasten."],
+      "headline_chars": [9, 10],
+      "subline": "GPS-Strecke, Distanz, Höhenmeter und Schräglage, automatisch.",
+      "subline_chars": 61
+    },
+    "ride_stats": {
+      "headline": ["Jede Fahrt,", "in Zahlen."],
+      "headline_chars": [11, 10],
+      "subline": "Distanz, Fahrzeit, Höhenmeter und maximale Schräglage.",
+      "subline_chars": 54
+    },
+    "expenses": {
+      "headline": ["Was dein Motorrad", "wirklich kostet."],
+      "headline_chars": [17, 16],
+      "subline": "Sprit, Teile, Ausrüstung und Werkstatt an einem Ort. Kostenlos.",
+      "subline_chars": 63
+    },
+    "receipt_scan": {
+      "headline": ["Beleg knipsen.", "Fertig."],
+      "headline_chars": [14, 7],
+      "subline": "MotoVault liest Teile, Arbeitslohn und Summe und füllt alles aus.",
+      "subline_chars": 65
+    },
+    "maintenance_reminders": {
+      "headline": ["Keine Inspektion", "mehr verpassen."],
+      "headline_chars": [16, 15],
+      "subline": "Erinnerungen nach Kilometern oder Datum: Öl, Kette, Reifen, TÜV.",
+      "subline_chars": 64
+    },
+    "service_history": {
+      "headline": ["Dein digitales", "Scheckheft."],
+      "headline_chars": [14, 11],
+      "subline": "Jede Wartung dokumentiert. Das zahlt sich beim Verkauf aus.",
+      "subline_chars": 59
+    },
+    "garage": {
+      "headline": ["Dein Motorrad,", "alles im Blick."],
+      "headline_chars": [14, 15],
+      "subline": "Daten, Kilometerstand, nächster Service und Kosten auf einen Blick.",
+      "subline_chars": 67
+    },
+    "trip_planning": {
+      "headline": ["Tour planen.", "Tour fahren."],
+      "headline_chars": [12, 12],
+      "subline": "Route zeichnen, Stopps setzen und mit der Gruppe teilen.",
+      "subline_chars": 56
+    },
+    "season_summary": {
+      "headline": ["Deine Saison", "auf einen Blick."],
+      "headline_chars": [12, 16],
+      "subline": "Gesamtstrecke, deine längste Tour und wo du überall warst.",
+      "subline_chars": 58
+    },
+    "costs_overview": {
+      "headline": ["Jeder Kilometer", "hat seinen Preis."],
+      "headline_chars": [15, 17],
+      "subline": "Kosten pro km, Monatsverlauf und Ausgaben des Jahres.",
+      "subline_chars": 53
+    }
+  },
+  "product_page_header_headline": {
+    "value": "Dein Motorrad im Griff.",
+    "chars": 23,
+    "limit": 40
+  },
+  "search_results_asset_headline": {
+    "value": "Touren, Kosten und Wartung.",
+    "chars": 27,
+    "limit": 45
+  },
+  "rationale": "Germany hints: \"motorrad wartung\" (5 competitors), \"motorrad tracker\", \"motorrad touren\", \"motorrad routen\", \"motorrad schräglage\", \"tankbuch\", \"fahrtenbuch\". MotoVault is #31 for \"motorrad wartung\" with the hyphenated \"Motorrad-Garage\"; the name drops the hyphen so \"Motorrad\" and \"Wartung\" index as separate words and combine with subtitle words into \"motorrad tracker\", \"motorrad touren\", \"motorrad kosten\".",
+  "screenshot_order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history",
+    "costs_overview",
+    "season_summary"
+  ]
+}

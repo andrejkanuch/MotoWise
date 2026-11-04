@@ -1,0 +1,119 @@
+{
+  "platform": "apple",
+  "locale": "pt-BR",
+  "name": {
+    "value": "MotoVault: Manutenção de Moto",
+    "chars": 29,
+    "limit": 30
+  },
+  "subtitle": {
+    "value": "Rotas GPS, gastos e revisão",
+    "chars": 27,
+    "limit": 30
+  },
+  "keywords": {
+    "value": "motoqueiro,motociclista,gasolina,combustivel,oleo,pneu,corrente,lembrete,nota,km,viagem,oficina,role",
+    "bytes": 100,
+    "limit": 100
+  },
+  "promotional_text": {
+    "value": "Grave o rolê, fotografe a nota e receba o aviso da próxima revisão. Rolês, gastos e manutenção da sua moto num app só.",
+    "chars": 118,
+    "limit": 170
+  },
+  "description": {
+    "value": "Grave cada rolê, anote cada gasto e nunca perca uma revisão da sua moto, num app feito para motociclistas, não para carros.\n\nO MotoVault grava seus trajetos com GPS, mostra quanto a moto custa de verdade e avisa antes da próxima revisão. Rolês, gastos e histórico de manutenção numa garagem de bolso.\n\n--------------------------\nO QUE VOCÊ PODE FAZER\n--------------------------\n\n* GRAVE CADA ROLÊ - Toque em gravar e rode. O MotoVault registra a rota GPS, a distância, o tempo rodando, a subida e a inclinação máxima, e monta um diário de cada quilômetro. Exporte qualquer trajeto em GPX.\n\n* CONTROLE CADA GASTO - Cada abastecimento, cada peça, cada visita à oficina. Veja quanto a moto custa por km, por mês e por ano. Registrar é grátis e sem limite, sempre.\n\n* ESCANEIE A NOTA EM VEZ DE DIGITAR - Aponte a câmera para a nota do posto, da loja de peças ou da oficina. O MotoVault lê as peças, a mão de obra, o total e a data, e preenche o gasto para você.\n\n* NUNCA PERCA UMA REVISÃO - Troca de óleo, ajuste da corrente, troca de pneu, regulagem de válvulas. Crie lembretes por quilometragem ou por data e receba o aviso antes do próximo intervalo.\n\n* HISTÓRICO COMPLETO - Cada serviço com data, hodômetro e custo. Um registro completo que valoriza a moto na hora de vender.\n\n* SUA GARAGEM - Ficha técnica, hodômetro, próxima revisão e custos da sua moto numa tela só. Mais de 12.000 modelos no catálogo.\n\n* MOTOVAULT NO CARPLAY - Comece, pause e encerre um trajeto pela tela do carro, com distância e tempo rodando fáceis de ler num relance.\n\n* PLANEJE CADA VIAGEM - O bate-volta de domingo ou a viagem da sua vida. Salve rotas, marque paradas e compartilhe com a galera.\n\n* SUA TEMPORADA NUM RESUMO - Quilômetros rodados, rolês, o trajeto mais longo e os países por onde você passou, prontos para compartilhar.\n\n--------------------------\nFEITO PARA QUEM RODA\n--------------------------\n\n- Quilômetros ou milhas: sua garagem inteira segue sua escolha\n- Tema claro e escuro, pensado para ler na oficina\n- Seus dados são seus: privados, exportáveis, nunca vendidos\n- Feito para quem roda no Brasil e no mundo\n\n--------------------------\nPARA QUEM É\n--------------------------\n\n- Quem usa a moto todo dia e quer ela sempre em dia\n- Quem sai no fim de semana atrás da próxima estrada boa\n- Quem faz viagem longa e quer registrar tudo\n- Quem mete a mão na própria moto\n- Quem cansou de app feito para carro\n\n--------------------------\nGRÁTIS E PRO\n--------------------------\n\nO MotoVault é grátis e registrar nunca tem limite: uma moto, gastos ilimitados, histórico de manutenção e lembretes ilimitados, e gravação de trajetos e viagens ilimitada. Todo mês você também tem 3 escaneamentos de notas e 1 exportação GPX.\n\nO MotoVault Pro libera motos ilimitadas, escaneamentos ilimitados, exportações GPX ilimitadas, mapas de viagem offline e mais ajuda com IA. Mensal, anual ou pagamento único vitalício: os preços aparecem no app na sua moeda.\n\nAs assinaturas são renovadas automaticamente, salvo cancelamento com pelo menos 24 horas de antecedência do fim do período atual. Gerencie ou cancele quando quiser nos ajustes da sua conta da App Store.\n\nPrivacidade: https://motovault.app/privacy\nTermos: https://motovault.app/terms\n\nDúvidas ou ideias? Lemos cada e-mail: support@motovault.app\n\nDuas rodas. Um app. Rode melhor.",
+    "chars": 3319,
+    "limit": 4000
+  },
+  "whats_new": {
+    "value": "Gravação de rolês mais estável, leitura de notas mais rápida e várias correções. Obrigado por cada mensagem: lemos todas.",
+    "chars": 121,
+    "limit": 4000
+  },
+  "screenshot_captions": {
+    "ride_tracking": {
+      "headline": ["Grave cada rolê.", "Guarde a estrada."],
+      "headline_chars": [16, 17],
+      "subline": "Rota GPS, distância, subida e inclinação máxima, no automático.",
+      "subline_chars": 63
+    },
+    "ride_stats": {
+      "headline": ["Cada rolê,", "em números."],
+      "headline_chars": [10, 11],
+      "subline": "Distância, tempo rodando, subida e inclinação máxima.",
+      "subline_chars": 53
+    },
+    "expenses": {
+      "headline": ["Quanto sua moto", "custa de verdade."],
+      "headline_chars": [15, 17],
+      "subline": "Gasolina, peças, equipamento e oficina num só lugar. Grátis.",
+      "subline_chars": 60
+    },
+    "receipt_scan": {
+      "headline": ["Uma nota,", "uma foto."],
+      "headline_chars": [9, 9],
+      "subline": "O MotoVault lê peças, mão de obra e total, e preenche o gasto.",
+      "subline_chars": 62
+    },
+    "maintenance_reminders": {
+      "headline": ["Nunca perca", "uma revisão."],
+      "headline_chars": [11, 12],
+      "subline": "Lembretes por km ou por data: óleo, corrente, pneu e mais.",
+      "subline_chars": 58
+    },
+    "service_history": {
+      "headline": ["Cada revisão,", "registrada."],
+      "headline_chars": [13, 11],
+      "subline": "Histórico completo de manutenção que valoriza a moto na revenda.",
+      "subline_chars": 64
+    },
+    "garage": {
+      "headline": ["Sua moto,", "num só lugar."],
+      "headline_chars": [9, 13],
+      "subline": "Ficha, hodômetro, próxima revisão e custos num relance.",
+      "subline_chars": 55
+    },
+    "trip_planning": {
+      "headline": ["Planeje a viagem.", "Aí é só rodar."],
+      "headline_chars": [17, 14],
+      "subline": "Trace a rota, marque paradas e compartilhe com a galera.",
+      "subline_chars": 56
+    },
+    "season_summary": {
+      "headline": ["Sua temporada,", "num resumo."],
+      "headline_chars": [14, 11],
+      "subline": "Distância total, o rolê mais longo e por onde você passou.",
+      "subline_chars": 58
+    },
+    "costs_overview": {
+      "headline": ["Cada quilômetro", "tem seu preço."],
+      "headline_chars": [15, 14],
+      "subline": "Custo por km, tendência mensal e o gasto do ano.",
+      "subline_chars": 48
+    }
+  },
+  "product_page_header_headline": {
+    "value": "Sua moto, sob controle.",
+    "chars": 23,
+    "limit": 40
+  },
+  "search_results_asset_headline": {
+    "value": "Rolês, gastos e revisões.",
+    "chars": 25,
+    "limit": 45
+  },
+  "rationale": "Brazil hints: \"moto manutenção\", \"controle de manutenção\"; competitors title themselves \"Manutenção de moto\" (Garagely, MotorApp) and MotoVault is #56 for \"manutenção moto\" with a subtitle that says \"Serviço\". Name now carries the phrase. Brazilian riders say rolê, revisão, nota (not recibo), motoqueiro. pt-BR is also indexed in the US storefront, so no English words.",
+  "screenshot_order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history",
+    "costs_overview",
+    "season_summary"
+  ]
+}

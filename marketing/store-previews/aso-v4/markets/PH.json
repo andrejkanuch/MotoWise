@@ -1,0 +1,440 @@
+{
+  "cc": "PH",
+  "market_name": "Philippines",
+  "app_language": "en",
+  "store_locales": {
+    "ios": "en-GB",
+    "play": "en-US"
+  },
+  "device": {
+    "apple_languages": ["en-PH", "en"],
+    "apple_locale": "en_PH",
+    "metric": true
+  },
+  "measurement_system": "metric",
+  "currency": "PHP",
+  "timezone": "Asia/Manila",
+  "region_code": "PH-RIZ",
+  "rider": {
+    "display_name": "Paolo D.",
+    "city": "Marikina",
+    "home": [14.6507, 121.1029]
+  },
+  "bikes": [
+    {
+      "key": "primary",
+      "make": "HONDA",
+      "model": "Click 125",
+      "year": 2024,
+      "nickname": "Clicky",
+      "type": "scooter",
+      "engine_cc": 125,
+      "odometer": 12600,
+      "odometer_jan1": 4800,
+      "purchase_date": "2024-02-10",
+      "purchase_price": 80900
+    },
+    {
+      "key": "second",
+      "make": "YAMAHA",
+      "model": "NMAX 155",
+      "year": 2023,
+      "nickname": "Big Boy",
+      "type": "scooter",
+      "engine_cc": 155,
+      "odometer": 15900,
+      "odometer_jan1": 11200,
+      "purchase_date": "2023-07-01",
+      "purchase_price": 151900
+    }
+  ],
+  "hero_ride": {
+    "name": "Sunday Marilaque ride",
+    "road": "Marilaque Highway",
+    "date": "2026-10-18",
+    "start_time": "05:30",
+    "avg_speed_kmh": 38,
+    "max_speed_kmh": 60,
+    "max_lean_deg": 30,
+    "elevation_gain_m": null
+  },
+  "other_rides": [
+    {
+      "name": "Tagaytay coffee run",
+      "date": "2026-10-04",
+      "distance_km": 140,
+      "avg_speed_kmh": 36,
+      "elevation_gain_m": 700
+    },
+    {
+      "name": "Daranak Falls, Tanay",
+      "date": "2026-09-27",
+      "distance_km": 70,
+      "avg_speed_kmh": 34,
+      "elevation_gain_m": 600
+    },
+    {
+      "name": "Work",
+      "date": "2026-10-29",
+      "distance_km": 16,
+      "avg_speed_kmh": 22,
+      "elevation_gain_m": 30
+    }
+  ],
+  "season": {
+    "rides": 260,
+    "distance_km": 7800
+  },
+  "fuel": {
+    "label": "Unleaded 91",
+    "unit": "L",
+    "price_per_unit": 60.0,
+    "fill_size": [3.5, 5.0],
+    "stations": [
+      "Petron, Marcos Hwy",
+      "Shell, Masinag",
+      "Caltex, Antipolo",
+      "Seaoil, Tanay",
+      "Phoenix, Infanta"
+    ]
+  },
+  "service": {
+    "title": "12,000 km PMS",
+    "date": "2026-09-05",
+    "odometer": 12020,
+    "vendor": "Rizal Moto Works",
+    "tax_label": "VAT 12%",
+    "tax_rate": 0.12,
+    "tax_included": true,
+    "line_items": [
+      {
+        "label": "Engine oil 0.8 L",
+        "service_type": "oil_change",
+        "amount": 380.0
+      },
+      {
+        "label": "Gear oil",
+        "service_type": "transmission_oil",
+        "amount": 150.0
+      },
+      {
+        "label": "CVT cleaning",
+        "service_type": "belt",
+        "amount": 350.0
+      },
+      {
+        "label": "Air filter",
+        "service_type": "air_filter",
+        "amount": 290.0
+      },
+      {
+        "label": "Labor",
+        "service_type": "general_service",
+        "amount": 280.0
+      }
+    ]
+  },
+  "service_interval": 4000,
+  "expenses": [
+    {
+      "category": "registration",
+      "date": "2026-02-20",
+      "amount": 1000.0,
+      "item": "LTO registration renewal",
+      "vendor": "LTO"
+    },
+    {
+      "category": "insurance",
+      "date": "2026-02-20",
+      "amount": 650.0,
+      "item": "CTPL insurance",
+      "vendor": "Insurance"
+    },
+    {
+      "category": "parts",
+      "date": "2026-08-15",
+      "amount": 980.0,
+      "item": "Drive belt",
+      "vendor": "Rizal Moto Works"
+    },
+    {
+      "category": "tires",
+      "date": "2026-07-04",
+      "amount": 2350.0,
+      "item": "Rear tire + install",
+      "vendor": "Rizal Moto Works"
+    },
+    {
+      "category": "gear",
+      "date": "2026-06-20",
+      "amount": 1800.0,
+      "item": "Raincoat set",
+      "vendor": "Gear shop"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Change oil",
+      "target_odometer": 12300,
+      "priority": "high"
+    },
+    {
+      "title": "Gear oil + CVT cleaning",
+      "target_odometer": 16000,
+      "priority": "medium"
+    },
+    {
+      "title": "LTO registration",
+      "due_date": "2027-02-20",
+      "priority": "medium"
+    }
+  ],
+  "trip": {
+    "title": "Baguio ride",
+    "description": "Up to Baguio for the cold season",
+    "start_date": "2026-12-05",
+    "end_date": "2026-12-06",
+    "difficulty": "moderate",
+    "status": "draft",
+    "stops": [
+      {
+        "name": "Marikina",
+        "lat": 14.6507,
+        "lng": 121.1029,
+        "type": "start",
+        "day": 0
+      },
+      {
+        "name": "Tarlac stopover",
+        "lat": 15.48,
+        "lng": 120.59,
+        "type": "fuel",
+        "day": 0
+      },
+      {
+        "name": "Kennon Road view deck",
+        "lat": 16.36,
+        "lng": 120.61,
+        "type": "scenic",
+        "day": 0
+      },
+      {
+        "name": "Baguio",
+        "lat": 16.4023,
+        "lng": 120.596,
+        "type": "overnight",
+        "day": 0
+      },
+      {
+        "name": "Marikina",
+        "lat": 14.6507,
+        "lng": 121.1029,
+        "type": "end",
+        "day": 1
+      }
+    ]
+  },
+  "notes": "Amounts in PHP (00194 allows PHP). iOS en-GB is shared with GB.",
+  "generated": "2026-11-03",
+  "feature_usage": {
+    "n_users": 29,
+    "counts": {
+      "users": 29,
+      "rides_tracked": 3,
+      "rides_finished": 0,
+      "trips": 1,
+      "trip_building": 0,
+      "maintenance": 0,
+      "expenses": 1,
+      "receipt_scan": 0,
+      "ai_diagnosis": 2,
+      "bike_added": 23,
+      "onboarding_completed": 18
+    },
+    "local_ranking": [
+      {
+        "feature": "rides_tracked",
+        "users": 3,
+        "pct": 10.3
+      },
+      {
+        "feature": "ai_diagnosis",
+        "users": 2,
+        "pct": 6.9
+      },
+      {
+        "feature": "trips",
+        "users": 1,
+        "pct": 3.4
+      },
+      {
+        "feature": "expenses",
+        "users": 1,
+        "pct": 3.4
+      },
+      {
+        "feature": "maintenance",
+        "users": 0,
+        "pct": 0.0
+      }
+    ],
+    "onboarding_primary_goal": {
+      "track_rides": 7,
+      "maintain_bike": 6,
+      "just_exploring": 3,
+      "manage_expenses": 2
+    },
+    "bike_makes_typed": "Honda 9, Yamaha 6, Kawasaki 4, Suzuki 3",
+    "differs_from_global": "3 rides started, none finished; goals split track_rides 7 vs maintain_bike 6 of 18.",
+    "sample_strength": "very thin",
+    "recommended_screenshot_order": [
+      "rides (live ride / ride map + stats)",
+      "maintenance (reminders, overdue service)",
+      "expenses (incl. receipt scan)",
+      "trips (route planning)",
+      "garage (bike hub)"
+    ],
+    "recommendation": "Global order. Maintenance is close behind rides in intent; consider maintenance in slot 2 (already is)."
+  },
+  "hero_route": {
+    "name_local": "Marilaque Highway (Marikina-Infanta Highway)",
+    "region": "Metro Manila / Rizal / Quezon",
+    "start": "Marikina (Masinag)",
+    "end": "Infanta, Quezon",
+    "official_length": "~110-117.5 km",
+    "official_elevation": "sea level to ~780 m",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Marikina%E2%80%93Infanta_Highway",
+      "https://gmanetwork.com/news/newstv/biyahenidrew/554153/marilaque-the-highway-to-the-east-a-biyahe-ni-drew-itinerary/story",
+      "https://www.motopinas.com/motorcycle-news/task-force-marilaque-now-on-patrol.html"
+    ],
+    "polyline_note": "OSRM Masinag -> Infanta via Marcos Highway / Marilaque Highway.",
+    "sensitivity": "50 km/h limit and Task Force Marilaque patrols after racing crashes; show the riders' hangout and views, not speed.",
+    "polyline_file": "PH-route.geojson",
+    "polyline_length_km": 115.2,
+    "polyline_length_mi": 71.6,
+    "polyline_elevation_srtm90m": {
+      "min_m": 8,
+      "max_m": 780,
+      "gain_m": 1717,
+      "loss_m": 1724,
+      "samples": 100
+    },
+    "elevation_note": "gain/loss from 100 SRTM 90 m samples along the polyline (opentopodata.org); treat as approximate",
+    "backups": [
+      {
+        "name": "Halsema Highway (Baguio - Bontoc)",
+        "why": "highest highway in the country, mountain riding icon"
+      },
+      {
+        "name": "Kennon Road / Tagaytay-Nasugbu",
+        "why": "classic weekend rides from Manila"
+      }
+    ]
+  },
+  "demo_garage": {
+    "currency": "PHP",
+    "units": {
+      "distance": "km",
+      "fuel_volume": "L",
+      "fuel_economy": "km/L"
+    },
+    "bikes": [
+      {
+        "make": "Honda",
+        "model": "Click 125",
+        "year": 2024,
+        "odometer": "12,600 km",
+        "why": "Honda Philippines' top seller in 2025 (wholesale and retail). Honda is the top make our PH users type.",
+        "sources": [
+          "https://www.topgear.com.ph/moto-sapiens/motorcycle-news/honda-philippines-1-million-sales-2025-a5361-20260120"
+        ]
+      },
+      {
+        "make": "Yamaha",
+        "model": "NMAX 155",
+        "year": 2023,
+        "odometer": "15,900 km",
+        "why": "Long-time #2 seller (2021 data; no 2025 unit figures found).",
+        "sources": [
+          "https://www.topgear.com.ph/moto-sapiens/motorcycle-news/january-june-2021-mdppa-sales-sa959-20210717-src-topbikes"
+        ]
+      }
+    ],
+    "expenses": [
+      {
+        "type": "fuel",
+        "label": "Unleaded 91, 4.2 L",
+        "amount": "₱252.00",
+        "unit_price": "~₱60/L (estimate)"
+      },
+      {
+        "type": "service",
+        "label": "PMS at Honda dealer (change oil + CVT cleaning)",
+        "amount": "₱1,450.00"
+      },
+      {
+        "type": "part",
+        "label": "Drive belt",
+        "amount": "₱980.00"
+      }
+    ],
+    "maintenance": {
+      "bike": "Honda Click 125",
+      "overdue": {
+        "task": "Change oil",
+        "interval": "every 4,000 km (approx.)",
+        "status": "overdue by 300 km"
+      },
+      "upcoming": [
+        {
+          "task": "Gear oil",
+          "interval": "every 8,000 km",
+          "due": "16,000 km"
+        },
+        {
+          "task": "CVT cleaning / drive belt check",
+          "interval": "every 8,000 km",
+          "due": "16,000 km"
+        }
+      ],
+      "interval_confidence": "low: typical scooter PMS intervals; verify against Honda PH owner's manual"
+    }
+  },
+  "store_mapping": {
+    "app_store": {
+      "storefront_default_language": "English (U.K.)",
+      "storefront_additional_languages": [],
+      "best_localization_for_storefront": "en-GB",
+      "motovault_ios_localizations_live_3_26_0": [
+        "de-DE",
+        "en-GB",
+        "en-US",
+        "es-MX",
+        "fr-FR",
+        "it",
+        "pt-BR"
+      ],
+      "shown_today": "en-GB",
+      "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations"
+    },
+    "google_play": {
+      "listing_shown": "en-US by default device language; fil listing exists for Filipino-language devices",
+      "how_chosen": "Default listing: translation picked by the user's device language, falling back to the default (en-US). Custom store listings: picked by country first, then the user's language within that listing.",
+      "motovault_play_translations": "Play default listing has 46 translations in store/play/metadata, incl. en-US, en-GB, en-CA, en-AU, es-419, es-ES, es-US, pt-BR, fr-FR, de-DE, it-IT, fil (no fr-CA).",
+      "source": "https://support.google.com/googleplay/android-developer/answer/9867158"
+    },
+    "targeting": "Play custom store listings can target countries (up to 50 listings, each country in only one listing, no auto-translation). Apple cannot target countries on the default product page; per-country screenshots on iOS need Custom Product Pages (reached only via their own URL/ads) or a localization that only that storefront uses."
+  },
+  "local_notes": {
+    "date": "MM/DD/YYYY",
+    "number": "1,234.5",
+    "words": {
+      "motorcycle": "motor (Filipinos say 'motor' for motorcycle), motorsiklo",
+      "ride": "ride, rides, 'ride tayo'; 'rider', 'kamote rider' (pejorative for reckless riders, avoid)"
+    },
+    "season_nov_mar": "Cool dry season (amihan): the best riding months; typhoon season ends around November.",
+    "traffic": "right-hand",
+    "imagery": "Scooters (Click, NMAX, Aerox, ADV) dominate; weekend group rides to Marilaque/Tanay hangouts; 'PMS' means preventive maintenance service."
+  }
+}

@@ -1,0 +1,16 @@
+# All ten slots for one market. Driven by capture/capture_market.sh, which sets the
+# simulator language/region, dark mode, the 9:41 status bar and passes OUT, the seed ids and
+# the localized labels. SLOTS can be narrowed with capture_market.sh --slots a,b.
+appId: com.motovault.app
+---
+- runFlow: _signin.yaml
+- runFlow: garage.yaml
+- runFlow: ride_tracking.yaml
+- runFlow: ride_stats.yaml
+- runFlow: expenses.yaml
+- runFlow: costs_overview.yaml
+- runFlow: maintenance_reminders.yaml
+- runFlow: service_history.yaml
+- runFlow: receipt_scan.yaml
+- runFlow: trip_planning.yaml
+- runFlow: season_summary.yaml

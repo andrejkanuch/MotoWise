@@ -1,0 +1,77 @@
+{
+  "locale": "es-AR",
+  "slots": {
+    "ride_tracking": {
+      "headline": ["Grabá tu salida.", "Guardá la ruta."],
+      "sub": "Trazo GPS, distancia, desnivel e inclinación máxima, en automático."
+    },
+    "ride_stats": {
+      "headline": ["Cada salida,", "en números."],
+      "sub": "Distancia, tiempo en marcha, desnivel e inclinación máxima."
+    },
+    "expenses": {
+      "headline": ["Lo que tu moto", "cuesta de verdad."],
+      "sub": "Nafta, repuestos, equipo y taller en un lugar. Gratis."
+    },
+    "receipt_scan": {
+      "headline": ["Un ticket,", "una foto."],
+      "sub": "MotoVault lee repuestos, mano de obra y total, y carga el gasto."
+    },
+    "maintenance_reminders": {
+      "headline": ["Que no se te pase", "el service."],
+      "sub": "Recordatorios por km o por fecha: aceite, cadena, VTV y más."
+    },
+    "service_history": {
+      "headline": ["Cada service,", "anotado."],
+      "sub": "Un historial completo que te respalda cuando vendas la moto."
+    },
+    "garage": {
+      "headline": ["Tu moto,", "en un solo lugar."],
+      "sub": "Ficha, odómetro, próximo service y costos de un vistazo."
+    },
+    "trip_planning": {
+      "headline": ["Armá el viaje.", "Después, a rodar."],
+      "sub": "Trazá la ruta, sumá paradas y compartila con tu grupo."
+    },
+    "season_summary": {
+      "headline": ["Tu temporada,", "en un resumen."],
+      "sub": "Distancia total, tu salida más larga y por dónde pasaste."
+    },
+    "costs_overview": {
+      "headline": ["Cada kilómetro", "tiene su precio."],
+      "sub": "Costo por km, tendencia mensual y lo gastado este año."
+    }
+  },
+  "order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history",
+    "costs_overview",
+    "season_summary"
+  ],
+  "order_play": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history"
+  ],
+  "feature_graphic": {
+    "headline": ["Tu moto,", "al día."]
+  },
+  "header": {
+    "headline": ["Tu moto,", "bajo control."]
+  },
+  "search": {
+    "headline": ["Salidas, gastos", "y service."],
+    "sub": "Salidas · Gastos · Service"
+  }
+}

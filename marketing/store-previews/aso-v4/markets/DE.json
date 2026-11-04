@@ -1,0 +1,433 @@
+{
+  "cc": "DE",
+  "market_name": "Germany",
+  "app_language": "de",
+  "store_locales": {
+    "ios": "de-DE",
+    "play": "de-DE"
+  },
+  "device": {
+    "apple_languages": ["de-DE", "de"],
+    "apple_locale": "de_DE",
+    "metric": true
+  },
+  "measurement_system": "metric",
+  "currency": "EUR",
+  "timezone": "Europe/Berlin",
+  "region_code": "DE-BW",
+  "rider": {
+    "display_name": "Stefan K.",
+    "city": "Baden-Baden",
+    "home": [48.7606, 8.2398]
+  },
+  "bikes": [
+    {
+      "key": "primary",
+      "make": "BMW",
+      "model": "R 1300 GS",
+      "year": 2024,
+      "nickname": "Die GS",
+      "type": "dual_sport",
+      "engine_cc": 1300,
+      "odometer": 16900,
+      "odometer_jan1": 7800,
+      "purchase_date": "2024-03-09",
+      "purchase_price": 21900
+    },
+    {
+      "key": "second",
+      "make": "KAWASAKI",
+      "model": "Z900",
+      "year": 2023,
+      "nickname": "Die Grüne",
+      "type": "standard",
+      "engine_cc": 948,
+      "odometer": 12300,
+      "odometer_jan1": 9400,
+      "purchase_date": "2023-04-22",
+      "purchase_price": 10395
+    }
+  ],
+  "hero_ride": {
+    "name": "Schwarzwaldhochstraße bis Freudenstadt",
+    "road": "B 500",
+    "date": "2026-10-10",
+    "start_time": "10:15",
+    "avg_speed_kmh": 62,
+    "max_speed_kmh": 100,
+    "max_lean_deg": 36,
+    "elevation_gain_m": null
+  },
+  "other_rides": [
+    {
+      "name": "Murgtal und Schwarzenbachtalsperre",
+      "date": "2026-10-03",
+      "distance_km": 140,
+      "avg_speed_kmh": 58,
+      "elevation_gain_m": 1700
+    },
+    {
+      "name": "Saisonabschluss Elsass",
+      "date": "2026-10-24",
+      "distance_km": 210,
+      "avg_speed_kmh": 60,
+      "elevation_gain_m": 1400
+    },
+    {
+      "name": "Feierabendrunde",
+      "date": "2026-09-30",
+      "distance_km": 65,
+      "avg_speed_kmh": 55,
+      "elevation_gain_m": 800,
+      "bike": "second"
+    }
+  ],
+  "season": {
+    "rides": 74,
+    "distance_km": 10600
+  },
+  "fuel": {
+    "label": "Super E10",
+    "unit": "L",
+    "price_per_unit": 1.69,
+    "fill_size": [14, 18],
+    "stations": [
+      "Aral, Baden-Baden",
+      "Shell, Bühl",
+      "Jet, Achern",
+      "TotalEnergies, Freudenstadt",
+      "Esso, Oberkirch"
+    ]
+  },
+  "service": {
+    "title": "Inspektion 10.000 km",
+    "date": "2026-06-06",
+    "odometer": 10050,
+    "vendor": "Motorrad Hochschwarzwald",
+    "tax_label": "MwSt. 19 %",
+    "tax_rate": 0.19,
+    "tax_included": true,
+    "line_items": [
+      {
+        "label": "Motoröl 5W-40, 4 l",
+        "service_type": "oil_change",
+        "amount": 79.6
+      },
+      {
+        "label": "Ölfilter",
+        "service_type": "oil_filter",
+        "amount": 22.4
+      },
+      {
+        "label": "Bremsflüssigkeit DOT 4",
+        "service_type": "brake_fluid",
+        "amount": 26.0
+      },
+      {
+        "label": "Hinterachsgetriebeöl",
+        "service_type": "final_drive",
+        "amount": 19.8
+      },
+      {
+        "label": "Arbeitszeit 2,4 Std.",
+        "service_type": "general_service",
+        "amount": 213.6
+      }
+    ]
+  },
+  "service_interval": 10000,
+  "expenses": [
+    {
+      "category": "insurance",
+      "date": "2026-03-01",
+      "amount": 498.0,
+      "item": "Vollkasko 2026",
+      "vendor": "Motorradversicherung"
+    },
+    {
+      "category": "taxes_fees",
+      "date": "2026-03-01",
+      "amount": 59.0,
+      "item": "Kfz-Steuer (Saison 03-10)",
+      "vendor": "Hauptzollamt"
+    },
+    {
+      "category": "taxes_fees",
+      "date": "2026-04-17",
+      "amount": 86.0,
+      "item": "HU / TÜV",
+      "vendor": "Prüfstelle"
+    },
+    {
+      "category": "tires",
+      "date": "2026-07-18",
+      "amount": 329.0,
+      "item": "Reifensatz Tourance Next 2",
+      "vendor": "Motorrad Hochschwarzwald"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Jahresinspektion (Öl, Filter)",
+      "target_odometer": 16000,
+      "priority": "high"
+    },
+    {
+      "title": "Ventilspiel prüfen",
+      "target_odometer": 20000,
+      "priority": "medium"
+    },
+    {
+      "title": "Saisonkennzeichen: Saisonstart",
+      "due_date": "2027-03-01",
+      "priority": "medium"
+    }
+  ],
+  "trip": {
+    "title": "Winterflucht an den Gardasee",
+    "description": "Ein letztes langes Wochenende im Süden",
+    "start_date": "2026-11-20",
+    "end_date": "2026-11-22",
+    "difficulty": "moderate",
+    "status": "draft",
+    "stops": [
+      {
+        "name": "Baden-Baden",
+        "lat": 48.7606,
+        "lng": 8.2398,
+        "type": "start",
+        "day": 0
+      },
+      {
+        "name": "Bregenz",
+        "lat": 47.5031,
+        "lng": 9.7471,
+        "type": "fuel",
+        "day": 0
+      },
+      {
+        "name": "Reschenpass",
+        "lat": 46.837,
+        "lng": 10.508,
+        "type": "pass_summit",
+        "day": 0
+      },
+      {
+        "name": "Riva del Garda",
+        "lat": 45.8858,
+        "lng": 10.8418,
+        "type": "overnight",
+        "day": 0
+      },
+      {
+        "name": "Baden-Baden",
+        "lat": 48.7606,
+        "lng": 8.2398,
+        "type": "end",
+        "day": 2
+      }
+    ]
+  },
+  "notes": "",
+  "generated": "2026-11-03",
+  "feature_usage": {
+    "n_users": 22,
+    "counts": {
+      "users": 22,
+      "rides_tracked": 1,
+      "rides_finished": 1,
+      "trips": 1,
+      "trip_building": 0,
+      "maintenance": 1,
+      "expenses": 2,
+      "receipt_scan": 0,
+      "ai_diagnosis": 0,
+      "bike_added": 16,
+      "onboarding_completed": 12
+    },
+    "local_ranking": [
+      {
+        "feature": "expenses",
+        "users": 2,
+        "pct": 9.1
+      },
+      {
+        "feature": "rides_tracked",
+        "users": 1,
+        "pct": 4.5
+      },
+      {
+        "feature": "trips",
+        "users": 1,
+        "pct": 4.5
+      },
+      {
+        "feature": "maintenance",
+        "users": 1,
+        "pct": 4.5
+      },
+      {
+        "feature": "ai_diagnosis",
+        "users": 0,
+        "pct": 0.0
+      }
+    ],
+    "onboarding_primary_goal": {
+      "track_rides": 6,
+      "manage_expenses": 2,
+      "maintain_bike": 2,
+      "just_exploring": 1
+    },
+    "bike_makes_typed": "BMW 5, Suzuki 3, Kawasaki 3, Harley-Davidson 2, Honda 2",
+    "differs_from_global": "Expenses 2, rides 1 of 22. Nothing readable.",
+    "sample_strength": "very thin",
+    "recommended_screenshot_order": [
+      "rides (live ride / ride map + stats)",
+      "maintenance (reminders, overdue service)",
+      "expenses (incl. receipt scan)",
+      "trips (route planning)",
+      "garage (bike hub)"
+    ],
+    "recommendation": "Global order."
+  },
+  "hero_route": {
+    "name_local": "Schwarzwaldhochstraße (B 500)",
+    "region": "Baden-Württemberg, Nordschwarzwald",
+    "start": "Baden-Baden",
+    "end": "Freudenstadt",
+    "official_length": "~60 km",
+    "official_elevation": "up to ~1,000 m (Hornisgrinde area)",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Schwarzwaldhochstra%C3%9Fe",
+      "https://www.wunderlich.de/en/good-to-know/wunderlich-blog/the-most-beautiful-motorcycle-tours-in-the-black-forest/",
+      "https://www.heidelberg24.de/baden-wuerttemberg/ungluecke-panorama-alt-schwarzwaldhochstrasse-schoen-motorradfahrer-baden-wuerttemberg-gefaehrlich-kurvenreich-93753518.html"
+    ],
+    "polyline_note": "OSRM Baden-Baden -> Mummelsee -> Freudenstadt; B 500 then B 28 from Kniebis.",
+    "sensitivity": "Known accident blackspot with recurring calls for motorcycle bans; show it as scenic, never as fast.",
+    "polyline_file": "DE-route.geojson",
+    "polyline_length_km": 61.3,
+    "polyline_length_mi": 38.1,
+    "polyline_elevation_srtm90m": {
+      "min_m": 165,
+      "max_m": 1114,
+      "gain_m": 1262,
+      "loss_m": 690,
+      "samples": 100
+    },
+    "elevation_note": "gain/loss from 100 SRTM 90 m samples along the polyline (opentopodata.org); treat as approximate",
+    "backups": [
+      {
+        "name": "Deutsche Alpenstraße (Bayern)",
+        "why": "~450 km Lindau-Berchtesgaden Alpine route"
+      },
+      {
+        "name": "Eifel / Nürburgring area roads",
+        "why": "German riders' pilgrimage region"
+      }
+    ]
+  },
+  "demo_garage": {
+    "currency": "EUR",
+    "units": {
+      "distance": "km",
+      "fuel_volume": "L",
+      "fuel_economy": "L/100 km"
+    },
+    "bikes": [
+      {
+        "make": "BMW",
+        "model": "R 1300 GS",
+        "year": 2024,
+        "odometer": "16.900 km",
+        "why": "Germany's most-registered motorcycle 2025 (8,097 per one KBA-based source). BMW is the top make our DE users type.",
+        "sources": ["https://www.motorradundreisen.de/motorrad-datenbank/bmw/daten-und-fakten/"]
+      },
+      {
+        "make": "Kawasaki",
+        "model": "Z900",
+        "year": 2023,
+        "odometer": "12.300 km",
+        "why": "Beat the GS in June 2025; Kawasaki's strongest German share in 30+ years.",
+        "sources": [
+          "https://www.motorradundreisen.de/szene/neuzulassungen-motorraeder-juni-2025-z900-duepiert-gs-strich/8812/9293/",
+          "https://www.motorradundreisen.de/szene/kawasaki-meldet-staerksten-marktanteil-deutschland-30-jahren/10151/"
+        ]
+      }
+    ],
+    "expenses": [
+      {
+        "type": "fuel",
+        "label": "Super E10, 15,8 L",
+        "amount": "26,70 €",
+        "unit_price": "~1,69 €/L (estimate)"
+      },
+      {
+        "type": "service",
+        "label": "Inspektion 20.000 km BMW-Händler",
+        "amount": "445,00 €"
+      },
+      {
+        "type": "part",
+        "label": "Reifensatz Metzeler Tourance Next 2",
+        "amount": "329,00 €"
+      }
+    ],
+    "maintenance": {
+      "bike": "BMW R 1300 GS",
+      "overdue": {
+        "task": "Jahresinspektion (Öl, Filter)",
+        "interval": "alle 10.000 km oder 1 Jahr",
+        "status": "seit 900 km fällig"
+      },
+      "upcoming": [
+        {
+          "task": "HU / TÜV",
+          "interval": "alle 2 Jahre",
+          "due": "März 2027"
+        },
+        {
+          "task": "Ventilspiel prüfen",
+          "interval": "alle 20.000 km",
+          "due": "20.000 km"
+        }
+      ],
+      "interval_confidence": "medium; HU interval is law"
+    }
+  },
+  "store_mapping": {
+    "app_store": {
+      "storefront_default_language": "German",
+      "storefront_additional_languages": ["English (U.K.)"],
+      "best_localization_for_storefront": "de-DE",
+      "motovault_ios_localizations_live_3_26_0": [
+        "de-DE",
+        "en-GB",
+        "en-US",
+        "es-MX",
+        "fr-FR",
+        "it",
+        "pt-BR"
+      ],
+      "shown_today": "de-DE",
+      "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations"
+    },
+    "google_play": {
+      "listing_shown": "de-DE",
+      "how_chosen": "Default listing: translation picked by the user's device language, falling back to the default (en-US). Custom store listings: picked by country first, then the user's language within that listing.",
+      "motovault_play_translations": "Play default listing has 46 translations in store/play/metadata, incl. en-US, en-GB, en-CA, en-AU, es-419, es-ES, es-US, pt-BR, fr-FR, de-DE, it-IT, fil (no fr-CA).",
+      "source": "https://support.google.com/googleplay/android-developer/answer/9867158"
+    },
+    "targeting": "Play custom store listings can target countries (up to 50 listings, each country in only one listing, no auto-translation). Apple cannot target countries on the default product page; per-country screenshots on iOS need Custom Product Pages (reached only via their own URL/ads) or a localization that only that storefront uses."
+  },
+  "local_notes": {
+    "date": "TT.MM.JJJJ",
+    "number": "1.234,5",
+    "words": {
+      "motorcycle": "Motorrad, Maschine, Mopped (colloquial)",
+      "ride": "Tour, Ausfahrt, Runde drehen; 'Biker', 'Motorradfahrer'"
+    },
+    "season_nov_mar": "Winter break: many bikes on a Saisonkennzeichen (seasonal plate, often 03-10 or 04-10), so they are legally off the road. Season start in March/April is a big moment.",
+    "traffic": "right-hand",
+    "imagery": "Touring/adventure (GS) culture; TÜV/HU and Inspektion are known costs; Black Forest, Alps, Eifel."
+  }
+}

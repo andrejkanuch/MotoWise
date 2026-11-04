@@ -1,0 +1,427 @@
+{
+  "cc": "AU",
+  "market_name": "Australia",
+  "app_language": "en",
+  "store_locales": {
+    "ios": "en-AU",
+    "play": "en-AU"
+  },
+  "device": {
+    "apple_languages": ["en-AU", "en"],
+    "apple_locale": "en_AU",
+    "metric": true
+  },
+  "measurement_system": "metric",
+  "currency": "AUD",
+  "timezone": "Australia/Melbourne",
+  "region_code": "AU-VIC",
+  "rider": {
+    "display_name": "Mitch K.",
+    "city": "Geelong",
+    "home": [-38.1499, 144.3617]
+  },
+  "bikes": [
+    {
+      "key": "primary",
+      "make": "YAMAHA",
+      "model": "MT-07 LA",
+      "year": 2023,
+      "nickname": "The Seven",
+      "type": "standard",
+      "engine_cc": 655,
+      "odometer": 16400,
+      "odometer_jan1": 9600,
+      "purchase_date": "2023-02-04",
+      "purchase_price": 11999
+    },
+    {
+      "key": "second",
+      "make": "YAMAHA",
+      "model": "Ténéré 700",
+      "year": 2022,
+      "nickname": "Tenny",
+      "type": "dual_sport",
+      "engine_cc": 689,
+      "odometer": 28900,
+      "odometer_jan1": 24100,
+      "purchase_date": "2022-09-17",
+      "purchase_price": 17499
+    }
+  ],
+  "hero_ride": {
+    "name": "Great Ocean Road, Torquay to Warrnambool",
+    "road": "B100",
+    "date": "2026-10-24",
+    "start_time": "07:45",
+    "avg_speed_kmh": 62,
+    "max_speed_kmh": 100,
+    "max_lean_deg": 38,
+    "elevation_gain_m": null
+  },
+  "other_rides": [
+    {
+      "name": "Otways via Forrest",
+      "date": "2026-10-11",
+      "distance_km": 190,
+      "avg_speed_kmh": 60,
+      "elevation_gain_m": 1600
+    },
+    {
+      "name": "Bellarine loop",
+      "date": "2026-10-31",
+      "distance_km": 75,
+      "avg_speed_kmh": 58,
+      "elevation_gain_m": 250
+    },
+    {
+      "name": "Commute",
+      "date": "2026-10-28",
+      "distance_km": 24,
+      "avg_speed_kmh": 52,
+      "elevation_gain_m": 60
+    }
+  ],
+  "season": {
+    "rides": 96,
+    "distance_km": 10200
+  },
+  "fuel": {
+    "label": "Premium 95",
+    "unit": "L",
+    "price_per_unit": 2.09,
+    "fill_size": [10, 13.5],
+    "stations": [
+      "Ampol, Torquay",
+      "BP, Lorne",
+      "Shell, Apollo Bay",
+      "United, Port Campbell",
+      "7-Eleven, Geelong West"
+    ]
+  },
+  "service": {
+    "title": "10,000 km service",
+    "date": "2026-04-18",
+    "odometer": 10050,
+    "vendor": "Surf Coast Motorcycles",
+    "tax_label": "GST 10%",
+    "tax_rate": 0.1,
+    "tax_included": true,
+    "line_items": [
+      {
+        "label": "Yamalube 10W-40, 3 L",
+        "service_type": "oil_change",
+        "amount": 69.0
+      },
+      {
+        "label": "Oil filter",
+        "service_type": "oil_filter",
+        "amount": 24.5
+      },
+      {
+        "label": "Chain clean, lube, adjust",
+        "service_type": "chain",
+        "amount": 30.0
+      },
+      {
+        "label": "Labour 2.0 hrs",
+        "service_type": "general_service",
+        "amount": 260.0
+      }
+    ]
+  },
+  "service_interval": 10000,
+  "expenses": [
+    {
+      "category": "registration",
+      "date": "2026-02-04",
+      "amount": 495.0,
+      "item": "Rego renewal (12 months)",
+      "vendor": "VicRoads"
+    },
+    {
+      "category": "insurance",
+      "date": "2026-02-04",
+      "amount": 540.0,
+      "item": "Comprehensive cover 2026",
+      "vendor": "Bike insurance"
+    },
+    {
+      "category": "tires",
+      "date": "2026-09-06",
+      "amount": 389.0,
+      "item": "Pair of tyres fitted",
+      "vendor": "Surf Coast Motorcycles"
+    },
+    {
+      "category": "gear",
+      "date": "2026-10-03",
+      "amount": 149.0,
+      "item": "Summer mesh jacket",
+      "vendor": "Gear shop"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Oil & filter",
+      "target_odometer": 16000,
+      "priority": "high"
+    },
+    {
+      "title": "Chain clean & adjust",
+      "target_odometer": 16800,
+      "priority": "medium"
+    },
+    {
+      "title": "Brake fluid",
+      "due_date": "2027-02-04",
+      "priority": "medium"
+    }
+  ],
+  "trip": {
+    "title": "Great Alpine Road",
+    "description": "Bright, Mount Hotham and Omeo",
+    "start_date": "2026-12-12",
+    "end_date": "2026-12-13",
+    "difficulty": "moderate",
+    "status": "draft",
+    "stops": [
+      {
+        "name": "Geelong",
+        "lat": -38.1499,
+        "lng": 144.3617,
+        "type": "start",
+        "day": 0
+      },
+      {
+        "name": "Bright",
+        "lat": -36.729,
+        "lng": 146.96,
+        "type": "overnight",
+        "day": 0
+      },
+      {
+        "name": "Mount Hotham",
+        "lat": -36.976,
+        "lng": 147.134,
+        "type": "pass_summit",
+        "day": 1
+      },
+      {
+        "name": "Omeo",
+        "lat": -37.099,
+        "lng": 147.595,
+        "type": "food",
+        "day": 1
+      },
+      {
+        "name": "Geelong",
+        "lat": -38.1499,
+        "lng": 144.3617,
+        "type": "end",
+        "day": 1
+      }
+    ]
+  },
+  "notes": "store_locales.ios en-AU does not exist on the App Store yet (Australia shows en-GB today). Southern-hemisphere summer: rides are current.",
+  "generated": "2026-11-03",
+  "feature_usage": {
+    "n_users": 23,
+    "counts": {
+      "users": 23,
+      "rides_tracked": 1,
+      "rides_finished": 0,
+      "trips": 3,
+      "trip_building": 2,
+      "maintenance": 0,
+      "expenses": 0,
+      "receipt_scan": 0,
+      "ai_diagnosis": 1,
+      "bike_added": 16,
+      "onboarding_completed": 8
+    },
+    "local_ranking": [
+      {
+        "feature": "trips",
+        "users": 3,
+        "pct": 13.0
+      },
+      {
+        "feature": "rides_tracked",
+        "users": 1,
+        "pct": 4.3
+      },
+      {
+        "feature": "ai_diagnosis",
+        "users": 1,
+        "pct": 4.3
+      },
+      {
+        "feature": "maintenance",
+        "users": 0,
+        "pct": 0.0
+      },
+      {
+        "feature": "expenses",
+        "users": 0,
+        "pct": 0.0
+      }
+    ],
+    "onboarding_primary_goal": {
+      "track_rides": 6,
+      "manage_expenses": 2,
+      "maintain_bike": 1
+    },
+    "bike_makes_typed": "Honda 8, BMW 3, Triumph 4",
+    "differs_from_global": "Trips 3 (2 built), rides 1 of 23; 6 of 9 goal answers are track_rides.",
+    "sample_strength": "very thin",
+    "recommended_screenshot_order": [
+      "rides (live ride / ride map + stats)",
+      "maintenance (reminders, overdue service)",
+      "expenses (incl. receipt scan)",
+      "trips (route planning)",
+      "garage (bike hub)"
+    ],
+    "recommendation": "Global order."
+  },
+  "hero_route": {
+    "name_local": "Great Ocean Road (B100)",
+    "region": "Victoria",
+    "start": "Torquay",
+    "end": "Allansford (near Warrnambool)",
+    "official_length": "~240-243 km",
+    "official_elevation": "coastal, up to ~450 m in the Otways",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Great_Ocean_Road",
+      "https://motorcycleroads.com/motorcycle-roads/australia/the-great-ocean-road",
+      "https://www.fodors.com/world/australia-and-the-pacific/australia/victoria/great-ocean-road"
+    ],
+    "polyline_note": "OSRM Torquay -> Lorne -> Apollo Bay -> Port Campbell -> Allansford on the B100.",
+    "polyline_file": "AU-route.geojson",
+    "polyline_length_km": 246.0,
+    "polyline_length_mi": 152.9,
+    "polyline_elevation_srtm90m": {
+      "min_m": 3,
+      "max_m": 457,
+      "gain_m": 1567,
+      "loss_m": 1552,
+      "samples": 100
+    },
+    "elevation_note": "gain/loss from 100 SRTM 90 m samples along the polyline (opentopodata.org); treat as approximate",
+    "backups": [
+      {
+        "name": "Oxley Highway (Wauchope - Walcha, NSW)",
+        "why": "the curves road Australian riders talk about"
+      },
+      {
+        "name": "Great Alpine Road (VIC)",
+        "why": "high-country touring classic"
+      }
+    ]
+  },
+  "demo_garage": {
+    "currency": "AUD",
+    "units": {
+      "distance": "km",
+      "fuel_volume": "L",
+      "fuel_economy": "L/100 km"
+    },
+    "bikes": [
+      {
+        "make": "Yamaha",
+        "model": "MT-07 LA (LAMS)",
+        "year": 2023,
+        "odometer": "16,400 km",
+        "why": "#1 naked bike in Australia 2025; Yamaha #1 brand (25,500 units). LAMS version matters for learner riders.",
+        "sources": [
+          "https://business.carsales.com.au/news-room/news/yamaha-leads-the-way-as-motorcycle-sales-stabilise"
+        ]
+      },
+      {
+        "make": "Yamaha",
+        "model": "Ténéré 700",
+        "year": 2022,
+        "odometer": "28,900 km",
+        "why": "#1 adventure-touring model 2025.",
+        "sources": [
+          "https://www.bikesales.com.au/editorial/details/yamaha-leads-the-way-as-motorcycle-sales-stabilise-149827"
+        ]
+      }
+    ],
+    "expenses": [
+      {
+        "type": "fuel",
+        "label": "Premium 95, 12.8 L",
+        "amount": "$27.01",
+        "unit_price": "~$2.11/L (estimate)"
+      },
+      {
+        "type": "service",
+        "label": "20,000 km service at Yamaha dealer",
+        "amount": "$420.00"
+      },
+      {
+        "type": "part",
+        "label": "Rego renewal (VIC, 12 months)",
+        "amount": "$495.00"
+      }
+    ],
+    "maintenance": {
+      "bike": "Yamaha MT-07 LA",
+      "overdue": {
+        "task": "Oil & filter",
+        "interval": "every 10,000 km or 12 months",
+        "status": "overdue by 400 km"
+      },
+      "upcoming": [
+        {
+          "task": "Chain clean & adjust",
+          "interval": "every 1,000 km",
+          "due": "16,800 km"
+        },
+        {
+          "task": "Brake fluid",
+          "interval": "every 2 years",
+          "due": "Feb 2027"
+        }
+      ],
+      "interval_confidence": "medium: Yamaha CP2 schedule; verify"
+    },
+    "note": "FCAI does not publish model tables; CFMOTO and Royal Enfield are not counted."
+  },
+  "store_mapping": {
+    "app_store": {
+      "storefront_default_language": "English (Australia)",
+      "storefront_additional_languages": ["English (U.K.)"],
+      "best_localization_for_storefront": "en-AU",
+      "motovault_ios_localizations_live_3_26_0": [
+        "de-DE",
+        "en-GB",
+        "en-US",
+        "es-MX",
+        "fr-FR",
+        "it",
+        "pt-BR"
+      ],
+      "shown_today": "en-GB (no en-AU App Store localization; en-GB is the storefront's additional language)",
+      "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations"
+    },
+    "google_play": {
+      "listing_shown": "en-AU",
+      "how_chosen": "Default listing: translation picked by the user's device language, falling back to the default (en-US). Custom store listings: picked by country first, then the user's language within that listing.",
+      "motovault_play_translations": "Play default listing has 46 translations in store/play/metadata, incl. en-US, en-GB, en-CA, en-AU, es-419, es-ES, es-US, pt-BR, fr-FR, de-DE, it-IT, fil (no fr-CA).",
+      "source": "https://support.google.com/googleplay/android-developer/answer/9867158"
+    },
+    "targeting": "Play custom store listings can target countries (up to 50 listings, each country in only one listing, no auto-translation). Apple cannot target countries on the default product page; per-country screenshots on iOS need Custom Product Pages (reached only via their own URL/ads) or a localization that only that storefront uses."
+  },
+  "local_notes": {
+    "date": "DD/MM/YYYY",
+    "number": "1,234.5",
+    "words": {
+      "motorcycle": "bike, motorbike",
+      "ride": "ride, 'a squirt' (informal); 'rider'"
+    },
+    "season_nov_mar": "Summer: peak riding, bushfire and heat days; Great Ocean Road busy with holiday traffic.",
+    "traffic": "LEFT-hand: rider keeps left, right-hand-drive cars in frame",
+    "imagery": "LAMS (learner-approved) bikes are a big segment; rego and CTP are recurring costs; coastal and outback scenery."
+  }
+}

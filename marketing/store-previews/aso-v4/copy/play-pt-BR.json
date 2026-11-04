@@ -1,0 +1,98 @@
+{
+  "platform": "google_play",
+  "locale": "pt-BR",
+  "listing_type": "default",
+  "title": {
+    "value": "MotoVault: Manutenção de Moto",
+    "chars": 29,
+    "limit": 30
+  },
+  "short_description": {
+    "value": "Manutenção da moto, controle de gastos e rolês com GPS num app só.",
+    "chars": 66,
+    "limit": 80
+  },
+  "full_description": {
+    "value": "MotoVault é o app de manutenção de moto para motociclistas e motoqueiros: grave seus rolês com GPS, controle os gastos escaneando a nota e receba lembretes de revisão, num app feito para motos, não para carros.\n\nAnote cada abastecimento e cada conta da oficina, guarde o histórico de manutenção e nunca mais esqueça a troca de óleo, o licenciamento ou o seguro.\n\n--------------------------\nO QUE VOCÊ PODE FAZER\n--------------------------\n\n* GRAVE CADA ROLÊ - Toque em gravar e rode. O MotoVault registra a rota GPS, a distância, o tempo rodando, a subida e a inclinação máxima, e monta um diário de cada quilômetro. Exporte qualquer trajeto em GPX.\n\n* CONTROLE CADA GASTO - Cada abastecimento, cada peça, cada visita à oficina. Veja quanto a moto custa por km, por mês e por ano. Registrar é grátis e sem limite, sempre.\n\n* ESCANEIE A NOTA EM VEZ DE DIGITAR - Aponte a câmera para a nota do posto, da loja de peças ou da oficina. O MotoVault lê as peças, a mão de obra, o total e a data, e preenche o gasto para você.\n\n* NUNCA PERCA UMA REVISÃO - Troca de óleo, ajuste da corrente, troca de pneu, regulagem de válvulas. Crie lembretes por quilometragem ou por data e receba o aviso antes do próximo intervalo.\n\n* HISTÓRICO COMPLETO - Cada serviço com data, hodômetro e custo. Um registro completo que valoriza a moto na hora de vender.\n\n* SUA GARAGEM - Ficha técnica, hodômetro, próxima revisão e custos da sua moto numa tela só. Mais de 12.000 modelos no catálogo.\n\n* PLANEJE CADA VIAGEM - O bate-volta de domingo ou a viagem da sua vida. Salve rotas, marque paradas e compartilhe com a galera.\n\n* SUA TEMPORADA NUM RESUMO - Quilômetros rodados, rolês, o trajeto mais longo e os países por onde você passou, prontos para compartilhar.\n\n--------------------------\nPOR QUE TROCAR PARA O MOTOVAULT\n--------------------------\n\n- Um app só no lugar de três: gravador de rolês, controle de gastos e caderno de manutenção\n- Lembretes por km ou por data, para nunca mais chutar quando vence a troca de óleo\n- Lembretes por data para o licenciamento, o seguro ou o que vencer uma vez por ano\n- O scanner lê peças, mão de obra e total: registrar um gasto leva segundos\n- Quilômetros ou milhas, tema claro ou escuro: o app segue sua escolha\n- Seus dados são seus: privados, exportáveis, nunca vendidos\n\n--------------------------\nPARA QUEM É\n--------------------------\n\n- Quem usa a moto todo dia e quer ela sempre em dia\n- Quem sai no fim de semana atrás da próxima estrada boa\n- Quem faz viagem longa e quer registrar tudo\n- Quem mete a mão na própria moto\n- Quem cansou de app feito para carro\n\n--------------------------\nMOTOVAULT PRO\n--------------------------\n\nGrátis para sempre: 1 moto, registro de manutenção e\ngastos ilimitado, gravação de rolês ilimitada, 1\ndiagnóstico IA e 3 escaneamentos de recibos por mês.\n\nPro libera mais motos.\nDiagnósticos IA e escaneamentos de\nrecibos ilimitados, exportações GPX ilimitadas e mapas de\nviagem offline. Plano mensal ou anual; o preço aparece no app antes de você confirmar.\n\nA assinatura é renovada automaticamente, salvo cancelamento com pelo menos 24 horas de antecedência do fim do período. Gerencie ou cancele nas configurações da sua conta Google Play.\n\nPrivacidade: https://motovault.app/privacy\nTermos: https://motovault.app/terms\n\n--------------------------\n\nDúvidas ou ideias? Lemos cada e-mail: support@motovault.app\n\nDuas rodas. Um app. Rode melhor.",
+    "chars": 3403,
+    "limit": 4000
+  },
+  "screenshot_captions": {
+    "ride_tracking": {
+      "headline": ["Grave cada rolê.", "Guarde a estrada."],
+      "headline_chars": [16, 17],
+      "subline": "Rota GPS, distância, subida e inclinação máxima, no automático.",
+      "subline_chars": 63
+    },
+    "ride_stats": {
+      "headline": ["Cada rolê,", "em números."],
+      "headline_chars": [10, 11],
+      "subline": "Distância, tempo rodando, subida e inclinação máxima.",
+      "subline_chars": 53
+    },
+    "expenses": {
+      "headline": ["Quanto sua moto", "custa de verdade."],
+      "headline_chars": [15, 17],
+      "subline": "Gasolina, peças, equipamento e oficina num só lugar. Grátis.",
+      "subline_chars": 60
+    },
+    "receipt_scan": {
+      "headline": ["Uma nota,", "uma foto."],
+      "headline_chars": [9, 9],
+      "subline": "O MotoVault lê peças, mão de obra e total, e preenche o gasto.",
+      "subline_chars": 62
+    },
+    "maintenance_reminders": {
+      "headline": ["Nunca perca", "uma revisão."],
+      "headline_chars": [11, 12],
+      "subline": "Lembretes por km ou por data: óleo, corrente, pneu e mais.",
+      "subline_chars": 58
+    },
+    "service_history": {
+      "headline": ["Cada revisão,", "registrada."],
+      "headline_chars": [13, 11],
+      "subline": "Histórico completo de manutenção que valoriza a moto na revenda.",
+      "subline_chars": 64
+    },
+    "garage": {
+      "headline": ["Sua moto,", "num só lugar."],
+      "headline_chars": [9, 13],
+      "subline": "Ficha, hodômetro, próxima revisão e custos num relance.",
+      "subline_chars": 55
+    },
+    "trip_planning": {
+      "headline": ["Planeje a viagem.", "Aí é só rodar."],
+      "headline_chars": [17, 14],
+      "subline": "Trace a rota, marque paradas e compartilhe com a galera.",
+      "subline_chars": 56
+    },
+    "season_summary": {
+      "headline": ["Sua temporada,", "num resumo."],
+      "headline_chars": [14, 11],
+      "subline": "Distância total, o rolê mais longo e por onde você passou.",
+      "subline_chars": 58
+    },
+    "costs_overview": {
+      "headline": ["Cada quilômetro", "tem seu preço."],
+      "headline_chars": [15, 14],
+      "subline": "Custo por km, tendência mensal e o gasto do ano.",
+      "subline_chars": 48
+    }
+  },
+  "feature_graphic_headline": {
+    "value": "Sua moto, sob controle",
+    "words": 4,
+    "limit_words": 5
+  },
+  "rationale": "Brazil is the #2 growth market. Title = exact search phrase; body uses rolê, revisão, troca de óleo, nota, abastecimento, licenciamento.",
+  "screenshot_order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history"
+  ]
+}

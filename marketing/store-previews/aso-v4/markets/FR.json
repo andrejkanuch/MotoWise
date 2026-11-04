@@ -1,0 +1,432 @@
+{
+  "cc": "FR",
+  "market_name": "France",
+  "app_language": "fr",
+  "store_locales": {
+    "ios": "fr-FR",
+    "play": "fr-FR"
+  },
+  "device": {
+    "apple_languages": ["fr-FR", "fr"],
+    "apple_locale": "fr_FR",
+    "metric": true
+  },
+  "measurement_system": "metric",
+  "currency": "EUR",
+  "timezone": "Europe/Paris",
+  "region_code": "FR-PAC",
+  "rider": {
+    "display_name": "Julien B.",
+    "city": "Grasse",
+    "home": [43.6584, 6.9225]
+  },
+  "bikes": [
+    {
+      "key": "primary",
+      "make": "BMW",
+      "model": "R 1300 GS",
+      "year": 2024,
+      "nickname": "La GS",
+      "type": "dual_sport",
+      "engine_cc": 1300,
+      "odometer": 18600,
+      "odometer_jan1": 8200,
+      "purchase_date": "2024-03-16",
+      "purchase_price": 22950
+    },
+    {
+      "key": "second",
+      "make": "YAMAHA",
+      "model": "MT-07",
+      "year": 2021,
+      "nickname": "La MT",
+      "type": "standard",
+      "engine_cc": 689,
+      "odometer": 31200,
+      "odometer_jan1": 29100,
+      "purchase_date": "2021-04-03",
+      "purchase_price": 7299
+    }
+  ],
+  "hero_ride": {
+    "name": "Route Napoléon, Grasse - Grenoble",
+    "road": "N85 / D6085",
+    "date": "2026-10-11",
+    "start_time": "08:15",
+    "avg_speed_kmh": 64,
+    "max_speed_kmh": 110,
+    "max_lean_deg": 38,
+    "elevation_gain_m": null
+  },
+  "other_rides": [
+    {
+      "name": "Gorges du Verdon",
+      "date": "2026-10-03",
+      "distance_km": 230,
+      "avg_speed_kmh": 55,
+      "elevation_gain_m": 2900
+    },
+    {
+      "name": "Col de Vence",
+      "date": "2026-10-25",
+      "distance_km": 75,
+      "avg_speed_kmh": 48,
+      "elevation_gain_m": 1100
+    },
+    {
+      "name": "Corniche de l'Estérel",
+      "date": "2026-09-27",
+      "distance_km": 110,
+      "avg_speed_kmh": 50,
+      "elevation_gain_m": 700
+    }
+  ],
+  "season": {
+    "rides": 88,
+    "distance_km": 11800
+  },
+  "fuel": {
+    "label": "SP98",
+    "unit": "L",
+    "price_per_unit": 1.82,
+    "fill_size": [14, 18],
+    "stations": [
+      "TotalEnergies, Grasse",
+      "Esso, Castellane",
+      "Intermarché, Digne-les-Bains",
+      "Avia, Sisteron",
+      "TotalEnergies, Gap"
+    ]
+  },
+  "service": {
+    "title": "Révision 10 000 km",
+    "date": "2026-05-22",
+    "odometer": 10040,
+    "vendor": "Azur Moto Passion",
+    "tax_label": "TVA 20 %",
+    "tax_rate": 0.2,
+    "tax_included": true,
+    "line_items": [
+      {
+        "label": "Huile moteur 5W-40, 4 L",
+        "service_type": "oil_change",
+        "amount": 79.6
+      },
+      {
+        "label": "Filtre à huile",
+        "service_type": "oil_filter",
+        "amount": 19.9
+      },
+      {
+        "label": "Liquide de frein DOT 4",
+        "service_type": "brake_fluid",
+        "amount": 24.0
+      },
+      {
+        "label": "Huile de pont",
+        "service_type": "final_drive",
+        "amount": 18.5
+      },
+      {
+        "label": "Main-d'œuvre 2,2 h",
+        "service_type": "general_service",
+        "amount": 191.4
+      }
+    ]
+  },
+  "service_interval": 10000,
+  "expenses": [
+    {
+      "category": "insurance",
+      "date": "2026-03-16",
+      "amount": 612.0,
+      "item": "Assurance tous risques 2026",
+      "vendor": "Assurance moto"
+    },
+    {
+      "category": "tires",
+      "date": "2026-08-28",
+      "amount": 199.9,
+      "item": "Pneu arrière Anakee Road",
+      "vendor": "Azur Moto Passion"
+    },
+    {
+      "category": "tolls",
+      "date": "2026-10-11",
+      "amount": 6.8,
+      "item": "Péage A8",
+      "vendor": "Escota"
+    },
+    {
+      "category": "gear",
+      "date": "2026-04-11",
+      "amount": 249.0,
+      "item": "Gants hiver chauffants",
+      "vendor": "Équipement motard"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Révision annuelle (huile, filtre)",
+      "target_odometer": 18000,
+      "priority": "high"
+    },
+    {
+      "title": "Contrôle jeu aux soupapes",
+      "target_odometer": 20000,
+      "priority": "medium"
+    },
+    {
+      "title": "Contrôle technique",
+      "due_date": "2027-03-16",
+      "priority": "medium"
+    }
+  ],
+  "trip": {
+    "title": "Verdon d'automne",
+    "description": "Castellane, Point Sublime et Moustiers",
+    "start_date": "2026-11-21",
+    "end_date": "2026-11-22",
+    "difficulty": "moderate",
+    "status": "draft",
+    "stops": [
+      {
+        "name": "Grasse",
+        "lat": 43.6584,
+        "lng": 6.9225,
+        "type": "start",
+        "day": 0
+      },
+      {
+        "name": "Castellane",
+        "lat": 43.847,
+        "lng": 6.513,
+        "type": "food",
+        "day": 0
+      },
+      {
+        "name": "Point Sublime",
+        "lat": 43.792,
+        "lng": 6.398,
+        "type": "scenic",
+        "day": 0
+      },
+      {
+        "name": "Moustiers-Sainte-Marie",
+        "lat": 43.846,
+        "lng": 6.221,
+        "type": "overnight",
+        "day": 0
+      },
+      {
+        "name": "Grasse",
+        "lat": 43.6584,
+        "lng": 6.9225,
+        "type": "end",
+        "day": 1
+      }
+    ]
+  },
+  "notes": "",
+  "generated": "2026-11-03",
+  "feature_usage": {
+    "n_users": 28,
+    "counts": {
+      "users": 28,
+      "rides_tracked": 5,
+      "rides_finished": 4,
+      "trips": 3,
+      "trip_building": 2,
+      "maintenance": 2,
+      "expenses": 4,
+      "receipt_scan": 1,
+      "ai_diagnosis": 1,
+      "bike_added": 14,
+      "onboarding_completed": 10
+    },
+    "local_ranking": [
+      {
+        "feature": "rides_tracked",
+        "users": 5,
+        "pct": 17.9
+      },
+      {
+        "feature": "expenses",
+        "users": 4,
+        "pct": 14.3
+      },
+      {
+        "feature": "trips",
+        "users": 3,
+        "pct": 10.7
+      },
+      {
+        "feature": "maintenance",
+        "users": 2,
+        "pct": 7.1
+      },
+      {
+        "feature": "ai_diagnosis",
+        "users": 1,
+        "pct": 3.6
+      }
+    ],
+    "onboarding_primary_goal": {
+      "track_rides": 5,
+      "maintain_bike": 2,
+      "manage_expenses": 1,
+      "just_exploring": 1,
+      "discover_routes": 1
+    },
+    "bike_makes_typed": "Honda 8, Yamaha 8, Suzuki 3",
+    "differs_from_global": "Rides 5, expenses 4 (14%, the highest expense share), trips 3 of 28.",
+    "sample_strength": "very thin",
+    "recommended_screenshot_order": [
+      "rides (live ride / ride map + stats)",
+      "maintenance (reminders, overdue service)",
+      "expenses (incl. receipt scan)",
+      "trips (route planning)",
+      "garage (bike hub)"
+    ],
+    "recommendation": "Global order; expenses already sit at 3."
+  },
+  "hero_route": {
+    "name_local": "Route Napoléon",
+    "region": "Provence-Alpes-Côte d'Azur / Auvergne-Rhône-Alpes",
+    "start": "Golfe-Juan",
+    "end": "Grenoble",
+    "official_length": "~325-335 km (N85 / D6085 / D4085 / D1085)",
+    "official_elevation": "sea level to ~1,250 m (Col de Bayard)",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Route_Napol%C3%A9on",
+      "https://goodmotors.agency/en/articles/la-route-napoleon-a-moto-un-voyage-au-fil-de-lhistoire",
+      "https://www.france.fr/de/artikel/route-napoleon/"
+    ],
+    "polyline_note": "OSRM with 15 via points to keep off the A51; the last ~5 km into Grenoble use the A480 ring.",
+    "caveat": "Sources call it famous for road tests and touring; no source calls it the single 'mythic' moto road. The Route des Grandes Alpes is equally iconic.",
+    "polyline_file": "FR-route.geojson",
+    "polyline_length_km": 342.2,
+    "polyline_length_mi": 212.6,
+    "polyline_elevation_srtm90m": {
+      "min_m": 2,
+      "max_m": 1184,
+      "gain_m": 3311,
+      "loss_m": 3078,
+      "samples": 100
+    },
+    "elevation_note": "gain/loss from 100 SRTM 90 m samples along the polyline (opentopodata.org); treat as approximate",
+    "backups": [
+      {
+        "name": "Route des Grandes Alpes (Thonon - Menton)",
+        "why": "~700 km of Alpine cols, the classic French moto trip (summer only)"
+      },
+      {
+        "name": "Gorges du Verdon (Route des Crêtes)",
+        "why": "canyon road, instantly recognisable"
+      }
+    ]
+  },
+  "demo_garage": {
+    "currency": "EUR",
+    "units": {
+      "distance": "km",
+      "fuel_volume": "L",
+      "fuel_economy": "L/100 km"
+    },
+    "bikes": [
+      {
+        "make": "BMW",
+        "model": "R 1300 GS",
+        "year": 2024,
+        "odometer": "18 600 km",
+        "why": "R 1300 GS and GS Adventure were #1 and #2 in France in 2025.",
+        "sources": ["https://www.press.bmwgroup.com/france/article/attachment/T0454841FR/642223"]
+      },
+      {
+        "make": "Yamaha",
+        "model": "MT-07",
+        "year": 2021,
+        "odometer": "31 200 km",
+        "why": "Perennial top-5 (joint 3rd in March 2025); Yamaha/Honda are the makes our FR users type most.",
+        "sources": [
+          "https://www.moto-net.com/article/marche-moto-2025-les-meilleures-ventes-de-motos-et-scooters.html"
+        ]
+      }
+    ],
+    "expenses": [
+      {
+        "type": "fuel",
+        "label": "SP95-E10, 16,2 L",
+        "amount": "28,19 €",
+        "unit_price": "~1,74 €/L (estimate)"
+      },
+      {
+        "type": "service",
+        "label": "Révision 20 000 km concession BMW",
+        "amount": "389,00 €"
+      },
+      {
+        "type": "part",
+        "label": "Pneu arrière Michelin Anakee Road",
+        "amount": "199,90 €"
+      }
+    ],
+    "maintenance": {
+      "bike": "BMW R 1300 GS",
+      "overdue": {
+        "task": "Révision annuelle (huile, filtre)",
+        "interval": "tous les 10 000 km ou 1 an",
+        "status": "dépassée de 600 km"
+      },
+      "upcoming": [
+        {
+          "task": "Liquide de frein",
+          "interval": "tous les 2 ans",
+          "due": "avril 2027"
+        },
+        {
+          "task": "Contrôle jeu aux soupapes",
+          "interval": "tous les 20 000 km",
+          "due": "20 000 km"
+        }
+      ],
+      "interval_confidence": "medium: BMW boxer schedule as commonly published; verify"
+    }
+  },
+  "store_mapping": {
+    "app_store": {
+      "storefront_default_language": "French",
+      "storefront_additional_languages": ["English (U.K.)"],
+      "best_localization_for_storefront": "fr-FR",
+      "motovault_ios_localizations_live_3_26_0": [
+        "de-DE",
+        "en-GB",
+        "en-US",
+        "es-MX",
+        "fr-FR",
+        "it",
+        "pt-BR"
+      ],
+      "shown_today": "fr-FR",
+      "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations"
+    },
+    "google_play": {
+      "listing_shown": "fr-FR",
+      "how_chosen": "Default listing: translation picked by the user's device language, falling back to the default (en-US). Custom store listings: picked by country first, then the user's language within that listing.",
+      "motovault_play_translations": "Play default listing has 46 translations in store/play/metadata, incl. en-US, en-GB, en-CA, en-AU, es-419, es-ES, es-US, pt-BR, fr-FR, de-DE, it-IT, fil (no fr-CA).",
+      "source": "https://support.google.com/googleplay/android-developer/answer/9867158"
+    },
+    "targeting": "Play custom store listings can target countries (up to 50 listings, each country in only one listing, no auto-translation). Apple cannot target countries on the default product page; per-country screenshots on iOS need Custom Product Pages (reached only via their own URL/ads) or a localization that only that storefront uses."
+  },
+  "local_notes": {
+    "date": "JJ/MM/AAAA",
+    "number": "1 234,5 (narrow space as thousands separator)",
+    "words": {
+      "motorcycle": "moto; 'bécane' (slang)",
+      "ride": "balade, sortie, virée; 'motard'"
+    },
+    "season_nov_mar": "Off-season for most; Alpine cols closed; Côte d'Azur and the south stay rideable.",
+    "traffic": "right-hand",
+    "imagery": "The 'salut motard' (V-sign / foot wave) is a cultural touch; contrôle technique for motorcycles started in 2024."
+  }
+}

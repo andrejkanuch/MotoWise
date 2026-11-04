@@ -1,0 +1,77 @@
+{
+  "locale": "fr-FR",
+  "slots": {
+    "ride_tracking": {
+      "headline": ["Chaque balade", "enregistrée."],
+      "sub": "Tracé GPS, distance, dénivelé et angle maxi, sans rien toucher."
+    },
+    "ride_stats": {
+      "headline": ["Chaque sortie,", "en chiffres."],
+      "sub": "Distance, temps de roulage, dénivelé et angle maxi."
+    },
+    "expenses": {
+      "headline": ["Ce que votre moto", "coûte vraiment."],
+      "sub": "Essence, pièces, équipement et garage au même endroit. Gratuit."
+    },
+    "receipt_scan": {
+      "headline": ["Un reçu,", "une photo."],
+      "sub": "MotoVault lit pièces, main-d’œuvre et total, et remplit la dépense."
+    },
+    "maintenance_reminders": {
+      "headline": ["Ne ratez plus", "une révision."],
+      "sub": "Rappels au kilométrage ou à la date : vidange, chaîne, pneus."
+    },
+    "service_history": {
+      "headline": ["Votre carnet", "d’entretien."],
+      "sub": "Chaque intervention notée : un vrai atout à la revente."
+    },
+    "garage": {
+      "headline": ["Votre moto,", "en un seul écran."],
+      "sub": "Fiche, compteur, prochaine révision et coûts en un coup d’œil."
+    },
+    "trip_planning": {
+      "headline": ["Tracez la route.", "Puis roulez."],
+      "sub": "Tracez l’itinéraire, ajoutez des étapes, partagez-le."
+    },
+    "season_summary": {
+      "headline": ["Votre saison,", "en un résumé."],
+      "sub": "Distance totale, la plus longue sortie, les pays traversés."
+    },
+    "costs_overview": {
+      "headline": ["Chaque kilomètre", "a son prix."],
+      "sub": "Coût au km, tendance mensuelle et dépenses de l’année."
+    }
+  },
+  "order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history",
+    "costs_overview",
+    "season_summary"
+  ],
+  "order_play": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history"
+  ],
+  "feature_graphic": {
+    "headline": ["Votre moto,", "sous contrôle."]
+  },
+  "header": {
+    "headline": ["Votre moto,", "sous contrôle."]
+  },
+  "search": {
+    "headline": ["Balades, frais", "et entretien."],
+    "sub": "Balades · Frais · Entretien"
+  }
+}

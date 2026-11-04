@@ -1,0 +1,429 @@
+{
+  "cc": "GB",
+  "market_name": "United Kingdom",
+  "app_language": "en",
+  "store_locales": {
+    "ios": "en-GB",
+    "play": "en-GB"
+  },
+  "device": {
+    "apple_languages": ["en-GB", "en"],
+    "apple_locale": "en_GB",
+    "metric": false
+  },
+  "measurement_system": "imperial",
+  "currency": "GBP",
+  "timezone": "Europe/London",
+  "region_code": "GB-CHE",
+  "rider": {
+    "display_name": "Tom W.",
+    "city": "Macclesfield",
+    "home": [53.2587, -2.127]
+  },
+  "bikes": [
+    {
+      "key": "primary",
+      "make": "TRIUMPH",
+      "model": "Speed 400",
+      "year": 2024,
+      "nickname": "The 400",
+      "type": "standard",
+      "engine_cc": 398,
+      "odometer": 6240,
+      "odometer_jan1": 1900,
+      "purchase_date": "2024-03-30",
+      "purchase_price": 4995
+    },
+    {
+      "key": "second",
+      "make": "BMW",
+      "model": "R 1300 GS",
+      "year": 2024,
+      "nickname": "Big GS",
+      "type": "dual_sport",
+      "engine_cc": 1300,
+      "odometer": 11900,
+      "odometer_jan1": 6100,
+      "purchase_date": "2024-05-04",
+      "purchase_price": 18995
+    }
+  ],
+  "hero_ride": {
+    "name": "Cat and Fiddle into Buxton",
+    "road": "A537",
+    "date": "2026-10-18",
+    "start_time": "10:00",
+    "avg_speed_kmh": 58,
+    "max_speed_kmh": 80,
+    "max_lean_deg": 36,
+    "elevation_gain_m": null
+  },
+  "other_rides": [
+    {
+      "name": "Snake Pass and Ladybower",
+      "date": "2026-10-11",
+      "distance_km": 120,
+      "avg_speed_kmh": 55,
+      "elevation_gain_m": 1300
+    },
+    {
+      "name": "Winnats Pass loop",
+      "date": "2026-09-27",
+      "distance_km": 95,
+      "avg_speed_kmh": 50,
+      "elevation_gain_m": 1100
+    },
+    {
+      "name": "Commute",
+      "date": "2026-10-29",
+      "distance_km": 22,
+      "avg_speed_kmh": 40,
+      "elevation_gain_m": 80
+    }
+  ],
+  "season": {
+    "rides": 72,
+    "distance_km": 6900
+  },
+  "fuel": {
+    "label": "Unleaded E10",
+    "unit": "L",
+    "price_per_unit": 1.35,
+    "fill_size": [9, 12.5],
+    "stations": [
+      "Esso, Buxton Road",
+      "Shell, Congleton Road",
+      "BP, Leek Road",
+      "Texaco, Buxton",
+      "Tesco Extra, Macclesfield"
+    ]
+  },
+  "service": {
+    "title": "First service, 600 mi",
+    "date": "2024-04-27",
+    "odometer": 610,
+    "vendor": "Peak Rider Motorcycles",
+    "tax_label": "VAT 20%",
+    "tax_rate": 0.2,
+    "tax_included": true,
+    "line_items": [
+      {
+        "label": "Engine oil 10W-50, 2.5 L",
+        "service_type": "oil_change",
+        "amount": 42.5
+      },
+      {
+        "label": "Oil filter",
+        "service_type": "oil_filter",
+        "amount": 12.99
+      },
+      {
+        "label": "Chain adjust and lube",
+        "service_type": "chain",
+        "amount": 10.0
+      },
+      {
+        "label": "Labour 1.0 hr",
+        "service_type": "general_service",
+        "amount": 94.0
+      }
+    ]
+  },
+  "service_interval": 6200,
+  "expenses": [
+    {
+      "category": "insurance",
+      "date": "2026-03-30",
+      "amount": 389.0,
+      "item": "Fully comp policy 2026",
+      "vendor": "Bike insurance"
+    },
+    {
+      "category": "taxes_fees",
+      "date": "2026-03-30",
+      "amount": 48.0,
+      "item": "Vehicle tax (VED)",
+      "vendor": "DVLA"
+    },
+    {
+      "category": "parts",
+      "date": "2026-09-13",
+      "amount": 139.99,
+      "item": "Chain and sprocket kit",
+      "vendor": "Peak Rider Motorcycles"
+    },
+    {
+      "category": "gear",
+      "date": "2026-10-25",
+      "amount": 89.0,
+      "item": "Heated grips",
+      "vendor": "Bike accessories"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Oil & filter change",
+      "target_odometer": 6200,
+      "priority": "high"
+    },
+    {
+      "title": "MOT",
+      "due_date": "2027-03-30",
+      "priority": "medium"
+    },
+    {
+      "title": "Brake fluid",
+      "due_date": "2026-12-15",
+      "priority": "medium"
+    }
+  ],
+  "trip": {
+    "title": "Peak District ride-out",
+    "description": "Snake Pass, Ladybower and a café stop in Hope",
+    "start_date": "2026-11-15",
+    "end_date": "2026-11-15",
+    "difficulty": "easy",
+    "status": "draft",
+    "stops": [
+      {
+        "name": "Macclesfield",
+        "lat": 53.2587,
+        "lng": -2.127,
+        "type": "start",
+        "day": 0
+      },
+      {
+        "name": "Snake Pass summit",
+        "lat": 53.4318,
+        "lng": -1.8698,
+        "type": "pass_summit",
+        "day": 0
+      },
+      {
+        "name": "Ladybower Reservoir",
+        "lat": 53.38,
+        "lng": -1.71,
+        "type": "scenic",
+        "day": 0
+      },
+      {
+        "name": "Café in Hope",
+        "lat": 53.346,
+        "lng": -1.744,
+        "type": "food",
+        "day": 0
+      },
+      {
+        "name": "Macclesfield",
+        "lat": 53.2587,
+        "lng": -2.127,
+        "type": "end",
+        "day": 0
+      }
+    ]
+  },
+  "notes": "Imperial: odometers in mi, fuel sold in litres. Left-hand traffic.",
+  "generated": "2026-11-03",
+  "feature_usage": {
+    "n_users": 28,
+    "counts": {
+      "users": 28,
+      "rides_tracked": 2,
+      "rides_finished": 1,
+      "trips": 4,
+      "trip_building": 1,
+      "maintenance": 5,
+      "expenses": 2,
+      "receipt_scan": 0,
+      "ai_diagnosis": 2,
+      "bike_added": 21,
+      "onboarding_completed": 12
+    },
+    "local_ranking": [
+      {
+        "feature": "maintenance",
+        "users": 5,
+        "pct": 17.9
+      },
+      {
+        "feature": "trips",
+        "users": 4,
+        "pct": 14.3
+      },
+      {
+        "feature": "rides_tracked",
+        "users": 2,
+        "pct": 7.1
+      },
+      {
+        "feature": "expenses",
+        "users": 2,
+        "pct": 7.1
+      },
+      {
+        "feature": "ai_diagnosis",
+        "users": 2,
+        "pct": 7.1
+      }
+    ],
+    "onboarding_primary_goal": {
+      "track_rides": 6,
+      "just_exploring": 3,
+      "discover_routes": 2,
+      "maintain_bike": 1
+    },
+    "bike_makes_typed": "Honda 5, Kawasaki 4, Triumph 4, Yamaha 4, Benelli 2, BMW 2",
+    "differs_from_global": "Maintenance 5, trips 4, rides 2 of 28.",
+    "sample_strength": "very thin",
+    "recommended_screenshot_order": [
+      "rides (live ride / ride map + stats)",
+      "maintenance (reminders, overdue service)",
+      "expenses (incl. receipt scan)",
+      "trips (route planning)",
+      "garage (bike hub)"
+    ],
+    "recommendation": "Global order (maintenance already slot 2)."
+  },
+  "hero_route": {
+    "name_local": "Cat and Fiddle (A537)",
+    "region": "Peak District, Cheshire / Derbyshire",
+    "start": "Macclesfield",
+    "end": "Buxton",
+    "official_length": "~12 mi Macclesfield-Buxton (Visordown quotes the 8 mi core stretch)",
+    "official_elevation": "peaks at the Cat and Fiddle Inn, ~515 m",
+    "sources": [
+      "https://en.wikipedia.org/wiki/A537_road",
+      "https://www.visordown.com/motorcycle-top-10s/britains-10-most-dangerous-roads-for-motorcycles/23872.html",
+      "https://www.adventurebikerider.com/abrs-weekend-ride-the-cat-and-fiddle-a537/"
+    ],
+    "polyline_note": "OSRM Macclesfield -> Cat and Fiddle Inn -> Buxton.",
+    "sensitivity": "Average-speed cameras and a 'most dangerous road' reputation; show the scenery.",
+    "polyline_file": "GB-route.geojson",
+    "polyline_length_km": 18.9,
+    "polyline_length_mi": 11.8,
+    "polyline_elevation_srtm90m": {
+      "min_m": 143,
+      "max_m": 517,
+      "gain_m": 427,
+      "loss_m": 266,
+      "samples": 100
+    },
+    "elevation_note": "gain/loss from 100 SRTM 90 m samples along the polyline (opentopodata.org); treat as approximate",
+    "backups": [
+      {
+        "name": "Evo Triangle / A5 Snowdonia (Wales)",
+        "why": "the UK's other famous bikers' loop"
+      },
+      {
+        "name": "North Coast 500 (Scotland)",
+        "why": "516 mi touring route everyone knows"
+      }
+    ]
+  },
+  "demo_garage": {
+    "currency": "GBP",
+    "units": {
+      "distance": "mi",
+      "fuel_volume": "L (fuel is sold by the litre)",
+      "fuel_economy": "mpg (imperial)"
+    },
+    "bikes": [
+      {
+        "make": "Triumph",
+        "model": "Speed 400",
+        "year": 2024,
+        "odometer": "6,240 mi",
+        "why": "UK's best-selling over-125cc bike in 2024 and still a monthly leader in 2025; Triumph is #3 brand (9,038). Triumph is a top-3 make for our GB users.",
+        "sources": [
+          "https://www.visordown.com/news/new-uk-motorcycle-registrations-fall-194-cent-2025",
+          "https://britishdealernews.co.uk/?p=79300"
+        ]
+      },
+      {
+        "make": "BMW",
+        "model": "R 1300 GS",
+        "year": 2024,
+        "odometer": "11,900 mi",
+        "why": "Top adventure seller in 7 of 12 months of 2025; adventure is now the UK's biggest segment.",
+        "sources": [
+          "https://www.visordown.com/features/these-are-uks-most-popular-type-motorcycles-2025"
+        ]
+      }
+    ],
+    "expenses": [
+      {
+        "type": "fuel",
+        "label": "Unleaded E10, 11.6 L",
+        "amount": "£15.66",
+        "unit_price": "~£1.35/L (estimate)"
+      },
+      {
+        "type": "service",
+        "label": "6,000-mile service at Triumph dealer",
+        "amount": "£245.00"
+      },
+      {
+        "type": "part",
+        "label": "Chain and sprocket kit",
+        "amount": "£139.99"
+      }
+    ],
+    "maintenance": {
+      "bike": "Triumph Speed 400",
+      "overdue": {
+        "task": "Oil & filter change",
+        "interval": "every 6,200 mi (10,000 km) or 12 months",
+        "status": "due at 6,200 mi, 40 mi overdue"
+      },
+      "upcoming": [
+        {
+          "task": "MOT",
+          "interval": "every 12 months (from 3 years old)",
+          "due": "Mar 2027"
+        },
+        {
+          "task": "Brake fluid",
+          "interval": "every 2 years",
+          "due": "May 2026 +2y"
+        }
+      ],
+      "interval_confidence": "medium: Triumph Speed 400 10,000 km interval as published at launch; verify"
+    }
+  },
+  "store_mapping": {
+    "app_store": {
+      "storefront_default_language": "English (U.K.)",
+      "storefront_additional_languages": [],
+      "best_localization_for_storefront": "en-GB",
+      "motovault_ios_localizations_live_3_26_0": [
+        "de-DE",
+        "en-GB",
+        "en-US",
+        "es-MX",
+        "fr-FR",
+        "it",
+        "pt-BR"
+      ],
+      "shown_today": "en-GB",
+      "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations"
+    },
+    "google_play": {
+      "listing_shown": "en-GB",
+      "how_chosen": "Default listing: translation picked by the user's device language, falling back to the default (en-US). Custom store listings: picked by country first, then the user's language within that listing.",
+      "motovault_play_translations": "Play default listing has 46 translations in store/play/metadata, incl. en-US, en-GB, en-CA, en-AU, es-419, es-ES, es-US, pt-BR, fr-FR, de-DE, it-IT, fil (no fr-CA).",
+      "source": "https://support.google.com/googleplay/android-developer/answer/9867158"
+    },
+    "targeting": "Play custom store listings can target countries (up to 50 listings, each country in only one listing, no auto-translation). Apple cannot target countries on the default product page; per-country screenshots on iOS need Custom Product Pages (reached only via their own URL/ads) or a localization that only that storefront uses."
+  },
+  "local_notes": {
+    "date": "DD/MM/YYYY",
+    "number": "1,234.5",
+    "words": {
+      "motorcycle": "bike, motorbike, motorcycle",
+      "ride": "ride, ride-out, blast (informal)"
+    },
+    "season_nov_mar": "Winter riding on salted roads; many riders lay up or use a 'winter hack'. MOT and tax renewals are top-of-mind costs.",
+    "traffic": "LEFT-hand: mirror any road scene, rider keeps left",
+    "imagery": "Miles for distance and speed, but fuel in litres and economy in mpg (imperial gallon). Dry-stone walls, moorland, cafe stops."
+  }
+}

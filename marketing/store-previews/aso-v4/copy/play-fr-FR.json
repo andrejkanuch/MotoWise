@@ -1,0 +1,98 @@
+{
+  "platform": "google_play",
+  "locale": "fr-FR",
+  "listing_type": "default",
+  "title": {
+    "value": "MotoVault: Entretien Moto",
+    "chars": 25,
+    "limit": 30
+  },
+  "short_description": {
+    "value": "Entretien moto, suivi des frais et balades GPS dans une seule app.",
+    "chars": 66,
+    "limit": 80
+  },
+  "full_description": {
+    "value": "MotoVault est l’app d’entretien moto pour les motards : enregistrez vos balades au GPS, suivez vos frais en scannant vos reçus et recevez les rappels de révision, dans une app faite pour la moto, pas pour la voiture.\n\nNotez chaque plein et chaque facture du garage, gardez un carnet d’entretien complet et ne laissez plus passer une vidange ni le contrôle technique.\n\n--------------------------\nCE QUE VOUS POUVEZ FAIRE\n--------------------------\n\n* ENREGISTREZ CHAQUE BALADE - Lancez l’enregistrement et roulez. MotoVault note le tracé GPS, la distance, le temps de roulage, le dénivelé et l’angle maximal, et tient le journal de chaque kilomètre. Exportez n’importe quelle sortie en GPX.\n\n* SUIVEZ CHAQUE DÉPENSE - Chaque plein, chaque pièce, chaque passage au garage. Voyez ce que votre moto coûte au kilomètre, au mois et à l’année. Noter vos frais est gratuit et sans limite, toujours.\n\n* SCANNEZ LE REÇU AU LIEU DE LE SAISIR - Visez un ticket de carburant, de pièces ou de garage. MotoVault lit les pièces, la main-d’œuvre, le total et la date, et remplit la dépense pour vous.\n\n* NE RATEZ PLUS UNE RÉVISION - Vidange, tension de chaîne, pneus, jeu aux soupapes. Programmez des rappels au kilométrage ou à la date et soyez prévenu avant la prochaine échéance.\n\n* UN CARNET D’ENTRETIEN COMPLET - Chaque intervention avec date, kilométrage et coût. Un historique solide qui rassure à la revente.\n\n* VOTRE GARAGE - Fiche technique, compteur, prochaine révision et coûts de votre moto sur un seul écran. Plus de 12 000 modèles au catalogue.\n\n* PRÉPAREZ CHAQUE ROAD TRIP - La boucle du dimanche ou le voyage d’une vie. Enregistrez des itinéraires, ajoutez des étapes et partagez-les avec votre groupe.\n\n* VOTRE SAISON EN UN RÉSUMÉ - Kilomètres parcourus, sorties, votre plus longue balade et les pays traversés, prêts à partager.\n\n--------------------------\nPOURQUOI LES MOTARDS PASSENT À MOTOVAULT\n--------------------------\n\n- Une seule app au lieu de trois : journal de balades, suivi des frais et carnet d’entretien\n- Rappels au kilométrage ou à la date, pour ne plus deviner quand tombe la vidange\n- Rappels à date pour le contrôle technique, l’assurance ou tout ce qui revient chaque année\n- Le scan des reçus lit pièces, main-d’œuvre et total : noter une dépense prend quelques secondes\n- Kilomètres ou miles, thème clair ou sombre : l’app suit votre choix\n- Vos données vous appartiennent : privées, exportables, jamais vendues\n\n--------------------------\nPOUR QUI\n--------------------------\n\n- Les motards du quotidien qui veulent une moto toujours au top\n- Les motards du week-end à la recherche de la prochaine belle route\n- Les voyageurs au long cours qui veulent tout garder\n- Ceux qui mettent les mains dans le cambouis\n- Tous ceux qui en ont assez des apps pensées pour la voiture\n\n--------------------------\nMOTOVAULT PRO\n--------------------------\n\nGratuit pour toujours : 1 moto dans votre garage, suivi illimité de l'entretien et des dépenses, enregistrement illimité des trajets, 1 diagnostic IA et 3 scans de reçus par mois.\n\nDébloquez un nombre illimité de motos et de diagnostics IA, des scans de reçus illimités, l'export GPX illimité et les cartes d'itinéraire hors ligne. Au mois ou à l’année. Le prix est indiqué dans l’app avant la confirmation.\n\nL’abonnement se renouvelle automatiquement sauf annulation au moins 24 heures avant la fin de la période en cours. Gérez ou annulez à tout moment dans les paramètres de votre compte Google Play.\n\nConfidentialité : https://motovault.app/privacy\nConditions : https://motovault.app/terms\n\n--------------------------\n\nUne question, une idée ? Nous lisons chaque e-mail : support@motovault.app\n\nDeux roues. Une app. Roulez mieux.",
+    "chars": 3700,
+    "limit": 4000
+  },
+  "screenshot_captions": {
+    "ride_tracking": {
+      "headline": ["Chaque balade", "enregistrée."],
+      "headline_chars": [13, 12],
+      "subline": "Tracé GPS, distance, dénivelé et angle maxi, sans rien toucher.",
+      "subline_chars": 63
+    },
+    "ride_stats": {
+      "headline": ["Chaque sortie,", "en chiffres."],
+      "headline_chars": [14, 12],
+      "subline": "Distance, temps de roulage, dénivelé et angle maxi.",
+      "subline_chars": 51
+    },
+    "expenses": {
+      "headline": ["Ce que votre moto", "coûte vraiment."],
+      "headline_chars": [17, 15],
+      "subline": "Essence, pièces, équipement et garage au même endroit. Gratuit.",
+      "subline_chars": 63
+    },
+    "receipt_scan": {
+      "headline": ["Un reçu,", "une photo."],
+      "headline_chars": [8, 10],
+      "subline": "MotoVault lit pièces, main-d’œuvre et total, et remplit la dépense.",
+      "subline_chars": 67
+    },
+    "maintenance_reminders": {
+      "headline": ["Ne ratez plus", "une révision."],
+      "headline_chars": [13, 13],
+      "subline": "Rappels au kilométrage ou à la date : vidange, chaîne, pneus.",
+      "subline_chars": 61
+    },
+    "service_history": {
+      "headline": ["Votre carnet", "d’entretien."],
+      "headline_chars": [12, 12],
+      "subline": "Chaque intervention notée : un vrai atout à la revente.",
+      "subline_chars": 55
+    },
+    "garage": {
+      "headline": ["Votre moto,", "en un seul écran."],
+      "headline_chars": [11, 17],
+      "subline": "Fiche, compteur, prochaine révision et coûts en un coup d’œil.",
+      "subline_chars": 62
+    },
+    "trip_planning": {
+      "headline": ["Tracez la route.", "Puis roulez."],
+      "headline_chars": [16, 12],
+      "subline": "Tracez l’itinéraire, ajoutez des étapes, partagez-le.",
+      "subline_chars": 53
+    },
+    "season_summary": {
+      "headline": ["Votre saison,", "en un résumé."],
+      "headline_chars": [13, 13],
+      "subline": "Distance totale, la plus longue sortie, les pays traversés.",
+      "subline_chars": 59
+    },
+    "costs_overview": {
+      "headline": ["Chaque kilomètre", "a son prix."],
+      "headline_chars": [16, 11],
+      "subline": "Coût au km, tendance mensuelle et dépenses de l’année.",
+      "subline_chars": 54
+    }
+  },
+  "feature_graphic_headline": {
+    "value": "Votre moto, sous contrôle",
+    "words": 4,
+    "limit_words": 5
+  },
+  "rationale": "Title = exact French search phrase. Body uses motard, vidange, révision, carnet d’entretien, contrôle technique, plein.",
+  "screenshot_order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history"
+  ]
+}

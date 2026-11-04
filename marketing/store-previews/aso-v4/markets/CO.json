@@ -1,0 +1,457 @@
+{
+  "cc": "CO",
+  "market_name": "Colombia",
+  "app_language": "es",
+  "store_locales": {
+    "ios": "es-MX",
+    "play": "es-419"
+  },
+  "device": {
+    "apple_languages": ["es-CO", "es"],
+    "apple_locale": "es_CO",
+    "metric": true
+  },
+  "measurement_system": "metric",
+  "currency": "COP",
+  "timezone": "America/Bogota",
+  "region_code": "CO-PUT",
+  "rider": {
+    "display_name": "Andrés R.",
+    "city": "Pasto",
+    "home": [1.2136, -77.2811]
+  },
+  "bikes": [
+    {
+      "key": "primary",
+      "make": "HONDA",
+      "model": "XR190L",
+      "year": 2023,
+      "nickname": "La Mula",
+      "type": "dual_sport",
+      "engine_cc": 184,
+      "odometer": 19600,
+      "odometer_jan1": 11300,
+      "purchase_date": "2023-01-28",
+      "purchase_price": 13990000
+    },
+    {
+      "key": "second",
+      "make": "YAMAHA",
+      "model": "NMAX 155",
+      "year": 2024,
+      "nickname": "La Nmax",
+      "type": "scooter",
+      "engine_cc": 155,
+      "odometer": 8700,
+      "odometer_jan1": 3100,
+      "purchase_date": "2024-06-15",
+      "purchase_price": 16490000
+    }
+  ],
+  "hero_ride": {
+    "name": "Trampolín de la Muerte a Mocoa",
+    "road": "Vía San Francisco - Mocoa (Ruta 10)",
+    "date": "2026-10-12",
+    "start_time": "07:00",
+    "avg_speed_kmh": 24,
+    "max_speed_kmh": 58,
+    "max_lean_deg": 26,
+    "elevation_gain_m": null
+  },
+  "other_rides": [
+    {
+      "name": "Laguna de la Cocha",
+      "date": "2026-10-26",
+      "distance_km": 52,
+      "avg_speed_kmh": 38,
+      "elevation_gain_m": 650
+    },
+    {
+      "name": "Santuario de Las Lajas",
+      "date": "2026-09-27",
+      "distance_km": 170,
+      "avg_speed_kmh": 45,
+      "elevation_gain_m": 1900
+    },
+    {
+      "name": "Al trabajo",
+      "date": "2026-10-30",
+      "distance_km": 12,
+      "avg_speed_kmh": 26,
+      "elevation_gain_m": 60
+    }
+  ],
+  "season": {
+    "rides": 230,
+    "distance_km": 8300
+  },
+  "fuel": {
+    "label": "Gasolina corriente",
+    "unit": "gal",
+    "price_per_unit": 15900,
+    "fill_size": [1.8, 2.6],
+    "stations": [
+      "Terpel, Av. Panamericana",
+      "Primax, Pasto Centro",
+      "Biomax, San Francisco",
+      "Terpel, Mocoa",
+      "Texaco, Ipiales"
+    ]
+  },
+  "service": {
+    "title": "Revisión 18.000 km",
+    "date": "2026-08-22",
+    "odometer": 18050,
+    "vendor": "Taller Motos del Galeras",
+    "tax_label": "IVA 19%",
+    "tax_rate": 0.19,
+    "tax_included": true,
+    "line_items": [
+      {
+        "label": "Aceite 10W-30, 1,2 L",
+        "service_type": "oil_change",
+        "amount": 46000
+      },
+      {
+        "label": "Filtro de aceite",
+        "service_type": "oil_filter",
+        "amount": 14000
+      },
+      {
+        "label": "Filtro de aire",
+        "service_type": "air_filter",
+        "amount": 42000
+      },
+      {
+        "label": "Bujía",
+        "service_type": "spark_plug",
+        "amount": 28000
+      },
+      {
+        "label": "Ajuste de válvulas",
+        "service_type": "valve_clearance",
+        "amount": 55000
+      },
+      {
+        "label": "Kit de arrastre (cadena, piñón y corona)",
+        "service_type": "chain",
+        "amount": 235000
+      },
+      {
+        "label": "Líquido de frenos",
+        "service_type": "brake_fluid",
+        "amount": 22000
+      },
+      {
+        "label": "Mano de obra revisión general",
+        "service_type": "general_service",
+        "amount": 95000
+      }
+    ]
+  },
+  "service_interval": 3000,
+  "expenses": [
+    {
+      "category": "insurance",
+      "date": "2026-01-20",
+      "amount": 478000,
+      "item": "SOAT 2026",
+      "vendor": "SOAT"
+    },
+    {
+      "category": "taxes_fees",
+      "date": "2026-05-15",
+      "amount": 126000,
+      "item": "Impuesto vehicular 2026",
+      "vendor": "Gobernación de Nariño"
+    },
+    {
+      "category": "tires",
+      "date": "2026-09-08",
+      "amount": 165000,
+      "item": "Llanta delantera",
+      "vendor": "Taller Motos del Galeras"
+    },
+    {
+      "category": "parking",
+      "date": "2026-10-14",
+      "amount": 3000,
+      "item": "Parqueadero centro",
+      "vendor": "Parqueadero"
+    },
+    {
+      "category": "parts",
+      "date": "2026-07-03",
+      "amount": 68000,
+      "item": "Pastillas de freno",
+      "vendor": "Taller Motos del Galeras"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Cambio de aceite",
+      "target_odometer": 19500,
+      "priority": "high"
+    },
+    {
+      "title": "Ajuste de válvulas",
+      "target_odometer": 24000,
+      "priority": "medium"
+    },
+    {
+      "title": "Renovar SOAT",
+      "due_date": "2027-01-20",
+      "priority": "medium"
+    }
+  ],
+  "trip": {
+    "title": "Puente festivo a Mocoa",
+    "description": "Pasto, La Cocha y el Putumayo",
+    "start_date": "2026-11-14",
+    "end_date": "2026-11-16",
+    "difficulty": "expert",
+    "status": "draft",
+    "stops": [
+      {
+        "name": "Pasto",
+        "lat": 1.2136,
+        "lng": -77.2811,
+        "type": "start",
+        "day": 0
+      },
+      {
+        "name": "Laguna de la Cocha",
+        "lat": 1.13,
+        "lng": -77.15,
+        "type": "scenic",
+        "day": 0
+      },
+      {
+        "name": "San Francisco",
+        "lat": 1.176,
+        "lng": -76.878,
+        "type": "fuel",
+        "day": 0
+      },
+      {
+        "name": "Mocoa",
+        "lat": 1.149,
+        "lng": -76.647,
+        "type": "overnight",
+        "day": 0
+      },
+      {
+        "name": "Pasto",
+        "lat": 1.2136,
+        "lng": -77.2811,
+        "type": "end",
+        "day": 2
+      }
+    ]
+  },
+  "notes": "Hero route is the Trampolín de la Muerte (open question: safer alternative Bogotá - Villa de Leyva). Amounts in COP (00194 cap). Fuel per gallon. iOS es-MX is shared with MX/AR.",
+  "generated": "2026-11-03",
+  "feature_usage": {
+    "n_users": 50,
+    "counts": {
+      "users": 50,
+      "rides_tracked": 9,
+      "rides_finished": 7,
+      "trips": 3,
+      "trip_building": 1,
+      "maintenance": 1,
+      "expenses": 1,
+      "receipt_scan": 0,
+      "ai_diagnosis": 4,
+      "bike_added": 36,
+      "onboarding_completed": 26
+    },
+    "local_ranking": [
+      {
+        "feature": "rides_tracked",
+        "users": 9,
+        "pct": 18.0
+      },
+      {
+        "feature": "ai_diagnosis",
+        "users": 4,
+        "pct": 8.0
+      },
+      {
+        "feature": "trips",
+        "users": 3,
+        "pct": 6.0
+      },
+      {
+        "feature": "maintenance",
+        "users": 1,
+        "pct": 2.0
+      },
+      {
+        "feature": "expenses",
+        "users": 1,
+        "pct": 2.0
+      }
+    ],
+    "onboarding_primary_goal": {
+      "track_rides": 15,
+      "just_exploring": 6,
+      "maintain_bike": 3,
+      "manage_expenses": 1,
+      "discover_routes": 1
+    },
+    "bike_makes_typed": "Suzuki 9, Honda 4, Yamaha 3 (many single-letter entries)",
+    "differs_from_global": "Highest ride share of any market: 9 of 50 (18%) started a ride, 7 finished. 15 of 26 goal answers are track_rides.",
+    "sample_strength": "thin",
+    "recommended_screenshot_order": [
+      "rides (live ride / ride map + stats)",
+      "maintenance (reminders, overdue service)",
+      "expenses (incl. receipt scan)",
+      "trips (route planning)",
+      "garage (bike hub)"
+    ],
+    "recommendation": "Global order. Rides first is strongly supported."
+  },
+  "hero_route": {
+    "name_local": "Trampolín de la Muerte (vía San Francisco - Mocoa)",
+    "region": "Putumayo (Cordillera Oriental)",
+    "start": "San Francisco, Putumayo",
+    "end": "Mocoa",
+    "official_length": "~80 km (sources vary; 26 km is the hardest section)",
+    "official_elevation": "~2,800 m down to ~600 m",
+    "sources": [
+      "https://www.noticiascaracol.com/colombia/esta-es-la-carretera-mas-peligrosa-de-colombia-le-llaman-el-trampolin-de-la-muerte-so35",
+      "https://www.infobae.com/colombia/2025/03/16/el-trampolin-de-la-muerte-de-colombia-esta-es-la-via-que-necesita-mas-que-experticia-para-transitarla-todo-un-desafio-para-motociclistas/",
+      "https://www.radionacional.co/noticias-colombia/el-trampolin-de-la-muerte-recomendaciones-para-recorrer-peligrosa"
+    ],
+    "polyline_note": "OSRM San Francisco -> Mocoa, national road 10 then 45.",
+    "caveat": "Instantly recognised, but famous as 'the most dangerous road in Colombia' and largely unpaved. For a safety-neutral screenshot, the backup Bogotá-Villa de Leyva is the better marketing choice. No single 'most iconic' moto road exists in Colombian sources.",
+    "polyline_file": "CO-route.geojson",
+    "polyline_length_km": 75.7,
+    "polyline_length_mi": 47.0,
+    "polyline_elevation_srtm90m": {
+      "min_m": 601,
+      "max_m": 2775,
+      "gain_m": 1273,
+      "loss_m": 2797,
+      "samples": 100
+    },
+    "elevation_note": "gain/loss from 100 SRTM 90 m samples along the polyline (opentopodata.org); treat as approximate",
+    "backups": [
+      {
+        "name": "Bogotá - Villa de Leyva",
+        "why": "the traditional weekend ride out of Bogotá, paved, scenic"
+      },
+      {
+        "name": "Medellín - Guatapé (Antioquia)",
+        "why": "~130 km loop to the Peñol rock, very popular with Medellín riders"
+      }
+    ]
+  },
+  "demo_garage": {
+    "currency": "COP",
+    "units": {
+      "distance": "km",
+      "fuel_volume": "gal (Colombia prices fuel per US gallon)",
+      "fuel_economy": "km/gal"
+    },
+    "bikes": [
+      {
+        "make": "Honda",
+        "model": "XR190L",
+        "year": 2023,
+        "odometer": "19,600 km",
+        "why": "Top-5 model of 2025 in Colombia (28,355 units); dual-sport fits the mountain commute.",
+        "sources": [
+          "https://www.elcarrocolombiano.com/industria/colombia-top-10-mundial-motos-record-ventas-2025-ranking-mas-vendidas/"
+        ]
+      },
+      {
+        "make": "Yamaha",
+        "model": "NMAX 155",
+        "year": 2024,
+        "odometer": "8,700 km",
+        "why": "Regular top-10 monthly seller (4,511 in Sept 2025).",
+        "sources": [
+          "https://www.elcarrocolombiano.com/industria/20-motos-mas-vendidas-de-colombia-en-septiembre-de-2025/"
+        ]
+      }
+    ],
+    "expenses": [
+      {
+        "type": "fuel",
+        "label": "Gasolina corriente, 2,4 gal",
+        "amount": "$38.160",
+        "unit_price": "~$15.900/gal (estimate)"
+      },
+      {
+        "type": "service",
+        "label": "Mantenimiento en taller autorizado Honda",
+        "amount": "$185.000"
+      },
+      {
+        "type": "part",
+        "label": "Llanta trasera",
+        "amount": "$210.000"
+      }
+    ],
+    "maintenance": {
+      "bike": "Honda XR190L",
+      "overdue": {
+        "task": "Cambio de aceite",
+        "interval": "cada 3.000 km (approx.)",
+        "status": "vencido por 250 km"
+      },
+      "upcoming": [
+        {
+          "task": "Limpieza filtro de aire",
+          "interval": "cada 3.000 km",
+          "due": "21.000 km"
+        },
+        {
+          "task": "Ajuste de válvulas",
+          "interval": "cada 12.000 km",
+          "due": "24.000 km"
+        }
+      ],
+      "interval_confidence": "low: typical for 190 cc air-cooled singles; verify against Honda Colombia manual"
+    },
+    "brand_note": "Bajaj (185,722) and AKT (177,769) lead brands; AKT AK125 NKD tops the monthly model rankings. Our CO users type Suzuki most, so a Suzuki (e.g. Gixxer 150) is a fair alternative."
+  },
+  "store_mapping": {
+    "app_store": {
+      "storefront_default_language": "Spanish (Mexico)",
+      "storefront_additional_languages": ["English (U.K.)"],
+      "best_localization_for_storefront": "es-MX",
+      "motovault_ios_localizations_live_3_26_0": [
+        "de-DE",
+        "en-GB",
+        "en-US",
+        "es-MX",
+        "fr-FR",
+        "it",
+        "pt-BR"
+      ],
+      "shown_today": "es-MX",
+      "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations"
+    },
+    "google_play": {
+      "listing_shown": "es-419",
+      "how_chosen": "Default listing: translation picked by the user's device language, falling back to the default (en-US). Custom store listings: picked by country first, then the user's language within that listing.",
+      "motovault_play_translations": "Play default listing has 46 translations in store/play/metadata, incl. en-US, en-GB, en-CA, en-AU, es-419, es-ES, es-US, pt-BR, fr-FR, de-DE, it-IT, fil (no fr-CA).",
+      "source": "https://support.google.com/googleplay/android-developer/answer/9867158"
+    },
+    "targeting": "Play custom store listings can target countries (up to 50 listings, each country in only one listing, no auto-translation). Apple cannot target countries on the default product page; per-country screenshots on iOS need Custom Product Pages (reached only via their own URL/ads) or a localization that only that storefront uses."
+  },
+  "local_notes": {
+    "date": "DD/MM/AAAA",
+    "number": "1.234,5",
+    "words": {
+      "motorcycle": "moto",
+      "ride": "rodada, paseo en moto; 'motero', 'motociclista'"
+    },
+    "season_nov_mar": "December-March is the main dry season in the Andes; Christmas/New Year road trips ('puente' weekends).",
+    "traffic": "right-hand",
+    "imagery": "Fuel is priced per gallon. Mountain roads, coffee region, small 125-200 cc bikes. Pico y placa and SOAT insurance are everyday rider costs (good expense categories)."
+  }
+}

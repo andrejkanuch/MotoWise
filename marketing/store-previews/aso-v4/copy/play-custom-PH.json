@@ -1,0 +1,100 @@
+{
+  "platform": "google_play",
+  "locale": "en-PH",
+  "listing_type": "custom_store_listing",
+  "target_country": "PH",
+  "language": "en-US",
+  "title": {
+    "value": "MotoVault: Motor PMS Tracker",
+    "chars": 28,
+    "limit": 30
+  },
+  "short_description": {
+    "value": "Ride tracker, gas and parts expenses, and change oil and PMS reminders.",
+    "chars": 71,
+    "limit": 80
+  },
+  "full_description": {
+    "value": "MotoVault is the motor tracker for riders: GPS ride tracking, expense tracking with receipt scanning, and maintenance reminders, in one app built for motorcycles, not cars.\n\nRecord every ride, log every gas fill-up and casa bill, and get reminded before your next service is due. Your ride log, your costs and your service history live in one garage on your phone.\n\nBuilt for Filipino riders: change oil and PMS reminders, gas and parts expenses, and a ride log for every commute and long ride.\n\n--------------------------\nWHAT YOU CAN DO\n--------------------------\n\n* TRACK EVERY RIDE - Hit record and ride. MotoVault logs your GPS route, distance, moving time, climb and max lean angle, and builds a logbook of every kilometer you have ridden. Export any ride as GPX.\n\n* TRACK EVERY EXPENSE - Every fill-up, every part, every casa bill. See what your motor really costs per km, per month and per year. Logging is free and unlimited, always.\n\n* SCAN A RECEIPT INSTEAD OF TYPING - Point your camera at a gas, parts or casa receipt. MotoVault reads the parts, the labor, the total and the date, and fills the expense in for you.\n\n* NEVER MISS A SERVICE - Oil changes, chain adjustments, tire swaps, valve checks. Set reminders by kilometers or by date and get a heads-up before the next interval is due.\n\n* KEEP THE FULL SERVICE HISTORY - Every job logged with date, odometer and cost. A complete record that backs you up when you sell.\n\n* YOUR GARAGE - Specs, odometer, next service and running costs for your motor, on one screen. 12,000+ motorcycle models in the catalog.\n\n* PLAN EVERY TRIP - Map the weekend loop or the big tour. Save routes, drop waypoints and share the plan with your group.\n\n* YOUR SEASON IN ONE RECAP - Total kilometers, rides, your longest ride and the countries you rode through, ready to share.\n\n--------------------------\nWHY RIDERS SWITCH TO MOTOVAULT\n--------------------------\n\n- One motorcycle app instead of three: ride tracker, expense tracker and maintenance log together\n- Date reminders for your LTO registration renewal, insurance or anything that comes once a year\n- Service reminders by km or by date, so you stop guessing when the oil is due\n- Receipt scanning reads the parts, the labor and the total so logging takes seconds\n- Kilometers or miles, light or dark: the app follows your choice\n- Your data is yours: private, exportable, never sold\n\n--------------------------\nWHO IT'S FOR\n--------------------------\n\n- Daily riders who use their motor for work and the commute\n- Weekend riders chasing the next good road up north or down south\n- Touring riders logging long rides across Luzon, Visayas and Mindanao\n- DIY riders who do their own change oil and PMS\n- Anyone tired of car apps that treat motorcycles as an afterthought\n\n--------------------------\nMOTOVAULT PRO\n--------------------------\n\nFree forever includes 1 bike, unlimited maintenance and expense logging, unlimited ride recording, 1 AI diagnostic scan per month, and 3 receipt scans per month. MotoVault Pro unlocks additional bikes, unlimited AI diagnostics, unlimited receipt scans, unlimited GPX exports, and offline trip maps, on a monthly or annual plan. The price is shown in the app before you confirm.\n\nSubscriptions auto-renew unless cancelled at least 24 hours before the end of the current period. Manage or cancel anytime in your Google Play account settings.\n\nPrivacy Policy: https://motovault.app/privacy\nTerms of Service: https://motovault.app/terms\n\n--------------------------\n\nQuestions? Feedback? We read every email: support@motovault.app\n\nTwo wheels. One app. Ride better.",
+    "chars": 3603,
+    "limit": 4000
+  },
+  "screenshot_captions": {
+    "ride_tracking": {
+      "headline": ["Track every ride.", "Keep every road."],
+      "headline_chars": [17, 16],
+      "subline": "GPS route, distance, climb and max lean, logged as you ride.",
+      "subline_chars": 60
+    },
+    "ride_stats": {
+      "headline": ["Every ride,", "by the numbers."],
+      "headline_chars": [11, 15],
+      "subline": "Distance, moving time, climb and max lean for every ride.",
+      "subline_chars": 57
+    },
+    "expenses": {
+      "headline": ["Know what", "your motor costs."],
+      "headline_chars": [9, 17],
+      "subline": "Gas, parts, accessories and casa bills in one place. Free to log.",
+      "subline_chars": 65
+    },
+    "receipt_scan": {
+      "headline": ["Snap the receipt.", "Skip the typing."],
+      "headline_chars": [17, 16],
+      "subline": "MotoVault reads the parts, labor and total, then fills it in.",
+      "subline_chars": 61
+    },
+    "maintenance_reminders": {
+      "headline": ["Never miss", "your PMS."],
+      "headline_chars": [10, 9],
+      "subline": "Change oil and PMS reminders by km or by date.",
+      "subline_chars": 46
+    },
+    "service_history": {
+      "headline": ["Every service,", "on the record."],
+      "headline_chars": [14, 14],
+      "subline": "A full maintenance history that backs you up at resale.",
+      "subline_chars": 55
+    },
+    "garage": {
+      "headline": ["Your motor,", "in one place."],
+      "headline_chars": [11, 13],
+      "subline": "Specs, odometer, next service and running costs at a glance.",
+      "subline_chars": 60
+    },
+    "trip_planning": {
+      "headline": ["Plan the trip.", "Ride the plan."],
+      "headline_chars": [14, 14],
+      "subline": "Map the route, drop waypoints, share it with your group.",
+      "subline_chars": 56
+    },
+    "season_summary": {
+      "headline": ["Your season,", "in one recap."],
+      "headline_chars": [12, 13],
+      "subline": "Total distance, rides, your longest, and where you went.",
+      "subline_chars": 56
+    },
+    "costs_overview": {
+      "headline": ["Every kilometer", "has a price."],
+      "headline_chars": [15, 12],
+      "subline": "Cost per km, monthly trends and what you spent this year.",
+      "subline_chars": 57
+    }
+  },
+  "feature_graphic_headline": {
+    "value": "Rides. Costs. Service. Tracked.",
+    "words": 4,
+    "limit_words": 5
+  },
+  "rationale": "Custom store listing for the Philippines (country-targeted, English). Filipino riders say \"motor\", \"PMS\" and \"change oil\"; the default en-US listing uses none of them.",
+  "screenshot_order": [
+    "ride_tracking",
+    "maintenance_reminders",
+    "expenses",
+    "receipt_scan",
+    "trip_planning",
+    "garage",
+    "ride_stats",
+    "service_history"
+  ]
+}

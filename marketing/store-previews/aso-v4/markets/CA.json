@@ -1,0 +1,432 @@
+{
+  "cc": "CA",
+  "market_name": "Canada",
+  "app_language": "en",
+  "store_locales": {
+    "ios": "en-CA",
+    "play": "en-CA"
+  },
+  "device": {
+    "apple_languages": ["en-CA", "en"],
+    "apple_locale": "en_CA",
+    "metric": true
+  },
+  "measurement_system": "metric",
+  "currency": "CAD",
+  "timezone": "America/Halifax",
+  "region_code": "CA-NS",
+  "rider": {
+    "display_name": "Ryan M.",
+    "city": "Sydney, NS",
+    "home": [46.1368, -60.1942]
+  },
+  "bikes": [
+    {
+      "key": "primary",
+      "make": "KAWASAKI",
+      "model": "Ninja 650",
+      "year": 2022,
+      "nickname": "Green Machine",
+      "type": "sportbike",
+      "engine_cc": 649,
+      "odometer": 14300,
+      "odometer_jan1": 8900,
+      "purchase_date": "2022-05-14",
+      "purchase_price": 9899
+    },
+    {
+      "key": "second",
+      "make": "BMW",
+      "model": "R 1300 GS Adventure",
+      "year": 2025,
+      "nickname": "The Tank",
+      "type": "dual_sport",
+      "engine_cc": 1300,
+      "odometer": 7800,
+      "odometer_jan1": 1200,
+      "purchase_date": "2025-06-07",
+      "purchase_price": 29995
+    }
+  ],
+  "hero_ride": {
+    "name": "Cabot Trail loop",
+    "road": "Cabot Trail",
+    "date": "2026-10-05",
+    "start_time": "08:30",
+    "avg_speed_kmh": 66,
+    "max_speed_kmh": 100,
+    "max_lean_deg": 38,
+    "elevation_gain_m": null
+  },
+  "other_rides": [
+    {
+      "name": "Louisbourg and the Fleur-de-lis Trail",
+      "date": "2026-09-26",
+      "distance_km": 180,
+      "avg_speed_kmh": 68,
+      "elevation_gain_m": 600
+    },
+    {
+      "name": "Last ride before storage",
+      "date": "2026-10-25",
+      "distance_km": 85,
+      "avg_speed_kmh": 62,
+      "elevation_gain_m": 300
+    },
+    {
+      "name": "Commute",
+      "date": "2026-10-21",
+      "distance_km": 20,
+      "avg_speed_kmh": 50,
+      "elevation_gain_m": 60
+    }
+  ],
+  "season": {
+    "rides": 58,
+    "distance_km": 7600
+  },
+  "fuel": {
+    "label": "Regular 87",
+    "unit": "L",
+    "price_per_unit": 1.49,
+    "fill_size": [10, 14],
+    "stations": [
+      "Irving, Kings Road",
+      "Petro-Canada, Baddeck",
+      "Esso, Chéticamp",
+      "Ultramar, Ingonish",
+      "Irving, North Sydney"
+    ]
+  },
+  "service": {
+    "title": "12,000 km service",
+    "date": "2026-07-11",
+    "odometer": 12020,
+    "vendor": "Cape Breton Moto Shop",
+    "tax_label": "HST 14%",
+    "tax_rate": 0.14,
+    "tax_included": false,
+    "line_items": [
+      {
+        "label": "Engine oil 10W-40, 2.4 L",
+        "service_type": "oil_change",
+        "amount": 42.0
+      },
+      {
+        "label": "Oil filter",
+        "service_type": "oil_filter",
+        "amount": 19.95
+      },
+      {
+        "label": "Chain clean and adjust",
+        "service_type": "chain",
+        "amount": 25.0
+      },
+      {
+        "label": "Brake fluid",
+        "service_type": "brake_fluid",
+        "amount": 22.0
+      },
+      {
+        "label": "Labour 1.8 hrs",
+        "service_type": "general_service",
+        "amount": 198.0
+      }
+    ]
+  },
+  "service_interval": 12000,
+  "expenses": [
+    {
+      "category": "insurance",
+      "date": "2026-04-15",
+      "amount": 1240.0,
+      "item": "Policy Apr 2026 - Mar 2027",
+      "vendor": "Motorcycle insurance"
+    },
+    {
+      "category": "registration",
+      "date": "2026-04-30",
+      "amount": 92.0,
+      "item": "NS registration",
+      "vendor": "Access Nova Scotia"
+    },
+    {
+      "category": "other",
+      "date": "2026-10-30",
+      "amount": 299.0,
+      "item": "Winter storage",
+      "vendor": "Cape Breton Moto Shop"
+    },
+    {
+      "category": "gear",
+      "date": "2026-05-09",
+      "amount": 179.0,
+      "item": "Heated vest",
+      "vendor": "Gear shop"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Oil & filter",
+      "target_odometer": 14000,
+      "priority": "high"
+    },
+    {
+      "title": "Battery tender on",
+      "due_date": "2026-11-15",
+      "priority": "medium"
+    },
+    {
+      "title": "Spring safety check",
+      "due_date": "2027-04-20",
+      "priority": "medium"
+    }
+  ],
+  "trip": {
+    "title": "First ride of 2027: Halifax",
+    "description": "Down the Canso causeway to Halifax and back",
+    "start_date": "2027-05-22",
+    "end_date": "2027-05-23",
+    "difficulty": "easy",
+    "status": "draft",
+    "stops": [
+      {
+        "name": "Sydney",
+        "lat": 46.1368,
+        "lng": -60.1942,
+        "type": "start",
+        "day": 0
+      },
+      {
+        "name": "Port Hawkesbury",
+        "lat": 45.6153,
+        "lng": -61.354,
+        "type": "fuel",
+        "day": 0
+      },
+      {
+        "name": "Antigonish",
+        "lat": 45.6169,
+        "lng": -61.9986,
+        "type": "food",
+        "day": 0
+      },
+      {
+        "name": "Halifax",
+        "lat": 44.6488,
+        "lng": -63.5752,
+        "type": "overnight",
+        "day": 0
+      },
+      {
+        "name": "Sydney",
+        "lat": 46.1368,
+        "lng": -60.1942,
+        "type": "end",
+        "day": 1
+      }
+    ]
+  },
+  "notes": "store_locales.ios en-CA does not exist on the App Store yet. Riding season is over by November, so the trip is planned for May 2027.",
+  "generated": "2026-11-03",
+  "feature_usage": {
+    "n_users": 25,
+    "counts": {
+      "users": 25,
+      "rides_tracked": 5,
+      "rides_finished": 5,
+      "trips": 2,
+      "trip_building": 2,
+      "maintenance": 0,
+      "expenses": 1,
+      "receipt_scan": 1,
+      "ai_diagnosis": 0,
+      "bike_added": 15,
+      "onboarding_completed": 9
+    },
+    "local_ranking": [
+      {
+        "feature": "rides_tracked",
+        "users": 5,
+        "pct": 20.0
+      },
+      {
+        "feature": "trips",
+        "users": 2,
+        "pct": 8.0
+      },
+      {
+        "feature": "expenses",
+        "users": 1,
+        "pct": 4.0
+      },
+      {
+        "feature": "maintenance",
+        "users": 0,
+        "pct": 0.0
+      },
+      {
+        "feature": "ai_diagnosis",
+        "users": 0,
+        "pct": 0.0
+      }
+    ],
+    "onboarding_primary_goal": {
+      "track_rides": 6,
+      "manage_expenses": 1,
+      "maintain_bike": 1,
+      "just_exploring": 1
+    },
+    "bike_makes_typed": "Honda 4, Kawasaki 6, Harley-Davidson 2, Suzuki 3",
+    "differs_from_global": "Rides 5 of 25 (20%); nothing else above 2.",
+    "sample_strength": "very thin",
+    "recommended_screenshot_order": [
+      "rides (live ride / ride map + stats)",
+      "maintenance (reminders, overdue service)",
+      "expenses (incl. receipt scan)",
+      "trips (route planning)",
+      "garage (bike hub)"
+    ],
+    "recommendation": "Global order."
+  },
+  "hero_route": {
+    "name_local": "Cabot Trail",
+    "region": "Cape Breton Island, Nova Scotia",
+    "start": "Baddeck (loop)",
+    "end": "Baddeck",
+    "official_length": "~290-298 km loop",
+    "official_elevation": "sea level to ~450 m (French Mountain / North Mountain)",
+    "sources": [
+      "https://cbisland.com/blog/need-to-know-motorcycling-the-cabot-trail",
+      "https://motorcycleroads.com/motorcycle-roads/canada/cabot-trail-nova-scotia-canada?page=1",
+      "https://canadamotoguide.com/2019/05/31/how-to-ride-the-cabot-trail/"
+    ],
+    "polyline_note": "OSRM loop Baddeck -> Margaree -> Pleasant Bay -> Ingonish -> St. Ann's -> Baddeck; via St. Ann's to avoid the Englishtown ferry.",
+    "polyline_file": "CA-route.geojson",
+    "polyline_length_km": 298.5,
+    "polyline_length_mi": 185.5,
+    "polyline_elevation_srtm90m": {
+      "min_m": 0,
+      "max_m": 443,
+      "gain_m": 1844,
+      "loss_m": 1777,
+      "samples": 100
+    },
+    "elevation_note": "gain/loss from 100 SRTM 90 m samples along the polyline (opentopodata.org); treat as approximate",
+    "backups": [
+      {
+        "name": "Sea to Sky Highway (BC 99)",
+        "why": "Vancouver-Whistler, best known in the West"
+      },
+      {
+        "name": "Icefields Parkway (AB 93)",
+        "why": "Rockies icon"
+      }
+    ]
+  },
+  "demo_garage": {
+    "currency": "CAD",
+    "units": {
+      "distance": "km",
+      "fuel_volume": "L",
+      "fuel_economy": "L/100 km"
+    },
+    "bikes": [
+      {
+        "make": "Kawasaki",
+        "model": "Ninja 650",
+        "year": 2022,
+        "odometer": "14,300 km",
+        "why": "Kawasaki is the top make our CA users type (6). No 2025 model-level Canadian sales ranking found; pick is weakly sourced.",
+        "sources": [
+          "https://powersportsbusiness.com/news/dealers/2026/09/23/moto-canadas-2025-annual-report-shows-powersports-market-normalizing/"
+        ]
+      },
+      {
+        "make": "BMW",
+        "model": "R 1300 GS Adventure",
+        "year": 2025,
+        "odometer": "7,800 km",
+        "why": "BMW Canada's record 2025; R 1300 GS Adventure among its top sellers.",
+        "sources": [
+          "https://www.press.bmwgroup.com/canada/article/detail/T0454807EN/bmw-group-canada-reports-q4-2025-and-full-year-sales-results"
+        ]
+      }
+    ],
+    "expenses": [
+      {
+        "type": "fuel",
+        "label": "Regular, 13.2 L",
+        "amount": "$19.67",
+        "unit_price": "~$1.49/L (estimate)"
+      },
+      {
+        "type": "service",
+        "label": "12,000 km service at Kawasaki dealer",
+        "amount": "$329.00"
+      },
+      {
+        "type": "part",
+        "label": "Winter storage (season)",
+        "amount": "$299.00"
+      }
+    ],
+    "maintenance": {
+      "bike": "Kawasaki Ninja 650",
+      "overdue": {
+        "task": "Oil & filter",
+        "interval": "every 12,000 km or 12 months",
+        "status": "overdue by 2,300 km"
+      },
+      "upcoming": [
+        {
+          "task": "Battery tender / winterize",
+          "interval": "each autumn",
+          "due": "Nov 2026"
+        },
+        {
+          "task": "Spring safety check",
+          "interval": "each spring",
+          "due": "Apr 2027"
+        }
+      ],
+      "interval_confidence": "medium for oil (Kawasaki parallel-twin schedule); seasonal items are rider habits, not OEM"
+    }
+  },
+  "store_mapping": {
+    "app_store": {
+      "storefront_default_language": "English (Canada)",
+      "storefront_additional_languages": ["French (Canada)"],
+      "best_localization_for_storefront": "en-CA",
+      "motovault_ios_localizations_live_3_26_0": [
+        "de-DE",
+        "en-GB",
+        "en-US",
+        "es-MX",
+        "fr-FR",
+        "it",
+        "pt-BR"
+      ],
+      "shown_today": "en-US (MotoVault has neither en-CA nor fr-CA on the App Store, so the primary language en-US is shown)",
+      "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations"
+    },
+    "google_play": {
+      "listing_shown": "en-CA; French devices fall back (no fr-CA listing; fr-FR exists, fallback behaviour unverified)",
+      "how_chosen": "Default listing: translation picked by the user's device language, falling back to the default (en-US). Custom store listings: picked by country first, then the user's language within that listing.",
+      "motovault_play_translations": "Play default listing has 46 translations in store/play/metadata, incl. en-US, en-GB, en-CA, en-AU, es-419, es-ES, es-US, pt-BR, fr-FR, de-DE, it-IT, fil (no fr-CA).",
+      "source": "https://support.google.com/googleplay/android-developer/answer/9867158"
+    },
+    "targeting": "Play custom store listings can target countries (up to 50 listings, each country in only one listing, no auto-translation). Apple cannot target countries on the default product page; per-country screenshots on iOS need Custom Product Pages (reached only via their own URL/ads) or a localization that only that storefront uses."
+  },
+  "local_notes": {
+    "date": "YYYY-MM-DD (official), MM/DD common in English Canada, JJ/MM in Quebec",
+    "number": "1,234.5 (EN) / 1 234,5 (FR)",
+    "words": {
+      "motorcycle": "bike, motorcycle; FR: moto",
+      "ride": "ride; FR: balade, randonnée à moto"
+    },
+    "season_nov_mar": "Deep off-season: bikes stored, insurance often suspended; season roughly April/May to October. Cabot Trail services close after mid-October.",
+    "traffic": "right-hand",
+    "imagery": "Metric (km, L) even though US media bleeds in; bilingual country but MotoVault ships no French-Canadian listing."
+  }
+}

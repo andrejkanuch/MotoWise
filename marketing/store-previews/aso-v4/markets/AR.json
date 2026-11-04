@@ -1,0 +1,419 @@
+{
+  "cc": "AR",
+  "market_name": "Argentina",
+  "app_language": "es",
+  "store_locales": {
+    "ios": "es-MX",
+    "play": "es-419"
+  },
+  "device": {
+    "apple_languages": ["es-AR", "es"],
+    "apple_locale": "es_AR",
+    "metric": true
+  },
+  "measurement_system": "metric",
+  "currency": "ARS",
+  "timezone": "America/Argentina/Buenos_Aires",
+  "region_code": "AR-Q",
+  "rider": {
+    "display_name": "Martín L.",
+    "city": "San Martín de los Andes",
+    "home": [-40.1572, -71.3534]
+  },
+  "bikes": [
+    {
+      "key": "primary",
+      "make": "HONDA",
+      "model": "Wave 110 S",
+      "year": 2023,
+      "nickname": "La Wave",
+      "type": "scooter",
+      "engine_cc": 110,
+      "odometer": 16800,
+      "odometer_jan1": 9900,
+      "purchase_date": "2023-04-01",
+      "purchase_price": 2890000
+    },
+    {
+      "key": "second",
+      "make": "MOTOMEL",
+      "model": "S2 150",
+      "year": 2022,
+      "nickname": "La S2",
+      "type": "standard",
+      "engine_cc": 150,
+      "odometer": 22400,
+      "odometer_jan1": 18900,
+      "purchase_date": "2022-09-10",
+      "purchase_price": 2450000
+    }
+  ],
+  "hero_ride": {
+    "name": "Ruta de los Siete Lagos",
+    "road": "RN 40",
+    "date": "2026-10-19",
+    "start_time": "10:00",
+    "avg_speed_kmh": 52,
+    "max_speed_kmh": 86,
+    "max_lean_deg": 25,
+    "elevation_gain_m": null
+  },
+  "other_rides": [
+    {
+      "name": "Mirador Arrayán",
+      "date": "2026-10-26",
+      "distance_km": 18,
+      "avg_speed_kmh": 30,
+      "elevation_gain_m": 350
+    },
+    {
+      "name": "Junín de los Andes",
+      "date": "2026-10-05",
+      "distance_km": 90,
+      "avg_speed_kmh": 62,
+      "elevation_gain_m": 400
+    },
+    {
+      "name": "Al laburo",
+      "date": "2026-10-30",
+      "distance_km": 9,
+      "avg_speed_kmh": 28,
+      "elevation_gain_m": 40
+    }
+  ],
+  "season": {
+    "rides": 180,
+    "distance_km": 6900
+  },
+  "fuel": {
+    "label": "Nafta súper",
+    "unit": "L",
+    "price_per_unit": 1500,
+    "fill_size": [3.5, 4.2],
+    "stations": [
+      "YPF, Av. San Martín",
+      "Axion, Junín de los Andes",
+      "Shell, Villa La Angostura",
+      "YPF, Bariloche"
+    ]
+  },
+  "service": {
+    "title": "Service 15.000 km",
+    "date": "2026-08-29",
+    "odometer": 15050,
+    "vendor": "Motos Lácar",
+    "tax_label": "IVA 21% incl.",
+    "tax_rate": 0.21,
+    "tax_included": true,
+    "line_items": [
+      {
+        "label": "Aceite 20W-50, 1 L",
+        "service_type": "oil_change",
+        "amount": 14500
+      },
+      {
+        "label": "Bujía",
+        "service_type": "spark_plug",
+        "amount": 9800
+      },
+      {
+        "label": "Kit de transmisión",
+        "service_type": "chain",
+        "amount": 48000
+      },
+      {
+        "label": "Mano de obra",
+        "service_type": "general_service",
+        "amount": 35000
+      }
+    ]
+  },
+  "service_interval": 3000,
+  "expenses": [
+    {
+      "category": "insurance",
+      "date": "2026-10-01",
+      "amount": 26500,
+      "item": "Seguro mensual octubre",
+      "vendor": "Seguro moto"
+    },
+    {
+      "category": "taxes_fees",
+      "date": "2026-03-15",
+      "amount": 38000,
+      "item": "Patente 2026 (1ª cuota)",
+      "vendor": "Municipalidad"
+    },
+    {
+      "category": "tires",
+      "date": "2026-09-20",
+      "amount": 72000,
+      "item": "Cubierta trasera",
+      "vendor": "Motos Lácar"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Cambio de aceite",
+      "target_odometer": 16500,
+      "priority": "high"
+    },
+    {
+      "title": "Tensar y lubricar cadena",
+      "target_odometer": 17500,
+      "priority": "medium"
+    },
+    {
+      "title": "Service 18.000 km",
+      "target_odometer": 18000,
+      "priority": "medium"
+    }
+  ],
+  "trip": {
+    "title": "Siete Lagos y Bariloche",
+    "description": "Ruta 40 hasta Bariloche y vuelta",
+    "start_date": "2026-12-05",
+    "end_date": "2026-12-07",
+    "difficulty": "moderate",
+    "status": "draft",
+    "stops": [
+      {
+        "name": "San Martín de los Andes",
+        "lat": -40.1572,
+        "lng": -71.3534,
+        "type": "start",
+        "day": 0
+      },
+      {
+        "name": "Lago Falkner",
+        "lat": -40.44,
+        "lng": -71.517,
+        "type": "scenic",
+        "day": 0
+      },
+      {
+        "name": "Villa La Angostura",
+        "lat": -40.763,
+        "lng": -71.645,
+        "type": "food",
+        "day": 0
+      },
+      {
+        "name": "Bariloche",
+        "lat": -41.1335,
+        "lng": -71.3103,
+        "type": "overnight",
+        "day": 0
+      },
+      {
+        "name": "San Martín de los Andes",
+        "lat": -40.1572,
+        "lng": -71.3534,
+        "type": "end",
+        "day": 2
+      }
+    ]
+  },
+  "notes": "Amounts in ARS (00194 cap); peso amounts age monthly. iOS es-MX is shared with MX/CO.",
+  "generated": "2026-11-03",
+  "feature_usage": {
+    "n_users": 30,
+    "counts": {
+      "users": 30,
+      "rides_tracked": 0,
+      "rides_finished": 0,
+      "trips": 1,
+      "trip_building": 0,
+      "maintenance": 0,
+      "expenses": 2,
+      "receipt_scan": 0,
+      "ai_diagnosis": 4,
+      "bike_added": 22,
+      "onboarding_completed": 13
+    },
+    "local_ranking": [
+      {
+        "feature": "ai_diagnosis",
+        "users": 4,
+        "pct": 13.3
+      },
+      {
+        "feature": "expenses",
+        "users": 2,
+        "pct": 6.7
+      },
+      {
+        "feature": "trips",
+        "users": 1,
+        "pct": 3.3
+      },
+      {
+        "feature": "rides_tracked",
+        "users": 0,
+        "pct": 0.0
+      },
+      {
+        "feature": "maintenance",
+        "users": 0,
+        "pct": 0.0
+      }
+    ],
+    "onboarding_primary_goal": {
+      "track_rides": 5,
+      "maintain_bike": 4,
+      "manage_expenses": 3,
+      "just_exploring": 1
+    },
+    "bike_makes_typed": "Zanella 4, Bajaj 3, Yamaha 2, Honda 2, Royal Enfield 2",
+    "differs_from_global": "No rides recorded (0 of 30). Diagnosis 4, expenses 2. Goals: track_rides 5, maintain_bike 4, manage_expenses 3.",
+    "sample_strength": "very thin",
+    "recommended_screenshot_order": [
+      "rides (live ride / ride map + stats)",
+      "maintenance (reminders, overdue service)",
+      "expenses (incl. receipt scan)",
+      "trips (route planning)",
+      "garage (bike hub)"
+    ],
+    "recommendation": "Global order; no local signal strong enough."
+  },
+  "hero_route": {
+    "name_local": "Camino de los Siete Lagos (RN 40)",
+    "region": "Neuquén (Patagonia norte)",
+    "start": "San Martín de los Andes",
+    "end": "Villa La Angostura",
+    "official_length": "~107-110 km, fully paved",
+    "official_elevation": "~640-1,170 m",
+    "sources": [
+      "https://www.turismoruta40.com.ar/en/seven-lakes-road.html",
+      "https://turismo.neuquen.gob.ar/wp-content/uploads/2026/06/Folleto_Ruta_Lagos_del_Sur_2026-1.pdf",
+      "https://www.argentina.travel/novedades/ruta-de-los-7-lagos-un-recorrido-entre-villa-la-angostura-y-san-martin-de-los-andes-mas-bariloche"
+    ],
+    "polyline_note": "OSRM San Martín -> Lago Falkner -> Villa La Angostura, 95 km tagged 'Camino de los Siete Lagos'.",
+    "polyline_file": "AR-route.geojson",
+    "polyline_length_km": 108.1,
+    "polyline_length_mi": 67.2,
+    "polyline_elevation_srtm90m": {
+      "min_m": 645,
+      "max_m": 1167,
+      "gain_m": 1316,
+      "loss_m": 1135,
+      "samples": 100
+    },
+    "elevation_note": "gain/loss from 100 SRTM 90 m samples along the polyline (opentopodata.org); treat as approximate",
+    "backups": [
+      {
+        "name": "Ruta 40 (full)",
+        "why": "5,000 km spine of Argentina, the bucket-list ride"
+      },
+      {
+        "name": "Caracoles de Villavicencio (Mendoza, RP 52)",
+        "why": "famous switchbacks with Aconcagua views"
+      }
+    ]
+  },
+  "demo_garage": {
+    "currency": "ARS",
+    "units": {
+      "distance": "km",
+      "fuel_volume": "L",
+      "fuel_economy": "km/L"
+    },
+    "bikes": [
+      {
+        "make": "Honda",
+        "model": "Wave 110 S",
+        "year": 2023,
+        "odometer": "16,800 km",
+        "why": "Contested #1 of 2025 (Gilera Smash per El Litoral); Wave led several months, Honda leads brands.",
+        "sources": [
+          "https://parabrisas.perfil.com/noticias/novedades/la-gilera-smash-fue-la-moto-mas-vendida-de-argentina-en-2025.phtml",
+          "https://www.ellitoral.com/economia/venta-demotos-acara-patentamientos-motovehiculos-mercadoautomotor-honda-gilera_0_YFpziO8Po0.html"
+        ]
+      },
+      {
+        "make": "Motomel",
+        "model": "S2 150",
+        "year": 2022,
+        "odometer": "22,400 km",
+        "why": "Best-selling non-cub (street) model of 2025, 17,389 units.",
+        "sources": ["https://lamoto.com.ar/noticias/cuales-fueron-las-motos-mas-vendidas-2025/"]
+      }
+    ],
+    "expenses": [
+      {
+        "type": "fuel",
+        "label": "Nafta súper, 4,1 L",
+        "amount": "$6.150",
+        "unit_price": "~$1.500/L (estimate; prices move monthly)"
+      },
+      {
+        "type": "service",
+        "label": "Service en concesionario Honda",
+        "amount": "$85.000"
+      },
+      {
+        "type": "part",
+        "label": "Kit de transmisión",
+        "amount": "$48.000"
+      }
+    ],
+    "maintenance": {
+      "bike": "Honda Wave 110 S",
+      "overdue": {
+        "task": "Cambio de aceite",
+        "interval": "cada 3.000 km (approx.)",
+        "status": "vencido por 200 km"
+      },
+      "upcoming": [
+        {
+          "task": "Tensión y lubricación de cadena",
+          "interval": "cada 1.000 km",
+          "due": "17.500 km"
+        },
+        {
+          "task": "Bujía",
+          "interval": "cada 8.000 km",
+          "due": "24.000 km"
+        }
+      ],
+      "interval_confidence": "low: typical cub intervals; verify"
+    },
+    "note": "ARS inflation makes any peso amount age fast; regenerate amounts right before capture."
+  },
+  "store_mapping": {
+    "app_store": {
+      "storefront_default_language": "Spanish (Mexico)",
+      "storefront_additional_languages": ["English (U.K.)"],
+      "best_localization_for_storefront": "es-MX",
+      "motovault_ios_localizations_live_3_26_0": [
+        "de-DE",
+        "en-GB",
+        "en-US",
+        "es-MX",
+        "fr-FR",
+        "it",
+        "pt-BR"
+      ],
+      "shown_today": "es-MX",
+      "source": "https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations"
+    },
+    "google_play": {
+      "listing_shown": "es-419",
+      "how_chosen": "Default listing: translation picked by the user's device language, falling back to the default (en-US). Custom store listings: picked by country first, then the user's language within that listing.",
+      "motovault_play_translations": "Play default listing has 46 translations in store/play/metadata, incl. en-US, en-GB, en-CA, en-AU, es-419, es-ES, es-US, pt-BR, fr-FR, de-DE, it-IT, fil (no fr-CA).",
+      "source": "https://support.google.com/googleplay/android-developer/answer/9867158"
+    },
+    "targeting": "Play custom store listings can target countries (up to 50 listings, each country in only one listing, no auto-translation). Apple cannot target countries on the default product page; per-country screenshots on iOS need Custom Product Pages (reached only via their own URL/ads) or a localization that only that storefront uses."
+  },
+  "local_notes": {
+    "date": "DD/MM/AAAA",
+    "number": "1.234,5",
+    "words": {
+      "motorcycle": "moto",
+      "ride": "rodada, viaje, salir a rodar; 'motoquero' (common, neutral), 'motociclista'"
+    },
+    "season_nov_mar": "Summer: peak riding and Patagonia season (Ruta 40, Siete Lagos).",
+    "traffic": "right-hand",
+    "imagery": "Cub-type 110 cc bikes are most sales; Patagonia lakes and the Andes for aspiration. Prices change monthly (inflation)."
+  }
+}

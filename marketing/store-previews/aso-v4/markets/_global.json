@@ -1,0 +1,84 @@
+{
+  "method": {
+    "source": "PostHog project 155556, HogQL, events with properties.$lib = 'posthog-react-native', timestamp >= now() - 120 days (2026-07-06 .. 2026-11-03)",
+    "country": "each person assigned to the country most frequent in their events' $geoip_country_code (topK(1)); persons that travel are counted once",
+    "excluded_person_ids": [
+      "0789780c-2cb3-5985-b8d7-94af0a4b336e (owner test account)",
+      "cb805adc-d514-5f4d-a289-fb4048ba3630 (tester account, current)",
+      "07f99fe8-5a1b-5f5f-91b7-7377e8a25838 (shared demo account)",
+      "fd88a33a-e14f-56f2-a394-114fc383a7b0 (tester account, old)"
+    ],
+    "id_resolution_note": "PostHog persons carry no email property (emails are not sent to PostHog), so the three truncated ids were resolved by id prefix and matched to accounts via the team's test-account filter notes (reference_posthog_test_account_filters memory).",
+    "feature_event_map": {
+      "rides_tracked": "ride_started (attempted GPS ride); rides_finished = ride_completed OR ride_ended",
+      "trips": "trip_viewed (trip detail opened, includes viewing discovered/shared trips), trip_plan_viewed, trip_waypoint_added, gpx_download_clicked; trip_building = trip_waypoint_added only",
+      "maintenance": "maintenance_task_created, maintenance_task_completed, maintenance_log_added, oem_schedule_imported",
+      "expenses": "expense_added OR receipt_scan_save_completed",
+      "receipt_scan": "receipt_scan_completed OR receipt_scan_save_completed",
+      "ai_diagnosis": "diagnostic_started OR diagnostic_submitted (out of positioning scope)",
+      "bike_added": "bike_added OR garage_bike_added (mostly fired by onboarding, so it measures onboarding, not feature choice)"
+    },
+    "denominator": "users = distinct persons with any mobile event in the window"
+  },
+  "global": {
+    "n_users": 1135,
+    "ranking_by_distinct_users": [
+      {
+        "feature": "rides_tracked",
+        "users": 136,
+        "pct": 12.0,
+        "note": "101 finished at least one ride"
+      },
+      {
+        "feature": "trips",
+        "users": 81,
+        "pct": 7.1,
+        "note": "only 35 (3.1%) built a trip (added a waypoint); the rest opened a trip detail"
+      },
+      {
+        "feature": "maintenance",
+        "users": 67,
+        "pct": 5.9
+      },
+      {
+        "feature": "ai_diagnosis",
+        "users": 56,
+        "pct": 4.9,
+        "note": "out of positioning scope, never lead with it"
+      },
+      {
+        "feature": "expenses",
+        "users": 51,
+        "pct": 4.5,
+        "note": "highest repeat use: 176 expense_added events from 52 people (~3.4 each)"
+      },
+      {
+        "feature": "receipt_scan",
+        "users": 11,
+        "pct": 1.0
+      }
+    ],
+    "bike_added_users": 737,
+    "target_13_aggregate": {
+      "n_users": 643,
+      "rides_tracked": 52,
+      "rides_finished": 41,
+      "trips": 43,
+      "trip_building": 23,
+      "maintenance": 35,
+      "ai_diagnosis": 34,
+      "expenses": 27,
+      "receipt_scan": 4
+    },
+    "vs_prior_findings": "Matches the October 2026 finding that rides are the most-used feature. The earlier 'expenses > maintenance > rides' order no longer holds by distinct users; expenses still have the most repeat use per user. Onboarding primary goal in the same window (454 persons): track_rides 254 (56%), maintain_bike 83 (18%), manage_expenses 54 (12%), just_exploring 51 (11%), discover_routes 12 (3%). Close to the ~60% track_rides seen before.",
+    "recommended_screenshot_order": [
+      "rides (live ride / ride map + stats)",
+      "maintenance (reminders, overdue service)",
+      "expenses (incl. receipt scan)",
+      "trips (route planning)",
+      "garage (bike hub)"
+    ],
+    "order_rationale": "Rides lead clearly. Trips rank 2nd only when trip-detail views are counted; by trip building (35) they fall below maintenance (67) and roughly level with expenses (51). Maintenance and expenses are also the two confirmed ASO benefits (NEVER MISS A SERVICE, TRACK EVERY EXPENSE). If the team prefers to count trip views, swap trips to slot 2."
+  },
+  "generated": "2026-11-03"
+}
