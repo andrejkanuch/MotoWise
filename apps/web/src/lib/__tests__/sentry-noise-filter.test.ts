@@ -416,6 +416,19 @@ describe('shouldDropServerEvent', () => {
     ).toBe(false);
   });
 
+  const RSC_INVARIANT =
+    'Invariant: Expected RSC response, got text/plain. This is a bug in Next.js.';
+  const withMethod = (event: ErrorEvent, method: string): ErrorEvent =>
+    ({ ...event, request: { method, url: 'https://motovault.app/en.rsc' } }) as ErrorEvent;
+
+  it('drops the RSC invariant for a POST to a page (MOTOVAULT-WEB-1V)', () => {
+    expect(shouldDropServerEvent(withMethod(eventWith(RSC_INVARIANT), 'POST'))).toBe(true);
+  });
+
+  it('KEEPS the RSC invariant for a GET render', () => {
+    expect(shouldDropServerEvent(withMethod(eventWith(RSC_INVARIANT), 'GET'))).toBe(false);
+  });
+
   it('KEEPS unrelated server errors and events with no exception', () => {
     expect(shouldDropServerEvent(eventWith('fetch failed', { type: 'TypeError' }))).toBe(false);
     expect(shouldDropServerEvent({} as ErrorEvent)).toBe(false);
