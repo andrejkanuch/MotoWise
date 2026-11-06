@@ -1,6 +1,5 @@
 'use client';
 
-import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import {
@@ -13,6 +12,7 @@ import {
   HOME_LABEL,
   SubmitButton,
 } from '@/components/auth-ui/auth-ui';
+import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -34,14 +34,7 @@ const COPY = {
 } as const;
 
 export default function ResetPasswordPage() {
-  const supabase = useMemo(
-    () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-      ),
-    [],
-  );
+  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');

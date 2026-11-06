@@ -127,11 +127,8 @@ function CheckoutSuccessContent() {
   // Resolve user ID on mount
   useEffect(() => {
     (async () => {
-      const { createBrowserClient } = await import('@supabase/ssr');
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-      );
+      const { getSupabaseBrowserClient } = await import('@/lib/supabase-browser');
+      const supabase = getSupabaseBrowserClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();

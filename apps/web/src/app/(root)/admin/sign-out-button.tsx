@@ -1,9 +1,9 @@
 'use client';
 
-import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { resetUser } from '@/lib/analytics';
+import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 export function SignOutButton() {
   const router = useRouter();
@@ -11,10 +11,7 @@ export function SignOutButton() {
 
   const handleSignOut = async () => {
     setLoading(true);
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-    );
+    const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
     resetUser();
     router.push('/');

@@ -3,7 +3,6 @@
 import { GetTrialEligibilityDocument } from '@motovault/graphql';
 import type { Offering, Package } from '@revenuecat/purchases-js';
 import * as Sentry from '@sentry/nextjs';
-import { createBrowserClient } from '@supabase/ssr';
 import { ArrowLeft, CircleAlert, Lock, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -18,6 +17,7 @@ import {
 } from '@/lib/checkout-errors';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { CUSTOM_PAYWALL_IDS, trackCustomPaywallImpression } from '@/lib/revenuecat';
+import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import {
   annualSavingsPercent,
   formatMicros,
@@ -99,14 +99,7 @@ function CheckoutContent() {
   // (e.g. /pro/checkout?plan=annual&discount_code=INSTA20) arrives pre-applied.
   const discountCode = searchParams.get('discount_code') ?? undefined;
 
-  const supabase = useMemo(
-    () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-      ),
-    [],
-  );
+  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
 
   const [selectedPlan, setSelectedPlan] = useState<PlanId>(initialPlan);
   const [loading, setLoading] = useState(false);

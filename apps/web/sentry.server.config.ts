@@ -17,9 +17,12 @@ Sentry.init({
   // Gate on VERCEL_ENV, not NODE_ENV: Vercel sets NODE_ENV=production for PREVIEW
   // builds too, so a NODE_ENV check would have kept reporting preview events into
   // the production project — the same class of pollution, one environment over.
-  // The NODE_ENV fallback covers running outside Vercel (VERCEL_ENV unset), so a
-  // non-Vercel production deploy does not silently lose error reporting.
-  enabled: (process.env.VERCEL_ENV ?? process.env.NODE_ENV) === 'production',
+  // No NODE_ENV fallback: `next build && next start` on a laptop runs with
+  // NODE_ENV=production and VERCEL_ENV unset, and that fallback let a local
+  // verification pass (curl against :3100, API not running) file
+  // MOTOVAULT-WEB-13 and -1W as production incidents. The site deploys only to
+  // Vercel, which always sets VERCEL_ENV at runtime.
+  enabled: process.env.VERCEL_ENV === 'production',
 
   // Distinguish preview from production instead of lumping both under "production".
   environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV,
