@@ -638,6 +638,14 @@ export class RidesService {
       throw new NotFoundException('Ride not found or not active');
     }
 
+    // UploadWaypointsInputSchema drops waypoints whose position or timestamp is
+    // unusable, so a batch of nothing but bad fixes arrives empty. Accept it: a
+    // rejection would dead-letter the op and take nothing usable with it.
+    if (input.waypoints.length === 0) {
+      this.logger.warn(`uploadWaypoints: ride ${input.rideId} batch had no usable waypoints`);
+      return 0;
+    }
+
     // Check waypoint quota. This is a SOFT abuse guard, not a correctness gate:
     // a transient read failure (pooler hiccup, statement timeout) must not block
     // the user's own waypoints from persisting. On a count error we log and skip
