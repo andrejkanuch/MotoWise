@@ -38,7 +38,7 @@
     "date-fns": "^4.4.0",
     "expo-server-sdk": "^6.1.0",
     "express": "^5.2.1",
-    "graphql": "^16.14.2",
+    "graphql": "^17.0.2",
     "graphql-depth-limit": "^1.1.0",
     "graphql-type-json": "^0.3.2",
     "helmet": "^8.2.0",
