@@ -30,6 +30,7 @@ describe('isExpectedBusinessRuleCode', () => {
     GRAPHQL_ERROR_CODE.NOT_FOUND,
     GRAPHQL_ERROR_CODE.CONFLICT,
     GRAPHQL_ERROR_CODE.TOO_MANY_REQUESTS,
+    GRAPHQL_ERROR_CODE.UNPROCESSABLE_ENTITY,
   ])('treats %s as expected product behaviour', (code) => {
     expect(isExpectedBusinessRuleCode(code)).toBe(true);
   });

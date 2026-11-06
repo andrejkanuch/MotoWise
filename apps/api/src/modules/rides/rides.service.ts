@@ -432,7 +432,8 @@ export class RidesService {
     const endPatch = {
       status: 'completed',
       ended_at: input.endedAt,
-      distance_m: input.distanceM,
+      // Absent when the schema discarded an implausible value: keep what the row has.
+      ...(input.distanceM !== undefined && { distance_m: input.distanceM }),
       max_speed_mps: input.maxSpeedMps ?? null,
       avg_speed_mps: input.avgSpeedMps ?? null,
       elevation_gain: input.elevationGain ?? null,

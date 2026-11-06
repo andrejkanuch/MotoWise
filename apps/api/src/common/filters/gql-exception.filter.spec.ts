@@ -3,6 +3,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
 import { GraphQLError } from 'graphql';
@@ -97,6 +98,18 @@ describe('AllExceptionsFilter', () => {
       expect(result).toBeInstanceOf(GraphQLError);
       expect((result as GraphQLError).extensions.code).toBe('NOT_FOUND');
       expect((result as GraphQLError).message).toBe('Share link not found');
+    });
+
+    it('maps a 422 to UNPROCESSABLE_ENTITY and keeps its message (recalls needs-details banner)', () => {
+      const result = filter.catch(
+        new UnprocessableEntityException('Add model and year'),
+        createGqlHost(),
+      );
+
+      expect(result).toBeInstanceOf(GraphQLError);
+      expect((result as GraphQLError).extensions.code).toBe('UNPROCESSABLE_ENTITY');
+      expect((result as GraphQLError).message).toBe('Add model and year');
+      expect(Sentry.captureException).not.toHaveBeenCalled();
     });
 
     it('hides the message for unknown (500) exceptions', () => {

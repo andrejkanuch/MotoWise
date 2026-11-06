@@ -402,9 +402,12 @@ export class NhtsaService implements OnModuleInit {
   }
 
   /**
-   * vPIC VIN decode → make/model/year. Non-fatal: a failed or unknown decode
-   * returns `{}` so the caller reports "add model and year" instead of a 503.
-   * Only successful decodes are cached.
+   * vPIC VIN decode → make/model/year. A VIN vPIC answers but cannot decode
+   * yields blank fields, so the caller reports "add model and year" (422).
+   * A vPIC outage (timeout, 5xx, unreachable) is NOT a blank decode: the
+   * ServiceUnavailableException from fetchJson propagates, so the rider gets
+   * the retryable error and the 503 reaches Sentry. Only answered decodes are
+   * cached.
    */
   private async decodeVin(vin: string): Promise<RecallVehicle> {
     const cacheKey = vin.toUpperCase();
@@ -413,28 +416,22 @@ export class NhtsaService implements OnModuleInit {
       return cached.data;
     }
 
-    let decoded: RecallVehicle;
-    try {
-      const json = await this.fetchJson<NhtsaVinDecodeResponse>(
-        `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${encodeURIComponent(vin)}?format=json`,
-        {
-          notOkLog: 'NHTSA VIN decode request failed',
-          notOkThrow: 'Failed to decode VIN with NHTSA',
-          timeout: 'NHTSA VIN decode request timed out',
-          unreachable: 'Failed to reach NHTSA vPIC API',
-        },
-      );
-      const row = json.Results?.[0];
-      const year = Number.parseInt(row?.ModelYear ?? '', 10);
-      decoded = {
-        make: row?.Make?.trim() || undefined,
-        model: row?.Model?.trim() || undefined,
-        year: Number.isFinite(year) && year > 0 ? year : undefined,
-      };
-    } catch (err) {
-      this.logger.warn(`VIN decode failed (non-fatal): ${(err as Error).message}`);
-      return {};
-    }
+    const json = await this.fetchJson<NhtsaVinDecodeResponse>(
+      `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${encodeURIComponent(vin)}?format=json`,
+      {
+        notOkLog: 'NHTSA VIN decode request failed',
+        notOkThrow: 'Failed to decode VIN with NHTSA',
+        timeout: 'NHTSA VIN decode request timed out',
+        unreachable: 'Failed to reach NHTSA vPIC API',
+      },
+    );
+    const row = json.Results?.[0];
+    const year = Number.parseInt(row?.ModelYear ?? '', 10);
+    const decoded: RecallVehicle = {
+      make: row?.Make?.trim() || undefined,
+      model: row?.Model?.trim() || undefined,
+      year: Number.isFinite(year) && year > 0 ? year : undefined,
+    };
 
     if (this.vinDecodeCache.size >= NhtsaService.MAX_VIN_DECODE_CACHE) {
       const oldestKey = this.vinDecodeCache.keys().next().value;

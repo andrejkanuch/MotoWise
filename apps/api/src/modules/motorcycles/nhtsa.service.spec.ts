@@ -381,6 +381,43 @@ describe('NhtsaService', () => {
       ).rejects.toBeInstanceOf(UnprocessableEntityException);
     });
 
+    it('rejects with 503 (not the 422) when the VIN decoder is down', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(
+        new TypeError('network down'),
+      );
+
+      await expect(
+        service.getRecalls({ vin: 'JH2SD1000MK000000', make: 'Honda' }),
+      ).rejects.toBeInstanceOf(ServiceUnavailableException);
+    });
+
+    it('rejects with 503 when the VIN decoder answers non-ok', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: false, status: 502 });
+
+      await expect(
+        service.getRecalls({ vin: 'JH2SD1000MK000000', make: 'Honda' }),
+      ).rejects.toBeInstanceOf(ServiceUnavailableException);
+    });
+
+    it('decodes a VIN once and serves the decode from cache afterwards', async () => {
+      const fetchMock = globalThis.fetch as ReturnType<typeof vi.fn>;
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ Results: [{ Make: '', Model: '', ModelYear: '' }] }),
+      });
+
+      for (let i = 0; i < 2; i++) {
+        await expect(
+          service.getRecalls({ vin: 'NOTAREALVIN000000', make: 'Honda' }),
+        ).rejects.toBeInstanceOf(UnprocessableEntityException);
+      }
+
+      const decodeCalls = fetchMock.mock.calls.filter((call) =>
+        (call[0] as string).includes('DecodeVinValues'),
+      );
+      expect(decodeCalls).toHaveLength(1);
+    });
+
     it('serves cached results without re-fetching', async () => {
       mockNhtsaApis({ recallsByModel: { 'Africa Twin': [CAMPAIGN] } });
       await service.getRecalls({ make: 'Honda', model: 'Africa Twin', year: 2020 });

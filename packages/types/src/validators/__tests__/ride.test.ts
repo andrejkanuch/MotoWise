@@ -92,8 +92,10 @@ describe('EndRideInputSchema', () => {
 
   // A sensor glitch must not cost the rider the ride end: BAD_REQUEST dead-letters
   // endRide for good (MOTO-VAULT-REACT-NATIVE-40).
-  it('zeroes an implausible distanceM instead of rejecting the ride end', () => {
-    expect(EndRideInputSchema.parse({ ...validEndRide, distanceM: -1 }).distanceM).toBe(0);
+  it.each([
+    -1, 3_000_000,
+  ])('treats an implausible distanceM (%s) as unknown instead of rejecting the ride end', (distanceM) => {
+    expect(EndRideInputSchema.parse({ ...validEndRide, distanceM }).distanceM).toBeUndefined();
   });
 
   it.each([
@@ -253,6 +255,17 @@ describe('UploadWaypointsInputSchema', () => {
       ],
     });
     expect(result.waypoints.map((wp) => wp.latitude)).toEqual([1, 4]);
+  });
+
+  it('parses a batch of only unusable waypoints to an empty list (stored as zero rows)', () => {
+    const result = UploadWaypointsInputSchema.parse({
+      rideId: validUuid,
+      waypoints: [
+        { ...makeWaypoint(1), latitude: 91 },
+        { ...makeWaypoint(2), recordedAt: 'not-a-date' },
+      ],
+    });
+    expect(result.waypoints).toEqual([]);
   });
 });
 

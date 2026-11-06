@@ -41,9 +41,10 @@ const nonNegativeSeconds = () => z.number().int().nonnegative().default(0).catch
 export const EndRideInputSchema = z.object({
   rideId: z.string().uuid(),
   endedAt: z.string().datetime(),
-  // 0 rather than null: the column and the odometer sync need a number, and a
-  // distance past the cap is a glitch the odometer must not absorb.
-  distanceM: z.number().nonnegative().max(2000000).catch(0),
+  // An implausible distance is UNKNOWN, not 0: the service then leaves
+  // `distance_m` untouched, so a system-ended ride the rider reclaims keeps the
+  // distance the sweep reconstructed, and the odometer never absorbs the glitch.
+  distanceM: z.number().nonnegative().max(2000000).optional().catch(undefined),
   maxSpeedMps: sensorReading(z.number().nonnegative().max(200)),
   avgSpeedMps: sensorReading(z.number().nonnegative().max(200)),
   elevationGain: sensorReading(z.number().nonnegative().max(50000)),
@@ -58,24 +59,35 @@ export type EndRideInput = z.infer<typeof EndRideInputSchema>;
 
 // --- Upload Waypoints ---
 
+/**
+ * Waypoint sensor ranges, defined once: the strict schema and the tolerant
+ * ingest schema both build from these so their limits cannot drift apart.
+ */
+const WAYPOINT_SENSOR_RANGES = {
+  altitude: z.number(),
+  speedMps: z.number().nonnegative().max(200),
+  heading: z.number().min(0).max(360),
+  accuracy: z.number().nonnegative(),
+} as const;
+
 /** A well-formed waypoint. Strict: what a client should send. */
 export const WaypointSchema = z.object({
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
-  altitude: z.number().nullable().optional(),
-  speedMps: z.number().nonnegative().max(200).nullable().optional(),
-  heading: z.number().min(0).max(360).nullable().optional(),
-  accuracy: z.number().nonnegative().nullable().optional(),
+  altitude: WAYPOINT_SENSOR_RANGES.altitude.nullable().optional(),
+  speedMps: WAYPOINT_SENSOR_RANGES.speedMps.nullable().optional(),
+  heading: WAYPOINT_SENSOR_RANGES.heading.nullable().optional(),
+  accuracy: WAYPOINT_SENSOR_RANGES.accuracy.nullable().optional(),
   recordedAt: z.string().datetime(),
 });
 export type Waypoint = z.infer<typeof WaypointSchema>;
 
 /** What the API stores: sensor fields out of range become null (see sensorReading). */
 const IngestWaypointSchema = WaypointSchema.extend({
-  altitude: sensorReading(z.number()),
-  speedMps: sensorReading(z.number().nonnegative().max(200)),
-  heading: sensorReading(z.number().min(0).max(360)),
-  accuracy: sensorReading(z.number().nonnegative()),
+  altitude: sensorReading(WAYPOINT_SENSOR_RANGES.altitude),
+  speedMps: sensorReading(WAYPOINT_SENSOR_RANGES.speedMps),
+  heading: sensorReading(WAYPOINT_SENSOR_RANGES.heading),
+  accuracy: sensorReading(WAYPOINT_SENSOR_RANGES.accuracy),
 });
 
 /**
