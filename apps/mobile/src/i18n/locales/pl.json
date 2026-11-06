@@ -1817,6 +1817,7 @@
     "title": "Wycofania bezpieczeństwa",
     "checking": "Sprawdzanie bazy NHTSA…",
     "error": "Nie udało się sprawdzić wycofań. Spróbuj ponownie.",
+    "needsDetails": "Dodaj model i rok (lub VIN) motocykla, aby sprawdzić wycofania.",
     "none": "Nie znaleziono otwartych wycofań",
     "noneDescription": "Twój motocykl nie ma otwartych wycofań bezpieczeństwa.",
     "openCount_one": "Znaleziono {{count}} otwarte wycofanie",

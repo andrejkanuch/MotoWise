@@ -1,4 +1,4 @@
-import { ServiceUnavailableException } from '@nestjs/common';
+import { ServiceUnavailableException, UnprocessableEntityException } from '@nestjs/common';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NhtsaService } from './nhtsa.service';
 
@@ -311,20 +311,74 @@ describe('NhtsaService', () => {
       expect(recalls).toHaveLength(1);
     });
 
-    it('uses a single VIN query without touching the products API', async () => {
-      mockNhtsaApis({ recallsByModel: {} });
-      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ Count: 1, results: [CAMPAIGN] }),
+    it('never calls the non-existent recallsByVin endpoint (it answers 403)', async () => {
+      mockNhtsaApis({ recallsByModel: { 'Africa Twin': [CAMPAIGN] } });
+
+      const recalls = await service.getRecalls({
+        vin: 'JH2SC8210MK000000',
+        make: 'Honda',
+        model: 'Africa Twin',
+        year: 2020,
       });
 
-      const recalls = await service.getRecalls({ vin: 'JH2SC8210MK000000' });
+      expect(recalls).toHaveLength(1);
+      const urls = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.map(
+        (call) => call[0] as string,
+      );
+      expect(urls.some((url) => url.includes('recallsByVin'))).toBe(false);
+      // Stored make/model/year are complete, so the VIN is not decoded.
+      expect(urls.some((url) => url.includes('DecodeVinValues'))).toBe(false);
+    });
+
+    it('fills a blank model and year from the VIN decoder', async () => {
+      const fetchMock = globalThis.fetch as ReturnType<typeof vi.fn>;
+      mockNhtsaApis({ recallsByModel: { CRF1100L: [CAMPAIGN] } });
+      const byUrl = fetchMock.getMockImplementation() as (url: string) => Promise<unknown>;
+      fetchMock.mockImplementation((rawUrl: string) => {
+        if (rawUrl.includes('DecodeVinValues')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                Results: [{ Make: 'HONDA', Model: 'CRF1100L', ModelYear: '2021' }],
+              }),
+          });
+        }
+        return byUrl(rawUrl);
+      });
+
+      const recalls = await service.getRecalls({
+        vin: 'JH2SD1000MK000000',
+        make: 'Honda',
+        model: '',
+      });
 
       expect(recalls).toHaveLength(1);
-      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
-      expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][0]).toContain(
-        'recallsByVin',
-      );
+      const recallUrl = fetchMock.mock.calls
+        .map((call) => call[0] as string)
+        .find((url) => url.includes('recallsByVehicle'));
+      expect(recallUrl).toContain('make=Honda');
+      expect(recallUrl).toContain('modelYear=2021');
+    });
+
+    it('rejects with 422 (not a 503) when the bike has no model/year and no VIN', async () => {
+      mockNhtsaApis({});
+
+      await expect(
+        service.getRecalls({ make: 'Honda', model: '', year: 2020 }),
+      ).rejects.toBeInstanceOf(UnprocessableEntityException);
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+    });
+
+    it('rejects with 422 when the VIN cannot be decoded', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ Results: [{ Make: '', Model: '', ModelYear: '' }] }),
+      });
+
+      await expect(
+        service.getRecalls({ vin: 'NOTAREALVIN000000', make: 'Honda' }),
+      ).rejects.toBeInstanceOf(UnprocessableEntityException);
     });
 
     it('serves cached results without re-fetching', async () => {

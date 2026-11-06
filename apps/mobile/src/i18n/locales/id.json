@@ -1775,6 +1775,7 @@
     "title": "Recall Keselamatan",
     "checking": "Memeriksa database NHTSA…",
     "error": "Tidak dapat memeriksa recall. Silakan coba lagi.",
+    "needsDetails": "Tambahkan model dan tahun (atau VIN) motor kamu untuk memeriksa recall.",
     "none": "Tidak ada recall terbuka",
     "noneDescription": "Motor Anda tidak memiliki recall keselamatan terbuka.",
     "openCount_one": "{{count}} recall terbuka ditemukan",

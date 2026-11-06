@@ -1786,6 +1786,7 @@
     "title": "Safety Recalls",
     "checking": "Checking NHTSA database…",
     "error": "Unable to check for recalls. Please try again.",
+    "needsDetails": "Add your bike's model and year (or VIN) to check for recalls.",
     "none": "No open recalls found",
     "noneDescription": "Your motorcycle has no open safety recalls.",
     "openCount_one": "{{count}} open recall found",

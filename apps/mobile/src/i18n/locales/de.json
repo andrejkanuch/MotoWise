@@ -1775,6 +1775,7 @@
     "title": "Sicherheitsrückrufe",
     "checking": "NHTSA-Datenbank wird überprüft…",
     "error": "Rückrufe konnten nicht überprüft werden. Bitte versuche es erneut.",
+    "needsDetails": "Gib Modell und Baujahr (oder die FIN) deines Motorrads an, um Rückrufe zu prüfen.",
     "none": "Keine offenen Rückrufe gefunden",
     "noneDescription": "Dein Motorrad hat keine offenen Sicherheitsrückrufe.",
     "openCount_one": "{{count}} offener Rückruf gefunden",

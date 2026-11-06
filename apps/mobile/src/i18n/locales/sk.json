@@ -1817,6 +1817,7 @@
     "title": "Bezpečnostné stiahnutia",
     "checking": "Kontrola databázy NHTSA…",
     "error": "Nepodarilo sa skontrolovať stiahnutia. Skúste to znova.",
+    "needsDetails": "Pridajte model a rok výroby (alebo VIN) motorky, aby ste mohli skontrolovať stiahnutia.",
     "none": "Nenašli sa žiadne otvorené stiahnutia",
     "noneDescription": "Tvoja motorka nemá žiadne otvorené bezpečnostné stiahnutia.",
     "openCount_one": "Nájdené {{count}} otvorené stiahnutie",

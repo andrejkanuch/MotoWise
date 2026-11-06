@@ -1796,6 +1796,7 @@
     "title": "Richiami di sicurezza",
     "checking": "Controllo database NHTSA…",
     "error": "Impossibile verificare i richiami. Riprova.",
+    "needsDetails": "Aggiungi modello e anno (o il VIN) della tua moto per verificare i richiami.",
     "none": "Nessun richiamo aperto trovato",
     "noneDescription": "La tua moto non ha richiami di sicurezza aperti.",
     "openCount_one": "{{count}} richiamo aperto trovato",

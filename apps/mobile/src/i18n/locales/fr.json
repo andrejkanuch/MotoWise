@@ -1796,6 +1796,7 @@
     "title": "Rappels constructeur",
     "checking": "Vérification de la base NHTSA…",
     "error": "Impossible de vérifier les rappels constructeur. Réessaie.",
+    "needsDetails": "Ajoute le modèle et l'année (ou le VIN) de ta moto pour vérifier les rappels.",
     "none": "Aucun rappel constructeur en cours",
     "noneDescription": "Ta moto n'a aucun rappel constructeur en cours.",
     "openCount_one": "{{count}} rappel constructeur en cours",

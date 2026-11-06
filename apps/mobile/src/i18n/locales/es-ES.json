@@ -334,6 +334,7 @@
   "recalls": {
     "title": "Campañas de revisión",
     "error": "No se pudieron consultar las campañas de revisión. Inténtalo de nuevo.",
+    "needsDetails": "Añade el modelo y el año (o el VIN) de tu moto para consultar las campañas de revisión.",
     "none": "No hay campañas de revisión abiertas",
     "noneDescription": "Tu moto no tiene campañas de revisión de seguridad abiertas.",
     "openCount_one": "{{count}} campaña de revisión abierta",
