@@ -1775,6 +1775,7 @@
     "title": "Güvenlik Geri Çağırmaları",
     "checking": "NHTSA veritabanı kontrol ediliyor…",
     "error": "Geri çağırmalar kontrol edilemedi. Lütfen tekrar deneyin.",
+    "needsDetails": "Geri çağırmaları kontrol etmek için motosikletinin modelini ve yılını (veya VIN) ekle.",
     "none": "Açık geri çağırma bulunamadı",
     "noneDescription": "Motosikletinizde açık güvenlik geri çağırması yok.",
     "openCount_one": "{{count}} açık geri çağırma bulundu",

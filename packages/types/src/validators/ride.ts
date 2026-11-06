@@ -23,38 +23,90 @@ export type StartRideInput = z.infer<typeof StartRideInputSchema>;
 
 // --- End Ride ---
 
+/**
+ * A ride's identity (ids, timestamps, coordinates) is validated strictly, but a
+ * derived or sensor reading out of range is replaced instead of rejected.
+ *
+ * The rides API validates through ZodValidationPipe, which answers any failure
+ * with BAD_REQUEST — and BAD_REQUEST is NON-RETRYABLE in the mobile sync queue,
+ * so the op dead-letters for good. One implausible max speed or lean angle from
+ * a cheap GPS/IMU therefore cost the rider the whole ride end (or a 500-point
+ * waypoint batch): the ride stayed `recording` until the next start closed it as
+ * stale, trimmed to its last stored fix (MOTO-VAULT-REACT-NATIVE-3Z / -40).
+ * Dropping a bad reading loses one number; rejecting loses the ride.
+ */
+const sensorReading = (schema: z.ZodNumber) => schema.nullable().optional().catch(null);
+const nonNegativeSeconds = () => z.number().int().nonnegative().default(0).catch(0);
+
 export const EndRideInputSchema = z.object({
   rideId: z.string().uuid(),
   endedAt: z.string().datetime(),
-  distanceM: z.number().nonnegative().max(2000000),
-  maxSpeedMps: z.number().nonnegative().max(200).nullable().optional(),
-  avgSpeedMps: z.number().nonnegative().max(200).nullable().optional(),
-  elevationGain: z.number().nonnegative().max(50000).nullable().optional(),
-  elevationLoss: z.number().nonnegative().max(50000).nullable().optional(),
-  routePolyline: z.string().max(500000).nullable().optional(),
-  gpsQuality: z.number().min(0).max(1).nullable().optional(),
-  pausedDurationS: z.number().int().nonnegative().default(0),
-  autoPausedDurationS: z.number().int().nonnegative().default(0),
-  maxLeanAngle: z.number().nonnegative().max(90).nullable().optional(),
+  // An implausible distance is UNKNOWN, not 0: the service then leaves
+  // `distance_m` untouched, so a system-ended ride the rider reclaims keeps the
+  // distance the sweep reconstructed, and the odometer never absorbs the glitch.
+  distanceM: z.number().nonnegative().max(2000000).optional().catch(undefined),
+  maxSpeedMps: sensorReading(z.number().nonnegative().max(200)),
+  avgSpeedMps: sensorReading(z.number().nonnegative().max(200)),
+  elevationGain: sensorReading(z.number().nonnegative().max(50000)),
+  elevationLoss: sensorReading(z.number().nonnegative().max(50000)),
+  routePolyline: z.string().max(500000).nullable().optional().catch(null),
+  gpsQuality: sensorReading(z.number().min(0).max(1)),
+  pausedDurationS: nonNegativeSeconds(),
+  autoPausedDurationS: nonNegativeSeconds(),
+  maxLeanAngle: sensorReading(z.number().nonnegative().max(90)),
 });
 export type EndRideInput = z.infer<typeof EndRideInputSchema>;
 
 // --- Upload Waypoints ---
 
+/**
+ * Waypoint sensor ranges, defined once: the strict schema and the tolerant
+ * ingest schema both build from these so their limits cannot drift apart.
+ */
+const WAYPOINT_SENSOR_RANGES = {
+  altitude: z.number(),
+  speedMps: z.number().nonnegative().max(200),
+  heading: z.number().min(0).max(360),
+  accuracy: z.number().nonnegative(),
+} as const;
+
+/** A well-formed waypoint. Strict: what a client should send. */
 export const WaypointSchema = z.object({
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
-  altitude: z.number().nullable().optional(),
-  speedMps: z.number().nonnegative().max(200).nullable().optional(),
-  heading: z.number().min(0).max(360).nullable().optional(),
-  accuracy: z.number().nonnegative().nullable().optional(),
+  altitude: WAYPOINT_SENSOR_RANGES.altitude.nullable().optional(),
+  speedMps: WAYPOINT_SENSOR_RANGES.speedMps.nullable().optional(),
+  heading: WAYPOINT_SENSOR_RANGES.heading.nullable().optional(),
+  accuracy: WAYPOINT_SENSOR_RANGES.accuracy.nullable().optional(),
   recordedAt: z.string().datetime(),
 });
 export type Waypoint = z.infer<typeof WaypointSchema>;
 
+/** What the API stores: sensor fields out of range become null (see sensorReading). */
+const IngestWaypointSchema = WaypointSchema.extend({
+  altitude: sensorReading(WAYPOINT_SENSOR_RANGES.altitude),
+  speedMps: sensorReading(WAYPOINT_SENSOR_RANGES.speedMps),
+  heading: sensorReading(WAYPOINT_SENSOR_RANGES.heading),
+  accuracy: sensorReading(WAYPOINT_SENSOR_RANGES.accuracy),
+});
+
+/**
+ * A waypoint whose position or timestamp is unusable is DROPPED, not allowed to
+ * fail the batch it rides in. The batch itself must still be 1..MAX_PER_UPLOAD
+ * items; it may come out empty, which the service stores as zero rows.
+ */
 export const UploadWaypointsInputSchema = z.object({
   rideId: z.string().uuid(),
-  waypoints: z.array(WaypointSchema).min(1).max(RIDE_WAYPOINT_LIMITS.MAX_PER_UPLOAD),
+  waypoints: z
+    .array(z.unknown())
+    .min(1)
+    .max(RIDE_WAYPOINT_LIMITS.MAX_PER_UPLOAD)
+    .transform((raw) =>
+      raw.flatMap((waypoint) => {
+        const parsed = IngestWaypointSchema.safeParse(waypoint);
+        return parsed.success ? [parsed.data] : [];
+      }),
+    ),
 });
 export type UploadWaypointsInput = z.infer<typeof UploadWaypointsInputSchema>;
 

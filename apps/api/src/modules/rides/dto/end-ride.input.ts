@@ -12,7 +12,7 @@ export class EndRideInput {
   // auto-end path — which legitimately have no computed distance — can omit it
   // without tripping BAD_USER_INPUT. (Sentry MOTO-VAULT-REACT-NATIVE-1J)
   @Field(() => Float, { defaultValue: 0 })
-  distanceM: number;
+  distanceM?: number;
 
   @Field(() => Float, { nullable: true })
   maxSpeedMps?: number;

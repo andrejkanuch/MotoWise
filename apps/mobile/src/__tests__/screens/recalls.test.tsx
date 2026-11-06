@@ -255,3 +255,40 @@ describe('Recalls screen — mark as done', () => {
     );
   });
 });
+
+describe('Recalls screen — lookup errors', () => {
+  /** A graphql-request ClientError shape carrying one GraphQL error code. */
+  function gqlError(code: string) {
+    return Object.assign(new Error(code), {
+      response: { errors: [{ message: 'rejected', extensions: { code } }] },
+    });
+  }
+
+  async function renderFailing(code: string) {
+    mockParams = { motorcycleId: BIKE_ID, bikeName: 'Honda' };
+    mockFetcher.mockRejectedValue(gqlError(code));
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, gcTime: 0 } },
+    });
+    await render(
+      <QueryClientProvider client={client}>
+        <RecallsScreen />
+      </QueryClientProvider>,
+    );
+    await waitFor(() => expect(screen.queryByText('Checking NHTSA database…')).toBeNull());
+  }
+
+  it('asks for model and year when the bike cannot be checked (422)', async () => {
+    await renderFailing('UNPROCESSABLE_ENTITY');
+
+    expect(
+      screen.getByText("Add your bike's model and year (or VIN) to check for recalls."),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the retry message for an upstream failure', async () => {
+    await renderFailing('SERVICE_UNAVAILABLE');
+
+    expect(screen.getByText('Unable to check for recalls. Please try again.')).toBeOnTheScreen();
+  });
+});

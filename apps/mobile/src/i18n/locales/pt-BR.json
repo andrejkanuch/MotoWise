@@ -1796,6 +1796,7 @@
     "title": "Recalls de segurança",
     "checking": "Consultando a base da NHTSA…",
     "error": "Não foi possível verificar os recalls. Tente novamente.",
+    "needsDetails": "Adicione o modelo e o ano (ou o VIN) da sua moto para verificar recalls.",
     "none": "Nenhum recall em aberto",
     "noneDescription": "Sua moto não tem recalls de segurança em aberto.",
     "openCount_one": "{{count}} recall em aberto encontrado",

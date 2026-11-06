@@ -90,12 +90,38 @@ describe('EndRideInputSchema', () => {
     expect(result.autoPausedDurationS).toBe(0);
   });
 
-  it('rejects negative distanceM', () => {
-    expect(() => EndRideInputSchema.parse({ ...validEndRide, distanceM: -1 })).toThrow();
+  // A sensor glitch must not cost the rider the ride end: BAD_REQUEST dead-letters
+  // endRide for good (MOTO-VAULT-REACT-NATIVE-40).
+  it.each([
+    -1, 3_000_000,
+  ])('treats an implausible distanceM (%s) as unknown instead of rejecting the ride end', (distanceM) => {
+    expect(EndRideInputSchema.parse({ ...validEndRide, distanceM }).distanceM).toBeUndefined();
   });
 
-  it('rejects maxSpeedMps > 200', () => {
-    expect(() => EndRideInputSchema.parse({ ...validEndRide, maxSpeedMps: 201 })).toThrow();
+  it.each([
+    ['maxSpeedMps', 201],
+    ['avgSpeedMps', -3],
+    ['elevationGain', 60000],
+    ['gpsQuality', 1.5],
+    ['maxLeanAngle', 120],
+  ])('nulls an out-of-range %s instead of rejecting the ride end', (field, value) => {
+    const result = EndRideInputSchema.parse({ ...validEndRide, [field]: value });
+    expect(result[field as keyof typeof result]).toBeNull();
+    expect(result.rideId).toBe(validUuid);
+  });
+
+  it('floors negative or fractional pause durations to 0', () => {
+    const result = EndRideInputSchema.parse({
+      ...validEndRide,
+      pausedDurationS: -12,
+      autoPausedDurationS: 1.5,
+    });
+    expect(result.pausedDurationS).toBe(0);
+    expect(result.autoPausedDurationS).toBe(0);
+  });
+
+  it('still rejects a bad identity (endedAt)', () => {
+    expect(() => EndRideInputSchema.parse({ ...validEndRide, endedAt: 'yesterday' })).toThrow();
   });
 
   it('rejects missing required fields', () => {
@@ -207,6 +233,39 @@ describe('UploadWaypointsInputSchema', () => {
   it('rejects more than 500 waypoints', () => {
     const waypoints = Array.from({ length: 501 }, (_, i) => makeWaypoint(i % 90));
     expect(() => UploadWaypointsInputSchema.parse({ rideId: validUuid, waypoints })).toThrow();
+  });
+  it('nulls out-of-range sensor readings instead of failing the batch', () => {
+    const result = UploadWaypointsInputSchema.parse({
+      rideId: validUuid,
+      waypoints: [{ ...makeWaypoint(1), speedMps: 250, heading: -1, accuracy: -5 }],
+    });
+    expect(result.waypoints).toEqual([
+      { ...makeWaypoint(1), speedMps: null, heading: null, accuracy: null },
+    ]);
+  });
+
+  it('drops a waypoint with an unusable position or timestamp and keeps the rest', () => {
+    const result = UploadWaypointsInputSchema.parse({
+      rideId: validUuid,
+      waypoints: [
+        makeWaypoint(1),
+        { ...makeWaypoint(2), latitude: 91 },
+        { ...makeWaypoint(3), recordedAt: 'not-a-date' },
+        makeWaypoint(4),
+      ],
+    });
+    expect(result.waypoints.map((wp) => wp.latitude)).toEqual([1, 4]);
+  });
+
+  it('parses a batch of only unusable waypoints to an empty list (stored as zero rows)', () => {
+    const result = UploadWaypointsInputSchema.parse({
+      rideId: validUuid,
+      waypoints: [
+        { ...makeWaypoint(1), latitude: 91 },
+        { ...makeWaypoint(2), recordedAt: 'not-a-date' },
+      ],
+    });
+    expect(result.waypoints).toEqual([]);
   });
 });
 

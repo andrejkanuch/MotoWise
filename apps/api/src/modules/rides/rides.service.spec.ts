@@ -454,6 +454,22 @@ describe('RidesService', () => {
       expect(mockUserClient._chain.is).toHaveBeenCalledWith('deleted_at', null);
     });
 
+    it('leaves distance_m untouched when the schema discarded an implausible distance', async () => {
+      mockUserClient._pushResult({ data: { ...fakeRow, status: 'completed', distance_m: 12000 } });
+
+      await service.endRide(userId, {
+        rideId: 'ride-123',
+        endedAt: '2026-03-22T15:30:00Z',
+        distanceM: undefined,
+        pausedDurationS: 0,
+        autoPausedDurationS: 0,
+      });
+
+      const patch = (mockUserClient._chain.update as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(patch).not.toHaveProperty('distance_m');
+      expect(patch.status).toBe('completed');
+    });
+
     it('applies mileage once (claim-first) and returns triggered maintenance (MOT-140)', async () => {
       const completedRow = {
         ...fakeRow,
@@ -654,6 +670,18 @@ describe('RidesService', () => {
       expect(result).toBe(1);
       const rows = mockUserClient._chain.upsert.mock.calls[0][0] as unknown[];
       expect(rows).toHaveLength(1);
+    });
+
+    it('returns 0 without a quota read or upsert when every waypoint was dropped by the schema', async () => {
+      // Only the ownership check runs; an empty upsert or quota read could fail
+      // the op and dead-letter it, which tolerant ingest exists to prevent.
+      mockUserClient._pushResult({ data: { id: 'ride-123' } });
+
+      const result = await service.uploadWaypoints(userId, { rideId: 'ride-123', waypoints: [] });
+
+      expect(result).toBe(0);
+      expect(mockUserClient._chain.select).toHaveBeenCalledTimes(1);
+      expect(mockUserClient._chain.upsert).not.toHaveBeenCalled();
     });
 
     it('returns 0 without an upsert when the ride is already at the cap', async () => {

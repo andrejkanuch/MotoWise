@@ -1796,6 +1796,7 @@
     "title": "Llamados a revisión",
     "checking": "Consultando la base de datos de la NHTSA…",
     "error": "No se pudieron consultar los llamados a revisión. Inténtalo de nuevo.",
+    "needsDetails": "Agrega el modelo y el año (o el VIN) de tu moto para consultar los llamados a revisión.",
     "none": "No hay llamados a revisión abiertos",
     "noneDescription": "Tu moto no tiene llamados a revisión de seguridad abiertos.",
     "openCount_one": "{{count}} llamado a revisión abierto",

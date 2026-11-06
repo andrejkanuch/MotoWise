@@ -1,6 +1,5 @@
 'use client';
 
-import { createBrowserClient } from '@supabase/ssr';
 import { useMemo, useState } from 'react';
 import {
   AltLink,
@@ -14,6 +13,7 @@ import {
   SubmitButton,
 } from '@/components/auth-ui/auth-ui';
 import { trackEvent, WebEvent } from '@/lib/analytics';
+import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 /** Root-only route: English strings live here. */
 const COPY = {
@@ -31,14 +31,7 @@ const COPY = {
 } as const;
 
 export default function ForgotPasswordPage() {
-  const supabase = useMemo(
-    () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-      ),
-    [],
-  );
+  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { RecallsErrorBanner } from '../../components/bike-hub/recalls-error-banner';
 import { useRecallAcknowledgement } from '../../hooks/use-recall-acknowledgement';
 import { formatFullDate, formatRecallReportDate } from '../../lib/bike-hub/format';
 import {
@@ -157,22 +158,7 @@ export default function RecallsScreen() {
           </View>
         )}
 
-        {error && !isLoading && (
-          <View
-            style={{
-              backgroundColor: tint(theme.danger, 0.12),
-              padding: space.md,
-              borderRadius: radius.control,
-              borderCurve: 'continuous',
-            }}
-          >
-            <Text style={{ ...type.bodyStrong, color: theme.overdueInk }}>
-              {t('recalls.error', {
-                defaultValue: 'Could not reach the NHTSA database. Please try again.',
-              })}
-            </Text>
-          </View>
-        )}
+        {error && !isLoading && <RecallsErrorBanner error={error} />}
 
         {!isLoading && !error && !hasRecalls && (
           <Animated.View

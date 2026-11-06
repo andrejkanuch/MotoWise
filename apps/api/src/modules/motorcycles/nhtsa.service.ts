@@ -1,4 +1,10 @@
-import { Injectable, Logger, type OnModuleInit, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  type OnModuleInit,
+  ServiceUnavailableException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { buildCandidateModels } from './recall-model-matching';
 
 interface NhtsaMakeResponse {
@@ -23,6 +29,18 @@ interface NhtsaRecallResponse {
   Message?: string;
   results?: NhtsaRecallRawResult[];
   Results?: NhtsaRecallRawResult[];
+}
+
+/** vPIC DecodeVinValues — one flat row of decoded fields; blanks mean "unknown". */
+interface NhtsaVinDecodeResponse {
+  Results?: Array<{ Make?: string; Model?: string; ModelYear?: string }>;
+}
+
+/** What recallsByVehicle needs. Any field may be missing on a free-text bike. */
+interface RecallVehicle {
+  make?: string;
+  model?: string;
+  year?: number;
 }
 
 /** api.nhtsa.gov/products/vehicle/models — model names as filed in the recall DB. */
@@ -109,6 +127,12 @@ export class NhtsaService implements OnModuleInit {
 
   private static readonly MAX_RECALL_MODELS_CACHE = 500;
 
+  private static readonly MAX_VIN_DECODE_CACHE = 1_000;
+
+  /** Shown to the rider (4xx passes its message through): the bike lacks the fields a lookup needs. */
+  static readonly MISSING_VEHICLE_MESSAGE =
+    'Add the model and year (or a VIN) to check this bike for recalls';
+
   /**
    * After serving stale data, re-arm the entry's expiry by this cooldown so at
    * most ~one request per window pays the upstream retry/timeout cost (up to
@@ -121,6 +145,7 @@ export class NhtsaService implements OnModuleInit {
   private readonly modelsCache = new Map<string, CacheEntry<MotorcycleModelDto[]>>();
   private readonly recallsCache = new Map<string, CacheEntry<RecallDto[]>>();
   private readonly recallModelsCache = new Map<string, CacheEntry<string[]>>();
+  private readonly vinDecodeCache = new Map<string, CacheEntry<RecallVehicle>>();
 
   /**
    * Run an NHTSA fetch; on failure fall back to an expired cache entry when
@@ -289,12 +314,20 @@ export class NhtsaService implements OnModuleInit {
   /**
    * Fetch open NHTSA recall campaigns for a motorcycle.
    *
-   * Prefers VIN-based lookup (more precise). Falls back to make/model/year if
-   * no VIN. The MMY path queries multiple model-name candidates because the
-   * recall database files campaigns under homologation codes ("CRF1100") while
-   * we store vPIC marketing names ("Africa Twin") — a single-name query would
+   * NHTSA's public recalls API is keyed by make/model/year only — there is no
+   * recall-by-VIN endpoint (`/recalls/recallsByVin` answers 403 "Missing
+   * Authentication Token", API Gateway's unknown-route reply), so every VIN
+   * lookup used to fail (MOTO-VAULT-NODE-NESTJS-3). A VIN now only fills the
+   * make/model/year fields the rider left blank, via vPIC's VIN decoder.
+   *
+   * The lookup queries multiple model-name candidates because the recall
+   * database files campaigns under homologation codes ("CRF1100") while we
+   * store vPIC marketing names ("Africa Twin") — a single-name query would
    * silently miss real recalls (see recall-model-matching.ts).
-   * Results are cached for 24h per cache key to stay well within NHTSA's rate guidelines.
+   *
+   * A bike with no model or year and no decodable VIN cannot be checked: that
+   * is a 422 the client explains, not an upstream outage
+   * (MOTO-VAULT-NODE-NESTJS-R). Results are cached for 24h per vehicle.
    */
   async getRecalls(params: {
     vin?: string;
@@ -302,43 +335,35 @@ export class NhtsaService implements OnModuleInit {
     model?: string;
     year?: number;
   }): Promise<RecallDto[]> {
-    const { vin, make, model, year } = params;
-    const cacheKey = vin ? `vin:${vin}` : `mmy:${make ?? ''}|${model ?? ''}|${year ?? ''}`;
+    const { make, model, year } = await this.resolveRecallVehicle(params);
+    if (!make || !model || !year) {
+      throw new UnprocessableEntityException(NhtsaService.MISSING_VEHICLE_MESSAGE);
+    }
 
+    const cacheKey = `mmy:${make.toUpperCase()}|${model.toUpperCase()}|${year}`;
     const cached = this.recallsCache.get(cacheKey);
     if (cached && Date.now() < cached.expiresAt) {
       return cached.data;
     }
 
-    let recalls: RecallDto[];
-    if (vin) {
-      recalls = await this.fetchRecallList(
-        `https://api.nhtsa.gov/recalls/recallsByVin?vin=${encodeURIComponent(vin)}`,
-      );
-    } else if (make && model && year) {
-      const recallSideModels = await this.getRecallSideModels(make, year);
-      const candidates = buildCandidateModels(make, model, recallSideModels);
-      const perCandidate = await Promise.all(
-        candidates.map((candidate) =>
-          this.fetchRecallList(
-            `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(candidate)}&modelYear=${year}`,
-          ),
+    const recallSideModels = await this.getRecallSideModels(make, year);
+    const candidates = buildCandidateModels(make, model, recallSideModels);
+    const perCandidate = await Promise.all(
+      candidates.map((candidate) =>
+        this.fetchRecallList(
+          `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(candidate)}&modelYear=${year}`,
         ),
-      );
-      // NHTSA returns one row per affected product, so the same campaign can
-      // appear several times within AND across candidate queries — dedup.
-      const byCampaign = new Map<string, RecallDto>();
-      for (const recall of perCandidate.flat()) {
-        if (!byCampaign.has(recall.campaignNumber)) {
-          byCampaign.set(recall.campaignNumber, recall);
-        }
+      ),
+    );
+    // NHTSA returns one row per affected product, so the same campaign can
+    // appear several times within AND across candidate queries — dedup.
+    const byCampaign = new Map<string, RecallDto>();
+    for (const recall of perCandidate.flat()) {
+      if (!byCampaign.has(recall.campaignNumber)) {
+        byCampaign.set(recall.campaignNumber, recall);
       }
-      recalls = [...byCampaign.values()];
-    } else {
-      throw new ServiceUnavailableException(
-        'Need either a VIN or make/model/year to check for recalls',
-      );
     }
+    const recalls = [...byCampaign.values()];
 
     // P2-112: Enforce cache size cap before adding new entries
     if (this.recallsCache.size >= NhtsaService.MAX_RECALLS_CACHE) {
@@ -347,6 +372,73 @@ export class NhtsaService implements OnModuleInit {
     }
     this.recallsCache.set(cacheKey, { data: recalls, expiresAt: Date.now() + RECALLS_TTL });
     return recalls;
+  }
+
+  /**
+   * The rider's own make/model/year win (they picked them from vPIC); a VIN
+   * only fills the blanks. Decoding is skipped when nothing is blank.
+   */
+  private async resolveRecallVehicle(params: {
+    vin?: string;
+    make?: string;
+    model?: string;
+    year?: number;
+  }): Promise<RecallVehicle> {
+    const stored: RecallVehicle = {
+      make: params.make?.trim() || undefined,
+      model: params.model?.trim() || undefined,
+      year: params.year || undefined,
+    };
+    const complete = stored.make && stored.model && stored.year;
+    const vin = params.vin?.trim();
+    if (complete || !vin) return stored;
+
+    const decoded = await this.decodeVin(vin);
+    return {
+      make: stored.make ?? decoded.make,
+      model: stored.model ?? decoded.model,
+      year: stored.year ?? decoded.year,
+    };
+  }
+
+  /**
+   * vPIC VIN decode → make/model/year. A VIN vPIC answers but cannot decode
+   * yields blank fields, so the caller reports "add model and year" (422).
+   * A vPIC outage (timeout, 5xx, unreachable) is NOT a blank decode: the
+   * ServiceUnavailableException from fetchJson propagates, so the rider gets
+   * the retryable error and the 503 reaches Sentry. Only answered decodes are
+   * cached.
+   */
+  private async decodeVin(vin: string): Promise<RecallVehicle> {
+    const cacheKey = vin.toUpperCase();
+    const cached = this.vinDecodeCache.get(cacheKey);
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.data;
+    }
+
+    const json = await this.fetchJson<NhtsaVinDecodeResponse>(
+      `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${encodeURIComponent(vin)}?format=json`,
+      {
+        notOkLog: 'NHTSA VIN decode request failed',
+        notOkThrow: 'Failed to decode VIN with NHTSA',
+        timeout: 'NHTSA VIN decode request timed out',
+        unreachable: 'Failed to reach NHTSA vPIC API',
+      },
+    );
+    const row = json.Results?.[0];
+    const year = Number.parseInt(row?.ModelYear ?? '', 10);
+    const decoded: RecallVehicle = {
+      make: row?.Make?.trim() || undefined,
+      model: row?.Model?.trim() || undefined,
+      year: Number.isFinite(year) && year > 0 ? year : undefined,
+    };
+
+    if (this.vinDecodeCache.size >= NhtsaService.MAX_VIN_DECODE_CACHE) {
+      const oldestKey = this.vinDecodeCache.keys().next().value;
+      if (oldestKey) this.vinDecodeCache.delete(oldestKey);
+    }
+    this.vinDecodeCache.set(cacheKey, { data: decoded, expiresAt: Date.now() + MODELS_TTL });
+    return decoded;
   }
 
   /** Run one recalls query and map the rows. 400/404 means "no recalls found". */

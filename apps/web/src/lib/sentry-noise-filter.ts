@@ -230,21 +230,42 @@ export function shouldDropClientEvent(event: ErrorEvent): boolean {
 const MALFORMED_ROUTER_STATE_MESSAGE = 'The router state header was sent but could not be parsed.';
 
 /**
+ * Next.js's `InvariantError` when a POST to a page comes back as plain text
+ * instead of a Flight payload. Prefix match: Next appends "This is a bug in
+ * Next.js." and the content type it actually got.
+ */
+const UNEXPECTED_RSC_RESPONSE_PREFIX = 'Invariant: Expected RSC response, got ';
+
+/**
+ * Request-level noise that no change in the app can prevent. Each rule is
+ * matched narrowly so every other render error still reports.
+ */
+const SERVER_NOISE_RULES: ReadonlyArray<(event: ErrorEvent) => boolean> = [
+  // A `Next-Router-State-Tree` header Next.js cannot parse (MOTOVAULT-WEB-1R).
+  // Only Next's own client router writes that header, so a malformed one comes
+  // from something replaying a captured RSC request with the header rewritten.
+  // The 127 events were one 25-minute scan of /explore, /pro, /forgot-password,
+  // /signup and /login: a single user agent, one trace id reused across dozens
+  // of requests. Exact message, so the sibling "too large" and "multiple
+  // headers" errors still report.
+  (event) =>
+    event.exception?.values?.some((e) => e.value === MALFORMED_ROUTER_STATE_MESSAGE) ?? false,
+  // A POST to a page's RSC endpoint (MOTOVAULT-WEB-1V): scanners POSTing to
+  // `/[locale].rsc` — a literal path lifted from the build output — and
+  // `/en.rsc`. The web app defines no server actions, so no real client ever
+  // POSTs to a page; scoped to POST so a GET render failing this way reports.
+  (event) =>
+    event.request?.method === 'POST' &&
+    (event.exception?.values?.some((e) => e.value?.startsWith(UNEXPECTED_RSC_RESPONSE_PREFIX)) ??
+      false),
+];
+
+/**
  * Server and edge adapter — `beforeSend` in sentry.server.config.ts and
  * sentry.edge.config.ts.
- *
- * Drops requests that arrive with a `Next-Router-State-Tree` header Next.js
- * cannot parse (MOTOVAULT-WEB-1R). Only Next's own client router writes that
- * header, so a malformed one comes from something replaying a captured RSC
- * request with the header rewritten. The 127 events were one 25-minute scan of
- * /explore, /pro, /forgot-password, /signup and /login: a single user agent,
- * one trace id reused across dozens of requests, and "27 users" that were
- * Cloudflare edge addresses. Nothing in the app can prevent the throw or fix
- * the request. Matched on the exact message so every other render error,
- * including the sibling "too large" and "multiple headers" ones, still reports.
  */
 export function shouldDropServerEvent(event: ErrorEvent): boolean {
-  return event.exception?.values?.some((e) => e.value === MALFORMED_ROUTER_STATE_MESSAGE) ?? false;
+  return SERVER_NOISE_RULES.some((rule) => rule(event));
 }
 
 /**

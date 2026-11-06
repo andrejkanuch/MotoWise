@@ -1,6 +1,5 @@
 'use client';
 
-import { createBrowserClient } from '@supabase/ssr';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -31,17 +30,11 @@ import {
 } from '@/lib/auth-errors';
 import { postAuthDestination, signUpEmailRedirectTo } from '@/lib/post-auth-redirect';
 import { signUpConsentOptions } from '@/lib/signup-consent';
+import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 export default function SignUpPage() {
   const t = useTranslations('AuthV2');
-  const supabase = useMemo(
-    () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-      ),
-    [],
-  );
+  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
