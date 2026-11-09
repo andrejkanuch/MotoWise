@@ -158,6 +158,12 @@ Writers persist first, then call `useRideStore.getState().project(record)`. `hyd
   - CarPlay simulator, GPX stop longer than 60 s: auto-pause shows AUTO-PAUSED, manual pause shows PAUSED, and the banner time advances while the HUD is closed.
 - **Shipping:** OTA.
 
+Follow-ups found while reviewing Phase 1 (PR #369), to fold into Phase 3:
+- **GPS permission lost mid-ride.** No screen reads `gpsPermissionLost`; only the "GPS tracking stopped" notification tells the rider. Add a HUD banner (Open Settings / End).
+- **CarPlay shows an interrupted ride** (`recordingInterrupted`) as recording, with Pause / Stop, and cannot restart GPS. Offer "Resume recording" (`resumeRecoveredRide`) or End.
+- **GPS stopping while the process survives** never sets `recordingInterrupted`, because only hydrate-from-idle sets it. Set it from a foreground check guarded by a resume generation counter.
+- **A start that auto-saves an unreviewed ended ride** fires no `ride_completed` and doesn't refresh the odometer caches. Add a `RIDE_SAVE_TRIGGER` for it.
+
 ## Phase 4: the server learns about pause
 
 - **API:**

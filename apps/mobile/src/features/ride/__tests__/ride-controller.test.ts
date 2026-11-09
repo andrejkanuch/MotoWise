@@ -536,6 +536,8 @@ describe('one persisted ride — start, end, review', () => {
     const result = await startRideSession({ motorcycleId: null, source: 'carplay' });
     expect(result).toEqual({ ok: true, rideId: 'ride-open' });
     expect(rideMMKV.setCurrentId).not.toHaveBeenCalled();
+    // Leading to a running ride confirms it: entry points go to its HUD again.
+    expect(useRideStore.setState).toHaveBeenCalledWith({ recordingInterrupted: false });
     expect(enqueue).not.toHaveBeenCalledWith('startRide', expect.anything());
   });
 
