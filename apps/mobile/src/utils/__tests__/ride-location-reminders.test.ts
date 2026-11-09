@@ -78,6 +78,8 @@ import {
   autoEndRide,
   BACKGROUND_LOCATION_TASK,
   endAutoPauseEpisode,
+  gpsStartCount,
+  startGPSListener,
   stopGPSListener,
 } from '../ride-location';
 import { cancelRideReminders, noteRideMovement } from '../ride-reminders';
@@ -180,6 +182,30 @@ describe('auto-pause reaches the screens, not only the disk', () => {
   });
 });
 
+describe('restarting GPS ends a permission loss', () => {
+  it('clears the lost flag on disk and in the store once updates start again', async () => {
+    rideMMKV.setGpsPermissionLost(true);
+    useRideStore.setState({ gpsPermissionLost: true });
+    await startGPSListener();
+    expect(rideMMKV.getGpsPermissionLost()).toBe(false);
+    expect(useRideStore.getState().gpsPermissionLost).toBe(false);
+  });
+
+  it('counts every (re)start, so a check in flight can tell one began', async () => {
+    const before = gpsStartCount();
+    const start = startGPSListener();
+    expect(gpsStartCount()).toBe(before + 1); // counted synchronously, at the call
+    await start;
+  });
+
+  it('keeps the flag when the start fails (still no permission)', async () => {
+    rideMMKV.setGpsPermissionLost(true);
+    (Location.startLocationUpdatesAsync as jest.Mock).mockRejectedValueOnce(new Error('denied'));
+    await expect(startGPSListener()).rejects.toThrow('denied');
+    expect(rideMMKV.getGpsPermissionLost()).toBe(true);
+  });
+});
+
 describe('a manual pause ends the stop episode', () => {
   it('does not auto-end on resume after a long pause taken at a stop, nor bank the pause twice', async () => {
     rideMMKV.setRecordingSubState('moving');
@@ -205,6 +231,10 @@ describe('a manual pause ends the stop episode', () => {
     expect(trackEvent).not.toHaveBeenCalledWith('ride_auto_saved', expect.anything());
     expect(rideMMKV.getCurrentId()).toBe(RIDE_ID);
     // Only the 2 min the GPS saw stopped count as auto-paused, never the pause.
+    expect(rideMMKV.getTotalAutoPausedMs()).toBe(120_000);
+    // Riding off fast afterwards banks nothing more: the pause is not auto-paused.
+    filterProcess.mockReturnValue(accepted(12));
+    await at(43 * 60_000, 10);
     expect(rideMMKV.getTotalAutoPausedMs()).toBe(120_000);
     expect(useRideStore.getState().recordingSubState).toBe('moving');
     expect(useRideStore.getState().forgotToStopPending).toBe(false);

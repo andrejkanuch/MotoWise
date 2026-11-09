@@ -47,10 +47,13 @@ import { drainQueue } from '../../utils/ride-sync-queue';
 import {
   buildRideSummaryHref,
   elapsedRideSeconds,
+  endRecoveredRide,
   endRideSession,
   pauseRideSession,
+  type RideEndSummary,
   type RideStartFailureReason,
   readEndedRideSummary,
+  resumeRecoveredRide,
   resumeRideSession,
   startRideSession,
 } from '../ride/ride-controller';
@@ -227,6 +230,7 @@ function currentRideInput(): RideInput {
     // The GPS task persists and projects it, so a change re-renders the panel
     // through the store subscription (no React tree needed).
     forgotToStopPending: r.forgotToStopPending,
+    recordingInterrupted: r.recordingInterrupted,
     startMode: useCarPlayStore.getState().startMode,
     // Heads-up row inputs — populated from the cached bike/task snapshot (U3). Defaults
     // are the safe "no signal" state so the picker falls back to the climb row.
@@ -556,6 +560,10 @@ function onDisconnect(): void {
   headsUpToken++;
 }
 
+function summaryHref(summary: RideEndSummary | null) {
+  return summary ? buildRideSummaryHref(summary) : null;
+}
+
 function onAction(actionId: string): void {
   // While the Bike list covers the Ride panel, none of the ride-control buttons are
   // on screen — ignore any late/queued press so a ride can't be mutated (or ended)
@@ -570,6 +578,14 @@ function onAction(actionId: string): void {
     case CARPLAY_ACTION.resume:
       resumeRideSession('carplay');
       break;
+    case CARPLAY_ACTION.resumeRecording:
+      // Restart GPS for the open ride (the same Resume Start Ride offers on the
+      // phone). A failure leaves NOT RECORDING up, so the rider can try again or
+      // stop; the controller reports it. The store change re-renders on success.
+      void resumeRecoveredRide().catch((err) =>
+        captureException(err, { source: 'carplay-coordinator.resumeRecording' }),
+      );
+      return;
     case CARPLAY_ACTION.start: {
       // CarPlay-initiated rides are Quick Rides — there's no bike picker on the
       // head unit. Routes through the shared controller so the GPS/background
@@ -646,10 +662,14 @@ function onAction(actionId: string): void {
       // the phone may be backgrounded with no live navigator. endRideSession returns
       // null on a double-end (already ended), so this stays a no-op in that race.
       disarmStop();
-      const summary = endRideSession('carplay');
-      if (summary) {
+      // A ride that was not recording ends the way the phone ends one: trimmed to
+      // its last movement, and marked recovered for its review.
+      const href = ride.recordingInterrupted
+        ? endRecoveredRide('carplay')
+        : summaryHref(endRideSession('carplay'));
+      if (href) {
         try {
-          router.replace(buildRideSummaryHref(summary));
+          router.replace(href);
         } catch (err) {
           captureException(err, { source: 'carplay-coordinator.stop.navigate' });
         }

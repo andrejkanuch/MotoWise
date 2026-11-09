@@ -45,6 +45,7 @@ import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { CORE_ACTION_KIND, recordCoreAction } from '../../lib/core-action-milestones';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { invalidateSavedRide } from '../../lib/invalidate';
 import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
@@ -292,10 +293,7 @@ export default function RideSummaryScreen() {
 
       finalizeEndedRide(rideId);
 
-      queryClient.invalidateQueries({ queryKey: queryKeys.rides.all });
-      // Ending the ride moved the bike's odometer server-side (and logged a reading).
-      queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.odometer.all });
+      invalidateSavedRide(queryClient);
 
       trackRideCompleted({
         trigger: RIDE_SAVE_TRIGGER.SUMMARY,

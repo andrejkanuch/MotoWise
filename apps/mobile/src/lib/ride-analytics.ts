@@ -14,6 +14,8 @@ import { AnalyticsEvent, trackEvent } from './analytics';
  *    route there first.
  *  - AUTO_END: the headless 30-minute forgot-to-stop end (`autoEndRide`), where no
  *    summary ever opens. Until 3.21.0 that path only sent `ride_auto_saved`.
+ *  - NEW_RIDE: a ride ended but never reviewed, saved as it stands because the
+ *    rider started the next one (CarPlay never waits on a phone-side review).
  *
  * Not counted here: a ride closed by the server's idle sweep (no client code
  * runs), and a dead-letter redrive — that replays the server write of a save whose
@@ -27,6 +29,7 @@ import { AnalyticsEvent, trackEvent } from './analytics';
 export const RIDE_SAVE_TRIGGER = {
   SUMMARY: 'summary',
   AUTO_END: 'auto_end',
+  NEW_RIDE: 'new_ride',
 } as const;
 
 export type RideSaveTrigger = (typeof RIDE_SAVE_TRIGGER)[keyof typeof RIDE_SAVE_TRIGGER];

@@ -26,7 +26,12 @@ type Status = 'idle' | 'recording' | 'paused' | 'ended';
 
 beforeEach(() => {
   mockSummary.mockReturnValue(null);
-  useRideStore.setState({ distance: 5000, elevationGain: 0, recordingSubState: 'moving' });
+  useRideStore.setState({
+    distance: 5000,
+    elevationGain: 0,
+    recordingSubState: 'moving',
+    recordingInterrupted: false,
+  });
 });
 
 describe('useLiveRideSnapshot', () => {
@@ -45,6 +50,14 @@ describe('useLiveRideSnapshot', () => {
     const { result } = await renderHook(() => useLiveRideSnapshot());
     expect(result.current.bannerState).toBe(banner);
     expect(result.current.active).toBe(active);
+  });
+
+  it('reads NOT RECORDING for an open ride whose GPS is not running', async () => {
+    for (const status of ['recording', 'paused'] as const) {
+      useRideStore.setState({ status, recordingInterrupted: true });
+      const { result } = await renderHook(() => useLiveRideSnapshot());
+      expect(result.current.bannerState).toBe('interrupted');
+    }
   });
 
   it('shows a saved ride with the stored summary, not the live values', async () => {

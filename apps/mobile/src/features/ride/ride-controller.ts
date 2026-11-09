@@ -18,8 +18,10 @@ import * as Notifications from 'expo-notifications';
 import type { Href } from 'expo-router';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { invalidateSavedRide } from '../../lib/invalidate';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
+import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../../lib/ride-analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
 import { aggregateWaypoints } from '../../utils/ride-aggregate';
@@ -162,7 +164,7 @@ async function runStartRideSession({
     useRideStore.setState({ recordingInterrupted: false });
     return { ok: true, rideId: existing.rideId };
   }
-  if (existing) finalizeEndedRide(existing.rideId);
+  if (existing) saveEndedRideAsItStands(existing.rideId);
 
   const level = await RESOLVE_PERMISSION_LEVEL[source]();
   if (level === 'denied') return { ok: false, reason: 'denied' };
@@ -382,6 +384,8 @@ export function endRideSession(
     rideMMKV.setTotalPausedMs(rideMMKV.getTotalPausedMs() + bankedMs);
     rideMMKV.setPausedAt(0);
   }
+  // Same for a stop the GPS was still timing: bank it as auto-paused, up to the end.
+  endAutoPauseEpisode(endedAtMs);
   const durationS = elapsedRideSeconds(endedAtMs);
   const totalPausedMs = rideMMKV.getTotalPausedMs();
   const totalAutoPausedMs = rideMMKV.getTotalAutoPausedMs();
@@ -520,6 +524,25 @@ export function finalizeEndedRide(rideId: string): void {
 }
 
 /**
+ * A new ride is starting over one that ended but was never reviewed: keep it as
+ * it stands. It is already complete on the server, so this is the save the
+ * summary would have made — counted, and the caches it changed refreshed.
+ */
+function saveEndedRideAsItStands(rideId: string): void {
+  const summary = readEndedRideSummary();
+  finalizeEndedRide(rideId);
+  invalidateSavedRide(queryClient);
+  if (!summary) return;
+  trackRideCompleted({
+    trigger: RIDE_SAVE_TRIGGER.NEW_RIDE,
+    rideId,
+    motorcycleId: summary.motorcycleId,
+    distanceM: summary.distanceM,
+    durationS: summary.durationS,
+  });
+}
+
+/**
  * Pick up the ride Start Ride found unfinished after the app was killed: stats
  * restored from what was recorded, a paused ride kept paused, GPS running again.
  * False when there is no recording or paused ride to resume (an ended ride is
@@ -588,8 +611,8 @@ export function buildRideSummaryHref(
  * movement, and return the summary to open — marked `recovered`, because the phone
  * cannot confirm the server accepted this end. Null when there is no ride to end.
  */
-export function endRecoveredRide(): Href | null {
-  const summary = endRideSession('phone', { endAt: rideEndTrimTarget() });
+export function endRecoveredRide(source: RideSource = 'phone'): Href | null {
+  const summary = endRideSession(source, { endAt: rideEndTrimTarget() });
   if (!summary) return null;
   // Kept with the ride, so a review reopened after another kill is still
   // evaluated as recovered.

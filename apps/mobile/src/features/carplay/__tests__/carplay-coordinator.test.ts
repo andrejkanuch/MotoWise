@@ -49,6 +49,11 @@ jest.mock('../../ride/ride-controller', () => ({
   endRideSession: jest.fn(() => null),
   pauseRideSession: jest.fn(() => true),
   resumeRideSession: jest.fn(() => true),
+  resumeRecoveredRide: jest.fn(() => Promise.resolve(true)),
+  endRecoveredRide: jest.fn(() => ({
+    pathname: '/(modals)/ride-summary',
+    params: { recovered: '1' },
+  })),
   readEndedRideSummary: jest.fn(() => null),
   buildRideSummaryHref: jest.fn(() => ({ pathname: '/(modals)/ride-summary', params: {} })),
   // Elapsed is derived from persisted timestamps; mirror the store value in tests.
@@ -168,6 +173,7 @@ describe('carplay-coordinator', () => {
     mockAuth.session = { access_token: 't' };
     mockRide.status = 'recording';
     mockRide.recordingSubState = 'moving';
+    (mockRide as { recordingInterrupted?: boolean }).recordingInterrupted = false;
     mockRide.distance = 42_300;
   });
 
@@ -436,6 +442,24 @@ describe('carplay-coordinator', () => {
     expect(rideController.endRideSession).not.toHaveBeenCalled();
     fireAction('stop');
     expect(rideController.endRideSession).toHaveBeenCalledWith('carplay');
+  });
+
+  it('restarts GPS for a ride that is not recording, and ends it the recovered way', () => {
+    (mockRide as { recordingInterrupted?: boolean }).recordingInterrupted = true;
+    startCarPlayCoordinator();
+    fireConnect();
+
+    fireAction('resumeRecording');
+    expect(rideController.resumeRecoveredRide).toHaveBeenCalledTimes(1);
+
+    fireAction('stop');
+    fireAction('stop');
+    // Trimmed to its last movement and marked recovered, as on the phone.
+    expect(rideController.endRecoveredRide).toHaveBeenCalledWith('carplay');
+    expect(rideController.endRideSession).not.toHaveBeenCalled();
+    expect(router.replace).toHaveBeenCalledWith(
+      expect.objectContaining({ params: { recovered: '1' } }),
+    );
   });
 
   it('routes the phone to the ride-summary when a CarPlay Stop ends a real ride', () => {

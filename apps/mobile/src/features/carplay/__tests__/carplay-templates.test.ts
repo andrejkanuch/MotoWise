@@ -348,6 +348,12 @@ describe('every panel state', () => {
     [{ ...base, status: 'paused' }, 'PAUSED', ['resume', 'stop']],
     [{ ...base, gpsLocked: false, distance: 0, elapsedTime: 0 }, 'ACQUIRING GPS', ['stop']],
     [{ ...base, status: 'ended', startMode: 'manual' }, 'RIDE SAVED', ['start']],
+    [{ ...base, recordingInterrupted: true }, 'NOT RECORDING', ['resumeRecording', 'stop']],
+    [
+      { ...base, status: 'paused', recordingInterrupted: true },
+      'NOT RECORDING',
+      ['resumeRecording', 'stop'],
+    ],
     [{ ...base, status: 'idle', startMode: 'manual' }, 'READY', ['start']],
   ];
   it.each(cases)('%# → %s', (input, title, actions) => {
@@ -392,5 +398,25 @@ describe('buildPanelItems notices', () => {
   it('is identical to the no-notice panel when the notice is null', () => {
     const snap = deriveSnapshot(idle, 'metric');
     expect(buildPanelItems(snap, false, null)).toEqual(buildPanelItems(snap));
+  });
+});
+
+describe('a ride whose GPS is not running', () => {
+  it('never reads RECORDING or STILL RIDING?, and an ended ride is never "interrupted"', () => {
+    const snap = deriveSnapshot(
+      { ...base, recordingInterrupted: true, forgotToStopPending: true },
+      'metric',
+    );
+    expect(snap.state).toBe('interrupted');
+    expect(snap.forgotToStopPending).toBe(false);
+    expect(buildPanelItems(snap).title).toBe('NOT RECORDING');
+    expect(
+      deriveState({
+        status: 'ended',
+        recordingSubState: 'moving',
+        gpsLocked: true,
+        recordingInterrupted: true,
+      }),
+    ).toBe('saved');
   });
 });

@@ -20,6 +20,7 @@ export type CarPlayPanelState =
   | 'recording'
   | 'autoPaused'
   | 'paused'
+  | 'interrupted'
   | 'acquiring'
   | 'saved'
   | 'idle';
@@ -29,6 +30,7 @@ const RIDING_STATES: ReadonlySet<CarPlayPanelState> = new Set([
   'recording',
   'autoPaused',
   'paused',
+  'interrupted',
 ]);
 
 export function isRidingState(state: CarPlayPanelState): boolean {
@@ -42,6 +44,8 @@ export const CARPLAY_ACTION = {
   start: 'start',
   pause: 'pause',
   resume: 'resume',
+  /** Restart GPS for a ride the phone found not recording (relaunch, OS stop). */
+  resumeRecording: 'resumeRecording',
   stop: 'stop',
   cancelStop: 'cancelStop',
   bike: 'bike',
@@ -99,6 +103,8 @@ export interface RideInput {
   speed: number;
   /** TODO(carplay): real GPS-lock signal (parent open question). */
   gpsLocked: boolean;
+  /** The ride is open but its GPS is not confirmed running (see ride.store). */
+  recordingInterrupted?: boolean;
   /** Mirrors `rideMMKV.getForgotToStopPending()` — set by the auto-pause machine. */
   forgotToStopPending?: boolean;
   startMode: StartMode;
@@ -229,6 +235,7 @@ const STATE_WORD: Record<CarPlayPanelState, string> = {
   recording: 'RECORDING',
   autoPaused: 'AUTO-PAUSED',
   paused: 'PAUSED',
+  interrupted: 'NOT RECORDING',
   acquiring: 'ACQUIRING GPS',
   saved: 'RIDE SAVED',
   idle: 'READY',
@@ -257,8 +264,12 @@ const MODE_LABEL: Record<StartMode, string> = {
 };
 
 export function deriveState(
-  input: Pick<RideInput, 'status' | 'recordingSubState' | 'gpsLocked'>,
+  input: Pick<RideInput, 'status' | 'recordingSubState' | 'gpsLocked' | 'recordingInterrupted'>,
 ): CarPlayPanelState {
+  // An open ride whose GPS is not running records nothing, whatever it was doing:
+  // say so, and offer to restart it — never a RECORDING that is not.
+  const open = input.status === 'recording' || input.status === 'paused';
+  if (open && input.recordingInterrupted) return 'interrupted';
   // A manual pause reads as PAUSED (with Resume) — never "acquiring", which would
   // strip the Resume control and strand the rider, and never AUTO-PAUSED, which
   // is the GPS noticing a stop on a ride that is still recording. Only an
@@ -304,7 +315,8 @@ export function deriveSnapshot(input: RideInput, system: MeasurementSystem): Pan
       : { title: HEADS_UP_LABEL.climb, detail: climb },
     startMode: input.startMode,
     // Only meaningful while riding — an idle or saved panel must never prompt.
-    forgotToStopPending: riding && input.forgotToStopPending === true,
+    // NOT RECORDING outranks it: a ride that records nothing cannot be forgotten.
+    forgotToStopPending: riding && state !== 'interrupted' && input.forgotToStopPending === true,
   };
 }
 
@@ -411,6 +423,11 @@ export function buildActions(
     case 'paused':
       return [
         { id: CARPLAY_ACTION.resume, title: 'Resume' },
+        { id: CARPLAY_ACTION.stop, title: 'Stop' },
+      ];
+    case 'interrupted':
+      return [
+        { id: CARPLAY_ACTION.resumeRecording, title: 'Resume' },
         { id: CARPLAY_ACTION.stop, title: 'Stop' },
       ];
     case 'acquiring':

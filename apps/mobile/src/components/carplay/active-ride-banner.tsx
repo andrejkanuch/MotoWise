@@ -16,6 +16,7 @@ export type BannerState =
   | 'recording'
   | 'autoPaused'
   | 'paused'
+  | 'interrupted'
   | 'acquiring'
   | 'saved'
   | 'armedAuto'
@@ -30,9 +31,17 @@ const BANNER: Record<
   autoPaused: { state: 'autoPaused', sub: 'resumes when you move', metrics: true, pulse: false },
   paused: { state: 'paused', sub: 'resume from the head unit', metrics: true, pulse: false },
   saved: { state: 'saved', sub: 'tap to review your ride', metrics: true, pulse: false },
+  interrupted: { state: 'stop', sub: 'tap to resume or end', metrics: true, pulse: false },
   acquiring: { state: 'acquiring', sub: 'waiting for GPS lock', metrics: true, pulse: false },
   armedAuto: { state: 'recording', sub: 'auto-start armed', metrics: false, pulse: false },
   manualIdle: { state: 'recording', sub: 'start from the head unit', metrics: false, pulse: false },
+};
+
+// States whose word is not the canonical state vocabulary's.
+const WORD_OVERRIDE: Partial<Record<BannerState, string>> = {
+  armedAuto: 'READY',
+  manualIdle: 'NOT RECORDING',
+  interrupted: 'NOT RECORDING',
 };
 
 export function ActiveRideBanner({
@@ -49,12 +58,7 @@ export function ActiveRideBanner({
   const { t: c } = useEditorialTheme();
   const cfg = BANNER[state];
   // armed/manual idle states show "READY" / their sub instead of a live word.
-  const word =
-    state === 'armedAuto'
-      ? 'READY'
-      : state === 'manualIdle'
-        ? 'NOT RECORDING'
-        : stateWord(cfg.state);
+  const word = WORD_OVERRIDE[state] ?? stateWord(cfg.state);
   const tintColor =
     state === 'armedAuto' || state === 'manualIdle' ? c.ink3 : stateTint(cfg.state, c);
   const isAcquiring = state === 'acquiring';

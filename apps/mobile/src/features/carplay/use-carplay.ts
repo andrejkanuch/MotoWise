@@ -85,12 +85,14 @@ type RideStatus = ReturnType<typeof useRideStore.getState>['status'];
 
 // Banner state per ride status. A recording ride splits on the GPS sub-state:
 // AUTO-PAUSED is the GPS seeing a stop, PAUSED is the rider's own pause.
+// An open ride whose GPS is not confirmed running is NOT RECORDING, whatever else.
 const BANNER_STATE: Record<
   RideStatus,
-  (ctx: { stopped: boolean; automatic: boolean }) => BannerState
+  (ctx: { stopped: boolean; automatic: boolean; interrupted: boolean }) => BannerState
 > = {
-  recording: ({ stopped }) => (stopped ? 'autoPaused' : 'recording'),
-  paused: () => 'paused',
+  recording: ({ stopped, interrupted }) =>
+    interrupted ? 'interrupted' : stopped ? 'autoPaused' : 'recording',
+  paused: ({ interrupted }) => (interrupted ? 'interrupted' : 'paused'),
   ended: () => 'saved',
   idle: ({ automatic }) => (automatic ? 'armedAuto' : 'manualIdle'),
 };
@@ -101,6 +103,7 @@ const BANNER_STATE: Record<
 export function useLiveRideSnapshot(): LiveRideSnapshot {
   const status = useRideStore((s) => s.status);
   const subState = useRideStore((s) => s.recordingSubState);
+  const interrupted = useRideStore((s) => s.recordingInterrupted);
   const distance = useRideStore((s) => s.distance);
   const elapsedTime = useRideElapsed();
   const elevationGain = useRideStore((s) => s.elevationGain);
@@ -113,6 +116,7 @@ export function useLiveRideSnapshot(): LiveRideSnapshot {
     bannerState: BANNER_STATE[status]({
       stopped: subState === 'stopped',
       automatic: startMode === 'automatic',
+      interrupted,
     }),
     distance: formatDistance(ended?.distanceM ?? distance, system),
     elapsed: formatElapsed(ended?.movingTimeS ?? elapsedTime),

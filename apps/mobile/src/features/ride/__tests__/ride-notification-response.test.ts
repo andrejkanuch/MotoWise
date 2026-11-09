@@ -2,7 +2,11 @@
 // most: only the explicit "End ride" button ends a ride — a plain tap navigates.
 
 jest.mock('@/lib/notifications', () => ({
-  NOTIFICATION_ACTION: { END_RIDE: 'END_RIDE', KEEP_RIDING: 'KEEP_RIDING' },
+  NOTIFICATION_ACTION: {
+    END_RIDE: 'END_RIDE',
+    KEEP_RIDING: 'KEEP_RIDING',
+    RESUME_RIDE: 'RESUME_RIDE',
+  },
 }));
 jest.mock('@/stores/ride.store', () => {
   const store = { status: 'recording' as string, recordingInterrupted: false };
@@ -16,6 +20,7 @@ jest.mock('../ride-controller', () => ({
   endRideSession: jest.fn(() => ({ rideId: 'ride-1' })),
   buildRideSummaryHref: jest.fn(() => '/summary-href'),
   readEndedRideSummary: jest.fn(() => ({ rideId: 'ride-1' })),
+  resumeRideSession: jest.fn(() => true),
 }));
 jest.mock('@/utils/ride-reminders', () => ({
   armRideReminders: jest.fn(() => Promise.resolve()),
@@ -25,7 +30,7 @@ jest.mock('@/utils/ride-reminders', () => ({
 import { useRideStore } from '@/stores/ride.store';
 import { armRideReminders } from '@/utils/ride-reminders';
 import * as storage from '@/utils/ride-storage';
-import { endRideSession } from '../ride-controller';
+import { endRideSession, resumeRideSession } from '../ride-controller';
 import {
   __resetRideIdleResponsesForTest,
   flushPendingRideIdleResponse,
@@ -153,5 +158,25 @@ describe('deferring until navigation is ready', () => {
     receiveRideIdleResponse(k, 'END_RIDE', { rideId: 'ride-1' });
     expect(flushPendingRideIdleResponse()).toBeNull();
     expect(endRide).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('"Resume ride" on the paused reminder', () => {
+  it('resumes the paused ride through the controller and stays in the background', () => {
+    const target = handleRideIdleResponse(key(), 'RESUME_RIDE', { rideId: 'ride-1' });
+    expect(resumeRideSession).toHaveBeenCalledWith('phone');
+    expect(endRide).not.toHaveBeenCalled();
+    expect(target).toBeNull();
+  });
+
+  it('runs at once, without waiting for navigation (a background launch has none)', () => {
+    receiveRideIdleResponse(key(), 'RESUME_RIDE', { rideId: 'ride-1' });
+    expect(resumeRideSession).toHaveBeenCalledTimes(1);
+    expect(flushPendingRideIdleResponse()).toBeNull();
+  });
+
+  it('does nothing for a ride that has since been replaced', () => {
+    handleRideIdleResponse(key(), 'RESUME_RIDE', { rideId: 'ride-old' });
+    expect(resumeRideSession).not.toHaveBeenCalled();
   });
 });
