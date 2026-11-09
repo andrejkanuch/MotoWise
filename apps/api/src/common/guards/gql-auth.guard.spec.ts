@@ -2,6 +2,7 @@ import type { ConfigService } from '@nestjs/config';
 import type { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { clearTierCache, confirmPro, resolveTier } from '../entitlements/resolve-tier';
 import { GqlAuthGuard } from './gql-auth.guard';
 
 // Mock jose at the top level (guard uses dynamic `await import('jose')`)
@@ -42,6 +43,7 @@ describe('GqlAuthGuard', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    clearTierCache();
     mockExecutionContext.getType.mockReturnValue('graphql');
 
     mockConfigService = {
@@ -437,6 +439,73 @@ describe('GqlAuthGuard', () => {
         g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
       ).resolveEffectiveTier('user-revoked');
       expect(tier).toBe('free');
+    });
+
+    // The refresh path writes a confirmed Pro into the shared cache; the guard
+    // must honour it before the webhook has updated the users row.
+    it('reads pro for a user confirmed by the refresh path while the row still says free', async () => {
+      const g = guardWithUserRow({
+        subscription_tier: 'free',
+        subscription_status: 'free',
+        subscription_expires_at: null,
+      });
+      mockRequest.headers.authorization = 'Bearer fresh-buyer-token';
+      mockDecodeProtectedHeader.mockReturnValue({ alg: 'HS256' });
+      mockJwtVerify.mockResolvedValue({ payload: { sub: 'user-fresh-buyer' } });
+
+      await g.canActivate(mockExecutionContext as never);
+      expect((mockRequest.user as { tier: string }).tier).toBe('free');
+
+      confirmPro('user-fresh-buyer');
+      await g.canActivate(mockExecutionContext as never);
+      expect((mockRequest.user as { tier: string }).tier).toBe('pro');
+    });
+
+    // One cache for every guard instance: the APP_GUARD and each module's
+    // @UseGuards copy must agree on a user's tier.
+    it('shares the tier cache across guard instances', async () => {
+      const row = {
+        subscription_tier: 'pro',
+        subscription_status: 'active',
+        subscription_expires_at: '2999-01-01T00:00:00.000Z',
+      };
+      const first = guardWithUserRow(row);
+      const second = guardWithUserRow({ ...row, subscription_tier: 'free' });
+      const resolve = (g: GqlAuthGuard) =>
+        (
+          g as unknown as { resolveEffectiveTier: (id: string) => Promise<string> }
+        ).resolveEffectiveTier('user-shared');
+      expect(await resolve(first)).toBe('pro');
+      expect(await resolve(second)).toBe('pro');
+    });
+  });
+
+  describe('ENTITLEMENTS_ENFORCED=false', () => {
+    it('keeps user.tier pro while resolveTier returns the real (free) tier', async () => {
+      const freeRow = {
+        subscription_tier: 'free',
+        subscription_status: 'free',
+        subscription_expires_at: null,
+      };
+      const single = vi.fn().mockResolvedValue({ data: freeRow, error: null });
+      const admin = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single }) }),
+        }),
+      };
+      const g = new GqlAuthGuard(
+        mockConfigService as unknown as ConfigService,
+        mockReflector as unknown as Reflector,
+        admin as never,
+      );
+      setupHs256Token('flag-off-token', { sub: 'user-flag-off' });
+
+      await g.canActivate(mockExecutionContext as never);
+
+      expect((mockRequest.user as { tier: string }).tier).toBe('pro');
+      // The guard does not read the row while the flag is off.
+      expect(single).not.toHaveBeenCalled();
+      expect(await resolveTier(admin as never, 'user-flag-off')).toBe('free');
     });
   });
 });
