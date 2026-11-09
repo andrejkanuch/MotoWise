@@ -630,11 +630,15 @@ input EndRideInput {
   distanceM: Float! = 0
   elevationGain: Float
   elevationLoss: Float
+  endSource: String
   endedAt: String!
   gpsQuality: Float
   maxLeanAngle: Float
   maxSpeedMps: Float
+  odometerAtEnd: Float
+  passenger: Boolean
   pausedDurationS: Int! = 0
+  purpose: String
   rideId: String!
   routePolyline: String
 }
@@ -1783,6 +1787,7 @@ type Ride {
   durationS: Int
   elevationGain: Float
   elevationLoss: Float
+  endSource: String
   endedAt: String
   gpsQuality: Float
   id: ID!
@@ -1792,12 +1797,15 @@ type Ride {
   mileageApplied: Boolean!
   motorcycleId: String
   name: String
+  passenger: Boolean
   pausedDurationS: Int!
+  purpose: String
   region: String
   routePolyline: String
   routeThumbnailUri: String
   startedAt: String!
   status: RideStatus!
+  timeZone: String
   updatedAt: String!
   userId: String!
   visibility: String!
@@ -2122,6 +2130,7 @@ input StartRideInput {
   motorcycleId: String
   rideId: String!
   startedAt: String!
+  timeZone: String
 }
 
 input SubmitDiagnosticInput {
@@ -2495,6 +2504,8 @@ input UpdateRideInput {
   isPublic: Boolean
   mileageApplied: Boolean
   name: String
+  passenger: Boolean
+  purpose: String
   rideId: String!
 }
 
