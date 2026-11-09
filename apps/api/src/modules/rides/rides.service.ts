@@ -3,6 +3,7 @@ import {
   metersToUnit,
   mileageUnitLabel,
   RIDE_MILESTONE_PAYWALL,
+  RIDE_STATUS,
 } from '@motovault/types';
 import {
   BadRequestException,
@@ -757,6 +758,34 @@ export class RidesService {
     };
 
     throw WAYPOINT_UPLOAD_EXCEPTIONS[pgDisposition(error.code)]();
+  }
+
+  /**
+   * Record a manual pause or resume. Only an open ride (recording or paused)
+   * moves; a ride already ended — by the rider, or by the idle sweep while the
+   * phone was offline — stays as it is and the call answers `false`. Never
+   * throws for that case: the phone sends these through its ride sync queue,
+   * and a permanent error there would take the ride's later ops (EndRide) down
+   * with it. Repeating a pause or resume is a no-op that answers `true`.
+   */
+  async setRidePaused(userId: string, rideId: string, paused: boolean): Promise<boolean> {
+    const status = paused ? RIDE_STATUS.PAUSED : RIDE_STATUS.RECORDING;
+    this.logger.log(`setRidePaused: userId=${userId}, rideId=${rideId}, status=${status}`);
+
+    const { data, error } = await this.supabase
+      .from('rides')
+      .update({ status })
+      .eq('id', rideId)
+      .eq('user_id', userId)
+      .in('status', [RIDE_STATUS.RECORDING, RIDE_STATUS.PAUSED])
+      .is('deleted_at', null)
+      .select('id');
+
+    if (error) {
+      this.logger.error(`setRidePaused failed: ${error.message} (${error.code}) rideId=${rideId}`);
+      throw new InternalServerErrorException('Failed to update ride');
+    }
+    return (data?.length ?? 0) > 0;
   }
 
   async updateRide(userId: string, input: UpdateRideInput): Promise<Ride> {

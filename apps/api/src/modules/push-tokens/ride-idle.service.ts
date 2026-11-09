@@ -1,4 +1,4 @@
-import { NOTIFICATION_KIND } from '@motovault/types';
+import { NOTIFICATION_KIND, RIDE_STATUS } from '@motovault/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SupabaseClient } from '@supabase/supabase-js';
@@ -186,7 +186,10 @@ export class RideIdleService {
           lastSignal: trackLast ? new Date(trackLast.recorded_at) : lastSignal,
           track,
         });
-      } else if (idleHours >= IDLE_NUDGE_HOURS) {
+      } else if (idleHours >= IDLE_NUDGE_HOURS && ride.status !== RIDE_STATUS.PAUSED) {
+        // A manual pause is deliberate (lunch, fuel): the phone already schedules
+        // its own "still paused" reminder, so the "still riding?" push is noise.
+        // The 24 h auto-end above still applies, measured from the last fix.
         nudgeTargets.push({ ride, idleHours });
       }
     }

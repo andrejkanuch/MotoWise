@@ -651,6 +651,67 @@ describe('pending work counts BOTH stores', () => {
   });
 });
 
+describe('best-effort ops (pause / resume)', () => {
+  function rideOp(rideId: string) {
+    return { variables: { input: { rideId } } } as Record<string, unknown>;
+  }
+
+  it('drops an undeliverable pause on its own and still delivers the ride end', async () => {
+    enqueue('pauseRide', rideOp('ride-A'));
+    enqueue('endRide', rideOp('ride-A'));
+    const sent: string[] = [];
+    mockGqlFetcher.mockImplementation((doc: unknown) => {
+      const pausing = JSON.stringify(doc).includes('pauseRide');
+      sent.push(pausing ? 'pauseRide' : 'endRide');
+      return pausing ? Promise.reject(gqlError('BAD_REQUEST')) : Promise.resolve({});
+    });
+
+    await drainQueue();
+
+    expect(sent).toEqual(['pauseRide', 'endRide']);
+    expect(getQueueLength()).toBe(0);
+    // Never parked: a pause is not part of the ride the rider would lose.
+    expect(deadLetter()).toHaveLength(0);
+  });
+
+  it('never holds the ride up: a pause the API does not know yet is dropped at once', async () => {
+    // An app shipped ahead of the API: the mutation fails validation — a
+    // retryable error for any other op, which would block everything behind it.
+    enqueue('resumeRide', rideOp('ride-A'));
+    enqueue('endRide', rideOp('ride-A'));
+    const sent: string[] = [];
+    mockGqlFetcher.mockImplementation((doc: unknown) => {
+      const resuming = JSON.stringify(doc).includes('resumeRide');
+      sent.push(resuming ? 'resumeRide' : 'endRide');
+      return resuming
+        ? Promise.reject(new Error('Cannot query field "resumeRide"'))
+        : Promise.resolve({});
+    });
+
+    await drainQueue();
+
+    // One attempt, then the ride's end goes out in the same drain.
+    expect(sent).toEqual(['resumeRide', 'endRide']);
+    expect(getQueueLength()).toBe(0);
+    expect(deadLetter()).toHaveLength(0);
+    // Reported once, as a drop.
+    expect(mockCapture).toHaveBeenCalledTimes(1);
+    expect(mockCapture).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ source: 'ride-sync-queue.bestEffortDrop', opType: 'resumeRide' }),
+    );
+  });
+
+  it('still waits out a network outage instead of dropping the pause', async () => {
+    enqueue('pauseRide', rideOp('ride-A'));
+    mockGetNetworkStateAsync.mockResolvedValue({ isConnected: false, isInternetReachable: false });
+
+    await drainQueue();
+
+    expect(getQueueLength()).toBe(1);
+  });
+});
+
 describe('dependency-aware dead-lettering (MOTO-VAULT-REACT-NATIVE-3C)', () => {
   function rideOp(rideId: string) {
     return { variables: { input: { rideId } } } as Record<string, unknown>;

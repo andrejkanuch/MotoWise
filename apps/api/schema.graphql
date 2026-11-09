@@ -1271,6 +1271,7 @@ type Mutation {
   logExpense(input: LogExpenseInput!): Expense!
   logOdometerReading(input: LogOdometerReadingInput!): Motorcycle!
   markArticleRead(articleId: String!): LearningProgress!
+  pauseRide(input: RidePauseInput!): Boolean!
   publishAsTemplate(tripId: ID!): Trip!
   publishBlogPost(id: String!): BlogPost!
   publishTrip(tripId: ID!): Trip!
@@ -1283,6 +1284,7 @@ type Mutation {
   resetAiCircuitBreaker: Boolean!
   respondToTripInvite(accept: Boolean!, inviteId: ID!): Boolean!
   respondToTripSuggestion(input: RespondToTripSuggestionInput!): TripSuggestion!
+  resumeRide(input: RidePauseInput!): Boolean!
   revertBlogPostVersion(id: String!, versionNum: Int!): BlogPost!
   revokeShareLink(linkId: ID!): Boolean!
   rotateTripShareToken(tripId: ID!): String!
@@ -1826,6 +1828,10 @@ type RideOverview {
   personalRecords: [RideRecord!]!
   thisMonth: RidePeriodSummary!
   thisWeek: RidePeriodSummary!
+}
+
+input RidePauseInput {
+  rideId: String!
 }
 
 type RidePeriodSummary {

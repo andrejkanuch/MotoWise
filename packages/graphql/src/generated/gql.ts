@@ -72,6 +72,7 @@ type Documents = {
     "mutation LogExpense($input: LogExpenseInput!) {\n  logExpense(input: $input) {\n    id\n    amount\n    category\n    currency\n    description\n    itemName\n    date\n    createdAt\n  }\n}": typeof types.LogExpenseDocument,
     "mutation LogOdometerReading($input: LogOdometerReadingInput!) {\n  logOdometerReading(input: $input) {\n    id\n    currentMileage\n    distanceUnit\n    mileageUpdatedAt\n    odometerSyncSource\n    odometerLastRideId\n  }\n}": typeof types.LogOdometerReadingDocument,
     "mutation MarkArticleRead($articleId: String!) {\n  markArticleRead(articleId: $articleId) {\n    id\n    userId\n    articleId\n    articleRead\n    quizCompleted\n    quizBestScore\n    firstReadAt\n    lastReadAt\n  }\n}": typeof types.MarkArticleReadDocument,
+    "mutation PauseRide($input: RidePauseInput!) {\n  pauseRide(input: $input)\n}": typeof types.PauseRideDocument,
     "mutation PublishAsTemplate($tripId: ID!) {\n  publishAsTemplate(tripId: $tripId) {\n    id\n    slug\n    isTemplate\n    publishedAt\n    status\n  }\n}": typeof types.PublishAsTemplateDocument,
     "mutation PublishTrip($tripId: ID!) {\n  publishTrip(tripId: $tripId) {\n    id\n    status\n  }\n}": typeof types.PublishTripDocument,
     "mutation RegenerateRideSummary($rideId: String!) {\n  regenerateRideSummary(rideId: $rideId) {\n    id\n    rideId\n    summaryText\n    generationStatus\n    locale\n    createdAt\n    updatedAt\n  }\n}": typeof types.RegenerateRideSummaryDocument,
@@ -81,6 +82,7 @@ type Documents = {
     "mutation RequestDataExport {\n  requestDataExport {\n    id\n    status\n    requestedAt\n  }\n}": typeof types.RequestDataExportDocument,
     "mutation RespondToTripInvite($inviteId: ID!, $accept: Boolean!) {\n  respondToTripInvite(inviteId: $inviteId, accept: $accept)\n}": typeof types.RespondToTripInviteDocument,
     "mutation RespondToTripSuggestion($input: RespondToTripSuggestionInput!) {\n  respondToTripSuggestion(input: $input) {\n    id\n    status\n    decidedBy\n    decidedAt\n    decidedNote\n    waypointId\n  }\n}": typeof types.RespondToTripSuggestionDocument,
+    "mutation ResumeRide($input: RidePauseInput!) {\n  resumeRide(input: $input)\n}": typeof types.ResumeRideDocument,
     "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}": typeof types.RevokeShareLinkDocument,
     "mutation RotateTripShareToken($tripId: ID!) {\n  rotateTripShareToken(tripId: $tripId)\n}": typeof types.RotateTripShareTokenDocument,
     "mutation SaveReceiptScan($scanId: String!, $input: SaveReceiptScanInput!) {\n  saveReceiptScan(scanId: $scanId, input: $input) {\n    __typename\n    ... on SaveReceiptScanSuccess {\n      scanId\n      refs {\n        recordType\n        expenseId\n        taskId\n        photoId\n        odometer {\n          motorcycleId\n          previous\n          applied\n        }\n      }\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}": typeof types.SaveReceiptScanDocument,
@@ -260,6 +262,7 @@ const documents: Documents = {
     "mutation LogExpense($input: LogExpenseInput!) {\n  logExpense(input: $input) {\n    id\n    amount\n    category\n    currency\n    description\n    itemName\n    date\n    createdAt\n  }\n}": types.LogExpenseDocument,
     "mutation LogOdometerReading($input: LogOdometerReadingInput!) {\n  logOdometerReading(input: $input) {\n    id\n    currentMileage\n    distanceUnit\n    mileageUpdatedAt\n    odometerSyncSource\n    odometerLastRideId\n  }\n}": types.LogOdometerReadingDocument,
     "mutation MarkArticleRead($articleId: String!) {\n  markArticleRead(articleId: $articleId) {\n    id\n    userId\n    articleId\n    articleRead\n    quizCompleted\n    quizBestScore\n    firstReadAt\n    lastReadAt\n  }\n}": types.MarkArticleReadDocument,
+    "mutation PauseRide($input: RidePauseInput!) {\n  pauseRide(input: $input)\n}": types.PauseRideDocument,
     "mutation PublishAsTemplate($tripId: ID!) {\n  publishAsTemplate(tripId: $tripId) {\n    id\n    slug\n    isTemplate\n    publishedAt\n    status\n  }\n}": types.PublishAsTemplateDocument,
     "mutation PublishTrip($tripId: ID!) {\n  publishTrip(tripId: $tripId) {\n    id\n    status\n  }\n}": types.PublishTripDocument,
     "mutation RegenerateRideSummary($rideId: String!) {\n  regenerateRideSummary(rideId: $rideId) {\n    id\n    rideId\n    summaryText\n    generationStatus\n    locale\n    createdAt\n    updatedAt\n  }\n}": types.RegenerateRideSummaryDocument,
@@ -269,6 +272,7 @@ const documents: Documents = {
     "mutation RequestDataExport {\n  requestDataExport {\n    id\n    status\n    requestedAt\n  }\n}": types.RequestDataExportDocument,
     "mutation RespondToTripInvite($inviteId: ID!, $accept: Boolean!) {\n  respondToTripInvite(inviteId: $inviteId, accept: $accept)\n}": types.RespondToTripInviteDocument,
     "mutation RespondToTripSuggestion($input: RespondToTripSuggestionInput!) {\n  respondToTripSuggestion(input: $input) {\n    id\n    status\n    decidedBy\n    decidedAt\n    decidedNote\n    waypointId\n  }\n}": types.RespondToTripSuggestionDocument,
+    "mutation ResumeRide($input: RidePauseInput!) {\n  resumeRide(input: $input)\n}": types.ResumeRideDocument,
     "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}": types.RevokeShareLinkDocument,
     "mutation RotateTripShareToken($tripId: ID!) {\n  rotateTripShareToken(tripId: $tripId)\n}": types.RotateTripShareTokenDocument,
     "mutation SaveReceiptScan($scanId: String!, $input: SaveReceiptScanInput!) {\n  saveReceiptScan(scanId: $scanId, input: $input) {\n    __typename\n    ... on SaveReceiptScanSuccess {\n      scanId\n      refs {\n        recordType\n        expenseId\n        taskId\n        photoId\n        odometer {\n          motorcycleId\n          previous\n          applied\n        }\n      }\n    }\n    ... on ReceiptScanError {\n      code\n      reason\n    }\n  }\n}": types.SaveReceiptScanDocument,
@@ -639,6 +643,10 @@ export function graphql(source: "mutation MarkArticleRead($articleId: String!) {
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "mutation PauseRide($input: RidePauseInput!) {\n  pauseRide(input: $input)\n}"): (typeof documents)["mutation PauseRide($input: RidePauseInput!) {\n  pauseRide(input: $input)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation PublishAsTemplate($tripId: ID!) {\n  publishAsTemplate(tripId: $tripId) {\n    id\n    slug\n    isTemplate\n    publishedAt\n    status\n  }\n}"): (typeof documents)["mutation PublishAsTemplate($tripId: ID!) {\n  publishAsTemplate(tripId: $tripId) {\n    id\n    slug\n    isTemplate\n    publishedAt\n    status\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -672,6 +680,10 @@ export function graphql(source: "mutation RespondToTripInvite($inviteId: ID!, $a
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation RespondToTripSuggestion($input: RespondToTripSuggestionInput!) {\n  respondToTripSuggestion(input: $input) {\n    id\n    status\n    decidedBy\n    decidedAt\n    decidedNote\n    waypointId\n  }\n}"): (typeof documents)["mutation RespondToTripSuggestion($input: RespondToTripSuggestionInput!) {\n  respondToTripSuggestion(input: $input) {\n    id\n    status\n    decidedBy\n    decidedAt\n    decidedNote\n    waypointId\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation ResumeRide($input: RidePauseInput!) {\n  resumeRide(input: $input)\n}"): (typeof documents)["mutation ResumeRide($input: RidePauseInput!) {\n  resumeRide(input: $input)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

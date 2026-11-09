@@ -870,6 +870,44 @@ describe('RidesService', () => {
     });
   });
 
+  describe('setRidePaused', () => {
+    it('pauses an open ride and answers true', async () => {
+      mockUserClient._pushResult({ data: [{ id: 'ride-123' }] });
+
+      await expect(service.setRidePaused(userId, 'ride-123', true)).resolves.toBe(true);
+
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith({ status: 'paused' });
+      // Only an open ride of this rider moves.
+      expect(mockUserClient._chain.eq).toHaveBeenCalledWith('user_id', userId);
+      expect(mockUserClient._chain.in).toHaveBeenCalledWith('status', ['recording', 'paused']);
+      expect(mockUserClient._chain.is).toHaveBeenCalledWith('deleted_at', null);
+    });
+
+    it('resumes to recording', async () => {
+      mockUserClient._pushResult({ data: [{ id: 'ride-123' }] });
+
+      await expect(service.setRidePaused(userId, 'ride-123', false)).resolves.toBe(true);
+
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith({ status: 'recording' });
+    });
+
+    it('answers false, never an error, for a ride that is no longer open', async () => {
+      // Ended by the rider or the idle sweep while the phone was offline: an error
+      // here would dead-letter the ride's later ops in the phone's sync queue.
+      mockUserClient._pushResult({ data: [] });
+
+      await expect(service.setRidePaused(userId, 'ride-123', true)).resolves.toBe(false);
+    });
+
+    it('throws a retryable server error when the update itself fails', async () => {
+      mockUserClient._pushResult({ data: null, error: { message: 'timeout', code: '57014' } });
+
+      await expect(service.setRidePaused(userId, 'ride-123', true)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+  });
+
   describe('deleteRide', () => {
     it('should soft-delete through the RPC and return true', async () => {
       mockUserClient.rpc.mockResolvedValueOnce({ data: true, error: null });
