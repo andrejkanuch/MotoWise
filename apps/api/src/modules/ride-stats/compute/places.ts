@@ -4,8 +4,7 @@ import type { LatLng } from '../../../common/polyline';
 import { toEwktLineString } from './track';
 
 /**
- * The SQL helper that measures a route against the reference geodata. It does
- * not exist yet: a later migration has to add it before this code deploys.
+ * The SQL helper that measures a route against the reference geodata.
  * Contract, service role only:
  *   ride_stats_places(p_route text, p_start_lat float8, p_start_lng float8,
  *                     p_end_lat float8, p_end_lng float8) RETURNS jsonb

@@ -1,5 +1,6 @@
 import { MOVING_MIN_SPEED_MPS } from '@motovault/types';
-import { haversineM, type TrackFix } from './track';
+import { haversineM } from '../../../common/geo';
+import type { TrackFix } from './track';
 
 /** A stop is time spent within this radius of where it began ... */
 const STOP_RADIUS_M = 50;

@@ -1,8 +1,7 @@
 /**
  * Row shapes of the derived ride tables at the query boundary. `database.types.ts`
- * is generated from production and does not list these tables until their
- * migration is live there and the types are regenerated; until then the
- * service-role client is untyped and these interfaces are the contract.
+ * is generated from production and lags it, so the service-role client is
+ * untyped here and these interfaces are the contract.
  */
 import type { BandKm } from './compute/bends';
 import type { LeanBands } from './compute/lean';

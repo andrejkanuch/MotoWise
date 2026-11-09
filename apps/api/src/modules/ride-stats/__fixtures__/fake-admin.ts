@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
+import type { TrackPointsRow } from '../../../common/track-points';
 import { drive, type Leg, mountainLoopLegs } from '../compute/__fixtures__/roads';
-import type { TrackPointsRow } from '../compute/track';
 import { STALE_COUNT_RPC, STALE_RIDES_RPC } from '../ride-stats.service';
 import type { RideForStats } from '../ride-stats.types';
 

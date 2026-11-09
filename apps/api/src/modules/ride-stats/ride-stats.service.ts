@@ -3,11 +3,12 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Sentry from '@sentry/nestjs';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { RIDE_TRACK_POINTS_RPC, type TrackPointsRow } from '../../common/track-points';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { computeRideStats, RIDE_STATS_VERSION } from './compute/compute-ride-stats';
 import { createPlacesLookup, REFERENCE_MISSING } from './compute/places';
 import { isValidIanaZone } from './compute/time-zone';
-import { type TrackPointsRow, yieldToEventLoop } from './compute/track';
+import { yieldToEventLoop } from './compute/track';
 import { fetchRideWeather, isWeatherEnabled, WEATHER_API_KEY_ENV } from './compute/weather';
 import {
   RIDE_STATS_TABLE,
@@ -17,7 +18,7 @@ import {
 } from './ride-stats.types';
 
 /**
- * SQL helpers the sweep needs (service role only; a later migration adds them):
+ * SQL helpers the sweep needs (service role only):
  *
  *   ride_stats_stale_rides(p_stats_version smallint, p_limit int, p_exclude uuid[])
  *     RETURNS TABLE (ride_id uuid, user_id uuid, is_synthetic boolean, stale_since timestamptz)
@@ -31,7 +32,6 @@ import {
  */
 export const STALE_RIDES_RPC = 'ride_stats_stale_rides';
 export const STALE_COUNT_RPC = 'ride_stats_stale_count';
-const TRACK_POINTS_RPC = 'ride_track_points';
 
 /** Rides one sweep run computes, one after another. */
 export const RIDE_STATS_SWEEP_BATCH_SIZE = 10;
@@ -43,7 +43,12 @@ const RIDER_ZONE_LOOKBACK = 5;
 const RIDE_COLUMNS =
   'id, user_id, motorcycle_id, status, deleted_at, started_at, ended_at, distance_m, route_polyline, time_zone';
 
-export type ComputeRideResult = 'written' | typeof REFERENCE_MISSING | 'not_eligible';
+export const COMPUTE_RIDE_RESULT = {
+  WRITTEN: 'written',
+  REFERENCE_MISSING,
+  NOT_ELIGIBLE: 'not_eligible',
+} as const;
+export type ComputeRideResult = (typeof COMPUTE_RIDE_RESULT)[keyof typeof COMPUTE_RIDE_RESULT];
 
 export interface RideStatsSweepSummary {
   examined: number;
@@ -78,7 +83,6 @@ export class RideStatsService {
     private readonly config: ConfigService,
   ) {}
 
-  /** Compute and store one ride's stats. Throws on a read or write failure. */
   async computeRide(rideId: string): Promise<ComputeRideResult> {
     const { data: ride, error } = await this.supabaseAdmin
       .from('rides')
@@ -87,7 +91,7 @@ export class RideStatsService {
       .maybeSingle<RideForStats>();
     if (error) throw new Error(`ride ${rideId} read failed: ${error.message}`);
     if (!ride || ride.status !== RIDE_STATUS.COMPLETED || ride.deleted_at !== null) {
-      return 'not_eligible';
+      return COMPUTE_RIDE_RESULT.NOT_ELIGIBLE;
     }
 
     const [trackPoints, bikeType] = await Promise.all([
@@ -103,7 +107,7 @@ export class RideStatsService {
         yieldFn: yieldToEventLoop,
       },
     );
-    if (outcome.kind === REFERENCE_MISSING) return REFERENCE_MISSING;
+    if (outcome.kind === REFERENCE_MISSING) return COMPUTE_RIDE_RESULT.REFERENCE_MISSING;
 
     if (outcome.track) {
       const { error: trackError } = await this.supabaseAdmin
@@ -125,10 +129,9 @@ export class RideStatsService {
     if (outcome.start && ride.ended_at && isWeatherEnabled(this.config)) {
       await this.runWeatherStep(rideId, outcome.start, ride.started_at, ride.ended_at);
     }
-    return 'written';
+    return COMPUTE_RIDE_RESULT.WRITTEN;
   }
 
-  /** Compute up to 10 stale rides, sequentially, real riders before synthetic accounts. */
   async sweepStale(): Promise<RideStatsSweepSummary> {
     const { data, error } = await this.supabaseAdmin.rpc(STALE_RIDES_RPC, {
       p_stats_version: RIDE_STATS_VERSION,
@@ -136,9 +139,7 @@ export class RideStatsService {
       p_exclude: [...this.skipList],
     });
     if (error) throw new Error(`${STALE_RIDES_RPC} failed: ${error.message}`);
-    const stale = [...((data as StaleRide[] | null) ?? [])].sort(
-      (a, b) => Number(a.is_synthetic) - Number(b.is_synthetic),
-    );
+    const stale = (data as StaleRide[] | null) ?? [];
 
     const summary: RideStatsSweepSummary = {
       examined: stale.length,
@@ -152,8 +153,8 @@ export class RideStatsService {
       await yieldToEventLoop();
       try {
         const result = await this.computeRide(rideId);
-        if (result === 'written') summary.written++;
-        if (result === REFERENCE_MISSING) summary.referenceMissing++;
+        if (result === COMPUTE_RIDE_RESULT.WRITTEN) summary.written++;
+        if (result === COMPUTE_RIDE_RESULT.REFERENCE_MISSING) summary.referenceMissing++;
       } catch (err) {
         this.skipList.add(rideId);
         summary.skipped.push(rideId);
@@ -197,11 +198,11 @@ export class RideStatsService {
 
   /** Every fix of the ride in one row (no downsampling). Null when it has none. */
   private async loadTrackPoints(rideId: string): Promise<TrackPointsRow | null> {
-    const { data, error } = await this.supabaseAdmin.rpc(TRACK_POINTS_RPC, {
+    const { data, error } = await this.supabaseAdmin.rpc(RIDE_TRACK_POINTS_RPC, {
       p_ride_id: rideId,
       p_max_points: null,
     });
-    if (error) throw new Error(`${TRACK_POINTS_RPC} failed: ${error.message}`);
+    if (error) throw new Error(`${RIDE_TRACK_POINTS_RPC} failed: ${error.message}`);
     return ((data as TrackPointsRow[] | null) ?? [])[0] ?? null;
   }
 
@@ -231,7 +232,6 @@ export class RideStatsService {
     return zones.find((z) => isValidIanaZone(z)) ?? null;
   }
 
-  /** Weather at ride time, written to its own columns once per ride. Off unless licensed. */
   private async runWeatherStep(
     rideId: string,
     start: { lat: number; lng: number },

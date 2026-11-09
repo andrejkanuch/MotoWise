@@ -20,9 +20,17 @@ export const TERRITORY_H3_RESOLUTION = 9;
  */
 const MAX_INTERPOLATED_STEP_M = 1_000;
 
+function cellHex(lat: number, lng: number): string {
+  return latLngToCell(lat, lng, TERRITORY_H3_RESOLUTION);
+}
+
+function hexToBigInt(hex: string): bigint {
+  return BigInt(`0x${hex}`);
+}
+
 /** An H3 index as the decimal string of its 64-bit value (the `bigint` column's text form). */
 function cellId(lat: number, lng: number): string {
-  return BigInt(`0x${latLngToCell(lat, lng, TERRITORY_H3_RESOLUTION)}`).toString();
+  return hexToBigInt(cellHex(lat, lng)).toString();
 }
 
 export interface CellsResult {
@@ -36,18 +44,24 @@ export async function computeCells(
   fixes: readonly TrackFix[],
   yieldFn: YieldFn = yieldToEventLoop,
 ): Promise<CellsResult> {
+  // Raw H3 hex; consecutive points mostly share a cell, so repeats skip the Set.
   const seen = new Set<string>();
+  let prev: string | null = null;
+  const add = (hex: string) => {
+    if (hex !== prev) seen.add(hex);
+    prev = hex;
+  };
   for (let i = 0; i < fixes.length; i++) {
     if (i > 0 && i % COMPUTE_CHUNK_POINTS === 0) await yieldFn();
-    seen.add(cellId(fixes[i].lat, fixes[i].lng));
+    add(cellHex(fixes[i].lat, fixes[i].lng));
   }
   for (let i = 0; i < track.lat.length; i++) {
     if (i > 0 && i % COMPUTE_CHUNK_POINTS === 0) await yieldFn();
     if (track.fixStepM[i] > MAX_INTERPOLATED_STEP_M) continue;
-    seen.add(cellId(track.lat[i], track.lng[i]));
+    add(cellHex(track.lat[i], track.lng[i]));
   }
   const cells = [...seen]
-    .map((c) => BigInt(c))
+    .map(hexToBigInt)
     .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
     .map((c) => c.toString());
   return { cells, startCell: fixes.length > 0 ? cellId(fixes[0].lat, fixes[0].lng) : null };

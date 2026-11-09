@@ -112,10 +112,10 @@ describe('RideStatsService.sweepStale', () => {
     expect(calls[1].args.p_exclude).toEqual(['bad']);
   });
 
-  it('processes synthetic accounts after real ones', async () => {
+  it('computes rides in the order the stale-rides RPC returns (real riders first, as its SQL orders them)', async () => {
     const admin = fakeAdmin({
       rides: { s1: ride('s1'), r1: ride('r1'), r2: ride('r2') },
-      stale: [staleRow('s1', true), staleRow('r1'), staleRow('r2')],
+      stale: [staleRow('r1'), staleRow('r2'), staleRow('s1', true)],
     });
     await service(admin).sweepStale();
     expect(admin.upserts.filter((u) => u.table === 'ride_stats').map((u) => u.row.ride_id)).toEqual(

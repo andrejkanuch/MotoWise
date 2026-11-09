@@ -21,6 +21,8 @@ const REARM_TURN_DEG = 10;
 
 /** Road character is judged per 1 km of routed distance. */
 const BAND_PIECE_M = 1_000;
+/** A last piece shorter than this joins the piece before it. */
+const MIN_TAIL_M = BAND_PIECE_M / 2;
 
 /** Upper bounds (exclusive) of bends per km for each band; anything above is `tight`. */
 export const BAND_MAX_BENDS_PER_KM = {
@@ -67,7 +69,6 @@ class TurnWindow {
     this.counted = false;
   }
 
-  /** Feed one heading change; true when it completes a new bend. */
   feed(deltaDeg: number): boolean {
     if (this.sign === 0) {
       if (Math.abs(deltaDeg) < TURN_NOISE_DEG) return false;
@@ -137,12 +138,11 @@ export async function computeBends(
     return { bendsCount: 0, bendsPerKm: null, routedKm: 0, bandKm };
   }
 
-  // 1 km pieces; a remainder under half a km joins the piece before it.
   const pieceLengths: number[] = [];
   const fullPieces = Math.floor(routedM / BAND_PIECE_M);
   for (let p = 0; p < fullPieces; p++) pieceLengths.push(BAND_PIECE_M);
   const remainder = routedM - fullPieces * BAND_PIECE_M;
-  if (remainder >= BAND_PIECE_M / 2 || pieceLengths.length === 0) pieceLengths.push(remainder);
+  if (remainder >= MIN_TAIL_M || pieceLengths.length === 0) pieceLengths.push(remainder);
   else pieceLengths[pieceLengths.length - 1] += remainder;
 
   const bendsPerPiece = new Array<number>(pieceLengths.length).fill(0);

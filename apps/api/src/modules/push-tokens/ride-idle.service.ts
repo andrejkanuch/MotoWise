@@ -5,7 +5,9 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { differenceInHours } from 'date-fns';
 import { Expo, type ExpoPushMessage } from 'expo-server-sdk';
 import { RIDE_EVENTS } from '../../common/constants/events';
+import { EARTH_RADIUS_M } from '../../common/geo';
 import { PG_ERROR } from '../../common/supabase/unwrap';
+import { RIDE_TRACK_POINTS_RPC, type TrackPointsRow } from '../../common/track-points';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { resolveRideIdlePushCopy } from './ride-idle-push-copy';
 
@@ -36,9 +38,6 @@ const EXPO_DEVICE_NOT_REGISTERED = 'DeviceNotRegistered' as const;
 const EXPO_SEND_TIMEOUT_MS = 15_000;
 /** Safety valve: bound one run's work. Overflow is logged, never silently dropped. */
 const MAX_RIDES_PER_RUN = 500;
-
-/** Earth radius in metres, for the waypoint-track distance reconstruction. */
-const EARTH_RADIUS_M = 6_371_000;
 
 /**
  * The last-fix probe failed, so this ride's idle time is UNKNOWN — distinct from a
@@ -84,12 +83,8 @@ interface WaypointRow {
   longitude: number;
 }
 
-/** The columns of a `ride_track_points()` row this sweep reads: parallel arrays, oldest first. */
-interface TrackPointsRow {
-  recorded_at: string[];
-  latitude: number[];
-  longitude: number[];
-}
+/** The columns of a `ride_track_points()` row this sweep reads. */
+type IdleTrackRow = Pick<TrackPointsRow, 'recorded_at' | 'latitude' | 'longitude'>;
 
 /** Great-circle distance between two fixes, in metres. */
 function haversineM(a: WaypointRow, b: WaypointRow): number {
@@ -360,7 +355,7 @@ export class RideIdleService {
    * was rebuilt from its first 1,000 fixes and its end trimmed to the 1,000th.
    */
   private async loadTrack(rideId: string): Promise<WaypointRow[]> {
-    const { data, error } = await this.adminClient.rpc('ride_track_points', {
+    const { data, error } = await this.adminClient.rpc(RIDE_TRACK_POINTS_RPC, {
       p_ride_id: rideId,
       p_max_points: null,
     });
@@ -370,7 +365,7 @@ export class RideIdleService {
       this.logger.warn(`loadTrack failed for ride ${rideId}: ${error.message}`);
       return [];
     }
-    const track = ((data ?? []) as TrackPointsRow[])[0];
+    const track = ((data ?? []) as IdleTrackRow[])[0];
     if (!track) return [];
     return track.recorded_at.map((recordedAt, i) => ({
       recorded_at: recordedAt,

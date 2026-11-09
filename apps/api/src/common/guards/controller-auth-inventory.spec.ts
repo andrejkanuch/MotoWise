@@ -112,8 +112,9 @@ describe('REST controller auth inventory', () => {
 
   it('ride-stats-sweep performs its own secret-header authentication (the real auth behind @Public)', () => {
     // It writes derived rows for any rider's rides, so a leaked secret could make
-    // the API recompute stats (load, not data exposure). Pin that it fails closed
-    // and takes no body: which rides are computed comes from the database.
+    // the API recompute stats (load, not data exposure). Fail-closed is proven
+    // behaviorally in ride-stats.controller.spec.ts; pin that it takes no body:
+    // which rides are computed comes from the database.
     const src = readFileSync(
       join(__dirname, '../../modules/ride-stats/ride-stats.controller.ts'),
       'utf8',
@@ -121,7 +122,6 @@ describe('REST controller auth inventory', () => {
     expect(src).toContain('timingSafeEqual');
     expect(src).toContain('RIDE_STATS_SWEEP_SECRET');
     expect(src).toContain('UnauthorizedException');
-    expect(src).toMatch(/!secret\s*\|\|\s*!secretHeader/);
     expect(src).not.toContain('@Body');
   });
 

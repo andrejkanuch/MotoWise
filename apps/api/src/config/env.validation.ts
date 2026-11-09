@@ -67,9 +67,7 @@ export const envSchema = z.object({
   // unset, so an unconfigured deploy simply never sweeps.
   RIDE_IDLE_SECRET: optionalString,
   // Shared secret for the 10-minute per-ride stats sweep endpoint; must match the
-  // Supabase Vault secret `ride_stats_sweep_secret` the pg_cron job sends. Endpoint
-  // fails closed when unset, so an unconfigured deploy computes stats only when
-  // rides complete.
+  // Supabase Vault secret `ride_stats_sweep_secret` the pg_cron job sends.
   RIDE_STATS_SWEEP_SECRET: optionalString,
   // Per-ride weather step: runs only when this is exactly 'true' AND
   // OPEN_METEO_API_KEY is set (Open-Meteo's commercial endpoint). Off otherwise.

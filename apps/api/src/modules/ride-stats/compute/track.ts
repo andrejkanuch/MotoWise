@@ -1,4 +1,6 @@
+import { DEG, haversineM } from '../../../common/geo';
 import { decodePolyline, type LatLng } from '../../../common/polyline';
+import type { TrackPointsRow } from '../../../common/track-points';
 
 /** One stored fix (waypoint) or polyline vertex. Polyline vertices carry no time or sensors. */
 export interface TrackFix {
@@ -10,18 +12,6 @@ export interface TrackFix {
   speed: number | null;
   heading: number | null;
   accuracy: number | null;
-}
-
-/** The single row `ride_track_points(p_ride_id, p_max_points)` returns: parallel arrays in recorded order. */
-export interface TrackPointsRow {
-  total_points: number;
-  recorded_at: string[];
-  latitude: number[];
-  longitude: number[];
-  altitude: Array<number | null>;
-  speed_mps: Array<number | null>;
-  heading: Array<number | null>;
-  accuracy: Array<number | null>;
 }
 
 /** The whole ride is resampled at this spacing before bends and cells; never downsampled further. */
@@ -39,22 +29,11 @@ export const COMPUTE_CHUNK_POINTS = 5_000;
 /** Douglas-Peucker tolerance for the stored route geometry. */
 export const ROUTE_SIMPLIFY_TOLERANCE_M = 5;
 
-const EARTH_RADIUS_M = 6_371_000;
 const METRES_PER_DEG_LAT = 111_320;
-const DEG = Math.PI / 180;
 
 export type YieldFn = () => Promise<void>;
 
-/** Hands the event loop back between chunks so a long ride never blocks requests. */
 export const yieldToEventLoop: YieldFn = () => new Promise((resolve) => setImmediate(resolve));
-
-export function haversineM(aLat: number, aLng: number, bLat: number, bLng: number): number {
-  const dLat = (bLat - aLat) * DEG;
-  const dLng = (bLng - aLng) * DEG;
-  const h =
-    Math.sin(dLat / 2) ** 2 + Math.cos(aLat * DEG) * Math.cos(bLat * DEG) * Math.sin(dLng / 2) ** 2;
-  return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(h)));
-}
 
 /** Initial bearing from a to b, degrees clockwise from north in [0, 360). */
 export function bearingDeg(aLat: number, aLng: number, bLat: number, bLng: number): number {
@@ -108,7 +87,6 @@ export function fixesFromPolyline(encoded: string): TrackFix[] {
   }));
 }
 
-/** Sum of great-circle steps between consecutive fixes. */
 export function trackDistanceM(fixes: readonly TrackFix[]): number {
   let total = 0;
   for (let i = 1; i < fixes.length; i++) {

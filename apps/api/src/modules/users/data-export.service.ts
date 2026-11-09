@@ -10,6 +10,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { encodePolyline } from '../../common/polyline';
 import { QUERY_LIMITS } from '../../config/constants';
 import { EmailService } from '../email/email.service';
+import { RIDE_STATS_TABLE, RIDE_TRACKS_TABLE } from '../ride-stats/ride-stats.types';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { DataExportRequest } from './models/data-export-request.model';
@@ -218,12 +219,12 @@ export class DataExportService {
       // data too.
       const [rideStatsResult, rideTracksResult] = await Promise.all([
         this.supabaseAdmin
-          .from('ride_stats')
+          .from(RIDE_STATS_TABLE)
           .select(RIDE_STATS_EXPORT_COLUMNS)
           .eq('user_id', userId)
           .limit(maxRows),
         this.supabaseAdmin
-          .from('ride_tracks')
+          .from(RIDE_TRACKS_TABLE)
           .select('ride_id, source, built_at, route')
           .eq('user_id', userId)
           .limit(maxRows),

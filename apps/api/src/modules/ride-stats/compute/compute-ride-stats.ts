@@ -5,6 +5,7 @@ import {
   RIDE_WAYPOINT_LIMITS,
 } from '@motovault/types';
 import type { LatLng } from '../../../common/polyline';
+import type { TrackPointsRow } from '../../../common/track-points';
 import {
   INPUT_SOURCE,
   type InputSource,
@@ -25,7 +26,6 @@ import {
   resampleTrack,
   simplifyRoute,
   type TrackFix,
-  type TrackPointsRow,
   toEwktLineString,
   trackDistanceM,
   type YieldFn,

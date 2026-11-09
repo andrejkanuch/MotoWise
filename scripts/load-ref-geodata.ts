@@ -118,7 +118,6 @@ export function sha256Hex(data: Uint8Array): string {
   return createHash('sha256').update(data).digest('hex');
 }
 
-/** Throws unless `data` hashes to the pinned value. */
 export function verifySha256(label: string, data: Uint8Array, expected: string): void {
   const actual = sha256Hex(data);
   if (actual !== expected) {
@@ -352,7 +351,6 @@ export async function loadReferenceData(client: pg.ClientBase, data: ReferenceDa
     await client.query('ROLLBACK');
     throw err;
   }
-  // Fresh statistics so the first lookups use the GiST indexes.
   await client.query('ANALYZE public.ref_country_parts, public.ref_regions, public.ref_places');
 }
 

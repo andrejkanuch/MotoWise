@@ -22,6 +22,7 @@ import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { RIDE_EVENTS } from '../../common/constants/events';
 import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
 import { PG_ERROR, unwrap } from '../../common/supabase/unwrap';
+import { RIDE_TRACK_POINTS_RPC, type TrackPointsRow } from '../../common/track-points';
 import { POSTGRES_REAL, QUERY_LIMITS } from '../../config/constants';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -51,9 +52,8 @@ interface MilestoneRideRow {
 }
 
 /**
- * `rides` columns added by migration 00197. The generated database.types.ts is built
- * from production and does not carry them until that migration is live, and this
- * service's client is untyped, so the shape is stated here at the read and write sites.
+ * Recording columns of `rides`. The generated database.types.ts lags production and
+ * this service's client is untyped, so the shape is stated here at the read and write sites.
  */
 interface RideRecordingColumns {
   time_zone: string | null;
@@ -61,18 +61,6 @@ interface RideRecordingColumns {
   purpose: string | null;
   passenger: boolean | null;
   track_updated_at: string | null;
-}
-
-/** One row of `ride_track_points()`: the ride's fixes as parallel arrays, oldest first. */
-interface RideTrackPointsRow {
-  total_points: number;
-  recorded_at: string[];
-  latitude: number[];
-  longitude: number[];
-  altitude: Array<number | null>;
-  speed_mps: Array<number | null>;
-  heading: Array<number | null>;
-  accuracy: Array<number | null>;
 }
 
 /** Copy of `patch` without the keys whose value is null or undefined. */
@@ -1162,7 +1150,7 @@ export class RidesService {
 
     // The whole track in one row of arrays: a plain select stops at PostgREST's row
     // cap, which cut every long ride to its first 1,000 fixes before sampling.
-    const { data, error } = await this.supabase.rpc('ride_track_points', {
+    const { data, error } = await this.supabase.rpc(RIDE_TRACK_POINTS_RPC, {
       p_ride_id: rideId,
       p_max_points: null,
     });
@@ -1172,30 +1160,33 @@ export class RidesService {
       throw new InternalServerErrorException('Failed to fetch waypoints');
     }
 
-    const track = ((data ?? []) as RideTrackPointsRow[])[0];
+    const track = ((data ?? []) as TrackPointsRow[])[0];
     if (!track) return [];
 
-    // Drop poor-accuracy fixes, then sample evenly across the whole ride.
-    const rows = track.recorded_at
-      .map((recordedAt, i) => ({
-        recordedAt,
-        latitude: track.latitude[i],
-        longitude: track.longitude[i],
-        altitude: track.altitude[i] ?? undefined,
-        speedMps: track.speed_mps[i] ?? undefined,
-        accuracy: track.accuracy[i] ?? undefined,
-      }))
-      .filter(
-        (row) =>
-          row.accuracy === undefined || row.accuracy <= QUERY_LIMITS.WAYPOINT_ACCURACY_THRESHOLD,
-      );
-    if (rows.length === 0) return [];
+    // Drop poor-accuracy fixes, then sample evenly across the whole ride. Both work on
+    // indices into the parallel arrays; only the surviving fixes become objects.
+    const kept: number[] = [];
+    for (let i = 0; i < track.recorded_at.length; i++) {
+      const accuracy = track.accuracy[i] ?? undefined;
+      if (accuracy === undefined || accuracy <= QUERY_LIMITS.WAYPOINT_ACCURACY_THRESHOLD) {
+        kept.push(i);
+      }
+    }
+    if (kept.length === 0) return [];
 
     const limit = Math.min(
       Math.max(maxPoints ?? QUERY_LIMITS.WAYPOINT_QUERY_DEFAULT, 2),
       QUERY_LIMITS.WAYPOINT_QUERY_MAX,
     );
-    return rows.length <= limit ? rows : this.downsample(rows, limit);
+    const sampled = kept.length <= limit ? kept : this.downsample(kept, limit);
+    return sampled.map((i) => ({
+      recordedAt: track.recorded_at[i],
+      latitude: track.latitude[i],
+      longitude: track.longitude[i],
+      altitude: track.altitude[i] ?? undefined,
+      speedMps: track.speed_mps[i] ?? undefined,
+      accuracy: track.accuracy[i] ?? undefined,
+    }));
   }
 
   private downsample<T>(rows: T[], maxPoints: number): T[] {

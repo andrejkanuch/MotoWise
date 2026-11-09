@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { encodePolyline } from '../../../common/polyline';
+import type { TrackPointsRow } from '../../../common/track-points';
 import type { RideForStats } from '../ride-stats.types';
 import { drive, type FixtureFix, mountainLoopLegs } from './__fixtures__/roads';
 import { computeRideStats, RIDE_STATS_VERSION } from './compute-ride-stats';
 import { REFERENCE_MISSING } from './places';
-import type { TrackPointsRow } from './track';
 
 const noYield = async () => {};
 const SPAIN = { countries: ['ES'], startRegion: 'ES.27', startPlace: 'Logroño', endPlace: 'Haro' };

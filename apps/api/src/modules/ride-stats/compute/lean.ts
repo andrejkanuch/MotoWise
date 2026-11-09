@@ -1,8 +1,8 @@
-import { MOVING_MIN_SPEED_MPS } from '@motovault/types';
+import { MOVING_MIN_SPEED_MPS, type MotorcycleType } from '@motovault/types';
+import { DEG, haversineM } from '../../../common/geo';
 import {
   bearingDeg,
   COMPUTE_CHUNK_POINTS,
-  haversineM,
   stepSpeedMps,
   type TrackFix,
   type YieldFn,
@@ -37,8 +37,16 @@ const CORNER_PERCENTILE = 0.9;
 /** Estimates above this are noise, not riding. */
 const LEAN_CAP_DEG = 60;
 
+/** Lower edges (degrees) of the three upper lean bands; below the first is `under20`. */
+const LEAN_BAND_EDGES_DEG = { MID: 20, HIGH: 30, EXTREME: 40 } as const;
+
+interface TyreGeometry {
+  tyreHalfWidthM: number;
+  cogHeightM: number;
+}
+
 /** Tyre half-width and combined centre-of-gravity height (m) by bike type. */
-export const TYRE_GEOMETRY_BY_BIKE_TYPE = {
+export const TYRE_GEOMETRY_BY_BIKE_TYPE: Readonly<Record<MotorcycleType, TyreGeometry>> = {
   sportbike: { tyreHalfWidthM: 0.09, cogHeightM: 0.6 },
   standard: { tyreHalfWidthM: 0.08, cogHeightM: 0.58 },
   touring: { tyreHalfWidthM: 0.09, cogHeightM: 0.62 },
@@ -47,9 +55,7 @@ export const TYRE_GEOMETRY_BY_BIKE_TYPE = {
   dirt_bike: { tyreHalfWidthM: 0.06, cogHeightM: 0.65 },
   scooter: { tyreHalfWidthM: 0.06, cogHeightM: 0.5 },
   other: { tyreHalfWidthM: 0.075, cogHeightM: 0.58 },
-} as const;
-
-export type BikeType = keyof typeof TYRE_GEOMETRY_BY_BIKE_TYPE;
+};
 
 /** Share of corners per band (0-1), plus how many corners the shares are of. */
 export interface LeanBands {
@@ -60,11 +66,9 @@ export interface LeanBands {
   from40: number;
 }
 
-const DEG = Math.PI / 180;
-
-function tyreGeometry(bikeType: string | null) {
+function tyreGeometry(bikeType: string | null): TyreGeometry {
   return bikeType && bikeType in TYRE_GEOMETRY_BY_BIKE_TYPE
-    ? TYRE_GEOMETRY_BY_BIKE_TYPE[bikeType as BikeType]
+    ? TYRE_GEOMETRY_BY_BIKE_TYPE[bikeType as MotorcycleType]
     : TYRE_GEOMETRY_BY_BIKE_TYPE.other;
 }
 
@@ -84,7 +88,6 @@ function percentile(values: number[], p: number): number {
   return sorted[Math.min(sorted.length - 1, Math.ceil(p * sorted.length) - 1)];
 }
 
-/** Least-squares slope of y over x. */
 function slope(xs: number[], ys: number[]): number {
   const n = xs.length;
   const mx = xs.reduce((a, b) => a + b, 0) / n;
@@ -141,7 +144,21 @@ function samplesForRun(
     course.push(c);
   }
 
+  // Speed at each fix: its reported speed, else the step between its neighbours.
+  const speedAt: Array<number | null> = [];
+  for (let k = start; k <= end; k++) {
+    const next = fixes[Math.min(end, k + 1)];
+    const prev = fixes[Math.max(start, k - 1)];
+    speedAt.push(
+      fixes[k].speed ??
+        stepSpeedMps(prev, next, haversineM(prev.lat, prev.lng, next.lat, next.lng)),
+    );
+  }
+
   const samples: Array<LeanSample | null> = [];
+  const times: number[] = [];
+  const courses: number[] = [];
+  const speeds: number[] = [];
   let lo = start;
   let hi = start;
   for (let i = start; i <= end; i++) {
@@ -152,17 +169,13 @@ function samplesForRun(
       samples.push(null);
       continue;
     }
-    const times: number[] = [];
-    const courses: number[] = [];
-    const speeds: number[] = [];
+    times.length = 0;
+    courses.length = 0;
+    speeds.length = 0;
     for (let k = lo; k <= hi; k++) {
       times.push(((fixes[k].t as number) - t) / 1000);
       courses.push(course[k - start]);
-      const next = fixes[Math.min(end, k + 1)];
-      const prev = fixes[Math.max(start, k - 1)];
-      const speed =
-        fixes[k].speed ??
-        stepSpeedMps(prev, next, haversineM(prev.lat, prev.lng, next.lat, next.lng));
+      const speed = speedAt[k - start];
       if (speed !== null) speeds.push(speed);
     }
     const v = speeds.length > 0 ? median(speeds) : 0;
@@ -240,9 +253,15 @@ export async function computeLeanBands(
   const share = (count: number) => (n === 0 ? 0 : count / n);
   return {
     corners: n,
-    under20: share(cornerLeans.filter((l) => l < 20).length),
-    from20to30: share(cornerLeans.filter((l) => l >= 20 && l < 30).length),
-    from30to40: share(cornerLeans.filter((l) => l >= 30 && l < 40).length),
-    from40: share(cornerLeans.filter((l) => l >= 40).length),
+    under20: share(cornerLeans.filter((l) => l < LEAN_BAND_EDGES_DEG.MID).length),
+    from20to30: share(
+      cornerLeans.filter((l) => l >= LEAN_BAND_EDGES_DEG.MID && l < LEAN_BAND_EDGES_DEG.HIGH)
+        .length,
+    ),
+    from30to40: share(
+      cornerLeans.filter((l) => l >= LEAN_BAND_EDGES_DEG.HIGH && l < LEAN_BAND_EDGES_DEG.EXTREME)
+        .length,
+    ),
+    from40: share(cornerLeans.filter((l) => l >= LEAN_BAND_EDGES_DEG.EXTREME).length),
   };
 }
