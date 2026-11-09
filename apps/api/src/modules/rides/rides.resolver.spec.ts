@@ -134,11 +134,9 @@ describe('RidesResolver owner-only ride fields', () => {
     });
   });
 
-  // Ride.region resolves for every viewer, as it did before the owner-only fields:
-  // it is a plain model field with no field resolver gating it.
-  it('region is not gated: the resolver has no region field resolver', async () => {
-    expect('region' in resolver).toBe(false);
+  // Ride.region resolves for every viewer, as it did before the owner-only fields.
+  it('region is not gated: a stored region resolves for anyone', async () => {
     const ride = await resolver.getPublicRide('ride-1');
-    expect(ride.region).toBe('Tirol');
+    expect(await resolver.region(ride)).toBe('Tirol');
   });
 });

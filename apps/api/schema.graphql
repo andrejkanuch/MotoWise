@@ -1580,8 +1580,30 @@ type Query {
   ride(id: String!): Ride!
   rideFeed(after: String, first: Int = 20): FeedRideConnection!
   rideMilestoneStats(excludeRideId: String): RideMilestoneStats!
-  rideOverview: RideOverview!
+  rideOverview(
+    """
+    IANA zone for the day, week and month buckets; defaults to the rider’s latest ride zone, then UTC.
+    """
+    timeZone: String
+  ): RideOverview!
   rideWaypoints(maxPoints: Int, rideId: String!): [Waypoint!]!
+
+  """
+  One season of the signed-in rider’s insights. Without from/to: the calendar year in the rider’s zone, or the previous year while the new one has fewer than five qualifying rides.
+  """
+  riderInsights(
+    """YYYY-MM-DD, with to."""
+    from: String
+
+    """Re-read the RevenueCat entitlement first (right after a purchase)."""
+    refreshEntitlement: Boolean
+
+    """IANA zone; defaults to the rider’s latest ride zone, then UTC."""
+    timeZone: String
+
+    """YYYY-MM-DD, with from."""
+    to: String
+  ): RiderInsights!
   routeConditions(routeId: ID!): RouteConditions!
   routeSponsorships(routeId: ID!): [Sponsorship!]!
   savedTrips(after: String, first: Int = 20): TripConnection!
@@ -1782,11 +1804,13 @@ type RevealRecall {
 type Ride {
   autoPausedDurationS: Int!
   avgSpeedMps: Float
+  countries: [String!]
   createdAt: String!
   distanceM: Int
   durationS: Int
   elevationGain: Float
   elevationLoss: Float
+  endPlace: String
   endSource: String
   endedAt: String
   gpsQuality: Float
@@ -1797,13 +1821,16 @@ type Ride {
   mileageApplied: Boolean!
   motorcycleId: String
   name: String
+  newRoadsM: Int
   passenger: Boolean
   pausedDurationS: Int!
   purpose: String
   region: String
   routePolyline: String
   routeThumbnailUri: String
+  startPlace: String
   startedAt: String!
+  stats: RideDerivedStats
   status: RideStatus!
   timeZone: String
   updatedAt: String!
@@ -1815,6 +1842,21 @@ type RideConnection {
   edges: [RideEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type RideDerivedStats {
+  """Distance over moving time."""
+  avgMovingSpeedMps: Float
+
+  """Corrected climb, metres."""
+  climbM: Int
+  descentM: Int
+  gpsQuality: Float
+  maxSpeedMps: Float
+
+  """Null without waypoints."""
+  movingTimeS: Int
+  stopCount: Int
 }
 
 type RideEdge {
@@ -1872,6 +1914,305 @@ type RideSummary {
   rideId: String!
   summaryText: String!
   updatedAt: String!
+}
+
+"""One season of a rider’s insights, gated by their real tier."""
+type RiderInsights {
+  bestRides: RiderInsightsBestRides!
+  bikes: RiderInsightsBikes!
+  costPerKm: RiderInsightsCostPerKm!
+  countries: [RiderInsightsCountry!]!
+  coverage: RiderInsightsCoverage!
+  isPro: Boolean!
+  latestRide: RiderInsightsLatestRide
+  longestRide: RiderInsightsLongestRide
+
+  """
+  Most distance first: the first is the main map, the rest the region tiles.
+  """
+  regions: [RiderInsightsRegion!]!
+  rhythm: RiderInsightsRhythm!
+  ribbon: [RiderInsightsWeek!]!
+  roadCharacter: RiderInsightsRoadCharacter!
+  season: RiderInsightsSeason!
+  territory: RiderInsightsTerritory!
+  totals: RiderInsightsTotals!
+}
+
+type RiderInsightsBands {
+  straight: Float!
+  sweeping: Float!
+  tight: Float!
+  twisty: Float!
+}
+
+type RiderInsightsBendsRide {
+  bendsPer10km: Float
+  distanceM: Float!
+
+  """YYYY-MM-DD in the ride’s own zone."""
+  localDate: String!
+  name: String
+  rideId: String!
+}
+
+type RiderInsightsBestRide {
+  bendsPer10km: Float
+
+  """Corrected climb, metres."""
+  climbM: Float
+  distanceM: Float!
+
+  """YYYY-MM-DD in the ride’s own zone."""
+  localDate: String!
+  movingTimeS: Float
+  name: String
+  rideId: String!
+}
+
+type RiderInsightsBestRides {
+  detail: RiderInsightsBestRidesDetail
+
+  """Qualifying rides ranked."""
+  headline: Float
+  status: RiderInsightsStatus!
+  teaser: RiderInsightsBestRidesTeaser
+}
+
+type RiderInsightsBestRidesDetail {
+  byBends: [RiderInsightsBestRide!]!
+  byClimb: [RiderInsightsBestRide!]!
+  byDistance: [RiderInsightsBestRide!]!
+  count: Int!
+}
+
+type RiderInsightsBestRidesTeaser {
+  count: Int!
+}
+
+type RiderInsightsBike {
+  distanceM: Float!
+
+  """Null is Unassigned: rides without a bike."""
+  motorcycleId: String
+  movingTimeS: Float!
+  name: String
+  rides: Int!
+}
+
+type RiderInsightsBikes {
+  items: [RiderInsightsBike!]
+
+  """READY or MISSING_INPUT (no ride has a bike)."""
+  status: RiderInsightsStatus!
+}
+
+"""A locked card carries its status only (the client shows its title)."""
+type RiderInsightsCostPerKm {
+  """One row per currency, most spend first."""
+  items: [RiderInsightsCostPerKmItem!]
+  status: RiderInsightsStatus!
+}
+
+type RiderInsightsCostPerKmItem {
+  costPerKm: Float
+  currency: String!
+  distanceM: Float!
+
+  """odometer, tracked or mixed."""
+  distanceSource: String!
+  expenseCount: Int!
+  spend: Float!
+}
+
+type RiderInsightsCountry {
+  distanceM: Float!
+  firstDate: String!
+  firstRideId: String!
+  isoA2: String!
+  name: String
+  rides: Int!
+}
+
+type RiderInsightsCoverage {
+  """Rides whose stats are not computed yet."""
+  pendingRides: Int!
+
+  """Counts over the qualifying rides, for "from N of M rides"."""
+  qualifying: RiderInsightsQualifyingCoverage!
+  qualifyingRides: Int!
+  rides: Int!
+  ridesWithBike: Int!
+}
+
+type RiderInsightsFurthestPoint {
+  """Metres from home."""
+  distanceM: Float!
+  lat: Float!
+  lng: Float!
+  localDate: String!
+  rideId: String!
+}
+
+type RiderInsightsLatestRide {
+  distanceM: Float!
+  localDate: String!
+
+  """ISO codes this ride added to the season."""
+  newCountries: [String!]!
+  rideId: String!
+}
+
+type RiderInsightsLeanBands {
+  corners: Int!
+  from20to30: Float!
+  from30to40: Float!
+  from40: Float!
+
+  """Share of corners, 0-1. An estimate, never a single angle."""
+  under20: Float!
+}
+
+type RiderInsightsLongestRide {
+  distanceM: Float!
+  durationS: Float!
+  endPlace: String
+
+  """YYYY-MM-DD in the ride’s own zone."""
+  localDate: String!
+  movingTimeS: Float
+  name: String
+  rideId: String!
+  startPlace: String
+}
+
+type RiderInsightsQualifyingCoverage {
+  withBands: Int!
+  withLean: Int!
+  withMovingTime: Int!
+  withRoute: Int!
+  withStats: Int!
+  withWaypoints: Int!
+}
+
+type RiderInsightsRegion {
+  """[west, south, east, north]"""
+  bounds: [Float!]
+  distanceM: Float!
+  isoA2: String!
+
+  """<iso_a2>.<admin1_code>"""
+  key: String!
+  name: String
+  rides: Int!
+
+  """Encoded polylines (precision 5), oldest ride first."""
+  routes: [String!]!
+}
+
+type RiderInsightsRhythm {
+  detail: RiderInsightsRhythmDetail
+
+  """Weekend share of rides, 0-1, to the nearest 10%."""
+  headline: Float
+  status: RiderInsightsStatus!
+  teaser: RiderInsightsRhythmTeaser
+}
+
+type RiderInsightsRhythmDetail {
+  """
+  Ride counts: 7 rows Monday..Sunday by 4 columns morning, afternoon, evening, night.
+  """
+  grid: [[Int!]!]!
+  medianDistanceM: Float
+  medianMovingTimeS: Float
+  rides: Int!
+  ridesWithMovingTime: Int!
+  weekendRides: Int!
+  weekendShare: Float
+}
+
+type RiderInsightsRhythmTeaser {
+  """The grid as levels 0 (no rides) to 3 (busiest)."""
+  grid: [[Int!]!]!
+}
+
+type RiderInsightsRoadCharacter {
+  detail: RiderInsightsRoadCharacterDetail
+
+  """Bends per 10 km, to the nearest whole bend."""
+  headline: Float
+  status: RiderInsightsStatus!
+  teaser: RiderInsightsRoadCharacterTeaser
+}
+
+type RiderInsightsRoadCharacterDetail {
+  bandKm: RiderInsightsBands!
+  bendsCount: Int!
+  bendsPer10km: Float
+  lean: RiderInsightsLeanBands
+  ridesWithBands: Int!
+  ridesWithLean: Int!
+  routedKm: Float!
+  straightest: [RiderInsightsBendsRide!]!
+  twistiest: [RiderInsightsBendsRide!]!
+}
+
+type RiderInsightsRoadCharacterTeaser {
+  """Band shares of routed distance, to the nearest 10%."""
+  bandShares: RiderInsightsBands!
+}
+
+type RiderInsightsSeason {
+  """First local date of the season shown, YYYY-MM-DD."""
+  from: String!
+
+  """Last local date of the season shown, YYYY-MM-DD."""
+  to: String!
+}
+
+"""
+A group state. Precedence: NOT_ENOUGH (under five qualifying rides), COMPUTING (a ride has no stats yet), MISSING_INPUT, LOCKED (not Pro), READY.
+"""
+enum RiderInsightsStatus {
+  COMPUTING
+  LOCKED
+  MISSING_INPUT
+  NOT_ENOUGH
+  READY
+}
+
+type RiderInsightsTerritory {
+  detail: RiderInsightsTerritoryDetail
+
+  """Explored km², to the nearest 10."""
+  headline: Float
+  status: RiderInsightsStatus!
+}
+
+type RiderInsightsTerritoryDetail {
+  exploredCells: Int!
+  exploredKm2: Float!
+  furthest: RiderInsightsFurthestPoint
+  newRoadM: Float!
+
+  """New road over routed distance, 0-1."""
+  newRoadShare: Float
+  routedM: Float!
+}
+
+type RiderInsightsTotals {
+  countries: Int!
+  distanceM: Float!
+  rides: Int!
+}
+
+type RiderInsightsWeek {
+  distanceM: Float!
+  rides: Int!
+
+  """Monday of the week, YYYY-MM-DD."""
+  weekStart: String!
 }
 
 type RouteConditions {

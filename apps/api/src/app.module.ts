@@ -55,6 +55,7 @@ import { RedisThrottlerStorage } from './modules/redis/redis-throttler.storage';
 import { RideAnalyticsModule } from './modules/ride-analytics/ride-analytics.module';
 import { RideStatsModule } from './modules/ride-stats/ride-stats.module';
 import { RideSummariesModule } from './modules/ride-summaries/ride-summaries.module';
+import { RiderInsightsModule } from './modules/rider-insights/rider-insights.module';
 import { RidesModule } from './modules/rides/rides.module';
 import { SearchModule } from './modules/search/search.module';
 import { ShareLinksModule } from './modules/share-links/share-links.module';
@@ -133,6 +134,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     OdometerModule,
     OemSchedulesModule,
     RideAnalyticsModule,
+    RiderInsightsModule,
     RideStatsModule,
     RideSummariesModule,
     RidesModule,

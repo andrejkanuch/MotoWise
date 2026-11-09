@@ -201,3 +201,20 @@ export function unwrap<T>(result: SupabaseResult<T>, ctx: UnwrapContext<T>): T {
 
   return result.data as T;
 }
+
+/**
+ * `unwrap` for a SUPABASE_ADMIN (service-role) result. A PostgREST token refusal
+ * here means the service-role key itself was rejected, a deployment fault that
+ * must page as a 500, never the rider's 401 (see the invariant on
+ * {@link POSTGREST_AUTH_CODES}). Every other code behaves as in `unwrap`.
+ */
+export function unwrapServiceRole<T>(result: SupabaseResult<T>, ctx: UnwrapContext<T>): T {
+  const { error } = result;
+  if (error && isPostgrestAuthError(error)) {
+    ctx.logger.error(
+      `[${ctx.op}] ${ctx.message}: service-role key refused by PostgREST: ${error.message} (${error.code})`,
+    );
+    throw new InternalServerErrorException(ctx.message, { cause: toCause(error) });
+  }
+  return unwrap(result, ctx);
+}
