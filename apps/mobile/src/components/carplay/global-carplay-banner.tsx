@@ -15,7 +15,8 @@ export function GlobalCarPlayBanner() {
   const { connected } = useCarPlayConnection();
   const ride = useLiveRideSnapshot();
   // The HUD only for a ride this app is recording; Start Ride (Resume / End) for
-  // one whose GPS is not confirmed after a relaunch.
+  // one whose GPS is not confirmed after a relaunch; the review for an ended one
+  // (a Stop on the head unit leaves it here for the phone).
   const openRide = useOpenRide();
 
   if (!connected || !ride.active) return null;

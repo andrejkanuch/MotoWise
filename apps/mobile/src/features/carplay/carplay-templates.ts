@@ -16,7 +16,24 @@ import {
   speedUnitLabel,
 } from '../../utils/ride-formatters';
 
-export type CarPlayPanelState = 'recording' | 'autoPaused' | 'acquiring' | 'idle';
+export type CarPlayPanelState =
+  | 'recording'
+  | 'autoPaused'
+  | 'paused'
+  | 'acquiring'
+  | 'saved'
+  | 'idle';
+
+/** States of a ride in progress: live rows, heads-up row, ride controls. */
+const RIDING_STATES: ReadonlySet<CarPlayPanelState> = new Set([
+  'recording',
+  'autoPaused',
+  'paused',
+]);
+
+export function isRidingState(state: CarPlayPanelState): boolean {
+  return RIDING_STATES.has(state);
+}
 
 // Head-unit action ids. Shared by buildActions (which stamps them onto the
 // CPInformationTemplate buttons) and the coordinator's onAction dispatcher, so the
@@ -211,7 +228,9 @@ export function pickHeadsUp(input: HeadsUpInput, climbFallback: string): HeadsUp
 const STATE_WORD: Record<CarPlayPanelState, string> = {
   recording: 'RECORDING',
   autoPaused: 'AUTO-PAUSED',
+  paused: 'PAUSED',
   acquiring: 'ACQUIRING GPS',
+  saved: 'RIDE SAVED',
   idle: 'READY',
 };
 
@@ -240,10 +259,12 @@ const MODE_LABEL: Record<StartMode, string> = {
 export function deriveState(
   input: Pick<RideInput, 'status' | 'recordingSubState' | 'gpsLocked'>,
 ): CarPlayPanelState {
-  // Manual pause always reads as paused — never regress to "acquiring" (which
-  // would strip the Resume control and strand the rider). Only an actively
-  // recording ride that hasn't locked GPS yet shows "acquiring".
-  if (input.status === 'paused') return 'autoPaused';
+  // A manual pause reads as PAUSED (with Resume) — never "acquiring", which would
+  // strip the Resume control and strand the rider, and never AUTO-PAUSED, which
+  // is the GPS noticing a stop on a ride that is still recording. Only an
+  // actively recording ride that hasn't locked GPS yet shows "acquiring".
+  if (input.status === 'paused') return 'paused';
+  if (input.status === 'ended') return 'saved';
   if (input.status === 'recording') {
     if (!input.gpsLocked) return 'acquiring';
     if (input.recordingSubState === 'stopped') return 'autoPaused';
@@ -254,8 +275,10 @@ export function deriveState(
 
 export function deriveSnapshot(input: RideInput, system: MeasurementSystem): PanelSnapshot {
   const state = deriveState(input);
-  // Before lock, show dashes — never a zero that reads as a real ride.
-  const live = state !== 'acquiring' && state !== 'idle';
+  const riding = isRidingState(state);
+  // Before lock, show dashes — never a zero that reads as a real ride. A saved
+  // ride shows its final numbers (the coordinator passes the stored summary's).
+  const live = riding || state === 'saved';
   const climb = live
     ? formatClimb(input.elevationGain, system)
     : `${DASH} ${elevationUnitLabel(system)}`;
@@ -269,7 +292,7 @@ export function deriveSnapshot(input: RideInput, system: MeasurementSystem): Pan
     climb,
     // The heads-up row only applies while riding; before a ride (idle/acquiring) the
     // Climb row is shown as-is with its dashed placeholder.
-    headsUp: live
+    headsUp: riding
       ? pickHeadsUp(
           {
             recallCount: input.recallCount,
@@ -280,8 +303,8 @@ export function deriveSnapshot(input: RideInput, system: MeasurementSystem): Pan
         )
       : { title: HEADS_UP_LABEL.climb, detail: climb },
     startMode: input.startMode,
-    // Only meaningful for a live ride — an idle panel must never prompt.
-    forgotToStopPending: live && input.forgotToStopPending === true,
+    // Only meaningful while riding — an idle or saved panel must never prompt.
+    forgotToStopPending: riding && input.forgotToStopPending === true,
   };
 }
 
@@ -297,7 +320,7 @@ export function buildPanelItems(
   // state transition. The template caps at 4 rows: while riding, speed + distance
   // lead (the live hero values); before a ride, the Mode row replaces speed (which
   // would only be a dash) so the rider can see the arming mode.
-  const live = s.state === 'recording' || s.state === 'autoPaused';
+  const live = isRidingState(s.state);
   const items = live
     ? [
         { title: 'Speed', detail: s.speed },
@@ -356,8 +379,8 @@ export function buildPanelItems(
   }
   return {
     // Forgotten-ride prompt replaces the state word (which would read "AUTO-PAUSED"
-    // — indistinguishable from a traffic light). Actions are left untouched: Stop and
-    // Resume are already on the panel, so the title is the whole change needed, and
+    // — indistinguishable from a traffic light). Actions are left untouched: Stop is
+    // already on the panel, so the title is the whole change needed, and
     // swapping the action set on an advisory would move controls under the rider's
     // thumb mid-glance.
     title: s.forgotToStopPending ? forgotToStopTitle() : STATE_WORD[s.state],
@@ -377,7 +400,15 @@ export function buildActions(
         { id: CARPLAY_ACTION.pause, title: 'Pause' },
         { id: CARPLAY_ACTION.stop, title: 'Stop' },
       ];
+    // Auto-pause is the GPS seeing a stop on a ride that is still recording: it
+    // resumes by itself on movement, so the rider's choices are the same as while
+    // moving — pause it for real, or stop.
     case 'autoPaused':
+      return [
+        { id: CARPLAY_ACTION.pause, title: 'Pause' },
+        { id: CARPLAY_ACTION.stop, title: 'Stop' },
+      ];
+    case 'paused':
       return [
         { id: CARPLAY_ACTION.resume, title: 'Resume' },
         { id: CARPLAY_ACTION.stop, title: 'Stop' },
@@ -385,7 +416,9 @@ export function buildActions(
     case 'acquiring':
       return [{ id: CARPLAY_ACTION.stop, title: 'Stop' }];
     default:
-      // idle: manual offers Start; automatic shows no control (no duplicate start)
+      // idle, and saved (an ended ride waiting for its review on the phone): a
+      // new ride never waits on that review — starting one saves it as it stands.
+      // Manual offers Start; automatic shows no control (no duplicate start).
       return startMode === 'manual' ? [{ id: CARPLAY_ACTION.start, title: 'Start Ride' }] : [];
   }
 }

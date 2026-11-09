@@ -148,6 +148,33 @@ describe('pause after an app kill — the persisted phase decides, not the store
   });
 });
 
+describe('auto-pause reaches the screens, not only the disk', () => {
+  it('projects the stopped sub-state and the forgotten-ride flag onto the store', async () => {
+    rideMMKV.setRecordingSubState('moving');
+    useRideStore.setState({ recordingSubState: 'moving', forgotToStopPending: false });
+    const now = jest.spyOn(Date, 'now');
+    filterProcess.mockReturnValue(accepted(0));
+    const at = async (ms: number, speed: number) => {
+      now.mockReturnValue(T0 + ms);
+      await sample(fix(T0 + ms, speed));
+    };
+
+    await at(0, 0);
+    await at(61_000, 0); // past the 60 s auto-pause threshold
+    expect(rideMMKV.getRecordingSubState()).toBe('stopped');
+    expect(useRideStore.getState().recordingSubState).toBe('stopped');
+
+    await at(61_000 + 10 * 60_000 + 1_000, 0); // past the 10 min "still riding?" mark
+    expect(useRideStore.getState().forgotToStopPending).toBe(true);
+
+    filterProcess.mockReturnValue(accepted(12));
+    await at(12 * 60_000, 10); // moving again answers it
+    expect(useRideStore.getState().recordingSubState).toBe('moving');
+    expect(useRideStore.getState().forgotToStopPending).toBe(false);
+    now.mockRestore();
+  });
+});
+
 describe('reminder push-back', () => {
   it('pushes the reminders back on a moving fix the filter accepted', async () => {
     filterProcess.mockReturnValue(accepted(12));

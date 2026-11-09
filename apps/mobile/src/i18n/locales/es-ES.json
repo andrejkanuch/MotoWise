@@ -399,6 +399,8 @@
     "reminderNudgeBody": "Tu salida sigue grabándose, pero llevas {{minutes}} minutos sin moverte. Termínala o sigue rodando.",
     "reminderFinalTitle": "Tu salida sigue grabándose",
     "reminderFinalBody": "Sin movimiento desde hace {{minutes}} minutos. Termina la salida para guardarla tal como estaba cuando te detuviste.",
+    "reminderPausedTitle": "Tu salida sigue en pausa",
+    "reminderPausedBody": "En pausa desde hace {{hours}} horas. Termina la salida para guardarla o déjala en pausa.",
     "actionEndRide": "Terminar salida",
     "rideAlertsChannel": "Avisos de salida",
     "autoEndedTitle": "Salida guardada",

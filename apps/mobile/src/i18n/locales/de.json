@@ -1966,6 +1966,8 @@
     "reminderNudgeBody": "Deine Fahrt wird noch aufgezeichnet, aber du hast dich seit {{minutes}} Minuten nicht bewegt. Beende sie oder fahr weiter.",
     "reminderFinalTitle": "Deine Fahrt wird noch aufgezeichnet",
     "reminderFinalBody": "Seit {{minutes}} Minuten keine Bewegung. Beende die Fahrt, um sie so zu speichern, wie sie beim Anhalten war.",
+    "reminderPausedTitle": "Deine Fahrt ist noch pausiert",
+    "reminderPausedBody": "Seit {{hours}} Stunden pausiert. Beende die Fahrt, um sie zu speichern, oder lass sie pausiert.",
     "actionEndRide": "Fahrt beenden",
     "actionKeepRiding": "Fahre noch",
     "rideAlertsChannel": "Fahrt-Hinweise",

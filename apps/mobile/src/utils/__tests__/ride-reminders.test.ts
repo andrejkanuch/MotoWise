@@ -25,19 +25,19 @@ jest.mock('../../i18n', () => ({
     t: (_key: string, opts: { defaultValue: string }) => opts.defaultValue,
   },
 }));
-jest.mock('../../stores/ride.store', () => {
-  const store = { status: 'recording' as string };
-  return { useRideStore: { getState: () => store } };
-});
 jest.mock('../ride-storage', () => {
   const state = {
     currentId: 'ride-1' as string | undefined,
     startedAt: 1_000_000 as number | undefined,
     lastMovementAt: 0,
     reminderIds: [] as string[],
+    phase: 'recording' as string,
   };
   return {
     __state: state,
+    RIDE_PHASE: { RECORDING: 'recording', PAUSED: 'paused', ENDED: 'ended' },
+    readRideRecord: () =>
+      state.currentId ? { rideId: state.currentId, phase: state.phase } : null,
     rideMMKV: {
       getCurrentId: () => state.currentId,
       getStartedAt: () => state.startedAt,
@@ -54,12 +54,12 @@ jest.mock('../ride-storage', () => {
 });
 
 import * as Notifications from 'expo-notifications';
-import { useRideStore } from '../../stores/ride.store';
 import {
   __resetRideRemindersForTest,
   armRideReminders,
   cancelRideReminders,
   noteRideMovement,
+  RIDE_PAUSED_REMINDER_MINUTES,
   RIDE_REMINDER_REARM_THROTTLE_MS,
   rideEndTrimTarget,
   rideReminderContent,
@@ -72,11 +72,11 @@ const state = (storage as any).__state as {
   startedAt: number | undefined;
   lastMovementAt: number;
   reminderIds: string[];
+  phase: string;
 };
 const schedule = Notifications.scheduleNotificationAsync as jest.Mock;
 const cancel = Notifications.cancelScheduledNotificationAsync as jest.Mock;
 const permissions = Notifications.getPermissionsAsync as jest.Mock;
-const store = useRideStore.getState() as { status: string };
 const NOW = 5_000_000;
 
 beforeEach(() => {
@@ -87,7 +87,7 @@ beforeEach(() => {
   state.startedAt = 1_000_000;
   state.lastMovementAt = 0;
   state.reminderIds = [];
-  store.status = 'recording';
+  state.phase = 'recording';
   permissions.mockResolvedValue({ status: 'granted' });
   // clearAllMocks keeps implementations; undo a test's throwing override.
   (Notifications.dismissNotificationAsync as jest.Mock).mockImplementation(() => Promise.resolve());
@@ -128,10 +128,29 @@ describe('armRideReminders', () => {
     expect(schedule).not.toHaveBeenCalled();
   });
 
-  it('schedules nothing once the ride has ended or is gone', async () => {
-    store.status = 'ended';
+  it('gives a paused ride one "still paused" reminder 2 h out, not the idle pair', async () => {
+    state.phase = 'paused';
     await armRideReminders(NOW);
-    store.status = 'recording';
+    expect(schedule).toHaveBeenCalledTimes(1);
+    const [{ content, trigger }] = schedule.mock.calls[0];
+    expect(content.data).toEqual(expect.objectContaining({ stage: 'paused', rideId: 'ride-1' }));
+    expect(trigger.seconds).toBe(RIDE_PAUSED_REMINDER_MINUTES * 60);
+  });
+
+  it('swaps the sets when the phase changes, cancelling the previous one', async () => {
+    await armRideReminders(NOW);
+    const idleIds = [...state.reminderIds];
+    expect(idleIds).toHaveLength(2);
+    state.phase = 'paused';
+    await armRideReminders(NOW);
+    expect(cancel.mock.calls.map(([id]) => id)).toEqual(expect.arrayContaining(idleIds));
+    expect(state.reminderIds).toHaveLength(1);
+  });
+
+  it('schedules nothing once the ride has ended or is gone', async () => {
+    state.phase = 'ended';
+    await armRideReminders(NOW);
+    state.phase = 'recording';
     state.currentId = undefined;
     await armRideReminders(NOW);
     expect(schedule).not.toHaveBeenCalled();

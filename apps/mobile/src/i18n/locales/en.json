@@ -2073,6 +2073,8 @@
     "reminderNudgeBody": "Your ride is still recording, but you haven't moved for {{minutes}} minutes. End it or keep going.",
     "reminderFinalTitle": "Your ride is still recording",
     "reminderFinalBody": "No movement for {{minutes}} minutes. End the ride to save it as it was when you stopped.",
+    "reminderPausedTitle": "Your ride is still paused",
+    "reminderPausedBody": "Paused for {{hours}} hours. End the ride to save it, or keep it paused.",
     "actionEndRide": "End ride",
     "actionKeepRiding": "Still riding",
     "rideAlertsChannel": "Ride alerts",

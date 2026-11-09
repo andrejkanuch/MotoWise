@@ -1991,6 +1991,8 @@
     "reminderNudgeBody": "Tu rodada sigue grabándose, pero llevas {{minutes}} minutos sin moverte. Termínala o sigue rodando.",
     "reminderFinalTitle": "Tu rodada sigue grabándose",
     "reminderFinalBody": "Sin movimiento desde hace {{minutes}} minutos. Termina la rodada para guardarla tal como estaba cuando te detuviste.",
+    "reminderPausedTitle": "Tu rodada sigue en pausa",
+    "reminderPausedBody": "En pausa desde hace {{hours}} horas. Termina la rodada para guardarla o déjala en pausa.",
     "actionEndRide": "Terminar rodada",
     "actionKeepRiding": "Sigo rodando",
     "rideAlertsChannel": "Avisos de rodada",

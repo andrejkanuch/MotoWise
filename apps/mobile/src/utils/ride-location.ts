@@ -358,11 +358,20 @@ type AutoPauseEffectHandlers = {
   [K in AutoPauseEffect['kind']]: (effect: Extract<AutoPauseEffect, { kind: K }>) => void;
 };
 
+// State the screens show (sub-state, the forgotten-ride flag) is persisted first,
+// then projected: the CarPlay panel and the phone banner read the store, and a
+// value written only to disk reached neither until the next relaunch.
 const AUTO_PAUSE_EFFECT_HANDLERS: AutoPauseEffectHandlers = {
-  setSubState: (e) => rideMMKV.setRecordingSubState(e.value),
+  setSubState: (e) => {
+    rideMMKV.setRecordingSubState(e.value);
+    useRideStore.setState({ recordingSubState: e.value });
+  },
   updateSpeedZero: () => useRideStore.getState().updateSpeed(0),
   addAutoPausedMs: (e) => rideMMKV.setTotalAutoPausedMs(rideMMKV.getTotalAutoPausedMs() + e.ms),
-  setForgotToStopPending: (e) => rideMMKV.setForgotToStopPending(e.value),
+  setForgotToStopPending: (e) => {
+    rideMMKV.setForgotToStopPending(e.value);
+    useRideStore.setState({ forgotToStopPending: e.value });
+  },
   autoEnd: (e) => autoEndRide(e.idleSince),
 };
 
@@ -695,4 +704,5 @@ function resetAutoPauseState(): void {
   // opens already warning that GPS is off.
   rideMMKV.setForgotToStopPending(false);
   rideMMKV.setGpsPermissionLost(false);
+  useRideStore.setState({ forgotToStopPending: false });
 }

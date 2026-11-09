@@ -1966,6 +1966,8 @@
     "reminderNudgeBody": "Sürüşün hâlâ kaydediliyor ama {{minutes}} dakikadır hareket etmedin. Bitir ya da devam et.",
     "reminderFinalTitle": "Sürüşün hâlâ kaydediliyor",
     "reminderFinalBody": "{{minutes}} dakikadır hareket yok. Sürüşü durduğun andaki hâliyle kaydetmek için bitir.",
+    "reminderPausedTitle": "Sürüşün hâlâ duraklatılmış",
+    "reminderPausedBody": "{{hours}} saattir duraklatılmış. Kaydetmek için sürüşü bitir ya da duraklatılmış bırak.",
     "actionEndRide": "Sürüşü bitir",
     "actionKeepRiding": "Hâlâ sürüyorum",
     "rideAlertsChannel": "Sürüş uyarıları",

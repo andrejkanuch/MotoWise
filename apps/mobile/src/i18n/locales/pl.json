@@ -2016,6 +2016,8 @@
     "reminderNudgeBody": "Twoja jazda wciąż się nagrywa, ale nie ruszasz się od {{minutes}} minut. Zakończ ją lub jedź dalej.",
     "reminderFinalTitle": "Twoja jazda wciąż się nagrywa",
     "reminderFinalBody": "Brak ruchu od {{minutes}} minut. Zakończ jazdę, aby zapisać ją do miejsca, w którym się zatrzymałeś.",
+    "reminderPausedTitle": "Twoja jazda jest nadal wstrzymana",
+    "reminderPausedBody": "Wstrzymana od {{hours}} godz. Zakończ jazdę, aby ją zapisać, albo zostaw ją wstrzymaną.",
     "actionEndRide": "Zakończ jazdę",
     "actionKeepRiding": "Wciąż jadę",
     "rideAlertsChannel": "Powiadomienia o jeździe",

@@ -1991,6 +1991,8 @@
     "reminderNudgeBody": "Seu rolê ainda está sendo gravado, mas você está parado há {{minutes}} minutos. Encerre ou continue.",
     "reminderFinalTitle": "Seu rolê ainda está sendo gravado",
     "reminderFinalBody": "Sem movimento há {{minutes}} minutos. Encerre o rolê para salvá-lo como estava quando você parou.",
+    "reminderPausedTitle": "Seu rolê ainda está pausado",
+    "reminderPausedBody": "Pausado há {{hours}} horas. Encerre o rolê para salvá-lo ou mantenha-o pausado.",
     "actionEndRide": "Encerrar rolê",
     "actionKeepRiding": "Ainda rodando",
     "rideAlertsChannel": "Alertas de rolê",

@@ -1991,6 +1991,8 @@
     "reminderNudgeBody": "Ta sortie est toujours en cours d'enregistrement, mais tu n'as pas bougé depuis {{minutes}} minutes. Termine-la ou continue.",
     "reminderFinalTitle": "Ta sortie est toujours en cours d'enregistrement",
     "reminderFinalBody": "Aucun mouvement depuis {{minutes}} minutes. Termine la sortie pour l'enregistrer telle qu'elle était à ton arrêt.",
+    "reminderPausedTitle": "Ta sortie est toujours en pause",
+    "reminderPausedBody": "En pause depuis {{hours}} heures. Termine la sortie pour l'enregistrer, ou laisse-la en pause.",
     "actionEndRide": "Terminer",
     "actionKeepRiding": "Je roule encore",
     "rideAlertsChannel": "Alertes de sortie",

@@ -12,10 +12,12 @@ import { HudLayoutB } from '../../components/ride/hud-layout-b';
 import { type HudLayout, HudLayoutSwitcher } from '../../components/ride/hud-layout-switcher';
 import {
   buildRideSummaryHref,
-  elapsedRideSeconds,
   endRideSession,
+  pauseRideSession,
+  resumeRideSession,
 } from '../../features/ride/ride-controller';
 import { useBatterySaverToggle } from '../../features/ride/use-battery-saver-toggle';
+import { useRideElapsed } from '../../features/ride/use-ride-elapsed';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { bestEffortNativeCall, NativeSideEffect } from '../../lib/best-effort-native';
 import { useRideStore } from '../../stores/ride.store';
@@ -77,13 +79,12 @@ export default function RideHudScreen() {
   const isBatterySaver = useRideStore((s) => s.isBatterySaver);
   const toggleNight = useRideStore((s) => s.toggleNightMode);
   const handleToggleBattery = useBatterySaverToggle();
-  const pauseRide = useRideStore((s) => s.pauseRide);
-  const resumeRide = useRideStore((s) => s.resumeRide);
-  const updateElapsedTime = useRideStore((s) => s.updateElapsedTime);
 
   const [hudLayout, setHudLayout] = useState<HudLayout>(() => getPersistedLayout());
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const elapsedRef = useRef(0);
+  // Engine-owned clock (persisted timestamps), the same one every surface shows.
+  const elapsedSeconds = useRideElapsed();
+  const elapsedRef = useRef(elapsedSeconds);
+  elapsedRef.current = elapsedSeconds;
   const [sparklineMode, setSparklineMode] = useState<SparklineMode>('speed');
   const [speedHistory, setSpeedHistory] = useState<number[]>([]);
   const [altitudeHistory, setAltitudeHistory] = useState<number[]>([]);
@@ -183,52 +184,17 @@ export default function RideHudScreen() {
     };
   }, []);
 
-  // Elapsed timer — engine-owned. elapsedRideSeconds() derives from persisted
-  // timestamps and freezes during a pause (it subtracts banked + in-progress pause),
-  // so the HUD no longer tracks pause time itself (that lived here and in CarPlay
-  // divergently; the store's pauseRide/resumeRide now own the single pause clock).
-  // Display-only (the HUD, the tab-bar ride banner): skipped in the background and
-  // recomputed on return, which is exact because elapsed derives from timestamps.
-  useEffect(() => {
-    const tick = () => {
-      const elapsed = elapsedRideSeconds();
-      elapsedRef.current = elapsed;
-      setElapsedSeconds(elapsed);
-      updateElapsedTime(elapsed);
-    };
-    const interval = setInterval(() => {
-      if (AppState.currentState === APP_STATE_ACTIVE) tick();
-    }, 1000);
-    const sub = AppState.addEventListener('change', (state) => {
-      if (state === APP_STATE_ACTIVE) tick();
-    });
-    return () => {
-      clearInterval(interval);
-      sub.remove();
-    };
-  }, [updateElapsedTime]);
-
+  // Pause and resume go through the controller, the same path as CarPlay's
+  // (pause clock, reminders, analytics).
   const handlePause = useCallback(() => {
     triggerImpact(Haptics.ImpactFeedbackStyle.Heavy);
-    pauseRide(); // store banks the pause clock (engine-owned, shared with CarPlay)
-    trackEvent(AnalyticsEvent.RIDE_PAUSED, {
-      ride_id: rideMMKV.getCurrentId() ?? null,
-      duration_at_pause_s: elapsedRef.current,
-      distance_at_pause_m: Math.round(distance),
-    });
-  }, [pauseRide, distance]);
+    pauseRideSession('phone');
+  }, []);
 
   const handleResume = useCallback(() => {
     triggerImpact(Haptics.ImpactFeedbackStyle.Heavy);
-    // Read the pause start before resumeRide() banks + clears it.
-    const pausedAt = rideMMKV.getPausedAt();
-    const pauseDuration = pausedAt > 0 ? Math.round((Date.now() - pausedAt) / 1000) : 0;
-    resumeRide();
-    trackEvent(AnalyticsEvent.RIDE_RESUMED, {
-      ride_id: rideMMKV.getCurrentId() ?? null,
-      pause_duration_s: pauseDuration,
-    });
-  }, [resumeRide]);
+    resumeRideSession('phone');
+  }, []);
 
   /** End the ride via the shared controller, then route to the summary. */
   const executeEndRide = useCallback(() => {

@@ -2016,6 +2016,8 @@
     "reminderNudgeBody": "Tvoja jazda sa stále nahráva, ale už {{minutes}} minút si sa nepohol. Ukonči ju alebo pokračuj.",
     "reminderFinalTitle": "Tvoja jazda sa stále nahráva",
     "reminderFinalBody": "Žiadny pohyb {{minutes}} minút. Ukonči jazdu a uloží sa tak, ako bola, keď si zastavil.",
+    "reminderPausedTitle": "Tvoja jazda je stále pozastavená",
+    "reminderPausedBody": "Pozastavená už {{hours}} hodiny. Ukonči jazdu a ulož ju, alebo ju nechaj pozastavenú.",
     "actionEndRide": "Ukončiť jazdu",
     "actionKeepRiding": "Stále jazdím",
     "rideAlertsChannel": "Upozornenia na jazdu",

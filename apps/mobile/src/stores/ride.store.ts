@@ -9,7 +9,6 @@ type PermissionLevel = 'full' | 'foreground_only' | 'denied';
 interface RideState {
   status: RideStatus;
   currentSpeed: number;
-  elapsedTime: number;
   distance: number;
   maxSpeed: number;
   maxLeanAngle: number;
@@ -20,6 +19,9 @@ interface RideState {
   minAltitude: number;
   stopCount: number;
   recordingSubState: RecordingSubState;
+  /** Stationary long enough that the rider probably forgot to stop (auto-pause
+   *  machine). Persisted by the GPS task; projected here for the screens. */
+  forgotToStopPending: boolean;
   isNightMode: boolean;
   isBatterySaver: boolean;
   permissionLevel: PermissionLevel;
@@ -33,13 +35,12 @@ interface RideState {
    * lead to Start Ride (Resume / End) instead of a HUD that records nothing.
    */
   recordingInterrupted: boolean;
+  /** Projections of the controller's start and end (pause and resume are set
+   *  directly by `pauseRideSession` / `resumeRideSession`). */
   startRide: () => void;
-  pauseRide: () => void;
-  resumeRide: () => void;
   endRide: () => void;
   updateSpeed: (speed: number) => void;
   updateDistance: (distance: number) => void;
-  updateElapsedTime: (time: number) => void;
   updateMaxSpeed: (speed: number) => void;
   updateMaxLeanAngle: (angle: number) => void;
   updateElevation: (gain: number, loss: number, current: number, max: number, min: number) => void;
@@ -59,7 +60,6 @@ interface RideState {
 
 const INITIAL_STATS = {
   currentSpeed: 0,
-  elapsedTime: 0,
   distance: 0,
   maxSpeed: 0,
   maxLeanAngle: 0,
@@ -75,6 +75,7 @@ export const useRideStore = create<RideState>()((set) => ({
   status: 'idle',
   ...INITIAL_STATS,
   recordingSubState: 'moving',
+  forgotToStopPending: false,
   isNightMode: false,
   isBatterySaver: false,
   permissionLevel: 'denied',
@@ -85,33 +86,15 @@ export const useRideStore = create<RideState>()((set) => ({
       status: 'recording',
       ...INITIAL_STATS,
       recordingSubState: 'moving',
+      forgotToStopPending: false,
       recordingInterrupted: false,
       // startGPSListener always starts at full accuracy; a previous ride's
       // switch must not show ON over it.
       isBatterySaver: false,
     }),
-  pauseRide: () => {
-    rideMMKV.setStatus('paused');
-    // Stamp the pause start so elapsed time freezes and the duration is banked on
-    // resume — engine-owned, so a pause from CarPlay (no mounted HUD) is counted
-    // identically to one from the phone. Guard against a double-pause overwriting it.
-    if (rideMMKV.getPausedAt() === 0) rideMMKV.setPausedAt(Date.now());
-    set({ status: 'paused' });
-  },
-  resumeRide: () => {
-    // Bank the manual pause that just ended into the persisted total, then clear it.
-    const pausedAt = rideMMKV.getPausedAt();
-    if (pausedAt > 0) {
-      rideMMKV.setTotalPausedMs(rideMMKV.getTotalPausedMs() + (Date.now() - pausedAt));
-      rideMMKV.setPausedAt(0);
-    }
-    rideMMKV.setStatus('recording');
-    set({ status: 'recording' });
-  },
   endRide: () => set({ status: 'ended', currentSpeed: 0 }),
   updateSpeed: (currentSpeed) => set({ currentSpeed }),
   updateDistance: (distance) => set({ distance }),
-  updateElapsedTime: (elapsedTime) => set({ elapsedTime }),
   updateMaxSpeed: (maxSpeed) => set((s) => (maxSpeed > s.maxSpeed ? { maxSpeed } : s)),
   updateMaxLeanAngle: (angle) => {
     // Cap at 55° — phone IMU occasionally reports impossible values from vibration
@@ -136,6 +119,7 @@ export const useRideStore = create<RideState>()((set) => ({
               status: 'idle',
               ...INITIAL_STATS,
               recordingSubState: 'moving',
+              forgotToStopPending: false,
               gpsPermissionLost: false,
               recordingInterrupted: false,
             },
@@ -147,6 +131,7 @@ export const useRideStore = create<RideState>()((set) => ({
       const next = {
         status: record.phase,
         recordingSubState: record.recordingSubState,
+        forgotToStopPending: rideMMKV.getForgotToStopPending(),
         permissionLevel: rideMMKV.getPermissionLevel() ?? state.permissionLevel,
         // Written on both sides (ride-location marks it, resetAutoPauseState clears
         // it), so unlike permissionLevel this one is correct by construction.

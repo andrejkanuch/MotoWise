@@ -1966,6 +1966,8 @@
     "reminderNudgeBody": "ライドはまだ記録中ですが、{{minutes}}分間移動していません。終了するか、走行を続けてください。",
     "reminderFinalTitle": "ライドはまだ記録中です",
     "reminderFinalBody": "{{minutes}}分間移動がありません。停車時点のライドを保存するには終了してください。",
+    "reminderPausedTitle": "ライドはまだ一時停止中です",
+    "reminderPausedBody": "{{hours}}時間一時停止しています。保存するにはライドを終了するか、そのまま一時停止にしておいてください。",
     "actionEndRide": "ライドを終了",
     "actionKeepRiding": "走行中",
     "rideAlertsChannel": "ライド通知",

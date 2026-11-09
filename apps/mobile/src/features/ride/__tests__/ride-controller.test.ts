@@ -114,7 +114,12 @@ jest.mock('@/utils/ride-heatmap', () => ({ encodePolyline: jest.fn(() => 'poly')
 jest.mock('@/lib/analytics', () => ({
   trackEvent: jest.fn(),
   captureException: jest.fn(),
-  AnalyticsEvent: { RIDE_STARTED: 'ride_started', RIDE_ENDED: 'ride_ended' },
+  AnalyticsEvent: {
+    RIDE_STARTED: 'ride_started',
+    RIDE_ENDED: 'ride_ended',
+    RIDE_PAUSED: 'ride_paused',
+    RIDE_RESUMED: 'ride_resumed',
+  },
 }));
 jest.mock('@/stores/ride.store', () => {
   const store = {
@@ -126,6 +131,7 @@ jest.mock('@/stores/ride.store', () => {
     maxLeanAngle: 0,
     isNightMode: false,
     isBatterySaver: false,
+    distance: 0,
   };
   return { useRideStore: { getState: () => store, setState: jest.fn() } };
 });
@@ -136,6 +142,7 @@ jest.mock('expo-haptics', () => ({
 }));
 
 import * as Notifications from 'expo-notifications';
+import { trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryClient } from '@/lib/query-client';
 import { useRideStore } from '@/stores/ride.store';
@@ -150,8 +157,10 @@ import {
   endRecoveredRide,
   endRideSession,
   finalizeEndedRide,
+  pauseRideSession,
   readEndedRideSummary,
   resumeRecoveredRide,
+  resumeRideSession,
   startRideSession,
 } from '../ride-controller';
 
@@ -548,8 +557,10 @@ describe('one persisted ride — start, end, review', () => {
     const result = await startRideSession({ motorcycleId: null, source: 'carplay' });
     expect(result).toEqual({ ok: true, rideId: 'ride-open' });
     expect(startGPS).toHaveBeenCalledTimes(1);
-    // A paused ride stays paused: no reminders re-armed for it.
-    expect(armReminders).not.toHaveBeenCalled();
+    // A paused ride stays paused; its reminders are re-armed for the phase (the
+    // single "still paused" one — ride-reminders picks the set).
+    expect(mmkvState.status).toBe('paused');
+    expect(armReminders).toHaveBeenCalledTimes(1);
   });
 
   it('saves an ended-but-unreviewed ride as it stands, then starts the new one', async () => {
@@ -647,5 +658,79 @@ describe('one persisted ride — start, end, review', () => {
     mmkvState.status = 'ended';
     await expect(resumeRecoveredRide()).resolves.toBe(false);
     expect(startGPS).not.toHaveBeenCalled();
+  });
+});
+
+describe('pause and resume — one engine path for the HUD and CarPlay', () => {
+  beforeEach(() => {
+    mmkvState.currentId = 'ride-1';
+    mmkvState.status = 'recording';
+    mmkvState.startedAt = 1_000_000;
+  });
+
+  it('pauses: persists the phase and pause start, projects, re-arms for the phase', () => {
+    jest.spyOn(Date, 'now').mockReturnValue(1_600_000);
+    expect(pauseRideSession('carplay')).toBe(true);
+    expect(mmkvState.status).toBe('paused');
+    expect(mmkvState.pausedAt).toBe(1_600_000);
+    expect(useRideStore.setState).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'paused' }),
+    );
+    // The phase is paused when the reminders re-arm, so they pick the paused set.
+    expect(armReminders).toHaveBeenCalledWith(1_600_000);
+    expect(trackEvent).toHaveBeenCalledWith(
+      'ride_paused',
+      expect.objectContaining({ ride_id: 'ride-1', source: 'carplay', duration_at_pause_s: 600 }),
+    );
+    (Date.now as jest.Mock).mockRestore();
+  });
+
+  it('ignores a second pause and a pause with no recording ride', () => {
+    mmkvState.status = 'paused';
+    mmkvState.pausedAt = 1_200_000;
+    expect(pauseRideSession('phone')).toBe(false);
+    expect(mmkvState.pausedAt).toBe(1_200_000);
+    mmkvState.currentId = '';
+    expect(pauseRideSession('phone')).toBe(false);
+    expect(armReminders).not.toHaveBeenCalled();
+  });
+
+  it('resumes: banks the pause, persists recording, restarts the reminder clock', () => {
+    mmkvState.status = 'paused';
+    mmkvState.pausedAt = 1_200_000;
+    mmkvState.totalPausedMs = 5_000;
+    jest.spyOn(Date, 'now').mockReturnValue(1_500_000);
+    expect(resumeRideSession('phone')).toBe(true);
+    expect(mmkvState.totalPausedMs).toBe(305_000);
+    expect(mmkvState.pausedAt).toBe(0);
+    expect(mmkvState.status).toBe('recording');
+    expect(useRideStore.setState).toHaveBeenCalledWith({ status: 'recording' });
+    expect(armReminders).toHaveBeenCalledWith(1_500_000);
+    expect(trackEvent).toHaveBeenCalledWith(
+      'ride_resumed',
+      expect.objectContaining({ ride_id: 'ride-1', pause_duration_s: 300, source: 'phone' }),
+    );
+    (Date.now as jest.Mock).mockRestore();
+  });
+
+  it('does not resume a ride that is recording or ended', () => {
+    expect(resumeRideSession('carplay')).toBe(false);
+    mmkvState.status = 'ended';
+    expect(resumeRideSession('carplay')).toBe(false);
+    expect(armReminders).not.toHaveBeenCalled();
+  });
+});
+
+describe('endRideSession — summary before the phase', () => {
+  it('stores the summary before any surface can see the ride as ended', () => {
+    mmkvState.currentId = 'ride-1';
+    mmkvState.status = 'recording';
+    mmkvState.startedAt = 1_000_000;
+    let summaryAtFlip: string | undefined;
+    (store.endRide as jest.Mock).mockImplementationOnce(() => {
+      summaryAtFlip = mmkvState.endedSummary;
+    });
+    endRideSession('carplay');
+    expect(summaryAtFlip).toContain('"rideId":"ride-1"');
   });
 });
