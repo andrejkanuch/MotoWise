@@ -52,6 +52,10 @@ export default function ProfileLayout() {
       <Stack.Screen name="rider-insights" options={{ title: t('riderInsights.title') }} />
       {/* Each insight's own page; the route sets its title from the group. */}
       <Stack.Screen name="rider-insights/[group]" options={{ headerLargeTitle: false }} />
+      <Stack.Screen
+        name="rider-insights/recap"
+        options={{ title: t('riderInsights.recap.title'), headerLargeTitle: false }}
+      />
       <Stack.Screen name="trips" options={{ title: t('profile.myTripsTitle') }} />
       <Stack.Screen name="saved" options={{ title: t('saved.title') }} />
       <Stack.Screen name="app-settings" options={{ title: t('profile.appSettings') }} />

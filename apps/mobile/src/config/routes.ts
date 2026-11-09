@@ -42,6 +42,8 @@ export const PROFILE_ROUTE = {
   RIDER_INSIGHTS: '/(tabs)/(profile)/rider-insights',
   /** One insight on its own page; pass `{ group: RiderInsightsDetailGroup }`. */
   RIDER_INSIGHTS_DETAIL: '/(tabs)/(profile)/rider-insights/[group]',
+  /** The season recap: seven story cards to keep or post. */
+  RIDER_INSIGHTS_RECAP: '/(tabs)/(profile)/rider-insights/recap',
   APP_SETTINGS: '/(tabs)/(profile)/app-settings',
   /** Pushed single-choice list for one app setting; pass `{ key: AppPreferenceKey }`. */
   PREFERENCE: '/(tabs)/(profile)/preference/[key]',

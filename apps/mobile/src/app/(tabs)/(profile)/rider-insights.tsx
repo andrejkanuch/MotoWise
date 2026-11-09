@@ -27,6 +27,7 @@ import {
 } from '@/config/routes';
 import { AtlasHero } from '@/features/rider-insights/atlas-hero';
 import { HowYouRideList } from '@/features/rider-insights/how-you-ride-list';
+import { RecapEntryRow } from '@/features/rider-insights/recap/recap-entry-row';
 import { RegionTiles, swapMainRegion } from '@/features/rider-insights/region-tiles';
 import { SeasonRibbon } from '@/features/rider-insights/season-ribbon';
 import { InsightsShareButton, InsightsShareSheet } from '@/features/rider-insights/share-sheet';
@@ -206,6 +207,11 @@ export default function RiderInsightsScreen() {
           system={system}
           onPurchased={() => void onPurchased()}
           onOpenDetail={openDetail}
+        />
+
+        <RecapEntryRow
+          insights={insights}
+          onPress={() => router.push({ pathname: PROFILE_ROUTE.RIDER_INSIGHTS_RECAP })}
         />
       </ScrollView>
       <InsightsShareSheet
