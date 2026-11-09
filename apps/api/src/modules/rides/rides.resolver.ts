@@ -1,5 +1,6 @@
 import {
   EndRideInputSchema,
+  RidePauseInputSchema,
   StartRideInputSchema,
   UpdateRideInputSchema,
   UploadWaypointsInputSchema,
@@ -12,6 +13,7 @@ import { Public } from '../../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { EndRideInput } from './dto/end-ride.input';
+import { RidePauseInput } from './dto/ride-pause.input';
 import { StartRideInput } from './dto/start-ride.input';
 import { UpdateRideInput } from './dto/update-ride.input';
 import { UploadWaypointsInput } from './dto/upload-waypoints.input';
@@ -40,6 +42,25 @@ export class RidesResolver {
     @Args('input', new ZodValidationPipe(EndRideInputSchema)) input: EndRideInput,
   ): Promise<EndRideResponse> {
     return this.ridesService.endRide(user.id, input);
+  }
+
+  /** True when the ride is now paused; false when it is no longer open (ended,
+   *  deleted, not this rider's) — never an error, so the phone's queue moves on. */
+  @Mutation(() => Boolean)
+  async pauseRide(
+    @CurrentUser() user: AuthUser,
+    @Args('input', new ZodValidationPipe(RidePauseInputSchema)) input: RidePauseInput,
+  ): Promise<boolean> {
+    return this.ridesService.setRidePaused(user.id, input.rideId, true);
+  }
+
+  /** True when the ride is recording again; false when it is no longer open. */
+  @Mutation(() => Boolean)
+  async resumeRide(
+    @CurrentUser() user: AuthUser,
+    @Args('input', new ZodValidationPipe(RidePauseInputSchema)) input: RidePauseInput,
+  ): Promise<boolean> {
+    return this.ridesService.setRidePaused(user.id, input.rideId, false);
   }
 
   @Mutation(() => Int)

@@ -23,6 +23,8 @@ describe('RidesResolver auth guard audit', () => {
     'uploadWaypoints',
     'updateRide',
     'deleteRide',
+    'pauseRide',
+    'resumeRide',
     'myRides',
     'ride',
     'rideMilestoneStats',
@@ -67,5 +69,25 @@ describe('RidesResolver rideMilestoneStats argument validation', () => {
     expect(() => ParseUUIDPipe.transform('not-a-uuid', metadata)).toThrow(BadRequestException);
     expect(ParseUUIDPipe.transform(undefined, metadata)).toBeUndefined();
     expect(ParseUUIDPipe.transform(null, metadata)).toBeNull();
+  });
+});
+
+describe('RidesResolver pause / resume', () => {
+  it('passes the rider and ride to the service, paused or not', async () => {
+    const calls: unknown[][] = [];
+    const service = {
+      setRidePaused: async (...args: unknown[]) => {
+        calls.push(args);
+        return true;
+      },
+    };
+    const resolver = new RidesResolver(service as never);
+    const user = { id: 'user-1' } as never;
+    await expect(resolver.pauseRide(user, { rideId: 'r1' })).resolves.toBe(true);
+    await expect(resolver.resumeRide(user, { rideId: 'r1' })).resolves.toBe(true);
+    expect(calls).toEqual([
+      ['user-1', 'r1', true],
+      ['user-1', 'r1', false],
+    ]);
   });
 });

@@ -744,6 +744,11 @@ describe('pause and resume — one engine path for the HUD and CarPlay', () => {
     );
     // The phase is paused when the reminders re-arm, so they pick the paused set.
     expect(armReminders).toHaveBeenCalledWith(1_600_000);
+    // The server learns too (its idle sweep then skips the "still riding?" push).
+    expect(enqueue).toHaveBeenCalledWith(
+      'pauseRide',
+      expect.objectContaining({ variables: { input: { rideId: 'ride-1' } } }),
+    );
     expect(trackEvent).toHaveBeenCalledWith(
       'ride_paused',
       expect.objectContaining({ ride_id: 'ride-1', source: 'carplay', duration_at_pause_s: 600 }),
@@ -758,6 +763,7 @@ describe('pause and resume — one engine path for the HUD and CarPlay', () => {
     mmkvState.currentId = '';
     expect(pauseRideSession('phone')).toBe(false);
     expect(armReminders).not.toHaveBeenCalled();
+    expect(enqueue).not.toHaveBeenCalled();
   });
 
   it('resumes: banks the pause, persists recording, restarts the reminder clock', () => {
@@ -771,6 +777,10 @@ describe('pause and resume — one engine path for the HUD and CarPlay', () => {
     expect(mmkvState.status).toBe('recording');
     expect(useRideStore.setState).toHaveBeenCalledWith({ status: 'recording' });
     expect(armReminders).toHaveBeenCalledWith(1_500_000);
+    expect(enqueue).toHaveBeenCalledWith(
+      'resumeRide',
+      expect.objectContaining({ variables: { input: { rideId: 'ride-1' } } }),
+    );
     expect(trackEvent).toHaveBeenCalledWith(
       'ride_resumed',
       expect.objectContaining({ ride_id: 'ride-1', pause_duration_s: 300, source: 'phone' }),

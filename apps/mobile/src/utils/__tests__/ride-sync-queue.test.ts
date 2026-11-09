@@ -651,6 +651,51 @@ describe('pending work counts BOTH stores', () => {
   });
 });
 
+describe('best-effort ops (pause / resume)', () => {
+  function rideOp(rideId: string) {
+    return { variables: { input: { rideId } } } as Record<string, unknown>;
+  }
+
+  it('drops an undeliverable pause on its own and still delivers the ride end', async () => {
+    enqueue('pauseRide', rideOp('ride-A'));
+    enqueue('endRide', rideOp('ride-A'));
+    const sent: string[] = [];
+    mockGqlFetcher.mockImplementation((doc: unknown) => {
+      const pausing = JSON.stringify(doc).includes('pauseRide');
+      sent.push(pausing ? 'pauseRide' : 'endRide');
+      return pausing ? Promise.reject(gqlError('BAD_REQUEST')) : Promise.resolve({});
+    });
+
+    await drainQueue();
+
+    expect(sent).toEqual(['pauseRide', 'endRide']);
+    expect(getQueueLength()).toBe(0);
+    // Never parked: a pause is not part of the ride the rider would lose.
+    expect(deadLetter()).toHaveLength(0);
+  });
+
+  it('drops a pause the API does not know yet once its retries run out', async () => {
+    // An app shipped ahead of the API: the mutation fails validation, retryably.
+    mockSyncStore.set(
+      'sync.queue',
+      JSON.stringify([syncOp({ seq: 1, type: 'resumeRide', retries: 4 })]),
+    );
+    mockGqlFetcher.mockRejectedValue(new Error('Cannot query field "resumeRide"'));
+    const timeoutSpy = jest
+      .spyOn(global, 'setTimeout')
+      .mockImplementation((cb: (...a: unknown[]) => void) => {
+        cb();
+        return 0 as unknown as ReturnType<typeof setTimeout>;
+      });
+
+    await drainQueue();
+
+    timeoutSpy.mockRestore();
+    expect(getQueueLength()).toBe(0);
+    expect(deadLetter()).toHaveLength(0);
+  });
+});
+
 describe('dependency-aware dead-lettering (MOTO-VAULT-REACT-NATIVE-3C)', () => {
   function rideOp(rideId: string) {
     return { variables: { input: { rideId } } } as Record<string, unknown>;

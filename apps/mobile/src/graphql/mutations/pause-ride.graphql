@@ -1,0 +1,3 @@
+mutation PauseRide($input: RidePauseInput!) {
+  pauseRide(input: $input)
+}

@@ -10,6 +10,8 @@ import {
   EndRideDocument,
   MyMotorcyclesDocument,
   type MyMotorcyclesQuery,
+  PauseRideDocument,
+  ResumeRideDocument,
   StartRideDocument,
 } from '@motovault/graphql';
 import * as Crypto from 'expo-crypto';
@@ -295,6 +297,12 @@ export function pauseRideSession(source: RideSource): boolean {
   rideMMKV.setPausedAt(now);
   useRideStore.setState({ status: 'paused', currentSpeed: 0 });
   void armRideReminders(now);
+  // Tells the server, so its idle sweep does not ask "still riding?" about a
+  // deliberate stop. Best-effort: a failure drops only this op (sync queue).
+  void enqueueOrExecute('pauseRide', {
+    mutationDocument: PauseRideDocument,
+    variables: { input: { rideId: record.rideId } },
+  });
   trackEvent(AnalyticsEvent.RIDE_PAUSED, {
     ride_id: record.rideId,
     duration_at_pause_s: elapsedRideSeconds(now),
@@ -320,6 +328,10 @@ export function resumeRideSession(source: RideSource): boolean {
   rideMMKV.setStatus(RIDE_PHASE.RECORDING);
   useRideStore.setState({ status: 'recording' });
   void armRideReminders(now);
+  void enqueueOrExecute('resumeRide', {
+    mutationDocument: ResumeRideDocument,
+    variables: { input: { rideId: record.rideId } },
+  });
   trackEvent(AnalyticsEvent.RIDE_RESUMED, {
     ride_id: record.rideId,
     pause_duration_s: Math.round(pausedMs / 1000),

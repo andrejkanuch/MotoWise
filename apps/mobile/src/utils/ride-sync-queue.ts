@@ -1,6 +1,8 @@
 import {
   DeleteRideDocument,
   EndRideDocument,
+  PauseRideDocument,
+  ResumeRideDocument,
   StartRideDocument,
   UpdateRideDocument,
   UploadWaypointsDocument,
@@ -23,7 +25,9 @@ export type SyncOperationType =
   | 'uploadWaypoints'
   | 'endRide'
   | 'updateRide'
-  | 'deleteRide';
+  | 'deleteRide'
+  | 'pauseRide'
+  | 'resumeRide';
 
 // Lookup map: resolve GraphQL documents from operation type string.
 // TypedDocumentNode objects can't be serialized to MMKV JSON, so we
@@ -35,7 +39,17 @@ const MUTATION_DOCUMENT_MAP: Record<SyncOperationType, any> = {
   endRide: EndRideDocument,
   updateRide: UpdateRideDocument,
   deleteRide: DeleteRideDocument,
+  pauseRide: PauseRideDocument,
+  resumeRide: ResumeRideDocument,
 };
+
+/**
+ * Ops whose delivery is a nicety, not part of the ride: the server's pause state
+ * only quiets its idle push. One that cannot be delivered is dropped on its own —
+ * never dead-lettered, and never taking the ride's later ops (EndRide) with it.
+ * That includes an app that ships ahead of the API that knows the mutation.
+ */
+const BEST_EFFORT_OPS: ReadonlySet<SyncOperationType> = new Set(['pauseRide', 'resumeRide']);
 
 interface SyncOperation {
   seq: number;
@@ -145,6 +159,8 @@ const RIDE_ID_PAYLOAD_PATH: Record<SyncOperationType, readonly string[]> = {
   endRide: ['variables', 'input', 'rideId'],
   updateRide: ['variables', 'input', 'rideId'],
   deleteRide: ['variables', 'id'],
+  pauseRide: ['variables', 'input', 'rideId'],
+  resumeRide: ['variables', 'input', 'rideId'],
 };
 
 /**
@@ -633,7 +649,17 @@ async function drainPass(): Promise<void> {
       }
 
       const nextRetries = op.retries + 1;
-      if (isNonRetryableError(error) || nextRetries >= MAX_RETRIES) {
+      const permanent = isNonRetryableError(error) || nextRetries >= MAX_RETRIES;
+      if (permanent && BEST_EFFORT_OPS.has(op.type)) {
+        // Drop just this op and move on: nothing after it depends on it.
+        captureException(error instanceof Error ? error : new Error(`Ride sync drop: ${op.type}`), {
+          source: 'ride-sync-queue.bestEffortDrop',
+          opType: op.type,
+        });
+        removeOpBySeq(op.seq);
+        continue;
+      }
+      if (permanent) {
         // Permanent failure. The old code dead-lettered just this op and advanced,
         // on the premise that "later independent ops still get a chance" — false for
         // ride ops, which are a dependency chain keyed by rideId

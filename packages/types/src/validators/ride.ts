@@ -57,6 +57,19 @@ export const EndRideInputSchema = z.object({
 });
 export type EndRideInput = z.infer<typeof EndRideInputSchema>;
 
+// --- Pause / Resume ---
+
+/**
+ * A manual pause or resume, sent best-effort by the phone. It carries only the
+ * ride id: the server keeps the phase, not the pause clock (pause durations
+ * arrive with EndRide), and a ride that is no longer open is answered with
+ * `false`, never an error — an error would dead-letter the ride's later ops.
+ */
+export const RidePauseInputSchema = z.object({
+  rideId: z.string().uuid(),
+});
+export type RidePauseInput = z.infer<typeof RidePauseInputSchema>;
+
 // --- Upload Waypoints ---
 
 /**

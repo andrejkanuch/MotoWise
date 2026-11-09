@@ -114,6 +114,7 @@ function clientFor(opts: {
   track?: Array<{ recorded_at: string; latitude: number; longitude: number }>;
   logError?: { code?: string } | null;
   hasToken?: boolean;
+  status?: 'recording' | 'paused';
 }) {
   return makeAdminClient({
     rides: {
@@ -122,7 +123,7 @@ function clientFor(opts: {
           id: 'r1',
           user_id: 'u1',
           started_at: hoursAgo(opts.startedHoursAgo),
-          status: 'recording',
+          status: opts.status ?? 'recording',
         },
       ],
       error: null,
@@ -243,6 +244,36 @@ describe('RideIdleService.sweepIdleRides', () => {
     expect(mockSentMessages[0].title).toBe('Still riding?');
     // Critically: no write to the ride itself at the nudge stage.
     expect(ridesPatch()).toBeUndefined();
+  });
+
+  it('never nudges a manually paused ride (the phone reminds it itself)', async () => {
+    const service = makeService(
+      clientFor({
+        startedHoursAgo: 5,
+        status: 'paused',
+        track: [{ recorded_at: hoursAgo(3), latitude: 34.9, longitude: -82.9 }],
+      }),
+    );
+
+    const summary = await service.sweepIdleRides();
+
+    expect(summary).toMatchObject({ nudged: 0, autoEnded: 0 });
+    expect(mockSentMessages).toHaveLength(0);
+  });
+
+  it('still auto-ends a paused ride 24 h after its last fix', async () => {
+    const service = makeService(
+      clientFor({
+        startedHoursAgo: 31,
+        status: 'paused',
+        track: [{ recorded_at: hoursAgo(30), latitude: 34.9, longitude: -82.9 }],
+      }),
+    );
+
+    const summary = await service.sweepIdleRides();
+
+    expect(summary).toMatchObject({ autoEnded: 1, nudged: 0 });
+    expect(ridesPatch()).toMatchObject({ status: 'completed' });
   });
 
   it('auto-ends a ride idle past the threshold, trimming ended_at back to the last GPS fix', async () => {
