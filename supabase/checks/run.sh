@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# Runs the SQL checks in supabase/checks/ against a DISPOSABLE postgres:17
-# container. It never connects to any other database: there is no host, port
+# Runs the SQL checks in supabase/checks/ against a DISPOSABLE PostGIS
+# container (postgis/postgis:17-3.5: Postgres 17 with PostGIS, which production
+# also has). It never connects to any other database: there is no host, port
 # or URL parameter on purpose. Requires Docker.
+#
+# The image is published for linux/amd64 only, so it is pulled for that
+# platform; on Apple silicon Docker runs it under emulation.
 #
 #   supabase/checks/run.sh                                # every check
 #   supabase/checks/run.sh process_revenuecat_event.sql   # one check
@@ -13,13 +17,14 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 supabase_dir="$(dirname "$here")"
-image="postgres:17"
+image="postgis/postgis:17-3.5"
+platform="linux/amd64"
 name="motovault-sql-check-$$"
 
 cleanup() { docker rm -f "$name" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
-docker run -d --rm --name "$name" \
+docker run -d --rm --name "$name" --platform "$platform" \
   -e POSTGRES_PASSWORD=throwaway \
   -v "$supabase_dir:/supabase:ro" \
   "$image" >/dev/null
