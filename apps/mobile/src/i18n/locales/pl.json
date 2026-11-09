@@ -307,8 +307,6 @@
     "totalDistance": "Łączny dystans"
   },
   "profile": {
-    "roadsTitle": "Przejechane trasy",
-    "roadsSubtitle": "Mapa ciepła i podsumowanie roku",
     "rider": "Jezdziec",
     "proBanner": "MotoVault PRO",
     "proDescription": "Odblokuj diagnostykę AI i lekcje premium",
@@ -363,7 +361,8 @@
     "sectionApp": "Aplikacja",
     "nameLabel": "Imię i nazwisko",
     "publicNameLabel": "Nazwa publiczna (widoczna dla innych motocyklistów)",
-    "sectionFeedback": "Opinie"
+    "sectionFeedback": "Opinie",
+    "riderInsightsDescription": "Drogi, miejsca i rytm twojego sezonu"
   },
   "onboarding": {
     "welcomeTitle": "Witaj w MotoVault",
@@ -1199,6 +1198,11 @@
       "clear": "Wyczyść",
       "clearNoteA11y": "Wyczyść przywróconą notatkę",
       "clearReadingA11y": "Wyczyść przywrócony odczyt"
+    },
+    "serviceDistance": {
+      "since": "{{distance}} {{unit}} od ostatniego serwisu",
+      "servicedAt": "Ostatni serwis przy {{distance}} {{unit}}",
+      "none": "Brak zapisanego serwisu"
     }
   },
   "maintenance": {
@@ -2196,7 +2200,8 @@
     "dur": "Czas",
     "avg": "Śr.",
     "ride_few": "{{count}} jazdy",
-    "ride_many": "{{count}} jazd"
+    "ride_many": "{{count}} jazd",
+    "insightsSubtitle": "Gdzie, kiedy i jak jeździsz"
   },
   "rideDetail": {
     "unavailable": "Ta jazda nie jest już dostępna. Mogła zostać usunięta lub ustawiona jako prywatna.",
@@ -2212,8 +2217,6 @@
     "deleteMessage": "Tej czynności nie można cofnąć.",
     "cancel": "Anuluj",
     "delete": "Usuń",
-    "leanAngle": "Maks. przechył",
-    "leanTooltip": "Kąt przechyłu jest szacowany na podstawie czujników ruchu telefonu. To nie jest precyzyjny przyrząd — rzeczywisty kąt może się różnić w zależności od mocowania telefonu i stanu drogi.",
     "private": "Prywatna",
     "threeD": "3D",
     "shareRideA11y": "Udostępnij przejazd",
@@ -2757,5 +2760,375 @@
     "riders": "Motocykliści",
     "join": "Dołącz do wyprawy",
     "joinErrorTitle": "Nie udało się dołączyć"
+  },
+  "riderInsightsPaywall": {
+    "seasonDistance": "{{distance}} w tym sezonie",
+    "seasonRides_one": "{{count}} jazda w tym sezonie",
+    "seasonRides_other": "{{count}} jazdy w tym sezonie",
+    "seasonRides_few": "{{count}} jazdy w tym sezonie",
+    "seasonRides_many": "{{count}} jazd w tym sezonie",
+    "longestRide": "Twoja najdłuższa jazda: {{distance}}",
+    "territory": {
+      "headlineDefault": "Zobacz, gdzie cię poniosło",
+      "subhead": "Pro pokazuje, ile z tego było nowymi drogami i jak daleko od domu dotarłeś."
+    },
+    "roadCharacter": {
+      "headlineDefault": "Zobacz, jakimi drogami jeździsz",
+      "subhead": "Pro pokazuje, jak kręte były twoje drogi, i szacowany przechył."
+    },
+    "rhythm": {
+      "headlineDefault": "Zobacz, kiedy jeździsz",
+      "subhead": "Pro pokazuje dni i godziny, w które jeździsz najczęściej, oraz twoją typową jazdę."
+    },
+    "bestRides": {
+      "headlineDefault": "Ranking twoich najlepszych jazd",
+      "subhead": "Pro układa twój sezon według dystansu, przewyższenia i zakrętów."
+    },
+    "summary": {
+      "headlineDefault": "Zobacz nowe drogi w każdej jeździe",
+      "subhead": "Pro pokazuje, jaka część każdej jazdy prowadziła drogami, którymi jeszcze nie jechałeś."
+    },
+    "cost": {
+      "headlineDefault": "Zobacz, ile kosztuje cię jazda",
+      "subhead": "Pro wylicza twój koszt na {{unit}} z wydatków na paliwo i serwis."
+    }
+  },
+  "riderInsights": {
+    "title": "Analiza jazdy",
+    "seasonRange": "Sezon {{year}}, od {{from}} do {{to}}",
+    "today": "dziś",
+    "stale": "Offline. Pokazujemy sezon z ostatniego zapisu.",
+    "offline": {
+      "title": "Jesteś offline",
+      "body": "Analiza jazdy za pierwszym razem potrzebuje połączenia. Spróbuj ponownie, gdy wrócisz online.",
+      "retry": "Spróbuj ponownie"
+    },
+    "error": {
+      "title": "Nie udało się wczytać analizy",
+      "body": "Coś poszło nie tak po naszej stronie. Spróbuj ponownie za chwilę.",
+      "retry": "Spróbuj ponownie"
+    },
+    "empty": {
+      "title": "Brak jazd w tym sezonie",
+      "body": "Zarejestruj jazdę, a pojawią się tu twoje drogi, miejsca i rytm."
+    },
+    "hero": {
+      "noRoutes": "Twoje drogi pojawią się tu po jeździe z GPS.",
+      "offline": "Mapa pojawi się, gdy wrócisz online.",
+      "mapA11y_one": "Mapa z {{count}} jazdą, region: {{region}}",
+      "mapA11y_other": "Mapa z {{count}} jazdy, region: {{region}}",
+      "mapA11y_few": "Mapa z {{count}} jazdami, region: {{region}}",
+      "mapA11y_many": "Mapa z {{count}} jazdami, region: {{region}}"
+    },
+    "totals": {
+      "rides_one": "{{count}} jazda",
+      "rides_other": "{{count}} jazdy",
+      "rides_few": "{{count}} jazdy",
+      "rides_many": "{{count}} jazd",
+      "countries_one": "{{count}} kraj",
+      "countries_other": "{{count}} kraju",
+      "countries_few": "{{count}} kraje",
+      "countries_many": "{{count}} krajów"
+    },
+    "countries": {
+      "a11y_one": "{{count}} kraj: {{names}}. Otwórz kraje",
+      "a11y_other": "{{count}} kraju: {{names}}. Otwórz kraje",
+      "a11y_few": "{{count}} kraje: {{names}}. Otwórz kraje",
+      "a11y_many": "{{count}} krajów: {{names}}. Otwórz kraje"
+    },
+    "regions": {
+      "unnamed": "Region bez nazwy",
+      "meta_one": "{{count}} jazda · {{distance}}",
+      "meta_other": "{{count}} jazdy · {{distance}}",
+      "meta_few": "{{count}} jazdy · {{distance}}",
+      "meta_many": "{{count}} jazd · {{distance}}",
+      "tileA11y": "Pokaż na mapie: {{region}}"
+    },
+    "ribbon": {
+      "section": "Sezon",
+      "weeksRidden": "Jazda w {{ridden}} z {{total}} tygodni",
+      "biggest": "Najwięcej: {{distance}}, od {{start}} do {{end}}"
+    },
+    "howYouRide": {
+      "section": "Jak jeździsz",
+      "keepRiding": "Za mało jazd, jeźdź dalej",
+      "computing": "Analizujemy twoje jazdy. Zajrzyj tu wkrótce.",
+      "missingRoute": "Wymaga jazd zapisanych z GPS",
+      "unlock": "Odblokuj",
+      "unlocking": "Odblokowywanie…",
+      "lockedA11y": "{{title}}, Pro. Otwiera paywall",
+      "unlockingA11y": "{{title}}, odblokowywanie",
+      "roadCharacter": {
+        "title": "Charakter dróg",
+        "teaser": "Jak kręte były twoje drogi, i przechył",
+        "value": "{{share}} kręte lub ciaśniejsze",
+        "withLean": "Z przechyłem, szacunkowo",
+        "bends": "{{bends}} zakrętów na 10 km",
+        "a11y": "{{straight}} prostych, {{sweeping}} szerokich łuków, {{twisty}} krętych, {{tight}} ciasnych"
+      },
+      "territory": {
+        "title": "Teren",
+        "teaser": "Nowe drogi i pokryta mapa",
+        "value": "{{area}} · {{share}} nowych dróg",
+        "furthest": "Najdalej od domu {{distance}}"
+      },
+      "rhythm": {
+        "title": "Rytm jazdy",
+        "teaser": "Dni i godziny, w które jeździsz najczęściej",
+        "missing": "Wymaga jazd z godziną startu",
+        "weekend_one": "{{weekend}} z {{count}} jazdy w weekend",
+        "weekend_other": "{{weekend}} z {{count}} jazdy w weekend",
+        "weekend_few": "{{weekend}} z {{count}} jazd w weekend",
+        "weekend_many": "{{weekend}} z {{count}} jazd w weekend",
+        "a11y": "Najczęstsza pora: {{slot}}",
+        "slot": {
+          "morning": "{{day}}, rano",
+          "afternoon": "{{day}}, po południu",
+          "evening": "{{day}}, wieczorem",
+          "night": "{{day}}, w nocy"
+        }
+      },
+      "bestRides": {
+        "title": "Najlepsze jazdy",
+        "titleFree": "Najlepsza jazda",
+        "value": "{{name}} · {{distance}}",
+        "unnamed": "Jazda {{date}}",
+        "captionPro": "Najdłuższa, {{date}} · potem przewyższenie i zakręty",
+        "captionFree": "Najdłuższa, {{date}} · przewyższenie i zakręty z Pro"
+      },
+      "bikes": {
+        "title": "Motocykle",
+        "missing": "Przypisz motocykl do jazd, żeby je porównać",
+        "item": "{{name}} {{distance}}",
+        "unnamed": "Motocykl",
+        "count_one": "{{count}} motocykl",
+        "count_other": "{{count}} motocykla",
+        "count_few": "{{count}} motocykle",
+        "count_many": "{{count}} motocykli",
+        "unassigned_one": "{{count}} jazda bez motocykla",
+        "unassigned_other": "{{count}} jazdy bez motocykla",
+        "unassigned_few": "{{count}} jazdy bez motocykla",
+        "unassigned_many": "{{count}} jazd bez motocykla"
+      }
+    },
+    "detail": {
+      "coverage": "Na podstawie {{count}} z {{total}} jazd",
+      "rideMeta": "{{date}} · {{distance}}",
+      "locked": {
+        "territory": "mapy pokryte w tym sezonie, po zaokrągleniu",
+        "roadCharacter": "zakrętów na 10 km, po zaokrągleniu",
+        "rhythm": "twoich jazd w weekend, po zaokrągleniu"
+      },
+      "roadCharacter": {
+        "heroLine": "z {{distance}} twoich tras było krętych lub ciaśniejszych",
+        "band": {
+          "straight": "Proste",
+          "sweeping": "Szerokie łuki",
+          "twisty": "Kręte",
+          "tight": "Ciasne zakręty"
+        },
+        "rule": {
+          "straight": "mniej niż 1 zakręt na 2 km",
+          "sweeping": "do 1,5 zakrętu na km",
+          "twisty": "do 3 zakrętów na km",
+          "tight": "3 lub więcej zakrętów na km"
+        },
+        "barA11y": "Proste {{straight}}, szerokie łuki {{sweeping}}, kręte {{twisty}}, ciasne zakręty {{tight}}",
+        "footnote_one": "Zakręt to skręt o 35° lub więcej w jedną stronę na odcinku do 400 m. {{count}} zakręt w tym sezonie.",
+        "footnote_other": "Zakręt to skręt o 35° lub więcej w jedną stronę na odcinku do 400 m. {{count}} zakrętu w tym sezonie.",
+        "footnote_few": "Zakręt to skręt o 35° lub więcej w jedną stronę na odcinku do 400 m. {{count}} zakręty w tym sezonie.",
+        "footnote_many": "Zakręt to skręt o 35° lub więcej w jedną stronę na odcinku do 400 m. {{count}} zakrętów w tym sezonie.",
+        "per10km": "zakręty / 10 km",
+        "twistiest_one": "Najbardziej kręta jazda",
+        "twistiest_other": "Najbardziej kręte jazdy",
+        "twistiest_few": "Najbardziej kręte jazdy",
+        "twistiest_many": "Najbardziej kręte jazdy",
+        "straightest_one": "Najprostsza jazda",
+        "straightest_other": "Najprostsze jazdy",
+        "straightest_few": "Najprostsze jazdy",
+        "straightest_many": "Najprostsze jazdy"
+      },
+      "lean": {
+        "title": "Przechył, szacunkowo",
+        "corners_one": "zmierzony zakręt",
+        "corners_other": "zmierzonego zakrętu",
+        "corners_few": "zmierzone zakręty",
+        "corners_many": "zmierzonych zakrętów",
+        "band": {
+          "under20": "<20°",
+          "from20to30": "20–30°",
+          "from30to40": "30–40°",
+          "from40": "40°+"
+        },
+        "a11y": "Udział zakrętów według przechyłu: poniżej 20° {{under20}}, od 20 do 30° {{from20to30}}, od 30 do 40° {{from30to40}}, 40° i więcej {{from40}}",
+        "missing": "Wymaga jazd zapisanych ze szczegółowym GPS",
+        "note": "Jeździec i motocykl razem, szacowane z prędkości GPS i zmiany kierunku. W krótkich, ciasnych zakrętach wynik jest zaniżony, dlatego pokazujemy przedziały, a nigdy jedną dokładną liczbę."
+      },
+      "territory": {
+        "heroLine": "pokrytej mapy w tym sezonie",
+        "newRoads": "Nowe drogi",
+        "newRoadsCaption": "{{distance}} z {{total}} na drogach, którymi wcześniej nie jechałeś",
+        "barA11y": "{{share}} dystansu w tym sezonie na nowych drogach, {{before}} na drogach już przejechanych",
+        "newShare": "{{share}} nowe",
+        "beforeShare": "{{share}} już przejechane",
+        "furthest": "Najdalej od domu",
+        "furthestRide": "Jazda {{date}}",
+        "fromHome": "Odległość od domu",
+        "footnote": "Dom to miejsce, w którym zaczyna się większość twoich jazd. Obszar liczy komórki mapy, przez które prowadzą twoje trasy."
+      },
+      "rhythm": {
+        "part": {
+          "morning": "Rano",
+          "afternoon": "Po południu",
+          "evening": "Wieczorem",
+          "night": "W nocy"
+        },
+        "busiest": "Najczęściej",
+        "typical": "Typowa jazda",
+        "footnote": "Każda jazda liczy się według godziny startu, w strefie czasowej, w której jechałeś."
+      },
+      "bestRides": {
+        "segment": {
+          "distance": "Dystans",
+          "climb": "Podjazd",
+          "bends": "Zakręty"
+        },
+        "longest": "Najdłuższa jazda",
+        "places": "{{start}} – {{end}}",
+        "proLine_one": "Pro układa twoją jazdę według dystansu, przewyższenia i zakrętów.",
+        "proLine_other": "Pro układa wszystkie {{count}} jazdy według dystansu, przewyższenia i zakrętów.",
+        "proLine_few": "Pro układa wszystkie {{count}} jazdy według dystansu, przewyższenia i zakrętów.",
+        "proLine_many": "Pro układa wszystkie {{count}} jazd według dystansu, przewyższenia i zakrętów.",
+        "proLineDefault": "Pro układa twoje jazdy według dystansu, przewyższenia i zakrętów.",
+        "empty": "Brak jazd z tym pomiarem",
+        "footnote": "Podjazd pomija zmiany wysokości poniżej 5 m. Zakręty są liczone na 10 km trasy."
+      },
+      "bikes": {
+        "heroLine": "przejechanych w tym sezonie",
+        "unassigned": "Bez przypisania",
+        "meta_one": "{{count}} jazda · {{time}} w ruchu",
+        "meta_other": "{{count}} jazdy · {{time}} w ruchu",
+        "meta_few": "{{count}} jazdy · {{time}} w ruchu",
+        "meta_many": "{{count}} jazd · {{time}} w ruchu"
+      },
+      "countries": {
+        "title": "Kraje",
+        "heroLine_one": "kraj w tym sezonie",
+        "heroLine_other": "kraju w tym sezonie",
+        "heroLine_few": "kraje w tym sezonie",
+        "heroLine_many": "krajów w tym sezonie",
+        "meta_one": "Pierwszy raz {{date}} · {{count}} jazda",
+        "meta_other": "Pierwszy raz {{date}} · {{count}} jazdy",
+        "meta_few": "Pierwszy raz {{date}} · {{count}} jazdy",
+        "meta_many": "Pierwszy raz {{date}} · {{count}} jazd",
+        "footnote": "Kraj się liczy, gdy co najmniej 1 km trasy leży 500 m lub więcej w głąb jego granicy."
+      }
+    },
+    "share": {
+      "button": "Udostępnij sezon",
+      "close": "Zamknij",
+      "title": "Udostępnij swój sezon",
+      "subtitle": "Obraz do feedu lub relacji.",
+      "seasonLines": "Linie sezonu",
+      "seasonLinesCaption": "Za darmo · twoje trasy i podsumowania",
+      "atlasPoster": "Plakat atlasu",
+      "atlasPosterCaption": "Pro · mapa, kraje i charakter dróg",
+      "optionA11y": "{{name}}. {{caption}}",
+      "lockedA11y": "{{name}}, Pro. Otwiera paywall",
+      "sizeA11y": "Rozmiar obrazu",
+      "sizeFeed": "Feed 4:5",
+      "sizeStory": "Relacja 9:16",
+      "hideEnds": "Ukryj start i metę jazdy",
+      "hideEndsCaption": "Obcina 500 m z początku i końca każdej jazdy",
+      "save": "Zapisz obraz",
+      "share": "Udostępnij…",
+      "message": "Mój sezon motocyklowy {{year}}, udostępniony z MotoVault",
+      "ridesSeason_one": "{{count}} jazda · Sezon {{year}}",
+      "ridesSeason_other": "{{count}} jazdy · Sezon {{year}}",
+      "ridesSeason_few": "{{count}} jazdy · Sezon {{year}}",
+      "ridesSeason_many": "{{count}} jazd · Sezon {{year}}",
+      "ridesYear_one": "{{count}} jazda · {{year}}",
+      "ridesYear_other": "{{count}} jazdy · {{year}}",
+      "ridesYear_few": "{{count}} jazdy · {{year}}",
+      "ridesYear_many": "{{count}} jazd · {{year}}",
+      "handleBrand": "@{{handle}} · MotoVault",
+      "twisty": "{{share}} kręte lub ciaśniejsze"
+    },
+    "recap": {
+      "title": "Podsumowanie sezonu",
+      "entry": "Twoje podsumowanie sezonu {{year}}",
+      "entryCaptionPro": "Siedem kart do zachowania lub opublikowania",
+      "entryCaptionFree": "3 karty do zachowania lub opublikowania · 4 kolejne z Pro",
+      "open": "Otwórz",
+      "heading": "Twój sezon {{year}}",
+      "subheading": "Przewiń karty i udostępnij tę, która ci się podoba.",
+      "labelFree": "Za darmo · {{index}} z {{total}}",
+      "labelPro": "Pro · {{index}} z {{total}}",
+      "ridesIn_one": "{{count}} jazda w {{year}} roku",
+      "ridesIn_other": "{{count}} jazdy w {{year}} roku",
+      "ridesIn_few": "{{count}} jazdy w {{year}} roku",
+      "ridesIn_many": "{{count}} jazd w {{year}} roku",
+      "countries_one": "{{count}} kraj",
+      "countries_other": "{{count}} kraju",
+      "countries_few": "{{count}} kraje",
+      "countries_many": "{{count}} krajów",
+      "since": "od {{date}}",
+      "moreCountries": "+{{count}} więcej",
+      "longest": "Najdłuższa jazda",
+      "places": "{{from}} – {{to}}",
+      "rhythm": "Rytm jazdy",
+      "rhythmStarted_one": "{{count}} jazda rozpoczęta między {{from}} a {{to}}",
+      "rhythmStarted_other": "{{count}} jazdy rozpoczętej między {{from}} a {{to}}",
+      "rhythmStarted_few": "{{count}} jazdy rozpoczęte między {{from}} a {{to}}",
+      "rhythmStarted_many": "{{count}} jazd rozpoczętych między {{from}} a {{to}}",
+      "rhythmA11y": "Jazdy według dnia tygodnia i pory dnia",
+      "newRoads": "Nowe drogi",
+      "newRoadsShare": "kilometrów twoich tras to były nowe dla ciebie drogi",
+      "newRoadsArea": "pokrytej mapy",
+      "twistiest": "Najbardziej kręta jazda",
+      "twistiestBends": "{{bends}} zakrętów na każde 10 km",
+      "cost": "Koszt jazdy",
+      "costFrom": "z twoich wydatków na paliwo i serwis",
+      "costSource": {
+        "odometer": "Podzielone przez przyrost przebiegu w sezonie",
+        "tracked": "Podzielone przez dystans zarejestrowanych jazd",
+        "mixed": "Podzielone przez przyrost przebiegu tam, gdzie go zapisałeś, w pozostałych przypadkach przez zarejestrowane jazdy"
+      },
+      "costAlso": "Także {{cost}}",
+      "costMissing": "Wymaga tankowań zapisanych w ciągu sezonu",
+      "share": "Udostępnij tę kartę",
+      "shareMessage": "Mój sezon motocyklowy {{year}}, udostępniony z MotoVault"
+    }
+  },
+  "ridePurposeSheet": {
+    "title": "O tej jeździe (opcjonalnie)",
+    "purposeLabel": "W jakim celu?",
+    "purpose": {
+      "leisure": "Rekreacja",
+      "commute": "Dojazd",
+      "tour": "Podróż",
+      "errand": "Sprawunki",
+      "track": "Tor",
+      "offroad": "Off-road",
+      "other": "Inne"
+    },
+    "passenger": "Jazda z pasażerem",
+    "odometer": "Przebieg na koniec",
+    "odometerLabel": "Przebieg na koniec jazdy",
+    "odometerSave": "Zapisz",
+    "odometerSaved": "Przebieg zapisany"
+  },
+  "insightsEntry": {
+    "season": "Sezon: {{distance}}",
+    "lastRide": "+{{distance}} w ostatniej jeździe",
+    "withThisRide": "+{{distance}} z tą jazdą",
+    "newCountry": "Nowy kraj: {{country}}",
+    "loading": "Wczytywanie sezonu…",
+    "openHint": "Otwiera Analizę jazdy",
+    "newRoads": "Nowe drogi",
+    "newRoadsValue": "{{distance}} · {{share}}",
+    "newRoadsComputing": "Obliczanie…",
+    "unlockPro": "Odblokuj z Pro",
+    "newRoadsLockedA11y": "Nowe drogi w tej jeździe. Odblokuj z Pro"
   }
 }

@@ -333,8 +333,6 @@
     "imperial": "इंपीरियल (mi, °F)",
     "myTripsTitle": "मेरी ट्रिप्स",
     "currency": "मुद्रा",
-    "roadsTitle": "मैंने जिन रास्तों पर सवारी की",
-    "roadsSubtitle": "आजीवन हीटमैप और वार्षिक सारांश",
     "redeemCode": "कोड रिडीम करें",
     "appSettings": "ऐप सेटिंग्स",
     "appSettingsSubtitle": "भाषा, थीम, इकाइयाँ, मुद्रा, सूचनाएँ",
@@ -363,7 +361,8 @@
     "sectionApp": "ऐप",
     "nameLabel": "नाम",
     "publicNameLabel": "सार्वजनिक नाम (दूसरे राइडर्स को दिखता है)",
-    "sectionFeedback": "फ़ीडबैक"
+    "sectionFeedback": "फ़ीडबैक",
+    "riderInsightsDescription": "इस सीज़न के रास्ते, जगहें और राइडिंग का पैटर्न"
   },
   "onboarding": {
     "welcomeTitle": "MotoVault में आपका स्वागत है",
@@ -1157,6 +1156,11 @@
       "clear": "हटाएँ",
       "clearNoteA11y": "वापस लाया गया नोट हटाएँ",
       "clearReadingA11y": "वापस लाई गई रीडिंग हटाएँ"
+    },
+    "serviceDistance": {
+      "since": "पिछली सर्विस के बाद {{distance}} {{unit}}",
+      "servicedAt": "पिछली सर्विस {{distance}} {{unit}} पर",
+      "none": "कोई सर्विस लॉग नहीं की गई"
     }
   },
   "maintenance": {
@@ -2136,7 +2140,8 @@
     "ride_other": "{{count}} राइड्स",
     "elev": "ऊंचाई",
     "dur": "अवधि",
-    "avg": "औसत"
+    "avg": "औसत",
+    "insightsSubtitle": "आप कहाँ, कब और कैसे राइड करते हैं"
   },
   "rideDetail": {
     "unavailable": "यह राइड अब उपलब्ध नहीं है। हो सकता है इसे हटा दिया गया हो या निजी कर दिया गया हो।",
@@ -2152,8 +2157,6 @@
     "deleteMessage": "यह क्रिया पूर्ववत नहीं की जा सकती।",
     "cancel": "रद्द करें",
     "delete": "हटाएं",
-    "leanAngle": "अधिकतम लीन",
-    "leanTooltip": "लीन एंगल आपके फ़ोन के मोशन सेंसर से अनुमानित है। यह कोई सटीक उपकरण नहीं है — असली लीन एंगल फ़ोन माउंट की जगह और सड़क की हालत के हिसाब से अलग हो सकता है।",
     "private": "प्राइवेट",
     "threeD": "3D",
     "shareRideA11y": "राइड शेयर करें",
@@ -2693,5 +2696,331 @@
     "riders": "राइडर्स",
     "join": "इस ट्रिप में शामिल हों",
     "joinErrorTitle": "शामिल नहीं हो सके"
+  },
+  "riderInsightsPaywall": {
+    "seasonDistance": "इस सीज़न {{distance}}",
+    "seasonRides_one": "इस सीज़न {{count}} राइड",
+    "seasonRides_other": "इस सीज़न {{count}} राइड",
+    "longestRide": "आपकी सबसे लंबी राइड: {{distance}}",
+    "territory": {
+      "headlineDefault": "देखें आपने कहाँ-कहाँ घूमा",
+      "subhead": "Pro दिखाता है कि इसमें कितनी नई सड़कें थीं और आप घर से कितनी दूर गए।"
+    },
+    "roadCharacter": {
+      "headlineDefault": "देखें आपकी सड़कें कैसी हैं",
+      "subhead": "Pro दिखाता है कि आपकी सड़कें कितनी घुमावदार थीं, और आपका अनुमानित लीन।"
+    },
+    "rhythm": {
+      "headlineDefault": "देखें आप कब राइड करते हैं",
+      "subhead": "Pro आपके सबसे व्यस्त दिन और घंटे, और आपकी आम राइड दिखाता है।"
+    },
+    "bestRides": {
+      "headlineDefault": "अपनी बेस्ट राइड्स की रैंकिंग करें",
+      "subhead": "Pro आपके सीज़न को दूरी, चढ़ाई और मोड़ों के हिसाब से रैंक करता है।"
+    },
+    "summary": {
+      "headlineDefault": "हर राइड में नई सड़कें देखें",
+      "subhead": "Pro दिखाता है कि हर राइड का कितना हिस्सा ऐसी सड़क पर था जिस पर आप पहले कभी नहीं चले।"
+    },
+    "cost": {
+      "headlineDefault": "देखें आपकी राइडिंग का खर्च कितना है",
+      "subhead": "Pro आपके फ्यूल और सर्विस खर्च से प्रति {{unit}} लागत निकालता है।"
+    }
+  },
+  "riderInsights": {
+    "title": "राइडर इनसाइट्स",
+    "seasonRange": "सीज़न {{year}}, {{from}} से {{to}}",
+    "today": "आज",
+    "stale": "ऑफ़लाइन। आपका आखिरी सेव किया गया सीज़न दिख रहा है।",
+    "offline": {
+      "title": "आप ऑफ़लाइन हैं",
+      "body": "राइडर इनसाइट्स को पहली बार इंटरनेट कनेक्शन चाहिए। ऑनलाइन होने पर फिर कोशिश करें।",
+      "retry": "फिर कोशिश करें"
+    },
+    "error": {
+      "title": "आपकी इनसाइट्स लोड नहीं हो सकीं",
+      "body": "हमारी तरफ़ से कुछ गड़बड़ हुई। थोड़ी देर में फिर कोशिश करें।",
+      "retry": "फिर कोशिश करें"
+    },
+    "empty": {
+      "title": "इस सीज़न अभी तक कोई राइड नहीं",
+      "body": "एक राइड रिकॉर्ड करें, और आपके रास्ते, जगहें और राइडिंग पैटर्न यहाँ दिखेंगे।"
+    },
+    "hero": {
+      "noRoutes": "GPS के साथ राइड करने के बाद आपके रास्ते यहाँ दिखेंगे।",
+      "offline": "ऑनलाइन होने पर मैप दिखेगा।",
+      "mapA11y_one": "{{region}} के आसपास {{count}} राइड का मैप",
+      "mapA11y_other": "{{region}} के आसपास {{count}} राइड का मैप"
+    },
+    "totals": {
+      "rides_one": "{{count}} राइड",
+      "rides_other": "{{count}} राइड",
+      "countries_one": "{{count}} देश",
+      "countries_other": "{{count}} देश"
+    },
+    "countries": {
+      "a11y_one": "{{count}} देश: {{names}}। देश खोलें",
+      "a11y_other": "{{count}} देश: {{names}}। देश खोलें"
+    },
+    "regions": {
+      "unnamed": "बिना नाम का क्षेत्र",
+      "meta_one": "{{count}} राइड · {{distance}}",
+      "meta_other": "{{count}} राइड · {{distance}}",
+      "tileA11y": "{{region}} को मैप पर दिखाएँ"
+    },
+    "ribbon": {
+      "section": "सीज़न",
+      "weeksRidden": "{{total}} में से {{ridden}} हफ़्ते राइड की",
+      "biggest": "सबसे ज़्यादा: {{distance}}, {{start}} से {{end}}"
+    },
+    "howYouRide": {
+      "section": "आप कैसे राइड करते हैं",
+      "keepRiding": "अभी पर्याप्त राइड नहीं, राइड करते रहें",
+      "computing": "आपकी राइड्स का हिसाब लगाया जा रहा है। थोड़ी देर में देखें।",
+      "missingRoute": "GPS से रिकॉर्ड की गई राइड्स चाहिए",
+      "unlock": "अनलॉक",
+      "unlocking": "अनलॉक हो रहा है…",
+      "lockedA11y": "{{title}}, Pro। पेवॉल खोलता है",
+      "unlockingA11y": "{{title}}, अनलॉक हो रहा है",
+      "roadCharacter": {
+        "title": "सड़कों का मिज़ाज",
+        "teaser": "आपकी सड़कें कितनी घुमावदार थीं, और लीन",
+        "value": "{{share}} घुमावदार या उससे ज़्यादा",
+        "withLean": "लीन के साथ, अनुमानित",
+        "bends": "हर 10 km में {{bends}} मोड़",
+        "a11y": "{{straight}} सीधी, {{sweeping}} हल्के मोड़, {{twisty}} घुमावदार, {{tight}} तीखे मोड़"
+      },
+      "territory": {
+        "title": "दायरा",
+        "teaser": "नई सड़कें और मैप का कवर किया हिस्सा",
+        "value": "{{area}} · {{share}} नई सड़कें",
+        "furthest": "घर से सबसे दूर {{distance}}"
+      },
+      "rhythm": {
+        "title": "राइडिंग का पैटर्न",
+        "teaser": "आपके सबसे व्यस्त दिन और घंटे",
+        "missing": "शुरू होने के समय वाली राइड्स चाहिए",
+        "weekend_one": "{{count}} में से {{weekend}} राइड वीकेंड पर",
+        "weekend_other": "{{count}} में से {{weekend}} राइड वीकेंड पर",
+        "a11y": "सबसे व्यस्त समय {{slot}}",
+        "slot": {
+          "morning": "{{day}} सुबह",
+          "afternoon": "{{day}} दोपहर",
+          "evening": "{{day}} शाम",
+          "night": "{{day}} रात"
+        }
+      },
+      "bestRides": {
+        "title": "बेस्ट राइड्स",
+        "titleFree": "बेस्ट राइड",
+        "value": "{{name}} · {{distance}}",
+        "unnamed": "{{date}} की राइड",
+        "captionPro": "सबसे लंबी, {{date}} · फिर चढ़ाई और मोड़",
+        "captionFree": "सबसे लंबी, {{date}} · चढ़ाई और मोड़ Pro में"
+      },
+      "bikes": {
+        "title": "बाइक्स",
+        "missing": "तुलना के लिए अपनी राइड्स पर बाइक सेट करें",
+        "item": "{{name}} {{distance}}",
+        "unnamed": "बाइक",
+        "count_one": "{{count}} बाइक",
+        "count_other": "{{count}} बाइक्स",
+        "unassigned_one": "{{count}} राइड पर कोई बाइक सेट नहीं है",
+        "unassigned_other": "{{count}} राइड्स पर कोई बाइक सेट नहीं है"
+      }
+    },
+    "detail": {
+      "coverage": "{{total}} में से {{count}} राइड्स के आधार पर",
+      "rideMeta": "{{date}} · {{distance}}",
+      "locked": {
+        "territory": "इस सीज़न मैप का कवर किया हिस्सा, लगभग",
+        "roadCharacter": "मोड़ प्रति 10 km, लगभग",
+        "rhythm": "राइड्स वीकेंड पर, लगभग"
+      },
+      "roadCharacter": {
+        "heroLine": "आपके {{distance}} के रास्ते में से घुमावदार या उससे ज़्यादा",
+        "band": {
+          "straight": "सीधी",
+          "sweeping": "हल्के मोड़",
+          "twisty": "घुमावदार",
+          "tight": "तीखे मोड़"
+        },
+        "rule": {
+          "straight": "हर 2 km में 1 से कम मोड़",
+          "sweeping": "प्रति km 1.5 मोड़ तक",
+          "twisty": "प्रति km 3 मोड़ तक",
+          "tight": "प्रति km 3 या ज़्यादा मोड़"
+        },
+        "barA11y": "सीधी {{straight}}, हल्के मोड़ {{sweeping}}, घुमावदार {{twisty}}, तीखे मोड़ {{tight}}",
+        "footnote_one": "मोड़ का मतलब है 400 m के अंदर एक ही दिशा में 35° या ज़्यादा घूमना। इस सीज़न {{count}} मोड़।",
+        "footnote_other": "मोड़ का मतलब है 400 m के अंदर एक ही दिशा में 35° या ज़्यादा घूमना। इस सीज़न {{count}} मोड़।",
+        "per10km": "मोड़ / 10 km",
+        "twistiest_one": "सबसे घुमावदार राइड",
+        "twistiest_other": "सबसे घुमावदार राइड्स",
+        "straightest_one": "सबसे सीधी राइड",
+        "straightest_other": "सबसे सीधी राइड्स"
+      },
+      "lean": {
+        "title": "लीन, अनुमानित",
+        "corners_one": "कॉर्नर मापा गया",
+        "corners_other": "कॉर्नर मापे गए",
+        "band": {
+          "under20": "<20°",
+          "from20to30": "20–30°",
+          "from30to40": "30–40°",
+          "from40": "40°+"
+        },
+        "a11y": "लीन के हिसाब से कॉर्नर का हिस्सा: 20° से कम {{under20}}, 20 से 30° {{from20to30}}, 30 से 40° {{from30to40}}, 40° और ज़्यादा {{from40}}",
+        "missing": "डिटेल्ड GPS से रिकॉर्ड की गई राइड्स चाहिए",
+        "note": "राइडर और बाइक दोनों मिलाकर, GPS की स्पीड और मुड़ने से अनुमानित। छोटे, तीखे कॉर्नर में यह कम दिखता है, इसलिए इसे रेंज में दिखाया जाता है, कभी एक सटीक संख्या में नहीं।"
+      },
+      "territory": {
+        "heroLine": "इस सीज़न मैप का कवर किया हिस्सा",
+        "newRoads": "नई सड़कें",
+        "newRoadsCaption": "{{total}} में से {{distance}} ऐसी सड़कों पर जिन पर आप पहले नहीं चले",
+        "barA11y": "इस सीज़न की दूरी का {{share}} नई सड़कों पर, {{before}} पहले चली सड़कों पर",
+        "newShare": "{{share}} नई",
+        "beforeShare": "{{share}} पहले चली हुई",
+        "furthest": "घर से सबसे दूर",
+        "furthestRide": "{{date}} की राइड",
+        "fromHome": "घर से दूरी",
+        "footnote": "घर वह जगह है जहाँ से आपकी ज़्यादातर राइड्स शुरू होती हैं। एरिया उन मैप सेल्स को गिनता है जिनसे आपके रास्ते गुज़रते हैं।"
+      },
+      "rhythm": {
+        "part": {
+          "morning": "सुबह",
+          "afternoon": "दोपहर",
+          "evening": "शाम",
+          "night": "रात"
+        },
+        "busiest": "सबसे व्यस्त",
+        "typical": "आम राइड",
+        "footnote": "हर राइड उसके शुरू होने के समय पर गिनी जाती है, उस टाइम ज़ोन में जहाँ आपने राइड की।"
+      },
+      "bestRides": {
+        "segment": {
+          "distance": "दूरी",
+          "climb": "चढ़ाई",
+          "bends": "मोड़"
+        },
+        "longest": "सबसे लंबी राइड",
+        "places": "{{start}} से {{end}}",
+        "proLine_one": "Pro आपकी {{count}} राइड को दूरी, चढ़ाई और मोड़ों के हिसाब से रैंक करता है।",
+        "proLine_other": "Pro आपकी सभी {{count}} राइड्स को दूरी, चढ़ाई और मोड़ों के हिसाब से रैंक करता है।",
+        "proLineDefault": "Pro आपकी राइड्स को दूरी, चढ़ाई और मोड़ों के हिसाब से रैंक करता है।",
+        "empty": "इस माप वाली कोई राइड अभी नहीं",
+        "footnote": "चढ़ाई में 5 m से कम ऊँचाई के बदलाव नहीं गिने जाते। मोड़ रास्ते के हर 10 km पर गिने जाते हैं।"
+      },
+      "bikes": {
+        "heroLine": "इस सीज़न राइड किया",
+        "unassigned": "बाइक सेट नहीं",
+        "meta_one": "{{count}} राइड · {{time}} चलते हुए",
+        "meta_other": "{{count}} राइड्स · {{time}} चलते हुए"
+      },
+      "countries": {
+        "title": "देश",
+        "heroLine_one": "देश में इस सीज़न राइड की",
+        "heroLine_other": "देशों में इस सीज़न राइड की",
+        "meta_one": "पहली राइड {{date}} · {{count}} राइड",
+        "meta_other": "पहली राइड {{date}} · {{count}} राइड्स",
+        "footnote": "कोई देश तब गिना जाता है जब रास्ते का कम से कम 1 km उसकी सीमा के 500 m या ज़्यादा अंदर हो।"
+      }
+    },
+    "share": {
+      "button": "सीज़न शेयर करें",
+      "close": "बंद करें",
+      "title": "अपना सीज़न शेयर करें",
+      "subtitle": "आपकी फ़ीड या स्टोरी के लिए एक इमेज।",
+      "seasonLines": "सीज़न लाइन्स",
+      "seasonLinesCaption": "फ़्री · आपके रास्ते और कुल आँकड़े",
+      "atlasPoster": "एटलस पोस्टर",
+      "atlasPosterCaption": "Pro · मैप, देश और सड़कों का मिज़ाज",
+      "optionA11y": "{{name}}। {{caption}}",
+      "lockedA11y": "{{name}}, Pro। पेवॉल खोलता है",
+      "sizeA11y": "इमेज का साइज़",
+      "sizeFeed": "फ़ीड 4:5",
+      "sizeStory": "स्टोरी 9:16",
+      "hideEnds": "राइड की शुरुआत और अंत छिपाएँ",
+      "hideEndsCaption": "हर राइड की शुरुआत और अंत से 500 m हटाता है",
+      "save": "इमेज सेव करें",
+      "share": "शेयर करें…",
+      "message": "मेरा {{year}} का राइडिंग सीज़न, MotoVault से शेयर किया",
+      "ridesSeason_one": "{{count}} राइड · सीज़न {{year}}",
+      "ridesSeason_other": "{{count}} राइड्स · सीज़न {{year}}",
+      "ridesYear_one": "{{count}} राइड · {{year}}",
+      "ridesYear_other": "{{count}} राइड्स · {{year}}",
+      "handleBrand": "@{{handle}} · MotoVault",
+      "twisty": "{{share}} घुमावदार या उससे ज़्यादा"
+    },
+    "recap": {
+      "title": "सीज़न रीकैप",
+      "entry": "आपका {{year}} सीज़न रीकैप",
+      "entryCaptionPro": "रखने या पोस्ट करने के लिए सात कार्ड",
+      "entryCaptionFree": "रखने या पोस्ट करने के लिए 3 कार्ड · Pro में 4 और",
+      "open": "खोलें",
+      "heading": "आपका {{year}} सीज़न",
+      "subheading": "स्वाइप करके देखें, फिर पसंद का कार्ड शेयर करें।",
+      "labelFree": "फ़्री · {{total}} में से {{index}}",
+      "labelPro": "Pro · {{total}} में से {{index}}",
+      "ridesIn_one": "{{year}} में {{count}} राइड",
+      "ridesIn_other": "{{year}} में {{count}} राइड्स",
+      "countries_one": "{{count}} देश",
+      "countries_other": "{{count}} देश",
+      "since": "{{date}} से",
+      "moreCountries": "+{{count}} और",
+      "longest": "सबसे लंबी राइड",
+      "places": "{{from}} से {{to}}",
+      "rhythm": "राइडिंग का पैटर्न",
+      "rhythmStarted_one": "{{count}} राइड {{from}} से {{to}} बजे के बीच शुरू हुई",
+      "rhythmStarted_other": "{{count}} राइड्स {{from}} से {{to}} बजे के बीच शुरू हुईं",
+      "rhythmA11y": "हफ़्ते के दिन और दिन के समय के हिसाब से राइड्स",
+      "newRoads": "नई सड़कें",
+      "newRoadsShare": "रूट किलोमीटर ऐसी सड़कों पर थे जिन पर आप पहले कभी नहीं चले",
+      "newRoadsArea": "मैप कवर किया",
+      "twistiest": "सबसे घुमावदार राइड",
+      "twistiestBends": "हर 10 km में {{bends}} मोड़",
+      "cost": "राइडिंग का खर्च",
+      "costFrom": "आपके फ्यूल और सर्विस खर्च से",
+      "costSource": {
+        "odometer": "पूरे सीज़न में ओडोमीटर के बदलाव से भाग दिया गया",
+        "tracked": "आपकी ट्रैक की गई राइड्स की दूरी से भाग दिया गया",
+        "mixed": "जहाँ आपने लॉग किया वहाँ ओडोमीटर के बदलाव से, बाकी ट्रैक की गई राइड्स से भाग दिया गया"
+      },
+      "costAlso": "साथ ही {{cost}}",
+      "costMissing": "पूरे सीज़न का फ्यूल लॉग चाहिए",
+      "share": "यह कार्ड शेयर करें",
+      "shareMessage": "मेरा {{year}} का राइडिंग सीज़न, MotoVault से शेयर किया"
+    }
+  },
+  "ridePurposeSheet": {
+    "title": "इस राइड के बारे में (वैकल्पिक)",
+    "purposeLabel": "यह किसलिए थी?",
+    "purpose": {
+      "leisure": "घूमना",
+      "commute": "कम्यूट",
+      "tour": "टूर",
+      "errand": "काम से",
+      "track": "ट्रैक डे",
+      "offroad": "ऑफ़-रोड",
+      "other": "अन्य"
+    },
+    "passenger": "पीछे सवारी के साथ",
+    "odometer": "अंत में ओडोमीटर",
+    "odometerLabel": "राइड के अंत में ओडोमीटर रीडिंग",
+    "odometerSave": "सेव करें",
+    "odometerSaved": "ओडोमीटर सेव हुआ"
+  },
+  "insightsEntry": {
+    "season": "सीज़न: {{distance}}",
+    "lastRide": "पिछली राइड में +{{distance}}",
+    "withThisRide": "इस राइड से +{{distance}}",
+    "newCountry": "नया देश: {{country}}",
+    "loading": "आपका सीज़न लोड हो रहा है…",
+    "openHint": "राइडर इनसाइट्स खोलता है",
+    "newRoads": "नई सड़कें",
+    "newRoadsValue": "{{distance}} · {{share}}",
+    "newRoadsComputing": "हिसाब लगाया जा रहा है…",
+    "unlockPro": "Pro से अनलॉक करें",
+    "newRoadsLockedA11y": "इस राइड की नई सड़कें। Pro से अनलॉक करें"
   }
 }

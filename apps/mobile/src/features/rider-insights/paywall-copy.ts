@@ -61,19 +61,19 @@ interface RowCopy {
   /** The headline from a free number, or null when that number is missing. */
   headline: (numbers: InsightsPaywallNumbers, ctx: CopyContext) => string | null;
   headlineDefault: (t: TFunction) => string;
-  subhead: (t: TFunction) => string;
+  subhead: (ctx: CopyContext) => string;
 }
 
 const ROW_COPY: Record<RiderInsightsPaywallRow, RowCopy> = {
   [RIDER_INSIGHTS_PAYWALL_ROW.TERRITORY]: {
     headline: seasonDistance,
     headlineDefault: (t) => t('riderInsightsPaywall.territory.headlineDefault'),
-    subhead: (t) => t('riderInsightsPaywall.territory.subhead'),
+    subhead: ({ t }) => t('riderInsightsPaywall.territory.subhead'),
   },
   [RIDER_INSIGHTS_PAYWALL_ROW.ROAD_CHARACTER]: {
     headline: seasonDistance,
     headlineDefault: (t) => t('riderInsightsPaywall.roadCharacter.headlineDefault'),
-    subhead: (t) => t('riderInsightsPaywall.roadCharacter.subhead'),
+    subhead: ({ t }) => t('riderInsightsPaywall.roadCharacter.subhead'),
   },
   [RIDER_INSIGHTS_PAYWALL_ROW.RHYTHM]: {
     headline: (numbers, { t }) =>
@@ -81,7 +81,7 @@ const ROW_COPY: Record<RiderInsightsPaywallRow, RowCopy> = {
         ? null
         : t('riderInsightsPaywall.seasonRides', { count: numbers.seasonRides }),
     headlineDefault: (t) => t('riderInsightsPaywall.rhythm.headlineDefault'),
-    subhead: (t) => t('riderInsightsPaywall.rhythm.subhead'),
+    subhead: ({ t }) => t('riderInsightsPaywall.rhythm.subhead'),
   },
   [RIDER_INSIGHTS_PAYWALL_ROW.BEST_RIDES]: {
     headline: (numbers, ctx) =>
@@ -91,12 +91,18 @@ const ROW_COPY: Record<RiderInsightsPaywallRow, RowCopy> = {
             distance: formatWholeDistance(numbers.longestRideM, ctx),
           }),
     headlineDefault: (t) => t('riderInsightsPaywall.bestRides.headlineDefault'),
-    subhead: (t) => t('riderInsightsPaywall.bestRides.subhead'),
+    subhead: ({ t }) => t('riderInsightsPaywall.bestRides.subhead'),
   },
   [RIDER_INSIGHTS_PAYWALL_ROW.SUMMARY]: {
     headline: seasonDistance,
     headlineDefault: (t) => t('riderInsightsPaywall.summary.headlineDefault'),
-    subhead: (t) => t('riderInsightsPaywall.summary.subhead'),
+    subhead: ({ t }) => t('riderInsightsPaywall.summary.subhead'),
+  },
+  [RIDER_INSIGHTS_PAYWALL_ROW.COST]: {
+    headline: seasonDistance,
+    headlineDefault: (t) => t('riderInsightsPaywall.cost.headlineDefault'),
+    subhead: ({ t, system }) =>
+      t('riderInsightsPaywall.cost.subhead', { unit: mileageUnitLabel(system) }),
   },
 };
 
@@ -112,6 +118,6 @@ export function buildInsightsPaywallCopy(
   const copy = ROW_COPY[row];
   return {
     headline: copy.headline(numbers, ctx) ?? copy.headlineDefault(ctx.t),
-    subhead: copy.subhead(ctx.t),
+    subhead: copy.subhead(ctx),
   };
 }

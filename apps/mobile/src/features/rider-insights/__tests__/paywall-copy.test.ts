@@ -53,12 +53,30 @@ describe('buildInsightsPaywallCopy', () => {
     expect(copy.headline).toBe('Your longest ride: 385 km');
   });
 
+  it('gives the cost row the season distance and a subhead in the rider’s unit', () => {
+    expect(buildInsightsPaywallCopy(RIDER_INSIGHTS_PAYWALL_ROW.COST, NUMBERS, EN)).toEqual({
+      headline: '2,507 km this season',
+      subhead: 'Pro works out your cost per km, from your fuel and service spend.',
+    });
+    expect(
+      buildInsightsPaywallCopy(
+        RIDER_INSIGHTS_PAYWALL_ROW.COST,
+        { ...NUMBERS, seasonDistanceM: MILES_1330_M },
+        EN_MILES,
+      ),
+    ).toEqual({
+      headline: '1,330 mi this season',
+      subhead: 'Pro works out your cost per mi, from your fuel and service spend.',
+    });
+  });
+
   it.each([
     [RIDER_INSIGHTS_PAYWALL_ROW.TERRITORY, 'See where you explored'],
     [RIDER_INSIGHTS_PAYWALL_ROW.ROAD_CHARACTER, 'See what your roads are like'],
     [RIDER_INSIGHTS_PAYWALL_ROW.RHYTHM, 'See when you ride'],
     [RIDER_INSIGHTS_PAYWALL_ROW.BEST_RIDES, 'Rank your best rides'],
     [RIDER_INSIGHTS_PAYWALL_ROW.SUMMARY, 'See the new roads on every ride'],
+    [RIDER_INSIGHTS_PAYWALL_ROW.COST, 'See what your riding costs'],
   ])('falls back to the default headline for %s when its number is missing', (row, expected) => {
     expect(buildInsightsPaywallCopy(row, NO_NUMBERS, EN).headline).toBe(expected);
   });

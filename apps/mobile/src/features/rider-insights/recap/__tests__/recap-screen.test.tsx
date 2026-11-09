@@ -233,6 +233,24 @@ describe('a free rider', () => {
       surface: 'recap',
     });
   });
+
+  it('opens the cost paywall from the locked cost card, quoting only free numbers', async () => {
+    serve(freeInsights());
+    await renderRecap();
+    fireEvent.press(await screen.findByTestId('recap-card-cost'));
+    await waitFor(() => expect(mockPresentPaywall).toHaveBeenCalledTimes(1));
+    expect(mockPresentPaywall.mock.calls[0]).toEqual([
+      'cost',
+      {
+        headline: '2,507 km this season',
+        subhead: 'Pro works out your cost per km, from your fuel and service spend.',
+      },
+    ]);
+    expect(mockTrack).toHaveBeenCalledWith(AnalyticsEvent.RIDER_INSIGHTS_LOCKED_ROW_TAPPED, {
+      row: 'cost',
+      surface: 'recap',
+    });
+  });
 });
 
 describe('a Pro rider', () => {

@@ -24,13 +24,14 @@ export const PAYWALL_SURFACE = {
 
 export type PaywallSurface = (typeof PAYWALL_SURFACE)[keyof typeof PAYWALL_SURFACE];
 
-/** What opens the Rider insights paywall: a locked row, or the ride-summary card. */
+/** What opens the Rider insights paywall: a locked row or recap card, or the ride-summary card. */
 export const RIDER_INSIGHTS_PAYWALL_ROW = {
   TERRITORY: 'territory',
   ROAD_CHARACTER: 'road_character',
   RHYTHM: 'rhythm',
   BEST_RIDES: 'best_rides',
   SUMMARY: 'summary',
+  COST: 'cost',
 } as const;
 
 export type RiderInsightsPaywallRow =

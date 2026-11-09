@@ -333,8 +333,6 @@
     "imperial": "Imperial (mi, °F)",
     "myTripsTitle": "My trips",
     "currency": "Currency",
-    "roadsTitle": "Roads I've ridden",
-    "roadsSubtitle": "Lifetime heatmap & year recap",
     "redeemCode": "Redeem a code",
     "appSettings": "App settings",
     "appSettingsSubtitle": "Language, theme, units, currency, notifications",
@@ -2723,6 +2721,10 @@
     "summary": {
       "headlineDefault": "See the new roads on every ride",
       "subhead": "Pro shows how much of each ride was road you had never ridden."
+    },
+    "cost": {
+      "headlineDefault": "See what your riding costs",
+      "subhead": "Pro works out your cost per {{unit}}, from your fuel and service spend."
     }
   },
   "riderInsights": {
@@ -2986,7 +2988,6 @@
       },
       "costAlso": "Also {{cost}}",
       "costMissing": "Needs fuel logged across the season",
-      "costPaywall": "Pro shows what each kilometre of your season cost, from your fuel and service spend.",
       "share": "Share this card",
       "shareMessage": "My {{year}} riding season, shared from MotoVault"
     }

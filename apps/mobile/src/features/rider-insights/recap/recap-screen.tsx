@@ -55,15 +55,12 @@ const DIVIDER_OPACITY = 0.4;
 /** Where the capture copy sits: off screen, so the rider never sees it. */
 const OFFSCREEN = -100_000;
 
-/**
- * The paywall each locked card opens. Cost of riding has no row of its own, so
- * it reports as best rides and brings its own subhead.
- */
+/** The paywall row each locked card opens and reports. */
 const PAYWALL_ROW: Partial<Record<RecapCard, RiderInsightsPaywallRow>> = {
   [RECAP_CARD.RHYTHM]: RIDER_INSIGHTS_PAYWALL_ROW.RHYTHM,
   [RECAP_CARD.NEW_ROADS]: RIDER_INSIGHTS_PAYWALL_ROW.TERRITORY,
   [RECAP_CARD.TWISTIEST]: RIDER_INSIGHTS_PAYWALL_ROW.ROAD_CHARACTER,
-  [RECAP_CARD.COST]: RIDER_INSIGHTS_PAYWALL_ROW.BEST_RIDES,
+  [RECAP_CARD.COST]: RIDER_INSIGHTS_PAYWALL_ROW.COST,
 };
 
 const nativeShare = () =>
@@ -176,12 +173,7 @@ function RecapBody({ insights, system, unlocking, onPurchased }: RecapBodyProps)
         system,
         language,
       });
-      const result = await presentRiderInsightsPaywall(
-        row,
-        card === RECAP_CARD.COST
-          ? { ...copy, subhead: i18n('riderInsights.recap.costPaywall') }
-          : copy,
-      );
+      const result = await presentRiderInsightsPaywall(row, copy);
       if (result === 'purchased' || result === 'restored') onPurchased();
     },
     [insights, i18n, system, language, onPurchased],

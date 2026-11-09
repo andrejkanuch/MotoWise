@@ -43,7 +43,6 @@
     "ridesEmptySubtitle": "Registra tu primera salida para ver estadísticas, recorridos y gastos",
     "ridesEmptyStartRide": "Iniciar salida",
     "ridesEmptyAddBike": "Añade tu primera moto",
-    "roadsTitle": "Carreteras que he recorrido",
     "appSettings": "Ajustes de la app",
     "sectionRiding": "Salidas",
     "rideMap": "Mapa de la salida",
@@ -200,6 +199,11 @@
     },
     "service": {
       "serviceItems": "Trabajos de la revisión"
+    },
+    "serviceDistance": {
+      "since": "{{distance}} {{unit}} desde la última revisión",
+      "servicedAt": "Última revisión a los {{distance}} {{unit}}",
+      "none": "Sin revisiones registradas"
     }
   },
   "maintenance": {
@@ -534,5 +538,178 @@
       "fuelNoBike": "Añade una moto principal para comprobar la autonomía frente a tu ruta.",
       "fuelGapTooLong": "Tramo más largo {{gapKm}} km > {{rangeKm}} km de autonomía: añade una parada para repostar."
     }
+  },
+  "riderInsightsPaywall": {
+    "seasonRides_one": "{{count}} salida esta temporada",
+    "seasonRides_other": "{{count}} salidas esta temporada",
+    "seasonRides_many": "{{count}} salidas esta temporada",
+    "longestRide": "Tu salida más larga: {{distance}}",
+    "territory": {
+      "subhead": "Pro te muestra cuánto fue carretera nueva y hasta dónde llegaste desde casa."
+    },
+    "roadCharacter": {
+      "subhead": "Pro te muestra lo sinuosas que fueron tus carreteras y tu inclinación estimada."
+    },
+    "rhythm": {
+      "subhead": "Pro te muestra tus días y horas con más salidas, y tu salida típica."
+    },
+    "bestRides": {
+      "headlineDefault": "Clasifica tus mejores salidas"
+    },
+    "summary": {
+      "headlineDefault": "Mira las carreteras nuevas de cada salida",
+      "subhead": "Pro te muestra cuánto de cada salida fue por carreteras que nunca habías recorrido."
+    },
+    "cost": {
+      "subhead": "Pro calcula tu coste por {{unit}} a partir de lo que gastas en combustible y revisiones."
+    }
+  },
+  "riderInsights": {
+    "error": {
+      "body": "Algo ha fallado por nuestra parte. Inténtalo de nuevo en un momento."
+    },
+    "empty": {
+      "title": "Aún no hay salidas esta temporada",
+      "body": "Registra una salida y aquí aparecerán tus carreteras, lugares y ritmo."
+    },
+    "hero": {
+      "noRoutes": "Tus carreteras aparecen aquí después de una salida con GPS.",
+      "mapA11y_one": "Mapa de {{count}} salida por {{region}}",
+      "mapA11y_other": "Mapa de {{count}} salidas por {{region}}",
+      "mapA11y_many": "Mapa de {{count}} salidas por {{region}}"
+    },
+    "totals": {
+      "rides_one": "{{count}} salida",
+      "rides_other": "{{count}} salidas",
+      "rides_many": "{{count}} salidas"
+    },
+    "regions": {
+      "meta_one": "{{count}} salida · {{distance}}",
+      "meta_other": "{{count}} salidas · {{distance}}",
+      "meta_many": "{{count}} salidas · {{distance}}"
+    },
+    "ribbon": {
+      "weeksRidden": "{{ridden}} de {{total}} semanas con salidas"
+    },
+    "howYouRide": {
+      "keepRiding": "Aún no hay suficientes salidas, sigue rodando",
+      "computing": "Estamos analizando tus salidas. Vuelve pronto.",
+      "missingRoute": "Necesita salidas registradas con GPS",
+      "roadCharacter": {
+        "teaser": "Lo sinuosas que fueron tus carreteras, e inclinación"
+      },
+      "rhythm": {
+        "title": "Ritmo de salidas",
+        "teaser": "Tus días y horas con más salidas",
+        "missing": "Necesita salidas con hora de inicio",
+        "weekend_one": "{{weekend}} de {{count}} salida en fin de semana",
+        "weekend_other": "{{weekend}} de {{count}} salidas en fin de semana",
+        "weekend_many": "{{weekend}} de {{count}} salidas en fin de semana",
+        "a11y": "Momento con más salidas: {{slot}}"
+      },
+      "bestRides": {
+        "title": "Mejores salidas",
+        "titleFree": "Mejor salida",
+        "unnamed": "Salida del {{date}}"
+      },
+      "bikes": {
+        "missing": "Asigna una moto a tus salidas para compararlas",
+        "unassigned_one": "{{count}} salida no tiene moto asignada",
+        "unassigned_other": "{{count}} salidas no tienen moto asignada",
+        "unassigned_many": "{{count}} salidas no tienen moto asignada"
+      }
+    },
+    "detail": {
+      "coverage": "De {{count}} de {{total}} salidas",
+      "locked": {
+        "rhythm": "de tus salidas en fin de semana, redondeado"
+      },
+      "roadCharacter": {
+        "rule": {
+          "sweeping": "hasta 1,5 curvas por km"
+        },
+        "twistiest_one": "Salida más sinuosa",
+        "twistiest_other": "Salidas más sinuosas",
+        "twistiest_many": "Salidas más sinuosas",
+        "straightest_one": "Salida más recta",
+        "straightest_other": "Salidas más rectas",
+        "straightest_many": "Salidas más rectas"
+      },
+      "lean": {
+        "missing": "Necesita salidas registradas con GPS detallado"
+      },
+      "territory": {
+        "furthestRide": "Salida del {{date}}",
+        "footnote": "Tu casa es donde empiezan la mayoría de tus salidas. El área cuenta las celdas del mapa por las que pasan tus recorridos."
+      },
+      "rhythm": {
+        "busiest": "Con más salidas",
+        "typical": "Salida típica",
+        "footnote": "Cada salida cuenta a su hora de inicio, en la zona horaria donde rodaste."
+      },
+      "bestRides": {
+        "longest": "Salida más larga",
+        "proLine_one": "Pro clasifica tu salida por distancia, desnivel y curvas.",
+        "proLine_other": "Pro clasifica tus {{count}} salidas por distancia, desnivel y curvas.",
+        "proLine_many": "Pro clasifica tus {{count}} salidas por distancia, desnivel y curvas.",
+        "proLineDefault": "Pro clasifica tus salidas por distancia, desnivel y curvas.",
+        "empty": "Aún no hay salidas con esta medida"
+      },
+      "bikes": {
+        "meta_one": "{{count}} salida · {{time}} en movimiento",
+        "meta_other": "{{count}} salidas · {{time}} en movimiento",
+        "meta_many": "{{count}} salidas · {{time}} en movimiento"
+      },
+      "countries": {
+        "meta_one": "Primera vez el {{date}} · {{count}} salida",
+        "meta_other": "Primera vez el {{date}} · {{count}} salidas",
+        "meta_many": "Primera vez el {{date}} · {{count}} salidas"
+      }
+    },
+    "share": {
+      "hideEnds": "Ocultar inicio y fin de la salida",
+      "hideEndsCaption": "Recorta 500 m del inicio y del final de cada salida",
+      "ridesSeason_one": "{{count}} salida · Temporada {{year}}",
+      "ridesSeason_other": "{{count}} salidas · Temporada {{year}}",
+      "ridesSeason_many": "{{count}} salidas · Temporada {{year}}",
+      "ridesYear_one": "{{count}} salida · {{year}}",
+      "ridesYear_other": "{{count}} salidas · {{year}}",
+      "ridesYear_many": "{{count}} salidas · {{year}}"
+    },
+    "recap": {
+      "ridesIn_one": "{{count}} salida en {{year}}",
+      "ridesIn_other": "{{count}} salidas en {{year}}",
+      "ridesIn_many": "{{count}} salidas en {{year}}",
+      "longest": "Salida más larga",
+      "rhythm": "Ritmo de salidas",
+      "rhythmStarted_one": "{{count}} salida empezó entre las {{from}} y las {{to}}",
+      "rhythmStarted_other": "{{count}} salidas empezaron entre las {{from}} y las {{to}}",
+      "rhythmStarted_many": "{{count}} salidas empezaron entre las {{from}} y las {{to}}",
+      "rhythmA11y": "Salidas por día de la semana y hora del día",
+      "twistiest": "Salida más sinuosa",
+      "cost": "Coste de rodar",
+      "costFrom": "según lo que gastas en combustible y revisiones",
+      "costSource": {
+        "odometer": "Dividido entre lo que avanzó el cuentakilómetros en la temporada",
+        "tracked": "Dividido entre la distancia de tus salidas registradas",
+        "mixed": "Dividido entre lo que avanzó el cuentakilómetros donde lo registraste; si no, entre tus salidas registradas"
+      },
+      "costMissing": "Necesita repostajes registrados durante la temporada"
+    }
+  },
+  "ridePurposeSheet": {
+    "title": "Sobre esta salida (opcional)",
+    "purpose": {
+      "commute": "Al trabajo",
+      "errand": "Recado"
+    },
+    "odometer": "Cuentakilómetros al final",
+    "odometerLabel": "Lectura del cuentakilómetros al final de la salida",
+    "odometerSaved": "Cuentakilómetros guardado"
+  },
+  "insightsEntry": {
+    "lastRide": "+{{distance}} en tu última salida",
+    "withThisRide": "+{{distance}} con esta salida",
+    "newRoadsLockedA11y": "Carreteras nuevas en esta salida. Desbloquear con Pro"
   }
 }

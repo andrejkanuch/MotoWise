@@ -333,8 +333,6 @@
     "imperial": "Imperial (mi, °F)",
     "myTripsTitle": "Meine Touren",
     "currency": "Währung",
-    "roadsTitle": "Befahrene Strecken",
-    "roadsSubtitle": "Lebenslange Heatmap & Jahresrückblick",
     "redeemCode": "Code einlösen",
     "appSettings": "App-Einstellungen",
     "appSettingsSubtitle": "Sprache, Design, Einheiten, Währung, Mitteilungen",
@@ -363,7 +361,8 @@
     "sectionApp": "App",
     "nameLabel": "Name",
     "publicNameLabel": "Öffentlicher Name (für andere Fahrer sichtbar)",
-    "sectionFeedback": "Feedback"
+    "sectionFeedback": "Feedback",
+    "riderInsightsDescription": "Strecken, Orte und Rhythmus deiner Saison"
   },
   "onboarding": {
     "welcomeTitle": "Willkommen bei MotoVault",
@@ -1157,6 +1156,11 @@
       "clear": "Verwerfen",
       "clearNoteA11y": "Wiederhergestellte Notiz verwerfen",
       "clearReadingA11y": "Wiederhergestellten Kilometerstand verwerfen"
+    },
+    "serviceDistance": {
+      "since": "{{distance}} {{unit}} seit dem letzten Service",
+      "servicedAt": "Letzter Service bei {{distance}} {{unit}}",
+      "none": "Kein Service eingetragen"
     }
   },
   "maintenance": {
@@ -2136,7 +2140,8 @@
     "ride_other": "{{count}} Fahrten",
     "elev": "Höhe",
     "dur": "Dauer",
-    "avg": "Ø"
+    "avg": "Ø",
+    "insightsSubtitle": "Wo, wann und wie du fährst"
   },
   "rideDetail": {
     "unavailable": "Diese Fahrt ist nicht mehr verfügbar. Sie wurde möglicherweise gelöscht oder auf privat gestellt.",
@@ -2152,8 +2157,6 @@
     "deleteMessage": "Diese Aktion kann nicht rückgängig gemacht werden.",
     "cancel": "Abbrechen",
     "delete": "Löschen",
-    "leanAngle": "Max. Schräglage",
-    "leanTooltip": "Die Schräglage wird anhand der Bewegungssensoren deines Handys geschätzt. Sie ist kein Präzisionsinstrument — die tatsächliche Schräglage kann je nach Handyhalterung und Straßenzustand abweichen.",
     "private": "Privat",
     "threeD": "3D",
     "shareRideA11y": "Fahrt teilen",
@@ -2693,5 +2696,331 @@
     "riders": "Fahrer",
     "join": "Dieser Tour beitreten",
     "joinErrorTitle": "Beitritt fehlgeschlagen"
+  },
+  "riderInsightsPaywall": {
+    "seasonDistance": "{{distance}} in dieser Saison",
+    "seasonRides_one": "{{count}} Fahrt in dieser Saison",
+    "seasonRides_other": "{{count}} Fahrten in dieser Saison",
+    "longestRide": "Deine längste Fahrt: {{distance}}",
+    "territory": {
+      "headlineDefault": "Sieh, wo du unterwegs warst",
+      "subhead": "Pro zeigt, wie viel davon neue Strecke war und wie weit du von zu Hause weg warst."
+    },
+    "roadCharacter": {
+      "headlineDefault": "Sieh, wie deine Straßen sind",
+      "subhead": "Pro zeigt, wie kurvig deine Straßen waren, und deine geschätzte Schräglage."
+    },
+    "rhythm": {
+      "headlineDefault": "Sieh, wann du fährst",
+      "subhead": "Pro zeigt deine aktivsten Tage und Uhrzeiten und deine typische Fahrt."
+    },
+    "bestRides": {
+      "headlineDefault": "Deine besten Fahrten im Ranking",
+      "subhead": "Pro ordnet deine Saison nach Distanz, Höhenmetern und Kurven."
+    },
+    "summary": {
+      "headlineDefault": "Neue Straßen bei jeder Fahrt sehen",
+      "subhead": "Pro zeigt, wie viel jeder Fahrt auf Straßen lag, die du noch nie gefahren bist."
+    },
+    "cost": {
+      "headlineDefault": "Sieh, was dich das Fahren kostet",
+      "subhead": "Pro berechnet deine Kosten pro {{unit}} aus deinen Ausgaben für Kraftstoff und Service."
+    }
+  },
+  "riderInsights": {
+    "title": "Fahrstatistik",
+    "seasonRange": "Saison {{year}}, {{from}} bis {{to}}",
+    "today": "heute",
+    "stale": "Offline. Deine Saison wird so angezeigt, wie sie zuletzt gespeichert wurde.",
+    "offline": {
+      "title": "Du bist offline",
+      "body": "Die Fahrstatistik braucht beim ersten Mal eine Verbindung. Versuch es noch einmal, wenn du wieder online bist.",
+      "retry": "Erneut versuchen"
+    },
+    "error": {
+      "title": "Deine Statistik konnte nicht geladen werden",
+      "body": "Bei uns ist etwas schiefgelaufen. Versuch es gleich noch einmal.",
+      "retry": "Erneut versuchen"
+    },
+    "empty": {
+      "title": "Noch keine Fahrten in dieser Saison",
+      "body": "Zeichne eine Fahrt auf, dann erscheinen hier deine Strecken, Orte und dein Rhythmus."
+    },
+    "hero": {
+      "noRoutes": "Deine Strecken erscheinen hier nach einer Fahrt mit GPS.",
+      "offline": "Die Karte erscheint, sobald du wieder online bist.",
+      "mapA11y_one": "Karte mit {{count}} Fahrt rund um {{region}}",
+      "mapA11y_other": "Karte mit {{count}} Fahrten rund um {{region}}"
+    },
+    "totals": {
+      "rides_one": "{{count}} Fahrt",
+      "rides_other": "{{count}} Fahrten",
+      "countries_one": "{{count}} Land",
+      "countries_other": "{{count}} Länder"
+    },
+    "countries": {
+      "a11y_one": "{{count}} Land: {{names}}. Länder öffnen",
+      "a11y_other": "{{count}} Länder: {{names}}. Länder öffnen"
+    },
+    "regions": {
+      "unnamed": "Unbenannte Region",
+      "meta_one": "{{count}} Fahrt · {{distance}}",
+      "meta_other": "{{count}} Fahrten · {{distance}}",
+      "tileA11y": "{{region}} auf der Karte zeigen"
+    },
+    "ribbon": {
+      "section": "Saison",
+      "weeksRidden": "In {{ridden}} von {{total}} Wochen gefahren",
+      "biggest": "Spitzenwert: {{distance}}, {{start}} bis {{end}}"
+    },
+    "howYouRide": {
+      "section": "Wie du fährst",
+      "keepRiding": "Noch zu wenige Fahrten, fahr weiter",
+      "computing": "Deine Fahrten werden ausgewertet. Schau bald wieder vorbei.",
+      "missingRoute": "Braucht Fahrten mit GPS-Aufzeichnung",
+      "unlock": "Freischalten",
+      "unlocking": "Wird freigeschaltet…",
+      "lockedA11y": "{{title}}, Pro. Öffnet die Paywall",
+      "unlockingA11y": "{{title}}, wird freigeschaltet",
+      "roadCharacter": {
+        "title": "Straßencharakter",
+        "teaser": "Wie kurvig deine Straßen waren, und Schräglage",
+        "value": "{{share}} kurvig oder enger",
+        "withLean": "Mit Schräglage, geschätzt",
+        "bends": "{{bends}} Kurven pro 10 km",
+        "a11y": "{{straight}} gerade, {{sweeping}} geschwungen, {{twisty}} kurvig, {{tight}} eng"
+      },
+      "territory": {
+        "title": "Gebiet",
+        "teaser": "Neue Straßen und abgedeckte Fläche",
+        "value": "{{area}} · {{share}} neue Straßen",
+        "furthest": "Am weitesten von zu Hause {{distance}}"
+      },
+      "rhythm": {
+        "title": "Fahrrhythmus",
+        "teaser": "Deine aktivsten Tage und Uhrzeiten",
+        "missing": "Braucht Fahrten mit Startzeit",
+        "weekend_one": "{{weekend}} von {{count}} Fahrt am Wochenende",
+        "weekend_other": "{{weekend}} von {{count}} Fahrten am Wochenende",
+        "a11y": "Aktivste Zeit: {{slot}}",
+        "slot": {
+          "morning": "{{day}}vormittag",
+          "afternoon": "{{day}}nachmittag",
+          "evening": "{{day}}abend",
+          "night": "{{day}}nacht"
+        }
+      },
+      "bestRides": {
+        "title": "Beste Fahrten",
+        "titleFree": "Beste Fahrt",
+        "value": "{{name}} · {{distance}}",
+        "unnamed": "Fahrt am {{date}}",
+        "captionPro": "Längste, {{date}} · dann Höhenmeter und Kurven",
+        "captionFree": "Längste, {{date}} · Höhenmeter und Kurven mit Pro"
+      },
+      "bikes": {
+        "title": "Motorräder",
+        "missing": "Weise deinen Fahrten ein Motorrad zu, um sie zu vergleichen",
+        "item": "{{name}} {{distance}}",
+        "unnamed": "Motorrad",
+        "count_one": "{{count}} Motorrad",
+        "count_other": "{{count}} Motorräder",
+        "unassigned_one": "{{count}} Fahrt ohne Motorrad",
+        "unassigned_other": "{{count}} Fahrten ohne Motorrad"
+      }
+    },
+    "detail": {
+      "coverage": "Aus {{count}} von {{total}} Fahrten",
+      "rideMeta": "{{date}} · {{distance}}",
+      "locked": {
+        "territory": "der Karte in dieser Saison abgedeckt, gerundet",
+        "roadCharacter": "Kurven pro 10 km, gerundet",
+        "rhythm": "deiner Fahrten am Wochenende, gerundet"
+      },
+      "roadCharacter": {
+        "heroLine": "deiner {{distance}} Strecke waren kurvig oder enger",
+        "band": {
+          "straight": "Gerade",
+          "sweeping": "Geschwungen",
+          "twisty": "Kurvig",
+          "tight": "Enge Kurven"
+        },
+        "rule": {
+          "straight": "weniger als 1 Kurve alle 2 km",
+          "sweeping": "bis zu 1,5 Kurven pro km",
+          "twisty": "bis zu 3 Kurven pro km",
+          "tight": "3 oder mehr Kurven pro km"
+        },
+        "barA11y": "Gerade {{straight}}, geschwungen {{sweeping}}, kurvig {{twisty}}, enge Kurven {{tight}}",
+        "footnote_one": "Eine Kurve ist eine Richtungsänderung von 35° oder mehr in eine Richtung innerhalb von 400 m. {{count}} Kurve in dieser Saison.",
+        "footnote_other": "Eine Kurve ist eine Richtungsänderung von 35° oder mehr in eine Richtung innerhalb von 400 m. {{count}} Kurven in dieser Saison.",
+        "per10km": "Kurven / 10 km",
+        "twistiest_one": "Kurvigste Fahrt",
+        "twistiest_other": "Kurvigste Fahrten",
+        "straightest_one": "Geradeste Fahrt",
+        "straightest_other": "Geradeste Fahrten"
+      },
+      "lean": {
+        "title": "Schräglage, geschätzt",
+        "corners_one": "Kurve gemessen",
+        "corners_other": "Kurven gemessen",
+        "band": {
+          "under20": "<20°",
+          "from20to30": "20–30°",
+          "from30to40": "30–40°",
+          "from40": "40°+"
+        },
+        "a11y": "Anteil der Kurven nach Schräglage: unter 20° {{under20}}, 20 bis 30° {{from20to30}}, 30 bis 40° {{from30to40}}, 40° und mehr {{from40}}",
+        "missing": "Braucht Fahrten mit detaillierter GPS-Aufzeichnung",
+        "note": "Fahrer und Motorrad zusammen, geschätzt aus GPS-Geschwindigkeit und Richtungsänderung. In kurzen, engen Kurven fällt der Wert zu niedrig aus, deshalb zeigen wir Bereiche statt einer exakten Zahl."
+      },
+      "territory": {
+        "heroLine": "der Karte in dieser Saison abgedeckt",
+        "newRoads": "Neue Straßen",
+        "newRoadsCaption": "{{distance}} von {{total}} auf Straßen, die du vorher noch nicht gefahren bist",
+        "barA11y": "{{share}} der Saisondistanz auf neuen Straßen, {{before}} auf schon gefahrenen Straßen",
+        "newShare": "{{share}} neu",
+        "beforeShare": "{{share}} schon gefahren",
+        "furthest": "Am weitesten von zu Hause",
+        "furthestRide": "Fahrt am {{date}}",
+        "fromHome": "Entfernung von zu Hause",
+        "footnote": "Zu Hause ist dort, wo die meisten deiner Fahrten starten. Die Fläche zählt die Kartenzellen, durch die deine Strecken führen."
+      },
+      "rhythm": {
+        "part": {
+          "morning": "Vormittag",
+          "afternoon": "Nachmittag",
+          "evening": "Abend",
+          "night": "Nacht"
+        },
+        "busiest": "Am aktivsten",
+        "typical": "Typische Fahrt",
+        "footnote": "Jede Fahrt zählt zu ihrer Startzeit, in der Zeitzone, in der du gefahren bist."
+      },
+      "bestRides": {
+        "segment": {
+          "distance": "Distanz",
+          "climb": "Anstieg",
+          "bends": "Kurven"
+        },
+        "longest": "Längste Fahrt",
+        "places": "{{start}} bis {{end}}",
+        "proLine_one": "Pro ordnet deine {{count}} Fahrt nach Distanz, Höhenmetern und Kurven.",
+        "proLine_other": "Pro ordnet alle {{count}} Fahrten nach Distanz, Höhenmetern und Kurven.",
+        "proLineDefault": "Pro ordnet deine Fahrten nach Distanz, Höhenmetern und Kurven.",
+        "empty": "Noch keine Fahrten mit diesem Wert",
+        "footnote": "Höhenänderungen unter 5 m zählen nicht als Anstieg. Kurven werden pro 10 km Strecke gezählt."
+      },
+      "bikes": {
+        "heroLine": "in dieser Saison gefahren",
+        "unassigned": "Nicht zugeordnet",
+        "meta_one": "{{count}} Fahrt · {{time}} in Bewegung",
+        "meta_other": "{{count}} Fahrten · {{time}} in Bewegung"
+      },
+      "countries": {
+        "title": "Länder",
+        "heroLine_one": "Land in dieser Saison befahren",
+        "heroLine_other": "Länder in dieser Saison befahren",
+        "meta_one": "Zuerst befahren am {{date}} · {{count}} Fahrt",
+        "meta_other": "Zuerst befahren am {{date}} · {{count}} Fahrten",
+        "footnote": "Ein Land zählt, sobald mindestens 1 km einer Strecke 500 m oder mehr innerhalb seiner Grenze liegt."
+      }
+    },
+    "share": {
+      "button": "Saison teilen",
+      "close": "Schließen",
+      "title": "Teile deine Saison",
+      "subtitle": "Ein Bild für deinen Feed oder deine Story.",
+      "seasonLines": "Saisonlinien",
+      "seasonLinesCaption": "Kostenlos · deine Strecken und Summen",
+      "atlasPoster": "Atlas-Poster",
+      "atlasPosterCaption": "Pro · Karte, Länder und Straßencharakter",
+      "optionA11y": "{{name}}. {{caption}}",
+      "lockedA11y": "{{name}}, Pro. Öffnet die Paywall",
+      "sizeA11y": "Bildgröße",
+      "sizeFeed": "Feed 4:5",
+      "sizeStory": "Story 9:16",
+      "hideEnds": "Start und Ziel ausblenden",
+      "hideEndsCaption": "Kürzt jede Fahrt am Start und Ziel um 500 m",
+      "save": "Bild speichern",
+      "share": "Teilen…",
+      "message": "Meine Motorradsaison {{year}}, geteilt aus MotoVault",
+      "ridesSeason_one": "{{count}} Fahrt · Saison {{year}}",
+      "ridesSeason_other": "{{count}} Fahrten · Saison {{year}}",
+      "ridesYear_one": "{{count}} Fahrt · {{year}}",
+      "ridesYear_other": "{{count}} Fahrten · {{year}}",
+      "handleBrand": "@{{handle}} · MotoVault",
+      "twisty": "{{share}} kurvig oder enger"
+    },
+    "recap": {
+      "title": "Saisonrückblick",
+      "entry": "Dein Saisonrückblick {{year}}",
+      "entryCaptionPro": "Sieben Karten zum Behalten oder Posten",
+      "entryCaptionFree": "3 Karten zum Behalten oder Posten · 4 weitere mit Pro",
+      "open": "Öffnen",
+      "heading": "Deine Saison {{year}}",
+      "subheading": "Wisch durch und teile die Karte, die dir gefällt.",
+      "labelFree": "Kostenlos · {{index}} von {{total}}",
+      "labelPro": "Pro · {{index}} von {{total}}",
+      "ridesIn_one": "{{count}} Fahrt {{year}}",
+      "ridesIn_other": "{{count}} Fahrten {{year}}",
+      "countries_one": "{{count}} Land",
+      "countries_other": "{{count}} Länder",
+      "since": "seit {{date}}",
+      "moreCountries": "+{{count}} weitere",
+      "longest": "Längste Fahrt",
+      "places": "{{from}} bis {{to}}",
+      "rhythm": "Fahrrhythmus",
+      "rhythmStarted_one": "{{count}} Fahrt startete zwischen {{from}} und {{to}} Uhr",
+      "rhythmStarted_other": "{{count}} Fahrten starteten zwischen {{from}} und {{to}} Uhr",
+      "rhythmA11y": "Fahrten nach Wochentag und Tageszeit",
+      "newRoads": "Neue Straßen",
+      "newRoadsShare": "deiner gefahrenen Kilometer waren Straßen, die du noch nie gefahren bist",
+      "newRoadsArea": "der Karte abgedeckt",
+      "twistiest": "Kurvigste Fahrt",
+      "twistiestBends": "{{bends}} Kurven alle 10 km",
+      "cost": "Kosten des Fahrens",
+      "costFrom": "aus deinen Kraftstoff- und Servicekosten",
+      "costSource": {
+        "odometer": "Geteilt durch die Änderung des Kilometerstands über die Saison",
+        "tracked": "Geteilt durch die Distanz deiner aufgezeichneten Fahrten",
+        "mixed": "Geteilt durch die Änderung des Kilometerstands, wo eingetragen, sonst durch aufgezeichnete Fahrten"
+      },
+      "costAlso": "Außerdem {{cost}}",
+      "costMissing": "Braucht über die Saison eingetragene Tankfüllungen",
+      "share": "Diese Karte teilen",
+      "shareMessage": "Meine Motorradsaison {{year}}, geteilt aus MotoVault"
+    }
+  },
+  "ridePurposeSheet": {
+    "title": "Über diese Fahrt (optional)",
+    "purposeLabel": "Wofür war sie?",
+    "purpose": {
+      "leisure": "Freizeit",
+      "commute": "Pendeln",
+      "tour": "Tour",
+      "errand": "Besorgung",
+      "track": "Trackday",
+      "offroad": "Offroad",
+      "other": "Sonstiges"
+    },
+    "passenger": "Mit Sozius gefahren",
+    "odometer": "Kilometerstand am Ende",
+    "odometerLabel": "Kilometerstand am Ende der Fahrt",
+    "odometerSave": "Speichern",
+    "odometerSaved": "Kilometerstand gespeichert"
+  },
+  "insightsEntry": {
+    "season": "Saison: {{distance}}",
+    "lastRide": "+{{distance}} bei deiner letzten Fahrt",
+    "withThisRide": "+{{distance}} mit dieser Fahrt",
+    "newCountry": "Neues Land: {{country}}",
+    "loading": "Deine Saison wird geladen…",
+    "openHint": "Öffnet die Fahrstatistik",
+    "newRoads": "Neue Straßen",
+    "newRoadsValue": "{{distance}} · {{share}}",
+    "newRoadsComputing": "Wird berechnet…",
+    "unlockPro": "Mit Pro freischalten",
+    "newRoadsLockedA11y": "Neue Straßen bei dieser Fahrt. Mit Pro freischalten"
   }
 }

@@ -333,8 +333,6 @@
     "imperial": "ヤード・ポンド法（mi、°F）",
     "myTripsTitle": "マイトリップ",
     "currency": "通貨",
-    "roadsTitle": "走った道",
-    "roadsSubtitle": "生涯のヒートマップと年間まとめ",
     "redeemCode": "コードを利用",
     "appSettings": "アプリ設定",
     "appSettingsSubtitle": "言語、テーマ、単位、通貨、通知",
@@ -363,7 +361,8 @@
     "sectionApp": "アプリ",
     "nameLabel": "名前",
     "publicNameLabel": "公開名(ほかのライダーに表示)",
-    "sectionFeedback": "フィードバック"
+    "sectionFeedback": "フィードバック",
+    "riderInsightsDescription": "今シーズンの道、場所、走るリズム"
   },
   "onboarding": {
     "welcomeTitle": "MotoVaultへようこそ",
@@ -1157,6 +1156,11 @@
       "clear": "クリア",
       "clearNoteA11y": "復元したメモをクリア",
       "clearReadingA11y": "復元した走行距離をクリア"
+    },
+    "serviceDistance": {
+      "since": "前回の整備から {{distance}} {{unit}}",
+      "servicedAt": "前回の整備：{{distance}} {{unit}} 時点",
+      "none": "整備の記録はありません"
     }
   },
   "maintenance": {
@@ -2136,7 +2140,8 @@
     "ride_other": "{{count}}件のライド",
     "elev": "標高",
     "dur": "時間",
-    "avg": "平均"
+    "avg": "平均",
+    "insightsSubtitle": "どこで、いつ、どう走ったか"
   },
   "rideDetail": {
     "unavailable": "このライドは利用できなくなりました。削除されたか、非公開に設定された可能性があります。",
@@ -2152,8 +2157,6 @@
     "deleteMessage": "この操作は取り消せません。",
     "cancel": "キャンセル",
     "delete": "削除",
-    "leanAngle": "最大バンク角",
-    "leanTooltip": "バンク角はスマホのモーションセンサーから推定した値です。精密な計測器ではないため、スマホの取り付け位置や路面状況によって実際のバンク角と異なる場合があります。",
     "private": "非公開",
     "threeD": "3D",
     "shareRideA11y": "ライドを共有",
@@ -2693,5 +2696,331 @@
     "riders": "ライダー",
     "join": "このトリップに参加",
     "joinErrorTitle": "参加できませんでした"
+  },
+  "riderInsightsPaywall": {
+    "seasonDistance": "今シーズン {{distance}}",
+    "seasonRides_one": "今シーズンのライド {{count}}回",
+    "seasonRides_other": "今シーズンのライド {{count}}回",
+    "longestRide": "最長ライド：{{distance}}",
+    "territory": {
+      "headlineDefault": "走ったエリアを見てみよう",
+      "subhead": "Proなら、そのうち初めて走った道の割合と、自宅から最も遠く離れた距離がわかります。"
+    },
+    "roadCharacter": {
+      "headlineDefault": "走った道の特徴を見てみよう",
+      "subhead": "Proなら、道のカーブの多さと推定バンク角がわかります。"
+    },
+    "rhythm": {
+      "headlineDefault": "いつ走っているかを見てみよう",
+      "subhead": "Proなら、よく走る曜日と時間帯、典型的なライドがわかります。"
+    },
+    "bestRides": {
+      "headlineDefault": "ベストライドをランキング",
+      "subhead": "Proなら、シーズンのライドを距離、獲得標高、カーブ数で順位づけします。"
+    },
+    "summary": {
+      "headlineDefault": "毎回のライドで新しい道を確認",
+      "subhead": "Proなら、各ライドのうち初めて走った道の割合がわかります。"
+    },
+    "cost": {
+      "headlineDefault": "ライドにかかる費用を見てみよう",
+      "subhead": "Proなら、燃料費と整備費から {{unit}} あたりの費用を計算します。"
+    }
+  },
+  "riderInsights": {
+    "title": "ライダーインサイト",
+    "seasonRange": "{{year}}年シーズン、{{from}}〜{{to}}",
+    "today": "今日",
+    "stale": "オフラインです。最後に保存したシーズンを表示しています。",
+    "offline": {
+      "title": "オフラインです",
+      "body": "ライダーインサイトの初回表示には通信が必要です。オンラインに戻ったらもう一度お試しください。",
+      "retry": "再試行"
+    },
+    "error": {
+      "title": "インサイトを読み込めませんでした",
+      "body": "サーバー側で問題が発生しました。少し待ってからもう一度お試しください。",
+      "retry": "再試行"
+    },
+    "empty": {
+      "title": "今シーズンのライドはまだありません",
+      "body": "ライドを記録すると、走った道、場所、リズムがここに表示されます。"
+    },
+    "hero": {
+      "noRoutes": "GPS付きでライドを記録すると、走った道がここに表示されます。",
+      "offline": "オンラインに戻ると地図が表示されます。",
+      "mapA11y_one": "{{region}}周辺のライド{{count}}回の地図",
+      "mapA11y_other": "{{region}}周辺のライド{{count}}回の地図"
+    },
+    "totals": {
+      "rides_one": "ライド{{count}}回",
+      "rides_other": "ライド{{count}}回",
+      "countries_one": "{{count}}か国",
+      "countries_other": "{{count}}か国"
+    },
+    "countries": {
+      "a11y_one": "{{count}}か国：{{names}}。国の一覧を開く",
+      "a11y_other": "{{count}}か国：{{names}}。国の一覧を開く"
+    },
+    "regions": {
+      "unnamed": "名前のない地域",
+      "meta_one": "ライド{{count}}回 · {{distance}}",
+      "meta_other": "ライド{{count}}回 · {{distance}}",
+      "tileA11y": "{{region}}を地図に表示"
+    },
+    "ribbon": {
+      "section": "シーズン",
+      "weeksRidden": "{{total}}週中{{ridden}}週走行",
+      "biggest": "最多の週：{{distance}}、{{start}}〜{{end}}"
+    },
+    "howYouRide": {
+      "section": "あなたの走り方",
+      "keepRiding": "ライドがまだ足りません。走り続けましょう",
+      "computing": "ライドを分析中です。しばらくしてから確認してください。",
+      "missingRoute": "GPSで記録したライドが必要です",
+      "unlock": "解除",
+      "unlocking": "解除中…",
+      "lockedA11y": "{{title}}、Pro。ペイウォールを開きます",
+      "unlockingA11y": "{{title}}、解除中",
+      "roadCharacter": {
+        "title": "道の特徴",
+        "teaser": "道のカーブの多さとバンク角",
+        "value": "ワインディング以上 {{share}}",
+        "withLean": "バンク角付き（推定）",
+        "bends": "10 kmあたりカーブ{{bends}}個",
+        "a11y": "直線 {{straight}}、緩やか {{sweeping}}、ワインディング {{twisty}}、タイト {{tight}}"
+      },
+      "territory": {
+        "title": "テリトリー",
+        "teaser": "新しい道と地図のカバー範囲",
+        "value": "{{area}} · 新しい道 {{share}}",
+        "furthest": "自宅から最遠 {{distance}}"
+      },
+      "rhythm": {
+        "title": "走るリズム",
+        "teaser": "よく走る曜日と時間帯",
+        "missing": "開始時刻のあるライドが必要です",
+        "weekend_one": "{{count}}回中{{weekend}}回が週末のライド",
+        "weekend_other": "{{count}}回中{{weekend}}回が週末のライド",
+        "a11y": "最も多い時間帯：{{slot}}",
+        "slot": {
+          "morning": "{{day}}の午前",
+          "afternoon": "{{day}}の午後",
+          "evening": "{{day}}の夕方",
+          "night": "{{day}}の夜"
+        }
+      },
+      "bestRides": {
+        "title": "ベストライド",
+        "titleFree": "ベストライド",
+        "value": "{{name}} · {{distance}}",
+        "unnamed": "{{date}}のライド",
+        "captionPro": "最長、{{date}} · 次に獲得標高とカーブ",
+        "captionFree": "最長、{{date}} · 獲得標高とカーブはProで"
+      },
+      "bikes": {
+        "title": "バイク",
+        "missing": "ライドにバイクを設定すると比較できます",
+        "item": "{{name}} {{distance}}",
+        "unnamed": "バイク",
+        "count_one": "{{count}}台",
+        "count_other": "{{count}}台",
+        "unassigned_one": "バイク未設定のライドが{{count}}回あります",
+        "unassigned_other": "バイク未設定のライドが{{count}}回あります"
+      }
+    },
+    "detail": {
+      "coverage": "{{total}}回中{{count}}回のライドから",
+      "rideMeta": "{{date}} · {{distance}}",
+      "locked": {
+        "territory": "今シーズンの地図カバー率（概数）",
+        "roadCharacter": "10 kmあたりのカーブ数（概数）",
+        "rhythm": "週末のライドの割合（概数）"
+      },
+      "roadCharacter": {
+        "heroLine": "走行ルート{{distance}}のうちワインディング以上の割合",
+        "band": {
+          "straight": "直線",
+          "sweeping": "緩やか",
+          "twisty": "ワインディング",
+          "tight": "タイトなカーブ"
+        },
+        "rule": {
+          "straight": "2 kmあたりカーブ1個未満",
+          "sweeping": "1 kmあたりカーブ1.5個まで",
+          "twisty": "1 kmあたりカーブ3個まで",
+          "tight": "1 kmあたりカーブ3個以上"
+        },
+        "barA11y": "直線 {{straight}}、緩やか {{sweeping}}、ワインディング {{twisty}}、タイトなカーブ {{tight}}",
+        "footnote_one": "カーブとは、400 m以内に同じ方向へ35°以上曲がる区間です。今シーズンのカーブは{{count}}個です。",
+        "footnote_other": "カーブとは、400 m以内に同じ方向へ35°以上曲がる区間です。今シーズンのカーブは{{count}}個です。",
+        "per10km": "カーブ / 10 km",
+        "twistiest_one": "最もワインディングなライド",
+        "twistiest_other": "最もワインディングなライド",
+        "straightest_one": "最も直線的なライド",
+        "straightest_other": "最も直線的なライド"
+      },
+      "lean": {
+        "title": "バンク角（推定）",
+        "corners_one": "コーナーを計測",
+        "corners_other": "コーナーを計測",
+        "band": {
+          "under20": "<20°",
+          "from20to30": "20–30°",
+          "from30to40": "30–40°",
+          "from40": "40°+"
+        },
+        "a11y": "バンク角別のコーナーの割合：20°未満 {{under20}}、20〜30° {{from20to30}}、30〜40° {{from30to40}}、40°以上 {{from40}}",
+        "missing": "詳細なGPSで記録したライドが必要です",
+        "note": "ライダーとバイクを合わせた値で、GPSの速度と旋回から推定しています。短くタイトなコーナーでは低めに出るため、正確な1つの数値ではなく範囲で表示します。"
+      },
+      "territory": {
+        "heroLine": "今シーズンにカバーした地図の範囲",
+        "newRoads": "新しい道",
+        "newRoadsCaption": "{{total}}のうち{{distance}}が初めて走った道",
+        "barA11y": "今シーズンの走行距離のうち新しい道 {{share}}、走ったことのある道 {{before}}",
+        "newShare": "新しい道 {{share}}",
+        "beforeShare": "走行済み {{share}}",
+        "furthest": "自宅から最も遠い地点",
+        "furthestRide": "{{date}}のライド",
+        "fromHome": "自宅からの距離",
+        "footnote": "自宅はライドの出発地点として最も多い場所です。範囲は、ルートが通過した地図上のマス目の合計です。"
+      },
+      "rhythm": {
+        "part": {
+          "morning": "午前",
+          "afternoon": "午後",
+          "evening": "夕方",
+          "night": "夜"
+        },
+        "busiest": "最多",
+        "typical": "典型的なライド",
+        "footnote": "各ライドは、走った場所のタイムゾーンでの開始時刻で数えます。"
+      },
+      "bestRides": {
+        "segment": {
+          "distance": "距離",
+          "climb": "獲得標高",
+          "bends": "カーブ"
+        },
+        "longest": "最長ライド",
+        "places": "{{start}}〜{{end}}",
+        "proLine_one": "Proなら、{{count}}回のライドを距離、獲得標高、カーブ数で順位づけします。",
+        "proLine_other": "Proなら、全{{count}}回のライドを距離、獲得標高、カーブ数で順位づけします。",
+        "proLineDefault": "Proなら、ライドを距離、獲得標高、カーブ数で順位づけします。",
+        "empty": "この指標のライドはまだありません",
+        "footnote": "獲得標高は5 m未満の高度変化を除きます。カーブはルート10 kmあたりで数えます。"
+      },
+      "bikes": {
+        "heroLine": "今シーズンの走行距離",
+        "unassigned": "未設定",
+        "meta_one": "ライド{{count}}回 · 走行時間 {{time}}",
+        "meta_other": "ライド{{count}}回 · 走行時間 {{time}}"
+      },
+      "countries": {
+        "title": "国",
+        "heroLine_one": "か国を今シーズンに走行",
+        "heroLine_other": "か国を今シーズンに走行",
+        "meta_one": "初走行 {{date}} · ライド{{count}}回",
+        "meta_other": "初走行 {{date}} · ライド{{count}}回",
+        "footnote": "ルートのうち1 km以上が国境から500 m以上内側を通った場合に、その国を数えます。"
+      }
+    },
+    "share": {
+      "button": "シーズンを共有",
+      "close": "閉じる",
+      "title": "シーズンを共有",
+      "subtitle": "フィードやストーリー用の画像です。",
+      "seasonLines": "シーズンライン",
+      "seasonLinesCaption": "無料 · ルートと合計",
+      "atlasPoster": "アトラスポスター",
+      "atlasPosterCaption": "Pro · 地図、国、道の特徴",
+      "optionA11y": "{{name}}。{{caption}}",
+      "lockedA11y": "{{name}}、Pro。ペイウォールを開きます",
+      "sizeA11y": "画像サイズ",
+      "sizeFeed": "フィード 4:5",
+      "sizeStory": "ストーリー 9:16",
+      "hideEnds": "ライドの出発地と到着地を隠す",
+      "hideEndsCaption": "各ライドの最初と最後の500 mを切り取ります",
+      "save": "画像を保存",
+      "share": "共有…",
+      "message": "私の{{year}}年ライドシーズン。MotoVaultから共有",
+      "ridesSeason_one": "ライド{{count}}回 · {{year}}年シーズン",
+      "ridesSeason_other": "ライド{{count}}回 · {{year}}年シーズン",
+      "ridesYear_one": "ライド{{count}}回 · {{year}}年",
+      "ridesYear_other": "ライド{{count}}回 · {{year}}年",
+      "handleBrand": "@{{handle}} · MotoVault",
+      "twisty": "ワインディング以上 {{share}}"
+    },
+    "recap": {
+      "title": "シーズンのまとめ",
+      "entry": "{{year}}年シーズンのまとめ",
+      "entryCaptionPro": "保存や投稿ができる7枚のカード",
+      "entryCaptionFree": "保存や投稿ができる3枚 · Proでさらに4枚",
+      "open": "開く",
+      "heading": "あなたの{{year}}年シーズン",
+      "subheading": "スワイプして、気に入ったカードを共有しましょう。",
+      "labelFree": "無料 · {{index}} / {{total}}",
+      "labelPro": "Pro · {{index}} / {{total}}",
+      "ridesIn_one": "{{year}}年のライド {{count}}回",
+      "ridesIn_other": "{{year}}年のライド {{count}}回",
+      "countries_one": "{{count}}か国",
+      "countries_other": "{{count}}か国",
+      "since": "{{date}}から",
+      "moreCountries": "ほか{{count}}か国",
+      "longest": "最長ライド",
+      "places": "{{from}}〜{{to}}",
+      "rhythm": "走るリズム",
+      "rhythmStarted_one": "{{from}}時〜{{to}}時に出発したライド {{count}}回",
+      "rhythmStarted_other": "{{from}}時〜{{to}}時に出発したライド {{count}}回",
+      "rhythmA11y": "曜日と時間帯別のライド",
+      "newRoads": "新しい道",
+      "newRoadsShare": "のルート距離が初めて走った道",
+      "newRoadsArea": "の地図をカバー",
+      "twistiest": "最もワインディングなライド",
+      "twistiestBends": "10 kmごとにカーブ{{bends}}個",
+      "cost": "ライドの費用",
+      "costFrom": "燃料費と整備費から算出",
+      "costSource": {
+        "odometer": "シーズン中のオドメーターの増加分で割った値",
+        "tracked": "記録したライドの距離で割った値",
+        "mixed": "オドメーターを記録した区間はその増加分、それ以外は記録したライドで割った値"
+      },
+      "costAlso": "ほかに {{cost}}",
+      "costMissing": "シーズンを通した給油の記録が必要です",
+      "share": "このカードを共有",
+      "shareMessage": "私の{{year}}年ライドシーズン。MotoVaultから共有"
+    }
+  },
+  "ridePurposeSheet": {
+    "title": "このライドについて（任意）",
+    "purposeLabel": "目的は？",
+    "purpose": {
+      "leisure": "レジャー",
+      "commute": "通勤",
+      "tour": "ツーリング",
+      "errand": "用事",
+      "track": "サーキット",
+      "offroad": "オフロード",
+      "other": "その他"
+    },
+    "passenger": "タンデムで走った",
+    "odometer": "終了時のオドメーター",
+    "odometerLabel": "ライド終了時のオドメーターの値",
+    "odometerSave": "保存",
+    "odometerSaved": "オドメーターを保存しました"
+  },
+  "insightsEntry": {
+    "season": "シーズン：{{distance}}",
+    "lastRide": "前回のライドで +{{distance}}",
+    "withThisRide": "このライドで +{{distance}}",
+    "newCountry": "新しい国：{{country}}",
+    "loading": "シーズンを読み込み中…",
+    "openHint": "ライダーインサイトを開きます",
+    "newRoads": "新しい道",
+    "newRoadsValue": "{{distance}} · {{share}}",
+    "newRoadsComputing": "計算中…",
+    "unlockPro": "Proで解除",
+    "newRoadsLockedA11y": "このライドの新しい道。Proで解除"
   }
 }

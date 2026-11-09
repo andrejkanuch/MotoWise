@@ -330,8 +330,6 @@
     "imperial": "Imperial (mi, °F)",
     "myTripsTitle": "Minhas viagens",
     "currency": "Moeda",
-    "roadsTitle": "Estradas por onde rodei",
-    "roadsSubtitle": "Mapa de calor e retrospectiva do ano",
     "redeemCode": "Resgatar um código",
     "appSettings": "Configurações do app",
     "appSettingsSubtitle": "Idioma, tema, unidades, moeda, notificações",
@@ -363,7 +361,8 @@
     "sectionFeedback": "Feedback",
     "languageSystem": "Idioma do aparelho",
     "languageIosMessage": "O MotoVault usa o idioma do seu iPhone. Para trocar, toque em Idioma na próxima tela. Não aparece? Primeiro adicione o idioma em Geral → Idioma e Região.",
-    "languageOpenSettings": "Abrir Ajustes"
+    "languageOpenSettings": "Abrir Ajustes",
+    "riderInsightsDescription": "As estradas, os lugares e o ritmo da sua temporada"
   },
   "onboarding": {
     "welcomeTitle": "Boas-vindas ao MotoVault",
@@ -1178,6 +1177,11 @@
       "clear": "Limpar",
       "clearNoteA11y": "Limpar a nota recuperada",
       "clearReadingA11y": "Limpar a leitura recuperada"
+    },
+    "serviceDistance": {
+      "since": "{{distance}} {{unit}} desde a última revisão",
+      "servicedAt": "Última revisão com {{distance}} {{unit}}",
+      "none": "Nenhuma revisão registrada"
     }
   },
   "maintenance": {
@@ -2164,7 +2168,8 @@
     "elev": "elev.",
     "dur": "Dur.",
     "avg": "Média",
-    "ride_many": "{{count}} rolês"
+    "ride_many": "{{count}} rolês",
+    "insightsSubtitle": "Onde, quando e como você roda"
   },
   "rideDetail": {
     "unavailable": "Este rolê não está mais disponível. Ele pode ter sido excluído ou ficado privado.",
@@ -2180,8 +2185,6 @@
     "deleteMessage": "Esta ação não pode ser desfeita.",
     "cancel": "Cancelar",
     "delete": "Excluir",
-    "leanAngle": "Inclinação máx.",
-    "leanTooltip": "O ângulo de inclinação é estimado pelos sensores de movimento do celular. Não é um instrumento de precisão: a inclinação real pode variar conforme a posição do suporte e as condições da via.",
     "private": "Privado",
     "threeD": "3D",
     "shareRideA11y": "Compartilhar rolê",
@@ -2723,5 +2726,353 @@
     "riders": "Participantes",
     "join": "Participar da viagem",
     "joinErrorTitle": "Não foi possível participar"
+  },
+  "riderInsightsPaywall": {
+    "seasonDistance": "{{distance}} nesta temporada",
+    "seasonRides_one": "{{count}} rolê nesta temporada",
+    "seasonRides_other": "{{count}} rolês nesta temporada",
+    "seasonRides_many": "{{count}} rolês nesta temporada",
+    "longestRide": "Seu rolê mais longo: {{distance}}",
+    "territory": {
+      "headlineDefault": "Veja por onde você explorou",
+      "subhead": "O Pro mostra quanto disso foi estrada nova e até onde você foi a partir de casa."
+    },
+    "roadCharacter": {
+      "headlineDefault": "Veja como são as suas estradas",
+      "subhead": "O Pro mostra o quanto suas estradas tinham curvas e a sua inclinação estimada."
+    },
+    "rhythm": {
+      "headlineDefault": "Veja quando você roda",
+      "subhead": "O Pro mostra seus dias e horários com mais rolês, e o seu rolê típico."
+    },
+    "bestRides": {
+      "headlineDefault": "Ranqueie seus melhores rolês",
+      "subhead": "O Pro ranqueia sua temporada por distância, subida e curvas."
+    },
+    "summary": {
+      "headlineDefault": "Veja as estradas novas de cada rolê",
+      "subhead": "O Pro mostra quanto de cada rolê foi por estradas que você nunca tinha rodado."
+    },
+    "cost": {
+      "headlineDefault": "Veja quanto custa rodar",
+      "subhead": "O Pro calcula seu custo por {{unit}} a partir dos gastos com combustível e revisão."
+    }
+  },
+  "riderInsights": {
+    "title": "Análise de pilotagem",
+    "seasonRange": "Temporada {{year}}, de {{from}} até {{to}}",
+    "today": "hoje",
+    "stale": "Offline. Mostrando sua temporada como foi salva da última vez.",
+    "offline": {
+      "title": "Você está offline",
+      "body": "A Análise de pilotagem precisa de conexão na primeira vez. Tente de novo quando estiver online.",
+      "retry": "Tentar de novo"
+    },
+    "error": {
+      "title": "Não foi possível carregar sua análise",
+      "body": "Algo deu errado do nosso lado. Tente de novo daqui a pouco.",
+      "retry": "Tentar de novo"
+    },
+    "empty": {
+      "title": "Nenhum rolê nesta temporada ainda",
+      "body": "Grave um rolê e suas estradas, lugares e ritmo aparecem aqui."
+    },
+    "hero": {
+      "noRoutes": "Suas estradas aparecem aqui depois de um rolê com GPS.",
+      "offline": "O mapa aparece quando você voltar a ficar online.",
+      "mapA11y_one": "Mapa de {{count}} rolê na região de {{region}}",
+      "mapA11y_other": "Mapa de {{count}} rolês na região de {{region}}",
+      "mapA11y_many": "Mapa de {{count}} rolês na região de {{region}}"
+    },
+    "totals": {
+      "rides_one": "{{count}} rolê",
+      "rides_other": "{{count}} rolês",
+      "rides_many": "{{count}} rolês",
+      "countries_one": "{{count}} país",
+      "countries_other": "{{count}} países",
+      "countries_many": "{{count}} países"
+    },
+    "countries": {
+      "a11y_one": "{{count}} país: {{names}}. Abrir países",
+      "a11y_other": "{{count}} países: {{names}}. Abrir países",
+      "a11y_many": "{{count}} países: {{names}}. Abrir países"
+    },
+    "regions": {
+      "unnamed": "Região sem nome",
+      "meta_one": "{{count}} rolê · {{distance}}",
+      "meta_other": "{{count}} rolês · {{distance}}",
+      "meta_many": "{{count}} rolês · {{distance}}",
+      "tileA11y": "Mostrar {{region}} no mapa"
+    },
+    "ribbon": {
+      "section": "Temporada",
+      "weeksRidden": "{{ridden}} de {{total}} semanas com rolê",
+      "biggest": "Recorde: {{distance}}, de {{start}} a {{end}}"
+    },
+    "howYouRide": {
+      "section": "Como você roda",
+      "keepRiding": "Ainda faltam rolês, continue rodando",
+      "computing": "Analisando seus rolês. Volte daqui a pouco.",
+      "missingRoute": "Precisa de rolês gravados com GPS",
+      "unlock": "Desbloquear",
+      "unlocking": "Desbloqueando…",
+      "lockedA11y": "{{title}}, Pro. Abre a tela de assinatura",
+      "unlockingA11y": "{{title}}, desbloqueando",
+      "roadCharacter": {
+        "title": "Tipo de estrada",
+        "teaser": "O quanto suas estradas tinham curvas, e inclinação",
+        "value": "{{share}} sinuosas ou de curvas fechadas",
+        "withLean": "Com inclinação estimada",
+        "bends": "{{bends}} curvas a cada 10 km",
+        "a11y": "{{straight}} retas, {{sweeping}} curvas abertas, {{twisty}} sinuosas, {{tight}} curvas fechadas"
+      },
+      "territory": {
+        "title": "Território",
+        "teaser": "Estradas novas e área do mapa coberta",
+        "value": "{{area}} · {{share}} estradas novas",
+        "furthest": "Mais longe de casa: {{distance}}"
+      },
+      "rhythm": {
+        "title": "Ritmo dos rolês",
+        "teaser": "Seus dias e horários com mais rolês",
+        "missing": "Precisa de rolês com horário de início",
+        "weekend_one": "{{weekend}} de {{count}} rolê no fim de semana",
+        "weekend_other": "{{weekend}} de {{count}} rolês no fim de semana",
+        "weekend_many": "{{weekend}} de {{count}} rolês no fim de semana",
+        "a11y": "Horário com mais rolês: {{slot}}",
+        "slot": {
+          "morning": "{{day}} de manhã",
+          "afternoon": "{{day}} à tarde",
+          "evening": "{{day}} à noite",
+          "night": "{{day}} de madrugada"
+        }
+      },
+      "bestRides": {
+        "title": "Melhores rolês",
+        "titleFree": "Melhor rolê",
+        "value": "{{name}} · {{distance}}",
+        "unnamed": "Rolê de {{date}}",
+        "captionPro": "Mais longo, {{date}} · depois subida e curvas",
+        "captionFree": "Mais longo, {{date}} · subida e curvas com o Pro"
+      },
+      "bikes": {
+        "title": "Motos",
+        "missing": "Defina a moto nos seus rolês para comparar",
+        "item": "{{name}} {{distance}}",
+        "unnamed": "Moto",
+        "count_one": "{{count}} moto",
+        "count_other": "{{count}} motos",
+        "count_many": "{{count}} motos",
+        "unassigned_one": "{{count}} rolê sem moto definida",
+        "unassigned_other": "{{count}} rolês sem moto definida",
+        "unassigned_many": "{{count}} rolês sem moto definida"
+      }
+    },
+    "detail": {
+      "coverage": "Com base em {{count}} de {{total}} rolês",
+      "rideMeta": "{{date}} · {{distance}}",
+      "locked": {
+        "territory": "do mapa coberto nesta temporada, arredondado",
+        "roadCharacter": "curvas a cada 10 km, arredondado",
+        "rhythm": "dos seus rolês no fim de semana, arredondado"
+      },
+      "roadCharacter": {
+        "heroLine": "dos seus {{distance}} com rota foram sinuosos ou de curvas fechadas",
+        "band": {
+          "straight": "Retas",
+          "sweeping": "Curvas abertas",
+          "twisty": "Sinuosas",
+          "tight": "Curvas fechadas"
+        },
+        "rule": {
+          "straight": "menos de 1 curva a cada 2 km",
+          "sweeping": "até 1,5 curva por km",
+          "twisty": "até 3 curvas por km",
+          "tight": "3 ou mais curvas por km"
+        },
+        "barA11y": "Retas {{straight}}, curvas abertas {{sweeping}}, sinuosas {{twisty}}, curvas fechadas {{tight}}",
+        "footnote_one": "Uma curva é uma virada de 35° ou mais para o mesmo lado em até 400 m. {{count}} curva nesta temporada.",
+        "footnote_other": "Uma curva é uma virada de 35° ou mais para o mesmo lado em até 400 m. {{count}} curvas nesta temporada.",
+        "footnote_many": "Uma curva é uma virada de 35° ou mais para o mesmo lado em até 400 m. {{count}} curvas nesta temporada.",
+        "per10km": "curvas / 10 km",
+        "twistiest_one": "Rolê mais sinuoso",
+        "twistiest_other": "Rolês mais sinuosos",
+        "twistiest_many": "Rolês mais sinuosos",
+        "straightest_one": "Rolê mais reto",
+        "straightest_other": "Rolês mais retos",
+        "straightest_many": "Rolês mais retos"
+      },
+      "lean": {
+        "title": "Inclinação estimada",
+        "corners_one": "curva medida",
+        "corners_other": "curvas medidas",
+        "corners_many": "curvas medidas",
+        "band": {
+          "under20": "<20°",
+          "from20to30": "20–30°",
+          "from30to40": "30–40°",
+          "from40": "40°+"
+        },
+        "a11y": "Parcela das curvas por inclinação: abaixo de 20° {{under20}}, de 20 a 30° {{from20to30}}, de 30 a 40° {{from30to40}}, 40° ou mais {{from40}}",
+        "missing": "Precisa de rolês gravados com GPS detalhado",
+        "note": "Piloto e moto juntos, estimada pela velocidade e pelas mudanças de direção do GPS. Ela fica abaixo do real em curvas curtas e fechadas, por isso aparece em faixas, nunca como um número exato."
+      },
+      "territory": {
+        "heroLine": "de mapa cobertos nesta temporada",
+        "newRoads": "Estradas novas",
+        "newRoadsCaption": "{{distance}} de {{total}} em estradas que você ainda não tinha rodado",
+        "barA11y": "{{share}} da distância da temporada em estradas novas, {{before}} em estradas já rodadas",
+        "newShare": "{{share}} novas",
+        "beforeShare": "{{share}} já rodadas",
+        "furthest": "Mais longe de casa",
+        "furthestRide": "Rolê de {{date}}",
+        "fromHome": "Distância de casa",
+        "footnote": "Casa é onde começa a maioria dos seus rolês. A área conta as células do mapa por onde suas rotas passam."
+      },
+      "rhythm": {
+        "part": {
+          "morning": "Manhã",
+          "afternoon": "Tarde",
+          "evening": "Noite",
+          "night": "Madrugada"
+        },
+        "busiest": "Mais rolês",
+        "typical": "Rolê típico",
+        "footnote": "Cada rolê conta pelo horário de início, no fuso horário em que você rodou."
+      },
+      "bestRides": {
+        "segment": {
+          "distance": "Distância",
+          "climb": "Subida",
+          "bends": "Curvas"
+        },
+        "longest": "Rolê mais longo",
+        "places": "De {{start}} a {{end}}",
+        "proLine_one": "O Pro ranqueia seu rolê por distância, subida e curvas.",
+        "proLine_other": "O Pro ranqueia todos os {{count}} rolês por distância, subida e curvas.",
+        "proLine_many": "O Pro ranqueia todos os {{count}} rolês por distância, subida e curvas.",
+        "proLineDefault": "O Pro ranqueia seus rolês por distância, subida e curvas.",
+        "empty": "Nenhum rolê com essa medida ainda",
+        "footnote": "A subida ignora variações de altitude abaixo de 5 m. As curvas são contadas a cada 10 km de rota."
+      },
+      "bikes": {
+        "heroLine": "rodados nesta temporada",
+        "unassigned": "Sem moto",
+        "meta_one": "{{count}} rolê · {{time}} em movimento",
+        "meta_other": "{{count}} rolês · {{time}} em movimento",
+        "meta_many": "{{count}} rolês · {{time}} em movimento"
+      },
+      "countries": {
+        "title": "Países",
+        "heroLine_one": "país rodado nesta temporada",
+        "heroLine_other": "países rodados nesta temporada",
+        "heroLine_many": "países rodados nesta temporada",
+        "meta_one": "Primeira vez em {{date}} · {{count}} rolê",
+        "meta_other": "Primeira vez em {{date}} · {{count}} rolês",
+        "meta_many": "Primeira vez em {{date}} · {{count}} rolês",
+        "footnote": "Um país conta quando pelo menos 1 km de uma rota fica 500 m ou mais dentro da fronteira."
+      }
+    },
+    "share": {
+      "button": "Compartilhar temporada",
+      "close": "Fechar",
+      "title": "Compartilhe sua temporada",
+      "subtitle": "Uma imagem para o seu feed ou story.",
+      "seasonLines": "Linhas da temporada",
+      "seasonLinesCaption": "Grátis · suas rotas e totais",
+      "atlasPoster": "Pôster atlas",
+      "atlasPosterCaption": "Pro · mapa, países e tipo de estrada",
+      "optionA11y": "{{name}}. {{caption}}",
+      "lockedA11y": "{{name}}, Pro. Abre a tela de assinatura",
+      "sizeA11y": "Tamanho da imagem",
+      "sizeFeed": "Feed 4:5",
+      "sizeStory": "Story 9:16",
+      "hideEnds": "Ocultar início e fim do rolê",
+      "hideEndsCaption": "Corta 500 m do início e do fim de cada rolê",
+      "save": "Salvar imagem",
+      "share": "Compartilhar…",
+      "message": "Minha temporada {{year}} de moto, compartilhada pelo MotoVault",
+      "ridesSeason_one": "{{count}} rolê · Temporada {{year}}",
+      "ridesSeason_other": "{{count}} rolês · Temporada {{year}}",
+      "ridesSeason_many": "{{count}} rolês · Temporada {{year}}",
+      "ridesYear_one": "{{count}} rolê · {{year}}",
+      "ridesYear_other": "{{count}} rolês · {{year}}",
+      "ridesYear_many": "{{count}} rolês · {{year}}",
+      "handleBrand": "@{{handle}} · MotoVault",
+      "twisty": "{{share}} sinuosas ou de curvas fechadas"
+    },
+    "recap": {
+      "title": "Retrospectiva da temporada",
+      "entry": "Sua retrospectiva {{year}}",
+      "entryCaptionPro": "Sete cards para guardar ou postar",
+      "entryCaptionFree": "3 cards para guardar ou postar · mais 4 com o Pro",
+      "open": "Abrir",
+      "heading": "Sua temporada {{year}}",
+      "subheading": "Passe pelos cards e compartilhe o que você mais gostar.",
+      "labelFree": "Grátis · {{index}} de {{total}}",
+      "labelPro": "Pro · {{index}} de {{total}}",
+      "ridesIn_one": "{{count}} rolê em {{year}}",
+      "ridesIn_other": "{{count}} rolês em {{year}}",
+      "ridesIn_many": "{{count}} rolês em {{year}}",
+      "countries_one": "{{count}} país",
+      "countries_other": "{{count}} países",
+      "countries_many": "{{count}} países",
+      "since": "desde {{date}}",
+      "moreCountries": "+{{count}} outros",
+      "longest": "Rolê mais longo",
+      "places": "De {{from}} a {{to}}",
+      "rhythm": "Ritmo dos rolês",
+      "rhythmStarted_one": "{{count}} rolê começou entre {{from}}h e {{to}}h",
+      "rhythmStarted_other": "{{count}} rolês começaram entre {{from}}h e {{to}}h",
+      "rhythmStarted_many": "{{count}} rolês começaram entre {{from}}h e {{to}}h",
+      "rhythmA11y": "Rolês por dia da semana e horário",
+      "newRoads": "Estradas novas",
+      "newRoadsShare": "dos seus quilômetros foram em estradas que você nunca tinha rodado",
+      "newRoadsArea": "de mapa cobertos",
+      "twistiest": "Rolê mais sinuoso",
+      "twistiestBends": "{{bends}} curvas a cada 10 km",
+      "cost": "Custo de rodar",
+      "costFrom": "com base nos gastos com combustível e revisão",
+      "costSource": {
+        "odometer": "Dividido pelo avanço do hodômetro na temporada",
+        "tracked": "Dividido pela distância dos seus rolês gravados",
+        "mixed": "Dividido pelo avanço do hodômetro onde você registrou, senão pelos rolês gravados"
+      },
+      "costAlso": "Também {{cost}}",
+      "costMissing": "Precisa de abastecimentos registrados ao longo da temporada",
+      "share": "Compartilhar este card",
+      "shareMessage": "Minha temporada {{year}} de moto, compartilhada pelo MotoVault"
+    }
+  },
+  "ridePurposeSheet": {
+    "title": "Sobre este rolê (opcional)",
+    "purposeLabel": "Qual foi o motivo?",
+    "purpose": {
+      "leisure": "Lazer",
+      "commute": "Trajeto diário",
+      "tour": "Viagem",
+      "errand": "Compromisso",
+      "track": "Track day",
+      "offroad": "Off-road",
+      "other": "Outro"
+    },
+    "passenger": "Com garupa",
+    "odometer": "Hodômetro no fim",
+    "odometerLabel": "Leitura do hodômetro no fim do rolê",
+    "odometerSave": "Salvar",
+    "odometerSaved": "Hodômetro salvo"
+  },
+  "insightsEntry": {
+    "season": "Temporada: {{distance}}",
+    "lastRide": "+{{distance}} no seu último rolê",
+    "withThisRide": "+{{distance}} com este rolê",
+    "newCountry": "País novo: {{country}}",
+    "loading": "Carregando sua temporada…",
+    "openHint": "Abre a Análise de pilotagem",
+    "newRoads": "Estradas novas",
+    "newRoadsValue": "{{distance}} · {{share}}",
+    "newRoadsComputing": "Calculando…",
+    "unlockPro": "Desbloquear com o Pro",
+    "newRoadsLockedA11y": "Estradas novas neste rolê. Desbloquear com o Pro"
   }
 }

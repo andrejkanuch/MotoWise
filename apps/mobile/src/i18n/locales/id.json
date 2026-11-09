@@ -333,8 +333,6 @@
     "imperial": "Imperial (mi, °F)",
     "myTripsTitle": "Trip Saya",
     "currency": "Mata Uang",
-    "roadsTitle": "Jalan yang telah kulalui",
-    "roadsSubtitle": "Heatmap sepanjang masa & rekap tahunan",
     "redeemCode": "Tukarkan kode",
     "appSettings": "Pengaturan aplikasi",
     "appSettingsSubtitle": "Bahasa, tema, satuan, mata uang, notifikasi",
@@ -363,7 +361,8 @@
     "sectionApp": "Aplikasi",
     "nameLabel": "Nama",
     "publicNameLabel": "Nama publik (terlihat oleh pengendara lain)",
-    "sectionFeedback": "Masukan"
+    "sectionFeedback": "Masukan",
+    "riderInsightsDescription": "Jalan, tempat, dan ritme musimmu"
   },
   "onboarding": {
     "welcomeTitle": "Selamat Datang di MotoVault",
@@ -1157,6 +1156,11 @@
       "clear": "Hapus",
       "clearNoteA11y": "Hapus catatan yang dipulihkan",
       "clearReadingA11y": "Hapus angka yang dipulihkan"
+    },
+    "serviceDistance": {
+      "since": "{{distance}} {{unit}} sejak servis terakhir",
+      "servicedAt": "Servis terakhir di {{distance}} {{unit}}",
+      "none": "Belum ada servis tercatat"
     }
   },
   "maintenance": {
@@ -2136,7 +2140,8 @@
     "ride_other": "{{count}} perjalanan",
     "elev": "elev.",
     "dur": "Dur",
-    "avg": "Rata-rata"
+    "avg": "Rata-rata",
+    "insightsSubtitle": "Di mana, kapan, dan bagaimana kamu berkendara"
   },
   "rideDetail": {
     "unavailable": "Perjalanan ini tidak lagi tersedia. Mungkin sudah dihapus atau dijadikan pribadi.",
@@ -2152,8 +2157,6 @@
     "deleteMessage": "Tindakan ini tidak dapat dibatalkan.",
     "cancel": "Batal",
     "delete": "Hapus",
-    "leanAngle": "Kemiringan maks",
-    "leanTooltip": "Sudut kemiringan diperkirakan dari sensor gerak ponselmu. Ini bukan alat ukur presisi — sudut sebenarnya bisa berbeda tergantung posisi dudukan ponsel dan kondisi jalan.",
     "private": "Pribadi",
     "threeD": "3D",
     "shareRideA11y": "Bagikan perjalanan",
@@ -2693,5 +2696,331 @@
     "riders": "Pengendara",
     "join": "Ikut perjalanan ini",
     "joinErrorTitle": "Tidak dapat bergabung"
+  },
+  "riderInsightsPaywall": {
+    "seasonDistance": "{{distance}} musim ini",
+    "seasonRides_one": "{{count}} perjalanan musim ini",
+    "seasonRides_other": "{{count}} perjalanan musim ini",
+    "longestRide": "Perjalanan terjauhmu: {{distance}}",
+    "territory": {
+      "headlineDefault": "Lihat ke mana saja kamu menjelajah",
+      "subhead": "Pro menunjukkan berapa banyak yang merupakan jalan baru, dan seberapa jauh kamu pergi dari rumah."
+    },
+    "roadCharacter": {
+      "headlineDefault": "Lihat seperti apa jalan yang kamu lalui",
+      "subhead": "Pro menunjukkan seberapa berkelok jalanmu, dan perkiraan kemiringanmu."
+    },
+    "rhythm": {
+      "headlineDefault": "Lihat kapan kamu berkendara",
+      "subhead": "Pro menunjukkan hari dan jam tersibukmu, serta perjalanan khasmu."
+    },
+    "bestRides": {
+      "headlineDefault": "Urutkan perjalanan terbaikmu",
+      "subhead": "Pro mengurutkan musimmu berdasarkan jarak, tanjakan, dan tikungan."
+    },
+    "summary": {
+      "headlineDefault": "Lihat jalan baru di setiap perjalanan",
+      "subhead": "Pro menunjukkan berapa bagian dari tiap perjalanan yang melewati jalan yang belum pernah kamu lalui."
+    },
+    "cost": {
+      "headlineDefault": "Lihat biaya berkendaramu",
+      "subhead": "Pro menghitung biayamu per {{unit}} dari pengeluaran bahan bakar dan servis."
+    }
+  },
+  "riderInsights": {
+    "title": "Ringkasan berkendara",
+    "seasonRange": "Musim {{year}}, {{from}} – {{to}}",
+    "today": "hari ini",
+    "stale": "Offline. Menampilkan musimmu dari simpanan terakhir.",
+    "offline": {
+      "title": "Kamu sedang offline",
+      "body": "Ringkasan berkendara butuh koneksi saat pertama kali dibuka. Coba lagi saat kamu kembali online.",
+      "retry": "Coba lagi"
+    },
+    "error": {
+      "title": "Ringkasanmu gagal dimuat",
+      "body": "Ada masalah di sisi kami. Coba lagi sebentar lagi.",
+      "retry": "Coba lagi"
+    },
+    "empty": {
+      "title": "Belum ada perjalanan musim ini",
+      "body": "Rekam perjalanan, lalu jalan, tempat, dan ritmemu akan muncul di sini."
+    },
+    "hero": {
+      "noRoutes": "Jalanmu muncul di sini setelah perjalanan dengan GPS.",
+      "offline": "Peta muncul saat kamu kembali online.",
+      "mapA11y_one": "Peta {{count}} perjalanan di sekitar {{region}}",
+      "mapA11y_other": "Peta {{count}} perjalanan di sekitar {{region}}"
+    },
+    "totals": {
+      "rides_one": "{{count}} perjalanan",
+      "rides_other": "{{count}} perjalanan",
+      "countries_one": "{{count}} negara",
+      "countries_other": "{{count}} negara"
+    },
+    "countries": {
+      "a11y_one": "{{count}} negara: {{names}}. Buka daftar negara",
+      "a11y_other": "{{count}} negara: {{names}}. Buka daftar negara"
+    },
+    "regions": {
+      "unnamed": "Wilayah tanpa nama",
+      "meta_one": "{{count}} perjalanan · {{distance}}",
+      "meta_other": "{{count}} perjalanan · {{distance}}",
+      "tileA11y": "Tampilkan {{region}} di peta"
+    },
+    "ribbon": {
+      "section": "Musim",
+      "weeksRidden": "Berkendara {{ridden}} dari {{total}} minggu",
+      "biggest": "Terjauh: {{distance}}, {{start}} – {{end}}"
+    },
+    "howYouRide": {
+      "section": "Cara kamu berkendara",
+      "keepRiding": "Perjalanan belum cukup, terus berkendara",
+      "computing": "Sedang menghitung perjalananmu. Cek lagi sebentar lagi.",
+      "missingRoute": "Butuh perjalanan yang direkam dengan GPS",
+      "unlock": "Buka",
+      "unlocking": "Membuka…",
+      "lockedA11y": "{{title}}, Pro. Membuka halaman langganan",
+      "unlockingA11y": "{{title}}, sedang dibuka",
+      "roadCharacter": {
+        "title": "Karakter jalan",
+        "teaser": "Seberapa berkelok jalanmu, dan kemiringan",
+        "value": "{{share}} berkelok atau lebih tajam",
+        "withLean": "Dengan perkiraan kemiringan",
+        "bends": "{{bends}} tikungan per 10 km",
+        "a11y": "{{straight}} lurus, {{sweeping}} landai, {{twisty}} berkelok, {{tight}} tikungan tajam"
+      },
+      "territory": {
+        "title": "Wilayah jelajah",
+        "teaser": "Jalan baru dan cakupan peta",
+        "value": "{{area}} · {{share}} jalan baru",
+        "furthest": "Terjauh dari rumah: {{distance}}"
+      },
+      "rhythm": {
+        "title": "Ritme berkendara",
+        "teaser": "Hari dan jam tersibukmu",
+        "missing": "Butuh perjalanan dengan waktu mulai",
+        "weekend_one": "{{weekend}} dari {{count}} perjalanan di akhir pekan",
+        "weekend_other": "{{weekend}} dari {{count}} perjalanan di akhir pekan",
+        "a11y": "Waktu tersibuk: {{slot}}",
+        "slot": {
+          "morning": "{{day}} pagi",
+          "afternoon": "{{day}} siang",
+          "evening": "{{day}} sore",
+          "night": "{{day}} malam"
+        }
+      },
+      "bestRides": {
+        "title": "Perjalanan terbaik",
+        "titleFree": "Perjalanan terbaik",
+        "value": "{{name}} · {{distance}}",
+        "unnamed": "Perjalanan {{date}}",
+        "captionPro": "Terjauh, {{date}} · lalu tanjakan dan tikungan",
+        "captionFree": "Terjauh, {{date}} · tanjakan dan tikungan dengan Pro"
+      },
+      "bikes": {
+        "title": "Motor",
+        "missing": "Pilih motor di perjalananmu untuk membandingkannya",
+        "item": "{{name}} {{distance}}",
+        "unnamed": "Motor",
+        "count_one": "{{count}} motor",
+        "count_other": "{{count}} motor",
+        "unassigned_one": "{{count}} perjalanan belum ada motornya",
+        "unassigned_other": "{{count}} perjalanan belum ada motornya"
+      }
+    },
+    "detail": {
+      "coverage": "Berdasarkan {{count}} dari {{total}} perjalanan",
+      "rideMeta": "{{date}} · {{distance}}",
+      "locked": {
+        "territory": "peta tercakup musim ini, dibulatkan",
+        "roadCharacter": "tikungan per 10 km, dibulatkan",
+        "rhythm": "perjalananmu di akhir pekan, dibulatkan"
+      },
+      "roadCharacter": {
+        "heroLine": "dari {{distance}} rutemu berkelok atau lebih tajam",
+        "band": {
+          "straight": "Lurus",
+          "sweeping": "Landai",
+          "twisty": "Berkelok",
+          "tight": "Tikungan tajam"
+        },
+        "rule": {
+          "straight": "kurang dari 1 tikungan tiap 2 km",
+          "sweeping": "hingga 1,5 tikungan per km",
+          "twisty": "hingga 3 tikungan per km",
+          "tight": "3 tikungan atau lebih per km"
+        },
+        "barA11y": "Lurus {{straight}}, landai {{sweeping}}, berkelok {{twisty}}, tikungan tajam {{tight}}",
+        "footnote_one": "Tikungan adalah belokan 35° atau lebih ke satu arah dalam 400 m. {{count}} tikungan musim ini.",
+        "footnote_other": "Tikungan adalah belokan 35° atau lebih ke satu arah dalam 400 m. {{count}} tikungan musim ini.",
+        "per10km": "tikungan / 10 km",
+        "twistiest_one": "Perjalanan paling berkelok",
+        "twistiest_other": "Perjalanan paling berkelok",
+        "straightest_one": "Perjalanan paling lurus",
+        "straightest_other": "Perjalanan paling lurus"
+      },
+      "lean": {
+        "title": "Perkiraan kemiringan",
+        "corners_one": "tikungan terukur",
+        "corners_other": "tikungan terukur",
+        "band": {
+          "under20": "<20°",
+          "from20to30": "20–30°",
+          "from30to40": "30–40°",
+          "from40": "40°+"
+        },
+        "a11y": "Porsi tikungan menurut kemiringan: di bawah 20° {{under20}}, 20 sampai 30° {{from20to30}}, 30 sampai 40° {{from30to40}}, 40° ke atas {{from40}}",
+        "missing": "Butuh perjalanan yang direkam dengan GPS detail",
+        "note": "Pengendara dan motor bersama, diperkirakan dari kecepatan dan belokan GPS. Hasilnya cenderung rendah di tikungan pendek dan tajam, jadi ditampilkan dalam rentang, bukan satu angka pasti."
+      },
+      "territory": {
+        "heroLine": "peta tercakup musim ini",
+        "newRoads": "Jalan baru",
+        "newRoadsCaption": "{{distance}} dari {{total}} di jalan yang belum pernah kamu lalui",
+        "barA11y": "{{share}} jarak musim ini di jalan baru, {{before}} di jalan yang pernah dilalui",
+        "newShare": "{{share}} baru",
+        "beforeShare": "{{share}} pernah dilalui",
+        "furthest": "Terjauh dari rumah",
+        "furthestRide": "Perjalanan {{date}}",
+        "fromHome": "Jarak dari rumah",
+        "footnote": "Rumah adalah tempat sebagian besar perjalananmu dimulai. Luas dihitung dari sel peta yang dilewati rutemu."
+      },
+      "rhythm": {
+        "part": {
+          "morning": "Pagi",
+          "afternoon": "Siang",
+          "evening": "Sore",
+          "night": "Malam"
+        },
+        "busiest": "Tersibuk",
+        "typical": "Perjalanan khas",
+        "footnote": "Setiap perjalanan dihitung saat dimulai, di zona waktu tempat kamu berkendara."
+      },
+      "bestRides": {
+        "segment": {
+          "distance": "Jarak",
+          "climb": "Tanjakan",
+          "bends": "Tikungan"
+        },
+        "longest": "Perjalanan terjauh",
+        "places": "{{start}} – {{end}}",
+        "proLine_one": "Pro mengurutkan {{count}} perjalananmu berdasarkan jarak, tanjakan, dan tikungan.",
+        "proLine_other": "Pro mengurutkan semua {{count}} perjalananmu berdasarkan jarak, tanjakan, dan tikungan.",
+        "proLineDefault": "Pro mengurutkan perjalananmu berdasarkan jarak, tanjakan, dan tikungan.",
+        "empty": "Belum ada perjalanan dengan ukuran ini",
+        "footnote": "Tanjakan mengabaikan perubahan ketinggian di bawah 5 m. Tikungan dihitung per 10 km rute."
+      },
+      "bikes": {
+        "heroLine": "ditempuh musim ini",
+        "unassigned": "Tanpa motor",
+        "meta_one": "{{count}} perjalanan · {{time}} bergerak",
+        "meta_other": "{{count}} perjalanan · {{time}} bergerak"
+      },
+      "countries": {
+        "title": "Negara",
+        "heroLine_one": "negara dilalui musim ini",
+        "heroLine_other": "negara dilalui musim ini",
+        "meta_one": "Pertama dilalui {{date}} · {{count}} perjalanan",
+        "meta_other": "Pertama dilalui {{date}} · {{count}} perjalanan",
+        "footnote": "Negara dihitung jika minimal 1 km rute berada 500 m atau lebih di dalam perbatasannya."
+      }
+    },
+    "share": {
+      "button": "Bagikan musim",
+      "close": "Tutup",
+      "title": "Bagikan musimmu",
+      "subtitle": "Gambar untuk feed atau story-mu.",
+      "seasonLines": "Garis musim",
+      "seasonLinesCaption": "Gratis · rute dan totalmu",
+      "atlasPoster": "Poster atlas",
+      "atlasPosterCaption": "Pro · peta, negara, dan karakter jalan",
+      "optionA11y": "{{name}}. {{caption}}",
+      "lockedA11y": "{{name}}, Pro. Membuka halaman langganan",
+      "sizeA11y": "Ukuran gambar",
+      "sizeFeed": "Feed 4:5",
+      "sizeStory": "Story 9:16",
+      "hideEnds": "Sembunyikan awal dan akhir perjalanan",
+      "hideEndsCaption": "Memotong 500 m dari awal dan akhir setiap perjalanan",
+      "save": "Simpan gambar",
+      "share": "Bagikan…",
+      "message": "Musim berkendaraku {{year}}, dibagikan dari MotoVault",
+      "ridesSeason_one": "{{count}} perjalanan · Musim {{year}}",
+      "ridesSeason_other": "{{count}} perjalanan · Musim {{year}}",
+      "ridesYear_one": "{{count}} perjalanan · {{year}}",
+      "ridesYear_other": "{{count}} perjalanan · {{year}}",
+      "handleBrand": "@{{handle}} · MotoVault",
+      "twisty": "{{share}} berkelok atau lebih tajam"
+    },
+    "recap": {
+      "title": "Rekap musim",
+      "entry": "Rekap musim {{year}} kamu",
+      "entryCaptionPro": "Tujuh kartu untuk disimpan atau dibagikan",
+      "entryCaptionFree": "3 kartu untuk disimpan atau dibagikan · 4 lagi dengan Pro",
+      "open": "Buka",
+      "heading": "Musim {{year}} kamu",
+      "subheading": "Geser untuk melihat, lalu bagikan kartu yang kamu suka.",
+      "labelFree": "Gratis · {{index}} dari {{total}}",
+      "labelPro": "Pro · {{index}} dari {{total}}",
+      "ridesIn_one": "{{count}} perjalanan di {{year}}",
+      "ridesIn_other": "{{count}} perjalanan di {{year}}",
+      "countries_one": "{{count}} negara",
+      "countries_other": "{{count}} negara",
+      "since": "sejak {{date}}",
+      "moreCountries": "+{{count}} lagi",
+      "longest": "Perjalanan terjauh",
+      "places": "{{from}} – {{to}}",
+      "rhythm": "Ritme berkendara",
+      "rhythmStarted_one": "{{count}} perjalanan dimulai antara pukul {{from}}.00 dan {{to}}.00",
+      "rhythmStarted_other": "{{count}} perjalanan dimulai antara pukul {{from}}.00 dan {{to}}.00",
+      "rhythmA11y": "Perjalanan menurut hari dan waktu",
+      "newRoads": "Jalan baru",
+      "newRoadsShare": "kilometer rutemu ada di jalan yang belum pernah kamu lalui",
+      "newRoadsArea": "peta tercakup",
+      "twistiest": "Perjalanan paling berkelok",
+      "twistiestBends": "{{bends}} tikungan tiap 10 km",
+      "cost": "Biaya berkendara",
+      "costFrom": "dari biaya bahan bakar dan servismu",
+      "costSource": {
+        "odometer": "Dibagi dengan selisih odometer sepanjang musim",
+        "tracked": "Dibagi dengan jarak perjalanan yang kamu rekam",
+        "mixed": "Dibagi dengan selisih odometer jika kamu mencatatnya, jika tidak dengan perjalanan terekam"
+      },
+      "costAlso": "Juga {{cost}}",
+      "costMissing": "Butuh catatan bahan bakar sepanjang musim",
+      "share": "Bagikan kartu ini",
+      "shareMessage": "Musim berkendaraku {{year}}, dibagikan dari MotoVault"
+    }
+  },
+  "ridePurposeSheet": {
+    "title": "Tentang perjalanan ini (opsional)",
+    "purposeLabel": "Untuk apa perjalanan ini?",
+    "purpose": {
+      "leisure": "Santai",
+      "commute": "Kerja/sekolah",
+      "tour": "Touring",
+      "errand": "Urusan",
+      "track": "Track day",
+      "offroad": "Off-road",
+      "other": "Lainnya"
+    },
+    "passenger": "Membonceng penumpang",
+    "odometer": "Odometer di akhir",
+    "odometerLabel": "Angka odometer di akhir perjalanan",
+    "odometerSave": "Simpan",
+    "odometerSaved": "Odometer disimpan"
+  },
+  "insightsEntry": {
+    "season": "Musim: {{distance}}",
+    "lastRide": "+{{distance}} di perjalanan terakhirmu",
+    "withThisRide": "+{{distance}} dari perjalanan ini",
+    "newCountry": "Negara baru: {{country}}",
+    "loading": "Memuat musimmu…",
+    "openHint": "Membuka Ringkasan berkendara",
+    "newRoads": "Jalan baru",
+    "newRoadsValue": "{{distance}} · {{share}}",
+    "newRoadsComputing": "Sedang dihitung…",
+    "unlockPro": "Buka dengan Pro",
+    "newRoadsLockedA11y": "Jalan baru di perjalanan ini. Buka dengan Pro"
   }
 }

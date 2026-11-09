@@ -216,6 +216,13 @@ components:
     textColor: "{colors.plate-ink}"
     rounded: "{rounded.pill}"
     size: "52px"
+  country-oval:
+    backgroundColor: "{colors.plate-bone}"
+    textColor: "{colors.plate-ink}"
+    typography: "{typography.figure-small}"
+    rounded: "{rounded.pill}"
+    height: "24px"
+    width: "min 34px"
 ---
 
 # Design System: MotoVault Mobile — Race Plate
@@ -265,7 +272,9 @@ As text or dots on the ground (not plate fills) the triad uses its ink variants:
 
 ### Sanctioned exceptions
 - **Expense category hues.** Fourteen fixed category colours (`palette.hubCat*` in dark, `palette.plateLightCat*` in light, ≥3:1 on white), resolved with `hubCategoryColor(category, hub)`. The same hue marks a category on the Add-expense chip dot and in the Costs chart bar, and the category name always sits beside it. None is copper or a state colour, so a bar never reads as a warning or a button.
-- **Ridden-route copper.** On maps (ride detail, flyover, trip detail, create trip) the ridden route is drawn in copper (`t.warm`): a 4px line over a 10px glow at 15% opacity. This is the one place copper is a data mark rather than an action, because the route is the rider's own trace.
+- **Ridden-route copper.** On maps (ride detail, flyover, trip detail, create trip) the ridden route is drawn in copper (`t.warm`): a 4px line over a 10px glow at 15% opacity. This is the one place copper is a data mark rather than an action, because the route is the rider's own trace. Rider insights draws a whole season of routes, so its hero map thins them to a 2.5px line over a 7px glow at 15%, laid under the road labels; its region tiles and share images draw 1.5px routes. Charts on that screen (band bars, rhythm grids, ribbons) stay in ink tints, never copper.
+- **Locked-insight blur.** The one blur in the app body. A Pro insight a free rider cannot see yet (a "How you ride" row, a detail page, a recap card, the new-roads tile on the ride summary) shows the rider's own coarse pattern, blurred: the teaser view is drawn once under an opaque placeholder, captured with `react-native-view-shot`, and shown only as that image through `expo-image` `blurRadius`. It is never a live blur view, and never generic fake shapes. Until the capture exists the rider sees the placeholder (a `surface2` pill), never the clear view; a failed capture keeps the placeholder. The teaser carries shapes only, no figure, and both the captured view and the image are hidden from VoiceOver and TalkBack, so the row's label is its title, "Pro" and what a tap does. Captures are cached by the teaser's data, the scheme and the font scale. Radii follow the graphic: row minis 4 (band bar), 3 (rhythm grid), 6 (map pattern); detail pages 6, 5, 8; recap cards 6 card units; the ride-summary tile 14. Code: `src/features/rider-insights/blur-capture.tsx`.
+- **Recap and share images stay dark.** Season recap cards and the season share images (Season lines, Atlas poster) are pictures made to be posted, so they always use the dark plate palette (`palette.plate*`) with copper routes, in both app schemes. The screens and sheets around them follow the app scheme.
 
 ### Named Rules
 **The Copper Is a Verb Rule.** Copper marks an action or the current selection. It is never a status, a heading accent, a chart highlight or display type.
@@ -309,7 +318,7 @@ Touch targets are 44pt on iOS and 48dp on Android. Fixed chrome (tab labels, seg
 
 Flat and tonal. Depth comes from stepping up the graphite (or paper) ramp: ground → card → raised → option. There is no drop shadow on cards, rows, plates or the tab island, and no native blur in the app body; the island is an opaque card-step surface with a hairline keyline so list text never reads through it. Over the bike hub an opaque ground-colour dock sits behind the island from 8pt above it to the screen edge.
 
-The only blur is the iOS navigation header, pinned to the app scheme (`systemChromeMaterialDark/Light` on Profile, `systemMaterialDark/Light` on Garage), never the adaptive material that follows the system appearance.
+The only chrome blur is the iOS navigation header, pinned to the app scheme (`systemChromeMaterialDark/Light` on Profile, `systemMaterialDark/Light` on Garage), never the adaptive material that follows the system appearance. The only blur in the app body is the locked-insight blur (see Sanctioned exceptions): a blurred captured image, not a translucent surface.
 
 ### Named Rules
 **The Ramp Is the Shadow Rule.** A surface is lifted by moving one step up the ramp, never by a shadow.
@@ -355,6 +364,23 @@ The bike's readiness as an object.
 ### Buttons and chips (shared kit)
 `EButton` primary is copper with onWarm ink; ghost is transparent with a line border; solid is the raised step; danger is red text. `EChip` active fills copper with onWarm ink; inactive is raised with ink-2.
 
+### Rider insights (Road Atlas)
+A rider's season as places ridden, not a scoreboard. Profile stack screen `src/app/(tabs)/(profile)/rider-insights.tsx`, reached from Home, My Rides, Profile and the ride summary.
+- **First viewport:** large condensed title "Rider insights" with Share in the header; the season range as a subhead; then the hero sheet, about 60% of the screen.
+- **Hero sheet:** radius 20 (plate), card step. A 4:5 Mapbox map (`light-v11` / `dark-v11` by app scheme) that does not pan or zoom, the season's routes in copper fitted with 24 padding, and a small scale bar in the rider's unit. Beneath, the band: season distance as the compact plate figure with its unit in figure-small, the country ovals beside it, "N rides · N countries" in body-strong, and below a hairline the region name (label, ink-3) with its rides and distance (subhead, tabular). Without a map it shows a `surface2` field with one line of subhead.
+- **Region tiles:** three to a row, radius 12, Mapbox Static images at most 640 px a side with the region's routes drawn over them as SVG copper; a caption name and a meta line beneath. Tapping one swaps it into the hero.
+- **Season ribbon:** a card of weekly bars, height by distance: ridden weeks ink-3, the current week ink, empty weeks `surface2`; "N of N weeks ridden" in figure-small and the biggest week as a caption; month initials beneath.
+- **How you ride:** inset grouped rows. Each ready row has a body title, a figure-small value, a caption and a 96-wide mini graphic in ink tints (road bands at 16/36/62/92% ink, rhythm grid at 36/62/92%), then a chevron to its detail page. The group's state decides the row, in this order: not enough rides ("Not enough rides yet, keep riding", no blur, no paywall), computing, missing input, then locked. A locked row shows its blurred mini and "Unlock" in copper text; while a purchase is still reaching the server it reads "Unlocking…" in ink-3 and does nothing on tap.
+- **Detail pages:** full-screen push per group (road character with lean, territory, rhythm, best rides, bikes, countries): a plate-figure hero line, one bar or grid with labelled shares (shares are named on the bar, never told apart by colour alone), ranked rows, and a footnote saying how the number is made. Lean is shown in bands, never as one exact angle.
+- **Graphics and accessibility:** each graphic (map, band bar, rhythm grid, ribbon, ovals) is one accessible image with one summary label, such as "Busiest slot Saturday mornings". Rows stack their graphic under the text from font scale 1.5.
+
+### Atlas country oval
+A country the rider rode in, shown as an oval registration sticker.
+- **Anatomy:** a pill 24 high and at least 34 wide, 4 side padding, `plate-bone` fill, the country's international vehicle registration letters (D, E, F, CH, USA) in `plate-ink` at figure-small 15/18. On light grounds it carries a 1.5px `plate-ink` keyline; on graphite it has none, like the Bike Plate.
+- **Letters:** mapped from the ISO code in `src/features/rider-insights/country-codes.ts`; a code it does not know shows its ISO letters, so an oval is never blank.
+- **Row:** up to six ovals, then "+N" in the same oval. The whole row is one button that opens the countries page; its label names the count and every country.
+- **Rule:** bone here is a sticker, not readiness. The oval sits only in the Rider insights hero band, the countries page and the recap and poster images, never next to a Bike Plate.
+
 ### Platform chrome
 - Status bar style follows the resolved **app** scheme (light content in dark, dark content in light), not the system.
 - iOS headers: large titles in the condensed face, transparent with app-scheme blur, no shadow, minimal back button. Android headers: opaque ground colour.
@@ -378,7 +404,7 @@ The bike's readiness as an object.
 - **Don't** put an eyebrow, kicker or section number above a title, or set labels in letter-spaced uppercase.
 - **Don't** use copper for status, a chart highlight, or display text (the ridden route on a map is the one exception).
 - **Don't** use bone, signal or red decoratively, or give medium priority a hue.
-- **Don't** add drop shadows or translucent blur to cards, rows or the tab island; step up the ramp instead.
+- **Don't** add drop shadows or translucent blur to cards, rows or the tab island; step up the ramp instead. A locked Pro insight is the one blurred thing, and only as a blurred capture of the rider's own pattern.
 - **Don't** add another diagonal: the livery stripe is the only one.
 - **Don't** give Android form sheets more than one detent, or draw the tab island over an Android sheet.
 - **Don't** pin a header blur, segmented control or status bar to the system appearance; follow the app scheme.

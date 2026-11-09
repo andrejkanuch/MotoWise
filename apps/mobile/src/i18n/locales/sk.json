@@ -307,8 +307,6 @@
     "totalDistance": "Celková vzdialenosť"
   },
   "profile": {
-    "roadsTitle": "Cesty, ktoré som prešiel",
-    "roadsSubtitle": "Celoživotná teplotná mapa a ročný prehľad",
     "rider": "Jazdec",
     "proBanner": "MotoVault PRO",
     "proDescription": "Odomkni AI diagnostiku a prémiové lekcie",
@@ -363,7 +361,8 @@
     "sectionApp": "Aplikácia",
     "nameLabel": "Meno",
     "publicNameLabel": "Verejné meno (vidia ho ostatní jazdci)",
-    "sectionFeedback": "Spätná väzba"
+    "sectionFeedback": "Spätná väzba",
+    "riderInsightsDescription": "Cesty, miesta a rytmus tvojej sezóny"
   },
   "onboarding": {
     "welcomeTitle": "Vitaj v MotoVault",
@@ -1199,6 +1198,11 @@
       "clear": "Vymazať",
       "clearNoteA11y": "Vymazať obnovenú poznámku",
       "clearReadingA11y": "Vymazať obnovený stav"
+    },
+    "serviceDistance": {
+      "since": "{{distance}} {{unit}} od posledného servisu",
+      "servicedAt": "Posledný servis pri {{distance}} {{unit}}",
+      "none": "Zatiaľ žiadny zapísaný servis"
     }
   },
   "maintenance": {
@@ -2196,7 +2200,8 @@
     "dur": "Trv.",
     "avg": "Priem.",
     "ride_few": "{{count}} jazdy",
-    "ride_many": "{{count}} jazdy"
+    "ride_many": "{{count}} jazdy",
+    "insightsSubtitle": "Kde, kedy a ako jazdíš"
   },
   "rideDetail": {
     "unavailable": "Táto jazda už nie je dostupná. Možno bola odstránená alebo nastavená ako súkromná.",
@@ -2212,8 +2217,6 @@
     "deleteMessage": "Túto akciu nie je možné vrátiť späť.",
     "cancel": "Zrušiť",
     "delete": "Vymazať",
-    "leanAngle": "Max. náklon",
-    "leanTooltip": "Uhol náklonu sa odhaduje z pohybových senzorov telefónu. Nie je to presný prístroj — skutočný náklon sa môže líšiť podľa uchytenia telefónu a stavu cesty.",
     "private": "Súkromná",
     "threeD": "3D",
     "shareRideA11y": "Zdieľať jazdu",
@@ -2757,5 +2760,375 @@
     "riders": "Jazdci",
     "join": "Pridať sa k výletu",
     "joinErrorTitle": "Nepodarilo sa pridať"
+  },
+  "riderInsightsPaywall": {
+    "seasonDistance": "{{distance}} v tejto sezóne",
+    "seasonRides_one": "{{count}} jazda v tejto sezóne",
+    "seasonRides_other": "{{count}} jázd v tejto sezóne",
+    "seasonRides_few": "{{count}} jazdy v tejto sezóne",
+    "seasonRides_many": "{{count}} jazdy v tejto sezóne",
+    "longestRide": "Tvoja najdlhšia jazda: {{distance}}",
+    "territory": {
+      "headlineDefault": "Pozri si, kam ťa cesty zaviedli",
+      "subhead": "Pro ukáže, koľko z toho boli nové cesty a kam najďalej od domova ťa zaviedli."
+    },
+    "roadCharacter": {
+      "headlineDefault": "Pozri si, po akých cestách jazdíš",
+      "subhead": "Pro ukáže, aké kľukaté boli tvoje cesty, a odhadne tvoj náklon."
+    },
+    "rhythm": {
+      "headlineDefault": "Pozri si, kedy jazdíš",
+      "subhead": "Pro ukáže, v ktoré dni a hodiny jazdíš najčastejšie, aj tvoju typickú jazdu."
+    },
+    "bestRides": {
+      "headlineDefault": "Zoraď svoje najlepšie jazdy",
+      "subhead": "Pro zoradí tvoju sezónu podľa vzdialenosti, stúpania a zákrut."
+    },
+    "summary": {
+      "headlineDefault": "Pozri si nové cesty z každej jazdy",
+      "subhead": "Pro ukáže, aká časť každej jazdy viedla po cestách, ktoré sú pre teba nové."
+    },
+    "cost": {
+      "headlineDefault": "Pozri si, koľko ťa jazdenie stojí",
+      "subhead": "Pro vypočíta tvoje náklady na {{unit}} z výdavkov za palivo a servis."
+    }
+  },
+  "riderInsights": {
+    "title": "Prehľad jazdenia",
+    "seasonRange": "Sezóna {{year}}, {{from}} – {{to}}",
+    "today": "dnes",
+    "stale": "Si offline. Zobrazujeme naposledy uloženú sezónu.",
+    "offline": {
+      "title": "Si offline",
+      "body": "Prehľad jazdenia potrebuje pri prvom otvorení pripojenie. Skús to znova, keď budeš online.",
+      "retry": "Skúsiť znova"
+    },
+    "error": {
+      "title": "Prehľad sa nepodarilo načítať",
+      "body": "Niečo sa pokazilo na našej strane. Skús to o chvíľu znova.",
+      "retry": "Skúsiť znova"
+    },
+    "empty": {
+      "title": "V tejto sezóne zatiaľ žiadne jazdy",
+      "body": "Zaznamenaj jazdu a objavia sa tu tvoje cesty, miesta a rytmus."
+    },
+    "hero": {
+      "noRoutes": "Tvoje cesty sa tu zobrazia po jazde s GPS.",
+      "offline": "Mapa sa zobrazí, keď budeš znova online.",
+      "mapA11y_one": "Mapa {{count}} jazdy, oblasť {{region}}",
+      "mapA11y_other": "Mapa {{count}} jázd, oblasť {{region}}",
+      "mapA11y_few": "Mapa {{count}} jázd, oblasť {{region}}",
+      "mapA11y_many": "Mapa {{count}} jazdy, oblasť {{region}}"
+    },
+    "totals": {
+      "rides_one": "{{count}} jazda",
+      "rides_other": "{{count}} jázd",
+      "rides_few": "{{count}} jazdy",
+      "rides_many": "{{count}} jazdy",
+      "countries_one": "{{count}} krajina",
+      "countries_other": "{{count}} krajín",
+      "countries_few": "{{count}} krajiny",
+      "countries_many": "{{count}} krajiny"
+    },
+    "countries": {
+      "a11y_one": "{{count}} krajina: {{names}}. Otvoriť krajiny",
+      "a11y_other": "{{count}} krajín: {{names}}. Otvoriť krajiny",
+      "a11y_few": "{{count}} krajiny: {{names}}. Otvoriť krajiny",
+      "a11y_many": "{{count}} krajiny: {{names}}. Otvoriť krajiny"
+    },
+    "regions": {
+      "unnamed": "Nepomenovaný región",
+      "meta_one": "{{count}} jazda · {{distance}}",
+      "meta_other": "{{count}} jázd · {{distance}}",
+      "meta_few": "{{count}} jazdy · {{distance}}",
+      "meta_many": "{{count}} jazdy · {{distance}}",
+      "tileA11y": "Zobraziť na mape: {{region}}"
+    },
+    "ribbon": {
+      "section": "Sezóna",
+      "weeksRidden": "{{ridden}} z {{total}} týždňov s jazdou",
+      "biggest": "Najviac: {{distance}}, {{start}} – {{end}}"
+    },
+    "howYouRide": {
+      "section": "Ako jazdíš",
+      "keepRiding": "Zatiaľ málo jázd, jazdi ďalej",
+      "computing": "Spracúvame tvoje jazdy. Pozri sa sem o chvíľu.",
+      "missingRoute": "Vyžaduje jazdy so záznamom GPS",
+      "unlock": "Odomknúť",
+      "unlocking": "Odomyká sa…",
+      "lockedA11y": "{{title}}, Pro. Otvorí ponuku predplatného",
+      "unlockingA11y": "{{title}}, odomyká sa",
+      "roadCharacter": {
+        "title": "Charakter ciest",
+        "teaser": "Aké kľukaté boli tvoje cesty a náklon",
+        "value": "{{share}} kľukatých a ostrejších úsekov",
+        "withLean": "Aj s odhadom náklonu",
+        "bends": "{{bends}} zákrut na 10 km",
+        "a11y": "rovné {{straight}}, plynulé oblúky {{sweeping}}, kľukaté {{twisty}}, ostré zákruty {{tight}}"
+      },
+      "territory": {
+        "title": "Územie",
+        "teaser": "Nové cesty a pokrytie mapy",
+        "value": "{{area}} · {{share}} nových ciest",
+        "furthest": "Najďalej od domova: {{distance}}"
+      },
+      "rhythm": {
+        "title": "Rytmus jazdenia",
+        "teaser": "Kedy jazdíš najčastejšie",
+        "missing": "Vyžaduje jazdy s časom štartu",
+        "weekend_one": "{{weekend}} z {{count}} jazdy cez víkend",
+        "weekend_other": "{{weekend}} z {{count}} jázd cez víkend",
+        "weekend_few": "{{weekend}} z {{count}} jázd cez víkend",
+        "weekend_many": "{{weekend}} z {{count}} jazdy cez víkend",
+        "a11y": "Najčastejší čas: {{slot}}",
+        "slot": {
+          "morning": "{{day}} ráno",
+          "afternoon": "{{day}} popoludní",
+          "evening": "{{day}} večer",
+          "night": "{{day}} v noci"
+        }
+      },
+      "bestRides": {
+        "title": "Najlepšie jazdy",
+        "titleFree": "Najlepšia jazda",
+        "value": "{{name}} · {{distance}}",
+        "unnamed": "Jazda {{date}}",
+        "captionPro": "Najdlhšia, {{date}} · potom stúpanie a zákruty",
+        "captionFree": "Najdlhšia, {{date}} · stúpanie a zákruty s Pro"
+      },
+      "bikes": {
+        "title": "Motorky",
+        "missing": "Priraď jazdám motorku a porovnaj ich",
+        "item": "{{name}} {{distance}}",
+        "unnamed": "Motorka",
+        "count_one": "{{count}} motorka",
+        "count_other": "{{count}} motoriek",
+        "count_few": "{{count}} motorky",
+        "count_many": "{{count}} motorky",
+        "unassigned_one": "{{count}} jazda bez priradenej motorky",
+        "unassigned_other": "{{count}} jázd bez priradenej motorky",
+        "unassigned_few": "{{count}} jazdy bez priradenej motorky",
+        "unassigned_many": "{{count}} jazdy bez priradenej motorky"
+      }
+    },
+    "detail": {
+      "coverage": "Na základe {{count}} z {{total}} jázd",
+      "rideMeta": "{{date}} · {{distance}}",
+      "locked": {
+        "territory": "pokrytej mapy v tejto sezóne, zaokrúhlene",
+        "roadCharacter": "zákrut na 10 km, zaokrúhlene",
+        "rhythm": "tvojich jázd cez víkend, zaokrúhlene"
+      },
+      "roadCharacter": {
+        "heroLine": "z {{distance}} tvojich trás bolo kľukatých alebo ostrejších",
+        "band": {
+          "straight": "Rovné",
+          "sweeping": "Plynulé oblúky",
+          "twisty": "Kľukaté",
+          "tight": "Ostré zákruty"
+        },
+        "rule": {
+          "straight": "menej ako 1 zákruta na 2 km",
+          "sweeping": "do 1,5 zákruty na km",
+          "twisty": "do 3 zákrut na km",
+          "tight": "3 a viac zákrut na km"
+        },
+        "barA11y": "Rovné {{straight}}, plynulé oblúky {{sweeping}}, kľukaté {{twisty}}, ostré zákruty {{tight}}",
+        "footnote_one": "Zákruta je otočenie aspoň o 35° jedným smerom na úseku do 400 m. V tejto sezóne {{count}} zákruta.",
+        "footnote_other": "Zákruta je otočenie aspoň o 35° jedným smerom na úseku do 400 m. V tejto sezóne {{count}} zákrut.",
+        "footnote_few": "Zákruta je otočenie aspoň o 35° jedným smerom na úseku do 400 m. V tejto sezóne {{count}} zákruty.",
+        "footnote_many": "Zákruta je otočenie aspoň o 35° jedným smerom na úseku do 400 m. V tejto sezóne {{count}} zákruty.",
+        "per10km": "zákrut / 10 km",
+        "twistiest_one": "Najkľukatejšia jazda",
+        "twistiest_other": "Najkľukatejšie jazdy",
+        "twistiest_few": "Najkľukatejšie jazdy",
+        "twistiest_many": "Najkľukatejšie jazdy",
+        "straightest_one": "Najrovnejšia jazda",
+        "straightest_other": "Najrovnejšie jazdy",
+        "straightest_few": "Najrovnejšie jazdy",
+        "straightest_many": "Najrovnejšie jazdy"
+      },
+      "lean": {
+        "title": "Odhadovaný náklon",
+        "corners_one": "zmeraná zákruta",
+        "corners_other": "zmeraných zákrut",
+        "corners_few": "zmerané zákruty",
+        "corners_many": "zmeranej zákruty",
+        "band": {
+          "under20": "<20°",
+          "from20to30": "20–30°",
+          "from30to40": "30–40°",
+          "from40": "40°+"
+        },
+        "a11y": "Podiel zákrut podľa náklonu: pod 20° {{under20}}, 20 až 30° {{from20to30}}, 30 až 40° {{from30to40}}, 40° a viac {{from40}}",
+        "missing": "Vyžaduje jazdy s podrobným záznamom GPS",
+        "note": "Jazdec a motorka spolu, odhad z rýchlosti a zatáčania podľa GPS. V krátkych ostrých zákrutách vychádza nižší, preto ho ukazujeme v pásmach, nikdy ako jedno presné číslo."
+      },
+      "territory": {
+        "heroLine": "pokrytej mapy v tejto sezóne",
+        "newRoads": "Nové cesty",
+        "newRoadsCaption": "{{distance}} z {{total}} po cestách, ktoré boli pre teba nové",
+        "barA11y": "{{share}} vzdialenosti tejto sezóny po nových cestách, {{before}} po už prejdených cestách",
+        "newShare": "{{share}} nové",
+        "beforeShare": "{{share}} už prejdené",
+        "furthest": "Najďalej od domova",
+        "furthestRide": "Jazda {{date}}",
+        "fromHome": "Vzdialenosť od domova",
+        "footnote": "Domov je tam, kde začína väčšina tvojich jázd. Plocha počíta políčka mapy, cez ktoré vedú tvoje trasy."
+      },
+      "rhythm": {
+        "part": {
+          "morning": "Ráno",
+          "afternoon": "Popoludnie",
+          "evening": "Večer",
+          "night": "Noc"
+        },
+        "busiest": "Najčastejšie",
+        "typical": "Typická jazda",
+        "footnote": "Každá jazda sa počíta podľa času štartu, v časovom pásme, kde začala."
+      },
+      "bestRides": {
+        "segment": {
+          "distance": "Vzdialenosť",
+          "climb": "Stúpanie",
+          "bends": "Zákruty"
+        },
+        "longest": "Najdlhšia jazda",
+        "places": "{{start}} – {{end}}",
+        "proLine_one": "Pro zoradí tvoju {{count}} jazdu podľa vzdialenosti, stúpania a zákrut.",
+        "proLine_other": "Pro zoradí všetkých {{count}} jázd podľa vzdialenosti, stúpania a zákrut.",
+        "proLine_few": "Pro zoradí všetky {{count}} jazdy podľa vzdialenosti, stúpania a zákrut.",
+        "proLine_many": "Pro zoradí {{count}} jazdy podľa vzdialenosti, stúpania a zákrut.",
+        "proLineDefault": "Pro zoradí tvoje jazdy podľa vzdialenosti, stúpania a zákrut.",
+        "empty": "Zatiaľ žiadne jazdy s týmto údajom",
+        "footnote": "Stúpanie ignoruje zmeny výšky pod 5 m. Zákruty sa počítajú na 10 km trasy."
+      },
+      "bikes": {
+        "heroLine": "najazdených v tejto sezóne",
+        "unassigned": "Bez motorky",
+        "meta_one": "{{count}} jazda · {{time}} v pohybe",
+        "meta_other": "{{count}} jázd · {{time}} v pohybe",
+        "meta_few": "{{count}} jazdy · {{time}} v pohybe",
+        "meta_many": "{{count}} jazdy · {{time}} v pohybe"
+      },
+      "countries": {
+        "title": "Krajiny",
+        "heroLine_one": "krajina prejdená v tejto sezóne",
+        "heroLine_other": "krajín prejdených v tejto sezóne",
+        "heroLine_few": "krajiny prejdené v tejto sezóne",
+        "heroLine_many": "krajiny v tejto sezóne",
+        "meta_one": "Prvýkrát {{date}} · {{count}} jazda",
+        "meta_other": "Prvýkrát {{date}} · {{count}} jázd",
+        "meta_few": "Prvýkrát {{date}} · {{count}} jazdy",
+        "meta_many": "Prvýkrát {{date}} · {{count}} jazdy",
+        "footnote": "Krajina sa započíta, keď aspoň 1 km trasy vedie 500 m alebo viac vnútri jej hraníc."
+      }
+    },
+    "share": {
+      "button": "Zdieľať sezónu",
+      "close": "Zavrieť",
+      "title": "Zdieľaj svoju sezónu",
+      "subtitle": "Obrázok na príspevok alebo story.",
+      "seasonLines": "Línie sezóny",
+      "seasonLinesCaption": "Zadarmo · tvoje trasy a súčty",
+      "atlasPoster": "Plagát atlasu",
+      "atlasPosterCaption": "Pro · mapa, krajiny a charakter ciest",
+      "optionA11y": "{{name}}. {{caption}}",
+      "lockedA11y": "{{name}}, Pro. Otvorí ponuku predplatného",
+      "sizeA11y": "Veľkosť obrázka",
+      "sizeFeed": "Príspevok 4:5",
+      "sizeStory": "Story 9:16",
+      "hideEnds": "Skryť začiatok a koniec jazdy",
+      "hideEndsCaption": "Odreže 500 m zo začiatku a konca každej jazdy",
+      "save": "Uložiť obrázok",
+      "share": "Zdieľať…",
+      "message": "Moja motorkárska sezóna {{year}}, zdieľané cez MotoVault",
+      "ridesSeason_one": "{{count}} jazda · Sezóna {{year}}",
+      "ridesSeason_other": "{{count}} jázd · Sezóna {{year}}",
+      "ridesSeason_few": "{{count}} jazdy · Sezóna {{year}}",
+      "ridesSeason_many": "{{count}} jazdy · Sezóna {{year}}",
+      "ridesYear_one": "{{count}} jazda · {{year}}",
+      "ridesYear_other": "{{count}} jázd · {{year}}",
+      "ridesYear_few": "{{count}} jazdy · {{year}}",
+      "ridesYear_many": "{{count}} jazdy · {{year}}",
+      "handleBrand": "@{{handle}} · MotoVault",
+      "twisty": "{{share}} kľukatých a ostrejších úsekov"
+    },
+    "recap": {
+      "title": "Zhrnutie sezóny",
+      "entry": "Tvoje zhrnutie sezóny {{year}}",
+      "entryCaptionPro": "Sedem kariet na uloženie alebo zdieľanie",
+      "entryCaptionFree": "3 karty na uloženie alebo zdieľanie · ďalšie 4 s Pro",
+      "open": "Otvoriť",
+      "heading": "Tvoja sezóna {{year}}",
+      "subheading": "Prelistuj karty a zdieľaj tú, ktorá sa ti páči.",
+      "labelFree": "Zadarmo · {{index}} z {{total}}",
+      "labelPro": "Pro · {{index}} z {{total}}",
+      "ridesIn_one": "{{count}} jazda v roku {{year}}",
+      "ridesIn_other": "{{count}} jázd v roku {{year}}",
+      "ridesIn_few": "{{count}} jazdy v roku {{year}}",
+      "ridesIn_many": "{{count}} jazdy v roku {{year}}",
+      "countries_one": "{{count}} krajina",
+      "countries_other": "{{count}} krajín",
+      "countries_few": "{{count}} krajiny",
+      "countries_many": "{{count}} krajiny",
+      "since": "od {{date}}",
+      "moreCountries": "+{{count}} ďalšie",
+      "longest": "Najdlhšia jazda",
+      "places": "{{from}} – {{to}}",
+      "rhythm": "Rytmus jazdenia",
+      "rhythmStarted_one": "{{count}} jazda sa začala medzi {{from}}:00 a {{to}}:00",
+      "rhythmStarted_other": "{{count}} jázd sa začalo medzi {{from}}:00 a {{to}}:00",
+      "rhythmStarted_few": "{{count}} jazdy sa začali medzi {{from}}:00 a {{to}}:00",
+      "rhythmStarted_many": "{{count}} jazdy sa začalo medzi {{from}}:00 a {{to}}:00",
+      "rhythmA11y": "Jazdy podľa dňa v týždni a dennej doby",
+      "newRoads": "Nové cesty",
+      "newRoadsShare": "kilometrov tvojich trás viedlo po cestách, ktoré boli pre teba nové",
+      "newRoadsArea": "pokrytej mapy",
+      "twistiest": "Najkľukatejšia jazda",
+      "twistiestBends": "{{bends}} zákrut na každých 10 km",
+      "cost": "Náklady na jazdenie",
+      "costFrom": "z tvojich výdavkov za palivo a servis",
+      "costSource": {
+        "odometer": "Vydelené rozdielom na tachometri za celú sezónu",
+        "tracked": "Vydelené vzdialenosťou tvojich zaznamenaných jázd",
+        "mixed": "Vydelené rozdielom na tachometri, kde je zapísaný, inak zaznamenanými jazdami"
+      },
+      "costAlso": "Tiež {{cost}}",
+      "costMissing": "Vyžaduje palivo zapisované počas celej sezóny",
+      "share": "Zdieľať túto kartu",
+      "shareMessage": "Moja motorkárska sezóna {{year}}, zdieľané cez MotoVault"
+    }
+  },
+  "ridePurposeSheet": {
+    "title": "O tejto jazde (nepovinné)",
+    "purposeLabel": "Aký bol účel jazdy?",
+    "purpose": {
+      "leisure": "Pre radosť",
+      "commute": "Do práce",
+      "tour": "Túra",
+      "errand": "Vybavovačky",
+      "track": "Okruh",
+      "offroad": "Off-road",
+      "other": "Iné"
+    },
+    "passenger": "So spolujazdcom",
+    "odometer": "Tachometer na konci",
+    "odometerLabel": "Stav tachometra na konci jazdy",
+    "odometerSave": "Uložiť",
+    "odometerSaved": "Stav tachometra uložený"
+  },
+  "insightsEntry": {
+    "season": "Sezóna: {{distance}}",
+    "lastRide": "+{{distance}} z poslednej jazdy",
+    "withThisRide": "+{{distance}} s touto jazdou",
+    "newCountry": "Nová krajina: {{country}}",
+    "loading": "Načítava sa tvoja sezóna…",
+    "openHint": "Otvorí Prehľad jazdenia",
+    "newRoads": "Nové cesty",
+    "newRoadsValue": "{{distance}} · {{share}}",
+    "newRoadsComputing": "Počítame…",
+    "unlockPro": "Odomknúť s Pro",
+    "newRoadsLockedA11y": "Nové cesty na tejto jazde. Odomknúť s Pro"
   }
 }

@@ -333,8 +333,6 @@
     "imperial": "İngiliz (mi, °F)",
     "myTripsTitle": "Turlarım",
     "currency": "Para Birimi",
-    "roadsTitle": "Sürdüğüm yollar",
-    "roadsSubtitle": "Tüm zamanların ısı haritası ve yıl özeti",
     "redeemCode": "Kod kullan",
     "appSettings": "Uygulama ayarları",
     "appSettingsSubtitle": "Dil, tema, birimler, para birimi, bildirimler",
@@ -363,7 +361,8 @@
     "sectionApp": "Uygulama",
     "nameLabel": "Ad",
     "publicNameLabel": "Herkese açık ad (diğer sürücülere görünür)",
-    "sectionFeedback": "Geri bildirim"
+    "sectionFeedback": "Geri bildirim",
+    "riderInsightsDescription": "Sezonunun yolları, yerleri ve ritmi"
   },
   "onboarding": {
     "welcomeTitle": "MotoVault'a Hoşgeldin",
@@ -1157,6 +1156,11 @@
       "clear": "Temizle",
       "clearNoteA11y": "Geri yüklenen notu temizle",
       "clearReadingA11y": "Geri yüklenen değeri temizle"
+    },
+    "serviceDistance": {
+      "since": "Son servisten beri {{distance}} {{unit}}",
+      "servicedAt": "Son servis: {{distance}} {{unit}}",
+      "none": "Kayıtlı servis yok"
     }
   },
   "maintenance": {
@@ -2136,7 +2140,8 @@
     "ride_other": "{{count}} sürüş",
     "elev": "yük.",
     "dur": "Süre",
-    "avg": "Ort."
+    "avg": "Ort.",
+    "insightsSubtitle": "Nerede, ne zaman ve nasıl sürdüğün"
   },
   "rideDetail": {
     "unavailable": "Bu sürüş artık mevcut değil. Silinmiş veya gizli yapılmış olabilir.",
@@ -2152,8 +2157,6 @@
     "deleteMessage": "Bu işlem geri alınamaz.",
     "cancel": "İptal",
     "delete": "Sil",
-    "leanAngle": "Maks. yatış",
-    "leanTooltip": "Yatış açısı telefonunun hareket sensörlerinden tahmin edilir. Hassas bir ölçüm aleti değildir — gerçek yatış açısı telefon tutucusunun konumuna ve yol koşullarına göre farklı olabilir.",
     "private": "Gizli",
     "threeD": "3D",
     "shareRideA11y": "Sürüşü paylaş",
@@ -2693,5 +2696,331 @@
     "riders": "Sürücüler",
     "join": "Bu geziye katıl",
     "joinErrorTitle": "Katılınamadı"
+  },
+  "riderInsightsPaywall": {
+    "seasonDistance": "Bu sezon {{distance}}",
+    "seasonRides_one": "Bu sezon {{count}} sürüş",
+    "seasonRides_other": "Bu sezon {{count}} sürüş",
+    "longestRide": "En uzun sürüşün: {{distance}}",
+    "territory": {
+      "headlineDefault": "Nereleri keşfettiğini gör",
+      "subhead": "Pro, bunun ne kadarının yeni yol olduğunu ve evden ne kadar uzağa gittiğini gösterir."
+    },
+    "roadCharacter": {
+      "headlineDefault": "Yollarının nasıl olduğunu gör",
+      "subhead": "Pro, yollarının ne kadar virajlı olduğunu ve tahmini yatışını gösterir."
+    },
+    "rhythm": {
+      "headlineDefault": "Ne zaman sürdüğünü gör",
+      "subhead": "Pro, en yoğun günlerini ve saatlerini, ayrıca tipik sürüşünü gösterir."
+    },
+    "bestRides": {
+      "headlineDefault": "En iyi sürüşlerini sırala",
+      "subhead": "Pro, sezonunu mesafe, tırmanış ve virajlara göre sıralar."
+    },
+    "summary": {
+      "headlineDefault": "Her sürüşteki yeni yolları gör",
+      "subhead": "Pro, her sürüşün ne kadarının daha önce hiç sürmediğin yollarda geçtiğini gösterir."
+    },
+    "cost": {
+      "headlineDefault": "Sürmenin sana maliyetini gör",
+      "subhead": "Pro, yakıt ve servis harcamalarından {{unit}} başına maliyetini hesaplar."
+    }
+  },
+  "riderInsights": {
+    "title": "Sürüş analizleri",
+    "seasonRange": "{{year}} sezonu, {{from}} – {{to}}",
+    "today": "bugün",
+    "stale": "Çevrimdışı. Sezonun en son kaydedildiği hâliyle gösteriliyor.",
+    "offline": {
+      "title": "Çevrimdışısın",
+      "body": "Sürüş analizleri ilk açılışta bağlantı gerektirir. Tekrar çevrimiçi olduğunda yeniden dene.",
+      "retry": "Tekrar dene"
+    },
+    "error": {
+      "title": "Analizlerin yüklenemedi",
+      "body": "Bizim tarafımızda bir sorun oluştu. Birazdan tekrar dene.",
+      "retry": "Tekrar dene"
+    },
+    "empty": {
+      "title": "Bu sezon henüz sürüş yok",
+      "body": "Bir sürüş kaydet; yolların, yerlerin ve ritmin burada görünsün."
+    },
+    "hero": {
+      "noRoutes": "Yolların, GPS'li bir sürüşten sonra burada görünür.",
+      "offline": "Harita, tekrar çevrimiçi olduğunda görünür.",
+      "mapA11y_one": "{{region}} çevresinde {{count}} sürüşün haritası",
+      "mapA11y_other": "{{region}} çevresinde {{count}} sürüşün haritası"
+    },
+    "totals": {
+      "rides_one": "{{count}} sürüş",
+      "rides_other": "{{count}} sürüş",
+      "countries_one": "{{count}} ülke",
+      "countries_other": "{{count}} ülke"
+    },
+    "countries": {
+      "a11y_one": "{{count}} ülke: {{names}}. Ülkeleri aç",
+      "a11y_other": "{{count}} ülke: {{names}}. Ülkeleri aç"
+    },
+    "regions": {
+      "unnamed": "Adsız bölge",
+      "meta_one": "{{count}} sürüş · {{distance}}",
+      "meta_other": "{{count}} sürüş · {{distance}}",
+      "tileA11y": "Haritada göster: {{region}}"
+    },
+    "ribbon": {
+      "section": "Sezon",
+      "weeksRidden": "Sürüş yapılan hafta: {{ridden}}/{{total}}",
+      "biggest": "En uzun: {{distance}}, {{start}} – {{end}}"
+    },
+    "howYouRide": {
+      "section": "Nasıl sürüyorsun",
+      "keepRiding": "Henüz yeterli sürüş yok, sürmeye devam et",
+      "computing": "Sürüşlerin hesaplanıyor. Birazdan tekrar bak.",
+      "missingRoute": "GPS ile kaydedilmiş sürüşler gerekir",
+      "unlock": "Kilidi aç",
+      "unlocking": "Kilit açılıyor…",
+      "lockedA11y": "{{title}}, Pro. Abonelik ekranını açar",
+      "unlockingA11y": "{{title}}, kilit açılıyor",
+      "roadCharacter": {
+        "title": "Yol karakteri",
+        "teaser": "Yollarının ne kadar virajlı olduğu ve yatış",
+        "value": "{{share}} virajlı veya daha keskin",
+        "withLean": "Tahmini yatışla birlikte",
+        "bends": "10 km'de {{bends}} viraj",
+        "a11y": "{{straight}} düz, {{sweeping}} geniş viraj, {{twisty}} virajlı, {{tight}} keskin viraj"
+      },
+      "territory": {
+        "title": "Keşif alanı",
+        "teaser": "Yeni yollar ve kapsanan harita",
+        "value": "{{area}} · {{share}} yeni yol",
+        "furthest": "Evden en uzak: {{distance}}"
+      },
+      "rhythm": {
+        "title": "Sürüş ritmi",
+        "teaser": "En yoğun günlerin ve saatlerin",
+        "missing": "Başlangıç saati olan sürüşler gerekir",
+        "weekend_one": "{{weekend}}/{{count}} sürüş hafta sonunda",
+        "weekend_other": "{{weekend}}/{{count}} sürüş hafta sonunda",
+        "a11y": "En yoğun zaman: {{slot}}",
+        "slot": {
+          "morning": "{{day}} sabahları",
+          "afternoon": "{{day}} öğleden sonraları",
+          "evening": "{{day}} akşamları",
+          "night": "{{day}} geceleri"
+        }
+      },
+      "bestRides": {
+        "title": "En iyi sürüşler",
+        "titleFree": "En iyi sürüş",
+        "value": "{{name}} · {{distance}}",
+        "unnamed": "{{date}} sürüşü",
+        "captionPro": "En uzun, {{date}} · ardından tırmanış ve virajlar",
+        "captionFree": "En uzun, {{date}} · tırmanış ve virajlar Pro ile"
+      },
+      "bikes": {
+        "title": "Motorlar",
+        "missing": "Karşılaştırmak için sürüşlerine motor seç",
+        "item": "{{name}} {{distance}}",
+        "unnamed": "Motor",
+        "count_one": "{{count}} motor",
+        "count_other": "{{count}} motor",
+        "unassigned_one": "{{count}} sürüşte motor seçilmemiş",
+        "unassigned_other": "{{count}} sürüşte motor seçilmemiş"
+      }
+    },
+    "detail": {
+      "coverage": "{{count}}/{{total}} sürüşe göre",
+      "rideMeta": "{{date}} · {{distance}}",
+      "locked": {
+        "territory": "harita bu sezon kapsandı, yuvarlanmış",
+        "roadCharacter": "viraj / 10 km, yuvarlanmış",
+        "rhythm": "sürüş hafta sonundaydı, yuvarlanmış"
+      },
+      "roadCharacter": {
+        "heroLine": "{{distance}} rotanın virajlı veya daha keskin kısmı",
+        "band": {
+          "straight": "Düz",
+          "sweeping": "Geniş viraj",
+          "twisty": "Virajlı",
+          "tight": "Keskin viraj"
+        },
+        "rule": {
+          "straight": "2 km'de 1 virajdan az",
+          "sweeping": "km'de en fazla 1,5 viraj",
+          "twisty": "km'de en fazla 3 viraj",
+          "tight": "km'de 3 veya daha fazla viraj"
+        },
+        "barA11y": "Düz {{straight}}, geniş viraj {{sweeping}}, virajlı {{twisty}}, keskin viraj {{tight}}",
+        "footnote_one": "Viraj, 400 m içinde tek yöne 35° veya daha fazla dönüştür. Bu sezon {{count}} viraj.",
+        "footnote_other": "Viraj, 400 m içinde tek yöne 35° veya daha fazla dönüştür. Bu sezon {{count}} viraj.",
+        "per10km": "viraj / 10 km",
+        "twistiest_one": "En virajlı sürüş",
+        "twistiest_other": "En virajlı sürüşler",
+        "straightest_one": "En düz sürüş",
+        "straightest_other": "En düz sürüşler"
+      },
+      "lean": {
+        "title": "Tahmini yatış",
+        "corners_one": "viraj ölçüldü",
+        "corners_other": "viraj ölçüldü",
+        "band": {
+          "under20": "<20°",
+          "from20to30": "20–30°",
+          "from30to40": "30–40°",
+          "from40": "40°+"
+        },
+        "a11y": "Yatışa göre virajların payı: 20° altı {{under20}}, 20–30° {{from20to30}}, 30–40° {{from30to40}}, 40° ve üzeri {{from40}}",
+        "missing": "Ayrıntılı GPS ile kaydedilmiş sürüşler gerekir",
+        "note": "Sürücü ve motor birlikte, GPS hızı ve dönüşten tahmin edilir. Kısa, keskin virajlarda düşük çıkar; bu yüzden tek bir kesin sayı olarak değil, aralıklar hâlinde gösterilir."
+      },
+      "territory": {
+        "heroLine": "harita bu sezon kapsandı",
+        "newRoads": "Yeni yollar",
+        "newRoadsCaption": "{{total}} mesafenin {{distance}} kadarı daha önce sürmediğin yollarda",
+        "barA11y": "Bu sezonki mesafenin {{share}} kadarı yeni yollarda, {{before}} kadarı daha önce sürülen yollarda",
+        "newShare": "{{share}} yeni",
+        "beforeShare": "{{share}} daha önce sürülmüş",
+        "furthest": "Evden en uzak",
+        "furthestRide": "{{date}} sürüşü",
+        "fromHome": "Evden uzaklık",
+        "footnote": "Ev, sürüşlerinin çoğunun başladığı yerdir. Alan, rotalarının geçtiği harita hücrelerini sayar."
+      },
+      "rhythm": {
+        "part": {
+          "morning": "Sabah",
+          "afternoon": "Öğleden sonra",
+          "evening": "Akşam",
+          "night": "Gece"
+        },
+        "busiest": "En yoğun",
+        "typical": "Tipik sürüş",
+        "footnote": "Her sürüş, başladığı saatte ve sürdüğün yerin saat diliminde sayılır."
+      },
+      "bestRides": {
+        "segment": {
+          "distance": "Mesafe",
+          "climb": "Tırmanış",
+          "bends": "Viraj"
+        },
+        "longest": "En uzun sürüş",
+        "places": "{{start}} – {{end}}",
+        "proLine_one": "Pro, {{count}} sürüşünü mesafe, tırmanış ve virajlara göre sıralar.",
+        "proLine_other": "Pro, {{count}} sürüşünün tümünü mesafe, tırmanış ve virajlara göre sıralar.",
+        "proLineDefault": "Pro, sürüşlerini mesafe, tırmanış ve virajlara göre sıralar.",
+        "empty": "Bu ölçüye göre henüz sürüş yok",
+        "footnote": "Tırmanış, 5 m'nin altındaki yükseklik değişimlerini saymaz. Virajlar 10 km rota başına sayılır."
+      },
+      "bikes": {
+        "heroLine": "bu sezon sürüldü",
+        "unassigned": "Motor seçilmemiş",
+        "meta_one": "{{count}} sürüş · {{time}} hareket",
+        "meta_other": "{{count}} sürüş · {{time}} hareket"
+      },
+      "countries": {
+        "title": "Ülkeler",
+        "heroLine_one": "ülkede bu sezon sürüş",
+        "heroLine_other": "ülkede bu sezon sürüş",
+        "meta_one": "İlk sürüş {{date}} · {{count}} sürüş",
+        "meta_other": "İlk sürüş {{date}} · {{count}} sürüş",
+        "footnote": "Bir rotanın en az 1 km'si sınırın 500 m veya daha fazla içinde kalıyorsa o ülke sayılır."
+      }
+    },
+    "share": {
+      "button": "Sezonu paylaş",
+      "close": "Kapat",
+      "title": "Sezonunu paylaş",
+      "subtitle": "Akışın veya hikâyen için bir görsel.",
+      "seasonLines": "Sezon çizgileri",
+      "seasonLinesCaption": "Ücretsiz · rotaların ve toplamların",
+      "atlasPoster": "Atlas posteri",
+      "atlasPosterCaption": "Pro · harita, ülkeler ve yol karakteri",
+      "optionA11y": "{{name}}. {{caption}}",
+      "lockedA11y": "{{name}}, Pro. Abonelik ekranını açar",
+      "sizeA11y": "Görsel boyutu",
+      "sizeFeed": "Akış 4:5",
+      "sizeStory": "Hikâye 9:16",
+      "hideEnds": "Sürüşün başını ve sonunu gizle",
+      "hideEndsCaption": "Her sürüşün başından ve sonundan 500 m kırpar",
+      "save": "Görseli kaydet",
+      "share": "Paylaş…",
+      "message": "{{year}} sürüş sezonum, MotoVault'tan paylaşıldı",
+      "ridesSeason_one": "{{count}} sürüş · {{year}} sezonu",
+      "ridesSeason_other": "{{count}} sürüş · {{year}} sezonu",
+      "ridesYear_one": "{{count}} sürüş · {{year}}",
+      "ridesYear_other": "{{count}} sürüş · {{year}}",
+      "handleBrand": "@{{handle}} · MotoVault",
+      "twisty": "{{share}} virajlı veya daha keskin"
+    },
+    "recap": {
+      "title": "Sezon özeti",
+      "entry": "{{year}} sezon özetin",
+      "entryCaptionPro": "Saklamak veya paylaşmak için yedi kart",
+      "entryCaptionFree": "Saklamak veya paylaşmak için 3 kart · Pro ile 4 kart daha",
+      "open": "Aç",
+      "heading": "{{year}} sezonun",
+      "subheading": "Kartlara göz at, sonra beğendiğini paylaş.",
+      "labelFree": "Ücretsiz · {{index}}/{{total}}",
+      "labelPro": "Pro · {{index}}/{{total}}",
+      "ridesIn_one": "{{year}} yılında {{count}} sürüş",
+      "ridesIn_other": "{{year}} yılında {{count}} sürüş",
+      "countries_one": "{{count}} ülke",
+      "countries_other": "{{count}} ülke",
+      "since": "{{date}} tarihinden beri",
+      "moreCountries": "+{{count}} daha",
+      "longest": "En uzun sürüş",
+      "places": "{{from}} – {{to}}",
+      "rhythm": "Sürüş ritmi",
+      "rhythmStarted_one": "{{count}} sürüş {{from}}:00 ile {{to}}:00 arasında başladı",
+      "rhythmStarted_other": "{{count}} sürüş {{from}}:00 ile {{to}}:00 arasında başladı",
+      "rhythmA11y": "Haftanın gününe ve günün saatine göre sürüşler",
+      "newRoads": "Yeni yollar",
+      "newRoadsShare": "rota mesafesi daha önce hiç sürmediğin yollardaydı",
+      "newRoadsArea": "harita kapsandı",
+      "twistiest": "En virajlı sürüş",
+      "twistiestBends": "Her 10 km'de {{bends}} viraj",
+      "cost": "Sürüş maliyeti",
+      "costFrom": "yakıt ve servis harcamalarından",
+      "costSource": {
+        "odometer": "Sezon boyunca kilometre sayacındaki değişime bölündü",
+        "tracked": "Kaydedilen sürüşlerinin mesafesine bölündü",
+        "mixed": "Girdiğin yerlerde kilometre sayacındaki değişime, diğerlerinde kaydedilen sürüşlere bölündü"
+      },
+      "costAlso": "Ayrıca {{cost}}",
+      "costMissing": "Sezon boyunca yakıt kaydı gerekir",
+      "share": "Bu kartı paylaş",
+      "shareMessage": "{{year}} sürüş sezonum, MotoVault'tan paylaşıldı"
+    }
+  },
+  "ridePurposeSheet": {
+    "title": "Bu sürüş hakkında (isteğe bağlı)",
+    "purposeLabel": "Amacı neydi?",
+    "purpose": {
+      "leisure": "Keyif",
+      "commute": "İşe gidiş",
+      "tour": "Tur",
+      "errand": "Ayak işi",
+      "track": "Pist günü",
+      "offroad": "Arazi",
+      "other": "Diğer"
+    },
+    "passenger": "Arkada yolcu vardı",
+    "odometer": "Bitişte kilometre",
+    "odometerLabel": "Sürüş sonunda kilometre sayacı değeri",
+    "odometerSave": "Kaydet",
+    "odometerSaved": "Kilometre kaydedildi"
+  },
+  "insightsEntry": {
+    "season": "Sezon: {{distance}}",
+    "lastRide": "Son sürüşünde +{{distance}}",
+    "withThisRide": "Bu sürüşle +{{distance}}",
+    "newCountry": "Yeni ülke: {{country}}",
+    "loading": "Sezonun yükleniyor…",
+    "openHint": "Sürüş analizlerini açar",
+    "newRoads": "Yeni yollar",
+    "newRoadsValue": "{{distance}} · {{share}}",
+    "newRoadsComputing": "Hesaplanıyor…",
+    "unlockPro": "Pro ile kilidi aç",
+    "newRoadsLockedA11y": "Bu sürüşteki yeni yollar. Pro ile kilidi aç"
   }
 }
