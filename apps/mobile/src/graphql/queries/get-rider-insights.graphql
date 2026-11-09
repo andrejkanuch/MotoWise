@@ -94,6 +94,7 @@ query GetRiderInsights(
         newRoadShare
         furthest {
           rideId
+          name
           localDate
           distanceM
           lat
