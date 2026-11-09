@@ -103,9 +103,19 @@ function enqueue(work: () => Promise<void>): Promise<void> {
   return chain;
 }
 
+/**
+ * Cancel the reminders not yet shown AND remove the ones already in the tray: a
+ * reminder left there after the ride ended (or moved on) would still open "the
+ * ride" when tapped — a second summary over the first.
+ */
 async function cancelIds(ids: readonly string[]): Promise<void> {
   await Promise.all(
-    ids.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})),
+    ids.flatMap((id) => [
+      Notifications.cancelScheduledNotificationAsync(id).catch(() => {}),
+      Promise.resolve()
+        .then(() => Notifications.dismissNotificationAsync(id))
+        .catch(() => {}),
+    ]),
   );
 }
 

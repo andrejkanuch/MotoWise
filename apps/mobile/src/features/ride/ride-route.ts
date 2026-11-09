@@ -1,5 +1,5 @@
-import type { Href } from 'expo-router';
-import { useMemo } from 'react';
+import { type Href, useRouter } from 'expo-router';
+import { useCallback } from 'react';
 import { useRideStore } from '../../stores/ride.store';
 import { buildRideSummaryHref, readEndedRideSummary } from './ride-controller';
 
@@ -38,12 +38,12 @@ export function rideEntryHref(state: RideRouteState): Href {
   return rideRouteFor(state);
 }
 
-/** `rideEntryHref` for the current ride store. */
-export function useRideEntryHref(): Href {
-  const status = useRideStore((s) => s.status);
-  const recordingInterrupted = useRideStore((s) => s.recordingInterrupted);
-  return useMemo(
-    () => rideEntryHref({ status, recordingInterrupted }),
-    [status, recordingInterrupted],
-  );
+/**
+ * Opens "the ride" from a tap. The destination is worked out at the moment of
+ * the tap, from the current state — never from a value cached at render, which
+ * could predate the summary an ended ride is reviewed from.
+ */
+export function useOpenRide(): () => void {
+  const router = useRouter();
+  return useCallback(() => router.push(rideEntryHref(useRideStore.getState())), [router]);
 }

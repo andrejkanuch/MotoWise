@@ -23,7 +23,7 @@ import { ThemedSegmentedControl } from '@/components/ui/themed-segmented-control
 import { HOME_ROUTE } from '@/config/routes';
 import { ReceiptScanRecoveryCard } from '@/features/receipt-scan/receipt-scan-recovery-card';
 import { SCAN_ENTRY_SURFACE } from '@/features/receipt-scan/scan-flow-constants';
-import { useRideEntryHref } from '@/features/ride/ride-route';
+import { useOpenRide } from '@/features/ride/ride-route';
 import { useMileageUnit } from '@/hooks/use-mileage-unit';
 import { useProGate } from '@/hooks/use-pro-gate';
 import { useTabBarClearance } from '@/hooks/use-tab-bar-clearance';
@@ -57,7 +57,7 @@ export default function HomeScreen() {
   const mileageUnit = useMileageUnit();
   const { requireAccess } = useProGate();
   const bottomPadding = useTabBarClearance();
-  const rideRoute = useRideEntryHref();
+  const openRide = useOpenRide();
 
   const {
     isLoading,
@@ -130,7 +130,7 @@ export default function HomeScreen() {
           icon: Route,
           label: t('common.ride'),
           testID: 'home-action-ride',
-          onPress: () => router.push(rideRoute),
+          onPress: openRide,
         },
         {
           key: HOME_ACTION.EXPENSE,
