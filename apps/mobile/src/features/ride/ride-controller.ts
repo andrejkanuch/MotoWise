@@ -25,7 +25,12 @@ import { selectPrimaryBike } from '../../utils/primary-bike';
 import { aggregateWaypoints } from '../../utils/ride-aggregate';
 import { activeRideSeconds, movingTimeSeconds } from '../../utils/ride-duration';
 import { encodePolyline } from '../../utils/ride-heatmap';
-import { isLocationRecording, startGPSListener, stopGPSListener } from '../../utils/ride-location';
+import {
+  endAutoPauseEpisode,
+  isLocationRecording,
+  startGPSListener,
+  stopGPSListener,
+} from '../../utils/ride-location';
 import {
   checkAndRequestPermissions,
   isApproximateLocation,
@@ -267,6 +272,55 @@ export function elapsedRideSeconds(now: number = Date.now()): number {
   );
 }
 
+/**
+ * Pause the recording ride — from the HUD or the head unit, identically: persist
+ * the phase and the pause start (the clock freezes on it), project, and swap the
+ * "still riding?" reminders for the single "still paused" one. False when there
+ * is no recording ride to pause (a double press, or a ride already ended).
+ */
+export function pauseRideSession(source: RideSource): boolean {
+  const record = readRideRecord();
+  if (record?.phase !== RIDE_PHASE.RECORDING) return false;
+  const now = Date.now();
+  // A stop the GPS was timing ends here: the pause is the rider's, not the GPS's.
+  endAutoPauseEpisode(now);
+  rideMMKV.setStatus(RIDE_PHASE.PAUSED);
+  rideMMKV.setPausedAt(now);
+  useRideStore.setState({ status: 'paused', currentSpeed: 0 });
+  void armRideReminders(now);
+  trackEvent(AnalyticsEvent.RIDE_PAUSED, {
+    ride_id: record.rideId,
+    duration_at_pause_s: elapsedRideSeconds(now),
+    distance_at_pause_m: Math.round(useRideStore.getState().distance),
+    source,
+  });
+  return true;
+}
+
+/**
+ * Resume a paused ride: bank the pause into the persisted total, persist the
+ * phase, project, and restart the "still riding?" clock from now. False when the
+ * ride is not paused.
+ */
+export function resumeRideSession(source: RideSource): boolean {
+  const record = readRideRecord();
+  if (record?.phase !== RIDE_PHASE.PAUSED) return false;
+  const now = Date.now();
+  const pausedAt = rideMMKV.getPausedAt();
+  const pausedMs = pausedAt > 0 ? Math.max(0, now - pausedAt) : 0;
+  rideMMKV.setTotalPausedMs(rideMMKV.getTotalPausedMs() + pausedMs);
+  rideMMKV.setPausedAt(0);
+  rideMMKV.setStatus(RIDE_PHASE.RECORDING);
+  useRideStore.setState({ status: 'recording' });
+  void armRideReminders(now);
+  trackEvent(AnalyticsEvent.RIDE_RESUMED, {
+    ride_id: record.rideId,
+    pause_duration_s: Math.round(pausedMs / 1000),
+    source,
+  });
+  return true;
+}
+
 export interface EndRideOptions {
   /**
    * Epoch ms the ride really ended — the last movement, when ended from a
@@ -341,6 +395,26 @@ export function endRideSession(
   const isBatterySaver = store.isBatterySaver;
   const endedAt = new Date(endedAtMs).toISOString();
 
+  const summary: RideEndSummary = {
+    rideId,
+    distanceM: Math.round(totalDistance),
+    durationS,
+    maxSpeedMps: maxSpd,
+    avgSpeedMps: avgSpeed,
+    elevationGain: Math.round(elevGain),
+    elevationLoss: Math.round(elevLoss),
+    startedAt,
+    motorcycleId,
+    movingTimeS: startedAt
+      ? movingTimeSeconds(startedAt, endedAtMs, totalPausedMs, totalAutoPausedMs)
+      : 0,
+  };
+  // Kept with the ride so its review can reopen after an app kill, or when the
+  // summary never opened (CarPlay Stop with no phone UI to navigate). Written
+  // before the phase flips: a surface that renders on the flip (the CarPlay
+  // panel's store subscription runs synchronously) must already find it.
+  rideMMKV.setEndedSummaryJson(JSON.stringify(summary));
+
   // Persist the end before anything else can observe it: the GPS task drops
   // samples for an ended ride, and a relaunch now sees "ended — review", never
   // a resumable ride the server has already completed.
@@ -396,23 +470,6 @@ export function endRideSession(
   // summary reads to draw the route. (autoEndRide is the only truly headless end; it
   // stops GPS and drops the in-memory buffer but, like this path, leaves the
   // persisted ride id for the summary / crash-recovery to reconcile.)
-  const summary: RideEndSummary = {
-    rideId,
-    distanceM: Math.round(totalDistance),
-    durationS,
-    maxSpeedMps: maxSpd,
-    avgSpeedMps: avgSpeed,
-    elevationGain: Math.round(elevGain),
-    elevationLoss: Math.round(elevLoss),
-    startedAt,
-    motorcycleId,
-    movingTimeS: startedAt
-      ? movingTimeSeconds(startedAt, endedAtMs, totalPausedMs, totalAutoPausedMs)
-      : 0,
-  };
-  // Kept with the ride so its review can reopen after an app kill, or when the
-  // summary never opened (CarPlay Stop with no phone UI to navigate).
-  rideMMKV.setEndedSummaryJson(JSON.stringify(summary));
   return summary;
 }
 
@@ -481,7 +538,9 @@ export async function resumeRecoveredRide(): Promise<boolean> {
     return false;
   }
   useRideStore.setState({ recordingInterrupted: false });
-  if (record.phase === RIDE_PHASE.RECORDING) void armRideReminders();
+  // The phase picks the set: "still riding?" for a recording ride, "still
+  // paused" for a paused one.
+  void armRideReminders();
   trackEvent(AnalyticsEvent.RIDE_STARTED, {
     ride_id: record.rideId,
     has_motorcycle: !!rideMMKV.getMotorcycleId(),

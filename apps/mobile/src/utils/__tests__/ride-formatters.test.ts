@@ -4,6 +4,7 @@ import {
   formatDistanceValue,
   formatDuration,
   formatElapsed,
+  formatElapsedCompact,
   formatElevation,
   formatSpeed,
   formatSpeedValue,
@@ -62,5 +63,13 @@ describe('formatDuration / formatElapsed', () => {
   it('formats elapsed as zero-padded HH:MM:SS', () => {
     expect(formatElapsed(3661)).toBe('01:01:01');
     expect(formatElapsed(59)).toBe('00:00:59');
+  });
+});
+
+describe('formatElapsedCompact', () => {
+  it('drops the hour under an hour and floors fractional seconds', () => {
+    expect(formatElapsedCompact(245)).toBe('4:05');
+    expect(formatElapsedCompact(59.9)).toBe('0:59');
+    expect(formatElapsedCompact(3729)).toBe('1:02:09');
   });
 });

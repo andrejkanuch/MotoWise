@@ -45,19 +45,28 @@ describe('deriveState', () => {
       'recording',
     );
   });
-  it('is autoPaused when stopped (auto) or manually paused', () => {
+  it("tells an auto-pause (GPS sees a stop) from the rider's own pause", () => {
     expect(
       deriveState({ status: 'recording', recordingSubState: 'stopped', gpsLocked: true }),
     ).toBe('autoPaused');
     expect(deriveState({ status: 'paused', recordingSubState: 'moving', gpsLocked: true })).toBe(
-      'autoPaused',
+      'paused',
+    );
+    // A manual pause wins over whatever sub-state the GPS last reported.
+    expect(deriveState({ status: 'paused', recordingSubState: 'stopped', gpsLocked: true })).toBe(
+      'paused',
     );
   });
-  it('keeps a paused ride as autoPaused even before GPS lock (Resume stays available)', () => {
+  it('keeps a paused ride paused even before GPS lock (Resume stays available)', () => {
     expect(deriveState({ status: 'paused', recordingSubState: 'moving', gpsLocked: false })).toBe(
-      'autoPaused',
+      'paused',
     );
-    expect(buildActions('autoPaused', 'automatic').map((a) => a.id)).toEqual(['resume', 'stop']);
+    expect(buildActions('paused', 'automatic').map((a) => a.id)).toEqual(['resume', 'stop']);
+  });
+  it('is saved once the ride has ended (waiting for its review on the phone)', () => {
+    expect(deriveState({ status: 'ended', recordingSubState: 'moving', gpsLocked: true })).toBe(
+      'saved',
+    );
   });
   it('is idle when not recording', () => {
     expect(deriveState({ status: 'idle', recordingSubState: 'moving', gpsLocked: false })).toBe(
@@ -271,8 +280,15 @@ describe('buildActions', () => {
   it('recording offers Pause + Stop', () => {
     expect(buildActions('recording', 'automatic').map((a) => a.id)).toEqual(['pause', 'stop']);
   });
-  it('autoPaused offers Resume + Stop', () => {
-    expect(buildActions('autoPaused', 'automatic').map((a) => a.id)).toEqual(['resume', 'stop']);
+  it('autoPaused offers Pause + Stop (the ride is still recording)', () => {
+    expect(buildActions('autoPaused', 'automatic').map((a) => a.id)).toEqual(['pause', 'stop']);
+  });
+  it('paused offers Resume + Stop', () => {
+    expect(buildActions('paused', 'manual').map((a) => a.id)).toEqual(['resume', 'stop']);
+  });
+  it('saved never blocks a new ride: Start in manual mode, as idle', () => {
+    expect(buildActions('saved', 'manual').map((a) => a.id)).toEqual(['start']);
+    expect(buildActions('saved', 'automatic')).toEqual([]);
   });
   it('idle shows Start only in manual mode (no duplicate-start in auto)', () => {
     expect(buildActions('idle', 'manual').map((a) => a.id)).toEqual(['start']);
@@ -310,9 +326,47 @@ describe('forgot-to-stop prompt (CarPlay title)', () => {
     expect(buildPanelItems(snap, true).title).toBe('STOP RIDE?');
   });
 
-  it('keeps Resume + Stop available so the prompt is actionable', () => {
+  it('keeps Stop available so the prompt is actionable', () => {
     const snap = deriveSnapshot({ ...stopped, forgotToStopPending: true }, 'metric');
-    expect(buildPanelItems(snap).actions?.map((a) => a.id)).toEqual(['resume', 'stop']);
+    expect(buildPanelItems(snap).actions?.map((a) => a.id)).toEqual(['pause', 'stop']);
+  });
+
+  it('never prompts on a saved ride', () => {
+    const snap = deriveSnapshot(
+      { ...stopped, status: 'ended', forgotToStopPending: true },
+      'metric',
+    );
+    expect(snap.forgotToStopPending).toBe(false);
+    expect(buildPanelItems(snap).title).toBe('RIDE SAVED');
+  });
+});
+
+describe('every panel state', () => {
+  const cases: [RideInput, string, string[]][] = [
+    [base, 'RECORDING', ['pause', 'stop']],
+    [{ ...base, recordingSubState: 'stopped' }, 'AUTO-PAUSED', ['pause', 'stop']],
+    [{ ...base, status: 'paused' }, 'PAUSED', ['resume', 'stop']],
+    [{ ...base, gpsLocked: false, distance: 0, elapsedTime: 0 }, 'ACQUIRING GPS', ['stop']],
+    [{ ...base, status: 'ended', startMode: 'manual' }, 'RIDE SAVED', ['start']],
+    [{ ...base, status: 'idle', startMode: 'manual' }, 'READY', ['start']],
+  ];
+  it.each(cases)('%# → %s', (input, title, actions) => {
+    const model = buildPanelItems(deriveSnapshot(input, 'metric'));
+    expect(model.title).toBe(title);
+    expect(model.actions.map((a) => a.id)).toEqual(actions);
+  });
+
+  it("keeps the live rows while paused and shows a saved ride's final numbers", () => {
+    const paused = deriveSnapshot({ ...base, status: 'paused' }, 'metric');
+    expect(buildPanelItems(paused).items[0].title).toBe('Speed');
+    const saved = deriveSnapshot({ ...base, status: 'ended', distance: 42_300 }, 'metric');
+    expect(saved.distance).not.toContain('—');
+    expect(buildPanelItems(saved).items.map((i) => i.title)).toEqual([
+      'Distance',
+      'Moving',
+      'Mode',
+      'Climb',
+    ]);
   });
 });
 

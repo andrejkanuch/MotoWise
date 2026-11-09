@@ -78,7 +78,6 @@ describe('useRideStore', () => {
     useRideStore.setState({
       status: 'idle',
       currentSpeed: 0,
-      elapsedTime: 0,
       distance: 0,
       recordingSubState: 'moving',
       isNightMode: false,
@@ -96,7 +95,6 @@ describe('useRideStore', () => {
     const state = useRideStore.getState();
     expect(state.status).toBe('recording');
     expect(state.currentSpeed).toBe(0);
-    expect(state.elapsedTime).toBe(0);
     expect(state.distance).toBe(0);
     expect(state.recordingSubState).toBe('moving');
   });
@@ -107,18 +105,8 @@ describe('useRideStore', () => {
     expect(useRideStore.getState().isBatterySaver).toBe(false);
   });
 
-  it('pauseRide sets status to paused', () => {
-    useRideStore.getState().startRide();
-    useRideStore.getState().pauseRide();
-    expect(useRideStore.getState().status).toBe('paused');
-  });
-
-  it('resumeRide sets status to recording', () => {
-    useRideStore.getState().startRide();
-    useRideStore.getState().pauseRide();
-    useRideStore.getState().resumeRide();
-    expect(useRideStore.getState().status).toBe('recording');
-  });
+  // Pause/resume are no longer store actions: they run through the controller
+  // (pauseRideSession / resumeRideSession — see ride-controller.test).
 
   it('endRide sets status to ended', () => {
     useRideStore.getState().startRide();
@@ -136,11 +124,6 @@ describe('useRideStore', () => {
   it('updateDistance updates distance', () => {
     useRideStore.getState().updateDistance(1500);
     expect(useRideStore.getState().distance).toBe(1500);
-  });
-
-  it('updateElapsedTime updates elapsedTime', () => {
-    useRideStore.getState().updateElapsedTime(3600);
-    expect(useRideStore.getState().elapsedTime).toBe(3600);
   });
 
   it('toggleNightMode toggles boolean', () => {

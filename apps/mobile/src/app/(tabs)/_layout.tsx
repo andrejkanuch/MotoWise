@@ -25,6 +25,7 @@ import { GlobalCarPlayBanner } from '../../components/carplay/global-carplay-ban
 import { ErrorFallback } from '../../components/error-fallback';
 import { countGarageBadge } from '../../components/garage/garage-badge-count';
 import { useOpenRide } from '../../features/ride/ride-route';
+import { useRideElapsed } from '../../features/ride/use-ride-elapsed';
 import { BIKE_HUB_ROUTES } from '../../lib/bike-hub/constants';
 import { maintenanceBadgeOptions } from '../../lib/query-options';
 import { useRideStore } from '../../stores/ride.store';
@@ -33,6 +34,7 @@ import { tint, useEditorialTheme } from '../../theme/editorial';
 import { space } from '../../theme/spacing';
 import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
+import { formatElapsedCompact } from '../../utils/ride-formatters';
 
 const TAB_CONFIG = [
   { name: '(home)', icon: Home, labelKey: 'tabs.home' },
@@ -71,24 +73,16 @@ const INDICATOR_SIZE = 4;
  */
 const FAB_SIZE = 52;
 
-function formatElapsed(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
-
 function RideFAB() {
   const { t } = useTranslation();
   const { t: rideTheme } = useEditorialTheme();
   const reduceMotion = useReducedMotion();
   const rideStatus = useRideStore((s) => s.status);
-  const elapsedTime = useRideStore((s) => s.elapsedTime);
+  const elapsedTime = useRideElapsed();
   const isActive = rideStatus === 'recording' || rideStatus === 'paused';
   const openRide = useOpenRide();
   const ended = rideStatus === 'ended';
-  const caption = isActive ? formatElapsed(elapsedTime) : ended ? t('common.review') : '';
+  const caption = isActive ? formatElapsedCompact(elapsedTime) : ended ? t('common.review') : '';
 
   const pulseScale = useSharedValue(1);
 

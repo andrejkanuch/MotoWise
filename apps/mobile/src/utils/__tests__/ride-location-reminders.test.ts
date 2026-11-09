@@ -74,7 +74,12 @@ import * as TaskManager from 'expo-task-manager';
 import { trackEvent } from '../../lib/analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { gpsFilter } from '../ride-gps-filter';
-import { autoEndRide, BACKGROUND_LOCATION_TASK, stopGPSListener } from '../ride-location';
+import {
+  autoEndRide,
+  BACKGROUND_LOCATION_TASK,
+  endAutoPauseEpisode,
+  stopGPSListener,
+} from '../ride-location';
 import { cancelRideReminders, noteRideMovement } from '../ride-reminders';
 import {
   appendWaypoint,
@@ -145,6 +150,65 @@ describe('pause after an app kill — the persisted phase decides, not the store
     filterProcess.mockReturnValue(accepted(12));
     await sample(fix(T0, 10));
     expect(note).toHaveBeenCalledWith(T0);
+  });
+});
+
+describe('auto-pause reaches the screens, not only the disk', () => {
+  it('projects the stopped sub-state and the forgotten-ride flag onto the store', async () => {
+    rideMMKV.setRecordingSubState('moving');
+    useRideStore.setState({ recordingSubState: 'moving', forgotToStopPending: false });
+    const now = jest.spyOn(Date, 'now');
+    filterProcess.mockReturnValue(accepted(0));
+    const at = async (ms: number, speed: number) => {
+      now.mockReturnValue(T0 + ms);
+      await sample(fix(T0 + ms, speed));
+    };
+
+    await at(0, 0);
+    await at(61_000, 0); // past the 60 s auto-pause threshold
+    expect(rideMMKV.getRecordingSubState()).toBe('stopped');
+    expect(useRideStore.getState().recordingSubState).toBe('stopped');
+
+    await at(61_000 + 10 * 60_000 + 1_000, 0); // past the 10 min "still riding?" mark
+    expect(useRideStore.getState().forgotToStopPending).toBe(true);
+
+    filterProcess.mockReturnValue(accepted(12));
+    await at(12 * 60_000, 10); // moving again answers it
+    expect(useRideStore.getState().recordingSubState).toBe('moving');
+    expect(useRideStore.getState().forgotToStopPending).toBe(false);
+    now.mockRestore();
+  });
+});
+
+describe('a manual pause ends the stop episode', () => {
+  it('does not auto-end on resume after a long pause taken at a stop, nor bank the pause twice', async () => {
+    rideMMKV.setRecordingSubState('moving');
+    rideMMKV.setTotalAutoPausedMs(0);
+    const now = jest.spyOn(Date, 'now');
+    filterProcess.mockReturnValue(accepted(0));
+    const at = async (ms: number, speed: number) => {
+      now.mockReturnValue(T0 + ms);
+      await sample(fix(T0 + ms, speed));
+    };
+
+    await at(0, 0);
+    await at(120_000, 0); // auto-paused for 2 min
+    expect(rideMMKV.getRecordingSubState()).toBe('stopped');
+
+    // The rider pauses (what pauseRideSession does), for 40 min.
+    endAutoPauseEpisode(T0 + 120_000);
+    rideMMKV.setStatus('paused');
+    await at(20 * 60_000, 0); // dropped while paused
+    rideMMKV.setStatus('recording');
+
+    await at(42 * 60_000, 0); // first fix after resume, still at the stop
+    expect(trackEvent).not.toHaveBeenCalledWith('ride_auto_saved', expect.anything());
+    expect(rideMMKV.getCurrentId()).toBe(RIDE_ID);
+    // Only the 2 min the GPS saw stopped count as auto-paused, never the pause.
+    expect(rideMMKV.getTotalAutoPausedMs()).toBe(120_000);
+    expect(useRideStore.getState().recordingSubState).toBe('moving');
+    expect(useRideStore.getState().forgotToStopPending).toBe(false);
+    now.mockRestore();
   });
 });
 

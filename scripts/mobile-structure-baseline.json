@@ -25,8 +25,7 @@
     },
     "utils/ride-reminders.ts": {
       "lib/analytics.ts": 1,
-      "lib/notifications.ts": 1,
-      "stores/ride.store.ts": 1
+      "lib/notifications.ts": 1
     },
     "utils/ride-storage.ts": {
       "lib/analytics.ts": 1
@@ -49,7 +48,7 @@
     "app/(modals)/recalls.tsx": 432,
     "app/(modals)/ride-detail.tsx": 962,
     "app/(modals)/ride-flyover.tsx": 957,
-    "app/(modals)/ride-hud.tsx": 469,
+    "app/(modals)/ride-hud.tsx": 435,
     "app/(modals)/ride-summary.tsx": 932,
     "app/(modals)/start-ride.tsx": 579,
     "app/(modals)/trip-detail.tsx": 1876,
@@ -80,7 +79,7 @@
     "app/(tabs)/(profile)/rides.tsx": 868,
     "app/(tabs)/(profile)/saved.tsx": 333,
     "app/(tabs)/(profile)/trips.tsx": 542,
-    "app/(tabs)/_layout.tsx": 433,
+    "app/(tabs)/_layout.tsx": 427,
     "app/_layout.tsx": 1125,
     "app/t/[token]/index.tsx": 484
   }

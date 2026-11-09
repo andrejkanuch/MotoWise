@@ -20,13 +20,14 @@ import {
   NOTIFICATION_CHANNEL,
   NOTIFICATION_KIND,
 } from '../lib/notifications';
-import { useRideStore } from '../stores/ride.store';
-import { rideMMKV } from './ride-storage';
+import { RIDE_PHASE, type RidePhase, readRideRecord, rideMMKV } from './ride-storage';
 
 /** Reminder stages, by minutes without movement. */
 export const RIDE_REMINDER_STAGE = {
   NUDGE: 'nudge',
   FINAL: 'final',
+  /** A manual pause left running: one "end it?" prompt instead of the idle pair. */
+  PAUSED: 'paused',
 } as const;
 export type RideReminderStage = (typeof RIDE_REMINDER_STAGE)[keyof typeof RIDE_REMINDER_STAGE];
 
@@ -35,14 +36,26 @@ export type RideReminderStage = (typeof RIDE_REMINDER_STAGE)[keyof typeof RIDE_R
  *  30-minute auto-end derive from the same values, so they cannot drift apart. */
 export const RIDE_IDLE_NUDGE_MINUTES = 10;
 export const RIDE_IDLE_FINAL_MINUTES = 30;
+/** A manual pause is deliberate (lunch, fuel), so it is left alone far longer. */
+export const RIDE_PAUSED_REMINDER_MINUTES = 120;
 
-export const RIDE_REMINDER_SCHEDULE: readonly {
-  stage: RideReminderStage;
-  afterMinutes: number;
-}[] = [
+type ReminderSchedule = readonly { stage: RideReminderStage; afterMinutes: number }[];
+
+export const RIDE_REMINDER_SCHEDULE: ReminderSchedule = [
   { stage: RIDE_REMINDER_STAGE.NUDGE, afterMinutes: RIDE_IDLE_NUDGE_MINUTES },
   { stage: RIDE_REMINDER_STAGE.FINAL, afterMinutes: RIDE_IDLE_FINAL_MINUTES },
 ];
+
+export const RIDE_PAUSED_REMINDER_SCHEDULE: ReminderSchedule = [
+  { stage: RIDE_REMINDER_STAGE.PAUSED, afterMinutes: RIDE_PAUSED_REMINDER_MINUTES },
+];
+
+/** What each phase of the current ride is reminded with. An ended ride is not. */
+const SCHEDULE_BY_PHASE: Record<RidePhase, ReminderSchedule> = {
+  [RIDE_PHASE.RECORDING]: RIDE_REMINDER_SCHEDULE,
+  [RIDE_PHASE.PAUSED]: RIDE_PAUSED_REMINDER_SCHEDULE,
+  [RIDE_PHASE.ENDED]: [],
+};
 
 /** Re-scheduling costs a native round trip; a moving fix arrives about every second.
  *  Pushing the deadline back once a minute keeps every reminder within a minute of
@@ -67,6 +80,12 @@ const STAGE_COPY: Record<
     bodyDefault: (m) =>
       `No movement for ${m} minutes. End the ride to save it as it was when you stopped.`,
   },
+  [RIDE_REMINDER_STAGE.PAUSED]: {
+    titleKey: 'rideHud.reminderPausedTitle',
+    titleDefault: 'Your ride is still paused',
+    bodyKey: 'rideHud.reminderPausedBody',
+    bodyDefault: (m) => `Paused for ${m / 60} hours. End the ride to save it, or keep it paused.`,
+  },
 };
 
 /**
@@ -84,6 +103,7 @@ export function rideReminderContent(
     title: i18n.t(copy.titleKey, { defaultValue: copy.titleDefault }),
     body: i18n.t(copy.bodyKey, {
       minutes: afterMinutes,
+      hours: afterMinutes / 60,
       defaultValue: copy.bodyDefault(afterMinutes),
     }),
     categoryIdentifier: NOTIFICATION_CATEGORY.RIDE_IDLE,
@@ -128,22 +148,28 @@ function takeReminderIds(): string[] {
 }
 
 /**
- * (Re)schedule every reminder stage relative to `from` (the last movement, or now).
- * Cancels the previous set first. Silently a no-op without notification permission —
- * the ride still records, the rider just doesn't get nudged.
+ * (Re)schedule the current ride's reminders relative to `from` (the last movement,
+ * or now). Which ones depends on the persisted phase: a recording ride gets the
+ * "still riding?" pair, a paused one a single "still paused" prompt, an ended one
+ * none. Cancels the previous set first. Silently a no-op without notification
+ * permission — the ride still records, the rider just doesn't get nudged.
  */
 export function armRideReminders(from: number = Date.now()): Promise<void> {
   lastArmedAt = from;
   return enqueue(async () => {
     await cancelIds(takeReminderIds());
-    const rideId = rideMMKV.getCurrentId();
+    // Read the persisted phase, not the store: a headless relaunch has no UI to
+    // project into, and the phase is what the GPS task itself goes by.
+    const record = readRideRecord();
+    const schedule = record ? SCHEDULE_BY_PHASE[record.phase] : [];
     // No reminders for a ride that is gone, or ended and waiting on its summary.
-    if (!rideId || useRideStore.getState().status === 'ended') return;
+    if (!record || schedule.length === 0) return;
     const { status } = await Notifications.getPermissionsAsync();
     if (status !== 'granted') return;
 
+    const rideId = record.rideId;
     const ids: string[] = [];
-    for (const { stage, afterMinutes } of RIDE_REMINDER_SCHEDULE) {
+    for (const { stage, afterMinutes } of schedule) {
       const fireAt = from + afterMinutes * 60_000;
       const seconds = Math.max(1, Math.round((fireAt - Date.now()) / 1000));
       ids.push(

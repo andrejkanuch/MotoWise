@@ -12,7 +12,14 @@ import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
 import { PulseDot, StaticDot } from './primitives';
 import { type RideStateKey, stateTint, stateWord } from './state-indicator';
 
-export type BannerState = 'recording' | 'autoPaused' | 'acquiring' | 'armedAuto' | 'manualIdle';
+export type BannerState =
+  | 'recording'
+  | 'autoPaused'
+  | 'paused'
+  | 'acquiring'
+  | 'saved'
+  | 'armedAuto'
+  | 'manualIdle';
 
 // maps banner state → canonical glyph-state + copy + whether metrics show.
 const BANNER: Record<
@@ -21,6 +28,8 @@ const BANNER: Record<
 > = {
   recording: { state: 'recording', sub: 'controls on your head unit', metrics: true, pulse: true },
   autoPaused: { state: 'autoPaused', sub: 'resumes when you move', metrics: true, pulse: false },
+  paused: { state: 'paused', sub: 'resume from the head unit', metrics: true, pulse: false },
+  saved: { state: 'saved', sub: 'tap to review your ride', metrics: true, pulse: false },
   acquiring: { state: 'acquiring', sub: 'waiting for GPS lock', metrics: true, pulse: false },
   armedAuto: { state: 'recording', sub: 'auto-start armed', metrics: false, pulse: false },
   manualIdle: { state: 'recording', sub: 'start from the head unit', metrics: false, pulse: false },

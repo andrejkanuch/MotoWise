@@ -47,6 +47,9 @@ jest.mock('@motovault/graphql', () => ({
 jest.mock('../../ride/ride-controller', () => ({
   startRideSession: jest.fn(() => Promise.resolve({ ok: true, rideId: 'r1' })),
   endRideSession: jest.fn(() => null),
+  pauseRideSession: jest.fn(() => true),
+  resumeRideSession: jest.fn(() => true),
+  readEndedRideSummary: jest.fn(() => null),
   buildRideSummaryHref: jest.fn(() => ({ pathname: '/(modals)/ride-summary', params: {} })),
   // Elapsed is derived from persisted timestamps; mirror the store value in tests.
   elapsedRideSeconds: jest.fn(() => 4360),
@@ -79,8 +82,6 @@ const mockRide = {
   elevationGain: 640,
   elevationLoss: 320,
   currentSpeed: 18,
-  pauseRide: jest.fn(),
-  resumeRide: jest.fn(),
   startRide: jest.fn(),
   endRide: jest.fn(),
 };
@@ -413,14 +414,16 @@ describe('carplay-coordinator', () => {
     jest.useRealTimers();
   });
 
-  it('routes head-unit actions through the store + shared controller', () => {
+  it('routes head-unit actions through the shared controller', () => {
     startCarPlayCoordinator();
     fireConnect();
 
+    // Pause/Resume take the same path as the HUD's (pause clock, reminders,
+    // analytics), never bare store writes.
     fireAction('pause');
-    expect(mockRide.pauseRide).toHaveBeenCalledTimes(1);
+    expect(rideController.pauseRideSession).toHaveBeenCalledWith('carplay');
     fireAction('resume');
-    expect(mockRide.resumeRide).toHaveBeenCalledTimes(1);
+    expect(rideController.resumeRideSession).toHaveBeenCalledWith('carplay');
 
     // Start/Stop go through the controller (full GPS/sync orchestration), not the
     // bare store actions — a CarPlay start is a Quick Ride (no bike picker).
@@ -633,7 +636,7 @@ describe('carplay-coordinator', () => {
 
     // Ride-control actions work again (coordinator no longer suppressing them)...
     fireAction('pause');
-    expect(mockRide.pauseRide).toHaveBeenCalledTimes(1);
+    expect(rideController.pauseRideSession).toHaveBeenCalledTimes(1);
     // ...and a subsequent Bike tap re-pushes a fresh list (not swallowed by the covered flag).
     (carplay.pushBikeList as jest.Mock).mockClear();
     fireAction('bike');

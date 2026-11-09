@@ -358,11 +358,20 @@ type AutoPauseEffectHandlers = {
   [K in AutoPauseEffect['kind']]: (effect: Extract<AutoPauseEffect, { kind: K }>) => void;
 };
 
+// State the screens show (sub-state, the forgotten-ride flag) is persisted first,
+// then projected: the CarPlay panel and the phone banner read the store, and a
+// value written only to disk reached neither until the next relaunch.
 const AUTO_PAUSE_EFFECT_HANDLERS: AutoPauseEffectHandlers = {
-  setSubState: (e) => rideMMKV.setRecordingSubState(e.value),
+  setSubState: (e) => {
+    rideMMKV.setRecordingSubState(e.value);
+    useRideStore.setState({ recordingSubState: e.value });
+  },
   updateSpeedZero: () => useRideStore.getState().updateSpeed(0),
   addAutoPausedMs: (e) => rideMMKV.setTotalAutoPausedMs(rideMMKV.getTotalAutoPausedMs() + e.ms),
-  setForgotToStopPending: (e) => rideMMKV.setForgotToStopPending(e.value),
+  setForgotToStopPending: (e) => {
+    rideMMKV.setForgotToStopPending(e.value);
+    useRideStore.setState({ forgotToStopPending: e.value });
+  },
   autoEnd: (e) => autoEndRide(e.idleSince),
 };
 
@@ -682,6 +691,27 @@ function handleLocationPermissionLost(error: LocationTaskError): void {
   });
 }
 
+/**
+ * End any stop episode at a manual pause. The GPS task drops every fix while
+ * paused, so without this the stop timers carry across the pause: on resume the
+ * first slow fix measures "stopped for" from before it (auto-ending a ride after
+ * a 30 min lunch), and the first fast one banks the manual pause again as
+ * auto-paused time. Banks the auto-pause that really happened (same rule as
+ * decideAutoPause on moving off) and clears the forgotten-ride flag.
+ */
+export function endAutoPauseEpisode(now: number = Date.now()): void {
+  if (zeroSpeedTimer !== null && now - zeroSpeedTimer > AUTO_PAUSE_DURATION_MS) {
+    rideMMKV.setTotalAutoPausedMs(rideMMKV.getTotalAutoPausedMs() + (now - zeroSpeedTimer));
+  }
+  zeroSpeedTimer = null;
+  zeroSpeedAnchor = null;
+  continuousAutoPauseStart = null;
+  forgotToStopNotified = false;
+  rideMMKV.setRecordingSubState('moving');
+  rideMMKV.setForgotToStopPending(false);
+  useRideStore.setState({ recordingSubState: 'moving', forgotToStopPending: false });
+}
+
 function resetAutoPauseState(): void {
   zeroSpeedTimer = null;
   zeroSpeedAnchor = null;
@@ -695,4 +725,5 @@ function resetAutoPauseState(): void {
   // opens already warning that GPS is off.
   rideMMKV.setForgotToStopPending(false);
   rideMMKV.setGpsPermissionLost(false);
+  useRideStore.setState({ forgotToStopPending: false });
 }

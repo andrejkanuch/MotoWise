@@ -43,13 +43,15 @@ import { useAuthStore } from '../../stores/auth.store';
 import { useCarPlayStore } from '../../stores/carplay.store';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
-import { rideMMKV } from '../../utils/ride-storage';
 import { drainQueue } from '../../utils/ride-sync-queue';
 import {
   buildRideSummaryHref,
   elapsedRideSeconds,
   endRideSession,
+  pauseRideSession,
   type RideStartFailureReason,
+  readEndedRideSummary,
+  resumeRideSession,
   startRideSession,
 } from '../ride/ride-controller';
 import { type BikeStatusInput, buildBikeError, buildBikeStatus } from './carplay-bike-status';
@@ -206,24 +208,25 @@ function panelModel(snap: PanelSnapshot) {
 
 function currentRideInput(): RideInput {
   const r = useRideStore.getState();
-  // Derive elapsed from the persisted start timestamp rather than the store's
-  // elapsedTime, which is only advanced by the HUD's interval timer (absent when
-  // the app is backgrounded / the HUD unmounted while riding with CarPlay). This
-  // keeps the panel's clock correct off GPS-driven renders without a JS timer.
+  // Elapsed from the persisted timestamps (the engine clock every surface shows),
+  // so the panel is right off GPS-driven renders without a JS timer.
   const elapsed = elapsedRideSeconds();
+  // An ended ride shows what was saved — its clock would otherwise keep running
+  // from the start time, and after a relaunch the store holds no totals.
+  const ended = r.status === 'ended' ? readEndedRideSummary() : null;
   return {
     status: r.status,
     recordingSubState: r.recordingSubState,
-    distance: r.distance,
-    elapsedTime: elapsed,
-    elevationGain: r.elevationGain,
+    distance: ended?.distanceM ?? r.distance,
+    elapsedTime: ended?.movingTimeS ?? elapsed,
+    elevationGain: ended?.elevationGain ?? r.elevationGain,
     speed: r.currentSpeed,
     // TODO(carplay): replace with a real GPS-lock signal (parent open question).
     // Proxy: treat the ride as locked once any distance/time has accrued.
     gpsLocked: r.distance > 0 || elapsed > 3,
-    // Read from MMKV, not the store: the flag is written by the background location
-    // task, which can run with no React tree mounted (screen locked, CarPlay only).
-    forgotToStopPending: rideMMKV.getForgotToStopPending(),
+    // The GPS task persists and projects it, so a change re-renders the panel
+    // through the store subscription (no React tree needed).
+    forgotToStopPending: r.forgotToStopPending,
     startMode: useCarPlayStore.getState().startMode,
     // Heads-up row inputs — populated from the cached bike/task snapshot (U3). Defaults
     // are the safe "no signal" state so the picker falls back to the climb row.
@@ -562,10 +565,10 @@ function onAction(actionId: string): void {
   trackEvent(AnalyticsEvent.CARPLAY_ACTION, { action: actionId, ride_state: ride.status });
   switch (actionId) {
     case CARPLAY_ACTION.pause:
-      ride.pauseRide();
+      pauseRideSession('carplay');
       break;
     case CARPLAY_ACTION.resume:
-      ride.resumeRide();
+      resumeRideSession('carplay');
       break;
     case CARPLAY_ACTION.start: {
       // CarPlay-initiated rides are Quick Rides — there's no bike picker on the

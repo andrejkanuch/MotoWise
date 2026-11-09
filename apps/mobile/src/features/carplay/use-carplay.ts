@@ -6,7 +6,7 @@
 
 import type { MyMotorcyclesQuery } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AppState } from 'react-native';
 import {
   addConnectListener,
@@ -22,6 +22,8 @@ import { useCarPlayStore } from '../../stores/carplay.store';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
 import { formatDistance, formatElapsed, formatElevation } from '../../utils/ride-formatters';
+import { readEndedRideSummary } from '../ride/ride-controller';
+import { useRideElapsed } from '../ride/use-ride-elapsed';
 import { initialPhoneSceneVisible } from './phone-scene';
 
 export type Motorcycle = MyMotorcyclesQuery['myMotorcycles'][number];
@@ -71,6 +73,7 @@ export function useActiveBike(): Motorcycle | null {
 }
 
 export interface LiveRideSnapshot {
+  /** A ride to show: recording, paused, or ended and waiting for its review. */
   active: boolean;
   bannerState: BannerState;
   distance: string;
@@ -78,29 +81,41 @@ export interface LiveRideSnapshot {
   climb: string;
 }
 
+type RideStatus = ReturnType<typeof useRideStore.getState>['status'];
+
+// Banner state per ride status. A recording ride splits on the GPS sub-state:
+// AUTO-PAUSED is the GPS seeing a stop, PAUSED is the rider's own pause.
+const BANNER_STATE: Record<
+  RideStatus,
+  (ctx: { stopped: boolean; automatic: boolean }) => BannerState
+> = {
+  recording: ({ stopped }) => (stopped ? 'autoPaused' : 'recording'),
+  paused: () => 'paused',
+  ended: () => 'saved',
+  idle: ({ automatic }) => (automatic ? 'armedAuto' : 'manualIdle'),
+};
+
 // Live ride projection for the phone banner + status sheet. Real data from the
-// ride store; formatted with the user's measurement preference.
+// ride store (an ended ride: its stored summary); formatted with the user's
+// measurement preference.
 export function useLiveRideSnapshot(): LiveRideSnapshot {
   const status = useRideStore((s) => s.status);
   const subState = useRideStore((s) => s.recordingSubState);
   const distance = useRideStore((s) => s.distance);
-  const elapsedTime = useRideStore((s) => s.elapsedTime);
+  const elapsedTime = useRideElapsed();
   const elevationGain = useRideStore((s) => s.elevationGain);
   const startMode = useCarPlayStore((s) => s.startMode);
   const system = useMeasurementSystem();
-
-  const active = status === 'recording' || status === 'paused';
-
-  let bannerState: BannerState;
-  if (status === 'recording') bannerState = subState === 'stopped' ? 'autoPaused' : 'recording';
-  else if (status === 'paused') bannerState = 'autoPaused';
-  else bannerState = startMode === 'automatic' ? 'armedAuto' : 'manualIdle';
+  const ended = useMemo(() => (status === 'ended' ? readEndedRideSummary() : null), [status]);
 
   return {
-    active,
-    bannerState,
-    distance: formatDistance(distance, system),
-    elapsed: formatElapsed(elapsedTime),
-    climb: formatElevation(elevationGain, system),
+    active: status !== 'idle',
+    bannerState: BANNER_STATE[status]({
+      stopped: subState === 'stopped',
+      automatic: startMode === 'automatic',
+    }),
+    distance: formatDistance(ended?.distanceM ?? distance, system),
+    elapsed: formatElapsed(ended?.movingTimeS ?? elapsedTime),
+    climb: formatElevation(ended?.elevationGain ?? elevationGain, system),
   };
 }

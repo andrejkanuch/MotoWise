@@ -1966,6 +1966,8 @@
     "reminderNudgeBody": "Perjalanan Anda masih direkam, tetapi Anda tidak bergerak selama {{minutes}} menit. Akhiri atau lanjutkan.",
     "reminderFinalTitle": "Perjalanan Anda masih direkam",
     "reminderFinalBody": "Tidak ada pergerakan selama {{minutes}} menit. Akhiri perjalanan untuk menyimpannya seperti saat Anda berhenti.",
+    "reminderPausedTitle": "Perjalanan Anda masih dijeda",
+    "reminderPausedBody": "Dijeda selama {{hours}} jam. Akhiri perjalanan untuk menyimpannya, atau biarkan tetap dijeda.",
     "actionEndRide": "Akhiri perjalanan",
     "actionKeepRiding": "Masih berkendara",
     "rideAlertsChannel": "Peringatan perjalanan",

@@ -1991,6 +1991,8 @@
     "reminderNudgeBody": "Il tuo giro è ancora in registrazione, ma sei fermo da {{minutes}} minuti. Terminalo o continua.",
     "reminderFinalTitle": "Il tuo giro è ancora in registrazione",
     "reminderFinalBody": "Nessun movimento da {{minutes}} minuti. Termina il giro per salvarlo com'era quando ti sei fermato.",
+    "reminderPausedTitle": "Il tuo giro è ancora in pausa",
+    "reminderPausedBody": "In pausa da {{hours}} ore. Termina il giro per salvarlo, oppure lascialo in pausa.",
     "actionEndRide": "Termina giro",
     "actionKeepRiding": "Sto ancora guidando",
     "rideAlertsChannel": "Avvisi giro",

@@ -97,6 +97,15 @@ export function formatElapsed(seconds: number): string {
   return `${pad(h)}:${pad(m)}:${pad(s)}`;
 }
 
+/** Compact clock for tight spots (the tab-bar ride button): "4:05", "1:02:09". */
+export function formatElapsedCompact(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+}
+
 // ─── Date ────────────────────────────────────────────────────────────────────
 
 /** Format date relatively */
