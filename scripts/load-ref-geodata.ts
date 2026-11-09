@@ -12,8 +12,9 @@
  * rejected before anything touches the database. All three tables are truncated and
  * reloaded in ONE transaction, so a failed run leaves the previous data in place and a
  * second run leaves the same row counts. Afterwards it prints the row counts and checks
- * known points (central Bratislava is SK and Bratislava Region); an empty or wrong
- * result exits non-zero.
+ * known points (central Bratislava is SK and Bratislava Region). Both checks run inside
+ * the transaction before COMMIT, so an empty or wrong result rolls back, keeps the previous
+ * data and exits non-zero.
  *
  * Owner-run. The database URL comes ONLY from REF_GEODATA_DATABASE_URL; there is no
  * default. Use the direct (session) connection string with the postgres role, e.g.
@@ -250,14 +251,21 @@ function batches<T>(items: readonly T[], size: number): T[][] {
 }
 
 /**
- * Truncate and reload all three tables in one transaction. Countries are staged
+ * Truncate and reload all three tables in one transaction, then run the row-count and
+ * known-point checks on the same client BEFORE committing: a load that fails them rolls
+ * back and the previous data stays live. Returns the committed row counts. Countries are staged
  * whole, unioned per ISO code (Natural Earth splits e.g. Kazakhstan and Baikonur),
  * and only then subdivided or shrunk-then-subdivided.
  */
-export async function loadReferenceData(client: pg.ClientBase, data: ReferenceData): Promise<void> {
+export async function loadReferenceData(
+  client: pg.ClientBase,
+  data: ReferenceData,
+  points: readonly KnownPoint[] = KNOWN_POINTS,
+): Promise<ReferenceCounts> {
   if (data.countries.length === 0 || data.regions.length === 0 || data.places.length === 0) {
     throw new Error('refusing to load: a source parsed to zero rows');
   }
+  let counts: ReferenceCounts;
   await client.query('BEGIN');
   try {
     // Buffering whole countries on geography is slow; the session role may carry a timeout.
@@ -346,12 +354,15 @@ export async function loadReferenceData(client: pg.ClientBase, data: ReferenceDa
       );
     }
 
+    counts = await countReferenceRows(client);
+    await checkKnownPoints(client, points);
     await client.query('COMMIT');
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;
   }
   await client.query('ANALYZE public.ref_country_parts, public.ref_regions, public.ref_places');
+  return counts;
 }
 
 // ---------------------------------------------------------------------------
@@ -488,13 +499,12 @@ async function main(): Promise<void> {
   try {
     console.log('Loading (one transaction: truncate + reload)…');
     const started = Date.now();
-    await loadReferenceData(client, data);
+    const counts = await loadReferenceData(client, data);
     console.log(`  done in ${Math.round((Date.now() - started) / 1000)} s`);
 
     console.log('Row counts:');
-    console.table(await countReferenceRows(client));
+    console.table(counts);
 
-    await checkKnownPoints(client);
     for (const p of KNOWN_POINTS) {
       console.log(`✓ ${p.label} (${p.lat}, ${p.lng}) → ${p.iso_a2}, ${p.region}`);
     }

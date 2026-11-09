@@ -16,6 +16,7 @@ import {
   checkKnownPoints,
   countReferenceRows,
   downloadVerified,
+  type KnownPoint,
   loadReferenceData,
   type Queryable,
   type ReferenceData,
@@ -81,6 +82,62 @@ describe('known-point check without data', () => {
       );
       return true;
     });
+  });
+});
+
+describe('checks run inside the transaction', () => {
+  const tiny: ReferenceData = {
+    countries: [{ iso_a2: 'SK', name: 'Slovakia', geometry: '{}' }],
+    regions: [{ iso_a2: 'SK', admin1_code: '02', name: 'Bratislava Region' }],
+    places: [
+      {
+        geonameid: 1,
+        name: 'Bratislava',
+        iso_a2: 'SK',
+        admin1_code: '02',
+        population: 1,
+        lat: 48.1,
+        lng: 17.1,
+      },
+    ],
+  };
+
+  /** Records every statement; the known-point lookup answers `region`. */
+  const fakeClient = (region: string) => {
+    const log: string[] = [];
+    const client = {
+      async query(text: string) {
+        log.push(text.trim().split(/\s+/)[0]);
+        if (text.includes('AS border_parts')) {
+          return {
+            rows: [
+              { border_parts: '1', core_parts: '1', countries: '1', regions: '1', places: '1' },
+            ],
+          };
+        }
+        if (text.includes('AS region')) return { rows: [{ border: ['SK'], core: ['SK'], region }] };
+        return { rows: [] };
+      },
+    };
+    return { client: client as unknown as pg.ClientBase, log };
+  };
+
+  test('a failing known-point check ROLLBACKs and never COMMITs', async () => {
+    const { client, log } = fakeClient('Somewhere Else');
+    await assert.rejects(loadReferenceData(client, tiny), /reference geodata check FAILED/);
+    assert.ok(log.includes('ROLLBACK'));
+    assert.ok(!log.includes('COMMIT'));
+    assert.ok(!log.includes('ANALYZE'));
+  });
+
+  test('a passing check runs before COMMIT, and the counts come back', async () => {
+    const { client, log } = fakeClient('Bratislava Region');
+    const counts = await loadReferenceData(client, tiny);
+    assert.equal(counts.places, 1);
+    const lastInsert = log.lastIndexOf('INSERT');
+    const check = log.indexOf('SELECT');
+    assert.ok(lastInsert < check && check < log.indexOf('COMMIT'));
+    assert.ok(log.indexOf('COMMIT') < log.indexOf('ANALYZE'));
   });
 });
 
@@ -214,6 +271,23 @@ describe('loading into a throwaway database', { skip }, () => {
       places: [{ ...FIXTURE.places[0] }, { ...FIXTURE.places[0] }], // duplicate primary key
     };
     await assert.rejects(loadReferenceData(client, broken));
+    assert.deepEqual(await countReferenceRows(client), before);
+  });
+
+  test('a load whose known-point check fails leaves the previous rows intact', async () => {
+    await loadReferenceData(client, FIXTURE);
+    const before = await countReferenceRows(client);
+    const wrongPoint: KnownPoint = {
+      label: 'Bratislava expected in Austria',
+      lat: 48.1486,
+      lng: 17.1077,
+      iso_a2: 'AT',
+      region: 'Vienna',
+    };
+    await assert.rejects(
+      loadReferenceData(client, FIXTURE, [wrongPoint]),
+      /reference geodata check FAILED/,
+    );
     assert.deepEqual(await countReferenceRows(client), before);
   });
 
