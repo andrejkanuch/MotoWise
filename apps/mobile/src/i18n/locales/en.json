@@ -2693,5 +2693,31 @@
     "riders": "Riders",
     "join": "Join This Trip",
     "joinErrorTitle": "Could not join"
+  },
+  "riderInsightsPaywall": {
+    "seasonDistance": "{{distance}} this season",
+    "seasonRides_one": "{{count}} ride this season",
+    "seasonRides_other": "{{count}} rides this season",
+    "longestRide": "Your longest ride: {{distance}}",
+    "territory": {
+      "headlineDefault": "See where you explored",
+      "subhead": "Pro shows how much of it was new road, and how far from home you went."
+    },
+    "roadCharacter": {
+      "headlineDefault": "See what your roads are like",
+      "subhead": "Pro shows how twisty your roads were, and your estimated lean."
+    },
+    "rhythm": {
+      "headlineDefault": "See when you ride",
+      "subhead": "Pro shows your busiest days and hours, and your typical ride."
+    },
+    "bestRides": {
+      "headlineDefault": "Rank your best rides",
+      "subhead": "Pro ranks your season by distance, climb and bends."
+    },
+    "summary": {
+      "headlineDefault": "See the new roads on every ride",
+      "subhead": "Pro shows how much of each ride was road you had never ridden."
+    }
   }
 }
