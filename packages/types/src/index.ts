@@ -9,6 +9,7 @@ export * from './constants/notifications';
 export * from './constants/profile';
 export * from './constants/subscription';
 export * from './readiness';
+export * from './ride-metrics';
 export * from './units';
 export * from './utils/blog-text';
 export * from './utils/country-name';
