@@ -48,7 +48,8 @@ export default function ProfileLayout() {
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="rides" options={{ title: t('profile.myRidesTitle') }} />
-      <Stack.Screen name="heatmap" options={{ title: t('profile.roadsTitle') }} />
+      <Stack.Screen name="heatmap" options={{ headerShown: false }} />
+      <Stack.Screen name="rider-insights" options={{ title: t('riderInsights.title') }} />
       <Stack.Screen name="trips" options={{ title: t('profile.myTripsTitle') }} />
       <Stack.Screen name="saved" options={{ title: t('saved.title') }} />
       <Stack.Screen name="app-settings" options={{ title: t('profile.appSettings') }} />

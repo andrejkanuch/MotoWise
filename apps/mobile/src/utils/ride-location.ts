@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import type { Waypoint } from '@motovault/types';
+import { RIDE_END_SOURCE, type Waypoint } from '@motovault/types';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
@@ -17,8 +17,8 @@ import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../lib/ride-analytics';
 import { useRideStore } from '../stores/ride.store';
 import { haversineMeters } from './geo-utils';
 import { activeRideSeconds } from './ride-duration';
+import { buildRideEndInput } from './ride-end-input';
 import { gpsFilter } from './ride-gps-filter';
-import { encodePolyline } from './ride-heatmap';
 import {
   cancelRideReminders,
   noteRideMovement,
@@ -587,38 +587,35 @@ export function autoEndRide(idleSince: number): void {
   const rideId = rideMMKV.getCurrentId();
   if (!rideId) return;
 
-  const endedAt = new Date(idleSince).toISOString();
   const totalAutoPaused = rideMMKV.getTotalAutoPausedMs();
+  const totalPaused = rideMMKV.getTotalPausedMs();
   // Read before clearRideData below wipes them — ride_completed needs both.
   const motorcycleId = rideMMKV.getMotorcycleId() ?? null;
   const durationS = activeRideSeconds(
     {
       startedAt: rideMMKV.getStartedAt(),
-      totalPausedMs: rideMMKV.getTotalPausedMs(),
+      totalPausedMs: totalPaused,
       pausedAt: rideMMKV.getPausedAt(),
     },
     idleSince,
   );
 
-  // Encode polyline from stored waypoints before clearing
+  // The full stats come from the stored waypoints before clearing, through the
+  // same builder as the rider's own Stop, so an auto-ended ride keeps its max
+  // speed, climb and average speed.
   flushBufferToMMKV(rideId);
   const chunks = getWaypointChunks(rideId);
   const bufferPoints = [...getPointBuffer()];
   const allWaypoints = [...chunks.flat(), ...bufferPoints];
-  const polyline =
-    allWaypoints.length >= 2
-      ? encodePolyline(allWaypoints.map((wp) => [wp.latitude, wp.longitude] as [number, number]))
-      : null;
-
-  // distanceM is required server-side (BAD_USER_INPUT otherwise); compute it
-  // from the waypoints we already have rather than dropping the field.
-  let totalDistance = 0;
-  for (let i = 1; i < allWaypoints.length; i++) {
-    totalDistance += distanceMeters(
-      { lat: allWaypoints[i - 1].latitude, lng: allWaypoints[i - 1].longitude },
-      { lat: allWaypoints[i].latitude, lng: allWaypoints[i].longitude },
-    );
-  }
+  const { input, totals } = buildRideEndInput({
+    rideId,
+    endedAtMs: idleSince,
+    waypoints: allWaypoints,
+    pausedMs: totalPaused,
+    autoPausedMs: totalAutoPaused,
+    endSource: RIDE_END_SOURCE.CLIENT_AUTO,
+  });
+  const totalDistance = totals.distanceM;
 
   // Upload any remaining waypoints that didn't fill a full chunk, then drop the
   // persisted buffer key — the durable copy now lives in the sync queue, so a
@@ -631,17 +628,7 @@ export function autoEndRide(idleSince: number): void {
   clearPointBuffer();
   rideMMKV.setStatus(RIDE_PHASE.ENDED);
 
-  enqueueOrExecute('endRide', {
-    variables: {
-      input: {
-        rideId,
-        endedAt,
-        distanceM: Math.round(totalDistance),
-        routePolyline: polyline,
-        autoPausedDurationS: Math.round(totalAutoPaused / 1000),
-      },
-    },
-  });
+  enqueueOrExecute('endRide', { variables: { input } });
 
   trackEvent(AnalyticsEvent.RIDE_AUTO_SAVED, {
     ride_id: rideId,

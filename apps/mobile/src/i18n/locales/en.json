@@ -1168,6 +1168,11 @@
       "clear": "Clear",
       "clearNoteA11y": "Clear the restored note",
       "clearReadingA11y": "Clear the restored reading"
+    },
+    "serviceDistance": {
+      "since": "{{distance}} {{unit}} since last service",
+      "servicedAt": "Last service at {{distance}} {{unit}}",
+      "none": "No service logged"
     }
   },
   "maintenance": {
@@ -2007,8 +2012,6 @@
     "deleteMessage": "This action cannot be undone.",
     "cancel": "Cancel",
     "delete": "Delete",
-    "leanAngle": "Max Lean",
-    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions.",
     "private": "Private",
     "threeD": "3D",
     "shareRideA11y": "Share ride",
@@ -2719,5 +2722,126 @@
       "headlineDefault": "See the new roads on every ride",
       "subhead": "Pro shows how much of each ride was road you had never ridden."
     }
+  },
+  "riderInsights": {
+    "title": "Rider insights",
+    "seasonRange": "Season {{year}}, {{from}} to {{to}}",
+    "today": "today",
+    "stale": "Offline. Showing your season as last saved.",
+    "offline": {
+      "title": "You're offline",
+      "body": "Rider insights needs a connection the first time. Try again when you're back online.",
+      "retry": "Try again"
+    },
+    "error": {
+      "title": "Couldn't load your insights",
+      "body": "Something went wrong on our side. Try again in a moment.",
+      "retry": "Try again"
+    },
+    "empty": {
+      "title": "No rides this season yet",
+      "body": "Record a ride and your roads, places and rhythm show up here."
+    },
+    "hero": {
+      "noRoutes": "Your roads show here after a ride with GPS.",
+      "offline": "The map shows when you're back online.",
+      "mapA11y_one": "Map of {{count}} ride around {{region}}",
+      "mapA11y_other": "Map of {{count}} rides around {{region}}"
+    },
+    "totals": {
+      "rides_one": "{{count}} ride",
+      "rides_other": "{{count}} rides",
+      "countries_one": "{{count}} country",
+      "countries_other": "{{count}} countries"
+    },
+    "countries": {
+      "a11y_one": "{{count}} country: {{names}}. Open countries",
+      "a11y_other": "{{count}} countries: {{names}}. Open countries"
+    },
+    "regions": {
+      "unnamed": "Unnamed region",
+      "meta_one": "{{count}} ride · {{distance}}",
+      "meta_other": "{{count}} rides · {{distance}}",
+      "tileA11y": "Show {{region}} on the map"
+    },
+    "ribbon": {
+      "section": "Season",
+      "weeksRidden": "{{ridden}} of {{total}} weeks ridden",
+      "biggest": "Biggest: {{distance}}, {{start}} to {{end}}"
+    },
+    "howYouRide": {
+      "section": "How you ride",
+      "keepRiding": "Not enough rides yet, keep riding",
+      "computing": "Working out your rides. Check back soon.",
+      "missingRoute": "Needs rides recorded with GPS",
+      "unlock": "Unlock",
+      "unlocking": "Unlocking…",
+      "lockedA11y": "{{title}}, Pro. Opens the paywall",
+      "unlockingA11y": "{{title}}, unlocking",
+      "roadCharacter": {
+        "title": "Road character",
+        "teaser": "How twisty your roads were, and lean",
+        "value": "{{share}} twisty or tighter",
+        "withLean": "With lean, estimated",
+        "bends": "{{bends}} bends per 10 km",
+        "a11y": "{{straight}} straight, {{sweeping}} sweeping, {{twisty}} twisty, {{tight}} tight"
+      },
+      "territory": {
+        "title": "Territory",
+        "teaser": "New roads and map covered",
+        "value": "{{area}} · {{share}} new roads",
+        "furthest": "Furthest from home {{distance}}"
+      },
+      "rhythm": {
+        "title": "Riding rhythm",
+        "teaser": "Your busiest days and hours",
+        "missing": "Needs rides with a start time",
+        "weekend_one": "{{weekend}} of {{count}} ride at the weekend",
+        "weekend_other": "{{weekend}} of {{count}} rides at the weekend",
+        "a11y": "Busiest slot {{slot}}",
+        "slot": {
+          "morning": "{{day}} mornings",
+          "afternoon": "{{day}} afternoons",
+          "evening": "{{day}} evenings",
+          "night": "{{day}} nights"
+        }
+      },
+      "bestRides": {
+        "title": "Best rides",
+        "titleFree": "Best ride",
+        "value": "{{name}} · {{distance}}",
+        "unnamed": "Ride on {{date}}",
+        "captionPro": "Longest, {{date}} · then climb and bends",
+        "captionFree": "Longest, {{date}} · climb and bends with Pro"
+      },
+      "bikes": {
+        "title": "Bikes",
+        "missing": "Set a bike on your rides to compare them",
+        "item": "{{name}} {{distance}}",
+        "unnamed": "Bike",
+        "count_one": "{{count}} bike",
+        "count_other": "{{count}} bikes",
+        "unassigned_one": "{{count}} ride has no bike set",
+        "unassigned_other": "{{count}} rides have no bike set"
+      }
+    }
+  },
+  "ridePurposeSheet": {
+    "title": "About this ride (optional)",
+    "purposeLabel": "What was it for?",
+    "purpose": {
+      "leisure": "Leisure",
+      "commute": "Commute",
+      "tour": "Tour",
+      "errand": "Errand",
+      "track": "Track day",
+      "offroad": "Off-road",
+      "other": "Other"
+    },
+    "passenger": "Rode with a passenger",
+    "odometer": "Odometer at the end",
+    "odometerLabel": "Odometer reading at the end of the ride",
+    "odometerSave": "Save",
+    "odometerSaved": "Odometer saved"
   }
 }

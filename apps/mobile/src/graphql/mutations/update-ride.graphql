@@ -4,5 +4,7 @@ mutation UpdateRide($input: UpdateRideInput!) {
     name
     mileageApplied
     isPublic
+    purpose
+    passenger
   }
 }

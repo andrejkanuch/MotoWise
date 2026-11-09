@@ -79,6 +79,7 @@ const FEATURE_AREA_RULES: readonly (readonly [segment: string, area: FeatureArea
   ['carplay', FEATURE_AREA.RIDES],
   ['rides', FEATURE_AREA.RIDES],
   ['heatmap', FEATURE_AREA.RIDES],
+  ['rider-insights', FEATURE_AREA.RIDES],
   ['ride', FEATURE_AREA.RIDES],
 
   // Trips / discover
@@ -107,7 +108,7 @@ const FEATURE_AREA_RULES: readonly (readonly [segment: string, area: FeatureArea
  * not listed is dropped: `[token]` is a share-link credential and `[username]`
  * identifies another rider.
  */
-const FORWARDED_ROUTE_PARAMS: readonly string[] = ['id', 'slug', 'country', 'region'];
+const FORWARDED_ROUTE_PARAMS: readonly string[] = ['id', 'slug', 'country', 'region', 'group'];
 
 const ROUTE_PARAM_PREFIX = 'route_';
 const DYNAMIC_SEGMENT = /^\[(?:\.\.\.)?([^\]]+)\]$/;

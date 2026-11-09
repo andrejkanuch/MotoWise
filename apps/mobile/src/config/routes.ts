@@ -36,7 +36,12 @@ export const PROFILE_ROUTE = {
   RIDES: '/(tabs)/(profile)/rides',
   TRIPS: '/(tabs)/(profile)/trips',
   SAVED: '/(tabs)/(profile)/saved',
+  /** Old "Roads I've ridden" screen; redirects to Rider insights. */
   HEATMAP: '/(tabs)/(profile)/heatmap',
+  /** Rider insights; pass `{ entry: RiderInsightsEntry }`. */
+  RIDER_INSIGHTS: '/(tabs)/(profile)/rider-insights',
+  /** One insight on its own page; pass `{ group: RiderInsightsDetailGroup }`. */
+  RIDER_INSIGHTS_DETAIL: '/(tabs)/(profile)/rider-insights/[group]',
   APP_SETTINGS: '/(tabs)/(profile)/app-settings',
   /** Pushed single-choice list for one app setting; pass `{ key: AppPreferenceKey }`. */
   PREFERENCE: '/(tabs)/(profile)/preference/[key]',
@@ -53,3 +58,30 @@ export const PROFILE_ROUTE = {
   /** Follower / following lists; pass `{ userId, tab?: FollowListTab }`. */
   FOLLOWERS: '/(tabs)/(profile)/rider/followers',
 } as const;
+
+/** Where Rider insights was opened from; sent as the `entry` route param and on the open event. */
+export const RIDER_INSIGHTS_ENTRY = {
+  HOME: 'home',
+  MY_RIDES: 'my_rides',
+  PROFILE: 'profile',
+  RIDE_SUMMARY: 'ride_summary',
+  /** The old heatmap route, kept as a redirect for links and deep links. */
+  LEGACY_HEATMAP: 'legacy_heatmap',
+  /** No entry param (a deep link or a route not yet passing one). */
+  UNKNOWN: 'unknown',
+} as const;
+
+export type RiderInsightsEntry = (typeof RIDER_INSIGHTS_ENTRY)[keyof typeof RIDER_INSIGHTS_ENTRY];
+
+/** The `[group]` of a Rider insights detail page. */
+export const RIDER_INSIGHTS_DETAIL_GROUP = {
+  ROAD_CHARACTER: 'road-character',
+  TERRITORY: 'territory',
+  RHYTHM: 'rhythm',
+  BEST_RIDES: 'best-rides',
+  BIKES: 'bikes',
+  COUNTRIES: 'countries',
+} as const;
+
+export type RiderInsightsDetailGroup =
+  (typeof RIDER_INSIGHTS_DETAIL_GROUP)[keyof typeof RIDER_INSIGHTS_DETAIL_GROUP];

@@ -149,3 +149,42 @@ describe('restoring a cache written before the fix', () => {
     expect(mockStorage.has('offline-cache-v1')).toBe(false);
   });
 });
+
+describe('the Rider insights entry', () => {
+  const INSIGHTS_KEY = ['rides', 'insights', 'Europe/Madrid'] as const;
+  const ROUTE = '_p~iF~ps|U_ulLnnqC_mqNvxq`@';
+  const insights = {
+    riderInsights: {
+      totals: { rides: 36, distanceM: 2_507_000, countries: 2 },
+      regions: [{ key: 'ES.27', bounds: [-3.1, 42, -1.7, 42.6], routes: [ROUTE] }],
+    },
+  };
+
+  it('is persisted for offline cold starts, written without its encoded routes', async () => {
+    const client = newClient();
+    client.setQueryData(INSIGHTS_KEY, insights);
+    const clientState = dehydrate(client, { shouldDehydrateQuery: shouldDehydratePersistedQuery });
+    expect(clientState.queries.map((q) => q.queryKey)).toEqual([INSIGHTS_KEY]);
+
+    await queryPersister.persistClient(persistedClientFrom(clientState));
+
+    const written = mockStorage.get('offline-cache-v1') ?? '';
+    expect(written).not.toContain(ROUTE);
+    const restored = await queryPersister.restoreClient();
+    expect(restored?.clientState.queries[0].state.data).toEqual({
+      riderInsights: {
+        totals: insights.riderInsights.totals,
+        regions: [{ key: 'ES.27', bounds: [-3.1, 42, -1.7, 42.6], routes: [] }],
+      },
+    });
+    // The live cache keeps its routes; only the disk copy goes without.
+    expect(client.getQueryData(INSIGHTS_KEY)).toEqual(insights);
+  });
+
+  it('still leaves ride detail out of the persisted cache', () => {
+    const client = newClient();
+    client.setQueryData(['rides', 'detail', 'ride-1'], { id: 'ride-1' });
+    const state = dehydrate(client, { shouldDehydrateQuery: shouldDehydratePersistedQuery });
+    expect(state.queries).toEqual([]);
+  });
+});

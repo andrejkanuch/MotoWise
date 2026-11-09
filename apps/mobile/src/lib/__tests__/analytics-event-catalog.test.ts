@@ -30,6 +30,9 @@ const HISTORY_ONLY_ALLOWLIST: readonly string[] = [
   'ROUTE_GPX_EXPORTED',
   // Retired with the unmounted share-card components; 5 historical events (2026-05).
   'SHARE_CARD_GENERATED',
+  // Retired 2026-11 when Rider insights replaced the heatmap screen; kept as the
+  // pre-launch baseline metric the Rider insights success criteria compare against.
+  'HEATMAP_VIEWED',
 ];
 
 function catalogKeys(): string[] {

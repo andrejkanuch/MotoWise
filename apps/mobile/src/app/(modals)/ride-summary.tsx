@@ -39,6 +39,7 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../components/ui/native-toggle';
 import { finalizeEndedRide } from '../../features/ride/ride-controller';
+import { RidePurposeSheet } from '../../features/ride/ride-purpose-sheet';
 import { useRideTeaserEvaluation } from '../../features/ride/use-ride-teaser-evaluation';
 import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
@@ -783,7 +784,7 @@ export default function RideSummaryScreen() {
             ))}
           </Animated.View>
 
-          {/* Add expense row — dashed border */}
+          <RidePurposeSheet rideId={rideId} motorcycleId={motorcycleId} />
           <Animated.View entering={FadeInUp.delay(600).duration(250)}>
             <Pressable
               onPress={() => {
@@ -901,7 +902,6 @@ export default function RideSummaryScreen() {
             <NativeToggle value={shareToDiscover} onValueChange={setShareToDiscover} />
           </Animated.View>
 
-          {/* Discard option — subtle, at the bottom */}
           <Animated.View
             entering={FadeIn.delay(800).duration(250)}
             style={{ alignItems: 'center', paddingTop: 8 }}

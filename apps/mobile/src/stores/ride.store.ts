@@ -11,7 +11,6 @@ interface RideState {
   currentSpeed: number;
   distance: number;
   maxSpeed: number;
-  maxLeanAngle: number;
   elevationGain: number;
   elevationLoss: number;
   currentAltitude: number;
@@ -42,7 +41,6 @@ interface RideState {
   updateSpeed: (speed: number) => void;
   updateDistance: (distance: number) => void;
   updateMaxSpeed: (speed: number) => void;
-  updateMaxLeanAngle: (angle: number) => void;
   updateElevation: (gain: number, loss: number, current: number, max: number, min: number) => void;
   updateStopCount: (count: number) => void;
   toggleNightMode: () => void;
@@ -62,7 +60,6 @@ const INITIAL_STATS = {
   currentSpeed: 0,
   distance: 0,
   maxSpeed: 0,
-  maxLeanAngle: 0,
   elevationGain: 0,
   elevationLoss: 0,
   currentAltitude: 0,
@@ -96,11 +93,6 @@ export const useRideStore = create<RideState>()((set) => ({
   updateSpeed: (currentSpeed) => set({ currentSpeed }),
   updateDistance: (distance) => set({ distance }),
   updateMaxSpeed: (maxSpeed) => set((s) => (maxSpeed > s.maxSpeed ? { maxSpeed } : s)),
-  updateMaxLeanAngle: (angle) => {
-    // Cap at 55° — phone IMU occasionally reports impossible values from vibration
-    const capped = Math.min(Math.abs(angle), 55);
-    set((s) => (capped > s.maxLeanAngle ? { maxLeanAngle: capped } : s));
-  },
   updateElevation: (elevationGain, elevationLoss, currentAltitude, maxAltitude, minAltitude) =>
     set({ elevationGain, elevationLoss, currentAltitude, maxAltitude, minAltitude }),
   updateStopCount: (stopCount) => set({ stopCount }),

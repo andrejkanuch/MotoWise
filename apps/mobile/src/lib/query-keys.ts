@@ -115,6 +115,8 @@ export const queryKeys = {
     /** Route points at one resolution: detail and flyover ask for different counts. */
     waypoints: (id: string, maxPoints: number) => ['rides', 'waypoints', id, maxPoints] as const,
     heatmap: ['rides', 'heatmap'] as const,
+    /** Rider insights for the season the API picks, in the device time zone. Under `rides` so a ride save refreshes it. */
+    insights: (timeZone: string) => ['rides', 'insights', timeZone] as const,
     byMotorcycle: (motorcycleId: string) => ['rides', 'motorcycle', motorcycleId] as const,
   },
   healthReports: {
