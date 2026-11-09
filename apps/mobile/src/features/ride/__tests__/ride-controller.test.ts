@@ -20,6 +20,7 @@ jest.mock('expo-notifications', () => ({
   requestPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
 }));
 jest.mock('@/utils/ride-location', () => ({
+  endAutoPauseEpisode: jest.fn(),
   startGPSListener: jest.fn(() => Promise.resolve()),
   stopGPSListener: jest.fn(() => Promise.resolve()),
   isLocationRecording: jest.fn(() => Promise.resolve(true)),
@@ -667,6 +668,19 @@ describe('pause and resume — one engine path for the HUD and CarPlay', () => {
     mmkvState.status = 'recording';
     mmkvState.startedAt = 1_000_000;
   });
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('ends a stop the GPS was timing before the ride turns paused', () => {
+    let statusAtReset: string | undefined;
+    (gps.endAutoPauseEpisode as jest.Mock).mockImplementationOnce(() => {
+      statusAtReset = mmkvState.status;
+    });
+    pauseRideSession('carplay');
+    expect(gps.endAutoPauseEpisode).toHaveBeenCalledTimes(1);
+    expect(statusAtReset).toBe('recording');
+  });
 
   it('pauses: persists the phase and pause start, projects, re-arms for the phase', () => {
     jest.spyOn(Date, 'now').mockReturnValue(1_600_000);
@@ -682,7 +696,6 @@ describe('pause and resume — one engine path for the HUD and CarPlay', () => {
       'ride_paused',
       expect.objectContaining({ ride_id: 'ride-1', source: 'carplay', duration_at_pause_s: 600 }),
     );
-    (Date.now as jest.Mock).mockRestore();
   });
 
   it('ignores a second pause and a pause with no recording ride', () => {
@@ -710,7 +723,6 @@ describe('pause and resume — one engine path for the HUD and CarPlay', () => {
       'ride_resumed',
       expect.objectContaining({ ride_id: 'ride-1', pause_duration_s: 300, source: 'phone' }),
     );
-    (Date.now as jest.Mock).mockRestore();
   });
 
   it('does not resume a ride that is recording or ended', () => {

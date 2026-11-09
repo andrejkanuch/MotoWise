@@ -691,6 +691,27 @@ function handleLocationPermissionLost(error: LocationTaskError): void {
   });
 }
 
+/**
+ * End any stop episode at a manual pause. The GPS task drops every fix while
+ * paused, so without this the stop timers carry across the pause: on resume the
+ * first slow fix measures "stopped for" from before it (auto-ending a ride after
+ * a 30 min lunch), and the first fast one banks the manual pause again as
+ * auto-paused time. Banks the auto-pause that really happened (same rule as
+ * decideAutoPause on moving off) and clears the forgotten-ride flag.
+ */
+export function endAutoPauseEpisode(now: number = Date.now()): void {
+  if (zeroSpeedTimer !== null && now - zeroSpeedTimer > AUTO_PAUSE_DURATION_MS) {
+    rideMMKV.setTotalAutoPausedMs(rideMMKV.getTotalAutoPausedMs() + (now - zeroSpeedTimer));
+  }
+  zeroSpeedTimer = null;
+  zeroSpeedAnchor = null;
+  continuousAutoPauseStart = null;
+  forgotToStopNotified = false;
+  rideMMKV.setRecordingSubState('moving');
+  rideMMKV.setForgotToStopPending(false);
+  useRideStore.setState({ recordingSubState: 'moving', forgotToStopPending: false });
+}
+
 function resetAutoPauseState(): void {
   zeroSpeedTimer = null;
   zeroSpeedAnchor = null;

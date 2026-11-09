@@ -25,7 +25,12 @@ import { selectPrimaryBike } from '../../utils/primary-bike';
 import { aggregateWaypoints } from '../../utils/ride-aggregate';
 import { activeRideSeconds, movingTimeSeconds } from '../../utils/ride-duration';
 import { encodePolyline } from '../../utils/ride-heatmap';
-import { isLocationRecording, startGPSListener, stopGPSListener } from '../../utils/ride-location';
+import {
+  endAutoPauseEpisode,
+  isLocationRecording,
+  startGPSListener,
+  stopGPSListener,
+} from '../../utils/ride-location';
 import {
   checkAndRequestPermissions,
   isApproximateLocation,
@@ -277,6 +282,8 @@ export function pauseRideSession(source: RideSource): boolean {
   const record = readRideRecord();
   if (record?.phase !== RIDE_PHASE.RECORDING) return false;
   const now = Date.now();
+  // A stop the GPS was timing ends here: the pause is the rider's, not the GPS's.
+  endAutoPauseEpisode(now);
   rideMMKV.setStatus(RIDE_PHASE.PAUSED);
   rideMMKV.setPausedAt(now);
   useRideStore.setState({ status: 'paused', currentSpeed: 0 });
