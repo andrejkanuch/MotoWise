@@ -1,6 +1,7 @@
 import type { JsonType } from '@posthog/core';
 import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../utils/ride-constants';
-import { AnalyticsEvent, trackEvent } from './analytics';
+import { AnalyticsEvent, type AnalyticsEventName, trackEvent } from './analytics';
+import { SUPER_PROPERTY } from './analytics-super-properties';
 
 /**
  * `ride_completed` is THE canonical "a ride was saved" event. `ride_started`
@@ -62,6 +63,19 @@ export function rideCompletedProperties(input: RideCompletedInput): Record<strin
   };
 }
 
+/**
+ * Ride lifecycle events carry `platform` themselves. The super property of the same
+ * name is registered from a React effect, so a headless auto-end, a cold-start
+ * CarPlay Start or a crash-recovery prompt can fire before it, and sign-out's
+ * reset() clears it. The never-end rate per platform must have no unknown bucket.
+ */
+export function trackRideEvent(
+  event: AnalyticsEventName,
+  properties: Record<string, JsonType>,
+): void {
+  trackEvent(event, { ...properties, [SUPER_PROPERTY.PLATFORM]: process.env.EXPO_OS ?? null });
+}
+
 export function trackRideCompleted(input: RideCompletedInput): void {
-  trackEvent(AnalyticsEvent.RIDE_COMPLETED, rideCompletedProperties(input));
+  trackRideEvent(AnalyticsEvent.RIDE_COMPLETED, rideCompletedProperties(input));
 }

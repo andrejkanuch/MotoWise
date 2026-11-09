@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent } from '../../lib/analytics';
+import { trackRideEvent } from '../../lib/ride-analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { cancelRideReminders } from '../../utils/ride-reminders';
 import {
@@ -91,7 +92,10 @@ export function useUnfinishedRide(): UnfinishedRide {
       return;
     }
 
-    trackEvent(AnalyticsEvent.RIDE_ABANDONED, { ride_id: record.rideId, recovery_reason: 'crash' });
+    trackRideEvent(AnalyticsEvent.RIDE_ABANDONED, {
+      ride_id: record.rideId,
+      recovery_reason: 'crash',
+    });
     // End it like any other ride, from the waypoints already on the phone and
     // trimmed to the last movement — never with distance 0 and no route.
     const summaryHref = endRecoveredRide();

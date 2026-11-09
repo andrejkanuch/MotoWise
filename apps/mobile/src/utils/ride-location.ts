@@ -4,7 +4,7 @@ import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import i18n from '../i18n';
-import { AnalyticsEvent, addBreadcrumb, captureException, trackEvent } from '../lib/analytics';
+import { AnalyticsEvent, addBreadcrumb, captureException } from '../lib/analytics';
 import {
   CORE_LOCATION_ERROR_CODE,
   classifyLocationTaskError,
@@ -13,7 +13,7 @@ import {
   type LocationTaskErrorAction,
 } from '../lib/location-error';
 import { NOTIFICATION_CHANNEL, NOTIFICATION_KIND } from '../lib/notifications';
-import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../lib/ride-analytics';
+import { RIDE_SAVE_TRIGGER, trackRideCompleted, trackRideEvent } from '../lib/ride-analytics';
 import { useRideStore } from '../stores/ride.store';
 import { haversineMeters } from './geo-utils';
 import { activeRideSeconds } from './ride-duration';
@@ -591,7 +591,7 @@ export function autoEndRide(idleSince: number): void {
     },
   });
 
-  trackEvent(AnalyticsEvent.RIDE_AUTO_SAVED, {
+  trackRideEvent(AnalyticsEvent.RIDE_AUTO_SAVED, {
     ride_id: rideId,
     distance_m: Math.round(totalDistance),
     waypoint_count: allWaypoints.length,

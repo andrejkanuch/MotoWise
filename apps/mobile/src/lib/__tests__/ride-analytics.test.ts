@@ -4,7 +4,12 @@ jest.mock('../analytics', () => ({
   trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
 }));
 
-import { RIDE_SAVE_TRIGGER, rideCompletedProperties, trackRideCompleted } from '../ride-analytics';
+import {
+  RIDE_SAVE_TRIGGER,
+  rideCompletedProperties,
+  trackRideCompleted,
+  trackRideEvent,
+} from '../ride-analytics';
 
 beforeEach(() => mockTrackEvent.mockClear());
 
@@ -91,6 +96,31 @@ describe('trackRideCompleted', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'ride_completed',
       expect.objectContaining({ ride_id: 'r4', distance_km: 12, auto_ended: true }),
+    );
+  });
+});
+
+describe('trackRideEvent', () => {
+  // babel-preset-expo inlines EXPO_OS at build time, so the test reads the same constant.
+  const platform = process.env.EXPO_OS;
+
+  it('stamps the platform on the event, so it never depends on the super property', () => {
+    trackRideEvent('ride_started', { ride_id: 'r5', platform: 'spoofed' });
+    expect(platform).toBeTruthy();
+    expect(mockTrackEvent).toHaveBeenCalledWith('ride_started', { ride_id: 'r5', platform });
+  });
+
+  it('stamps the platform on ride_completed too', () => {
+    trackRideCompleted({
+      trigger: RIDE_SAVE_TRIGGER.SUMMARY,
+      rideId: 'r6',
+      motorcycleId: null,
+      distanceM: 1_000,
+      durationS: 60,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'ride_completed',
+      expect.objectContaining({ ride_id: 'r6', platform }),
     );
   });
 });
