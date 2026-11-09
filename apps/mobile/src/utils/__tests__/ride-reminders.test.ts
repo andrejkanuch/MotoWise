@@ -9,6 +9,7 @@ jest.mock('expo-notifications', () => {
     getPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
     scheduleNotificationAsync: jest.fn(() => Promise.resolve(`notif-${++n}`)),
     cancelScheduledNotificationAsync: jest.fn(() => Promise.resolve()),
+    dismissNotificationAsync: jest.fn(() => Promise.resolve()),
     SchedulableTriggerInputTypes: { TIME_INTERVAL: 'timeInterval' },
   };
 });
@@ -88,6 +89,8 @@ beforeEach(() => {
   state.reminderIds = [];
   store.status = 'recording';
   permissions.mockResolvedValue({ status: 'granted' });
+  // clearAllMocks keeps implementations; undo a test's throwing override.
+  (Notifications.dismissNotificationAsync as jest.Mock).mockImplementation(() => Promise.resolve());
 });
 
 afterEach(() => {
@@ -146,6 +149,26 @@ describe('cancelRideReminders', () => {
     await pending;
 
     expect(cancel.mock.calls.map(([id]) => id)).toEqual(ids);
+  });
+
+  it('also removes reminders already shown, so a stale one cannot reopen the ride', async () => {
+    await armRideReminders(NOW);
+    const ids = [...state.reminderIds];
+    await cancelRideReminders();
+    const dismissed = (Notifications.dismissNotificationAsync as jest.Mock).mock.calls.map(
+      ([id]) => id,
+    );
+    expect(dismissed).toEqual(expect.arrayContaining(ids));
+  });
+
+  it('still cancels when removing a shown reminder fails', async () => {
+    (Notifications.dismissNotificationAsync as jest.Mock).mockImplementation(() => {
+      throw new Error('not presented');
+    });
+    await armRideReminders(NOW);
+    const ids = [...state.reminderIds];
+    await cancelRideReminders();
+    expect(cancel.mock.calls.map(([id]) => id)).toEqual(expect.arrayContaining(ids));
   });
 });
 

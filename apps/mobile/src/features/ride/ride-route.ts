@@ -1,4 +1,7 @@
+import { type Href, useRouter } from 'expo-router';
+import { useCallback } from 'react';
 import { useRideStore } from '../../stores/ride.store';
+import { buildRideSummaryHref, readEndedRideSummary } from './ride-controller';
 
 export const RIDE_ROUTE = {
   HUD: '/(modals)/ride-hud',
@@ -22,9 +25,25 @@ export function rideRouteFor({ status, recordingInterrupted }: RideRouteState): 
   return active && !recordingInterrupted ? RIDE_ROUTE.HUD : RIDE_ROUTE.START;
 }
 
-/** `rideRouteFor` for the current ride store. */
-export function useRideRoute(): RideRoute {
-  const status = useRideStore((s) => s.status);
-  const recordingInterrupted = useRideStore((s) => s.recordingInterrupted);
-  return rideRouteFor({ status, recordingInterrupted });
+/**
+ * Where "the ride" leads, with an ended ride going straight to its review: the
+ * summary it ended with (stored with the ride), however it ended — phone, CarPlay,
+ * a reminder. Start Ride (which also offers Review) when that summary is unreadable.
+ */
+export function rideEntryHref(state: RideRouteState): Href {
+  if (state.status === 'ended') {
+    const summary = readEndedRideSummary();
+    if (summary) return buildRideSummaryHref(summary, { recovered: summary.recovered === true });
+  }
+  return rideRouteFor(state);
+}
+
+/**
+ * Opens "the ride" from a tap. The destination is worked out at the moment of
+ * the tap, from the current state — never from a value cached at render, which
+ * could predate the summary an ended ride is reviewed from.
+ */
+export function useOpenRide(): () => void {
+  const router = useRouter();
+  return useCallback(() => router.push(rideEntryHref(useRideStore.getState())), [router]);
 }

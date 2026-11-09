@@ -1,5 +1,6 @@
 {
   "common": {
+    "review": "確認",
     "hideKeyboard": "キーボードを閉じる",
     "appName": "MotoVault",
     "loading": "読み込み中...",

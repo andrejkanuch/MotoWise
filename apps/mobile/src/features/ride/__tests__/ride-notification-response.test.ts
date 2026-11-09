@@ -15,6 +15,7 @@ jest.mock('@/utils/ride-storage', () => {
 jest.mock('../ride-controller', () => ({
   endRideSession: jest.fn(() => ({ rideId: 'ride-1' })),
   buildRideSummaryHref: jest.fn(() => '/summary-href'),
+  readEndedRideSummary: jest.fn(() => ({ rideId: 'ride-1' })),
 }));
 jest.mock('@/utils/ride-reminders', () => ({
   armRideReminders: jest.fn(() => Promise.resolve()),
@@ -78,11 +79,9 @@ it('a plain tap on an open ride whose GPS is not confirmed opens Start Ride (Res
   );
 });
 
-it('a plain tap on an ended ride opens Start Ride, where it is reviewed', () => {
+it('a plain tap on an ended ride opens its review', () => {
   store.status = 'ended';
-  expect(handleRideIdleResponse(key(), DEFAULT_TAP, { rideId: 'ride-1' })).toBe(
-    '/(modals)/start-ride',
-  );
+  expect(handleRideIdleResponse(key(), DEFAULT_TAP, { rideId: 'ride-1' })).toBe('/summary-href');
 });
 
 it('"Still riding" restarts the reminder clock and stays put', () => {

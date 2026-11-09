@@ -2,7 +2,7 @@ import { palette } from '@motovault/design-system';
 import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs } from 'expo-router';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { CommonActions } from 'expo-router/react-navigation';
 import { Bike, Compass, Home, Route, User } from 'lucide-react-native';
@@ -24,7 +24,7 @@ import { HUB_CHROME_MAX_FONT_SCALE } from '../../components/bike-hub/ui/tokens';
 import { GlobalCarPlayBanner } from '../../components/carplay/global-carplay-banner';
 import { ErrorFallback } from '../../components/error-fallback';
 import { countGarageBadge } from '../../components/garage/garage-badge-count';
-import { useRideRoute } from '../../features/ride/ride-route';
+import { useOpenRide } from '../../features/ride/ride-route';
 import { BIKE_HUB_ROUTES } from '../../lib/bike-hub/constants';
 import { maintenanceBadgeOptions } from '../../lib/query-options';
 import { useRideStore } from '../../stores/ride.store';
@@ -80,14 +80,15 @@ function formatElapsed(seconds: number): string {
 }
 
 function RideFAB() {
-  const router = useRouter();
   const { t } = useTranslation();
   const { t: rideTheme } = useEditorialTheme();
   const reduceMotion = useReducedMotion();
   const rideStatus = useRideStore((s) => s.status);
   const elapsedTime = useRideStore((s) => s.elapsedTime);
   const isActive = rideStatus === 'recording' || rideStatus === 'paused';
-  const rideRoute = useRideRoute();
+  const openRide = useOpenRide();
+  const ended = rideStatus === 'ended';
+  const caption = isActive ? formatElapsed(elapsedTime) : ended ? t('common.review') : '';
 
   const pulseScale = useSharedValue(1);
 
@@ -109,8 +110,8 @@ function RideFAB() {
 
   const onPress = useCallback(() => {
     triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
-    router.push(rideRoute);
-  }, [rideRoute, router]);
+    openRide();
+  }, [openRide]);
 
   return (
     <Animated.View
@@ -128,7 +129,7 @@ function RideFAB() {
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={t('common.ride')}
+        accessibilityLabel={[t('common.ride'), caption].filter(Boolean).join(', ')}
         android_ripple={{ color: tint(rideTheme.onWarm, 0.16), borderless: true }}
         style={{
           width: FAB_SIZE,
@@ -143,7 +144,7 @@ function RideFAB() {
       >
         <Route size={24} color={rideTheme.onWarm} strokeWidth={2.2} />
       </Pressable>
-      {isActive && (
+      {caption !== '' && (
         <Text
           maxFontSizeMultiplier={TAB_LABEL_MAX_FONT_SCALE}
           style={[
@@ -152,7 +153,7 @@ function RideFAB() {
             { color: rideTheme.warm2, marginTop: 2, fontVariant: ['tabular-nums'] },
           ]}
         >
-          {formatElapsed(elapsedTime)}
+          {caption}
         </Text>
       )}
     </Animated.View>

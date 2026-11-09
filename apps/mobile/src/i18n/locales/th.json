@@ -1,5 +1,6 @@
 {
   "common": {
+    "review": "ตรวจสอบ",
     "hideKeyboard": "ซ่อนแป้นพิมพ์",
     "appName": "MotoVault",
     "loading": "กำลังโหลด...",
