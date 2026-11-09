@@ -35,10 +35,12 @@ const CHIP_BORDER = 1.5;
 const ENTER_DELAY_MS = 550;
 const ENTER_DURATION_MS = 250;
 
-/** The whole units of an odometer the rider typed ("12,463" → 12463); null when there are none. */
-function parseOdometer(text: string): number | null {
-  const digits = text.replace(/\D/g, '');
-  return digits ? Number(digits) : null;
+/** Seven digits: up to 9,999,999, the server's limit, so a typo cannot overflow it. */
+const ODOMETER_MAX_DIGITS = 7;
+
+/** The digits of an odometer the rider typed ("12,463" → "12463"), capped at seven. */
+function odometerDigits(text: string): string {
+  return text.replace(/\D/g, '').slice(0, ODOMETER_MAX_DIGITS);
 }
 
 type RideAnswers = { purpose?: RidePurpose | null; passenger?: boolean; odometerAtEnd?: number };
@@ -75,7 +77,7 @@ export function RidePurposeSheet({ rideId, motorcycleId }: RidePurposeSheetProps
     meta: QUERY_META.OWN_ERROR_UI,
   });
   const unit = toHubUnit(bike?.distanceUnit);
-  const odometer = parseOdometer(odometerText);
+  const odometer = odometerText ? Number(odometerText) : null;
 
   const pickPurpose = (next: RidePurpose) => {
     triggerSelection();
@@ -181,7 +183,8 @@ export function RidePurposeSheet({ rideId, motorcycleId }: RidePurposeSheetProps
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
                 <TextInput
                   value={odometerText}
-                  onChangeText={setOdometerText}
+                  onChangeText={(text) => setOdometerText(odometerDigits(text))}
+                  maxLength={ODOMETER_MAX_DIGITS}
                   onSubmitEditing={saveOdometer}
                   keyboardType="number-pad"
                   returnKeyType="done"

@@ -72,6 +72,8 @@ import { dropDeadLetteredRide, enqueueOrExecute } from '../../utils/ride-sync-qu
 
 const MAP_HEIGHT = 260;
 const SHEET_RADIUS = 28;
+/** Where Save and Discard leave the summary for, unless Rider insights was opened. */
+const PROFILE_HREF: Href = '/(tabs)/(profile)';
 
 /** Smart ride naming using time-of-day, in the app language ("Saturday Morning Ride"). */
 function smartRideName(startedAt: number, t: TFunction, locale: string): string {
@@ -264,10 +266,11 @@ export default function RideSummaryScreen() {
   }, [distanceM, durationS, system, t]);
 
   // A ref guards a second tap synchronously (`isSaving` lands too late). Reset only on
-  // failure: on success one replace (issue 4446) swaps the sheet for `destinationRef`.
+  // failure: on success one replace (issue 4446) swaps the sheet for this save's
+  // destination, a parameter so a failed insights save cannot redirect a later Save.
+  // A plain function: the React Compiler memoizes it, and a hook deps array would not.
   const savingRef = useRef(false);
-  const destinationRef = useRef<Href>('/(tabs)/(profile)');
-  const handleSave = useCallback(async () => {
+  const handleSave = async (destination: Href = PROFILE_HREF) => {
     if (savingRef.current) return;
     savingRef.current = true;
     setIsSaving(true);
@@ -316,26 +319,14 @@ export default function RideSummaryScreen() {
       // Ask while the ride's stats are still on screen; navigation waits for the dialog.
       const overview = overviewData?.rideOverview;
       await requestRideReview({ distanceM, durationS, rideId, localRideCount, overview });
-      router.replace(destinationRef.current, { withAnchor: true });
+      router.replace(destination, { withAnchor: true });
     } catch (error) {
       savingRef.current = false;
       captureException(error, { source: 'ride-summary.saveRide', rideId });
     } finally {
       setIsSaving(false);
     }
-  }, [
-    rideId,
-    rideName,
-    router,
-    distanceM,
-    durationS,
-    shareToDiscover,
-    queryClient,
-    motorcycleId,
-    maxSpeedMps,
-    avgSpeedMps,
-    overviewData?.rideOverview,
-  ]);
+  };
 
   const handleDiscard = useCallback(() => {
     Alert.alert(t('rideSummary.discardTitle'), t('rideSummary.discardMessage'), [
@@ -356,7 +347,7 @@ export default function RideSummaryScreen() {
             queryClient.invalidateQueries({ queryKey: queryKeys.rides.all }),
           );
           finalizeEndedRide(rideId);
-          router.replace('/(tabs)/(profile)');
+          router.replace(PROFILE_HREF);
         },
       },
     ]);
@@ -776,10 +767,7 @@ export default function RideSummaryScreen() {
             rideId={rideId}
             distanceM={distanceM}
             movingS={movingTimeS}
-            onOpenInsights={(href) => {
-              destinationRef.current = href;
-              void handleSave();
-            }}
+            onOpenInsights={(href) => void handleSave(href)}
           />
           <RidePurposeSheet rideId={rideId} motorcycleId={motorcycleId} />
           <Animated.View entering={FadeInUp.delay(600).duration(250)}>
@@ -816,7 +804,7 @@ export default function RideSummaryScreen() {
           {/* Save ride CTA — emerald gradient, pill shape */}
           <Animated.View entering={FadeInUp.delay(650).duration(250)}>
             <Pressable
-              onPress={handleSave}
+              onPress={() => handleSave()}
               disabled={isSaving}
               accessibilityRole="button"
               accessibilityLabel={t(

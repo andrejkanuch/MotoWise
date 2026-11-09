@@ -89,6 +89,18 @@ describe('RidePurposeSheet', () => {
     expect(screen.getByText('ridePurposeSheet.odometerSaved')).toBeTruthy();
   });
 
+  it('caps the odometer at seven digits, the most the server accepts', async () => {
+    await renderSheet();
+    const input = screen.getByLabelText('ridePurposeSheet.odometerLabel');
+    expect(input.props.maxLength).toBe(7);
+    // A typo with extra digits (pasted, or past maxLength) keeps the first seven.
+    await fireEvent.changeText(input, '1,246,300,000');
+    expect(screen.getByLabelText('ridePurposeSheet.odometerLabel').props.value).toBe('1246300');
+    await fireEvent.press(screen.getByText('ridePurposeSheet.odometerSave'));
+    expect(updates()).toEqual([{ rideId: 'ride-1', odometerAtEnd: 1_246_300 }]);
+    expect(updates()[0].odometerAtEnd).toBeLessThanOrEqual(9_999_999);
+  });
+
   it('does not offer the odometer for a ride without a bike', async () => {
     await renderSheet('km', '');
     expect(screen.queryByLabelText('ridePurposeSheet.odometerLabel')).toBeNull();
