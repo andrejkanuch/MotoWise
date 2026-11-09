@@ -8,12 +8,16 @@ import { router } from 'expo-router';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCarPlayConnection, useLiveRideSnapshot } from '../../features/carplay/use-carplay';
+import { useRideRoute } from '../../features/ride/ride-route';
 import { ActiveRideBanner } from './active-ride-banner';
 
 export function GlobalCarPlayBanner() {
   const insets = useSafeAreaInsets();
   const { connected } = useCarPlayConnection();
   const ride = useLiveRideSnapshot();
+  // The HUD only for a ride this app is recording; Start Ride (Resume / End) for
+  // one whose GPS is not confirmed after a relaunch.
+  const rideRoute = useRideRoute();
 
   if (!connected || !ride.active) return null;
 
@@ -31,7 +35,7 @@ export function GlobalCarPlayBanner() {
         state={ride.bannerState}
         distance={ride.distance}
         time={ride.elapsed}
-        onPress={() => router.push('/(modals)/ride-hud')}
+        onPress={() => router.push(rideRoute)}
       />
     </View>
   );

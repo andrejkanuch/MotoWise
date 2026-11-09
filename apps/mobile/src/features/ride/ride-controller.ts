@@ -154,6 +154,7 @@ async function runStartRideSession({
     if (!(await isLocationRecording()) && !(await resumeRecoveredRide())) {
       return { ok: false, reason: 'gps_failed' };
     }
+    useRideStore.setState({ recordingInterrupted: false });
     return { ok: true, rideId: existing.rideId };
   }
   if (existing) finalizeEndedRide(existing.rideId);

@@ -17,14 +17,18 @@ import { RIDE_PHASE, readRideRecord } from '../../utils/ride-storage';
  * restarted here — reviving a ride without the rider is how a ride an older
  * version had already ended would be recorded onto — so an unconfirmed ride
  * sends the rider to Start Ride to choose Resume or End.
+ *
+ * Only ever CLEARS the flag (hydrate is what sets it, for a ride this process
+ * did not see start): setting it here could overwrite a resume that finished
+ * while this check was in flight, and route a recording ride to Start Ride.
  */
 async function confirmRecording(): Promise<void> {
   const record = readRideRecord();
   if (!record || record.phase === RIDE_PHASE.ENDED) return;
-  const running = await isLocationRecording();
+  if (!(await isLocationRecording())) return;
   // The ride may have moved on (ended, replaced) while we asked.
   if (readRideRecord()?.rideId !== record.rideId) return;
-  useRideStore.setState({ recordingInterrupted: !running });
+  useRideStore.setState({ recordingInterrupted: false });
 }
 
 function hydrateRide(source: string): void {

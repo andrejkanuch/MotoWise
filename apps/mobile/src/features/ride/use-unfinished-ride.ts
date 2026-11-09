@@ -34,6 +34,19 @@ export interface UnfinishedRide {
  * with no phone UI to open its summary (Review). An ended ride is never offered
  * Resume: the server has completed it, and a resumed segment would be dropped.
  */
+/**
+ * The ride the banner may show: none while this app is recording it live — that
+ * ride is ended from its HUD, never from Start Ride's recovery banner (a ride just
+ * started on CarPlay would otherwise be offered End and Resume here).
+ */
+function unfinishedRecord(): RideRecord | null {
+  const record = readRideRecord();
+  if (!record) return null;
+  const { status, recordingInterrupted } = useRideStore.getState();
+  const live = (status === 'recording' || status === 'paused') && !recordingInterrupted;
+  return live && record.phase !== RIDE_PHASE.ENDED ? null : record;
+}
+
 export function useUnfinishedRide(): UnfinishedRide {
   const router = useRouter();
   // The ride the banner shows. Actions act on THIS ride only: a ride started on
@@ -41,12 +54,12 @@ export function useUnfinishedRide(): UnfinishedRide {
   const [shown, setShown] = useState<RideRecord | null>(null);
 
   useEffect(() => {
-    setShown(readRideRecord());
+    setShown(unfinishedRecord());
   }, []);
 
   /** The current record if it is still the ride and phase the banner shows. */
   const stillShown = useCallback((): RideRecord | null => {
-    const record = readRideRecord();
+    const record = unfinishedRecord();
     if (record && shown && record.rideId === shown.rideId && record.phase === shown.phase) {
       return record;
     }

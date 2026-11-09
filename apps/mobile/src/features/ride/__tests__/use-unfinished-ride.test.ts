@@ -23,6 +23,7 @@ jest.mock('../ride-controller', () => ({
 }));
 
 import { act, renderHook } from '@testing-library/react-native';
+import { useRideStore } from '@/stores/ride.store';
 import { clearRideData, rideMMKV } from '@/utils/ride-storage';
 import { endRecoveredRide, resumeRecoveredRide } from '../ride-controller';
 import { useUnfinishedRide } from '../use-unfinished-ride';
@@ -39,6 +40,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   clearRideData('ride-a');
   clearRideData('ride-b');
+  useRideStore.setState({ status: 'idle', recordingInterrupted: false });
 });
 
 describe('useUnfinishedRide', () => {
@@ -65,11 +67,29 @@ describe('useUnfinishedRide', () => {
     const { result } = await renderHook(() => useUnfinishedRide());
     // The rider starts a new ride on CarPlay while Start Ride is open.
     openRide('ride-b', 'recording');
+    useRideStore.setState({ status: 'recording', recordingInterrupted: false });
     await act(async () => result.current.finish());
     expect(endRecovered).not.toHaveBeenCalled();
     expect(mockReplace).not.toHaveBeenCalled();
-    // The banner now reflects what is really there.
-    expect(result.current.phase).toBe('recording');
+    // The live ride is not "unfinished": the banner goes away, so a second tap
+    // cannot end it either.
+    expect(result.current.phase).toBeNull();
+    await act(async () => result.current.finish());
+    expect(endRecovered).not.toHaveBeenCalled();
+  });
+
+  it('shows no banner for a ride this app is recording live', async () => {
+    openRide('ride-a', 'recording');
+    useRideStore.setState({ status: 'recording', recordingInterrupted: false });
+    const { result } = await renderHook(() => useUnfinishedRide());
+    expect(result.current.phase).toBeNull();
+  });
+
+  it('shows Resume / End for an open ride whose GPS is not confirmed', async () => {
+    openRide('ride-a', 'recording');
+    useRideStore.setState({ status: 'recording', recordingInterrupted: true });
+    const { result } = await renderHook(() => useUnfinishedRide());
+    expect(result.current).toMatchObject({ phase: 'recording', canResume: true });
   });
 
   it('never resumes a ride whose phase changed after the banner showed it', async () => {
