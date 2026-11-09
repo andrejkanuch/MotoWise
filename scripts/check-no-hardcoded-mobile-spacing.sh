@@ -65,14 +65,16 @@ fi
 # failure: a pipeline would only report its last command and the guard would
 # go green on a diff it never read.
 # - core.quotePath=false keeps non-ASCII paths unquoted.
-# - The prefixes are pinned, so a developer's diff.mnemonicPrefix or
-#   diff.noprefix cannot change the header.
+# - The prefixes are pinned and external diff tools / textconv filters are off,
+#   so a developer's diff.mnemonicPrefix, diff.noprefix, diff.external or a
+#   textconv attribute cannot change (or empty) the diff the guard reads.
 # - The `+++ b/` header is stripped as a whole (a path may contain spaces),
 #   with git's trailing tab. Any other header shape fails loudly.
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
-git -c core.quotePath=false diff --src-prefix=a/ --dst-prefix=b/ -M -U0 --no-color \
+git -c core.quotePath=false diff --no-ext-diff --no-textconv \
+  --src-prefix=a/ --dst-prefix=b/ -M -U0 --no-color \
   "$BASE" -- "$SCOPE" > "$WORK/tracked.diff"
 
 if ! awk '

@@ -124,7 +124,11 @@ describe('check-no-hardcoded-mobile-spacing', () => {
     });
   }
 
-  for (const setting of ['diff.mnemonicPrefix=true', 'diff.noprefix=true']) {
+  for (const setting of [
+    'diff.mnemonicPrefix=true',
+    'diff.noprefix=true',
+    'diff.external=/usr/bin/true',
+  ]) {
     test(`still reads the diff with ${setting}`, () => {
       const root = repoOnBranch();
       const [key, value] = setting.split('=');
@@ -134,6 +138,15 @@ describe('check-no-hardcoded-mobile-spacing', () => {
       assert.equal(runGuard(root).failed, true);
     });
   }
+
+  test('reads the real lines when a textconv filter is configured', () => {
+    const root = repoOnBranch();
+    writeFiles(root, { '.git/info/attributes': '*.tsx diff=hide\n' });
+    git(root, 'config', 'diff.hide.textconv', 'sed s/6/seven/');
+    writeFiles(root, { [SCREEN]: `${LEGACY}const a = { gap: 6 };\n` });
+    track(root);
+    assert.equal(runGuard(root).failed, true);
+  });
 
   test('does not treat a renamed file as new', () => {
     const root = repoOnBranch();
