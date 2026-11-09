@@ -21,6 +21,7 @@ jest.mock('expo-notifications', () => ({
 }));
 jest.mock('@/utils/ride-location', () => ({
   endAutoPauseEpisode: jest.fn(),
+  gpsStartInFlight: jest.fn(() => false),
   startGPSListener: jest.fn(() => Promise.resolve()),
   stopGPSListener: jest.fn(() => Promise.resolve()),
   isLocationRecording: jest.fn(() => Promise.resolve(true)),
@@ -828,6 +829,7 @@ describe('resumeRecoveredRide — one restart, and never onto an ended ride', ()
       mmkvState.currentId = '';
     });
     await expect(resumeRecoveredRide()).resolves.toBe(false);
+    await new Promise((resolve) => setImmediate(resolve));
     expect(gps.stopGPSListener).toHaveBeenCalledTimes(1);
   });
 
@@ -847,9 +849,33 @@ describe('resumeRecoveredRide — one restart, and never onto an ended ride', ()
     const started = startRideSession({ motorcycleId: null, source: 'carplay' });
     releaseStart();
     await expect(resumed).resolves.toBe(false);
-    expect(gps.stopGPSListener).not.toHaveBeenCalled();
+    expect(gps.stopGPSListener).not.toHaveBeenCalled(); // decided only once it settles
     grant('full');
     await started;
+    await new Promise((resolve) => setImmediate(resolve));
+    // The new ride owns the GPS now.
+    expect(gps.stopGPSListener).not.toHaveBeenCalled();
+  });
+
+  it('stops the GPS once a new start that saved this ride is refused', async () => {
+    let releaseStart: () => void = () => {};
+    startGPS.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          releaseStart = resolve;
+        }),
+    );
+    const resumed = resumeRecoveredRide();
+    mmkvState.currentId = '';
+    let answer: (level: string) => void = () => {};
+    readPerms.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)));
+    const started = startRideSession({ motorcycleId: null, source: 'carplay' });
+    releaseStart();
+    await resumed;
+    answer('denied');
+    await expect(started).resolves.toEqual({ ok: false, reason: 'denied' });
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(gps.stopGPSListener).toHaveBeenCalledTimes(1);
   });
 
   it('shares one restart between callers asking at once', async () => {

@@ -29,6 +29,7 @@ import { activeRideSeconds, movingTimeSeconds } from '../../utils/ride-duration'
 import { encodePolyline } from '../../utils/ride-heatmap';
 import {
   endAutoPauseEpisode,
+  gpsStartInFlight,
   isLocationRecording,
   startGPSListener,
   stopGPSListener,
@@ -557,6 +558,21 @@ function saveEndedRideAsItStands(rideId: string): void {
  * False when there is no recording or paused ride to resume (an ended ride is
  * reviewed, never resumed — the server has already completed it).
  */
+/**
+ * After a resume lost its ride while GPS was starting: stop the GPS it started,
+ * unless something else owns it by then. A new ride's start may be under way (it
+ * saved this ride and has not minted its own id yet), so wait for it to settle
+ * and decide on what is left: no ride (auto-end, a saved summary, or a start that
+ * was refused) or this ride ended means nobody records — stop; a new ride owns
+ * the GPS — leave it.
+ */
+async function stopGpsIfOrphaned(rideId: string): Promise<void> {
+  if (startInFlight) await startInFlight.catch(() => undefined);
+  const now = readRideRecord();
+  const orphaned = !now || (now.rideId === rideId && now.phase === RIDE_PHASE.ENDED);
+  if (orphaned && !gpsStartInFlight()) await stopGPSListener();
+}
+
 // The restart in progress, if any: CarPlay Resume, the permission recovery and
 // Start Ride's Resume can all ask at once, and must share one restart.
 let resumeInFlight: Promise<boolean> | null = null;
@@ -588,12 +604,7 @@ async function runResumeRecoveredRide(): Promise<boolean> {
   // the GPS now and is left alone.
   const current = readRideRecord();
   if (current?.rideId !== record.rideId || current.phase === RIDE_PHASE.ENDED) {
-    // Stop it when this ride ended, or when no ride is left (an auto-end or a
-    // saved summary clears it without an ended phase) — unless a new ride's
-    // start is under way: it has saved this one and not minted its own id yet,
-    // and its own GPS start must not be cut by this stop.
-    const orphaned = !current && !startInFlight;
-    if (current?.rideId === record.rideId || orphaned) void stopGPSListener();
+    void stopGpsIfOrphaned(record.rideId);
     return false;
   }
   useRideStore.setState({ recordingInterrupted: false });
