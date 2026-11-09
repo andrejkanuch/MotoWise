@@ -2732,6 +2732,7 @@
     "seasonRange": "{{year}} sezonu, {{from}} – {{to}}",
     "today": "bugün",
     "stale": "Çevrimdışı. Sezonun en son kaydedildiği hâliyle gösteriliyor.",
+    "placeNamesCredit": "Yer adları: GeoNames (CC BY 4.0)",
     "offline": {
       "title": "Çevrimdışısın",
       "body": "Sürüş analizleri ilk açılışta bağlantı gerektirir. Tekrar çevrimiçi olduğunda yeniden dene.",

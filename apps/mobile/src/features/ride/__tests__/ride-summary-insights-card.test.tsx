@@ -70,8 +70,8 @@ import {
 } from '../ride-summary-insights-card';
 
 const RIDE_ID = 'ride-new';
-/** 48 km, 36 min moving: a qualifying ride. */
-const RIDE = { rideId: RIDE_ID, distanceM: 48_000, movingS: 2_160 };
+/** 48 km, 36 min moving, inside the fixtures' 2026 season: a qualifying ride. */
+const RIDE = { rideId: RIDE_ID, localDate: '2026-11-09', distanceM: 48_000, movingS: 2_160 };
 const INSIGHTS_ROUTE = {
   pathname: '/(tabs)/(profile)/rider-insights',
   params: { entry: RIDER_INSIGHTS_ENTRY.RIDE_SUMMARY },
@@ -96,10 +96,21 @@ const computed = (newRoadsM: number | null): SummaryRide => ({
 let client: QueryClient;
 let rideAnswers: SummaryRide[];
 
-function serve(insights: InsightsPayload, ...rides: SummaryRide[]) {
+/** The season the API picks, and optionally the answer for an explicit from..to window. */
+function serve(
+  insights: InsightsPayload | { shown: InsightsPayload; window: InsightsPayload },
+  ...rides: SummaryRide[]
+) {
   rideAnswers = rides;
-  mockFetcher.mockImplementation((document: unknown) => {
-    if (document === GetRiderInsightsDocument) return Promise.resolve({ riderInsights: insights });
+  const shown = 'shown' in insights ? insights.shown : insights;
+  const window = 'window' in insights ? insights.window : null;
+  mockFetcher.mockImplementation((document: unknown, variables?: { from?: string }) => {
+    if (document === GetRiderInsightsDocument) {
+      if (variables?.from) {
+        return window ? Promise.resolve({ riderInsights: window }) : Promise.reject(new Error('no window'));
+      }
+      return Promise.resolve({ riderInsights: shown });
+    }
     if (document === GetRideSummaryStatsDocument) {
       const ride = rideAnswers.length > 1 ? rideAnswers.shift() : rideAnswers[0];
       return Promise.resolve({ ride });
@@ -130,7 +141,7 @@ const rideFetches = () =>
 beforeEach(() => {
   client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
   mockFetcher.mockReset();
-  mockPresentPaywall.mockClear();
+  mockPresentPaywall.mockReset().mockImplementation(() => Promise.resolve('cancelled'));
   mockRouter.push.mockReset();
   (trackEvent as jest.Mock).mockReset();
   mockEvaluation = null;
@@ -170,6 +181,17 @@ describe('summaryCardModel', () => {
   it('counts this qualifying ride toward five: four before it is enough', () => {
     const model = summaryCardModel({ insights: newRiderInsights(), ...RIDE, newRoadsM: null });
     expect(model.tile).toBe(SUMMARY_TILE.LOCKED);
+  });
+
+  it('never adds a ride from outside the season it was given', () => {
+    const insights = freeInsights({ season: { from: '2025-01-01', to: '2025-12-31' } });
+    const model = summaryCardModel({
+      insights,
+      ...RIDE,
+      localDate: '2026-01-10',
+      newRoadsM: null,
+    });
+    expect(model.seasonM).toBe(2_507_000);
   });
 
   it('is keep riding when this ride does not qualify and four came before', () => {
@@ -273,11 +295,88 @@ describe('a free rider', () => {
   });
 });
 
+describe('a purchase from the card', () => {
+  const refreshAsks = () =>
+    mockFetcher.mock.calls.filter(
+      ([document, variables]) =>
+        document === GetRiderInsightsDocument &&
+        (variables as { refreshEntitlement?: boolean }).refreshEntitlement === true,
+    ).length;
+
+  it.each(['purchased', 'restored'])('re-reads the tier after %s', async (result) => {
+    mockEvaluation = DUE_TRIGGER;
+    mockPresentPaywall.mockImplementation(() => Promise.resolve(result));
+    serve(freeInsights(), pending);
+    await renderCard();
+    await seasonLoaded();
+
+    await fireEvent.press(screen.getByTestId('ride-summary-insights-tile'));
+    await waitFor(() => expect(refreshAsks()).toBe(1));
+  });
+
+  it('does not re-read the tier when the paywall was closed', async () => {
+    mockEvaluation = DUE_TRIGGER;
+    serve(freeInsights(), pending);
+    await renderCard();
+    await seasonLoaded();
+
+    await fireEvent.press(screen.getByTestId('ride-summary-insights-tile'));
+    await waitFor(() => expect(mockPresentPaywall).toHaveBeenCalledTimes(1));
+    expect(refreshAsks()).toBe(0);
+  });
+});
+
+describe('the first rides of a new year, while last season is still shown', () => {
+  // The API keeps showing 2025 until 2026 has five qualifying rides.
+  const lastSeason = freeInsights({
+    season: { from: '2025-01-01', to: '2025-12-31' },
+    latestRide: {
+      rideId: '00000000-0000-4000-8000-000000000036',
+      localDate: '2025-12-20',
+      distanceM: 64_000,
+      newCountries: [],
+    },
+  });
+  // 2026 so far: four qualifying rides, 210 km.
+  const thisSeason: InsightsPayload = {
+    ...newRiderInsights(),
+    season: { from: '2026-01-01', to: '2026-12-31' },
+    latestRide: null,
+  };
+  const newYearRide = { ...RIDE, localDate: '2026-01-10' };
+
+  it('shows this year with the ride, never last year plus the ride', async () => {
+    serve({ shown: lastSeason, window: thisSeason }, pending);
+    await renderCard(newYearRide);
+
+    const label = await seasonLoaded();
+    expect(label).toContain('258 km');
+    expect(label).not.toContain('2,555 km');
+    expect(mockFetcher).toHaveBeenCalledWith(
+      GetRiderInsightsDocument,
+      expect.objectContaining({ from: '2026-01-01', to: '2026-12-31' }),
+    );
+    // Four before it plus this qualifying ride is five: the tile, locked for a free rider.
+    expect(screen.getByTestId('ride-summary-insights-tile').props.accessibilityLabel).toBe(
+      'insightsEntry.newRoadsLockedA11y',
+    );
+  });
+
+  it('does not ask for a window when the shown season holds the ride', async () => {
+    serve(freeInsights(), pending);
+    await renderCard();
+    await seasonLoaded();
+    expect(
+      mockFetcher.mock.calls.some(([, variables]) => (variables as { from?: string })?.from),
+    ).toBe(false);
+  });
+});
+
 describe('a rider below five qualifying rides', () => {
   it('sees season distance and the keep-riding line, no blurred tile, and no paywall even with a due trigger', async () => {
     mockEvaluation = DUE_TRIGGER;
     serve(newRiderInsights(), pending);
-    await renderCard({ rideId: RIDE_ID, distanceM: 500, movingS: 60 });
+    await renderCard({ ...RIDE, distanceM: 500, movingS: 60 });
     const label = await seasonLoaded();
     expect(label).toContain('riderInsights.howYouRide.keepRiding');
     expect(label).toContain('211 km');

@@ -244,6 +244,7 @@ export function BandSwatch({ alpha }: { alpha: number }) {
         width: SWATCH,
         height: SWATCH,
         borderRadius: SWATCH_RADIUS,
+        borderCurve: 'continuous',
         borderWidth: 1,
         borderColor: t.line,
         backgroundColor: tint(t.ink, alpha),
@@ -275,6 +276,7 @@ export function ShareBar({ testID, shares, alphas, height, accessibilityLabel }:
         flexDirection: 'row',
         gap: BAR_SEAM,
         borderRadius: height / 2,
+        borderCurve: 'continuous',
         overflow: 'hidden',
         backgroundColor: t.surface2,
       }}

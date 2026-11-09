@@ -1,5 +1,6 @@
 import { type MeasurementSystem, mileageUnitLabel } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { logger } from '@/lib/logger';
@@ -225,6 +226,19 @@ interface HeroMapProps {
 function HeroMap({ region, mapAvailable, width, height, system, regionName }: HeroMapProps) {
   const { t: i18n } = useTranslation();
   const { t, isDark } = useEditorialTheme();
+  const routes = region?.routes;
+  // Decoding a season of polylines is the expensive part; redo it only when the routes change.
+  const shape = useMemo<GeoJSON.FeatureCollection<GeoJSON.LineString>>(
+    () => ({
+      type: 'FeatureCollection',
+      features: (routes ?? []).map((route) => ({
+        type: 'Feature',
+        properties: {},
+        geometry: { type: 'LineString', coordinates: decodePolyline(route) },
+      })),
+    }),
+    [routes],
+  );
 
   if (!region?.bounds || !mapAvailable) {
     const note = mapAvailable
@@ -243,14 +257,6 @@ function HeroMap({ region, mapAvailable, width, height, system, regionName }: He
   const viewport = fitViewport(region.bounds, width, height, MAP_PADDING);
   const styleURL = isDark ? MAP_STYLES.dark : MAP_STYLES.light;
   const scale = scaleBar(viewport, system);
-  const shape: GeoJSON.FeatureCollection<GeoJSON.LineString> = {
-    type: 'FeatureCollection',
-    features: region.routes.map((route) => ({
-      type: 'Feature',
-      properties: {},
-      geometry: { type: 'LineString', coordinates: decodePolyline(route) },
-    })),
-  };
   const placement = routeLayerPlacement(styleURL);
 
   return (

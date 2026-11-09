@@ -168,6 +168,7 @@ export function FocusStats({ recentRides }: FocusStatsProps) {
             style={{
               height: PROGRESS_HEIGHT,
               borderRadius: PROGRESS_HEIGHT,
+              borderCurve: 'continuous',
               backgroundColor: theme.surface3,
               overflow: 'hidden',
             }}

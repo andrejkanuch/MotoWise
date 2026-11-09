@@ -355,6 +355,7 @@ function ShareSheetBody({
               width: space.xxxl,
               height: space.xxs,
               borderRadius: radius.pill,
+              borderCurve: 'continuous',
               backgroundColor: t.line2,
               alignSelf: 'center',
               marginTop: space.xs,
@@ -415,6 +416,7 @@ function ShareSheetBody({
               marginTop: space.lg,
               padding: SELECTED_RING,
               borderRadius: radius.chip,
+              borderCurve: 'continuous',
               backgroundColor: t.surface2,
             }}
           >

@@ -2732,6 +2732,7 @@
     "seasonRange": "Musim {{year}}, {{from}} – {{to}}",
     "today": "hari ini",
     "stale": "Offline. Menampilkan musimmu dari simpanan terakhir.",
+    "placeNamesCredit": "Nama tempat: GeoNames (CC BY 4.0)",
     "offline": {
       "title": "Kamu sedang offline",
       "body": "Ringkasan berkendara butuh koneksi saat pertama kali dibuka. Coba lagi saat kamu kembali online.",

@@ -2732,6 +2732,7 @@
     "seasonRange": "Season {{year}}, {{from}} to {{to}}",
     "today": "today",
     "stale": "Offline. Showing your season as last saved.",
+    "placeNamesCredit": "Place names: GeoNames (CC BY 4.0)",
     "offline": {
       "title": "You're offline",
       "body": "Rider insights needs a connection the first time. Try again when you're back online.",

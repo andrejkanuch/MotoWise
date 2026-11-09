@@ -2763,6 +2763,7 @@
     "seasonRange": "Temporada {{year}}, de {{from}} até {{to}}",
     "today": "hoje",
     "stale": "Offline. Mostrando sua temporada como foi salva da última vez.",
+    "placeNamesCredit": "Nomes de lugares: GeoNames (CC BY 4.0)",
     "offline": {
       "title": "Você está offline",
       "body": "A Análise de pilotagem precisa de conexão na primeira vez. Tente de novo quando estiver online.",

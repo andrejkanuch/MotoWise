@@ -1,0 +1,29 @@
+# Home's Rider insights card: the free headline numbers only. No regions,
+# routes or Pro groups, so Home never downloads the season's route geometry.
+query GetRiderInsightsHeadline($timeZone: String) {
+  riderInsights(timeZone: $timeZone) {
+    season {
+      from
+      to
+    }
+    totals {
+      rides
+      distanceM
+      countries
+    }
+    coverage {
+      rides
+      qualifyingRides
+    }
+    latestRide {
+      rideId
+      localDate
+      distanceM
+      newCountries
+    }
+    countries {
+      isoA2
+      name
+    }
+  }
+}

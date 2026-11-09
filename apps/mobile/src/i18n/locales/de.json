@@ -2732,6 +2732,7 @@
     "seasonRange": "Saison {{year}}, {{from}} bis {{to}}",
     "today": "heute",
     "stale": "Offline. Deine Saison wird so angezeigt, wie sie zuletzt gespeichert wurde.",
+    "placeNamesCredit": "Ortsnamen: GeoNames (CC BY 4.0)",
     "offline": {
       "title": "Du bist offline",
       "body": "Die Fahrstatistik braucht beim ersten Mal eine Verbindung. Versuch es noch einmal, wenn du wieder online bist.",

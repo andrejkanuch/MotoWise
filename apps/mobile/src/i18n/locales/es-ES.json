@@ -565,6 +565,7 @@
     }
   },
   "riderInsights": {
+    "placeNamesCredit": "Nombres de lugares: GeoNames (CC BY 4.0)",
     "error": {
       "body": "Algo ha fallado por nuestra parte. Inténtalo de nuevo en un momento."
     },

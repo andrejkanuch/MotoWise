@@ -2763,6 +2763,7 @@
     "seasonRange": "Saison {{year}}, de {{from}} à {{to}}",
     "today": "aujourd'hui",
     "stale": "Hors ligne. Ta saison telle qu'enregistrée la dernière fois.",
+    "placeNamesCredit": "Noms de lieux : GeoNames (CC BY 4.0)",
     "offline": {
       "title": "Tu es hors ligne",
       "body": "Le Bilan motard a besoin d'une connexion la première fois. Réessaie quand tu seras de nouveau en ligne.",

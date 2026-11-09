@@ -9,9 +9,11 @@ import {
   formatInsightDistance,
   INSIGHTS_VIEW,
   type InsightsView,
-  type RiderInsightsData,
-  useRiderInsights,
 } from '@/features/rider-insights/use-rider-insights';
+import {
+  type RiderInsightsHeadline,
+  useRiderInsightsHeadline,
+} from '@/features/rider-insights/use-rider-insights-headline';
 import { useMeasurementSystem } from '@/hooks/use-measurement-system';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { space } from '@/theme/spacing';
@@ -42,7 +44,7 @@ export type HomeInsight =
  * The Home card's headline, or null when the season has no rides (the card is
  * hidden). Never reads a Pro group: the headline is always a free number.
  */
-export function homeInsightHeadline(insights: RiderInsightsData): HomeInsight | null {
+export function homeInsightHeadline(insights: RiderInsightsHeadline): HomeInsight | null {
   if (insights.totals.rides === 0) return null;
   const seasonM = insights.totals.distanceM;
   if (insights.coverage.qualifyingRides < RIDER_INSIGHTS_MIN_QUALIFYING_RIDES) {
@@ -141,11 +143,12 @@ function headlineLines(
 /**
  * Home's Rider insights card: the latest insight headline, always a free
  * number, and a tap opens the screen. Hidden while the season has no rides.
+ * Reads the small headline query, never the full season with route geometry.
  */
 export function InsightsCard() {
   const { t: i18n, i18n: instance } = useTranslation();
   const system = useMeasurementSystem();
-  const { insights, view } = useRiderInsights();
+  const { headline: insights, view } = useRiderInsightsHeadline();
   const language = instance.language;
   const headline = useMemo(() => (insights ? homeInsightHeadline(insights) : null), [insights]);
 

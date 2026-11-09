@@ -2763,6 +2763,7 @@
     "seasonRange": "Temporada {{year}}, de {{from}} a {{to}}",
     "today": "hoy",
     "stale": "Sin conexión. Mostrando tu temporada como se guardó la última vez.",
+    "placeNamesCredit": "Nombres de lugares: GeoNames (CC BY 4.0)",
     "offline": {
       "title": "Estás sin conexión",
       "body": "Las Estadísticas de piloto necesitan conexión la primera vez. Inténtalo de nuevo cuando vuelvas a estar en línea.",

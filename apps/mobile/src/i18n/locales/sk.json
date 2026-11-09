@@ -2798,6 +2798,7 @@
     "seasonRange": "Sezóna {{year}}, {{from}} – {{to}}",
     "today": "dnes",
     "stale": "Si offline. Zobrazujeme naposledy uloženú sezónu.",
+    "placeNamesCredit": "Názvy miest: GeoNames (CC BY 4.0)",
     "offline": {
       "title": "Si offline",
       "body": "Prehľad jazdenia potrebuje pri prvom otvorení pripojenie. Skús to znova, keď budeš online.",

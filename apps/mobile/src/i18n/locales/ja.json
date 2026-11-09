@@ -2732,6 +2732,7 @@
     "seasonRange": "{{year}}年シーズン、{{from}}〜{{to}}",
     "today": "今日",
     "stale": "オフラインです。最後に保存したシーズンを表示しています。",
+    "placeNamesCredit": "地名：GeoNames (CC BY 4.0)",
     "offline": {
       "title": "オフラインです",
       "body": "ライダーインサイトの初回表示には通信が必要です。オンラインに戻ったらもう一度お試しください。",

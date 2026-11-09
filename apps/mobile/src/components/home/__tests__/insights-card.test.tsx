@@ -23,9 +23,12 @@ jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
+import { GetRiderInsightsHeadlineDocument } from '@motovault/graphql';
 import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { RIDER_INSIGHTS_ENTRY } from '@/config/routes';
+import { deviceTimeZone, riderInsightsOptions } from '@/features/rider-insights/use-rider-insights';
+import { riderInsightsHeadlineOptions } from '@/features/rider-insights/use-rider-insights-headline';
 import { useAuthStore } from '@/stores/auth.store';
 import {
   freeInsights,
@@ -134,6 +137,57 @@ describe('InsightsCard', () => {
     await renderCard(freeInsights({ totals: { rides: 0, distanceM: 0, countries: 0 } }));
     expect(screen.getByTestId('home-insights-card')).toBeTruthy();
     await waitFor(() => expect(screen.queryByTestId('home-insights-card')).toBeNull());
+  });
+
+  it('names a country the latest ride added', async () => {
+    await renderCard(
+      freeInsights({
+        latestRide: {
+          rideId: 'r-37',
+          localDate: '2026-11-09',
+          distanceM: 90_000,
+          newCountries: ['SK'],
+        },
+      }),
+    );
+    const label = await loadedLabel();
+    expect(label).toContain('insightsEntry.newCountry');
+    expect(label).toContain('Slovakia');
+  });
+
+  it('fetches only the headline, cached apart from the full season', async () => {
+    await renderCard(freeInsights());
+    await loadedLabel();
+    expect(mockFetcher).toHaveBeenCalledTimes(1);
+    expect(mockFetcher.mock.calls[0]?.[0]).toBe(GetRiderInsightsHeadlineDocument);
+    const timeZone = deviceTimeZone();
+    expect(client.getQueryData(riderInsightsOptions(timeZone).queryKey)).toBeUndefined();
+    expect(client.getQueryData(riderInsightsHeadlineOptions(timeZone).queryKey)).toBeDefined();
+  });
+
+  it('reads offline with no number when the device is offline', async () => {
+    onlineManager.setOnline(false);
+    await renderCard(freeInsights());
+    await waitFor(() =>
+      expect(screen.getByTestId('home-insights-card').props.accessibilityLabel).toContain(
+        'riderInsights.offline.title',
+      ),
+    );
+    expect(screen.getByTestId('home-insights-card').props.accessibilityLabel).not.toMatch(/\d/);
+  });
+
+  it('reads failed with no number when the request fails', async () => {
+    mockFetcher.mockRejectedValue(new Error('boom'));
+    await render(
+      <QueryClientProvider client={client}>
+        <InsightsCard />
+      </QueryClientProvider>,
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('home-insights-card').props.accessibilityLabel).toContain(
+        'riderInsights.error.title',
+      ),
+    );
   });
 
   it('shows no number while loading', async () => {

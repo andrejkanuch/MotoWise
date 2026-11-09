@@ -37,6 +37,11 @@ jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...args),
 }));
 
+const mockOpenBrowser = jest.fn();
+jest.mock('expo-web-browser', () => ({
+  openBrowserAsync: (...args: unknown[]) => mockOpenBrowser(...args),
+}));
+
 const mockPresentPaywall = jest.fn();
 jest.mock('@/lib/subscription', () => ({
   presentRiderInsightsPaywall: (...args: unknown[]) => mockPresentPaywall(...args),
@@ -85,7 +90,6 @@ import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 import { StyleSheet, useWindowDimensions } from 'react-native';
 import '@/i18n';
-import RiderInsightsScreen from '@/app/(tabs)/(profile)/rider-insights';
 import { RIDER_INSIGHTS_ENTRY } from '@/config/routes';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { queryKeys } from '@/lib/query-keys';
@@ -99,6 +103,7 @@ import {
   proInsights,
 } from '@/test/rider-insights-fixtures';
 import { clearBlurCaptures } from '../blur-capture';
+import { RiderInsightsScreen } from '../rider-insights-screen';
 import { deviceTimeZone } from '../use-rider-insights';
 
 const mockDimensions = useWindowDimensions as jest.Mock;
@@ -145,6 +150,18 @@ beforeEach(() => {
   onlineManager.setOnline(true);
   useSubscriptionStore.setState({ isPro: false });
   useAuthStore.setState({ measurementSystem: 'metric' });
+});
+
+describe('place-name attribution', () => {
+  it('credits GeoNames under the list and opens its site', async () => {
+    respond(freeInsights());
+    await renderScreen();
+    const credit = await screen.findByTestId('insights-geonames-credit');
+    expect(credit.props.accessibilityRole).toBe('link');
+    expect(within(credit).getByText('Place names: GeoNames (CC BY 4.0)')).toBeTruthy();
+    await fireEvent.press(credit);
+    expect(mockOpenBrowser).toHaveBeenCalledWith('https://www.geonames.org/');
+  });
 });
 
 describe('a free rider with 20 qualifying rides', () => {

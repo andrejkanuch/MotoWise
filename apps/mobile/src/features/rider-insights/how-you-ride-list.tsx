@@ -65,6 +65,7 @@ function BandBar({ shares }: { shares: readonly number[] }) {
         flexDirection: 'row',
         gap: BAND_SEAM,
         borderRadius: BAND_HEIGHT / 2,
+        borderCurve: 'continuous',
         overflow: 'hidden',
       }}
     >
