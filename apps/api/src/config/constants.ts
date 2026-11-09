@@ -77,6 +77,8 @@ export const THROTTLE_PRESETS = {
   DOCUMENT_SIGN: { limit: 120, ttl: 60_000 },
   /** sendFeedback: each call emails the support inbox. */
   FEEDBACK: { limit: 5, ttl: 3_600_000 },
+  /** weatherForecast: a cache miss is one paid Open-Meteo call. */
+  WEATHER: { limit: 30, ttl: 60_000 },
 } as const;
 
 /**

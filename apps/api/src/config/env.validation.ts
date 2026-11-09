@@ -75,6 +75,10 @@ export const envSchema = z.object({
   // being silently consumed (see SignupEventsService).
   POSTHOG_PROJECT_TOKEN: optionalString,
   POSTHOG_HOST: optionalUrl,
+  // Open-Meteo paid plan (issue 272) for the weatherForecast query. Optional:
+  // when unset the query answers SERVICE_UNAVAILABLE and the app shows no weather.
+  // The free endpoint is non-commercial only, so there is no keyless fallback.
+  OPEN_METEO_API_KEY: optionalString,
   RESEND_API_KEY: optionalString,
   UPSTASH_REDIS_REST_URL: optionalUrl,
   UPSTASH_REDIS_REST_TOKEN: optionalString,

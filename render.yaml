@@ -81,6 +81,10 @@ envVarGroups:
       # closed when unset. Value is set in the Render dashboard (sync: false).
       - key: MAINTENANCE_PUSH_SECRET
         sync: false
+      # Open-Meteo paid plan for the weatherForecast proxy (issue 272). Unset →
+      # the query answers SERVICE_UNAVAILABLE and the app shows no weather.
+      - key: OPEN_METEO_API_KEY
+        sync: false
       - key: RESEND_API_KEY
         sync: false
       - key: CORS_ORIGINS

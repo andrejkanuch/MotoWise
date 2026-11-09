@@ -60,3 +60,4 @@ export * from './validators/trip-assistant';
 export * from './validators/trip-suggestions';
 export * from './validators/user';
 export * from './validators/user-preferences';
+export * from './validators/weather';

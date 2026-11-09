@@ -31,3 +31,4 @@ export * from './surface-report';
 export * from './trip';
 export * from './trip-suggestions';
 export * from './user';
+export * from './weather';

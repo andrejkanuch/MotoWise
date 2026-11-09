@@ -65,6 +65,7 @@ import { TripSuggestionsModule } from './modules/trip-suggestions/trip-suggestio
 import { TripsModule } from './modules/trips/trips.module';
 import { UsersModule } from './modules/users/users.module';
 import { WaitlistModule } from './modules/waitlist/waitlist.module';
+import { WeatherModule } from './modules/weather/weather.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 @Module({
@@ -145,6 +146,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     TripAssistantModule,
     TripSuggestionsModule,
     WaitlistModule,
+    WeatherModule,
     WebhooksModule,
     HealthModule,
   ],
