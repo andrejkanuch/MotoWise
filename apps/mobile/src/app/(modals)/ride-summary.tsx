@@ -394,7 +394,7 @@ export default function RideSummaryScreen() {
       label: t('rideSummary.stats.distance'),
       value: formatDistance(distanceM, system),
     },
-    { icon: Clock, label: t('rideSummary.stats.movingTime'), value: formatDuration(durationS) },
+    { icon: Clock, label: t('rideSummary.stats.movingTime'), value: formatDuration(movingTimeS) },
     {
       icon: TrendingUp,
       label: t('rideSummary.stats.avgSpeed'),

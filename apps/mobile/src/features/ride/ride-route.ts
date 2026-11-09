@@ -1,4 +1,7 @@
+import type { Href } from 'expo-router';
+import { useMemo } from 'react';
 import { useRideStore } from '../../stores/ride.store';
+import { buildRideSummaryHref, readEndedRideSummary } from './ride-controller';
 
 export const RIDE_ROUTE = {
   HUD: '/(modals)/ride-hud',
@@ -22,9 +25,25 @@ export function rideRouteFor({ status, recordingInterrupted }: RideRouteState): 
   return active && !recordingInterrupted ? RIDE_ROUTE.HUD : RIDE_ROUTE.START;
 }
 
-/** `rideRouteFor` for the current ride store. */
-export function useRideRoute(): RideRoute {
+/**
+ * Where "the ride" leads, with an ended ride going straight to its review: the
+ * summary it ended with (stored with the ride), however it ended — phone, CarPlay,
+ * a reminder. Start Ride (which also offers Review) when that summary is unreadable.
+ */
+export function rideEntryHref(state: RideRouteState): Href {
+  if (state.status === 'ended') {
+    const summary = readEndedRideSummary();
+    if (summary) return buildRideSummaryHref(summary, { recovered: summary.recovered === true });
+  }
+  return rideRouteFor(state);
+}
+
+/** `rideEntryHref` for the current ride store. */
+export function useRideEntryHref(): Href {
   const status = useRideStore((s) => s.status);
   const recordingInterrupted = useRideStore((s) => s.recordingInterrupted);
-  return rideRouteFor({ status, recordingInterrupted });
+  return useMemo(
+    () => rideEntryHref({ status, recordingInterrupted }),
+    [status, recordingInterrupted],
+  );
 }

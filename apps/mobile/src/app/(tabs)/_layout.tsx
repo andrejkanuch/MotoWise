@@ -24,7 +24,7 @@ import { HUB_CHROME_MAX_FONT_SCALE } from '../../components/bike-hub/ui/tokens';
 import { GlobalCarPlayBanner } from '../../components/carplay/global-carplay-banner';
 import { ErrorFallback } from '../../components/error-fallback';
 import { countGarageBadge } from '../../components/garage/garage-badge-count';
-import { useRideRoute } from '../../features/ride/ride-route';
+import { useRideEntryHref } from '../../features/ride/ride-route';
 import { BIKE_HUB_ROUTES } from '../../lib/bike-hub/constants';
 import { maintenanceBadgeOptions } from '../../lib/query-options';
 import { useRideStore } from '../../stores/ride.store';
@@ -87,7 +87,7 @@ function RideFAB() {
   const rideStatus = useRideStore((s) => s.status);
   const elapsedTime = useRideStore((s) => s.elapsedTime);
   const isActive = rideStatus === 'recording' || rideStatus === 'paused';
-  const rideRoute = useRideRoute();
+  const rideRoute = useRideEntryHref();
 
   const pulseScale = useSharedValue(1);
 
@@ -143,7 +143,7 @@ function RideFAB() {
       >
         <Route size={24} color={rideTheme.onWarm} strokeWidth={2.2} />
       </Pressable>
-      {isActive && (
+      {(isActive || rideStatus === 'ended') && (
         <Text
           maxFontSizeMultiplier={TAB_LABEL_MAX_FONT_SCALE}
           style={[
@@ -152,7 +152,7 @@ function RideFAB() {
             { color: rideTheme.warm2, marginTop: 2, fontVariant: ['tabular-nums'] },
           ]}
         >
-          {formatElapsed(elapsedTime)}
+          {isActive ? formatElapsed(elapsedTime) : t('common.review')}
         </Text>
       )}
     </Animated.View>

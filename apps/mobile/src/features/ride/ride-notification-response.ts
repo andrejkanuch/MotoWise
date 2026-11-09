@@ -9,7 +9,7 @@ import { useRideStore } from '../../stores/ride.store';
 import { armRideReminders, rideEndTrimTarget } from '../../utils/ride-reminders';
 import { rideMMKV } from '../../utils/ride-storage';
 import { buildRideSummaryHref, endRideSession } from './ride-controller';
-import { rideRouteFor } from './ride-route';
+import { rideEntryHref } from './ride-route';
 
 export interface RideIdleResponseData {
   rideId?: string;
@@ -60,10 +60,10 @@ export function handleRideIdleResponse(
     return summary ? buildRideSummaryHref(summary) : null;
   }
 
-  // Plain tap. A ride this app is recording opens the live HUD (Stop one tap away).
-  // Anything else goes to Start Ride: an ended ride is reviewed there, and an open
-  // ride whose GPS is not confirmed running after a relaunch offers Resume / End.
-  return rideRouteFor(useRideStore.getState());
+  // Plain tap. A ride this app is recording opens the live HUD (Stop one tap away);
+  // an ended ride opens its review; an open ride whose GPS is not confirmed after a
+  // relaunch goes to Start Ride (Resume / End).
+  return rideEntryHref(useRideStore.getState());
 }
 
 // --- Deferring until navigation can land ---
