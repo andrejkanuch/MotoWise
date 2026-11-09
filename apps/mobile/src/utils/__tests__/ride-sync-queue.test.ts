@@ -674,25 +674,41 @@ describe('best-effort ops (pause / resume)', () => {
     expect(deadLetter()).toHaveLength(0);
   });
 
-  it('drops a pause the API does not know yet once its retries run out', async () => {
-    // An app shipped ahead of the API: the mutation fails validation, retryably.
-    mockSyncStore.set(
-      'sync.queue',
-      JSON.stringify([syncOp({ seq: 1, type: 'resumeRide', retries: 4 })]),
-    );
-    mockGqlFetcher.mockRejectedValue(new Error('Cannot query field "resumeRide"'));
-    const timeoutSpy = jest
-      .spyOn(global, 'setTimeout')
-      .mockImplementation((cb: (...a: unknown[]) => void) => {
-        cb();
-        return 0 as unknown as ReturnType<typeof setTimeout>;
-      });
+  it('never holds the ride up: a pause the API does not know yet is dropped at once', async () => {
+    // An app shipped ahead of the API: the mutation fails validation — a
+    // retryable error for any other op, which would block everything behind it.
+    enqueue('resumeRide', rideOp('ride-A'));
+    enqueue('endRide', rideOp('ride-A'));
+    const sent: string[] = [];
+    mockGqlFetcher.mockImplementation((doc: unknown) => {
+      const resuming = JSON.stringify(doc).includes('resumeRide');
+      sent.push(resuming ? 'resumeRide' : 'endRide');
+      return resuming
+        ? Promise.reject(new Error('Cannot query field "resumeRide"'))
+        : Promise.resolve({});
+    });
 
     await drainQueue();
 
-    timeoutSpy.mockRestore();
+    // One attempt, then the ride's end goes out in the same drain.
+    expect(sent).toEqual(['resumeRide', 'endRide']);
     expect(getQueueLength()).toBe(0);
     expect(deadLetter()).toHaveLength(0);
+    // Reported once, as a drop.
+    expect(mockCapture).toHaveBeenCalledTimes(1);
+    expect(mockCapture).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ source: 'ride-sync-queue.bestEffortDrop', opType: 'resumeRide' }),
+    );
+  });
+
+  it('still waits out a network outage instead of dropping the pause', async () => {
+    enqueue('pauseRide', rideOp('ride-A'));
+    mockGetNetworkStateAsync.mockResolvedValue({ isConnected: false, isInternetReachable: false });
+
+    await drainQueue();
+
+    expect(getQueueLength()).toBe(1);
   });
 });
 

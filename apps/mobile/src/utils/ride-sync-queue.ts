@@ -649,8 +649,10 @@ async function drainPass(): Promise<void> {
       }
 
       const nextRetries = op.retries + 1;
-      const permanent = isNonRetryableError(error) || nextRetries >= MAX_RETRIES;
-      if (permanent && BEST_EFFORT_OPS.has(op.type)) {
+      // A best-effort op gets no retries: retrying it would head-of-line block
+      // the ride's own ops (waypoints, EndRide) behind a nicety — for minutes
+      // when the API does not know the mutation yet.
+      if (BEST_EFFORT_OPS.has(op.type)) {
         // Drop just this op and move on: nothing after it depends on it.
         captureException(error instanceof Error ? error : new Error(`Ride sync drop: ${op.type}`), {
           source: 'ride-sync-queue.bestEffortDrop',
@@ -659,7 +661,7 @@ async function drainPass(): Promise<void> {
         removeOpBySeq(op.seq);
         continue;
       }
-      if (permanent) {
+      if (isNonRetryableError(error) || nextRetries >= MAX_RETRIES) {
         // Permanent failure. The old code dead-lettered just this op and advanced,
         // on the premise that "later independent ops still get a chance" — false for
         // ride ops, which are a dependency chain keyed by rideId
