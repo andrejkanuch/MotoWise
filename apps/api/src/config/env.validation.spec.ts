@@ -29,3 +29,22 @@ describe('REVENUECAT_SANDBOX_ALLOWED_USER_IDS', () => {
     expect(() => parse(`${USER_A},test@test.com`)).toThrow();
   });
 });
+
+describe('ride stats settings', () => {
+  const KEYS = [
+    'RIDE_STATS_SWEEP_SECRET',
+    'RIDE_STATS_WEATHER_ENABLED',
+    'OPEN_METEO_API_KEY',
+  ] as const;
+
+  it.each(KEYS)('%s is optional: unset or empty parses to undefined', (key) => {
+    expect(envSchema.parse({ ...REQUIRED })[key]).toBeUndefined();
+    expect(envSchema.parse({ ...REQUIRED, [key]: '' })[key]).toBeUndefined();
+  });
+
+  it.each(KEYS)('%s keeps its value when set', (key) => {
+    expect(envSchema.parse({ ...REQUIRED, [key]: 'configured-value' })[key]).toBe(
+      'configured-value',
+    );
+  });
+});

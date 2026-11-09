@@ -15,7 +15,20 @@
 --   * log_odometer_reading keeps its single signature and its behaviour;
 --   * the purge removes ride_stats and ride_tracks of a ride soft-deleted
 --     31 days ago and keeps those of a ride deleted yesterday;
---   * rides.end_source accepts only the known end paths.
+--   * rides.end_source accepts only the known end paths;
+--   * the three service-role stats helpers (ride_stats_places,
+--     ride_stats_stale_rides, ride_stats_stale_count) are executable by
+--     service_role only, run as the caller (SECURITY INVOKER, empty search_path);
+--   * ride_stats_places, on small synthetic country polygons: reference_ready is
+--     false while ref_country_parts is empty; a route 300 m into France from
+--     Spain gives only ES at 1 km or more of core; a road zig-zagging along the
+--     border stays out of both cores; a crossing route sums the core across
+--     subdivided parts and orders countries by first entry; the nearest town
+--     within 25 km is returned, and null beyond 25 km;
+--   * ride_stats_stale_rides: real riders before synthetic accounts, oldest
+--     first; a version bump and a late track update make a row stale; deleted,
+--     unfinished and excluded rides never appear; ride_stats_stale_count counts
+--     by the same rule with its age cut-off.
 --
 -- Everything runs in ONE transaction that ends in ROLLBACK, and the file uses no
 -- psql meta-commands. It is written for the disposable container and for a local
@@ -104,6 +117,30 @@ BEGIN
   IF NOT has_function_privilege('service_role', 'public.purge_soft_deleted_rides()', 'EXECUTE') THEN
     RAISE EXCEPTION 'FAIL: service_role cannot execute purge_soft_deleted_rides';
   END IF;
+
+  -- Service-role stats helpers: run as the caller, executable by service_role only.
+  FOREACH tbl IN ARRAY ARRAY[
+    'public.ride_stats_places(text, double precision, double precision, double precision, double precision)',
+    'public.ride_stats_stale_rides(smallint, integer, uuid[])',
+    'public.ride_stats_stale_count(smallint, timestamptz)'] LOOP
+    IF to_regprocedure(tbl) IS NULL THEN
+      RAISE EXCEPTION 'FAIL: % does not exist', tbl;
+    END IF;
+    FOREACH who IN ARRAY ARRAY['public', 'anon', 'authenticated'] LOOP
+      IF has_function_privilege(who, tbl, 'EXECUTE') THEN
+        RAISE EXCEPTION 'FAIL: % can execute %', who, tbl;
+      END IF;
+    END LOOP;
+    IF NOT has_function_privilege('service_role', tbl, 'EXECUTE') THEN
+      RAISE EXCEPTION 'FAIL: service_role cannot execute %', tbl;
+    END IF;
+    IF (SELECT prosecdef FROM pg_proc WHERE oid = to_regprocedure(tbl)) THEN
+      RAISE EXCEPTION 'FAIL: % is SECURITY DEFINER', tbl;
+    END IF;
+    IF NOT (SELECT 'search_path=""' = ANY (proconfig) FROM pg_proc WHERE oid = to_regprocedure(tbl)) THEN
+      RAISE EXCEPTION 'FAIL: % does not pin an empty search_path', tbl;
+    END IF;
+  END LOOP;
 
   -- log_odometer_reading is untouched: still exactly one signature, still the rider's.
   IF (SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
@@ -277,6 +314,21 @@ BEGIN
     RAISE EXCEPTION 'FAIL: authenticated can run purge_soft_deleted_rides';
   EXCEPTION WHEN insufficient_privilege THEN NULL;
   END;
+  BEGIN
+    PERFORM public.ride_stats_places('SRID=4326;LINESTRING(0 0,1 1)', 0, 0, 1, 1);
+    RAISE EXCEPTION 'FAIL: authenticated can execute ride_stats_places';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  BEGIN
+    PERFORM 1 FROM public.ride_stats_stale_rides(1::smallint, 10, '{}');
+    RAISE EXCEPTION 'FAIL: authenticated can execute ride_stats_stale_rides';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  BEGIN
+    PERFORM public.ride_stats_stale_count(1::smallint, now());
+    RAISE EXCEPTION 'FAIL: authenticated can execute ride_stats_stale_count';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
 
   -- 2. ride_track_points: 4,000 fixes capped at 1,000.
   SELECT t.total_points, t.recorded_at, t.latitude INTO v_total, v_times, v_lat
@@ -416,6 +468,21 @@ BEGIN
     RAISE EXCEPTION 'FAIL: anon can execute log_ride_end_odometer';
   EXCEPTION WHEN insufficient_privilege THEN NULL;
   END;
+  BEGIN
+    PERFORM public.ride_stats_places('SRID=4326;LINESTRING(0 0,1 1)', 0, 0, 1, 1);
+    RAISE EXCEPTION 'FAIL: anon can execute ride_stats_places';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  BEGIN
+    PERFORM 1 FROM public.ride_stats_stale_rides(1::smallint, 10, '{}');
+    RAISE EXCEPTION 'FAIL: anon can execute ride_stats_stale_rides';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  BEGIN
+    PERFORM public.ride_stats_stale_count(1::smallint, now());
+    RAISE EXCEPTION 'FAIL: anon can execute ride_stats_stale_count';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -450,7 +517,305 @@ BEGIN
      OR NOT EXISTS (SELECT 1 FROM public.ride_waypoints WHERE ride_id = recent) THEN
     RAISE EXCEPTION 'FAIL: purge removed data of a ride deleted yesterday';
   END IF;
+END $$;
 
+-- ---------------------------------------------------------------------------
+-- ride_stats_places on synthetic reference geodata.
+--
+-- The reference tables are emptied first (inside this rolled-back transaction),
+-- so the check also runs on a stack where the loader has filled them.
+--
+-- Spain is lng -1..0 and France lng 0..1, both lat 42..43. Each core is its
+-- border shrunk 500 m inward (0.0061 degrees of longitude at lat 42.5, 0.0045
+-- of latitude) and split at lng -0.5 / 0.5, as the loader subdivides it.
+-- Routes run along lat 42.5, where one degree of longitude is about 82,073 m.
+-- ---------------------------------------------------------------------------
+DELETE FROM public.ref_places;
+DELETE FROM public.ref_regions;
+DELETE FROM public.ref_country_parts;
+
+SET LOCAL ROLE service_role;
+
+DO $$
+DECLARE
+  v jsonb;
+BEGIN
+  v := public.ride_stats_places('SRID=4326;LINESTRING(-0.05 42.5,0.00366 42.5)', 42.5, -0.05, 42.5, 0.00366);
+  IF (v ->> 'reference_ready')::boolean IS DISTINCT FROM false THEN
+    RAISE EXCEPTION 'FAIL: reference_ready is not false on empty reference tables (%)', v;
+  END IF;
+  IF jsonb_typeof(v -> 'countries') <> 'array' OR jsonb_array_length(v -> 'countries') <> 0 THEN
+    RAISE EXCEPTION 'FAIL: countries is not an empty array on empty reference tables (%)', v;
+  END IF;
+END $$;
+
+RESET ROLE;
+
+INSERT INTO public.ref_country_parts (iso_a2, name, kind, geom)
+VALUES
+  ('ES', 'Spain', 'border', ST_GeomFromText('POLYGON((-1 42,0 42,0 43,-1 43,-1 42))', 4326)),
+  ('FR', 'France', 'border', ST_GeomFromText('POLYGON((0 42,1 42,1 43,0 43,0 42))', 4326)),
+  ('ES', 'Spain', 'core', ST_GeomFromText('POLYGON((-1 42.0045,-0.5 42.0045,-0.5 42.9955,-1 42.9955,-1 42.0045))', 4326)),
+  ('ES', 'Spain', 'core', ST_GeomFromText('POLYGON((-0.5 42.0045,-0.0061 42.0045,-0.0061 42.9955,-0.5 42.9955,-0.5 42.0045))', 4326)),
+  ('FR', 'France', 'core', ST_GeomFromText('POLYGON((0.0061 42.0045,0.5 42.0045,0.5 42.9955,0.0061 42.9955,0.0061 42.0045))', 4326)),
+  ('FR', 'France', 'core', ST_GeomFromText('POLYGON((0.5 42.0045,1 42.0045,1 42.9955,0.5 42.9955,0.5 42.0045))', 4326));
+
+-- Near Town is 11.1 km north of the test start, Second Town 16.7 km; Far Town
+-- is 33 km from the test end.
+INSERT INTO public.ref_places (geonameid, name, iso_a2, admin1_code, population, geom)
+VALUES
+  (900001, 'Near Town', 'ES', 'CT', 20000, ST_SetSRID(ST_MakePoint(-0.05, 42.6), 4326)),
+  (900002, 'Second Town', 'ES', 'CT', 90000, ST_SetSRID(ST_MakePoint(-0.05, 42.65), 4326)),
+  (900003, 'Far Town', 'FR', '76', 50000, ST_SetSRID(ST_MakePoint(0.6, 42.4), 4326));
+
+SET LOCAL ROLE service_role;
+
+DO $$
+DECLARE
+  v jsonb;
+  v_es jsonb;
+  v_fr jsonb;
+  v_counted text[];
+BEGIN
+  -- 1. 300 m into France: only Spain has 1 km or more of core.
+  v := public.ride_stats_places(
+    'SRID=4326;LINESTRING(-0.05 42.5,-0.03 42.5,-0.01 42.5,0 42.5,0.00366 42.5)', 42.5, -0.05, 42.5, 0.00366);
+  IF (v ->> 'reference_ready')::boolean IS DISTINCT FROM true THEN
+    RAISE EXCEPTION 'FAIL: reference_ready is not true with loaded parts (%)', v;
+  END IF;
+  SELECT array_agg(c ->> 'iso_a2' ORDER BY (c ->> 'first_at')::float8) INTO v_counted
+  FROM jsonb_array_elements(v -> 'countries') c
+  WHERE (c ->> 'core_m')::float8 >= 1000;
+  IF v_counted IS DISTINCT FROM ARRAY['ES'] THEN
+    RAISE EXCEPTION 'FAIL: 300 m into France counted % (expected only ES): %', v_counted, v;
+  END IF;
+  SELECT c INTO v_es FROM jsonb_array_elements(v -> 'countries') c WHERE c ->> 'iso_a2' = 'ES';
+  -- (0.05 - 0.0061) degrees * 82,073 m = 3,603 m inside the Spanish core.
+  IF (v_es ->> 'core_m')::float8 NOT BETWEEN 3550 AND 3650 THEN
+    RAISE EXCEPTION 'FAIL: ES core_m = %, expected about 3,603 m', v_es ->> 'core_m';
+  END IF;
+
+  -- 2. A road zig-zagging across the border (300 m into France, 250 m into
+  --    Spain, about every kilometre for 33 km) stays out of both cores.
+  SELECT public.ride_stats_places(
+    'SRID=4326;LINESTRING(' || string_agg(
+      CASE WHEN i % 2 = 0 THEN '0.00366 ' ELSE '-0.003 ' END || (42.3 + i * 0.01)::text, ',' ORDER BY i) || ')',
+    42.3, 0.00366, 42.6, 0.00366)
+  INTO v
+  FROM generate_series(0, 30) i;
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(v -> 'countries') c WHERE (c ->> 'core_m')::float8 >= 1000) THEN
+    RAISE EXCEPTION 'FAIL: a road along the border counted a country: %', v;
+  END IF;
+
+  -- 3. Crossing from deep in Spain (across the core split at -0.5) into France:
+  --    core metres summed over the subdivided parts, ordered by first entry.
+  v := public.ride_stats_places(
+    'SRID=4326;LINESTRING(-0.7 42.5,-0.5 42.5,-0.3 42.5,-0.1 42.5,0 42.5,0.1 42.5,0.3 42.5)', 42.5, -0.7, 42.5, 0.3);
+  SELECT c INTO v_es FROM jsonb_array_elements(v -> 'countries') c WHERE c ->> 'iso_a2' = 'ES';
+  SELECT c INTO v_fr FROM jsonb_array_elements(v -> 'countries') c WHERE c ->> 'iso_a2' = 'FR';
+  IF jsonb_array_length(v -> 'countries') <> 2 OR v_es IS NULL OR v_fr IS NULL THEN
+    RAISE EXCEPTION 'FAIL: crossing route returned %, expected one ES and one FR entry', v -> 'countries';
+  END IF;
+  -- (0.7 - 0.0061) * 82,073 = 56,951 m; (0.3 - 0.0061) * 82,073 = 24,121 m.
+  IF (v_es ->> 'core_m')::float8 NOT BETWEEN 56400 AND 57500 THEN
+    RAISE EXCEPTION 'FAIL: crossing ES core_m = %, expected about 56,951 m (both parts)', v_es ->> 'core_m';
+  END IF;
+  IF (v_fr ->> 'core_m')::float8 NOT BETWEEN 23900 AND 24400 THEN
+    RAISE EXCEPTION 'FAIL: crossing FR core_m = %, expected about 24,121 m', v_fr ->> 'core_m';
+  END IF;
+  -- Spain from the start; France from (0.7061 / 1.0) of the way.
+  IF (v_es ->> 'first_at')::float8 > 0.001 THEN
+    RAISE EXCEPTION 'FAIL: ES first_at = %, expected 0', v_es ->> 'first_at';
+  END IF;
+  IF (v_fr ->> 'first_at')::float8 NOT BETWEEN 0.70 AND 0.71 THEN
+    RAISE EXCEPTION 'FAIL: FR first_at = %, expected about 0.706', v_fr ->> 'first_at';
+  END IF;
+
+  -- 4. Nearest town within 25 km of the start; none within 25 km of the end.
+  v := public.ride_stats_places(
+    'SRID=4326;LINESTRING(-0.05 42.5,0.6 42.1)', 42.5, -0.05, 42.1, 0.6);
+  IF v -> 'start_place' IS DISTINCT FROM
+     '{"name": "Near Town", "iso_a2": "ES", "admin1_code": "CT"}'::jsonb THEN
+    RAISE EXCEPTION 'FAIL: start_place = %, expected Near Town', v -> 'start_place';
+  END IF;
+  IF v -> 'end_place' IS DISTINCT FROM 'null'::jsonb THEN
+    RAISE EXCEPTION 'FAIL: end_place = %, expected null (nearest town 33 km away)', v -> 'end_place';
+  END IF;
+  v := public.ride_stats_places(
+    'SRID=4326;LINESTRING(-0.05 42.5,0.6 42.2)', 42.5, -0.05, 42.2, 0.6);
+  IF v -> 'end_place' ->> 'name' IS DISTINCT FROM 'Far Town' THEN
+    RAISE EXCEPTION 'FAIL: end_place = %, expected Far Town (22 km away)', v -> 'end_place';
+  END IF;
+END $$;
+
+RESET ROLE;
+
+-- ---------------------------------------------------------------------------
+-- ride_stats_stale_rides / ride_stats_stale_count.
+--
+-- Rider A's rides, by what makes them stale (or not):
+--   s_none      ended 3 h ago, no ride_stats row              -> stale
+--   s_current   ended 10 days ago, row at version 2            -> not stale at 2
+--   s_old       ended 5 h ago, row at version 1                -> stale at 2 only
+--   s_late      ended 6 h ago, row at 2 computed 5 h ago, track
+--               updated 1 h ago                                 -> stale (since 1 h)
+--   s_deleted   soft-deleted, no row                           -> never
+--   s_recording still recording, no row                        -> never
+--   s_excluded  ended 4 h ago, no row                          -> stale unless excluded
+-- Synthetic account:
+--   s_synth     ended 30 days ago (the oldest), no row          -> stale, but last
+-- Other rides in the database are filtered out of every assertion.
+-- ---------------------------------------------------------------------------
+SELECT
+  set_config('ri_check.user_synth', gen_random_uuid()::text, true),
+  set_config('ri_check.s_none', gen_random_uuid()::text, true),
+  set_config('ri_check.s_current', gen_random_uuid()::text, true),
+  set_config('ri_check.s_old', gen_random_uuid()::text, true),
+  set_config('ri_check.s_late', gen_random_uuid()::text, true),
+  set_config('ri_check.s_deleted', gen_random_uuid()::text, true),
+  set_config('ri_check.s_recording', gen_random_uuid()::text, true),
+  set_config('ri_check.s_excluded', gen_random_uuid()::text, true),
+  set_config('ri_check.s_synth', gen_random_uuid()::text, true);
+
+-- Counted before the stale fixture exists, so the count assertions are deltas
+-- and hold on a database with other rides.
+SET LOCAL ROLE service_role;
+SELECT
+  set_config('ri_check.count_v2_before',
+             public.ride_stats_stale_count(2::smallint, now() - interval '2 hours')::text, true),
+  set_config('ri_check.count_v1_before',
+             public.ride_stats_stale_count(1::smallint, now() - interval '2 hours')::text, true);
+RESET ROLE;
+
+INSERT INTO auth.users (id, email)
+VALUES (current_setting('ri_check.user_synth')::uuid,
+        'ri-check-synth-' || current_setting('ri_check.user_synth') || '@example.invalid');
+INSERT INTO public.users (id, email, is_synthetic)
+SELECT id, email, true FROM auth.users WHERE id = current_setting('ri_check.user_synth')::uuid;
+
+INSERT INTO public.rides (id, user_id, status, started_at, ended_at, distance_m, deleted_at, track_updated_at)
+VALUES
+  (current_setting('ri_check.s_none')::uuid, current_setting('ri_check.user_a')::uuid, 'completed',
+   now() - interval '4 hours', now() - interval '3 hours', 10000, NULL, NULL),
+  (current_setting('ri_check.s_current')::uuid, current_setting('ri_check.user_a')::uuid, 'completed',
+   now() - interval '10 days 1 hour', now() - interval '10 days', 10000, NULL, NULL),
+  (current_setting('ri_check.s_old')::uuid, current_setting('ri_check.user_a')::uuid, 'completed',
+   now() - interval '6 hours', now() - interval '5 hours', 10000, NULL, NULL),
+  (current_setting('ri_check.s_late')::uuid, current_setting('ri_check.user_a')::uuid, 'completed',
+   now() - interval '7 hours', now() - interval '6 hours', 10000, NULL, now() - interval '1 hour'),
+  (current_setting('ri_check.s_deleted')::uuid, current_setting('ri_check.user_a')::uuid, 'completed',
+   now() - interval '9 hours', now() - interval '8 hours', 10000, now() - interval '1 hour', NULL),
+  (current_setting('ri_check.s_recording')::uuid, current_setting('ri_check.user_a')::uuid, 'recording',
+   now() - interval '1 hour', NULL, NULL, NULL, NULL),
+  (current_setting('ri_check.s_excluded')::uuid, current_setting('ri_check.user_a')::uuid, 'completed',
+   now() - interval '5 hours', now() - interval '4 hours', 10000, NULL, NULL),
+  (current_setting('ri_check.s_synth')::uuid, current_setting('ri_check.user_synth')::uuid, 'completed',
+   now() - interval '30 days 1 hour', now() - interval '30 days', 10000, NULL, NULL);
+
+INSERT INTO public.ride_stats (ride_id, user_id, stats_version, computed_at, input_source, time_zone,
+                               local_date, local_start_hour, local_dow, distance_m, elapsed_s)
+VALUES
+  (current_setting('ri_check.s_current')::uuid, current_setting('ri_check.user_a')::uuid, 2,
+   now() - interval '10 days', 'none', 'UTC', current_date, 8, 1, 10000, 3600),
+  (current_setting('ri_check.s_old')::uuid, current_setting('ri_check.user_a')::uuid, 1,
+   now() - interval '5 hours', 'none', 'UTC', current_date, 8, 1, 10000, 3600),
+  (current_setting('ri_check.s_late')::uuid, current_setting('ri_check.user_a')::uuid, 2,
+   now() - interval '5 hours', 'none', 'UTC', current_date, 8, 1, 10000, 3600);
+
+SET LOCAL ROLE service_role;
+
+DO $$
+DECLARE
+  s_none CONSTANT uuid := current_setting('ri_check.s_none')::uuid;
+  s_current CONSTANT uuid := current_setting('ri_check.s_current')::uuid;
+  s_old CONSTANT uuid := current_setting('ri_check.s_old')::uuid;
+  s_late CONSTANT uuid := current_setting('ri_check.s_late')::uuid;
+  s_deleted CONSTANT uuid := current_setting('ri_check.s_deleted')::uuid;
+  s_recording CONSTANT uuid := current_setting('ri_check.s_recording')::uuid;
+  s_excluded CONSTANT uuid := current_setting('ri_check.s_excluded')::uuid;
+  s_synth CONSTANT uuid := current_setting('ri_check.s_synth')::uuid;
+  mine uuid[];
+  v_order uuid[];
+  v_synth_row record;
+  v_late_since timestamptz;
+  v_rows integer;
+  v_delta integer;
+BEGIN
+  mine := ARRAY[s_none, s_current, s_old, s_late, s_deleted, s_recording, s_excluded, s_synth];
+
+  -- 1. Version 2, s_excluded skipped: real riders oldest-first, then synthetic.
+  SELECT array_agg(t.ride_id ORDER BY t.ord) INTO v_order
+  FROM public.ride_stats_stale_rides(2::smallint, 100000, ARRAY[s_excluded]) WITH ORDINALITY t(ride_id, user_id, is_synthetic, stale_since, ord)
+  WHERE t.ride_id = ANY (mine);
+  -- s_old since 5 h, s_none since 3 h, s_late since its track update 1 h ago.
+  IF v_order IS DISTINCT FROM ARRAY[s_old, s_none, s_late, s_synth] THEN
+    RAISE EXCEPTION 'FAIL: stale rides at version 2 = %, expected [s_old, s_none, s_late, s_synth] = %',
+      v_order, ARRAY[s_old, s_none, s_late, s_synth];
+  END IF;
+
+  -- The real riders' rides come before EVERY synthetic ride, not only ours.
+  IF EXISTS (
+    WITH t AS (SELECT * FROM public.ride_stats_stale_rides(2::smallint, 100000, '{}') WITH ORDINALITY)
+    SELECT 1 FROM t a JOIN t b ON a.is_synthetic AND NOT b.is_synthetic AND a.ordinality < b.ordinality
+  ) THEN
+    RAISE EXCEPTION 'FAIL: a synthetic account''s ride comes before a real rider''s';
+  END IF;
+
+  SELECT t.* INTO v_synth_row FROM public.ride_stats_stale_rides(2::smallint, 100000, NULL) t
+  WHERE t.ride_id = s_synth;
+  IF v_synth_row.user_id IS DISTINCT FROM current_setting('ri_check.user_synth')::uuid
+     OR v_synth_row.is_synthetic IS DISTINCT FROM true THEN
+    RAISE EXCEPTION 'FAIL: synthetic ride row = %', v_synth_row;
+  END IF;
+  SELECT t.stale_since INTO v_late_since FROM public.ride_stats_stale_rides(2::smallint, 100000, NULL) t
+  WHERE t.ride_id = s_late;
+  IF v_late_since IS DISTINCT FROM now() - interval '1 hour' THEN
+    RAISE EXCEPTION 'FAIL: stale_since of the late track = %, expected its track_updated_at', v_late_since;
+  END IF;
+
+  -- 2. Without the exclusion s_excluded is stale (so the exclusion is what hid it).
+  IF NOT EXISTS (SELECT 1 FROM public.ride_stats_stale_rides(2::smallint, 100000, '{}') t
+                 WHERE t.ride_id = s_excluded) THEN
+    RAISE EXCEPTION 'FAIL: s_excluded is not stale without p_exclude';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.ride_stats_stale_rides(2::smallint, 100000, NULL) t
+                 WHERE t.ride_id = s_excluded) THEN
+    RAISE EXCEPTION 'FAIL: a NULL p_exclude hides rides';
+  END IF;
+
+  -- 3. At version 1 the version-1 row is current; the late track is still stale.
+  SELECT array_agg(t.ride_id ORDER BY t.ord) INTO v_order
+  FROM public.ride_stats_stale_rides(1::smallint, 100000, ARRAY[s_excluded]) WITH ORDINALITY t(ride_id, user_id, is_synthetic, stale_since, ord)
+  WHERE t.ride_id = ANY (mine);
+  IF v_order IS DISTINCT FROM ARRAY[s_none, s_late, s_synth] THEN
+    RAISE EXCEPTION 'FAIL: stale rides at version 1 = %, expected [s_none, s_late, s_synth]', v_order;
+  END IF;
+
+  -- 4. p_limit caps the batch.
+  SELECT count(*) INTO v_rows FROM public.ride_stats_stale_rides(2::smallint, 1, '{}');
+  IF v_rows <> 1 THEN
+    RAISE EXCEPTION 'FAIL: p_limit 1 returned % rows', v_rows;
+  END IF;
+
+  -- 5. Count, older than 2 hours: at version 2 s_old (5 h), s_none (3 h),
+  --    s_excluded (4 h) and s_synth (30 days); s_late changed 1 h ago.
+  v_delta := public.ride_stats_stale_count(2::smallint, now() - interval '2 hours')
+             - current_setting('ri_check.count_v2_before')::integer;
+  IF v_delta <> 4 THEN
+    RAISE EXCEPTION 'FAIL: stale count at version 2 grew by %, expected 4', v_delta;
+  END IF;
+  -- At version 1 s_old is current.
+  v_delta := public.ride_stats_stale_count(1::smallint, now() - interval '2 hours')
+             - current_setting('ri_check.count_v1_before')::integer;
+  IF v_delta <> 3 THEN
+    RAISE EXCEPTION 'FAIL: stale count at version 1 grew by %, expected 3', v_delta;
+  END IF;
+END $$;
+
+RESET ROLE;
+
+DO $$
+BEGIN
   RAISE NOTICE 'rider insights schema check: all assertions passed';
 END $$;
 

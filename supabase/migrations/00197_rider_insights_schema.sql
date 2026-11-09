@@ -24,6 +24,10 @@
 --     rides it purges. Those rows hold the same location detail as the raw track
 --     (stops, places, cells, route geometry), so they follow it on the same
 --     30-day schedule.
+--   * Three service-role helpers for the API's stats compute and sweep:
+--     ride_stats_places() (countries, start and end towns of a route, from the
+--     reference geodata), ride_stats_stale_rides() and ride_stats_stale_count()
+--     (rides whose ride_stats row is missing, outdated or older than their track).
 --
 -- ACCESS
 --   ride_stats, ride_tracks and the reference tables have RLS on, no policies,
@@ -32,6 +36,8 @@
 --   to anon and authenticated explicitly, so each object is revoked by name
 --   (00176, 00178). The API reads them only through service-role RPCs after its
 --   own tier check, which keeps Pro detail on the server.
+--   The three ride_stats_* helpers are SECURITY INVOKER and executable by
+--   service_role only.
 --   rides gets no column-level revoke: the API writes rides through the rider's
 --   own client and the table-wide grant would make a column revoke ineffective.
 --   The API re-validates time_zone; CHECKs constrain purpose and end_source.
@@ -56,7 +62,11 @@
 -- ROLLBACK (nothing reads these objects until the API that uses them deploys):
 --   restore 00048's body of purge_soft_deleted_rides() with CREATE OR REPLACE;
 --   DROP FUNCTION public.ride_track_points(uuid, integer),
---     public.log_ride_end_odometer(uuid, integer, text);
+--     public.log_ride_end_odometer(uuid, integer, text),
+--     public.ride_stats_places(text, double precision, double precision,
+--       double precision, double precision),
+--     public.ride_stats_stale_rides(smallint, integer, uuid[]),
+--     public.ride_stats_stale_count(smallint, timestamptz);
 --   DELETE FROM public.odometer_readings WHERE source = 'ride_end'; then restore
 --     the source CHECK without 'ride_end';
 --   DROP TABLE public.ride_stats, public.ride_tracks, public.ref_country_parts,
@@ -480,6 +490,172 @@ END $$;
 REVOKE ALL ON FUNCTION public.purge_soft_deleted_rides() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.purge_soft_deleted_rides() TO service_role;
 
+-- ============================================================
+-- 10. Stats helpers for the API (service role only)
+-- ============================================================
+-- All three are SECURITY INVOKER: only service_role may execute them, and it
+-- already reads every table they touch (it bypasses RLS), so they need no
+-- elevated rights. Each pins an empty search_path and names every object,
+-- PostGIS functions and operators included, by schema.
+
+-- Measures a route against the reference geodata for the per-ride stats.
+--   p_route: EWKT 'SRID=4326;LINESTRING(lng lat, ...)'; p_start_* / p_end_*: the
+--   ride's first and last fix.
+-- Returns
+--   { reference_ready: ref_country_parts has rows,
+--     countries: [{ iso_a2, core_m, first_at }],
+--     start_place, end_place: { name, iso_a2, admin1_code } | null }
+--   core_m: metres (geodesic) of the route inside the country's kind = 'core'
+--     parts, the country shrunk 500 m inward, so a road along a border does not
+--     count the neighbour. Every country whose core the route touches is listed;
+--     the API applies the 1 km floor.
+--   first_at: route fraction (0-1) where the route first enters that core.
+--   start_place / end_place: the nearest ref_places town within 25 km.
+-- Cost: the GiST index on ref_country_parts.geom picks the subdivided parts
+-- whose box meets the route, ST_Intersects drops the rest, and ST_Intersection
+-- runs only on those small parts. Towns: an index box of about 25 km around the
+-- point, then exact geodesic distance on the few candidates.
+CREATE FUNCTION public.ride_stats_places(
+  p_route text,
+  p_start_lat double precision,
+  p_start_lng double precision,
+  p_end_lat double precision,
+  p_end_lng double precision
+)
+RETURNS jsonb
+LANGUAGE sql
+STABLE
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+  WITH route AS (
+    SELECT public.ST_GeomFromEWKT(p_route) AS g
+  ),
+  pieces AS (
+    SELECT p.iso_a2, d.geom AS piece
+    FROM route r
+    JOIN public.ref_country_parts p
+      ON p.kind = 'core'
+     AND public.ST_Intersects(p.geom, r.g)
+    CROSS JOIN LATERAL public.ST_Dump(
+      public.ST_CollectionExtract(public.ST_Intersection(r.g, p.geom), 2)
+    ) d
+  ),
+  per_country AS (
+    SELECT
+      pc.iso_a2,
+      sum(public.ST_Length(pc.piece::public.geography)) AS core_m,
+      -- An intersection piece may come back reversed; its nearer end is the entry.
+      min(LEAST(public.ST_LineLocatePoint(r.g, public.ST_StartPoint(pc.piece)),
+                public.ST_LineLocatePoint(r.g, public.ST_EndPoint(pc.piece)))) AS first_at
+    FROM pieces pc
+    CROSS JOIN route r
+    GROUP BY pc.iso_a2
+  ),
+  ends AS (
+    SELECT e.which, public.ST_SetSRID(public.ST_MakePoint(e.lng, e.lat), 4326) AS pt, e.lat
+    FROM (VALUES ('start', p_start_lat, p_start_lng), ('end', p_end_lat, p_end_lng)) AS e (which, lat, lng)
+  ),
+  places AS (
+    SELECT
+      e.which,
+      (
+        SELECT jsonb_build_object('name', pl.name, 'iso_a2', pl.iso_a2, 'admin1_code', pl.admin1_code)
+        FROM public.ref_places pl
+        -- 0.25 degrees of latitude is 27.8 km; longitude widens with latitude.
+        WHERE pl.geom OPERATOR(public.&&) public.ST_Expand(
+                e.pt, 0.25 / GREATEST(cos(radians(e.lat)), 0.01), 0.25)
+          AND public.ST_DWithin(pl.geom::public.geography, e.pt::public.geography, 25000)
+        ORDER BY public.ST_Distance(pl.geom::public.geography, e.pt::public.geography), pl.geonameid
+        LIMIT 1
+      ) AS place
+    FROM ends e
+  )
+  SELECT jsonb_build_object(
+    'reference_ready', EXISTS (SELECT 1 FROM public.ref_country_parts),
+    'countries', COALESCE(
+      (SELECT jsonb_agg(
+                jsonb_build_object('iso_a2', c.iso_a2, 'core_m', c.core_m, 'first_at', c.first_at)
+                ORDER BY c.first_at, c.iso_a2)
+       FROM per_country c),
+      '[]'::jsonb),
+    'start_place', (SELECT pl.place FROM places pl WHERE pl.which = 'start'),
+    'end_place', (SELECT pl.place FROM places pl WHERE pl.which = 'end')
+  )
+$$;
+
+REVOKE ALL ON FUNCTION public.ride_stats_places(text, double precision, double precision,
+  double precision, double precision) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.ride_stats_places(text, double precision, double precision,
+  double precision, double precision) TO service_role;
+
+-- Rides whose stats the sweep must (re)compute: completed, not soft-deleted, not
+-- in p_exclude (the API's list of rides whose compute threw), and with no
+-- ride_stats row, a row below p_stats_version, or a track that changed after
+-- the row was computed (late waypoint upload). Real riders first, synthetic
+-- accounts last, then oldest change first. stale_since is when the ride last
+-- changed: COALESCE(track_updated_at, ended_at).
+CREATE FUNCTION public.ride_stats_stale_rides(
+  p_stats_version smallint,
+  p_limit integer,
+  p_exclude uuid[]
+)
+RETURNS TABLE (
+  ride_id uuid,
+  user_id uuid,
+  is_synthetic boolean,
+  stale_since timestamptz
+)
+LANGUAGE sql
+STABLE
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+  SELECT r.id, r.user_id, u.is_synthetic, COALESCE(r.track_updated_at, r.ended_at)
+  FROM public.rides r
+  JOIN public.users u ON u.id = r.user_id
+  LEFT JOIN public.ride_stats s ON s.ride_id = r.id
+  WHERE r.status = 'completed'
+    AND r.deleted_at IS NULL
+    AND r.id <> ALL (COALESCE(p_exclude, '{}'::uuid[]))
+    AND (s.ride_id IS NULL
+         OR s.stats_version < p_stats_version
+         OR r.track_updated_at > s.computed_at)
+  ORDER BY u.is_synthetic, COALESCE(r.track_updated_at, r.ended_at) NULLS LAST, r.id
+  LIMIT p_limit
+$$;
+
+REVOKE ALL ON FUNCTION public.ride_stats_stale_rides(smallint, integer, uuid[])
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.ride_stats_stale_rides(smallint, integer, uuid[]) TO service_role;
+
+-- How many rides are stale by the rule above (no exclusion) and last changed
+-- before p_older_than. The sweep reports a non-zero count for an hour ago.
+CREATE FUNCTION public.ride_stats_stale_count(
+  p_stats_version smallint,
+  p_older_than timestamptz
+)
+RETURNS integer
+LANGUAGE sql
+STABLE
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+  SELECT count(*)::integer
+  FROM public.rides r
+  LEFT JOIN public.ride_stats s ON s.ride_id = r.id
+  WHERE r.status = 'completed'
+    AND r.deleted_at IS NULL
+    AND (s.ride_id IS NULL
+         OR s.stats_version < p_stats_version
+         OR r.track_updated_at > s.computed_at)
+    AND COALESCE(r.track_updated_at, r.ended_at) < p_older_than
+$$;
+
+REVOKE ALL ON FUNCTION public.ride_stats_stale_count(smallint, timestamptz)
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.ride_stats_stale_count(smallint, timestamptz) TO service_role;
+
 NOTIFY pgrst, 'reload schema';
 
 COMMIT;
@@ -504,9 +680,10 @@ COMMIT;
 --   FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
 --   WHERE n.nspname = 'public'
 --     AND p.proname IN ('log_ride_end_odometer', 'ride_track_points', 'purge_soft_deleted_rides',
---                       'log_odometer_reading')
+--                       'log_odometer_reading', 'ride_stats_places', 'ride_stats_stale_rides',
+--                       'ride_stats_stale_count')
 --   ORDER BY 1;
---   -- expect exactly 4 rows:
+--   -- expect exactly 7 rows:
 --   --   log_ride_end_odometer (uuid, integer, text): prosecdef t; acl postgres=X and
 --   --     authenticated=X only (no `=X/`, anon=X or service_role=X)
 --   --   ride_track_points (uuid, integer): prosecdef f; acl postgres=X, authenticated=X,
@@ -514,6 +691,27 @@ COMMIT;
 --   --   purge_soft_deleted_rides (): prosecdef t; acl postgres=X and service_role=X only
 --   --   log_odometer_reading (uuid, integer, timestamptz): unchanged from 00181 (one row,
 --   --     no overload; authenticated=X, no anon=X)
+--   --   ride_stats_places (p_route text, p_start_lat double precision, p_start_lng double
+--   --     precision, p_end_lat double precision, p_end_lng double precision),
+--   --   ride_stats_stale_count (p_stats_version smallint, p_older_than timestamp with time zone),
+--   --   ride_stats_stale_rides (p_stats_version smallint, p_limit integer, p_exclude uuid[]):
+--   --     each prosecdef f; acl postgres=X and service_role=X only (no `=X/`, anon=X or
+--   --     authenticated=X)
+--
+--   SELECT p.proname, p.proconfig FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+--   WHERE n.nspname = 'public' AND p.proname LIKE 'ride_stats\_%'
+--   ORDER BY 1;
+--   -- expect 3 rows, each proconfig {"search_path=\"\""}
+--
+--   SELECT public.ride_stats_places('SRID=4326;LINESTRING(0 0,0.001 0.001)', 0, 0, 0.001, 0.001)
+--     ->> 'reference_ready' AS reference_ready;
+--   -- expect: false right after apply (true once the loader has filled ref_country_parts)
+--
+--   SELECT public.ride_stats_stale_count(1::smallint, now()) = (
+--     SELECT count(*) FROM public.rides
+--     WHERE status = 'completed' AND deleted_at IS NULL AND COALESCE(track_updated_at, ended_at) < now()
+--   ) AS every_finished_ride_stale;
+--   -- expect: t right after apply (ride_stats is empty, so every finished ride is stale)
 --
 --   SELECT pg_get_functiondef('public.purge_soft_deleted_rides()'::regprocedure) LIKE '%ride_stats%'
 --      AND pg_get_functiondef('public.purge_soft_deleted_rides()'::regprocedure) LIKE '%ride_tracks%'
