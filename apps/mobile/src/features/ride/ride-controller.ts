@@ -16,10 +16,11 @@ import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
 import type { Href } from 'expo-router';
-import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent, captureException } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
+import { trackRideEvent } from '../../lib/ride-analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
 import { aggregateWaypoints } from '../../utils/ride-aggregate';
@@ -221,7 +222,7 @@ async function runStartRideSession({
     variables: { input: { rideId, motorcycleId: effectiveMotorcycleId, startedAt } },
   });
 
-  trackEvent(AnalyticsEvent.RIDE_STARTED, {
+  trackRideEvent(AnalyticsEvent.RIDE_STARTED, {
     ride_id: rideId,
     has_motorcycle: !!effectiveMotorcycleId,
     motorcycle_id: effectiveMotorcycleId ?? null,
@@ -348,7 +349,7 @@ export function endRideSession(
   store.endRide();
   void stopGPSListener();
 
-  trackEvent(AnalyticsEvent.RIDE_ENDED, {
+  trackRideEvent(AnalyticsEvent.RIDE_ENDED, {
     ride_id: rideId,
     motorcycle_id: motorcycleId,
     duration_s: durationS,
@@ -482,7 +483,7 @@ export async function resumeRecoveredRide(): Promise<boolean> {
   }
   useRideStore.setState({ recordingInterrupted: false });
   if (record.phase === RIDE_PHASE.RECORDING) void armRideReminders();
-  trackEvent(AnalyticsEvent.RIDE_STARTED, {
+  trackRideEvent(AnalyticsEvent.RIDE_STARTED, {
     ride_id: record.rideId,
     has_motorcycle: !!rideMMKV.getMotorcycleId(),
     motorcycle_id: rideMMKV.getMotorcycleId() ?? null,
