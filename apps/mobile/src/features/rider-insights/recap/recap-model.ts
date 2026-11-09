@@ -112,15 +112,16 @@ export interface CostLine {
 
 export interface CostOfRiding {
   unit: MileageUnit;
-  /** The currency with the most spend this season. */
+  /** The rider's profile currency, or the first one the server lists. */
   main: CostLine;
-  /** Every other currency, most spend first. */
+  /** Every other currency, in the server's order (most spend first). */
   others: CostLine[];
 }
 
 /**
- * Fuel and service spend per km (or mile) in each currency, led by the one
- * with the most spend. Null with no rows.
+ * Fuel and service spend per km (or mile) in each currency, in the server's
+ * order: the rider's profile currency first, since amounts in different
+ * currencies are not comparable. Null with no rows.
  */
 export function costOfRiding(
   items: readonly CostItem[] | null,
@@ -128,16 +129,14 @@ export function costOfRiding(
 ): CostOfRiding | null {
   if (!items || items.length === 0) return null;
   const unit = mileageUnitLabel(system);
-  const lines = [...items]
-    .sort((a, b) => b.spend - a.spend)
-    .map((item) => {
-      const distance = metersToUnit(item.distanceM, unit);
-      return {
-        currency: item.currency,
-        perUnit: distance > 0 ? item.spend / distance : null,
-        source: item.distanceSource,
-      };
-    });
+  const lines = items.map((item) => {
+    const distance = metersToUnit(item.distanceM, unit);
+    return {
+      currency: item.currency,
+      perUnit: distance > 0 ? item.spend / distance : null,
+      source: item.distanceSource,
+    };
+  });
   return { unit, main: lines[0], others: lines.slice(1) };
 }
 

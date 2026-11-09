@@ -79,10 +79,12 @@ describe('costOfRiding', () => {
     costPerKm: 0.03,
   };
 
-  it('leads with the currency with the most spend and lists the others beneath', () => {
+  it("keeps the server's order (profile currency first), even when another currency has more spend", () => {
+    // Amounts in different currencies are not comparable, so the API leads with
+    // the rider's profile currency; the app must not re-sort by raw spend.
     const cost = costOfRiding([usd, eur], 'metric');
-    expect(cost?.main.currency).toBe('EUR');
-    expect(cost?.others.map((o) => o.currency)).toEqual(['USD']);
+    expect(cost?.main.currency).toBe('USD');
+    expect(cost?.others.map((o) => o.currency)).toEqual(['EUR']);
   });
 
   it('divides spend by distance in the rider unit: per mile for imperial riders', () => {
