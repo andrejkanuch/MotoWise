@@ -21,6 +21,7 @@ import {
   SHEET_CONTENT_STYLE,
   SHEET_CONTROL_HEIGHT,
   SHEET_PRIMARY_STATE,
+  SHEET_SCROLL_KEYBOARD_PROPS,
   SheetFooter,
   SheetTitle,
 } from '@/components/ui/sheet-form';
@@ -41,7 +42,8 @@ import { scheduleDocumentExpiryReminder } from '@/lib/notifications';
 import { documentCategoriesOptions } from '@/lib/query-options';
 import { useAuthStore } from '@/stores/auth.store';
 import { useEditorialTheme } from '@/theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { radius, SYSTEM_WEIGHT, type } from '@/theme/type';
 import { triggerImpact, triggerNotification } from '@/utils/haptics';
 import { toISODateInput } from '@/utils/trip-form-dates';
 
@@ -209,7 +211,7 @@ export default function AddDocumentScreen() {
         bottomOffset={20}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={SHEET_CONTENT_STYLE}
-        keyboardShouldPersistTaps="handled"
+        {...SHEET_SCROLL_KEYBOARD_PROPS}
         showsVerticalScrollIndicator={false}
       >
         <SheetTitle>{t('documents.addTitle', { defaultValue: 'Add a document' })}</SheetTitle>

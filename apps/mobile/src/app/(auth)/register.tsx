@@ -16,7 +16,7 @@ import { signUpConsentMetadata } from '../../lib/analytics-consent';
 import { classifyAuthError, EMAIL_AUTH_ERROR, normalizeEmail } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { supabase } from '../../lib/supabase';
-import { space } from '../../theme/type';
+import { space } from '../../theme/spacing';
 import { triggerImpact } from '../../utils/haptics';
 
 const LOGIN_ROUTE: Href = '/(auth)/login';

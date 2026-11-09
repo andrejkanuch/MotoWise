@@ -1,5 +1,6 @@
 {
   "common": {
+    "hideKeyboard": "Skryť klávesnicu",
     "appName": "MotoVault",
     "loading": "Načítava sa...",
     "error": "Chyba",
@@ -2525,7 +2526,9 @@
       "viewReceipt": "Zobraziť fotku účtenky",
       "closeReceipt": "Zavrieť",
       "save": "Uložiť",
-      "breakdownOverTotal": "Diely, práca a daň dávajú spolu {{sum}}, viac ako celková suma {{total}}. Oprav jednu z položiek, aby to sedelo, a potom ulož.",
+      "breakdownSavesTotalOnly": "Diely, práca a daň dávajú spolu {{sum}}, viac ako celková suma {{total}}. Uloží sa len celková suma — uprav ich, ak chceš rozpis zachovať.",
+      "keepTotalOnly": "Ponechať len sumu",
+      "taxIncluded": "Daň je už zahrnutá v týchto cenách, takže samostatný riadok dane sa znova nepripočíta.",
       "checkAmount": "Skontroluj sumu",
       "checkCurrency": "Skontroluj menu",
       "checkDate": "Skontroluj dátum",

@@ -33,7 +33,7 @@ import { hasGraphQLCode } from '@/lib/graphql-errors';
 import { MetaAnalytics } from '@/lib/meta-analytics';
 import { isNetworkError } from '@/lib/network-error';
 import { useDiagnosticFlowStore } from '@/stores/diagnostic-flow.store';
-import { space } from '@/theme/type';
+import { space } from '@/theme/spacing';
 
 const TOTAL_STEPS = 4;
 const HEADER_BUTTON_SIZE = 44;

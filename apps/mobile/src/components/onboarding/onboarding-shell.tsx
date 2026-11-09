@@ -18,7 +18,8 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { OnboardingRoute } from '../../config/onboarding';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
-import { GUTTER, radius, space, type } from '../../theme/type';
+import { GUTTER, space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { useOnboardingColors } from './onboarding-colors';
 import { FOOTER_MAX_FONT_SCALE, OnboardingContinueButton } from './onboarding-continue-button';
 

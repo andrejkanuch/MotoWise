@@ -8,8 +8,9 @@ import { SAVE_UNDO_TTL_MS } from './scan-flow-constants';
  * odometer). After it succeeds we dismiss the scan modal, so the post-save
  * "Saved — Undo" snackbar can no longer live in the flow. This MMKV store is the
  * durable record of the just-saved scan: the global snackbar host reads it to
- * pop the toast, and the entry SURVIVES the toast's timeout so the rider can
- * still undo afterwards (the home priority card in U8 consumes the same store).
+ * pop the toast, and the entry survives a remount between the save and the
+ * toast. The home recovery card does NOT read it — home shows only scans
+ * parked for review, never a receipt that is already saved.
  *
  * The server owns the actual rollback (`undoReceiptScanSave`); this store only
  * remembers WHAT to offer undo for and the metadata needed to invalidate caches.
@@ -47,7 +48,7 @@ function readEntries(): ReceiptSaveUndoEntry[] {
   const raw = undoStorage.getString(RECEIPT_SAVE_UNDO_KEY);
   if (!raw) return [];
   // Tolerate malformed / obsolete JSON: a corrupt value must not crash the
-  // snackbar host or home card. Treat unreadable data as empty and reset it.
+  // snackbar host. Treat unreadable data as empty and reset it.
   try {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) {
@@ -93,7 +94,7 @@ export function getLatestReceiptSaveUndo(): ReceiptSaveUndoEntry | null {
 }
 
 /**
- * Reactive latest undo entry for the global snackbar host (and U8's home card).
+ * Reactive latest undo entry for the global snackbar host.
  * Re-renders whenever the store changes from this or any other screen.
  */
 export function useLatestReceiptSaveUndo(): ReceiptSaveUndoEntry | null {

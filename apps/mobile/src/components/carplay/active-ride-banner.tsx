@@ -7,7 +7,8 @@
 import { ChevronUp } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
 import { PulseDot, StaticDot } from './primitives';
 import { type RideStateKey, stateTint, stateWord } from './state-indicator';
 

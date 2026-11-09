@@ -17,7 +17,8 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerImpact, triggerSelection } from '../../utils/haptics';
 import { NativeToggle } from './native-toggle';
 

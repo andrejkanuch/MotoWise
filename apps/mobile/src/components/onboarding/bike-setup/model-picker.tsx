@@ -4,7 +4,8 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { radius, space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { radius, type } from '@/theme/type';
 import { useOnboardingColors } from '../onboarding-colors';
 import { PickerGroup, PickerLabel, PickerRow, PickerSearchField } from './picker-ui';
 

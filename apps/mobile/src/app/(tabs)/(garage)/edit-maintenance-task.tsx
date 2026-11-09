@@ -19,6 +19,7 @@ import {
   SHEET_CONTENT_STYLE,
   SHEET_CONTROL_HEIGHT,
   SHEET_PRIMARY_STATE,
+  SHEET_SCROLL_KEYBOARD_PROPS,
   SheetFooter,
   SheetTitle,
 } from '@/components/ui/sheet-form';
@@ -31,7 +32,8 @@ import { cancelTaskNotification, scheduleMaintenanceReminder } from '@/lib/notif
 import { queryKeys } from '@/lib/query-keys';
 import { maintenanceTasksOptions } from '@/lib/query-options';
 import { useEditorialTheme } from '@/theme/editorial';
-import { space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
 import { buildTaskUpdateInput, resolveReminderAction } from '@/utils/maintenance-task-form';
 import { toISODateInput } from '@/utils/trip-form-dates';
@@ -166,8 +168,7 @@ export default function EditMaintenanceTaskScreen() {
         bottomOffset={20}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={SHEET_CONTENT_STYLE}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
+        {...SHEET_SCROLL_KEYBOARD_PROPS}
         showsVerticalScrollIndicator={false}
       >
         <SheetTitle>{t('maintenance.editTaskTitle')}</SheetTitle>

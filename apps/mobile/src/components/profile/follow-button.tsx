@@ -9,7 +9,8 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 interface FollowButtonProps {

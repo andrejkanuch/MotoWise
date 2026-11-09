@@ -9,7 +9,8 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet-form';
 import { useEditorialTheme } from '@/theme/editorial';
-import { space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { type } from '@/theme/type';
 import { initialContactEmailField, isRelayEmail, parseContactEmailField } from './contact-email';
 
 const SHEET_ERROR = {

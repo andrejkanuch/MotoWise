@@ -8,7 +8,8 @@ import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
 import { formatDistance } from '../../utils/ride-formatters';
 
 type TripNode = TripTemplatesQuery['tripTemplates']['edges'][number]['node'];

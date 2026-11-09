@@ -1,5 +1,6 @@
 {
   "common": {
+    "hideKeyboard": "キーボードを閉じる",
     "appName": "MotoVault",
     "loading": "読み込み中...",
     "error": "エラー",
@@ -2463,7 +2464,9 @@
       "viewReceipt": "レシート写真を表示",
       "closeReceipt": "閉じる",
       "save": "保存",
-      "breakdownOverTotal": "部品・工賃・税の合計が {{sum}} で、合計額 {{total}} を超えています。保存するには、どれかを修正して合計に収めてください。",
+      "breakdownSavesTotalOnly": "部品・工賃・税の合計が{{sum}}で、合計{{total}}を超えています。合計のみ保存されます。内訳を残すには金額を調整してください。",
+      "keepTotalOnly": "合計のみ保存",
+      "taxIncluded": "税はすでにこれらの価格に含まれているため、税の行は二重に加算されません。",
       "checkAmount": "金額を確認",
       "checkCurrency": "通貨を確認",
       "checkDate": "日付を確認",

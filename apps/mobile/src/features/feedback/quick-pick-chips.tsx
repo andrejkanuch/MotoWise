@@ -2,7 +2,8 @@ import { FEEDBACK_QUICK_PICK, type FeedbackQuickPick } from '@motovault/types';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { useEditorialTheme } from '@/theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { radius, SYSTEM_WEIGHT, type } from '@/theme/type';
 import { triggerSelection } from '@/utils/haptics';
 
 const MIN_TOUCH_TARGET = process.env.EXPO_OS === 'android' ? 48 : 44;

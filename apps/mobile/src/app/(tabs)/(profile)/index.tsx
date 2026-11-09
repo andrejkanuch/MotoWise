@@ -43,13 +43,14 @@ import {
 import { PROFILE_ROUTE } from '@/config/routes';
 import { useProGate } from '@/hooks/use-pro-gate';
 import { useProfileData } from '@/hooks/use-profile-data';
+import { useTabBarClearance } from '@/hooks/use-tab-bar-clearance';
 import { openStoreReviewPage, REVIEW_STORE_SURFACE } from '@/lib/store-review';
 import { CODE_REDEMPTION_SURFACE, presentCodeRedemption, presentPaywall } from '@/lib/subscription';
 import { useEditorialTheme } from '@/theme/editorial';
-import { GUTTER, readableWidth, space } from '@/theme/type';
+import { GUTTER, space } from '@/theme/spacing';
+import { readableWidth } from '@/theme/type';
 
 const IS_IOS = process.env.EXPO_OS === 'ios';
-const TAB_BAR_CLEARANCE = 120;
 
 /** One labelled inset group; staggered in once on mount. */
 function Section({
@@ -78,6 +79,7 @@ export default function ProfileScreen() {
   const { t } = useTranslation();
   const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
+  const tabBarClearance = useTabBarClearance();
   const { isPro } = useProGate();
 
   const { user, handleLogout, handleDeleteAccount, isDeleting } = useProfileData({ t, isPro });
@@ -91,7 +93,7 @@ export default function ProfileScreen() {
         ...readableWidth,
         paddingTop: insets.top + space.md,
         paddingHorizontal: GUTTER,
-        paddingBottom: TAB_BAR_CLEARANCE,
+        paddingBottom: tabBarClearance,
         gap: space.xl,
       }}
       showsVerticalScrollIndicator={false}

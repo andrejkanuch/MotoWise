@@ -2,7 +2,8 @@ import * as Haptics from 'expo-haptics';
 import { ArrowRight } from 'lucide-react-native';
 import { Pressable, Text } from 'react-native';
 import { tint } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerNotification } from '../../utils/haptics';
 import { useOnboardingColors } from './onboarding-colors';
 

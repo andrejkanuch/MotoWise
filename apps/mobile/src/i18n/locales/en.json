@@ -1,5 +1,6 @@
 {
   "common": {
+    "hideKeyboard": "Hide keyboard",
     "appName": "MotoVault",
     "loading": "Loading...",
     "error": "Error",
@@ -2463,7 +2464,9 @@
       "viewReceipt": "View receipt photo",
       "closeReceipt": "Close",
       "save": "Save",
-      "breakdownOverTotal": "Parts, labor and tax add up to {{sum}}, more than the {{total}} total. Correct one so they fit to save.",
+      "breakdownSavesTotalOnly": "Parts, labor and tax add up to {{sum}}, more than the {{total}} total. It will save the total only — adjust them to keep the split.",
+      "keepTotalOnly": "Keep total only",
+      "taxIncluded": "Tax is already in these prices, so the separate tax line won’t be added again.",
       "checkAmount": "Check amount",
       "checkCurrency": "Check currency",
       "checkDate": "Check date",

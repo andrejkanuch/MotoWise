@@ -28,7 +28,8 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { invalidateMaintenanceTasks } from '@/lib/invalidate';
 import { QUERY_META } from '@/lib/query-meta';
 import { maintenanceTasksOptions, motorcyclesOptions } from '@/lib/query-options';
-import { GUTTER, readableWidth, space, type } from '@/theme/type';
+import { GUTTER, space } from '@/theme/spacing';
+import { readableWidth, type } from '@/theme/type';
 import { triggerImpact, triggerNotification } from '@/utils/haptics';
 
 const NO_TASKS: HubTask[] = [];

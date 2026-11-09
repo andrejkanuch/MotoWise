@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useEditorialTheme } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { distanceUnitLabel } from '../../utils/ride-formatters';
 
 interface FocusStatsProps {

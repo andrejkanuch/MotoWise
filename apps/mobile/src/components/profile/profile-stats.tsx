@@ -4,7 +4,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 function formatCompact(n: number): string {

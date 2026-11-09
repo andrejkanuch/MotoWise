@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { formatMoney } from '../../lib/expense-constants';
 import { useEditorialTheme } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 
 interface SummaryCardsProps {
   avgPerMonth: number;

@@ -2,7 +2,8 @@ import { Check, type LucideIcon } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { tint } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 import { useOnboardingColors } from './onboarding-colors';
 

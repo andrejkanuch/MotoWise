@@ -50,7 +50,8 @@ import { markWhatsNewSeenForNewRider } from '../../lib/whats-new';
 import { useAuthStore } from '../../stores/auth.store';
 import { useChecklistStore } from '../../stores/checklist.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 
 // Onboarding still captures mileage with a per-bike mi/km toggle, but the app now
 // derives the display unit from the global users.measurement_system

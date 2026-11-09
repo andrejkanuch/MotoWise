@@ -8,7 +8,8 @@ import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 import type { MapStyle } from '../../utils/map-styles';
 

@@ -1,5 +1,6 @@
 {
   "common": {
+    "hideKeyboard": "Masquer le clavier",
     "appName": "MotoVault",
     "loading": "Chargement…",
     "error": "Erreur",
@@ -2492,7 +2493,9 @@
       "viewReceipt": "Voir la photo du reçu",
       "closeReceipt": "Fermer",
       "save": "Enregistrer",
-      "breakdownOverTotal": "Pièces, main-d'œuvre et taxes font {{sum}}, plus que le total de {{total}}. Corrige un montant pour pouvoir enregistrer.",
+      "breakdownSavesTotalOnly": "Pièces, main-d’œuvre et taxe font {{sum}}, plus que le total de {{total}}. Seul le total sera enregistré — ajustez-les pour garder le détail.",
+      "keepTotalOnly": "Garder le total seul",
+      "taxIncluded": "La taxe est déjà incluse dans ces prix : la ligne de taxe ne sera pas ajoutée une seconde fois.",
       "checkAmount": "Vérifier le montant",
       "checkCurrency": "Vérifier la devise",
       "checkDate": "Vérifier la date",

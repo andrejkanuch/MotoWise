@@ -2,7 +2,8 @@ import { AlertTriangle } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { useEditorialTheme } from '../theme/editorial';
-import { radius, space, type } from '../theme/type';
+import { space } from '../theme/spacing';
+import { radius, type } from '../theme/type';
 
 type ErrorFallbackProps = {
   error: unknown;

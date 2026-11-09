@@ -17,7 +17,8 @@ import { SCAN_ENTRY_SURFACE } from '@/features/receipt-scan/scan-flow-constants'
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { CATEGORY_COLORS } from '@/lib/expense-constants';
 import { useEditorialTheme } from '@/theme/editorial';
-import { space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
 
 /**

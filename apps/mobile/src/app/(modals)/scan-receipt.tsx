@@ -153,7 +153,7 @@ function ScanFlowHost({ initialBikeId, isOnboarding, initialResume, surface }: S
     quota.isPro || isOnboarding || !Number.isFinite(quota.remaining)
       ? null
       : Math.max(0, quota.remaining - 1);
-  const { save } = useReceiptScanSave({
+  const { save, saving } = useReceiptScanSave({
     bikeName: flow.bikeName,
     freeScansLeft,
     scanStartedAt: flow.scanStartedAt,
@@ -199,6 +199,7 @@ function ScanFlowHost({ initialBikeId, isOnboarding, initialResume, surface }: S
       onManualEntry={enterManually}
       onClose={() => router.back()}
       onSave={onSave}
+      saving={saving}
     />
   );
 }

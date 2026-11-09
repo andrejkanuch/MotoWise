@@ -33,7 +33,8 @@ import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { resolveMakeFromIntent } from '../../lib/pending-intent';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { isValidMakeName } from '../../utils/bike-make';
 import { triggerImpact } from '../../utils/haptics';
 

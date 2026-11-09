@@ -48,6 +48,7 @@ Do not move an existing domain.
 
 ## UI rules
 - Colours come from `palette` in @motovault/design-system — no hardcoded hex or rgba (`pnpm check:mobile-colors`)
+- Spacing comes from `src/theme/spacing.ts` (`layout.*`, `space.*`), never raw numbers (`pnpm check:mobile-spacing`). Under the tab bar: `useTabBarClearance()`
 - react-native-reanimated v4 for animations, never the RN Animated API. Enter with FadeIn/FadeInUp/SlideInUp; stagger lists with `FadeInUp.delay(index * 50)`; keep animations under 300ms
 - Haptics on iOS for interactive feedback, through `src/utils/haptics.ts` (`triggerImpact`, `triggerNotification`, `triggerSelection`)
 - `borderCurve: 'continuous'` on all rounded elements. Inline styles, not StyleSheet.create, unless reused across components

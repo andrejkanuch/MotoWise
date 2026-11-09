@@ -33,7 +33,8 @@ import { exportDiagnosticReport } from '@/lib/pdf-export';
 import { queryKeys } from '@/lib/query-keys';
 import { motorcyclesOptions } from '@/lib/query-options';
 import { tint, useEditorialTheme } from '@/theme/editorial';
-import { GUTTER, radius, space, type } from '@/theme/type';
+import { GUTTER, space } from '@/theme/spacing';
+import { radius, type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
 
 const DIFFICULTY_LABEL_KEY = {

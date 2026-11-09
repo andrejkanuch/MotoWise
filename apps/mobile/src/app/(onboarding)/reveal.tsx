@@ -20,7 +20,8 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { getRevealRiderCount } from '../../utils/onboarding-reveal';
 
 type RevealData = GetOnboardingRevealQuery['onboardingReveal'];

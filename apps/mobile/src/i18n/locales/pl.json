@@ -1,5 +1,6 @@
 {
   "common": {
+    "hideKeyboard": "Ukryj klawiaturę",
     "appName": "MotoVault",
     "loading": "Ładowanie...",
     "error": "Blad",
@@ -2525,7 +2526,9 @@
       "viewReceipt": "Zobacz zdjęcie paragonu",
       "closeReceipt": "Zamknij",
       "save": "Zapisz",
-      "breakdownOverTotal": "Części, robocizna i podatek dają razem {{sum}}, więcej niż suma {{total}}. Popraw jedną z kwot, żeby się zgadzało, i zapisz.",
+      "breakdownSavesTotalOnly": "Części, robocizna i podatek dają {{sum}}, więcej niż suma {{total}}. Zapisana zostanie tylko suma — popraw je, aby zachować podział.",
+      "keepTotalOnly": "Zostaw tylko sumę",
+      "taxIncluded": "Podatek jest już wliczony w te ceny, więc osobna linia podatku nie zostanie dodana ponownie.",
       "checkAmount": "Sprawdź kwotę",
       "checkCurrency": "Sprawdź walutę",
       "checkDate": "Sprawdź datę",

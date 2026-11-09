@@ -16,7 +16,8 @@ import { tDynamic } from '../../i18n/t-dynamic';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { type } from '../../theme/type';
 import { triggerNotification } from '../../utils/haptics';
 
 /** Pause after a pick before auto-advancing, so the affirmation registers. */

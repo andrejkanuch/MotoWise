@@ -25,7 +25,8 @@ import { tDynamic } from '../../i18n/t-dynamic';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 
 /**
  * Onboarding "snap a receipt" step (U8 — activation Goal 7 / G6).

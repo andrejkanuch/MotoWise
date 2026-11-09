@@ -43,6 +43,7 @@ import {
   SHEET_CONTENT_STYLE,
   SHEET_CONTROL_HEIGHT,
   SHEET_PRIMARY_STATE,
+  SHEET_SCROLL_KEYBOARD_PROPS,
   SheetFooter,
   SheetTitle,
 } from '@/components/ui/sheet-form';
@@ -57,7 +58,8 @@ import { queryKeys } from '@/lib/query-keys';
 import { motorcyclesOptions } from '@/lib/query-options';
 import { useAuthStore } from '@/stores/auth.store';
 import { tint, useEditorialTheme } from '@/theme/editorial';
-import { radius, space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { radius, type } from '@/theme/type';
 import { showActionSheet } from '@/utils/action-sheet';
 import { triggerImpact, triggerNotification } from '@/utils/haptics';
 
@@ -595,8 +597,7 @@ export default function EditBikeScreen() {
         bottomOffset={20}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={SHEET_CONTENT_STYLE}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
+        {...SHEET_SCROLL_KEYBOARD_PROPS}
         showsVerticalScrollIndicator={false}
       >
         <SheetTitle>{t('garage.editBike', { defaultValue: 'Edit Motorcycle' })}</SheetTitle>

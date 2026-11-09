@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { MAKE_COLORS, POPULAR_MAKES } from '@/config/brand-dna';
-import { space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { type } from '@/theme/type';
 import { useOnboardingColors } from '../onboarding-colors';
 import { MakeBadge, PickerGroup, PickerLabel, PickerRow, PickerSearchField } from './picker-ui';
 

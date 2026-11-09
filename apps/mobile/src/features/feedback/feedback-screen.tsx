@@ -9,16 +9,16 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ESectionFooter, ESectionLabel, ESettingsGroup } from '@/components/ui/editorial';
 import { useHydratedFormState } from '@/hooks/use-hydrated-form-state';
+import { useTabBarClearance } from '@/hooks/use-tab-bar-clearance';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { GRAPHQL_ERROR_CODE } from '@/lib/graphql-error-classification';
 import { hasGraphQLCode } from '@/lib/graphql-errors';
 import { meOptions } from '@/lib/query-options';
-import { tabBarBottomOffset, useTabBarStore } from '@/stores/tab-bar.store';
 import { useEditorialTheme } from '@/theme/editorial';
-import { GUTTER, radius, readableWidth, SYSTEM_WEIGHT, space, type } from '@/theme/type';
+import { GUTTER, space } from '@/theme/spacing';
+import { radius, readableWidth, SYSTEM_WEIGHT, type } from '@/theme/type';
 import { triggerImpact, triggerNotification } from '@/utils/haptics';
 import { ContactCheckbox } from './contact-checkbox';
 import {
@@ -31,8 +31,6 @@ import { currentAppVersion, DEVICE_PLATFORM_LABEL, devicePlatform } from './feed
 import { QuickPickChips } from './quick-pick-chips';
 import { useSendFeedback } from './use-send-feedback';
 
-/** Room for the floating tab bar when its height is not measured yet. */
-const TAB_BAR_FALLBACK_HEIGHT = 64;
 const MESSAGE_MIN_HEIGHT = 140;
 
 const SEND_ERROR = {
@@ -54,8 +52,7 @@ const SEND_ERROR_KEY = {
 export function FeedbackScreen() {
   const { t } = useTranslation();
   const { t: theme } = useEditorialTheme();
-  const insets = useSafeAreaInsets();
-  const tabBarHeight = useTabBarStore((s) => s.height) ?? TAB_BAR_FALLBACK_HEIGHT;
+  const bottomClearance = useTabBarClearance(space.lg);
 
   const meQuery = useQuery(meOptions());
   const me = meQuery.data?.me;
@@ -126,8 +123,6 @@ export function FeedbackScreen() {
       },
     );
   };
-
-  const bottomClearance = tabBarBottomOffset(insets.bottom) + tabBarHeight + space.lg;
 
   if (sent) {
     return <FeedbackSent bottomClearance={bottomClearance} />;

@@ -1,0 +1,324 @@
+// The save hook's `saving` flag locks the review card (Save, Review later and
+// Done). These tests pin that it is always released — after a save, a cancelled
+// duplicate warning, a failed save — and that a duplicate lookup that never
+// answers (offline) cannot hold the lock past its deadline.
+
+const mockGqlFetcher = jest.fn();
+const mockFetchQuery = jest.fn();
+jest.mock('@/lib/graphql-client', () => ({
+  gqlFetcher: (...args: unknown[]) => mockGqlFetcher(...args),
+}));
+const mockCancelQueries = jest.fn();
+let mockObserverCount = 0;
+jest.mock('@/lib/query-client', () => ({
+  queryClient: {
+    fetchQuery: (...args: unknown[]) => mockFetchQuery(...args),
+    invalidateQueries: jest.fn(),
+    cancelQueries: (...args: unknown[]) => mockCancelQueries(...args),
+    getQueryCache: () => ({ find: () => ({ getObserversCount: () => mockObserverCount }) }),
+  },
+}));
+jest.mock('@/lib/query-options', () => ({
+  EXPENSES_ALL_YEARS: 0,
+  expensesOptions: () => ({ queryKey: ['expenses'] }),
+}));
+jest.mock('@/lib/analytics', () => ({
+  AnalyticsEvent: {},
+  captureException: jest.fn(),
+  trackEvent: jest.fn(),
+}));
+jest.mock('@/lib/core-action-milestones', () => ({
+  CORE_ACTION_KIND: {},
+  recordCoreAction: jest.fn(),
+}));
+jest.mock('@/lib/expense-analytics', () => ({
+  EXPENSE_ENTRY_SOURCE: {},
+  trackExpenseAdded: jest.fn(),
+}));
+jest.mock('@/lib/store-review', () => ({
+  REVIEW_ACTION: {},
+  recordReviewAction: jest.fn(),
+}));
+jest.mock('@/lib/invalidate', () => ({ invalidateMaintenanceTasks: jest.fn() }));
+jest.mock('@/utils/haptics', () => ({ triggerNotification: jest.fn() }));
+jest.mock('../durable-receipt-photo', () => ({ deleteDurablePhoto: jest.fn() }));
+jest.mock('../parked-scan-store', () => ({ unparkScan: jest.fn() }));
+jest.mock('../receipt-scan-undo-store', () => ({
+  clearReceiptSaveUndo: jest.fn(),
+  pushReceiptSaveUndo: jest.fn(),
+}));
+jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+
+import {
+  MutationCache,
+  onlineManager,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
+import { act, renderHook } from '@testing-library/react-native';
+import type { ReactNode } from 'react';
+import { Alert, type AlertButton } from 'react-native';
+import { QUERY_META } from '@/lib/query-meta';
+import {
+  RECEIPT_REVIEW_TYPE,
+  type ReceiptReviewHandoff,
+  type ReceiptReviewPayload,
+} from '../scan-flow-constants';
+import { DUPLICATE_CHECK_TIMEOUT_MS, useReceiptScanSave } from '../use-receipt-scan-save';
+
+const HANDOFF = { scanId: 'scan-1' } as ReceiptReviewHandoff;
+const PAYLOAD: ReceiptReviewPayload = {
+  motorcycleId: 'bike-1',
+  type: RECEIPT_REVIEW_TYPE.EXPENSE,
+  amount: 42,
+  currency: 'EUR',
+  date: '2026-11-01',
+  vendor: 'Shop',
+  itemName: null,
+  category: 'parts',
+  partsCost: null,
+  laborCost: null,
+  taxAmount: null,
+  taxRate: null,
+  lineItems: [],
+  reminderServiceTypes: [],
+  applyOdometer: false,
+  odometerValue: null,
+  odometerUnit: null,
+};
+const SAVED = {
+  saveReceiptScan: {
+    __typename: 'SaveReceiptScanSuccess',
+    refs: { recordType: RECEIPT_REVIEW_TYPE.EXPENSE, odometer: null },
+  },
+};
+/** An expense list holding one entry that matches PAYLOAD (a likely duplicate). */
+const DUPLICATE_LIST = {
+  expenses: {
+    categories: [{ expenses: [{ amount: 42, date: '2026-11-01', description: 'Shop' }] }],
+  },
+};
+const EMPTY_LIST = { expenses: { categories: [] } };
+
+/** A promise the test settles by hand, to hold the hook mid-save. */
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (error: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
+/** Flush pending promise callbacks inside act(). */
+const flush = () => act(async () => {});
+
+/** Stands in for the app-wide mutation error handler (`lib/query-client.ts`). */
+const mockGlobalMutationError = jest.fn();
+
+async function renderSave() {
+  // The app's own defaults, so a mutation option the hook forgets to set
+  // behaves here as it would in the app (offline pause included).
+  const client = new QueryClient({
+    defaultOptions: { mutations: { retry: 1, networkMode: 'offlineFirst' } },
+    mutationCache: new MutationCache({
+      onError: (_error, _vars, _ctx, mutation) => mockGlobalMutationError(mutation.meta),
+    }),
+  });
+  const onSaved = jest.fn();
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  );
+  const hook = await renderHook(
+    () =>
+      useReceiptScanSave({ bikeName: 'Bike', freeScansLeft: null, scanStartedAt: null, onSaved }),
+    { wrapper },
+  );
+  return { ...hook, onSaved };
+}
+
+/** Press the duplicate Alert's button with the given translation key. */
+function pressDuplicateButton(alertSpy: jest.SpyInstance, textKey: string) {
+  const buttons = alertSpy.mock.calls[0][2] as AlertButton[];
+  const button = buttons.find((b) => b.text === textKey);
+  button?.onPress?.();
+}
+
+let alertSpy: jest.SpyInstance;
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockObserverCount = 0;
+  alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+});
+afterEach(() => {
+  jest.useRealTimers();
+  onlineManager.setOnline(true);
+});
+
+describe('useReceiptScanSave saving state', () => {
+  it('is on for the duplicate lookup and the save, then off once saved', async () => {
+    const lookup = deferred<typeof EMPTY_LIST>();
+    mockFetchQuery.mockReturnValue(lookup.promise);
+    mockGqlFetcher.mockResolvedValue(SAVED);
+    const { result, onSaved } = await renderSave();
+
+    let saveDone!: Promise<void>;
+    await act(async () => {
+      saveDone = result.current.save(HANDOFF, PAYLOAD);
+    });
+    expect(result.current.saving).toBe(true);
+
+    await act(async () => {
+      lookup.resolve(EMPTY_LIST);
+      await saveDone;
+    });
+    expect(onSaved).toHaveBeenCalledTimes(1);
+    expect(result.current.saving).toBe(false);
+  });
+
+  it('runs the duplicate lookup once and never paused, so offline cannot stall it', async () => {
+    mockFetchQuery.mockResolvedValue(EMPTY_LIST);
+    mockGqlFetcher.mockResolvedValue(SAVED);
+    const { result } = await renderSave();
+    await act(async () => {
+      await result.current.save(HANDOFF, PAYLOAD);
+    });
+    expect(mockFetchQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        retry: false,
+        networkMode: 'always',
+        // Never a global "Error" alert for this convenience lookup.
+        meta: QUERY_META.DECORATION,
+      }),
+    );
+  });
+
+  it('gives up on a duplicate lookup that never answers and saves anyway', async () => {
+    jest.useFakeTimers();
+    mockFetchQuery.mockReturnValue(new Promise(() => {})); // offline: never settles
+    mockGqlFetcher.mockResolvedValue(SAVED);
+    const { result, onSaved } = await renderSave();
+
+    await act(async () => {
+      void result.current.save(HANDOFF, PAYLOAD);
+    });
+    expect(result.current.saving).toBe(true);
+
+    await act(async () => {
+      jest.advanceTimersByTime(DUPLICATE_CHECK_TIMEOUT_MS);
+    });
+    await flush();
+    expect(mockGqlFetcher).toHaveBeenCalledTimes(1);
+    expect(onSaved).toHaveBeenCalledTimes(1);
+    expect(result.current.saving).toBe(false);
+    // The abandoned lookup is cancelled: no screen is watching that key.
+    expect(mockCancelQueries).toHaveBeenCalledWith(expect.objectContaining({ exact: true }));
+  });
+
+  it('leaves a timed-out lookup running when an open screen is watching the same key', async () => {
+    jest.useFakeTimers();
+    mockObserverCount = 1;
+    mockFetchQuery.mockReturnValue(new Promise(() => {}));
+    mockGqlFetcher.mockResolvedValue(SAVED);
+    const { result } = await renderSave();
+
+    await act(async () => {
+      void result.current.save(HANDOFF, PAYLOAD);
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(DUPLICATE_CHECK_TIMEOUT_MS);
+    });
+    await flush();
+    expect(mockCancelQueries).not.toHaveBeenCalled();
+  });
+
+  it('is off while the duplicate warning is open, on again after confirming', async () => {
+    mockFetchQuery.mockResolvedValue(DUPLICATE_LIST);
+    const mutation = deferred<typeof SAVED>();
+    mockGqlFetcher.mockReturnValue(mutation.promise);
+    const { result, onSaved } = await renderSave();
+
+    let saveDone!: Promise<void>;
+    await act(async () => {
+      saveDone = result.current.save(HANDOFF, PAYLOAD);
+    });
+    await flush();
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(result.current.saving).toBe(false);
+
+    await act(async () => {
+      pressDuplicateButton(alertSpy, 'receiptScan.saved.duplicateConfirm');
+    });
+    await flush();
+    expect(result.current.saving).toBe(true);
+
+    await act(async () => {
+      mutation.resolve(SAVED);
+      await saveDone;
+    });
+    expect(onSaved).toHaveBeenCalledTimes(1);
+    expect(result.current.saving).toBe(false);
+  });
+
+  it('is off and saves nothing when the duplicate warning is cancelled', async () => {
+    mockFetchQuery.mockResolvedValue(DUPLICATE_LIST);
+    const { result, onSaved } = await renderSave();
+
+    let saveDone!: Promise<void>;
+    await act(async () => {
+      saveDone = result.current.save(HANDOFF, PAYLOAD);
+    });
+    await flush();
+    await act(async () => {
+      pressDuplicateButton(alertSpy, 'receiptScan.saved.duplicateCancel');
+      await saveDone;
+    });
+    expect(mockGqlFetcher).not.toHaveBeenCalled();
+    expect(onSaved).not.toHaveBeenCalled();
+    expect(result.current.saving).toBe(false);
+  });
+
+  it('is off after a failed save, with the error shown and the card kept open', async () => {
+    mockFetchQuery.mockResolvedValue(EMPTY_LIST);
+    mockGqlFetcher.mockRejectedValue(new Error('Network request failed'));
+    const { result, onSaved } = await renderSave();
+
+    await act(async () => {
+      await result.current.save(HANDOFF, PAYLOAD);
+    });
+    expect(alertSpy).toHaveBeenCalledWith(
+      'receiptScan.saved.saveFailed',
+      'receiptScan.saved.saveFailedBody',
+    );
+    expect(onSaved).not.toHaveBeenCalled();
+    expect(result.current.saving).toBe(false);
+  });
+
+  it('fails an offline save at once instead of waiting for the network', async () => {
+    onlineManager.setOnline(false);
+    mockFetchQuery.mockResolvedValue(EMPTY_LIST);
+    mockGqlFetcher.mockRejectedValue(new Error('Network request failed'));
+    const { result, onSaved } = await renderSave();
+
+    await act(async () => {
+      await result.current.save(HANDOFF, PAYLOAD);
+    });
+    expect(onSaved).not.toHaveBeenCalled();
+    expect(result.current.saving).toBe(false);
+  });
+
+  it('tells the global error handler to stay quiet, leaving the hook its one alert', async () => {
+    mockFetchQuery.mockResolvedValue(EMPTY_LIST);
+    mockGqlFetcher.mockRejectedValue(new Error('Internal server error'));
+    const { result } = await renderSave();
+
+    await act(async () => {
+      await result.current.save(HANDOFF, PAYLOAD);
+    });
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(mockGlobalMutationError).toHaveBeenCalledWith(
+      expect.objectContaining({ showErrorAlert: false, skipSentryCapture: true }),
+    );
+  });
+});

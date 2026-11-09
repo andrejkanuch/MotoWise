@@ -33,7 +33,8 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
 import { motorcyclesOptions } from '@/lib/query-options';
 import { useEditorialTheme } from '@/theme/editorial';
-import { GUTTER, radius, readableWidth, space, type } from '@/theme/type';
+import { GUTTER, space } from '@/theme/spacing';
+import { radius, readableWidth, type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
 
 type Diagnostic = MyDiagnosticsQuery['myDiagnostics'][number];

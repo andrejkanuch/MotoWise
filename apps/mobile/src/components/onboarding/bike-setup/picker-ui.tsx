@@ -2,7 +2,8 @@ import { Check, ChevronRight, Search } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { Children, Fragment } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
-import { radius, space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { radius, type } from '@/theme/type';
 import { useOnboardingColors } from '../onboarding-colors';
 
 /**

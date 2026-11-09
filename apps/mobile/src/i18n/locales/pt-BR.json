@@ -1,5 +1,6 @@
 {
   "common": {
+    "hideKeyboard": "Ocultar teclado",
     "appName": "MotoVault",
     "loading": "Carregando...",
     "error": "Erro",
@@ -2492,7 +2493,9 @@
       "viewReceipt": "Ver foto do recibo",
       "closeReceipt": "Fechar",
       "save": "Salvar",
-      "breakdownOverTotal": "Peças, mão de obra e imposto somam {{sum}}, mais que o total de {{total}}. Corrija um dos valores para poder salvar.",
+      "breakdownSavesTotalOnly": "Peças, mão de obra e imposto somam {{sum}}, mais que o total de {{total}}. Só o total será salvo — ajuste-os para manter a divisão.",
+      "keepTotalOnly": "Manter só o total",
+      "taxIncluded": "O imposto já está incluído nesses preços, então a linha de imposto não será somada de novo.",
       "checkAmount": "Verificar valor",
       "checkCurrency": "Verificar moeda",
       "checkDate": "Verificar data",

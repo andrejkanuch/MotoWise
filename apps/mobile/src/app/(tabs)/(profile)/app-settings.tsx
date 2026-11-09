@@ -7,7 +7,8 @@ import { useAppPreferences } from '@/components/profile/use-app-preferences';
 import { ESettingsGroup, ESettingsRow } from '@/components/ui/editorial';
 import { PROFILE_ROUTE } from '@/config/routes';
 import { useEditorialTheme } from '@/theme/editorial';
-import { GUTTER, readableWidth, space } from '@/theme/type';
+import { GUTTER, space } from '@/theme/spacing';
+import { readableWidth } from '@/theme/type';
 
 const PREFERENCE_ROWS = [
   { key: APP_PREFERENCE_KEY.LANGUAGE, icon: Globe },

@@ -14,7 +14,8 @@ import {
 import { PROFILE_ROUTE } from '@/config/routes';
 import { openStoreReviewPage, REVIEW_STORE_SURFACE } from '@/lib/store-review';
 import { tint, useEditorialTheme } from '@/theme/editorial';
-import { GUTTER, readableWidth, space, type } from '@/theme/type';
+import { GUTTER, space } from '@/theme/spacing';
+import { readableWidth, type } from '@/theme/type';
 import { triggerImpact, triggerSelection } from '@/utils/haptics';
 
 const ROW_MIN_HEIGHT = process.env.EXPO_OS === 'android' ? 48 : 44;

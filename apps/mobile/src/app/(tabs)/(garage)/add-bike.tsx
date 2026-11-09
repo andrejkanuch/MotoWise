@@ -23,6 +23,7 @@ import {
   SHEET_CONTENT_STYLE,
   SHEET_CONTROL_HEIGHT,
   SHEET_PRIMARY_STATE,
+  SHEET_SCROLL_KEYBOARD_PROPS,
   SheetFooter,
   SheetTitle,
 } from '@/components/ui/sheet-form';
@@ -37,7 +38,7 @@ import { queryKeys } from '@/lib/query-keys';
 import { maybeRequestReview, REVIEW_MOMENT } from '@/lib/store-review';
 import { useAuthStore } from '@/stores/auth.store';
 import { useEditorialTheme } from '@/theme/editorial';
-import { space } from '@/theme/type';
+import { space } from '@/theme/spacing';
 import { triggerImpact, triggerNotification } from '@/utils/haptics';
 
 /** Maestro anchors (add-bike.yaml). */
@@ -316,8 +317,7 @@ export default function AddBikeScreen() {
         bottomOffset={20}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={SHEET_CONTENT_STYLE}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
+        {...SHEET_SCROLL_KEYBOARD_PROPS}
         showsVerticalScrollIndicator={false}
       >
         <SheetTitle>{t('garage.addBike')}</SheetTitle>

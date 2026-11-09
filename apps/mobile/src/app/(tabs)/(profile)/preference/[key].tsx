@@ -4,7 +4,8 @@ import { APP_PREFERENCE_KEY, type AppPreferenceKey } from '@/components/profile/
 import { useAppPreferences } from '@/components/profile/use-app-preferences';
 import { EOptionRow, ESettingsGroup } from '@/components/ui/editorial';
 import { useEditorialTheme } from '@/theme/editorial';
-import { GUTTER, readableWidth, space } from '@/theme/type';
+import { GUTTER, space } from '@/theme/spacing';
+import { readableWidth } from '@/theme/type';
 
 const KEYS = Object.values(APP_PREFERENCE_KEY) as readonly string[];
 

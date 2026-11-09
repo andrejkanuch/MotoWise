@@ -17,7 +17,8 @@ import { useOnboardingNext } from '../../hooks/use-onboarding-flow';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 /** How long the affirmation shows before navigating on. */

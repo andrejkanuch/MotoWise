@@ -3,7 +3,8 @@ import { Text, View } from 'react-native';
 import { GRAPHQL_ERROR_CODE } from '../../lib/graphql-error-classification';
 import { hasGraphQLCode } from '../../lib/graphql-errors';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 
 /**
  * Why the recall lookup failed. The API answers 422 when the bike has no

@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text } from 'react-native';
 import { bikeDisplayName } from '../../lib/bike-hub/format';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { GUTTER, radius, space, type } from '../../theme/type';
+import { GUTTER, space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerSelection } from '../../utils/haptics';
 import type { HomeMotorcycle } from './home-types';
 

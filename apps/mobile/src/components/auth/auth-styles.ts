@@ -1,5 +1,6 @@
 import type { ViewStyle } from 'react-native';
-import { radius, space } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius } from '../../theme/type';
 
 /**
  * Shared auth button frame (Race Plate). Fields live in `auth-field.tsx`; this

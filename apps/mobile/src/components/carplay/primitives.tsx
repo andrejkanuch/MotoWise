@@ -14,7 +14,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { type EditorialTokens, tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 
 // Small system label (sentence case) — sits above a value or heads a grouped list.
 export function Eyebrow({

@@ -29,7 +29,8 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { QUERY_META } from '../../lib/query-meta';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 const NHTSA_RECALLS_URL = 'https://www.nhtsa.gov/recalls';

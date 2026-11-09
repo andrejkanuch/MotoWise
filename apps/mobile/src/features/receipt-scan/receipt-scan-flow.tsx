@@ -16,7 +16,8 @@ import { ActivityIndicator, Linking, Pressable, Text, View } from 'react-native'
 import Animated, { FadeIn, FadeInUp, SlideInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEditorialTheme } from '../../theme/editorial';
-import { SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { layout, space } from '../../theme/spacing';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import { ReviewCard } from './review-card';
 import {
@@ -41,6 +42,7 @@ export function ReceiptScanFlow({
   onManualEntry,
   onClose,
   onSave = defaultReviewSave,
+  saving = false,
 }: {
   flow: ScanFlow;
   onManualEntry: () => void;
@@ -50,6 +52,8 @@ export function ReceiptScanFlow({
    * the default logs the confirmed payload so the flow is exercisable end-to-end.
    */
   onSave?: (payload: ReceiptReviewPayload) => void;
+  /** A review save is in flight — the review card shows progress on Save. */
+  saving?: boolean;
 }) {
   const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
@@ -71,13 +75,13 @@ export function ReceiptScanFlow({
       style={{
         flex: 1,
         backgroundColor: theme.bg,
-        paddingHorizontal: 20,
+        paddingHorizontal: layout.sheetGutter,
         // Clear the status bar / notch — a fixed 12 collided the "Review your
         // receipt" title with the status bar on notched devices.
-        paddingTop: insets.top + 12,
+        paddingTop: insets.top + space.sm,
       }}
     >
-      {renderPhase(phase, flow, onManualEntry, onClose, onSave)}
+      {renderPhase(phase, flow, onManualEntry, onClose, onSave, saving)}
     </View>
   );
 }
@@ -96,6 +100,7 @@ function renderPhase(
   onManualEntry: () => void,
   onClose: () => void,
   onSave: (payload: ReceiptReviewPayload) => void,
+  saving: boolean,
 ) {
   switch (phase) {
     case SCAN_PHASE.GATING:
@@ -121,6 +126,7 @@ function renderPhase(
           onPark={flow.parkForLater}
           onClose={onClose}
           onSave={onSave}
+          saving={saving}
         />
       );
     case SCAN_PHASE.ERROR:

@@ -25,7 +25,8 @@ import { QUERY_META } from '@/lib/query-meta';
 import { maintenanceBadgeOptions, motorcyclesOptions } from '@/lib/query-options';
 import { presentPaywall } from '@/lib/subscription';
 import { useEditorialTheme } from '@/theme/editorial';
-import { GUTTER, radius, readableWidth, space, type } from '@/theme/type';
+import { GUTTER, space } from '@/theme/spacing';
+import { radius, readableWidth, type } from '@/theme/type';
 import { showActionSheet } from '@/utils/action-sheet';
 import { triggerImpact } from '@/utils/haptics';
 

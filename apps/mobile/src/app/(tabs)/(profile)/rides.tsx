@@ -31,7 +31,8 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
 import { motorcyclesOptions } from '@/lib/query-options';
 import { tint, useEditorialTheme } from '@/theme/editorial';
-import { GUTTER, radius, readableWidth, SYSTEM_WEIGHT, space, type } from '@/theme/type';
+import { GUTTER, space } from '@/theme/spacing';
+import { radius, readableWidth, SYSTEM_WEIGHT, type } from '@/theme/type';
 import { triggerImpact, triggerSelection } from '@/utils/haptics';
 import {
   distanceUnitLabel,

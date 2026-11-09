@@ -9,7 +9,8 @@ import { DiagnosticSeverity } from '@motovault/graphql';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { type EditorialTokens, useEditorialTheme } from '../../theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
 
 type SeverityTone = keyof Pick<
   EditorialTokens,

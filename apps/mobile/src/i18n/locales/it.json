@@ -1,5 +1,6 @@
 {
   "common": {
+    "hideKeyboard": "Nascondi tastiera",
     "appName": "MotoVault",
     "loading": "Caricamento...",
     "error": "Errore",
@@ -2492,7 +2493,9 @@
       "viewReceipt": "Vedi foto scontrino",
       "closeReceipt": "Chiudi",
       "save": "Salva",
-      "breakdownOverTotal": "Ricambi, manodopera e tasse fanno {{sum}}, più del totale di {{total}}. Correggi una voce perché tornino e potrai salvare.",
+      "breakdownSavesTotalOnly": "Ricambi, manodopera e imposta sommano {{sum}}, più del totale di {{total}}. Verrà salvato solo il totale: correggili per mantenere il dettaglio.",
+      "keepTotalOnly": "Tieni solo il totale",
+      "taxIncluded": "L’imposta è già inclusa in questi prezzi, quindi la riga dell’imposta non verrà aggiunta di nuovo.",
       "checkAmount": "Controlla importo",
       "checkCurrency": "Controlla valuta",
       "checkDate": "Controlla data",

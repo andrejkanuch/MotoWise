@@ -19,6 +19,7 @@ import {
   MAX_EXPENSE_AMOUNT,
   SHEET_CONTENT_STYLE,
   SHEET_PRIMARY_STATE,
+  SHEET_SCROLL_KEYBOARD_PROPS,
   SheetFooter,
   SheetTitle,
 } from '../../components/ui/sheet-form';
@@ -29,7 +30,8 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { REVIEW_ACTION, recordReviewAction } from '../../lib/store-review';
 import { useEditorialTheme } from '../../theme/editorial';
-import { space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { type } from '../../theme/type';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import { toISODateInput } from '../../utils/trip-form-dates';
 
@@ -104,8 +106,7 @@ export default function AddExpenseScreen() {
         bottomOffset={20}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={SHEET_CONTENT_STYLE}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
+        {...SHEET_SCROLL_KEYBOARD_PROPS}
         showsVerticalScrollIndicator={false}
       >
         <SheetTitle>{t('expenses.logExpenseTitle')}</SheetTitle>

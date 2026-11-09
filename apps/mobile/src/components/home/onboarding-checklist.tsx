@@ -25,7 +25,8 @@ import {
   useChecklistStore,
 } from '../../stores/checklist.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { GUTTER, radius, space, type } from '../../theme/type';
+import { GUTTER, space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerNotification } from '../../utils/haptics';
 import { useChecklistSignals } from './use-checklist-signals';
 

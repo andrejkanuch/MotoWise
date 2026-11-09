@@ -7,7 +7,8 @@ import { LineChart } from 'react-native-gifted-charts';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { haversineDistance } from '../../utils/geo-utils';
 import {
   distanceUnitLabel,

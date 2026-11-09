@@ -9,7 +9,8 @@ import {
   View,
 } from 'react-native';
 import { tint } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { AppleGlyph, GoogleGlyph } from '../onboarding/oauth-glyphs';
 import { useOnboardingColors } from '../onboarding/onboarding-colors';
 import { authButton } from './auth-styles';

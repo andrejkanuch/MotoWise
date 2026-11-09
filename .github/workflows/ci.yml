@@ -95,6 +95,7 @@ jobs:
       - run: git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main || true
       - run: pnpm check:router
       - run: pnpm check:mobile-colors
+      - run: pnpm check:mobile-spacing
 
   store-copy:
     name: Store Copy Accuracy
