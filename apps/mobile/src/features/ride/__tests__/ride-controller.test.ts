@@ -823,12 +823,33 @@ describe('resumeRecoveredRide — one restart, and never onto an ended ride', ()
     expect(gps.stopGPSListener).not.toHaveBeenCalled();
   });
 
-  it('leaves the GPS alone when no ride is current (a new start is on its way)', async () => {
+  it('stops the GPS when the ride was cleared meanwhile (auto-end, saved summary)', async () => {
     startGPS.mockImplementationOnce(async () => {
       mmkvState.currentId = '';
     });
     await expect(resumeRecoveredRide()).resolves.toBe(false);
+    expect(gps.stopGPSListener).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the GPS to a new ride whose start is under way (old ride saved, no id yet)', async () => {
+    let releaseStart: () => void = () => {};
+    startGPS.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          releaseStart = resolve;
+        }),
+    );
+    const resumed = resumeRecoveredRide();
+    // A new ride starts meanwhile: it saves the old one and waits on permission.
+    mmkvState.currentId = '';
+    let grant: (level: string) => void = () => {};
+    readPerms.mockImplementationOnce(() => new Promise((resolve) => (grant = resolve)));
+    const started = startRideSession({ motorcycleId: null, source: 'carplay' });
+    releaseStart();
+    await expect(resumed).resolves.toBe(false);
     expect(gps.stopGPSListener).not.toHaveBeenCalled();
+    grant('full');
+    await started;
   });
 
   it('shares one restart between callers asking at once', async () => {

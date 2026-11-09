@@ -588,9 +588,12 @@ async function runResumeRecoveredRide(): Promise<boolean> {
   // the GPS now and is left alone.
   const current = readRideRecord();
   if (current?.rideId !== record.rideId || current.phase === RIDE_PHASE.ENDED) {
-    // Only this ride, ended: "no ride" can also be a new start between saving
-    // this one and minting its own id, whose GPS must not be stopped.
-    if (current?.rideId === record.rideId) void stopGPSListener();
+    // Stop it when this ride ended, or when no ride is left (an auto-end or a
+    // saved summary clears it without an ended phase) — unless a new ride's
+    // start is under way: it has saved this one and not minted its own id yet,
+    // and its own GPS start must not be cut by this stop.
+    const orphaned = !current && !startInFlight;
+    if (current?.rideId === record.rideId || orphaned) void stopGPSListener();
     return false;
   }
   useRideStore.setState({ recordingInterrupted: false });

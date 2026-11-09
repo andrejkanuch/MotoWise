@@ -112,4 +112,17 @@ describe('ride-entry', () => {
     await flush();
     expect(store.getState().recordingInterrupted).toBe(false);
   });
+
+  it('never marks it interrupted when a GPS start is still under way as the answer comes back', async () => {
+    mockIsRecording.mockResolvedValue(true);
+    const store = loadEntry('recording');
+    await flush();
+    mockIsRecording.mockImplementation(async () => {
+      mockStartInFlight = true; // began (already counted) and has not settled
+      return false;
+    });
+    mockAppStateListener?.('active');
+    await flush();
+    expect(store.getState().recordingInterrupted).toBe(false);
+  });
 });
