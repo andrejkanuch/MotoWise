@@ -2220,6 +2220,8 @@
     "selectMotorcycle": "Wybierz motocykl",
     "quickRideNoBike": "Szybka jazda · bez motoru",
     "unfinishedTitle": "Wykryto niedokończoną jazdę",
+    "endedTitle": "Twoja ostatnia jazda się zakończyła, ale nie jest jeszcze zapisana",
+    "reviewRide": "Przejrzyj jazdę",
     "resume": "Wznów",
     "endRide": "Zakończ jazdę",
     "previousRides": "Poprzednie jazdy",

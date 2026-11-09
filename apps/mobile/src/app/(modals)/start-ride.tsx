@@ -18,37 +18,34 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LocationDisclosureModal } from '../../components/ride/location-disclosure-modal';
 import { PreFlightChecklist } from '../../components/ride/pre-flight-checklist';
-import { endRecoveredRide, startRideSession } from '../../features/ride/ride-controller';
+import { startRideSession } from '../../features/ride/ride-controller';
+import { useUnfinishedRide } from '../../features/ride/use-unfinished-ride';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { motorcyclesOptions } from '../../lib/query-options';
-import { useRideStore } from '../../stores/ride.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { space } from '../../theme/spacing';
 import { radius, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 import { distanceUnitLabel, formatDistance, formatRelativeDate } from '../../utils/ride-formatters';
-import { startGPSListener } from '../../utils/ride-location';
 import {
   hasAllLocationPermissions,
   markPrePromptDismissed,
   shouldShowPrePrompt,
 } from '../../utils/ride-permissions';
-import { armRideReminders, cancelRideReminders } from '../../utils/ride-reminders';
-import { rideMMKV } from '../../utils/ride-storage';
 
 export default function StartRideScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
-  const startRide = useRideStore((s) => s.startRide);
   const system = useMeasurementSystem();
   const [selectedBikeId, setSelectedBikeId] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
-  const [hasUnfinished, setHasUnfinished] = useState(false);
+  const unfinished = useUnfinishedRide();
+  const hasUnfinished = unfinished.phase !== null;
   const [showBikePicker, setShowBikePicker] = useState(false);
   const [showDisclosure, setShowDisclosure] = useState(false);
 
@@ -80,51 +77,6 @@ export default function StartRideScreen() {
       setSelectedBikeId(primary?.id ?? motorcycles[0].id);
     }
   }, [motorcycles, selectedBikeId]);
-
-  // Crash recovery
-  useEffect(() => {
-    const currentId = rideMMKV.getCurrentId();
-    if (currentId) setHasUnfinished(true);
-  }, []);
-
-  const handleResume = useCallback(() => {
-    const rideId = rideMMKV.getCurrentId();
-    startRide();
-    startGPSListener(() => {});
-    void armRideReminders();
-    trackEvent(AnalyticsEvent.RIDE_STARTED, {
-      ride_id: rideId ?? null,
-      has_motorcycle: !!rideMMKV.getMotorcycleId(),
-      motorcycle_id: rideMMKV.getMotorcycleId() ?? null,
-      motorcycle_make: null,
-      hud_layout: rideMMKV.getHudLayout() ?? 'A',
-      is_resumed: true,
-    });
-    router.replace('/(modals)/ride-hud');
-  }, [startRide, router]);
-
-  const handleEndUnfinished = useCallback(() => {
-    const rideId = rideMMKV.getCurrentId();
-    if (rideId) {
-      trackEvent(AnalyticsEvent.RIDE_ABANDONED, {
-        ride_id: rideId,
-        recovery_reason: 'crash',
-      });
-      // End it like any other ride, from the waypoints already on the phone and
-      // trimmed to the last movement. This used to send distance 0 with no route —
-      // throwing the recorded ride away, and overwriting the real distance if the
-      // server sweep had already closed it.
-      const summaryHref = endRecoveredRide();
-      if (summaryHref) {
-        setHasUnfinished(false);
-        router.replace(summaryHref);
-        return;
-      }
-    }
-    void cancelRideReminders();
-    rideMMKV.setCurrentId('');
-    setHasUnfinished(false);
-  }, [router]);
 
   const runStartRide = useCallback(
     async (allowApproximate = false) => {
@@ -291,30 +243,36 @@ export default function StartRideScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <AlertTriangle size={20} color={theme.plateDue} />
               <Text style={[type.bodyStrong, { color: theme.ink, flex: 1 }]}>
-                {t('startRide.unfinishedTitle')}
+                {t(unfinished.canResume ? 'startRide.unfinishedTitle' : 'startRide.endedTitle')}
               </Text>
             </View>
             <View style={{ flexDirection: 'row', gap: 10 }}>
+              {unfinished.canResume && (
+                <Pressable
+                  onPress={unfinished.resume}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('startRide.resume')}
+                  style={{
+                    flex: 1,
+                    height: 44,
+                    borderRadius: 12,
+                    borderCurve: 'continuous',
+                    backgroundColor: theme.ink,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={[type.bodyStrong, { color: theme.bg }]}>
+                    {t('startRide.resume')}
+                  </Text>
+                </Pressable>
+              )}
               <Pressable
-                onPress={handleResume}
+                onPress={unfinished.finish}
                 accessibilityRole="button"
-                accessibilityLabel="Resume unfinished ride"
-                style={{
-                  flex: 1,
-                  height: 44,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  backgroundColor: theme.ink,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text style={[type.bodyStrong, { color: theme.bg }]}>{t('startRide.resume')}</Text>
-              </Pressable>
-              <Pressable
-                onPress={handleEndUnfinished}
-                accessibilityRole="button"
-                accessibilityLabel="End unfinished ride"
+                accessibilityLabel={t(
+                  unfinished.canResume ? 'startRide.endRide' : 'startRide.reviewRide',
+                )}
                 style={{
                   flex: 1,
                   height: 44,
@@ -328,7 +286,7 @@ export default function StartRideScreen() {
                 }}
               >
                 <Text style={[type.bodyStrong, { color: theme.ink2 }]}>
-                  {t('startRide.endRide')}
+                  {t(unfinished.canResume ? 'startRide.endRide' : 'startRide.reviewRide')}
                 </Text>
               </Pressable>
             </View>

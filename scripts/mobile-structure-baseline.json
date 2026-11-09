@@ -51,7 +51,7 @@
     "app/(modals)/ride-flyover.tsx": 957,
     "app/(modals)/ride-hud.tsx": 469,
     "app/(modals)/ride-summary.tsx": 932,
-    "app/(modals)/start-ride.tsx": 621,
+    "app/(modals)/start-ride.tsx": 579,
     "app/(modals)/trip-detail.tsx": 1876,
     "app/(modals)/whats-new.tsx": 351,
     "app/(onboarding)/account.tsx": 347,

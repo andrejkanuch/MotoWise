@@ -2160,6 +2160,8 @@
     "selectMotorcycle": "Pilih motor",
     "quickRideNoBike": "Perjalanan cepat · tanpa motor",
     "unfinishedTitle": "Perjalanan belum selesai terdeteksi",
+    "endedTitle": "Perjalanan terakhirmu sudah selesai, tapi belum disimpan",
+    "reviewRide": "Tinjau perjalanan",
     "resume": "Lanjutkan",
     "endRide": "Akhiri perjalanan",
     "previousRides": "Perjalanan sebelumnya",

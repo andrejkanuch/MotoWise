@@ -2019,6 +2019,8 @@
     "selectMotorcycle": "Select motorcycle",
     "quickRideNoBike": "Quick ride · no bike",
     "unfinishedTitle": "Unfinished ride detected",
+    "endedTitle": "Your last ride ended but isn't saved yet",
+    "reviewRide": "Review ride",
     "resume": "Resume",
     "endRide": "End Ride",
     "previousRides": "Previous rides",

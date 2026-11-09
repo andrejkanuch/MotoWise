@@ -2220,6 +2220,8 @@
     "selectMotorcycle": "Vybrať motorku",
     "quickRideNoBike": "Rýchla jazda · bez motorky",
     "unfinishedTitle": "Zistená nedokončená jazda",
+    "endedTitle": "Tvoja posledná jazda skončila, ale ešte nie je uložená",
+    "reviewRide": "Pozrieť jazdu",
     "resume": "Pokračovať",
     "endRide": "Ukončiť jazdu",
     "previousRides": "Predchádzajúce jazdy",

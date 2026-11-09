@@ -2188,6 +2188,8 @@
     "selectMotorcycle": "Elegir moto",
     "quickRideNoBike": "Rodada rápida · sin moto",
     "unfinishedTitle": "Hay una rodada sin terminar",
+    "endedTitle": "Tu última rodada terminó, pero aún no está guardada",
+    "reviewRide": "Revisar rodada",
     "resume": "Reanudar",
     "endRide": "Terminar rodada",
     "previousRides": "Rodadas anteriores",

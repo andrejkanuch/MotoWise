@@ -22,9 +22,10 @@ import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
+import { aggregateWaypoints } from '../../utils/ride-aggregate';
 import { activeRideSeconds, movingTimeSeconds } from '../../utils/ride-duration';
 import { encodePolyline } from '../../utils/ride-heatmap';
-import { distanceMeters, startGPSListener, stopGPSListener } from '../../utils/ride-location';
+import { isLocationRecording, startGPSListener, stopGPSListener } from '../../utils/ride-location';
 import {
   checkAndRequestPermissions,
   isApproximateLocation,
@@ -37,9 +38,13 @@ import {
   rideEndTrimTarget,
 } from '../../utils/ride-reminders';
 import {
+  clearCurrentRide,
+  clearRideData,
   flushBufferToMMKV,
   getPointBuffer,
   getWaypointChunks,
+  RIDE_PHASE,
+  readRideRecord,
   removeWaypointBuffer,
   resetWaypointBudget,
   restoreBufferFromMMKV,
@@ -122,6 +127,22 @@ export async function startRideSession({
   motorcycleMake = null,
   allowApproximate = false,
 }: StartRideOptions): Promise<RideStartResult> {
+  // One ride at a time. A ride still recording or paused is the one Start should
+  // lead to (a second id would orphan its points; the server would close it as
+  // stale). A ride that ended but was never reviewed is saved as it stands — it
+  // is already complete on the server — so a new ride never waits on the phone
+  // (CarPlay must not need the iPhone to start).
+  const existing = readRideRecord();
+  if (existing && existing.phase !== RIDE_PHASE.ENDED) {
+    // Leading to it means it must actually be recording: after an app kill the
+    // GPS task may not be running.
+    if (!(await isLocationRecording()) && !(await resumeRecoveredRide())) {
+      return { ok: false, reason: 'gps_failed' };
+    }
+    return { ok: true, rideId: existing.rideId };
+  }
+  if (existing) finalizeEndedRide(existing.rideId);
+
   const level = await RESOLVE_PERMISSION_LEVEL[source]();
   if (level === 'denied') return { ok: false, reason: 'denied' };
 
@@ -143,6 +164,7 @@ export async function startRideSession({
   const startedAt = new Date().toISOString();
 
   rideMMKV.setCurrentId(rideId);
+  rideMMKV.setStatus(RIDE_PHASE.RECORDING);
   rideMMKV.setStartedAt(Date.now());
   // Start the pause clock clean — a prior ride's banked/in-progress pause must not
   // leak into this one's elapsed/duration math.
@@ -163,8 +185,8 @@ export async function startRideSession({
     // GPS failed to start — roll back so we never strand a half-started ride
     // (persisted id + recording store) that the next launch reads as unfinished.
     captureException(err, { source: 'ride-controller.startRideSession' });
-    rideMMKV.setCurrentId('');
-    store.endRide();
+    clearCurrentRide();
+    store.hydrate();
     void cancelRideReminders();
     return { ok: false, reason: 'gps_failed' };
   }
@@ -255,7 +277,8 @@ export function endRideSession(
   // function deliberately does NOT clear the persisted ride id (the summary owns
   // cleanup), so without this guard a second invocation would re-run the full end
   // path and enqueue a duplicate EndRide mutation + a second summary navigation.
-  // Once the store is 'ended', bail.
+  // Once the ride is ended — persisted, so this holds across an app kill too — bail.
+  if (readRideRecord()?.phase === RIDE_PHASE.ENDED) return null;
   if (useRideStore.getState().status === 'ended') return null;
 
   // After an app kill (ending from a reminder, or from the unfinished-ride banner)
@@ -273,37 +296,12 @@ export function endRideSession(
   // prevents crash-recovery from re-enqueuing them as duplicates after end.
   removeWaypointBuffer(rideId);
 
-  let totalDistance = 0;
-  let maxSpd = 0;
-  let speedSum = 0;
-  let speedCount = 0;
-  let elevGain = 0;
-  let elevLoss = 0;
-
-  for (let i = 0; i < combined.length; i++) {
-    const wp = combined[i];
-    if (i > 0) {
-      totalDistance += distanceMeters(
-        { lat: combined[i - 1].latitude, lng: combined[i - 1].longitude },
-        { lat: wp.latitude, lng: wp.longitude },
-      );
-      const prevAlt = combined[i - 1].altitude;
-      const curAlt = wp.altitude;
-      if (prevAlt != null && curAlt != null) {
-        const diff = curAlt - prevAlt;
-        if (diff > 0) elevGain += diff;
-        else elevLoss += Math.abs(diff);
-      }
-    }
-    const speed = wp.speedMps ?? 0;
-    if (speed > maxSpd) maxSpd = speed;
-    if (speed > 0) {
-      speedSum += speed;
-      speedCount++;
-    }
-  }
-
-  const avgSpeed = speedCount > 0 ? speedSum / speedCount : 0;
+  const totals = aggregateWaypoints(combined);
+  const totalDistance = totals.distanceM;
+  const maxSpd = totals.maxSpeedMps;
+  const avgSpeed = totals.avgSpeedMps;
+  const elevGain = totals.elevationGain;
+  const elevLoss = totals.elevationLoss;
   // If the ride is ended while still paused, bank the in-progress pause first so
   // both the derived duration and pausedDurationS account for it.
   // A trimmed end banks only the part of the pause before the end point.
@@ -327,6 +325,10 @@ export function endRideSession(
   const isBatterySaver = store.isBatterySaver;
   const endedAt = new Date(endedAtMs).toISOString();
 
+  // Persist the end before anything else can observe it: the GPS task drops
+  // samples for an ended ride, and a relaunch now sees "ended — review", never
+  // a resumable ride the server has already completed.
+  rideMMKV.setStatus(RIDE_PHASE.ENDED);
   store.endRide();
   void stopGPSListener();
 
@@ -378,7 +380,7 @@ export function endRideSession(
   // summary reads to draw the route. (autoEndRide is the only truly headless end; it
   // stops GPS and drops the in-memory buffer but, like this path, leaves the
   // persisted ride id for the summary / crash-recovery to reconcile.)
-  return {
+  const summary: RideEndSummary = {
     rideId,
     distanceM: Math.round(totalDistance),
     durationS,
@@ -392,6 +394,80 @@ export function endRideSession(
       ? movingTimeSeconds(startedAt, endedAtMs, totalPausedMs, totalAutoPausedMs)
       : 0,
   };
+  // Kept with the ride so its review can reopen after an app kill, or when the
+  // summary never opened (CarPlay Stop with no phone UI to navigate).
+  rideMMKV.setEndedSummaryJson(JSON.stringify(summary));
+  return summary;
+}
+
+const SUMMARY_NUMBER_FIELDS = [
+  'distanceM',
+  'durationS',
+  'maxSpeedMps',
+  'avgSpeedMps',
+  'elevationGain',
+  'elevationLoss',
+  'movingTimeS',
+] as const satisfies readonly (keyof RideEndSummary)[];
+
+/**
+ * The summary of the current ride when it has ended but is not yet saved or
+ * discarded — what "Review" reopens. Null for any other state, or when the
+ * stored summary is unreadable (a review then cannot be rebuilt).
+ */
+export function readEndedRideSummary(): RideEndSummary | null {
+  const record = readRideRecord();
+  if (record?.phase !== RIDE_PHASE.ENDED) return null;
+  const json = rideMMKV.getEndedSummaryJson();
+  if (!json) return null;
+  try {
+    const parsed = JSON.parse(json) as Partial<RideEndSummary>;
+    if (parsed.rideId !== record.rideId) return null;
+    if (!SUMMARY_NUMBER_FIELDS.every((field) => typeof parsed[field] === 'number')) return null;
+    return parsed as RideEndSummary;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Done with an ended ride — saved or discarded on its summary, or auto-saved
+ * because a new ride started. Removes it from the phone (only its own data: see
+ * clearRideData) and brings every surface back to idle.
+ */
+export function finalizeEndedRide(rideId: string): void {
+  clearRideData(rideId);
+  useRideStore.getState().hydrate();
+}
+
+/**
+ * Pick up the ride Start Ride found unfinished after the app was killed: stats
+ * restored from what was recorded, a paused ride kept paused, GPS running again.
+ * False when there is no recording or paused ride to resume (an ended ride is
+ * reviewed, never resumed — the server has already completed it).
+ */
+export async function resumeRecoveredRide(): Promise<boolean> {
+  const record = readRideRecord();
+  if (!record || record.phase === RIDE_PHASE.ENDED) return false;
+  // Project first: hydrate seeds the totals from the stored waypoints, including
+  // the persisted partial buffer that startGPSListener is about to move into memory.
+  useRideStore.getState().hydrate();
+  try {
+    await startGPSListener();
+  } catch (err) {
+    captureException(err, { source: 'ride-controller.resumeRecoveredRide' });
+    return false;
+  }
+  if (record.phase === RIDE_PHASE.RECORDING) void armRideReminders();
+  trackEvent(AnalyticsEvent.RIDE_STARTED, {
+    ride_id: record.rideId,
+    has_motorcycle: !!rideMMKV.getMotorcycleId(),
+    motorcycle_id: rideMMKV.getMotorcycleId() ?? null,
+    motorcycle_make: null,
+    hud_layout: rideMMKV.getHudLayout() ?? 'A',
+    is_resumed: true,
+  });
+  return true;
 }
 
 /**

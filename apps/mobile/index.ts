@@ -5,8 +5,11 @@
 // surface. Imports only, and the order is load-bearing (pinned by carplay-entry.test):
 // the timer swap must precede every module that might capture setTimeout, and Sentry
 // must be initialized before CarPlay registers so a CarPlay-only launch still reports.
+// The ride store is hydrated before CarPlay registers, so its first template shows
+// the real ride (ride-entry).
 import './src/features/carplay/install-timers';
 import '@expo/metro-runtime';
 import './src/lib/init-sentry-entry';
+import './src/features/ride/ride-entry';
 import './src/features/carplay/carplay-entry';
 import 'expo-router/entry';

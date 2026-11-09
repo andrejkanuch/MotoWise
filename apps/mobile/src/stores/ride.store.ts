@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { rideMMKV } from '../utils/ride-storage';
+import { aggregateWaypoints } from '../utils/ride-aggregate';
+import { RIDE_PHASE, readRideRecord, readStoredWaypoints, rideMMKV } from '../utils/ride-storage';
 
 type RideStatus = 'idle' | 'recording' | 'paused' | 'ended';
 type RecordingSubState = 'moving' | 'stopped';
@@ -41,6 +42,12 @@ interface RideState {
   setBatterySaver: (enabled: boolean) => void;
   setPermissionLevel: (level: PermissionLevel) => void;
   setGpsPermissionLost: (lost: boolean) => void;
+  /**
+   * Re-project the persisted ride (`readRideRecord`) onto this store — the store
+   * is a view of MMKV, never the other way round. Runs at bundle start (before
+   * any surface, CarPlay included, renders), when the app becomes active, and
+   * after a ride is saved or discarded.
+   */
   hydrate: () => void;
 }
 
@@ -111,21 +118,43 @@ export const useRideStore = create<RideState>()((set) => ({
   setPermissionLevel: (permissionLevel) => set({ permissionLevel }),
   setGpsPermissionLost: (gpsPermissionLost) => set({ gpsPermissionLost }),
   hydrate: () => {
-    // Restore ride state from MMKV on AppState 'active'
-    const currentId = rideMMKV.getCurrentId();
-    if (!currentId) return;
+    const record = readRideRecord();
+    if (!record) {
+      // No ride on the phone (never started, saved, discarded or auto-ended).
+      set((state) =>
+        state.status === 'idle'
+          ? state
+          : {
+              status: 'idle',
+              ...INITIAL_STATS,
+              recordingSubState: 'moving',
+              gpsPermissionLost: false,
+            },
+      );
+      return;
+    }
 
-    const storedStatus = rideMMKV.getStatus();
-    const subState = rideMMKV.getRecordingSubState();
-    const permLevel = rideMMKV.getPermissionLevel();
-
-    set({
-      status: storedStatus ?? 'recording',
-      recordingSubState: subState ?? 'moving',
-      permissionLevel: permLevel ?? 'denied',
-      // Written on both sides (ride-location marks it, resetAutoPauseState clears
-      // it), so unlike permissionLevel this one is correct by construction.
-      gpsPermissionLost: rideMMKV.getGpsPermissionLost(),
+    set((state) => {
+      const next = {
+        status: record.phase,
+        recordingSubState: record.recordingSubState,
+        permissionLevel: rideMMKV.getPermissionLevel() ?? state.permissionLevel,
+        // Written on both sides (ride-location marks it, resetAutoPauseState clears
+        // it), so unlike permissionLevel this one is correct by construction.
+        gpsPermissionLost: record.gpsPermissionLost,
+      };
+      // Coming back to a ride this process did not see start (killed, relaunched):
+      // seed the totals from what was recorded, so the HUD shows the distance
+      // already covered instead of 0. A live process keeps its own, newer stats.
+      if (state.status !== 'idle' || record.phase === RIDE_PHASE.ENDED) return next;
+      const totals = aggregateWaypoints(readStoredWaypoints(record.rideId));
+      return {
+        ...next,
+        distance: totals.distanceM,
+        maxSpeed: totals.maxSpeedMps,
+        elevationGain: totals.elevationGain,
+        elevationLoss: totals.elevationLoss,
+      };
     });
   },
 }));

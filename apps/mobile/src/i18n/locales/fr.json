@@ -2189,6 +2189,8 @@
     "selectMotorcycle": "Choisir une moto",
     "quickRideNoBike": "Sortie rapide · sans moto",
     "unfinishedTitle": "Sortie inachevée détectée",
+    "endedTitle": "Ta dernière sortie est terminée, mais pas encore enregistrée",
+    "reviewRide": "Voir la sortie",
     "resume": "Reprendre",
     "endRide": "Terminer la sortie",
     "previousRides": "Sorties précédentes",
