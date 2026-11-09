@@ -13,8 +13,14 @@
 --     (the mileage trigger adds none), converts to the bike's unit, and rejects
 --     another rider's ride;
 --   * log_odometer_reading keeps its single signature and its behaviour;
---   * the purge removes ride_stats and ride_tracks of a ride soft-deleted
---     31 days ago and keeps those of a ride deleted yesterday;
+--   * ride_private_details (the rider's time zone, purpose and passenger
+--     answer) is owner-only: RLS on, no PUBLIC or anon privilege, authenticated
+--     SELECT/INSERT/UPDATE only; the owner reads and upserts their row; another
+--     signed-in rider can read the owner's PUBLIC ride but not its
+--     ride_private_details row, and cannot write a row for a ride that is not
+--     theirs; anon cannot read it; purpose accepts only the known values;
+--   * the purge removes ride_stats, ride_tracks and ride_private_details of a
+--     ride soft-deleted 31 days ago and keeps those of a ride deleted yesterday;
 --   * rides.end_source accepts only the known end paths;
 --   * the three service-role stats helpers (ride_stats_places,
 --     ride_stats_stale_rides, ride_stats_stale_count) are executable by
@@ -88,6 +94,48 @@ BEGIN
       END IF;
     END LOOP;
   END LOOP;
+
+  -- ride_private_details: the owner's own rows through RLS, nothing for anon.
+  IF NOT (SELECT relrowsecurity FROM pg_class WHERE oid = 'public.ride_private_details'::regclass) THEN
+    RAISE EXCEPTION 'FAIL: RLS is not enabled on ride_private_details';
+  END IF;
+  FOREACH who IN ARRAY ARRAY['public', 'anon'] LOOP
+    FOREACH priv IN ARRAY ARRAY['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER'] LOOP
+      IF has_table_privilege(who, 'public.ride_private_details', priv) THEN
+        RAISE EXCEPTION 'FAIL: % has % on ride_private_details', who, priv;
+      END IF;
+    END LOOP;
+  END LOOP;
+  FOREACH priv IN ARRAY ARRAY['SELECT', 'INSERT', 'UPDATE'] LOOP
+    IF NOT has_table_privilege('authenticated', 'public.ride_private_details', priv) THEN
+      RAISE EXCEPTION 'FAIL: authenticated lacks % on ride_private_details', priv;
+    END IF;
+  END LOOP;
+  FOREACH priv IN ARRAY ARRAY['DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER'] LOOP
+    IF has_table_privilege('authenticated', 'public.ride_private_details', priv) THEN
+      RAISE EXCEPTION 'FAIL: authenticated has % on ride_private_details', priv;
+    END IF;
+  END LOOP;
+  FOREACH priv IN ARRAY ARRAY['SELECT', 'INSERT', 'UPDATE', 'DELETE'] LOOP
+    IF NOT has_table_privilege('service_role', 'public.ride_private_details', priv) THEN
+      RAISE EXCEPTION 'FAIL: service_role lacks % on ride_private_details', priv;
+    END IF;
+  END LOOP;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_indexes
+    WHERE schemaname = 'public' AND tablename = 'ride_private_details'
+      AND indexdef LIKE '%(user_id, created_at DESC)%'
+  ) THEN
+    RAISE EXCEPTION 'FAIL: ride_private_details has no (user_id, created_at DESC) index';
+  END IF;
+  -- The answers live only in ride_private_details, never on the shared rides row.
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'rides'
+      AND column_name IN ('time_zone', 'purpose', 'passenger')
+  ) THEN
+    RAISE EXCEPTION 'FAIL: rides carries time_zone, purpose or passenger';
+  END IF;
 
   -- Rider RPCs: authenticated only (service_role also reads track points).
   FOREACH who IN ARRAY ARRAY['public', 'anon'] LOOP
@@ -171,7 +219,8 @@ SELECT
   set_config('ri_check.ride_odo_mi', gen_random_uuid()::text, true),
   set_config('ri_check.ride_b', gen_random_uuid()::text, true),
   set_config('ri_check.ride_purged', gen_random_uuid()::text, true),
-  set_config('ri_check.ride_recent', gen_random_uuid()::text, true);
+  set_config('ri_check.ride_recent', gen_random_uuid()::text, true),
+  set_config('ri_check.ride_pub', gen_random_uuid()::text, true);
 
 INSERT INTO auth.users (id, email)
 VALUES
@@ -215,6 +264,18 @@ VALUES
    current_setting('ri_check.bike_a')::uuid, 'completed',
    now() - interval '5 days', now() - interval '5 days' + interval '1 hour', 30000, 'encoded', now() - interval '1 day');
 
+-- Rider A's public ride: any signed-in rider can read the ride itself.
+INSERT INTO public.rides (id, user_id, motorcycle_id, status, started_at, ended_at, distance_m, visibility)
+VALUES (current_setting('ri_check.ride_pub')::uuid, current_setting('ri_check.user_a')::uuid,
+        current_setting('ri_check.bike_a')::uuid, 'completed',
+        now() - interval '4 hours', now() - interval '3 hours', 30000, 'public');
+
+INSERT INTO public.ride_private_details (ride_id, user_id, time_zone, purpose, passenger)
+SELECT r.id, r.user_id, 'Europe/Vienna', 'tour', true
+FROM public.rides r
+WHERE r.id IN (current_setting('ri_check.ride_pub')::uuid, current_setting('ri_check.ride_purged')::uuid,
+               current_setting('ri_check.ride_recent')::uuid);
+
 -- 4,000 fixes, one per second: fix i is at started_at + i seconds.
 INSERT INTO public.ride_waypoints (ride_id, recorded_at, latitude, longitude, altitude, speed_mps, heading, accuracy)
 SELECT current_setting('ri_check.ride_long')::uuid,
@@ -252,6 +313,11 @@ BEGIN
   BEGIN
     UPDATE public.rides SET end_source = 'rider' WHERE id = current_setting('ri_check.ride_b')::uuid;
     RAISE EXCEPTION 'FAIL: end_source accepted an unknown value';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+  BEGIN
+    UPDATE public.ride_private_details SET purpose = 'racing' WHERE ride_id = current_setting('ri_check.ride_pub')::uuid;
+    RAISE EXCEPTION 'FAIL: ride_private_details.purpose accepted an unknown value';
   EXCEPTION WHEN check_violation THEN NULL;
   END;
 END $$;
@@ -327,6 +393,44 @@ BEGIN
   BEGIN
     PERFORM public.ride_stats_stale_count(1::smallint, now());
     RAISE EXCEPTION 'FAIL: authenticated can execute ride_stats_stale_count';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+
+  -- 1b. ride_private_details: the owner reads and upserts their own rows.
+  IF NOT EXISTS (
+    SELECT 1 FROM public.ride_private_details
+    WHERE ride_id = current_setting('ri_check.ride_pub')::uuid
+      AND time_zone = 'Europe/Vienna' AND purpose = 'tour' AND passenger
+  ) THEN
+    RAISE EXCEPTION 'FAIL: the owner cannot read their ride_private_details row';
+  END IF;
+  INSERT INTO public.ride_private_details (ride_id, user_id, time_zone)
+  VALUES (ride_long, user_a, 'Europe/Bratislava')
+  ON CONFLICT (ride_id) DO UPDATE SET time_zone = EXCLUDED.time_zone;
+  INSERT INTO public.ride_private_details (ride_id, user_id, purpose, passenger)
+  VALUES (ride_long, user_a, 'commute', false)
+  ON CONFLICT (ride_id) DO UPDATE SET purpose = EXCLUDED.purpose, passenger = EXCLUDED.passenger;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.ride_private_details
+    WHERE ride_id = ride_long AND time_zone = 'Europe/Bratislava' AND purpose = 'commute' AND NOT passenger
+  ) THEN
+    RAISE EXCEPTION 'FAIL: the owner''s upserts did not merge into one ride_private_details row';
+  END IF;
+  -- A row for another rider's ride is refused, whoever it names as owner.
+  BEGIN
+    INSERT INTO public.ride_private_details (ride_id, user_id, purpose) VALUES (ride_b, user_a, 'tour');
+    RAISE EXCEPTION 'FAIL: a rider wrote ride_private_details for another rider''s ride';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  BEGIN
+    INSERT INTO public.ride_private_details (ride_id, user_id, purpose)
+    VALUES (ride_b, current_setting('ri_check.user_b')::uuid, 'tour');
+    RAISE EXCEPTION 'FAIL: a rider wrote ride_private_details as another rider';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  BEGIN
+    DELETE FROM public.ride_private_details WHERE ride_id = ride_long;
+    RAISE EXCEPTION 'FAIL: authenticated can DELETE ride_private_details';
   EXCEPTION WHEN insufficient_privilege THEN NULL;
   END;
 
@@ -441,6 +545,50 @@ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
+-- As rider B: rider A's public ride is readable, its private details are not.
+-- ---------------------------------------------------------------------------
+SELECT set_config(
+  'request.jwt.claims',
+  json_build_object('sub', current_setting('ri_check.user_b'), 'role', 'authenticated')::text,
+  true
+);
+
+DO $$
+DECLARE
+  ride_pub CONSTANT uuid := current_setting('ri_check.ride_pub')::uuid;
+  v_rows INTEGER;
+BEGIN
+  IF current_user <> 'authenticated' THEN
+    RAISE EXCEPTION 'FAIL: expected to run as authenticated, running as %', current_user;
+  END IF;
+  -- Precondition: the ride itself is visible to B, so the next assertion is not
+  -- passing merely because B sees nothing of A's.
+  IF NOT EXISTS (SELECT 1 FROM public.rides WHERE id = ride_pub) THEN
+    RAISE EXCEPTION 'FAIL: precondition: rider B cannot read rider A''s public ride';
+  END IF;
+  SELECT count(*) INTO v_rows FROM public.ride_private_details WHERE ride_id = ride_pub;
+  IF v_rows <> 0 THEN
+    RAISE EXCEPTION 'FAIL: rider B read rider A''s ride_private_details on a public ride';
+  END IF;
+  SELECT count(*) INTO v_rows FROM public.ride_private_details;
+  IF v_rows <> 0 THEN
+    RAISE EXCEPTION 'FAIL: rider B reads % ride_private_details rows, none are theirs', v_rows;
+  END IF;
+  UPDATE public.ride_private_details SET purpose = 'other' WHERE ride_id = ride_pub;
+  GET DIAGNOSTICS v_rows = ROW_COUNT;
+  IF v_rows <> 0 THEN
+    RAISE EXCEPTION 'FAIL: rider B updated rider A''s ride_private_details';
+  END IF;
+  BEGIN
+    INSERT INTO public.ride_private_details (ride_id, user_id, purpose)
+    VALUES (ride_pub, current_setting('ri_check.user_b')::uuid, 'other')
+    ON CONFLICT (ride_id) DO UPDATE SET purpose = EXCLUDED.purpose;
+    RAISE EXCEPTION 'FAIL: rider B upserted into rider A''s ride_private_details';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+END $$;
+
+-- ---------------------------------------------------------------------------
 -- As anon: nothing.
 -- ---------------------------------------------------------------------------
 SET LOCAL ROLE anon;
@@ -456,6 +604,11 @@ BEGIN
   BEGIN
     PERFORM 1 FROM public.ride_tracks;
     RAISE EXCEPTION 'FAIL: anon can SELECT ride_tracks';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  BEGIN
+    PERFORM 1 FROM public.ride_private_details;
+    RAISE EXCEPTION 'FAIL: anon can SELECT ride_private_details';
   EXCEPTION WHEN insufficient_privilege THEN NULL;
   END;
   BEGIN
@@ -507,6 +660,9 @@ BEGIN
   IF EXISTS (SELECT 1 FROM public.ride_tracks WHERE ride_id = purged) THEN
     RAISE EXCEPTION 'FAIL: purge kept ride_tracks of a ride deleted 31 days ago';
   END IF;
+  IF EXISTS (SELECT 1 FROM public.ride_private_details WHERE ride_id = purged) THEN
+    RAISE EXCEPTION 'FAIL: purge kept ride_private_details of a ride deleted 31 days ago';
+  END IF;
   IF EXISTS (SELECT 1 FROM public.ride_waypoints WHERE ride_id = purged)
      OR (SELECT route_polyline FROM public.rides WHERE id = purged) IS NOT NULL THEN
     RAISE EXCEPTION 'FAIL: purge no longer removes the raw track of a ride deleted 31 days ago';
@@ -514,6 +670,7 @@ BEGIN
 
   IF NOT EXISTS (SELECT 1 FROM public.ride_stats WHERE ride_id = recent)
      OR NOT EXISTS (SELECT 1 FROM public.ride_tracks WHERE ride_id = recent)
+     OR NOT EXISTS (SELECT 1 FROM public.ride_private_details WHERE ride_id = recent)
      OR NOT EXISTS (SELECT 1 FROM public.ride_waypoints WHERE ride_id = recent) THEN
     RAISE EXCEPTION 'FAIL: purge removed data of a ride deleted yesterday';
   END IF;

@@ -41,6 +41,63 @@ describe('RideStatsService.computeRide', () => {
     expect(stats).not.toHaveProperty('weather_fetched_at');
   });
 
+  it('stamps computed_at and built_at before the reads, so a track change during the compute leaves the ride stale', async () => {
+    let bumpedAt = '';
+    const admin = fakeAdmin({
+      rides: { r1: ride('r1') },
+      points: { r1: pointsRow() },
+      // A waypoint batch lands right after the track read: rides.track_updated_at moves on.
+      afterTrackRead: async () => {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        bumpedAt = new Date().toISOString();
+      },
+    });
+    expect(await service(admin).computeRide('r1')).toBe('written');
+
+    const track = admin.upserts.find((u) => u.table === 'ride_tracks')?.row;
+    const stats = admin.upserts.find((u) => u.table === 'ride_stats')?.row;
+    const bump = Date.parse(bumpedAt);
+    // The stale rule is track_updated_at > computed_at: the sweep must pick the ride up again.
+    expect(Date.parse(stats?.computed_at as string)).toBeLessThan(bump);
+    expect(Date.parse(track?.built_at as string)).toBeLessThan(bump);
+    expect(track?.built_at).toBe(stats?.computed_at);
+  });
+
+  it('reads the device time zone from ride_private_details by ride id', async () => {
+    // The track starts in Spain; the device zone wins over the start point.
+    const admin = fakeAdmin({
+      rides: { r1: ride('r1', { time_zone: 'America/New_York' }) },
+      points: { r1: pointsRow() },
+    });
+    await service(admin).computeRide('r1');
+    expect(admin.client.from).toHaveBeenCalledWith('ride_private_details');
+    const stats = admin.upserts.find((u) => u.table === 'ride_stats')?.row;
+    expect(stats?.time_zone).toBe('America/New_York');
+  });
+
+  it('falls back to the start point zone when the ride has no ride_private_details row', async () => {
+    const admin = fakeAdmin({
+      rides: { r1: ride('r1', { time_zone: null }) },
+      points: { r1: pointsRow() },
+    });
+    await service(admin).computeRide('r1');
+    const stats = admin.upserts.find((u) => u.table === 'ride_stats')?.row;
+    expect(stats?.time_zone).toBe('Europe/Madrid');
+  });
+
+  it("falls back to the rider's latest device zone from ride_private_details when the ride has neither", async () => {
+    const admin = fakeAdmin({
+      rides: {
+        r1: ride('r1', { time_zone: null, user_id: 'u1', distance_m: 0 }),
+        r0: ride('r0', { time_zone: 'Asia/Tokyo', user_id: 'u1' }),
+      },
+    });
+    await service(admin).computeRide('r1');
+    const stats = admin.upserts.find((u) => u.table === 'ride_stats')?.row;
+    expect(stats?.input_source).toBe('none');
+    expect(stats?.time_zone).toBe('Asia/Tokyo');
+  });
+
   it('writes nothing while ref_country_parts is empty, leaving the ride stale', async () => {
     const admin = fakeAdmin({
       rides: { r1: ride('r1') },

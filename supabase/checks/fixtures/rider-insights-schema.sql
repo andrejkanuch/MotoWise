@@ -15,8 +15,10 @@
 --   * auth.uid() reading the `sub` of request.jwt.claims;
 --   * public.users with 00178's table-wide REVOKE and column-level grants, so a
 --     column added later (is_synthetic) carries no client grant;
---   * public.rides and public.ride_waypoints with their 00047/00140 owner-only
---     policies (ride_track_points runs under them);
+--   * public.rides with 00084's visibility read policy (owner, or any signed-in
+--     rider for a public or unlisted ride), and public.ride_waypoints with its
+--     00047/00140 owner-only policy (ride_track_points runs under them);
+--   * public.update_updated_at(), the shared updated_at trigger function (00003);
 --   * public.motorcycles with the odometer columns 00078/00180 add, so 00181's
 --     odometer log, RPC and trigger apply as written;
 --   * PostGIS in public, as 00064 created it.
@@ -108,6 +110,16 @@ AS $$
   SELECT EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
 $$;
 
+-- 00003's shared trigger function.
+CREATE FUNCTION public.update_updated_at() RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
 CREATE TABLE public.motorcycles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
@@ -143,6 +155,7 @@ CREATE TABLE public.rides (
   weather_snapshot jsonb,
   mileage_applied boolean NOT NULL DEFAULT false,
   auto_ended_reason text,
+  visibility text NOT NULL DEFAULT 'private' CHECK (visibility IN ('private', 'unlisted', 'public')),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   deleted_at timestamptz
@@ -150,9 +163,18 @@ CREATE TABLE public.rides (
 
 ALTER TABLE public.rides ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Enable read access for ride owner or admin" ON public.rides
+-- 00084's policy without the ride_shares branch (no table here).
+CREATE POLICY "rides_select_with_visibility" ON public.rides
   FOR SELECT TO authenticated
-  USING ((user_id = auth.uid() AND deleted_at IS NULL) OR public.is_admin());
+  USING (
+    deleted_at IS NULL
+    AND (
+      user_id = (SELECT auth.uid())
+      OR visibility = 'public'
+      OR visibility = 'unlisted'
+      OR public.is_admin()
+    )
+  );
 
 CREATE POLICY "Enable update for ride owner" ON public.rides
   FOR UPDATE TO authenticated

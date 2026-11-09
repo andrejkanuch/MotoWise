@@ -3,8 +3,13 @@
 -- of that derived data with the ride.
 --
 -- WHAT IT ADDS
---   * rides: time_zone, purpose, passenger, end_source, track_updated_at, and an
---     index for "this rider's completed, live rides, newest first".
+--   * rides: end_source, track_updated_at, and an index for "this rider's
+--     completed, live rides, newest first".
+--   * ride_private_details: one owner-only row per ride for what the rider's
+--     device reported or the rider answered: time_zone, purpose, passenger. Kept
+--     off rides on purpose: rides is readable by every signed-in rider for a
+--     public or unlisted ride (00084), so a column there would leak through
+--     PostgREST even with the GraphQL field hidden.
 --   * ride_stats: one row per ride, computed by the API from the ride's
 --     waypoints (or its polyline, or neither), versioned by stats_version and
 --     written by an idempotent upsert. Every insight aggregate is SQL over these
@@ -20,10 +25,12 @@
 --     log_ride_end_odometer().
 --   * ride_track_points(): a rider's own ride track in one row of arrays,
 --     optionally downsampled, so reads are not cut at PostgREST's 1,000-row cap.
---   * purge_soft_deleted_rides(): also deletes ride_stats and ride_tracks of the
---     rides it purges. Those rows hold the same location detail as the raw track
---     (stops, places, cells, route geometry), so they follow it on the same
---     30-day schedule.
+--   * purge_soft_deleted_rides(): also deletes ride_stats, ride_tracks and
+--     ride_private_details of the rides it purges. ride_stats and ride_tracks hold
+--     the same location detail as the raw track (stops, places, cells, route
+--     geometry); ride_private_details holds the rider's zone and answers. The purge
+--     anonymises rides rather than deleting them, so ON DELETE CASCADE alone would
+--     never remove these rows; they follow the track on the same 30-day schedule.
 --   * Three service-role helpers for the API's stats compute and sweep:
 --     ride_stats_places() (countries, start and end towns of a route, from the
 --     reference geodata), ride_stats_stale_rides() and ride_stats_stale_count()
@@ -38,14 +45,21 @@
 --   own tier check, which keeps Pro detail on the server.
 --   The three ride_stats_* helpers are SECURITY INVOKER and executable by
 --   service_role only.
+--   ride_private_details has RLS on with owner-only policies: a rider selects,
+--   inserts and updates only rows whose user_id is their own, and inserts or
+--   updates only for a ride they own. No PUBLIC or anon privilege; authenticated
+--   gets SELECT, INSERT and UPDATE only (no DELETE: rows go with the ride);
+--   service_role gets full access (the stats compute reads the zone). The API
+--   writes it through the rider's own client and re-validates time_zone; a CHECK
+--   constrains purpose.
 --   rides gets no column-level revoke: the API writes rides through the rider's
 --   own client and the table-wide grant would make a column revoke ineffective.
---   The API re-validates time_zone; CHECKs constrain purpose and end_source.
+--   A CHECK constrains end_source.
 --   users.is_synthetic gets no client grant: 00178 replaced the table-wide grants
 --   on users with column lists, and a new column is in none of them.
 --
--- ACCOUNT DELETION: ride_stats and ride_tracks cascade from rides and users, so
--- hard_delete_expired_accounts() covers them with no change.
+-- ACCOUNT DELETION: ride_stats, ride_tracks and ride_private_details cascade from
+-- rides and users, so hard_delete_expired_accounts() covers them with no change.
 --
 -- PREREQUISITES
 --   * 00196 applied and verified. It set purge_soft_deleted_rides() to
@@ -54,7 +68,8 @@
 --   * PostGIS installed (3.3.7 on production since 00064).
 --
 -- DEPLOY ORDER: apply and verify BEFORE the API that writes ride_stats,
--- ride_tracks or the new rides columns deploys (the API deploys on merge).
+-- ride_tracks, ride_private_details or the new rides columns deploys (the API
+-- deploys on merge).
 -- Apply as ONE statement batch (one Management API call) with this leading
 -- comment block stripped, record version 00197 in
 -- supabase_migrations.schema_migrations, then run the footer queries.
@@ -69,11 +84,10 @@
 --     public.ride_stats_stale_count(smallint, timestamptz);
 --   DELETE FROM public.odometer_readings WHERE source = 'ride_end'; then restore
 --     the source CHECK without 'ride_end';
---   DROP TABLE public.ride_stats, public.ride_tracks, public.ref_country_parts,
---     public.ref_regions, public.ref_places;
+--   DROP TABLE public.ride_stats, public.ride_tracks, public.ride_private_details,
+--     public.ref_country_parts, public.ref_regions, public.ref_places;
 --   DROP INDEX public.idx_rides_user_started_completed;
---   ALTER TABLE public.rides DROP COLUMN time_zone, DROP COLUMN purpose,
---     DROP COLUMN passenger, DROP COLUMN end_source, DROP COLUMN track_updated_at;
+--   ALTER TABLE public.rides DROP COLUMN end_source, DROP COLUMN track_updated_at;
 --   ALTER TABLE public.users DROP COLUMN is_synthetic.
 
 BEGIN;
@@ -82,23 +96,12 @@ BEGIN;
 -- 1. rides: recording additions
 -- ============================================================
 ALTER TABLE public.rides
-  ADD COLUMN time_zone text,
-  ADD COLUMN purpose text
-    CONSTRAINT rides_purpose_check
-    CHECK (purpose IN ('leisure', 'commute', 'tour', 'errand', 'track', 'offroad', 'other')),
-  ADD COLUMN passenger boolean,
   ADD COLUMN end_source text
     CONSTRAINT rides_end_source_check
     CHECK (end_source IN ('rider_phone', 'rider_carplay', 'client_auto', 'server_idle',
                           'stale_on_start', 'new_ride_save')),
   ADD COLUMN track_updated_at timestamptz;
 
-COMMENT ON COLUMN public.rides.time_zone IS
-  'IANA zone of the device at ride start, as the client sent it. The stats compute re-validates it and falls back to the start point''s zone.';
-COMMENT ON COLUMN public.rides.purpose IS
-  'Optional purpose the rider picked after the ride. NULL = not answered.';
-COMMENT ON COLUMN public.rides.passenger IS
-  'Optional: whether the rider carried a passenger. NULL = not answered.';
 COMMENT ON COLUMN public.rides.end_source IS
   'How the ride ended: rider_phone, rider_carplay, client_auto (app auto-end), server_idle (idle sweep), stale_on_start (superseded at the next start), new_ride_save (saved as the next ride started). NULL for rides ended before this column existed. Does not change auto_ended_reason, which only server ends set.';
 COMMENT ON COLUMN public.rides.track_updated_at IS
@@ -107,6 +110,70 @@ COMMENT ON COLUMN public.rides.track_updated_at IS
 CREATE INDEX idx_rides_user_started_completed
   ON public.rides (user_id, started_at DESC)
   WHERE status = 'completed' AND deleted_at IS NULL;
+
+-- ============================================================
+-- 1b. ride_private_details: the rider's own zone and answers, owner only
+-- ============================================================
+CREATE TABLE public.ride_private_details (
+  ride_id uuid PRIMARY KEY REFERENCES public.rides(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  time_zone text,
+  purpose text
+    CONSTRAINT ride_private_details_purpose_check
+    CHECK (purpose IN ('leisure', 'commute', 'tour', 'errand', 'track', 'offroad', 'other')),
+  passenger boolean,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE public.ride_private_details IS
+  'What the rider''s device reported or the rider answered about a ride, readable by the owner only (rides itself is readable by any signed-in rider for a public or unlisted ride). One row per ride, upserted by the API with the rider''s client. Purged with the ride.';
+COMMENT ON COLUMN public.ride_private_details.time_zone IS
+  'IANA zone of the device at ride start, as the client sent it. The stats compute re-validates it and falls back to the start point''s zone.';
+COMMENT ON COLUMN public.ride_private_details.purpose IS
+  'Optional purpose the rider picked after the ride. NULL = not answered.';
+COMMENT ON COLUMN public.ride_private_details.passenger IS
+  'Optional: whether the rider carried a passenger. NULL = not answered.';
+
+-- The stats compute's fallback: the rider's latest reported zone.
+CREATE INDEX idx_ride_private_details_user_created
+  ON public.ride_private_details (user_id, created_at DESC);
+
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.ride_private_details
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+ALTER TABLE public.ride_private_details ENABLE ROW LEVEL SECURITY;
+
+-- Insert and update also require the ride to be the rider's own, so no one can
+-- park a row on another rider's ride (it would block the owner's upsert).
+CREATE POLICY ride_private_details_select_own ON public.ride_private_details
+  FOR SELECT TO authenticated
+  USING (user_id = (SELECT auth.uid()));
+
+CREATE POLICY ride_private_details_insert_own ON public.ride_private_details
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    user_id = (SELECT auth.uid())
+    AND EXISTS (
+      SELECT 1 FROM public.rides r
+      WHERE r.id = ride_private_details.ride_id AND r.user_id = (SELECT auth.uid())
+    )
+  );
+
+CREATE POLICY ride_private_details_update_own ON public.ride_private_details
+  FOR UPDATE TO authenticated
+  USING (user_id = (SELECT auth.uid()))
+  WITH CHECK (
+    user_id = (SELECT auth.uid())
+    AND EXISTS (
+      SELECT 1 FROM public.rides r
+      WHERE r.id = ride_private_details.ride_id AND r.user_id = (SELECT auth.uid())
+    )
+  );
+
+REVOKE ALL ON public.ride_private_details FROM PUBLIC, anon, authenticated;
+GRANT SELECT, INSERT, UPDATE ON public.ride_private_details TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.ride_private_details TO service_role;
 
 -- ============================================================
 -- 2. ride_stats: per-ride derived values
@@ -442,7 +509,7 @@ REVOKE ALL ON FUNCTION public.ride_track_points(uuid, integer) FROM PUBLIC, anon
 GRANT EXECUTE ON FUNCTION public.ride_track_points(uuid, integer) TO authenticated, service_role;
 
 -- ============================================================
--- 9. Purge derived data with the raw track (00048's body plus two deletes)
+-- 9. Purge derived data with the raw track (00048's body plus three deletes)
 -- ============================================================
 CREATE OR REPLACE FUNCTION public.purge_soft_deleted_rides()
 RETURNS void
@@ -461,6 +528,15 @@ BEGIN
   );
 
   DELETE FROM public.ride_tracks
+  WHERE ride_id IN (
+    SELECT id FROM public.rides
+    WHERE deleted_at IS NOT NULL
+    AND deleted_at < NOW() - INTERVAL '30 days'
+  );
+
+  -- The rider's zone and answers. Rides are anonymised below, not deleted, so the
+  -- ON DELETE CASCADE never fires for them.
+  DELETE FROM public.ride_private_details
   WHERE ride_id IN (
     SELECT id FROM public.rides
     WHERE deleted_at IS NOT NULL
@@ -675,6 +751,19 @@ COMMIT;
 --     AND tablename IN ('ride_stats', 'ride_tracks', 'ref_country_parts', 'ref_regions', 'ref_places');
 --   -- expect: 0 rows (service role only)
 --
+--   SELECT c.relrowsecurity, array_to_string(c.relacl, ',') AS acl
+--   FROM pg_class c WHERE c.oid = 'public.ride_private_details'::regclass;
+--   -- expect relrowsecurity = true; acl has postgres=arwdDxt..., authenticated=arw/...
+--   --   (SELECT, INSERT, UPDATE only) and service_role=arwd/...; NO `=` (PUBLIC) or
+--   --   `anon=` entry
+--
+--   SELECT policyname, cmd, roles, qual, with_check FROM pg_policies
+--   WHERE schemaname = 'public' AND tablename = 'ride_private_details' ORDER BY 1;
+--   -- expect 3 rows, all roles {authenticated}: ride_private_details_insert_own (INSERT),
+--   --   ride_private_details_select_own (SELECT), ride_private_details_update_own (UPDATE);
+--   --   each tests user_id = (SELECT auth.uid()); insert and update also require
+--   --   the ride to be the rider's own
+--
 --   SELECT p.proname, pg_get_function_identity_arguments(p.oid) AS args, p.prosecdef,
 --          array_to_string(p.proacl, ',') AS acl
 --   FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
@@ -715,6 +804,7 @@ COMMIT;
 --
 --   SELECT pg_get_functiondef('public.purge_soft_deleted_rides()'::regprocedure) LIKE '%ride_stats%'
 --      AND pg_get_functiondef('public.purge_soft_deleted_rides()'::regprocedure) LIKE '%ride_tracks%'
+--      AND pg_get_functiondef('public.purge_soft_deleted_rides()'::regprocedure) LIKE '%ride_private_details%'
 --      AS purge_covers_derived;
 --   -- expect: t
 --
@@ -722,9 +812,10 @@ COMMIT;
 --   WHERE schemaname = 'public'
 --     AND indexname IN ('idx_rides_user_started_completed', 'idx_ride_stats_user_date',
 --                       'idx_ride_tracks_route', 'idx_ride_tracks_user',
---                       'idx_ref_country_parts_geom', 'idx_ref_places_geom')
+--                       'idx_ref_country_parts_geom', 'idx_ref_places_geom',
+--                       'idx_ride_private_details_user_created')
 --   ORDER BY 1, 2;
---   -- expect 6 rows; the rides index has WHERE status = 'completed' AND deleted_at IS NULL;
+--   -- expect 7 rows; the ride_private_details index is (user_id, created_at DESC); the rides index has WHERE status = 'completed' AND deleted_at IS NULL;
 --   --   the three geometry indexes are USING gist
 --
 --   SELECT table_name, column_name, data_type, is_nullable, column_default
@@ -734,7 +825,9 @@ COMMIT;
 --                                                    'end_source', 'track_updated_at'))
 --       OR (table_name = 'users' AND column_name = 'is_synthetic'))
 --   ORDER BY 1, 2;
---   -- expect 6 rows; users.is_synthetic boolean, NOT NULL (is_nullable NO), default false
+--   -- expect 3 rows: rides.end_source, rides.track_updated_at, users.is_synthetic
+--   --   (boolean, NOT NULL (is_nullable NO), default false). rides has NO time_zone,
+--   --   purpose or passenger: those live in ride_private_details only
 --
 --   SELECT grantee, privilege_type FROM information_schema.column_privileges
 --   WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'is_synthetic'
@@ -742,12 +835,14 @@ COMMIT;
 --   -- expect: 0 rows
 --
 --   SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint
---   WHERE conname IN ('odometer_readings_source_check', 'rides_end_source_check', 'rides_purpose_check');
+--   WHERE conname IN ('odometer_readings_source_check', 'rides_end_source_check',
+--                     'ride_private_details_purpose_check');
 --   -- expect 3 rows; odometer_readings_source_check includes 'ride_end'
 --
 --   SELECT
 --     (SELECT count(*) FROM public.ride_stats) AS ride_stats,
 --     (SELECT count(*) FROM public.ride_tracks) AS ride_tracks,
+--     (SELECT count(*) FROM public.ride_private_details) AS ride_private_details,
 --     (SELECT count(*) FROM public.ref_country_parts) AS ref_country_parts,
 --     (SELECT count(*) FROM public.ref_regions) AS ref_regions,
 --     (SELECT count(*) FROM public.ref_places) AS ref_places,

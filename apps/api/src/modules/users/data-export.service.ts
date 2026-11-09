@@ -10,7 +10,11 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { encodePolyline } from '../../common/polyline';
 import { QUERY_LIMITS } from '../../config/constants';
 import { EmailService } from '../email/email.service';
-import { RIDE_STATS_TABLE, RIDE_TRACKS_TABLE } from '../ride-stats/ride-stats.types';
+import {
+  RIDE_PRIVATE_DETAILS_TABLE,
+  RIDE_STATS_TABLE,
+  RIDE_TRACKS_TABLE,
+} from '../ride-stats/ride-stats.types';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { DataExportRequest } from './models/data-export-request.model';
@@ -217,7 +221,7 @@ export class DataExportService {
 
       // Derived ride data (stats, stops, places, routes) is the rider's location
       // data too.
-      const [rideStatsResult, rideTracksResult] = await Promise.all([
+      const [rideStatsResult, rideTracksResult, ridePrivateDetailsResult] = await Promise.all([
         this.supabaseAdmin
           .from(RIDE_STATS_TABLE)
           .select(RIDE_STATS_EXPORT_COLUMNS)
@@ -228,6 +232,7 @@ export class DataExportService {
           .select('ride_id, source, built_at, route')
           .eq('user_id', userId)
           .limit(maxRows),
+        byUserId(RIDE_PRIVATE_DETAILS_TABLE),
       ]);
 
       const exportData = {
@@ -251,6 +256,7 @@ export class DataExportService {
         feedbackMessages: feedbackMessagesResult.data ?? [],
         rideStats: rideStatsResult.data ?? [],
         rideRoutes: exportRoutes((rideTracksResult.data as RideTrackExportRow[] | null) ?? []),
+        ridePrivateDetails: ridePrivateDetailsResult.data ?? [],
       };
 
       // Store export as JSON in Supabase Storage

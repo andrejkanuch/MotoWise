@@ -107,20 +107,19 @@ describe('RidesResolver owner-only ride fields', () => {
   const service = { getPublicRide: async () => publicRide };
   const resolver = new RidesResolver(service as never);
   const ownerOnlyFields = (ride: Ride, user?: AuthUser) => ({
-    region: resolver.region(ride, user),
     timeZone: resolver.timeZone(ride, user),
     endSource: resolver.endSource(ride, user),
     purpose: resolver.purpose(ride, user),
     passenger: resolver.passenger(ride, user),
   });
-  const allNull = { region: null, timeZone: null, endSource: null, purpose: null, passenger: null };
+  const allNull = { timeZone: null, endSource: null, purpose: null, passenger: null };
 
-  it('getPublicRide returns null place and recording fields to an anonymous viewer', async () => {
+  it('getPublicRide returns null recording fields to an anonymous viewer', async () => {
     const ride = await resolver.getPublicRide('ride-1');
     expect(ownerOnlyFields(ride, undefined)).toEqual(allNull);
   });
 
-  it('getPublicRide returns null place and recording fields to another signed-in rider', async () => {
+  it('getPublicRide returns null recording fields to another signed-in rider', async () => {
     const ride = await resolver.getPublicRide('ride-1');
     expect(ownerOnlyFields(ride, { id: 'someone-else' } as AuthUser)).toEqual(allNull);
   });
@@ -128,11 +127,18 @@ describe('RidesResolver owner-only ride fields', () => {
   it('the owner sees their own values', async () => {
     const ride = await resolver.getPublicRide('ride-1');
     expect(ownerOnlyFields(ride, { id: 'owner-1' } as AuthUser)).toEqual({
-      region: 'Tirol',
       timeZone: 'Europe/Vienna',
       endSource: 'rider_phone',
       purpose: 'tour',
       passenger: true,
     });
+  });
+
+  // Ride.region resolves for every viewer, as it did before the owner-only fields:
+  // it is a plain model field with no field resolver gating it.
+  it('region is not gated: the resolver has no region field resolver', async () => {
+    expect('region' in resolver).toBe(false);
+    const ride = await resolver.getPublicRide('ride-1');
+    expect(ride.region).toBe('Tirol');
   });
 });

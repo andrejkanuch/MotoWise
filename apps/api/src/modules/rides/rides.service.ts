@@ -56,11 +56,41 @@ interface MilestoneRideRow {
  * this service's client is untyped, so the shape is stated here at the read and write sites.
  */
 interface RideRecordingColumns {
-  time_zone: string | null;
   end_source: string | null;
+  track_updated_at: string | null;
+}
+
+/**
+ * The rider's device zone and answers. They live in the owner-only
+ * `ride_private_details` table, not on `rides`: any signed-in rider can read a
+ * public or unlisted ride's row through PostgREST, so a column there would leak.
+ */
+interface RidePrivateDetails {
+  time_zone: string | null;
   purpose: string | null;
   passenger: boolean | null;
-  track_updated_at: string | null;
+}
+type RidePrivateDetailsPatch = Partial<RidePrivateDetails>;
+
+const RIDE_PRIVATE_DETAILS_TABLE = 'ride_private_details';
+const RIDE_PRIVATE_DETAILS_COLUMNS = 'time_zone, purpose, passenger';
+/**
+ * PostgREST embed of the ride's private details. RLS returns them to the owner
+ * only, so on the rider's own client this is one query for any number of rides.
+ */
+const RIDE_PRIVATE_DETAILS_EMBED = `${RIDE_PRIVATE_DETAILS_TABLE}(${RIDE_PRIVATE_DETAILS_COLUMNS})`;
+/** A whole ride row plus the owner's private details. */
+const RIDE_WITH_PRIVATE_DETAILS = `*, ${RIDE_PRIVATE_DETAILS_EMBED}`;
+
+/** The embedded details of a ride row: an object for a one-to-one embed, else a 0/1 array. */
+function privateDetailsOf(row: Record<string, unknown>): RidePrivateDetails | null {
+  const embedded = row[RIDE_PRIVATE_DETAILS_TABLE] as
+    | RidePrivateDetails
+    | RidePrivateDetails[]
+    | null
+    | undefined;
+  if (Array.isArray(embedded)) return embedded[0] ?? null;
+  return embedded ?? null;
 }
 
 /** Copy of `patch` without the keys whose value is null or undefined. */
@@ -183,7 +213,7 @@ export class RidesService {
     const replayed = await this.findOwnRide(userId, input.rideId);
     if (replayed) {
       this.logger.log(`startRide: ride ${input.rideId} already exists — idempotent success`);
-      return this.mapRow(replayed);
+      return this.withStartTimeZone(userId, replayed, input.timeZone);
     }
 
     // Auto-end any stale active rides so the unique-index
@@ -193,7 +223,7 @@ export class RidesService {
     await this.closeStaleRides(userId, input.rideId);
 
     const first = await this.insertRide(userId, input);
-    if (first.data) return this.mapRow(first.data);
+    if (first.data) return this.withStartTimeZone(userId, first.data, input.timeZone);
     if (first.error?.code !== PG_ERROR.UNIQUE_VIOLATION) {
       this.throwStartRideError(first.error, input);
     }
@@ -208,14 +238,14 @@ export class RidesService {
       // The desired state already exists, so this is a success. Together with the
       // pre-check this is what stops a lost response destroying a ride.
       this.logger.log(`startRide: ride ${input.rideId} already exists — idempotent success`);
-      return this.mapRow(existing);
+      return this.withStartTimeZone(userId, existing, input.timeZone);
     }
 
     // Not ours ⇒ another active ride is holding the index. closeStaleRides above
     // either raced with it or could not close it; try once more, then give up.
     await this.closeStaleRides(userId, input.rideId);
     const retry = await this.insertRide(userId, input);
-    if (retry.data) return this.mapRow(retry.data);
+    if (retry.data) return this.withStartTimeZone(userId, retry.data, input.timeZone);
     if (retry.error?.code !== PG_ERROR.UNIQUE_VIOLATION) {
       this.throwStartRideError(retry.error, input);
     }
@@ -246,12 +276,68 @@ export class RidesService {
         motorcycle_id: input.motorcycleId ?? null,
         status: 'recording',
         started_at: input.startedAt,
-        time_zone: input.timeZone ?? null,
-      } satisfies Record<string, unknown> & Pick<RideRecordingColumns, 'time_zone'>)
+      })
       .select()
       .single();
 
     return { data: data as Record<string, unknown> | null, error };
+  }
+
+  /**
+   * The started ride, with the device's time zone stored in ride_private_details
+   * when the client sent a valid one and none is stored yet (a replay of a start
+   * whose zone write was lost fills it in). A failed write is logged, never thrown:
+   * the zone only refines the ride's local time, and the stats compute falls back
+   * to the start point's zone, so it must never cost the rider the start.
+   */
+  private async withStartTimeZone(
+    userId: string,
+    row: Record<string, unknown>,
+    timeZone: string | null | undefined,
+  ): Promise<Ride> {
+    const ride = this.mapRow(row);
+    if (!timeZone || ride.timeZone) return ride;
+
+    const { error } = await this.supabase
+      .from(RIDE_PRIVATE_DETAILS_TABLE)
+      .upsert(
+        { ride_id: ride.id, user_id: userId, time_zone: timeZone },
+        { onConflict: 'ride_id' },
+      );
+    if (error) {
+      this.logger.warn(
+        `startRide: time zone not stored for ride ${ride.id}: ${error.message} (${error.code})`,
+      );
+      return ride;
+    }
+    return { ...ride, timeZone };
+  }
+
+  /**
+   * Upsert the rider's own answers for a ride (only the given keys change) and
+   * return the row as stored, or the Postgres error.
+   */
+  private async upsertPrivateDetails(
+    userId: string,
+    rideId: string,
+    patch: RidePrivateDetailsPatch,
+  ): Promise<{ details: RidePrivateDetails | null; error: PostgrestError | null }> {
+    const { data, error } = await this.supabase
+      .from(RIDE_PRIVATE_DETAILS_TABLE)
+      .upsert({ ride_id: rideId, user_id: userId, ...patch }, { onConflict: 'ride_id' })
+      .select(RIDE_PRIVATE_DETAILS_COLUMNS)
+      .single();
+    return { details: (data as RidePrivateDetails | null) ?? null, error };
+  }
+
+  /** `ride` with the private-detail fields replaced by `details`. */
+  private withPrivateDetails(ride: Ride, details: RidePrivateDetails): Ride {
+    return {
+      ...ride,
+      timeZone: details.time_zone ?? undefined,
+      purpose: details.purpose ?? undefined,
+      passenger: details.passenger ?? undefined,
+    };
   }
 
   /**
@@ -265,7 +351,7 @@ export class RidesService {
   ): Promise<Record<string, unknown> | null> {
     const { data, error } = await this.supabase
       .from('rides')
-      .select('*')
+      .select(RIDE_WITH_PRIVATE_DETAILS)
       .eq('id', rideId)
       .eq('user_id', userId)
       .is('deleted_at', null)
@@ -471,8 +557,6 @@ export class RidesService {
         route_polyline: input.routePolyline,
         gps_quality: input.gpsQuality,
         max_lean_angle: input.maxLeanAngle,
-        purpose: input.purpose,
-        passenger: input.passenger,
       }),
       paused_duration_s: input.pausedDurationS,
       auto_paused_duration_s: input.autoPausedDurationS,
@@ -490,7 +574,7 @@ export class RidesService {
       .eq('user_id', userId)
       .in('status', ['recording', 'paused'])
       .is('deleted_at', null)
-      .select()
+      .select(RIDE_WITH_PRIVATE_DETAILS)
       .single();
 
     let row = data;
@@ -499,7 +583,7 @@ export class RidesService {
       if (error?.code === PG_ERROR.NOT_FOUND) {
         const { data: existing } = await this.supabase
           .from('rides')
-          .select('*')
+          .select(RIDE_WITH_PRIVATE_DETAILS)
           .eq('id', input.rideId)
           .eq('user_id', userId)
           .eq('status', 'completed')
@@ -528,7 +612,7 @@ export class RidesService {
             // idempotent, which is what MOT-140 added this branch for.
             .not('auto_ended_reason', 'is', null)
             .is('deleted_at', null)
-            .select()
+            .select(RIDE_WITH_PRIVATE_DETAILS)
             .single();
 
           if (reclaimed) {
@@ -558,7 +642,7 @@ export class RidesService {
       }
     }
 
-    const ride = this.mapRow(row);
+    const ride = await this.withEndAnswers(userId, this.mapRow(row), input);
     let triggeredMaintenanceTasks: { id: string; title: string; priority: string }[] = [];
 
     // MOT-140: claim-first odometer sync. A single conditional UPDATE flips
@@ -620,6 +704,29 @@ export class RidesService {
     });
 
     return { ride, triggeredMaintenanceTasks };
+  }
+
+  /**
+   * Store the purpose and passenger answers an end carries (an absent or unknown
+   * answer leaves the stored one alone). Logged rather than thrown: the ride is
+   * already completed, and a retry of the end is answered as an idempotent success
+   * that would never reach this write again.
+   */
+  private async withEndAnswers(userId: string, ride: Ride, input: EndRideInput): Promise<Ride> {
+    const answers = presentValues({
+      purpose: input.purpose,
+      passenger: input.passenger,
+    }) as RidePrivateDetailsPatch;
+    if (Object.keys(answers).length === 0) return ride;
+
+    const { details, error } = await this.upsertPrivateDetails(userId, ride.id, answers);
+    if (error || !details) {
+      this.logger.error(
+        `endRide: answers not stored for ride ${ride.id}: ${error?.message} (${error?.code})`,
+      );
+      return ride;
+    }
+    return this.withPrivateDetails(ride, details);
   }
 
   /** The bike's odometer unit; `current_mileage` and odometer readings are raw in it. */
@@ -706,7 +813,7 @@ export class RidesService {
     // Verify ride ownership
     const { data: ride, error: rideError } = await this.supabase
       .from('rides')
-      .select('id, status')
+      .select('id')
       .eq('id', input.rideId)
       .eq('user_id', userId)
       .in('status', ['recording', 'paused', 'completed'])
@@ -788,9 +895,10 @@ export class RidesService {
       this.throwWaypointUploadError(error, input);
     }
 
-    if ((ride as { status?: string }).status === RIDE_STATUS.COMPLETED) {
-      await this.markTrackUpdated(userId, input.rideId);
-    }
+    // After every stored batch, not only when the ownership read above said
+    // `completed`: the ride can end between that read and the insert, and stats
+    // computed at the end would then never see this batch.
+    await this.markTrackUpdated(userId, input.rideId);
 
     return accepted.length;
   }
@@ -798,8 +906,10 @@ export class RidesService {
   /**
    * A waypoint batch landed after the ride ended (the queue drains late, or the
    * rider came back to a system-ended ride), so stats computed from the shorter track
-   * are stale. Logged rather than thrown: the waypoints are already stored, and a
-   * retry of this upload would store nothing new and so never reach this point.
+   * are stale. The update matches only a ride that is completed NOW, so a batch for a
+   * ride still recording changes nothing (its end sets track_updated_at). Logged
+   * rather than thrown: the waypoints are already stored, and a retry of this upload
+   * would store nothing new and so never reach this point.
    */
   private async markTrackUpdated(userId: string, rideId: string): Promise<void> {
     const { error } = await this.supabase
@@ -808,7 +918,8 @@ export class RidesService {
         track_updated_at: new Date().toISOString(),
       } satisfies Pick<RideRecordingColumns, 'track_updated_at'>)
       .eq('id', rideId)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .eq('status', RIDE_STATUS.COMPLETED);
     if (error) {
       this.logger.error(
         `uploadWaypoints: track_updated_at bump failed for completed ride ${rideId}: ${error.message} (${error.code})`,
@@ -902,24 +1013,51 @@ export class RidesService {
       updates.is_public = input.isPublic;
       updates.visibility = input.isPublic ? 'public' : 'private';
     }
-    // Explicit null clears an answer the rider gave earlier.
-    if (input.purpose !== undefined) updates.purpose = input.purpose;
-    if (input.passenger !== undefined) updates.passenger = input.passenger;
+    // Explicit null clears an answer the rider gave earlier; undefined (absent, or a
+    // value this server does not know) leaves it alone.
+    const answers: RidePrivateDetailsPatch = {};
+    if (input.purpose !== undefined) answers.purpose = input.purpose;
+    if (input.passenger !== undefined) answers.passenger = input.passenger;
 
-    const { data, error } = await this.supabase
-      .from('rides')
-      .update(updates)
-      .eq('id', input.rideId)
-      .eq('user_id', userId)
-      .is('deleted_at', null)
-      .select()
-      .single();
+    // The ride row first, so the answers are written only for a ride that is the
+    // rider's own and not deleted (RLS on ride_private_details checks it too).
+    const { data, error } =
+      Object.keys(updates).length > 0
+        ? await this.supabase
+            .from('rides')
+            .update(updates)
+            .eq('id', input.rideId)
+            .eq('user_id', userId)
+            .is('deleted_at', null)
+            .select(RIDE_WITH_PRIVATE_DETAILS)
+            .single()
+        : await this.supabase
+            .from('rides')
+            .select(RIDE_WITH_PRIVATE_DETAILS)
+            .eq('id', input.rideId)
+            .eq('user_id', userId)
+            .is('deleted_at', null)
+            .single();
 
     if (error || !data) {
       this.logger.error(`updateRide failed: ${error?.message} (${error?.code})`);
       throw new BadRequestException('Failed to update ride');
     }
-    return this.mapRow(data);
+    const ride = this.mapRow(data);
+    if (Object.keys(answers).length === 0) return ride;
+
+    const { details, error: answersError } = await this.upsertPrivateDetails(
+      userId,
+      input.rideId,
+      answers,
+    );
+    if (answersError || !details) {
+      this.logger.error(
+        `updateRide: answers not stored for ride ${input.rideId}: ${answersError?.message} (${answersError?.code})`,
+      );
+      throw new InternalServerErrorException('Failed to update ride');
+    }
+    return this.withPrivateDetails(ride, details);
   }
 
   async deleteRide(userId: string, id: string): Promise<boolean> {
@@ -973,7 +1111,7 @@ export class RidesService {
       .eq('id', rideId)
       .eq('user_id', userId)
       .is('deleted_at', null)
-      .select()
+      .select(RIDE_WITH_PRIVATE_DETAILS)
       .single();
 
     if (error || !data) {
@@ -1054,7 +1192,7 @@ export class RidesService {
     let query = this.supabase
       .from('rides')
       .select(
-        'id, user_id, motorcycle_id, status, name, started_at, ended_at, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, route_polyline, route_thumbnail_uri, gps_quality, paused_duration_s, auto_paused_duration_s, mileage_applied, is_public, visibility, region, created_at, updated_at',
+        `id, user_id, motorcycle_id, status, name, started_at, ended_at, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, route_polyline, route_thumbnail_uri, gps_quality, paused_duration_s, auto_paused_duration_s, mileage_applied, is_public, visibility, region, end_source, created_at, updated_at, ${RIDE_PRIVATE_DETAILS_EMBED}`,
         { count: 'estimated' },
       )
       .eq('user_id', userId)
@@ -1120,7 +1258,7 @@ export class RidesService {
 
     const { data, error } = await this.supabase
       .from('rides')
-      .select('*')
+      .select(RIDE_WITH_PRIVATE_DETAILS)
       .eq('id', id)
       .eq('user_id', userId)
       .is('deleted_at', null)
@@ -1206,6 +1344,8 @@ export class RidesService {
     // covers selects that predate the visibility column in their column list.
     const visibility =
       (row.visibility as string) ?? ((row.is_public as boolean) ? 'public' : 'private');
+    // Present only on the owner's reads that embed ride_private_details.
+    const details = privateDetailsOf(row);
     return {
       id: row.id as string,
       userId: row.user_id as string,
@@ -1236,10 +1376,10 @@ export class RidesService {
       visibility,
       region: (row.region as string) ?? undefined,
       routeThumbnailUri: (row.route_thumbnail_uri as string) ?? undefined,
-      timeZone: (row.time_zone as RideRecordingColumns['time_zone']) ?? undefined,
+      timeZone: details?.time_zone ?? undefined,
       endSource: (row.end_source as RideRecordingColumns['end_source']) ?? undefined,
-      purpose: (row.purpose as RideRecordingColumns['purpose']) ?? undefined,
-      passenger: (row.passenger as RideRecordingColumns['passenger']) ?? undefined,
+      purpose: details?.purpose ?? undefined,
+      passenger: details?.passenger ?? undefined,
       createdAt: row.created_at as string,
       updatedAt: row.updated_at as string,
     };

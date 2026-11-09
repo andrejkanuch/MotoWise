@@ -646,10 +646,18 @@ describe('RidesService', () => {
     const rpcCalls = (name: string) =>
       mockUserClient.rpc.mock.calls.filter((call: unknown[]) => call[0] === name);
 
-    it('stores the time zone the device reported at start', async () => {
+    const privateDetailsQueries = () =>
+      queriesFrom(mockUserClient._calls).filter((q) => q.table === 'ride_private_details');
+    const upsertOf = (query: { ops: LoggedCall[] } | undefined) =>
+      query?.ops.find((op) => op.method === 'upsert')?.args;
+
+    // The rider's zone and answers live in the owner-only ride_private_details
+    // table: rides is readable by any signed-in rider for a public or unlisted ride.
+    it('stores the time zone the device reported at start in ride_private_details, not rides', async () => {
       mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
       mockUserClient._pushResult({ data: [], error: null });
-      mockUserClient._pushResult({ data: { ...fakeRow, time_zone: 'Europe/Madrid' } });
+      mockUserClient._pushResult({ data: fakeRow }); // ride insert
+      mockUserClient._pushResult({ data: null, error: null }); // details upsert
 
       const ride = await service.startRide(userId, {
         rideId: 'ride-123',
@@ -657,27 +665,64 @@ describe('RidesService', () => {
         timeZone: 'Europe/Madrid',
       });
 
-      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
-        expect.objectContaining({ time_zone: 'Europe/Madrid' }),
-      );
+      expect(mockUserClient._chain.insert.mock.calls[0][0]).not.toHaveProperty('time_zone');
+      const details = privateDetailsQueries();
+      expect(details).toHaveLength(1);
+      expect(upsertOf(details[0])).toEqual([
+        { ride_id: 'ride-123', user_id: userId, time_zone: 'Europe/Madrid' },
+        { onConflict: 'ride_id' },
+      ]);
       expect(ride.timeZone).toBe('Europe/Madrid');
     });
 
-    it('starts the ride with a null time zone when the schema dropped a non-IANA one', async () => {
+    it('starts the ride without a details write when the schema dropped a non-IANA zone', async () => {
       mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
       mockUserClient._pushResult({ data: [], error: null });
       mockUserClient._pushResult({ data: fakeRow });
 
       // "GMT+1" reaches the service as null (StartRideInputSchema).
-      await service.startRide(userId, {
+      const ride = await service.startRide(userId, {
         rideId: 'ride-123',
         startedAt: '2026-03-22T14:00:00Z',
         timeZone: null,
       });
 
-      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
-        expect.objectContaining({ time_zone: null }),
-      );
+      expect(ride.id).toBe('ride-123');
+      expect(privateDetailsQueries()).toEqual([]);
+    });
+
+    it('a failed time-zone write never fails the start', async () => {
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
+      mockUserClient._pushResult({ data: [], error: null });
+      mockUserClient._pushResult({ data: fakeRow });
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } });
+
+      const ride = await service.startRide(userId, {
+        rideId: 'ride-123',
+        startedAt: '2026-03-22T14:00:00Z',
+        timeZone: 'Europe/Madrid',
+      });
+
+      expect(ride.id).toBe('ride-123');
+      expect(ride.timeZone).toBeUndefined();
+    });
+
+    it('a replayed start returns the stored time zone and writes no details again', async () => {
+      mockUserClient._pushResult({
+        data: {
+          ...fakeRow,
+          ride_private_details: { time_zone: 'Europe/Madrid', purpose: null, passenger: null },
+        },
+      });
+
+      const ride = await service.startRide(userId, {
+        rideId: 'ride-123',
+        startedAt: '2026-03-22T14:00:00Z',
+        timeZone: 'Europe/Madrid',
+      });
+
+      expect(ride.timeZone).toBe('Europe/Madrid');
+      expect(privateDetailsQueries()).toEqual([]);
     });
 
     it('an app auto-end with no speed fields keeps the stored stats and still counts', async () => {
@@ -750,12 +795,60 @@ describe('RidesService', () => {
       expect(patch).not.toHaveProperty('passenger');
     });
 
-    it('writes purpose and passenger when the end carries them', async () => {
+    it('writes purpose and passenger to ride_private_details when the end carries them', async () => {
+      mockUserClient._pushResult({
+        data: {
+          ...completedRow,
+          ride_private_details: { time_zone: 'Europe/Madrid', purpose: null, passenger: null },
+        },
+      }); // completion UPDATE
+      mockUserClient._pushResult({
+        data: { time_zone: 'Europe/Madrid', purpose: 'commute', passenger: false },
+      }); // details upsert
+
+      const result = await service.endRide(userId, {
+        ...endBase,
+        purpose: 'commute',
+        passenger: false,
+      });
+
+      expect(updateCall(0)).not.toHaveProperty('purpose');
+      expect(updateCall(0)).not.toHaveProperty('passenger');
+      const details = privateDetailsQueries();
+      expect(details).toHaveLength(1);
+      expect(upsertOf(details[0])).toEqual([
+        { ride_id: 'ride-123', user_id: userId, purpose: 'commute', passenger: false },
+        { onConflict: 'ride_id' },
+      ]);
+      expect(result.ride).toMatchObject({
+        timeZone: 'Europe/Madrid',
+        purpose: 'commute',
+        passenger: false,
+      });
+    });
+
+    it('an end without answers writes no details and keeps the stored zone on the ride', async () => {
+      mockUserClient._pushResult({
+        data: {
+          ...completedRow,
+          ride_private_details: { time_zone: 'Europe/Madrid', purpose: null, passenger: null },
+        },
+      });
+
+      const result = await service.endRide(userId, { ...endBase, purpose: null });
+
+      expect(privateDetailsQueries()).toEqual([]);
+      expect(result.ride.timeZone).toBe('Europe/Madrid');
+    });
+
+    it('a failed answer write does not fail the end', async () => {
       mockUserClient._pushResult({ data: completedRow });
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } });
 
-      await service.endRide(userId, { ...endBase, purpose: 'commute', passenger: false });
+      const result = await service.endRide(userId, { ...endBase, purpose: 'tour' });
 
-      expect(updateCall(0)).toMatchObject({ purpose: 'commute', passenger: false });
+      expect(result.ride.status).toBe('completed');
+      expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
     it('applies odometer at end in the bike unit through the RPC, with no GPS-delta update', async () => {
@@ -797,20 +890,56 @@ describe('RidesService', () => {
       expect(rpcCalls('log_ride_end_odometer')).toEqual([]);
     });
 
-    it('updateRide writes purpose and passenger, and null clears them', async () => {
-      mockUserClient._pushResult({ data: { ...fakeRow, purpose: 'tour', passenger: true } });
+    it('updateRide writes purpose and passenger to ride_private_details, and null clears them', async () => {
+      mockUserClient._pushResult({ data: fakeRow }); // own-ride lookup (nothing on rides to change)
+      mockUserClient._pushResult({ data: { time_zone: null, purpose: 'tour', passenger: true } });
 
       const ride = await service.updateRide(userId, {
         rideId: 'ride-123',
         purpose: 'tour',
         passenger: true,
       });
-      expect(updateCall(0)).toEqual({ purpose: 'tour', passenger: true });
+      expect(mockUserClient._chain.update).not.toHaveBeenCalled();
+      expect(upsertOf(privateDetailsQueries()[0])).toEqual([
+        { ride_id: 'ride-123', user_id: userId, purpose: 'tour', passenger: true },
+        { onConflict: 'ride_id' },
+      ]);
       expect(ride).toMatchObject({ purpose: 'tour', passenger: true });
 
       mockUserClient._pushResult({ data: fakeRow });
-      await service.updateRide(userId, { rideId: 'ride-123', purpose: null });
-      expect(updateCall(1)).toEqual({ purpose: null });
+      mockUserClient._pushResult({ data: { time_zone: null, purpose: null, passenger: true } });
+      const cleared = await service.updateRide(userId, { rideId: 'ride-123', purpose: null });
+      expect(upsertOf(privateDetailsQueries()[1])).toEqual([
+        { ride_id: 'ride-123', user_id: userId, purpose: null },
+        { onConflict: 'ride_id' },
+      ]);
+      expect(cleared.purpose).toBeUndefined();
+    });
+
+    it('updateRide leaves the answers alone when the input carries none', async () => {
+      mockUserClient._pushResult({ data: { ...fakeRow, name: 'Loop' } });
+
+      await service.updateRide(userId, { rideId: 'ride-123', name: 'Loop' });
+
+      expect(privateDetailsQueries()).toEqual([]);
+    });
+
+    it('updateRide surfaces a failed answer write as a server error', async () => {
+      mockUserClient._pushResult({ data: fakeRow });
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } });
+
+      await expect(
+        service.updateRide(userId, { rideId: 'ride-123', passenger: true }),
+      ).rejects.toThrow(InternalServerErrorException);
+    });
+
+    it("updateRide never writes answers for a ride that is not the rider's", async () => {
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
+
+      await expect(
+        service.updateRide(userId, { rideId: 'ride-123', purpose: 'tour' }),
+      ).rejects.toThrow(BadRequestException);
+      expect(privateDetailsQueries()).toEqual([]);
     });
 
     it('marks a ride closed at the next start as stale_on_start', async () => {
@@ -835,6 +964,13 @@ describe('RidesService', () => {
       });
     });
 
+    const trackBump = expect.arrayContaining([
+      { method: 'update', args: [{ track_updated_at: expect.any(String) }] },
+      { method: 'eq', args: ['id', 'ride-123'] },
+      { method: 'eq', args: ['user_id', userId] },
+      { method: 'eq', args: ['status', 'completed'] },
+    ]);
+
     it('a waypoint upload to a completed ride marks its track as changed', async () => {
       mockUserClient._pushResult({ data: { id: 'ride-123', status: 'completed' } });
       mockUserClient._pushResult({ count: 100 });
@@ -848,25 +984,50 @@ describe('RidesService', () => {
 
       const bump = queriesFrom(mockUserClient._calls).at(-1);
       expect(bump?.table).toBe('rides');
-      expect(bump?.ops).toEqual(
-        expect.arrayContaining([
-          { method: 'update', args: [{ track_updated_at: expect.any(String) }] },
-          { method: 'eq', args: ['id', 'ride-123'] },
-          { method: 'eq', args: ['user_id', userId] },
-        ]),
-      );
+      expect(bump?.ops).toEqual(trackBump);
     });
 
-    it('a waypoint upload to a recording ride leaves the ride row alone', async () => {
+    // The ownership read said `recording`, but the ride ended between that read and
+    // the waypoint insert. Deciding from the snapshot skipped the bump, so stats
+    // computed at the end never saw this batch. The bump runs after every stored
+    // batch and is conditional on the ride being completed at that moment, so a
+    // still-recording ride's row is not touched (the update matches nothing).
+    it('bumps the track of a ride that completed after the ownership read said recording', async () => {
       mockUserClient._pushResult({ data: { id: 'ride-123', status: 'recording' } });
       mockUserClient._pushResult({ count: 100 });
-      mockUserClient._pushResult({ data: null, error: null });
+      mockUserClient._pushResult({ data: null, error: null }); // upsert
+      mockUserClient._pushResult({ data: null, error: null }); // conditional bump
 
       await service.uploadWaypoints(userId, {
         rideId: 'ride-123',
         waypoints: [{ recordedAt: '2026-03-22T14:10:00Z', latitude: 45, longitude: 14 }],
       });
 
+      const queries = queriesFrom(mockUserClient._calls);
+      const upsertAt = queries.findIndex(
+        (q) => q.table === 'ride_waypoints' && q.ops.some((op) => op.method === 'upsert'),
+      );
+      const bumpAt = queries.findIndex(
+        (q) => q.table === 'rides' && q.ops.some((op) => op.method === 'update'),
+      );
+      expect(bumpAt).toBeGreaterThan(upsertAt);
+      expect(upsertAt).toBeGreaterThanOrEqual(0);
+      expect(queries[bumpAt].ops).toEqual(trackBump);
+      // The only write to rides is that conditional bump.
+      expect(mockUserClient._chain.update).toHaveBeenCalledTimes(1);
+    });
+
+    it('a failed waypoint insert never bumps the track', async () => {
+      mockUserClient._pushResult({ data: { id: 'ride-123', status: 'completed' } });
+      mockUserClient._pushResult({ count: 100 });
+      mockUserClient._pushResult({ data: null, error: { code: '22003', message: 'out of range' } });
+
+      await expect(
+        service.uploadWaypoints(userId, {
+          rideId: 'ride-123',
+          waypoints: [{ recordedAt: '2026-03-22T16:00:00Z', latitude: 45, longitude: 14 }],
+        }),
+      ).rejects.toThrow(BadRequestException);
       expect(mockUserClient._chain.update).not.toHaveBeenCalled();
     });
 
@@ -1323,6 +1484,44 @@ describe('RidesService', () => {
       expect(result.pageInfo.hasPreviousPage).toBe(false);
     });
 
+    it("returns the owner's zone, end source and answers in one query", async () => {
+      mockUserClient._pushResult({
+        data: [
+          {
+            ...fakeRow,
+            end_source: 'client_auto',
+            ride_private_details: { time_zone: 'Europe/Vienna', purpose: 'tour', passenger: true },
+          },
+          { ...fakeRow, id: 'ride-456', end_source: null, ride_private_details: null },
+        ],
+        count: 2,
+      });
+
+      const result = await service.myRides(userId, 20);
+
+      expect(result.edges.map((edge) => edge.node)).toEqual([
+        expect.objectContaining({
+          id: 'ride-123',
+          timeZone: 'Europe/Vienna',
+          endSource: 'client_auto',
+          purpose: 'tour',
+          passenger: true,
+        }),
+        expect.objectContaining({
+          id: 'ride-456',
+          timeZone: undefined,
+          endSource: undefined,
+          purpose: undefined,
+          passenger: undefined,
+        }),
+      ]);
+      // One query: the details are embedded, not fetched per ride.
+      expect(mockUserClient.from).toHaveBeenCalledTimes(1);
+      const columns = String(mockUserClient._chain.select.mock.calls[0][0]);
+      expect(columns).toContain('end_source');
+      expect(columns).toContain('ride_private_details(time_zone, purpose, passenger)');
+    });
+
     it('should return empty result', async () => {
       mockUserClient._pushResult({ data: [], count: 0 });
 
@@ -1370,6 +1569,22 @@ describe('RidesService', () => {
       expect(result.userId).toBe(userId);
       expect(mockUserClient._chain.eq).toHaveBeenCalledWith('id', 'ride-123');
       expect(mockUserClient._chain.eq).toHaveBeenCalledWith('user_id', userId);
+    });
+
+    it("returns the owner's zone and answers from ride_private_details", async () => {
+      mockUserClient._pushResult({
+        data: {
+          ...fakeRow,
+          ride_private_details: [{ time_zone: 'Asia/Tokyo', purpose: 'errand', passenger: false }],
+        },
+      });
+
+      const result = await service.findById(userId, 'ride-123');
+
+      expect(result).toMatchObject({ timeZone: 'Asia/Tokyo', purpose: 'errand', passenger: false });
+      expect(String(mockUserClient._chain.select.mock.calls[0][0])).toContain(
+        'ride_private_details(time_zone, purpose, passenger)',
+      );
     });
 
     it('should throw NotFoundException when not found', async () => {

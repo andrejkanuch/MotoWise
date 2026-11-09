@@ -9,6 +9,8 @@ import type { RideStop } from './compute/stops';
 
 export const RIDE_STATS_TABLE = 'ride_stats';
 export const RIDE_TRACKS_TABLE = 'ride_tracks';
+/** Owner-only ride answers (device time zone, purpose, passenger), keyed by ride_id. */
+export const RIDE_PRIVATE_DETAILS_TABLE = 'ride_private_details';
 
 export const INPUT_SOURCE = {
   WAYPOINTS: 'waypoints',
@@ -17,7 +19,10 @@ export const INPUT_SOURCE = {
 } as const;
 export type InputSource = (typeof INPUT_SOURCE)[keyof typeof INPUT_SOURCE];
 
-/** The `rides` columns the compute reads. */
+/**
+ * The ride the compute reads: `rides` columns plus the device `time_zone` from
+ * `ride_private_details` (null when the ride has no row there).
+ */
 export interface RideForStats {
   id: string;
   user_id: string;

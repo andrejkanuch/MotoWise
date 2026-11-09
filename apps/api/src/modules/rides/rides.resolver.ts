@@ -163,15 +163,10 @@ export class RidesResolver {
   }
 
   // ==========================================
-  // Owner-only fields: where and how the rider rode. They resolve only for the
-  // ride's owner and are null on public or shared reads, so a public ride link
-  // never discloses places, the rider's time zone or their answers.
+  // Owner-only fields: how the rider rode. They resolve only for the ride's owner
+  // and are null on public or shared reads, so a public ride link never discloses
+  // the rider's time zone, how the ride ended or their answers.
   // ==========================================
-
-  @ResolveField('region', () => String, { nullable: true })
-  region(@Parent() ride: Ride, @CurrentUser() user?: AuthUser): string | null {
-    return ownerOnly(ride, user, ride.region);
-  }
 
   @ResolveField('timeZone', () => String, { nullable: true })
   timeZone(@Parent() ride: Ride, @CurrentUser() user?: AuthUser): string | null {

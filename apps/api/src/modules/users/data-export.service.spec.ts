@@ -102,4 +102,29 @@ describe('DataExportService export contents', () => {
       },
     ]);
   });
+
+  it("includes the rider's private ride details (time zone and answers)", async () => {
+    const detailsRow = {
+      ride_id: 'ride-1',
+      user_id: USER_ID,
+      time_zone: 'Europe/Bratislava',
+      purpose: 'commute',
+      passenger: false,
+    };
+    const admin = createAdminClient({ ride_private_details: [detailsRow] });
+    const service = new DataExportService(
+      {} as never,
+      admin.client as never,
+      { sendDataExportReady: vi.fn().mockResolvedValue(undefined) } as never,
+    );
+
+    await (
+      service as unknown as {
+        compileAndSendExport: (u: string, e: string, id: string) => Promise<void>;
+      }
+    ).compileAndSendExport(USER_ID, 'rider@example.com', 'export-3');
+
+    const exported = JSON.parse(admin.uploads[0].body);
+    expect(exported.ridePrivateDetails).toEqual([detailsRow]);
+  });
 });

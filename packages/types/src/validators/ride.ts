@@ -33,7 +33,7 @@ export const RideEndSourceSchema = z.enum([
   RIDE_END_SOURCE.NEW_RIDE_SAVE,
 ]);
 
-/** Optional purpose a rider picks after a ride (the `rides.purpose` CHECK list). */
+/** Optional purpose a rider picks after a ride (the `ride_private_details.purpose` CHECK list). */
 export const RIDE_PURPOSE = {
   LEISURE: 'leisure',
   COMMUTE: 'commute',
@@ -76,6 +76,14 @@ export function isIanaTimeZone(value: string): boolean {
  * sync queue never retries BAD_REQUEST, so a rejection would cost the whole ride.
  */
 const tolerated = <T extends z.ZodType>(schema: T) => schema.nullable().optional().catch(null);
+
+/**
+ * Like `tolerated`, for an edit of a stored answer: an unknown value (a newer app's
+ * option) becomes undefined, so the stored answer is left as it is. Only an explicit
+ * null clears it.
+ */
+const toleratedEdit = <T extends z.ZodType>(schema: T) =>
+  schema.nullable().optional().catch(undefined);
 
 // --- Start Ride ---
 
@@ -202,8 +210,8 @@ export const UpdateRideInputSchema = z.object({
   name: z.string().max(200).nullable().optional(),
   mileageApplied: z.boolean().optional(),
   isPublic: z.boolean().optional(),
-  purpose: tolerated(RidePurposeSchema),
-  passenger: tolerated(z.boolean()),
+  purpose: toleratedEdit(RidePurposeSchema),
+  passenger: toleratedEdit(z.boolean()),
 });
 export type UpdateRideInput = z.infer<typeof UpdateRideInputSchema>;
 

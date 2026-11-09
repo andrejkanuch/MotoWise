@@ -11,6 +11,7 @@ import { isValidIanaZone } from './compute/time-zone';
 import { yieldToEventLoop } from './compute/track';
 import { fetchRideWeather, isWeatherEnabled, WEATHER_API_KEY_ENV } from './compute/weather';
 import {
+  RIDE_PRIVATE_DETAILS_TABLE,
   RIDE_STATS_TABLE,
   RIDE_TRACKS_TABLE,
   type RideForStats,
@@ -37,11 +38,13 @@ export const STALE_COUNT_RPC = 'ride_stats_stale_count';
 export const RIDE_STATS_SWEEP_BATCH_SIZE = 10;
 /** A ride still stale this long after it changed is reported. */
 const STALE_ALERT_AFTER_MS = 60 * 60 * 1000;
-/** Recent rides read to find a rider's latest valid zone. */
+/** Recent ride_private_details rows read to find a rider's latest valid zone. */
 const RIDER_ZONE_LOOKBACK = 5;
 
 const RIDE_COLUMNS =
-  'id, user_id, motorcycle_id, status, deleted_at, started_at, ended_at, distance_m, route_polyline, time_zone';
+  'id, user_id, motorcycle_id, status, deleted_at, started_at, ended_at, distance_m, route_polyline';
+
+type RideRow = Omit<RideForStats, 'time_zone'>;
 
 export const COMPUTE_RIDE_RESULT = {
   WRITTEN: 'written',
@@ -84,20 +87,26 @@ export class RideStatsService {
   ) {}
 
   async computeRide(rideId: string): Promise<ComputeRideResult> {
-    const { data: ride, error } = await this.supabaseAdmin
+    // Stamped before anything is read: a track_updated_at bump that lands while
+    // this compute runs is then later than computed_at, so the sweep's
+    // `track_updated_at > computed_at` rule picks the ride up again.
+    const computedAt = new Date().toISOString();
+    const { data: row, error } = await this.supabaseAdmin
       .from('rides')
       .select(RIDE_COLUMNS)
       .eq('id', rideId)
-      .maybeSingle<RideForStats>();
+      .maybeSingle<RideRow>();
     if (error) throw new Error(`ride ${rideId} read failed: ${error.message}`);
-    if (!ride || ride.status !== RIDE_STATUS.COMPLETED || ride.deleted_at !== null) {
+    if (!row || row.status !== RIDE_STATUS.COMPLETED || row.deleted_at !== null) {
       return COMPUTE_RIDE_RESULT.NOT_ELIGIBLE;
     }
 
-    const [trackPoints, bikeType] = await Promise.all([
+    const [deviceZone, trackPoints, bikeType] = await Promise.all([
+      this.loadDeviceZone(rideId),
       this.loadTrackPoints(rideId),
-      this.loadBikeType(ride.motorcycle_id),
+      this.loadBikeType(row.motorcycle_id),
     ]);
+    const ride: RideForStats = { ...row, time_zone: deviceZone };
 
     const outcome = await computeRideStats(
       { ride, trackPoints, bikeType },
@@ -112,18 +121,12 @@ export class RideStatsService {
     if (outcome.track) {
       const { error: trackError } = await this.supabaseAdmin
         .from(RIDE_TRACKS_TABLE)
-        .upsert(
-          { ...outcome.track, built_at: new Date().toISOString() },
-          { onConflict: 'ride_id' },
-        );
+        .upsert({ ...outcome.track, built_at: computedAt }, { onConflict: 'ride_id' });
       if (trackError) throw new Error(`ride_tracks upsert failed: ${trackError.message}`);
     }
     const { error: statsError } = await this.supabaseAdmin
       .from(RIDE_STATS_TABLE)
-      .upsert(
-        { ...outcome.stats, computed_at: new Date().toISOString() },
-        { onConflict: 'ride_id' },
-      );
+      .upsert({ ...outcome.stats, computed_at: computedAt }, { onConflict: 'ride_id' });
     if (statsError) throw new Error(`ride_stats upsert failed: ${statsError.message}`);
 
     if (outcome.start && ride.ended_at && isWeatherEnabled(this.config)) {
@@ -217,13 +220,25 @@ export class RideStatsService {
     return data?.type ?? null;
   }
 
+  /** The device zone the client sent for the ride; null when it has no ride_private_details row. */
+  private async loadDeviceZone(rideId: string): Promise<string | null> {
+    const { data, error } = await this.supabaseAdmin
+      .from(RIDE_PRIVATE_DETAILS_TABLE)
+      .select('time_zone')
+      .eq('ride_id', rideId)
+      .maybeSingle<{ time_zone: string | null }>();
+    if (error) throw new Error(`ride ${rideId} private details read failed: ${error.message}`);
+    return data?.time_zone ?? null;
+  }
+
+  /** The rider's latest valid device zone, newest ride_private_details row first. */
   private async loadRiderZone(userId: string): Promise<string | null> {
     const { data, error } = await this.supabaseAdmin
-      .from('rides')
+      .from(RIDE_PRIVATE_DETAILS_TABLE)
       .select('time_zone')
       .eq('user_id', userId)
       .not('time_zone', 'is', null)
-      .order('started_at', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(RIDER_ZONE_LOOKBACK);
     if (error) throw new Error(`rider zone read failed: ${error.message}`);
     const zones = ((data as Array<{ time_zone: string | null }> | null) ?? []).map(

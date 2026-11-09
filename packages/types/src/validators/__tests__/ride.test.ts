@@ -444,10 +444,31 @@ describe('ride recording additions', () => {
     expect(parsed.odometerAtEnd).toBeUndefined();
   });
 
-  it('accepts purpose and passenger on update, nulling an unknown purpose', () => {
+  it('accepts purpose and passenger on update', () => {
     expect(
       UpdateRideInputSchema.parse({ rideId: validUuid, purpose: 'tour', passenger: false }),
     ).toMatchObject({ purpose: 'tour', passenger: false });
-    expect(UpdateRideInputSchema.parse({ rideId: validUuid, purpose: 'nope' }).purpose).toBeNull();
+  });
+
+  // An update that carries a value this server does not know (a newer app's
+  // purpose) must leave the stored answer alone; only an explicit null clears it.
+  it('leaves an unknown purpose or passenger on update as undefined (stored value unchanged)', () => {
+    const parsed = UpdateRideInputSchema.parse({
+      rideId: validUuid,
+      purpose: 'future_value',
+      passenger: 'future_value',
+    });
+    expect(parsed.purpose).toBeUndefined();
+    expect(parsed.passenger).toBeUndefined();
+  });
+
+  it('keeps an explicit null on update so it clears the stored answer', () => {
+    const parsed = UpdateRideInputSchema.parse({
+      rideId: validUuid,
+      purpose: null,
+      passenger: null,
+    });
+    expect(parsed.purpose).toBeNull();
+    expect(parsed.passenger).toBeNull();
   });
 });

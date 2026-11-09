@@ -2,9 +2,13 @@ import { vi } from 'vitest';
 import type { TrackPointsRow } from '../../../common/track-points';
 import { drive, type Leg, mountainLoopLegs } from '../compute/__fixtures__/roads';
 import { STALE_COUNT_RPC, STALE_RIDES_RPC } from '../ride-stats.service';
-import type { RideForStats } from '../ride-stats.types';
+import { RIDE_PRIVATE_DETAILS_TABLE, type RideForStats } from '../ride-stats.types';
 
-/** Test doubles for the ride-stats service: a ride row, a track and a service-role client fake. */
+/**
+ * Test doubles for the ride-stats service: a ride row, a track and a service-role client fake.
+ * A fixture ride's `time_zone` is served from `ride_private_details` (null = no row there),
+ * never from `rides`.
+ */
 
 const PLACES_READY = {
   reference_ready: true,
@@ -50,6 +54,19 @@ interface FakeOptions {
   staleCount?: number;
   places?: unknown;
   throwFor?: string[];
+  /** Runs after the ride's track points are read, before the RPC returns them. */
+  afterTrackRead?: (rideId: string) => Promise<void>;
+}
+
+function rideRow(ride: RideForStats): Omit<RideForStats, 'time_zone'> {
+  const { time_zone: _zone, ...row } = ride;
+  return row;
+}
+
+function privateDetails(ride: RideForStats) {
+  return ride.time_zone === null
+    ? null
+    : { ride_id: ride.id, user_id: ride.user_id, time_zone: ride.time_zone };
 }
 
 /** Service-role client fake: rides by id, track points and the helper RPCs. */
@@ -69,7 +86,12 @@ export function fakeAdmin(options: FakeOptions) {
       if (table === 'rides') {
         const id = filters.id as string;
         if (options.throwFor?.includes(id)) return { data: null, error: { message: 'boom' } };
-        return { data: options.rides[id] ?? null, error: null };
+        const found = options.rides[id];
+        return { data: found ? rideRow(found) : null, error: null };
+      }
+      if (table === RIDE_PRIVATE_DETAILS_TABLE) {
+        const found = options.rides[filters.ride_id as string];
+        return { data: found ? privateDetails(found) : null, error: null };
       }
       if (table === 'motorcycles') return { data: { type: 'sportbike' }, error: null };
       return { data: null, error: null };
@@ -79,7 +101,14 @@ export function fakeAdmin(options: FakeOptions) {
       return { error: null };
     };
     // biome-ignore lint/suspicious/noThenProperty: mimics a thenable PostgREST builder
-    chain.then = (resolve: (v: unknown) => void) => resolve({ data: [], error: null });
+    chain.then = (resolve: (v: unknown) => void) => {
+      if (table !== RIDE_PRIVATE_DETAILS_TABLE) return resolve({ data: [], error: null });
+      const rows = Object.values(options.rides)
+        .filter((r) => r.user_id === filters.user_id)
+        .map(privateDetails)
+        .filter((r) => r !== null);
+      return resolve({ data: rows, error: null });
+    };
     return chain;
   });
 
@@ -87,6 +116,7 @@ export function fakeAdmin(options: FakeOptions) {
     rpcCalls.push({ name, args });
     if (name === 'ride_track_points') {
       const row = options.points?.[args.p_ride_id as string];
+      await options.afterTrackRead?.(args.p_ride_id as string);
       return { data: row ? [row] : [], error: null };
     }
     if (name === 'ride_stats_places') return { data: options.places ?? PLACES_READY, error: null };
