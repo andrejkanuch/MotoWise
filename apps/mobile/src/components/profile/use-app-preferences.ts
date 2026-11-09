@@ -5,7 +5,6 @@ import {
   SUPPORTED_LOCALES,
   type SupportedLocale,
 } from '@motovault/types';
-import { useColorScheme } from 'nativewind';
 import { useTranslation } from 'react-i18next';
 import { Alert, Linking } from 'react-native';
 import { useUpdatePreference } from '../../hooks/use-profile-data';
@@ -17,6 +16,7 @@ import {
   languageControl,
   resolveDeviceLocale,
 } from '../../i18n/locale';
+import { applyColorScheme } from '../../lib/apply-color-scheme';
 import { COLOR_SCHEME, type ColorScheme, useAuthStore } from '../../stores/auth.store';
 import { MAP_ORIENTATIONS, type MapOrientation } from '../../utils/map-orientation';
 import { APP_PREFERENCE_KEY, type AppPreferenceKey } from './constants';
@@ -75,7 +75,6 @@ export type AppPreference = {
 export function useAppPreferences(): Record<AppPreferenceKey, AppPreference> {
   const { t } = useTranslation();
   const store = useAuthStore();
-  const { setColorScheme } = useColorScheme();
   const updatePreference = useUpdatePreference();
 
   const build = (
@@ -138,7 +137,7 @@ export function useAppPreferences(): Record<AppPreferenceKey, AppPreference> {
       (value) => {
         const choice = value as ColorScheme;
         store.setColorScheme(choice);
-        setColorScheme(choice === COLOR_SCHEME.SYSTEM ? 'unspecified' : choice);
+        applyColorScheme(choice === COLOR_SCHEME.SYSTEM ? 'unspecified' : choice);
       },
     ),
     [APP_PREFERENCE_KEY.UNITS]: build(

@@ -1,0 +1,20 @@
+diff --git a/React/CoreModules/RCTAppearance.mm b/React/CoreModules/RCTAppearance.mm
+index d25d9f64e6bd4f0f54229df0e14aad864f8d10aa..cc1d84d72dc4bb7785ca1dd7a434d65b3c85f980 100644
+--- a/React/CoreModules/RCTAppearance.mm
++++ b/React/CoreModules/RCTAppearance.mm
+@@ -113,8 +113,13 @@ - (dispatch_queue_t)methodQueue
+ {
+   UIUserInterfaceStyle userInterfaceStyle = [RCTConvert UIUserInterfaceStyle:style];
+   NSMutableArray<UIWindow *> *windows = [NSMutableArray new];
+-  for (UIWindowScene *scene in RCTSharedApplication().connectedScenes) {
+-    [windows addObjectsFromArray:scene.windows];
++  for (UIScene *scene in RCTSharedApplication().connectedScenes) {
++    // A CarPlay scene (CPTemplateApplicationScene) is not a UIWindowScene and has
++    // no `windows`; asking it throws "unrecognized selector" and kills the app.
++    if (![scene isKindOfClass:[UIWindowScene class]]) {
++      continue;
++    }
++    [windows addObjectsFromArray:((UIWindowScene *)scene).windows];
+   }
+ 
+   for (UIWindow *window in windows) {

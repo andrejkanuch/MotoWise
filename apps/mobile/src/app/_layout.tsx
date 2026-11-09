@@ -93,6 +93,7 @@ import {
   reconcileConsent,
   storedTimestampFor,
 } from '../lib/analytics-consent';
+import { applyColorScheme } from '../lib/apply-color-scheme';
 import {
   AUTH_HYDRATION_TIMEOUT_MESSAGE,
   AUTH_HYDRATION_TIMEOUT_MS,
@@ -511,14 +512,13 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
 function RootLayout() {
   const { setSession } = useAuthStore();
 
-  // Re-apply the rider's stored theme (App settings → Theme) on every launch;
-  // nativewind keeps the choice only in memory, so without this a picked
-  // Light/Dark falls back to System after a restart.
+  // Re-apply the stored theme (App settings → Theme) on launch and on change —
+  // only then: see applyColorScheme for the CarPlay crash a per-render call caused.
   const storedColorScheme = useAuthStore((s) => s.colorScheme);
-  const { colorScheme: resolvedScheme, setColorScheme } = useNativewindColorScheme();
+  const { colorScheme: resolvedScheme } = useNativewindColorScheme();
   useEffect(() => {
-    setColorScheme(storedColorScheme === COLOR_SCHEME.SYSTEM ? 'unspecified' : storedColorScheme);
-  }, [storedColorScheme, setColorScheme]);
+    applyColorScheme(storedColorScheme === COLOR_SCHEME.SYSTEM ? 'unspecified' : storedColorScheme);
+  }, [storedColorScheme]);
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
   // Tracks the last identified user so a null session is only treated as a
   // logout when we actually had one — see onAuthStateChange below.

@@ -1,5 +1,5 @@
 const mockMutate = jest.fn();
-const mockSetNativeColorScheme = jest.fn();
+const mockApplyColorScheme = jest.fn();
 const mockStore = {
   locale: 'en',
   colorScheme: 'system',
@@ -14,8 +14,8 @@ const mockStore = {
 };
 
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
-jest.mock('nativewind', () => ({
-  useColorScheme: () => ({ setColorScheme: mockSetNativeColorScheme }),
+jest.mock('@/lib/apply-color-scheme', () => ({
+  applyColorScheme: (scheme: string) => mockApplyColorScheme(scheme),
 }));
 jest.mock('@/hooks/use-profile-data', () => ({
   useUpdatePreference: () => ({ mutate: mockMutate }),
@@ -58,13 +58,13 @@ describe('useAppPreferences', () => {
   it('theme: System hands the native scheme back to the OS', async () => {
     await select(APP_PREFERENCE_KEY.THEME, COLOR_SCHEME.SYSTEM);
     expect(mockStore.setColorScheme).toHaveBeenCalledWith(COLOR_SCHEME.SYSTEM);
-    expect(mockSetNativeColorScheme).toHaveBeenCalledWith('unspecified');
+    expect(mockApplyColorScheme).toHaveBeenCalledWith('unspecified');
     expect(mockMutate).not.toHaveBeenCalled();
   });
 
   it('theme: an explicit scheme is passed through', async () => {
     await select(APP_PREFERENCE_KEY.THEME, COLOR_SCHEME.DARK);
-    expect(mockSetNativeColorScheme).toHaveBeenCalledWith(COLOR_SCHEME.DARK);
+    expect(mockApplyColorScheme).toHaveBeenCalledWith(COLOR_SCHEME.DARK);
   });
 
   it('language: device-local only, no server write', async () => {

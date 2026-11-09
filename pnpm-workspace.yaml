@@ -69,3 +69,13 @@ overrides:
   vite@^7: ^7.3.5
   yaml@^2: ^2.8.3
   zod@^4: ^4.6.7
+# RCTAppearance setColorScheme: skip scenes that are not UIWindowScene. The
+# CarPlay scene (CPTemplateApplicationScene) has no `windows`, so the stock loop
+# throws "unrecognized selector" and kills the app with a head unit connected
+# (Sentry MOTO-VAULT-REACT-NATIVE-43). JS also avoids the call while CarPlay is
+# connected (apps/mobile/src/lib/apply-color-scheme.ts); this closes the window
+# before the connect event reaches JS. Native: ships with a store build. On a
+# react-native bump, re-create the patch for the new version or drop it if
+# upstream filters scenes by class.
+patchedDependencies:
+  react-native@0.86.2: patches/react-native@0.86.2.patch
