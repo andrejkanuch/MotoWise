@@ -134,15 +134,13 @@ export async function fetchForecast(coords: Coordinates): Promise<WeatherSummary
   // weather while the switch is off.
   if (!WEATHER_ENABLED) throw new Error(WEATHER_DISABLED_MESSAGE);
 
-  const { weatherForecast } = await gqlFetcher(GetWeatherForecastDocument, {
-    input: { lat: coords.lat, lon: coords.lon },
-  });
+  const { weatherForecast } = await gqlFetcher(GetWeatherForecastDocument, { input: coords });
 
   const days: DayForecast[] = weatherForecast.days.map((day) => ({
     date: parseISO(day.date),
     tempMax: day.tempMax,
     tempMin: day.tempMin,
-    precipProbability: day.precipProbability ?? null,
+    precipProbability: day.precipProbability,
     weatherCode: day.weatherCode,
     label: weatherCodeToLabel(day.weatherCode),
   }));

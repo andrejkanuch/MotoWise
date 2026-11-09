@@ -16,7 +16,7 @@ const CACHE_TTL_MS = 30 * 60 * 1000;
 const MAX_CACHE_ENTRIES = 2_000;
 const REQUEST_TIMEOUT_MS = 10_000;
 
-export const WEATHER_UNAVAILABLE_MESSAGE = 'Weather forecast is unavailable';
+const WEATHER_UNAVAILABLE_MESSAGE = 'Weather forecast is unavailable';
 
 interface OpenMeteoDaily {
   time: string[];
