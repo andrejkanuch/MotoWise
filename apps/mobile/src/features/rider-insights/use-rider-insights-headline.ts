@@ -22,6 +22,8 @@ export function riderInsightsHeadlineOptions(timeZone: string) {
   return queryOptions({
     queryKey: [...queryKeys.rides.insights(timeZone), HEADLINE_KEY] as const,
     queryFn: () => gqlFetcher(GetRiderInsightsHeadlineDocument, { timeZone }),
+    // The Home card draws its own failed state.
+    meta: { showErrorAlert: false },
   });
 }
 

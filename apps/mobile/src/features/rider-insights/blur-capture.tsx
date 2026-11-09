@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { PixelRatio, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 import { useEditorialTheme } from '@/theme/editorial';
 
@@ -41,6 +41,7 @@ interface BlurCaptureProps {
   cacheKey: string;
   width: number;
   height: number;
+  /** Blur in points (screen units), whatever the device's pixel ratio. */
   blurRadius: number;
   /** The teaser view: coarse shapes only, never a value a free rider may not see. */
   children: ReactNode;
@@ -100,7 +101,9 @@ export function BlurCapture({ cacheKey, width, height, blurRadius, children }: B
       <Image
         testID="blur-capture-image"
         source={{ uri }}
-        blurRadius={blurRadius}
+        // The capture is at device pixels and the image blurs in image pixels, so
+        // the radius is scaled to read as `blurRadius` points on screen.
+        blurRadius={blurRadius * PixelRatio.get()}
         style={box}
         accessible={false}
         accessibilityElementsHidden

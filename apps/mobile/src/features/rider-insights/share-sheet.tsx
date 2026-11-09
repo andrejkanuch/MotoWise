@@ -14,6 +14,8 @@ import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Modal,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   Pressable,
   ScrollView,
   Text,
@@ -68,17 +70,31 @@ const nativeShare = () =>
   (require('react-native-share') as typeof import('react-native-share')).default;
 
 /** The header's share action on Rider insights. */
-export function InsightsShareButton({ onPress }: { onPress: () => void }) {
+/**
+ * The header's share button. `hidden` keeps its slot (invisible, not tappable,
+ * not announced) while there is nothing to share yet.
+ */
+export function InsightsShareButton({
+  onPress,
+  hidden = false,
+}: {
+  onPress: () => void;
+  hidden?: boolean;
+}) {
   const { t: i18n } = useTranslation();
   const { t } = useEditorialTheme();
   return (
     <Pressable
-      testID="insights-share-button"
+      testID={hidden ? undefined : 'insights-share-button'}
       onPress={onPress}
+      disabled={hidden}
       accessibilityRole="button"
       accessibilityLabel={i18n('riderInsights.share.button')}
+      accessibilityElementsHidden={hidden}
+      importantForAccessibility={hidden ? 'no-hide-descendants' : 'auto'}
       hitSlop={space.xs}
       style={{
+        opacity: hidden ? 0 : 1,
         minWidth: TOUCH_TARGET,
         minHeight: TOUCH_TARGET,
         alignItems: 'center',
@@ -168,6 +184,20 @@ function ShareSheetBody({
   const exportWidth = getExportCardDimensions(SHARE_EXPORT_PX[size]).width;
   const previewWidth =
     (PREVIEW_HEIGHT * SHARE_EXPORT_PX[size].width) / SHARE_EXPORT_PX[size].height;
+
+  /** The card a swipe settles on becomes the choice; a locked poster never opens the paywall here. */
+  const onSwipeEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const index = Math.round(event.nativeEvent.contentOffset.x / (previewWidth + space.sm));
+    const next =
+      index === 0
+        ? INSIGHTS_SHARE_IMAGE.SEASON_LINES
+        : posterLocked
+          ? null
+          : INSIGHTS_SHARE_IMAGE.ATLAS_POSTER;
+    if (next === null || next === image) return;
+    triggerSelection();
+    setImage(next);
+  };
 
   const selectPoster = useCallback(async () => {
     if (!posterLocked) {
@@ -377,9 +407,13 @@ function ShareSheetBody({
           </View>
 
           <ScrollView
+            testID="share-options"
             horizontal
             accessibilityRole="radiogroup"
             showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            snapToInterval={previewWidth + space.sm}
+            onMomentumScrollEnd={onSwipeEnd}
             contentContainerStyle={{
               paddingHorizontal: layout.sheetGutter,
               paddingTop: space.md,

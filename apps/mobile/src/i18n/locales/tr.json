@@ -2729,6 +2729,7 @@
   },
   "riderInsights": {
     "title": "Sürüş analizleri",
+    "backTitle": "Analizler",
     "seasonRange": "{{year}} sezonu, {{from}} – {{to}}",
     "today": "bugün",
     "stale": "Çevrimdışı. Sezonun en son kaydedildiği hâliyle gösteriliyor.",
@@ -2853,8 +2854,8 @@
           "tight": "km'de 3 veya daha fazla viraj"
         },
         "barA11y": "Düz {{straight}}, geniş viraj {{sweeping}}, virajlı {{twisty}}, keskin viraj {{tight}}",
-        "footnote_one": "Viraj, 400 m içinde tek yöne 35° veya daha fazla dönüştür. Bu sezon {{count}} viraj.",
-        "footnote_other": "Viraj, 400 m içinde tek yöne 35° veya daha fazla dönüştür. Bu sezon {{count}} viraj.",
+        "footnote_one": "Viraj, 400 m içinde tek yöne 35° veya daha fazla dönüştür. Bu sezon {{count, number}} viraj.",
+        "footnote_other": "Viraj, 400 m içinde tek yöne 35° veya daha fazla dönüştür. Bu sezon {{count, number}} viraj.",
         "per10km": "viraj / 10 km",
         "twistiest_one": "En virajlı sürüş",
         "twistiest_other": "En virajlı sürüşler",

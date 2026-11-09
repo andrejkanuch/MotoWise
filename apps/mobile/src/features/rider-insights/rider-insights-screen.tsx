@@ -9,7 +9,7 @@ import { format, parseISO } from 'date-fns';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import type { TFunction } from 'i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -20,7 +20,6 @@ import {
   View,
 } from 'react-native';
 import {
-  PROFILE_ROUTE,
   RIDER_INSIGHTS_DETAIL_GROUP,
   RIDER_INSIGHTS_ENTRY,
   type RiderInsightsDetailGroup,
@@ -36,15 +35,17 @@ import { AtlasHero } from './atlas-hero';
 import { HowYouRideList } from './how-you-ride-list';
 import { RecapEntryRow } from './recap/recap-entry-row';
 import { RegionTiles, swapMainRegion } from './region-tiles';
-import { SeasonRibbon } from './season-ribbon';
+import { SeasonRibbon, seasonEndSoFar } from './season-ribbon';
 import { InsightsShareButton, InsightsShareSheet } from './share-sheet';
 import {
   formatInsightDistance,
   INSIGHTS_VIEW,
+  type InsightsView,
   type RiderInsightsData,
   type RiderInsightsRegion,
   useRiderInsights,
 } from './use-rider-insights';
+import { useRiderInsightsRoutes } from './use-rider-insights-routes';
 
 const ISO_DAY = 'yyyy-MM-dd';
 /** Place names come from GeoNames, which asks for credit under CC BY 4.0. */
@@ -71,6 +72,7 @@ export function RiderInsightsScreen() {
   const { t: i18n, i18n: instance } = useTranslation();
   const { t } = useEditorialTheme();
   const system = useMeasurementSystem();
+  const routes = useRiderInsightsRoutes();
   const { width: windowWidth } = useWindowDimensions();
   const bottom = useTabBarClearance();
   const { entry } = useLocalSearchParams<{ entry?: string }>();
@@ -87,67 +89,11 @@ export function RiderInsightsScreen() {
   const language = instance.language;
 
   const openDetail = (group: RiderInsightsDetailGroup) =>
-    router.push({ pathname: PROFILE_ROUTE.RIDER_INSIGHTS_DETAIL, params: { group } });
+    router.push({ pathname: routes.DETAIL, params: { group } });
 
-  const scrollProps = {
-    contentInsetAdjustmentBehavior: 'automatic' as const,
-    style: { flex: 1, backgroundColor: t.bg },
-    contentContainerStyle: [
-      readableWidth,
-      {
-        paddingHorizontal: GUTTER,
-        paddingTop: space.xs,
-        paddingBottom: bottom,
-        gap: layout.sectionGap,
-      },
-    ],
-  };
-
-  if (view !== INSIGHTS_VIEW.READY || !insights) {
-    return (
-      <ScrollView {...scrollProps}>
-        {view === INSIGHTS_VIEW.LOADING ? (
-          <View testID="insights-loading" style={{ paddingVertical: space.xxxl }}>
-            <ActivityIndicator color={t.ink3} />
-          </View>
-        ) : (
-          <Notice
-            testID={`insights-${view}`}
-            title={
-              view === INSIGHTS_VIEW.OFFLINE
-                ? i18n('riderInsights.offline.title')
-                : i18n('riderInsights.error.title')
-            }
-            body={
-              view === INSIGHTS_VIEW.OFFLINE
-                ? i18n('riderInsights.offline.body')
-                : i18n('riderInsights.error.body')
-            }
-            action={
-              view === INSIGHTS_VIEW.OFFLINE
-                ? i18n('riderInsights.offline.retry')
-                : i18n('riderInsights.error.retry')
-            }
-            onAction={() => void retry()}
-          />
-        )}
-      </ScrollView>
-    );
-  }
-
-  if (insights.totals.rides === 0) {
-    return (
-      <ScrollView {...scrollProps}>
-        <Notice
-          testID="insights-empty"
-          title={i18n('riderInsights.empty.title')}
-          body={i18n('riderInsights.empty.body')}
-        />
-      </ScrollView>
-    );
-  }
-
-  const regions = orderRegions(insights.regions, order);
+  const ready = view === INSIGHTS_VIEW.READY && insights !== null;
+  const content = ready && insights.totals.rides > 0 ? insights : null;
+  const regions = content ? orderRegions(content.regions, order) : [];
   const main = regions[0] ?? null;
   const regionName = (region: RiderInsightsRegion) =>
     region.name ?? i18n('riderInsights.regions.unnamed');
@@ -157,87 +103,146 @@ export function RiderInsightsScreen() {
       distance: formatInsightDistance(region.distanceM, system, language),
     });
 
+  // The share button is in the header from the first render and only shows once
+  // there is something to share, so the header items never change under the title.
+  const canShare = content !== null && mapAvailable;
+  const headerOptions = useMemo(
+    () => ({
+      headerRight: () => (
+        <InsightsShareButton hidden={!canShare} onPress={() => setSharing(true)} />
+      ),
+    }),
+    [canShare],
+  );
+
+  // One scroll view for every state: the iOS large title binds to the first
+  // scroll view it sees and does not re-attach when another one replaces it.
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerRight: mapAvailable
-            ? () => <InsightsShareButton onPress={() => setSharing(true)} />
-            : undefined,
-        }}
-      />
-      <ScrollView {...scrollProps}>
-        <View style={{ gap: layout.titleGap }}>
-          <Text style={[type.subhead, { color: t.ink3 }]}>
-            {seasonLine(insights, i18n, language)}
-          </Text>
-          {stale ? (
-            <Text testID="insights-stale" style={[type.caption, { color: t.ink3 }]}>
-              {i18n('riderInsights.stale')}
-            </Text>
-          ) : null}
-        </View>
-
-        <View style={{ gap: space.sm }}>
-          <AtlasHero
-            region={main}
-            totals={insights.totals}
-            countries={insights.countries}
-            mapAvailable={mapAvailable}
-            width={width}
-            system={system}
-            regionName={regionName}
-            regionMeta={regionMeta}
-            onOpenCountries={() => openDetail(RIDER_INSIGHTS_DETAIL_GROUP.COUNTRIES)}
+      <Stack.Screen options={headerOptions} />
+      <ScrollView
+        testID="insights-scroll"
+        contentInsetAdjustmentBehavior="automatic"
+        style={{ flex: 1, backgroundColor: t.bg }}
+        contentContainerStyle={[
+          readableWidth,
+          {
+            paddingHorizontal: GUTTER,
+            paddingTop: space.xs,
+            paddingBottom: bottom,
+            gap: layout.sectionGap,
+          },
+        ]}
+      >
+        {!ready ? (
+          <StateNotice view={view} onRetry={() => void retry()} />
+        ) : !content ? (
+          <Notice
+            testID="insights-empty"
+            title={i18n('riderInsights.empty.title')}
+            body={i18n('riderInsights.empty.body')}
           />
-          {regions.length >= 2 && mapAvailable ? (
-            <RegionTiles
-              tiles={regions.slice(1)}
-              width={width}
-              regionName={regionName}
-              formatMeta={regionMeta}
-              onSelect={(key) => setOrder(swapMainRegion(regions, key).map((r) => r.key))}
+        ) : (
+          <>
+            <View style={{ gap: layout.titleGap }}>
+              <Text style={[type.subhead, { color: t.ink3 }]}>
+                {seasonLine(content, i18n, language)}
+              </Text>
+              {stale ? (
+                <Text testID="insights-stale" style={[type.caption, { color: t.ink3 }]}>
+                  {i18n('riderInsights.stale')}
+                </Text>
+              ) : null}
+            </View>
+
+            <View style={{ gap: space.sm }}>
+              <AtlasHero
+                region={main}
+                totals={content.totals}
+                countries={content.countries}
+                mapAvailable={mapAvailable}
+                width={width}
+                system={system}
+                regionName={regionName}
+                regionMeta={regionMeta}
+                onOpenCountries={() => openDetail(RIDER_INSIGHTS_DETAIL_GROUP.COUNTRIES)}
+              />
+              {regions.length >= 2 && mapAvailable ? (
+                <RegionTiles
+                  tiles={regions.slice(1)}
+                  width={width}
+                  regionName={regionName}
+                  formatMeta={regionMeta}
+                  onSelect={(key) => setOrder(swapMainRegion(regions, key).map((r) => r.key))}
+                />
+              ) : null}
+            </View>
+
+            <SeasonRibbon ribbon={content.ribbon} season={content.season} system={system} />
+
+            <HowYouRideList
+              insights={content}
+              mainRegion={mapAvailable ? main : null}
+              unlocking={unlocking}
+              system={system}
+              onPurchased={() => void onPurchased()}
+              onOpenDetail={openDetail}
             />
-          ) : null}
-        </View>
 
-        <SeasonRibbon ribbon={insights.ribbon} season={insights.season} system={system} />
+            <RecapEntryRow
+              insights={content}
+              onPress={() => router.push({ pathname: routes.RECAP })}
+            />
 
-        <HowYouRideList
-          insights={insights}
-          mainRegion={mapAvailable ? main : null}
-          unlocking={unlocking}
-          system={system}
-          onPurchased={() => void onPurchased()}
-          onOpenDetail={openDetail}
-        />
-
-        <RecapEntryRow
-          insights={insights}
-          onPress={() => router.push({ pathname: PROFILE_ROUTE.RIDER_INSIGHTS_RECAP })}
-        />
-
-        <PlaceNamesCredit />
+            <PlaceNamesCredit />
+          </>
+        )}
       </ScrollView>
-      <InsightsShareSheet
-        visible={sharing}
-        onClose={() => setSharing(false)}
-        insights={insights}
-        regions={regions}
-        regionName={regionName}
-        system={system}
-        unlocking={unlocking}
-        onPurchased={() => void onPurchased()}
-      />
+      {content ? (
+        <InsightsShareSheet
+          visible={sharing}
+          onClose={() => setSharing(false)}
+          insights={content}
+          regions={regions}
+          regionName={regionName}
+          system={system}
+          unlocking={unlocking}
+          onPurchased={() => void onPurchased()}
+        />
+      ) : null}
     </>
   );
 }
 
-/** "Season 2026, 1 Jan to today" */
+/** Loading, offline or failed: a spinner or one notice, never a number. */
+function StateNotice({ view, onRetry }: { view: InsightsView; onRetry: () => void }) {
+  const { t: i18n } = useTranslation();
+  const { t } = useEditorialTheme();
+  if (view === INSIGHTS_VIEW.LOADING) {
+    return (
+      <View testID="insights-loading" style={{ paddingVertical: space.xxxl }}>
+        <ActivityIndicator color={t.ink3} />
+      </View>
+    );
+  }
+  const offline = view === INSIGHTS_VIEW.OFFLINE;
+  return (
+    <Notice
+      testID={`insights-${view}`}
+      title={offline ? i18n('riderInsights.offline.title') : i18n('riderInsights.error.title')}
+      body={offline ? i18n('riderInsights.offline.body') : i18n('riderInsights.error.body')}
+      action={offline ? i18n('riderInsights.offline.retry') : i18n('riderInsights.error.retry')}
+      onAction={onRetry}
+    />
+  );
+}
+
+/** "Season 2026, 1 Jan to today"; a past season keeps its own last day. */
 function seasonLine(insights: RiderInsightsData, i18n: TFunction, language: string): string {
   const dayMonth = new Intl.DateTimeFormat(language, { day: 'numeric', month: 'short' });
   const from = parseISO(insights.season.from);
-  const isToday = insights.season.to === format(new Date(), ISO_DAY);
+  const today = format(new Date(), ISO_DAY);
+  const isToday = seasonEndSoFar(insights.season, today) === today;
   return i18n('riderInsights.seasonRange', {
     year: from.getFullYear(),
     from: dayMonth.format(from),

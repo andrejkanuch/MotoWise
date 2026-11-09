@@ -2795,6 +2795,7 @@
   },
   "riderInsights": {
     "title": "Analiza jazdy",
+    "backTitle": "Analiza",
     "seasonRange": "Sezon {{year}}, od {{from}} do {{to}}",
     "today": "dziś",
     "stale": "Offline. Pokazujemy sezon z ostatniego zapisu.",
@@ -2935,10 +2936,10 @@
           "tight": "3 lub więcej zakrętów na km"
         },
         "barA11y": "Proste {{straight}}, szerokie łuki {{sweeping}}, kręte {{twisty}}, ciasne zakręty {{tight}}",
-        "footnote_one": "Zakręt to skręt o 35° lub więcej w jedną stronę na odcinku do 400 m. {{count}} zakręt w tym sezonie.",
-        "footnote_other": "Zakręt to skręt o 35° lub więcej w jedną stronę na odcinku do 400 m. {{count}} zakrętu w tym sezonie.",
-        "footnote_few": "Zakręt to skręt o 35° lub więcej w jedną stronę na odcinku do 400 m. {{count}} zakręty w tym sezonie.",
-        "footnote_many": "Zakręt to skręt o 35° lub więcej w jedną stronę na odcinku do 400 m. {{count}} zakrętów w tym sezonie.",
+        "footnote_one": "Zakręt to skręt o 35° lub więcej w jedną stronę na odcinku do 400 m. {{count, number}} zakręt w tym sezonie.",
+        "footnote_other": "Zakręt to skręt o 35° lub więcej w jedną stronę na odcinku do 400 m. {{count, number}} zakrętu w tym sezonie.",
+        "footnote_few": "Zakręt to skręt o 35° lub więcej w jedną stronę na odcinku do 400 m. {{count, number}} zakręty w tym sezonie.",
+        "footnote_many": "Zakręt to skręt o 35° lub więcej w jedną stronę na odcinku do 400 m. {{count, number}} zakrętów w tym sezonie.",
         "per10km": "zakręty / 10 km",
         "twistiest_one": "Najbardziej kręta jazda",
         "twistiest_other": "Najbardziej kręte jazdy",

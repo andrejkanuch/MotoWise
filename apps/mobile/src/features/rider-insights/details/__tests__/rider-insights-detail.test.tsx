@@ -19,6 +19,7 @@ jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 jest.mock('@/hooks/use-tab-bar-clearance', () => ({ useTabBarClearance: () => 120 }));
 
 const mockRouter = { push: jest.fn() };
+let mockSegments: string[] = ['(tabs)', '(profile)', 'rider-insights', '[group]'];
 let mockParams: Record<string, string> = {};
 const mockScreenOptions: Record<string, unknown>[] = [];
 const mockRedirects: unknown[] = [];
@@ -27,6 +28,7 @@ jest.mock('expo-router', () => ({
     return mockRouter;
   },
   useLocalSearchParams: () => mockParams,
+  useSegments: () => mockSegments,
   Stack: {
     Screen: ({ options }: { options: Record<string, unknown> }) => {
       mockScreenOptions.push(options);
@@ -84,7 +86,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 import '@/i18n';
 import RiderInsightsDetailRoute from '@/app/(tabs)/(profile)/rider-insights/[group]';
-import { PROFILE_ROUTE } from '@/config/routes';
+import { HOME_ROUTE, PROFILE_ROUTE } from '@/config/routes';
 import { useAuthStore } from '@/stores/auth.store';
 import { useSubscriptionStore } from '@/stores/subscription.store';
 import {
@@ -149,6 +151,13 @@ function proDetail(): InsightsPayload {
             distanceM: 48_000,
             bendsPer10km: 2.3,
           },
+          {
+            rideId: RIDE.CLIMB,
+            name: 'Sierra climb',
+            localDate: '2026-09-12',
+            distanceM: 140_000,
+            bendsPer10km: 2.9,
+          },
         ],
       },
     },
@@ -200,6 +209,7 @@ beforeEach(() => {
   mockRouter.push.mockReset();
   mockScreenOptions.length = 0;
   mockRedirects.length = 0;
+  mockSegments = ['(tabs)', '(profile)', 'rider-insights', '[group]'];
   mockParams = {};
   clearBlurCaptures();
   useSubscriptionStore.setState({ isPro: false });
@@ -210,6 +220,11 @@ describe('road character, Pro', () => {
   it('titles the native header with the group', async () => {
     await openDetail('road-character', proDetail());
     expect(mockScreenOptions.at(-1)).toEqual({ title: 'Road character' });
+  });
+
+  it('groups the season bend count in the footnote', async () => {
+    await openDetail('road-character', proDetail());
+    expect(screen.getByText(/5,000 bends this season\./)).toBeTruthy();
   });
 
   it('says lean comes from 9 of 13 rides when 4 routed rides have no waypoints', async () => {
@@ -270,9 +285,57 @@ describe('rhythm and territory, Pro', () => {
       '343 km² of map covered this season',
     );
   });
+
+  it('names the furthest ride', async () => {
+    await openDetail('territory', proDetail());
+    expect(screen.getByTestId('territory-furthest')).toHaveTextContent(/Tatra loop/);
+  });
+
+  it('names an unnamed furthest ride by its date', async () => {
+    const unnamed = proDetail();
+    const detail = unnamed.territory.detail;
+    if (!detail?.furthest) throw new Error('fixture: territory must be ready');
+    await openDetail('territory', {
+      ...unnamed,
+      territory: {
+        ...unnamed.territory,
+        detail: { ...detail, furthest: { ...detail.furthest, name: null } },
+      },
+    });
+    expect(screen.getByTestId('territory-furthest')).toHaveTextContent(/Ride on Mar 8/);
+  });
+});
+
+describe('road character lists', () => {
+  it('shows one straightest ride, as the board does', async () => {
+    await openDetail('road-character', proDetail());
+    expect(screen.getByText('Straightest ride')).toBeTruthy();
+    expect(screen.getByTestId(`ride-${RIDE.EBRO}`)).toBeTruthy();
+    expect(screen.queryByTestId(`ride-${RIDE.CLIMB}`)).toBeNull();
+  });
 });
 
 describe('best rides', () => {
+  it('names an unnamed ride by its date once, and keeps its duration on one line', async () => {
+    const payload = proDetail();
+    const br = payload.bestRides.detail;
+    if (!br) throw new Error('fixture: best rides must be ready');
+    await openDetail('best-rides', {
+      ...payload,
+      bestRides: {
+        ...payload.bestRides,
+        detail: {
+          ...br,
+          byDistance: [{ ...bestRide(RIDE.PYRENEES, '', '2026-10-03', 64_000, 9), name: null }],
+        },
+      },
+    });
+    const label = screen.getByTestId('best-ride-0').props.accessibilityLabel as string;
+    expect(label).toMatch(/^Ride on Oct 3, /);
+    expect(label.match(/Oct 3/g)).toHaveLength(1);
+    expect(label).toContain('1h\u00A021m');
+  });
+
   it('lists the 10 Oct ride first when ranked by bends', async () => {
     await openDetail('best-rides', proDetail());
     expect(screen.getByTestId('best-ride-0').props.accessibilityLabel).toMatch(/^Pyrenees loop/);
@@ -286,7 +349,7 @@ describe('best rides', () => {
   it('gives a free rider the longest ride in full, and the paywall from climb or bends', async () => {
     await openDetail('best-rides', freeInsights());
     expect(screen.getByTestId('best-ride-longest').props.accessibilityLabel).toBe(
-      'Weekend Tatras Tour, Mar 8 · Bratislava to Bratislava · 6h 0m, 385 km',
+      'Weekend Tatras Tour, Mar 8 · Bratislava to Bratislava · 6h\u00A00m, 385 km',
     );
     await fireEvent.press(screen.getByTestId('segment-0'));
     expect(mockPresentPaywall).not.toHaveBeenCalled();
@@ -382,4 +445,15 @@ it('sends an unknown group to the main Rider insights screen', async () => {
     </QueryClientProvider>,
   );
   expect(mockRedirects).toEqual([{ pathname: PROFILE_ROUTE.RIDER_INSIGHTS }]);
+});
+
+it("sends an unknown group on Home's stack to Home's copy of Rider insights", async () => {
+  mockParams = { group: 'lean-leaderboard' };
+  mockSegments = ['(tabs)', '(home)', 'home', 'rider-insights', '[group]'];
+  await render(
+    <QueryClientProvider client={client}>
+      <RiderInsightsDetailRoute />
+    </QueryClientProvider>,
+  );
+  expect(mockRedirects).toEqual([{ pathname: HOME_ROUTE.RIDER_INSIGHTS }]);
 });

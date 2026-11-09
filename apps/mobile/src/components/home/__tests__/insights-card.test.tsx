@@ -105,7 +105,7 @@ describe('homeInsightHeadline', () => {
 });
 
 describe('InsightsCard', () => {
-  it('shows the season distance and opens Rider insights from Home', async () => {
+  it("shows the season distance and opens Rider insights on Home's own stack, so back returns Home", async () => {
     await renderCard(freeInsights());
     const label = await loadedLabel();
     expect(label).toContain('2,507 km');
@@ -113,7 +113,7 @@ describe('InsightsCard', () => {
 
     await fireEvent.press(screen.getByTestId('home-insights-card'));
     expect(mockRouter.push).toHaveBeenCalledWith({
-      pathname: '/(tabs)/(profile)/rider-insights',
+      pathname: '/(tabs)/(home)/home/rider-insights',
       params: { entry: RIDER_INSIGHTS_ENTRY.HOME },
     });
   });

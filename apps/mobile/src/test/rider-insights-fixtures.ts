@@ -170,6 +170,7 @@ export function proInsights(): InsightsPayload {
         newRoadShare: 0.84,
         furthest: {
           rideId: '00000000-0000-4000-8000-000000000008',
+          name: 'Tatra loop',
           localDate: '2026-03-08',
           distanceM: 255_000,
           lat: 49.1,

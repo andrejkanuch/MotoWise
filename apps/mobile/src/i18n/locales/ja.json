@@ -2729,6 +2729,7 @@
   },
   "riderInsights": {
     "title": "ライダーインサイト",
+    "backTitle": "インサイト",
     "seasonRange": "{{year}}年シーズン、{{from}}〜{{to}}",
     "today": "今日",
     "stale": "オフラインです。最後に保存したシーズンを表示しています。",
@@ -2853,8 +2854,8 @@
           "tight": "1 kmあたりカーブ3個以上"
         },
         "barA11y": "直線 {{straight}}、緩やか {{sweeping}}、ワインディング {{twisty}}、タイトなカーブ {{tight}}",
-        "footnote_one": "カーブとは、400 m以内に同じ方向へ35°以上曲がる区間です。今シーズンのカーブは{{count}}個です。",
-        "footnote_other": "カーブとは、400 m以内に同じ方向へ35°以上曲がる区間です。今シーズンのカーブは{{count}}個です。",
+        "footnote_one": "カーブとは、400 m以内に同じ方向へ35°以上曲がる区間です。今シーズンのカーブは{{count, number}}個です。",
+        "footnote_other": "カーブとは、400 m以内に同じ方向へ35°以上曲がる区間です。今シーズンのカーブは{{count, number}}個です。",
         "per10km": "カーブ / 10 km",
         "twistiest_one": "最もワインディングなライド",
         "twistiest_other": "最もワインディングなライド",

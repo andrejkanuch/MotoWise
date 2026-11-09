@@ -91,9 +91,12 @@ export function TerritoryDetail({ detail, system }: Props) {
               <ValueRow
                 key="furthest"
                 testID="territory-furthest"
-                title={i18n('riderInsights.detail.territory.furthestRide', {
-                  date: shortDate(furthest.localDate, language),
-                })}
+                title={
+                  furthest.name ??
+                  i18n('riderInsights.detail.territory.furthestRide', {
+                    date: shortDate(furthest.localDate, language),
+                  })
+                }
                 caption={i18n('riderInsights.detail.territory.fromHome')}
                 value={dist(furthest.distanceM)}
                 onPress={() => openRide(furthest.rideId)}

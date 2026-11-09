@@ -125,6 +125,28 @@ describe('InsightsShareSheet', () => {
     expect(mockPresentPaywall).not.toHaveBeenCalled();
   });
 
+  it('selects the card a Pro rider swipes to, and back', async () => {
+    await renderSheet(proInsights());
+    const carousel = screen.getByTestId('share-options');
+    await fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 400, y: 0 } },
+    });
+    expect(checked('share-option-atlasPoster')).toBe(true);
+    await fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 0, y: 0 } },
+    });
+    expect(checked('share-option-seasonLines')).toBe(true);
+  });
+
+  it('never opens the paywall on a swipe to the locked poster', async () => {
+    await renderSheet(freeInsights());
+    await fireEvent(screen.getByTestId('share-options'), 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 400, y: 0 } },
+    });
+    expect(mockPresentPaywall).not.toHaveBeenCalled();
+    expect(checked('share-option-seasonLines')).toBe(true);
+  });
+
   it('hides the ride start and end by default', async () => {
     await renderSheet(freeInsights());
     expect(checked('share-hide-ends')).toBe(true);

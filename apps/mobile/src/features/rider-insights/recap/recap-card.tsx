@@ -5,7 +5,7 @@
  * on screen and the 1080 px export are the same picture.
  */
 import { palette } from '@motovault/design-system';
-import { type MeasurementSystem, metersToUnit, mileageUnitLabel } from '@motovault/types';
+import type { MeasurementSystem } from '@motovault/types';
 import { Image } from 'expo-image';
 import type { TFunction } from 'i18next';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
@@ -101,7 +101,7 @@ const GRID_ALPHAS = [0, 0.36, 0.62, 0.92] as const;
 const BAND_ALPHAS = [0.16, 0.36, 0.62, 0.92] as const;
 /** Countries listed on the card; the rest fold into "+N more". */
 const LISTED_COUNTRIES = 4;
-const BLUR_RADIUS = 6;
+const BLUR_RADIUS = 16;
 /** A neutral shape for the locked cost card: it carries no data at all. */
 const COST_SHAPE = [0.9, 0.6, 0.75] as const;
 
@@ -584,12 +584,14 @@ function TwistiestCard({ testID, insights, scale, rounded, system, onReady }: Bo
   const date = shortDate(ride.localDate, i18n.language);
   const title = recapCardTitle(RECAP_CARD.TWISTIEST, t);
   const name = ride.name ?? t('riderInsights.howYouRide.bestRides.unnamed', { date });
-  const unit = mileageUnitLabel(system);
-  const distance = `${formatNumber(metersToUnit(ride.distanceM, unit), i18n.language, 1)} ${unit}`;
+  // Rounded as everywhere else: whole km, bends to one decimal as on the detail page.
+  const distance = formatInsightDistance(ride.distanceM, system, i18n.language);
   const bends =
     ride.bendsPer10km === null
       ? null
-      : t('riderInsights.recap.twistiestBends', { bends: Math.round(ride.bendsPer10km) });
+      : t('riderInsights.recap.twistiestBends', {
+          bends: formatNumber(ride.bendsPer10km, i18n.language, 1),
+        });
   const meta = [date, distance, bends].filter(Boolean).join(' · ');
 
   return (

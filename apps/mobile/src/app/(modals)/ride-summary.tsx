@@ -4,7 +4,7 @@ import MapboxGL from '@rnmapbox/maps';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { type Href, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import type { TFunction } from 'i18next';
 import {
   ArrowDown,
@@ -116,8 +116,7 @@ export default function RideSummaryScreen() {
   const { t, i18n } = useTranslation();
   const { t: theme, isDark } = useEditorialTheme();
 
-  // Android hardware back would leave without Save or Discard — the same stranded
-  // ride the disabled swipe prevents on iOS.
+  // Android back would leave without Save or Discard (a stranded ride, as the iOS swipe).
   // Focus-scoped: Add Expense is pushed on top and must keep its own back button.
   useFocusEffect(
     useCallback(() => {
@@ -135,7 +134,6 @@ export default function RideSummaryScreen() {
 
   const bikeName = useBikeName(motorcycleId);
 
-  // Fetch PB data
   const { data: overviewData } = useQuery<RideOverviewQuery>({
     queryKey: queryKeys.rides.overview,
     queryFn: () => gqlFetcher(RideOverviewDocument),
@@ -211,7 +209,6 @@ export default function RideSummaryScreen() {
       lastPct = pct;
     }
 
-    // Downsample if too many stops
     let colorStops = rawStops;
     if (rawStops.length > 200) {
       const step = Math.ceil(rawStops.length / 200);
@@ -263,15 +260,13 @@ export default function RideSummaryScreen() {
         distance_m: distanceM,
         duration_s: durationS,
       });
-    } catch {
-      // User cancelled
-    }
+    } catch {} // the rider cancelled the share sheet
   }, [distanceM, durationS, system, t]);
 
-  // `handleSave` never awaits, so `isSaving` cannot disable the button before a
-  // second tap lands; a ref guards it synchronously. Reset only on failure: on
-  // success the screen is replaced, and a re-run would count the ride twice.
+  // A ref guards a second tap synchronously (`isSaving` lands too late). Reset only on
+  // failure: on success one replace (issue 4446) swaps the sheet for `destinationRef`.
   const savingRef = useRef(false);
+  const destinationRef = useRef<Href>('/(tabs)/(profile)');
   const handleSave = useCallback(async () => {
     if (savingRef.current) return;
     savingRef.current = true;
@@ -321,8 +316,7 @@ export default function RideSummaryScreen() {
       // Ask while the ride's stats are still on screen; navigation waits for the dialog.
       const overview = overviewData?.rideOverview;
       await requestRideReview({ distanceM, durationS, rideId, localRideCount, overview });
-
-      router.replace('/(tabs)/(profile)');
+      router.replace(destinationRef.current, { withAnchor: true });
     } catch (error) {
       savingRef.current = false;
       captureException(error, { source: 'ride-summary.saveRide', rideId });
@@ -355,10 +349,8 @@ export default function RideSummaryScreen() {
             distance_m: distanceM,
             duration_s: durationS,
           });
-          // The ride was already completed on the server when it ended; without
-          // this it stays in the rider's history after they discard it.
-          // Refetch after the delete has drained — an immediate refetch races it and
-          // brings the discarded ride straight back into the list.
+          // Completed on the server when it ended, so delete it or it stays in history.
+          // Refetch after the delete drains: an immediate refetch brings it back.
           dropDeadLetteredRide(rideId);
           void enqueueOrExecute('deleteRide', { variables: { id: rideId } }).finally(() =>
             queryClient.invalidateQueries({ queryKey: queryKeys.rides.all }),
@@ -371,9 +363,8 @@ export default function RideSummaryScreen() {
   }, [rideId, router, distanceM, durationS, queryClient, t]);
 
   const handleCycleMapStyle = useCallback(() => {
-    // Compute next outside the state updater — firing inside it double-counts
-    // under StrictMode (see B2). ride-summary is hit on every ride_completed,
-    // far higher traffic than ride-detail, so this is where preference shows up.
+    // Compute next outside the state updater: firing inside it double-counts under
+    // StrictMode (see B2). Hit on every ride_completed, so preference shows up here.
     const next = cycleMapStyleFn(mapStyle);
     trackEvent(AnalyticsEvent.RIDE_MAP_STYLE_CHANGED, {
       from_style: mapStyle,
@@ -780,7 +771,16 @@ export default function RideSummaryScreen() {
             ))}
           </Animated.View>
 
-          <RideSummaryInsightsCard rideId={rideId} distanceM={distanceM} movingS={movingTimeS} />
+          {/* Opening Rider insights saves the ride first: leaving unsaved strands it. */}
+          <RideSummaryInsightsCard
+            rideId={rideId}
+            distanceM={distanceM}
+            movingS={movingTimeS}
+            onOpenInsights={(href) => {
+              destinationRef.current = href;
+              void handleSave();
+            }}
+          />
           <RidePurposeSheet rideId={rideId} motorcycleId={motorcycleId} />
           <Animated.View entering={FadeInUp.delay(600).duration(250)}>
             <Pressable

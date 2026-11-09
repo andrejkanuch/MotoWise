@@ -2760,6 +2760,7 @@
   },
   "riderInsights": {
     "title": "Analisi di guida",
+    "backTitle": "Analisi",
     "seasonRange": "Stagione {{year}}, dal {{from}} al {{to}}",
     "today": "oggi",
     "stale": "Offline. Mostriamo la tua stagione com'era all'ultimo salvataggio.",
@@ -2892,9 +2893,9 @@
           "tight": "3 o più curve per km"
         },
         "barA11y": "Dritte {{straight}}, scorrevoli {{sweeping}}, tortuose {{twisty}}, curve strette {{tight}}",
-        "footnote_one": "Una curva è una svolta di 35° o più nella stessa direzione entro 400 m. {{count}} curva in questa stagione.",
-        "footnote_other": "Una curva è una svolta di 35° o più nella stessa direzione entro 400 m. {{count}} curve in questa stagione.",
-        "footnote_many": "Una curva è una svolta di 35° o più nella stessa direzione entro 400 m. {{count}} curve in questa stagione.",
+        "footnote_one": "Una curva è una svolta di 35° o più nella stessa direzione entro 400 m. {{count, number}} curva in questa stagione.",
+        "footnote_other": "Una curva è una svolta di 35° o più nella stessa direzione entro 400 m. {{count, number}} curve in questa stagione.",
+        "footnote_many": "Una curva è una svolta di 35° o più nella stessa direzione entro 400 m. {{count, number}} curve in questa stagione.",
         "per10km": "curve / 10 km",
         "twistiest_one": "Uscita più tortuosa",
         "twistiest_other": "Uscite più tortuose",

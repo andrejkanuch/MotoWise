@@ -2795,6 +2795,7 @@
   },
   "riderInsights": {
     "title": "Prehľad jazdenia",
+    "backTitle": "Prehľad",
     "seasonRange": "Sezóna {{year}}, {{from}} – {{to}}",
     "today": "dnes",
     "stale": "Si offline. Zobrazujeme naposledy uloženú sezónu.",
@@ -2935,10 +2936,10 @@
           "tight": "3 a viac zákrut na km"
         },
         "barA11y": "Rovné {{straight}}, plynulé oblúky {{sweeping}}, kľukaté {{twisty}}, ostré zákruty {{tight}}",
-        "footnote_one": "Zákruta je otočenie aspoň o 35° jedným smerom na úseku do 400 m. V tejto sezóne {{count}} zákruta.",
-        "footnote_other": "Zákruta je otočenie aspoň o 35° jedným smerom na úseku do 400 m. V tejto sezóne {{count}} zákrut.",
-        "footnote_few": "Zákruta je otočenie aspoň o 35° jedným smerom na úseku do 400 m. V tejto sezóne {{count}} zákruty.",
-        "footnote_many": "Zákruta je otočenie aspoň o 35° jedným smerom na úseku do 400 m. V tejto sezóne {{count}} zákruty.",
+        "footnote_one": "Zákruta je otočenie aspoň o 35° jedným smerom na úseku do 400 m. V tejto sezóne {{count, number}} zákruta.",
+        "footnote_other": "Zákruta je otočenie aspoň o 35° jedným smerom na úseku do 400 m. V tejto sezóne {{count, number}} zákrut.",
+        "footnote_few": "Zákruta je otočenie aspoň o 35° jedným smerom na úseku do 400 m. V tejto sezóne {{count, number}} zákruty.",
+        "footnote_many": "Zákruta je otočenie aspoň o 35° jedným smerom na úseku do 400 m. V tejto sezóne {{count, number}} zákruty.",
         "per10km": "zákrut / 10 km",
         "twistiest_one": "Najkľukatejšia jazda",
         "twistiest_other": "Najkľukatejšie jazdy",

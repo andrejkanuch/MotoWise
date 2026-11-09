@@ -2,6 +2,7 @@ import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ErrorFallback } from '@/components/error-fallback';
 import { FORM_SHEET_DETENTS } from '@/config/sheet-detents';
+import { INSIGHTS_TITLE_BLUR_FIX } from '@/features/rider-insights/use-insights-header-options';
 import { captureException } from '@/lib/analytics';
 import { useEditorialTheme } from '@/theme/editorial';
 import { PLATE_FONT } from '@/theme/type';
@@ -14,6 +15,12 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 const IS_IOS = process.env.EXPO_OS === 'ios';
 
 /**
+ * A screen opened in a cold Profile stack (from another tab, a sheet or a deep
+ * link) sits on the Profile root, so it always has a back button.
+ */
+export const unstable_settings = { initialRouteName: 'index' };
+
+/**
  * One header pattern for every Profile screen: the native stack header with a
  * large condensed title on iOS (collapses into the blurred bar on scroll) and a
  * solid Material top bar on Android. Screens scroll with
@@ -23,6 +30,12 @@ const IS_IOS = process.env.EXPO_OS === 'ios';
 export default function ProfileLayout() {
   const { t } = useTranslation();
   const { t: theme, isDark } = useEditorialTheme();
+  // An insight's own page names where back goes: "‹ Insights".
+  const insightsPage = {
+    headerLargeTitle: false,
+    headerBackButtonDisplayMode: 'default' as const,
+    headerBackTitle: t('riderInsights.backTitle'),
+  };
 
   return (
     <Stack
@@ -49,12 +62,15 @@ export default function ProfileLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="rides" options={{ title: t('profile.myRidesTitle') }} />
       <Stack.Screen name="heatmap" options={{ headerShown: false }} />
-      <Stack.Screen name="rider-insights" options={{ title: t('riderInsights.title') }} />
+      <Stack.Screen
+        name="rider-insights"
+        options={{ title: t('riderInsights.title'), ...INSIGHTS_TITLE_BLUR_FIX }}
+      />
       {/* Each insight's own page; the route sets its title from the group. */}
-      <Stack.Screen name="rider-insights/[group]" options={{ headerLargeTitle: false }} />
+      <Stack.Screen name="rider-insights/[group]" options={insightsPage} />
       <Stack.Screen
         name="rider-insights/recap"
-        options={{ title: t('riderInsights.recap.title'), headerLargeTitle: false }}
+        options={{ ...insightsPage, title: t('riderInsights.recap.title') }}
       />
       <Stack.Screen name="trips" options={{ title: t('profile.myTripsTitle') }} />
       <Stack.Screen name="saved" options={{ title: t('saved.title') }} />

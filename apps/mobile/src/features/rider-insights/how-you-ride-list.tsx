@@ -38,7 +38,7 @@ const GRID_PARTS = 4;
 const GRID_HEIGHT = GRID_PARTS * GRID_CELL_HEIGHT + (GRID_PARTS - 1) * GRID_SEAM;
 const PATTERN_HEIGHT = 40;
 const PATTERN_PADDING = 2;
-const BLUR = { band: 4, grid: 3, pattern: 6 } as const;
+const BLUR = { band: 10, grid: 10, pattern: 10 } as const;
 const KM2_PER_MI2 = 2.589988;
 /** A Monday, so `MONDAY + n days` names weekday n of the API's Monday-first grid. */
 const MONDAY = Date.UTC(2024, 0, 1);

@@ -2729,6 +2729,7 @@
   },
   "riderInsights": {
     "title": "Rider insights",
+    "backTitle": "Insights",
     "seasonRange": "Season {{year}}, {{from}} to {{to}}",
     "today": "today",
     "stale": "Offline. Showing your season as last saved.",
@@ -2853,8 +2854,8 @@
           "tight": "3 or more bends per km"
         },
         "barA11y": "Straight {{straight}}, sweeping {{sweeping}}, twisty {{twisty}}, tight bends {{tight}}",
-        "footnote_one": "A bend is 35° or more of turning one way within 400 m. {{count}} bend this season.",
-        "footnote_other": "A bend is 35° or more of turning one way within 400 m. {{count}} bends this season.",
+        "footnote_one": "A bend is 35° or more of turning one way within 400 m. {{count, number}} bend this season.",
+        "footnote_other": "A bend is 35° or more of turning one way within 400 m. {{count, number}} bends this season.",
         "per10km": "bends / 10 km",
         "twistiest_one": "Twistiest ride",
         "twistiest_other": "Twistiest rides",

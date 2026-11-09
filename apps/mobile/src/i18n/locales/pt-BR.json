@@ -2760,6 +2760,7 @@
   },
   "riderInsights": {
     "title": "Análise de pilotagem",
+    "backTitle": "Análise",
     "seasonRange": "Temporada {{year}}, de {{from}} até {{to}}",
     "today": "hoje",
     "stale": "Offline. Mostrando sua temporada como foi salva da última vez.",
@@ -2892,9 +2893,9 @@
           "tight": "3 ou mais curvas por km"
         },
         "barA11y": "Retas {{straight}}, curvas abertas {{sweeping}}, sinuosas {{twisty}}, curvas fechadas {{tight}}",
-        "footnote_one": "Uma curva é uma virada de 35° ou mais para o mesmo lado em até 400 m. {{count}} curva nesta temporada.",
-        "footnote_other": "Uma curva é uma virada de 35° ou mais para o mesmo lado em até 400 m. {{count}} curvas nesta temporada.",
-        "footnote_many": "Uma curva é uma virada de 35° ou mais para o mesmo lado em até 400 m. {{count}} curvas nesta temporada.",
+        "footnote_one": "Uma curva é uma virada de 35° ou mais para o mesmo lado em até 400 m. {{count, number}} curva nesta temporada.",
+        "footnote_other": "Uma curva é uma virada de 35° ou mais para o mesmo lado em até 400 m. {{count, number}} curvas nesta temporada.",
+        "footnote_many": "Uma curva é uma virada de 35° ou mais para o mesmo lado em até 400 m. {{count, number}} curvas nesta temporada.",
         "per10km": "curvas / 10 km",
         "twistiest_one": "Rolê mais sinuoso",
         "twistiest_other": "Rolês mais sinuosos",

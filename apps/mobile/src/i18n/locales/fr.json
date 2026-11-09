@@ -2760,6 +2760,7 @@
   },
   "riderInsights": {
     "title": "Bilan motard",
+    "backTitle": "Bilan",
     "seasonRange": "Saison {{year}}, de {{from}} à {{to}}",
     "today": "aujourd'hui",
     "stale": "Hors ligne. Ta saison telle qu'enregistrée la dernière fois.",
@@ -2892,9 +2893,9 @@
           "tight": "3 virages ou plus par km"
         },
         "barA11y": "Lignes droites {{straight}}, grandes courbes {{sweeping}}, sinueuses {{twisty}}, virages serrés {{tight}}",
-        "footnote_one": "Un virage, c'est au moins 35° de rotation dans le même sens sur 400 m. {{count}} virage cette saison.",
-        "footnote_other": "Un virage, c'est au moins 35° de rotation dans le même sens sur 400 m. {{count}} virages cette saison.",
-        "footnote_many": "Un virage, c'est au moins 35° de rotation dans le même sens sur 400 m. {{count}} virages cette saison.",
+        "footnote_one": "Un virage, c'est au moins 35° de rotation dans le même sens sur 400 m. {{count, number}} virage cette saison.",
+        "footnote_other": "Un virage, c'est au moins 35° de rotation dans le même sens sur 400 m. {{count, number}} virages cette saison.",
+        "footnote_many": "Un virage, c'est au moins 35° de rotation dans le même sens sur 400 m. {{count, number}} virages cette saison.",
         "per10km": "virages / 10 km",
         "twistiest_one": "Sortie la plus sinueuse",
         "twistiest_other": "Sorties les plus sinueuses",

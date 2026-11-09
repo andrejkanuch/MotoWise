@@ -11,9 +11,16 @@ export const TAB_ROUTE = {
   PROFILE: '/(tabs)/(profile)',
 } as const;
 
-/** Home sub-routes: Home's own copies of garage sheets, so they close back to Home. */
+/**
+ * Home sub-routes: Home's own copies of garage sheets, so they close back to
+ * Home, and of Rider insights, so its back button returns to Home.
+ */
 export const HOME_ROUTE = {
   ADD_BIKE: '/(tabs)/(home)/add-bike',
+  /** Under `home/` so its URL never collides with Profile's: links keep opening Profile's copy. */
+  RIDER_INSIGHTS: '/(tabs)/(home)/home/rider-insights',
+  RIDER_INSIGHTS_DETAIL: '/(tabs)/(home)/home/rider-insights/[group]',
+  RIDER_INSIGHTS_RECAP: '/(tabs)/(home)/home/rider-insights/recap',
 } as const;
 
 /** Garage sub-routes */
@@ -75,9 +82,30 @@ export const RIDER_INSIGHTS_ENTRY = {
 
 export type RiderInsightsEntry = (typeof RIDER_INSIGHTS_ENTRY)[keyof typeof RIDER_INSIGHTS_ENTRY];
 
-/** The Rider insights route opened from `entry`, for `router.push`. */
+/** The tab stacks that hold a copy of Rider insights and its pages. */
+export const RIDER_INSIGHTS_STACK = {
+  HOME: {
+    MAIN: HOME_ROUTE.RIDER_INSIGHTS,
+    DETAIL: HOME_ROUTE.RIDER_INSIGHTS_DETAIL,
+    RECAP: HOME_ROUTE.RIDER_INSIGHTS_RECAP,
+  },
+  PROFILE: {
+    MAIN: PROFILE_ROUTE.RIDER_INSIGHTS,
+    DETAIL: PROFILE_ROUTE.RIDER_INSIGHTS_DETAIL,
+    RECAP: PROFILE_ROUTE.RIDER_INSIGHTS_RECAP,
+  },
+} as const;
+
+export type RiderInsightsStack = (typeof RIDER_INSIGHTS_STACK)[keyof typeof RIDER_INSIGHTS_STACK];
+
+/**
+ * The Rider insights route opened from `entry`, for `router.push`. Home opens
+ * its own stack's copy so back returns to Home; every other entry opens Profile's.
+ */
 export function riderInsightsHref(entry: RiderInsightsEntry) {
-  return { pathname: PROFILE_ROUTE.RIDER_INSIGHTS, params: { entry } };
+  const stack =
+    entry === RIDER_INSIGHTS_ENTRY.HOME ? RIDER_INSIGHTS_STACK.HOME : RIDER_INSIGHTS_STACK.PROFILE;
+  return { pathname: stack.MAIN, params: { entry } };
 }
 
 /** The `[group]` of a Rider insights detail page. */

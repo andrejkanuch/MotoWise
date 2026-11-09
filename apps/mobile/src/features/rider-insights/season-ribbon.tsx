@@ -4,12 +4,13 @@ import {
   differenceInCalendarWeeks,
   endOfYear,
   format,
+  isSameMonth,
   parseISO,
   startOfWeek,
   startOfYear,
 } from 'date-fns';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { Text, useWindowDimensions, View } from 'react-native';
 import { useEditorialTheme } from '@/theme/editorial';
 import { layout, space } from '@/theme/spacing';
 import { radius, type } from '@/theme/type';
@@ -22,12 +23,14 @@ const MIN_BAR_HEIGHT = 3;
 const BAR_SEAM = 1.5;
 const MONTHS = 12;
 const ISO_DAY = 'yyyy-MM-dd';
+/** Above this text size the heading line wraps instead of squeezing. */
+const LARGE_TEXT = 1.3;
 
 export interface RibbonSlot {
   weekStart: string;
   distanceM: number;
   rides: number;
-  /** The week holding the last day of the season shown. */
+  /** The week holding the last day of the season so far. */
   current: boolean;
 }
 
@@ -40,6 +43,18 @@ export interface RibbonSummary {
 }
 
 /**
+ * The last day of the season so far: today while the season is running (the
+ * API may send the whole calendar year), the season's own end once it is over.
+ * Dates are `YYYY-MM-DD`, so they compare as strings.
+ */
+export function seasonEndSoFar(
+  season: RiderInsightsData['season'],
+  today: string = format(new Date(), ISO_DAY),
+): string {
+  return today >= season.from && today < season.to ? today : season.to;
+}
+
+/**
  * Every week of the season's calendar year, Monday first, with the API's
  * per-week distance where it has one. The ribbon always spans January to
  * December so the month letters line up.
@@ -47,11 +62,15 @@ export interface RibbonSummary {
 export function summarizeRibbon(
   ribbon: RiderInsightsData['ribbon'],
   season: RiderInsightsData['season'],
+  today: string = format(new Date(), ISO_DAY),
 ): RibbonSummary {
   const from = parseISO(season.from);
   const first = startOfWeek(startOfYear(from), WEEK_OPTIONS);
   const count = differenceInCalendarWeeks(endOfYear(from), first, WEEK_OPTIONS) + 1;
-  const currentStart = format(startOfWeek(parseISO(season.to), WEEK_OPTIONS), ISO_DAY);
+  const currentStart = format(
+    startOfWeek(parseISO(seasonEndSoFar(season, today)), WEEK_OPTIONS),
+    ISO_DAY,
+  );
   const byWeek = new Map(ribbon.map((week) => [week.weekStart, week]));
 
   const slots = Array.from({ length: count }, (_, i): RibbonSlot => {
@@ -80,6 +99,21 @@ export function summarizeRibbon(
   };
 }
 
+/**
+ * A week's first and last day for "{{start}} to {{end}}": the month is named once
+ * when the week stays in it ("Aug 24 to 30"), so the line fits beside the heading.
+ */
+export function weekRange(weekStart: string, language: string): { start: string; end: string } {
+  const first = parseISO(weekStart);
+  const last = addDays(first, 6);
+  const dayMonth = new Intl.DateTimeFormat(language, { day: 'numeric', month: 'short' });
+  const dayOnly = new Intl.DateTimeFormat(language, { day: 'numeric' });
+  return {
+    start: dayMonth.format(first),
+    end: (isSameMonth(first, last) ? dayOnly : dayMonth).format(last),
+  };
+}
+
 function barHeight(distanceM: number, max: number): number {
   if (distanceM <= 0 || max <= 0) return EMPTY_BAR_HEIGHT;
   return Math.max(MIN_BAR_HEIGHT, Math.round((distanceM / max) * BAR_AREA_HEIGHT));
@@ -95,11 +129,11 @@ interface SeasonRibbonProps {
 export function SeasonRibbon({ ribbon, season, system }: SeasonRibbonProps) {
   const { t: i18n, i18n: instance } = useTranslation();
   const { t } = useEditorialTheme();
+  const { fontScale } = useWindowDimensions();
   const language = instance.language;
   const summary = summarizeRibbon(ribbon, season);
   const max = summary.biggest?.distanceM ?? 0;
 
-  const dayMonth = new Intl.DateTimeFormat(language, { day: 'numeric', month: 'short' });
   const monthLetter = new Intl.DateTimeFormat(language, { month: 'narrow' });
   const year = parseISO(season.from).getFullYear();
 
@@ -110,8 +144,7 @@ export function SeasonRibbon({ ribbon, season, system }: SeasonRibbonProps) {
   const biggestLine = summary.biggest
     ? i18n('riderInsights.ribbon.biggest', {
         distance: formatInsightDistance(summary.biggest.distanceM, system, language),
-        start: dayMonth.format(parseISO(summary.biggest.weekStart)),
-        end: dayMonth.format(addDays(parseISO(summary.biggest.weekStart), 6)),
+        ...weekRange(summary.biggest.weekStart, language),
       })
     : null;
 
@@ -133,18 +166,30 @@ export function SeasonRibbon({ ribbon, season, system }: SeasonRibbonProps) {
           gap: space.xs,
         }}
       >
+        {/* "Biggest" sits on the heading line, right-aligned; at large text sizes it wraps under. */}
         <View
           style={{
             flexDirection: 'row',
-            flexWrap: 'wrap',
+            flexWrap: fontScale > LARGE_TEXT ? 'wrap' : 'nowrap',
             justifyContent: 'space-between',
             alignItems: 'baseline',
             columnGap: space.sm,
           }}
         >
-          <Text style={[type.figureSmall, { color: t.ink }]}>{weeksLine}</Text>
+          <Text style={[type.figureSmall, { color: t.ink, flexShrink: 0 }]}>{weeksLine}</Text>
           {biggestLine ? (
-            <Text style={[type.caption, { color: t.ink3 }]}>{biggestLine}</Text>
+            <Text
+              style={[
+                type.caption,
+                {
+                  color: t.ink3,
+                  flexShrink: 1,
+                  textAlign: fontScale > LARGE_TEXT ? 'left' : 'right',
+                },
+              ]}
+            >
+              {biggestLine}
+            </Text>
           ) : null}
         </View>
         <View

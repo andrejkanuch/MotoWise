@@ -9,14 +9,18 @@ jest.mock('react-native-view-shot', () => ({
 jest.mock('expo-image', () => {
   const { View } = require('react-native');
   return {
-    Image: (props: { testID?: string; source: { uri: string } }) => (
-      <View testID={props.testID} accessibilityHint={props.source.uri} />
+    Image: (props: { testID?: string; source: { uri: string }; blurRadius?: number }) => (
+      <View
+        testID={props.testID}
+        accessibilityHint={props.source.uri}
+        accessibilityValue={{ now: props.blurRadius }}
+      />
     ),
   };
 });
 
 import { act, render, screen } from '@testing-library/react-native';
-import { Text } from 'react-native';
+import { PixelRatio, Text } from 'react-native';
 import { BlurCapture, clearBlurCaptures } from '../blur-capture';
 
 const HIDDEN = { includeHiddenElements: true };
@@ -98,4 +102,14 @@ it('going back to a key captured earlier shows its picture at once', async () =>
     'file:///light.png',
   );
   expect(mockCaptureRef).toHaveBeenCalledTimes(2);
+});
+
+it('blurs in points: the capture is at device pixels, so the radius scales with the pixel ratio', async () => {
+  jest.spyOn(PixelRatio, 'get').mockReturnValue(3);
+  mockCaptureRef.mockResolvedValueOnce('file:///teaser.png');
+  await render(teaser('summary|ratio|light|1'));
+  await laidOut();
+  expect(screen.getByTestId('blur-capture-image', HIDDEN).props.accessibilityValue).toEqual({
+    now: 42,
+  });
 });

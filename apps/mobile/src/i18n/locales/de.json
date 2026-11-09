@@ -2729,6 +2729,7 @@
   },
   "riderInsights": {
     "title": "Fahrstatistik",
+    "backTitle": "Statistik",
     "seasonRange": "Saison {{year}}, {{from}} bis {{to}}",
     "today": "heute",
     "stale": "Offline. Deine Saison wird so angezeigt, wie sie zuletzt gespeichert wurde.",
@@ -2853,8 +2854,8 @@
           "tight": "3 oder mehr Kurven pro km"
         },
         "barA11y": "Gerade {{straight}}, geschwungen {{sweeping}}, kurvig {{twisty}}, enge Kurven {{tight}}",
-        "footnote_one": "Eine Kurve ist eine Richtungsänderung von 35° oder mehr in eine Richtung innerhalb von 400 m. {{count}} Kurve in dieser Saison.",
-        "footnote_other": "Eine Kurve ist eine Richtungsänderung von 35° oder mehr in eine Richtung innerhalb von 400 m. {{count}} Kurven in dieser Saison.",
+        "footnote_one": "Eine Kurve ist eine Richtungsänderung von 35° oder mehr in eine Richtung innerhalb von 400 m. {{count, number}} Kurve in dieser Saison.",
+        "footnote_other": "Eine Kurve ist eine Richtungsänderung von 35° oder mehr in eine Richtung innerhalb von 400 m. {{count, number}} Kurven in dieser Saison.",
         "per10km": "Kurven / 10 km",
         "twistiest_one": "Kurvigste Fahrt",
         "twistiest_other": "Kurvigste Fahrten",

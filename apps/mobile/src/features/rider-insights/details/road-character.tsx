@@ -33,6 +33,7 @@ import {
 
 type RoadDetail = NonNullable<RiderInsightsData['roadCharacter']['detail']>;
 type RankedRide = RoadDetail['twistiest'][number];
+const STRAIGHTEST_SHOWN = 1;
 type Lean = NonNullable<RoadDetail['lean']>;
 
 const BAR_HEIGHT = 16;
@@ -82,6 +83,9 @@ export function RoadCharacterDetail({ detail, system }: Props) {
     (band, i) => `${kmOf(detail.bandKm[band])}, ${formatPercent(shares[i], language)}`,
   );
 
+  // One straightest ride is the contrast to the twistiest list; more reads as a ranking.
+  const straightest = detail.straightest.slice(0, STRAIGHTEST_SHOWN);
+
   const rideRow = (ride: RankedRide, rank: number) => (
     <ValueRow
       key={ride.rideId}
@@ -93,10 +97,15 @@ export function RoadCharacterDetail({ detail, system }: Props) {
           date: shortDate(ride.localDate, language),
         })
       }
-      caption={i18n('riderInsights.detail.rideMeta', {
-        date: shortDate(ride.localDate, language),
-        distance: formatInsightDistance(ride.distanceM, system, language),
-      })}
+      caption={
+        // An unnamed ride is already titled by its date.
+        ride.name === null
+          ? formatInsightDistance(ride.distanceM, system, language)
+          : i18n('riderInsights.detail.rideMeta', {
+              date: shortDate(ride.localDate, language),
+              distance: formatInsightDistance(ride.distanceM, system, language),
+            })
+      }
       value={ride.bendsPer10km === null ? '–' : formatNumber(ride.bendsPer10km, language, 1)}
       unit={i18n('riderInsights.detail.roadCharacter.per10km')}
       onPress={() => openRide(ride.rideId)}
@@ -166,13 +175,10 @@ export function RoadCharacterDetail({ detail, system }: Props) {
       {detail.straightest.length > 0 ? (
         <Section
           title={i18n('riderInsights.detail.roadCharacter.straightest', {
-            count: detail.straightest.length,
+            count: straightest.length,
           })}
         >
-          <RowList
-            inset={RANK_ROW_INSET}
-            rows={detail.straightest.map((r, i) => rideRow(r, i + 1))}
-          />
+          <RowList inset={RANK_ROW_INSET} rows={straightest.map((r, i) => rideRow(r, i + 1))} />
         </Section>
       ) : null}
 

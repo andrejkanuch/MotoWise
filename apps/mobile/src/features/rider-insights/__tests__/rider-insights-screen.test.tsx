@@ -24,11 +24,13 @@ jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
 
 const mockRouter = { push: jest.fn() };
 let mockParams: Record<string, string> = {};
+let mockSegments: string[] = ['(tabs)', '(profile)', 'rider-insights'];
 jest.mock('expo-router', () => ({
   get router() {
     return mockRouter;
   },
   useLocalSearchParams: () => mockParams,
+  useSegments: () => mockSegments,
   Stack: { Screen: () => null },
 }));
 
@@ -90,7 +92,7 @@ import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 import { StyleSheet, useWindowDimensions } from 'react-native';
 import '@/i18n';
-import { RIDER_INSIGHTS_ENTRY } from '@/config/routes';
+import { HOME_ROUTE, PROFILE_ROUTE, RIDER_INSIGHTS_ENTRY } from '@/config/routes';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { queryKeys } from '@/lib/query-keys';
 import { useAuthStore } from '@/stores/auth.store';
@@ -145,6 +147,7 @@ beforeEach(() => {
   mockTrack.mockReset();
   mockLineLayers.length = 0;
   mockParams = {};
+  mockSegments = ['(tabs)', '(profile)', 'rider-insights'];
   mockDimensions.mockReturnValue({ width: 390, height: 844, scale: 3, fontScale: 1 });
   clearBlurCaptures();
   onlineManager.setOnline(true);
@@ -379,6 +382,54 @@ describe('the map', () => {
     expect(ovals.props.accessibilityLabel).toBe('2 countries: Spain, Slovakia. Open countries');
     expect(within(ovals).getByText('E')).toBeTruthy();
     expect(within(ovals).getByText('SK')).toBeTruthy();
+  });
+});
+
+describe('one scroll view', () => {
+  // The iOS large title binds to the first scroll view; a swap leaves it drawn under the header.
+  it('keeps the same scroll view from loading to loaded', async () => {
+    respond(freeInsights());
+    await renderScreen();
+    const loading = screen.getByTestId('insights-scroll');
+    expect(screen.getByTestId('insights-loading')).toBeTruthy();
+    await screen.findByTestId('territory-row');
+    expect(screen.getByTestId('insights-scroll')).toBe(loading);
+  });
+
+  it('keeps the same scroll view from an error to the retried load', async () => {
+    mockFetcher.mockRejectedValueOnce(new Error('500'));
+    await renderScreen();
+    await fireEvent.press(await screen.findByText('Try again'));
+    const failed = screen.getByTestId('insights-scroll');
+    respond(freeInsights());
+    await act(async () => {
+      await client.refetchQueries();
+    });
+    await screen.findByTestId('territory-row');
+    expect(screen.getByTestId('insights-scroll')).toBe(failed);
+  });
+});
+
+describe('navigation stays in the tab stack it was opened in', () => {
+  it("opens a detail page on Profile's stack", async () => {
+    respond(freeInsights());
+    await renderScreen();
+    await fireEvent.press(await screen.findByTestId('best-rides-row'));
+    expect(mockRouter.push).toHaveBeenCalledWith(
+      expect.objectContaining({ pathname: PROFILE_ROUTE.RIDER_INSIGHTS_DETAIL }),
+    );
+  });
+
+  it("opens a detail page and the recap on Home's stack when opened from Home", async () => {
+    mockSegments = ['(tabs)', '(home)', 'home', 'rider-insights'];
+    respond(freeInsights());
+    await renderScreen();
+    await fireEvent.press(await screen.findByTestId('best-rides-row'));
+    expect(mockRouter.push).toHaveBeenCalledWith(
+      expect.objectContaining({ pathname: HOME_ROUTE.RIDER_INSIGHTS_DETAIL }),
+    );
+    await fireEvent.press(screen.getByTestId('insights-recap-entry'));
+    expect(mockRouter.push).toHaveBeenCalledWith({ pathname: HOME_ROUTE.RIDER_INSIGHTS_RECAP });
   });
 });
 

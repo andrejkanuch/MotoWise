@@ -18,7 +18,7 @@ import { blurCaptureKey } from '../blur-capture';
 import { plateLettersFor } from '../country-codes';
 import { busiestSlot, gridLevels } from '../how-you-ride-list';
 import { fitViewport, projectPoint, swapMainRegion } from '../region-tiles';
-import { summarizeRibbon } from '../season-ribbon';
+import { seasonEndSoFar, summarizeRibbon, weekRange } from '../season-ribbon';
 import {
   hasRegionGeometry,
   INSIGHTS_VIEW,
@@ -197,5 +197,44 @@ describe('summarizeRibbon', () => {
     expect(summary.weeksSoFar).toBe(46);
     expect(summary.biggest?.weekStart).toBe('2026-03-02');
     expect(summary.slots.filter((s) => s.current).map((s) => s.weekStart)).toEqual(['2026-11-09']);
+  });
+
+  it('counts the current season to today when the API sends the whole calendar year', () => {
+    const summary = summarizeRibbon(
+      [{ weekStart: '2026-03-02', rides: 3, distanceM: 385_000 }],
+      { from: '2026-01-01', to: '2026-12-31' },
+      '2026-11-09',
+    );
+    expect(summary.weeksSoFar).toBe(46);
+    expect(summary.slots.filter((s) => s.current).map((s) => s.weekStart)).toEqual(['2026-11-09']);
+  });
+
+  it('keeps a past season to its own last week', () => {
+    const summary = summarizeRibbon([], { from: '2025-01-01', to: '2025-12-31' }, '2026-11-09');
+    expect(summary.weeksSoFar).toBe(summary.slots.length);
+  });
+});
+
+describe('seasonEndSoFar', () => {
+  it('is today inside the season and the season end otherwise', () => {
+    expect(seasonEndSoFar({ from: '2026-01-01', to: '2026-12-31' }, '2026-11-09')).toBe(
+      '2026-11-09',
+    );
+    expect(seasonEndSoFar({ from: '2025-01-01', to: '2025-12-31' }, '2026-11-09')).toBe(
+      '2025-12-31',
+    );
+    expect(seasonEndSoFar({ from: '2026-01-01', to: '2026-11-09' }, '2026-11-09')).toBe(
+      '2026-11-09',
+    );
+  });
+});
+
+describe('weekRange', () => {
+  it('names the month once when the week stays in it', () => {
+    expect(weekRange('2026-08-24', 'en-US')).toEqual({ start: 'Aug 24', end: '30' });
+  });
+
+  it('names both months when the week crosses into the next', () => {
+    expect(weekRange('2026-08-31', 'en-US')).toEqual({ start: 'Aug 31', end: 'Sep 6' });
   });
 });

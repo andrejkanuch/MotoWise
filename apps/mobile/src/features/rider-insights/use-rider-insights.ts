@@ -38,6 +38,8 @@ export function riderInsightsOptions(timeZone: string) {
   return queryOptions({
     queryKey: queryKeys.rides.insights(timeZone),
     queryFn: () => fetchRiderInsights(timeZone, false),
+    // The screen and every entry card draw their own failed state.
+    meta: { showErrorAlert: false },
   });
 }
 
@@ -65,6 +67,7 @@ export function riderInsightsWindowOptions(timeZone: string, window: SeasonWindo
   return queryOptions({
     queryKey: queryKeys.rides.insightsWindow(timeZone, window.from, window.to),
     queryFn: () => gqlFetcher(GetRiderInsightsDocument, { timeZone, ...window }),
+    meta: { showErrorAlert: false },
   });
 }
 

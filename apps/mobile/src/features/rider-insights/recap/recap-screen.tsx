@@ -18,6 +18,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { hashString, SHARE_EXPORT_PX, SHARE_SIZE } from '@/components/share/insights-share';
 import { captureShareImage, getExportCardDimensions } from '@/components/share/render-share-card';
 import { useMeasurementSystem } from '@/hooks/use-measurement-system';
@@ -32,7 +33,7 @@ import { triggerImpact } from '@/utils/haptics';
 import { StateNotice } from '../details/detail-parts';
 import { buildInsightsPaywallCopy, insightsPaywallNumbers } from '../paywall-copy';
 import { INSIGHTS_VIEW, type RiderInsightsData, useRiderInsights } from '../use-rider-insights';
-import { RecapCardView } from './recap-card';
+import { RECAP_ASPECT, RecapCardView } from './recap-card';
 import {
   RECAP_CARD,
   RECAP_STATE,
@@ -51,6 +52,42 @@ const STORY_PX = SHARE_EXPORT_PX[SHARE_SIZE.STORY];
 /** A card takes this share of the screen width, so the next one peeks in. */
 const CARD_WIDTH_SHARE = 0.7;
 const CARD_MAX_WIDTH = 320;
+/** Below this a card's text no longer fits; on a very short screen the page scrolls instead. */
+const CARD_MIN_WIDTH = 200;
+/** The native header bar under the status bar. */
+const HEADER_BAR = 44;
+/** Heading, subheading and the card label, at text size 1; they grow with it. */
+const TEXT_CHROME = 78;
+/** The share button's height. */
+const SHARE_BUTTON = space.xxxl + space.sm;
+
+/**
+ * A card's width: a share of the screen width, but never so tall that the
+ * share button under it falls behind the tab bar.
+ */
+export function recapCardWidth(input: {
+  windowWidth: number;
+  windowHeight: number;
+  fontScale: number;
+  topInset: number;
+  bottomClearance: number;
+}): number {
+  const { windowWidth, windowHeight, fontScale, topInset, bottomClearance } = input;
+  const chrome =
+    topInset +
+    HEADER_BAR +
+    space.sm +
+    TEXT_CHROME * fontScale +
+    2 * layout.sectionGap +
+    space.xs +
+    SHARE_BUTTON +
+    bottomClearance;
+  const byHeight = (windowHeight - chrome) / RECAP_ASPECT;
+  return Math.max(
+    CARD_MIN_WIDTH,
+    Math.min(windowWidth * CARD_WIDTH_SHARE, CARD_MAX_WIDTH, byHeight),
+  );
+}
 const DIVIDER_OPACITY = 0.4;
 /** Where the capture copy sits: off screen, so the rider never sees it. */
 const OFFSCREEN = -100_000;
@@ -139,11 +176,19 @@ interface RecapBodyProps {
 function RecapBody({ insights, system, unlocking, onPurchased }: RecapBodyProps) {
   const { t: i18n, i18n: instance } = useTranslation();
   const { t } = useEditorialTheme();
-  const { width: windowWidth } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight, fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const bottomClearance = useTabBarClearance();
   const language = instance.language;
   const cards = useMemo(() => recapCards(insights), [insights]);
   const year = recapSeasonYear(insights);
-  const cardWidth = Math.min(windowWidth * CARD_WIDTH_SHARE, CARD_MAX_WIDTH);
+  const cardWidth = recapCardWidth({
+    windowWidth,
+    windowHeight,
+    fontScale,
+    topInset: insets.top,
+    bottomClearance,
+  });
   const offsets = useMemo(() => cardOffsets(cards, cardWidth), [cards, cardWidth]);
   const [index, setIndex] = useState(0);
   const [exporting, setExporting] = useState<RecapCardState | null>(null);

@@ -19,7 +19,7 @@ const PATTERN_HEIGHT = 160;
 const PATTERN_PADDING = 8;
 const ROUTE_WIDTH = 1.5;
 /** Blur per teaser: enough that a shape reads, never a value. */
-export const DETAIL_BLUR = { band: 6, grid: 5, pattern: 8 } as const;
+export const DETAIL_BLUR = { band: 12, grid: 12, pattern: 12 } as const;
 
 /** Road character's teaser: band shares rounded to 10%, drawn as the bar. */
 export function TeaserBandBar({ shares, width }: { shares: readonly number[]; width: number }) {

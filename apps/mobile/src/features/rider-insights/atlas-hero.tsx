@@ -19,7 +19,8 @@ import {
 
 /** The hero map is a 4:5 sheet. */
 const HERO_ASPECT = 5 / 4;
-const MAP_PADDING = 24;
+/** Room around the routes so end points and their labels clear the edge. */
+const MAP_PADDING = space.xxl;
 const ROUTE_LINE_WIDTH = 2.5;
 const ROUTE_GLOW_WIDTH = 7;
 const ROUTE_GLOW_OPACITY = 0.15;

@@ -46,6 +46,13 @@ const LIST: Record<Metric, (detail: BestRidesDetailData) => BestRide[]> = {
   bends: (detail) => detail.byBends,
 };
 
+const NO_BREAK_SPACE = '\u00A0';
+
+/** "1h 29m" never splits across two lines. */
+function unbroken(text: string): string {
+  return text.replace(/ /g, NO_BREAK_SPACE);
+}
+
 function rideTitle(
   ride: { name: string | null; localDate: string },
   t: TFunction,
@@ -123,11 +130,12 @@ export function BestRidesDetail({
               leading={<RankWell rank={i + 1} />}
               title={rideTitle(ride, i18n, language)}
               caption={[
-                shortDate(ride.localDate, language),
+                // An unnamed ride is already titled by its date.
+                ride.name === null ? null : shortDate(ride.localDate, language),
                 metric === BEST_RIDES_METRIC.DISTANCE
                   ? null
                   : formatInsightDistance(ride.distanceM, system, language),
-                ride.movingTimeS === null ? null : formatDuration(ride.movingTimeS),
+                ride.movingTimeS === null ? null : unbroken(formatDuration(ride.movingTimeS)),
               ]
                 .filter(Boolean)
                 .join(' · ')}
@@ -190,14 +198,14 @@ export function BestRidesFree({ longest, rankedCount, system, unlocking, onUnloc
                 leading={<RankWell rank={1} />}
                 title={rideTitle(longest, i18n, language)}
                 caption={[
-                  shortDate(longest.localDate, language),
+                  longest.name === null ? null : shortDate(longest.localDate, language),
                   longest.startPlace && longest.endPlace
                     ? i18n('riderInsights.detail.bestRides.places', {
                         start: longest.startPlace,
                         end: longest.endPlace,
                       })
                     : null,
-                  formatDuration(longest.movingTimeS ?? longest.durationS),
+                  unbroken(formatDuration(longest.movingTimeS ?? longest.durationS)),
                 ]
                   .filter(Boolean)
                   .join(' · ')}

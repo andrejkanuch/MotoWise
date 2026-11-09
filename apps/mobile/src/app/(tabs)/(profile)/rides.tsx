@@ -53,7 +53,7 @@ const PERIOD_KEYS: Period[] = ['week', 'month', 'year', 'all'];
 
 type RideEdge = MyRidesQuery['myRides']['edges'][number];
 
-function useRideStats(edges: RideEdge[], period: Period) {
+function useRideStats(edges: RideEdge[], period: Period, totalCount?: number | null) {
   return useMemo(() => {
     const now = new Date();
     let periodStart: Date;
@@ -139,11 +139,11 @@ function useRideStats(edges: RideEdge[], period: Period) {
       periodMaxSpeed,
       periodElevation,
       totalDistance,
-      totalRides: edges.length,
+      totalRides: totalCount ?? edges.length, // the server's total, not the loaded page
       dailyDistances,
       trendPercent,
     };
-  }, [edges, period]);
+  }, [edges, period, totalCount]);
 }
 
 /** Mini sparkline area chart */
@@ -279,7 +279,7 @@ export default function RidesScreen() {
     () => (sortNewest ? allEdges : [...allEdges].reverse()),
     [allEdges, sortNewest],
   );
-  const stats = useRideStats(allEdges, period);
+  const stats = useRideStats(allEdges, period, data?.pages[0]?.myRides?.totalCount);
 
   // Map rideId → record types for badge display
   const recordsByRideId = useMemo(() => {

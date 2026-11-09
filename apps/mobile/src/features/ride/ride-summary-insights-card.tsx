@@ -40,7 +40,10 @@ export const SUMMARY_STATS_POLL_MS = 3_000;
 /** The card stops asking after this long and keeps the device's numbers. */
 export const SUMMARY_STATS_MAX_WAIT_MS = 30_000;
 const TILE_MIN_HEIGHT = 78;
-const BLUR_RADIUS = 14;
+const BLUR_RADIUS = 10;
+/** The locked tile's teaser: two blocks shaped like "00 km · 00%", the same for every ride. */
+const TEASER_SHAPE = [56, 32] as const;
+const TEASER_BLOCK_HEIGHT = 22;
 const BLUR_WIDTH = 120;
 const BLUR_HEIGHT = 30;
 const PRESS_TINT = 0.06;
@@ -110,7 +113,15 @@ interface RideSummaryInsightsCardProps {
   distanceM: number;
   /** Elapsed minus manual and auto pauses, as the paywall trigger counts it. */
   movingS: number;
+  /**
+   * Opens Rider insights from inside a sheet: one navigation that closes the
+   * sheet and opens the screen (a push would land under the sheet). Without it
+   * the card pushes the route.
+   */
+  onOpenInsights?: (href: RiderInsightsHref) => void;
 }
+
+type RiderInsightsHref = ReturnType<typeof riderInsightsHref>;
 
 /**
  * The ride summary's Rider insights card: this ride's new roads for Pro, the
@@ -123,6 +134,7 @@ export function RideSummaryInsightsCard({
   localDate: localDateProp,
   distanceM,
   movingS,
+  onOpenInsights,
 }: RideSummaryInsightsCardProps) {
   const { t: i18n, i18n: instance } = useTranslation();
   const { t, isDark } = useEditorialTheme();
@@ -201,7 +213,11 @@ export function RideSummaryInsightsCard({
   }, [model?.tile]);
 
   const dist = (m: number) => formatInsightDistance(m, system, language);
-  const openInsights = () => router.push(riderInsightsHref(RIDER_INSIGHTS_ENTRY.RIDE_SUMMARY));
+  const openInsights = () => {
+    const href = riderInsightsHref(RIDER_INSIGHTS_ENTRY.RIDE_SUMMARY);
+    if (onOpenInsights) onOpenInsights(href);
+    else router.push(href);
+  };
 
   /** The paywall, then after a purchase or restore the tier is re-read, as on every other entry point. */
   const presentPaywall = async (copy: Parameters<typeof presentRiderInsightsPaywall>[1]) => {
@@ -277,7 +293,7 @@ export function RideSummaryInsightsCard({
               <BlurCapture
                 cacheKey={blurCaptureKey({
                   row: RIDER_INSIGHTS_PAYWALL_ROW.SUMMARY,
-                  data: distanceM,
+                  data: TEASER_SHAPE,
                   isDark,
                   fontScale,
                 })}
@@ -285,8 +301,22 @@ export function RideSummaryInsightsCard({
                 height={BLUR_HEIGHT}
                 blurRadius={BLUR_RADIUS}
               >
-                {/* The ride's own (free) distance as the shape under the blur: never a Pro value. */}
-                <Text style={[type.figure, { color: t.ink }]}>{dist(distanceM)}</Text>
+                {/* A figure-shaped block, never a number: not even the ride's own distance,
+                    which would read as "all of this ride was new road". */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
+                  {TEASER_SHAPE.map((blockWidth) => (
+                    <View
+                      key={blockWidth}
+                      style={{
+                        width: blockWidth,
+                        height: TEASER_BLOCK_HEIGHT,
+                        borderRadius: radius.chip,
+                        borderCurve: 'continuous',
+                        backgroundColor: t.ink3,
+                      }}
+                    />
+                  ))}
+                </View>
               </BlurCapture>
               <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: t.warm2 }]}>
                 {i18n('insightsEntry.unlockPro')}

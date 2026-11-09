@@ -11,7 +11,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query-keys';
 import { shouldDehydratePersistedQuery } from '@/lib/query-persist';
 import { freeInsights } from '@/test/rider-insights-fixtures';
-import { riderInsightsOptions } from '../use-rider-insights';
+import { riderInsightsOptions, riderInsightsWindowOptions } from '../use-rider-insights';
 import { riderInsightsHeadlineOptions } from '../use-rider-insights-headline';
 
 const TIME_ZONE = 'Europe/Bratislava';
@@ -53,5 +53,17 @@ describe('riderInsightsHeadlineOptions', () => {
     await client.fetchQuery(options);
     const query = client.getQueryCache().find({ queryKey: options.queryKey, exact: true });
     expect(query && shouldDehydratePersistedQuery(query)).toBe(true);
+  });
+});
+
+describe('error surfaces', () => {
+  // Every insights surface draws its own failed state; a global alert on top is a second one.
+  it('opts every insights query out of the global error alert', () => {
+    expect(riderInsightsOptions('Europe/Vienna').meta?.showErrorAlert).toBe(false);
+    expect(riderInsightsHeadlineOptions('Europe/Vienna').meta?.showErrorAlert).toBe(false);
+    expect(
+      riderInsightsWindowOptions('Europe/Vienna', { from: '2025-01-01', to: '2025-12-31' }).meta
+        ?.showErrorAlert,
+    ).toBe(false);
   });
 });

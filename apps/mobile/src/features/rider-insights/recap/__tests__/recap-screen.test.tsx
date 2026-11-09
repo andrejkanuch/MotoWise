@@ -28,6 +28,7 @@ jest.mock('expo-router', () => ({
     return mockRouter;
   },
   useLocalSearchParams: () => ({}),
+  useSegments: () => ['(tabs)', '(profile)', 'rider-insights'],
   Stack: { Screen: () => null },
 }));
 
@@ -96,6 +97,8 @@ import {
   RIOJA_ROUTE,
 } from '@/test/rider-insights-fixtures';
 import { clearBlurCaptures } from '../../blur-capture';
+import { RECAP_ASPECT } from '../recap-card';
+import { recapCardWidth } from '../recap-screen';
 
 const mockTrack = trackEvent as jest.Mock;
 const FREE_CARDS = ['distance', 'countries', 'longest'];
@@ -263,8 +266,9 @@ describe('a Pro rider', () => {
     expect(readable('recap-card-new-roads')).toContain('84%');
     expect(readable('recap-card-new-roads')).toContain('343 km²');
     expect(readable('recap-card-twistiest')).toContain('Saturday Evening Ride');
-    expect(readable('recap-card-twistiest')).toContain('51.7 km');
-    expect(readable('recap-card-twistiest')).toContain('21 bends every 10 km');
+    // Rounded as everywhere else: whole km, bends to one decimal as on the detail page.
+    expect(readable('recap-card-twistiest')).toContain('52 km');
+    expect(readable('recap-card-twistiest')).toContain('21.3 bends every 10 km');
   });
 
   it('with EUR and USD spend sees EUR first, USD listed beneath, and which distance it used', async () => {
@@ -331,5 +335,26 @@ describe('the entry on Rider insights', () => {
     expect(mockRouter.push).toHaveBeenCalledWith({
       pathname: PROFILE_ROUTE.RIDER_INSIGHTS_RECAP,
     });
+  });
+});
+
+describe('recapCardWidth', () => {
+  const phone = { windowWidth: 402, windowHeight: 874, fontScale: 1, topInset: 62 };
+
+  it('keeps the share button above the tab bar on a tall phone', () => {
+    const width = recapCardWidth({ ...phone, bottomClearance: 130 });
+    // Card plus everything around it fits in the window.
+    expect(62 + 44 + 12 + 78 + 48 + 8 + 52 + 130 + width * RECAP_ASPECT).toBeLessThanOrEqual(874);
+    expect(width).toBeLessThan(402 * 0.7);
+  });
+
+  it('uses the width share when the screen is tall enough', () => {
+    expect(recapCardWidth({ ...phone, windowHeight: 1_400, bottomClearance: 130 })).toBeCloseTo(
+      402 * 0.7,
+    );
+  });
+
+  it('never shrinks a card below its readable minimum', () => {
+    expect(recapCardWidth({ ...phone, windowHeight: 500, bottomClearance: 130 })).toBe(200);
   });
 });

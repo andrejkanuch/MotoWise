@@ -268,6 +268,12 @@ describe('a free rider', () => {
     expect(
       within(tile).getByTestId('blur-capture-placeholder', { includeHiddenElements: true }),
     ).toBeTruthy();
+    // The shape under the blur is never a number: not even the ride's own 48 km.
+    expect(
+      within(tile)
+        .queryAllByText(/\d/, { includeHiddenElements: true })
+        .map((n) => n.props.children),
+    ).toEqual([]);
     expect(trackEvent).toHaveBeenCalledWith(AnalyticsEvent.RIDER_INSIGHTS_LOCKED_ROW_SHOWN, {
       row: 'summary',
     });
@@ -294,6 +300,24 @@ describe('a free rider', () => {
     await fireEvent.press(screen.getByTestId('ride-summary-insights-season'));
     expect(mockPresentPaywall).toHaveBeenCalledTimes(1);
     expect(mockRouter.push).toHaveBeenCalledWith(INSIGHTS_ROUTE);
+  });
+});
+
+describe('inside the ride summary sheet', () => {
+  // A push from a sheet opens the screen under it; the summary hands the card one
+  // navigation that dismisses the sheet and opens Rider insights together.
+  it('hands the Rider insights route to the summary instead of pushing it', async () => {
+    const onOpenInsights = jest.fn();
+    serve(freeInsights(), pending);
+    await render(
+      <QueryClientProvider client={client}>
+        <RideSummaryInsightsCard {...RIDE} onOpenInsights={onOpenInsights} />
+      </QueryClientProvider>,
+    );
+    await seasonLoaded();
+    await fireEvent.press(screen.getByTestId('ride-summary-insights-season'));
+    expect(onOpenInsights).toHaveBeenCalledWith(INSIGHTS_ROUTE);
+    expect(mockRouter.push).not.toHaveBeenCalled();
   });
 });
 
