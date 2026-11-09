@@ -61,27 +61,43 @@ fi
 
 # "<file>\t<added line>" for every added line: tracked changes against the
 # merge-base (working tree included), then every line of untracked files.
-# core.quotePath=false keeps non-ASCII paths unquoted; the `+++ b/` header is
-# stripped as a whole (a path may contain spaces) along with git's trailing tab.
-added_lines() {
-  git -c core.quotePath=false diff -M -U0 --no-color "$BASE" -- "$SCOPE" | awk '
-    /^\+\+\+ / {
-      file = $0
-      if (file == "+++ /dev/null") { file = ""; next }
-      sub(/^\+\+\+ b\//, "", file)
-      sub(/\t$/, "", file)
-      next
-    }
-    /^\+/ { if (file != "") print file "\t" substr($0, 2) }
-  '
-  git -c core.quotePath=false ls-files --others --exclude-standard -- "$SCOPE" | while IFS= read -r f; do
-    awk -v file="$f" '{ print file "\t" $0 }' "$f"
-  done
-}
+# Each step writes a file rather than feeding a pipeline, so `set -e` sees a
+# failure: a pipeline would only report its last command and the guard would
+# go green on a diff it never read.
+# - core.quotePath=false keeps non-ASCII paths unquoted.
+# - The prefixes are pinned, so a developer's diff.mnemonicPrefix or
+#   diff.noprefix cannot change the header.
+# - The `+++ b/` header is stripped as a whole (a path may contain spaces),
+#   with git's trailing tab. Any other header shape fails loudly.
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
+
+git -c core.quotePath=false diff --src-prefix=a/ --dst-prefix=b/ -M -U0 --no-color \
+  "$BASE" -- "$SCOPE" > "$WORK/tracked.diff"
+
+if ! awk '
+  /^\+\+\+ / {
+    file = $0
+    if (file == "+++ /dev/null") { file = ""; next }
+    if (file !~ /^\+\+\+ b\//) { print "unreadable diff header: " file > "/dev/stderr"; exit 2 }
+    sub(/^\+\+\+ b\//, "", file)
+    sub(/\t$/, "", file)
+    next
+  }
+  /^\+/ { if (file != "") print file "\t" substr($0, 2) }
+' "$WORK/tracked.diff" > "$WORK/added.tsv"; then
+  echo "ERROR: could not read the diff against $BASE — the spacing ratchet did not run."
+  exit 1
+fi
+
+git -c core.quotePath=false ls-files --others --exclude-standard -z -- "$SCOPE" > "$WORK/untracked"
+tr '\0' '\n' < "$WORK/untracked" | while IFS= read -r f; do
+  awk -v file="$f" '{ print file "\t" $0 }' "$f"
+done >> "$WORK/added.tsv"
 
 offenders="$(
-  added_lines \
-    | KEEP="$FILE_RE" SKIP="$SKIP_RE" awk -F '\t' '$1 ~ ENVIRON["KEEP"] && $1 !~ ENVIRON["SKIP"]' \
+  KEEP="$FILE_RE" SKIP="$SKIP_RE" awk -F '\t' '$1 ~ ENVIRON["KEEP"] && $1 !~ ENVIRON["SKIP"]' \
+    "$WORK/added.tsv" \
     | grep -E "$SPACING_RE" \
     || true
 )"

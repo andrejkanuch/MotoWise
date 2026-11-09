@@ -124,6 +124,17 @@ describe('check-no-hardcoded-mobile-spacing', () => {
     });
   }
 
+  for (const setting of ['diff.mnemonicPrefix=true', 'diff.noprefix=true']) {
+    test(`still reads the diff with ${setting}`, () => {
+      const root = repoOnBranch();
+      const [key, value] = setting.split('=');
+      git(root, 'config', key, value);
+      writeFiles(root, { [SCREEN]: `${LEGACY}const a = { gap: 6 };\n` });
+      track(root);
+      assert.equal(runGuard(root).failed, true);
+    });
+  }
+
   test('does not treat a renamed file as new', () => {
     const root = repoOnBranch();
     git(root, 'mv', SCREEN, 'apps/mobile/src/components/renamed-screen.tsx');

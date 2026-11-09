@@ -8,10 +8,14 @@ const mockFetchQuery = jest.fn();
 jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockGqlFetcher(...args),
 }));
+const mockCancelQueries = jest.fn();
+let mockObserverCount = 0;
 jest.mock('@/lib/query-client', () => ({
   queryClient: {
     fetchQuery: (...args: unknown[]) => mockFetchQuery(...args),
     invalidateQueries: jest.fn(),
+    cancelQueries: (...args: unknown[]) => mockCancelQueries(...args),
+    getQueryCache: () => ({ find: () => ({ getObserversCount: () => mockObserverCount }) }),
   },
 }));
 jest.mock('@/lib/query-options', () => ({
@@ -54,6 +58,7 @@ import {
 import { act, renderHook } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { Alert, type AlertButton } from 'react-native';
+import { QUERY_META } from '@/lib/query-meta';
 import {
   RECEIPT_REVIEW_TYPE,
   type ReceiptReviewHandoff,
@@ -143,6 +148,7 @@ function pressDuplicateButton(alertSpy: jest.SpyInstance, textKey: string) {
 let alertSpy: jest.SpyInstance;
 beforeEach(() => {
   jest.clearAllMocks();
+  mockObserverCount = 0;
   alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 });
 afterEach(() => {
@@ -183,7 +189,7 @@ describe('useReceiptScanSave saving state', () => {
         retry: false,
         networkMode: 'always',
         // Never a global "Error" alert for this convenience lookup.
-        meta: expect.objectContaining({ criticality: expect.anything() }),
+        meta: QUERY_META.DECORATION,
       }),
     );
   });
@@ -206,6 +212,25 @@ describe('useReceiptScanSave saving state', () => {
     expect(mockGqlFetcher).toHaveBeenCalledTimes(1);
     expect(onSaved).toHaveBeenCalledTimes(1);
     expect(result.current.saving).toBe(false);
+    // The abandoned lookup is cancelled: no screen is watching that key.
+    expect(mockCancelQueries).toHaveBeenCalledWith(expect.objectContaining({ exact: true }));
+  });
+
+  it('leaves a timed-out lookup running when an open screen is watching the same key', async () => {
+    jest.useFakeTimers();
+    mockObserverCount = 1;
+    mockFetchQuery.mockReturnValue(new Promise(() => {}));
+    mockGqlFetcher.mockResolvedValue(SAVED);
+    const { result } = await renderSave();
+
+    await act(async () => {
+      void result.current.save(HANDOFF, PAYLOAD);
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(DUPLICATE_CHECK_TIMEOUT_MS);
+    });
+    await flush();
+    expect(mockCancelQueries).not.toHaveBeenCalled();
   });
 
   it('is off while the duplicate warning is open, on again after confirming', async () => {
@@ -283,7 +308,7 @@ describe('useReceiptScanSave saving state', () => {
     expect(result.current.saving).toBe(false);
   });
 
-  it('shows one error alert: the global handler is told to stay quiet', async () => {
+  it('tells the global error handler to stay quiet, leaving the hook its one alert', async () => {
     mockFetchQuery.mockResolvedValue(EMPTY_LIST);
     mockGqlFetcher.mockRejectedValue(new Error('Internal server error'));
     const { result } = await renderSave();

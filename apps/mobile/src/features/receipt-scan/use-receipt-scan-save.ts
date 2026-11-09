@@ -129,21 +129,23 @@ export const DUPLICATE_CHECK_TIMEOUT_MS = 5_000;
  */
 export async function isLikelyDuplicate(payload: ReceiptReviewPayload): Promise<boolean> {
   if (payload.amount == null || !payload.date) return false;
+  const options = {
+    ...expensesOptions(payload.motorcycleId, EXPENSES_ALL_YEARS),
+    staleTime: 30_000,
+    retry: false,
+    networkMode: 'always',
+    // A convenience lookup: its failure must never reach the rider. The global
+    // handler would otherwise raise a generic "Error" alert.
+    meta: QUERY_META.DECORATION,
+  } as const;
   const data = await withTimeout(
-    queryClient.fetchQuery({
-      ...expensesOptions(payload.motorcycleId, EXPENSES_ALL_YEARS),
-      staleTime: 30_000,
-      retry: false,
-      networkMode: 'always',
-      // A convenience lookup: its failure must never reach the rider. The
-      // global handler would otherwise raise a generic "Error" alert, possibly
-      // after the save finished (the abandoned fetch keeps running past the
-      // deadline above).
-      meta: QUERY_META.DECORATION,
-    }),
+    queryClient.fetchQuery(options),
     DUPLICATE_CHECK_TIMEOUT_MS,
     'duplicate_check_timeout',
-  );
+  ).catch((error: unknown) => {
+    cancelUnwatchedLookup(options.queryKey);
+    throw error;
+  });
   const vendorNeedle = payload.vendor?.trim().toLowerCase();
   const target = payload.amount;
   const targetDate = payload.date;
@@ -155,6 +157,19 @@ export async function isLikelyDuplicate(payload: ReceiptReviewPayload): Promise<
       if (vendorNeedle) return (e.description ?? '').toLowerCase().includes(vendorNeedle);
       return true;
     });
+}
+
+/**
+ * Stops a lookup the save gave up on, so it stops using the network and never
+ * lands in the cache after the save. Only when no screen is watching that key:
+ * cancelling a query an open screen (expense dashboard, expense detail) is
+ * fetching would cancel that screen's load too.
+ */
+function cancelUnwatchedLookup(queryKey: readonly unknown[]): void {
+  const query = queryClient.getQueryCache().find({ queryKey, exact: true });
+  if (query && query.getObserversCount() === 0) {
+    void queryClient.cancelQueries({ queryKey, exact: true });
+  }
 }
 
 /** Non-blocking soft-warn dialog. Resolves true to proceed, false to keep editing. */
