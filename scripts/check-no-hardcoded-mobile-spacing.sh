@@ -13,25 +13,33 @@
 # the same thing CI will. Renames are paired (-M), so moving a file does not
 # make its legacy numbers look new.
 #
-# Flagged:  padding: 12 · marginTop: -8 · gap: 6 · rowGap: 4
+# Flagged:  padding: 12 · marginTop: -8 · gap: 6 · rowGap: 4 · padding: 0.5
 #           paddingBottom: insets.bottom + 100 · padding: isWide ? 24 : 16
-#           gap: space.md + 2
+#           gap: space.md + 2 · paddingBottom: Math.max(insets.bottom, 16)
+#           margin: '12%'
 # Allowed:  0 (a reset, not a spacing choice), tokens, and tokens combined
 #           with insets (paddingTop: insets.top + space.sm). A literal used as
 #           a multiplier or divisor (space.md * 2) is a grid multiple, not a
 #           new value.
 # Exempt:   src/theme/ (the token home), tests and mocks.
+# Known gap: a file moved with plain `mv` (not `git mv`) and not yet staged is
+# untracked, so all of its lines count as added.
 set -eu
 
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 
 SCOPE='apps/mobile/src'
-# 1) a spacing prop set straight to a non-zero literal;
+# 1) a spacing prop set straight to a non-zero literal (0.5 counts; 0 is a reset);
 # 2) a spacing prop whose expression adds, subtracts or picks (ternary) a
-#    non-zero literal — the `insets.bottom + 100` shape.
+#    non-zero literal — the `insets.bottom + 100` shape;
+# 3) a non-zero literal as an argument of Math.max/min — the safe-area
+#    `Math.max(insets.bottom, 16)` shape;
+# 4) a percentage or numeric string.
 PROP='(padding|margin)(Horizontal|Vertical|Top|Bottom|Left|Right|Start|End|Block|Inline)?|gap|rowGap|columnGap'
-SPACING_RE="(^|[^A-Za-z])($PROP): *-?[1-9][0-9.]*([^0-9A-Za-z.]|\$)|(^|[^A-Za-z])($PROP): *[^,}]*[-+?:] *[1-9][0-9.]*([^0-9A-Za-z.]|\$)"
+NUM='([1-9][0-9.]*|0\.[0-9]*[1-9][0-9]*)'
+END='([^0-9A-Za-z.]|$)'
+SPACING_RE="(^|[^A-Za-z])($PROP): *-?$NUM$END|(^|[^A-Za-z])($PROP): *[^,}]*[-+?:] *$NUM$END|(^|[^A-Za-z])($PROP): *Math\.(max|min)\([^)]*[(,] *$NUM$END|(^|[^A-Za-z])($PROP): *['\"\`]-?$NUM"
 # Files the ratchet reads: mobile TS/TSX, minus tests, mocks and the token home.
 # Passed to awk through ENVIRON, not -v: -v processes escapes, turning `\.` into
 # "any character" (so `card.tsx` matched the `d.tsx` declaration-file skip).
@@ -53,12 +61,20 @@ fi
 
 # "<file>\t<added line>" for every added line: tracked changes against the
 # merge-base (working tree included), then every line of untracked files.
+# core.quotePath=false keeps non-ASCII paths unquoted; the `+++ b/` header is
+# stripped as a whole (a path may contain spaces) along with git's trailing tab.
 added_lines() {
-  git diff -M -U0 --no-color "$BASE" -- "$SCOPE" | awk '
-    /^\+\+\+ / { file = ($2 == "/dev/null") ? "" : substr($2, 3); next }
-    /^\+/      { if (file != "") print file "\t" substr($0, 2) }
+  git -c core.quotePath=false diff -M -U0 --no-color "$BASE" -- "$SCOPE" | awk '
+    /^\+\+\+ / {
+      file = $0
+      if (file == "+++ /dev/null") { file = ""; next }
+      sub(/^\+\+\+ b\//, "", file)
+      sub(/\t$/, "", file)
+      next
+    }
+    /^\+/ { if (file != "") print file "\t" substr($0, 2) }
   '
-  git ls-files --others --exclude-standard -- "$SCOPE" | while IFS= read -r f; do
+  git -c core.quotePath=false ls-files --others --exclude-standard -- "$SCOPE" | while IFS= read -r f; do
     awk -v file="$f" '{ print file "\t" $0 }' "$f"
   done
 }

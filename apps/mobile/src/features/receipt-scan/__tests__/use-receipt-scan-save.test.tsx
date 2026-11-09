@@ -45,7 +45,12 @@ jest.mock('../receipt-scan-undo-store', () => ({
 }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  MutationCache,
+  onlineManager,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { Alert, type AlertButton } from 'react-native';
@@ -104,8 +109,18 @@ function deferred<T>() {
 /** Flush pending promise callbacks inside act(). */
 const flush = () => act(async () => {});
 
+/** Stands in for the app-wide mutation error handler (`lib/query-client.ts`). */
+const mockGlobalMutationError = jest.fn();
+
 async function renderSave() {
-  const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+  // The app's own defaults, so a mutation option the hook forgets to set
+  // behaves here as it would in the app (offline pause included).
+  const client = new QueryClient({
+    defaultOptions: { mutations: { retry: 1, networkMode: 'offlineFirst' } },
+    mutationCache: new MutationCache({
+      onError: (_error, _vars, _ctx, mutation) => mockGlobalMutationError(mutation.meta),
+    }),
+  });
   const onSaved = jest.fn();
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={client}>{children}</QueryClientProvider>
@@ -132,6 +147,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   jest.useRealTimers();
+  onlineManager.setOnline(true);
 });
 
 describe('useReceiptScanSave saving state', () => {
@@ -163,7 +179,12 @@ describe('useReceiptScanSave saving state', () => {
       await result.current.save(HANDOFF, PAYLOAD);
     });
     expect(mockFetchQuery).toHaveBeenCalledWith(
-      expect.objectContaining({ retry: false, networkMode: 'always' }),
+      expect.objectContaining({
+        retry: false,
+        networkMode: 'always',
+        // Never a global "Error" alert for this convenience lookup.
+        meta: expect.objectContaining({ criticality: expect.anything() }),
+      }),
     );
   });
 
@@ -247,5 +268,32 @@ describe('useReceiptScanSave saving state', () => {
     );
     expect(onSaved).not.toHaveBeenCalled();
     expect(result.current.saving).toBe(false);
+  });
+
+  it('fails an offline save at once instead of waiting for the network', async () => {
+    onlineManager.setOnline(false);
+    mockFetchQuery.mockResolvedValue(EMPTY_LIST);
+    mockGqlFetcher.mockRejectedValue(new Error('Network request failed'));
+    const { result, onSaved } = await renderSave();
+
+    await act(async () => {
+      await result.current.save(HANDOFF, PAYLOAD);
+    });
+    expect(onSaved).not.toHaveBeenCalled();
+    expect(result.current.saving).toBe(false);
+  });
+
+  it('shows one error alert: the global handler is told to stay quiet', async () => {
+    mockFetchQuery.mockResolvedValue(EMPTY_LIST);
+    mockGqlFetcher.mockRejectedValue(new Error('Internal server error'));
+    const { result } = await renderSave();
+
+    await act(async () => {
+      await result.current.save(HANDOFF, PAYLOAD);
+    });
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(mockGlobalMutationError).toHaveBeenCalledWith(
+      expect.objectContaining({ showErrorAlert: false, skipSentryCapture: true }),
+    );
   });
 });

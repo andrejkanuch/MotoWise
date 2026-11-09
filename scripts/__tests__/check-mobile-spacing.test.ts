@@ -57,6 +57,9 @@ describe('check-no-hardcoded-mobile-spacing', () => {
     'const a = { paddingTop: insets.top - 4 };',
     'const a = { padding: isWide ? 24 : space.md };',
     'const a = { gap: space.md + 2 };',
+    'const a = { paddingBottom: Math.max(insets.bottom, 16) };',
+    'const a = { padding: 0.5 };',
+    "const a = { margin: '12%' };",
   ];
   for (const line of flagged) {
     test(`flags: ${line}`, () => {
@@ -75,6 +78,8 @@ describe('check-no-hardcoded-mobile-spacing', () => {
     'const a = { gap: space.md * 2 };',
     'const a = { padding: space.md, opacity: pressed ? 1 : 0.5 };',
     'const a = { borderRadius: 12, minHeight: 52 };',
+    'const a = { paddingBottom: Math.max(insets.bottom, space.md) };',
+    "const a = { width: '50%', padding: space.xs };",
   ];
   for (const line of allowed) {
     test(`allows: ${line}`, () => {
@@ -102,6 +107,22 @@ describe('check-no-hardcoded-mobile-spacing', () => {
     assert.equal(failed, true, output);
     assert.match(output, /new-card\.tsx/);
   });
+
+  for (const file of [
+    'apps/mobile/src/components/two words/card.tsx',
+    'apps/mobile/src/components/r\u00e9sum\u00e9-card.tsx',
+  ]) {
+    test(`reads paths with spaces and non-ASCII characters: ${file}`, () => {
+      // Tracked (staged) and untracked both go through the same path parsing.
+      const staged = repoOnBranch();
+      writeFiles(staged, { [file]: 'const a = { gap: 6 };\n' });
+      track(staged);
+      assert.equal(runGuard(staged).failed, true);
+      const untracked = repoOnBranch();
+      writeFiles(untracked, { [file]: 'const a = { gap: 6 };\n' });
+      assert.equal(runGuard(untracked).failed, true);
+    });
+  }
 
   test('does not treat a renamed file as new', () => {
     const root = repoOnBranch();

@@ -506,7 +506,7 @@
       "odometerFirstSet": "Registrar kilometraje",
       "noBikePrompt": "Añade una moto para guardar este recibo.",
       "addBike": "Añadir una moto",
-      "breakdownOverTotal": "Recambios, mano de obra e impuestos suman {{sum}}, más que el total de {{total}}. Corrige alguno para que cuadre y puedas guardar.",
+      "breakdownSavesTotalOnly": "Recambios, mano de obra e impuestos suman {{sum}}, más que el total de {{total}}. Solo se guardará el total; corrígelos para conservar el desglose.",
       "checkAmount": "Revisa el importe",
       "checkOdometer": "Revisa el kilometraje",
       "typeMaintenanceHint": "Se suma al historial de mantenimiento y a los gastos",

@@ -19,6 +19,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { invalidateMaintenanceTasks } from '../../lib/invalidate';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
+import { QUERY_META } from '../../lib/query-meta';
 import { EXPENSES_ALL_YEARS, expensesOptions } from '../../lib/query-options';
 import { REVIEW_ACTION, recordReviewAction } from '../../lib/store-review';
 import { withTimeout } from '../../lib/with-timeout';
@@ -134,6 +135,11 @@ export async function isLikelyDuplicate(payload: ReceiptReviewPayload): Promise<
       staleTime: 30_000,
       retry: false,
       networkMode: 'always',
+      // A convenience lookup: its failure must never reach the rider. The
+      // global handler would otherwise raise a generic "Error" alert, possibly
+      // after the save finished (the abandoned fetch keeps running past the
+      // deadline above).
+      meta: QUERY_META.DECORATION,
     }),
     DUPLICATE_CHECK_TIMEOUT_MS,
     'duplicate_check_timeout',
@@ -196,6 +202,10 @@ export function useReceiptScanSave(params: UseReceiptScanSaveParams) {
     // returned; 'always' makes an offline save fail into the error Alert, and
     // the rider keeps the card (and "Review later") to try again.
     networkMode: 'always',
+    // `save()` below shows the one "Couldn't save" alert and captures with
+    // source `receipt-scan.save`; the global mutation handler would add a
+    // second, generic alert and a duplicate Sentry event.
+    meta: { showErrorAlert: false, skipSentryCapture: true },
   });
 
   // Guards against a double-tap saving twice — the whole flow (duplicate Alert +
