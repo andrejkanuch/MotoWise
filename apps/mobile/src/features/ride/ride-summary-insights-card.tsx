@@ -1,6 +1,7 @@
 import { GetRideSummaryStatsDocument, type GetRideSummaryStatsQuery } from '@motovault/graphql';
 import { RIDER_INSIGHTS_MIN_QUALIFYING_RIDES } from '@motovault/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
 import { router } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { useEffect, useMemo, useRef } from 'react';
@@ -13,8 +14,11 @@ import { buildInsightsPaywallCopy } from '@/features/rider-insights/paywall-copy
 import {
   deviceTimeZone,
   formatInsightDistance,
+  isInSeason,
   type RiderInsightsData,
   riderInsightsOptions,
+  riderInsightsWindowOptions,
+  seasonWindowOf,
   useRiderInsights,
 } from '@/features/rider-insights/use-rider-insights';
 import { useMeasurementSystem } from '@/hooks/use-measurement-system';
@@ -40,6 +44,7 @@ const BLUR_RADIUS = 14;
 const BLUR_WIDTH = 120;
 const BLUR_HEIGHT = 30;
 const PRESS_TINT = 0.06;
+const LOCAL_DATE_FORMAT = 'yyyy-MM-dd';
 
 type SummaryRide = GetRideSummaryStatsQuery['ride'];
 
@@ -72,20 +77,23 @@ export interface SummaryCardModel {
 /**
  * The card's model. The season's free totals count every completed ride, so
  * when the season's latest ride is not this one yet, this ride is added on the
- * device, and counted toward the five qualifying rides when it qualifies.
+ * device, and counted toward the five qualifying rides when it qualifies. A ride
+ * outside the season (`localDate`, `YYYY-MM-DD`) is never added to it.
  */
 export function summaryCardModel(input: {
   insights: RiderInsightsData;
   rideId: string;
+  localDate: string;
   distanceM: number;
   movingS: number;
   newRoadsM: number | null;
 }): SummaryCardModel {
-  const { insights, rideId, distanceM, movingS, newRoadsM } = input;
-  const counted = insights.latestRide?.rideId === rideId;
-  const seasonM = insights.totals.distanceM + (counted ? 0 : distanceM);
+  const { insights, rideId, localDate, distanceM, movingS, newRoadsM } = input;
+  const addThisRide =
+    insights.latestRide?.rideId !== rideId && isInSeason(insights.season, localDate);
+  const seasonM = insights.totals.distanceM + (addThisRide ? distanceM : 0);
   const thisQualifies = isQualifyingRide({ distanceM, movingS, systemEnded: false });
-  const qualifying = insights.coverage.qualifyingRides + (!counted && thisQualifies ? 1 : 0);
+  const qualifying = insights.coverage.qualifyingRides + (addThisRide && thisQualifies ? 1 : 0);
 
   if (qualifying < RIDER_INSIGHTS_MIN_QUALIFYING_RIDES) {
     return { tile: SUMMARY_TILE.KEEP_RIDING, seasonM, newRoadsM: null };
@@ -97,6 +105,8 @@ export function summaryCardModel(input: {
 
 interface RideSummaryInsightsCardProps {
   rideId: string;
+  /** The ride's local date, `YYYY-MM-DD`; the summary shows right after the ride ends, so today by default. */
+  localDate?: string;
   distanceM: number;
   /** Elapsed minus manual and auto pauses, as the paywall trigger counts it. */
   movingS: number;
@@ -110,6 +120,7 @@ interface RideSummaryInsightsCardProps {
  */
 export function RideSummaryInsightsCard({
   rideId,
+  localDate: localDateProp,
   distanceM,
   movingS,
 }: RideSummaryInsightsCardProps) {
@@ -125,8 +136,23 @@ export function RideSummaryInsightsCard({
     movingS,
     measurementSystem: system,
   });
-  const { insights, view } = useRiderInsights();
+  const { insights: shownInsights, view, onPurchased } = useRiderInsights();
   const openedAt = useRef(Date.now());
+  const timeZone = useMemo(deviceTimeZone, []);
+  const localDate = useMemo(
+    () => localDateProp ?? format(openedAt.current, LOCAL_DATE_FORMAT),
+    [localDateProp],
+  );
+
+  // From January until the new year has five qualifying rides the API still shows
+  // last season. This ride is not in it, so the card reads the ride's own year.
+  const needsRideSeason = shownInsights !== null && !isInSeason(shownInsights.season, localDate);
+  const rideSeasonOptions = useMemo(
+    () => riderInsightsWindowOptions(timeZone, seasonWindowOf(localDate)),
+    [timeZone, localDate],
+  );
+  const rideSeasonQuery = useQuery({ ...rideSeasonOptions, enabled: needsRideSeason });
+  const insights = needsRideSeason ? (rideSeasonQuery.data?.riderInsights ?? null) : shownInsights;
   const paywallOpened = useRef(false);
   const lockedShown = useRef(false);
 
@@ -144,12 +170,12 @@ export function RideSummaryInsightsCard({
   const statsCurrent = rideStatsCurrent(ride);
 
   // Once the server has this ride's stats, the season numbers are re-read to include it.
+  const rideSeasonKey = rideSeasonOptions.queryKey;
   useEffect(() => {
     if (!statsCurrent) return;
-    void queryClient.invalidateQueries({
-      queryKey: riderInsightsOptions(deviceTimeZone()).queryKey,
-    });
-  }, [statsCurrent, queryClient]);
+    void queryClient.invalidateQueries({ queryKey: riderInsightsOptions(timeZone).queryKey });
+    void queryClient.invalidateQueries({ queryKey: rideSeasonKey });
+  }, [statsCurrent, queryClient, timeZone, rideSeasonKey]);
 
   const model = useMemo(
     () =>
@@ -157,12 +183,13 @@ export function RideSummaryInsightsCard({
         ? summaryCardModel({
             insights,
             rideId,
+            localDate,
             distanceM,
             movingS,
             newRoadsM: ride?.newRoadsM ?? null,
           })
         : null,
-    [insights, rideId, distanceM, movingS, ride?.newRoadsM],
+    [insights, rideId, localDate, distanceM, movingS, ride?.newRoadsM],
   );
 
   useEffect(() => {
@@ -175,6 +202,15 @@ export function RideSummaryInsightsCard({
 
   const dist = (m: number) => formatInsightDistance(m, system, language);
   const openInsights = () => router.push(riderInsightsHref(RIDER_INSIGHTS_ENTRY.RIDE_SUMMARY));
+
+  /** The paywall, then after a purchase or restore the tier is re-read, as on every other entry point. */
+  const presentPaywall = async (copy: Parameters<typeof presentRiderInsightsPaywall>[1]) => {
+    const result = await presentRiderInsightsPaywall(RIDER_INSIGHTS_PAYWALL_ROW.SUMMARY, copy);
+    if (result !== 'purchased' && result !== 'restored') return;
+    await onPurchased();
+    // The ride's own year was read with the old tier; read it again after the refresh.
+    if (needsRideSeason) void queryClient.invalidateQueries({ queryKey: rideSeasonKey });
+  };
 
   const onPress = () => {
     triggerSelection();
@@ -194,7 +230,7 @@ export function RideSummaryInsightsCard({
       { seasonDistanceM: model.seasonM, seasonRides: null, longestRideM: null },
       { t: i18n, system, language },
     );
-    void presentRiderInsightsPaywall(RIDER_INSIGHTS_PAYWALL_ROW.SUMMARY, copy);
+    void presentPaywall(copy);
   };
 
   if (!model) {

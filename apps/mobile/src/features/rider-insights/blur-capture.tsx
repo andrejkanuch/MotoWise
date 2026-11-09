@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { type ReactNode, useCallback, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 import { useEditorialTheme } from '@/theme/editorial';
@@ -57,6 +57,12 @@ export function BlurCapture({ cacheKey, width, height, blurRadius, children }: B
   const [uri, setUri] = useState<string | null>(() => captures.get(cacheKey) ?? null);
   const [capturedKey, setCapturedKey] = useState(cacheKey);
   const sourceRef = useRef<View>(null);
+  /** The key on screen now: a capture that lands for an older key must not show under it. */
+  const keyRef = useRef(cacheKey);
+  keyRef.current = cacheKey;
+  /** Whether the source view has been laid out and is still mounted under the placeholder. */
+  const sourceLaidOut = useRef(false);
+  const inFlightKey = useRef<string | null>(null);
 
   // A new key (theme, font scale or data changed) starts over from the placeholder.
   if (capturedKey !== cacheKey) {
@@ -65,15 +71,27 @@ export function BlurCapture({ cacheKey, width, height, blurRadius, children }: B
   }
 
   const capture = useCallback(async () => {
-    if (captures.has(cacheKey)) return;
+    sourceLaidOut.current = true;
+    if (captures.has(cacheKey) || inFlightKey.current === cacheKey) return;
+    inFlightKey.current = cacheKey;
     try {
       const result = await captureRef(sourceRef, { format: 'png', result: 'tmpfile' });
       captures.set(cacheKey, result);
+      if (keyRef.current !== cacheKey) return;
+      sourceLaidOut.current = false;
       setUri(result);
     } catch {
       // The placeholder stays: a failed capture must never fall back to the clear view.
+    } finally {
+      if (inFlightKey.current === cacheKey) inFlightKey.current = null;
     }
   }, [cacheKey]);
+
+  // The key changed while the placeholder showed: the source view stays mounted,
+  // so no new layout fires, and the new picture is captured here instead.
+  useEffect(() => {
+    if (sourceLaidOut.current && !captures.has(cacheKey)) void capture();
+  }, [cacheKey, capture]);
 
   const box = { width, height };
 
@@ -103,7 +121,7 @@ export function BlurCapture({ cacheKey, width, height, blurRadius, children }: B
         ref={sourceRef}
         collapsable={false}
         style={box}
-        onLayout={capture}
+        onLayout={() => void capture()}
       >
         {children}
       </View>

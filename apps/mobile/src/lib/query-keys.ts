@@ -119,6 +119,9 @@ export const queryKeys = {
     heatmap: ['rides', 'heatmap'] as const,
     /** Rider insights for the season the API picks, in the device time zone. Under `rides` so a ride save refreshes it. */
     insights: (timeZone: string) => ['rides', 'insights', timeZone] as const,
+    /** Rider insights for an explicit from..to window (the ride summary's own year). Not persisted. */
+    insightsWindow: (timeZone: string, from: string, to: string) =>
+      ['rides', 'insightsWindow', timeZone, from, to] as const,
     byMotorcycle: (motorcycleId: string) => ['rides', 'motorcycle', motorcycleId] as const,
   },
   healthReports: {

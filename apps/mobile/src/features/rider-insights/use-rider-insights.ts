@@ -41,6 +41,33 @@ export function riderInsightsOptions(timeZone: string) {
   });
 }
 
+/** A season's dates, both ends included, as `YYYY-MM-DD`. */
+export interface SeasonWindow {
+  from: string;
+  to: string;
+}
+
+const YEAR_LENGTH = 4;
+
+/** The calendar-year season a local date (`YYYY-MM-DD`) falls in, as the API counts seasons. */
+export function seasonWindowOf(localDate: string): SeasonWindow {
+  const year = localDate.slice(0, YEAR_LENGTH);
+  return { from: `${year}-01-01`, to: `${year}-12-31` };
+}
+
+/** Whether a local date (`YYYY-MM-DD`) is inside a season; ISO dates compare as strings. */
+export function isInSeason(season: SeasonWindow, localDate: string): boolean {
+  return season.from <= localDate && localDate <= season.to;
+}
+
+/** Rider insights for an explicit window, under its own key so it never replaces the shown season. */
+export function riderInsightsWindowOptions(timeZone: string, window: SeasonWindow) {
+  return queryOptions({
+    queryKey: queryKeys.rides.insightsWindow(timeZone, window.from, window.to),
+    queryFn: () => gqlFetcher(GetRiderInsightsDocument, { timeZone, ...window }),
+  });
+}
+
 function fetchRiderInsights(timeZone: string, refreshEntitlement: boolean) {
   const variables: GetRiderInsightsQueryVariables = { timeZone };
   if (refreshEntitlement) variables.refreshEntitlement = true;
@@ -131,10 +158,12 @@ export function isUnlocking(input: {
 export function useRiderInsights() {
   const queryClient = useQueryClient();
   const timeZone = useMemo(deviceTimeZone, []);
-  const options = riderInsightsOptions(timeZone);
+  const options = useMemo(() => riderInsightsOptions(timeZone), [timeZone]);
   const query = useQuery(options);
   const storePro = useSubscriptionStore((s) => s.isPro);
   const [trustUntil, setTrustUntil] = useState<number | null>(null);
+  /** When the last ask failed: like a new answer, it schedules the next ask. */
+  const [failedAt, setFailedAt] = useState(0);
 
   const insights = query.data?.riderInsights ?? null;
   const { view, stale } = insightsViewState({
@@ -144,15 +173,22 @@ export function useRiderInsights() {
     isOnline: onlineManager.isOnline(),
   });
 
+  // A plain fetch still in flight is cancelled first: landing after this answer,
+  // it would put the free payload back over the refreshed one.
   const refreshEntitlement = useCallback(async () => {
-    const data = await fetchRiderInsights(timeZone, true);
-    queryClient.setQueryData(options.queryKey, data);
+    try {
+      const data = await fetchRiderInsights(timeZone, true);
+      await queryClient.cancelQueries({ queryKey: options.queryKey, exact: true });
+      queryClient.setQueryData(options.queryKey, data);
+    } catch {
+      setFailedAt(Date.now());
+    }
   }, [queryClient, timeZone, options.queryKey]);
 
   /** After a purchase or restore: re-read the tier on the server and show what it returns. */
   const onPurchased = useCallback(async () => {
     setTrustUntil(Date.now() + PURCHASE_TRUST_WINDOW_MS);
-    await refreshEntitlement().catch(() => undefined);
+    await refreshEntitlement();
   }, [refreshEntitlement]);
 
   const unlocking = isUnlocking({
@@ -163,20 +199,24 @@ export function useRiderInsights() {
   });
 
   // While the server lags the store, ask it again until it agrees or the window
-  // closes. Each answer moves `answeredAt`, which schedules the next ask.
+  // closes. Each answer moves `answeredAt` and each failed ask moves `failedAt`;
+  // either schedules the next ask one interval after it.
   const answeredAt = query.dataUpdatedAt;
   useEffect(() => {
     if (!unlocking || trustUntil === null) return;
-    const nextAsk = Math.min(answeredAt + PURCHASE_REFRESH_INTERVAL_MS, trustUntil);
-    const timer = setTimeout(
-      () => {
-        if (Date.now() >= trustUntil) setTrustUntil(null);
-        else void refreshEntitlement().catch(() => undefined);
-      },
-      Math.max(0, nextAsk - Date.now()),
-    );
+    const nextAsk = Math.max(answeredAt, failedAt) + PURCHASE_REFRESH_INTERVAL_MS;
+    if (nextAsk >= trustUntil) return;
+    const timer = setTimeout(() => void refreshEntitlement(), Math.max(0, nextAsk - Date.now()));
     return () => clearTimeout(timer);
-  }, [unlocking, trustUntil, refreshEntitlement, answeredAt]);
+  }, [unlocking, trustUntil, refreshEntitlement, answeredAt, failedAt]);
+
+  // The window closes on its own: `unlocking` is read from the clock at render,
+  // so without this nothing would render it false while the server stays silent.
+  useEffect(() => {
+    if (trustUntil === null) return;
+    const timer = setTimeout(() => setTrustUntil(null), Math.max(0, trustUntil - Date.now()));
+    return () => clearTimeout(timer);
+  }, [trustUntil]);
 
   return {
     insights,

@@ -107,7 +107,9 @@ function serve(
   mockFetcher.mockImplementation((document: unknown, variables?: { from?: string }) => {
     if (document === GetRiderInsightsDocument) {
       if (variables?.from) {
-        return window ? Promise.resolve({ riderInsights: window }) : Promise.reject(new Error('no window'));
+        return window
+          ? Promise.resolve({ riderInsights: window })
+          : Promise.reject(new Error('no window'));
       }
       return Promise.resolve({ riderInsights: shown });
     }

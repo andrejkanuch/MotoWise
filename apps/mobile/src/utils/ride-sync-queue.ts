@@ -51,6 +51,30 @@ const MUTATION_DOCUMENT_MAP: Record<SyncOperationType, any> = {
  */
 const BEST_EFFORT_OPS: ReadonlySet<SyncOperationType> = new Set(['pauseRide', 'resumeRide']);
 
+/**
+ * The optional post-ride answers the ride summary sends as their own `updateRide`
+ * (what the ride was for, whether a passenger rode along). An update that carries
+ * only these is best-effort too: a failed answer must never hold the ride's rename
+ * or discard behind it, or park it with a "rides failed to sync" prompt. Any other
+ * field keeps the normal retries, including the odometer at the end, which moves
+ * the bike's mileage and must not be dropped after one server error.
+ */
+const RIDE_ANSWER_FIELDS: ReadonlySet<string> = new Set(['purpose', 'passenger']);
+const RIDE_ID_FIELD = 'rideId';
+
+function isAnswerOnlyUpdate(op: SyncOperation): boolean {
+  if (op.type !== 'updateRide') return false;
+  const variables = (op.payload as { variables?: unknown }).variables;
+  const input = (variables as { input?: unknown } | undefined)?.input;
+  if (typeof input !== 'object' || input === null) return false;
+  const fields = Object.keys(input).filter((field) => field !== RIDE_ID_FIELD);
+  return fields.length > 0 && fields.every((field) => RIDE_ANSWER_FIELDS.has(field));
+}
+
+function isBestEffort(op: SyncOperation): boolean {
+  return BEST_EFFORT_OPS.has(op.type) || isAnswerOnlyUpdate(op);
+}
+
 interface SyncOperation {
   seq: number;
   type: SyncOperationType;
@@ -652,7 +676,7 @@ async function drainPass(): Promise<void> {
       // A best-effort op gets no retries: retrying it would head-of-line block
       // the ride's own ops (waypoints, EndRide) behind a nicety — for minutes
       // when the API does not know the mutation yet.
-      if (BEST_EFFORT_OPS.has(op.type)) {
+      if (isBestEffort(op)) {
         // Drop just this op and move on: nothing after it depends on it.
         captureException(error instanceof Error ? error : new Error(`Ride sync drop: ${op.type}`), {
           source: 'ride-sync-queue.bestEffortDrop',
