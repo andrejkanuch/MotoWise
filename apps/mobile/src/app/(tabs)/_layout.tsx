@@ -24,6 +24,7 @@ import { HUB_CHROME_MAX_FONT_SCALE } from '../../components/bike-hub/ui/tokens';
 import { GlobalCarPlayBanner } from '../../components/carplay/global-carplay-banner';
 import { ErrorFallback } from '../../components/error-fallback';
 import { countGarageBadge } from '../../components/garage/garage-badge-count';
+import { useRideRoute } from '../../features/ride/ride-route';
 import { BIKE_HUB_ROUTES } from '../../lib/bike-hub/constants';
 import { maintenanceBadgeOptions } from '../../lib/query-options';
 import { useRideStore } from '../../stores/ride.store';
@@ -86,6 +87,7 @@ function RideFAB() {
   const rideStatus = useRideStore((s) => s.status);
   const elapsedTime = useRideStore((s) => s.elapsedTime);
   const isActive = rideStatus === 'recording' || rideStatus === 'paused';
+  const rideRoute = useRideRoute();
 
   const pulseScale = useSharedValue(1);
 
@@ -107,12 +109,8 @@ function RideFAB() {
 
   const onPress = useCallback(() => {
     triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
-    if (isActive) {
-      router.push('/(modals)/ride-hud');
-    } else {
-      router.push('/(modals)/start-ride');
-    }
-  }, [isActive, router]);
+    router.push(rideRoute);
+  }, [rideRoute, router]);
 
   return (
     <Animated.View

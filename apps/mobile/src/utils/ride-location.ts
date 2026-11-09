@@ -32,6 +32,8 @@ import {
   flushBufferToMMKV,
   getPointBuffer,
   getWaypointChunks,
+  RIDE_PHASE,
+  readRideRecord,
   removeWaypointBuffer,
   restoreBufferFromMMKV,
   rideMMKV,
@@ -150,6 +152,15 @@ export async function startGPSListener(
 
   // Throws propagate to the caller (startRideSession rolls the ride back).
   await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, locationUpdateOptions(false));
+}
+
+/** Whether the background recording task is running (false if it cannot be asked). */
+export async function isLocationRecording(): Promise<boolean> {
+  try {
+    return await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
+  } catch {
+    return false;
+  }
 }
 
 export async function stopGPSListener(): Promise<void> {
@@ -372,8 +383,10 @@ function processLocation(location: Location.LocationObject): void {
   // while MANUALLY paused — a manual pause must freeze distance/speed/waypoints.
   // (Auto-pause keeps status 'recording' with sub-state 'stopped', so it is
   // unaffected and still runs the auto-pause / forgot-to-stop machine below.)
-  const rideStatus = useRideStore.getState().status;
-  if (rideStatus === 'ended' || rideStatus === 'paused') return;
+  // Read the PERSISTED phase, not the store: a headless relaunch (the OS waking
+  // the app for location after a kill) starts with an idle store, and a manual
+  // pause would otherwise be recorded through.
+  if (readRideRecord()?.phase !== RIDE_PHASE.RECORDING) return;
 
   const rawSpeed = location.coords.speed ?? 0;
   const currentPos = { lat: location.coords.latitude, lng: location.coords.longitude };
@@ -564,6 +577,7 @@ export function autoEndRide(idleSince: number): void {
   useRideStore.getState().endRide();
   void stopGPSListener();
   clearPointBuffer();
+  rideMMKV.setStatus(RIDE_PHASE.ENDED);
 
   enqueueOrExecute('endRide', {
     variables: {
@@ -598,6 +612,8 @@ export function autoEndRide(idleSince: number): void {
   // re-sent the end with distance 0 and wiped the distance saved here. Everything
   // the server needs is now in the sync queue, so the local copy can go.
   clearRideData(rideId);
+  // Nothing is left on the phone: every surface goes back to idle.
+  useRideStore.getState().hydrate();
 
   void Notifications.scheduleNotificationAsync({
     content: rideAutoEndedNotificationContent(rideId),

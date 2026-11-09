@@ -126,7 +126,26 @@ beforeEach(async () => {
   resetWaypointBudget();
   rideStorage.remove(BUFFER_KEY);
   rideMMKV.setCurrentId(RIDE_ID);
+  rideMMKV.setStatus('recording');
   useRideStore.setState({ status: 'recording' });
+});
+
+describe('pause after an app kill — the persisted phase decides, not the store', () => {
+  it('records nothing during a manual pause the relaunched process never saw', async () => {
+    rideMMKV.setStatus('paused');
+    useRideStore.setState({ status: 'idle' }); // headless relaunch: store not hydrated
+    filterProcess.mockReturnValue(accepted(12));
+    await sample(fix(T0, 10));
+    expect(note).not.toHaveBeenCalled();
+  });
+
+  it('keeps recording a moving ride the relaunched process never saw start', async () => {
+    rideMMKV.setStatus('recording');
+    useRideStore.setState({ status: 'idle' });
+    filterProcess.mockReturnValue(accepted(12));
+    await sample(fix(T0, 10));
+    expect(note).toHaveBeenCalledWith(T0);
+  });
 });
 
 describe('reminder push-back', () => {

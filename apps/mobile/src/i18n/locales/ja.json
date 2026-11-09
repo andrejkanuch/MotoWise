@@ -2160,6 +2160,8 @@
     "selectMotorcycle": "バイクを選択",
     "quickRideNoBike": "クイックライド · バイクなし",
     "unfinishedTitle": "未完了のライドが検出されました",
+    "endedTitle": "前回のライドは終了しましたが、まだ保存されていません",
+    "reviewRide": "ライドを確認",
     "resume": "再開",
     "endRide": "ライド終了",
     "previousRides": "過去のライド",

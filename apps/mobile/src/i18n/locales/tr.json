@@ -2160,6 +2160,8 @@
     "selectMotorcycle": "Motosiklet seç",
     "quickRideNoBike": "Hızlı sürüş · motorsuz",
     "unfinishedTitle": "Tamamlanmamış sürüş tespit edildi",
+    "endedTitle": "Son sürüşün bitti ama henüz kaydedilmedi",
+    "reviewRide": "Sürüşü incele",
     "resume": "Devam et",
     "endRide": "Sürüşü bitir",
     "previousRides": "Önceki sürüşler",

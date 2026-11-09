@@ -64,10 +64,22 @@ describe('carplay-entry', () => {
     expect(read('src/app/_layout.tsx')).not.toMatch(/\binitSentry\(/);
   });
 
+  // The CarPlay panel derives its first template from the ride store; a killed
+  // process starts with an empty store, so it must be hydrated first.
+  it('hydrates the ride store before CarPlay registers', () => {
+    const entry = read('index.ts');
+    const ride = entry.indexOf("import './src/features/ride/ride-entry';");
+    const sentry = entry.indexOf("import './src/lib/init-sentry-entry';");
+    const carplay = entry.indexOf("import './src/features/carplay/carplay-entry';");
+    expect(ride).toBeGreaterThan(sentry);
+    expect(carplay).toBeGreaterThan(ride);
+  });
+
   it('keeps the phone UI graph out of the entry path', () => {
     for (const file of [
       'src/features/carplay/carplay-entry.ts',
       'src/features/carplay/carplay-coordinator.ts',
+      'src/features/ride/ride-entry.ts',
     ]) {
       expect(read(file)).not.toMatch(/from '(\.\.\/)+app\//);
     }

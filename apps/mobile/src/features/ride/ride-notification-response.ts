@@ -9,6 +9,7 @@ import { useRideStore } from '../../stores/ride.store';
 import { armRideReminders, rideEndTrimTarget } from '../../utils/ride-reminders';
 import { rideMMKV } from '../../utils/ride-storage';
 import { buildRideSummaryHref, endRideSession } from './ride-controller';
+import { rideRouteFor } from './ride-route';
 
 export interface RideIdleResponseData {
   rideId?: string;
@@ -59,10 +60,10 @@ export function handleRideIdleResponse(
     return summary ? buildRideSummaryHref(summary) : null;
   }
 
-  // Plain tap. If this process is the one recording, the live HUD has Stop one tap
-  // away. After an app kill the store is idle and the HUD would show an empty ride,
-  // so go to Start Ride, which offers Resume / End for the unfinished ride.
-  return useRideStore.getState().status === 'idle' ? '/(modals)/start-ride' : '/(modals)/ride-hud';
+  // Plain tap. A ride this app is recording opens the live HUD (Stop one tap away).
+  // Anything else goes to Start Ride: an ended ride is reviewed there, and an open
+  // ride whose GPS is not confirmed running after a relaunch offers Resume / End.
+  return rideRouteFor(useRideStore.getState());
 }
 
 // --- Deferring until navigation can land ---

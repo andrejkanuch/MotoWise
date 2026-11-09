@@ -2160,6 +2160,8 @@
     "selectMotorcycle": "मोटरसाइकिल चुनें",
     "quickRideNoBike": "त्वरित राइड · बिना बाइक",
     "unfinishedTitle": "अधूरी राइड मिली",
+    "endedTitle": "आपकी पिछली राइड खत्म हो गई है, लेकिन अभी सेव नहीं हुई",
+    "reviewRide": "राइड देखें",
     "resume": "जारी रखें",
     "endRide": "राइड समाप्त करें",
     "previousRides": "पिछली राइड्स",

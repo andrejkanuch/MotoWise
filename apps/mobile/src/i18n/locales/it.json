@@ -2188,6 +2188,8 @@
     "selectMotorcycle": "Seleziona moto",
     "quickRideNoBike": "Uscita rapida · senza moto",
     "unfinishedTitle": "Uscita non completata rilevata",
+    "endedTitle": "La tua ultima uscita è finita, ma non è ancora salvata",
+    "reviewRide": "Rivedi uscita",
     "resume": "Riprendi",
     "endRide": "Termina uscita",
     "previousRides": "Uscite precedenti",

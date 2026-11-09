@@ -51,7 +51,7 @@
     "app/(modals)/ride-flyover.tsx": 957,
     "app/(modals)/ride-hud.tsx": 469,
     "app/(modals)/ride-summary.tsx": 932,
-    "app/(modals)/start-ride.tsx": 621,
+    "app/(modals)/start-ride.tsx": 579,
     "app/(modals)/trip-detail.tsx": 1876,
     "app/(modals)/whats-new.tsx": 351,
     "app/(onboarding)/account.tsx": 347,
@@ -72,7 +72,7 @@
     "app/(tabs)/(garage)/expense-detail.tsx": 659,
     "app/(tabs)/(garage)/health-report.tsx": 503,
     "app/(tabs)/(garage)/index.tsx": 452,
-    "app/(tabs)/(home)/index.tsx": 508,
+    "app/(tabs)/(home)/index.tsx": 502,
     "app/(tabs)/(learn)/article/[slug].tsx": 317,
     "app/(tabs)/(learn)/index.tsx": 796,
     "app/(tabs)/(profile)/edit-profile.tsx": 509,
@@ -80,7 +80,7 @@
     "app/(tabs)/(profile)/rides.tsx": 868,
     "app/(tabs)/(profile)/saved.tsx": 333,
     "app/(tabs)/(profile)/trips.tsx": 542,
-    "app/(tabs)/_layout.tsx": 434,
+    "app/(tabs)/_layout.tsx": 432,
     "app/_layout.tsx": 1125,
     "app/t/[token]/index.tsx": 484
   }

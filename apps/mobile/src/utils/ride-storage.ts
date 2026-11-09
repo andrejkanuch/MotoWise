@@ -15,9 +15,28 @@ export const rideStorage = createMMKV({ id: 'ride-storage' });
 
 // --- Key constants ---
 
+/**
+ * Where the current ride is in its life. Persisted (`RIDE_KEYS.STATUS`) and the
+ * single source of truth: the in-memory ride store is a projection of it
+ * (`useRideStore.hydrate`), so every surface — phone HUD, tab button, home,
+ * CarPlay — agrees, and agrees again after the app is killed and relaunched.
+ *
+ * `ended`: the ride was stopped and its EndRide is queued, but the rider has not
+ * yet saved or discarded it on the summary. It is not resumable.
+ */
+export const RIDE_PHASE = {
+  RECORDING: 'recording',
+  PAUSED: 'paused',
+  ENDED: 'ended',
+} as const;
+export type RidePhase = (typeof RIDE_PHASE)[keyof typeof RIDE_PHASE];
+const RIDE_PHASES: ReadonlySet<string> = new Set(Object.values(RIDE_PHASE));
+
 export const RIDE_KEYS = {
   CURRENT_ID: 'ride.current_id',
   STATUS: 'ride.status',
+  /** JSON summary of an `ended` ride, so its review survives an app kill. */
+  ENDED_SUMMARY: 'ride.ended_summary',
   STARTED_AT: 'ride.started_at',
   MOTORCYCLE_ID: 'ride.motorcycle_id',
   TOTAL_PAUSED_MS: 'ride.total_paused_ms',
@@ -41,13 +60,22 @@ export const CHUNK_SIZE = 50;
 // --- Typed MMKV wrapper ---
 
 export const rideMMKV = {
-  // Current ride ID
-  getCurrentId: () => rideStorage.getString(RIDE_KEYS.CURRENT_ID),
+  // Current ride ID. An empty string (written by older builds to "clear" it) reads
+  // as no ride.
+  getCurrentId: () => rideStorage.getString(RIDE_KEYS.CURRENT_ID) || undefined,
   setCurrentId: (id: string) => rideStorage.set(RIDE_KEYS.CURRENT_ID, id),
 
-  // Ride status (persisted for crash recovery hydration)
-  getStatus: () => rideStorage.getString(RIDE_KEYS.STATUS) as 'recording' | 'paused' | undefined,
-  setStatus: (status: 'recording' | 'paused') => rideStorage.set(RIDE_KEYS.STATUS, status),
+  // Ride phase — see RIDE_PHASE. Unknown values read as unset.
+  getStatus: (): RidePhase | undefined => {
+    const raw = rideStorage.getString(RIDE_KEYS.STATUS);
+    return raw && RIDE_PHASES.has(raw) ? (raw as RidePhase) : undefined;
+  },
+  setStatus: (status: RidePhase) => rideStorage.set(RIDE_KEYS.STATUS, status),
+
+  // Summary of an ended ride awaiting review. Stored as opaque JSON: the shape is
+  // owned by the ride controller, which validates what it reads back.
+  getEndedSummaryJson: () => rideStorage.getString(RIDE_KEYS.ENDED_SUMMARY),
+  setEndedSummaryJson: (json: string) => rideStorage.set(RIDE_KEYS.ENDED_SUMMARY, json),
 
   // Started at (epoch ms)
   getStartedAt: () => rideStorage.getNumber(RIDE_KEYS.STARTED_AT),
@@ -296,22 +324,93 @@ export function getNextChunkIndex(rideId: string): number {
   return i;
 }
 
+// --- Current ride record ---
+
+/** The current ride as every surface should see it. */
+export interface RideRecord {
+  rideId: string;
+  phase: RidePhase;
+  startedAt: number | undefined;
+  recordingSubState: 'moving' | 'stopped';
+  gpsPermissionLost: boolean;
+}
+
+/**
+ * The current ride, normalized, or null when there is none.
+ *
+ * Older builds wrote only `recording`/`paused` (never `ended`) and sometimes no
+ * status at all; a ride with an open manual pause is paused whatever the status
+ * says, because the pause clock is what freezes its time.
+ */
+export function readRideRecord(): RideRecord | null {
+  const rideId = rideMMKV.getCurrentId();
+  if (!rideId) return null;
+  const stored = rideMMKV.getStatus();
+  const phase: RidePhase =
+    stored === RIDE_PHASE.ENDED
+      ? RIDE_PHASE.ENDED
+      : stored === RIDE_PHASE.PAUSED || rideMMKV.getPausedAt() > 0
+        ? RIDE_PHASE.PAUSED
+        : RIDE_PHASE.RECORDING;
+  return {
+    rideId,
+    phase,
+    startedAt: rideMMKV.getStartedAt(),
+    recordingSubState: rideMMKV.getRecordingSubState() ?? 'moving',
+    gpsPermissionLost: rideMMKV.getGpsPermissionLost(),
+  };
+}
+
+/** Recorded waypoints of a ride: saved chunks plus its persisted partial buffer. */
+export function readStoredWaypoints(rideId: string): Waypoint[] {
+  const points = getWaypointChunks(rideId).flat();
+  const raw = rideStorage.getString(waypointBufferKey(rideId));
+  if (!raw) return points;
+  try {
+    return [...points, ...(JSON.parse(raw) as Waypoint[])];
+  } catch (err) {
+    reportCorruption(err, { source: 'ride-storage.readStoredWaypoints', rideId });
+    return points;
+  }
+}
+
 // --- Cleanup ---
 
+/** Device preferences that live next to the ride keys but outlive every ride. */
+const PRESERVED_KEYS: ReadonlySet<string> = new Set([RIDE_KEYS.HUD_LAYOUT]);
+
+/**
+ * Remove a finished ride from the phone. Its own waypoints always go. The
+ * current-ride keys go only if it IS the current ride: a summary saved after a
+ * newer ride already started must not wipe that ride's id (its GPS would keep
+ * running with nothing recorded). The HUD layout preference always stays.
+ */
 export function clearRideData(rideId: string): void {
-  // Clear waypoint chunks
   let i = 0;
   while (rideStorage.getString(waypointChunkKey(rideId, i))) {
     rideStorage.remove(waypointChunkKey(rideId, i));
     i++;
   }
-  // Clear waypoint buffer
   rideStorage.remove(waypointBufferKey(rideId));
-  // Clear ride-level keys
+
+  const currentId = rideMMKV.getCurrentId();
+  if (currentId && currentId !== rideId) return;
+
   for (const key of Object.values(RIDE_KEYS)) {
-    rideStorage.remove(key);
+    if (!PRESERVED_KEYS.has(key)) rideStorage.remove(key);
   }
   // Clear in-memory buffer + the budget that tracked it
   pointBuffer = [];
   fixesSinceKept = 0;
+}
+
+/**
+ * Forget the current ride id without touching any recorded data — the rollback
+ * for a start that never got going. Removes the key rather than writing an empty
+ * string, which older readers treated as a ride.
+ */
+export function clearCurrentRide(): void {
+  rideStorage.remove(RIDE_KEYS.CURRENT_ID);
+  rideStorage.remove(RIDE_KEYS.STATUS);
+  rideStorage.remove(RIDE_KEYS.ENDED_SUMMARY);
 }

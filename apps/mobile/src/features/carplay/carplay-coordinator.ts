@@ -89,8 +89,9 @@ let startInFlight = false;
 // Why the last head-unit Start did not record. Shown on the idle panel until the next
 // Start press, a ride state change or a disconnect — see panelModel().
 let notice: CarPlayNotice | null = null;
-// `approximate` is phone-only (CarPlay can't show the choice and records anyway),
-// so it is unreachable here; mapped for exhaustiveness.
+// `approximate` is phone-only (CarPlay can't show the choice and records anyway). It
+// reaches CarPlay only when a head-unit Start joins a phone start already in flight
+// (startRideSession shares one start), and the phone shows the choice then.
 const START_FAILURE_NOTICE: Record<RideStartFailureReason, CarPlayNotice> = {
   denied: CARPLAY_NOTICE.locationOff,
   gps_failed: CARPLAY_NOTICE.gpsFailed,
@@ -590,9 +591,10 @@ function onAction(actionId: string): void {
           } else {
             notice = START_FAILURE_NOTICE[result.reason];
             trackEvent(AnalyticsEvent.CARPLAY_START_FAILED, { reason: result.reason });
-            // No location permission is a rider setting, not a bug — breadcrumb only.
-            if (result.reason === 'denied') {
-              addBreadcrumb('CarPlay start: location not granted', 'carplay');
+            // No location permission is a rider setting, and approximate location the
+            // phone's own prompt (a joined phone start) — neither is a bug.
+            if (result.reason === 'denied' || result.reason === 'approximate') {
+              addBreadcrumb(`CarPlay start: ${result.reason}`, 'carplay');
             } else {
               captureException(new Error(`CarPlay start failed: ${result.reason}`), {
                 source: 'carplay-coordinator.start',

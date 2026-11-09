@@ -2161,6 +2161,8 @@
     "selectMotorcycle": "Motorrad auswählen",
     "quickRideNoBike": "Schnellfahrt · kein Motorrad",
     "unfinishedTitle": "Unvollständige Fahrt erkannt",
+    "endedTitle": "Deine letzte Fahrt ist beendet, aber noch nicht gespeichert",
+    "reviewRide": "Fahrt ansehen",
     "resume": "Fortsetzen",
     "endRide": "Fahrt beenden",
     "previousRides": "Vorherige Fahrten",

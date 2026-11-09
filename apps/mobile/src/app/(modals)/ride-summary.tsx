@@ -38,6 +38,7 @@ import {
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../components/ui/native-toggle';
+import { finalizeEndedRide } from '../../features/ride/ride-controller';
 import { useRideTeaserEvaluation } from '../../features/ride/use-ride-teaser-evaluation';
 import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
@@ -64,7 +65,7 @@ import {
   formatElevation,
   formatSpeed,
 } from '../../utils/ride-formatters';
-import { clearRideData, getPointBuffer, getWaypointChunks } from '../../utils/ride-storage';
+import { getPointBuffer, getWaypointChunks } from '../../utils/ride-storage';
 import { dropDeadLetteredRide, enqueueOrExecute } from '../../utils/ride-sync-queue';
 
 const MAP_HEIGHT = 260;
@@ -289,9 +290,8 @@ export default function RideSummaryScreen() {
         },
       });
 
-      clearRideData(rideId);
+      finalizeEndedRide(rideId);
 
-      // Invalidate rides cache so the list shows the new ride
       queryClient.invalidateQueries({ queryKey: queryKeys.rides.all });
       // Ending the ride moved the bike's odometer server-side (and logged a reading).
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
@@ -368,7 +368,7 @@ export default function RideSummaryScreen() {
           void enqueueOrExecute('deleteRide', { variables: { id: rideId } }).finally(() =>
             queryClient.invalidateQueries({ queryKey: queryKeys.rides.all }),
           );
-          clearRideData(rideId);
+          finalizeEndedRide(rideId);
           router.replace('/(tabs)/(profile)');
         },
       },
