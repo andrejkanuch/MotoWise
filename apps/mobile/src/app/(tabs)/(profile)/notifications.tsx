@@ -20,7 +20,8 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
 import { meOptions } from '@/lib/query-options';
 import { useEditorialTheme } from '@/theme/editorial';
-import { GUTTER, readableWidth, space } from '@/theme/type';
+import { GUTTER, space } from '@/theme/spacing';
+import { readableWidth } from '@/theme/type';
 
 type NotificationPrefs = {
   newArticles: boolean;

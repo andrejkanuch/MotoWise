@@ -25,11 +25,12 @@ import { ReceiptScanRecoveryCard } from '@/features/receipt-scan/receipt-scan-re
 import { SCAN_ENTRY_SURFACE } from '@/features/receipt-scan/scan-flow-constants';
 import { useMileageUnit } from '@/hooks/use-mileage-unit';
 import { useProGate } from '@/hooks/use-pro-gate';
+import { useTabBarClearance } from '@/hooks/use-tab-bar-clearance';
 import { BIKE_ORIGIN, BIKE_SEGMENT } from '@/lib/bike-hub/constants';
 import { useRideStore } from '@/stores/ride.store';
-import { tabBarBottomOffset, useTabBarStore } from '@/stores/tab-bar.store';
 import { useEditorialTheme } from '@/theme/editorial';
-import { GUTTER, radius, readableWidth, space, type } from '@/theme/type';
+import { GUTTER, space } from '@/theme/spacing';
+import { radius, readableWidth, type } from '@/theme/type';
 import { triggerSelection } from '@/utils/haptics';
 
 const FOCUS_TAB = { STATS: 'stats', TRIP: 'trip', HISTORY: 'history' } as const;
@@ -46,8 +47,6 @@ const HOME_ACTION = {
 /** A ride in these states is resumed in the HUD instead of starting a new one. */
 const ACTIVE_RIDE_STATUSES: ReadonlySet<string> = new Set(['recording', 'paused']);
 
-/** Tab bar height before its first layout (default text size). */
-const TAB_BAR_FALLBACK_HEIGHT = 65;
 const AVATAR_SIZE = 44;
 const TITLE_MAX_FONT_SCALE = 1.6;
 const PLATE_NUMBER_DIGITS = 2;
@@ -60,7 +59,7 @@ export default function HomeScreen() {
   // Odometer and target values are stored RAW in this unit — never converted.
   const mileageUnit = useMileageUnit();
   const { requireAccess } = useProGate();
-  const tabBarHeight = useTabBarStore((s) => s.height);
+  const bottomPadding = useTabBarClearance();
   const rideStatus = useRideStore((s) => s.status);
 
   const {
@@ -113,9 +112,6 @@ export default function HomeScreen() {
     unit: mileageUnit,
     odometer: activeBike?.currentMileage,
   });
-
-  const bottomPadding =
-    (tabBarHeight ?? TAB_BAR_FALLBACK_HEIGHT) + tabBarBottomOffset(insets.bottom) + space.xl;
 
   const openBike = (params: { highlightTask?: string; segment?: string } = {}) => {
     if (!activeBike) return;

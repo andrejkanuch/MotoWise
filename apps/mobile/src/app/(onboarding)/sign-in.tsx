@@ -21,7 +21,8 @@ import { classifyAuthError, EMAIL_AUTH_ERROR, sendSignupCode } from '../../lib/e
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { supabase } from '../../lib/supabase';
-import { SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 
 /**
  * Returning-user sign-in, reachable from Welcome's "Log in" and the account

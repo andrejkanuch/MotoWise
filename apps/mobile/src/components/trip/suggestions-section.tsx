@@ -15,7 +15,8 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import type { TripSuggestion } from '../../hooks/use-trip-suggestions';
 import { tint as tintColor, useEditorialTheme } from '../../theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
 
 interface SuggestionsSectionProps {
   suggestions: TripSuggestion[];

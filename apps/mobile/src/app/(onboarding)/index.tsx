@@ -16,7 +16,8 @@ import { getStoredFbclid, getStoredUtmProperties } from '../../lib/meta-attribut
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { getOnboardingVariant } from '../../lib/onboarding-experiment';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { GUTTER, radius, space, type } from '../../theme/type';
+import { GUTTER, space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 // Module-scoped: resume-after-kill must fire only ONCE per app launch — on the

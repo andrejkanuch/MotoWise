@@ -16,9 +16,9 @@ import { useUndoReceiptSave } from './use-receipt-scan-save';
  * Mounted once at the app root so it survives the scan modal's dismissal — the
  * toast appears on whatever screen the rider lands back on. It reads the durable
  * undo store: a fresh entry auto-pops the toast for `SAVE_SNACKBAR_TIMEOUT_MS`,
- * but the entry itself lives on past the toast (the home card in U8 offers undo
- * later). Stale entries (older than `SAVE_SNACKBAR_FRESH_MS`) never re-pop on a
- * cold launch.
+ * and the toast is the one place a saved receipt can be undone from (the home
+ * card shows only parked scans). Stale entries (older than
+ * `SAVE_SNACKBAR_FRESH_MS`) never re-pop on a cold launch.
  */
 export function ReceiptScanSaveSnackbar() {
   const { t } = useTranslation();

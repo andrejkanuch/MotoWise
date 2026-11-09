@@ -42,7 +42,8 @@ import {
   PREDEFINED_TIMING,
   useDiagnosticFlowStore,
 } from '../../stores/diagnostic-flow.store';
-import { space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 import { useDiagnosticColors } from './diagnostic-colors';
 import { WizardOptionChip } from './wizard-option-chip';

@@ -1,7 +1,7 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { MaintenancePriority } from '@motovault/graphql';
 import { MONEY_AMOUNT_MAX } from '@motovault/types';
-import { Calendar, type LucideIcon } from 'lucide-react-native';
+import { Calendar, KeyboardOff, type LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -13,12 +13,17 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
-import { KeyboardStickyView } from 'react-native-keyboard-controller';
+import {
+  KeyboardController,
+  KeyboardStickyView,
+  useKeyboardState,
+} from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCurrency } from '../../hooks/use-currency';
 import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../lib/expense-constants';
 import { EDITORIAL_SCHEME, type EditorialTokens, useEditorialTheme } from '../../theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { layout, space } from '../../theme/spacing';
+import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 import { expenseIconFor } from '../bike-hub/sheets/log-options';
 import { sheetBottomPadding } from '../bike-hub/sheets/sheet-scroll';
@@ -38,11 +43,23 @@ const PRESSED_OPACITY = 0.7;
 
 /** Screen padding of a form sheet's scroll content. */
 export const SHEET_CONTENT_STYLE: ViewStyle = {
-  paddingHorizontal: space.md,
-  paddingTop: space.md,
-  paddingBottom: space.xl,
-  gap: space.xl,
+  paddingHorizontal: layout.sheetGutter,
+  paddingTop: layout.sheetTop,
+  paddingBottom: layout.scrollEnd,
+  gap: layout.sectionGap,
 };
+
+/**
+ * Keyboard behaviour shared by every form sheet's scroll view. `on-drag` drops
+ * the keyboard the moment a drag starts, so the same pull keeps going and moves
+ * the sheet down. With `interactive` the first pull was spent sliding the
+ * keyboard away, and the sheet stayed pinned at its tallest detent until the
+ * rider tapped outside the field.
+ */
+export const SHEET_SCROLL_KEYBOARD_PROPS = {
+  keyboardDismissMode: 'on-drag',
+  keyboardShouldPersistTaps: 'handled',
+} as const;
 
 /** Text style of a free-text input inside a grouped section. */
 export function inputTextStyle(theme: EditorialTokens): TextStyle {
@@ -362,6 +379,10 @@ export function SheetFooter({
     primaryState === SHEET_PRIMARY_STATE.DISABLED ||
     (primaryState === SHEET_PRIMARY_STATE.DONE && !primaryPressableWhenDone);
 
+  // Number pads have no return key: while the keyboard is up, a "hide keyboard"
+  // button leads the footer so the rider can always get the sheet back.
+  const keyboardOpen = useKeyboardState((state) => state.isVisible);
+
   const androidOpenedOffset =
     process.env.EXPO_OS === 'android' ? sheetBottomPadding(insets.bottom) + insets.bottom : 0;
 
@@ -373,14 +394,37 @@ export function SheetFooter({
         style={{
           flexDirection: 'row',
           gap: space.sm,
-          paddingHorizontal: space.md,
-          paddingTop: space.sm,
+          paddingHorizontal: layout.sheetGutter,
+          paddingTop: layout.footerTop,
           paddingBottom: sheetBottomPadding(insets.bottom),
           backgroundColor: theme.bg,
           borderTopWidth: 0.5,
           borderTopColor: theme.line,
         }}
       >
+        {keyboardOpen ? (
+          <Pressable
+            testID="sheet-hide-keyboard"
+            onPress={() => KeyboardController.dismiss()}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.hideKeyboard')}
+            hitSlop={space.xxs}
+            android_ripple={{ color: theme.line2 }}
+            style={({ pressed }) => ({
+              width: SHEET_CONTROL_HEIGHT,
+              height: SHEET_CONTROL_HEIGHT,
+              borderRadius: radius.control,
+              borderCurve: 'continuous',
+              backgroundColor: theme.surface2,
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              opacity: pressed ? PRESSED_OPACITY : 1,
+            })}
+          >
+            <KeyboardOff size={20} color={theme.ink2} strokeWidth={2} />
+          </Pressable>
+        ) : null}
         {hideCancel ? null : (
           <Pressable
             onPress={onCancel}

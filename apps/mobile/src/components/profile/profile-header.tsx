@@ -7,7 +7,8 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { PROFILE_ROUTE } from '../../config/routes';
 import { getInitials } from '../../lib/user-avatar';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 interface ProfileHeaderProps {

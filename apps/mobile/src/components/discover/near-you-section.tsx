@@ -12,7 +12,8 @@ import { useUserCountry } from '../../hooks/use-user-country';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useEditorialTheme } from '../../theme/editorial';
-import { SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 import { formatDistance } from '../../utils/ride-formatters';
 import { DIFFICULTY_TOKEN } from './discover-trip-card';
 

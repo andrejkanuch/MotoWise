@@ -1,5 +1,6 @@
 {
   "common": {
+    "hideKeyboard": "Tastatur ausblenden",
     "appName": "MotoVault",
     "loading": "Laden...",
     "error": "Fehler",
@@ -2463,7 +2464,9 @@
       "viewReceipt": "Belegfoto ansehen",
       "closeReceipt": "Schließen",
       "save": "Speichern",
-      "breakdownOverTotal": "Teile, Arbeit und Steuer ergeben {{sum}}, mehr als die Gesamtsumme von {{total}}. Korrigiere einen Wert, damit es passt, dann kannst du speichern.",
+      "breakdownSavesTotalOnly": "Teile, Arbeit und Steuer ergeben {{sum}}, mehr als die Summe von {{total}}. Gespeichert wird nur die Summe – passe die Werte an, um die Aufteilung zu behalten.",
+      "keepTotalOnly": "Nur Summe behalten",
+      "taxIncluded": "Die Steuer ist bereits in diesen Preisen enthalten, daher wird die separate Steuerzeile nicht erneut addiert.",
       "checkAmount": "Betrag prüfen",
       "checkCurrency": "Währung prüfen",
       "checkDate": "Datum prüfen",

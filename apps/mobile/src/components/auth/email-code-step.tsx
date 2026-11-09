@@ -23,7 +23,8 @@ import {
   verifySignupCode,
 } from '../../lib/email-confirmation';
 import { supabase } from '../../lib/supabase';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerNotification } from '../../utils/haptics';
 import { type OnboardingColors, useOnboardingColors } from '../onboarding/onboarding-colors';
 

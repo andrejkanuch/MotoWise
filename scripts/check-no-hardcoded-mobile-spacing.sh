@@ -1,0 +1,81 @@
+#!/usr/bin/env sh
+#
+# Guard: ban NEW raw spacing numbers in apps/mobile/src.
+#
+# Every padding, margin and gap comes from apps/mobile/src/theme/spacing.ts:
+# `layout.*` for page-level spacing (gutters, section gaps), `space.*` for the
+# 4pt grid inside a component. Merge-base ratchet, like check:mobile-colors:
+# only ADDED lines fail; legacy numbers elsewhere are ignored and migrate when a
+# file is touched.
+#
+# "Added" means everything on top of the merge-base with main: commits, staged
+# and unstaged edits, and new untracked files, so a local `verify:mobile` sees
+# the same thing CI will. Renames are paired (-M), so moving a file does not
+# make its legacy numbers look new.
+#
+# Flagged:  padding: 12 · marginTop: -8 · gap: 6 · rowGap: 4
+#           paddingBottom: insets.bottom + 100 · padding: isWide ? 24 : 16
+#           gap: space.md + 2
+# Allowed:  0 (a reset, not a spacing choice), tokens, and tokens combined
+#           with insets (paddingTop: insets.top + space.sm). A literal used as
+#           a multiplier or divisor (space.md * 2) is a grid multiple, not a
+#           new value.
+# Exempt:   src/theme/ (the token home), tests and mocks.
+set -eu
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+SCOPE='apps/mobile/src'
+# 1) a spacing prop set straight to a non-zero literal;
+# 2) a spacing prop whose expression adds, subtracts or picks (ternary) a
+#    non-zero literal — the `insets.bottom + 100` shape.
+PROP='(padding|margin)(Horizontal|Vertical|Top|Bottom|Left|Right|Start|End|Block|Inline)?|gap|rowGap|columnGap'
+SPACING_RE="(^|[^A-Za-z])($PROP): *-?[1-9][0-9.]*([^0-9A-Za-z.]|\$)|(^|[^A-Za-z])($PROP): *[^,}]*[-+?:] *[1-9][0-9.]*([^0-9A-Za-z.]|\$)"
+# Files the ratchet reads: mobile TS/TSX, minus tests, mocks and the token home.
+# Passed to awk through ENVIRON, not -v: -v processes escapes, turning `\.` into
+# "any character" (so `card.tsx` matched the `d.tsx` declaration-file skip).
+FILE_RE='^apps/mobile/src/.*\.(ts|tsx)$'
+SKIP_RE='\.(test|d)\.(ts|tsx)$|/__tests__/|/__mocks__/|/mocks/|^apps/mobile/src/theme/'
+
+BASE=""
+if git rev-parse --verify origin/main >/dev/null 2>&1; then
+  BASE=$(git merge-base HEAD origin/main 2>/dev/null || true)
+fi
+if [ -z "$BASE" ] && git rev-parse --verify main >/dev/null 2>&1; then
+  BASE=$(git merge-base HEAD main 2>/dev/null || true)
+fi
+if [ -z "$BASE" ]; then
+  echo "ERROR: no merge-base with origin/main or main — cannot run the spacing ratchet."
+  echo "       Fetch the base branch first (e.g. \`git fetch origin main\`)."
+  exit 1
+fi
+
+# "<file>\t<added line>" for every added line: tracked changes against the
+# merge-base (working tree included), then every line of untracked files.
+added_lines() {
+  git diff -M -U0 --no-color "$BASE" -- "$SCOPE" | awk '
+    /^\+\+\+ / { file = ($2 == "/dev/null") ? "" : substr($2, 3); next }
+    /^\+/      { if (file != "") print file "\t" substr($0, 2) }
+  '
+  git ls-files --others --exclude-standard -- "$SCOPE" | while IFS= read -r f; do
+    awk -v file="$f" '{ print file "\t" $0 }' "$f"
+  done
+}
+
+offenders="$(
+  added_lines \
+    | KEEP="$FILE_RE" SKIP="$SKIP_RE" awk -F '\t' '$1 ~ ENVIRON["KEEP"] && $1 !~ ENVIRON["SKIP"]' \
+    | grep -E "$SPACING_RE" \
+    || true
+)"
+
+if [ -n "$offenders" ]; then
+  echo "ERROR: new raw spacing numbers in mobile files."
+  echo "       Use layout.* or space.* from apps/mobile/src/theme/spacing.ts."
+  printf '%s\n' "$offenders"
+  exit 1
+fi
+
+echo "OK: no new hardcoded spacing in mobile files (vs $BASE)."
+exit 0

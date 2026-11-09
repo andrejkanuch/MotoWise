@@ -19,6 +19,7 @@ import {
   RowNumberInput,
   SHEET_CONTENT_STYLE,
   SHEET_PRIMARY_STATE,
+  SHEET_SCROLL_KEYBOARD_PROPS,
   SheetFooter,
   SheetTitle,
 } from '@/components/ui/sheet-form';
@@ -42,7 +43,8 @@ import { maintenanceTasksOptions } from '@/lib/query-options';
 import { maybeRequestReview, REVIEW_MOMENT } from '@/lib/store-review';
 import { invalidateAfterTaskCompletion } from '@/lib/task-completion-cache';
 import { useEditorialTheme } from '@/theme/editorial';
-import { space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { type } from '@/theme/type';
 import { triggerImpact, triggerNotification } from '@/utils/haptics';
 import { convertIntervalDistance } from '@/utils/maintenance-interval';
 
@@ -179,7 +181,7 @@ export default function CompleteTaskScreen() {
         style={{ flex: 1 }}
         bottomOffset={20}
         contentContainerStyle={SHEET_CONTENT_STYLE}
-        keyboardShouldPersistTaps="handled"
+        {...SHEET_SCROLL_KEYBOARD_PROPS}
         showsVerticalScrollIndicator={false}
       >
         <View style={{ gap: space.xxs }}>

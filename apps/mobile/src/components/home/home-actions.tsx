@@ -5,7 +5,8 @@ import { Pressable, Text, View } from 'react-native';
 import { useReceiptScanEntry } from '../../features/receipt-scan/receipt-scan-entry';
 import type { ScanEntrySurface } from '../../features/receipt-scan/scan-flow-constants';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 /** Material minimum on Android, a little taller on iOS so icon + label breathe. */

@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { Text } from 'react-native';
 import { useEditorialTheme } from '@/theme/editorial';
-import { space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { type } from '@/theme/type';
 import { formatQuotaResetDate } from './diagnostic-status';
 import { useDiagnosticQuota } from './use-diagnostic-quota';
 

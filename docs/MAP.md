@@ -97,7 +97,7 @@ each app and package. `pnpm check:agent-docs` fails if a path cited here stops e
 | `scripts/check-mobile-structure.ts`, `scripts/mobile-structure-baseline.json` | Mobile import and route-size rules, and the recorded violations (`pnpm check:mobile-structure`) |
 | `scripts/codemod-mobile-alias.ts` | Rewrites mobile imports that climb three or more levels to `@/`. `--check` exits 1 if a run would change a file; re-run it with `--write` after rebasing a branch |
 | `scripts/check-i18n.sh`, `scripts/check-i18n-new-keys.ts` | i18n ratchet (`pnpm check:i18n`) |
-| `scripts/check-no-router-any.sh`, `scripts/check-no-hardcoded-mobile-colors.sh` | Mobile guards (`pnpm check:router`, `pnpm check:mobile-colors`) |
+| `scripts/check-no-router-any.sh`, `scripts/check-no-hardcoded-mobile-colors.sh`, `scripts/check-no-hardcoded-mobile-spacing.sh` | Mobile guards (`pnpm check:router`, `pnpm check:mobile-colors`, `pnpm check:mobile-spacing`) |
 | `scripts/check-api-bans.sh` | No raw Postgres error-code literals outside `unwrap.ts` (`pnpm check:api-bans`) |
 | `scripts/check-404-contract.sh` | End-to-end 404 probe against a real server (`pnpm check:404`) |
 | `scripts/reconcile-signup-events.ts` | Acceptance check for the signup event (`pnpm reconcile:signup`) |

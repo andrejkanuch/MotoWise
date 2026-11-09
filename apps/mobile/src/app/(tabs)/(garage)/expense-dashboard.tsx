@@ -32,7 +32,8 @@ import {
 import { queryKeys } from '@/lib/query-keys';
 import { EXPENSES_ALL_YEARS, expensesOptions, motorcyclesOptions } from '@/lib/query-options';
 import { tint, useEditorialTheme } from '@/theme/editorial';
-import { GUTTER, radius, space, type } from '@/theme/type';
+import { GUTTER, space } from '@/theme/spacing';
+import { radius, type } from '@/theme/type';
 import { triggerImpact, triggerSelection } from '@/utils/haptics';
 
 const PERIOD_LABEL_KEY = {

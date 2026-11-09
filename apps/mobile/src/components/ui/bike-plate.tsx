@@ -23,7 +23,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
 
 const TABULAR: TextStyle['fontVariant'] = ['tabular-nums'];
 

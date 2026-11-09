@@ -114,18 +114,6 @@ export const type = {
 
 export type TypeRole = keyof typeof type;
 
-/** The 4pt grid. Every gap, padding and margin is one of these. */
-export const space = {
-  xxs: 4,
-  xs: 8,
-  sm: 12,
-  md: 16,
-  lg: 20,
-  xl: 24,
-  xxl: 32,
-  xxxl: 40,
-} as const;
-
 /** Corner radii. Continuous curves on iOS (`borderCurve: 'continuous'`). */
 export const radius = {
   plate: 20,
@@ -134,9 +122,6 @@ export const radius = {
   chip: 10,
   pill: 999,
 } as const;
-
-/** Screen side gutter. */
-export const GUTTER = space.md;
 
 /**
  * Readable column width. On a phone it is wider than the screen, so nothing

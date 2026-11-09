@@ -3,6 +3,9 @@ import { create } from 'zustand';
 /** The floating tab bar never sits closer than this to the screen's bottom edge. */
 export const TAB_BAR_MIN_INSET = 12;
 
+/** The floating tab bar's height before its first layout (default text size). */
+export const TAB_BAR_FALLBACK_HEIGHT = 65;
+
 /**
  * The floating tab bar's `bottom`: the safe-area inset, or the minimum where
  * there is none (Android 3-button nav, older iPhones). One source for the bar

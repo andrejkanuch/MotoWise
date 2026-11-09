@@ -19,7 +19,8 @@ import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { registerForPushNotifications } from '../../lib/push-token';
 import { resyncTrialReminder } from '../../lib/subscription';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 
 /**

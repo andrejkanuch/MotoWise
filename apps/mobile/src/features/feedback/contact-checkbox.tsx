@@ -1,7 +1,8 @@
 import { Check } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { tint, useEditorialTheme } from '@/theme/editorial';
-import { radius, space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { radius, type } from '@/theme/type';
 import { triggerSelection } from '@/utils/haptics';
 
 const MIN_TOUCH_TARGET = process.env.EXPO_OS === 'android' ? 48 : 44;

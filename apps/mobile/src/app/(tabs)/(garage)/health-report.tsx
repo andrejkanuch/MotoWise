@@ -23,7 +23,8 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
 import { expensesOptions, maintenanceTasksOptions, motorcyclesOptions } from '@/lib/query-options';
 import { tint, useEditorialTheme } from '@/theme/editorial';
-import { space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
 
 const MIN_RECORDS_REQUIRED = 3;

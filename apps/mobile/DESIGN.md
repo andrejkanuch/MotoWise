@@ -297,7 +297,7 @@ As text or dots on the ground (not plate fills) the triad uses its ink variants:
 
 ## Layout
 
-A strict 4pt grid: every gap, padding and margin is one of 4, 8, 12, 16, 20, 24, 32, 40. The screen gutter is 16. Sections on a screen and in a sheet are separated by 24; a caption sits 8 above its grouped card.
+A strict 4pt grid: every gap, padding and margin is one of 4, 8, 12, 16, 20, 24, 32, 40, named once in `src/theme/spacing.ts` (`layout.*` for page spacing, `space.*` for the grid). The screen gutter is 16; a form sheet's gutter is 20, like iOS system sheets. Sections on a screen and in a sheet are separated by 24; a caption sits 8 above its grouped card. Content under the floating tab bar ends clear of it (`useTabBarClearance`).
 
 On a tablet, content stops at a **720pt readable column** (`readableWidth`: `maxWidth: 720`, centred); on a phone the column is wider than the screen and nothing changes. The tab island stops at 520pt and centres.
 

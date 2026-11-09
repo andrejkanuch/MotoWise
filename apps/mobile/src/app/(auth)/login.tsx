@@ -14,7 +14,7 @@ import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytic
 import { classifyAuthError, EMAIL_AUTH_ERROR, sendSignupCode } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { supabase } from '../../lib/supabase';
-import { space } from '../../theme/type';
+import { space } from '../../theme/spacing';
 import { triggerImpact } from '../../utils/haptics';
 
 const REGISTER_ROUTE: Href = '/(auth)/register';

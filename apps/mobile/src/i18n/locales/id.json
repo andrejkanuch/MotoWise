@@ -1,5 +1,6 @@
 {
   "common": {
+    "hideKeyboard": "Sembunyikan keyboard",
     "appName": "MotoVault",
     "loading": "Memuat...",
     "error": "Kesalahan",
@@ -2463,7 +2464,9 @@
       "viewReceipt": "Lihat foto struk",
       "closeReceipt": "Tutup",
       "save": "Simpan",
-      "breakdownOverTotal": "Suku cadang, jasa, dan pajak berjumlah {{sum}}, lebih dari total {{total}}. Perbaiki salah satunya agar pas, lalu simpan.",
+      "breakdownSavesTotalOnly": "Suku cadang, jasa, dan pajak berjumlah {{sum}}, lebih dari total {{total}}. Hanya total yang akan disimpan — sesuaikan agar rinciannya tetap ada.",
+      "keepTotalOnly": "Simpan total saja",
+      "taxIncluded": "Pajak sudah termasuk dalam harga ini, jadi baris pajak terpisah tidak ditambahkan lagi.",
       "checkAmount": "Cek jumlah",
       "checkCurrency": "Cek mata uang",
       "checkDate": "Cek tanggal",

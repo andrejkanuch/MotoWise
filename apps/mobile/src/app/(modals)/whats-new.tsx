@@ -21,7 +21,8 @@ import { BIKE_SEGMENT } from '../../lib/bike-hub/constants';
 import { motorcyclesOptions } from '../../lib/query-options';
 import { useWhatsNewStore } from '../../stores/whats-new.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 import { selectPrimaryBike } from '../../utils/primary-bike';
 

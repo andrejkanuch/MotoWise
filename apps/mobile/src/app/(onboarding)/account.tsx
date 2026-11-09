@@ -33,7 +33,8 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { useSubscriptionStore } from '../../stores/subscription.store';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 
 const IS_IOS = process.env.EXPO_OS === 'ios';
 

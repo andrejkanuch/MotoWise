@@ -8,7 +8,8 @@ import { Text, View } from 'react-native';
 import { useWeatherForecast } from '../../hooks/use-weather-forecast';
 import { maintenanceTasksOptions } from '../../lib/query-options';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { type } from '../../theme/type';
 import { getPreFlightBikeStatus, PRE_FLIGHT_BIKE_STATUS } from './pre-flight-bike-status';
 
 interface PreFlightChecklistProps {

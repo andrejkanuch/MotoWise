@@ -16,7 +16,8 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
 import { meOptions } from '@/lib/query-options';
 import { useEditorialTheme } from '@/theme/editorial';
-import { GUTTER, radius, space, type } from '@/theme/type';
+import { GUTTER, space } from '@/theme/spacing';
+import { radius, type } from '@/theme/type';
 
 export default function RiderProfileScreen() {
   const { t } = useTranslation();

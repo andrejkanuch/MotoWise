@@ -11,7 +11,8 @@ import type { AccountPrivacyPreference, ConsentDecision } from '../lib/analytics
 import { saveConsentToAccount } from '../lib/consent-account-sync';
 import { queryKeys } from '../lib/query-keys';
 import { useAuthStore } from '../stores/auth.store';
-import { radius, space, type } from '../theme/type';
+import { space } from '../theme/spacing';
+import { radius, type } from '../theme/type';
 import { triggerImpact } from '../utils/haptics';
 
 /**

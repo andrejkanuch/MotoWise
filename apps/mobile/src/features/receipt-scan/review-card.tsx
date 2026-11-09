@@ -26,7 +26,16 @@ import {
 } from 'lucide-react-native';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  ScrollView,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, {
@@ -48,10 +57,11 @@ import {
 } from '../../lib/expense-constants';
 import { motorcyclesOptions } from '../../lib/query-options';
 import { EDITORIAL_SCHEME, editorialThemes, tint, useEditorialTheme } from '../../theme/editorial';
+import { layout, space } from '../../theme/spacing';
 import { SYSTEM_WEIGHT, type as textRole } from '../../theme/type';
 import { triggerSelection } from '../../utils/haptics';
 import { localDateFromISODate, toISODateInput } from '../../utils/trip-form-dates';
-import { breakdownOverTotal } from './receipt-breakdown';
+import { BREAKDOWN_STATUS, breakdownPayloadFields, reconcileBreakdown } from './receipt-breakdown';
 import {
   RECEIPT_REVIEW_TYPE,
   type ReceiptExtraction,
@@ -204,6 +214,8 @@ export interface ReviewCardProps {
   onClose: () => void;
   /** U7d persists this; here the parent may pass a no-op/log. */
   onSave: (payload: ReceiptReviewPayload) => void;
+  /** The save is in flight (duplicate check + mutation): Save shows progress and ignores taps. */
+  saving?: boolean;
 }
 
 /**
@@ -214,7 +226,15 @@ export interface ReviewCardProps {
  * interpretations on round-trip (all fields live in state; the type toggle only
  * shows/hides the maintenance parts/labor rows).
  */
-export function ReviewCard({ handoff, bikeName, bikes, onPark, onClose, onSave }: ReviewCardProps) {
+export function ReviewCard({
+  handoff,
+  bikeName,
+  bikes,
+  onPark,
+  onClose,
+  onSave,
+  saving = false,
+}: ReviewCardProps) {
   const { t } = useTranslation();
   const { t: tk, isDark } = useEditorialTheme();
   const { result } = handoff;
@@ -369,17 +389,29 @@ export function ReviewCard({ handoff, bikeName, bikes, onPark, onClose, onSave }
   }, []);
 
   const parsedAmount = parseNumeric(amount);
-  // Mirror the server's reconcile gate: a breakdown over the total would be
-  // dropped silently by the API, so Save is blocked and the reason is shown.
-  const breakdownSum = isMaintenance(type)
-    ? breakdownOverTotal({
-        total: parsedAmount,
+  // The parts / labor / tax split is optional detail and never blocks Save.
+  // Tax already inside the line prices is recognised; a split that still does
+  // not fit is explained inline and saved as the total only.
+  const breakdown = useMemo(
+    () =>
+      reconcileBreakdown({
+        total: parseNumeric(amount),
         parts: parseNumeric(partsCost),
         labor: parseNumeric(laborCost),
         tax: parseNumeric(taxAmount),
-      })
-    : null;
-  const canSave = hasBike && (parsedAmount ?? 0) > 0 && breakdownSum == null;
+      }),
+    [amount, partsCost, laborCost, taxAmount],
+  );
+  // Both types save with the same two facts: a bike and an amount.
+  const canSave = hasBike && (parsedAmount ?? 0) > 0 && !saving;
+
+  const clearBreakdown = useCallback(() => {
+    triggerSelection();
+    setPartsCost('');
+    setLaborCost('');
+    setTaxAmount('');
+    markEdited(EDIT_FIELD.PARTS_COST);
+  }, [markEdited]);
 
   const handleSave = useCallback(() => {
     if (!canSave) return;
@@ -395,11 +427,7 @@ export function ReviewCard({ handoff, bikeName, bikes, onPark, onClose, onSave }
       vendor: vendor.trim() || null,
       itemName: itemName.trim() || null,
       category: category || null,
-      partsCost: isMaintenance(type) ? parseNumeric(partsCost) : null,
-      laborCost: isMaintenance(type) ? parseNumeric(laborCost) : null,
-      taxAmount: isMaintenance(type) ? parseNumeric(taxAmount) : null,
-      // taxRate is printed metadata — carried straight through from extraction.
-      taxRate: isMaintenance(type) ? (result.taxRate ?? null) : null,
+      ...breakdownPayloadFields(type, breakdown, result.taxRate ?? null),
       // Only send non-empty lines; drop blank rows the rider added but left empty.
       lineItems: isMaintenance(type) ? lineItems.filter((li) => li.label.trim().length > 0) : [],
       // Opt-in reminders, filtered to types still present among the reviewed lines.
@@ -422,9 +450,7 @@ export function ReviewCard({ handoff, bikeName, bikes, onPark, onClose, onSave }
     vendor,
     itemName,
     category,
-    partsCost,
-    laborCost,
-    taxAmount,
+    breakdown,
     lineItems,
     reminderCandidates,
     reminderTypes,
@@ -440,13 +466,14 @@ export function ReviewCard({ handoff, bikeName, bikes, onPark, onClose, onSave }
   return (
     <Animated.View entering={FadeInUp.duration(220)} style={{ flex: 1 }}>
       <KeyboardAwareScrollView
-        bottomOffset={20}
+        bottomOffset={space.lg}
+        keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 32, gap: 18 }}
+        contentContainerStyle={{ paddingBottom: layout.scrollEnd, gap: layout.sectionGap }}
       >
         {/* Header + prominent bike */}
-        <View style={{ gap: 4 }}>
+        <View style={{ gap: layout.titleGap }}>
           <Text style={{ ...textRole.sheetTitle, color: ink }}>
             {t('receiptScan.review.title')}
           </Text>
@@ -469,12 +496,14 @@ export function ReviewCard({ handoff, bikeName, bikes, onPark, onClose, onSave }
           />
         )}
 
-        <TypeChips type={type} isDark={isDark} onSwitch={switchType} />
-        <Text style={{ ...textRole.caption, color: muted, marginTop: -8, marginLeft: 2 }}>
-          {isMaintenance(type)
-            ? t('receiptScan.review.typeMaintenanceHint')
-            : t('receiptScan.review.typeExpenseHint')}
-        </Text>
+        <View style={{ gap: layout.labelGap }}>
+          <TypeChips type={type} isDark={isDark} onSwitch={switchType} />
+          <Text style={{ ...textRole.caption, color: muted }}>
+            {isMaintenance(type)
+              ? t('receiptScan.review.typeMaintenanceHint')
+              : t('receiptScan.review.typeExpenseHint')}
+          </Text>
+        </View>
 
         {/* Amount hero + tappable receipt thumbnail (always-verify) */}
         <AmountField
@@ -550,7 +579,7 @@ export function ReviewCard({ handoff, bikeName, bikes, onPark, onClose, onSave }
         {isMaintenance(type) && (
           <Animated.View
             entering={FadeInUp.duration(180)}
-            style={{ flexDirection: 'row', gap: 12 }}
+            style={{ flexDirection: 'row', gap: layout.fieldGap }}
           >
             <View style={{ flex: 1 }}>
               <NumberField
@@ -593,6 +622,38 @@ export function ReviewCard({ handoff, bikeName, bikes, onPark, onClose, onSave }
             onChangeText={(v) => setTaxAmount(formatCurrencyInput(v, userCurrency))}
             onBlur={() => markEdited(EDIT_FIELD.TAX_AMOUNT)}
           />
+        )}
+
+        {isMaintenance(type) && breakdown.status === BREAKDOWN_STATUS.TAX_INCLUDED && (
+          <Text
+            accessibilityLiveRegion="polite"
+            style={{ ...textRole.caption, color: muted, marginTop: -layout.fieldGap }}
+          >
+            {t('receiptScan.review.taxIncluded')}
+          </Text>
+        )}
+        {isMaintenance(type) && breakdown.status === BREAKDOWN_STATUS.OVER_TOTAL && (
+          <View
+            accessibilityLiveRegion="polite"
+            style={{ gap: layout.labelGap, marginTop: -layout.fieldGap }}
+          >
+            <Text style={{ ...textRole.caption, color: tk.dueInk }}>
+              {t('receiptScan.review.breakdownSavesTotalOnly', {
+                sum: formatMoney(breakdown.sum, currency.trim(), userCurrency),
+                total: formatMoney(parsedAmount ?? 0, currency.trim(), userCurrency),
+              })}
+            </Text>
+            <Pressable
+              onPress={clearBreakdown}
+              accessibilityRole="button"
+              hitSlop={space.xs}
+              style={{ alignSelf: 'flex-start' }}
+            >
+              <Text style={{ ...textRole.subhead, ...SYSTEM_WEIGHT.semibold, color: tk.warm2 }}>
+                {t('receiptScan.review.keepTotalOnly')}
+              </Text>
+            </Pressable>
+          </View>
         )}
 
         {/* Maintenance-only editable line items (the itemized service history) */}
@@ -647,43 +708,40 @@ export function ReviewCard({ handoff, bikeName, bikes, onPark, onClose, onSave }
       </KeyboardAwareScrollView>
 
       {/* Bottom actions */}
-      <View style={{ paddingBottom: 24, paddingTop: 8, gap: 10 }}>
-        {breakdownSum != null && (
-          <Text
-            accessibilityLiveRegion="polite"
-            style={{ ...textRole.caption, color: tk.danger, textAlign: 'center' }}
-          >
-            {t('receiptScan.review.breakdownOverTotal', {
-              sum: formatMoney(breakdownSum, currency.trim(), userCurrency),
-              total: formatMoney(parsedAmount ?? 0, currency.trim(), userCurrency),
-            })}
-          </Text>
-        )}
+      <View style={{ paddingBottom: space.xl, paddingTop: space.xs, gap: space.xs }}>
         <Pressable
+          testID="receipt-review-save"
           onPress={handleSave}
           disabled={!canSave}
           accessibilityRole="button"
-          accessibilityState={{ disabled: !canSave }}
-          accessibilityLabel={t('receiptScan.review.save')}
+          accessibilityState={{ disabled: !canSave, busy: saving }}
+          accessibilityLabel={saving ? t('common.saving') : t('receiptScan.review.save')}
           style={{
             minHeight: 52,
             borderRadius: 14,
             borderCurve: 'continuous',
-            backgroundColor: canSave ? tk.warm : tk.surface3,
+            // While saving the button keeps its copper fill — it is working, not unavailable.
+            backgroundColor: canSave || saving ? tk.warm : tk.surface3,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 8,
+            gap: space.xs,
           }}
         >
-          <Check size={20} color={tk.onWarm} strokeWidth={2.5} />
-          <Text style={{ ...textRole.bodyStrong, color: canSave ? tk.onWarm : tk.ink3 }}>
-            {t('receiptScan.review.save')}
+          {saving ? (
+            <ActivityIndicator size="small" color={tk.onWarm} />
+          ) : (
+            <Check size={20} color={canSave ? tk.onWarm : tk.ink3} strokeWidth={2.5} />
+          )}
+          <Text style={{ ...textRole.bodyStrong, color: canSave || saving ? tk.onWarm : tk.ink3 }}>
+            {saving ? t('common.saving') : t('receiptScan.review.save')}
           </Text>
         </Pressable>
         <Pressable
           onPress={onPark}
+          disabled={saving}
           accessibilityRole="button"
+          accessibilityState={{ disabled: saving }}
           accessibilityLabel={t('receiptScan.review.reviewLater')}
           style={{
             minHeight: 48,
@@ -703,9 +761,16 @@ export function ReviewCard({ handoff, bikeName, bikes, onPark, onClose, onSave }
         </Pressable>
         <Pressable
           onPress={onClose}
+          disabled={saving}
           accessibilityRole="button"
+          accessibilityState={{ disabled: saving }}
           accessibilityLabel={t('receiptScan.common.done')}
-          style={{ minHeight: 40, alignItems: 'center', justifyContent: 'center' }}
+          style={{
+            minHeight: 40,
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: saving ? 0.45 : 1,
+          }}
         >
           <Text style={{ ...textRole.subhead, ...SYSTEM_WEIGHT.semibold, color: muted }}>
             {t('receiptScan.common.done')}

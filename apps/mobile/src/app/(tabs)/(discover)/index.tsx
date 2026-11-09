@@ -59,7 +59,8 @@ import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
 import { tint, useEditorialTheme } from '@/theme/editorial';
-import { SYSTEM_WEIGHT, space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { SYSTEM_WEIGHT, type } from '@/theme/type';
 import { triggerImpact, triggerSelection } from '@/utils/haptics';
 import { getDefaultMapStyle, MAP_STYLES } from '@/utils/map-styles';
 

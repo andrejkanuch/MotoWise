@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { SYSTEM_WEIGHT, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { SYSTEM_WEIGHT, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 import { FormDivider, ROW_DIVIDER_INSET, SHEET_CONTROL_HEIGHT } from '../ui/sheet-form';
 

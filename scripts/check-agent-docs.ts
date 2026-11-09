@@ -88,7 +88,7 @@ type Budget = { lines: number; bytes: number; lineBytes?: number };
  */
 const PLANNED_SIZES: Readonly<Record<string, Budget>> = {
   'CLAUDE.md': { lines: 80, bytes: 5500, lineBytes: 300 },
-  'apps/mobile/CLAUDE.md': { lines: 100, bytes: 7500 },
+  'apps/mobile/CLAUDE.md': { lines: 100, bytes: 7700 },
   'apps/api/CLAUDE.md': { lines: 60, bytes: 5000 },
   'apps/web/CLAUDE.md': { lines: 80, bytes: 8200 },
   'supabase/CLAUDE.md': { lines: 40, bytes: 3000 },

@@ -1,5 +1,6 @@
 {
   "common": {
+    "hideKeyboard": "Klavyeyi gizle",
     "appName": "MotoVault",
     "loading": "Yükleniyor...",
     "error": "Hata",
@@ -2463,7 +2464,9 @@
       "viewReceipt": "Fiş fotoğrafını gör",
       "closeReceipt": "Kapat",
       "save": "Kaydet",
-      "breakdownOverTotal": "Parça, işçilik ve vergi toplamı {{sum}}, yani {{total}} toplamından fazla. Kaydetmek için birini düzelt ki tutsun.",
+      "breakdownSavesTotalOnly": "Parça, işçilik ve vergi toplamı {{sum}}, {{total}} toplamından fazla. Yalnızca toplam kaydedilecek — dökümü korumak için düzeltin.",
+      "keepTotalOnly": "Yalnızca toplamı tut",
+      "taxIncluded": "Vergi bu fiyatlara zaten dahil, bu yüzden ayrı vergi satırı tekrar eklenmeyecek.",
       "checkAmount": "Tutarı kontrol et",
       "checkCurrency": "Para birimini kontrol et",
       "checkDate": "Tarihi kontrol et",

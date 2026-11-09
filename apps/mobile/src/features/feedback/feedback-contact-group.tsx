@@ -11,7 +11,8 @@ import {
   EToggleRow,
 } from '@/components/ui/editorial';
 import { useEditorialTheme } from '@/theme/editorial';
-import { space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { type } from '@/theme/type';
 import { isRelayEmail } from './contact-email';
 import { ContactEmailSheet } from './contact-email-sheet';
 import { useFeedbackContactPreference } from './use-feedback-contact-preference';

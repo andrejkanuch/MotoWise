@@ -17,6 +17,7 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { ExpensePhotoGallery } from '@/components/expense-photo-gallery';
 import { useCurrency } from '@/hooks/use-currency';
 import { useDeleteExpense } from '@/hooks/use-delete-expense';
+import { useTabBarClearance } from '@/hooks/use-tab-bar-clearance';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import {
   CATEGORY_COLORS,
@@ -31,6 +32,7 @@ import { queryKeys } from '@/lib/query-keys';
 import { EXPENSES_ALL_YEARS, expensesOptions, maintenanceTasksOptions } from '@/lib/query-options';
 import { useAuthStore } from '@/stores/auth.store';
 import { tint, useEditorialTheme } from '@/theme/editorial';
+import { layout, space } from '@/theme/spacing';
 import { triggerImpact } from '@/utils/haptics';
 import { localDateFromISODate } from '@/utils/trip-form-dates';
 
@@ -45,6 +47,8 @@ function paramString(value: string | string[] | undefined): string {
 
 export default function ExpenseDetailScreen() {
   const { t } = useTranslation();
+  // The Delete button is the last item — it must scroll clear of the floating tab bar.
+  const tabBarClearance = useTabBarClearance();
   const { t: theme, isDark } = useEditorialTheme();
   const navigation = useNavigation();
   const queryClient = useQueryClient();
@@ -216,7 +220,11 @@ export default function ExpenseDetailScreen() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 48, gap: 20 }}
+      contentContainerStyle={{
+        paddingHorizontal: layout.screenGutter,
+        paddingBottom: tabBarClearance,
+        gap: space.lg,
+      }}
       showsVerticalScrollIndicator={false}
     >
       {/* Amount hero */}

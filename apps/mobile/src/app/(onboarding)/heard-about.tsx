@@ -24,7 +24,8 @@ import { AnalyticsEvent, setUserPropertiesOnce } from '../../lib/analytics';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import { setSelfReportedSource } from '../../lib/subscription';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { radius, space, type } from '../../theme/type';
+import { space } from '../../theme/spacing';
+import { radius, type } from '../../theme/type';
 import { triggerNotification } from '../../utils/haptics';
 
 /**

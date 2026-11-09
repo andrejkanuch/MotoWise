@@ -25,6 +25,7 @@ import {
   SHEET_CONTENT_STYLE,
   SHEET_CONTROL_HEIGHT,
   SHEET_PRIMARY_STATE,
+  SHEET_SCROLL_KEYBOARD_PROPS,
   SheetFooter,
   SheetTitle,
 } from '@/components/ui/sheet-form';
@@ -38,7 +39,8 @@ import { MetaAnalytics } from '@/lib/meta-analytics';
 import { scheduleMaintenanceReminder } from '@/lib/notifications';
 import { maybeRequestReview, REVIEW_MOMENT } from '@/lib/store-review';
 import { useEditorialTheme } from '@/theme/editorial';
-import { radius, SYSTEM_WEIGHT, space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { radius, SYSTEM_WEIGHT, type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
 import { intervalDistanceUnit } from '@/utils/maintenance-interval';
 import { toISODateInput } from '@/utils/trip-form-dates';
@@ -238,8 +240,7 @@ export default function AddMaintenanceTaskScreen() {
         bottomOffset={20}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={SHEET_CONTENT_STYLE}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
+        {...SHEET_SCROLL_KEYBOARD_PROPS}
         showsVerticalScrollIndicator={false}
       >
         <SheetTitle>

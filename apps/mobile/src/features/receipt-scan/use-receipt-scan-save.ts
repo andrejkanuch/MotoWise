@@ -9,7 +9,7 @@ import {
 import { useMutation } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import type { TFunction } from 'i18next';
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
@@ -21,6 +21,7 @@ import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
 import { EXPENSES_ALL_YEARS, expensesOptions } from '../../lib/query-options';
 import { REVIEW_ACTION, recordReviewAction } from '../../lib/store-review';
+import { withTimeout } from '../../lib/with-timeout';
 import { triggerNotification } from '../../utils/haptics';
 import { deleteDurablePhoto } from './durable-receipt-photo';
 import { unparkScan } from './parked-scan-store';
@@ -110,16 +111,33 @@ function invalidateForRecord(recordType: string, motorcycleId: string, odometerT
 }
 
 /**
+ * Longest the duplicate soft-warn may hold up a save. It is a convenience
+ * check: past this the save goes ahead as if no duplicate was found.
+ */
+export const DUPLICATE_CHECK_TIMEOUT_MS = 5_000;
+
+/**
  * Pre-save duplicate soft-warn: an expense on the same bike with the same amount
  * + calendar day (+ vendor substring when present). Reads the year-0 expense list
  * (same cache key the bike hub warms). Fail-open — a query error never blocks Save.
+ *
+ * It must fail FAST as well as open: the review card is locked while it runs.
+ * The app-wide query defaults (`retry: 3`, `networkMode: 'offlineFirst'`) would
+ * pause the retries offline, so the promise never settled and the rider was
+ * stuck on the card. One attempt, never paused, bounded by a deadline.
  */
-async function isLikelyDuplicate(payload: ReceiptReviewPayload): Promise<boolean> {
+export async function isLikelyDuplicate(payload: ReceiptReviewPayload): Promise<boolean> {
   if (payload.amount == null || !payload.date) return false;
-  const data = await queryClient.fetchQuery({
-    ...expensesOptions(payload.motorcycleId, EXPENSES_ALL_YEARS),
-    staleTime: 30_000,
-  });
+  const data = await withTimeout(
+    queryClient.fetchQuery({
+      ...expensesOptions(payload.motorcycleId, EXPENSES_ALL_YEARS),
+      staleTime: 30_000,
+      retry: false,
+      networkMode: 'always',
+    }),
+    DUPLICATE_CHECK_TIMEOUT_MS,
+    'duplicate_check_timeout',
+  );
   const vendorNeedle = payload.vendor?.trim().toLowerCase();
   const target = payload.amount;
   const targetDate = payload.date;
@@ -173,20 +191,34 @@ export function useReceiptScanSave(params: UseReceiptScanSaveParams) {
   const saveMutation = useMutation({
     mutationFn: (vars: { scanId: string; input: SaveReceiptScanInput }) =>
       gqlFetcher(SaveReceiptScanDocument, vars),
+    // The card is locked while saving. The app default ('offlineFirst') pauses
+    // the retry while offline, which would hold that lock until the network
+    // returned; 'always' makes an offline save fail into the error Alert, and
+    // the rider keeps the card (and "Review later") to try again.
+    networkMode: 'always',
   });
 
   // Guards against a double-tap saving twice — the whole flow (duplicate Alert +
   // mutation) is longer than the button is disabled, so a ref covers all of it.
   const inFlightRef = useRef(false);
+  // What the Save button shows. Spans the duplicate lookup AND the mutation —
+  // the mutation's own `isPending` left the first, network-bound half of the
+  // save with no feedback at all. Off while the duplicate question is on screen.
+  const [saving, setSaving] = useState(false);
 
   const save = useCallback(
     async (handoff: ReceiptReviewHandoff, payload: ReceiptReviewPayload) => {
       if (inFlightRef.current) return; // double-tap guard
       inFlightRef.current = true;
+      setSaving(true);
       try {
         // Duplicate soft-warn — always dismissible, never a hard block.
         const duplicate = await isLikelyDuplicate(payload).catch(() => false);
-        if (duplicate && !(await confirmDuplicate(t))) return; // keep the card open
+        if (duplicate) {
+          setSaving(false);
+          if (!(await confirmDuplicate(t))) return; // keep the card open
+          setSaving(true);
+        }
 
         let data: SaveReceiptScanMutation;
         try {
@@ -216,7 +248,7 @@ export function useReceiptScanSave(params: UseReceiptScanSaveParams) {
         unparkScan(handoff.scanId);
         deleteDurablePhoto(handoff.scanId);
 
-        // Durable undo entry — outlives the toast (U8's home card reads the same store).
+        // Durable undo entry — outlives the toast (the global save snackbar reads it).
         pushReceiptSaveUndo({
           scanId: handoff.scanId,
           motorcycleId: payload.motorcycleId,
@@ -292,12 +324,13 @@ export function useReceiptScanSave(params: UseReceiptScanSaveParams) {
         }
       } finally {
         inFlightRef.current = false;
+        setSaving(false);
       }
     },
     [t, saveMutation, bikeName, freeScansLeft, scanStartedAt, isOnboarding, onSaved],
   );
 
-  return { save, saving: saveMutation.isPending };
+  return { save, saving };
 }
 
 // --- undo hook (global snackbar host / home card) ----------------------------

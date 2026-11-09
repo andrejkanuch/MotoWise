@@ -7,7 +7,8 @@ import Animated, { type SharedValue, useAnimatedStyle } from 'react-native-reani
 
 type OemTask = OemSchedulesPreviewQuery['oemSchedulesPreview'][number];
 
-import { radius, space, type } from '@/theme/type';
+import { space } from '@/theme/spacing';
+import { radius, type } from '@/theme/type';
 import { convertIntervalDistance, intervalDistanceUnit } from '@/utils/maintenance-interval';
 import { useOnboardingColors } from '../onboarding-colors';
 
