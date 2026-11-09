@@ -518,9 +518,14 @@ export function readEndedRideSummary(): StoredRideSummary | null {
  * because a new ride started. Removes it from the phone (only its own data: see
  * clearRideData) and brings every surface back to idle.
  */
-export function finalizeEndedRide(rideId: string): void {
+export function finalizeEndedRide(rideId: string): boolean {
+  // Still the ride waiting for review? Not when a new start already saved it as
+  // it stands (CarPlay Stop, then Start, with its summary still open on the
+  // phone): that save was counted, so the caller must not count it again.
+  const pending = rideMMKV.getCurrentId() === rideId;
   clearRideData(rideId);
   useRideStore.getState().hydrate();
+  return pending;
 }
 
 /**
@@ -548,7 +553,20 @@ function saveEndedRideAsItStands(rideId: string): void {
  * False when there is no recording or paused ride to resume (an ended ride is
  * reviewed, never resumed — the server has already completed it).
  */
-export async function resumeRecoveredRide(): Promise<boolean> {
+// The restart in progress, if any: CarPlay Resume, the permission recovery and
+// Start Ride's Resume can all ask at once, and must share one restart.
+let resumeInFlight: Promise<boolean> | null = null;
+
+export function resumeRecoveredRide(): Promise<boolean> {
+  if (!resumeInFlight) {
+    resumeInFlight = runResumeRecoveredRide().finally(() => {
+      resumeInFlight = null;
+    });
+  }
+  return resumeInFlight;
+}
+
+async function runResumeRecoveredRide(): Promise<boolean> {
   const record = readRideRecord();
   if (!record || record.phase === RIDE_PHASE.ENDED) return false;
   // Project first: hydrate seeds the totals from the stored waypoints, including
@@ -558,6 +576,15 @@ export async function resumeRecoveredRide(): Promise<boolean> {
     await startGPSListener();
   } catch (err) {
     captureException(err, { source: 'ride-controller.resumeRecoveredRide' });
+    return false;
+  }
+  // The ride may have been ended (Stop on the head unit, End on the phone) while
+  // GPS was starting — that stop can miss a task not yet running. An ended or
+  // discarded ride must not go on recording; a ride replaced by a new one owns
+  // the GPS now and is left alone.
+  const current = readRideRecord();
+  if (current?.rideId !== record.rideId || current.phase === RIDE_PHASE.ENDED) {
+    if (!current || current.phase === RIDE_PHASE.ENDED) void stopGPSListener();
     return false;
   }
   useRideStore.setState({ recordingInterrupted: false });

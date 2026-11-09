@@ -8,7 +8,7 @@
 import { AppState } from 'react-native';
 import { captureException } from '../../lib/analytics';
 import { useRideStore } from '../../stores/ride.store';
-import { gpsStartCount, isLocationRecording } from '../../utils/ride-location';
+import { gpsStartCount, probeLocationRecording } from '../../utils/ride-location';
 import { RIDE_PHASE, readRideRecord } from '../../utils/ride-storage';
 
 /**
@@ -29,7 +29,9 @@ async function checkRecording(): Promise<void> {
   const record = readRideRecord();
   if (!record || record.phase === RIDE_PHASE.ENDED) return;
   const generation = gpsStartCount();
-  const recording = await isLocationRecording();
+  const recording = await probeLocationRecording();
+  // A failed query says nothing either way.
+  if (recording === null) return;
   // The ride may have moved on (ended, replaced) while we asked.
   const current = readRideRecord();
   if (current?.rideId !== record.rideId || current.phase === RIDE_PHASE.ENDED) return;

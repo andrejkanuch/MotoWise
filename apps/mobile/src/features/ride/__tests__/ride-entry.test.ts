@@ -4,10 +4,10 @@
 // GPS start began while the check was in flight, which must win.
 
 jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
-const mockIsRecording = jest.fn<Promise<boolean>, []>();
+const mockIsRecording = jest.fn<Promise<boolean | null>, []>();
 let mockGpsStarts = 0;
 jest.mock('@/utils/ride-location', () => ({
-  isLocationRecording: () => mockIsRecording(),
+  probeLocationRecording: () => mockIsRecording(),
   gpsStartCount: () => mockGpsStarts,
 }));
 jest.mock('@/lib/analytics', () => ({ captureException: jest.fn() }));
@@ -83,6 +83,16 @@ describe('ride-entry', () => {
       mockGpsStarts++; // a resume started while the task was being asked
       return false;
     });
+    mockAppStateListener?.('active');
+    await flush();
+    expect(store.getState().recordingInterrupted).toBe(false);
+  });
+
+  it('changes nothing when the GPS task cannot be asked', async () => {
+    mockIsRecording.mockResolvedValue(true);
+    const store = loadEntry('recording');
+    await flush();
+    mockIsRecording.mockResolvedValue(null);
     mockAppStateListener?.('active');
     await flush();
     expect(store.getState().recordingInterrupted).toBe(false);

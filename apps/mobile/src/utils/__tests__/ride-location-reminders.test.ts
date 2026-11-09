@@ -196,6 +196,8 @@ describe('restarting GPS ends a permission loss', () => {
     const start = startGPSListener();
     expect(gpsStartCount()).toBe(before + 1); // counted synchronously, at the call
     await start;
+    // ...and again when it settles, so a check that began mid-start loses too.
+    expect(gpsStartCount()).toBe(before + 2);
   });
 
   it('keeps the flag when the start fails (still no permission)', async () => {

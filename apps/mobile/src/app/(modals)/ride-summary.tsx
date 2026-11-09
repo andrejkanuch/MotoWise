@@ -291,23 +291,23 @@ export default function RideSummaryScreen() {
         },
       });
 
-      finalizeEndedRide(rideId);
-
+      const stillPending = finalizeEndedRide(rideId);
       invalidateSavedRide(queryClient);
-
-      trackRideCompleted({
-        trigger: RIDE_SAVE_TRIGGER.SUMMARY,
-        rideId,
-        motorcycleId,
-        distanceM,
-        durationS,
-        properties: {
-          max_speed_kmh: Math.round(maxSpeedMps * 3.6),
-          avg_speed_kmh: Math.round(avgSpeedMps * 3.6),
-          shared_to_discover: shareToDiscover,
-        },
-      });
-      MetaAnalytics.trackLogRide();
+      if (stillPending) {
+        trackRideCompleted({
+          trigger: RIDE_SAVE_TRIGGER.SUMMARY,
+          rideId,
+          motorcycleId,
+          distanceM,
+          durationS,
+          properties: {
+            max_speed_kmh: Math.round(maxSpeedMps * 3.6),
+            avg_speed_kmh: Math.round(avgSpeedMps * 3.6),
+            shared_to_discover: shareToDiscover,
+          },
+        });
+        MetaAnalytics.trackLogRide();
+      }
       const localRideCount = recordCoreAction(CORE_ACTION_KIND.RIDE_SAVED);
 
       // Share to Discover (fire-and-forget, non-blocking)

@@ -8,7 +8,12 @@ import { NOTIFICATION_ACTION } from '../../lib/notifications';
 import { useRideStore } from '../../stores/ride.store';
 import { armRideReminders, rideEndTrimTarget } from '../../utils/ride-reminders';
 import { rideMMKV } from '../../utils/ride-storage';
-import { buildRideSummaryHref, endRideSession, resumeRideSession } from './ride-controller';
+import {
+  buildRideSummaryHref,
+  endRideSession,
+  resumeRecoveredRide,
+  resumeRideSession,
+} from './ride-controller';
 import { rideEntryHref } from './ride-route';
 
 export interface RideIdleResponseData {
@@ -58,7 +63,14 @@ export function handleRideIdleResponse(
   // "Resume ride" on the paused reminder. A ride resumed meanwhile (on the HUD
   // or the head unit) is left as it is.
   if (actionId === NOTIFICATION_ACTION.RESUME_RIDE) {
-    resumeRideSession('phone');
+    // After an app kill (or a permission loss) during the pause the GPS task is
+    // not confirmed running: flipping the phase alone would leave the rider
+    // riding with nothing recorded, so restart it too. A failure leaves the ride
+    // interrupted, and its entry points then offer Resume / End.
+    const { recordingInterrupted, gpsPermissionLost } = useRideStore.getState();
+    if (resumeRideSession('phone') && (recordingInterrupted || gpsPermissionLost)) {
+      void resumeRecoveredRide();
+    }
     return null;
   }
 

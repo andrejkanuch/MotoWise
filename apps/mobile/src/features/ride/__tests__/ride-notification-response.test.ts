@@ -21,6 +21,7 @@ jest.mock('../ride-controller', () => ({
   buildRideSummaryHref: jest.fn(() => '/summary-href'),
   readEndedRideSummary: jest.fn(() => ({ rideId: 'ride-1' })),
   resumeRideSession: jest.fn(() => true),
+  resumeRecoveredRide: jest.fn(() => Promise.resolve(true)),
 }));
 jest.mock('@/utils/ride-reminders', () => ({
   armRideReminders: jest.fn(() => Promise.resolve()),
@@ -30,7 +31,7 @@ jest.mock('@/utils/ride-reminders', () => ({
 import { useRideStore } from '@/stores/ride.store';
 import { armRideReminders } from '@/utils/ride-reminders';
 import * as storage from '@/utils/ride-storage';
-import { endRideSession, resumeRideSession } from '../ride-controller';
+import { endRideSession, resumeRecoveredRide, resumeRideSession } from '../ride-controller';
 import {
   __resetRideIdleResponsesForTest,
   flushPendingRideIdleResponse,
@@ -173,6 +174,18 @@ describe('"Resume ride" on the paused reminder', () => {
     receiveRideIdleResponse(key(), 'RESUME_RIDE', { rideId: 'ride-1' });
     expect(resumeRideSession).toHaveBeenCalledTimes(1);
     expect(flushPendingRideIdleResponse()).toBeNull();
+  });
+
+  it('restarts GPS too when the ride is not confirmed recording (killed during the pause)', () => {
+    (store as { recordingInterrupted: boolean }).recordingInterrupted = true;
+    handleRideIdleResponse(key(), 'RESUME_RIDE', { rideId: 'ride-1' });
+    expect(resumeRideSession).toHaveBeenCalledWith('phone');
+    expect(resumeRecoveredRide).toHaveBeenCalledTimes(1);
+  });
+
+  it('only flips the phase when GPS is known to be running', () => {
+    handleRideIdleResponse(key(), 'RESUME_RIDE', { rideId: 'ride-1' });
+    expect(resumeRecoveredRide).not.toHaveBeenCalled();
   });
 
   it('does nothing for a ride that has since been replaced', () => {

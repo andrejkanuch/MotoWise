@@ -9,7 +9,6 @@ import {
   invalidateTrips,
   invalidateUser,
 } from '../invalidate';
-import { queryKeys } from '../query-keys';
 
 function spyInvalidations(client: QueryClient) {
   const spy = jest.spyOn(client, 'invalidateQueries');
@@ -129,10 +128,6 @@ describe('invalidateSavedRide', () => {
     const client = new QueryClient();
     const invalidated = spyInvalidations(client);
     invalidateSavedRide(client);
-    expect(invalidated()).toEqual([
-      queryKeys.rides.all,
-      queryKeys.motorcycles.all,
-      queryKeys.odometer.all,
-    ]);
+    expect(invalidated()).toEqual([['rides'], ['motorcycles'], ['odometer']]);
   });
 });

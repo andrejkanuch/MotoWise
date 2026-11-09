@@ -618,8 +618,9 @@ describe('one persisted ride — start, end, review', () => {
     mmkvState.currentId = 'ride-open';
     mmkvState.status = 'recording';
     mmkvState.startedAt = 1_000_000;
-    endRideSession('phone');
-    expect(gps.endAutoPauseEpisode).toHaveBeenCalledTimes(1);
+    endRideSession('phone', { endAt: 1_500_000 });
+    // Up to where the ride really ended (a trimmed end stops at the last movement).
+    expect(gps.endAutoPauseEpisode).toHaveBeenCalledWith(1_500_000);
   });
 
   it('persists the end and a reviewable summary for the same ride', () => {
@@ -794,5 +795,47 @@ describe('endRideSession — summary before the phase', () => {
     });
     endRideSession('carplay');
     expect(summaryAtFlip).toContain('"rideId":"ride-1"');
+  });
+});
+
+describe('resumeRecoveredRide — one restart, and never onto an ended ride', () => {
+  beforeEach(() => {
+    mmkvState.currentId = 'ride-open';
+    mmkvState.status = 'recording';
+    mmkvState.startedAt = 1_000_000;
+  });
+
+  it('stops GPS again when the ride was ended while GPS was starting', async () => {
+    startGPS.mockImplementationOnce(async () => {
+      mmkvState.status = 'ended'; // Stop on the head unit lands mid-start
+    });
+    await expect(resumeRecoveredRide()).resolves.toBe(false);
+    expect(gps.stopGPSListener).toHaveBeenCalledTimes(1);
+    expect(useRideStore.setState).not.toHaveBeenCalledWith({ recordingInterrupted: false });
+    expect(armReminders).not.toHaveBeenCalled();
+  });
+
+  it('leaves the GPS to a new ride that replaced this one meanwhile', async () => {
+    startGPS.mockImplementationOnce(async () => {
+      mmkvState.currentId = 'ride-new';
+    });
+    await expect(resumeRecoveredRide()).resolves.toBe(false);
+    expect(gps.stopGPSListener).not.toHaveBeenCalled();
+  });
+
+  it('shares one restart between callers asking at once', async () => {
+    const first = resumeRecoveredRide();
+    const second = resumeRecoveredRide();
+    await expect(Promise.all([first, second])).resolves.toEqual([true, true]);
+    expect(startGPS).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('finalizeEndedRide', () => {
+  it('says whether the ride was still the one waiting for review', () => {
+    mmkvState.currentId = 'ride-a';
+    expect(finalizeEndedRide('ride-a')).toBe(true);
+    mmkvState.currentId = 'ride-b'; // a new start already saved ride-a
+    expect(finalizeEndedRide('ride-a')).toBe(false);
   });
 });

@@ -160,7 +160,16 @@ export async function startGPSListener(
   }
 
   // Throws propagate to the caller (startRideSession rolls the ride back).
-  await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, locationUpdateOptions(false));
+  try {
+    await Location.startLocationUpdatesAsync(
+      BACKGROUND_LOCATION_TASK,
+      locationUpdateOptions(false),
+    );
+  } finally {
+    // Counted again when it settles: a check that began while this start was
+    // already under way (and saw the task stopped mid-restart) must not win.
+    gpsStartGeneration++;
+  }
   // Updates are flowing again (a start throws without permission), so a
   // permission loss from earlier in this ride is over: the HUD banner goes, and a
   // later loss is reported again.
@@ -169,13 +178,19 @@ export async function startGPSListener(
   useRideStore.setState({ gpsPermissionLost: false });
 }
 
-/** Whether the background recording task is running (false if it cannot be asked). */
-export async function isLocationRecording(): Promise<boolean> {
+/** Whether the background recording task is running, or null when it cannot be
+ *  asked — a check that marks a ride interrupted must not act on a failed query. */
+export async function probeLocationRecording(): Promise<boolean | null> {
   try {
     return await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
   } catch {
-    return false;
+    return null;
   }
+}
+
+/** Whether the background recording task is running (false if it cannot be asked). */
+export async function isLocationRecording(): Promise<boolean> {
+  return (await probeLocationRecording()) === true;
 }
 
 export async function stopGPSListener(): Promise<void> {
