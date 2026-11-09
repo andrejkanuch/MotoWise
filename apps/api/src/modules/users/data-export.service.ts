@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { encodePolyline } from '../../common/polyline';
 import { QUERY_LIMITS } from '../../config/constants';
 import { EmailService } from '../email/email.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
@@ -14,6 +15,73 @@ import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { DataExportRequest } from './models/data-export-request.model';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Derived ride stats in the export: every column except `cells` (an internal
+ * index of H3 cells, not something a rider can read; the route below carries
+ * the same location data).
+ */
+const RIDE_STATS_EXPORT_COLUMNS = [
+  'ride_id',
+  'motorcycle_id',
+  'stats_version',
+  'computed_at',
+  'input_source',
+  'wp_count',
+  'wp_truncated',
+  'time_zone',
+  'local_date',
+  'local_start_hour',
+  'local_dow',
+  'distance_m',
+  'elapsed_s',
+  'moving_time_s',
+  'avg_moving_speed_mps',
+  'max_speed_mps',
+  'climb_m',
+  'descent_m',
+  'max_altitude_m',
+  'min_altitude_m',
+  'bends_count',
+  'bends_per_km',
+  'band_km',
+  'lean_bands',
+  'night_m',
+  'stop_count',
+  'stops',
+  'countries',
+  'start_region',
+  'start_place',
+  'end_place',
+  'start_cell',
+  'gps_quality',
+  'gps_metrics',
+  'weather',
+  'weather_fetched_at',
+  'temp_min_c',
+  'temp_max_c',
+  'wet',
+].join(', ');
+
+/** A `ride_tracks` row as PostgREST returns it: the geometry as GeoJSON. */
+interface RideTrackExportRow {
+  ride_id: string;
+  source: string;
+  built_at: string;
+  route: { type?: string; coordinates?: Array<[number, number]> } | null;
+}
+
+/** Routes as encoded polylines (the format of `rides.route_polyline`), not raw geometry. */
+function exportRoutes(rows: RideTrackExportRow[]) {
+  return rows.map(({ ride_id, source, built_at, route }) => ({
+    ride_id,
+    source,
+    built_at,
+    route_polyline: Array.isArray(route?.coordinates)
+      ? encodePolyline(route.coordinates.map(([lng, lat]) => ({ lat, lng })))
+      : null,
+  }));
+}
 
 @Injectable()
 export class DataExportService {
@@ -146,6 +214,21 @@ export class DataExportService {
         byUserId('feedback_messages'),
       ]);
 
+      // Derived ride data (stats, stops, places, routes) is the rider's location
+      // data too.
+      const [rideStatsResult, rideTracksResult] = await Promise.all([
+        this.supabaseAdmin
+          .from('ride_stats')
+          .select(RIDE_STATS_EXPORT_COLUMNS)
+          .eq('user_id', userId)
+          .limit(maxRows),
+        this.supabaseAdmin
+          .from('ride_tracks')
+          .select('ride_id, source, built_at, route')
+          .eq('user_id', userId)
+          .limit(maxRows),
+      ]);
+
       const exportData = {
         exportedAt: new Date().toISOString(),
         profile: profileResult.data ?? null,
@@ -165,6 +248,8 @@ export class DataExportService {
         documentFiles: documentFilesResult.data ?? [],
         documentCategories: documentCategoriesResult.data ?? [],
         feedbackMessages: feedbackMessagesResult.data ?? [],
+        rideStats: rideStatsResult.data ?? [],
+        rideRoutes: exportRoutes((rideTracksResult.data as RideTrackExportRow[] | null) ?? []),
       };
 
       // Store export as JSON in Supabase Storage

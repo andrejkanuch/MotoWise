@@ -8,6 +8,7 @@ import { SignupEventsController } from '../../modules/analytics/signup-events.co
 import { HealthController } from '../../modules/health/health.controller';
 import { MaintenanceDuePushController } from '../../modules/push-tokens/maintenance-due-push.controller';
 import { RideIdleCheckController } from '../../modules/push-tokens/ride-idle-check.controller';
+import { RideStatsSweepController } from '../../modules/ride-stats/ride-stats.controller';
 import { RevenueCatWebhookController } from '../../modules/webhooks/revenuecat.controller';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
@@ -37,6 +38,7 @@ describe('REST controller auth inventory', () => {
     MaintenanceDuePushController,
     RideIdleCheckController,
     SignupEventsController,
+    RideStatsSweepController,
   ] as const;
 
   const isClassPublic = (cls: object) => Reflect.getMetadata(IS_PUBLIC_KEY, cls) === true;
@@ -101,6 +103,25 @@ describe('REST controller auth inventory', () => {
     expect(src).toMatch(/!secret\s*\|\|\s*!secretHeader/);
     // Takes no request body: thresholds are service constants, so a leaked secret
     // cannot be used to end rides earlier than the configured 24h.
+    expect(src).not.toContain('@Body');
+  });
+
+  it('RideStatsSweepController is explicitly @Public()', () => {
+    expect(isClassPublic(RideStatsSweepController)).toBe(true);
+  });
+
+  it('ride-stats-sweep performs its own secret-header authentication (the real auth behind @Public)', () => {
+    // It writes derived rows for any rider's rides, so a leaked secret could make
+    // the API recompute stats (load, not data exposure). Pin that it fails closed
+    // and takes no body: which rides are computed comes from the database.
+    const src = readFileSync(
+      join(__dirname, '../../modules/ride-stats/ride-stats.controller.ts'),
+      'utf8',
+    );
+    expect(src).toContain('timingSafeEqual');
+    expect(src).toContain('RIDE_STATS_SWEEP_SECRET');
+    expect(src).toContain('UnauthorizedException');
+    expect(src).toMatch(/!secret\s*\|\|\s*!secretHeader/);
     expect(src).not.toContain('@Body');
   });
 
