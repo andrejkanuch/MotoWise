@@ -43,6 +43,33 @@ export type RideSharePayload = {
   measurementSystem: MeasurementSystem;
 } & PbInfo;
 
+/**
+ * The season share images' data (season lines and the Atlas poster). Not tied
+ * to a ride: `cacheId` names the season and region instead of a ride id.
+ */
+export type InsightsSharePayload = {
+  cacheId: string;
+  seasonYear: number;
+  /** The region on the main map, which the routes belong to. */
+  regionName: string | null;
+  /** Up to three regions, main first, for the poster's footer. */
+  regionNames: string[];
+  /** [west, south, east, north] of the main region, the poster's camera. */
+  bounds: number[] | null;
+  /** The main region's routes, decoded, already trimmed when ends are hidden. */
+  routes: LngLat[][];
+  /** Season totals. */
+  distanceM: number;
+  rides: number;
+  /** Country plate letters, in the API's order. */
+  plates: string[];
+  /** Share of routed distance on twisty or tight roads (Pro), else null. */
+  twistyShare: number | null;
+  /** The rider's public username, without the @. */
+  handle: string | null;
+  measurementSystem: MeasurementSystem;
+};
+
 export type ShareDestination = 'instagramStory' | 'instagramMessages' | 'saveImage';
 
 export type ShareResult =

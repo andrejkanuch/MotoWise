@@ -24,7 +24,7 @@ import Svg, { Defs, Path, Stop, LinearGradient as SvgGradient } from 'react-nati
 import { RideCard } from '@/components/ride/ride-card';
 import { ESettingsGroup, ESettingsRow } from '@/components/ui/editorial';
 import { ThemedSegmentedControl } from '@/components/ui/themed-segmented-control';
-import { PROFILE_ROUTE } from '@/config/routes';
+import { PROFILE_ROUTE, RIDER_INSIGHTS_ENTRY, riderInsightsHref } from '@/config/routes';
 import { useMeasurementSystem } from '@/hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
@@ -666,14 +666,13 @@ export default function RidesScreen() {
           ))}
         </View>
 
-        {/* Lifetime heatmap + year recap */}
         <ESettingsGroup>
           <ESettingsRow
             icon={Flame}
-            title={t('profile.roadsTitle')}
-            subtitle={t('profile.roadsSubtitle')}
-            testID="rides-heatmap-row"
-            onPress={() => router.push(PROFILE_ROUTE.HEATMAP)}
+            title={t('riderInsights.title')}
+            subtitle={t('myRides.insightsSubtitle')}
+            testID="rides-insights-row"
+            onPress={() => router.push(riderInsightsHref(RIDER_INSIGHTS_ENTRY.MY_RIDES))}
           />
         </ESettingsGroup>
 

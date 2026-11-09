@@ -363,7 +363,8 @@
     "sectionApp": "App",
     "nameLabel": "Name",
     "publicNameLabel": "Public name (shown to other riders)",
-    "sectionFeedback": "Feedback"
+    "sectionFeedback": "Feedback",
+    "riderInsightsDescription": "Your season's roads, places and rhythm"
   },
   "onboarding": {
     "welcomeTitle": "Welcome to MotoVault",
@@ -1996,7 +1997,8 @@
     "ride_other": "{{count}} rides",
     "elev": "elev.",
     "dur": "Dur",
-    "avg": "Avg"
+    "avg": "Avg",
+    "insightsSubtitle": "Where, when and how you ride"
   },
   "rideDetail": {
     "unavailable": "This ride is no longer available. It may have been deleted or made private.",
@@ -2824,6 +2826,129 @@
         "unassigned_one": "{{count}} ride has no bike set",
         "unassigned_other": "{{count}} rides have no bike set"
       }
+    },
+    "detail": {
+      "coverage": "From {{count}} of {{total}} rides",
+      "rideMeta": "{{date}} · {{distance}}",
+      "locked": {
+        "territory": "of map covered this season, rounded",
+        "roadCharacter": "bends per 10 km, rounded",
+        "rhythm": "of your rides at the weekend, rounded"
+      },
+      "roadCharacter": {
+        "heroLine": "of your {{distance}} routed were twisty or tighter",
+        "band": {
+          "straight": "Straight",
+          "sweeping": "Sweeping",
+          "twisty": "Twisty",
+          "tight": "Tight bends"
+        },
+        "rule": {
+          "straight": "under 1 bend every 2 km",
+          "sweeping": "up to 1.5 bends per km",
+          "twisty": "up to 3 bends per km",
+          "tight": "3 or more bends per km"
+        },
+        "barA11y": "Straight {{straight}}, sweeping {{sweeping}}, twisty {{twisty}}, tight bends {{tight}}",
+        "footnote_one": "A bend is 35° or more of turning one way within 400 m. {{count}} bend this season.",
+        "footnote_other": "A bend is 35° or more of turning one way within 400 m. {{count}} bends this season.",
+        "per10km": "bends / 10 km",
+        "twistiest_one": "Twistiest ride",
+        "twistiest_other": "Twistiest rides",
+        "straightest_one": "Straightest ride",
+        "straightest_other": "Straightest rides"
+      },
+      "lean": {
+        "title": "Lean, estimated",
+        "corners_one": "corner measured",
+        "corners_other": "corners measured",
+        "band": {
+          "under20": "<20°",
+          "from20to30": "20–30°",
+          "from30to40": "30–40°",
+          "from40": "40°+"
+        },
+        "a11y": "Share of corners by lean: under 20° {{under20}}, 20 to 30° {{from20to30}}, 30 to 40° {{from30to40}}, 40° and over {{from40}}",
+        "missing": "Needs rides recorded with detailed GPS",
+        "note": "Rider and bike together, estimated from GPS speed and turning. It reads low in short, tight corners, so it is shown in bands, never as one exact number."
+      },
+      "territory": {
+        "heroLine": "of map covered this season",
+        "newRoads": "New roads",
+        "newRoadsCaption": "{{distance}} of {{total}} on roads you had not ridden before",
+        "barA11y": "{{share}} of this season's distance on new roads, {{before}} on roads ridden before",
+        "newShare": "{{share}} new",
+        "beforeShare": "{{share}} ridden before",
+        "furthest": "Furthest from home",
+        "furthestRide": "Ride on {{date}}",
+        "fromHome": "Distance from home",
+        "footnote": "Home is where most of your rides start. Area counts the map cells your routes pass through."
+      },
+      "rhythm": {
+        "part": {
+          "morning": "Morning",
+          "afternoon": "Afternoon",
+          "evening": "Evening",
+          "night": "Night"
+        },
+        "busiest": "Busiest",
+        "typical": "Typical ride",
+        "footnote": "Each ride counts at its start, in the time zone you rode in."
+      },
+      "bestRides": {
+        "segment": {
+          "distance": "Distance",
+          "climb": "Climb",
+          "bends": "Bends"
+        },
+        "longest": "Longest ride",
+        "places": "{{start}} to {{end}}",
+        "proLine_one": "Pro ranks your {{count}} ride by distance, climb and bends.",
+        "proLine_other": "Pro ranks all {{count}} rides by distance, climb and bends.",
+        "proLineDefault": "Pro ranks your rides by distance, climb and bends.",
+        "empty": "No rides with this measure yet",
+        "footnote": "Climb ignores altitude changes under 5 m. Bends are counted per 10 km of route."
+      },
+      "bikes": {
+        "heroLine": "ridden this season",
+        "unassigned": "Unassigned",
+        "meta_one": "{{count}} ride · {{time}} moving",
+        "meta_other": "{{count}} rides · {{time}} moving"
+      },
+      "countries": {
+        "title": "Countries",
+        "heroLine_one": "country ridden this season",
+        "heroLine_other": "countries ridden this season",
+        "meta_one": "First ridden {{date}} · {{count}} ride",
+        "meta_other": "First ridden {{date}} · {{count}} rides",
+        "footnote": "A country counts once at least 1 km of a route lies 500 m or more inside its border."
+      }
+    },
+    "share": {
+      "button": "Share season",
+      "close": "Close",
+      "title": "Share your season",
+      "subtitle": "An image for your feed or story.",
+      "seasonLines": "Season lines",
+      "seasonLinesCaption": "Free · your routes and totals",
+      "atlasPoster": "Atlas poster",
+      "atlasPosterCaption": "Pro · map, countries and road character",
+      "optionA11y": "{{name}}. {{caption}}",
+      "lockedA11y": "{{name}}, Pro. Opens the paywall",
+      "sizeA11y": "Image size",
+      "sizeFeed": "Feed 4:5",
+      "sizeStory": "Story 9:16",
+      "hideEnds": "Hide ride start and end",
+      "hideEndsCaption": "Trims 500 m off the start and end of each ride",
+      "save": "Save image",
+      "share": "Share…",
+      "message": "My {{year}} riding season, shared from MotoVault",
+      "ridesSeason_one": "{{count}} ride · Season {{year}}",
+      "ridesSeason_other": "{{count}} rides · Season {{year}}",
+      "ridesYear_one": "{{count}} ride · {{year}}",
+      "ridesYear_other": "{{count}} rides · {{year}}",
+      "handleBrand": "@{{handle}} · MotoVault",
+      "twisty": "{{share}} twisty or tighter"
     }
   },
   "ridePurposeSheet": {
@@ -2843,5 +2968,18 @@
     "odometerLabel": "Odometer reading at the end of the ride",
     "odometerSave": "Save",
     "odometerSaved": "Odometer saved"
+  },
+  "insightsEntry": {
+    "season": "Season: {{distance}}",
+    "lastRide": "+{{distance}} on your last ride",
+    "withThisRide": "+{{distance}} with this ride",
+    "newCountry": "New country: {{country}}",
+    "loading": "Loading your season…",
+    "openHint": "Opens Rider insights",
+    "newRoads": "New roads",
+    "newRoadsValue": "{{distance}} · {{share}}",
+    "newRoadsComputing": "Working it out…",
+    "unlockPro": "Unlock with Pro",
+    "newRoadsLockedA11y": "New roads on this ride. Unlock with Pro"
   }
 }

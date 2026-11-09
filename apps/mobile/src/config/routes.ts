@@ -73,6 +73,11 @@ export const RIDER_INSIGHTS_ENTRY = {
 
 export type RiderInsightsEntry = (typeof RIDER_INSIGHTS_ENTRY)[keyof typeof RIDER_INSIGHTS_ENTRY];
 
+/** The Rider insights route opened from `entry`, for `router.push`. */
+export function riderInsightsHref(entry: RiderInsightsEntry) {
+  return { pathname: PROFILE_ROUTE.RIDER_INSIGHTS, params: { entry } };
+}
+
 /** The `[group]` of a Rider insights detail page. */
 export const RIDER_INSIGHTS_DETAIL_GROUP = {
   ROAD_CHARACTER: 'road-character',

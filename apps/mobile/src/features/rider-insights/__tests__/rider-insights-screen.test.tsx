@@ -29,6 +29,7 @@ jest.mock('expo-router', () => ({
     return mockRouter;
   },
   useLocalSearchParams: () => mockParams,
+  Stack: { Screen: () => null },
 }));
 
 const mockFetcher = jest.fn();

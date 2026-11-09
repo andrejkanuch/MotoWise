@@ -103,6 +103,25 @@ describe('useRideTeaserEvaluation', () => {
     expect(mockFetcher).toHaveBeenCalledWith(expect.anything(), { excludeRideId: 'ride-5' });
   });
 
+  it('returns the evaluation once the reads settle, and null before', async () => {
+    const stats = deferred<typeof PRIOR_STATS>();
+    mockFetcher.mockReturnValue(stats.promise);
+
+    const { result } = await renderHook(() => useRideTeaserEvaluation(FIFTH_RIDE));
+    expect(result.current).toBeNull();
+
+    await act(async () => {
+      stats.resolve(PRIOR_STATS);
+    });
+
+    expect(result.current).toMatchObject({
+      trigger: RIDE_TEASER_TRIGGER.MILESTONE,
+      wouldShow: true,
+      shown: false,
+      qualifyingRideCount: 5,
+    });
+  });
+
   it('CarPlay connected at open: one event, suppressed as carplay_connected', async () => {
     mockIsHeadUnitConnected.mockReturnValue(true);
 

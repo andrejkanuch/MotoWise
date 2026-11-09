@@ -1,7 +1,7 @@
 import { RideMilestoneStatsDocument, type RideMilestoneStatsQuery } from '@motovault/graphql';
 import type { MeasurementSystem } from '@motovault/types';
 import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { isHeadUnitConnected } from '../../../modules/carplay/src';
 import { RIDE_TEASER_LIVE } from '../../config/feature-flags';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -10,6 +10,7 @@ import { getOnboardingPaywallDismissedAt } from '../../lib/paywall-history';
 import {
   evaluateRideTeaser,
   getShownTriggers,
+  type RideTeaserEvaluation,
   type RideTeaserStats,
   trackRideTeaserEvaluated,
 } from '../../lib/ride-milestone-trigger';
@@ -40,8 +41,14 @@ interface RideTeaserEvaluationInput {
  * while the reads are in flight must not drop the event (it is a pure side
  * effect with no UI), so volatile inputs are read through a ref at evaluation
  * time and the CarPlay state straight from the native module.
+ *
+ * Returns the evaluation once the reads settle (null before, and on a failed
+ * evaluation), so the summary card can ask whether its paywall may open.
  */
-export function useRideTeaserEvaluation(input: RideTeaserEvaluationInput): void {
+export function useRideTeaserEvaluation(
+  input: RideTeaserEvaluationInput,
+): RideTeaserEvaluation | null {
+  const [evaluation, setEvaluation] = useState<RideTeaserEvaluation | null>(null);
   const evaluatedForRide = useRef<string | null>(null);
   // `recovered` (buildRideSummaryHref): the summary opened from the crash-recovery
   // End on Start Ride, whose server-side end the phone cannot confirm. The rule
@@ -81,7 +88,7 @@ export function useRideTeaserEvaluation(input: RideTeaserEvaluationInput): void 
         const subscription = useSubscriptionStore.getState();
         const rideStatus = useRideStore.getState().status;
 
-        const evaluation = evaluateRideTeaser({
+        const result = evaluateRideTeaser({
           ride: { distanceM, movingS, systemEnded: false },
           recovered: isRecovered,
           priorStats: stats,
@@ -95,13 +102,14 @@ export function useRideTeaserEvaluation(input: RideTeaserEvaluationInput): void 
           liveEnabled: RIDE_TEASER_LIVE,
           now: Date.now(),
         });
-        trackRideTeaserEvaluated(evaluation, {
+        trackRideTeaserEvaluated(result, {
           rideId,
           distanceM,
           hasHadTrial,
           isPro: subscription.isPro,
           isTrialing: subscription.isTrialing,
         });
+        setEvaluation(result);
       } catch (error: unknown) {
         // Shadow telemetry only: a throw here (an MMKV read, the CarPlay module)
         // must never surface as an unhandled rejection on the summary screen.
@@ -109,4 +117,6 @@ export function useRideTeaserEvaluation(input: RideTeaserEvaluationInput): void 
       }
     })();
   }, [rideId]);
+
+  return evaluation;
 }

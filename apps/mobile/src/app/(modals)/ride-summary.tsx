@@ -40,7 +40,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../components/ui/native-toggle';
 import { finalizeEndedRide } from '../../features/ride/ride-controller';
 import { RidePurposeSheet } from '../../features/ride/ride-purpose-sheet';
-import { useRideTeaserEvaluation } from '../../features/ride/use-ride-teaser-evaluation';
+import { RideSummaryInsightsCard } from '../../features/ride/ride-summary-insights-card';
 import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
@@ -134,10 +134,6 @@ export default function RideSummaryScreen() {
   const mapRef = useRef<MapboxGL.MapView>(null);
 
   const bikeName = useBikeName(motorcycleId);
-
-  // Ride-moment paywall teaser, shadow phase: logs would-have-shown when the summary opens;
-  // nothing renders while RIDE_TEASER_LIVE is false. movingTimeS is the server's moving time.
-  useRideTeaserEvaluation({ rideId, distanceM, movingS: movingTimeS, measurementSystem: system });
 
   // Fetch PB data
   const { data: overviewData } = useQuery<RideOverviewQuery>({
@@ -784,6 +780,7 @@ export default function RideSummaryScreen() {
             ))}
           </Animated.View>
 
+          <RideSummaryInsightsCard rideId={rideId} distanceM={distanceM} movingS={movingTimeS} />
           <RidePurposeSheet rideId={rideId} motorcycleId={motorcycleId} />
           <Animated.View entering={FadeInUp.delay(600).duration(250)}>
             <Pressable

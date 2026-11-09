@@ -112,6 +112,8 @@ export const queryKeys = {
     overview: ['rides', 'overview'] as const,
     list: (cursor?: string) => ['rides', 'list', cursor] as const,
     detail: (id: string) => ['rides', 'detail', id] as const,
+    /** One ride's server-derived stats and new-road distance, polled by the ride-summary card. */
+    summaryStats: (id: string) => ['rides', 'summaryStats', id] as const,
     /** Route points at one resolution: detail and flyover ask for different counts. */
     waypoints: (id: string, maxPoints: number) => ['rides', 'waypoints', id, maxPoints] as const,
     heatmap: ['rides', 'heatmap'] as const,

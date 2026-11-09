@@ -5,6 +5,7 @@ import {
   ArrowUpRight,
   Bookmark,
   BookOpen,
+  ChartNoAxesColumn,
   CreditCard,
   Crown,
   FileText,
@@ -40,7 +41,7 @@ import {
   ESettingsGroup,
   ESettingsRow,
 } from '@/components/ui/editorial';
-import { PROFILE_ROUTE } from '@/config/routes';
+import { PROFILE_ROUTE, RIDER_INSIGHTS_ENTRY, riderInsightsHref } from '@/config/routes';
 import { useProGate } from '@/hooks/use-pro-gate';
 import { useProfileData } from '@/hooks/use-profile-data';
 import { useTabBarClearance } from '@/hooks/use-tab-bar-clearance';
@@ -107,6 +108,13 @@ export default function ProfileScreen() {
           title={t('profile.myRidesTitle')}
           subtitle={t('profile.myRidesDescription')}
           onPress={() => router.push(PROFILE_ROUTE.RIDES)}
+        />
+        <ESettingsRow
+          testID="profile-rider-insights"
+          icon={ChartNoAxesColumn}
+          title={t('riderInsights.title')}
+          subtitle={t('profile.riderInsightsDescription')}
+          onPress={() => router.push(riderInsightsHref(RIDER_INSIGHTS_ENTRY.PROFILE))}
         />
         <ESettingsRow
           testID="profile-trips"

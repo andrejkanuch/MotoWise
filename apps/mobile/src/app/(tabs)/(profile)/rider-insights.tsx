@@ -6,7 +6,7 @@
  * `riderInsights` query; the season shown is the API's.
  */
 import { format, parseISO } from 'date-fns';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -29,6 +29,7 @@ import { AtlasHero } from '@/features/rider-insights/atlas-hero';
 import { HowYouRideList } from '@/features/rider-insights/how-you-ride-list';
 import { RegionTiles, swapMainRegion } from '@/features/rider-insights/region-tiles';
 import { SeasonRibbon } from '@/features/rider-insights/season-ribbon';
+import { InsightsShareButton, InsightsShareSheet } from '@/features/rider-insights/share-sheet';
 import {
   formatInsightDistance,
   INSIGHTS_VIEW,
@@ -72,6 +73,7 @@ export default function RiderInsightsScreen() {
   const openedFrom = entryFrom(entry);
   const { insights, view, stale, mapAvailable, unlocking, onPurchased, retry } = useRiderInsights();
   const [order, setOrder] = useState<string[] | null>(null);
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     trackEvent(AnalyticsEvent.RIDER_INSIGHTS_OPENED, { entry: openedFrom });
@@ -152,52 +154,71 @@ export default function RiderInsightsScreen() {
     });
 
   return (
-    <ScrollView {...scrollProps}>
-      <View style={{ gap: layout.titleGap }}>
-        <Text style={[type.subhead, { color: t.ink3 }]}>
-          {seasonLine(insights, i18n, language)}
-        </Text>
-        {stale ? (
-          <Text testID="insights-stale" style={[type.caption, { color: t.ink3 }]}>
-            {i18n('riderInsights.stale')}
-          </Text>
-        ) : null}
-      </View>
-
-      <View style={{ gap: space.sm }}>
-        <AtlasHero
-          region={main}
-          totals={insights.totals}
-          countries={insights.countries}
-          mapAvailable={mapAvailable}
-          width={width}
-          system={system}
-          regionName={regionName}
-          regionMeta={regionMeta}
-          onOpenCountries={() => openDetail(RIDER_INSIGHTS_DETAIL_GROUP.COUNTRIES)}
-        />
-        {regions.length >= 2 && mapAvailable ? (
-          <RegionTiles
-            tiles={regions.slice(1)}
-            width={width}
-            regionName={regionName}
-            formatMeta={regionMeta}
-            onSelect={(key) => setOrder(swapMainRegion(regions, key).map((r) => r.key))}
-          />
-        ) : null}
-      </View>
-
-      <SeasonRibbon ribbon={insights.ribbon} season={insights.season} system={system} />
-
-      <HowYouRideList
-        insights={insights}
-        mainRegion={mapAvailable ? main : null}
-        unlocking={unlocking}
-        system={system}
-        onPurchased={() => void onPurchased()}
-        onOpenDetail={openDetail}
+    <>
+      <Stack.Screen
+        options={{
+          headerRight: mapAvailable
+            ? () => <InsightsShareButton onPress={() => setSharing(true)} />
+            : undefined,
+        }}
       />
-    </ScrollView>
+      <ScrollView {...scrollProps}>
+        <View style={{ gap: layout.titleGap }}>
+          <Text style={[type.subhead, { color: t.ink3 }]}>
+            {seasonLine(insights, i18n, language)}
+          </Text>
+          {stale ? (
+            <Text testID="insights-stale" style={[type.caption, { color: t.ink3 }]}>
+              {i18n('riderInsights.stale')}
+            </Text>
+          ) : null}
+        </View>
+
+        <View style={{ gap: space.sm }}>
+          <AtlasHero
+            region={main}
+            totals={insights.totals}
+            countries={insights.countries}
+            mapAvailable={mapAvailable}
+            width={width}
+            system={system}
+            regionName={regionName}
+            regionMeta={regionMeta}
+            onOpenCountries={() => openDetail(RIDER_INSIGHTS_DETAIL_GROUP.COUNTRIES)}
+          />
+          {regions.length >= 2 && mapAvailable ? (
+            <RegionTiles
+              tiles={regions.slice(1)}
+              width={width}
+              regionName={regionName}
+              formatMeta={regionMeta}
+              onSelect={(key) => setOrder(swapMainRegion(regions, key).map((r) => r.key))}
+            />
+          ) : null}
+        </View>
+
+        <SeasonRibbon ribbon={insights.ribbon} season={insights.season} system={system} />
+
+        <HowYouRideList
+          insights={insights}
+          mainRegion={mapAvailable ? main : null}
+          unlocking={unlocking}
+          system={system}
+          onPurchased={() => void onPurchased()}
+          onOpenDetail={openDetail}
+        />
+      </ScrollView>
+      <InsightsShareSheet
+        visible={sharing}
+        onClose={() => setSharing(false)}
+        insights={insights}
+        regions={regions}
+        regionName={regionName}
+        system={system}
+        unlocking={unlocking}
+        onPurchased={() => void onPurchased()}
+      />
+    </>
   );
 }
 
