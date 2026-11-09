@@ -214,6 +214,10 @@ async function runStartRideSession({
     return { ok: false, reason: 'gps_failed' };
   }
 
+  // Confirmed running: a foreground check that raced this start must not leave
+  // the new ride marked interrupted.
+  useRideStore.setState({ recordingInterrupted: false });
+
   // Start the forgotten-ride clock: if the bike never moves, the rider still hears.
   void armRideReminders();
 
@@ -579,12 +583,14 @@ async function runResumeRecoveredRide(): Promise<boolean> {
     return false;
   }
   // The ride may have been ended (Stop on the head unit, End on the phone) while
-  // GPS was starting — that stop can miss a task not yet running. An ended or
-  // discarded ride must not go on recording; a ride replaced by a new one owns
+  // GPS was starting — that stop can miss a task not yet running. An ended ride
+  // must not go on recording; anything else (a new ride, or one on its way) owns
   // the GPS now and is left alone.
   const current = readRideRecord();
   if (current?.rideId !== record.rideId || current.phase === RIDE_PHASE.ENDED) {
-    if (!current || current.phase === RIDE_PHASE.ENDED) void stopGPSListener();
+    // Only this ride, ended: "no ride" can also be a new start between saving
+    // this one and minting its own id, whose GPS must not be stopped.
+    if (current?.rideId === record.rideId) void stopGPSListener();
     return false;
   }
   useRideStore.setState({ recordingInterrupted: false });

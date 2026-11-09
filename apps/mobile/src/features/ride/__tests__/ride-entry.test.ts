@@ -6,7 +6,9 @@
 jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
 const mockIsRecording = jest.fn<Promise<boolean | null>, []>();
 let mockGpsStarts = 0;
+let mockStartInFlight = false;
 jest.mock('@/utils/ride-location', () => ({
+  gpsStartInFlight: () => mockStartInFlight,
   probeLocationRecording: () => mockIsRecording(),
   gpsStartCount: () => mockGpsStarts,
 }));
@@ -45,6 +47,7 @@ beforeEach(() => {
   mockIsRecording.mockReset();
   mockAppStateListener = null;
   mockGpsStarts = 0;
+  mockStartInFlight = false;
 });
 
 describe('ride-entry', () => {
@@ -93,6 +96,18 @@ describe('ride-entry', () => {
     const store = loadEntry('recording');
     await flush();
     mockIsRecording.mockResolvedValue(null);
+    mockAppStateListener?.('active');
+    await flush();
+    expect(store.getState().recordingInterrupted).toBe(false);
+  });
+
+  it('never marks it interrupted while a GPS start is still under way', async () => {
+    mockIsRecording.mockResolvedValue(true);
+    const store = loadEntry('recording');
+    await flush();
+    // The start began before the check and is still between its stop and start.
+    mockStartInFlight = true;
+    mockIsRecording.mockResolvedValue(false);
     mockAppStateListener?.('active');
     await flush();
     expect(store.getState().recordingInterrupted).toBe(false);

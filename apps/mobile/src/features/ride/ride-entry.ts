@@ -8,7 +8,7 @@
 import { AppState } from 'react-native';
 import { captureException } from '../../lib/analytics';
 import { useRideStore } from '../../stores/ride.store';
-import { gpsStartCount, probeLocationRecording } from '../../utils/ride-location';
+import { gpsStartCount, gpsStartInFlight, probeLocationRecording } from '../../utils/ride-location';
 import { RIDE_PHASE, readRideRecord } from '../../utils/ride-storage';
 
 /**
@@ -20,15 +20,16 @@ import { RIDE_PHASE, readRideRecord } from '../../utils/ride-storage';
  * would be recorded onto. An unconfirmed ride sends the rider to Start Ride (or
  * the head unit) to choose Resume or End.
  *
- * Marking the ride interrupted needs care: a (re)start that began while GPS was
- * being asked would be overwritten and its ride routed to Start Ride. The GPS
- * start counter rules that out: the flag is set only when no start began during
- * the check.
+ * Marking the ride interrupted needs care: a (re)start under way, or one that
+ * began or finished while GPS was being asked, would be overwritten and its ride
+ * routed to Start Ride. So the flag is set only when no start is in flight and
+ * the start counter did not move during the check.
  */
 async function checkRecording(): Promise<void> {
   const record = readRideRecord();
   if (!record || record.phase === RIDE_PHASE.ENDED) return;
   const generation = gpsStartCount();
+  if (gpsStartInFlight()) return;
   const recording = await probeLocationRecording();
   // A failed query says nothing either way.
   if (recording === null) return;
@@ -39,7 +40,7 @@ async function checkRecording(): Promise<void> {
     useRideStore.setState({ recordingInterrupted: false });
     return;
   }
-  if (gpsStartCount() !== generation) return;
+  if (gpsStartInFlight() || gpsStartCount() !== generation) return;
   useRideStore.setState({ recordingInterrupted: true });
 }
 

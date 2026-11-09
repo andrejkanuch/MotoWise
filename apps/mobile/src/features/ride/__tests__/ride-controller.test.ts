@@ -823,11 +823,26 @@ describe('resumeRecoveredRide — one restart, and never onto an ended ride', ()
     expect(gps.stopGPSListener).not.toHaveBeenCalled();
   });
 
+  it('leaves the GPS alone when no ride is current (a new start is on its way)', async () => {
+    startGPS.mockImplementationOnce(async () => {
+      mmkvState.currentId = '';
+    });
+    await expect(resumeRecoveredRide()).resolves.toBe(false);
+    expect(gps.stopGPSListener).not.toHaveBeenCalled();
+  });
+
   it('shares one restart between callers asking at once', async () => {
     const first = resumeRecoveredRide();
     const second = resumeRecoveredRide();
     await expect(Promise.all([first, second])).resolves.toEqual([true, true]);
     expect(startGPS).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('startRideSession — a check racing the GPS start', () => {
+  it('clears "interrupted" once the new ride\'s GPS is confirmed running', async () => {
+    await startRideSession({ motorcycleId: 'bike-1', source: 'phone' });
+    expect(useRideStore.setState).toHaveBeenCalledWith({ recordingInterrupted: false });
   });
 });
 

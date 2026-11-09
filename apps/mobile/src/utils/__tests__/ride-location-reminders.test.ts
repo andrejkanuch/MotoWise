@@ -79,6 +79,7 @@ import {
   BACKGROUND_LOCATION_TASK,
   endAutoPauseEpisode,
   gpsStartCount,
+  gpsStartInFlight,
   startGPSListener,
   stopGPSListener,
 } from '../ride-location';
@@ -195,7 +196,9 @@ describe('restarting GPS ends a permission loss', () => {
     const before = gpsStartCount();
     const start = startGPSListener();
     expect(gpsStartCount()).toBe(before + 1); // counted synchronously, at the call
+    expect(gpsStartInFlight()).toBe(true);
     await start;
+    expect(gpsStartInFlight()).toBe(false);
     // ...and again when it settles, so a check that began mid-start loses too.
     expect(gpsStartCount()).toBe(before + 2);
   });
@@ -205,6 +208,7 @@ describe('restarting GPS ends a permission loss', () => {
     (Location.startLocationUpdatesAsync as jest.Mock).mockRejectedValueOnce(new Error('denied'));
     await expect(startGPSListener()).rejects.toThrow('denied');
     expect(rideMMKV.getGpsPermissionLost()).toBe(true);
+    expect(gpsStartInFlight()).toBe(false);
   });
 });
 

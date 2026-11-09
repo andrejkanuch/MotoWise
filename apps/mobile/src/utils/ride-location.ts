@@ -103,12 +103,20 @@ export function distanceMeters(
 
 let onLocationCallback: ((location: Location.LocationObject) => void) | null = null;
 
-/** Bumped each time this process (re)starts GPS. A check that found GPS not
- *  running compares it before acting, so a start that began meanwhile wins. */
+/** Bumped when this process begins and when it finishes a GPS (re)start. A
+ *  check that found GPS not running compares it before acting, so a start that
+ *  began or finished meanwhile wins. */
 let gpsStartGeneration = 0;
 
 export function gpsStartCount(): number {
   return gpsStartGeneration;
+}
+
+/** GPS starts still under way. While one is, "not running" is not an answer. */
+let gpsStartsInFlight = 0;
+
+export function gpsStartInFlight(): boolean {
+  return gpsStartsInFlight > 0;
 }
 
 /** Location-update options; the battery-saver variant trades accuracy for power. */
@@ -138,6 +146,20 @@ export async function startGPSListener(
   onLocation: (location: Location.LocationObject) => void = () => {},
 ): Promise<void> {
   gpsStartGeneration++;
+  gpsStartsInFlight++;
+  try {
+    await runStartGPSListener(onLocation);
+  } finally {
+    gpsStartsInFlight--;
+    // Counted again when it settles, so a check that began during this start
+    // (and saw the task stopped mid-restart) cannot act on that answer.
+    gpsStartGeneration++;
+  }
+}
+
+async function runStartGPSListener(
+  onLocation: (location: Location.LocationObject) => void,
+): Promise<void> {
   onLocationCallback = onLocation;
   // Restore any in-memory buffer from MMKV (crash recovery)
   const rideId = rideMMKV.getCurrentId();
@@ -160,16 +182,7 @@ export async function startGPSListener(
   }
 
   // Throws propagate to the caller (startRideSession rolls the ride back).
-  try {
-    await Location.startLocationUpdatesAsync(
-      BACKGROUND_LOCATION_TASK,
-      locationUpdateOptions(false),
-    );
-  } finally {
-    // Counted again when it settles: a check that began while this start was
-    // already under way (and saw the task stopped mid-restart) must not win.
-    gpsStartGeneration++;
-  }
+  await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, locationUpdateOptions(false));
   // Updates are flowing again (a start throws without permission), so a
   // permission loss from earlier in this ride is over: the HUD banner goes, and a
   // later loss is reported again.
