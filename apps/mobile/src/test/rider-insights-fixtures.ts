@@ -38,6 +38,7 @@ const base: InsightsPayload = {
     rides: 36,
     qualifyingRides: 20,
     pendingRides: 0,
+    pendingRecentRides: 0,
     ridesWithBike: 35,
     qualifying: {
       withStats: 20,
@@ -234,7 +235,7 @@ export function computingInsights(): InsightsPayload {
   const computing = RiderInsightsStatus.Computing;
   return {
     ...base,
-    coverage: { ...base.coverage, pendingRides: 20 },
+    coverage: { ...base.coverage, pendingRides: 20, pendingRecentRides: 20 },
     territory: { status: computing, headline: null, detail: null },
     roadCharacter: { status: computing, headline: null, teaser: null, detail: null },
     rhythm: { status: computing, headline: null, teaser: null, detail: null },

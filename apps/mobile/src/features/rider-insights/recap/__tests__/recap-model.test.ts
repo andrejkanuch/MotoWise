@@ -53,9 +53,20 @@ describe('recapCards', () => {
   it('marks countries as computing while rides are pending and none is placed yet', () => {
     const insights = freeInsights({
       countries: [],
-      coverage: { ...freeInsights().coverage, pendingRides: 3 },
+      coverage: { ...freeInsights().coverage, pendingRides: 3, pendingRecentRides: 3 },
     });
     expect(recapCards(insights).find((c) => c.card === RECAP_CARD.COUNTRIES)?.state).toBe(
+      RECAP_STATE.COMPUTING,
+    );
+  });
+
+  it('does not hold countries in computing for rides pending longer than a day', () => {
+    // A ride whose stats keep failing must not block the card for the whole season.
+    const insights = freeInsights({
+      countries: [],
+      coverage: { ...freeInsights().coverage, pendingRides: 1, pendingRecentRides: 0 },
+    });
+    expect(recapCards(insights).find((c) => c.card === RECAP_CARD.COUNTRIES)?.state).not.toBe(
       RECAP_STATE.COMPUTING,
     );
   });

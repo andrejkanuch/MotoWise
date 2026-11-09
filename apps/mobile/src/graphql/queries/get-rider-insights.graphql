@@ -24,6 +24,7 @@ query GetRiderInsights(
       rides
       qualifyingRides
       pendingRides
+      pendingRecentRides
       ridesWithBike
       qualifying {
         withStats

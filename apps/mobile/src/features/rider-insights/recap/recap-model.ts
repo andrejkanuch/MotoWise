@@ -61,7 +61,9 @@ function proState(status: RiderInsightsStatus, hasValue: boolean): RecapState {
 export function recapCards(insights: RiderInsightsData): RecapCardState[] {
   const free = (card: RecapCard, state: RecapState) => ({ card, tier: RECAP_TIER.FREE, state });
   const pro = (card: RecapCard, state: RecapState) => ({ card, tier: RECAP_TIER.PRO, state });
-  const pending = insights.coverage.pendingRides > 0;
+  // Only rides that ended in the last day count: an older ride whose stats keep
+  // failing must not hold the card in "computing" for the whole season.
+  const pending = insights.coverage.pendingRecentRides > 0;
 
   return [
     free(RECAP_CARD.DISTANCE, RECAP_STATE.READY),
