@@ -5,6 +5,7 @@
 
 let mockConnected = false;
 let mockDisconnect: (() => void) | null = null;
+let mockPhoneScene: ((visible: boolean) => void) | null = null;
 const mockRemove = jest.fn();
 
 jest.mock('../../../modules/carplay/src', () => ({
@@ -12,6 +13,10 @@ jest.mock('../../../modules/carplay/src', () => ({
   addDisconnectListener: (listener: () => void) => {
     mockDisconnect = listener;
     return { remove: mockRemove };
+  },
+  addPhoneSceneVisibilityListener: (listener: (visible: boolean) => void) => {
+    mockPhoneScene = listener;
+    return { remove: jest.fn() };
   },
 }));
 
@@ -30,6 +35,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockConnected = false;
   mockDisconnect = null;
+  mockPhoneScene = null;
 });
 
 describe('applyColorScheme', () => {
@@ -80,5 +86,25 @@ describe('applyColorScheme', () => {
     applyColorScheme('dark');
     disconnectCarPlay();
     expect(mockSetColorScheme).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-applies a forced scheme when the phone UI appears in a new window', () => {
+    applyColorScheme('dark');
+    mockPhoneScene?.(true);
+    expect(mockSetColorScheme.mock.calls).toEqual([['dark'], ['dark']]);
+  });
+
+  it('does not re-apply when the phone UI hides, or while CarPlay is connected', () => {
+    applyColorScheme('dark');
+    mockPhoneScene?.(false);
+    mockConnected = true;
+    mockPhoneScene?.(true);
+    expect(mockSetColorScheme).toHaveBeenCalledTimes(1);
+  });
+
+  it('never calls native for the System theme when the phone UI appears', () => {
+    applyColorScheme('unspecified');
+    mockPhoneScene?.(true);
+    expect(mockSetColorScheme).not.toHaveBeenCalled();
   });
 });
