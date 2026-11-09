@@ -45,6 +45,7 @@ import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { CORE_ACTION_KIND, recordCoreAction } from '../../lib/core-action-milestones';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { invalidateSavedRide } from '../../lib/invalidate';
 import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
@@ -290,26 +291,23 @@ export default function RideSummaryScreen() {
         },
       });
 
-      finalizeEndedRide(rideId);
-
-      queryClient.invalidateQueries({ queryKey: queryKeys.rides.all });
-      // Ending the ride moved the bike's odometer server-side (and logged a reading).
-      queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.odometer.all });
-
-      trackRideCompleted({
-        trigger: RIDE_SAVE_TRIGGER.SUMMARY,
-        rideId,
-        motorcycleId,
-        distanceM,
-        durationS,
-        properties: {
-          max_speed_kmh: Math.round(maxSpeedMps * 3.6),
-          avg_speed_kmh: Math.round(avgSpeedMps * 3.6),
-          shared_to_discover: shareToDiscover,
-        },
-      });
-      MetaAnalytics.trackLogRide();
+      const stillPending = finalizeEndedRide(rideId);
+      invalidateSavedRide(queryClient);
+      if (stillPending) {
+        trackRideCompleted({
+          trigger: RIDE_SAVE_TRIGGER.SUMMARY,
+          rideId,
+          motorcycleId,
+          distanceM,
+          durationS,
+          properties: {
+            max_speed_kmh: Math.round(maxSpeedMps * 3.6),
+            avg_speed_kmh: Math.round(avgSpeedMps * 3.6),
+            shared_to_discover: shareToDiscover,
+          },
+        });
+        MetaAnalytics.trackLogRide();
+      }
       const localRideCount = recordCoreAction(CORE_ACTION_KIND.RIDE_SAVED);
 
       // Share to Discover (fire-and-forget, non-blocking)

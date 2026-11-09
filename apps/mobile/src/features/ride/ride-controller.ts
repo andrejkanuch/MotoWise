@@ -18,8 +18,10 @@ import * as Notifications from 'expo-notifications';
 import type { Href } from 'expo-router';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { invalidateSavedRide } from '../../lib/invalidate';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
+import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../../lib/ride-analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
 import { aggregateWaypoints } from '../../utils/ride-aggregate';
@@ -27,6 +29,7 @@ import { activeRideSeconds, movingTimeSeconds } from '../../utils/ride-duration'
 import { encodePolyline } from '../../utils/ride-heatmap';
 import {
   endAutoPauseEpisode,
+  gpsStartInFlight,
   isLocationRecording,
   startGPSListener,
   stopGPSListener,
@@ -162,7 +165,7 @@ async function runStartRideSession({
     useRideStore.setState({ recordingInterrupted: false });
     return { ok: true, rideId: existing.rideId };
   }
-  if (existing) finalizeEndedRide(existing.rideId);
+  if (existing) saveEndedRideAsItStands(existing.rideId);
 
   const level = await RESOLVE_PERMISSION_LEVEL[source]();
   if (level === 'denied') return { ok: false, reason: 'denied' };
@@ -211,6 +214,10 @@ async function runStartRideSession({
     void cancelRideReminders();
     return { ok: false, reason: 'gps_failed' };
   }
+
+  // Confirmed running: a foreground check that raced this start must not leave
+  // the new ride marked interrupted.
+  useRideStore.setState({ recordingInterrupted: false });
 
   // Start the forgotten-ride clock: if the bike never moves, the rider still hears.
   void armRideReminders();
@@ -382,6 +389,8 @@ export function endRideSession(
     rideMMKV.setTotalPausedMs(rideMMKV.getTotalPausedMs() + bankedMs);
     rideMMKV.setPausedAt(0);
   }
+  // Same for a stop the GPS was still timing: bank it as auto-paused, up to the end.
+  endAutoPauseEpisode(endedAtMs);
   const durationS = elapsedRideSeconds(endedAtMs);
   const totalPausedMs = rideMMKV.getTotalPausedMs();
   const totalAutoPausedMs = rideMMKV.getTotalAutoPausedMs();
@@ -514,9 +523,33 @@ export function readEndedRideSummary(): StoredRideSummary | null {
  * because a new ride started. Removes it from the phone (only its own data: see
  * clearRideData) and brings every surface back to idle.
  */
-export function finalizeEndedRide(rideId: string): void {
+export function finalizeEndedRide(rideId: string): boolean {
+  // Still the ride waiting for review? Not when a new start already saved it as
+  // it stands (CarPlay Stop, then Start, with its summary still open on the
+  // phone): that save was counted, so the caller must not count it again.
+  const pending = rideMMKV.getCurrentId() === rideId;
   clearRideData(rideId);
   useRideStore.getState().hydrate();
+  return pending;
+}
+
+/**
+ * A new ride is starting over one that ended but was never reviewed: keep it as
+ * it stands. It is already complete on the server, so this is the save the
+ * summary would have made — counted, and the caches it changed refreshed.
+ */
+function saveEndedRideAsItStands(rideId: string): void {
+  const summary = readEndedRideSummary();
+  finalizeEndedRide(rideId);
+  invalidateSavedRide(queryClient);
+  if (!summary) return;
+  trackRideCompleted({
+    trigger: RIDE_SAVE_TRIGGER.NEW_RIDE,
+    rideId,
+    motorcycleId: summary.motorcycleId,
+    distanceM: summary.distanceM,
+    durationS: summary.durationS,
+  });
 }
 
 /**
@@ -525,7 +558,35 @@ export function finalizeEndedRide(rideId: string): void {
  * False when there is no recording or paused ride to resume (an ended ride is
  * reviewed, never resumed — the server has already completed it).
  */
-export async function resumeRecoveredRide(): Promise<boolean> {
+/**
+ * After a resume lost its ride while GPS was starting: stop the GPS it started,
+ * unless something else owns it by then. A new ride's start may be under way (it
+ * saved this ride and has not minted its own id yet), so wait for it to settle
+ * and decide on what is left: no ride (auto-end, a saved summary, or a start that
+ * was refused) or this ride ended means nobody records — stop; a new ride owns
+ * the GPS — leave it.
+ */
+async function stopGpsIfOrphaned(rideId: string): Promise<void> {
+  if (startInFlight) await startInFlight.catch(() => undefined);
+  const now = readRideRecord();
+  const orphaned = !now || (now.rideId === rideId && now.phase === RIDE_PHASE.ENDED);
+  if (orphaned && !gpsStartInFlight()) await stopGPSListener();
+}
+
+// The restart in progress, if any: CarPlay Resume, the permission recovery and
+// Start Ride's Resume can all ask at once, and must share one restart.
+let resumeInFlight: Promise<boolean> | null = null;
+
+export function resumeRecoveredRide(): Promise<boolean> {
+  if (!resumeInFlight) {
+    resumeInFlight = runResumeRecoveredRide().finally(() => {
+      resumeInFlight = null;
+    });
+  }
+  return resumeInFlight;
+}
+
+async function runResumeRecoveredRide(): Promise<boolean> {
   const record = readRideRecord();
   if (!record || record.phase === RIDE_PHASE.ENDED) return false;
   // Project first: hydrate seeds the totals from the stored waypoints, including
@@ -535,6 +596,15 @@ export async function resumeRecoveredRide(): Promise<boolean> {
     await startGPSListener();
   } catch (err) {
     captureException(err, { source: 'ride-controller.resumeRecoveredRide' });
+    return false;
+  }
+  // The ride may have been ended (Stop on the head unit, End on the phone) while
+  // GPS was starting — that stop can miss a task not yet running. An ended ride
+  // must not go on recording; anything else (a new ride, or one on its way) owns
+  // the GPS now and is left alone.
+  const current = readRideRecord();
+  if (current?.rideId !== record.rideId || current.phase === RIDE_PHASE.ENDED) {
+    void stopGpsIfOrphaned(record.rideId);
     return false;
   }
   useRideStore.setState({ recordingInterrupted: false });
@@ -588,8 +658,8 @@ export function buildRideSummaryHref(
  * movement, and return the summary to open — marked `recovered`, because the phone
  * cannot confirm the server accepted this end. Null when there is no ride to end.
  */
-export function endRecoveredRide(): Href | null {
-  const summary = endRideSession('phone', { endAt: rideEndTrimTarget() });
+export function endRecoveredRide(source: RideSource = 'phone'): Href | null {
+  const summary = endRideSession(source, { endAt: rideEndTrimTarget() });
   if (!summary) return null;
   // Kept with the ride, so a review reopened after another kill is still
   // evaluated as recovered.

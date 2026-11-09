@@ -10,6 +10,7 @@ import { AppState, Pressable, Text, View } from 'react-native';
 import { HudLayoutA } from '../../components/ride/hud-layout-a';
 import { HudLayoutB } from '../../components/ride/hud-layout-b';
 import { type HudLayout, HudLayoutSwitcher } from '../../components/ride/hud-layout-switcher';
+import { GpsLostBanner } from '../../features/ride/gps-lost-banner';
 import {
   buildRideSummaryHref,
   endRideSession,
@@ -274,14 +275,7 @@ export default function RideHudScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: bgColor }}>
       {/* Layout switcher — floating overlay */}
-      <View
-        style={{
-          position: 'absolute',
-          top: 58,
-          left: 20,
-          zIndex: 20,
-        }}
-      >
+      <View style={{ position: 'absolute', top: 58, left: 20, zIndex: 20 }}>
         <HudLayoutSwitcher
           activeLayout={hudLayout}
           onSwitch={handleLayoutSwitch}
@@ -332,6 +326,8 @@ export default function RideHudScreen() {
           onToggleNight={handleToggleNight}
         />
       )}
+
+      <GpsLostBanner onEndRide={handleEndRide} />
 
       {/* Minimum Ride Guard Bottom Sheet */}
       <BottomSheet

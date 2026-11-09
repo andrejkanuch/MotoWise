@@ -1,11 +1,17 @@
 // ride-entry projects the persisted ride at bundle start and on every return to
-// the foreground, then confirms whether the GPS task is running. That check may
-// only CLEAR "recording interrupted": setting it could overwrite a resume that
-// finished while the check was in flight and send a recording ride to Start Ride.
+// the foreground, then checks whether the GPS task is running. A ride whose GPS
+// stopped is marked interrupted (entry points lead to Resume / End) — unless a
+// GPS start began while the check was in flight, which must win.
 
 jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
-const mockIsRecording = jest.fn<Promise<boolean>, []>();
-jest.mock('@/utils/ride-location', () => ({ isLocationRecording: () => mockIsRecording() }));
+const mockIsRecording = jest.fn<Promise<boolean | null>, []>();
+let mockGpsStarts = 0;
+let mockStartInFlight = false;
+jest.mock('@/utils/ride-location', () => ({
+  gpsStartInFlight: () => mockStartInFlight,
+  probeLocationRecording: () => mockIsRecording(),
+  gpsStartCount: () => mockGpsStarts,
+}));
 jest.mock('@/lib/analytics', () => ({ captureException: jest.fn() }));
 let mockAppStateListener: ((state: string) => void) | null = null;
 jest.mock('react-native', () => ({
@@ -40,6 +46,8 @@ function loadEntry(status: 'recording' | 'paused'): Store {
 beforeEach(() => {
   mockIsRecording.mockReset();
   mockAppStateListener = null;
+  mockGpsStarts = 0;
+  mockStartInFlight = false;
 });
 
 describe('ride-entry', () => {
@@ -58,14 +66,63 @@ describe('ride-entry', () => {
     expect(store.getState().recordingInterrupted).toBe(true);
   });
 
-  it('never marks a confirmed, recording ride interrupted on return to the foreground', async () => {
+  it('marks a live ride interrupted when its GPS stopped while the app was away', async () => {
     mockIsRecording.mockResolvedValue(true);
     const store = loadEntry('recording');
     await flush();
-    // A resume finished; then a foreground check sees the task as not (yet) running.
+    expect(store.getState().recordingInterrupted).toBe(false);
+    // The OS stopped the task; this process survived, so no hydrate-from-idle.
     mockIsRecording.mockResolvedValue(false);
     mockAppStateListener?.('active');
     await flush();
-    expect(store.getState()).toMatchObject({ status: 'recording', recordingInterrupted: false });
+    expect(store.getState()).toMatchObject({ status: 'recording', recordingInterrupted: true });
+  });
+
+  it('never marks it interrupted when a GPS start began during the check', async () => {
+    mockIsRecording.mockResolvedValue(true);
+    const store = loadEntry('recording');
+    await flush();
+    mockIsRecording.mockImplementation(async () => {
+      mockGpsStarts++; // a resume started while the task was being asked
+      return false;
+    });
+    mockAppStateListener?.('active');
+    await flush();
+    expect(store.getState().recordingInterrupted).toBe(false);
+  });
+
+  it('changes nothing when the GPS task cannot be asked', async () => {
+    mockIsRecording.mockResolvedValue(true);
+    const store = loadEntry('recording');
+    await flush();
+    mockIsRecording.mockResolvedValue(null);
+    mockAppStateListener?.('active');
+    await flush();
+    expect(store.getState().recordingInterrupted).toBe(false);
+  });
+
+  it('never marks it interrupted while a GPS start is still under way', async () => {
+    mockIsRecording.mockResolvedValue(true);
+    const store = loadEntry('recording');
+    await flush();
+    // The start began before the check and is still between its stop and start.
+    mockStartInFlight = true;
+    mockIsRecording.mockResolvedValue(false);
+    mockAppStateListener?.('active');
+    await flush();
+    expect(store.getState().recordingInterrupted).toBe(false);
+  });
+
+  it('never marks it interrupted when a GPS start is still under way as the answer comes back', async () => {
+    mockIsRecording.mockResolvedValue(true);
+    const store = loadEntry('recording');
+    await flush();
+    mockIsRecording.mockImplementation(async () => {
+      mockStartInFlight = true; // began (already counted) and has not settled
+      return false;
+    });
+    mockAppStateListener?.('active');
+    await flush();
+    expect(store.getState().recordingInterrupted).toBe(false);
   });
 });

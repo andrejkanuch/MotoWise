@@ -15,7 +15,7 @@ jest.mock('expo-notifications', () => {
 });
 jest.mock('../../lib/analytics', () => ({ captureException: jest.fn() }));
 jest.mock('../../lib/notifications', () => ({
-  NOTIFICATION_CATEGORY: { RIDE_IDLE: 'RIDE_IDLE' },
+  NOTIFICATION_CATEGORY: { RIDE_IDLE: 'RIDE_IDLE', RIDE_PAUSED: 'RIDE_PAUSED' },
   NOTIFICATION_CHANNEL: { RIDE_ALERTS: 'ride-alerts' },
   NOTIFICATION_KIND: { RIDE_IDLE: 'ride_idle' },
 }));
@@ -134,6 +134,8 @@ describe('armRideReminders', () => {
     expect(schedule).toHaveBeenCalledTimes(1);
     const [{ content, trigger }] = schedule.mock.calls[0];
     expect(content.data).toEqual(expect.objectContaining({ stage: 'paused', rideId: 'ride-1' }));
+    // Its own buttons: End ride / Resume ride, not "Still riding".
+    expect(content.categoryIdentifier).toBe('RIDE_PAUSED');
     expect(trigger.seconds).toBe(RIDE_PAUSED_REMINDER_MINUTES * 60);
   });
 

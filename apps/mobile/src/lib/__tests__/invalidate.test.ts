@@ -5,6 +5,7 @@ import { QueryClient, QueryObserver } from '@tanstack/react-query';
 import {
   invalidateDocuments,
   invalidateMaintenanceTasks,
+  invalidateSavedRide,
   invalidateTrips,
   invalidateUser,
 } from '../invalidate';
@@ -119,5 +120,14 @@ describe('invalidateUser', () => {
     const invalidated = spyInvalidations(client);
     invalidateUser(client, { withBikes: false });
     expect(invalidated()).toEqual([['user', 'me']]);
+  });
+});
+
+describe('invalidateSavedRide', () => {
+  it('refreshes the ride lists, the bike list and the odometer readings, nothing else', () => {
+    const client = new QueryClient();
+    const invalidated = spyInvalidations(client);
+    invalidateSavedRide(client);
+    expect(invalidated()).toEqual([['rides'], ['motorcycles'], ['odometer']]);
   });
 });

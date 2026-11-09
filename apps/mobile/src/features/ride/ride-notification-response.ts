@@ -8,7 +8,12 @@ import { NOTIFICATION_ACTION } from '../../lib/notifications';
 import { useRideStore } from '../../stores/ride.store';
 import { armRideReminders, rideEndTrimTarget } from '../../utils/ride-reminders';
 import { rideMMKV } from '../../utils/ride-storage';
-import { buildRideSummaryHref, endRideSession } from './ride-controller';
+import {
+  buildRideSummaryHref,
+  endRideSession,
+  resumeRecoveredRide,
+  resumeRideSession,
+} from './ride-controller';
 import { rideEntryHref } from './ride-route';
 
 export interface RideIdleResponseData {
@@ -55,6 +60,20 @@ export function handleRideIdleResponse(
     return null;
   }
 
+  // "Resume ride" on the paused reminder. A ride resumed meanwhile (on the HUD
+  // or the head unit) is left as it is.
+  if (actionId === NOTIFICATION_ACTION.RESUME_RIDE) {
+    // After an app kill (or a permission loss) during the pause the GPS task is
+    // not confirmed running: flipping the phase alone would leave the rider
+    // riding with nothing recorded, so restart it too. A failure leaves the ride
+    // interrupted, and its entry points then offer Resume / End.
+    const { recordingInterrupted, gpsPermissionLost } = useRideStore.getState();
+    if (resumeRideSession('phone') && (recordingInterrupted || gpsPermissionLost)) {
+      void resumeRecoveredRide();
+    }
+    return null;
+  }
+
   if (actionId === NOTIFICATION_ACTION.END_RIDE) {
     const summary = endRideSession('phone', { endAt: rideEndTrimTarget() });
     return summary ? buildRideSummaryHref(summary) : null;
@@ -81,12 +100,18 @@ interface PendingRideIdleResponse {
 }
 
 let pending: PendingRideIdleResponse | null = null;
+
+/** Buttons that need no screen: run now, which also covers iOS delivering them to
+ *  a background launch where no UI ever mounts. */
+const BACKGROUND_ACTIONS: ReadonlySet<string> = new Set([
+  NOTIFICATION_ACTION.KEEP_RIDING,
+  NOTIFICATION_ACTION.RESUME_RIDE,
+]);
 const subscribers = new Set<() => void>();
 
 /**
  * Accept a RIDE_IDLE response from either source (live listener or cold start).
- * "Still riding" needs no screen — it runs now, which also covers iOS delivering it
- * to a background launch where no UI ever mounts. Everything else waits for
+ * The buttons that need no screen (BACKGROUND_ACTIONS) run now. Everything else waits for
  * `flushPendingRideIdleResponse`. A newer response replaces an older unhandled one.
  */
 export function receiveRideIdleResponse(
@@ -94,7 +119,7 @@ export function receiveRideIdleResponse(
   actionId: string,
   data: RideIdleResponseData,
 ): void {
-  if (actionId === NOTIFICATION_ACTION.KEEP_RIDING) {
+  if (BACKGROUND_ACTIONS.has(actionId)) {
     handleRideIdleResponse(key, actionId, data);
     return;
   }

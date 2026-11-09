@@ -64,7 +64,13 @@ export const RIDE_REMINDER_REARM_THROTTLE_MS = 60_000;
 
 const STAGE_COPY: Record<
   RideReminderStage,
-  { titleKey: string; titleDefault: string; bodyKey: string; bodyDefault: (m: number) => string }
+  {
+    titleKey: string;
+    titleDefault: string;
+    bodyKey: string;
+    bodyDefault: (m: number) => string;
+    category: string;
+  }
 > = {
   [RIDE_REMINDER_STAGE.NUDGE]: {
     titleKey: 'rideHud.forgotToStopTitle',
@@ -72,6 +78,7 @@ const STAGE_COPY: Record<
     bodyKey: 'rideHud.reminderNudgeBody',
     bodyDefault: (m) =>
       `Your ride is still recording, but you haven't moved for ${m} minutes. End it or keep going.`,
+    category: NOTIFICATION_CATEGORY.RIDE_IDLE,
   },
   [RIDE_REMINDER_STAGE.FINAL]: {
     titleKey: 'rideHud.reminderFinalTitle',
@@ -79,12 +86,14 @@ const STAGE_COPY: Record<
     bodyKey: 'rideHud.reminderFinalBody',
     bodyDefault: (m) =>
       `No movement for ${m} minutes. End the ride to save it as it was when you stopped.`,
+    category: NOTIFICATION_CATEGORY.RIDE_IDLE,
   },
   [RIDE_REMINDER_STAGE.PAUSED]: {
     titleKey: 'rideHud.reminderPausedTitle',
     titleDefault: 'Your ride is still paused',
     bodyKey: 'rideHud.reminderPausedBody',
-    bodyDefault: (m) => `Paused for ${m / 60} hours. End the ride to save it, or keep it paused.`,
+    bodyDefault: (m) => `Paused for ${m / 60} hours. End the ride to save it, or resume riding.`,
+    category: NOTIFICATION_CATEGORY.RIDE_PAUSED,
   },
 };
 
@@ -106,7 +115,7 @@ export function rideReminderContent(
       hours: afterMinutes / 60,
       defaultValue: copy.bodyDefault(afterMinutes),
     }),
-    categoryIdentifier: NOTIFICATION_CATEGORY.RIDE_IDLE,
+    categoryIdentifier: copy.category,
     data: { kind: NOTIFICATION_KIND.RIDE_IDLE, rideId, autoEnded: false, stage },
   };
 }

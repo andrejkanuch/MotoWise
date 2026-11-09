@@ -55,3 +55,14 @@ export function invalidateUser(
   void queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
   if (withBikes) void queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
 }
+
+/**
+ * After a ride is saved (from its summary, or as it stands when the next ride
+ * starts): the ride lists, and the bike list and odometer readings, because
+ * ending the ride moved the bike's odometer server-side and logged a reading.
+ */
+export function invalidateSavedRide(queryClient: QueryClient): void {
+  void queryClient.invalidateQueries({ queryKey: queryKeys.rides.all });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.odometer.all });
+}

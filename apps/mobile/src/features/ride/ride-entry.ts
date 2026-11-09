@@ -8,33 +8,46 @@
 import { AppState } from 'react-native';
 import { captureException } from '../../lib/analytics';
 import { useRideStore } from '../../stores/ride.store';
-import { isLocationRecording } from '../../utils/ride-location';
+import { gpsStartCount, gpsStartInFlight, probeLocationRecording } from '../../utils/ride-location';
 import { RIDE_PHASE, readRideRecord } from '../../utils/ride-storage';
 
 /**
- * Whether the open ride is really recording. A relaunched process cannot know:
- * the OS may or may not have restarted the GPS task. GPS is deliberately NOT
- * restarted here — reviving a ride without the rider is how a ride an older
- * version had already ended would be recorded onto — so an unconfirmed ride
- * sends the rider to Start Ride to choose Resume or End.
+ * Whether the open ride is really recording, checked at launch and on every
+ * return to the foreground. A relaunched process cannot know whether the OS
+ * restarted the GPS task, and a live one can lose it (the OS stopped it, the
+ * rider force-stopped location). GPS is deliberately NOT restarted here: reviving
+ * a ride without the rider is how a ride an older version had already ended
+ * would be recorded onto. An unconfirmed ride sends the rider to Start Ride (or
+ * the head unit) to choose Resume or End.
  *
- * Only ever CLEARS the flag (hydrate is what sets it, for a ride this process
- * did not see start): setting it here could overwrite a resume that finished
- * while this check was in flight, and route a recording ride to Start Ride.
+ * Marking the ride interrupted needs care: a (re)start under way, or one that
+ * began or finished while GPS was being asked, would be overwritten and its ride
+ * routed to Start Ride. So the flag is set only when no start is in flight and
+ * the start counter did not move during the check.
  */
-async function confirmRecording(): Promise<void> {
+async function checkRecording(): Promise<void> {
   const record = readRideRecord();
   if (!record || record.phase === RIDE_PHASE.ENDED) return;
-  if (!(await isLocationRecording())) return;
+  const generation = gpsStartCount();
+  if (gpsStartInFlight()) return;
+  const recording = await probeLocationRecording();
+  // A failed query says nothing either way.
+  if (recording === null) return;
   // The ride may have moved on (ended, replaced) while we asked.
-  if (readRideRecord()?.rideId !== record.rideId) return;
-  useRideStore.setState({ recordingInterrupted: false });
+  const current = readRideRecord();
+  if (current?.rideId !== record.rideId || current.phase === RIDE_PHASE.ENDED) return;
+  if (recording) {
+    useRideStore.setState({ recordingInterrupted: false });
+    return;
+  }
+  if (gpsStartInFlight() || gpsStartCount() !== generation) return;
+  useRideStore.setState({ recordingInterrupted: true });
 }
 
 function hydrateRide(source: string): void {
   try {
     useRideStore.getState().hydrate();
-    void confirmRecording().catch((err) => captureException(err, { source: `${source}.gps` }));
+    void checkRecording().catch((err) => captureException(err, { source: `${source}.gps` }));
   } catch (err) {
     // A corrupt record must never abort the bundle (phone UI included).
     captureException(err, { source });

@@ -32,6 +32,8 @@ export const NOTIFICATION_CATEGORY = {
   DOCUMENT_EXPIRY: 'DOCUMENT_EXPIRY',
   /** "Still riding?" — End ride / Still riding buttons on a forgotten-ride reminder. */
   RIDE_IDLE: 'RIDE_IDLE',
+  /** "Still paused" — End ride / Resume ride buttons on a long manual pause. */
+  RIDE_PAUSED: 'RIDE_PAUSED',
 } as const;
 
 /** Android notification channel ids. */
@@ -54,6 +56,8 @@ export const NOTIFICATION_ACTION = {
   END_RIDE: 'END_RIDE',
   /** Ride reminder: the rider is still out — restart the reminder clock. */
   KEEP_RIDING: 'KEEP_RIDING',
+  /** Paused-ride reminder: resume the paused ride. Runs in the background. */
+  RESUME_RIDE: 'RESUME_RIDE',
 } as const;
 
 // MOT-139: Map now stores an ARRAY of notification ids per task so we can
@@ -272,6 +276,20 @@ export async function setupNotificationCategories(): Promise<void> {
     {
       buttonTitle: i18n.t('rideHud.actionKeepRiding', { defaultValue: 'Still riding' }),
       identifier: NOTIFICATION_ACTION.KEEP_RIDING,
+      options: { opensAppToForeground: false },
+    },
+  ]);
+  // Long manual pause. "Resume ride" stays in the background: it only flips the
+  // ride back to recording (the GPS task kept running through the pause).
+  await Notifications.setNotificationCategoryAsync(NOTIFICATION_CATEGORY.RIDE_PAUSED, [
+    {
+      buttonTitle: i18n.t('rideHud.actionEndRide', { defaultValue: 'End ride' }),
+      identifier: NOTIFICATION_ACTION.END_RIDE,
+      options: { opensAppToForeground: true },
+    },
+    {
+      buttonTitle: i18n.t('rideHud.actionResumeRide', { defaultValue: 'Resume ride' }),
+      identifier: NOTIFICATION_ACTION.RESUME_RIDE,
       options: { opensAppToForeground: false },
     },
   ]);

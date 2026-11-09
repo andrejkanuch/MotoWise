@@ -21,6 +21,7 @@ jest.mock('expo-notifications', () => ({
 }));
 jest.mock('@/utils/ride-location', () => ({
   endAutoPauseEpisode: jest.fn(),
+  gpsStartInFlight: jest.fn(() => false),
   startGPSListener: jest.fn(() => Promise.resolve()),
   stopGPSListener: jest.fn(() => Promise.resolve()),
   isLocationRecording: jest.fn(() => Promise.resolve(true)),
@@ -111,6 +112,11 @@ jest.mock('@/lib/query-client', () => ({
 jest.mock('@/lib/query-keys', () => ({
   queryKeys: { motorcycles: { all: ['motorcycles'] } },
 }));
+jest.mock('@/lib/invalidate', () => ({ invalidateSavedRide: jest.fn() }));
+jest.mock('@/lib/ride-analytics', () => ({
+  RIDE_SAVE_TRIGGER: { NEW_RIDE: 'new_ride' },
+  trackRideCompleted: jest.fn(),
+}));
 jest.mock('@/utils/ride-heatmap', () => ({ encodePolyline: jest.fn(() => 'poly') }));
 jest.mock('@/lib/analytics', () => ({
   trackEvent: jest.fn(),
@@ -145,7 +151,9 @@ jest.mock('expo-haptics', () => ({
 import * as Notifications from 'expo-notifications';
 import { trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { invalidateSavedRide } from '@/lib/invalidate';
 import { queryClient } from '@/lib/query-client';
+import { trackRideCompleted } from '@/lib/ride-analytics';
 import { useRideStore } from '@/stores/ride.store';
 import * as gps from '@/utils/ride-location';
 import * as perms from '@/utils/ride-permissions';
@@ -567,9 +575,53 @@ describe('one persisted ride — start, end, review', () => {
   it('saves an ended-but-unreviewed ride as it stands, then starts the new one', async () => {
     mmkvState.currentId = 'ride-ended';
     mmkvState.status = 'ended';
+    mmkvState.endedSummary = JSON.stringify({
+      rideId: 'ride-ended',
+      distanceM: 8_200,
+      durationS: 900,
+      maxSpeedMps: 20,
+      avgSpeedMps: 9,
+      elevationGain: 40,
+      elevationLoss: 30,
+      movingTimeS: 840,
+      motorcycleId: 'bike-old',
+    });
     const result = await startRideSession({ motorcycleId: 'bike-1', source: 'carplay' });
     expect(clearRideData).toHaveBeenCalledWith('ride-ended');
     expect(result).toEqual({ ok: true, rideId: 'ride-uuid-1' });
+    // Kept as it stands is still a saved ride: counted once, and the caches the
+    // end changed (rides, odometer) refreshed.
+    expect(trackRideCompleted).toHaveBeenCalledWith({
+      trigger: 'new_ride',
+      rideId: 'ride-ended',
+      motorcycleId: 'bike-old',
+      distanceM: 8_200,
+      durationS: 900,
+    });
+    expect(invalidateSavedRide).toHaveBeenCalledTimes(1);
+  });
+
+  it('ends a ride that was not recording trimmed and recovered, for the calling surface', () => {
+    mmkvState.currentId = 'ride-open';
+    mmkvState.status = 'recording';
+    mmkvState.startedAt = 1_000_000;
+    const href = endRecoveredRide('carplay');
+    expect(href).toEqual(
+      expect.objectContaining({ params: expect.objectContaining({ recovered: '1' }) }),
+    );
+    expect(trackEvent).toHaveBeenCalledWith(
+      'ride_ended',
+      expect.objectContaining({ ride_id: 'ride-open', source: 'carplay' }),
+    );
+  });
+
+  it('banks a stop the GPS was still timing when the ride ends', () => {
+    mmkvState.currentId = 'ride-open';
+    mmkvState.status = 'recording';
+    mmkvState.startedAt = 1_000_000;
+    endRideSession('phone', { endAt: 1_500_000 });
+    // Up to where the ride really ended (a trimmed end stops at the last movement).
+    expect(gps.endAutoPauseEpisode).toHaveBeenCalledWith(1_500_000);
   });
 
   it('persists the end and a reviewable summary for the same ride', () => {
@@ -744,5 +796,108 @@ describe('endRideSession — summary before the phase', () => {
     });
     endRideSession('carplay');
     expect(summaryAtFlip).toContain('"rideId":"ride-1"');
+  });
+});
+
+describe('resumeRecoveredRide — one restart, and never onto an ended ride', () => {
+  beforeEach(() => {
+    mmkvState.currentId = 'ride-open';
+    mmkvState.status = 'recording';
+    mmkvState.startedAt = 1_000_000;
+  });
+
+  it('stops GPS again when the ride was ended while GPS was starting', async () => {
+    startGPS.mockImplementationOnce(async () => {
+      mmkvState.status = 'ended'; // Stop on the head unit lands mid-start
+    });
+    await expect(resumeRecoveredRide()).resolves.toBe(false);
+    expect(gps.stopGPSListener).toHaveBeenCalledTimes(1);
+    expect(useRideStore.setState).not.toHaveBeenCalledWith({ recordingInterrupted: false });
+    expect(armReminders).not.toHaveBeenCalled();
+  });
+
+  it('leaves the GPS to a new ride that replaced this one meanwhile', async () => {
+    startGPS.mockImplementationOnce(async () => {
+      mmkvState.currentId = 'ride-new';
+    });
+    await expect(resumeRecoveredRide()).resolves.toBe(false);
+    expect(gps.stopGPSListener).not.toHaveBeenCalled();
+  });
+
+  it('stops the GPS when the ride was cleared meanwhile (auto-end, saved summary)', async () => {
+    startGPS.mockImplementationOnce(async () => {
+      mmkvState.currentId = '';
+    });
+    await expect(resumeRecoveredRide()).resolves.toBe(false);
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(gps.stopGPSListener).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the GPS to a new ride whose start is under way (old ride saved, no id yet)', async () => {
+    let releaseStart: () => void = () => {};
+    startGPS.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          releaseStart = resolve;
+        }),
+    );
+    const resumed = resumeRecoveredRide();
+    // A new ride starts meanwhile: it saves the old one and waits on permission.
+    mmkvState.currentId = '';
+    let grant: (level: string) => void = () => {};
+    readPerms.mockImplementationOnce(() => new Promise((resolve) => (grant = resolve)));
+    const started = startRideSession({ motorcycleId: null, source: 'carplay' });
+    releaseStart();
+    await expect(resumed).resolves.toBe(false);
+    expect(gps.stopGPSListener).not.toHaveBeenCalled(); // decided only once it settles
+    grant('full');
+    await started;
+    await new Promise((resolve) => setImmediate(resolve));
+    // The new ride owns the GPS now.
+    expect(gps.stopGPSListener).not.toHaveBeenCalled();
+  });
+
+  it('stops the GPS once a new start that saved this ride is refused', async () => {
+    let releaseStart: () => void = () => {};
+    startGPS.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          releaseStart = resolve;
+        }),
+    );
+    const resumed = resumeRecoveredRide();
+    mmkvState.currentId = '';
+    let answer: (level: string) => void = () => {};
+    readPerms.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)));
+    const started = startRideSession({ motorcycleId: null, source: 'carplay' });
+    releaseStart();
+    await resumed;
+    answer('denied');
+    await expect(started).resolves.toEqual({ ok: false, reason: 'denied' });
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(gps.stopGPSListener).toHaveBeenCalledTimes(1);
+  });
+
+  it('shares one restart between callers asking at once', async () => {
+    const first = resumeRecoveredRide();
+    const second = resumeRecoveredRide();
+    await expect(Promise.all([first, second])).resolves.toEqual([true, true]);
+    expect(startGPS).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('startRideSession — a check racing the GPS start', () => {
+  it('clears "interrupted" once the new ride\'s GPS is confirmed running', async () => {
+    await startRideSession({ motorcycleId: 'bike-1', source: 'phone' });
+    expect(useRideStore.setState).toHaveBeenCalledWith({ recordingInterrupted: false });
+  });
+});
+
+describe('finalizeEndedRide', () => {
+  it('says whether the ride was still the one waiting for review', () => {
+    mmkvState.currentId = 'ride-a';
+    expect(finalizeEndedRide('ride-a')).toBe(true);
+    mmkvState.currentId = 'ride-b'; // a new start already saved ride-a
+    expect(finalizeEndedRide('ride-a')).toBe(false);
   });
 });
