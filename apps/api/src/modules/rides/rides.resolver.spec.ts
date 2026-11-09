@@ -1,8 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
 import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { describe, expect, it } from 'vitest';
+import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
+import type { Ride } from './models/ride.model';
 import { RidesResolver } from './rides.resolver';
 
 /**
@@ -89,5 +91,48 @@ describe('RidesResolver pause / resume', () => {
       ['user-1', 'r1', true],
       ['user-1', 'r1', false],
     ]);
+  });
+});
+
+describe('RidesResolver owner-only ride fields', () => {
+  const publicRide = {
+    id: 'ride-1',
+    userId: 'owner-1',
+    region: 'Tirol',
+    timeZone: 'Europe/Vienna',
+    endSource: 'rider_phone',
+    purpose: 'tour',
+    passenger: true,
+  } as Ride;
+  const service = { getPublicRide: async () => publicRide };
+  const resolver = new RidesResolver(service as never);
+  const ownerOnlyFields = (ride: Ride, user?: AuthUser) => ({
+    region: resolver.region(ride, user),
+    timeZone: resolver.timeZone(ride, user),
+    endSource: resolver.endSource(ride, user),
+    purpose: resolver.purpose(ride, user),
+    passenger: resolver.passenger(ride, user),
+  });
+  const allNull = { region: null, timeZone: null, endSource: null, purpose: null, passenger: null };
+
+  it('getPublicRide returns null place and recording fields to an anonymous viewer', async () => {
+    const ride = await resolver.getPublicRide('ride-1');
+    expect(ownerOnlyFields(ride, undefined)).toEqual(allNull);
+  });
+
+  it('getPublicRide returns null place and recording fields to another signed-in rider', async () => {
+    const ride = await resolver.getPublicRide('ride-1');
+    expect(ownerOnlyFields(ride, { id: 'someone-else' } as AuthUser)).toEqual(allNull);
+  });
+
+  it('the owner sees their own values', async () => {
+    const ride = await resolver.getPublicRide('ride-1');
+    expect(ownerOnlyFields(ride, { id: 'owner-1' } as AuthUser)).toEqual({
+      region: 'Tirol',
+      timeZone: 'Europe/Vienna',
+      endSource: 'rider_phone',
+      purpose: 'tour',
+      passenger: true,
+    });
   });
 });

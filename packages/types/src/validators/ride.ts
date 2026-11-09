@@ -12,12 +12,79 @@ export const RIDE_STATUS = {
 export const RideStatusSchema = z.enum(['recording', 'paused', 'completed']);
 export type RideStatus = z.infer<typeof RideStatusSchema>;
 
+// --- Ride end provenance and purpose ---
+
+/** How a ride ended. Server ends also keep writing `auto_ended_reason`; this does not replace it. */
+export const RIDE_END_SOURCE = {
+  RIDER_PHONE: 'rider_phone',
+  RIDER_CARPLAY: 'rider_carplay',
+  CLIENT_AUTO: 'client_auto',
+  SERVER_IDLE: 'server_idle',
+  STALE_ON_START: 'stale_on_start',
+  NEW_RIDE_SAVE: 'new_ride_save',
+} as const;
+export type RideEndSource = (typeof RIDE_END_SOURCE)[keyof typeof RIDE_END_SOURCE];
+export const RideEndSourceSchema = z.enum([
+  RIDE_END_SOURCE.RIDER_PHONE,
+  RIDE_END_SOURCE.RIDER_CARPLAY,
+  RIDE_END_SOURCE.CLIENT_AUTO,
+  RIDE_END_SOURCE.SERVER_IDLE,
+  RIDE_END_SOURCE.STALE_ON_START,
+  RIDE_END_SOURCE.NEW_RIDE_SAVE,
+]);
+
+/** Optional purpose a rider picks after a ride (the `rides.purpose` CHECK list). */
+export const RIDE_PURPOSE = {
+  LEISURE: 'leisure',
+  COMMUTE: 'commute',
+  TOUR: 'tour',
+  ERRAND: 'errand',
+  TRACK: 'track',
+  OFFROAD: 'offroad',
+  OTHER: 'other',
+} as const;
+export type RidePurpose = (typeof RIDE_PURPOSE)[keyof typeof RIDE_PURPOSE];
+export const RidePurposeSchema = z.enum([
+  RIDE_PURPOSE.LEISURE,
+  RIDE_PURPOSE.COMMUTE,
+  RIDE_PURPOSE.TOUR,
+  RIDE_PURPOSE.ERRAND,
+  RIDE_PURPOSE.TRACK,
+  RIDE_PURPOSE.OFFROAD,
+  RIDE_PURPOSE.OTHER,
+]);
+
+/** Longest IANA zone name is ~32 characters; anything far past that is not one. */
+const MAX_TIME_ZONE_LENGTH = 64;
+/** Area/Location names (and single names like "UTC"): rejects offsets such as "+01:00". */
+const IANA_ZONE_SHAPE = /^[A-Za-z][A-Za-z0-9_+-]*(?:\/[A-Za-z0-9_+-]+)*$/;
+
+/** True when the runtime's time-zone database knows this IANA zone name. */
+export function isIanaTimeZone(value: string): boolean {
+  if (value.length > MAX_TIME_ZONE_LENGTH || !IANA_ZONE_SHAPE.test(value)) return false;
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: value });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Ride-ops fields the rider adds or the device reports beyond the ride's identity.
+ * An unknown or malformed value becomes null rather than failing the op: the mobile
+ * sync queue never retries BAD_REQUEST, so a rejection would cost the whole ride.
+ */
+const tolerated = <T extends z.ZodType>(schema: T) => schema.nullable().optional().catch(null);
+
 // --- Start Ride ---
 
 export const StartRideInputSchema = z.object({
   rideId: z.string().uuid(),
   motorcycleId: z.string().uuid().nullable(),
   startedAt: z.string().datetime(),
+  /** The device's IANA zone at ride start; anything else is stored as null. */
+  timeZone: tolerated(z.string().refine(isIanaTimeZone)),
 });
 export type StartRideInput = z.infer<typeof StartRideInputSchema>;
 
@@ -54,6 +121,11 @@ export const EndRideInputSchema = z.object({
   pausedDurationS: nonNegativeSeconds(),
   autoPausedDurationS: nonNegativeSeconds(),
   maxLeanAngle: sensorReading(z.number().nonnegative().max(90)),
+  endSource: tolerated(RideEndSourceSchema),
+  purpose: tolerated(RidePurposeSchema),
+  passenger: tolerated(z.boolean()),
+  /** Odometer the rider read at the end, in the bike's distance unit, whole units. */
+  odometerAtEnd: tolerated(z.number().nonnegative().max(9_999_999).transform(Math.round)),
 });
 export type EndRideInput = z.infer<typeof EndRideInputSchema>;
 
@@ -130,6 +202,8 @@ export const UpdateRideInputSchema = z.object({
   name: z.string().max(200).nullable().optional(),
   mileageApplied: z.boolean().optional(),
   isPublic: z.boolean().optional(),
+  purpose: tolerated(RidePurposeSchema),
+  passenger: tolerated(z.boolean()),
 });
 export type UpdateRideInput = z.infer<typeof UpdateRideInputSchema>;
 

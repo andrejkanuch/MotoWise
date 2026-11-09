@@ -40,4 +40,21 @@ export class EndRideInput {
 
   @Field(() => Float, { nullable: true })
   maxLeanAngle?: number;
+
+  // String rather than an enum, so a value this server does not know (sent by a
+  // newer app) never fails GraphQL validation; the Zod schema turns it into null.
+  /** How the ride ended: rider_phone, rider_carplay, client_auto or new_ride_save. */
+  @Field(() => String, { nullable: true })
+  endSource?: string | null;
+
+  /** leisure, commute, tour, errand, track, offroad or other. */
+  @Field(() => String, { nullable: true })
+  purpose?: string | null;
+
+  @Field(() => Boolean, { nullable: true })
+  passenger?: boolean | null;
+
+  /** Odometer reading at the end, in the bike's distance unit. Replaces the GPS-distance mileage update. */
+  @Field(() => Float, { nullable: true })
+  odometerAtEnd?: number | null;
 }

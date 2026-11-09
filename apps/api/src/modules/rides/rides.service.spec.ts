@@ -82,6 +82,7 @@ describe('RidesService', () => {
       'lt',
       'not',
       'gte',
+      'lte',
       'order',
       'limit',
       'range',
@@ -481,13 +482,12 @@ describe('RidesService', () => {
       mockUserClient._pushResult({ data: completedRow });
       // 1: claim UPDATE (mileage_applied false→true) .select(...).single() — this caller wins
       mockUserClient._pushResult({ data: { distance_m: 32186, motorcycle_id: 'moto-456' } });
-      // 2: bike read .single() — current_mileage is raw in the user's unit
-      mockUserClient._pushResult({ data: { current_mileage: 1000 } });
-      // 3: users read .single() — measurement_system drives meters→unit conversion
-      mockUserClient._pushResult({ data: { measurement_system: 'imperial' } });
-      // 4: motorcycle odometer UPDATE (thenable)
+      // 2: bike read .single() — current_mileage is raw in the bike's distance_unit,
+      // which drives the meters→unit conversion
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } });
+      // 3: motorcycle odometer UPDATE (thenable)
       mockUserClient._pushResult({ data: null, error: null });
-      // 5: due maintenance_tasks query (thenable) — none due
+      // 4: due maintenance_tasks query (thenable) — none due
       mockUserClient._pushResult({ data: [] });
 
       const result = await service.endRide(userId, {
@@ -502,8 +502,8 @@ describe('RidesService', () => {
       // claim-first: exactly one mileage_applied=true UPDATE gated on mileage_applied=false
       expect(mockUserClient._chain.update).toHaveBeenCalledWith({ mileage_applied: true });
       expect(mockUserClient._chain.eq).toHaveBeenCalledWith('mileage_applied', false);
-      // odometer advanced by the ride distance converted meters → the user's unit
-      // (imperial): 32186 m ≈ 20 mi, added to the raw 1000 mi odometer.
+      // odometer advanced by the ride distance converted meters → the bike's unit
+      // (mi): 32186 m ≈ 20 mi, added to the raw 1000 mi odometer.
       expect(mockUserClient._chain.update).toHaveBeenCalledWith(
         expect.objectContaining({
           current_mileage: 1020, // 1000 + round(metersToUnit(32186, 'mi')) === 1000 + 20
@@ -623,6 +623,353 @@ describe('RidesService', () => {
         'autoEndedReason',
         'idle_timeout',
       );
+    });
+  });
+
+  describe('recording additions and end paths', () => {
+    const endBase = {
+      rideId: 'ride-123',
+      endedAt: '2026-03-22T15:30:00Z',
+      pausedDurationS: 0,
+      autoPausedDurationS: 0,
+    };
+    const completedRow = {
+      ...fakeRow,
+      status: 'completed',
+      ended_at: '2026-03-22T15:30:00Z',
+      distance_m: 30_000,
+      max_speed_mps: 31,
+      elevation_gain: 400,
+    };
+    const updateCall = (n: number) =>
+      (mockUserClient._chain.update as ReturnType<typeof vi.fn>).mock.calls[n][0];
+    const rpcCalls = (name: string) =>
+      mockUserClient.rpc.mock.calls.filter((call: unknown[]) => call[0] === name);
+
+    it('stores the time zone the device reported at start', async () => {
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
+      mockUserClient._pushResult({ data: [], error: null });
+      mockUserClient._pushResult({ data: { ...fakeRow, time_zone: 'Europe/Madrid' } });
+
+      const ride = await service.startRide(userId, {
+        rideId: 'ride-123',
+        startedAt: '2026-03-22T14:00:00Z',
+        timeZone: 'Europe/Madrid',
+      });
+
+      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ time_zone: 'Europe/Madrid' }),
+      );
+      expect(ride.timeZone).toBe('Europe/Madrid');
+    });
+
+    it('starts the ride with a null time zone when the schema dropped a non-IANA one', async () => {
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
+      mockUserClient._pushResult({ data: [], error: null });
+      mockUserClient._pushResult({ data: fakeRow });
+
+      // "GMT+1" reaches the service as null (StartRideInputSchema).
+      await service.startRide(userId, {
+        rideId: 'ride-123',
+        startedAt: '2026-03-22T14:00:00Z',
+        timeZone: null,
+      });
+
+      expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ time_zone: null }),
+      );
+    });
+
+    it('an app auto-end with no speed fields keeps the stored stats and still counts', async () => {
+      mockUserClient._pushResult({ data: completedRow });
+
+      await service.endRide(userId, { ...endBase, endSource: 'client_auto' });
+
+      const patch = updateCall(0);
+      for (const column of [
+        'distance_m',
+        'max_speed_mps',
+        'avg_speed_mps',
+        'elevation_gain',
+        'elevation_loss',
+        'route_polyline',
+        'gps_quality',
+        'max_lean_angle',
+      ]) {
+        expect(patch).not.toHaveProperty(column);
+      }
+      expect(patch).toMatchObject({
+        status: 'completed',
+        end_source: 'client_auto',
+        auto_ended_reason: null,
+      });
+      expect(typeof patch.track_updated_at).toBe('string');
+      // Emitted as a rider end: records and the AI summary run for it.
+      expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1);
+      expect(mockEventEmitter.emit.mock.calls[0][1]).not.toHaveProperty('autoEndedReason');
+    });
+
+    it('stores null for an end source the schema did not recognise, and the end succeeds', async () => {
+      mockUserClient._pushResult({ data: completedRow });
+
+      const result = await service.endRide(userId, { ...endBase, endSource: null });
+
+      expect(result.ride.status).toBe('completed');
+      expect(updateCall(0)).toMatchObject({ end_source: null });
+    });
+
+    it('a client sending no new fields writes the same stats as before', async () => {
+      mockUserClient._pushResult({ data: completedRow });
+
+      await service.endRide(userId, {
+        ...endBase,
+        distanceM: 30_000,
+        maxSpeedMps: 31,
+        avgSpeedMps: 18,
+        elevationGain: 400,
+        elevationLoss: 390,
+        routePolyline: 'abc',
+        gpsQuality: 0.9,
+      });
+
+      const patch = updateCall(0);
+      expect(patch).toMatchObject({
+        distance_m: 30_000,
+        max_speed_mps: 31,
+        avg_speed_mps: 18,
+        elevation_gain: 400,
+        elevation_loss: 390,
+        route_polyline: 'abc',
+        gps_quality: 0.9,
+        paused_duration_s: 0,
+        auto_paused_duration_s: 0,
+        auto_ended_reason: null,
+        end_source: null,
+      });
+      expect(patch).not.toHaveProperty('purpose');
+      expect(patch).not.toHaveProperty('passenger');
+    });
+
+    it('writes purpose and passenger when the end carries them', async () => {
+      mockUserClient._pushResult({ data: completedRow });
+
+      await service.endRide(userId, { ...endBase, purpose: 'commute', passenger: false });
+
+      expect(updateCall(0)).toMatchObject({ purpose: 'commute', passenger: false });
+    });
+
+    it('applies odometer at end in the bike unit through the RPC, with no GPS-delta update', async () => {
+      mockUserClient._pushResult({ data: completedRow }); // 0: completion UPDATE
+      mockUserClient._pushResult({ data: { distance_m: 30_000, motorcycle_id: 'moto-456' } }); // 1: claim
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 2: bike
+      mockUserClient._pushResult({ data: [] }); // 3: due maintenance tasks
+
+      await service.endRide(userId, { ...endBase, distanceM: 30_000, odometerAtEnd: 1234 });
+
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([
+        ['log_ride_end_odometer', { p_ride_id: 'ride-123', p_value: 1234, p_unit: 'mi' }],
+      ]);
+      // The claim is still the gate, and the GPS distance is not added on top.
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith({ mileage_applied: true });
+      const mileageWrites = (mockUserClient._chain.update as ReturnType<typeof vi.fn>).mock.calls
+        .map((call) => call[0] as Record<string, unknown>)
+        .filter((patch) => 'current_mileage' in patch);
+      expect(mileageWrites).toEqual([]);
+      expect(mockUserClient._chain.lte).toHaveBeenCalledWith('target_mileage', 1234);
+    });
+
+    it('a replayed end does not apply the odometer again', async () => {
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
+      mockUserClient._pushResult({ data: { ...completedRow, mileage_applied: true } });
+
+      await service.endRide(userId, { ...endBase, odometerAtEnd: 1234 });
+
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([]);
+      expect(mockUserClient._chain.update).not.toHaveBeenCalledWith({ mileage_applied: true });
+    });
+
+    it('a lost mileage claim skips the odometer at end', async () => {
+      mockUserClient._pushResult({ data: completedRow });
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } }); // claim lost
+
+      await service.endRide(userId, { ...endBase, odometerAtEnd: 1234 });
+
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([]);
+    });
+
+    it('updateRide writes purpose and passenger, and null clears them', async () => {
+      mockUserClient._pushResult({ data: { ...fakeRow, purpose: 'tour', passenger: true } });
+
+      const ride = await service.updateRide(userId, {
+        rideId: 'ride-123',
+        purpose: 'tour',
+        passenger: true,
+      });
+      expect(updateCall(0)).toEqual({ purpose: 'tour', passenger: true });
+      expect(ride).toMatchObject({ purpose: 'tour', passenger: true });
+
+      mockUserClient._pushResult({ data: fakeRow });
+      await service.updateRide(userId, { rideId: 'ride-123', purpose: null });
+      expect(updateCall(1)).toEqual({ purpose: null });
+    });
+
+    it('marks a ride closed at the next start as stale_on_start', async () => {
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
+      mockUserClient._pushResult({
+        data: [{ id: 'stale-1', started_at: '2026-03-20T09:00:00Z' }],
+        error: null,
+      });
+      mockUserClient._pushResult({ data: { recorded_at: '2026-03-20T10:00:00Z' } });
+      mockUserClient._pushResult({ data: [{ id: 'stale-1' }], error: null });
+      mockUserClient._pushResult({ data: fakeRow });
+
+      await service.startRide(userId, {
+        rideId: 'ride-123',
+        startedAt: '2026-03-22T14:00:00Z',
+      });
+
+      expect(updateCall(0)).toMatchObject({
+        status: 'completed',
+        auto_ended_reason: 'stale_on_start',
+        end_source: 'stale_on_start',
+      });
+    });
+
+    it('a waypoint upload to a completed ride marks its track as changed', async () => {
+      mockUserClient._pushResult({ data: { id: 'ride-123', status: 'completed' } });
+      mockUserClient._pushResult({ count: 100 });
+      mockUserClient._pushResult({ data: null, error: null }); // upsert
+      mockUserClient._pushResult({ data: null, error: null }); // track_updated_at bump
+
+      await service.uploadWaypoints(userId, {
+        rideId: 'ride-123',
+        waypoints: [{ recordedAt: '2026-03-22T16:00:00Z', latitude: 45, longitude: 14 }],
+      });
+
+      const bump = queriesFrom(mockUserClient._calls).at(-1);
+      expect(bump?.table).toBe('rides');
+      expect(bump?.ops).toEqual(
+        expect.arrayContaining([
+          { method: 'update', args: [{ track_updated_at: expect.any(String) }] },
+          { method: 'eq', args: ['id', 'ride-123'] },
+          { method: 'eq', args: ['user_id', userId] },
+        ]),
+      );
+    });
+
+    it('a waypoint upload to a recording ride leaves the ride row alone', async () => {
+      mockUserClient._pushResult({ data: { id: 'ride-123', status: 'recording' } });
+      mockUserClient._pushResult({ count: 100 });
+      mockUserClient._pushResult({ data: null, error: null });
+
+      await service.uploadWaypoints(userId, {
+        rideId: 'ride-123',
+        waypoints: [{ recordedAt: '2026-03-22T14:10:00Z', latitude: 45, longitude: 14 }],
+      });
+
+      expect(mockUserClient._chain.update).not.toHaveBeenCalled();
+    });
+
+    describe('findWaypoints', () => {
+      const POINTS = 2_500;
+      const t0 = Date.parse('2026-03-22T14:00:00Z');
+      const track = {
+        total_points: POINTS,
+        recorded_at: Array.from({ length: POINTS }, (_, i) =>
+          new Date(t0 + i * 1000).toISOString(),
+        ),
+        latitude: Array.from({ length: POINTS }, (_, i) => 45 + i / 10_000),
+        longitude: Array.from({ length: POINTS }, () => 14),
+        altitude: Array.from({ length: POINTS }, () => 300),
+        speed_mps: Array.from({ length: POINTS }, () => 20),
+        heading: Array.from({ length: POINTS }, () => 90),
+        accuracy: Array.from({ length: POINTS }, () => 5),
+      };
+
+      it('reads every point of a 2,500-point ride, so the sample spans the whole ride', async () => {
+        mockUserClient._pushResult({ data: { id: 'ride-123' } });
+        mockUserClient.rpc.mockResolvedValueOnce({ data: [track], error: null });
+
+        const points = await service.findWaypoints(userId, 'ride-123', 1_000);
+
+        expect(rpcCalls('ride_track_points')).toEqual([
+          ['ride_track_points', { p_ride_id: 'ride-123', p_max_points: null }],
+        ]);
+        expect(points).toHaveLength(1_000);
+        expect(points[0].recordedAt).toBe(track.recorded_at[0]);
+        // The old capped select ended at fix 1,000; the whole ride ends at fix 2,500.
+        expect(points.at(-1)?.recordedAt).toBe(track.recorded_at[POINTS - 1]);
+      });
+
+      it('drops fixes worse than the accuracy threshold before sampling', async () => {
+        mockUserClient._pushResult({ data: { id: 'ride-123' } });
+        mockUserClient.rpc.mockResolvedValueOnce({
+          data: [
+            {
+              total_points: 3,
+              recorded_at: ['2026-03-22T14:00:00Z', '2026-03-22T14:00:01Z', '2026-03-22T14:00:02Z'],
+              latitude: [45, 45.1, 45.2],
+              longitude: [14, 14, 14],
+              altitude: [300, null, 310],
+              speed_mps: [10, 11, 12],
+              heading: [0, 0, 0],
+              accuracy: [5, 500, null],
+            },
+          ],
+          error: null,
+        });
+
+        const points = await service.findWaypoints(userId, 'ride-123');
+
+        expect(points.map((p) => p.latitude)).toEqual([45, 45.2]);
+        expect(points[1]).toMatchObject({ altitude: 310, speedMps: 12, accuracy: undefined });
+      });
+
+      it('returns an empty list for a ride with no fixes', async () => {
+        mockUserClient._pushResult({ data: { id: 'ride-123' } });
+        mockUserClient.rpc.mockResolvedValueOnce({ data: [], error: null });
+
+        expect(await service.findWaypoints(userId, 'ride-123')).toEqual([]);
+      });
+
+      it('surfaces a failed track read as InternalServerErrorException', async () => {
+        mockUserClient._pushResult({ data: { id: 'ride-123' } });
+        mockUserClient.rpc.mockResolvedValueOnce({
+          data: null,
+          error: { code: '57014', message: 'statement timeout' },
+        });
+
+        await expect(service.findWaypoints(userId, 'ride-123')).rejects.toThrow(
+          InternalServerErrorException,
+        );
+      });
+    });
+
+    it('getRideMilestoneStats selects the qualifying columns and counts an app auto-end', async () => {
+      mockUserClient._pushResult({
+        data: [
+          {
+            id: 'auto',
+            status: 'completed',
+            deleted_at: null,
+            auto_ended_reason: null,
+            distance_m: 8_000,
+            started_at: '2026-10-10T10:00:00Z',
+            ended_at: '2026-10-10T10:30:00Z',
+            paused_duration_s: 0,
+            auto_paused_duration_s: 0,
+          },
+        ],
+      });
+
+      const stats = await service.getRideMilestoneStats(userId, null);
+
+      expect(stats).toEqual({ qualifyingRideCount: 1, longestQualifyingDistanceM: 8_000 });
+      const [query] = queriesFrom(mockUserClient._calls);
+      const columns = String(query.ops.find((op) => op.method === 'select')?.args[0]);
+      for (const column of ['status', 'deleted_at', 'auto_ended_reason']) {
+        expect(columns.split(/,\s*/)).toContain(column);
+      }
     });
   });
 
@@ -1040,8 +1387,12 @@ describe('RidesService', () => {
   // it. mapRow DERIVES isPublic from visibility so old + new clients never disagree.
   describe('getRideMilestoneStats', () => {
     // 10 minutes elapsed; distance_m well over the 1 km floor.
+    // The columns the query filters on are selected too, as the database returns them.
     const qualifyingRow = {
       id: 'ride-q1',
+      status: 'completed',
+      deleted_at: null,
+      auto_ended_reason: null,
       distance_m: 12_000,
       started_at: '2026-10-10T10:00:00Z',
       ended_at: '2026-10-10T10:10:00Z',

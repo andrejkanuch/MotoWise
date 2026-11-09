@@ -371,3 +371,83 @@ describe('RideStatusSchema', () => {
     expect(() => RideStatusSchema.parse('')).toThrow();
   });
 });
+
+describe('ride recording additions', () => {
+  const start = { rideId: validUuid, startedAt: validDatetime, motorcycleId: null };
+  const end = { rideId: validUuid, endedAt: validDatetime };
+
+  it('keeps an IANA time zone on start', () => {
+    expect(StartRideInputSchema.parse({ ...start, timeZone: 'Europe/Berlin' }).timeZone).toBe(
+      'Europe/Berlin',
+    );
+    expect(StartRideInputSchema.parse({ ...start, timeZone: 'UTC' }).timeZone).toBe('UTC');
+  });
+
+  it.each([
+    'GMT+1',
+    '+01:00',
+    'Foo/Bar',
+    '',
+    42,
+  ])('turns a non-IANA time zone (%s) into null instead of rejecting the start', (timeZone) => {
+    const parsed = StartRideInputSchema.safeParse({ ...start, timeZone });
+    expect(parsed.success).toBe(true);
+    expect(parsed.data?.timeZone).toBeNull();
+  });
+
+  it('leaves the time zone absent when the client sends none', () => {
+    expect(StartRideInputSchema.parse(start).timeZone).toBeUndefined();
+  });
+
+  it('keeps known end values', () => {
+    const parsed = EndRideInputSchema.parse({
+      ...end,
+      endSource: 'client_auto',
+      purpose: 'commute',
+      passenger: true,
+      odometerAtEnd: 12345,
+    });
+    expect(parsed).toMatchObject({
+      endSource: 'client_auto',
+      purpose: 'commute',
+      passenger: true,
+      odometerAtEnd: 12345,
+    });
+  });
+
+  it('turns unknown or malformed end values into null instead of rejecting the end', () => {
+    const parsed = EndRideInputSchema.safeParse({
+      ...end,
+      endSource: 'teleported',
+      purpose: 'racing-on-the-moon',
+      passenger: 'yes',
+      odometerAtEnd: -5,
+    });
+    expect(parsed.success).toBe(true);
+    expect(parsed.data).toMatchObject({
+      endSource: null,
+      purpose: null,
+      passenger: null,
+      odometerAtEnd: null,
+    });
+  });
+
+  it('rounds a fractional odometer reading to a whole unit', () => {
+    expect(EndRideInputSchema.parse({ ...end, odometerAtEnd: 12345.6 }).odometerAtEnd).toBe(12346);
+  });
+
+  it('leaves the new end fields absent when an older client sends none', () => {
+    const parsed = EndRideInputSchema.parse(end);
+    expect(parsed.endSource).toBeUndefined();
+    expect(parsed.purpose).toBeUndefined();
+    expect(parsed.passenger).toBeUndefined();
+    expect(parsed.odometerAtEnd).toBeUndefined();
+  });
+
+  it('accepts purpose and passenger on update, nulling an unknown purpose', () => {
+    expect(
+      UpdateRideInputSchema.parse({ rideId: validUuid, purpose: 'tour', passenger: false }),
+    ).toMatchObject({ purpose: 'tour', passenger: false });
+    expect(UpdateRideInputSchema.parse({ rideId: validUuid, purpose: 'nope' }).purpose).toBeNull();
+  });
+});

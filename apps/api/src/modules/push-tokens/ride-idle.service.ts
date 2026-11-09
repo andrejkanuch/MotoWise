@@ -1,4 +1,4 @@
-import { NOTIFICATION_KIND, RIDE_STATUS } from '@motovault/types';
+import { NOTIFICATION_KIND, RIDE_END_SOURCE, RIDE_STATUS } from '@motovault/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SupabaseClient } from '@supabase/supabase-js';
@@ -82,6 +82,13 @@ interface WaypointRow {
   recorded_at: string;
   latitude: number;
   longitude: number;
+}
+
+/** The columns of a `ride_track_points()` row this sweep reads: parallel arrays, oldest first. */
+interface TrackPointsRow {
+  recorded_at: string[];
+  latitude: number[];
+  longitude: number[];
 }
 
 /** Great-circle distance between two fixes, in metres. */
@@ -346,20 +353,30 @@ export class RideIdleService {
     return recordedAt ? new Date(recordedAt) : null;
   }
 
-  /** Waypoints for a ride, oldest first. Empty for rides that never uploaded any. */
+  /**
+   * Waypoints for a ride, oldest first. Empty for rides that never uploaded any.
+   * Read through `ride_track_points()`, which returns the whole track as one row of
+   * arrays: a plain select stopped at PostgREST's row cap, so a long ride's distance
+   * was rebuilt from its first 1,000 fixes and its end trimmed to the 1,000th.
+   */
   private async loadTrack(rideId: string): Promise<WaypointRow[]> {
-    const { data, error } = await this.adminClient
-      .from('ride_waypoints')
-      .select('recorded_at, latitude, longitude')
-      .eq('ride_id', rideId)
-      .order('recorded_at', { ascending: true });
+    const { data, error } = await this.adminClient.rpc('ride_track_points', {
+      p_ride_id: rideId,
+      p_max_points: null,
+    });
     if (error) {
       // Treat an unreadable track as "no signal": the ride still gets nudged/ended on
       // started_at rather than being skipped forever by a transient query failure.
       this.logger.warn(`loadTrack failed for ride ${rideId}: ${error.message}`);
       return [];
     }
-    return (data ?? []) as WaypointRow[];
+    const track = ((data ?? []) as TrackPointsRow[])[0];
+    if (!track) return [];
+    return track.recorded_at.map((recordedAt, i) => ({
+      recorded_at: recordedAt,
+      latitude: track.latitude[i],
+      longitude: track.longitude[i],
+    }));
   }
 
   /**
@@ -379,6 +396,7 @@ export class RideIdleService {
       status: 'completed',
       ended_at: lastSignal.toISOString(),
       auto_ended_reason: AUTO_END_REASON_IDLE,
+      end_source: RIDE_END_SOURCE.SERVER_IDLE,
     };
 
     if (track.length >= 2) {

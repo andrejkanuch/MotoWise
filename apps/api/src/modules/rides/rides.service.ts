@@ -1,9 +1,11 @@
 import {
-  type MeasurementSystem,
+  isQualifyingRide,
+  MileageUnit,
   metersToUnit,
-  mileageUnitLabel,
+  RIDE_END_SOURCE,
   RIDE_MILESTONE_PAYWALL,
   RIDE_STATUS,
+  type RideStatus,
 } from '@motovault/types';
 import {
   BadRequestException,
@@ -21,7 +23,6 @@ import { RIDE_EVENTS } from '../../common/constants/events';
 import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
 import { PG_ERROR, unwrap } from '../../common/supabase/unwrap';
 import { POSTGRES_REAL, QUERY_LIMITS } from '../../config/constants';
-import { computeMovingTimeS } from '../ride-analytics/ride-analytics.utils';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { EndRideInput } from './dto/end-ride.input';
@@ -39,11 +40,44 @@ const MILESTONE_STATS_PAGE_SIZE = 1_000;
 
 interface MilestoneRideRow {
   id: string;
+  status: RideStatus;
+  deleted_at: string | null;
+  auto_ended_reason: string | null;
   distance_m: number | null;
   started_at: string | null;
   ended_at: string | null;
   paused_duration_s: number | null;
   auto_paused_duration_s: number | null;
+}
+
+/**
+ * `rides` columns added by migration 00197. The generated database.types.ts is built
+ * from production and does not carry them until that migration is live, and this
+ * service's client is untyped, so the shape is stated here at the read and write sites.
+ */
+interface RideRecordingColumns {
+  time_zone: string | null;
+  end_source: string | null;
+  purpose: string | null;
+  passenger: boolean | null;
+  track_updated_at: string | null;
+}
+
+/** One row of `ride_track_points()`: the ride's fixes as parallel arrays, oldest first. */
+interface RideTrackPointsRow {
+  total_points: number;
+  recorded_at: string[];
+  latitude: number[];
+  longitude: number[];
+  altitude: Array<number | null>;
+  speed_mps: Array<number | null>;
+  heading: Array<number | null>;
+  accuracy: Array<number | null>;
+}
+
+/** Copy of `patch` without the keys whose value is null or undefined. */
+function presentValues(patch: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(patch).filter(([, value]) => value != null));
 }
 
 /**
@@ -224,7 +258,8 @@ export class RidesService {
         motorcycle_id: input.motorcycleId ?? null,
         status: 'recording',
         started_at: input.startedAt,
-      })
+        time_zone: input.timeZone ?? null,
+      } satisfies Record<string, unknown> & Pick<RideRecordingColumns, 'time_zone'>)
       .select()
       .single();
 
@@ -382,7 +417,8 @@ export class RidesService {
           status: 'completed',
           ended_at: endedAt,
           auto_ended_reason: 'stale_on_start',
-        })
+          end_source: RIDE_END_SOURCE.STALE_ON_START,
+        } satisfies Record<string, unknown> & Pick<RideRecordingColumns, 'end_source'>)
         .eq('id', ride.id)
         // Same race guard as RideIdleService.endIdleRide: a second device can complete
         // this ride while this one starts a new one, and matching on `id` alone would
@@ -430,22 +466,34 @@ export class RidesService {
     // The rider's own end always clears `auto_ended_reason`: if the system had marked
     // this ride, the rider superseding it makes the ride genuinely rider-ended, and
     // the marker would otherwise keep excluding it from personal records forever.
+    // How the client ended it (including the app's own auto-end) goes to `end_source`
+    // instead, which leaves the qualifying set unchanged.
     const endPatch = {
       status: 'completed',
       ended_at: input.endedAt,
-      // Absent when the schema discarded an implausible value: keep what the row has.
-      ...(input.distanceM !== undefined && { distance_m: input.distanceM }),
-      max_speed_mps: input.maxSpeedMps ?? null,
-      avg_speed_mps: input.avgSpeedMps ?? null,
-      elevation_gain: input.elevationGain ?? null,
-      elevation_loss: input.elevationLoss ?? null,
-      route_polyline: input.routePolyline ?? null,
-      gps_quality: input.gpsQuality ?? null,
+      // Each stat is written only when the payload carries it. An app auto-end or a
+      // recovered ride sends a partial payload (or the schema discarded an implausible
+      // value), and nulling the stored stats there lost speed and climb for good.
+      ...presentValues({
+        distance_m: input.distanceM,
+        max_speed_mps: input.maxSpeedMps,
+        avg_speed_mps: input.avgSpeedMps,
+        elevation_gain: input.elevationGain,
+        elevation_loss: input.elevationLoss,
+        route_polyline: input.routePolyline,
+        gps_quality: input.gpsQuality,
+        max_lean_angle: input.maxLeanAngle,
+        purpose: input.purpose,
+        passenger: input.passenger,
+      }),
       paused_duration_s: input.pausedDurationS,
       auto_paused_duration_s: input.autoPausedDurationS,
       auto_ended_reason: null,
-      ...(input.maxLeanAngle != null && { max_lean_angle: input.maxLeanAngle }),
-    };
+      end_source: input.endSource ?? null,
+      // The track is final now, so any stats computed before this are stale.
+      track_updated_at: new Date().toISOString(),
+    } satisfies Record<string, unknown> &
+      Pick<RideRecordingColumns, 'end_source' | 'track_updated_at'>;
 
     const { data, error } = await this.supabase
       .from('rides')
@@ -540,56 +588,17 @@ export class RidesService {
 
     const motorcycleId = claimed?.motorcycle_id;
     const distanceM = claimed?.distance_m ?? 0;
+    const odometerAtEnd = input.odometerAtEnd ?? null;
 
-    if (claimed && motorcycleId && distanceM > 0) {
+    if (claimed && motorcycleId && (odometerAtEnd !== null || distanceM > 0)) {
       try {
-        // Defense-in-depth: filter by user_id alongside RLS
-        const { data: bike } = await this.supabase
-          .from('motorcycles')
-          .select('current_mileage')
-          .eq('id', motorcycleId)
-          .eq('user_id', userId)
-          .single();
+        const newMileage =
+          odometerAtEnd !== null
+            ? await this.applyOdometerAtEnd(userId, input.rideId, motorcycleId, odometerAtEnd)
+            : await this.applyGpsMileage(userId, input.rideId, motorcycleId, distanceM);
 
-        // MOT-140: current_mileage is stored RAW in the user's measurement-system
-        // unit (docs/plans/odometer-unit-normalization.md). Ride distance comes
-        // from GPS in meters, so convert meters → that unit before accumulating.
-        // Use the GLOBAL measurement_system (service-role read), not the
-        // deprecated per-bike mileage_unit. target_mileage below is in the same
-        // raw unit, so the due comparison stays valid.
-        const { data: userRow } = await this.supabaseAdmin
-          .from('users')
-          .select('measurement_system')
-          .eq('id', userId)
-          .single();
-        const system = (userRow?.measurement_system as MeasurementSystem | null) ?? 'metric';
-        const unit = mileageUnitLabel(system);
-        const roundedDelta = Math.round(metersToUnit(distanceM, unit));
-        const newMileage = (bike?.current_mileage ?? 0) + roundedDelta;
-
-        const nowIso = new Date().toISOString();
-
-        await this.supabase
-          .from('motorcycles')
-          .update({
-            current_mileage: newMileage,
-            mileage_updated_at: nowIso,
-            odometer_sync_source: 'gps_ride',
-            odometer_last_ride_id: input.rideId,
-          })
-          .eq('id', motorcycleId)
-          .eq('user_id', userId);
-
-        // NOTE: mileage_applied was already claimed above, so a failure in this
-        // block leaves it true — the ride won't re-sync on retry. A missed
-        // odometer update is rare and user-correctable via manual edit; this is
-        // the deliberate trade for race-free exactly-once application.
-        this.logger.log(
-          `Odometer sync: +${roundedDelta}${unit} to motorcycle ${motorcycleId} (total: ${newMileage}${unit}, ride=${input.rideId})`,
-        );
-
-        // Check for maintenance tasks that are now due. target_mileage and
-        // current_mileage are both in the same raw user unit, so this is valid.
+        // Check for maintenance tasks that are now due. target_mileage and the new
+        // reading are both in the bike's raw unit, so this is valid.
         const { data: dueTasks } = await this.supabase
           .from('maintenance_tasks')
           .select('id, title, priority')
@@ -605,6 +614,10 @@ export class RidesService {
           );
         }
       } catch (mileageError) {
+        // NOTE: mileage_applied was already claimed above, so a failure here leaves it
+        // true — the ride won't re-sync on retry. A missed odometer update is rare and
+        // user-correctable via manual edit; this is the deliberate trade for race-free
+        // exactly-once application.
         const msg = mileageError instanceof Error ? mileageError.message : String(mileageError);
         this.logger.warn(`Failed to apply mileage: ${msg}`);
         // Non-fatal — ride is already saved
@@ -621,6 +634,82 @@ export class RidesService {
     return { ride, triggeredMaintenanceTasks };
   }
 
+  /** The bike's odometer unit; `current_mileage` and odometer readings are raw in it. */
+  private async readBikeOdometer(
+    userId: string,
+    motorcycleId: string,
+  ): Promise<{ currentMileage: number; unit: MileageUnit }> {
+    // Defense-in-depth: filter by user_id alongside RLS
+    const { data: bike } = await this.supabase
+      .from('motorcycles')
+      .select('current_mileage, distance_unit')
+      .eq('id', motorcycleId)
+      .eq('user_id', userId)
+      .single();
+    return {
+      currentMileage: (bike?.current_mileage as number | null) ?? 0,
+      unit: bike?.distance_unit === MileageUnit.MI ? MileageUnit.MI : MileageUnit.KM,
+    };
+  }
+
+  /**
+   * The rider read the odometer at the end: log that reading instead of adding the
+   * GPS distance. The value is in the bike's unit, so it is passed with that unit and
+   * the RPC stores it as is. The RPC returns the existing reading on a replay.
+   */
+  private async applyOdometerAtEnd(
+    userId: string,
+    rideId: string,
+    motorcycleId: string,
+    value: number,
+  ): Promise<number> {
+    const { unit } = await this.readBikeOdometer(userId, motorcycleId);
+    const { error } = await this.supabase.rpc('log_ride_end_odometer', {
+      p_ride_id: rideId,
+      p_value: value,
+      p_unit: unit,
+    });
+    if (error) {
+      throw new Error(`log_ride_end_odometer failed: ${error.message} (${error.code})`);
+    }
+    this.logger.log(
+      `Odometer at end: ${value}${unit} on motorcycle ${motorcycleId} (ride=${rideId})`,
+    );
+    return value;
+  }
+
+  /**
+   * Add the ride's GPS distance to the bike's odometer. `current_mileage` is stored
+   * RAW in the bike's `distance_unit` (00180), and ride distance is metres, so the
+   * delta is converted into that unit before accumulating.
+   */
+  private async applyGpsMileage(
+    userId: string,
+    rideId: string,
+    motorcycleId: string,
+    distanceM: number,
+  ): Promise<number> {
+    const { currentMileage, unit } = await this.readBikeOdometer(userId, motorcycleId);
+    const roundedDelta = Math.round(metersToUnit(distanceM, unit));
+    const newMileage = currentMileage + roundedDelta;
+
+    await this.supabase
+      .from('motorcycles')
+      .update({
+        current_mileage: newMileage,
+        mileage_updated_at: new Date().toISOString(),
+        odometer_sync_source: 'gps_ride',
+        odometer_last_ride_id: rideId,
+      })
+      .eq('id', motorcycleId)
+      .eq('user_id', userId);
+
+    this.logger.log(
+      `Odometer sync: +${roundedDelta}${unit} to motorcycle ${motorcycleId} (total: ${newMileage}${unit}, ride=${rideId})`,
+    );
+    return newMileage;
+  }
+
   async uploadWaypoints(userId: string, input: UploadWaypointsInput): Promise<number> {
     this.logger.log(
       `uploadWaypoints: userId=${userId}, rideId=${input.rideId}, count=${input.waypoints.length}`,
@@ -629,7 +718,7 @@ export class RidesService {
     // Verify ride ownership
     const { data: ride, error: rideError } = await this.supabase
       .from('rides')
-      .select('id')
+      .select('id, status')
       .eq('id', input.rideId)
       .eq('user_id', userId)
       .in('status', ['recording', 'paused', 'completed'])
@@ -711,7 +800,32 @@ export class RidesService {
       this.throwWaypointUploadError(error, input);
     }
 
+    if ((ride as { status?: string }).status === RIDE_STATUS.COMPLETED) {
+      await this.markTrackUpdated(userId, input.rideId);
+    }
+
     return accepted.length;
+  }
+
+  /**
+   * A waypoint batch landed after the ride ended (the queue drains late, or the
+   * rider came back to a system-ended ride), so stats computed from the shorter track
+   * are stale. Logged rather than thrown: the waypoints are already stored, and a
+   * retry of this upload would store nothing new and so never reach this point.
+   */
+  private async markTrackUpdated(userId: string, rideId: string): Promise<void> {
+    const { error } = await this.supabase
+      .from('rides')
+      .update({
+        track_updated_at: new Date().toISOString(),
+      } satisfies Pick<RideRecordingColumns, 'track_updated_at'>)
+      .eq('id', rideId)
+      .eq('user_id', userId);
+    if (error) {
+      this.logger.error(
+        `uploadWaypoints: track_updated_at bump failed for completed ride ${rideId}: ${error.message} (${error.code})`,
+      );
+    }
   }
 
   /**
@@ -800,6 +914,9 @@ export class RidesService {
       updates.is_public = input.isPublic;
       updates.visibility = input.isPublic ? 'public' : 'private';
     }
+    // Explicit null clears an answer the rider gave earlier.
+    if (input.purpose !== undefined) updates.purpose = input.purpose;
+    if (input.passenger !== undefined) updates.passenger = input.passenger;
 
     const { data, error } = await this.supabase
       .from('rides')
@@ -1043,38 +1160,42 @@ export class RidesService {
       throw new NotFoundException('Ride not found');
     }
 
-    // Fetch waypoints ordered by time, filter poor accuracy
-    const { data, error } = await this.supabase
-      .from('ride_waypoints')
-      .select('recorded_at, latitude, longitude, altitude, speed_mps, accuracy')
-      .eq('ride_id', rideId)
-      .or(`accuracy.is.null,accuracy.lte.${QUERY_LIMITS.WAYPOINT_ACCURACY_THRESHOLD}`)
-      .order('recorded_at', { ascending: true })
-      .limit(QUERY_LIMITS.MAX_WAYPOINTS_PER_RIDE);
+    // The whole track in one row of arrays: a plain select stops at PostgREST's row
+    // cap, which cut every long ride to its first 1,000 fixes before sampling.
+    const { data, error } = await this.supabase.rpc('ride_track_points', {
+      p_ride_id: rideId,
+      p_max_points: null,
+    });
 
     if (error) {
       this.logger.error(`findWaypoints failed: ${error.message} (${error.code})`);
       throw new InternalServerErrorException('Failed to fetch waypoints');
     }
 
-    const rows = data ?? [];
+    const track = ((data ?? []) as RideTrackPointsRow[])[0];
+    if (!track) return [];
+
+    // Drop poor-accuracy fixes, then sample evenly across the whole ride.
+    const rows = track.recorded_at
+      .map((recordedAt, i) => ({
+        recordedAt,
+        latitude: track.latitude[i],
+        longitude: track.longitude[i],
+        altitude: track.altitude[i] ?? undefined,
+        speedMps: track.speed_mps[i] ?? undefined,
+        accuracy: track.accuracy[i] ?? undefined,
+      }))
+      .filter(
+        (row) =>
+          row.accuracy === undefined || row.accuracy <= QUERY_LIMITS.WAYPOINT_ACCURACY_THRESHOLD,
+      );
     if (rows.length === 0) return [];
 
-    // Server-side downsampling
     const limit = Math.min(
       Math.max(maxPoints ?? QUERY_LIMITS.WAYPOINT_QUERY_DEFAULT, 2),
       QUERY_LIMITS.WAYPOINT_QUERY_MAX,
     );
-    const sampled = rows.length <= limit ? rows : this.downsample(rows, limit);
-
-    return sampled.map((row) => ({
-      recordedAt: row.recorded_at as string,
-      latitude: row.latitude as number,
-      longitude: row.longitude as number,
-      altitude: (row.altitude as number) ?? undefined,
-      speedMps: (row.speed_mps as number) ?? undefined,
-      accuracy: (row.accuracy as number) ?? undefined,
-    }));
+    return rows.length <= limit ? rows : this.downsample(rows, limit);
   }
 
   private downsample<T>(rows: T[], maxPoints: number): T[] {
@@ -1124,15 +1245,20 @@ export class RidesService {
       visibility,
       region: (row.region as string) ?? undefined,
       routeThumbnailUri: (row.route_thumbnail_uri as string) ?? undefined,
+      timeZone: (row.time_zone as RideRecordingColumns['time_zone']) ?? undefined,
+      endSource: (row.end_source as RideRecordingColumns['end_source']) ?? undefined,
+      purpose: (row.purpose as RideRecordingColumns['purpose']) ?? undefined,
+      passenger: (row.passenger as RideRecordingColumns['passenger']) ?? undefined,
       createdAt: row.created_at as string,
       updatedAt: row.updated_at as string,
     };
   }
 
   /**
-   * Qualifying rides for the ride-moment paywall teaser (plan R1): completed by
-   * the rider, not deleted, at least 1 km and 3 minutes of moving time, and not
-   * ended by the system. User client, so RLS scopes the read. `excludeRideId`
+   * Qualifying rides for the ride-moment paywall teaser, by the shared
+   * `isQualifyingRide` rule: completed, not deleted, not ended by the server, at
+   * least 1 km and 3 minutes after pauses. The query pre-filters on the same
+   * columns so only candidates are paged in. User client, so RLS scopes the read. `excludeRideId`
    * leaves out the ride whose summary is open: the phone adds it back from local
    * data, so the count is right even while that ride's end is still queued.
    */
@@ -1146,7 +1272,9 @@ export class RidesService {
     for (let from = 0; ; from += MILESTONE_STATS_PAGE_SIZE) {
       let query = this.supabase
         .from('rides')
-        .select('id, distance_m, started_at, ended_at, paused_duration_s, auto_paused_duration_s')
+        .select(
+          'id, status, deleted_at, auto_ended_reason, distance_m, started_at, ended_at, paused_duration_s, auto_paused_duration_s',
+        )
         .eq('user_id', userId)
         .eq('status', 'completed')
         .is('deleted_at', null)
@@ -1165,16 +1293,17 @@ export class RidesService {
       if ((data ?? []).length < MILESTONE_STATS_PAGE_SIZE) break;
     }
 
-    const qualifying = rows.filter(
-      (row) =>
-        row.started_at &&
-        row.ended_at &&
-        computeMovingTimeS(
-          row.started_at,
-          row.ended_at,
-          row.paused_duration_s ?? 0,
-          row.auto_paused_duration_s ?? 0,
-        ) >= RIDE_MILESTONE_PAYWALL.QUALIFYING_MIN_MOVING_S,
+    const qualifying = rows.filter((row) =>
+      isQualifyingRide({
+        status: row.status,
+        deletedAt: row.deleted_at,
+        autoEndedReason: row.auto_ended_reason,
+        distanceM: row.distance_m,
+        startedAt: row.started_at,
+        endedAt: row.ended_at,
+        pausedDurationS: row.paused_duration_s,
+        autoPausedDurationS: row.auto_paused_duration_s,
+      }),
     );
     return {
       qualifyingRideCount: qualifying.length,
