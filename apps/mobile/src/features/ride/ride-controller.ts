@@ -121,7 +121,22 @@ async function resolvePrimaryMotorcycleId(): Promise<string | null> {
  * GPS listener. Returns the new ride id, or `{ ok: false, reason: 'denied' }` when
  * location permission is refused (the caller surfaces the UI).
  */
-export async function startRideSession({
+// The start in progress, if any. A start awaits permission (on the phone that can
+// be an OS dialog open for seconds), location quality and the primary bike before
+// it mints the ride, so a second Start from the other surface in that window must
+// join this one instead of minting a second ride over it.
+let startInFlight: Promise<RideStartResult> | null = null;
+
+export function startRideSession(options: StartRideOptions): Promise<RideStartResult> {
+  if (!startInFlight) {
+    startInFlight = runStartRideSession(options).finally(() => {
+      startInFlight = null;
+    });
+  }
+  return startInFlight;
+}
+
+async function runStartRideSession({
   motorcycleId,
   source,
   motorcycleMake = null,
@@ -410,21 +425,27 @@ const SUMMARY_NUMBER_FIELDS = [
   'movingTimeS',
 ] as const satisfies readonly (keyof RideEndSummary)[];
 
+/** An ended ride's summary as stored for its review. */
+export interface StoredRideSummary extends RideEndSummary {
+  /** Ended from crash recovery, not by the rider's Stop (see buildRideSummaryHref). */
+  recovered?: boolean;
+}
+
 /**
  * The summary of the current ride when it has ended but is not yet saved or
  * discarded — what "Review" reopens. Null for any other state, or when the
  * stored summary is unreadable (a review then cannot be rebuilt).
  */
-export function readEndedRideSummary(): RideEndSummary | null {
+export function readEndedRideSummary(): StoredRideSummary | null {
   const record = readRideRecord();
   if (record?.phase !== RIDE_PHASE.ENDED) return null;
   const json = rideMMKV.getEndedSummaryJson();
   if (!json) return null;
   try {
-    const parsed = JSON.parse(json) as Partial<RideEndSummary>;
+    const parsed = JSON.parse(json) as Partial<StoredRideSummary>;
     if (parsed.rideId !== record.rideId) return null;
     if (!SUMMARY_NUMBER_FIELDS.every((field) => typeof parsed[field] === 'number')) return null;
-    return parsed as RideEndSummary;
+    return parsed as StoredRideSummary;
   } catch {
     return null;
   }
@@ -458,6 +479,7 @@ export async function resumeRecoveredRide(): Promise<boolean> {
     captureException(err, { source: 'ride-controller.resumeRecoveredRide' });
     return false;
   }
+  useRideStore.setState({ recordingInterrupted: false });
   if (record.phase === RIDE_PHASE.RECORDING) void armRideReminders();
   trackEvent(AnalyticsEvent.RIDE_STARTED, {
     ride_id: record.rideId,
@@ -508,5 +530,10 @@ export function buildRideSummaryHref(
  */
 export function endRecoveredRide(): Href | null {
   const summary = endRideSession('phone', { endAt: rideEndTrimTarget() });
-  return summary ? buildRideSummaryHref(summary, { recovered: true }) : null;
+  if (!summary) return null;
+  // Kept with the ride, so a review reopened after another kill is still
+  // evaluated as recovered.
+  const stored: StoredRideSummary = { ...summary, recovered: true };
+  rideMMKV.setEndedSummaryJson(JSON.stringify(stored));
+  return buildRideSummaryHref(summary, { recovered: true });
 }

@@ -127,7 +127,7 @@ jest.mock('@/stores/ride.store', () => {
     isNightMode: false,
     isBatterySaver: false,
   };
-  return { useRideStore: { getState: () => store } };
+  return { useRideStore: { getState: () => store, setState: jest.fn() } };
 });
 jest.mock('expo-crypto', () => ({ randomUUID: () => 'ride-uuid-1' }));
 jest.mock('expo-haptics', () => ({
@@ -601,6 +601,43 @@ describe('one persisted ride — start, end, review', () => {
     expect(armReminders).toHaveBeenCalledTimes(1);
     // Never through store.startRide(), which zeroes distance and top speed.
     expect(store.startRide).not.toHaveBeenCalled();
+  });
+
+  it('a resumed ride is confirmed recording (no longer interrupted)', async () => {
+    mmkvState.currentId = 'ride-open';
+    mmkvState.status = 'recording';
+    await resumeRecoveredRide();
+    expect(useRideStore.setState).toHaveBeenCalledWith({ recordingInterrupted: false });
+  });
+
+  it('two overlapping starts (phone + CarPlay) mint one ride, not two', async () => {
+    let releasePermission!: (level: string) => void;
+    checkPerms.mockReturnValueOnce(
+      new Promise((resolve) => {
+        releasePermission = resolve;
+      }),
+    );
+    const phone = startRideSession({ motorcycleId: 'bike-1', source: 'phone' });
+    const carplay = startRideSession({ motorcycleId: null, source: 'carplay' });
+    releasePermission('full');
+    const [a, b] = await Promise.all([phone, carplay]);
+    expect(a).toEqual(b);
+    expect(rideMMKV.setCurrentId).toHaveBeenCalledTimes(1);
+    expect(enqueue.mock.calls.filter(([op]) => op === 'startRide')).toHaveLength(1);
+  });
+
+  it('a later start is a fresh start once the first has settled', async () => {
+    await startRideSession({ motorcycleId: 'bike-1', source: 'phone' });
+    mmkvState.currentId = '';
+    await startRideSession({ motorcycleId: 'bike-1', source: 'phone' });
+    expect(rideMMKV.setCurrentId).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps the recovered flag with a recovered ride, so its review stays recovered', () => {
+    mmkvState.currentId = 'ride-7';
+    mmkvState.startedAt = Date.now() - 60_000;
+    endRecoveredRide();
+    expect(readEndedRideSummary()?.recovered).toBe(true);
   });
 
   it('never resumes an ended ride — the server has already completed it', async () => {

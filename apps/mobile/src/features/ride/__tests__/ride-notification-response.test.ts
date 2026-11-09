@@ -5,7 +5,7 @@ jest.mock('@/lib/notifications', () => ({
   NOTIFICATION_ACTION: { END_RIDE: 'END_RIDE', KEEP_RIDING: 'KEEP_RIDING' },
 }));
 jest.mock('@/stores/ride.store', () => {
-  const store = { status: 'recording' as string };
+  const store = { status: 'recording' as string, recordingInterrupted: false };
   return { useRideStore: { getState: () => store } };
 });
 jest.mock('@/utils/ride-storage', () => {
@@ -49,6 +49,7 @@ beforeEach(() => {
   __resetRideIdleResponsesForTest();
   state.currentId = 'ride-1';
   store.status = 'recording';
+  (store as { recordingInterrupted: boolean }).recordingInterrupted = false;
 });
 
 it('"End ride" ends the ride trimmed to the last movement and opens the summary', () => {
@@ -65,6 +66,20 @@ it('a plain tap never ends the ride — it opens the live HUD', () => {
 
 it('after an app kill a plain tap opens Start Ride, which offers Resume / End', () => {
   store.status = 'idle';
+  expect(handleRideIdleResponse(key(), DEFAULT_TAP, { rideId: 'ride-1' })).toBe(
+    '/(modals)/start-ride',
+  );
+});
+
+it('a plain tap on an open ride whose GPS is not confirmed opens Start Ride (Resume / End)', () => {
+  (store as { recordingInterrupted: boolean }).recordingInterrupted = true;
+  expect(handleRideIdleResponse(key(), DEFAULT_TAP, { rideId: 'ride-1' })).toBe(
+    '/(modals)/start-ride',
+  );
+});
+
+it('a plain tap on an ended ride opens Start Ride, where it is reviewed', () => {
+  store.status = 'ended';
   expect(handleRideIdleResponse(key(), DEFAULT_TAP, { rideId: 'ride-1' })).toBe(
     '/(modals)/start-ride',
   );

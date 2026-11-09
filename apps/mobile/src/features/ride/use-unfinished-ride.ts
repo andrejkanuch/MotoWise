@@ -7,6 +7,7 @@ import {
   clearCurrentRide,
   RIDE_PHASE,
   type RidePhase,
+  type RideRecord,
   readRideRecord,
 } from '../../utils/ride-storage';
 import {
@@ -35,27 +36,40 @@ export interface UnfinishedRide {
  */
 export function useUnfinishedRide(): UnfinishedRide {
   const router = useRouter();
-  const [phase, setPhase] = useState<RidePhase | null>(null);
+  // The ride the banner shows. Actions act on THIS ride only: a ride started on
+  // CarPlay after the banner rendered must never be ended (or resumed) from it.
+  const [shown, setShown] = useState<RideRecord | null>(null);
 
   useEffect(() => {
-    setPhase(readRideRecord()?.phase ?? null);
+    setShown(readRideRecord());
   }, []);
 
+  /** The current record if it is still the ride and phase the banner shows. */
+  const stillShown = useCallback((): RideRecord | null => {
+    const record = readRideRecord();
+    if (record && shown && record.rideId === shown.rideId && record.phase === shown.phase) {
+      return record;
+    }
+    setShown(record); // moved on: show what is there now, act on nothing
+    return null;
+  }, [shown]);
+
   const resume = useCallback(() => {
+    if (!stillShown()) return;
     void resumeRecoveredRide().then((resumed) => {
       if (resumed) router.replace('/(modals)/ride-hud');
     });
-  }, [router]);
+  }, [router, stillShown]);
 
   const finish = useCallback(() => {
-    const record = readRideRecord();
-    setPhase(null);
+    const record = stillShown();
     if (!record) return;
+    setShown(null);
 
     if (record.phase === RIDE_PHASE.ENDED) {
       const summary = readEndedRideSummary();
       if (summary) {
-        router.replace(buildRideSummaryHref(summary));
+        router.replace(buildRideSummaryHref(summary, { recovered: summary.recovered === true }));
         return;
       }
       // Its summary is unreadable, so there is nothing to review; the ride itself
@@ -75,8 +89,9 @@ export function useUnfinishedRide(): UnfinishedRide {
     void cancelRideReminders();
     clearCurrentRide();
     useRideStore.getState().hydrate();
-  }, [router]);
+  }, [router, stillShown]);
 
+  const phase = shown?.phase ?? null;
   return {
     phase,
     canResume: phase === RIDE_PHASE.RECORDING || phase === RIDE_PHASE.PAUSED,

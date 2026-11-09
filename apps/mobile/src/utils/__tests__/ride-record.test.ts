@@ -39,7 +39,7 @@ beforeEach(() => {
   for (const key of Object.values(RIDE_KEYS)) rideStorage.remove(key);
   clearRideData('ride-a');
   clearRideData('ride-b');
-  useRideStore.setState({ status: 'idle', distance: 0, maxSpeed: 0 });
+  useRideStore.setState({ status: 'idle', distance: 0, maxSpeed: 0, recordingInterrupted: false });
 });
 
 describe('readRideRecord', () => {
@@ -108,13 +108,24 @@ describe('useRideStore.hydrate — the store as a projection of the persisted ri
     expect(state.maxSpeed).toBe(10 + CHUNK_SIZE + 4); // includes the partial buffer
   });
 
+  it('marks a ride the process never saw start as not confirmed recording', () => {
+    rideMMKV.setCurrentId('ride-a');
+    rideMMKV.setStatus('recording');
+    useRideStore.getState().hydrate();
+    expect(useRideStore.getState().recordingInterrupted).toBe(true);
+  });
+
   it('never resets the live totals of a ride this process is recording', () => {
     rideMMKV.setCurrentId('ride-a');
     rideMMKV.setStatus('recording');
     storeWaypoints('ride-a', 2);
     useRideStore.setState({ status: 'recording', distance: 12_345, maxSpeed: 40 });
     useRideStore.getState().hydrate();
-    expect(useRideStore.getState()).toMatchObject({ distance: 12_345, maxSpeed: 40 });
+    expect(useRideStore.getState()).toMatchObject({
+      distance: 12_345,
+      maxSpeed: 40,
+      recordingInterrupted: false,
+    });
   });
 
   it('goes back to idle once the ride is gone (saved, discarded, auto-ended)', () => {

@@ -27,6 +27,12 @@ interface RideState {
    *  is dead and the ride is no longer recording. Separate from `permissionLevel`
    *  on purpose: that one is never persisted, so hydrate() always reads 'denied'. */
   gpsPermissionLost: boolean;
+  /**
+   * The ride is open (recording or paused) but this process has not confirmed
+   * the GPS task is running — it was relaunched after a kill. Entry points then
+   * lead to Start Ride (Resume / End) instead of a HUD that records nothing.
+   */
+  recordingInterrupted: boolean;
   startRide: () => void;
   pauseRide: () => void;
   resumeRide: () => void;
@@ -73,11 +79,13 @@ export const useRideStore = create<RideState>()((set) => ({
   isBatterySaver: false,
   permissionLevel: 'denied',
   gpsPermissionLost: false,
+  recordingInterrupted: false,
   startRide: () =>
     set({
       status: 'recording',
       ...INITIAL_STATS,
       recordingSubState: 'moving',
+      recordingInterrupted: false,
       // startGPSListener always starts at full accuracy; a previous ride's
       // switch must not show ON over it.
       isBatterySaver: false,
@@ -129,6 +137,7 @@ export const useRideStore = create<RideState>()((set) => ({
               ...INITIAL_STATS,
               recordingSubState: 'moving',
               gpsPermissionLost: false,
+              recordingInterrupted: false,
             },
       );
       return;
@@ -146,14 +155,18 @@ export const useRideStore = create<RideState>()((set) => ({
       // Coming back to a ride this process did not see start (killed, relaunched):
       // seed the totals from what was recorded, so the HUD shows the distance
       // already covered instead of 0. A live process keeps its own, newer stats.
-      if (state.status !== 'idle' || record.phase === RIDE_PHASE.ENDED) return next;
+      if (record.phase === RIDE_PHASE.ENDED) return { ...next, recordingInterrupted: false };
+      if (state.status !== 'idle') return next;
+      // Elevation is not seeded: the HUD's climb comes from the GPS filter's own
+      // running totals, which restart at 0 with the listener, so a seeded value
+      // would be overwritten by the first fix anyway.
       const totals = aggregateWaypoints(readStoredWaypoints(record.rideId));
       return {
         ...next,
         distance: totals.distanceM,
         maxSpeed: totals.maxSpeedMps,
-        elevationGain: totals.elevationGain,
-        elevationLoss: totals.elevationLoss,
+        // Unconfirmed until ride-entry (or a resume) sees the GPS task running.
+        recordingInterrupted: true,
       };
     });
   },

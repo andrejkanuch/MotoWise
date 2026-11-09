@@ -23,11 +23,11 @@ import { ThemedSegmentedControl } from '@/components/ui/themed-segmented-control
 import { HOME_ROUTE } from '@/config/routes';
 import { ReceiptScanRecoveryCard } from '@/features/receipt-scan/receipt-scan-recovery-card';
 import { SCAN_ENTRY_SURFACE } from '@/features/receipt-scan/scan-flow-constants';
+import { useRideRoute } from '@/features/ride/ride-route';
 import { useMileageUnit } from '@/hooks/use-mileage-unit';
 import { useProGate } from '@/hooks/use-pro-gate';
 import { useTabBarClearance } from '@/hooks/use-tab-bar-clearance';
 import { BIKE_ORIGIN, BIKE_SEGMENT } from '@/lib/bike-hub/constants';
-import { useRideStore } from '@/stores/ride.store';
 import { useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, space } from '@/theme/spacing';
 import { radius, readableWidth, type } from '@/theme/type';
@@ -44,9 +44,6 @@ const HOME_ACTION = {
   DIAGNOSE: 'diagnose',
 } as const;
 
-/** A ride in these states is resumed in the HUD instead of starting a new one. */
-const ACTIVE_RIDE_STATUSES: ReadonlySet<string> = new Set(['recording', 'paused']);
-
 const AVATAR_SIZE = 44;
 const TITLE_MAX_FONT_SCALE = 1.6;
 const PLATE_NUMBER_DIGITS = 2;
@@ -60,7 +57,7 @@ export default function HomeScreen() {
   const mileageUnit = useMileageUnit();
   const { requireAccess } = useProGate();
   const bottomPadding = useTabBarClearance();
-  const rideStatus = useRideStore((s) => s.status);
+  const rideRoute = useRideRoute();
 
   const {
     isLoading,
@@ -133,10 +130,7 @@ export default function HomeScreen() {
           icon: Route,
           label: t('common.ride'),
           testID: 'home-action-ride',
-          onPress: () =>
-            router.push(
-              ACTIVE_RIDE_STATUSES.has(rideStatus) ? '/(modals)/ride-hud' : '/(modals)/start-ride',
-            ),
+          onPress: () => router.push(rideRoute),
         },
         {
           key: HOME_ACTION.EXPENSE,
