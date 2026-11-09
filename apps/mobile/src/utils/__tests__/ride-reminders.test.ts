@@ -89,6 +89,8 @@ beforeEach(() => {
   state.reminderIds = [];
   store.status = 'recording';
   permissions.mockResolvedValue({ status: 'granted' });
+  // clearAllMocks keeps implementations; undo a test's throwing override.
+  (Notifications.dismissNotificationAsync as jest.Mock).mockImplementation(() => Promise.resolve());
 });
 
 afterEach(() => {
