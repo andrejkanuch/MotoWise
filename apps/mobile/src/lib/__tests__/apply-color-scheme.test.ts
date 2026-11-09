@@ -3,14 +3,10 @@
 // MOTO-VAULT-REACT-NATIVE-43: RCTAppearance asks the CarPlay scene for
 // `windows` and the app dies), and it must not re-apply an unchanged value.
 
-const mockSetColorScheme = jest.fn();
 let mockConnected = false;
 let mockDisconnect: (() => void) | null = null;
 const mockRemove = jest.fn();
 
-jest.mock('react-native', () => ({
-  Appearance: { setColorScheme: (scheme: string) => mockSetColorScheme(scheme) },
-}));
 jest.mock('../../../modules/carplay/src', () => ({
   isHeadUnitConnected: () => mockConnected,
   addDisconnectListener: (listener: () => void) => {
@@ -19,7 +15,10 @@ jest.mock('../../../modules/carplay/src', () => ({
   },
 }));
 
+import { Appearance } from 'react-native';
 import { applyColorScheme, resetAppliedColorSchemeForTests } from '../apply-color-scheme';
+
+const mockSetColorScheme = jest.spyOn(Appearance, 'setColorScheme').mockImplementation(() => {});
 
 function disconnectCarPlay() {
   mockConnected = false;
