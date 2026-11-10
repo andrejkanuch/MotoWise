@@ -23,6 +23,7 @@ import {
   MutationCache,
   onlineManager,
   QueryClient,
+  QueryObserver,
 } from '@tanstack/react-query';
 import type { PersistedClient } from '@tanstack/react-query-persist-client';
 import {
@@ -147,5 +148,78 @@ describe('restoring a cache written before the fix', () => {
 
     await expect(queryPersister.restoreClient()).resolves.toBeUndefined();
     expect(mockStorage.has('offline-cache-v1')).toBe(false);
+  });
+});
+
+describe('the Rider insights entry', () => {
+  const INSIGHTS_KEY = ['rides', 'insights', 'Europe/Madrid'] as const;
+  const ROUTE = '_p~iF~ps|U_ulLnnqC_mqNvxq`@';
+  const insights = {
+    riderInsights: {
+      totals: { rides: 36, distanceM: 2_507_000, countries: 2 },
+      regions: [{ key: 'ES.27', bounds: [-3.1, 42, -1.7, 42.6], routes: [ROUTE] }],
+    },
+  };
+
+  it('is persisted for offline cold starts, written without its encoded routes', async () => {
+    const client = newClient();
+    client.setQueryData(INSIGHTS_KEY, insights);
+    const clientState = dehydrate(client, { shouldDehydrateQuery: shouldDehydratePersistedQuery });
+    expect(clientState.queries.map((q) => q.queryKey)).toEqual([INSIGHTS_KEY]);
+
+    await queryPersister.persistClient(persistedClientFrom(clientState));
+
+    const written = mockStorage.get('offline-cache-v1') ?? '';
+    expect(written).not.toContain(ROUTE);
+    const restored = await queryPersister.restoreClient();
+    expect(restored?.clientState.queries[0].state.data).toEqual({
+      riderInsights: {
+        totals: insights.riderInsights.totals,
+        regions: [{ key: 'ES.27', bounds: [-3.1, 42, -1.7, 42.6], routes: [] }],
+      },
+    });
+    // The live cache keeps its routes; only the disk copy goes without.
+    expect(client.getQueryData(INSIGHTS_KEY)).toEqual(insights);
+  });
+
+  it('is restored stale, so a relaunch inside the stale window refetches the routes', async () => {
+    const client = newClient();
+    client.setQueryData(INSIGHTS_KEY, insights);
+    client.setQueryData(PERSISTED_QUERY_KEY, [{ id: 'bike-1' }]);
+    const clientState = dehydrate(client, { shouldDehydrateQuery: shouldDehydratePersistedQuery });
+    await queryPersister.persistClient(persistedClientFrom(clientState));
+
+    const restarted = newClient();
+    const restored = await queryPersister.restoreClient();
+    if (!restored) throw new Error('expected a restored client');
+    hydrate(restarted, restored.clientState);
+
+    const STALE_TIME_MS = 5 * 60_000;
+    expect(restarted.getQueryState(INSIGHTS_KEY)?.dataUpdatedAt).toBe(0);
+    expect(
+      restarted.getQueryCache().find({ queryKey: INSIGHTS_KEY })?.isStaleByTime(STALE_TIME_MS),
+    ).toBe(true);
+    // Only the stripped entry: the others keep the time they were fetched.
+    expect(restarted.getQueryState(PERSISTED_QUERY_KEY)?.dataUpdatedAt).toBeGreaterThan(0);
+
+    const queryFn = jest.fn().mockResolvedValue(insights);
+    const observer = new QueryObserver(restarted, {
+      queryKey: INSIGHTS_KEY,
+      queryFn,
+      staleTime: STALE_TIME_MS,
+    });
+    const unsubscribe = observer.subscribe(() => {});
+    await jest.advanceTimersByTimeAsync(10);
+    unsubscribe();
+
+    expect(queryFn).toHaveBeenCalledTimes(1);
+    expect(restarted.getQueryData(INSIGHTS_KEY)).toEqual(insights);
+  });
+
+  it('still leaves ride detail out of the persisted cache', () => {
+    const client = newClient();
+    client.setQueryData(['rides', 'detail', 'ride-1'], { id: 'ride-1' });
+    const state = dehydrate(client, { shouldDehydrateQuery: shouldDehydratePersistedQuery });
+    expect(state.queries).toEqual([]);
   });
 });

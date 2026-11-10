@@ -11,9 +11,16 @@ export const TAB_ROUTE = {
   PROFILE: '/(tabs)/(profile)',
 } as const;
 
-/** Home sub-routes: Home's own copies of garage sheets, so they close back to Home. */
+/**
+ * Home sub-routes: Home's own copies of garage sheets, so they close back to
+ * Home, and of Rider insights, so its back button returns to Home.
+ */
 export const HOME_ROUTE = {
   ADD_BIKE: '/(tabs)/(home)/add-bike',
+  /** Under `home/` so its URL never collides with Profile's: links keep opening Profile's copy. */
+  RIDER_INSIGHTS: '/(tabs)/(home)/home/rider-insights',
+  RIDER_INSIGHTS_DETAIL: '/(tabs)/(home)/home/rider-insights/[group]',
+  RIDER_INSIGHTS_RECAP: '/(tabs)/(home)/home/rider-insights/recap',
 } as const;
 
 /** Garage sub-routes */
@@ -36,7 +43,14 @@ export const PROFILE_ROUTE = {
   RIDES: '/(tabs)/(profile)/rides',
   TRIPS: '/(tabs)/(profile)/trips',
   SAVED: '/(tabs)/(profile)/saved',
+  /** Old "Roads I've ridden" screen; redirects to Rider insights. */
   HEATMAP: '/(tabs)/(profile)/heatmap',
+  /** Rider insights; pass `{ entry: RiderInsightsEntry }`. */
+  RIDER_INSIGHTS: '/(tabs)/(profile)/rider-insights',
+  /** One insight on its own page; pass `{ group: RiderInsightsDetailGroup }`. */
+  RIDER_INSIGHTS_DETAIL: '/(tabs)/(profile)/rider-insights/[group]',
+  /** The season recap: seven story cards to keep or post. */
+  RIDER_INSIGHTS_RECAP: '/(tabs)/(profile)/rider-insights/recap',
   APP_SETTINGS: '/(tabs)/(profile)/app-settings',
   /** Pushed single-choice list for one app setting; pass `{ key: AppPreferenceKey }`. */
   PREFERENCE: '/(tabs)/(profile)/preference/[key]',
@@ -53,3 +67,56 @@ export const PROFILE_ROUTE = {
   /** Follower / following lists; pass `{ userId, tab?: FollowListTab }`. */
   FOLLOWERS: '/(tabs)/(profile)/rider/followers',
 } as const;
+
+/** Where Rider insights was opened from; sent as the `entry` route param and on the open event. */
+export const RIDER_INSIGHTS_ENTRY = {
+  HOME: 'home',
+  MY_RIDES: 'my_rides',
+  PROFILE: 'profile',
+  RIDE_SUMMARY: 'ride_summary',
+  /** The old heatmap route, kept as a redirect for links and deep links. */
+  LEGACY_HEATMAP: 'legacy_heatmap',
+  /** No entry param (a deep link or a route not yet passing one). */
+  UNKNOWN: 'unknown',
+} as const;
+
+export type RiderInsightsEntry = (typeof RIDER_INSIGHTS_ENTRY)[keyof typeof RIDER_INSIGHTS_ENTRY];
+
+/** The tab stacks that hold a copy of Rider insights and its pages. */
+export const RIDER_INSIGHTS_STACK = {
+  HOME: {
+    MAIN: HOME_ROUTE.RIDER_INSIGHTS,
+    DETAIL: HOME_ROUTE.RIDER_INSIGHTS_DETAIL,
+    RECAP: HOME_ROUTE.RIDER_INSIGHTS_RECAP,
+  },
+  PROFILE: {
+    MAIN: PROFILE_ROUTE.RIDER_INSIGHTS,
+    DETAIL: PROFILE_ROUTE.RIDER_INSIGHTS_DETAIL,
+    RECAP: PROFILE_ROUTE.RIDER_INSIGHTS_RECAP,
+  },
+} as const;
+
+export type RiderInsightsStack = (typeof RIDER_INSIGHTS_STACK)[keyof typeof RIDER_INSIGHTS_STACK];
+
+/**
+ * The Rider insights route opened from `entry`, for `router.push`. Home opens
+ * its own stack's copy so back returns to Home; every other entry opens Profile's.
+ */
+export function riderInsightsHref(entry: RiderInsightsEntry) {
+  const stack =
+    entry === RIDER_INSIGHTS_ENTRY.HOME ? RIDER_INSIGHTS_STACK.HOME : RIDER_INSIGHTS_STACK.PROFILE;
+  return { pathname: stack.MAIN, params: { entry } };
+}
+
+/** The `[group]` of a Rider insights detail page. */
+export const RIDER_INSIGHTS_DETAIL_GROUP = {
+  ROAD_CHARACTER: 'road-character',
+  TERRITORY: 'territory',
+  RHYTHM: 'rhythm',
+  BEST_RIDES: 'best-rides',
+  BIKES: 'bikes',
+  COUNTRIES: 'countries',
+} as const;
+
+export type RiderInsightsDetailGroup =
+  (typeof RIDER_INSIGHTS_DETAIL_GROUP)[keyof typeof RIDER_INSIGHTS_DETAIL_GROUP];

@@ -1,0 +1,111 @@
+# Rider insights for a free rider: open it from My Rides, see the free rows, tap
+# a locked Pro row, and check that the paywall was requested.
+#
+# Prereqs:
+#   - A LOCAL build with empty RevenueCat keys (EXPO_PUBLIC_RC_IOS_KEY /
+#     EXPO_PUBLIC_RC_ANDROID_KEY unset), pointed at a local API and database.
+#     Never a store build or a production OTA. With no key the RevenueCat SDK is
+#     never configured, so the paywall request ends in the "Upgrade unavailable
+#     right now" alert instead of the native paywall. That alert is the proof the
+#     locked row asked for the paywall. A build that does have keys shows the
+#     native paywall instead (closed with its ✕); either one passes.
+#   - TEST_EMAIL / TEST_PASSWORD: a confirmed, free (not Pro) rider whose current
+#     season has at least five qualifying rides recorded with GPS, with their
+#     derived stats already computed. Below five rides every Pro row reads "Not
+#     enough rides yet" and has no paywall, and while stats compute it reads
+#     "Working out your rides".
+#   - Same build and sign-in prereqs as onboarding.yaml, which this flow composes
+#     (it signs the rider in through onboarding and ends on Home).
+#
+# Selectors (all from source):
+#   - Profile → My Rides: `profile-rides`; the Rider insights row on My Rides:
+#     `rides-insights-row`.
+#   - Free content: the hero map (`hero-map`, or `hero-map-placeholder` when the
+#     map cannot draw), the season ribbon (`season-ribbon-bars`), and the free
+#     Best ride and Bikes rows (`best-rides-row`, `bikes-row`).
+#   - Locked Pro rows: `territory-row`, `road-character-row`, `rhythm-row`. Their
+#     accessibility label is "<title>, Pro. Opens the paywall".
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+# 1. Setup: a signed-in free rider on Home.
+- runFlow: onboarding.yaml
+
+# 2. Open Rider insights from My Rides.
+- tapOn:
+    text: "Profile(,.*)?" # the tab; ".*Profile.*" also matches Home's "Complete your bike profile"
+- extendedWaitUntil:
+    visible:
+      id: "profile-rides"
+    timeout: 20000
+- tapOn:
+    id: "profile-rides"
+- extendedWaitUntil:
+    visible:
+      id: "rides-insights-row"
+    timeout: 20000
+- tapOn:
+    id: "rides-insights-row"
+
+# 3. The free rows are visible: the season map, the ribbon, and the free rows of
+#    "How you ride".
+- extendedWaitUntil:
+    visible: "Rider insights"
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: "hero-map|hero-map-placeholder"
+    timeout: 30000
+- assertVisible: ".*Season \\d{4}.*"
+- scrollUntilVisible:
+    element:
+      id: "season-ribbon-bars"
+    direction: DOWN
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: "best-rides-row"
+    direction: DOWN
+    timeout: 20000
+- assertVisible:
+    id: "best-rides-row"
+- scrollUntilVisible:
+    element:
+      id: "bikes-row"
+    direction: DOWN
+    timeout: 20000
+- takeScreenshot: rider-insights-free
+
+# 4. A locked Pro row is drawn for this free rider (its own pattern blurred, and
+#    "Unlock"). Tap it.
+- scrollUntilVisible:
+    element:
+      id: "territory-row"
+    direction: UP
+    timeout: 20000
+# The row is one accessible element, so its "Unlock" text is not separate in the
+# accessibility tree; the row's label carries the locked state.
+- assertVisible:
+    text: "Territory, Pro\\. Opens the paywall"
+- tapOn:
+    id: "territory-row"
+
+# 5. The paywall was requested: the native paywall (build with keys) or, with
+#    empty RevenueCat keys, the "Upgrade unavailable right now" alert.
+- extendedWaitUntil:
+    visible: "Upgrade unavailable right now|[×✕]"
+    timeout: 30000
+- takeScreenshot: rider-insights-paywall-requested
+- tapOn:
+    text: "OK"
+    optional: true
+- tapOn:
+    text: "[×✕]"
+    optional: true
+
+# 6. Back on Rider insights, still locked.
+- extendedWaitUntil:
+    visible:
+      id: "territory-row"
+    timeout: 20000

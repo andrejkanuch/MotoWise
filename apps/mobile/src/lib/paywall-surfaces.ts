@@ -16,3 +16,29 @@ const ONBOARDING_SURFACES: ReadonlySet<string> = new Set(Object.values(ONBOARDIN
 export function isOnboardingPaywallSurface(surface: string | undefined): boolean {
   return surface !== undefined && ONBOARDING_SURFACES.has(surface);
 }
+
+/** Paywall surfaces outside onboarding that the app names on its own. */
+export const PAYWALL_SURFACE = {
+  RIDER_INSIGHTS: 'rider_insights',
+} as const;
+
+export type PaywallSurface = (typeof PAYWALL_SURFACE)[keyof typeof PAYWALL_SURFACE];
+
+/** What opens the Rider insights paywall: a locked row or recap card, or the ride-summary card. */
+export const RIDER_INSIGHTS_PAYWALL_ROW = {
+  TERRITORY: 'territory',
+  ROAD_CHARACTER: 'road_character',
+  RHYTHM: 'rhythm',
+  BEST_RIDES: 'best_rides',
+  SUMMARY: 'summary',
+  COST: 'cost',
+} as const;
+
+export type RiderInsightsPaywallRow =
+  (typeof RIDER_INSIGHTS_PAYWALL_ROW)[keyof typeof RIDER_INSIGHTS_PAYWALL_ROW];
+
+/** Custom variables the Rider insights paywall reads as `{{ custom.<key> }}`. */
+export const RIDER_INSIGHTS_PAYWALL_VARIABLE = {
+  HEADLINE: 'insight_headline',
+  SUBHEAD: 'insight_subhead',
+} as const;

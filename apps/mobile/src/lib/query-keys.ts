@@ -112,9 +112,16 @@ export const queryKeys = {
     overview: ['rides', 'overview'] as const,
     list: (cursor?: string) => ['rides', 'list', cursor] as const,
     detail: (id: string) => ['rides', 'detail', id] as const,
+    /** One ride's server-derived stats and new-road distance, polled by the ride-summary card. */
+    summaryStats: (id: string) => ['rides', 'summaryStats', id] as const,
     /** Route points at one resolution: detail and flyover ask for different counts. */
     waypoints: (id: string, maxPoints: number) => ['rides', 'waypoints', id, maxPoints] as const,
     heatmap: ['rides', 'heatmap'] as const,
+    /** Rider insights for the season the API picks, in the device time zone. Under `rides` so a ride save refreshes it. */
+    insights: (timeZone: string) => ['rides', 'insights', timeZone] as const,
+    /** Rider insights for an explicit from..to window (the ride summary's own year). Not persisted. */
+    insightsWindow: (timeZone: string, from: string, to: string) =>
+      ['rides', 'insightsWindow', timeZone, from, to] as const,
     byMotorcycle: (motorcycleId: string) => ['rides', 'motorcycle', motorcycleId] as const,
   },
   healthReports: {

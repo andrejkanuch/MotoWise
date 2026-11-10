@@ -307,8 +307,6 @@
     "totalDistance": "Distanza totale"
   },
   "profile": {
-    "roadsTitle": "Strade che ho percorso",
-    "roadsSubtitle": "Mappa di calore di sempre e riepilogo dell'anno",
     "rider": "Pilota",
     "proBanner": "MotoVault PRO",
     "proDescription": "Sblocca diagnostica AI e lezioni premium",
@@ -363,7 +361,8 @@
     "sectionApp": "App",
     "nameLabel": "Nome",
     "publicNameLabel": "Nome pubblico (visibile agli altri motociclisti)",
-    "sectionFeedback": "Feedback"
+    "sectionFeedback": "Feedback",
+    "riderInsightsDescription": "Strade, luoghi e ritmo della tua stagione"
   },
   "onboarding": {
     "welcomeTitle": "Benvenuto su MotoVault",
@@ -1178,6 +1177,11 @@
       "clear": "Cancella",
       "clearNoteA11y": "Cancella la nota ripristinata",
       "clearReadingA11y": "Cancella la lettura ripristinata"
+    },
+    "serviceDistance": {
+      "since": "{{distance}} {{unit}} dall'ultimo tagliando",
+      "servicedAt": "Ultimo tagliando a {{distance}} {{unit}}",
+      "none": "Nessun tagliando registrato"
     }
   },
   "maintenance": {
@@ -2164,7 +2168,8 @@
     "elev": "disl.",
     "dur": "Durata",
     "avg": "Media",
-    "ride_many": "{{count}} uscite"
+    "ride_many": "{{count}} uscite",
+    "insightsSubtitle": "Dove, quando e come guidi"
   },
   "rideDetail": {
     "unavailable": "Questo giro non è più disponibile. Potrebbe essere stato eliminato o reso privato.",
@@ -2180,8 +2185,6 @@
     "deleteMessage": "Questa azione non può essere annullata.",
     "cancel": "Annulla",
     "delete": "Elimina",
-    "leanAngle": "Piega max",
-    "leanTooltip": "L'angolo di piega è stimato dai sensori di movimento del telefono. Non è uno strumento di precisione: l'angolo reale può variare in base alla posizione del supporto e alle condizioni della strada.",
     "private": "Privata",
     "threeD": "3D",
     "shareRideA11y": "Condividi giro",
@@ -2723,5 +2726,355 @@
     "riders": "Motociclisti",
     "join": "Unisciti a questo viaggio",
     "joinErrorTitle": "Impossibile unirsi"
+  },
+  "riderInsightsPaywall": {
+    "seasonDistance": "{{distance}} in questa stagione",
+    "seasonRides_one": "{{count}} uscita in questa stagione",
+    "seasonRides_other": "{{count}} uscite in questa stagione",
+    "seasonRides_many": "{{count}} uscite in questa stagione",
+    "longestRide": "La tua uscita più lunga: {{distance}}",
+    "territory": {
+      "headlineDefault": "Scopri dove hai esplorato",
+      "subhead": "Pro mostra quanta strada era nuova e quanto ti sei allontanato da casa."
+    },
+    "roadCharacter": {
+      "headlineDefault": "Scopri che strade percorri",
+      "subhead": "Pro mostra quanto erano tortuose le tue strade e la tua piega stimata."
+    },
+    "rhythm": {
+      "headlineDefault": "Scopri quando esci in moto",
+      "subhead": "Pro mostra i giorni e gli orari in cui esci di più e la tua uscita tipica."
+    },
+    "bestRides": {
+      "headlineDefault": "Classifica le tue uscite migliori",
+      "subhead": "Pro ordina la tua stagione per distanza, dislivello e curve."
+    },
+    "summary": {
+      "headlineDefault": "Scopri le strade nuove di ogni uscita",
+      "subhead": "Pro mostra quanta parte di ogni uscita era su strade mai percorse prima."
+    },
+    "cost": {
+      "headlineDefault": "Scopri quanto ti costa guidare",
+      "subhead": "Pro calcola il tuo costo per {{unit}} dalle spese di carburante e tagliandi."
+    }
+  },
+  "riderInsights": {
+    "title": "Analisi di guida",
+    "backTitle": "Analisi",
+    "seasonRange": "Stagione {{year}}, dal {{from}} al {{to}}",
+    "today": "oggi",
+    "stale": "Offline. Mostriamo la tua stagione com'era all'ultimo salvataggio.",
+    "placeNamesCredit": "Nomi dei luoghi: GeoNames (CC BY 4.0)",
+    "offline": {
+      "title": "Sei offline",
+      "body": "Analisi di guida richiede una connessione la prima volta. Riprova quando sei di nuovo online.",
+      "retry": "Riprova"
+    },
+    "error": {
+      "title": "Impossibile caricare le tue analisi",
+      "body": "Qualcosa è andato storto da parte nostra. Riprova tra poco.",
+      "retry": "Riprova"
+    },
+    "empty": {
+      "title": "Ancora nessuna uscita in questa stagione",
+      "body": "Registra un'uscita e qui compariranno le tue strade, i luoghi e il tuo ritmo."
+    },
+    "hero": {
+      "noRoutes": "Le tue strade compaiono qui dopo un'uscita con il GPS.",
+      "offline": "La mappa comparirà quando sarai di nuovo online.",
+      "mapA11y_one": "Mappa di {{count}} uscita intorno a {{region}}",
+      "mapA11y_other": "Mappa di {{count}} uscite intorno a {{region}}",
+      "mapA11y_many": "Mappa di {{count}} uscite intorno a {{region}}"
+    },
+    "totals": {
+      "rides_one": "{{count}} uscita",
+      "rides_other": "{{count}} uscite",
+      "rides_many": "{{count}} uscite",
+      "countries_one": "{{count}} paese",
+      "countries_other": "{{count}} paesi",
+      "countries_many": "{{count}} paesi"
+    },
+    "countries": {
+      "a11y_one": "{{count}} paese: {{names}}. Apri i paesi",
+      "a11y_other": "{{count}} paesi: {{names}}. Apri i paesi",
+      "a11y_many": "{{count}} paesi: {{names}}. Apri i paesi"
+    },
+    "regions": {
+      "unnamed": "Regione senza nome",
+      "meta_one": "{{count}} uscita · {{distance}}",
+      "meta_other": "{{count}} uscite · {{distance}}",
+      "meta_many": "{{count}} uscite · {{distance}}",
+      "tileA11y": "Mostra {{region}} sulla mappa"
+    },
+    "ribbon": {
+      "section": "Stagione",
+      "weeksRidden": "In moto {{ridden}} settimane su {{total}}",
+      "biggest": "Il massimo: {{distance}}, dal {{start}} al {{end}}"
+    },
+    "howYouRide": {
+      "section": "Come guidi",
+      "keepRiding": "Ancora poche uscite, continua a guidare",
+      "computing": "Stiamo analizzando le tue uscite. Ricontrolla tra poco.",
+      "missingRoute": "Servono uscite registrate con il GPS",
+      "unlock": "Sblocca",
+      "unlocking": "Sblocco in corso…",
+      "lockedA11y": "{{title}}, Pro. Apre la paywall",
+      "unlockingA11y": "{{title}}, sblocco in corso",
+      "roadCharacter": {
+        "title": "Carattere delle strade",
+        "teaser": "Quanto erano tortuose le tue strade, e la piega",
+        "value": "{{share}} tortuose o più strette",
+        "withLean": "Con piega, stimata",
+        "bends": "{{bends}} curve ogni 10 km",
+        "a11y": "{{straight}} dritte, {{sweeping}} scorrevoli, {{twisty}} tortuose, {{tight}} strette"
+      },
+      "territory": {
+        "title": "Territorio",
+        "teaser": "Strade nuove e mappa coperta",
+        "value": "{{area}} · {{share}} strade nuove",
+        "furthest": "Massima distanza da casa {{distance}}"
+      },
+      "rhythm": {
+        "title": "Ritmo di guida",
+        "teaser": "I giorni e gli orari in cui esci di più",
+        "missing": "Servono uscite con un orario di partenza",
+        "weekend_one": "{{weekend}} uscita su {{count}} nel weekend",
+        "weekend_other": "{{weekend}} uscite su {{count}} nel weekend",
+        "weekend_many": "{{weekend}} uscite su {{count}} nel weekend",
+        "a11y": "Fascia più attiva: {{slot}}",
+        "slot": {
+          "morning": "{{day}} mattina",
+          "afternoon": "{{day}} pomeriggio",
+          "evening": "{{day}} sera",
+          "night": "{{day}} notte"
+        }
+      },
+      "bestRides": {
+        "title": "Uscite migliori",
+        "titleFree": "Uscita migliore",
+        "value": "{{name}} · {{distance}}",
+        "unnamed": "Uscita del {{date}}",
+        "captionPro": "La più lunga, {{date}} · poi dislivello e curve",
+        "captionFree": "La più lunga, {{date}} · dislivello e curve con Pro"
+      },
+      "bikes": {
+        "title": "Moto",
+        "missing": "Imposta una moto per le tue uscite per confrontarle",
+        "item": "{{name}} {{distance}}",
+        "unnamed": "Moto",
+        "count_one": "{{count}} moto",
+        "count_other": "{{count}} moto",
+        "count_many": "{{count}} moto",
+        "unassigned_one": "{{count}} uscita senza moto",
+        "unassigned_other": "{{count}} uscite senza moto",
+        "unassigned_many": "{{count}} uscite senza moto"
+      }
+    },
+    "detail": {
+      "coverage": "Da {{count}} uscite su {{total}}",
+      "rideMeta": "{{date}} · {{distance}}",
+      "locked": {
+        "territory": "di mappa coperta in questa stagione, arrotondato",
+        "roadCharacter": "curve ogni 10 km, arrotondato",
+        "rhythm": "delle tue uscite nel weekend, arrotondato"
+      },
+      "roadCharacter": {
+        "heroLine": "dei tuoi {{distance}} di percorso erano tortuosi o più stretti",
+        "band": {
+          "straight": "Dritte",
+          "sweeping": "Scorrevoli",
+          "twisty": "Tortuose",
+          "tight": "Curve strette"
+        },
+        "rule": {
+          "straight": "meno di 1 curva ogni 2 km",
+          "sweeping": "fino a 1,5 curve per km",
+          "twisty": "fino a 3 curve per km",
+          "tight": "3 o più curve per km"
+        },
+        "barA11y": "Dritte {{straight}}, scorrevoli {{sweeping}}, tortuose {{twisty}}, curve strette {{tight}}",
+        "footnote_one": "Una curva è una svolta di 35° o più nella stessa direzione entro 400 m. {{count, number}} curva in questa stagione.",
+        "footnote_other": "Una curva è una svolta di 35° o più nella stessa direzione entro 400 m. {{count, number}} curve in questa stagione.",
+        "footnote_many": "Una curva è una svolta di 35° o più nella stessa direzione entro 400 m. {{count, number}} curve in questa stagione.",
+        "per10km": "curve / 10 km",
+        "twistiest_one": "Uscita più tortuosa",
+        "twistiest_other": "Uscite più tortuose",
+        "twistiest_many": "Uscite più tortuose",
+        "straightest_one": "Uscita più dritta",
+        "straightest_other": "Uscite più dritte",
+        "straightest_many": "Uscite più dritte"
+      },
+      "lean": {
+        "title": "Piega, stimata",
+        "corners_one": "curva misurata",
+        "corners_other": "curve misurate",
+        "corners_many": "curve misurate",
+        "band": {
+          "under20": "<20°",
+          "from20to30": "20–30°",
+          "from30to40": "30–40°",
+          "from40": "40°+"
+        },
+        "a11y": "Quota di curve per piega: sotto 20° {{under20}}, da 20 a 30° {{from20to30}}, da 30 a 40° {{from30to40}}, 40° e oltre {{from40}}",
+        "missing": "Servono uscite registrate con GPS dettagliato",
+        "note": "Pilota e moto insieme, stimata da velocità GPS e cambi di direzione. Nelle curve brevi e strette risulta più bassa, per questo la mostriamo a fasce e mai come un numero esatto."
+      },
+      "territory": {
+        "heroLine": "di mappa coperta in questa stagione",
+        "newRoads": "Strade nuove",
+        "newRoadsCaption": "{{distance}} su {{total}} su strade che non avevi mai percorso",
+        "barA11y": "{{share}} della distanza stagionale su strade nuove, {{before}} su strade già percorse",
+        "newShare": "{{share}} nuove",
+        "beforeShare": "{{share}} già percorse",
+        "furthest": "Massima distanza da casa",
+        "furthestRide": "Uscita del {{date}}",
+        "fromHome": "Distanza da casa",
+        "footnote": "Casa è il punto da cui parte la maggior parte delle tue uscite. L'area conta le celle della mappa attraversate dai tuoi percorsi."
+      },
+      "rhythm": {
+        "part": {
+          "morning": "Mattina",
+          "afternoon": "Pomeriggio",
+          "evening": "Sera",
+          "night": "Notte"
+        },
+        "busiest": "Più attivo",
+        "typical": "Uscita tipica",
+        "footnote": "Ogni uscita conta all'orario di partenza, nel fuso orario in cui guidavi."
+      },
+      "bestRides": {
+        "segment": {
+          "distance": "Distanza",
+          "climb": "Dislivello",
+          "bends": "Curve"
+        },
+        "longest": "Uscita più lunga",
+        "places": "Da {{start}} a {{end}}",
+        "proLine_one": "Pro ordina la tua {{count}} uscita per distanza, dislivello e curve.",
+        "proLine_other": "Pro ordina tutte le {{count}} uscite per distanza, dislivello e curve.",
+        "proLine_many": "Pro ordina tutte le {{count}} uscite per distanza, dislivello e curve.",
+        "proLineDefault": "Pro ordina le tue uscite per distanza, dislivello e curve.",
+        "empty": "Ancora nessuna uscita con questo dato",
+        "footnote": "Il dislivello ignora variazioni di quota sotto i 5 m. Le curve sono contate ogni 10 km di percorso."
+      },
+      "bikes": {
+        "heroLine": "percorsi in questa stagione",
+        "unassigned": "Non assegnate",
+        "meta_one": "{{count}} uscita · {{time}} in movimento",
+        "meta_other": "{{count}} uscite · {{time}} in movimento",
+        "meta_many": "{{count}} uscite · {{time}} in movimento"
+      },
+      "countries": {
+        "title": "Paesi",
+        "heroLine_one": "paese percorso in questa stagione",
+        "heroLine_other": "paesi percorsi in questa stagione",
+        "heroLine_many": "paesi percorsi in questa stagione",
+        "meta_one": "Prima volta il {{date}} · {{count}} uscita",
+        "meta_other": "Prima volta il {{date}} · {{count}} uscite",
+        "meta_many": "Prima volta il {{date}} · {{count}} uscite",
+        "footnote": "Un paese conta quando almeno 1 km di un percorso si trova 500 m o più all'interno del suo confine."
+      }
+    },
+    "share": {
+      "button": "Condividi la stagione",
+      "close": "Chiudi",
+      "title": "Condividi la tua stagione",
+      "subtitle": "Un'immagine per il tuo feed o la tua storia.",
+      "seasonLines": "Linee della stagione",
+      "seasonLinesCaption": "Gratis · i tuoi percorsi e totali",
+      "atlasPoster": "Poster atlante",
+      "atlasPosterCaption": "Pro · mappa, paesi e carattere delle strade",
+      "optionA11y": "{{name}}. {{caption}}",
+      "lockedA11y": "{{name}}, Pro. Apre la paywall",
+      "sizeA11y": "Dimensione immagine",
+      "sizeFeed": "Feed 4:5",
+      "sizeStory": "Storia 9:16",
+      "hideEnds": "Nascondi partenza e arrivo",
+      "hideEndsCaption": "Taglia 500 m all'inizio e alla fine di ogni uscita",
+      "save": "Salva immagine",
+      "share": "Condividi…",
+      "message": "La mia stagione in moto {{year}}, condivisa da MotoVault",
+      "ridesSeason_one": "{{count}} uscita · Stagione {{year}}",
+      "ridesSeason_other": "{{count}} uscite · Stagione {{year}}",
+      "ridesSeason_many": "{{count}} uscite · Stagione {{year}}",
+      "ridesYear_one": "{{count}} uscita · {{year}}",
+      "ridesYear_other": "{{count}} uscite · {{year}}",
+      "ridesYear_many": "{{count}} uscite · {{year}}",
+      "handleBrand": "@{{handle}} · MotoVault",
+      "twisty": "{{share}} tortuose o più strette"
+    },
+    "recap": {
+      "title": "Riepilogo della stagione",
+      "entry": "Il riepilogo della tua stagione {{year}}",
+      "entryCaptionPro": "Sette schede da tenere o pubblicare",
+      "entryCaptionFree": "3 schede da tenere o pubblicare · altre 4 con Pro",
+      "open": "Apri",
+      "heading": "La tua stagione {{year}}",
+      "subheading": "Scorri, poi condividi la scheda che preferisci.",
+      "labelFree": "Gratis · {{index}} di {{total}}",
+      "labelPro": "Pro · {{index}} di {{total}}",
+      "ridesIn_one": "{{count}} uscita nel {{year}}",
+      "ridesIn_other": "{{count}} uscite nel {{year}}",
+      "ridesIn_many": "{{count}} uscite nel {{year}}",
+      "countries_one": "{{count}} paese",
+      "countries_other": "{{count}} paesi",
+      "countries_many": "{{count}} paesi",
+      "since": "dal {{date}}",
+      "moreCountries": "+{{count}} altri",
+      "longest": "Uscita più lunga",
+      "places": "Da {{from}} a {{to}}",
+      "rhythm": "Ritmo di guida",
+      "rhythmStarted_one": "{{count}} uscita partita tra le {{from}} e le {{to}}",
+      "rhythmStarted_other": "{{count}} uscite partite tra le {{from}} e le {{to}}",
+      "rhythmStarted_many": "{{count}} uscite partite tra le {{from}} e le {{to}}",
+      "rhythmA11y": "Uscite per giorno della settimana e ora del giorno",
+      "newRoads": "Strade nuove",
+      "newRoadsShare": "dei tuoi chilometri erano su strade mai percorse prima",
+      "newRoadsArea": "di mappa coperta",
+      "twistiest": "Uscita più tortuosa",
+      "twistiestBends": "{{bends}} curve ogni 10 km",
+      "cost": "Costo della guida",
+      "costFrom": "dalle spese di carburante e tagliandi",
+      "costSource": {
+        "odometer": "Diviso per la variazione del contachilometri nella stagione",
+        "tracked": "Diviso per la distanza delle uscite registrate",
+        "mixed": "Diviso per la variazione del contachilometri dove l'hai registrata, altrimenti per le uscite registrate"
+      },
+      "costAlso": "Anche {{cost}}",
+      "costMissing": "Servono rifornimenti registrati durante la stagione",
+      "share": "Condividi questa scheda",
+      "shareMessage": "La mia stagione in moto {{year}}, condivisa da MotoVault"
+    }
+  },
+  "ridePurposeSheet": {
+    "title": "Info su questa uscita (facoltativo)",
+    "purposeLabel": "A cosa serviva?",
+    "purpose": {
+      "leisure": "Svago",
+      "commute": "Tragitto",
+      "tour": "Viaggio",
+      "errand": "Commissione",
+      "track": "Pista",
+      "offroad": "Fuoristrada",
+      "other": "Altro"
+    },
+    "passenger": "Con passeggero",
+    "odometer": "Contachilometri all'arrivo",
+    "odometerLabel": "Lettura del contachilometri a fine uscita",
+    "odometerSave": "Salva",
+    "odometerSaved": "Contachilometri salvato"
+  },
+  "insightsEntry": {
+    "season": "Stagione: {{distance}}",
+    "lastRide": "+{{distance}} nell'ultima uscita",
+    "withThisRide": "+{{distance}} con questa uscita",
+    "newCountry": "Nuovo paese: {{country}}",
+    "loading": "Caricamento della stagione…",
+    "openHint": "Apre Analisi di guida",
+    "newRoads": "Strade nuove",
+    "newRoadsValue": "{{distance}} · {{share}}",
+    "newRoadsComputing": "Calcolo in corso…",
+    "unlockPro": "Sblocca con Pro",
+    "newRoadsLockedA11y": "Strade nuove in questa uscita. Sblocca con Pro"
   }
 }

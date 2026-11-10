@@ -8,6 +8,7 @@ import { useEditorialTheme } from '../../theme/editorial';
 import { space } from '../../theme/spacing';
 import { radius, type } from '../../theme/type';
 import { distanceUnitLabel } from '../../utils/ride-formatters';
+import { InsightsCard } from './insights-card';
 
 interface FocusStatsProps {
   recentRides: {
@@ -124,95 +125,99 @@ export function FocusStats({ recentRides }: FocusStatsProps) {
   });
 
   return (
-    <View
-      style={{
-        backgroundColor: theme.surface,
-        borderRadius: radius.card,
-        borderCurve: 'continuous',
-        padding: space.md,
-        gap: space.md,
-      }}
-    >
+    <>
+      <InsightsCard />
       <View
         style={{
-          flexDirection: 'row',
-          alignItems: 'flex-end',
-          justifyContent: 'space-between',
-          gap: space.sm,
+          backgroundColor: theme.surface,
+          borderRadius: radius.card,
+          borderCurve: 'continuous',
+          padding: space.md,
+          gap: space.md,
         }}
       >
-        <View style={{ flexShrink: 1 }}>
-          <Text style={[type.label, { color: theme.ink3 }]}>{monthLabel}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.xs }}>
-            <Text style={[type.figure, { color: theme.ink }]}>{thisMonthStats.distance}</Text>
-            <Text style={[type.label, { color: theme.ink3 }]}>
-              {t('home.monthlyGoalOf', { goal, unit })}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+            gap: space.sm,
+          }}
+        >
+          <View style={{ flexShrink: 1 }}>
+            <Text style={[type.label, { color: theme.ink3 }]}>{monthLabel}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.xs }}>
+              <Text style={[type.figure, { color: theme.ink }]}>{thisMonthStats.distance}</Text>
+              <Text style={[type.label, { color: theme.ink3 }]}>
+                {t('home.monthlyGoalOf', { goal, unit })}
+              </Text>
+            </View>
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={[type.label, { color: theme.ink3 }]}>{t('home.ridesLabel')}</Text>
+            <Text style={[type.figure, { color: theme.ink }]}>{thisMonthStats.rideCount}</Text>
+          </View>
+        </View>
+
+        {/* Distance progress toward the monthly goal */}
+        <View style={{ gap: space.xxs }}>
+          <View
+            accessible
+            accessibilityRole="progressbar"
+            accessibilityValue={{ min: 0, max: goal, now: thisMonthStats.distance }}
+            style={{
+              height: PROGRESS_HEIGHT,
+              borderRadius: PROGRESS_HEIGHT,
+              borderCurve: 'continuous',
+              backgroundColor: theme.surface3,
+              overflow: 'hidden',
+            }}
+          >
+            <View
+              style={{
+                width: `${Math.min(100, (thisMonthStats.distance / goal) * 100)}%`,
+                height: '100%',
+                backgroundColor: theme.ink2,
+              }}
+            />
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text style={[type.caption, { color: theme.ink3, fontVariant: ['tabular-nums'] }]}>
+              0
+            </Text>
+            <Text style={[type.caption, { color: theme.ink3, fontVariant: ['tabular-nums'] }]}>
+              {t('home.distanceGoal', { goal, unit })}
             </Text>
           </View>
         </View>
-        <View style={{ alignItems: 'flex-end' }}>
-          <Text style={[type.label, { color: theme.ink3 }]}>{t('home.ridesLabel')}</Text>
-          <Text style={[type.figure, { color: theme.ink }]}>{thisMonthStats.rideCount}</Text>
-        </View>
-      </View>
 
-      {/* Distance progress toward the monthly goal */}
-      <View style={{ gap: space.xxs }}>
+        {/* Weekly bars */}
         <View
-          accessible
-          accessibilityRole="progressbar"
-          accessibilityValue={{ min: 0, max: goal, now: thisMonthStats.distance }}
           style={{
-            height: PROGRESS_HEIGHT,
-            borderRadius: PROGRESS_HEIGHT,
-            backgroundColor: theme.surface3,
-            overflow: 'hidden',
+            paddingTop: space.md,
+            borderTopWidth: 1,
+            borderTopColor: theme.line2,
+            gap: space.sm,
           }}
         >
-          <View
-            style={{
-              width: `${Math.min(100, (thisMonthStats.distance / goal) * 100)}%`,
-              height: '100%',
-              backgroundColor: theme.ink2,
-            }}
-          />
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: space.sm }}>
+            <Text style={[type.label, { color: theme.ink2 }]}>{t('home.last7Days')}</Text>
+            <Text style={[type.caption, { color: theme.ink3 }]}>
+              {t('home.distancePerDay', { unit })}
+            </Text>
+          </View>
+          <WeekBars values={weeklyDistance} />
         </View>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={[type.caption, { color: theme.ink3, fontVariant: ['tabular-nums'] }]}>
-            0
-          </Text>
-          <Text style={[type.caption, { color: theme.ink3, fontVariant: ['tabular-nums'] }]}>
-            {t('home.distanceGoal', { goal, unit })}
-          </Text>
-        </View>
-      </View>
 
-      {/* Weekly bars */}
-      <View
-        style={{
-          paddingTop: space.md,
-          borderTopWidth: 1,
-          borderTopColor: theme.line2,
-          gap: space.sm,
-        }}
-      >
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: space.sm }}>
-          <Text style={[type.label, { color: theme.ink2 }]}>{t('home.last7Days')}</Text>
-          <Text style={[type.caption, { color: theme.ink3 }]}>
-            {t('home.distancePerDay', { unit })}
-          </Text>
-        </View>
-        <WeekBars values={weeklyDistance} />
+        <Pressable
+          onPress={() => router.push('/(tabs)/(garage)')}
+          accessibilityRole="link"
+          hitSlop={12}
+          style={{ alignSelf: 'flex-start' }}
+        >
+          <Text style={[type.label, { color: theme.warm2 }]}>{t('home.openAnalytics')}</Text>
+        </Pressable>
       </View>
-
-      <Pressable
-        onPress={() => router.push('/(tabs)/(garage)')}
-        accessibilityRole="link"
-        hitSlop={12}
-        style={{ alignSelf: 'flex-start' }}
-      >
-        <Text style={[type.label, { color: theme.warm2 }]}>{t('home.openAnalytics')}</Text>
-      </Pressable>
-    </View>
+    </>
   );
 }

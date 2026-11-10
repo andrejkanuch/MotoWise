@@ -357,7 +357,7 @@ describe('Overview — bike A', () => {
     expect(rows.getByText('DCT · bought June 2022 · €11,800')).toBeOnTheScreen();
   });
 
-  it('is ordered photo → status → attention → next up → costs → notes → papers', async () => {
+  it('is ordered photo → status → attention → next up → service distance → costs → notes → papers', async () => {
     await renderOverview();
     await screen.findByText('Needs attention · 4 overdue');
     expect(screen.getAllByTestId(/^overview-block-/).map((block) => block.props.testID)).toEqual([
@@ -365,6 +365,7 @@ describe('Overview — bike A', () => {
       'overview-block-status',
       'overview-block-attention',
       'overview-block-next-up',
+      'overview-block-service-distance',
       'overview-block-costs',
       'overview-block-notes',
       'overview-block-papers',
@@ -538,6 +539,7 @@ describe('Overview — status variants', () => {
       'overview-block-photo',
       'overview-block-status',
       'overview-block-next-up',
+      'overview-block-service-distance',
       'overview-block-costs',
       'overview-block-notes',
       'overview-block-papers',
@@ -567,6 +569,7 @@ describe('Overview — status variants', () => {
       'overview-block-photo',
       'overview-block-status',
       'overview-block-setup',
+      'overview-block-service-distance',
       'overview-block-costs',
       'overview-block-notes',
       'overview-block-papers',

@@ -720,7 +720,6 @@ export const AnalyticsEvent = {
   RECORD_BADGE_VIEWED: 'record_badge_viewed',
   RECORD_BADGE_TAPPED: 'record_badge_tapped',
   ELEVATION_CHART_VIEWED: 'elevation_chart_viewed',
-  LEAN_ANGLE_TOOLTIP_OPENED: 'lean_angle_tooltip_opened',
   RIDE_FLYOVER_STARTED: 'ride_flyover_started',
   RIDE_FLYOVER_COMPLETED: 'ride_flyover_completed',
   RIDE_FLYOVER_EXITED: 'ride_flyover_exited',
@@ -806,6 +805,14 @@ export const AnalyticsEvent = {
   SETTINGS_CHANGED: 'settings_changed',
   HEATMAP_VIEWED: 'heatmap_viewed',
   RIDES_HISTORY_VIEWED: 'rides_history_viewed',
+
+  // Rider insights
+  /** The screen opened (`entry`: where from). Separate from each entry point's own tap. */
+  RIDER_INSIGHTS_OPENED: 'rider_insights_opened',
+  /** A locked Pro row was on screen (`row`), once per screen visit. */
+  RIDER_INSIGHTS_LOCKED_ROW_SHOWN: 'rider_insights_locked_row_shown',
+  /** A locked Pro row was tapped (`row`); the paywall events follow. */
+  RIDER_INSIGHTS_LOCKED_ROW_TAPPED: 'rider_insights_locked_row_tapped',
 
   // Checklist
   CHECKLIST_ITEM_COMPLETED: 'checklist_item_completed',

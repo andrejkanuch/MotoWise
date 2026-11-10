@@ -24,7 +24,7 @@ import Svg, { Defs, Path, Stop, LinearGradient as SvgGradient } from 'react-nati
 import { RideCard } from '@/components/ride/ride-card';
 import { ESettingsGroup, ESettingsRow } from '@/components/ui/editorial';
 import { ThemedSegmentedControl } from '@/components/ui/themed-segmented-control';
-import { PROFILE_ROUTE } from '@/config/routes';
+import { PROFILE_ROUTE, RIDER_INSIGHTS_ENTRY, riderInsightsHref } from '@/config/routes';
 import { useMeasurementSystem } from '@/hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
@@ -53,7 +53,7 @@ const PERIOD_KEYS: Period[] = ['week', 'month', 'year', 'all'];
 
 type RideEdge = MyRidesQuery['myRides']['edges'][number];
 
-function useRideStats(edges: RideEdge[], period: Period) {
+function useRideStats(edges: RideEdge[], period: Period, totalCount?: number | null) {
   return useMemo(() => {
     const now = new Date();
     let periodStart: Date;
@@ -139,11 +139,11 @@ function useRideStats(edges: RideEdge[], period: Period) {
       periodMaxSpeed,
       periodElevation,
       totalDistance,
-      totalRides: edges.length,
+      totalRides: totalCount ?? edges.length, // the server's total, not the loaded page
       dailyDistances,
       trendPercent,
     };
-  }, [edges, period]);
+  }, [edges, period, totalCount]);
 }
 
 /** Mini sparkline area chart */
@@ -279,7 +279,7 @@ export default function RidesScreen() {
     () => (sortNewest ? allEdges : [...allEdges].reverse()),
     [allEdges, sortNewest],
   );
-  const stats = useRideStats(allEdges, period);
+  const stats = useRideStats(allEdges, period, data?.pages[0]?.myRides?.totalCount);
 
   // Map rideId → record types for badge display
   const recordsByRideId = useMemo(() => {
@@ -666,14 +666,13 @@ export default function RidesScreen() {
           ))}
         </View>
 
-        {/* Lifetime heatmap + year recap */}
         <ESettingsGroup>
           <ESettingsRow
             icon={Flame}
-            title={t('profile.roadsTitle')}
-            subtitle={t('profile.roadsSubtitle')}
-            testID="rides-heatmap-row"
-            onPress={() => router.push(PROFILE_ROUTE.HEATMAP)}
+            title={t('riderInsights.title')}
+            subtitle={t('myRides.insightsSubtitle')}
+            testID="rides-insights-row"
+            onPress={() => router.push(riderInsightsHref(RIDER_INSIGHTS_ENTRY.MY_RIDES))}
           />
         </ESettingsGroup>
 

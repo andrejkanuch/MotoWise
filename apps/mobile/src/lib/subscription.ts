@@ -2,6 +2,7 @@ import {
   RC_ATTRIBUTE_HAS_HAD_TRIAL,
   RC_ATTRIBUTE_TRUE,
   REVENUECAT_ENTITLEMENT_PRO,
+  RIDE_PAYWALL_PLACEMENT,
 } from '@motovault/types';
 import type { JsonType } from '@posthog/core';
 import Constants from 'expo-constants';
@@ -10,11 +11,17 @@ import i18n from '../i18n';
 import { useSubscriptionStore } from '../stores/subscription.store';
 import { AnalyticsEvent, addBreadcrumb, captureException, trackEvent } from './analytics';
 import { getStoredAnalyticsConsent } from './analytics-consent';
+import { isPaywallVariablesEnabled } from './feature-flags';
 import { logger } from './logger';
 import { getStoredUtmProperties } from './meta-attribution';
 import { isNetworkError } from './network-error';
 import { showPaywallUnavailable } from './paywall-error-alert';
-import { isOnboardingPaywallSurface } from './paywall-surfaces';
+import {
+  isOnboardingPaywallSurface,
+  PAYWALL_SURFACE,
+  RIDER_INSIGHTS_PAYWALL_VARIABLE,
+  type RiderInsightsPaywallRow,
+} from './paywall-surfaces';
 import { isExpectedRevenueCatError, revenueCatErrorProperties } from './revenuecat-errors';
 import { REVIEW_ACTION, recordReviewAction } from './store-review';
 import type { TrialEntitlementSnapshot } from './trial-reminder';
@@ -98,6 +105,12 @@ type PresentPaywallOptions = PaywallAnalyticsOptions & {
    * paywall editor, so copy never renders a blank.
    */
   personalization?: OnboardingAttributes;
+  /**
+   * Copy for `{{ custom.<key> }}` in the paywall, as plain strings. Sent only when
+   * the surface's per-platform flag is on (lib/feature-flags.ts), and never to an
+   * onboarding paywall; otherwise the paywall shows its editor defaults.
+   */
+  customVariables?: Readonly<Record<string, string>>;
   /**
    * Checked immediately before the native present. Return true to abort instead of
    * showing the modal.
@@ -787,10 +800,42 @@ const PAYWALL_ERROR_STAGE = {
 } as const;
 type PaywallErrorStage = (typeof PAYWALL_ERROR_STAGE)[keyof typeof PAYWALL_ERROR_STAGE];
 
+/** Which offering served a paywall, carried on its viewed and result events. */
+const OFFERING_SOURCE = {
+  offeringIdentifier: 'offering_identifier',
+  placement: 'placement',
+  current: 'current',
+  none: 'none',
+} as const;
+type OfferingSource = (typeof OFFERING_SOURCE)[keyof typeof OFFERING_SOURCE];
+
+/**
+ * Custom variables for this present, or undefined to send none. Onboarding
+ * paywalls only ever get their own personalization, which stays behind
+ * CUSTOM_VARIABLES_SUPPORTED; any other surface gets its string map only while
+ * its flag is on for this platform.
+ */
+function resolveCustomVariables(
+  options: PresentPaywallOptions,
+  factory: typeof import('react-native-purchases-ui').CustomVariableValue,
+): CustomVariables | undefined {
+  if (isOnboardingPaywallSurface(options.surface)) {
+    return CUSTOM_VARIABLES_SUPPORTED && options.personalization
+      ? buildPaywallCustomVariables(options.personalization, factory)
+      : undefined;
+  }
+  if (!options.customVariables || !isPaywallVariablesEnabled(options.surface)) return undefined;
+  return Object.fromEntries(
+    Object.entries(options.customVariables).map(([key, value]) => [key, factory.string(value)]),
+  );
+}
+
 async function doPresentPaywall(options: PresentPaywallOptions): Promise<PaywallResult> {
   trackEvent(AnalyticsEvent.PAYWALL_PRESENT_REQUESTED, paywallProperties(options));
   let stage: PaywallErrorStage = PAYWALL_ERROR_STAGE.offerings;
   let packageCount: number | null = null;
+  // Set once the offering is resolved; every later event carries it.
+  let served: Record<string, JsonType> = {};
 
   if (isExpoGo()) {
     logger.warn('[RevenueCat] Paywall not available in Expo Go');
@@ -818,17 +863,22 @@ async function doPresentPaywall(options: PresentPaywallOptions): Promise<Paywall
     // 1. Explicit offeringIdentifier (bypasses experiments — use for one-off products like health_report)
     // 2. Placement-based offering (for per-location A/B tests via RC dashboard)
     // 3. offerings.current (controlled by RC Experiments — default path)
+    // Each step falls through to offerings.current; there is no by-id fallback
+    // after a placement.
     let offering: (typeof offerings)['current'] | undefined;
-    if (options.offeringIdentifier) {
-      offering = offerings.all[options.offeringIdentifier] ?? offerings.current ?? undefined;
-    } else if (options.placement) {
-      offering =
-        (await Purchases.getCurrentOfferingForPlacement(options.placement)) ??
-        offerings.current ??
-        undefined;
-    } else {
-      offering = offerings.current ?? undefined;
+    let offeringSource: OfferingSource = OFFERING_SOURCE.current;
+    if (options.offeringIdentifier && offerings.all[options.offeringIdentifier]) {
+      offering = offerings.all[options.offeringIdentifier];
+      offeringSource = OFFERING_SOURCE.offeringIdentifier;
+    } else if (options.placement && !options.offeringIdentifier) {
+      offering = (await Purchases.getCurrentOfferingForPlacement(options.placement)) ?? undefined;
+      if (offering) offeringSource = OFFERING_SOURCE.placement;
     }
+    if (!offering) {
+      offering = offerings.current ?? undefined;
+      offeringSource = offering ? OFFERING_SOURCE.current : OFFERING_SOURCE.none;
+    }
+    served = { offering_source: offeringSource };
 
     // Last chance to abort. Placed here, ahead of PAYWALL_VIEWED, because it is
     // still after every await (init, offerings, placement lookup) — so the caller's
@@ -837,23 +887,27 @@ async function doPresentPaywall(options: PresentPaywallOptions): Promise<Paywall
     // there is no dismiss handle, so this is the only point at which "the rider
     // already moved on" can still be honoured.
     if (options.shouldAbort?.() === true) {
-      await trackPaywallResult(options, 'not_presented');
+      await trackPaywallResult(options, 'not_presented', served);
       return 'not_presented';
     }
 
     packageCount = offering?.availablePackages?.length ?? null;
     stage = PAYWALL_ERROR_STAGE.nativePresent;
 
+    const customVariables = resolveCustomVariables(options, RevenueCatUI.CustomVariableValue);
+
     trackEvent(
       AnalyticsEvent.PAYWALL_VIEWED,
       paywallProperties(options, {
+        ...served,
         resolved_offering_identifier:
           (offering as { identifier?: string } | undefined)?.identifier ?? null,
+        custom_variables_sent: customVariables !== undefined,
       }),
     );
 
-    // Personalize V2 paywall copy via custom variables ({{ custom.* }}).
-    // Omitted keys fall back to the editor's default value for that variable.
+    // Custom variables ({{ custom.* }}) — see resolveCustomVariables. Omitted keys
+    // fall back to the editor's default value for that variable.
     //
     // ⚠️ Passing customVariables to the native paywall hard-crashes the app on the
     // currently bundled react-native-purchases-ui — an uncatchable native crash
@@ -865,11 +919,9 @@ async function doPresentPaywall(options: PresentPaywallOptions): Promise<Paywall
     // native build, then flip CUSTOM_VARIABLES_SUPPORTED to re-enable copy
     // substitution. Targeting personalization via setOnboardingAttributes (customer
     // attributes) is unaffected; only {{ custom.* }} copy falls back to editor
-    // defaults, which every variable already has.
-    const customVariables =
-      CUSTOM_VARIABLES_SUPPORTED && options.personalization
-        ? buildPaywallCustomVariables(options.personalization, RevenueCatUI.CustomVariableValue)
-        : undefined;
+    // defaults, which every variable already has. Other surfaces send variables
+    // only behind a per-surface, per-platform flag that ships off until a device
+    // test on that platform passes (lib/feature-flags.ts).
 
     const result = options.requiredEntitlementIdentifier
       ? await RevenueCatUI.default.presentPaywallIfNeeded({
@@ -881,23 +933,24 @@ async function doPresentPaywall(options: PresentPaywallOptions): Promise<Paywall
 
     switch (result) {
       case PAYWALL_RESULT.PURCHASED:
-        await trackPaywallResult(options, 'purchased');
+        await trackPaywallResult(options, 'purchased', served);
         return 'purchased';
       case PAYWALL_RESULT.RESTORED:
-        await trackPaywallResult(options, 'restored');
+        await trackPaywallResult(options, 'restored', served);
         return 'restored';
       case PAYWALL_RESULT.NOT_PRESENTED:
-        await trackPaywallResult(options, 'not_presented');
+        await trackPaywallResult(options, 'not_presented', served);
         return 'not_presented';
       case PAYWALL_RESULT.ERROR:
         // The native SDK reports no cause here, so record what we do know.
         await trackPaywallResult(options, 'error', {
+          ...served,
           error_stage: PAYWALL_ERROR_STAGE.nativeResult,
           offering_package_count: packageCount,
         });
         return 'error';
       default:
-        await trackPaywallResult(options, 'cancelled');
+        await trackPaywallResult(options, 'cancelled', served);
         return 'cancelled';
     }
   } catch (e) {
@@ -905,12 +958,38 @@ async function doPresentPaywall(options: PresentPaywallOptions): Promise<Paywall
     // "Expected" errors are only a breadcrumb in Sentry, so the event is the one
     // place their cause survives.
     await trackPaywallResult(options, 'error', {
+      ...served,
       error_stage: stage,
       offering_package_count: packageCount,
       ...revenueCatErrorProperties(e),
     });
     return 'error';
   }
+}
+
+/**
+ * Present the Rider insights paywall for a locked row (or the ride-summary
+ * card): straight to the native paywall, one present, served by the
+ * `rider_insights` placement or else the current offering. `copy` becomes the
+ * paywall's headline and subhead while the surface's flag is on; null (or the
+ * flag off) leaves the editor defaults.
+ */
+export function presentRiderInsightsPaywall(
+  row: RiderInsightsPaywallRow,
+  copy: { headline: string; subhead: string } | null,
+): Promise<PaywallResult> {
+  return presentPaywall({
+    source: PAYWALL_SURFACE.RIDER_INSIGHTS,
+    surface: PAYWALL_SURFACE.RIDER_INSIGHTS,
+    feature: row,
+    placement: RIDE_PAYWALL_PLACEMENT.RIDER_INSIGHTS,
+    customVariables: copy
+      ? {
+          [RIDER_INSIGHTS_PAYWALL_VARIABLE.HEADLINE]: copy.headline,
+          [RIDER_INSIGHTS_PAYWALL_VARIABLE.SUBHEAD]: copy.subhead,
+        }
+      : undefined,
+  });
 }
 
 export async function logoutRevenueCat() {

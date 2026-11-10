@@ -11,6 +11,7 @@ import {
   type HubUnit,
   RIDE_STATUS,
 } from '@/lib/bike-hub/constants';
+import { distanceSinceLastService } from '@/lib/bike-hub/service-distance';
 import { describePlate, rankBikeTasks } from '../../home/home-plate';
 import type { BikeActions } from '../shell/use-bike-actions';
 import type { BikeHubData, HubBike } from '../shell/use-bike-hub-data';
@@ -22,6 +23,7 @@ import { NotesBlock } from './notes-block';
 import { PapersBikeRows } from './papers-bike-rows';
 import { PhotoBand } from './photo-band';
 import { RideStatusCard } from './ride-status-card';
+import { ServiceDistanceRow } from './service-distance-row';
 import { SetupList } from './setup-list';
 import { useOverviewData } from './use-overview-data';
 
@@ -90,6 +92,13 @@ export function OverviewSegment({
     });
     return describePlate(next, { t, language: i18n.language, unit, odometer: bike.currentMileage });
   }, [statusKnown, data.today, shell.tasks, bike.id, bike.currentMileage, unit, t, i18n.language]);
+
+  // No odometer, no distance: the row is left out. A bike with an odometer but
+  // no logged service reads "No service logged". Tasks still loading: no row.
+  const serviceSince =
+    data.tasks.isLoading || data.tasks.isError || bike.currentMileage == null
+      ? undefined
+      : distanceSinceLastService(shell.tasks, bike.currentMileage);
 
   // A block that renders nothing must not be listed at all, or its empty
   // wrapper would still take a 12 pt gap (READY: status card → costs).
@@ -167,6 +176,19 @@ export function OverviewSegment({
         onPress={onOpenTask}
       />,
     ],
+    ...(serviceSince === undefined
+      ? []
+      : ([
+          [
+            'service-distance',
+            <ServiceDistanceRow
+              key="service-distance"
+              since={serviceSince}
+              unit={unit}
+              onPress={showService}
+            />,
+          ],
+        ] as Array<[key: string, node: ReactNode]>)),
     [
       'costs',
       <CostsCard

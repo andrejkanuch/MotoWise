@@ -333,8 +333,6 @@
     "imperial": "อิมพีเรียล (mi, °F)",
     "myTripsTitle": "ทริปของฉัน",
     "currency": "สกุลเงิน",
-    "roadsTitle": "เส้นทางที่ฉันเคยขี่",
-    "roadsSubtitle": "แผนที่ความร้อนตลอดชีวิตและสรุปประจำปี",
     "redeemCode": "แลกรหัส",
     "appSettings": "การตั้งค่าแอป",
     "appSettingsSubtitle": "ภาษา ธีม หน่วย สกุลเงิน การแจ้งเตือน",
@@ -363,7 +361,8 @@
     "sectionApp": "แอป",
     "nameLabel": "ชื่อ",
     "publicNameLabel": "ชื่อสาธารณะ (ผู้ขับขี่คนอื่นเห็น)",
-    "sectionFeedback": "ความคิดเห็น"
+    "sectionFeedback": "ความคิดเห็น",
+    "riderInsightsDescription": "เส้นทาง สถานที่ และจังหวะการขี่ในฤดูกาลนี้"
   },
   "onboarding": {
     "welcomeTitle": "ยินดีต้อนรับสู่ MotoVault",
@@ -1157,6 +1156,11 @@
       "clear": "ล้าง",
       "clearNoteA11y": "ล้างโน้ตที่กู้คืน",
       "clearReadingA11y": "ล้างค่าที่กู้คืน"
+    },
+    "serviceDistance": {
+      "since": "{{distance}} {{unit}} นับจากเซอร์วิสครั้งล่าสุด",
+      "servicedAt": "เซอร์วิสล่าสุดที่ {{distance}} {{unit}}",
+      "none": "ยังไม่มีบันทึกการเซอร์วิส"
     }
   },
   "maintenance": {
@@ -2136,7 +2140,8 @@
     "ride_other": "{{count}} ครั้ง",
     "elev": "ความสูง",
     "dur": "เวลา",
-    "avg": "เฉลี่ย"
+    "avg": "เฉลี่ย",
+    "insightsSubtitle": "ขี่ที่ไหน เมื่อไหร่ และขี่แบบไหน"
   },
   "rideDetail": {
     "unavailable": "การขับขี่นี้ไม่พร้อมใช้งานแล้ว อาจถูกลบหรือตั้งเป็นส่วนตัว",
@@ -2152,8 +2157,6 @@
     "deleteMessage": "การกระทำนี้ไม่สามารถย้อนกลับได้",
     "cancel": "ยกเลิก",
     "delete": "ลบ",
-    "leanAngle": "มุมเอียงสูงสุด",
-    "leanTooltip": "มุมเอียงประมาณจากเซ็นเซอร์การเคลื่อนไหวของโทรศัพท์ ไม่ใช่เครื่องมือวัดที่แม่นยำ — มุมเอียงจริงอาจต่างไปตามตำแหน่งที่ยึดโทรศัพท์และสภาพถนน",
     "private": "ส่วนตัว",
     "threeD": "3D",
     "shareRideA11y": "แชร์การขับขี่",
@@ -2693,5 +2696,333 @@
     "riders": "ไรเดอร์",
     "join": "เข้าร่วมทริปนี้",
     "joinErrorTitle": "เข้าร่วมไม่สำเร็จ"
+  },
+  "riderInsightsPaywall": {
+    "seasonDistance": "{{distance}} ในฤดูกาลนี้",
+    "seasonRides_one": "ขี่ {{count}} ครั้งในฤดูกาลนี้",
+    "seasonRides_other": "ขี่ {{count}} ครั้งในฤดูกาลนี้",
+    "longestRide": "การขี่ที่ไกลที่สุดของคุณ: {{distance}}",
+    "territory": {
+      "headlineDefault": "ดูว่าคุณสำรวจที่ไหนมาบ้าง",
+      "subhead": "Pro แสดงว่าในนั้นเป็นถนนใหม่เท่าไร และคุณไปไกลจากบ้านแค่ไหน"
+    },
+    "roadCharacter": {
+      "headlineDefault": "ดูว่าถนนที่คุณขี่เป็นแบบไหน",
+      "subhead": "Pro แสดงว่าถนนของคุณคดเคี้ยวแค่ไหน และองศาการเอียงโดยประมาณ"
+    },
+    "rhythm": {
+      "headlineDefault": "ดูว่าคุณขี่ช่วงไหน",
+      "subhead": "Pro แสดงวันและช่วงเวลาที่คุณขี่บ่อยที่สุด และการขี่แบบที่คุณทำเป็นประจำ"
+    },
+    "bestRides": {
+      "headlineDefault": "จัดอันดับการขี่ที่ดีที่สุด",
+      "subhead": "Pro จัดอันดับฤดูกาลของคุณตามระยะทาง ความชัน และจำนวนโค้ง"
+    },
+    "summary": {
+      "headlineDefault": "ดูถนนใหม่ในทุกการขี่",
+      "subhead": "Pro แสดงว่าในแต่ละครั้งที่ขี่ มีถนนที่คุณไม่เคยขี่มาก่อนเท่าไร"
+    },
+    "cost": {
+      "headlineDefault": "ดูว่าการขี่ของคุณมีค่าใช้จ่ายเท่าไร",
+      "subhead": "Pro คำนวณค่าใช้จ่ายต่อ {{unit}} จากค่าน้ำมันและค่าเซอร์วิสของคุณ"
+    }
+  },
+  "riderInsights": {
+    "title": "ข้อมูลการขี่",
+    "backTitle": "ข้อมูล",
+    "seasonRange": "ฤดูกาล {{year}} {{from}} ถึง {{to}}",
+    "today": "วันนี้",
+    "stale": "ออฟไลน์อยู่ กำลังแสดงฤดูกาลที่บันทึกไว้ล่าสุด",
+    "placeNamesCredit": "ชื่อสถานที่: GeoNames (CC BY 4.0)",
+    "offline": {
+      "title": "คุณออฟไลน์อยู่",
+      "body": "ข้อมูลการขี่ต้องใช้อินเทอร์เน็ตในครั้งแรก ลองอีกครั้งเมื่อกลับมาออนไลน์",
+      "retry": "ลองอีกครั้ง"
+    },
+    "error": {
+      "title": "โหลดข้อมูลของคุณไม่ได้",
+      "body": "เกิดปัญหาที่ระบบของเรา ลองอีกครั้งในอีกสักครู่",
+      "retry": "ลองอีกครั้ง"
+    },
+    "empty": {
+      "title": "ยังไม่มีการขี่ในฤดูกาลนี้",
+      "body": "บันทึกการขี่ แล้วเส้นทาง สถานที่ และจังหวะการขี่ของคุณจะแสดงที่นี่"
+    },
+    "hero": {
+      "noRoutes": "เส้นทางของคุณจะแสดงที่นี่หลังขี่โดยเปิด GPS",
+      "offline": "แผนที่จะแสดงเมื่อคุณกลับมาออนไลน์",
+      "mapA11y_one": "แผนที่การขี่ {{count}} ครั้งรอบ {{region}}",
+      "mapA11y_other": "แผนที่การขี่ {{count}} ครั้งรอบ {{region}}"
+    },
+    "totals": {
+      "rides_one": "ขี่ {{count}} ครั้ง",
+      "rides_other": "ขี่ {{count}} ครั้ง",
+      "countries_one": "{{count}} ประเทศ",
+      "countries_other": "{{count}} ประเทศ"
+    },
+    "countries": {
+      "a11y_one": "{{count}} ประเทศ: {{names}} เปิดรายการประเทศ",
+      "a11y_other": "{{count}} ประเทศ: {{names}} เปิดรายการประเทศ"
+    },
+    "regions": {
+      "unnamed": "ภูมิภาคที่ไม่มีชื่อ",
+      "meta_one": "ขี่ {{count}} ครั้ง · {{distance}}",
+      "meta_other": "ขี่ {{count}} ครั้ง · {{distance}}",
+      "tileA11y": "แสดง {{region}} บนแผนที่"
+    },
+    "ribbon": {
+      "section": "ฤดูกาล",
+      "weeksRidden": "ขี่ {{ridden}} จาก {{total}} สัปดาห์",
+      "biggest": "มากที่สุด: {{distance}} {{start}} ถึง {{end}}"
+    },
+    "howYouRide": {
+      "section": "สไตล์การขี่ของคุณ",
+      "keepRiding": "ยังมีการขี่ไม่พอ ขี่ต่อไปเลย",
+      "computing": "กำลังวิเคราะห์การขี่ของคุณ กลับมาดูอีกครั้งเร็ว ๆ นี้",
+      "missingRoute": "ต้องมีการขี่ที่บันทึกด้วย GPS",
+      "unlock": "ปลดล็อก",
+      "unlocking": "กำลังปลดล็อก…",
+      "lockedA11y": "{{title}}, Pro เปิดหน้าสมัครสมาชิก",
+      "unlockingA11y": "{{title}} กำลังปลดล็อก",
+      "roadCharacter": {
+        "title": "ลักษณะถนน",
+        "teaser": "ถนนของคุณคดเคี้ยวแค่ไหน และการเอียง",
+        "value": "คดเคี้ยวขึ้นไป {{share}}",
+        "withLean": "พร้อมการเอียง (ประมาณ)",
+        "bends": "{{bends}} โค้งต่อ 10 km",
+        "a11y": "ทางตรง {{straight}} โค้งกว้าง {{sweeping}} คดเคี้ยว {{twisty}} โค้งแคบ {{tight}}"
+      },
+      "territory": {
+        "title": "อาณาเขต",
+        "teaser": "ถนนใหม่และพื้นที่บนแผนที่",
+        "value": "{{area}} · ถนนใหม่ {{share}}",
+        "furthest": "ไกลจากบ้านที่สุด {{distance}}"
+      },
+      "rhythm": {
+        "title": "จังหวะการขี่",
+        "teaser": "วันและช่วงเวลาที่คุณขี่บ่อยที่สุด",
+        "missing": "ต้องมีการขี่ที่มีเวลาเริ่ม",
+        "weekend_one": "{{weekend}} จาก {{count}} ครั้งขี่ช่วงสุดสัปดาห์",
+        "weekend_other": "{{weekend}} จาก {{count}} ครั้งขี่ช่วงสุดสัปดาห์",
+        "a11y": "ช่วงที่ขี่บ่อยที่สุด {{slot}}",
+        "slot": {
+          "morning": "ช่วงเช้า{{day}}",
+          "afternoon": "ช่วงบ่าย{{day}}",
+          "evening": "ช่วงเย็น{{day}}",
+          "night": "ช่วงกลางคืน{{day}}"
+        }
+      },
+      "bestRides": {
+        "title": "การขี่ที่ดีที่สุด",
+        "titleFree": "การขี่ที่ดีที่สุด",
+        "value": "{{name}} · {{distance}}",
+        "unnamed": "การขี่วันที่ {{date}}",
+        "captionPro": "ไกลที่สุด {{date}} · ตามด้วยความชันและโค้ง",
+        "captionFree": "ไกลที่สุด {{date}} · ความชันและโค้งใน Pro"
+      },
+      "bikes": {
+        "title": "รถ",
+        "missing": "ระบุรถในการขี่แต่ละครั้งเพื่อเปรียบเทียบ",
+        "item": "{{name}} {{distance}}",
+        "unnamed": "รถ",
+        "count_one": "{{count}} คัน",
+        "count_other": "{{count}} คัน",
+        "unassigned_one": "การขี่ {{count}} ครั้งยังไม่ได้ระบุรถ",
+        "unassigned_other": "การขี่ {{count}} ครั้งยังไม่ได้ระบุรถ"
+      }
+    },
+    "detail": {
+      "coverage": "จากการขี่ {{count}} จาก {{total}} ครั้ง",
+      "rideMeta": "{{date}} · {{distance}}",
+      "locked": {
+        "territory": "ของพื้นที่แผนที่ในฤดูกาลนี้ (ปัดเศษ)",
+        "roadCharacter": "โค้งต่อ 10 km (ปัดเศษ)",
+        "rhythm": "ของการขี่อยู่ช่วงสุดสัปดาห์ (ปัดเศษ)"
+      },
+      "roadCharacter": {
+        "heroLine": "ของเส้นทาง {{distance}} ของคุณเป็นทางคดเคี้ยวขึ้นไป",
+        "band": {
+          "straight": "ทางตรง",
+          "sweeping": "โค้งกว้าง",
+          "twisty": "คดเคี้ยว",
+          "tight": "โค้งแคบ"
+        },
+        "rule": {
+          "straight": "น้อยกว่า 1 โค้งทุก 2 km",
+          "sweeping": "ไม่เกิน 1.5 โค้งต่อ km",
+          "twisty": "ไม่เกิน 3 โค้งต่อ km",
+          "tight": "3 โค้งขึ้นไปต่อ km"
+        },
+        "barA11y": "ทางตรง {{straight}} โค้งกว้าง {{sweeping}} คดเคี้ยว {{twisty}} โค้งแคบ {{tight}}",
+        "footnote_one": "โค้งหมายถึงการเลี้ยวไปทางเดียวกัน 35° ขึ้นไปภายใน 400 m ฤดูกาลนี้มี {{count, number}} โค้ง",
+        "footnote_other": "โค้งหมายถึงการเลี้ยวไปทางเดียวกัน 35° ขึ้นไปภายใน 400 m ฤดูกาลนี้มี {{count, number}} โค้ง",
+        "per10km": "โค้ง / 10 km",
+        "twistiest_one": "การขี่ที่คดเคี้ยวที่สุด",
+        "twistiest_other": "การขี่ที่คดเคี้ยวที่สุด",
+        "straightest_one": "การขี่ที่ตรงที่สุด",
+        "straightest_other": "การขี่ที่ตรงที่สุด"
+      },
+      "lean": {
+        "title": "การเอียง (ประมาณ)",
+        "corners_one": "โค้งที่วัดได้",
+        "corners_other": "โค้งที่วัดได้",
+        "band": {
+          "under20": "<20°",
+          "from20to30": "20–30°",
+          "from30to40": "30–40°",
+          "from40": "40°+"
+        },
+        "a11y": "สัดส่วนโค้งตามองศาการเอียง: ต่ำกว่า 20° {{under20}}, 20 ถึง 30° {{from20to30}}, 30 ถึง 40° {{from30to40}}, 40° ขึ้นไป {{from40}}",
+        "missing": "ต้องมีการขี่ที่บันทึกด้วย GPS แบบละเอียด",
+        "note": "เป็นค่ารวมของผู้ขี่และรถ ประมาณจากความเร็วและการเลี้ยวที่ได้จาก GPS ค่าจะต่ำกว่าจริงในโค้งสั้นและแคบ จึงแสดงเป็นช่วง ไม่ใช่ตัวเลขที่แน่นอน"
+      },
+      "territory": {
+        "heroLine": "ของพื้นที่แผนที่ในฤดูกาลนี้",
+        "newRoads": "ถนนใหม่",
+        "newRoadsCaption": "{{distance}} จาก {{total}} อยู่บนถนนที่คุณไม่เคยขี่มาก่อน",
+        "barA11y": "{{share}} ของระยะทางฤดูกาลนี้อยู่บนถนนใหม่ {{before}} อยู่บนถนนที่เคยขี่แล้ว",
+        "newShare": "ใหม่ {{share}}",
+        "beforeShare": "เคยขี่แล้ว {{share}}",
+        "furthest": "ไกลจากบ้านที่สุด",
+        "furthestRide": "การขี่วันที่ {{date}}",
+        "fromHome": "ระยะห่างจากบ้าน",
+        "footnote": "บ้านคือจุดที่คุณเริ่มขี่บ่อยที่สุด พื้นที่นับจากช่องบนแผนที่ที่เส้นทางของคุณผ่าน"
+      },
+      "rhythm": {
+        "part": {
+          "morning": "เช้า",
+          "afternoon": "บ่าย",
+          "evening": "เย็น",
+          "night": "กลางคืน"
+        },
+        "busiest": "บ่อยที่สุด",
+        "typical": "การขี่ตามปกติ",
+        "footnote": "การขี่แต่ละครั้งนับตามเวลาเริ่ม ในเขตเวลาที่คุณขี่อยู่"
+      },
+      "bestRides": {
+        "segment": {
+          "distance": "ระยะทาง",
+          "climb": "ความชัน",
+          "bends": "โค้ง"
+        },
+        "longest": "การขี่ที่ไกลที่สุด",
+        "places": "{{start}} ถึง {{end}}",
+        "proLine_one": "Pro จัดอันดับการขี่ {{count}} ครั้งของคุณตามระยะทาง ความชัน และโค้ง",
+        "proLine_other": "Pro จัดอันดับการขี่ทั้ง {{count}} ครั้งตามระยะทาง ความชัน และโค้ง",
+        "proLineDefault": "Pro จัดอันดับการขี่ของคุณตามระยะทาง ความชัน และโค้ง",
+        "empty": "ยังไม่มีการขี่ที่มีค่านี้",
+        "footnote": "ความชันไม่นับการเปลี่ยนระดับความสูงที่ต่ำกว่า 5 m โค้งนับต่อเส้นทาง 10 km"
+      },
+      "bikes": {
+        "heroLine": "ที่ขี่ในฤดูกาลนี้",
+        "unassigned": "ไม่ได้ระบุรถ",
+        "meta_one": "ขี่ {{count}} ครั้ง · เวลาเคลื่อนที่ {{time}}",
+        "meta_other": "ขี่ {{count}} ครั้ง · เวลาเคลื่อนที่ {{time}}"
+      },
+      "countries": {
+        "title": "ประเทศ",
+        "heroLine_one": "ประเทศที่ขี่ในฤดูกาลนี้",
+        "heroLine_other": "ประเทศที่ขี่ในฤดูกาลนี้",
+        "meta_one": "ขี่ครั้งแรก {{date}} · {{count}} ครั้ง",
+        "meta_other": "ขี่ครั้งแรก {{date}} · {{count}} ครั้ง",
+        "footnote": "จะนับประเทศเมื่อเส้นทางอย่างน้อย 1 km อยู่ลึกเข้าไปในพรมแดน 500 m ขึ้นไป"
+      }
+    },
+    "share": {
+      "button": "แชร์ฤดูกาล",
+      "close": "ปิด",
+      "title": "แชร์ฤดูกาลของคุณ",
+      "subtitle": "รูปภาพสำหรับฟีดหรือสตอรี่ของคุณ",
+      "seasonLines": "เส้นทางฤดูกาล",
+      "seasonLinesCaption": "ฟรี · เส้นทางและยอดรวมของคุณ",
+      "atlasPoster": "โปสเตอร์แผนที่",
+      "atlasPosterCaption": "Pro · แผนที่ ประเทศ และลักษณะถนน",
+      "optionA11y": "{{name}} {{caption}}",
+      "lockedA11y": "{{name}}, Pro เปิดหน้าสมัครสมาชิก",
+      "sizeA11y": "ขนาดรูปภาพ",
+      "sizeFeed": "ฟีด 4:5",
+      "sizeStory": "สตอรี่ 9:16",
+      "hideEnds": "ซ่อนจุดเริ่มและจุดสิ้นสุด",
+      "hideEndsCaption": "ตัด 500 m ออกจากต้นและท้ายของการขี่แต่ละครั้ง",
+      "save": "บันทึกรูปภาพ",
+      "share": "แชร์…",
+      "message": "ฤดูกาลขี่ปี {{year}} ของฉัน แชร์จาก MotoVault",
+      "ridesSeason_one": "ขี่ {{count}} ครั้ง · ฤดูกาล {{year}}",
+      "ridesSeason_other": "ขี่ {{count}} ครั้ง · ฤดูกาล {{year}}",
+      "ridesYear_one": "ขี่ {{count}} ครั้ง · {{year}}",
+      "ridesYear_other": "ขี่ {{count}} ครั้ง · {{year}}",
+      "handleBrand": "@{{handle}} · MotoVault",
+      "twisty": "คดเคี้ยวขึ้นไป {{share}}"
+    },
+    "recap": {
+      "title": "สรุปฤดูกาล",
+      "entry": "สรุปฤดูกาล {{year}} ของคุณ",
+      "entryCaptionPro": "การ์ด 7 ใบไว้เก็บหรือโพสต์",
+      "entryCaptionFree": "การ์ด 3 ใบไว้เก็บหรือโพสต์ · เพิ่มอีก 4 ใบใน Pro",
+      "open": "เปิด",
+      "heading": "ฤดูกาล {{year}} ของคุณ",
+      "subheading": "ปัดดูทีละใบ แล้วแชร์การ์ดที่คุณชอบ",
+      "labelFree": "ฟรี · {{index}} จาก {{total}}",
+      "labelPro": "Pro · {{index}} จาก {{total}}",
+      "ridesIn_one": "ขี่ {{count}} ครั้งในปี {{year}}",
+      "ridesIn_other": "ขี่ {{count}} ครั้งในปี {{year}}",
+      "countries_one": "{{count}} ประเทศ",
+      "countries_other": "{{count}} ประเทศ",
+      "since": "ตั้งแต่ {{date}}",
+      "moreCountries": "+อีก {{count}}",
+      "longest": "การขี่ที่ไกลที่สุด",
+      "places": "{{from}} ถึง {{to}}",
+      "rhythm": "จังหวะการขี่",
+      "rhythmStarted_one": "ขี่ {{count}} ครั้งที่เริ่มระหว่าง {{from}} ถึง {{to}} น.",
+      "rhythmStarted_other": "ขี่ {{count}} ครั้งที่เริ่มระหว่าง {{from}} ถึง {{to}} น.",
+      "rhythmA11y": "การขี่ตามวันในสัปดาห์และช่วงเวลา",
+      "newRoads": "ถนนใหม่",
+      "newRoadsShare": "ของระยะทางที่คุณขี่เป็นถนนที่ไม่เคยขี่มาก่อน",
+      "newRoadsArea": "ของพื้นที่บนแผนที่",
+      "twistiest": "การขี่ที่คดเคี้ยวที่สุด",
+      "twistiestBends": "{{bends}} โค้งทุก 10 km",
+      "cost": "ค่าใช้จ่ายในการขี่",
+      "costFrom": "จากค่าน้ำมันและค่าเซอร์วิสของคุณ",
+      "costSource": {
+        "odometer": "หารด้วยเลขไมล์ที่เพิ่มขึ้นตลอดฤดูกาล",
+        "tracked": "หารด้วยระยะทางของการขี่ที่บันทึกไว้",
+        "mixed": "หารด้วยเลขไมล์ที่เพิ่มขึ้นในช่วงที่คุณบันทึกไว้ นอกนั้นใช้การขี่ที่บันทึกไว้"
+      },
+      "costAlso": "และ {{cost}}",
+      "costMissing": "ต้องบันทึกการเติมน้ำมันตลอดฤดูกาล",
+      "share": "แชร์การ์ดนี้",
+      "shareMessage": "ฤดูกาลขี่ปี {{year}} ของฉัน แชร์จาก MotoVault"
+    }
+  },
+  "ridePurposeSheet": {
+    "title": "เกี่ยวกับการขี่ครั้งนี้ (ไม่บังคับ)",
+    "purposeLabel": "ขี่ไปเพื่ออะไร",
+    "purpose": {
+      "leisure": "ขี่เล่น",
+      "commute": "เดินทางประจำ",
+      "tour": "ทัวร์ริ่ง",
+      "errand": "ทำธุระ",
+      "track": "ลงสนาม",
+      "offroad": "ออฟโรด",
+      "other": "อื่น ๆ"
+    },
+    "passenger": "มีคนซ้อนท้าย",
+    "odometer": "เลขไมล์ตอนจบ",
+    "odometerLabel": "เลขไมล์ตอนจบการขี่",
+    "odometerSave": "บันทึก",
+    "odometerSaved": "บันทึกเลขไมล์แล้ว"
+  },
+  "insightsEntry": {
+    "season": "ฤดูกาล: {{distance}}",
+    "lastRide": "+{{distance}} จากการขี่ครั้งล่าสุด",
+    "withThisRide": "+{{distance}} จากการขี่ครั้งนี้",
+    "newCountry": "ประเทศใหม่: {{country}}",
+    "loading": "กำลังโหลดฤดูกาลของคุณ…",
+    "openHint": "เปิดข้อมูลการขี่",
+    "newRoads": "ถนนใหม่",
+    "newRoadsValue": "{{distance}} · {{share}}",
+    "newRoadsComputing": "กำลังคำนวณ…",
+    "unlockPro": "ปลดล็อกด้วย Pro",
+    "newRoadsLockedA11y": "ถนนใหม่ในการขี่ครั้งนี้ ปลดล็อกด้วย Pro"
   }
 }

@@ -2,6 +2,7 @@ import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ErrorFallback } from '@/components/error-fallback';
 import { FORM_SHEET_DETENTS } from '@/config/sheet-detents';
+import { useInsightsHeaderOptions } from '@/features/rider-insights/use-insights-header-options';
 import { captureException } from '@/lib/analytics';
 import { useEditorialTheme } from '@/theme/editorial';
 
@@ -13,6 +14,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 export default function HomeLayout() {
   const { t } = useTranslation();
   const { t: theme } = useEditorialTheme();
+  const insightsHeader = useInsightsHeaderOptions();
   // Same presentation as the garage stack's copies of these sheets.
   const sheetOptions = {
     headerShown: false,
@@ -24,6 +26,16 @@ export default function HomeLayout() {
   return (
     <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
+      {/* Home's copies of Rider insights, so back from the Home card returns to Home. */}
+      <Stack.Screen
+        name="home/rider-insights"
+        options={{ ...insightsHeader.main, title: t('riderInsights.title') }}
+      />
+      <Stack.Screen name="home/rider-insights/[group]" options={insightsHeader.page} />
+      <Stack.Screen
+        name="home/rider-insights/recap"
+        options={{ ...insightsHeader.page, title: t('riderInsights.recap.title') }}
+      />
       <Stack.Screen
         name="add-maintenance-task"
         options={{ ...sheetOptions, sheetAllowedDetents: FORM_SHEET_DETENTS.TASK }}

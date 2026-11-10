@@ -14,8 +14,10 @@ import {
   ResumeRideDocument,
   StartRideDocument,
 } from '@motovault/graphql';
+import { RIDE_END_SOURCE, type RideEndSource } from '@motovault/types';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
+import { getCalendars } from 'expo-localization';
 import * as Notifications from 'expo-notifications';
 import type { Href } from 'expo-router';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
@@ -26,9 +28,8 @@ import { queryKeys } from '../../lib/query-keys';
 import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../../lib/ride-analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
-import { aggregateWaypoints } from '../../utils/ride-aggregate';
 import { activeRideSeconds, movingTimeSeconds } from '../../utils/ride-duration';
-import { encodePolyline } from '../../utils/ride-heatmap';
+import { buildRideEndInput } from '../../utils/ride-end-input';
 import {
   endAutoPauseEpisode,
   gpsStartInFlight,
@@ -63,6 +64,25 @@ import {
 import { enqueueOrExecute, enqueueWaypointUpload } from '../../utils/ride-sync-queue';
 
 export type RideSource = 'phone' | 'carplay';
+
+/** How a rider's own Stop is recorded on the server, by the surface it came from. */
+const END_SOURCE_BY_RIDE_SOURCE: Record<RideSource, RideEndSource> = {
+  phone: RIDE_END_SOURCE.RIDER_PHONE,
+  carplay: RIDE_END_SOURCE.RIDER_CARPLAY,
+};
+
+/**
+ * The device's IANA time zone at ride start, so the ride's day and hour are read
+ * where it was ridden. Undefined when the OS reports none; the server then
+ * resolves the zone from the ride's start point.
+ */
+function deviceTimeZone(): string | undefined {
+  try {
+    return getCalendars()[0]?.timeZone ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export type RideStartFailureReason = 'denied' | 'gps_failed' | 'approximate';
 
@@ -188,6 +208,7 @@ async function runStartRideSession({
 
   const rideId = Crypto.randomUUID();
   const startedAt = new Date().toISOString();
+  const timeZone = deviceTimeZone();
 
   rideMMKV.setCurrentId(rideId);
   rideMMKV.setStatus(RIDE_PHASE.RECORDING);
@@ -232,7 +253,14 @@ async function runStartRideSession({
   // Tell the server only after GPS is confirmed running (rollback above otherwise).
   enqueueOrExecute('startRide', {
     mutationDocument: StartRideDocument,
-    variables: { input: { rideId, motorcycleId: effectiveMotorcycleId, startedAt } },
+    variables: {
+      input: {
+        rideId,
+        motorcycleId: effectiveMotorcycleId,
+        startedAt,
+        ...(timeZone ? { timeZone } : {}),
+      },
+    },
   });
 
   trackEvent(AnalyticsEvent.RIDE_STARTED, {
@@ -385,12 +413,6 @@ export function endRideSession(
   // prevents crash-recovery from re-enqueuing them as duplicates after end.
   removeWaypointBuffer(rideId);
 
-  const totals = aggregateWaypoints(combined);
-  const totalDistance = totals.distanceM;
-  const maxSpd = totals.maxSpeedMps;
-  const avgSpeed = totals.avgSpeedMps;
-  const elevGain = totals.elevationGain;
-  const elevLoss = totals.elevationLoss;
   // If the ride is ended while still paused, bank the in-progress pause first so
   // both the derived duration and pausedDurationS account for it.
   // A trimmed end banks only the part of the pause before the end point.
@@ -411,10 +433,19 @@ export function endRideSession(
   const startedAt = rideMMKV.getStartedAt();
   const motorcycleId = rideMMKV.getMotorcycleId() ?? null;
   const store = useRideStore.getState();
-  const maxLeanAngle = store.maxLeanAngle;
   const isNightMode = store.isNightMode;
   const isBatterySaver = store.isBatterySaver;
-  const endedAt = new Date(endedAtMs).toISOString();
+  const { input: endInput, totals } = buildRideEndInput({
+    rideId,
+    endedAtMs,
+    waypoints: combined,
+    pausedMs: totalPausedMs,
+    autoPausedMs: totalAutoPausedMs,
+    endSource: END_SOURCE_BY_RIDE_SOURCE[source],
+  });
+  const totalDistance = totals.distanceM;
+  const maxSpd = totals.maxSpeedMps;
+  const avgSpeed = totals.avgSpeedMps;
 
   const summary: RideEndSummary = {
     rideId,
@@ -422,8 +453,8 @@ export function endRideSession(
     durationS,
     maxSpeedMps: maxSpd,
     avgSpeedMps: avgSpeed,
-    elevationGain: Math.round(elevGain),
-    elevationLoss: Math.round(elevLoss),
+    elevationGain: Math.round(totals.elevationGain ?? 0),
+    elevationLoss: Math.round(totals.elevationLoss ?? 0),
     startedAt,
     motorcycleId,
     movingTimeS: startedAt
@@ -460,29 +491,9 @@ export function endRideSession(
     trimmed_s: Math.max(0, Math.round((Date.now() - endedAtMs) / 1000)),
   });
 
-  const polyline =
-    combined.length >= 2
-      ? encodePolyline(combined.map((wp) => [wp.latitude, wp.longitude] as [number, number]))
-      : null;
-
   enqueueOrExecute('endRide', {
     mutationDocument: EndRideDocument,
-    variables: {
-      input: {
-        rideId,
-        endedAt,
-        distanceM: Math.round(totalDistance),
-        maxSpeedMps: maxSpd > 0 ? maxSpd : null,
-        avgSpeedMps: avgSpeed > 0 ? avgSpeed : null,
-        elevationGain: elevGain > 0 ? Math.round(elevGain) : null,
-        elevationLoss: elevLoss > 0 ? Math.round(elevLoss) : null,
-        routePolyline: polyline,
-        pausedDurationS: Math.round(totalPausedMs / 1000),
-        autoPausedDurationS: Math.round(totalAutoPausedMs / 1000),
-        gpsQuality: combined.length > 0 ? 1 : 0,
-        maxLeanAngle: maxLeanAngle > 0 ? maxLeanAngle : null,
-      },
-    },
+    variables: { input: endInput },
   });
 
   // Both the phone HUD and a CarPlay Stop now route to the ride-summary screen,

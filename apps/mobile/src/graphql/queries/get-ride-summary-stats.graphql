@@ -1,0 +1,9 @@
+query GetRideSummaryStats($id: String!) {
+  ride(id: $id) {
+    id
+    newRoadsM
+    stats {
+      climbM
+    }
+  }
+}

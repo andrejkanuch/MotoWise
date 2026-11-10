@@ -7,7 +7,7 @@ const CACHE_KEY = 'offline-cache-v1';
 
 export const queryPersister: Persister = {
   persistClient: async (persistedClient) => {
-    storage.set(CACHE_KEY, JSON.stringify(persistedClient));
+    storage.set(CACHE_KEY, JSON.stringify(withoutInsightsGeometry(persistedClient)));
   },
   restoreClient: async (): Promise<PersistedClient | undefined> => {
     const raw = storage.getString(CACHE_KEY);
@@ -73,14 +73,74 @@ const PERSISTED_ROOTS = new Set([
   'rides', // recent ride list
 ]);
 
+const INSIGHTS_KEY = 'insights';
+/** "Never fetched": a restored entry with this time is stale whatever its `staleTime`. */
+const STRIPPED_DATA_UPDATED_AT = 0;
+const PERSISTED_RIDE_KEYS: ReadonlySet<unknown> = new Set(['list', 'overview', INSIGHTS_KEY]);
+
 export function shouldDehydratePersistedQuery(query: Query): boolean {
   if (query.state.status !== 'success') return false;
   const root = query.queryKey[0];
   if (typeof root !== 'string' || !PERSISTED_ROOTS.has(root)) return false;
-  // Only persist ride lists + overview, not individual ride detail/waypoints (can be 50-100KB each)
-  if (root === 'rides' && query.queryKey[1] !== 'list' && query.queryKey[1] !== 'overview')
-    return false;
+  // Only persist ride lists, overview and Rider insights, not individual ride
+  // detail/waypoints (can be 50-100KB each)
+  if (root === 'rides' && !PERSISTED_RIDE_KEYS.has(query.queryKey[1])) return false;
   // Only persist the all-user maintenance aggregation, not per-motorcycle breakdowns
   if (root === 'maintenance-tasks' && query.queryKey[1] !== 'all-user') return false;
   return true;
+}
+
+interface InsightsRegionLike {
+  routes?: unknown;
+}
+
+function stripRegionRoutes(data: unknown): unknown {
+  const insights = (data as { riderInsights?: { regions?: InsightsRegionLike[] } } | undefined)
+    ?.riderInsights;
+  if (!insights?.regions) return data;
+  return {
+    ...(data as object),
+    riderInsights: {
+      ...insights,
+      regions: insights.regions.map((region) => ({ ...region, routes: [] })),
+    },
+  };
+}
+
+/**
+ * The Rider insights entry is written without its region routes. The free
+ * totals, statuses and headlines are what an offline cold start needs; the
+ * encoded routes are the bulk of the payload and are the rider's own tracks, so
+ * they stay off disk. A restored entry keeps each region's bounds with no
+ * routes, which the screen reads as "map offline" until a request succeeds.
+ *
+ * The stripped entry is written as never fetched (`dataUpdatedAt: 0`): it is
+ * not the answer the server gave, so a relaunch inside the stale window must
+ * not restore it as fresh — it refetches, and online the map and Share return.
+ */
+export function withoutInsightsGeometry(persistedClient: PersistedClient): PersistedClient {
+  const queries = persistedClient.clientState?.queries;
+  if (!queries?.some((query) => isInsightsKey(query.queryKey))) return persistedClient;
+  return {
+    ...persistedClient,
+    clientState: {
+      ...persistedClient.clientState,
+      queries: queries.map((query) =>
+        isInsightsKey(query.queryKey)
+          ? {
+              ...query,
+              state: {
+                ...query.state,
+                data: stripRegionRoutes(query.state.data),
+                dataUpdatedAt: STRIPPED_DATA_UPDATED_AT,
+              },
+            }
+          : query,
+      ),
+    },
+  };
+}
+
+function isInsightsKey(queryKey: readonly unknown[]): boolean {
+  return queryKey[0] === 'rides' && queryKey[1] === INSIGHTS_KEY;
 }

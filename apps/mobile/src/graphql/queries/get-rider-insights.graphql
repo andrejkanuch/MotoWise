@@ -24,6 +24,7 @@ query GetRiderInsights(
       rides
       qualifyingRides
       pendingRides
+      pendingRecentRides
       ridesWithBike
       qualifying {
         withStats
@@ -93,6 +94,7 @@ query GetRiderInsights(
         newRoadShare
         furthest {
           rideId
+          name
           localDate
           distanceM
           lat

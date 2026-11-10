@@ -135,19 +135,22 @@ jest.mock('@/stores/ride.store', () => {
     endRide: jest.fn(),
     hydrate: jest.fn(),
     setPermissionLevel: jest.fn(),
-    maxLeanAngle: 0,
     isNightMode: false,
     isBatterySaver: false,
     distance: 0,
   };
   return { useRideStore: { getState: () => store, setState: jest.fn() } };
 });
+jest.mock('expo-localization', () => ({
+  getCalendars: jest.fn(() => [{ timeZone: 'Europe/Bratislava' }]),
+}));
 jest.mock('expo-crypto', () => ({ randomUUID: () => 'ride-uuid-1' }));
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
   ImpactFeedbackStyle: { Heavy: 'heavy' },
 }));
 
+import * as Localization from 'expo-localization';
 import * as Notifications from 'expo-notifications';
 import { trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
@@ -287,6 +290,22 @@ describe('startRideSession', () => {
     expect(storage.resetWaypointBudget).toHaveBeenCalledTimes(1);
   });
 
+  it("sends the device's time zone with the server start", async () => {
+    await startRideSession({ motorcycleId: 'bike-1', source: 'phone' });
+    const startCall = enqueue.mock.calls.find(([type]) => type === 'startRide');
+    expect(startCall?.[1].variables.input).toMatchObject({
+      rideId: 'ride-uuid-1',
+      timeZone: 'Europe/Bratislava',
+    });
+  });
+
+  it('sends no time zone when the device calendar has none', async () => {
+    (Localization.getCalendars as jest.Mock).mockReturnValueOnce([{ timeZone: null }]);
+    await startRideSession({ motorcycleId: 'bike-1', source: 'phone' });
+    const startCall = enqueue.mock.calls.find(([type]) => type === 'startRide');
+    expect(startCall?.[1].variables.input).not.toHaveProperty('timeZone');
+  });
+
   it('rolls back (removes the id, re-projects the store) and does NOT enqueue when GPS start throws', async () => {
     startGPS.mockRejectedValueOnce(new Error('location updates failed'));
     const result = await startRideSession({ motorcycleId: null, source: 'carplay' });
@@ -366,6 +385,42 @@ describe('endRideSession', () => {
     expect(enqueueWaypoints).toHaveBeenCalledWith('ride-7', [wp(0, 0, 115, 30)]);
     expect(enqueue).toHaveBeenCalledWith('endRide', expect.anything());
     expect(summary).toMatchObject({ rideId: 'ride-7', maxSpeedMps: 30, motorcycleId: 'bike-9' });
+  });
+
+  it('says how the ride ended: the phone Stop and the CarPlay Stop', () => {
+    const endSourceOf = () =>
+      enqueue.mock.calls.filter(([type]) => type === 'endRide').at(-1)?.[1].variables.input
+        .endSource;
+
+    mmkvState.currentId = 'ride-ph';
+    endRideSession('phone');
+    expect(endSourceOf()).toBe('rider_phone');
+
+    mmkvState.currentId = 'ride-cp';
+    mmkvState.status = undefined;
+    store.status = 'recording';
+    endRideSession('carplay');
+    expect(endSourceOf()).toBe('rider_carplay');
+  });
+
+  it("sends the summary's climb and drops the constant GPS quality and lean", () => {
+    mmkvState.currentId = 'ride-climb';
+    mmkvState.startedAt = 1_000_000;
+    getWaypointChunks.mockReturnValueOnce([
+      [100, 100, 103, 110, 120, 121, 130, 130].map((alt, i) => ({
+        ...wp(0, i * 0.0001, alt, 10),
+        recordedAt: new Date(1_000_000 + i * 1000).toISOString(),
+      })),
+    ]);
+
+    const summary = endRideSession('phone');
+    const input = enqueue.mock.calls.find(([type]) => type === 'endRide')?.[1].variables.input;
+
+    // Median-of-5 then 5 m hysteresis: 100 → 110 → 120 → 130.
+    expect(summary?.elevationGain).toBe(30);
+    expect(input.elevationGain).toBe(30);
+    expect(input).not.toHaveProperty('gpsQuality');
+    expect(input).not.toHaveProperty('maxLeanAngle');
   });
 
   it('does not clear ride data on end — the ride-summary screen owns cleanup', () => {

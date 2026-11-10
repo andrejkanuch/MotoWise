@@ -333,8 +333,6 @@
     "imperial": "Imperial (mi, °F)",
     "myTripsTitle": "My trips",
     "currency": "Currency",
-    "roadsTitle": "Roads I've ridden",
-    "roadsSubtitle": "Lifetime heatmap & year recap",
     "redeemCode": "Redeem a code",
     "appSettings": "App settings",
     "appSettingsSubtitle": "Language, theme, units, currency, notifications",
@@ -363,7 +361,8 @@
     "sectionApp": "App",
     "nameLabel": "Name",
     "publicNameLabel": "Public name (shown to other riders)",
-    "sectionFeedback": "Feedback"
+    "sectionFeedback": "Feedback",
+    "riderInsightsDescription": "Your season's roads, places and rhythm"
   },
   "onboarding": {
     "welcomeTitle": "Welcome to MotoVault",
@@ -1168,6 +1167,11 @@
       "clear": "Clear",
       "clearNoteA11y": "Clear the restored note",
       "clearReadingA11y": "Clear the restored reading"
+    },
+    "serviceDistance": {
+      "since": "{{distance}} {{unit}} since last service",
+      "servicedAt": "Last service at {{distance}} {{unit}}",
+      "none": "No service logged"
     }
   },
   "maintenance": {
@@ -1991,7 +1995,8 @@
     "ride_other": "{{count}} rides",
     "elev": "elev.",
     "dur": "Dur",
-    "avg": "Avg"
+    "avg": "Avg",
+    "insightsSubtitle": "Where, when and how you ride"
   },
   "rideDetail": {
     "unavailable": "This ride is no longer available. It may have been deleted or made private.",
@@ -2007,8 +2012,6 @@
     "deleteMessage": "This action cannot be undone.",
     "cancel": "Cancel",
     "delete": "Delete",
-    "leanAngle": "Max Lean",
-    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions.",
     "private": "Private",
     "threeD": "3D",
     "shareRideA11y": "Share ride",
@@ -2693,5 +2696,333 @@
     "riders": "Riders",
     "join": "Join This Trip",
     "joinErrorTitle": "Could not join"
+  },
+  "riderInsightsPaywall": {
+    "seasonDistance": "{{distance}} this season",
+    "seasonRides_one": "{{count}} ride this season",
+    "seasonRides_other": "{{count}} rides this season",
+    "longestRide": "Your longest ride: {{distance}}",
+    "territory": {
+      "headlineDefault": "See where you explored",
+      "subhead": "Pro shows how much of it was new road, and how far from home you went."
+    },
+    "roadCharacter": {
+      "headlineDefault": "See what your roads are like",
+      "subhead": "Pro shows how twisty your roads were, and your estimated lean."
+    },
+    "rhythm": {
+      "headlineDefault": "See when you ride",
+      "subhead": "Pro shows your busiest days and hours, and your typical ride."
+    },
+    "bestRides": {
+      "headlineDefault": "Rank your best rides",
+      "subhead": "Pro ranks your season by distance, climb and bends."
+    },
+    "summary": {
+      "headlineDefault": "See the new roads on every ride",
+      "subhead": "Pro shows how much of each ride was road you had never ridden."
+    },
+    "cost": {
+      "headlineDefault": "See what your riding costs",
+      "subhead": "Pro works out your cost per {{unit}}, from your fuel and service spend."
+    }
+  },
+  "riderInsights": {
+    "title": "Rider insights",
+    "backTitle": "Insights",
+    "seasonRange": "Season {{year}}, {{from}} to {{to}}",
+    "today": "today",
+    "stale": "Offline. Showing your season as last saved.",
+    "placeNamesCredit": "Place names: GeoNames (CC BY 4.0)",
+    "offline": {
+      "title": "You're offline",
+      "body": "Rider insights needs a connection the first time. Try again when you're back online.",
+      "retry": "Try again"
+    },
+    "error": {
+      "title": "Couldn't load your insights",
+      "body": "Something went wrong on our side. Try again in a moment.",
+      "retry": "Try again"
+    },
+    "empty": {
+      "title": "No rides this season yet",
+      "body": "Record a ride and your roads, places and rhythm show up here."
+    },
+    "hero": {
+      "noRoutes": "Your roads show here after a ride with GPS.",
+      "offline": "The map shows when you're back online.",
+      "mapA11y_one": "Map of {{count}} ride around {{region}}",
+      "mapA11y_other": "Map of {{count}} rides around {{region}}"
+    },
+    "totals": {
+      "rides_one": "{{count}} ride",
+      "rides_other": "{{count}} rides",
+      "countries_one": "{{count}} country",
+      "countries_other": "{{count}} countries"
+    },
+    "countries": {
+      "a11y_one": "{{count}} country: {{names}}. Open countries",
+      "a11y_other": "{{count}} countries: {{names}}. Open countries"
+    },
+    "regions": {
+      "unnamed": "Unnamed region",
+      "meta_one": "{{count}} ride · {{distance}}",
+      "meta_other": "{{count}} rides · {{distance}}",
+      "tileA11y": "Show {{region}} on the map"
+    },
+    "ribbon": {
+      "section": "Season",
+      "weeksRidden": "{{ridden}} of {{total}} weeks ridden",
+      "biggest": "Biggest: {{distance}}, {{start}} to {{end}}"
+    },
+    "howYouRide": {
+      "section": "How you ride",
+      "keepRiding": "Not enough rides yet, keep riding",
+      "computing": "Working out your rides. Check back soon.",
+      "missingRoute": "Needs rides recorded with GPS",
+      "unlock": "Unlock",
+      "unlocking": "Unlocking…",
+      "lockedA11y": "{{title}}, Pro. Opens the paywall",
+      "unlockingA11y": "{{title}}, unlocking",
+      "roadCharacter": {
+        "title": "Road character",
+        "teaser": "How twisty your roads were, and lean",
+        "value": "{{share}} twisty or tighter",
+        "withLean": "With lean, estimated",
+        "bends": "{{bends}} bends per 10 km",
+        "a11y": "{{straight}} straight, {{sweeping}} sweeping, {{twisty}} twisty, {{tight}} tight"
+      },
+      "territory": {
+        "title": "Territory",
+        "teaser": "New roads and map covered",
+        "value": "{{area}} · {{share}} new roads",
+        "furthest": "Furthest from home {{distance}}"
+      },
+      "rhythm": {
+        "title": "Riding rhythm",
+        "teaser": "Your busiest days and hours",
+        "missing": "Needs rides with a start time",
+        "weekend_one": "{{weekend}} of {{count}} ride at the weekend",
+        "weekend_other": "{{weekend}} of {{count}} rides at the weekend",
+        "a11y": "Busiest slot {{slot}}",
+        "slot": {
+          "morning": "{{day}} mornings",
+          "afternoon": "{{day}} afternoons",
+          "evening": "{{day}} evenings",
+          "night": "{{day}} nights"
+        }
+      },
+      "bestRides": {
+        "title": "Best rides",
+        "titleFree": "Best ride",
+        "value": "{{name}} · {{distance}}",
+        "unnamed": "Ride on {{date}}",
+        "captionPro": "Longest, {{date}} · then climb and bends",
+        "captionFree": "Longest, {{date}} · climb and bends with Pro"
+      },
+      "bikes": {
+        "title": "Bikes",
+        "missing": "Set a bike on your rides to compare them",
+        "item": "{{name}} {{distance}}",
+        "unnamed": "Bike",
+        "count_one": "{{count}} bike",
+        "count_other": "{{count}} bikes",
+        "unassigned_one": "{{count}} ride has no bike set",
+        "unassigned_other": "{{count}} rides have no bike set"
+      }
+    },
+    "detail": {
+      "coverage": "From {{count}} of {{total}} rides",
+      "rideMeta": "{{date}} · {{distance}}",
+      "locked": {
+        "territory": "of map covered this season, rounded",
+        "roadCharacter": "bends per 10 km, rounded",
+        "rhythm": "of your rides at the weekend, rounded"
+      },
+      "roadCharacter": {
+        "heroLine": "of your {{distance}} routed were twisty or tighter",
+        "band": {
+          "straight": "Straight",
+          "sweeping": "Sweeping",
+          "twisty": "Twisty",
+          "tight": "Tight bends"
+        },
+        "rule": {
+          "straight": "under 1 bend every 2 km",
+          "sweeping": "up to 1.5 bends per km",
+          "twisty": "up to 3 bends per km",
+          "tight": "3 or more bends per km"
+        },
+        "barA11y": "Straight {{straight}}, sweeping {{sweeping}}, twisty {{twisty}}, tight bends {{tight}}",
+        "footnote_one": "A bend is 35° or more of turning one way within 400 m. {{count, number}} bend this season.",
+        "footnote_other": "A bend is 35° or more of turning one way within 400 m. {{count, number}} bends this season.",
+        "per10km": "bends / 10 km",
+        "twistiest_one": "Twistiest ride",
+        "twistiest_other": "Twistiest rides",
+        "straightest_one": "Straightest ride",
+        "straightest_other": "Straightest rides"
+      },
+      "lean": {
+        "title": "Lean, estimated",
+        "corners_one": "corner measured",
+        "corners_other": "corners measured",
+        "band": {
+          "under20": "<20°",
+          "from20to30": "20–30°",
+          "from30to40": "30–40°",
+          "from40": "40°+"
+        },
+        "a11y": "Share of corners by lean: under 20° {{under20}}, 20 to 30° {{from20to30}}, 30 to 40° {{from30to40}}, 40° and over {{from40}}",
+        "missing": "Needs rides recorded with detailed GPS",
+        "note": "Rider and bike together, estimated from GPS speed and turning. It reads low in short, tight corners, so it is shown in bands, never as one exact number."
+      },
+      "territory": {
+        "heroLine": "of map covered this season",
+        "newRoads": "New roads",
+        "newRoadsCaption": "{{distance}} of {{total}} on roads you had not ridden before",
+        "barA11y": "{{share}} of this season's distance on new roads, {{before}} on roads ridden before",
+        "newShare": "{{share}} new",
+        "beforeShare": "{{share}} ridden before",
+        "furthest": "Furthest from home",
+        "furthestRide": "Ride on {{date}}",
+        "fromHome": "Distance from home",
+        "footnote": "Home is where most of your rides start. Area counts the map cells your routes pass through."
+      },
+      "rhythm": {
+        "part": {
+          "morning": "Morning",
+          "afternoon": "Afternoon",
+          "evening": "Evening",
+          "night": "Night"
+        },
+        "busiest": "Busiest",
+        "typical": "Typical ride",
+        "footnote": "Each ride counts at its start, in the time zone you rode in."
+      },
+      "bestRides": {
+        "segment": {
+          "distance": "Distance",
+          "climb": "Climb",
+          "bends": "Bends"
+        },
+        "longest": "Longest ride",
+        "places": "{{start}} to {{end}}",
+        "proLine_one": "Pro ranks your {{count}} ride by distance, climb and bends.",
+        "proLine_other": "Pro ranks all {{count}} rides by distance, climb and bends.",
+        "proLineDefault": "Pro ranks your rides by distance, climb and bends.",
+        "empty": "No rides with this measure yet",
+        "footnote": "Climb ignores altitude changes under 5 m. Bends are counted per 10 km of route."
+      },
+      "bikes": {
+        "heroLine": "ridden this season",
+        "unassigned": "Unassigned",
+        "meta_one": "{{count}} ride · {{time}} moving",
+        "meta_other": "{{count}} rides · {{time}} moving"
+      },
+      "countries": {
+        "title": "Countries",
+        "heroLine_one": "country ridden this season",
+        "heroLine_other": "countries ridden this season",
+        "meta_one": "First ridden {{date}} · {{count}} ride",
+        "meta_other": "First ridden {{date}} · {{count}} rides",
+        "footnote": "A country counts once at least 1 km of a route lies 500 m or more inside its border."
+      }
+    },
+    "share": {
+      "button": "Share season",
+      "close": "Close",
+      "title": "Share your season",
+      "subtitle": "An image for your feed or story.",
+      "seasonLines": "Season lines",
+      "seasonLinesCaption": "Free · your routes and totals",
+      "atlasPoster": "Atlas poster",
+      "atlasPosterCaption": "Pro · map, countries and road character",
+      "optionA11y": "{{name}}. {{caption}}",
+      "lockedA11y": "{{name}}, Pro. Opens the paywall",
+      "sizeA11y": "Image size",
+      "sizeFeed": "Feed 4:5",
+      "sizeStory": "Story 9:16",
+      "hideEnds": "Hide ride start and end",
+      "hideEndsCaption": "Trims 500 m off the start and end of each ride",
+      "save": "Save image",
+      "share": "Share…",
+      "message": "My {{year}} riding season, shared from MotoVault",
+      "ridesSeason_one": "{{count}} ride · Season {{year}}",
+      "ridesSeason_other": "{{count}} rides · Season {{year}}",
+      "ridesYear_one": "{{count}} ride · {{year}}",
+      "ridesYear_other": "{{count}} rides · {{year}}",
+      "handleBrand": "@{{handle}} · MotoVault",
+      "twisty": "{{share}} twisty or tighter"
+    },
+    "recap": {
+      "title": "Season recap",
+      "entry": "Your {{year}} season recap",
+      "entryCaptionPro": "Seven cards to keep or post",
+      "entryCaptionFree": "3 cards to keep or post · 4 more with Pro",
+      "open": "Open",
+      "heading": "Your {{year}} season",
+      "subheading": "Swipe through, then share the card you like.",
+      "labelFree": "Free · {{index}} of {{total}}",
+      "labelPro": "Pro · {{index}} of {{total}}",
+      "ridesIn_one": "{{count}} ride in {{year}}",
+      "ridesIn_other": "{{count}} rides in {{year}}",
+      "countries_one": "{{count}} country",
+      "countries_other": "{{count}} countries",
+      "since": "since {{date}}",
+      "moreCountries": "+{{count}} more",
+      "longest": "Longest ride",
+      "places": "{{from}} to {{to}}",
+      "rhythm": "Riding rhythm",
+      "rhythmStarted_one": "{{count}} ride started between {{from}} and {{to}}",
+      "rhythmStarted_other": "{{count}} rides started between {{from}} and {{to}}",
+      "rhythmA11y": "Rides by weekday and time of day",
+      "newRoads": "New roads",
+      "newRoadsShare": "of your route kilometres were roads you had never ridden",
+      "newRoadsArea": "of map covered",
+      "twistiest": "Twistiest ride",
+      "twistiestBends": "{{bends}} bends every 10 km",
+      "cost": "Cost of riding",
+      "costFrom": "from your fuel and service costs",
+      "costSource": {
+        "odometer": "Divided by the odometer change across the season",
+        "tracked": "Divided by the distance of your tracked rides",
+        "mixed": "Divided by the odometer change where you logged it, otherwise tracked rides"
+      },
+      "costAlso": "Also {{cost}}",
+      "costMissing": "Needs fuel logged across the season",
+      "share": "Share this card",
+      "shareMessage": "My {{year}} riding season, shared from MotoVault"
+    }
+  },
+  "ridePurposeSheet": {
+    "title": "About this ride (optional)",
+    "purposeLabel": "What was it for?",
+    "purpose": {
+      "leisure": "Leisure",
+      "commute": "Commute",
+      "tour": "Tour",
+      "errand": "Errand",
+      "track": "Track day",
+      "offroad": "Off-road",
+      "other": "Other"
+    },
+    "passenger": "Rode with a passenger",
+    "odometer": "Odometer at the end",
+    "odometerLabel": "Odometer reading at the end of the ride",
+    "odometerSave": "Save",
+    "odometerSaved": "Odometer saved"
+  },
+  "insightsEntry": {
+    "season": "Season: {{distance}}",
+    "lastRide": "+{{distance}} on your last ride",
+    "withThisRide": "+{{distance}} with this ride",
+    "newCountry": "New country: {{country}}",
+    "loading": "Loading your season…",
+    "openHint": "Opens Rider insights",
+    "newRoads": "New roads",
+    "newRoadsValue": "{{distance}} · {{share}}",
+    "newRoadsComputing": "Working it out…",
+    "unlockPro": "Unlock with Pro",
+    "newRoadsLockedA11y": "New roads on this ride. Unlock with Pro"
   }
 }

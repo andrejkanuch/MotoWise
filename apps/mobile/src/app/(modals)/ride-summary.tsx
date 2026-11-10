@@ -4,7 +4,7 @@ import MapboxGL from '@rnmapbox/maps';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { type Href, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import type { TFunction } from 'i18next';
 import {
   ArrowDown,
@@ -22,7 +22,6 @@ import {
   Trophy,
   X,
 } from 'lucide-react-native';
-// NOTE: palette is kept only for speed-gradient colors (speedSlow/Medium/Fast)
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -39,7 +38,13 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../components/ui/native-toggle';
 import { finalizeEndedRide } from '../../features/ride/ride-controller';
-import { useRideTeaserEvaluation } from '../../features/ride/use-ride-teaser-evaluation';
+import { summaryMovingTimeS } from '../../features/ride/ride-moving-time';
+import {
+  RidePurposeSheet,
+  type RidePurposeSheetHandle,
+} from '../../features/ride/ride-purpose-sheet';
+import { RideSummaryInsightsCard } from '../../features/ride/ride-summary-insights-card';
+import { buildSummaryRoute } from '../../features/ride/ride-summary-route';
 import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
@@ -71,6 +76,8 @@ import { dropDeadLetteredRide, enqueueOrExecute } from '../../utils/ride-sync-qu
 
 const MAP_HEIGHT = 260;
 const SHEET_RADIUS = 28;
+/** Where Save and Discard leave the summary for, unless Rider insights was opened. */
+const PROFILE_HREF: Href = '/(tabs)/(profile)';
 
 /** Smart ride naming using time-of-day, in the app language ("Saturday Morning Ride"). */
 function smartRideName(startedAt: number, t: TFunction, locale: string): string {
@@ -110,13 +117,18 @@ export default function RideSummaryScreen() {
   const startedAtMs = Number(params.startedAt) || Date.now();
   const motorcycleId = params.motorcycleId ?? '';
   const movingTimeS = Number(params.movingTimeS) || 0;
+  const shownMovingS = summaryMovingTimeS({
+    distanceM,
+    avgSpeedMps,
+    durationS,
+    fallbackS: movingTimeS,
+  });
 
   const queryClient = useQueryClient();
   const { t, i18n } = useTranslation();
   const { t: theme, isDark } = useEditorialTheme();
 
-  // Android hardware back would leave without Save or Discard — the same stranded
-  // ride the disabled swipe prevents on iOS.
+  // Android back would leave without Save or Discard (a stranded ride, as the iOS swipe).
   // Focus-scoped: Add Expense is pushed on top and must keep its own back button.
   useFocusEffect(
     useCallback(() => {
@@ -134,11 +146,6 @@ export default function RideSummaryScreen() {
 
   const bikeName = useBikeName(motorcycleId);
 
-  // Ride-moment paywall teaser, shadow phase: logs would-have-shown when the summary opens;
-  // nothing renders while RIDE_TEASER_LIVE is false. movingTimeS is the server's moving time.
-  useRideTeaserEvaluation({ rideId, distanceM, movingS: movingTimeS, measurementSystem: system });
-
-  // Fetch PB data
   const { data: overviewData } = useQuery<RideOverviewQuery>({
     queryKey: queryKeys.rides.overview,
     queryFn: () => gqlFetcher(RideOverviewDocument),
@@ -158,103 +165,11 @@ export default function RideSummaryScreen() {
     ? Math.round(((pbRecord.value - pbRecord.previousValue) / pbRecord.previousValue) * 100)
     : null;
 
-  // Build route from stored waypoints
-  const routeData = useMemo(() => {
-    const chunks = getWaypointChunks(rideId);
-    const allWaypoints = chunks.flat();
-    const buffer = [...getPointBuffer()];
-    const combined = [...allWaypoints, ...buffer];
-
-    if (combined.length < 2) return null;
-
-    const coordinates: [number, number][] = [];
-    const speedValues: number[] = [];
-
-    let minLng = combined[0].longitude;
-    let maxLng = combined[0].longitude;
-    let minLat = combined[0].latitude;
-    let maxLat = combined[0].latitude;
-
-    let cumulativeDistance = 0;
-    const distances: number[] = [0];
-
-    for (let i = 0; i < combined.length; i++) {
-      const wp = combined[i];
-      coordinates.push([wp.longitude, wp.latitude]);
-      speedValues.push(wp.speedMps ?? 0);
-
-      if (wp.longitude < minLng) minLng = wp.longitude;
-      if (wp.longitude > maxLng) maxLng = wp.longitude;
-      if (wp.latitude < minLat) minLat = wp.latitude;
-      if (wp.latitude > maxLat) maxLat = wp.latitude;
-
-      if (i > 0) {
-        const prev = combined[i - 1];
-        const segDist = Math.sqrt(
-          (wp.longitude - prev.longitude) ** 2 + (wp.latitude - prev.latitude) ** 2,
-        );
-        cumulativeDistance += segDist;
-        distances.push(cumulativeDistance);
-      }
-    }
-
-    // Speed-gradient color stops — downsample to max ~200 entries
-    const totalDist = cumulativeDistance || 1;
-    const rawStops: [number, string][] = [];
-    let lastPct = -1;
-    for (let i = 0; i < combined.length; i++) {
-      const pct = Math.round((distances[i] / totalDist) * 10000) / 10000;
-      if (pct <= lastPct) continue;
-      const speedKmh = (speedValues[i] ?? 0) * 3.6;
-      let color: string;
-      if (speedKmh < 30) color = palette.speedSlow;
-      else if (speedKmh < 80) color = palette.speedMedium;
-      else color = palette.speedFast;
-      rawStops.push([pct, color]);
-      lastPct = pct;
-    }
-
-    // Downsample if too many stops
-    let colorStops = rawStops;
-    if (rawStops.length > 200) {
-      const step = Math.ceil(rawStops.length / 200);
-      colorStops = rawStops.filter(
-        (_, i) => i === 0 || i === rawStops.length - 1 || i % step === 0,
-      );
-    }
-
-    if (colorStops.length === 0) {
-      colorStops = [
-        [0, palette.speedSlow],
-        [1, palette.speedSlow],
-      ];
-    } else {
-      if (colorStops[0][0] !== 0) colorStops.unshift([0, colorStops[0][1]]);
-      if (colorStops[colorStops.length - 1][0] !== 1)
-        colorStops.push([1, colorStops[colorStops.length - 1][1]]);
-    }
-
-    const geojson: GeoJSON.FeatureCollection = {
-      type: 'FeatureCollection',
-      features: [
-        {
-          type: 'Feature',
-          properties: {},
-          geometry: { type: 'LineString', coordinates },
-        },
-      ],
-    };
-
-    const bounds = {
-      ne: [maxLng + 0.005, maxLat + 0.005] as [number, number],
-      sw: [minLng - 0.005, minLat - 0.005] as [number, number],
-    };
-
-    const startPoint = coordinates[0];
-    const endPoint = coordinates[coordinates.length - 1];
-
-    return { geojson, bounds, colorStops, startPoint, endPoint };
-  }, [rideId]);
+  // The route from the stored waypoints and the points not yet flushed to them.
+  const routeData = useMemo(
+    () => buildSummaryRoute([...getWaypointChunks(rideId).flat(), ...getPointBuffer()]),
+    [rideId],
+  );
 
   const handleShare = useCallback(async () => {
     triggerImpact();
@@ -266,20 +181,25 @@ export default function RideSummaryScreen() {
         distance_m: distanceM,
         duration_s: durationS,
       });
-    } catch {
-      // User cancelled
-    }
+    } catch {} // the rider cancelled the share sheet
   }, [distanceM, durationS, system, t]);
 
-  // `handleSave` never awaits, so `isSaving` cannot disable the button before a
-  // second tap lands; a ref guards it synchronously. Reset only on failure: on
-  // success the screen is replaced, and a re-run would count the ride twice.
+  // A ref guards a second tap synchronously (`isSaving` lands too late). Reset only on
+  // failure: on success one replace (issue 4446) swaps the sheet for this save's
+  // destination, a parameter so a failed insights save cannot redirect a later Save.
+  // A plain function: the React Compiler memoizes it, and a hook deps array would not.
   const savingRef = useRef(false);
-  const handleSave = useCallback(async () => {
+  const purposeSheetRef = useRef<RidePurposeSheetHandle>(null);
+  const handleSave = async (destination: Href = PROFILE_HREF) => {
     if (savingRef.current) return;
     savingRef.current = true;
     setIsSaving(true);
     try {
+      // A typed odometer goes with Save; "Fix it" on its lower-reading prompt stays here.
+      if ((await purposeSheetRef.current?.sendPendingOdometer()) === false) {
+        savingRef.current = false;
+        return;
+      }
       triggerNotification(Haptics.NotificationFeedbackType.Success);
 
       enqueueOrExecute('updateRide', {
@@ -324,27 +244,14 @@ export default function RideSummaryScreen() {
       // Ask while the ride's stats are still on screen; navigation waits for the dialog.
       const overview = overviewData?.rideOverview;
       await requestRideReview({ distanceM, durationS, rideId, localRideCount, overview });
-
-      router.replace('/(tabs)/(profile)');
+      router.replace(destination, { withAnchor: true });
     } catch (error) {
       savingRef.current = false;
       captureException(error, { source: 'ride-summary.saveRide', rideId });
     } finally {
       setIsSaving(false);
     }
-  }, [
-    rideId,
-    rideName,
-    router,
-    distanceM,
-    durationS,
-    shareToDiscover,
-    queryClient,
-    motorcycleId,
-    maxSpeedMps,
-    avgSpeedMps,
-    overviewData?.rideOverview,
-  ]);
+  };
 
   const handleDiscard = useCallback(() => {
     Alert.alert(t('rideSummary.discardTitle'), t('rideSummary.discardMessage'), [
@@ -358,25 +265,22 @@ export default function RideSummaryScreen() {
             distance_m: distanceM,
             duration_s: durationS,
           });
-          // The ride was already completed on the server when it ended; without
-          // this it stays in the rider's history after they discard it.
-          // Refetch after the delete has drained — an immediate refetch races it and
-          // brings the discarded ride straight back into the list.
+          // Completed on the server when it ended, so delete it or it stays in history.
+          // Refetch after the delete drains: an immediate refetch brings it back.
           dropDeadLetteredRide(rideId);
           void enqueueOrExecute('deleteRide', { variables: { id: rideId } }).finally(() =>
             queryClient.invalidateQueries({ queryKey: queryKeys.rides.all }),
           );
           finalizeEndedRide(rideId);
-          router.replace('/(tabs)/(profile)');
+          router.replace(PROFILE_HREF);
         },
       },
     ]);
   }, [rideId, router, distanceM, durationS, queryClient, t]);
 
   const handleCycleMapStyle = useCallback(() => {
-    // Compute next outside the state updater — firing inside it double-counts
-    // under StrictMode (see B2). ride-summary is hit on every ride_completed,
-    // far higher traffic than ride-detail, so this is where preference shows up.
+    // Compute next outside the state updater: firing inside it double-counts under
+    // StrictMode (see B2). Hit on every ride_completed, so preference shows up here.
     const next = cycleMapStyleFn(mapStyle);
     trackEvent(AnalyticsEvent.RIDE_MAP_STYLE_CHANGED, {
       from_style: mapStyle,
@@ -392,7 +296,7 @@ export default function RideSummaryScreen() {
       label: t('rideSummary.stats.distance'),
       value: formatDistance(distanceM, system),
     },
-    { icon: Clock, label: t('rideSummary.stats.movingTime'), value: formatDuration(movingTimeS) },
+    { icon: Clock, label: t('rideSummary.stats.movingTime'), value: formatDuration(shownMovingS) },
     {
       icon: TrendingUp,
       label: t('rideSummary.stats.avgSpeed'),
@@ -783,7 +687,14 @@ export default function RideSummaryScreen() {
             ))}
           </Animated.View>
 
-          {/* Add expense row — dashed border */}
+          {/* Opening Rider insights saves the ride first: leaving unsaved strands it. */}
+          <RideSummaryInsightsCard
+            rideId={rideId}
+            distanceM={distanceM}
+            movingS={movingTimeS}
+            onOpenInsights={(href) => void handleSave(href)}
+          />
+          <RidePurposeSheet ref={purposeSheetRef} rideId={rideId} motorcycleId={motorcycleId} />
           <Animated.View entering={FadeInUp.delay(600).duration(250)}>
             <Pressable
               onPress={() => {
@@ -818,7 +729,7 @@ export default function RideSummaryScreen() {
           {/* Save ride CTA — emerald gradient, pill shape */}
           <Animated.View entering={FadeInUp.delay(650).duration(250)}>
             <Pressable
-              onPress={handleSave}
+              onPress={() => handleSave()}
               disabled={isSaving}
               accessibilityRole="button"
               accessibilityLabel={t(
@@ -901,7 +812,6 @@ export default function RideSummaryScreen() {
             <NativeToggle value={shareToDiscover} onValueChange={setShareToDiscover} />
           </Animated.View>
 
-          {/* Discard option — subtle, at the bottom */}
           <Animated.View
             entering={FadeIn.delay(800).duration(250)}
             style={{ alignItems: 'center', paddingTop: 8 }}

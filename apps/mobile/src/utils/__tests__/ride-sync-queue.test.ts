@@ -438,11 +438,24 @@ describe('ordering hardening (MOT-262)', () => {
       .mockRejectedValueOnce(new Error('Network request failed')); // endRide is offline
 
     await drainQueue();
-    expect(listener.mock.calls).toEqual([['uploadWaypoints']]);
+    const delivered = () => listener.mock.calls.map(([type]) => type);
+    expect(delivered()).toEqual(['uploadWaypoints']);
 
     mockGqlFetcher.mockResolvedValueOnce({});
     await drainQueue();
-    expect(listener.mock.calls).toEqual([['uploadWaypoints'], ['endRide']]);
+    expect(delivered()).toEqual(['uploadWaypoints', 'endRide']);
+  });
+
+  it('passes the delivered listener what the op carried', async () => {
+    const listener = jest.fn();
+    setDeliveredListener(listener);
+    const payload = { variables: { input: { rideId: 'ride-1', odometerAtEnd: 12_463 } } };
+    enqueue('updateRide', payload);
+    mockGqlFetcher.mockResolvedValueOnce({});
+
+    await drainQueue();
+
+    expect(listener).toHaveBeenCalledWith('updateRide', payload);
   });
 
   it('a throwing delivered listener never turns a delivered op into a failure', async () => {
@@ -705,6 +718,88 @@ describe('best-effort ops (pause / resume)', () => {
   it('still waits out a network outage instead of dropping the pause', async () => {
     enqueue('pauseRide', rideOp('ride-A'));
     mockGetNetworkStateAsync.mockResolvedValue({ isConnected: false, isInternetReachable: false });
+
+    await drainQueue();
+
+    expect(getQueueLength()).toBe(1);
+  });
+});
+
+describe('best-effort post-ride answers (purpose, passenger)', () => {
+  function answer(rideId: string, fields: Record<string, unknown>) {
+    return { variables: { input: { rideId, ...fields } } } as Record<string, unknown>;
+  }
+
+  /** Fails every answer-only update the way applyOdometerAtEnd's plain 500 does. */
+  function failAnswers(sent: string[]) {
+    mockGqlFetcher.mockImplementation(
+      (doc: unknown, vars: { input?: Record<string, unknown>; id?: string }) => {
+        const input = vars.input ?? {};
+        if ('odometerAtEnd' in input || 'purpose' in input || 'passenger' in input) {
+          sent.push('answer');
+          return Promise.reject(new Error('Internal server error'));
+        }
+        sent.push(JSON.stringify(doc).includes('deleteRide') ? 'deleteRide' : 'rename');
+        return Promise.resolve({});
+      },
+    );
+  }
+
+  it('a failing purpose answer does not hold up or park the ride rename behind it', async () => {
+    enqueue('updateRide', answer('ride-A', { purpose: 'tour' }));
+    enqueue('updateRide', answer('ride-A', { name: 'Tatras loop' }));
+    const sent: string[] = [];
+    failAnswers(sent);
+
+    await drainQueue();
+
+    // One attempt at the answer, then the rename goes out in the same drain.
+    expect(sent).toEqual(['answer', 'rename']);
+    expect(getQueueLength()).toBe(0);
+    // Never parked: no "rides failed to sync" prompt for an optional answer.
+    expect(deadLetter()).toHaveLength(0);
+    expect(mockCapture).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ source: 'ride-sync-queue.bestEffortDrop', opType: 'updateRide' }),
+    );
+  });
+
+  it('a failing purpose answer does not block a discard of the same ride', async () => {
+    enqueue('updateRide', answer('ride-A', { purpose: 'commute' }));
+    enqueue('updateRide', answer('ride-A', { passenger: true }));
+    enqueue('deleteRide', { variables: { id: 'ride-A' } });
+    const sent: string[] = [];
+    failAnswers(sent);
+
+    await drainQueue();
+
+    expect(sent).toEqual(['answer', 'answer', 'deleteRide']);
+    expect(getQueueLength()).toBe(0);
+    expect(deadLetter()).toHaveLength(0);
+  });
+
+  it('a rename is not best-effort: it still retries and holds its place', async () => {
+    enqueue('updateRide', answer('ride-A', { name: 'Tatras loop', purpose: 'tour' }));
+    mockGqlFetcher.mockRejectedValue(new Error('Internal server error'));
+
+    await drainQueue();
+
+    expect(queue()).toEqual([expect.objectContaining({ type: 'updateRide', retries: 1 })]);
+  });
+
+  it('an odometer reading is not best-effort: it updates the bike, so it keeps its retries', async () => {
+    enqueue('updateRide', answer('ride-A', { odometerAtEnd: 12_463 }));
+    mockGqlFetcher.mockRejectedValue(new Error('Internal server error'));
+
+    await drainQueue();
+
+    expect(queue()).toEqual([expect.objectContaining({ type: 'updateRide', retries: 1 })]);
+    expect(deadLetter()).toHaveLength(0);
+  });
+
+  it('still waits out a network outage instead of dropping the answer', async () => {
+    enqueue('updateRide', answer('ride-A', { purpose: 'tour' }));
+    mockGetNetworkStateAsync.mockResolvedValue(OFFLINE);
 
     await drainQueue();
 

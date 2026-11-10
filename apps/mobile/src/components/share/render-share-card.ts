@@ -4,43 +4,48 @@ import { PixelRatio } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 import type { CardVariant } from './share-card-types';
 
-const EXPORT_W = 1080;
-const EXPORT_H = 1920;
+export interface ExportPixels {
+  width: number;
+  height: number;
+}
 
-/** Compute card dimensions in points that produce exactly 1080x1920 at the device pixel ratio */
-export function getExportCardDimensions() {
+/** A ride share card: a 1080x1920 story image. */
+const RIDE_EXPORT: ExportPixels = { width: 1080, height: 1920 };
+
+/** Card dimensions in points that produce exactly `pixels` at the device pixel ratio. */
+export function getExportCardDimensions(pixels: ExportPixels = RIDE_EXPORT) {
   const scale = PixelRatio.get();
   return {
-    width: EXPORT_W / scale,
-    height: EXPORT_H / scale,
+    width: pixels.width / scale,
+    height: pixels.height / scale,
   };
 }
 
-/** Sanitize rideId for safe use in file paths */
+/** Sanitize an id for safe use in file paths */
 function safeCacheId(id: string): string {
   return id.replace(/[^a-zA-Z0-9-]/g, '');
 }
 
-function cacheFileName(rideId: string, variant: CardVariant, updatedAt?: string): string {
-  const ts = updatedAt ?? 'unknown';
-  return `share-card-${safeCacheId(rideId)}-${variant}-${ts}.png`;
+function rideCacheKey(rideId: string, variant: CardVariant, updatedAt?: string): string {
+  return `card-${rideId}-${variant}-${updatedAt ?? 'unknown'}`;
 }
 
-/** Render a card view ref to a 1080x1920 PNG and cache it */
-export async function renderShareCard(
+/**
+ * Capture a view to a PNG of exactly `pixels` and cache it under `cacheKey`.
+ * A key seen before returns the cached file without capturing again, so the
+ * key must change whenever the image would.
+ */
+export async function captureShareImage(
   viewRef: React.RefObject<View | null>,
-  rideId: string,
-  variant: CardVariant,
-  updatedAt?: string,
+  cacheKey: string,
+  pixels: ExportPixels,
 ): Promise<string> {
   const cacheDir = new Directory(Paths.cache, 'share-cards');
   if (!cacheDir.exists) {
     cacheDir.create();
   }
 
-  const fileName = cacheFileName(rideId, variant, updatedAt);
-  const cachedFile = new File(cacheDir, fileName);
-
+  const cachedFile = new File(cacheDir, `share-${safeCacheId(cacheKey)}.png`);
   if (cachedFile.exists) {
     return cachedFile.uri;
   }
@@ -48,8 +53,8 @@ export async function renderShareCard(
   const tmpUri = await captureRef(viewRef, {
     format: 'png',
     quality: 1.0,
-    width: EXPORT_W,
-    height: EXPORT_H,
+    width: pixels.width,
+    height: pixels.height,
     result: 'tmpfile',
   });
 
@@ -57,4 +62,14 @@ export async function renderShareCard(
   tmpFile.move(cachedFile);
 
   return cachedFile.uri;
+}
+
+/** Render a ride card view ref to a 1080x1920 PNG and cache it */
+export function renderShareCard(
+  viewRef: React.RefObject<View | null>,
+  rideId: string,
+  variant: CardVariant,
+  updatedAt?: string,
+): Promise<string> {
+  return captureShareImage(viewRef, rideCacheKey(rideId, variant, updatedAt), RIDE_EXPORT);
 }

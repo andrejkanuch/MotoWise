@@ -9,13 +9,11 @@ import {
   ArrowLeft,
   Clock,
   Gauge,
-  Info,
   Layers,
   Mountain,
   Route,
   Share2,
   Trash2,
-  TrendingDown,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -31,6 +29,7 @@ import { RideStatTile } from '../../components/ride/ride-stat-tile';
 import { ShareActivitySheet } from '../../components/share/share-activity-sheet';
 import type { RideSharePayload } from '../../components/share/share-card-types';
 import { fetchRideBundle, RIDE_VIEWER } from '../../features/ride/fetch-ride-bundle';
+import { rideMovingTimeS } from '../../features/ride/ride-moving-time';
 import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useRideHeatmapData } from '../../hooks/use-ride-heatmap-data';
@@ -71,7 +70,6 @@ export default function RideDetailScreen() {
   const { rideId, source } = useLocalSearchParams<{ rideId: string; source?: string }>();
   const system = useMeasurementSystem();
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
-  const [showLeanTooltip, setShowLeanTooltip] = useState(false);
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [showShareSheet, setShowShareSheet] = useState(false);
   const { heatmapGeoJSON } = useRideHeatmapData({ enabled: needsHeatmapOverlay(mapStyle) });
@@ -334,11 +332,8 @@ export default function RideDetailScreen() {
   const avgSpeedMps = ride.avgSpeedMps ?? 0;
   const elevationGain = ride.elevationGain ?? 0;
   const pausedDurationS = ride.pausedDurationS ?? 0;
-  const rawLean =
-    'maxLeanAngle' in ride ? (ride as { maxLeanAngle?: number | null }).maxLeanAngle : null;
-  const maxLeanAngle = rawLean != null ? Math.min(rawLean, 55) : null;
-
-  // Elapsed time = moving + paused
+  // Moving agrees with the average speed; elapsed = duration + manual pauses.
+  const movingS = rideMovingTimeS(ride);
   const elapsedS = durationS + pausedDurationS;
 
   // Meta line under the title: "Saturday, May 24, 2026 · BMW R 1250 GS"
@@ -710,10 +705,10 @@ export default function RideDetailScreen() {
                   }}
                 />
                 <Text style={[type.label, { color: theme.ink2, fontVariant: ['tabular-nums'] }]}>
-                  {formatDuration(durationS)}
+                  {formatDuration(movingS)}
                 </Text>
                 {/* Separator + elapsed if different */}
-                {elapsedS > durationS && (
+                {elapsedS > movingS && (
                   <>
                     <Text style={[type.label, { color: theme.ink4 }]}> · </Text>
                     <Text
@@ -745,7 +740,6 @@ export default function RideDetailScreen() {
               </View>
             </Animated.View>
 
-            {/* 3x2 stat grid */}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
               <RideStatTile
                 icon={<Route size={14} color={theme.ink3} />}
@@ -759,7 +753,7 @@ export default function RideDetailScreen() {
               <RideStatTile
                 icon={<Clock size={14} color={theme.ink3} />}
                 label={t('rideDetail.movingTime')}
-                value={formatDuration(durationS)}
+                value={formatDuration(movingS)}
                 delay={40}
                 theme={theme}
               />
@@ -805,50 +799,7 @@ export default function RideDetailScreen() {
                   </View>
                 }
               />
-              {maxLeanAngle != null && (
-                <RideStatTile
-                  icon={<TrendingDown size={14} color={theme.ink3} />}
-                  label={t('rideDetail.leanAngle')}
-                  value={maxLeanAngle >= 55 ? '55+' : String(Math.round(maxLeanAngle))}
-                  unit="°"
-                  delay={200}
-                  theme={theme}
-                  trailing={
-                    <Pressable
-                      onPress={() => {
-                        // Fire only on OPEN, and outside the state updater — firing
-                        // inside the updater double-counts under StrictMode (see B2).
-                        if (!showLeanTooltip) {
-                          trackEvent(AnalyticsEvent.LEAN_ANGLE_TOOLTIP_OPENED, { ride_id: rideId });
-                        }
-                        setShowLeanTooltip((p) => !p);
-                      }}
-                      hitSlop={8}
-                      style={{
-                        width: 14,
-                        height: 14,
-                        borderRadius: 999,
-                        borderWidth: 1,
-                        borderColor: tint(theme.ink, 0.25),
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Info size={9} color={theme.ink3} />
-                    </Pressable>
-                  }
-                />
-              )}
             </View>
-
-            {/* Lean angle tooltip */}
-            {showLeanTooltip && maxLeanAngle != null && (
-              <Animated.View entering={FadeIn.duration(200)} style={{ padding: 12 }}>
-                <Text style={[type.subhead, { color: theme.ink2 }]}>
-                  {t('rideDetail.leanTooltip')}
-                </Text>
-              </Animated.View>
-            )}
 
             {/* Elevation chart card */}
             {elevationGain > 0 && waypoints.length >= 2 && (

@@ -51,6 +51,30 @@ const MUTATION_DOCUMENT_MAP: Record<SyncOperationType, any> = {
  */
 const BEST_EFFORT_OPS: ReadonlySet<SyncOperationType> = new Set(['pauseRide', 'resumeRide']);
 
+/**
+ * The optional post-ride answers the ride summary sends as their own `updateRide`
+ * (what the ride was for, whether a passenger rode along). An update that carries
+ * only these is best-effort too: a failed answer must never hold the ride's rename
+ * or discard behind it, or park it with a "rides failed to sync" prompt. Any other
+ * field keeps the normal retries, including the odometer at the end, which moves
+ * the bike's mileage and must not be dropped after one server error.
+ */
+const RIDE_ANSWER_FIELDS: ReadonlySet<string> = new Set(['purpose', 'passenger']);
+const RIDE_ID_FIELD = 'rideId';
+
+function isAnswerOnlyUpdate(op: SyncOperation): boolean {
+  if (op.type !== 'updateRide') return false;
+  const variables = (op.payload as { variables?: unknown }).variables;
+  const input = (variables as { input?: unknown } | undefined)?.input;
+  if (typeof input !== 'object' || input === null) return false;
+  const fields = Object.keys(input).filter((field) => field !== RIDE_ID_FIELD);
+  return fields.length > 0 && fields.every((field) => RIDE_ANSWER_FIELDS.has(field));
+}
+
+function isBestEffort(op: SyncOperation): boolean {
+  return BEST_EFFORT_OPS.has(op.type) || isAnswerOnlyUpdate(op);
+}
+
 interface SyncOperation {
   seq: number;
   type: SyncOperationType;
@@ -188,20 +212,22 @@ export function setDeadLetterListener(listener: ((deadLetterCount: number) => vo
 }
 
 // Notified after each op reaches the server, so the app can refresh what it
-// changed — `endRide` moves the bike's odometer (and logs a reading, 00181), and
-// an offline ride's endRide lands long after the summary screen's own refetch.
-// Registered once from the root layout.
-let onDelivered: ((type: SyncOperationType) => void) | null = null;
+// changed — `endRide` moves the bike's odometer (and logs a reading, 00181), as
+// does an `updateRide` carrying `odometerAtEnd`, and an offline ride's ops land
+// long after the summary screen's own refetch. The payload says what an op
+// carried. Registered once from the root layout.
+export type DeliveredListener = (type: SyncOperationType, payload: Record<string, unknown>) => void;
+let onDelivered: DeliveredListener | null = null;
 
-export function setDeliveredListener(listener: ((type: SyncOperationType) => void) | null): void {
+export function setDeliveredListener(listener: DeliveredListener | null): void {
   onDelivered = listener;
 }
 
 /** A delivered op is final: a throwing listener must never turn it into a
  *  failure (and dead-letter it with its dependents), so its errors stop here. */
-function notifyDelivered(type: SyncOperationType): void {
+function notifyDelivered({ type, payload }: SyncOperation): void {
   try {
-    onDelivered?.(type);
+    onDelivered?.(type, payload);
   } catch (error) {
     captureException(error instanceof Error ? error : new Error(String(error)), {
       source: 'ride-sync-queue.onDelivered',
@@ -632,7 +658,7 @@ async function drainPass(): Promise<void> {
       await executeSyncOperation(op);
       // Delivered — drop just this op from the live queue and advance.
       removeOpBySeq(op.seq);
-      notifyDelivered(op.type);
+      notifyDelivered(op);
     } catch (error) {
       if (isNetworkError(error) || isAuthError(error)) {
         // Transient outage: stop draining and leave this op + everything after
@@ -652,7 +678,7 @@ async function drainPass(): Promise<void> {
       // A best-effort op gets no retries: retrying it would head-of-line block
       // the ride's own ops (waypoints, EndRide) behind a nicety — for minutes
       // when the API does not know the mutation yet.
-      if (BEST_EFFORT_OPS.has(op.type)) {
+      if (isBestEffort(op)) {
         // Drop just this op and move on: nothing after it depends on it.
         captureException(error instanceof Error ? error : new Error(`Ride sync drop: ${op.type}`), {
           source: 'ride-sync-queue.bestEffortDrop',

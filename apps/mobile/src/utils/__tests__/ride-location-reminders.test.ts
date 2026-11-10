@@ -375,6 +375,37 @@ describe('autoEndRide (30 min without movement)', () => {
     expect(rideMMKV.getCurrentId()).toBeUndefined();
   });
 
+  it('sends full stats from the stored waypoints, marked as the app auto-end', () => {
+    rideMMKV.setStartedAt(T0 - 3_600_000);
+    const altitudes = [200, 200, 204, 210, 220, 222, 230, 230];
+    for (const [i, altitude] of altitudes.entries()) {
+      appendWaypoint(RIDE_ID, {
+        latitude: 50 + i * 0.0001,
+        longitude: 14,
+        altitude,
+        speedMps: i === 5 ? 18 : 11,
+        recordedAt: new Date(T0 - 2_000_000 + i * 1000).toISOString(),
+      });
+    }
+    flushBufferToMMKV(RIDE_ID);
+
+    autoEndRide(T0 - 1_800_000);
+
+    const input = (enqueueOrExecute as jest.Mock).mock.calls.find(
+      ([type]) => type === 'endRide',
+    )?.[1].variables.input;
+    expect(input).toMatchObject({
+      rideId: RIDE_ID,
+      endSource: 'client_auto',
+      maxSpeedMps: 18,
+      // Median-of-5 then 5 m hysteresis: 200 → 210 → 220 → 230.
+      elevationGain: 30,
+    });
+    // 7 intervals of ~11.1 m over 7 s of moving time.
+    expect(input.avgSpeedMps).toBeCloseTo(11.12, 1);
+    expect(input).not.toHaveProperty('gpsQuality');
+  });
+
   it('does nothing without an active ride', () => {
     rideMMKV.setCurrentId('');
     autoEndRide(T0);
