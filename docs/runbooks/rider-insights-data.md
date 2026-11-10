@@ -10,6 +10,7 @@ each one. Every production step below is the owner's: an agent prepares files an
 
 | # | Step | Check before going on |
 |---|---|---|
+| 0 | Apply 00196 (`00196_reapply_00139_00143_ride_rpc_acl_and_visibility_policies.sql`, PR #376) | Its footer queries; 00197 requires it (see 00197's header) |
 | 1 | Apply `supabase/migrations/00197_rider_insights_schema.sql` | Its footer queries, output reported |
 | 2 | Run the reference loader | Row counts and the Bratislava check pass |
 | 3 | Review and flag synthetic accounts | `RETURNING` lists exactly the confirmed ids |
@@ -22,6 +23,16 @@ Steps 2 and 3 can swap; both must be done before step 6, so the backfill neither
 rides stale for want of geodata nor counts synthetic accounts in its progress.
 
 ## 1. Schema (00197)
+
+Take a backup first (a dashboard backup or a `pg_dump` of `public.motorcycles` and
+`public.odometer_readings`): once the API is live, the odometer readings riders type at
+ride end change `motorcycles.current_mileage` and delete the ride's `gps_ride` estimate,
+and dropping 00197 does not put those values back.
+
+Apply in a quiet window (low ride traffic, no deploy running). The `ALTER TABLE`s take
+ACCESS EXCLUSIVE locks on `rides`, `users` and `odometer_readings`, so ride ends, ride
+lists and odometer writes queue behind them, and the batch also builds an index on
+`rides`.
 
 Apply as the migration header says (one Management API batch, leading comment block
 stripped, version recorded by hand), then run its post-apply footer and keep the output.
@@ -42,8 +53,12 @@ and running it again gives the same counts. It prints the counts and checks that
 Bratislava (48.1486, 17.1077) is SK in both border and core parts and that its nearest
 town is in Bratislava Region. Any empty table or wrong answer exits non-zero.
 
+Use the session pooler or the direct connection (port 5432), never the transaction
+pooler (port 6543): the loader holds one long transaction with temp tables and large
+parameterised statements, which needs a session of its own.
+
 ```sh
-# Direct (session) connection string, postgres role, from the Supabase dashboard.
+# Session pooler (port 5432) connection string, postgres role, from the Supabase dashboard.
 # Read it into the variable without echoing it; there is no default database.
 read -rs REF_GEODATA_DATABASE_URL && export REF_GEODATA_DATABASE_URL
 pnpm exec tsx scripts/load-ref-geodata.ts
@@ -145,8 +160,10 @@ throws (next section).
 The API reports from `apps/api/src/modules/ride-stats/ride-stats.service.ts`, all tagged
 `area:ride-stats`:
 
-- A ride whose compute throws: an exception tagged `op:sweep` with `extra.rideId`. The
-  ride is skipped by that API process until it restarts, so it cannot hold a batch slot.
+- A ride whose compute throws: an exception tagged `op:sweep` with `extra.rideId`. That
+  API process skips the ride for an hour (`RIDE_STATS_SKIP_RETRY_MS`), then retries it,
+  so a ride that always fails cannot hold a batch slot every tick and a transient
+  failure heals on its own.
 - `ride stats: reference geodata (ref_country_parts) is empty; N rides left stale this run`
   (warning): the loader has not run, or ran against another database. Rides stay stale
   and are computed once the data is there.
@@ -156,3 +173,17 @@ The API reports from `apps/api/src/modules/ride-stats/ride-stats.service.ts`, al
 
 A rejected or missing cron call never reaches Sentry: check `cron.job_run_details` and
 `net._http_response` (step 6).
+
+A typed end odometer that `endRide` could not log is reported from
+`apps/api/src/modules/rides/rides.service.ts` with tags `area:rides`, `op:end-odometer`
+and `extra.odometerAtEnd`; the bike gets the ride's GPS distance instead, and the rider
+can enter the reading again.
+
+## Rollback
+
+Roll back the API first (redeploy the previous Render deploy), so nothing writes
+`ride_stats`, `ride_tracks`, `ride_private_details` or `ride_end` readings any more.
+Then unschedule the cron (00198's header) and only then drop 00197's objects as its
+header lists. Odometer changes made through `log_ride_end_odometer` are not undone by
+that: restore `current_mileage` and the deleted `gps_ride` readings from the backup
+taken before step 1 if they must be reverted.
