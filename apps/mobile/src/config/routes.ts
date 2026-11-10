@@ -3,7 +3,7 @@
  * Use these instead of magic strings in router.push / router.replace / deepLink.
  */
 
-import type { WhatsNewSource } from './whats-new';
+import { WHATS_NEW_SOURCE, type WhatsNewSource } from './whats-new';
 
 /** Main tab routes */
 export const TAB_ROUTE = {
@@ -30,7 +30,15 @@ export const GARAGE_ROUTE = {
   EXPENSE_DASHBOARD: '/(tabs)/(garage)/expense-dashboard',
   ADD_EXPENSE: '/(tabs)/(garage)/add-expense',
   ADD_BIKE: '/(tabs)/(garage)/add-bike',
+  /** A bike's notes; pass `{ motorcycleId, from? }`. */
+  NOTES: '/(tabs)/(garage)/notes',
 } as const;
+
+/**
+ * The `from` param of a feature screen opened by a What's New page. With it,
+ * and while that visit is open, the screen offers the way back to What's New.
+ */
+export const FROM_WHATS_NEW = 'whats-new';
 
 /** Root modal routes (presented over any tab / onboarding stack) */
 export const MODAL_ROUTE = {
@@ -44,6 +52,14 @@ export const MODAL_ROUTE = {
 /** The What's New route opened from `source`, for `router.push`. */
 export function whatsNewHref(source: WhatsNewSource) {
   return { pathname: MODAL_ROUTE.WHATS_NEW, params: { source } };
+}
+
+/** What's New reopened from a feature screen on page `page`, without the boot. */
+export function whatsNewReturnHref(page: number) {
+  return {
+    pathname: MODAL_ROUTE.WHATS_NEW,
+    params: { source: WHATS_NEW_SOURCE.RETURN, resume: String(page), noBoot: '1' },
+  };
 }
 
 /** Profile sub-routes */

@@ -8,8 +8,10 @@ import { HUB_TOUCH_TARGET, SYSTEM_WEIGHT, useHubTheme } from '@/components/bike-
 
 type NotesRouteParams = {
   motorcycleId: string;
-  /** The segment the screen was opened from (`BIKE_SEGMENT`) — the back label. */
+  /** The segment the screen was opened from (`BIKE_SEGMENT`) — the back label — or What's New. */
   from?: string;
+  /** The What's New page that opened the screen. */
+  wnPage?: string;
 };
 
 /** Notes screen route (card push inside the garage stack; the tab bar stays). */
@@ -18,10 +20,10 @@ export default function NotesRoute() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { motorcycleId, from } = useLocalSearchParams<NotesRouteParams>();
+  const { motorcycleId, from, wnPage } = useLocalSearchParams<NotesRouteParams>();
   const { bike, isLoading } = useHubBike(motorcycleId);
 
-  if (bike) return <NotesScreen bike={bike} from={from} />;
+  if (bike) return <NotesScreen bike={bike} from={from} wnPage={wnPage} />;
 
   return (
     <View style={{ flex: 1, backgroundColor: hub.ground, paddingTop: insets.top }}>

@@ -1,5 +1,6 @@
 import 'react-native-gesture-handler/jestSetup';
 
+jest.mock('expo-application', () => ({ __esModule: true, nativeApplicationVersion: '3.28.0' }));
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
@@ -64,10 +65,12 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import '@/i18n';
+import { FROM_WHATS_NEW } from '@/config/routes';
 import { NOTE_SOURCE, NOTES_SEARCH_DEBOUNCE_MS } from '@/lib/bike-hub/constants';
 import { queryKeys } from '@/lib/query-keys';
 import { useBikeHubStore } from '@/stores/bike-hub.store';
 import { usePendingDeleteStore } from '@/stores/pending-delete.store';
+import { useWhatsNewStore } from '@/stores/whats-new.store';
 import { BIKE_A, NOTES } from '@/test/bike-hub-fixtures';
 import { NotesScreen } from '../notes/notes-screen';
 import { DRAFT_OUTCOME, publishDraftOutcome } from '../notes/use-draft-handoff';
@@ -88,6 +91,7 @@ async function renderNotes(
   options: {
     notes?: unknown[];
     from?: string;
+    wnPage?: string;
     fail?: boolean;
     taskStatus?: MaintenanceTaskStatus;
     bike?: Partial<HubBike>;
@@ -132,6 +136,7 @@ async function renderNotes(
       <NotesScreen
         bike={{ ...(BIKE_A as unknown as HubBike), ...options.bike }}
         from={options.from}
+        wnPage={options.wnPage}
       />
     </QueryClientProvider>,
   );
@@ -534,5 +539,38 @@ describe('NotesScreen', () => {
     await renderNotes({ fail: true });
     expect(screen.getByText("Couldn't load notes")).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'Retry' })).toBeOnTheScreen();
+  });
+});
+
+describe("NotesScreen opened from What's New", () => {
+  const BACK = "Back to What's New";
+
+  beforeEach(() => {
+    useWhatsNewStore.setState({ returnSessionOpen: true });
+  });
+  afterEach(() => {
+    useWhatsNewStore.setState({ returnSessionOpen: false });
+  });
+
+  it('shows the way back above the composer', async () => {
+    await renderNotes({ from: FROM_WHATS_NEW, wnPage: '2' });
+    expect(screen.getByRole('button', { name: BACK })).toBeOnTheScreen();
+  });
+
+  it('a linked task opens the bike on Service: the screen beneath is not that bike’s hub', async () => {
+    await renderNotes({ from: FROM_WHATS_NEW, wnPage: '2' });
+    await fireEvent.press(screen.getByTestId('note-link-note-5'));
+    expect(mockRouter.back).not.toHaveBeenCalled();
+    expect(mockRouter.replace).toHaveBeenCalledTimes(1);
+    expect(mockRouter.replace).toHaveBeenCalledWith({
+      pathname: '/(tabs)/(garage)/bike/[id]',
+      params: { id: BIKE_A.id, segment: 'service', highlightTask: 'task-service' },
+    });
+    expect(useBikeHubStore.getState().pendingTask).toBeNull();
+  });
+
+  it('opened from the hub, no bar even while a visit is open', async () => {
+    await renderNotes({ from: 'bike' });
+    expect(screen.queryByRole('button', { name: BACK })).toBeNull();
   });
 });
