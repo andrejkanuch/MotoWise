@@ -22,6 +22,7 @@
 ## Supabase client rules
 - **SUPABASE_USER** (per-request JWT): all user-scoped CRUD — RLS enforced. Also fine for `@Public()` reads of tables with public-read RLS (articles, places).
 - **SUPABASE_ADMIN** (service-role): system tasks (generation, webhooks, event listeners), `@Public()` reads of tables with **owner-only RLS** (pair with explicit filters + app-layer redaction as defense-in-depth), and own-profile reads of `users` columns outside the authenticated column grants (00141, re-applied by 00178: email, preferences, currency, subscription_* are service-role-only reads — `select('*')` on users via the user client FAILS with permission denied).
+- **System-derived tables** (`ride_stats`, `ride_tracks`, the `ref_*` geodata; 00197): no client privilege at all. The API writes them as service role (computed data, not user writes) and reads them only through service-role RPCs or queries filtered by the caller's id, AFTER its own tier check, so Pro detail never reaches a free client. Type their rows locally at the query boundary (`src/modules/ride-stats/ride-stats.types.ts`) until `database.types.ts` lists them.
 - NEVER use service-role for user-scoped writes (bypasses RLS author checks). No standing exception: `deleteRide` was the last and moved to an RPC in 00176.
 - NEVER expose the service-role key to clients.
 - `users` writes go through the user client — column-level UPDATE grants (00141, 00178) are the immutable-column protection.

@@ -1,4 +1,4 @@
-import { RIDE_MILESTONE_PAYWALL } from '@motovault/types';
+import { RIDE_MILESTONE_PAYWALL, RIDE_WAYPOINT_LIMITS } from '@motovault/types';
 import {
   BadRequestException,
   ConflictException,
@@ -8,6 +8,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const sentry = vi.hoisted(() => ({ captureException: vi.fn() }));
+vi.mock('@sentry/nestjs', () => sentry);
+
 import { PG_ERROR } from '../../common/supabase/unwrap';
 import { RidesService } from './rides.service';
 
@@ -82,6 +86,7 @@ describe('RidesService', () => {
       'lt',
       'not',
       'gte',
+      'lte',
       'order',
       'limit',
       'range',
@@ -481,13 +486,12 @@ describe('RidesService', () => {
       mockUserClient._pushResult({ data: completedRow });
       // 1: claim UPDATE (mileage_applied false→true) .select(...).single() — this caller wins
       mockUserClient._pushResult({ data: { distance_m: 32186, motorcycle_id: 'moto-456' } });
-      // 2: bike read .single() — current_mileage is raw in the user's unit
-      mockUserClient._pushResult({ data: { current_mileage: 1000 } });
-      // 3: users read .single() — measurement_system drives meters→unit conversion
-      mockUserClient._pushResult({ data: { measurement_system: 'imperial' } });
-      // 4: motorcycle odometer UPDATE (thenable)
+      // 2: bike read .single() — current_mileage is raw in the bike's distance_unit,
+      // which drives the meters→unit conversion
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } });
+      // 3: motorcycle odometer UPDATE (thenable)
       mockUserClient._pushResult({ data: null, error: null });
-      // 5: due maintenance_tasks query (thenable) — none due
+      // 4: due maintenance_tasks query (thenable) — none due
       mockUserClient._pushResult({ data: [] });
 
       const result = await service.endRide(userId, {
@@ -502,8 +506,8 @@ describe('RidesService', () => {
       // claim-first: exactly one mileage_applied=true UPDATE gated on mileage_applied=false
       expect(mockUserClient._chain.update).toHaveBeenCalledWith({ mileage_applied: true });
       expect(mockUserClient._chain.eq).toHaveBeenCalledWith('mileage_applied', false);
-      // odometer advanced by the ride distance converted meters → the user's unit
-      // (imperial): 32186 m ≈ 20 mi, added to the raw 1000 mi odometer.
+      // odometer advanced by the ride distance converted meters → the bike's unit
+      // (mi): 32186 m ≈ 20 mi, added to the raw 1000 mi odometer.
       expect(mockUserClient._chain.update).toHaveBeenCalledWith(
         expect.objectContaining({
           current_mileage: 1020, // 1000 + round(metersToUnit(32186, 'mi')) === 1000 + 20
@@ -623,6 +627,664 @@ describe('RidesService', () => {
         'autoEndedReason',
         'idle_timeout',
       );
+    });
+  });
+
+  describe('recording additions and end paths', () => {
+    const endBase = {
+      rideId: 'ride-123',
+      endedAt: '2026-03-22T15:30:00Z',
+      pausedDurationS: 0,
+      autoPausedDurationS: 0,
+    };
+    const completedRow = {
+      ...fakeRow,
+      status: 'completed',
+      ended_at: '2026-03-22T15:30:00Z',
+      distance_m: 30_000,
+      max_speed_mps: 31,
+      elevation_gain: 400,
+    };
+    const updateCall = (n: number) =>
+      (mockUserClient._chain.update as ReturnType<typeof vi.fn>).mock.calls[n][0];
+    const rpcCalls = (name: string) =>
+      mockUserClient.rpc.mock.calls.filter((call: unknown[]) => call[0] === name);
+
+    const privateDetailsQueries = () =>
+      queriesFrom(mockUserClient._calls).filter((q) => q.table === 'ride_private_details');
+    const upsertOf = (query: { ops: LoggedCall[] } | undefined) =>
+      query?.ops.find((op) => op.method === 'upsert')?.args;
+
+    // The rider's zone and answers live in the owner-only ride_private_details
+    // table: rides is readable by any signed-in rider for a public or unlisted ride.
+    it('stores the time zone the device reported at start in ride_private_details, not rides', async () => {
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
+      mockUserClient._pushResult({ data: [], error: null });
+      mockUserClient._pushResult({ data: fakeRow }); // ride insert
+      mockUserClient._pushResult({ data: null, error: null }); // details upsert
+
+      const ride = await service.startRide(userId, {
+        rideId: 'ride-123',
+        startedAt: '2026-03-22T14:00:00Z',
+        timeZone: 'Europe/Madrid',
+      });
+
+      expect(mockUserClient._chain.insert.mock.calls[0][0]).not.toHaveProperty('time_zone');
+      const details = privateDetailsQueries();
+      expect(details).toHaveLength(1);
+      expect(upsertOf(details[0])).toEqual([
+        { ride_id: 'ride-123', user_id: userId, time_zone: 'Europe/Madrid' },
+        { onConflict: 'ride_id' },
+      ]);
+      expect(ride.timeZone).toBe('Europe/Madrid');
+    });
+
+    it('starts the ride without a details write when the schema dropped a non-IANA zone', async () => {
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
+      mockUserClient._pushResult({ data: [], error: null });
+      mockUserClient._pushResult({ data: fakeRow });
+
+      // "GMT+1" reaches the service as null (StartRideInputSchema).
+      const ride = await service.startRide(userId, {
+        rideId: 'ride-123',
+        startedAt: '2026-03-22T14:00:00Z',
+        timeZone: null,
+      });
+
+      expect(ride.id).toBe('ride-123');
+      expect(privateDetailsQueries()).toEqual([]);
+    });
+
+    it('a failed time-zone write never fails the start', async () => {
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
+      mockUserClient._pushResult({ data: [], error: null });
+      mockUserClient._pushResult({ data: fakeRow });
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } });
+
+      const ride = await service.startRide(userId, {
+        rideId: 'ride-123',
+        startedAt: '2026-03-22T14:00:00Z',
+        timeZone: 'Europe/Madrid',
+      });
+
+      expect(ride.id).toBe('ride-123');
+      expect(ride.timeZone).toBeUndefined();
+    });
+
+    it('a replayed start returns the stored time zone and writes no details again', async () => {
+      mockUserClient._pushResult({
+        data: {
+          ...fakeRow,
+          ride_private_details: { time_zone: 'Europe/Madrid', purpose: null, passenger: null },
+        },
+      });
+
+      const ride = await service.startRide(userId, {
+        rideId: 'ride-123',
+        startedAt: '2026-03-22T14:00:00Z',
+        timeZone: 'Europe/Madrid',
+      });
+
+      expect(ride.timeZone).toBe('Europe/Madrid');
+      expect(privateDetailsQueries()).toEqual([]);
+    });
+
+    it('an app auto-end with no speed fields keeps the stored stats and still counts', async () => {
+      mockUserClient._pushResult({ data: completedRow });
+
+      await service.endRide(userId, { ...endBase, endSource: 'client_auto' });
+
+      const patch = updateCall(0);
+      for (const column of [
+        'distance_m',
+        'max_speed_mps',
+        'avg_speed_mps',
+        'elevation_gain',
+        'elevation_loss',
+        'route_polyline',
+        'gps_quality',
+        'max_lean_angle',
+      ]) {
+        expect(patch).not.toHaveProperty(column);
+      }
+      expect(patch).toMatchObject({
+        status: 'completed',
+        end_source: 'client_auto',
+        auto_ended_reason: null,
+      });
+      expect(typeof patch.track_updated_at).toBe('string');
+      // Emitted as a rider end: records and the AI summary run for it.
+      expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1);
+      expect(mockEventEmitter.emit.mock.calls[0][1]).not.toHaveProperty('autoEndedReason');
+    });
+
+    it('stores null for an end source the schema did not recognise, and the end succeeds', async () => {
+      mockUserClient._pushResult({ data: completedRow });
+
+      const result = await service.endRide(userId, { ...endBase, endSource: null });
+
+      expect(result.ride.status).toBe('completed');
+      expect(updateCall(0)).toMatchObject({ end_source: null });
+    });
+
+    it('a client sending no new fields writes the same stats as before', async () => {
+      mockUserClient._pushResult({ data: completedRow });
+
+      await service.endRide(userId, {
+        ...endBase,
+        distanceM: 30_000,
+        maxSpeedMps: 31,
+        avgSpeedMps: 18,
+        elevationGain: 400,
+        elevationLoss: 390,
+        routePolyline: 'abc',
+        gpsQuality: 0.9,
+      });
+
+      const patch = updateCall(0);
+      expect(patch).toMatchObject({
+        distance_m: 30_000,
+        max_speed_mps: 31,
+        avg_speed_mps: 18,
+        elevation_gain: 400,
+        elevation_loss: 390,
+        route_polyline: 'abc',
+        gps_quality: 0.9,
+        paused_duration_s: 0,
+        auto_paused_duration_s: 0,
+        auto_ended_reason: null,
+        end_source: null,
+      });
+      expect(patch).not.toHaveProperty('purpose');
+      expect(patch).not.toHaveProperty('passenger');
+    });
+
+    it('writes purpose and passenger to ride_private_details when the end carries them', async () => {
+      mockUserClient._pushResult({
+        data: {
+          ...completedRow,
+          ride_private_details: { time_zone: 'Europe/Madrid', purpose: null, passenger: null },
+        },
+      }); // completion UPDATE
+      mockUserClient._pushResult({
+        data: { time_zone: 'Europe/Madrid', purpose: 'commute', passenger: false },
+      }); // details upsert
+
+      const result = await service.endRide(userId, {
+        ...endBase,
+        purpose: 'commute',
+        passenger: false,
+      });
+
+      expect(updateCall(0)).not.toHaveProperty('purpose');
+      expect(updateCall(0)).not.toHaveProperty('passenger');
+      const details = privateDetailsQueries();
+      expect(details).toHaveLength(1);
+      expect(upsertOf(details[0])).toEqual([
+        { ride_id: 'ride-123', user_id: userId, purpose: 'commute', passenger: false },
+        { onConflict: 'ride_id' },
+      ]);
+      expect(result.ride).toMatchObject({
+        timeZone: 'Europe/Madrid',
+        purpose: 'commute',
+        passenger: false,
+      });
+    });
+
+    it('an end without answers writes no details and keeps the stored zone on the ride', async () => {
+      mockUserClient._pushResult({
+        data: {
+          ...completedRow,
+          ride_private_details: { time_zone: 'Europe/Madrid', purpose: null, passenger: null },
+        },
+      });
+
+      const result = await service.endRide(userId, { ...endBase, purpose: null });
+
+      expect(privateDetailsQueries()).toEqual([]);
+      expect(result.ride.timeZone).toBe('Europe/Madrid');
+    });
+
+    it('a failed answer write does not fail the end', async () => {
+      mockUserClient._pushResult({ data: completedRow });
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } });
+
+      const result = await service.endRide(userId, { ...endBase, purpose: 'tour' });
+
+      expect(result.ride.status).toBe('completed');
+      expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1);
+    });
+
+    it('applies odometer at end in the bike unit through the RPC, with no GPS-delta update', async () => {
+      mockUserClient._pushResult({ data: completedRow }); // 0: completion UPDATE
+      mockUserClient._pushResult({ data: { distance_m: 30_000, motorcycle_id: 'moto-456' } }); // 1: claim
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 2: bike
+      mockUserClient._pushResult({ data: [] }); // 3: due maintenance tasks
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: { reading_id: 'reading-1', bike_moved: true },
+        error: null,
+      });
+
+      await service.endRide(userId, { ...endBase, distanceM: 30_000, odometerAtEnd: 1234 });
+
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([
+        ['log_ride_end_odometer', { p_ride_id: 'ride-123', p_value: 1234, p_unit: 'mi' }],
+      ]);
+      // The claim is still the gate, and the GPS distance is not added on top.
+      expect(mockUserClient._chain.update).toHaveBeenCalledWith({ mileage_applied: true });
+      const mileageWrites = (mockUserClient._chain.update as ReturnType<typeof vi.fn>).mock.calls
+        .map((call) => call[0] as Record<string, unknown>)
+        .filter((patch) => 'current_mileage' in patch);
+      expect(mileageWrites).toEqual([]);
+      expect(mockUserClient._chain.lte).toHaveBeenCalledWith('target_mileage', 1234);
+    });
+
+    const gpsMileageWrites = () =>
+      (mockUserClient._chain.update as ReturnType<typeof vi.fn>).mock.calls
+        .map((call) => call[0] as Record<string, unknown>)
+        .filter((patch) => 'current_mileage' in patch);
+
+    it('adds the GPS distance when the typed end odometer is history (a newer reading exists)', async () => {
+      mockUserClient._pushResult({ data: completedRow }); // 0: completion UPDATE
+      mockUserClient._pushResult({ data: { distance_m: 32_186, motorcycle_id: 'moto-456' } }); // 1: claim
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 2: bike (RPC unit)
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 3: bike (GPS)
+      mockUserClient._pushResult({ data: null, error: null }); // 4: odometer UPDATE
+      mockUserClient._pushResult({ data: [] }); // 5: due maintenance tasks
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: { reading_id: 'reading-1', bike_moved: false },
+        error: null,
+      });
+
+      await service.endRide(userId, { ...endBase, distanceM: 32_186, odometerAtEnd: 990 });
+
+      expect(rpcCalls('log_ride_end_odometer')).toHaveLength(1);
+      expect(gpsMileageWrites()).toEqual([
+        expect.objectContaining({ current_mileage: 1020, odometer_last_ride_id: 'ride-123' }),
+      ]);
+      expect(mockUserClient._chain.lte).toHaveBeenCalledWith('target_mileage', 1020);
+      expect(sentry.captureException).not.toHaveBeenCalled();
+    });
+
+    it('a failed end odometer goes to Sentry with the typed value and the GPS distance still moves the bike', async () => {
+      mockUserClient._pushResult({ data: completedRow }); // 0: completion UPDATE
+      mockUserClient._pushResult({ data: { distance_m: 32_186, motorcycle_id: 'moto-456' } }); // 1: claim
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 2: bike (RPC unit)
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 3: bike (GPS)
+      mockUserClient._pushResult({ data: null, error: null }); // 4: odometer UPDATE
+      mockUserClient._pushResult({ data: [] }); // 5: due maintenance tasks
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: null,
+        error: { code: '57014', message: 'canceling statement due to statement timeout' },
+      });
+
+      const result = await service.endRide(userId, {
+        ...endBase,
+        distanceM: 32_186,
+        odometerAtEnd: 1234,
+      });
+
+      expect(result.ride.status).toBe('completed');
+      expect(sentry.captureException).toHaveBeenCalledTimes(1);
+      expect(sentry.captureException.mock.calls[0][1]).toMatchObject({
+        extra: { rideId: 'ride-123', odometerAtEnd: 1234 },
+      });
+      expect(gpsMileageWrites()).toEqual([
+        expect.objectContaining({ current_mileage: 1020, odometer_sync_source: 'gps_ride' }),
+      ]);
+      expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1);
+    });
+
+    it('a failed bike read skips the odometer write instead of assuming km', async () => {
+      mockUserClient._pushResult({ data: completedRow }); // 0: completion UPDATE
+      mockUserClient._pushResult({ data: { distance_m: 32_186, motorcycle_id: 'moto-456' } }); // 1: claim
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } }); // 2: bike
+
+      const result = await service.endRide(userId, { ...endBase, distanceM: 32_186 });
+
+      expect(result.ride.status).toBe('completed');
+      expect(gpsMileageWrites()).toEqual([]);
+      expect(sentry.captureException).toHaveBeenCalledTimes(1);
+      expect(sentry.captureException.mock.calls[0][1]).toMatchObject({
+        tags: { op: 'end-mileage' },
+        extra: { rideId: 'ride-123', distanceM: 32_186 },
+      });
+    });
+
+    it('an end odometer with an unreadable bike writes nothing and reports both failures', async () => {
+      mockUserClient._pushResult({ data: completedRow }); // 0: completion UPDATE
+      mockUserClient._pushResult({ data: { distance_m: 32_186, motorcycle_id: 'moto-456' } }); // 1: claim
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } }); // 2: bike (RPC unit)
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } }); // 3: bike (GPS)
+
+      const result = await service.endRide(userId, {
+        ...endBase,
+        distanceM: 32_186,
+        odometerAtEnd: 1234,
+      });
+
+      expect(result.ride.status).toBe('completed');
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([]);
+      expect(gpsMileageWrites()).toEqual([]);
+      const ops = sentry.captureException.mock.calls.map(
+        (call: unknown[]) => (call[1] as { tags: { op: string } }).tags.op,
+      );
+      expect(ops).toEqual(['end-odometer', 'end-mileage']);
+      expect(sentry.captureException.mock.calls[1][1]).toMatchObject({
+        extra: { odometerAtEnd: 1234 },
+      });
+    });
+
+    it('a failed GPS mileage UPDATE is reported, not logged as applied', async () => {
+      mockUserClient._pushResult({ data: completedRow }); // 0: completion UPDATE
+      mockUserClient._pushResult({ data: { distance_m: 32_186, motorcycle_id: 'moto-456' } }); // 1: claim
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 2: bike
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } }); // 3: odometer UPDATE
+
+      const result = await service.endRide(userId, { ...endBase, distanceM: 32_186 });
+
+      expect(result.ride.status).toBe('completed');
+      expect(sentry.captureException).toHaveBeenCalledTimes(1);
+      expect(String(sentry.captureException.mock.calls[0][0])).toContain(
+        'GPS mileage update failed',
+      );
+      // No maintenance check ran against a mileage that was never written.
+      expect(mockUserClient._chain.lte).not.toHaveBeenCalled();
+    });
+
+    it('updateRide refuses the end odometer when the bike unit cannot be read', async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', motorcycle_id: 'moto-456' },
+      }); // 0: ride read
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } }); // 1: bike
+
+      const err = await service
+        .updateRide(userId, { rideId: 'ride-123', odometerAtEnd: 1250 })
+        .catch((e) => e);
+
+      // Not a 4xx: the sync queue retries it instead of dead-lettering.
+      expect(err).toBeInstanceOf(Error);
+      expect(err).not.toBeInstanceOf(BadRequestException);
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([]);
+    });
+
+    it('updateRide answers 400 when the bike is gone (soft-deleted, hidden by RLS)', async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', motorcycle_id: 'moto-456' },
+      }); // 0: ride read
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } }); // 1: bike
+
+      const err = await service
+        .updateRide(userId, { rideId: 'ride-123', odometerAtEnd: 1250 })
+        .catch((e) => e);
+
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([]);
+    });
+
+    it('a replayed end does not apply the odometer again', async () => {
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
+      mockUserClient._pushResult({ data: { ...completedRow, mileage_applied: true } });
+
+      await service.endRide(userId, { ...endBase, odometerAtEnd: 1234 });
+
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([]);
+      expect(mockUserClient._chain.update).not.toHaveBeenCalledWith({ mileage_applied: true });
+    });
+
+    it('a lost mileage claim skips the odometer at end', async () => {
+      mockUserClient._pushResult({ data: completedRow });
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } }); // claim lost
+
+      await service.endRide(userId, { ...endBase, odometerAtEnd: 1234 });
+
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([]);
+    });
+
+    it('updateRide writes purpose and passenger to ride_private_details, and null clears them', async () => {
+      mockUserClient._pushResult({ data: fakeRow }); // own-ride lookup (nothing on rides to change)
+      mockUserClient._pushResult({ data: { time_zone: null, purpose: 'tour', passenger: true } });
+
+      const ride = await service.updateRide(userId, {
+        rideId: 'ride-123',
+        purpose: 'tour',
+        passenger: true,
+      });
+      expect(mockUserClient._chain.update).not.toHaveBeenCalled();
+      expect(upsertOf(privateDetailsQueries()[0])).toEqual([
+        { ride_id: 'ride-123', user_id: userId, purpose: 'tour', passenger: true },
+        { onConflict: 'ride_id' },
+      ]);
+      expect(ride).toMatchObject({ purpose: 'tour', passenger: true });
+
+      mockUserClient._pushResult({ data: fakeRow });
+      mockUserClient._pushResult({ data: { time_zone: null, purpose: null, passenger: true } });
+      const cleared = await service.updateRide(userId, { rideId: 'ride-123', purpose: null });
+      expect(upsertOf(privateDetailsQueries()[1])).toEqual([
+        { ride_id: 'ride-123', user_id: userId, purpose: null },
+        { onConflict: 'ride_id' },
+      ]);
+      expect(cleared.purpose).toBeUndefined();
+    });
+
+    it('updateRide leaves the answers alone when the input carries none', async () => {
+      mockUserClient._pushResult({ data: { ...fakeRow, name: 'Loop' } });
+
+      await service.updateRide(userId, { rideId: 'ride-123', name: 'Loop' });
+
+      expect(privateDetailsQueries()).toEqual([]);
+    });
+
+    it('updateRide surfaces a failed answer write as a server error', async () => {
+      mockUserClient._pushResult({ data: fakeRow });
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } });
+
+      await expect(
+        service.updateRide(userId, { rideId: 'ride-123', passenger: true }),
+      ).rejects.toThrow(InternalServerErrorException);
+    });
+
+    it("updateRide never writes answers for a ride that is not the rider's", async () => {
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
+
+      await expect(
+        service.updateRide(userId, { rideId: 'ride-123', purpose: 'tour' }),
+      ).rejects.toThrow(BadRequestException);
+      expect(privateDetailsQueries()).toEqual([]);
+    });
+
+    it('marks a ride closed at the next start as stale_on_start', async () => {
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
+      mockUserClient._pushResult({
+        data: [{ id: 'stale-1', started_at: '2026-03-20T09:00:00Z' }],
+        error: null,
+      });
+      mockUserClient._pushResult({ data: { recorded_at: '2026-03-20T10:00:00Z' } });
+      mockUserClient._pushResult({ data: [{ id: 'stale-1' }], error: null });
+      mockUserClient._pushResult({ data: fakeRow });
+
+      await service.startRide(userId, {
+        rideId: 'ride-123',
+        startedAt: '2026-03-22T14:00:00Z',
+      });
+
+      expect(updateCall(0)).toMatchObject({
+        status: 'completed',
+        auto_ended_reason: 'stale_on_start',
+        end_source: 'stale_on_start',
+      });
+    });
+
+    const trackBump = expect.arrayContaining([
+      { method: 'update', args: [{ track_updated_at: expect.any(String) }] },
+      { method: 'eq', args: ['id', 'ride-123'] },
+      { method: 'eq', args: ['user_id', userId] },
+      { method: 'eq', args: ['status', 'completed'] },
+    ]);
+
+    it('a waypoint upload to a completed ride marks its track as changed', async () => {
+      mockUserClient._pushResult({ data: { id: 'ride-123', status: 'completed' } });
+      mockUserClient._pushResult({ count: 100 });
+      mockUserClient._pushResult({ data: null, error: null }); // upsert
+      mockUserClient._pushResult({ data: null, error: null }); // track_updated_at bump
+
+      await service.uploadWaypoints(userId, {
+        rideId: 'ride-123',
+        waypoints: [{ recordedAt: '2026-03-22T16:00:00Z', latitude: 45, longitude: 14 }],
+      });
+
+      const bump = queriesFrom(mockUserClient._calls).at(-1);
+      expect(bump?.table).toBe('rides');
+      expect(bump?.ops).toEqual(trackBump);
+    });
+
+    // The ownership read said `recording`, but the ride ended between that read and
+    // the waypoint insert. Deciding from the snapshot skipped the bump, so stats
+    // computed at the end never saw this batch. The bump runs after every stored
+    // batch and is conditional on the ride being completed at that moment, so a
+    // still-recording ride's row is not touched (the update matches nothing).
+    it('bumps the track of a ride that completed after the ownership read said recording', async () => {
+      mockUserClient._pushResult({ data: { id: 'ride-123', status: 'recording' } });
+      mockUserClient._pushResult({ count: 100 });
+      mockUserClient._pushResult({ data: null, error: null }); // upsert
+      mockUserClient._pushResult({ data: null, error: null }); // conditional bump
+
+      await service.uploadWaypoints(userId, {
+        rideId: 'ride-123',
+        waypoints: [{ recordedAt: '2026-03-22T14:10:00Z', latitude: 45, longitude: 14 }],
+      });
+
+      const queries = queriesFrom(mockUserClient._calls);
+      const upsertAt = queries.findIndex(
+        (q) => q.table === 'ride_waypoints' && q.ops.some((op) => op.method === 'upsert'),
+      );
+      const bumpAt = queries.findIndex(
+        (q) => q.table === 'rides' && q.ops.some((op) => op.method === 'update'),
+      );
+      expect(bumpAt).toBeGreaterThan(upsertAt);
+      expect(upsertAt).toBeGreaterThanOrEqual(0);
+      expect(queries[bumpAt].ops).toEqual(trackBump);
+      // The only write to rides is that conditional bump.
+      expect(mockUserClient._chain.update).toHaveBeenCalledTimes(1);
+    });
+
+    it('a failed waypoint insert never bumps the track', async () => {
+      mockUserClient._pushResult({ data: { id: 'ride-123', status: 'completed' } });
+      mockUserClient._pushResult({ count: 100 });
+      mockUserClient._pushResult({ data: null, error: { code: '22003', message: 'out of range' } });
+
+      await expect(
+        service.uploadWaypoints(userId, {
+          rideId: 'ride-123',
+          waypoints: [{ recordedAt: '2026-03-22T16:00:00Z', latitude: 45, longitude: 14 }],
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(mockUserClient._chain.update).not.toHaveBeenCalled();
+    });
+
+    describe('findWaypoints', () => {
+      const POINTS = 2_500;
+      const t0 = Date.parse('2026-03-22T14:00:00Z');
+      const track = {
+        total_points: POINTS,
+        recorded_at: Array.from({ length: POINTS }, (_, i) =>
+          new Date(t0 + i * 1000).toISOString(),
+        ),
+        latitude: Array.from({ length: POINTS }, (_, i) => 45 + i / 10_000),
+        longitude: Array.from({ length: POINTS }, () => 14),
+        altitude: Array.from({ length: POINTS }, () => 300),
+        speed_mps: Array.from({ length: POINTS }, () => 20),
+        heading: Array.from({ length: POINTS }, () => 90),
+        accuracy: Array.from({ length: POINTS }, () => 5),
+      };
+
+      it('reads every point of a 2,500-point ride, so the sample spans the whole ride', async () => {
+        mockUserClient._pushResult({ data: { id: 'ride-123' } });
+        mockUserClient.rpc.mockResolvedValueOnce({ data: [track], error: null });
+
+        const points = await service.findWaypoints(userId, 'ride-123', 1_000);
+
+        expect(rpcCalls('ride_track_points')).toEqual([
+          [
+            'ride_track_points',
+            { p_ride_id: 'ride-123', p_max_points: RIDE_WAYPOINT_LIMITS.MAX_PER_RIDE },
+          ],
+        ]);
+        expect(points).toHaveLength(1_000);
+        expect(points[0].recordedAt).toBe(track.recorded_at[0]);
+        // The old capped select ended at fix 1,000; the whole ride ends at fix 2,500.
+        expect(points.at(-1)?.recordedAt).toBe(track.recorded_at[POINTS - 1]);
+      });
+
+      it('drops fixes worse than the accuracy threshold before sampling', async () => {
+        mockUserClient._pushResult({ data: { id: 'ride-123' } });
+        mockUserClient.rpc.mockResolvedValueOnce({
+          data: [
+            {
+              total_points: 3,
+              recorded_at: ['2026-03-22T14:00:00Z', '2026-03-22T14:00:01Z', '2026-03-22T14:00:02Z'],
+              latitude: [45, 45.1, 45.2],
+              longitude: [14, 14, 14],
+              altitude: [300, null, 310],
+              speed_mps: [10, 11, 12],
+              heading: [0, 0, 0],
+              accuracy: [5, 500, null],
+            },
+          ],
+          error: null,
+        });
+
+        const points = await service.findWaypoints(userId, 'ride-123');
+
+        expect(points.map((p) => p.latitude)).toEqual([45, 45.2]);
+        expect(points[1]).toMatchObject({ altitude: 310, speedMps: 12, accuracy: undefined });
+      });
+
+      it('returns an empty list for a ride with no fixes', async () => {
+        mockUserClient._pushResult({ data: { id: 'ride-123' } });
+        mockUserClient.rpc.mockResolvedValueOnce({ data: [], error: null });
+
+        expect(await service.findWaypoints(userId, 'ride-123')).toEqual([]);
+      });
+
+      it('surfaces a failed track read as InternalServerErrorException', async () => {
+        mockUserClient._pushResult({ data: { id: 'ride-123' } });
+        mockUserClient.rpc.mockResolvedValueOnce({
+          data: null,
+          error: { code: '57014', message: 'statement timeout' },
+        });
+
+        await expect(service.findWaypoints(userId, 'ride-123')).rejects.toThrow(
+          InternalServerErrorException,
+        );
+      });
+    });
+
+    it('getRideMilestoneStats selects the qualifying columns and counts an app auto-end', async () => {
+      mockUserClient._pushResult({
+        data: [
+          {
+            id: 'auto',
+            status: 'completed',
+            deleted_at: null,
+            auto_ended_reason: null,
+            distance_m: 8_000,
+            started_at: '2026-10-10T10:00:00Z',
+            ended_at: '2026-10-10T10:30:00Z',
+            paused_duration_s: 0,
+            auto_paused_duration_s: 0,
+          },
+        ],
+      });
+
+      const stats = await service.getRideMilestoneStats(userId, null);
+
+      expect(stats).toEqual({ qualifyingRideCount: 1, longestQualifyingDistanceM: 8_000 });
+      const [query] = queriesFrom(mockUserClient._calls);
+      const columns = String(query.ops.find((op) => op.method === 'select')?.args[0]);
+      for (const column of ['status', 'deleted_at', 'auto_ended_reason']) {
+        expect(columns.split(/,\s*/)).toContain(column);
+      }
     });
   });
 
@@ -843,6 +1505,9 @@ describe('RidesService', () => {
   });
 
   describe('updateRide', () => {
+    const rpcCalls = (name: string) =>
+      mockUserClient.rpc.mock.calls.filter((call: unknown[]) => call[0] === name);
+
     it('should partial-update and return mapped ride', async () => {
       const updatedRow = { ...fakeRow, name: 'Morning Cruise' };
       mockUserClient._pushResult({ data: updatedRow });
@@ -867,6 +1532,70 @@ describe('RidesService', () => {
       await expect(
         service.updateRide(userId, { rideId: 'ride-123', name: 'Test' }),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it("logs the odometer read after the ride as the ride's end reading, in the bike unit", async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', motorcycle_id: 'moto-456' },
+      }); // 0: ride read
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 1: bike
+
+      await service.updateRide(userId, { rideId: 'ride-123', odometerAtEnd: 1250 });
+
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([
+        ['log_ride_end_odometer', { p_ride_id: 'ride-123', p_value: 1250, p_unit: 'mi' }],
+      ]);
+    });
+
+    // The RPC's deterministic refusals come back as 4xx, so the mobile sync queue
+    // dead-letters the op once instead of retrying it at the head of the queue.
+    it.each([
+      ['22023', 'invalid_value'],
+      ['22003', 'value "12463000000" is out of range for type integer'],
+      [PG_ERROR.NO_DATA_FOUND, 'motorcycle_not_found'],
+      [PG_ERROR.OBJECT_NOT_IN_PREREQUISITE_STATE, 'ride_not_completed'],
+      [PG_ERROR.INSUFFICIENT_PRIVILEGE, 'not_authenticated'],
+    ])('answers a refused odometer (%s) with BadRequestException', async (code, message) => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', motorcycle_id: 'moto-456' },
+      });
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'km' } });
+      mockUserClient.rpc.mockResolvedValueOnce({ data: null, error: { code, message } });
+
+      const err = await service
+        .updateRide(userId, { rideId: 'ride-123', odometerAtEnd: 1250 })
+        .catch((e) => e);
+
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect(err.message).toContain(code);
+    });
+
+    it('keeps an unknown odometer failure retryable (not a 4xx)', async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', motorcycle_id: 'moto-456' },
+      });
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'km' } });
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: null,
+        error: { code: '57014', message: 'canceling statement due to statement timeout' },
+      });
+
+      const err = await service
+        .updateRide(userId, { rideId: 'ride-123', odometerAtEnd: 1250 })
+        .catch((e) => e);
+
+      expect(err).toBeInstanceOf(Error);
+      expect(err).not.toBeInstanceOf(BadRequestException);
+    });
+
+    it('ignores an odometer for a ride without a bike', async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', motorcycle_id: null },
+      });
+
+      await service.updateRide(userId, { rideId: 'ride-123', odometerAtEnd: 1250 });
+
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([]);
     });
   });
 
@@ -976,6 +1705,44 @@ describe('RidesService', () => {
       expect(result.pageInfo.hasPreviousPage).toBe(false);
     });
 
+    it("returns the owner's zone, end source and answers in one query", async () => {
+      mockUserClient._pushResult({
+        data: [
+          {
+            ...fakeRow,
+            end_source: 'client_auto',
+            ride_private_details: { time_zone: 'Europe/Vienna', purpose: 'tour', passenger: true },
+          },
+          { ...fakeRow, id: 'ride-456', end_source: null, ride_private_details: null },
+        ],
+        count: 2,
+      });
+
+      const result = await service.myRides(userId, 20);
+
+      expect(result.edges.map((edge) => edge.node)).toEqual([
+        expect.objectContaining({
+          id: 'ride-123',
+          timeZone: 'Europe/Vienna',
+          endSource: 'client_auto',
+          purpose: 'tour',
+          passenger: true,
+        }),
+        expect.objectContaining({
+          id: 'ride-456',
+          timeZone: undefined,
+          endSource: undefined,
+          purpose: undefined,
+          passenger: undefined,
+        }),
+      ]);
+      // One query: the details are embedded, not fetched per ride.
+      expect(mockUserClient.from).toHaveBeenCalledTimes(1);
+      const columns = String(mockUserClient._chain.select.mock.calls[0][0]);
+      expect(columns).toContain('end_source');
+      expect(columns).toContain('ride_private_details(time_zone, purpose, passenger)');
+    });
+
     it('should return empty result', async () => {
       mockUserClient._pushResult({ data: [], count: 0 });
 
@@ -1025,6 +1792,22 @@ describe('RidesService', () => {
       expect(mockUserClient._chain.eq).toHaveBeenCalledWith('user_id', userId);
     });
 
+    it("returns the owner's zone and answers from ride_private_details", async () => {
+      mockUserClient._pushResult({
+        data: {
+          ...fakeRow,
+          ride_private_details: [{ time_zone: 'Asia/Tokyo', purpose: 'errand', passenger: false }],
+        },
+      });
+
+      const result = await service.findById(userId, 'ride-123');
+
+      expect(result).toMatchObject({ timeZone: 'Asia/Tokyo', purpose: 'errand', passenger: false });
+      expect(String(mockUserClient._chain.select.mock.calls[0][0])).toContain(
+        'ride_private_details(time_zone, purpose, passenger)',
+      );
+    });
+
     it('should throw NotFoundException when not found', async () => {
       mockUserClient._pushResult({
         data: null,
@@ -1040,8 +1823,12 @@ describe('RidesService', () => {
   // it. mapRow DERIVES isPublic from visibility so old + new clients never disagree.
   describe('getRideMilestoneStats', () => {
     // 10 minutes elapsed; distance_m well over the 1 km floor.
+    // The columns the query filters on are selected too, as the database returns them.
     const qualifyingRow = {
       id: 'ride-q1',
+      status: 'completed',
+      deleted_at: null,
+      auto_ended_reason: null,
       distance_m: 12_000,
       started_at: '2026-10-10T10:00:00Z',
       ended_at: '2026-10-10T10:10:00Z',

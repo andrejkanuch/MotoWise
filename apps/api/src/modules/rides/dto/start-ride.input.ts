@@ -10,4 +10,8 @@ export class StartRideInput {
 
   @Field()
   startedAt: string;
+
+  /** The device's IANA time zone at ride start. A non-IANA value is stored as null. */
+  @Field(() => String, { nullable: true })
+  timeZone?: string | null;
 }

@@ -12,7 +12,7 @@ export class OdometerReading {
   @Field()
   recordedAt: string;
 
-  // 'manual' | 'gps_ride' | 'initial' | 'backfill' (OdometerReadingSource).
+  // 'manual' | 'gps_ride' | 'initial' | 'backfill' | 'ride_end' (OdometerReadingSource).
   @Field()
   source: string;
 

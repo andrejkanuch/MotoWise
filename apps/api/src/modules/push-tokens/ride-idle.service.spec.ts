@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { RIDE_WAYPOINT_LIMITS } from '@motovault/types';
 import type { EventEmitter2 } from '@nestjs/event-emitter';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -30,6 +31,11 @@ const mockDeletes: string[] = [];
 const mockOrders: Array<{ table: string; column: unknown; ascending: unknown }> = [];
 /** Every .select() call, per table — proves how much of a track we actually read. */
 const mockSelects: Array<{ table: string; columns: unknown }> = [];
+/** Every .rpc() call — proves the track is read through ride_track_points. */
+const mockRpcs: Array<{ fn: string; args: unknown }> = [];
+
+/** PostgREST's default max-rows: a plain select returns at most this many rows. */
+const POSTGREST_MAX_ROWS = 1_000;
 
 vi.mock('expo-server-sdk', () => ({
   Expo: class {
@@ -96,11 +102,37 @@ function makeAdminClient(resultsByTable: Record<string, TableResult>) {
       resolve(
         isUpdate && result.updateData !== undefined
           ? { data: result.updateData, error: result.error ?? null }
-          : result,
+          : Array.isArray(result.data)
+            ? { ...result, data: result.data.slice(0, POSTGREST_MAX_ROWS) }
+            : result,
       );
     return builder;
   });
-  return { from } as unknown as SupabaseClient;
+  // ride_track_points(): the ride's whole track as one row of arrays (no row cap),
+  // or no row when the ride has no fixes.
+  const rpc = vi.fn(async (fn: string, args: unknown) => {
+    mockRpcs.push({ fn, args });
+    const waypoints = resultsByTable.ride_waypoints ?? { data: [], error: null };
+    if (waypoints.error) return { data: null, error: waypoints.error };
+    const track = (waypoints.data ?? []) as Array<{
+      recorded_at: string;
+      latitude: number;
+      longitude: number;
+    }>;
+    if (track.length === 0) return { data: [], error: null };
+    return {
+      data: [
+        {
+          total_points: track.length,
+          recorded_at: track.map((w) => w.recorded_at),
+          latitude: track.map((w) => w.latitude),
+          longitude: track.map((w) => w.longitude),
+        },
+      ],
+      error: null,
+    };
+  });
+  return { from, rpc } as unknown as SupabaseClient;
 }
 
 const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
@@ -148,6 +180,7 @@ describe('RideIdleService.sweepIdleRides', () => {
     mockDeletes.length = 0;
     mockOrders.length = 0;
     mockSelects.length = 0;
+    mockRpcs.length = 0;
     mockEvents.length = 0;
     mockExpo.sendResult = 'ok';
   });
@@ -450,10 +483,48 @@ describe('RideIdleService.sweepIdleRides', () => {
 
     await service.sweepIdleRides();
 
+    // Classification probe only; the track itself comes from ride_track_points.
     expect(mockSelects.filter((s) => s.table === 'ride_waypoints').map((s) => s.columns)).toEqual([
-      'recorded_at', // classification probe
-      'recorded_at, latitude, longitude', // distance reconstruction
+      'recorded_at',
     ]);
+    expect(mockRpcs).toEqual([
+      {
+        fn: 'ride_track_points',
+        args: { p_ride_id: 'r1', p_max_points: RIDE_WAYPOINT_LIMITS.MAX_PER_RIDE },
+      },
+    ]);
+  });
+
+  it('rebuilds distance from every fix of a long idle ride, not the first 1,000', async () => {
+    // 1,800 fixes due north, 0.001° of latitude apart: 1,799 steps of R·π/180·0.001 m.
+    const POINTS = 1_800;
+    const start = Date.now() - 40 * 3_600_000;
+    const track = Array.from({ length: POINTS }, (_, i) => ({
+      recorded_at: new Date(start + i * 1_000).toISOString(),
+      latitude: 45 + i * 0.001,
+      longitude: 14,
+    }));
+    const stepM = (6_371_000 * Math.PI * 0.001) / 180;
+
+    await makeService(clientFor({ startedHoursAgo: 41, track })).sweepIdleRides();
+
+    const patch = ridesPatch();
+    expect(patch?.distance_m).toBe(Math.round(stepM * (POINTS - 1)));
+    expect(patch?.ended_at).toBe(track[POINTS - 1].recorded_at);
+  });
+
+  it('marks an idle auto-end as server_idle alongside its auto_ended_reason', async () => {
+    await makeService(
+      clientFor({
+        startedHoursAgo: 31,
+        track: [{ recorded_at: hoursAgo(30), latitude: 34.9, longitude: -82.9 }],
+      }),
+    ).sweepIdleRides();
+
+    expect(ridesPatch()).toMatchObject({
+      auto_ended_reason: 'idle_timeout',
+      end_source: 'server_idle',
+    });
   });
 
   it('skips a ride whose last-fix probe fails instead of ending it', async () => {

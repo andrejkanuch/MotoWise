@@ -1,11 +1,17 @@
-import { NOTIFICATION_KIND, RIDE_STATUS } from '@motovault/types';
+import { NOTIFICATION_KIND, RIDE_END_SOURCE, RIDE_STATUS } from '@motovault/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { differenceInHours } from 'date-fns';
 import { Expo, type ExpoPushMessage } from 'expo-server-sdk';
 import { RIDE_EVENTS } from '../../common/constants/events';
+import { EARTH_RADIUS_M } from '../../common/geo';
 import { PG_ERROR } from '../../common/supabase/unwrap';
+import {
+  RIDE_TRACK_POINTS_RPC,
+  TRACK_POINTS_READ_CAP,
+  type TrackPointsRow,
+} from '../../common/track-points';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { resolveRideIdlePushCopy } from './ride-idle-push-copy';
 
@@ -36,9 +42,6 @@ const EXPO_DEVICE_NOT_REGISTERED = 'DeviceNotRegistered' as const;
 const EXPO_SEND_TIMEOUT_MS = 15_000;
 /** Safety valve: bound one run's work. Overflow is logged, never silently dropped. */
 const MAX_RIDES_PER_RUN = 500;
-
-/** Earth radius in metres, for the waypoint-track distance reconstruction. */
-const EARTH_RADIUS_M = 6_371_000;
 
 /**
  * The last-fix probe failed, so this ride's idle time is UNKNOWN — distinct from a
@@ -83,6 +86,9 @@ interface WaypointRow {
   latitude: number;
   longitude: number;
 }
+
+/** The columns of a `ride_track_points()` row this sweep reads. */
+type IdleTrackRow = Pick<TrackPointsRow, 'recorded_at' | 'latitude' | 'longitude'>;
 
 /** Great-circle distance between two fixes, in metres. */
 function haversineM(a: WaypointRow, b: WaypointRow): number {
@@ -346,20 +352,31 @@ export class RideIdleService {
     return recordedAt ? new Date(recordedAt) : null;
   }
 
-  /** Waypoints for a ride, oldest first. Empty for rides that never uploaded any. */
+  /**
+   * Waypoints for a ride, oldest first. Empty for rides that never uploaded any.
+   * Read through `ride_track_points()`, which returns the whole track as one row of
+   * arrays: a plain select stopped at PostgREST's row cap, so a long ride's distance
+   * was rebuilt from its first 1,000 fixes and its end trimmed to the 1,000th.
+   * Capped at TRACK_POINTS_READ_CAP evenly spaced fixes (first and last kept).
+   */
   private async loadTrack(rideId: string): Promise<WaypointRow[]> {
-    const { data, error } = await this.adminClient
-      .from('ride_waypoints')
-      .select('recorded_at, latitude, longitude')
-      .eq('ride_id', rideId)
-      .order('recorded_at', { ascending: true });
+    const { data, error } = await this.adminClient.rpc(RIDE_TRACK_POINTS_RPC, {
+      p_ride_id: rideId,
+      p_max_points: TRACK_POINTS_READ_CAP,
+    });
     if (error) {
       // Treat an unreadable track as "no signal": the ride still gets nudged/ended on
       // started_at rather than being skipped forever by a transient query failure.
       this.logger.warn(`loadTrack failed for ride ${rideId}: ${error.message}`);
       return [];
     }
-    return (data ?? []) as WaypointRow[];
+    const track = ((data ?? []) as IdleTrackRow[])[0];
+    if (!track) return [];
+    return track.recorded_at.map((recordedAt, i) => ({
+      recorded_at: recordedAt,
+      latitude: track.latitude[i],
+      longitude: track.longitude[i],
+    }));
   }
 
   /**
@@ -379,6 +396,7 @@ export class RideIdleService {
       status: 'completed',
       ended_at: lastSignal.toISOString(),
       auto_ended_reason: AUTO_END_REASON_IDLE,
+      end_source: RIDE_END_SOURCE.SERVER_IDLE,
     };
 
     if (track.length >= 2) {

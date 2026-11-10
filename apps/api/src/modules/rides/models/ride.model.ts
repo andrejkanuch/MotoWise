@@ -73,6 +73,22 @@ export class Ride {
   @Field({ nullable: true })
   routeThumbnailUri?: string;
 
+  /** IANA zone the device reported at ride start. Owner only. */
+  @Field({ nullable: true })
+  timeZone?: string;
+
+  /** How the ride ended (rider_phone, client_auto, server_idle, ...). Owner only. */
+  @Field({ nullable: true })
+  endSource?: string;
+
+  /** Purpose the rider picked after the ride. Owner only. */
+  @Field({ nullable: true })
+  purpose?: string;
+
+  /** Whether the rider carried a passenger. Owner only. */
+  @Field({ nullable: true })
+  passenger?: boolean;
+
   @Field()
   createdAt: string;
 

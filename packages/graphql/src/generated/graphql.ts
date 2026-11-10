@@ -320,11 +320,15 @@ export type EndRideInput = {
   distanceM?: number;
   elevationGain?: number | null | undefined;
   elevationLoss?: number | null | undefined;
+  endSource?: string | null | undefined;
   endedAt: string;
   gpsQuality?: number | null | undefined;
   maxLeanAngle?: number | null | undefined;
   maxSpeedMps?: number | null | undefined;
+  odometerAtEnd?: number | null | undefined;
+  passenger?: boolean | null | undefined;
   pausedDurationS?: number;
+  purpose?: string | null | undefined;
   rideId: string;
   routePolyline?: string | null | undefined;
 };
@@ -610,6 +614,7 @@ export type StartRideInput = {
   motorcycleId?: string | null | undefined;
   rideId: string;
   startedAt: string;
+  timeZone?: string | null | undefined;
 };
 
 export type SubmitDiagnosticInput = {
@@ -752,6 +757,9 @@ export type UpdateRideInput = {
   isPublic?: boolean | null | undefined;
   mileageApplied?: boolean | null | undefined;
   name?: string | null | undefined;
+  odometerAtEnd?: number | null | undefined;
+  passenger?: boolean | null | undefined;
+  purpose?: string | null | undefined;
   rideId: string;
 };
 

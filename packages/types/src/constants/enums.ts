@@ -172,6 +172,8 @@ export const OdometerReadingSource = {
   INITIAL: 'initial',
   /** Seeded by migration 00181 from the bike's odometer at that time. */
   BACKFILL: 'backfill',
+  /** Read by the rider at ride end and logged by log_ride_end_odometer (00197). */
+  RIDE_END: 'ride_end',
 } as const;
 export type OdometerReadingSource =
   (typeof OdometerReadingSource)[keyof typeof OdometerReadingSource];

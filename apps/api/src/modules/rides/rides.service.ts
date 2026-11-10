@@ -1,9 +1,11 @@
 import {
-  type MeasurementSystem,
+  isQualifyingRide,
+  MileageUnit,
   metersToUnit,
-  mileageUnitLabel,
+  RIDE_END_SOURCE,
   RIDE_MILESTONE_PAYWALL,
   RIDE_STATUS,
+  type RideStatus,
 } from '@motovault/types';
 import {
   BadRequestException,
@@ -16,12 +18,17 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import * as Sentry from '@sentry/nestjs';
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { RIDE_EVENTS } from '../../common/constants/events';
 import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
 import { PG_ERROR, unwrap } from '../../common/supabase/unwrap';
+import {
+  RIDE_TRACK_POINTS_RPC,
+  TRACK_POINTS_READ_CAP,
+  type TrackPointsRow,
+} from '../../common/track-points';
 import { POSTGRES_REAL, QUERY_LIMITS } from '../../config/constants';
-import { computeMovingTimeS } from '../ride-analytics/ride-analytics.utils';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { EndRideInput } from './dto/end-ride.input';
@@ -39,11 +46,64 @@ const MILESTONE_STATS_PAGE_SIZE = 1_000;
 
 interface MilestoneRideRow {
   id: string;
+  status: RideStatus;
+  deleted_at: string | null;
+  auto_ended_reason: string | null;
   distance_m: number | null;
   started_at: string | null;
   ended_at: string | null;
   paused_duration_s: number | null;
   auto_paused_duration_s: number | null;
+}
+
+/**
+ * Recording columns of `rides`. The generated database.types.ts lags production and
+ * this service's client is untyped, so the shape is stated here at the read and write sites.
+ */
+interface RideRecordingColumns {
+  end_source: string | null;
+  track_updated_at: string | null;
+}
+
+/**
+ * The rider's device zone and answers. They live in the owner-only
+ * `ride_private_details` table, not on `rides`: any signed-in rider can read a
+ * public or unlisted ride's row through PostgREST, so a column there would leak.
+ */
+interface RidePrivateDetails {
+  time_zone: string | null;
+  purpose: string | null;
+  passenger: boolean | null;
+}
+type RidePrivateDetailsPatch = Partial<RidePrivateDetails>;
+
+/** `log_ride_end_odometer(p_ride_id, p_value, p_unit)` → one RideEndOdometerResult (00197). */
+const LOG_RIDE_END_ODOMETER_RPC = 'log_ride_end_odometer';
+
+const RIDE_PRIVATE_DETAILS_TABLE = 'ride_private_details';
+const RIDE_PRIVATE_DETAILS_COLUMNS = 'time_zone, purpose, passenger';
+/**
+ * PostgREST embed of the ride's private details. RLS returns them to the owner
+ * only, so on the rider's own client this is one query for any number of rides.
+ */
+const RIDE_PRIVATE_DETAILS_EMBED = `${RIDE_PRIVATE_DETAILS_TABLE}(${RIDE_PRIVATE_DETAILS_COLUMNS})`;
+/** A whole ride row plus the owner's private details. */
+const RIDE_WITH_PRIVATE_DETAILS = `*, ${RIDE_PRIVATE_DETAILS_EMBED}`;
+
+/** The embedded details of a ride row: an object for a one-to-one embed, else a 0/1 array. */
+function privateDetailsOf(row: Record<string, unknown>): RidePrivateDetails | null {
+  const embedded = row[RIDE_PRIVATE_DETAILS_TABLE] as
+    | RidePrivateDetails
+    | RidePrivateDetails[]
+    | null
+    | undefined;
+  if (Array.isArray(embedded)) return embedded[0] ?? null;
+  return embedded ?? null;
+}
+
+/** Copy of `patch` without the keys whose value is null or undefined. */
+function presentValues(patch: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(patch).filter(([, value]) => value != null));
 }
 
 /**
@@ -80,6 +140,28 @@ function pgDisposition(code: string | null | undefined): PgDisposition | 'unknow
   if (!code) return 'unknown';
   const match = Object.entries(PG_ERROR_CLASS_DISPOSITION).find(([cls]) => code.startsWith(cls));
   return match ? match[1] : 'unknown';
+}
+
+/**
+ * log_ride_end_odometer's deterministic refusals: a data exception (22023 invalid
+ * value or unit, 22003 out of range) by class, plus the ride or bike not found
+ * (P0002), the ride not completed yet (55000) and no caller (42501).
+ */
+const ODOMETER_REFUSAL_CODES: ReadonlySet<string> = new Set([
+  PG_ERROR.NO_DATA_FOUND,
+  PG_ERROR.OBJECT_NOT_IN_PREREQUISITE_STATE,
+  PG_ERROR.INSUFFICIENT_PRIVILEGE,
+]);
+
+/** `log_ride_end_odometer()`'s single row (00197). */
+interface RideEndOdometerResult {
+  reading_id: string;
+  /** False when the typed value is history (a later reading exists) or a replay. */
+  bike_moved: boolean;
+}
+
+function isOdometerRefusal(code: string | undefined): boolean {
+  return pgDisposition(code) === 'permanent' || ODOMETER_REFUSAL_CODES.has(code ?? '');
 }
 
 /**
@@ -161,7 +243,7 @@ export class RidesService {
     const replayed = await this.findOwnRide(userId, input.rideId);
     if (replayed) {
       this.logger.log(`startRide: ride ${input.rideId} already exists — idempotent success`);
-      return this.mapRow(replayed);
+      return this.withStartTimeZone(userId, replayed, input.timeZone);
     }
 
     // Auto-end any stale active rides so the unique-index
@@ -171,7 +253,7 @@ export class RidesService {
     await this.closeStaleRides(userId, input.rideId);
 
     const first = await this.insertRide(userId, input);
-    if (first.data) return this.mapRow(first.data);
+    if (first.data) return this.withStartTimeZone(userId, first.data, input.timeZone);
     if (first.error?.code !== PG_ERROR.UNIQUE_VIOLATION) {
       this.throwStartRideError(first.error, input);
     }
@@ -186,14 +268,14 @@ export class RidesService {
       // The desired state already exists, so this is a success. Together with the
       // pre-check this is what stops a lost response destroying a ride.
       this.logger.log(`startRide: ride ${input.rideId} already exists — idempotent success`);
-      return this.mapRow(existing);
+      return this.withStartTimeZone(userId, existing, input.timeZone);
     }
 
     // Not ours ⇒ another active ride is holding the index. closeStaleRides above
     // either raced with it or could not close it; try once more, then give up.
     await this.closeStaleRides(userId, input.rideId);
     const retry = await this.insertRide(userId, input);
-    if (retry.data) return this.mapRow(retry.data);
+    if (retry.data) return this.withStartTimeZone(userId, retry.data, input.timeZone);
     if (retry.error?.code !== PG_ERROR.UNIQUE_VIOLATION) {
       this.throwStartRideError(retry.error, input);
     }
@@ -232,6 +314,63 @@ export class RidesService {
   }
 
   /**
+   * The started ride, with the device's time zone stored in ride_private_details
+   * when the client sent a valid one and none is stored yet (a replay of a start
+   * whose zone write was lost fills it in). A failed write is logged, never thrown:
+   * the zone only refines the ride's local time, and the stats compute falls back
+   * to the start point's zone, so it must never cost the rider the start.
+   */
+  private async withStartTimeZone(
+    userId: string,
+    row: Record<string, unknown>,
+    timeZone: string | null | undefined,
+  ): Promise<Ride> {
+    const ride = this.mapRow(row);
+    if (!timeZone || ride.timeZone) return ride;
+
+    const { error } = await this.supabase
+      .from(RIDE_PRIVATE_DETAILS_TABLE)
+      .upsert(
+        { ride_id: ride.id, user_id: userId, time_zone: timeZone },
+        { onConflict: 'ride_id' },
+      );
+    if (error) {
+      this.logger.warn(
+        `startRide: time zone not stored for ride ${ride.id}: ${error.message} (${error.code})`,
+      );
+      return ride;
+    }
+    return { ...ride, timeZone };
+  }
+
+  /**
+   * Upsert the rider's own answers for a ride (only the given keys change) and
+   * return the row as stored, or the Postgres error.
+   */
+  private async upsertPrivateDetails(
+    userId: string,
+    rideId: string,
+    patch: RidePrivateDetailsPatch,
+  ): Promise<{ details: RidePrivateDetails | null; error: PostgrestError | null }> {
+    const { data, error } = await this.supabase
+      .from(RIDE_PRIVATE_DETAILS_TABLE)
+      .upsert({ ride_id: rideId, user_id: userId, ...patch }, { onConflict: 'ride_id' })
+      .select(RIDE_PRIVATE_DETAILS_COLUMNS)
+      .single();
+    return { details: (data as RidePrivateDetails | null) ?? null, error };
+  }
+
+  /** `ride` with the private-detail fields replaced by `details`. */
+  private withPrivateDetails(ride: Ride, details: RidePrivateDetails): Ride {
+    return {
+      ...ride,
+      timeZone: details.time_zone ?? undefined,
+      purpose: details.purpose ?? undefined,
+      passenger: details.passenger ?? undefined,
+    };
+  }
+
+  /**
    * The ride with this id IF it belongs to this user. Scoped by `user_id` so a
    * UUID collision across riders can never return someone else's ride as an
    * "idempotent success" — it falls through to the conflict branch instead.
@@ -242,7 +381,7 @@ export class RidesService {
   ): Promise<Record<string, unknown> | null> {
     const { data, error } = await this.supabase
       .from('rides')
-      .select('*')
+      .select(RIDE_WITH_PRIVATE_DETAILS)
       .eq('id', rideId)
       .eq('user_id', userId)
       .is('deleted_at', null)
@@ -382,7 +521,8 @@ export class RidesService {
           status: 'completed',
           ended_at: endedAt,
           auto_ended_reason: 'stale_on_start',
-        })
+          end_source: RIDE_END_SOURCE.STALE_ON_START,
+        } satisfies Record<string, unknown> & Pick<RideRecordingColumns, 'end_source'>)
         .eq('id', ride.id)
         // Same race guard as RideIdleService.endIdleRide: a second device can complete
         // this ride while this one starts a new one, and matching on `id` alone would
@@ -430,22 +570,32 @@ export class RidesService {
     // The rider's own end always clears `auto_ended_reason`: if the system had marked
     // this ride, the rider superseding it makes the ride genuinely rider-ended, and
     // the marker would otherwise keep excluding it from personal records forever.
+    // How the client ended it (including the app's own auto-end) goes to `end_source`
+    // instead, which leaves the qualifying set unchanged.
     const endPatch = {
       status: 'completed',
       ended_at: input.endedAt,
-      // Absent when the schema discarded an implausible value: keep what the row has.
-      ...(input.distanceM !== undefined && { distance_m: input.distanceM }),
-      max_speed_mps: input.maxSpeedMps ?? null,
-      avg_speed_mps: input.avgSpeedMps ?? null,
-      elevation_gain: input.elevationGain ?? null,
-      elevation_loss: input.elevationLoss ?? null,
-      route_polyline: input.routePolyline ?? null,
-      gps_quality: input.gpsQuality ?? null,
+      // Each stat is written only when the payload carries it. An app auto-end or a
+      // recovered ride sends a partial payload (or the schema discarded an implausible
+      // value), and nulling the stored stats there lost speed and climb for good.
+      ...presentValues({
+        distance_m: input.distanceM,
+        max_speed_mps: input.maxSpeedMps,
+        avg_speed_mps: input.avgSpeedMps,
+        elevation_gain: input.elevationGain,
+        elevation_loss: input.elevationLoss,
+        route_polyline: input.routePolyline,
+        gps_quality: input.gpsQuality,
+        max_lean_angle: input.maxLeanAngle,
+      }),
       paused_duration_s: input.pausedDurationS,
       auto_paused_duration_s: input.autoPausedDurationS,
       auto_ended_reason: null,
-      ...(input.maxLeanAngle != null && { max_lean_angle: input.maxLeanAngle }),
-    };
+      end_source: input.endSource ?? null,
+      // The track is final now, so any stats computed before this are stale.
+      track_updated_at: new Date().toISOString(),
+    } satisfies Record<string, unknown> &
+      Pick<RideRecordingColumns, 'end_source' | 'track_updated_at'>;
 
     const { data, error } = await this.supabase
       .from('rides')
@@ -454,7 +604,7 @@ export class RidesService {
       .eq('user_id', userId)
       .in('status', ['recording', 'paused'])
       .is('deleted_at', null)
-      .select()
+      .select(RIDE_WITH_PRIVATE_DETAILS)
       .single();
 
     let row = data;
@@ -463,7 +613,7 @@ export class RidesService {
       if (error?.code === PG_ERROR.NOT_FOUND) {
         const { data: existing } = await this.supabase
           .from('rides')
-          .select('*')
+          .select(RIDE_WITH_PRIVATE_DETAILS)
           .eq('id', input.rideId)
           .eq('user_id', userId)
           .eq('status', 'completed')
@@ -492,7 +642,7 @@ export class RidesService {
             // idempotent, which is what MOT-140 added this branch for.
             .not('auto_ended_reason', 'is', null)
             .is('deleted_at', null)
-            .select()
+            .select(RIDE_WITH_PRIVATE_DETAILS)
             .single();
 
           if (reclaimed) {
@@ -522,7 +672,7 @@ export class RidesService {
       }
     }
 
-    const ride = this.mapRow(row);
+    const ride = await this.withEndAnswers(userId, this.mapRow(row), input);
     let triggeredMaintenanceTasks: { id: string; title: string; priority: string }[] = [];
 
     // MOT-140: claim-first odometer sync. A single conditional UPDATE flips
@@ -540,56 +690,23 @@ export class RidesService {
 
     const motorcycleId = claimed?.motorcycle_id;
     const distanceM = claimed?.distance_m ?? 0;
+    const odometerAtEnd = input.odometerAtEnd ?? null;
 
-    if (claimed && motorcycleId && distanceM > 0) {
+    if (claimed && motorcycleId && (odometerAtEnd !== null || distanceM > 0)) {
       try {
-        // Defense-in-depth: filter by user_id alongside RLS
-        const { data: bike } = await this.supabase
-          .from('motorcycles')
-          .select('current_mileage')
-          .eq('id', motorcycleId)
-          .eq('user_id', userId)
-          .single();
+        const newMileage =
+          odometerAtEnd !== null
+            ? await this.applyEndOdometerOrGps(
+                userId,
+                input.rideId,
+                motorcycleId,
+                odometerAtEnd,
+                distanceM,
+              )
+            : await this.applyGpsMileage(userId, input.rideId, motorcycleId, distanceM);
 
-        // MOT-140: current_mileage is stored RAW in the user's measurement-system
-        // unit (docs/plans/odometer-unit-normalization.md). Ride distance comes
-        // from GPS in meters, so convert meters → that unit before accumulating.
-        // Use the GLOBAL measurement_system (service-role read), not the
-        // deprecated per-bike mileage_unit. target_mileage below is in the same
-        // raw unit, so the due comparison stays valid.
-        const { data: userRow } = await this.supabaseAdmin
-          .from('users')
-          .select('measurement_system')
-          .eq('id', userId)
-          .single();
-        const system = (userRow?.measurement_system as MeasurementSystem | null) ?? 'metric';
-        const unit = mileageUnitLabel(system);
-        const roundedDelta = Math.round(metersToUnit(distanceM, unit));
-        const newMileage = (bike?.current_mileage ?? 0) + roundedDelta;
-
-        const nowIso = new Date().toISOString();
-
-        await this.supabase
-          .from('motorcycles')
-          .update({
-            current_mileage: newMileage,
-            mileage_updated_at: nowIso,
-            odometer_sync_source: 'gps_ride',
-            odometer_last_ride_id: input.rideId,
-          })
-          .eq('id', motorcycleId)
-          .eq('user_id', userId);
-
-        // NOTE: mileage_applied was already claimed above, so a failure in this
-        // block leaves it true — the ride won't re-sync on retry. A missed
-        // odometer update is rare and user-correctable via manual edit; this is
-        // the deliberate trade for race-free exactly-once application.
-        this.logger.log(
-          `Odometer sync: +${roundedDelta}${unit} to motorcycle ${motorcycleId} (total: ${newMileage}${unit}, ride=${input.rideId})`,
-        );
-
-        // Check for maintenance tasks that are now due. target_mileage and
-        // current_mileage are both in the same raw user unit, so this is valid.
+        // Check for maintenance tasks that are now due. target_mileage and the new
+        // reading are both in the bike's raw unit, so this is valid.
         const { data: dueTasks } = await this.supabase
           .from('maintenance_tasks')
           .select('id, title, priority')
@@ -605,9 +722,18 @@ export class RidesService {
           );
         }
       } catch (mileageError) {
+        // NOTE: mileage_applied was already claimed above, so a failure here leaves it
+        // true — the ride won't re-sync on retry. A failed typed end odometer never
+        // lands here (applyEndOdometerOrGps reports it and adds the GPS distance); what
+        // remains is a failed GPS write or task read, rare and user-correctable via a
+        // manual edit: the deliberate trade for race-free exactly-once application.
         const msg = mileageError instanceof Error ? mileageError.message : String(mileageError);
         this.logger.warn(`Failed to apply mileage: ${msg}`);
-        // Non-fatal — ride is already saved
+        // Non-fatal (the ride is saved), but this ride's distance never reaches the bike.
+        Sentry.captureException(mileageError, {
+          tags: { area: 'rides', op: 'end-mileage' },
+          extra: { rideId: input.rideId, motorcycleId, distanceM, odometerAtEnd },
+        });
       }
     }
 
@@ -619,6 +745,176 @@ export class RidesService {
     });
 
     return { ride, triggeredMaintenanceTasks };
+  }
+
+  /**
+   * Store the purpose and passenger answers an end carries (an absent or unknown
+   * answer leaves the stored one alone). Logged rather than thrown: the ride is
+   * already completed, and a retry of the end is answered as an idempotent success
+   * that would never reach this write again.
+   */
+  private async withEndAnswers(userId: string, ride: Ride, input: EndRideInput): Promise<Ride> {
+    const answers = presentValues({
+      purpose: input.purpose,
+      passenger: input.passenger,
+    }) as RidePrivateDetailsPatch;
+    if (Object.keys(answers).length === 0) return ride;
+
+    const { details, error } = await this.upsertPrivateDetails(userId, ride.id, answers);
+    if (error || !details) {
+      this.logger.error(
+        `endRide: answers not stored for ride ${ride.id}: ${error?.message} (${error?.code})`,
+      );
+      return ride;
+    }
+    return this.withPrivateDetails(ride, details);
+  }
+
+  /**
+   * The bike's odometer unit; `current_mileage` and odometer readings are raw in it.
+   * Throws when the bike cannot be read: defaulting to km (and 0) would convert a
+   * miles bike's reading wrongly, or write the ride's distance as its whole odometer.
+   * A NULL distance_unit is a legacy km bike, as in the RPCs.
+   */
+  private async readBikeOdometer(
+    userId: string,
+    motorcycleId: string,
+  ): Promise<{ currentMileage: number; unit: MileageUnit }> {
+    // Defense-in-depth: filter by user_id alongside RLS
+    const { data: bike, error } = await this.supabase
+      .from('motorcycles')
+      .select('current_mileage, distance_unit')
+      .eq('id', motorcycleId)
+      .eq('user_id', userId)
+      .single();
+    // No row: the bike is gone (soft-deleted, so hidden by RLS) or not the caller's.
+    // A retry cannot change that, so it is a 4xx the sync queue dead-letters once,
+    // as the RPC's own P0002 was. A real read failure stays retryable (5xx).
+    if (error?.code === PG_ERROR.NOT_FOUND || (!error && !bike)) {
+      throw new BadRequestException(`Motorcycle ${motorcycleId} not found`);
+    }
+    if (error) {
+      throw new Error(
+        `motorcycle ${motorcycleId} odometer read failed: ${error.message} (${error.code})`,
+      );
+    }
+    return {
+      currentMileage: (bike.current_mileage as number | null) ?? 0,
+      unit: bike.distance_unit === MileageUnit.MI ? MileageUnit.MI : MileageUnit.KM,
+    };
+  }
+
+  /**
+   * endRide with a typed end odometer: log it instead of adding the GPS distance.
+   * The ride's distance still reaches the bike when the typed value does not:
+   *   - the value is history (a reading newer than the ride's end exists), so the
+   *     RPC leaves the bike alone and the GPS distance is added instead;
+   *   - the RPC fails. mileage_applied is already claimed, so a retry would never
+   *     get here again: the failure goes to Sentry with the typed value (the rider
+   *     can re-enter it) and the GPS distance is added so the bike still moves.
+   * Returns the bike's odometer afterwards, in its unit.
+   */
+  private async applyEndOdometerOrGps(
+    userId: string,
+    rideId: string,
+    motorcycleId: string,
+    odometerAtEnd: number,
+    distanceM: number,
+  ): Promise<number> {
+    try {
+      const { mileage, bikeMoved } = await this.applyOdometerAtEnd(
+        userId,
+        rideId,
+        motorcycleId,
+        odometerAtEnd,
+      );
+      if (bikeMoved) return mileage;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `endRide: odometer at end not logged for ride ${rideId}, adding GPS distance instead: ${msg}`,
+      );
+      Sentry.captureException(err, {
+        tags: { area: 'rides', op: 'end-odometer' },
+        extra: { rideId, motorcycleId, odometerAtEnd, distanceM },
+      });
+    }
+    if (distanceM > 0) return this.applyGpsMileage(userId, rideId, motorcycleId, distanceM);
+    return (await this.readBikeOdometer(userId, motorcycleId)).currentMileage;
+  }
+
+  /**
+   * The rider read the odometer at the end: log that reading instead of adding the
+   * GPS distance. The value is in the bike's unit, so it is passed with that unit and
+   * the RPC stores it as is. The RPC returns the existing reading on a replay.
+   * `bikeMoved` is false when the RPC kept the value as history (or it was a replay).
+   */
+  private async applyOdometerAtEnd(
+    userId: string,
+    rideId: string,
+    motorcycleId: string,
+    value: number,
+  ): Promise<{ mileage: number; bikeMoved: boolean }> {
+    const { unit } = await this.readBikeOdometer(userId, motorcycleId);
+    const { data, error } = await this.supabase.rpc(LOG_RIDE_END_ODOMETER_RPC, {
+      p_ride_id: rideId,
+      p_value: value,
+      p_unit: unit,
+    });
+    if (error) {
+      const cause = new Error(
+        `${LOG_RIDE_END_ODOMETER_RPC} failed: ${error.message} (${error.code})`,
+      );
+      // A refusal the RPC will repeat on every retry (bad or out-of-range value, ride
+      // or bike gone, not the caller's) is a 4xx, so the sync queue dead-letters it
+      // once instead of retrying it at the head of the queue. Anything else retries.
+      if (isOdometerRefusal(error.code)) {
+        throw new BadRequestException(`Odometer reading rejected (${error.code})`, { cause });
+      }
+      throw cause;
+    }
+    const bikeMoved = (data as RideEndOdometerResult | null)?.bike_moved === true;
+    this.logger.log(
+      `Odometer at end: ${value}${unit} on motorcycle ${motorcycleId} (ride=${rideId}, moved=${bikeMoved})`,
+    );
+    return { mileage: value, bikeMoved };
+  }
+
+  /**
+   * Add the ride's GPS distance to the bike's odometer. `current_mileage` is stored
+   * RAW in the bike's `distance_unit` (00180), and ride distance is metres, so the
+   * delta is converted into that unit before accumulating.
+   */
+  private async applyGpsMileage(
+    userId: string,
+    rideId: string,
+    motorcycleId: string,
+    distanceM: number,
+  ): Promise<number> {
+    const { currentMileage, unit } = await this.readBikeOdometer(userId, motorcycleId);
+    const roundedDelta = Math.round(metersToUnit(distanceM, unit));
+    const newMileage = currentMileage + roundedDelta;
+
+    const { error } = await this.supabase
+      .from('motorcycles')
+      .update({
+        current_mileage: newMileage,
+        mileage_updated_at: new Date().toISOString(),
+        odometer_sync_source: 'gps_ride',
+        odometer_last_ride_id: rideId,
+      })
+      .eq('id', motorcycleId)
+      .eq('user_id', userId);
+    if (error) {
+      throw new Error(
+        `motorcycle ${motorcycleId} GPS mileage update failed: ${error.message} (${error.code})`,
+      );
+    }
+
+    this.logger.log(
+      `Odometer sync: +${roundedDelta}${unit} to motorcycle ${motorcycleId} (total: ${newMileage}${unit}, ride=${rideId})`,
+    );
+    return newMileage;
   }
 
   async uploadWaypoints(userId: string, input: UploadWaypointsInput): Promise<number> {
@@ -711,7 +1007,36 @@ export class RidesService {
       this.throwWaypointUploadError(error, input);
     }
 
+    // After every stored batch, not only when the ownership read above said
+    // `completed`: the ride can end between that read and the insert, and stats
+    // computed at the end would then never see this batch.
+    await this.markTrackUpdated(userId, input.rideId);
+
     return accepted.length;
+  }
+
+  /**
+   * A waypoint batch landed after the ride ended (the queue drains late, or the
+   * rider came back to a system-ended ride), so stats computed from the shorter track
+   * are stale. The update matches only a ride that is completed NOW, so a batch for a
+   * ride still recording changes nothing (its end sets track_updated_at). Logged
+   * rather than thrown: the waypoints are already stored, and a retry of this upload
+   * would store nothing new and so never reach this point.
+   */
+  private async markTrackUpdated(userId: string, rideId: string): Promise<void> {
+    const { error } = await this.supabase
+      .from('rides')
+      .update({
+        track_updated_at: new Date().toISOString(),
+      } satisfies Pick<RideRecordingColumns, 'track_updated_at'>)
+      .eq('id', rideId)
+      .eq('user_id', userId)
+      .eq('status', RIDE_STATUS.COMPLETED);
+    if (error) {
+      this.logger.error(
+        `uploadWaypoints: track_updated_at bump failed for completed ride ${rideId}: ${error.message} (${error.code})`,
+      );
+    }
   }
 
   /**
@@ -800,21 +1125,57 @@ export class RidesService {
       updates.is_public = input.isPublic;
       updates.visibility = input.isPublic ? 'public' : 'private';
     }
+    // Explicit null clears an answer the rider gave earlier; undefined (absent, or a
+    // value this server does not know) leaves it alone.
+    const answers: RidePrivateDetailsPatch = {};
+    if (input.purpose !== undefined) answers.purpose = input.purpose;
+    if (input.passenger !== undefined) answers.passenger = input.passenger;
 
-    const { data, error } = await this.supabase
-      .from('rides')
-      .update(updates)
-      .eq('id', input.rideId)
-      .eq('user_id', userId)
-      .is('deleted_at', null)
-      .select()
-      .single();
+    // The ride row first, so the answers are written only for a ride that is the
+    // rider's own and not deleted (RLS on ride_private_details checks it too).
+    const { data, error } =
+      Object.keys(updates).length > 0
+        ? await this.supabase
+            .from('rides')
+            .update(updates)
+            .eq('id', input.rideId)
+            .eq('user_id', userId)
+            .is('deleted_at', null)
+            .select(RIDE_WITH_PRIVATE_DETAILS)
+            .single()
+        : await this.supabase
+            .from('rides')
+            .select(RIDE_WITH_PRIVATE_DETAILS)
+            .eq('id', input.rideId)
+            .eq('user_id', userId)
+            .is('deleted_at', null)
+            .single();
 
     if (error || !data) {
       this.logger.error(`updateRide failed: ${error?.message} (${error?.code})`);
       throw new BadRequestException('Failed to update ride');
     }
-    return this.mapRow(data);
+    const ride = this.mapRow(data);
+    // The post-ride sheet sends the odometer after the ride has ended, so it is
+    // logged here as the ride's end reading (the RPC returns the existing reading
+    // on a repeat).
+    if (input.odometerAtEnd != null && ride.motorcycleId) {
+      await this.applyOdometerAtEnd(userId, input.rideId, ride.motorcycleId, input.odometerAtEnd);
+    }
+    if (Object.keys(answers).length === 0) return ride;
+
+    const { details, error: answersError } = await this.upsertPrivateDetails(
+      userId,
+      input.rideId,
+      answers,
+    );
+    if (answersError || !details) {
+      this.logger.error(
+        `updateRide: answers not stored for ride ${input.rideId}: ${answersError?.message} (${answersError?.code})`,
+      );
+      throw new InternalServerErrorException('Failed to update ride');
+    }
+    return this.withPrivateDetails(ride, details);
   }
 
   async deleteRide(userId: string, id: string): Promise<boolean> {
@@ -868,7 +1229,7 @@ export class RidesService {
       .eq('id', rideId)
       .eq('user_id', userId)
       .is('deleted_at', null)
-      .select()
+      .select(RIDE_WITH_PRIVATE_DETAILS)
       .single();
 
     if (error || !data) {
@@ -949,7 +1310,7 @@ export class RidesService {
     let query = this.supabase
       .from('rides')
       .select(
-        'id, user_id, motorcycle_id, status, name, started_at, ended_at, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, route_polyline, route_thumbnail_uri, gps_quality, paused_duration_s, auto_paused_duration_s, mileage_applied, is_public, visibility, region, created_at, updated_at',
+        `id, user_id, motorcycle_id, status, name, started_at, ended_at, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, route_polyline, route_thumbnail_uri, gps_quality, paused_duration_s, auto_paused_duration_s, mileage_applied, is_public, visibility, region, end_source, created_at, updated_at, ${RIDE_PRIVATE_DETAILS_EMBED}`,
         { count: 'estimated' },
       )
       .eq('user_id', userId)
@@ -1015,7 +1376,7 @@ export class RidesService {
 
     const { data, error } = await this.supabase
       .from('rides')
-      .select('*')
+      .select(RIDE_WITH_PRIVATE_DETAILS)
       .eq('id', id)
       .eq('user_id', userId)
       .is('deleted_at', null)
@@ -1043,37 +1404,45 @@ export class RidesService {
       throw new NotFoundException('Ride not found');
     }
 
-    // Fetch waypoints ordered by time, filter poor accuracy
-    const { data, error } = await this.supabase
-      .from('ride_waypoints')
-      .select('recorded_at, latitude, longitude, altitude, speed_mps, accuracy')
-      .eq('ride_id', rideId)
-      .or(`accuracy.is.null,accuracy.lte.${QUERY_LIMITS.WAYPOINT_ACCURACY_THRESHOLD}`)
-      .order('recorded_at', { ascending: true })
-      .limit(QUERY_LIMITS.MAX_WAYPOINTS_PER_RIDE);
+    // The whole track in one row of arrays: a plain select stops at PostgREST's row
+    // cap, which cut every long ride to its first 1,000 fixes before sampling.
+    // Capped at TRACK_POINTS_READ_CAP evenly spaced fixes, first and last kept.
+    const { data, error } = await this.supabase.rpc(RIDE_TRACK_POINTS_RPC, {
+      p_ride_id: rideId,
+      p_max_points: TRACK_POINTS_READ_CAP,
+    });
 
     if (error) {
       this.logger.error(`findWaypoints failed: ${error.message} (${error.code})`);
       throw new InternalServerErrorException('Failed to fetch waypoints');
     }
 
-    const rows = data ?? [];
-    if (rows.length === 0) return [];
+    const track = ((data ?? []) as TrackPointsRow[])[0];
+    if (!track) return [];
 
-    // Server-side downsampling
+    // Drop poor-accuracy fixes, then sample evenly across the whole ride. Both work on
+    // indices into the parallel arrays; only the surviving fixes become objects.
+    const kept: number[] = [];
+    for (let i = 0; i < track.recorded_at.length; i++) {
+      const accuracy = track.accuracy[i] ?? undefined;
+      if (accuracy === undefined || accuracy <= QUERY_LIMITS.WAYPOINT_ACCURACY_THRESHOLD) {
+        kept.push(i);
+      }
+    }
+    if (kept.length === 0) return [];
+
     const limit = Math.min(
       Math.max(maxPoints ?? QUERY_LIMITS.WAYPOINT_QUERY_DEFAULT, 2),
       QUERY_LIMITS.WAYPOINT_QUERY_MAX,
     );
-    const sampled = rows.length <= limit ? rows : this.downsample(rows, limit);
-
-    return sampled.map((row) => ({
-      recordedAt: row.recorded_at as string,
-      latitude: row.latitude as number,
-      longitude: row.longitude as number,
-      altitude: (row.altitude as number) ?? undefined,
-      speedMps: (row.speed_mps as number) ?? undefined,
-      accuracy: (row.accuracy as number) ?? undefined,
+    const sampled = kept.length <= limit ? kept : this.downsample(kept, limit);
+    return sampled.map((i) => ({
+      recordedAt: track.recorded_at[i],
+      latitude: track.latitude[i],
+      longitude: track.longitude[i],
+      altitude: track.altitude[i] ?? undefined,
+      speedMps: track.speed_mps[i] ?? undefined,
+      accuracy: track.accuracy[i] ?? undefined,
     }));
   }
 
@@ -1094,6 +1463,8 @@ export class RidesService {
     // covers selects that predate the visibility column in their column list.
     const visibility =
       (row.visibility as string) ?? ((row.is_public as boolean) ? 'public' : 'private');
+    // Present only on the owner's reads that embed ride_private_details.
+    const details = privateDetailsOf(row);
     return {
       id: row.id as string,
       userId: row.user_id as string,
@@ -1124,15 +1495,20 @@ export class RidesService {
       visibility,
       region: (row.region as string) ?? undefined,
       routeThumbnailUri: (row.route_thumbnail_uri as string) ?? undefined,
+      timeZone: details?.time_zone ?? undefined,
+      endSource: (row.end_source as RideRecordingColumns['end_source']) ?? undefined,
+      purpose: details?.purpose ?? undefined,
+      passenger: details?.passenger ?? undefined,
       createdAt: row.created_at as string,
       updatedAt: row.updated_at as string,
     };
   }
 
   /**
-   * Qualifying rides for the ride-moment paywall teaser (plan R1): completed by
-   * the rider, not deleted, at least 1 km and 3 minutes of moving time, and not
-   * ended by the system. User client, so RLS scopes the read. `excludeRideId`
+   * Qualifying rides for the ride-moment paywall teaser, by the shared
+   * `isQualifyingRide` rule: completed, not deleted, not ended by the server, at
+   * least 1 km and 3 minutes after pauses. The query pre-filters on the same
+   * columns so only candidates are paged in. User client, so RLS scopes the read. `excludeRideId`
    * leaves out the ride whose summary is open: the phone adds it back from local
    * data, so the count is right even while that ride's end is still queued.
    */
@@ -1146,7 +1522,9 @@ export class RidesService {
     for (let from = 0; ; from += MILESTONE_STATS_PAGE_SIZE) {
       let query = this.supabase
         .from('rides')
-        .select('id, distance_m, started_at, ended_at, paused_duration_s, auto_paused_duration_s')
+        .select(
+          'id, status, deleted_at, auto_ended_reason, distance_m, started_at, ended_at, paused_duration_s, auto_paused_duration_s',
+        )
         .eq('user_id', userId)
         .eq('status', 'completed')
         .is('deleted_at', null)
@@ -1165,16 +1543,17 @@ export class RidesService {
       if ((data ?? []).length < MILESTONE_STATS_PAGE_SIZE) break;
     }
 
-    const qualifying = rows.filter(
-      (row) =>
-        row.started_at &&
-        row.ended_at &&
-        computeMovingTimeS(
-          row.started_at,
-          row.ended_at,
-          row.paused_duration_s ?? 0,
-          row.auto_paused_duration_s ?? 0,
-        ) >= RIDE_MILESTONE_PAYWALL.QUALIFYING_MIN_MOVING_S,
+    const qualifying = rows.filter((row) =>
+      isQualifyingRide({
+        status: row.status,
+        deletedAt: row.deleted_at,
+        autoEndedReason: row.auto_ended_reason,
+        distanceM: row.distance_m,
+        startedAt: row.started_at,
+        endedAt: row.ended_at,
+        pausedDurationS: row.paused_duration_s,
+        autoPausedDurationS: row.auto_paused_duration_s,
+      }),
     );
     return {
       qualifyingRideCount: qualifying.length,

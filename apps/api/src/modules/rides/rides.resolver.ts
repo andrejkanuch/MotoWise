@@ -6,7 +6,7 @@ import {
   UploadWaypointsInputSchema,
 } from '@motovault/types';
 import { BadRequestException } from '@nestjs/common';
-import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
@@ -23,6 +23,11 @@ import { RideConnection } from './models/ride-connection.model';
 import { RideMilestoneStats } from './models/ride-milestone-stats.model';
 import { Waypoint } from './models/waypoint.model';
 import { RidesService } from './rides.service';
+
+/** `value` for the ride's owner; null for anyone else, signed in or not. */
+function ownerOnly<T>(ride: Ride, user: AuthUser | undefined, value: T | undefined): T | null {
+  return user?.id === ride.userId ? (value ?? null) : null;
+}
 
 @Resolver(() => Ride)
 export class RidesResolver {
@@ -155,6 +160,32 @@ export class RidesResolver {
     @Args('sharedWithUserId', ParseUUIDPipe) sharedWithUserId: string,
   ): Promise<boolean> {
     return this.ridesService.unshareRide(user.id, rideId, sharedWithUserId);
+  }
+
+  // ==========================================
+  // Owner-only fields: how the rider rode. They resolve only for the ride's owner
+  // and are null on public or shared reads, so a public ride link never discloses
+  // the rider's time zone, how the ride ended or their answers.
+  // ==========================================
+
+  @ResolveField('timeZone', () => String, { nullable: true })
+  timeZone(@Parent() ride: Ride, @CurrentUser() user?: AuthUser): string | null {
+    return ownerOnly(ride, user, ride.timeZone);
+  }
+
+  @ResolveField('endSource', () => String, { nullable: true })
+  endSource(@Parent() ride: Ride, @CurrentUser() user?: AuthUser): string | null {
+    return ownerOnly(ride, user, ride.endSource);
+  }
+
+  @ResolveField('purpose', () => String, { nullable: true })
+  purpose(@Parent() ride: Ride, @CurrentUser() user?: AuthUser): string | null {
+    return ownerOnly(ride, user, ride.purpose);
+  }
+
+  @ResolveField('passenger', () => Boolean, { nullable: true })
+  passenger(@Parent() ride: Ride, @CurrentUser() user?: AuthUser): boolean | null {
+    return ownerOnly(ride, user, ride.passenger);
   }
 
   @Query(() => RideMilestoneStats)
