@@ -44,6 +44,7 @@ export interface SeasonTerritory {
   new_road_share: number | null;
   furthest: {
     ride_id: string;
+    name: string | null;
     local_date: string;
     distance_m: number;
     lat: number;
@@ -120,6 +121,8 @@ export interface SeasonRow {
     rides: number;
     qualifying_rides: number;
     pending_rides: number;
+    /** Of pending_rides, those that ended within the last 24 hours. */
+    pending_recent_rides: number;
     rides_with_bike: number;
     qualifying: {
       with_stats: number;

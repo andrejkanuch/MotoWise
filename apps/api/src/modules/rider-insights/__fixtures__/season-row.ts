@@ -28,6 +28,7 @@ export const PRO_ONLY_VALUES = {
   furthestLat: 42.917_311,
   furthestLng: -2.401_773,
   furthestDistanceM: 183_377,
+  furthestName: 'Cantabrian crossing',
   bandKm: { straight: 401.113, sweeping: 287.311, twisty: 171.093, tight: 51.72 },
   routedKm: 911.237,
   bendsCount: 7_013,
@@ -60,6 +61,7 @@ export function seasonRow(overrides: Partial<SeasonRow> = {}): SeasonRow {
       rides: 13,
       qualifying_rides: 13,
       pending_rides: 0,
+      pending_recent_rides: 0,
       rides_with_bike: 12,
       qualifying: {
         with_stats: 13,
@@ -120,6 +122,7 @@ export function seasonRow(overrides: Partial<SeasonRow> = {}): SeasonRow {
         new_road_share: p.newRoadShare,
         furthest: {
           ride_id: RIDE.FAR,
+          name: p.furthestName,
           local_date: '2026-08-15',
           distance_m: p.furthestDistanceM,
           lat: p.furthestLat,

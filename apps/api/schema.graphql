@@ -2035,6 +2035,11 @@ type RiderInsightsCountry {
 }
 
 type RiderInsightsCoverage {
+  """
+  Of pendingRides, those that ended within the last 24 hours (still being computed).
+  """
+  pendingRecentRides: Int!
+
   """Rides whose stats are not computed yet."""
   pendingRides: Int!
 
@@ -2051,6 +2056,9 @@ type RiderInsightsFurthestPoint {
   lat: Float!
   lng: Float!
   localDate: String!
+
+  """The ride's name, when it has one."""
+  name: String
   rideId: String!
 }
 

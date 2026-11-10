@@ -72,6 +72,7 @@ describe('RiderInsightsService.getRiderInsights', () => {
       PRO_ONLY_VALUES.medianDistanceM,
       PRO_ONLY_VALUES.costPerKm,
       PRO_ONLY_VALUES.furthestLat,
+      PRO_ONLY_VALUES.furthestName,
       ...Object.values(PRO_ONLY_VALUES.bandKm),
     ];
     for (const value of exact) expect(recorded).not.toContain(String(value));

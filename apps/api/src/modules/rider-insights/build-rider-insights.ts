@@ -36,14 +36,19 @@ const { READY, COMPUTING, NOT_ENOUGH, MISSING_INPUT, LOCKED } = RIDER_INSIGHTS_S
 
 interface SeasonContext {
   qualifyingRides: number;
-  pendingRides: number;
+  /**
+   * Rides without a stats row that ended within the last 24 hours. An older
+   * one is a compute that keeps failing (the sweep reports it); it must not
+   * hold the whole season in computing.
+   */
+  recentPendingRides: number;
   isPro: boolean;
 }
 
 /** not_enough, then computing, then missing_input, then locked (non-Pro), then ready. */
 function statusOf(ctx: SeasonContext, missingInput: boolean): RiderInsightsStatus {
   if (ctx.qualifyingRides < RIDER_INSIGHTS_MIN_QUALIFYING_RIDES) return NOT_ENOUGH;
-  if (ctx.pendingRides > 0) return COMPUTING;
+  if (ctx.recentPendingRides > 0) return COMPUTING;
   if (missingInput) return MISSING_INPUT;
   return ctx.isPro ? READY : LOCKED;
 }
@@ -117,6 +122,7 @@ function territory(row: SeasonRow, ctx: SeasonContext): RiderInsightsTerritory {
       furthest: t.furthest
         ? {
             rideId: t.furthest.ride_id,
+            name: t.furthest.name,
             localDate: t.furthest.local_date,
             distanceM: t.furthest.distance_m,
             lat: t.furthest.lat,
@@ -243,7 +249,7 @@ function bikes(row: SeasonRow): RiderInsightsBikes {
 export function buildRiderInsights(row: SeasonRow, isPro: boolean): RiderInsights {
   const ctx: SeasonContext = {
     qualifyingRides: row.coverage.qualifying_rides,
-    pendingRides: row.coverage.pending_rides,
+    recentPendingRides: row.coverage.pending_recent_rides,
     isPro,
   };
   const q = row.coverage.qualifying;
@@ -259,6 +265,7 @@ export function buildRiderInsights(row: SeasonRow, isPro: boolean): RiderInsight
       rides: row.coverage.rides,
       qualifyingRides: row.coverage.qualifying_rides,
       pendingRides: row.coverage.pending_rides,
+      pendingRecentRides: row.coverage.pending_recent_rides,
       ridesWithBike: row.coverage.rides_with_bike,
       qualifying: {
         withStats: q.with_stats,

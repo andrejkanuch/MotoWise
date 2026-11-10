@@ -62,6 +62,12 @@ export class RiderInsightsCoverage {
   @Field(() => Int, { description: 'Rides whose stats are not computed yet.' })
   pendingRides: number;
 
+  @Field(() => Int, {
+    description:
+      'Of pendingRides, those that ended within the last 24 hours (still being computed).',
+  })
+  pendingRecentRides: number;
+
   @Field(() => Int)
   ridesWithBike: number;
 

@@ -101,6 +101,7 @@ export const RiderInsightsTerritoryDetailSchema = z.strictObject({
   furthest: z
     .strictObject({
       rideId: z.uuid(),
+      name: z.string().nullable(),
       localDate: isoDate,
       distanceM: metres,
       lat: z.number().min(-90).max(90),
@@ -310,6 +311,7 @@ export const RiderInsightsSchema = z.strictObject({
     rides: count,
     qualifyingRides: count,
     pendingRides: count,
+    pendingRecentRides: count,
     ridesWithBike: count,
     qualifying: z.strictObject({
       withStats: count,
@@ -353,6 +355,15 @@ export type RiderInsightsRhythm = z.infer<typeof RiderInsightsRhythmSchema>;
 export type RiderInsightsBestRides = z.infer<typeof RiderInsightsBestRidesSchema>;
 export type RiderInsightsCostPerKm = z.infer<typeof RiderInsightsCostPerKmSchema>;
 export type RiderInsightsBikes = z.infer<typeof RiderInsightsBikesSchema>;
+export type RiderInsightsTerritoryDetail = z.infer<typeof RiderInsightsTerritoryDetailSchema>;
+export type RiderInsightsRoadCharacterDetail = z.infer<
+  typeof RiderInsightsRoadCharacterDetailSchema
+>;
+export type RiderInsightsRhythmDetail = z.infer<typeof RiderInsightsRhythmDetailSchema>;
+export type RiderInsightsBestRidesDetail = z.infer<typeof RiderInsightsBestRidesDetailSchema>;
+export type RiderInsightsCostPerKmItem = z.infer<typeof RiderInsightsCostPerKmItemSchema>;
+export type RiderInsightsCountry = z.infer<typeof RiderInsightsCountrySchema>;
+export type RiderInsightsRegion = z.infer<typeof RiderInsightsRegionSchema>;
 
 /** `riderInsights` arguments: an explicit window needs both dates, from on or before to. */
 export const RiderInsightsWindowSchema = z

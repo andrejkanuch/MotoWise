@@ -48,6 +48,9 @@ export class RiderInsightsFurthestPoint {
   @Field()
   rideId: string;
 
+  @Field(() => String, { nullable: true, description: "The ride's name, when it has one." })
+  name: string | null;
+
   @Field()
   localDate: string;
 

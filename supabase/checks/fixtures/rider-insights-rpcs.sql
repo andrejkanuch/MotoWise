@@ -86,6 +86,7 @@ CREATE TABLE public.users (
   handle text,
   role text NOT NULL DEFAULT 'user',
   is_public boolean NOT NULL DEFAULT false,
+  currency text NOT NULL DEFAULT 'USD',
   created_at timestamptz NOT NULL DEFAULT now()
 );
 

@@ -181,6 +181,9 @@ $$;
 --     "rides": int,              completed live rides in the window
 --     "qualifying_rides": int,   of those, qualifying
 --     "pending_rides": int,      rides with no ride_stats row at all
+--     "pending_recent_rides": int, of those, rides that ended within the last
+--                                24 hours (their compute is still due; an older
+--                                one is a compute that keeps failing)
 --     "rides_with_bike": int,
 --     "qualifying": {            counts over the qualifying rides
 --       "with_stats", "with_route" (waypoints or polyline), "with_waypoints",
@@ -225,7 +228,7 @@ $$;
 --                                  cell's first visit across all the rider's
 --                                  rides up to p_to)
 --       "new_road_share": numeric | null   new_road_m / routed_m, 4 dp
---       "furthest": null | { "ride_id", "local_date", "distance_m", "lat", "lng" }
+--       "furthest": null | { "ride_id", "name" (null if unnamed), "local_date", "distance_m", "lat", "lng" }
 --           the route vertex furthest from home among the qualifying rides.
 --           Home is the rider's most common start cell (rides up to p_to; ties
 --           to the most recent), placed at the start of the latest ride from
@@ -294,6 +297,7 @@ AS $$
     SELECT
       r.id AS ride_id,
       r.started_at,
+      r.ended_at,
       r.name,
       r.motorcycle_id,
       COALESCE(s.distance_m, r.distance_m, 0) AS distance_m,
@@ -450,14 +454,14 @@ AS $$
   -- latitude (longitude scaled by k); the geodesic distance is measured for the
   -- winner only.
   far_line AS (
-    SELECT q.ride_id, q.local_date,
+    SELECT q.ride_id, q.name, q.local_date,
            public.ST_LongestLine(public.ST_Scale(h.pt, h.k, 1), public.ST_Scale(t.route, h.k, 1)) AS line
     FROM q
     JOIN public.ride_tracks t ON t.ride_id = q.ride_id
     CROSS JOIN home h
   ),
   furthest AS (
-    SELECT f.ride_id, f.local_date, x.pt,
+    SELECT f.ride_id, f.name, f.local_date, x.pt,
            public.ST_Distance(x.pt::public.geography, h.pt::public.geography) AS d
     FROM (
       SELECT fl.* FROM far_line fl
@@ -567,6 +571,8 @@ AS $$
         'rides', count(*),
         'qualifying_rides', count(*) FILTER (WHERE sr.qualifying),
         'pending_rides', count(*) FILTER (WHERE NOT sr.has_stats),
+        'pending_recent_rides', count(*) FILTER (
+          WHERE NOT sr.has_stats AND sr.ended_at > now() - interval '24 hours'),
         'rides_with_bike', count(*) FILTER (WHERE sr.motorcycle_id IS NOT NULL),
         'qualifying', jsonb_build_object(
           'with_stats', count(*) FILTER (WHERE sr.qualifying AND sr.has_stats),
@@ -643,7 +649,10 @@ AS $$
           'distance_m', c.distance_m,
           'distance_source', c.source,
           'cost_per_km', CASE WHEN c.distance_m > 0 THEN round(c.spend / (c.distance_m / 1000.0), 4) END)
-        ORDER BY c.spend DESC, c.currency)
+        -- Amounts in different currencies are not comparable, so the rider's
+        -- profile currency leads; the rest follow by spend.
+        ORDER BY (c.currency = (SELECT u.currency FROM public.users u WHERE u.id = p_user_id)) DESC NULLS LAST,
+                 c.spend DESC, c.currency)
       FROM cur c), '[]'::jsonb),
 
     'groups',
@@ -656,7 +665,7 @@ AS $$
           'new_road_share', CASE WHEN su.routed_m > 0 THEN round(su.new_m / su.routed_m, 4) END,
           'furthest', (
             SELECT jsonb_build_object(
-              'ride_id', f.ride_id, 'local_date', f.local_date, 'distance_m', round(f.d)::integer,
+              'ride_id', f.ride_id, 'name', f.name, 'local_date', f.local_date, 'distance_m', round(f.d)::integer,
               'lat', round(public.ST_Y(f.pt)::numeric, 6), 'lng', round(public.ST_X(f.pt)::numeric, 6))
             FROM furthest f))
         FROM (SELECT count(*) FILTER (WHERE cv.in_season) AS n FROM cell_visit cv) e

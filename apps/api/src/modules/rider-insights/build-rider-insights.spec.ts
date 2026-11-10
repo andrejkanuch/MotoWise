@@ -81,6 +81,7 @@ describe('buildRiderInsights: a free rider with 13 computed qualifying rides', (
       PRO_ONLY_VALUES.furthestLat,
       PRO_ONLY_VALUES.furthestLng,
       PRO_ONLY_VALUES.furthestDistanceM,
+      PRO_ONLY_VALUES.furthestName,
       ...Object.values(PRO_ONLY_VALUES.bandKm),
       PRO_ONLY_VALUES.routedKm,
       PRO_ONLY_VALUES.bendsCount,
@@ -123,6 +124,7 @@ describe('buildRiderInsights: a Pro rider', () => {
         newRoadShare: 0.4413,
         furthest: {
           rideId: RIDE.FAR,
+          name: 'Cantabrian crossing',
           localDate: '2026-08-15',
           distanceM: 183_377,
           lat: 42.917_311,
@@ -175,17 +177,30 @@ describe('buildRiderInsights: status precedence', () => {
 
   it('puts not_enough before computing', () => {
     const insights = buildRiderInsights(
-      seasonWithCoverage({ qualifying_rides: 4, pending_rides: 2 }),
+      seasonWithCoverage({ qualifying_rides: 4, pending_rides: 2, pending_recent_rides: 2 }),
       FREE,
     );
     expect(insights.territory).toEqual({ status: RIDER_INSIGHTS_STATUS.NOT_ENOUGH });
   });
 
-  it('gives computing with no headline while a completed ride has no stats row', () => {
-    const insights = buildRiderInsights(seasonWithCoverage({ pending_rides: 1 }), FREE);
+  it('gives computing with no headline while a ride that ended within 24 hours has no stats row', () => {
+    const insights = buildRiderInsights(
+      seasonWithCoverage({ pending_rides: 1, pending_recent_rides: 1 }),
+      FREE,
+    );
     for (const group of PRO_GROUPS) expect(insights[group]).toEqual({ status: 'computing' });
     // The free totals still show.
     expect(insights.totals.rides).toBe(13);
+  });
+
+  it('does not hold the season in computing for a ride whose stats never came (ended over 24 hours ago)', () => {
+    const row = seasonWithCoverage({ pending_rides: 1, pending_recent_rides: 0 });
+    const free = buildRiderInsights(row, FREE);
+    for (const group of PRO_GROUPS) expect(free[group].status).toBe('locked');
+    const pro = buildRiderInsights(row, PRO);
+    for (const group of PRO_GROUPS) expect(pro[group].status).toBe('ready');
+    // Coverage still reports every pending ride.
+    expect(pro.coverage.pendingRides).toBe(1);
   });
 
   it('serves ready values when every ride has a stats row, whatever its stats version', () => {

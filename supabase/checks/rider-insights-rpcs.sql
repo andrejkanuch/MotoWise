@@ -16,7 +16,9 @@
 --     server-ended or deleted never ranks; regions come main first with bounds
 --     and encoded routes; cost per km gives one row per currency (odometer and
 --     tracked distance); a synthetic rider gets their own insights; a deleted
---     ride leaves the totals;
+--     ride leaves the totals; coverage counts rides without a ride_stats row
+--     (pending_rides) and, of those, the ones ended within 24 hours
+--     (pending_recent_rides);
 --   * ride_new_roads(): a ride that repeats an earlier one has 0 m new road,
 --     the first ride's new road is its whole distance, a partly new ride gets
 --     its share, and another rider's ride returns null;
@@ -332,7 +334,31 @@ SELECT pg_temp.seed_ride('d0000000-0000-0000-0000-000000000001', 'dddddddd-0000-
 SELECT pg_temp.seed_stats('d0000000-0000-0000-0000-000000000001', jsonb_build_object(
   'cells', pg_temp.cells(1, 50), 'countries', '["SK"]'::jsonb, 'start_region', 'SK.02'));
 
+-- Rider P: two rides without a ride_stats row, one ended an hour ago (its
+-- compute is still due) and one ended three days ago (a compute that keeps
+-- failing). Relative to now(), so the case holds whenever the check runs.
+SELECT pg_temp.seed_user('77777777-0000-0000-0000-000000000001');
+SELECT pg_temp.seed_ride('70000000-0000-0000-0000-000000000001', '77777777-0000-0000-0000-000000000001', NULL,
+  now() - interval '2 hours', 60, 20000);
+SELECT pg_temp.seed_ride('70000000-0000-0000-0000-000000000002', '77777777-0000-0000-0000-000000000001', NULL,
+  now() - interval '3 days', 60, 20000);
+
 SET LOCAL ROLE service_role;
+
+-- ---------------------------------------------------------------------------
+-- rider_insights_season: only a ride ended within the last 24 hours counts as
+-- recently pending.
+-- ---------------------------------------------------------------------------
+DO $$
+DECLARE
+  res jsonb := public.rider_insights_season('77777777-0000-0000-0000-000000000001',
+    current_date - 10, current_date + 1, '{}', 25);
+BEGIN
+  IF (res #>> '{coverage,pending_rides}')::int <> 2
+     OR (res #>> '{coverage,pending_recent_rides}')::int <> 1 THEN
+    RAISE EXCEPTION 'FAIL: pending coverage with a fresh and a stale ride %', res -> 'coverage';
+  END IF;
+END $$;
 
 -- ---------------------------------------------------------------------------
 -- rider_insights_season: free blocks only.
@@ -359,7 +385,7 @@ BEGIN
   IF res -> 'totals' <> '{"rides": 6, "distance_m": 165000, "countries": 2}'::jsonb THEN
     RAISE EXCEPTION 'FAIL: totals %', res -> 'totals';
   END IF;
-  IF res -> 'coverage' <> '{"rides": 6, "qualifying_rides": 5, "pending_rides": 1, "rides_with_bike": 5,
+  IF res -> 'coverage' <> '{"rides": 6, "qualifying_rides": 5, "pending_rides": 1, "pending_recent_rides": 0, "rides_with_bike": 5,
       "qualifying": {"with_stats": 4, "with_route": 4, "with_waypoints": 3, "with_bands": 3,
                      "with_lean": 3, "with_moving_time": 3}}'::jsonb THEN
     RAISE EXCEPTION 'FAIL: coverage %', res -> 'coverage';
@@ -409,15 +435,30 @@ BEGIN
     RAISE EXCEPTION 'FAIL: AT.09 route does not decode to r3: %', res #> '{regions,1,routes}';
   END IF;
 
-  -- One row per currency, most spend first. EUR: 100 over the odometer's 250 km.
-  -- USD: 20 over bike2's tracked 40 km.
+  -- One row per currency; the rider's profile currency (USD, the column default)
+  -- leads even with less spend, because amounts in different currencies are not
+  -- comparable. EUR: 100 over the odometer's 250 km. USD: 20 over bike2's 40 km.
   IF res -> 'cost_per_km' <> '[
-      {"currency": "EUR", "spend": 100.00, "expense_count": 2, "distance_m": 250000,
-       "distance_source": "odometer", "cost_per_km": 0.4},
       {"currency": "USD", "spend": 20.00, "expense_count": 1, "distance_m": 40000,
-       "distance_source": "tracked", "cost_per_km": 0.5}]'::jsonb THEN
+       "distance_source": "tracked", "cost_per_km": 0.5},
+      {"currency": "EUR", "spend": 100.00, "expense_count": 2, "distance_m": 250000,
+       "distance_source": "odometer", "cost_per_km": 0.4}]'::jsonb THEN
     RAISE EXCEPTION 'FAIL: cost_per_km %', res -> 'cost_per_km';
   END IF;
+END $$;
+
+-- A rider whose profile currency is EUR gets EUR first.
+DO $$
+DECLARE first_currency text;
+BEGIN
+  UPDATE public.users SET currency = 'EUR' WHERE id = 'aaaaaaaa-0000-0000-0000-000000000001';
+  SELECT public.rider_insights_season('aaaaaaaa-0000-0000-0000-000000000001',
+           '2026-01-01', '2026-12-31', ARRAY[]::text[], 10) #>> '{cost_per_km,0,currency}'
+    INTO first_currency;
+  IF first_currency IS DISTINCT FROM 'EUR' THEN
+    RAISE EXCEPTION 'FAIL: profile currency EUR should lead cost_per_km, got %', first_currency;
+  END IF;
+  UPDATE public.users SET currency = 'USD' WHERE id = 'aaaaaaaa-0000-0000-0000-000000000001';
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -456,6 +497,7 @@ BEGIN
   -- Home is start cell 1001 (r1, r2, r4, r8); its point is r4's start. The
   -- furthest point is r3's far end.
   IF t #>> '{furthest,ride_id}' <> 'a0000000-0000-0000-0000-000000000003'
+     OR t #>> '{furthest,name}' IS DISTINCT FROM 'Danube run'
      OR (t #>> '{furthest,lng}')::numeric <> 16.5 OR (t #>> '{furthest,lat}')::numeric <> 48.5
      OR (t #>> '{furthest,distance_m}')::int NOT BETWEEN 60000 AND 66000 THEN
     RAISE EXCEPTION 'FAIL: furthest %', t -> 'furthest';
