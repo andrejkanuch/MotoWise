@@ -33,6 +33,7 @@ export function TeaserBandBar({ shares, width }: { shares: readonly number[]; wi
         flexDirection: 'row',
         gap: BAR_SEAM,
         borderRadius: BAR_HEIGHT / 2,
+        borderCurve: 'continuous',
         overflow: 'hidden',
       }}
     >
@@ -77,6 +78,7 @@ export function TeaserGrid({
                 flex: 1,
                 height: GRID_CELL_HEIGHT,
                 borderRadius: GRID_SEAM * 2,
+                borderCurve: 'continuous',
                 backgroundColor:
                   day[p] > 0 ? tint(t.ink, GRID_LEVEL_ALPHAS[day[p]] ?? 1) : t.surface2,
               }}
