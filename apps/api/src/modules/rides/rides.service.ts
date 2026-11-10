@@ -729,7 +729,11 @@ export class RidesService {
         // manual edit: the deliberate trade for race-free exactly-once application.
         const msg = mileageError instanceof Error ? mileageError.message : String(mileageError);
         this.logger.warn(`Failed to apply mileage: ${msg}`);
-        // Non-fatal — ride is already saved
+        // Non-fatal (the ride is saved), but this ride's distance never reaches the bike.
+        Sentry.captureException(mileageError, {
+          tags: { area: 'rides', op: 'end-mileage' },
+          extra: { rideId: input.rideId, motorcycleId, distanceM, odometerAtEnd },
+        });
       }
     }
 
