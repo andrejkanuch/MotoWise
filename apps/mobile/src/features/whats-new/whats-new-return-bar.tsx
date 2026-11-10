@@ -9,9 +9,9 @@
  * tab bar clearance.
  */
 
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { whatsNewReturnHref } from '@/config/routes';
@@ -68,6 +68,13 @@ export function WhatsNewReturnBar({ feature, fromWhatsNew, page }: WhatsNewRetur
   const router = useRouter();
   const visible = useWhatsNewReturnVisible(fromWhatsNew);
   const pages = useMemo(returnPages, []);
+  // One What's New per press: a double tap must not stack two of them.
+  const leaving = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      leaving.current = false;
+    }, []),
+  );
 
   if (!visible) return null;
 
@@ -78,6 +85,8 @@ export function WhatsNewReturnBar({ feature, fromWhatsNew, page }: WhatsNewRetur
   const hasNext = current + 1 < pages.length;
 
   const go = (action: ReturnAction, target: number) => {
+    if (leaving.current) return;
+    leaving.current = true;
     triggerImpact();
     trackEvent(AnalyticsEvent.WHATS_NEW_RETURNED, { feature, action });
     router.push(whatsNewReturnHref(target));

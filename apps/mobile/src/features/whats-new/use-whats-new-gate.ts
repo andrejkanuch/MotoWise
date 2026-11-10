@@ -20,6 +20,15 @@ const ROUTE_GROUP = {
   ONBOARDING: '(onboarding)',
 } as const;
 
+/** A tab's root screen is `(tabs)` plus the tab's own group; anything deeper is a task in progress. */
+const TAB_ROOT_DEPTH = 2;
+const INDEX_SEGMENT = 'index';
+
+function isOnTabRoot(segments: readonly string[]): boolean {
+  const depth = segments.at(-1) === INDEX_SEGMENT ? segments.length - 1 : segments.length;
+  return segments[0] === ROUTE_GROUP.TABS && depth <= TAB_ROOT_DEPTH;
+}
+
 const ACTIVE_RIDE_STATUSES: ReadonlySet<string> = new Set([
   RIDE_PHASE.RECORDING,
   RIDE_PHASE.PAUSED,
@@ -74,7 +83,8 @@ function owedNow(): OwedWhatsNew | null {
 /**
  * Whether What's New may open over what the rider is doing now. A ride that
  * ended, or onboarding, rules out the rest of the session; everything else
- * blocks only while it lasts. The consent screen is a root route, so being in
+ * blocks only while it lasts, including a screen or sheet opened over a tab
+ * (a notification deep link, a half-filled form). The consent screen is a root route, so being in
  * tabs also means it is not on screen.
  */
 function canShowNow(inputs: GateInputs): boolean {
@@ -84,7 +94,7 @@ function canShowNow(inputs: GateInputs): boolean {
   }
   return (
     inputs.ready &&
-    inputs.segments[0] === ROUTE_GROUP.TABS &&
+    isOnTabRoot(inputs.segments) &&
     !ACTIVE_RIDE_STATUSES.has(inputs.rideStatus) &&
     !rideEndedThisSession &&
     !onboardingThisSession &&
@@ -142,22 +152,30 @@ export function useWhatsNewGate(): void {
         return;
       }
       phase = GATE_PHASE.DECIDING;
-      void resolveWhatsNewArm().then(({ arm, source }) => {
-        trackEvent(AnalyticsEvent.WHATS_NEW_ELIGIBLE, {
-          version: owed.release.version,
-          arm,
-          arm_source: source,
-          pages: owed.pages.length,
-          source: WHATS_NEW_SOURCE.AUTO,
-        });
-        if (arm === WHATS_NEW_ARM.HOLDOUT) {
-          useWhatsNewStore.getState().markReleaseSeen(owed.release.version, owed.release.features);
+      void resolveWhatsNewArm().then(
+        ({ arm, source }) => {
+          trackEvent(AnalyticsEvent.WHATS_NEW_ELIGIBLE, {
+            version: owed.release.version,
+            arm,
+            arm_source: source,
+            pages: owed.pages.length,
+            source: WHATS_NEW_SOURCE.AUTO,
+          });
+          if (arm === WHATS_NEW_ARM.HOLDOUT) {
+            useWhatsNewStore
+              .getState()
+              .markReleaseSeen(owed.release.version, owed.release.features);
+            phase = GATE_PHASE.DONE;
+            return;
+          }
+          phase = GATE_PHASE.SHOWING;
+          requestRecheck();
+        },
+        () => {
+          // Deciding failed: skip this session and stay owed for the next launch.
           phase = GATE_PHASE.DONE;
-          return;
-        }
-        phase = GATE_PHASE.SHOWING;
-        requestRecheck();
-      });
+        },
+      );
       return;
     }
 

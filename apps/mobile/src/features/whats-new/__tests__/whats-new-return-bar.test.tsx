@@ -13,9 +13,15 @@ const mockRouter = {
   replace: jest.fn(),
   dismissTo: jest.fn(),
 };
-jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
+const mockFocus: { current: (() => void) | null } = { current: null };
+jest.mock('expo-router', () => ({
+  useRouter: () => mockRouter,
+  useFocusEffect: (callback: () => void) => {
+    mockFocus.current = callback;
+  },
+}));
 
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import '@/i18n';
 import { MODAL_ROUTE } from '@/config/routes';
 import { WHATS_NEW_SOURCE } from '@/config/whats-new';
@@ -74,6 +80,8 @@ describe('WhatsNewReturnBar', () => {
       action: 'back',
     });
 
+    // The rider closed that What's New and is back on this screen.
+    await act(() => mockFocus.current?.());
     await fireEvent.press(screen.getByRole('button', { name: NEXT }));
     expect(mockRouter.push).toHaveBeenCalledTimes(2);
     expect(mockRouter.push).toHaveBeenLastCalledWith({
@@ -114,5 +122,14 @@ describe('WhatsNewReturnBar', () => {
       pathname: MODAL_ROUTE.WHATS_NEW,
       params: { source: WHATS_NEW_SOURCE.RETURN, resume: '2', noBoot: '1' },
     });
+  });
+
+  it('a double tap opens What’s New once', async () => {
+    await render(
+      <WhatsNewReturnBar feature={WHATS_NEW_FEATURE.ROAD_ATLAS} fromWhatsNew page={0} />,
+    );
+    await fireEvent.press(screen.getByRole('button', { name: BACK }));
+    await fireEvent.press(screen.getByRole('button', { name: BACK }));
+    expect(mockRouter.push).toHaveBeenCalledTimes(1);
   });
 });

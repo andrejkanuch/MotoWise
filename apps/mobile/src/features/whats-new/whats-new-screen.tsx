@@ -147,6 +147,8 @@ export function WhatsNewScreen({
   useEffect(() => {
     if (pages || !handle.ready) return;
     const store = useWhatsNewStore.getState();
+    // Features the rider already used on this account count as used here too: no catch-up page, no NEW chip.
+    for (const feature of handle.priorUse) store.markUsed(feature);
     const fixed =
       source === WHATS_NEW_SOURCE.AUTO
         ? selectPages(release, {

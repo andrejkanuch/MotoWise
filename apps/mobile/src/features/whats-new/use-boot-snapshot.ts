@@ -151,7 +151,9 @@ function sourced<T>(fetched: Fetched<T>, cached: T | null): SourcedRead<T> {
 
 /**
  * Starts one fetch bounded by the What's New time budget. At the budget the
- * query is cancelled and the fetch counts as missed; whatever settles first wins.
+ * fetch counts as missed; whatever settles first wins. The query is left to
+ * finish, because other screens can share its key and a late answer still fills
+ * the cache.
  */
 function startBoundedFetch<T, K extends QueryKey>(
   queryClient: QueryClient,
@@ -167,7 +169,6 @@ function startBoundedFetch<T, K extends QueryKey>(
   };
   const timer = setTimeout(() => {
     finish({ state: FETCH_STATE.MISSED, data: null });
-    void queryClient.cancelQueries({ queryKey: options.queryKey });
   }, WHATS_NEW_TIMING.DATA_FETCH_TIMEOUT_MS);
   queryClient.fetchQuery({ ...options, ...QUIET_FETCH }).then(
     (data) => finish({ state: FETCH_STATE.FETCHED, data }),

@@ -174,7 +174,8 @@ it('falls back to the example when the expense fetch runs out of time, quietly',
   const query = client
     .getQueryCache()
     .find({ queryKey: expensesOptions(BIKE_A.id, EXPENSES_ALL_YEARS).queryKey });
-  expect(query?.state.fetchStatus).toBe('idle');
+  // Left running: another screen may share the key, and a late answer still fills the cache.
+  expect(query?.state.fetchStatus).toBe('fetching');
   // With no observer, the global alert reads the fetch's own meta.
   expect(query?.meta).toEqual({ showErrorAlert: false });
 });

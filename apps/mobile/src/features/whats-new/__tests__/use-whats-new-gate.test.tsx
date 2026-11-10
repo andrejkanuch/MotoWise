@@ -300,6 +300,34 @@ describe('useWhatsNewGate', () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  it('onboarding garage step pending in tabs: no auto-show for the rest of the session', async () => {
+    loadGate();
+    const onboarding = require('@/stores/onboarding.store').useOnboardingStore;
+    onboarding.setState({ awaitingGarageCta: true });
+    const { rerender } = await renderGate();
+    await settle();
+
+    onboarding.setState({ awaitingGarageCta: false });
+    await rerender({});
+    await settle();
+
+    expect(mockResolveArm).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('a screen opened over a tab (deep link, form) holds the auto-show until the tab root', async () => {
+    mockEnv.segments = ['(tabs)', '(garage)', 'bike', '[id]'];
+    loadGate();
+    const { rerender } = await renderGate();
+    await settle();
+    expect(mockPush).not.toHaveBeenCalled();
+
+    mockEnv.segments = ['(tabs)', '(garage)'];
+    await rerender({});
+    await settle();
+    expect(mockPush).toHaveBeenCalledTimes(1);
+  });
+
   it('StrictMode double mount: one arm draw, one eligible event, one push', async () => {
     loadGate();
     await renderGate({ strict: true });

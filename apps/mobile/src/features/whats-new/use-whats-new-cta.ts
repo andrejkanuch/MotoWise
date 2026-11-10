@@ -15,7 +15,8 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { type Href, useRouter } from 'expo-router';
+import { type Href, useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useRef } from 'react';
 import {
   FROM_WHATS_NEW,
   GARAGE_ROUTE,
@@ -54,7 +55,17 @@ export function useWhatsNewCta(): TryFeature {
     surface: SCAN_ENTRY_SURFACE.WHATS_NEW,
   });
 
+  // One navigation per press: a double tap must not open the feature twice.
+  const leaving = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      leaving.current = false;
+    }, []),
+  );
+
   return (feature, pageIndex, dataKind) => {
+    if (leaving.current) return;
+    leaving.current = true;
     const page = String(pageIndex);
     const addBike: CtaAction = {
       tried: false,

@@ -10,7 +10,13 @@ const mockRouter = {
   replace: jest.fn(),
   navigate: jest.fn(),
 };
-jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
+const mockFocus: { current: (() => void) | null } = { current: null };
+jest.mock('expo-router', () => ({
+  useRouter: () => mockRouter,
+  useFocusEffect: (callback: () => void) => {
+    mockFocus.current = callback;
+  },
+}));
 
 const mockScanOpen = jest.fn();
 const mockScanEntry = jest.fn();
@@ -81,6 +87,21 @@ describe('Road Atlas', () => {
       data_kind: WHATS_NEW_DATA_KIND.YOUR_DATA,
       page_index: 0,
     });
+  });
+});
+
+describe('double tap', () => {
+  it('opens the feature once, and again only after What’s New is back in focus', async () => {
+    const { result } = await renderCta([PRIMARY]);
+    const tap = () =>
+      result.current(WHATS_NEW_FEATURE.RECEIPT_SCAN, 1, WHATS_NEW_DATA_KIND.EXAMPLE);
+    await act(tap);
+    await act(tap);
+    expect(mockScanOpen).toHaveBeenCalledTimes(1);
+
+    await act(() => mockFocus.current?.());
+    await act(tap);
+    expect(mockScanOpen).toHaveBeenCalledTimes(2);
   });
 });
 

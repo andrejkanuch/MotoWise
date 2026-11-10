@@ -230,6 +230,8 @@ describe('auto-show', () => {
     useHandle(YOUR_DATA, [WHATS_NEW_FEATURE.RECEIPT_SCAN]);
     await open({ source: WHATS_NEW_SOURCE.AUTO, noBoot: '1' });
     expect(pageOf()).toBe('1 of 2');
+    // Remembered, so the scan entry rows drop their NEW chip too.
+    expect(useWhatsNewStore.getState().usedFeatures).toEqual([WHATS_NEW_FEATURE.RECEIPT_SCAN]);
   });
 
   it('with noBoot goes straight to the pages', async () => {
