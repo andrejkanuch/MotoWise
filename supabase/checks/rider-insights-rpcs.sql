@@ -678,6 +678,33 @@ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
+-- A ride pointed at another rider's bike: rides.motorcycle_id is not
+-- ownership-checked on UPDATE, so the bike lookups must not reveal that bike's
+-- name. Rider T's only ride uses rider B's bike.
+-- ---------------------------------------------------------------------------
+RESET ROLE;
+SELECT pg_temp.seed_user('12121212-0000-0000-0000-000000000001');
+INSERT INTO public.motorcycles (id, user_id, make, model, nickname) VALUES
+  ('12100000-0000-0000-0000-000000000001', 'bbbbbbbb-0000-0000-0000-000000000001', 'BMW', 'R 1300 GS', 'Not yours');
+SELECT pg_temp.seed_ride('12000000-0000-0000-0000-000000000001', '12121212-0000-0000-0000-000000000001',
+  '12100000-0000-0000-0000-000000000001', '2026-07-01T08:00:00Z', 40, 20000);
+SET LOCAL ROLE service_role;
+
+DO $$
+DECLARE
+  f uuid := '12121212-0000-0000-0000-000000000001';
+  g jsonb := public.rider_insights_season(f, '2026-01-01', '2026-12-31', ARRAY['bikes'], 25) -> 'groups';
+  o jsonb := public.rider_ride_overview(f, 'UTC');
+BEGIN
+  IF g::text LIKE '%Not yours%' OR g::text LIKE '%R 1300 GS%' THEN
+    RAISE EXCEPTION 'FAIL: season bikes show another rider''s bike %', g -> 'bikes';
+  END IF;
+  IF o::text LIKE '%Not yours%' OR o::text LIKE '%R 1300 GS%' THEN
+    RAISE EXCEPTION 'FAIL: overview shows another rider''s bike %', o -> 'lastRide';
+  END IF;
+END $$;
+
+-- ---------------------------------------------------------------------------
 -- rider_ride_overview: shape, time-zone day buckets, deletion, streak.
 -- Rider O in UTC+2 (Etc/GMT-2 has no daylight saving):
 --   o1 yesterday 23:30 local (21:30 UTC, same day) 12 km, 30 min, "Duke"

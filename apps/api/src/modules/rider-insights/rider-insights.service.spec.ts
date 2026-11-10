@@ -149,6 +149,34 @@ describe('RiderInsightsService season choice', () => {
     expect(insights.season).toEqual({ from: '2026-01-01', to: '2026-12-31' });
   });
 
+  it('takes the year from the stored zone when it is ahead of UTC (Auckland on New Year)', async () => {
+    // 2026-12-31T11:00Z is 2027-01-01 00:00 in Auckland (UTC+13 in summer).
+    vi.setSystemTime(new Date('2026-12-31T11:00:00Z'));
+    const next = { ...fivePlus, window: { from: '2027-01-01', to: '2027-12-31' } };
+    const admin = fakeAdmin({
+      tierRow: FREE_ROW,
+      latestZone: 'Pacific/Auckland',
+      rpc: { [RIDER_INSIGHTS_SEASON_RPC]: byYear({ '2027': next, '2026': fivePlus }) },
+    });
+    const insights = await service(admin).getRiderInsights(USER);
+    expect(admin.rpcCalls[0].args.p_from).toBe('2027-01-01');
+    expect(insights.season).toEqual({ from: '2027-01-01', to: '2027-12-31' });
+  });
+
+  it('takes the year from the stored zone when it is behind UTC (Pago Pago on New Year)', async () => {
+    // 2027-01-01T05:00Z is still 2026-12-31 18:00 in Pago Pago (UTC-11).
+    vi.setSystemTime(new Date('2027-01-01T05:00:00Z'));
+    const next = { ...fivePlus, window: { from: '2027-01-01', to: '2027-12-31' } };
+    const admin = fakeAdmin({
+      tierRow: FREE_ROW,
+      latestZone: 'Pacific/Pago_Pago',
+      rpc: { [RIDER_INSIGHTS_SEASON_RPC]: byYear({ '2027': next, '2026': fivePlus }) },
+    });
+    const insights = await service(admin).getRiderInsights(USER);
+    expect(admin.rpcCalls[0].args.p_from).toBe('2026-01-01');
+    expect(insights.season).toEqual({ from: '2026-01-01', to: '2026-12-31' });
+  });
+
   it('keeps the previous year while the new one has fewer than five qualifying rides', async () => {
     vi.setSystemTime(new Date('2027-02-01T12:00:00Z'));
     const previous = { ...seasonRow(), window: { from: '2026-01-01', to: '2026-12-31' } };

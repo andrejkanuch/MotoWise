@@ -362,7 +362,9 @@ AS $$
       END AS odometer_m,
       (SELECT COALESCE(sum(sr.distance_m), 0) FROM sr WHERE sr.motorcycle_id = b.motorcycle_id) AS tracked_m
     FROM (SELECT DISTINCT spend.motorcycle_id FROM spend) b
-    LEFT JOIN public.motorcycles m ON m.id = b.motorcycle_id
+    -- Owner check: rides.motorcycle_id is not ownership-checked on UPDATE, so
+    -- every bike lookup here also requires the bike to be the rider's own.
+    LEFT JOIN public.motorcycles m ON m.id = b.motorcycle_id AND m.user_id = p_user_id
     -- Start: the latest reading on or before the window's first day, else the
     -- first reading inside the window.
     LEFT JOIN LATERAL (
@@ -769,7 +771,7 @@ AS $$
                  sum(COALESCE(sr.moving_time_s, sr.duration_s)) AS moving_time_s
           FROM sr GROUP BY sr.motorcycle_id
         ) b
-        LEFT JOIN public.motorcycles m ON m.id = b.motorcycle_id))
+        LEFT JOIN public.motorcycles m ON m.id = b.motorcycle_id AND m.user_id = p_user_id))
       ELSE '{}'::jsonb END
 
       || CASE WHEN 'countries' = ANY (p_groups) THEN jsonb_build_object('countries', (
@@ -920,7 +922,8 @@ BEGIN
         'maxSpeedMps', l.max_speed,
         'date', l.ended_at,
         'motorcycleName', (SELECT COALESCE(NULLIF(m.nickname, ''), concat_ws(' ', m.make, m.model))
-                           FROM public.motorcycles m WHERE m.id = l.motorcycle_id),
+                           FROM public.motorcycles m
+                           WHERE m.id = l.motorcycle_id AND m.user_id = p_user_id),
         'summaryTitle', (SELECT rs.summary_text FROM public.ride_summaries rs WHERE rs.ride_id = l.id))
       FROM last_ride l),
     'last7Days', (SELECT jsonb_build_object('rideCount', count(*), 'distanceM', COALESCE(sum(rr.dist), 0),

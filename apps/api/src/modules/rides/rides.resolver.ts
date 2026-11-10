@@ -227,6 +227,11 @@ export class RidesResolver {
     return (await this.ownDerived(ride, user))?.stats ?? null;
   }
 
+  /**
+   * Single-ride views only: each resolution runs one `ride_new_roads` RPC (a
+   * spatial query over the rider's earlier rides) and nothing batches it, so
+   * selecting it on a ride list would fan out one heavy query per row.
+   */
   @ResolveField('newRoadsM', () => Int, { nullable: true })
   async newRoadsM(@Parent() ride: Ride, @CurrentUser() user?: AuthUser): Promise<number | null> {
     return user?.id === ride.userId ? this.ridesService.findNewRoadsM(user.id, ride.id) : null;

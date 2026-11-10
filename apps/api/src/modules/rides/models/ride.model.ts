@@ -108,7 +108,11 @@ export class Ride {
   stats?: RideDerivedStats | null;
 
   /** Metres on roads not ridden before this ride. Owner and Pro only; null while stats are pending. */
-  @Field(() => Int, { nullable: true })
+  @Field(() => Int, {
+    nullable: true,
+    description:
+      'Metres on roads not ridden before this ride. Owner and Pro only; null while stats are pending. Single-ride views only: not batched, one spatial query per ride.',
+  })
   newRoadsM?: number | null;
 
   @Field()
