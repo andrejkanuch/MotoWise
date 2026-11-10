@@ -23,7 +23,7 @@ END $$;
 
 CREATE TABLE public.users (
   id uuid PRIMARY KEY,
-  email text,
+  email text NOT NULL,
   is_synthetic boolean NOT NULL DEFAULT false
 );
 
