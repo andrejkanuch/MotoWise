@@ -188,7 +188,7 @@ describe('RideSummariesService', () => {
       expect(result.generationStatus).toBe('completed');
       expect(result.locale).toBe('en');
       expect(mockAiBudgetService.checkBudgetForUser).toHaveBeenCalledWith(userId);
-      // GPT-5 models reject max_tokens; reasoning_effort 'none' keeps hidden
+      // Reasoning models reject max_tokens; reasoning_effort 'none' keeps hidden
       // reasoning from eating the summary's token cap.
       const request = mockParse.mock.calls[0][0];
       expect(request).toMatchObject({
