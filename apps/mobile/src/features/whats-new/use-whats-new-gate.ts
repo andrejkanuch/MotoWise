@@ -12,6 +12,7 @@ import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { useRideStore } from '../../stores/ride.store';
 import { useWhatsNewStore } from '../../stores/whats-new.store';
+import { RIDE_PHASE } from '../../utils/ride-storage';
 import { useCarPlayConnection, usePhoneSceneVisible } from '../carplay/use-carplay';
 
 const ROUTE_GROUP = {
@@ -19,15 +20,9 @@ const ROUTE_GROUP = {
   ONBOARDING: '(onboarding)',
 } as const;
 
-const RIDE_STATUS = {
-  RECORDING: 'recording',
-  PAUSED: 'paused',
-  ENDED: 'ended',
-} as const;
-
 const ACTIVE_RIDE_STATUSES: ReadonlySet<string> = new Set([
-  RIDE_STATUS.RECORDING,
-  RIDE_STATUS.PAUSED,
+  RIDE_PHASE.RECORDING,
+  RIDE_PHASE.PAUSED,
 ]);
 
 const WHATS_NEW_AUTO_HREF = {
@@ -83,7 +78,7 @@ function owedNow(): OwedWhatsNew | null {
  * tabs also means it is not on screen.
  */
 function canShowNow(inputs: GateInputs): boolean {
-  if (inputs.rideStatus === RIDE_STATUS.ENDED) rideEndedThisSession = true;
+  if (inputs.rideStatus === RIDE_PHASE.ENDED) rideEndedThisSession = true;
   if (inputs.segments[0] === ROUTE_GROUP.ONBOARDING || inputs.awaitingGarageCta) {
     onboardingThisSession = true;
   }

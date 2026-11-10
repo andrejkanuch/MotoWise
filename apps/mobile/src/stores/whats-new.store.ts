@@ -72,8 +72,14 @@ export const useWhatsNewStore = create<WhatsNewState>()(
           lastSeenVersion: version,
           seenFeatures: withFeatures(get().seenFeatures, features),
         }),
-      markTried: (feature) => set({ triedFeatures: withFeatures(get().triedFeatures, [feature]) }),
-      markUsed: (feature) => set({ usedFeatures: withFeatures(get().usedFeatures, [feature]) }),
+      markTried: (feature) => {
+        if (get().triedFeatures.includes(feature)) return;
+        set({ triedFeatures: [...get().triedFeatures, feature] });
+      },
+      markUsed: (feature) => {
+        if (get().usedFeatures.includes(feature)) return;
+        set({ usedFeatures: [...get().usedFeatures, feature] });
+      },
       setHoldoutArm: (experimentKey, arm) => {
         if (get().holdout?.experimentKey === experimentKey) return;
         set({ holdout: { experimentKey, arm } });

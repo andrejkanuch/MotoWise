@@ -14,7 +14,6 @@
  *   feature screens stop offering the way back.
  */
 
-import * as Application from 'expo-application';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -34,13 +33,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WHATS_NEW_EXPERIMENT, WHATS_NEW_SOURCE, type WhatsNewSource } from '@/config/whats-new';
 import {
   WHATS_NEW_FEATURES,
-  WHATS_NEW_RELEASES,
   WHATS_NEW_TAG,
   type WhatsNewDataKind,
   type WhatsNewFeature,
 } from '@/data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
-import { type WhatsNewPage as PageEntry, releaseForVersion, selectPages } from '@/lib/whats-new';
+import {
+  installedRelease,
+  NOTHING_SEEN,
+  type WhatsNewPage as PageEntry,
+  selectPages,
+} from '@/lib/whats-new';
 import { useWhatsNewStore } from '@/stores/whats-new.store';
 import { useEditorialTheme } from '@/theme/editorial';
 import { layout, space } from '@/theme/spacing';
@@ -93,7 +96,6 @@ export function whatsNewParams(raw: RawParams): WhatsNewScreenParams {
 const PHASE = { BOOT: 'boot', PAGES: 'pages' } as const;
 type Phase = (typeof PHASE)[keyof typeof PHASE];
 
-const NOTHING_SEEN = { seenFeatures: [], usedFeatures: [] } as const;
 const DOT_SIZE = 8;
 const DOT_CURRENT_WIDTH = 22;
 const CLOSE_ICON = 18;
@@ -122,10 +124,7 @@ export function WhatsNewScreen({
   const triedFeatures = useWhatsNewStore((s) => s.triedFeatures);
   const setReturnSessionOpen = useWhatsNewStore((s) => s.setReturnSessionOpen);
 
-  const release = useMemo(
-    () => releaseForVersion(Application.nativeApplicationVersion) ?? WHATS_NEW_RELEASES[0],
-    [],
-  );
+  const release = useMemo(installedRelease, []);
   const [pages, setPages] = useState<PageEntry[] | null>(null);
   const [phase, setPhase] = useState<Phase>(
     source === WHATS_NEW_SOURCE.AUTO && !noBoot && resume === null ? PHASE.BOOT : PHASE.PAGES,

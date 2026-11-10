@@ -30,7 +30,7 @@ export interface OwedWhatsNew {
   pages: WhatsNewPage[];
 }
 
-const NOTHING_SEEN: WhatsNewFeatureState = { seenFeatures: [], usedFeatures: [] };
+export const NOTHING_SEEN: WhatsNewFeatureState = { seenFeatures: [], usedFeatures: [] };
 
 const isAtOrBelow = (version: string, ceiling: string) => {
   const order = compareVersions(version, ceiling);
@@ -69,6 +69,11 @@ export function releaseForVersion(
     if (!best || compareVersions(release.version, best.version) === 1) best = release;
   }
   return best;
+}
+
+/** The release the installed build presents, falling back to the newest one. */
+export function installedRelease(): WhatsNewRelease {
+  return releaseForVersion(Application.nativeApplicationVersion) ?? WHATS_NEW_RELEASES[0];
 }
 
 /**

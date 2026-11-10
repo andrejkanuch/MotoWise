@@ -9,16 +9,15 @@
  * tab bar clearance.
  */
 
-import * as Application from 'expo-application';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { whatsNewReturnHref } from '@/config/routes';
-import { WHATS_NEW_RELEASES, type WhatsNewFeature } from '@/data/whats-new-releases';
+import type { WhatsNewFeature } from '@/data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
-import { releaseForVersion, selectPages } from '@/lib/whats-new';
+import { installedRelease, NOTHING_SEEN, selectPages } from '@/lib/whats-new';
 import { useWhatsNewStore } from '@/stores/whats-new.store';
 import { useEditorialTheme } from '@/theme/editorial';
 import { space } from '@/theme/spacing';
@@ -32,7 +31,6 @@ type ReturnAction = (typeof WHATS_NEW_RETURN_ACTION)[keyof typeof WHATS_NEW_RETU
 
 const ICON = 18;
 const PRESSED_OPACITY = 0.6;
-const NOTHING_SEEN = { seenFeatures: [], usedFeatures: [] } as const;
 
 /** The `wnPage` route param as a page index, or null when missing or junk. */
 export function whatsNewPageParam(value: string | string[] | undefined): number | null {
@@ -52,8 +50,7 @@ export function useWhatsNewReturnVisible(fromWhatsNew: boolean): boolean {
  * full set, which is what the reopened screen renders.
  */
 function returnPages(): WhatsNewFeature[] {
-  const release = releaseForVersion(Application.nativeApplicationVersion) ?? WHATS_NEW_RELEASES[0];
-  return selectPages(release, NOTHING_SEEN).map((entry) => entry.feature);
+  return selectPages(installedRelease(), NOTHING_SEEN).map((entry) => entry.feature);
 }
 
 interface WhatsNewReturnBarProps {

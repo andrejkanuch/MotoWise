@@ -1,6 +1,7 @@
 import * as Application from 'expo-application';
+import { useMemo } from 'react';
 import type { WhatsNewFeature } from '@/data/whats-new-releases';
-import { releaseForVersion, selectPages } from '@/lib/whats-new';
+import { NOTHING_SEEN, releaseForVersion, selectPages } from '@/lib/whats-new';
 import { useWhatsNewStore } from '@/stores/whats-new.store';
 
 /**
@@ -11,7 +12,7 @@ import { useWhatsNewStore } from '@/stores/whats-new.store';
 function latestFeatureSet(): readonly WhatsNewFeature[] {
   const release = releaseForVersion(Application.nativeApplicationVersion);
   if (!release) return [];
-  return selectPages(release, { seenFeatures: [], usedFeatures: [] }).map((page) => page.feature);
+  return selectPages(release, NOTHING_SEEN).map((page) => page.feature);
 }
 
 /**
@@ -22,5 +23,6 @@ function latestFeatureSet(): readonly WhatsNewFeature[] {
  */
 export function useFeatureIsNew(feature: WhatsNewFeature): boolean {
   const used = useWhatsNewStore((state) => state.usedFeatures.includes(feature));
-  return !used && latestFeatureSet().includes(feature);
+  const featureSet = useMemo(latestFeatureSet, []);
+  return !used && featureSet.includes(feature);
 }
