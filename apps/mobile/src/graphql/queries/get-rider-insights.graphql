@@ -1,0 +1,206 @@
+query GetRiderInsights(
+  $from: String
+  $to: String
+  $timeZone: String
+  $refreshEntitlement: Boolean
+) {
+  riderInsights(
+    from: $from
+    to: $to
+    timeZone: $timeZone
+    refreshEntitlement: $refreshEntitlement
+  ) {
+    isPro
+    season {
+      from
+      to
+    }
+    totals {
+      rides
+      distanceM
+      countries
+    }
+    coverage {
+      rides
+      qualifyingRides
+      pendingRides
+      ridesWithBike
+      qualifying {
+        withStats
+        withRoute
+        withWaypoints
+        withBands
+        withLean
+        withMovingTime
+      }
+    }
+    latestRide {
+      rideId
+      localDate
+      distanceM
+      newCountries
+    }
+    longestRide {
+      rideId
+      name
+      localDate
+      distanceM
+      movingTimeS
+      durationS
+      startPlace
+      endPlace
+    }
+    ribbon {
+      weekStart
+      rides
+      distanceM
+    }
+    regions {
+      key
+      isoA2
+      name
+      rides
+      distanceM
+      bounds
+      routes
+    }
+    countries {
+      isoA2
+      name
+      firstDate
+      firstRideId
+      rides
+      distanceM
+    }
+    bikes {
+      status
+      items {
+        motorcycleId
+        name
+        rides
+        distanceM
+        movingTimeS
+      }
+    }
+    territory {
+      status
+      headline
+      detail {
+        exploredCells
+        exploredKm2
+        routedM
+        newRoadM
+        newRoadShare
+        furthest {
+          rideId
+          localDate
+          distanceM
+          lat
+          lng
+        }
+      }
+    }
+    roadCharacter {
+      status
+      headline
+      teaser {
+        bandShares {
+          straight
+          sweeping
+          twisty
+          tight
+        }
+      }
+      detail {
+        bandKm {
+          straight
+          sweeping
+          twisty
+          tight
+        }
+        routedKm
+        bendsCount
+        bendsPer10km
+        ridesWithBands
+        ridesWithLean
+        twistiest {
+          rideId
+          name
+          localDate
+          distanceM
+          bendsPer10km
+        }
+        straightest {
+          rideId
+          name
+          localDate
+          distanceM
+          bendsPer10km
+        }
+        lean {
+          corners
+          under20
+          from20to30
+          from30to40
+          from40
+        }
+      }
+    }
+    rhythm {
+      status
+      headline
+      teaser {
+        grid
+      }
+      detail {
+        grid
+        rides
+        weekendRides
+        weekendShare
+        medianDistanceM
+        medianMovingTimeS
+        ridesWithMovingTime
+      }
+    }
+    bestRides {
+      status
+      headline
+      teaser {
+        count
+      }
+      detail {
+        count
+        byDistance {
+          ...RiderInsightsBestRideFields
+        }
+        byClimb {
+          ...RiderInsightsBestRideFields
+        }
+        byBends {
+          ...RiderInsightsBestRideFields
+        }
+      }
+    }
+    costPerKm {
+      status
+      items {
+        currency
+        spend
+        expenseCount
+        distanceM
+        distanceSource
+        costPerKm
+      }
+    }
+  }
+}
+
+fragment RiderInsightsBestRideFields on RiderInsightsBestRide {
+  rideId
+  name
+  localDate
+  distanceM
+  climbM
+  bendsPer10km
+  movingTimeS
+}

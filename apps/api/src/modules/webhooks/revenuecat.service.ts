@@ -1,8 +1,9 @@
-import { RC_ATTRIBUTE_HAS_HAD_TRIAL, RC_ATTRIBUTE_TRUE } from '@motovault/types';
+import { RC_ATTRIBUTE_HAS_HAD_TRIAL, RC_ATTRIBUTE_TRUE, SubscriptionTier } from '@motovault/types';
 import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Sentry from '@sentry/nestjs';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { confirmPro } from '../../common/entitlements/resolve-tier';
 import { readAnalyticsDecision } from '../analytics/analytics-consent';
 import { postHogCaptureTarget, sendPostHogBatch } from '../analytics/posthog-capture';
 import { MetaEventsService } from '../meta/meta-events.service';
@@ -42,6 +43,13 @@ const ENV_RC_SECRET_API_KEY = 'REVENUECAT_SECRET_API_KEY' as const;
  */
 export const RC_REQUEST_TIMEOUT_MS = 8_000;
 const RPC_NAME = 'process_revenuecat_event' as const;
+/**
+ * Per-user rate limit on the refresh path's subscriber read: a repeat inside
+ * this window gets the previous answer without calling RevenueCat.
+ */
+export const SUBSCRIBER_READ_INTERVAL_MS = 30_000;
+/** Above this many remembered reads, expired ones are dropped before adding another. */
+const SUBSCRIBER_READ_CACHE_MAX_SIZE = 10_000;
 /** PostgREST: no function matches the named arguments (00187 not applied yet). */
 const PGRST_FUNCTION_NOT_FOUND = 'PGRST202' as const;
 /**
@@ -131,11 +139,30 @@ function expirationFor(
   return toIso(event.expiration_at_ms);
 }
 
+/** What the refresh path learned from RevenueCat about a rider. */
+export interface SubscriberEntitlements {
+  /** RevenueCat confirms an active "MotoWise Pro" entitlement (written to the tier cache). */
+  isPro: boolean;
+  /**
+   * The state the entitlement implies; null when the read could not be resolved
+   * (key unset, network error, non-2xx, unreadable body, or a sandbox-backed
+   * entitlement for a user off the sandbox allowlist).
+   */
+  state: ResolvedProState | null;
+}
+
+const NOT_CONFIRMED: SubscriberEntitlements = { isPro: false, state: null };
+
 @Injectable()
 export class RevenueCatService {
   private readonly logger = new Logger(RevenueCatService.name);
   /** Users whose SANDBOX events may write entitlements (env, validated at boot). */
   private readonly sandboxAllowedUserIds: ReadonlySet<string>;
+  /** Last subscriber read per user, for SUBSCRIBER_READ_INTERVAL_MS. */
+  private readonly subscriberReads = new Map<
+    string,
+    { result: SubscriberEntitlements; readAt: number }
+  >();
 
   constructor(
     private readonly configService: ConfigService,
@@ -564,6 +591,73 @@ export class RevenueCatService {
       throw new Error(`RevenueCat attributes API returned ${response.status}`);
     }
     this.logger.log(`RC attributes set for ${userId}: ${Object.keys(attributes).join(',')}`);
+  }
+
+  /**
+   * The refresh path's read of a rider's live entitlement (v1
+   * `GET /subscribers`), so a rider who just bought Pro is unlocked before the
+   * webhook updates the users row. An active Pro entitlement is written to the
+   * shared tier cache with confirmPro. Never throws: any failure answers
+   * not-Pro and the users row keeps deciding. Rate-limited per user: a repeat
+   * inside SUBSCRIBER_READ_INTERVAL_MS returns the previous answer.
+   */
+  async fetchSubscriberEntitlements(userId: string): Promise<SubscriberEntitlements> {
+    const now = Date.now();
+    const previous = this.subscriberReads.get(userId);
+    if (previous && now - previous.readAt < SUBSCRIBER_READ_INTERVAL_MS) return previous.result;
+
+    const result = await this.readSubscriber(userId);
+    if (result.isPro) confirmPro(userId);
+    this.rememberSubscriberRead(userId, result, now);
+    return result;
+  }
+
+  private async readSubscriber(userId: string): Promise<SubscriberEntitlements> {
+    const rcApiKey = this.configService.get<string>(ENV_RC_SECRET_API_KEY);
+    if (!rcApiKey) {
+      this.logger.warn(`Subscriber read for ${userId} skipped: ${ENV_RC_SECRET_API_KEY} not set`);
+      return NOT_CONFIRMED;
+    }
+    try {
+      const response = await fetch(`${RC_API_BASE}/subscribers/${encodeURIComponent(userId)}`, {
+        headers: { Authorization: `Bearer ${rcApiKey}` },
+        signal: AbortSignal.timeout(RC_REQUEST_TIMEOUT_MS),
+      });
+      if (!response.ok) {
+        this.logger.warn(`Subscriber read for ${userId} returned ${response.status}`);
+        return NOT_CONFIRMED;
+      }
+      const body = (await response.json()) as RcSubscriberResponse;
+      const resolution = resolveProEntitlement(body, {
+        nowMs: Date.now(),
+        sandboxAllowed: this.sandboxAllowedUserIds.has(userId.toLowerCase()),
+      });
+      if (!resolution.resolved) {
+        this.logger.warn(`Subscriber read for ${userId} not resolved: ${resolution.reason}`);
+        return NOT_CONFIRMED;
+      }
+      return {
+        isPro: resolution.state.tier === SubscriptionTier.PRO,
+        state: resolution.state,
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Subscriber read for ${userId} failed: ${message}`);
+      return NOT_CONFIRMED;
+    }
+  }
+
+  private rememberSubscriberRead(
+    userId: string,
+    result: SubscriberEntitlements,
+    readAt: number,
+  ): void {
+    if (this.subscriberReads.size >= SUBSCRIBER_READ_CACHE_MAX_SIZE) {
+      for (const [key, entry] of this.subscriberReads) {
+        if (readAt - entry.readAt >= SUBSCRIBER_READ_INTERVAL_MS) this.subscriberReads.delete(key);
+      }
+    }
+    this.subscriberReads.set(userId, { result, readAt });
   }
 
   async cancelSubscription(userId: string): Promise<void> {

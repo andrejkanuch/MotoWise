@@ -1,5 +1,6 @@
 import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
 import { GqlRideStatus } from '../../../common/enums/graphql-enums';
+import { RideDerivedStats } from './ride-derived-stats.model';
 
 @ObjectType()
 export class Ride {
@@ -67,6 +68,7 @@ export class Ride {
   @Field()
   visibility: string;
 
+  /** Where the ride started. When the stored value is empty, the start country's name. Public. */
   @Field({ nullable: true })
   region?: string;
 
@@ -88,6 +90,30 @@ export class Ride {
   /** Whether the rider carried a passenger. Owner only. */
   @Field({ nullable: true })
   passenger?: boolean;
+
+  /** Nearest town to the start, from the ride's stats. Owner only. */
+  @Field(() => String, { nullable: true })
+  startPlace?: string | null;
+
+  /** Nearest town to the end, from the ride's stats. Owner only. */
+  @Field(() => String, { nullable: true })
+  endPlace?: string | null;
+
+  /** ISO codes of the countries the route crossed, in order of entry. Owner only. */
+  @Field(() => [String], { nullable: true })
+  countries?: string[] | null;
+
+  /** Free derived stats. Owner only; null until the ride's stats are computed. */
+  @Field(() => RideDerivedStats, { nullable: true })
+  stats?: RideDerivedStats | null;
+
+  /** Metres on roads not ridden before this ride. Owner and Pro only; null while stats are pending. */
+  @Field(() => Int, {
+    nullable: true,
+    description:
+      'Metres on roads not ridden before this ride. Owner and Pro only; null while stats are pending. Single-ride views only: not batched, one spatial query per ride.',
+  })
+  newRoadsM?: number | null;
 
   @Field()
   createdAt: string;

@@ -1,4 +1,3 @@
-import { SUBSCRIPTION_STATUS_REVOKED } from '@motovault/types';
 import {
   CanActivate,
   ExecutionContext,
@@ -11,9 +10,10 @@ import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Tier } from '../../modules/entitlements/entitlements.types';
+import { TIERS, type Tier } from '../../modules/entitlements/entitlements.types';
 import { SUPABASE_ADMIN } from '../../modules/supabase/supabase-admin.provider';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { resolveTier } from '../entitlements/resolve-tier';
 
 @Injectable()
 export class GqlAuthGuard implements CanActivate {
@@ -24,10 +24,6 @@ export class GqlAuthGuard implements CanActivate {
   // biome-ignore lint/suspicious/noExplicitAny: jose's GetKeyFunction type is complex and dynamic-imported
   private jwks: any = null;
   private readonly reflector: Reflector;
-
-  private tierCache = new Map<string, { tier: Tier; expiresAt: number }>();
-  private readonly TIER_CACHE_TTL_MS = 60_000;
-  private readonly TIER_CACHE_MAX_SIZE = 10_000;
 
   private hs256Count = 0;
   private hs256LastLoggedAt = 0;
@@ -167,80 +163,14 @@ export class GqlAuthGuard implements CanActivate {
   }
 
   /**
-   * Resolve the effective subscription tier from the DB.
-   * Checks subscription_tier + subscription_status + subscription_expires_at.
-   * Returns 'pro' only when all three conditions are met.
-   * Fails open to 'free' on error (never blocks a paying user due to a transient DB issue).
+   * The tier put on `request.user`. While ENTITLEMENTS_ENFORCED is off every
+   * authenticated user is Pro (Phase 1 behaviour) and the row is not read;
+   * otherwise it is the real tier from resolveTier (shared cache, fails open
+   * to 'free'). Code that needs the real tier regardless of the flag calls
+   * resolveTier directly.
    */
   private async resolveEffectiveTier(userId: string): Promise<Tier> {
-    if (!this.entitlementsEnforced) return 'pro'; // Feature flag off = everyone is Pro (Phase 1 behavior)
-
-    const cached = this.tierCache.get(userId);
-    if (cached && cached.expiresAt > Date.now()) return cached.tier;
-
-    try {
-      const { data, error } = await this.supabaseAdmin
-        .from('users')
-        .select('subscription_tier, subscription_status, subscription_expires_at')
-        .eq('id', userId)
-        .single();
-
-      if (error || !data) {
-        this.logger.warn(`Tier resolution failed for ${userId}: ${error?.message ?? 'no data'}`);
-        this.cacheTier(userId, 'free');
-        return 'free'; // fail open
-      }
-
-      // Status only says whether the store has already revoked access.
-      // `cancelled` (auto-renew off, paid through period end) and `past_due`
-      // (inside the store's grace period) both keep the entitlement alive until
-      // subscription_expires_at — which is what the RC SDK tells the client, so
-      // gating on active/trialing alone made the API say free while the app
-      // said Pro (docs/RevenueCat-Trial-Audit-2026-09-19.md).
-      const revoked = (SUBSCRIPTION_STATUS_REVOKED as readonly string[]).includes(
-        data.subscription_status,
-      );
-
-      // A null expiry means no expiration (lifetime / comped grants) — but only
-      // for active/trialing rows. Treating it as valid avoids `new Date(null)`
-      // coercing to 1970 and ALWAYS reading as expired, which silently
-      // downgraded lifetime Pro users; a cancelled/past_due row with no expiry
-      // is an anomaly and stays free.
-      const notExpired =
-        data.subscription_expires_at == null
-          ? ['active', 'trialing'].includes(data.subscription_status)
-          : new Date(data.subscription_expires_at) > new Date();
-
-      const isPro = data.subscription_tier === 'pro' && !revoked && notExpired;
-
-      const tier: Tier = isPro ? 'pro' : 'free';
-      this.cacheTier(userId, tier);
-      return tier;
-    } catch (err) {
-      this.logger.error(`Tier resolution error for ${userId}`, err);
-      this.cacheTier(userId, 'free');
-      return 'free'; // fail open
-    }
-  }
-
-  private cacheTier(userId: string, tier: Tier): void {
-    if (this.tierCache.size >= this.TIER_CACHE_MAX_SIZE) {
-      // First pass: evict expired entries
-      const now = Date.now();
-      for (const [key, val] of this.tierCache) {
-        if (val.expiresAt <= now) this.tierCache.delete(key);
-      }
-      // Second pass: if still over 75% capacity, evict oldest 25%
-      if (this.tierCache.size >= this.TIER_CACHE_MAX_SIZE * 0.75) {
-        const entries = [...this.tierCache.entries()].sort(
-          (a, b) => a[1].expiresAt - b[1].expiresAt,
-        );
-        const evictCount = Math.ceil(entries.length * 0.25);
-        for (let i = 0; i < evictCount; i++) {
-          this.tierCache.delete(entries[i][0]);
-        }
-      }
-    }
-    this.tierCache.set(userId, { tier, expiresAt: Date.now() + this.TIER_CACHE_TTL_MS });
+    if (!this.entitlementsEnforced) return TIERS.PRO;
+    return resolveTier(this.supabaseAdmin, userId);
   }
 }

@@ -21,14 +21,18 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as Sentry from '@sentry/nestjs';
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { RIDE_EVENTS } from '../../common/constants/events';
+import { resolveTier } from '../../common/entitlements/resolve-tier';
 import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
-import { PG_ERROR, unwrap } from '../../common/supabase/unwrap';
+import { PG_ERROR, unwrap, unwrapServiceRole } from '../../common/supabase/unwrap';
 import {
   RIDE_TRACK_POINTS_RPC,
   TRACK_POINTS_READ_CAP,
   type TrackPointsRow,
 } from '../../common/track-points';
 import { POSTGRES_REAL, QUERY_LIMITS } from '../../config/constants';
+import { TIERS } from '../entitlements/entitlements.types';
+import { RIDE_STATS_TABLE } from '../ride-stats/ride-stats.types';
+import { RIDE_NEW_ROADS_RPC } from '../rider-insights/rider-insights.types';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { EndRideInput } from './dto/end-ride.input';
@@ -37,6 +41,7 @@ import type { UpdateRideInput } from './dto/update-ride.input';
 import type { UploadWaypointsInput } from './dto/upload-waypoints.input';
 import type { Ride } from './models/ride.model';
 import type { RideConnection } from './models/ride-connection.model';
+import type { RideDerivedStats } from './models/ride-derived-stats.model';
 import type { RideMilestoneStats } from './models/ride-milestone-stats.model';
 import type { Waypoint } from './models/waypoint.model';
 
@@ -187,6 +192,57 @@ function toRealColumn(value: number | null | undefined): number | null {
     return Math.sign(value) * POSTGRES_REAL.MAX_MAGNITUDE;
   }
   return value;
+}
+
+/**
+ * The `ride_stats` columns a ride's owner may see on `Ride`: the free stats
+ * allowlist plus places. Pro-group columns (band_km, bends_*, lean_bands, cells,
+ * start_cell) are never selected here.
+ */
+const RIDE_DERIVED_COLUMNS =
+  'ride_id, moving_time_s, avg_moving_speed_mps, max_speed_mps, climb_m, descent_m, gps_quality, stop_count, countries, start_place, end_place';
+
+interface RideDerivedRow {
+  ride_id: string;
+  moving_time_s: number | null;
+  avg_moving_speed_mps: number | null;
+  max_speed_mps: number | null;
+  climb_m: number | null;
+  descent_m: number | null;
+  gps_quality: number | null;
+  stop_count: number | null;
+  countries: string[] | null;
+  start_place: string | null;
+  end_place: string | null;
+}
+
+/** A ride's owner-only derived fields. */
+export interface RideDerived {
+  stats: RideDerivedStats;
+  countries: string[] | null;
+  startPlace: string | null;
+  endPlace: string | null;
+}
+
+const REF_COUNTRY_PARTS_TABLE = 'ref_country_parts';
+/** Country names by ISO code from the reference geodata, which only an owner-run reload changes. */
+const countryNameCache = new Map<string, string>();
+
+function toRideDerived(row: RideDerivedRow): RideDerived {
+  return {
+    stats: {
+      movingTimeS: row.moving_time_s,
+      avgMovingSpeedMps: row.avg_moving_speed_mps,
+      maxSpeedMps: row.max_speed_mps,
+      climbM: row.climb_m,
+      descentM: row.descent_m,
+      gpsQuality: row.gps_quality,
+      stopCount: row.stop_count,
+    },
+    countries: row.countries,
+    startPlace: row.start_place,
+    endPlace: row.end_place,
+  };
 }
 
 @Injectable()
@@ -1562,5 +1618,106 @@ export class RidesService {
         0,
       ),
     };
+  }
+
+  // ==========================================
+  // Derived ride fields (ride_stats). System-derived data: read with the
+  // service-role client, always filtered by the ids the caller resolved.
+  // ==========================================
+
+  /** The owner-only derived fields of `ownerId`'s rides, by ride id (no entry until computed). */
+  async findDerivedByRideIds(
+    ownerId: string,
+    rideIds: readonly string[],
+  ): Promise<Map<string, RideDerived>> {
+    const result = await this.supabaseAdmin
+      .from(RIDE_STATS_TABLE)
+      .select(RIDE_DERIVED_COLUMNS)
+      .eq('user_id', ownerId)
+      .in('ride_id', [...rideIds]);
+    const rows = unwrapServiceRole<RideDerivedRow[] | null>(result, {
+      logger: this.logger,
+      op: 'findDerivedByRideIds',
+      message: 'Could not read ride stats',
+    });
+    return new Map((rows ?? []).map((row) => [row.ride_id, toRideDerived(row)]));
+  }
+
+  /**
+   * The start country's name for each ride that has computed stats, by ride id:
+   * the first of `ride_stats.countries`, named from the reference geodata. Public
+   * (it stands in for the legacy `region`), so it is not filtered by owner.
+   */
+  async findStartCountryNames(rideIds: readonly string[]): Promise<Map<string, string>> {
+    const result = await this.supabaseAdmin
+      .from(RIDE_STATS_TABLE)
+      .select('ride_id, countries')
+      .in('ride_id', [...rideIds]);
+    const rows = unwrapServiceRole<Array<{ ride_id: string; countries: string[] | null }> | null>(
+      result,
+      {
+        logger: this.logger,
+        op: 'findStartCountryNames',
+        message: 'Could not read ride countries',
+      },
+    );
+    const startIso = new Map<string, string>();
+    for (const row of rows ?? []) {
+      const iso = row.countries?.[0];
+      if (iso) startIso.set(row.ride_id, iso);
+    }
+    const names = await this.countryNames([...new Set(startIso.values())]);
+    const byRide = new Map<string, string>();
+    for (const [rideId, iso] of startIso) {
+      const name = names.get(iso);
+      if (name) byRide.set(rideId, name);
+    }
+    return byRide;
+  }
+
+  /** Names for ISO codes; the reference table holds many parts per country, so one row each. */
+  private async countryNames(isos: string[]): Promise<Map<string, string>> {
+    const missing = isos.filter((iso) => !countryNameCache.has(iso));
+    await Promise.all(
+      missing.map(async (iso) => {
+        const result = await this.supabaseAdmin
+          .from(REF_COUNTRY_PARTS_TABLE)
+          .select('name')
+          .eq('iso_a2', iso)
+          .limit(1)
+          .maybeSingle();
+        const row = unwrapServiceRole<{ name: string } | null>(result, {
+          logger: this.logger,
+          op: 'countryNames',
+          message: 'Could not read country names',
+        });
+        if (row?.name) countryNameCache.set(iso, row.name);
+      }),
+    );
+    return new Map(
+      isos.flatMap((iso) => {
+        const name = countryNameCache.get(iso);
+        return name ? [[iso, name] as const] : [];
+      }),
+    );
+  }
+
+  /**
+   * Metres of the ride on roads its owner had not ridden before, for a Pro
+   * owner only (real tier, never `user.tier`). Null for a free rider and while
+   * the ride's stats are pending; 0 for a computed ride on known roads.
+   */
+  async findNewRoadsM(ownerId: string, rideId: string): Promise<number | null> {
+    if ((await resolveTier(this.supabaseAdmin, ownerId)) !== TIERS.PRO) return null;
+    const result = await this.supabaseAdmin.rpc(RIDE_NEW_ROADS_RPC, {
+      p_user_id: ownerId,
+      p_ride_id: rideId,
+    });
+    const metres = unwrapServiceRole<number | null>(result, {
+      logger: this.logger,
+      op: 'findNewRoadsM',
+      message: 'Could not read new road distance',
+    });
+    return metres ?? null;
   }
 }

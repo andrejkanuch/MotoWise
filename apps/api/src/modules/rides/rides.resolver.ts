@@ -5,7 +5,7 @@ import {
   UpdateRideInputSchema,
   UploadWaypointsInputSchema,
 } from '@motovault/types';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, Injectable, Scope } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -20,9 +20,11 @@ import { UploadWaypointsInput } from './dto/upload-waypoints.input';
 import { EndRideResponse } from './models/end-ride-response.model';
 import { Ride } from './models/ride.model';
 import { RideConnection } from './models/ride-connection.model';
+import { RideDerivedStats } from './models/ride-derived-stats.model';
 import { RideMilestoneStats } from './models/ride-milestone-stats.model';
 import { Waypoint } from './models/waypoint.model';
-import { RidesService } from './rides.service';
+import { RideDerivedLoader } from './ride-derived.loader';
+import { type RideDerived, RidesService } from './rides.service';
 
 /** `value` for the ride's owner; null for anyone else, signed in or not. */
 function ownerOnly<T>(ride: Ride, user: AuthUser | undefined, value: T | undefined): T | null {
@@ -30,8 +32,12 @@ function ownerOnly<T>(ride: Ride, user: AuthUser | undefined, value: T | undefin
 }
 
 @Resolver(() => Ride)
+@Injectable({ scope: Scope.REQUEST })
 export class RidesResolver {
-  constructor(private readonly ridesService: RidesService) {}
+  constructor(
+    private readonly ridesService: RidesService,
+    private readonly rideDerivedLoader: RideDerivedLoader,
+  ) {}
 
   @Mutation(() => Ride)
   async startRide(
@@ -186,6 +192,58 @@ export class RidesResolver {
   @ResolveField('passenger', () => Boolean, { nullable: true })
   passenger(@Parent() ride: Ride, @CurrentUser() user?: AuthUser): boolean | null {
     return ownerOnly(ride, user, ride.passenger);
+  }
+
+  // ==========================================
+  // Derived fields from the ride's stats. Places, countries and stats are owner
+  // only, like the fields above; newRoadsM also needs the owner's real Pro tier.
+  // ==========================================
+
+  /** The owner's derived fields of this ride, or null for anyone else or while pending. */
+  private ownDerived(ride: Ride, user: AuthUser | undefined): Promise<RideDerived | null> | null {
+    return user?.id === ride.userId ? this.rideDerivedLoader.loadDerived(ride.id, user.id) : null;
+  }
+
+  @ResolveField('startPlace', () => String, { nullable: true })
+  async startPlace(@Parent() ride: Ride, @CurrentUser() user?: AuthUser): Promise<string | null> {
+    return (await this.ownDerived(ride, user))?.startPlace ?? null;
+  }
+
+  @ResolveField('endPlace', () => String, { nullable: true })
+  async endPlace(@Parent() ride: Ride, @CurrentUser() user?: AuthUser): Promise<string | null> {
+    return (await this.ownDerived(ride, user))?.endPlace ?? null;
+  }
+
+  @ResolveField('countries', () => [String], { nullable: true })
+  async countries(@Parent() ride: Ride, @CurrentUser() user?: AuthUser): Promise<string[] | null> {
+    return (await this.ownDerived(ride, user))?.countries ?? null;
+  }
+
+  @ResolveField('stats', () => RideDerivedStats, { nullable: true })
+  async stats(
+    @Parent() ride: Ride,
+    @CurrentUser() user?: AuthUser,
+  ): Promise<RideDerivedStats | null> {
+    return (await this.ownDerived(ride, user))?.stats ?? null;
+  }
+
+  /**
+   * Single-ride views only: each resolution runs one `ride_new_roads` RPC (a
+   * spatial query over the rider's earlier rides) and nothing batches it, so
+   * selecting it on a ride list would fan out one heavy query per row.
+   */
+  @ResolveField('newRoadsM', () => Int, { nullable: true })
+  async newRoadsM(@Parent() ride: Ride, @CurrentUser() user?: AuthUser): Promise<number | null> {
+    return user?.id === ride.userId ? this.ridesService.findNewRoadsM(user.id, ride.id) : null;
+  }
+
+  /**
+   * Public, as it always was. The stored value when there is one; otherwise the
+   * name of the country the ride started in, from its stats (batched).
+   */
+  @ResolveField('region', () => String, { nullable: true })
+  async region(@Parent() ride: Ride): Promise<string | null> {
+    return ride.region ?? this.rideDerivedLoader.loadStartCountry(ride.id);
   }
 
   @Query(() => RideMilestoneStats)
