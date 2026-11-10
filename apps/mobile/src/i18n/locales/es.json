@@ -2784,7 +2784,11 @@
       "offline": "El mapa aparece cuando vuelvas a estar en línea.",
       "mapA11y_one": "Mapa de {{count}} rodada por {{region}}",
       "mapA11y_other": "Mapa de {{count}} rodadas por {{region}}",
-      "mapA11y_many": "Mapa de {{count}} rodadas por {{region}}"
+      "mapA11y_many": "Mapa de {{count}} rodadas por {{region}}",
+      "expandHint": "Abre el mapa en pantalla completa"
+    },
+    "map": {
+      "close": "Cerrar mapa"
     },
     "totals": {
       "rides_one": "{{count}} rodada",
@@ -2804,12 +2808,15 @@
       "meta_one": "{{count}} rodada · {{distance}}",
       "meta_other": "{{count}} rodadas · {{distance}}",
       "meta_many": "{{count}} rodadas · {{distance}}",
-      "tileA11y": "Mostrar {{region}} en el mapa"
+      "tileA11y": "Mostrar {{region}} en el mapa",
+      "heading": "Otros lugares donde rodaste",
+      "caption": "Toca uno para verlo en el mapa de arriba."
     },
     "ribbon": {
       "section": "Temporada",
       "weeksRidden": "{{ridden}} de {{total}} semanas con rodadas",
-      "biggest": "Récord: {{distance}}, del {{start}} al {{end}}"
+      "biggest": "Récord: {{distance}}, del {{start}} al {{end}}",
+      "openHint": "Abre tu temporada por mes y semana"
     },
     "howYouRide": {
       "section": "Cómo ruedas",
@@ -2973,6 +2980,24 @@
         "meta_other": "Primera vez el {{date}} · {{count}} rodadas",
         "meta_many": "Primera vez el {{date}} · {{count}} rodadas",
         "footnote": "Un país cuenta cuando al menos 1 km de un recorrido está a 500 m o más dentro de su frontera."
+      },
+      "season": {
+        "heroLine_one": "de {{count}} semana con rodadas hasta ahora",
+        "heroLine_other": "de {{count}} semanas con rodadas hasta ahora",
+        "heroLine_many": "de {{count}} semanas con rodadas hasta ahora",
+        "months": "Meses",
+        "weeks": "Semanas con rodadas",
+        "rides_one": "{{count}} rodada",
+        "rides_other": "{{count}} rodadas",
+        "rides_many": "{{count}} rodadas",
+        "noRides": "Sin rodadas",
+        "week": "Del {{start}} al {{end}}",
+        "biggest": "Semana récord",
+        "loadingRides": "Cargando rodadas",
+        "loadFailed": "No se pudieron cargar las rodadas de esta semana.",
+        "retry": "Reintentar",
+        "noWeekRides": "No hay rodadas terminadas en esta semana.",
+        "footnote": "Cada semana cuenta en el mes donde cae la mayoría de sus días. Toca una semana para ver sus rodadas."
       }
     },
     "share": {

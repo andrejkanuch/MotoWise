@@ -2752,7 +2752,11 @@
       "noRoutes": "Your roads show here after a ride with GPS.",
       "offline": "The map shows when you're back online.",
       "mapA11y_one": "Map of {{count}} ride around {{region}}",
-      "mapA11y_other": "Map of {{count}} rides around {{region}}"
+      "mapA11y_other": "Map of {{count}} rides around {{region}}",
+      "expandHint": "Opens the map full screen"
+    },
+    "map": {
+      "close": "Close map"
     },
     "totals": {
       "rides_one": "{{count}} ride",
@@ -2768,12 +2772,15 @@
       "unnamed": "Unnamed region",
       "meta_one": "{{count}} ride · {{distance}}",
       "meta_other": "{{count}} rides · {{distance}}",
-      "tileA11y": "Show {{region}} on the map"
+      "tileA11y": "Show {{region}} on the map",
+      "heading": "Other places you rode",
+      "caption": "Tap one to show it on the map above."
     },
     "ribbon": {
       "section": "Season",
       "weeksRidden": "{{ridden}} of {{total}} weeks ridden",
-      "biggest": "Biggest: {{distance}}, {{start}} to {{end}}"
+      "biggest": "Biggest: {{distance}}, {{start}} to {{end}}",
+      "openHint": "Opens your season by month and week"
     },
     "howYouRide": {
       "section": "How you ride",
@@ -2926,6 +2933,22 @@
         "meta_one": "First ridden {{date}} · {{count}} ride",
         "meta_other": "First ridden {{date}} · {{count}} rides",
         "footnote": "A country counts once at least 1 km of a route lies 500 m or more inside its border."
+      },
+      "season": {
+        "heroLine_one": "of {{count}} week ridden so far",
+        "heroLine_other": "of {{count}} weeks ridden so far",
+        "months": "Months",
+        "weeks": "Weeks ridden",
+        "rides_one": "{{count}} ride",
+        "rides_other": "{{count}} rides",
+        "noRides": "No rides",
+        "week": "{{start}} to {{end}}",
+        "biggest": "Biggest week",
+        "loadingRides": "Loading rides",
+        "loadFailed": "Couldn't load this week's rides.",
+        "retry": "Try again",
+        "noWeekRides": "No finished rides found for this week.",
+        "footnote": "A week counts in the month most of its days fall in. Tap a week to see its rides."
       }
     },
     "share": {

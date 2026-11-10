@@ -2820,7 +2820,11 @@
       "mapA11y_one": "Mapa z {{count}} jazdą, region: {{region}}",
       "mapA11y_other": "Mapa z {{count}} jazdy, region: {{region}}",
       "mapA11y_few": "Mapa z {{count}} jazdami, region: {{region}}",
-      "mapA11y_many": "Mapa z {{count}} jazdami, region: {{region}}"
+      "mapA11y_many": "Mapa z {{count}} jazdami, region: {{region}}",
+      "expandHint": "Otwiera mapę na pełnym ekranie"
+    },
+    "map": {
+      "close": "Zamknij mapę"
     },
     "totals": {
       "rides_one": "{{count}} jazda",
@@ -2844,12 +2848,15 @@
       "meta_other": "{{count}} jazdy · {{distance}}",
       "meta_few": "{{count}} jazdy · {{distance}}",
       "meta_many": "{{count}} jazd · {{distance}}",
-      "tileA11y": "Pokaż na mapie: {{region}}"
+      "tileA11y": "Pokaż na mapie: {{region}}",
+      "heading": "Inne miejsca, w których jeździłeś",
+      "caption": "Stuknij jedno, aby pokazać je na mapie powyżej."
     },
     "ribbon": {
       "section": "Sezon",
       "weeksRidden": "Jazda w {{ridden}} z {{total}} tygodni",
-      "biggest": "Najwięcej: {{distance}}, od {{start}} do {{end}}"
+      "biggest": "Najwięcej: {{distance}}, od {{start}} do {{end}}",
+      "openHint": "Otwiera twój sezon według miesięcy i tygodni"
     },
     "howYouRide": {
       "section": "Jak jeździsz",
@@ -3024,6 +3031,26 @@
         "meta_few": "Pierwszy raz {{date}} · {{count}} jazdy",
         "meta_many": "Pierwszy raz {{date}} · {{count}} jazd",
         "footnote": "Kraj się liczy, gdy co najmniej 1 km trasy leży 500 m lub więcej w głąb jego granicy."
+      },
+      "season": {
+        "heroLine_one": "z {{count}} tygodnia z jazdą do tej pory",
+        "heroLine_other": "z {{count}} tygodni z jazdą do tej pory",
+        "heroLine_few": "z {{count}} tygodni z jazdą do tej pory",
+        "heroLine_many": "z {{count}} tygodni z jazdą do tej pory",
+        "months": "Miesiące",
+        "weeks": "Tygodnie z jazdą",
+        "rides_one": "{{count}} jazda",
+        "rides_other": "{{count}} jazdy",
+        "rides_few": "{{count}} jazdy",
+        "rides_many": "{{count}} jazd",
+        "noRides": "Brak jazd",
+        "week": "Od {{start}} do {{end}}",
+        "biggest": "Najlepszy tydzień",
+        "loadingRides": "Wczytywanie jazd",
+        "loadFailed": "Nie udało się wczytać jazd z tego tygodnia.",
+        "retry": "Spróbuj ponownie",
+        "noWeekRides": "Brak zakończonych jazd w tym tygodniu.",
+        "footnote": "Tydzień liczy się do miesiąca, w którym wypada większość jego dni. Stuknij tydzień, aby zobaczyć jego jazdy."
       }
     },
     "share": {

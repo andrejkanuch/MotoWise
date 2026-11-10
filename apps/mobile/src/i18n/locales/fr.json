@@ -2784,7 +2784,11 @@
       "offline": "La carte s'affichera quand tu seras de nouveau en ligne.",
       "mapA11y_one": "Carte de {{count}} sortie autour de {{region}}",
       "mapA11y_other": "Carte de {{count}} sorties autour de {{region}}",
-      "mapA11y_many": "Carte de {{count}} sorties autour de {{region}}"
+      "mapA11y_many": "Carte de {{count}} sorties autour de {{region}}",
+      "expandHint": "Ouvre la carte en plein écran"
+    },
+    "map": {
+      "close": "Fermer la carte"
     },
     "totals": {
       "rides_one": "{{count}} sortie",
@@ -2804,12 +2808,15 @@
       "meta_one": "{{count}} sortie · {{distance}}",
       "meta_other": "{{count}} sorties · {{distance}}",
       "meta_many": "{{count}} sorties · {{distance}}",
-      "tileA11y": "Afficher {{region}} sur la carte"
+      "tileA11y": "Afficher {{region}} sur la carte",
+      "heading": "Les autres coins où tu as roulé",
+      "caption": "Touche-en un pour l'afficher sur la carte au-dessus."
     },
     "ribbon": {
       "section": "Saison",
       "weeksRidden": "{{ridden}} semaines roulées sur {{total}}",
-      "biggest": "Record : {{distance}}, du {{start}} au {{end}}"
+      "biggest": "Record : {{distance}}, du {{start}} au {{end}}",
+      "openHint": "Ouvre ta saison par mois et par semaine"
     },
     "howYouRide": {
       "section": "Ta façon de rouler",
@@ -2973,6 +2980,24 @@
         "meta_other": "Première fois le {{date}} · {{count}} sorties",
         "meta_many": "Première fois le {{date}} · {{count}} sorties",
         "footnote": "Un pays compte dès qu'au moins 1 km d'un tracé se trouve à 500 m ou plus à l'intérieur de sa frontière."
+      },
+      "season": {
+        "heroLine_one": "sur {{count}} semaine roulée jusqu'ici",
+        "heroLine_other": "sur {{count}} semaines roulées jusqu'ici",
+        "heroLine_many": "sur {{count}} semaines roulées jusqu'ici",
+        "months": "Mois",
+        "weeks": "Semaines roulées",
+        "rides_one": "{{count}} sortie",
+        "rides_other": "{{count}} sorties",
+        "rides_many": "{{count}} sorties",
+        "noRides": "Aucune sortie",
+        "week": "Du {{start}} au {{end}}",
+        "biggest": "Semaine record",
+        "loadingRides": "Chargement des sorties",
+        "loadFailed": "Impossible de charger les sorties de cette semaine.",
+        "retry": "Réessayer",
+        "noWeekRides": "Aucune sortie terminée trouvée cette semaine.",
+        "footnote": "Une semaine compte dans le mois où tombent la plupart de ses jours. Touche une semaine pour voir ses sorties."
       }
     },
     "share": {

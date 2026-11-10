@@ -1,5 +1,6 @@
 import { type MeasurementSystem, mileageUnitLabel } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
+import { Maximize2 } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
@@ -35,6 +36,8 @@ const MAX_OVALS = 6;
 const OVAL_HEIGHT = 24;
 const OVAL_MIN_WIDTH = 34;
 const OVAL_KEYLINE = 1.5;
+const EXPAND_ICON = 16;
+const EXPAND_CHIP = 32;
 
 /** The map layer the ridden routes go beneath, so place names stay readable over them. */
 export const ROUTE_BELOW_LAYER = 'road-label-simple';
@@ -52,6 +55,59 @@ export function routeLayerPlacement(styleURL: string): { belowLayerID?: string }
   if (STYLES_WITH_ROUTE_BELOW_LAYER.has(styleURL)) return { belowLayerID: ROUTE_BELOW_LAYER };
   logger.warn(`[rider-insights] ${styleURL} has no ${ROUTE_BELOW_LAYER}; routes drawn on top`);
   return {};
+}
+
+type RouteShape = GeoJSON.FeatureCollection<GeoJSON.LineString>;
+
+/** Encoded routes as one GeoJSON line collection, for a map's route source. */
+export function routesShape(routes: readonly string[]): RouteShape {
+  return {
+    type: 'FeatureCollection',
+    features: routes.map((route) => ({
+      type: 'Feature',
+      properties: {},
+      geometry: { type: 'LineString', coordinates: decodePolyline(route) },
+    })),
+  };
+}
+
+/** The ridden network in copper: a soft glow under a thin line, beneath the place names. */
+export function RouteLayers({
+  id,
+  shape,
+  styleURL,
+}: {
+  id: string;
+  shape: RouteShape;
+  styleURL: string;
+}) {
+  const { t } = useEditorialTheme();
+  const placement = routeLayerPlacement(styleURL);
+  return (
+    <MapboxGL.ShapeSource id={id} shape={shape}>
+      <MapboxGL.LineLayer
+        id={`${id}-glow`}
+        {...placement}
+        style={{
+          lineColor: t.warm,
+          lineWidth: ROUTE_GLOW_WIDTH,
+          lineOpacity: ROUTE_GLOW_OPACITY,
+          lineCap: 'round',
+          lineJoin: 'round',
+        }}
+      />
+      <MapboxGL.LineLayer
+        id={`${id}-line`}
+        {...placement}
+        style={{
+          lineColor: t.warm,
+          lineWidth: ROUTE_LINE_WIDTH,
+          lineCap: 'round',
+          lineJoin: 'round',
+        }}
+      />
+    </MapboxGL.ShapeSource>
+  );
 }
 
 /** The longest round scale length that fits `SCALE_MAX_PX`, in the rider's unit. */
@@ -78,6 +134,8 @@ interface AtlasHeroProps {
   regionName: (region: RiderInsightsRegion) => string;
   regionMeta: (region: RiderInsightsRegion) => string;
   onOpenCountries: () => void;
+  /** Opens the full-screen map; the hero itself never takes a gesture. */
+  onExpand: () => void;
 }
 
 /** The season's main region on a quiet map, the ridden network in copper, and the totals band. */
@@ -91,6 +149,7 @@ export function AtlasHero({
   regionName,
   regionMeta,
   onOpenCountries,
+  onExpand,
 }: AtlasHeroProps) {
   const { t: i18n, i18n: instance } = useTranslation();
   const { t } = useEditorialTheme();
@@ -117,6 +176,7 @@ export function AtlasHero({
           height={height}
           system={system}
           regionName={regionName}
+          onExpand={onExpand}
         />
       </View>
       <View style={{ padding: space.md, gap: space.xs }}>
@@ -222,24 +282,23 @@ interface HeroMapProps {
   height: number;
   system: MeasurementSystem;
   regionName: (region: RiderInsightsRegion) => string;
+  onExpand: () => void;
 }
 
-function HeroMap({ region, mapAvailable, width, height, system, regionName }: HeroMapProps) {
+function HeroMap({
+  region,
+  mapAvailable,
+  width,
+  height,
+  system,
+  regionName,
+  onExpand,
+}: HeroMapProps) {
   const { t: i18n } = useTranslation();
   const { t, isDark } = useEditorialTheme();
   const routes = region?.routes;
   // Decoding a season of polylines is the expensive part; redo it only when the routes change.
-  const shape = useMemo<GeoJSON.FeatureCollection<GeoJSON.LineString>>(
-    () => ({
-      type: 'FeatureCollection',
-      features: (routes ?? []).map((route) => ({
-        type: 'Feature',
-        properties: {},
-        geometry: { type: 'LineString', coordinates: decodePolyline(route) },
-      })),
-    }),
-    [routes],
-  );
+  const shape = useMemo(() => routesShape(routes ?? []), [routes]);
 
   if (!region?.bounds || !mapAvailable) {
     const note = mapAvailable
@@ -258,62 +317,44 @@ function HeroMap({ region, mapAvailable, width, height, system, regionName }: He
   const viewport = fitViewport(region.bounds, width, height, MAP_PADDING);
   const styleURL = isDark ? MAP_STYLES.dark : MAP_STYLES.light;
   const scale = scaleBar(viewport, system);
-  const placement = routeLayerPlacement(styleURL);
 
+  // The map takes no touch at all (pointerEvents none), so the page scroll never
+  // sticks on it; a tap anywhere on it opens the full-screen map instead.
   return (
-    <View
+    <Pressable
       testID="hero-map"
-      accessible
-      accessibilityRole="image"
+      accessibilityRole="button"
       accessibilityLabel={i18n('riderInsights.hero.mapA11y', {
         count: region.rides,
         region: regionName(region),
       })}
+      accessibilityHint={i18n('riderInsights.hero.expandHint')}
+      onPress={onExpand}
       style={{ flex: 1 }}
     >
-      <MapboxGL.MapView
-        key={styleURL}
-        style={{ flex: 1 }}
-        styleURL={styleURL}
-        surfaceView={process.env.EXPO_OS !== 'android'}
-        logoEnabled={false}
-        attributionEnabled={false}
-        scaleBarEnabled={false}
-        compassEnabled={false}
-        scrollEnabled={false}
-        zoomEnabled={false}
-        pitchEnabled={false}
-        rotateEnabled={false}
-      >
-        <MapboxGL.Camera
-          centerCoordinate={viewport.center}
-          zoomLevel={viewport.zoom}
-          animationDuration={0}
-        />
-        <MapboxGL.ShapeSource id="insights-routes" shape={shape}>
-          <MapboxGL.LineLayer
-            id="insights-routes-glow"
-            {...placement}
-            style={{
-              lineColor: t.warm,
-              lineWidth: ROUTE_GLOW_WIDTH,
-              lineOpacity: ROUTE_GLOW_OPACITY,
-              lineCap: 'round',
-              lineJoin: 'round',
-            }}
+      <View pointerEvents="none" style={{ flex: 1 }}>
+        <MapboxGL.MapView
+          key={styleURL}
+          style={{ flex: 1 }}
+          styleURL={styleURL}
+          surfaceView={process.env.EXPO_OS !== 'android'}
+          logoEnabled={false}
+          attributionEnabled={false}
+          scaleBarEnabled={false}
+          compassEnabled={false}
+          scrollEnabled={false}
+          zoomEnabled={false}
+          pitchEnabled={false}
+          rotateEnabled={false}
+        >
+          <MapboxGL.Camera
+            centerCoordinate={viewport.center}
+            zoomLevel={viewport.zoom}
+            animationDuration={0}
           />
-          <MapboxGL.LineLayer
-            id="insights-routes-line"
-            {...placement}
-            style={{
-              lineColor: t.warm,
-              lineWidth: ROUTE_LINE_WIDTH,
-              lineCap: 'round',
-              lineJoin: 'round',
-            }}
-          />
-        </MapboxGL.ShapeSource>
-      </MapboxGL.MapView>
+          <RouteLayers id="insights-routes" shape={shape} styleURL={styleURL} />
+        </MapboxGL.MapView>
+      </View>
       <View
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
@@ -342,6 +383,25 @@ function HeroMap({ region, mapAvailable, width, height, system, regionName }: He
           {`${scale.value} ${scale.unit}`}
         </Text>
       </View>
-    </View>
+      <View
+        testID="hero-map-expand"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={{
+          position: 'absolute',
+          top: space.sm,
+          right: space.sm,
+          width: EXPAND_CHIP,
+          height: EXPAND_CHIP,
+          borderRadius: EXPAND_CHIP / 2,
+          borderCurve: 'continuous',
+          backgroundColor: t.surface,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Maximize2 size={EXPAND_ICON} color={t.ink} strokeWidth={2} />
+      </View>
+    </Pressable>
   );
 }

@@ -116,6 +116,8 @@ export const RIDER_INSIGHTS_DETAIL_GROUP = {
   BEST_RIDES: 'best-rides',
   BIKES: 'bikes',
   COUNTRIES: 'countries',
+  /** The season's months and weeks ridden; free, like the ribbon it opens from. */
+  SEASON: 'season',
 } as const;
 
 export type RiderInsightsDetailGroup =

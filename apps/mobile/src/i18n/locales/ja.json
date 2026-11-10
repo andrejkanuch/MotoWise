@@ -2752,7 +2752,11 @@
       "noRoutes": "GPS付きでライドを記録すると、走った道がここに表示されます。",
       "offline": "オンラインに戻ると地図が表示されます。",
       "mapA11y_one": "{{region}}周辺のライド{{count}}回の地図",
-      "mapA11y_other": "{{region}}周辺のライド{{count}}回の地図"
+      "mapA11y_other": "{{region}}周辺のライド{{count}}回の地図",
+      "expandHint": "地図を全画面で開きます"
+    },
+    "map": {
+      "close": "地図を閉じる"
     },
     "totals": {
       "rides_one": "ライド{{count}}回",
@@ -2768,12 +2772,15 @@
       "unnamed": "名前のない地域",
       "meta_one": "ライド{{count}}回 · {{distance}}",
       "meta_other": "ライド{{count}}回 · {{distance}}",
-      "tileA11y": "{{region}}を地図に表示"
+      "tileA11y": "{{region}}を地図に表示",
+      "heading": "走ったほかの場所",
+      "caption": "タップすると上の地図に表示されます。"
     },
     "ribbon": {
       "section": "シーズン",
       "weeksRidden": "{{total}}週中{{ridden}}週走行",
-      "biggest": "最多の週：{{distance}}、{{start}}〜{{end}}"
+      "biggest": "最多の週：{{distance}}、{{start}}〜{{end}}",
+      "openHint": "シーズンを月別・週別に開きます"
     },
     "howYouRide": {
       "section": "あなたの走り方",
@@ -2926,6 +2933,22 @@
         "meta_one": "初走行 {{date}} · ライド{{count}}回",
         "meta_other": "初走行 {{date}} · ライド{{count}}回",
         "footnote": "ルートのうち1 km以上が国境から500 m以上内側を通った場合に、その国を数えます。"
+      },
+      "season": {
+        "heroLine_one": "週走行（これまでの{{count}}週中）",
+        "heroLine_other": "週走行（これまでの{{count}}週中）",
+        "months": "月別",
+        "weeks": "走った週",
+        "rides_one": "ライド{{count}}回",
+        "rides_other": "ライド{{count}}回",
+        "noRides": "ライドなし",
+        "week": "{{start}}〜{{end}}",
+        "biggest": "最多の週",
+        "loadingRides": "ライドを読み込み中",
+        "loadFailed": "この週のライドを読み込めませんでした。",
+        "retry": "再試行",
+        "noWeekRides": "この週に完了したライドはありません。",
+        "footnote": "週は、その日数の多いほうの月に数えます。週をタップするとライドが表示されます。"
       }
     },
     "share": {

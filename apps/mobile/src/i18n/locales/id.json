@@ -2752,7 +2752,11 @@
       "noRoutes": "Jalanmu muncul di sini setelah perjalanan dengan GPS.",
       "offline": "Peta muncul saat kamu kembali online.",
       "mapA11y_one": "Peta {{count}} perjalanan di sekitar {{region}}",
-      "mapA11y_other": "Peta {{count}} perjalanan di sekitar {{region}}"
+      "mapA11y_other": "Peta {{count}} perjalanan di sekitar {{region}}",
+      "expandHint": "Membuka peta dalam layar penuh"
+    },
+    "map": {
+      "close": "Tutup peta"
     },
     "totals": {
       "rides_one": "{{count}} perjalanan",
@@ -2768,12 +2772,15 @@
       "unnamed": "Wilayah tanpa nama",
       "meta_one": "{{count}} perjalanan · {{distance}}",
       "meta_other": "{{count}} perjalanan · {{distance}}",
-      "tileA11y": "Tampilkan {{region}} di peta"
+      "tileA11y": "Tampilkan {{region}} di peta",
+      "heading": "Tempat lain yang kamu lalui",
+      "caption": "Ketuk salah satu untuk menampilkannya di peta atas."
     },
     "ribbon": {
       "section": "Musim",
       "weeksRidden": "Berkendara {{ridden}} dari {{total}} minggu",
-      "biggest": "Terjauh: {{distance}}, {{start}} – {{end}}"
+      "biggest": "Terjauh: {{distance}}, {{start}} – {{end}}",
+      "openHint": "Membuka musimmu per bulan dan minggu"
     },
     "howYouRide": {
       "section": "Cara kamu berkendara",
@@ -2926,6 +2933,22 @@
         "meta_one": "Pertama dilalui {{date}} · {{count}} perjalanan",
         "meta_other": "Pertama dilalui {{date}} · {{count}} perjalanan",
         "footnote": "Negara dihitung jika minimal 1 km rute berada 500 m atau lebih di dalam perbatasannya."
+      },
+      "season": {
+        "heroLine_one": "minggu berkendara dari {{count}} minggu sejauh ini",
+        "heroLine_other": "minggu berkendara dari {{count}} minggu sejauh ini",
+        "months": "Bulan",
+        "weeks": "Minggu berkendara",
+        "rides_one": "{{count}} perjalanan",
+        "rides_other": "{{count}} perjalanan",
+        "noRides": "Tidak ada perjalanan",
+        "week": "{{start}} – {{end}}",
+        "biggest": "Minggu terjauh",
+        "loadingRides": "Memuat perjalanan",
+        "loadFailed": "Perjalanan minggu ini gagal dimuat.",
+        "retry": "Coba lagi",
+        "noWeekRides": "Tidak ada perjalanan selesai di minggu ini.",
+        "footnote": "Satu minggu dihitung di bulan tempat sebagian besar harinya berada. Ketuk satu minggu untuk melihat perjalanannya."
       }
     },
     "share": {

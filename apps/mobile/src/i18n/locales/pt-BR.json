@@ -2784,7 +2784,11 @@
       "offline": "O mapa aparece quando você voltar a ficar online.",
       "mapA11y_one": "Mapa de {{count}} rolê na região de {{region}}",
       "mapA11y_other": "Mapa de {{count}} rolês na região de {{region}}",
-      "mapA11y_many": "Mapa de {{count}} rolês na região de {{region}}"
+      "mapA11y_many": "Mapa de {{count}} rolês na região de {{region}}",
+      "expandHint": "Abre o mapa em tela cheia"
+    },
+    "map": {
+      "close": "Fechar mapa"
     },
     "totals": {
       "rides_one": "{{count}} rolê",
@@ -2804,12 +2808,15 @@
       "meta_one": "{{count}} rolê · {{distance}}",
       "meta_other": "{{count}} rolês · {{distance}}",
       "meta_many": "{{count}} rolês · {{distance}}",
-      "tileA11y": "Mostrar {{region}} no mapa"
+      "tileA11y": "Mostrar {{region}} no mapa",
+      "heading": "Outros lugares onde você rodou",
+      "caption": "Toque em um para mostrar no mapa acima."
     },
     "ribbon": {
       "section": "Temporada",
       "weeksRidden": "{{ridden}} de {{total}} semanas com rolê",
-      "biggest": "Recorde: {{distance}}, de {{start}} a {{end}}"
+      "biggest": "Recorde: {{distance}}, de {{start}} a {{end}}",
+      "openHint": "Abre sua temporada por mês e semana"
     },
     "howYouRide": {
       "section": "Como você roda",
@@ -2973,6 +2980,24 @@
         "meta_other": "Primeira vez em {{date}} · {{count}} rolês",
         "meta_many": "Primeira vez em {{date}} · {{count}} rolês",
         "footnote": "Um país conta quando pelo menos 1 km de uma rota fica 500 m ou mais dentro da fronteira."
+      },
+      "season": {
+        "heroLine_one": "de {{count}} semana com rolê até agora",
+        "heroLine_other": "de {{count}} semanas com rolê até agora",
+        "heroLine_many": "de {{count}} semanas com rolê até agora",
+        "months": "Meses",
+        "weeks": "Semanas com rolê",
+        "rides_one": "{{count}} rolê",
+        "rides_other": "{{count}} rolês",
+        "rides_many": "{{count}} rolês",
+        "noRides": "Nenhum rolê",
+        "week": "De {{start}} a {{end}}",
+        "biggest": "Semana recorde",
+        "loadingRides": "Carregando rolês",
+        "loadFailed": "Não foi possível carregar os rolês desta semana.",
+        "retry": "Tentar de novo",
+        "noWeekRides": "Nenhum rolê concluído nesta semana.",
+        "footnote": "Cada semana conta no mês em que cai a maior parte dos seus dias. Toque em uma semana para ver os rolês dela."
       }
     },
     "share": {

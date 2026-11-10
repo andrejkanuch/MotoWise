@@ -9,9 +9,10 @@ import {
   startOfWeek,
   startOfYear,
 } from 'date-fns';
+import { ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Text, useWindowDimensions, View } from 'react-native';
-import { useEditorialTheme } from '@/theme/editorial';
+import { Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { tint, useEditorialTheme } from '@/theme/editorial';
 import { layout, space } from '@/theme/spacing';
 import { radius, type } from '@/theme/type';
 import { formatInsightDistance, type RiderInsightsData } from './use-rider-insights';
@@ -25,6 +26,8 @@ const MONTHS = 12;
 const ISO_DAY = 'yyyy-MM-dd';
 /** Above this text size the heading line wraps instead of squeezing. */
 const LARGE_TEXT = 1.3;
+const CHEVRON = 18;
+const PRESS_TINT = 0.06;
 
 export interface RibbonSlot {
   weekStart: string;
@@ -123,10 +126,12 @@ interface SeasonRibbonProps {
   ribbon: RiderInsightsData['ribbon'];
   season: RiderInsightsData['season'];
   system: MeasurementSystem;
+  /** Opens the season page: the months and every week ridden. */
+  onPress: () => void;
 }
 
-/** Weeks ridden this season, one bar per week, January to December. */
-export function SeasonRibbon({ ribbon, season, system }: SeasonRibbonProps) {
+/** Weeks ridden this season, one bar per week, January to December; the card opens the season. */
+export function SeasonRibbon({ ribbon, season, system, onPress }: SeasonRibbonProps) {
   const { t: i18n, i18n: instance } = useTranslation();
   const { t } = useEditorialTheme();
   const { fontScale } = useWindowDimensions();
@@ -156,15 +161,23 @@ export function SeasonRibbon({ ribbon, season, system }: SeasonRibbonProps) {
       >
         {i18n('riderInsights.ribbon.section')}
       </Text>
-      <View
-        style={{
-          backgroundColor: t.surface,
+      <Pressable
+        testID="season-ribbon"
+        accessibilityRole="button"
+        accessibilityLabel={[weeksLine, biggestLine].filter(Boolean).join('. ')}
+        accessibilityHint={i18n('riderInsights.ribbon.openHint')}
+        onPress={onPress}
+        android_ripple={{ color: t.line }}
+        style={({ pressed }) => ({
+          backgroundColor:
+            pressed && process.env.EXPO_OS === 'ios' ? tint(t.ink, PRESS_TINT) : t.surface,
           borderRadius: radius.card,
           borderCurve: 'continuous',
+          overflow: 'hidden',
           paddingHorizontal: space.md,
           paddingVertical: space.sm,
           gap: space.xs,
-        }}
+        })}
       >
         {/* "Biggest" sits on the heading line, right-aligned; at large text sizes it wraps under. */}
         <View
@@ -183,6 +196,7 @@ export function SeasonRibbon({ ribbon, season, system }: SeasonRibbonProps) {
                 type.caption,
                 {
                   color: t.ink3,
+                  flexGrow: 1,
                   flexShrink: 1,
                   textAlign: fontScale > LARGE_TEXT ? 'left' : 'right',
                 },
@@ -190,13 +204,18 @@ export function SeasonRibbon({ ribbon, season, system }: SeasonRibbonProps) {
             >
               {biggestLine}
             </Text>
-          ) : null}
+          ) : (
+            <View style={{ flexGrow: 1 }} />
+          )}
+          <ChevronRight
+            size={CHEVRON}
+            color={t.ink3}
+            strokeWidth={2}
+            style={{ alignSelf: 'center' }}
+          />
         </View>
         <View
           testID="season-ribbon-bars"
-          accessible
-          accessibilityRole="image"
-          accessibilityLabel={[weeksLine, biggestLine].filter(Boolean).join('. ')}
           style={{
             flexDirection: 'row',
             alignItems: 'flex-end',
@@ -228,7 +247,7 @@ export function SeasonRibbon({ ribbon, season, system }: SeasonRibbonProps) {
             </Text>
           ))}
         </View>
-      </View>
+      </Pressable>
     </View>
   );
 }

@@ -2820,7 +2820,11 @@
       "mapA11y_one": "Mapa {{count}} jazdy, oblasť {{region}}",
       "mapA11y_other": "Mapa {{count}} jázd, oblasť {{region}}",
       "mapA11y_few": "Mapa {{count}} jázd, oblasť {{region}}",
-      "mapA11y_many": "Mapa {{count}} jazdy, oblasť {{region}}"
+      "mapA11y_many": "Mapa {{count}} jazdy, oblasť {{region}}",
+      "expandHint": "Otvorí mapu na celú obrazovku"
+    },
+    "map": {
+      "close": "Zavrieť mapu"
     },
     "totals": {
       "rides_one": "{{count}} jazda",
@@ -2844,12 +2848,15 @@
       "meta_other": "{{count}} jázd · {{distance}}",
       "meta_few": "{{count}} jazdy · {{distance}}",
       "meta_many": "{{count}} jazdy · {{distance}}",
-      "tileA11y": "Zobraziť na mape: {{region}}"
+      "tileA11y": "Zobraziť na mape: {{region}}",
+      "heading": "Ďalšie miesta, kde si jazdil",
+      "caption": "Ťukni na jedno a zobrazí sa na mape vyššie."
     },
     "ribbon": {
       "section": "Sezóna",
       "weeksRidden": "{{ridden}} z {{total}} týždňov s jazdou",
-      "biggest": "Najviac: {{distance}}, {{start}} – {{end}}"
+      "biggest": "Najviac: {{distance}}, {{start}} – {{end}}",
+      "openHint": "Otvorí tvoju sezónu po mesiacoch a týždňoch"
     },
     "howYouRide": {
       "section": "Ako jazdíš",
@@ -3024,6 +3031,26 @@
         "meta_few": "Prvýkrát {{date}} · {{count}} jazdy",
         "meta_many": "Prvýkrát {{date}} · {{count}} jazdy",
         "footnote": "Krajina sa započíta, keď aspoň 1 km trasy vedie 500 m alebo viac vnútri jej hraníc."
+      },
+      "season": {
+        "heroLine_one": "z doterajšieho {{count}} týždňa s jazdou",
+        "heroLine_other": "z doterajších {{count}} týždňov s jazdou",
+        "heroLine_few": "z doterajších {{count}} týždňov s jazdou",
+        "heroLine_many": "z doterajších {{count}} týždňa s jazdou",
+        "months": "Mesiace",
+        "weeks": "Týždne s jazdou",
+        "rides_one": "{{count}} jazda",
+        "rides_other": "{{count}} jázd",
+        "rides_few": "{{count}} jazdy",
+        "rides_many": "{{count}} jazdy",
+        "noRides": "Žiadne jazdy",
+        "week": "{{start}} – {{end}}",
+        "biggest": "Najsilnejší týždeň",
+        "loadingRides": "Načítavam jazdy",
+        "loadFailed": "Jazdy z tohto týždňa sa nepodarilo načítať.",
+        "retry": "Skúsiť znova",
+        "noWeekRides": "V tomto týždni sa nenašli žiadne dokončené jazdy.",
+        "footnote": "Týždeň sa počíta do mesiaca, do ktorého padne väčšina jeho dní. Ťukni na týždeň a uvidíš jeho jazdy."
       }
     },
     "share": {
