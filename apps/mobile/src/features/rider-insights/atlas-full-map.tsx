@@ -17,7 +17,7 @@ const CLOSE_BUTTON = 44;
 const CLOSE_ICON = 22;
 
 /** Every region's routes, in one list: the full map draws the whole season. */
-export function seasonRoutes(regions: readonly RiderInsightsRegion[]): string[] {
+function seasonRoutes(regions: readonly RiderInsightsRegion[]): string[] {
   return regions.flatMap((region) => region.routes);
 }
 
@@ -44,7 +44,8 @@ export function AtlasFullMap({ visible, regions, onClose }: AtlasFullMapProps) {
     () => routesShape(visible ? seasonRoutes(regions) : []),
     [visible, regions],
   );
-  const bounds = regions.find((region) => region.bounds)?.bounds ?? null;
+  // The hero's region: the hero opens this map only once that region has bounds.
+  const bounds = regions[0]?.bounds ?? null;
   const styleURL = isDark ? MAP_STYLES.dark : MAP_STYLES.light;
   const viewport = bounds ? fitViewport(bounds, width, height, MAP_PADDING) : null;
   const ornamentTop = insets.top + space.sm;

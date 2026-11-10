@@ -3050,7 +3050,12 @@
         "loadFailed": "Jazdy z tohto týždňa sa nepodarilo načítať.",
         "retry": "Skúsiť znova",
         "noWeekRides": "V tomto týždni sa nenašli žiadne dokončené jazdy.",
-        "footnote": "Týždeň sa počíta do mesiaca, do ktorého padne väčšina jeho dní. Ťukni na týždeň a uvidíš jeho jazdy."
+        "footnote": "Týždeň sa počíta do mesiaca, do ktorého padne väčšina jeho dní. Ťukni na týždeň a uvidíš jeho jazdy.",
+        "searchedLatest_one": "Prehľadaná tvoja posledná {{count}} jazda. Tento týždeň ich môže mať viac.",
+        "searchedLatest_few": "Prehľadané tvoje posledné {{count}} jazdy. Tento týždeň ich môže mať viac.",
+        "searchedLatest_many": "Prehľadaných tvojich posledných {{count}} jazdy. Tento týždeň ich môže mať viac.",
+        "searchedLatest_other": "Prehľadaných tvojich posledných {{count}} jázd. Tento týždeň ich môže mať viac.",
+        "loadOlder": "Hľadať staršie jazdy"
       }
     },
     "share": {

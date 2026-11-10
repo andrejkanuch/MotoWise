@@ -2948,7 +2948,10 @@
         "loadFailed": "Bu haftanın sürüşleri yüklenemedi.",
         "retry": "Tekrar dene",
         "noWeekRides": "Bu hafta tamamlanmış sürüş bulunamadı.",
-        "footnote": "Bir hafta, günlerinin çoğunun düştüğü ayda sayılır. Sürüşlerini görmek için bir haftaya dokun."
+        "footnote": "Bir hafta, günlerinin çoğunun düştüğü ayda sayılır. Sürüşlerini görmek için bir haftaya dokun.",
+        "searchedLatest_one": "Son {{count}} sürüşünde arandı. Bu haftada daha fazlası olabilir.",
+        "searchedLatest_other": "Son {{count}} sürüşünde arandı. Bu haftada daha fazlası olabilir.",
+        "loadOlder": "Daha eski sürüşleri ara"
       }
     },
     "share": {

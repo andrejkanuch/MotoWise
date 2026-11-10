@@ -3050,7 +3050,12 @@
         "loadFailed": "Nie udało się wczytać jazd z tego tygodnia.",
         "retry": "Spróbuj ponownie",
         "noWeekRides": "Brak zakończonych jazd w tym tygodniu.",
-        "footnote": "Tydzień liczy się do miesiąca, w którym wypada większość jego dni. Stuknij tydzień, aby zobaczyć jego jazdy."
+        "footnote": "Tydzień liczy się do miesiąca, w którym wypada większość jego dni. Stuknij tydzień, aby zobaczyć jego jazdy.",
+        "searchedLatest_one": "Przeszukano twoją ostatnią {{count}} jazdę. W tym tygodniu może być ich więcej.",
+        "searchedLatest_few": "Przeszukano twoje ostatnie {{count}} jazdy. W tym tygodniu może być ich więcej.",
+        "searchedLatest_many": "Przeszukano twoje ostatnie {{count}} jazd. W tym tygodniu może być ich więcej.",
+        "searchedLatest_other": "Przeszukano twoje ostatnie {{count}} jazdy. W tym tygodniu może być ich więcej.",
+        "loadOlder": "Szukaj starszych jazd"
       }
     },
     "share": {

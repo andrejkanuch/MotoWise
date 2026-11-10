@@ -2948,7 +2948,10 @@
         "loadFailed": "Perjalanan minggu ini gagal dimuat.",
         "retry": "Coba lagi",
         "noWeekRides": "Tidak ada perjalanan selesai di minggu ini.",
-        "footnote": "Satu minggu dihitung di bulan tempat sebagian besar harinya berada. Ketuk satu minggu untuk melihat perjalanannya."
+        "footnote": "Satu minggu dihitung di bulan tempat sebagian besar harinya berada. Ketuk satu minggu untuk melihat perjalanannya.",
+        "searchedLatest_one": "Mencari di {{count}} perjalanan terakhirmu. Minggu ini mungkin punya lebih banyak.",
+        "searchedLatest_other": "Mencari di {{count}} perjalanan terakhirmu. Minggu ini mungkin punya lebih banyak.",
+        "loadOlder": "Cari perjalanan lebih lama"
       }
     },
     "share": {

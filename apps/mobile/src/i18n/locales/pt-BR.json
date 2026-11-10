@@ -2997,7 +2997,11 @@
         "loadFailed": "Não foi possível carregar os rolês desta semana.",
         "retry": "Tentar de novo",
         "noWeekRides": "Nenhum rolê concluído nesta semana.",
-        "footnote": "Cada semana conta no mês em que cai a maior parte dos seus dias. Toque em uma semana para ver os rolês dela."
+        "footnote": "Cada semana conta no mês em que cai a maior parte dos seus dias. Toque em uma semana para ver os rolês dela.",
+        "searchedLatest_one": "Buscamos no seu último {{count}} rolê. Esta semana pode ter mais.",
+        "searchedLatest_other": "Buscamos nos seus últimos {{count}} rolês. Esta semana pode ter mais.",
+        "searchedLatest_many": "Buscamos nos seus últimos {{count}} rolês. Esta semana pode ter mais.",
+        "loadOlder": "Buscar rolês mais antigos"
       }
     },
     "share": {

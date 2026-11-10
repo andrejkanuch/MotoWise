@@ -12,14 +12,8 @@ import { summarizeRibbon, weekRange } from '../season-ribbon';
 import { formatInsightDistance, type RiderInsightsData } from '../use-rider-insights';
 import { formatNumber, shortDate } from './detail-format';
 import { DetailHero, Footnote, openRide, RowList, Section, ValueRow } from './detail-parts';
-import {
-  type MyRide,
-  type SeasonMonth,
-  type SeasonWeek,
-  seasonMonths,
-  seasonWeeks,
-} from './season-model';
-import { useWeekRides } from './use-week-rides';
+import { type SeasonMonth, type SeasonWeek, seasonMonths, seasonWeeks } from './season-model';
+import { useWeekRides, type WeekRides as WeekRidesState } from './use-week-rides';
 
 const CHEVRON = 18;
 /** Separator inset for week rows, which lead with a chevron. */
@@ -132,16 +126,25 @@ function WeekChevron({ open }: { open: boolean }) {
   return <Icon size={CHEVRON} color={t.ink3} strokeWidth={2} />;
 }
 
-interface WeekRidesProps {
-  rides: MyRide[];
-  loading: boolean;
-  failed: boolean;
-  retry: () => void;
+interface WeekRidesProps extends WeekRidesState {
   distance: (meters: number) => string;
 }
 
-/** An open week's rides, indented to the week's text; each opens ride detail. */
-function WeekRides({ rides, loading, failed, retry, distance }: WeekRidesProps) {
+/**
+ * An open week's rides, indented to the week's text; each opens ride detail.
+ * When the search stopped short of the week, a note says how far it looked and
+ * offers to look further back.
+ */
+function WeekRides({
+  rides,
+  loading,
+  failed,
+  truncated,
+  searched,
+  loadOlder,
+  retry,
+  distance,
+}: WeekRidesProps) {
   const { t: i18n, i18n: instance } = useTranslation();
   const { t } = useEditorialTheme();
   const language = instance.language;
@@ -177,7 +180,25 @@ function WeekRides({ rides, loading, failed, retry, distance }: WeekRidesProps) 
       </View>
     );
   }
-  if (rides.length === 0) {
+  const truncatedNote = truncated ? (
+    <View testID="week-rides-truncated" style={[note, { gap: space.xxs }]}>
+      <Text style={[type.subhead, { color: t.ink3 }]}>
+        {i18n('riderInsights.detail.season.searchedLatest', { count: searched })}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={loadOlder}
+        hitSlop={space.xs}
+        style={{ alignSelf: 'flex-start' }}
+      >
+        <Text style={[type.subhead, SYSTEM_WEIGHT.semibold, { color: t.warm2 }]}>
+          {i18n('riderInsights.detail.season.loadOlder')}
+        </Text>
+      </Pressable>
+    </View>
+  ) : null;
+
+  if (rides.length === 0 && !truncated) {
     return (
       <View testID="week-rides-empty" style={note}>
         <Text style={[type.subhead, { color: t.ink3 }]}>
@@ -188,6 +209,7 @@ function WeekRides({ rides, loading, failed, retry, distance }: WeekRidesProps) 
   }
   return (
     <View testID="week-rides">
+      {truncatedNote}
       {rides.map((ride) => {
         const when = rideStart(ride.startedAt, language);
         return (

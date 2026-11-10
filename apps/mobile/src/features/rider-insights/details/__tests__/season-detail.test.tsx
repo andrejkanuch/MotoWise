@@ -61,6 +61,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 import '@/i18n';
 import RiderInsightsDetailRoute from '@/app/(tabs)/(profile)/rider-insights/[group]';
+import { queryKeys } from '@/lib/query-keys';
 import { useAuthStore } from '@/stores/auth.store';
 import { freeInsights } from '@/test/rider-insights-fixtures';
 import type { MyRide } from '../season-model';
@@ -118,6 +119,8 @@ const PAGES: Record<string, Page> = {
   p3: page([RIDES.january], null),
 };
 
+let pages: Record<string, Page> = PAGES;
+
 const ridePagesAsked = () =>
   mockFetcher.mock.calls
     .filter(([doc]) => doc === MyRidesDocument)
@@ -132,6 +135,7 @@ beforeEach(() => {
   mockRouter.push.mockReset();
   mockScreenOptions.length = 0;
   failPage = null;
+  pages = PAGES;
   useAuthStore.setState({ measurementSystem: 'metric' });
   mockFetcher.mockImplementation(async (doc: unknown, vars: { after?: string | null }) => {
     if (doc === GetRiderInsightsDocument) return { riderInsights: freeInsights() };
@@ -140,7 +144,7 @@ beforeEach(() => {
       failPage = null;
       throw new Error('network');
     }
-    return PAGES[key];
+    return pages[key];
   });
 });
 
@@ -190,6 +194,12 @@ describe('the season page', () => {
 
     const list = await screen.findByTestId('week-rides');
     expect(ridePagesAsked()).toEqual([null, 'p1', 'p2']);
+    // Its own entry, 50 rides a page: My rides' list is never grown or touched.
+    for (const [doc, vars] of mockFetcher.mock.calls) {
+      if (doc === MyRidesDocument) expect(vars).toMatchObject({ first: 50 });
+    }
+    expect(client.getQueryData(queryKeys.rides.all)).toBeUndefined();
+    expect(client.getQueryData(queryKeys.rides.week(WEEK))).toBeDefined();
     const shown = within(list)
       .getAllByTestId(/^week-ride-/)
       .map((n) => n.props.testID);
@@ -238,5 +248,53 @@ describe('the season page', () => {
         .map((n) => n.props.testID),
     ).toEqual(['week-ride-r-nov']);
     expect(ridePagesAsked()).toEqual([null]);
+  });
+
+  it('retries a failed first page', async () => {
+    failPage = 'start';
+    await openSeason();
+    await fireEvent.press(screen.getByTestId(`season-week-${WEEK}`));
+    const error = await screen.findByTestId('week-rides-error');
+    await fireEvent.press(within(error).getByText('Try again'));
+    const list = await screen.findByTestId('week-rides');
+    expect(within(list).getAllByTestId(/^week-ride-/)).toHaveLength(3);
+    expect(ridePagesAsked()).toEqual([null, null, 'p1', 'p2']);
+  });
+
+  it('says so when a week ridden has no finished ride left in the list', async () => {
+    // The 2 Nov week's ride was deleted since the insights were computed.
+    pages = { start: page([RIDES.march10], null) };
+    await openSeason();
+    await fireEvent.press(screen.getByTestId('season-week-2026-11-02'));
+    const empty = await screen.findByTestId('week-rides-empty');
+    expect(within(empty).getByText('No finished rides found for this week.')).toBeTruthy();
+  });
+
+  it('stops after 10 pages, shows what it searched and looks further back on request', async () => {
+    // Ten pages of one ride each, all after the week; the eleventh reaches it.
+    const after = (i: number) => ride(`r-late-${i}`, 'Later ride', new Date(2026, 9, 30 - i, 9));
+    const cursors = ['start', ...Array.from({ length: 10 }, (_, i) => `c${i + 1}`)];
+    pages = Object.fromEntries(
+      cursors.map((cursor, i) => [
+        cursor,
+        i < 10
+          ? page([after(i)], cursors[i + 1])
+          : page([RIDES.saturday, RIDES.tuesday, RIDES.monday, RIDES.february], null),
+      ]),
+    );
+    await openSeason();
+    await fireEvent.press(screen.getByTestId(`season-week-${WEEK}`));
+    const note = await screen.findByTestId('week-rides-truncated');
+    expect(ridePagesAsked()).toHaveLength(10);
+    expect(
+      within(note).getByText('Searched your latest 10 rides. This week may have more.'),
+    ).toBeTruthy();
+    expect(screen.queryAllByTestId(/^week-ride-/)).toHaveLength(0);
+
+    await fireEvent.press(within(note).getByText('Search older rides'));
+    await waitFor(() => expect(screen.queryByTestId('week-rides-truncated')).toBeNull());
+    const list = await screen.findByTestId('week-rides');
+    expect(within(list).getAllByTestId(/^week-ride-/)).toHaveLength(3);
+    expect(ridePagesAsked()).toHaveLength(11);
   });
 });

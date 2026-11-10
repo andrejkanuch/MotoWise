@@ -2948,7 +2948,10 @@
         "loadFailed": "Couldn't load this week's rides.",
         "retry": "Try again",
         "noWeekRides": "No finished rides found for this week.",
-        "footnote": "A week counts in the month most of its days fall in. Tap a week to see its rides."
+        "footnote": "A week counts in the month most of its days fall in. Tap a week to see its rides.",
+        "searchedLatest_one": "Searched your latest {{count}} ride. This week may have more.",
+        "searchedLatest_other": "Searched your latest {{count}} rides. This week may have more.",
+        "loadOlder": "Search older rides"
       }
     },
     "share": {

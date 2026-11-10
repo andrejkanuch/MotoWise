@@ -2948,7 +2948,10 @@
         "loadFailed": "Die Fahrten dieser Woche konnten nicht geladen werden.",
         "retry": "Erneut versuchen",
         "noWeekRides": "Keine abgeschlossenen Fahrten in dieser Woche gefunden.",
-        "footnote": "Eine Woche zählt zu dem Monat, in den die meisten ihrer Tage fallen. Tippe auf eine Woche, um ihre Fahrten zu sehen."
+        "footnote": "Eine Woche zählt zu dem Monat, in den die meisten ihrer Tage fallen. Tippe auf eine Woche, um ihre Fahrten zu sehen.",
+        "searchedLatest_one": "Deine letzte {{count}} Fahrt durchsucht. Diese Woche kann mehr haben.",
+        "searchedLatest_other": "Deine letzten {{count}} Fahrten durchsucht. Diese Woche kann mehr haben.",
+        "loadOlder": "Ältere Fahrten durchsuchen"
       }
     },
     "share": {

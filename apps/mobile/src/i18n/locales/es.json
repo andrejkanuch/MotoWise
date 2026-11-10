@@ -2997,7 +2997,11 @@
         "loadFailed": "No se pudieron cargar las rodadas de esta semana.",
         "retry": "Reintentar",
         "noWeekRides": "No hay rodadas terminadas en esta semana.",
-        "footnote": "Cada semana cuenta en el mes donde cae la mayoría de sus días. Toca una semana para ver sus rodadas."
+        "footnote": "Cada semana cuenta en el mes donde cae la mayoría de sus días. Toca una semana para ver sus rodadas.",
+        "searchedLatest_one": "Buscamos en tu última {{count}} rodada. Esta semana puede tener más.",
+        "searchedLatest_other": "Buscamos en tus últimas {{count}} rodadas. Esta semana puede tener más.",
+        "searchedLatest_many": "Buscamos en tus últimas {{count}} rodadas. Esta semana puede tener más.",
+        "loadOlder": "Buscar rodadas anteriores"
       }
     },
     "share": {

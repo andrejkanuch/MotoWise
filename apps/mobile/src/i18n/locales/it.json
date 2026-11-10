@@ -2997,7 +2997,11 @@
         "loadFailed": "Impossibile caricare le uscite di questa settimana.",
         "retry": "Riprova",
         "noWeekRides": "Nessuna uscita conclusa in questa settimana.",
-        "footnote": "Una settimana conta nel mese in cui cade la maggior parte dei suoi giorni. Tocca una settimana per vederne le uscite."
+        "footnote": "Una settimana conta nel mese in cui cade la maggior parte dei suoi giorni. Tocca una settimana per vederne le uscite.",
+        "searchedLatest_one": "Cercato nella tua ultima uscita. Questa settimana potrebbe averne altre.",
+        "searchedLatest_other": "Cercato nelle tue ultime {{count}} uscite. Questa settimana potrebbe averne altre.",
+        "searchedLatest_many": "Cercato nelle tue ultime {{count}} uscite. Questa settimana potrebbe averne altre.",
+        "loadOlder": "Cerca uscite più vecchie"
       }
     },
     "share": {

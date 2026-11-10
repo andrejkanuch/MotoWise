@@ -117,6 +117,12 @@ export const queryKeys = {
     /** Route points at one resolution: detail and flyover ask for different counts. */
     waypoints: (id: string, maxPoints: number) => ['rides', 'waypoints', id, maxPoints] as const,
     heatmap: ['rides', 'heatmap'] as const,
+    /**
+     * The rides list paged back to one week (`weekStart`, a Monday) for the
+     * Rider insights season page. Its own entry, never My rides' `rides.all`
+     * list, and under `rides` so a ride save or delete refreshes an open week.
+     */
+    week: (weekStart: string) => ['rides', 'week', weekStart] as const,
     /** Rider insights for the season the API picks, in the device time zone. Under `rides` so a ride save refreshes it. */
     insights: (timeZone: string) => ['rides', 'insights', timeZone] as const,
     /** Rider insights for an explicit from..to window (the ride summary's own year). Not persisted. */

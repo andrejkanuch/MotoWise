@@ -679,7 +679,11 @@
         "loadingRides": "Cargando salidas",
         "loadFailed": "No se han podido cargar las salidas de esta semana.",
         "noWeekRides": "No hay salidas terminadas esta semana.",
-        "footnote": "Cada semana cuenta en el mes en el que cae la mayoría de sus días. Toca una semana para ver sus salidas."
+        "footnote": "Cada semana cuenta en el mes en el que cae la mayoría de sus días. Toca una semana para ver sus salidas.",
+        "searchedLatest_one": "Hemos buscado en tu última {{count}} salida. Esta semana puede tener más.",
+        "searchedLatest_other": "Hemos buscado en tus últimas {{count}} salidas. Esta semana puede tener más.",
+        "searchedLatest_many": "Hemos buscado en tus últimas {{count}} salidas. Esta semana puede tener más.",
+        "loadOlder": "Buscar salidas anteriores"
       }
     },
     "share": {
