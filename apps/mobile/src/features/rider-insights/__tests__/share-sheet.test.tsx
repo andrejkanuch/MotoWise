@@ -233,5 +233,16 @@ describe('InsightsShareSheet', () => {
       await fireEvent.press(screen.getByTestId('share-option-atlasPoster'));
       expect(screen.getByTestId('share-share').props.accessibilityState.disabled).toBe(true);
     });
+
+    it('keeps Share enabled when the already chosen poster is tapped again', async () => {
+      await renderSheet(proInsights());
+      await fireEvent.press(screen.getByTestId('share-option-atlasPoster'));
+      await settleBases('onLoad');
+      expect(screen.getByTestId('share-share').props.accessibilityState.disabled).toBe(false);
+
+      // Its map is already loaded and fires no new load, so nothing may reset it.
+      await fireEvent.press(screen.getByTestId('share-option-atlasPoster'));
+      expect(screen.getByTestId('share-share').props.accessibilityState.disabled).toBe(false);
+    });
   });
 });

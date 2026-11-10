@@ -183,10 +183,18 @@ function ShareSheetBody({
     [insights, regions, regionName, hideEnds, handle, system],
   );
 
-  const chooseImage = useCallback((next: InsightsShareImage) => {
-    setImage(next);
-    setSettledBase(null);
-  }, []);
+  /**
+   * Re-choosing the current image changes nothing: resetting the settled map
+   * there would leave Share disabled, as the already-loaded map fires no new load.
+   */
+  const chooseImage = useCallback(
+    (next: InsightsShareImage) => {
+      if (next === image) return;
+      setImage(next);
+      setSettledBase(null);
+    },
+    [image],
+  );
 
   const isPoster = image === INSIGHTS_SHARE_IMAGE.ATLAS_POSTER;
   const posterBase = posterBaseUrl(payload, size, scheme);
