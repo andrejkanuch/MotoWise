@@ -19,7 +19,7 @@ import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { AskTripAssistantInput } from './dto/ask-trip-assistant.input';
 import type { TripAssistantMessage } from './models/trip-assistant-message.model';
 
-const MODEL = AI_MODELS.INSIGHTS; // gpt-4.1-mini — cheap + good enough for trip chat
+const MODEL = AI_MODELS.INSIGHTS; // small tier — cheap + good enough for trip chat
 const MAX_HISTORY_TURNS = 5; // 5 round-trips → 10 messages max sent to the model
 const MAX_QUESTION_LEN = 1200;
 const MAX_OUTPUT_TOKENS = 700;
@@ -141,7 +141,8 @@ export class TripAssistantService {
     try {
       const response = await this.openai.chat.completions.create({
         model: MODEL,
-        max_tokens: MAX_OUTPUT_TOKENS,
+        max_completion_tokens: MAX_OUTPUT_TOKENS,
+        reasoning_effort: 'none',
         temperature: 0.5,
         messages: [
           { role: 'system', content: system },

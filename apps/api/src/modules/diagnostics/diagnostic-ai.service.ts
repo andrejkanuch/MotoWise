@@ -222,7 +222,8 @@ export class DiagnosticAiService {
         model: MODEL,
         messages,
         response_format: zodResponseFormat(DiagnosticAiResultSchema, 'diagnosis'),
-        max_tokens: AI_TOKEN_LIMITS.DIAGNOSTIC_MAX_TOKENS,
+        max_completion_tokens: AI_TOKEN_LIMITS.DIAGNOSTIC_MAX_TOKENS,
+        reasoning_effort: 'none',
       });
 
       const inputTokens = completion.usage?.prompt_tokens ?? 0;

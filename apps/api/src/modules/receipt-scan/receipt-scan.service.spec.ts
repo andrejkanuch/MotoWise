@@ -245,7 +245,7 @@ describe('ReceiptScanService', () => {
     aiService = {
       detectImageMime: vi.fn().mockReturnValue('image/webp'),
       extract: vi.fn(),
-      model: 'gpt-4.1',
+      model: 'gpt-6.1-terra',
     };
     aiBudget = { checkBudgetForUser: vi.fn().mockResolvedValue(undefined) };
     expensesService = {

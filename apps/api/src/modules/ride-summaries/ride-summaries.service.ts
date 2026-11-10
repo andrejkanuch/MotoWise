@@ -204,7 +204,8 @@ export class RideSummariesService {
           { role: 'user', content: userPrompt },
         ],
         response_format: zodResponseFormat(AiRideSummaryResponseSchema, 'ride_summary'),
-        max_tokens: MAX_SUMMARY_TOKENS,
+        max_completion_tokens: MAX_SUMMARY_TOKENS,
+        reasoning_effort: 'none',
       });
 
       const inputTokens = completion.usage?.prompt_tokens ?? 0;

@@ -1,13 +1,21 @@
 import { RIDE_WAYPOINT_LIMITS } from '@motovault/types';
 
-/** OpenAI model identifiers */
+/**
+ * OpenAI model identifiers. The gpt-4.1 family is retired (gpt-4.1-nano) or
+ * shutting down (gpt-4.1 and gpt-4.1-mini on 2027-01-14). gpt-6-luna is OpenAI's
+ * listed replacement for the small tier; gpt-6.1-terra takes the larger jobs.
+ * Both are reasoning models: they reject `max_tokens` (send
+ * `max_completion_tokens`) and every call sets `reasoning_effort: 'none'` so
+ * hidden reasoning cannot eat the token cap or the latency budget.
+ * Check shutdown dates at https://developers.openai.com/api/docs/deprecations.
+ */
 export const AI_MODELS = {
-  ARTICLE_GENERATOR: 'gpt-4.1',
-  TOPIC_CLASSIFIER: 'gpt-4.1-nano',
-  DIAGNOSTIC: 'gpt-4.1',
-  INSIGHTS: 'gpt-4.1-mini',
-  RIDE_SUMMARY: 'gpt-4.1-nano',
-  RECEIPT_SCAN: 'gpt-4.1',
+  ARTICLE_GENERATOR: 'gpt-6.1-terra',
+  TOPIC_CLASSIFIER: 'gpt-6-luna',
+  DIAGNOSTIC: 'gpt-6.1-terra',
+  INSIGHTS: 'gpt-6-luna',
+  RIDE_SUMMARY: 'gpt-6-luna',
+  RECEIPT_SCAN: 'gpt-6.1-terra',
 } as const;
 
 export type AiModel = (typeof AI_MODELS)[keyof typeof AI_MODELS];
@@ -18,9 +26,8 @@ export type AiModel = (typeof AI_MODELS)[keyof typeof AI_MODELS];
  * tripping the global circuit breaker early.
  */
 export const MODEL_COSTS: Record<AiModel, { inputUsdPerMTok: number; outputUsdPerMTok: number }> = {
-  'gpt-4.1': { inputUsdPerMTok: 2, outputUsdPerMTok: 8 },
-  'gpt-4.1-mini': { inputUsdPerMTok: 0.4, outputUsdPerMTok: 1.6 },
-  'gpt-4.1-nano': { inputUsdPerMTok: 0.1, outputUsdPerMTok: 0.4 },
+  'gpt-6.1-terra': { inputUsdPerMTok: 1, outputUsdPerMTok: 5 },
+  'gpt-6-luna': { inputUsdPerMTok: 0.1, outputUsdPerMTok: 0.5 },
 };
 
 /** Cost of one completion in integer cents (rounded up so spend is never undercounted). */

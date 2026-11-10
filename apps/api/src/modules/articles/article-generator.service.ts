@@ -149,7 +149,8 @@ export class ArticleGeneratorService {
     try {
       const response = await this.openai.chat.completions.create({
         model: TOPIC_CLASSIFIER_MODEL,
-        max_tokens: AI_TOKEN_LIMITS.TOPIC_CLASSIFIER_MAX_TOKENS,
+        max_completion_tokens: AI_TOKEN_LIMITS.TOPIC_CLASSIFIER_MAX_TOKENS,
+        reasoning_effort: 'none',
         temperature: 0,
         response_format: { type: 'json_object' },
         messages: [
@@ -228,7 +229,8 @@ Requirements:
           { role: 'user', content: userPrompt },
         ],
         response_format: zodResponseFormat(ArticleAiResponseSchema, 'article'),
-        max_tokens: AI_TOKEN_LIMITS.ARTICLE_MAX_TOKENS,
+        max_completion_tokens: AI_TOKEN_LIMITS.ARTICLE_MAX_TOKENS,
+        reasoning_effort: 'none',
       });
 
       const inputTokens = completion.usage?.prompt_tokens ?? 0;
@@ -383,7 +385,8 @@ Requirements:
           { role: 'user', content: userPrompt },
         ],
         response_format: zodResponseFormat(MaintenanceNarrativeSchema, 'maintenance_narrative'),
-        max_tokens: AI_TOKEN_LIMITS.ARTICLE_MAX_TOKENS,
+        max_completion_tokens: AI_TOKEN_LIMITS.ARTICLE_MAX_TOKENS,
+        reasoning_effort: 'none',
       });
 
       const inputTokens = completion.usage?.prompt_tokens ?? 0;

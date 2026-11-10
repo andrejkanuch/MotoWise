@@ -72,7 +72,7 @@ describe('AiBudgetService', () => {
       await expect(
         service.recordGeneration({
           reservationId: 'log-row-1',
-          model: 'gpt-4.1-nano',
+          model: 'gpt-6-luna',
           inputTokens: 100,
           outputTokens: 50,
           status: 'success',
@@ -82,7 +82,7 @@ describe('AiBudgetService', () => {
       expect(mockAdmin.from).toHaveBeenCalledWith('content_generation_log');
       const updateArg = mockAdmin._chain.update.mock.calls[0][0];
       expect(updateArg).toMatchObject({
-        model: 'gpt-4.1-nano',
+        model: 'gpt-6-luna',
         input_tokens: 100,
         output_tokens: 50,
         status: 'success',

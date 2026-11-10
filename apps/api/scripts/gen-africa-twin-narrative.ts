@@ -13,8 +13,9 @@ import { join } from 'node:path';
 import { findDigitViolations, MaintenanceNarrativeSchema } from '@motovault/types';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
+import { AI_MODELS, AI_TOKEN_LIMITS } from '../src/config/constants';
 
-const MODEL = 'gpt-4.1';
+const MODEL = AI_MODELS.ARTICLE_GENERATOR;
 // Refer to the bike WITHOUT its numeric model code — any digit the model echoes
 // (e.g. "CRF1100", "1100cc") trips the no-digit guard. Use the digit-free brand name.
 const BIKE =
@@ -63,7 +64,8 @@ async function main(): Promise<void> {
       model: MODEL,
       messages,
       response_format: zodResponseFormat(MaintenanceNarrativeSchema, 'maintenance_narrative'),
-      max_tokens: 4096,
+      max_completion_tokens: AI_TOKEN_LIMITS.ARTICLE_MAX_TOKENS,
+      reasoning_effort: 'none',
     });
     const parsed = completion.choices[0]?.message.parsed;
     if (!parsed) throw new Error('AI did not return structured narrative content');
