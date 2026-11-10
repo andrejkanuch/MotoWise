@@ -14,9 +14,12 @@ import {
   MaintenanceTasksByMotorcycleDocument,
   MeDocument,
   MyMotorcyclesDocument,
+  MyRidesDocument,
   MyRidesForHeatmapDocument,
   type MyRidesForHeatmapQuery,
   type MyRidesForHeatmapQueryVariables,
+  type MyRidesQuery,
+  type MyRidesQueryVariables,
 } from '@motovault/graphql';
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import { HEATMAP_PAGE_SIZE } from '../utils/ride-constants';
@@ -134,6 +137,28 @@ export const rideHeatmapOptions = () =>
       return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
     },
     staleTime: FIVE_MINUTES_MS,
+  });
+
+/** Rides per page of the rider's own ride list. */
+export const MY_RIDES_PAGE_SIZE = 20;
+
+/**
+ * The rider's own rides, newest first, `MY_RIDES_PAGE_SIZE` a page. My rides
+ * lists them and the Rider insights season page pages back through them to a
+ * week; both read this one entry, so pages one loaded are there for the other.
+ */
+export const myRidesOptions = () =>
+  infiniteQueryOptions({
+    queryKey: queryKeys.rides.all,
+    queryFn: ({ pageParam }) => {
+      const variables: MyRidesQueryVariables = { first: MY_RIDES_PAGE_SIZE, after: pageParam };
+      return gqlFetcher(MyRidesDocument, variables);
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage: MyRidesQuery) => {
+      const pi = lastPage?.myRides?.pageInfo;
+      return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
+    },
   });
 
 /** The `year` variable of the expenses query that means every year. */

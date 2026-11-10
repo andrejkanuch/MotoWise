@@ -1,5 +1,4 @@
 import {
-  MyRidesDocument,
   type MyRidesQuery,
   RideOverviewDocument,
   type RideOverviewQuery,
@@ -29,7 +28,7 @@ import { useMeasurementSystem } from '@/hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
-import { motorcyclesOptions } from '@/lib/query-options';
+import { motorcyclesOptions, myRidesOptions } from '@/lib/query-options';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, space } from '@/theme/spacing';
 import { radius, readableWidth, SYSTEM_WEIGHT, type } from '@/theme/type';
@@ -42,8 +41,6 @@ import {
   formatElevationValue,
   speedUnitLabel,
 } from '@/utils/ride-formatters';
-
-const PAGE_SIZE = 20;
 
 /** The period distance is the screen's one big figure: the figure face, scaled up. */
 const HERO_FIGURE = { fontSize: 56, lineHeight: 58 } as const;
@@ -256,20 +253,7 @@ export default function RidesScreen() {
   );
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch, isRefetching } =
-    useInfiniteQuery<MyRidesQuery>({
-      queryKey: queryKeys.rides.all,
-      queryFn: ({ pageParam }) =>
-        gqlFetcher(MyRidesDocument, {
-          first: PAGE_SIZE,
-          after: (pageParam as string) ?? null,
-        }),
-      initialPageParam: undefined as string | undefined,
-      getNextPageParam: (lastPage) => {
-        const pageInfo = lastPage?.myRides?.pageInfo;
-        if (!pageInfo?.hasNextPage) return undefined;
-        return pageInfo.endCursor ?? undefined;
-      },
-    });
+    useInfiniteQuery(myRidesOptions());
 
   const allEdges = useMemo<RideEdge[]>(
     () => (data?.pages ?? []).flatMap((page) => page?.myRides?.edges ?? []),
