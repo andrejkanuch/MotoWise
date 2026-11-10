@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useEditorialTheme } from '@/theme/editorial';
-import { space } from '@/theme/spacing';
+import { layout, space } from '@/theme/spacing';
 import { PLATE_FONT, type } from '@/theme/type';
 import { triggerSelection } from '@/utils/haptics';
 import { decodePolyline, simplifyEncodedPolyline } from '@/utils/polyline';
@@ -150,77 +150,90 @@ interface RegionTilesProps {
   onSelect: (key: string) => void;
 }
 
-/** Other riding regions as small static map tiles; a tap shows that region on the main map. */
+/**
+ * Other riding regions as small static map tiles under a short heading that
+ * says what they are; a tap shows that region on the main map.
+ */
 export function RegionTiles({ tiles, width, formatMeta, regionName, onSelect }: RegionTilesProps) {
   const { t: i18n } = useTranslation();
   const { t, isDark } = useEditorialTheme();
   const side = Math.min(MAX_TILE_SIDE, (width - space.sm * (TILE_COLUMNS - 1)) / TILE_COLUMNS);
 
   return (
-    <View style={{ flexDirection: 'row', gap: space.sm }}>
-      {tiles.map((region) => {
-        const name = regionName(region);
-        const viewport = region.bounds
-          ? fitViewport(region.bounds, side, side, TILE_PADDING)
-          : null;
-        const url = viewport
-          ? staticMapUrl(isDark ? STATIC_STYLE.DARK : STATIC_STYLE.LIGHT, viewport, side, side)
-          : null;
-        return (
-          <Pressable
-            key={region.key}
-            testID={`region-tile-${region.key}`}
-            accessibilityRole="button"
-            accessibilityLabel={i18n('riderInsights.regions.tileA11y', { region: name })}
-            onPress={() => {
-              triggerSelection();
-              onSelect(region.key);
-            }}
-            style={({ pressed }) => ({ width: side, gap: space.xxs, opacity: pressed ? 0.7 : 1 })}
-          >
-            <View
-              style={{
-                width: side,
-                height: side,
-                borderRadius: TILE_RADIUS,
-                borderCurve: 'continuous',
-                overflow: 'hidden',
-                backgroundColor: t.surface2,
+    <View testID="region-tiles" style={{ gap: space.xs, paddingTop: space.xs }}>
+      <View style={{ gap: layout.titleGap, marginHorizontal: space.md }}>
+        <Text accessibilityRole="header" style={[type.label, { color: t.ink3 }]}>
+          {i18n('riderInsights.regions.heading')}
+        </Text>
+        <Text style={[type.caption, { color: t.ink3 }]}>
+          {i18n('riderInsights.regions.caption')}
+        </Text>
+      </View>
+      <View style={{ flexDirection: 'row', gap: space.sm }}>
+        {tiles.map((region) => {
+          const name = regionName(region);
+          const viewport = region.bounds
+            ? fitViewport(region.bounds, side, side, TILE_PADDING)
+            : null;
+          const url = viewport
+            ? staticMapUrl(isDark ? STATIC_STYLE.DARK : STATIC_STYLE.LIGHT, viewport, side, side)
+            : null;
+          return (
+            <Pressable
+              key={region.key}
+              testID={`region-tile-${region.key}`}
+              accessibilityRole="button"
+              accessibilityLabel={i18n('riderInsights.regions.tileA11y', { region: name })}
+              onPress={() => {
+                triggerSelection();
+                onSelect(region.key);
               }}
+              style={({ pressed }) => ({ width: side, gap: space.xxs, opacity: pressed ? 0.7 : 1 })}
             >
-              {url ? <Image source={{ uri: url }} style={{ width: side, height: side }} /> : null}
-              {viewport ? (
-                <Svg width={side} height={side} style={{ position: 'absolute' }}>
-                  {region.routes.map((route, i) => (
-                    <Path
-                      // biome-ignore lint/suspicious/noArrayIndexKey: routes are an ordered, unkeyed list
-                      key={i}
-                      d={routeSvgPath(route, viewport, side, side)}
-                      stroke={t.warm}
-                      strokeWidth={TILE_ROUTE_WIDTH}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      fill="none"
-                    />
-                  ))}
-                </Svg>
-              ) : null}
-            </View>
-            <Text style={[type.caption, { color: t.ink2 }]}>{name}</Text>
-            <Text
-              style={{
-                fontFamily: PLATE_FONT.medium,
-                fontSize: 15,
-                lineHeight: 16,
-                fontVariant: ['tabular-nums'],
-                color: t.ink3,
-              }}
-            >
-              {formatMeta(region)}
-            </Text>
-          </Pressable>
-        );
-      })}
+              <View
+                style={{
+                  width: side,
+                  height: side,
+                  borderRadius: TILE_RADIUS,
+                  borderCurve: 'continuous',
+                  overflow: 'hidden',
+                  backgroundColor: t.surface2,
+                }}
+              >
+                {url ? <Image source={{ uri: url }} style={{ width: side, height: side }} /> : null}
+                {viewport ? (
+                  <Svg width={side} height={side} style={{ position: 'absolute' }}>
+                    {region.routes.map((route, i) => (
+                      <Path
+                        // biome-ignore lint/suspicious/noArrayIndexKey: routes are an ordered, unkeyed list
+                        key={i}
+                        d={routeSvgPath(route, viewport, side, side)}
+                        stroke={t.warm}
+                        strokeWidth={TILE_ROUTE_WIDTH}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        fill="none"
+                      />
+                    ))}
+                  </Svg>
+                ) : null}
+              </View>
+              <Text style={[type.caption, { color: t.ink2 }]}>{name}</Text>
+              <Text
+                style={{
+                  fontFamily: PLATE_FONT.medium,
+                  fontSize: 15,
+                  lineHeight: 16,
+                  fontVariant: ['tabular-nums'],
+                  color: t.ink3,
+                }}
+              >
+                {formatMeta(region)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }

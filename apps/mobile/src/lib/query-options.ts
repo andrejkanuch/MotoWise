@@ -14,9 +14,12 @@ import {
   MaintenanceTasksByMotorcycleDocument,
   MeDocument,
   MyMotorcyclesDocument,
+  MyRidesDocument,
   MyRidesForHeatmapDocument,
   type MyRidesForHeatmapQuery,
   type MyRidesForHeatmapQueryVariables,
+  type MyRidesQuery,
+  type MyRidesQueryVariables,
 } from '@motovault/graphql';
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import { HEATMAP_PAGE_SIZE } from '../utils/ride-constants';
@@ -134,6 +137,44 @@ export const rideHeatmapOptions = () =>
       return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
     },
     staleTime: FIVE_MINUTES_MS,
+  });
+
+/** Rides per page of the rider's own ride list. */
+export const MY_RIDES_PAGE_SIZE = 20;
+/** Rides per page when paging back to one week: fewer, bigger round trips. */
+export const WEEK_RIDES_PAGE_SIZE = 50;
+
+const myRidesNextPage = (lastPage: MyRidesQuery) => {
+  const pi = lastPage?.myRides?.pageInfo;
+  return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
+};
+
+/** The rider's own rides, newest first, `MY_RIDES_PAGE_SIZE` a page: the My rides list. */
+export const myRidesOptions = () =>
+  infiniteQueryOptions({
+    queryKey: queryKeys.rides.all,
+    queryFn: ({ pageParam }) => {
+      const variables: MyRidesQueryVariables = { first: MY_RIDES_PAGE_SIZE, after: pageParam };
+      return gqlFetcher(MyRidesDocument, variables);
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: myRidesNextPage,
+  });
+
+/**
+ * The same ride list for one week of the Rider insights season page, in its
+ * own entry per week (`rides.week`) so paging back to an old week never grows
+ * My rides' list, and `WEEK_RIDES_PAGE_SIZE` a page. Not persisted.
+ */
+export const weekRidesOptions = (weekStart: string) =>
+  infiniteQueryOptions({
+    queryKey: queryKeys.rides.week(weekStart),
+    queryFn: ({ pageParam }) => {
+      const variables: MyRidesQueryVariables = { first: WEEK_RIDES_PAGE_SIZE, after: pageParam };
+      return gqlFetcher(MyRidesDocument, variables);
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: myRidesNextPage,
   });
 
 /** The `year` variable of the expenses query that means every year. */

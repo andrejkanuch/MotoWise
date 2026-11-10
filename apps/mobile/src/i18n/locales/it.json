@@ -2784,7 +2784,11 @@
       "offline": "La mappa comparirà quando sarai di nuovo online.",
       "mapA11y_one": "Mappa di {{count}} uscita intorno a {{region}}",
       "mapA11y_other": "Mappa di {{count}} uscite intorno a {{region}}",
-      "mapA11y_many": "Mappa di {{count}} uscite intorno a {{region}}"
+      "mapA11y_many": "Mappa di {{count}} uscite intorno a {{region}}",
+      "expandHint": "Apre la mappa a schermo intero"
+    },
+    "map": {
+      "close": "Chiudi mappa"
     },
     "totals": {
       "rides_one": "{{count}} uscita",
@@ -2804,12 +2808,15 @@
       "meta_one": "{{count}} uscita · {{distance}}",
       "meta_other": "{{count}} uscite · {{distance}}",
       "meta_many": "{{count}} uscite · {{distance}}",
-      "tileA11y": "Mostra {{region}} sulla mappa"
+      "tileA11y": "Mostra {{region}} sulla mappa",
+      "heading": "Gli altri posti dove sei stato in moto",
+      "caption": "Toccane uno per vederlo sulla mappa qui sopra."
     },
     "ribbon": {
       "section": "Stagione",
       "weeksRidden": "In moto {{ridden}} settimane su {{total}}",
-      "biggest": "Il massimo: {{distance}}, dal {{start}} al {{end}}"
+      "biggest": "Il massimo: {{distance}}, dal {{start}} al {{end}}",
+      "openHint": "Apre la tua stagione per mese e settimana"
     },
     "howYouRide": {
       "section": "Come guidi",
@@ -2973,6 +2980,28 @@
         "meta_other": "Prima volta il {{date}} · {{count}} uscite",
         "meta_many": "Prima volta il {{date}} · {{count}} uscite",
         "footnote": "Un paese conta quando almeno 1 km di un percorso si trova 500 m o più all'interno del suo confine."
+      },
+      "season": {
+        "heroLine_one": "su {{count}} settimana finora in moto",
+        "heroLine_other": "su {{count}} settimane finora in moto",
+        "heroLine_many": "su {{count}} settimane finora in moto",
+        "months": "Mesi",
+        "weeks": "Settimane in moto",
+        "rides_one": "{{count}} uscita",
+        "rides_other": "{{count}} uscite",
+        "rides_many": "{{count}} uscite",
+        "noRides": "Nessuna uscita",
+        "week": "Dal {{start}} al {{end}}",
+        "biggest": "Settimana record",
+        "loadingRides": "Caricamento delle uscite",
+        "loadFailed": "Impossibile caricare le uscite di questa settimana.",
+        "retry": "Riprova",
+        "noWeekRides": "Nessuna uscita conclusa in questa settimana.",
+        "footnote": "Una settimana conta nel mese in cui cade la maggior parte dei suoi giorni. Tocca una settimana per vederne le uscite.",
+        "searchedLatest_one": "Cercato nella tua ultima uscita. Questa settimana potrebbe averne altre.",
+        "searchedLatest_other": "Cercato nelle tue ultime {{count}} uscite. Questa settimana potrebbe averne altre.",
+        "searchedLatest_many": "Cercato nelle tue ultime {{count}} uscite. Questa settimana potrebbe averne altre.",
+        "loadOlder": "Cerca uscite più vecchie"
       }
     },
     "share": {

@@ -138,6 +138,8 @@ interface ValueRowProps {
   unit?: string | null;
   /** The value is words ("Saturday mornings"), set in the system face, not as a figure. */
   textValue?: boolean;
+  /** A row that opens rows under it: whether they show, for screen readers. */
+  expanded?: boolean;
   onPress?: () => void;
 }
 
@@ -153,6 +155,7 @@ export function ValueRow({
   value,
   unit,
   textValue = false,
+  expanded,
   onPress,
 }: ValueRowProps) {
   const { t } = useEditorialTheme();
@@ -163,6 +166,7 @@ export function ValueRow({
       testID={testID}
       accessible
       accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityState={expanded === undefined ? undefined : { expanded }}
       accessibilityLabel={[title, caption, unit ? `${value} ${unit}` : value]
         .filter(Boolean)
         .join(', ')}

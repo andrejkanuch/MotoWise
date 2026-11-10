@@ -75,7 +75,7 @@
     "app/(tabs)/(learn)/article/[slug].tsx": 317,
     "app/(tabs)/(learn)/index.tsx": 796,
     "app/(tabs)/(profile)/edit-profile.tsx": 509,
-    "app/(tabs)/(profile)/rides.tsx": 867,
+    "app/(tabs)/(profile)/rides.tsx": 851,
     "app/(tabs)/(profile)/saved.tsx": 333,
     "app/(tabs)/(profile)/trips.tsx": 542,
     "app/(tabs)/_layout.tsx": 427,

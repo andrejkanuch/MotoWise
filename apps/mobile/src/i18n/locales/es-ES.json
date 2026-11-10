@@ -587,7 +587,8 @@
     "regions": {
       "meta_one": "{{count}} salida · {{distance}}",
       "meta_other": "{{count}} salidas · {{distance}}",
-      "meta_many": "{{count}} salidas · {{distance}}"
+      "meta_many": "{{count}} salidas · {{distance}}",
+      "heading": "Otros sitios por los que has rodado"
     },
     "ribbon": {
       "weeksRidden": "{{ridden}} de {{total}} semanas con salidas"
@@ -665,6 +666,24 @@
         "meta_one": "Primera vez el {{date}} · {{count}} salida",
         "meta_other": "Primera vez el {{date}} · {{count}} salidas",
         "meta_many": "Primera vez el {{date}} · {{count}} salidas"
+      },
+      "season": {
+        "heroLine_one": "de {{count}} semana con salidas hasta ahora",
+        "heroLine_other": "de {{count}} semanas con salidas hasta ahora",
+        "heroLine_many": "de {{count}} semanas con salidas hasta ahora",
+        "weeks": "Semanas con salidas",
+        "rides_one": "{{count}} salida",
+        "rides_other": "{{count}} salidas",
+        "rides_many": "{{count}} salidas",
+        "noRides": "Sin salidas",
+        "loadingRides": "Cargando salidas",
+        "loadFailed": "No se han podido cargar las salidas de esta semana.",
+        "noWeekRides": "No hay salidas terminadas esta semana.",
+        "footnote": "Cada semana cuenta en el mes en el que cae la mayoría de sus días. Toca una semana para ver sus salidas.",
+        "searchedLatest_one": "Hemos buscado en tu última {{count}} salida. Esta semana puede tener más.",
+        "searchedLatest_other": "Hemos buscado en tus últimas {{count}} salidas. Esta semana puede tener más.",
+        "searchedLatest_many": "Hemos buscado en tus últimas {{count}} salidas. Esta semana puede tener más.",
+        "loadOlder": "Buscar salidas anteriores"
       }
     },
     "share": {

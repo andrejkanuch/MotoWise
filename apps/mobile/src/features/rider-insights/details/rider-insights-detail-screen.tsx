@@ -2,7 +2,7 @@
  * One Rider insights group on its own page, pushed from "How you ride" (or a
  * deep link). Reads the same `riderInsights` cache as the main screen. A Pro
  * page for a rider without Pro shows the locked template; free pages (bikes,
- * countries, the longest ride) show in full.
+ * countries, the season, the longest ride) show in full.
  */
 import { RiderInsightsStatus } from '@motovault/graphql';
 import type { MeasurementSystem } from '@motovault/types';
@@ -39,6 +39,7 @@ import {
 } from './locked-detail';
 import { RhythmDetail } from './rhythm';
 import { RoadCharacterDetail } from './road-character';
+import { SeasonDetail } from './season';
 import { TerritoryDetail } from './territory';
 
 /** Property on the locked-row events that tells a detail page from a list row. */
@@ -52,6 +53,7 @@ const TITLE: Record<RiderInsightsDetailGroup, (t: TFunction) => string> = {
   [RIDER_INSIGHTS_DETAIL_GROUP.BEST_RIDES]: (t) => t('riderInsights.howYouRide.bestRides.title'),
   [RIDER_INSIGHTS_DETAIL_GROUP.BIKES]: (t) => t('riderInsights.howYouRide.bikes.title'),
   [RIDER_INSIGHTS_DETAIL_GROUP.COUNTRIES]: (t) => t('riderInsights.detail.countries.title'),
+  [RIDER_INSIGHTS_DETAIL_GROUP.SEASON]: (t) => t('riderInsights.ribbon.section'),
 };
 
 /** The native header title of a detail page. */
@@ -275,6 +277,10 @@ const PAGE: Record<RiderInsightsDetailGroup, (ctx: PageContext) => ReactNode> = 
     ) : (
       <StateNotice testID="detail-missing_input" body={ctx.i18n('riderInsights.hero.noRoutes')} />
     ),
+
+  [RIDER_INSIGHTS_DETAIL_GROUP.SEASON]: (ctx) => (
+    <SeasonDetail insights={ctx.insights} system={ctx.system} />
+  ),
 };
 
 export function RiderInsightsDetailScreen({ group }: { group: RiderInsightsDetailGroup }) {

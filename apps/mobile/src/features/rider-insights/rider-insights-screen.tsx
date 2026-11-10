@@ -1,8 +1,9 @@
 /**
- * Rider insights: the season as a place you rode. One live map of the main
- * riding region with the totals band, the other regions as tiles, the weeks
- * ridden, and "How you ride", where each insight opens its own page and Pro
- * rows show the rider's own pattern blurred. Every number comes from the
+ * Rider insights: the season as a place you rode. One map of the main riding
+ * region with the totals band (a tap opens it full screen), the other regions
+ * as tiles, the weeks ridden (a tap opens the season), and "How you ride",
+ * where each insight opens its own page and Pro rows show the rider's own
+ * pattern blurred. Every number comes from the
  * `riderInsights` query; the season shown is the API's.
  */
 import { format, parseISO } from 'date-fns';
@@ -31,6 +32,7 @@ import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, layout, space } from '@/theme/spacing';
 import { CONTENT_MAX_WIDTH, radius, readableWidth, SYSTEM_WEIGHT, type } from '@/theme/type';
+import { AtlasFullMap } from './atlas-full-map';
 import { AtlasHero } from './atlas-hero';
 import { HowYouRideList } from './how-you-ride-list';
 import { RecapEntryRow } from './recap/recap-entry-row';
@@ -80,6 +82,7 @@ export function RiderInsightsScreen() {
   const { insights, view, stale, mapAvailable, unlocking, onPurchased, retry } = useRiderInsights();
   const [order, setOrder] = useState<string[] | null>(null);
   const [sharing, setSharing] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
 
   useEffect(() => {
     trackEvent(AnalyticsEvent.RIDER_INSIGHTS_OPENED, { entry: openedFrom });
@@ -93,7 +96,10 @@ export function RiderInsightsScreen() {
 
   const ready = view === INSIGHTS_VIEW.READY && insights !== null;
   const content = ready && insights.totals.rides > 0 ? insights : null;
-  const regions = content ? orderRegions(content.regions, order) : [];
+  const regions = useMemo(
+    () => (content ? orderRegions(content.regions, order) : []),
+    [content, order],
+  );
   const main = regions[0] ?? null;
   const regionName = (region: RiderInsightsRegion) =>
     region.name ?? i18n('riderInsights.regions.unnamed');
@@ -166,6 +172,7 @@ export function RiderInsightsScreen() {
                 regionName={regionName}
                 regionMeta={regionMeta}
                 onOpenCountries={() => openDetail(RIDER_INSIGHTS_DETAIL_GROUP.COUNTRIES)}
+                onExpand={() => setMapOpen(true)}
               />
               {regions.length >= 2 && mapAvailable ? (
                 <RegionTiles
@@ -178,7 +185,12 @@ export function RiderInsightsScreen() {
               ) : null}
             </View>
 
-            <SeasonRibbon ribbon={content.ribbon} season={content.season} system={system} />
+            <SeasonRibbon
+              ribbon={content.ribbon}
+              season={content.season}
+              system={system}
+              onPress={() => openDetail(RIDER_INSIGHTS_DETAIL_GROUP.SEASON)}
+            />
 
             <HowYouRideList
               insights={content}
@@ -198,6 +210,9 @@ export function RiderInsightsScreen() {
           </>
         )}
       </ScrollView>
+      {content && mapAvailable ? (
+        <AtlasFullMap visible={mapOpen} regions={regions} onClose={() => setMapOpen(false)} />
+      ) : null}
       {content ? (
         <InsightsShareSheet
           visible={sharing}

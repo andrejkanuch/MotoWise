@@ -2752,7 +2752,11 @@
       "noRoutes": "Yolların, GPS'li bir sürüşten sonra burada görünür.",
       "offline": "Harita, tekrar çevrimiçi olduğunda görünür.",
       "mapA11y_one": "{{region}} çevresinde {{count}} sürüşün haritası",
-      "mapA11y_other": "{{region}} çevresinde {{count}} sürüşün haritası"
+      "mapA11y_other": "{{region}} çevresinde {{count}} sürüşün haritası",
+      "expandHint": "Haritayı tam ekran açar"
+    },
+    "map": {
+      "close": "Haritayı kapat"
     },
     "totals": {
       "rides_one": "{{count}} sürüş",
@@ -2768,12 +2772,15 @@
       "unnamed": "Adsız bölge",
       "meta_one": "{{count}} sürüş · {{distance}}",
       "meta_other": "{{count}} sürüş · {{distance}}",
-      "tileA11y": "Haritada göster: {{region}}"
+      "tileA11y": "Haritada göster: {{region}}",
+      "heading": "Sürdüğün diğer yerler",
+      "caption": "Yukarıdaki haritada göstermek için birine dokun."
     },
     "ribbon": {
       "section": "Sezon",
       "weeksRidden": "Sürüş yapılan hafta: {{ridden}}/{{total}}",
-      "biggest": "En uzun: {{distance}}, {{start}} – {{end}}"
+      "biggest": "En uzun: {{distance}}, {{start}} – {{end}}",
+      "openHint": "Sezonunu aylara ve haftalara göre açar"
     },
     "howYouRide": {
       "section": "Nasıl sürüyorsun",
@@ -2926,6 +2933,25 @@
         "meta_one": "İlk sürüş {{date}} · {{count}} sürüş",
         "meta_other": "İlk sürüş {{date}} · {{count}} sürüş",
         "footnote": "Bir rotanın en az 1 km'si sınırın 500 m veya daha fazla içinde kalıyorsa o ülke sayılır."
+      },
+      "season": {
+        "heroLine_one": "hafta sürüşlü (şimdiye kadarki {{count}} haftadan)",
+        "heroLine_other": "hafta sürüşlü (şimdiye kadarki {{count}} haftadan)",
+        "months": "Aylar",
+        "weeks": "Sürüş yapılan haftalar",
+        "rides_one": "{{count}} sürüş",
+        "rides_other": "{{count}} sürüş",
+        "noRides": "Sürüş yok",
+        "week": "{{start}} – {{end}}",
+        "biggest": "En yoğun hafta",
+        "loadingRides": "Sürüşler yükleniyor",
+        "loadFailed": "Bu haftanın sürüşleri yüklenemedi.",
+        "retry": "Tekrar dene",
+        "noWeekRides": "Bu hafta tamamlanmış sürüş bulunamadı.",
+        "footnote": "Bir hafta, günlerinin çoğunun düştüğü ayda sayılır. Sürüşlerini görmek için bir haftaya dokun.",
+        "searchedLatest_one": "Son {{count}} sürüşünde arandı. Bu haftada daha fazlası olabilir.",
+        "searchedLatest_other": "Son {{count}} sürüşünde arandı. Bu haftada daha fazlası olabilir.",
+        "loadOlder": "Daha eski sürüşleri ara"
       }
     },
     "share": {

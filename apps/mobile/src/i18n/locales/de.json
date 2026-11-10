@@ -2752,7 +2752,11 @@
       "noRoutes": "Deine Strecken erscheinen hier nach einer Fahrt mit GPS.",
       "offline": "Die Karte erscheint, sobald du wieder online bist.",
       "mapA11y_one": "Karte mit {{count}} Fahrt rund um {{region}}",
-      "mapA11y_other": "Karte mit {{count}} Fahrten rund um {{region}}"
+      "mapA11y_other": "Karte mit {{count}} Fahrten rund um {{region}}",
+      "expandHint": "Öffnet die Karte im Vollbild"
+    },
+    "map": {
+      "close": "Karte schließen"
     },
     "totals": {
       "rides_one": "{{count}} Fahrt",
@@ -2768,12 +2772,15 @@
       "unnamed": "Unbenannte Region",
       "meta_one": "{{count}} Fahrt · {{distance}}",
       "meta_other": "{{count}} Fahrten · {{distance}}",
-      "tileA11y": "{{region}} auf der Karte zeigen"
+      "tileA11y": "{{region}} auf der Karte zeigen",
+      "heading": "Weitere Gegenden, in denen du gefahren bist",
+      "caption": "Tippe auf eine, um sie oben auf der Karte zu zeigen."
     },
     "ribbon": {
       "section": "Saison",
       "weeksRidden": "In {{ridden}} von {{total}} Wochen gefahren",
-      "biggest": "Spitzenwert: {{distance}}, {{start}} bis {{end}}"
+      "biggest": "Spitzenwert: {{distance}}, {{start}} bis {{end}}",
+      "openHint": "Öffnet deine Saison nach Monaten und Wochen"
     },
     "howYouRide": {
       "section": "Wie du fährst",
@@ -2926,6 +2933,25 @@
         "meta_one": "Zuerst befahren am {{date}} · {{count}} Fahrt",
         "meta_other": "Zuerst befahren am {{date}} · {{count}} Fahrten",
         "footnote": "Ein Land zählt, sobald mindestens 1 km einer Strecke 500 m oder mehr innerhalb seiner Grenze liegt."
+      },
+      "season": {
+        "heroLine_one": "von bisher {{count}} Woche mit Fahrten",
+        "heroLine_other": "von bisher {{count}} Wochen mit Fahrten",
+        "months": "Monate",
+        "weeks": "Wochen mit Fahrten",
+        "rides_one": "{{count}} Fahrt",
+        "rides_other": "{{count}} Fahrten",
+        "noRides": "Keine Fahrten",
+        "week": "{{start}} bis {{end}}",
+        "biggest": "Stärkste Woche",
+        "loadingRides": "Fahrten werden geladen",
+        "loadFailed": "Die Fahrten dieser Woche konnten nicht geladen werden.",
+        "retry": "Erneut versuchen",
+        "noWeekRides": "Keine abgeschlossenen Fahrten in dieser Woche gefunden.",
+        "footnote": "Eine Woche zählt zu dem Monat, in den die meisten ihrer Tage fallen. Tippe auf eine Woche, um ihre Fahrten zu sehen.",
+        "searchedLatest_one": "Deine letzte {{count}} Fahrt durchsucht. Diese Woche kann mehr haben.",
+        "searchedLatest_other": "Deine letzten {{count}} Fahrten durchsucht. Diese Woche kann mehr haben.",
+        "loadOlder": "Ältere Fahrten durchsuchen"
       }
     },
     "share": {
