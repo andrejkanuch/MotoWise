@@ -22,7 +22,6 @@ import {
   Trophy,
   X,
 } from 'lucide-react-native';
-// NOTE: palette is kept only for speed-gradient colors (speedSlow/Medium/Fast)
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -39,8 +38,13 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../components/ui/native-toggle';
 import { finalizeEndedRide } from '../../features/ride/ride-controller';
-import { RidePurposeSheet } from '../../features/ride/ride-purpose-sheet';
+import { summaryMovingTimeS } from '../../features/ride/ride-moving-time';
+import {
+  RidePurposeSheet,
+  type RidePurposeSheetHandle,
+} from '../../features/ride/ride-purpose-sheet';
 import { RideSummaryInsightsCard } from '../../features/ride/ride-summary-insights-card';
+import { buildSummaryRoute } from '../../features/ride/ride-summary-route';
 import { useBikeName } from '../../hooks/use-bike-name';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
@@ -113,6 +117,12 @@ export default function RideSummaryScreen() {
   const startedAtMs = Number(params.startedAt) || Date.now();
   const motorcycleId = params.motorcycleId ?? '';
   const movingTimeS = Number(params.movingTimeS) || 0;
+  const shownMovingS = summaryMovingTimeS({
+    distanceM,
+    avgSpeedMps,
+    durationS,
+    fallbackS: movingTimeS,
+  });
 
   const queryClient = useQueryClient();
   const { t, i18n } = useTranslation();
@@ -155,102 +165,11 @@ export default function RideSummaryScreen() {
     ? Math.round(((pbRecord.value - pbRecord.previousValue) / pbRecord.previousValue) * 100)
     : null;
 
-  // Build route from stored waypoints
-  const routeData = useMemo(() => {
-    const chunks = getWaypointChunks(rideId);
-    const allWaypoints = chunks.flat();
-    const buffer = [...getPointBuffer()];
-    const combined = [...allWaypoints, ...buffer];
-
-    if (combined.length < 2) return null;
-
-    const coordinates: [number, number][] = [];
-    const speedValues: number[] = [];
-
-    let minLng = combined[0].longitude;
-    let maxLng = combined[0].longitude;
-    let minLat = combined[0].latitude;
-    let maxLat = combined[0].latitude;
-
-    let cumulativeDistance = 0;
-    const distances: number[] = [0];
-
-    for (let i = 0; i < combined.length; i++) {
-      const wp = combined[i];
-      coordinates.push([wp.longitude, wp.latitude]);
-      speedValues.push(wp.speedMps ?? 0);
-
-      if (wp.longitude < minLng) minLng = wp.longitude;
-      if (wp.longitude > maxLng) maxLng = wp.longitude;
-      if (wp.latitude < minLat) minLat = wp.latitude;
-      if (wp.latitude > maxLat) maxLat = wp.latitude;
-
-      if (i > 0) {
-        const prev = combined[i - 1];
-        const segDist = Math.sqrt(
-          (wp.longitude - prev.longitude) ** 2 + (wp.latitude - prev.latitude) ** 2,
-        );
-        cumulativeDistance += segDist;
-        distances.push(cumulativeDistance);
-      }
-    }
-
-    // Speed-gradient color stops — downsample to max ~200 entries
-    const totalDist = cumulativeDistance || 1;
-    const rawStops: [number, string][] = [];
-    let lastPct = -1;
-    for (let i = 0; i < combined.length; i++) {
-      const pct = Math.round((distances[i] / totalDist) * 10000) / 10000;
-      if (pct <= lastPct) continue;
-      const speedKmh = (speedValues[i] ?? 0) * 3.6;
-      let color: string;
-      if (speedKmh < 30) color = palette.speedSlow;
-      else if (speedKmh < 80) color = palette.speedMedium;
-      else color = palette.speedFast;
-      rawStops.push([pct, color]);
-      lastPct = pct;
-    }
-
-    let colorStops = rawStops;
-    if (rawStops.length > 200) {
-      const step = Math.ceil(rawStops.length / 200);
-      colorStops = rawStops.filter(
-        (_, i) => i === 0 || i === rawStops.length - 1 || i % step === 0,
-      );
-    }
-
-    if (colorStops.length === 0) {
-      colorStops = [
-        [0, palette.speedSlow],
-        [1, palette.speedSlow],
-      ];
-    } else {
-      if (colorStops[0][0] !== 0) colorStops.unshift([0, colorStops[0][1]]);
-      if (colorStops[colorStops.length - 1][0] !== 1)
-        colorStops.push([1, colorStops[colorStops.length - 1][1]]);
-    }
-
-    const geojson: GeoJSON.FeatureCollection = {
-      type: 'FeatureCollection',
-      features: [
-        {
-          type: 'Feature',
-          properties: {},
-          geometry: { type: 'LineString', coordinates },
-        },
-      ],
-    };
-
-    const bounds = {
-      ne: [maxLng + 0.005, maxLat + 0.005] as [number, number],
-      sw: [minLng - 0.005, minLat - 0.005] as [number, number],
-    };
-
-    const startPoint = coordinates[0];
-    const endPoint = coordinates[coordinates.length - 1];
-
-    return { geojson, bounds, colorStops, startPoint, endPoint };
-  }, [rideId]);
+  // The route from the stored waypoints and the points not yet flushed to them.
+  const routeData = useMemo(
+    () => buildSummaryRoute([...getWaypointChunks(rideId).flat(), ...getPointBuffer()]),
+    [rideId],
+  );
 
   const handleShare = useCallback(async () => {
     triggerImpact();
@@ -270,11 +189,17 @@ export default function RideSummaryScreen() {
   // destination, a parameter so a failed insights save cannot redirect a later Save.
   // A plain function: the React Compiler memoizes it, and a hook deps array would not.
   const savingRef = useRef(false);
+  const purposeSheetRef = useRef<RidePurposeSheetHandle>(null);
   const handleSave = async (destination: Href = PROFILE_HREF) => {
     if (savingRef.current) return;
     savingRef.current = true;
     setIsSaving(true);
     try {
+      // A typed odometer goes with Save; "Fix it" on its lower-reading prompt stays here.
+      if ((await purposeSheetRef.current?.sendPendingOdometer()) === false) {
+        savingRef.current = false;
+        return;
+      }
       triggerNotification(Haptics.NotificationFeedbackType.Success);
 
       enqueueOrExecute('updateRide', {
@@ -371,7 +296,7 @@ export default function RideSummaryScreen() {
       label: t('rideSummary.stats.distance'),
       value: formatDistance(distanceM, system),
     },
-    { icon: Clock, label: t('rideSummary.stats.movingTime'), value: formatDuration(movingTimeS) },
+    { icon: Clock, label: t('rideSummary.stats.movingTime'), value: formatDuration(shownMovingS) },
     {
       icon: TrendingUp,
       label: t('rideSummary.stats.avgSpeed'),
@@ -769,7 +694,7 @@ export default function RideSummaryScreen() {
             movingS={movingTimeS}
             onOpenInsights={(href) => void handleSave(href)}
           />
-          <RidePurposeSheet rideId={rideId} motorcycleId={motorcycleId} />
+          <RidePurposeSheet ref={purposeSheetRef} rideId={rideId} motorcycleId={motorcycleId} />
           <Animated.View entering={FadeInUp.delay(600).duration(250)}>
             <Pressable
               onPress={() => {

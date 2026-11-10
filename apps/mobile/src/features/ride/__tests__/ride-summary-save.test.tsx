@@ -1,5 +1,6 @@
 // The ride summary's save: opening Rider insights saves the ride and lands on
 // insights; a save that fails there must not send a later plain Save to insights.
+// An odometer typed on the summary's ride card and not sent yet goes with Save.
 import type { ReactNode } from 'react';
 
 jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
@@ -32,7 +33,16 @@ jest.mock('expo-linear-gradient', () => {
 });
 jest.mock('@/lib/graphql-client', () => ({ gqlFetcher: () => new Promise(() => {}) }));
 jest.mock('@/features/ride/ride-controller', () => ({ finalizeEndedRide: () => false }));
-jest.mock('@/features/ride/ride-purpose-sheet', () => ({ RidePurposeSheet: () => null }));
+const mockSendPendingOdometer = jest.fn(() => Promise.resolve(true));
+jest.mock('@/features/ride/ride-purpose-sheet', () => {
+  const { useImperativeHandle } = require('react');
+  return {
+    RidePurposeSheet: ({ ref }: { ref?: unknown }) => {
+      useImperativeHandle(ref, () => ({ sendPendingOdometer: mockSendPendingOdometer }));
+      return null;
+    },
+  };
+});
 jest.mock('@/features/ride/ride-summary-insights-card', () => {
   const { Pressable, Text } = require('react-native');
   return {
@@ -73,6 +83,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import RideSummaryScreen from '@/app/(modals)/ride-summary';
 import { captureException } from '@/lib/analytics';
+import { enqueueOrExecute } from '@/utils/ride-sync-queue';
 
 async function renderScreen() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -108,5 +119,33 @@ describe('ride summary save', () => {
     await fireEvent.press(screen.getByLabelText('rideSummary.saveRide'));
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledTimes(1));
     expect(mockRouter.replace).toHaveBeenCalledWith('/(tabs)/(profile)', { withAnchor: true });
+  });
+
+  it('sends a typed odometer before the ride is saved', async () => {
+    mockRequestRideReview.mockResolvedValue(undefined);
+    await renderScreen();
+
+    await fireEvent.press(screen.getByLabelText('rideSummary.saveRide'));
+
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledTimes(1));
+    expect(mockSendPendingOdometer).toHaveBeenCalledTimes(1);
+    expect(enqueueOrExecute).toHaveBeenCalledWith('updateRide', {
+      variables: { input: { rideId: 'ride-1', name: expect.any(String) } },
+    });
+  });
+
+  it('stays on the summary when the rider chooses to fix a lower odometer, and saves later', async () => {
+    mockRequestRideReview.mockResolvedValue(undefined);
+    mockSendPendingOdometer.mockResolvedValueOnce(false);
+    await renderScreen();
+
+    await fireEvent.press(screen.getByLabelText('rideSummary.saveRide'));
+    await waitFor(() => expect(mockSendPendingOdometer).toHaveBeenCalledTimes(1));
+    expect(enqueueOrExecute).not.toHaveBeenCalled();
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+
+    await fireEvent.press(screen.getByLabelText('rideSummary.saveRide'));
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledTimes(1));
+    expect(enqueueOrExecute).toHaveBeenCalledTimes(1);
   });
 });

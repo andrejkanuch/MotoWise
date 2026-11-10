@@ -1,12 +1,13 @@
 import { RIDE_PURPOSE, type RidePurpose } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { Check } from 'lucide-react-native';
-import { useState } from 'react';
+import { type Ref, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { NativeToggle } from '../../components/ui/native-toggle';
-import { formatOdometer, toHubUnit } from '../../lib/bike-hub/format';
+import { formatOdometer, hasOdometer, toHubUnit } from '../../lib/bike-hub/format';
+import { validateReading } from '../../lib/bike-hub/odometer-input';
 import { QUERY_META } from '../../lib/query-meta';
 import { motorcyclesOptions } from '../../lib/query-options';
 import { useEditorialTheme } from '../../theme/editorial';
@@ -49,10 +50,42 @@ function sendAnswers(rideId: string, answers: RideAnswers): void {
   void enqueueOrExecute('updateRide', { variables: { input: { rideId, ...answers } } });
 }
 
+/**
+ * Whether an odometer at the end of a ride needs the rider's confirmation before
+ * it is sent: the bike hub's check (`validateReading`) for a reading taken now.
+ * A value below the bike's odometer is usually the trip meter, and the server
+ * would set the bike to it. An equal value is harmless here and is sent.
+ */
+export function rideOdometerNeedsConfirm(
+  value: number,
+  currentMileage: number | null | undefined,
+  today: Date = new Date(),
+): boolean {
+  const lastValue = hasOdometer(currentMileage) ? currentMileage : null;
+  const validation = validateReading({
+    value,
+    lastValue,
+    recordedAt: today,
+    lastRecordedAt: null,
+    today,
+  });
+  return !validation.ok && 'needsConfirm' in validation;
+}
+
+export interface RidePurposeSheetHandle {
+  /**
+   * Sends an odometer the rider typed but did not send yet, after the same
+   * confirmation as the sheet's own Save. Resolves `false` when the rider chose
+   * to fix it, so the summary stays open; `true` otherwise (also when nothing is pending).
+   */
+  sendPendingOdometer: () => Promise<boolean>;
+}
+
 interface RidePurposeSheetProps {
   rideId: string;
   /** The ride's bike; without one there is no odometer to log. */
   motorcycleId: string;
+  ref?: Ref<RidePurposeSheetHandle>;
 }
 
 /**
@@ -60,15 +93,18 @@ interface RidePurposeSheetProps {
  * passenger rode along, and the odometer at the end in the bike's own unit.
  * Each answer is sent on its own through the ride sync queue the moment it is
  * given, so the summary's Save and Discard work exactly as before and a rider
- * who skips the card saves the ride as it is. The odometer is sent once.
+ * who skips the card saves the ride as it is. The odometer is sent once; one
+ * typed but not sent goes with the summary's Save (`sendPendingOdometer`).
  */
-export function RidePurposeSheet({ rideId, motorcycleId }: RidePurposeSheetProps) {
+export function RidePurposeSheet({ rideId, motorcycleId, ref }: RidePurposeSheetProps) {
   const { t, i18n } = useTranslation();
   const { t: theme } = useEditorialTheme();
   const [purpose, setPurpose] = useState<RidePurpose | null>(null);
   const [passenger, setPassenger] = useState(false);
   const [odometerText, setOdometerText] = useState('');
   const [odometerSaved, setOdometerSaved] = useState(false);
+  // Synchronous: the field's submit, the Save link and the summary's Save can race.
+  const odometerSentRef = useRef(false);
 
   const { data: bike } = useQuery({
     ...motorcyclesOptions(),
@@ -91,12 +127,42 @@ export function RidePurposeSheet({ rideId, motorcycleId }: RidePurposeSheetProps
     sendAnswers(rideId, { passenger: value });
   };
 
-  const saveOdometer = () => {
-    if (odometer == null || odometerSaved) return;
+  // The bike hub's lower-reading prompt, with its strings.
+  const confirmLower = (value: number) =>
+    new Promise<boolean>((resolve) => {
+      const last = formatOdometer(bike?.currentMileage ?? 0, i18n.language);
+      const valueText = formatOdometer(value, i18n.language);
+      Alert.alert(
+        t('bikeHub.odometer.lowerThan', { last, unit }),
+        t('bikeHub.odometer.lowerOneLine'),
+        [
+          { text: t('bikeHub.odometer.fixIt'), style: 'cancel', onPress: () => resolve(false) },
+          {
+            text: t('bikeHub.odometer.save', { value: valueText, unit }),
+            onPress: () => resolve(true),
+          },
+        ],
+        { onDismiss: () => resolve(false) },
+      );
+    });
+
+  const saveOdometer = async (): Promise<boolean> => {
+    if (odometer == null || odometerSentRef.current) return true;
+    odometerSentRef.current = true;
+    if (
+      rideOdometerNeedsConfirm(odometer, bike?.currentMileage) &&
+      !(await confirmLower(odometer))
+    ) {
+      odometerSentRef.current = false;
+      return false;
+    }
     triggerSelection();
     setOdometerSaved(true);
     sendAnswers(rideId, { odometerAtEnd: odometer });
+    return true;
   };
+
+  useImperativeHandle(ref, () => ({ sendPendingOdometer: saveOdometer }));
 
   const rowStyle = {
     minHeight: ROW_HEIGHT,
@@ -185,7 +251,7 @@ export function RidePurposeSheet({ rideId, motorcycleId }: RidePurposeSheetProps
                   value={odometerText}
                   onChangeText={(text) => setOdometerText(odometerDigits(text))}
                   maxLength={ODOMETER_MAX_DIGITS}
-                  onSubmitEditing={saveOdometer}
+                  onSubmitEditing={() => void saveOdometer()}
                   keyboardType="number-pad"
                   returnKeyType="done"
                   accessibilityLabel={t('ridePurposeSheet.odometerLabel')}
@@ -208,7 +274,7 @@ export function RidePurposeSheet({ rideId, motorcycleId }: RidePurposeSheetProps
                 />
                 <Text style={[type.body, { color: theme.ink3 }]}>{unit}</Text>
                 <Pressable
-                  onPress={saveOdometer}
+                  onPress={() => void saveOdometer()}
                   disabled={odometer == null}
                   accessibilityRole="button"
                   hitSlop={space.xs}
