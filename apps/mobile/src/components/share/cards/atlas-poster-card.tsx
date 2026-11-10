@@ -17,7 +17,11 @@ import {
   routesBounds,
   type ShareSize,
 } from '../insights-share';
-import type { InsightsSharePayload } from '../share-card-types';
+import {
+  BASE_MAP_STATUS,
+  type BaseMapStatus,
+  type InsightsSharePayload,
+} from '../share-card-types';
 
 /** Layout in card units (the card is 360 units wide). */
 const U = {
@@ -53,8 +57,8 @@ interface AtlasPosterCardProps {
   width: number;
   /** The app theme, which the base map and panel follow. */
   scheme: EditorialScheme;
-  /** The base image finished loading or failed: the poster is ready to capture. */
-  onBaseSettled?: () => void;
+  /** The base image loaded (the poster is ready to capture) or failed (it is not). */
+  onBaseSettled?: (status: BaseMapStatus) => void;
 }
 
 /**
@@ -117,8 +121,8 @@ export const AtlasPosterCard = memo(function AtlasPosterCard({
           source={{ uri: url }}
           style={{ position: 'absolute', width, height }}
           contentFit="cover"
-          onLoad={onBaseSettled}
-          onError={onBaseSettled}
+          onLoad={() => onBaseSettled?.(BASE_MAP_STATUS.LOADED)}
+          onError={() => onBaseSettled?.(BASE_MAP_STATUS.FAILED)}
         />
       ) : null}
       <Svg

@@ -83,6 +83,7 @@ jest.mock('@rnmapbox/maps', () => {
 import { GetRideDocument, GetRiderInsightsDocument, RiderInsightsStatus } from '@motovault/graphql';
 import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import '@/i18n';
 import RiderInsightsScreen from '@/app/(tabs)/(profile)/rider-insights';
 import RiderInsightsRecapRoute from '@/app/(tabs)/(profile)/rider-insights/recap';
@@ -96,9 +97,10 @@ import {
   proInsights,
   RIOJA_ROUTE,
 } from '@/test/rider-insights-fixtures';
+import { space } from '@/theme/spacing';
 import { clearBlurCaptures } from '../../blur-capture';
 import { RECAP_ASPECT } from '../recap-card';
-import { recapCardWidth } from '../recap-screen';
+import { EXPORT_READY_TIMEOUT_MS, recapCardWidth } from '../recap-screen';
 
 const mockTrack = trackEvent as jest.Mock;
 const FREE_CARDS = ['distance', 'countries', 'longest'];
@@ -305,6 +307,79 @@ describe('a Pro rider', () => {
       url: 'file:///recap-distance.png',
       message: expect.stringContaining('MotoVault'),
     });
+  });
+});
+
+describe('sharing a card that draws a ride shape', () => {
+  /** Scrolls the recap to the Longest ride card, the third (still a free one). */
+  async function showLongest() {
+    const width = recapCardWidth({
+      windowWidth: 390,
+      windowHeight: 844,
+      fontScale: 1,
+      topInset: 54,
+      bottomClearance: 120,
+    });
+    await fireEvent(screen.getByTestId('recap-cards'), 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 2 * (width + space.sm), y: 0 } },
+    });
+  }
+
+  let alert: jest.SpyInstance;
+  beforeEach(() => {
+    alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+  });
+  afterEach(() => {
+    alert.mockRestore();
+    jest.useRealTimers();
+  });
+
+  it('without the ride, shows the share error and captures nothing', async () => {
+    mockFetcher.mockImplementation((document: unknown) =>
+      document === GetRiderInsightsDocument
+        ? Promise.resolve({ riderInsights: payload })
+        : Promise.reject(new Error('offline')),
+    );
+    serve(proWith());
+    await renderRecap();
+    await screen.findByTestId('recap-card-longest');
+    await showLongest();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('recap-share'));
+    });
+
+    await waitFor(() =>
+      expect(alert).toHaveBeenCalledWith('Error', 'Something went wrong. Please try again.'),
+    );
+    expect(mockCapture).not.toHaveBeenCalled();
+    expect(mockShareOpen).not.toHaveBeenCalled();
+    expect(screen.getByTestId('recap-share').props.accessibilityState.busy).toBe(false);
+  });
+
+  it('gives up after a bounded wait when the ride never loads', async () => {
+    mockFetcher.mockImplementation((document: unknown) =>
+      document === GetRiderInsightsDocument
+        ? Promise.resolve({ riderInsights: payload })
+        : new Promise(() => {}),
+    );
+    serve(proWith());
+    await renderRecap();
+    await screen.findByTestId('recap-card-longest');
+    await showLongest();
+
+    jest.useFakeTimers();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('recap-share'));
+    });
+    expect(screen.getByTestId('recap-share').props.accessibilityState.busy).toBe(true);
+    await act(async () => {
+      jest.advanceTimersByTime(EXPORT_READY_TIMEOUT_MS);
+    });
+
+    expect(alert).toHaveBeenCalledWith('Error', 'Something went wrong. Please try again.');
+    expect(mockCapture).not.toHaveBeenCalled();
+    expect(screen.getByTestId('recap-share').props.accessibilityState.busy).toBe(false);
   });
 });
 

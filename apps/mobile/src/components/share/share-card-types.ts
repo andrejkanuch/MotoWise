@@ -118,3 +118,13 @@ export function getInitialCardIndex(variants: CardVariant[], payload: RideShareP
   }
   return 0;
 }
+
+/**
+ * How a card's base map image ended. A failed one must not be captured: the
+ * file is cached under the card's share key and would be reused without its map.
+ */
+export const BASE_MAP_STATUS = {
+  LOADED: 'loaded',
+  FAILED: 'failed',
+} as const;
+export type BaseMapStatus = (typeof BASE_MAP_STATUS)[keyof typeof BASE_MAP_STATUS];

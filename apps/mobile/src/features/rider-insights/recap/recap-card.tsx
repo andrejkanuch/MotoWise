@@ -13,7 +13,11 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, type TextStyle, useWindowDimensions, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { routesBounds, shareRoutes } from '@/components/share/insights-share';
-import type { LngLat } from '@/components/share/share-card-types';
+import {
+  BASE_MAP_STATUS,
+  type BaseMapStatus,
+  type LngLat,
+} from '@/components/share/share-card-types';
 import { tDynamic } from '@/i18n/t-dynamic';
 import { tint } from '@/theme/editorial';
 import { PLATE_FONT, radius, SYSTEM_WEIGHT } from '@/theme/type';
@@ -179,7 +183,12 @@ interface FrameProps {
   padded?: boolean;
   /** The card's map and route shape have loaded (or failed): it can be captured. */
   settled?: boolean;
-  onReady?: () => void;
+  /**
+   * False when something the card draws failed to load (a map, a ride's shape):
+   * the export is refused rather than captured, and cached, without it.
+   */
+  complete?: boolean;
+  onReady?: (complete: boolean) => void;
   children: ReactNode;
 }
 
@@ -191,12 +200,13 @@ function Frame({
   ground = INK.card,
   padded = true,
   settled = true,
+  complete = true,
   onReady,
   children,
 }: FrameProps) {
   useEffect(() => {
-    if (settled) onReady?.();
-  }, [settled, onReady]);
+    if (settled) onReady?.(complete);
+  }, [settled, complete, onReady]);
   const { s, width, height } = scale;
   return (
     <View
@@ -305,7 +315,7 @@ interface BodyProps {
   scale: Scale;
   rounded: boolean;
   system: MeasurementSystem;
-  onReady?: () => void;
+  onReady?: (complete: boolean) => void;
 }
 
 function DistanceCard({ testID, insights, scale, rounded, system, onReady }: BodyProps) {
@@ -323,7 +333,7 @@ function DistanceCard({ testID, insights, scale, rounded, system, onReady }: Bod
       paths: routePaths(main.routes, { width, height: mapHeight }, viewport, 0),
     };
   }, [main, width, mapHeight, s]);
-  const [mapSettled, setMapSettled] = useState(false);
+  const [mapStatus, setMapStatus] = useState<BaseMapStatus | null>(null);
 
   const distance = formatInsightDistance(insights.totals.distanceM, system, i18n.language);
   const rides = t('riderInsights.recap.ridesIn', { count: insights.totals.rides, year });
@@ -336,15 +346,16 @@ function DistanceCard({ testID, insights, scale, rounded, system, onReady }: Bod
       label={joined(distance, rides)}
       ground={INK.ground}
       padded={false}
-      settled={url === null || mapSettled}
+      settled={url === null || mapStatus !== null}
+      complete={url === null || mapStatus !== BASE_MAP_STATUS.FAILED}
       onReady={onReady}
     >
       {url ? (
         <Image
           source={{ uri: url }}
           style={{ position: 'absolute', top: 0, left: 0, width, height: mapHeight }}
-          onLoad={() => setMapSettled(true)}
-          onError={() => setMapSettled(true)}
+          onLoad={() => setMapStatus(BASE_MAP_STATUS.LOADED)}
+          onError={() => setMapStatus(BASE_MAP_STATUS.FAILED)}
           accessible={false}
         />
       ) : null}
@@ -454,7 +465,7 @@ function LongestCard({ testID, insights, scale, rounded, system, onReady }: Body
   const { s } = scale;
   // biome-ignore lint/style/noNonNullAssertion: the card is ready only with a longest ride
   const ride = insights.longestRide!;
-  const { route, settled } = useRecapRideRoute(ride.rideId);
+  const { route, settled, missing } = useRecapRideRoute(ride.rideId);
   const date = shortDate(ride.localDate, i18n.language);
   const title = recapCardTitle(RECAP_CARD.LONGEST, t);
   const distance = formatInsightDistance(ride.distanceM, system, i18n.language);
@@ -472,6 +483,7 @@ function LongestCard({ testID, insights, scale, rounded, system, onReady }: Body
       rounded={rounded}
       label={joined(title, distance, name, meta)}
       settled={settled}
+      complete={!missing}
       onReady={onReady}
     >
       <CardText style={[font(SIZE.label, s), { color: INK.muted }]}>{title}</CardText>
@@ -580,7 +592,7 @@ function TwistiestCard({ testID, insights, scale, rounded, system, onReady }: Bo
   const { s } = scale;
   // biome-ignore lint/style/noNonNullAssertion: the card is ready only with a twistiest ride
   const ride = insights.roadCharacter.detail!.twistiest[0];
-  const { route, settled } = useRecapRideRoute(ride.rideId);
+  const { route, settled, missing } = useRecapRideRoute(ride.rideId);
   const date = shortDate(ride.localDate, i18n.language);
   const title = recapCardTitle(RECAP_CARD.TWISTIEST, t);
   const name = ride.name ?? t('riderInsights.howYouRide.bestRides.unnamed', { date });
@@ -601,6 +613,7 @@ function TwistiestCard({ testID, insights, scale, rounded, system, onReady }: Bo
       rounded={rounded}
       label={joined(title, name, meta)}
       settled={settled}
+      complete={!missing}
       onReady={onReady}
     >
       <CardText style={[font(SIZE.label, s), { color: INK.muted }]}>{title}</CardText>
@@ -782,7 +795,7 @@ interface RecapCardViewProps {
   /** The rider just bought Pro and the server has not caught up: no second paywall. */
   unlocking?: boolean;
   onUnlock?: () => void;
-  onReady?: () => void;
+  onReady?: (complete: boolean) => void;
 }
 
 /** A recap card drawn by its state: values, a keep-riding or computing line, or its title over a blur. */

@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Alert,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   Pressable,
@@ -91,6 +92,11 @@ export function recapCardWidth(input: {
 const DIVIDER_OPACITY = 0.4;
 /** Where the capture copy sits: off screen, so the rider never sees it. */
 const OFFSCREEN = -100_000;
+/**
+ * How long the card at export size may take to load its map and ride shape. A
+ * ride fetch paused offline never settles; the share gives up instead of spinning.
+ */
+export const EXPORT_READY_TIMEOUT_MS = 8_000;
 
 /** The paywall row each locked card opens and reports. */
 const PAYWALL_ROW: Partial<Record<RecapCard, RiderInsightsPaywallRow>> = {
@@ -194,7 +200,7 @@ function RecapBody({ insights, system, unlocking, onPurchased }: RecapBodyProps)
   const [exporting, setExporting] = useState<RecapCardState | null>(null);
   const [busy, setBusy] = useState(false);
   const exportRef = useRef<View>(null);
-  const exportReady = useRef<(() => void) | null>(null);
+  const exportReady = useRef<((complete: boolean) => void) | null>(null);
   const shownRows = useRef(new Set<RiderInsightsPaywallRow>());
   const current = cards[index] ?? cards[0];
 
@@ -238,12 +244,16 @@ function RecapBody({ insights, system, unlocking, onPurchased }: RecapBodyProps)
     if (busy) return;
     triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     setBusy(true);
+    let timeout: ReturnType<typeof setTimeout> | undefined;
     try {
-      const ready = new Promise<void>((resolve) => {
+      // The card reports whether it drew everything; a timeout counts as not.
+      const ready = new Promise<boolean>((resolve) => {
         exportReady.current = resolve;
+        timeout = setTimeout(() => resolve(false), EXPORT_READY_TIMEOUT_MS);
       });
       setExporting(current);
-      await ready;
+      // Never captured (and cached) without its map or ride shape.
+      if (!(await ready)) throw new Error('Recap card did not load for export');
       const key = `recap-${insights.season.from}-${current.card}-${system}-${language}-${hashString(JSON.stringify(insights))}`;
       const uri = await captureShareImage(exportRef, key, STORY_PX);
       const result = await nativeShare().open({
@@ -262,7 +272,9 @@ function RecapBody({ insights, system, unlocking, onPurchased }: RecapBodyProps)
       }
     } catch (error) {
       captureException(error, { source: 'rider-insights.recap-share', card: current.card });
+      Alert.alert(i18n('common.error'), i18n('common.genericError'));
     } finally {
+      clearTimeout(timeout);
       exportReady.current = null;
       setExporting(null);
       setBusy(false);
@@ -283,6 +295,7 @@ function RecapBody({ insights, system, unlocking, onPurchased }: RecapBodyProps)
       </View>
 
       <ScrollView
+        testID="recap-cards"
         horizontal
         showsHorizontalScrollIndicator={false}
         decelerationRate="fast"
@@ -370,7 +383,7 @@ function RecapBody({ insights, system, unlocking, onPurchased }: RecapBodyProps)
               system={system}
               rounded={false}
               testID={`recap-export-${exporting.card}`}
-              onReady={() => exportReady.current?.()}
+              onReady={(complete) => exportReady.current?.(complete)}
             />
           </View>
         </View>

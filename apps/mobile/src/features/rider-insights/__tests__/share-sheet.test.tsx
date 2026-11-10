@@ -1,6 +1,6 @@
 // The season share sheet: which image a free and a Pro rider can pick, the
-// locked poster's paywall, the ride-end toggle's default, and a new capture
-// for each size.
+// locked poster's paywall, the ride-end toggle's default, a new capture for
+// each size, and a poster that waits for its base map and never ships without it.
 import type { ReactNode } from 'react';
 
 jest.mock('expo-localization', () => ({
@@ -44,7 +44,12 @@ jest.mock('@/components/ui/native-toggle', () => ({ NativeToggle: () => null }))
 
 jest.mock('expo-image', () => {
   const { View } = require('react-native');
-  return { Image: (props: { testID?: string }) => <View testID={props.testID} /> };
+  // The load callbacks reach the host view, so a test can fire `load` or `error`.
+  return {
+    Image: (props: { testID?: string; onLoad?: () => void; onError?: () => void }) => (
+      <View testID={props.testID} onLoad={props.onLoad} onError={props.onError} />
+    ),
+  };
 });
 jest.mock('react-native-svg', () => {
   const { View } = require('react-native');
@@ -54,7 +59,8 @@ jest.mock('react-native-svg', () => {
 });
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import '@/i18n';
 import { RIDER_INSIGHTS_PAYWALL_ROW } from '@/lib/paywall-surfaces';
 import { freeInsights, type InsightsPayload, proInsights } from '@/test/rider-insights-fixtures';
@@ -78,6 +84,16 @@ async function renderSheet(insights: InsightsPayload, onPurchased = jest.fn()) {
       />
     </QueryClientProvider>,
   );
+}
+
+/**
+ * Settles every poster base map, the hidden capture copy's too. Called on the
+ * props: that copy sits under `pointerEvents="none"`, which `fireEvent` respects.
+ */
+async function settleBases(callback: 'onLoad' | 'onError') {
+  for (const base of screen.getAllByTestId('atlas-poster-base', { includeHiddenElements: true })) {
+    await act(async () => base.props[callback]());
+  }
 }
 
 const checked = (testID: string) => screen.getByTestId(testID).props.accessibilityState?.checked;
@@ -173,5 +189,49 @@ describe('InsightsShareSheet', () => {
         expect.any(String),
       ),
     );
+  });
+
+  describe('with a Mapbox token, so the poster has a base map', () => {
+    const token = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
+    beforeEach(() => {
+      process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN = 'test-token';
+    });
+    afterEach(() => {
+      process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN = token;
+    });
+
+    it('waits for the poster base map, and shares no poster when the map fails', async () => {
+      await renderSheet(proInsights());
+      await fireEvent.press(screen.getByTestId('share-option-atlasPoster'));
+      expect(screen.getByTestId('share-share').props.accessibilityState.disabled).toBe(true);
+
+      // Both the capture copy and the preview fail to load the map.
+      await settleBases('onError');
+      expect(screen.getByTestId('share-share').props.accessibilityState.disabled).toBe(false);
+
+      const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+      await fireEvent.press(screen.getByTestId('share-save'));
+      await waitFor(() =>
+        expect(alert).toHaveBeenCalledWith('Error', 'Something went wrong. Please try again.'),
+      );
+      alert.mockRestore();
+      expect(mockCapture).not.toHaveBeenCalled();
+      expect(mockSave).not.toHaveBeenCalled();
+      expect(screen.getByTestId('share-share').props.accessibilityState.disabled).toBe(false);
+    });
+
+    it('captures the poster once its base map loaded, and waits again after leaving it', async () => {
+      await renderSheet(proInsights());
+      await fireEvent.press(screen.getByTestId('share-option-atlasPoster'));
+      await settleBases('onLoad');
+
+      await fireEvent.press(screen.getByTestId('share-save'));
+      await waitFor(() => expect(mockCapture).toHaveBeenCalledTimes(1));
+
+      // Back to season lines and to the poster: its new capture copy has not loaded yet.
+      await fireEvent.press(screen.getByTestId('share-option-seasonLines'));
+      await fireEvent.press(screen.getByTestId('share-option-atlasPoster'));
+      expect(screen.getByTestId('share-share').props.accessibilityState.disabled).toBe(true);
+    });
   });
 });

@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -36,6 +37,7 @@ import {
   type ShareSize,
 } from '@/components/share/insights-share';
 import { captureShareImage, getExportCardDimensions } from '@/components/share/render-share-card';
+import { BASE_MAP_STATUS, type BaseMapStatus } from '@/components/share/share-card-types';
 import { ShareToast } from '@/components/share/share-toast';
 import { NativeToggle } from '@/components/ui/native-toggle';
 import { AnalyticsEvent, captureException, trackEvent } from '@/lib/analytics';
@@ -151,7 +153,12 @@ function ShareSheetBody({
   const [size, setSize] = useState<ShareSize>(SHARE_SIZE.FEED);
   const [hideEnds, setHideEnds] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [settledBase, setSettledBase] = useState<string | null>(null);
+  // The base map the capture copy of the poster settled on, and how. Cleared
+  // whenever the image changes, so a poster shown again waits for its own load.
+  const [settledBase, setSettledBase] = useState<{
+    url: string | null;
+    status: BaseMapStatus;
+  } | null>(null);
   const [toast, setToast] = useState<{ key: number; message: string | null }>({
     key: 0,
     message: null,
@@ -176,11 +183,17 @@ function ShareSheetBody({
     [insights, regions, regionName, hideEnds, handle, system],
   );
 
+  const chooseImage = useCallback((next: InsightsShareImage) => {
+    setImage(next);
+    setSettledBase(null);
+  }, []);
+
+  const isPoster = image === INSIGHTS_SHARE_IMAGE.ATLAS_POSTER;
   const posterBase = posterBaseUrl(payload, size, scheme);
-  const ready =
-    image === INSIGHTS_SHARE_IMAGE.SEASON_LINES ||
-    posterBase === null ||
-    settledBase === posterBase;
+  const baseStatus = settledBase?.url === posterBase ? settledBase.status : null;
+  const ready = !isPoster || posterBase === null || baseStatus !== null;
+  /** The poster's map failed: sharing it would export (and cache) a poster without one. */
+  const baseFailed = isPoster && posterBase !== null && baseStatus === BASE_MAP_STATUS.FAILED;
   const exportWidth = getExportCardDimensions(SHARE_EXPORT_PX[size]).width;
   const previewWidth =
     (PREVIEW_HEIGHT * SHARE_EXPORT_PX[size].width) / SHARE_EXPORT_PX[size].height;
@@ -196,13 +209,13 @@ function ShareSheetBody({
           : INSIGHTS_SHARE_IMAGE.ATLAS_POSTER;
     if (next === null || next === image) return;
     triggerSelection();
-    setImage(next);
+    chooseImage(next);
   };
 
   const selectPoster = useCallback(async () => {
     if (!posterLocked) {
       triggerSelection();
-      setImage(INSIGHTS_SHARE_IMAGE.ATLAS_POSTER);
+      chooseImage(INSIGHTS_SHARE_IMAGE.ATLAS_POSTER);
       return;
     }
     if (unlocking) return;
@@ -213,7 +226,16 @@ function ShareSheetBody({
     });
     const result = await presentRiderInsightsPaywall(POSTER_PAYWALL_ROW, copy);
     if (result === 'purchased' || result === 'restored') onPurchased();
-  }, [posterLocked, unlocking, insights, i18n, system, instance.language, onPurchased]);
+  }, [
+    posterLocked,
+    unlocking,
+    insights,
+    i18n,
+    system,
+    instance.language,
+    onPurchased,
+    chooseImage,
+  ]);
 
   /** Capture the chosen image at export size, or reuse the file from an identical capture. */
   const exportImage = useCallback(
@@ -232,6 +254,7 @@ function ShareSheetBody({
       triggerImpact(Haptics.ImpactFeedbackStyle.Light);
       setBusy(true);
       try {
+        if (baseFailed) throw new Error('Poster base map failed to load');
         const uri = await exportImage();
         if (destination === 'save') {
           const { executeShareDestination, getToastMessage } = shareDestinations();
@@ -253,11 +276,12 @@ function ShareSheetBody({
         }
       } catch (error) {
         captureException(error, { source: 'rider-insights.share-sheet', destination });
+        Alert.alert(i18n('common.error'), i18n('common.genericError'));
       } finally {
         setBusy(false);
       }
     },
-    [busy, ready, exportImage, payload, image, size, i18n],
+    [busy, ready, baseFailed, exportImage, payload, image, size, i18n],
   );
 
   const option = (
@@ -361,7 +385,7 @@ function ShareSheetBody({
               size={size}
               width={exportWidth}
               scheme={scheme}
-              onBaseSettled={() => setSettledBase(posterBase)}
+              onBaseSettled={(status) => setSettledBase({ url: posterBase, status })}
             />
           ) : (
             <SeasonLinesCard payload={payload} size={size} width={exportWidth} />
@@ -428,7 +452,7 @@ function ShareSheetBody({
               false,
               () => {
                 triggerSelection();
-                setImage(INSIGHTS_SHARE_IMAGE.SEASON_LINES);
+                chooseImage(INSIGHTS_SHARE_IMAGE.SEASON_LINES);
               },
             )}
             {option(
