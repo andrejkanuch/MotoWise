@@ -787,14 +787,20 @@ export class RidesService {
       .eq('id', motorcycleId)
       .eq('user_id', userId)
       .single();
-    if (error || !bike) {
+    // No row: the bike is gone (soft-deleted, so hidden by RLS) or not the caller's.
+    // A retry cannot change that, so it is a 4xx the sync queue dead-letters once,
+    // as the RPC's own P0002 was. A real read failure stays retryable (5xx).
+    if (error?.code === PG_ERROR.NOT_FOUND || (!error && !bike)) {
+      throw new BadRequestException(`Motorcycle ${motorcycleId} not found`);
+    }
+    if (error) {
       throw new Error(
-        `motorcycle ${motorcycleId} odometer read failed: ${error?.message ?? 'no row'} (${error?.code ?? 'none'})`,
+        `motorcycle ${motorcycleId} odometer read failed: ${error.message} (${error.code})`,
       );
     }
     return {
-      currentMileage: (bike?.current_mileage as number | null) ?? 0,
-      unit: bike?.distance_unit === MileageUnit.MI ? MileageUnit.MI : MileageUnit.KM,
+      currentMileage: (bike.current_mileage as number | null) ?? 0,
+      unit: bike.distance_unit === MileageUnit.MI ? MileageUnit.MI : MileageUnit.KM,
     };
   }
 
@@ -889,7 +895,7 @@ export class RidesService {
     const roundedDelta = Math.round(metersToUnit(distanceM, unit));
     const newMileage = currentMileage + roundedDelta;
 
-    await this.supabase
+    const { error } = await this.supabase
       .from('motorcycles')
       .update({
         current_mileage: newMileage,
@@ -899,6 +905,11 @@ export class RidesService {
       })
       .eq('id', motorcycleId)
       .eq('user_id', userId);
+    if (error) {
+      throw new Error(
+        `motorcycle ${motorcycleId} GPS mileage update failed: ${error.message} (${error.code})`,
+      );
+    }
 
     this.logger.log(
       `Odometer sync: +${roundedDelta}${unit} to motorcycle ${motorcycleId} (total: ${newMileage}${unit}, ride=${rideId})`,

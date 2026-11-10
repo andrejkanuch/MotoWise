@@ -944,6 +944,52 @@ describe('RidesService', () => {
 
       expect(result.ride.status).toBe('completed');
       expect(gpsMileageWrites()).toEqual([]);
+      expect(sentry.captureException).toHaveBeenCalledTimes(1);
+      expect(sentry.captureException.mock.calls[0][1]).toMatchObject({
+        tags: { op: 'end-mileage' },
+        extra: { rideId: 'ride-123', distanceM: 32_186 },
+      });
+    });
+
+    it('an end odometer with an unreadable bike writes nothing and reports both failures', async () => {
+      mockUserClient._pushResult({ data: completedRow }); // 0: completion UPDATE
+      mockUserClient._pushResult({ data: { distance_m: 32_186, motorcycle_id: 'moto-456' } }); // 1: claim
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } }); // 2: bike (RPC unit)
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } }); // 3: bike (GPS)
+
+      const result = await service.endRide(userId, {
+        ...endBase,
+        distanceM: 32_186,
+        odometerAtEnd: 1234,
+      });
+
+      expect(result.ride.status).toBe('completed');
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([]);
+      expect(gpsMileageWrites()).toEqual([]);
+      const ops = sentry.captureException.mock.calls.map(
+        (call: unknown[]) => (call[1] as { tags: { op: string } }).tags.op,
+      );
+      expect(ops).toEqual(['end-odometer', 'end-mileage']);
+      expect(sentry.captureException.mock.calls[1][1]).toMatchObject({
+        extra: { odometerAtEnd: 1234 },
+      });
+    });
+
+    it('a failed GPS mileage UPDATE is reported, not logged as applied', async () => {
+      mockUserClient._pushResult({ data: completedRow }); // 0: completion UPDATE
+      mockUserClient._pushResult({ data: { distance_m: 32_186, motorcycle_id: 'moto-456' } }); // 1: claim
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 2: bike
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } }); // 3: odometer UPDATE
+
+      const result = await service.endRide(userId, { ...endBase, distanceM: 32_186 });
+
+      expect(result.ride.status).toBe('completed');
+      expect(sentry.captureException).toHaveBeenCalledTimes(1);
+      expect(String(sentry.captureException.mock.calls[0][0])).toContain(
+        'GPS mileage update failed',
+      );
+      // No maintenance check ran against a mileage that was never written.
+      expect(mockUserClient._chain.lte).not.toHaveBeenCalled();
     });
 
     it('updateRide refuses the end odometer when the bike unit cannot be read', async () => {
@@ -959,6 +1005,20 @@ describe('RidesService', () => {
       // Not a 4xx: the sync queue retries it instead of dead-lettering.
       expect(err).toBeInstanceOf(Error);
       expect(err).not.toBeInstanceOf(BadRequestException);
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([]);
+    });
+
+    it('updateRide answers 400 when the bike is gone (soft-deleted, hidden by RLS)', async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', motorcycle_id: 'moto-456' },
+      }); // 0: ride read
+      mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } }); // 1: bike
+
+      const err = await service
+        .updateRide(userId, { rideId: 'ride-123', odometerAtEnd: 1250 })
+        .catch((e) => e);
+
+      expect(err).toBeInstanceOf(BadRequestException);
       expect(rpcCalls('log_ride_end_odometer')).toEqual([]);
     });
 
