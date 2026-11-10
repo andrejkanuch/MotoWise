@@ -18,11 +18,16 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import * as Sentry from '@sentry/nestjs';
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { RIDE_EVENTS } from '../../common/constants/events';
 import { buildConnection, decodeCursor, encodeCursor } from '../../common/pagination/connection';
 import { PG_ERROR, unwrap } from '../../common/supabase/unwrap';
-import { RIDE_TRACK_POINTS_RPC, type TrackPointsRow } from '../../common/track-points';
+import {
+  RIDE_TRACK_POINTS_RPC,
+  TRACK_POINTS_READ_CAP,
+  type TrackPointsRow,
+} from '../../common/track-points';
 import { POSTGRES_REAL, QUERY_LIMITS } from '../../config/constants';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -71,6 +76,9 @@ interface RidePrivateDetails {
   passenger: boolean | null;
 }
 type RidePrivateDetailsPatch = Partial<RidePrivateDetails>;
+
+/** `log_ride_end_odometer(p_ride_id, p_value, p_unit)` → one RideEndOdometerResult (00197). */
+const LOG_RIDE_END_ODOMETER_RPC = 'log_ride_end_odometer';
 
 const RIDE_PRIVATE_DETAILS_TABLE = 'ride_private_details';
 const RIDE_PRIVATE_DETAILS_COLUMNS = 'time_zone, purpose, passenger';
@@ -137,12 +145,20 @@ function pgDisposition(code: string | null | undefined): PgDisposition | 'unknow
 /**
  * log_ride_end_odometer's deterministic refusals: a data exception (22023 invalid
  * value or unit, 22003 out of range) by class, plus the ride or bike not found
- * (P0002) and no caller (42501).
+ * (P0002), the ride not completed yet (55000) and no caller (42501).
  */
 const ODOMETER_REFUSAL_CODES: ReadonlySet<string> = new Set([
   PG_ERROR.NO_DATA_FOUND,
+  PG_ERROR.OBJECT_NOT_IN_PREREQUISITE_STATE,
   PG_ERROR.INSUFFICIENT_PRIVILEGE,
 ]);
+
+/** `log_ride_end_odometer()`'s single row (00197). */
+interface RideEndOdometerResult {
+  reading_id: string;
+  /** False when the typed value is history (a later reading exists) or a replay. */
+  bike_moved: boolean;
+}
 
 function isOdometerRefusal(code: string | undefined): boolean {
   return pgDisposition(code) === 'permanent' || ODOMETER_REFUSAL_CODES.has(code ?? '');
@@ -680,7 +696,13 @@ export class RidesService {
       try {
         const newMileage =
           odometerAtEnd !== null
-            ? await this.applyOdometerAtEnd(userId, input.rideId, motorcycleId, odometerAtEnd)
+            ? await this.applyEndOdometerOrGps(
+                userId,
+                input.rideId,
+                motorcycleId,
+                odometerAtEnd,
+                distanceM,
+              )
             : await this.applyGpsMileage(userId, input.rideId, motorcycleId, distanceM);
 
         // Check for maintenance tasks that are now due. target_mileage and the new
@@ -701,9 +723,10 @@ export class RidesService {
         }
       } catch (mileageError) {
         // NOTE: mileage_applied was already claimed above, so a failure here leaves it
-        // true — the ride won't re-sync on retry. A missed odometer update is rare and
-        // user-correctable via manual edit; this is the deliberate trade for race-free
-        // exactly-once application.
+        // true — the ride won't re-sync on retry. A failed typed end odometer never
+        // lands here (applyEndOdometerOrGps reports it and adds the GPS distance); what
+        // remains is a failed GPS write or task read, rare and user-correctable via a
+        // manual edit: the deliberate trade for race-free exactly-once application.
         const msg = mileageError instanceof Error ? mileageError.message : String(mileageError);
         this.logger.warn(`Failed to apply mileage: ${msg}`);
         // Non-fatal — ride is already saved
@@ -762,24 +785,66 @@ export class RidesService {
   }
 
   /**
+   * endRide with a typed end odometer: log it instead of adding the GPS distance.
+   * The ride's distance still reaches the bike when the typed value does not:
+   *   - the value is history (a reading newer than the ride's end exists), so the
+   *     RPC leaves the bike alone and the GPS distance is added instead;
+   *   - the RPC fails. mileage_applied is already claimed, so a retry would never
+   *     get here again: the failure goes to Sentry with the typed value (the rider
+   *     can re-enter it) and the GPS distance is added so the bike still moves.
+   * Returns the bike's odometer afterwards, in its unit.
+   */
+  private async applyEndOdometerOrGps(
+    userId: string,
+    rideId: string,
+    motorcycleId: string,
+    odometerAtEnd: number,
+    distanceM: number,
+  ): Promise<number> {
+    try {
+      const { mileage, bikeMoved } = await this.applyOdometerAtEnd(
+        userId,
+        rideId,
+        motorcycleId,
+        odometerAtEnd,
+      );
+      if (bikeMoved) return mileage;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `endRide: odometer at end not logged for ride ${rideId}, adding GPS distance instead: ${msg}`,
+      );
+      Sentry.captureException(err, {
+        tags: { area: 'rides', op: 'end-odometer' },
+        extra: { rideId, motorcycleId, odometerAtEnd, distanceM },
+      });
+    }
+    if (distanceM > 0) return this.applyGpsMileage(userId, rideId, motorcycleId, distanceM);
+    return (await this.readBikeOdometer(userId, motorcycleId)).currentMileage;
+  }
+
+  /**
    * The rider read the odometer at the end: log that reading instead of adding the
    * GPS distance. The value is in the bike's unit, so it is passed with that unit and
    * the RPC stores it as is. The RPC returns the existing reading on a replay.
+   * `bikeMoved` is false when the RPC kept the value as history (or it was a replay).
    */
   private async applyOdometerAtEnd(
     userId: string,
     rideId: string,
     motorcycleId: string,
     value: number,
-  ): Promise<number> {
+  ): Promise<{ mileage: number; bikeMoved: boolean }> {
     const { unit } = await this.readBikeOdometer(userId, motorcycleId);
-    const { error } = await this.supabase.rpc('log_ride_end_odometer', {
+    const { data, error } = await this.supabase.rpc(LOG_RIDE_END_ODOMETER_RPC, {
       p_ride_id: rideId,
       p_value: value,
       p_unit: unit,
     });
     if (error) {
-      const cause = new Error(`log_ride_end_odometer failed: ${error.message} (${error.code})`);
+      const cause = new Error(
+        `${LOG_RIDE_END_ODOMETER_RPC} failed: ${error.message} (${error.code})`,
+      );
       // A refusal the RPC will repeat on every retry (bad or out-of-range value, ride
       // or bike gone, not the caller's) is a 4xx, so the sync queue dead-letters it
       // once instead of retrying it at the head of the queue. Anything else retries.
@@ -788,10 +853,11 @@ export class RidesService {
       }
       throw cause;
     }
+    const bikeMoved = (data as RideEndOdometerResult | null)?.bike_moved === true;
     this.logger.log(
-      `Odometer at end: ${value}${unit} on motorcycle ${motorcycleId} (ride=${rideId})`,
+      `Odometer at end: ${value}${unit} on motorcycle ${motorcycleId} (ride=${rideId}, moved=${bikeMoved})`,
     );
-    return value;
+    return { mileage: value, bikeMoved };
   }
 
   /**
@@ -1315,9 +1381,10 @@ export class RidesService {
 
     // The whole track in one row of arrays: a plain select stops at PostgREST's row
     // cap, which cut every long ride to its first 1,000 fixes before sampling.
+    // Capped at TRACK_POINTS_READ_CAP evenly spaced fixes, first and last kept.
     const { data, error } = await this.supabase.rpc(RIDE_TRACK_POINTS_RPC, {
       p_ride_id: rideId,
-      p_max_points: null,
+      p_max_points: TRACK_POINTS_READ_CAP,
     });
 
     if (error) {

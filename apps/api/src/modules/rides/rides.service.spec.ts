@@ -1,4 +1,4 @@
-import { RIDE_MILESTONE_PAYWALL } from '@motovault/types';
+import { RIDE_MILESTONE_PAYWALL, RIDE_WAYPOINT_LIMITS } from '@motovault/types';
 import {
   BadRequestException,
   ConflictException,
@@ -8,6 +8,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const sentry = vi.hoisted(() => ({ captureException: vi.fn() }));
+vi.mock('@sentry/nestjs', () => sentry);
+
 import { PG_ERROR } from '../../common/supabase/unwrap';
 import { RidesService } from './rides.service';
 
@@ -856,6 +860,10 @@ describe('RidesService', () => {
       mockUserClient._pushResult({ data: { distance_m: 30_000, motorcycle_id: 'moto-456' } }); // 1: claim
       mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 2: bike
       mockUserClient._pushResult({ data: [] }); // 3: due maintenance tasks
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: { reading_id: 'reading-1', bike_moved: true },
+        error: null,
+      });
 
       await service.endRide(userId, { ...endBase, distanceM: 30_000, odometerAtEnd: 1234 });
 
@@ -869,6 +877,62 @@ describe('RidesService', () => {
         .filter((patch) => 'current_mileage' in patch);
       expect(mileageWrites).toEqual([]);
       expect(mockUserClient._chain.lte).toHaveBeenCalledWith('target_mileage', 1234);
+    });
+
+    const gpsMileageWrites = () =>
+      (mockUserClient._chain.update as ReturnType<typeof vi.fn>).mock.calls
+        .map((call) => call[0] as Record<string, unknown>)
+        .filter((patch) => 'current_mileage' in patch);
+
+    it('adds the GPS distance when the typed end odometer is history (a newer reading exists)', async () => {
+      mockUserClient._pushResult({ data: completedRow }); // 0: completion UPDATE
+      mockUserClient._pushResult({ data: { distance_m: 32_186, motorcycle_id: 'moto-456' } }); // 1: claim
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 2: bike (RPC unit)
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 3: bike (GPS)
+      mockUserClient._pushResult({ data: null, error: null }); // 4: odometer UPDATE
+      mockUserClient._pushResult({ data: [] }); // 5: due maintenance tasks
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: { reading_id: 'reading-1', bike_moved: false },
+        error: null,
+      });
+
+      await service.endRide(userId, { ...endBase, distanceM: 32_186, odometerAtEnd: 990 });
+
+      expect(rpcCalls('log_ride_end_odometer')).toHaveLength(1);
+      expect(gpsMileageWrites()).toEqual([
+        expect.objectContaining({ current_mileage: 1020, odometer_last_ride_id: 'ride-123' }),
+      ]);
+      expect(mockUserClient._chain.lte).toHaveBeenCalledWith('target_mileage', 1020);
+      expect(sentry.captureException).not.toHaveBeenCalled();
+    });
+
+    it('a failed end odometer goes to Sentry with the typed value and the GPS distance still moves the bike', async () => {
+      mockUserClient._pushResult({ data: completedRow }); // 0: completion UPDATE
+      mockUserClient._pushResult({ data: { distance_m: 32_186, motorcycle_id: 'moto-456' } }); // 1: claim
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 2: bike (RPC unit)
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 3: bike (GPS)
+      mockUserClient._pushResult({ data: null, error: null }); // 4: odometer UPDATE
+      mockUserClient._pushResult({ data: [] }); // 5: due maintenance tasks
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: null,
+        error: { code: '57014', message: 'canceling statement due to statement timeout' },
+      });
+
+      const result = await service.endRide(userId, {
+        ...endBase,
+        distanceM: 32_186,
+        odometerAtEnd: 1234,
+      });
+
+      expect(result.ride.status).toBe('completed');
+      expect(sentry.captureException).toHaveBeenCalledTimes(1);
+      expect(sentry.captureException.mock.calls[0][1]).toMatchObject({
+        extra: { rideId: 'ride-123', odometerAtEnd: 1234 },
+      });
+      expect(gpsMileageWrites()).toEqual([
+        expect.objectContaining({ current_mileage: 1020, odometer_sync_source: 'gps_ride' }),
+      ]);
+      expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
     it('a replayed end does not apply the odometer again', async () => {
@@ -1054,7 +1118,10 @@ describe('RidesService', () => {
         const points = await service.findWaypoints(userId, 'ride-123', 1_000);
 
         expect(rpcCalls('ride_track_points')).toEqual([
-          ['ride_track_points', { p_ride_id: 'ride-123', p_max_points: null }],
+          [
+            'ride_track_points',
+            { p_ride_id: 'ride-123', p_max_points: RIDE_WAYPOINT_LIMITS.MAX_PER_RIDE },
+          ],
         ]);
         expect(points).toHaveLength(1_000);
         expect(points[0].recordedAt).toBe(track.recorded_at[0]);
@@ -1399,6 +1466,7 @@ describe('RidesService', () => {
       ['22023', 'invalid_value'],
       ['22003', 'value "12463000000" is out of range for type integer'],
       [PG_ERROR.NO_DATA_FOUND, 'motorcycle_not_found'],
+      [PG_ERROR.OBJECT_NOT_IN_PREREQUISITE_STATE, 'ride_not_completed'],
       [PG_ERROR.INSUFFICIENT_PRIVILEGE, 'not_authenticated'],
     ])('answers a refused odometer (%s) with BadRequestException', async (code, message) => {
       mockUserClient._pushResult({

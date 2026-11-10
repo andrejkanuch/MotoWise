@@ -354,12 +354,27 @@ ALTER TABLE public.odometer_readings ADD CONSTRAINT odometer_readings_source_che
 -- 'gps_ride' reading with this ride_id stamped at processing time, after
 -- ended_at. The typed value is meant to replace that estimate: when it moves
 -- the bike, the ride's 'gps_ride' reading is deleted.
+--
+-- Another ride's 'gps_ride' reading is dated by that ride's ended_at, not by
+-- its recorded_at: the trigger stamps it when the ride SYNCS, so two rides
+-- recorded offline would otherwise make the earlier ride's estimate look newer
+-- than the later ride's end, and the later ride's typed value would be taken
+-- for history.
+--
+-- The ride must be completed: a value logged before endRide would move the
+-- bike, and endRide would then add the GPS distance on top. A ride still
+-- recording is refused with 55000 (object_not_in_prerequisite_state).
+--
+-- Returns the reading's id and bike_moved: whether this call set the bike's
+-- odometer to the typed value. False for a history reading and for a replay of
+-- the same value; endRide then still owes the bike the ride's GPS distance.
 CREATE FUNCTION public.log_ride_end_odometer(
   p_ride_id uuid,
   p_value integer,
-  p_unit text
+  p_unit text,
+  OUT reading_id uuid,
+  OUT bike_moved boolean
 )
-RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
@@ -369,6 +384,7 @@ DECLARE
   v_km_per_mile CONSTANT numeric := 1.609344;
   v_motorcycle_id uuid;
   v_ended_at timestamptz;
+  v_status text;
   v_bike_unit text;
   v_value integer;
   v_recorded_at timestamptz;
@@ -387,11 +403,14 @@ BEGIN
     RAISE EXCEPTION 'invalid_unit' USING ERRCODE = '22023';
   END IF;
 
-  SELECT r.motorcycle_id, r.ended_at INTO v_motorcycle_id, v_ended_at
+  SELECT r.motorcycle_id, r.ended_at, r.status INTO v_motorcycle_id, v_ended_at, v_status
   FROM public.rides r
   WHERE r.id = p_ride_id AND r.user_id = v_uid AND r.deleted_at IS NULL;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'ride_not_found' USING ERRCODE = 'P0002';
+  END IF;
+  IF v_status IS DISTINCT FROM 'completed' THEN
+    RAISE EXCEPTION 'ride_not_completed' USING ERRCODE = '55000';
   END IF;
 
   -- Row lock, as in log_odometer_reading(): readings for one bike are
@@ -413,9 +432,11 @@ BEGIN
   SELECT o.id, o.value, o.recorded_at INTO v_reading_id, v_existing_value, v_recorded_at
   FROM public.odometer_readings o
   WHERE o.ride_id = p_ride_id AND o.source = 'ride_end';
+  bike_moved := false;
   IF FOUND THEN
     IF v_existing_value = v_value THEN
-      RETURN v_reading_id;
+      reading_id := v_reading_id;
+      RETURN;
     END IF;
     UPDATE public.odometer_readings SET value = v_value WHERE id = v_reading_id;
   ELSE
@@ -428,12 +449,18 @@ BEGIN
 
   -- Same rule as log_odometer_reading(): a reading older than the latest one is
   -- history and does not move the bike's current odometer. This ride's own
-  -- readings (its gps_ride estimate) do not count as later ones (see above).
+  -- readings (its gps_ride estimate) do not count as later ones, and another
+  -- ride's gps_ride estimate counts from that ride's end (see above).
   IF NOT EXISTS (
-    SELECT 1 FROM public.odometer_readings o
+    SELECT 1
+    FROM public.odometer_readings o
+    LEFT JOIN public.rides lr ON lr.id = o.ride_id
     WHERE o.motorcycle_id = v_motorcycle_id
-      AND o.recorded_at > v_recorded_at
       AND o.ride_id IS DISTINCT FROM p_ride_id
+      AND CASE
+            WHEN o.source = 'gps_ride' THEN COALESCE(lr.ended_at, o.recorded_at)
+            ELSE o.recorded_at
+          END > v_recorded_at
   ) THEN
     -- Tells trg_motorcycles_log_odometer (00181) this write is already logged,
     -- so it does not add a second reading. Cleared straight after the UPDATE.
@@ -454,9 +481,11 @@ BEGIN
     -- reading (the branch not taken) leaves the estimate alone.
     DELETE FROM public.odometer_readings
     WHERE ride_id = p_ride_id AND source = 'gps_ride';
+
+    bike_moved := true;
   END IF;
 
-  RETURN v_reading_id;
+  reading_id := v_reading_id;
 END;
 $$;
 

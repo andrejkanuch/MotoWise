@@ -29,6 +29,11 @@ export const PG_ERROR = {
   /** PL/pgSQL no_data_found — raised by RPCs for "no such row for this caller". */
   NO_DATA_FOUND: 'P0002',
   /**
+   * Postgres object_not_in_prerequisite_state — raised by RPCs for "not in a state
+   * this call accepts yet" (log_ride_end_odometer on a ride still recording).
+   */
+  OBJECT_NOT_IN_PREREQUISITE_STATE: '55000',
+  /**
    * PostgREST: the JWT could not be decoded or is invalid. PostgREST's own
    * tutorial shows an expired token surfacing here as `"JWT expired"`.
    */
