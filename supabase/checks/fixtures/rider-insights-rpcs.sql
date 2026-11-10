@@ -2,7 +2,7 @@
 -- run.sh starts (postgis/postgis image). Never run this anywhere else: it
 -- creates a stand-in `auth` schema, `cron.schedule`, and minimal public.users,
 -- motorcycles, rides, ride_waypoints, ride_summaries and expenses, then applies
--- 00048, 00181, 00197 and 00199.
+-- 00048, 00181, 00197, 00199 and 00200.
 --
 -- On a real Supabase database (local stack or prod) skip this file: those
 -- already have the real tables, and the migrations are applied by the normal
@@ -244,3 +244,4 @@ COMMIT;
 \ir ../../migrations/00181_odometer_readings.sql
 \ir ../../migrations/00197_rider_insights_schema.sql
 \ir ../../migrations/00199_rider_insights_rpcs.sql
+\ir ../../migrations/00200_ride_overview_skip_short_rides.sql
