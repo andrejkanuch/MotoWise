@@ -135,6 +135,20 @@ function pgDisposition(code: string | null | undefined): PgDisposition | 'unknow
 }
 
 /**
+ * log_ride_end_odometer's deterministic refusals: a data exception (22023 invalid
+ * value or unit, 22003 out of range) by class, plus the ride or bike not found
+ * (P0002) and no caller (42501).
+ */
+const ODOMETER_REFUSAL_CODES: ReadonlySet<string> = new Set([
+  PG_ERROR.NO_DATA_FOUND,
+  PG_ERROR.INSUFFICIENT_PRIVILEGE,
+]);
+
+function isOdometerRefusal(code: string | undefined): boolean {
+  return pgDisposition(code) === 'permanent' || ODOMETER_REFUSAL_CODES.has(code ?? '');
+}
+
+/**
  * Coerce a client-supplied float into a value a Postgres `real` column accepts.
  *
  * `ride_waypoints.altitude / speed_mps / heading / accuracy` are all REAL (00047),
@@ -765,7 +779,14 @@ export class RidesService {
       p_unit: unit,
     });
     if (error) {
-      throw new Error(`log_ride_end_odometer failed: ${error.message} (${error.code})`);
+      const cause = new Error(`log_ride_end_odometer failed: ${error.message} (${error.code})`);
+      // A refusal the RPC will repeat on every retry (bad or out-of-range value, ride
+      // or bike gone, not the caller's) is a 4xx, so the sync queue dead-letters it
+      // once instead of retrying it at the head of the queue. Anything else retries.
+      if (isOdometerRefusal(error.code)) {
+        throw new BadRequestException(`Odometer reading rejected (${error.code})`, { cause });
+      }
+      throw cause;
     }
     this.logger.log(
       `Odometer at end: ${value}${unit} on motorcycle ${motorcycleId} (ride=${rideId})`,
@@ -1044,6 +1065,12 @@ export class RidesService {
       throw new BadRequestException('Failed to update ride');
     }
     const ride = this.mapRow(data);
+    // The post-ride sheet sends the odometer after the ride has ended, so it is
+    // logged here as the ride's end reading (the RPC returns the existing reading
+    // on a repeat).
+    if (input.odometerAtEnd != null && ride.motorcycleId) {
+      await this.applyOdometerAtEnd(userId, input.rideId, ride.motorcycleId, input.odometerAtEnd);
+    }
     if (Object.keys(answers).length === 0) return ride;
 
     const { details, error: answersError } = await this.upsertPrivateDetails(

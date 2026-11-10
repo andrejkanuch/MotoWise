@@ -47,7 +47,7 @@ export const SOURCES = {
   },
   regions: {
     url: 'https://web.archive.org/web/20260919094037id_/https://download.geonames.org/export/dump/admin1CodesASCII.txt',
-    sha256: '590651498043f674accda2b7f46d21286cda0e290b02f8561c5005eee9a5448c',
+    sha256: '1da92a6323a5fec3176f3f743bf4cf4040fd56a876da55e46fbca23c863aa60a',
   },
   places: {
     url: 'https://web.archive.org/web/20261023163723id_/https://download.geonames.org/export/dump/cities15000.zip',

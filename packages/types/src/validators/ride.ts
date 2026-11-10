@@ -212,6 +212,8 @@ export const UpdateRideInputSchema = z.object({
   isPublic: z.boolean().optional(),
   purpose: toleratedEdit(RidePurposeSchema),
   passenger: toleratedEdit(z.boolean()),
+  /** Odometer read after the ride, in the bike's own unit. */
+  odometerAtEnd: toleratedEdit(z.number().nonnegative().max(9_999_999).transform(Math.round)),
 });
 export type UpdateRideInput = z.infer<typeof UpdateRideInputSchema>;
 

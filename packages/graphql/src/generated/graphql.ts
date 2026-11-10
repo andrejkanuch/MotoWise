@@ -757,6 +757,7 @@ export type UpdateRideInput = {
   isPublic?: boolean | null | undefined;
   mileageApplied?: boolean | null | undefined;
   name?: string | null | undefined;
+  odometerAtEnd?: number | null | undefined;
   passenger?: boolean | null | undefined;
   purpose?: string | null | undefined;
   rideId: string;

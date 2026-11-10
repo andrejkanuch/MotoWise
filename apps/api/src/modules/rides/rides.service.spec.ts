@@ -1351,6 +1351,9 @@ describe('RidesService', () => {
   });
 
   describe('updateRide', () => {
+    const rpcCalls = (name: string) =>
+      mockUserClient.rpc.mock.calls.filter((call: unknown[]) => call[0] === name);
+
     it('should partial-update and return mapped ride', async () => {
       const updatedRow = { ...fakeRow, name: 'Morning Cruise' };
       mockUserClient._pushResult({ data: updatedRow });
@@ -1375,6 +1378,69 @@ describe('RidesService', () => {
       await expect(
         service.updateRide(userId, { rideId: 'ride-123', name: 'Test' }),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it("logs the odometer read after the ride as the ride's end reading, in the bike unit", async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', motorcycle_id: 'moto-456' },
+      }); // 0: ride read
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'mi' } }); // 1: bike
+
+      await service.updateRide(userId, { rideId: 'ride-123', odometerAtEnd: 1250 });
+
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([
+        ['log_ride_end_odometer', { p_ride_id: 'ride-123', p_value: 1250, p_unit: 'mi' }],
+      ]);
+    });
+
+    // The RPC's deterministic refusals come back as 4xx, so the mobile sync queue
+    // dead-letters the op once instead of retrying it at the head of the queue.
+    it.each([
+      ['22023', 'invalid_value'],
+      ['22003', 'value "12463000000" is out of range for type integer'],
+      [PG_ERROR.NO_DATA_FOUND, 'motorcycle_not_found'],
+      [PG_ERROR.INSUFFICIENT_PRIVILEGE, 'not_authenticated'],
+    ])('answers a refused odometer (%s) with BadRequestException', async (code, message) => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', motorcycle_id: 'moto-456' },
+      });
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'km' } });
+      mockUserClient.rpc.mockResolvedValueOnce({ data: null, error: { code, message } });
+
+      const err = await service
+        .updateRide(userId, { rideId: 'ride-123', odometerAtEnd: 1250 })
+        .catch((e) => e);
+
+      expect(err).toBeInstanceOf(BadRequestException);
+      expect(err.message).toContain(code);
+    });
+
+    it('keeps an unknown odometer failure retryable (not a 4xx)', async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', motorcycle_id: 'moto-456' },
+      });
+      mockUserClient._pushResult({ data: { current_mileage: 1000, distance_unit: 'km' } });
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: null,
+        error: { code: '57014', message: 'canceling statement due to statement timeout' },
+      });
+
+      const err = await service
+        .updateRide(userId, { rideId: 'ride-123', odometerAtEnd: 1250 })
+        .catch((e) => e);
+
+      expect(err).toBeInstanceOf(Error);
+      expect(err).not.toBeInstanceOf(BadRequestException);
+    });
+
+    it('ignores an odometer for a ride without a bike', async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', motorcycle_id: null },
+      });
+
+      await service.updateRide(userId, { rideId: 'ride-123', odometerAtEnd: 1250 });
+
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([]);
     });
   });
 

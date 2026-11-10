@@ -22,7 +22,7 @@
 --     owner-run loader fills them in one transaction.
 --   * users.is_synthetic: flags generated demo accounts.
 --   * odometer_readings.source gains 'ride_end', written only by the new
---     log_ride_end_odometer().
+--     log_ride_end_odometer() (one per ride; a corrected value updates it).
 --   * ride_track_points(): a rider's own ride track in one row of arrays,
 --     optionally downsampled, so reads are not cut at PostgREST's 1,000-row cap.
 --   * purge_soft_deleted_rides(): also deletes ride_stats, ride_tracks and
@@ -344,7 +344,16 @@ ALTER TABLE public.odometer_readings ADD CONSTRAINT odometer_readings_source_che
 --
 -- p_value is in p_unit ('km' or 'mi') and is stored in the bike's distance_unit
 -- (00180), like every odometer_readings.value. One ride gets at most one
--- 'ride_end' reading: a replay returns the existing reading's id.
+-- 'ride_end' reading: a replay with the same value returns the existing
+-- reading's id and changes nothing; a different value is a correction and
+-- updates that reading in place.
+--
+-- The typed value is the bike's odometer unless a reading NOT of this ride is
+-- newer than the ride's end. This ride's own readings are ignored on purpose:
+-- endRide adds the GPS distance first, and the 00181 trigger logs that as a
+-- 'gps_ride' reading with this ride_id stamped at processing time, after
+-- ended_at. The typed value is meant to replace that estimate: when it moves
+-- the bike, the ride's 'gps_ride' reading is deleted.
 CREATE FUNCTION public.log_ride_end_odometer(
   p_ride_id uuid,
   p_value integer,
@@ -364,6 +373,7 @@ DECLARE
   v_value integer;
   v_recorded_at timestamptz;
   v_reading_id uuid;
+  v_existing_value integer;
 BEGIN
   IF v_uid IS NULL THEN
     RAISE EXCEPTION 'not_authenticated' USING ERRCODE = '42501';
@@ -394,31 +404,36 @@ BEGIN
     RAISE EXCEPTION 'motorcycle_not_found' USING ERRCODE = 'P0002';
   END IF;
 
-  SELECT o.id INTO v_reading_id
-  FROM public.odometer_readings o
-  WHERE o.ride_id = p_ride_id AND o.source = 'ride_end';
-  IF FOUND THEN
-    RETURN v_reading_id;
-  END IF;
-
   v_value := CASE
     WHEN p_unit = COALESCE(v_bike_unit, 'km') THEN p_value
     WHEN p_unit = 'km' THEN round(p_value / v_km_per_mile)::integer
     ELSE round(p_value * v_km_per_mile)::integer
   END;
 
-  v_recorded_at := LEAST(COALESCE(v_ended_at, now()), now());
+  SELECT o.id, o.value, o.recorded_at INTO v_reading_id, v_existing_value, v_recorded_at
+  FROM public.odometer_readings o
+  WHERE o.ride_id = p_ride_id AND o.source = 'ride_end';
+  IF FOUND THEN
+    IF v_existing_value = v_value THEN
+      RETURN v_reading_id;
+    END IF;
+    UPDATE public.odometer_readings SET value = v_value WHERE id = v_reading_id;
+  ELSE
+    v_recorded_at := LEAST(COALESCE(v_ended_at, now()), now());
 
-  INSERT INTO public.odometer_readings (user_id, motorcycle_id, value, recorded_at, source, ride_id)
-  VALUES (v_uid, v_motorcycle_id, v_value, v_recorded_at, 'ride_end', p_ride_id)
-  RETURNING id INTO v_reading_id;
+    INSERT INTO public.odometer_readings (user_id, motorcycle_id, value, recorded_at, source, ride_id)
+    VALUES (v_uid, v_motorcycle_id, v_value, v_recorded_at, 'ride_end', p_ride_id)
+    RETURNING id INTO v_reading_id;
+  END IF;
 
   -- Same rule as log_odometer_reading(): a reading older than the latest one is
-  -- history and does not move the bike's current odometer.
+  -- history and does not move the bike's current odometer. This ride's own
+  -- readings (its gps_ride estimate) do not count as later ones (see above).
   IF NOT EXISTS (
     SELECT 1 FROM public.odometer_readings o
     WHERE o.motorcycle_id = v_motorcycle_id
       AND o.recorded_at > v_recorded_at
+      AND o.ride_id IS DISTINCT FROM p_ride_id
   ) THEN
     -- Tells trg_motorcycles_log_odometer (00181) this write is already logged,
     -- so it does not add a second reading. Cleared straight after the UPDATE.
@@ -432,6 +447,13 @@ BEGIN
     WHERE id = v_motorcycle_id AND user_id = v_uid;
 
     PERFORM set_config('app.odometer_logged', '', true);
+
+    -- The typed value replaces this ride's GPS estimate, so the estimate is
+    -- retired: otherwise it stays the bike's newest reading (stamped after
+    -- ended_at) while current_mileage shows the typed value. A history end
+    -- reading (the branch not taken) leaves the estimate alone.
+    DELETE FROM public.odometer_readings
+    WHERE ride_id = p_ride_id AND source = 'gps_ride';
   END IF;
 
   RETURN v_reading_id;

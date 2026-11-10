@@ -2504,6 +2504,7 @@ input UpdateRideInput {
   isPublic: Boolean
   mileageApplied: Boolean
   name: String
+  odometerAtEnd: Float
   passenger: Boolean
   purpose: String
   rideId: String!

@@ -11,7 +11,10 @@
 --   * a rider cannot set their own users.is_synthetic;
 --   * log_ride_end_odometer writes exactly one odometer reading per ride end
 --     (the mileage trigger adds none), converts to the bike's unit, and rejects
---     another rider's ride;
+--     another rider's ride; the typed value replaces the ride's own GPS estimate
+--     (logged after ended_at) as the bike's odometer; a corrected value updates
+--     the reading and the odometer; a reading logged after the ride keeps the
+--     end reading as history;
 --   * log_odometer_reading keeps its single signature and its behaviour;
 --   * ride_private_details (the rider's time zone, purpose and passenger
 --     answer) is owner-only: RLS on, no PUBLIC or anon privilege, authenticated
@@ -220,7 +223,11 @@ SELECT
   set_config('ri_check.ride_b', gen_random_uuid()::text, true),
   set_config('ri_check.ride_purged', gen_random_uuid()::text, true),
   set_config('ri_check.ride_recent', gen_random_uuid()::text, true),
-  set_config('ri_check.ride_pub', gen_random_uuid()::text, true);
+  set_config('ri_check.ride_pub', gen_random_uuid()::text, true),
+  set_config('ri_check.bike_gps', gen_random_uuid()::text, true),
+  set_config('ri_check.bike_gps_later', gen_random_uuid()::text, true),
+  set_config('ri_check.ride_gps', gen_random_uuid()::text, true),
+  set_config('ri_check.ride_gps_later', gen_random_uuid()::text, true);
 
 INSERT INTO auth.users (id, email)
 VALUES
@@ -235,13 +242,16 @@ INSERT INTO public.motorcycles (id, user_id, make, model, current_mileage, dista
 VALUES
   (current_setting('ri_check.bike_a')::uuid, current_setting('ri_check.user_a')::uuid, 'Honda', 'Africa Twin', 10000, 'km'),
   (current_setting('ri_check.bike_a_mi')::uuid, current_setting('ri_check.user_a')::uuid, 'Harley-Davidson', 'Street Glide', 5000, 'mi'),
-  (current_setting('ri_check.bike_b')::uuid, current_setting('ri_check.user_b')::uuid, 'BMW', 'R 1250 GS', 20000, 'km');
+  (current_setting('ri_check.bike_b')::uuid, current_setting('ri_check.user_b')::uuid, 'BMW', 'R 1250 GS', 20000, 'km'),
+  (current_setting('ri_check.bike_gps')::uuid, current_setting('ri_check.user_a')::uuid, 'Yamaha', 'Tenere 700', 15000, 'km'),
+  (current_setting('ri_check.bike_gps_later')::uuid, current_setting('ri_check.user_a')::uuid, 'KTM', '890 Adventure', 20000, 'km');
 
 -- The bikes' 'initial' readings (00181 trigger) are stamped now(); date them
 -- before the rides so a ride-end reading is the latest one, as in real use.
 UPDATE public.odometer_readings SET recorded_at = now() - interval '60 days'
 WHERE motorcycle_id IN (current_setting('ri_check.bike_a')::uuid, current_setting('ri_check.bike_a_mi')::uuid,
-                        current_setting('ri_check.bike_b')::uuid);
+                        current_setting('ri_check.bike_b')::uuid, current_setting('ri_check.bike_gps')::uuid,
+                        current_setting('ri_check.bike_gps_later')::uuid);
 
 INSERT INTO public.rides (id, user_id, motorcycle_id, status, started_at, ended_at, distance_m, route_polyline, deleted_at)
 VALUES
@@ -263,6 +273,36 @@ VALUES
   (current_setting('ri_check.ride_recent')::uuid, current_setting('ri_check.user_a')::uuid,
    current_setting('ri_check.bike_a')::uuid, 'completed',
    now() - interval '5 days', now() - interval '5 days' + interval '1 hour', 30000, 'encoded', now() - interval '1 day');
+
+-- Two rides ended an hour ago whose GPS distance endRide has already added to
+-- the bike, as the API does: current_mileage plus gps_ride and the ride id, so
+-- the 00181 trigger logs a 'gps_ride' reading for the ride stamped now(), i.e.
+-- AFTER the ride's ended_at. The rider's typed end odometer arrives later.
+INSERT INTO public.rides (id, user_id, motorcycle_id, status, started_at, ended_at, distance_m)
+VALUES
+  (current_setting('ri_check.ride_gps')::uuid, current_setting('ri_check.user_a')::uuid,
+   current_setting('ri_check.bike_gps')::uuid, 'completed',
+   now() - interval '2 hours', now() - interval '1 hour', 120000),
+  (current_setting('ri_check.ride_gps_later')::uuid, current_setting('ri_check.user_a')::uuid,
+   current_setting('ri_check.bike_gps_later')::uuid, 'completed',
+   now() - interval '2 hours', now() - interval '1 hour', 120000);
+
+UPDATE public.motorcycles
+SET current_mileage = current_mileage + 120,
+    odometer_sync_source = 'gps_ride',
+    odometer_last_ride_id = CASE id WHEN current_setting('ri_check.bike_gps')::uuid
+                                    THEN current_setting('ri_check.ride_gps')::uuid
+                                    ELSE current_setting('ri_check.ride_gps_later')::uuid END
+WHERE id IN (current_setting('ri_check.bike_gps')::uuid, current_setting('ri_check.bike_gps_later')::uuid);
+
+DO $$
+BEGIN
+  IF (SELECT count(*) FROM public.odometer_readings
+      WHERE source = 'gps_ride' AND recorded_at > now() - interval '1 hour'
+        AND ride_id IN (current_setting('ri_check.ride_gps')::uuid, current_setting('ri_check.ride_gps_later')::uuid)) <> 2 THEN
+    RAISE EXCEPTION 'FAIL: precondition: endRide''s GPS mileage did not log a gps_ride reading after ride end';
+  END IF;
+END $$;
 
 -- Rider A's public ride: any signed-in rider can read the ride itself.
 INSERT INTO public.rides (id, user_id, motorcycle_id, status, started_at, ended_at, distance_m, visibility)
@@ -541,6 +581,98 @@ BEGIN
   SELECT current_mileage INTO v_mileage FROM public.motorcycles WHERE id = bike_a;
   IF v_mileage <> 13000 THEN
     RAISE EXCEPTION 'FAIL: log_odometer_reading did not move the odometer (current_mileage %)', v_mileage;
+  END IF;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- As rider A: the end odometer typed after endRide's GPS estimate.
+-- ---------------------------------------------------------------------------
+DO $$
+DECLARE
+  bike_gps CONSTANT uuid := current_setting('ri_check.bike_gps')::uuid;
+  bike_later CONSTANT uuid := current_setting('ri_check.bike_gps_later')::uuid;
+  ride_gps CONSTANT uuid := current_setting('ri_check.ride_gps')::uuid;
+  ride_later CONSTANT uuid := current_setting('ri_check.ride_gps_later')::uuid;
+  v_id uuid;
+  v_id_again uuid;
+  v_before INTEGER;
+  v_after INTEGER;
+  v_mileage INTEGER;
+BEGIN
+  IF current_user <> 'authenticated' THEN
+    RAISE EXCEPTION 'FAIL: expected to run as authenticated, running as %', current_user;
+  END IF;
+
+  -- 9. The ride's own GPS reading (logged after ended_at) is not a newer
+  -- reading: the typed value becomes the bike's odometer.
+  IF (SELECT current_mileage FROM public.motorcycles WHERE id = bike_gps) <> 15120 THEN
+    RAISE EXCEPTION 'FAIL: precondition: GPS estimate not applied to the bike';
+  END IF;
+  -- The typed value replaces the estimate: the ride's gps_ride reading is
+  -- retired, so the bike's newest reading is the one its odometer shows.
+  SELECT count(*) INTO v_before FROM public.odometer_readings
+  WHERE motorcycle_id = bike_gps AND source <> 'gps_ride';
+  v_id := public.log_ride_end_odometer(ride_gps, 15100, 'km');
+  SELECT count(*) INTO v_after FROM public.odometer_readings
+  WHERE motorcycle_id = bike_gps AND source <> 'gps_ride';
+  IF v_after - v_before <> 1 THEN
+    RAISE EXCEPTION 'FAIL: ride end after GPS wrote % readings, expected 1', v_after - v_before;
+  END IF;
+  SELECT current_mileage INTO v_mileage FROM public.motorcycles WHERE id = bike_gps;
+  IF v_mileage <> 15100 THEN
+    RAISE EXCEPTION 'FAIL: typed end odometer did not replace the ride''s GPS estimate (current_mileage %)', v_mileage;
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.odometer_readings WHERE ride_id = ride_gps AND source = 'gps_ride') THEN
+    RAISE EXCEPTION 'FAIL: the ride''s gps_ride estimate survived the typed end odometer';
+  END IF;
+  IF (SELECT o.value FROM public.odometer_readings o WHERE o.motorcycle_id = bike_gps
+      ORDER BY o.recorded_at DESC, o.created_at DESC LIMIT 1) <> v_mileage THEN
+    RAISE EXCEPTION 'FAIL: after a typed end the bike''s newest reading is not its odometer %', v_mileage;
+  END IF;
+
+  -- 10. A correction for the same ride updates its reading and the odometer,
+  -- and adds no reading (the mileage trigger stays out of it).
+  v_id_again := public.log_ride_end_odometer(ride_gps, 15110, 'km');
+  SELECT count(*) INTO v_after FROM public.odometer_readings
+  WHERE motorcycle_id = bike_gps AND source <> 'gps_ride';
+  IF v_id_again <> v_id OR v_after - v_before <> 1 THEN
+    RAISE EXCEPTION 'FAIL: a corrected ride end wrote another reading';
+  END IF;
+  IF (SELECT value FROM public.odometer_readings WHERE id = v_id) <> 15110 THEN
+    RAISE EXCEPTION 'FAIL: a corrected ride end kept the first value %',
+      (SELECT value FROM public.odometer_readings WHERE id = v_id);
+  END IF;
+  SELECT current_mileage INTO v_mileage FROM public.motorcycles WHERE id = bike_gps;
+  IF v_mileage <> 15110 THEN
+    RAISE EXCEPTION 'FAIL: a corrected ride end did not move the odometer (current_mileage %)', v_mileage;
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.odometer_readings WHERE ride_id = ride_gps AND source = 'gps_ride') THEN
+    RAISE EXCEPTION 'FAIL: a corrected ride end left a gps_ride estimate for the ride';
+  END IF;
+  IF (SELECT o.value FROM public.odometer_readings o WHERE o.motorcycle_id = bike_gps
+      ORDER BY o.recorded_at DESC, o.created_at DESC LIMIT 1) <> v_mileage THEN
+    RAISE EXCEPTION 'FAIL: after a correction the bike''s newest reading is not its odometer %', v_mileage;
+  END IF;
+
+  -- 11. A reading logged after the ride (here a manual one) wins: the end
+  -- reading, and a later correction of it, stay history.
+  PERFORM public.log_odometer_reading(bike_later, 20300, now());
+  v_id := public.log_ride_end_odometer(ride_later, 20100, 'km');
+  SELECT current_mileage INTO v_mileage FROM public.motorcycles WHERE id = bike_later;
+  IF v_mileage <> 20300 THEN
+    RAISE EXCEPTION 'FAIL: a ride end older than a later manual reading moved the odometer to %', v_mileage;
+  END IF;
+  PERFORM public.log_ride_end_odometer(ride_later, 20150, 'km');
+  IF (SELECT value FROM public.odometer_readings WHERE id = v_id) <> 20150 THEN
+    RAISE EXCEPTION 'FAIL: a corrected ride end (history) kept the first value';
+  END IF;
+  SELECT current_mileage INTO v_mileage FROM public.motorcycles WHERE id = bike_later;
+  IF v_mileage <> 20300 THEN
+    RAISE EXCEPTION 'FAIL: a corrected history ride end moved the odometer to %', v_mileage;
+  END IF;
+  -- A history end reading leaves the ride's GPS estimate alone.
+  IF NOT EXISTS (SELECT 1 FROM public.odometer_readings WHERE ride_id = ride_later AND source = 'gps_ride') THEN
+    RAISE EXCEPTION 'FAIL: a history ride end removed the ride''s gps_ride reading';
   END IF;
 END $$;
 
