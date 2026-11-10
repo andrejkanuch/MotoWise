@@ -30,8 +30,6 @@ interface WhatsNewState extends WhatsNewPersisted {
   /** Sticky per experiment: the first arm recorded for an experiment key wins. */
   setHoldoutArm: (experimentKey: string, arm: string) => void;
   setReturnSessionOpen: (open: boolean) => void;
-  /** @deprecated Removed when the carousel screen replaces the slide modal; use markReleaseSeen. */
-  setLastSeenVersion: (version: string) => void;
 }
 
 const STORE_VERSION = 1;
@@ -81,7 +79,6 @@ export const useWhatsNewStore = create<WhatsNewState>()(
         set({ holdout: { experimentKey, arm } });
       },
       setReturnSessionOpen: (returnSessionOpen) => set({ returnSessionOpen }),
-      setLastSeenVersion: (lastSeenVersion) => set({ lastSeenVersion }),
     }),
     {
       // Same name and MMKV id as version 0, so riders keep their last-seen release.

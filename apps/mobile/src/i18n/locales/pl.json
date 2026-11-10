@@ -1909,6 +1909,7 @@
         },
         "example": {
           "line": "Ciśnienie w oponach, numery części, telefon do serwisu. Zapisane przy {{bike}}, ze zdjęciem, znalezione w sekundę.",
+          "lineNoBike": "Ciśnienie w oponach, numery części, telefon do serwisu. Zapisane przy twoim motocyklu, ze zdjęciem, znalezione w sekundę.",
           "cta": "Napisz pierwszą notatkę"
         },
         "demo": {

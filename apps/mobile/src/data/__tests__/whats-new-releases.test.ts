@@ -89,26 +89,4 @@ describe('whats-new releases', () => {
       );
     });
   });
-
-  describe('the old slide modal still reads the platform-filtered slides', () => {
-    // Guards the slide modal until the carousel replaces it: in 3.19.1 it read
-    // `release.slides` directly and showed Android riders an iOS-only slide.
-    const modalSource = require('node:fs').readFileSync(
-      require('node:path').join(__dirname, '../../app/(modals)/whats-new.tsx'),
-      'utf8',
-    );
-
-    it('calls visibleSlides()', () => {
-      expect(modalSource).toContain('visibleSlides(');
-    });
-
-    it('never reads the unfiltered .slides list', () => {
-      const offending = modalSource
-        .split('\n')
-        .map((line: string, i: number) => [i + 1, line] as const)
-        .filter(([, line]) => /\brelease\.slides\b/.test(line))
-        .filter(([, line]) => !line.trimStart().startsWith('//'));
-      expect(offending).toEqual([]);
-    });
-  });
 });

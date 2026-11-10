@@ -1853,6 +1853,7 @@
         },
         "example": {
           "line": "Reifendruck, Teilenummern, die Nummer der Werkstatt. Gespeichert bei {{bike}}, mit Foto, in Sekunden gefunden.",
+          "lineNoBike": "Reifendruck, Teilenummern, die Nummer der Werkstatt. Gespeichert bei deinem Motorrad, mit Foto, in Sekunden gefunden.",
           "cta": "Erste Notiz schreiben"
         },
         "demo": {

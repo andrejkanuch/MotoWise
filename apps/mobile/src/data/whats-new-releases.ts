@@ -1,7 +1,3 @@
-import { palette } from '@motovault/design-system';
-import type { LucideIcon } from 'lucide-react-native';
-import { Gauge, SunMoon, UserCog } from 'lucide-react-native';
-
 /** Features What's New can present, one carousel page each. */
 export const WHATS_NEW_FEATURE = {
   ROAD_ATLAS: 'road_atlas',
@@ -104,66 +100,3 @@ export const CATCH_UP_FEATURES: readonly WhatsNewFeature[] = [
   WHATS_NEW_FEATURE.RECEIPT_SCAN,
   WHATS_NEW_FEATURE.NOTES_PHOTOS,
 ];
-
-// ---------------------------------------------------------------------------
-// Slide modal data. Everything below is @deprecated: removed when the carousel
-// screen replaces the slide modal.
-// ---------------------------------------------------------------------------
-
-/** @deprecated Removed when the carousel screen replaces the slide modal. */
-export type WhatsNewAction = 'open-document-vault';
-
-/** @deprecated Removed when the carousel screen replaces the slide modal. */
-export interface WhatsNewSlide {
-  icon: LucideIcon;
-  iconColor: string;
-  titleKey: string;
-  descriptionKey: string;
-  ctaAction?: WhatsNewAction;
-  ctaLabelKey?: string;
-  platforms?: readonly string[];
-}
-
-/** @deprecated Removed when the carousel screen replaces the slide modal. */
-export interface WhatsNewSlideRelease {
-  version: string;
-  slides: WhatsNewSlide[];
-}
-
-/** The slides the slide modal shows until the carousel replaces it. */
-const LEGACY_SLIDE_RELEASE: WhatsNewSlideRelease = {
-  version: '3.25.0',
-  slides: [
-    {
-      icon: Gauge,
-      iconColor: palette.signature400,
-      titleKey: 'whatsNew.v3250.plateTitle',
-      descriptionKey: 'whatsNew.v3250.plateDesc',
-    },
-    {
-      icon: SunMoon,
-      iconColor: palette.primary400,
-      titleKey: 'whatsNew.v3250.themeTitle',
-      descriptionKey: 'whatsNew.v3250.themeDesc',
-    },
-    {
-      icon: UserCog,
-      iconColor: palette.accent400,
-      titleKey: 'whatsNew.v3250.profileTitle',
-      descriptionKey: 'whatsNew.v3250.profileDesc',
-    },
-  ],
-};
-
-/** @deprecated Removed when the carousel screen replaces the slide modal. */
-export function visibleSlides(
-  release: WhatsNewSlideRelease,
-  os: string | undefined = process.env.EXPO_OS,
-): WhatsNewSlide[] {
-  return release.slides.filter((s) => !s.platforms || s.platforms.some((p) => p === os));
-}
-
-/** @deprecated Removed when the carousel screen replaces the slide modal. */
-export function getLatestRelease(): WhatsNewSlideRelease {
-  return LEGACY_SLIDE_RELEASE;
-}

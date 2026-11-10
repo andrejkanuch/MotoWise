@@ -1853,6 +1853,7 @@
         },
         "example": {
           "line": "Tekanan ban, nomor suku cadang, nomor bengkel. Tersimpan bersama {{bike}}-mu, dengan foto, ketemu dalam sekejap.",
+          "lineNoBike": "Tekanan ban, nomor suku cadang, nomor bengkel. Tersimpan bersama motormu, dengan foto, ketemu dalam sekejap.",
           "cta": "Tulis catatan pertamaku"
         },
         "demo": {

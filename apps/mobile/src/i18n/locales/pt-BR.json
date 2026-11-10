@@ -1881,6 +1881,7 @@
         },
         "example": {
           "line": "Calibragem dos pneus, números de peças, o telefone da oficina. Guardado com sua {{bike}}, com foto, achado em um segundo.",
+          "lineNoBike": "Calibragem dos pneus, números de peças, o telefone da oficina. Guardado com sua moto, com foto, achado em um segundo.",
           "cta": "Escrever minha primeira nota"
         },
         "demo": {

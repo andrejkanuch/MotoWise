@@ -1864,6 +1864,7 @@
         },
         "example": {
           "line": "Tire pressures, part numbers, the shop's number. Kept with your {{bike}}, with a photo, found in a second.",
+          "lineNoBike": "Tire pressures, part numbers, the shop's number. Kept with your bike, with a photo, found in a second.",
           "cta": "Write my first note"
         },
         "demo": {

@@ -1881,6 +1881,7 @@
         },
         "example": {
           "line": "Pressions des pneus, références de pièces, le numéro du garage. Rangé avec ta {{bike}}, avec photo, retrouvé en une seconde.",
+          "lineNoBike": "Pressions des pneus, références de pièces, le numéro du garage. Rangé avec ta moto, avec photo, retrouvé en une seconde.",
           "cta": "Écrire ma première note"
         },
         "demo": {

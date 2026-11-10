@@ -1853,6 +1853,7 @@
         },
         "example": {
           "line": "Lastik basınçları, parça numaraları, servisin numarası. {{bike}} ile birlikte, fotoğraflı, bir saniyede bulunur.",
+          "lineNoBike": "Lastik basınçları, parça numaraları, servisin numarası. Motosikletinle birlikte, fotoğraflı, bir saniyede bulunur.",
           "cta": "İlk notumu yaz"
         },
         "demo": {

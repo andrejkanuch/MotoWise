@@ -1909,6 +1909,7 @@
         },
         "example": {
           "line": "Tlak v pneumatikách, čísla dielov, číslo servisu. Uložené pri {{bike}}, s fotkou, nájdené za sekundu.",
+          "lineNoBike": "Tlak v pneumatikách, čísla dielov, číslo servisu. Uložené pri tvojej motorke, s fotkou, nájdené za sekundu.",
           "cta": "Napísať prvú poznámku"
         },
         "demo": {

@@ -1881,6 +1881,7 @@
         },
         "example": {
           "line": "Pressione delle gomme, codici dei ricambi, il numero dell’officina. Salvati con la tua {{bike}}, con foto, trovati in un attimo.",
+          "lineNoBike": "Pressione delle gomme, codici dei ricambi, il numero dell’officina. Salvati con la tua moto, con foto, trovati in un attimo.",
           "cta": "Scrivi la prima nota"
         },
         "demo": {

@@ -1881,6 +1881,7 @@
         },
         "example": {
           "line": "Presión de llantas, números de pieza, el teléfono del taller. Guardado con tu {{bike}}, con foto, a un segundo.",
+          "lineNoBike": "Presión de llantas, números de pieza, el teléfono del taller. Guardado con tu moto, con foto, a un segundo.",
           "cta": "Escribir mi primera nota"
         },
         "demo": {
