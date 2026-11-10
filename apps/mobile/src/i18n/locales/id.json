@@ -1763,6 +1763,105 @@
       "themeDesc": "Setiap layar kini punya tampilan terang dan gelap, mengikuti pengaturan Tema Anda. Pilih di Profil › Pengaturan aplikasi › Tema, atau biarkan di Sistem agar sama dengan ponsel Anda.",
       "profileTitle": "Profil, ditata ulang",
       "profileDesc": "Profil kini dibagi menjadi bagian yang lebih jelas, dan bahasa, tema, satuan, serta mata uang sekarang ada bersama di Pengaturan aplikasi. Menyiapkan akun baru juga lebih lancar."
+    },
+    "carousel": {
+      "tagNew": "Baru di {{version}}",
+      "tagCatchUp": "Mungkin terlewat",
+      "pageOf": "{{current}} dari {{total}}",
+      "tried": "Sudah dicoba",
+      "yourData": "DATAMU",
+      "example": "CONTOH",
+      "back": "Kembali",
+      "next": "Berikutnya",
+      "rideOn": "Ayo berkendara",
+      "close": "Tutup",
+      "whereItLives": "Letaknya",
+      "openAgain": "Buka lagi",
+      "pageAnnouncement": "Halaman {{current}} dari {{total}}: {{title}}",
+      "newChip": "Baru",
+      "returnBar": {
+        "back": "Kembali ke Yang baru",
+        "next": "Fitur berikutnya"
+      },
+      "boot": {
+        "newCount_one": "{{count}} fitur baru untuk motormu",
+        "newCount_other": "{{count}} fitur baru untuk motormu",
+        "catchUpCount_one": "+ {{count}} yang mungkin terlewat",
+        "catchUpCount_other": "+ {{count}} yang mungkin terlewat",
+        "catchUpOnly_one": "{{count}} yang mungkin terlewat",
+        "catchUpOnly_other": "{{count}} yang mungkin terlewat",
+        "season": "MUSIM",
+        "odo": "ODO",
+        "allSystemsOk": "Semua sistem OK",
+        "skip": "Lewati",
+        "fromGarage": "{{bike}} · dari garasimu",
+        "seasonCaption_one": "{{count}} perjalanan musim ini",
+        "seasonCaption_other": "{{count}} perjalanan musim ini"
+      }
+    },
+    "features": {
+      "road_atlas": {
+        "title": "Atlas Jalan",
+        "where": "Profil › Ringkasan berkendara",
+        "yourData": {
+          "line_one": "{{distance}} dalam {{count}} perjalanan musim ini. Semuanya ada di satu peta.",
+          "line_other": "{{distance}} dalam {{count}} perjalanan musim ini. Semuanya ada di satu peta.",
+          "lineWithShare": "{{share}} dari {{distance}}-mu musim ini adalah jalan yang belum pernah kamu lewati. Ini dia.",
+          "lineLastRides_one": "{{count}} perjalanan terakhirmu, di satu peta.",
+          "lineLastRides_other": "{{count}} perjalanan terakhirmu, di satu peta.",
+          "cta": "Buka atlasku"
+        },
+        "example": {
+          "line": "Setiap perjalanan yang kamu rekam tergambar di satu peta, dan menunjukkan jalan mana yang baru bagimu.",
+          "cta": "Rekam perjalanan pertamaku"
+        },
+        "demo": {
+          "newRoads": "Jalan baru",
+          "rides_one": "{{count}} perjalanan",
+          "rides_other": "{{count}} perjalanan",
+          "exampleCaption": "Contoh musim"
+        }
+      },
+      "receipt_scan": {
+        "title": "Pindai struk",
+        "where": "Beranda › Pindai struk, atau Biaya sebuah motor",
+        "yourData": {
+          "line": "Pada {{date}} kamu mencatat {{place}}, {{amount}}. Lain kali, satu foto struk langsung mengisinya.",
+          "cta": "Pindai struk berikutnya"
+        },
+        "example": {
+          "line": "Foto satu struk bensin. Jumlah, tanggal, dan tempat terisi sendiri.",
+          "cta": "Pindai struk pertamaku"
+        },
+        "demo": {
+          "place": "Tempat",
+          "category": "Kategori",
+          "total": "Total",
+          "date": "Tanggal",
+          "headerYourData": "Pengeluaran terakhirmu",
+          "headerExample": "Dibaca dari foto",
+          "examplePlace": "SPBU",
+          "fuel": "Bensin"
+        }
+      },
+      "notes_photos": {
+        "title": "Catatan, dengan foto",
+        "where": "Garasi › motormu › Catatan",
+        "yourData": {
+          "line": "Catatanmu \"{{note}}\" sekarang bisa diberi foto, dan pencarian menemukannya dalam sekejap.",
+          "cta": "Tambahkan foto"
+        },
+        "example": {
+          "line": "Tekanan ban, nomor suku cadang, nomor bengkel. Tersimpan bersama {{bike}}-mu, dengan foto, ketemu dalam sekejap.",
+          "cta": "Tulis catatan pertamaku"
+        },
+        "demo": {
+          "addPhoto": "Tambahkan foto",
+          "foundBySearch": "Ditemukan lewat pencarian",
+          "exampleNote": "Tekanan ban depan {{front}}, belakang {{rear}}",
+          "searchPlaceholder": "Cari catatan"
+        }
+      }
     }
   },
   "oem": {

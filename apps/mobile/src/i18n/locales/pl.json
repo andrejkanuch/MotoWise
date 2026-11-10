@@ -1805,6 +1805,119 @@
       "themeDesc": "Każdy ekran ma teraz wersję jasną i ciemną i stosuje się do ustawienia Motyw. Wybierz go w Profil › Ustawienia aplikacji › Motyw albo zostaw Systemowy, aby pasował do telefonu.",
       "profileTitle": "Profil, uporządkowany",
       "profileDesc": "Profil jest podzielony na czytelniejsze sekcje, a język, motyw, jednostki i waluta są teraz razem w Ustawieniach aplikacji. Zakładanie nowego konta też idzie sprawniej."
+    },
+    "carousel": {
+      "tagNew": "Nowe w wersji {{version}}",
+      "tagCatchUp": "Mogło Ci umknąć",
+      "pageOf": "{{current}} z {{total}}",
+      "tried": "Wypróbowane",
+      "yourData": "TWOJE DANE",
+      "example": "PRZYKŁAD",
+      "back": "Wstecz",
+      "next": "Dalej",
+      "rideOn": "Jedziemy",
+      "close": "Zamknij",
+      "whereItLives": "Gdzie to znaleźć",
+      "openAgain": "Otwórz ponownie",
+      "pageAnnouncement": "Strona {{current}} z {{total}}: {{title}}",
+      "newChip": "Nowość",
+      "returnBar": {
+        "back": "Wróć do Nowości",
+        "next": "Następna funkcja"
+      },
+      "boot": {
+        "newCount_one": "{{count}} nowość dla Twojego motocykla",
+        "newCount_few": "{{count}} nowości dla Twojego motocykla",
+        "newCount_many": "{{count}} nowości dla Twojego motocykla",
+        "newCount_other": "{{count}} nowości dla Twojego motocykla",
+        "catchUpCount_one": "+ {{count}} do nadrobienia",
+        "catchUpCount_few": "+ {{count}} do nadrobienia",
+        "catchUpCount_many": "+ {{count}} do nadrobienia",
+        "catchUpCount_other": "+ {{count}} do nadrobienia",
+        "catchUpOnly_one": "{{count}} do nadrobienia",
+        "catchUpOnly_few": "{{count}} do nadrobienia",
+        "catchUpOnly_many": "{{count}} do nadrobienia",
+        "catchUpOnly_other": "{{count}} do nadrobienia",
+        "season": "SEZON",
+        "odo": "ODO",
+        "allSystemsOk": "Wszystkie systemy OK",
+        "skip": "Pomiń",
+        "fromGarage": "{{bike}} · z Twojego garażu",
+        "seasonCaption_one": "{{count}} przejazd w tym sezonie",
+        "seasonCaption_few": "{{count}} przejazdy w tym sezonie",
+        "seasonCaption_many": "{{count}} przejazdów w tym sezonie",
+        "seasonCaption_other": "{{count}} przejazdów w tym sezonie"
+      }
+    },
+    "features": {
+      "road_atlas": {
+        "title": "Atlas dróg",
+        "where": "Profil › Analiza jazdy",
+        "yourData": {
+          "line_one": "{{distance}} w {{count}} przejeździe w tym sezonie. Oto on na jednej mapie.",
+          "line_few": "{{distance}} w {{count}} przejazdach w tym sezonie. Wszystkie na jednej mapie.",
+          "line_many": "{{distance}} w {{count}} przejazdach w tym sezonie. Wszystkie na jednej mapie.",
+          "line_other": "{{distance}} w {{count}} przejazdach w tym sezonie. Wszystkie na jednej mapie.",
+          "lineWithShare": "{{share}} z Twoich {{distance}} w tym sezonie to drogi zupełnie dla Ciebie nowe. Oto one.",
+          "lineLastRides_one": "Twój ostatni przejazd na jednej mapie.",
+          "lineLastRides_few": "Twoje ostatnie {{count}} przejazdy na jednej mapie.",
+          "lineLastRides_many": "Twoich ostatnich {{count}} przejazdów na jednej mapie.",
+          "lineLastRides_other": "Twoich ostatnich {{count}} przejazdów na jednej mapie.",
+          "cta": "Otwórz mój atlas"
+        },
+        "example": {
+          "line": "Każdy nagrany przejazd rysuje się na jednej mapie i pokazuje, które drogi były dla Ciebie nowe.",
+          "cta": "Nagraj pierwszy przejazd"
+        },
+        "demo": {
+          "newRoads": "Nowe drogi",
+          "rides_one": "{{count}} przejazd",
+          "rides_few": "{{count}} przejazdy",
+          "rides_many": "{{count}} przejazdów",
+          "rides_other": "{{count}} przejazdów",
+          "exampleCaption": "Przykładowy sezon"
+        }
+      },
+      "receipt_scan": {
+        "title": "Zeskanuj paragon",
+        "where": "Główna › Zeskanuj paragon lub Koszty motocykla",
+        "yourData": {
+          "line": "{{date}} dodano {{place}}, {{amount}}. Następnym razem wystarczy jedno zdjęcie paragonu.",
+          "cta": "Zeskanuj kolejny paragon"
+        },
+        "example": {
+          "line": "Zrób jedno zdjęcie paragonu za paliwo. Kwota, data i miejsce uzupełnią się same.",
+          "cta": "Zeskanuj pierwszy paragon"
+        },
+        "demo": {
+          "place": "Miejsce",
+          "category": "Kategoria",
+          "total": "Suma",
+          "date": "Data",
+          "headerYourData": "Twój ostatni wydatek",
+          "headerExample": "Odczytane ze zdjęcia",
+          "examplePlace": "Stacja paliw",
+          "fuel": "Paliwo"
+        }
+      },
+      "notes_photos": {
+        "title": "Notatki ze zdjęciami",
+        "where": "Garaż › Twój motocykl › Notatki",
+        "yourData": {
+          "line": "Twoja notatka „{{note}}” może teraz mieć zdjęcie, a wyszukiwarka znajdzie ją w sekundę.",
+          "cta": "Dodaj do niej zdjęcie"
+        },
+        "example": {
+          "line": "Ciśnienie w oponach, numery części, telefon do serwisu. Zapisane przy {{bike}}, ze zdjęciem, znalezione w sekundę.",
+          "cta": "Napisz pierwszą notatkę"
+        },
+        "demo": {
+          "addPhoto": "Dodaj zdjęcie",
+          "foundBySearch": "Znalezione wyszukiwaniem",
+          "exampleNote": "Ciśnienie w oponach: przód {{front}}, tył {{rear}}",
+          "searchPlaceholder": "Szukaj w notatkach"
+        }
+      }
     }
   },
   "oem": {

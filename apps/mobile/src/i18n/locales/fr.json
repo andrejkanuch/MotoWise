@@ -1784,6 +1784,112 @@
       "themeDesc": "Chaque écran existe désormais en clair et en sombre et suit ton réglage Thème. Choisis-le dans Profil › Réglages de l'app › Thème, ou laisse Système pour suivre ton téléphone.",
       "profileTitle": "Le profil, réorganisé",
       "profileDesc": "Le profil est découpé en sections plus claires, et la langue, le thème, les unités et la devise sont désormais réunis dans Réglages de l'app. La création d'un compte est aussi plus fluide."
+    },
+    "carousel": {
+      "tagNew": "Nouveau en {{version}}",
+      "tagCatchUp": "Tu l’as peut-être raté",
+      "pageOf": "{{current}} sur {{total}}",
+      "tried": "Essayé",
+      "yourData": "TES DONNÉES",
+      "example": "EXEMPLE",
+      "back": "Retour",
+      "next": "Suivant",
+      "rideOn": "En selle",
+      "close": "Fermer",
+      "whereItLives": "Où le trouver",
+      "openAgain": "Rouvrir",
+      "pageAnnouncement": "Page {{current}} sur {{total}} : {{title}}",
+      "newChip": "Nouveau",
+      "returnBar": {
+        "back": "Retour aux Nouveautés",
+        "next": "Fonction suivante"
+      },
+      "boot": {
+        "newCount_one": "{{count}} nouveauté pour ta moto",
+        "newCount_many": "{{count}} nouveautés pour ta moto",
+        "newCount_other": "{{count}} nouveautés pour ta moto",
+        "catchUpCount_one": "+ {{count}} que tu as peut-être raté",
+        "catchUpCount_many": "+ {{count}} que tu as peut-être ratées",
+        "catchUpCount_other": "+ {{count}} que tu as peut-être ratées",
+        "catchUpOnly_one": "{{count}} que tu as peut-être raté",
+        "catchUpOnly_many": "{{count}} que tu as peut-être ratées",
+        "catchUpOnly_other": "{{count}} que tu as peut-être ratées",
+        "season": "SAISON",
+        "odo": "ODO",
+        "allSystemsOk": "Tous les systèmes OK",
+        "skip": "Passer",
+        "fromGarage": "{{bike}} · de ton garage",
+        "seasonCaption_one": "{{count}} sortie cette saison",
+        "seasonCaption_many": "{{count}} sorties cette saison",
+        "seasonCaption_other": "{{count}} sorties cette saison"
+      }
+    },
+    "features": {
+      "road_atlas": {
+        "title": "Atlas des routes",
+        "where": "Profil › Bilan motard",
+        "yourData": {
+          "line_one": "{{distance}} en {{count}} sortie cette saison. La voici sur une seule carte.",
+          "line_many": "{{distance}} en {{count}} sorties cette saison. Les voici toutes sur une seule carte.",
+          "line_other": "{{distance}} en {{count}} sorties cette saison. Les voici toutes sur une seule carte.",
+          "lineWithShare": "{{share}} de tes {{distance}} cette saison étaient des routes que tu n’avais jamais roulées. Les voici.",
+          "lineLastRides_one": "Ta dernière sortie, sur une seule carte.",
+          "lineLastRides_many": "Tes {{count}} dernières sorties, sur une seule carte.",
+          "lineLastRides_other": "Tes {{count}} dernières sorties, sur une seule carte.",
+          "cta": "Ouvrir mon atlas"
+        },
+        "example": {
+          "line": "Chaque sortie enregistrée se dessine sur une seule carte et montre les routes qui étaient nouvelles pour toi.",
+          "cta": "Enregistrer ma première sortie"
+        },
+        "demo": {
+          "newRoads": "Nouvelles routes",
+          "rides_one": "{{count}} sortie",
+          "rides_many": "{{count}} sorties",
+          "rides_other": "{{count}} sorties",
+          "exampleCaption": "Saison d’exemple"
+        }
+      },
+      "receipt_scan": {
+        "title": "Scanner un reçu",
+        "where": "Accueil › Scanner un reçu, ou Coûts d’une moto",
+        "yourData": {
+          "line": "Le {{date}}, tu as saisi {{place}}, {{amount}}. La prochaine fois, une photo du reçu remplit tout.",
+          "cta": "Scanner mon prochain reçu"
+        },
+        "example": {
+          "line": "Prends un reçu de carburant en photo. Le montant, la date et le lieu se remplissent tout seuls.",
+          "cta": "Scanner mon premier reçu"
+        },
+        "demo": {
+          "place": "Lieu",
+          "category": "Catégorie",
+          "total": "Total",
+          "date": "Date",
+          "headerYourData": "Ta dernière dépense",
+          "headerExample": "Lu sur la photo",
+          "examplePlace": "Station-service",
+          "fuel": "Carburant"
+        }
+      },
+      "notes_photos": {
+        "title": "Des notes, avec photos",
+        "where": "Garage › ta moto › Notes",
+        "yourData": {
+          "line": "Ta note « {{note}} » peut maintenant porter une photo, et la recherche la retrouve en une seconde.",
+          "cta": "Y ajouter une photo"
+        },
+        "example": {
+          "line": "Pressions des pneus, références de pièces, le numéro du garage. Rangé avec ta {{bike}}, avec photo, retrouvé en une seconde.",
+          "cta": "Écrire ma première note"
+        },
+        "demo": {
+          "addPhoto": "Ajouter une photo",
+          "foundBySearch": "Trouvée par la recherche",
+          "exampleNote": "Pression des pneus {{front}} avant, {{rear}} arrière",
+          "searchPlaceholder": "Rechercher dans les notes"
+        }
+      }
     }
   },
   "oem": {

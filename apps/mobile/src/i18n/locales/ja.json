@@ -1763,6 +1763,105 @@
       "themeDesc": "すべての画面にライトとダークの表示ができ、テーマ設定に従います。プロフィール › アプリ設定 › テーマで選ぶか、システムのままにしてスマホに合わせましょう。",
       "profileTitle": "プロフィールを整理しました",
       "profileDesc": "プロフィールがわかりやすいセクションに分かれ、言語・テーマ・単位・通貨はアプリ設定にまとまりました。新しいアカウントの設定もスムーズになりました。"
+    },
+    "carousel": {
+      "tagNew": "{{version}}の新機能",
+      "tagCatchUp": "見逃していませんか",
+      "pageOf": "{{current}} / {{total}}",
+      "tried": "試した",
+      "yourData": "あなたのデータ",
+      "example": "サンプル",
+      "back": "戻る",
+      "next": "次へ",
+      "rideOn": "さあ、走ろう",
+      "close": "閉じる",
+      "whereItLives": "ここにあります",
+      "openAgain": "もう一度開く",
+      "pageAnnouncement": "{{total}}ページ中{{current}}ページ目：{{title}}",
+      "newChip": "NEW",
+      "returnBar": {
+        "back": "新着情報に戻る",
+        "next": "次の機能"
+      },
+      "boot": {
+        "newCount_one": "あなたのバイクに新機能{{count}}件",
+        "newCount_other": "あなたのバイクに新機能{{count}}件",
+        "catchUpCount_one": "+ 見逃しているかも{{count}}件",
+        "catchUpCount_other": "+ 見逃しているかも{{count}}件",
+        "catchUpOnly_one": "見逃しているかも{{count}}件",
+        "catchUpOnly_other": "見逃しているかも{{count}}件",
+        "season": "シーズン",
+        "odo": "ODO",
+        "allSystemsOk": "全システム正常",
+        "skip": "スキップ",
+        "fromGarage": "{{bike}} · あなたのガレージから",
+        "seasonCaption_one": "今シーズンのライド{{count}}回",
+        "seasonCaption_other": "今シーズンのライド{{count}}回"
+      }
+    },
+    "features": {
+      "road_atlas": {
+        "title": "ロードアトラス",
+        "where": "プロフィール › ライダーインサイト",
+        "yourData": {
+          "line_one": "今シーズンは{{count}}回のライドで{{distance}}。そのすべてを1枚の地図に。",
+          "line_other": "今シーズンは{{count}}回のライドで{{distance}}。そのすべてを1枚の地図に。",
+          "lineWithShare": "今シーズンの{{distance}}のうち{{share}}は、初めて走る道でした。それがこちら。",
+          "lineLastRides_one": "直近{{count}}回のライドを1枚の地図に。",
+          "lineLastRides_other": "直近{{count}}回のライドを1枚の地図に。",
+          "cta": "アトラスを開く"
+        },
+        "example": {
+          "line": "記録したライドは1枚の地図に描かれ、初めて走った道がひと目でわかります。",
+          "cta": "最初のライドを記録"
+        },
+        "demo": {
+          "newRoads": "新しい道",
+          "rides_one": "ライド{{count}}回",
+          "rides_other": "ライド{{count}}回",
+          "exampleCaption": "サンプルのシーズン"
+        }
+      },
+      "receipt_scan": {
+        "title": "レシートをスキャン",
+        "where": "ホーム › レシートをスキャン、またはバイクの費用",
+        "yourData": {
+          "line": "{{date}}に{{place}}、{{amount}}を記録しました。次回はレシートを1枚撮るだけで入力されます。",
+          "cta": "次のレシートをスキャン"
+        },
+        "example": {
+          "line": "給油のレシートを1枚撮るだけ。金額、日付、場所が自動で入力されます。",
+          "cta": "最初のレシートをスキャン"
+        },
+        "demo": {
+          "place": "場所",
+          "category": "カテゴリ",
+          "total": "合計",
+          "date": "日付",
+          "headerYourData": "最新の支出",
+          "headerExample": "写真から読み取り",
+          "examplePlace": "ガソリンスタンド",
+          "fuel": "燃料"
+        }
+      },
+      "notes_photos": {
+        "title": "写真付きメモ",
+        "where": "ガレージ › あなたのバイク › メモ",
+        "yourData": {
+          "line": "メモ「{{note}}」に写真を添えられるようになり、検索ですぐに見つかります。",
+          "cta": "写真を追加"
+        },
+        "example": {
+          "line": "タイヤの空気圧、部品番号、ショップの電話番号。写真付きで{{bike}}にまとめて保存、すぐに見つかります。",
+          "cta": "最初のメモを書く"
+        },
+        "demo": {
+          "addPhoto": "写真を追加",
+          "foundBySearch": "検索でヒット",
+          "exampleNote": "タイヤ空気圧 前{{front}}、後{{rear}}",
+          "searchPlaceholder": "メモを検索"
+        }
+      }
     }
   },
   "oem": {

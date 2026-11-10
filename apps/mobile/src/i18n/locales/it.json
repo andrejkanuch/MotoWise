@@ -1784,6 +1784,112 @@
       "themeDesc": "Ogni schermata ora ha un aspetto chiaro e uno scuro e segue l’impostazione Tema. Sceglila in Profilo › Impostazioni app › Tema, oppure lascia Sistema per seguire il telefono.",
       "profileTitle": "Profilo, riorganizzato",
       "profileDesc": "Il profilo è diviso in sezioni più chiare, e lingua, tema, unità e valuta ora stanno insieme in Impostazioni app. Anche configurare un nuovo account è più semplice."
+    },
+    "carousel": {
+      "tagNew": "Novità in {{version}}",
+      "tagCatchUp": "Forse ti è sfuggito",
+      "pageOf": "{{current}} di {{total}}",
+      "tried": "Provato",
+      "yourData": "I TUOI DATI",
+      "example": "ESEMPIO",
+      "back": "Indietro",
+      "next": "Avanti",
+      "rideOn": "In sella",
+      "close": "Chiudi",
+      "whereItLives": "Dove trovarlo",
+      "openAgain": "Apri di nuovo",
+      "pageAnnouncement": "Pagina {{current}} di {{total}}: {{title}}",
+      "newChip": "Nuovo",
+      "returnBar": {
+        "back": "Torna alle Novità",
+        "next": "Funzione successiva"
+      },
+      "boot": {
+        "newCount_one": "{{count}} novità per la tua moto",
+        "newCount_many": "{{count}} novità per la tua moto",
+        "newCount_other": "{{count}} novità per la tua moto",
+        "catchUpCount_one": "+ {{count}} che forse ti è sfuggita",
+        "catchUpCount_many": "+ {{count}} che forse ti sono sfuggite",
+        "catchUpCount_other": "+ {{count}} che forse ti sono sfuggite",
+        "catchUpOnly_one": "{{count}} che forse ti è sfuggita",
+        "catchUpOnly_many": "{{count}} che forse ti sono sfuggite",
+        "catchUpOnly_other": "{{count}} che forse ti sono sfuggite",
+        "season": "STAGIONE",
+        "odo": "ODO",
+        "allSystemsOk": "Tutti i sistemi OK",
+        "skip": "Salta",
+        "fromGarage": "{{bike}} · dal tuo garage",
+        "seasonCaption_one": "{{count}} uscita in questa stagione",
+        "seasonCaption_many": "{{count}} uscite in questa stagione",
+        "seasonCaption_other": "{{count}} uscite in questa stagione"
+      }
+    },
+    "features": {
+      "road_atlas": {
+        "title": "Atlante delle strade",
+        "where": "Profilo › Analisi di guida",
+        "yourData": {
+          "line_one": "{{distance}} in {{count}} uscita questa stagione. Eccola su un’unica mappa.",
+          "line_many": "{{distance}} in {{count}} uscite questa stagione. Eccole tutte su un’unica mappa.",
+          "line_other": "{{distance}} in {{count}} uscite questa stagione. Eccole tutte su un’unica mappa.",
+          "lineWithShare": "Il {{share}} dei tuoi {{distance}} di questa stagione erano strade mai percorse prima. Eccole.",
+          "lineLastRides_one": "La tua ultima uscita, su un’unica mappa.",
+          "lineLastRides_many": "Le tue ultime {{count}} uscite, su un’unica mappa.",
+          "lineLastRides_other": "Le tue ultime {{count}} uscite, su un’unica mappa.",
+          "cta": "Apri il mio atlante"
+        },
+        "example": {
+          "line": "Ogni uscita che registri si disegna su un’unica mappa e ti mostra quali strade erano nuove per te.",
+          "cta": "Registra la prima uscita"
+        },
+        "demo": {
+          "newRoads": "Strade nuove",
+          "rides_one": "{{count}} uscita",
+          "rides_many": "{{count}} uscite",
+          "rides_other": "{{count}} uscite",
+          "exampleCaption": "Stagione di esempio"
+        }
+      },
+      "receipt_scan": {
+        "title": "Scansiona uno scontrino",
+        "where": "Home › Scansiona scontrino, o Costi di una moto",
+        "yourData": {
+          "line": "Il {{date}} hai registrato {{place}}, {{amount}}. La prossima volta basta una foto dello scontrino.",
+          "cta": "Scansiona il prossimo scontrino"
+        },
+        "example": {
+          "line": "Scatta una foto allo scontrino del carburante. Importo, data e luogo si compilano da soli.",
+          "cta": "Scansiona il primo scontrino"
+        },
+        "demo": {
+          "place": "Luogo",
+          "category": "Categoria",
+          "total": "Totale",
+          "date": "Data",
+          "headerYourData": "La tua ultima spesa",
+          "headerExample": "Letto dalla foto",
+          "examplePlace": "Distributore",
+          "fuel": "Carburante"
+        }
+      },
+      "notes_photos": {
+        "title": "Note, con foto",
+        "where": "Garage › la tua moto › Note",
+        "yourData": {
+          "line": "La tua nota “{{note}}” ora può avere una foto, e la ricerca la trova in un attimo.",
+          "cta": "Aggiungi una foto"
+        },
+        "example": {
+          "line": "Pressione delle gomme, codici dei ricambi, il numero dell’officina. Salvati con la tua {{bike}}, con foto, trovati in un attimo.",
+          "cta": "Scrivi la prima nota"
+        },
+        "demo": {
+          "addPhoto": "Aggiungi una foto",
+          "foundBySearch": "Trovata con la ricerca",
+          "exampleNote": "Pressione gomme {{front}} ant., {{rear}} post.",
+          "searchPlaceholder": "Cerca nelle note"
+        }
+      }
     }
   },
   "oem": {
