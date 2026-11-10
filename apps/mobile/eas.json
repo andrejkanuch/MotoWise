@@ -48,7 +48,8 @@
       "autoIncrement": true,
       "env": {
         "APP_VARIANT": "production",
-        "SENTRY_DISABLE_AUTO_UPLOAD": "false"
+        "SENTRY_DISABLE_AUTO_UPLOAD": "false",
+        "EAS_NO_FROZEN_LOCKFILE": "1"
       },
       "ios": {
         "image": "macos-tahoe-26.6-xcode-27.0"
