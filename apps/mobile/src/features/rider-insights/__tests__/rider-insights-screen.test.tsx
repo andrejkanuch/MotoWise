@@ -70,6 +70,8 @@ jest.mock('react-native-svg', () => {
 });
 
 const mockLineLayers: Record<string, unknown>[] = [];
+const mockCameras: Record<string, unknown>[] = [];
+const mockShapes: Record<string, unknown>[] = [];
 jest.mock('@rnmapbox/maps', () => {
   const { View } = require('react-native');
   const Pass = ({ children }: { children?: ReactNode }) => <View>{children}</View>;
@@ -77,8 +79,14 @@ jest.mock('@rnmapbox/maps', () => {
     __esModule: true,
     default: {
       MapView: Pass,
-      Camera: () => null,
-      ShapeSource: Pass,
+      Camera: (props: Record<string, unknown>) => {
+        mockCameras.push(props);
+        return null;
+      },
+      ShapeSource: (props: Record<string, unknown> & { children?: ReactNode }) => {
+        mockShapes.push(props);
+        return <View>{props.children}</View>;
+      },
       LineLayer: (props: Record<string, unknown>) => {
         mockLineLayers.push(props);
         return null;
@@ -146,6 +154,8 @@ beforeEach(() => {
   mockRouter.push.mockReset();
   mockTrack.mockReset();
   mockLineLayers.length = 0;
+  mockCameras.length = 0;
+  mockShapes.length = 0;
   mockParams = {};
   mockSegments = ['(tabs)', '(profile)', 'rider-insights'];
   mockDimensions.mockReturnValue({ width: 390, height: 844, scale: 3, fontScale: 1 });
@@ -382,6 +392,74 @@ describe('the map', () => {
     expect(ovals.props.accessibilityLabel).toBe('2 countries: Spain, Slovakia. Open countries');
     expect(within(ovals).getByText('E')).toBeTruthy();
     expect(within(ovals).getByText('SK')).toBeTruthy();
+  });
+});
+
+describe('the full-screen map', () => {
+  it("opens from a tap on the hero, with every region's routes, framed on the region shown", async () => {
+    respond(freeInsights());
+    await renderScreen();
+    const hero = await screen.findByTestId('hero-map');
+    expect(hero.props.accessibilityRole).toBe('button');
+    expect(hero.props.accessibilityHint).toBe('Opens the map full screen');
+    expect(screen.getByTestId('hero-map-expand', { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.queryByTestId('atlas-full-map')).toBeNull();
+
+    // Bratislava on the hero first: the full map must open on it, not on the API's first region.
+    await fireEvent.press(screen.getByTestId('region-tile-SK.02'));
+    await fireEvent.press(screen.getByTestId('hero-map'));
+    expect(screen.getByTestId('atlas-full-map')).toBeTruthy();
+
+    const shape = mockShapes.filter((s) => s.id === 'insights-full-routes').at(-1)?.shape as {
+      features: unknown[];
+    };
+    expect(shape.features).toHaveLength(2);
+    const camera = mockCameras.at(-1)?.defaultSettings as { centerCoordinate: number[] };
+    const [lng, lat] = camera.centerCoordinate;
+    expect(lng).toBeCloseTo(18.6, 1);
+    expect(lat).toBeGreaterThan(48);
+    const fullLayers = mockLineLayers.filter((l) => String(l.id).startsWith('insights-full-'));
+    expect(fullLayers.map((l) => l.id)).toEqual(
+      expect.arrayContaining(['insights-full-routes-glow', 'insights-full-routes-line']),
+    );
+    for (const layer of fullLayers) expect(layer.belowLayerID).toBe('road-label-simple');
+  });
+
+  it('closes from its close button', async () => {
+    respond(freeInsights());
+    await renderScreen();
+    await fireEvent.press(await screen.findByTestId('hero-map'));
+    const close = screen.getByTestId('atlas-full-map-close');
+    expect(close.props.accessibilityLabel).toBe('Close map');
+    await fireEvent.press(close);
+    expect(screen.queryByTestId('atlas-full-map')).toBeNull();
+  });
+});
+
+describe('the other regions', () => {
+  it('say what they are above the tiles', async () => {
+    respond(freeInsights());
+    await renderScreen();
+    const tiles = await screen.findByTestId('region-tiles');
+    expect(within(tiles).getByText('Other places you rode')).toBeTruthy();
+    expect(within(tiles).getByText('Tap one to show it on the map above.')).toBeTruthy();
+  });
+});
+
+describe('the season ribbon', () => {
+  it('opens the season page from a tap anywhere on the card', async () => {
+    respond(freeInsights());
+    await renderScreen();
+    const ribbon = await screen.findByTestId('season-ribbon');
+    expect(ribbon.props.accessibilityRole).toBe('button');
+    expect(ribbon.props.accessibilityLabel).toBe(
+      '2 of 46 weeks ridden. Biggest: 385 km, Mar 2 to 8',
+    );
+    await fireEvent.press(ribbon);
+    expect(mockRouter.push).toHaveBeenCalledWith({
+      pathname: PROFILE_ROUTE.RIDER_INSIGHTS_DETAIL,
+      params: { group: 'season' },
+    });
   });
 });
 
