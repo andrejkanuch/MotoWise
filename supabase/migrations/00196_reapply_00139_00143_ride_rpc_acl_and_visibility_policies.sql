@@ -41,6 +41,24 @@
 
 BEGIN;
 
+-- Fail fast instead of queueing rides traffic behind a long-running query: the
+-- policy changes below take ACCESS EXCLUSIVE locks held until COMMIT.
+SET LOCAL lock_timeout = '5s';
+
+-- rides_public_read is dropped below; rides_select_with_visibility (00084) must be
+-- the SELECT policy left in its place, or every signed-in rides read returns no rows.
+-- Earlier migrations were recorded as applied without landing, so check, don't assume.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'rides'
+      AND policyname = 'rides_select_with_visibility' AND cmd = 'SELECT'
+  ) THEN
+    RAISE EXCEPTION '00196: rides_select_with_visibility (00084) is missing; refusing to drop rides_public_read';
+  END IF;
+END $$;
+
 -- ============================================================
 -- 1. 00139: SECURITY DEFINER rollup/purge RPCs are service-role only.
 --    `anon` and `authenticated` must be named: Supabase's default privileges grant
@@ -162,12 +180,17 @@ NOTIFY pgrst, 'reload schema';
 COMMIT;
 
 -- Post-apply verification (read-only):
---   SELECT p.proname, array_to_string(p.proacl, ',') AS acl
+--   SELECT p.proname,
+--     array(SELECT CASE a.grantee WHEN 0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END
+--           FROM aclexplode(p.proacl) a WHERE a.privilege_type = 'EXECUTE' ORDER BY 1) AS executors,
+--     has_function_privilege('anon', p.oid, 'EXECUTE') AS anon,
+--     has_function_privilege('authenticated', p.oid, 'EXECUTE') AS authenticated,
+--     has_function_privilege('service_role', p.oid, 'EXECUTE') AS service_role
 --   FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
 --   WHERE n.nspname = 'public'
 --     AND p.proname IN ('record_ride_analytics', '_upsert_rollup', 'purge_soft_deleted_rides');
---   -- expect for each: postgres=X and service_role=X entries (grantor may vary)
---   --   and NO `=X/` (PUBLIC), `anon=X` or `authenticated=X` entry
+--   -- expect for each: executors = {postgres,service_role} (no PUBLIC),
+--   --   anon = false, authenticated = false, service_role = true
 --
 --   SELECT tablename, policyname, cmd, qual, with_check FROM pg_policies
 --   WHERE schemaname = 'public'
