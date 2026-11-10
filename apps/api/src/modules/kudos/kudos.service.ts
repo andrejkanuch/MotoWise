@@ -24,6 +24,9 @@ interface KudosQueryRow {
   } | null;
 }
 
+/** The only `rides.visibility` that accepts kudos (matches the `kudos_insert` policy). */
+const KUDOS_VISIBILITY = 'public' as const;
+
 /** Shape returned by rides.kudos_count select */
 interface RideKudosCountRow {
   kudos_count: number;
@@ -38,10 +41,12 @@ export class KudosService {
   async toggleKudos(rideId: string, userId: string): Promise<KudosResult> {
     this.logger.log(`toggleKudos: userId=${userId}, rideId=${rideId}`);
 
-    // Verify ride is public and not deleted before allowing kudos
+    // Verify ride is public and not deleted before allowing kudos. `visibility` is
+    // the canonical access column (00143, re-applied by 00196); `kudos_insert` RLS
+    // gates on the same predicate. Unlisted rides are not kudos-able.
     const { data: ride, error: rideCheckError } = await this.supabase
       .from('rides')
-      .select('is_public, deleted_at')
+      .select('visibility, deleted_at')
       .eq('id', rideId)
       .single();
 
@@ -52,7 +57,7 @@ export class KudosService {
       throw new BadRequestException('Ride not found');
     }
 
-    if (!ride.is_public || ride.deleted_at) {
+    if (ride.visibility !== KUDOS_VISIBILITY || ride.deleted_at) {
       throw new ForbiddenException('Cannot give kudos to a private or deleted ride');
     }
 

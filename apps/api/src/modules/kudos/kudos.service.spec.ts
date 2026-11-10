@@ -10,17 +10,22 @@ describe('KudosService', () => {
   const rideId = 'ride-abcd-1234-5678-9012-efgh3456ijkl';
 
   const fakeRidePublic = {
-    is_public: true,
+    visibility: 'public',
     deleted_at: null,
   };
 
   const fakeRidePrivate = {
-    is_public: false,
+    visibility: 'private',
+    deleted_at: null,
+  };
+
+  const fakeRideUnlisted = {
+    visibility: 'unlisted',
     deleted_at: null,
   };
 
   const fakeRideDeleted = {
-    is_public: true,
+    visibility: 'public',
     deleted_at: '2026-04-06T12:00:00Z',
   };
 
@@ -103,6 +108,23 @@ describe('KudosService', () => {
       expect(result.kudosCount).toBe(5);
       expect(mockUserClient.from).toHaveBeenCalledWith('rides');
       expect(mockUserClient.from).toHaveBeenCalledWith('ride_kudos');
+    });
+
+    it('gates on the canonical visibility column, not the legacy is_public', async () => {
+      mockUserClient._pushResult({ data: fakeRidePublic });
+      mockUserClient._pushResult({ count: 1, error: null });
+      mockUserClient._pushResult({ data: { kudos_count: 1 } });
+
+      await service.toggleKudos(rideId, userId);
+
+      expect(mockUserClient._chain.select).toHaveBeenCalledWith('visibility, deleted_at');
+    });
+
+    it('should throw ForbiddenException for unlisted ride (kudos are public-only)', async () => {
+      mockUserClient._pushResult({ data: fakeRideUnlisted });
+
+      await expect(service.toggleKudos(rideId, userId)).rejects.toThrow(ForbiddenException);
+      expect(mockUserClient._chain.upsert).not.toHaveBeenCalled();
     });
 
     it('should remove kudos (delete path) when already exists', async () => {
