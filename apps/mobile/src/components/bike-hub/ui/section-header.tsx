@@ -1,5 +1,7 @@
+import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import type { DueTone } from '@/lib/bike-hub/constants';
+import { space } from '@/theme/spacing';
 import { triggerImpact } from '@/utils/haptics';
 import { DUE_TONE_COLOR, HUB_TOUCH_TARGET, SYSTEM_WEIGHT, useHubTheme } from './tokens';
 
@@ -27,6 +29,8 @@ interface SectionHeaderProps {
   hint?: string;
   /** Title colour for a header that sits on a non-hub ground (the interim Bike tab). */
   color?: string;
+  /** Drawn right after the title, e.g. the NEW chip. */
+  badge?: ReactNode;
 }
 
 /**
@@ -34,9 +38,31 @@ interface SectionHeaderProps {
  * case with an optional count, and either a copper text action or a grey hint
  * on the right. No eyebrows, no serif (DESIGN.md → Typography).
  */
-export function SectionHeader({ label, count, tone, action, hint, color }: SectionHeaderProps) {
+export function SectionHeader({
+  label,
+  count,
+  tone,
+  action,
+  hint,
+  color,
+  badge,
+}: SectionHeaderProps) {
   const hub = useHubTheme();
   const title = count === undefined ? label : `${label} · ${count}`;
+  const heading = (
+    <Text
+      accessibilityRole="header"
+      style={{
+        flexShrink: 1,
+        ...SYSTEM_WEIGHT.semibold,
+        fontSize: TITLE_SIZE,
+        lineHeight: TITLE_LINE_HEIGHT,
+        color: tone ? hub[DUE_TONE_COLOR[tone]] : (color ?? hub.text),
+      }}
+    >
+      {title}
+    </Text>
+  );
   return (
     <View
       style={{
@@ -48,18 +74,14 @@ export function SectionHeader({ label, count, tone, action, hint, color }: Secti
         paddingHorizontal: 2,
       }}
     >
-      <Text
-        accessibilityRole="header"
-        style={{
-          flexShrink: 1,
-          ...SYSTEM_WEIGHT.semibold,
-          fontSize: TITLE_SIZE,
-          lineHeight: TITLE_LINE_HEIGHT,
-          color: tone ? hub[DUE_TONE_COLOR[tone]] : (color ?? hub.text),
-        }}
-      >
-        {title}
-      </Text>
+      {badge ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs, flexShrink: 1 }}>
+          {heading}
+          {badge}
+        </View>
+      ) : (
+        heading
+      )}
       {action ? (
         <Pressable
           onPress={() => {

@@ -6,6 +6,7 @@ import {
 import * as Crypto from 'expo-crypto';
 import * as Network from 'expo-network';
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { WHATS_NEW_FEATURE } from '../../data/whats-new-releases';
 import { useProGate } from '../../hooks/use-pro-gate';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -16,6 +17,7 @@ import { scheduleParkedScanReminder } from '../../lib/notifications';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
 import { presentPaywall } from '../../lib/subscription';
+import { useWhatsNewStore } from '../../stores/whats-new.store';
 import { deleteDurablePhoto, persistDurablePhoto } from './durable-receipt-photo';
 import { parkScan } from './parked-scan-store';
 import { enqueuePendingScan } from './receipt-scan-queue';
@@ -271,6 +273,7 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
           },
         });
         trackEvent(AnalyticsEvent.RECEIPT_SCAN_COMPLETED, { outcome: 'success' });
+        useWhatsNewStore.getState().markUsed(WHATS_NEW_FEATURE.RECEIPT_SCAN);
         // Activation Goal 7: the onboarding first scan reached a completed
         // extraction. Fired here (not at Save) because onboarding riders may be
         // bike-less until onboarding finishes, so a Save can't be guaranteed.

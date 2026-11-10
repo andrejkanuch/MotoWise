@@ -101,10 +101,12 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { StyleSheet, useWindowDimensions } from 'react-native';
 import '@/i18n';
 import { HOME_ROUTE, PROFILE_ROUTE, RIDER_INSIGHTS_ENTRY } from '@/config/routes';
+import { WHATS_NEW_FEATURE } from '@/data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { queryKeys } from '@/lib/query-keys';
 import { useAuthStore } from '@/stores/auth.store';
 import { useSubscriptionStore } from '@/stores/subscription.store';
+import { useWhatsNewStore } from '@/stores/whats-new.store';
 import {
   computingInsights,
   freeInsights,
@@ -545,5 +547,27 @@ describe('at AX5', () => {
     expect(StyleSheet.flatten(row.props.style).flexDirection).toBe('column');
     const value = within(row).getByText('R 1250 GS 1,144 km · Africa Twin 1,118 km');
     expect(value.props.numberOfLines).toBeUndefined();
+  });
+});
+
+describe('the NEW chip', () => {
+  beforeEach(() => {
+    useWhatsNewStore.setState(useWhatsNewStore.getInitialState(), true);
+  });
+
+  it('opening from Profile counts as using Road Atlas', async () => {
+    mockParams = { entry: RIDER_INSIGHTS_ENTRY.PROFILE };
+    respond(freeInsights());
+    await renderScreen();
+    await screen.findByTestId('territory-row');
+    expect(useWhatsNewStore.getState().usedFeatures).toContain(WHATS_NEW_FEATURE.ROAD_ATLAS);
+  });
+
+  it("opening from a What's New page does not", async () => {
+    mockParams = { entry: RIDER_INSIGHTS_ENTRY.WHATS_NEW };
+    respond(freeInsights());
+    await renderScreen();
+    await screen.findByTestId('territory-row');
+    expect(useWhatsNewStore.getState().usedFeatures).not.toContain(WHATS_NEW_FEATURE.ROAD_ATLAS);
   });
 });

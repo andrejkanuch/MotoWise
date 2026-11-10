@@ -41,7 +41,15 @@ import {
   ESettingsGroup,
   ESettingsRow,
 } from '@/components/ui/editorial';
-import { PROFILE_ROUTE, RIDER_INSIGHTS_ENTRY, riderInsightsHref } from '@/config/routes';
+import {
+  PROFILE_ROUTE,
+  RIDER_INSIGHTS_ENTRY,
+  riderInsightsHref,
+  whatsNewHref,
+} from '@/config/routes';
+import { WHATS_NEW_SOURCE } from '@/config/whats-new';
+import { WHATS_NEW_FEATURE } from '@/data/whats-new-releases';
+import { FeatureNewChip } from '@/features/whats-new/feature-new-chip';
 import { useProGate } from '@/hooks/use-pro-gate';
 import { useProfileData } from '@/hooks/use-profile-data';
 import { useTabBarClearance } from '@/hooks/use-tab-bar-clearance';
@@ -114,6 +122,7 @@ export default function ProfileScreen() {
           icon={ChartNoAxesColumn}
           title={t('riderInsights.title')}
           subtitle={t('profile.riderInsightsDescription')}
+          badge={<FeatureNewChip feature={WHATS_NEW_FEATURE.ROAD_ATLAS} />}
           onPress={() => router.push(riderInsightsHref(RIDER_INSIGHTS_ENTRY.PROFILE))}
         />
         <ESettingsRow
@@ -203,7 +212,7 @@ export default function ProfileScreen() {
           testID="profile-whats-new"
           icon={Megaphone}
           title={t('whatsNew.badge')}
-          onPress={() => router.push('/(modals)/whats-new')}
+          onPress={() => router.push(whatsNewHref(WHATS_NEW_SOURCE.PROFILE))}
         />
         {/* Learn is a hidden tab; this is its only entry for riders with a bike. */}
         <ESettingsRow

@@ -9,6 +9,7 @@ import {
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { WHATS_NEW_FEATURE } from '@/data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import type { NoteSource } from '@/lib/bike-hub/constants';
 import { gqlFetcher } from '@/lib/graphql-client';
@@ -17,6 +18,7 @@ import { queryKeys } from '@/lib/query-keys';
 import { QUERY_META } from '@/lib/query-meta';
 import { maintenanceTasksOptions } from '@/lib/query-options';
 import { usePendingDeleteStore } from '@/stores/pending-delete.store';
+import { useWhatsNewStore } from '@/stores/whats-new.store';
 
 export type HubNote = NotesByMotorcycleQuery['notes'][number];
 
@@ -155,6 +157,7 @@ export function useCreateNote() {
         has_photo: variables.hasPhoto ?? false,
         also_task: variables.alsoCreateTask ?? false,
       });
+      if (variables.hasPhoto) useWhatsNewStore.getState().markUsed(WHATS_NEW_FEATURE.NOTES_PHOTOS);
     },
     onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({

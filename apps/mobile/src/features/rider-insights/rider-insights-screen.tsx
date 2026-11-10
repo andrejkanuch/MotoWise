@@ -26,9 +26,11 @@ import {
   type RiderInsightsDetailGroup,
   type RiderInsightsEntry,
 } from '@/config/routes';
+import { WHATS_NEW_FEATURE } from '@/data/whats-new-releases';
 import { useMeasurementSystem } from '@/hooks/use-measurement-system';
 import { useTabBarClearance } from '@/hooks/use-tab-bar-clearance';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { useWhatsNewStore } from '@/stores/whats-new.store';
 import { useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, layout, space } from '@/theme/spacing';
 import { CONTENT_MAX_WIDTH, radius, readableWidth, SYSTEM_WEIGHT, type } from '@/theme/type';
@@ -86,6 +88,8 @@ export function RiderInsightsScreen() {
 
   useEffect(() => {
     trackEvent(AnalyticsEvent.RIDER_INSIGHTS_OPENED, { entry: openedFrom });
+    if (openedFrom !== RIDER_INSIGHTS_ENTRY.WHATS_NEW)
+      useWhatsNewStore.getState().markUsed(WHATS_NEW_FEATURE.ROAD_ATLAS);
   }, [openedFrom]);
 
   const width = Math.min(windowWidth, CONTENT_MAX_WIDTH) - 2 * GUTTER;

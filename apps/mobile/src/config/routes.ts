@@ -3,6 +3,8 @@
  * Use these instead of magic strings in router.push / router.replace / deepLink.
  */
 
+import type { WhatsNewSource } from './whats-new';
+
 /** Main tab routes */
 export const TAB_ROUTE = {
   HOME: '/(tabs)/(home)',
@@ -35,7 +37,14 @@ export const MODAL_ROUTE = {
   SCAN_RECEIPT: '/(modals)/scan-receipt',
   /** The modal stack's copy of add-bike, opened over receipt scan. */
   ADD_BIKE: '/(modals)/add-bike',
+  /** What's New; pass `{ source: WhatsNewSource }`. */
+  WHATS_NEW: '/(modals)/whats-new',
 } as const;
+
+/** The What's New route opened from `source`, for `router.push`. */
+export function whatsNewHref(source: WhatsNewSource) {
+  return { pathname: MODAL_ROUTE.WHATS_NEW, params: { source } };
+}
 
 /** Profile sub-routes */
 export const PROFILE_ROUTE = {
@@ -74,6 +83,8 @@ export const RIDER_INSIGHTS_ENTRY = {
   MY_RIDES: 'my_rides',
   PROFILE: 'profile',
   RIDE_SUMMARY: 'ride_summary',
+  /** A What's New page's button. Not a use of the feature: the NEW chip stays. */
+  WHATS_NEW: 'whats_new',
   /** The old heatmap route, kept as a redirect for links and deep links. */
   LEGACY_HEATMAP: 'legacy_heatmap',
   /** No entry param (a deep link or a route not yet passing one). */
