@@ -74,6 +74,8 @@ const PERSISTED_ROOTS = new Set([
 ]);
 
 const INSIGHTS_KEY = 'insights';
+/** "Never fetched": a restored entry with this time is stale whatever its `staleTime`. */
+const STRIPPED_DATA_UPDATED_AT = 0;
 const PERSISTED_RIDE_KEYS: ReadonlySet<unknown> = new Set(['list', 'overview', INSIGHTS_KEY]);
 
 export function shouldDehydratePersistedQuery(query: Query): boolean {
@@ -111,6 +113,10 @@ function stripRegionRoutes(data: unknown): unknown {
  * encoded routes are the bulk of the payload and are the rider's own tracks, so
  * they stay off disk. A restored entry keeps each region's bounds with no
  * routes, which the screen reads as "map offline" until a request succeeds.
+ *
+ * The stripped entry is written as never fetched (`dataUpdatedAt: 0`): it is
+ * not the answer the server gave, so a relaunch inside the stale window must
+ * not restore it as fresh — it refetches, and online the map and Share return.
  */
 export function withoutInsightsGeometry(persistedClient: PersistedClient): PersistedClient {
   const queries = persistedClient.clientState?.queries;
@@ -121,7 +127,14 @@ export function withoutInsightsGeometry(persistedClient: PersistedClient): Persi
       ...persistedClient.clientState,
       queries: queries.map((query) =>
         isInsightsKey(query.queryKey)
-          ? { ...query, state: { ...query.state, data: stripRegionRoutes(query.state.data) } }
+          ? {
+              ...query,
+              state: {
+                ...query.state,
+                data: stripRegionRoutes(query.state.data),
+                dataUpdatedAt: STRIPPED_DATA_UPDATED_AT,
+              },
+            }
           : query,
       ),
     },

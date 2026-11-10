@@ -23,6 +23,7 @@ import {
   MutationCache,
   onlineManager,
   QueryClient,
+  QueryObserver,
 } from '@tanstack/react-query';
 import type { PersistedClient } from '@tanstack/react-query-persist-client';
 import {
@@ -179,6 +180,40 @@ describe('the Rider insights entry', () => {
     });
     // The live cache keeps its routes; only the disk copy goes without.
     expect(client.getQueryData(INSIGHTS_KEY)).toEqual(insights);
+  });
+
+  it('is restored stale, so a relaunch inside the stale window refetches the routes', async () => {
+    const client = newClient();
+    client.setQueryData(INSIGHTS_KEY, insights);
+    client.setQueryData(PERSISTED_QUERY_KEY, [{ id: 'bike-1' }]);
+    const clientState = dehydrate(client, { shouldDehydrateQuery: shouldDehydratePersistedQuery });
+    await queryPersister.persistClient(persistedClientFrom(clientState));
+
+    const restarted = newClient();
+    const restored = await queryPersister.restoreClient();
+    if (!restored) throw new Error('expected a restored client');
+    hydrate(restarted, restored.clientState);
+
+    const STALE_TIME_MS = 5 * 60_000;
+    expect(restarted.getQueryState(INSIGHTS_KEY)?.dataUpdatedAt).toBe(0);
+    expect(
+      restarted.getQueryCache().find({ queryKey: INSIGHTS_KEY })?.isStaleByTime(STALE_TIME_MS),
+    ).toBe(true);
+    // Only the stripped entry: the others keep the time they were fetched.
+    expect(restarted.getQueryState(PERSISTED_QUERY_KEY)?.dataUpdatedAt).toBeGreaterThan(0);
+
+    const queryFn = jest.fn().mockResolvedValue(insights);
+    const observer = new QueryObserver(restarted, {
+      queryKey: INSIGHTS_KEY,
+      queryFn,
+      staleTime: STALE_TIME_MS,
+    });
+    const unsubscribe = observer.subscribe(() => {});
+    await jest.advanceTimersByTimeAsync(10);
+    unsubscribe();
+
+    expect(queryFn).toHaveBeenCalledTimes(1);
+    expect(restarted.getQueryData(INSIGHTS_KEY)).toEqual(insights);
   });
 
   it('still leaves ride detail out of the persisted cache', () => {
