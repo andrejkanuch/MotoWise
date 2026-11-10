@@ -1840,7 +1840,10 @@
         },
         "example": {
           "line": "Chaque sortie enregistrée se dessine sur une seule carte et montre les routes qui étaient nouvelles pour toi.",
-          "cta": "Enregistrer ma première sortie"
+          "cta": "Enregistrer ma première sortie",
+          "lineWithSeason_one": "{{distance}} en {{count}} sortie cette saison. Enregistre-en une avec le GPS et elle se dessine sur ta carte.",
+          "lineWithSeason_many": "{{distance}} en {{count}} sorties cette saison. Enregistre-en une avec le GPS et elle se dessine sur ta carte.",
+          "lineWithSeason_other": "{{distance}} en {{count}} sorties cette saison. Enregistre-en une avec le GPS et elle se dessine sur ta carte."
         },
         "demo": {
           "newRoads": "Nouvelles routes",

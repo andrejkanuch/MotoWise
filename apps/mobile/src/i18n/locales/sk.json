@@ -1867,7 +1867,11 @@
         },
         "example": {
           "line": "Každá nahraná jazda sa nakreslí na jednu mapu a ukáže, ktoré cesty boli pre teba nové.",
-          "cta": "Nahrať prvú jazdu"
+          "cta": "Nahrať prvú jazdu",
+          "lineWithSeason_one": "{{distance}} na {{count}} jazde v tejto sezóne. Nahraj jazdu s GPS a nakreslí sa na tvoju mapu.",
+          "lineWithSeason_few": "{{distance}} na {{count}} jazdách v tejto sezóne. Nahraj jazdu s GPS a nakreslí sa na tvoju mapu.",
+          "lineWithSeason_many": "{{distance}} na {{count}} jazdách v tejto sezóne. Nahraj jazdu s GPS a nakreslí sa na tvoju mapu.",
+          "lineWithSeason_other": "{{distance}} na {{count}} jazdách v tejto sezóne. Nahraj jazdu s GPS a nakreslí sa na tvoju mapu."
         },
         "demo": {
           "newRoads": "Nové cesty",

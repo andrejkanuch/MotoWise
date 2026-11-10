@@ -1867,7 +1867,11 @@
         },
         "example": {
           "line": "Każdy nagrany przejazd rysuje się na jednej mapie i pokazuje, które drogi były dla Ciebie nowe.",
-          "cta": "Nagraj pierwszy przejazd"
+          "cta": "Nagraj pierwszy przejazd",
+          "lineWithSeason_one": "{{distance}} w {{count}} przejeździe w tym sezonie. Nagraj przejazd z GPS, a narysuje się na Twojej mapie.",
+          "lineWithSeason_few": "{{distance}} w {{count}} przejazdach w tym sezonie. Nagraj przejazd z GPS, a narysuje się na Twojej mapie.",
+          "lineWithSeason_many": "{{distance}} w {{count}} przejazdach w tym sezonie. Nagraj przejazd z GPS, a narysuje się na Twojej mapie.",
+          "lineWithSeason_other": "{{distance}} w {{count}} przejazdach w tym sezonie. Nagraj przejazd z GPS, a narysuje się na Twojej mapie."
         },
         "demo": {
           "newRoads": "Nowe drogi",

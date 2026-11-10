@@ -126,6 +126,7 @@ const EXAMPLES: WhatsNewPageDataMap = {
     source: WHATS_NEW_DATA_SOURCE.NONE,
     routes: ROUTES,
     unitLabel: 'mi',
+    season: null,
   },
   [WHATS_NEW_FEATURE.RECEIPT_SCAN]: {
     feature: WHATS_NEW_FEATURE.RECEIPT_SCAN,
@@ -372,6 +373,25 @@ describe('pages', () => {
       ),
     ).toBeTruthy();
     expect(screen.getByText('Record my first ride')).toBeTruthy();
+  });
+
+  it('atlas for a rider without GPS routes: example map, their season, "Open my atlas"', async () => {
+    useHandle({
+      ...EXAMPLES,
+      [WHATS_NEW_FEATURE.ROAD_ATLAS]: {
+        ...EXAMPLES[WHATS_NEW_FEATURE.ROAD_ATLAS],
+        season: { distance: '8,301 mi', rides: 90 },
+      },
+    });
+    await open({ source: WHATS_NEW_SOURCE.PROFILE });
+    expect(screen.getByText('EXAMPLE')).toBeTruthy();
+    expect(
+      screen.getByText(
+        '8,301 mi over 90 rides this season. Record one with GPS and it draws itself onto your map.',
+      ),
+    ).toBeTruthy();
+    expect(screen.getByText('Open my atlas')).toBeTruthy();
+    expect(screen.queryByText('Record my first ride')).toBeNull();
   });
 
   it('scan with the rider data shows the record in its own currency', async () => {

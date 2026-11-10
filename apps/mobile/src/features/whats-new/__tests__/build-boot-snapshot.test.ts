@@ -257,14 +257,27 @@ describe('Road Atlas page', () => {
     });
   });
 
-  it('draws the example routes when the rider has no routes', () => {
-    const { pages } = buildBootSnapshot(input({ headline, rides: ridesList([null]) }));
+  it('draws the example routes when the rider has no rides', () => {
+    const { pages } = buildBootSnapshot(input({ rides: ridesList([null]) }));
     expect(pages[WHATS_NEW_FEATURE.ROAD_ATLAS]).toEqual({
       feature: WHATS_NEW_FEATURE.ROAD_ATLAS,
       kind: WHATS_NEW_DATA_KIND.EXAMPLE,
       source: WHATS_NEW_DATA_SOURCE.NONE,
       routes: EXAMPLE_ROUTES,
       unitLabel: 'km',
+      season: null,
+    });
+  });
+
+  it('keeps the example map but quotes the season when no ride has a GPS route', () => {
+    const { pages } = buildBootSnapshot(input({ headline, rides: ridesList([null]) }));
+    expect(pages[WHATS_NEW_FEATURE.ROAD_ATLAS]).toEqual({
+      feature: WHATS_NEW_FEATURE.ROAD_ATLAS,
+      kind: WHATS_NEW_DATA_KIND.EXAMPLE,
+      source: WHATS_NEW_DATA_SOURCE.CACHE,
+      routes: EXAMPLE_ROUTES,
+      unitLabel: 'km',
+      season: { distance: '2,507 km', rides: 36 },
     });
   });
 });

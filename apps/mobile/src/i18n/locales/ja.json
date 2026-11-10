@@ -1813,7 +1813,9 @@
         },
         "example": {
           "line": "記録したライドは1枚の地図に描かれ、初めて走った道がひと目でわかります。",
-          "cta": "最初のライドを記録"
+          "cta": "最初のライドを記録",
+          "lineWithSeason_one": "今シーズンは{{count}}回のライドで{{distance}}。GPSで記録すると、地図に描かれます。",
+          "lineWithSeason_other": "今シーズンは{{count}}回のライドで{{distance}}。GPSで記録すると、地図に描かれます。"
         },
         "demo": {
           "newRoads": "新しい道",

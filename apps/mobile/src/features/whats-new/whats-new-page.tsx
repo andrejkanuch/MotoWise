@@ -39,7 +39,12 @@ function pageLine(t: TFunction, data: WhatsNewPageData): string {
   switch (data.feature) {
     case WHATS_NEW_FEATURE.ROAD_ATLAS:
       if (data.kind === WHATS_NEW_DATA_KIND.EXAMPLE) {
-        return t('whatsNew.features.road_atlas.example.line');
+        return data.season
+          ? t('whatsNew.features.road_atlas.example.lineWithSeason', {
+              distance: data.season.distance,
+              count: data.season.rides,
+            })
+          : t('whatsNew.features.road_atlas.example.line');
       }
       if (data.line === ATLAS_LINE.LAST_RIDES || !data.distance) {
         return t('whatsNew.features.road_atlas.yourData.lineLastRides', { count: data.rides });
@@ -107,9 +112,12 @@ export function WhatsNewPage({
   const { t } = useEditorialTheme();
   const meta = WHATS_NEW_FEATURES[feature];
   const mine = data?.kind === WHATS_NEW_DATA_KIND.YOUR_DATA;
+  // A rider with a season but no GPS routes already rides: send them to their atlas, not to a first ride.
+  const ridesAlready =
+    mine || (data?.feature === WHATS_NEW_FEATURE.ROAD_ATLAS && data.season !== null);
   const cta = tried
     ? tr('whatsNew.carousel.openAgain')
-    : tr(mine ? meta.keys.yourData.cta : meta.keys.example.cta);
+    : tr(ridesAlready ? meta.keys.yourData.cta : meta.keys.example.cta);
 
   return (
     <View

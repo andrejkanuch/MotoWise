@@ -112,6 +112,8 @@ export type AtlasPageData =
       source: WhatsNewDataSource;
       routes: readonly RoutePath[];
       unitLabel: string;
+      /** The rider's season when they ride but no ride has a GPS route to draw. */
+      season: { distance: string; rides: number } | null;
     };
 
 export type ScanPageData =
@@ -279,16 +281,22 @@ function newRoadShare(insights: BootInput['insights'], locale: string): string |
 function buildAtlas(input: BootSnapshotInput, locale: string): AtlasPageData {
   const feature = WHATS_NEW_FEATURE.ROAD_ATLAS;
   const routes = decodedRoutes(input.rides);
+  const totals = seasonTotals(input);
   if (routes.length === 0) {
+    const ridden = totals && totals.distanceM > 0 ? totals : null;
+    const parts = ridden
+      ? distanceParts(ridden.distanceM, input.prefs.measurementSystem, locale)
+      : null;
     return {
       feature,
       kind: WHATS_NEW_DATA_KIND.EXAMPLE,
-      source: WHATS_NEW_DATA_SOURCE.NONE,
+      source: ridden ? WHATS_NEW_DATA_SOURCE.CACHE : WHATS_NEW_DATA_SOURCE.NONE,
       routes: EXAMPLE_ROUTES,
       unitLabel: mileageUnitLabel(input.prefs.measurementSystem),
+      season:
+        ridden && parts ? { distance: `${parts.value} ${parts.unit}`, rides: ridden.rides } : null,
     };
   }
-  const totals = seasonTotals(input);
   const usedInsights = input.headline === null || newRoadShare(input.insights, locale) !== null;
   const source =
     usedInsights && input.insights.source === WHATS_NEW_DATA_SOURCE.FETCHED

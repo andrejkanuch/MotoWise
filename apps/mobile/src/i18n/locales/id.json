@@ -1813,7 +1813,9 @@
         },
         "example": {
           "line": "Setiap perjalanan yang kamu rekam tergambar di satu peta, dan menunjukkan jalan mana yang baru bagimu.",
-          "cta": "Rekam perjalanan pertamaku"
+          "cta": "Rekam perjalanan pertamaku",
+          "lineWithSeason_one": "{{distance}} dalam {{count}} perjalanan musim ini. Rekam satu dengan GPS dan perjalanan itu tergambar di petamu.",
+          "lineWithSeason_other": "{{distance}} dalam {{count}} perjalanan musim ini. Rekam satu dengan GPS dan perjalanan itu tergambar di petamu."
         },
         "demo": {
           "newRoads": "Jalan baru",

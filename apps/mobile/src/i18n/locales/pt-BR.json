@@ -1840,7 +1840,10 @@
         },
         "example": {
           "line": "Cada rolê que você grava se desenha em um só mapa e mostra quais estradas eram novas para você.",
-          "cta": "Gravar meu primeiro rolê"
+          "cta": "Gravar meu primeiro rolê",
+          "lineWithSeason_one": "{{distance}} em {{count}} rolê nesta temporada. Grave um com GPS e ele se desenha no seu mapa.",
+          "lineWithSeason_many": "{{distance}} em {{count}} rolês nesta temporada. Grave um com GPS e ele se desenha no seu mapa.",
+          "lineWithSeason_other": "{{distance}} em {{count}} rolês nesta temporada. Grave um com GPS e ele se desenha no seu mapa."
         },
         "demo": {
           "newRoads": "Estradas novas",

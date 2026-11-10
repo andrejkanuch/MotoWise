@@ -1840,7 +1840,10 @@
         },
         "example": {
           "line": "Cada rodada que grabas se dibuja en un solo mapa y te muestra qué caminos eran nuevos para ti.",
-          "cta": "Grabar mi primera rodada"
+          "cta": "Grabar mi primera rodada",
+          "lineWithSeason_one": "{{distance}} en {{count}} rodada esta temporada. Graba una con GPS y se dibuja sola en tu mapa.",
+          "lineWithSeason_many": "{{distance}} en {{count}} rodadas esta temporada. Graba una con GPS y se dibuja sola en tu mapa.",
+          "lineWithSeason_other": "{{distance}} en {{count}} rodadas esta temporada. Graba una con GPS y se dibuja sola en tu mapa."
         },
         "demo": {
           "newRoads": "Caminos nuevos",

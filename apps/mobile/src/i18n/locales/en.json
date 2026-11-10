@@ -1824,7 +1824,9 @@
         },
         "example": {
           "line": "Every ride you record draws itself onto one map, and shows which roads were new to you.",
-          "cta": "Record my first ride"
+          "cta": "Record my first ride",
+          "lineWithSeason_one": "{{distance}} over {{count}} ride this season. Record one with GPS and it draws itself onto your map.",
+          "lineWithSeason_other": "{{distance}} over {{count}} rides this season. Record one with GPS and it draws itself onto your map."
         },
         "demo": {
           "newRoads": "New roads",

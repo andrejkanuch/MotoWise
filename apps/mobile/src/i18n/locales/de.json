@@ -1813,7 +1813,9 @@
         },
         "example": {
           "line": "Jede Fahrt, die du aufzeichnest, landet auf einer Karte und zeigt, welche Straßen neu für dich waren.",
-          "cta": "Erste Fahrt aufzeichnen"
+          "cta": "Erste Fahrt aufzeichnen",
+          "lineWithSeason_one": "{{distance}} auf {{count}} Fahrt diese Saison. Zeichne eine mit GPS auf, und sie erscheint auf deiner Karte.",
+          "lineWithSeason_other": "{{distance}} auf {{count}} Fahrten diese Saison. Zeichne eine mit GPS auf, und sie erscheint auf deiner Karte."
         },
         "demo": {
           "newRoads": "Neue Straßen",

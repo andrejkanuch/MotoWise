@@ -1813,7 +1813,9 @@
         },
         "example": {
           "line": "Kaydettiğin her sürüş tek bir haritaya çizilir ve hangi yolların senin için yeni olduğunu gösterir.",
-          "cta": "İlk sürüşümü kaydet"
+          "cta": "İlk sürüşümü kaydet",
+          "lineWithSeason_one": "Bu sezon {{count}} sürüşte {{distance}}. GPS ile bir sürüş kaydet, haritana kendiliğinden çizilsin.",
+          "lineWithSeason_other": "Bu sezon {{count}} sürüşte {{distance}}. GPS ile bir sürüş kaydet, haritana kendiliğinden çizilsin."
         },
         "demo": {
           "newRoads": "Yeni yollar",

@@ -1840,7 +1840,10 @@
         },
         "example": {
           "line": "Ogni uscita che registri si disegna su un’unica mappa e ti mostra quali strade erano nuove per te.",
-          "cta": "Registra la prima uscita"
+          "cta": "Registra la prima uscita",
+          "lineWithSeason_one": "{{distance}} in {{count}} uscita questa stagione. Registrane una con il GPS e si disegna sulla tua mappa.",
+          "lineWithSeason_many": "{{distance}} in {{count}} uscite questa stagione. Registrane una con il GPS e si disegna sulla tua mappa.",
+          "lineWithSeason_other": "{{distance}} in {{count}} uscite questa stagione. Registrane una con il GPS e si disegna sulla tua mappa."
         },
         "demo": {
           "newRoads": "Strade nuove",
