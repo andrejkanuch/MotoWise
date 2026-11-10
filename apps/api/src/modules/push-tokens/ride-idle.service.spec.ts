@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { RIDE_WAYPOINT_LIMITS } from '@motovault/types';
 import type { EventEmitter2 } from '@nestjs/event-emitter';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -487,7 +488,10 @@ describe('RideIdleService.sweepIdleRides', () => {
       'recorded_at',
     ]);
     expect(mockRpcs).toEqual([
-      { fn: 'ride_track_points', args: { p_ride_id: 'r1', p_max_points: null } },
+      {
+        fn: 'ride_track_points',
+        args: { p_ride_id: 'r1', p_max_points: RIDE_WAYPOINT_LIMITS.MAX_PER_RIDE },
+      },
     ]);
   });
 

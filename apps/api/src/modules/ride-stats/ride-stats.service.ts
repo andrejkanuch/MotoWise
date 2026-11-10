@@ -3,7 +3,11 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Sentry from '@sentry/nestjs';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { RIDE_TRACK_POINTS_RPC, type TrackPointsRow } from '../../common/track-points';
+import {
+  RIDE_TRACK_POINTS_RPC,
+  TRACK_POINTS_READ_CAP,
+  type TrackPointsRow,
+} from '../../common/track-points';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { computeRideStats, RIDE_STATS_VERSION } from './compute/compute-ride-stats';
 import { createPlacesLookup, REFERENCE_MISSING } from './compute/places';
@@ -40,6 +44,8 @@ export const RIDE_STATS_SWEEP_BATCH_SIZE = 10;
 const STALE_ALERT_AFTER_MS = 60 * 60 * 1000;
 /** Recent ride_private_details rows read to find a rider's latest valid zone. */
 const RIDER_ZONE_LOOKBACK = 5;
+/** A ride whose compute threw is left out of the sweep this long, then retried. */
+export const RIDE_STATS_SKIP_RETRY_MS = 60 * 60 * 1000;
 
 const RIDE_COLUMNS =
   'id, user_id, motorcycle_id, status, deleted_at, started_at, ended_at, distance_m, route_polyline';
@@ -75,11 +81,12 @@ interface StaleRide {
 export class RideStatsService {
   private readonly logger = new Logger(RideStatsService.name);
   /**
-   * Rides whose compute threw. Excluded from later runs in this process so a
-   * ride that always fails cannot hold a batch slot forever; they still show in
-   * the stale-over-an-hour count, which is reported every run.
+   * Rides whose compute threw, with when they threw. Excluded from later runs for
+   * RIDE_STATS_SKIP_RETRY_MS so a ride that always fails cannot hold a batch slot
+   * every run, yet one that failed on a transient error is retried after the
+   * window. They still show in the stale-over-an-hour count, reported every run.
    */
-  private readonly skipList = new Set<string>();
+  private readonly skipList = new Map<string, number>();
 
   constructor(
     @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
@@ -139,7 +146,7 @@ export class RideStatsService {
     const { data, error } = await this.supabaseAdmin.rpc(STALE_RIDES_RPC, {
       p_stats_version: RIDE_STATS_VERSION,
       p_limit: RIDE_STATS_SWEEP_BATCH_SIZE,
-      p_exclude: [...this.skipList],
+      p_exclude: this.activeSkips(),
     });
     if (error) throw new Error(`${STALE_RIDES_RPC} failed: ${error.message}`);
     const stale = (data as StaleRide[] | null) ?? [];
@@ -159,7 +166,7 @@ export class RideStatsService {
         if (result === COMPUTE_RIDE_RESULT.WRITTEN) summary.written++;
         if (result === COMPUTE_RIDE_RESULT.REFERENCE_MISSING) summary.referenceMissing++;
       } catch (err) {
-        this.skipList.add(rideId);
+        this.skipList.set(rideId, Date.now());
         summary.skipped.push(rideId);
         this.logger.error(
           `ride stats compute failed for ride ${rideId}: ${err instanceof Error ? err.message : String(err)}`,
@@ -184,10 +191,19 @@ export class RideStatsService {
       Sentry.captureMessage(message, {
         level: 'warning',
         tags: { area: 'ride-stats' },
-        extra: { skipList: [...this.skipList] },
+        extra: { skipList: [...this.skipList.keys()] },
       });
     }
     return summary;
+  }
+
+  /** Rides still inside their skip window; expired entries are dropped so they are retried. */
+  private activeSkips(): string[] {
+    const cutoff = Date.now() - RIDE_STATS_SKIP_RETRY_MS;
+    for (const [rideId, skippedAt] of this.skipList) {
+      if (skippedAt <= cutoff) this.skipList.delete(rideId);
+    }
+    return [...this.skipList.keys()];
   }
 
   private async countStaleOverOneHour(): Promise<number> {
@@ -199,11 +215,11 @@ export class RideStatsService {
     return Number(data ?? 0);
   }
 
-  /** Every fix of the ride in one row (no downsampling). Null when it has none. */
+  /** The ride's fixes in one row, decimated above TRACK_POINTS_READ_CAP. Null when it has none. */
   private async loadTrackPoints(rideId: string): Promise<TrackPointsRow | null> {
     const { data, error } = await this.supabaseAdmin.rpc(RIDE_TRACK_POINTS_RPC, {
       p_ride_id: rideId,
-      p_max_points: null,
+      p_max_points: TRACK_POINTS_READ_CAP,
     });
     if (error) throw new Error(`${RIDE_TRACK_POINTS_RPC} failed: ${error.message}`);
     return ((data as TrackPointsRow[] | null) ?? [])[0] ?? null;

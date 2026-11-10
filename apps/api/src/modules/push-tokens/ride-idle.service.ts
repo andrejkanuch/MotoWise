@@ -7,7 +7,11 @@ import { Expo, type ExpoPushMessage } from 'expo-server-sdk';
 import { RIDE_EVENTS } from '../../common/constants/events';
 import { EARTH_RADIUS_M } from '../../common/geo';
 import { PG_ERROR } from '../../common/supabase/unwrap';
-import { RIDE_TRACK_POINTS_RPC, type TrackPointsRow } from '../../common/track-points';
+import {
+  RIDE_TRACK_POINTS_RPC,
+  TRACK_POINTS_READ_CAP,
+  type TrackPointsRow,
+} from '../../common/track-points';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { resolveRideIdlePushCopy } from './ride-idle-push-copy';
 
@@ -353,11 +357,12 @@ export class RideIdleService {
    * Read through `ride_track_points()`, which returns the whole track as one row of
    * arrays: a plain select stopped at PostgREST's row cap, so a long ride's distance
    * was rebuilt from its first 1,000 fixes and its end trimmed to the 1,000th.
+   * Capped at TRACK_POINTS_READ_CAP evenly spaced fixes (first and last kept).
    */
   private async loadTrack(rideId: string): Promise<WaypointRow[]> {
     const { data, error } = await this.adminClient.rpc(RIDE_TRACK_POINTS_RPC, {
       p_ride_id: rideId,
-      p_max_points: null,
+      p_max_points: TRACK_POINTS_READ_CAP,
     });
     if (error) {
       // Treat an unreadable track as "no signal": the ride still gets nudged/ended on

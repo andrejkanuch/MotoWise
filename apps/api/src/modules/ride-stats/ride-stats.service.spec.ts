@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { RIDE_WAYPOINT_LIMITS } from '@motovault/types';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const sentry = vi.hoisted(() => ({ captureException: vi.fn(), captureMessage: vi.fn() }));
 vi.mock('@sentry/nestjs', () => sentry);
@@ -6,6 +7,7 @@ vi.mock('@sentry/nestjs', () => sentry);
 import { fakeAdmin, pointsRow, ride } from './__fixtures__/fake-admin';
 import { RIDE_STATS_VERSION } from './compute/compute-ride-stats';
 import {
+  RIDE_STATS_SKIP_RETRY_MS,
   RIDE_STATS_SWEEP_BATCH_SIZE,
   RideStatsService,
   STALE_COUNT_RPC,
@@ -39,6 +41,15 @@ describe('RideStatsService.computeRide', () => {
     // The weather step owns its columns; a recompute never writes them.
     expect(stats).not.toHaveProperty('weather');
     expect(stats).not.toHaveProperty('weather_fetched_at');
+  });
+
+  it('caps the track read at the per-ride waypoint limit, so a flooded ride cannot exhaust memory', async () => {
+    const admin = fakeAdmin({ rides: { r1: ride('r1') }, points: { r1: pointsRow() } });
+    await service(admin).computeRide('r1');
+    expect(admin.rpcCalls.find((c) => c.name === 'ride_track_points')?.args).toEqual({
+      p_ride_id: 'r1',
+      p_max_points: RIDE_WAYPOINT_LIMITS.MAX_PER_RIDE,
+    });
   });
 
   it('stamps computed_at and built_at before the reads, so a track change during the compute leaves the ride stale', async () => {
@@ -167,6 +178,32 @@ describe('RideStatsService.sweepStale', () => {
     await svc.sweepStale();
     const calls = admin.rpcCalls.filter((c) => c.name === STALE_RIDES_RPC);
     expect(calls[1].args.p_exclude).toEqual(['bad']);
+  });
+
+  describe('skip window', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('retries a skipped ride once the skip window has passed', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-06-06T10:00:00Z'));
+      const admin = fakeAdmin({
+        rides: { a: ride('a') },
+        stale: [staleRow('bad')],
+        throwFor: ['bad'],
+      });
+      const svc = service(admin);
+      await svc.sweepStale();
+
+      vi.setSystemTime(Date.now() + RIDE_STATS_SKIP_RETRY_MS - 1_000);
+      await svc.sweepStale();
+      vi.setSystemTime(Date.now() + 2_000);
+      await svc.sweepStale();
+
+      const excludes = admin.rpcCalls
+        .filter((c) => c.name === STALE_RIDES_RPC)
+        .map((c) => c.args.p_exclude);
+      expect(excludes).toEqual([[], ['bad'], []]);
+    });
   });
 
   it('computes rides in the order the stale-rides RPC returns (real riders first, as its SQL orders them)', async () => {

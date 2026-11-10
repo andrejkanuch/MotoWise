@@ -120,7 +120,11 @@ export function fakeAdmin(options: FakeOptions) {
       return { data: row ? [row] : [], error: null };
     }
     if (name === 'ride_stats_places') return { data: options.places ?? PLACES_READY, error: null };
-    if (name === STALE_RIDES_RPC) return { data: options.stale ?? [], error: null };
+    if (name === STALE_RIDES_RPC) {
+      const exclude = (args.p_exclude as string[] | undefined) ?? [];
+      const rows = (options.stale ?? []).filter((r) => !exclude.includes(r.ride_id));
+      return { data: rows, error: null };
+    }
     if (name === STALE_COUNT_RPC) return { data: options.staleCount ?? 0, error: null };
     return { data: null, error: { message: `unknown rpc ${name}` } };
   });
