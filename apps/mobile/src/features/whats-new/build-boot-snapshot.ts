@@ -290,7 +290,11 @@ function buildAtlas(input: BootSnapshotInput, locale: string): AtlasPageData {
     return {
       feature,
       kind: WHATS_NEW_DATA_KIND.EXAMPLE,
-      source: ridden ? WHATS_NEW_DATA_SOURCE.CACHE : WHATS_NEW_DATA_SOURCE.NONE,
+      source: !ridden
+        ? WHATS_NEW_DATA_SOURCE.NONE
+        : input.headline === null && input.insights.source === WHATS_NEW_DATA_SOURCE.FETCHED
+          ? WHATS_NEW_DATA_SOURCE.FETCHED
+          : WHATS_NEW_DATA_SOURCE.CACHE,
       routes: EXAMPLE_ROUTES,
       unitLabel: mileageUnitLabel(input.prefs.measurementSystem),
       season:

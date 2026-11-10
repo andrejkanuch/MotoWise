@@ -24,6 +24,7 @@ import {
   RIDER_INSIGHTS_ENTRY,
   riderInsightsHref,
 } from '@/config/routes';
+import { WHATS_NEW_TIMING } from '@/config/whats-new';
 import {
   WHATS_NEW_DESTINATION,
   WHATS_NEW_FEATURES,
@@ -66,6 +67,9 @@ export function useWhatsNewCta(): TryFeature {
   return (feature, pageIndex, dataKind) => {
     if (leaving.current) return;
     leaving.current = true;
+    setTimeout(() => {
+      leaving.current = false;
+    }, WHATS_NEW_TIMING.TAP_LATCH_MS);
     const page = String(pageIndex);
     const addBike: CtaAction = {
       tried: false,

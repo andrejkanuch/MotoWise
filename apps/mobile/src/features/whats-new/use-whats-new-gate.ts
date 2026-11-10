@@ -152,8 +152,8 @@ export function useWhatsNewGate(): void {
         return;
       }
       phase = GATE_PHASE.DECIDING;
-      void resolveWhatsNewArm().then(
-        ({ arm, source }) => {
+      void resolveWhatsNewArm()
+        .then(({ arm, source }) => {
           trackEvent(AnalyticsEvent.WHATS_NEW_ELIGIBLE, {
             version: owed.release.version,
             arm,
@@ -170,12 +170,11 @@ export function useWhatsNewGate(): void {
           }
           phase = GATE_PHASE.SHOWING;
           requestRecheck();
-        },
-        () => {
+        })
+        .catch(() => {
           // Deciding failed: skip this session and stay owed for the next launch.
           phase = GATE_PHASE.DONE;
-        },
-      );
+        });
       return;
     }
 

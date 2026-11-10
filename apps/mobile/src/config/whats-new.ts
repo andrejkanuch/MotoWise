@@ -12,6 +12,12 @@ export const WHATS_NEW_TIMING = {
   SHOW_DELAY_MS: 500,
   /** Budget for fetching the rider's expenses and notes when What's New opens. */
   DATA_FETCH_TIMEOUT_MS: 1500,
+  /**
+   * How long a What's New button ignores a second press. Also released when the
+   * screen regains focus; the delay covers a press that opens no route (a native
+   * paywall), which never changes focus.
+   */
+  TAP_LATCH_MS: 1000,
 } as const;
 
 export const WHATS_NEW_ARM = {

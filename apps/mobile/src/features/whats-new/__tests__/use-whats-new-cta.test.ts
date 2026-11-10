@@ -37,6 +37,7 @@ import {
   PROFILE_ROUTE,
   RIDER_INSIGHTS_ENTRY,
 } from '@/config/routes';
+import { WHATS_NEW_TIMING } from '@/config/whats-new';
 import { WHATS_NEW_DATA_KIND, WHATS_NEW_FEATURE } from '@/data/whats-new-releases';
 import { SCAN_ENTRY_SURFACE } from '@/features/receipt-scan/scan-flow-constants';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
@@ -102,6 +103,23 @@ describe('double tap', () => {
     await act(() => mockFocus.current?.());
     await act(tap);
     expect(mockScanOpen).toHaveBeenCalledTimes(2);
+  });
+
+  it('frees the button after the latch when the press opened no route (a native paywall)', async () => {
+    jest.useFakeTimers();
+    try {
+      const { result } = await renderCta([PRIMARY]);
+      const tap = () =>
+        result.current(WHATS_NEW_FEATURE.RECEIPT_SCAN, 1, WHATS_NEW_DATA_KIND.EXAMPLE);
+      await act(tap);
+      await act(() => {
+        jest.advanceTimersByTime(WHATS_NEW_TIMING.TAP_LATCH_MS);
+      });
+      await act(tap);
+      expect(mockScanOpen).toHaveBeenCalledTimes(2);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
 

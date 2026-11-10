@@ -15,6 +15,7 @@ import { useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { whatsNewReturnHref } from '@/config/routes';
+import { WHATS_NEW_TIMING } from '@/config/whats-new';
 import type { WhatsNewFeature } from '@/data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { installedRelease, NOTHING_SEEN, selectPages } from '@/lib/whats-new';
@@ -87,6 +88,9 @@ export function WhatsNewReturnBar({ feature, fromWhatsNew, page }: WhatsNewRetur
   const go = (action: ReturnAction, target: number) => {
     if (leaving.current) return;
     leaving.current = true;
+    setTimeout(() => {
+      leaving.current = false;
+    }, WHATS_NEW_TIMING.TAP_LATCH_MS);
     triggerImpact();
     trackEvent(AnalyticsEvent.WHATS_NEW_RETURNED, { feature, action });
     router.push(whatsNewReturnHref(target));
