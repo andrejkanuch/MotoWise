@@ -438,11 +438,24 @@ describe('ordering hardening (MOT-262)', () => {
       .mockRejectedValueOnce(new Error('Network request failed')); // endRide is offline
 
     await drainQueue();
-    expect(listener.mock.calls).toEqual([['uploadWaypoints']]);
+    const delivered = () => listener.mock.calls.map(([type]) => type);
+    expect(delivered()).toEqual(['uploadWaypoints']);
 
     mockGqlFetcher.mockResolvedValueOnce({});
     await drainQueue();
-    expect(listener.mock.calls).toEqual([['uploadWaypoints'], ['endRide']]);
+    expect(delivered()).toEqual(['uploadWaypoints', 'endRide']);
+  });
+
+  it('passes the delivered listener what the op carried', async () => {
+    const listener = jest.fn();
+    setDeliveredListener(listener);
+    const payload = { variables: { input: { rideId: 'ride-1', odometerAtEnd: 12_463 } } };
+    enqueue('updateRide', payload);
+    mockGqlFetcher.mockResolvedValueOnce({});
+
+    await drainQueue();
+
+    expect(listener).toHaveBeenCalledWith('updateRide', payload);
   });
 
   it('a throwing delivered listener never turns a delivered op into a failure', async () => {
