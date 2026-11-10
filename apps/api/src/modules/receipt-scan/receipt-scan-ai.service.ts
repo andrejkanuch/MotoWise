@@ -92,7 +92,8 @@ export class ReceiptScanAiService {
         model: MODEL,
         messages,
         response_format: zodResponseFormat(ReceiptExtractionSchema, 'receipt'),
-        max_tokens: MAX_TOKENS,
+        max_completion_tokens: MAX_TOKENS,
+        reasoning_effort: 'none',
       });
 
       const parsed = completion.choices[0]?.message.parsed;

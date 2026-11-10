@@ -4,6 +4,9 @@ import { generateObject } from 'ai';
 import type { ModelInsightsRequest } from '../ai-provider.interface';
 import { buildInsightsUserPrompt, INSIGHTS_SYSTEM_PROMPT } from '../insights-prompt';
 
+/** Per-provider request options, keyed by provider name (`ai` does not export the type). */
+type ProviderOptions = Parameters<typeof generateObject>[0]['providerOptions'];
+
 /**
  * Shared structured-generation path for every AI provider (Gemini, OpenAI, …).
  * Uses the Vercel AI SDK's `generateObject`, which constrains the model to the
@@ -16,9 +19,11 @@ export async function generateInsightsWith(
   model: LanguageModel,
   req: ModelInsightsRequest,
   timeoutMs: number,
+  providerOptions?: ProviderOptions,
 ): Promise<ModelInsightsPayload> {
   const { object } = await generateObject({
     model,
+    providerOptions,
     schema: ModelInsightsPayloadSchema,
     system: INSIGHTS_SYSTEM_PROMPT,
     prompt: buildInsightsUserPrompt(req),

@@ -193,7 +193,8 @@ Return ONLY a JSON array of 3 objects. No markdown, no code fences, just the JSO
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      max_tokens: 1024,
+      max_completion_tokens: 1024,
+      reasoning_effort: 'none',
     });
 
     const text = response.choices[0]?.message?.content;

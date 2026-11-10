@@ -229,7 +229,8 @@ Requirements:
           { role: 'user', content: userPrompt },
         ],
         response_format: zodResponseFormat(ArticleAiResponseSchema, 'article'),
-        max_tokens: AI_TOKEN_LIMITS.ARTICLE_MAX_TOKENS,
+        max_completion_tokens: AI_TOKEN_LIMITS.ARTICLE_MAX_TOKENS,
+        reasoning_effort: 'none',
       });
 
       const inputTokens = completion.usage?.prompt_tokens ?? 0;
@@ -384,7 +385,8 @@ Requirements:
           { role: 'user', content: userPrompt },
         ],
         response_format: zodResponseFormat(MaintenanceNarrativeSchema, 'maintenance_narrative'),
-        max_tokens: AI_TOKEN_LIMITS.ARTICLE_MAX_TOKENS,
+        max_completion_tokens: AI_TOKEN_LIMITS.ARTICLE_MAX_TOKENS,
+        reasoning_effort: 'none',
       });
 
       const inputTokens = completion.usage?.prompt_tokens ?? 0;

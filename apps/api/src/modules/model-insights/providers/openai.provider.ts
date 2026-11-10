@@ -26,6 +26,10 @@ export class OpenAiInsightsProvider implements AiInsightsProvider {
 
   generate(req: ModelInsightsRequest, timeoutMs: number): Promise<ModelInsightsPayload> {
     if (!this.model) throw new Error('OpenAI provider not configured');
-    return generateInsightsWith(this.model, req, timeoutMs);
+    // gpt-6-luna reasons by default; hidden reasoning would eat the per-call
+    // timeout, so it is turned off as on every other OpenAI call.
+    return generateInsightsWith(this.model, req, timeoutMs, {
+      openai: { reasoningEffort: 'none' },
+    });
   }
 }
