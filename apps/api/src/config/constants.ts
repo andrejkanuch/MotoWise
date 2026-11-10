@@ -2,16 +2,18 @@ import { RIDE_WAYPOINT_LIMITS } from '@motovault/types';
 
 /**
  * OpenAI model identifiers. gpt-4.1-nano was retired by OpenAI (404 model not
- * found); the nano tier is now gpt-5.4-nano, a reasoning model: it rejects
+ * found); the small tier is now gpt-6-luna (OpenAI's listed replacement for the
+ * also-deprecated gpt-5.4-nano). It is a reasoning model: it rejects
  * `max_tokens` (send `max_completion_tokens`) and is called with
  * `reasoning_effort: 'none'` so hidden reasoning cannot eat the token cap.
+ * Check shutdown dates at https://developers.openai.com/api/docs/deprecations.
  */
 export const AI_MODELS = {
   ARTICLE_GENERATOR: 'gpt-4.1',
-  TOPIC_CLASSIFIER: 'gpt-5.4-nano',
+  TOPIC_CLASSIFIER: 'gpt-6-luna',
   DIAGNOSTIC: 'gpt-4.1',
   INSIGHTS: 'gpt-4.1-mini',
-  RIDE_SUMMARY: 'gpt-5.4-nano',
+  RIDE_SUMMARY: 'gpt-6-luna',
   RECEIPT_SCAN: 'gpt-4.1',
 } as const;
 
@@ -25,7 +27,7 @@ export type AiModel = (typeof AI_MODELS)[keyof typeof AI_MODELS];
 export const MODEL_COSTS: Record<AiModel, { inputUsdPerMTok: number; outputUsdPerMTok: number }> = {
   'gpt-4.1': { inputUsdPerMTok: 2, outputUsdPerMTok: 8 },
   'gpt-4.1-mini': { inputUsdPerMTok: 0.4, outputUsdPerMTok: 1.6 },
-  'gpt-5.4-nano': { inputUsdPerMTok: 0.2, outputUsdPerMTok: 1.25 },
+  'gpt-6-luna': { inputUsdPerMTok: 0.1, outputUsdPerMTok: 0.5 },
 };
 
 /** Cost of one completion in integer cents (rounded up so spend is never undercounted). */
