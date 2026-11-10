@@ -1,5 +1,6 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AI_MODELS } from '../../config/constants';
 import { RideSummariesService } from './ride-summaries.service';
 
 describe('RideSummariesService', () => {
@@ -187,6 +188,15 @@ describe('RideSummariesService', () => {
       expect(result.generationStatus).toBe('completed');
       expect(result.locale).toBe('en');
       expect(mockAiBudgetService.checkBudgetForUser).toHaveBeenCalledWith(userId);
+      // GPT-5 models reject max_tokens; reasoning_effort 'none' keeps hidden
+      // reasoning from eating the summary's token cap.
+      const request = mockParse.mock.calls[0][0];
+      expect(request).toMatchObject({
+        model: AI_MODELS.RIDE_SUMMARY,
+        max_completion_tokens: expect.any(Number),
+        reasoning_effort: 'none',
+      });
+      expect(request).not.toHaveProperty('max_tokens');
     });
 
     it('should throw NotFoundException when ride is below distance threshold', async () => {
