@@ -766,18 +766,28 @@ export class RidesService {
     return this.withPrivateDetails(ride, details);
   }
 
-  /** The bike's odometer unit; `current_mileage` and odometer readings are raw in it. */
+  /**
+   * The bike's odometer unit; `current_mileage` and odometer readings are raw in it.
+   * Throws when the bike cannot be read: defaulting to km (and 0) would convert a
+   * miles bike's reading wrongly, or write the ride's distance as its whole odometer.
+   * A NULL distance_unit is a legacy km bike, as in the RPCs.
+   */
   private async readBikeOdometer(
     userId: string,
     motorcycleId: string,
   ): Promise<{ currentMileage: number; unit: MileageUnit }> {
     // Defense-in-depth: filter by user_id alongside RLS
-    const { data: bike } = await this.supabase
+    const { data: bike, error } = await this.supabase
       .from('motorcycles')
       .select('current_mileage, distance_unit')
       .eq('id', motorcycleId)
       .eq('user_id', userId)
       .single();
+    if (error || !bike) {
+      throw new Error(
+        `motorcycle ${motorcycleId} odometer read failed: ${error?.message ?? 'no row'} (${error?.code ?? 'none'})`,
+      );
+    }
     return {
       currentMileage: (bike?.current_mileage as number | null) ?? 0,
       unit: bike?.distance_unit === MileageUnit.MI ? MileageUnit.MI : MileageUnit.KM,

@@ -935,6 +935,33 @@ describe('RidesService', () => {
       expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
+    it('a failed bike read skips the odometer write instead of assuming km', async () => {
+      mockUserClient._pushResult({ data: completedRow }); // 0: completion UPDATE
+      mockUserClient._pushResult({ data: { distance_m: 32_186, motorcycle_id: 'moto-456' } }); // 1: claim
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } }); // 2: bike
+
+      const result = await service.endRide(userId, { ...endBase, distanceM: 32_186 });
+
+      expect(result.ride.status).toBe('completed');
+      expect(gpsMileageWrites()).toEqual([]);
+    });
+
+    it('updateRide refuses the end odometer when the bike unit cannot be read', async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', motorcycle_id: 'moto-456' },
+      }); // 0: ride read
+      mockUserClient._pushResult({ data: null, error: { code: '57014', message: 'timeout' } }); // 1: bike
+
+      const err = await service
+        .updateRide(userId, { rideId: 'ride-123', odometerAtEnd: 1250 })
+        .catch((e) => e);
+
+      // Not a 4xx: the sync queue retries it instead of dead-lettering.
+      expect(err).toBeInstanceOf(Error);
+      expect(err).not.toBeInstanceOf(BadRequestException);
+      expect(rpcCalls('log_ride_end_odometer')).toEqual([]);
+    });
+
     it('a replayed end does not apply the odometer again', async () => {
       mockUserClient._pushResult({ data: null, error: { code: PG_ERROR.NOT_FOUND } });
       mockUserClient._pushResult({ data: { ...completedRow, mileage_applied: true } });
