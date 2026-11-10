@@ -2,8 +2,10 @@ import type { LucideIcon } from 'lucide-react-native';
 import { ChevronRight, ScanLine } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
+import { WHATS_NEW_FEATURE } from '../../data/whats-new-releases';
 import { useReceiptScanEntry } from '../../features/receipt-scan/receipt-scan-entry';
 import type { ScanEntrySurface } from '../../features/receipt-scan/scan-flow-constants';
+import { FeatureNewChip } from '../../features/whats-new/feature-new-chip';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { space } from '../../theme/spacing';
 import { radius, type } from '../../theme/type';
@@ -133,7 +135,10 @@ export function ReceiptScanRow({
         >
           {badge}
         </Text>
-      ) : null}
+      ) : (
+        // Never beside the quota badge: one tag on the row at a time.
+        <FeatureNewChip feature={WHATS_NEW_FEATURE.RECEIPT_SCAN} />
+      )}
       <ChevronRight size={17} color={theme.ink4} strokeWidth={2} />
     </Pressable>
   );

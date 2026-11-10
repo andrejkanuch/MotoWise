@@ -791,6 +791,21 @@ export function presentPaywall(options: PresentPaywallOptions = {}): Promise<Pay
   return promise;
 }
 
+/** True while a paywall is being prepared or is on screen. Read-only; re-renders nothing. */
+export function isPaywallInFlight(): boolean {
+  return paywallInFlight !== null;
+}
+
+const settledQuietly = () => undefined;
+
+/**
+ * Resolves once the paywall in flight now has closed, however it ended; null when
+ * none is in flight. Callers re-check afterwards, since another may have started.
+ */
+export function paywallFlightSettled(): Promise<void> | null {
+  return paywallInFlight ? paywallInFlight.promise.then(settledQuietly, settledQuietly) : null;
+}
+
 /** Where in presentPaywall a failure happened — the only way to tell "the store
  * returned no offering" from "the native paywall failed" in `paywall_result`. */
 const PAYWALL_ERROR_STAGE = {

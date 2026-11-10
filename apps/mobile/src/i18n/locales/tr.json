@@ -1763,6 +1763,108 @@
       "themeDesc": "Her ekranın artık açık ve koyu görünümü var ve Tema ayarını izliyor. Profil › Uygulama ayarları › Tema bölümünden seç ya da telefonunla uyumlu olması için Sistem’de bırak.",
       "profileTitle": "Profil, yeniden düzenlendi",
       "profileDesc": "Profil daha anlaşılır bölümlere ayrıldı; dil, tema, birimler ve para birimi artık Uygulama ayarları’nda bir arada. Yeni hesap kurmak da daha akıcı."
+    },
+    "carousel": {
+      "tagNew": "{{version}} sürümünde yeni",
+      "tagCatchUp": "Kaçırmış olabilirsin",
+      "pageOf": "{{current}} / {{total}}",
+      "tried": "Denendi",
+      "yourData": "SENİN VERİN",
+      "example": "ÖRNEK",
+      "back": "Geri",
+      "next": "İleri",
+      "rideOn": "Hadi sürelim",
+      "close": "Kapat",
+      "whereItLives": "Nerede bulunur",
+      "openAgain": "Tekrar aç",
+      "pageAnnouncement": "Sayfa {{current}} / {{total}}: {{title}}",
+      "newChip": "Yeni",
+      "returnBar": {
+        "back": "Yeniliklere dön",
+        "next": "Sonraki özellik"
+      },
+      "boot": {
+        "newCount_one": "Motosikletin için {{count}} yenilik",
+        "newCount_other": "Motosikletin için {{count}} yenilik",
+        "catchUpCount_one": "+ kaçırmış olabileceğin {{count}} özellik",
+        "catchUpCount_other": "+ kaçırmış olabileceğin {{count}} özellik",
+        "catchUpOnly_one": "Kaçırmış olabileceğin {{count}} özellik",
+        "catchUpOnly_other": "Kaçırmış olabileceğin {{count}} özellik",
+        "season": "SEZON",
+        "odo": "ODO",
+        "allSystemsOk": "Tüm sistemler tamam",
+        "skip": "Atla",
+        "fromGarage": "{{bike}} · garajından",
+        "seasonCaption_one": "Bu sezon {{count}} sürüş",
+        "seasonCaption_other": "Bu sezon {{count}} sürüş"
+      }
+    },
+    "features": {
+      "road_atlas": {
+        "title": "Yol Atlası",
+        "where": "Profil › Sürüş analizleri",
+        "yourData": {
+          "line_one": "Bu sezon {{count}} sürüşte {{distance}}. Hepsi tek bir haritada.",
+          "line_other": "Bu sezon {{count}} sürüşte {{distance}}. Hepsi tek bir haritada.",
+          "lineWithShare": "Bu sezonki {{distance}} yolunun {{share}} kadarı daha önce hiç sürmediğin yollardı. İşte onlar.",
+          "lineLastRides_one": "Son sürüşün, tek bir haritada.",
+          "lineLastRides_other": "Son {{count}} sürüşün, tek bir haritada.",
+          "cta": "Atlasımı aç"
+        },
+        "example": {
+          "line": "Kaydettiğin her sürüş tek bir haritaya çizilir ve hangi yolların senin için yeni olduğunu gösterir.",
+          "cta": "İlk sürüşümü kaydet",
+          "lineWithSeason_one": "Bu sezon {{count}} sürüşte {{distance}}. GPS ile bir sürüş kaydet, haritana kendiliğinden çizilsin.",
+          "lineWithSeason_other": "Bu sezon {{count}} sürüşte {{distance}}. GPS ile bir sürüş kaydet, haritana kendiliğinden çizilsin."
+        },
+        "demo": {
+          "newRoads": "Yeni yollar",
+          "rides_one": "{{count}} sürüş",
+          "rides_other": "{{count}} sürüş",
+          "exampleCaption": "Örnek sezon"
+        }
+      },
+      "receipt_scan": {
+        "title": "Fiş tara",
+        "where": "Ana Sayfa › Fiş tara veya bir motosikletin Masrafları",
+        "yourData": {
+          "line": "{{date}} tarihinde {{place}}, {{amount}} kaydettin. Bir dahaki sefere fişin tek bir fotoğrafı her şeyi doldurur.",
+          "cta": "Sonraki fişimi tara"
+        },
+        "example": {
+          "line": "Bir yakıt fişinin fotoğrafını çek. Tutar, tarih ve yer kendiliğinden dolar.",
+          "cta": "İlk fişimi tara"
+        },
+        "demo": {
+          "place": "Yer",
+          "category": "Kategori",
+          "total": "Toplam",
+          "date": "Tarih",
+          "headerYourData": "Son masrafın",
+          "headerExample": "Fotoğraftan okundu",
+          "examplePlace": "Benzin istasyonu",
+          "fuel": "Yakıt"
+        }
+      },
+      "notes_photos": {
+        "title": "Fotoğraflı notlar",
+        "where": "Garaj › motosikletin › Notlar",
+        "yourData": {
+          "line": "\"{{note}}\" notuna artık fotoğraf ekleyebilirsin ve arama onu bir saniyede bulur.",
+          "cta": "Fotoğraf ekle"
+        },
+        "example": {
+          "line": "Lastik basınçları, parça numaraları, servisin numarası. {{bike}} ile birlikte, fotoğraflı, bir saniyede bulunur.",
+          "lineNoBike": "Lastik basınçları, parça numaraları, servisin numarası. Motosikletinle birlikte, fotoğraflı, bir saniyede bulunur.",
+          "cta": "İlk notumu yaz"
+        },
+        "demo": {
+          "addPhoto": "Fotoğraf ekle",
+          "foundBySearch": "Aramayla bulundu",
+          "exampleNote": "Lastik basıncı ön {{front}}, arka {{rear}}",
+          "searchPlaceholder": "Notlarda ara"
+        }
+      }
     }
   },
   "oem": {

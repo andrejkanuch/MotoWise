@@ -3,6 +3,8 @@ import { Maximize2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, TextInput, View } from 'react-native';
+import { WHATS_NEW_FEATURE } from '@/data/whats-new-releases';
+import { FeatureNewChip } from '@/features/whats-new/feature-new-chip';
 import { type HubUnit, NOTE_SOURCE, OVERVIEW_NOTES_SHOWN } from '@/lib/bike-hub/constants';
 import { formatOdometer, formatShortDate, hasOdometer } from '@/lib/bike-hub/format';
 import { normaliseNoteText } from '@/lib/bike-hub/notes';
@@ -115,6 +117,7 @@ export function NotesBlock({
       <SectionHeader
         label={t('bikeHub.notes.title')}
         count={isLoading || isError ? undefined : notes.length}
+        badge={<FeatureNewChip feature={WHATS_NEW_FEATURE.NOTES_PHOTOS} />}
         action={
           notes.length > 0 ? { label: t('bikeHub.notes.all'), onPress: onOpenNotes } : undefined
         }

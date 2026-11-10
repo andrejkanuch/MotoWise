@@ -6,6 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { Alert, FlatList, Pressable, RefreshControl, Text, TextInput, View } from 'react-native';
 import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FROM_WHATS_NEW } from '@/config/routes';
+import { WHATS_NEW_FEATURE } from '@/data/whats-new-releases';
+import { WhatsNewReturnBar, whatsNewPageParam } from '@/features/whats-new/whats-new-return-bar';
 import { useCurrency } from '@/hooks/use-currency';
 import {
   BIKE_SEGMENT,
@@ -63,8 +66,10 @@ const TASK_STATUS_KEY: Record<MaintenanceTaskStatus, HubCopyKey> = {
 
 interface NotesScreenProps {
   bike: HubBike;
-  /** `from` route param: the segment the screen was opened from. */
+  /** `from` route param: the segment the screen was opened from, or What's New. */
   from?: string;
+  /** `wnPage` route param: the What's New page that opened the screen. */
+  wnPage?: string;
 }
 
 /**
@@ -73,7 +78,7 @@ interface NotesScreenProps {
  * open at a time; tap a photo for the full-screen viewer. The composer bar
  * stays above the keyboard and the tab bar.
  */
-export function NotesScreen({ bike, from }: NotesScreenProps) {
+export function NotesScreen({ bike, from, wnPage }: NotesScreenProps) {
   const hub = useHubTheme();
   const { isDark } = useEditorialTheme();
   const { t } = useTranslation();
@@ -85,6 +90,7 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
   const { formatFor } = useCurrency();
   const unit = toHubUnit(bike.distanceUnit);
   const origin: BikeSegment = isBikeSegment(from) ? from : BIKE_SEGMENT.OVERVIEW;
+  const fromWhatsNew = from === FROM_WHATS_NEW;
   const { notes, isLoading, isError, refreshFailed, refetch, refresh } = useNotes(bike.id);
   const taskStatuses = useTaskStatuses(bike.id);
   const createNote = useCreateNote();
@@ -152,11 +158,12 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
 
   // This screen sits on top of the bike hub. Going back to that hub and asking
   // it for the task keeps one hub on the stack; navigating to `bike/[id]` from
-  // here could mount a second one. Without a hub beneath (a future deep link),
-  // open the bike with the task as its landing.
+  // here could mount a second one. Without a hub beneath (a future deep link,
+  // or What's New, which opens this screen straight on the Garage tab), open the
+  // bike with the task as its landing.
   const requestTask = useBikeHubStore((state) => state.requestTask);
   const openLinkedTask = (taskId: string) => {
-    if (router.canGoBack()) {
+    if (!fromWhatsNew && router.canGoBack()) {
       requestTask(bike.id, taskId);
       router.back();
       return;
@@ -458,6 +465,11 @@ export function NotesScreen({ bike, from }: NotesScreenProps) {
             backgroundColor: hub.ground,
           }}
         >
+          <WhatsNewReturnBar
+            feature={WHATS_NEW_FEATURE.NOTES_PHOTOS}
+            fromWhatsNew={fromWhatsNew}
+            page={whatsNewPageParam(wnPage)}
+          />
           {deferred.pendingId ? (
             <UndoSnackbar
               message={t('bikeHub.notesScreen.deleted')}

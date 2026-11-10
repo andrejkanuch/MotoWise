@@ -26,9 +26,16 @@ import {
   type RiderInsightsDetailGroup,
   type RiderInsightsEntry,
 } from '@/config/routes';
+import { WHATS_NEW_FEATURE } from '@/data/whats-new-releases';
+import {
+  useWhatsNewReturnVisible,
+  WhatsNewReturnBar,
+  whatsNewPageParam,
+} from '@/features/whats-new/whats-new-return-bar';
 import { useMeasurementSystem } from '@/hooks/use-measurement-system';
 import { useTabBarClearance } from '@/hooks/use-tab-bar-clearance';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
+import { useWhatsNewStore } from '@/stores/whats-new.store';
 import { useEditorialTheme } from '@/theme/editorial';
 import { GUTTER, layout, space } from '@/theme/spacing';
 import { CONTENT_MAX_WIDTH, radius, readableWidth, SYSTEM_WEIGHT, type } from '@/theme/type';
@@ -76,9 +83,17 @@ export function RiderInsightsScreen() {
   const system = useMeasurementSystem();
   const routes = useRiderInsightsRoutes();
   const { width: windowWidth } = useWindowDimensions();
-  const bottom = useTabBarClearance();
-  const { entry } = useLocalSearchParams<{ entry?: string }>();
+  const clearance = useTabBarClearance();
+  // The way back to What's New floats just above the tab bar; content clears it too.
+  const returnBarBottom = useTabBarClearance(space.xs);
+  const { entry, wnPage } = useLocalSearchParams<{ entry?: string; wnPage?: string }>();
   const openedFrom = entryFrom(entry);
+  const fromWhatsNew = openedFrom === RIDER_INSIGHTS_ENTRY.WHATS_NEW;
+  const showReturn = useWhatsNewReturnVisible(fromWhatsNew);
+  const [returnBarHeight, setReturnBarHeight] = useState(0);
+  const bottom = showReturn
+    ? Math.max(clearance, returnBarBottom + returnBarHeight + space.xs)
+    : clearance;
   const { insights, view, stale, mapAvailable, unlocking, onPurchased, retry } = useRiderInsights();
   const [order, setOrder] = useState<string[] | null>(null);
   const [sharing, setSharing] = useState(false);
@@ -86,7 +101,8 @@ export function RiderInsightsScreen() {
 
   useEffect(() => {
     trackEvent(AnalyticsEvent.RIDER_INSIGHTS_OPENED, { entry: openedFrom });
-  }, [openedFrom]);
+    if (!fromWhatsNew) useWhatsNewStore.getState().markUsed(WHATS_NEW_FEATURE.ROAD_ATLAS);
+  }, [openedFrom, fromWhatsNew]);
 
   const width = Math.min(windowWidth, CONTENT_MAX_WIDTH) - 2 * GUTTER;
   const language = instance.language;
@@ -224,6 +240,19 @@ export function RiderInsightsScreen() {
           unlocking={unlocking}
           onPurchased={() => void onPurchased()}
         />
+      ) : null}
+      {showReturn ? (
+        <View
+          testID="insights-whats-new-return"
+          onLayout={(e) => setReturnBarHeight(e.nativeEvent.layout.height)}
+          style={{ position: 'absolute', left: GUTTER, right: GUTTER, bottom: returnBarBottom }}
+        >
+          <WhatsNewReturnBar
+            feature={WHATS_NEW_FEATURE.ROAD_ATLAS}
+            fromWhatsNew={fromWhatsNew}
+            page={whatsNewPageParam(wnPage)}
+          />
+        </View>
       ) : null}
     </>
   );

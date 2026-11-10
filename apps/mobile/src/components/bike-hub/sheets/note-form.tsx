@@ -26,6 +26,7 @@ import {
   useKeyboardState,
 } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { WHATS_NEW_FEATURE } from '@/data/whats-new-releases';
 import { NOTE_SOURCE } from '@/lib/bike-hub/constants';
 import { bikeDisplayName, formatOdometer, hasOdometer, toHubUnit } from '@/lib/bike-hub/format';
 import { normaliseNoteText } from '@/lib/bike-hub/notes';
@@ -34,6 +35,7 @@ import { pickImage, takePhoto, uploadNotePhoto } from '@/lib/image-upload';
 import { queryKeys } from '@/lib/query-keys';
 import { useAuthStore } from '@/stores/auth.store';
 import { type ParkedPhotoUpload, parkedPhotoPaths } from '@/stores/sheet-draft.store';
+import { useWhatsNewStore } from '@/stores/whats-new.store';
 import { useEditorialTheme } from '@/theme/editorial';
 import { SYSTEM_WEIGHT, type } from '@/theme/type';
 import { showActionSheet } from '@/utils/action-sheet';
@@ -449,6 +451,7 @@ export function NoteForm({
         });
         storedPhotos.delete(uri);
         attachedCount += 1;
+        useWhatsNewStore.getState().markUsed(WHATS_NEW_FEATURE.NOTES_PHOTOS);
         setPhotoProgress({ attached: attachedCount, total: uris.length });
       } catch (_error) {
         failed.push(uri);

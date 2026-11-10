@@ -1774,6 +1774,108 @@
       "themeDesc": "Every screen now has a light and a dark look and follows your Theme setting. Pick one in Profile › App settings › Theme, or leave it on System to match your phone.",
       "profileTitle": "Profile, Reorganized",
       "profileDesc": "Profile is split into clearer sections, and language, theme, units and currency now live together in App settings. Setting up a new account is smoother too."
+    },
+    "carousel": {
+      "tagNew": "New in {{version}}",
+      "tagCatchUp": "You may have missed",
+      "pageOf": "{{current}} of {{total}}",
+      "tried": "Tried",
+      "yourData": "YOUR DATA",
+      "example": "EXAMPLE",
+      "back": "Back",
+      "next": "Next",
+      "rideOn": "Ride on",
+      "close": "Close",
+      "whereItLives": "Where it lives",
+      "openAgain": "Open again",
+      "pageAnnouncement": "Page {{current}} of {{total}}: {{title}}",
+      "newChip": "New",
+      "returnBar": {
+        "back": "Back to What's New",
+        "next": "Next feature"
+      },
+      "boot": {
+        "newCount_one": "{{count}} new for your bike",
+        "newCount_other": "{{count}} new for your bike",
+        "catchUpCount_one": "+ {{count}} you may have missed",
+        "catchUpCount_other": "+ {{count}} you may have missed",
+        "catchUpOnly_one": "{{count}} you may have missed",
+        "catchUpOnly_other": "{{count}} you may have missed",
+        "season": "SEASON",
+        "odo": "ODO",
+        "allSystemsOk": "All systems OK",
+        "skip": "Skip",
+        "fromGarage": "{{bike}} · from your garage",
+        "seasonCaption_one": "{{count}} ride this season",
+        "seasonCaption_other": "{{count}} rides this season"
+      }
+    },
+    "features": {
+      "road_atlas": {
+        "title": "Road Atlas",
+        "where": "Profile › Rider insights",
+        "yourData": {
+          "line_one": "{{distance}} over {{count}} ride this season. Here it is on one map.",
+          "line_other": "{{distance}} over {{count}} rides this season. Here's every one on one map.",
+          "lineWithShare": "{{share}} of your {{distance}} this season were roads you'd never ridden. Here they are.",
+          "lineLastRides_one": "Your last ride, drawn on one map.",
+          "lineLastRides_other": "Your last {{count}} rides, drawn on one map.",
+          "cta": "Open my atlas"
+        },
+        "example": {
+          "line": "Every ride you record draws itself onto one map, and shows which roads were new to you.",
+          "cta": "Record my first ride",
+          "lineWithSeason_one": "{{distance}} over {{count}} ride this season. Record one with GPS and it draws itself onto your map.",
+          "lineWithSeason_other": "{{distance}} over {{count}} rides this season. Record one with GPS and it draws itself onto your map."
+        },
+        "demo": {
+          "newRoads": "New roads",
+          "rides_one": "{{count}} ride",
+          "rides_other": "{{count}} rides",
+          "exampleCaption": "Example season"
+        }
+      },
+      "receipt_scan": {
+        "title": "Scan a receipt",
+        "where": "Home › Scan receipt, or a bike's Costs",
+        "yourData": {
+          "line": "On {{date}} you logged {{place}}, {{amount}}. Next time, one photo of the receipt fills it in.",
+          "cta": "Scan my next receipt"
+        },
+        "example": {
+          "line": "Take one photo of a fuel receipt. The amount, date and place fill in by themselves.",
+          "cta": "Scan my first receipt"
+        },
+        "demo": {
+          "place": "Place",
+          "category": "Category",
+          "total": "Total",
+          "date": "Date",
+          "headerYourData": "Your last expense",
+          "headerExample": "Read from the photo",
+          "examplePlace": "Fuel station",
+          "fuel": "Fuel"
+        }
+      },
+      "notes_photos": {
+        "title": "Notes, with photos",
+        "where": "Garage › your bike › Notes",
+        "yourData": {
+          "line": "Your note \"{{note}}\" can now carry a photo, and search finds it in a second.",
+          "cta": "Add a photo to it"
+        },
+        "example": {
+          "line": "Tire pressures, part numbers, the shop's number. Kept with your {{bike}}, with a photo, found in a second.",
+          "lineNoBike": "Tire pressures, part numbers, the shop's number. Kept with your bike, with a photo, found in a second.",
+          "cta": "Write my first note"
+        },
+        "demo": {
+          "addPhoto": "Add a photo",
+          "foundBySearch": "Found by search",
+          "exampleNote": "Tire pressure {{front}} front, {{rear}} rear",
+          "searchPlaceholder": "Search notes"
+        }
+      }
     }
   },
   "oem": {

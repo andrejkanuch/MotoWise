@@ -1,315 +1,102 @@
-import { palette } from '@motovault/design-system';
-import type { LucideIcon } from 'lucide-react-native';
-import {
-  BellRing,
-  Bike,
-  Car,
-  CirclePlus,
-  FileText,
-  Gauge,
-  LayoutDashboard,
-  LayoutGrid,
-  Map as MapIcon,
-  MessageCircle,
-  Mountain,
-  Navigation,
-  NotebookPen,
-  Paintbrush,
-  Route,
-  ScanLine,
-  Share2,
-  Sparkles,
-  SunMoon,
-  TrendingUp,
-  UserCog,
-  Users,
-  Wrench,
-} from 'lucide-react-native';
-
-/**
- * Optional fast-action a slide's primary CTA can perform instead of just
- * dismissing — deep-links the rider straight into the new feature.
- */
-export type WhatsNewAction = 'open-document-vault';
-
-/** Platforms a slide can be restricted to. Matches `process.env.EXPO_OS`. */
-export const SLIDE_PLATFORM = {
-  IOS: 'ios',
-  ANDROID: 'android',
+/** Features What's New can present, one carousel page each. */
+export const WHATS_NEW_FEATURE = {
+  ROAD_ATLAS: 'road_atlas',
+  RECEIPT_SCAN: 'receipt_scan',
+  NOTES_PHOTOS: 'notes_photos',
 } as const;
 
-export type SlidePlatform = (typeof SLIDE_PLATFORM)[keyof typeof SLIDE_PLATFORM];
+export type WhatsNewFeature = (typeof WHATS_NEW_FEATURE)[keyof typeof WHATS_NEW_FEATURE];
 
-export interface WhatsNewSlide {
-  icon: LucideIcon;
-  iconColor: string;
-  titleKey: string;
-  descriptionKey: string;
-  /** When set, this slide's primary button performs the action + marks the release seen. */
-  ctaAction?: WhatsNewAction;
-  /** i18n key for the action button label (falls back to the standard CTA copy). */
-  ctaLabelKey?: string;
-  /**
-   * Restricts the slide to specific platforms. Omit for a feature that shipped
-   * everywhere — that is the common case and stays zero-config.
-   *
-   * Needed because not every feature is cross-platform: CarPlay is iOS-only
-   * (`@iternio/react-native-auto-play` is excluded from Android autolinking in
-   * `package.json`, and the driving-task entitlement is an iOS one), so
-   * announcing it to Android riders would advertise something they cannot use.
-   */
-  platforms?: readonly SlidePlatform[];
+/** Where a page's button takes the rider. Mapped to routes by the hand-off, not here. */
+export const WHATS_NEW_DESTINATION = {
+  RIDER_INSIGHTS: 'rider_insights',
+  SCAN_RECEIPT: 'scan_receipt',
+  BIKE_NOTES: 'bike_notes',
+} as const;
+
+export type WhatsNewDestination =
+  (typeof WHATS_NEW_DESTINATION)[keyof typeof WHATS_NEW_DESTINATION];
+
+/** A page's tag: introduced in the release being shown, or an older feature the rider may have missed. */
+export const WHATS_NEW_TAG = {
+  NEW: 'new',
+  CATCH_UP: 'catch_up',
+} as const;
+
+export type WhatsNewTag = (typeof WHATS_NEW_TAG)[keyof typeof WHATS_NEW_TAG];
+
+/** Whether a page's demo shows the rider's own data or a labelled example. */
+export const WHATS_NEW_DATA_KIND = {
+  YOUR_DATA: 'your_data',
+  EXAMPLE: 'example',
+} as const;
+
+export type WhatsNewDataKind = (typeof WHATS_NEW_DATA_KIND)[keyof typeof WHATS_NEW_DATA_KIND];
+
+const FEATURE_KEY_ROOT = 'whatsNew.features';
+
+/** i18n keys for one feature's page; the line and button differ per data kind. */
+function featureKeys<F extends WhatsNewFeature>(id: F) {
+  const stem = `${FEATURE_KEY_ROOT}.${id}` as const;
+  return {
+    title: `${stem}.title`,
+    where: `${stem}.where`,
+    yourData: { line: `${stem}.yourData.line`, cta: `${stem}.yourData.cta` },
+    example: { line: `${stem}.example.line`, cta: `${stem}.example.cta` },
+  } as const;
 }
+
+export interface WhatsNewFeatureMeta {
+  id: WhatsNewFeature;
+  /** The store release that first shipped the feature. */
+  introducedIn: string;
+  destination: WhatsNewDestination;
+  keys: ReturnType<typeof featureKeys>;
+}
+
+export const WHATS_NEW_FEATURES = {
+  [WHATS_NEW_FEATURE.ROAD_ATLAS]: {
+    id: WHATS_NEW_FEATURE.ROAD_ATLAS,
+    introducedIn: '3.28.0',
+    destination: WHATS_NEW_DESTINATION.RIDER_INSIGHTS,
+    keys: featureKeys(WHATS_NEW_FEATURE.ROAD_ATLAS),
+  },
+  [WHATS_NEW_FEATURE.RECEIPT_SCAN]: {
+    id: WHATS_NEW_FEATURE.RECEIPT_SCAN,
+    introducedIn: '3.19.1',
+    destination: WHATS_NEW_DESTINATION.SCAN_RECEIPT,
+    keys: featureKeys(WHATS_NEW_FEATURE.RECEIPT_SCAN),
+  },
+  [WHATS_NEW_FEATURE.NOTES_PHOTOS]: {
+    id: WHATS_NEW_FEATURE.NOTES_PHOTOS,
+    introducedIn: '3.22.0',
+    destination: WHATS_NEW_DESTINATION.BIKE_NOTES,
+    keys: featureKeys(WHATS_NEW_FEATURE.NOTES_PHOTOS),
+  },
+} as const satisfies Record<WhatsNewFeature, WhatsNewFeatureMeta>;
 
 export interface WhatsNewRelease {
   version: string;
-  slides: WhatsNewSlide[];
+  features: readonly WhatsNewFeature[];
 }
 
 /**
- * Add a new entry at the TOP of this array for each release that has
- * user-facing features worth highlighting. Only the entry matching
- * the current app version is shown.
+ * Store releases with features worth announcing, NEWEST FIRST. Add an entry at
+ * the top for each release that introduces one. A build with no entry of its
+ * own owes the newest entry at or below it, so patch builds and quiet releases
+ * still show a release the rider has not seen.
  */
 export const WHATS_NEW_RELEASES = [
-  {
-    version: '3.25.0',
-    slides: [
-      {
-        icon: Gauge,
-        iconColor: palette.signature400,
-        titleKey: 'whatsNew.v3250.plateTitle' as const,
-        descriptionKey: 'whatsNew.v3250.plateDesc' as const,
-      },
-      {
-        icon: SunMoon,
-        iconColor: palette.primary400,
-        titleKey: 'whatsNew.v3250.themeTitle' as const,
-        descriptionKey: 'whatsNew.v3250.themeDesc' as const,
-      },
-      {
-        icon: UserCog,
-        iconColor: palette.accent400,
-        titleKey: 'whatsNew.v3250.profileTitle' as const,
-        descriptionKey: 'whatsNew.v3250.profileDesc' as const,
-      },
-    ],
-  },
-  {
-    version: '3.22.0',
-    slides: [
-      {
-        icon: LayoutDashboard,
-        iconColor: palette.signature400,
-        titleKey: 'whatsNew.v3220.overviewTitle' as const,
-        descriptionKey: 'whatsNew.v3220.overviewDesc' as const,
-      },
-      {
-        icon: NotebookPen,
-        iconColor: palette.accent400,
-        titleKey: 'whatsNew.v3220.notesTitle' as const,
-        descriptionKey: 'whatsNew.v3220.notesDesc' as const,
-      },
-      {
-        icon: CirclePlus,
-        iconColor: palette.primary400,
-        titleKey: 'whatsNew.v3220.logTitle' as const,
-        descriptionKey: 'whatsNew.v3220.logDesc' as const,
-      },
-    ],
-  },
-  {
-    // Both features shipped earlier without ever being announced in-app — this
-    // array had no entry between 3.11.0 and here, so the modal stayed dormant
-    // for eight releases and riders were never told either existed.
-    version: '3.19.1',
-    slides: [
-      {
-        icon: ScanLine,
-        iconColor: palette.signature400,
-        titleKey: 'whatsNew.v3191.receiptTitle' as const,
-        descriptionKey: 'whatsNew.v3191.receiptDesc' as const,
-      },
-      {
-        icon: Car,
-        iconColor: palette.accent400,
-        titleKey: 'whatsNew.v3191.carplayTitle' as const,
-        descriptionKey: 'whatsNew.v3191.carplayDesc' as const,
-        // iOS only — see `platforms` on WhatsNewSlide.
-        platforms: [SLIDE_PLATFORM.IOS] as const,
-      },
-    ],
-  },
-  {
-    version: '3.11.0',
-    slides: [
-      {
-        icon: FileText,
-        iconColor: palette.signature400,
-        titleKey: 'whatsNew.v3110.vaultTitle' as const,
-        descriptionKey: 'whatsNew.v3110.vaultDesc' as const,
-      },
-      {
-        icon: BellRing,
-        iconColor: palette.warning500,
-        titleKey: 'whatsNew.v3110.remindersTitle' as const,
-        descriptionKey: 'whatsNew.v3110.remindersDesc' as const,
-        ctaAction: 'open-document-vault' as const,
-        ctaLabelKey: 'whatsNew.v3110.cta' as const,
-      },
-    ],
-  },
-  {
-    version: '3.8.0',
-    slides: [
-      {
-        icon: TrendingUp,
-        iconColor: palette.accent400,
-        titleKey: 'whatsNew.v380.analyticsTitle' as const,
-        descriptionKey: 'whatsNew.v380.analyticsDesc' as const,
-      },
-      {
-        icon: Paintbrush,
-        iconColor: palette.signature400,
-        titleKey: 'whatsNew.v380.redesignedRidesTitle' as const,
-        descriptionKey: 'whatsNew.v380.redesignedRidesDesc' as const,
-      },
-      {
-        icon: Mountain,
-        iconColor: palette.editorialDarkWarm,
-        titleKey: 'whatsNew.v380.flyoverTitle' as const,
-        descriptionKey: 'whatsNew.v380.flyoverDesc' as const,
-      },
-      {
-        icon: Share2,
-        iconColor: palette.primary400,
-        titleKey: 'whatsNew.v380.shareTitle' as const,
-        descriptionKey: 'whatsNew.v380.shareDesc' as const,
-      },
-      {
-        icon: LayoutGrid,
-        iconColor: palette.signature500,
-        titleKey: 'whatsNew.v380.widgetsTitle' as const,
-        descriptionKey: 'whatsNew.v380.widgetsDesc' as const,
-      },
-    ],
-  },
-  {
-    version: '3.7.0',
-    slides: [
-      {
-        icon: Sparkles,
-        iconColor: palette.editorialDarkWarm,
-        titleKey: 'whatsNew.v360.onboardingTitle' as const,
-        descriptionKey: 'whatsNew.v360.onboardingDesc' as const,
-      },
-      {
-        icon: Wrench,
-        iconColor: palette.accent400,
-        titleKey: 'whatsNew.v360.maintenanceTitle' as const,
-        descriptionKey: 'whatsNew.v360.maintenanceDesc' as const,
-      },
-      {
-        icon: Bike,
-        iconColor: palette.signature400,
-        titleKey: 'whatsNew.v360.bikeSetupTitle' as const,
-        descriptionKey: 'whatsNew.v360.bikeSetupDesc' as const,
-      },
-    ],
-  },
-  {
-    version: '3.0.0',
-    slides: [
-      {
-        icon: Paintbrush,
-        iconColor: palette.editorialDarkWarm,
-        titleKey: 'whatsNew.v300.redesignTitle' as const,
-        descriptionKey: 'whatsNew.v300.redesignDesc' as const,
-      },
-      {
-        icon: Navigation,
-        iconColor: palette.accent400,
-        titleKey: 'whatsNew.v300.rideRecordingTitle' as const,
-        descriptionKey: 'whatsNew.v300.rideRecordingDesc' as const,
-      },
-      {
-        icon: Gauge,
-        iconColor: palette.signature400,
-        titleKey: 'whatsNew.v300.liveStatsTitle' as const,
-        descriptionKey: 'whatsNew.v300.liveStatsDesc' as const,
-      },
-      {
-        icon: MapIcon,
-        iconColor: palette.editorialInfo,
-        titleKey: 'whatsNew.v300.tripPlannerTitle' as const,
-        descriptionKey: 'whatsNew.v300.tripPlannerDesc' as const,
-      },
-    ],
-  },
-  {
-    version: '2.5.0',
-    slides: [
-      {
-        icon: Users,
-        iconColor: palette.primary400,
-        titleKey: 'whatsNew.v250.groupRidesTitle' as const,
-        descriptionKey: 'whatsNew.v250.groupRidesDesc' as const,
-      },
-      {
-        icon: Route,
-        iconColor: palette.accent400,
-        titleKey: 'whatsNew.v250.routeReviewsTitle' as const,
-        descriptionKey: 'whatsNew.v250.routeReviewsDesc' as const,
-      },
-      {
-        icon: MessageCircle,
-        iconColor: palette.signature400,
-        titleKey: 'whatsNew.v250.commentsTitle' as const,
-        descriptionKey: 'whatsNew.v250.commentsDesc' as const,
-      },
-      {
-        icon: MapIcon,
-        iconColor: palette.indigo400,
-        titleKey: 'whatsNew.v250.tripsTitle' as const,
-        descriptionKey: 'whatsNew.v250.tripsDesc' as const,
-      },
-    ],
-  },
-] satisfies WhatsNewRelease[];
-
-export type WhatsNewReleaseEntry = (typeof WHATS_NEW_RELEASES)[number];
-export type WhatsNewSlideEntry = WhatsNewReleaseEntry['slides'][number];
-
-/** Slides from `release` that apply to `os`. A slide with no `platforms` is universal. */
-export function visibleSlides(
-  release: WhatsNewRelease,
-  os: string | undefined = process.env.EXPO_OS,
-): WhatsNewSlide[] {
-  return release.slides.filter((s) => !s.platforms || s.platforms.some((p) => p === os));
-}
+  { version: '3.28.0', features: [WHATS_NEW_FEATURE.ROAD_ATLAS] },
+  { version: '3.22.0', features: [WHATS_NEW_FEATURE.NOTES_PHOTOS] },
+  { version: '3.19.1', features: [WHATS_NEW_FEATURE.RECEIPT_SCAN] },
+] as const satisfies readonly WhatsNewRelease[];
 
 /**
- * Find the release entry for a given version, or null if none exists.
- *
- * Also returns null when every slide in that release is gated to another
- * platform — the caller uses this to decide whether to open the modal at all,
- * and a release whose only slides are hidden must not push an empty one.
+ * Older features offered as "You may have missed" pages alongside a newer
+ * release, until the rider has been shown or has used them.
  */
-export function getWhatsNewRelease(
-  version: string,
-  os: string | undefined = process.env.EXPO_OS,
-): WhatsNewReleaseEntry | null {
-  const release = WHATS_NEW_RELEASES.find((r) => r.version === version);
-  if (!release) return null;
-  return visibleSlides(release, os).length > 0 ? release : null;
-}
-
-/**
- * Return the most recent release that has at least one slide for this platform.
- * Skipping empty ones keeps `slides[0]` defined in the modal.
- */
-export function getLatestRelease(
-  os: string | undefined = process.env.EXPO_OS,
-): WhatsNewReleaseEntry {
-  return WHATS_NEW_RELEASES.find((r) => visibleSlides(r, os).length > 0) ?? WHATS_NEW_RELEASES[0];
-}
+export const CATCH_UP_FEATURES: readonly WhatsNewFeature[] = [
+  WHATS_NEW_FEATURE.RECEIPT_SCAN,
+  WHATS_NEW_FEATURE.NOTES_PHOTOS,
+];

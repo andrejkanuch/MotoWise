@@ -1,3 +1,5 @@
+// The NEW chip and the note hooks read the What's New store, which persists to MMKV.
+jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));

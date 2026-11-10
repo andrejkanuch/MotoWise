@@ -1,127 +1,92 @@
+import { compareVersions } from '../../lib/version-compare';
 import {
-  getLatestRelease,
-  getWhatsNewRelease,
-  SLIDE_PLATFORM,
-  visibleSlides,
+  CATCH_UP_FEATURES,
+  WHATS_NEW_FEATURE,
+  WHATS_NEW_FEATURES,
   WHATS_NEW_RELEASES,
 } from '../whats-new-releases';
 
 /**
- * The modal is version-gated (`_layout.tsx` only pushes it when
- * `getWhatsNewRelease(currentVersion)` is non-null), so a release whose slides
- * are all gated to another platform must report as "nothing to show" rather
- * than open an empty modal. CarPlay is the first iOS-only slide we ship, which
- * is what these cover.
+ * What's New is feature-based: each release lists the features it introduced,
+ * and older features the rider may have missed come from a catch-up allowlist.
+ * These pin the shape the gate and the carousel read.
  */
 describe('whats-new releases', () => {
-  const CURRENT = '3.25.0';
+  const CURRENT = '3.28.0';
 
-  it('has an entry for the shipping version', () => {
-    expect(getWhatsNewRelease(CURRENT, SLIDE_PLATFORM.IOS)).not.toBeNull();
+  it('lists the shipping release first, introducing only Road Atlas', () => {
+    expect(WHATS_NEW_RELEASES[0]).toEqual({
+      version: CURRENT,
+      features: [WHATS_NEW_FEATURE.ROAD_ATLAS],
+    });
   });
 
-  it('is ordered newest-first, since getLatestRelease takes the first match', () => {
-    expect(WHATS_NEW_RELEASES[0].version).toBe(CURRENT);
-  });
-
-  it('returns null for a version with no entry', () => {
-    expect(getWhatsNewRelease('0.0.0', SLIDE_PLATFORM.IOS)).toBeNull();
-  });
-
-  it('shows every slide of the shipping release on both platforms', () => {
-    // The app-wide redesign shipped everywhere, so nothing in it is gated.
-    for (const os of [SLIDE_PLATFORM.IOS, SLIDE_PLATFORM.ANDROID]) {
-      expect(visibleSlides(getLatestRelease(os), os)).toHaveLength(3);
+  it('is ordered newest-first by semver', () => {
+    for (let i = 1; i < WHATS_NEW_RELEASES.length; i++) {
+      expect(
+        compareVersions(WHATS_NEW_RELEASES[i - 1].version, WHATS_NEW_RELEASES[i].version),
+      ).toBe(1);
     }
   });
 
-  describe('platform gating', () => {
-    /** 3.19.1 carries the only iOS-only slide (CarPlay), so the gate is exercised against it. */
-    const GATED = '3.19.1';
-    const release = WHATS_NEW_RELEASES.find(
-      (r) => r.version === GATED,
-    ) as (typeof WHATS_NEW_RELEASES)[number];
+  it('lists every feature under the release that introduced it, exactly once', () => {
+    const listed = WHATS_NEW_RELEASES.flatMap((r) => r.features.map((f) => [f, r.version]));
+    expect(listed).toHaveLength(Object.keys(WHATS_NEW_FEATURES).length);
+    for (const [feature, version] of listed) {
+      expect(WHATS_NEW_FEATURES[feature as keyof typeof WHATS_NEW_FEATURES].introducedIn).toBe(
+        version,
+      );
+    }
+  });
 
-    it('shows both the receipt and CarPlay slides on iOS', () => {
-      const keys = visibleSlides(release, SLIDE_PLATFORM.IOS).map((s) => s.titleKey);
-      expect(keys).toEqual(['whatsNew.v3191.receiptTitle', 'whatsNew.v3191.carplayTitle']);
-    });
+  it('dates the catch-up features to the releases they actually shipped in', () => {
+    expect(CATCH_UP_FEATURES).toEqual([
+      WHATS_NEW_FEATURE.RECEIPT_SCAN,
+      WHATS_NEW_FEATURE.NOTES_PHOTOS,
+    ]);
+    expect(WHATS_NEW_FEATURES[WHATS_NEW_FEATURE.RECEIPT_SCAN].introducedIn).toBe('3.19.1');
+    expect(WHATS_NEW_FEATURES[WHATS_NEW_FEATURE.NOTES_PHOTOS].introducedIn).toBe('3.22.0');
+  });
 
-    it('hides the CarPlay slide on Android, where CarPlay does not exist', () => {
-      const keys = visibleSlides(release, SLIDE_PLATFORM.ANDROID).map((s) => s.titleKey);
-      expect(keys).toEqual(['whatsNew.v3191.receiptTitle']);
-    });
-
-    it('still shows the release on Android, because receipt scanning is cross-platform', () => {
-      expect(getWhatsNewRelease(GATED, SLIDE_PLATFORM.ANDROID)).not.toBeNull();
-    });
-
-    it('treats a slide with no `platforms` as universal', () => {
-      const universal = { slides: [{ titleKey: 'a' }] } as never;
-      expect(visibleSlides(universal, 'web')).toHaveLength(1);
-    });
-
-    it('reports no release when every slide is gated to another platform', () => {
-      const iosOnly = {
-        version: 'x',
-        slides: [{ titleKey: 'a', platforms: [SLIDE_PLATFORM.IOS] }],
-      } as never;
-      expect(visibleSlides(iosOnly, SLIDE_PLATFORM.ANDROID)).toHaveLength(0);
-    });
-
-    it('skips an all-hidden release so the modal never renders an empty slide', () => {
-      // getLatestRelease must return something with a usable slides[0] on both
-      // platforms — the modal indexes into it unconditionally.
-      for (const os of [SLIDE_PLATFORM.IOS, SLIDE_PLATFORM.ANDROID]) {
-        expect(visibleSlides(getLatestRelease(os), os).length).toBeGreaterThan(0);
-      }
-    });
+  it('gives every feature a distinct destination', () => {
+    const destinations = Object.values(WHATS_NEW_FEATURES).map((f) => f.destination);
+    expect(new Set(destinations).size).toBe(destinations.length);
   });
 
   describe('i18n keys', () => {
-    it('every slide key resolves in en.json', () => {
-      const en = require('../../i18n/locales/en.json');
-      for (const release of WHATS_NEW_RELEASES) {
-        for (const slide of release.slides) {
-          for (const key of [slide.titleKey, slide.descriptionKey]) {
-            const value = key
-              .split('.')
-              .reduce<unknown>(
-                (acc, part) =>
-                  typeof acc === 'object' && acc !== null
-                    ? (acc as Record<string, unknown>)[part]
-                    : undefined,
-                en,
-              );
-            expect(typeof value).toBe('string');
-          }
-        }
+    const en = require('../../i18n/locales/en.json');
+    const resolve = (key: string): unknown =>
+      key
+        .split('.')
+        .reduce<unknown>(
+          (acc, part) =>
+            typeof acc === 'object' && acc !== null
+              ? (acc as Record<string, unknown>)[part]
+              : undefined,
+          en,
+        );
+
+    it.each(Object.values(WHATS_NEW_FEATURE))('every key of %s resolves in en.json', (id) => {
+      const { keys } = WHATS_NEW_FEATURES[id];
+      const all = [
+        keys.title,
+        keys.where,
+        keys.yourData.line,
+        keys.yourData.cta,
+        keys.example.line,
+        keys.example.cta,
+      ];
+      // A plural key resolves through its CLDR `_other` form.
+      for (const key of all) {
+        const value = resolve(key) ?? resolve(`${key}_other`);
+        expect([key, typeof value]).toEqual([key, 'string']);
       }
     });
-  });
 
-  describe('the modal actually applies the platform gate', () => {
-    // The data layer above is thoroughly tested, but in 3.19.1 the modal read
-    // `release.slides` directly and never called visibleSlides(), so Android
-    // users were shown the iOS-only CarPlay slide. The gate is worthless if the
-    // one consumer bypasses it, and a unit test of visibleSlides cannot catch
-    // that -- so assert the wiring at the source level.
-    const modalSource = require('node:fs').readFileSync(
-      require('node:path').join(__dirname, '../../app/(modals)/whats-new.tsx'),
-      'utf8',
-    );
-
-    it('calls visibleSlides()', () => {
-      expect(modalSource).toContain('visibleSlides(');
-    });
-
-    it('never reads the unfiltered .slides list', () => {
-      const offending = modalSource
-        .split('\n')
-        .map((line: string, i: number) => [i + 1, line] as const)
-        .filter(([, line]) => /\brelease\.slides\b/.test(line))
-        .filter(([, line]) => !line.trimStart().startsWith('//'));
-      expect(offending).toEqual([]);
+    it('keys follow whatsNew.features.<id>', () => {
+      expect(WHATS_NEW_FEATURES[WHATS_NEW_FEATURE.ROAD_ATLAS].keys.yourData.cta).toBe(
+        'whatsNew.features.road_atlas.yourData.cta',
+      );
     });
   });
 });

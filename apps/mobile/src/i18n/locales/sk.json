@@ -1805,6 +1805,124 @@
       "themeDesc": "Každá obrazovka má teraz svetlú aj tmavú podobu a riadi sa nastavením Téma. Vyber si ho v Profil › Nastavenia aplikácie › Téma, alebo nechaj Systémový, nech sa riadi telefónom.",
       "profileTitle": "Profil, nanovo usporiadaný",
       "profileDesc": "Profil je rozdelený do prehľadnejších sekcií a jazyk, téma, jednotky a mena sú teraz spolu v Nastaveniach aplikácie. Aj nastavenie nového účtu ide hladšie."
+    },
+    "carousel": {
+      "tagNew": "Nové vo verzii {{version}}",
+      "tagCatchUp": "Možno ti ušlo",
+      "pageOf": "{{current}} z {{total}}",
+      "tried": "Vyskúšané",
+      "yourData": "TVOJE DÁTA",
+      "example": "PRÍKLAD",
+      "back": "Späť",
+      "next": "Ďalej",
+      "rideOn": "Poďme jazdiť",
+      "close": "Zavrieť",
+      "whereItLives": "Kde to nájdeš",
+      "openAgain": "Otvoriť znova",
+      "pageAnnouncement": "Strana {{current}} z {{total}}: {{title}}",
+      "newChip": "Novinka",
+      "returnBar": {
+        "back": "Späť na Novinky",
+        "next": "Ďalšia funkcia"
+      },
+      "boot": {
+        "newCount_one": "{{count}} novinka pre tvoju motorku",
+        "newCount_few": "{{count}} novinky pre tvoju motorku",
+        "newCount_many": "{{count}} noviniek pre tvoju motorku",
+        "newCount_other": "{{count}} noviniek pre tvoju motorku",
+        "catchUpCount_one": "+ {{count}}, čo ti mohlo ujsť",
+        "catchUpCount_few": "+ {{count}}, čo ti mohlo ujsť",
+        "catchUpCount_many": "+ {{count}}, čo ti mohlo ujsť",
+        "catchUpCount_other": "+ {{count}}, čo ti mohlo ujsť",
+        "catchUpOnly_one": "{{count}}, čo ti mohlo ujsť",
+        "catchUpOnly_few": "{{count}}, čo ti mohlo ujsť",
+        "catchUpOnly_many": "{{count}}, čo ti mohlo ujsť",
+        "catchUpOnly_other": "{{count}}, čo ti mohlo ujsť",
+        "season": "SEZÓNA",
+        "odo": "ODO",
+        "allSystemsOk": "Všetky systémy OK",
+        "skip": "Preskočiť",
+        "fromGarage": "{{bike}} · z tvojej garáže",
+        "seasonCaption_one": "{{count}} jazda v tejto sezóne",
+        "seasonCaption_few": "{{count}} jazdy v tejto sezóne",
+        "seasonCaption_many": "{{count}} jázd v tejto sezóne",
+        "seasonCaption_other": "{{count}} jázd v tejto sezóne"
+      }
+    },
+    "features": {
+      "road_atlas": {
+        "title": "Atlas ciest",
+        "where": "Profil › Prehľad jazdenia",
+        "yourData": {
+          "line_one": "{{distance}} na {{count}} jazde v tejto sezóne. Tu je na jednej mape.",
+          "line_few": "{{distance}} na {{count}} jazdách v tejto sezóne. Všetky na jednej mape.",
+          "line_many": "{{distance}} na {{count}} jazdách v tejto sezóne. Všetky na jednej mape.",
+          "line_other": "{{distance}} na {{count}} jazdách v tejto sezóne. Všetky na jednej mape.",
+          "lineWithShare": "{{share}} z tvojich {{distance}} v tejto sezóne boli pre teba úplne nové cesty. Tu sú.",
+          "lineLastRides_one": "Tvoja posledná jazda na jednej mape.",
+          "lineLastRides_few": "Tvoje posledné {{count}} jazdy na jednej mape.",
+          "lineLastRides_many": "Tvojich posledných {{count}} jázd na jednej mape.",
+          "lineLastRides_other": "Tvojich posledných {{count}} jázd na jednej mape.",
+          "cta": "Otvoriť môj atlas"
+        },
+        "example": {
+          "line": "Každá nahraná jazda sa nakreslí na jednu mapu a ukáže, ktoré cesty boli pre teba nové.",
+          "cta": "Nahrať prvú jazdu",
+          "lineWithSeason_one": "{{distance}} na {{count}} jazde v tejto sezóne. Nahraj jazdu s GPS a nakreslí sa na tvoju mapu.",
+          "lineWithSeason_few": "{{distance}} na {{count}} jazdách v tejto sezóne. Nahraj jazdu s GPS a nakreslí sa na tvoju mapu.",
+          "lineWithSeason_many": "{{distance}} na {{count}} jazdách v tejto sezóne. Nahraj jazdu s GPS a nakreslí sa na tvoju mapu.",
+          "lineWithSeason_other": "{{distance}} na {{count}} jazdách v tejto sezóne. Nahraj jazdu s GPS a nakreslí sa na tvoju mapu."
+        },
+        "demo": {
+          "newRoads": "Nové cesty",
+          "rides_one": "{{count}} jazda",
+          "rides_few": "{{count}} jazdy",
+          "rides_many": "{{count}} jázd",
+          "rides_other": "{{count}} jázd",
+          "exampleCaption": "Ukážková sezóna"
+        }
+      },
+      "receipt_scan": {
+        "title": "Naskenovať účtenku",
+        "where": "Domov › Naskenovať účtenku alebo Náklady motorky",
+        "yourData": {
+          "line": "{{date}} pribudol záznam {{place}}, {{amount}}. Nabudúce ho za teba vyplní jedna fotka účtenky.",
+          "cta": "Naskenovať ďalšiu účtenku"
+        },
+        "example": {
+          "line": "Odfoť jednu účtenku za palivo. Suma, dátum a miesto sa vyplnia samy.",
+          "cta": "Naskenovať prvú účtenku"
+        },
+        "demo": {
+          "place": "Miesto",
+          "category": "Kategória",
+          "total": "Spolu",
+          "date": "Dátum",
+          "headerYourData": "Tvoj posledný výdavok",
+          "headerExample": "Prečítané z fotky",
+          "examplePlace": "Čerpacia stanica",
+          "fuel": "Palivo"
+        }
+      },
+      "notes_photos": {
+        "title": "Poznámky s fotkami",
+        "where": "Garáž › tvoja motorka › Poznámky",
+        "yourData": {
+          "line": "Tvoja poznámka „{{note}}“ už môže mať fotku a vyhľadávanie ju nájde za sekundu.",
+          "cta": "Pridať k nej fotku"
+        },
+        "example": {
+          "line": "Tlak v pneumatikách, čísla dielov, číslo servisu. Uložené pri {{bike}}, s fotkou, nájdené za sekundu.",
+          "lineNoBike": "Tlak v pneumatikách, čísla dielov, číslo servisu. Uložené pri tvojej motorke, s fotkou, nájdené za sekundu.",
+          "cta": "Napísať prvú poznámku"
+        },
+        "demo": {
+          "addPhoto": "Pridať fotku",
+          "foundBySearch": "Nájdené vyhľadávaním",
+          "exampleNote": "Tlak v pneumatikách: predná {{front}}, zadná {{rear}}",
+          "searchPlaceholder": "Hľadať v poznámkach"
+        }
+      }
     }
   },
   "oem": {

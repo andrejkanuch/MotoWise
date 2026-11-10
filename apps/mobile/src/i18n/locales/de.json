@@ -1763,6 +1763,108 @@
       "themeDesc": "Jeder Bildschirm hat jetzt eine helle und eine dunkle Variante und folgt deiner Einstellung unter Darstellung. Wähle sie unter Profil › App-Einstellungen › Darstellung oder lass sie auf System, damit sie zu deinem Handy passt.",
       "profileTitle": "Profil, neu geordnet",
       "profileDesc": "Das Profil ist in übersichtlichere Bereiche aufgeteilt, und Sprache, Darstellung, Einheiten und Währung findest du jetzt gesammelt in den App-Einstellungen. Auch die Einrichtung eines neuen Kontos läuft runder."
+    },
+    "carousel": {
+      "tagNew": "Neu in {{version}}",
+      "tagCatchUp": "Vielleicht verpasst",
+      "pageOf": "{{current}} von {{total}}",
+      "tried": "Ausprobiert",
+      "yourData": "DEINE DATEN",
+      "example": "BEISPIEL",
+      "back": "Zurück",
+      "next": "Weiter",
+      "rideOn": "Ab in den Sattel",
+      "close": "Schließen",
+      "whereItLives": "Hier findest du es",
+      "openAgain": "Nochmal öffnen",
+      "pageAnnouncement": "Seite {{current}} von {{total}}: {{title}}",
+      "newChip": "Neu",
+      "returnBar": {
+        "back": "Zurück zu Neuigkeiten",
+        "next": "Nächste Funktion"
+      },
+      "boot": {
+        "newCount_one": "{{count}} Neuheit für dein Motorrad",
+        "newCount_other": "{{count}} Neuheiten für dein Motorrad",
+        "catchUpCount_one": "+ {{count}}, die du vielleicht verpasst hast",
+        "catchUpCount_other": "+ {{count}}, die du vielleicht verpasst hast",
+        "catchUpOnly_one": "{{count}}, die du vielleicht verpasst hast",
+        "catchUpOnly_other": "{{count}}, die du vielleicht verpasst hast",
+        "season": "SAISON",
+        "odo": "ODO",
+        "allSystemsOk": "Alle Systeme OK",
+        "skip": "Überspringen",
+        "fromGarage": "{{bike}} · aus deiner Garage",
+        "seasonCaption_one": "{{count}} Fahrt diese Saison",
+        "seasonCaption_other": "{{count}} Fahrten diese Saison"
+      }
+    },
+    "features": {
+      "road_atlas": {
+        "title": "Road Atlas",
+        "where": "Profil › Fahrstatistik",
+        "yourData": {
+          "line_one": "{{distance}} auf {{count}} Fahrt diese Saison. Hier ist sie auf einer Karte.",
+          "line_other": "{{distance}} auf {{count}} Fahrten diese Saison. Hier sind alle auf einer Karte.",
+          "lineWithShare": "{{share}} deiner {{distance}} diese Saison waren Straßen, die du noch nie gefahren bist. Hier sind sie.",
+          "lineLastRides_one": "Deine letzte Fahrt, auf einer Karte.",
+          "lineLastRides_other": "Deine letzten {{count}} Fahrten, auf einer Karte.",
+          "cta": "Meinen Atlas öffnen"
+        },
+        "example": {
+          "line": "Jede Fahrt, die du aufzeichnest, landet auf einer Karte und zeigt, welche Straßen neu für dich waren.",
+          "cta": "Erste Fahrt aufzeichnen",
+          "lineWithSeason_one": "{{distance}} auf {{count}} Fahrt diese Saison. Zeichne eine mit GPS auf, und sie erscheint auf deiner Karte.",
+          "lineWithSeason_other": "{{distance}} auf {{count}} Fahrten diese Saison. Zeichne eine mit GPS auf, und sie erscheint auf deiner Karte."
+        },
+        "demo": {
+          "newRoads": "Neue Straßen",
+          "rides_one": "{{count}} Fahrt",
+          "rides_other": "{{count}} Fahrten",
+          "exampleCaption": "Beispielsaison"
+        }
+      },
+      "receipt_scan": {
+        "title": "Beleg scannen",
+        "where": "Start › Beleg scannen oder Kosten eines Motorrads",
+        "yourData": {
+          "line": "Am {{date}} hast du {{place}} eingetragen, {{amount}}. Nächstes Mal füllt ein Foto vom Beleg alles aus.",
+          "cta": "Nächsten Beleg scannen"
+        },
+        "example": {
+          "line": "Ein Foto vom Tankbeleg genügt. Betrag, Datum und Ort füllen sich von selbst aus.",
+          "cta": "Ersten Beleg scannen"
+        },
+        "demo": {
+          "place": "Ort",
+          "category": "Kategorie",
+          "total": "Summe",
+          "date": "Datum",
+          "headerYourData": "Deine letzte Ausgabe",
+          "headerExample": "Aus dem Foto gelesen",
+          "examplePlace": "Tankstelle",
+          "fuel": "Kraftstoff"
+        }
+      },
+      "notes_photos": {
+        "title": "Notizen mit Fotos",
+        "where": "Garage › dein Motorrad › Notizen",
+        "yourData": {
+          "line": "Deine Notiz „{{note}}“ kann jetzt ein Foto haben, und die Suche findet sie in Sekunden.",
+          "cta": "Foto hinzufügen"
+        },
+        "example": {
+          "line": "Reifendruck, Teilenummern, die Nummer der Werkstatt. Gespeichert bei {{bike}}, mit Foto, in Sekunden gefunden.",
+          "lineNoBike": "Reifendruck, Teilenummern, die Nummer der Werkstatt. Gespeichert bei deinem Motorrad, mit Foto, in Sekunden gefunden.",
+          "cta": "Erste Notiz schreiben"
+        },
+        "demo": {
+          "addPhoto": "Foto hinzufügen",
+          "foundBySearch": "Per Suche gefunden",
+          "exampleNote": "Reifendruck {{front}} vorne, {{rear}} hinten",
+          "searchPlaceholder": "Notizen durchsuchen"
+        }
+      }
     }
   },
   "oem": {

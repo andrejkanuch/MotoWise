@@ -33,6 +33,9 @@ const HISTORY_ONLY_ALLOWLIST: readonly string[] = [
   // Retired 2026-11 when Rider insights replaced the heatmap screen; kept as the
   // pre-launch baseline metric the Rider insights success criteria compare against.
   'HEATMAP_VIEWED',
+  // Retired 2026-11 when the What's New carousel replaced the slide modal; pages
+  // are counted by WHATS_NEW_PAGE_VIEWED now. Kept for the slide-era history.
+  'WHATS_NEW_SLIDE_VIEWED',
 ];
 
 function catalogKeys(): string[] {

@@ -111,6 +111,11 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   chip's iOS accessibility label is "Odometer <value> <unit>, tap to update", so assert it by
   `id: bike-header-odometer` with a pattern that accepts both forms. Their updated steps are **not
   yet re-validated on a device**.
+- **`flows/whats-new.yaml`** — What's New from Profile (no boot): page 1 of 3, the Road Atlas
+  button opens Rider insights with the "Back to What's New" bar, Back returns to the same page
+  marked Tried, Next feature moves on, and the modal closes. Composes `onboarding.yaml`. The
+  auto-show itself (boot, once per store update) needs a relaunch of an account owed the release;
+  it was checked by hand on the simulator 2026-11-10. **Validated on-device 2026-11-10.**
 - **`flows/units-display-toggle.yaml`** — odometer unit label (PR #165). Odometer values are stored
   RAW in the user's global unit (no km normalization), so toggling the global Units preference flips
   the bike-hub odometer **label** between **mi** and **km** on the same bike (guards the hardcoded-"km"
@@ -190,9 +195,9 @@ Hard-won specifics for THIS app — check these first when a flow "should work" 
   **"Save Password?"** (dismiss `Not Now`). After value-moments (adding a task, completing one, etc.)
   a StoreKit **"Enjoying MotoVault?"** rating prompt can appear (dismiss `Not Now`) — it's gated to
   ≥2 value-moments + once per app version, so it shows up on seasoned accounts, not fresh ones.
-- **What's New covers Home for already-onboarded accounts.** It shows once per app version to a
-  rider who did not just onboard, ~500ms after the tabs mount. `onboarding.yaml` waits for its
-  `"What's new · v.*"` label and taps the `Skip` `rightOf` it (both optional) before asserting Home.
+- **What's New auto-shows only on a later cold start.** It shows once per store update, on a tab's
+  root screen, and never in a session that went through onboarding or sign-in. So `onboarding.yaml`
+  never meets it; a relaunch of a signed-in account that is owed the release does.
 - **Tab-bar labels include the badge in their a11y text.** The Garage tab reads `"Garage, 1 due"`
   (was `"1, Garage"` before the a11y fix) when a badge is present. Always match tabs with a partial
   regex (`.*Garage.*`), never the bare word.

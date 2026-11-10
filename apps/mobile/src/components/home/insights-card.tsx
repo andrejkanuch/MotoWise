@@ -1,10 +1,11 @@
 import { RIDER_INSIGHTS_MIN_QUALIFYING_RIDES } from '@motovault/types';
 import { router } from 'expo-router';
 import type { TFunction } from 'i18next';
-import { useMemo } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { RIDER_INSIGHTS_ENTRY, riderInsightsHref } from '@/config/routes';
+import { WHATS_NEW_FEATURE } from '@/data/whats-new-releases';
 import {
   formatInsightDistance,
   INSIGHTS_VIEW,
@@ -14,6 +15,7 @@ import {
   type RiderInsightsHeadline,
   useRiderInsightsHeadline,
 } from '@/features/rider-insights/use-rider-insights-headline';
+import { FeatureNewChip } from '@/features/whats-new/feature-new-chip';
 import { useMeasurementSystem } from '@/hooks/use-measurement-system';
 import { tint, useEditorialTheme } from '@/theme/editorial';
 import { space } from '@/theme/spacing';
@@ -65,13 +67,15 @@ interface InsightsLinkRowProps {
   title: string;
   caption: string | null;
   onPress: () => void;
+  /** Drawn before the link label, e.g. the NEW chip. */
+  badge?: ReactNode;
 }
 
 /**
  * A card-width row that opens Rider insights: a line and a caption on the
  * left, "Rider insights" in copper on the right. Stacks at large text sizes.
  */
-export function InsightsLinkRow({ testID, title, caption, onPress }: InsightsLinkRowProps) {
+export function InsightsLinkRow({ testID, title, caption, onPress, badge }: InsightsLinkRowProps) {
   const { t: i18n } = useTranslation();
   const { t } = useEditorialTheme();
   const { fontScale } = useWindowDimensions();
@@ -103,6 +107,7 @@ export function InsightsLinkRow({ testID, title, caption, onPress }: InsightsLin
         <Text style={[type.body, { color: t.ink }]}>{title}</Text>
         {caption ? <Text style={[type.caption, { color: t.ink3 }]}>{caption}</Text> : null}
       </View>
+      {badge}
       <Text style={[type.subhead, SYSTEM_WEIGHT.medium, { color: t.warm2 }]}>{linkLabel}</Text>
     </Pressable>
   );
@@ -151,6 +156,7 @@ export function InsightsCard() {
   const { headline: insights, view } = useRiderInsightsHeadline();
   const language = instance.language;
   const headline = useMemo(() => (insights ? homeInsightHeadline(insights) : null), [insights]);
+  const chip = <FeatureNewChip feature={WHATS_NEW_FEATURE.ROAD_ATLAS} />;
 
   if (view === INSIGHTS_VIEW.READY && !headline) return null;
 
@@ -166,6 +172,7 @@ export function InsightsCard() {
         title={i18n('riderInsights.title')}
         caption={insightsStateCaption(view, i18n)}
         onPress={open}
+        badge={chip}
       />
     );
   }
@@ -175,6 +182,12 @@ export function InsightsCard() {
   const { title, caption } = headlineLines(headline, season, dist, i18n);
 
   return (
-    <InsightsLinkRow testID="home-insights-card" title={title} caption={caption} onPress={open} />
+    <InsightsLinkRow
+      testID="home-insights-card"
+      title={title}
+      caption={caption}
+      onPress={open}
+      badge={chip}
+    />
   );
 }

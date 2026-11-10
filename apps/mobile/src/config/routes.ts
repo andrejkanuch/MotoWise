@@ -3,6 +3,8 @@
  * Use these instead of magic strings in router.push / router.replace / deepLink.
  */
 
+import { WHATS_NEW_SOURCE, type WhatsNewSource } from './whats-new';
+
 /** Main tab routes */
 export const TAB_ROUTE = {
   HOME: '/(tabs)/(home)',
@@ -28,14 +30,37 @@ export const GARAGE_ROUTE = {
   EXPENSE_DASHBOARD: '/(tabs)/(garage)/expense-dashboard',
   ADD_EXPENSE: '/(tabs)/(garage)/add-expense',
   ADD_BIKE: '/(tabs)/(garage)/add-bike',
+  /** A bike's notes; pass `{ motorcycleId, from? }`. */
+  NOTES: '/(tabs)/(garage)/notes',
 } as const;
+
+/**
+ * The `from` param of a feature screen opened by a What's New page. With it,
+ * and while that visit is open, the screen offers the way back to What's New.
+ */
+export const FROM_WHATS_NEW = 'whats-new';
 
 /** Root modal routes (presented over any tab / onboarding stack) */
 export const MODAL_ROUTE = {
   SCAN_RECEIPT: '/(modals)/scan-receipt',
   /** The modal stack's copy of add-bike, opened over receipt scan. */
   ADD_BIKE: '/(modals)/add-bike',
+  /** What's New; pass `{ source: WhatsNewSource }`. */
+  WHATS_NEW: '/(modals)/whats-new',
 } as const;
+
+/** The What's New route opened from `source`, for `router.push`. */
+export function whatsNewHref(source: WhatsNewSource) {
+  return { pathname: MODAL_ROUTE.WHATS_NEW, params: { source } };
+}
+
+/** What's New reopened from a feature screen on page `page`, without the boot. */
+export function whatsNewReturnHref(page: number) {
+  return {
+    pathname: MODAL_ROUTE.WHATS_NEW,
+    params: { source: WHATS_NEW_SOURCE.RETURN, resume: String(page), noBoot: '1' },
+  };
+}
 
 /** Profile sub-routes */
 export const PROFILE_ROUTE = {
@@ -74,6 +99,8 @@ export const RIDER_INSIGHTS_ENTRY = {
   MY_RIDES: 'my_rides',
   PROFILE: 'profile',
   RIDE_SUMMARY: 'ride_summary',
+  /** A What's New page's button. Not a use of the feature: the NEW chip stays. */
+  WHATS_NEW: 'whats_new',
   /** The old heatmap route, kept as a redirect for links and deep links. */
   LEGACY_HEATMAP: 'legacy_heatmap',
   /** No entry param (a deep link or a route not yet passing one). */

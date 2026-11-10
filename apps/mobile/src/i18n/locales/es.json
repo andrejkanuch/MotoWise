@@ -1784,6 +1784,116 @@
       "themeDesc": "Ahora cada pantalla tiene un estilo claro y uno oscuro, y sigue tu configuración de Tema. Elige uno en Perfil › Configuración de la app › Tema, o déjalo en Sistema para que siga a tu teléfono.",
       "profileTitle": "Perfil, reorganizado",
       "profileDesc": "El perfil ahora tiene secciones más claras, y el idioma, el tema, las unidades y la moneda están juntos en Configuración de la app. Crear una cuenta nueva también es más fácil."
+    },
+    "carousel": {
+      "tagNew": "Nuevo en {{version}}",
+      "tagCatchUp": "Quizá te lo perdiste",
+      "pageOf": "{{current}} de {{total}}",
+      "tried": "Probado",
+      "yourData": "TUS DATOS",
+      "example": "EJEMPLO",
+      "back": "Atrás",
+      "next": "Siguiente",
+      "rideOn": "A rodar",
+      "close": "Cerrar",
+      "whereItLives": "Dónde encontrarlo",
+      "openAgain": "Abrir de nuevo",
+      "pageAnnouncement": "Página {{current}} de {{total}}: {{title}}",
+      "newChip": "Nuevo",
+      "returnBar": {
+        "back": "Volver a Novedades",
+        "next": "Siguiente función"
+      },
+      "boot": {
+        "newCount_one": "{{count}} novedad para tu moto",
+        "newCount_many": "{{count}} novedades para tu moto",
+        "newCount_other": "{{count}} novedades para tu moto",
+        "catchUpCount_one": "+ {{count}} que quizá te perdiste",
+        "catchUpCount_many": "+ {{count}} que quizá te perdiste",
+        "catchUpCount_other": "+ {{count}} que quizá te perdiste",
+        "catchUpOnly_one": "{{count}} que quizá te perdiste",
+        "catchUpOnly_many": "{{count}} que quizá te perdiste",
+        "catchUpOnly_other": "{{count}} que quizá te perdiste",
+        "season": "TEMPORADA",
+        "odo": "ODO",
+        "allSystemsOk": "Todo en orden",
+        "skip": "Omitir",
+        "fromGarage": "{{bike}} · de tu garaje",
+        "seasonCaption_one": "{{count}} rodada esta temporada",
+        "seasonCaption_many": "{{count}} rodadas esta temporada",
+        "seasonCaption_other": "{{count}} rodadas esta temporada"
+      }
+    },
+    "features": {
+      "road_atlas": {
+        "title": "Atlas de rutas",
+        "where": "Perfil › Estadísticas de piloto",
+        "yourData": {
+          "line_one": "{{distance}} en {{count}} rodada esta temporada. Aquí está en un solo mapa.",
+          "line_many": "{{distance}} en {{count}} rodadas esta temporada. Aquí están todas en un solo mapa.",
+          "line_other": "{{distance}} en {{count}} rodadas esta temporada. Aquí están todas en un solo mapa.",
+          "lineWithShare": "El {{share}} de tus {{distance}} esta temporada fueron caminos que nunca habías recorrido. Aquí están.",
+          "lineLastRides_one": "Tu última rodada, en un solo mapa.",
+          "lineLastRides_many": "Tus últimas {{count}} rodadas, en un solo mapa.",
+          "lineLastRides_other": "Tus últimas {{count}} rodadas, en un solo mapa.",
+          "cta": "Abrir mi atlas"
+        },
+        "example": {
+          "line": "Cada rodada que grabas se dibuja en un solo mapa y te muestra qué caminos eran nuevos para ti.",
+          "cta": "Grabar mi primera rodada",
+          "lineWithSeason_one": "{{distance}} en {{count}} rodada esta temporada. Graba una con GPS y se dibuja sola en tu mapa.",
+          "lineWithSeason_many": "{{distance}} en {{count}} rodadas esta temporada. Graba una con GPS y se dibuja sola en tu mapa.",
+          "lineWithSeason_other": "{{distance}} en {{count}} rodadas esta temporada. Graba una con GPS y se dibuja sola en tu mapa."
+        },
+        "demo": {
+          "newRoads": "Caminos nuevos",
+          "rides_one": "{{count}} rodada",
+          "rides_many": "{{count}} rodadas",
+          "rides_other": "{{count}} rodadas",
+          "exampleCaption": "Temporada de ejemplo"
+        }
+      },
+      "receipt_scan": {
+        "title": "Escanear un recibo",
+        "where": "Inicio › Escanear recibo, o Gastos de una moto",
+        "yourData": {
+          "line": "El {{date}} registraste {{place}}, {{amount}}. La próxima vez, una foto del recibo lo llena por ti.",
+          "cta": "Escanear mi próximo recibo"
+        },
+        "example": {
+          "line": "Tómale una foto a un recibo de gasolina. El monto, la fecha y el lugar se llenan solos.",
+          "cta": "Escanear mi primer recibo"
+        },
+        "demo": {
+          "place": "Lugar",
+          "category": "Categoría",
+          "total": "Total",
+          "date": "Fecha",
+          "headerYourData": "Tu último gasto",
+          "headerExample": "Leído de la foto",
+          "examplePlace": "Gasolinera",
+          "fuel": "Gasolina"
+        }
+      },
+      "notes_photos": {
+        "title": "Notas, con fotos",
+        "where": "Garaje › tu moto › Notas",
+        "yourData": {
+          "line": "Tu nota «{{note}}» ahora puede llevar una foto, y la búsqueda la encuentra en un segundo.",
+          "cta": "Agregarle una foto"
+        },
+        "example": {
+          "line": "Presión de llantas, números de pieza, el teléfono del taller. Guardado con tu {{bike}}, con foto, a un segundo.",
+          "lineNoBike": "Presión de llantas, números de pieza, el teléfono del taller. Guardado con tu moto, con foto, a un segundo.",
+          "cta": "Escribir mi primera nota"
+        },
+        "demo": {
+          "addPhoto": "Agregar una foto",
+          "foundBySearch": "Encontrada al buscar",
+          "exampleNote": "Presión de llantas {{front}} delante, {{rear}} atrás",
+          "searchPlaceholder": "Buscar notas"
+        }
+      }
     }
   },
   "oem": {

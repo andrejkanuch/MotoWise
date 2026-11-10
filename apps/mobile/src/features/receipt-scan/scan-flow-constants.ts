@@ -322,6 +322,8 @@ export const SCAN_ENTRY_SURFACE = {
   EXPENSE_EMPTY: 'expense_empty',
   ONBOARDING: 'onboarding',
   HOME_RECOVERY_CARD: 'home_recovery_card',
+  /** A What's New page's button. */
+  WHATS_NEW: 'whats_new',
 } as const;
 
 export type ScanEntrySurface = (typeof SCAN_ENTRY_SURFACE)[keyof typeof SCAN_ENTRY_SURFACE];
