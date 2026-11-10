@@ -59,6 +59,7 @@ import {
   receiveRideIdleResponse,
   rideIdleResponseKey,
 } from '../features/ride/ride-notification-response';
+import { useWhatsNewGate } from '../features/whats-new/use-whats-new-gate';
 import { useAccountLocaleSync } from '../hooks/use-account-locale-sync';
 import { useAnalyticsSuperProperties } from '../hooks/use-analytics-super-properties';
 import { useLaunchLanguage } from '../hooks/use-launch-language';
@@ -151,13 +152,11 @@ import {
   logoutRevenueCat,
 } from '../lib/subscription';
 import { supabase } from '../lib/supabase';
-import { isWhatsNewOwed } from '../lib/whats-new';
 import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
 import { COLOR_SCHEME, useAuthStore } from '../stores/auth.store';
 import { useChecklistStore } from '../stores/checklist.store';
 import { useExperimentStore } from '../stores/experiment.store';
 import { useOnboardingStore } from '../stores/onboarding.store';
-import { useWhatsNewStore } from '../stores/whats-new.store';
 import { PLATE_FONT } from '../theme/type';
 import { accountPreferenceUpdates } from '../utils/account-preferences';
 import { rideMMKV } from '../utils/ride-storage';
@@ -221,9 +220,6 @@ Notifications.setNotificationHandler({
 
 setupOnlineManager();
 
-// Module-scoped guard: survives React 19 StrictMode double-mount so the
-// What's New modal is only pushed once per app cold-start.
-let whatsNewPushed = false;
 // Same module-scoped one-shot pattern for the analytics consent screen. Set only
 // once the push is made, so a check that fails when the timer fires is retried.
 let consentPromptPushed = false;
@@ -331,28 +327,8 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
   // commit is already applied when it registers.
   useAnalyticsSuperProperties();
 
-  // --- What's New modal trigger ---
-  // Module-scoped `whatsNewPushed` flag survives React 19 StrictMode
-  // double-mount (useRef and even immediate store writes can race).
-  const lastSeenVersion = useWhatsNewStore((s) => s.lastSeenVersion);
-
-  useEffect(() => {
-    if (isLoading || !session || !onboardingCompleted) return;
-    if (whatsNewPushed) return;
-
-    // Only show for an unseen version we have release data for. New riders
-    // never qualify: onboarding marks the installed version seen.
-    const currentVersion = Application.nativeApplicationVersion;
-    if (!currentVersion || !isWhatsNewOwed(currentVersion, lastSeenVersion)) return;
-
-    // Avoid showing during initial navigation
-    const inTabs = segments[0] === '(tabs)';
-    if (!inTabs) return;
-
-    whatsNewPushed = true;
-    trackEvent(AnalyticsEvent.WHATS_NEW_VIEWED, { version: currentVersion });
-    setTimeout(() => router.push('/(modals)/whats-new'), 500);
-  }, [isLoading, session, onboardingCompleted, segments, lastSeenVersion, router]);
+  // --- What's New auto-show (decision and guards live in the hook) ---
+  useWhatsNewGate();
 
   // --- Analytics consent (opt-in regions) ---
   // Riders in the EEA/UK/Switzerland who have not answered see the consent
