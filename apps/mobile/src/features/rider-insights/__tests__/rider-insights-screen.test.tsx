@@ -388,10 +388,20 @@ describe('the map', () => {
 describe('one scroll view', () => {
   // The iOS large title binds to the first scroll view; a swap leaves it drawn under the header.
   it('keeps the same scroll view from loading to loaded', async () => {
-    respond(freeInsights());
+    // Held until the loading state is checked: an instant response could land
+    // first under a loaded test run and skip the loading state entirely.
+    let release: (value: { riderInsights: InsightsPayload }) => void = () => undefined;
+    mockFetcher.mockReturnValueOnce(
+      new Promise((resolve) => {
+        release = resolve;
+      }),
+    );
     await renderScreen();
     const loading = screen.getByTestId('insights-scroll');
     expect(screen.getByTestId('insights-loading')).toBeTruthy();
+    await act(async () => {
+      release({ riderInsights: freeInsights() });
+    });
     await screen.findByTestId('territory-row');
     expect(screen.getByTestId('insights-scroll')).toBe(loading);
   });
