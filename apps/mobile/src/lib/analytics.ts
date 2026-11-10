@@ -799,6 +799,12 @@ export const AnalyticsEvent = {
   WHATS_NEW_SKIPPED: 'whats_new_skipped',
   WHATS_NEW_SLIDE_VIEWED: 'whats_new_slide_viewed',
   WHATS_NEW_CTA_TAPPED: 'whats_new_cta_tapped',
+  /** Both holdout arms, at the same decision point: {version, arm, arm_source, pages, source}. */
+  WHATS_NEW_ELIGIBLE: 'whats_new_eligible',
+  WHATS_NEW_PAGE_VIEWED: 'whats_new_page_viewed',
+  /** From the return bar on a feature screen: {feature, action: back | next}. */
+  WHATS_NEW_RETURNED: 'whats_new_returned',
+  WHATS_NEW_BOOT_SKIPPED: 'whats_new_boot_skipped',
 
   // Profile & Settings
   PROFILE_EDITED: 'profile_edited',
