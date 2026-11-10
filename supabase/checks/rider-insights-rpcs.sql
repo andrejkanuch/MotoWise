@@ -824,22 +824,23 @@ END $$;
 --   s2 10:00, 0 m, 10 min (accidental start: left out of the totals)
 --   s3 12:00, 2 km, 0 min (under 60 s moving: left out)
 --   s4 14:00, 400 m, 5 min (under 500 m: left out; still the last ride)
+--   s5 06:00, exactly 500 m and 60 s (on the threshold: counts)
 RESET ROLE;
 SELECT pg_temp.seed_user('5e5e5e5e-0000-0000-0000-000000000001');
 SELECT pg_temp.seed_ride(('5e000000-0000-0000-0000-00000000000' || n)::uuid, '5e5e5e5e-0000-0000-0000-000000000001', NULL,
   (((now() AT TIME ZONE 'UTC')::date - 1) + make_time(h, 0, 0)) AT TIME ZONE 'UTC', mins, dist)
-FROM (VALUES (1, 8, 20, 5000), (2, 10, 10, 0), (3, 12, 0, 2000), (4, 14, 5, 400)) v (n, h, mins, dist);
+FROM (VALUES (1, 8, 20, 5000), (2, 10, 10, 0), (3, 12, 0, 2000), (4, 14, 5, 400), (5, 6, 1, 500)) v (n, h, mins, dist);
 SET LOCAL ROLE service_role;
 
 DO $$
 DECLARE
   ov jsonb := public.rider_ride_overview('5e5e5e5e-0000-0000-0000-000000000001', 'UTC');
 BEGIN
-  IF (ov #>> '{last7Days,rideCount}')::int <> 1 OR (ov #>> '{last7Days,distanceM}')::int <> 5000
-     OR (ov #>> '{last30Days,rideCount}')::int <> 1 THEN
-    RAISE EXCEPTION 'FAIL: short rides counted in the overview totals %', ov -> 'last7Days';
+  IF (ov #>> '{last7Days,rideCount}')::int <> 2 OR (ov #>> '{last7Days,distanceM}')::int <> 5500
+     OR (ov #>> '{last30Days,rideCount}')::int <> 2 THEN
+    RAISE EXCEPTION 'FAIL: overview totals around the 500 m / 60 s threshold %', ov -> 'last7Days';
   END IF;
-  IF (SELECT sum((x ->> 'distanceM')::int) FROM jsonb_array_elements(ov -> 'dailyDistances') x) <> 5000 THEN
+  IF (SELECT sum((x ->> 'distanceM')::int) FROM jsonb_array_elements(ov -> 'dailyDistances') x) <> 5500 THEN
     RAISE EXCEPTION 'FAIL: short rides in daily distances %', ov -> 'dailyDistances';
   END IF;
   IF ov #>> '{lastRide,id}' <> '5e000000-0000-0000-0000-000000000004' THEN
