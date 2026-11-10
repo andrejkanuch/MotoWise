@@ -233,7 +233,10 @@ SELECT
   set_config('ri_check.bike_offline', gen_random_uuid()::text, true),
   set_config('ri_check.ride_off_a', gen_random_uuid()::text, true),
   set_config('ri_check.ride_off_b', gen_random_uuid()::text, true),
-  set_config('ri_check.ride_recording', gen_random_uuid()::text, true);
+  set_config('ri_check.ride_recording', gen_random_uuid()::text, true),
+  set_config('ri_check.bike_hist', gen_random_uuid()::text, true),
+  set_config('ri_check.ride_hist_early', gen_random_uuid()::text, true),
+  set_config('ri_check.ride_hist_late', gen_random_uuid()::text, true);
 
 INSERT INTO auth.users (id, email)
 VALUES
@@ -251,14 +254,16 @@ VALUES
   (current_setting('ri_check.bike_b')::uuid, current_setting('ri_check.user_b')::uuid, 'BMW', 'R 1250 GS', 20000, 'km'),
   (current_setting('ri_check.bike_gps')::uuid, current_setting('ri_check.user_a')::uuid, 'Yamaha', 'Tenere 700', 15000, 'km'),
   (current_setting('ri_check.bike_gps_later')::uuid, current_setting('ri_check.user_a')::uuid, 'KTM', '890 Adventure', 20000, 'km'),
-  (current_setting('ri_check.bike_offline')::uuid, current_setting('ri_check.user_a')::uuid, 'Suzuki', 'V-Strom 800', 30000, 'km');
+  (current_setting('ri_check.bike_offline')::uuid, current_setting('ri_check.user_a')::uuid, 'Suzuki', 'V-Strom 800', 30000, 'km'),
+  (current_setting('ri_check.bike_hist')::uuid, current_setting('ri_check.user_a')::uuid, 'Triumph', 'Tiger 900', 40000, 'km');
 
 -- The bikes' 'initial' readings (00181 trigger) are stamped now(); date them
 -- before the rides so a ride-end reading is the latest one, as in real use.
 UPDATE public.odometer_readings SET recorded_at = now() - interval '60 days'
 WHERE motorcycle_id IN (current_setting('ri_check.bike_a')::uuid, current_setting('ri_check.bike_a_mi')::uuid,
                         current_setting('ri_check.bike_b')::uuid, current_setting('ri_check.bike_gps')::uuid,
-                        current_setting('ri_check.bike_gps_later')::uuid, current_setting('ri_check.bike_offline')::uuid);
+                        current_setting('ri_check.bike_gps_later')::uuid, current_setting('ri_check.bike_offline')::uuid,
+                        current_setting('ri_check.bike_hist')::uuid);
 
 INSERT INTO public.rides (id, user_id, motorcycle_id, status, started_at, ended_at, distance_m, route_polyline, deleted_at)
 VALUES
@@ -332,6 +337,24 @@ SET current_mileage = current_mileage + 50,
     odometer_sync_source = 'gps_ride',
     odometer_last_ride_id = current_setting('ri_check.ride_off_a')::uuid
 WHERE id = current_setting('ri_check.bike_offline')::uuid;
+
+-- The other way round: the ride that ended LATER (one hour ago) synced first
+-- and its GPS distance is on the bike; the earlier ride's (three hours ago)
+-- typed odometer arrives afterwards and is history.
+INSERT INTO public.rides (id, user_id, motorcycle_id, status, started_at, ended_at, distance_m)
+VALUES
+  (current_setting('ri_check.ride_hist_early')::uuid, current_setting('ri_check.user_a')::uuid,
+   current_setting('ri_check.bike_hist')::uuid, 'completed',
+   now() - interval '4 hours', now() - interval '3 hours', 20000),
+  (current_setting('ri_check.ride_hist_late')::uuid, current_setting('ri_check.user_a')::uuid,
+   current_setting('ri_check.bike_hist')::uuid, 'completed',
+   now() - interval '2 hours', now() - interval '1 hour', 60000);
+
+UPDATE public.motorcycles
+SET current_mileage = current_mileage + 60,
+    odometer_sync_source = 'gps_ride',
+    odometer_last_ride_id = current_setting('ri_check.ride_hist_late')::uuid
+WHERE id = current_setting('ri_check.bike_hist')::uuid;
 
 -- Rider A's public ride: any signed-in rider can read the ride itself.
 INSERT INTO public.rides (id, user_id, motorcycle_id, status, started_at, ended_at, distance_m, visibility)
@@ -626,6 +649,8 @@ DECLARE
   ride_off_a CONSTANT uuid := current_setting('ri_check.ride_off_a')::uuid;
   ride_off_b CONSTANT uuid := current_setting('ri_check.ride_off_b')::uuid;
   ride_rec CONSTANT uuid := current_setting('ri_check.ride_recording')::uuid;
+  bike_hist CONSTANT uuid := current_setting('ri_check.bike_hist')::uuid;
+  ride_hist_early CONSTANT uuid := current_setting('ri_check.ride_hist_early')::uuid;
   v_moved boolean;
   v_id uuid;
   v_id_again uuid;
@@ -733,6 +758,32 @@ BEGIN
   -- A's estimate is A's, not B's: it stays.
   IF NOT EXISTS (SELECT 1 FROM public.odometer_readings WHERE ride_id = ride_off_a AND source = 'gps_ride') THEN
     RAISE EXCEPTION 'FAIL: ride B''s typed end removed ride A''s gps_ride reading';
+  END IF;
+
+  -- A replay of B's value writes nothing and still reports bike_moved true, so
+  -- an endRide fallback never adds B's GPS distance on top of it.
+  SELECT count(*) INTO v_before FROM public.odometer_readings WHERE motorcycle_id = bike_off;
+  SELECT l.reading_id, l.bike_moved INTO v_id_again, v_moved
+  FROM public.log_ride_end_odometer(ride_off_b, 30140, 'km') l;
+  SELECT count(*) INTO v_after FROM public.odometer_readings WHERE motorcycle_id = bike_off;
+  IF v_moved IS DISTINCT FROM true OR v_id_again <> v_id OR v_after <> v_before THEN
+    RAISE EXCEPTION 'FAIL: a replayed end that moved the bike reported bike_moved % (or wrote a reading)', v_moved;
+  END IF;
+
+  -- 12b. Negative: a ride that ended LATER has a gps_ride reading, so this
+  -- ride's typed value is history: bike_moved false, the bike stays put, and a
+  -- replay says the same.
+  SELECT l.bike_moved INTO v_moved FROM public.log_ride_end_odometer(ride_hist_early, 40020, 'km') l;
+  IF v_moved IS DISTINCT FROM false THEN
+    RAISE EXCEPTION 'FAIL: a typed end older than a later ride''s GPS estimate reported bike_moved %', v_moved;
+  END IF;
+  SELECT current_mileage INTO v_mileage FROM public.motorcycles WHERE id = bike_hist;
+  IF v_mileage <> 40060 THEN
+    RAISE EXCEPTION 'FAIL: a history typed end moved the bike to %', v_mileage;
+  END IF;
+  SELECT l.bike_moved INTO v_moved FROM public.log_ride_end_odometer(ride_hist_early, 40020, 'km') l;
+  IF v_moved IS DISTINCT FROM false THEN
+    RAISE EXCEPTION 'FAIL: a replayed history end reported bike_moved %', v_moved;
   END IF;
 
   -- 13. A ride still recording is refused (55000) and writes nothing: a value

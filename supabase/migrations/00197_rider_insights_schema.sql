@@ -365,9 +365,10 @@ ALTER TABLE public.odometer_readings ADD CONSTRAINT odometer_readings_source_che
 -- bike, and endRide would then add the GPS distance on top. A ride still
 -- recording is refused with 55000 (object_not_in_prerequisite_state).
 --
--- Returns the reading's id and bike_moved: whether this call set the bike's
--- odometer to the typed value. False for a history reading and for a replay of
--- the same value; endRide then still owes the bike the ride's GPS distance.
+-- Returns the reading's id and bike_moved: whether the typed value is the
+-- bike's odometer (no later reading exists). False for a history reading;
+-- endRide then still owes the bike the ride's GPS distance. A replay of the
+-- same value writes nothing and reports the same answer as the first call.
 CREATE FUNCTION public.log_ride_end_odometer(
   p_ride_id uuid,
   p_value integer,
@@ -390,6 +391,8 @@ DECLARE
   v_recorded_at timestamptz;
   v_reading_id uuid;
   v_existing_value integer;
+  v_has_reading boolean;
+  v_is_latest boolean;
 BEGIN
   IF v_uid IS NULL THEN
     RAISE EXCEPTION 'not_authenticated' USING ERRCODE = '42501';
@@ -432,26 +435,16 @@ BEGIN
   SELECT o.id, o.value, o.recorded_at INTO v_reading_id, v_existing_value, v_recorded_at
   FROM public.odometer_readings o
   WHERE o.ride_id = p_ride_id AND o.source = 'ride_end';
-  bike_moved := false;
-  IF FOUND THEN
-    IF v_existing_value = v_value THEN
-      reading_id := v_reading_id;
-      RETURN;
-    END IF;
-    UPDATE public.odometer_readings SET value = v_value WHERE id = v_reading_id;
-  ELSE
+  v_has_reading := FOUND;
+  IF NOT v_has_reading THEN
     v_recorded_at := LEAST(COALESCE(v_ended_at, now()), now());
-
-    INSERT INTO public.odometer_readings (user_id, motorcycle_id, value, recorded_at, source, ride_id)
-    VALUES (v_uid, v_motorcycle_id, v_value, v_recorded_at, 'ride_end', p_ride_id)
-    RETURNING id INTO v_reading_id;
   END IF;
 
   -- Same rule as log_odometer_reading(): a reading older than the latest one is
   -- history and does not move the bike's current odometer. This ride's own
   -- readings (its gps_ride estimate) do not count as later ones, and another
   -- ride's gps_ride estimate counts from that ride's end (see above).
-  IF NOT EXISTS (
+  v_is_latest := NOT EXISTS (
     SELECT 1
     FROM public.odometer_readings o
     LEFT JOIN public.rides lr ON lr.id = o.ride_id
@@ -461,7 +454,26 @@ BEGIN
             WHEN o.source = 'gps_ride' THEN COALESCE(lr.ended_at, o.recorded_at)
             ELSE o.recorded_at
           END > v_recorded_at
-  ) THEN
+  );
+
+  bike_moved := false;
+  IF v_has_reading THEN
+    IF v_existing_value = v_value THEN
+      -- A replay changes nothing, but reports what the first call did: the
+      -- value is the bike's odometer exactly when it is still the latest
+      -- reading, so a caller never adds the GPS distance on top of it.
+      reading_id := v_reading_id;
+      bike_moved := v_is_latest;
+      RETURN;
+    END IF;
+    UPDATE public.odometer_readings SET value = v_value WHERE id = v_reading_id;
+  ELSE
+    INSERT INTO public.odometer_readings (user_id, motorcycle_id, value, recorded_at, source, ride_id)
+    VALUES (v_uid, v_motorcycle_id, v_value, v_recorded_at, 'ride_end', p_ride_id)
+    RETURNING id INTO v_reading_id;
+  END IF;
+
+  IF v_is_latest THEN
     -- Tells trg_motorcycles_log_odometer (00181) this write is already logged,
     -- so it does not add a second reading. Cleared straight after the UPDATE.
     PERFORM set_config('app.odometer_logged', '1', true);
