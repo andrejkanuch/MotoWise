@@ -4,6 +4,8 @@ import { type Href, router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { FROM_WHATS_NEW } from '../../config/routes';
+import { WHATS_NEW_FEATURE } from '../../data/whats-new-releases';
 import { ReceiptScanFlow } from '../../features/receipt-scan/receipt-scan-flow';
 import {
   type ReceiptReviewHandoff,
@@ -14,6 +16,10 @@ import {
 import { useReceiptScanQuota } from '../../features/receipt-scan/use-receipt-scan-quota';
 import { useReceiptScanSave } from '../../features/receipt-scan/use-receipt-scan-save';
 import { type ScanBike, useScanFlow } from '../../features/receipt-scan/use-scan-flow';
+import {
+  WhatsNewReturnBar,
+  whatsNewPageParam,
+} from '../../features/whats-new/whats-new-return-bar';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { EXPENSE_ENTRY_SOURCE } from '../../lib/expense-analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -34,6 +40,7 @@ import { SYSTEM_WEIGHT, type } from '../../theme/type';
  *  - `resumeScanId`   resume a completed-but-unreviewed scan straight into review
  *                     (U8 home recovery card / U6 parked-scan notification).
  *  - `surface`        entry-point attribution (SCAN_ENTRY_SURFACE).
+ *  - `from` / `wnPage` opened from a What's New page: the way back to it.
  */
 export default function ScanReceiptScreen() {
   const params = useLocalSearchParams<{
@@ -41,6 +48,8 @@ export default function ScanReceiptScreen() {
     is_onboarding?: string;
     resumeScanId?: string;
     surface?: string;
+    from?: string;
+    wnPage?: string;
   }>();
 
   const isOnboarding = params.is_onboarding === 'true';
@@ -104,6 +113,7 @@ export default function ScanReceiptScreen() {
       isOnboarding={isOnboarding}
       initialResume={resumeHandoff}
       surface={surface}
+      whatsNewPage={params.from === FROM_WHATS_NEW ? whatsNewPageParam(params.wnPage) : undefined}
     />
   );
 }
@@ -113,9 +123,17 @@ interface ScanFlowHostProps {
   isOnboarding: boolean;
   initialResume: ReceiptReviewHandoff | null;
   surface: ScanEntrySurface | undefined;
+  /** Opened from this What's New page (null: page unknown); undefined when not opened from What's New. */
+  whatsNewPage?: number | null;
 }
 
-function ScanFlowHost({ initialBikeId, isOnboarding, initialResume, surface }: ScanFlowHostProps) {
+function ScanFlowHost({
+  initialBikeId,
+  isOnboarding,
+  initialResume,
+  surface,
+  whatsNewPage,
+}: ScanFlowHostProps) {
   const userId = useAuthStore((s) => s.session?.user?.id) ?? null;
 
   const { data: bikesData, isLoading: bikesLoading } = useQuery({
@@ -200,6 +218,14 @@ function ScanFlowHost({ initialBikeId, isOnboarding, initialResume, surface }: S
       onClose={() => router.back()}
       onSave={onSave}
       saving={saving}
+      footer={
+        <WhatsNewReturnBar
+          feature={WHATS_NEW_FEATURE.RECEIPT_SCAN}
+          fromWhatsNew={whatsNewPage !== undefined}
+          page={whatsNewPage ?? null}
+          stacked
+        />
+      }
     />
   );
 }

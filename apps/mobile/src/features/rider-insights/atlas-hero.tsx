@@ -11,7 +11,7 @@ import { radius, type } from '@/theme/type';
 import { MAP_STYLES } from '@/utils/map-styles';
 import { decodePolyline } from '@/utils/polyline';
 import { plateLettersFor } from './country-codes';
-import { fitViewport, metersPerPixel, type Viewport } from './region-tiles';
+import { fitViewport, metersPerPixel, type Viewport } from './map-viewport';
 import {
   distanceParts,
   type RiderInsightsData,

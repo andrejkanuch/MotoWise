@@ -1,7 +1,12 @@
 /**
  * The way back from a feature screen a What's New page opened: "‹ Back to
- * What's New" reopens that page, "Next feature ›" the one after it. Each is one
- * `router.push` of the What's New modal, without the boot.
+ * What's New" reopens that page, "Next feature ›" the one after it.
+ *
+ * - A screen that replaced What's New (Rider insights, Notes) pushes the
+ *   What's New modal again, without the boot: one `router.push`.
+ * - A screen opened on top of What's New (the scan) pops back to it with one
+ *   `router.back()`; for "Next feature" it first asks What's New to move on to
+ *   the page after this feature.
  *
  * Drawn only while the visit is open (closing What's New ends it) and only on a
  * screen that says it was opened from What's New, so a stale route param on a
@@ -15,7 +20,7 @@ import { useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { whatsNewReturnHref } from '@/config/routes';
-import { WHATS_NEW_TIMING } from '@/config/whats-new';
+import { WHATS_NEW_MIN_TARGET as MIN_TARGET, WHATS_NEW_TIMING } from '@/config/whats-new';
 import type { WhatsNewFeature } from '@/data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { installedRelease, NOTHING_SEEN, selectPages } from '@/lib/whats-new';
@@ -24,7 +29,6 @@ import { useEditorialTheme } from '@/theme/editorial';
 import { space } from '@/theme/spacing';
 import { radius, SYSTEM_WEIGHT, type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
-import { MIN_TARGET } from './whats-new-page';
 
 /** What the rider did on the bar, as sent on the returned event. */
 export const WHATS_NEW_RETURN_ACTION = { BACK: 'back', NEXT: 'next' } as const;
@@ -61,9 +65,16 @@ interface WhatsNewReturnBarProps {
   fromWhatsNew: boolean;
   /** The page it was opened from (`wnPage`), used when the feature has no page on the way back. */
   page: number | null;
+  /** This screen sits on top of the open What's New, so the way back is a pop. */
+  stacked?: boolean;
 }
 
-export function WhatsNewReturnBar({ feature, fromWhatsNew, page }: WhatsNewReturnBarProps) {
+export function WhatsNewReturnBar({
+  feature,
+  fromWhatsNew,
+  page,
+  stacked = false,
+}: WhatsNewReturnBarProps) {
   const { t: tr } = useTranslation();
   const { t } = useEditorialTheme();
   const router = useRouter();
@@ -93,23 +104,16 @@ export function WhatsNewReturnBar({ feature, fromWhatsNew, page }: WhatsNewRetur
     }, WHATS_NEW_TIMING.TAP_LATCH_MS);
     triggerImpact();
     trackEvent(AnalyticsEvent.WHATS_NEW_RETURNED, { feature, action });
-    router.push(whatsNewReturnHref(target));
+    if (!stacked) {
+      router.push(whatsNewReturnHref(target));
+      return;
+    }
+    if (action === WHATS_NEW_RETURN_ACTION.NEXT) useWhatsNewStore.getState().setNextAfter(feature);
+    router.back();
   };
 
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: space.xs,
-        padding: space.xxs,
-        borderRadius: radius.pill,
-        borderCurve: 'continuous',
-        borderWidth: 1,
-        borderColor: t.line,
-        backgroundColor: t.surface,
-      }}
-    >
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
       <Pressable
         accessibilityRole="button"
         onPress={() => go(WHATS_NEW_RETURN_ACTION.BACK, current)}
@@ -141,7 +145,10 @@ export function WhatsNewReturnBar({ feature, fromWhatsNew, page }: WhatsNewRetur
             flexDirection: 'row',
             alignItems: 'center',
             gap: space.xxs,
-            paddingHorizontal: space.sm,
+            paddingHorizontal: space.md,
+            borderRadius: radius.pill,
+            borderCurve: 'continuous',
+            backgroundColor: t.surface2,
             opacity: pressed ? PRESSED_OPACITY : 1,
           })}
         >

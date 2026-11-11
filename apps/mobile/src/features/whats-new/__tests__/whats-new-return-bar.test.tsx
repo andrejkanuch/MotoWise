@@ -132,4 +132,26 @@ describe('WhatsNewReturnBar', () => {
     await fireEvent.press(screen.getByRole('button', { name: BACK }));
     expect(mockRouter.push).toHaveBeenCalledTimes(1);
   });
+
+  it('over What’s New (the scan): Back pops to it, Next asks it for the page after this feature', async () => {
+    useWhatsNewStore.setState({ nextAfter: null });
+    await render(
+      <WhatsNewReturnBar feature={WHATS_NEW_FEATURE.RECEIPT_SCAN} fromWhatsNew page={1} stacked />,
+    );
+
+    await fireEvent.press(screen.getByRole('button', { name: BACK }));
+    expect(mockRouter.back).toHaveBeenCalledTimes(1);
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(useWhatsNewStore.getState().nextAfter).toBeNull();
+
+    await act(() => mockFocus.current?.());
+    await fireEvent.press(screen.getByRole('button', { name: NEXT }));
+    expect(useWhatsNewStore.getState().nextAfter).toBe(WHATS_NEW_FEATURE.RECEIPT_SCAN);
+    expect(mockRouter.back).toHaveBeenCalledTimes(2);
+    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(trackEvent).toHaveBeenLastCalledWith(AnalyticsEvent.WHATS_NEW_RETURNED, {
+      feature: WHATS_NEW_FEATURE.RECEIPT_SCAN,
+      action: 'next',
+    });
+  });
 });

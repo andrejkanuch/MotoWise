@@ -25,13 +25,8 @@ import { BlurCapture, blurCaptureKey } from '../blur-capture';
 import { plateLettersFor } from '../country-codes';
 import { formatArea, formatNumber, formatPercent, shortDate } from '../details/detail-format';
 import { busiestSlot, gridLevels } from '../how-you-ride-list';
-import {
-  fitViewport,
-  projectPoint,
-  STATIC_STYLE,
-  staticMapUrl,
-  type Viewport,
-} from '../region-tiles';
+import { fitViewport, projectPoint, type Viewport } from '../map-viewport';
+import { STATIC_STYLE, staticMapUrl } from '../region-tiles';
 import { formatInsightDistance, type RiderInsightsData } from '../use-rider-insights';
 import {
   busiestCell,

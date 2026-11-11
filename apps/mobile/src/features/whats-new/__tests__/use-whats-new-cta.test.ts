@@ -23,7 +23,13 @@ const mockScanEntry = jest.fn();
 jest.mock('@/features/receipt-scan/receipt-scan-entry', () => ({
   useReceiptScanEntry: (args: unknown) => {
     mockScanEntry(args);
-    return { open: mockScanOpen, remaining: 0, showFreeBadge: false, showUpsellBadge: true };
+    return {
+      open: jest.fn(),
+      openWith: mockScanOpen,
+      remaining: 0,
+      showFreeBadge: false,
+      showUpsellBadge: true,
+    };
   },
 }));
 
@@ -175,12 +181,13 @@ describe('Scan a receipt', () => {
     });
     // The entry decides between the scan and the paywall (its quota is 0 here).
     expect(mockScanOpen).toHaveBeenCalledTimes(1);
+    // The scan learns it came from page 2 of What's New, so it can offer the way back.
+    expect(mockScanOpen).toHaveBeenLastCalledWith({ from: FROM_WHATS_NEW, wnPage: '1' });
     expect(mockRouter.dismissTo).not.toHaveBeenCalled();
     expect(mockRouter.push).not.toHaveBeenCalled();
     expectNoSecondAction();
     expect(useWhatsNewStore.getState().triedFeatures).toEqual([WHATS_NEW_FEATURE.RECEIPT_SCAN]);
-    // Closing the scan lands back on What's New natively: no return bar.
-    expect(useWhatsNewStore.getState().returnSessionOpen).toBe(false);
+    expect(useWhatsNewStore.getState().returnSessionOpen).toBe(true);
     expect(trackEvent).toHaveBeenCalledWith(AnalyticsEvent.WHATS_NEW_CTA_TAPPED, {
       feature: WHATS_NEW_FEATURE.RECEIPT_SCAN,
       data_kind: WHATS_NEW_DATA_KIND.YOUR_DATA,

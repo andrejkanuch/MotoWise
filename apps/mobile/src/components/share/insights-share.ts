@@ -6,7 +6,7 @@
  */
 import type { MeasurementSystem } from '@motovault/types';
 import { plateLettersFor } from '@/features/rider-insights/country-codes';
-import { fitViewport, type Viewport } from '@/features/rider-insights/region-tiles';
+import { fitViewport, type Viewport } from '@/features/rider-insights/map-viewport';
 import type {
   RiderInsightsData,
   RiderInsightsRegion,

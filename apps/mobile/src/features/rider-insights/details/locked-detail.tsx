@@ -6,7 +6,8 @@ import { tint, useEditorialTheme } from '@/theme/editorial';
 import { space } from '@/theme/spacing';
 import { type } from '@/theme/type';
 import { BlurCapture } from '../blur-capture';
-import { fitViewport, routeSvgPath } from '../region-tiles';
+import { fitViewport } from '../map-viewport';
+import { routeSvgPath } from '../region-tiles';
 import type { RiderInsightsRegion } from '../use-rider-insights';
 import { bandAlphas, Card, DetailHero, UnlockButton } from './detail-parts';
 

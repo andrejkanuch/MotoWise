@@ -7,7 +7,7 @@ jest.mock('react-native-mmkv', () => require('@/test/mocks').makeMmkvMock());
 jest.mock('@/lib/analytics', () => require('@/test/mocks').mockAnalytics());
 jest.mock('@/lib/graphql-client', () => ({ gqlFetcher: jest.fn() }));
 
-import { projectPoint } from '@/features/rider-insights/region-tiles';
+import { projectPoint } from '@/features/rider-insights/map-viewport';
 import { freeInsights, proInsights } from '@/test/rider-insights-fixtures';
 import { encodePolyline } from '@/utils/polyline';
 import {

@@ -16,8 +16,9 @@ import { space } from '@/theme/spacing';
 import { radius, type } from '@/theme/type';
 import { blurCaptureKey } from './blur-capture';
 import { LockedRow, MINI_WIDTH, RowShell } from './locked-row';
+import { fitViewport } from './map-viewport';
 import { buildInsightsPaywallCopy, insightsPaywallNumbers } from './paywall-copy';
-import { fitViewport, routeSvgPath } from './region-tiles';
+import { routeSvgPath } from './region-tiles';
 import {
   formatInsightDistance,
   type RiderInsightsData,

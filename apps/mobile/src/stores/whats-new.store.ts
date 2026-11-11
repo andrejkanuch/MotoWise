@@ -24,12 +24,18 @@ interface WhatsNewPersisted {
 interface WhatsNewState extends WhatsNewPersisted {
   /** In memory only: a What's New visit is open, so feature screens show the way back. */
   returnSessionOpen: boolean;
+  /**
+   * In memory only: a feature screen opened on top of What's New asked it to
+   * move on to the page after this feature when it comes back into view.
+   */
+  nextAfter: WhatsNewFeature | null;
   markReleaseSeen: (version: string, features: readonly WhatsNewFeature[]) => void;
   markTried: (feature: WhatsNewFeature) => void;
   markUsed: (feature: WhatsNewFeature) => void;
   /** Sticky per experiment: the first arm recorded for an experiment key wins. */
   setHoldoutArm: (experimentKey: string, arm: string) => void;
   setReturnSessionOpen: (open: boolean) => void;
+  setNextAfter: (feature: WhatsNewFeature | null) => void;
 }
 
 const STORE_VERSION = 1;
@@ -67,6 +73,7 @@ export const useWhatsNewStore = create<WhatsNewState>()(
     (set, get) => ({
       ...initialPersisted,
       returnSessionOpen: false,
+      nextAfter: null,
       markReleaseSeen: (version, features) =>
         set({
           lastSeenVersion: version,
@@ -85,6 +92,7 @@ export const useWhatsNewStore = create<WhatsNewState>()(
         set({ holdout: { experimentKey, arm } });
       },
       setReturnSessionOpen: (returnSessionOpen) => set({ returnSessionOpen }),
+      setNextAfter: (nextAfter) => set({ nextAfter }),
     }),
     {
       // Same name and MMKV id as version 0, so riders keep their last-seen release.

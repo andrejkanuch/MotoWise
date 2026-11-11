@@ -10,6 +10,8 @@
  *   from the snapshot counts as used). Profile and the way back from a feature
  *   show the release's full set.
  * - A page's data is read, and frozen, the first time the rider reaches it.
+ * - A feature opened on top of this screen (the scan) can ask it to move on to
+ *   the page after that feature when the rider picks "Next feature" there.
  * - Close and "Ride on" leave with one `router.back()` and end the visit, so
  *   feature screens stop offering the way back.
  */
@@ -30,7 +32,12 @@ import {
 } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { WHATS_NEW_EXPERIMENT, WHATS_NEW_SOURCE, type WhatsNewSource } from '@/config/whats-new';
+import {
+  WHATS_NEW_MIN_TARGET as MIN_TARGET,
+  WHATS_NEW_EXPERIMENT,
+  WHATS_NEW_SOURCE,
+  type WhatsNewSource,
+} from '@/config/whats-new';
 import {
   WHATS_NEW_FEATURES,
   WHATS_NEW_TAG,
@@ -51,7 +58,7 @@ import { radius, SYSTEM_WEIGHT, type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
 import { useBootSnapshot } from './use-boot-snapshot';
 import { WhatsNewBoot, type WhatsNewBootResult } from './whats-new-boot';
-import { MIN_TARGET, WhatsNewPage } from './whats-new-page';
+import { WhatsNewPage } from './whats-new-page';
 
 /** Opens a page's feature: the feature, the page it was opened from, and which data the page showed. */
 export type TryFeature = (
@@ -123,6 +130,7 @@ export function WhatsNewScreen({
   const handle = useBootSnapshot();
   const triedFeatures = useWhatsNewStore((s) => s.triedFeatures);
   const setReturnSessionOpen = useWhatsNewStore((s) => s.setReturnSessionOpen);
+  const nextAfter = useWhatsNewStore((s) => s.nextAfter);
 
   const release = useMemo(installedRelease, []);
   const [pages, setPages] = useState<PageEntry[] | null>(null);
@@ -218,6 +226,17 @@ export function WhatsNewScreen({
     setPage(target);
     scrollRef.current?.scrollTo({ x: target * width, animated: false });
   }, [resume, pages, width]);
+
+  // A feature opened on top of this screen asked for the page after it.
+  useEffect(() => {
+    if (!nextAfter || !pages) return;
+    useWhatsNewStore.getState().setNextAfter(null);
+    const from = pages.findIndex((entry) => entry.feature === nextAfter);
+    if (from < 0) return;
+    const target = Math.min(from + 1, pages.length - 1);
+    setPage(target);
+    scrollRef.current?.scrollTo({ x: target * width, animated: false });
+  }, [nextAfter, pages, width]);
 
   const goTo = (index: number) => {
     triggerImpact();
