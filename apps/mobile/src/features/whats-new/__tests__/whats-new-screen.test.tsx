@@ -187,6 +187,7 @@ beforeEach(() => {
     usedFeatures: [],
     returnSessionOpen: true,
     nextAfter: null,
+    visitPages: null,
   });
   useHandle(YOUR_DATA);
 });
@@ -296,6 +297,28 @@ describe('profile and return', () => {
 });
 
 describe('a feature opened on top', () => {
+  it('knows the open visit’s pages until What’s New closes, which also drops a pending request', async () => {
+    await open({ source: WHATS_NEW_SOURCE.PROFILE });
+    expect(useWhatsNewStore.getState().visitPages).toEqual([
+      WHATS_NEW_FEATURE.ROAD_ATLAS,
+      WHATS_NEW_FEATURE.RECEIPT_SCAN,
+      WHATS_NEW_FEATURE.NOTES_PHOTOS,
+    ]);
+    useWhatsNewStore.setState({ nextAfter: WHATS_NEW_FEATURE.NOTES_PHOTOS });
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Close' }));
+    expect(useWhatsNewStore.getState().visitPages).toBeNull();
+    expect(useWhatsNewStore.getState().nextAfter).toBeNull();
+  });
+
+  it('a request for a feature this visit does not show leaves the page alone', async () => {
+    await open({ source: WHATS_NEW_SOURCE.PROFILE, resume: '1' });
+    useWhatsNewStore.setState({ visitPages: null });
+    await act(() => useWhatsNewStore.getState().setNextAfter('unknown' as WhatsNewFeature));
+    expect(pageOf()).toBe('2 of 3');
+    expect(useWhatsNewStore.getState().nextAfter).toBeNull();
+  });
+
   it('"Next feature" there moves What\u2019s New on to the page after that feature', async () => {
     await open({ source: WHATS_NEW_SOURCE.PROFILE, resume: '1' });
     expect(pageOf()).toBe('2 of 3');

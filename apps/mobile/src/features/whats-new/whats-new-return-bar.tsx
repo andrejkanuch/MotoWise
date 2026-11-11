@@ -19,7 +19,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import { whatsNewReturnHref } from '@/config/routes';
+import { FROM_WHATS_NEW, whatsNewReturnHref } from '@/config/routes';
 import { WHATS_NEW_MIN_TARGET as MIN_TARGET, WHATS_NEW_TIMING } from '@/config/whats-new';
 import type { WhatsNewFeature } from '@/data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
@@ -42,6 +42,19 @@ export function whatsNewPageParam(value: string | string[] | undefined): number 
   const raw = Array.isArray(value) ? value[0] : value;
   if (!raw || !/^\d+$/.test(raw)) return null;
   return Number.parseInt(raw, 10);
+}
+
+/**
+ * Where a screen was opened from, read from its `from` / `wnPage` params: the
+ * What's New page (null when the page is unknown), or undefined when it was not
+ * opened from What's New at all.
+ */
+export function whatsNewOrigin(
+  from: string | string[] | undefined,
+  wnPage: string | string[] | undefined,
+): number | null | undefined {
+  const source = Array.isArray(from) ? from[0] : from;
+  return source === FROM_WHATS_NEW ? whatsNewPageParam(wnPage) : undefined;
 }
 
 /** Whether a screen opened `fromWhatsNew` should show the bar right now. */
@@ -79,7 +92,10 @@ export function WhatsNewReturnBar({
   const { t } = useEditorialTheme();
   const router = useRouter();
   const visible = useWhatsNewReturnVisible(fromWhatsNew);
-  const pages = useMemo(returnPages, []);
+  const fullSet = useMemo(returnPages, []);
+  const visitPages = useWhatsNewStore((s) => s.visitPages);
+  // Popping back lands on the open visit, whose pages can be fewer than the full set.
+  const pages = stacked && visitPages ? visitPages : fullSet;
   // One What's New per press: a double tap must not stack two of them.
   const leaving = useRef(false);
   useFocusEffect(
@@ -90,8 +106,9 @@ export function WhatsNewReturnBar({
 
   if (!visible) return null;
 
-  // The reopened screen shows the full set, which can order pages differently
-  // from the visit that opened this screen: find the feature's own page there.
+  // The screen the bar leads to (the reopened full set, or the open visit when
+  // stacked) can order pages differently from the visit that opened this
+  // screen: find the feature's own page there.
   const found = pages.indexOf(feature);
   const current = found >= 0 ? found : Math.min(page ?? 0, pages.length - 1);
   const hasNext = current + 1 < pages.length;

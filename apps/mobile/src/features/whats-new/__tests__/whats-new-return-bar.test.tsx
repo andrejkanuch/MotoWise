@@ -23,19 +23,19 @@ jest.mock('expo-router', () => ({
 
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import '@/i18n';
-import { MODAL_ROUTE } from '@/config/routes';
+import { FROM_WHATS_NEW, MODAL_ROUTE } from '@/config/routes';
 import { WHATS_NEW_SOURCE } from '@/config/whats-new';
 import { WHATS_NEW_FEATURE } from '@/data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { useWhatsNewStore } from '@/stores/whats-new.store';
-import { WhatsNewReturnBar, whatsNewPageParam } from '../whats-new-return-bar';
+import { WhatsNewReturnBar, whatsNewOrigin, whatsNewPageParam } from '../whats-new-return-bar';
 
 const BACK = "Back to What's New";
 const NEXT = 'Next feature';
 
 beforeEach(() => {
   jest.clearAllMocks();
-  useWhatsNewStore.setState({ returnSessionOpen: true });
+  useWhatsNewStore.setState({ returnSessionOpen: true, visitPages: null, nextAfter: null });
 });
 
 describe('whatsNewPageParam', () => {
@@ -45,6 +45,15 @@ describe('whatsNewPageParam', () => {
     expect(whatsNewPageParam(undefined)).toBeNull();
     expect(whatsNewPageParam('-1')).toBeNull();
     expect(whatsNewPageParam('x')).toBeNull();
+  });
+});
+
+describe('whatsNewOrigin', () => {
+  it('reads the page only for a screen opened from What’s New', () => {
+    expect(whatsNewOrigin(FROM_WHATS_NEW, '1')).toBe(1);
+    expect(whatsNewOrigin(FROM_WHATS_NEW, undefined)).toBeNull();
+    expect(whatsNewOrigin(undefined, '1')).toBeUndefined();
+    expect(whatsNewOrigin('home', '1')).toBeUndefined();
   });
 });
 
@@ -153,5 +162,17 @@ describe('WhatsNewReturnBar', () => {
       feature: WHATS_NEW_FEATURE.RECEIPT_SCAN,
       action: 'next',
     });
+  });
+
+  it('over What’s New, offers no Next when the scan is the last page of the open visit', async () => {
+    // An auto-shown visit that left out Notes: the scan is its last page.
+    useWhatsNewStore.setState({
+      visitPages: [WHATS_NEW_FEATURE.ROAD_ATLAS, WHATS_NEW_FEATURE.RECEIPT_SCAN],
+    });
+    await render(
+      <WhatsNewReturnBar feature={WHATS_NEW_FEATURE.RECEIPT_SCAN} fromWhatsNew page={1} stacked />,
+    );
+    expect(screen.getByRole('button', { name: BACK })).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: NEXT })).toBeNull();
   });
 });

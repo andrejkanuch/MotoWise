@@ -165,6 +165,7 @@ export function WhatsNewScreen({
           })
         : selectPages(release, NOTHING_SEEN);
     setPages(fixed);
+    store.setVisitPages(fixed.map((entry) => entry.feature));
     if (source === WHATS_NEW_SOURCE.AUTO) {
       store.markReleaseSeen(
         release.version,
@@ -272,6 +273,9 @@ export function WhatsNewScreen({
       tried_count: pages.filter((entry) => triedFeatures.includes(entry.feature)).length,
     });
     setReturnSessionOpen(false);
+    const store = useWhatsNewStore.getState();
+    store.setVisitPages(null);
+    store.setNextAfter(null);
     router.back();
   };
 

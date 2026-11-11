@@ -4,7 +4,6 @@ import { type Href, router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { FROM_WHATS_NEW } from '../../config/routes';
 import { WHATS_NEW_FEATURE } from '../../data/whats-new-releases';
 import { ReceiptScanFlow } from '../../features/receipt-scan/receipt-scan-flow';
 import {
@@ -16,10 +15,7 @@ import {
 import { useReceiptScanQuota } from '../../features/receipt-scan/use-receipt-scan-quota';
 import { useReceiptScanSave } from '../../features/receipt-scan/use-receipt-scan-save';
 import { type ScanBike, useScanFlow } from '../../features/receipt-scan/use-scan-flow';
-import {
-  WhatsNewReturnBar,
-  whatsNewPageParam,
-} from '../../features/whats-new/whats-new-return-bar';
+import { WhatsNewReturnBar, whatsNewOrigin } from '../../features/whats-new/whats-new-return-bar';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { EXPENSE_ENTRY_SOURCE } from '../../lib/expense-analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -113,7 +109,7 @@ export default function ScanReceiptScreen() {
       isOnboarding={isOnboarding}
       initialResume={resumeHandoff}
       surface={surface}
-      whatsNewPage={params.from === FROM_WHATS_NEW ? whatsNewPageParam(params.wnPage) : undefined}
+      whatsNewPage={whatsNewOrigin(params.from, params.wnPage)}
     />
   );
 }
@@ -219,12 +215,14 @@ function ScanFlowHost({
       onSave={onSave}
       saving={saving}
       footer={
-        <WhatsNewReturnBar
-          feature={WHATS_NEW_FEATURE.RECEIPT_SCAN}
-          fromWhatsNew={whatsNewPage !== undefined}
-          page={whatsNewPage ?? null}
-          stacked
-        />
+        whatsNewPage === undefined ? undefined : (
+          <WhatsNewReturnBar
+            feature={WHATS_NEW_FEATURE.RECEIPT_SCAN}
+            fromWhatsNew
+            page={whatsNewPage}
+            stacked
+          />
+        )
       }
     />
   );
