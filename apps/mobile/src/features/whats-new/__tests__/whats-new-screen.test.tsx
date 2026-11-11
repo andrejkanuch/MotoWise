@@ -27,6 +27,11 @@ jest.mock('react-native-svg', () => {
     ...Object.fromEntries(names.map((name) => [name, element])),
   };
 });
+jest.mock('@rnmapbox/maps', () => {
+  const { View } = require('react-native');
+  const Pass = ({ children }: { children?: ReactNode }) => <View>{children}</View>;
+  return { __esModule: true, default: { MapView: Pass, Camera: () => null } };
+});
 jest.mock('expo-application', () => ({ __esModule: true, nativeApplicationVersion: '3.28.0' }));
 const mockBack = jest.fn();
 jest.mock('expo-router', () => ({
@@ -61,7 +66,7 @@ jest.mock('../whats-new-boot', () => {
 const mockHandle = { current: null as unknown };
 jest.mock('../use-boot-snapshot', () => ({ useBootSnapshot: () => mockHandle.current }));
 
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { AccessibilityInfo } from 'react-native';
 import { WHATS_NEW_SOURCE } from '@/config/whats-new';
 import {
@@ -181,6 +186,8 @@ beforeEach(() => {
     triedFeatures: [],
     usedFeatures: [],
     returnSessionOpen: true,
+    nextAfter: null,
+    visitPages: null,
   });
   useHandle(YOUR_DATA);
 });
@@ -286,6 +293,39 @@ describe('profile and return', () => {
     expect(pageOf()).toBe('2 of 3');
     expect(calls('WHATS_NEW_VIEWED')).toEqual([]);
     expect(useWhatsNewStore.getState().lastSeenVersion).toBe('3.25.0');
+  });
+});
+
+describe('a feature opened on top', () => {
+  it('knows the open visit’s pages until What’s New closes, which also drops a pending request', async () => {
+    await open({ source: WHATS_NEW_SOURCE.PROFILE });
+    expect(useWhatsNewStore.getState().visitPages).toEqual([
+      WHATS_NEW_FEATURE.ROAD_ATLAS,
+      WHATS_NEW_FEATURE.RECEIPT_SCAN,
+      WHATS_NEW_FEATURE.NOTES_PHOTOS,
+    ]);
+    useWhatsNewStore.setState({ nextAfter: WHATS_NEW_FEATURE.NOTES_PHOTOS });
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Close' }));
+    expect(useWhatsNewStore.getState().visitPages).toBeNull();
+    expect(useWhatsNewStore.getState().nextAfter).toBeNull();
+  });
+
+  it('a request for a feature this visit does not show leaves the page alone', async () => {
+    await open({ source: WHATS_NEW_SOURCE.PROFILE, resume: '1' });
+    useWhatsNewStore.setState({ visitPages: null });
+    await act(() => useWhatsNewStore.getState().setNextAfter('unknown' as WhatsNewFeature));
+    expect(pageOf()).toBe('2 of 3');
+    expect(useWhatsNewStore.getState().nextAfter).toBeNull();
+  });
+
+  it('"Next feature" there moves What\u2019s New on to the page after that feature', async () => {
+    await open({ source: WHATS_NEW_SOURCE.PROFILE, resume: '1' });
+    expect(pageOf()).toBe('2 of 3');
+
+    await act(() => useWhatsNewStore.getState().setNextAfter(WHATS_NEW_FEATURE.RECEIPT_SCAN));
+    expect(pageOf()).toBe('3 of 3');
+    expect(useWhatsNewStore.getState().nextAfter).toBeNull();
   });
 });
 

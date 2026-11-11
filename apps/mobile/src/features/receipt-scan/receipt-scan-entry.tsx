@@ -36,6 +36,8 @@ interface ReceiptScanEntryProps {
 export interface ReceiptScanEntryState {
   /** Opens the scan flow, or the paywall once the free scans are used up. */
   open: () => void;
+  /** `open`, with extra route params for the scan screen (such as where it was opened from). */
+  openWith: (params?: Readonly<Record<string, string>>) => void;
   /** Free scans left this month; shown as "N free" beside the scan action. */
   remaining: number;
   /** Free with scans left: show the "N free" count. */
@@ -57,7 +59,7 @@ export function useReceiptScanEntry({
   const { requireAccess } = useProGate();
   const quota = useReceiptScanQuota();
 
-  const open = () => {
+  const openWith = (params?: Readonly<Record<string, string>>) => {
     triggerImpact();
     // 0-state → paywall (upsell), never a dead modal. requireAccess presents the
     // RevenueCat paywall (and fires paywall_present_requested + paywall_viewed) and
@@ -65,12 +67,13 @@ export function useReceiptScanEntry({
     if (!requireAccess(RECEIPT_SCAN_LIMIT_KEY, quota.used)) return;
     router.push({
       pathname: MODAL_ROUTE.SCAN_RECEIPT,
-      params: { ...(motorcycleId ? { motorcycleId } : {}), surface },
+      params: { ...params, ...(motorcycleId ? { motorcycleId } : {}), surface },
     } as Href);
   };
 
   return {
-    open,
+    open: () => openWith(),
+    openWith,
     remaining: quota.remaining,
     showFreeBadge: !quota.isPro && Number.isFinite(quota.remaining) && quota.remaining > 0,
     showUpsellBadge: !quota.isPro && quota.isExhausted,

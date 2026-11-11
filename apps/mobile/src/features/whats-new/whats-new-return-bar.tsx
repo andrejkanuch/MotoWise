@@ -1,7 +1,12 @@
 /**
  * The way back from a feature screen a What's New page opened: "‹ Back to
- * What's New" reopens that page, "Next feature ›" the one after it. Each is one
- * `router.push` of the What's New modal, without the boot.
+ * What's New" reopens that page, "Next feature ›" the one after it.
+ *
+ * - A screen that replaced What's New (Rider insights, Notes) pushes the
+ *   What's New modal again, without the boot: one `router.push`.
+ * - A screen opened on top of What's New (the scan) pops back to it with one
+ *   `router.back()`; for "Next feature" it first asks What's New to move on to
+ *   the page after this feature.
  *
  * Drawn only while the visit is open (closing What's New ends it) and only on a
  * screen that says it was opened from What's New, so a stale route param on a
@@ -14,8 +19,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import { whatsNewReturnHref } from '@/config/routes';
-import { WHATS_NEW_TIMING } from '@/config/whats-new';
+import { FROM_WHATS_NEW, whatsNewReturnHref } from '@/config/routes';
+import { WHATS_NEW_MIN_TARGET as MIN_TARGET, WHATS_NEW_TIMING } from '@/config/whats-new';
 import type { WhatsNewFeature } from '@/data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { installedRelease, NOTHING_SEEN, selectPages } from '@/lib/whats-new';
@@ -24,7 +29,6 @@ import { useEditorialTheme } from '@/theme/editorial';
 import { space } from '@/theme/spacing';
 import { radius, SYSTEM_WEIGHT, type } from '@/theme/type';
 import { triggerImpact } from '@/utils/haptics';
-import { MIN_TARGET } from './whats-new-page';
 
 /** What the rider did on the bar, as sent on the returned event. */
 export const WHATS_NEW_RETURN_ACTION = { BACK: 'back', NEXT: 'next' } as const;
@@ -38,6 +42,19 @@ export function whatsNewPageParam(value: string | string[] | undefined): number 
   const raw = Array.isArray(value) ? value[0] : value;
   if (!raw || !/^\d+$/.test(raw)) return null;
   return Number.parseInt(raw, 10);
+}
+
+/**
+ * Where a screen was opened from, read from its `from` / `wnPage` params: the
+ * What's New page (null when the page is unknown), or undefined when it was not
+ * opened from What's New at all.
+ */
+export function whatsNewOrigin(
+  from: string | string[] | undefined,
+  wnPage: string | string[] | undefined,
+): number | null | undefined {
+  const source = Array.isArray(from) ? from[0] : from;
+  return source === FROM_WHATS_NEW ? whatsNewPageParam(wnPage) : undefined;
 }
 
 /** Whether a screen opened `fromWhatsNew` should show the bar right now. */
@@ -61,14 +78,24 @@ interface WhatsNewReturnBarProps {
   fromWhatsNew: boolean;
   /** The page it was opened from (`wnPage`), used when the feature has no page on the way back. */
   page: number | null;
+  /** This screen sits on top of the open What's New, so the way back is a pop. */
+  stacked?: boolean;
 }
 
-export function WhatsNewReturnBar({ feature, fromWhatsNew, page }: WhatsNewReturnBarProps) {
+export function WhatsNewReturnBar({
+  feature,
+  fromWhatsNew,
+  page,
+  stacked = false,
+}: WhatsNewReturnBarProps) {
   const { t: tr } = useTranslation();
   const { t } = useEditorialTheme();
   const router = useRouter();
   const visible = useWhatsNewReturnVisible(fromWhatsNew);
-  const pages = useMemo(returnPages, []);
+  const fullSet = useMemo(returnPages, []);
+  const visitPages = useWhatsNewStore((s) => s.visitPages);
+  // Popping back lands on the open visit, whose pages can be fewer than the full set.
+  const pages = stacked && visitPages ? visitPages : fullSet;
   // One What's New per press: a double tap must not stack two of them.
   const leaving = useRef(false);
   useFocusEffect(
@@ -79,8 +106,9 @@ export function WhatsNewReturnBar({ feature, fromWhatsNew, page }: WhatsNewRetur
 
   if (!visible) return null;
 
-  // The reopened screen shows the full set, which can order pages differently
-  // from the visit that opened this screen: find the feature's own page there.
+  // The screen the bar leads to (the reopened full set, or the open visit when
+  // stacked) can order pages differently from the visit that opened this
+  // screen: find the feature's own page there.
   const found = pages.indexOf(feature);
   const current = found >= 0 ? found : Math.min(page ?? 0, pages.length - 1);
   const hasNext = current + 1 < pages.length;
@@ -93,23 +121,16 @@ export function WhatsNewReturnBar({ feature, fromWhatsNew, page }: WhatsNewRetur
     }, WHATS_NEW_TIMING.TAP_LATCH_MS);
     triggerImpact();
     trackEvent(AnalyticsEvent.WHATS_NEW_RETURNED, { feature, action });
-    router.push(whatsNewReturnHref(target));
+    if (!stacked) {
+      router.push(whatsNewReturnHref(target));
+      return;
+    }
+    if (action === WHATS_NEW_RETURN_ACTION.NEXT) useWhatsNewStore.getState().setNextAfter(feature);
+    router.back();
   };
 
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: space.xs,
-        padding: space.xxs,
-        borderRadius: radius.pill,
-        borderCurve: 'continuous',
-        borderWidth: 1,
-        borderColor: t.line,
-        backgroundColor: t.surface,
-      }}
-    >
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
       <Pressable
         accessibilityRole="button"
         onPress={() => go(WHATS_NEW_RETURN_ACTION.BACK, current)}
@@ -141,7 +162,10 @@ export function WhatsNewReturnBar({ feature, fromWhatsNew, page }: WhatsNewRetur
             flexDirection: 'row',
             alignItems: 'center',
             gap: space.xxs,
-            paddingHorizontal: space.sm,
+            paddingHorizontal: space.md,
+            borderRadius: radius.pill,
+            borderCurve: 'continuous',
+            backgroundColor: t.surface2,
             opacity: pressed ? PRESSED_OPACITY : 1,
           })}
         >

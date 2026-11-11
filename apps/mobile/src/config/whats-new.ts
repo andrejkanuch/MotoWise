@@ -20,6 +20,9 @@ export const WHATS_NEW_TIMING = {
   TAP_LATCH_MS: 1000,
 } as const;
 
+/** Smallest press target on What's New and its way back, in points. */
+export const WHATS_NEW_MIN_TARGET = 44;
+
 export const WHATS_NEW_ARM = {
   TREATMENT: 'treatment',
   HOLDOUT: 'holdout',

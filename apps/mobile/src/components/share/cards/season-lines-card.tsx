@@ -3,7 +3,7 @@ import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { fitViewport, projectPoint } from '@/features/rider-insights/region-tiles';
+import { fitViewport, projectPoint } from '@/features/rider-insights/map-viewport';
 import { formatInsightDistance } from '@/features/rider-insights/use-rider-insights';
 import { space } from '@/theme/spacing';
 import { PLATE_FONT, SYSTEM_WEIGHT } from '@/theme/type';

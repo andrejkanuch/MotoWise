@@ -27,8 +27,6 @@ import { AtlasDemo } from './pages/atlas-demo';
 import { NotesDemo } from './pages/notes-demo';
 import { ScanDemo } from './pages/scan-demo';
 
-/** Minimum touch target, in points. */
-export const MIN_TARGET = 44;
 const CTA_HEIGHT = 52;
 const TRIED_ICON = 14;
 const TRIED_STROKE = 2.8;

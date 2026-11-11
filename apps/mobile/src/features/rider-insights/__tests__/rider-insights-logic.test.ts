@@ -17,7 +17,8 @@ import { routeLayerPlacement, scaleBar } from '../atlas-hero';
 import { blurCaptureKey } from '../blur-capture';
 import { plateLettersFor } from '../country-codes';
 import { busiestSlot, gridLevels } from '../how-you-ride-list';
-import { fitViewport, projectPoint, swapMainRegion } from '../region-tiles';
+import { fitViewport, projectPoint } from '../map-viewport';
+import { swapMainRegion } from '../region-tiles';
 import { seasonEndSoFar, summarizeRibbon, weekRange } from '../season-ribbon';
 import {
   hasRegionGeometry,

@@ -7,7 +7,8 @@
  *   the root stack on every round trip. The screen gets `from` / `entry` and the
  *   page, and offers the way back while the visit stays open.
  * - Scan: the metered scan entry (quota and paywall unchanged). It pushes the
- *   scan modal on top of What's New, so closing the scan lands back on the page.
+ *   scan modal on top of What's New, so closing the scan lands back on the page;
+ *   the scan gets `from` / the page too, and offers the way back.
  * - No bike yet: Notes and Scan open add bike over What's New instead.
  *
  * Never `back()` followed by another action: two modal updates in flight can
@@ -42,7 +43,7 @@ import type { TryFeature } from './whats-new-screen';
 interface CtaAction {
   /** The rider reaches the feature itself (not add bike first): the page counts as tried. */
   tried: boolean;
-  /** The feature screen replaces What's New and offers the way back. */
+  /** The feature screen offers the way back to What's New. */
   returnBar: boolean;
   navigate: () => void;
 }
@@ -95,7 +96,13 @@ export function useWhatsNewCta(): TryFeature {
             } as Href)
           : addBike,
       [WHATS_NEW_DESTINATION.SCAN_RECEIPT]: () =>
-        bikeId ? { tried: true, returnBar: false, navigate: scan.open } : addBike,
+        bikeId
+          ? {
+              tried: true,
+              returnBar: true,
+              navigate: () => scan.openWith({ from: FROM_WHATS_NEW, wnPage: page }),
+            }
+          : addBike,
     };
     const action = actions[WHATS_NEW_FEATURES[feature].destination]();
 

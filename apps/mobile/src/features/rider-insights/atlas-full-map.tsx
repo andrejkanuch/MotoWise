@@ -8,7 +8,7 @@ import { useEditorialTheme } from '@/theme/editorial';
 import { space } from '@/theme/spacing';
 import { MAP_STYLES } from '@/utils/map-styles';
 import { RouteLayers, routesShape } from './atlas-hero';
-import { fitViewport } from './region-tiles';
+import { fitViewport } from './map-viewport';
 import type { RiderInsightsRegion } from './use-rider-insights';
 
 /** Room around the routes the map opens on. */

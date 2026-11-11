@@ -43,6 +43,7 @@ export function ReceiptScanFlow({
   onClose,
   onSave = defaultReviewSave,
   saving = false,
+  footer,
 }: {
   flow: ScanFlow;
   onManualEntry: () => void;
@@ -54,6 +55,11 @@ export function ReceiptScanFlow({
   onSave?: (payload: ReceiptReviewPayload) => void;
   /** A review save is in flight — the review card shows progress on Save. */
   saving?: boolean;
+  /**
+   * Drawn under the phase while the rider is still choosing what to scan (bike,
+   * consent, capture): the way back to What's New. Hidden once a photo is in.
+   */
+  footer?: ReactNode;
 }) {
   const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
@@ -82,6 +88,9 @@ export function ReceiptScanFlow({
       }}
     >
       {renderPhase(phase, flow, onManualEntry, onClose, onSave, saving)}
+      {footer && FOOTER_PHASES.has(phase) ? (
+        <View style={{ paddingBottom: Math.max(insets.bottom, space.md) }}>{footer}</View>
+      ) : null}
     </View>
   );
 }
@@ -92,6 +101,13 @@ export function ReceiptScanFlow({
  * telemetry, haptics); only persistence is deferred.
  */
 function defaultReviewSave(_payload: ReceiptReviewPayload) {}
+
+/** Phases before a photo is taken, where leaving costs the rider nothing. */
+const FOOTER_PHASES: ReadonlySet<ScanPhase> = new Set([
+  SCAN_PHASE.BIKE_PICK,
+  SCAN_PHASE.CONSENT,
+  SCAN_PHASE.CAPTURE,
+]);
 
 /** Phase → surface dispatch (no if/else ladder). */
 function renderPhase(
