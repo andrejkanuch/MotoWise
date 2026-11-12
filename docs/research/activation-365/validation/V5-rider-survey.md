@@ -2,7 +2,7 @@
 
 > **Nothing here has been sent, scheduled or built.** Sending the email, or shipping the in-app card, needs the owner's explicit approval. The email below is a draft, and so is the card copy. No email address, name or message text was read into this file. Every database figure is an aggregate count.
 
-Run 2026-11-12 on the clean checkout `/Users/andrejmacm5/personal/MotoWise-research` (HEAD `7e29f7c0`, origin/main). Read-only throughout:
+Run 2026-11-12 on the clean checkout `a clean origin/main checkout` (HEAD `7e29f7c0`, origin/main). Read-only throughout:
 - Supabase production through the Management API. Each query ran inside `BEGIN READ ONLY; … COMMIT;`.
 - PostHog project 155556 through `execute-sql`.
 
