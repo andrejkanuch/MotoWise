@@ -10,8 +10,10 @@ import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } 
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { CategoryDonut } from '@/components/expense-dashboard/category-donut';
 import { costPerDistance } from '@/components/expense-dashboard/cost-per-distance';
+import { CostTrendCard } from '@/components/expense-dashboard/cost-trend-card';
 import { ExpenseDashboardEmptyState } from '@/components/expense-dashboard/expense-dashboard-empty-state';
 import { MonthlyTrend } from '@/components/expense-dashboard/monthly-trend';
+import { StatColumn } from '@/components/expense-dashboard/stat-column';
 import { SummaryCards } from '@/components/expense-dashboard/summary-cards';
 import { useCurrency } from '@/hooks/use-currency';
 import {
@@ -47,36 +49,6 @@ const PERIOD_TOTAL_KEY = {
   lastYear: 'expenses.totalSpentLastYear',
   allTime: 'expenses.totalSpentAllTime',
 } as const satisfies Record<Period, string>;
-
-const STAT_LABEL_STYLE = type.label;
-
-const STAT_VALUE_STYLE = {
-  ...type.figureSmall,
-  marginTop: space.xxs,
-};
-
-/**
- * One label/value cell in the cost-of-ownership card. The card carries four of
- * them across two rows (purchase + all expenses, then invested + cost of
- * riding); inlining the styles four times is what the mobile "inline unless
- * reused" rule stops covering.
- */
-function StatColumn({
-  theme,
-  label,
-  value,
-}: {
-  theme: ReturnType<typeof useEditorialTheme>['t'];
-  label: string;
-  value: string;
-}) {
-  return (
-    <View style={{ flex: 1 }}>
-      <Text style={{ ...STAT_LABEL_STYLE, color: theme.ink2 }}>{label}</Text>
-      <Text style={{ ...STAT_VALUE_STYLE, color: theme.ink }}>{value}</Text>
-    </View>
-  );
-}
 
 export default function ExpenseDashboardScreen() {
   const { motorcycleId, currentMileage } = useLocalSearchParams<{
@@ -756,6 +728,8 @@ export default function ExpenseDashboardScreen() {
         </Text>
         <MonthlyTrend buckets={filteredBuckets} isDark={isDark} />
       </Animated.View>
+
+      <CostTrendCard motorcycleId={motorcycleId} expenseCount={dashboard.expenseCount} />
     </ScrollView>
   );
 }

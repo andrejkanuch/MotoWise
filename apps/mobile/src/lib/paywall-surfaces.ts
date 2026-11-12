@@ -20,6 +20,8 @@ export function isOnboardingPaywallSurface(surface: string | undefined): boolean
 /** Paywall surfaces outside onboarding that the app names on its own. */
 export const PAYWALL_SURFACE = {
   RIDER_INSIGHTS: 'rider_insights',
+  /** The locked Cost trend card on the expense dashboard. */
+  EXPENSE_COST_TREND: 'expense_cost_trend',
 } as const;
 
 export type PaywallSurface = (typeof PAYWALL_SURFACE)[keyof typeof PAYWALL_SURFACE];

@@ -1539,7 +1539,19 @@
     "categoryRowA11y": "{{category}}: {{amount}}, {{percent}} Prozent. Tippe, um die Ausgaben zu sehen.",
     "trendChartA11y": "Diagramm der monatlichen Ausgaben",
     "legendA11y": "Legende: {{list}}",
-    "summaryA11y": "Ausgaben auf einen Blick"
+    "summaryA11y": "Ausgaben auf einen Blick",
+    "costTrend": {
+      "title": "Kostenverlauf",
+      "lockedBody": "Sieh, was dich dieses Motorrad in den letzten 12 Monaten pro Monat kostet.",
+      "unlock": "Freischalten",
+      "lockedA11y": "Kostenverlauf, Pro. Öffnet die Paywall",
+      "last12Months": "Letzte 12 Monate",
+      "seriesA11y": "{{amount}} in den letzten 12 Monaten, {{from}} bis {{to}}",
+      "otherCurrencies_one": "{{count}} Ausgabe in einer anderen Währung nicht enthalten",
+      "otherCurrencies_few": "{{count}} Ausgaben in anderen Währungen nicht enthalten",
+      "otherCurrencies_many": "{{count}} Ausgaben in anderen Währungen nicht enthalten",
+      "otherCurrencies_other": "{{count}} Ausgaben in anderen Währungen nicht enthalten"
+    }
   },
   "privacy": {
     "title": "Datenschutz",

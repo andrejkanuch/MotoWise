@@ -631,6 +631,8 @@ export const AnalyticsEvent = {
   EXPENSE_ADDED: 'expense_added',
   EXPENSE_QUICK_ADD_TAPPED: 'expense_quick_add_tapped',
   EXPENSE_DASHBOARD_VIEWED: 'expense_dashboard_viewed',
+  /** The Cost trend card was on screen (`locked`), once per dashboard visit. A tap on the locked card fires the paywall events with surface `expense_cost_trend`. */
+  EXPENSE_COST_TREND_SHOWN: 'expense_cost_trend_shown',
   EXPENSE_SERVICE_RECORD_OPENED: 'expense_service_record_opened',
   // Receipt scan (U6)
   RECEIPT_SCAN_STARTED: 'receipt_scan_started',

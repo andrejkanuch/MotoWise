@@ -1581,7 +1581,19 @@
     "categoryRowA11y": "{{category}}: {{amount}}, {{percent}} percent. Ťukni a zobraz výdavky.",
     "trendChartA11y": "Graf mesačných výdavkov",
     "legendA11y": "Legenda grafu: {{list}}",
-    "summaryA11y": "Prehľad výdavkov"
+    "summaryA11y": "Prehľad výdavkov",
+    "costTrend": {
+      "title": "Vývoj nákladov",
+      "lockedBody": "Pozrite sa, koľko vás tento motocykel stojí každý mesiac za posledných 12 mesiacov.",
+      "unlock": "Odomknúť",
+      "lockedA11y": "Vývoj nákladov, Pro. Otvorí ponuku predplatného",
+      "last12Months": "Posledných 12 mesiacov",
+      "seriesA11y": "{{amount}} za posledných 12 mesiacov, od {{from}} do {{to}}",
+      "otherCurrencies_one": "{{count}} výdavok v inej mene nie je zahrnutý",
+      "otherCurrencies_few": "{{count}} výdavky v iných menách nie sú zahrnuté",
+      "otherCurrencies_many": "{{count}} výdavku v iných menách nie je zahrnutých",
+      "otherCurrencies_other": "{{count}} výdavkov v iných menách nie je zahrnutých"
+    }
   },
   "privacy": {
     "title": "Súkromie",

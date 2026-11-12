@@ -1539,7 +1539,19 @@
     "categoryRowA11y": "{{category}}: {{amount}}, {{percent}} persen. Ketuk untuk melihat pengeluaran.",
     "trendChartA11y": "Grafik tren pengeluaran bulanan",
     "legendA11y": "Keterangan grafik: {{list}}",
-    "summaryA11y": "Ringkasan pengeluaran"
+    "summaryA11y": "Ringkasan pengeluaran",
+    "costTrend": {
+      "title": "Tren biaya",
+      "lockedBody": "Lihat biaya motor ini setiap bulan selama 12 bulan terakhir.",
+      "unlock": "Buka",
+      "lockedA11y": "Tren biaya, Pro. Membuka halaman langganan",
+      "last12Months": "12 bulan terakhir",
+      "seriesA11y": "{{amount}} dalam 12 bulan terakhir, {{from}} sampai {{to}}",
+      "otherCurrencies_one": "{{count}} pengeluaran dalam mata uang lain tidak termasuk",
+      "otherCurrencies_few": "{{count}} pengeluaran dalam mata uang lain tidak termasuk",
+      "otherCurrencies_many": "{{count}} pengeluaran dalam mata uang lain tidak termasuk",
+      "otherCurrencies_other": "{{count}} pengeluaran dalam mata uang lain tidak termasuk"
+    }
   },
   "privacy": {
     "title": "Privasi",

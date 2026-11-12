@@ -261,7 +261,11 @@
     "amountLabel": "Importe",
     "avgPerMonth": "Media / mes",
     "costPerKm": "Coste / km",
-    "costPerMi": "Coste / mi"
+    "costPerMi": "Coste / mi",
+    "costTrend": {
+      "title": "Tendencia de costes",
+      "lockedA11y": "Tendencia de costes, Pro. Abre la pantalla de suscripción"
+    }
   },
   "settings": {
     "fullNamePlaceholder": "Introduce tu nombre completo",

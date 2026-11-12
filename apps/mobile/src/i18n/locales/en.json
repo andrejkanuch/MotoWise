@@ -1550,7 +1550,19 @@
     "categoryRowA11y": "{{category}}: {{amount}}, {{percent}} percent. Tap to view expenses.",
     "trendChartA11y": "Monthly expense trend chart",
     "legendA11y": "Chart legend: {{list}}",
-    "summaryA11y": "Expense summary metrics"
+    "summaryA11y": "Expense summary metrics",
+    "costTrend": {
+      "title": "Cost trend",
+      "lockedBody": "See what this bike costs you each month over the last 12 months.",
+      "unlock": "Unlock",
+      "lockedA11y": "Cost trend, Pro. Opens the paywall",
+      "last12Months": "Last 12 months",
+      "seriesA11y": "{{amount}} in the last 12 months, {{from}} to {{to}}",
+      "otherCurrencies_one": "{{count}} expense in another currency not included",
+      "otherCurrencies_few": "{{count}} expenses in other currencies not included",
+      "otherCurrencies_many": "{{count}} expenses in other currencies not included",
+      "otherCurrencies_other": "{{count}} expenses in other currencies not included"
+    }
   },
   "privacy": {
     "title": "Privacy",
