@@ -11,6 +11,7 @@ import i18n from '../i18n';
 import { useSubscriptionStore } from '../stores/subscription.store';
 import { AnalyticsEvent, addBreadcrumb, captureException, trackEvent } from './analytics';
 import { getStoredAnalyticsConsent } from './analytics-consent';
+import { vendorSdksDisabled } from './e2e-build';
 import { isPaywallVariablesEnabled } from './feature-flags';
 import { logger } from './logger';
 import { getStoredUtmProperties } from './meta-attribution';
@@ -302,6 +303,11 @@ async function doInit(): Promise<(() => void) | null> {
       process.env.EXPO_OS === 'ios'
         ? process.env.EXPO_PUBLIC_RC_IOS_KEY
         : process.env.EXPO_PUBLIC_RC_ANDROID_KEY;
+
+    if (vendorSdksDisabled()) {
+      logger.warn('[RevenueCat] Disabled in this E2E build');
+      return null;
+    }
 
     if (!apiKey) {
       logger.warn('[RevenueCat] No API key configured');

@@ -85,11 +85,7 @@
         "SENTRY_DISABLE_AUTO_UPLOAD": "true",
         "EAS_NO_FROZEN_LOCKFILE": "1",
         "ORG_GRADLE_PROJECT_reactNativeArchitectures": "arm64-v8a",
-        "EXPO_PUBLIC_RC_ANDROID_KEY": "",
-        "EXPO_PUBLIC_RC_IOS_KEY": "",
-        "POSTHOG_API_KEY": "",
-        "EXPO_PUBLIC_META_APP_ID": "",
-        "EXPO_PUBLIC_META_CLIENT_TOKEN": ""
+        "EXPO_PUBLIC_E2E_NO_VENDOR_SDKS": "1"
       }
     },
     "e2e-android-local": {
@@ -103,7 +99,8 @@
         "EXPO_PUBLIC_E2E_RUN": "1",
         "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "e2e",
         "SENTRY_DISABLE_AUTO_UPLOAD": "true",
-        "ORG_GRADLE_PROJECT_reactNativeArchitectures": "arm64-v8a"
+        "ORG_GRADLE_PROJECT_reactNativeArchitectures": "arm64-v8a",
+        "EXPO_PUBLIC_E2E_NO_VENDOR_SDKS": "1"
       }
     }
   },

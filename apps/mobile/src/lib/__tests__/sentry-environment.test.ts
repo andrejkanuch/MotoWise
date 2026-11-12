@@ -58,18 +58,10 @@ describe('eas.json build profiles', () => {
     }
   });
 
-  // Owner rule: test runs must not reach RevenueCat, PostHog or Meta. An empty key
-  // disables each SDK; `e2e-android-local` inherits these from `e2e-android`.
-  it('blanks the RevenueCat, PostHog and Meta keys in the Android E2E profile', () => {
-    const env = build['e2e-android'].env ?? {};
-    for (const key of [
-      'EXPO_PUBLIC_RC_ANDROID_KEY',
-      'EXPO_PUBLIC_RC_IOS_KEY',
-      'POSTHOG_API_KEY',
-      'EXPO_PUBLIC_META_APP_ID',
-      'EXPO_PUBLIC_META_CLIENT_TOKEN',
-    ]) {
-      expect([key, env[key]]).toEqual([key, '']);
+  // Owner rule: test runs must not reach RevenueCat, PostHog or Meta (see e2e-build.ts).
+  it('switches the vendor SDKs off in both Android E2E profiles', () => {
+    for (const name of ['e2e-android', 'e2e-android-local']) {
+      expect([name, build[name].env?.EXPO_PUBLIC_E2E_NO_VENDOR_SDKS]).toEqual([name, '1']);
     }
   });
 });
