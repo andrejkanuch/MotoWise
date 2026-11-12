@@ -1,5 +1,6 @@
 import { ServiceUnavailableException, UnprocessableEntityException } from '@nestjs/common';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { UpstreamUnavailableException } from '../../common/exceptions/upstream-unavailable.exception';
 import { NhtsaService } from './nhtsa.service';
 
 describe('NhtsaService', () => {
@@ -7,7 +8,9 @@ describe('NhtsaService', () => {
   const originalFetch = globalThis.fetch;
 
   beforeEach(() => {
-    vi.useFakeTimers();
+    // shouldAdvanceTime: the service's short retry backoff (a real setTimeout)
+    // elapses on its own; tests still jump hours ahead with advanceTimersByTime.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     globalThis.fetch = vi.fn();
     service = new NhtsaService();
   });
@@ -416,6 +419,95 @@ describe('NhtsaService', () => {
         (call[0] as string).includes('DecodeVinValues'),
       );
       expect(decodeCalls).toHaveLength(1);
+    });
+
+    /** Every call hangs until its abort timeout fires, like NHTSA on 2026-11-09. */
+    function mockNhtsaHanging() {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockImplementation(
+        (_url: string, init: { signal: AbortSignal }) =>
+          new Promise((_resolve, reject) => {
+            init.signal.addEventListener('abort', () =>
+              reject(new DOMException('aborted', 'AbortError')),
+            );
+          }),
+      );
+    }
+
+    const fetchedUrls = () =>
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.map((call) => call[0] as string);
+
+    const BIKE = { make: 'BMW', model: 'R 1200 GS', year: 2006 };
+
+    it('answers a hanging NHTSA within the app timeout: no retry after a timeout (MOTO-VAULT-NODE-NESTJS-T)', async () => {
+      mockNhtsaHanging();
+      const startedAt = Date.now();
+
+      const settled = service.getRecalls(BIKE).then(
+        () => ({ error: undefined, at: Date.now() }),
+        (error: unknown) => ({ error, at: Date.now() }),
+      );
+      await vi.advanceTimersByTimeAsync(40_000);
+      const { error, at } = await settled;
+
+      expect(error).toBeInstanceOf(UpstreamUnavailableException);
+      // 5s products budget + 10s recalls budget, not 2 x 2 x 10s = 40s.
+      expect(at - startedAt).toBeLessThan(20_000);
+      const urls = fetchedUrls();
+      expect(new Set(urls).size).toBe(urls.length);
+    });
+
+    it('fails fast while NHTSA is known to be down, then tries again after the cooldown', async () => {
+      mockNhtsaHanging();
+      const first = service.getRecalls(BIKE);
+      const firstAssertion = expect(first).rejects.toBeInstanceOf(UpstreamUnavailableException);
+      await vi.advanceTimersByTimeAsync(20_000);
+      await firstAssertion;
+
+      const fetchMock = globalThis.fetch as ReturnType<typeof vi.fn>;
+      fetchMock.mockClear();
+      await expect(service.getRecalls(BIKE)).rejects.toBeInstanceOf(UpstreamUnavailableException);
+      expect(fetchMock).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(61_000);
+      mockNhtsaApis({ recallsByModel: { 'R 1200 GS': [CAMPAIGN] } });
+      await expect(service.getRecalls(BIKE)).resolves.toHaveLength(1);
+    });
+
+    it('serves the expired recall list while NHTSA is down', async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: test access to private logger
+      vi.spyOn((service as any).logger, 'warn').mockImplementation(() => undefined);
+      mockNhtsaApis({ recallsByModel: { 'R 1200 GS': [CAMPAIGN] } });
+      await service.getRecalls(BIKE);
+
+      vi.advanceTimersByTime(25 * 60 * 60 * 1000);
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: false, status: 503 });
+
+      const recalls = await service.getRecalls(BIKE);
+
+      expect(recalls.map((recall) => recall.campaignNumber)).toEqual(['20V797000']);
+    });
+
+    it('joins a concurrent lookup for the same bike instead of querying NHTSA twice', async () => {
+      mockNhtsaApis({ recallsByModel: { 'R 1200 GS': [CAMPAIGN] } });
+
+      const [a, b] = await Promise.all([service.getRecalls(BIKE), service.getRecalls(BIKE)]);
+
+      expect(a).toEqual(b);
+      const urls = fetchedUrls();
+      expect(new Set(urls).size).toBe(urls.length);
+    });
+
+    it('reports an upstream 4xx (our request is wrong) as a plain 503, not an outage', async () => {
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: false, status: 403 });
+
+      const error = await service
+        .getRecalls({ vin: 'JH2SD1000MK000000', make: 'Honda' })
+        .catch((caught: unknown) => caught);
+
+      expect(error).toBeInstanceOf(ServiceUnavailableException);
+      expect(error).not.toBeInstanceOf(UpstreamUnavailableException);
+      // Deterministic answer: not retried.
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     });
 
     it('serves cached results without re-fetching', async () => {

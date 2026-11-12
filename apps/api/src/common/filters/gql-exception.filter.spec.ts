@@ -8,6 +8,7 @@ import {
 import * as Sentry from '@sentry/nestjs';
 import { GraphQLError } from 'graphql';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { UpstreamUnavailableException } from '../exceptions/upstream-unavailable.exception';
 import { AllExceptionsFilter } from './gql-exception.filter';
 
 vi.mock('@sentry/nestjs', () => ({
@@ -147,6 +148,18 @@ describe('AllExceptionsFilter', () => {
       filter.catch(new UnauthorizedException(), createGqlHost());
 
       expect(Sentry.captureException).not.toHaveBeenCalled();
+    });
+
+    it('does NOT capture a third-party outage, but still answers SERVICE_UNAVAILABLE', () => {
+      const result = filter.catch(
+        new UpstreamUnavailableException('NHTSA', 'NHTSA recalls request timed out'),
+        createGqlHost(),
+      );
+
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+      expect(result).toBeInstanceOf(GraphQLError);
+      expect((result as GraphQLError).extensions.code).toBe('SERVICE_UNAVAILABLE');
+      expect((result as GraphQLError).message).toBe('Internal server error');
     });
   });
 });

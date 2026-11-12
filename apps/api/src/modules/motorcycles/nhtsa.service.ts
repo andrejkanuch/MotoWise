@@ -5,6 +5,7 @@ import {
   ServiceUnavailableException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { UpstreamUnavailableException } from '../../common/exceptions/upstream-unavailable.exception';
 import { buildCandidateModels } from './recall-model-matching';
 
 interface NhtsaMakeResponse {
@@ -118,6 +119,48 @@ const MAKES_TTL = MS_PER_DAY; // 24 hours
 const MODELS_TTL = MS_PER_DAY * 7; // 7 days
 const RECALLS_TTL = MS_PER_DAY; // 24 hours (per MOT-142 spec)
 
+/** Upstream name on UpstreamUnavailableException (warn log, not Sentry). */
+const UPSTREAM_NAME = 'NHTSA';
+
+/** Per-attempt abort timeout for an NHTSA call. */
+const DEFAULT_TIMEOUT_MS = 10_000;
+/**
+ * The recall-side model list only widens the recall query and is non-fatal,
+ * so it gets a shorter budget: the whole recall chain must answer well inside
+ * the app's ~30s request timeout (MOTO-VAULT-NODE-NESTJS-T: 2 calls x 2
+ * attempts x 10s = 40s, so the app gave up and re-sent the query).
+ */
+const RECALL_MODELS_TIMEOUT_MS = 5_000;
+/** Pause before the single retry of a transient failure (5xx, connection error). */
+const RETRY_BACKOFF_MS = 300;
+/**
+ * After an endpoint fails as down (timeout, unreachable, 5xx), calls to it
+ * fail fast for this long instead of each paying the full timeout again.
+ */
+const OUTAGE_COOLDOWN_MS = 60_000;
+
+/** HTTP statuses that mean "NHTSA is down / overloaded", not "our request is wrong". */
+const HTTP_TOO_MANY_REQUESTS = 429;
+const HTTP_SERVER_ERROR_FLOOR = 500;
+
+/** How one fetch attempt failed: whether NHTSA itself is down, and whether a retry can help. */
+interface AttemptFailure {
+  error: ServiceUnavailableException;
+  upstreamDown: boolean;
+  retryable: boolean;
+}
+
+interface FetchJsonOptions<T> {
+  /**
+   * Lets a caller treat HTTP 404/400 as a sentinel value (NHTSA answers those
+   * for "no recalls found") instead of an error.
+   */
+  on404?: () => T;
+  timeoutMs?: number;
+}
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
 @Injectable()
 export class NhtsaService implements OnModuleInit {
   private static readonly MAX_MODELS_CACHE = 500;
@@ -146,6 +189,10 @@ export class NhtsaService implements OnModuleInit {
   private readonly recallsCache = new Map<string, CacheEntry<RecallDto[]>>();
   private readonly recallModelsCache = new Map<string, CacheEntry<string[]>>();
   private readonly vinDecodeCache = new Map<string, CacheEntry<RecallVehicle>>();
+  /** Recall lookups in progress per vehicle, so a client re-send joins the first call. */
+  private readonly recallsInFlight = new Map<string, Promise<RecallDto[]>>();
+  /** Endpoint (origin + path) → epoch ms until which it is treated as down. */
+  private readonly endpointOutageUntil = new Map<string, number>();
 
   /**
    * Run an NHTSA fetch; on failure fall back to an expired cache entry when
@@ -163,7 +210,7 @@ export class NhtsaService implements OnModuleInit {
     } catch (error) {
       if (stale) {
         stale.expiresAt = Date.now() + NhtsaService.STALE_RETRY_COOLDOWN_MS;
-        this.logger.error(`NHTSA ${label} fetch failed — serving stale cache`);
+        this.logger.warn(`NHTSA ${label} fetch failed — serving stale cache`);
         return { stale: stale.data };
       }
       throw error;
@@ -171,54 +218,105 @@ export class NhtsaService implements OnModuleInit {
   }
 
   /**
-   * Shared NHTSA fetch: 10s abort-timeout, non-ok → log + ServiceUnavailable,
-   * abort → timeout message, network failure → unreachable message. Extracted
-   * from the three near-identical fetch blocks below.
+   * Shared NHTSA fetch with a per-attempt abort timeout.
    *
-   * `on404` lets a caller treat HTTP 404 as a sentinel value (NHTSA returns 404
-   * for "no recalls found") instead of an error — when omitted, 404 falls
-   * through to the generic non-ok branch.
+   * - 2xx → parsed JSON. 400/404 → `on404()` when the caller opts in.
+   * - NHTSA down (timeout, connection error, 5xx, 429) →
+   *   {@link UpstreamUnavailableException}: a 503 to the client, a warn log
+   *   instead of a Sentry error, and the endpoint is short-circuited for
+   *   {@link OUTAGE_COOLDOWN_MS} so later requests fail fast instead of each
+   *   paying the timeout (MOTO-VAULT-NODE-NESTJS-T).
+   * - Any other non-ok answer means our request is wrong → plain
+   *   ServiceUnavailableException, which Sentry does capture.
+   *
+   * Connection errors and 5xx get one retry after a short backoff (they are
+   * often blips). A timeout does not: an endpoint that hung for the whole
+   * timeout is down, and a second wait only doubles the rider's wait.
    */
   private async fetchJson<T>(
     url: string,
     messages: { notOkLog: string; notOkThrow: string; timeout: string; unreachable: string },
-    on404?: () => T,
+    options: FetchJsonOptions<T> = {},
   ): Promise<T> {
-    // NHTSA's public API has occasional transient blips (timeouts, 5xx) that a
-    // second attempt clears. Retry once before surfacing a 503 to the client, so
-    // a single upstream hiccup doesn't fail the recall check / makes+models
-    // lookup (MOTO-VAULT-NODE-NESTJS-3).
+    const { on404, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
+    const endpoint = this.endpointKey(url);
+    const downUntil = this.endpointOutageUntil.get(endpoint);
+    if (downUntil !== undefined && Date.now() < downUntil) {
+      throw new UpstreamUnavailableException(UPSTREAM_NAME, messages.unreachable);
+    }
+
     const maxAttempts = 2;
     for (let attempt = 1; ; attempt++) {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10_000);
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+      let failure: AttemptFailure;
       try {
         const response = await fetch(url, { signal: controller.signal });
-        if (!response.ok) {
-          // NHTSA's recalls endpoint returns 400 (not 404) with a valid
-          // "Results returned successfully" body (Count: 0) when a make/model/year
-          // has no matching recalls — extremely common for motorcycles. Vehicles
-          // that DO have recalls return 200, so treating 400/404 as "none found"
-          // (for callers that opt in via on404) never drops real recalls.
-          if ((response.status === 404 || response.status === 400) && on404) {
-            return on404();
-          }
-          this.logger.error(`${messages.notOkLog}: ${response.status}`);
-          throw new ServiceUnavailableException(messages.notOkThrow);
+        if (response.ok) {
+          const json = (await response.json()) as T;
+          this.endpointOutageUntil.delete(endpoint);
+          return json;
         }
-        return (await response.json()) as T;
+        // NHTSA's recalls endpoint returns 400 (not 404) with a valid
+        // "Results returned successfully" body (Count: 0) when a make/model/year
+        // has no matching recalls — extremely common for motorcycles. Vehicles
+        // that DO have recalls return 200, so treating 400/404 as "none found"
+        // (for callers that opt in via on404) never drops real recalls.
+        if ((response.status === 404 || response.status === 400) && on404) {
+          this.endpointOutageUntil.delete(endpoint);
+          return on404();
+        }
+        failure = this.classifyHttpFailure(response.status, messages);
       } catch (error) {
-        const mapped =
-          error instanceof ServiceUnavailableException
-            ? error
-            : error instanceof DOMException && error.name === 'AbortError'
-              ? new ServiceUnavailableException(messages.timeout)
-              : new ServiceUnavailableException(messages.unreachable);
-        if (attempt >= maxAttempts) throw mapped;
+        const timedOut = error instanceof DOMException && error.name === 'AbortError';
+        failure = {
+          error: new UpstreamUnavailableException(
+            UPSTREAM_NAME,
+            timedOut ? messages.timeout : messages.unreachable,
+          ),
+          upstreamDown: true,
+          retryable: !timedOut,
+        };
       } finally {
         clearTimeout(timeout);
       }
+
+      if (failure.retryable && attempt < maxAttempts) {
+        await sleep(RETRY_BACKOFF_MS);
+        continue;
+      }
+      if (failure.upstreamDown) {
+        this.endpointOutageUntil.set(endpoint, Date.now() + OUTAGE_COOLDOWN_MS);
+      }
+      throw failure.error;
     }
+  }
+
+  private classifyHttpFailure(
+    status: number,
+    messages: { notOkLog: string; notOkThrow: string },
+  ): AttemptFailure {
+    const upstreamDown = status >= HTTP_SERVER_ERROR_FLOOR || status === HTTP_TOO_MANY_REQUESTS;
+    if (upstreamDown) {
+      this.logger.warn(`${messages.notOkLog}: ${status}`);
+      return {
+        error: new UpstreamUnavailableException(UPSTREAM_NAME, messages.notOkThrow),
+        upstreamDown,
+        retryable: true,
+      };
+    }
+    this.logger.error(`${messages.notOkLog}: ${status}`);
+    return {
+      error: new ServiceUnavailableException(messages.notOkThrow),
+      upstreamDown,
+      retryable: false,
+    };
+  }
+
+  /** Outage tracking is per endpoint: one NHTSA API being down says nothing about another. */
+  private endpointKey(url: string): string {
+    const { origin, pathname } = new URL(url);
+    return `${origin}${pathname}`;
   }
 
   async onModuleInit() {
@@ -346,6 +444,47 @@ export class NhtsaService implements OnModuleInit {
       return cached.data;
     }
 
+    const inFlight = this.recallsInFlight.get(cacheKey);
+    if (inFlight) return inFlight;
+
+    const lookup = this.lookupRecalls(cacheKey, make, model, year, cached).finally(() =>
+      this.recallsInFlight.delete(cacheKey),
+    );
+    this.recallsInFlight.set(cacheKey, lookup);
+    return lookup;
+  }
+
+  /**
+   * Upstream half of {@link getRecalls}. During an NHTSA outage an expired
+   * cache entry is served instead of failing: recall campaigns are only ever
+   * added, so yesterday's list is still true.
+   */
+  private async lookupRecalls(
+    cacheKey: string,
+    make: string,
+    model: string,
+    year: number,
+    stale: CacheEntry<RecallDto[]> | undefined,
+  ): Promise<RecallDto[]> {
+    const result = await this.fetchWithStaleFallback(
+      () => this.fetchRecalls(make, model, year),
+      stale,
+      `recalls ${cacheKey}`,
+    );
+    if ('stale' in result) return result.stale;
+    const recalls = result.fresh;
+
+    // P2-112: Enforce cache size cap before adding new entries
+    if (this.recallsCache.size >= NhtsaService.MAX_RECALLS_CACHE) {
+      const oldestKey = this.recallsCache.keys().next().value;
+      if (oldestKey) this.recallsCache.delete(oldestKey);
+    }
+    this.recallsCache.set(cacheKey, { data: recalls, expiresAt: Date.now() + RECALLS_TTL });
+    return recalls;
+  }
+
+  /** Query every model-name candidate and merge the campaigns. */
+  private async fetchRecalls(make: string, model: string, year: number): Promise<RecallDto[]> {
     const recallSideModels = await this.getRecallSideModels(make, year);
     const candidates = buildCandidateModels(make, model, recallSideModels);
     const perCandidate = await Promise.all(
@@ -363,15 +502,7 @@ export class NhtsaService implements OnModuleInit {
         byCampaign.set(recall.campaignNumber, recall);
       }
     }
-    const recalls = [...byCampaign.values()];
-
-    // P2-112: Enforce cache size cap before adding new entries
-    if (this.recallsCache.size >= NhtsaService.MAX_RECALLS_CACHE) {
-      const oldestKey = this.recallsCache.keys().next().value;
-      if (oldestKey) this.recallsCache.delete(oldestKey);
-    }
-    this.recallsCache.set(cacheKey, { data: recalls, expiresAt: Date.now() + RECALLS_TTL });
-    return recalls;
+    return [...byCampaign.values()];
   }
 
   /**
@@ -405,9 +536,9 @@ export class NhtsaService implements OnModuleInit {
    * vPIC VIN decode → make/model/year. A VIN vPIC answers but cannot decode
    * yields blank fields, so the caller reports "add model and year" (422).
    * A vPIC outage (timeout, 5xx, unreachable) is NOT a blank decode: the
-   * ServiceUnavailableException from fetchJson propagates, so the rider gets
-   * the retryable error and the 503 reaches Sentry. Only answered decodes are
-   * cached.
+   * UpstreamUnavailableException from fetchJson propagates, so the rider gets
+   * the retryable 503 (logged at warn, not sent to Sentry). Only answered
+   * decodes are cached.
    */
   private async decodeVin(vin: string): Promise<RecallVehicle> {
     const cacheKey = vin.toUpperCase();
@@ -451,7 +582,7 @@ export class NhtsaService implements OnModuleInit {
         timeout: 'NHTSA recalls request timed out',
         unreachable: 'Failed to reach NHTSA recalls API',
       },
-      () => null,
+      { on404: () => null },
     );
     if (json === null) return [];
 
@@ -490,7 +621,7 @@ export class NhtsaService implements OnModuleInit {
           timeout: 'NHTSA recall-models request timed out',
           unreachable: 'Failed to reach NHTSA products API',
         },
-        () => null,
+        { on404: () => null, timeoutMs: RECALL_MODELS_TIMEOUT_MS },
       );
       models = [...new Set((json?.results ?? []).map((r) => r.model ?? '').filter(Boolean))];
     } catch (err) {

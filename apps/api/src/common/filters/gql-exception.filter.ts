@@ -1,8 +1,9 @@
-import { ArgumentsHost, Catch, HttpException, HttpStatus } from '@nestjs/common';
+import { ArgumentsHost, Catch, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { GqlContextType, GqlExceptionFilter } from '@nestjs/graphql';
 import * as Sentry from '@sentry/nestjs';
 import type { Response } from 'express';
 import { GraphQLError } from 'graphql';
+import { UpstreamUnavailableException } from '../exceptions/upstream-unavailable.exception';
 
 /**
  * String GraphQL error codes — KEEP STABLE: mobile token refresh matches on
@@ -25,14 +26,19 @@ const INTERNAL_ERROR_MESSAGE = 'Internal server error';
 
 @Catch()
 export class AllExceptionsFilter implements GqlExceptionFilter {
+  private readonly logger = new Logger(AllExceptionsFilter.name);
+
   catch(exception: unknown, host: ArgumentsHost) {
     const isHttpException = exception instanceof HttpException;
     const status = isHttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
 
     // Expected 4xx HttpExceptions (401 token expiry, 404s, validation) are normal
     // traffic — capturing them burned Sentry quota. Report only unknown exceptions
-    // and server errors.
-    if (!isHttpException || status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+    // and server errors. A third-party outage is a 503 too, but not our bug: it
+    // stays observable as a warn log instead of a Sentry error.
+    if (exception instanceof UpstreamUnavailableException) {
+      this.logger.warn(`Upstream ${exception.upstream} unavailable: ${exception.message}`);
+    } else if (!isHttpException || status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       Sentry.captureException(exception);
     }
 
