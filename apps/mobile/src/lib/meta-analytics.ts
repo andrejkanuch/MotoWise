@@ -1,48 +1,56 @@
 import { AppEventsLogger } from 'react-native-fbsdk-next';
+import { vendorSdksDisabled } from './e2e-build';
+
+type EventsLogger = Pick<typeof AppEventsLogger, 'logEvent' | 'logPurchase'>;
+
+const NOOP_EVENTS_LOGGER: EventsLogger = { logEvent: () => {}, logPurchase: () => {} };
+
+// E2E builds keep the SDK initialised (Settings.initializeSDK runs on every launch) but send no events.
+const eventsLogger: EventsLogger = vendorSdksDisabled() ? NOOP_EVENTS_LOGGER : AppEventsLogger;
 
 export const MetaAnalytics = {
   trackCompleteRegistration: (eventId?: string) => {
     if (eventId) {
-      AppEventsLogger.logEvent('fb_mobile_complete_registration', { event_id: eventId });
+      eventsLogger.logEvent('fb_mobile_complete_registration', { event_id: eventId });
     } else {
-      AppEventsLogger.logEvent('fb_mobile_complete_registration');
+      eventsLogger.logEvent('fb_mobile_complete_registration');
     }
   },
 
   trackViewContent: (contentType: string, contentId: string) =>
-    AppEventsLogger.logEvent('fb_mobile_content_view', {
+    eventsLogger.logEvent('fb_mobile_content_view', {
       fb_content_type: contentType,
       fb_content_id: contentId,
     }),
 
   trackSearch: (query: string) =>
-    AppEventsLogger.logEvent('fb_mobile_search', {
+    eventsLogger.logEvent('fb_mobile_search', {
       fb_search_string: query,
     }),
 
   trackAddToGarage: (make: string, model: string, year: number) =>
-    AppEventsLogger.logEvent('fb_mobile_add_to_wishlist', {
+    eventsLogger.logEvent('fb_mobile_add_to_wishlist', {
       fb_content_type: 'motorcycle',
       fb_description: `${year} ${make} ${model}`,
     }),
 
   trackStartTrial: (offerId: string) =>
-    AppEventsLogger.logEvent('fb_mobile_activate_app', {
+    eventsLogger.logEvent('fb_mobile_activate_app', {
       fb_content_id: offerId,
     }),
 
   trackSubscribe: (revenue: number, currency: string, packageId: string) =>
-    AppEventsLogger.logPurchase(revenue, currency, {
+    eventsLogger.logPurchase(revenue, currency, {
       fb_content_id: packageId,
     }),
 
   trackStartDiagnostic: () =>
-    AppEventsLogger.logEvent('fb_mobile_rate', {
+    eventsLogger.logEvent('fb_mobile_rate', {
       fb_content_type: 'ai_diagnostic',
     }),
 
   trackLogRide: () =>
-    AppEventsLogger.logEvent('fb_mobile_achievement_unlocked', {
+    eventsLogger.logEvent('fb_mobile_achievement_unlocked', {
       fb_description: 'ride_logged',
       fb_content_type: 'ride',
     }),
@@ -53,7 +61,7 @@ export const MetaAnalytics = {
    * duplicated that inside PostHog and is gone; this SDK call is Meta's copy.
    */
   trackLogMaintenance: (maintenanceType: string) =>
-    AppEventsLogger.logEvent('fb_mobile_spent_credits', {
+    eventsLogger.logEvent('fb_mobile_spent_credits', {
       fb_content_type: 'maintenance',
       fb_description: maintenanceType,
     }),

@@ -10,6 +10,7 @@ import {
   resolveLaunchConsent,
   setStoredAnalyticsConsent,
 } from './analytics-consent';
+import { vendorSdksDisabled } from './e2e-build';
 import {
   describeGraphQLError,
   describeGraphQLErrorFromMessage,
@@ -35,7 +36,9 @@ import { isMessageEvent, messageFingerprint } from './sentry-message-grouping';
 // -------------------------------------------------------------------
 
 const SENTRY_DSN = Constants.expoConfig?.extra?.sentryDsn ?? '';
-const POSTHOG_API_KEY = Constants.expoConfig?.extra?.posthogApiKey ?? '';
+const POSTHOG_API_KEY = vendorSdksDisabled()
+  ? ''
+  : (Constants.expoConfig?.extra?.posthogApiKey ?? '');
 const POSTHOG_HOST = Constants.expoConfig?.extra?.posthogHost ?? 'https://eu.i.posthog.com';
 
 // The consent decision for this launch, resolved synchronously BEFORE the client
