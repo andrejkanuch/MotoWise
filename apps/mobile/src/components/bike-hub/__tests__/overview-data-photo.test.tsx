@@ -79,7 +79,7 @@ function respond(
   });
 }
 
-async function renderData() {
+async function renderData(bike: Record<string, unknown> = BIKE_A) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, retryDelay: 0, gcTime: 0 } },
   });
@@ -98,7 +98,7 @@ async function renderData() {
     <QueryClientProvider client={client}>{children}</QueryClientProvider>
   );
   const hook = await renderHook(
-    () => useOverviewData(BIKE_A as unknown as HubBike, shell, HUB_UNIT.KM, TODAY),
+    () => useOverviewData(bike as unknown as HubBike, shell, HUB_UNIT.KM, TODAY),
     { wrapper },
   );
   await waitFor(() => expect(client.isFetching()).toBe(0));
@@ -133,6 +133,22 @@ describe('useOverviewData', () => {
       count: 1,
     });
     expect(result.current.attention.items[0]).toMatchObject({ count: 1, components: [] });
+  });
+
+  it('a bike without model/year and VIN skips the recall lookup (MOTO-VAULT-REACT-NATIVE-42)', async () => {
+    respond('ok');
+    // Own id: hooks from earlier tests share the module-level fetcher mock.
+    const makeOnly = { ...BIKE_A, id: 'bike-make-only', model: null, year: null, vin: null };
+    const result = await renderData(makeOnly);
+    expect(mockFetcher).not.toHaveBeenCalledWith(MotorcycleRecallsDocument, {
+      motorcycleId: makeOnly.id,
+    });
+    expect(result.current.recallsKnown).toBe(false);
+    // The persisted count still stands in.
+    expect(result.current.status.reasons[0]).toEqual({
+      kind: RIDE_STATUS_REASON.OPEN_RECALLS,
+      count: 1,
+    });
   });
 
   it.each([

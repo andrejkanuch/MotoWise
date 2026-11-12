@@ -1,5 +1,3 @@
-import { MotorcycleRecallsDocument } from '@motovault/graphql';
-import { useQuery } from '@tanstack/react-query';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
@@ -16,7 +14,11 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { RecallsErrorBanner } from '../../components/bike-hub/recalls-error-banner';
+import {
+  RecallsErrorBanner,
+  RecallsNeedsDetailsNotice,
+} from '../../components/bike-hub/recalls-error-banner';
+import { useRecallsLookup } from '../../components/bike-hub/use-recalls-lookup';
 import { useRecallAcknowledgement } from '../../hooks/use-recall-acknowledgement';
 import { formatFullDate, formatRecallReportDate } from '../../lib/bike-hub/format';
 import {
@@ -25,9 +27,6 @@ import {
   type RecallItem,
   splitRecalls,
 } from '../../lib/bike-hub/recall-acknowledgement';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
-import { QUERY_META } from '../../lib/query-meta';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { space } from '../../theme/spacing';
 import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
@@ -58,17 +57,7 @@ export default function RecallsScreen() {
     bikeName?: string;
   }>();
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: queryKeys.motorcycleRecalls.byMotorcycle(motorcycleId),
-    queryFn: () => gqlFetcher(MotorcycleRecallsDocument, { motorcycleId }),
-    enabled: !!motorcycleId,
-    staleTime: 60 * 60 * 1000, // 1 hour client-side (server caches 24h)
-    // Renders its own error banner. The bike hub's Overview observes this key
-    // with the same opt-out; the global handler needs every observer to agree.
-    meta: QUERY_META.OWN_ERROR_UI,
-  });
-
-  const result = data?.motorcycleRecalls;
+  const { result, isLoading, error, needsDetails } = useRecallsLookup(motorcycleId);
   const { open, done } = splitRecalls(result?.recalls ?? []);
   const count = open.length;
   const hasRecalls = count > 0;
@@ -159,9 +148,11 @@ export default function RecallsScreen() {
           </View>
         )}
 
+        {needsDetails && <RecallsNeedsDetailsNotice />}
+
         {error && !isLoading && <RecallsErrorBanner error={error} />}
 
-        {!isLoading && !error && !hasRecalls && (
+        {!isLoading && !needsDetails && !error && !hasRecalls && (
           <Animated.View
             entering={FadeInUp.duration(300)}
             style={{

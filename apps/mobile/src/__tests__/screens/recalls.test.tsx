@@ -3,6 +3,7 @@
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
+jest.mock('react-native-mmkv', () => require('../../test/mocks').makeMmkvMock());
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 54, bottom: 34, left: 0, right: 0 }),
 }));
@@ -100,7 +101,9 @@ async function renderScreen(initial: RecallResultData) {
     defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { gcTime: Infinity } },
   });
   const bikes: MyMotorcyclesQuery = {
-    myMotorcycles: [{ id: BIKE_ID, recallCount: initial.count } as never],
+    myMotorcycles: [
+      { id: BIKE_ID, make: 'Honda', model: 'CRF', year: 2022, recallCount: initial.count } as never,
+    ],
   };
   // No garage-list observer on this screen: keep the seeded cache from being collected.
   client.setQueryDefaults(queryKeys.motorcycles.all, { gcTime: Number.POSITIVE_INFINITY });
@@ -286,9 +289,56 @@ describe('Recalls screen — lookup errors', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the 422 as a calm notice, not the danger banner', async () => {
+    await renderFailing('UNPROCESSABLE_ENTITY');
+
+    expect(screen.getByTestId('recalls-needs-details')).toBeOnTheScreen();
+    expect(screen.queryByText('No open recalls found')).toBeNull();
+  });
+
   it('keeps the retry message for an upstream failure', async () => {
     await renderFailing('SERVICE_UNAVAILABLE');
 
     expect(screen.getByText('Unable to check for recalls. Please try again.')).toBeOnTheScreen();
+  });
+});
+
+describe('Recalls screen — bike without model/year and VIN', () => {
+  async function renderWithBike(bike: Record<string, unknown>) {
+    mockParams = { motorcycleId: BIKE_ID, bikeName: 'Honda' };
+    mockFetcher.mockResolvedValue(undefined);
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, gcTime: 0 } },
+    });
+    client.setQueryDefaults(queryKeys.motorcycles.all, { gcTime: Number.POSITIVE_INFINITY });
+    client.setQueryData(queryKeys.motorcycles.all, {
+      myMotorcycles: [{ id: BIKE_ID, recallCount: 0, ...bike } as never],
+    } satisfies MyMotorcyclesQuery);
+    await render(
+      <QueryClientProvider client={client}>
+        <RecallsScreen />
+      </QueryClientProvider>,
+    );
+    await flush();
+  }
+
+  it('asks for the details without calling the API (MOTO-VAULT-REACT-NATIVE-42)', async () => {
+    await renderWithBike({ make: 'Honda', model: null, year: null, vin: null });
+
+    expect(
+      screen.getByText("Add your bike's model and year (or VIN) to check for recalls."),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('No open recalls found')).toBeNull();
+    expect(screen.queryByText('Checking NHTSA database…')).toBeNull();
+    expect(mockFetcher).not.toHaveBeenCalledWith(MotorcycleRecallsDocument, expect.anything());
+  });
+
+  it('still checks a make-only bike that has a VIN', async () => {
+    await renderWithBike({ make: 'Honda', model: null, year: null, vin: 'JH2SC0000NK000000' });
+
+    expect(mockFetcher).toHaveBeenCalledWith(MotorcycleRecallsDocument, {
+      motorcycleId: BIKE_ID,
+    });
+    expect(screen.queryByTestId('recalls-needs-details')).toBeNull();
   });
 });

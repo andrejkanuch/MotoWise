@@ -6,6 +6,7 @@ import { type AttentionResult, getNextUp, rankAttention } from '@/lib/bike-hub/a
 import type { HubUnit } from '@/lib/bike-hub/constants';
 import { type CostsSummary, summariseCosts } from '@/lib/bike-hub/costs-summary';
 import { type DocumentSignal, getDocumentSignals } from '@/lib/bike-hub/documents';
+import { canCheckRecalls } from '@/lib/bike-hub/recall-eligibility';
 import { getRideStatus, type RideStatusResult } from '@/lib/bike-hub/ride-status';
 import type { TaskDue } from '@/lib/bike-hub/task-due';
 import { gqlFetcher } from '@/lib/graphql-client';
@@ -89,6 +90,9 @@ export function useOverviewData(
     queryFn: () => gqlFetcher(MotorcycleRecallsDocument, { motorcycleId: id }),
     staleTime: RECALLS_STALE_MS,
     retry: 1,
+    // A bike with no model/year and no VIN cannot be looked up (the API answers
+    // 422): skip the request; the persisted recall count stands in.
+    enabled: canCheckRecalls(bike),
     meta: OWN_ERROR_UI,
   });
   const categoriesQuery = useQuery({
