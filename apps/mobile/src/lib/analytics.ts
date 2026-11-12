@@ -787,6 +787,13 @@ export const AnalyticsEvent = {
   NOTIFICATION_PERMISSION_RESULT: 'notification_permission_result',
   REMINDER_SCHEDULED: 'reminder_scheduled',
   REMINDER_OPENED: 'reminder_opened',
+  /**
+   * This device's push token reached the API (`platform`). Fires on each
+   * registration (launch and sign-in) — count unique persons, not events.
+   */
+  PUSH_TOKEN_REGISTERED: 'push_token_registered',
+  /** A registration failed: `{platform, stage, error_code}`, stage from PUSH_TOKEN_STAGE. Also sent to Sentry. */
+  PUSH_TOKEN_REGISTRATION_FAILED: 'push_token_registration_failed',
 
   // Privacy
   DATA_EXPORT_REQUESTED: 'data_export_requested',
