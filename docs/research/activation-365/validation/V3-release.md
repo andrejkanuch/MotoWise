@@ -12,9 +12,9 @@ Status key: **holds** / **does not hold** / **partly holds** / **unknown**. Conf
 
 **Login: holds.** `eas whoami` returns account `andykeny` (eas-cli 23.2.0 is installed; 27.7.2 is available).
 
-**Tooling caveat (does not hold for the research checkout).** `eas update:list` fails in `/Users/andrejmacm5/personal/MotoWise-research/apps/mobile`:
+**Tooling caveat (does not hold for the research checkout).** `eas update:list` fails in `apps/mobile`:
 `PluginError INVALID_PLUGIN_IMPORT ... plugins/with-android-manifest-hygiene.js:1:48`. The clean checkout has no `node_modules` (`ls node_modules` is empty), so `app.config.ts` cannot be evaluated.
-The same read-only command was run from `/Users/andrejmacm5/personal/MotoWise/apps/mobile`, which uses the same EAS project (`projectId 359ae282-329d-455d-b9f3-64919afad0b4` in both checkouts' `app.config.ts`).
+The same read-only command was run from `apps/mobile`, which uses the same EAS project (`projectId 359ae282-329d-455d-b9f3-64919afad0b4` in both checkouts' `app.config.ts`).
 Any agent running `eas` or Expo commands from the research checkout must run `pnpm install` first.
 
 Command: `eas update:list --branch production --limit 30 --json --non-interactive`, then `eas update:view <group> --json` for each runtime's newest group.
