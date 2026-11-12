@@ -139,13 +139,22 @@ describe('registration reporting', () => {
   });
 
   it('reports a claim that throws', async () => {
-    mockGqlFetcher.mockRejectedValue(new Error('network down'));
+    mockGqlFetcher.mockRejectedValue(new Error('Internal server error'));
     await registerForPushNotifications();
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'push_token_registration_failed',
       expect.objectContaining({ stage: 'claim', error_code: 'Error' }),
     );
     expect(mockTrackEvent).not.toHaveBeenCalledWith('push_token_registered', expect.anything());
+  });
+
+  it('labels an offline claim as a network failure, not a setup failure', async () => {
+    mockGqlFetcher.mockRejectedValue(new TypeError('Network request failed'));
+    await registerForPushNotifications();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'push_token_registration_failed',
+      expect.objectContaining({ stage: 'claim', error_code: 'network' }),
+    );
   });
 
   it('reports a claim the API refused, and does not remember its token', async () => {

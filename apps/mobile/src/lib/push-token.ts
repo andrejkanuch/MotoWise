@@ -5,6 +5,7 @@ import { AnalyticsEvent, captureException, trackEvent } from './analytics';
 import { gqlFetcher } from './graphql-client';
 import { isMissingGqlSessionError } from './graphql-error-classification';
 import { logger } from './logger';
+import { isNetworkError } from './network-error';
 import { hasNotificationPermission } from './notifications';
 import { supabase } from './supabase';
 
@@ -26,7 +27,12 @@ export type PushTokenStage = (typeof PUSH_TOKEN_STAGE)[keyof typeof PUSH_TOKEN_S
 /** `extra.source` for Sentry triage (issue titles are not reliable for grouping). */
 const SENTRY_SOURCE = 'push-token-register';
 
+/** `error_code` for an offline/flaky-network claim, so it is not read as a push setup failure. */
+const NETWORK_ERROR_CODE = 'network';
+
 function errorCode(err: unknown): string | null {
+  // Sentry's beforeSend already drops these; PostHog still counts them, labelled.
+  if (err && isNetworkError(err)) return NETWORK_ERROR_CODE;
   const code = (err as { code?: unknown } | null)?.code;
   if (typeof code === 'string' && code) return code;
   return err instanceof Error ? err.name : null;
