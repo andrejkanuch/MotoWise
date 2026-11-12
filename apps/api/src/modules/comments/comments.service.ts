@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { decodeCursor, encodeCursor } from '../../common/pagination/connection';
-import { PG_ERROR } from '../../common/supabase/unwrap';
+import { PG_ERROR, type UnwrapContext, unwrap } from '../../common/supabase/unwrap';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { Comment, CommentConnection } from './models/comment.model';
 
@@ -28,6 +28,34 @@ interface CommentRow {
     avatar_url: string | null;
   } | null;
 }
+
+const CREATE_COMMENT_FAILED = 'Failed to create comment';
+
+/**
+ * createComment insert errors the rider caused, mapped to a 4xx so they reach the
+ * client as FORBIDDEN / NOT_FOUND instead of an opaque 500 (and stay out of Sentry,
+ * which only captures 5xx).
+ *
+ * CHECK_VIOLATION (23514) is deliberately absent: CreateCommentInputSchema already
+ * enforces exactly one target and the 1-500 text length, so a CHECK failure means the
+ * API and the schema disagree. That is a server fault and must keep paging — it is
+ * how comments_single_target ignoring trip_id surfaced (00202, MOTO-VAULT-NODE-NESTJS-W).
+ */
+const CREATE_COMMENT_CLIENT_ERRORS: Readonly<
+  Record<string, { error: UnwrapContext<unknown>['error']; message: string }>
+> = {
+  // comments_insert RLS: the ride is not public, the route/group ride is not
+  // published, or the trip is not one the caller can see.
+  [PG_ERROR.INSUFFICIENT_PRIVILEGE]: {
+    error: ForbiddenException,
+    message: 'You cannot comment on this',
+  },
+  // The target or parent comment was deleted between the client loading it and posting.
+  [PG_ERROR.FOREIGN_KEY_VIOLATION]: {
+    error: NotFoundException,
+    message: 'The item you are commenting on no longer exists',
+  },
+};
 
 @Injectable()
 export class CommentsService {
@@ -201,12 +229,16 @@ export class CommentsService {
       )
       .single();
 
-    if (error) {
-      this.logger.error(`createComment failed: ${error.message} (${error.code})`);
-      throw new InternalServerErrorException('Failed to create comment');
-    }
-
-    const row = data as unknown as CommentRow;
+    const clientError = error ? CREATE_COMMENT_CLIENT_ERRORS[error.code] : undefined;
+    const row = unwrap(
+      { data, error },
+      {
+        logger: this.logger,
+        op: 'createComment',
+        message: clientError?.message ?? CREATE_COMMENT_FAILED,
+        error: clientError?.error,
+      },
+    ) as unknown as CommentRow;
 
     return {
       id: row.id,
