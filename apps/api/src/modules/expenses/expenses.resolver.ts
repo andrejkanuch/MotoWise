@@ -5,10 +5,12 @@ import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { CostTrendService } from './cost-trend.service';
 import { AddExpensePhotoInput } from './dto/add-expense-photo.input';
 import { LogExpenseInput } from './dto/log-expense.input';
 import { ExpensePhotosLoader } from './expense-photos.loader';
 import { ExpensesService } from './expenses.service';
+import { CostTrend } from './models/cost-trend.model';
 import { Expense } from './models/expense.model';
 import { ExpenseDashboardSummary } from './models/expense-dashboard.model';
 import { ExpensePhoto } from './models/expense-photo.model';
@@ -20,6 +22,7 @@ export class ExpensesResolver {
   constructor(
     private readonly expensesService: ExpensesService,
     private readonly expensePhotosLoader: ExpensePhotosLoader,
+    private readonly costTrendService: CostTrendService,
   ) {}
 
   @Query(() => ExpenseSummary)
@@ -37,6 +40,32 @@ export class ExpensesResolver {
     @CurrentUser() user: AuthUser,
   ): Promise<ExpenseDashboardSummary> {
     return this.expensesService.getDashboard(user.id, motorcycleId);
+  }
+
+  @Query(() => CostTrend, {
+    description:
+      'Monthly spend of one bike over the last 12 months, one series per currency. The money figures are Pro only.',
+  })
+  async expenseCostTrend(
+    @CurrentUser() user: AuthUser,
+    @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
+    @Args('timeZone', {
+      type: () => String,
+      nullable: true,
+      description: 'IANA zone; defaults to the rider’s latest ride zone, then UTC.',
+    })
+    timeZone?: string | null,
+    @Args('refreshEntitlement', {
+      type: () => Boolean,
+      nullable: true,
+      description: 'Re-read the RevenueCat entitlement first (right after a purchase).',
+    })
+    refreshEntitlement?: boolean | null,
+  ): Promise<CostTrend> {
+    return this.costTrendService.getCostTrend(user.id, motorcycleId, {
+      timeZone,
+      refreshEntitlement,
+    });
   }
 
   @Query(() => [ExpensePhoto])

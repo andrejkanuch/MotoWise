@@ -28,6 +28,7 @@ export * from './validators/diagnostic';
 export * from './validators/diagnostic-ai-response';
 export * from './validators/document';
 export * from './validators/expense';
+export * from './validators/expense-cost-trend';
 export * from './validators/feedback';
 export * from './validators/follow';
 export * from './validators/fuel-stops';

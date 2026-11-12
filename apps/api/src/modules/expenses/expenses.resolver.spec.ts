@@ -16,6 +16,7 @@ describe('ExpensesResolver auth guard audit', () => {
   const protectedMethods = [
     'expenses',
     'expenseDashboard',
+    'expenseCostTrend',
     'expensePhotos',
     'logExpense',
     'deleteExpense',

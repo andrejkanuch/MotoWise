@@ -357,6 +357,59 @@ type ContentFlag {
   userId: String!
 }
 
+type CostTrend {
+  """
+  Currency of the first series (most expenses in the window). Null when the window has no expenses.
+  """
+  currency: String
+
+  """Expenses in the window, every currency."""
+  expenseCount: Int!
+
+  """First month of the window, YYYY-MM."""
+  fromMonth: String!
+  isPro: Boolean!
+
+  """
+  Sections hidden from this rider (monthly_totals, period_totals). Empty for Pro.
+  """
+  lockedSections: [String!]!
+
+  """Expenses in the window in a currency other than `currency`."""
+  otherCurrencyExpenseCount: Int!
+
+  """
+  One series per currency, most expenses first. Null when the sections are locked.
+  """
+  series: [CostTrendSeries!]
+
+  """IANA zone that decides the current month."""
+  timeZone: String!
+
+  """Last month of the window (the current month), YYYY-MM."""
+  toMonth: String!
+}
+
+type CostTrendMonth {
+  """YYYY-MM"""
+  month: String!
+
+  """Spend in the series currency; 0 for a month with none."""
+  total: Float!
+}
+
+type CostTrendSeries {
+  """ISO 4217 code every figure in this series is in"""
+  currency: String!
+  expenseCount: Int!
+
+  """Every month of the window, oldest first."""
+  months: [CostTrendMonth!]!
+
+  """Spend over the whole window."""
+  total: Float!
+}
+
 input CreateBlogCategoryInput {
   name: String!
   parentId: ID
@@ -1520,6 +1573,19 @@ type Query {
   discoverRiderTrips(after: String, first: Int = 5): TripConnection!
   documentCategories(includeHidden: Boolean): [DocumentCategory!]!
   documents(motorcycleId: String!): [Document!]!
+
+  """
+  Monthly spend of one bike over the last 12 months, one series per currency. The money figures are Pro only.
+  """
+  expenseCostTrend(
+    motorcycleId: String!
+
+    """Re-read the RevenueCat entitlement first (right after a purchase)."""
+    refreshEntitlement: Boolean
+
+    """IANA zone; defaults to the rider’s latest ride zone, then UTC."""
+    timeZone: String
+  ): CostTrend!
   expenseDashboard(motorcycleId: String!): ExpenseDashboardSummary!
   expensePhotos(expenseId: String!): [ExpensePhoto!]!
   expenses(motorcycleId: String!, year: Int): ExpenseSummary!
