@@ -1,7 +1,7 @@
 # R5: sign-in, bike search and measurement (OB2, OB3, OB4, OB5 + instrumentation spec)
 
 #365 deep dive. 2026-11-12. **Research only**: no app code, flag, PostHog, RevenueCat, GitHub or Supabase write was made.
-Code read from the clean checkout of `origin/main` at `52d281e9` (`/Users/andrejmacm5/personal/MotoWise-research`); paths below are
+Code read from the clean checkout of `origin/main` at `52d281e9` (`a clean checkout of origin/main`); paths below are
 relative to `apps/mobile/src/` unless they start with `apps/`. PostHog = project 155556 (EU), read-only `execute-sql`, test persons
 excluded in every query that counts riders (list in `queries/q00-excluded-persons.md`). Supabase = production, one read-only SELECT.
 

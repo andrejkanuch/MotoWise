@@ -1,7 +1,7 @@
 # R4 deep dive: the first ride attempt (PO4, PO5, PO8) and Experiment 1
 
 2026-11-12. Research only: no app code, flag, PostHog, RevenueCat, GitHub or Supabase change was made.
-Code is cited from the clean checkout of `origin/main` at `52d281e9` (`/Users/andrejmacm5/personal/MotoWise-research`),
+Code is cited from the clean checkout of `origin/main` at `52d281e9` (`a clean checkout of origin/main`),
 paths relative to `apps/mobile/src/` unless they start with `apps/`. PostHog = project 155556 (EU), read-only `execute-sql`.
 Every PostHog query below excludes the 12 q00 test persons (`queries/q00-excluded-persons.md`); in the SQL they are written
 as `<q00>` to keep this file readable. Supabase = production, read-only SELECT through the Management API, aggregates only.

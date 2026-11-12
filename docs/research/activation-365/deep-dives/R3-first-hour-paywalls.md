@@ -1,7 +1,7 @@
 # R3: First-hour paywalls (PO2 / PO3)
 
 Issue #365. Research only, 2026-11-12. No app code, flag, PostHog, RevenueCat, GitHub or Supabase change was made.
-I read code from the clean checkout of `origin/main` at `52d281e9` (`/Users/andrejmacm5/personal/MotoWise-research`).
+I read code from the clean checkout of `origin/main` at `52d281e9` (`a clean checkout of origin/main`).
 PostHog project 155556 (EU). Every query below excludes the 12 test persons listed in the run brief, except where it says otherwise.
 All PostHog numbers are one-off derivations, not saved metrics. The project's metric catalog is empty.
 

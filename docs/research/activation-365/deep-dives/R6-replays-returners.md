@@ -1,7 +1,7 @@
 # R6 — Replays: returners vs non-returners, and the full friction register (#365)
 
 Research only, 2026-11-12. Nothing in the app, PostHog, RevenueCat, GitHub or Supabase was changed. No new Replay Vision
-scan was started. Code is cited from the clean checkout of `origin/main` at `52d281e9` (`/Users/andrejmacm5/personal/MotoWise-research`).
+scan was started. Code is cited from the clean checkout of `origin/main` at `52d281e9` (`a clean checkout of origin/main`).
 Replay links: `https://eu.posthog.com/project/155556/replay/<session_id>` (the appendix gives the 8-character prefix; the full
 ids are in the evidence below and in the scanner listings).
 

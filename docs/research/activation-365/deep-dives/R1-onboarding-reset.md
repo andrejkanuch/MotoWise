@@ -2,7 +2,7 @@
 
 This is research only, done 2026-11-12. Nothing in the app, PostHog, Supabase or GitHub was changed.
 Code was read from the clean checkout of `origin/main` at `52d281e9`
-(`/Users/andrejmacm5/personal/MotoWise-research`). Code paths below are relative to `apps/mobile/src/`
+(`a clean checkout of origin/main`). Code paths below are relative to `apps/mobile/src/`
 unless a path says otherwise.
 PostHog: project 155556 (EU). Every query is read-only and excludes the 12 test persons listed in
 `queries/q00-excluded-persons.md`. Every number is a one-off derivation, not a governed metric.

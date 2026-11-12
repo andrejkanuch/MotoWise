@@ -1,7 +1,7 @@
 # #365 Activation: execution plan (issue-by-issue, in order)
 
 Planner run, 2026-11-12; **revised the same day after the critic review** (`EXECUTION_PLAN-review.md`, 30 items; answers in §8). **Research only:** no app code, migration, PostHog, RevenueCat, GitHub or Supabase write was made.
-Code is cited from the clean checkout of `origin/main` at `52d281e9` (`/Users/andrejmacm5/personal/MotoWise-research`).
+Code is cited from the clean checkout of `origin/main` at `52d281e9` (`a clean checkout of origin/main`).
 Paths starting `apps/`, `packages/`, `supabase/`, `docs/` are repo-relative. Every other code path is relative to `apps/mobile/src/`.
 
 **Inputs:** `00-evidence-pack.md`, `05-session-replay-findings.md`, `board/99-synthesis.md`, `board/review-verdicts.md`,

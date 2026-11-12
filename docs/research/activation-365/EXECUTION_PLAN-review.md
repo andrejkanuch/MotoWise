@@ -1,7 +1,7 @@
 # #365 EXECUTION_PLAN.md: plan critic review
 
 Critic run, 2026-11-12. **Research only:** nothing in the app, PostHog, RevenueCat, GitHub or Supabase was changed.
-Code was read in the clean `origin/main` checkout at `52d281e9` (`/Users/andrejmacm5/personal/MotoWise-research`). Paths starting `apps/`,
+Code was read in the clean `origin/main` checkout at `52d281e9` (`a clean checkout of origin/main`). Paths starting `apps/`,
 `packages/` or `docs/` are repo-relative; any other code path is relative to `apps/mobile/src/`.
 I read `EXECUTION_PLAN.md` in full, `05-session-replay-findings.md`, `board/99-synthesis.md` (instrumentation list and decisions),
 `board/review-verdicts.md`, and the deep dives R1–R6 (targeted reads: every number and "verbatim at" range the plan cites).

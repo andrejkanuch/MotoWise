@@ -1,7 +1,7 @@
 # R2: bike limit and day-0 service schedule (PO1 / PO1-H / Experiment 2)
 
 Research only, 2026-11-12. Nothing in the app, the database or PostHog was changed.
-Code read from the clean checkout of `origin/main` at `52d281e9` (`/Users/andrejmacm5/personal/MotoWise-research`).
+Code read from the clean checkout of `origin/main` at `52d281e9` (`a clean checkout of origin/main`).
 Database: Supabase production, read-only `SELECT` via the Management API. PostHog: project 155556 (EU), read-only `execute-sql`.
 Test persons excluded in every PostHog query (the 12 ids in the task brief). DB queries reuse q08's exclusions
 (`is_synthetic`, the owner/test emails and domains; the literal list is in `board/99-synthesis.md` Appendix A).
