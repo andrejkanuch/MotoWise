@@ -37,14 +37,12 @@ export interface CostTrendArgs {
 
 const ALL_SECTIONS = Object.values(COST_TREND_SECTION);
 
-const roundCurrency = (value: number) => Math.round(Number(value) * 100) / 100;
-
 /**
  * Turns one expense_cost_trend row into the `expenseCostTrend` contract. The
  * response is BUILT from an allowlist: a free rider's response has no field
  * that holds money, so a key added to the RPC later cannot reach a free client.
  */
-export function buildCostTrend(row: CostTrendRow, isPro: boolean, timeZone: string): CostTrend {
+function buildCostTrend(row: CostTrendRow, isPro: boolean, timeZone: string): CostTrend {
   const first = row.series[0];
   const headline = {
     isPro,
@@ -62,8 +60,8 @@ export function buildCostTrend(row: CostTrendRow, isPro: boolean, timeZone: stri
     series: row.series.map((s) => ({
       currency: s.currency,
       expenseCount: s.expense_count,
-      total: roundCurrency(s.total),
-      months: s.months.map((m) => ({ month: m.month, total: roundCurrency(m.total) })),
+      total: s.total,
+      months: s.months.map((m) => ({ month: m.month, total: m.total })),
     })),
   };
 }
@@ -79,20 +77,40 @@ export class CostTrendService {
   ) {}
 
   /**
-   * The cost trend of one bike. The rider's real tier is resolved first (never
-   * `user.tier`, which reads Pro for everyone while enforcement is off). The
-   * RPC runs on the user client, so RLS and auth.uid() scope it to the rider's
-   * own live expenses.
+   * The cost trend of one bike. The rider's real tier is resolved (never
+   * `user.tier`, which reads Pro for everyone while enforcement is off) while
+   * the trend is read. The RPC runs on the user client, so RLS and auth.uid()
+   * scope it to the rider's own live expenses.
    */
   async getCostTrend(
     userId: string,
     motorcycleId: string,
     args: CostTrendArgs = {},
   ): Promise<CostTrend> {
-    if (args.refreshEntitlement) await this.revenueCatService.fetchSubscriberEntitlements(userId);
-    const isPro = (await resolveTier(this.supabaseAdmin, userId)) === TIERS.PRO;
-    const timeZone = await resolveRiderTimeZone(this.supabaseAdmin, userId, args.timeZone);
+    const [isPro, { row, timeZone }] = await Promise.all([
+      this.isPro(userId, args.refreshEntitlement),
+      this.readTrend(userId, motorcycleId, args.timeZone),
+    ]);
 
+    const parsed = CostTrendSchema.safeParse(buildCostTrend(row, isPro, timeZone));
+    if (!parsed.success) {
+      this.logger.error(`costTrend failed its contract for ${userId}: ${parsed.error.message}`);
+      throw new InternalServerErrorException('Could not build the cost trend');
+    }
+    return parsed.data;
+  }
+
+  private async isPro(userId: string, refreshEntitlement?: boolean | null): Promise<boolean> {
+    if (refreshEntitlement) await this.revenueCatService.fetchSubscriberEntitlements(userId);
+    return (await resolveTier(this.supabaseAdmin, userId)) === TIERS.PRO;
+  }
+
+  private async readTrend(
+    userId: string,
+    motorcycleId: string,
+    requestedZone?: string | null,
+  ): Promise<{ row: CostTrendRow; timeZone: string }> {
+    const timeZone = await resolveRiderTimeZone(this.supabaseAdmin, userId, requestedZone);
     const result = await this.supabase.rpc(EXPENSE_COST_TREND_RPC, {
       p_motorcycle_id: motorcycleId,
       p_tz: timeZone,
@@ -103,12 +121,6 @@ export class CostTrendService {
       op: 'getCostTrend',
       message: 'Could not read the cost trend',
     });
-
-    const parsed = CostTrendSchema.safeParse(buildCostTrend(row, isPro, timeZone));
-    if (!parsed.success) {
-      this.logger.error(`costTrend failed its contract for ${userId}: ${parsed.error.message}`);
-      throw new InternalServerErrorException('Could not build the cost trend');
-    }
-    return parsed.data;
+    return { row, timeZone };
   }
 }

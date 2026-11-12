@@ -13,9 +13,6 @@ import { z } from 'zod';
 /** Months in the trend window, the rider's current month included. */
 export const COST_TREND_MONTHS = 12;
 
-/** Expenses a bike needs before the cost trend card shows. */
-export const COST_TREND_MIN_EXPENSES = 5;
-
 /** The Pro sections of the cost trend. A free response lists all of them as locked. */
 export const COST_TREND_SECTION = {
   /** Each currency's spend per month (`series[].months`). */

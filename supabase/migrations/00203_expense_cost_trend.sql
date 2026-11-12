@@ -13,7 +13,7 @@
 --     total, then the code), with every month of the window, oldest first, and
 --     0 for a month with no spend.
 --
--- Returns (keys always present; amounts are JSON numbers with 2 decimals):
+-- Returns (keys always present; amounts are JSON numbers, exact to the cent):
 -- {
 --   "from_month": "YYYY-MM", "to_month": "YYYY-MM",
 --   "expense_count": int,          live expenses in the window, every currency
@@ -66,7 +66,7 @@ BEGIN
     WITH scoped AS (
       SELECT
         e.currency,
-        round(e.amount::numeric, 2) AS amount,
+        e.amount,
         date_trunc('month', e.date)::date AS month
       FROM public.expenses e
       WHERE e.user_id = (SELECT auth.uid())
