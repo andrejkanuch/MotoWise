@@ -152,11 +152,12 @@ export const RIDE_MILESTONE_PAYWALL = {
   ONBOARDING_PAYWALL_COOLDOWN_H: 72,
 } as const;
 
-/** RevenueCat placements for ride-moment paywalls, one per trigger (R8). */
+/** RevenueCat placements for ride-moment and insight paywalls, one per trigger (R8). */
 export const RIDE_PAYWALL_PLACEMENT = {
   MILESTONE: 'ride_milestone_5',
   LONG_RIDE: 'ride_long_50km',
   RIDER_INSIGHTS: 'rider_insights',
+  COST_INSIGHTS: 'cost_insights',
 } as const;
 
 export type RidePaywallPlacement =
