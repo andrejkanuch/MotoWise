@@ -1,13 +1,57 @@
 import { RegisterPushTokenDocument, UnregisterPushTokenDocument } from '@motovault/graphql';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
+import { AnalyticsEvent, captureException, trackEvent } from './analytics';
 import { gqlFetcher } from './graphql-client';
+import { isMissingGqlSessionError } from './graphql-error-classification';
 import { logger } from './logger';
+import { isNetworkError } from './network-error';
 import { hasNotificationPermission } from './notifications';
 import { supabase } from './supabase';
 
 /** Upper bound on the sign-out unregister — signing out must never wait on the network. */
 export const SIGN_OUT_UNREGISTER_TIMEOUT_MS = 3000;
+
+/** Where a registration failed: `stage` on `push_token_registration_failed` and in Sentry extras. */
+export const PUSH_TOKEN_STAGE = {
+  /** Asking the OS / Expo for this device's push token (on Android: FCM). */
+  DEVICE_TOKEN: 'device_token',
+  /** The RegisterPushToken mutation threw (network, auth, server error). */
+  CLAIM: 'claim',
+  /** The API answered `success: false` (no user in the database, or a non-Expo token). */
+  CLAIM_REJECTED: 'claim_rejected',
+} as const;
+
+export type PushTokenStage = (typeof PUSH_TOKEN_STAGE)[keyof typeof PUSH_TOKEN_STAGE];
+
+/** `extra.source` for Sentry triage (issue titles are not reliable for grouping). */
+const SENTRY_SOURCE = 'push-token-register';
+
+/** `error_code` for an offline/flaky-network claim, so it is not read as a push setup failure. */
+const NETWORK_ERROR_CODE = 'network';
+
+function errorCode(err: unknown): string | null {
+  // Sentry's beforeSend already drops these; PostHog still counts them, labelled.
+  if (err && isNetworkError(err)) return NETWORK_ERROR_CODE;
+  const code = (err as { code?: unknown } | null)?.code;
+  if (typeof code === 'string' && code) return code;
+  return err instanceof Error ? err.name : null;
+}
+
+/**
+ * A registration that failed must be visible in production: PostHog for the rate
+ * per platform, Sentry for the error itself. Never throws.
+ */
+function reportRegistrationFailure(stage: PushTokenStage, platform: string, err: unknown): void {
+  const code = errorCode(err);
+  trackEvent(AnalyticsEvent.PUSH_TOKEN_REGISTRATION_FAILED, { platform, stage, error_code: code });
+  captureException(err ?? new Error(`push-token: ${stage}`), {
+    source: SENTRY_SOURCE,
+    stage,
+    platform,
+    error_code: code,
+  });
+}
 
 /** The token this runtime last registered, so sign-out can remove it without asking Expo again. */
 let registeredToken: string | null = null;
@@ -57,6 +101,10 @@ export async function registerForPushNotifications(): Promise<void> {
   pushGeneration += 1;
   const generation = pushGeneration;
   const signOutsAtStart = signOutCount;
+  // Which step failed, for the failure report. Android could not get a device
+  // token from July to 2026-11-12 (no FCM config) and nobody knew: the old
+  // logger.warn is a no-op in production builds.
+  let stage: PushTokenStage = PUSH_TOKEN_STAGE.DEVICE_TOKEN;
   try {
     const device = await getDevicePushToken();
     if (!device) return;
@@ -64,19 +112,29 @@ export async function registerForPushNotifications(): Promise<void> {
     // back for the account that is signing out.
     if (pushGeneration !== generation) return;
 
+    stage = PUSH_TOKEN_STAGE.CLAIM;
     const claim = gqlFetcher(RegisterPushTokenDocument, { input: device });
     claimsOnTheWire.add(claim);
+    let claimed: boolean;
     try {
-      await claim;
+      claimed = (await claim).registerPushToken.success;
     } finally {
       claimsOnTheWire.delete(claim);
+    }
+    if (!claimed) {
+      reportRegistrationFailure(PUSH_TOKEN_STAGE.CLAIM_REJECTED, device.platform, null);
+      return;
     }
     // Remember it unless a sign-out started meanwhile (that sign-out owns it now).
     // A newer overlapping registration must not stop this: if it ends up sending
     // nothing, sign-out still needs this token.
     if (signOutCount === signOutsAtStart) registeredToken = device.token;
+    trackEvent(AnalyticsEvent.PUSH_TOKEN_REGISTERED, { platform: device.platform });
   } catch (err) {
-    logger.warn('push-token: registration failed:', err);
+    // The launch-time call runs before anyone has signed in; that claim can only
+    // be refused, and sign-in registers again (`shouldRegisterPush` in _layout).
+    if (isMissingGqlSessionError(err)) return;
+    reportRegistrationFailure(stage, process.env.EXPO_OS ?? 'unknown', err);
   }
 }
 

@@ -35,6 +35,18 @@ jest.mock('@motovault/graphql', () => ({
   UnregisterPushTokenDocument: 'UNREGISTER_DOC',
 }));
 jest.mock('../logger', () => ({ logger: { warn: jest.fn(), error: jest.fn() } }));
+const mockTrackEvent = jest.fn();
+const mockCaptureException = jest.fn();
+jest.mock('../analytics', () => ({
+  AnalyticsEvent: {
+    PUSH_TOKEN_REGISTERED: 'push_token_registered',
+    PUSH_TOKEN_REGISTRATION_FAILED: 'push_token_registration_failed',
+  },
+  trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+  captureException: (...args: unknown[]) => mockCaptureException(...args),
+}));
+/** What the API answers to a successful RegisterPushToken. */
+const REGISTERED = { registerPushToken: { success: true } };
 const mockSession = { userId: 'user-a' as string | null };
 const mockGetSession = jest.fn();
 jest.mock('../supabase', () => ({
@@ -59,7 +71,7 @@ beforeEach(() => {
   mockHasPermission.mockResolvedValue(true);
   mockGetExpoPushToken.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
   // clearAllMocks keeps implementations; reset the one a timeout test leaves hanging.
-  mockGqlFetcher.mockResolvedValue({});
+  mockGqlFetcher.mockResolvedValue(REGISTERED);
 });
 
 describe('registerForPushNotifications', () => {
@@ -97,6 +109,75 @@ describe('registerForPushNotifications', () => {
     mockGetExpoPushToken.mockRejectedValue(new Error('native failure'));
     await expect(registerForPushNotifications()).resolves.toBeUndefined();
     expect(mockGqlFetcher).not.toHaveBeenCalled();
+  });
+});
+
+// Android had no FCM config from July to 2026-11-12: getExpoPushTokenAsync threw on
+// every device and a production no-op logger.warn hid it. Failures must be visible.
+describe('registration reporting', () => {
+  it('records a successful registration with its platform', async () => {
+    await registerForPushNotifications();
+    expect(mockTrackEvent).toHaveBeenCalledWith('push_token_registered', { platform: 'ios' });
+    expect(mockCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('reports a device-token failure to PostHog and Sentry', async () => {
+    const err = Object.assign(new Error('Default FirebaseApp is not initialized'), {
+      code: 'E_REGISTRATION_FAILED',
+    });
+    mockGetExpoPushToken.mockRejectedValue(err);
+    await registerForPushNotifications();
+    expect(mockTrackEvent).toHaveBeenCalledWith('push_token_registration_failed', {
+      platform: 'ios',
+      stage: 'device_token',
+      error_code: 'E_REGISTRATION_FAILED',
+    });
+    expect(mockCaptureException).toHaveBeenCalledWith(
+      err,
+      expect.objectContaining({ source: 'push-token-register', stage: 'device_token' }),
+    );
+  });
+
+  it('reports a claim that throws', async () => {
+    mockGqlFetcher.mockRejectedValue(new Error('Internal server error'));
+    await registerForPushNotifications();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'push_token_registration_failed',
+      expect.objectContaining({ stage: 'claim', error_code: 'Error' }),
+    );
+    expect(mockTrackEvent).not.toHaveBeenCalledWith('push_token_registered', expect.anything());
+  });
+
+  it('labels an offline claim as a network failure, not a setup failure', async () => {
+    mockGqlFetcher.mockRejectedValue(new TypeError('Network request failed'));
+    await registerForPushNotifications();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'push_token_registration_failed',
+      expect.objectContaining({ stage: 'claim', error_code: 'network' }),
+    );
+  });
+
+  it('reports a claim the API refused, and does not remember its token', async () => {
+    await unregisterPushTokenForSignOut(); // forget any token an earlier test remembered
+    jest.clearAllMocks();
+    mockGqlFetcher.mockResolvedValue({ registerPushToken: { success: false } });
+    await registerForPushNotifications();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'push_token_registration_failed',
+      expect.objectContaining({ stage: 'claim_rejected' }),
+    );
+    expect(mockCaptureException).toHaveBeenCalledTimes(1);
+
+    mockGetExpoPushToken.mockClear();
+    await unregisterPushTokenForSignOut();
+    expect(mockGetExpoPushToken).toHaveBeenCalled(); // nothing was remembered to reuse
+  });
+
+  it('stays quiet when nobody is signed in yet (sign-in registers again)', async () => {
+    mockGqlFetcher.mockRejectedValue({ isMissingGqlSession: true });
+    await registerForPushNotifications();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockCaptureException).not.toHaveBeenCalled();
   });
 });
 
@@ -226,10 +307,10 @@ describe('unregisterPushTokenForSignOut', () => {
     let landClaim: () => void = () => {};
     mockGqlFetcher.mockImplementation((doc: string) => {
       if (doc === 'REGISTER_DOC') {
-        return new Promise<void>((resolve) => {
+        return new Promise((resolve) => {
           landClaim = () => {
             order.push('register');
-            resolve();
+            resolve(REGISTERED);
           };
         });
       }
@@ -264,11 +345,11 @@ describe('unregisterPushTokenForSignOut', () => {
     const lands: Array<() => void> = [];
     mockGqlFetcher.mockImplementation((doc: string) => {
       if (doc === 'REGISTER_DOC') {
-        return new Promise<void>((resolve) => {
+        return new Promise((resolve) => {
           const n = lands.length + 1;
           lands.push(() => {
             order.push(`register-${n}`);
-            resolve();
+            resolve(REGISTERED);
           });
         });
       }
@@ -296,8 +377,8 @@ describe('unregisterPushTokenForSignOut', () => {
     let landClaim: () => void = () => {};
     mockGqlFetcher.mockImplementation((doc: string) =>
       doc === 'REGISTER_DOC'
-        ? new Promise<void>((resolve) => {
-            landClaim = resolve;
+        ? new Promise((resolve) => {
+            landClaim = () => resolve(REGISTERED);
           })
         : Promise.resolve({}),
     );
@@ -321,8 +402,8 @@ describe('unregisterPushTokenForSignOut', () => {
     let landClaim: () => void = () => {};
     mockGqlFetcher.mockImplementation((doc: string) =>
       doc === 'REGISTER_DOC'
-        ? new Promise<void>((resolve) => {
-            landClaim = resolve;
+        ? new Promise((resolve) => {
+            landClaim = () => resolve(REGISTERED);
           })
         : Promise.resolve({}),
     );

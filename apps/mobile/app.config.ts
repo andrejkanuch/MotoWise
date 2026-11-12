@@ -17,6 +17,9 @@ export const APP_LOCALES = [
   'sk',
 ];
 
+/** Firebase config for Android push (FCM project motowise-489419), relative to this file. */
+export const ANDROID_GOOGLE_SERVICES_FILE = './google-services.json';
+
 const IS_PRODUCTION = process.env.APP_VARIANT === 'production';
 const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
 
@@ -370,6 +373,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: 'com.motovault.app',
+    // Firebase (FCM) for Android push. Without it getExpoPushTokenAsync throws on
+    // every Android device and no Android token ever reaches device_push_tokens
+    // (none did, July → 2026-11-12). Public identifiers only; the FCM V1 sending
+    // key lives in EAS credentials. Guarded by src/__tests__/android-fcm-config.test.ts.
+    googleServicesFile: ANDROID_GOOGLE_SERVICES_FILE,
     allowBackup: false,
     adaptiveIcon: {
       foregroundImage: './src/assets/images/MotoVault.png',
