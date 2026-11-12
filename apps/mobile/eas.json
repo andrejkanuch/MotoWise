@@ -66,7 +66,39 @@
       "env": {
         "EXPO_PUBLIC_OB_VARIANT": "invested",
         "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "e2e",
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EXPO_PUBLIC_E2E_RUN": "1",
+        "EAS_NO_FROZEN_LOCKFILE": "1"
+      }
+    },
+    "e2e-android": {
+      "distribution": "internal",
+      "environment": "production",
+      "channel": "e2e",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_OB_VARIANT": "invested",
+        "EXPO_PUBLIC_E2E_RUN": "1",
+        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "e2e",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EAS_NO_FROZEN_LOCKFILE": "1",
+        "ORG_GRADLE_PROJECT_reactNativeArchitectures": "arm64-v8a"
+      }
+    },
+    "e2e-android-local": {
+      "extends": "e2e-android",
+      "env": {
+        "E2E_LOCAL_STACK": "1",
+        "EXPO_PUBLIC_SUPABASE_URL": "http://10.0.2.2:54321",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+        "EXPO_PUBLIC_API_URL": "http://10.0.2.2:4000/graphql",
+        "EXPO_PUBLIC_OB_VARIANT": "invested",
+        "EXPO_PUBLIC_E2E_RUN": "1",
+        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "e2e",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "ORG_GRADLE_PROJECT_reactNativeArchitectures": "arm64-v8a"
       }
     }
   },

@@ -6,6 +6,26 @@ scratch copy of `supabase/` with three old migrations patched (see `data-verific
 Nothing here touches `apps/api/.env` or `apps/mobile/.env` — both still point at production
 and must stay that way; every local value is passed on the command line.
 
+## State on 2026-11-12: running at migration 00202 (#365 T00)
+
+- Supabase CLI **3.1.0** (`brew install supabase/tap/supabase`; the same version that created the stack,
+  see `~/.motovault-local/mvscratch/supabase/.temp/cli-latest`). Always pass the workdir:
+  `supabase status --workdir ~/.motovault-local/mvscratch` (also `start` / `stop`).
+- Migrations 00200–00202 were copied into the scratch `supabase/migrations/` and applied with
+  `docker exec -i supabase_db_mvscratch psql -U postgres -d postgres -v ON_ERROR_STOP=1 < <file>`, then a
+  row per version was inserted into `supabase_migrations.schema_migrations`.
+  Check: `select max(version) from supabase_migrations.schema_migrations` → `00202`. Repeat for newer
+  migrations on `main`.
+- **`pnpm db:reset` cannot replay the repo migrations from empty** (00093 ordering, 00097, 00098, 00102 fail;
+  patched only in this scratch copy, see `data-verification.md`). Use this stack, not `db:reset`.
+- Android emulator: the app reaches the stack at `10.0.2.2` (build profile `e2e-android-local`). Verified 2026-11-12:
+  the emulator build calls the local API (`motorcycleModels` requests in the API log).
+- The local API needs `OPENAI_API_KEY` (env validation). In a checkout without `apps/api/.env` pass a dummy value
+  (`OPENAI_API_KEY=sk-local-e2e-none`); AI features then fail, everything else works.
+- Onboarding's model list comes from the live NHTSA API through the local API. When NHTSA is down (503 on
+  2026-11-12) the model step shows "Something went wrong" and `onboarding.yaml` fails at "Africa Twin" — check
+  `curl -s -o /dev/null -w '%{http_code}' 'https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/honda/modelyear/2023/vehicletype/motorcycle?format=json'` before blaming the app.
+
 ## State on 2026-10-05: NOT running, must be rebuilt
 
 Before a machine restart on 2026-10-05 the stack was already gone: no `mvscratch` containers, no data volume and no `public.ecr.aws/supabase/*` images left in Docker (Docker was cleaned between Oct 2 and Oct 5). The patched workdir was copied out of `/private/tmp` to `~/.motovault-local/mvscratch` (config, patched migrations 00001–00182, roles.sql, seeds, `.temp/*-version`). To bring it back: `npx supabase start --workdir ~/.motovault-local/mvscratch --exclude studio,logflare,vector,edge-runtime,imgproxy,realtime,supavisor` (this pulls the images again, a few GB; disk had 108 GB free), then re-create the QA users through the Auth admin API (`email_confirm: true`, password `localTest123`), set `preferences.onboardingCompleted = true` for them, and run the seed script with the NEW user ids. The ids in the table below go stale.
