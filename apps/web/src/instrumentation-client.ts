@@ -4,6 +4,7 @@
 import * as Sentry from '@sentry/nextjs';
 import { captureCampaignParams } from '@/lib/campaign';
 import { shouldDropClientEvent } from '@/lib/sentry-noise-filter';
+import { shouldCreateSpanForRequest } from '@/lib/sentry-span-filter';
 
 // Capture first-touch UTM params on the initial hard load (before the visitor
 // navigates deeper and the query string is lost). Independent of analytics
@@ -25,7 +26,10 @@ Sentry.init({
   enabled: process.env.NODE_ENV === 'production',
   // Replay is not in the first-load bundle: it is added from Sentry's CDN once
   // the page is idle (below). The sample rates still apply when it lands.
-  integrations: [],
+  // browserTracingIntegration is already a default; passing it here replaces the
+  // default instance (same name) so Mapbox's tile/glyph bursts get no spans
+  // (MOTOVAULT-WEB-18, see sentry-span-filter.ts).
+  integrations: [Sentry.browserTracingIntegration({ shouldCreateSpanForRequest })],
   tracesSampleRate: 0.2,
   enableLogs: true,
   replaysSessionSampleRate: 0.1,
