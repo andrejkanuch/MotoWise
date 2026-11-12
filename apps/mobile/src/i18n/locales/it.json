@@ -2473,11 +2473,8 @@
       "title": "Compagno CarPlay",
       "intro": "Registra le uscite dallo schermo della moto. I comandi sono sull'head unit, il telefono conferma e basta.",
       "startMode": "Modalità di avvio",
-      "recommended": "Consigliata",
       "modeAuto": "Automatica",
       "modeAutoDesc": "Le uscite partono da sole al primo segnale GPS e vanno in pausa nelle soste lunghe. Niente da toccare.",
-      "keepGuard": "Minimo per salvare",
-      "adjust": "Regola",
       "modeManual": "Manuale",
       "modeManualDesc": "Non si registra nulla finché non premi Inizia uscita sull'head unit. Controllo totale, zero sorprese.",
       "modePhoneFirst": "Prima il telefono",
@@ -2487,7 +2484,8 @@
       "connected": "CONNESSO",
       "more": "Altro",
       "cues": "Segnali di conferma",
-      "howItWorks": "Come funziona"
+      "howItWorks": "Come funziona",
+      "comingSoon": "Prossimamente"
     },
     "cues": {
       "title": "Segnali di conferma",
@@ -2513,14 +2511,28 @@
       "c1Body": "Distanza, dislivello e tempo in movimento sul display della moto: basta un'occhiata, niente tocchi.",
       "c2Body": "MotoVault non prende mai il posto della mappa. Il navigatore continua a mostrarti le svolte: il selettore passa a MotoVault per un'occhiata e poi torna indietro.",
       "c3Body": "Puoi cambiarla quando vuoi nel compagno. Saprai sempre cosa sta per succedere.",
-      "autoSub": "Registra da sola",
       "manualSub": "Premi tu avvio",
-      "phoneSub": "Inizia qui",
       "continue": "Continua",
       "start": "Inizia a guidare",
       "c1Title": "Il tuo giro, sul cruscotto.",
       "c2Title": "Tieni le tue indicazioni.",
       "c3Title": "Scegli come partire."
+    },
+    "banner": {
+      "wordAutoPaused": "Pausa automatica",
+      "wordSaved": "Salvato",
+      "wordNotRecording": "Non in registrazione",
+      "wordAcquiring": "Ricerca GPS",
+      "subRecording": "comandi sull’head unit",
+      "subAutoPaused": "riprende quando ti muovi",
+      "subPaused": "riprendi dall’head unit",
+      "subSaved": "tocca per rivedere il giro",
+      "subInterrupted": "tocca per riprendere o terminare",
+      "subAcquiring": "in attesa del segnale GPS",
+      "subManualIdle": "avvia dall’head unit"
+    },
+    "panel": {
+      "tooShortTitle": "Giro troppo breve"
     }
   },
   "receiptScan": {

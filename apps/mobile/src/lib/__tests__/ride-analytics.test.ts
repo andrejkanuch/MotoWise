@@ -1,10 +1,20 @@
+jest.mock('react-native-mmkv', () => require('../../test/mocks').makeMmkvMock());
 const mockTrackEvent = jest.fn();
 jest.mock('../analytics', () => ({
-  AnalyticsEvent: { RIDE_COMPLETED: 'ride_completed' },
+  AnalyticsEvent: {
+    RIDE_COMPLETED: 'ride_completed',
+    RIDE_TOO_SHORT_SHOWN: 'ride_too_short_shown',
+    RIDE_ZERO_DISTANCE_SHOWN: 'ride_zero_distance_shown',
+  },
   trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
 }));
 
-import { RIDE_SAVE_TRIGGER, rideCompletedProperties, trackRideCompleted } from '../ride-analytics';
+import {
+  RIDE_SAVE_TRIGGER,
+  rideCompletedProperties,
+  trackRideCompleted,
+  trackRideGuard,
+} from '../ride-analytics';
 
 beforeEach(() => mockTrackEvent.mockClear());
 
@@ -92,5 +102,29 @@ describe('trackRideCompleted', () => {
       'ride_completed',
       expect.objectContaining({ ride_id: 'r4', distance_km: 12, auto_ended: true }),
     );
+  });
+});
+
+describe('trackRideGuard', () => {
+  it('tracks a short ride as too short, with the surface only when given', () => {
+    trackRideGuard({ elapsed_s: 12, distance_m: 20 }, 'shown');
+    trackRideGuard({ elapsed_s: 12, distance_m: 20 }, 'end', 'carplay');
+    expect(mockTrackEvent.mock.calls).toEqual([
+      ['ride_too_short_shown', { ride_id: null, elapsed_s: 12, distance_m: 20, action: 'shown' }],
+      [
+        'ride_too_short_shown',
+        { ride_id: null, elapsed_s: 12, distance_m: 20, action: 'end', source: 'carplay' },
+      ],
+    ]);
+  });
+
+  it('tracks a long ride with no distance as a GPS failure', () => {
+    trackRideGuard({ elapsed_s: 600, distance_m: 0 }, 'keep');
+    expect(mockTrackEvent).toHaveBeenCalledWith('ride_zero_distance_shown', {
+      ride_id: null,
+      elapsed_s: 600,
+      distance_m: 0,
+      action: 'keep',
+    });
   });
 });

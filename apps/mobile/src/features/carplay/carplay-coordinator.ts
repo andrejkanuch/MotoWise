@@ -39,10 +39,12 @@ import { hasAuthenticatedSession } from '../../lib/gql-auth-session';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
+import { type RideGuardData, trackRideGuard } from '../../lib/ride-analytics';
 import { useAuthStore } from '../../stores/auth.store';
 import { useCarPlayStore } from '../../stores/carplay.store';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
+import { isBelowMinRide } from '../../utils/ride-constants';
 import { drainQueue } from '../../utils/ride-sync-queue';
 import {
   buildRideSummaryHref,
@@ -110,6 +112,9 @@ let flushTimer: ReturnType<typeof setTimeout> | null = null;
 // Stop guard: the first Stop press arms a confirm; only a second press ends.
 let stopArmed = false;
 let stopArmTimer: ReturnType<typeof setTimeout> | null = null;
+// Set while the armed Stop would end a ride under the end-ride floors: the confirm
+// then warns that the ride is too short, as the phone HUD does.
+let tooShortGuard: RideGuardData | null = null;
 // True while the Bike-status list is pushed on top of the Ride panel. While set,
 // the coordinator must never rebuild the root (setRootTemplate would pop the list —
 // KTD5); ride-panel renders are suppressed and naturally refresh/rebuild on pop.
@@ -179,7 +184,12 @@ function clearStopArmTimer(): void {
 
 function disarmStop(): void {
   stopArmed = false;
+  tooShortGuard = null;
   clearStopArmTimer();
+}
+
+function trackTooShortGuard(action: 'shown' | 'keep' | 'end'): void {
+  if (tooShortGuard) trackRideGuard(tooShortGuard, action, 'carplay');
 }
 
 /**
@@ -206,7 +216,7 @@ function currentSnapshot(): PanelSnapshot {
 // The single panel builder for every render site, so a notice set by a failed Start
 // is not dropped by the next store tick.
 function panelModel(snap: PanelSnapshot) {
-  return buildPanelItems(snap, stopArmed, notice);
+  return buildPanelItems(snap, stopArmed, notice, tooShortGuard !== null);
 }
 
 function currentRideInput(): RideInput {
@@ -636,6 +646,7 @@ function onAction(actionId: string): void {
       return;
     case CARPLAY_ACTION.cancelStop:
       // "Keep Riding" — back out of the armed confirm with no state change.
+      trackTooShortGuard('keep');
       disarmStop();
       forceRender();
       return;
@@ -645,6 +656,13 @@ function onAction(actionId: string): void {
       // after STOP_CONFIRM_MS so the panel never stays stuck on the confirm.
       if (!stopArmed) {
         stopArmed = true;
+        // The phone HUD's too-short rule. A ride that was not recording is ended
+        // from its last movement instead (endRecoveredRide), so it gets no guard.
+        const elapsed = elapsedRideSeconds();
+        if (!ride.recordingInterrupted && isBelowMinRide(elapsed, ride.distance)) {
+          tooShortGuard = { elapsed_s: elapsed, distance_m: Math.round(ride.distance) };
+          trackTooShortGuard('shown');
+        }
         clearStopArmTimer();
         stopArmTimer = setTimeout(
           () =>
@@ -661,6 +679,7 @@ function onAction(actionId: string): void {
       // same ride-summary the phone HUD uses (which owns ride-data cleanup). Guarded:
       // the phone may be backgrounded with no live navigator. endRideSession returns
       // null on a double-end (already ended), so this stays a no-op in that race.
+      trackTooShortGuard('end');
       disarmStop();
       // A ride that was not recording ends the way the phone ends one: trimmed to
       // its last movement, and marked recovered for its review.

@@ -2436,11 +2436,8 @@
       "title": "Pendamping CarPlay",
       "intro": "Catat perjalanan dari layar motormu. Kontrol ada di head unit — ponsel hanya mengonfirmasi.",
       "startMode": "Mode mulai",
-      "recommended": "Disarankan",
       "modeAuto": "Otomatis",
       "modeAutoDesc": "Perjalanan dimulai sendiri saat GPS pertama terkunci dan dijeda saat berhenti lama. Tak perlu mengetuk apa pun.",
-      "keepGuard": "Minimum untuk disimpan",
-      "adjust": "Atur",
       "modeManual": "Manual",
       "modeManualDesc": "Tidak ada yang tercatat sampai kamu menekan Mulai Perjalanan di head unit. Kendali penuh, tanpa kejutan.",
       "modePhoneFirst": "Mulai di ponsel",
@@ -2450,7 +2447,8 @@
       "connected": "TERHUBUNG",
       "more": "Lainnya",
       "cues": "Sinyal konfirmasi",
-      "howItWorks": "Cara kerjanya"
+      "howItWorks": "Cara kerjanya",
+      "comingSoon": "Segera hadir"
     },
     "cues": {
       "title": "Sinyal konfirmasi",
@@ -2476,14 +2474,28 @@
       "c1Body": "Jarak, tanjakan, dan waktu bergerak tampil di layar motormu — cukup lirik, tak perlu mengetuk.",
       "c2Body": "MotoVault tidak pernah mengambil alih peta. Aplikasi navigasimu tetap menunjukkan belokan — tombolnya beralih ke MotoVault sekilas, lalu kembali.",
       "c3Body": "Ubah kapan saja di pendamping. Kamu selalu tahu apa yang akan terjadi.",
-      "autoSub": "Mencatat sendiri",
       "manualSub": "Kamu tekan mulai",
-      "phoneSub": "Mulai di sini",
       "continue": "Lanjut",
       "start": "Mulai berkendara",
       "c1Title": "Perjalananmu, di layar motor.",
       "c2Title": "Navigasimu tetap jalan.",
       "c3Title": "Pilih cara mulai."
+    },
+    "banner": {
+      "wordAutoPaused": "Jeda otomatis",
+      "wordSaved": "Tersimpan",
+      "wordNotRecording": "Tidak merekam",
+      "wordAcquiring": "Mencari GPS",
+      "subRecording": "kontrol di head unit",
+      "subAutoPaused": "lanjut saat kamu bergerak",
+      "subPaused": "lanjutkan dari head unit",
+      "subSaved": "ketuk untuk meninjau perjalanan",
+      "subInterrupted": "ketuk untuk melanjutkan atau mengakhiri",
+      "subAcquiring": "menunggu sinyal GPS",
+      "subManualIdle": "mulai dari head unit"
+    },
+    "panel": {
+      "tooShortTitle": "Perjalanan terlalu singkat"
     }
   },
   "receiptScan": {

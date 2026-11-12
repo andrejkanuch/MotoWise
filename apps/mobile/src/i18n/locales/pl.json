@@ -2514,11 +2514,8 @@
       "title": "Towarzysz CarPlay",
       "intro": "Zapisuj jazdy z ekranu motocykla. Sterowanie jest na wyświetlaczu — telefon tylko potwierdza.",
       "startMode": "Tryb startu",
-      "recommended": "Zalecane",
       "modeAuto": "Automatyczny",
       "modeAutoDesc": "Jazda startuje sama po pierwszym sygnale GPS i pauzuje na dłuższych postojach. Nic nie trzeba dotykać.",
-      "keepGuard": "Minimum do zapisu",
-      "adjust": "Dostosuj",
       "modeManual": "Ręczny",
       "modeManualDesc": "Nic się nie zapisuje, dopóki nie naciśniesz Rozpocznij jazdę na wyświetlaczu. Pełna kontrola, zero niespodzianek.",
       "modePhoneFirst": "Najpierw telefon",
@@ -2528,7 +2525,8 @@
       "connected": "POŁĄCZONO",
       "more": "Więcej",
       "cues": "Sygnały potwierdzenia",
-      "howItWorks": "Jak to działa"
+      "howItWorks": "Jak to działa",
+      "comingSoon": "Wkrótce"
     },
     "cues": {
       "title": "Sygnały potwierdzenia",
@@ -2554,14 +2552,28 @@
       "c1Body": "Dystans, przewyższenie i czas jazdy są na wyświetlaczu motocykla — wystarczy spojrzeć, nic nie dotykasz.",
       "c2Body": "MotoVault nigdy nie zabiera mapy. Nawigacja dalej pokazuje zakręty — przełącznik na chwilę pokazuje MotoVault, a potem wraca.",
       "c3Body": "Zmienisz to w każdej chwili w Towarzyszu. Zawsze wiesz, co się zaraz stanie.",
-      "autoSub": "Zapisuje się sam",
       "manualSub": "Ty naciskasz start",
-      "phoneSub": "Zacznij tutaj",
       "continue": "Kontynuuj",
       "start": "Zacznij jazdę",
       "c1Title": "Twoja jazda na wyświetlaczu motocykla.",
       "c2Title": "Nawigacja zostaje na miejscu.",
       "c3Title": "Wybierz sposób startu."
+    },
+    "banner": {
+      "wordAutoPaused": "Autopauza",
+      "wordSaved": "Zapisano",
+      "wordNotRecording": "Nie nagrywa",
+      "wordAcquiring": "Szukanie GPS",
+      "subRecording": "sterowanie na wyświetlaczu",
+      "subAutoPaused": "wznowi się, gdy ruszysz",
+      "subPaused": "wznów na wyświetlaczu",
+      "subSaved": "dotknij, aby przejrzeć przejazd",
+      "subInterrupted": "dotknij, aby wznowić lub zakończyć",
+      "subAcquiring": "czekam na sygnał GPS",
+      "subManualIdle": "rozpocznij na wyświetlaczu"
+    },
+    "panel": {
+      "tooShortTitle": "Przejazd za krótki"
     }
   },
   "receiptScan": {

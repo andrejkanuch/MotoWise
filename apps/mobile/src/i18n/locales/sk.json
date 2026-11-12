@@ -2514,11 +2514,8 @@
       "title": "Sprievodca CarPlay",
       "intro": "Zaznamenávaj jazdy z displeja motorky. Ovládanie je na displeji vo vozidle — telefón len potvrdzuje.",
       "startMode": "Režim spustenia",
-      "recommended": "Odporúčané",
       "modeAuto": "Automaticky",
       "modeAutoDesc": "Jazda sa spustí sama pri prvom GPS signále a pozastaví sa pri dlhých zastávkach. Nič neťukáš.",
-      "keepGuard": "Minimum na uloženie",
-      "adjust": "Upraviť",
       "modeManual": "Ručne",
       "modeManualDesc": "Nič sa nezaznamená, kým na displeji vo vozidle nestlačíš Spustiť jazdu. Plná kontrola, žiadne prekvapenia.",
       "modePhoneFirst": "Najprv telefón",
@@ -2528,7 +2525,8 @@
       "connected": "PRIPOJENÉ",
       "more": "Viac",
       "cues": "Potvrdzovacie signály",
-      "howItWorks": "Ako to funguje"
+      "howItWorks": "Ako to funguje",
+      "comingSoon": "Už čoskoro"
     },
     "cues": {
       "title": "Potvrdzovacie signály",
@@ -2554,14 +2552,28 @@
       "c1Body": "Vzdialenosť, stúpanie a čas jazdy máš na displeji motorky — stačí pozrieť, nič neťukáš.",
       "c2Body": "MotoVault ti nikdy nezoberie mapu. Navigácia ďalej ukazuje odbočky — prepínač ťa na chvíľu prepne na MotoVault a potom späť.",
       "c3Body": "Zmeniť to môžeš kedykoľvek v sprievodcovi. Vždy vieš, čo sa bude diať.",
-      "autoSub": "Zaznamenáva sám",
       "manualSub": "Spustíš sám",
-      "phoneSub": "Začni tu",
       "continue": "Pokračovať",
       "start": "Vyraziť",
       "c1Title": "Tvoja jazda na displeji motorky.",
       "c2Title": "Navigácia ti zostane.",
       "c3Title": "Vyber si, ako začať."
+    },
+    "banner": {
+      "wordAutoPaused": "Automatická pauza",
+      "wordSaved": "Uložené",
+      "wordNotRecording": "Nenahráva sa",
+      "wordAcquiring": "Hľadá sa GPS",
+      "subRecording": "ovládanie na displeji vo vozidle",
+      "subAutoPaused": "pokračuje, keď sa pohneš",
+      "subPaused": "pokračuj z displeja vo vozidle",
+      "subSaved": "ťukni a skontroluj jazdu",
+      "subInterrupted": "ťukni a pokračuj alebo ukonči",
+      "subAcquiring": "čaká sa na signál GPS",
+      "subManualIdle": "spusti z displeja vo vozidle"
+    },
+    "panel": {
+      "tooShortTitle": "Jazda je príliš krátka"
     }
   },
   "receiptScan": {

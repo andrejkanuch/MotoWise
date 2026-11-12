@@ -1,7 +1,6 @@
 // CarPlay Companion — Onboarding pager (design spec §5 Screen 3 / OnboardCard1+3).
 // Editorial 3-card explainer: what it is · rides alongside nav · pick your start.
-// Auto-shown on first connect and re-openable. TODO(carplay): first-connect flag (U11)
-// and commit the chosen mode to the start-mode pref.
+// Auto-shown on first connect and re-openable. TODO(carplay): first-connect flag (U11).
 
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
@@ -46,7 +45,7 @@ export default function CarPlayOnboardingScreen() {
 
   const finish = () => {
     triggerImpact();
-    router.back(); // TODO(carplay): mark onboarding seen + commit selected mode
+    router.back(); // TODO(carplay): mark onboarding seen
   };
 
   return (
@@ -110,17 +109,17 @@ export default function CarPlayOnboardingScreen() {
           </Text>
           <View style={{ flex: 1, justifyContent: 'center', gap: 11 }}>
             <MiniMode
-              title={t('carplay.hub.modeAuto', { defaultValue: 'Automatic' })}
-              sub={t('carplay.onboarding.autoSub', { defaultValue: 'Logs itself' })}
+              title={t('carplay.hub.modeManual', { defaultValue: 'Manual' })}
+              sub={t('carplay.onboarding.manualSub', { defaultValue: 'You press start' })}
               selected
             />
             <MiniMode
-              title={t('carplay.hub.modeManual', { defaultValue: 'Manual' })}
-              sub={t('carplay.onboarding.manualSub', { defaultValue: 'You press start' })}
+              title={t('carplay.hub.modeAuto', { defaultValue: 'Automatic' })}
+              sub={t('carplay.hub.comingSoon', { defaultValue: 'Coming soon' })}
             />
             <MiniMode
               title={t('carplay.hub.modePhoneFirst', { defaultValue: 'Phone-first' })}
-              sub={t('carplay.onboarding.phoneSub', { defaultValue: 'Start here' })}
+              sub={t('carplay.hub.comingSoon', { defaultValue: 'Coming soon' })}
             />
           </View>
         </CardShell>
@@ -223,6 +222,7 @@ function MiniMode({ title, sub, selected }: { title: string; sub: string; select
   return (
     <View
       style={{
+        opacity: selected ? 1 : 0.55, // only the selected mode (Manual) is built
         backgroundColor: c.surface,
         borderRadius: 16,
         borderCurve: 'continuous',

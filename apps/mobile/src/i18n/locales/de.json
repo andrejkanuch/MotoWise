@@ -2436,11 +2436,8 @@
       "title": "CarPlay-Begleiter",
       "intro": "Zeichne Fahrten über das Display deines Motorrads auf. Die Bedienung liegt am Fahrzeugdisplay — das Handy bestätigt nur.",
       "startMode": "Startmodus",
-      "recommended": "Empfohlen",
       "modeAuto": "Automatisch",
       "modeAutoDesc": "Fahrten starten beim ersten GPS-Signal von selbst und pausieren bei langen Stopps. Nichts zu tippen.",
-      "keepGuard": "Mindestwert zum Speichern",
-      "adjust": "Anpassen",
       "modeManual": "Manuell",
       "modeManualDesc": "Nichts wird aufgezeichnet, bis du am Fahrzeugdisplay auf „Fahrt starten“ tippst. Volle Kontrolle, keine Überraschungen.",
       "modePhoneFirst": "Handy zuerst",
@@ -2450,7 +2447,8 @@
       "connected": "VERBUNDEN",
       "more": "Mehr",
       "cues": "Bestätigungssignale",
-      "howItWorks": "So funktioniert's"
+      "howItWorks": "So funktioniert's",
+      "comingSoon": "Demnächst"
     },
     "cues": {
       "title": "Bestätigungssignale",
@@ -2476,14 +2474,28 @@
       "c1Body": "Distanz, Höhenmeter und Fahrzeit stehen im Display deines Motorrads — ein Blick genügt, kein Tippen.",
       "c2Body": "MotoVault übernimmt nie die Karte. Deine Navi-App zeigt weiter die Abbiegungen — der Umschalter wechselt kurz zu MotoVault und dann zurück.",
       "c3Body": "Du kannst es jederzeit im Begleiter ändern. Du weißt immer, was als Nächstes passiert.",
-      "autoSub": "Zeichnet selbst auf",
       "manualSub": "Du drückst Start",
-      "phoneSub": "Hier starten",
       "continue": "Weiter",
       "start": "Losfahren",
       "c1Title": "Deine Fahrt im Cockpit-Display.",
       "c2Title": "Deine Navigation bleibt.",
       "c3Title": "Wähle deinen Start."
+    },
+    "banner": {
+      "wordAutoPaused": "Auto-Pause",
+      "wordSaved": "Gespeichert",
+      "wordNotRecording": "Keine Aufnahme",
+      "wordAcquiring": "GPS wird gesucht",
+      "subRecording": "Steuerung am Fahrzeugdisplay",
+      "subAutoPaused": "läuft weiter, sobald du fährst",
+      "subPaused": "am Fahrzeugdisplay fortsetzen",
+      "subSaved": "tippen, um deine Fahrt zu prüfen",
+      "subInterrupted": "tippen zum Fortsetzen oder Beenden",
+      "subAcquiring": "warte auf GPS-Signal",
+      "subManualIdle": "am Fahrzeugdisplay starten"
+    },
+    "panel": {
+      "tooShortTitle": "Fahrt zu kurz"
     }
   },
   "receiptScan": {

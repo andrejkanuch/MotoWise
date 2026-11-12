@@ -483,6 +483,12 @@
     },
     "onboarding": {
       "c1Title": "Tu salida, en el cuadro."
+    },
+    "banner": {
+      "subSaved": "toca para revisar tu salida"
+    },
+    "panel": {
+      "tooShortTitle": "Salida muy corta"
     }
   },
   "receiptScan": {

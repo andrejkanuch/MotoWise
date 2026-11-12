@@ -1,16 +1,15 @@
 // Persistent active-ride banner shown above the tab bar while a CarPlay ride is
 // live (design spec §5 Screen 4a). A confirmation surface, not a control mirror —
-// tapping opens the status sheet; the only control there is a guarded stop.
-// TODO(carplay): wire `state`/`distance`/`time` to the carplay-coordinator snapshot
-// (U12); currently driven by props/mock for the static build.
+// tapping opens the ride; the controls live on the head unit.
 
 import { ChevronUp } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { space } from '../../theme/spacing';
+import { layout, space } from '../../theme/spacing';
 import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
 import { PulseDot, StaticDot } from './primitives';
-import { type RideStateKey, stateTint, stateWord } from './state-indicator';
+import { type RideStateKey, stateTint } from './state-indicator';
 
 export type BannerState =
   | 'recording'
@@ -19,58 +18,85 @@ export type BannerState =
   | 'interrupted'
   | 'acquiring'
   | 'saved'
-  | 'armedAuto'
   | 'manualIdle';
 
-// maps banner state → canonical glyph-state + copy + whether metrics show.
-const BANNER: Record<
+// Banner state → canonical glyph-state, word + sub copy keys, whether metrics show.
+const BANNER = {
+  recording: {
+    state: 'recording',
+    word: 'rideHud.statusRecording',
+    sub: 'carplay.banner.subRecording',
+    metrics: true,
+  },
+  autoPaused: {
+    state: 'autoPaused',
+    word: 'carplay.banner.wordAutoPaused',
+    sub: 'carplay.banner.subAutoPaused',
+    metrics: true,
+  },
+  paused: {
+    state: 'paused',
+    word: 'rideHud.statusPaused',
+    sub: 'carplay.banner.subPaused',
+    metrics: true,
+  },
+  saved: {
+    state: 'saved',
+    word: 'carplay.banner.wordSaved',
+    sub: 'carplay.banner.subSaved',
+    metrics: true,
+  },
+  interrupted: {
+    state: 'stop',
+    word: 'carplay.banner.wordNotRecording',
+    sub: 'carplay.banner.subInterrupted',
+    metrics: true,
+  },
+  acquiring: {
+    state: 'acquiring',
+    word: 'carplay.banner.wordAcquiring',
+    sub: 'carplay.banner.subAcquiring',
+    metrics: true,
+  },
+  manualIdle: {
+    state: 'recording',
+    word: 'carplay.banner.wordNotRecording',
+    sub: 'carplay.banner.subManualIdle',
+    metrics: false,
+  },
+} as const satisfies Record<
   BannerState,
-  { state: RideStateKey; sub: string; metrics: boolean; pulse: boolean }
-> = {
-  recording: { state: 'recording', sub: 'controls on your head unit', metrics: true, pulse: true },
-  autoPaused: { state: 'autoPaused', sub: 'resumes when you move', metrics: true, pulse: false },
-  paused: { state: 'paused', sub: 'resume from the head unit', metrics: true, pulse: false },
-  saved: { state: 'saved', sub: 'tap to review your ride', metrics: true, pulse: false },
-  interrupted: { state: 'stop', sub: 'tap to resume or end', metrics: true, pulse: false },
-  acquiring: { state: 'acquiring', sub: 'waiting for GPS lock', metrics: true, pulse: false },
-  armedAuto: { state: 'recording', sub: 'auto-start armed', metrics: false, pulse: false },
-  manualIdle: { state: 'recording', sub: 'start from the head unit', metrics: false, pulse: false },
-};
+  { state: RideStateKey; word: string; sub: string; metrics: boolean }
+>;
 
-// States whose word is not the canonical state vocabulary's.
-const WORD_OVERRIDE: Partial<Record<BannerState, string>> = {
-  armedAuto: 'READY',
-  manualIdle: 'NOT RECORDING',
-  interrupted: 'NOT RECORDING',
-};
+const NO_METRICS = '— · —:—';
 
 export function ActiveRideBanner({
-  state = 'recording',
-  distance = '42.3 km',
-  time = '1:12:40',
+  state,
+  distance,
+  time,
   onPress,
 }: {
-  state?: BannerState;
-  distance?: string;
-  time?: string;
-  onPress?: () => void;
+  state: BannerState;
+  distance: string;
+  time: string;
+  onPress: () => void;
 }) {
+  const { t } = useTranslation();
   const { t: c } = useEditorialTheme();
   const cfg = BANNER[state];
-  // armed/manual idle states show "READY" / their sub instead of a live word.
-  const word = WORD_OVERRIDE[state] ?? stateWord(cfg.state);
-  const tintColor =
-    state === 'armedAuto' || state === 'manualIdle' ? c.ink3 : stateTint(cfg.state, c);
-  const isAcquiring = state === 'acquiring';
-  const metricsLabel = cfg.metrics ? (isAcquiring ? '— km · —:—' : `${distance} · ${time}`) : '';
-  const a11yLabel = [word, metricsLabel, cfg.sub].filter(Boolean).join(' · ');
+  const word = t(cfg.word).toLocaleUpperCase();
+  const sub = t(cfg.sub);
+  const tintColor = cfg.metrics ? stateTint(cfg.state, c) : c.ink3;
+  const metrics = state === 'acquiring' ? NO_METRICS : `${distance} · ${time}`;
+  const a11yLabel = [word, cfg.metrics ? metrics : '', sub].filter(Boolean).join(' · ');
 
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={a11yLabel}
-      accessibilityHint={cfg.sub}
+      accessibilityHint={sub}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -84,7 +110,7 @@ export function ActiveRideBanner({
         paddingHorizontal: 14,
       }}
     >
-      {cfg.pulse ? <PulseDot color={tintColor} /> : <StaticDot color={tintColor} />}
+      {state === 'recording' ? <PulseDot color={tintColor} /> : <StaticDot color={tintColor} />}
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Text
@@ -98,11 +124,11 @@ export function ActiveRideBanner({
           </Text>
           {cfg.metrics && (
             <Text style={{ ...type.label, fontVariant: ['tabular-nums'], color: c.ink2 }}>
-              {isAcquiring ? '— km · —:—' : `${distance} · ${time}`}
+              {metrics}
             </Text>
           )}
         </View>
-        <Text style={{ ...type.caption, color: c.ink3, marginTop: 2 }}>{cfg.sub}</Text>
+        <Text style={{ ...type.caption, color: c.ink3, marginTop: layout.titleGap }}>{sub}</Text>
       </View>
       <ChevronUp size={18} color={c.ink4} strokeWidth={2} />
     </Pressable>

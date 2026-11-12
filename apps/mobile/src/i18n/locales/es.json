@@ -2473,11 +2473,8 @@
       "title": "Panel de CarPlay",
       "intro": "Registra rodadas desde la pantalla de tu moto. Los controles están en la pantalla; el teléfono solo confirma.",
       "startMode": "Modo de inicio",
-      "recommended": "Recomendado",
       "modeAuto": "Automático",
       "modeAutoDesc": "Las rodadas inician solas con la primera señal GPS y se pausan en paradas largas. Nada que tocar.",
-      "keepGuard": "Mínimo para guardar",
-      "adjust": "Ajustar",
       "modeManual": "Manual",
       "modeManualDesc": "No se registra nada hasta que tocas Iniciar rodada en la pantalla. Control total, cero sorpresas.",
       "modePhoneFirst": "Desde el teléfono",
@@ -2487,7 +2484,8 @@
       "connected": "CONECTADO",
       "more": "Más",
       "cues": "Avisos de confirmación",
-      "howItWorks": "Cómo funciona"
+      "howItWorks": "Cómo funciona",
+      "comingSoon": "Próximamente"
     },
     "cues": {
       "title": "Avisos de confirmación",
@@ -2513,14 +2511,28 @@
       "c1Body": "Distancia, desnivel y tiempo en movimiento en la pantalla de tu moto: un vistazo, sin tocar.",
       "c2Body": "MotoVault nunca te quita el mapa. Tu app de navegación sigue mostrando los giros; el selector pasa a MotoVault para un vistazo y regresa.",
       "c3Body": "Cámbialo cuando quieras en el panel de CarPlay. Siempre sabes lo que va a pasar.",
-      "autoSub": "Se registra solo",
       "manualSub": "Tú tocas iniciar",
-      "phoneSub": "Empieza aquí",
       "continue": "Continuar",
       "start": "Empezar a rodar",
       "c1Title": "Tu rodada, en el tablero.",
       "c2Title": "Conserva tus indicaciones.",
       "c3Title": "Elige cómo empezar."
+    },
+    "banner": {
+      "wordAutoPaused": "Pausa automática",
+      "wordSaved": "Guardada",
+      "wordNotRecording": "Sin grabar",
+      "wordAcquiring": "Buscando GPS",
+      "subRecording": "controles en la pantalla",
+      "subAutoPaused": "se reanuda al moverte",
+      "subPaused": "reanuda desde la pantalla",
+      "subSaved": "toca para revisar tu rodada",
+      "subInterrupted": "toca para reanudar o terminar",
+      "subAcquiring": "esperando señal GPS",
+      "subManualIdle": "inicia desde la pantalla"
+    },
+    "panel": {
+      "tooShortTitle": "Rodada muy corta"
     }
   },
   "receiptScan": {

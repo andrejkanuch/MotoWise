@@ -1,5 +1,6 @@
 import type { JsonType } from '@posthog/core';
-import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../utils/ride-constants';
+import { isBelowMinRide, isNoGpsRide } from '../utils/ride-constants';
+import { rideMMKV } from '../utils/ride-storage';
 import { AnalyticsEvent, trackEvent } from './analytics';
 
 /**
@@ -59,7 +60,7 @@ export function rideCompletedProperties(input: RideCompletedInput): Record<strin
     distance_km:
       Math.round((distanceM / METERS_PER_KM) * DISTANCE_KM_PRECISION) / DISTANCE_KM_PRECISION,
     duration_s: durationS,
-    below_min_ride: durationS < MIN_RIDE_ELAPSED_S || distanceM < MIN_RIDE_DISTANCE_M,
+    below_min_ride: isBelowMinRide(durationS, distanceM),
     save_trigger: input.trigger,
     auto_ended: input.trigger === RIDE_SAVE_TRIGGER.AUTO_END,
   };
@@ -67,4 +68,27 @@ export function rideCompletedProperties(input: RideCompletedInput): Record<strin
 
 export function trackRideCompleted(input: RideCompletedInput): void {
   trackEvent(AnalyticsEvent.RIDE_COMPLETED, rideCompletedProperties(input));
+}
+
+export interface RideGuardData {
+  elapsed_s: number;
+  distance_m: number;
+}
+
+/** The end-ride floor guard (phone HUD and CarPlay Stop). A ride long in time but
+ *  empty in distance is a GPS failure, not a mis-tap, and is counted apart. */
+export function trackRideGuard(
+  guard: RideGuardData,
+  action: 'shown' | 'keep' | 'end',
+  source?: 'carplay',
+): void {
+  const event = isNoGpsRide(guard.elapsed_s)
+    ? AnalyticsEvent.RIDE_ZERO_DISTANCE_SHOWN
+    : AnalyticsEvent.RIDE_TOO_SHORT_SHOWN;
+  trackEvent(event, {
+    ride_id: rideMMKV.getCurrentId() ?? null,
+    ...guard,
+    action,
+    ...(source && { source }),
+  });
 }

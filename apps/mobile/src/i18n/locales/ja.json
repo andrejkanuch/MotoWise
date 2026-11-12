@@ -2436,11 +2436,8 @@
       "title": "CarPlay コンパニオン",
       "intro": "バイクの画面からライドを記録。操作は車載ディスプレイで行い、スマホは確認するだけです。",
       "startMode": "開始モード",
-      "recommended": "おすすめ",
       "modeAuto": "自動",
       "modeAutoDesc": "最初のGPS取得でライドが自動で始まり、長い停車では一時停止します。タップは不要です。",
-      "keepGuard": "保存の最低条件",
-      "adjust": "調整",
       "modeManual": "手動",
       "modeManualDesc": "車載ディスプレイで「ライドを開始」を押すまで記録しません。完全に自分で操作でき、予想外の動きはありません。",
       "modePhoneFirst": "スマホから開始",
@@ -2450,7 +2447,8 @@
       "connected": "接続中",
       "more": "その他",
       "cues": "開始の通知",
-      "howItWorks": "使い方"
+      "howItWorks": "使い方",
+      "comingSoon": "近日公開"
     },
     "cues": {
       "title": "開始の通知",
@@ -2476,14 +2474,28 @@
       "c1Body": "距離、獲得標高、走行時間をバイクのディスプレイに表示 — 見るだけで、タップは不要。",
       "c2Body": "MotoVaultが地図を奪うことはありません。ナビアプリはそのまま曲がり角を案内し、切り替えでMotoVaultをちらっと見てまた戻れます。",
       "c3Body": "コンパニオンからいつでも変更できます。次に何が起きるかは常にわかります。",
-      "autoSub": "自動で記録",
       "manualSub": "自分で開始",
-      "phoneSub": "ここで開始",
       "continue": "続ける",
       "start": "走り出す",
       "c1Title": "走行データをメーターに。",
       "c2Title": "ナビはそのまま。",
       "c3Title": "開始方法を選ぶ。"
+    },
+    "banner": {
+      "wordAutoPaused": "自動一時停止",
+      "wordSaved": "保存済み",
+      "wordNotRecording": "記録していません",
+      "wordAcquiring": "GPS取得中",
+      "subRecording": "操作は車載ディスプレイで",
+      "subAutoPaused": "動き出すと再開します",
+      "subPaused": "車載ディスプレイから再開",
+      "subSaved": "タップしてライドを確認",
+      "subInterrupted": "タップして再開または終了",
+      "subAcquiring": "GPSの測位を待っています",
+      "subManualIdle": "車載ディスプレイから開始"
+    },
+    "panel": {
+      "tooShortTitle": "ライドが短すぎます"
     }
   },
   "receiptScan": {

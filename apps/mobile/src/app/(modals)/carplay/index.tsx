@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CardGroup, Eyebrow, PulseDot, SectionLabel } from '@/components/carplay/primitives';
+import { CardGroup, PulseDot, SectionLabel } from '@/components/carplay/primitives';
 import { useActiveBike, useCarPlayConnection } from '@/features/carplay/use-carplay';
 import { useMeasurementSystem } from '@/hooks/use-measurement-system';
 import { type StartMode, useCarPlayStore } from '@/stores/carplay.store';
@@ -36,6 +36,8 @@ export default function CarPlayHubScreen() {
     bike?.currentMileage != null
       ? `${bike.currentMileage.toLocaleString()} ${mileageUnitLabel(system).toUpperCase()}`
       : '—';
+
+  const comingSoon = t('carplay.hub.comingSoon', { defaultValue: 'Coming soon' });
 
   const pick = (m: StartMode) => {
     triggerImpact();
@@ -99,44 +101,6 @@ export default function CarPlayHubScreen() {
         <View style={{ gap: 10 }}>
           <Animated.View entering={FadeInUp.delay(40).duration(300)}>
             <RadioCard
-              selected={mode === 'automatic'}
-              onPress={() => pick('automatic')}
-              badge={t('carplay.hub.recommended', { defaultValue: 'Recommended' })}
-              title={t('carplay.hub.modeAuto', { defaultValue: 'Automatic' })}
-              consequence={t('carplay.hub.modeAutoDesc', {
-                defaultValue:
-                  'Rides start themselves on first GPS fix and pause at long stops. Nothing to tap.',
-              })}
-            >
-              <View
-                style={{
-                  marginTop: 12,
-                  backgroundColor: c.surface2,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  borderWidth: 1,
-                  borderColor: c.line,
-                  paddingVertical: 10,
-                  paddingHorizontal: 12,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <View>
-                  <Eyebrow style={{ marginBottom: 3, marginTop: 0 }}>
-                    {t('carplay.hub.keepGuard', { defaultValue: 'Keep-guard' })}
-                  </Eyebrow>
-                  <Text style={{ ...type.figureSmall, color: c.ink }}>{'500 m · 2 min'}</Text>
-                </View>
-                <Text style={{ ...type.label, ...SYSTEM_WEIGHT.semibold, color: c.warm2 }}>
-                  {t('carplay.hub.adjust', { defaultValue: 'Adjust' })}
-                </Text>
-              </View>
-            </RadioCard>
-          </Animated.View>
-          <Animated.View entering={FadeInUp.delay(100).duration(300)}>
-            <RadioCard
               selected={mode === 'manual'}
               onPress={() => pick('manual')}
               title={t('carplay.hub.modeManual', { defaultValue: 'Manual' })}
@@ -146,10 +110,22 @@ export default function CarPlayHubScreen() {
               })}
             />
           </Animated.View>
+          {/* Not built yet: shown so riders know they are coming, never selectable. */}
+          <Animated.View entering={FadeInUp.delay(100).duration(300)}>
+            <RadioCard
+              selected={false}
+              badge={comingSoon}
+              title={t('carplay.hub.modeAuto', { defaultValue: 'Automatic' })}
+              consequence={t('carplay.hub.modeAutoDesc', {
+                defaultValue:
+                  'Rides start themselves on first GPS fix and pause at long stops. Nothing to tap.',
+              })}
+            />
+          </Animated.View>
           <Animated.View entering={FadeInUp.delay(160).duration(300)}>
             <RadioCard
-              selected={mode === 'phoneFirst'}
-              onPress={() => pick('phoneFirst')}
+              selected={false}
+              badge={comingSoon}
               title={t('carplay.hub.modePhoneFirst', { defaultValue: 'Phone-first' })}
               consequence={t('carplay.hub.modePhoneFirstDesc', {
                 defaultValue:
@@ -248,24 +224,26 @@ function RadioCard({
   badge,
   title,
   consequence,
-  children,
   onPress,
 }: {
   selected: boolean;
   badge?: string;
   title: string;
   consequence: string;
-  children?: React.ReactNode;
-  onPress: () => void;
+  /** Omitted for a mode that is not built: the card shows but cannot be picked. */
+  onPress?: () => void;
 }) {
   const { t: c } = useEditorialTheme();
+  const disabled = !onPress;
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       accessibilityRole="radio"
-      accessibilityState={{ checked: selected }}
-      accessibilityLabel={title}
+      accessibilityState={{ checked: selected, disabled }}
+      accessibilityLabel={badge ? `${title}, ${badge}` : title}
       style={{
+        opacity: disabled ? 0.55 : 1,
         backgroundColor: c.surface,
         borderRadius: 18,
         borderCurve: 'continuous',
@@ -322,7 +300,6 @@ function RadioCard({
             )}
           </View>
           <Text style={{ ...type.subhead, color: c.ink2 }}>{consequence}</Text>
-          {children}
         </View>
       </View>
     </Pressable>

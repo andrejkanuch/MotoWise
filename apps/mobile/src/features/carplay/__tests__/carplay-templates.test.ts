@@ -173,6 +173,12 @@ describe('buildPanelItems', () => {
     expect(model.items.map((i) => i.title)).toEqual(['Speed', 'Distance', 'Climb', 'Moving']);
     expect(model.actions.map((a) => a.id)).toEqual(['cancelStop', 'stop']);
   });
+
+  it('warns on the stop confirm when the ride is too short, with the same actions', () => {
+    const model = buildPanelItems(deriveSnapshot(base, 'metric'), true, null, true);
+    expect(model.title).toBe('RIDE TOO SHORT');
+    expect(model.actions.map((a) => a.id)).toEqual(['cancelStop', 'stop']);
+  });
 });
 
 describe('pickHeadsUp', () => {

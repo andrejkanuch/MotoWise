@@ -75,6 +75,8 @@ jest.mock('@/lib/analytics', () => ({
     CARPLAY_DISCONNECTED: 'carplay_disconnected',
     CARPLAY_ACTION: 'carplay_action',
     CARPLAY_START_FAILED: 'carplay_start_failed',
+    RIDE_TOO_SHORT_SHOWN: 'ride_too_short_shown',
+    RIDE_ZERO_DISTANCE_SHOWN: 'ride_zero_distance_shown',
   },
 }));
 
@@ -496,6 +498,80 @@ describe('carplay-coordinator', () => {
     fireAction('cancelStop'); // keep riding -> disarm
     fireAction('stop'); // arms again (not a confirm)
     expect(rideController.endRideSession).not.toHaveBeenCalled();
+  });
+
+  describe('too-short guard (the phone HUD rule)', () => {
+    const lastTitle = () => (carplay.renderInformation as jest.Mock).mock.calls.at(-1)?.[0]?.title;
+    const guardCalls = () =>
+      (trackEvent as jest.Mock).mock.calls.filter(([name]) => name === 'ride_too_short_shown');
+
+    beforeEach(() => {
+      mockRide.distance = 20;
+      (rideController.elapsedRideSeconds as jest.Mock).mockReturnValue(12);
+    });
+
+    afterEach(() => {
+      (rideController.elapsedRideSeconds as jest.Mock).mockReturnValue(4360);
+    });
+
+    it('warns on the confirm, then still ends the ride on the second press', () => {
+      startCarPlayCoordinator();
+      fireConnect();
+
+      fireAction('stop');
+      expect(lastTitle()).toBe('RIDE TOO SHORT');
+      expect(rideController.endRideSession).not.toHaveBeenCalled();
+
+      fireAction('stop');
+      expect(rideController.endRideSession).toHaveBeenCalledTimes(1);
+      expect(guardCalls().map(([, props]) => props)).toEqual([
+        { ride_id: null, elapsed_s: 12, distance_m: 20, action: 'shown', source: 'carplay' },
+        { ride_id: null, elapsed_s: 12, distance_m: 20, action: 'end', source: 'carplay' },
+      ]);
+    });
+
+    it('tracks Keep Riding and clears the warning', () => {
+      startCarPlayCoordinator();
+      fireConnect();
+
+      fireAction('stop');
+      fireAction('cancelStop');
+      expect(guardCalls().map(([, props]) => props.action)).toEqual(['shown', 'keep']);
+      expect(lastTitle()).not.toBe('RIDE TOO SHORT');
+    });
+
+    it('counts a long ride with no distance as a GPS failure, not a mis-tap', () => {
+      (rideController.elapsedRideSeconds as jest.Mock).mockReturnValue(600);
+      startCarPlayCoordinator();
+      fireConnect();
+
+      fireAction('stop');
+      expect(trackEvent).toHaveBeenCalledWith(
+        'ride_zero_distance_shown',
+        expect.objectContaining({ elapsed_s: 600, action: 'shown' }),
+      );
+    });
+
+    it('skips the guard for a ride that was not recording', () => {
+      (mockRide as { recordingInterrupted?: boolean }).recordingInterrupted = true;
+      startCarPlayCoordinator();
+      fireConnect();
+
+      fireAction('stop');
+      expect(lastTitle()).toBe('STOP RIDE?');
+      expect(guardCalls()).toEqual([]);
+    });
+  });
+
+  it('shows the plain stop confirm for a ride above the floors', () => {
+    startCarPlayCoordinator();
+    fireConnect();
+
+    fireAction('stop');
+    expect((carplay.renderInformation as jest.Mock).mock.calls.at(-1)?.[0]?.title).toBe(
+      'STOP RIDE?',
+    );
+    expect(trackEvent).not.toHaveBeenCalledWith('ride_too_short_shown', expect.anything());
   });
 
   it('auto-disarms an armed Stop after the confirm window', () => {
