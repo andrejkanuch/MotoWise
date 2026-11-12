@@ -3,7 +3,7 @@ title: "[#365 T26] \"Add your model\" row for make-only bikes in the bike hub"
 labels: [enhancement, area:mobile, activation-365]
 order: 39
 task_id: T26
-depends_on: [T23]
+depends_on: [T00, T23]
 phase: P2
 size: S
 release_path: "Release B 3.30.0"
@@ -22,7 +22,7 @@ In `components/bike-hub/overview/overview-segment.tsx`, when `model === ''`, a r
 Jest render test (row shown only for make-only). Maestro step appended to `onboarding-make-only-service-plan.yaml`.
 
 ## Acceptance criteria
-- [ ] Red run of the appended step on main (no row), green after; light/dark; 7 locales.
+- [ ] Red run of the appended step on main (no row), green after; light/dark; all app locale files (`pnpm check:i18n`).
 
 ## Verification
 Maestro log (local, both).
@@ -31,17 +31,17 @@ Maestro log (local, both).
 FS-R2-3 (bike hub path). Repro: make-only onboarding bike → Garage → bike. Expected: the row → edit-bike. Automated check: maestro (local, both) `tapOn: {id: bike-hub-add-model-row}` → `assertVisible: {id: edit-bike-model-search}`. Red first.
 
 ## Production metric
-FS-R2-3 by `properties.source = 'bike_hub'` (T23 tile). Baseline DB proxy 7/117 [SOURCE: R2-DB6]. Target ≥ 20% overall [UNBACKED — own target]. Annotate Release B.
+FS-R2-3 by `properties.source = 'bike_hub'` (T23 tile). Baseline DB proxy 7/116 [SOURCE: V1-db5; R2-DB6]. Target ≥ 20% overall [UNBACKED — own target]. Annotate Release B.
 
 ## Release
 Release B; `FS-R2-3: 3`.
 
 ## Dependencies
-- Blocked by: T23.
+- Blocked by: T00 (test environment), T23.
 - Blocks: T35.
 
 ## Out of scope
 Home (Exp 1 slot).
 
 ## Constraints
-Bike hub only; light/dark; 7 locales.
+Bike hub only; light/dark; all app locale files (`pnpm check:i18n`).

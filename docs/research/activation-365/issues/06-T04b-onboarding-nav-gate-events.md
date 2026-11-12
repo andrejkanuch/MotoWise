@@ -13,7 +13,7 @@ release_path: "Release A store build 3.29.0 (D17)"
 #365, plan §3 T04 (split b), specs FS-OB1b/c/d/e/f, FS-PO13. Data gates T14b, T15b, T38.
 
 ## Why
-Four onboarding "reset" mechanisms (RC-B…RC-F) cannot be separated in events [SOURCE: R1 §2.2 Q4, Q9]. 49 riders made ≥ 3 back steps ≤ 5 s apart [SOURCE: R1 Q8]; 11 saw Welcome again with progress [SOURCE: R1 Q10]; 10/291 completers relapsed [SOURCE: R1 Q7].
+Four onboarding "reset" mechanisms (RC-B…RC-F) cannot be separated in events [SOURCE: R1 §2.2 Q4, Q9]. Android 28/201, iOS 14/72 starters made ≥ 3 back steps ≤ 5 s apart (60 d) [SOURCE: V1-q15; R1 Q8]; 12 saw Welcome again with progress, 6 on 3.26.0 [SOURCE: V1-q37]; 10/292 completers relapsed [SOURCE: V1-q18]. The RC-D trigger is now known (Back out of the onboarding root + warm launch, V4 b3); `onboarding_welcome_mounted.reason` should tell `'remount'` in a fresh activity apart from `'back'`.
 
 ## What to change
 | Event | Properties | Where |
@@ -36,10 +36,10 @@ Jest per event (one fire per action, typed props) under `apps/mobile/src/__tests
 `SELECT event, uniq(person_id) FROM events WHERE timestamp > now() - INTERVAL 7 DAY AND event IN ('onboarding_back','onboarding_welcome_mounted','gate_routed','auth_session_lost','onboarding_resumed') AND {EXCL} GROUP BY event`.
 
 ## Friction spec
-FS-OB1b/d/e/f measurement. Repro (Android emulator, preview build): to account step, press Back ×3 quickly. Expected: three `onboarding_back {trigger:'hardware', ms_on_screen < 5000}`. Automated check: jest (CI); Maestro not used (events are not asserted in flows).
+FS-OB1b/d/e/f measurement. Repro (Android emulator, T00 Android E2E build): to account step, press Back ×3 quickly. Expected: three `onboarding_back {trigger:'hardware', ms_on_screen < 5000}`. Automated check: jest (CI); Maestro not used (events are not asserted in flows).
 
 ## Production metric
-- FS-OB1b (plan §5, revised): starters with ≥ 3 `onboarding_back` where `ms_on_screen ≤ 5000` and `trigger IN ('hardware','gesture')`; baseline Android 25/187, iOS 15/70 [SOURCE: R1 Q8].
+- FS-OB1b (plan §5, revised): starters with ≥ 3 `onboarding_back` where `ms_on_screen ≤ 5000` and `trigger IN ('hardware','gesture')`; baseline (`$screen` method, `validation/V1-metrics.md` §3.2) Android 28/201, iOS 14/72 [SOURCE: V1-q15].
 - `gate_routed` by `onboarding_completed_source`: decision input for T14b (relapses with `me_cache`).
 - Tiles in T03b; read 4 weeks after 3.29.0 go-live per platform. Annotate per T03a.
 

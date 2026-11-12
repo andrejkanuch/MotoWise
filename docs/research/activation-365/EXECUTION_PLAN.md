@@ -1,6 +1,6 @@
 # #365 Activation: execution plan (issue-by-issue, in order)
 
-Planner run, 2026-11-12; **revised the same day after the critic review** (`EXECUTION_PLAN-review.md`, 30 items; answers in §8). **Research only:** no app code, migration, PostHog, RevenueCat, GitHub or Supabase write was made.
+Planner run, 2026-11-12; **revised the same day after the critic review** (`EXECUTION_PLAN-review.md`, 30 items; answers in §8), and **validated the same day against production and devices** (`validation/V1…V5`; every change is listed in §11, the new confidence scores are in §11.1). **Research only:** no app code, migration, PostHog, RevenueCat, GitHub or Supabase write was made.
 Code is cited from the clean checkout of `origin/main` at `52d281e9` (`a clean checkout of origin/main`).
 Paths starting `apps/`, `packages/`, `supabase/`, `docs/` are repo-relative. Every other code path is relative to `apps/mobile/src/`.
 
@@ -20,9 +20,13 @@ and for reproducible bugs a **red run on `origin/main`** first), and (2) its pro
 
 ## 0. Conventions used everywhere
 
-- **`{EXCL}`** = `toString(person_id) NOT IN (<excluded test/synthetic person ids: project test-account filter + is_synthetic users; list kept outside the repo>)` (the 12 test persons, `queries/q00-excluded-persons.md`) **AND** `coalesce(toString(properties.e2e_run), '') != 'true'` (E2E builds, super property from T01) **AND** `person_id NOT IN ({E2E_PERSONS})`, the list of historical e2e persons T02 finds once (`person.properties.email LIKE 'e2e-%'`). DB queries exclude `users.is_synthetic` and `email LIKE 'e2e-%'` (the runners set `is_synthetic = true`, T02). [review item 7]
-- **`{RN}`** = `properties.$lib = 'posthog-react-native'`.
-- **`{REL}`** (the release breakdown every metric uses) = `toString(properties.$app_version) AS ver, toString(properties.activation_fix_level) AS lvl, toString(properties.ota_update_id) AS ota, lower(coalesce(toString(properties.platform), toString(properties.$os))) AS plat`.
+- **`{EXCL}`** = `toString(person_id) NOT IN (<excluded test/synthetic person ids: project test-account filter + is_synthetic users; list kept outside the repo>)` (**13 persons**, not 12: the 11 PostHog persons of the 26 synthetic/test/soft-deleted Supabase users plus 2 filter-only ids [SOURCE: V1 §0, V2-s1]; T02 also adds the internal tester who runs internal builds 92–99 and is not flagged `internal` [SOURCE: V3 §2, item 7] and the person, if any, behind the V4 emulator run — `$device_model = 'sdk_gphone64_arm64'`, app 3.28.0, 2026-11-12 14:18–14:30 UTC, anonymous [SOURCE: V4 Setup]; `queries/q00-excluded-persons.md`) **AND** `coalesce(toString(properties.e2e_run), '') != 'true'` (E2E builds, super property from T01) **AND** `person_id NOT IN ({E2E_PERSONS})`, the list of historical e2e persons T02 finds once (`person.properties.email LIKE 'e2e-%'`). DB queries exclude `users.is_synthetic` and `email LIKE 'e2e-%'` (the runners set `is_synthetic = true`, T02). [review item 7]
+- **`{RN}`** = `properties.$lib = 'posthog-react-native'`. **Never applied to server events** (`$lib` is null on them): `signup_completed` (462 events / 90 d), and from T05e/T07a `onboarding_bike_created`, `ride_saved`, `service_plan_imported`. A query that mixes them uses `({RN} OR event IN (<server events>))` [SOURCE: V1 summary item 7, V1-q1b].
+  Supabase snippets inside a join qualify the exclusion columns (`u.deleted_at`, `u.email`; bare names are ambiguous with `motorcycles`) [SOURCE: V1 §3.8].
+- **`{REL}`** (the release breakdown every metric uses) = `toString(properties.$app_version) AS ver, toString(properties.$app_build) AS build, toString(properties.activation_fix_level) AS lvl, toString(properties.ota_update_id) AS ota` plus a **person-level** platform:
+  `coalesce(argMinIf(lower(toString(properties.platform)), timestamp, properties.platform IS NOT NULL), multiIf(toInt(properties.$app_build) >= 100, 'ios?', 'android?')) AS plat`
+  inside the per-person aggregate. `$os` is **dropped**: it is never set on mobile events (0 of 332 opens in 7 d), and `platform` is null on 29% of opens — exactly the install/first open — so "platform of the first event" is null for most first-session cohorts [SOURCE: V1 §3.1, V1-q2…q5].
+  The `$app_build` fallback is temporary and valid only for 3.26.0–3.28.x (Android versionCode 93–99, iOS build 106–111); it breaks once Android reaches versionCode 100, so T01 must make `platform` non-null on 100% of `Application Opened`, **including the first** (T01 acceptance). `build` also separates internal/tester builds from production on the same version (Android vc95–99, V1-q5). T03b tiles do not group by the first event's `plat` before T01 ships.
   Until T01 ships (embedded in Release A 3.29.0, D17), `lvl` and `ota` read null on every event (Q-P4 below), so pre-3.29.0 reads are by `ver` + calendar date.
   Also `toString(properties.runtime_version) AS rt` once T01 ships (an OTA reaches only its own runtime, §3A.0; OTAs are used only for crash/data-loss hotfixes, D17).
 - **Release marker** (one name set, replacing the five variants in R1/R3/R4/R5/R6): super properties `activation_fix_level` (integer),
@@ -44,6 +48,11 @@ and for reproducible bugs a **red run on `origin/main`** first), and (2) its pro
   **Season and platform (doc review item 11):** for first-session cohorts on iOS the same-weeks version comparison is n/a (new App Store installs always get the newest
   version). Any harm check whose post-release window falls in November–March is judged against a **concurrent comparison**: the Android staged-rollout cohort before the
   Exp 1 slot, the Exp 1 control arm after it starts. A trailing-8-week drop alone is recorded "no verdict (season)" and never triggers a revert.
+  **Slow Android adoption (V3 §4):** 108 of 113 Android riders seen in 14 d last ran 3.26.0 and only 32 of them were active in the last 3 days, so for the first 2–4 weeks after a
+  store build the `lvl` returning-rider reads are mostly iOS and first-session reads grow only with new installs (≈ 40 store impressions/day). A thin Android cohort at the
+  2-week read (fewer than 30 riders on the new level) is recorded **"no verdict (thin Android cohort)"**, never as a regression.
+  **Install-hour bias (V2 §5.3):** the UTC calendar-day "day 2" gives a 00:30 UTC install a 23.5 h wait and a 23:00 UTC install 1 h (00–05 UTC installs return 7% vs 18%, p = 0.013).
+  Per-release S3 reads therefore use the rider's **24–48 h window** as the primary form; the calendar-day form stays only inside Exp 1, where randomization cancels the bias.
 - **Light/dark:** every UI task attaches screenshots in light and dark system mode to its PR (HUD screens stay `HUD_THEME`, always dark).
   `pnpm check:mobile-colors` must pass [SOURCE: CLAUDE.md "Guards"].
 - **Paywall constraints:** `onboarding_paywall_2026q4` and RevenueCat `expd7c1d56904` keep running untouched; onboarding paywall
@@ -55,11 +64,18 @@ and for reproducible bugs a **red run on `origin/main`** first), and (2) its pro
   command, its log and screenshots. E2E builds bake `EXPO_PUBLIC_E2E_RUN=1` (T01 registers `e2e_run`); flows that seed data (diagnosis used) run against local
   Supabase via the runner's existing `SUPABASE_URL` override (`scripts/run-onboarding-e2e.sh:11-12`). **Seeded flows (doc review item 10)** run on a **Release build whose
   `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_API_URL` point at local Supabase + the local NestJS API** per `features/bike-detail-shell-overview/local-stack.md` (iOS sim
-  `127.0.0.1`; Android emulator host `10.0.2.2` for both URLs); `pnpm db:reset` seeds the schema; the runner's `SUPABASE_URL` override must match that build (a prod build with a
-  local seed would read the wrong database). Airplane-mode steps (`setAirplaneMode`, Android only) are
+  `127.0.0.1`; Android emulator host `10.0.2.2` for both URLs); the runner's `SUPABASE_URL` override must match that build (a prod build with a
+  local seed would read the wrong database). **Correction (V3 §5, item 3):** `pnpm db:reset` does **not** seed the schema — the repo migrations fail on an empty DB at 00093
+  (ordering), 00097, 00098 and 00102 (`features/bike-detail-shell-overview/data-verification.md:13-18`), and the Supabase CLI is not installed. Seeded flows use the **patched
+  local stack** `~/.motovault-local/mvscratch` (running, at 00199 on 2026-11-12), first brought to the repo's latest migration (00200–00202), started/stopped with a pinned
+  `npx supabase@<version> … --workdir ~/.motovault-local/mvscratch`. **T00** sets this up once; every task whose acceptance needs Maestro depends on T00. Airplane-mode steps (`setAirplaneMode`, Android only) are
   tagged `android`; on iOS that check is jest only. Every testID a flow uses is created by the task named in §3A.4 and verified with `inspect_screen` on both platforms.
-- **Maestro (cont.):** flows need a bundled preview/release build (not the dev client) and, for `onboarding.yaml`, a build with
-  `EXPO_PUBLIC_OB_VARIANT=invested`; the runner `apps/mobile/scripts/run-onboarding-e2e.sh` creates and deletes a confirmed user
+- **Maestro (cont.):** flows need a bundled release build (not the dev client) and, for `onboarding.yaml`, a build with
+  `EXPO_PUBLIC_OB_VARIANT=invested`. **No EAS `preview` build exists** (V4 Setup; `eas build:list`), so "preview build" in any spec below means the **T00 recipe**:
+  iOS — the `e2e-simulator` EAS profile (`OB_VARIANT=invested`) on an iPhone simulator (T00 installs the runtime; none was installed on 2026-11-12, V3 §5);
+  Android — the `e2e-android` profile T00 adds (APK, `EXPO_PUBLIC_OB_VARIANT=invested`, `EXPO_PUBLIC_E2E_RUN=1`), or a universal APK made from the production AAB with
+  `bundletool build-apks --mode=universal` + a local debug key (as V4 did; production backend, so read-only flows only); seeded flows use the `e2e-android` variant whose
+  `EXPO_PUBLIC_SUPABASE_URL`/`EXPO_PUBLIC_API_URL` point at `10.0.2.2`, or a dev-client build against the local stack; the runner `apps/mobile/scripts/run-onboarding-e2e.sh` creates and deletes a confirmed user
   [SOURCE: apps/mobile/.maestro/README.md:7-35]. RevenueCat is not available in test runs: close any paywall with `optional: true` and assert only
   app-owned UI (memory `feedback_no_revenuecat_in_tests`). Custom keyboard ignores `hideKeyboard` (tap a label instead); `inputText`
   concatenates if focus doesn't move; author selectors from `inspect_screen`, never from screenshots; the ride guard sheet buttons are not in the
@@ -71,7 +87,7 @@ and for reproducible bugs a **red run on `origin/main`** first), and (2) its pro
 
 | Id | Query (abridged) | Result |
 |---|---|---|
-| Q-P1 | `Application Opened`, last 14 d, `{RN}`, `{EXCL}`, by platform × `$app_version`, `uniq(person_id)` | `(null)` 3.26.0 107 riders; android 3.26.0 34; ios 3.26.0 20; `(null)` 3.27.0 11; ios 3.27.0 10; `(null)` 3.28.0 7; ios 3.28.0 3; 3.19.x 4. **No android row on 3.27/3.28: Android production is binary 3.26.0.** (`platform` null on ~60% of opens.) |
+| Q-P1 | `Application Opened`, last 14 d, `{RN}`, `{EXCL}`, by platform × `$app_version`, `uniq(person_id)` | *As first run (event-level `coalesce(platform, $os)`):* `(null)` 3.26.0 107; android 3.26.0 34; ios 3.26.0 20; `(null)` 3.27.0 11; ios 3.27.0 10; `(null)` 3.28.0 7; ios 3.28.0 3; 3.19.x 4. **Superseded by the validation (V1-q5, V3 P1/P2):** the `(null)` rows were an artefact (`$os` is never set; `platform` is null on first opens). **Per-person platform, 14 d to 2026-11-12:** Android 3.26.0 (b93) **108**, Android 3.28.0 (vc98/99) 5 (incl. 1 internal tester); iOS 3.26.0 **37**, 3.27.0 **14**, 3.28.0 **11**; iPadOS 3.26.0 1; unknown 10; total 186. 82% of riders last ran 3.26.0. **Stores (V3 §2–3):** Play production = **3.28.0 vc98** (completed; fresh installs from ~11-12 11:23 UTC, so review very likely cleared, 80%); vc99 (FCM) is a **draft on internal named "3.26.0"**; App Store live = **3.28.0 b111** (from 11-11), nothing in review. Android vc95 (3.27.0) and vc96–97 opens are internal testers. |
 | Q-P2 | `SELECT column_name FROM system.information_schema.columns WHERE table_name='system.dashboards'` | id, name, description, created_by_id, created_at, deleted, filters, variables |
 | Q-P3 | `SELECT id,name,created_at FROM system.dashboards WHERE NOT deleted AND (name ILIKE '%activation%' OR '%365%' OR '%onboarding%' OR '%friction%')` | 738337 "Onboarding A/B 2026" (2026-06-10); 636265 "Onboarding Funnel" (2026-04-22). **No #365 dashboard exists.** |
 | Q-P4 | `Application Opened`, 7 d, `{RN}`: `countIf(properties.ota_update_id IS NOT NULL)`, `countIf(properties.activation_fix_level IS NOT NULL)` by version | 3.26.0 0/0 of 232; 3.27.0 0/0 of 59; 3.28.0 0/0 of 36. Taxonomy warning: neither property exists. **Release-marker baseline = 0%.** |
@@ -93,20 +109,26 @@ and come back. Concretely, this plan (a) removes every first-session friction fo
 gone on the release that fixes it, (b) restores the day-0 service schedule (Experiment 2), and (c) builds and launches the one randomized
 test, Experiment 1 "first-ride plan" [SOURCE: board/99-synthesis.md §4].
 
-What the evidence says about expectations: first-session friction does **not** separate day-2 returners from non-returners in 100
-replay-checked riders (paywalls 2/16 vs 10/84, ride attempts 3/16 vs 13/84); goal, push grant and early logging do
-[SOURCE: deep-dives/R6-replays-returners.md §3.1, R6-q1/q2/F1]. So P1/P2 are **hygiene and trust fixes judged mechanically**, and the
+What the evidence says about expectations: first-session friction does **not** separate day-2 returners from non-returners — first in 100
+replay-checked riders (paywalls 2/16 vs 10/84, ride attempts 3/16 vs 13/84) [SOURCE: deep-dives/R6-replays-returners.md §3.1, R6-q1/q2/F1], then on **all 367 completers**
+(day-0 paywalls 0 → 20%, 1 → 13%, ≥ 2 → 14% back on day 2; diagnosis and sign-in provider: no difference) [SOURCE: validation/V2-returners.md §3.3, §5.2].
+**What does separate them (V2, completers 08-14→11-04, not causal):** **starting a ride on day 0** — 31 of 88 who started one came back on day 2 (35%) vs 27 of 279 who did
+not (10%), adjusted OR **4.5** [2.4, 8.5]; 14 of the 31 started another ride on day 2, only 2 came back via a reminder. **≥ 3 sessions on day 0** (25/55 = 45% vs 11%, OR 4.0).
+Goal `track_rides` works mostly *through* riding (OR 2.4 → 1.4 once day-0 ride start is in the model) but splits S1 sharply (24% vs 8%). Day-0 logging separates only for
+rides (11/13) and weakly expenses (7/23); **maintenance logging does not** (3/22). **Push grant is only a weak trait** (OR 1.7, CI includes 1 after adjustment, nothing on
+days 7–13), not the effect of any message: in week 1, 1 of 426 new users got a server push [SOURCE: V2 §4, §5, V2-s2].
+So P1/P2 are **hygiene and trust fixes judged mechanically** (T27 is the one P2 task aimed at the strongest predictor), and the
 levers for return remain Experiment 1 and Experiment 2. Nobody should promise a day-2 lift from the friction fixes.
 
 ### 1.2 Success metrics (each is a dashboard insight in T03, broken down by `{REL}`)
 
 | # | Metric | Definition | Baseline [source] | Target | Read as |
 |---|---|---|---|---|---|
-| S1 | **Week-1 core action among completers** | completers (first `onboarding_completed`) with `ride_completed` (`below_min_ride` not true), `expense_added`, `maintenance_task_created` or `_completed` within 7 d | **61/367 (16.6%)**, first seen 08-14→11-04 [SOURCE: evidence pack §2, q01/q02]; Oct 16/127 (12.6%) [SOURCE: board/99 §4]; trailing 60 d 3.26.0 **8/84 (9.5%)** [SOURCE: Q-P5] | Exp 1 test arm ×2 vs control (the detectable effect, not a forecast); fix releases: no harm | Exp 1 primary (randomized); else harm check |
+| S1 | **Week-1 core action among completers** | completers with `ride_completed` (`below_min_ride` not true), `expense_added`, `maintenance_task_created` or `_completed` within 7 d **of their first `onboarding_completed`** (the tile and the Exp 1 primary are anchored on completion, not on first seen; V1 item 15) | **completion-anchored (canonical):** trailing first completions in [−67 d, −7 d): all **37/275 (13.5%)**, 3.26.0 **8/84 (9.5%)** [SOURCE: V1-q7; Q-P5]. First-seen cohort 08-14→11-04 (reference only): 61/367 (16.6%) [SOURCE: evidence pack §2; V1-q8]; Oct 16/127 (12.6%) [SOURCE: board/99 §4]. **Strata:** goal `track_rides` 47/197 (24%) vs other goals 14/170 (8%) — 77% of S1 events come from `track_rides` [SOURCE: V2-q5] | Exp 1: an **absolute lift** in test vs control (pre-registered, stratified; see FS-EXP1) — ×2 is not a plausible target in the `track_rides` stratum (24% → 48%); fix releases: no harm | Exp 1 primary (randomized, stratified by goal × platform); else harm check |
 | S2 | **Onboarding completion** | first-seen persons (or starters) with `onboarding_completed` | **367/793 (46%)** of first-seen [SOURCE: evidence pack §2]; of starters 3.26.0 **90/153 (59%)** [SOURCE: Q-P6] | ≥ 50% of first-seen / ≥ 63% of starters on the first binary with P1+P2 onboarding fixes, 8-week read [UNBACKED — own target: +4 pts ≈ removing half of the confirmed OB1/OB3/OB6 loss] | harm check + mechanical sub-metrics FS-OB* |
-| S3 | **Day-2 engaged return** (F14, canonical) [review item 17] | day-2 return (calendar day after first seen, UTC) **and** that day a core action or a `$screen` not on the F14 allow-list (home, What's New, onboarding/auth) — SQL board/06 Appendix B; route list = constant from T05d | **completers 37/367 (10.1%)**, all installs 39/793 [SOURCE: board/06-experimentation-analyst.md F14]; raw return kept as S3-raw: 72/793, completers 58/367, 3.26.0 starters 17/153 [SOURCE: evidence pack §2; Q-P6] | no harm; Exp 1 secondary (engaged only, the test arm sends notifications) | harm check only (weekly spread 3–12%); S3-raw only outside the Exp 1 read; 24–48 h variant reported beside it |
-| S4 | **Day-0 service schedule** | (a) board: first bike created on sign-up day with ≥1 task within 1 day (DB, weekly DB check D2b); (b) R2-M1: onboarding-created bikes with an OEM task ≤ 5 min (DB); PostHog tile = share of `onboarding_completed` with a bike that have a server `service_plan_imported` within 5 min (T07a) | (a) **25/111 (23%)** weeks 10-12→11-02, pre-drop 127/204 (62%) [SOURCE: board/99 Appendix A]; (b) **10/151 (7%)** [SOURCE: deep-dives/R2 R2-M1] | (a) **≥ 55%** 4 straight weeks; (b) ≥ 95% 2 straight weeks | mechanical (DB, consent-independent) |
-| S5 | **First-hour multi-paywall** | completers with ≥ 2 paywall requests in −10 min…+60 min of `onboarding_completed` | **15%** (43/291 ≥ 2, any surface) [SOURCE: 05 PO3]; current build 3.26.0: ≥ 2 any 13/121 (10.7%), **≥ 2 post-onboarding 8/121 (6.6%)** [SOURCE: deep-dives/R3 Q5] | ≥ 2 automatic post-onboarding ≤ 2% on the fix binary | mechanical |
+| S3 | **Day-2 engaged return** (F14, canonical) [review item 17] | day-2 return (calendar day after first seen, UTC) **and** that day a core action or a `$screen` not on the F14 allow-list (home, What's New, onboarding/auth) — SQL board/06 Appendix B; route list = constant from T05d | **completers 37/367 (10.1%)**, all installs 39/793 [SOURCE: board/06-experimentation-analyst.md F14]; raw return kept as S3-raw: 72/793, completers 58/367, 3.26.0 starters 17/153 [SOURCE: evidence pack §2; Q-P6] | no harm; Exp 1 secondary (engaged only, the test arm sends notifications) | harm check only (weekly spread 3–12%); S3-raw only outside the Exp 1 read. **Per-release reads use the rider's 24–48 h window as the primary form** (the UTC calendar day is biased by install hour: 00–05 UTC installs 7% vs 18%, and only 42 of 72 day-2 returners came back 24–48 h after install) [SOURCE: V2 §5.3]; the calendar-day form stays the Exp 1 secondary (randomized). Never judge `maintain_bike` riders on S3: they return on days 7–13 (7/65, at baseline), not day 2 (3/72) [SOURCE: V2 §5.1 item 6]. Exclude or stratify `returning_account` riders (V2 §5.1 item 4) |
+| S4 | **Day-0 service schedule** | (a) board: first bike created on sign-up day with ≥1 task within 1 day (DB, weekly DB check D2b), **reported in two columns: any source, and `source = 'oem'` only** — rider-created (`user`) tasks alone lifted the partial week 11-09 to 12/24 (9 bikes `user` vs 4 `oem`), so the any-source column can "recover" without T07; T07 is judged on the `oem` column and on (b) [SOURCE: V1-db3, V1 item 11]; (b) R2-M1: onboarding-created bikes with an OEM task ≤ 5 min (DB); PostHog tile = share of `onboarding_completed` with a bike that have a server `service_plan_imported` within 5 min (T07a) | (a) **25/111 (23%)** weeks 10-12→11-02, pre-drop 127/204 (62%) [SOURCE: board/99 Appendix A]; (b) **10/151 (7%)** [SOURCE: deep-dives/R2 R2-M1] | (a) **≥ 55%** 4 straight weeks; (b) ≥ 95% 2 straight weeks | mechanical (DB, consent-independent) |
+| S5 | **First-hour multi-paywall** | completers with ≥ 2 paywall requests in −10 min…+60 min of `onboarding_completed` | **15%** (43/291 ≥ 2, any surface) [SOURCE: 05 PO3]; current build 3.26.0: ≥ 2 any 13/121 (10.7%), **≥ 2 post-onboarding 8/121 (6.6%)** [SOURCE: deep-dives/R3 Q5; reproduced 13/120 and 8/120, V1-q11]. "Post-onboarding" still includes rider taps until T05a/T21 add `trigger`; exclude `profile_subscriptions_row`/`profile_pro_banner` until then [SOURCE: V1 item 6] | ≥ 2 automatic post-onboarding ≤ 2% on the fix binary | mechanical |
 | S6 | **Post-auth early-step regression** | 05's "viewed experience/bike_setup/welcome after sign-up/in" = **30% (22/73)** [SOURCE: 05 OB1-E] — **redefined** (R1 Q1: 12 of the 21 signed in *before* starting): starters who view an early step after a later one | redefined: **44/472 (9.3%)**, 3.26.0 **16/166 (9.6%)** [SOURCE: deep-dives/R6 R6-q8]; sign-in dead end 3.26.0 6 of 10 riders stuck [SOURCE: deep-dives/R1 Q12] | ≤ 3% per version [UNBACKED — own target, R6 F-OB1]; stuck sign-ins 0 | mechanical; SQL `deep-dives/R6-replays-returners.md:276-284` [review item 20] |
 
 **Per-release success reading (owner requirement).** For every metric: (1) compare riders whose first event is on the fix level/version
@@ -117,7 +139,7 @@ installs always get the newest version; (2) then compare the fix level's first 4
 before the Exp 1 slot; the Exp 1 control arm after it starts); a trailing-8-week drop alone is recorded "no verdict (season)" and never triggers a revert. A change smaller than the weekly spread (3–12 pts on
 day-2 return) is "no change shown", not "no effect". Mechanical metrics (targets of 0 or a ceiling) are judged on counts.
 
-### 1.3 Confidence (pre-review; the revised scores are in §8.1: A 75%, B 78%)
+### 1.3 Confidence (pre-review; revised in §8.1: A 75%, B 78%; after validation in §11.1: A 78%, B 75%)
 
 **A — we know what needs to be done: 75%.**
 - High-confidence root causes, confirmed in code and events: the onboarding schedule import never runs since the swipe deck was retired
@@ -126,6 +148,12 @@ day-2 return) is "no change shown", not "no effect". Mechanical metrics (targets
   first-session fixes don't reach new installs via OTA (80%) [SOURCE: R3 RC-2]; PO5 is not a bug (92%) [SOURCE: R4 §3.1].
 - Lower: OB2 Google sheet hang vs abandonment (60%), OB5 (40%), OB4 design vs latency (70%), RC-D Welcome remount (25%), PO12/PO13 (30–35%),
   PO14 (35%), the 3.26.0 diagnostics jump (cause unread) [SOURCE: R5 §3, R1 §3, R6 §3.2].
+- **Validation 2026-11-12 (device repro on the store binary 3.28.0, V4):** RC-B Android back-walk **~90%** (reproduced: one screen per Back down to Welcome, Back on the root
+  closes the app); RC-C resume **~85%** (reproduced: cold resume lands on the right screen but bike-setup loses make and query, goals shows "0 of 5 picked" on any remount,
+  and a back-walk then forward overwrites the resume point); **RC-D 25% → ~80%** with a repeatable trigger (Back out of the onboarding root, then a warm launch while the
+  process is cached: `resumeHandledThisLaunch` is already `true`, so Welcome shows with no resume). PO8: **42 of 43** Android first Discover visits background within 2 s
+  (iOS 0/28, Garage control 1/59) — an OS dialog on Discover open is now likely (≈ 70%) [SOURCE: V1-q36]. RC-A and PO4 could not be reproduced without production writes
+  (static code check only; unchanged at 85% / 80%).
 - The biggest unknown is not *what to fix* but *whether fixing it moves return*: friction does not separate returners (60%) [SOURCE: R6 §3.1].
 - Raises A: T04/T05 events for 2–4 weeks (splits OB2/OB5/RC-B…F), T06 research answers, and the Experiment 1 randomized read.
 
@@ -134,7 +162,7 @@ day-2 return) is "no change shown", not "no effect". Mechanical metrics (targets
 - Lowers it: 15 owner decisions gate about 20 tasks; most HogQL is *(draft)* until T02 runs it; several Maestro selectors/testIDs must be
   created first and checked with `inspect_screen`; Maestro cannot cover OAuth success, OS notification delivery or iOS airplane mode
   (jest covers those); sizes are estimates; the Experiment 1 timeline needs two store releases before 2027-01-06.
-- Raises B: owner answers to §1.4; T02 baselines re-run; one Maestro dry run of `onboarding.yaml` on the current preview build.
+- Raises B: owner answers to §1.4; T02 baselines re-run; one Maestro dry run of `onboarding.yaml` on a T00 E2E build (no `preview` build exists, V4).
 
 ### 1.4 Owner decisions needed (numbered; tasks cite them as D#)
 
@@ -162,7 +190,8 @@ day-2 return) is "no change shown", not "no effect". Mechanical metrics (targets
     no start after 2027-01-06; keep-after-no-winner rule (lower bound > −3 pts); `maintain_bike` d1 copy; first chip "Later today" (decided, §9);
     notification kind `activation` with `source`. Sign or amend (T35).
 14. **D14 Release train:** store builds 3.29.0 (Release A, target submit 2026-11-30) and 3.30.0 (Release B, target submit 2026-12-08), both
-    platforms, plus promotion of Android vc99 (FCM) to production (T18, T35).
+    platforms, plus promotion of Android vc99 (FCM) to production (T18, T35). *(Validation, V3:)* vc98 is in Play production; vc99 is a draft on internal named "3.26.0" —
+    rename to "3.28.0 (99)", roll to internal, verify a push token registers, promote with owner go-ahead; if not promoted before the 3.29.0 cut, FCM ships in 3.29.0 (T18).
 15. **D15 Credential Manager licence/dependency** for Android Google sign-in, only if T04 data shows ≥ 10% hung sheets (T36).
 16. ~~Is mobile session replay on?~~ **Answered:** 124 of 127 completers in 28 d have a recording [SOURCE: 05 Method].
 
@@ -172,9 +201,9 @@ day-2 return) is "no change shown", not "no effect". Mechanical metrics (targets
 
 | Phase | Window (target) | Tasks (issue order in §3A.1) | Ships as |
 |---|---|---|---|
-| **P0 Measurement first** | 11-13 → 11-21 | T01, T02, T03a, T03b, T04a–c, T05a–e, T06 | T01/T04/T05 (mobile JS, incl. T05c's guard-sheet render change and testIDs) → **store binary 3.29.0 (Release A, T18)** only (D17; TR0 removed); T05e: API deploy; T02/T03a docs; T03b PostHog (D2). Every client event and the release marker start at 3.29.0 go-live per platform; pre-fix comparisons use the R1/R5 proxy SQL |
-| **P1 Bugs that block activation** | 11-17 → 11-30 | T07a, T07b, T08–T13b, T14, T15, T16a, T16b, T17, release **T18** | T07a: API deploy (Render) **only after T02 baselines + T03a annotation** exist; mobile: **store binary 3.29.0 (Release A)**; no OTA of P1 fixes to any runtime (D14b, D17) |
-| **P2 Friction removal** | 11-24 → 12-05 (Release B code freeze) | T19a, T19b, T20, T21, T23, T22, T24, T25a, T25b, T26–T29 | T23, T25a: API deploy; mobile: **store binary 3.30.0 (Release B)** if merged by the **code freeze 2026-12-05**; anything that misses it goes into the **next store build** (D17); T27/T29 then ship after the slot (D12) |
+| **P0 Measurement first** | 11-13 → 11-21 | **T00 (test environment, first)**, T01, T02, T03a, T03b, T04a–c, T05a–e, T06 | T01/T04/T05 (mobile JS, incl. T05c's guard-sheet render change and testIDs) → **store binary 3.29.0 (Release A, T18)** only (D17; TR0 removed); T05e: API deploy; T02/T03a docs; T03b PostHog (D2). Every client event and the release marker start at 3.29.0 go-live per platform; pre-fix comparisons use the R1/R5 proxy SQL |
+| **P1 Bugs that block activation** | 11-17 → 11-30 | T07a, T07b, T08–T13b, T14, T15, T16a, T16b, T17, **T29 (moved up from P2 by the validation, V1 FS-PO8)**, release **T18** | T07a: API deploy (Render) **only after T02 baselines + T03a annotation** exist; mobile: **store binary 3.29.0 (Release A)**; no OTA of P1 fixes to any runtime (D14b, D17) |
+| **P2 Friction removal** | 11-24 → 12-05 (Release B code freeze) | T19a, T19b, T20, T21, T23, T22, T24, T25a, T25b, T26–T28 (T29 only if it misses Release A: then it is the **first** P2 task merged for Release B) | T23, T25a: API deploy; mobile: **store binary 3.30.0 (Release B)** if merged by the **code freeze 2026-12-05**; anything that misses it goes into the **next store build** (D17); T27/T29 then ship after the slot (D12). **T19a and T20 ship in the same build** (V4: T19a alone reproduces RC-D on the next warm launch) |
 | **P3 Experiment 1 build + launch** | 11-24 → 12-15 (hard stop 2027-01-06) | T30–T35 | T30's API field `activationExperimentWindow` deploys **before the 3.30.0 cut**; client embedded in Release B; the flag defaults to control **and** no draw happens until the API serves a start (T30); launch = start set server-side + PostHog flag flip, same day (T35, D16) |
 | **P4 Follow-ups** | 12-15 → 2027-03-31+ | T14b, T15b, T36, T38, T39, T40 (T37, T41, T41b moved to the ledger, §10) | T14b/T15b/T36/T38: data gates count 4 weeks from 3.29.0 go-live per platform (pre-fix comparison: R1/R5 proxy SQL); fixes ship in the next store build; T40 after the slot |
 
@@ -183,13 +212,17 @@ first session runs the JS embedded in the store binary [SOURCE: R3 C19–C21, Q1
 with `version: '3.28.0'` on main [SOURCE: apps/mobile/app.config.ts:37, :59-61; docs/runbooks/mobile-ota.md:173-176], so an OTA from `main` reaches only 3.28.0 binaries
 (≈10 of ≈190 riders in 14 d) [review item 1]. Every first-session fix and
 Experiment 1's assignment must therefore be **in the binary new riders install**.
-Android production is binary 3.26.0 today [SOURCE: Q-P1; R5 Q18].
+*(Validation, V3:)* Play production moved to 3.28.0 vc98 on ~11-12, but 108 of 113 Android riders seen in 14 d still last ran binary 3.26.0 (b93) and iOS riders upgrade within days, so 82% of riders run 3.26.0 JS [SOURCE: V3 §2, §4; Q-P1 revised].
 **Owner rule D17 (2026-11-12):** every new functionality — features, UI changes, the experiment, new events/instrumentation, testIDs — ships **only in a new store build**
 (App Store + Play, bumped app version: 3.29.0, 3.30.0, then the next store build). OTA is used only for urgent crash or data-loss hotfixes per `docs/runbooks/mobile-ota.md`.
 API deploys and owner-applied migrations are unaffected. The former per-runtime instrumentation OTA (TR0) is removed (§3A.0 rule 1, §9 D17).
 
 ```mermaid
 graph TD
+  T00[T00 test environment setup] --> T05c
+  T00 -.-> MAE[every task whose acceptance needs Maestro: T07b, T08–T17, T19a–T22, T24–T29, T31, T32]
+  T00 --> T18
+  T00 --> T35
   T01[T01 release marker] --> T03b[T03b dashboard + alerts]
   T02[T02 ledger + baselines + DB check] --> T03a[T03a release procedure + status table]
   T02 --> T03b
@@ -221,10 +254,12 @@ graph TD
   T05d --> T16b[T16b landing sheet queue]
   T08 --> T17[T17 diag errors/timeout]
   T07b & T08 & T09 & T10 & T11 & T12 & T13b & T14 & T15 & T16a & T16b & T17 --> T18[T18 Release A 3.29.0]
+  T29 -.->|target: in Release A, else first in Release B| T18
   T01 & T04a & T04b & T04c & T05a & T05b & T05c & T05d --> T18
   T04b --> T19a[T19a Android Back]
   T04b --> T19b[T19b iOS back]
   T19a --> T20[T20 Welcome resume]
+  T20 ==>|same build as T19a| T35
   T05a --> T21[T21 LimitSheet + cap]
   T07a --> T23[T23 schedule refresh on edit API + dedup fix]
   T21 & T23 & T05d --> T22[T22 bike-limit update sheet]
@@ -241,7 +276,7 @@ graph TD
   T32 --> T33[T33 Android delivery check]
   T33 --> T34[T34 day-1 fallback]
   T02 & T05c & T05d & T09 & T10 & T18 & T30 & T31 & T32 & T33 & T34 --> T35[T35 Release B 3.30.0 + Exp1 launch]
-  T19a & T19b & T20 & T21 & T22 & T24 & T25b & T26 & T27 & T28 & T29 -.-> NB[P2 tasks: in 3.30.0 if merged by the 2026-12-05 freeze, else the next store build]
+  T19a & T19b & T20 & T21 & T22 & T24 & T25b & T26 & T27 & T28 -.-> NB[P2 tasks: in 3.30.0 if merged by the 2026-12-05 freeze, else the next store build, T19a and T20 together]
   NB -.-> T35
   T18 --> T14b[T14b cached-me rule, conditional]
   T18 & T06 --> T15b[T15b sign-in after completion, conditional]
@@ -249,6 +284,7 @@ graph TD
   T18 --> T38[T38 same-user session drop, conditional]
   T07a --> T39[T39 backfill, owner-run, after the T07a reminder cap is live]
   T35 --> T40[T40 Exp1 readout]
+  T40 -.-> FU[ledger follow-up: default week-1 message for everyone]
 ```
 
 **Release B code freeze and throughput (doc review item 5).** Code freeze for Release B: **2026-12-05** (submit target 2026-12-08, D14). T35's hard dependencies are only the
@@ -287,7 +323,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
   - `hooks/use-analytics-super-properties.ts:64-71`: include the marker in `buildSuperProperties` so the keyed re-register keeps it.
   - Jest `lib/__tests__/analytics-release-marker.test.ts` (mock `expo-updates`): embedded launch → `ota_update_id: 'embedded'`,
     `is_embedded_launch: true`; OTA launch → the id; level equals the exported constant; registered at init and on consent.
-- **Acceptance.** Jest passes; `pnpm verify:mobile` green; on a preview build with a consenting test account, Live events show all six properties.
+- **Acceptance.** Jest passes; `pnpm verify:mobile` green; on a T00 E2E build with a consenting test account, Live events show all six properties; **`platform` is non-null on 100% of `Application Opened`, including the install/first open** (today null on 29% of opens, always the first; `$os` is never set) [SOURCE: V1 §3.1].
 - **Verification (prod).** FS-M (redefined, §5A): opens with `$app_version = 3.29.0` carry the expected level (100%); for a crash/data-loss hotfix OTA, the §5A.2 share.
 - **Out of scope.** Any CI guard that forces a level bump (optional idea in R4 F-R4-7; not required).
 - **Risks.** Riders on binaries older than 3.29.0 never carry the marker → read `activation_fix_level IS NULL` as "pre-marker JS" (pre-3.29.0 binaries).
@@ -297,6 +333,9 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
   **Release** repo docs commit · **Constraints** read-only queries; no PostHog writes.
 - **Why.** `experiments.md` does not exist [SOURCE: board/review-verdicts.md P06.1]; most metrics in §5 are drafts; OB1-E's 22/73 headline
   counts auth-first riders [SOURCE: R1 Q1, T8].
+- **Validation inputs (2026-11-12):** take the corrected SQL and baselines from `validation/V1-metrics.md` §1 and §3 (`{REL}` platform fallback, FS-OB1b/c, FS-OB5, FS-OB2b,
+  the per-completer FS-PO6/11/12/13/14 query, FS-PO8, FS-PO3 filter, DB snippets) instead of re-deriving the drafts; record the 13-person `{EXCL}` plus the internal tester and
+  the V4 emulator person (§0).
 - **What.** Create `docs/research/activation-365/experiments.md` with: canonical definitions (S1–S6, engaged return per board/06 F14,
   canonical too-short trigger), the Experiment 1 ledger text for D13, the strata, the reading rule (§0), and a "both-arm changes" log
   (date, task, release) used to cut the onboarding A/B and Exp 1 readouts. Create `docs/research/activation-365/queries/fs/<spec-id>.sql`,
@@ -382,7 +421,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 #### T06 — Research batch (no code): open questions that gate P1/P2
 - **Type** research · **Size** S · **Depends** — · **Blocks** T14, T15b, T29 · **Release** findings appended to `experiments.md`.
 - **Items** (each: query/read, result, date):
-  1. FS-PO12 and FS-PO13 baselines (queries in §5) [SOURCE: R6 T2].
+  1. ~~FS-PO12 and FS-PO13 baselines~~ **Measured by the validation (V1-q40):** FS-PO12 11/292 (3.26.0 5/120), FS-PO13 7/292 (3.26.0 5/120). Item 1 is now: confirm 3–5 of these riders with replays [SOURCE: R6 T2; V1 item 4].
   2. Cause of the 3.26.0 diagnostics jump (hour-1 diagnosis 29/117 = 25% vs 3–9% before): read the 3.26.0 diff for new entry points (Home tools
      icon, onboarding symptom step, quick action `app/_layout.tsx:925-928`) and a `$screen` path count by version; name the entry point with path:line [SOURCE: R6 T3, R6-q3].
   3. Which commit each 3.26.0 store binary was built from (EAS build list) — confirms RC-2 [SOURCE: R3 OQ1].
@@ -392,8 +431,8 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
   7. Does the maintenance reminder scheduler cap first notifications when ~10 dated tasks appear at once? [SOURCE: R2 OQ5, R2 §7]. **Answered (doc review 2026-11-12):**
      no immediate burst, because imported due dates are in the future; but tasks with the same interval fall due on the same day at interval anniversaries. `sendDuePush`
      sends one push per task today; the per-bike cap is built in T07a (D7).
-  8. Watch replay `01a19f85` at 03:54:55–03:55:01 (PO8) and `01a1815d` 07:19:20–40 / `01a18bae` 07:24:50–07:25:06 (PO5) [SOURCE: R4 §3.1, §3.3].
-  9. Android push tokens after vc99 reaches production: `select platform, count(*) from device_push_tokens where created_at > now() - interval '7 days' group by 1` (DB, read-only) [SOURCE: push-tokens-investigation.md "Verify"].
+  8. Watch replay `01a19f85` at 03:54:55–03:55:01 (PO8) and `01a1815d` 07:19:20–40 / `01a18bae` 07:24:50–07:25:06 (PO5) [SOURCE: R4 §3.1, §3.3]. **And confirm the PO8 dialog type on a device** (T00 Android emulator with a universal APK of the store binary, fresh install, Spanish locale, finish onboarding, open Discover; screenshot whatever appears within 2 s: location permission vs another OS/Play-services prompt). 42 of 43 Android first Discover visits background within 2 s [SOURCE: V1-q36]; the answer decides T29's exact fix.
+  9. Android push tokens after vc99 reaches production: `select platform, count(*) from device_push_tokens where created_at > now() - interval '7 days' group by 1` (DB, read-only) [SOURCE: push-tokens-investigation.md "Verify"]. **Baseline is not 0: android 3 tokens (all 7 d, test devices on FCM-capable builds)**, ios 106 total / 8 in 7 d [SOURCE: V3 §2].
   10. Week-1 engaged-return (F14) re-run of R6-q2 on the 100 scanned riders [SOURCE: R6 §3.1].
 - **Acceptance.** Every item answered or marked "could not answer: <why>". **Out of scope.** New Replay Vision scans (cost credits; owner approval).
 
@@ -429,7 +468,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
     so the 7-day check joins `task_id` → `maintenance_tasks.motorcycle_id` (or adds a column in an owner-applied migration). Imported or backfilled tasks create no
     immediate reminder. Jest (`maintenance-push.service.spec.ts`): 3 tasks due the same day on one bike → 1 push; a second due task on that bike within 7 days → skipped.
     Client side (T07b): overdue items show as "due now"; Home and the Service segment show at most the 3 most urgent with "+N more".
-- **Acceptance.** Spec cases pass (incl. the reminder-cap cases); `pnpm verify:api`; both Maestro flows pass on a preview build against the deployed API.
+- **Acceptance.** Spec cases pass (incl. the reminder-cap cases); `pnpm verify:api`; both Maestro flows pass on a T00 E2E build against the deployed API (T07b runs them).
 - **Verification.** S4(b) ≥ 95% for 2 weeks after deploy; S4(a) ≥ 55% for 4 straight weeks; FS-R2-4 100%; harm check on S1/S3 vs trailing 8 weeks read next to the Exp 1 control trend.
 - **Out of scope.** Home plate "Set up service plan" (board rank 11, after the slot); backfill (T39); seeding new model rows (MT-07) — tracked in T39's note.
 - **Risks.** ~10 dated tasks per new bike: no immediate burst (imported due dates are in the future), but tasks cluster on the same day at interval anniversaries
@@ -444,7 +483,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
   date from `useDiagnosticQuota().resetDate`, `components/diagnosis/use-diagnostic-quota.ts:46-82`, formatted with `date-fns` per locale; when `resetDate` is unknown:
   "This month's free diagnosis is used. It resets next month.") with "See Pro plans" (`presentPaywall` with `trigger:'rider_tap'`) and "Done" (returns to the Diagnose
   list and clears the in-progress form); no "Try Again" in this state; automatic paywall at most once per form instance; never render server text.
-- **How.** Files: `app/(tabs)/(diagnose)/new.tsx`, `components/diagnostic-flow/step-review-submit.tsx`, `stores/diagnostic-flow.store.ts`, `src/i18n/locales/*.json` (all 7 app locales).
+- **How.** Files: `app/(tabs)/(diagnose)/new.tsx`, `components/diagnostic-flow/step-review-submit.tsx`, `stores/diagnostic-flow.store.ts`, `src/i18n/locales/*.json` (all app locale files enforced by `pnpm check:i18n`).
   Jest `app/(tabs)/(diagnose)/__tests__/new-limit.test.tsx`: mock `gqlFetcher` → `FORBIDDEN`; `presentPaywall` called once; second submit is a no-op; no raw message rendered.
   Runner support: `scripts/run-onboarding-e2e.sh` opt-in `E2E_SEED_DIAGNOSIS_USED=1` inserting one `content_generation_log` success row for the test user (deleted with the user) [SOURCE: R3 T7].
   Maestro `diagnose-limit-loop.yaml` (Android emulator for airplane mode) — steps in FS-PO2a.
@@ -463,7 +502,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
   same `discardEndedRide`, and their notification (`rideAutoEndedNotificationContent`, `:667`) reads "Your ride was too short to save". One event for both:
   `ride_discarded {reason:'below_floor', trigger:'guard'|'auto_end'}`; no `ride_completed`.
 - **How.** Extract `discardEndedRide(rideId, reason)` from `ride-summary.tsx:256-279` into `features/ride/ride-controller.ts`; call it in the guard's end handler in
-  `ride-hud.tsx` and in `autoEndRide`; 7 locales. Update `log-ride.yaml` (it expects "RIDE SAVED" for a standstill ride, `:62-80`) to a moving route (`setLocation` sequence / `travel`);
+  `ride-hud.tsx` and in `autoEndRide`; all app locale files (`pnpm check:i18n`). Update `log-ride.yaml` (it expects "RIDE SAVED" for a standstill ride, `:62-80`) to a moving route (`setLocation` sequence / `travel`);
   new `ride-standstill-not-saved.yaml`. Jest `features/ride/__tests__/ride-controller.test.ts` (`discardEndedRide` enqueues `deleteRide`, clears the record; a 90 s / 20 m guard end
   is discarded; an auto-end below both floors is discarded with `trigger:'auto_end'` and the "too short to save" notification).
 - **Acceptance.** FS-PO4b checks; a ≥ 30 s / ≥ 50 m ride still reaches the summary; CarPlay end path unchanged.
@@ -478,13 +517,13 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
   FIRST_RIDE label "Record your first ride" → `/(modals)/start-ride` (D4).
 - **How.** Add `distanceM`/`durationS` to the Home rides fragment in `apps/mobile/src/graphql/` → `pnpm generate`; `lib/checklist-signals.ts`,
   `components/home/use-checklist-signals.ts`, `stores/checklist.store.ts` (persist migration for the deep link; the same migration **unticks `first_ride` when no saved ride
-  meets the floors**, with a test), `onboarding-checklist.tsx`, 7 locales.
+  meets the floors**, with a test), `onboarding-checklist.tsx`, all app locale files (`pnpm check:i18n`).
   Jest: `lib/__tests__/checklist-signals.test.ts` (0 m ride does not complete; 60 s / 800 m does), `components/home/__tests__/onboarding-checklist.test.tsx` (press on data-backed row does not call `completeItem`).
   Maestro `checklist-first-ride.yaml`.
 - **Verification.** FS-PO10: `trigger='tap'` completions of `first_ride` = 0; data-ticked without a real ride = 0 on the fix level.
 
 #### T11 — Onboarding sign-in screen advances when the session lands; OAuth double-tap guard
-- **Type** bug · **Size** S · **Depends** T04 · **Specs** FS-OB1a · **Release** Release A · **Constraints** D1; banner light/dark; 7 locales.
+- **Type** bug · **Size** S · **Depends** T04 · **Specs** FS-OB1a · **Release** Release A · **Constraints** D1; banner light/dark; all app locale files (`pnpm check:i18n`).
 - **Why.** `app/(onboarding)/sign-in.tsx` has no reaction to a new session (no `useEffect` on session; only `goToGetStarted`, `:82`), while the root gate keeps
   `(onboarding)` mounted for unfinished accounts (`app/_layout.tsx:459`). 15/72 auth riders repeated auth within 2 min, 9 never completed; on 3.26.0, 6 of 10
   sign-in-screen riders had no screen change 10 s after auth [SOURCE: R1 RC-A, Q11, Q12]. Confidence 85%.
@@ -516,7 +555,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **What (aligned to D10, doc review item 6c).** `email` and `codeSentAt` live in a **dedicated `expo-secure-store` key** behind a small helper, cleared in `reset()`,
   `resetForSignOut()`, on code success and at completion; the MMKV onboarding store v10 (`stores/onboarding.store.ts:203-233`, migration from v9) holds only
   `accountDraft {mode}` and `bikeDraft {makeId, make, modelQuery, year}`; on mount within 1 h of `codeSentAt`, reopen the code step for that address (verifyOtp needs no password; the
-  recover branch falls back to the form with email prefilled); resume targets the last *viewed* screen when it has a draft; clear drafts in `reset()`,
+  recover branch falls back to the form with email prefilled); resume targets a **monotonic `furthestScreen`** (never lowered by a back-walk; V4 a5) rather than the screen after the last completed one; the goals screen seeds its picks from the persisted `ridingGoals` (`goals.tsx:77` starts with an empty `Set`, V4 a3); clear drafts in `reset()`,
   `resetForSignOut()` and on success; fire `email_code_step_restored {age_s}`.
 - **How.** Files `stores/onboarding.store.ts`, `app/(onboarding)/account.tsx`, `app/(onboarding)/sign-in.tsx`, `components/auth/email-code-step.tsx`,
   `hooks/use-email-code-step.ts`, `app/(onboarding)/bike-setup.tsx`, `config/onboarding.ts`. Jest `stores/__tests__/onboarding.store.test.ts` (migration keeps
@@ -579,18 +618,26 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
   (D17: no OTA of this content; an OTA only for a crash/data-loss hotfix per `docs/runbooks/mobile-ota.md`, `--environment production`, owner go-ahead) · **Constraints** D14, D17.
 - **What.** Version bump in `apps/mobile/app.config.ts`; `ACTIVATION_FIX_LEVEL = 2` (level 1 is not used, §3A.0 rule 2); release notes list task ids;
   pre-promotion E2E: `onboarding-paywall-verify.yaml` both arms (required by the runbook), `onboarding.yaml`, plus every new flow from T07–T17.
-  On go-live per platform: annotation + §6 row (T03 procedure). Android also carries the FCM config from PR #393 (vc99 line). Release A is the first release of the P0
+  On go-live per platform: annotation + §6 row (T03 procedure). Android also carries the FCM config from PR #393 (vc99 line). **vc99 (validation, V3 §2):** vc98 is in Play
+  production, so D14's condition is met, but vc99 is a **draft on internal named "3.26.0"** (not even delivered to testers). Steps: (a) rename the release to "3.28.0 (99)";
+  (b) roll it to internal and verify a push token registers (`push_token_registered` with `platform='android'`, and a `device_push_tokens` row); (c) promote to production with the
+  owner's go-ahead. If vc99 is not promoted before the 3.29.0 cut, drop it and let FCM ride in 3.29.0. FCM itself works: 3 Android tokens already registered from test devices.
+  **Depends also on T00** (the runbook's pre-promotion `test:e2e:onboarding-paywall` needs a booted iOS simulator, `docs/runbooks/mobile-release.md:12-16`; none existed on 2026-11-12). Release A is the first release of the P0
   instrumentation (T01, T04a–c, T05a–d incl. T05c's guard-sheet render change and testIDs; D17, TR0 removed), and its go-live date per platform starts every client-event
   baseline (FS-OB* first-session and post-onboarding) and the T14b/T15b/T36/T38 gate windows (§3A.0 rule 1).
 - **Acceptance.** Both binaries in production; FS-M binary check: 100% of opens with `$app_version = 3.29.0` carry level 2 three days after go-live (any mismatch = wrong cut);
   first `is_embedded_launch=true` events with the new level.
 - **Verification.** 2/4/8-week dashboard reads recorded in `experiments.md`, using the §0/§1.2 reading rule: iOS first-session same-weeks comparison n/a; Nov–Mar harm checks
-  against the Android staged-rollout cohort (concurrent); a trailing-8-week drop alone = "no verdict (season)", never a revert.
+  against the Android staged-rollout cohort (concurrent); a trailing-8-week drop alone = "no verdict (season)", never a revert. Android adopts a new binary slowly (V3 §4): for
+  2–4 weeks `lvl = 2` returning-rider reads are mostly iOS, and a thin Android `lvl = 2` cohort at the 2-week read is "no verdict", not a regression.
 
 ### P2 — Friction removal
 
 #### T19 — Android Back steps once and leaves onboarding instead of rewinding it
-- **Type** enhancement · **Size** M · **Depends** T04 (`onboarding_back`) · **Blocks** T20 · **Specs** FS-OB1b · **Release** Release B · **Constraints** D1, D9; iOS swipe-back unchanged.
+- **Type** enhancement · **Size** M · **Depends** T04 (`onboarding_back`), T00 · **Blocks** T20 · **Specs** FS-OB1b · **Release** Release B, **in the same build as T20** (V4: T19a alone reproduces RC-D on the next warm launch; if T20 misses the freeze, T19a is held back too) · **Constraints** D1, D9; iOS swipe-back unchanged.
+- **Validation (V4 b1/b2/a4, ~90%):** reproduced on the store binary 3.28.0 — one screen per Back down to Welcome, Back on the root finishes the activity; Android Back on a
+  *resumed* root step (account, bike-setup) closes the app while the on-screen chevron goes one step back. FS-OB1b gains the check "cold resume to account → Android Back →
+  goals, not the launcher".
 - **Why.** No `BackHandler` in `app/(onboarding)` or `components/onboarding`; Back pops one screen per press down to Welcome (`app/(onboarding)/_layout.tsx:42-64`).
   49 riders made ≥ 3 back steps ≤ 5 s apart; 7 completed vs ~57% of others; replays label these "the app reset" [SOURCE: R1 RC-B, Q8, Q9].
 - **What (aligned to D9, doc review item 6b).** `BackHandler` registered by every step via `hooks/use-onboarding-flow.ts`: one step back via `getPreviousRoute` (`replace`,
@@ -605,14 +652,15 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 #### T20 — Welcome resumes on any non-Back remount
 - **Type** bug · **Size** S · **Depends** T04, T19 (`from:'back'` param) · **Specs** FS-OB1d · **Release** Release B · **Constraints** D1.
 - **Why.** Welcome resumes once per JS runtime (`resumeHandledThisLaunch`, `app/(onboarding)/index.tsx:23-29,47-57`); 11 riders saw Welcome again in a live runtime
-  with progress, 7 on 3.26.0; cause unknown (25%) [SOURCE: R1 RC-D, Q4, Q10].
+  with progress, 7 on 3.26.0 [SOURCE: R1 RC-D, Q4, Q10]. **Trigger found on device (V4 b3, ~80%):** Back out of the onboarding root, then a warm launch while the process is cached → the new
+  activity mounts Welcome in the same JS runtime with `resumeHandledThisLaunch === true`, so it does not resume. T19's "only Welcome returns `false`" produces exactly this, so **T19a and T20 ship in the same build**.
 - **What.** Replace the module flag with "resume unless `params.from === 'back'` or the store has no progress"; keep a per-mount double-fire guard; fire `onboarding_welcome_mounted`.
-- **How.** Jest `app/(onboarding)/__tests__/welcome-resume.test.tsx`. No Maestro (trigger unknown); FS-OB1c's relaunch flow covers activity recreation.
-- **Verification.** FS-OB1d: 0 unexplained (`reason != 'back'`) Welcome mounts with progress. **Out of scope.** Finding the remount trigger (the event will name it).
+- **How.** Jest `app/(onboarding)/__tests__/welcome-resume.test.tsx` incl. "flag true, new mount, no param → resume". Maestro `onboarding-welcome-warm-resume.yaml` (tag `android`): to bike-setup → `pressKey: back` until the app is backgrounded → `launchApp` (no `stopApp`, no `clearState`) → `assertNotVisible: "Let's get started"`. Red first.
+- **Verification.** FS-OB1d: 0 unexplained (`reason != 'back'`) Welcome mounts with progress. ~~Out of scope: finding the remount trigger~~ (resolved by V4).
 
 #### T21 — `LimitSheet` and a session frequency cap for feature-gate paywalls
 - **Type** enhancement · **Size** M · **Depends** T05 · **Blocks** T22, T24 · **Specs** FS-PO3, FS-PO2c (part) · **Release** Release B ·
-  **Constraints** D5; onboarding surfaces exempt via `isOnboardingPaywallSurface`; a rider-tapped path to the paywall always exists; light/dark; 7 locales.
+  **Constraints** D5; onboarding surfaces exempt via `isOnboardingPaywallSurface`; a rider-tapped path to the paywall always exists; light/dark; all app locale files (`pnpm check:i18n`).
 - **Why.** `requirePro`/`requireAccess` present on every call (`hooks/use-pro-gate.ts:64-105`); `presentPaywall` only de-duplicates concurrent requests
   (`lib/subscription.ts:770-792`); five MAX_BIKES entry points each present (R3 C18). On 3.26.0, 9/22 gate-paywall sessions had ≥ 2 views and 8/22 a same-feature repeat
   ≤ 60 s; riders re-tap 1–11 s after dismissing [SOURCE: R3 RC-3, Q7, Q10]. 2 of 3 gate purchases (all 3.19.1) came on a repeat view, so a hard cap is rejected [SOURCE: R3 Q12].
@@ -620,7 +668,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
   10-min cooldown after a `paywall_result: error`. Capped calls open `components/paywall/limit-sheet.tsx` (feature copy; bikes: "Free includes 1 bike. Update your bike, or see Pro";
   diagnostics: reset date) with "See Pro plans" (`trigger:'rider_tap'`, never capped); fire `paywall_suppressed` and `limit_sheet_viewed`; set `gate_policy:'capped_v1'`.
   **Copy table (doc review item 9):** title, body and CTA for each gated feature `full_ai_diagnostics`, `unlimited_bikes`, `gpx_export`, `offline_trips`, `trip_assistant`
-  (`packages/types/src/constants/limits.ts`), plus a generic fallback keyed off `feature`; all 7 app locales; the table is in the T21 issue.
+  (`packages/types/src/constants/limits.ts`), plus a generic fallback keyed off `feature`; all app locale files enforced by `pnpm check:i18n`; the table is in the T21 issue.
 - **How.** Consulted by `hooks/use-pro-gate.ts:64-105`, `app/(tabs)/(garage)/index.tsx:128-130`, `hooks/use-profile-data.ts:118-128`. Jest `lib/__tests__/paywall-frequency.test.ts`
   (rules in FS-PO3). Maestro `gate-frequency-cap.yaml` (seeded used diagnosis). `onboarding.yaml` and `onboarding-paywall-verify.yaml` must still pass unchanged.
 - **Verification.** FS-PO3: 0 sessions with ≥ 2 automatic same-feature views; S5 ≤ 2%; guardrail: gate purchases + `rider_tap` views not zero over 8 weeks (counts).
@@ -628,7 +676,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 
 #### T22 — Bike limit: "Update my bike" before "Add a second bike (Pro)"
 - **Type** enhancement · **Size** M · **Depends** T21 (sheet), T23 (edit refreshes schedule), T05 (`garage_bike_edited`) · **Specs** FS-PO1 · **Release** Release B ·
-  **Constraints** D5; `MAX_BIKES` unchanged (no second free bike); light/dark; 7 locales; Home switcher "+" is a gate, not Home content (log date for Exp 1).
+  **Constraints** D5; `MAX_BIKES` unchanged (no second free bike); light/dark; all app locale files (`pnpm check:i18n`); Home switcher "+" is a gate, not Home content (log date for Exp 1).
 - **Why.** 7/118 completers on 3.26.0 hit the bike paywall on day 0; none of the 29 day-0 bike-paywall riders ever got a second bike, deleted one, or (for make-only) set a model;
   several opened `edit-bike` around the paywall [SOURCE: R2 §3.2, R2-PH3, R2-PH4, R2-DB5]. Editing is free but not offered at that moment (`app/(tabs)/(garage)/edit-bike.tsx:195-305`).
 - **What.** One hook `hooks/use-add-bike-gate.ts` with pure `decideBikeLimitAction({isPro, bikeCount}) → 'open_form'|'offer_update'|'paywall'` used by all entries
@@ -674,7 +722,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Out of scope.** NHTSA cache persistence (ledger line in §10: trigger `model_fetch_ms` p90 > 3 s; was T37). **Risks.** Moves `bike_added` and goal→placement inputs; add, never rename, properties.
 
 #### T26 — "Add your model" row for make-only bikes in the bike hub
-- **Type** enhancement · **Size** S · **Depends** T23, T05 · **Specs** FS-R2-3 (source `bike_hub`) · **Release** Release B · **Constraints** bike hub only (not Home: Exp 1 slot); light/dark; 7 locales.
+- **Type** enhancement · **Size** S · **Depends** T23, T05 · **Specs** FS-R2-3 (source `bike_hub`) · **Release** Release B · **Constraints** bike hub only (not Home: Exp 1 slot); light/dark; all app locale files (`pnpm check:i18n`).
 - **Why.** 52/104 onboarding bikes on 3.26.0 are make-only; 117 blank-model live bikes, 7 ever had a task; most never tap Add, so T22 does not reach them [SOURCE: R2 R2-PH4, R2-DB6].
 - **What.** In `components/bike-hub/overview/overview-segment.tsx`, when `model === ''`, a row "Add your model for its exact service schedule" → edit-bike; show the tier on make-generic tasks.
 - **How.** Maestro step appended to `onboarding-make-only-service-plan.yaml` (tap row → edit-bike visible). **Verification.** FS-R2-3 by `source='bike_hub'`.
@@ -682,11 +730,12 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 #### T27 — Start Ride first open: one clear Start, bike preselected, permission in context, denial never a silent spinner
 - **Type** enhancement · **Size** M · **Depends** T05 · **Specs** FS-PO14 · **Release** Release B · **Constraints** D12; HUD stays `HUD_THEME`; copy shares the floors interpolation with T31.
 - **Why.** 67 of 130 completers who opened Start Ride on day 0 did not start (52%); replays show setup-screen exits, a spinner, a denied-permission return [SOURCE: R6 F-PO14, R6-q9].
+  **The P2 task most likely to move return (still not causal):** starting a ride on day 0 is the strongest returner predictor (35% vs 10% back on day 2, adjusted OR 4.5) [SOURCE: V2 §5, §5.2].
   Denied location should show "Location required" (`app/(modals)/start-ride.tsx:99-102`); start flow `:81-148`.
 - **What.** First diagnose with `$screen` + last-tap data (record in `experiments.md`); then: Start button above the fold, onboarding bike preselected, in-context permission once,
   denied → alert with Open Settings (never a spinner), one line "Short test rides aren't saved (under {{seconds}} s or {{meters}} m)".
 - **How.** Jest `app/(modals)/__tests__/start-ride.test.tsx` (`{reason:'denied'}` → alert + busy cleared). Maestro `start-ride-first-open.yaml` (deny and allow runs).
-- **Verification.** FS-PO14 ≤ 35% per version (test arm: riders with `next_ride_plan_set` subtracted). **Out of scope.** Changing ride floors.
+- **Verification.** FS-PO14 ≤ 35% per version (test arm: riders with `next_ride_plan_set` subtracted); **own per-release metric:** day-0 `ride_started` among riders who opened Start Ride on day 0, baseline **63/130 (48%)** [SOURCE: V2 §5.2; R6-q9]. **Out of scope.** Changing ride floors.
 
 #### T28 — Home taps always respond (checklist rows, bike card, receipt card, empty states)
 - **Type** bug · **Size** S–M · **Depends** T05 · **Specs** FS-PO6 · **Release** Release B · **Constraints** light/dark.
@@ -697,13 +746,15 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Verification.** FS-PO6 first-hour rage riders ≤ 3%; 0 dead checklist links.
 
 #### T29 — Discover first open: no unprompted location dialog; skeleton, timeout and Retry
-- **Type** enhancement · **Size** S + S · **Depends** T05 (`screen_load_timed`), T06 item 8 · **Specs** FS-PO7, FS-PO8 · **Release** Release B · **Constraints** D12; light/dark.
+- **Type** enhancement · **Size** S + S · **Depends** T05 (`screen_load_timed`), T06 item 8, T00 · **Specs** FS-PO7, FS-PO8 · **Release** **Release A** (moved up by the validation; if it misses the Release A cut it is the first P2 task in Release B) · **Constraints** D12 (both arms, before the slot — Release A is earlier and not a launch-day change); light/dark.
 - **Why.** Discover asks for location on mount (`app/(tabs)/(discover)/index.tsx:503`, `hooks/use-user-country.ts:30-45`); PO8's "Descargar mapas" is not an app string and the session
-  backgrounded 0.37 s after `discover_tab_viewed` (likely an OS/Play-services dialog, 35%) [SOURCE: R4 §3.3, Q-R4-11]; 2 replays of slow/stuck Discover [SOURCE: R6 F-PO7].
+  backgrounded 0.37 s after `discover_tab_viewed` [SOURCE: R4 §3.3, Q-R4-11]; 2 replays of slow/stuck Discover [SOURCE: R6 F-PO7]. **Validation (V1-q36):** on a rider's first Discover
+  visit, `Application Backgrounded` follows within 2 s for **42 of 43 Android riders** (median 0 s) vs 1 of 59 on the first Garage view and 0 of 28 on iOS — a likely OS dialog
+  (location, ≈ 70%) hitting nearly every Android rider who opens Discover; T06 item 8 confirms the dialog type on a device.
 - **What.** `useUserCountry` disabled until a "Use my location" tap in "Near you" (`components/discover/near-you-section.tsx`) with a reason line; skeleton cards while loading;
   error + Retry after 10 s; `screen_load_timed {screen:'discover'}`.
 - **How.** Jest `hooks/__tests__/use-user-country.test.ts`. Maestro `discover-first-open-android.yaml`.
-- **Verification.** FS-PO7 p90 < 3,000 ms, timeout < 1%; FS-PO8 first-visit backgrounding ≤ 2 s → ~0.
+- **Verification.** FS-PO7 p90 < 3,000 ms, timeout < 1%; FS-PO8 Android first-visit backgrounding ≤ 2 s from 42/43 → ≤ 5% (at the Garage-control level, 1/59).
 
 ### P3 — Experiment 1 "first-ride plan" (build + launch)
 
@@ -720,7 +771,9 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 - **What.** `lib/activation-experiment.ts` mirroring `lib/onboarding-experiment.ts:13-40,67-71`: PostHog multivariate `control`/`test` if it answers (source `posthog`);
   flag off/unknown → `control` (kill switch); cannot ask → uniform local draw (source `local`); sticky `activationArm/AssignedAt/Source/ExposurePending` in
   `stores/experiment.store.ts:20-68` (version-2 migration); assign in one `completeOnboardingAndAssign()` called from `handleContinue` **and** the cold-start branch, only
-  for riders with no real ride; `activation_exposure {experiment, arm, source, onboarding_variant, notifications_granted}` + super property `activation_arm`; pending exposure flushed on consent.
+  for riders with no real ride; `activation_exposure {experiment, arm, source, onboarding_variant, notifications_granted, primary_goal, returning_account}` + super property `activation_arm`; pending exposure flushed on consent.
+  `primary_goal` = the onboarding primary goal (already the `onboarding_goal_primary` super property); `returning_account` = the rider's first auth in this install signed in to a pre-existing
+  account (21 of 367 completers, 33% back on day 2 — reinstalls, not new riders) [SOURCE: V2 §3.1, §5.1 item 4]. Both are pre-treatment, so T40 can stratify on goal and exclude or stratify `returning_account`.
 - **How.** Jest `lib/__tests__/activation-experiment.test.ts` (each source path, stickiness across relaunch and sign-out, no re-roll, exposure once, pre-consent flush,
   assignment after the garage_first paywall) + a 10,000-draw SRM simulation in the test.
 - **Start/stop window from the API (doc review item 4).** API part: a nullable field `activationExperimentWindow { startAt, stopAt }` on a query the client already makes
@@ -742,7 +795,7 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 - **Verification.** FS-PO4a hygiene: 0 teaching sheets with `distance_m ≥ 10` or after a real ride; ≥ 95% eligible test-arm sheets are teaching.
 
 #### T32 — "When's your next ride?" plan card + local scheduler (test arm)
-- **Type** experiment · **Size** M · **Depends** T10, T30 · **Blocks** T33, T34 · **Specs** FS-EXP1 (plan chain) · **Release** Release B · **Constraints** light/dark via `useEditorialTheme`; 7 locales; no Pro/price wording.
+- **Type** experiment · **Size** M · **Depends** T10, T30 · **Blocks** T33, T34 · **Specs** FS-EXP1 (plan chain) · **Release** Release B · **Constraints** light/dark via `useEditorialTheme`; all app locale files (`pnpm check:i18n`); no Pro/price wording.
 - **What.** `components/home/activation-plan-card.tsx` on top of `OnboardingChecklist` for test-arm riders with no real ride (replacing the FIRST_RIDE row); chips
   Later today (D13), Tomorrow, This weekend, Not sure yet; fire times from `features/activation/plan-fire-time.ts` (+3 h capped 19:00; 10:00; Saturday 10:00; none);
   in-context permission once after a chip; one local notification via `lib/notifications.ts` kind `activation`, `source:'plan_card'`; opens Start Ride via the response handler
@@ -759,14 +812,19 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 - **Type** research (device) · **Size** S · **Depends** T32 build · **Blocks** T34 · **Release** — · **Constraints** stock Pixel (Android 14+) and a Samsung on default battery settings.
 - **What.** Schedule next-day 18:00; record delivery time and `activation_nudge_presented`; write results in `experiments.md`. Pass = delivered within 1 h on both;
   fail → Android gets card + sheet without reminder copy [SOURCE: board/99 §4; Android alarms docs as cited there].
+  **Why it matters more than a gate (V2 §5.1 item 5):** T32's reminder and T34 are the plan's **only test of a re-engagement message** — in week 1, 1 of 426 new users got a
+  server push, 6 persons ever had a local reminder scheduled, and only 55 of 426 have a push token. The push-token gap (`push-tokens-investigation.md`; FCM via vc99 or 3.29.0,
+  T18) is a prerequisite: record Android token registration for the test devices in the same table.
 
 #### T34 — Day-1 fallback local notification (test arm)
 - **Type** experiment · **Size** S–M · **Depends** T30, T32, T33 · **Specs** FS-EXP1 (d1 chain) · **Release** Release B · **Constraints** one activation notification per rider in week 1; Apple 4.5.4 (no Pro/price/"free").
 - **What.** Granted test-arm riders with no plan and no core action by end of day 0 → one `activation` notification next day 18:00 local, `source:'d1_fallback'`, goal-branched copy
   (`maintain_bike` copy = D13 owner bet), cancelled by any core action. Jest scheduling rules. Stop rule: revocations test ≥ control + 3 after 4 weeks → disable d1 only.
+  This is the only notification lever Exp 1 tests (V2 §5.1 item 5): cutting T34 for time means Exp 1 tests no notification at all. `maintain_bike` riders are read on S1 and
+  days 7–13, never S3 (they return on days 7–13, 7/65, not day 2, 3/72) [SOURCE: V2 §5.1 item 6].
 
 #### T35 — Release B (3.30.0) and Experiment 1 launch
-- **Type** release/experiment · **Size** S · **Depends (hard) — the Exp 1 minimum set:** T02, T05c, T05d, T09, T10, T18, T30 (incl. its API part deployed), T31, T32, T33, T34 · **Soft:** the P2 tasks (T19a–T29) merged by the **Release B code freeze 2026-12-05**; any P2 task not merged by then goes into the **next store build** (D17); T27 and T29, if they miss the freeze, ship in the first binary **after** the slot, so D12 holds (no both-arm change inside the slot) · **Blocks** T40 ·
+- **Type** release/experiment · **Size** S · **Depends (hard) — the Exp 1 minimum set:** T02, T05c, T05d, T09, T10, T18, T30 (incl. its API part deployed), T31, T32, T33, T34, **T00** (pre-promotion E2E needs the iOS simulator; validation) · **Soft:** the P2 tasks (T19a–T28; T29 targets Release A) merged by the **Release B code freeze 2026-12-05** (T19a only together with T20); any P2 task not merged by then goes into the **next store build** (D17); T27 and T29, if they miss the freeze, ship in the first binary **after** the slot, so D12 holds (no both-arm change inside the slot) · **Blocks** T40 ·
   **Constraints** D2, D13, D14; latest start 2027-01-06 [SOURCE: board/99 D7].
 - **What.** Store builds 3.30.0 both platforms with the Exp 1 code and the flag defaulting to control; E2E as T18 plus `first-ride-plan-card.yaml`,
   `ride-standstill-teaching.yaml` in both arms. Ledger signed (D13); the implementing agent creates the PostHog flag 50/50, no targeting (D2). On the D16 day (3.30.0 ≥ 90% of new
@@ -799,8 +857,9 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 - **Verification.** DB: share of live onboarding bikes with ≥ 1 OEM task. **Risks.** Reminder burst for old riders — prevented by T07a's per-bike cap (one push per bike per 7 days).
 
 #### T40 — Experiment 1 readout and ship/revert
-- **Type** experiment · **Depends** T35 · **When** a Miller boundary fires or 2027-03-31. One-sided two-proportion z-test at the cap on everyone enrolled + 90% interval; **keep if the
-  90% lower bound > −3 pts, else revert**; qualitative signals are reported beside the decision but do not gate it (D13, doc review item 6h) [SOURCE: board/99 §4]. A capped
+- **Type** experiment · **Depends** T35 · **When** a Miller boundary fires or 2027-03-31. One-sided z-test at the cap on everyone enrolled + 90% interval, **computed stratified
+  (Mantel–Haenszel) on goal `track_rides` vs other × platform**, both set before assignment; `returning_account` riders excluded from the primary and reported separately; one
+  pre-specified subgroup, `track_rides` (V2 §5.1 items 2, 4); **keep if the 90% lower bound > −3 pts, else revert**; qualitative signals are reported beside the decision but do not gate it (D13, doc review item 6h) [SOURCE: board/99 §4]. A capped
   no-winner means "no doubling shown", not "no effect". Cut the readout at every both-arm change date in the ledger.
 
 #### T41 — Post-slot candidates and replay re-run per fix level — CLOSED 2026-11-12, moved to the ledger (§10)
@@ -836,6 +895,8 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
    runtime it was published for [SOURCE: docs/runbooks/mobile-ota.md:3, 173-176], and an OTA applies on the next launch, so a new rider's first session runs the binary's
    embedded JS [SOURCE: R3 RC-2]; per-runtime release-branch OTAs were complex and risked rolling back OTAs riders already run (doc review item 3).
    A hotfix OTA to an older runtime follows the runbook (branch from that runtime's latest production update commit, native-diff check; memory `reference_ota_hotfix_older_runtime`).
+   **Runtime 3.27.0 has never received an OTA** (EAS `production` branch, V3 §1), so a 3.27.0 crash/data-loss hotfix is the first update on that runtime and branches from the
+   **store-build commit `2ce57d1d`** (iOS b108 / Android vc95). Latest groups on 2026-11-12: 3.28.0 `fece7a3c` (`5a497a1c`), 3.26.0 `bd05b306` (`0b099fd3`).
    **Consequence for measurement:** the P0 instrumentation (T01, T04a–c, T05a–e incl. T05c's guard-sheet render change and testIDs) first reaches riders in **3.29.0**
    (T05e is server-side and ships by API deploy). Every client-event baseline (FS-OB* first-session and post-onboarding), and the data-gate windows of T14b, T15b, T36 and T38,
    count from **3.29.0 go-live per platform**, with the R1/R5 proxy SQL (`$screen`-based) as the pre-fix comparison. The former TR0 instrumentation OTA is removed (D17).
@@ -860,14 +921,19 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
    (C) the rest (S4(a)/(b) DB form, FS-R2-4, FS-OB1e cross-check, FS-PO4b DB share) are **weekly DB checks**: `queries/db/<spec>.sql`, each file starting with `BEGIN READ ONLY;`
    and ending with `COMMIT;`, run read-only by the agent or owner every Monday via the Supabase Management API SELECT recipe, result row appended to `experiments.md`,
    plus a PostHog annotation when a threshold is crossed. No warehouse connection of the production DB to PostHog (D2b).
-7. **Both-arm changes** during the onboarding paywall A/B or Exp 1 are logged in `experiments.md` with the go-live date per platform (T02 ledger). T27 and T29 ship in Release B,
-   the same binary as Exp 1's launch: they are **launch-day both-arm changes**, read on mechanical metrics only (review item 29).
+7. **Both-arm changes** during the onboarding paywall A/B or Exp 1 are logged in `experiments.md` with the go-live date per platform (T02 ledger). T27 ships in Release B,
+   the same binary as Exp 1's launch: a **launch-day both-arm change**, read on mechanical metrics only (review item 29). **T29 targets Release A** (validation: FS-PO8 hits
+   42/43 Android Discover openers); if it misses the Release A cut it ships in Release B as a launch-day both-arm change, like T27.
+8. **T19a and T20 ship in the same build** (validation, V4): T19a's "only Welcome returns `false`" reproduces RC-D on the next warm launch unless T20 is in the same binary.
+9. **Test environment first (T00, validation V3/V4):** no iOS simulator runtime, no Supabase CLI, no repo-replayable schema and no Android E2E build existed on 2026-11-12, so
+   every task whose acceptance needs Maestro, and both release tasks, depend on T00.
 
 ### 3A.1 Ordered task list (issue order)
 
 | # | Task | Title | Type | Phase | Size | Depends on | Release path |
 |---|---|---|---|---|---|---|---|
-| 01 | T01 | Release marker super properties + `e2e_run` | instrumentation | P0 | S | — | Release A 3.29.0 |
+| 00 | T00 | Test environment setup: iOS sim runtime, pinned Supabase CLI, local stack at the latest migration, `e2e-android` build recipe, `pnpm install` (validation V3/V4) | setup | P0 | S–M | — | local setup + `eas.json` profile (no app code, nothing reaches riders) |
+| 01 | T01 | Release marker super properties + `e2e_run`; `platform` non-null on 100% of opens incl. the first | instrumentation | P0 | S | T00 | Release A 3.29.0 |
 | 02 | T02 | `experiments.md` ledger, baselines, SQL files, weekly DB check, e2e exclusion | research | P0 | M | — | docs commit |
 | 03 | T03a | Release-marking runbook (store builds; hotfix-OTA exception), friction status table | instrumentation | P0 | S | T02 | docs commit |
 | 04 | T03b | PostHog dashboard "#365 Activation & frictions" (first tile: Day-1 drop-off funnel), 2 alerts, weekly cohort table | instrumentation | P0 | M | T01, T02, T03a | PostHog writes by the agent from the named list (D2) |
@@ -876,50 +942,50 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 | 07 | T04c | `bike_setup_summary` event | instrumentation | P0 | S | T01 | Release A 3.29.0 |
 | 08 | T05a | Paywall `trigger`/`gate_policy` props + `paywall_suppressed`/`limit_sheet_viewed` constants | instrumentation | P0 | S | T01 | Release A 3.29.0 |
 | 09 | T05b | Diagnostics events: `diagnostic_started` once per entry, failure reasons | instrumentation | P0 | S | T01 | Release A 3.29.0 |
-| 10 | T05c | Ride guard props, ride/HUD testIDs, guard sheet in a11y tree, `log-ride.yaml` on ids | instrumentation | P0 | M | T01 | Release A 3.29.0 (event props, sheet render, testIDs) |
+| 10 | T05c | Ride guard props, ride/HUD testIDs, guard sheet in a11y tree, `log-ride.yaml` on ids | instrumentation | P0 | M | T01, T00 | Release A 3.29.0 (event props, sheet render, testIDs) |
 | 11 | T05d | Landing, Discover screen-load and bike-edit events, F14 route constant, `source` on task completion, tab/checklist testIDs | instrumentation | P0 | M | T01 | Release A 3.29.0 |
 | 12 | T05e | API server events `onboarding_bike_created`, `ride_saved` | instrumentation | P0 | S | T02, T03a | API deploy |
 | 13 | T06 | Research batch (no code) | research | P0 | S | — | docs |
 | 15 | T07a | Exp 2: import the service schedule when onboarding creates the bike (API) + D7 per-bike reminder cap | bug | P1 | M | T02, T03a | API deploy |
-| 16 | T07b | Client reads service-plan fields; service-plan Maestro flows | bug | P1 | S | T07a | Release A |
-| 17 | T08 | Diagnostics: stop the "Try Again" limit loop | bug | P1 | S | T05b | Release A |
-| 18 | T09 | A standstill ride ended from the guard is not saved | bug | P1 | M | T05c | Release A |
-| 19 | T10 | Checklist "first ride" row: no tick without a real ride | bug | P1 | S | T05d | Release A |
-| 20 | T11 | Onboarding sign-in advances when the session lands; OAuth double-tap guard | bug | P1 | S | T04a, T04b | Release A |
-| 21 | T12 | Account screen: busy state, silent cancel, bounded wait | bug | P1 | M | T04a | Release A |
-| 22 | T13a | Persist the account/code draft (store v10 migration) | bug | P1 | M | T04b | Release A |
-| 23 | T13b | Persist the bike draft; resume to the last viewed screen | bug | P1 | M | T13a, T04c | Release A |
-| 24 | T14 | Local onboarding-completion flag survives a cold start | bug | P1 | S | T04b, T06 | Release A |
-| 25 | T15 | Guard: an auth blip after completion never routes to `(auth)` | bug | P1 | S | T04b | Release A |
-| 26 | T16a | "Open my garage" once: idempotent CTA, Retry only on failure | bug | P1 | S | T05d | Release A |
-| 27 | T16b | At most one sheet over Home on landing (+ `landing_sheet_shown`) | bug | P1 | M | T05d | Release A |
-| 28 | T17 | Diagnosis failures: offline pre-check, 75 s deadline, localized errors | bug | P1 | M | T05b, T08 | Release A |
-| 29 | T18 | Release A: store 3.29.0 (lvl 2), first release of the P0 instrumentation | release | P1 | S | T01, T04a, T04b, T04c, T05a, T05b, T05c, T05d, T07b–T17 | store builds |
-| 30 | T19a | Android Back steps once and leaves onboarding | enhancement | P2 | M | T04b | Release B |
-| 31 | T19b | iOS swipe-back cannot rewind past the account step | enhancement | P2 | S | T04b | Release B |
-| 32 | T20 | Welcome resumes on any non-Back remount | bug | P2 | S | T19a | Release B |
-| 33 | T21 | `LimitSheet` and a session frequency cap for gate paywalls | enhancement | P2 | M | T05a | Release B |
+| 16 | T07b | Client reads service-plan fields; service-plan Maestro flows | bug | P1 | S | T00, T07a | Release A |
+| 17 | T08 | Diagnostics: stop the "Try Again" limit loop | bug | P1 | S | T00, T05b | Release A |
+| 18 | T09 | A standstill ride ended from the guard is not saved | bug | P1 | M | T00, T05c | Release A |
+| 19 | T10 | Checklist "first ride" row: no tick without a real ride | bug | P1 | S | T00, T05d | Release A |
+| 20 | T11 | Onboarding sign-in advances when the session lands; OAuth double-tap guard | bug | P1 | S | T00, T04a, T04b | Release A |
+| 21 | T12 | Account screen: busy state, silent cancel, bounded wait | bug | P1 | M | T00, T04a | Release A |
+| 22 | T13a | Persist the account/code draft (store v10 migration) | bug | P1 | M | T00, T04b | Release A |
+| 23 | T13b | Persist the bike draft; goals seeds from `ridingGoals`; resume to a monotonic `furthestScreen` | bug | P1 | M | T13a, T04c, T00 | Release A |
+| 24 | T14 | Local onboarding-completion flag survives a cold start | bug | P1 | S | T00, T04b, T06 | Release A |
+| 25 | T15 | Guard: an auth blip after completion never routes to `(auth)` | bug | P1 | S | T00, T04b | Release A |
+| 26 | T16a | "Open my garage" once: idempotent CTA, Retry only on failure | bug | P1 | S | T00, T05d | Release A |
+| 27 | T16b | At most one sheet over Home on landing (+ `landing_sheet_shown`) | bug | P1 | M | T00, T05d | Release A |
+| 28 | T17 | Diagnosis failures: offline pre-check, 75 s deadline, localized errors | bug | P1 | M | T00, T05b, T08 | Release A |
+| 29 | T18 | Release A: store 3.29.0 (lvl 2), first release of the P0 instrumentation; vc99/FCM steps | release | P1 | S | T00, T01, T04a, T04b, T04c, T05a, T05b, T05c, T05d, T07b–T17 (T29 soft) | store builds |
+| 30 | T19a | Android Back steps once and leaves onboarding | enhancement | P2 | M | T04b, T00 | Release B, same build as T20 |
+| 31 | T19b | iOS swipe-back cannot rewind past the account step | enhancement | P2 | S | T00, T04b | Release B |
+| 32 | T20 | Welcome resumes on any non-Back remount (trigger found: Back out + warm launch) | bug | P2 | S | T19a, T00 | Release B, same build as T19a |
+| 33 | T21 | `LimitSheet` and a session frequency cap for gate paywalls | enhancement | P2 | M | T00, T05a | Release B |
 | 34 | T23 | Edit make/model/year refreshes the schedule (API) + dedup ignores retired tasks | enhancement | P2 | M | T07a | API deploy |
-| 35 | T22 | Bike limit: "Update my bike" before "Add a second bike (Pro)" | enhancement | P2 | M | T21, T23, T05d | Release B |
-| 36 | T24 | Exhausted diagnose CTA opens the LimitSheet; "1 bike on Free" hint | enhancement | P2 | S | T21, T08 | Release B |
+| 35 | T22 | Bike limit: "Update my bike" before "Add a second bike (Pro)" | enhancement | P2 | M | T00, T21, T23, T05d | Release B |
+| 36 | T24 | Exhausted diagnose CTA opens the LimitSheet; "1 bike on Free" hint | enhancement | P2 | S | T00, T21, T08 | Release B |
 | 37 | T25a | API: models ranked popular-first | enhancement | P2 | S | T04c | API deploy |
-| 38 | T25b | Client bike search: make+model in one search, year first, no junk makes | enhancement | P2 | M | T25a | Release B |
-| 39 | T26 | "Add your model" row for make-only bikes in the bike hub | enhancement | P2 | S | T23 | Release B |
-| 40 | T27 | Start Ride first open: clear Start, bike preselected, no silent spinner | enhancement | P2 | M | T05c | Release B (launch-day both-arm) |
-| 41 | T28 | Home taps always respond | bug | P2 | M | T05d | Release B |
-| 42 | T29 | Discover first open: no unprompted location ask; skeleton, timeout, Retry | enhancement | P2 | M | T05d, T06 | Release B (launch-day both-arm) |
-| 43 | T30 | Exp 1 flag, sticky assignment, start/stop window served by the API (+ embedded ceilings) | experiment | P3 | M | T05d, T02 | API deploy before the 3.30.0 cut + Release B |
-| 44 | T31 | Teaching sheet for a standstill first ride (test arm) | experiment | P3 | M | T09, T30, T05c | Release B |
-| 45 | T32 | "When's your next ride?" plan card + local scheduler (test arm) | experiment | P3 | M | T10, T30 | Release B |
+| 38 | T25b | Client bike search: make+model in one search, year first, no junk makes | enhancement | P2 | M | T00, T25a | Release B |
+| 39 | T26 | "Add your model" row for make-only bikes in the bike hub | enhancement | P2 | S | T00, T23 | Release B |
+| 40 | T27 | Start Ride first open: clear Start, bike preselected, no silent spinner — the P2 task most likely to move return | enhancement | P2 | M | T05c, T00 | Release B (launch-day both-arm) |
+| 41 | T28 | Home taps always respond | bug | P2 | M | T00, T05d | Release B |
+| 42 | T29 | Discover first open: no unprompted location ask; skeleton, timeout, Retry (FS-PO8: 42/43 Android) | enhancement | **P1** (raised) | M | T05d, T06, T00 | **Release A**; if it misses the cut, first in Release B (launch-day both-arm) |
+| 43 | T30 | Exp 1 flag, sticky assignment, start/stop window served by the API (+ embedded ceilings) | experiment | P3 | M | T00, T05d, T02 | API deploy before the 3.30.0 cut + Release B |
+| 44 | T31 | Teaching sheet for a standstill first ride (test arm) | experiment | P3 | M | T00, T09, T30, T05c | Release B |
+| 45 | T32 | "When's your next ride?" plan card + local scheduler (test arm) | experiment | P3 | M | T00, T10, T30 | Release B |
 | 46 | T33 | Android next-day local notification delivery check | research | P3 | S | T32 | device check |
 | 47 | T34 | Day-1 fallback local notification (test arm) | experiment | P3 | S | T30, T32, T33 | Release B |
-| 48 | T35 | Release B 3.30.0 (lvl 3) + Exp 1 launch | release | P3 | S | T18, T19a–T34 | store builds + flag |
+| 48 | T35 | Release B 3.30.0 (lvl 3) + Exp 1 launch | release | P3 | S | T00, T02, T05c, T05d, T09, T10, T18, T30–T34 (P2 soft) | store builds + flag |
 | 49 | T14b | Cached `me` cannot say "not completed"; server idempotency (conditional) | bug | P4 | S | T18 (window from 3.29.0 go-live) | next store build |
 | 50 | T15b | Investigate and fix sign-in screens after completion (conditional) | bug | P4 | M | T18 (window from 3.29.0 go-live), T06 | next store build |
 | 51 | T36 | Decide on Credential Manager for Android Google sign-in | research | P4 | M | T04a, T18 (window from 3.29.0 go-live) | store build if yes |
 | 53 | T38 | Keep the onboarding run across a same-user session drop (conditional) | bug | P4 | S | T04b, T18 (window from 3.29.0 go-live) | next store build |
 | 54 | T39 | Backfill schedules for existing onboarding bikes (owner-run; hardened function, dropped after the run) | enhancement | P4 | M | T07a (reminder cap live) | owner-applied migration |
-| 55 | T40 | Experiment 1 readout and ship/revert | experiment | P4 | S | T35 | decision |
+| 55 | T40 | Experiment 1 readout and ship/revert (stratified MH test; `returning_account` excluded; `track_rides` subgroup) | experiment | P4 | S | T35 | decision |
 
 ### 3A.2 What changed per task (deltas against §3)
 
@@ -956,6 +1022,11 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
   ceilings `EXP1_STOP_AT = 2027-03-31` and latest start 2027-01-06: no local draw (and no PostHog-arm use) outside the window; null or unreachable window = everyone `control`
   with `source: 'pre_start'` and no exposure event. Stopping or starting needs no OTA: it is a server-side change. **D1 covers T30** (hooks into `handleContinue`).
 - **T39** is owner-run via a reviewed `SECURITY DEFINER` RPC migration after a dry-run SELECT.
+- **Validation deltas (2026-11-12, §11 has the full list):** new **T00** (test environment, first; blocks T05c, T18, T35 and every Maestro-accepted task); **T01** acceptance adds
+  `platform` on 100% of opens incl. the first; **T13b** adds goals seeding from `ridingGoals` and a monotonic `furthestScreen` resume target; **T19a + T20** ship in the same build,
+  T20 gets Maestro `onboarding-welcome-warm-resume.yaml`; **T29** moves to Release A (FS-PO8 42/43 Android); **T27** is the P2 task most likely to move return, with its own
+  metric; **T30** adds `primary_goal` and `returning_account` to `activation_exposure`; **T40** reads S1 stratified (MH, goal × platform) with `returning_account` excluded and
+  one pre-specified subgroup (`track_rides`); **T18** carries the vc99 steps; **T06** item 1 becomes a replay confirmation and item 8 a device check of the dialog type.
 
 ### 3A.3 Owner decisions added or changed
 
@@ -964,6 +1035,8 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 - **D2b (new; final ruling §9):** DB metrics source — (B) server events + (C) weekly read-only DB check. No warehouse connection.
 - **D14b (new; amended by D17):** no OTA of fixes to older runtimes (3.26.0–3.28.0); absolute except crash/data-loss hotfixes.
 - **D17 (new, owner rule 2026-11-12):** new functionality ships only in store builds; OTA only for crash/data-loss hotfixes (§9 D17).
+- **D11 (clarified by the validation, V5):** at most one **inline** Home card per session as well; the Exp 1 plan card wins, a later install-reason card waits for the next later-day open, in both arms.
+- **D13 (implementation note, validation V2):** the single one-sided z-test at the cap is computed stratified (Mantel–Haenszel, goal `track_rides` vs other × platform); the detectable effect is stated as an absolute lift. Owner confirmation recommended (§11).
 - **D16 (new, amended 2026-11-12):** Exp 1 start date (the day 3.30.0 is ≥ 90% of new installs on both platforms, not later than 2027-01-06), set **server-side** in
   `activationExperimentWindow` on that day, with the PostHog flag flip the same day. No OTA.
 
@@ -1014,13 +1087,16 @@ and `hub-tab-dock` (`app/(tabs)/_layout.tsx:215`) exist on main. Every other id 
 | PO5 HUD opens after onboarding | **Not a bug** (92%); regression guard flow + alert in FS-PO5 (T05 testIDs, T03 alert) | [SOURCE: R4 §3.1] |
 | PO6 dead taps / empty states | T28 | |
 | PO7 slow/stuck Discover | T29 | |
-| PO8 "Download maps" modal | T06 item 8 (watch), T29 (location ask) | not an app string (35% OS dialog) |
+| PO8 "Download maps" modal | T06 item 8 (watch + device check of the dialog type), T29 (location ask; **Release A**) | not an app string; validation: 42/43 Android first Discover visits background ≤ 2 s (≈ 70% an OS dialog) [SOURCE: V1-q36] |
 | PO9 leave garage in ≤ 20 s | Exp 1 (T30–T35) outcome; FS-PO9 SQL file only (no tile) | behaviour, not a defect |
 | PO10 checklist works | T10 (fix FIRST_RIDE), T32 (plan card replaces the row in test arm) | |
 | PO11 What's New on day 0 | **Not doing** — settled since 3.25.0; FS-PO11 SQL file (no tile); `whats-new.yaml` stays green | [SOURCE: board/99 §1.7] |
 | PO12 sign-in after completion (new, R6) | T15 | |
 | PO13 back to onboarding after completion (new, R6) | T14, T15 | |
-| PO14 Start Ride opened, no ride (new, R6) | T27 | |
+| PO14 Start Ride opened, no ride (new, R6) | T27 | day-0 ride start is the strongest returner predictor (V2) |
+| Test environment gap (validation V3/V4: no iOS sim runtime, no Supabase CLI, no replayable schema, no Android E2E build) | **T00** | new task, first in order |
+| Re-engagement message for riders outside the Exp 1 test arm (V2 "missing lever") | ledger follow-up after T40 (§10) | not a task this season |
+| Acquisition quality: AI-chat referrals return 2× (V2) | ledger: growth hypothesis (§10) | outside #365 |
 | PO15 receipt scan extraction fails (new, R6) | **Not doing now** — owned by the receipt-scan epic; n = 1 | |
 | PO16 planned trip missing in My trips (new, R6) | **Not doing now** — SEEN once; verify before work | |
 | PO17 competing landing sheets (new, R6) | T16 | |
@@ -1039,7 +1115,7 @@ and `hub-tab-dock` (`app/(tabs)/_layout.tsx:215`) exist on main. Every other id 
 | P04.2 Android FCM | **Done** in PR #393; verification only: T06 item 9, T03 tile, Release A/B | not re-planned |
 | P05.2 step 5 import fix (Exp 2) | T07 (+T39 backfill/model rows) | |
 | P05.2 plate "Set up service plan" | ledger post-slot queue, §10 (was T41) | board rank 11 |
-| P05.3 install-reason card | ledger post-slot queue, §10 (was T41) | |
+| P05.3 install-reason card | ledger, §10 (was T41) — **card only** (V5) | email pool 0–21; card in a store binary, 3.30.0 at the latest or after the slot |
 | P06.3 ship-on-no-harm | §0 reading rule; used by every P1/P2 task | |
 | P04.3a iOS provisional | ledger post-slot queue, §10 (was T41) | after device check |
 | P04.3b goal-matched permission copy | **Not doing this season** — onboarding screen inside the paywall A/B | |
@@ -1061,7 +1137,7 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
   **Baseline 0%** [SOURCE: Q-P4]. **Target (superseded by §5A.2):** binary — 100% of opens with the new `$app_version` carry the expected level; crash/data-loss hotfix OTA (D17) — §5A.2 share.
 
 ### FS-OB1a — Onboarding sign-in screen does nothing after auth (RC-A)
-- **Tasks** T11. (1) iOS sim or Android emulator, preview build, `clearState`+`clearKeychain`; a confirmed account with `preferences.onboardingCompleted=false` (runner creates it);
+- **Tasks** T11. (1) iOS sim or Android emulator, T00 E2E build pointed at the local stack (the runner creates users, so never production), `clearState`+`clearKeychain`; a confirmed account with `preferences.onboardingCompleted=false` (runner creates it);
   Welcome → "Already have an account? Sign in" → email + password. (2) Within 5 s the app leaves sign-in: unfinished → resume target or experience with the transient "Account ready" notice (`onboarding-account-ready`, 4 s);
   onboarded → Home. OAuth buttons disabled while a provider call is pending.
 - (3) Maestro `onboarding-signin-unfinished-account.yaml` (runner `scripts/run-onboarding-signin-e2e.sh`): `clearState`, `clearKeychain`, `launchApp` → wait "Let's get started" →
@@ -1085,16 +1161,21 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
   Secondary: riders with ≥ 2 auth events within 2 min, baseline 15/72 per 60 d [SOURCE: R1 Q11], target ≤ 2.
 
 ### FS-OB1b — Back-walk rewinds onboarding (RC-B)
-- **Tasks** T19. (1) Android emulator, gesture nav, preview build, anonymous; `_shared/onboarding-to-account.yaml`; press Back ×5. (2) One step per Back, answers kept, no paywall re-present;
+- **Tasks** T19a (+ T20 in the same build). (1) Android emulator, gesture nav, T00 Android E2E build (or a universal APK of the store binary for the red run, as V4 did), anonymous; `_shared/onboarding-to-account.yaml`; press Back ×5. **Reproduced on 3.28.0 (V4 b1/b2, ~90%).** (2) One step per Back, answers kept, no paywall re-present;
   Back on experience goes to Welcome; Back on Welcome backgrounds the app; a warm launch shows the resume screen.
 - (3) Maestro `onboarding-back-preserves.yaml` (tag `android`): to account → `pressKey: back` → goals with chosen chip `assertVisible: {id: "goal-chip-track_rides-selected"}` →
   back ×2 → bike setup with the chosen bike → Continue ×2 → account visible → back until experience → back → `assertVisible: "Let's get started"` (Welcome) → back →
   app backgrounded (`assertNotVisible: "Let's get started"`) → `launchApp` (no clearState, warm) → `assertVisible` the resume screen (`".*How long have you.*|.*bike.*"`). Jest `src/config/__tests__/onboarding.test.ts` `getPreviousRoute` cases.
-- (4) Starters with ≥ 3 backward `/(onboarding)/…` screen moves ≤ 5 s apart (R1 Q8 method), and `uniqIf(person_id, event='onboarding_back' AND properties.trigger='hardware')` after T04. *(draft)*:
+  **Added by the validation (V4 a4, a3):** (i) **cold resume to account → Android Back → goals, not the launcher** (`stopApp` at account → `launchApp` → `pressKey: back` →
+  `assertVisible` goals; today the app closes because the resumed screen is the stack root); (ii) a **replace-path** goals assertion: after the cold resume, Back to goals shows the
+  chosen chip (`goal-chip-track_rides-selected`) — today it shows "0 of 5 picked" (fixed by T13b's goals seeding). The existing `goal-chip-…-selected` step passes on main only
+  because the back-pop keeps goals mounted.
+- (4) Starters with ≥ 3 backward `/(onboarding)/…` screen moves ≤ 5 s apart (R1 Q8 method — **now written down and run: `validation/V1-metrics.md` §3.2**, committed by T02 as
+  `queries/fs/fs-ob1b.sql` beside the event form), and `uniqIf(person_id, event='onboarding_back' AND properties.trigger='hardware')` after T04b. Event form *(draft; `{REL}` platform per §0, not `$os`)*:
   ```sql
   SELECT ver, plat, count() AS starters, countIf(fast_backs >= 3) AS backwalkers, countIf(fast_backs >= 3 AND done) AS backwalkers_completed
   FROM (SELECT person_id, argMin(toString(properties.$app_version), timestamp) AS ver,
-          argMin(lower(coalesce(toString(properties.platform), toString(properties.$os))), timestamp) AS plat,
+          coalesce(argMinIf(lower(toString(properties.platform)), timestamp, properties.platform IS NOT NULL), 'unknown') AS plat,
           countIf(event = 'onboarding_completed') > 0 AS done,
           countIf(event = 'onboarding_back' AND toInt(properties.ms_on_screen) <= 5000
                   AND toString(properties.trigger) IN ('hardware','gesture')) AS fast_backs   -- after T04b; keep R1 Q8's $screen method beside it [review item 23]
@@ -1103,22 +1184,29 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
         GROUP BY person_id HAVING countIf(event = 'onboarding_started') > 0)
   GROUP BY ver, plat
   ```
-  **Baseline Android 25/187 (13%), 2 completed; iOS 15/70 (21%), 2 completed** [SOURCE: R1 Q8]. **Target ≤ 5% Android (T19a); ≤ 8% iOS (T19b)** [UNBACKED — own target]; S2 not below trailing 8 weeks.
+  **Baseline (`$screen` method, 60 d to 2026-11-12): Android 28/201 (13.9%), 4 completed; iOS 14/72 (19.4%), 2 completed; platform unknown 7/36** [SOURCE: V1-q15, V1 §3.2] (R1 Q8 had
+  Android 25/187, iOS 15/70). 3.19.x screen names are not mapped. **Target ≤ 5% Android (T19a); ≤ 8% iOS (T19b)** [UNBACKED — own target]; S2 not below trailing 8 weeks.
 
 ### FS-OB1c — Resume loses the screen and in-screen progress (RC-C)
-- **Tasks** T13. (1) Android emulator, "Don't keep activities" ON; (a) bike setup: pick brand, type model → kill → relaunch; (b) see FS-OB3. (2) Reopens on bike setup with the brand selected;
-  a resume never lands on a screen before the one the rider left.
-- (3) Maestro `onboarding-bike-resume.yaml`: shared steps to bike setup → select a make (as `add-bike.yaml`) → `stopApp` → `launchApp` (no clearState) → `assertVisible` the make chip. Jest store migration test (T13).
-- (4) Completion after `onboarding_resumed` by `resume_target` — verbatim at `deep-dives/R1-onboarding-reset.md:268-276`, plus `{REL}`, and after T04 `restored_draft` share.
-  **Baseline bike-setup 7/27 (26%), account 5/15 (33%)** [SOURCE: R1 Q13]. **Target ≥ 50% each** (judge after ≥ 15 resumes per target).
+- **Tasks** T13. (1) Android emulator, "Don't keep activities" ON; (a) bike setup: pick brand, type model → kill → relaunch; (b) see FS-OB3; (c) reach account with 2 goals picked → kill →
+  relaunch → on-screen Back to goals; (d) reach account, walk back to experience, forward to bike-setup → kill → relaunch. (2) Reopens on bike setup with the brand selected;
+  goals shows the picks (not "0 of 5 picked"); (d) resumes at the furthest screen reached (account), not bike-setup; a resume never lands on a screen before the one the rider left.
+  **Reproduced on 3.28.0 (V4 a1–a5, ~85%):** screen-level resume works; make + query lost (a1); goals 0 picks on any remount (`goals.tsx:77`, a3); back-walk overwrites the resume point (a5).
+- (3) Maestro `onboarding-bike-resume.yaml`: shared steps to bike setup → select a make (as `add-bike.yaml`) → `stopApp` → `launchApp` (no clearState) → `assertVisible` the make chip; second case (c): to account → `stopApp` → `launchApp` → back chevron → `assertVisible: {id: "goal-chip-track_rides-selected"}`. Jest store migration test (T13a), goals seeding test and monotonic `furthestScreen` test (T13b).
+- (4) Completion **after** `onboarding_resumed` by `resume_target` — **use the ordered SQL in `validation/V1-metrics.md` §3.3** (R1's SQL at `deep-dives/R1-onboarding-reset.md:268-276` counted completions *before* the resume), plus `{REL}`, and after T04b/T13 the `restored_draft` share.
+  **Baseline (60 d to 2026-11-12): bike-setup 8/31 (26%), account 5/13 (38%), goals 3/11** [SOURCE: V1-q17] (R1 Q13: 7/27, 5/15). **Target ≥ 50% each** (judge after ≥ 15 resumes per target).
 
 ### FS-OB1d — Welcome shows again in a live runtime (RC-D)
-- **Tasks** T20. (1) Not reproduced; candidates Back to Welcome, error-boundary retry, activity recreation. (2) A Welcome mount with progress resumes unless it came from Back.
-- (3) Jest `app/(onboarding)/__tests__/welcome-resume.test.tsx` (flag already true + `lastCompletedScreen` + no `from:'back'` → `router.replace` resume). No Maestro: trigger unknown.
-- (4) `uniqIf(person_id, event='onboarding_welcome_mounted' AND properties.had_progress AND properties.reason != 'back')` by `{REL}` (after T04). **Baseline 11 riders / 60 d, 7 on 3.26.0** (pre-event proxy) [SOURCE: R1 Q4, Q10]. **Target 0**.
+- **Tasks** T20 (same build as T19a). (1) **Reproduced on 3.28.0 (V4 b3, cause ~80%):** Android emulator; reach bike-setup (or any step) → Android Back until the app leaves the
+  onboarding root → launch from the launcher while the process is cached (`LaunchState: WARM`) → Welcome "Let's get started" with no resume, although the store holds progress
+  (`resumeHandledThisLaunch` is already `true`, `app/(onboarding)/index.tsx:23-29, 49`). Other triggers (OS activity recreation) may exist. (2) A Welcome mount with progress resumes unless it came from Back.
+- (3) Jest `app/(onboarding)/__tests__/welcome-resume.test.tsx` (flag already true + `lastCompletedScreen` + no `from:'back'` → `router.replace` resume; **"flag true, new mount, no param → resume"**).
+  **Maestro `onboarding-welcome-warm-resume.yaml` (tag `android`)**: to bike-setup → `pressKey: back` until the app is backgrounded → `launchApp` (no `stopApp`, no `clearState`) →
+  `assertNotVisible: "Let's get started"`. Red first on `origin/main`.
+- (4) `uniqIf(person_id, event='onboarding_welcome_mounted' AND properties.had_progress AND properties.reason != 'back')` by `{REL}` (after T04b). **Baseline (pre-event proxy) 12 riders / 60 d, 6 on 3.26.0** [SOURCE: V1-q37] (R1 Q4/Q10: 11 / 7). **Target 0**.
 
 ### FS-OB1e — A finished rider is routed back into onboarding (RC-E)
-- **Tasks** T14. (1) iOS sim preview build: finish `onboarding.yaml`; kill within 2 s of "Open my garage"; airplane mode on → relaunch (or seed the persisted cache with `onboardingCompleted:false` in a dev build).
+- **Tasks** T14. (1) iOS sim (T00 runtime) `e2e-simulator` build: finish `onboarding.yaml`; kill within 2 s of "Open my garage"; airplane mode on → relaunch (or seed the persisted cache with `onboardingCompleted:false` in a dev build).
   (2) Home (or offline banner on Home), never Welcome/experience.
 - (3) Maestro `onboarding-complete-relaunch.yaml` (Android; iOS runs online): `runFlow: onboarding.yaml` → `stopApp` → `setAirplaneMode: enabled` → `launchApp` → `assertVisible` Home tab →
   `assertNotVisible: "Let's get started"` → `setAirplaneMode: disabled`. Jest `app/__tests__/navigation-gate.test.tsx` (local flag + cached `false` → tabs; network `true` → tabs; error, no flag → onboarding).
@@ -1132,7 +1220,7 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
           AND event IN ('onboarding_completed','onboarding_step_viewed') GROUP BY person_id HAVING n_oc > 0)
   GROUP BY ver
   ```
-  **Baseline 10/291 (3.4%), 4 completed twice** [SOURCE: R1 Q7]. **Target 0** on the fix level. DB cross-check: accounts with 2 bikes created ≤ 2 min apart.
+  **Baseline 10/292 (3.4%) relapsed, 6 completed twice** [SOURCE: V1-q18; R1 Q7 said "4", which is corrected to 6, as in FS-OB6(a)]. **Target 0** on the fix level. DB cross-check: accounts with 2 bikes created ≤ 2 min apart (2 users in 60 d, V1-db6).
 
 ### FS-OB1f — Session drop mid-onboarding wipes the run (RC-F / OB1-H2)
 - **Tasks** T38 (conditional). (1) Android emulator; sign up at account; admin `auth.admin.signOut(userId)`; background 65 min → foreground. (2) Only if the event shows it matters:
@@ -1141,44 +1229,45 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
 - (4) `uniqIf(person_id, event='auth_session_lost' AND properties.during_onboarding)` per month by `{REL}`. **Baseline unknown** (not instrumented). **Decision rule:** fix only if ≥ 2 riders/month.
 
 ### FS-OB2a — Google sign-in sheet hangs or is abandoned (Android)
-- **Tasks** T04, T36. (1) Android emulator with Google Play image (API 34) + Google account; account step → "Continue with Google": (a) Back on the picker, (b) double tap, (c) airplane mode after picking.
+- **Tasks** T04, T36. (1) Android emulator with a GMS image + a signed-in Google account — the T00 AVD (API 35 `google_apis`, GMS, no Play Store) if Google sign-in works on it, else the optional API-34 `google_apis_playstore` AVD from T00 (V3 item 6); account step → "Continue with Google": (a) Back on the picker, (b) double tap, (c) airplane mode after picking.
   (2) (a) back on account, no alert, buttons enabled, `outcome:'cancelled'`; (b) one sheet, busy state; (c) friendly network message ≤ 10 s, `outcome:'error', stage:'token_exchange'`.
 - (3) Maestro `onboarding-oauth-cancel.yaml` (tag `android-oauth`): to account → tap Google → `extendedWaitUntil: {visible: "(?i)choose an account|sign in with google", timeout: 20000}` → `back` →
   `extendedWaitUntil: {visible: "Continue with Google"}` → `assertNotVisible: "Something went wrong.*"` → double tap (second `optional: true`) → picker once → `back`. Success path: jest
   `__tests__/hooks/use-oauth-sign-in.test.ts` (resolve / cancel / in-progress / network → one `auth_oauth_started` + one `auth_oauth_result`, no `presentOAuthError` on cancel).
 - (4) Verbatim at `deep-dives/R5-signin-and-measurement.md:197-209` (M-OB2, replace `activation_release` by `activation_fix_level`); "started, no result" = started − (success+cancelled+error).
-  **Baseline: no OAuth events yet; proxy Android account viewers without `signup_completed` 20/124 (16.1%), 15 backgrounded and never returned** [SOURCE: R5 Q9, Q11]; proxy SQL verbatim at `R5…:213-221`.
+  **Baseline: no OAuth events yet; proxy Android account viewers without `signup_completed`, 10-15→11-12: 23/111 (20.7%)**; iOS 6/34; platform-null 5/28 [SOURCE: V1-q19, V1-q20] (R5 Q9: 20/124, 16.1%; the target ≤ 10% is now a larger relative drop). Proxy SQL verbatim at `R5…:213-221`, **without `{RN}` on `signup_completed`** (server event) and with the §0 person-level platform.
   **Target** Android account-step loss ≤ 10%; started-no-result ≤ 5% of Google starts.
 
 ### FS-OB2b — Long "Creating your account…" spinner after the session lands
 - **Tasks** T12. (1) Sim/emulator; block the API host right after the Apple/Google sheet returns; sign in at account. (2) Overlay ≤ 8 s, flow advances, `me` keeps loading.
 - (3) Jest `__tests__/screens/account-post-signin-wait.test.tsx` (fake timers). Not Maestro: the network can't be cut at that exact moment.
-- (4) Seconds from server `signup_completed` to the next onboarding step view — verbatim at `R5…:230-242`; after T04 `auth_post_signin_wait.wait_ms` p90.
-  **Baseline 6/105 OAuth sign-ups > 10 s, max 141 s** [SOURCE: R5 Q8]. **Target 0 > 10 s** (excluding backgrounded gaps) per 4 weeks.
+- (4) Seconds from server `signup_completed` to the **first onboarding step view after it** — **use `validation/V1-metrics.md` §3.5 (FS-OB2b)**: R5's form (`R5…:230-242`) used `minIf` over all views (could pick a view before sign-up), `any()` for platform and applied `{RN}` to the server event; gaps > 10 min count as "backgrounded", not as a wait. After T04a: `auth_post_signin_wait.wait_ms` p90.
+  **Baseline since 10-15: 6/124 OAuth sign-ups > 10 s** (google-android 3/79, apple-ios 2/17, google-ios 1/10; one 98,915 s overnight gap excluded as backgrounded) [SOURCE: V1-q22] (R5 Q8: 6/105, max 141 s). **Target 0 > 10 s** (excluding backgrounded gaps) per 4 weeks.
 
 ### FS-OB2c — Cancelling Google shows "Something went wrong"
 - **Tasks** T12. (1) As FS-OB2a(a). (2) No alert. (3) Covered by `onboarding-oauth-cancel.yaml` assertion and the jest cancel case.
 - (4) `countIf(event='auth_error_alert_shown' AND properties.outcome='cancelled')` (new event, T04a, fired by `presentOAuthError`) over `countIf(event='auth_oauth_result' AND properties.outcome='cancelled')`, by `{REL}` [review item 21]. **Baseline:** every cancel alerts today (code: `lib/oauth.ts:169-171`, `lib/oauth-error-alert.ts:19`) [SOURCE: R5 C4]. **Target 0**.
 
 ### FS-OB3 — Email code lost when the rider leaves to read it
-- **Tasks** T13. (1) iOS sim, preview build, fresh install → account → "Continue with email" → `delivered+…@resend.dev` + password → code step → terminate app → relaunch.
+- **Tasks** T13. (1) iOS sim (T00 runtime), `e2e-simulator` build, fresh install → account → "Continue with email" → `delivered+…@resend.dev` + password → code step → terminate app → relaunch.
   (2) Reopens on "Enter your code" for the same address, no password field; code continues onboarding; > 1 h → email form prefilled.
 - (3) Maestro: `run-onboarding-email-code-e2e.sh` with `RELAUNCH=1` → part 1 `onboarding-email-code-signup.yaml` → new `onboarding-email-code-relaunch.yaml`: `stopApp` →
   `launchApp: {clearState: false}` → `extendedWaitUntil: {visible: "Enter your code", timeout: 30000}` → `assertVisible: "${TEST_EMAIL}"` → part 2 `onboarding-email-code-verify.yaml`.
   Jest `__tests__/hooks/use-email-code-step.test.ts` (persists `{email, sentAt}`, never the password).
-- (4) Verbatim at `R5…:251-260` (M-OB3). **Baseline 16/19 verified (84%), 1 lost after relaunch** [SOURCE: R5 Q13]. **Target** restored = relaunched-with-code (100%); verified ≥ 90% (60 d).
+- (4) Verbatim at `R5…:251-260` (M-OB3; replace `activation_release` by `activation_fix_level`). **Baseline 16/19 verified (84%), 1 lost after relaunch** [SOURCE: R5 Q13; reproduced 19 sent / 16 verified, V1-q23]. **Target** restored = relaunched-with-code (100%); verified ≥ 90% (60 d).
 
 ### FS-OB4 — Bike search is slow and ends without a model
 - **Tasks** T25. (1) Any platform, fresh install, bike setup; task "Yamaha MT-07, 2019": type "Yamaha MT-07" in the make search. (2) A "Yamaha MT-07" row appears directly; year chosen before/with the model; popular models first.
 - (3) Maestro `onboarding-bike-search.yaml`: `_shared/onboarding-to-bike-setup.yaml` → tap "Start typing your bike.*" → `inputText: "Yamaha MT-07"` → `extendedWaitUntil: {visible: "(?i)MT-07", timeout: 15000}` →
   tap → year 2019 → Continue → reveal shows "MT-07"; repeat with "mt07". Jest `make-grid-search.test.tsx`, `model-picker-ranking.test.tsx`.
 - (4) Dwell bike_setup viewed → completed/skipped and model share — verbatim at `R5…:269-283` (M-OB4). **Baseline p50 44 s Android / 37 s iOS, p90 146 / 109 s; model 62/141 (44%)** [SOURCE: R5 Q14, Q16];
-  share > 60 s 3.26.0 56/133 (42%) [SOURCE: R6-q8]. **Target p50 ≤ 25 s, p90 ≤ 75 s, model ≥ 60%, > 60 s ≤ 25%.**
+  share > 60 s 3.26.0 56/133 (42%) [SOURCE: R6-q8]. **Validation re-run since 10-15 (V1-q24):** p50 45 s Android / 43 s iOS, p90 229 / 120 s; model 77/169 (45.6%); > 60 s 73/190 (38%) —
+  the Android p90 depends on the window, so T02 fixes the window (trailing 28 d by first `onboarding_started`) before the p90 target is judged. **Target p50 ≤ 25 s, p90 ≤ 75 s, model ≥ 60%, > 60 s ≤ 25%.**
 
 ### FS-OB5 — Riders leave the sign-up screen without trying
 - **Tasks** T04 (measure only). (1) Device check: Android 5.5" fresh install, account step shows all options + reassurance without scrolling, light and dark. (2) We know the split tried vs not.
 - (3) Maestro `onboarding-account-visible.yaml` (asserts "Continue with Google", "Continue with email", "Already have an account?"; iOS also Apple). Jest: `auth_email_submitted` fires on submit.
-- (4) Verbatim at `R5…:292-299` (M-OB5). **Baseline** loss 20/124 Android, 3/40 iOS since 10-15 [SOURCE: R5 Q9]; stopped at account 63/472, 3.26.0 21/166 [SOURCE: R6-q8]. **Target:** establish the split (2–4 weeks); no target until then.
+- (4) Verbatim at `R5…:292-299` (M-OB5; replace `activation_release` by `activation_fix_level`; no `{RN}` on `signup_completed`). **Baseline** loss 23/111 Android since 10-15 (FS-OB2a proxy, V1-q19); proxy "stopped at account, never authed" with the SQL in `validation/V1-metrics.md` §3.4 (R6-q8's SQL is not in the repo): **3.26.0 18/166, all 46/470** [SOURCE: V1-q25] (R6-q8: 21/166, 63/472). **Target:** establish the split (2–4 weeks); no target until then.
 
 ### FS-OB6 — "Open my garage" loops, shows Retry, or a blank screen
 - **Tasks** T16, T14. (1) iOS sim + Android emulator, "3G/High latency" link conditioner, fresh install, finish onboarding in each paywall arm, tap "Open my garage" once.
@@ -1186,10 +1275,10 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
 - (3) Maestro `post-onboarding-landing.yaml`: `runFlow: onboarding.yaml` → `extendedWaitUntil: {visible: {id: "home-screen"}, timeout: 10000}` → `assertNotVisible: ".*Personalizing.*|Open my garage|Retry"` →
   wait 5 s → assert again → `takeScreenshot` light; runner repeats in dark (`xcrun simctl ui booted appearance dark` / `adb shell cmd uimode night yes`). Jest `app/(onboarding)/__tests__/personalizing.test.tsx`.
 - (4) (a) completed twice — verbatim at `R6…:340-345` with SCOREBOARD-CTE at `R6…:250-261`; (b) p90 `post_onboarding_landed.ms_since_cta` (after T05).
-  **Baseline (a) 6/282 (2.1%)** [SOURCE: R6-q3]; (b) none. **Target (a) 0; (b) p90 < 3,000 ms.**
+  **Baseline (a) 6/282 (2.1%)** [SOURCE: R6-q3; reproduced 6/292, V1-q18 — use FS-OB1e's per-completer SQL, not the SCOREBOARD join]; (b) none. **Target (a) 0; (b) p90 < 3,000 ms.**
 
 ### FS-OB7 — Riders leave right after the onboarding paywall (record only)
-- **Tasks** none (paywall A/B running). (4) Last `onboarding_step_viewed` = `paywall` among non-completers, by `onboarding_variant` and `{REL}`. **Baseline 3 of 67 drop-offs (28 d)** [SOURCE: 05 §A]. SQL in `queries/fs/` only, no dashboard tile (doc review item 13).
+- **Tasks** none (paywall A/B running). (4) Last `onboarding_step_viewed` = `paywall` among non-completers, by `onboarding_variant` and `{REL}`. **Baseline 3 of 67 drop-offs (28 d)** [SOURCE: 05 §A]; 60 d: 13/216 non-completers (3.26.0 2/70, 3.19.0 10/73) with `validation/V1-metrics.md` §3.4 [SOURCE: V1-q25]. SQL in `queries/fs/` only, no dashboard tile (doc review item 13).
 
 ### FS-PO1 — Adding "my" bike hits the bike paywall
 - **Tasks** T22. (1) New free account, finish with a make-only bike (Honda chip); Garage header "+", "Add a bike", Home switcher "+", Profile "Add bike". (2) "Your plan has one bike" sheet:
@@ -1198,7 +1287,7 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
   `tapOn: {id: bike-limit-update}` → `assertVisible: {id: edit-bike-make}` → set model via `edit-bike-model-search` → save → model on the card → exactly one bike card; repeat sheet assertion from the Home switcher.
   Jest `decideBikeLimitAction` in `hooks/__tests__/use-add-bike-gate.test.ts`.
 - (4) Completers with an `unlimited_bikes` paywall request within 1 day — verbatim at `deep-dives/R2-bike-limit-and-schedule.md:277-287`; plus `bike_limit_choice` split.
-  **Baseline 3.26.0 7/118 (5.9%)** [SOURCE: R2-PH4]; first hour MAX_BIKES 7/117 [SOURCE: R6-q3]. **Target ≤ 2%** direct; ≥ 50% of sheet viewers choose update and save within 10 min.
+  **Baseline 3.26.0 7/118 (5.9%)** [SOURCE: R2-PH4; reproduced 7/120, all within 1 h, V1-q26]; first hour MAX_BIKES 7/117 [SOURCE: R6-q3]. **Target ≤ 2%** direct; ≥ 50% of sheet viewers choose update and save within 10 min.
 
 ### FS-PO1H — Experiment 2: the onboarding bike gets no service schedule
 - **Tasks** T07. (1) Fresh install, new free account; onboarding **Yamaha → MT-09 → 2019** (12 model rows, years 2014–2025, read-only `oem_maintenance_schedules` query DB-1 in §8) → finish → Garage → bike → Service segment; repeat with "Not sure of the details?" → Honda chip.
@@ -1206,27 +1295,27 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
 - (3) Maestro `onboarding-service-plan.yaml`: `runFlow onboarding.yaml` → `assertNotVisible: "No service due"` → tap `"Garage(,.*)?"` → bike card → `tapOn: {id: segment-service}` →
   `extendedWaitUntil: {visible: {id: "service-task-card-.*"}}`; `onboarding-make-only-service-plan.yaml` (MAKE_ONLY branch) + tier label. Jest `users.service.spec.ts` (T07).
 - (4) Primary DB metric (consent-independent), R2-M1: onboarding-created live bikes (`motorcycles.created_at = users.onboarding_completed_at`) with an OEM task (`maintenance_tasks.source='oem'`) created < bike + 5 min, weekly.
-  SQL: R2 §2.2 R2-M1 definition (`deep-dives/R2…:91-97`) with q08 exclusions (board/99 Appendix A CTE `u`). **Baseline 10/151 (7%)** [SOURCE: R2-M1]. **Target ≥ 95%** 2 weeks.
-  Board metric S4(a) verbatim at `board/99-synthesis.md:271-289`, **baseline 25/111 (23%)**, **target ≥ 55%** 4 weeks. PostHog per version: verbatim at `R2…:249-258` (needs T07 client fields).
+  SQL: R2 §2.2 R2-M1 definition (`deep-dives/R2…:91-97`) with q08 exclusions (board/99 Appendix A CTE `u`; qualify `u.deleted_at`/`u.email` inside joins, V1 §3.8). **Baseline 10/151 (7%)** [SOURCE: R2-M1; reproduced 10/155, V1-db4]. **Target ≥ 95%** 2 weeks.
+  Board metric S4(a) verbatim at `board/99-synthesis.md:271-289` **plus a `source = 'oem'` column** (V1 §3.8: `with_oem_tasks_d0`), **baseline 25/111 (23%)** any source; partial week 11-09 already 12/24 from rider-created tasks (9 `user` vs 4 `oem` bikes) [SOURCE: V1-db2, V1-db3]. **Target ≥ 55%** 4 weeks, judged on the `oem` column for T07 (T07 is judged on S4(b)/R2-M1). PostHog per version: verbatim at `R2…:249-258` (needs T07 client fields).
   Read by **deploy date** (API reaches all versions at once) with the annotation.
 
 ### FS-R2-3 — Changing make/model/year does not change the schedule
 - **Tasks** T23, T26. (1) Free account, make-only Honda (after T07 it has make-generic tasks) → Bike → Edit → model "CB500F" → save → Service segment. (2) Pending, never-completed, unedited OEM tasks retired; new waterfall imported; rider's tasks untouched.
 - (3) Jest `motorcycles.resolver.spec.ts`; Maestro tail of `bike-limit-update-bike.yaml` asserts a service task after the edit.
-- (4) `garage_bike_edited` with `from_capture_level='make'` and `changed_fields` containing `model`, over riders with a make-only onboarding bike, 7 d. **Baseline not measurable** (no event); DB proxy 117 blank-model live bikes, 7 ever with a task [SOURCE: R2-DB6]. **Target ≥ 20%** [UNBACKED — own target, R2].
+- (4) `garage_bike_edited` with `from_capture_level='make'` and `changed_fields` containing `model`, over riders with a make-only onboarding bike, 7 d. **Baseline not measurable** (no event); DB proxy 117 blank-model live bikes, 7 ever with a task [SOURCE: R2-DB6; reproduced 116 / 7, V1-db5]. **Target ≥ 20%** [UNBACKED — own target, R2].
 
 ### FS-R2-4 — Imperial riders get wrong targets from an onboarding import (latent)
 - **Tasks** T07. (1) US region / "mi" toggle, odometer 10,000 mi, finish onboarding. (2) First oil target = odometer + round(interval_km / 1.609) mi.
-- (3) Jest `users.service.spec.ts` `bikeMileageUnit:'mi'`; Maestro `onboarding-service-plan.yaml` imperial run asserts "mi". (4) DB: onboarding bikes with `mileage_unit='mi'` and OEM tasks whose `target_mileage − current_mileage` equals the miles conversion ±1. **Baseline n/a. Target 100%.**
+- (3) Jest `users.service.spec.ts` `bikeMileageUnit:'mi'`; Maestro `onboarding-service-plan.yaml` imperial run asserts "mi". (4) DB: onboarding bikes of **imperial riders** with OEM tasks whose `target_mileage − current_mileage` equals the miles conversion ±1. **The denominator cannot come from `motorcycles.mileage_unit`**: the column defaults to `'mi'` (86 of 176 onboarding bikes in 60 d are `mi`, 6 of them with OEM tasks), so take the unit from `onboarding_completed.measurement_system` or T07a's `service_plan_imported.unit` [SOURCE: V1-db7, V1-db8]. **Baseline n/a. Target 100%.**
 
 ### FS-R2-5 — Junk makes saved in onboarding
-- **Tasks** T25. (1) Bike setup → type "A" → "Use 'A'". (2) Not offered until ≥ 3 letters or a known make. (3) Jest custom-make rule. (4) DB: onboarding bikes whose `make` has < 3 letters or is not a known/NHTSA make. **Baseline 4 of 29** bike-paywall riders [SOURCE: R2-DB5]. **Target 0** new.
+- **Tasks** T25. (1) Bike setup → type "A" → "Use 'A'". (2) Not offered until ≥ 3 letters or a known make. (3) Jest custom-make rule. (4) DB: onboarding bikes whose `make` has < 3 letters (SQL `validation/V1-metrics.md` §3.8; no known-make table exists — T37 closed — so "not a known make" needs T05e's `make_valid`). **Baseline 6/176 onboarding bikes in 60 d** (all-time 10/373; 53/176 makes are not in `oem_maintenance_schedules`) [SOURCE: V1-db6] (the earlier "4 of 29 bike-paywall riders", R2-DB5, used another denominator). **Target 0** new.
 
 ### FS-PO2a — Diagnostics "Try Again" limit loop
-- **Tasks** T08. (1) iOS sim/Android emulator preview build, free user with a seeded used diagnosis (`E2E_SEED_DIAGNOSIS_USED=1`); reach the form before the quota loads (airplane mode on, Diagnose → Start, fill 4 steps, airplane off) → Analyze → dismiss → "Try Again".
+- **Tasks** T08. (1) iOS sim/Android emulator T00 E2E build against the patched local stack (seeded), free user with a seeded used diagnosis (`E2E_SEED_DIAGNOSIS_USED=1`); reach the form before the quota loads (airplane mode on, Diagnose → Start, fill 4 steps, airplane off) → Analyze → dismiss → "Try Again".
   (2) Localized limit panel with "See Pro plans" (rider tap) and "Done"; no "Try Again"; ≤ 1 automatic paywall per form.
 - (3) Maestro `diagnose-limit-loop.yaml` (Android for `setAirplaneMode`): steps above → optional dismiss → `assertVisible: ".*free diagnosis is used.*"` → `assertNotVisible: "Try Again"` → `assertVisible: "See Pro plans"`. Jest `new-limit.test.tsx`.
-- (4) Riders with ≥ 2 `diagnostic_limit_reached` in one `$session_id` — verbatim at `deep-dives/R3-first-hour-paywalls.md:395-402`. **Baseline 3.26.0: 3 of 5 limit riders, 9 events** [SOURCE: R3 Q2, Q9]. **Target 0.**
+- (4) Riders with ≥ 2 `diagnostic_limit_reached` in one `$session_id` — verbatim at `deep-dives/R3-first-hour-paywalls.md:395-402`. **Baseline 3.26.0: 3 of 5 limit riders, 9 events** [SOURCE: R3 Q2, Q9; reproduced, V1-q27]. **Target 0.**
 
 ### FS-PO2b — Diagnosis failures: long waits, raw text, offline submits
 - **Tasks** T17. (1)(a) Airplane mode → Analyze; (b) proxy delaying `submitDiagnostic` 120 s. (2)(a) blocked offline message, no request; (b) "Still working…" at 10 s; at 75 s "Still working — if it finishes, it will appear in your diagnoses", submit disabled until
@@ -1247,7 +1336,7 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
   later taps open `LimitSheet` with "See Pro plans" (`rider_tap`, never capped); 10-min cooldown after an error; onboarding surfaces unchanged.
 - (3) Maestro `gate-frequency-cap.yaml` (light then dark): Garage Add → optional dismiss → Add again → `assertVisible: {id: limit-sheet}` + `".*1 bike.*Free.*"` → Diagnose Start → dismiss → Start → `assertVisible: {id: limit-sheet}` →
   `assertVisible: "See Pro plans"`. Jest `lib/__tests__/paywall-frequency.test.ts` (5 rules incl. session reset).
-- (4) Sessions with ≥ 2 automatic same-feature `paywall_viewed` (non-onboarding) — verbatim at `R3…:473-485`; plus `paywall_suppressed` counts. **Baseline 3.26.0 9/22 sessions ≥ 2 views (41%), 8/22 same-feature ≤ 60 s** [SOURCE: R3 Q10].
+- (4) Sessions with ≥ 2 automatic same-feature `paywall_viewed` (non-onboarding) — verbatim at `R3…:473-485` **plus, until T05a/T21 add `trigger`, `AND coalesce(toString(properties.surface), '') NOT IN ('profile_subscriptions_row','profile_pro_banner')`** and `toString()` around `properties.*` (V1 §3.7); plus `paywall_suppressed` counts. **Baseline 3.26.0: 14 automatic-gate sessions, 9 with a same-feature repeat (64%), 8 within 60 s** [SOURCE: V1-q33] (the earlier 9/22 = 41% counted explicit upgrade taps in the denominator, R3 Q10).
   **Target 0.** S5 *(run, Q-P8)* first-hour ≥ 2 post-onboarding requests **3.26.0 8/121** → ≤ 2%. Guardrail: gate purchases + `rider_tap` views ≠ 0 over 8 weeks (baseline 3 gate purchases/60 d, all 3.19.1) [SOURCE: R3 Q11–Q12].
 
 ### FS-PO3b — First session runs the store binary's JS, so OTA fixes miss new riders
@@ -1259,13 +1348,13 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
 - **Tasks** T31. (1) Sim with fixed `setLocation`, new account, test arm, FAB → Start → wait 5 s → hold to end. (2) Teaching sheet ("Test ride: all good"/"Testing it out?"), both floors, three buttons; control unchanged.
 - (3) Maestro `ride-standstill-teaching.yaml` (`EXPECTED_ARM=test`): `tapOn: {id: "start-ride-button"}` → `extendedWaitUntil: RECORDING` → wait 5 s → `longPressOn: ".*Hold to end ride.*"` → `assertVisible: {id: "ride-guard-variant-teaching"}` →
   `assertVisible: ".*30 seconds.*50 m.*"` → `tapOn: {id: "ride-guard-got-it"}` → `assertNotVisible: ".*RIDE SAVED.*"`; control run asserts `ride-guard-variant-default`. Jest `ride-guard-variant.test.ts`.
-- (4) Mechanism + outcome by arm — verbatim at `deep-dives/R4-first-ride.md:376-389`. **Baseline ≥ 3.21: 3/20 standstill-first riders saved a real ride ≤ 7 d** [SOURCE: R4 Q-R4-06] (board 1/13). **Target:** hygiene 0 bad teaching sheets; outcome descriptive only.
+- (4) Mechanism + outcome by arm — verbatim at `deep-dives/R4-first-ride.md:376-389` **with a complete-7-day-window guard**. **Baseline ≥ 3.21: 1/14 standstill-first riders saved a real ride ≤ 7 d** [SOURCE: V1-q35] (R4 Q-R4-06's 3/20 had no complete-window guard; board 1/13). Outcome reads by arm are even smaller-n than first stated. **Target:** hygiene 0 bad teaching sheets; outcome descriptive only.
 
 ### FS-PO4b — A standstill ride is saved as a ride
 - **Tasks** T09. (1) As FS-PO4a, control/today; tap "End Anyway". (2) Ended + discarded + toast; no "RIDE SAVED"; rides list "No rides yet"; `ride_discarded {reason:'below_floor', trigger:'guard'}`; an auto-ended ride below both
   floors is discarded the same way (`trigger:'auto_end'`, notification "Your ride was too short to save").
 - (3) Maestro `ride-standstill-not-saved.yaml`: standstill → end → `tapOn: {id: "ride-guard-end-anyway"}` → `assertNotVisible: ".*RIDE SAVED.*"` → Profile → Rides → `assertVisible: "No rides yet"`; updated `log-ride.yaml` (moving). Jest `ride-controller.test.ts` (guard and auto-end cases).
-- (4) Verbatim at `R4…:408-414`. **Baseline ≥ 3.21: `save_trigger='summary'` 13 saves / 11 riders (target metric); all 15 / 13 incl. auto-end (60 d); DB 26 of 72 first rides are live < 50 m** [SOURCE: R4 Q-R4-08, S-R4-01]. **Target 0** summary junk saves; DB < 5%.
+- (4) Verbatim at `R4…:408-414`. **Baseline ≥ 3.21: `save_trigger='summary'` 13 saves / 11 riders (target metric); all 15 / 13 incl. auto-end (60 d); DB 26 of 71 sign-ups' first rides are live < 50 m, plus 15 live with null distance** [SOURCE: R4 Q-R4-08, S-R4-01; V1-q36a, V1-db9]. The DB share counts **null distance as sub-floor** (`coalesce(distance_m, 0) < 50`, V1 §3.8) or reports it separately, else "< 5%" is understated. **Target 0** summary junk saves; DB < 5%.
 
 ### FS-PO5 — Ride HUD opens without a start (regression guard; not a bug today)
 - **Tasks** T03b (alert). (1) Both platforms, fresh install, each paywall arm, Home, wait 15 s, relaunch. (2) Never `/(modals)/ride-hud` without Start/Resume.
@@ -1275,7 +1364,7 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
 ### FS-PO6 — Taps that do nothing on Home
 - **Tasks** T28. (1) Fresh account with the onboarding bike; tap every checklist row, bike card, receipt card, empty list rows. (2) Visible response ≤ 300 ms; navigates or opens a sheet.
 - (3) Maestro `home-taps-respond.yaml`: for each `id: checklist-row-<id>` tap → `extendedWaitUntil` target testID (timeout 5000) → back; `assertVisible: {id: "rides-empty-cta"}`. Jest checklist deep-link test.
-- (4) First-hour `$rageclick` riders — verbatim at `R6…:401-406`, broken down also by `$screen_name`. **Baseline 15/282; 3.26.0 7/117 (6%)** [SOURCE: R6-q3]. **Target ≤ 3%.**
+- (4) First-hour `$rageclick` riders — **per-completer SQL in `validation/V1-metrics.md` §3.5** (R6's SCOREBOARD-CTE form at `R6…:401-406` counts event rows — 4,047 "completers" for 116 persons on 3.26.0 — and turns the LEFT JOIN into an inner join), broken down also by `$screen_name`. **Baseline 15/281; 3.26.0 7/116 (6%)** [SOURCE: V1-q30a]. **Target ≤ 3%.**
 
 ### FS-PO7 — Discover slow or stuck
 - **Tasks** T29. (1) Android emulator, cold start, new account, Discover within 10 s; repeat throttled. (2) Cards ≤ 3 s; skeletons; error + Retry at 10 s.
@@ -1285,7 +1374,7 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
 ### FS-PO8 — Unexplained modal on first Discover / route tap
 - **Tasks** T06 item 8, T29. (1) Android (emulator + real phone), Spanish locale, fresh install, finish onboarding, Discover, then FAB. (2) No dialog without a rider action; location asked only after "Use my location".
 - (3) Same flow: after `tab-discover`, wait 3 s → `assertNotVisible: "Allow.*location|While using the app|Only this time|Descargar.*"` → `assertVisible: {id: "near-you-use-location"}` → tap → OS dialog visible. Jest `use-user-country.test.ts`.
-- (4) First Discover visits with `Application Backgrounded` ≤ 2 s after `discover_tab_viewed` — verbatim at `R4…:478-488`. **Baseline: run once in T02** (n = 1 seen). **Target ~0.**
+- (4) First Discover visits with `Application Backgrounded` ≤ 2 s after `discover_tab_viewed` — **use `validation/V1-metrics.md` §3.6** (array form with a first-Garage-view control; replaces R4's `leadInFrame` form at `R4…:478-488`). **Baseline (60 d): Android 42/43 (median 0 s); iOS 0/28; platform-null 54/87. Controls: first Garage view Android 1/59, Profile 3/58** [SOURCE: V1-q36] — not "n = 1": an OS dialog (likely location, ≈ 70%) fires on Discover open for nearly every Android rider who opens it. **This raises T29 to Release A**; T06 item 8 confirms the dialog type on a device. **Target** Android ≤ 5% (Garage-control level).
 
 ### FS-PO9 — Leave the garage within seconds (behaviour; Exp 1 outcome)
 - **Tasks** T30–T35. (4) Completers whose last day-0 event is < 60 s after `onboarding_completed` with ≤ 1 `$screen` — event-based SQL in §5A (re-readable per version without new scans) [review item 20]. **Baseline 22/100 scanned sessions < 60 s, 3 returned** [SOURCE: R6-q1/q2]. Read by Exp 1 arm; no Maestro (behaviour). SQL in `queries/fs/`, no dashboard tile (doc review item 13).
@@ -1293,26 +1382,27 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
 ### FS-PO10 — "First ride" checklist row ticks without a ride and leads to an empty list
 - **Tasks** T10. (1) New account → Home → tap "See your first ride stats". (2) Stays unticked; opens Start Ride; sub-floor ride doesn't tick; real ride does.
 - (3) Maestro `checklist-first-ride.yaml`: `tapOn: {id: "checklist-row-first_ride"}` → `assertVisible: {id: "start-ride-screen"}` → close → `assertVisible: {id: "checklist-row-first_ride", checked: false}`. Jest (T10).
-- (4) Verbatim at `R4…:430-436`. **Baseline tap 17 riders (3 with a real ride); data 20, of which 12 with a real ride → 8 data-ticked without a real ride (baseline of the "= 0" target)** [SOURCE: R4 Q-R4-10]. **Target tap = 0; data-ticked without a real ride = 0.**
+- (4) Verbatim at `R4…:430-436`. **Baseline tap 17 riders (3 with a real ride); data 20, of which 12 with a real ride → 8 data-ticked without a real ride (baseline of the "= 0" target)** [SOURCE: R4 Q-R4-10; re-run tap 16 (3), data 20 (12), null trigger 10 on old builds, V1-q39]. "With a real ride" must be a real ride **before the tick** (V1 counted any time in 60 d); T02 orders it for the "= 0" target. **Target tap = 0; data-ticked without a real ride = 0.**
 
 ### FS-PO11 — What's New shown to brand-new riders (settled; regression tile)
-- **Tasks** none. (3) Existing `apps/mobile/.maestro/flows/whats-new.yaml` stays green. (4) Completers with `$screen` containing `whats-new` within 1 h of `onboarding_completed`, by `{REL}` (SQL in `queries/fs/`, no tile). **Baseline 0/90 after 10-12** [SOURCE: board/99 §1.7]. **Target 0.**
+- **Tasks** none. (3) Existing `apps/mobile/.maestro/flows/whats-new.yaml` stays green. (4) Completers with `$screen` containing `whats-new` within 1 h of `onboarding_completed`, by `{REL}` (per-completer SQL `validation/V1-metrics.md` §3.5; SQL in `queries/fs/`, no tile). **Baseline 3.26.0 2/120** (completions on 10-23 and 11-05, both `/(modals)/whats-new`; 3.19.1 65/69, 3.22.0 3/3) [SOURCE: V1-q40, V1-q41] — not 0/90: the events cannot tell an automatic show from a rider-opened one; T02 checks those 2 with replays before calling it settled. Regression tile kept. **Target 0.**
 
 ### FS-PO12 — A sign-in screen appears after onboarding
 - **Tasks** T15, T15b. **Regression guard only** in Maestro (`onboarding.yaml` signs up by email; the repro needs a Google account) [review item 8]. (1) Android, Google-created account; after Home open Profile, Diagnose → New, Discover. (2) No sign-in / Google picker while the session is valid.
 - (3) Maestro `post-onboarding-no-signin.yaml`: `runFlow: onboarding.yaml` → each of `tab-profile`, `tab-diagnose`, `diagnose-new`, `tab-discover` → `assertNotVisible: ".*Sign in.*|.*Continue with Google.*|.*Choose an account.*"`. Jest `auth-state-change.test.ts`.
-- (4) Verbatim at `R6…:449-455`. **Baseline: T06 item 1** (3 replays). **Target 0.**
+- (4) **Per-completer SQL in `validation/V1-metrics.md` §3.5** (`po12_signin_1h`; R6's join at `R6…:449-455` counts event rows). **Baseline 11/292 (3.8%); 3.26.0 5/120, 3.27.0 2/6** [SOURCE: V1-q40] (includes `/(auth)…` screens). T06 item 1 now only confirms a sample with replays. **Target 0** — a measurable target for T15/T15b (≈ 4% of completers today).
 
 ### FS-PO13 — App returns to onboarding after completion
 - **Tasks** T14, T15. (1) Email-code account, finish, background 2 min, relaunch; airplane mode during the first minute on Home. (2) Home; never experience / verification / "how did you hear".
 - (3) Tail of `post-onboarding-landing.yaml`, **tagged `android`** (Maestro `setAirplaneMode` is Android-only; iOS = jest only) [review item 24]: `stopApp` → `setAirplaneMode: enabled` → `launchApp` → `assertVisible: {id: "home-screen"}` → airplane off → wait 10 s → `assertNotVisible: ".*How long have you.*|.*hear about us.*"`.
-- (4) Verbatim at `R6…:468-474`. **Baseline: T06 item 1**; lower bound completed-twice 6/282 [SOURCE: R6-q3]. **Target 0.**
+- (4) **Per-completer SQL in `validation/V1-metrics.md` §3.5** (`po13_onboarding_after`, excludes `paywall` step views; R6's join at `R6…:468-474` counts event rows). **Baseline 7/292 (2.4%); 3.26.0 5/120** [SOURCE: V1-q40]. **Target 0.**
 
 ### FS-PO14 — Start Ride opened on day 0, no ride
 - **Tasks** T27. (1) New account, location not asked; Home → Start Ride; deny, then allow. (2) Start above the fold, bike preselected, permission once in context, denial → alert (never spinner), "short test rides aren't saved" line.
 - (3) Maestro `start-ride-first-open.yaml`: `launchApp: {permissions: {location: deny}}` after setup → `tapOn: {id: "tab-ride-fab"}` → `assertVisible: {id: "start-ride-button"}` → tap → `assertVisible: ".*Location.*required.*"`;
   second run `permissions: {location: allow}` + `setLocation` → `assertVisible: {id: "ride-hud-root"}`. Jest `start-ride.test.tsx`.
-- (4) Completers with a `$screen` containing `start-ride` on day 0 and no `ride_started` that day, by `{REL}`. *(draft)* `uniqIf(person_id, opened AND NOT started)` per R6-q9. **Baseline 67/130 (52%)** [SOURCE: R6-q9]. **Target ≤ 35%** (subtract `next_ride_plan_set` riders in the test arm).
+- (4) Completers with a `$screen` containing `start-ride` on day 0 and no `ride_started` that day, by `{REL}` — `po14_opened_no_ride_d0` in `validation/V1-metrics.md` §3.5 *(run)*. **Baseline 68/132 (52%); 3.26.0 30/48** [SOURCE: V1-q40] (R6-q9: 67/130). **Target ≤ 35%** (subtract `next_ride_plan_set` riders in the test arm).
+  **Second per-release metric (V2 §5.2):** day-0 `ride_started` among riders who opened Start Ride on day 0 — **baseline 63/130 (48%)** [SOURCE: R6-q9]. Day-0 ride start is the strongest returner predictor (35% vs 10% back on day 2, adjusted OR 4.5; V2 §4), so T27 is the P2 task most likely to move return (not causal).
 
 ### FS-PO15 / FS-PO16 — Receipt-scan fallback; trip missing in My trips (not doing now; full specs in §5A; ledger line in §10)
 - SQL in `queries/fs/`, no tile (doc review item 13); "verify if seen again". Event names to confirm (`features/receipt-scan/use-scan-flow.ts`; `trip_created` vs empty trips list ≤ 10 min). Baselines unknown (1 replay each) [SOURCE: R6 F-PO15, F-PO16].
@@ -1325,17 +1415,30 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
 - **Tasks** T30–T35, T40. (1) New account, either paywall arm; runner repeats until the arm is drawn (`EXPECTED_ARM`, as `run-onboarding-paywall-e2e.sh`). (2) Test arm: plan card, teaching sheet, d1 fallback; control: today's app.
 - (3) Maestro `first-ride-plan-card.yaml` (test: `assertVisible: {id: "activation-plan-card"}` → `tapOn: {id: "plan-chip-tomorrow"}` → optional "Allow" → `assertVisible: {id: "plan-card-scheduled"}` → relaunch → still scheduled; control: card absent).
   Jest assignment, fire-time and scheduler tests (T30, T32); delivery via T33.
-- (4) Exposure by arm × `onboarding_variant` × platform — verbatim at `R4…:455-461`; primary S1 by `properties.activation_arm` (first `onboarding_completed` after launch). **Baseline 61/367 (16.6%), Oct 16/127; 3.26.0 trailing 8/84** [SOURCE: board/99 §4; Q-P5].
-  **Rule:** Miller N = 64 (ship T − C ≥ 16; stop T + C = 64) + one one-sided z-test at the cap; power 0.76 for ×2 at 12.6% and 2.1 completers/day [SOURCE: board/99 Appendix B]. SRM χ² weekly per platform × region.
-  **Power by start date (doc review item 13; approximate):** two-proportion one-sided z-test at the 2027-03-31 cap, α = 0.05, 2.1 completers/day split 50/50, effect ×2;
-  Appendix B's simulation was not re-run, so these are normal-approximation figures [UNBACKED — planner calculation]:
+- (4) Exposure by arm × `onboarding_variant` × platform — verbatim at `R4…:455-461` (plus `primary_goal` and `returning_account` from T30); primary S1 by `properties.activation_arm` (first `onboarding_completed` after launch, 7 d from completion).
+  **Baselines:** completion-anchored S1 37/275 (13.5%), 3.26.0 8/84 (9.5%) [SOURCE: V1-q7]; first-seen cohort 61/367 (16.6%), Oct 16/127 (12.6%) [SOURCE: board/99 §4; evidence pack §2].
+  **By stratum (V2-q5):** goal `track_rides` 47/197 (24%), other goals 14/170 (8%); 77% of S1 events come from `track_rides`. October completers came back at half the Aug–Sep rate
+  (season and 3.26.0 confounded) and the slot runs Dec–Mar, so the **9.5% column is the realistic one, and may still be high** [SOURCE: V2 §3.2, §5.1 item 3].
+  **Pre-registered analysis (V2 §5.1, D13 implementation note §3A.3):**
+  - Primary: S1, **one one-sided test at the cap, stratified by goal (`track_rides` vs other) × platform** (Mantel–Haenszel risk difference and its z; both strata variables are
+    set before assignment). The keep rule (90% lower bound > −3 pts) uses the MH risk-difference interval. Miller N = 64 (ship T − C ≥ 16; stop T + C = 64) stays as the
+    sequential stop on unstratified counts.
+  - `returning_account` riders (first auth in the install = sign-in to an existing account; 21/367 completers, 33% back on day 2) are **excluded from the primary** and reported separately.
+  - **One pre-specified subgroup: `track_rides`** (where an effect should show first). No other subgroup is read as a result.
+  - `maintain_bike` riders are read on S1 and days 7–13, never on S3 (3/72 on day 2 but 7/65 on days 7–13).
+  SRM χ² weekly per platform × region.
+  **Detectable effect, stated as an absolute lift (replaces "×2"):** ×2 on the `track_rides` stratum (24% → 48%) is not plausible, while ×2 on 8% is +8 pts, so the target is an
+  absolute test − control difference in S1. **Power (recomputed 2026-11-12, normal approximation, one-sided α = 0.05 at the cap, 2.1 completers/day split 50/50, ≈ 6% of
+  completers removed as `returning_account`; planner calculation [UNBACKED]):**
 
-  | Start | Days to cap | Riders per arm | Power at 12.6% baseline | Power at 9.5% baseline |
-  |---|---|---|---|---|
-  | 2026-12-15 | 106 | ≈ 111 | ≈ 0.78 | ≈ 0.65 |
-  | 2027-01-06 (latest start) | 84 | ≈ 88 | ≈ 0.69 | ≈ 0.56 |
+  | Start | Days to cap | Riders per arm | +8 pts at 9.5% | +8 pts at 12.6% | +10 pts at 9.5% | +10 pts at 12.6% | ×2 at 9.5% / 12.6% (old framing) | 80%-power MDE |
+  |---|---|---|---|---|---|---|---|---|
+  | 2026-12-15 | 106 | ≈ 104 | ≈ 0.52 | ≈ 0.46 | ≈ 0.66 | ≈ 0.60 | 0.62 / 0.75 | +12.5 pts (9.5%) · +13.6 pts (12.6%) |
+  | 2027-01-06 (latest start) | 84 | ≈ 83 | ≈ 0.45 | ≈ 0.40 | ≈ 0.57 | ≈ 0.52 | 0.54 / 0.67 | +14.3 pts · +15.5 pts |
 
-  A capped no-winner therefore means **"no doubling shown"**, not "no effect".
+  A Monte-Carlo check with the stratum baselines (24% / 8%, and Oct-scaled 13.7% / 4.6%, 54% `track_rides`, uniform +8 pts) gives the **same power for the stratified MH test as for
+  the unstratified z-test (±1 pt)**: with simple randomization the stratification buys robustness to chance imbalance and an honest subgroup, not power. The experiment can
+  detect only a large lift (≈ +12 to +15 pts) with 80% power; a capped no-winner means **"no large lift shown"**, not "no effect".
 
 ---
 
@@ -1353,9 +1456,9 @@ the bug and only protects the fixed behaviour.
 |---|---|---|---|---|
 | FS-M | `analytics-release-marker.test.ts` | — | — | OTA order not reproducible in Maestro |
 | FS-OB1a | `sign-in-session-advance.test.tsx`, OAuth double tap | iOS sim + Android emu: `onboarding-signin-unfinished-account.yaml` | **yes** | |
-| FS-OB1b | `onboarding.test.ts` `getPreviousRoute` | Android emu: `onboarding-back-preserves.yaml` (tag `android`); iOS sim: `onboarding-ios-swipe-back.yaml` (T19b) | **yes** (Android) | |
-| FS-OB1c | store migration test | Android emu ("Don't keep activities"): `onboarding-bike-resume.yaml` | **yes** | |
-| FS-OB1d | `welcome-resume.test.tsx` | — | jest red first | trigger unknown |
+| FS-OB1b | `onboarding.test.ts` `getPreviousRoute` | Android emu: `onboarding-back-preserves.yaml` (tag `android`, + "cold resume to account → Back → goals"); iOS sim: `onboarding-ios-swipe-back.yaml` (T19b) | **yes** (Android) | reproduced on 3.28.0 (V4) |
+| FS-OB1c | store migration test, goals seeding, monotonic `furthestScreen` | Android emu ("Don't keep activities"): `onboarding-bike-resume.yaml` (+ goals case) | **yes** | reproduced on 3.28.0 (V4) |
+| FS-OB1d | `welcome-resume.test.tsx` | Android emu: `onboarding-welcome-warm-resume.yaml` (tag `android`) | **yes** | trigger found (V4 b3): Back out + warm launch |
 | FS-OB1e | `navigation-gate.test.tsx` | Android emu: `onboarding-complete-relaunch.yaml` (tag `android`) | guard only | the stale-cache race is not forced by Maestro |
 | FS-OB1f | `auth-state-change.test.ts` | — | — | conditional (T38) |
 | FS-OB2a | `use-oauth-sign-in.test.ts` | Android emu with Google account: `onboarding-oauth-cancel.yaml` (tag `android-oauth`) | yes (cancel alert) | success path jest only |
@@ -1379,7 +1482,7 @@ the bug and only protects the fixed behaviour.
 | FS-PO5 | — | — (flow dropped, doc review item 13) | — | not a bug; the weekly `hud_without_any_start` alert is the guard |
 | FS-PO6 | checklist deep-link test | both: `home-taps-respond.yaml` | yes for dead links | |
 | FS-PO7 | `use-user-country.test.ts` | Android emu: `discover-first-open-android.yaml` | guard only | latency not reproducible |
-| FS-PO8 | same | same flow + Spanish locale | guard only | OS dialog |
+| FS-PO8 | same | same flow + Spanish locale | **yes** (Android: dialog within 2 s on main) | 42/43 Android (V1-q36); T29 in Release A |
 | FS-PO10 | `checklist-signals.test.ts` | both: `checklist-first-ride.yaml` | **yes** | |
 | FS-PO11 | — | both: `whats-new.yaml` (exists) | guard only | settled |
 | FS-PO12 | `auth-state-change.test.ts` | both: `post-onboarding-no-signin.yaml` | **guard only** | needs a Google account; email sign-up in the flow |
@@ -1395,7 +1498,11 @@ the bug and only protects the fixed behaviour.
 - Alert (T03b): binary rule only (deterministic), checked 3 days after go-live, fires on any mismatch. A hotfix OTA's share is read in the 2/4/8-week review, not alerted.
 
 ### 5A.3 New and completed metric SQL [review items 17, 20]
-- **S3 engaged return:** board/06 Appendix B SQL, route list from the T05d constant (`config/engaged-routes.ts`), with `{REL}`.
+- **Corrected SQL from the validation (2026-11-12) — T02 takes these verbatim from `validation/V1-metrics.md`:** §3.1 `{REL}` person-level platform (§0); §3.2 FS-OB1b `$screen`
+  back-walk; §3.3 FS-OB1c completion after resume (ordered); §3.4 FS-OB5 proxy + FS-OB7; §3.5 FS-OB2b (first step after sign-up, no `{RN}` on `signup_completed`) and the
+  **per-completer array query for FS-PO6 / PO11 / PO12 / PO13 / PO14 (+ FS-PO2d)**, which replaces every R6 SCOREBOARD-CTE join (those count event rows); §3.6 FS-PO8 with the
+  Garage control; §3.7 FS-PO3 surface filter; §3.8 DB: S4(a) with the `oem` column, FS-R2-5 short makes, FS-PO4b null distance as sub-floor. The tables in §5 quote their results.
+- **S3 engaged return:** board/06 Appendix B SQL (hard-dated: replace the dates with a rolling window and add `ver`; V1 S3 row), route list from the T05d constant (`config/engaged-routes.ts`), with `{REL}`. Per-release reads add the **24–48 h** form as primary (V2 §5.3).
 - **S6 / FS-OB1 (post-auth early-step regression):** verbatim `deep-dives/R6-replays-returners.md:276-284` with `{EXCL}` and `{REL}`. Target ≤ 3% per version [UNBACKED — own target].
 - **FS-PO9 (event-based, re-readable per version):** *(run, Q-P9, 2026-11-12)*
   ```sql
@@ -1429,7 +1536,7 @@ the bug and only protects the fixed behaviour.
 
 | Spec / metric | PostHog tile (event) | Weekly DB check (`queries/db/…sql`) |
 |---|---|---|
-| S4(a) board day-0 schedule | — | `s4a-day0-schedule.sql` (board/99:271-289) |
+| S4(a) board day-0 schedule | — | `s4a-day0-schedule.sql` (board/99:271-289) + `source='oem'` column (V1 §3.8) |
 | S4(b) / FS-PO1H | `service_plan_imported` within 5 min of `onboarding_completed` (T07a) | `s4b-r2m1.sql` (R2:91-97) |
 | FS-R2-4 | `service_plan_imported.unit` = `mi` share | `fs-r2-4-imperial.sql` |
 | FS-R2-5 | `onboarding_bike_created.make_valid = false` (T05e) | — |
@@ -1443,7 +1550,7 @@ the bug and only protects the fixed behaviour.
 
 | # | Version / runtime + hotfix OTA id / API | Go-live date | Platform | `activation_fix_level` | Tasks + spec ids shipped | PostHog annotation id | Notes (staged %, E2E run link, publish branch) |
 |---|---|---|---|---|---|---|---|
-| 0 | 3.26.0 (b93 Android / b106 iOS), 3.27.0, 3.28.0 | before 2026-11-12 | both | null | — (baseline) | — | Android production = 3.26.0 [SOURCE: Q-P1] |
+| 0 | 3.26.0 (b93 Android / b106 iOS), 3.27.0 (iOS b108; Android vc95 internal only), 3.28.0 (iOS b111 from 11-11; Android vc98 from ~11-12) | before 2026-11-12 | both | null | — (baseline) | — | Riders 14 d, per-person platform: Android 3.26.0 108, 3.28.0 5; iOS 3.26.0 37, 3.27.0 14, 3.28.0 11 [SOURCE: V3 P1]. Play production 3.28.0 vc98 (review cleared ~11-12, 80%); vc99 = internal draft named "3.26.0"; App Store 3.28.0 b111, nothing in review [SOURCE: V3 §2–3]. Latest OTA groups: 3.28.0 `fece7a3c`, 3.26.0 `bd05b306`; none on 3.27.0 |
 | 1 | | | | | | | |
 | 2 | | | | | | | |
 
@@ -1461,7 +1568,7 @@ This table is the only record of which level ships which spec (no code map; doc 
 | FS-OB1a | T11 | | | | | | | open |
 | FS-OB1b | T19a, T19b | | | | | | | open |
 | FS-OB1c | T13b | | | | | | | open |
-| FS-OB1d | T20 | | | n/a | | | | open |
+| FS-OB1d | T20 (same build as T19a) | | | | | | | open |
 | FS-OB1e | T14, T14b | | | | | | | open |
 | FS-OB1f | T38 | | | n/a | | | | open (conditional) |
 | FS-OB2a | T04a, T36 | | | | | | | open (measure) |
@@ -1489,7 +1596,7 @@ This table is the only record of which level ships which spec (no code map; doc 
 | FS-PO5 | T03b (alert) | | | n/a | | | | guard (not a bug) |
 | FS-PO6 | T28 | | | | | | | open |
 | FS-PO7 | T29 | | | | | | | open |
-| FS-PO8 | T06, T29 | | | | | | | open |
+| FS-PO8 | T06, T29 (Release A target) | | | | | | | open |
 | FS-PO9 | T30–T35 | | | n/a | | | | Exp 1 outcome |
 | FS-PO10 | T10 | | | | | | | open |
 | FS-PO11 | — | — | — | whats-new.yaml | | | | guard (settled) |
@@ -1521,6 +1628,7 @@ This table is the only record of which level ships which spec (no code map; doc 
 | C-5 | code | testID grep over `apps/mobile/src` | exist: `home-screen`, `home-action-*`, `edit-bike-*`, `hub-tab-dock`; missing: every other id in §3A.4 |
 | C-6 | code | `apps/mobile/package.json:71, 84`; `src/lib/network-error.ts:47`; `scripts/run-onboarding-e2e.sh:11-12` | `expo-network`, `expo-updates` installed; no NetInfo; runner supports a local Supabase override |
 | C-7 | docs | `docs/runbooks/mobile-ota.md:3, 24-31, 157-188`; memory `reference_ota_hotfix_older_runtime` | OTA reaches only the matching runtime; the workflow publishes from a chosen git branch; older runtimes via release branch + cherry-pick |
+| V1–V5 | `validation/` | Validation run 2026-11-12 (read-only): V1 production metrics (47 specs, corrected SQL), V2 returners vs non-returners (367 completers), V3 release and tooling state, V4 device repro on the store binary 3.28.0, V5 rider-survey prep | Applied in §11; query ids are cited as `V1-q…`, `V2-q…`, `V3 P…`, `V4 a…/b…`, `V5-…` |
 
 ---
 
@@ -1563,6 +1671,8 @@ Every item of `EXECUTION_PLAN-review.md` §1, with what changed. "Fixed" means t
 
 ### 8.1 Confidence after revision
 
+*(Superseded by §11.1 after the 2026-11-12 validation: A 78%, B 75%.)*
+
 **A — we know what needs to be done: 75%.** Unchanged from the planner's 75% (critic: 70%). Raised by: the T23 dedup defect is now confirmed in code and fixed in the plan (C-1, C-2);
 T25's placement question is answered (C-3); test bikes with real model rows exist (DB-2/DB-4). Held down by: whether friction fixes move return at all (R6 §3.1, 60%); low-confidence causes
 (OB2 60%, OB5 40%, RC-D 25%, PO12/PO13 30–35%) that are now explicitly behind data gates (T14b, T15b, T36, T38). Raised further by: 4 weeks of P0 instrumentation events from 3.29.0 go-live (D17; TR0 removed by D17) and the Exp 1 read.
@@ -1587,15 +1697,15 @@ a task that cites D# follows the ruling below. Change a ruling only with the own
 | D3 | Standstill ride ended from the guard | **Discard in both arms** (not saved, not in history, does not tick the checklist; `ride_discarded {reason:'below_floor'}` fires). Auto-ended rides below both floors are **discarded too**, with the same event. *(Amended 2026-11-12, doc review item 6a:)* the guard discard applies to **any** guard-ended ride under the 50 m distance floor whatever its elapsed time (except the no-GPS ≥ 120 s branch), via "End without saving"; auto-ended rides below both floors go through the same `discardEndedRide`; the event is `ride_discarded {reason:'below_floor', trigger:'guard'\|'auto_end'}`; the auto-end notification reads "Your ride was too short to save". | A sub-floor ride is a test tap, not a ride; saving it pollutes history, stats and the first-ride signal. |
 | D4 | Checklist first-ride row | **"Record your first ride" → opens Start Ride**; ticks only after a real saved ride. | The current row ticks on tap and leads to an empty list (FS-PO10). |
 | D5 | Paywall frequency cap; bike limit | **Auto-present a gate paywall at most once per feature per session and at most 2 per session; 10-min cooldown after a paywall error; after the cap the app shows `LimitSheet` with a rider-tapped "See Pro plans".** Explicit upgrade surfaces (profile subscriptions row, Pro banner) are exempt. **Add bike for a free rider with one bike opens "Update my bike" first**, "Add a second bike (Pro)" second. The 1-bike free limit stays. *(Amended 2026-11-12, doc review item 9:)* "Update my bike" comes first only when the rider's bike has an empty model; for a complete bike the sheet shows "Add a second bike (Pro)" as primary and "Edit <bike>" as secondary. | Stops repeat paywalls (15% of riders) while keeping every purchase path; 2 of 3 gate purchases came on a repeat view, so the rider-tapped path stays. |
-| D6 | Diagnostics copy and timeouts | **Localized limit panel** "This month's free diagnosis is used. It's back on {date}." (all 7 app locales), exhausted CTA opens `LimitSheet` without promoting AI; **75 s client deadline** with offline pre-check and localized error + Retry; server retries unchanged. | Failures, not slow successes, cause the long waits (p90 47 s, up to 141 s). |
+| D6 | Diagnostics copy and timeouts | **Localized limit panel** "This month's free diagnosis is used. It's back on {date}." (all app locale files enforced by `pnpm check:i18n`), exhausted CTA opens `LimitSheet` without promoting AI; **75 s client deadline** with offline pre-check and localized error + Retry; server retries unchanged. | Failures, not slow successes, cause the long waits (p90 47 s, up to 141 s). |
 | D7 | Backfill existing bikes; reminder burst | **Yes, backfill the ~250 onboarding bikes** via an owner-run `SECURITY DEFINER` RPC after a dry run that reports counts (migration applied by the owner per `docs/runbooks/supabase-migrations.md`). **Backfilled and newly imported tasks schedule no immediate reminders: overdue items are shown as "due now" in the app, and at most 1 reminder per bike per 7 days.** *(Amended 2026-11-12, doc review item 2:)* the cap is built in T07a (`sendDuePush` groups due tasks by bike, one combined push naming the count, skip a bike pushed in the last 7 days) and ships before or with the T07a deploy; Home/Service show at most the 3 most urgent with "+N more" (T07b); T39 runs only after the cap is live. | Gives every existing rider the service plan without a notification storm. |
 | D8 | Detect rider-edited OEM tasks on a model change | **No migration. Proxy: refresh only pending OEM tasks with `updated_at` within 60 s of `created_at` and no completion; never touch completed or rider-edited tasks.** | Safe default; a wrong guess only leaves an old interval in place. |
 | D9 | Android Back on the first steps | **Back steps one screen; on the experience step Back returns to Welcome; Back on Welcome leaves the app. No dialog.** Progress is persisted (T13a/T13b), so a rider who leaves resumes where they were. | Platform-native, and with persistence nothing is lost. |
 | D10 | Keep the rider's email on the device until onboarding ends | **Yes, in SecureStore, cleared when onboarding completes or on sign-out. Never the password or the code.** | Restores the code step after the rider reads the email (FS-OB3). |
-| D11 | Landing-sheet priority in the first session | **At most one sheet on landing. Order: (1) analytics consent if required, (2) safety recall for the rider's bike, (3) "Service plan ready", (4) Exp 1 plan card (test arm only). Everything else (What's New, check-in) waits for a later session.** *(Clarified 2026-11-12, doc review item 6d:)* at most one **modal** sheet per cold session; consent is an earlier gate, not a landing sheet; the Exp 1 plan card is an inline Home card shown only when no sheet is shown; What's New and check-in become eligible from the next session. | Safety first, then the value the rider came for; never stacked sheets (FS-PO17). |
-| D12 | Start Ride first-open (T27) and Discover location ask (T29) | **Ship in both arms before the Exp 1 slot opens** (in Release B, before the Exp 1 start). *(Amended 2026-11-12, doc review item 5:)* if either misses the Release B code freeze (2026-12-05), it ships in the first store build **after** the slot, never inside it (D17: never by OTA). | Bug-level fixes; shipping them before the slot keeps the experiment clean. |
-| D13 | Experiment 1 ledger | **Signed as specified:** the bundle holds the single slot; primary S1 (week-1 core action among completers, baseline 61/367); Miller N = 64 + one one-sided z-test at the cap; cap **2027-03-31**; no start after **2027-01-06**; after a capped no-winner keep the bundle if the 90% lower bound > −3 pts, else revert (qualitative signals reported beside the decision, not gating); chips Later today, Tomorrow, This weekend, Not sure yet; first chip **"Later today"**; `maintain_bike` day-1 copy **"When did you last service your {model}?"** (opens the bike's service plan); notification kind `activation` with a `source` property. | The board's recommended design; "Later today" avoids promising a ride the same minute; the maintenance copy matches what those riders came for. |
-| D14 | Release train | **3.29.0 (Release A) submit target 2026-11-30; 3.30.0 (Release B) 2026-12-08; both platforms.** Promote Android **vc99 (FCM)** to production as soon as vc98 clears Google review. | Matches the dependency graph and the 2027-01-06 hard stop. |
+| D11 | Landing-sheet priority in the first session | **At most one sheet on landing. Order: (1) analytics consent if required, (2) safety recall for the rider's bike, (3) "Service plan ready", (4) Exp 1 plan card (test arm only). Everything else (What's New, check-in) waits for a later session.** *(Clarified 2026-11-12, doc review item 6d:)* at most one **modal** sheet per cold session; consent is an earlier gate, not a landing sheet; the Exp 1 plan card is an inline Home card shown only when no sheet is shown; What's New and check-in become eligible from the next session. *(Addition 2026-11-12, validation V5:)* **at most one inline Home card per session; the Exp 1 plan card (test arm) wins**; the install-reason card (P05.3) waits for the next later-day open, in both arms. | Safety first, then the value the rider came for; never stacked sheets (FS-PO17). |
+| D12 | Start Ride first-open (T27) and Discover location ask (T29) | **Ship in both arms before the Exp 1 slot opens** (in Release B, before the Exp 1 start). *(Validation 2026-11-12, V1 FS-PO8:)* T29 now **targets Release A** — earlier, still both arms and before the slot, so the ruling's rule holds; if T29 misses the Release A cut, it ships in Release B as before. *(Amended 2026-11-12, doc review item 5:)* if either misses the Release B code freeze (2026-12-05), it ships in the first store build **after** the slot, never inside it (D17: never by OTA). | Bug-level fixes; shipping them before the slot keeps the experiment clean. |
+| D13 | Experiment 1 ledger | **Signed as specified:** the bundle holds the single slot; primary S1 (week-1 core action among completers, baseline 61/367); Miller N = 64 + one one-sided z-test at the cap; cap **2027-03-31**; no start after **2027-01-06**; after a capped no-winner keep the bundle if the 90% lower bound > −3 pts, else revert (qualitative signals reported beside the decision, not gating); chips Later today, Tomorrow, This weekend, Not sure yet; first chip **"Later today"**; `maintain_bike` day-1 copy **"When did you last service your {model}?"** (opens the bike's service plan); notification kind `activation` with a `source` property. *(Implementation note, validation V2, 2026-11-12 — owner confirmation recommended:)* the one one-sided z-test at the cap is computed **stratified** (Mantel–Haenszel on goal `track_rides` vs other × platform), `returning_account` riders are excluded from the primary, `track_rides` is the one pre-specified subgroup, and the detectable effect is stated as an absolute lift (FS-EXP1). Primary metric, Miller rule, cap and keep rule are unchanged. | The board's recommended design; "Later today" avoids promising a ride the same minute; the maintenance copy matches what those riders came for. |
+| D14 | Release train | **3.29.0 (Release A) submit target 2026-11-30; 3.30.0 (Release B) 2026-12-08; both platforms.** Promote Android **vc99 (FCM)** to production as soon as vc98 clears Google review. *(Implementation, validation V3, 2026-11-12:)* vc98 is in production (the condition is met); vc99 is an internal **draft** named "3.26.0": rename it "3.28.0 (99)", roll to internal, verify a push token registers, then promote with the owner's go-ahead; if it is not promoted before the 3.29.0 cut, FCM ships in 3.29.0 and vc99 is dropped. | Matches the dependency graph and the 2027-01-06 hard stop. |
 | D14b | OTA the P1/P2 fixes to older runtimes? | **No.** Fixes ship in 3.29.0/3.30.0 and later store builds. *(Amended 2026-11-12 by D17:)* the rule is now **absolute**: no OTA of fixes, features or instrumentation to any runtime (older or current); the only exception is an urgent crash or data-loss hotfix per `docs/runbooks/mobile-ota.md`. Older runtimes get no instrumentation OTA (TR0 removed by D17). | New riders run the binary's embedded JS anyway; release-branch OTAs are manual and error-prone. |
 | D15 | Credential Manager for Android Google sign-in | **Keep the data gate:** adopt it in T36 only if T04a data shows ≥ 10% hung Google sheets over 4 weeks. | Avoids a native auth migration without evidence. |
 | D16 | Exp 1 start date | **The first day 3.30.0 is ≥ 90% of new installs on both platforms, but not later than 2027-01-06.** If not reached by then, do not start the slot this season; ship the bundle on the no-harm path (P06.3). *(Amended 2026-11-12, doc review item 4:)* the start is set **server-side** in the API field `activationExperimentWindow {startAt, stopAt}` (T30's API part, deployed before the 3.30.0 cut) on that day, and the PostHog flag is flipped the same day; no OTA and no other switch. A null or unreachable window means not started (control, `source:'pre_start'`, no draw); the embedded ceilings (stop 2027-03-31, no start after 2027-01-06) always apply. | Assignment must run in the binary new riders install; a server-side window can be set or pulled back without a release. |
@@ -1636,7 +1746,7 @@ The owner delegated every decision; the rulings below are final. Each line names
 
 ### Ledger notes (for `experiments.md`)
 
-- **Post-slot candidate queue (was T41), in order:** P05.3 install-reason card; P05.2 plate "Set up service plan"; day-1 nudge in its own slot (spring, only if Exp 1 wins);
+- **Post-slot candidate queue (was T41), in order:** P05.3 install-reason card (**card only**, see the P05.3 note below); P05.2 plate "Set up service plan"; day-1 nudge in its own slot (spring, only if Exp 1 wins);
   P04.3a iOS provisional notifications. Re-run the R6 returner comparison on ~100 first sessions per `activation_fix_level` after the slot (any new Replay Vision scan needs
   the owner's approval).
 - **PO15 (receipt-scan fallback) and PO16 (trip missing in My trips) (was T41b):** "verify if seen again". Not fixing now; SQL in `queries/fs/`, no tile; full specs in §5A.3.
@@ -1647,6 +1757,27 @@ The owner delegated every decision; the rulings below are final. Each line names
   no start after 2027-01-06; the start is set server-side on the D16 day and the PostHog flag flipped the same day. No OTA is needed to start or stop.
 - **Experiment 1 power (approximate, normal approximation, Appendix B not re-run):** start 2026-12-15 → ≈ 0.78 at a 12.6% baseline, ≈ 0.65 at 9.5%; start 2027-01-06 →
   ≈ 0.69 at 12.6%, ≈ 0.56 at 9.5% (one-sided α = 0.05 at the cap, 2.1 completers/day, ×2 effect). A capped no-winner means "no doubling shown".
+- **P05.3 install-reason card — card only (validation V5, 2026-11-12).** The email channel is empty: 22 riders ticked the contact box (live since 10-14, source `onboarding`, wording v1),
+  21 of them inactive and live, and **0 of them ever sent feedback**, so under the narrow reading of "The developer may contact me about my feedback" the pool is **0**
+  (loose reading 21: es 11, en 9, tr 1). A broader email needs a **new wording-v2 opt-in** after the onboarding paywall A/B ends, and a stand-alone way to withdraw
+  `feedbackContact` (today only by sending feedback again unticked; product gap, not a #365 task). Card: inline Home card, shown once on the first cold start on a **later calendar
+  day** after completion, dismissible, theme tokens (light + dark), never in a session where a modal sheet or the Exp 1 plan card showed (D11 addition). Answers map 1:1 to the
+  onboarding goals: `track_rides`, `maintain_bike`, `manage_expenses`, `discover_routes`, `just_exploring`, `other` ("Something else" opens the existing feedback form; its text stays in
+  `feedback_messages`, never in PostHog). Events (consent-gated, `as const` constants next to `FEEDBACK_SENT`): `install_reason_card_shown {days_since_onboarding}`,
+  `install_reason_answered {answer, matches_primary_goal, days_since_onboarding}`, `install_reason_dismissed {days_since_onboarding}`; strings in all app locale files
+  (`pnpm check:i18n`). **Under D17 it must be in a store binary:** 3.30.0 at the latest (it then needs its own issue before the 2026-12-05 freeze), gated identically in both Exp 1
+  arms, its go-live date logged as a both-arm change; otherwise it waits until after 2027-03-31. Expected yield ≈ 12–20 answers in 8 weeks — enough to see a dominant reason,
+  not to rank close ones, and it hears only riders who come back. Sending any email or shipping the card needs the owner's approval.
+- **Push-grant correlation is not notification evidence (V2).** No rider in the 08-14→11-04 cohort got a re-engagement message (1 of 426 new users got any server push in
+  week 1), so R6's push-grant split (12/45 vs 4/55) and V2's OR 1.7 describe a rider trait, not a message effect. Do not cite them for a notification lever.
+- **`maintain_bike` riders (V2 §5.1 item 6):** they return on days 7–13 at the baseline rate (7/65) but almost never on day 2 (3/72); read them on S1 and days 7–13, never on
+  S3. The D13 d1 copy stays as the owner's bet.
+- **Follow-up after T40 — default week-1 message for everyone (V2 "missing lever").** Today 0 of 426 new users get a week-1 message except the rare maintenance push; Exp 1 tests a
+  re-engagement message (T32 reminder, T34 d1 fallback) only inside the slot and only in the test arm. After T40, decide the default week-1 message for all riders (control and
+  post-slot), using T40's d1-fallback read and the T33 delivery result. Not a task this season.
+- **Growth hypothesis — referral quality (V2 §3.1, confidence 55%):** riders who heard of MotoVault from an AI chat return 2× (18/62 = 29% vs 13%); social referrals (FB/IG/TikTok)
+  return at 5% (2/41). One of ~60 tests; pass to growth as a hypothesis, outside #365. Install attribution carries no usable source (`install_source` null or
+  `organic_unknown`), so the self-reported `referral_source` is the only signal.
 - **Accepted delay (item 14):** T14b, T15b and T38 (PO12/PO13 and the session drop) ship one release after their data gate, not in Release A.
   Since D17 their data gates count from 3.29.0 go-live and their fixes ship in the next store build after the gate.
 
@@ -1664,3 +1795,84 @@ bumped app version); OTA only for urgent crash or data-loss hotfixes per `docs/r
 | D17-3 | Every fix-shipping "later OTA" / "OTA + Release A/B" / "next build / OTA" / "OTA to the 3.29.0+ runtime" / "optional older-runtime OTA" path → Release A/B or "next store build". Remaining OTA mentions are facts (why OTAs miss first sessions, runtime reach, FS-PO3b repro) or the crash/data-loss hotfix exception. | §2, §3 (T01, T04, T05, T08–T17, T19–T29, T18, T35, T36, T38, P3 intro, release-path rule), §3A.0 rules 3–4, §5, §5A.2, §6 | 01, 03, 04 (T03b "no data until" line), 05–11, 17 (T08), 29, 37 (T25a), 48 (T35), 49, 50, 51, 53 |
 | D17-4 | Issue draft 14 (TR0) marked closed by D17 (first body line); `depends_on` of T18, T14b, T15b, T36, T38 no longer list TR0; `release_path` values that named OTA now name store builds. | — | 14, 29, 49, 50, 51, 53, 01, 05–11, 17 |
 | D17-5 | This list. | §10.1 | — |
+
+---
+
+## 11. Validation 2026-11-12 — changes applied
+
+Five read-only validation reports were folded into this plan and its issue drafts the same day: `validation/V1-metrics.md` (production metrics, 47 specs),
+`validation/V2-returners.md` (returners vs non-returners, 367 completers), `validation/V3-release.md` (stores, EAS, tooling), `validation/V4-device-repro.md` (device repro on the
+store binary 3.28.0) and `validation/V5-rider-survey.md` (survey prep, nothing sent). Every correction they list was applied unless marked otherwise below.
+**No correction conflicted with a §9 ruling.** Three touch a ruling's wording and are applied as implementation notes or additions, flagged for the owner: D13 (stratified test),
+D12 (T29 earlier), D11 (one inline card). `issues/NN` = `issues/NN-<task>-*.md`.
+
+| # | Source | Change | Plan sections changed | Issue drafts changed |
+|---|---|---|---|---|
+| V1-1 | V1 §3.1, item 1 | `{REL}` platform: person-level `argMinIf(platform, platform IS NOT NULL)` with a temporary `$app_build` fallback (valid for 3.26.0–3.28.x only); `$os` dropped (never set); `build` column added; tiles never group by the first event's platform before T01 | §0 `{REL}`, §5 FS-OB1b SQL | 04 (T03b), 29 (T18 SQL) |
+| V1-2 | V1 item 1 | T01 acceptance: `platform` non-null on 100% of `Application Opened`, incl. the first open | §3 T01, §3A.1 row 01 | 01 (T01) |
+| V1-3 | V1 item 7 | `{RN}` never applied to server events (`signup_completed`, T05e/T07a events) | §0 `{RN}`, §5 FS-OB2a/2b/5 | 02, 04, 05 |
+| V1-4 | V1 §0, item 16; V2-s1 | `{EXCL}` = 13 persons (not 12) + the internal tester (V3 item 7) + the V4 emulator person if identifiable; Supabase snippets qualify `u.deleted_at`/`u.email` | §0 `{EXCL}`, §0 `{RN}` note | 02 (T02), 00 (T00 side rule) |
+| V1-5 | V1 item 2; V3 P1/P2 | Q-P1 rewritten: per-person platform (Android 3.26.0 108; iOS 3.26.0 37, 3.27.0 14, 3.28.0 11; Android 3.28.0 5 incl. a tester); `(null)` rows were an artefact | §0.1 Q-P1, §2 "why store binaries" | — |
+| V1-6 | V1 item 15 | S1 anchored on the first `onboarding_completed` (7 d); canonical baseline 37/275, 3.26.0 8/84; 61/367 kept as first-seen reference | §1.2 S1, §5 FS-EXP1 | 02, 45 (T32), 48 (T35), 55 (T40) |
+| V1-7 | V1 item 11 | S4(a) gets a `source = 'oem'` column; T07 judged on S4(b)/R2-M1 and the `oem` column | §1.2 S4, §5 FS-PO1H, §5A.4 | 02, 15 (T07a) |
+| V1-8 | V1 item 6 | S5 note: exclude explicit upgrade surfaces until `trigger` exists | §1.2 S5 | — |
+| V1-9 | V1 §3.2, item 8 | FS-OB1b `$screen` SQL written down (V1 §3.2), baseline Android 28/201, iOS 14/72 | §5 FS-OB1b | 06 (T04b), 30 (T19a), 31 (T19b) |
+| V1-10 | V1 §3.3, item 8 | FS-OB1c ordered SQL; baseline bike-setup 8/31, account 5/13, goals 3/11 | §5 FS-OB1c | 23 (T13b) |
+| V1-11 | V1-q37 | FS-OB1d proxy baseline 12 / 60 d, 6 on 3.26.0 | §5 FS-OB1d | 06, 32 (T20) |
+| V1-12 | V1 item 8 | FS-OB1e "4 completed twice" → 6; relapse 10/292 | §5 FS-OB1e, FS-OB6 | 24 (T14), 26 (T16a), 49 (T14b) |
+| V1-13 | V1 item 9 | FS-OB2a proxy 23/111 (20.7%); `activation_release` → `activation_fix_level` in M-OB2/3/5 | §5 FS-OB2a, FS-OB3, FS-OB5 | 05 (T04a), 51 (T36) |
+| V1-14 | V1 §3.5, item 9 | FS-OB2b fixed SQL (first step after sign-up, > 10 min = backgrounded); baseline 6/124 | §5 FS-OB2b | — |
+| V1-15 | V1-q24 | FS-OB4 drift recorded; T02 fixes the window before the p90 target | §5 FS-OB4 | 38 (T25b) |
+| V1-16 | V1 §3.4 | FS-OB5 proxy SQL + baseline 18/166 (3.26.0), 46/470; FS-OB7 60 d 13/216 | §5 FS-OB5, FS-OB7 | — |
+| V1-17 | V1 item 6, §3.7 | FS-PO3 denominator 14 automatic-gate sessions, 9 repeats (64%), 8 ≤ 60 s; surface filter until `trigger` | §5 FS-PO3 | 08 (T05a), 33 (T21) |
+| V1-18 | V1 item 7 | FS-PO4a baseline 1/14 (complete-window guard) | §5 FS-PO4a | 10 (T05c), 44 (T31) |
+| V1-19 | V1 item 14 | FS-PO4b DB share: null distance counted as sub-floor (26/71 + 15 null) | §5 FS-PO4b | 10, 12 (T05e), 18 (T09) |
+| V1-20 | V1 items 3–4, §3.5 | FS-PO6/PO11/PO12/PO13/PO14 use the per-completer query (R6 joins counted event rows); baselines PO6 7/116, PO11 2/120, PO12 11/292 (5/120), PO13 7/292 (5/120), PO14 68/132; T06 item 1 lowered to replay confirmation | §5 FS-PO6, PO11–PO14, §3 T06 item 1, §5A.3 | 13 (T06), 25 (T15), 41 (T28), 40 (T27) |
+| V1-21 | V1 item 5, §3.6 | FS-PO8 baseline 42/43 Android (iOS 0/28, Garage 1/59); **T29 moved to Release A** (first in Release B if it misses the cut); T06 item 8 confirms the dialog type on a device | §1.3, §2 table + graph, §3 T06 item 8, §3 T29, §3A.0 rule 7, §3A.1 row 42, §4, §5 FS-PO8, §5A.1, §6.1, §9 D12 note | 13 (T06), 29 (T18), 42 (T29), 48 (T35) |
+| V1-22 | V1 items 12–13 | FS-R2-4 denominator from `measurement_system`/`service_plan_imported.unit` (`mileage_unit` defaults to `'mi'`); FS-R2-5 baseline 6/176 short makes, "known make" = `make_valid` | §5 FS-R2-4, FS-R2-5 | 02, 12, 15, 38 |
+| V1-23 | V1 FS-PO10 row | "with a real ride" must precede the tick | §5 FS-PO10 | — |
+| V1-24 | V1 §3 | §5A.3 points T02 at V1 §3.1–3.8 verbatim | §5A.3, §3 T02 | 02 (T02) |
+| V2-1 | V2 §4, §5 | §1.1 diagnosis: day-0 ride start (35% vs 10%, OR 4.5), ≥ 3 day-0 sessions, `track_rides` mostly via riding, day-0 logging (rides/expenses yes, maintenance no), push grant a weak trait | §1.1 | 45 (T32 Why) |
+| V2-2 | V2 §5.1 items 2–3 | FS-EXP1: pre-registered stratified S1 test (MH, goal × platform), `track_rides` the one subgroup, `returning_account` excluded, absolute-lift framing, power recomputed (MDE ≈ +12.5 to +15.5 pts; Monte-Carlo: stratification ≈ same power), Oct-level baseline flagged | §1.2 S1, §5 FS-EXP1, §3 T40, §3A.3, §9 D13 note | 48 (T35), 55 (T40) |
+| V2-3 | V2 §5.1 item 4 | T30 `activation_exposure` adds `primary_goal`, `returning_account` | §3 T30 | 43 (T30) |
+| V2-4 | V2 §5.3 | S3 per-release reads use the rider's 24–48 h window as primary (calendar day only inside Exp 1) | §0 reading rule, §1.2 S3, §5A.3 | 03 (T03a), 04 (T03b), 29 (T18) |
+| V2-5 | V2 §5.2 | T27 = the P2 task most likely to move return; own metric day-0 `ride_started` among Start Ride openers, baseline 63/130 | §1.1, §3 T27, §3A.1 row 40, §4, §5 FS-PO14 | 40 (T27) |
+| V2-6 | V2 §5.1 item 5 | T33/T34 are the only notification-lever test; push-token gap is a prerequisite | §3 T33, T34 | 46 (T33), 47 (T34) |
+| V2-7 | V2 §5.1 item 6 | `maintain_bike` judged on S1 and days 7–13, never S3 | §1.2 S3, §5 FS-EXP1, §10 ledger | 47 (T34), 55 (T40) |
+| V2-8 | V2 "missing lever", §3.1 | Ledger: follow-up after T40 on the default week-1 message; growth hypothesis on referral quality (AI-chat 2×); push-grant correlation is not notification evidence | §2 graph (FU node), §4, §10 ledger | 55 (T40) |
+| V3-1 | V3 item 1 | §6 row 0 rewritten (stores, builds, per-person riders, OTA groups) | §6 row 0 | — |
+| V3-2 | V3 item 2 | vc99 steps (rename "3.28.0 (99)", internal, push-token check, promote with owner go-ahead) or FCM folded into 3.29.0; 3 Android test tokens already registered | §1.4 D14, §3 T18, §3 T06 item 9, §9 D14 note | 13 (T06), 29 (T18) |
+| V3-3 | V3 items 3–6 | **New task T00 — test environment setup** (iOS runtime + simulator, pinned Supabase CLI, `mvscratch` at the latest migration, "`pnpm db:reset` cannot replay", `e2e-android` profile + universal-APK recipe, `pnpm install`, optional API-34 Play AVD); first in order; blocks T05c, T18, T35 and every Maestro-accepted task | §0 Maestro bullets, §2 table + graph, §3A.0 rule 9, §3A.1 (row 00 + T00 in 31 rows), §3 T18/T19/T35, §4 | **00 (new)**; `depends_on` + "Blocked by" of 01, 10, 16–33, 35, 36, 38–45, 48 |
+| V3-4 | V3 item 3; V4 Invalidates | "preview build" replaced by the T00 recipe (e2e-simulator / `e2e-android` / universal APK / dev client on the local stack); seeded flows use `mvscratch`, not `pnpm db:reset` | §0, §1.3, §3 T01, T07, §5 FS-OB1a, OB1b, OB1e, OB3, PO2a | 01, 06, 16, 17, 20, 30, 33, 36, 02 |
+| V3-5 | V3 item 6 | FS-OB2a device: GMS image + Google account (T00 AVD) or T00's optional API-34 Play AVD | §5 FS-OB2a | 50 (T15b), 51 (T36) |
+| V3-6 | V3 item 9 | Hotfix guidance: a 3.27.0 hotfix branches from store-build commit `2ce57d1d` (no OTA ever on 3.27.0) | §3A.0 rule 1 | 03 (T03a), 29 (T18) |
+| V3-7 | V3 item 8 | Thin Android `lvl = 2` cohort at the 2-week read = "no verdict" | §0 reading rule, §3 T18 | 03, 04, 29 |
+| V4-1 | V4 (a)–(b) | §1.3 confidences: RC-B ~90%, RC-C ~85%, RC-D 25% → ~80% (trigger: Back out + warm launch, `resumeHandledThisLaunch` already true) | §1.3, §5 FS-OB1b/c/d, §11.1 | 23, 30, 32 |
+| V4-2 | V4 (b) | T20: trigger known, Maestro `onboarding-welcome-warm-resume.yaml`, jest "flag true, new mount, no param → resume"; **T19a and T20 ship in the same build** | §2 table + graph, §3 T19, T20, §3A.0 rule 8, §3A.1 rows 30/32, §5 FS-OB1d, §5A.1, §6.1 | 30 (T19a), 32 (T20), 48 (T35) |
+| V4-3 | V4 (a) a3, a5 | T13: goals seeds from `ridingGoals` (jest case); resume to a monotonic `furthestScreen` | §3 T13, §3A.1 row 23, §5 FS-OB1c | 22 (T13a v10 field), 23 (T13b) |
+| V4-4 | V4 (a) a4 | FS-OB1b adds "cold resume to account → Android Back → goals, not the launcher" and a replace-path goals assertion | §3 T19, §5 FS-OB1b, §5A.1 | 30 (T19a) |
+| V5-1 | V5 §1, §4 | P05.3 card only (email pool 0–21 under the narrow consent reading; broader email needs a wording-v2 opt-in after the onboarding A/B + a stand-alone withdraw path) | §4, §10 ledger | — |
+| V5-2 | V5 §3 | Card answers = the 5 onboarding goals + `other`; events `install_reason_card_shown` / `_answered {answer, matches_primary_goal, days_since_onboarding}` / `_dismissed`; under D17 in a store binary (3.30.0 at the latest), gated identically in both Exp 1 arms, date logged | §10 ledger | — |
+| V5-3 | V5 Corrects | D11 addition: at most one inline Home card per session; the plan card wins | §3A.3, §9 D11 row | 45 (T32) |
+| V5-4 | V5 locale note | "7 app locales" → "all app locale files enforced by `pnpm check:i18n`" (`SUPPORTED_LOCALES` has 13 entries, `apps/mobile/src/i18n/locales/` has 14 files incl. `es-ES`; `scripts/check-i18n.sh` requires every new en key in all of them) | §3 T08–T10, T11, T21, T22, T26, T32, §9 D6 | 17, 18, 19, 20, 28, 33, 35, 36, 38, 39, 40, 42, 44, 45, 47, 53 |
+| — | all | This section and §11.1; header line; §1.3/§8.1 pointers; §3A.2 validation bullet; §7 row V1–V5 | header, §1.3, §3A.2, §7, §8.1, §11 | — |
+
+**Not applied, or applied only in part (with why):**
+- **V3 item 7 — flag the internal tester `internal` in PostHog:** not done (a PostHog write; this pass made no external writes). The tester is added to the `{EXCL}` id list kept outside the repo (T02), and the flag write goes on the D2 named list.
+- **V4 alternative — `moveTaskToBack` on Welcome instead of returning `false`:** recorded as an option in T20; not chosen here, because T20 is needed for other remount paths anyway and D9 is implemented by T19a.
+- **V4 alternative — move T20 into Release A:** not chosen; the same-build rule (T19a + T20 in Release B) meets V4's requirement without growing Release A.
+- **V2 — onboarding bike category in T05 instrumentation:** not applied (V2 marks it "if the owner wants segment targeting later"; it would add scope to Release A's instrumentation). Left as an owner option.
+- **V2 — a default week-1 message for everyone; referral quality:** recorded as ledger lines, not tasks (outside this season's scope, as V2 itself says).
+- **V5 — the draft email and the in-app card:** not sent, not built, no issue created; the card needs the owner's approval and, if wanted inside the slot, its own issue before the 2026-12-05 freeze. The `feedbackContact` withdraw gap is logged in the ledger as a product gap, not a #365 task.
+- **D13 (owner confirmation recommended, not a conflict):** the stratified MH computation of the "one one-sided z-test at the cap", the `returning_account` exclusion and the absolute-lift framing are applied as D13's implementation; primary metric, Miller rule, cap and keep rule are unchanged.
+- **Not verified here:** whether the V4 emulator run created a PostHog person (T02 checks); the Play Console review state of vc98 (UI only, V3); whether Google sign-in works on the API 35 GMS AVD (T00).
+
+### 11.1 Confidence after validation (2026-11-12)
+
+**A — we know what needs to be done: 78%** (was 75%).
+- *Raised by:* RC-B, RC-C and RC-D reproduced on the store binary, with RC-D's cause going from 25% to ~80% and two new concrete sub-defects (goals remount, back-walk resume point) now in T13b (V4); FS-PO8 turned from "n = 1" into 42/43 Android riders, so T29 is a real first-session fix (V1); the friction-is-hygiene reading confirmed on all 367 completers, not 100 replays, and Exp 1's target behaviour (day-0 ride start, OR 4.5) confirmed as the strongest returner signal (V2); the store-build-only path matches the stores and EAS (V3); ~30 of 47 baselines reproduce and the behind-the-task numbers for T07–T11, T17, T21, T22, T24 hold (V1).
+- *Held below 100% by:* none of the returner findings is causal — whether a first ride *caused* by the product moves return is exactly what Exp 1 must show, and it can detect only a large lift (MDE ≈ +12.5 to +15.5 pts; power for +8 pts ≈ 0.45–0.52); Oct completers return at half the Aug–Sep rate and season vs 3.26.0 cannot be separated; RC-A and PO4 are not device-reproduced (production writes needed); PO8's dialog type ≈ 70%; OB2 (60%), OB5 (40%) and PO12/PO13 causes (30–35%, now ~4% of completers and measurable) stay behind data gates; why never-returners leave is still unanswered by any channel (V5: card hears only returners; email pool 0–21).
+
+**B — the plan is well defined: 75%** (was 78%).
+- *Raised by:* the measurement layer now has corrected, run SQL for every spec V1 touched (platform, three R6 joins, FS-PO3/R2-5 denominators, S4 `oem` split) instead of drafts; the Exp 1 analysis is pre-registered (stratified test, subgroup, `returning_account`, absolute-lift power); release facts are current (vc98 live, vc99 steps, 3.27.0 hotfix base, Q-P1); the T19a/T20 coupling and the T29 move are explicit; T00 turns an invisible blocker into a defined first task.
+- *Lowered by / held below 100% by:* the verification environment is **unproven** until T00 runs (no iOS runtime, local stack two migrations behind and patched partly by guesswork at 00098/00102, Google sign-in on the AVD untested), and T00 now gates ~30 tasks; Release A grows (T29) inside the same 11-30 submit target and the plan still needs ≈ 2 merged PRs/day; the D13 implementation note and the vc99 promotion need the owner; the `$app_build` platform fallback breaks at Android versionCode 100 if T01 slips; with slow Android adoption the 2-week reads will often be "no verdict"; T02 still has to commit V1's SQL into `queries/fs/` before T03b can build tiles.

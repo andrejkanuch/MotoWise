@@ -3,7 +3,7 @@ title: "[#365 T17] Diagnosis failures: offline pre-check (expo-network), 75 s de
 labels: [bug, area:mobile, activation-365]
 order: 28
 task_id: T17
-depends_on: [T05b, T08]
+depends_on: [T00, T05b, T08]
 phase: P1
 size: M
 release_path: "Release A 3.29.0"
@@ -44,11 +44,11 @@ Verbatim `R3…:545-550` by `{REL}` + `diagnostic_failed.reason`. Baseline failu
 Release A (lvl 2); the release cut records the level of FS-PO2b in plan §6.1 (no code map).
 
 ## Dependencies
-- Blocked by: T05b, T08.
+- Blocked by: T00 (test environment), T05b, T08.
 - Blocks: T18.
 
 ## Out of scope
 Server retry policy changes (D6 alternative).
 
 ## Constraints
-AI not promoted; D6 copy; light/dark; 7 locales.
+AI not promoted; D6 copy; light/dark; all app locale files (`pnpm check:i18n`).

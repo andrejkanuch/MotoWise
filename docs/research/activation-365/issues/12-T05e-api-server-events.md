@@ -13,7 +13,7 @@ release_path: "API deploy on Render (reaches every app version) + annotation"
 #365, plan §3A.0 rule 6 (D2b option B), §5A.4. Makes DB-only metrics FS-R2-5 and FS-PO4b readable in PostHog. The events respect each rider's analytics decision (doc review 2026-11-12, item 1).
 
 ## Why
-PostHog has no Supabase warehouse source [SOURCE: review W2, W3]. Junk makes ("A", "V") are saved: 4 of 29 bike-paywall riders [SOURCE: R2-DB5]. 26 of 72 first rides are live < 50 m [SOURCE: R4 S-R4-01].
+PostHog has no Supabase warehouse source [SOURCE: review W2, W3]. Junk makes ("A", "V") are saved: 6 of 176 onboarding bikes in 60 d have a make under 3 letters [SOURCE: V1-db6]. 26 of 71 sign-ups' first rides are live < 50 m, plus 15 live with null distance [SOURCE: R4 S-R4-01; V1-db9].
 
 ## What to change
 Server-side capture (same pattern as `signup_completed`, `apps/api/src/modules/analytics/signup-events.service.ts`):
@@ -41,7 +41,7 @@ Jest specs next to each service: event captured once with typed props; capture f
 FS-R2-5 / FS-PO4b (measurement). Repro: onboarding with custom make "A". Expected: `onboarding_bike_created {make_valid:false}`. Automated check: jest (CI) users.service spec.
 
 ## Production metric
-FS-R2-5: `countIf(properties.make_valid = false)` per week; baseline 4 of 29 [SOURCE: R2-DB5]; target 0 after T25b. FS-PO4b DB share: `ride_saved {is_first:true, below_min:true}` / `ride_saved {is_first:true}`; baseline 26/72 [SOURCE: R4 S-R4-01]; target < 5% after T09. Tiles in T03b. Annotate per T03a.
+FS-R2-5: `countIf(properties.make_valid = false)` per week; baseline 6/176 short makes (DB, 60 d) [SOURCE: V1-db6]; target 0 after T25b. FS-PO4b DB share: `ride_saved {is_first:true, below_min:true}` / `ride_saved {is_first:true}`; baseline 26/71 live < 50 m + 15 live null distance (count null as sub-floor) [SOURCE: V1-db9]; target < 5% after T09. Tiles in T03b. Annotate per T03a.
 
 ## Release
 API deploy (Render). Old clients unaffected.

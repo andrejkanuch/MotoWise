@@ -3,7 +3,7 @@ title: "[#365 T12] Account screen: busy state from tap, silent OAuth cancel, pos
 labels: [bug, area:mobile, activation-365]
 order: 21
 task_id: T12
-depends_on: [T04a]
+depends_on: [T00, T04a]
 phase: P1
 size: M
 release_path: "Release A 3.29.0"
@@ -40,7 +40,7 @@ FS-OB2c: `auth_error_alert_shown {outcome:'cancelled'}` / `auth_oauth_result {ou
 Release A; `FS-OB2b: 2`, `FS-OB2c: 2`.
 
 ## Dependencies
-- Blocked by: T04a.
+- Blocked by: T00 (test environment), T04a.
 - Blocks: T18.
 
 ## Out of scope

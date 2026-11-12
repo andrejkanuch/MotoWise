@@ -48,7 +48,8 @@ FS-PO1H. Repro: fresh install, new free account, onboarding Yamaha → MT-09 →
 
 ## Production metric
 - PostHog: `countIf(has service_plan_imported ≤ 5 min)/completers with a bike` by deploy date (API reaches all versions) — tile "FS-PO1H — onboarding bikes with a schedule".
-- DB weekly: S4(b) baseline 10/151 → ≥ 95%; S4(a) 25/111 → ≥ 55% [SOURCE: R2-M1; board/99 App. A].
+- DB weekly: S4(b) baseline 10/151 → ≥ 95% (reproduced 10/155, V1-db4); S4(a) 25/111 → ≥ 55% [SOURCE: R2-M1; board/99 App. A]. **S4(a) is reported with a `source = 'oem'` column**: rider-created tasks alone lifted the partial week 11-09 to 12/24 (9 bikes `user` vs 4 `oem`), so T07a is judged on S4(b)/R2-M1 and the `oem` column, never on the any-source column [SOURCE: V1-db3].
+- FS-R2-4: the imperial denominator comes from `onboarding_completed.measurement_system` or this task's `service_plan_imported.unit`, **not** `motorcycles.mileage_unit` (it defaults to `'mi'`: 86 of 176 onboarding bikes in 60 d are `mi`) [SOURCE: V1-db7, V1-db8].
 - Harm check: S1/S3 vs trailing 8 weeks. Annotate the deploy in PostHog.
 
 ## Release

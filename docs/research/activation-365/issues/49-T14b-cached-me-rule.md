@@ -32,7 +32,7 @@ Relapse cause confidence 45% [SOURCE: R1 RC-E]; `gate_routed.onboarding_complete
 FS-OB1e (cached path). Repro: dev build with a seeded persisted `me {onboardingCompleted:false}` older than sign-in. Expected: tabs. Automated check: jest (CI).
 
 ## Production metric
-FS-OB1e by `{REL}`; baseline 10/291 [SOURCE: R1 Q7]; target 0. Annotate when shipped.
+FS-OB1e by `{REL}`; baseline 10/292 relapsed, 6 completed twice [SOURCE: V1-q18]; target 0. Annotate when shipped.
 
 ## Release
 Next store build (D17).

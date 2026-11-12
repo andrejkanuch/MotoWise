@@ -3,7 +3,7 @@ title: "[#365 T31] Exp 1 test arm: teaching sheet for a standstill first ride"
 labels: [experiment, area:mobile, activation-365]
 order: 44
 task_id: T31
-depends_on: [T09, T30, T05c]
+depends_on: [T00, T09, T30, T05c]
 phase: P3
 size: M
 release_path: "Release B 3.30.0 (test arm only)"
@@ -13,7 +13,7 @@ release_path: "Release B 3.30.0 (test arm only)"
 #365, plan §3 T31, spec FS-PO4a, D13.
 
 ## Why
-26 of 72 new riders' first ride is a live sub-50 m ride [SOURCE: R4 S-R4-01]; ≥ 3.21 only 3/20 standstill-first riders saved a real ride ≤ 7 d [SOURCE: R4 Q-R4-06].
+26 of 71 sign-ups' first rides are live sub-50 m rides (+15 null distance) [SOURCE: R4 S-R4-01; V1-db9]; ≥ 3.21 only **1/14** standstill-first riders saved a real ride ≤ 7 d (complete-window guard) [SOURCE: V1-q35; R4 Q-R4-06 said 3/20] — outcome reads by arm are very small-n, so FS-PO4a stays a hygiene metric.
 
 ## What to change
 Pure `features/activation/guard-variant.ts` `selectGuardVariant({elapsedS, distanceM, hasRealRide, arm})`: teaching only for test arm, `distance_m < 10`, too-short branch, no real ride. Title "Test ride: all good" if `gps_fix` else "Testing it out?"; body states both floors (interpolated); buttons "Got it" (= T09 discard), "Keep recording", "Remind me on my next ride day" (T32 chips, `action:'remind_me'`); `variant:'teaching'`. testIDs `ride-guard-variant-teaching`, `ride-guard-got-it`, `ride-guard-remind-me`.
@@ -22,7 +22,7 @@ Pure `features/activation/guard-variant.ts` `selectGuardVariant({elapsedS, dista
 Jest `app/(modals)/__tests__/ride-guard-variant.test.ts` (all branches incl. no-GPS ≥ 120 s, distance 9/10/50). Maestro `ride-standstill-teaching.yaml` with `EXPECTED_ARM`.
 
 ## Acceptance criteria
-- [ ] Jest passes; Maestro green in both arms (test: teaching; control: default); HUD stays dark; 7 locales.
+- [ ] Jest passes; Maestro green in both arms (test: teaching; control: default); HUD stays dark; all app locale files (`pnpm check:i18n`).
 
 ## Verification
 `EXPECTED_ARM=test …` and `EXPECTED_ARM=control …` runs (local, both).
@@ -37,7 +37,7 @@ Hygiene: 0 teaching sheets with `distance_m ≥ 10` or after a real ride; ≥ 95
 Release B, test arm.
 
 ## Dependencies
-- Blocked by: T09, T30, T05c.
+- Blocked by: T00 (test environment), T09, T30, T05c.
 - Blocks: T35.
 
 ## Out of scope

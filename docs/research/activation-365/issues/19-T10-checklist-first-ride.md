@@ -3,7 +3,7 @@ title: "[#365 T10] Checklist \"first ride\" row: no tick on tap or without a rea
 labels: [bug, area:mobile, activation-365]
 order: 19
 task_id: T10
-depends_on: [T05d]
+depends_on: [T00, T05d]
 phase: P1
 size: S
 release_path: "Release A 3.29.0 (both arms, before the slot)"
@@ -20,7 +20,7 @@ Data-backed items never tick on tap; FIRST_RIDE needs duration ≥ `MIN_RIDE_ELA
 **Existing ticks:** the persisted checklist store migration (v5 → v6, `migrateChecklistState`, `stores/checklist.store.ts:132`, `version: 5` at `:230`) unticks `first_ride` for riders whose saved rides include none that meets both floors; the next signal read ticks it again for riders who do have a real ride.
 
 ## How
-Add `distanceM`/`durationS` to the Home rides fragment in `apps/mobile/src/graphql/` → `pnpm generate`; `lib/checklist-signals.ts`, `components/home/use-checklist-signals.ts`, `stores/checklist.store.ts` (persist migration v6: unticks `first_ride`; it is re-ticked only by the floor-checked signal), `onboarding-checklist.tsx`, 7 locales. Jest `lib/__tests__/checklist-signals.test.ts`, `components/home/__tests__/onboarding-checklist.test.tsx`.
+Add `distanceM`/`durationS` to the Home rides fragment in `apps/mobile/src/graphql/` → `pnpm generate`; `lib/checklist-signals.ts`, `components/home/use-checklist-signals.ts`, `stores/checklist.store.ts` (persist migration v6: unticks `first_ride`; it is re-ticked only by the floor-checked signal), `onboarding-checklist.tsx`, all app locale files (`pnpm check:i18n`). Jest `lib/__tests__/checklist-signals.test.ts`, `components/home/__tests__/onboarding-checklist.test.tsx`.
 
 ## Acceptance criteria
 - [ ] Jest: 0 m ride does not complete; 60 s / 800 m does; data-backed press does not call `completeItem`.
@@ -41,11 +41,11 @@ FS-PO10. Repro: new account → Home → tap "See your first ride stats". Expect
 Release A (lvl 2); the release cut records the level of FS-PO10 in plan §6.1 (no code map).
 
 ## Dependencies
-- Blocked by: T05d.
+- Blocked by: T00 (test environment), T05d.
 - Blocks: T32, T18.
 
 ## Out of scope
 Other checklist items' destinations (T28).
 
 ## Constraints
-Light/dark; 7 locales; D4.
+Light/dark; all app locale files (`pnpm check:i18n`); D4.

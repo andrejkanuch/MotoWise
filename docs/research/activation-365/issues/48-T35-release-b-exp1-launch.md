@@ -3,7 +3,7 @@ title: "[#365 T35] Release B: store 3.30.0 (activation_fix_level 3) and Experime
 labels: [experiment, area:mobile, area:analytics, activation-365]
 order: 48
 task_id: T35
-depends_on: [T02, T05c, T05d, T09, T10, T18, T30, T31, T32, T33, T34]
+depends_on: [T00, T02, T05c, T05d, T09, T10, T18, T30, T31, T32, T33, T34]
 phase: P3
 size: S
 release_path: "store builds both platforms; PostHog flag 50/50 (D2); start = server window set on the D16 day"
@@ -16,7 +16,8 @@ release_path: "store builds both platforms; PostHog flag 50/50 (D2); start = ser
 Exp 1 assignment happens in the first session, so it must be embedded [SOURCE: R3 RC-2]; P2 fixes reach new riders only in a binary.
 
 ## What to change
-- **Scope.** Hard dependencies are the Exp 1 minimum set only: T02, T05c, T05d, T09, T10, T18, T30, T31, T32, T33, T34. **Code freeze 2026-12-05.** P2 tasks (T19a, T19b, T20, T21, T22, T24, T25b, T26, T28) that are merged by the freeze ship in 3.30.0; any that miss it go into the next store build (D17). T27 and T29 ship in 3.30.0 if merged by the freeze, otherwise in the first binary after the slot, so D12 ("before the slot", never inside it) holds. The dates need about 2 merged PRs per day (parallel agents).
+- **Scope.** Hard dependencies are the Exp 1 minimum set only: T02, T05c, T05d, T09, T10, T18, T30, T31, T32, T33, T34. **Code freeze 2026-12-05.** P2 tasks (T19a, T19b, T20, T21, T22, T24, T25b, T26, T28) that are merged by the freeze ship in 3.30.0; any that miss it go into the next store build (D17); **T19a only together with T20** (validation V4). T27 ships in 3.30.0 if merged by the freeze, otherwise in the first binary after the slot, so D12 ("before the slot", never inside it) holds. **T29 targets Release A** (validation V1 FS-PO8); if it slipped, it is the first P2 task merged here, under the same D12 rule.
+- **Hard dependency T00** (validation V3): the runbook's pre-promotion `test:e2e:onboarding-paywall` needs a booted iOS simulator, and the Android flows need the `e2e-android` build. The dates need about 2 merged PRs per day (parallel agents).
 - The T30 API part (`activationExperimentWindow` on the `completeOnboarding` result) is deployed and live before the 3.30.0 cut.
 - Cut commit: `version: '3.30.0'`; `ACTIVATION_FIX_LEVEL = 3`; plan §6/§6.1 (§6.1 is the only record of which spec ships at which level).
 - E2E as T18 plus `first-ride-plan-card.yaml`, `ride-standstill-teaching.yaml` in both arms, `onboarding-paywall-verify.yaml` both arms.
@@ -39,20 +40,21 @@ Daily: Miller counts (ship if T − C ≥ 16; stop no-winner at T + C = 64); wee
 FS-EXP1 launch. Repro: new install after start. Expected: arm drawn, exposure once. Automated check: Maestro both arms (local, both) + jest from T30.
 
 ## Production metric
-S1 by `activation_arm` (primary), S3 engaged (secondary), FS-PO9 by arm. Baseline S1 Oct 16/127 (12.6%), 3.26.0 8/84 [SOURCE: board/99 §4; Q-P5]. Rule: Miller N = 64 + one one-sided z-test at the cap 2027-03-31 (board power 0.76 for ×2 at 12.6%, 2.1 completers/day [SOURCE: board/99 App. B]).
-Power by start date (approximate: two-proportion one-sided z-test at the cap, α = 0.05, 2.1 completers/day split 50/50, ×2 effect; the Appendix B simulation was not rerun):
-| Start | Days to cap | Per arm | Power at 12.6% | Power at 9.5% |
+S1 by `activation_arm` (primary), S3 engaged (secondary), FS-PO9 by arm. Baseline S1 Oct 16/127 (12.6%), 3.26.0 8/84 [SOURCE: board/99 §4; Q-P5]. Rule: Miller N = 64 + one one-sided z-test at the cap 2027-03-31 (D13). *(The board's power 0.76 "for ×2 at 12.6%" [SOURCE: board/99 App. B] is replaced by the absolute-lift table below.)*
+**Pre-registered analysis (validation V2, plan §5 FS-EXP1; D13 implementation note):** the one-sided test at the cap is computed **stratified (Mantel–Haenszel) on goal `track_rides` vs other × platform**; `returning_account` riders are excluded from the primary (T30 property); one pre-specified subgroup, `track_rides`. Baselines: completion-anchored S1 37/275 (13.5%), 3.26.0 8/84 (9.5%); strata `track_rides` 24% vs other goals 8% [SOURCE: V1-q7; V2-q5]; October completers came back at half the Aug–Sep rate, so expect the 9.5% column or lower during the Dec–Mar slot.
+Detectable effect stated as an **absolute lift** (power recomputed 2026-11-12, normal approximation, one-sided α = 0.05, 2.1 completers/day split 50/50, ≈ 6% removed as `returning_account`; planner calculation):
+| Start | Per arm | +8 pts at 9.5% / 12.6% | +10 pts at 9.5% / 12.6% | 80%-power MDE |
 |---|---|---|---|---|
-| 2026-12-15 | 106 | ≈ 111 | 0.78 | 0.65 |
-| 2027-01-06 | 84 | ≈ 88 | 0.69 | 0.56 |
-A capped no-winner means "no doubling shown", not "no effect".
+| 2026-12-15 | ≈ 104 | 0.52 / 0.46 | 0.66 / 0.60 | +12.5 / +13.6 pts |
+| 2027-01-06 | ≈ 83 | 0.45 / 0.40 | 0.57 / 0.52 | +14.3 / +15.5 pts |
+Stratification gives about the same power as the unstratified test (Monte-Carlo ±1 pt); it buys robustness and an honest subgroup. A capped no-winner means "no large lift shown", not "no effect".
 Reading rule for the P2 fixes in this binary (plan §0): iOS same-weeks version comparison is n/a for first-session cohorts (new App Store installs always get the newest version); harm checks in November–March are judged against a concurrent comparison, which after the start is the Exp 1 control arm (Android staged-rollout cohort before it); a trailing-8-week drop alone is recorded "no verdict (season)" and never triggers a revert. Dashboard "#365" + Exp 1 tiles. Annotate in PostHog.
 
 ## Release
 Store builds (owner go-ahead per runbook) + flag + server window on the D16 day.
 
 ## Dependencies
-- Blocked by: T02, T05c, T05d, T09, T10, T18, T30, T31, T32, T33, T34 (Exp 1 minimum set). P2 tasks join if merged by the 2026-12-05 freeze; they never block the cut.
+- Blocked by: T00 (test environment: iOS simulator runtime for the runbook E2E, `e2e-android` build), T02, T05c, T05d, T09, T10, T18, T30, T31, T32, T33, T34 (Exp 1 minimum set). P2 tasks join if merged by the 2026-12-05 freeze; they never block the cut.
 - Blocks: T40, T41.
 
 ## Out of scope

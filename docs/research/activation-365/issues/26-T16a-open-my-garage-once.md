@@ -3,7 +3,7 @@ title: "[#365 T16a] \"Open my garage\" once: idempotent CTA, Retry only when the
 labels: [bug, area:mobile, activation-365]
 order: 26
 task_id: T16a
-depends_on: [T05d]
+depends_on: [T00, T05d]
 phase: P1
 size: S
 release_path: "Release A 3.29.0"
@@ -43,13 +43,13 @@ Jest `app/(onboarding)/__tests__/personalizing.test.tsx` with fake timers, one c
 FS-OB6. Repro: iOS sim + Android emu with a "3G/High latency" conditioner, finish onboarding in each arm, tap "Open my garage" twice. Expected: Home within 5 s; personalizing never again; no Retry with all ticked. Automated check: jest (CI) (red first: double-tap case); maestro (local, both) **guard only** (Maestro cannot set a link conditioner): `runFlow onboarding.yaml` → `extendedWaitUntil: {visible: {id: home-screen}, timeout: 10000}` → `assertNotVisible: ".*Personalizing.*|Open my garage|Retry"` → wait 5 s → assert again.
 
 ## Production metric
-(a) completed twice (verbatim `R6…:340-345` with SCOREBOARD-CTE `R6…:250-261`); baseline 6/282 [SOURCE: R6-q3]; target 0. (b) p90 `post_onboarding_landed.ms_since_cta` < 3,000 ms. By `{REL}` and `onboarding_variant`. Tile "FS-OB6 — Open my garage". Annotate Release A.
+(a) completed twice (plan §5 FS-OB1e per-completer SQL; R6's SCOREBOARD-CTE join `R6…:250-261` counts event rows, V1 summary item 3); baseline 6/292 [SOURCE: V1-q18; R6-q3 6/282]; target 0. (b) p90 `post_onboarding_landed.ms_since_cta` < 3,000 ms. By `{REL}` and `onboarding_variant`. Tile "FS-OB6 — Open my garage". Annotate Release A.
 
 ## Release
 Release A (lvl 2); the release cut records the level of FS-OB6 in plan §6.1 (no code map).
 
 ## Dependencies
-- Blocked by: T05d.
+- Blocked by: T00 (test environment), T05d.
 - Blocks: T18.
 
 ## Out of scope

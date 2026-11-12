@@ -3,7 +3,7 @@ title: "[#365 T01] Release marker on every event: activation_fix_level, ota_upda
 labels: [instrumentation, area:mobile, area:analytics, activation-365]
 order: 1
 task_id: T01
-depends_on: []
+depends_on: [T00]
 phase: P0
 size: S
 release_path: "Release A store build 3.29.0 (T18) only (owner rule D17)"
@@ -17,7 +17,7 @@ Every other #365 task is read per release through these properties.
 - An OTA keeps `$app_version`; Android has run binary 3.26.0 b93 through every November OTA [SOURCE: R5 Q18; plan Q-P1].
 - No event carries an update id or a fix level: 0 of 232 (3.26.0), 0/59 (3.27.0), 0/36 (3.28.0) `Application Opened` in 7 days [SOURCE: plan Q-P4]. Release-marker baseline = **0%**.
 - A new rider's first session runs the binary's embedded JS [SOURCE: R3 RC-2], so `is_embedded_launch` is needed to know which code a first session ran.
-- `platform` is already a super property but null before account load/consent on ~60% of opens [SOURCE: Q-P1; hooks/use-analytics-super-properties.ts:64-71].
+- `platform` is already a super property but null on **29% of `Application Opened` — exactly the install/first open** (97 of 332 in 7 d), and `$os`/`$os_name` are **never set** on mobile events, so the platform of a cohort's first event is unknown today [SOURCE: validation/V1-metrics.md §3.1, V1-q2…q5; hooks/use-analytics-super-properties.ts:64-71]. Until this ships, queries use a person-level platform with a temporary `$app_build` fallback that breaks at Android versionCode 100 (plan §0 `{REL}`).
 
 ## What to change
 Register on every event, at PostHog client creation and again on consent grant:
@@ -34,7 +34,8 @@ Register on every event, at PostHog client creation and again on consent grant:
 ## Acceptance criteria
 - [ ] Jest: embedded launch → `ota_update_id: 'embedded'`, `is_embedded_launch: true`; OTA launch → the id; level equals the constant; registered at init and again on consent; `e2e_run` present only with the env flag.
 - [ ] `pnpm verify:mobile` green; no PII in any property.
-- [ ] On a preview build with a consenting test account, PostHog Live events show all properties on `Application Opened`.
+- [ ] On a T00 E2E build (no EAS `preview` build exists) with a consenting test account, PostHog Live events show all properties on `Application Opened`.
+- [ ] **`platform` is non-null on 100% of `Application Opened`, including the first open after install** (jest: registered before the first capture; Live events: the install open carries it). Production check after 3.29.0: `countIf(properties.platform IS NULL) = 0` on 3.29.0 opens.
 
 ## Verification
 - `pnpm --filter @motovault/mobile test -- analytics-release-marker` and `pnpm verify:mobile`.
@@ -58,7 +59,7 @@ FS-M — fixes can be read per release.
 JS only, no native dependency (`expo-updates` already in the binary). Ships only embedded in Release A 3.29.0 (D17; TR0 removed by D17); riders on older binaries never carry the marker (read null `lvl` as pre-3.29.0 JS).
 
 ## Dependencies
-- Blocked by: —
+- Blocked by: T00 (test environment: an E2E build to check Live events).
 - Blocks: T03b, T04a, T04b, T04c, T05a, T05b, T05c, T05d, T18.
 
 ## Out of scope
