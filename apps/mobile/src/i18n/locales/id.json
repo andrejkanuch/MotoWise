@@ -2482,20 +2482,16 @@
       "c3Title": "Pilih cara mulai."
     },
     "banner": {
-      "wordRecording": "Merekam",
       "wordAutoPaused": "Jeda otomatis",
-      "wordPaused": "Dijeda",
       "wordSaved": "Tersimpan",
       "wordNotRecording": "Tidak merekam",
       "wordAcquiring": "Mencari GPS",
-      "wordReady": "Siap",
       "subRecording": "kontrol di head unit",
       "subAutoPaused": "lanjut saat kamu bergerak",
       "subPaused": "lanjutkan dari head unit",
       "subSaved": "ketuk untuk meninjau perjalanan",
       "subInterrupted": "ketuk untuk melanjutkan atau mengakhiri",
       "subAcquiring": "menunggu sinyal GPS",
-      "subArmedAuto": "mulai otomatis aktif",
       "subManualIdle": "mulai dari head unit"
     },
     "panel": {

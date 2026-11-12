@@ -18,7 +18,6 @@ import {
 import type { BannerState } from '../../components/carplay/active-ride-banner';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { motorcyclesOptions } from '../../lib/query-options';
-import { useCarPlayStore } from '../../stores/carplay.store';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
 import { formatDistance, formatElapsed, formatElevation } from '../../utils/ride-formatters';
@@ -88,13 +87,13 @@ type RideStatus = ReturnType<typeof useRideStore.getState>['status'];
 // An open ride whose GPS is not confirmed running is NOT RECORDING, whatever else.
 const BANNER_STATE: Record<
   RideStatus,
-  (ctx: { stopped: boolean; automatic: boolean; interrupted: boolean }) => BannerState
+  (ctx: { stopped: boolean; interrupted: boolean }) => BannerState
 > = {
   recording: ({ stopped, interrupted }) =>
     interrupted ? 'interrupted' : stopped ? 'autoPaused' : 'recording',
   paused: ({ interrupted }) => (interrupted ? 'interrupted' : 'paused'),
   ended: () => 'saved',
-  idle: ({ automatic }) => (automatic ? 'armedAuto' : 'manualIdle'),
+  idle: () => 'manualIdle',
 };
 
 // Live ride projection for the phone banner + status sheet. Real data from the
@@ -107,7 +106,6 @@ export function useLiveRideSnapshot(): LiveRideSnapshot {
   const distance = useRideStore((s) => s.distance);
   const elapsedTime = useRideElapsed();
   const elevationGain = useRideStore((s) => s.elevationGain);
-  const startMode = useCarPlayStore((s) => s.startMode);
   const system = useMeasurementSystem();
   const ended = useMemo(() => (status === 'ended' ? readEndedRideSummary() : null), [status]);
 
@@ -115,7 +113,6 @@ export function useLiveRideSnapshot(): LiveRideSnapshot {
     active: status !== 'idle',
     bannerState: BANNER_STATE[status]({
       stopped: subState === 'stopped',
-      automatic: startMode === 'automatic',
       interrupted,
     }),
     distance: formatDistance(ended?.distanceM ?? distance, system),

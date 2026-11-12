@@ -1,5 +1,6 @@
 import type { JsonType } from '@posthog/core';
 import { isBelowMinRide, isNoGpsRide } from '../utils/ride-constants';
+import { rideMMKV } from '../utils/ride-storage';
 import { AnalyticsEvent, trackEvent } from './analytics';
 
 /**
@@ -69,10 +70,25 @@ export function trackRideCompleted(input: RideCompletedInput): void {
   trackEvent(AnalyticsEvent.RIDE_COMPLETED, rideCompletedProperties(input));
 }
 
-/** The event for the end-ride floor guard: a ride long in time but empty in distance
- *  is a GPS failure, not a mis-tap, and is counted apart. */
-export function rideGuardEvent(elapsedS: number) {
-  return isNoGpsRide(elapsedS)
+export interface RideGuardData {
+  elapsed_s: number;
+  distance_m: number;
+}
+
+/** The end-ride floor guard (phone HUD and CarPlay Stop). A ride long in time but
+ *  empty in distance is a GPS failure, not a mis-tap, and is counted apart. */
+export function trackRideGuard(
+  guard: RideGuardData,
+  action: 'shown' | 'keep' | 'end',
+  source?: 'carplay',
+): void {
+  const event = isNoGpsRide(guard.elapsed_s)
     ? AnalyticsEvent.RIDE_ZERO_DISTANCE_SHOWN
     : AnalyticsEvent.RIDE_TOO_SHORT_SHOWN;
+  trackEvent(event, {
+    ride_id: rideMMKV.getCurrentId() ?? null,
+    ...guard,
+    action,
+    ...(source && { source }),
+  });
 }

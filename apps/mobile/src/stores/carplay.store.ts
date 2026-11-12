@@ -31,10 +31,7 @@ export function partializeCarPlayState(state: CarPlayState) {
 
 export function migrateCarPlayState(persisted: unknown, version: number) {
   const state = persisted as Partial<CarPlayState> | undefined;
-  if (version < 2 && state?.startMode && state.startMode !== 'manual') {
-    return { ...state, startMode: 'manual' as const };
-  }
-  return state;
+  return version < 2 && state ? { ...state, startMode: 'manual' as const } : state;
 }
 
 export const useCarPlayStore = create<CarPlayState>()(

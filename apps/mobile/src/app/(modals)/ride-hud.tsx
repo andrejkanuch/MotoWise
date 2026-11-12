@@ -21,7 +21,7 @@ import { useBatterySaverToggle } from '../../features/ride/use-battery-saver-tog
 import { useRideElapsed } from '../../features/ride/use-ride-elapsed';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { bestEffortNativeCall, NativeSideEffect } from '../../lib/best-effort-native';
-import { rideGuardEvent } from '../../lib/ride-analytics';
+import { trackRideGuard } from '../../lib/ride-analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { editorialThemes } from '../../theme/editorial';
 import { radius, type } from '../../theme/type';
@@ -202,14 +202,10 @@ export default function RideHudScreen() {
 
     // Minimum ride guard: check if ride is too short
     if (isBelowMinRide(elapsed, dist)) {
-      setGuardData({ elapsed_s: elapsed, distance_m: Math.round(dist) });
+      const guard = { elapsed_s: elapsed, distance_m: Math.round(dist) };
+      setGuardData(guard);
       guardSheetRef.current?.expand();
-      trackEvent(rideGuardEvent(elapsed), {
-        ride_id: rideMMKV.getCurrentId() ?? null,
-        elapsed_s: elapsed,
-        distance_m: Math.round(dist),
-        action: 'shown',
-      });
+      trackRideGuard(guard, 'shown');
       return;
     }
 
@@ -217,27 +213,13 @@ export default function RideHudScreen() {
   }, [executeEndRide]);
 
   const handleGuardKeepRiding = useCallback(() => {
-    if (guardData) {
-      trackEvent(rideGuardEvent(guardData.elapsed_s), {
-        ride_id: rideMMKV.getCurrentId() ?? null,
-        elapsed_s: guardData.elapsed_s,
-        distance_m: guardData.distance_m,
-        action: 'keep',
-      });
-    }
+    if (guardData) trackRideGuard(guardData, 'keep');
     guardSheetRef.current?.close();
     setGuardData(null);
   }, [guardData]);
 
   const handleGuardEndAnyway = useCallback(() => {
-    if (guardData) {
-      trackEvent(rideGuardEvent(guardData.elapsed_s), {
-        ride_id: rideMMKV.getCurrentId() ?? null,
-        elapsed_s: guardData.elapsed_s,
-        distance_m: guardData.distance_m,
-        action: 'end',
-      });
-    }
+    if (guardData) trackRideGuard(guardData, 'end');
     guardSheetRef.current?.close();
     setGuardData(null);
     executeEndRide();

@@ -2560,20 +2560,16 @@
       "c3Title": "Wybierz sposób startu."
     },
     "banner": {
-      "wordRecording": "Nagrywanie",
       "wordAutoPaused": "Autopauza",
-      "wordPaused": "Wstrzymano",
       "wordSaved": "Zapisano",
       "wordNotRecording": "Nie nagrywa",
       "wordAcquiring": "Szukanie GPS",
-      "wordReady": "Gotowe",
       "subRecording": "sterowanie na wyświetlaczu",
       "subAutoPaused": "wznowi się, gdy ruszysz",
       "subPaused": "wznów na wyświetlaczu",
       "subSaved": "dotknij, aby przejrzeć przejazd",
       "subInterrupted": "dotknij, aby wznowić lub zakończyć",
       "subAcquiring": "czekam na sygnał GPS",
-      "subArmedAuto": "autostart włączony",
       "subManualIdle": "rozpocznij na wyświetlaczu"
     },
     "panel": {

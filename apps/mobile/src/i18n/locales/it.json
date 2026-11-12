@@ -2519,20 +2519,16 @@
       "c3Title": "Scegli come partire."
     },
     "banner": {
-      "wordRecording": "Registrazione",
       "wordAutoPaused": "Pausa automatica",
-      "wordPaused": "In pausa",
       "wordSaved": "Salvato",
       "wordNotRecording": "Non in registrazione",
       "wordAcquiring": "Ricerca GPS",
-      "wordReady": "Pronto",
       "subRecording": "comandi sull’head unit",
       "subAutoPaused": "riprende quando ti muovi",
       "subPaused": "riprendi dall’head unit",
       "subSaved": "tocca per rivedere il giro",
       "subInterrupted": "tocca per riprendere o terminare",
       "subAcquiring": "in attesa del segnale GPS",
-      "subArmedAuto": "avvio automatico attivo",
       "subManualIdle": "avvia dall’head unit"
     },
     "panel": {

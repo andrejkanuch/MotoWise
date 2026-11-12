@@ -2519,20 +2519,16 @@
       "c3Title": "Elige cómo empezar."
     },
     "banner": {
-      "wordRecording": "Grabando",
       "wordAutoPaused": "Pausa automática",
-      "wordPaused": "En pausa",
       "wordSaved": "Guardada",
       "wordNotRecording": "Sin grabar",
       "wordAcquiring": "Buscando GPS",
-      "wordReady": "Listo",
       "subRecording": "controles en la pantalla",
       "subAutoPaused": "se reanuda al moverte",
       "subPaused": "reanuda desde la pantalla",
       "subSaved": "toca para revisar tu rodada",
       "subInterrupted": "toca para reanudar o terminar",
       "subAcquiring": "esperando señal GPS",
-      "subArmedAuto": "inicio automático activado",
       "subManualIdle": "inicia desde la pantalla"
     },
     "panel": {

@@ -2482,20 +2482,16 @@
       "c3Title": "Pick your start."
     },
     "banner": {
-      "wordRecording": "Recording",
       "wordAutoPaused": "Auto-paused",
-      "wordPaused": "Paused",
       "wordSaved": "Saved",
       "wordNotRecording": "Not recording",
       "wordAcquiring": "Acquiring GPS",
-      "wordReady": "Ready",
       "subRecording": "controls on your head unit",
       "subAutoPaused": "resumes when you move",
       "subPaused": "resume from the head unit",
       "subSaved": "tap to review your ride",
       "subInterrupted": "tap to resume or end",
       "subAcquiring": "waiting for GPS lock",
-      "subArmedAuto": "auto-start armed",
       "subManualIdle": "start from the head unit"
     },
     "panel": {

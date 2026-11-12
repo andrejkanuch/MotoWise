@@ -2482,20 +2482,16 @@
       "c3Title": "शुरुआत का तरीका चुनें।"
     },
     "banner": {
-      "wordRecording": "रिकॉर्डिंग",
       "wordAutoPaused": "ऑटो-पॉज़",
-      "wordPaused": "रुका हुआ",
       "wordSaved": "सेव हो गई",
       "wordNotRecording": "रिकॉर्ड नहीं हो रहा",
       "wordAcquiring": "GPS खोज रहा है",
-      "wordReady": "तैयार",
       "subRecording": "कंट्रोल हेड यूनिट पर",
       "subAutoPaused": "चलने पर फिर शुरू होगा",
       "subPaused": "हेड यूनिट से फिर शुरू करें",
       "subSaved": "अपनी राइड देखने के लिए टैप करें",
       "subInterrupted": "फिर शुरू या खत्म करने के लिए टैप करें",
       "subAcquiring": "GPS लॉक का इंतज़ार",
-      "subArmedAuto": "ऑटो-स्टार्ट तैयार",
       "subManualIdle": "हेड यूनिट से शुरू करें"
     },
     "panel": {

@@ -2519,20 +2519,16 @@
       "c3Title": "Choisis ton démarrage."
     },
     "banner": {
-      "wordRecording": "Enregistrement",
       "wordAutoPaused": "Pause auto",
-      "wordPaused": "En pause",
       "wordSaved": "Enregistrée",
       "wordNotRecording": "Pas d’enregistrement",
       "wordAcquiring": "Recherche GPS",
-      "wordReady": "Prêt",
       "subRecording": "commandes sur l’écran de bord",
       "subAutoPaused": "reprend quand tu roules",
       "subPaused": "reprends depuis l’écran de bord",
       "subSaved": "touche pour revoir ta sortie",
       "subInterrupted": "touche pour reprendre ou terminer",
       "subAcquiring": "en attente du signal GPS",
-      "subArmedAuto": "démarrage auto activé",
       "subManualIdle": "démarre depuis l’écran de bord"
     },
     "panel": {

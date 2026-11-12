@@ -2482,20 +2482,16 @@
       "c3Title": "Başlangıcını seç."
     },
     "banner": {
-      "wordRecording": "Kaydediliyor",
       "wordAutoPaused": "Otomatik duraklatıldı",
-      "wordPaused": "Duraklatıldı",
       "wordSaved": "Kaydedildi",
       "wordNotRecording": "Kaydedilmiyor",
       "wordAcquiring": "GPS aranıyor",
-      "wordReady": "Hazır",
       "subRecording": "kontroller gösterge ekranında",
       "subAutoPaused": "hareket edince devam eder",
       "subPaused": "gösterge ekranından devam et",
       "subSaved": "sürüşünü incelemek için dokun",
       "subInterrupted": "devam etmek veya bitirmek için dokun",
       "subAcquiring": "GPS sinyali bekleniyor",
-      "subArmedAuto": "otomatik başlatma hazır",
       "subManualIdle": "gösterge ekranından başlat"
     },
     "panel": {

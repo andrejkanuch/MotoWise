@@ -18,70 +18,55 @@ export type BannerState =
   | 'interrupted'
   | 'acquiring'
   | 'saved'
-  | 'armedAuto'
   | 'manualIdle';
 
 // Banner state → canonical glyph-state, word + sub copy keys, whether metrics show.
 const BANNER = {
   recording: {
     state: 'recording',
-    word: 'carplay.banner.wordRecording',
+    word: 'rideHud.statusRecording',
     sub: 'carplay.banner.subRecording',
     metrics: true,
-    pulse: true,
   },
   autoPaused: {
     state: 'autoPaused',
     word: 'carplay.banner.wordAutoPaused',
     sub: 'carplay.banner.subAutoPaused',
     metrics: true,
-    pulse: false,
   },
   paused: {
     state: 'paused',
-    word: 'carplay.banner.wordPaused',
+    word: 'rideHud.statusPaused',
     sub: 'carplay.banner.subPaused',
     metrics: true,
-    pulse: false,
   },
   saved: {
     state: 'saved',
     word: 'carplay.banner.wordSaved',
     sub: 'carplay.banner.subSaved',
     metrics: true,
-    pulse: false,
   },
   interrupted: {
     state: 'stop',
     word: 'carplay.banner.wordNotRecording',
     sub: 'carplay.banner.subInterrupted',
     metrics: true,
-    pulse: false,
   },
   acquiring: {
     state: 'acquiring',
     word: 'carplay.banner.wordAcquiring',
     sub: 'carplay.banner.subAcquiring',
     metrics: true,
-    pulse: false,
-  },
-  armedAuto: {
-    state: 'recording',
-    word: 'carplay.banner.wordReady',
-    sub: 'carplay.banner.subArmedAuto',
-    metrics: false,
-    pulse: false,
   },
   manualIdle: {
     state: 'recording',
     word: 'carplay.banner.wordNotRecording',
     sub: 'carplay.banner.subManualIdle',
     metrics: false,
-    pulse: false,
   },
 } as const satisfies Record<
   BannerState,
-  { state: RideStateKey; word: string; sub: string; metrics: boolean; pulse: boolean }
+  { state: RideStateKey; word: string; sub: string; metrics: boolean }
 >;
 
 const NO_METRICS = '— · —:—';
@@ -102,8 +87,7 @@ export function ActiveRideBanner({
   const cfg = BANNER[state];
   const word = t(cfg.word).toLocaleUpperCase();
   const sub = t(cfg.sub);
-  const tintColor =
-    state === 'armedAuto' || state === 'manualIdle' ? c.ink3 : stateTint(cfg.state, c);
+  const tintColor = cfg.metrics ? stateTint(cfg.state, c) : c.ink3;
   const metrics = state === 'acquiring' ? NO_METRICS : `${distance} · ${time}`;
   const a11yLabel = [word, cfg.metrics ? metrics : '', sub].filter(Boolean).join(' · ');
 
@@ -126,7 +110,7 @@ export function ActiveRideBanner({
         paddingHorizontal: 14,
       }}
     >
-      {cfg.pulse ? <PulseDot color={tintColor} /> : <StaticDot color={tintColor} />}
+      {state === 'recording' ? <PulseDot color={tintColor} /> : <StaticDot color={tintColor} />}
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Text

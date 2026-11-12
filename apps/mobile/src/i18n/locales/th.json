@@ -2482,20 +2482,16 @@
       "c3Title": "เลือกวิธีเริ่มต้น"
     },
     "banner": {
-      "wordRecording": "กำลังบันทึก",
       "wordAutoPaused": "หยุดอัตโนมัติ",
-      "wordPaused": "หยุดชั่วคราว",
       "wordSaved": "บันทึกแล้ว",
       "wordNotRecording": "ไม่ได้บันทึก",
       "wordAcquiring": "กำลังค้นหา GPS",
-      "wordReady": "พร้อม",
       "subRecording": "ควบคุมบนหน้าจอในรถ",
       "subAutoPaused": "กลับมาบันทึกเมื่อคุณเคลื่อนที่",
       "subPaused": "กลับมาบันทึกต่อจากหน้าจอในรถ",
       "subSaved": "แตะเพื่อตรวจสอบการขับขี่",
       "subInterrupted": "แตะเพื่อทำต่อหรือสิ้นสุด",
       "subAcquiring": "กำลังรอสัญญาณ GPS",
-      "subArmedAuto": "เริ่มอัตโนมัติพร้อมแล้ว",
       "subManualIdle": "เริ่มจากหน้าจอในรถ"
     },
     "panel": {

@@ -39,13 +39,12 @@ import { hasAuthenticatedSession } from '../../lib/gql-auth-session';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
-import { rideGuardEvent } from '../../lib/ride-analytics';
+import { type RideGuardData, trackRideGuard } from '../../lib/ride-analytics';
 import { useAuthStore } from '../../stores/auth.store';
 import { useCarPlayStore } from '../../stores/carplay.store';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
 import { isBelowMinRide } from '../../utils/ride-constants';
-import { rideMMKV } from '../../utils/ride-storage';
 import { drainQueue } from '../../utils/ride-sync-queue';
 import {
   buildRideSummaryHref,
@@ -115,7 +114,7 @@ let stopArmed = false;
 let stopArmTimer: ReturnType<typeof setTimeout> | null = null;
 // Set while the armed Stop would end a ride under the end-ride floors: the confirm
 // then warns that the ride is too short, as the phone HUD does.
-let tooShortGuard: { elapsed_s: number; distance_m: number } | null = null;
+let tooShortGuard: RideGuardData | null = null;
 // True while the Bike-status list is pushed on top of the Ride panel. While set,
 // the coordinator must never rebuild the root (setRootTemplate would pop the list —
 // KTD5); ride-panel renders are suppressed and naturally refresh/rebuild on pop.
@@ -189,15 +188,8 @@ function disarmStop(): void {
   clearStopArmTimer();
 }
 
-// Same event and properties as the phone HUD's guard, plus the surface.
 function trackTooShortGuard(action: 'shown' | 'keep' | 'end'): void {
-  if (!tooShortGuard) return;
-  trackEvent(rideGuardEvent(tooShortGuard.elapsed_s), {
-    ride_id: rideMMKV.getCurrentId() ?? null,
-    ...tooShortGuard,
-    action,
-    source: 'carplay',
-  });
+  if (tooShortGuard) trackRideGuard(tooShortGuard, action, 'carplay');
 }
 
 /**

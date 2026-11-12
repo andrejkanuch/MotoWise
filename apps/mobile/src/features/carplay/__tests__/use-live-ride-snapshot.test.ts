@@ -40,7 +40,7 @@ describe('useLiveRideSnapshot', () => {
     ['recording', 'stopped', 'manual', 'autoPaused', true],
     ['paused', 'stopped', 'manual', 'paused', true],
     ['ended', 'moving', 'manual', 'saved', true],
-    ['idle', 'moving', 'automatic', 'armedAuto', false],
+    ['idle', 'moving', 'automatic', 'manualIdle', false],
     ['idle', 'moving', 'manual', 'manualIdle', false],
   ];
 

@@ -244,9 +244,7 @@ const STATE_WORD: Record<CarPlayPanelState, string> = {
 // Title shown while a Stop is armed and awaiting confirmation (R17 stop guard).
 const STOP_CONFIRM_TITLE = 'STOP RIDE?';
 
-// Stop-confirm title when the ride is under the phone HUD's end-ride floors
-// (isBelowMinRide): the same warning the HUD shows before it ends a very short ride.
-// Localized like forgotToStopTitle below.
+// Stop-confirm title for a ride under the phone HUD's end-ride floors.
 const tooShortTitle = (): string =>
   i18n.t('carplay.panel.tooShortTitle', { defaultValue: 'Ride too short' }).toLocaleUpperCase();
 

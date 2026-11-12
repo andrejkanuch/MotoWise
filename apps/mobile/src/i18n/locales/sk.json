@@ -2560,20 +2560,16 @@
       "c3Title": "Vyber si, ako začať."
     },
     "banner": {
-      "wordRecording": "Nahráva sa",
       "wordAutoPaused": "Automatická pauza",
-      "wordPaused": "Pozastavené",
       "wordSaved": "Uložené",
       "wordNotRecording": "Nenahráva sa",
       "wordAcquiring": "Hľadá sa GPS",
-      "wordReady": "Pripravené",
       "subRecording": "ovládanie na displeji vo vozidle",
       "subAutoPaused": "pokračuje, keď sa pohneš",
       "subPaused": "pokračuj z displeja vo vozidle",
       "subSaved": "ťukni a skontroluj jazdu",
       "subInterrupted": "ťukni a pokračuj alebo ukonči",
       "subAcquiring": "čaká sa na signál GPS",
-      "subArmedAuto": "automatický štart zapnutý",
       "subManualIdle": "spusti z displeja vo vozidle"
     },
     "panel": {

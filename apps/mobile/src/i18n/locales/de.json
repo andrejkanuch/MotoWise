@@ -2482,20 +2482,16 @@
       "c3Title": "Wähle deinen Start."
     },
     "banner": {
-      "wordRecording": "Aufnahme",
       "wordAutoPaused": "Auto-Pause",
-      "wordPaused": "Pausiert",
       "wordSaved": "Gespeichert",
       "wordNotRecording": "Keine Aufnahme",
       "wordAcquiring": "GPS wird gesucht",
-      "wordReady": "Bereit",
       "subRecording": "Steuerung am Fahrzeugdisplay",
       "subAutoPaused": "läuft weiter, sobald du fährst",
       "subPaused": "am Fahrzeugdisplay fortsetzen",
       "subSaved": "tippen, um deine Fahrt zu prüfen",
       "subInterrupted": "tippen zum Fortsetzen oder Beenden",
       "subAcquiring": "warte auf GPS-Signal",
-      "subArmedAuto": "Auto-Start aktiv",
       "subManualIdle": "am Fahrzeugdisplay starten"
     },
     "panel": {
