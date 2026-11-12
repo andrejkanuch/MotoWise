@@ -58,6 +58,9 @@ export const queryKeys = {
     /** The dashboard aggregate (`expenseDashboard`) for a bike. */
     dashboard: (motorcycleId: string) =>
       [...queryKeys.expenses.byMotorcycle(motorcycleId), 'dashboard'] as const,
+    /** The 12-month cost trend (`expenseCostTrend`); the zone decides the current month. */
+    costTrend: (motorcycleId: string, timeZone: string) =>
+      [...queryKeys.expenses.byMotorcycle(motorcycleId), 'costTrend', timeZone] as const,
   },
   expensePhotos: {
     byExpense: (expenseId: string) => ['expense-photos', expenseId] as const,

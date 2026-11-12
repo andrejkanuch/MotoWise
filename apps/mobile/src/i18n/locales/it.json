@@ -1560,7 +1560,19 @@
     "categoryRowA11y": "{{category}}: {{amount}}, {{percent}} per cento. Tocca per vedere le spese.",
     "trendChartA11y": "Grafico delle spese mensili",
     "legendA11y": "Legenda del grafico: {{list}}",
-    "summaryA11y": "Riepilogo delle spese"
+    "summaryA11y": "Riepilogo delle spese",
+    "costTrend": {
+      "title": "Andamento dei costi",
+      "lockedBody": "Scopri quanto ti costa questa moto ogni mese negli ultimi 12 mesi.",
+      "unlock": "Sblocca",
+      "lockedA11y": "Andamento dei costi, Pro. Apre la paywall",
+      "last12Months": "Ultimi 12 mesi",
+      "seriesA11y": "{{amount}} negli ultimi 12 mesi, da {{from}} a {{to}}",
+      "otherCurrencies_one": "{{count}} spesa in un'altra valuta non inclusa",
+      "otherCurrencies_few": "{{count}} spese in altre valute non incluse",
+      "otherCurrencies_many": "{{count}} spese in altre valute non incluse",
+      "otherCurrencies_other": "{{count}} spese in altre valute non incluse"
+    }
   },
   "privacy": {
     "title": "Privacy",

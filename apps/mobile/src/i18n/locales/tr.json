@@ -1539,7 +1539,19 @@
     "categoryRowA11y": "{{category}}: {{amount}}, yüzde {{percent}}. Harcamaları görmek için dokun.",
     "trendChartA11y": "Aylık harcama grafiği",
     "legendA11y": "Grafik açıklaması: {{list}}",
-    "summaryA11y": "Harcama özeti"
+    "summaryA11y": "Harcama özeti",
+    "costTrend": {
+      "title": "Maliyet eğilimi",
+      "lockedBody": "Bu motosikletin son 12 ayda her ay sana ne kadara mal olduğunu gör.",
+      "unlock": "Kilidi aç",
+      "lockedA11y": "Maliyet eğilimi, Pro. Abonelik ekranını açar",
+      "last12Months": "Son 12 ay",
+      "seriesA11y": "Son 12 ayda {{amount}}, {{from}} - {{to}}",
+      "otherCurrencies_one": "Başka para birimindeki {{count}} harcama dahil değil",
+      "otherCurrencies_few": "Başka para birimlerindeki {{count}} harcama dahil değil",
+      "otherCurrencies_many": "Başka para birimlerindeki {{count}} harcama dahil değil",
+      "otherCurrencies_other": "Başka para birimlerindeki {{count}} harcama dahil değil"
+    }
   },
   "privacy": {
     "title": "Gizlilik",

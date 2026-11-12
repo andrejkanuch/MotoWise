@@ -1539,7 +1539,19 @@
     "categoryRowA11y": "{{category}}: {{amount}}、{{percent}}パーセント。タップして支出を表示。",
     "trendChartA11y": "月別支出の推移グラフ",
     "legendA11y": "グラフの凡例: {{list}}",
-    "summaryA11y": "支出の概要"
+    "summaryA11y": "支出の概要",
+    "costTrend": {
+      "title": "費用の推移",
+      "lockedBody": "過去12か月、このバイクに毎月いくらかかったかを確認できます。",
+      "unlock": "解除",
+      "lockedA11y": "費用の推移、Pro。ペイウォールを開きます",
+      "last12Months": "過去12か月",
+      "seriesA11y": "過去12か月で{{amount}}、{{from}}から{{to}}まで",
+      "otherCurrencies_one": "別の通貨の支出{{count}}件は含まれていません",
+      "otherCurrencies_few": "別の通貨の支出{{count}}件は含まれていません",
+      "otherCurrencies_many": "別の通貨の支出{{count}}件は含まれていません",
+      "otherCurrencies_other": "別の通貨の支出{{count}}件は含まれていません"
+    }
   },
   "privacy": {
     "title": "プライバシー",

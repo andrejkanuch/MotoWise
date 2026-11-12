@@ -1539,7 +1539,19 @@
     "categoryRowA11y": "{{category}}: {{amount}}, {{percent}} प्रतिशत। खर्च देखने के लिए टैप करें।",
     "trendChartA11y": "मासिक खर्च का चार्ट",
     "legendA11y": "चार्ट की कुंजी: {{list}}",
-    "summaryA11y": "खर्च का सारांश"
+    "summaryA11y": "खर्च का सारांश",
+    "costTrend": {
+      "title": "ख़र्च का रुझान",
+      "lockedBody": "देखें कि पिछले 12 महीनों में यह बाइक हर महीने आपको कितने में पड़ी।",
+      "unlock": "अनलॉक",
+      "lockedA11y": "ख़र्च का रुझान, Pro। पेवॉल खोलता है",
+      "last12Months": "पिछले 12 महीने",
+      "seriesA11y": "पिछले 12 महीनों में {{amount}}, {{from}} से {{to}} तक",
+      "otherCurrencies_one": "दूसरी मुद्रा का {{count}} ख़र्च शामिल नहीं",
+      "otherCurrencies_few": "दूसरी मुद्राओं के {{count}} ख़र्च शामिल नहीं",
+      "otherCurrencies_many": "दूसरी मुद्राओं के {{count}} ख़र्च शामिल नहीं",
+      "otherCurrencies_other": "दूसरी मुद्राओं के {{count}} ख़र्च शामिल नहीं"
+    }
   },
   "privacy": {
     "title": "प्राइवेसी",

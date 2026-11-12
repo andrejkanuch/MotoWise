@@ -1581,7 +1581,19 @@
     "categoryRowA11y": "{{category}}: {{amount}}, {{percent}} procent. Stuknij, aby zobaczyć wydatki.",
     "trendChartA11y": "Wykres miesięcznych wydatków",
     "legendA11y": "Legenda wykresu: {{list}}",
-    "summaryA11y": "Podsumowanie wydatków"
+    "summaryA11y": "Podsumowanie wydatków",
+    "costTrend": {
+      "title": "Trend kosztów",
+      "lockedBody": "Zobacz, ile kosztuje Cię ten motocykl co miesiąc w ostatnich 12 miesiącach.",
+      "unlock": "Odblokuj",
+      "lockedA11y": "Trend kosztów, Pro. Otwiera paywall",
+      "last12Months": "Ostatnie 12 miesięcy",
+      "seriesA11y": "{{amount}} w ostatnich 12 miesiącach, od {{from}} do {{to}}",
+      "otherCurrencies_one": "{{count}} wydatek w innej walucie nieuwzględniony",
+      "otherCurrencies_few": "{{count}} wydatki w innych walutach nieuwzględnione",
+      "otherCurrencies_many": "{{count}} wydatków w innych walutach nieuwzględnionych",
+      "otherCurrencies_other": "{{count}} wydatku w innych walutach nieuwzględnionego"
+    }
   },
   "privacy": {
     "title": "Prywatność",

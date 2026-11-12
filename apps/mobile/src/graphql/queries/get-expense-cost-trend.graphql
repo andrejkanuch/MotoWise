@@ -1,0 +1,21 @@
+# Expense dashboard's Cost trend card. A free rider gets `series: null` and the
+# locked section names; a Pro rider gets one series per currency.
+query GetExpenseCostTrend($motorcycleId: String!, $timeZone: String, $refreshEntitlement: Boolean) {
+  expenseCostTrend(
+    motorcycleId: $motorcycleId
+    timeZone: $timeZone
+    refreshEntitlement: $refreshEntitlement
+  ) {
+    isPro
+    expenseCount
+    series {
+      currency
+      expenseCount
+      total
+      months {
+        month
+        total
+      }
+    }
+  }
+}
