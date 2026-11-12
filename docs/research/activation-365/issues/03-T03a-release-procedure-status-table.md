@@ -18,8 +18,8 @@ release_path: "docs commit (docs/runbooks/mobile-release.md, docs/runbooks/mobil
 
 ## What to change
 1. `docs/runbooks/mobile-release.md` (after the OTA/E2E section ≈ line 56) and `docs/runbooks/mobile-ota.md` ("Before you publish"): a "#365 release marking" section:
-   - level bump only in the cut commit; update `ACTIVATION_FIXES` and plan §6.1 in the same commit;
-   - per-runtime OTA: target runtimes + reach, branch `release/<runtime>-365` from the store release commit + cherry-picks, published with the `Mobile OTA Update` workflow (git branch picker, `mobile-ota.md:24-31`), native-diff check (`:157-188`), owner go-ahead;
+   - level bump (`ACTIVATION_FIX_LEVEL`) only in the cut commit; update plan §6.1 (the only spec-to-level record; no map in code) in the same commit;
+   - per-runtime OTA: target runtimes + reach, branch `release/<runtime>-365` cut from the git commit of that runtime's latest production update group (`eas update:list --branch production` shows `gitCommitHash`), not the store build commit, + cherry-picks (see TR0), published with the `Mobile OTA Update` workflow (git branch picker, `mobile-ota.md:24-31`), native-diff check (`:157-188`), owner go-ahead;
    - on go-live **per platform × runtime**: PostHog annotation `#365 fixes: <platform> <version|runtime+OTA id|api> lvl <N> — <spec ids>` dated the go-live day; row in plan §6; status `shipped` in §6.1;
    - 2/4/8-week reads: dashboard by `lvl` vs previous `lvl`, same calendar weeks, per platform, then vs trailing 8 weeks (P06.3 rule); record in `experiments.md` and §6.1;
    - Monday weekly DB check run (T02 `queries/db`), annotation when a threshold is crossed;

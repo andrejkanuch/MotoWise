@@ -18,11 +18,21 @@ Retry shows after a bare 8 s timer even when steps are ticked (`app/(onboarding)
 ## What to change
 CTA disabled after the first tap and `handleContinue` idempotent (`personalizing.tsx:389-393`); never render the payoff again once `completionSent && mutationDone`; Retry only when the mutation **failed** (keep "Skip and continue"). The paywall hand-off, placement, copy and order are untouched.
 
+CTA state table (the only states the screen may show):
+
+| State | When | What the rider sees |
+|---|---|---|
+| idle | before the first tap | "Open my garage" enabled |
+| pending | tapped, mutation in flight, ≤ 10 s | spinner on the CTA, CTA disabled, no Retry |
+| pending > 10 s | still in flight after 10 s | only "Skip and continue" (CTA stays disabled; no Retry, the mutation may still succeed) |
+| failed | the mutation returned an error | "Retry" + "Skip and continue" |
+| success | mutation done (and paywall hand-off done in `garage_first`) | navigate once to Home; the payoff never renders again |
+
 ## How
-Jest `app/(onboarding)/__tests__/personalizing.test.tsx`: double tap → one `handleContinue`, one paywall present; all ticked + slow network → no Retry; failed mutation → Retry. Maestro `post-onboarding-landing.yaml` (both paywall arms via `EXPECTED_ARM`, as `run-onboarding-paywall-e2e.sh`).
+Jest `app/(onboarding)/__tests__/personalizing.test.tsx` with fake timers, one case per row of the state table: idle → tap → pending (spinner, CTA disabled; double tap → one `handleContinue`, one paywall present); advance 10 s still pending → only "Skip and continue", no Retry; mutation error → Retry + "Skip and continue"; success → `router.replace` called exactly once, payoff not rendered again. Maestro `post-onboarding-landing.yaml` (both paywall arms via `EXPECTED_ARM`, as `run-onboarding-paywall-e2e.sh`).
 
 ## Acceptance criteria
-- [ ] Jest passes; **`onboarding-paywall-verify.yaml` passes in both arms** (runbook requirement).
+- [ ] Jest passes for all five states (fake timers); **`onboarding-paywall-verify.yaml` passes in both arms** (runbook requirement).
 - [ ] `post-onboarding-landing.yaml` green in both arms, both platforms; screenshots light + dark.
 - [ ] Ledger date for the `onboarding_paywall_2026q4` readout cut.
 
@@ -36,7 +46,7 @@ FS-OB6. Repro: iOS sim + Android emu with a "3G/High latency" conditioner, finis
 (a) completed twice (verbatim `R6…:340-345` with SCOREBOARD-CTE `R6…:250-261`); baseline 6/282 [SOURCE: R6-q3]; target 0. (b) p90 `post_onboarding_landed.ms_since_cta` < 3,000 ms. By `{REL}` and `onboarding_variant`. Tile "FS-OB6 — Open my garage". Annotate Release A.
 
 ## Release
-Release A; `FS-OB6: 2`.
+Release A (lvl 2); the release cut records the level of FS-OB6 in plan §6.1 (no code map).
 
 ## Dependencies
 - Blocked by: T05d.

@@ -9,6 +9,8 @@ size: S
 release_path: "research; any new Replay Vision scan needs owner approval"
 ---
 
+> CLOSED 2026-11-12 by doc review: moved to the experiments ledger (EXECUTION_PLAN §10)
+
 ## Context
 #365, plan §3 T41, coverage table (P05.3, P05.2 plate, day-1 nudge slot, P04.3a).
 

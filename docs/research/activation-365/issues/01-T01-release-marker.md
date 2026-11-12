@@ -10,7 +10,7 @@ release_path: "TR0 per-runtime OTA (3.26.0/3.27.0/3.28.0) + embedded in Release 
 ---
 
 ## Context
-Part of #365 "Activation: first session and first core action". Plan: `docs/research/activation-365/EXECUTION_PLAN.md` §3 T01, §3A.0 rule 2, §3A.2, §5A.2 (FS-M).
+Part of #365 "Activation: first session and first core action". Plan: `docs/research/activation-365/EXECUTION_PLAN.md` §3 T01, §3A.0 rule 2, §10 item 13, §3A.2, §5A.2 (FS-M).
 Every other #365 task is read per release through these properties.
 
 ## Why
@@ -22,10 +22,10 @@ Every other #365 task is read per release through these properties.
 ## What to change
 Register on every event, at PostHog client creation and again on consent grant:
 `activation_fix_level` (int), `ota_update_id` (`Updates.updateId ?? 'embedded'`), `ota_channel`, `is_embedded_launch`, `runtime_version`, `platform` (moved earlier), and
-`e2e_run: true` only when `process.env.EXPO_PUBLIC_E2E_RUN === '1'`. Add `ACTIVATION_FIXES` (friction spec id → level).
+`e2e_run: true` only when `process.env.EXPO_PUBLIC_E2E_RUN === '1'`. No spec-to-level map in code: the plan's §6.1 status table is the only record of which level fixes which spec (doc review 2026-11-12).
 
 ## How
-- New `apps/mobile/src/config/activation.ts`: `ACTIVATION_FIX_LEVEL = 0 as const` (TR0 sets 1), `ACTIVATION_FIXES: Record<FrictionSpecId, number>` (empty object now), `FrictionSpecId` union of the spec ids in plan §6.1. Header comment: "Bump ONLY in the commit that cuts a store build or an OTA publish (plan §3A.0 rule 2). Never in a feature PR."
+- New `apps/mobile/src/config/activation.ts`: `ACTIVATION_FIX_LEVEL = 0 as const` (TR0 sets 1), nothing else. Header comment: "Bump ONLY in the commit that cuts a store build or an OTA publish (plan §3A.0 rule 2). Never in a feature PR."
 - `apps/mobile/src/lib/analytics.ts`: `buildReleaseMarker()` reading `expo-updates` (installed, `apps/mobile/package.json:84`); register right after the client is created (`lib/analytics.ts:55`) and in the consent-grant path, because `registerSuperProperties` no-ops while analytics is off (`lib/analytics.ts:490-492`, comment `:388`).
 - `apps/mobile/src/hooks/use-analytics-super-properties.ts:64-71`: merge the marker into `buildSuperProperties` so the keyed re-register keeps it.
 - Jest `apps/mobile/src/lib/__tests__/analytics-release-marker.test.ts` (mock `expo-updates`).
@@ -33,7 +33,6 @@ Register on every event, at PostHog client creation and again on consent grant:
 
 ## Acceptance criteria
 - [ ] Jest: embedded launch → `ota_update_id: 'embedded'`, `is_embedded_launch: true`; OTA launch → the id; level equals the constant; registered at init and again on consent; `e2e_run` present only with the env flag.
-- [ ] `ACTIVATION_FIXES` type-checks against the spec id union.
 - [ ] `pnpm verify:mobile` green; no PII in any property.
 - [ ] On a preview build with a consenting test account, PostHog Live events show all properties on `Application Opened`.
 

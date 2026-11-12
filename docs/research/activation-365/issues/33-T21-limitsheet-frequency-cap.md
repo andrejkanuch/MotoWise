@@ -16,15 +16,29 @@ release_path: "Release B 3.30.0"
 `requirePro`/`requireAccess` present on every call (`hooks/use-pro-gate.ts:64-105`); `presentPaywall` only joins in-flight requests (`lib/subscription.ts:770-792`). 3.26.0: **9/22 gate-paywall sessions ≥ 2 views, 8/22 same-feature ≤ 60 s**; first-hour ≥ 2 post-onboarding 8/121 [SOURCE: R3 RC-3, Q7, Q10; Q-P8]. 2 of 3 gate purchases came on a repeat view, so no hard cap [SOURCE: R3 Q12].
 
 ## What to change
-`lib/paywall-frequency.ts` (in memory; resets on cold start or > 30 min background): 1 automatic present per feature per session, 2 per session, 10-min cooldown after `paywall_result: error`. Capped calls open `components/paywall/limit-sheet.tsx` (feature copy; reuses T08 diagnostics keys) with "See Pro plans" (`trigger:'rider_tap'`, never capped); fire `paywall_suppressed`, `limit_sheet_viewed`; `gate_policy:'capped_v1'`. testIDs `limit-sheet`, `limit-sheet-see-pro`, `limit-sheet-close`. Onboarding surfaces exempt via `isOnboardingPaywallSurface`.
+`lib/paywall-frequency.ts` (in memory; resets on cold start or > 30 min background): 1 automatic present per feature per session, 2 per session, 10-min cooldown after `paywall_result: error`. Capped calls open `components/paywall/limit-sheet.tsx` with "See Pro plans" (`trigger:'rider_tap'`, never capped); fire `paywall_suppressed`, `limit_sheet_viewed`; `gate_policy:'capped_v1'`. testIDs `limit-sheet`, `limit-sheet-see-pro`, `limit-sheet-close`. Onboarding surfaces exempt via `isOnboardingPaywallSurface`.
+
+**LimitSheet copy, keyed off `feature`** (feature ids from `PRO_FEATURES`, `packages/types/src/constants/limits.ts:29-39`). One i18n key set per row (`limitSheet.<feature>.title|body|cta`), all 7 app locales; no price, no "free trial" wording; the CTA always opens the paywall with `trigger:'rider_tap'`:
+
+| `feature` | Title | Body | CTA |
+|---|---|---|---|
+| `full_ai_diagnostics` | This month's free diagnosis is used | It's back on {date}. (Unknown date: "It resets next month.") Same keys as T08's limit panel. | See Pro plans |
+| `unlimited_bikes` | Your plan has one bike | Free includes 1 bike. T22 decides the buttons (update or edit the bike first). | See Pro plans |
+| `gpx_export` | GPX export is part of Pro | Your ride and its stats stay free. Export the track as GPX with Pro. | See Pro plans |
+| `offline_trips` | Offline trips are part of Pro | Your planned trips stay available online. Save them for offline use with Pro. | See Pro plans |
+| `trip_assistant` | The trip assistant is part of Pro | Planning trips yourself stays free. The assistant plans with you in Pro. | See Pro plans |
+| any other `feature` (fallback) | This is part of Pro | You can keep using everything in your free plan. | See Pro plans |
+
+The fallback row renders for any `ProFeature` without its own row, so a new gated feature never shows a blank sheet. Dates use `date-fns` with the app locale.
 
 ## How
-Consulted by `hooks/use-pro-gate.ts:64-105`, `app/(tabs)/(garage)/index.tsx:128-130`, `hooks/use-profile-data.ts:118-128`. Jest `lib/__tests__/paywall-frequency.test.ts` (5 rules incl. session reset). Maestro `gate-frequency-cap.yaml` (local Supabase seed for the used diagnosis).
+Consulted by `hooks/use-pro-gate.ts:64-105`, `app/(tabs)/(garage)/index.tsx:128-130`, `hooks/use-profile-data.ts:118-128`. Jest `lib/__tests__/paywall-frequency.test.ts` (5 rules incl. session reset) and `components/paywall/__tests__/limit-sheet.test.tsx` (each of the five features renders its own title/body/CTA; an unknown feature renders the fallback). Maestro `gate-frequency-cap.yaml` with the seeded used diagnosis.
+- **Local stack for the seeded flow:** run it on a **Release build** whose `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_API_URL` point at local Supabase (`:54321`) and the local NestJS API (`:4000/graphql`), per `features/bike-detail-shell-overview/local-stack.md` (iOS sim `127.0.0.1`; Android emulator `10.0.2.2` for both). `pnpm db:reset` seeds the schema first, and the runner's `SUPABASE_URL` override (`apps/mobile/scripts/run-onboarding-e2e.sh:11-12`) points at the same local Supabase as the build.
 
 ## Acceptance criteria
 - [ ] Red run of `gate-frequency-cap.yaml` on main (second paywall), green after; light then dark screenshots.
 - [ ] `onboarding.yaml` and `onboarding-paywall-verify.yaml` pass unchanged (both arms).
-- [ ] D5 recorded; 7 locales; `pnpm check:mobile-colors`.
+- [ ] Copy table implemented for all five features + fallback in 7 locales (`pnpm check:i18n`); D5 recorded; `pnpm check:mobile-colors`.
 
 ## Verification
 `pnpm --filter @motovault/mobile test -- paywall-frequency`; Maestro logs.
@@ -36,7 +50,7 @@ FS-PO3. Repro: free user, seeded diagnosis: Diagnose → Start → dismiss → S
 FS-PO3 (verbatim `R3…:473-485`) + `paywall_suppressed` by `{REL}`. Baseline 9/22 sessions [SOURCE: R3 Q10]; target 0. S5 3.26.0 8/121 → ≤ 2%. Guardrail: gate purchases + `rider_tap` views ≠ 0 over 8 weeks (baseline 3 gate purchases/60 d) [SOURCE: R3 Q11–Q12]. Tiles "FS-PO3", "S5". Annotate Release B.
 
 ## Release
-Release B; `FS-PO3: 3`.
+Release B (lvl 3); the release cut records the level of FS-PO3 in plan §6.1 (no code map).
 
 ## Dependencies
 - Blocked by: T05a.

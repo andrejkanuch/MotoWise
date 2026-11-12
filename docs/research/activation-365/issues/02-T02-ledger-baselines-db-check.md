@@ -10,7 +10,7 @@ release_path: "docs commit only (docs/research/activation-365/)"
 ---
 
 ## Context
-#365, plan §3 T02, §0 (`{EXCL}`), §1.2 (S1–S6), §3A.0 rule 6 (D2b), §5, §5A. Every production change of #365 is blocked until this task has recorded the baselines it touches (§3A.0 rule 4).
+#365, plan §3 T02, §0 (`{EXCL}`), §1.2 (S1–S6), §3A.0 rule 6 (D2b), §5, §5A, §10. Every production change of #365 is blocked until this task has recorded the baselines it touches (§3A.0 rule 4).
 
 ## Why
 - `experiments.md` does not exist [SOURCE: board/review-verdicts.md P06.1]; most §5 SQL is *(draft)*.
@@ -19,9 +19,10 @@ release_path: "docs commit only (docs/research/activation-365/)"
 - OB1-E's 22/73 headline counts auth-first riders; S6 redefined to 44/472 [SOURCE: R1 Q1; R6-q8].
 
 ## What to change
-1. `docs/research/activation-365/experiments.md`: canonical definitions (S1–S6; S3 = F14 engaged return), reading rule, strata, Exp 1 ledger (D13 items, `EXP1_START_AT`/stop date, "local-draw riders can only be stopped by an OTA"), both-arm change log (date, platform, task, release), per-release read log.
+1. `docs/research/activation-365/experiments.md`: canonical definitions (S1–S6; S3 = F14 engaged return), reading rule, strata, Exp 1 ledger (D13 items; the start/stop window served by the API field from T30, with the embedded hard ceilings 2027-01-06 latest start and `EXP1_STOP_AT` 2027-03-31; power for the 2026-12-15 and 2027-01-06 start scenarios from plan §10), both-arm change log (date, platform, task, release), per-release read log.
 2. `queries/fs/<spec-id>.sql`, one per §5/§5A metric, each run once read-only with result + date in a header comment; fix failing drafts.
-3. `queries/db/<spec>.sql` for D2b (C): `s4a-day0-schedule.sql`, `s4b-r2m1.sql`, `fs-r2-4-imperial.sql`, `fs-po4b-first-ride.sql`, `fs-ob1e-two-bikes.sql`, each excluding `users.is_synthetic` and `email LIKE 'e2e-%'` (never print emails; aggregate only), plus `queries/db/README.md` with the Monday run recipe.
+3. `queries/db/<spec>.sql` for D2b (C): `s4a-day0-schedule.sql`, `s4b-r2m1.sql`, `fs-r2-4-imperial.sql`, `fs-po4b-first-ride.sql`, `fs-ob1e-two-bikes.sql`, each excluding `users.is_synthetic` and `email LIKE 'e2e-%'` (never print emails; aggregate only), plus `queries/db/README.md` with the Monday run recipe. **Every file starts with `BEGIN READ ONLY;` and ends with `COMMIT;`**, so a mistaken write in the check fails instead of changing production data (doc review 2026-11-12, item 14).
+5. Tiles vs files: FS-OB7, FS-PO9, FS-PO11 and FS-PO15/16 keep their SQL in `queries/fs/` (run on demand) but get **no dashboard tile** in T03b. T37, T41 and T41b are no longer tasks; their triggers are ledger lines in plan §10 "Ledger notes" — copy them into the `experiments.md` ledger.
 4. E2E exclusion: `{E2E_PERSONS}` list (re-run Q-P10 shape) in `queries/q00-excluded-persons.md`; runners `apps/mobile/scripts/run-onboarding-e2e.sh` (+ siblings) set `is_synthetic = true` on the user they create (same admin call that creates it), and document `SUPABASE_URL` local override for seeding flows.
 
 ## How
@@ -31,7 +32,8 @@ release_path: "docs commit only (docs/research/activation-365/)"
 ## Acceptance criteria
 - [ ] Every spec in plan §6.1 has a `.sql` with a dated baseline or "not measurable until <task>".
 - [ ] S1–S6 re-run on trailing 8 weeks by `$app_version` and platform; differences vs cited baselines explained.
-- [ ] Five `queries/db/*.sql` run once with dated result rows in `experiments.md`.
+- [ ] Five `queries/db/*.sql` run once with dated result rows in `experiments.md`; each begins `BEGIN READ ONLY;` and ends `COMMIT;`.
+- [ ] Ledger holds the plan §10 ledger notes (post-slot candidate queue, PO15/PO16 "verify if seen again", `model_fetch_ms` p90 > 3 s trigger).
 - [ ] Ledger lists D13 items, D16, the both-arm log header.
 - [ ] Runner marks created users synthetic; one local run log attached.
 
@@ -50,7 +52,7 @@ Docs commit; no app or DB change; no PostHog write.
 
 ## Dependencies
 - Blocked by: —
-- Blocks: T03a, T03b, T05e, T07a, T30, T41b, every production deploy (§3A.0 rule 4).
+- Blocks: T03a, T03b, T05e, T07a, T30, every production deploy (§3A.0 rule 4).
 
 ## Out of scope
 Creating PostHog insights (T03b); new Replay Vision scans.

@@ -17,12 +17,14 @@ Every row press calls `completeItem` before navigating (`components/home/onboard
 
 ## What to change
 Data-backed items never tick on tap; FIRST_RIDE needs duration ≥ `MIN_RIDE_ELAPSED_S` and distance ≥ `MIN_RIDE_DISTANCE_M`; label "Record your first ride" → `/(modals)/start-ride` (D4).
+**Existing ticks:** the persisted checklist store migration (v5 → v6, `migrateChecklistState`, `stores/checklist.store.ts:132`, `version: 5` at `:230`) unticks `first_ride` for riders whose saved rides include none that meets both floors; the next signal read ticks it again for riders who do have a real ride.
 
 ## How
-Add `distanceM`/`durationS` to the Home rides fragment in `apps/mobile/src/graphql/` → `pnpm generate`; `lib/checklist-signals.ts`, `components/home/use-checklist-signals.ts`, `stores/checklist.store.ts` (persist migration), `onboarding-checklist.tsx`, 7 locales. Jest `lib/__tests__/checklist-signals.test.ts`, `components/home/__tests__/onboarding-checklist.test.tsx`.
+Add `distanceM`/`durationS` to the Home rides fragment in `apps/mobile/src/graphql/` → `pnpm generate`; `lib/checklist-signals.ts`, `components/home/use-checklist-signals.ts`, `stores/checklist.store.ts` (persist migration v6: unticks `first_ride`; it is re-ticked only by the floor-checked signal), `onboarding-checklist.tsx`, 7 locales. Jest `lib/__tests__/checklist-signals.test.ts`, `components/home/__tests__/onboarding-checklist.test.tsx`.
 
 ## Acceptance criteria
 - [ ] Jest: 0 m ride does not complete; 60 s / 800 m does; data-backed press does not call `completeItem`.
+- [ ] Jest (`stores/__tests__/checklist.store.test.ts` or the existing checklist store test): a v5 state with `first_ride` ticked and no saved ride meeting the floors → after migration and signal read `first_ride` is unticked; with one real ride (≥ 30 s and ≥ 50 m) → ticked.
 - [ ] Red run of `checklist-first-ride.yaml` on main, then green both platforms; light/dark screenshots.
 - [ ] `pnpm verify:mobile`, `pnpm check:i18n`.
 
@@ -36,7 +38,7 @@ FS-PO10. Repro: new account → Home → tap "See your first ride stats". Expect
 `trigger='tap'` completions of `first_ride` and data-ticked without a real ride, by `{REL}` (verbatim `R4…:430-436`). Baseline tap 17 riders; data-ticked without a real ride 8 [SOURCE: R4 Q-R4-10]. Target 0 / 0 on lvl ≥ 2. Tile "FS-PO10 — checklist first ride". Annotate Release A.
 
 ## Release
-Release A; `FS-PO10: 2`.
+Release A (lvl 2); the release cut records the level of FS-PO10 in plan §6.1 (no code map).
 
 ## Dependencies
 - Blocked by: T05d.

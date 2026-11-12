@@ -3,7 +3,7 @@ title: "[#365 T07a] Experiment 2: import the service schedule when onboarding cr
 labels: [bug, experiment, area:api, activation-365]
 order: 15
 task_id: T07a
-depends_on: [T02, T03a, T06]
+depends_on: [T02, T03a]
 phase: P1
 size: S
 release_path: "API deploy on Render after T02 baseline + T03a annotation; reaches every app version at once"
@@ -18,14 +18,24 @@ release_path: "API deploy on Render after T02 baseline + T03a annotation; reache
 ## What to change
 When `input.bikeMake` is set, import the full waterfall for the bike the RPC created (its returned `motorcycle_id`, not "latest bike"), in the rider's unit; keep the id-filter branch for the intent cohort; never fail onboarding on import errors. Server event `service_plan_imported {tier, task_count, unit, source:'onboarding'}`. New nullable result fields `servicePlanTaskCount`, `servicePlanTier`.
 
+**Consent rule for `service_plan_imported`** (same as T05e): resolve the rider's decision with `readAnalyticsDecision(preferences, signupMetadata)` (`apps/api/src/modules/analytics/analytics-consent.ts:30`), as `signup-events.service.ts:185-198` does. Stored "yes" → `distinct_id` = user id. "No", or no decision stored yet (an OAuth sign-up inside `completeOnboarding` often has none) → constant non-identifying `distinct_id` `'service-plan-no-consent'` plus `NO_CONSENT_PROPERTIES` (`$process_person_profile: false`, `analytics_consent: false`). A missing decision counts as no consent here, stricter than `hasAnalyticsConsent`'s NULL rule (use the T05e wrapper). Never email.
+
+**Reminder cap (D7; must ship before this deploy, doc review 2026-11-12 item 2).** Today `sendDuePush` sends one push per due task (`apps/api/src/modules/push-tokens/maintenance-push.service.ts:61, 125-158`); ~10 imported tasks can fall due on the same day (same interval anniversary). Change it to:
+- group the due tasks by `motorcycle_id` and send **at most one combined push per bike**, naming the count ("3 services due on your <bike>");
+- **skip a bike that had a maintenance push in the last 7 days.** `maintenance_push_log` has `user_id, task_id, due_date, sent_at` and no `motorcycle_id` (`supabase/migrations/00161_maintenance_push_log.sql:6-13`): read the last-7-day rows joined on `task_id` → `maintenance_tasks.motorcycle_id`, or add a `motorcycle_id` column in a migration the owner applies. Keep one dedup row per task so re-runs stay idempotent;
+- imported (and later backfilled, T39) tasks create **no immediate reminder**: the import itself sends nothing, and overdue items are shown as "due now" in the app (client part in T07b).
+
 ## How
 - `users.service.ts:235-264`: `autoPopulateForBike(...)` with `acceptedIds = undefined`.
 - `apps/api/src/modules/oem-schedules/oem-schedules.service.ts:178-273`: optional `measurementSystem` param overriding the `users.measurement_system` read (`:213-220`), passed from `input.bikeMileageUnit` (the client writes the unit after `completeOnboarding`) [SOURCE: R2 C12].
 - Jest `users.service.spec.ts`: bike + no accepted ids → one unfiltered call; `'mi'` → miles targets; no bike → no call; import throws → onboarding succeeds; called twice → no duplicates.
-- Before deploy: T06 item 7 answer (reminder cap) recorded; D7 confirmed.
+- Jest `apps/api/src/modules/push-tokens/maintenance-push.service.spec.ts` (extend; the combined-count copy goes in `maintenance-push-copy.ts` with its spec): 3 tasks due the same day on one bike → 1 push naming 3; a second due task on that bike within 7 days → skipped; two bikes → one push each; the import path sends no push.
+- Deploy order: the reminder-cap change is merged and live on Render before (or in the same deploy as) the import change.
+- Consent jest cases for `service_plan_imported`: decision `false` or missing → no user id in the payload; `true` → user id.
 
 ## Acceptance criteria
-- [ ] Spec cases pass; `pnpm verify:api` green.
+- [ ] Spec cases pass, incl. the reminder-cap and consent cases; `pnpm verify:api` green.
+- [ ] The reminder cap is live before (or with) the import change.
 - [ ] Deployed only after T02 baselines (S4a/b) and with the annotation `#365 fixes: api <sha> — FS-PO1H, FS-R2-4` on deploy day; both-arm ledger row (Exp 2 both arms).
 - [ ] `pnpm generate` run on `main` after the deploy is live (for T07b).
 
@@ -45,11 +55,11 @@ FS-PO1H. Repro: fresh install, new free account, onboarding Yamaha → MT-09 →
 API deploy on Render; old clients unaffected (nullable fields).
 
 ## Dependencies
-- Blocked by: T02, T03a, T06 (item 7).
-- Blocks: T07b, T23, T39.
+- Blocked by: T02, T03a. (T06 item 7 is answered: no immediate burst; same-day clustering is handled by the reminder cap above.)
+- Blocks: T07b, T23, T39 (T39's backfill may run only after the reminder cap is live).
 
 ## Out of scope
 Home plate "Set up service plan" (T41); backfill (T39); new model rows.
 
 ## Constraints
-Logging stays free; tier label kept on make-generic tasks; Exp 2 applies to both Exp 1 arms (ledger).
+Logging stays free; tier label kept on make-generic tasks; at most one maintenance push per bike per 7 days; Exp 2 applies to both Exp 1 arms (ledger).
