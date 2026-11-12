@@ -1,5 +1,5 @@
 import type { JsonType } from '@posthog/core';
-import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../utils/ride-constants';
+import { isBelowMinRide, isNoGpsRide } from '../utils/ride-constants';
 import { AnalyticsEvent, trackEvent } from './analytics';
 
 /**
@@ -59,7 +59,7 @@ export function rideCompletedProperties(input: RideCompletedInput): Record<strin
     distance_km:
       Math.round((distanceM / METERS_PER_KM) * DISTANCE_KM_PRECISION) / DISTANCE_KM_PRECISION,
     duration_s: durationS,
-    below_min_ride: durationS < MIN_RIDE_ELAPSED_S || distanceM < MIN_RIDE_DISTANCE_M,
+    below_min_ride: isBelowMinRide(durationS, distanceM),
     save_trigger: input.trigger,
     auto_ended: input.trigger === RIDE_SAVE_TRIGGER.AUTO_END,
   };
@@ -67,4 +67,12 @@ export function rideCompletedProperties(input: RideCompletedInput): Record<strin
 
 export function trackRideCompleted(input: RideCompletedInput): void {
   trackEvent(AnalyticsEvent.RIDE_COMPLETED, rideCompletedProperties(input));
+}
+
+/** The event for the end-ride floor guard: a ride long in time but empty in distance
+ *  is a GPS failure, not a mis-tap, and is counted apart. */
+export function rideGuardEvent(elapsedS: number) {
+  return isNoGpsRide(elapsedS)
+    ? AnalyticsEvent.RIDE_ZERO_DISTANCE_SHOWN
+    : AnalyticsEvent.RIDE_TOO_SHORT_SHOWN;
 }

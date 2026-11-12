@@ -1,0 +1,86 @@
+# Pause and resume a ride (start → pause → resume → end → save) — E2E for the
+# ride state rework (pause/resume through the shared ride controller).
+#
+# AUTHORED FROM SOURCE 2026-11-12, PENDING ON-DEVICE VALIDATION. It reuses the
+# start and end steps of log-ride.yaml, which were validated on a device. The
+# new selectors are the a11y labels in the source:
+#   - the HUD Pause/Resume button (hud-controls.tsx) is "Pause ride" while the
+#     ride records and "Resume ride" while it is paused.
+#   - the HUD status badge (hud-layout-a.tsx) is "Recording ride" or
+#     "Ride paused".
+#
+# Setup: composes onboarding.yaml (signed-in user + Honda). Run via:
+#   pnpm --filter @motovault/mobile test:e2e:ride-pause-resume
+# (preview build + provisioned user, same as the other authed flows).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+# 1. Setup — reach a signed-in Home, and give the sim a GPS fix.
+- runFlow: onboarding.yaml
+- setLocation:
+    latitude: 37.33182
+    longitude: -122.03118
+
+# 2. Open the ride start screen via the center green FAB (no label → tap by point).
+- tapOn:
+    point: "50%,92%"
+- extendedWaitUntil:
+    visible: ".*Pick a bike.*|Start ride"
+    timeout: 20000
+
+# 3. Resolve any leftover unfinished ride (see log-ride.yaml step 3).
+- tapOn:
+    text: ".*End unfinished ride.*"
+    optional: true
+- tapOn:
+    text: ".*End unfinished ride.*"
+    optional: true
+
+# 4. Start the ride and confirm it records.
+- tapOn: "Start ride"
+- extendedWaitUntil:
+    visible: "Pause ride"
+    timeout: 30000
+- assertVisible: ".*Recording ride.*"
+
+# 5. Pause: the control flips to Resume and the badge reads paused.
+- tapOn: "Pause ride"
+- extendedWaitUntil:
+    visible: "Resume ride"
+    timeout: 5000
+- assertVisible: ".*Ride paused.*"
+- takeScreenshot: ride-pause-resume-paused
+
+# 6. Resume: the control flips back to Pause and the badge reads recording.
+- tapOn: "Resume ride"
+- extendedWaitUntil:
+    visible: "Pause ride"
+    timeout: 5000
+- assertVisible: ".*Recording ride.*"
+- takeScreenshot: ride-pause-resume-resumed
+
+# 7. End the ride: it's a HOLD, not a tap. The ride is short, so the "End ride?"
+#    guard opens; tap "End Anyway" by point (see log-ride.yaml step 6).
+- longPressOn:
+    text: ".*Hold to end ride.*"
+- extendedWaitUntil:
+    visible: ".*RIDE SAVED.*"
+    timeout: 3000
+    optional: true
+- runFlow:
+    when:
+      notVisible: ".*RIDE SAVED.*"
+    commands:
+      - tapOn:
+          point: "73%,88%" # "End Anyway" (red, bottom-right)
+
+# 8. Success: the summary opens; finalize with Save ride.
+- extendedWaitUntil:
+    visible: ".*RIDE SAVED.*"
+    timeout: 30000
+- takeScreenshot: ride-pause-resume-summary
+- tapOn: ".*Save ride.*"
+- tapOn:
+    text: "Not Now"
+    optional: true

@@ -21,11 +21,12 @@ import { useBatterySaverToggle } from '../../features/ride/use-battery-saver-tog
 import { useRideElapsed } from '../../features/ride/use-ride-elapsed';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { bestEffortNativeCall, NativeSideEffect } from '../../lib/best-effort-native';
+import { rideGuardEvent } from '../../lib/ride-analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { editorialThemes } from '../../theme/editorial';
 import { radius, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
-import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../../utils/ride-constants';
+import { isBelowMinRide, isNoGpsRide } from '../../utils/ride-constants';
 import { getPointBuffer, getWaypointChunks, rideMMKV, rideStorage } from '../../utils/ride-storage';
 import { hasPendingSyncWork } from '../../utils/ride-sync-queue';
 
@@ -51,21 +52,6 @@ function persistLayout(layout: HudLayout) {
 }
 
 const APP_STATE_ACTIVE = 'active';
-
-/** Past this, a ride under the distance floor is not a mis-tap — the GPS recorded
- *  nothing (approximate location, no sky view, a killed background task). Saying
- *  "your ride was very short" to someone who rode for 40 minutes is wrong. */
-const NO_GPS_MIN_ELAPSED_S = 120;
-
-function isNoGpsRide(elapsedS: number): boolean {
-  return elapsedS >= NO_GPS_MIN_ELAPSED_S;
-}
-
-function guardEvent(elapsedS: number) {
-  return isNoGpsRide(elapsedS)
-    ? AnalyticsEvent.RIDE_ZERO_DISTANCE_SHOWN
-    : AnalyticsEvent.RIDE_TOO_SHORT_SHOWN;
-}
 
 export default function RideHudScreen() {
   const { t } = useTranslation();
@@ -215,10 +201,10 @@ export default function RideHudScreen() {
     const dist = useRideStore.getState().distance;
 
     // Minimum ride guard: check if ride is too short
-    if (elapsed < MIN_RIDE_ELAPSED_S || dist < MIN_RIDE_DISTANCE_M) {
+    if (isBelowMinRide(elapsed, dist)) {
       setGuardData({ elapsed_s: elapsed, distance_m: Math.round(dist) });
       guardSheetRef.current?.expand();
-      trackEvent(guardEvent(elapsed), {
+      trackEvent(rideGuardEvent(elapsed), {
         ride_id: rideMMKV.getCurrentId() ?? null,
         elapsed_s: elapsed,
         distance_m: Math.round(dist),
@@ -232,7 +218,7 @@ export default function RideHudScreen() {
 
   const handleGuardKeepRiding = useCallback(() => {
     if (guardData) {
-      trackEvent(guardEvent(guardData.elapsed_s), {
+      trackEvent(rideGuardEvent(guardData.elapsed_s), {
         ride_id: rideMMKV.getCurrentId() ?? null,
         elapsed_s: guardData.elapsed_s,
         distance_m: guardData.distance_m,
@@ -245,7 +231,7 @@ export default function RideHudScreen() {
 
   const handleGuardEndAnyway = useCallback(() => {
     if (guardData) {
-      trackEvent(guardEvent(guardData.elapsed_s), {
+      trackEvent(rideGuardEvent(guardData.elapsed_s), {
         ride_id: rideMMKV.getCurrentId() ?? null,
         elapsed_s: guardData.elapsed_s,
         distance_m: guardData.distance_m,

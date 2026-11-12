@@ -244,6 +244,12 @@ const STATE_WORD: Record<CarPlayPanelState, string> = {
 // Title shown while a Stop is armed and awaiting confirmation (R17 stop guard).
 const STOP_CONFIRM_TITLE = 'STOP RIDE?';
 
+// Stop-confirm title when the ride is under the phone HUD's end-ride floors
+// (isBelowMinRide): the same warning the HUD shows before it ends a very short ride.
+// Localized like forgotToStopTitle below.
+const tooShortTitle = (): string =>
+  i18n.t('carplay.panel.tooShortTitle', { defaultValue: 'Ride too short' }).toLocaleUpperCase();
+
 // Title shown when the ride looks forgotten. Ranks BELOW the stop-confirm title:
 // an armed Stop is an in-progress rider action and must never be overwritten by an
 // advisory prompt.
@@ -324,6 +330,7 @@ export function buildPanelItems(
   s: PanelSnapshot,
   stopArmed = false,
   notice: CarPlayNotice | null = null,
+  tooShort = false,
 ): CPInformationTemplateModel {
   // Title carries the state word only. Numerics live in rows, not the title: the
   // CarPlay InformationTemplate fixes its title at construction, so fusing a
@@ -380,7 +387,7 @@ export function buildPanelItems(
     // ride outright. "Keep Riding" leads (the safe default) so an accidental tap on
     // a glance surface never loses a ride; "End Ride" is the deliberate second tap.
     return {
-      title: STOP_CONFIRM_TITLE,
+      title: tooShort ? tooShortTitle() : STOP_CONFIRM_TITLE,
       items,
       actions: [
         { id: CARPLAY_ACTION.cancelStop, title: 'Keep Riding' },

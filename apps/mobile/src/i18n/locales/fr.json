@@ -2473,11 +2473,8 @@
       "title": "Compagnon CarPlay",
       "intro": "Enregistre tes sorties depuis l'écran de ta moto. Les commandes sont sur l'écran de bord, le téléphone ne fait que confirmer.",
       "startMode": "Mode de démarrage",
-      "recommended": "Recommandé",
       "modeAuto": "Automatique",
       "modeAutoDesc": "Les sorties démarrent seules au premier signal GPS et se mettent en pause aux longs arrêts. Rien à toucher.",
-      "keepGuard": "Seuil minimal",
-      "adjust": "Ajuster",
       "modeManual": "Manuel",
       "modeManualDesc": "Rien n'est enregistré tant que tu ne touches pas Démarrer la sortie sur l'écran de bord. Contrôle total, zéro surprise.",
       "modePhoneFirst": "Téléphone d'abord",
@@ -2487,7 +2484,8 @@
       "connected": "CONNECTÉ",
       "more": "Plus",
       "cues": "Signaux de confirmation",
-      "howItWorks": "Comment ça marche"
+      "howItWorks": "Comment ça marche",
+      "comingSoon": "Bientôt disponible"
     },
     "cues": {
       "title": "Signaux de confirmation",
@@ -2513,14 +2511,32 @@
       "c1Body": "Distance, dénivelé et temps en mouvement s'affichent sur l'écran de ta moto : un coup d'œil, jamais un geste.",
       "c2Body": "MotoVault ne prend jamais la carte. Ton app de navigation continue d'afficher les virages : le bouton bascule sur MotoVault le temps d'un coup d'œil, puis revient.",
       "c3Body": "Modifie-le quand tu veux dans le compagnon. Tu sais toujours ce qui va se passer.",
-      "autoSub": "Tout seul",
       "manualSub": "Tu touches Démarrer",
-      "phoneSub": "Démarre ici",
       "continue": "Continuer",
       "start": "C'est parti",
       "c1Title": "Ta sortie, sur le tableau de bord.",
       "c2Title": "Garde ton itinéraire.",
       "c3Title": "Choisis ton démarrage."
+    },
+    "banner": {
+      "wordRecording": "Enregistrement",
+      "wordAutoPaused": "Pause auto",
+      "wordPaused": "En pause",
+      "wordSaved": "Enregistrée",
+      "wordNotRecording": "Pas d’enregistrement",
+      "wordAcquiring": "Recherche GPS",
+      "wordReady": "Prêt",
+      "subRecording": "commandes sur l’écran de bord",
+      "subAutoPaused": "reprend quand tu roules",
+      "subPaused": "reprends depuis l’écran de bord",
+      "subSaved": "touche pour revoir ta sortie",
+      "subInterrupted": "touche pour reprendre ou terminer",
+      "subAcquiring": "en attente du signal GPS",
+      "subArmedAuto": "démarrage auto activé",
+      "subManualIdle": "démarre depuis l’écran de bord"
+    },
+    "panel": {
+      "tooShortTitle": "Sortie trop courte"
     }
   },
   "receiptScan": {

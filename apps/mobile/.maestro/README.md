@@ -93,6 +93,10 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   ride") + a point-tap (~73%,88%) on the "End Anyway" bottom-sheet confirm (its texts are not in
   the a11y tree). Re-validated 2026-10-09 against the redesigned sheet.
   `test:e2e:log-ride`.
+- **`flows/ride-pause-resume.yaml`** — start a ride, pause, resume, hold-to-end, save. Uses the
+  HUD a11y labels "Pause ride" / "Resume ride" and "Recording ride" / "Ride paused"; start and end
+  steps are the same as `log-ride.yaml`. **Authored from source 2026-11-12, pending on-device
+  validation.** `test:e2e:ride-pause-resume`.
 - **`flows/bike-hub-overview.yaml`** — the redesigned bike screen (bike-detail redesign R1): four
   segments, Overview "Log" pill → Log sheet → Note sheet → save, the Notes screen with delete + Undo,
   and the Odometer sheet from the header chip. Needs a backend with migrations 00180–00182 (see

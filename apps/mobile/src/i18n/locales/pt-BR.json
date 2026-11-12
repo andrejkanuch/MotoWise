@@ -2473,11 +2473,8 @@
       "title": "Central do CarPlay",
       "intro": "Grave rolês pela tela da moto. Os controles ficam na central multimídia; o celular só confirma.",
       "startMode": "Modo de início",
-      "recommended": "Recomendado",
       "modeAuto": "Automático",
       "modeAutoDesc": "O rolê começa sozinho no primeiro sinal de GPS e pausa nas paradas longas. Nada para tocar.",
-      "keepGuard": "Mín. para salvar",
-      "adjust": "Ajustar",
       "modeManual": "Manual",
       "modeManualDesc": "Nada é gravado até você tocar em Iniciar rolê na central multimídia. Controle total, zero surpresas.",
       "modePhoneFirst": "Celular primeiro",
@@ -2487,7 +2484,8 @@
       "connected": "CONECTADO",
       "more": "Mais",
       "cues": "Sinais de confirmação",
-      "howItWorks": "Como funciona"
+      "howItWorks": "Como funciona",
+      "comingSoon": "Em breve"
     },
     "cues": {
       "title": "Sinais de confirmação",
@@ -2513,14 +2511,32 @@
       "c1Body": "Distância, subida e tempo em movimento aparecem no display da moto. Só olhe, sem tocar.",
       "c2Body": "O MotoVault nunca toma o lugar do mapa. Seu app de navegação continua mostrando as conversões; o botão mostra o MotoVault por um instante e depois volta.",
       "c3Body": "Mude quando quiser na Central do CarPlay. Você sempre sabe o que vai acontecer.",
-      "autoSub": "Grava sozinho",
       "manualSub": "Você inicia",
-      "phoneSub": "Comece aqui",
       "continue": "Continuar",
       "start": "Começar a rodar",
       "c1Title": "Seu rolê no painel da moto.",
       "c2Title": "Mantenha sua navegação.",
       "c3Title": "Escolha como começar."
+    },
+    "banner": {
+      "wordRecording": "Gravando",
+      "wordAutoPaused": "Pausa automática",
+      "wordPaused": "Pausado",
+      "wordSaved": "Salvo",
+      "wordNotRecording": "Não gravando",
+      "wordAcquiring": "Buscando GPS",
+      "wordReady": "Pronto",
+      "subRecording": "controles na central multimídia",
+      "subAutoPaused": "retoma quando você se mover",
+      "subPaused": "retome pela central multimídia",
+      "subSaved": "toque para revisar seu rolê",
+      "subInterrupted": "toque para retomar ou encerrar",
+      "subAcquiring": "aguardando sinal de GPS",
+      "subArmedAuto": "início automático ativado",
+      "subManualIdle": "inicie pela central multimídia"
+    },
+    "panel": {
+      "tooShortTitle": "Rolê muito curto"
     }
   },
   "receiptScan": {

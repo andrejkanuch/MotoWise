@@ -40,7 +40,7 @@
     }
   },
   "routes": {
-    "app/(modals)/carplay/index.tsx": 361,
+    "app/(modals)/carplay/index.tsx": 338,
     "app/(modals)/carplay/onboarding.tsx": 340,
     "app/(modals)/create-group-ride.tsx": 401,
     "app/(modals)/create-trip.tsx": 1508,
@@ -48,7 +48,7 @@
     "app/(modals)/recalls.tsx": 423,
     "app/(modals)/ride-detail.tsx": 913,
     "app/(modals)/ride-flyover.tsx": 957,
-    "app/(modals)/ride-hud.tsx": 431,
+    "app/(modals)/ride-hud.tsx": 417,
     "app/(modals)/ride-summary.tsx": 840,
     "app/(modals)/start-ride.tsx": 579,
     "app/(modals)/trip-detail.tsx": 1876,

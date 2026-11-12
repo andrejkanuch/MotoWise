@@ -2436,11 +2436,8 @@
       "title": "CarPlay Companion",
       "intro": "Log rides from your bike’s screen. Controls live on the head unit — the phone just confirms.",
       "startMode": "Start mode",
-      "recommended": "Recommended",
       "modeAuto": "Automatic",
       "modeAutoDesc": "Rides start themselves on first GPS fix and pause at long stops. Nothing to tap.",
-      "keepGuard": "Keep-guard",
-      "adjust": "Adjust",
       "modeManual": "Manual",
       "modeManualDesc": "Nothing logs until you press Start Ride on the head unit. Full control, zero surprises.",
       "modePhoneFirst": "Phone-first",
@@ -2450,7 +2447,8 @@
       "connected": "CONNECTED",
       "more": "More",
       "cues": "Confirmation cues",
-      "howItWorks": "How it works"
+      "howItWorks": "How it works",
+      "comingSoon": "Coming soon"
     },
     "cues": {
       "title": "Confirmation cues",
@@ -2476,14 +2474,32 @@
       "c1Body": "Distance, climb and moving time live on your motorcycle’s display — glance, never tap.",
       "c2Body": "MotoVault never takes the map. Your nav app keeps showing turns — the toggle flips to MotoVault for a glance, then back.",
       "c3Body": "Change it anytime in the companion. You can always tell what’s about to happen.",
-      "autoSub": "Logs itself",
       "manualSub": "You press start",
-      "phoneSub": "Start here",
       "continue": "Continue",
       "start": "Start riding",
       "c1Title": "Your ride, on the cluster.",
       "c2Title": "Keep your directions.",
       "c3Title": "Pick your start."
+    },
+    "banner": {
+      "wordRecording": "Recording",
+      "wordAutoPaused": "Auto-paused",
+      "wordPaused": "Paused",
+      "wordSaved": "Saved",
+      "wordNotRecording": "Not recording",
+      "wordAcquiring": "Acquiring GPS",
+      "wordReady": "Ready",
+      "subRecording": "controls on your head unit",
+      "subAutoPaused": "resumes when you move",
+      "subPaused": "resume from the head unit",
+      "subSaved": "tap to review your ride",
+      "subInterrupted": "tap to resume or end",
+      "subAcquiring": "waiting for GPS lock",
+      "subArmedAuto": "auto-start armed",
+      "subManualIdle": "start from the head unit"
+    },
+    "panel": {
+      "tooShortTitle": "Ride too short"
     }
   },
   "receiptScan": {

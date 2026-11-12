@@ -25,6 +25,19 @@ export function recordLabel(
 export const MIN_RIDE_ELAPSED_S = 30;
 export const MIN_RIDE_DISTANCE_M = 50;
 
+export function isBelowMinRide(elapsedS: number, distanceM: number): boolean {
+  return elapsedS < MIN_RIDE_ELAPSED_S || distanceM < MIN_RIDE_DISTANCE_M;
+}
+
+/** Past this, a ride under the distance floor is not a mis-tap — the GPS recorded
+ *  nothing (approximate location, no sky view, a killed background task). Saying
+ *  "your ride was very short" to someone who rode for 40 minutes is wrong. */
+const NO_GPS_MIN_ELAPSED_S = 120;
+
+export function isNoGpsRide(elapsedS: number): boolean {
+  return elapsedS >= NO_GPS_MIN_ELAPSED_S;
+}
+
 /** Route points requested per screen — the detail map and the flyover camera
  *  ask for different resolutions, and each is cached under its own count. */
 export const RIDE_DETAIL_WAYPOINT_POINTS = 300;

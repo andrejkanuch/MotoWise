@@ -2436,11 +2436,8 @@
       "title": "CarPlay Asistanı",
       "intro": "Sürüşlerini motorunun ekranından kaydet. Kontroller gösterge ekranında — telefon sadece onaylar.",
       "startMode": "Başlatma modu",
-      "recommended": "Önerilen",
       "modeAuto": "Otomatik",
       "modeAutoDesc": "Sürüşler ilk GPS sinyalinde kendiliğinden başlar, uzun duraklarda duraklar. Dokunacak bir şey yok.",
-      "keepGuard": "Kaydetmek için en az",
-      "adjust": "Ayarla",
       "modeManual": "Manuel",
       "modeManualDesc": "Gösterge ekranında Sürüşe başla'ya basana kadar hiçbir şey kaydedilmez. Tam kontrol, sıfır sürpriz.",
       "modePhoneFirst": "Önce telefon",
@@ -2450,7 +2447,8 @@
       "connected": "BAĞLANDI",
       "more": "Daha fazla",
       "cues": "Onay sinyalleri",
-      "howItWorks": "Nasıl çalışır"
+      "howItWorks": "Nasıl çalışır",
+      "comingSoon": "Yakında"
     },
     "cues": {
       "title": "Onay sinyalleri",
@@ -2476,14 +2474,32 @@
       "c1Body": "Mesafe, tırmanış ve hareket süresi motorunun ekranında — sadece bak, dokunma.",
       "c2Body": "MotoVault haritayı asla devralmaz. Navigasyon uygulaman dönüşleri göstermeye devam eder — geçiş düğmesi bir bakış için MotoVault'a geçer, sonra geri döner.",
       "c3Body": "Bunu asistanda istediğin zaman değiştir. Ne olacağını her zaman bilirsin.",
-      "autoSub": "Kendisi kaydeder",
       "manualSub": "Başlat'a sen basarsın",
-      "phoneSub": "Buradan başlat",
       "continue": "Devam et",
       "start": "Sürmeye başla",
       "c1Title": "Sürüşün, gösterge ekranında.",
       "c2Title": "Yol tarifin yerinde kalır.",
       "c3Title": "Başlangıcını seç."
+    },
+    "banner": {
+      "wordRecording": "Kaydediliyor",
+      "wordAutoPaused": "Otomatik duraklatıldı",
+      "wordPaused": "Duraklatıldı",
+      "wordSaved": "Kaydedildi",
+      "wordNotRecording": "Kaydedilmiyor",
+      "wordAcquiring": "GPS aranıyor",
+      "wordReady": "Hazır",
+      "subRecording": "kontroller gösterge ekranında",
+      "subAutoPaused": "hareket edince devam eder",
+      "subPaused": "gösterge ekranından devam et",
+      "subSaved": "sürüşünü incelemek için dokun",
+      "subInterrupted": "devam etmek veya bitirmek için dokun",
+      "subAcquiring": "GPS sinyali bekleniyor",
+      "subArmedAuto": "otomatik başlatma hazır",
+      "subManualIdle": "gösterge ekranından başlat"
+    },
+    "panel": {
+      "tooShortTitle": "Sürüş çok kısa"
     }
   },
   "receiptScan": {
