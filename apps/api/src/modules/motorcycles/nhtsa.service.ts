@@ -139,6 +139,21 @@ const RETRY_BACKOFF_MS = 300;
  */
 const OUTAGE_COOLDOWN_MS = 60_000;
 
+/**
+ * Outage-breaker key per NHTSA API. Explicit, not derived from the URL: vPIC
+ * puts the VIN and make/year in the path, so a path key would open a separate
+ * breaker per vehicle (never failing fast for the next VIN) and grow without
+ * bound.
+ */
+const NHTSA_ENDPOINT = {
+  makes: 'vpic:makes',
+  models: 'vpic:models',
+  decodeVin: 'vpic:decodeVin',
+  recalls: 'nhtsa:recallsByVehicle',
+  recallModels: 'nhtsa:products',
+} as const;
+type NhtsaEndpoint = (typeof NHTSA_ENDPOINT)[keyof typeof NHTSA_ENDPOINT];
+
 /** HTTP statuses that mean "NHTSA is down / overloaded", not "our request is wrong". */
 const HTTP_TOO_MANY_REQUESTS = 429;
 const HTTP_SERVER_ERROR_FLOOR = 500;
@@ -151,6 +166,8 @@ interface AttemptFailure {
 }
 
 interface FetchJsonOptions<T> {
+  /** Which NHTSA API the URL belongs to; the outage breaker is per API. */
+  endpoint: NhtsaEndpoint;
   /**
    * Lets a caller treat HTTP 404/400 as a sentinel value (NHTSA answers those
    * for "no recalls found") instead of an error.
@@ -191,8 +208,8 @@ export class NhtsaService implements OnModuleInit {
   private readonly vinDecodeCache = new Map<string, CacheEntry<RecallVehicle>>();
   /** Recall lookups in progress per vehicle, so a client re-send joins the first call. */
   private readonly recallsInFlight = new Map<string, Promise<RecallDto[]>>();
-  /** Endpoint (origin + path) → epoch ms until which it is treated as down. */
-  private readonly endpointOutageUntil = new Map<string, number>();
+  /** NHTSA API → epoch ms until which it is treated as down. */
+  private readonly endpointOutageUntil = new Map<NhtsaEndpoint, number>();
 
   /**
    * Run an NHTSA fetch; on failure fall back to an expired cache entry when
@@ -236,10 +253,9 @@ export class NhtsaService implements OnModuleInit {
   private async fetchJson<T>(
     url: string,
     messages: { notOkLog: string; notOkThrow: string; timeout: string; unreachable: string },
-    options: FetchJsonOptions<T> = {},
+    options: FetchJsonOptions<T>,
   ): Promise<T> {
-    const { on404, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
-    const endpoint = this.endpointKey(url);
+    const { endpoint, on404, timeoutMs = DEFAULT_TIMEOUT_MS } = options;
     const downUntil = this.endpointOutageUntil.get(endpoint);
     if (downUntil !== undefined && Date.now() < downUntil) {
       throw new UpstreamUnavailableException(UPSTREAM_NAME, messages.unreachable);
@@ -313,12 +329,6 @@ export class NhtsaService implements OnModuleInit {
     };
   }
 
-  /** Outage tracking is per endpoint: one NHTSA API being down says nothing about another. */
-  private endpointKey(url: string): string {
-    const { origin, pathname } = new URL(url);
-    return `${origin}${pathname}`;
-  }
-
   async onModuleInit() {
     try {
       await this.getMakes();
@@ -338,12 +348,16 @@ export class NhtsaService implements OnModuleInit {
 
     const result = await this.fetchWithStaleFallback(
       () =>
-        this.fetchJson<NhtsaMakeResponse>(url, {
-          notOkLog: 'NHTSA makes request failed',
-          notOkThrow: 'Failed to fetch motorcycle makes from NHTSA',
-          timeout: 'NHTSA API request timed out',
-          unreachable: 'Failed to reach NHTSA API',
-        }),
+        this.fetchJson<NhtsaMakeResponse>(
+          url,
+          {
+            notOkLog: 'NHTSA makes request failed',
+            notOkThrow: 'Failed to fetch motorcycle makes from NHTSA',
+            timeout: 'NHTSA API request timed out',
+            unreachable: 'Failed to reach NHTSA API',
+          },
+          { endpoint: NHTSA_ENDPOINT.makes },
+        ),
       this.makesCache,
       'makes',
     );
@@ -380,12 +394,16 @@ export class NhtsaService implements OnModuleInit {
 
     const result = await this.fetchWithStaleFallback(
       () =>
-        this.fetchJson<NhtsaModelResponse>(url, {
-          notOkLog: 'NHTSA models request failed',
-          notOkThrow: 'Failed to fetch motorcycle models from NHTSA',
-          timeout: 'NHTSA API request timed out',
-          unreachable: 'Failed to reach NHTSA API',
-        }),
+        this.fetchJson<NhtsaModelResponse>(
+          url,
+          {
+            notOkLog: 'NHTSA models request failed',
+            notOkThrow: 'Failed to fetch motorcycle models from NHTSA',
+            timeout: 'NHTSA API request timed out',
+            unreachable: 'Failed to reach NHTSA API',
+          },
+          { endpoint: NHTSA_ENDPOINT.models },
+        ),
       cached,
       `models ${cacheKey}`,
     );
@@ -458,6 +476,12 @@ export class NhtsaService implements OnModuleInit {
    * Upstream half of {@link getRecalls}. During an NHTSA outage an expired
    * cache entry is served instead of failing: recall campaigns are only ever
    * added, so yesterday's list is still true.
+   *
+   * When the recall-side model list could not be fetched, the answer may miss
+   * campaigns filed under another model name. It is then merged with the
+   * expired entry (if any) and cached only for {@link STALE_RETRY_COOLDOWN_MS},
+   * so the full lookup runs again once the products API is back, instead of a
+   * narrowed list being served as fresh for 24h.
    */
   private async lookupRecalls(
     cacheKey: string,
@@ -472,21 +496,31 @@ export class NhtsaService implements OnModuleInit {
       `recalls ${cacheKey}`,
     );
     if ('stale' in result) return result.stale;
-    const recalls = result.fresh;
+    const { recalls: fresh, complete } = result.fresh;
+    const recalls = complete ? fresh : mergeRecalls([fresh, stale?.data ?? []]);
+    const ttl = complete ? RECALLS_TTL : NhtsaService.STALE_RETRY_COOLDOWN_MS;
 
     // P2-112: Enforce cache size cap before adding new entries
     if (this.recallsCache.size >= NhtsaService.MAX_RECALLS_CACHE) {
       const oldestKey = this.recallsCache.keys().next().value;
       if (oldestKey) this.recallsCache.delete(oldestKey);
     }
-    this.recallsCache.set(cacheKey, { data: recalls, expiresAt: Date.now() + RECALLS_TTL });
+    this.recallsCache.set(cacheKey, { data: recalls, expiresAt: Date.now() + ttl });
     return recalls;
   }
 
-  /** Query every model-name candidate and merge the campaigns. */
-  private async fetchRecalls(make: string, model: string, year: number): Promise<RecallDto[]> {
-    const recallSideModels = await this.getRecallSideModels(make, year);
-    const candidates = buildCandidateModels(make, model, recallSideModels);
+  /**
+   * Query every model-name candidate and merge the campaigns. `complete` is
+   * false when the recall-side model list was unavailable, so only the stored
+   * name and curated aliases were queried.
+   */
+  private async fetchRecalls(
+    make: string,
+    model: string,
+    year: number,
+  ): Promise<{ recalls: RecallDto[]; complete: boolean }> {
+    const recallSide = await this.getRecallSideModels(make, year);
+    const candidates = buildCandidateModels(make, model, recallSide.models);
     const perCandidate = await Promise.all(
       candidates.map((candidate) =>
         this.fetchRecallList(
@@ -494,15 +528,7 @@ export class NhtsaService implements OnModuleInit {
         ),
       ),
     );
-    // NHTSA returns one row per affected product, so the same campaign can
-    // appear several times within AND across candidate queries — dedup.
-    const byCampaign = new Map<string, RecallDto>();
-    for (const recall of perCandidate.flat()) {
-      if (!byCampaign.has(recall.campaignNumber)) {
-        byCampaign.set(recall.campaignNumber, recall);
-      }
-    }
-    return [...byCampaign.values()];
+    return { recalls: mergeRecalls(perCandidate), complete: recallSide.complete };
   }
 
   /**
@@ -555,6 +581,7 @@ export class NhtsaService implements OnModuleInit {
         timeout: 'NHTSA VIN decode request timed out',
         unreachable: 'Failed to reach NHTSA vPIC API',
       },
+      { endpoint: NHTSA_ENDPOINT.decodeVin },
     );
     const row = json.Results?.[0];
     const year = Number.parseInt(row?.ModelYear ?? '', 10);
@@ -582,7 +609,7 @@ export class NhtsaService implements OnModuleInit {
         timeout: 'NHTSA recalls request timed out',
         unreachable: 'Failed to reach NHTSA recalls API',
       },
-      { on404: () => null },
+      { endpoint: NHTSA_ENDPOINT.recalls, on404: () => null },
     );
     if (json === null) return [];
 
@@ -600,14 +627,18 @@ export class NhtsaService implements OnModuleInit {
   /**
    * Model names with recall records for a make/year, as filed in the recall
    * database (products API). Used to translate vPIC marketing names into the
-   * names recallsByVehicle actually matches. Non-fatal: any failure returns []
-   * so the primary single-name lookup still runs.
+   * names recallsByVehicle actually matches. Non-fatal: any failure returns no
+   * models with `complete: false`, so the primary single-name lookup still runs
+   * and the caller knows its answer may be narrowed.
    */
-  private async getRecallSideModels(make: string, year: number): Promise<string[]> {
+  private async getRecallSideModels(
+    make: string,
+    year: number,
+  ): Promise<{ models: string[]; complete: boolean }> {
     const cacheKey = `${make.toUpperCase()}|${year}`;
     const cached = this.recallModelsCache.get(cacheKey);
     if (cached && Date.now() < cached.expiresAt) {
-      return cached.data;
+      return { models: cached.data, complete: true };
     }
 
     let models: string[];
@@ -621,14 +652,18 @@ export class NhtsaService implements OnModuleInit {
           timeout: 'NHTSA recall-models request timed out',
           unreachable: 'Failed to reach NHTSA products API',
         },
-        { on404: () => null, timeoutMs: RECALL_MODELS_TIMEOUT_MS },
+        {
+          endpoint: NHTSA_ENDPOINT.recallModels,
+          on404: () => null,
+          timeoutMs: RECALL_MODELS_TIMEOUT_MS,
+        },
       );
       models = [...new Set((json?.results ?? []).map((r) => r.model ?? '').filter(Boolean))];
     } catch (err) {
       this.logger.warn(
         `Recall model list lookup failed for ${cacheKey} (non-fatal): ${(err as Error).message}`,
       );
-      return [];
+      return { models: [], complete: false };
     }
 
     if (this.recallModelsCache.size >= NhtsaService.MAX_RECALL_MODELS_CACHE) {
@@ -636,6 +671,21 @@ export class NhtsaService implements OnModuleInit {
       if (oldestKey) this.recallModelsCache.delete(oldestKey);
     }
     this.recallModelsCache.set(cacheKey, { data: models, expiresAt: Date.now() + RECALLS_TTL });
-    return models;
+    return { models, complete: true };
   }
+}
+
+/**
+ * Merge recall lists, one entry per campaign (first occurrence wins). NHTSA
+ * returns one row per affected product, so the same campaign can appear
+ * several times within AND across candidate queries.
+ */
+function mergeRecalls(lists: RecallDto[][]): RecallDto[] {
+  const byCampaign = new Map<string, RecallDto>();
+  for (const recall of lists.flat()) {
+    if (!byCampaign.has(recall.campaignNumber)) {
+      byCampaign.set(recall.campaignNumber, recall);
+    }
+  }
+  return [...byCampaign.values()];
 }

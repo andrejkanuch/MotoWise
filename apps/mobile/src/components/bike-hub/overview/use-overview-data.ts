@@ -1,4 +1,3 @@
-import { MotorcycleRecallsDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useCurrency } from '@/hooks/use-currency';
@@ -9,10 +8,12 @@ import { type DocumentSignal, getDocumentSignals } from '@/lib/bike-hub/document
 import { canCheckRecalls } from '@/lib/bike-hub/recall-eligibility';
 import { getRideStatus, type RideStatusResult } from '@/lib/bike-hub/ride-status';
 import type { TaskDue } from '@/lib/bike-hub/task-due';
-import { gqlFetcher } from '@/lib/graphql-client';
-import { queryKeys } from '@/lib/query-keys';
 import { QUERY_META } from '@/lib/query-meta';
-import { documentCategoriesOptions, expensesOptions } from '@/lib/query-options';
+import {
+  documentCategoriesOptions,
+  expensesOptions,
+  motorcycleRecallsOptions,
+} from '@/lib/query-options';
 import { type HubNote, useNotes } from '../notes/use-notes';
 import type { BikeHubData, HubBike, HubTask } from '../shell/use-bike-hub-data';
 import { useToday } from '../shell/use-today';
@@ -86,14 +87,12 @@ export function useOverviewData(
   const year = today.getFullYear();
 
   const recallsQuery = useQuery({
-    queryKey: queryKeys.motorcycleRecalls.byMotorcycle(id),
-    queryFn: () => gqlFetcher(MotorcycleRecallsDocument, { motorcycleId: id }),
+    ...motorcycleRecallsOptions(id),
     staleTime: RECALLS_STALE_MS,
     retry: 1,
     // A bike with no model/year and no VIN cannot be looked up (the API answers
     // 422): skip the request; the persisted recall count stands in.
     enabled: canCheckRecalls(bike),
-    meta: OWN_ERROR_UI,
   });
   const categoriesQuery = useQuery({
     ...documentCategoriesOptions(true),

@@ -520,5 +520,59 @@ describe('NhtsaService', () => {
       expect(globalThis.fetch).not.toHaveBeenCalled();
       expect(recalls).toHaveLength(1);
     });
+
+    it('caches a lookup made without the recall-side model list only briefly, then runs the full lookup', async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: test access to private logger
+      vi.spyOn((service as any).logger, 'warn').mockImplementation(() => undefined);
+      const AFRICA_TWIN = { make: 'Honda', model: 'Africa Twin', year: 2020 };
+      mockNhtsaApis({
+        productsFail: true,
+        recallsByModel: { 'CRF1100 AFRICA TWIN': [CAMPAIGN] },
+      });
+      await expect(service.getRecalls(AFRICA_TWIN)).resolves.toHaveLength(0);
+
+      vi.advanceTimersByTime(61_000);
+      mockNhtsaApis({
+        recallSideModels: ['CRF1100 AFRICA TWIN'],
+        recallsByModel: { 'CRF1100 AFRICA TWIN': [CAMPAIGN] },
+      });
+      const recalls = await service.getRecalls(AFRICA_TWIN);
+
+      expect(recalls.map((recall) => recall.campaignNumber)).toEqual(['20V797000']);
+    });
+
+    it('keeps campaigns from the expired full lookup when the recall-side model list is down', async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: test access to private logger
+      vi.spyOn((service as any).logger, 'warn').mockImplementation(() => undefined);
+      const AFRICA_TWIN = { make: 'Honda', model: 'Africa Twin', year: 2020 };
+      mockNhtsaApis({
+        recallSideModels: ['CRF1100 AFRICA TWIN'],
+        recallsByModel: { 'CRF1100 AFRICA TWIN': [CAMPAIGN] },
+      });
+      await service.getRecalls(AFRICA_TWIN);
+
+      vi.advanceTimersByTime(25 * 60 * 60 * 1000);
+      mockNhtsaApis({
+        productsFail: true,
+        recallsByModel: { 'CRF1100 AFRICA TWIN': [CAMPAIGN] },
+      });
+      const recalls = await service.getRecalls(AFRICA_TWIN);
+
+      expect(recalls.map((recall) => recall.campaignNumber)).toEqual(['20V797000']);
+    });
+
+    it('fails fast for every VIN while the VIN decoder is down, not only the VIN that failed', async () => {
+      const fetchMock = globalThis.fetch as ReturnType<typeof vi.fn>;
+      fetchMock.mockRejectedValue(new TypeError('network down'));
+      await expect(
+        service.getRecalls({ vin: 'JH2SD1000MK000000', make: 'Honda' }),
+      ).rejects.toBeInstanceOf(UpstreamUnavailableException);
+
+      fetchMock.mockClear();
+      await expect(
+        service.getRecalls({ vin: 'JH2SD1000MK000001', make: 'Honda' }),
+      ).rejects.toBeInstanceOf(UpstreamUnavailableException);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
   });
 });

@@ -15,6 +15,14 @@
 -- read the trip": the subquery runs under trips_select RLS, so it accepts exactly the
 -- trips the caller can open (public non-draft, their own, ones they take part in).
 --
+-- The read side needs the same gate. comments_select (00063) is USING (true), which
+-- leaked nothing while trip comments could not exist. Once they can, a comment on a
+-- private or unlisted trip would be readable by any rider (getComments(tripId) or a
+-- direct PostgREST query on trip_id). comments_select is re-created here so ride,
+-- route and group-ride comments stay readable by anyone, as before, and a trip
+-- comment is readable only by someone who can read the trip under trips_select.
+-- trip_waypoints_select (00123) uses the same subquery-under-RLS shape.
+--
 -- Safe to apply: production has no row that the new CHECK rejects (0 rows with
 -- trip_id set; the 00119 route->trip remap touched none). Run the pre-check below
 -- first anyway; ADD CONSTRAINT validates every existing row.
@@ -25,8 +33,8 @@
 -- DEPLOY ORDER: independent of the API. The API change in the same PR only maps
 -- RLS/FK errors to 4xx; it works before and after this migration.
 --
--- ROLLBACK: re-create comments_single_target with the 00063 body and
--- comments_insert with the 00196 body.
+-- ROLLBACK: re-create comments_single_target and comments_select with the 00063
+-- bodies and comments_insert with the 00196 body.
 
 BEGIN;
 
@@ -74,6 +82,17 @@ CREATE POLICY "comments_insert" ON public.comments
         SELECT 1 FROM public.trips
         WHERE id = trip_id
       )
+    )
+  );
+
+DROP POLICY IF EXISTS "comments_select" ON public.comments;
+CREATE POLICY "comments_select" ON public.comments
+  FOR SELECT
+  USING (
+    trip_id IS NULL
+    OR EXISTS (
+      SELECT 1 FROM public.trips
+      WHERE id = trip_id
     )
   );
 

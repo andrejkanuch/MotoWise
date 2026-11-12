@@ -1,9 +1,7 @@
-import { MotorcycleRecallsDocument, type MotorcycleRecallsQuery } from '@motovault/graphql';
+import type { MotorcycleRecallsQuery } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { canCheckRecalls } from '../../lib/bike-hub/recall-eligibility';
-import { gqlFetcher } from '../../lib/graphql-client';
-import { queryKeys } from '../../lib/query-keys';
-import { QUERY_META } from '../../lib/query-meta';
+import { motorcycleRecallsOptions } from '../../lib/query-options';
 import { useHubBike } from './shell/use-hub-bike';
 
 /** 1 hour client-side (the server caches NHTSA answers for 24h). */
@@ -29,14 +27,11 @@ export function useRecallsLookup(motorcycleId: string | undefined): RecallsLooku
   const needsDetails = bike !== null && !canCheckRecalls(bike);
   const bikeKnownOrUnavailable = bike !== null || !bikeLoading;
 
+  // Renders its own error banner; the factory's meta opts out of the global alert.
   const query = useQuery({
-    queryKey: queryKeys.motorcycleRecalls.byMotorcycle(motorcycleId ?? ''),
-    queryFn: () => gqlFetcher(MotorcycleRecallsDocument, { motorcycleId: motorcycleId ?? '' }),
+    ...motorcycleRecallsOptions(motorcycleId ?? ''),
     enabled: !!motorcycleId && !needsDetails && bikeKnownOrUnavailable,
     staleTime: RECALLS_SCREEN_STALE_MS,
-    // Renders its own error banner. The bike hub's Overview observes this key
-    // with the same opt-out; the global handler needs every observer to agree.
-    meta: QUERY_META.OWN_ERROR_UI,
   });
 
   return {

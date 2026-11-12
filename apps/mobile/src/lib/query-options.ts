@@ -13,6 +13,7 @@ import {
   GetRideWaypointsDocument,
   MaintenanceTasksByMotorcycleDocument,
   MeDocument,
+  MotorcycleRecallsDocument,
   MyMotorcyclesDocument,
   MyRidesDocument,
   MyRidesForHeatmapDocument,
@@ -98,6 +99,20 @@ export const maintenanceTasksOptions = (motorcycleId: string) =>
   queryOptions({
     queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
     queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId }),
+  });
+
+/**
+ * One bike's open NHTSA recalls. Observed by the bike hub's Overview and the
+ * Recalls screen under one key; both render their own error state, so the
+ * shared meta opts out of the global error alert (the global handler needs
+ * every observer of a key to agree). Each site adds its own `enabled`,
+ * `staleTime` and `retry`.
+ */
+export const motorcycleRecallsOptions = (motorcycleId: string) =>
+  queryOptions({
+    queryKey: queryKeys.motorcycleRecalls.byMotorcycle(motorcycleId),
+    queryFn: () => gqlFetcher(MotorcycleRecallsDocument, { motorcycleId }),
+    meta: QUERY_META.OWN_ERROR_UI,
   });
 
 /**
