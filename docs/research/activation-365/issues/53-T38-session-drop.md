@@ -24,7 +24,7 @@ Not confirmed (20%); not instrumented before T04b [SOURCE: R1 RC-F].
 Jest `lib/__tests__/auth-state-change.test.ts` (null then SIGNED_IN same id keeps `lastCompletedScreen`; different id wipes).
 
 ## Acceptance criteria
-- [ ] Gate decision with numbers; if built, jest passes; 7 locales.
+- [ ] Gate decision with numbers; if built, jest passes; all app locale files (`pnpm check:i18n`).
 
 ## Verification
 `SELECT toStartOfMonth(timestamp) m, uniq(person_id) FROM events WHERE event='auth_session_lost' AND properties.during_onboarding = true AND timestamp >= '<3.29.0 go-live on that platform>' AND {EXCL} GROUP BY m`.

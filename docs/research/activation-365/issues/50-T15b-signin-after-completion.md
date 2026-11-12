@@ -19,7 +19,7 @@ release_path: "next store build"
 **Gate:** T06 item 1 baselines + 4 weeks of `auth_session_lost` and FS-PO12/13 on lvl ≥ 2, counted from 3.29.0 go-live per platform (D17; pre-fix comparison: R6 `$screen`-based SQL on earlier versions). If > 0: repro on Android with a Google account; find any `GoogleSignin.signIn`/`signInSilently` outside `(onboarding)`/`(auth)` (consumers of `hooks/use-oauth-sign-in.ts`: `account.tsx`, `sign-in.tsx`, `register.tsx`, `login.tsx`); fix. If nothing found and metrics are 0: close as "not reproduced", tiles stay.
 
 ## How
-Device repro (Android emulator with Google Play image + Google account), logs, jest regression for whatever is found.
+Device repro (Android emulator with GMS + a Google account — T00 AVD, or T00's optional API-34 Play-image AVD), logs, jest regression for whatever is found.
 
 ## Acceptance criteria
 - [ ] Decision with numbers in `experiments.md`.

@@ -3,7 +3,7 @@ title: "[#365 T24] Exhausted diagnose CTA reads \"Free diagnosis used · back on
 labels: [enhancement, area:mobile, activation-365]
 order: 36
 task_id: T24
-depends_on: [T21, T08]
+depends_on: [T00, T21, T08]
 phase: P2
 size: S
 release_path: "Release B 3.30.0"
@@ -20,13 +20,13 @@ When `quota.isExhausted` is known: list CTA and `[id].tsx:116` "Start new" read 
 
 ## How
 Jest `components/diagnosis/__tests__/diagnose-cta.test.tsx` (available / exhausted / unknown). Maestro `diagnose-quota-used.yaml` with the seeded used diagnosis (`E2E_SEED_DIAGNOSIS_USED=1`).
-- **Local stack for the seeded flow:** run it on a **Release build** whose `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_API_URL` point at local Supabase (`:54321`) and the local NestJS API (`:4000/graphql`), per `features/bike-detail-shell-overview/local-stack.md` (iOS sim `127.0.0.1`; Android emulator `10.0.2.2` for both). `pnpm db:reset` seeds the schema first, and the runner's `SUPABASE_URL` override (`apps/mobile/scripts/run-onboarding-e2e.sh:11-12`) points at the same local Supabase as the build.
+- **Local stack for the seeded flow:** run it on a **Release build** whose `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_API_URL` point at local Supabase (`:54321`) and the local NestJS API (`:4000/graphql`), per `features/bike-detail-shell-overview/local-stack.md` (iOS sim `127.0.0.1`; Android emulator `10.0.2.2` for both). **Correction (validation V3):** `pnpm db:reset` cannot replay the repo migrations from empty (00093 ordering; 00097, 00098, 00102 fail), so use the patched local stack `~/.motovault-local/mvscratch` brought to the latest migration by **T00** (pinned `npx supabase@<version> … --workdir ~/.motovault-local/mvscratch`); the runner's `SUPABASE_URL` override (`apps/mobile/scripts/run-onboarding-e2e.sh:11-12`) points at the same local Supabase as the build.
 
 ## Acceptance criteria
-- [ ] Red run on main (form opens / paywall), green after; light/dark contrast screenshots; 7 locales.
+- [ ] Red run on main (form opens / paywall), green after; light/dark contrast screenshots; all app locale files (`pnpm check:i18n`).
 
 ## Verification
-`E2E_SEED_DIAGNOSIS_USED=1 pnpm --filter @motovault/mobile test:e2e:diagnose-quota-used` (Release build on the local stack, after `pnpm db:reset`).
+`E2E_SEED_DIAGNOSIS_USED=1 pnpm --filter @motovault/mobile test:e2e:diagnose-quota-used` (T00 E2E build on the local stack, against the T00 `mvscratch` stack).
 
 ## Friction spec
 FS-PO2c. Repro: free user, seeded used diagnosis, online → Diagnose tab. Expected: muted CTA → LimitSheet, never the form. Automated check: maestro (local, both) `assertVisible: ".*Free diagnosis used.*"` → `tapOn: {id: diagnose-cta-exhausted}` → `assertVisible: {id: limit-sheet}` → `assertNotVisible: {id: diagnose-step-bike}`. Red first.
@@ -38,7 +38,7 @@ Verbatim `R3…:510-517` by `{REL}` + `limit_sheet_viewed {feature:'full_ai_diag
 Release B (lvl 3); the release cut records the level of FS-PO2c in plan §6.1 (no code map).
 
 ## Dependencies
-- Blocked by: T21, T08.
+- Blocked by: T00 (test environment), T21, T08.
 - Blocks: T35.
 
 ## Out of scope

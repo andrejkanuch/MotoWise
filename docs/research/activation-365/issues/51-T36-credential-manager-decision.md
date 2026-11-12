@@ -13,7 +13,7 @@ release_path: "decision only; if yes, a store build (native change, never OTA)"
 #365, plan §3 T36, spec FS-OB2a, D15.
 
 ## Why
-The free module uses the deprecated legacy Google Sign-In SDK on Android [SOURCE: R5 C1–C2]; every OB2 replay is Android [SOURCE: R5 Q17]; proxy loss 20/124 [SOURCE: R5 Q9].
+The free module uses the deprecated legacy Google Sign-In SDK on Android [SOURCE: R5 C1–C2]; every OB2 replay is Android [SOURCE: R5 Q17]; proxy loss 23/111 Android account viewers without sign-up, 10-15→11-12 [SOURCE: V1-q19; R5 Q9 had 20/124].
 
 ## What to change
 After 4 weeks of `auth_oauth_*` counted from 3.29.0 go-live on Android: if "started, no result" ≥ 10% of Android Google starts, spike Credential Manager behind a flag (D15 licence/dependency decision); device check Pixel + Samsung; else close with numbers.
@@ -31,7 +31,7 @@ Query below; if spiking: Context7 docs for the current library, native change �
 `SELECT countIf(event='auth_oauth_started') s, countIf(event='auth_oauth_result') r FROM events WHERE timestamp >= '<3.29.0 Android go-live>' AND timestamp < '<go-live + 28 d>' AND toString(properties.provider)='google' AND lower(coalesce(toString(properties.platform), toString(properties.$os)))='android' AND {EXCL}`.
 
 ## Friction spec
-FS-OB2a. Repro: Android emulator (Google Play image) → account → Google: (a) Back, (b) double tap, (c) airplane after picking. Expected: (a) cancelled, no alert; (b) one sheet; (c) friendly message ≤ 10 s. Automated check: `onboarding-oauth-cancel.yaml` (maestro local, Android w/ Google account) + jest.
+FS-OB2a. Repro: Android emulator with GMS + a Google account (T00 AVD if Google sign-in works on it, else T00's optional API-34 `google_apis_playstore` AVD) → account → Google: (a) Back, (b) double tap, (c) airplane after picking. Expected: (a) cancelled, no alert; (b) one sheet; (c) friendly message ≤ 10 s. Automated check: `onboarding-oauth-cancel.yaml` (maestro local, Android w/ Google account) + jest.
 
 ## Production metric
 "Started, no result" share (verbatim `R5…:197-209`) by `{REL}`; target ≤ 5% of Google starts; Android account-step loss ≤ 10%. Annotate if shipped.

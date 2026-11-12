@@ -3,7 +3,7 @@ title: "[#365 T16b] At most one modal sheet per cold session over Home (recall, 
 labels: [bug, area:mobile, activation-365]
 order: 27
 task_id: T16b
-depends_on: [T05d]
+depends_on: [T00, T05d]
 phase: P1
 size: M
 release_path: "Release A 3.29.0"
@@ -44,7 +44,7 @@ First-session riders with ≥ 2 `landing_sheet_shown` within 60 s of `post_onboa
 Release A (lvl 2); the release cut records the level of FS-PO17 in plan §6.1 (no code map).
 
 ## Dependencies
-- Blocked by: T05d.
+- Blocked by: T00 (test environment), T05d.
 - Blocks: T18.
 
 ## Out of scope

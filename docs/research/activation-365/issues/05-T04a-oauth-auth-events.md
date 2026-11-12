@@ -40,7 +40,7 @@ Jest `apps/mobile/src/__tests__/hooks/use-oauth-sign-in.test.ts`: resolve / canc
 FS-OB2a/OB2c/OB5 (measurement part). Repro: Android emulator, account step, "Continue with Google", press Back on the picker. Expected: one `auth_oauth_started` + one `auth_oauth_result {outcome:'cancelled'}` (and, until T12, one `auth_error_alert_shown`). Automated check: jest (CI) above — Maestro cannot complete OAuth.
 
 ## Production metric
-FS-OB2a "started, no result" = started − results per provider × platform by `{REL}` (verbatim `deep-dives/R5-signin-and-measurement.md:197-209`, `activation_fix_level`). Baseline: none (new); proxy 20/124 Android. Target ≤ 5% of Google starts; read 2–4 weeks after 3.29.0 go-live per platform (feeds T36). Tile "FS-OB2a — Google started without result". Annotate Release A per T03a.
+FS-OB2a "started, no result" = started − results per provider × platform by `{REL}` (verbatim `deep-dives/R5-signin-and-measurement.md:197-209`, `activation_fix_level`). Baseline: none (new); proxy 23/111 Android account viewers without sign-up, 10-15→11-12 [SOURCE: V1-q19] (R5: 20/124); proxy SQL never applies `{RN}` to the server event `signup_completed`. Target ≤ 5% of Google starts; read 2–4 weeks after 3.29.0 go-live per platform (feeds T36). Tile "FS-OB2a — Google started without result". Annotate Release A per T03a.
 
 ## Release
 JS only → Release A 3.29.0 (owner rule D17; no OTA).

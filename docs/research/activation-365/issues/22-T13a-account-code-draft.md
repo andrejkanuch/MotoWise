@@ -3,7 +3,7 @@ title: "[#365 T13a] Persist the account/code draft (onboarding store v9 → v10)
 labels: [bug, area:mobile, activation-365]
 order: 22
 task_id: T13a
-depends_on: [T04b]
+depends_on: [T00, T04b]
 phase: P1
 size: M
 release_path: "Release A 3.29.0"
@@ -18,7 +18,7 @@ The account step keeps email/code in component state (`hooks/use-email-code-step
 ## What to change
 Ruling D10 (plan §9, amended 2026-11-12): the email is not kept in MMKV.
 - **SecureStore for the address.** `email` and `codeSentAt` live in one dedicated `expo-secure-store` key (installed, `apps/mobile/package.json:76`) behind a small helper, e.g. `lib/onboarding-email-draft.ts` with `saveEmailDraft({email, codeSentAt})`, `readEmailDraft()`, `clearEmailDraft()`. The helper is cleared in the onboarding store's `reset()` and `resetForSignOut()`, on code success, and at onboarding completion.
-- **MMKV store v10** (`stores/onboarding.store.ts:203-233`, `version: 9` at `:212`) holds only `accountDraft {mode}` and the `bikeDraft` type (filled by T13b) so one migration covers both. No email, code or password in MMKV.
+- **MMKV store v10** (`stores/onboarding.store.ts:203-233`, `version: 9` at `:212`) holds only `accountDraft {mode}`, the `bikeDraft` type and a `furthestScreen` field (both filled by T13b: monotonic resume target, validation V4 a5) so one migration covers them. No email, code or password in MMKV.
 - On mount, read the SecureStore draft: within 1 h of `codeSentAt` reopen the code step for that address (verifyOtp needs no password); > 1 h → email form prefilled. Fire `email_code_step_restored {age_s}`.
 
 ## How
@@ -42,7 +42,7 @@ FS-OB3. Repro: iOS sim, fresh install → account → "Continue with email" → 
 Release A (lvl 2); the release cut records the level of FS-OB3 in plan §6.1 (no code map).
 
 ## Dependencies
-- Blocked by: T04b.
+- Blocked by: T00 (test environment), T04b.
 - Blocks: T13b, T18.
 
 ## Out of scope

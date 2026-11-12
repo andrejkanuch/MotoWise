@@ -3,7 +3,7 @@ title: "[#365 T30] Exp 1: flag activation_365_first_session, sticky assignment a
 labels: [experiment, area:mobile, area:api, area:analytics, activation-365]
 order: 43
 task_id: T30
-depends_on: [T05d, T02]
+depends_on: [T00, T05d, T02]
 phase: P3
 size: M
 release_path: "API deploy (window field) before the 3.30.0 cut, then Release B 3.30.0 (embedded; inactive until the server window opens)"
@@ -23,11 +23,12 @@ Starting the experiment: on the D16 day the owner or the agent sets the start va
 - server window null, field missing, or the request failed/unreachable → **not started**: `control`, `source:'pre_start'`, **no exposure event, no local draw**;
 - outside [start, stop) → `control`, `source:'pre_start'|'post_stop'`, **no exposure event, no local draw**;
 - inside: PostHog multivariate if it answers (`posthog`); flag off/unknown → `control` (kill switch); cannot ask → uniform local draw (`local`).
-Sticky `activationArm/AssignedAt/Source/ExposurePending` in `stores/experiment.store.ts:20-68` (version 1 → 2). Assign in one `completeOnboardingAndAssign()` called from `handleContinue` **and** the cold-start branch, only for riders with no real ride; `activation_exposure {experiment, arm, source, onboarding_variant, notifications_granted}` + super property `activation_arm`; pending exposure flushed on consent. Stopping: clear or move the server window (new riders stop being drawn at once); riders already assigned keep their arm (sticky).
+Sticky `activationArm/AssignedAt/Source/ExposurePending` in `stores/experiment.store.ts:20-68` (version 1 → 2). Assign in one `completeOnboardingAndAssign()` called from `handleContinue` **and** the cold-start branch, only for riders with no real ride; `activation_exposure {experiment, arm, source, onboarding_variant, notifications_granted, primary_goal, returning_account}` + super property `activation_arm`; pending exposure flushed on consent.
+**Added by the validation (V2 §5.1, plan §11):** `primary_goal` = the rider's onboarding primary goal (already the `onboarding_goal_primary` super property); `returning_account` = `true` when the rider's first auth in this install signed in to a pre-existing account (first auth event `user_signed_in`, not `user_signed_up`/`signup_completed`). Both are pre-treatment: T40 stratifies the primary test on goal (`track_rides` vs other) × platform and excludes or stratifies `returning_account` (21 of 367 completers are reinstalls; 33% of them come back on day 2, against 16% overall). Stopping: clear or move the server window (new riders stop being drawn at once); riders already assigned keep their arm (sticky).
 
 ## How
 - API jest `apps/api/src/modules/users/users.resolver.spec.ts` (new): env unset → `null`; start set → `{startAt, stopAt}`; invalid date rejected at boot by env validation. `pnpm verify:api`; `pnpm generate` after deploy.
-- Mobile jest `lib/__tests__/activation-experiment.test.ts`: each source path; window null / request failed → control `pre_start`, no draw, no exposure; server start after 2027-01-06 → not started; server stop after 2027-03-31 → stops at 2027-03-31; before start → control, no exposure; after stop → control; stickiness across relaunch and sign-out; no re-roll; exposure once; pre-consent flush; assignment after the garage_first paywall; 10,000-draw SRM simulation.
+- Mobile jest `lib/__tests__/activation-experiment.test.ts`: exposure carries `primary_goal` and `returning_account` (sign-in to an existing account → `true`; new sign-up → `false`); each source path; window null / request failed → control `pre_start`, no draw, no exposure; server start after 2027-01-06 → not started; server stop after 2027-03-31 → stops at 2027-03-31; before start → control, no exposure; after stop → control; stickiness across relaunch and sign-out; no re-roll; exposure once; pre-consent flush; assignment after the garage_first paywall; 10,000-draw SRM simulation.
 
 ## Acceptance criteria
 - [ ] API field deployed and live on Render before the 3.30.0 cut (deploy link in the PR); `pnpm generate` committed.
@@ -41,13 +42,13 @@ Sticky `activationArm/AssignedAt/Source/ExposurePending` in `stores/experiment.s
 FS-EXP1 (assignment). Repro: pre-consent EEA install of Release B while the server window is null (or the API is unreachable). Expected: control, `source:'pre_start'`, no draw, no exposure. Automated check: jest (CI) (fake clock before/after start); maestro `first-ride-plan-card.yaml` in T32.
 
 ## Production metric
-Exposure by arm × `onboarding_variant` × platform (verbatim `R4…:455-461`); SRM χ² weekly per platform × region; exposure count ≈ completers after start. Tile "FS-EXP1 — exposure and SRM". Annotate the launch (T35).
+Exposure by arm × `onboarding_variant` × platform × `primary_goal` × `returning_account` (verbatim `R4…:455-461` + the two new properties); platform per person (plan §0 `{REL}`); SRM χ² weekly per platform × region; exposure count ≈ completers after start. Tile "FS-EXP1 — exposure and SRM". Annotate the launch (T35).
 
 ## Release
 API deploy first (window field, null until D16); client embedded in Release B; active only once the server window opens (set on the D16 day, same day as the flag flip, T35).
 
 ## Dependencies
-- Blocked by: T05d, T02.
+- Blocked by: T00 (test environment), T05d, T02.
 - Blocks: T31, T32, T34, T35.
 
 ## Out of scope

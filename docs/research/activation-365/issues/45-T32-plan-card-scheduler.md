@@ -3,7 +3,7 @@ title: "[#365 T32] Exp 1 test arm: \"When's your next ride?\" plan card + one lo
 labels: [experiment, area:mobile, activation-365]
 order: 45
 task_id: T32
-depends_on: [T10, T30]
+depends_on: [T00, T10, T30]
 phase: P3
 size: M
 release_path: "Release B 3.30.0 (test arm only)"
@@ -13,7 +13,9 @@ release_path: "Release B 3.30.0 (test arm only)"
 #365, plan §3 T32, spec FS-EXP1 (plan chain), D13. Board P02.1/P03.1 [SOURCE: board/99-synthesis.md §4].
 
 ## Why
-Goal, push grant and early logging separate day-2 returners; friction does not [SOURCE: R6 §3.1]. S1 week-1 core action baseline 61/367 (16.6%); 3.26.0 8/84 [SOURCE: evidence pack §2; Q-P5].
+Starting a ride on day 0 separates day-2 returners most (35% vs 10% of completers, adjusted OR 4.5), and the "Later today" chip matches the same-day-reopen signal (ride starters who reopened > 1 h after install: 17/28 = 61% back); goal `track_rides` works mostly through riding; friction does not separate returners [SOURCE: V2 §4, §5; R6 §3.1]. S1 week-1 core action (completion-anchored) 37/275 (13.5%), 3.26.0 8/84; strata `track_rides` 24% vs other goals 8% [SOURCE: V1-q7; V2-q5].
+
+The plan card is an **inline Home card**; at most one inline Home card per session and **the plan card wins** over any other inline card (e.g. a later P05.3 install-reason card) (D11 addition, validation V5).
 
 ## What to change
 `components/home/activation-plan-card.tsx`, an inline Home card above `OnboardingChecklist` (not a sheet), for test-arm riders with no real ride (replaces the FIRST_RIDE row). It shows only when no landing sheet is shown in that session (D11: consent, recall and "Service plan ready" sheets come first). Chips: **Later today, Tomorrow, This weekend, Not sure yet** (D13; no "Today" chip); fire times from `features/activation/plan-fire-time.ts` (+3 h capped 19:00; 10:00; Saturday 10:00; none); in-context permission once after a chip; one local notification via `lib/notifications.ts` kind `activation`, `source:'plan_card'`; opens Start Ride via the response handler (`app/_layout.tsx:975`); cancelled by any core action. Events `next_ride_plan_set {when, source, permission_granted}`, `reminder_scheduled/opened {kind:'activation', source}`, `activation_nudge_presented`.
@@ -31,7 +33,7 @@ Card states:
 Jest `features/activation/__tests__/plan-fire-time.test.ts` (chips, cap, TZ, DST, Saturday), `scheduler.test.ts` (max one activation notification; cancel on core action), `components/home/__tests__/activation-plan-card.test.tsx` (each state above; hidden while a landing sheet shows). Maestro `first-ride-plan-card.yaml` with `EXPECTED_ARM`.
 
 ## Acceptance criteria
-- [ ] Jest passes; Maestro: test arm shows card, control absent; light/dark via `useEditorialTheme`; 7 locales; no Pro/price wording.
+- [ ] Jest passes; Maestro: test arm shows card, control absent; light/dark via `useEditorialTheme`; all app locale files (`pnpm check:i18n`); no Pro/price wording.
 - [ ] Light and dark screenshots of every card state in the PR (unset, granted, denied, not sure).
 
 ## Verification
@@ -47,7 +49,7 @@ Plan-set rate among eligible test-arm completers (kill the card if < 1 in 10 aft
 Release B, test arm.
 
 ## Dependencies
-- Blocked by: T10, T30.
+- Blocked by: T00 (test environment), T10, T30.
 - Blocks: T33, T34, T35.
 
 ## Out of scope

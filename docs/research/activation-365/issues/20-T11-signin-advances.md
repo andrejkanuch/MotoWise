@@ -3,7 +3,7 @@ title: "[#365 T11] Onboarding sign-in screen advances when the session lands; OA
 labels: [bug, area:mobile, activation-365]
 order: 20
 task_id: T11
-depends_on: [T04a, T04b]
+depends_on: [T00, T04a, T04b]
 phase: P1
 size: S
 release_path: "Release A 3.29.0"
@@ -24,14 +24,14 @@ Jest `app/(onboarding)/__tests__/sign-in-session-advance.test.tsx`, `__tests__/h
 
 ## Acceptance criteria
 - [ ] Red run on `origin/main` (stays on sign-in), then green on iOS sim + Android emu.
-- [ ] Jest passes, incl. the notice: shown with `notice=account_ready`, gone after 4 s (fake timers), screen-reader announcement called once, absent without the param; notice light/dark screenshots; 7 locales; `pnpm verify:mobile`.
+- [ ] Jest passes, incl. the notice: shown with `notice=account_ready`, gone after 4 s (fake timers), screen-reader announcement called once, absent without the param; notice light/dark screenshots; all app locale files (`pnpm check:i18n`); `pnpm verify:mobile`.
 - [ ] Ledger: both-arm change date (D1).
 
 ## Verification
 `pnpm --filter @motovault/mobile test:e2e:onboarding-signin`.
 
 ## Friction spec
-FS-OB1a. Repro: preview build, `clearState`+`clearKeychain`, confirmed account with `onboardingCompleted=false`; Welcome → "Already have an account? Sign in" → email + password. Expected: within 5 s leaves sign-in (resume target / experience + banner); onboarded user → Home. Automated check: maestro (local, both) — `launchApp` → wait "Let's get started" → tap "Already have an account? Sign in" → consent `runFlow when` → "Continue with email" → `inputText` (tap a label to dismiss the custom keyboard) → submit → `extendedWaitUntil: {visible: ".*How long have you.*", timeout: 8000}` → `assertVisible: {id: onboarding-account-ready}` → `assertNotVisible: {id: onboarding-sign-in-screen}`. Red first.
+FS-OB1a. Repro: T00 E2E build pointed at the local stack (the runner creates users; never production), `clearState`+`clearKeychain`, confirmed account with `onboardingCompleted=false`; Welcome → "Already have an account? Sign in" → email + password. Expected: within 5 s leaves sign-in (resume target / experience + banner); onboarded user → Home. Automated check: maestro (local, both) — `launchApp` → wait "Let's get started" → tap "Already have an account? Sign in" → consent `runFlow when` → "Continue with email" → `inputText` (tap a label to dismiss the custom keyboard) → submit → `extendedWaitUntil: {visible: ".*How long have you.*", timeout: 8000}` → `assertVisible: {id: onboarding-account-ready}` → `assertNotVisible: {id: onboarding-sign-in-screen}`. Red first.
 
 ## Production metric
 Plan §5 FS-OB1a SQL (run, Q-P7) + `lvl`. Baseline 3.26.0 6/10 stuck; secondary ≥ 2 auths within 2 min 15/72 [SOURCE: Q-P7; R1 Q11]. Target 0 stuck (allow 1) after ≥ 5 sign-in auths on lvl ≥ 2; secondary ≤ 2. Tile "FS-OB1a — stuck after sign-in". Annotate Release A.
@@ -40,11 +40,11 @@ Plan §5 FS-OB1a SQL (run, Q-P7) + `lvl`. Baseline 3.26.0 6/10 stuck; secondary 
 Release A (lvl 2); the release cut records the level of FS-OB1a in plan §6.1 (no code map).
 
 ## Dependencies
-- Blocked by: T04a, T04b.
+- Blocked by: T00 (test environment), T04a, T04b.
 - Blocks: T18.
 
 ## Out of scope
 OAuth SDK change (T36).
 
 ## Constraints
-D1; no paywall change; light/dark; 7 locales; testID `onboarding-account-ready` (plan §3A.4, T11 row).
+D1; no paywall change; light/dark; all app locale files (`pnpm check:i18n`); testID `onboarding-account-ready` (plan §3A.4, T11 row).

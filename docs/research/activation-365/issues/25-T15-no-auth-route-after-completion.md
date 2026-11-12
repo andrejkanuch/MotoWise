@@ -3,7 +3,7 @@ title: "[#365 T15] Guard: a session blip after onboarding completion never route
 labels: [bug, area:mobile, activation-365]
 order: 25
 task_id: T15
-depends_on: [T04b]
+depends_on: [T00, T04b]
 phase: P1
 size: S
 release_path: "Release A 3.29.0"
@@ -32,13 +32,13 @@ A `TOKEN_REFRESHED` or transient null session after completion (followed by a se
 FS-PO12/FS-PO13. Repro: Android, Google-created account; Home → Profile, Diagnose → New, Discover. Expected: no sign-in or Google picker while the session is valid. Automated check: jest (CI) above (red first); maestro (local, both) `post-onboarding-no-signin.yaml` **guard only** (email sign-up; the repro needs a Google account): `runFlow onboarding.yaml` → `tapOn: {id: tab-profile}`, `{id: tab-diagnose}`, `{id: diagnose-new}`, `{id: tab-discover}` → `assertNotVisible: ".*Sign in.*|.*Continue with Google.*|.*Choose an account.*"`.
 
 ## Production metric
-FS-PO12 (verbatim `R6…:449-455`) and FS-PO13 (`R6…:468-474`) by `{REL}`; plus `auth_session_lost` after completion. Baselines from T06 item 1 (3 + 2 replays; completed-twice lower bound 6/282 [SOURCE: R6-q3]). Target 0. Tiles "FS-PO12", "FS-PO13". Annotate Release A.
+FS-PO12 (verbatim `R6…:449-455`) and FS-PO13 (`R6…:468-474`) by `{REL}`; plus `auth_session_lost` after completion. **Use the per-completer SQL in `validation/V1-metrics.md` §3.5** (R6's join counts event rows). **Baselines (60 d): FS-PO12 11/292, 3.26.0 5/120; FS-PO13 7/292, 3.26.0 5/120** [SOURCE: V1-q40]; T06 item 1 only confirms a sample with replays. Target 0. Tiles "FS-PO12", "FS-PO13". Annotate Release A.
 
 ## Release
 Release A; `FS-PO12: 2`, `FS-PO13: 2` (guard part).
 
 ## Dependencies
-- Blocked by: T04b.
+- Blocked by: T00 (test environment), T04b.
 - Blocks: T18, T15b.
 
 ## Out of scope

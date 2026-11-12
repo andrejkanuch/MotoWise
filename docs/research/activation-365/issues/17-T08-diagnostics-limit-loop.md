@@ -3,7 +3,7 @@ title: "[#365 T08] Diagnostics: stop the \"Try Again\" limit loop (typed limit s
 labels: [bug, area:mobile, activation-365]
 order: 17
 task_id: T08
-depends_on: [T05b]
+depends_on: [T00, T05b]
 phase: P1
 size: S
 release_path: "Release A 3.29.0 (store build only; no OTA, D14b/D17)"
@@ -23,8 +23,8 @@ On `FORBIDDEN`: typed `limitReached` state (not `submitError`); in-form limit pa
 - Automatic paywall at most once per form instance; never render server text. testIDs `diagnose-limit-panel`, `diagnose-limit-see-pro`, `diagnose-limit-done`. T21's `LimitSheet` later reuses these copy keys.
 
 ## How
-Files: `app/(tabs)/(diagnose)/new.tsx`, `components/diagnostic-flow/step-review-submit.tsx`, `stores/diagnostic-flow.store.ts`, `src/i18n/locales/*.json` (7 app locales). Jest `app/(tabs)/(diagnose)/__tests__/new-limit.test.tsx` (mock `gqlFetcher` → `FORBIDDEN`). Runner opt-in `E2E_SEED_DIAGNOSIS_USED=1` inserting one `content_generation_log` success row for the test user — **local Supabase only**, never production.
-- **Local stack for the seeded flow:** the Maestro run uses a **Release build** whose `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_API_URL` point at local Supabase (`:54321`) and the local NestJS API (`:4000/graphql`), as in `features/bike-detail-shell-overview/local-stack.md` (iOS sim `127.0.0.1`; Android emulator `10.0.2.2` for both URLs). `pnpm db:reset` seeds the schema first. The runner's `SUPABASE_URL` override (`apps/mobile/scripts/run-onboarding-e2e.sh:11-12`) must point at the same local Supabase the build uses, or the seeded row and the app read different databases.
+Files: `app/(tabs)/(diagnose)/new.tsx`, `components/diagnostic-flow/step-review-submit.tsx`, `stores/diagnostic-flow.store.ts`, `src/i18n/locales/*.json` (all app locale files enforced by `pnpm check:i18n`). Jest `app/(tabs)/(diagnose)/__tests__/new-limit.test.tsx` (mock `gqlFetcher` → `FORBIDDEN`). Runner opt-in `E2E_SEED_DIAGNOSIS_USED=1` inserting one `content_generation_log` success row for the test user — **local Supabase only**, never production.
+- **Local stack for the seeded flow:** the Maestro run uses a **Release build** whose `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_API_URL` point at local Supabase (`:54321`) and the local NestJS API (`:4000/graphql`), as in `features/bike-detail-shell-overview/local-stack.md` (iOS sim `127.0.0.1`; Android emulator `10.0.2.2` for both URLs). **Correction (validation V3):** `pnpm db:reset` cannot replay the repo migrations from empty, so use the patched local stack `~/.motovault-local/mvscratch` brought to the latest migration by **T00**. The runner's `SUPABASE_URL` override (`apps/mobile/scripts/run-onboarding-e2e.sh:11-12`) must point at the same local Supabase the build uses, or the seeded row and the app read different databases.
 
 ## Acceptance criteria
 - [ ] Jest: `presentPaywall` called once; second submit no-op; no raw message rendered.
@@ -33,10 +33,10 @@ Files: `app/(tabs)/(diagnose)/new.tsx`, `components/diagnostic-flow/step-review-
 - [ ] `pnpm check:i18n`, `pnpm check:mobile-colors`, `pnpm verify:mobile` green.
 
 ## Verification
-`pnpm --filter @motovault/mobile test -- new-limit`; `E2E_SEED_DIAGNOSIS_USED=1 pnpm --filter @motovault/mobile test:e2e:diagnose-limit-loop` (Android emulator; Release build on the local stack per `features/bike-detail-shell-overview/local-stack.md`, after `pnpm db:reset`).
+`pnpm --filter @motovault/mobile test -- new-limit`; `E2E_SEED_DIAGNOSIS_USED=1 pnpm --filter @motovault/mobile test:e2e:diagnose-limit-loop` (Android emulator; T00 `e2e-android` build on the local stack per `features/bike-detail-shell-overview/local-stack.md`, against the T00 `mvscratch` stack).
 
 ## Friction spec
-FS-PO2a. Repro: Android emulator preview build, free user with a used diagnosis; airplane mode on → Diagnose → Start → fill 4 steps → airplane off → Analyze → dismiss paywall → "Try Again" → paywall again. Expected: limit panel, no "Try Again", ≤ 1 automatic paywall. Automated check: maestro (local, Android emu; tag `android` for `setAirplaneMode`) `diagnose-limit-loop.yaml`: … → optional dismiss → `assertVisible: {id: diagnose-limit-panel}` → `assertNotVisible: "Try Again"` → `assertVisible: {id: diagnose-limit-see-pro}`; jest covers iOS. Red first.
+FS-PO2a. Repro: Android emulator, T00 `e2e-android` build on the local stack, free user with a used diagnosis; airplane mode on → Diagnose → Start → fill 4 steps → airplane off → Analyze → dismiss paywall → "Try Again" → paywall again. Expected: limit panel, no "Try Again", ≤ 1 automatic paywall. Automated check: maestro (local, Android emu; tag `android` for `setAirplaneMode`) `diagnose-limit-loop.yaml`: … → optional dismiss → `assertVisible: {id: diagnose-limit-panel}` → `assertNotVisible: "Try Again"` → `assertVisible: {id: diagnose-limit-see-pro}`; jest covers iOS. Red first.
 
 ## Production metric
 Riders with ≥ 2 `diagnostic_limit_reached` in one `$session_id` (verbatim `deep-dives/R3-first-hour-paywalls.md:395-402`) by `{REL}`. Baseline 3.26.0 3 of 5 limit riders [SOURCE: R3 Q2]. Target 0 on lvl ≥ 2. Tile "FS-PO2a — diagnostics limit loop". Annotate Release A per T03a.
@@ -45,11 +45,11 @@ Riders with ≥ 2 `diagnostic_limit_reached` in one `$session_id` (verbatim `dee
 Release A (lvl 2); the release cut records FS-PO2a's level in plan §6.1.
 
 ## Dependencies
-- Blocked by: T05b.
+- Blocked by: T00 (test environment), T05b.
 - Blocks: T17, T24, T18.
 
 ## Out of scope
 The 1/month free limit (`MAX_AI_DIAGNOSTICS_PER_MONTH`, unchanged).
 
 ## Constraints
-AI not promoted (panel is neutral); light/dark; 7 locales; D6 copy approval.
+AI not promoted (panel is neutral); light/dark; all app locale files (`pnpm check:i18n`); D6 copy approval.

@@ -3,7 +3,7 @@ title: "[#365 T22] Bike limit: \"Update my bike\" before \"Add a second bike (Pr
 labels: [enhancement, area:mobile, activation-365]
 order: 35
 task_id: T22
-depends_on: [T21, T23, T05d]
+depends_on: [T00, T21, T23, T05d]
 phase: P2
 size: M
 release_path: "Release B 3.30.0"
@@ -25,7 +25,7 @@ Pro riders → `open_form`. Events `bike_limit_sheet_shown`, `bike_limit_choice 
 Jest `hooks/__tests__/use-add-bike-gate.test.ts`: free + make-only bike → `offer_update` (update primary); free + complete bike → `offer_edit` (second bike primary, edit secondary); Pro → `open_form`; and a sheet render test asserting the button order for both cases. Maestro `bike-limit-update-bike.yaml` (iOS + Android); README note that `add-bike.yaml` expects the paywall.
 
 ## Acceptance criteria
-- [ ] Red run on main (paywall directly), green after both platforms; light/dark screenshots; 7 locales.
+- [ ] Red run on main (paywall directly), green after both platforms; light/dark screenshots; all app locale files (`pnpm check:i18n`).
 - [ ] `MAX_BIKES` unchanged; Pro riders never see the sheet (test); both button orders tested (empty model vs complete bike).
 - [ ] Ledger date (Home switcher "+" is a gate, logged for Exp 1).
 
@@ -42,11 +42,11 @@ Completers with an `unlimited_bikes` paywall request within 1 day (verbatim `dee
 Release B (lvl 3); the release cut records the level of FS-PO1 in plan §6.1 (no code map).
 
 ## Dependencies
-- Blocked by: T21, T23, T05d.
+- Blocked by: T00 (test environment), T21, T23, T05d.
 - Blocks: T35.
 
 ## Out of scope
 Free bike swap/delete loophole (rejected, R2 §4.2 F/G).
 
 ## Constraints
-D5; `FREE_TIER_LIMITS.MAX_BIKES = 1` unchanged; light/dark; 7 locales.
+D5; `FREE_TIER_LIMITS.MAX_BIKES = 1` unchanged; light/dark; all app locale files (`pnpm check:i18n`).

@@ -3,7 +3,7 @@ title: "[#365 T07b] Client: put servicePlanTaskCount/Tier on onboarding_complete
 labels: [bug, area:mobile, activation-365]
 order: 16
 task_id: T07b
-depends_on: [T07a]
+depends_on: [T00, T07a]
 phase: P1
 size: S
 release_path: "Release A 3.29.0 (after T07a is live and pnpm generate ran on main)"
@@ -27,7 +27,7 @@ Generated types from `pnpm generate` on `main` (never hand-edit `packages/graphq
 
 ## Acceptance criteria
 - [ ] Red run of both flows on a build from `origin/main` (fails: "No service due"), log in PR.
-- [ ] Green on a preview build with T07a live, iOS sim + Android emu; imperial run asserts "mi".
+- [ ] Green on a T00 E2E build with T07a live, iOS sim + Android emu; imperial run asserts "mi".
 - [ ] `pnpm verify:mobile` green; light/dark screenshots of the bike Service segment and the Home up-next list.
 - [ ] Jest: "due now" for past imported tasks; at most 3 rows + "+N more" on Home and Service.
 
@@ -44,7 +44,7 @@ FS-PO1H. Repro: as T07a (Yamaha MT-09 2019; then Honda chip make-only). Expected
 Release A (embedded); plan §6.1 records FS-PO1H at level 2 at the cut.
 
 ## Dependencies
-- Blocked by: T07a (deployed + generate).
+- Blocked by: T00 (test environment), T07a (deployed + generate).
 - Blocks: T18.
 
 ## Out of scope
