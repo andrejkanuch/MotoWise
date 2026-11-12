@@ -100,6 +100,27 @@ describe('NhtsaService', () => {
       expect(result.map((m) => m.makeName)).toEqual(['APRILIA', 'HONDA', 'ZUNDAPP']);
     });
 
+    it('does not hide a request defect (e.g. 403) behind the stale cache', async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: test access to private logger
+      vi.spyOn((service as any).logger, 'error').mockImplementation(() => undefined);
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(apiResponse),
+      });
+      await service.getMakes();
+
+      vi.advanceTimersByTime(25 * 60 * 60 * 1000);
+      (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: false,
+        status: 403,
+        json: () => Promise.resolve({}),
+      });
+
+      const error = await service.getMakes().catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(ServiceUnavailableException);
+      expect(error).not.toBeInstanceOf(UpstreamUnavailableException);
+    });
+
     it('re-arms a stale-served cache so the upstream is not retried within the cooldown', async () => {
       // biome-ignore lint/suspicious/noExplicitAny: test access to private logger
       vi.spyOn((service as any).logger, 'error').mockImplementation(() => undefined);

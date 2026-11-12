@@ -165,6 +165,11 @@ CREATE POLICY "comments_select" ON public.comments
   FOR SELECT
   USING (true);
 
+-- 00063.
+CREATE POLICY "comments_delete" ON public.comments
+  FOR DELETE
+  USING (user_id = (select auth.uid()));
+
 -- 00196.
 CREATE POLICY "comments_insert" ON public.comments
   FOR INSERT TO authenticated

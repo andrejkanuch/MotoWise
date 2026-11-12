@@ -225,7 +225,10 @@ export class NhtsaService implements OnModuleInit {
     try {
       return { fresh: await fetchFresh() };
     } catch (error) {
-      if (stale) {
+      // Only an NHTSA outage earns the stale fallback. Any other error means our
+      // request is wrong; it must reach the client and Sentry, not hide behind
+      // old data.
+      if (stale && error instanceof UpstreamUnavailableException) {
         stale.expiresAt = Date.now() + NhtsaService.STALE_RETRY_COOLDOWN_MS;
         this.logger.warn(`NHTSA ${label} fetch failed — serving stale cache`);
         return { stale: stale.data };

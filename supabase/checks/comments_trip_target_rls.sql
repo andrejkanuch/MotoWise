@@ -242,6 +242,44 @@ BEGIN
   IF visible <> 4 THEN
     RAISE EXCEPTION 'FAIL: organiser sees % comments on their trips, expected 4', visible;
   END IF;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- Participant P leaves the private trip: P still sees and can delete their own
+-- comment there, and sees no one else's.
+-- ---------------------------------------------------------------------------
+RESET ROLE;
+DELETE FROM public.trip_participants
+WHERE trip_id = current_setting('rls_check.trip_private')::uuid
+  AND user_id = current_setting('rls_check.user_p')::uuid;
+
+SET LOCAL ROLE authenticated;
+SELECT set_config(
+  'request.jwt.claims',
+  json_build_object('sub', current_setting('rls_check.user_p'), 'role', 'authenticated')::text,
+  true
+);
+
+DO $$
+DECLARE
+  visible INTEGER;
+  deleted INTEGER;
+BEGIN
+  SELECT count(*) INTO visible FROM public.comments
+  WHERE trip_id = current_setting('rls_check.trip_private')::uuid;
+  IF visible <> 1 THEN
+    RAISE EXCEPTION 'FAIL: former participant sees % comments on the private trip, expected only their own 1', visible;
+  END IF;
+  WITH d AS (
+    DELETE FROM public.comments
+    WHERE trip_id = current_setting('rls_check.trip_private')::uuid
+      AND user_id = current_setting('rls_check.user_p')::uuid
+    RETURNING id
+  )
+  SELECT count(*) INTO deleted FROM d;
+  IF deleted <> 1 THEN
+    RAISE EXCEPTION 'FAIL: former participant deleted % of their own private-trip comments, expected 1', deleted;
+  END IF;
   RAISE NOTICE 'comments trip-target RLS check: all assertions passed';
 END $$;
 

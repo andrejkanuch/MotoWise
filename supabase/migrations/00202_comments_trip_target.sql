@@ -33,8 +33,15 @@
 -- DEPLOY ORDER: independent of the API. The API change in the same PR only maps
 -- RLS/FK errors to 4xx; it works before and after this migration.
 --
--- ROLLBACK: re-create comments_single_target and comments_select with the 00063
--- bodies and comments_insert with the 00196 body.
+-- comments_select also lets an author always read their own comment, so a rider who
+-- leaves a private trip can still find and delete what they wrote there (DELETE ...
+-- RETURNING is filtered by the SELECT policy too).
+--
+-- ROLLBACK: there is no safe mechanical rollback once trip comments exist. The old
+-- 3-target CHECK fails validation on trip-only rows, and the 00063 comments_select
+-- (USING (true)) would make private-trip comments readable by everyone. Decide what
+-- happens to existing trip comments first (soft-delete or move them), and never
+-- restore USING (true) while trip_id rows remain.
 
 BEGIN;
 
@@ -89,7 +96,8 @@ DROP POLICY IF EXISTS "comments_select" ON public.comments;
 CREATE POLICY "comments_select" ON public.comments
   FOR SELECT
   USING (
-    trip_id IS NULL
+    user_id = (select auth.uid())
+    OR trip_id IS NULL
     OR EXISTS (
       SELECT 1 FROM public.trips
       WHERE id = trip_id
