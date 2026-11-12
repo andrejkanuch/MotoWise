@@ -19,13 +19,14 @@ With the quota used the CTA looks unchanged; the limit is a caption (`components
 When `quota.isExhausted` is known: list CTA and `[id].tsx:116` "Start new" read "Free diagnosis used · back on {date}" muted and open `LimitSheet` (T21), never the form or paywall directly; unknown keeps today's CTA. Garage add button hint "1 bike on Free". testIDs `diagnose-cta-exhausted`, `diagnose-step-bike` (first form step).
 
 ## How
-Jest `components/diagnosis/__tests__/diagnose-cta.test.tsx` (available / exhausted / unknown). Maestro `diagnose-quota-used.yaml` (local Supabase seed).
+Jest `components/diagnosis/__tests__/diagnose-cta.test.tsx` (available / exhausted / unknown). Maestro `diagnose-quota-used.yaml` with the seeded used diagnosis (`E2E_SEED_DIAGNOSIS_USED=1`).
+- **Local stack for the seeded flow:** run it on a **Release build** whose `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_API_URL` point at local Supabase (`:54321`) and the local NestJS API (`:4000/graphql`), per `features/bike-detail-shell-overview/local-stack.md` (iOS sim `127.0.0.1`; Android emulator `10.0.2.2` for both). `pnpm db:reset` seeds the schema first, and the runner's `SUPABASE_URL` override (`apps/mobile/scripts/run-onboarding-e2e.sh:11-12`) points at the same local Supabase as the build.
 
 ## Acceptance criteria
 - [ ] Red run on main (form opens / paywall), green after; light/dark contrast screenshots; 7 locales.
 
 ## Verification
-`E2E_SEED_DIAGNOSIS_USED=1 pnpm --filter @motovault/mobile test:e2e:diagnose-quota-used` (local Supabase).
+`E2E_SEED_DIAGNOSIS_USED=1 pnpm --filter @motovault/mobile test:e2e:diagnose-quota-used` (Release build on the local stack, after `pnpm db:reset`).
 
 ## Friction spec
 FS-PO2c. Repro: free user, seeded used diagnosis, online → Diagnose tab. Expected: muted CTA → LimitSheet, never the form. Automated check: maestro (local, both) `assertVisible: ".*Free diagnosis used.*"` → `tapOn: {id: diagnose-cta-exhausted}` → `assertVisible: {id: limit-sheet}` → `assertNotVisible: {id: diagnose-step-bike}`. Red first.
@@ -34,7 +35,7 @@ FS-PO2c. Repro: free user, seeded used diagnosis, online → Diagnose tab. Expec
 Verbatim `R3…:510-517` by `{REL}` + `limit_sheet_viewed {feature:'full_ai_diagnostics'}`. Baseline 6 upfront paywalls / 3 riders (60 d) [SOURCE: R3 Q1, Q7]. Target 0 automatic upfront paywalls. Tile "FS-PO2c — exhausted CTA". Annotate Release B.
 
 ## Release
-Release B; `FS-PO2c: 3`.
+Release B (lvl 3); the release cut records the level of FS-PO2c in plan §6.1 (no code map).
 
 ## Dependencies
 - Blocked by: T21, T08.

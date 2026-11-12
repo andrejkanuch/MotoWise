@@ -6,7 +6,7 @@ task_id: T05c
 depends_on: [T01]
 phase: P0
 size: M
-release_path: "TR0 per-runtime OTA + Release A"
+release_path: "Event properties: TR0 per-runtime OTA + Release A. Guard-sheet render change + testIDs: Release A only"
 ---
 
 ## Context
@@ -29,7 +29,7 @@ Jest for the event shape. Maestro `inspect_screen` on iOS sim and Android emulat
 - [ ] HUD stays `HUD_THEME` (always dark); `pnpm verify:mobile` green.
 
 ## Verification
-Maestro (local, iOS sim + Android emu) logs in the PR. Production: `countIf(properties.gps_fix IS NOT NULL)/count()` on `ride_too_short_shown` for TR0's update id = 100%.
+Maestro (local, iOS sim + Android emu) logs in the PR. Production: `countIf(properties.gps_fix IS NOT NULL)/count()` on `ride_too_short_shown` for TR0's update id = 100% (the properties ship in TR0; the testIDs are only checked on Release A builds).
 
 ## Friction spec
 FS-PO5 regression guard enabler. Repro: none (enabler). Expected: flows address ride UI by id. Automated check: maestro (local, both) `log-ride.yaml` + `inspect_screen` output.
@@ -38,7 +38,9 @@ FS-PO5 regression guard enabler. Repro: none (enabler). Expected: flows address 
 FS-PO4a/4b mechanism split: `ride_too_short_shown` by `gps_fix`, `distance_m < 10`, `has_real_ride` by `{REL}` (verbatim `R4…:376-389`). Baseline ≥ 3.21: 3/20 standstill-first riders saved a real ride ≤ 7 d [SOURCE: R4 Q-R4-06]. Tile "FS-PO4 — standstill guard shown". Annotate per T03a.
 
 ## Release
-JS only → TR0 + Release A.
+JS only, split by release (doc review 2026-11-12, item 3):
+- **TR0** (per-runtime OTA to 3.26.0/3.27.0/3.28.0): only the `ride_too_short_shown` properties (`gps_fix`, `max_speed_kmh`, `has_real_ride`, `variant`).
+- **Release A only**: the guard-sheet render change (buttons in the a11y tree) and every testID. These change UI on screen, so they do not go to older runtimes by OTA (D14b). Keep them in a separate commit so the TR0 release branches can cherry-pick the event commit alone.
 
 ## Dependencies
 - Blocked by: T01.

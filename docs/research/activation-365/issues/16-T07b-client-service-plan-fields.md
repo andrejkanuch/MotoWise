@@ -18,15 +18,18 @@ The per-version PostHog read of Exp 2 needs the new fields on `onboarding_comple
 ## What to change
 - Read `servicePlanTaskCount`/`servicePlanTier` in `app/(onboarding)/personalizing.tsx` (`trackOnboardingCompleted`) and add them to `onboarding_completed`.
 - Maestro `onboarding-service-plan.yaml` and `onboarding-make-only-service-plan.yaml`; `MAKE_ONLY` and `BIKE_MODEL` branches in `_shared/onboarding-to-account.yaml`; fix the stale comment at `_shared/onboarding-to-account.yaml:85-87` [SOURCE: R2 C15].
+- **Reminder-cap client part (doc review 2026-11-12, item 2; server part in T07a):** an imported or backfilled task whose due date or mileage is already past shows as **"due now"** (not a count of days overdue); Home and the bike's Service view show **at most the 3 most urgent** tasks with a "+N more" row. Home already caps rows at `UP_NEXT_MAX_ROWS = 3` (`apps/mobile/src/components/home/up-next.tsx:13, 61`) and the bike hub's attention list already shows three rows plus "N more" (`apps/mobile/src/components/bike-hub/overview/attention-list.tsx:212-257`); add the "+N more" row to Home's up-next list and make the Service segment (`apps/mobile/src/components/bike-hub/segments/service-segment.tsx`, grouping in `components/bike-hub/service/group-tasks.ts`) follow the same rule. The plate copy (`components/home/home-plate.ts`) says "due now" for a past limit.
 - `package.json` scripts `test:e2e:service-plan`, `test:e2e:service-plan-make-only`; README lines.
 
 ## How
+Jest: 10 imported tasks with 4 already past → Home shows 3 rows + "+7 more" and the past ones read "due now" (add to `components/home/__tests__/` and extend `components/bike-hub/__tests__/service-section.test.tsx`).
 Generated types from `pnpm generate` on `main` (never hand-edit `packages/graphql/src/generated/`). Flows use T05d ids (`segment-service`, `service-task-card-<n>`).
 
 ## Acceptance criteria
 - [ ] Red run of both flows on a build from `origin/main` (fails: "No service due"), log in PR.
 - [ ] Green on a preview build with T07a live, iOS sim + Android emu; imperial run asserts "mi".
-- [ ] `pnpm verify:mobile` green; light/dark screenshots of the bike Service segment.
+- [ ] `pnpm verify:mobile` green; light/dark screenshots of the bike Service segment and the Home up-next list.
+- [ ] Jest: "due now" for past imported tasks; at most 3 rows + "+N more" on Home and Service.
 
 ## Verification
 `pnpm --filter @motovault/mobile test:e2e:service-plan` (local); production: `onboarding_completed.servicePlanTaskCount > 0` share by `$app_version` = 3.29.0.
@@ -38,7 +41,7 @@ FS-PO1H. Repro: as T07a (Yamaha MT-09 2019; then Honda chip make-only). Expected
 `SELECT toString(properties.$app_version) ver, countIf(toInt(properties.servicePlanTaskCount) > 0) / count() FROM events WHERE event='onboarding_completed' AND timestamp > now() - INTERVAL 28 DAY AND {EXCL} GROUP BY ver`. Baseline: field absent (R2-M1 7%). Target ≥ 95% on 3.29.0. Tile "FS-PO1H — per version". Annotate Release A per T03a.
 
 ## Release
-Release A (embedded); ACTIVATION_FIXES `FS-PO1H: 2` at the cut.
+Release A (embedded); plan §6.1 records FS-PO1H at level 2 at the cut.
 
 ## Dependencies
 - Blocked by: T07a (deployed + generate).

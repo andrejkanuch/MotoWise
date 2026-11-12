@@ -9,6 +9,8 @@ size: S
 release_path: "API deploy + annotation (only if triggered)"
 ---
 
+> CLOSED 2026-11-12 by doc review: moved to the experiments ledger (EXECUTION_PLAN §10)
+
 ## Context
 #365, plan §3 T37, spec FS-OB4 (latency part).
 

@@ -9,6 +9,8 @@ size: S
 release_path: "research; fixes, if any, become their own issues"
 ---
 
+> CLOSED 2026-11-12 by doc review: moved to the experiments ledger (EXECUTION_PLAN §10)
+
 ## Context
 #365, plan §5A.3 (FS-PO15, FS-PO16), review item 20. Both "not doing now", 1 replay each [SOURCE: R6 F-PO15, F-PO16].
 

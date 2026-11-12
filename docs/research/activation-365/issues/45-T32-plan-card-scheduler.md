@@ -16,13 +16,23 @@ release_path: "Release B 3.30.0 (test arm only)"
 Goal, push grant and early logging separate day-2 returners; friction does not [SOURCE: R6 §3.1]. S1 week-1 core action baseline 61/367 (16.6%); 3.26.0 8/84 [SOURCE: evidence pack §2; Q-P5].
 
 ## What to change
-`components/home/activation-plan-card.tsx` above `OnboardingChecklist` for test-arm riders with no real ride (replaces the FIRST_RIDE row); chips Today|Later today (D13), Tomorrow, This weekend, Not sure yet; fire times from `features/activation/plan-fire-time.ts` (+3 h capped 19:00; 10:00; Saturday 10:00; none); in-context permission once after a chip; one local notification via `lib/notifications.ts` kind `activation`, `source:'plan_card'`; opens Start Ride via the response handler (`app/_layout.tsx:975`); cancelled by any core action. Events `next_ride_plan_set {when, source, permission_granted}`, `reminder_scheduled/opened {kind:'activation', source}`, `activation_nudge_presented`. testIDs `activation-plan-card`, `plan-chip-<when>`, `plan-card-scheduled`.
+`components/home/activation-plan-card.tsx`, an inline Home card above `OnboardingChecklist` (not a sheet), for test-arm riders with no real ride (replaces the FIRST_RIDE row). It shows only when no landing sheet is shown in that session (D11: consent, recall and "Service plan ready" sheets come first). Chips: **Later today, Tomorrow, This weekend, Not sure yet** (D13; no "Today" chip); fire times from `features/activation/plan-fire-time.ts` (+3 h capped 19:00; 10:00; Saturday 10:00; none); in-context permission once after a chip; one local notification via `lib/notifications.ts` kind `activation`, `source:'plan_card'`; opens Start Ride via the response handler (`app/_layout.tsx:975`); cancelled by any core action. Events `next_ride_plan_set {when, source, permission_granted}`, `reminder_scheduled/opened {kind:'activation', source}`, `activation_nudge_presented`.
+
+Card states:
+| State | What the rider sees | testID |
+|---|---|---|
+| unset | title + the four chips | `activation-plan-card`, `plan-chip-<when>` |
+| chosen + permission granted | "Reminder set for <time>" + "Change" | `plan-card-scheduled`, `plan-card-change` |
+| chosen + permission denied | "We'll keep this on your list" + "Open Settings"; no reminder promise | `plan-card-denied`, `plan-card-open-settings` |
+| not sure yet | collapses to one line | `plan-card-collapsed` |
+| core action done | card removed | — |
 
 ## How
-Jest `features/activation/__tests__/plan-fire-time.test.ts` (chips, cap, TZ, DST, Saturday), `scheduler.test.ts` (max one activation notification; cancel on core action). Maestro `first-ride-plan-card.yaml` with `EXPECTED_ARM`.
+Jest `features/activation/__tests__/plan-fire-time.test.ts` (chips, cap, TZ, DST, Saturday), `scheduler.test.ts` (max one activation notification; cancel on core action), `components/home/__tests__/activation-plan-card.test.tsx` (each state above; hidden while a landing sheet shows). Maestro `first-ride-plan-card.yaml` with `EXPECTED_ARM`.
 
 ## Acceptance criteria
 - [ ] Jest passes; Maestro: test arm shows card, control absent; light/dark via `useEditorialTheme`; 7 locales; no Pro/price wording.
+- [ ] Light and dark screenshots of every card state in the PR (unset, granted, denied, not sure).
 
 ## Verification
 Maestro logs both arms (local, both).

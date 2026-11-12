@@ -16,7 +16,8 @@ release_path: "store builds per docs/runbooks/mobile-release.md (both platforms)
 A new rider's first session runs the embedded JS [SOURCE: R3 RC-2]; every first-session fix must be in the binary. 4 of 5 3.26.0 limit riders hit the bug on their install launch [SOURCE: R3 Q13].
 
 ## What to change
-- Cut commit: `version: '3.29.0'` in `apps/mobile/app.config.ts:37`; `ACTIVATION_FIX_LEVEL = 2`; `ACTIVATION_FIXES` gets every spec fixed by T07b–T17 at 2; plan §6 and §6.1 rows (status `shipped` on go-live).
+- Cut commit: `version: '3.29.0'` in `apps/mobile/app.config.ts:37`; `ACTIVATION_FIX_LEVEL = 2`; plan §6 and §6.1 rows (§6.1 is the only record of which spec ships at which level; status `shipped` on go-live).
+- Release A also carries what TR0 left out: T05c's guard-sheet render change (buttons in the a11y tree) and its testIDs. TR0 shipped only T05c's ride-guard event properties.
 - Pre-promotion E2E (local, both platforms): `onboarding-paywall-verify.yaml` both arms (runbook), `onboarding.yaml`, and every flow from T07b–T17; links in the release PR.
 - Release notes list task and spec ids.
 
@@ -25,7 +26,8 @@ Follow `docs/runbooks/mobile-release.md` and the #365 section (T03a). After this
 
 ## Acceptance criteria
 - [ ] Both binaries in production; per-platform annotations `#365 fixes: ios 3.29.0 lvl 2 — <spec ids>` and `android …` on their go-live days.
-- [ ] FS-M binary rule: 100% of 3.29.0 opens carry level 2; first `is_embedded_launch=true` events with level 2.
+- [ ] FS-M binary rule: 100% of 3.29.0 opens carry level 2 (checked 3 days after go-live per platform; any mismatch = wrong cut); first `is_embedded_launch=true` events with level 2.
+- [ ] Go-live date per platform recorded in plan §6: it is the start of the first-session onboarding event baselines (FS-OB* pre-fix baselines, T36 and T38 gate windows), because those events exist only from 3.29.0 (TR0 reaches later sessions only).
 - [ ] Ledger: both-arm changes of this binary dated.
 
 ## Verification
@@ -35,7 +37,9 @@ Follow `docs/runbooks/mobile-release.md` and the #365 section (T03a). After this
 FS-PO3b. Repro: install a binary built before a JS fix, publish the fix as OTA, complete onboarding in one launch → fix absent. Expected: first-hour fixes embedded. Automated check: E2E suite on the release build (local, both) + manual release-checklist line "first-session fixes are embedded".
 
 ## Production metric
-FS-PO3b (verbatim `R3…:425-435` + `is_embedded_launch`) baseline 4 of 5 [SOURCE: R3 Q13] → 0. Every friction tile read at 2/4/8 weeks by `lvl` 2 vs 1 (same calendar weeks, per platform), recorded in `experiments.md` and §6.1. Annotate per platform in PostHog.
+FS-PO3b (verbatim `R3…:425-435` + `is_embedded_launch`) baseline 4 of 5 [SOURCE: R3 Q13] → 0. Every friction tile read at 2/4/8 weeks by `lvl` 2 vs 1, per platform, recorded in `experiments.md` and §6.1. Annotate per platform in PostHog.
+- **Reading rule (plan §0, §1.2).** Mechanical metrics: counts on level 2. Harm checks: on iOS the same-weeks version comparison is n/a for first-session cohorts (new App Store installs always get the newest version); on Android compare with the staged-rollout cohort still on the older binary in the same weeks. Because this release's 2/4/8-week windows fall in November–March, a harm check is judged only against that concurrent comparison (before the Exp 1 slot) or the Exp 1 control arm (after it starts); a drop against the trailing 8 weeks alone is recorded "no verdict (season)" and never triggers a revert.
+- FS-OB* onboarding metrics: the pre-fix baseline counts from 3.29.0 go-live per platform for the new events; the pre-fix comparison is the R1/R5 proxy SQL on earlier versions.
 
 ## Release
 Store builds, staged rollout per runbook; owner go-ahead.
