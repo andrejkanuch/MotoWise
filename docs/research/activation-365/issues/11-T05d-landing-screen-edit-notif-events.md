@@ -6,7 +6,7 @@ task_id: T05d
 depends_on: [T01]
 phase: P0
 size: M
-release_path: "TR0 per-runtime OTA + Release A"
+release_path: "Release A store build 3.29.0 (D17)"
 ---
 
 ## Context
@@ -30,7 +30,7 @@ Jest for each event; `inspect_screen` on both platforms for each id (paste outpu
 ## Acceptance criteria
 - [ ] Jest passes incl. the engaged-routes test; `pnpm verify:mobile` green.
 - [ ] Every listed testID visible on iOS + Android.
-- [ ] Events listed in `read-data-schema` within 7 days of TR0.
+- [ ] Events listed in `read-data-schema` within 7 days of 3.29.0 go-live.
 
 ## Verification
 `SELECT event, uniq(person_id) FROM events WHERE timestamp > now() - INTERVAL 7 DAY AND event IN ('post_onboarding_landed','screen_load_timed','garage_bike_edited') AND {EXCL} GROUP BY event`.
@@ -42,11 +42,11 @@ S3 guard: repro — rename a route in the engaged list; expected — the jest te
 S3 engaged return (board/06 Appendix B with the constant) by `{REL}`; baseline completers 37/367 (10.1%) [SOURCE: board/06 F14]; harm check only. FS-OB6(b): p90 `post_onboarding_landed.ms_since_cta`, target < 3,000 ms after T16a. Tiles in T03b. Annotate per T03a.
 
 ## Release
-JS only. The events ship in TR0 (per-runtime OTA) and embedded in Release A; the testIDs matter only from Release A (Maestro runs on new builds). TR0 data comes from later sessions only: `post_onboarding_landed` needs a completion on a TR0-updated launch.
+JS only. Events and testIDs ship in Release A 3.29.0 only (owner rule D17; TR0 removed by D17); data starts at 3.29.0 go-live per platform, first sessions included.
 
 ## Dependencies
 - Blocked by: T01.
-- Blocks: T10, T16a, T16b, T22, T28, T29, T30, TR0.
+- Blocks: T10, T16a, T16b, T22, T28, T29, T30, T18.
 
 ## Out of scope
 Behaviour changes on these screens; `notification_permission_status` and `screen_load_timed` for screens other than Discover (dropped, doc review 2026-11-12).

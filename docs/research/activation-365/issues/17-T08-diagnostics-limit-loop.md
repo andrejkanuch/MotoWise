@@ -6,7 +6,7 @@ task_id: T08
 depends_on: [T05b]
 phase: P1
 size: S
-release_path: "Release A 3.29.0 (optional older-runtime OTA per D14b)"
+release_path: "Release A 3.29.0 (store build only; no OTA, D14b/D17)"
 ---
 
 ## Context

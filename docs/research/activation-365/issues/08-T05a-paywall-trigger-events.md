@@ -6,7 +6,7 @@ task_id: T05a
 depends_on: [T01]
 phase: P0
 size: S
-release_path: "TR0 per-runtime OTA + Release A"
+release_path: "Release A store build 3.29.0 (D17)"
 ---
 
 ## Context
@@ -27,7 +27,7 @@ On `paywall_present_requested`, `paywall_viewed`, `paywall_result` (`lib/subscri
 - [ ] `pnpm verify:mobile` green.
 
 ## Verification
-`SELECT toString(properties.trigger) t, count() FROM events WHERE event IN ('paywall_present_requested','paywall_viewed') AND timestamp > now() - INTERVAL 7 DAY AND toString(properties.ota_update_id) = '<TR0 id>' AND {EXCL} GROUP BY t` → no null `t`.
+`SELECT toString(properties.trigger) t, count() FROM events WHERE event IN ('paywall_present_requested','paywall_viewed') AND timestamp > now() - INTERVAL 7 DAY AND toString(properties.$app_version) = '3.29.0' AND {EXCL} GROUP BY t` → no null `t`.
 
 ## Friction spec
 FS-PO3 (measurement). Repro: free user, Garage "Add a Bike" twice. Expected: two `paywall_present_requested {trigger:'auto', session_paywall_index:1,2}`. Automated check: jest (CI).
@@ -36,11 +36,11 @@ FS-PO3 (measurement). Repro: free user, Garage "Add a Bike" twice. Expected: two
 FS-PO3: sessions with ≥ 2 `paywall_viewed {trigger:'auto'}` same feature (verbatim `R3…:473-485`) by `{REL}`. Baseline 3.26.0 9/22 sessions [SOURCE: R3 Q10]. Target after T21: 0. Tile "FS-PO3 — repeated automatic paywalls". Annotate per T03a.
 
 ## Release
-JS only → TR0 + Release A.
+JS only → Release A 3.29.0 (owner rule D17; no OTA).
 
 ## Dependencies
 - Blocked by: T01.
-- Blocks: T21, TR0.
+- Blocks: T21, T18.
 
 ## Out of scope
 Any cap (T21); onboarding paywall behaviour.

@@ -6,8 +6,10 @@ task_id: TR0
 depends_on: [T01, T03a, T04a, T04b, T04c, T05a, T05b, T05c, T05d]
 phase: P0
 size: S
-release_path: "per-runtime OTA: Android 3.26.0; iOS 3.26.0, 3.27.0, 3.28.0 (Mobile OTA Update workflow, release branches)"
+release_path: "none: CLOSED by D17 (was: per-runtime OTA to Android 3.26.0; iOS 3.26.0, 3.27.0, 3.28.0); the instrumentation ships in Release A 3.29.0 (T18)"
 ---
+
+> CLOSED 2026-11-12 by owner rule D17: new functionality ships only in store builds; this instrumentation ships in Release A 3.29.0 (T18).
 
 ## Context
 #365, plan §2, §3A.0 rule 1 (review item 1), §6, §9 TR0 row, §10 item 3. Gets post-onboarding events flowing ~3 weeks before Release A for riders already on the live runtimes.
