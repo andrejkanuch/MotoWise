@@ -1,6 +1,6 @@
 import { COST_TREND_MIN_EXPENSES, RIDE_PAYWALL_PLACEMENT } from '@motovault/types';
 import { Lock } from 'lucide-react-native';
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -68,7 +68,7 @@ function SeriesTrend({ series, otherCount }: { series: CostTrendSeries; otherCou
             style={{
               flex: 1,
               height:
-                max > 0 && m.total > 0
+                m.total > 0
                   ? Math.max(MIN_BAR_HEIGHT, (m.total / max) * BAR_AREA_HEIGHT)
                   : MIN_BAR_HEIGHT,
               borderRadius: MIN_BAR_HEIGHT,
@@ -126,7 +126,7 @@ export function CostTrendCard({
 
   // The store can know about a purchase before the server does: then re-read
   // the tier instead of selling Pro to a rider who has it.
-  const unlock = useCallback(async () => {
+  const unlock = async () => {
     triggerImpact();
     try {
       if (!storePro) {
@@ -142,9 +142,9 @@ export function CostTrendCard({
     } catch {
       // The card stays locked; the next refresh reads the tier again.
     }
-  }, [storePro, refreshEntitlement]);
+  };
 
-  if (!visible || trend === null) return null;
+  if (!visible) return null;
 
   const cardStyle = {
     backgroundColor: theme.surface,
@@ -167,7 +167,7 @@ export function CostTrendCard({
       >
         {t('expenses.costTrend.title')}
       </Text>
-      {series === null ? (
+      {locked ? (
         <Pressable
           testID="cost-trend-locked"
           onPress={() => void unlock()}
