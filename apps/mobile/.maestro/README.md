@@ -4,19 +4,39 @@ Authored, committed regression coverage for the Expo app — the mobile counterp
 Playwright suite (`apps/web/e2e/`). Ad-hoc per-change device checks stay on XcodeBuildMCP + axe;
 these flows are the durable regression net.
 
-## Build target: use a standalone / preview build (NOT the Expo dev client)
+## Build target: use an E2E build (NOT the Expo dev client)
 
-Run these flows against a **bundled build** — a release/preview simulator build or an EAS
-`preview`/`development`-profile build with JS embedded — not the Metro-backed Expo dev client:
+Run these flows against a **bundled build** with JS embedded — not the Metro-backed Expo dev client.
+There is no EAS `preview` build; use one of these (set up 2026-11-12, #365 T00):
+
+**Build locally by default** (owner rule 2026-11-12): add `--local` to any `eas build` command below
+(run from `apps/mobile`; same profile and EAS-managed signing, output via `--output <file>`). Use the EAS cloud only
+when a local build is not possible. The first local Android build fills ~5–8 GB of Gradle cache.
+
+| Build | Command | Backend | Use for |
+|---|---|---|---|
+| iOS simulator | `eas build -p ios --profile e2e-simulator` (download the `.tar.gz`, `xcrun simctl install booted <app>`) or `pnpm --filter @motovault/mobile ios --configuration Release` | production | onboarding / paywall flows (`OB_VARIANT=invested`) |
+| Android APK, production backend | `eas build -p android --profile e2e-android` | production | read-only flows, flows that clean up their own account |
+| Android APK, local stack | `eas build -p android --profile e2e-android-local` | local Supabase `http://10.0.2.2:54321` + local API `http://10.0.2.2:4000/graphql` (cleartext allowed only in this build via `E2E_LOCAL_STACK=1`) | seeded flows (diagnosis used, limits) — see `features/bike-detail-shell-overview/local-stack.md` |
+| Android, real store binary | `bundletool build-apks --mode=universal` on the production AAB, sign with a local debug key, `adb install` | production | read-only red runs only: never sign up, sign in or create rows |
+
+The Android E2E profiles blank the RevenueCat, PostHog and Meta keys (no test traffic in those dashboards; paywall flows need `e2e-simulator`). All E2E profiles set `EXPO_PUBLIC_E2E_RUN=1` (the E2E marker for analytics exclusion) and
+`EAS_NO_FROZEN_LOCKFILE=1` (the EAS upload has no `apps/api/package.json`, so a frozen install fails).
+
+Devices on the dev machine (2026-11-12): iOS simulator **"MV iPhone"** (iPhone 16, iOS 27.2,
+`xcrun simctl list devices available`); Android emulators from `emulator -list-avds`
+(API 35 `google_apis`, no Play Store).
+
+Why not the dev client:
 
 - The flows use Maestro `clearState` for a deterministic fresh start. On a dev client that also
   wipes the saved Metro server URL, and there's no reliable non-interactive way to re-point it.
 - The dev client's Hermes may lag the JS: a fresh dev bundle can crash at startup on
-  `Intl.DisplayNames` (used at module load in `country-name.ts`). A production/preview Hermes has
+  `Intl.DisplayNames` (used at module load in `country-name.ts`). A release/E2E Hermes has
   Intl support, so bundled builds don't hit this.
 
-Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuration Release`
-(or an EAS `preview` build), install it on the booted simulator, then run the flows below.
+Build once with one of the commands above, install it on the booted simulator or emulator, then run
+the flows below.
 
 ## Flows
 
@@ -68,7 +88,7 @@ Build a sim build once, e.g. `pnpm --filter @motovault/mobile ios --configuratio
   Create/edit steps + selectors were validated live on a simulator via the Maestro MCP
   (2026-07-15); device-specific quirks (badge in the Garage tab label, custom keyboard,
   below-fold save buttons, post-save review prompt) are handled inline. The onboarding *setup*
-  portion still assumes a preview build (`clearState`).
+  portion still assumes an E2E build (`clearState`).
 - **`flows/add-expense.yaml`** — log an expense on a bike. **Validated on-device 2026-07-15.**
   `test:e2e:add-expense`.
 - **`flows/complete-maintenance-task.yaml`** — create a task then mark it Done (odometer + cost).
@@ -215,8 +235,8 @@ Hard-won specifics for THIS app — check these first when a flow "should work" 
 - **`inputText` can concatenate across fields.** With the custom keyboard, a `tapOn` that doesn't
   actually move focus makes the next `inputText` append to the previous field (seen on sign-in:
   email+password merged). Verify focus / `eraseText` before typing into a second field.
-- **Dev client vs preview build.** `clearState`/`clearKeychain` flows (onboarding) need a
-  standalone/preview build. To validate *selectors* quickly you can drive the Metro dev client with an
+- **Dev client vs E2E build.** `clearState`/`clearKeychain` flows (onboarding) need a
+  standalone E2E build (table at the top). To validate *selectors* quickly you can drive the Metro dev client with an
   already-signed-in account (skip the clearState setup) — that's how the edit flow's selectors were
   confirmed.
 - **Own your test data.** Create preconditions with distinctive titles (`E2E …`) and delete them at the

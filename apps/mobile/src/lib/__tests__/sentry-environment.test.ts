@@ -31,14 +31,45 @@ describe('eas.json build profiles', () => {
     build: Record<string, { env?: Record<string, string> }>;
   };
 
-  it('tags the e2e-simulator profile as the e2e Sentry environment', () => {
-    expect(build['e2e-simulator'].env?.EXPO_PUBLIC_SENTRY_ENVIRONMENT).toBe(SENTRY_ENVIRONMENT.E2E);
+  const isE2eProfile = (name: string) => name.startsWith('e2e-');
+
+  it('has the E2E profiles this guard covers', () => {
+    expect(Object.keys(build).filter(isE2eProfile).sort()).toEqual([
+      'e2e-android',
+      'e2e-android-local',
+      'e2e-simulator',
+    ]);
+  });
+
+  it('tags every e2e-* profile as the e2e Sentry environment', () => {
+    for (const [name, profile] of Object.entries(build).filter(([n]) => isE2eProfile(n))) {
+      expect([name, profile.env?.EXPO_PUBLIC_SENTRY_ENVIRONMENT]).toEqual([
+        name,
+        SENTRY_ENVIRONMENT.E2E,
+      ]);
+    }
   });
 
   it('leaves every other profile on the production default', () => {
-    const others = Object.entries(build).filter(([name]) => name !== 'e2e-simulator');
-    for (const [, profile] of others) {
-      expect(profile.env?.EXPO_PUBLIC_SENTRY_ENVIRONMENT).toBeUndefined();
+    const others = Object.entries(build).filter(([name]) => !isE2eProfile(name));
+    expect(others.length).toBeGreaterThan(0);
+    for (const [name, profile] of others) {
+      expect([name, profile.env?.EXPO_PUBLIC_SENTRY_ENVIRONMENT]).toEqual([name, undefined]);
+    }
+  });
+
+  // Owner rule: test runs must not reach RevenueCat, PostHog or Meta. An empty key
+  // disables each SDK; `e2e-android-local` inherits these from `e2e-android`.
+  it('blanks the RevenueCat, PostHog and Meta keys in the Android E2E profile', () => {
+    const env = build['e2e-android'].env ?? {};
+    for (const key of [
+      'EXPO_PUBLIC_RC_ANDROID_KEY',
+      'EXPO_PUBLIC_RC_IOS_KEY',
+      'POSTHOG_API_KEY',
+      'EXPO_PUBLIC_META_APP_ID',
+      'EXPO_PUBLIC_META_CLIENT_TOKEN',
+    ]) {
+      expect([key, env[key]]).toEqual([key, '']);
     }
   });
 });
