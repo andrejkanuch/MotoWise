@@ -31,7 +31,7 @@ GraphQL query for make "YAMAHA" after deploy → MT-07/MT-09 in the first 6 (if 
 FS-OB4 (API part). Repro: bike setup → Yamaha → model list. Expected: popular models first. Automated check: jest (CI) ordering spec (red first: alphabetical on main).
 
 ## Production metric
-`bike_setup_summary.model_picked_via='list'` share and dwell by deploy date. Baseline from T04c (2–4 weeks of TR0 data). Full target in T25b. Annotate the deploy.
+`bike_setup_summary.model_picked_via='list'` share and dwell by deploy date. Baseline from T04c (2–4 weeks of data from 3.29.0 go-live, D17). Full target in T25b. Annotate the deploy.
 
 ## Release
 API deploy before T25b.

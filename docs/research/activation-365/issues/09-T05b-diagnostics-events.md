@@ -6,7 +6,7 @@ task_id: T05b
 depends_on: [T01]
 phase: P0
 size: S
-release_path: "TR0 per-runtime OTA + Release A"
+release_path: "Release A store build 3.29.0 (D17)"
 ---
 
 ## Context
@@ -28,7 +28,7 @@ Jest `apps/mobile/src/components/diagnosis/__tests__/use-start-diagnosis.test.ts
 - [ ] `pnpm verify:mobile` green.
 
 ## Verification
-On TR0's update id: `countIf(event='diagnostic_started')/countIf(event='diagnostic_submitted')` ≈ 1.0–1.3 (form abandons allowed).
+On `$app_version = '3.29.0'`: `countIf(event='diagnostic_started')/countIf(event='diagnostic_submitted')` ≈ 1.0–1.3 (form abandons allowed).
 
 ## Friction spec
 FS-PO2d (research input) + FS-PO2a/b measurement. Repro: Diagnose → Start → switch tab → back to the form. Expected: one `diagnostic_started`. Automated check: jest (CI).
@@ -37,11 +37,11 @@ FS-PO2d (research input) + FS-PO2a/b measurement. Repro: Diagnose → Start → 
 First-hour `diagnostic_started` among completers by `entry` and `{REL}`. Baseline 3.26.0 29/117 [SOURCE: R6-q3]. No target (handle, don't promote AI). Tile "FS-PO2d — first-hour diagnostics by entry". Annotate per T03a.
 
 ## Release
-JS only → TR0 + Release A.
+JS only → Release A 3.29.0 (owner rule D17; no OTA).
 
 ## Dependencies
 - Blocked by: T01.
-- Blocks: T08, T17, TR0.
+- Blocks: T08, T17, T18.
 
 ## Out of scope
 Changing entry points or the 1/month free limit.

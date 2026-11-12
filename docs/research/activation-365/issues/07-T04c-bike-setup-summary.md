@@ -6,7 +6,7 @@ task_id: T04c
 depends_on: [T01]
 phase: P0
 size: S
-release_path: "TR0 per-runtime OTA + Release A"
+release_path: "Release A store build 3.29.0 (D17)"
 ---
 
 ## Context
@@ -35,11 +35,11 @@ FS-OB4 (measurement). Repro: any platform, bike setup, type "Yamaha", pick from 
 FS-OB4: dwell p50/p90 and model share by `{REL}` (verbatim `R5…:269-283`) plus `model_fetch_ms` p90. Baseline p50 44 s / p90 146 s Android, model 62/141 (44%) [SOURCE: R5 Q14, Q16]. Targets are owned by T25b; T37 triggers only if `model_fetch_ms` p90 > 3 s. Tile "FS-OB4 — bike setup dwell and model share". Annotate per T03a.
 
 ## Release
-JS only → TR0 + Release A.
+JS only → Release A 3.29.0 (owner rule D17; no OTA).
 
 ## Dependencies
 - Blocked by: T01.
-- Blocks: T13b, T25a, T37, TR0.
+- Blocks: T13b, T25a, T37, T18.
 
 ## Out of scope
 Search behaviour changes (T25b).

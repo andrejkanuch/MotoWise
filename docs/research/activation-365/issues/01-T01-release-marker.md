@@ -6,11 +6,11 @@ task_id: T01
 depends_on: []
 phase: P0
 size: S
-release_path: "TR0 per-runtime OTA (3.26.0/3.27.0/3.28.0) + embedded in Release A 3.29.0"
+release_path: "Release A store build 3.29.0 (T18) only (owner rule D17)"
 ---
 
 ## Context
-Part of #365 "Activation: first session and first core action". Plan: `docs/research/activation-365/EXECUTION_PLAN.md` §3 T01, §3A.0 rule 2, §10 item 13, §3A.2, §5A.2 (FS-M).
+Part of #365 "Activation: first session and first core action". Plan: `docs/research/activation-365/EXECUTION_PLAN.md` §3 T01, §3A.0 rules 1–2, §10 item 13, §10.1 (D17), §3A.2, §5A.2 (FS-M).
 Every other #365 task is read per release through these properties.
 
 ## Why
@@ -25,7 +25,7 @@ Register on every event, at PostHog client creation and again on consent grant:
 `e2e_run: true` only when `process.env.EXPO_PUBLIC_E2E_RUN === '1'`. No spec-to-level map in code: the plan's §6.1 status table is the only record of which level fixes which spec (doc review 2026-11-12).
 
 ## How
-- New `apps/mobile/src/config/activation.ts`: `ACTIVATION_FIX_LEVEL = 0 as const` (TR0 sets 1), nothing else. Header comment: "Bump ONLY in the commit that cuts a store build or an OTA publish (plan §3A.0 rule 2). Never in a feature PR."
+- New `apps/mobile/src/config/activation.ts`: `ACTIVATION_FIX_LEVEL = 0 as const` (0 = pre-release JS; the Release A cut sets 2; level 1 is not used, D17), nothing else. Header comment: "Bump ONLY in the commit that cuts a store build or a crash/data-loss hotfix OTA publish (plan §3A.0 rule 2). Never in a feature PR."
 - `apps/mobile/src/lib/analytics.ts`: `buildReleaseMarker()` reading `expo-updates` (installed, `apps/mobile/package.json:84`); register right after the client is created (`lib/analytics.ts:55`) and in the consent-grant path, because `registerSuperProperties` no-ops while analytics is off (`lib/analytics.ts:490-492`, comment `:388`).
 - `apps/mobile/src/hooks/use-analytics-super-properties.ts:64-71`: merge the marker into `buildSuperProperties` so the keyed re-register keeps it.
 - Jest `apps/mobile/src/lib/__tests__/analytics-release-marker.test.ts` (mock `expo-updates`).
@@ -38,28 +38,28 @@ Register on every event, at PostHog client creation and again on consent grant:
 
 ## Verification
 - `pnpm --filter @motovault/mobile test -- analytics-release-marker` and `pnpm verify:mobile`.
-- Production after TR0 (HogQL, read-only):
+- Production after 3.29.0 go-live (HogQL, read-only):
   `SELECT toString(properties.runtime_version) rt, toString(properties.ota_update_id) ota, toString(properties.activation_fix_level) lvl, uniq(person_id) FROM events WHERE timestamp > now() - INTERVAL 7 DAY AND event='Application Opened' AND properties.$lib='posthog-react-native' AND {EXCL} GROUP BY rt, ota, lvl`
-  Target: FS-M (plan §5A.2) — ≥ 90% of riders seen twice on a targeted runtime carry the TR0 update id within 7 days.
+  Target: FS-M (plan §5A.2) — 100% of `$app_version = '3.29.0'` opens carry level 2 (binary rule); the 7-day OTA share applies only to a crash/data-loss hotfix OTA (D17).
 
 ## Friction spec
 FS-M — fixes can be read per release.
-- Repro: ship an OTA; `$app_version` stays the same [SOURCE: R4 Q-R4-12]; nothing tells which JS ran.
+- Repro (problem fact): an OTA keeps `$app_version` the same [SOURCE: R4 Q-R4-12]; nothing tells which JS ran.
 - Expected: every event carries the marker; each release has an annotation (T03a).
 - Automated check: jest (CI) `analytics-release-marker.test.ts`. No Maestro: an OTA cannot be installed in order inside a flow [SOURCE: R3 F-R3-2].
 
 ## Production metric
 - HogQL: FS-M query above by `rt`, `ota`, `lvl`; binary rule: `countIf(toString(properties.activation_fix_level) != '<expected>') = 0` for `$app_version = '<new>'`.
-- Baseline 0% [SOURCE: Q-P4]. Target: OTA ≥ 90% (7 d, targeted runtimes); binary 100%.
+- Baseline 0% [SOURCE: Q-P4]. Target: binary 100%; a crash/data-loss hotfix OTA (D17) ≥ 90% (7 d, targeted runtime).
 - Dashboard insight: "FS-M — release marker coverage" (T03b), alert on the binary rule.
 - Annotate the release in PostHog when it ships (T03a procedure).
 
 ## Release
-JS only, no native dependency (`expo-updates` already in the binary). Ships in TR0 to every live runtime and embedded in Release A.
+JS only, no native dependency (`expo-updates` already in the binary). Ships only embedded in Release A 3.29.0 (D17; TR0 removed by D17); riders on older binaries never carry the marker (read null `lvl` as pre-3.29.0 JS).
 
 ## Dependencies
 - Blocked by: —
-- Blocks: T03b, T04a, T04b, T04c, T05a, T05b, T05c, T05d, TR0.
+- Blocks: T03b, T04a, T04b, T04c, T05a, T05b, T05c, T05d, T18.
 
 ## Out of scope
 A CI guard forcing a level bump (R4 F-R4-7 idea).

@@ -16,7 +16,7 @@ release_path: "store builds both platforms; PostHog flag 50/50 (D2); start = ser
 Exp 1 assignment happens in the first session, so it must be embedded [SOURCE: R3 RC-2]; P2 fixes reach new riders only in a binary.
 
 ## What to change
-- **Scope.** Hard dependencies are the Exp 1 minimum set only: T02, T05c, T05d, T09, T10, T18, T30, T31, T32, T33, T34. **Code freeze 2026-12-05.** P2 tasks (T19a, T19b, T20, T21, T22, T24, T25b, T26, T28) that are merged by the freeze ship in 3.30.0; any that miss it go into the next store binary, never an OTA (OTAs miss first sessions). T27 and T29 ship in 3.30.0 if merged by the freeze, otherwise in the first binary after the slot, so D12 ("before the slot", never inside it) holds. The dates need about 2 merged PRs per day (parallel agents).
+- **Scope.** Hard dependencies are the Exp 1 minimum set only: T02, T05c, T05d, T09, T10, T18, T30, T31, T32, T33, T34. **Code freeze 2026-12-05.** P2 tasks (T19a, T19b, T20, T21, T22, T24, T25b, T26, T28) that are merged by the freeze ship in 3.30.0; any that miss it go into the next store build (D17). T27 and T29 ship in 3.30.0 if merged by the freeze, otherwise in the first binary after the slot, so D12 ("before the slot", never inside it) holds. The dates need about 2 merged PRs per day (parallel agents).
 - The T30 API part (`activationExperimentWindow` on the `completeOnboarding` result) is deployed and live before the 3.30.0 cut.
 - Cut commit: `version: '3.30.0'`; `ACTIVATION_FIX_LEVEL = 3`; plan §6/§6.1 (§6.1 is the only record of which spec ships at which level).
 - E2E as T18 plus `first-ride-plan-card.yaml`, `ride-standstill-teaching.yaml` in both arms, `onboarding-paywall-verify.yaml` both arms.

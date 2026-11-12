@@ -3,20 +3,20 @@ title: "[#365 T14b] (Conditional) Cached me cannot say \"not completed\"; second
 labels: [bug, area:mobile, area:db, activation-365]
 order: 49
 task_id: T14b
-depends_on: [TR0, T18]
+depends_on: [T18]
 phase: P4
 size: S
-release_path: "next store build or OTA to the 3.29.0+ runtime; migration only if needed (owner applies)"
+release_path: "next store build; migration only if needed (owner applies)"
 ---
 
 ## Context
 #365, plan §3 T14 (data-gated part, review item 14), spec FS-OB1e.
 
 ## Why
-Relapse cause confidence 45% [SOURCE: R1 RC-E]; `gate_routed.onboarding_completed_source` (T04b, live since TR0) shows whether relapses come from `me_cache`.
+Relapse cause confidence 45% [SOURCE: R1 RC-E]; `gate_routed.onboarding_completed_source` (T04b, live from 3.29.0 go-live per platform, D17) shows whether relapses come from `me_cache`.
 
 ## What to change
-**Gate:** run only if 4 weeks of `gate_routed` show ≥ 1 relapse routed by `me_cache` on lvl ≥ 2; else close with the numbers. If run: a cached `me` older than the session's sign-in cannot say "not completed" (network `me` decides); per T06 item 5, a second `complete_onboarding` is a no-op server-side (migration owner-applied only if not already idempotent).
+**Gate:** run only if 4 weeks of `gate_routed`, counted from 3.29.0 go-live per platform, show ≥ 1 relapse routed by `me_cache` on lvl ≥ 2; else close with the numbers. If run: a cached `me` older than the session's sign-in cannot say "not completed" (network `me` decides); per T06 item 5, a second `complete_onboarding` is a no-op server-side (migration owner-applied only if not already idempotent).
 
 ## How
 `app/_layout.tsx` gate `:417-419, 453-467`, `lib/query-persist.ts:67-74`. Jest `navigation-gate.test.tsx` extra cases; SQL check in `supabase/` if a migration is needed.
@@ -35,10 +35,10 @@ FS-OB1e (cached path). Repro: dev build with a seeded persisted `me {onboardingC
 FS-OB1e by `{REL}`; baseline 10/291 [SOURCE: R1 Q7]; target 0. Annotate when shipped.
 
 ## Release
-Next build/OTA (3.29.0+ runtime).
+Next store build (D17).
 
 ## Dependencies
-- Blocked by: TR0, T18.
+- Blocked by: T18 (gate window starts at 3.29.0 go-live).
 - Blocks: —
 
 ## Out of scope

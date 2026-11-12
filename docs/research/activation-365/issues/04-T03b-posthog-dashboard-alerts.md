@@ -24,7 +24,7 @@ No #365 dashboard exists (only 738337 "Onboarding A/B 2026", 636265 "Onboarding 
 5. The first annotation: `#365 baseline` dated the day T02 recorded baselines.
 
 ## How
-PostHog MCP: `dashboard-create`, `insight-create` (HogQL), `alert` create, `annotation` create. Write the full named list of writes for this release in the issue first and share it with the owner for information (no approval step, D2); then the implementing agent makes exactly those writes and records each created id (dashboard, insight, alert, annotation) in plan §6. Tiles for events that do not exist yet show "no data" until TR0.
+PostHog MCP: `dashboard-create`, `insight-create` (HogQL), `alert` create, `annotation` create. Write the full named list of writes for this release in the issue first and share it with the owner for information (no approval step, D2); then the implementing agent makes exactly those writes and records each created id (dashboard, insight, alert, annotation) in plan §6. Tiles for events that do not exist yet show "no data" until 3.29.0 go-live (Release A, D17).
 
 ## Acceptance criteria
 - [ ] Named write list posted in the issue (shared with the owner for information); every created id recorded in plan §6.

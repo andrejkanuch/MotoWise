@@ -6,7 +6,7 @@ task_id: T04b
 depends_on: [T01]
 phase: P0
 size: M
-release_path: "TR0 per-runtime OTA + Release A"
+release_path: "Release A store build 3.29.0 (D17)"
 ---
 
 ## Context
@@ -30,7 +30,7 @@ Jest per event (one fire per action, typed props) under `apps/mobile/src/__tests
 ## Acceptance criteria
 - [ ] Jest passes; `pnpm verify:mobile` green; schema doc updated.
 - [ ] `gate_routed` fires once per cold start (test).
-- [ ] After TR0 all five events appear within 7 days (`auth_session_lost` may be rare).
+- [ ] After 3.29.0 go-live all five events appear within 7 days (`auth_session_lost` may be rare).
 
 ## Verification
 `SELECT event, uniq(person_id) FROM events WHERE timestamp > now() - INTERVAL 7 DAY AND event IN ('onboarding_back','onboarding_welcome_mounted','gate_routed','auth_session_lost','onboarding_resumed') AND {EXCL} GROUP BY event`.
@@ -41,14 +41,14 @@ FS-OB1b/d/e/f measurement. Repro (Android emulator, preview build): to account s
 ## Production metric
 - FS-OB1b (plan §5, revised): starters with ≥ 3 `onboarding_back` where `ms_on_screen ≤ 5000` and `trigger IN ('hardware','gesture')`; baseline Android 25/187, iOS 15/70 [SOURCE: R1 Q8].
 - `gate_routed` by `onboarding_completed_source`: decision input for T14b (relapses with `me_cache`).
-- Tiles in T03b; read 4 weeks after TR0. Annotate per T03a.
+- Tiles in T03b; read 4 weeks after 3.29.0 go-live per platform. Annotate per T03a.
 
 ## Release
-JS only → TR0 + Release A.
+JS only → Release A 3.29.0 (owner rule D17; no OTA).
 
 ## Dependencies
 - Blocked by: T01.
-- Blocks: T11, T13a, T14, T15, T19a, T19b, TR0, T14b, T15b, T38.
+- Blocks: T11, T13a, T14, T15, T19a, T19b, T18, T14b, T15b, T38.
 
 ## Out of scope
 Behaviour changes (T11–T20).

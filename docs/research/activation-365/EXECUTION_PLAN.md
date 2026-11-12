@@ -23,14 +23,14 @@ and for reproducible bugs a **red run on `origin/main`** first), and (2) its pro
 - **`{EXCL}`** = `toString(person_id) NOT IN (<excluded test/synthetic person ids: project test-account filter + is_synthetic users; list kept outside the repo>)` (the 12 test persons, `queries/q00-excluded-persons.md`) **AND** `coalesce(toString(properties.e2e_run), '') != 'true'` (E2E builds, super property from T01) **AND** `person_id NOT IN ({E2E_PERSONS})`, the list of historical e2e persons T02 finds once (`person.properties.email LIKE 'e2e-%'`). DB queries exclude `users.is_synthetic` and `email LIKE 'e2e-%'` (the runners set `is_synthetic = true`, T02). [review item 7]
 - **`{RN}`** = `properties.$lib = 'posthog-react-native'`.
 - **`{REL}`** (the release breakdown every metric uses) = `toString(properties.$app_version) AS ver, toString(properties.activation_fix_level) AS lvl, toString(properties.ota_update_id) AS ota, lower(coalesce(toString(properties.platform), toString(properties.$os))) AS plat`.
-  Until T01 ships, `lvl` and `ota` read null on every event (Q-P4 below), so the read is by `ver` + calendar date of the OTA.
-  Also `toString(properties.runtime_version) AS rt` once T01 ships (OTAs are per runtime, §3A.0).
+  Until T01 ships (embedded in Release A 3.29.0, D17), `lvl` and `ota` read null on every event (Q-P4 below), so pre-3.29.0 reads are by `ver` + calendar date.
+  Also `toString(properties.runtime_version) AS rt` once T01 ships (an OTA reaches only its own runtime, §3A.0; OTAs are used only for crash/data-loss hotfixes, D17).
 - **Release marker** (one name set, replacing the five variants in R1/R3/R4/R5/R6): super properties `activation_fix_level` (integer),
   `ota_update_id` (`Updates.updateId ?? 'embedded'`), `ota_channel`, `is_embedded_launch`, `runtime_version`, `e2e_run` (only on E2E builds) and `platform`
   (already a super property at `hooks/use-analytics-super-properties.ts:70`; T01 registers it **earlier**, at client init) (T01).
-  **The level is bumped only at a release cut** (store build commit or OTA publish commit), never per PR; the §6.1 friction status table is the only record of
+  **The level is bumped only at a release cut** (store build commit, or the publish commit of a crash/data-loss hotfix OTA, D17), never per PR; the §6.1 friction status table is the only record of
   which level first ships each spec's fix [review item 3; doc review item 13 dropped the `ACTIVATION_FIXES` code map].
-  PostHog annotation per platform × runtime: `#365 fixes: <platform> <version|runtime+OTA id|api> lvl <N> — <spec ids>` (T03a procedure).
+  PostHog annotation per platform (× runtime for a hotfix OTA): `#365 fixes: <platform> <version|runtime+hotfix OTA id|api> lvl <N> — <spec ids>` (T03a procedure).
 - **Cohort for a first-session metric** = persons whose *first* `onboarding_completed` (or `onboarding_started` for onboarding metrics)
   falls in the window, broken down by the `{REL}` values *of that first event* (`argMin(..., timestamp)`).
 - **SQL status:** HogQL marked *(run)* was executed in this planner session or the cited deep dive with the result shown.
@@ -110,7 +110,7 @@ levers for return remain Experiment 1 and Experiment 2. Nobody should promise a 
 | S6 | **Post-auth early-step regression** | 05's "viewed experience/bike_setup/welcome after sign-up/in" = **30% (22/73)** [SOURCE: 05 OB1-E] — **redefined** (R1 Q1: 12 of the 21 signed in *before* starting): starters who view an early step after a later one | redefined: **44/472 (9.3%)**, 3.26.0 **16/166 (9.6%)** [SOURCE: deep-dives/R6 R6-q8]; sign-in dead end 3.26.0 6 of 10 riders stuck [SOURCE: deep-dives/R1 Q12] | ≤ 3% per version [UNBACKED — own target, R6 F-OB1]; stuck sign-ins 0 | mechanical; SQL `deep-dives/R6-replays-returners.md:276-284` [review item 20] |
 
 **Per-release success reading (owner requirement).** For every metric: (1) compare riders whose first event is on the fix level/version
-with riders on the previous level/version **in the same calendar weeks** (staged store rollouts and OTAs make both populations
+with riders on the previous level/version **in the same calendar weeks** (staged store rollouts and riders who have not updated make both populations
 co-exist), within one platform (iOS and Android differ ×1.6 on day-2 return [SOURCE: evidence pack §2]) — **n/a for iOS first-session cohorts**, because new App Store
 installs always get the newest version; (2) then compare the fix level's first 4 and 8 weeks with the trailing 8 weeks before the release date (P06.3). **November–March
 (doc review item 11):** riding season drives the trailing comparison, so a harm check in that window is judged against a concurrent comparison (Android staged-rollout cohort
@@ -172,19 +172,21 @@ day-2 return) is "no change shown", not "no effect". Mechanical metrics (targets
 
 | Phase | Window (target) | Tasks (issue order in §3A.1) | Ships as |
 |---|---|---|---|
-| **P0 Measurement first** | 11-13 → 11-21 | T01, T02, T03a, T03b, T04a–c, T05a–e, T06, **TR0** | T01/T04/T05 (mobile JS) → **TR0**: per-runtime OTA on the live runtimes (Android 3.26.0; iOS 3.26.0/3.27.0/3.28.0) from `release/<runtime>-365` branches cut from the **live production update commit** of that runtime, events/properties only (T05c's guard-sheet render change and testIDs wait for Release A), **and** embedded in Release A; T05e: API deploy; T02/T03a docs; T03b PostHog (D2). TR0 yields data only from **later sessions** (an OTA applies on the next launch): first-session onboarding events start at 3.29.0 go-live |
-| **P1 Bugs that block activation** | 11-17 → 11-30 | T07a, T07b, T08–T13b, T14, T15, T16a, T16b, T17, release **T18** | T07a: API deploy (Render) **only after T02 baselines + T03a annotation** exist; mobile: **store binary 3.29.0 (Release A)**; per-runtime OTA of P1 JS to 3.26.0–3.28.0 runtimes only on owner go-ahead (§3A.0) |
-| **P2 Friction removal** | 11-24 → 12-05 (Release B code freeze) | T19a, T19b, T20, T21, T23, T22, T24, T25a, T25b, T26–T29 | T23, T25a: API deploy; mobile: **store binary 3.30.0 (Release B)** if merged by the **code freeze 2026-12-05**; anything that misses it goes into the **next store binary, never an OTA** (OTAs miss first sessions); T27/T29 then ship after the slot (D12) |
+| **P0 Measurement first** | 11-13 → 11-21 | T01, T02, T03a, T03b, T04a–c, T05a–e, T06 | T01/T04/T05 (mobile JS, incl. T05c's guard-sheet render change and testIDs) → **store binary 3.29.0 (Release A, T18)** only (D17; TR0 removed); T05e: API deploy; T02/T03a docs; T03b PostHog (D2). Every client event and the release marker start at 3.29.0 go-live per platform; pre-fix comparisons use the R1/R5 proxy SQL |
+| **P1 Bugs that block activation** | 11-17 → 11-30 | T07a, T07b, T08–T13b, T14, T15, T16a, T16b, T17, release **T18** | T07a: API deploy (Render) **only after T02 baselines + T03a annotation** exist; mobile: **store binary 3.29.0 (Release A)**; no OTA of P1 fixes to any runtime (D14b, D17) |
+| **P2 Friction removal** | 11-24 → 12-05 (Release B code freeze) | T19a, T19b, T20, T21, T23, T22, T24, T25a, T25b, T26–T29 | T23, T25a: API deploy; mobile: **store binary 3.30.0 (Release B)** if merged by the **code freeze 2026-12-05**; anything that misses it goes into the **next store build** (D17); T27/T29 then ship after the slot (D12) |
 | **P3 Experiment 1 build + launch** | 11-24 → 12-15 (hard stop 2027-01-06) | T30–T35 | T30's API field `activationExperimentWindow` deploys **before the 3.30.0 cut**; client embedded in Release B; the flag defaults to control **and** no draw happens until the API serves a start (T30); launch = start set server-side + PostHog flag flip, same day (T35, D16) |
-| **P4 Follow-ups** | 12-15 → 2027-03-31+ | T14b, T15b, T36, T38, T39, T40 (T37, T41, T41b moved to the ledger, §10) | T14b/T15b: 4 weeks of TR0 data; T36/T38: 4 weeks from 3.29.0 go-live; T40 after the slot |
+| **P4 Follow-ups** | 12-15 → 2027-03-31+ | T14b, T15b, T36, T38, T39, T40 (T37, T41, T41b moved to the ledger, §10) | T14b/T15b/T36/T38: data gates count 4 weeks from 3.29.0 go-live per platform (pre-fix comparison: R1/R5 proxy SQL); fixes ship in the next store build; T40 after the slot |
 
 **Why store binaries and not OTA alone:** `fallbackToCacheTimeout` is unset in `apps/mobile/app.config.ts` (Expo default 0), so an OTA runs only on the *next* launch, and a brand-new rider's
 first session runs the JS embedded in the store binary [SOURCE: R3 C19–C21, Q13]. **And an OTA reaches only its own runtime:** `runtimeVersion.policy: 'appVersion'`
 with `version: '3.28.0'` on main [SOURCE: apps/mobile/app.config.ts:37, :59-61; docs/runbooks/mobile-ota.md:173-176], so an OTA from `main` reaches only 3.28.0 binaries
-(≈10 of ≈190 riders in 14 d) — the per-runtime OTA rule is in §3A.0 [review item 1]. Every first-session fix and
-Experiment 1's assignment must therefore be **in the binary new riders install**. OTAs still help returning riders and older binaries.
+(≈10 of ≈190 riders in 14 d) [review item 1]. Every first-session fix and
+Experiment 1's assignment must therefore be **in the binary new riders install**.
 Android production is binary 3.26.0 today [SOURCE: Q-P1; R5 Q18].
-OTAs from `main` after the 3.29.0 bump reach only 3.29.0; older runtimes need an OTA from a `release/<runtime>-365` branch (§3A.0).
+**Owner rule D17 (2026-11-12):** every new functionality — features, UI changes, the experiment, new events/instrumentation, testIDs — ships **only in a new store build**
+(App Store + Play, bumped app version: 3.29.0, 3.30.0, then the next store build). OTA is used only for urgent crash or data-loss hotfixes per `docs/runbooks/mobile-ota.md`.
+API deploys and owner-applied migrations are unaffected. The former per-runtime instrumentation OTA (TR0) is removed (§3A.0 rule 1, §9 D17).
 
 ```mermaid
 graph TD
@@ -201,8 +203,6 @@ graph TD
   T01 --> T05d[T05d landing/screen/edit/notif events]
   T02 --> T05e[T05e API server events]
   T03a --> T05e
-  T04a & T04b & T04c & T05a & T05b & T05c & T05d --> TR0[TR0 instrumentation OTA per runtime]
-  T03a --> TR0
   T06[T06 research batch]
   T02 & T03a --> T07a[T07a Exp2 schedule import API + reminder cap]
   T07a --> T07b[T07b client fields + service-plan flows]
@@ -220,7 +220,8 @@ graph TD
   T05d --> T16a[T16a Open my garage once]
   T05d --> T16b[T16b landing sheet queue]
   T08 --> T17[T17 diag errors/timeout]
-  T07b & T08 & T09 & T10 & T11 & T12 & T13b & T14 & T15 & T16a & T16b & T17 & TR0 --> T18[T18 Release A 3.29.0]
+  T07b & T08 & T09 & T10 & T11 & T12 & T13b & T14 & T15 & T16a & T16b & T17 --> T18[T18 Release A 3.29.0]
+  T01 & T04a & T04b & T04c & T05a & T05b & T05c & T05d --> T18
   T04b --> T19a[T19a Android Back]
   T04b --> T19b[T19b iOS back]
   T19a --> T20[T20 Welcome resume]
@@ -240,10 +241,10 @@ graph TD
   T32 --> T33[T33 Android delivery check]
   T33 --> T34[T34 day-1 fallback]
   T02 & T05c & T05d & T09 & T10 & T18 & T30 & T31 & T32 & T33 & T34 --> T35[T35 Release B 3.30.0 + Exp1 launch]
-  T19a & T19b & T20 & T21 & T22 & T24 & T25b & T26 & T27 & T28 & T29 -.-> NB[P2 tasks: in 3.30.0 if merged by the 2026-12-05 freeze, else the next store binary, never an OTA]
+  T19a & T19b & T20 & T21 & T22 & T24 & T25b & T26 & T27 & T28 & T29 -.-> NB[P2 tasks: in 3.30.0 if merged by the 2026-12-05 freeze, else the next store build]
   NB -.-> T35
-  TR0 & T18 --> T14b[T14b cached-me rule, conditional]
-  TR0 & T18 & T06 --> T15b[T15b sign-in after completion, conditional]
+  T18 --> T14b[T14b cached-me rule, conditional]
+  T18 & T06 --> T15b[T15b sign-in after completion, conditional]
   T18 --> T36[T36 Credential Manager decision]
   T18 --> T38[T38 same-user session drop, conditional]
   T07a --> T39[T39 backfill, owner-run, after the T07a reminder cap is live]
@@ -251,8 +252,8 @@ graph TD
 ```
 
 **Release B code freeze and throughput (doc review item 5).** Code freeze for Release B: **2026-12-05** (submit target 2026-12-08, D14). T35's hard dependencies are only the
-Exp 1 minimum set (T02, T05c, T05d, T09, T10, T18, T30, T31, T32, T33, T34); P2 tasks are soft (dotted edges). P2 tasks not merged by the freeze go into the next store binary,
-never an OTA (an OTA misses first sessions). The dates need about **2 merged PRs per day** from 11-13 to 12-05 (≈ 45 implementation tasks in ≈ 23 days), so agents work in
+Exp 1 minimum set (T02, T05c, T05d, T09, T10, T18, T30, T31, T32, T33, T34); P2 tasks are soft (dotted edges). P2 tasks not merged by the freeze go into the next store build
+(D17). The dates need about **2 merged PRs per day** from 11-13 to 12-05 (≈ 45 implementation tasks in ≈ 23 days), so agents work in
 parallel on independent tasks.
 
 Edges added after review (item 13): T02/T03a/T06 → T07a; T07a → T23 → T22; T08 → T24 (T08 ships its own in-form limit panel; T24 later routes the
@@ -270,7 +271,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 
 #### T01 — Release marker: `activation_fix_level`, `ota_update_id` and friends on every event
 - **Type** instrumentation · **Size** S · **Depends** — · **Blocks** T03, T04, T05 and every metric's per-release read · **Specs** FS-M ·
-  **Release** OTA now + embedded in Release A (T18) · **Constraints** no PII.
+  **Release** Release A store build 3.29.0 (T18) only (D17) · **Constraints** no PII.
 - **Why.** OTAs keep `$app_version`/`$app_build` (Android has run binary 3.26.0 b93 through every November OTA) [SOURCE: R5 Q18; Q-P1]; no event carries
   the update id (0% today) [SOURCE: Q-P4; R1 C14; R6 §2.4]; first sessions run embedded JS [SOURCE: R3 RC-2]. Without this no fix can be read per release.
   Five deep dives proposed five names; this task fixes one set (§0).
@@ -278,7 +279,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
   `ota_channel` (`Updates.channel`), `is_embedded_launch` (`Updates.isEmbeddedLaunch`), `runtime_version` (`Updates.runtimeVersion`), and
   `platform` (`process.env.EXPO_OS`) registered at client init so early onboarding events stop having `platform = null` [SOURCE: R5 6b].
 - **How.**
-  - New `config/activation.ts`: `export const ACTIVATION_FIX_LEVEL = 1 as const;` with a header comment: "bump by 1 in every PR that ships
+  - New `config/activation.ts`: `export const ACTIVATION_FIX_LEVEL = 0 as const;` (0 = pre-release JS, dev/preview builds only; the Release A cut sets 2, level 1 is not used, §3A.0 rule 2) with a header comment: "bump by 1 in every PR that ships
     a #365 friction fix" → **superseded** (review item 3): bump only at a release cut; see §3A.
   - `lib/analytics.ts`: build the marker object once (`buildReleaseMarker()` reading `expo-updates`), register it right after the PostHog client
     is created (`lib/analytics.ts:55`) **and** again on consent grant, because `registerSuperProperties` (`lib/analytics.ts:490`) no-ops while
@@ -287,9 +288,9 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
   - Jest `lib/__tests__/analytics-release-marker.test.ts` (mock `expo-updates`): embedded launch → `ota_update_id: 'embedded'`,
     `is_embedded_launch: true`; OTA launch → the id; level equals the exported constant; registered at init and on consent.
 - **Acceptance.** Jest passes; `pnpm verify:mobile` green; on a preview build with a consenting test account, Live events show all six properties.
-- **Verification (prod).** FS-M (redefined, §5A): among `Application Opened` from the runtimes an OTA targeted, over 7 days, ≥ 90% carry that `ota_update_id` or a later one; for a binary, opens with the new `$app_version` carry the expected level (100%).
+- **Verification (prod).** FS-M (redefined, §5A): opens with `$app_version = 3.29.0` carry the expected level (100%); for a crash/data-loss hotfix OTA, the §5A.2 share.
 - **Out of scope.** Any CI guard that forces a level bump (optional idea in R4 F-R4-7; not required).
-- **Risks.** Riders on binaries older than the OTA keep null until their second launch → read `ota_update_id IS NULL` as "pre-marker JS".
+- **Risks.** Riders on binaries older than 3.29.0 never carry the marker → read `activation_fix_level IS NULL` as "pre-marker JS" (pre-3.29.0 binaries).
 
 #### T02 — Ledger, canonical definitions, baseline re-run and scoreboard SQL (docs only)
 - **Type** research/docs · **Size** S · **Depends** — (re-run part after T01 ships for the `lvl` column) · **Blocks** T03, T30, T35 · **Specs** all ·
@@ -317,8 +318,8 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
      checked 3 days after go-live (target 100%, alert on any mismatch).
      Plus an Android push-token tile (rows with `platform='android'` in `device_push_tokens` per week, from the DB check in T06) so P04.2 (PR #393) is visible.
   3. **Release-marking procedure**, written into `docs/runbooks/mobile-release.md` (after the OTA/E2E section around line 56) and
-     `docs/runbooks/mobile-ota.md`: on the day a binary reaches production (per platform), an OTA is published, or an API fix deploys on Render,
-     create a PostHog annotation `#365 fixes: <version|OTA id|api> lvl <N> — <task ids>` dated the go-live day, then add a row to §6 Release log here
+     `docs/runbooks/mobile-ota.md`: on the day a binary reaches production (per platform), a crash/data-loss hotfix OTA is published (D17), or an API fix deploys on Render,
+     create a PostHog annotation `#365 fixes: <version|hotfix OTA id|api> lvl <N> — <task ids>` dated the go-live day, then add a row to §6 Release log here
      (version, date, platform, tasks, annotation id). Every 2, 4 and 8 weeks after each release, read the dashboard by `lvl` vs the previous `lvl`
      in the same calendar weeks, per platform, and record the read in `experiments.md`.
 - **How.** `exec search dashboard-create`, `insight-create`, `annotation`, `alert` tools; the implementing agent makes each write from the named per-release list and records its id in §6 (D2).
@@ -328,7 +329,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 
 #### T04 — Instrumentation A: auth and onboarding navigation
 - **Type** instrumentation · **Size** M · **Depends** T01 · **Blocks** T11–T15, T19, T20, T25, T36, T38 metrics · **Specs** FS-OB1a–f, FS-OB2a–c,
-  FS-OB3, FS-OB4, FS-OB5 · **Release** OTA + Release A · **Constraints** events only, no UI change, no email/free text in properties.
+  FS-OB3, FS-OB4, FS-OB5 · **Release** Release A · **Constraints** events only, no UI change, no email/free text in properties.
 - **Why.** OAuth attempts, cancels, errors and durations are invisible (no event on tap/cancel/error; `sign_in_oauth_clicked` is web-only)
   [SOURCE: hooks/use-oauth-sign-in.ts:28-38; R5 Q1–Q3]; RC-B…RC-F cannot be separated [SOURCE: R1 §2.2 Q4, Q9]; bike search has no timing [SOURCE: R5 Q16].
 - **What (exact names; add to `AnalyticsEvent` in `lib/analytics.ts` and to `packages/analytics/src/events.ts`):**
@@ -346,13 +347,13 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
   | `bike_setup_summary` | `outcome: 'completed'\|'skipped'\|'back'\|'left'`, `duration_ms`, `make_queries`, `model_queries`, `make_picked_via`, `model_picked_via: 'list'\|'search'\|'custom'\|'none'`, `model_list_size`, `model_fetch_ms`, `year_changed` | `app/(onboarding)/bike-setup.tsx` on leave; counters in `components/onboarding/bike-setup/make-grid.tsx`, `model-picker.tsx` |
   Also: `surface` on `user_signed_up`/`user_signed_in`.
 - **How.** Jest per event under `src/__tests__/` / `lib/__tests__/` asserting one fire per action with typed properties; document in `docs/onboarding-ab-event-schema.md`.
-- **Acceptance.** Jest passes; `pnpm verify:mobile`; after the OTA, `read-data-schema` lists each event within 48 h.
+- **Acceptance.** Jest passes; `pnpm verify:mobile`; after 3.29.0 go-live, `read-data-schema` lists each event within 48 h.
 - **Verification.** `SELECT event, count() FROM events WHERE timestamp > now() - INTERVAL 7 DAY AND event IN ('auth_oauth_started','auth_oauth_result','onboarding_back','onboarding_welcome_mounted','gate_routed','auth_session_lost','bike_setup_summary') GROUP BY event` → all non-zero within 7 days (except `auth_session_lost`, which may be rare).
 - **Risks.** `Application Backgrounded` on Android account step = Google sheet open for 80/81 sign-ups [SOURCE: R5 Q10] — never use it as "left the app".
 
 #### T05 — Instrumentation B: post-onboarding events and test hooks
 - **Type** instrumentation · **Size** M · **Depends** T01 · **Blocks** T08–T10, T16, T21–T24, T27–T32 · **Specs** FS-PO2a–d, FS-PO3, FS-PO4a/b,
-  FS-PO5, FS-PO6, FS-PO7, FS-PO10, FS-PO14, FS-PO17, FS-R2-3, FS-PO1 · **Release** OTA + Release A.
+  FS-PO5, FS-PO6, FS-PO7, FS-PO10, FS-PO14, FS-PO17, FS-R2-3, FS-PO1 · **Release** Release A.
 - **Why.** `diagnostic_started` re-fires on every focus (51 started vs 47 submitted) [SOURCE: R3 C13, Q9]; paywall events can't tell automatic
   from rider-tapped [SOURCE: R3 F-R3-6]; ride guard lacks `gps_fix`/`max_speed_kmh` [SOURCE: ride-hud.tsx:213-228; board/99 instr. 3]; no
   first-landing event [SOURCE: evidence pack §9]; bike edits untracked [SOURCE: R2 C14]; no testIDs on Start Ride/HUD/checklist and the guard sheet is not in the a11y tree [SOURCE: R4 §2.3].
@@ -435,7 +436,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
   — handled by the D7 cap above (T06 item 7 answer); make-generic intervals differ from model ones (keep tier label).
 
 #### T08 — Diagnostics: stop the "Try Again" limit loop
-- **Type** bug · **Size** S · **Depends** T05 · **Blocks** T17, T24 · **Specs** FS-PO2a · **Release** OTA + Release A · **Constraints** AI not promoted; copy D6; light/dark.
+- **Type** bug · **Size** S · **Depends** T05 · **Blocks** T17, T24 · **Specs** FS-PO2a · **Release** Release A · **Constraints** AI not promoted; copy D6; light/dark.
 - **Why.** After `FORBIDDEN`, `new.tsx` calls `requirePro('full_ai_diagnostics')` and sets `submitError` to the raw English server text
   (`app/(tabs)/(diagnose)/new.tsx:220-228`); the review step shows an enabled "Try Again" (`components/diagnostic-flow/step-review-submit.tsx:145, 414-454`); every tap re-submits,
   hits the limit and presents the paywall again. 3 of 5 limit riders on 3.26.0 looped 2–3× within seconds [SOURCE: R3 RC-1, Q2, Q3]. Confidence 90%.
@@ -452,7 +453,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Out of scope.** Changing the 1/month free limit (R3 OQ7: product question).
 
 #### T09 — A standstill ride ended from the guard is not saved
-- **Type** bug · **Size** S–M · **Depends** T05 · **Blocks** T31 · **Specs** FS-PO4b · **Release** OTA + Release A (before the slot so control is clean) ·
+- **Type** bug · **Size** S–M · **Depends** T05 · **Blocks** T31 · **Specs** FS-PO4b · **Release** Release A (before the slot so control is clean) ·
   **Constraints** D3; ride recording stays free; floors 30 s / 50 m unchanged [SOURCE: utils/ride-constants.ts:25-26].
 - **Why.** "End Anyway" → `executeEndRide` → summary that says "RIDE SAVED" with Save primary (`app/(modals)/ride-hud.tsx:202-211, 244-257`;
   `app/(modals)/ride-summary.tsx:193-279`). 26 of 72 new riders' first ride is a live sub-50 m ride [SOURCE: R4 S-R4-01]; 15 `below_min_ride=true` saves by 13 riders on ≥ 3.21, of which **13 saves / 11 riders via the summary** and 2/2 via auto-end [SOURCE: R4 Q-R4-08, R4:159-161].
@@ -470,7 +471,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Risks.** A real GPS-poor ride < 50 m is dropped (rider chose "End without saving" explicitly; the no-GPS ≥ 120 s branch still offers save).
 
 #### T10 — Checklist "first ride" row: no tick without a real ride, and it leads to a ride
-- **Type** bug · **Size** S · **Depends** T05 · **Blocks** T32 · **Specs** FS-PO10 · **Release** OTA + Release A · **Constraints** D4; light/dark; both arms (before the slot).
+- **Type** bug · **Size** S · **Depends** T05 · **Blocks** T32 · **Specs** FS-PO10 · **Release** Release A · **Constraints** D4; light/dark; both arms (before the slot).
 - **Why.** Every row press calls `completeItem` before navigating (`components/home/onboarding-checklist.tsx:153-160`); FIRST_RIDE completes on any completed
   ride (`lib/checklist-signals.ts:44-47`) and links to the empty rides list (`stores/checklist.store.ts:66-72`). 17 riders ticked it by tap, 14 without a real ride [SOURCE: R4 Q-R4-10].
 - **What.** Data-backed items never tick on tap; FIRST_RIDE needs a completed ride with duration ≥ `MIN_RIDE_ELAPSED_S` and distance ≥ `MIN_RIDE_DISTANCE_M`;
@@ -483,7 +484,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Verification.** FS-PO10: `trigger='tap'` completions of `first_ride` = 0; data-ticked without a real ride = 0 on the fix level.
 
 #### T11 — Onboarding sign-in screen advances when the session lands; OAuth double-tap guard
-- **Type** bug · **Size** S · **Depends** T04 · **Specs** FS-OB1a · **Release** OTA + Release A · **Constraints** D1; banner light/dark; 7 locales.
+- **Type** bug · **Size** S · **Depends** T04 · **Specs** FS-OB1a · **Release** Release A · **Constraints** D1; banner light/dark; 7 locales.
 - **Why.** `app/(onboarding)/sign-in.tsx` has no reaction to a new session (no `useEffect` on session; only `goToGetStarted`, `:82`), while the root gate keeps
   `(onboarding)` mounted for unfinished accounts (`app/_layout.tsx:459`). 15/72 auth riders repeated auth within 2 min, 9 never completed; on 3.26.0, 6 of 10
   sign-in-screen riders had no screen change 10 s after auth [SOURCE: R1 RC-A, Q11, Q12]. Confidence 85%.
@@ -497,7 +498,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Verification.** FS-OB1a: 0 stuck on the fix level after ≥ 5 sign-in-screen auths.
 
 #### T12 — Account screen: busy state from tap, silent cancel, bounded post-sign-in wait
-- **Type** bug · **Size** S–M · **Depends** T04 · **Specs** FS-OB2b, FS-OB2c · **Release** OTA + Release A · **Constraints** D1; no copy/order change; light/dark.
+- **Type** bug · **Size** S–M · **Depends** T04 · **Specs** FS-OB2b, FS-OB2c · **Release** Release A · **Constraints** D1; no copy/order change; light/dark.
 - **Why.** Cancel on the Google sheet shows "Error — Something went wrong" (`lib/oauth.ts:169-171`, `lib/oauth-error-alert.ts:19`); no busy state during OAuth
   (`app/(onboarding)/account.tsx:85,152-207`); the "Creating your account…" overlay waits on `me` with retries and no upper bound (`account.tsx:110,125-148`,
   `lib/query-client.ts:176-181`); >10 s for 6/105 OAuth sign-ups, max 141 s [SOURCE: R5 C4–C7, Q8].
@@ -508,7 +509,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Verification.** FS-OB2b: 0 OAuth sign-ups with > 10 s to the next step; FS-OB2c: 0 error alerts on `outcome='cancelled'`.
 
 #### T13 — Persist the account/code draft and the bike draft; resume to the screen the rider was on
-- **Type** bug · **Size** M · **Depends** T04 (`lastViewedScreen`) · **Specs** FS-OB3, FS-OB1c · **Release** OTA + Release A · **Constraints** D1, D10; never persist the password.
+- **Type** bug · **Size** M · **Depends** T04 (`lastViewedScreen`) · **Specs** FS-OB3, FS-OB1c · **Release** Release A · **Constraints** D1, D10; never persist the password.
 - **Why.** Resume targets the screen after the last *completed* one (`config/onboarding.ts:577-583`); the account step never records completion and keeps
   email/code in component state (`hooks/use-email-code-step.ts:4-13,54`); bike-setup keeps its search in component state. Completion after resume: bike-setup 7/27,
   account 5/15 [SOURCE: R1 RC-C, Q13]; email code lost after relaunch in 1 of 19 senders (3 replays) [SOURCE: R5 Q13; 05 OB3].
@@ -524,7 +525,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Verification.** FS-OB3 restored = relaunched-with-code (100%); FS-OB1c completion after resume ≥ 50% for bike-setup and account (judge after ≥ 15 resumes each).
 
 #### T14 — Onboarding completion survives a cold start (no relapse into onboarding)
-- **Type** bug · **Size** S–M · **Depends** T04 (`gate_routed`), T06 item 5 · **Specs** FS-OB1e, FS-OB6 (part) · **Release** OTA + Release A.
+- **Type** bug · **Size** S–M · **Depends** T04 (`gate_routed`), T06 item 5 · **Specs** FS-OB1e, FS-OB6 (part) · **Release** Release A.
 - **Why.** `onboardingCompleted` is not persisted (`stores/auth.store.ts:78-89,140-152`); a 7-day persisted `me` is restored on cold start
   (`lib/query-persist.ts:67-74`); "Open my garage" wipes the onboarding store (`personalizing.tsx:389-393`). 10/291 completers saw onboarding again; 4 completed twice;
   `532d475d` routed to Welcome 6 min after completing [SOURCE: R1 RC-E, Q6, Q7]. Confidence 45% (raise with `gate_routed` first: if 4 weeks show 0 `me_cache` relapses, re-scope).
@@ -536,7 +537,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Verification.** FS-OB1e = 0 on the fix level; DB: no account with 2 bikes created ≤ 2 min apart by onboarding.
 
 #### T15 — No sign-in screen or onboarding after completion (PO12/PO13)
-- **Type** bug (investigate → fix) · **Size** M · **Depends** T04, T06 item 1 · **Specs** FS-PO12, FS-PO13 · **Release** OTA + Release A.
+- **Type** bug (investigate → fix) · **Size** M · **Depends** T04, T06 item 1 · **Specs** FS-PO12, FS-PO13 · **Release** Release A.
 - **Why.** 5 replays: Google SignInHub / sign-in after completion (`01a16e01`, `01a17532`, `01a1b0c2`) and back into onboarding (`01a1ace6`, `01a1b1de`) [SOURCE: R6 F-PO12, F-PO13].
   Any null-session event after a user existed runs `resetForSignOut()` (`app/_layout.tsx:698`, gated in `lib/auth-state-change.ts:86-117`). Confidence 30–35%.
 - **What.** (1) Baselines (T06). (2) Repro on Android with a Google account; find any `GoogleSignin.signIn`/`signInSilently` call outside `(onboarding)`/`(auth)`
@@ -546,7 +547,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Verification.** FS-PO12 and FS-PO13 = 0 per version.
 
 #### T16 — "Open my garage" lands on Home once, fast; at most one sheet over Home on landing
-- **Type** bug · **Size** M · **Depends** T05 (`post_onboarding_landed`) · **Specs** FS-OB6, FS-PO17 · **Release** OTA + Release A · **Constraints** paywall hand-off and placement untouched; D11; light/dark.
+- **Type** bug · **Size** M · **Depends** T05 (`post_onboarding_landed`) · **Specs** FS-OB6, FS-PO17 · **Release** Release A · **Constraints** paywall hand-off and placement untouched; D11; light/dark.
 - **Why.** Retry shows after a bare 8 s timer even when steps are ticked (`app/(onboarding)/personalizing.tsx:376-383`); `onboarding_completed` twice for 6/282;
   7 completer replays (loops ×4, black 10 s, white 28 s, Retry with all ticked) [SOURCE: R6 F-OB6, R6-q3]; 5 replays with competing landing sheets [SOURCE: R6 F-PO17].
 - **What.** CTA disabled after the first tap and `handleContinue` idempotent (`personalizing.tsx:389-393`); never render the payoff again once `completionSent && mutationDone`;
@@ -560,7 +561,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Verification.** FS-OB6 (a) 0 completed-twice, (b) p90 `ms_since_cta` < 3,000; FS-PO17 ≤ 1 overlay.
 
 #### T17 — Diagnosis failures: offline pre-check, deadline, localized errors
-- **Type** bug · **Size** S–M · **Depends** T05, T08 · **Specs** FS-PO2b · **Release** OTA + Release A · **Constraints** D6.
+- **Type** bug · **Size** S–M · **Depends** T05, T08 · **Specs** FS-PO2b · **Release** Release A · **Constraints** D6.
 - **Why.** Successful diagnoses take 6 s p50 / 11 s p90; failures p90 47 s, max 141 s, 7/14 offline, under a 300 s client timeout (`lib/graphql-client.ts:30-41,55-63`);
   raw server text shown (`new.tsx:228`); no server row for any failure, so the free diagnosis is never burned [SOURCE: R3 RC-4, Q8, S1–S2].
 - **What.** Offline pre-check with `expo-network` (`Network.getNetworkStateAsync`, installed at `apps/mobile/package.json:71`) and `isNetworkError` (`lib/network-error.ts:47`); **add no native dependency** (`@react-native-community/netinfo` is not installed) [review item 10] → "You're offline. Your answers are kept…" with `diagnostic_failed {reason:'offline_precheck'}`;
@@ -574,12 +575,13 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Verification.** FS-PO2b: p90 submit→failed ≤ 75 s; failures per failing rider ≤ 1.5; post-send offline failures 0.
 
 #### T18 — Release A: store binary 3.29.0 "#365 fixes A" (iOS + Android)
-- **Type** release · **Size** S · **Depends** T01, T04, T05, T08–T17 (merged) · **Blocks** T35 · **Release** store builds per `docs/runbooks/mobile-release.md`;
-  OTAs per `docs/runbooks/mobile-ota.md` with `--environment production` only and the owner's go-ahead (CLAUDE.md hard rule) · **Constraints** D14.
-- **What.** Version bump in `apps/mobile/app.config.ts`; `ACTIVATION_FIX_LEVEL` equals the highest level merged; release notes list task ids;
+- **Type** release · **Size** S · **Depends** T01, T04a, T04b, T04c, T05a, T05b, T05c, T05d, T07b, T08–T17 (merged) · **Blocks** T35, T14b, T15b, T36, T38 · **Release** store builds per `docs/runbooks/mobile-release.md`
+  (D17: no OTA of this content; an OTA only for a crash/data-loss hotfix per `docs/runbooks/mobile-ota.md`, `--environment production`, owner go-ahead) · **Constraints** D14, D17.
+- **What.** Version bump in `apps/mobile/app.config.ts`; `ACTIVATION_FIX_LEVEL = 2` (level 1 is not used, §3A.0 rule 2); release notes list task ids;
   pre-promotion E2E: `onboarding-paywall-verify.yaml` both arms (required by the runbook), `onboarding.yaml`, plus every new flow from T07–T17.
-  On go-live per platform: annotation + §6 row (T03 procedure). Android also carries the FCM config from PR #393 (vc99 line). Release A also carries T05c's guard-sheet
-  render change and testIDs (not in TR0), and its go-live date per platform starts the FS-OB* first-session baselines and the T36/T38 gate windows (§3A.0 rule 1).
+  On go-live per platform: annotation + §6 row (T03 procedure). Android also carries the FCM config from PR #393 (vc99 line). Release A is the first release of the P0
+  instrumentation (T01, T04a–c, T05a–d incl. T05c's guard-sheet render change and testIDs; D17, TR0 removed), and its go-live date per platform starts every client-event
+  baseline (FS-OB* first-session and post-onboarding) and the T14b/T15b/T36/T38 gate windows (§3A.0 rule 1).
 - **Acceptance.** Both binaries in production; FS-M binary check: 100% of opens with `$app_version = 3.29.0` carry level 2 three days after go-live (any mismatch = wrong cut);
   first `is_embedded_launch=true` events with the new level.
 - **Verification.** 2/4/8-week dashboard reads recorded in `experiments.md`, using the §0/§1.2 reading rule: iOS first-session same-weeks comparison n/a; Nov–Mar harm checks
@@ -588,7 +590,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 ### P2 — Friction removal
 
 #### T19 — Android Back steps once and leaves onboarding instead of rewinding it
-- **Type** enhancement · **Size** M · **Depends** T04 (`onboarding_back`) · **Blocks** T20 · **Specs** FS-OB1b · **Release** OTA + Release B · **Constraints** D1, D9; iOS swipe-back unchanged.
+- **Type** enhancement · **Size** M · **Depends** T04 (`onboarding_back`) · **Blocks** T20 · **Specs** FS-OB1b · **Release** Release B · **Constraints** D1, D9; iOS swipe-back unchanged.
 - **Why.** No `BackHandler` in `app/(onboarding)` or `components/onboarding`; Back pops one screen per press down to Welcome (`app/(onboarding)/_layout.tsx:42-64`).
   49 riders made ≥ 3 back steps ≤ 5 s apart; 7 completed vs ~57% of others; replays label these "the app reset" [SOURCE: R1 RC-B, Q8, Q9].
 - **What (aligned to D9, doc review item 6b).** `BackHandler` registered by every step via `hooks/use-onboarding-flow.ts`: one step back via `getPreviousRoute` (`replace`,
@@ -601,7 +603,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Out of scope.** "Leave setup?" dialog (D9: no dialog). **Risks.** OEM differences in Back behaviour → test a Samsung too.
 
 #### T20 — Welcome resumes on any non-Back remount
-- **Type** bug · **Size** S · **Depends** T04, T19 (`from:'back'` param) · **Specs** FS-OB1d · **Release** OTA + Release B · **Constraints** D1.
+- **Type** bug · **Size** S · **Depends** T04, T19 (`from:'back'` param) · **Specs** FS-OB1d · **Release** Release B · **Constraints** D1.
 - **Why.** Welcome resumes once per JS runtime (`resumeHandledThisLaunch`, `app/(onboarding)/index.tsx:23-29,47-57`); 11 riders saw Welcome again in a live runtime
   with progress, 7 on 3.26.0; cause unknown (25%) [SOURCE: R1 RC-D, Q4, Q10].
 - **What.** Replace the module flag with "resume unless `params.from === 'back'` or the store has no progress"; keep a per-mount double-fire guard; fire `onboarding_welcome_mounted`.
@@ -609,7 +611,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Verification.** FS-OB1d: 0 unexplained (`reason != 'back'`) Welcome mounts with progress. **Out of scope.** Finding the remount trigger (the event will name it).
 
 #### T21 — `LimitSheet` and a session frequency cap for feature-gate paywalls
-- **Type** enhancement · **Size** M · **Depends** T05 · **Blocks** T22, T24 · **Specs** FS-PO3, FS-PO2c (part) · **Release** OTA + Release B ·
+- **Type** enhancement · **Size** M · **Depends** T05 · **Blocks** T22, T24 · **Specs** FS-PO3, FS-PO2c (part) · **Release** Release B ·
   **Constraints** D5; onboarding surfaces exempt via `isOnboardingPaywallSurface`; a rider-tapped path to the paywall always exists; light/dark; 7 locales.
 - **Why.** `requirePro`/`requireAccess` present on every call (`hooks/use-pro-gate.ts:64-105`); `presentPaywall` only de-duplicates concurrent requests
   (`lib/subscription.ts:770-792`); five MAX_BIKES entry points each present (R3 C18). On 3.26.0, 9/22 gate-paywall sessions had ≥ 2 views and 8/22 a same-feature repeat
@@ -625,7 +627,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Out of scope.** Onboarding paywall, RC experiment, placement `feature_gate` config. **Risks.** A lost repeat-view purchase (expected small; guardrail counts).
 
 #### T22 — Bike limit: "Update my bike" before "Add a second bike (Pro)"
-- **Type** enhancement · **Size** M · **Depends** T21 (sheet), T23 (edit refreshes schedule), T05 (`garage_bike_edited`) · **Specs** FS-PO1 · **Release** OTA + Release B ·
+- **Type** enhancement · **Size** M · **Depends** T21 (sheet), T23 (edit refreshes schedule), T05 (`garage_bike_edited`) · **Specs** FS-PO1 · **Release** Release B ·
   **Constraints** D5; `MAX_BIKES` unchanged (no second free bike); light/dark; 7 locales; Home switcher "+" is a gate, not Home content (log date for Exp 1).
 - **Why.** 7/118 completers on 3.26.0 hit the bike paywall on day 0; none of the 29 day-0 bike-paywall riders ever got a second bike, deleted one, or (for make-only) set a model;
   several opened `edit-bike` around the paywall [SOURCE: R2 §3.2, R2-PH3, R2-PH4, R2-DB5]. Editing is free but not offered at that moment (`app/(tabs)/(garage)/edit-bike.tsx:195-305`).
@@ -649,7 +651,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Verification.** FS-R2-3: ≥ 20% of make-only onboarding bikes get a model within 7 d on the fix level, with `schedule_refreshed_count > 0`. **Risks.** Never delete rider-edited or completed tasks.
 
 #### T24 — Exhausted diagnose CTA and the "1 bike on Free" hint
-- **Type** enhancement · **Size** S · **Depends** T21 · **Specs** FS-PO2c · **Release** OTA + Release B · **Constraints** D6; the CTA gets *quieter* (AI not promoted); light/dark contrast.
+- **Type** enhancement · **Size** S · **Depends** T21 · **Specs** FS-PO2c · **Release** Release B · **Constraints** D6; the CTA gets *quieter* (AI not promoted); light/dark contrast.
 - **Why.** With the quota used, the CTA looks unchanged and the limit is only a caption (`components/diagnosis/quota-note.tsx:13-30`, `app/(tabs)/(diagnose)/index.tsx:141-163`);
   3 riders got 6 upfront paywalls, re-tapping 1.4–7 s after dismissing [SOURCE: R3 Q1, Q7].
 - **What.** When `quota.isExhausted` (known), the list CTA and `[id].tsx:116` "Start new" read "Free diagnosis used · back on {date}" in a muted style and open the `LimitSheet`,
@@ -658,7 +660,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Verification.** FS-PO2c: 0 automatic upfront paywalls; `limit_sheet_viewed` for the same riders.
 
 #### T25 — Bike search: one make+model search, popular-first models, year before model; reject junk makes
-- **Type** enhancement · **Size** M · **Depends** T04 (`bike_setup_summary`) · **Specs** FS-OB4, FS-R2-5 · **Release** API deploy **first**, then OTA + Release B
+- **Type** enhancement · **Size** M · **Depends** T04 (`bike_setup_summary`) · **Specs** FS-OB4, FS-R2-5 · **Release** API deploy **first**, then Release B
   (memory `project_vercel_render_deploy_race`) · **Constraints** D1 (screen content change before the arms diverge); keep `bike_added.capture_level` semantics; light/dark.
 - **Why.** The make search placeholder promises "e.g. 'Yamaha MT-07'" but matches makes only (`components/onboarding/bike-setup/make-grid.tsx:31-61`, `i18n/locales/en.json:750`);
   models show the first 6 alphabetically (`model-picker.tsx:35-54`); year defaults to current−3 below the list (`app/(onboarding)/bike-setup.tsx:96-98,231-237,520-535`);
@@ -672,13 +674,13 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Out of scope.** NHTSA cache persistence (ledger line in §10: trigger `model_fetch_ms` p90 > 3 s; was T37). **Risks.** Moves `bike_added` and goal→placement inputs; add, never rename, properties.
 
 #### T26 — "Add your model" row for make-only bikes in the bike hub
-- **Type** enhancement · **Size** S · **Depends** T23, T05 · **Specs** FS-R2-3 (source `bike_hub`) · **Release** OTA + Release B · **Constraints** bike hub only (not Home: Exp 1 slot); light/dark; 7 locales.
+- **Type** enhancement · **Size** S · **Depends** T23, T05 · **Specs** FS-R2-3 (source `bike_hub`) · **Release** Release B · **Constraints** bike hub only (not Home: Exp 1 slot); light/dark; 7 locales.
 - **Why.** 52/104 onboarding bikes on 3.26.0 are make-only; 117 blank-model live bikes, 7 ever had a task; most never tap Add, so T22 does not reach them [SOURCE: R2 R2-PH4, R2-DB6].
 - **What.** In `components/bike-hub/overview/overview-segment.tsx`, when `model === ''`, a row "Add your model for its exact service schedule" → edit-bike; show the tier on make-generic tasks.
 - **How.** Maestro step appended to `onboarding-make-only-service-plan.yaml` (tap row → edit-bike visible). **Verification.** FS-R2-3 by `source='bike_hub'`.
 
 #### T27 — Start Ride first open: one clear Start, bike preselected, permission in context, denial never a silent spinner
-- **Type** enhancement · **Size** M · **Depends** T05 · **Specs** FS-PO14 · **Release** OTA + Release B · **Constraints** D12; HUD stays `HUD_THEME`; copy shares the floors interpolation with T31.
+- **Type** enhancement · **Size** M · **Depends** T05 · **Specs** FS-PO14 · **Release** Release B · **Constraints** D12; HUD stays `HUD_THEME`; copy shares the floors interpolation with T31.
 - **Why.** 67 of 130 completers who opened Start Ride on day 0 did not start (52%); replays show setup-screen exits, a spinner, a denied-permission return [SOURCE: R6 F-PO14, R6-q9].
   Denied location should show "Location required" (`app/(modals)/start-ride.tsx:99-102`); start flow `:81-148`.
 - **What.** First diagnose with `$screen` + last-tap data (record in `experiments.md`); then: Start button above the fold, onboarding bike preselected, in-context permission once,
@@ -687,7 +689,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Verification.** FS-PO14 ≤ 35% per version (test arm: riders with `next_ride_plan_set` subtracted). **Out of scope.** Changing ride floors.
 
 #### T28 — Home taps always respond (checklist rows, bike card, receipt card, empty states)
-- **Type** bug · **Size** S–M · **Depends** T05 · **Specs** FS-PO6 · **Release** OTA + Release B · **Constraints** light/dark.
+- **Type** bug · **Size** S–M · **Depends** T05 · **Specs** FS-PO6 · **Release** Release B · **Constraints** light/dark.
 - **Why.** 5 dead-tap and 5 empty-state replays; first-hour `$rageclick` 15/282, 3.26.0 7/117 [SOURCE: R6 F-PO6, R6-q3]; autocapture is off so dead taps are invisible in events [SOURCE: 05 PO6].
 - **What.** Break `$rageclick` down by `$screen_name`/`$el_text` first (record the worst control); every checklist deep link resolves to a registered route; bike card,
   receipt card and empty rows either navigate/open a sheet or stop looking tappable.
@@ -695,7 +697,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Verification.** FS-PO6 first-hour rage riders ≤ 3%; 0 dead checklist links.
 
 #### T29 — Discover first open: no unprompted location dialog; skeleton, timeout and Retry
-- **Type** enhancement · **Size** S + S · **Depends** T05 (`screen_load_timed`), T06 item 8 · **Specs** FS-PO7, FS-PO8 · **Release** OTA + Release B · **Constraints** D12; light/dark.
+- **Type** enhancement · **Size** S + S · **Depends** T05 (`screen_load_timed`), T06 item 8 · **Specs** FS-PO7, FS-PO8 · **Release** Release B · **Constraints** D12; light/dark.
 - **Why.** Discover asks for location on mount (`app/(tabs)/(discover)/index.tsx:503`, `hooks/use-user-country.ts:30-45`); PO8's "Descargar mapas" is not an app string and the session
   backgrounded 0.37 s after `discover_tab_viewed` (likely an OS/Play-services dialog, 35%) [SOURCE: R4 §3.3, Q-R4-11]; 2 replays of slow/stuck Discover [SOURCE: R6 F-PO7].
 - **What.** `useUserCountry` disabled until a "Use my location" tap in "Near you" (`components/discover/near-you-section.tsx`) with a reason line; skeleton cards while loading;
@@ -706,7 +708,7 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 ### P3 — Experiment 1 "first-ride plan" (build + launch)
 
 The spec is the board's single spec [SOURCE: board/99-synthesis.md §4 Experiment 1] with R4's code corrections [SOURCE: deep-dives/R4 §3.4].
-**Correction to the board and R4 T5:** the code must be **embedded in the store binary** (Release B), not only shipped by OTA, because assignment happens in the
+**Correction to the board and R4 T5:** the code must be **embedded in the store binary** (Release B; D17: never by OTA), because assignment happens in the
 first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag flip once Release B is ≥ 90% of new installs on both platforms.
 
 #### T30 — Flag `activation_365_first_session` and sticky assignment after the paywall
@@ -764,7 +766,7 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
   (`maintain_bike` copy = D13 owner bet), cancelled by any core action. Jest scheduling rules. Stop rule: revocations test ≥ control + 3 after 4 weeks → disable d1 only.
 
 #### T35 — Release B (3.30.0) and Experiment 1 launch
-- **Type** release/experiment · **Size** S · **Depends (hard) — the Exp 1 minimum set:** T02, T05c, T05d, T09, T10, T18, T30 (incl. its API part deployed), T31, T32, T33, T34 · **Soft:** the P2 tasks (T19a–T29) merged by the **Release B code freeze 2026-12-05**; any P2 task not merged by then goes into the **next store binary, never an OTA** (OTAs miss first sessions); T27 and T29, if they miss the freeze, ship in the first binary **after** the slot, so D12 holds (no both-arm change inside the slot) · **Blocks** T40 ·
+- **Type** release/experiment · **Size** S · **Depends (hard) — the Exp 1 minimum set:** T02, T05c, T05d, T09, T10, T18, T30 (incl. its API part deployed), T31, T32, T33, T34 · **Soft:** the P2 tasks (T19a–T29) merged by the **Release B code freeze 2026-12-05**; any P2 task not merged by then goes into the **next store build** (D17); T27 and T29, if they miss the freeze, ship in the first binary **after** the slot, so D12 holds (no both-arm change inside the slot) · **Blocks** T40 ·
   **Constraints** D2, D13, D14; latest start 2027-01-06 [SOURCE: board/99 D7].
 - **What.** Store builds 3.30.0 both platforms with the Exp 1 code and the flag defaulting to control; E2E as T18 plus `first-ride-plan-card.yaml`,
   `ride-standstill-teaching.yaml` in both arms. Ledger signed (D13); the implementing agent creates the PostHog flag 50/50, no targeting (D2). On the D16 day (3.30.0 ≥ 90% of new
@@ -775,7 +777,7 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 ### P4 — Follow-ups
 
 #### T36 — Decide on Credential Manager for Android Google sign-in
-- **Type** research → enhancement · **Size** M (L with store release) · **Depends** T04a, T18 (2–4 weeks of `auth_oauth_*` counted from **3.29.0 go-live per platform**: first-session OAuth events do not exist before it, TR0 only covers later sessions; R5 proxy SQL is the pre-fix comparison) · **Specs** FS-OB2a · **Constraints** D15; native → store release only.
+- **Type** research → enhancement · **Size** M (L with store release) · **Depends** T04a, T18 (2–4 weeks of `auth_oauth_*` counted from **3.29.0 go-live per platform**: the OAuth events ship first in 3.29.0 (D17); R5 proxy SQL is the pre-fix comparison) · **Specs** FS-OB2a · **Constraints** D15; native → store release only.
 - **Why.** The free module uses the deprecated legacy Google Sign-In SDK on Android [SOURCE: R5 C1–C2, Context7 docs cited there]; every OB2 replay is Android [SOURCE: R5 Q17].
 - **What.** If "started, no result" ≥ 10% of Android Google starts, spike Credential Manager behind a flag; device check Pixel + Samsung; else close with the numbers.
 - **Verification.** Android Google started→success ≥ 90% on the new build.
@@ -784,7 +786,7 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 - **Type** enhancement · **Size** S · **Depends** T04/T25 data showing `model_fetch_ms` p90 > 3 s · **Release** API deploy · Files `apps/api/src/modules/motorcycles/nhtsa.service.ts:387-425`, `apps/api/src/modules/redis/*`. Target p90 ≤ 1.5 s.
 
 #### T38 — Keep the onboarding run across a same-user session drop (conditional)
-- **Type** bug · **Size** S · **Depends** T04b, T18 + 4 weeks counted from **3.29.0 go-live per platform** (onboarding-time `auth_session_lost` exists only in the embedded 3.29.0 JS; R1 proxy SQL is the pre-fix comparison) · **Specs** FS-OB1f · Only if `auth_session_lost {during_onboarding:true}` ≥ 2 riders/month: keep the store when the next session is the
+- **Type** bug · **Size** S · **Depends** T04b, T18 + 4 weeks counted from **3.29.0 go-live per platform** (`auth_session_lost` ships first in 3.29.0, D17; R1 proxy SQL is the pre-fix comparison) · **Release** next store build · **Specs** FS-OB1f · Only if `auth_session_lost {during_onboarding:true}` ≥ 2 riders/month: keep the store when the next session is the
   same user id; login copy "Sign in to continue setting up". Files `lib/auth-state-change.ts`, `app/_layout.tsx`. Jest `lib/__tests__/auth-state-change.test.ts`.
 
 #### T39 — Backfill service schedules for existing onboarding bikes; seed missing model rows
@@ -811,7 +813,7 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 - **Risks (all):** small numbers (~7 installs/day) — read mechanical metrics as counts and outcomes as harm checks; consent gap (EEA decliners invisible, 17–27% of new users
   [SOURCE: evidence pack §1]); a both-arm change during Exp 1 must be logged with its date (T02 ledger) so the readout can be cut.
 - **Blocks:** where a task does not list it, read it from the §2 dependency graph.
-- **Release path rule:** see §3A.0 (per-runtime OTA). Short form: mobile JS → the next store binary (new riders' first session) and, optionally, a per-runtime OTA (new riders' first session) [SOURCE: R3 RC-2]; API → Render deploy before any dependent OTA;
+- **Release path rule:** see §3A.0 rule 1 (D17). Short form: mobile JS (features, UI, experiment, events, testIDs) → the next store build only (new riders' first session runs the binary's JS) [SOURCE: R3 RC-2]; OTA only for a crash/data-loss hotfix; API → Render deploy before the dependent store build;
   DB change → migration file, applied to production only by the owner (CLAUDE.md "Changing a data model").
 
 ---
@@ -825,31 +827,26 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 
 ### 3A.0 Release-path rules (apply to every task) [review items 1, 3, 4, 5, 30]
 
-1. **Per-runtime OTA.** `runtimeVersion.policy: 'appVersion'` [SOURCE: apps/mobile/app.config.ts:59-61], so an OTA reaches only binaries whose `version` equals the
-   runtime it was published for [SOURCE: docs/runbooks/mobile-ota.md:3, 173-176]. Every OTA row in a task names:
-   - **target runtimes** and expected reach from Q-P1 (14 d `Application Opened`, riders): **3.26.0 ≈ 161** (Android 34, iOS 20, platform-null 107 — Android production
-     is binary 3.26.0 b93), **3.27.0 ≈ 21** (iOS), **3.28.0 ≈ 10** (iOS; Android 3.28.0 vc98 is in Play review per memory `project_sentry_batch_1112` — re-check before each publish);
-   - **branch to publish from:** `main` only for the runtime equal to main's `version`; for an older runtime, a `release/<runtime>-365` branch cut from the **git commit of
-     the latest production update group for that runtime** (`eas update:list --branch production` shows its `gitCommitHash`; for 3.28.0 that is `fece7a3c` / `5a497a1c`),
-     **not** the store build commit — otherwise the publish would roll back the OTA fixes riders already run (doc review item 3). Cherry-pick the task commits (procedure in
-     memory `reference_ota_hotfix_older_runtime`), then check that `git log <live-update-commit>..release/<runtime>-365 -- apps/mobile` lists only the TR0 commits. Publish with
-     the `Mobile OTA Update` workflow (it lets you pick the git branch; `docs/runbooks/mobile-ota.md:24-31`) — never with a local env file (CLAUDE.md hard rule);
-   - **pre-publish E2E:** `onboarding.yaml` and `log-ride.yaml` on a preview build of that branch; the logs go in the release-log row (§6);
-   - **native-diff check per runtime** (`docs/runbooks/mobile-ota.md:157-188`): no change to `apps/mobile/package.json` native deps, `app.config.ts`, `plugins/`, `modules/`
-     since that runtime's binary, or the change is not imported by JS;
-   - **owner go-ahead per publish** (CLAUDE.md "Mobile OTA").
-   P0 instrumentation ships as **TR0** to all live runtimes. **TR0 scope = events and properties only:** T01, T04a–c, T05a, T05b, T05d, and T05c's ride-guard event
-   properties; T05c's guard-sheet render change (a11y tree) and its testIDs ship in Release A only. **What TR0 can and cannot measure:** an OTA applies on the next launch,
-   so TR0 yields data only from **later sessions** — it serves T14b, T15b and the post-onboarding events. First-session onboarding events (`auth_oauth_*`, `onboarding_back`,
-   `bike_setup_summary`, `auth_session_lost` during onboarding) exist only from **3.29.0** (embedded). So the gate windows of T36 and T38 and the pre-fix baselines of the
-   FS-OB* onboarding metrics count from 3.29.0 go-live per platform, with the R1/R5 proxy SQL (`$screen`-based) as the pre-fix comparison.
-   P1/P2 fixes ship in the store binaries; an OTA of them to older runtimes is not done (D14b).
-2. **Level bump only at a release cut.** `ACTIVATION_FIX_LEVEL` changes only in the commit that cuts a store build (T18, T35) or an OTA publish (TR0, later OTAs).
-   PRs never bump it. The same commit updates the friction status table (§6.1), the only spec-to-level record (no code map; doc review item 13). Levels: 1 = TR0, 2 = Release A, 3 = Release B, 4+ = later OTAs/builds.
+1. **Release paths (owner rule D17, 2026-11-12; replaces the per-runtime OTA rule).** Only three release paths carry #365 work:
+   **store builds** (3.29.0 = Release A, T18; 3.30.0 = Release B, T35; later fixes = the next store build, App Store + Play, bumped app version),
+   **API deploys** (Render) and **owner-applied migrations**. Every new functionality — features, UI changes, the experiment, new events/instrumentation, testIDs —
+   ships only in a store build. **OTA is used only for an urgent crash or data-loss hotfix** per `docs/runbooks/mobile-ota.md` (`--environment production` or the
+   `Mobile OTA Update` workflow, never a local env file, owner go-ahead per publish; CLAUDE.md hard rule).
+   Why (facts that still hold): `runtimeVersion.policy: 'appVersion'` [SOURCE: apps/mobile/app.config.ts:59-61], so an OTA reaches only binaries whose `version` equals the
+   runtime it was published for [SOURCE: docs/runbooks/mobile-ota.md:3, 173-176], and an OTA applies on the next launch, so a new rider's first session runs the binary's
+   embedded JS [SOURCE: R3 RC-2]; per-runtime release-branch OTAs were complex and risked rolling back OTAs riders already run (doc review item 3).
+   A hotfix OTA to an older runtime follows the runbook (branch from that runtime's latest production update commit, native-diff check; memory `reference_ota_hotfix_older_runtime`).
+   **Consequence for measurement:** the P0 instrumentation (T01, T04a–c, T05a–e incl. T05c's guard-sheet render change and testIDs) first reaches riders in **3.29.0**
+   (T05e is server-side and ships by API deploy). Every client-event baseline (FS-OB* first-session and post-onboarding), and the data-gate windows of T14b, T15b, T36 and T38,
+   count from **3.29.0 go-live per platform**, with the R1/R5 proxy SQL (`$screen`-based) as the pre-fix comparison. The former TR0 instrumentation OTA is removed (D17).
+2. **Level bump only at a release cut.** `ACTIVATION_FIX_LEVEL` changes only in the commit that cuts a store build (T18, T35, later store builds) or a crash/data-loss hotfix OTA publish.
+   PRs never bump it. The same commit updates the friction status table (§6.1), the only spec-to-level record (no code map; doc review item 13). Levels: 0 = pre-release JS
+   (T01's initial constant; dev/preview builds only), **1 = not used** (it was TR0, removed by D17; numbers are kept so the drafts' levels stay valid), 2 = Release A (3.29.0),
+   3 = Release B (3.30.0), 4+ = later store builds and any crash/data-loss hotfix OTA.
 3. **Order for API + client changes** (incl. T30's `activationExperimentWindow`, deployed before the 3.30.0 cut): merge API PR → Render deploy finishes (check the deploy is live, memory `project_render_env_needs_deploy`) → `pnpm generate` on `main`
-   (it reads production) → client PR → store build / OTA [SOURCE: CLAUDE.md "Commands"; memory `project_vercel_render_deploy_race`]. Old clients must keep working (nullable fields only).
-4. **No deploy without a baseline and an annotation.** Every production change (API deploy, OTA, store build) is blocked until (a) T02 recorded the baselines of the specs it
-   touches and (b) T03a's procedure exists; on go-live the annotation is made **per platform and per runtime** (Android and iOS go live on different days).
+   (it reads production) → client PR → store build [SOURCE: CLAUDE.md "Commands"; memory `project_vercel_render_deploy_race`]. Old clients must keep working (nullable fields only).
+4. **No deploy without a baseline and an annotation.** Every production change (API deploy, store build, hotfix OTA) is blocked until (a) T02 recorded the baselines of the specs it
+   touches and (b) T03a's procedure exists; on go-live the annotation is made **per platform** (and per runtime for a hotfix OTA; Android and iOS go live on different days).
 5. **PostHog writes from a named list (D2, aligned by doc review item 6e):** each task that needs PostHog writes lists them (insight names, annotation text) in a per-release
    list; the **implementing agent** makes the writes from that list and records each id in §6; the list is shared with the owner for information, not for approval. SQL insights support alerts [SOURCE: PostHog docs "Alerts", docs-search 2026-11-12]; the free tier allows 5 alerts in total, so #365 uses at most 2.
 6. **DB metrics (D2b, ruled B + C):** PostHog has no Supabase/Postgres warehouse source [SOURCE: review W2, W3]. So:
@@ -870,20 +867,19 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 
 | # | Task | Title | Type | Phase | Size | Depends on | Release path |
 |---|---|---|---|---|---|---|---|
-| 01 | T01 | Release marker super properties + `e2e_run` | instrumentation | P0 | S | — | TR0 + Release A |
+| 01 | T01 | Release marker super properties + `e2e_run` | instrumentation | P0 | S | — | Release A 3.29.0 |
 | 02 | T02 | `experiments.md` ledger, baselines, SQL files, weekly DB check, e2e exclusion | research | P0 | M | — | docs commit |
-| 03 | T03a | Release-marking runbook, per-runtime OTA procedure, friction status table | instrumentation | P0 | S | T02 | docs commit |
+| 03 | T03a | Release-marking runbook (store builds; hotfix-OTA exception), friction status table | instrumentation | P0 | S | T02 | docs commit |
 | 04 | T03b | PostHog dashboard "#365 Activation & frictions" (first tile: Day-1 drop-off funnel), 2 alerts, weekly cohort table | instrumentation | P0 | M | T01, T02, T03a | PostHog writes by the agent from the named list (D2) |
-| 05 | T04a | OAuth/auth events incl. `auth_error_alert_shown` | instrumentation | P0 | S | T01 | TR0 + Release A |
-| 06 | T04b | Onboarding navigation, resume and gate events | instrumentation | P0 | M | T01 | TR0 + Release A |
-| 07 | T04c | `bike_setup_summary` event | instrumentation | P0 | S | T01 | TR0 + Release A |
-| 08 | T05a | Paywall `trigger`/`gate_policy` props + `paywall_suppressed`/`limit_sheet_viewed` constants | instrumentation | P0 | S | T01 | TR0 + Release A |
-| 09 | T05b | Diagnostics events: `diagnostic_started` once per entry, failure reasons | instrumentation | P0 | S | T01 | TR0 + Release A |
-| 10 | T05c | Ride guard props, ride/HUD testIDs, guard sheet in a11y tree, `log-ride.yaml` on ids | instrumentation | P0 | M | T01 | TR0 (event props only) + Release A (sheet render, testIDs) |
-| 11 | T05d | Landing, Discover screen-load and bike-edit events, F14 route constant, `source` on task completion, tab/checklist testIDs | instrumentation | P0 | M | T01 | TR0 + Release A |
+| 05 | T04a | OAuth/auth events incl. `auth_error_alert_shown` | instrumentation | P0 | S | T01 | Release A 3.29.0 |
+| 06 | T04b | Onboarding navigation, resume and gate events | instrumentation | P0 | M | T01 | Release A 3.29.0 |
+| 07 | T04c | `bike_setup_summary` event | instrumentation | P0 | S | T01 | Release A 3.29.0 |
+| 08 | T05a | Paywall `trigger`/`gate_policy` props + `paywall_suppressed`/`limit_sheet_viewed` constants | instrumentation | P0 | S | T01 | Release A 3.29.0 |
+| 09 | T05b | Diagnostics events: `diagnostic_started` once per entry, failure reasons | instrumentation | P0 | S | T01 | Release A 3.29.0 |
+| 10 | T05c | Ride guard props, ride/HUD testIDs, guard sheet in a11y tree, `log-ride.yaml` on ids | instrumentation | P0 | M | T01 | Release A 3.29.0 (event props, sheet render, testIDs) |
+| 11 | T05d | Landing, Discover screen-load and bike-edit events, F14 route constant, `source` on task completion, tab/checklist testIDs | instrumentation | P0 | M | T01 | Release A 3.29.0 |
 | 12 | T05e | API server events `onboarding_bike_created`, `ride_saved` | instrumentation | P0 | S | T02, T03a | API deploy |
 | 13 | T06 | Research batch (no code) | research | P0 | S | — | docs |
-| 14 | TR0 | Instrumentation OTA to live runtimes (lvl 1): events/properties only, branch from the live update commit | release | P0 | S | T01, T03a, T04a–c, T05a–d | per-runtime OTA |
 | 15 | T07a | Exp 2: import the service schedule when onboarding creates the bike (API) + D7 per-bike reminder cap | bug | P1 | M | T02, T03a | API deploy |
 | 16 | T07b | Client reads service-plan fields; service-plan Maestro flows | bug | P1 | S | T07a | Release A |
 | 17 | T08 | Diagnostics: stop the "Try Again" limit loop | bug | P1 | S | T05b | Release A |
@@ -898,7 +894,7 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 | 26 | T16a | "Open my garage" once: idempotent CTA, Retry only on failure | bug | P1 | S | T05d | Release A |
 | 27 | T16b | At most one sheet over Home on landing (+ `landing_sheet_shown`) | bug | P1 | M | T05d | Release A |
 | 28 | T17 | Diagnosis failures: offline pre-check, 75 s deadline, localized errors | bug | P1 | M | T05b, T08 | Release A |
-| 29 | T18 | Release A: store 3.29.0 (lvl 2) | release | P1 | S | T07b–T17, TR0 | store builds |
+| 29 | T18 | Release A: store 3.29.0 (lvl 2), first release of the P0 instrumentation | release | P1 | S | T01, T04a, T04b, T04c, T05a, T05b, T05c, T05d, T07b–T17 | store builds |
 | 30 | T19a | Android Back steps once and leaves onboarding | enhancement | P2 | M | T04b | Release B |
 | 31 | T19b | iOS swipe-back cannot rewind past the account step | enhancement | P2 | S | T04b | Release B |
 | 32 | T20 | Welcome resumes on any non-Back remount | bug | P2 | S | T19a | Release B |
@@ -918,10 +914,10 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 | 46 | T33 | Android next-day local notification delivery check | research | P3 | S | T32 | device check |
 | 47 | T34 | Day-1 fallback local notification (test arm) | experiment | P3 | S | T30, T32, T33 | Release B |
 | 48 | T35 | Release B 3.30.0 (lvl 3) + Exp 1 launch | release | P3 | S | T18, T19a–T34 | store builds + flag |
-| 49 | T14b | Cached `me` cannot say "not completed"; server idempotency (conditional) | bug | P4 | S | TR0, T18 | next build / OTA |
-| 50 | T15b | Investigate and fix sign-in screens after completion (conditional) | bug | P4 | M | TR0, T18, T06 | next build / OTA |
+| 49 | T14b | Cached `me` cannot say "not completed"; server idempotency (conditional) | bug | P4 | S | T18 (window from 3.29.0 go-live) | next store build |
+| 50 | T15b | Investigate and fix sign-in screens after completion (conditional) | bug | P4 | M | T18 (window from 3.29.0 go-live), T06 | next store build |
 | 51 | T36 | Decide on Credential Manager for Android Google sign-in | research | P4 | M | T04a, T18 (window from 3.29.0 go-live) | store build if yes |
-| 53 | T38 | Keep the onboarding run across a same-user session drop (conditional) | bug | P4 | S | T04b, T18 (window from 3.29.0 go-live) | next build |
+| 53 | T38 | Keep the onboarding run across a same-user session drop (conditional) | bug | P4 | S | T04b, T18 (window from 3.29.0 go-live) | next store build |
 | 54 | T39 | Backfill schedules for existing onboarding bikes (owner-run; hardened function, dropped after the run) | enhancement | P4 | M | T07a (reminder cap live) | owner-applied migration |
 | 55 | T40 | Experiment 1 readout and ship/revert | experiment | P4 | S | T35 | decision |
 
@@ -931,7 +927,7 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
   the level is bumped only at release cuts (3A.0 rule 2). No `ACTIVATION_FIXES` map (dropped in doc review item 13; §6.1 is the record).
 - **T02** also: e2e exclusion (`{E2E_PERSONS}` list; runners set `users.is_synthetic = true` for created users, `scripts/run-onboarding-e2e.sh`), the weekly DB check
   files `queries/db/*.sql`, the S3 engaged-return SQL, S6 SQL (R6:276-284), FS-PO9 SQL. Size S → M.
-- **T03 → T03a + T03b.** T03a: runbook text (release marking per platform × runtime, per-runtime OTA, 2/4/8-week reads, friction status table). T03b: dashboard, tiles,
+- **T03 → T03a + T03b.** T03a: runbook text (release marking per platform for store builds, per platform × runtime for a crash/data-loss hotfix OTA (D17), 2/4/8-week reads, friction status table). T03b: dashboard, tiles,
   2 alerts (SQL insights), the saved weekly install-cohort table (board instrumentation #10) — written by the implementing agent from the named list (D2). **The first tile
   (doc review item 12) is "Day-1 drop-off funnel"**: first seen → `onboarding_started` → `onboarding_completed` → core action in week 1 → engaged day-2 return, by `{REL}`,
   checked against `00-evidence-pack.md` §2 (793 first seen, 367 completers, 61 week-1 core action, 39 engaged day-2). FS-OB7, FS-PO9, FS-PO11 and FS-PO15/16 keep their SQL in
@@ -939,12 +935,12 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 - **T04 → T04a/b/c** (OAuth/auth incl. `auth_error_alert_shown`; onboarding nav/resume/gate; `bike_setup_summary`).
 - **T05 → T05a/b/c/d + T05e.** T05d adds board instrumentation #7 (`source` on `maintenance_task_completed`) and #8 (F14 engaged route allow-list constant + test) and the
   `landing_sheet_shown` constant; T05e is the API side of D2b.
-- **TR0** (new): the instrumentation OTA, per runtime.
+- **TR0** — Removed by D17 (2026-11-12): instrumentation ships in Release A 3.29.0.
 - **T07 → T07a (API) + T07b (client + Maestro).** T07a is blocked by T02/T03a (baseline + annotation) and **contains the D7 per-bike reminder cap** in `sendDuePush`
   (doc review item 2), which ships before or with the import; T07b shows overdue items as "due now" and at most 3 tasks + "+N more" on Home/Service.
 - **T08** ships its own in-form limit panel; T24 later moves the exhausted CTA to `LimitSheet`.
 - **T13 → T13a/T13b** (the v9 → v10 store migration is in T13a; T13b adds the bike draft fields in a v11 step or re-uses v10 fields defined up front in T13a — T13a defines both drafts' types).
-- **T14** keeps only the local completion flag (safe regardless of cause); the cached-`me` rule and server idempotency move to **T14b**, gated on 4 weeks of `gate_routed`.
+- **T14** keeps only the local completion flag (safe regardless of cause); the cached-`me` rule and server idempotency move to **T14b**, gated on 4 weeks of `gate_routed` counted from 3.29.0 go-live per platform (D17).
 - **T15** keeps only the jest-backed guard "a session blip after completion never routes to `(auth)` nor resets onboarding"; investigation/fix moves to **T15b**.
 - **T16 → T16a** (personalizing CTA/Retry; onboarding, **D1 covers it**, `onboarding-paywall-verify.yaml` both arms required) **+ T16b** (Home sheet queue, D11).
 - **T17** uses `expo-network`, no native dependency.
@@ -966,7 +962,8 @@ first session and new installs run embedded JS [SOURCE: R3 RC-2]. Launch = flag 
 - **D1 (amended):** T11, T12, T13a, T13b, T14, T16a, T19a, T19b, T20, T25b, **T30** change onboarding screens identically in both paywall arms. **D1c:** confirm no RC targeting reads bike attributes (T25b).
 - **D2 (amended; final ruling §9):** the implementing agent makes the PostHog writes from the named per-release list (T03b list; annotations from T03a) and records each id in §6; the list is shared with the owner for information.
 - **D2b (new; final ruling §9):** DB metrics source — (B) server events + (C) weekly read-only DB check. No warehouse connection.
-- **D14b (new):** OTA P1/P2 fixes to older runtimes (3.26.0–3.28.0) via release branches, or ship them only in 3.29.0/3.30.0.
+- **D14b (new; amended by D17):** no OTA of fixes to older runtimes (3.26.0–3.28.0); absolute except crash/data-loss hotfixes.
+- **D17 (new, owner rule 2026-11-12):** new functionality ships only in store builds; OTA only for crash/data-loss hotfixes (§9 D17).
 - **D16 (new, amended 2026-11-12):** Exp 1 start date (the day 3.30.0 is ≥ 90% of new installs on both platforms, not later than 2027-01-06), set **server-side** in
   `activationExperimentWindow` on that day, with the PostHog flag flip the same day. No OTA.
 
@@ -1058,10 +1055,10 @@ SQL, baseline + source, target, breakdown). Unless stated: breakdown = `{REL}` o
 "Verbatim at <file:lines>" means copy that SQL, replace its test-person placeholder by `{EXCL}` and add the `{REL}` columns. A task is done only when (3) passes and (4) is a tile on the T03 dashboard.
 
 ### FS-M — Fixes can be read per release
-- **Tasks** T01, T03. (1) Ship an OTA; `$app_version` stays the same [SOURCE: R4 Q-R4-12]. (2) Every event carries the §0 marker; each release has an annotation.
+- **Tasks** T01, T03, T18. (1) Problem: an OTA keeps `$app_version` the same [SOURCE: R4 Q-R4-12], so nothing tells which JS ran. (2) From 3.29.0 (D17) every event carries the §0 marker; each release has an annotation.
 - (3) Jest `lib/__tests__/analytics-release-marker.test.ts`. No E2E (Maestro cannot install an OTA in order) [SOURCE: R3 F-R3-2].
 - (4) *(run, Q-P4 shape)* `SELECT toString(properties.$app_version) AS ver, toString(properties.activation_fix_level) AS lvl, count() FROM events WHERE timestamp >= now() - INTERVAL 3 DAY AND event = 'Application Opened' AND {RN} GROUP BY ver, lvl`.
-  **Baseline 0%** [SOURCE: Q-P4]. **Target (superseded by §5A.2):** binary — 100% of opens with the new `$app_version` carry the expected level; OTA — §5A.2 share.
+  **Baseline 0%** [SOURCE: Q-P4]. **Target (superseded by §5A.2):** binary — 100% of opens with the new `$app_version` carry the expected level; crash/data-loss hotfix OTA (D17) — §5A.2 share.
 
 ### FS-OB1a — Onboarding sign-in screen does nothing after auth (RC-A)
 - **Tasks** T11. (1) iOS sim or Android emulator, preview build, `clearState`+`clearKeychain`; a confirmed account with `preferences.onboardingCompleted=false` (runner creates it);
@@ -1392,10 +1389,10 @@ the bug and only protects the fixed behaviour.
 | FS-EXP1 | assignment, start-gate, fire-time, scheduler tests | both: `first-ride-plan-card.yaml` | — | delivery: T33 device check |
 
 ### 5A.2 FS-M redefined [review item 4]
-- **OTA:** among `Application Opened` with `runtime_version` in the runtimes the OTA targeted, over the 7 days after publish, the share whose `ota_update_id` equals the new id or
+- **Hotfix OTA (crash/data-loss only, D17):** among `Application Opened` with `runtime_version` in the runtimes the OTA targeted, over the 7 days after publish, the share whose `ota_update_id` equals the new id or
   a later one. Target ≥ 90% of riders seen ≥ 2 times in those 7 days (an OTA applies on the next launch). Riders on other runtimes and EEA decliners are not in the denominator.
 - **Binary:** opens with `$app_version` = the new version carry `activation_fix_level` = the expected level: target 100% (a mismatch means a wrong cut).
-- Alert (T03b): binary rule only (deterministic), checked 3 days after go-live, fires on any mismatch. The OTA share is read in the 2/4/8-week review, not alerted.
+- Alert (T03b): binary rule only (deterministic), checked 3 days after go-live, fires on any mismatch. A hotfix OTA's share is read in the 2/4/8-week review, not alerted.
 
 ### 5A.3 New and completed metric SQL [review items 17, 20]
 - **S3 engaged return:** board/06 Appendix B SQL, route list from the T05d constant (`config/engaged-routes.ts`), with `{REL}`.
@@ -1442,9 +1439,9 @@ the bug and only protects the fixed behaviour.
 
 ---
 
-## 6. Release log (fill during implementation; one row per binary per platform, OTA, or API deploy)
+## 6. Release log (fill during implementation; one row per binary per platform, crash/data-loss hotfix OTA (D17), or API deploy)
 
-| # | Version / runtime + OTA id / API | Go-live date | Platform | `activation_fix_level` | Tasks + spec ids shipped | PostHog annotation id | Notes (staged %, E2E run link, publish branch) |
+| # | Version / runtime + hotfix OTA id / API | Go-live date | Platform | `activation_fix_level` | Tasks + spec ids shipped | PostHog annotation id | Notes (staged %, E2E run link, publish branch) |
 |---|---|---|---|---|---|---|---|
 | 0 | 3.26.0 (b93 Android / b106 iOS), 3.27.0, 3.28.0 | before 2026-11-12 | both | null | — (baseline) | — | Android production = 3.26.0 [SOURCE: Q-P1] |
 | 1 | | | | | | | |
@@ -1460,7 +1457,7 @@ This table is the only record of which level ships which spec (no code map; doc 
 
 | Spec | Task(s) | Level | Release row (§6) | Maestro run (PR link) | 2-wk read | 4-wk read | 8-wk read | Status |
 |---|---|---|---|---|---|---|---|---|
-| FS-M | T01, TR0 | | | n/a | | | | open |
+| FS-M | T01, T18 | | | n/a | | | | open |
 | FS-OB1a | T11 | | | | | | | open |
 | FS-OB1b | T19a, T19b | | | | | | | open |
 | FS-OB1c | T13b | | | | | | | open |
@@ -1533,10 +1530,10 @@ Every item of `EXECUTION_PLAN-review.md` §1, with what changed. "Fixed" means t
 
 | # | Item | Answer | Where |
 |---|---|---|---|
-| 1 | OTA path does not reach Android production | **Fixed.** Per-runtime OTA rule (target runtimes + reach from Q-P1, publish branch `release/<runtime>-365`, native-diff check, owner go-ahead). New task **TR0** ships P0 instrumentation to 3.26.0/3.27.0/3.28.0 runtimes, so T14b/T15b/T36/T38 gates get data before Release A; P1/P2 fix OTAs to older runtimes are owner decision D14b. | §2, §3A.0 rule 1, TR0 |
+| 1 | OTA path does not reach Android production | **Fixed.** Per-runtime OTA rule (target runtimes + reach from Q-P1, publish branch `release/<runtime>-365`, native-diff check, owner go-ahead). New task **TR0** ships P0 instrumentation to 3.26.0/3.27.0/3.28.0 runtimes, so T14b/T15b/T36/T38 gates get data before Release A; P1/P2 fix OTAs to older runtimes are owner decision D14b. *(Superseded 2026-11-12 by D17: TR0 removed by D17; instrumentation ships in Release A 3.29.0; OTA only for crash/data-loss hotfixes, §10.1.)* | §2, §3A.0 rule 1, §9 D17 |
 | 2 | DB metrics cannot be PostHog tiles | **Fixed.** D2b: (B) server events `service_plan_imported` (T07a), `onboarding_bike_created`, `ride_saved` (T05e), push via `push_token_registered`, consent-aware (§3A.0 rule 6); (C) weekly DB checks recorded in `experiments.md`. Metric-source table per spec. | §3A.0 rule 6, §5A.4, T05e, T02 |
 | 3 | Per-PR level bumps collide | **Fixed.** Level changes only at a release cut; per-friction status table (§6.1) records spec → level (the `ACTIVATION_FIXES` code map was dropped in the 2026-11-12 doc review). | §0, §3A.0 rule 2, §6.1, T01, T03a |
-| 4 | FS-M target unreachable | **Fixed.** Per-runtime 7-day OTA share (≥ 90% of riders seen twice) and a deterministic binary rule (100%); only the binary rule is alerted. | §5A.2, T03b |
+| 4 | FS-M target unreachable | **Fixed.** Per-runtime 7-day OTA share (≥ 90% of riders seen twice; since D17 used only for a crash/data-loss hotfix OTA) and a deterministic binary rule (100%); only the binary rule is alerted. | §5A.2, T03b |
 | 5 | Annotation/dashboard procedure | **Fixed.** T02 + T03a block every production change incl. T07a (edges added); one batched owner approval per release; alerts on SQL insights confirmed supported (Q-P11), max 2 of the free tier's 5; annotations per platform × runtime. | §3A.0 rules 4–5, T03a, T03b |
 | 6 | Exp 1 local draw ignores the flag | **Fixed.** `EXP1_START_AT` / `EXP1_STOP_AT` embedded; no local draw outside the window; before start everyone is control with `source:'pre_start'` and no exposure. D16 sets the date. *(Superseded 2026-11-12, §10 item 4: the window is served by the API; no OTA is needed to start or stop.)* | §3A.2 T30, T30, T35 |
 | 7 | E2E pollution | **Fixed.** `e2e_run` super property from `EXPO_PUBLIC_E2E_RUN=1` builds, added to `{EXCL}` with a historical e2e person list (Q-P10: 0 today); runners mark created users `is_synthetic`; DB checks exclude synthetic and `e2e-%`; seeding flows run on local Supabase. Forcing consent decline was not chosen: the marker keeps the flows' own analytics assertions possible. | §0, T01, T02 |
@@ -1546,7 +1543,7 @@ Every item of `EXECUTION_PLAN-review.md` §1, with what changed. "Fixed" means t
 | 11 | T39 backfill unsafe | **Fixed.** Owner-run, reviewed `SECURITY DEFINER` RPC migration, dry-run SELECT first; no service-role user writes. | §3 T39, §3A.2, T39 issue |
 | 12 | T23 dedup re-imports nothing | **Fixed.** `.is('deleted_at', null)` in the dedup (`oem-schedules.service.ts:222-228`; column at `database.types.ts:2001`); spec case "year change → same ids → re-created". Confidence 95% (column read). | §3 T23, C-1, C-2 |
 | 13 | Missing graph edges | **Fixed.** Added T02/T03a/T06 → T07a, T07a → T23 → T22, T08 → T24; T08 ships its own in-form panel, T21's sheet reuses its copy keys, so no T21 → T08 edge. | §2 |
-| 14 | T14/T15/T20 ahead of their evidence | **Fixed for T14 and T15**: Release A keeps only the cause-independent parts (local completion flag; jest guard against `(auth)` routing after completion); the rest moves to conditional T14b/T15b gated on 4 weeks of TR0 data. **Partly disagree for T20:** its fix (resume unless `from==='back'`) is safe whatever the remount cause and costs one condition; it stays in Release B with the event naming the cause. | §3A.1, §3A.2 |
+| 14 | T14/T15/T20 ahead of their evidence | **Fixed for T14 and T15**: Release A keeps only the cause-independent parts (local completion flag; jest guard against `(auth)` routing after completion); the rest moves to conditional T14b/T15b gated on 4 weeks of data *(since D17: counted from 3.29.0 go-live; the TR0 source was removed by D17)*. **Partly disagree for T20:** its fix (resume unless `from==='back'`) is safe whatever the remount cause and costs one condition; it stays in Release B with the event naming the cause. | §3A.1, §3A.2 |
 | 15 | T16/T30 missing from D1 | **Fixed.** D1 now lists T16a and T30; T16a acceptance requires `onboarding-paywall-verify.yaml` in both arms and a ledger date. | §3A.3, T16a, T30 |
 | 16 | T25 and placement inputs | **Answered.** Placement reads goals + pending intent only (`lib/onboarding-paywall.ts:44-50`); bike fields are RC attributes "targeting only" (`:64-80`). T25b changes no placement; D1c asks the owner to confirm no RC targeting rule reads `bikeModel`. | §3A.2, C-3 |
 | 17 | S3 reintroduces measurement bugs | **Fixed.** S3 = F14 engaged return (completers 37/367); raw return kept as S3-raw outside the Exp 1 read; 24–48 h variant beside it. | §1.2, §5A.3 |
@@ -1568,11 +1565,11 @@ Every item of `EXECUTION_PLAN-review.md` §1, with what changed. "Fixed" means t
 
 **A — we know what needs to be done: 75%.** Unchanged from the planner's 75% (critic: 70%). Raised by: the T23 dedup defect is now confirmed in code and fixed in the plan (C-1, C-2);
 T25's placement question is answered (C-3); test bikes with real model rows exist (DB-2/DB-4). Held down by: whether friction fixes move return at all (R6 §3.1, 60%); low-confidence causes
-(OB2 60%, OB5 40%, RC-D 25%, PO12/PO13 30–35%) that are now explicitly behind data gates (T14b, T15b, T36, T38). Raised further by: 4 weeks of TR0 events on the live runtimes and the Exp 1 read.
+(OB2 60%, OB5 40%, RC-D 25%, PO12/PO13 30–35%) that are now explicitly behind data gates (T14b, T15b, T36, T38). Raised further by: 4 weeks of P0 instrumentation events from 3.29.0 go-live (D17; TR0 removed by D17) and the Exp 1 read.
 
-**B — the plan is well defined: 78%** (critic 55%, planner 70%). All four blocking items have a concrete rule: per-runtime OTA (TR0), D2b metric sources, a testID owner per id, the Exp 1
+**B — the plan is well defined: 78%** (critic 55%, planner 70%). All four blocking items have a concrete rule: release paths (D17: store builds only; TR0 removed by D17), D2b metric sources, a testID owner per id, the Exp 1
 start gate. Every task is an issue with files, tests, a check location and a metric. Held down by: owner decisions D1/D1c/D2/D2b/D14/D14b/D16 still open; most HogQL is still *(draft)*
-until T02 runs it; release branches for older runtimes are a manual, error-prone step; dates assume ~2 merged agent PRs per day (parallel agents; doc review item 5).
+until T02 runs it; with D17 all client measurement waits for 3.29.0 go-live (no earlier data on the live runtimes); dates assume ~2 merged agent PRs per day (parallel agents; doc review item 5).
 
 ---
 
@@ -1596,13 +1593,14 @@ a task that cites D# follows the ruling below. Change a ruling only with the own
 | D9 | Android Back on the first steps | **Back steps one screen; on the experience step Back returns to Welcome; Back on Welcome leaves the app. No dialog.** Progress is persisted (T13a/T13b), so a rider who leaves resumes where they were. | Platform-native, and with persistence nothing is lost. |
 | D10 | Keep the rider's email on the device until onboarding ends | **Yes, in SecureStore, cleared when onboarding completes or on sign-out. Never the password or the code.** | Restores the code step after the rider reads the email (FS-OB3). |
 | D11 | Landing-sheet priority in the first session | **At most one sheet on landing. Order: (1) analytics consent if required, (2) safety recall for the rider's bike, (3) "Service plan ready", (4) Exp 1 plan card (test arm only). Everything else (What's New, check-in) waits for a later session.** *(Clarified 2026-11-12, doc review item 6d:)* at most one **modal** sheet per cold session; consent is an earlier gate, not a landing sheet; the Exp 1 plan card is an inline Home card shown only when no sheet is shown; What's New and check-in become eligible from the next session. | Safety first, then the value the rider came for; never stacked sheets (FS-PO17). |
-| D12 | Start Ride first-open (T27) and Discover location ask (T29) | **Ship in both arms before the Exp 1 slot opens** (in Release B, before the Exp 1 start). *(Amended 2026-11-12, doc review item 5:)* if either misses the Release B code freeze (2026-12-05), it ships in the first store binary **after** the slot, never inside it and never by OTA. | Bug-level fixes; shipping them before the slot keeps the experiment clean. |
+| D12 | Start Ride first-open (T27) and Discover location ask (T29) | **Ship in both arms before the Exp 1 slot opens** (in Release B, before the Exp 1 start). *(Amended 2026-11-12, doc review item 5:)* if either misses the Release B code freeze (2026-12-05), it ships in the first store build **after** the slot, never inside it (D17: never by OTA). | Bug-level fixes; shipping them before the slot keeps the experiment clean. |
 | D13 | Experiment 1 ledger | **Signed as specified:** the bundle holds the single slot; primary S1 (week-1 core action among completers, baseline 61/367); Miller N = 64 + one one-sided z-test at the cap; cap **2027-03-31**; no start after **2027-01-06**; after a capped no-winner keep the bundle if the 90% lower bound > −3 pts, else revert (qualitative signals reported beside the decision, not gating); chips Later today, Tomorrow, This weekend, Not sure yet; first chip **"Later today"**; `maintain_bike` day-1 copy **"When did you last service your {model}?"** (opens the bike's service plan); notification kind `activation` with a `source` property. | The board's recommended design; "Later today" avoids promising a ride the same minute; the maintenance copy matches what those riders came for. |
 | D14 | Release train | **3.29.0 (Release A) submit target 2026-11-30; 3.30.0 (Release B) 2026-12-08; both platforms.** Promote Android **vc99 (FCM)** to production as soon as vc98 clears Google review. | Matches the dependency graph and the 2027-01-06 hard stop. |
-| D14b | OTA the P1/P2 fixes to older runtimes? | **No.** Older runtimes (3.26.0–3.28.0) get only the TR0 instrumentation OTA; fixes ship in 3.29.0/3.30.0. Exception: a crash or data-loss fix may get a per-runtime OTA. | New riders run the binary's embedded JS anyway; release-branch OTAs are manual and error-prone. |
+| D14b | OTA the P1/P2 fixes to older runtimes? | **No.** Fixes ship in 3.29.0/3.30.0 and later store builds. *(Amended 2026-11-12 by D17:)* the rule is now **absolute**: no OTA of fixes, features or instrumentation to any runtime (older or current); the only exception is an urgent crash or data-loss hotfix per `docs/runbooks/mobile-ota.md`. Older runtimes get no instrumentation OTA (TR0 removed by D17). | New riders run the binary's embedded JS anyway; release-branch OTAs are manual and error-prone. |
 | D15 | Credential Manager for Android Google sign-in | **Keep the data gate:** adopt it in T36 only if T04a data shows ≥ 10% hung Google sheets over 4 weeks. | Avoids a native auth migration without evidence. |
 | D16 | Exp 1 start date | **The first day 3.30.0 is ≥ 90% of new installs on both platforms, but not later than 2027-01-06.** If not reached by then, do not start the slot this season; ship the bundle on the no-harm path (P06.3). *(Amended 2026-11-12, doc review item 4:)* the start is set **server-side** in the API field `activationExperimentWindow {startAt, stopAt}` (T30's API part, deployed before the 3.30.0 cut) on that day, and the PostHog flag is flipped the same day; no OTA and no other switch. A null or unreachable window means not started (control, `source:'pre_start'`, no draw); the embedded ceilings (stop 2027-03-31, no start after 2027-01-06) always apply. | Assignment must run in the binary new riders install; a server-side window can be set or pulled back without a release. |
-| TR0 | Per-runtime instrumentation OTA | **Go-ahead**, following `docs/runbooks/mobile-ota.md` (`--environment production`, one publish per runtime 3.26.0, 3.27.0, 3.28.0 from `release/<runtime>-365` branches), each recorded in the release log and annotated. *(Amended 2026-11-12, doc review item 3:)* each branch is cut from the git commit of the runtime's latest production update group (`eas update:list --branch production` → `gitCommitHash`; 3.28.0: `fece7a3c` / `5a497a1c`), not the store build commit, and `git log <live-update-commit>..release/<runtime>-365 -- apps/mobile` must show only TR0 commits. TR0 ships events/properties only (T01, T04a–c, T05a, T05b, T05d, T05c's guard event properties); T05c's guard-sheet render change and testIDs ship in Release A. Before each publish, `onboarding.yaml` and `log-ride.yaml` pass on a preview build of that branch (logs in the release-log row). TR0 measures later sessions only; first-session onboarding events, the T36/T38 gate windows and FS-OB* pre-fix baselines start at 3.29.0 go-live per platform (R1/R5 proxy SQL as pre-fix comparison). | Measurement must reach the riders who are on those runtimes today, without rolling back the OTAs they already run. |
+| TR0 | Per-runtime instrumentation OTA | **Removed by D17 (2026-11-12):** instrumentation ships in Release A 3.29.0 (T18). The earlier go-ahead (per-runtime OTAs to 3.26.0/3.27.0/3.28.0 from `release/<runtime>-365` branches) is withdrawn; first-session and post-onboarding events, the T14b/T15b/T36/T38 gate windows and FS-OB* pre-fix baselines start at 3.29.0 go-live per platform (R1/R5 proxy SQL as pre-fix comparison). | See D17. |
+| D17 | How new functionality ships (owner rule, 2026-11-12, binding) | **Every new functionality — features, UI changes, the experiment, new events/instrumentation, testIDs — ships ONLY in a new store build version (App Store + Play, bumped app version: 3.29.0, 3.30.0, then the next store build). OTA is used only for urgent crash or data-loss hotfixes per `docs/runbooks/mobile-ota.md`.** API deploys and owner-applied migrations are unaffected (they are not app builds). Replaces the per-runtime OTA rule (§3A.0 rule 1), removes TR0, makes D14b absolute. | OTAs reach only their own runtime and apply on the next launch, so new riders' first sessions run the binary's JS; per-runtime release-branch OTAs were complex and risked rolling back shipped OTAs. |
 | — | Commit the research and plan; create the GitHub issues | **Yes.** Commit `docs/research/activation-365/` (emails and person ids redacted) via a docs PR; create one issue per draft under #365 in plan order, with "Blocked by" links. | Agents need the plan and its evidence on `main`. |
 
 ---
@@ -1616,7 +1614,7 @@ The owner delegated every decision; the rulings below are final. Each line names
 |---|---|---|---|
 | 1 | Server-side PostHog events (`onboarding_bike_created`, `ride_saved`, `service_plan_imported`) respect analytics consent: `readAnalyticsDecision` + `hasAnalyticsConsent` (`apps/api/src/modules/analytics/analytics-consent.ts`); consent → user id; no or missing decision → constant `distinct_id` per event + `NO_CONSENT_PROPERTIES`; never email; jest per event. | §3A.0 rule 6, §3 T07 What, §8 row 2 | 12 (T05e), 15 (T07a) |
 | 2 | D7 reminder cap built inside T07a (`sendDuePush`: one combined push per bike, skip a bike pushed in the last 7 days; imported/backfilled tasks no immediate reminder); client "due now" + top 3 "+N more" in T07b; T39 depends on it; T06 item 7 answered (no immediate burst; same-day clustering at interval anniversaries). | §2 graph, §3 T06 item 7, T07 Depends/How/Acceptance/Risks, T39, §3A.1 rows 15/54, §3A.2 T07, §9 D7 row | 13 (T06), 15 (T07a), 16 (T07b), 54 (T39) |
-| 3 | TR0 release branches cut from the latest production update commit per runtime (3.28.0: `fece7a3c` / `5a497a1c`), not the store build; `git log` check; scope = events/properties only (T05c's sheet render + testIDs → Release A); pre-publish `onboarding.yaml` + `log-ride.yaml`; TR0 measures later sessions only; T36/T38 windows and FS-OB* baselines start at 3.29.0 go-live, R1/R5 proxy SQL as pre-fix comparison. | §2 table + graph, §3A.0 rule 1, §3 T18/T36/T38, §3A.1 rows 10/14/51/53, §9 TR0 row | 03 (T03a), 10 (T05c), 11 (T05d), 14 (TR0), 29 (T18), 51 (T36), 53 (T38) |
+| 3 | *(Historical; TR0 removed by D17, §10.1.)* TR0 release branches cut from the latest production update commit per runtime (3.28.0: `fece7a3c` / `5a497a1c`), not the store build; `git log` check; scope = events/properties only (T05c's sheet render + testIDs → Release A); pre-publish `onboarding.yaml` + `log-ride.yaml`; TR0 measures later sessions only; T36/T38 windows and FS-OB* baselines start at 3.29.0 go-live, R1/R5 proxy SQL as pre-fix comparison. | §2 table + graph, §3A.0 rule 1, §3 T18/T36/T38, §3A.1 rows 10/14/51/53, §9 TR0 row | 03 (T03a), 10 (T05c), 11 (T05d), 14 (TR0), 29 (T18), 51 (T36), 53 (T38) |
 | 4 | Exp 1 start/stop served by the API: nullable `activationExperimentWindow {startAt, stopAt}` on the `User` returned by `completeOnboarding`, deployed before the 3.30.0 cut; embedded ceilings 2027-03-31 / 2027-01-06; null or unreachable = not started; start set server-side on the D16 day with the flag flip the same day; "move `EXP1_START_AT` by OTA" deleted. | §2 P3 row, §3 T30, §3A.0 rule 3, §3A.1 row 43, §3A.2 T30, §3A.3 D16, §8 row 6, §9 D16 row | 43 (T30), 48 (T35), 02 (T02 ledger text) |
 | 5 | Release B: T35 hard dependencies = Exp 1 minimum set (T02, T05c, T05d, T09, T10, T18, T30, T31, T32, T33, T34); code freeze 2026-12-05; P2 tasks that miss it go into the next store binary, never an OTA; T27/T29 then ship after the slot (D12 holds); ≈ 2 merged PRs/day needed. | §2 table, graph and freeze note, §3 T35, §8.1, §9 D12 row | 48 (T35, incl. `depends_on`) |
 | 6a | D3 / T09: any guard-ended ride under 50 m discarded whatever its time (except no-GPS ≥ 120 s); auto-ended sub-floor rides discarded via the same `discardEndedRide`; `ride_discarded {reason:'below_floor', trigger}`; "Your ride was too short to save"; auto-end jest case. | §3 T09, §5 FS-PO4b, §9 D3 row | 18 (T09) |
@@ -1633,7 +1631,7 @@ The owner delegated every decision; the rulings below are final. Each line names
 | 10 | Seeded Maestro flows run on a Release build pointed at local Supabase + local NestJS API (`features/bike-detail-shell-overview/local-stack.md`; Android `10.0.2.2`), `pnpm db:reset`, matching runner `SUPABASE_URL`. | §0 Maestro | 17 (T08), 33 (T21), 36 (T24) |
 | 11 | Reading rule: iOS first-session same-weeks comparison n/a; Nov–Mar harm checks against a concurrent comparison (Android staged rollout before the slot, Exp 1 control after); trailing-8-week drop alone = "no verdict (season)", never a revert. FS-M release check binary 100%, alert on any mismatch 3 days after go-live. | §0 reading rule, §1.2, §3 T03 alerts, §3 T18, §5 FS-M, §5A.2 | 04 (T03b), 29 (T18), 48 (T35) |
 | 12 | First dashboard tile "Day-1 drop-off funnel", checked against the evidence pack. | §3A.2 T03 | 04 (T03b) |
-| 13 | Scope trims: `ACTIVATION_FIXES` code map dropped (§6.1 is the record); `first-session-no-auto-hud.yaml` dropped (alert stays the guard); T05d keeps `screen_load_timed` for Discover only and drops `notification_permission_status`; FS-OB7/PO9/PO11/PO15/PO16 SQL only, no tile; T37, T41, T41b removed from the task list and closed (ledger notes below); FS-EXP1 power for two start dates. | §0, §2, §3 T05/T25/T37/T41, §3A.0 rule 2, §3A.1, §3A.2, §4, §5 FS-OB7/PO5/PO9/PO11/PO15-16/EXP1, §5A.1, §5A.3, §6.1, §8 row 3 | 01 (T01), 02 (T02), 03 (T03a), 04 (T03b), 11 (T05d), 14 (TR0), 16–20, 22, 26–30, 33, 35, 36, 38, 48 (Release lines without the map), 52 (T37), 56 (T41), 57 (T41b) closed; 48 (T35), 55 (T40) power |
+| 13 | Scope trims: `ACTIVATION_FIXES` code map dropped (§6.1 is the record); `first-session-no-auto-hud.yaml` dropped (alert stays the guard); T05d keeps `screen_load_timed` for Discover only and drops `notification_permission_status`; FS-OB7/PO9/PO11/PO15/PO16 SQL only, no tile; T37, T41, T41b removed from the task list and closed (ledger notes below); FS-EXP1 power for two start dates. | §0, §2, §3 T05/T25/T37/T41, §3A.0 rule 2, §3A.1, §3A.2, §4, §5 FS-OB7/PO5/PO9/PO11/PO15-16/EXP1, §5A.1, §5A.3, §6.1, §8 row 3 | 01 (T01), 02 (T02), 03 (T03a), 04 (T03b), 11 (T05d), 14 (TR0, since removed by D17), 16–20, 22, 26–30, 33, 35, 36, 38, 48 (Release lines without the map), 52 (T37), 56 (T41), 57 (T41b) closed; 48 (T35), 55 (T40) power |
 | 14 | Recorded (no task change): the real fixes for PO12/PO13 (T14b, T15b, T38) stay gated on data because their cause confidence is 25–45%; the owner accepts that they arrive one release later. Weekly DB check SQL files begin with `BEGIN READ ONLY;` and end with `COMMIT;`. | §3A.0 rule 6 | 02 (T02) |
 
 ### Ledger notes (for `experiments.md`)
@@ -1650,4 +1648,19 @@ The owner delegated every decision; the rulings below are final. Each line names
 - **Experiment 1 power (approximate, normal approximation, Appendix B not re-run):** start 2026-12-15 → ≈ 0.78 at a 12.6% baseline, ≈ 0.65 at 9.5%; start 2027-01-06 →
   ≈ 0.69 at 12.6%, ≈ 0.56 at 9.5% (one-sided α = 0.05 at the cap, 2.1 completers/day, ×2 effect). A capped no-winner means "no doubling shown".
 - **Accepted delay (item 14):** T14b, T15b and T38 (PO12/PO13 and the session drop) ship one release after their data gate, not in Release A.
+  Since D17 their data gates count from 3.29.0 go-live and their fixes ship in the next store build after the gate.
 
+### 10.1 Owner rule D17 — changes (2026-11-12)
+
+Rule: every new functionality (features, UI changes, the experiment, new events/instrumentation, testIDs) ships only in a new store build version (App Store + Play,
+bumped app version); OTA only for urgent crash or data-loss hotfixes per `docs/runbooks/mobile-ota.md`; API deploys and owner-applied migrations unaffected.
+**Level numbering decision:** numbers are kept, **level 1 is not used** (it was TR0). 0 = T01's initial constant (pre-release JS, dev/preview builds only), 2 = Release A 3.29.0,
+3 = Release B 3.30.0, 4+ = later store builds and any crash/data-loss hotfix OTA. `activation_fix_level` semantics are unchanged.
+
+| # | Change | Plan sections changed | Issue drafts changed |
+|---|---|---|---|
+| D17-1 | §9: new ruling row D17; D14b amended (no OTA of fixes to any runtime, absolute except crash/data-loss hotfixes); TR0 row replaced by "Removed by D17"; D12 "never by OTA" tied to D17. §3A.3 lists D14b (amended) and D17. | §9, §3A.3 | — |
+| D17-2 | TR0 removed as a task: P0 instrumentation (T01, T04a–c, T05a–e incl. T05c's guard-sheet change/testIDs) ships in Release A 3.29.0. T18 depends on T01, T04a, T04b, T04c, T05a, T05b, T05c, T05d (+ T07b–T17); T14b, T15b, T36, T38 depend on T18, data-gate windows from 3.29.0 go-live per platform, R1/R5 proxy SQL for pre-fix comparisons. §2 phase table (P0, P1, P2, P4 rows), "why store binaries" paragraph (D17 rule), mermaid graph (TR0 node/edges removed; T01/T04a–c/T05a–d → T18; T18 → T14b/T15b); §3A.0 rule 1 rewritten (release paths: store builds 3.29.0/3.30.0, API deploys, owner migrations; OTA only for crash/data-loss hotfixes) and rule 2 (levels); 3A.1 row 14 dropped (other orders kept), rows 01/03/05–11/29/49/50/53 updated; 3A.2 TR0 bullet → "Removed by D17"; T14b gate wording; §3 T01 (release, constant 0, verification, risks), T04/T05 release + acceptance, T18 (depends, blocks, release, level 2, instrumentation note); §0 `{REL}`/marker/annotation text; §1.2 co-existence wording; §5 FS-M; §5A.2 (OTA share = hotfix OTA only); §6 header; §6.1 FS-M row (T01, T18); §8 rows 1/4/14 and §8.1 annotated as superseded/historical. | §0, §1.2, §2, §3, §3A.0–3A.3, §5, §5A.2, §6, §6.1, §8, §8.1, §9 | 14 (TR0: CLOSED line), 29 (T18), 49 (T14b), 50 (T15b), 51 (T36), 53 (T38), and the `TR0`-listing drafts 01, 03, 05–11 |
+| D17-3 | Every fix-shipping "later OTA" / "OTA + Release A/B" / "next build / OTA" / "OTA to the 3.29.0+ runtime" / "optional older-runtime OTA" path → Release A/B or "next store build". Remaining OTA mentions are facts (why OTAs miss first sessions, runtime reach, FS-PO3b repro) or the crash/data-loss hotfix exception. | §2, §3 (T01, T04, T05, T08–T17, T19–T29, T18, T35, T36, T38, P3 intro, release-path rule), §3A.0 rules 3–4, §5, §5A.2, §6 | 01, 03, 04 (T03b "no data until" line), 05–11, 17 (T08), 29, 37 (T25a), 48 (T35), 49, 50, 51, 53 |
+| D17-4 | Issue draft 14 (TR0) marked closed by D17 (first body line); `depends_on` of T18, T14b, T15b, T36, T38 no longer list TR0; `release_path` values that named OTA now name store builds. | — | 14, 29, 49, 50, 51, 53, 01, 05–11, 17 |
+| D17-5 | This list. | §10.1 | — |

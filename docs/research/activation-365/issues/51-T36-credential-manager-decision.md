@@ -3,7 +3,7 @@ title: "[#365 T36] Decide on Credential Manager for Android Google sign-in (data
 labels: [research, enhancement, area:mobile, activation-365]
 order: 51
 task_id: T36
-depends_on: [TR0, T18]
+depends_on: [T18]
 phase: P4
 size: M
 release_path: "decision only; if yes, a store build (native change, never OTA)"
@@ -18,7 +18,7 @@ The free module uses the deprecated legacy Google Sign-In SDK on Android [SOURCE
 ## What to change
 After 4 weeks of `auth_oauth_*` counted from 3.29.0 go-live on Android: if "started, no result" ≥ 10% of Android Google starts, spike Credential Manager behind a flag (D15 licence/dependency decision); device check Pixel + Samsung; else close with numbers.
 
-**Gate window (doc review 2026-11-12, item 3):** first-session onboarding events (`auth_oauth_*`, `onboarding_back`, `bike_setup_summary`, `auth_session_lost` during onboarding) exist only from **3.29.0**: TR0 is an OTA and reaches only later sessions of existing riders, while a new rider's first session runs the binary's embedded JS. So the gate window counts from 3.29.0 go-live **per platform**; the pre-fix comparison is the R5 proxy SQL (Android account viewers without `signup_completed`, verbatim `R5…:213-221`; baseline 20/124) (`$screen`-based).
+**Gate window (doc review 2026-11-12, item 3):** first-session onboarding events (`auth_oauth_*`, `onboarding_back`, `bike_setup_summary`, `auth_session_lost` during onboarding) exist only from **3.29.0**: by owner rule D17 (2026-11-12) the P0 instrumentation ships only in Release A 3.29.0 (TR0 removed by D17), and a new rider's first session runs the binary's embedded JS. So the gate window counts from 3.29.0 go-live **per platform**; the pre-fix comparison is the R5 proxy SQL (Android account viewers without `signup_completed`, verbatim `R5…:213-221`; baseline 20/124) (`$screen`-based).
 
 ## How
 Query below; if spiking: Context7 docs for the current library, native change → store build only.
@@ -40,7 +40,7 @@ FS-OB2a. Repro: Android emulator (Google Play image) → account → Google: (a)
 Decision; native → store release only.
 
 ## Dependencies
-- Blocked by: TR0, T18 (the gate window starts at 3.29.0 go-live).
+- Blocked by: T18 (the gate window starts at 3.29.0 go-live).
 - Blocks: —
 
 ## Out of scope
