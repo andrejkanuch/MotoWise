@@ -271,8 +271,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           // Only the `e2e-android-local` EAS profile sets E2E_LOCAL_STACK=1: its
           // release APK talks to the local Supabase + API over http://10.0.2.2,
           // which Android 9+ blocks unless cleartext is allowed. Never on in
-          // store builds.
-          usesCleartextTraffic: process.env.E2E_LOCAL_STACK === '1',
+          // store builds: `undefined` leaves the manifest untouched (the plugin only
+          // writes the attribute for a non-null value).
+          usesCleartextTraffic: process.env.E2E_LOCAL_STACK === '1' ? true : undefined,
         },
         ios: {
           deploymentTarget: '16.4',
