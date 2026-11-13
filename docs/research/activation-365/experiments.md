@@ -215,7 +215,7 @@ go-live date **per platform**, so the A/B and Exp 1 readouts can be cut before/a
 
 | Date (go-live) | Platform | Task | Change | Release (version / build / API deploy) | `activation_fix_level` | PostHog annotation id |
 |---|---|---|---|---|---|---|
-| | | | | | | |
+| 2026-11-13 13:55 UTC | server (all app versions) | T07a (#472) | Exp 2: onboarding bike gets its OEM service plan (`service_plan_imported`); one maintenance push per bike per 7 days. Same for both `onboarding_paywall_2026q4` arms and both Exp 1 arms | API `8fd7cf6f` (Render `dep-dbrhcgqjnfac739gqms0`), plan §6 row 2 | null (`lvl n/a`) | `204996` |
 
 Expected entries (D1, D12): T11, T12, T13a, T13b, T14, T16a, T19a, T19b, T20, T25b, T30 (both onboarding arms); T27 (launch-day,
 Release B) and T29 (Release A target) as both Exp 1 arms; P05.3 install-reason card if it ships in 3.30.0.
