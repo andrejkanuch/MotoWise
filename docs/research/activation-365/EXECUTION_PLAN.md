@@ -1569,7 +1569,7 @@ Status values: `open` → `shipped` (in a release; level known) → `verified` (
 This table is the only record of which level ships which spec (no code map; doc review item 13).
 
 **How to update (#365 T03a; full steps in `docs/runbooks/mobile-release.md` → "#365 release marking"):**
-- **Cut commit** (store build, or a hotfix OTA publish commit): the same commit that sets `ACTIVATION_FIX_LEVEL` fills `Level` for every spec whose fix is in that build.
+- **Cut commit** (store build, or a hotfix OTA publish commit on a runtime ≥ 3.29.0): the same commit that sets `ACTIVATION_FIX_LEVEL` fills `Level` for every spec whose fix is in that build. A hotfix OTA on a runtime < 3.29.0 has no release marker: no level, §6 level cell `null`, annotation `lvl n/a`, never cherry-pick T01 (`docs/runbooks/mobile-ota.md`).
 - **Go-live, per platform** (separate docs commit): `Release row (§6)` = the new §6 row number(s), one per platform (e.g. `3 (android), 4 (ios)`); `Status` → `shipped`. The `Maestro run` cell takes the PR link of the spec's passing local run.
 - **2/4/8-week reads:** fill the read cell with date + result vs target (or `no verdict (season)` / `no verdict (thin Android cohort)`), the same line goes to `experiments.md` §8; `Status` → `verified` (target met; read date given) or `regressed`.
 - Never edit another spec's row in the same change unless it shipped in the same release. The example row below the table is a template, not a status.

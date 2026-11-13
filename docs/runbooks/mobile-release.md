@@ -88,7 +88,10 @@ session always runs the binary's embedded JS.
 `activation_fix_level` (super property, `apps/mobile/src/lib/analytics-release-marker.ts`).
 
 - Change it **only in the cut commit**: the commit a store build is cut from, or the
-  publish commit of a hotfix OTA. A feature PR never changes it.
+  publish commit of a hotfix OTA on a runtime ≥ 3.29.0. A feature PR never changes it.
+- A hotfix OTA on a runtime **< 3.29.0** has no level: those bases have no
+  `activation.ts` (T01 first ships in 3.29.0), T01 is never cherry-picked onto them, and
+  no level number is used up (`docs/runbooks/mobile-ota.md` → "#365 release marking").
 - Levels: 0 = pre-release JS (dev and E2E builds); 1 = not used; 2 = Release A 3.29.0;
   3 = Release B 3.30.0; 4 and up = later store builds and any hotfix OTA, each taking the
   **next unused number** in plan §6 (a hotfix branch off an older commit must not reuse a
@@ -133,7 +136,7 @@ Annotations). `scope: project`, `date_marker` = the go-live day (ISO 8601, UTC),
 |---|---|
 | `<platform>` | `android`, `ios`, or `server` for an API deploy |
 | `<version…>` | store build: `3.29.0 (vc100)` / `3.29.0 (b112)`; hotfix OTA: `rt 3.28.0 ota <update group id>`; API deploy: `api <short git commit>` |
-| `lvl <N>` | the `ACTIVATION_FIX_LEVEL` of that JS; `lvl n/a` for an API deploy |
+| `lvl <N>` | the `ACTIVATION_FIX_LEVEL` of that JS; `lvl n/a` for an API deploy and for a hotfix OTA on a runtime < 3.29.0 (no release marker; its §6 level cell is `null`) |
 | `<spec ids>` | the friction spec ids whose fix ships, from §6.1 (`FS-…`, `S…`), comma-separated |
 
 Examples (illustrative; build numbers and ids are placeholders):

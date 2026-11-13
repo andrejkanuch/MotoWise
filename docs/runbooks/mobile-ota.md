@@ -194,11 +194,21 @@ properties, testIDs — ships **only in a store build**. An OTA is allowed only 
 urgent **crash or data-loss hotfix**, and still needs the owner's go-ahead for that
 publish (see "How to publish"). The full release-marking procedure (levels, annotations,
 release log, 2/4/8-week reads) is in `docs/runbooks/mobile-release.md` → "#365 release
-marking"; the hotfix-specific steps are:
+marking"; the hotfix-specific steps are below.
+
+**Runtimes before 3.29.0 have no release marker.** T01 (`ACTIVATION_FIX_LEVEL`,
+`apps/mobile/src/config/activation.ts`, and the `activation_fix_level` / `runtime_version` /
+`ota_update_id` super properties) first reaches riders in 3.29.0 (plan §0). The bases of
+every runtime live on 2026-11-12 (3.26.0 `0b099fd3`, 3.27.0 `2ce57d1d`, 3.28.0 `5a497a1c`)
+have no `activation.ts`. For a hotfix on a runtime **< 3.29.0**, the steps marked
+"pre-3.29.0" below apply: no level is set, and **T01 is never cherry-picked** onto the
+hotfix branch (that would ship instrumentation by OTA, which D17 forbids). The level and
+§6.1 `Level` rules apply only to runtimes **≥ 3.29.0**.
 
 1. **Target runtime and reach.** Name the runtime(s) the crash is on (the `version` of the
    affected binaries) and how many riders run it (PostHog `Application Opened` by
-   `runtime_version`, or by `$app_version` before 3.29.0). One runtime per publish.
+   `runtime_version`; pre-3.29.0: by `$app_version` and date only, since those binaries
+   send no `runtime_version`). One runtime per publish.
 2. **Branch to publish from.**
    - Not `main`, even when `main` still carries the same `version`: `main` holds work
      merged after the cut, and D17 forbids shipping it by OTA (the scope check above).
@@ -220,20 +230,36 @@ marking"; the hotfix-specific steps are:
      | 3.28.0 | `fece7a3c` | `5a497a1c` |
      | 3.27.0 | none | store build `2ce57d1d` |
      | 3.26.0 | `bd05b306` | `0b099fd3` |
-3. **Native-diff check** on that branch against the binary (the section above): no
+3. **Scope and native-diff check on the hotfix branch**, not on `main`. "Before you
+   publish: scope" above reads `origin/main`; for a hotfix, run its steps 2–4 against
+   what actually ships instead:
+   `git log <gitCommitHash>..hotfix/<runtime>-<slug> -- apps/mobile packages/types packages/design-system packages/graphql`
+   (`<gitCommitHash>` = the base from step 2). The list should be only the cherry-picked
+   fix; anything else comes off the branch. If it touches onboarding or paywall paths
+   (the list in that section's step 4), run the onboarding paywall E2E
+   (`docs/runbooks/mobile-release.md`) before asking for the go-ahead. Then the
+   native-diff check on that branch against the binary (the section above): no
    JavaScript may import a native module the binary lacks.
-4. **Level.** In the publish commit on that branch, set `ACTIVATION_FIX_LEVEL`
-   (`apps/mobile/src/config/activation.ts`) to the next unused level in plan §6
-   (`docs/research/activation-365/EXECUTION_PLAN.md`), and fill §6.1 `Level` for the specs
-   it fixes, in the same commit.
+4. **Level.**
+   - Runtime **≥ 3.29.0**: in the publish commit on that branch, set
+     `ACTIVATION_FIX_LEVEL` (`apps/mobile/src/config/activation.ts`) to the next unused
+     level in plan §6 (`docs/research/activation-365/EXECUTION_PLAN.md`), and fill §6.1
+     `Level` for the specs it fixes, in the same commit.
+   - **Pre-3.29.0:** skip. The file does not exist on that branch; do not create it and do
+     not cherry-pick T01. No level number is used up, and §6.1 `Level` stays empty for
+     this publish (a spec fixed only by such a hotfix gets its level from the store build
+     that later carries the fix).
 5. **Publish** with the `Mobile OTA Update` workflow: in "Use workflow from" pick the
    hotfix git branch, EAS branch `production`, message `hotfix <runtime>: <what>`. Only on
    the owner's go-ahead.
 6. **Mark it**, per platform × runtime, on the publish day: annotation
-   `#365 fixes: <platform> rt <runtime> ota <update group id> lvl <N> — <spec ids>`,
-   §6 row (notes: publish branch and its base commit), §6.1 `shipped`
-   (`docs/runbooks/mobile-release.md` → "#365 release marking", step 4). The 7-day reach
-   read is plan §5A.2 (target ≥ 90% of riders on that runtime seen ≥ 2 times).
+   `#365 fixes: <platform> rt <runtime> ota <update group id> lvl <N> — <spec ids>`
+   (pre-3.29.0: `lvl n/a`), §6 row (notes: publish branch and its base commit; pre-3.29.0:
+   level cell `null`), §6.1 `shipped` (`docs/runbooks/mobile-release.md` → "#365 release
+   marking", step 4). The 7-day reach read is plan §5A.2 (target ≥ 90% of riders on that
+   runtime seen ≥ 2 times). Pre-3.29.0: §5A.2 needs `runtime_version` / `ota_update_id`,
+   which those binaries do not send, so record the §5A.2 OTA-share read as
+   `n/a (no release marker on this runtime)` and read reach by `$app_version` + date only.
 
 ## Facts that are easy to get wrong
 
