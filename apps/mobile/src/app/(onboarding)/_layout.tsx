@@ -2,6 +2,7 @@ import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { BackHandler, View } from 'react-native';
 import { ErrorFallback } from '../../components/error-fallback';
+import { AccountReadyNotice } from '../../components/onboarding/account-ready-notice';
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { captureException } from '../../lib/analytics';
 import { resolveOnboardingVariant } from '../../lib/onboarding-experiment';
@@ -41,40 +42,44 @@ export default function OnboardingLayout() {
   }
 
   return (
-    <Stack
-      // Step focus (time on screen, last viewed step) and back moves (`onboarding_back`).
-      screenListeners={onboardingScreenListeners}
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: oc.background },
-        animation: 'ios_from_right',
-        animationDuration: 350,
-      }}
-    >
-      {/* Section A: Welcome & Identity */}
-      <Stack.Screen name="index" options={{ gestureEnabled: false }} />
-      <Stack.Screen name="experience" options={{ gestureEnabled: false }} />
+    <View style={{ flex: 1 }}>
+      <Stack
+        // Step focus (time on screen, last viewed step) and back moves (`onboarding_back`).
+        screenListeners={onboardingScreenListeners}
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: oc.background },
+          animation: 'ios_from_right',
+          animationDuration: 350,
+        }}
+      >
+        {/* Section A: Welcome & Identity */}
+        <Stack.Screen name="index" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="experience" options={{ gestureEnabled: false }} />
 
-      {/* Section B: Personalization & Bike */}
-      <Stack.Screen name="goals" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="bike-setup" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="reveal" options={{ gestureEnabled: false }} />
-      {/* Value-payoff slot for bike-skippers (shown instead of reveal when no bike) */}
-      <Stack.Screen name="no-bike-value" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="maintenance" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="commitment" options={{ gestureEnabled: false }} />
+        {/* Section B: Personalization & Bike */}
+        <Stack.Screen name="goals" options={{ gestureEnabled: true }} />
+        <Stack.Screen name="bike-setup" options={{ gestureEnabled: true }} />
+        <Stack.Screen name="reveal" options={{ gestureEnabled: false }} />
+        {/* Value-payoff slot for bike-skippers (shown instead of reveal when no bike) */}
+        <Stack.Screen name="no-bike-value" options={{ gestureEnabled: true }} />
+        <Stack.Screen name="maintenance" options={{ gestureEnabled: true }} />
+        <Stack.Screen name="commitment" options={{ gestureEnabled: false }} />
 
-      {/* Section C: Conversion & Finalization */}
-      <Stack.Screen name="paywall" options={{ gestureEnabled: false }} />
-      {/* A/B 2026 — post-paywall account step + returning-user sign-in */}
-      <Stack.Screen name="account" options={{ gestureEnabled: false }} />
-      <Stack.Screen name="sign-in" options={{ gestureEnabled: true, presentation: 'card' }} />
-      {/* Attribution — post-paywall, non-reversible (no back to account/paywall) */}
-      <Stack.Screen name="heard-about" options={{ gestureEnabled: false }} />
-      {/* Activation (G7) — quota-exempt "snap a receipt" invitation; skippable */}
-      <Stack.Screen name="scan-receipt" options={{ gestureEnabled: false }} />
-      <Stack.Screen name="notifications" options={{ gestureEnabled: false }} />
-      <Stack.Screen name="personalizing" options={{ gestureEnabled: false }} />
-    </Stack>
+        {/* Section C: Conversion & Finalization */}
+        <Stack.Screen name="paywall" options={{ gestureEnabled: false }} />
+        {/* A/B 2026 — post-paywall account step + returning-user sign-in */}
+        <Stack.Screen name="account" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="sign-in" options={{ gestureEnabled: true, presentation: 'card' }} />
+        {/* Attribution — post-paywall, non-reversible (no back to account/paywall) */}
+        <Stack.Screen name="heard-about" options={{ gestureEnabled: false }} />
+        {/* Activation (G7) — quota-exempt "snap a receipt" invitation; skippable */}
+        <Stack.Screen name="scan-receipt" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="notifications" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="personalizing" options={{ gestureEnabled: false }} />
+      </Stack>
+      {/* Over every step: shown once when a step is reached with notice=account_ready (issue 365 T11). */}
+      <AccountReadyNotice />
+    </View>
   );
 }

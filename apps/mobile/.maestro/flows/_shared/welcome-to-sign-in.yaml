@@ -1,0 +1,58 @@
+# Shared: fresh install -> Welcome -> "Already have an account? Sign in" ->
+# email + password -> Sign In. Used by the onboarding-signin-*.yaml flows
+# (issue 365 T11). Lives in _shared/ so the flows/*.yaml glob does not run it alone.
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+# Fresh state + keychain so Welcome renders with no session (see
+# onboarding-to-account.yaml for why both are needed).
+- clearState
+- clearKeychain
+- launchApp
+
+- extendedWaitUntil:
+    visible: "Ask App Not to Track"
+    timeout: 15000
+    optional: true
+- tapOn:
+    text: "Ask App Not to Track"
+    optional: true
+
+- extendedWaitUntil:
+    visible: "Let's get started"
+    timeout: 120000
+- tapOn: "Already have an account? Sign in"
+
+# Analytics consent, where the country rule asks for it: decline.
+- runFlow:
+    when:
+      visible: "Help shape MotoVault"
+    commands:
+      - tapOn: "Don't allow"
+
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-sign-in-screen"
+    timeout: 15000
+- assertVisible: "Welcome back."
+# The onboarding sign-in screen shows the email form directly; tap through an
+# email-first variant if one is shown.
+- tapOn:
+    text: "Continue with email"
+    optional: true
+- tapOn: "Email"
+- inputText: ${TEST_EMAIL}
+- tapOn: "Password"
+- inputText: ${TEST_PASSWORD}
+# The app's custom keyboard controller ignores hideKeyboard: tap the subtitle
+# to dismiss the keyboard so it stops covering the Sign In button.
+- tapOn:
+    text: ".*Sign in to access your garage.*"
+    optional: true
+- waitForAnimationToEnd
+- tapOn: "Sign In"
+# No optional "Not Now" tap here: an optional tap waits seconds when absent, and
+# the "Account ready" notice is only up for 4 s. Simulator prerequisite instead:
+# Settings > General > AutoFill & Passwords > "AutoFill Passwords and Passkeys"
+# OFF, so iOS raises no "Save Password?" sheet (see onboarding-email-code-signup.yaml).

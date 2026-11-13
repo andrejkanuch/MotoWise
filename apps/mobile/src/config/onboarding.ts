@@ -336,6 +336,17 @@ export const OB_ROUTE = {
   HOME: '/(tabs)/(home)',
 } as const;
 
+/**
+ * One-off notices an onboarding step shows when it is reached with `?notice=…`
+ * (issue 365 T11). The notice clears the param once shown, so Back or a re-render
+ * never brings it back.
+ */
+export const OB_NOTICE_PARAM = 'notice';
+export const OB_NOTICE = {
+  /** The onboarding sign-in screen signed in an account that has not finished onboarding. */
+  ACCOUNT_READY: 'account_ready',
+} as const;
+
 /** V2 riding goal priority ranking for determining primary goal */
 export const GOAL_PRIORITY = [
   'track_rides',
