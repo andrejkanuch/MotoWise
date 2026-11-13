@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AUTH_METHOD, type AuthMethod, type AuthSurface } from '../config/auth';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import {
   classifyOAuthError,
+  OAUTH_ERROR_KIND,
   OAUTH_KIND_OUTCOME,
   OAUTH_OUTCOME,
   OAUTH_STAGE,
@@ -17,7 +18,16 @@ import {
 import { presentOAuthError } from '../lib/oauth-error-alert';
 import { triggerImpact } from '../utils/haptics';
 
-type OAuthHandlers = { onApple: () => Promise<void>; onGoogle: () => Promise<void> };
+type OAuthHandlers = {
+  onApple: () => Promise<void>;
+  onGoogle: () => Promise<void>;
+  /**
+   * The provider whose sign-in THIS surface started and is still waiting on, from
+   * the tap until it settles; `null` when idle (issue 365 T12). `OAuthButtons` takes
+   * it as `busyProvider`: both buttons disabled, a spinner on the tapped one.
+   */
+  busyProvider: AuthMethod | null;
+};
 
 /**
  * The Apple and Google handlers behind `OAuthButtons` on every sign-in surface:
@@ -28,7 +38,10 @@ type OAuthHandlers = { onApple: () => Promise<void>; onGoogle: () => Promise<voi
  * one `user_signed_up` (the sign-in just created the account) or `user_signed_in`
  * (a returning rider), with the provider as `auth_method` and the `surface`.
  * Anything thrown (cancel, double tap, no Play services, a real failure) fires
- * neither and goes to `presentOAuthError`, which alerts and reports by kind.
+ * neither. A cancel (`expected`) ends there, silently: the rider closed the sheet
+ * on purpose and is back where they tapped (issue 365 T12, FS-OB2c; it used to
+ * alert "Something went wrong"). Everything else goes to `presentOAuthError`,
+ * which alerts and reports by kind.
  * Whatever happened, the tap ends with exactly one `auth_oauth_result` (issue 365 T04a,
  * FS-OB2a): outcome, how far it got (`stage`), `duration_ms`, and the error's code
  * only, never its message. No navigation here: the auth listener in the root
@@ -40,13 +53,33 @@ type OAuthHandlers = { onApple: () => Promise<void>; onGoogle: () => Promise<voi
  * to appear and got a second sheet or an "in progress" alert over the first.
  */
 export function useOAuthSignIn(surface: AuthSurface): OAuthHandlers {
-  return useMemo(
-    () => ({
-      onApple: () => signIn(signInWithApple, AUTH_METHOD.APPLE, surface),
-      onGoogle: () => signIn(signInWithGoogle, AUTH_METHOD.GOOGLE, surface),
-    }),
-    [surface],
-  );
+  const [busyProvider, setBusyProvider] = useState<AuthMethod | null>(null);
+  // The sign-in can settle after the screen is gone (the session landed and the
+  // flow moved on); no state update then.
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const handlers = useMemo(() => {
+    const run = async (
+      provider: (marks: OAuthMarks) => Promise<OAuthResult>,
+      method: AuthMethod,
+    ): Promise<void> => {
+      // A tap ignored by the in-flight guard leaves the pending one's busy state alone.
+      const ran = await signIn(provider, method, surface, () => setBusyProvider(method));
+      if (ran && mountedRef.current) setBusyProvider(null);
+    };
+    return {
+      onApple: () => run(signInWithApple, AUTH_METHOD.APPLE),
+      onGoogle: () => run(signInWithGoogle, AUTH_METHOD.GOOGLE),
+    };
+  }, [surface]);
+
+  return { ...handlers, busyProvider };
 }
 
 type AttemptResult = {
@@ -62,11 +95,14 @@ async function signIn(
   provider: (marks: OAuthMarks) => Promise<OAuthResult>,
   method: AuthMethod,
   surface: AuthSurface,
-): Promise<void> {
-  if (oauthInFlight) return;
+  onStart: () => void,
+): Promise<boolean> {
+  if (oauthInFlight) return false;
   oauthInFlight = true;
+  onStart();
   try {
     await runSignIn(provider, method, surface);
+    return true;
   } finally {
     oauthInFlight = false;
   }
@@ -96,12 +132,13 @@ async function runSignIn(
       surface,
     });
   } catch (err) {
+    const kind = classifyOAuthError(err);
     result = {
-      outcome: OAUTH_KIND_OUTCOME[classifyOAuthError(err)],
+      outcome: OAUTH_KIND_OUTCOME[kind],
       is_new_user: null,
       error_code: oauthErrorCode(err),
     };
-    presentOAuthError(err, method);
+    if (kind !== OAUTH_ERROR_KIND.expected) presentOAuthError(err, method);
   } finally {
     trackEvent(AnalyticsEvent.AUTH_OAUTH_RESULT, {
       provider: method,

@@ -24,7 +24,9 @@ const PRESENT: Record<OAuthErrorKind, (err: unknown, show: ShowError) => void> =
     show(i18n.t('auth.googlePlayServicesUnavailable')),
   // Not reported: a device that refuses the sheet is not something a release can fix.
   [OAUTH_ERROR_KIND.cannotPresent]: (_err, show) => show(i18n.t('auth.googleSignInCannotOpen')),
-  [OAUTH_ERROR_KIND.expected]: (err, show) => show(userFriendlyError(err)),
+  // The rider closed the sheet on purpose: nothing to tell them (issue 365 T12, FS-OB2c).
+  // `useOAuthSignIn` already skips this call on a cancel; this keeps any other caller silent too.
+  [OAUTH_ERROR_KIND.expected]: () => {},
   [OAUTH_ERROR_KIND.unexpected]: (err, show) => {
     captureException(err);
     show(userFriendlyError(err));

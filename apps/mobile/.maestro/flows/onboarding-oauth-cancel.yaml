@@ -1,0 +1,55 @@
+# issue 365 T12 (FS-OB2c, FS-OB2a(a)/(b)): cancelling the Google sheet on the
+# onboarding account step is silent. Back on the account picker must return to
+# the account step with no "Error — Something went wrong." alert and the buttons
+# enabled again. On main the alert shows (red first). Then a double tap opens the
+# picker once (the busy state disables the button from the tap).
+#
+# Android only: an emulator with Google Play services and a Google account signed
+# in (T00 AVD, or the API-34 google_apis_playstore AVD; .maestro/README.md). The
+# flow never picks an account, so it creates nothing on any backend. Light and
+# dark screenshots of the busy state are taken by hand in the device stage.
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+tags:
+  - android-oauth
+---
+- runFlow: _shared/onboarding-to-account.yaml
+
+# 1. Google -> the account picker -> Back.
+- tapOn: "Continue with Google"
+- extendedWaitUntil:
+    visible: "(?i)choose an account|sign in with google"
+    timeout: 20000
+- back
+
+# 2. Back on the account step: no alert, Google tappable again.
+- extendedWaitUntil:
+    visible: "Continue with Google"
+    timeout: 10000
+- assertNotVisible: "Something went wrong.*"
+- assertNotVisible: "Error"
+- assertVisible:
+    text: "Continue with Google"
+    enabled: true
+- assertVisible: "Continue with email"
+
+# 3. Double tap: one picker. The second tap lands on the disabled button or on
+#    the picker already over it, so it is optional.
+- tapOn: "Continue with Google"
+- tapOn:
+    text: "Continue with Google"
+    optional: true
+- extendedWaitUntil:
+    visible: "(?i)choose an account|sign in with google"
+    timeout: 20000
+- back
+- extendedWaitUntil:
+    visible: "Continue with Google"
+    timeout: 10000
+# A second sheet would still be up here (or its "in progress" alert).
+- assertNotVisible: "(?i)choose an account|sign in with google"
+- assertNotVisible: "Something went wrong.*"
+- assertVisible:
+    text: "Continue with Google"
+    enabled: true
