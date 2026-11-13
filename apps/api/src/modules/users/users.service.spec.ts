@@ -14,6 +14,7 @@ describe('UsersService', () => {
   let mockRevenueCatService: { cancelSubscription: ReturnType<typeof vi.fn> };
   let mockEmailService: { sendAccountDeletionConfirmation: ReturnType<typeof vi.fn> };
   let mockMetaEventsService: { sendAppEvent: ReturnType<typeof vi.fn> };
+  let mockServerEvents: { captureOnboardingBikeCreated: ReturnType<typeof vi.fn> };
 
   const userId = 'user-123';
   const email = 'rider@example.com';
@@ -61,6 +62,10 @@ describe('UsersService', () => {
       sendAppEvent: vi.fn().mockResolvedValue(undefined),
     };
 
+    mockServerEvents = {
+      captureOnboardingBikeCreated: vi.fn().mockResolvedValue(undefined),
+    };
+
     service = new UsersService(
       mockUserClient as never,
       mockUserClient as never,
@@ -68,6 +73,8 @@ describe('UsersService', () => {
       mockRevenueCatService as never,
       mockEmailService as never,
       mockMetaEventsService as never,
+      {} as never,
+      mockServerEvents as never,
     );
   });
 
@@ -162,6 +169,59 @@ describe('UsersService', () => {
   });
 
   describe('completeOnboarding', () => {
+    // #365 T05e: onboarding_bike_created (consent and payload: server-events.service.spec.ts)
+    const bikeInput = {
+      experienceLevel: 'beginner',
+      ridingGoals: [],
+      learningFormats: [],
+      bikeMake: 'A',
+      bikeModel: '',
+      bikeYear: 2020,
+      bikeMileageUnit: 'km',
+    };
+
+    it('captures onboarding_bike_created once when the RPC returns a bike', async () => {
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: { user_id: userId, motorcycle_id: 'moto-1' },
+        error: null,
+      });
+      mockUserClient._chain.single.mockResolvedValueOnce({ data: fakeUserRow, error: null });
+
+      await service.completeOnboarding(userId, bikeInput as never);
+
+      expect(mockServerEvents.captureOnboardingBikeCreated).toHaveBeenCalledTimes(1);
+      expect(mockServerEvents.captureOnboardingBikeCreated).toHaveBeenCalledWith(userId, {
+        make: 'A',
+        model: '',
+        mileageUnit: 'km',
+      });
+    });
+
+    it('does not capture onboarding_bike_created when no bike was saved', async () => {
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: { user_id: userId, motorcycle_id: null },
+        error: null,
+      });
+      mockUserClient._chain.single.mockResolvedValueOnce({ data: fakeUserRow, error: null });
+
+      await service.completeOnboarding(userId, { ...bikeInput, bikeYear: undefined } as never);
+
+      expect(mockServerEvents.captureOnboardingBikeCreated).not.toHaveBeenCalled();
+    });
+
+    it('a failed onboarding_bike_created capture never fails completeOnboarding', async () => {
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: { user_id: userId, motorcycle_id: 'moto-1' },
+        error: null,
+      });
+      mockUserClient._chain.single.mockResolvedValueOnce({ data: fakeUserRow, error: null });
+      mockServerEvents.captureOnboardingBikeCreated.mockRejectedValueOnce(new Error('boom'));
+
+      await expect(service.completeOnboarding(userId, bikeInput as never)).resolves.toMatchObject({
+        id: userId,
+      });
+    });
+
     it('stores the onboarding contact opt-in in p_preferences when ticked', async () => {
       mockUserClient._chain.single.mockResolvedValueOnce({ data: fakeUserRow, error: null });
 
