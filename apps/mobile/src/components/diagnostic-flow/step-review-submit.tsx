@@ -17,6 +17,7 @@ import {
   useDiagnosticFlowStore,
 } from '../../stores/diagnostic-flow.store';
 import { useSubscriptionStore } from '../../stores/subscription.store';
+import { space } from '../../theme/spacing';
 import { type } from '../../theme/type';
 import { NativeToggle } from '../ui/native-toggle';
 import { useDiagnosticColors } from './diagnostic-colors';
@@ -417,7 +418,7 @@ export function StepReviewSubmit({ onSubmit, onLimitDone }: StepReviewSubmitProp
                     fontSize: 14,
                     color: colors.textMuted,
                     textAlign: 'center',
-                    marginBottom: 8,
+                    marginBottom: space.xs,
                   }}
                 >
                   {t('diagnoseV2.problemRequired')}
@@ -430,7 +431,7 @@ export function StepReviewSubmit({ onSubmit, onLimitDone }: StepReviewSubmitProp
                   fontSize: 14,
                   color: colors.danger,
                   textAlign: 'center',
-                  marginBottom: 8,
+                  marginBottom: space.xs,
                 }}
               >
                 {store.submitError}
@@ -439,11 +440,11 @@ export function StepReviewSubmit({ onSubmit, onLimitDone }: StepReviewSubmitProp
             <Pressable
               style={{
                 borderRadius: 16,
-                paddingVertical: 16,
+                paddingVertical: space.md,
                 alignItems: 'center',
                 flexDirection: 'row',
                 justifyContent: 'center',
-                gap: 8,
+                gap: space.xs,
                 backgroundColor: submitDisabled ? colors.submittingBg : colors.accent,
                 borderCurve: 'continuous',
               }}
