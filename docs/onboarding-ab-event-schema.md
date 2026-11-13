@@ -79,7 +79,9 @@ From 3.29.0, `paywall_present_requested`, `paywall_viewed` and `paywall_result` 
 | `session_paywall_index` | 1-based count of presents in the session; in memory, reset on cold start or after > 30 min in the background. A request that joins one already in flight is not counted |
 | `minutes_since_onboarding_completed` | whole minutes since `onboarding_completed` in this app run; `null` if onboarding was not completed in this run |
 
-New event names, fired by T21 (constants only until then: `PAYWALL_GATE_EVENTS` in `packages/analytics`, `PAYWALL_GATE_EVENT` in `apps/mobile/src/lib/paywall-session.ts`; T21 moves them into `AnalyticsEvent` with their call sites, since that catalog admits only constants that are fired):
+These events are fired only by `apps/mobile/src/lib/subscription.ts` (guarded by `src/__tests__/paywall-event-call-sites-contract.test.ts`). The receipt-scan gate no longer fires its own `paywall_present_requested`; its paywall events carry `entry_surface` (the scan's launch surface, or `null`) next to `surface: use_pro_gate` and `limit_key: MAX_RECEIPT_SCANS_PER_MONTH`.
+
+New event names, fired by T21 (constants only until then: `PAYWALL_GATE_EVENTS` in `packages/analytics`, `PAYWALL_GATE_EVENT` in `apps/mobile/src/lib/paywall-session.ts`; T21 (issue 430) moves them into `AnalyticsEvent` with their call sites and deletes the mobile map, since that catalog admits only constants that are fired):
 
 | Event | Properties |
 |---|---|

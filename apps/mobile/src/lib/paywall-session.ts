@@ -30,6 +30,10 @@ export type PaywallGatePolicy = (typeof PAYWALL_GATE_POLICY)[keyof typeof PAYWAL
  * (lib/__tests__/analytics-event-catalog.test.ts); T21 moves them there when it
  * adds the `trackEvent` calls. Same names as PAYWALL_GATE_EVENTS in
  * packages/analytics.
+ *
+ * TODO(T21, issue 430): move these two names into `AnalyticsEvent` together with
+ * their `trackEvent` calls and delete this map. Do not fire them through this
+ * map or a second one: event names live in one catalog.
  */
 export const PAYWALL_GATE_EVENT = {
   /** An automatic paywall was not shown: `{feature, surface, reason}`. */
