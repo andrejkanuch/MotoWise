@@ -1628,6 +1628,24 @@ This table is the only record of which level ships which spec (no code map; doc 
 
 ---
 
+### 6.2 T03b PostHog objects (created 2026-11-13 from the named list, D2)
+
+Named list: issue #401, [comment 6850112739](https://github.com/andrejkanuch/MotoWise/issues/401#issuecomment-6850112739)
+(amended before the writes it changed: the static cohort was replaced by a SQL view, because one `{EXCL}` person is personless).
+Full tile table, SQL changes and checks: `experiments.md` §11.
+
+| Object | Id |
+|---|---|
+| Dashboard "#365 Activation & frictions" | **1111923** — https://eu.posthog.com/project/155556/dashboard/1111923 |
+| SQL view `activation365_excluded_persons` (`{EXCL}` ids) | `01a1d46b-e269-0000-0612-a1fe79b50e59` |
+| Insights (47, tag `activation-365`) | 7346020 (Day-1 funnel, first tile), 7346041 (S1), 7346043 (S2), 7346050 (S3), 7346064 (S4 / FS-PO1H), 7346071 (S5), 7346112 (S6 / FS-OB1), 7346123 (FS-M), 7346128 (FS-OB1a), 7346139 (FS-OB1b), 7346150 (FS-OB1c), 7346163 (FS-OB1d), 7346167 (FS-OB1e), 7346168 (FS-OB1f), 7346169 (FS-OB2a), 7346171 (FS-OB2b), 7346172 (FS-OB2c), 7346177 (FS-OB3), 7346188 (FS-OB4), 7346189 (FS-OB5), 7346190 (FS-OB6), 7346193 (FS-PO1), 7346195 (FS-R2-3), 7346196 (FS-R2-4), 7346197 (FS-R2-5), 7346198 (FS-PO2a), 7346199 (FS-PO2b), 7346201 (FS-PO2c), 7346212 (FS-PO2d), 7346213 (FS-PO3), 7346215 (FS-PO3b), 7346216 (FS-PO4a), 7346219 (FS-PO4b), 7346222 (FS-PO5), 7346242 (FS-PO6), 7346245 (FS-PO7), 7346246 (FS-PO8), 7346247 (FS-PO10), 7346257 (FS-PO12), 7346264 (FS-PO13), 7346271 (FS-PO14), 7346281 (FS-PO17), 7346292 (FS-EXP1), 7346299 (weekly install-cohort table), 7346305 (push tokens), 7346326 (FS-PO5 alert source), 7346324 (FS-M alert source) |
+| Alert FS-PO5 (weekly, `hud_without_any_start > 0`) | `01a1d474-999b-0000-5792-c19c6b5dd5df` |
+| Alert FS-M (daily, last 3 d, `mismatched_opens > 0`) | `01a1d474-a32e-0000-dc16-82ddcdf4b826` |
+| Annotation `#365 baseline` (2026-11-13) | **204474** |
+
+FS-M alert upkeep: the FS-M alert source (7346324) maps 3.29.0 → 2 and 3.30.0 → 3; each later store-build cut adds its version →
+level row with one `insight-update` on that release's named list (§3A.0 rule 5).
+
 ## 7. Queries and reads added in the revision run (2026-11-12, all read-only)
 
 | Id | Where | Query / read | Result |
