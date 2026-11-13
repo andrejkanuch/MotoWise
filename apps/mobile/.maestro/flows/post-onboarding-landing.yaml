@@ -32,11 +32,14 @@ env:
 - takeScreenshot: post-onboarding-landing-sheet
 
 # 3. At most one sheet: none of the others is visible beside the one shown.
+# Record which one showed, so step 4 closes only that one.
+- evalScript: ${output.landingSheet = 'none'}
 - runFlow:
     when:
       visible:
         id: "recall-sheet"
     commands:
+      - evalScript: ${output.landingSheet = 'recall'}
       - assertNotVisible:
           id: "oem-imported-sheet"
       - assertNotVisible:
@@ -46,6 +49,7 @@ env:
       visible:
         id: "oem-imported-sheet"
     commands:
+      - evalScript: ${output.landingSheet = 'oem_imported'}
       - assertNotVisible:
           id: "recall-sheet"
       - assertNotVisible:
@@ -54,14 +58,17 @@ env:
 - assertNotVisible:
     id: "whats-new-sheet"
 
-# 4. Close the sheet; nothing else may follow it in the same cold session.
-- tapOn:
-    id: "service-plan-ready-dismiss"
-    optional: true
+# 4. Close the sheet that showed, and only that one: a second sheet behind it
+# must fail the assertions below, not be closed too.
 - runFlow:
     when:
-      visible:
-        id: "recall-sheet"
+      true: ${output.landingSheet === 'oem_imported'}
+    commands:
+      - tapOn:
+          id: "service-plan-ready-dismiss"
+- runFlow:
+    when:
+      true: ${output.landingSheet === 'recall'}
     commands:
       - tapOn: "Go back"
 - extendedWaitUntil:

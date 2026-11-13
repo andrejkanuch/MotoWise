@@ -2,7 +2,7 @@ import { type Href, useRouter } from 'expo-router';
 import { Wrench } from 'lucide-react-native';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BIKE_ORIGIN, BIKE_SEGMENT } from '@/lib/bike-hub/constants';
@@ -52,11 +52,12 @@ export function ServicePlanReadyScreen({ motorcycleId, bikeName }: ServicePlanRe
   };
 
   return (
-    <View
+    // Scrolls so both actions stay reachable at the largest text sizes.
+    <ScrollView
       testID={LANDING_SHEET_TEST_ID[LANDING_SHEET.SERVICE_PLAN_READY]}
-      style={{
-        flex: 1,
-        backgroundColor: theme.bg,
+      style={{ flex: 1, backgroundColor: theme.bg }}
+      contentContainerStyle={{
+        flexGrow: 1,
         paddingHorizontal: GUTTER,
         // The route is pushed as a full page over the tabs, so clear the status bar.
         paddingTop: insets.top + space.xl,
@@ -119,6 +120,6 @@ export function ServicePlanReadyScreen({ motorcycleId, bikeName }: ServicePlanRe
           {t('landing.servicePlanReady.notNow')}
         </Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }

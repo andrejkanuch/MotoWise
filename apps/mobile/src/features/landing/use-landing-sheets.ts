@@ -30,6 +30,13 @@ function sheetHref(sheet: LandingSheet, bike: LandingBike): Href | null {
   return null;
 }
 
+function refreshFailedSince(
+  query: { isError: boolean; errorUpdatedAt: number },
+  landedAt: number | null,
+): boolean {
+  return landedAt !== null && query.isError && query.errorUpdatedAt >= landedAt;
+}
+
 /**
  * Home's owners of the two landing sheets (issue 365 T16b, D11): the safety
  * recall for the rider's bike, then "Service plan ready". Both are owed only to
@@ -57,18 +64,25 @@ export function useLandingSheets(): void {
   // Data cached before the rider landed can predate the bike and the plan that
   // onboarding just created (an empty garage); dropping a sheet on it would lose
   // it for good, so the landing session decides only on data fetched after landing.
+  // A refresh after landing that failed keeps the old data and its old timestamp;
+  // it counts as a failure (decide in a later session), not as stale data to refetch
+  // again, which would loop for as long as the rider is offline.
   const landedAt = landingSheetQueue.landedAt();
-  const bikesStale = landedAt !== null && bikesQuery.dataUpdatedAt < landedAt;
-  const tasksStale = landedAt !== null && tasksQuery.dataUpdatedAt < landedAt;
+  const bikesRefreshFailed = refreshFailedSince(bikesQuery, landedAt);
+  const tasksRefreshFailed = refreshFailedSince(tasksQuery, landedAt);
+  const bikesStale =
+    landedAt !== null && bikesQuery.dataUpdatedAt < landedAt && !bikesRefreshFailed;
+  const tasksStale =
+    landedAt !== null && tasksQuery.dataUpdatedAt < landedAt && !tasksRefreshFailed;
   const bikesFetching = bikesQuery.isFetching;
   const tasksFetching = tasksQuery.isFetching;
   const refetchRef = useRef({ bikes: bikesQuery.refetch, tasks: tasksQuery.refetch });
   refetchRef.current = { bikes: bikesQuery.refetch, tasks: tasksQuery.refetch };
 
   const bikes = bikesQuery.data?.myMotorcycles;
-  const bikesFailed = bikesQuery.isError && !bikes;
+  const bikesFailed = (bikesQuery.isError && !bikes) || bikesRefreshFailed;
   const tasks = tasksQuery.data?.allMaintenanceTasks;
-  const tasksFailed = tasksQuery.isError && !tasks;
+  const tasksFailed = (tasksQuery.isError && !tasks) || tasksRefreshFailed;
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: queueVersion and recheck re-run the decision when the queue or a paywall changes.
   useEffect(() => {
@@ -104,7 +118,12 @@ export function useLandingSheets(): void {
     if (!href) return;
 
     const timer = setTimeout(() => {
-      if (!calmRef.current || isConsentPromptOwed() || isPaywallInFlight()) return;
+      // A paywall that opened during the delay changes no dependency: re-run once it closes.
+      if (isPaywallInFlight()) {
+        void paywallFlightSettled()?.then(requestRecheck);
+        return;
+      }
+      if (!calmRef.current || isConsentPromptOwed()) return;
       if (!queue.request(sheet)) return;
       router.push(href);
     }, LANDING_SHEET_DELAY_MS);
