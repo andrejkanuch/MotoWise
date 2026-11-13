@@ -2230,7 +2230,11 @@
     "routesFoundCount_one": "{{count}} percorso trovato",
     "routesFoundCount_few": "{{count}} percorsi trovati",
     "routesFoundCount_many": "{{count}} percorsi trovati",
-    "routesFoundCount_other": "{{count}} percorsi trovati"
+    "routesFoundCount_other": "{{count}} percorsi trovati",
+    "loadErrorTitle": "Impossibile caricare i percorsi",
+    "loadErrorBody": "Controlla la connessione e riprova.",
+    "retry": "Riprova",
+    "loadingRoutes": "Caricamento percorsi"
   },
   "mapPicker": {
     "title": "Stile mappa",
@@ -2243,7 +2247,11 @@
     "viewAll": "Vedi tutti",
     "editorsPick": "Scelta della redazione",
     "elevLabel": "{{value}}m dislivello",
-    "ratingLabel": "{{value}} valutazione"
+    "ratingLabel": "{{value}} valutazione",
+    "locationTitle": "Percorsi vicino a te",
+    "locationReason": "Condividi la tua posizione per vedere i giri nel tuo Paese. Serve solo a trovare percorsi vicino a te.",
+    "useLocation": "Usa la mia posizione",
+    "openSettings": "Attiva in Impostazioni"
   },
   "checklist": {
     "getStarted": "Per iniziare",

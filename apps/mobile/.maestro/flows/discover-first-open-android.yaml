@@ -1,0 +1,59 @@
+# issue 365 T29 (FS-PO7, FS-PO8): the first Discover open raises no OS dialog.
+# On main, Discover requested location on mount; on Android the permission
+# controller activity paused the app (42 of 43 first Discover visits
+# backgrounded within 2 s). Now location is asked only after the rider taps
+# "Use my location" in "Near you", and the ride list shows cards, a skeleton,
+# or an error with Retry (never an endless spinner).
+#
+# Fresh install state (clearState resets runtime permissions), an onboarded
+# account. Run on the Android emulator with the e2e-android-local build, once
+# in English and once with the device locale set to es-ES (the PO8 replay was
+# Spanish); also on the iOS simulator for the permission assertion. Local stack
+# only, same runner and env as onboarding-signin-onboarded-account.yaml
+# (TEST_EMAIL / TEST_PASSWORD of a seeded onboarded account with trips seeded).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+tags:
+  - discover-first-open
+---
+- runFlow: _shared/welcome-to-sign-in.yaml
+
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 30000
+
+- tapOn:
+    id: "tab-discover"
+
+# Give a mount-time permission request time to surface (T06 item 8: the
+# Android dialog was on screen about 1.2 to 3.6 s after the tap).
+- extendedWaitUntil:
+    visible: "discover-first-open-never-shown"
+    timeout: 3000
+    optional: true
+
+# No OS dialog without a rider action: Android permission controller (en/es),
+# iOS location alert, and PO8's "Descargar mapas".
+- assertNotVisible: "Allow.*location.*|While using the app|Only this time|Allow While Using App|Allow Once|.*acceda a la ubicación.*|Mientras se usa la aplicación|Solo esta vez|Descargar.*"
+
+# The opt-in card stands in for "Near you" rides.
+- assertVisible:
+    id: "near-you-use-location"
+
+# Rides (or the skeleton first) within the 10 s budget; never a dead spinner.
+- extendedWaitUntil:
+    visible:
+      id: "trip-card-0"
+    timeout: 8000
+- assertNotVisible:
+    id: "discover-retry"
+
+# The dialog appears only after the tap.
+- tapOn:
+    id: "near-you-use-location"
+- extendedWaitUntil:
+    visible: "While using the app|Allow While Using App|Mientras se usa la aplicación|Al usar la app"
+    timeout: 10000
+- tapOn: "While using the app|Allow While Using App|Mientras se usa la aplicación|Al usar la app"

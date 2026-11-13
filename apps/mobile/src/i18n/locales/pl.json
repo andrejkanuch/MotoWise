@@ -2273,7 +2273,11 @@
     "routesFoundCount_one": "Znaleziono {{count}} trasę",
     "routesFoundCount_few": "Znaleziono {{count}} trasy",
     "routesFoundCount_many": "Znaleziono {{count}} tras",
-    "routesFoundCount_other": "Znaleziono {{count}} trasy"
+    "routesFoundCount_other": "Znaleziono {{count}} trasy",
+    "loadErrorTitle": "Nie udało się wczytać tras",
+    "loadErrorBody": "Sprawdź połączenie i spróbuj ponownie.",
+    "retry": "Spróbuj ponownie",
+    "loadingRoutes": "Wczytywanie tras"
   },
   "mapPicker": {
     "title": "Styl mapy",
@@ -2286,7 +2290,11 @@
     "viewAll": "Zobacz wszystkie",
     "editorsPick": "Wybór redakcji",
     "elevLabel": "{{value}}m przewyższenia",
-    "ratingLabel": "{{value}} ocena"
+    "ratingLabel": "{{value}} ocena",
+    "locationTitle": "Trasy w pobliżu",
+    "locationReason": "Udostępnij lokalizację, aby zobaczyć trasy w swoim kraju. Służy tylko do znajdowania tras w pobliżu.",
+    "useLocation": "Użyj mojej lokalizacji",
+    "openSettings": "Włącz w Ustawieniach"
   },
   "checklist": {
     "getStarted": "Zaczynamy",

@@ -2230,7 +2230,11 @@
     "routesFoundCount_one": "{{count}} ruta encontrada",
     "routesFoundCount_few": "{{count}} rutas encontradas",
     "routesFoundCount_many": "{{count}} rutas encontradas",
-    "routesFoundCount_other": "{{count}} rutas encontradas"
+    "routesFoundCount_other": "{{count}} rutas encontradas",
+    "loadErrorTitle": "No se pudieron cargar las rutas",
+    "loadErrorBody": "Revisa tu conexión e inténtalo de nuevo.",
+    "retry": "Reintentar",
+    "loadingRoutes": "Cargando rutas"
   },
   "mapPicker": {
     "title": "Estilo de mapa",
@@ -2243,7 +2247,11 @@
     "viewAll": "Ver todas",
     "editorsPick": "Selección del editor",
     "elevLabel": "{{value}} m de desnivel",
-    "ratingLabel": "Calificación {{value}}"
+    "ratingLabel": "Calificación {{value}}",
+    "locationTitle": "Rutas cerca de ti",
+    "locationReason": "Comparte tu ubicación para ver rutas en tu país. Solo se usa para encontrar rutas cerca de ti.",
+    "useLocation": "Usar mi ubicación",
+    "openSettings": "Activar en Ajustes"
   },
   "checklist": {
     "getStarted": "Primeros pasos",

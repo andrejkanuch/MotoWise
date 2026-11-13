@@ -2301,7 +2301,11 @@
     "routesFoundCount_one": "{{count}} route found",
     "routesFoundCount_few": "{{count}} routes found",
     "routesFoundCount_many": "{{count}} routes found",
-    "routesFoundCount_other": "{{count}} routes found"
+    "routesFoundCount_other": "{{count}} routes found",
+    "loadErrorTitle": "Couldn't load routes",
+    "loadErrorBody": "Check your connection and try again.",
+    "retry": "Retry",
+    "loadingRoutes": "Loading routes"
   },
   "mapPicker": {
     "title": "Map Style",
@@ -2314,7 +2318,11 @@
     "viewAll": "View all",
     "editorsPick": "Editor's Pick",
     "elevLabel": "{{value}}m elev",
-    "ratingLabel": "{{value}} rating"
+    "ratingLabel": "{{value}} rating",
+    "locationTitle": "Routes near you",
+    "locationReason": "Share your location to see rides in your country. It's only used to find routes near you.",
+    "useLocation": "Use my location",
+    "openSettings": "Turn on in Settings"
   },
   "shareSheet": {
     "title": "Share Ride",

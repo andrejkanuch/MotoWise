@@ -95,6 +95,11 @@ the flows below.
   SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=<local key> \
     DEVICE=<udid> pnpm --filter @motovault/mobile test:e2e:onboarding-signin
   ```
+- **`flows/discover-first-open-android.yaml`** — first Discover open raises no OS dialog (issue 365 T29,
+  FS-PO7/PO8): no location prompt until the rider taps `near-you-use-location`, rides (`trip-card-0`)
+  within 8 s, no `discover-retry`. Local stack only, through the sign-in runner:
+  `SIGNIN_CASES=discover DEVICE=<id> pnpm --filter @motovault/mobile test:e2e:onboarding-signin`. Run it on
+  the Android emulator (`e2e-android-local`) in English and with the device locale es-ES, and on the iOS simulator.
 - **`flows/onboarding-paywall-verify.yaml`** — onboarding paywall gate (#326), required before a
   build is promoted to production (`docs/runbooks/mobile-release.md`). Part 1 is the email-code
   signup flow; part 2 confirms the account and fails unless the RevenueCat paywall is shown where

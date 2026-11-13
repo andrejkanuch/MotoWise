@@ -2195,7 +2195,11 @@
     "routesFoundCount_one": "{{count}} rute ditemukan",
     "routesFoundCount_few": "{{count}} rute ditemukan",
     "routesFoundCount_many": "{{count}} rute ditemukan",
-    "routesFoundCount_other": "{{count}} rute ditemukan"
+    "routesFoundCount_other": "{{count}} rute ditemukan",
+    "loadErrorTitle": "Gagal memuat rute",
+    "loadErrorBody": "Periksa koneksi lalu coba lagi.",
+    "retry": "Coba lagi",
+    "loadingRoutes": "Memuat rute"
   },
   "mapPicker": {
     "title": "Gaya Peta",
@@ -2208,7 +2212,11 @@
     "viewAll": "Lihat semua",
     "editorsPick": "Pilihan Editor",
     "elevLabel": "{{value}}m elevasi",
-    "ratingLabel": "Rating {{value}}"
+    "ratingLabel": "Rating {{value}}",
+    "locationTitle": "Rute di dekatmu",
+    "locationReason": "Bagikan lokasimu untuk melihat rute di negaramu. Lokasi hanya dipakai untuk mencari rute di dekatmu.",
+    "useLocation": "Gunakan lokasi saya",
+    "openSettings": "Aktifkan di Pengaturan"
   },
   "checklist": {
     "getStarted": "Mulai",

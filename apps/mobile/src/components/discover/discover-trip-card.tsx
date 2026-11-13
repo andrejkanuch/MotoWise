@@ -70,6 +70,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
       entering={reducedMotion ? undefined : FadeInUp.delay(animDelay).springify().damping(14)}
     >
       <Pressable
+        testID={`trip-card-${index}`}
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={`${trip.isMotovaultPick ? "Editor's Pick: " : ''}${trip.title}`}
