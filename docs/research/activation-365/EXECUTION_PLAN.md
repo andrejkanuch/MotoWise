@@ -1544,6 +1544,8 @@ the bug and only protects the fixed behaviour.
 | FS-OB1e cross-check | — | `fs-ob1e-two-bikes.sql` |
 | Android push tokens | `push_token_registered` by `platform` (`lib/push-token.ts:132`) | — |
 
+**#365 T05e — `ride_saved` covers rider saves only.** It is sent from `RidesService.endRide` (including the reclaim branch). Rides the server completes itself (`closeStaleRides` on the next ride start, the idle sweep in `push-tokens/ride-idle.service.ts`) never send it. Those are mostly null-distance or abandoned first rides, the bucket FS-PO4b counts as sub-floor, and a rider whose first ride was swept gets `is_first = false` on the next save, so they leave both numerator and denominator. The event share `ride_saved{is_first, below_min}` / `ride_saved{is_first}` therefore reads lower than `fs-po4b-first-ride.sql`; the weekly DB check stays the source of truth for FS-PO4b and the tile is a trend signal only. Follow-up (not in T05e): emit `ride_saved` with a system `save_trigger` from the two sweep paths.
+
 ---
 
 ## 6. Release log (fill during implementation; one row per binary per platform, crash/data-loss hotfix OTA (D17), or API deploy)
