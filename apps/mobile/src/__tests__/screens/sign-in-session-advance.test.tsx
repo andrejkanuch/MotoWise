@@ -32,8 +32,10 @@ jest.mock('react-native-safe-area-context', () => ({
 
 const mockRouter = { back: jest.fn(), replace: jest.fn(), push: jest.fn() };
 const mockNavigationState = { routes: [{ name: 'index' }, { name: 'sign-in' }] };
+const mockFocus = { isFocused: true };
 jest.mock('expo-router', () => ({
   useRouter: () => mockRouter,
+  useIsFocused: () => mockFocus.isFocused,
   useNavigation: () => ({ getState: () => mockNavigationState }),
 }));
 jest.mock('../../components/onboarding/oauth-glyphs', () => ({
@@ -102,6 +104,7 @@ beforeEach(() => {
   mockOnboardingState.lastCompletedScreen = null;
   mockOnboardingState.bikeData = null;
   mockNavigationState.routes = [{ name: 'index' }, { name: 'sign-in' }];
+  mockFocus.isFocused = true;
 });
 
 describe('Onboarding sign-in, the session lands', () => {
@@ -180,6 +183,22 @@ describe('Onboarding sign-in, the session lands', () => {
     await renderThenSignIn();
 
     expect(mockRouter.replace).not.toHaveBeenCalled();
+  });
+
+  it('waits while a modal (analytics consent) covers sign-in, then moves once it is back on top', async () => {
+    mockFocus.isFocused = false;
+
+    await renderThenSignIn();
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+
+    mockFocus.isFocused = true;
+    await act(async () => {
+      screen.rerender(<OnboardingSignInScreen />);
+    });
+
+    expect(mockRouter.replace.mock.calls).toEqual([
+      [{ pathname: '/(onboarding)/experience', params: { notice: 'account_ready' } }],
+    ]);
   });
 
   it('does nothing without a session', async () => {

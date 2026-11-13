@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useNavigation, useRouter } from 'expo-router';
+import { useIsFocused, useNavigation, useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import {
   getResumeRoute,
@@ -29,16 +29,21 @@ import { useOnboardingStore } from '../../stores/onboarding.store';
  *
  * Opened from the account step, that step is still mounted underneath and makes
  * the move itself, so this one stays out of the way.
+ *
+ * Only while sign-in is focused: a root modal over it (the analytics consent
+ * screen, pushed 700 ms after Welcome) would otherwise be the route the replace
+ * lands on. The move waits until the rider has answered and sign-in is back on top.
  */
 export function useSignInAdvance(hasSession: boolean): void {
   const router = useRouter();
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const variant = useOnboardingVariant();
   const advancedRef = useRef(false);
   const meQuery = useQuery({ ...meOptions(), enabled: hasSession });
 
   useEffect(() => {
-    if (!hasSession || advancedRef.current) return;
+    if (!hasSession || !isFocused || advancedRef.current) return;
     if (meQuery.isLoading && !meQuery.isError) return;
     advancedRef.current = true;
 
@@ -62,5 +67,14 @@ export function useSignInAdvance(hasSession: boolean): void {
       pathname: resumeTarget ?? OB_ROUTE.EXPERIENCE,
       params: { [OB_NOTICE_PARAM]: OB_NOTICE.ACCOUNT_READY },
     });
-  }, [hasSession, meQuery.isLoading, meQuery.isError, meQuery.data, navigation, router, variant]);
+  }, [
+    hasSession,
+    isFocused,
+    meQuery.isLoading,
+    meQuery.isError,
+    meQuery.data,
+    navigation,
+    router,
+    variant,
+  ]);
 }
