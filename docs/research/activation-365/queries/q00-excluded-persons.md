@@ -24,6 +24,11 @@ The 14 ids are:
 
 Re-derive: run the Supabase SELECT below read-only, map the ids in PostHog, add the 4 filter ids and the V4 person.
 
+**In PostHog (T03b, 2026-11-13):** the 14 ids live in the SQL view `activation365_excluded_persons` (one `person_id` text row each),
+which every dashboard tile reads as `toString(person_id) NOT IN (SELECT person_id FROM activation365_excluded_persons)`. A static
+cohort cannot hold them: the V4 emulator person is personless (no person profile). To add ids (e.g. `{E2E_PERSONS}`), upsert the view
+(`view-create` with the same name) on that read's named list; the ids stay out of the repo.
+
 ```sql
 BEGIN READ ONLY;
 select id from public.users u

@@ -15,6 +15,12 @@ import { getStoredAnalyticsConsent } from '../../lib/analytics-consent';
 import { getStoredFbclid, getStoredUtmProperties } from '../../lib/meta-attribution';
 import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { getOnboardingVariant } from '../../lib/onboarding-experiment';
+import {
+  onboardingResumeContext,
+  readWelcomeMount,
+  trackWelcomeMounted,
+} from '../../lib/onboarding-nav-analytics';
+import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { GUTTER, space } from '../../theme/spacing';
 import { radius, type } from '../../theme/type';
@@ -41,6 +47,10 @@ export default function WelcomeScreen() {
   // Only while welcome is on top: later steps get the scheme-aware root bar.
   const isFocused = useIsFocused();
 
+  // Tells a Back to Welcome from a Welcome shown again in the same runtime
+  // (issue 365 T04b, RC-D). Read at mount, before the effect below marks the launch.
+  const [mount] = useState(() => readWelcomeMount(resumeHandledThisLaunch));
+
   // Freeze the resume decision at mount. Reading the store imperatively keeps it
   // non-reactive, so later step screens writing `lastCompletedScreen` cannot
   // retrigger a resume on this already-mounted welcome screen.
@@ -53,7 +63,10 @@ export default function WelcomeScreen() {
     const target = getResumeRoute(getOnboardingVariant(), lastCompleted, {
       hasBike: !!bikeData?.make,
     });
-    return target ? { lastCompleted, target } : null;
+    if (!target) return null;
+    // Read now: Welcome's own focus overwrites the persisted last viewed step.
+    const context = onboardingResumeContext(true, useAuthStore.getState().session !== null);
+    return { lastCompleted, target, context };
   });
 
   // Preload stored attribution (fbclid + UTM) so `onboarding_started` can carry it
@@ -80,11 +93,13 @@ export default function WelcomeScreen() {
   }, []);
 
   useEffect(() => {
+    trackWelcomeMounted(mount);
     resumeHandledThisLaunch = true;
     if (resume) {
       trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_RESUMED, {
         last_completed: resume.lastCompleted,
         resume_target: resume.target,
+        ...resume.context,
       });
       // `resumed` lets auto-advancing screens (personalizing) tell a cold-start
       // resume apart from the live flow: on resume they complete silently behind
@@ -93,7 +108,7 @@ export default function WelcomeScreen() {
     } else {
       trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.WELCOME);
     }
-  }, [resume, router]);
+  }, [mount, resume, router]);
 
   const handleGetStarted = () => {
     triggerImpact(ImpactFeedbackStyle.Medium);

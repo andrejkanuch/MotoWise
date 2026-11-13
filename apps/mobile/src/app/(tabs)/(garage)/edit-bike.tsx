@@ -19,11 +19,12 @@ import {
   Trash2,
 } from 'lucide-react-native';
 import { PostHogMaskView } from 'posthog-react-native';
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { bikeEditedProperties, changedBikeFields } from '@/components/garage/bike-edit-analytics';
 import {
   IconInputRow,
   PickerDisabledRow,
@@ -51,6 +52,7 @@ import { BIKE_YEAR, sanitizeBikeYear, useBikePicker } from '@/hooks/use-bike-pic
 import { useCurrency } from '@/hooks/use-currency';
 import { useHydratedFormState } from '@/hooks/use-hydrated-form-state';
 import { useMileageUnit } from '@/hooks/use-mileage-unit';
+import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { pickImage, takePhoto, uploadBikePhoto } from '@/lib/image-upload';
 import { cancelDocumentNotificationsForBike } from '@/lib/notifications';
@@ -152,7 +154,7 @@ export default function EditBikeScreen() {
   const { symbol: currencySymbol } = useCurrency();
   // Mileage unit is a profile-level preference (not per-bike) — read-only here.
   const mileageUnit = useMileageUnit();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, source } = useLocalSearchParams<{ id: string; source?: string }>();
   const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
   const session = useAuthStore((s) => s.session);
@@ -251,35 +253,22 @@ export default function EditBikeScreen() {
   const makeName = selectedMake?.makeName ?? bike?.make ?? '';
   const modelName = selectedModel?.modelName ?? bike?.model ?? '';
 
-  // --- Dirty detection ---
-  const isDirty = useMemo(() => {
-    if (!isHydrated) return false;
-    const init = initialValues.current;
-    return (
-      nickname !== init.nickname ||
-      year !== init.year ||
-      makeName !== init.make ||
-      modelName !== init.model ||
-      mileage !== init.mileage ||
-      isPrimary !== init.isPrimary ||
-      photoUrl !== init.photoUrl ||
-      purchasePrice !== init.purchasePrice ||
-      vin !== init.vin ||
-      variant !== init.variant
-    );
-  }, [
-    nickname,
-    year,
-    makeName,
-    modelName,
-    mileage,
-    isPrimary,
-    photoUrl,
-    purchasePrice,
-    vin,
-    variant,
-    isHydrated,
-  ]);
+  // --- Dirty detection (and `garage_bike_edited.changed_fields`) ---
+  const changedFields = isHydrated
+    ? changedBikeFields(initialValues.current, {
+        nickname,
+        year,
+        make: makeName,
+        model: modelName,
+        mileage,
+        isPrimary,
+        photoUrl,
+        purchasePrice,
+        vin,
+        variant,
+      })
+    : [];
+  const isDirty = changedFields.length > 0;
 
   // MOT-142: VIN is 17 chars from {A-H,J-N,P-R,0-9} (no I, O, Q)
   const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;
@@ -330,6 +319,10 @@ export default function EditBikeScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.odometer.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.all });
       triggerNotification(Haptics.NotificationFeedbackType.Success);
+      trackEvent(
+        AnalyticsEvent.GARAGE_BIKE_EDITED,
+        bikeEditedProperties({ initial: initialValues.current, changed: changedFields, source }),
+      );
       setExit(EXIT.SAVED);
     },
   });

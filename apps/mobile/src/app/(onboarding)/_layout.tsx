@@ -1,10 +1,14 @@
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useEffect } from 'react';
-import { View } from 'react-native';
+import { BackHandler, View } from 'react-native';
 import { ErrorFallback } from '../../components/error-fallback';
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { captureException } from '../../lib/analytics';
 import { resolveOnboardingVariant } from '../../lib/onboarding-experiment';
+import {
+  onboardingScreenListeners,
+  onOnboardingHardwareBack,
+} from '../../lib/onboarding-nav-analytics';
 import { useExperimentStore } from '../../stores/experiment.store';
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
@@ -25,12 +29,21 @@ export default function OnboardingLayout() {
     void resolveOnboardingVariant();
   }, []);
 
+  // `onboarding_back` from the stack root, where Android Back leaves the app and
+  // no screen is removed. Never consumes the press (issue 365 T04b).
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => onOnboardingHardwareBack());
+    return () => sub.remove();
+  }, []);
+
   if (!variant) {
     return <View style={{ flex: 1, backgroundColor: oc.background }} />;
   }
 
   return (
     <Stack
+      // Step focus (time on screen, last viewed step) and back moves (`onboarding_back`).
+      screenListeners={onboardingScreenListeners}
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: oc.background },

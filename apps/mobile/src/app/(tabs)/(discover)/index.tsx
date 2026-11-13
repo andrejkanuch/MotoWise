@@ -52,6 +52,7 @@ import { DiscoverTripCard } from '@/components/discover/discover-trip-card';
 import { NearYouSection } from '@/components/discover/near-you-section';
 import { DraftTripStrip } from '@/components/discover/planner/draft-trip-strip';
 import { TypeaheadSearch } from '@/components/discover/typeahead-search';
+import { useDiscoverAnalytics } from '@/components/discover/use-discover-analytics';
 import { WeatherStrip } from '@/components/discover/weather-strip';
 import { WEATHER_ENABLED } from '@/config/feature-flags';
 import { useUserCountry } from '@/hooks/use-user-country';
@@ -513,10 +514,6 @@ export default function DiscoverScreen() {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  useEffect(() => {
-    trackEvent(AnalyticsEvent.DISCOVER_TAB_VIEWED);
-  }, []);
-
   // --- Filter state ---
   const [surfaceFilter, setSurfaceFilter] = useState<SurfaceKey | null>(null);
   const [difficultyFilter, setDifficultyFilter] = useState<DifficultyKey | null>(null);
@@ -556,6 +553,7 @@ export default function DiscoverScreen() {
   const {
     data: tripData,
     isLoading: tripsLoading,
+    status: tripsStatus,
     fetchNextPage: fetchNextTrips,
     hasNextPage: hasNextTrips,
     isFetchingNextPage: isFetchingNextTrips,
@@ -593,6 +591,7 @@ export default function DiscoverScreen() {
     }
     return trips; // 'popular' — default API order
   }, [tripData, sortBy]);
+  useDiscoverAnalytics({ status: tripsStatus, itemCount: allTrips.length });
 
   // --- GeoJSON for map pins ---
 

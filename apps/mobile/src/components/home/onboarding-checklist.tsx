@@ -153,6 +153,7 @@ export function OnboardingChecklist() {
           return (
             <Pressable
               key={item.id}
+              testID={`checklist-row-${item.id}`}
               onPress={() => {
                 if (!isCompleted) {
                   triggerNotification(Haptics.NotificationFeedbackType.Success);

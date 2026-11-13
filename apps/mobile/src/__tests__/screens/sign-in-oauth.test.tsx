@@ -39,7 +39,16 @@ jest.mock('../../components/onboarding/oauth-glyphs', () => ({
   GoogleGlyph: () => null,
 }));
 const mockSignInWithGoogle = jest.fn();
+jest.mock('@react-native-google-signin/google-signin', () => ({
+  GoogleSignin: { configure: jest.fn() },
+  isSuccessResponse: jest.fn(),
+  isErrorWithCode: (e: unknown) => typeof e === 'object' && e !== null && 'code' in e,
+  statusCodes: {},
+}));
+jest.mock('expo-apple-authentication', () => ({}));
+jest.mock('expo-crypto', () => ({}));
 jest.mock('../../lib/oauth', () => ({
+  ...jest.requireActual('../../lib/oauth'),
   signInWithApple: jest.fn(),
   signInWithGoogle: (...args: unknown[]) => mockSignInWithGoogle(...args),
 }));
@@ -88,6 +97,18 @@ describe('Onboarding sign-in, Google button', () => {
   it('a returning account still fires user_signed_in once with auth_method google', async () => {
     await tapGoogle();
 
-    expect(mockTrackEvent.mock.calls).toEqual([['USER_SIGNED_IN', { auth_method: 'google' }]]);
+    expect(mockTrackEvent.mock.calls.filter(([event]) => event === 'USER_SIGNED_IN')).toEqual([
+      ['USER_SIGNED_IN', { auth_method: 'google', surface: 'onboarding_sign_in' }],
+    ]);
+    expect(mockTrackEvent.mock.calls.filter(([event]) => event === 'AUTH_OAUTH_RESULT')).toEqual([
+      [
+        'AUTH_OAUTH_RESULT',
+        expect.objectContaining({
+          provider: 'google',
+          surface: 'onboarding_sign_in',
+          outcome: 'success',
+        }),
+      ],
+    ]);
   });
 });

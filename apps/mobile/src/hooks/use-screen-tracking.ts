@@ -2,6 +2,8 @@ import { useGlobalSearchParams, usePathname, useSegments } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { trackScreen } from '../lib/analytics';
 import { buildScreenView, screenKeyFor } from '../lib/analytics-screen';
+import { postOnboardingLanding } from '../lib/post-onboarding-landing';
+import { useAuthStore } from '../stores/auth.store';
 
 /**
  * The app's ONE source of `$screen` events (PostHog's own screen autocapture is
@@ -15,6 +17,10 @@ import { buildScreenView, screenKeyFor } from '../lib/analytics-screen';
  * switch was never a screen view. The pathname still matters on its own: moving
  * from one bike to another is a new view of `/(tabs)/(garage)/bike/[id]`.
  * Query-string churn is not a view. Naming convention: lib/analytics-screen.ts.
+ *
+ * It also feeds `post_onboarding_landed` (lib/post-onboarding-landing.ts): the
+ * completion flip is noted before the screen view of the same render, so the
+ * first tab after "Open my garage" is the landing.
  */
 export function useScreenTracking(): void {
   const pathname = usePathname();
@@ -22,6 +28,7 @@ export function useScreenTracking(): void {
   const params = useGlobalSearchParams();
   const lastScreenKey = useRef<string | undefined>(undefined);
   const lastScreen = useRef<string | null>(null);
+  const onboardingCompleted = useAuthStore((s) => s.onboardingCompleted);
 
   // Template + pathname, computed in render (a string, so a stable dependency).
   const screenKey = screenKeyFor(segments, pathname);
@@ -32,10 +39,15 @@ export function useScreenTracking(): void {
   paramsRef.current = params;
 
   useEffect(() => {
+    postOnboardingLanding.noteCompletion(onboardingCompleted, lastScreen.current);
+  }, [onboardingCompleted]);
+
+  useEffect(() => {
     if (lastScreenKey.current === screenKey) return;
     lastScreenKey.current = screenKey;
     const view = buildScreenView(segmentsRef.current, paramsRef.current, lastScreen.current);
     trackScreen(view.name, view.properties);
     lastScreen.current = view.name;
+    postOnboardingLanding.noteScreen(view.name, segmentsRef.current);
   }, [screenKey]);
 }

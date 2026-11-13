@@ -68,6 +68,23 @@
         "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "e2e",
         "SENTRY_DISABLE_AUTO_UPLOAD": "true",
         "EXPO_PUBLIC_E2E_RUN": "1",
+        "EAS_NO_FROZEN_LOCKFILE": "1",
+        "EXPO_PUBLIC_E2E_NO_VENDOR_SDKS": "1"
+      }
+    },
+    "e2e-simulator-paywall": {
+      "distribution": "internal",
+      "environment": "production",
+      "channel": "e2e",
+      "ios": {
+        "simulator": true,
+        "image": "macos-tahoe-26.6-xcode-27.0"
+      },
+      "env": {
+        "EXPO_PUBLIC_OB_VARIANT": "invested",
+        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "e2e",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EXPO_PUBLIC_E2E_RUN": "1",
         "EAS_NO_FROZEN_LOCKFILE": "1"
       }
     },

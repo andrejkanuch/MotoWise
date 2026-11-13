@@ -1,4 +1,5 @@
 import { FREE_TIER_LIMITS, type ProFeature } from '@motovault/types';
+import type { JsonType } from '@posthog/core';
 import { useCallback } from 'react';
 import { presentPaywall } from '../lib/subscription';
 import { useSubscriptionStore } from '../stores/subscription.store';
@@ -31,8 +32,16 @@ interface ProGateResult {
   checkAccess: (feature: keyof typeof FREE_TIER_LIMITS, currentCount: number) => FeatureAccess;
   /** Attempt to use a pro-only feature; opens RevenueCat paywall if not pro. Returns true if allowed. */
   requirePro: (feature: ProFeature) => boolean;
-  /** Attempt to use a counted feature; opens RevenueCat paywall if limit exceeded. Returns true if allowed. */
-  requireAccess: (feature: keyof typeof FREE_TIER_LIMITS, currentCount: number) => boolean;
+  /**
+   * Attempt to use a counted feature; opens RevenueCat paywall if limit exceeded. Returns true if allowed.
+   * `paywallMetadata` adds call-site context (e.g. `entry_surface`) to the paywall's events —
+   * never fire a paywall event of your own next to this call.
+   */
+  requireAccess: (
+    feature: keyof typeof FREE_TIER_LIMITS,
+    currentCount: number,
+    paywallMetadata?: Record<string, JsonType>,
+  ) => boolean;
 }
 
 /**
@@ -76,7 +85,11 @@ export function useProGate(): ProGateResult {
   );
 
   const requireAccess = useCallback(
-    (feature: keyof typeof FREE_TIER_LIMITS, currentCount: number): boolean => {
+    (
+      feature: keyof typeof FREE_TIER_LIMITS,
+      currentCount: number,
+      paywallMetadata?: Record<string, JsonType>,
+    ): boolean => {
       const access = checkFeatureAccess(feature, currentCount, isPro);
       if (access.allowed) return true;
       // Map the limit key to a ProFeature for the paywall context
@@ -93,6 +106,7 @@ export function useProGate(): ProGateResult {
         placement: 'feature_gate',
         surface: 'use_pro_gate',
         metadata: {
+          ...paywallMetadata,
           limit_key: feature,
           current_count: currentCount,
           limit: access.limit,

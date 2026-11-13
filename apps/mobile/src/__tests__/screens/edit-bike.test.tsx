@@ -82,6 +82,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Alert, type AlertButton } from 'react-native';
 import '../../i18n';
 import EditBikeScreen from '../../app/(tabs)/(garage)/edit-bike';
+import { trackEvent } from '../../lib/analytics';
 import { queryKeys } from '../../lib/query-keys';
 
 const BIKE_ID = 'bike-a';
@@ -144,8 +145,8 @@ async function flush() {
   });
 }
 
-async function renderScreen() {
-  mockParams = { id: BIKE_ID };
+async function renderScreen({ keepParams = false } = {}) {
+  if (!keepParams) mockParams = { id: BIKE_ID };
   const client = new QueryClient({
     defaultOptions: {
       queries: { retry: false, gcTime: Number.POSITIVE_INFINITY },
@@ -240,6 +241,27 @@ describe('Edit Motorcycle — unsaved changes guard', () => {
     expect(mockRouter.back).toHaveBeenCalledTimes(1);
     await attemptDismiss();
     expect(alert).not.toHaveBeenCalled();
+  });
+});
+
+describe('Edit Motorcycle — garage_bike_edited', () => {
+  it('reports which fields changed and where the edit was opened from, after the save', async () => {
+    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    jest.mocked(trackEvent).mockClear();
+    mockParams = { id: BIKE_ID, source: 'bike_hub' };
+    await renderScreen({ keepParams: true });
+    await fireEvent.changeText(screen.getByTestId(TEST_ID.NICKNAME), 'Big Twin');
+    expect(trackEvent).not.toHaveBeenCalledWith('GARAGE_BIKE_EDITED', expect.anything());
+
+    await fireEvent.press(screen.getByTestId(TEST_ID.SAVE));
+    await flush();
+
+    expect(trackEvent).toHaveBeenCalledWith('GARAGE_BIKE_EDITED', {
+      changed_fields: 'nickname',
+      from_capture_level: 'model',
+      source: 'bike_hub',
+      schedule_refreshed_count: null,
+    });
   });
 });
 

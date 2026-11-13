@@ -119,6 +119,18 @@ afterEach(async () => {
   for (const view of mounted.splice(0)) await view.unmount();
 });
 
+describe('Get Started card, test hooks', () => {
+  it('gives every row a stable checklist-row-<id> testID', async () => {
+    serve({});
+    showCard();
+    await renderCard();
+    expect(await screen.findByText('0 of 5')).toBeTruthy();
+    for (const id of CARD_ITEMS) {
+      expect(screen.getByTestId(`checklist-row-${id}`)).toBeTruthy();
+    }
+  });
+});
+
 describe('Get Started card, from the rider’s data', () => {
   it('ticks a bike with a photo, a finished ride, an expense and a scan — once each', async () => {
     serve({

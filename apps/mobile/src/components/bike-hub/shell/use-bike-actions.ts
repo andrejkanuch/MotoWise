@@ -4,8 +4,10 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
+import { BIKE_EDIT_SOURCE, editBikeHref } from '@/config/routes';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
+import { OEM_IMPORT_CONTEXT } from '@/lib/maintenance-analytics';
 import { cancelDocumentNotificationsForBike } from '@/lib/notifications';
 import { queryKeys } from '@/lib/query-keys';
 import { useBikeHubStore } from '@/stores/bike-hub.store';
@@ -80,7 +82,7 @@ export function useBikeActions(bike: HubBike, onRemoved: () => void): BikeAction
   return {
     editBike: () => {
       triggerImpact();
-      router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id } });
+      router.push(editBikeHref(id, BIKE_EDIT_SOURCE.BIKE_HUB));
     },
     checkRecalls: () => {
       triggerImpact();
@@ -93,7 +95,11 @@ export function useBikeActions(bike: HubBike, onRemoved: () => void): BikeAction
     },
     importSchedule: () => {
       triggerImpact();
-      trackEvent(AnalyticsEvent.OEM_SCHEDULE_IMPORTED, { motorcycle_id: id, ...bikeProperties });
+      trackEvent(AnalyticsEvent.OEM_SCHEDULE_IMPORTED, {
+        context: OEM_IMPORT_CONTEXT.BIKE_HUB,
+        motorcycle_id: id,
+        ...bikeProperties,
+      });
       importOem.mutate();
     },
     isImportingSchedule: importOem.isPending,

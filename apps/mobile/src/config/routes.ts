@@ -3,6 +3,7 @@
  * Use these instead of magic strings in router.push / router.replace / deepLink.
  */
 
+import { DIAGNOSTIC_ENTRY, DIAGNOSTIC_ENTRY_PARAM } from './diagnostic-entry';
 import { WHATS_NEW_SOURCE, type WhatsNewSource } from './whats-new';
 
 /** Main tab routes */
@@ -25,6 +26,15 @@ export const HOME_ROUTE = {
   RIDER_INSIGHTS_RECAP: '/(tabs)/(home)/home/rider-insights/recap',
 } as const;
 
+// Issue 365 T05b
+/** The diagnose list opened by Home's "Diagnose" tool, so its Start counts as `home_tool`. */
+export function diagnoseListFromHomeHref() {
+  return {
+    pathname: '/(tabs)/(diagnose)',
+    params: { [DIAGNOSTIC_ENTRY_PARAM]: DIAGNOSTIC_ENTRY.HOME_TOOL },
+  } as const;
+}
+
 /** Garage sub-routes */
 export const GARAGE_ROUTE = {
   EXPENSE_DASHBOARD: '/(tabs)/(garage)/expense-dashboard',
@@ -32,7 +42,24 @@ export const GARAGE_ROUTE = {
   ADD_BIKE: '/(tabs)/(garage)/add-bike',
   /** A bike's notes; pass `{ motorcycleId, from? }`. */
   NOTES: '/(tabs)/(garage)/notes',
+  /** Edit a bike; open it with `editBikeHref`. */
+  EDIT_BIKE: '/(tabs)/(garage)/edit-bike',
 } as const;
+
+/** Where the bike editor was opened from: `source` on `garage_bike_edited` (issue 365 T05d). */
+export const BIKE_EDIT_SOURCE = {
+  BIKE_HUB: 'bike_hub',
+  GARAGE_LIST: 'garage_list',
+  EXPENSE_DASHBOARD: 'expense_dashboard',
+  /** A missing or unknown `source` param. */
+  OTHER: 'other',
+} as const;
+export type BikeEditSource = (typeof BIKE_EDIT_SOURCE)[keyof typeof BIKE_EDIT_SOURCE];
+
+/** The bike editor for bike `id`, opened from `source`, for `router.push`. */
+export function editBikeHref(id: string, source: BikeEditSource) {
+  return { pathname: GARAGE_ROUTE.EDIT_BIKE, params: { id, source } };
+}
 
 /**
  * The `from` param of a feature screen opened by a What's New page. With it,

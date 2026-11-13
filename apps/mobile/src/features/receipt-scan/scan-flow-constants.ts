@@ -312,8 +312,8 @@ export const ANALYZING_STAGE_INTERVAL_MS = 1_800;
 // --- Entry points (U8) ---
 
 /**
- * Where a scan was launched from — stamped on `RECEIPT_SCAN_STARTED` /
- * `PAYWALL_PRESENT_REQUESTED` so discovery (G6) and the exhauster→paid funnel
+ * Where a scan was launched from — stamped on `RECEIPT_SCAN_STARTED` and, as
+ * `entry_surface`, on the scan gate's paywall events so discovery (G6) and the exhauster→paid funnel
  * (G4) can be attributed per surface. No magic strings at the call sites.
  */
 export const SCAN_ENTRY_SURFACE = {
