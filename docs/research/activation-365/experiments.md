@@ -320,7 +320,8 @@ The tiles run the T02 SQL with these changes only (each tile's SQL starts with a
   same anchor event as `ver` (first completion, first start, first sheet, …); `plat` added where the file had none, as the person-level
   `argMinIf(platform, platform IS NOT NULL)` with the `$app_build` fallback, never the first event's platform. Event-level tiles (one
   row per event, e.g. FS-M, FS-OB3, FS-PO2a) use that event's own `platform`. FS-OB1b, FS-OB2b and FS-PO8 keep T02's last-non-null
-  platform. `lvl` and `rt` read null on every row until T01 ships in 3.29.0.
+  platform. Two tiles take the platform of their anchor event instead of the person: FS-PO3 (any `platform` in the paywall session) and
+  FS-PO3b (`platform` on the rider's first `diagnostic_limit_reached`, null when that event lacks it). `lvl` and `rt` read null on every row until T01 ships in 3.29.0.
 - `Application Opened` is added to the per-person event filters so `plat`/`build` can come from the install open.
 - `{EXCL}` = `toString(person_id) NOT IN (SELECT person_id FROM activation365_excluded_persons) AND e2e_run != 'true'` (§11.4).
 - One file, two tiles: `fs-po3-s5.sql` (part 1 → FS-PO3, part 2 → S5); `s2.sql`/`s3.sql` are one query, the tiles show different
@@ -399,7 +400,7 @@ fewer than 30 Android riders on the new level at 2 weeks is "no verdict (thin An
 |---|---|---|
 | SQL view `activation365_excluded_persons` | `01a1d46b-e269-0000-0612-a1fe79b50e59` | One row per `{EXCL}` person id (14, as text; recipe `queries/q00-excluded-persons.md`), not materialized. Replaces the static cohort on the first named list: the V4 emulator person is personless, so a cohort cannot hold it. A later `{E2E_PERSONS}` addition is one `view-create` (upsert) on that read's own named list |
 | Alert **FS-PO5 — HUD opened without any ride start (#365)** | `01a1d474-999b-0000-5792-c19c6b5dd5df` | Insight 7346326 (`f10IUkAu`); **weekly**; fires when any row has `hud_without_any_start > 0` (HUD views in the last 7 d, 60-d lookback for the start); email to the owner. Regression guard for FS-PO5 (no Maestro flow). Today: 0 of 83 HUD views |
-| Alert **FS-M — opens without the expected fix level (#365)** | `01a1d474-a32e-0000-dc16-82ddcdf4b826` | Insight 7346324 (`YkNZQEVz`); **daily** over the last 3 days of `Application Opened` on versions ≥ 3.29.0; fires when any row has `mismatched_opens > 0` (level missing or below the cut level: 3.29.0 = 2, 3.30.0 = 3; a hotfix OTA only raises the level). A later store version is checked for ≥ 2 until its cut adds its row: **each store-build cut after 3.30.0 updates this insight's `multiIf` on that release's named list**. Today: no rows (no ≥ 3.29.0 opens). Dry run with the floor at 3.27.0: 3.27.0 63/63, 3.28.0 30/30 mismatched (no marker yet), as expected |
+| Alert **FS-M — opens without the expected fix level (#365)** | `01a1d474-a32e-0000-dc16-82ddcdf4b826` | Insight 7346324 (`YkNZQEVz`); **daily** over the last 3 days of `Application Opened` on versions ≥ 3.29.0; fires when any row has `mismatched_opens > 0` (level missing or below the cut level: 3.29.0 = 2, 3.30.0 = 3; a hotfix OTA only raises the level). This is stricter than the issue's "checked 3 days after go-live": a trailing 3-day window checked daily fires from the first mismatched open, so a wrong cut is caught on day 1 and the check never lapses. A later store version is checked for ≥ 2 until its cut adds its row: **each store-build cut after 3.30.0 updates this insight's `multiIf` on that release's named list**. Today: no rows (no ≥ 3.29.0 opens). Dry run with the floor at 3.27.0: 3.27.0 63/63, 3.28.0 30/30 mismatched (no marker yet), as expected |
 | Annotation `#365 baseline — T02 baselines recorded (docs/research/activation-365/experiments.md §4)` | **204474** | Project scope, dated 2026-11-13 (the day T02 recorded the baselines) |
 
 Alerts in the project after T03b: 4 of the free tier's 5 (2 from #326, 2 from #365).
@@ -407,5 +408,5 @@ Alerts in the project after T03b: 4 of the free tier's 5 (2 from #326, 2 from #3
 **Verification (2026-11-13):** `SELECT id, name FROM system.dashboards WHERE NOT deleted AND name = '#365 Activation & frictions'` →
 1 row (1111923). `SELECT count() FROM system.insights WHERE NOT deleted AND name LIKE 'FS-%'` → **38** (36 FS spec tiles + 2 alert
 sources) ≥ the 36 PostHog-measurable FS specs with a tile. Spot checks of saved tiles reproduce §4.2: FS-PO5 0 without start / 9 stale;
-FS-PO2b 3.26.0 10 failures / 3 riders / 7 offline / max 141 s; FS-PO3b 3.26.0 4 of 5; FS-PO8 android Discover 28/29 (3.26.0 b93).
+FS-PO2b 3.26.0 10 failures / 3 riders / 7 offline / max 141 s; FS-PO3b 3.26.0 4 of 5; FS-PO8 android Discover 43/44 summed over the version rows (the tile splits T02's per-platform row by `ver`/`build`).
 
