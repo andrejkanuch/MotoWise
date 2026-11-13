@@ -45,11 +45,23 @@ vi.mock('expo-server-sdk', () => ({
  * overrides the table's result for that operation only. Records delete() calls per table.
  */
 type StubResult = { data?: unknown; error?: unknown };
-function makeAdminClient(resultsByTable: Record<string, StubResult>) {
+/** An array is a sequence of results, one per awaited query (for paged reads). */
+function makeAdminClient(resultsByTable: Record<string, StubResult | StubResult[]>) {
   const from = vi.fn((table: string) => {
     let op = 'select';
     const builder: Record<string, unknown> = {};
-    for (const m of ['select', 'insert', 'delete', 'in', 'is', 'eq', 'gte', 'limit']) {
+    for (const m of [
+      'select',
+      'insert',
+      'delete',
+      'in',
+      'is',
+      'eq',
+      'gte',
+      'limit',
+      'order',
+      'range',
+    ]) {
       builder[m] = vi.fn(() => {
         if (m === 'delete') mockDeletes.push(table);
         if (m === 'insert' || m === 'delete') op = m;
@@ -57,10 +69,11 @@ function makeAdminClient(resultsByTable: Record<string, StubResult>) {
       });
     }
     // biome-ignore lint/suspicious/noThenProperty: intentional thenable stub — Supabase query builders are awaited directly, so the mock must resolve on await.
-    builder.then = (resolve: (v: unknown) => unknown) =>
-      resolve(
-        resultsByTable[`${table}.${op}`] ?? resultsByTable[table] ?? { data: [], error: null },
-      );
+    builder.then = (resolve: (v: unknown) => unknown) => {
+      const result = resultsByTable[`${table}.${op}`] ?? resultsByTable[table];
+      const next = Array.isArray(result) ? result.shift() : result;
+      return resolve(next ?? { data: [], error: null });
+    };
     return builder;
   });
   return { from } as unknown as SupabaseClient;
@@ -256,7 +269,7 @@ describe('MaintenancePushService.sendDuePush', () => {
     expect(mockDeletes).not.toContain('maintenance_push_log');
   });
 
-  // #365 T07a, D7 reminder cap: at most one push per bike, and none for a bike pushed
+  // activation T07a, D7 reminder cap: at most one push per bike, and none for a bike pushed
   // in the last 7 days. ~10 imported tasks can fall due on the same anniversary.
   describe('per-bike reminder cap (D7)', () => {
     const task = (id: string, motorcycleId: string, title = `Task ${id}`) => ({
@@ -325,6 +338,23 @@ describe('MaintenancePushService.sendDuePush', () => {
         '2 services due on your Blue. Tap to review.',
         '2 services due on your MT-09. Tap to review.',
       ]);
+    });
+
+    it('pages the 7-day history, so a push past the first page still caps the bike', async () => {
+      const filler = Array.from({ length: 500 }, (_, i) => ({
+        id: `log-${i}`,
+        maintenance_tasks: { motorcycle_id: 'm-other' },
+      }));
+      const tables = {
+        ...baseTables([task('t4', 'm1')]),
+        'maintenance_push_log.select': [
+          { data: filler, error: null },
+          { data: [{ id: 'log-x', maintenance_tasks: { motorcycle_id: 'm1' } }], error: null },
+        ],
+      };
+      const summary = await new MaintenancePushService(makeAdminClient(tables)).sendDuePush(1);
+      expect(mockSentMessages).toHaveLength(0);
+      expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 1, failed: 0, noToken: 0 });
     });
 
     it('a recent push on one bike does not hold back another bike', async () => {

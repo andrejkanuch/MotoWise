@@ -3,7 +3,7 @@ import { hasExplicitAnalyticsConsent, NO_CONSENT_PROPERTIES } from './analytics-
 import { type PostHogCaptureEvent, SERVER_EVENT_PROPERTIES } from './posthog-capture';
 
 /**
- * #365 T07a (Experiment 2): a bike got its OEM service plan. Server-side, so it
+ * activation T07a (Experiment 2): a bike got its OEM service plan. Server-side, so it
  * counts every app version; the S4(b) tile reads it within 5 min of
  * `onboarding_completed`.
  */

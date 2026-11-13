@@ -15,7 +15,7 @@ const BASE = {
   source: SERVICE_PLAN_SOURCE.ONBOARDING,
 } as const;
 
-describe('buildServicePlanImportedEvent (#365 T07a consent rule)', () => {
+describe('buildServicePlanImportedEvent (activation T07a consent rule)', () => {
   it('a stored "yes" identifies the rider', () => {
     const event = buildServicePlanImportedEvent({ ...BASE, decision: true });
     expect(event.event).toBe(SERVICE_PLAN_IMPORTED_EVENT);

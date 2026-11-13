@@ -26,10 +26,12 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 }
 const ACTIVE_TASK_STATUSES = ['pending', 'in_progress'] as const;
 /**
- * #365 T07a (D7): at most one maintenance push per bike in this many days. An
+ * activation T07a (D7): at most one maintenance push per bike in this many days. An
  * imported service plan puts ~10 tasks on the same interval anniversaries.
  */
 export const PER_BIKE_PUSH_WINDOW_DAYS = 7;
+/** Page size for the 7-day push-history read; below PostgREST's default `max_rows` (1000). */
+const RECENT_PUSH_PAGE_SIZE = 500;
 
 export interface MaintenancePushSummary {
   tasksDue: number;
@@ -78,7 +80,7 @@ export class MaintenancePushService {
   /**
    * Find maintenance tasks due `daysBefore` days from today and push a reminder
    * to each owner's registered devices. At most one push per bike, naming the count
-   * when several tasks are due, and none for a bike pushed in the last 7 days (#365
+   * when several tasks are due, and none for a bike pushed in the last 7 days (activation
    * T07a, D7). Idempotent: a per-(task, due_date) dedup row is still written for
    * every task the push covers, so a re-run never re-sends.
    */
@@ -141,7 +143,7 @@ export class MaintenancePushService {
       localeByUser.set(row.id, prefs.locale ?? null);
     }
 
-    // D7 reminder cap (#365 T07a): group the due tasks by bike, send at most ONE push
+    // D7 reminder cap (activation T07a): group the due tasks by bike, send at most ONE push
     // per bike, and none for a bike that got a maintenance push in the last 7 days.
     // Both lookups run before any claim, so a DB error throws and wastes no claim.
     const tasksByBike = new Map<string, DueTaskRow[]>();
@@ -152,6 +154,7 @@ export class MaintenancePushService {
     }
     const recentlyPushedBikes = await this.bikesPushedSince(
       userIds,
+      [...tasksByBike.keys()],
       subDays(new Date(), PER_BIKE_PUSH_WINDOW_DAYS),
     );
     const bikeNames = await this.loadBikeNames([...tasksByBike.keys()]);
@@ -252,27 +255,39 @@ export class MaintenancePushService {
 
   /**
    * Bikes that got a maintenance push since `since`: the push log has no bike
-   * column (00161), so its rows are joined on task_id → maintenance_tasks.motorcycle_id.
+   * column (00161), so its rows are joined on task_id → maintenance_tasks.motorcycle_id
+   * and filtered to the bikes due in this run. Paged, so PostgREST's `max_rows` cap
+   * can never hide a recent push and let a bike through the cap.
    * Throws on a DB error so the run claims nothing rather than over-sending.
    */
-  private async bikesPushedSince(userIds: string[], since: Date): Promise<Set<string>> {
-    const { data, error } = await this.adminClient
-      .from('maintenance_push_log')
-      .select('task_id, maintenance_tasks!inner(motorcycle_id)')
-      .in('user_id', userIds)
-      .gte('sent_at', since.toISOString());
-    if (error) {
-      this.logger.error(`sendDuePush recent-push query failed: ${error.message}`);
-      throw error;
-    }
+  private async bikesPushedSince(
+    userIds: string[],
+    motorcycleIds: string[],
+    since: Date,
+  ): Promise<Set<string>> {
     const bikes = new Set<string>();
-    for (const row of (data ?? []) as unknown as RecentPushRow[]) {
-      const tasks = row.maintenance_tasks;
-      for (const task of Array.isArray(tasks) ? tasks : tasks ? [tasks] : []) {
-        bikes.add(task.motorcycle_id);
+    for (let from = 0; ; from += RECENT_PUSH_PAGE_SIZE) {
+      const { data, error } = await this.adminClient
+        .from('maintenance_push_log')
+        .select('id, maintenance_tasks!inner(motorcycle_id)')
+        .in('user_id', userIds)
+        .in('maintenance_tasks.motorcycle_id', motorcycleIds)
+        .gte('sent_at', since.toISOString())
+        .order('id', { ascending: true })
+        .range(from, from + RECENT_PUSH_PAGE_SIZE - 1);
+      if (error) {
+        this.logger.error(`sendDuePush recent-push query failed: ${error.message}`);
+        throw error;
       }
+      const rows = (data ?? []) as unknown as RecentPushRow[];
+      for (const row of rows) {
+        const tasks = row.maintenance_tasks;
+        for (const task of Array.isArray(tasks) ? tasks : tasks ? [tasks] : []) {
+          bikes.add(task.motorcycle_id);
+        }
+      }
+      if (rows.length < RECENT_PUSH_PAGE_SIZE) return bikes;
     }
-    return bikes;
   }
 
   /** Display names for the combined push ("3 services due on your MT-09"). */

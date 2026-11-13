@@ -5,7 +5,7 @@ import type { OemSchedule } from './models/oem-schedule.model';
 export const GENERIC_SCHEDULE_MAKE = 'GENERIC' as const;
 
 /**
- * Which waterfall tier a bike's service plan came from (#365 T07a). `make` is the
+ * Which waterfall tier a bike's service plan came from (activation T07a). `make` is the
  * make-generic plan the app labels as such; `generic` is the GENERIC fallback.
  */
 export const SERVICE_PLAN_TIER = {

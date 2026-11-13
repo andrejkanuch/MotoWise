@@ -36,7 +36,7 @@ describe('resolveMaintenancePushCopy', () => {
   });
 });
 
-// #365 T07a: the per-bike reminder cap sends one push naming the count.
+// activation T07a: the per-bike reminder cap sends one push naming the count.
 describe('MaintenancePushCopy.combinedBody', () => {
   it('names the count and the bike in English', () => {
     expect(resolveMaintenancePushCopy('en').combinedBody(3, 'MT-09')).toBe(

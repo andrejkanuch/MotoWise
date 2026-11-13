@@ -283,7 +283,7 @@ export class UsersService {
   }
 
   /**
-   * #365 T07a (Experiment 2): give the bike onboarding just created its OEM service
+   * activation T07a (Experiment 2): give the bike onboarding just created its OEM service
    * plan — the full waterfall, or only the picked ids when the rider picked some —
    * in the unit the rider chose (the client writes `users.measurement_system` only
    * after this mutation). Never fails onboarding: any error is logged and the

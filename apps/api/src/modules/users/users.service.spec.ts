@@ -380,8 +380,8 @@ describe('UsersService', () => {
     });
   });
 
-  // #365 T07a (Experiment 2): onboarding imports the service plan for the bike it created.
-  describe('completeOnboarding — service plan import (#365 T07a)', () => {
+  // activation T07a (Experiment 2): onboarding imports the service plan for the bike it created.
+  describe('completeOnboarding — service plan import (activation T07a)', () => {
     const motorcycleId = 'moto-1';
     const bikeRow = {
       id: motorcycleId,

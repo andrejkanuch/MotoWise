@@ -69,7 +69,7 @@ export class User {
   updatedAt: string;
 
   /**
-   * #365 T07a: set only on the `completeOnboarding` result — OEM tasks the
+   * activation T07a: set only on the `completeOnboarding` result — OEM tasks the
    * onboarding bike's service plan holds after the import. Null on every other
    * query, and when onboarding created no bike or the import failed.
    */
@@ -80,7 +80,7 @@ export class User {
   })
   servicePlanTaskCount?: number;
 
-  /** #365 T07a: the waterfall tier of that plan (`SERVICE_PLAN_TIER`); same nullability. */
+  /** activation T07a: the waterfall tier of that plan (`SERVICE_PLAN_TIER`); same nullability. */
   @Field(() => String, {
     nullable: true,
     description:

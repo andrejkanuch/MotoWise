@@ -2,7 +2,7 @@
 // use the mobile i18n bundles, so mirror the strings here keyed by the 13 supported
 // locales, with `en` as the fallback for absent/unknown locales. Body interpolates
 // the task title. Warm + factual tone, matching the rest of the app (no gamification).
-// #365 T07a (D7): `combinedBody` is the one push per bike when several tasks fall due
+// activation T07a (D7): `combinedBody` is the one push per bike when several tasks fall due
 // on the same day; it names the count and the bike.
 
 export interface MaintenancePushCopy {

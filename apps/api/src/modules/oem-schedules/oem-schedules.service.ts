@@ -215,7 +215,7 @@ export class OemSchedulesService {
    * Import a bike's OEM service plan as pending maintenance tasks. Idempotent: a
    * schedule the bike already has a task for (by `oem_schedule_id`) is not inserted
    * again. Sends no reminder: the daily push run picks the tasks up when they fall
-   * due, under its per-bike cap (#365 T07a, D7).
+   * due, under its per-bike cap (activation T07a, D7).
    */
   async importServicePlan(
     supabaseUser: SupabaseClient,
@@ -256,7 +256,7 @@ export class OemSchedulesService {
     // measurement-system unit. Convert the interval to that unit before adding so
     // an imperial bike's first target_mileage isn't inflated ~1.61x
     // (docs/plans/odometer-unit-normalization.md). A caller that knows the unit
-    // better (onboarding, #365 T07a) passes it; else read users.measurement_system.
+    // better (onboarding, activation T07a) passes it; else read users.measurement_system.
     const system = params.measurementSystem ?? (await this.readMeasurementSystem(userId));
 
     // Check which oem_schedule_ids already exist for this motorcycle (dedup)

@@ -214,7 +214,7 @@ describe('OemSchedulesService — admin approval', () => {
   });
 });
 
-// #365 T07a: onboarding imports the full waterfall in the unit the rider chose.
+// activation T07a: onboarding imports the full waterfall in the unit the rider chose.
 describe('OemSchedulesService.importServicePlan', () => {
   const MODEL_ROWS = [
     {
