@@ -174,6 +174,21 @@ New event names, fired by T21 (constants only until then: `PAYWALL_GATE_EVENTS` 
 - `filterTestAccounts` per PostHog audit 2026-05-30.
 - The variant is assigned pre-auth on the anonymous distinct_id; `identifyUser(supabaseUUID)` at account creation merges the anonymous person into the identified person, so pre- and post-auth events join.
 
+### #365 T05d
+
+Post-onboarding landing, Discover load time and bike edits (issue 408). Client events, consent-gated like every `trackEvent`; first data from Release A 3.29.0. No free text or ids beyond the bike id already sent elsewhere.
+
+| Event | When | Properties |
+|---|---|---|
+| `post_onboarding_landed` | First `(tabs)` screen after onboarding completes on personalizing, once per launch (`lib/post-onboarding-landing.ts`, fed by `hooks/use-screen-tracking.ts`). Not sent for a returning rider signing in. | `screen` (route template), `onboarding_variant`, `ms_since_cta` (from the completion flip: the "Open my garage" tap, or the onboarding paywall closing in the garage-paywall arm, or the silent resume), `overlay` (first non-tab route shown in between, else `none`) |
+| `landing_sheet_shown` | A sheet over Home on landing; constant + `trackLandingSheetShown`, fired by T16b | `sheet`, `ms_since_landed` (null without a landing this launch), `queue_position` |
+| `screen_load_timed` | Discover only, once per open: the first settled ride list (`components/discover/use-discover-analytics.ts`) | `screen: 'discover'`, `ms_to_content`, `outcome: content \| empty \| error \| timeout` (10 s) |
+| `garage_bike_edited` | A saved edit in the bike editor | `changed_fields` (comma list of field names: `nickname,year,make,model,mileage,is_primary,photo,purchase_price,vin,variant`), `from_capture_level: model \| make`, `source: bike_hub \| garage_list \| expense_dashboard \| other`, `schedule_refreshed_count` (null until T23's API reports it) |
+| `maintenance_task_completed` (new property) | — | `source: task_screen \| other` (board/05 P05.2 vocabulary; `plate_sheet` comes with that sheet), beside the existing `surface` |
+| `oem_schedule_imported` (new value) | Import from the bike hub | `context: 'bike_hub'` (onboarding already sends `'onboarding'`) |
+
+S3 engaged return reads its F14 non-engaged `$screen_name` list from `apps/mobile/src/config/engaged-routes.ts`; `config/__tests__/engaged-routes.test.ts` fails when a listed route is renamed.
+
 
 ---
 

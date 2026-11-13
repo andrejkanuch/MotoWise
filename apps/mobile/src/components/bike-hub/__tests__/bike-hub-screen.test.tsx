@@ -363,7 +363,7 @@ describe('BikeHubScreen — segments', () => {
     await fireEvent.press(await screen.findByTestId('bike-action-edit'));
     expect(mockRouter.push).toHaveBeenLastCalledWith({
       pathname: '/(tabs)/(garage)/edit-bike',
-      params: { id: BIKE_ID },
+      params: { id: BIKE_ID, source: 'bike_hub' },
     });
 
     await fireEvent.press(screen.getByTestId('bike-action-recalls'));
@@ -393,6 +393,7 @@ describe('BikeHubScreen — segments', () => {
 
     await fireEvent.press(screen.getByTestId('bike-action-import-schedule'));
     expect(trackEvent).toHaveBeenLastCalledWith('OEM_SCHEDULE_IMPORTED', {
+      context: 'bike_hub',
       motorcycle_id: BIKE_ID,
       bike_make: 'Honda',
       bike_model: 'Africa Twin',

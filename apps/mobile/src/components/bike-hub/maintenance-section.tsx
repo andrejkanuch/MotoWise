@@ -216,6 +216,16 @@ export function MaintenanceSection({
     motorcycleId,
   };
 
+  // Each active task's place on screen: critical cards first in each group, then the rest.
+  const positions = new Map(
+    groups
+      .flatMap((group) => [
+        ...group.items.filter(isCriticalOverdue),
+        ...group.items.filter((item) => !isCriticalOverdue(item)),
+      ])
+      .map((item, index) => [item.task.id, index]),
+  );
+
   const renderRows = (items: readonly ServiceTaskItem[]) =>
     items.map((item, index) => (
       <ServiceTaskRow
@@ -223,6 +233,7 @@ export function MaintenanceSection({
         item={item}
         expanded={expandedId === item.task.id}
         divider={index < items.length - 1}
+        position={positions.get(item.task.id)}
         {...rowProps}
       />
     ));
@@ -246,6 +257,7 @@ export function MaintenanceSection({
               item={item}
               expanded={expandedId === item.task.id}
               divider={false}
+              position={positions.get(item.task.id)}
               {...rowProps}
             />
           </HubCard>

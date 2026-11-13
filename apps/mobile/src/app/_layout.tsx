@@ -118,7 +118,7 @@ import { CORE_ACTION_KIND, recordCoreAction } from '../lib/core-action-milestone
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
 import { invalidateMaintenanceTasks } from '../lib/invalidate';
-import { MAINTENANCE_COMPLETION_SURFACE } from '../lib/maintenance-analytics';
+import { MAINTENANCE_COMPLETION } from '../lib/maintenance-analytics';
 import { captureMetaAttribution } from '../lib/meta-attribution';
 import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import {
@@ -1032,7 +1032,7 @@ function RootLayout() {
               has_cost: false,
               // The server schedules the next occurrence of a recurring task by default.
               scheduled_next: !!completion.completeMaintenanceTask.nextOccurrence,
-              surface: MAINTENANCE_COMPLETION_SURFACE.REMINDER_NOTIFICATION,
+              ...MAINTENANCE_COMPLETION.REMINDER_NOTIFICATION,
             });
             recordCoreAction(CORE_ACTION_KIND.SERVICE_LOGGED);
             // Scores like a completed task, but a notification action is never a prompt moment.

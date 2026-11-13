@@ -720,6 +720,7 @@ export default function RidesScreen() {
 
   const renderEmpty = useCallback(() => {
     if (isLoading) return null;
+    const ctaLabel = hasBikes ? t('profile.ridesEmptyStartRide') : t('profile.ridesEmptyAddBike');
     return (
       <Animated.View entering={FadeIn.duration(300)} style={{ paddingTop: 24 }}>
         <View
@@ -760,6 +761,7 @@ export default function RidesScreen() {
           </Text>
 
           <Pressable
+            testID="rides-empty-cta"
             onPress={() => {
               triggerImpact();
               if (hasBikes) {
@@ -769,9 +771,7 @@ export default function RidesScreen() {
               }
             }}
             accessibilityRole="button"
-            accessibilityLabel={
-              hasBikes ? t('profile.ridesEmptyStartRide') : t('profile.ridesEmptyAddBike')
-            }
+            accessibilityLabel={ctaLabel}
             android_ripple={{ color: tint(theme.onWarm, 0.2) }}
             style={({ pressed }) => ({
               backgroundColor: theme.warm,
@@ -786,9 +786,7 @@ export default function RidesScreen() {
               opacity: pressed && process.env.EXPO_OS === 'ios' ? 0.85 : 1,
             })}
           >
-            <Text style={[type.bodyStrong, { color: theme.onWarm }]}>
-              {hasBikes ? t('profile.ridesEmptyStartRide') : t('profile.ridesEmptyAddBike')}
-            </Text>
+            <Text style={[type.bodyStrong, { color: theme.onWarm }]}>{ctaLabel}</Text>
           </Pressable>
         </View>
       </Animated.View>

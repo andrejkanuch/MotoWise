@@ -15,6 +15,7 @@ import { LottieMotorcycle } from '@/components/lottie-motorcycle';
 import { Skeleton } from '@/components/skeleton/skeleton';
 import { SkeletonProvider } from '@/components/skeleton/skeleton-provider';
 import { PLATE_SIZE, PLATE_STATE } from '@/components/ui/bike-plate';
+import { BIKE_EDIT_SOURCE, editBikeHref } from '@/config/routes';
 import { useMileageUnit } from '@/hooks/use-mileage-unit';
 import { useProGate } from '@/hooks/use-pro-gate';
 import { formatOdometer, hasOdometer } from '@/lib/bike-hub/format';
@@ -116,7 +117,6 @@ export default function GarageScreen() {
     const bikeIds = new Set(motorcycles.map((b) => b.id));
     return tasks.filter((task) => bikeIds.has(task.motorcycleId) && isActiveTask(task)).length;
   }, [tasks, motorcycles]);
-
   const atFreeLimit = !isPro && motorcycles.length >= 1;
 
   const handleAddBike = () => {
@@ -143,8 +143,7 @@ export default function GarageScreen() {
     showActionSheet(`${bike.make} ${bike.model}`, [
       {
         label: t('common.edit'),
-        onPress: () =>
-          router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id: bike.id } }),
+        onPress: () => router.push(editBikeHref(bike.id, BIKE_EDIT_SOURCE.GARAGE_LIST)),
       },
       ...(bike.isPrimary
         ? []
@@ -326,6 +325,7 @@ export default function GarageScreen() {
             </Text>
           </View>
           <Pressable
+            testID="garage-add-bike-header"
             onPress={handleHeaderAdd}
             accessibilityRole="button"
             accessibilityLabel={t('garage.addBike')}

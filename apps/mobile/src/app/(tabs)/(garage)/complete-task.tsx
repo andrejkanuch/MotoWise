@@ -36,7 +36,7 @@ import {
 } from '@/lib/expense-analytics';
 import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '@/lib/expense-constants';
 import { gqlFetcher } from '@/lib/graphql-client';
-import { MAINTENANCE_COMPLETION_SURFACE } from '@/lib/maintenance-analytics';
+import { MAINTENANCE_COMPLETION } from '@/lib/maintenance-analytics';
 import { cancelTaskNotification } from '@/lib/notifications';
 import { queryKeys } from '@/lib/query-keys';
 import { maintenanceTasksOptions } from '@/lib/query-options';
@@ -116,7 +116,7 @@ export default function CompleteTaskScreen() {
       trackEvent(AnalyticsEvent.MAINTENANCE_TASK_COMPLETED, {
         has_cost: !!cost,
         scheduled_next: task?.isRecurring ? scheduleNext : false,
-        surface: MAINTENANCE_COMPLETION_SURFACE.COMPLETE_TASK_SCREEN,
+        ...MAINTENANCE_COMPLETION.COMPLETE_TASK_SCREEN,
       });
       // A cost makes the server add a linked expense — count it like any other.
       const costValue = taskCompletionExpenseAmount(cost);

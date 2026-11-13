@@ -123,9 +123,22 @@ describe('Service — one count', () => {
     expect(screen.getByTestId('service-group-overdue')).toBeOnTheScreen();
     // The first overdue row is the High one (priority before lateness).
     const rows = within(screen.getByTestId('service-group-overdue')).getAllByTestId(
-      /^service-task-(?!done|details)/,
+      /^service-task-(?!done|details|card)/,
     );
     expect(rows[0]?.props.testID).toBe(`service-task-${BRAKE_PADS.id}`);
+  });
+
+  it('numbers the active rows top to bottom for Maestro (service-task-card-<n>)', async () => {
+    await renderSection(ACTIVE);
+    const cards = screen.getAllByTestId(/^service-task-card-\d+$/);
+    expect(cards.map((card) => card.props.testID)).toEqual(
+      ACTIVE.map((_, index) => `service-task-card-${index}`),
+    );
+    expect(
+      within(screen.getByTestId('service-task-card-0')).getByTestId(
+        `service-task-${BRAKE_PADS.id}`,
+      ),
+    ).toBeOnTheScreen();
   });
 });
 

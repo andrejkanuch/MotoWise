@@ -13,6 +13,7 @@ import { costPerDistance } from '@/components/expense-dashboard/cost-per-distanc
 import { ExpenseDashboardEmptyState } from '@/components/expense-dashboard/expense-dashboard-empty-state';
 import { MonthlyTrend } from '@/components/expense-dashboard/monthly-trend';
 import { SummaryCards } from '@/components/expense-dashboard/summary-cards';
+import { BIKE_EDIT_SOURCE, editBikeHref } from '@/config/routes';
 import { useCurrency } from '@/hooks/use-currency';
 import {
   PERIOD_OPTIONS,
@@ -570,10 +571,7 @@ export default function ExpenseDashboardScreen() {
           <Pressable
             onPress={() => {
               triggerImpact(Haptics.ImpactFeedbackStyle.Light);
-              router.push({
-                pathname: '/(tabs)/(garage)/edit-bike',
-                params: { id: motorcycleId },
-              });
+              router.push(editBikeHref(motorcycleId, BIKE_EDIT_SOURCE.EXPENSE_DASHBOARD));
             }}
             style={({ pressed }) => ({
               flexDirection: 'row',

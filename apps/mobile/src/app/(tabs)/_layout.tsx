@@ -37,11 +37,12 @@ import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
 import { formatElapsedCompact } from '../../utils/ride-formatters';
 
+/** `testID`: stable anchors for Maestro (issue 365 §3A.4). */
 const TAB_CONFIG = [
-  { name: '(home)', icon: Home, labelKey: 'tabs.home' },
-  { name: '(discover)', icon: Compass, labelKey: 'tabs.discover' },
-  { name: '(garage)', icon: Bike, labelKey: 'tabs.garage' },
-  { name: '(profile)', icon: User, labelKey: 'tabs.profile' },
+  { name: '(home)', icon: Home, labelKey: 'tabs.home', testID: 'tab-home' },
+  { name: '(discover)', icon: Compass, labelKey: 'tabs.discover', testID: 'tab-discover' },
+  { name: '(garage)', icon: Bike, labelKey: 'tabs.garage', testID: 'tab-garage' },
+  { name: '(profile)', icon: User, labelKey: 'tabs.profile', testID: 'tab-profile' },
 ] as const;
 
 /**
@@ -312,6 +313,7 @@ function IslandTabBarContent({ state, navigation }: BottomTabBarProps) {
         const tabButton = (
           <Pressable
             key={route.key}
+            testID={config.testID}
             onPress={onPress}
             accessibilityRole="tab"
             accessibilityState={{ selected: isFocused }}

@@ -42,7 +42,24 @@ export const GARAGE_ROUTE = {
   ADD_BIKE: '/(tabs)/(garage)/add-bike',
   /** A bike's notes; pass `{ motorcycleId, from? }`. */
   NOTES: '/(tabs)/(garage)/notes',
+  /** Edit a bike; open it with `editBikeHref`. */
+  EDIT_BIKE: '/(tabs)/(garage)/edit-bike',
 } as const;
+
+/** Where the bike editor was opened from: `source` on `garage_bike_edited` (issue 365 T05d). */
+export const BIKE_EDIT_SOURCE = {
+  BIKE_HUB: 'bike_hub',
+  GARAGE_LIST: 'garage_list',
+  EXPENSE_DASHBOARD: 'expense_dashboard',
+  /** A missing or unknown `source` param. */
+  OTHER: 'other',
+} as const;
+export type BikeEditSource = (typeof BIKE_EDIT_SOURCE)[keyof typeof BIKE_EDIT_SOURCE];
+
+/** The bike editor for bike `id`, opened from `source`, for `router.push`. */
+export function editBikeHref(id: string, source: BikeEditSource) {
+  return { pathname: GARAGE_ROUTE.EDIT_BIKE, params: { id, source } };
+}
 
 /**
  * The `from` param of a feature screen opened by a What's New page. With it,
