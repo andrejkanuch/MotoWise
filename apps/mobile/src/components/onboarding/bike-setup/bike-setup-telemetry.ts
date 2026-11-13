@@ -49,9 +49,6 @@ export interface BikeSetupSession {
   startYear: string;
   makeQueries: number;
   modelQueries: number;
-  /** Last search text per field, kept only to count empty → non-empty starts. */
-  lastMakeQuery: string;
-  lastModelQuery: string;
   makePickedVia: BikePickedVia;
   modelPickedVia: BikePickedVia;
   /** Duration of the last models fetch cycle (all retries + backoff) that finished in this visit. */
@@ -81,8 +78,6 @@ export function startSession(
     startYear: year,
     makeQueries: 0,
     modelQueries: 0,
-    lastMakeQuery: '',
-    lastModelQuery: '',
     makePickedVia: picked.make,
     modelPickedVia: picked.model,
     modelFetchMs: null,

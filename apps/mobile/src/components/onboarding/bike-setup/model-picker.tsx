@@ -112,7 +112,7 @@ export function ModelPicker({
         <PickerSearchField
           value={query}
           onChangeText={(text) => {
-            telemetry.noteModelQuery(text);
+            telemetry.noteModelQuery(query, text);
             setQuery(text);
           }}
           maxLength={50}

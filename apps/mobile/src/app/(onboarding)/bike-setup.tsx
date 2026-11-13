@@ -98,7 +98,7 @@ export default function BikeSetupScreen() {
   );
   const telemetry = useBikeSetupTelemetry({
     year,
-    restored: { make: !!selectedMake, model: !!selectedModel },
+    restored: { make: !!selectedMake, model: !!selectedMake && !!selectedModel },
   });
 
   // ── Derived ─────────────────────────────────────────────────

@@ -15,7 +15,7 @@ export const ANALYTICS_EVENTS = {
   SEARCH_PERFORMED: 'search_performed',
   EXPLORE_PAGE_VIEWED: 'explore_page_viewed',
   REGION_PAGE_VIEWED: 'region_page_viewed',
-  // #365 T04c
+  // issue 365 T04c
   BIKE_SETUP_SUMMARY: 'bike_setup_summary',
 } as const;
 
@@ -78,7 +78,7 @@ export const RegionPageViewedSchema = z.object({
   routeCount: z.number().int().nonnegative().optional(),
 });
 
-// #365 T04c — mobile onboarding bike-setup visit summary. Counts and enums only.
+// issue 365 T04c — mobile onboarding bike-setup visit summary. Counts and enums only.
 const BikePickedViaSchema = z.enum([
   'list',
   'search',
@@ -115,6 +115,6 @@ export const EVENT_SCHEMAS = {
   [ANALYTICS_EVENTS.SEARCH_PERFORMED]: SearchPerformedSchema,
   [ANALYTICS_EVENTS.EXPLORE_PAGE_VIEWED]: ExplorePageViewedSchema,
   [ANALYTICS_EVENTS.REGION_PAGE_VIEWED]: RegionPageViewedSchema,
-  // #365 T04c
+  // issue 365 T04c
   [ANALYTICS_EVENTS.BIKE_SETUP_SUMMARY]: BikeSetupSummarySchema,
 } as const;

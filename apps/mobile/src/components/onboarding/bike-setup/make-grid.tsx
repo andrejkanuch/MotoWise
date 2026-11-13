@@ -92,7 +92,7 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther, telemetry }: M
         <PickerSearchField
           value={query}
           onChangeText={(text) => {
-            telemetry.noteMakeQuery(text);
+            telemetry.noteMakeQuery(query, text);
             setQuery(text);
           }}
           placeholder={t('onboarding.v2MakeGridSearchPlaceholder')}

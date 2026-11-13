@@ -24,8 +24,13 @@ import {
 const BACK_ACTION_TYPES: ReadonlySet<string> = new Set(['GO_BACK', 'POP', 'POP_TO_TOP']);
 
 export interface BikeSetupTelemetry {
-  noteMakeQuery: (text: string) => void;
-  noteModelQuery: (text: string) => void;
+  /**
+   * The make / model search field changed from `previous` to `next`. Pass the field's
+   * own previous text: the pickers remount (Change make) and start empty again, so a
+   * visit-level copy of the text would miss the second search.
+   */
+  noteMakeQuery: (previous: string, next: string) => void;
+  noteModelQuery: (previous: string, next: string) => void;
   /** A make was picked (or cleared with NONE); the model selection resets with it. */
   noteMakePicked: (via: BikePickedVia) => void;
   noteModelPicked: (via: BikePickedVia) => void;
@@ -44,7 +49,10 @@ export interface BikeSetupTelemetry {
 interface Options {
   /** The year field's current value (`year_changed` compares it with the value at visit start). */
   year: string;
-  /** The make/model restored from the bike draft at mount. */
+  /**
+   * The make/model restored from the bike draft at mount. A model counts as restored
+   * only together with its make (a custom-make draft restores no make).
+   */
   restored: { make: boolean; model: boolean };
 }
 
@@ -138,17 +146,13 @@ export function useBikeSetupTelemetry({ year, restored }: Options) {
 
   return useMemo<BikeSetupTelemetry>(
     () => ({
-      noteMakeQuery: (text) => {
+      noteMakeQuery: (previous, next) => {
         const session = sessionRef.current;
-        if (!session) return;
-        if (isNewQuery(session.lastMakeQuery, text)) session.makeQueries += 1;
-        session.lastMakeQuery = text;
+        if (session && isNewQuery(previous, next)) session.makeQueries += 1;
       },
-      noteModelQuery: (text) => {
+      noteModelQuery: (previous, next) => {
         const session = sessionRef.current;
-        if (!session) return;
-        if (isNewQuery(session.lastModelQuery, text)) session.modelQueries += 1;
-        session.lastModelQuery = text;
+        if (session && isNewQuery(previous, next)) session.modelQueries += 1;
       },
       noteMakePicked: (via) => {
         pickedRef.current = { make: via, model: BIKE_PICKED_VIA.NONE };

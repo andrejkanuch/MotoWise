@@ -75,12 +75,16 @@ let telemetry: BikeSetupTelemetry;
 function Harness({
   year = '2020',
   restored = { make: false, model: false },
+  showPickers = true,
 }: {
   year?: string;
   restored?: { make: boolean; model: boolean };
+  /** false unmounts both pickers, as the screen does between Stage A and Stage B. */
+  showPickers?: boolean;
 }) {
   telemetry = useBikeSetupTelemetry({ year, restored });
   telemetry.noteModelListSize(MODELS.length);
+  if (!showPickers) return null;
   return (
     <>
       <MakeGrid
@@ -267,6 +271,19 @@ describe('bike_setup_summary — counters', () => {
     expect(lastSummary().make_queries).toBe(2);
   });
 
+  it('a search typed after the pickers remount (Change make) counts again', async () => {
+    const { rerender } = await render(<Harness />);
+    await fireEvent.changeText(makeSearch(), 'Yam');
+    await fireEvent.changeText(modelSearch(), 'MT');
+    // Pick a make (grid goes away), then "Change make": both fields come back empty.
+    await rerender(<Harness showPickers={false} />);
+    await rerender(<Harness />);
+    await fireEvent.changeText(makeSearch(), 'Kaw');
+    await fireEvent.changeText(modelSearch(), 'Z');
+    await act(() => telemetry.finish('skipped'));
+    expect(lastSummary()).toMatchObject({ make_queries: 2, model_queries: 2 });
+  });
+
   it('"Other make" is custom', async () => {
     await render(<Harness />);
     await fireEvent.press(screen.getByLabelText('Other make'));
@@ -296,6 +313,7 @@ describe('bike_setup_summary — counters', () => {
       mockFocus.cleanup?.();
       mockFocus.run?.();
     });
+    await fireEvent.changeText(modelSearch(), '');
     await fireEvent.changeText(modelSearch(), 'XSR900');
     await fireEvent.press(
       screen.getByText(t('onboarding.v2ModelPickerUseCustom', { model: 'XSR900' })),
