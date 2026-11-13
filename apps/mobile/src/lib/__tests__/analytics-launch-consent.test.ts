@@ -27,6 +27,7 @@ jest.mock('posthog-react-native', () => ({
     optIn = () => mockOptIn();
     optOut = () => mockOptOut();
     capture = jest.fn();
+    register = jest.fn();
     startSessionRecording = jest.fn();
     stopSessionRecording = jest.fn();
     getDistinctId = () => 'anon-1';
@@ -161,6 +162,10 @@ describe('launch consent enforcement (release build)', () => {
     const analytics = launch('undecided');
     const beforeSend = mockConstructorOptions.before_send as (e: unknown) => unknown;
     analytics.setAnalyticsEnabled(true);
-    expect(beforeSend({ event: 'screen' })).toEqual({ event: 'screen' });
+    // Passed through with the release marker stamped (analytics-release-marker.test.ts).
+    expect(beforeSend({ event: 'screen' })).toEqual({
+      event: 'screen',
+      properties: analytics.RELEASE_MARKER,
+    });
   });
 });
