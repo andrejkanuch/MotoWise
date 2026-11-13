@@ -3,7 +3,10 @@
 # Finishes onboarding, kills the app, turns airplane mode on and relaunches
 # WITHOUT clearState: with no network the gate cannot refetch `me`, so it routes
 # on what this install persisted (the local completion flag in the auth store).
-# Expected: Home, never the onboarding Welcome screen.
+# Expected: the signed-in tab bar (any tab), never the onboarding Welcome screen.
+# Asserts `tab-home` rather than `home-screen`: a cold start can land on a tab
+# other than Home (seen on Android landing on Profile, on main too; tracked
+# separately), and that is not what this flow guards.
 #
 # Guard only: Maestro cannot force the stale-cache race itself (a persisted `me`
 # that still says "not completed"); navigation-gate.test.tsx covers that in Jest.
@@ -24,7 +27,7 @@ tags:
 - launchApp
 - extendedWaitUntil:
     visible:
-      id: "home-screen"
+      id: "tab-home"
     timeout: 20000
 - assertNotVisible: "Let's get started"
 
