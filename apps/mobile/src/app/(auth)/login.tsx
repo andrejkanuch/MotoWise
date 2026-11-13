@@ -8,6 +8,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { AuthDivider, AuthField, OAuthButtons } from '../../components/auth/auth-field';
 import { EMAIL_CODE_SOURCE, EmailCodeStep } from '../../components/auth/email-code-step';
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
+import { AUTH_EMAIL_MODE, AUTH_SURFACE } from '../../config/auth';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
 import { useOAuthSignIn } from '../../hooks/use-oauth-sign-in';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
@@ -18,6 +19,7 @@ import { space } from '../../theme/spacing';
 import { triggerImpact } from '../../utils/haptics';
 
 const REGISTER_ROUTE: Href = '/(auth)/register';
+const SURFACE = AUTH_SURFACE.LOGIN;
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -60,11 +62,15 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
+    trackEvent(AnalyticsEvent.AUTH_EMAIL_SUBMITTED, {
+      surface: SURFACE,
+      mode: AUTH_EMAIL_MODE.SIGNIN,
+    });
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (!error) {
-        trackEvent(AnalyticsEvent.USER_SIGNED_IN, { auth_method: 'email' });
+        trackEvent(AnalyticsEvent.USER_SIGNED_IN, { auth_method: 'email', surface: SURFACE });
       } else if (classifyAuthError(error).kind === EMAIL_AUTH_ERROR.NOT_CONFIRMED) {
         await openCodeStepForUnconfirmed();
       } else {
@@ -78,7 +84,7 @@ export default function LoginScreen() {
     }
   };
 
-  const { onApple, onGoogle } = useOAuthSignIn();
+  const { onApple, onGoogle } = useOAuthSignIn(SURFACE);
 
   const canSubmit = email.length > 0 && password.length > 0 && !loading;
 
@@ -104,6 +110,7 @@ export default function LoginScreen() {
       {codeStep ? (
         <EmailCodeStep
           email={codeStep.email}
+          surface={SURFACE}
           source={EMAIL_CODE_SOURCE.SIGNIN_UNCONFIRMED}
           password={codeStep.password}
           initialCooldownMs={codeStep.initialCooldownMs}

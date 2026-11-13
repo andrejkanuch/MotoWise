@@ -140,3 +140,70 @@ export const EVENT_SCHEMAS = {
   [ANALYTICS_EVENTS.EXPLORE_PAGE_VIEWED]: ExplorePageViewedSchema,
   [ANALYTICS_EVENTS.REGION_PAGE_VIEWED]: RegionPageViewedSchema,
 } as const;
+
+// #365 T04a — mobile auth events. The app captures them through its own
+// `AnalyticsEvent` (apps/mobile/src/lib/analytics.ts); the names and property shapes
+// live here too so dashboards and any other client share one spelling. They are not
+// part of the web `track()` map above. No email and no free-text message, ever:
+// `error_code` is the error's code (or class name) only.
+export const MOBILE_AUTH_EVENTS = {
+  AUTH_OAUTH_STARTED: 'auth_oauth_started',
+  AUTH_OAUTH_RESULT: 'auth_oauth_result',
+  AUTH_ERROR_ALERT_SHOWN: 'auth_error_alert_shown',
+  AUTH_EMAIL_SUBMITTED: 'auth_email_submitted',
+  AUTH_POST_SIGNIN_WAIT: 'auth_post_signin_wait',
+} as const;
+
+const AuthProviderSchema = z.enum(['apple', 'google']);
+const AuthSurfaceSchema = z.enum(['onboarding_account', 'onboarding_sign_in', 'login', 'register']);
+const OAuthOutcomeSchema = z.enum([
+  'success',
+  'cancelled',
+  'in_progress',
+  'no_play_services',
+  'cannot_present',
+  'error',
+]);
+const AuthErrorCodeSchema = z
+  .string()
+  .regex(/^[A-Za-z0-9_.-]{1,64}$/)
+  .nullable();
+
+export const AuthOAuthStartedSchema = z.object({
+  provider: AuthProviderSchema,
+  surface: AuthSurfaceSchema,
+});
+
+export const AuthOAuthResultSchema = z.object({
+  provider: AuthProviderSchema,
+  surface: AuthSurfaceSchema,
+  outcome: OAuthOutcomeSchema,
+  stage: z.enum(['sheet', 'token_exchange']),
+  duration_ms: z.number().int().nonnegative(),
+  is_new_user: z.boolean().nullable(),
+  error_code: AuthErrorCodeSchema,
+});
+
+export const AuthErrorAlertShownSchema = z.object({
+  provider: AuthProviderSchema,
+  outcome: OAuthOutcomeSchema.exclude(['success', 'in_progress']),
+  error_code: AuthErrorCodeSchema,
+});
+
+export const AuthEmailSubmittedSchema = z.object({
+  surface: AuthSurfaceSchema,
+  mode: z.enum(['signup', 'signin']),
+});
+
+export const AuthPostSigninWaitSchema = z.object({
+  wait_ms: z.number().int().nonnegative(),
+  outcome: z.enum(['advanced', 'already_onboarded', 'me_error', 'timeout']),
+});
+
+export const MOBILE_AUTH_EVENT_SCHEMAS = {
+  [MOBILE_AUTH_EVENTS.AUTH_OAUTH_STARTED]: AuthOAuthStartedSchema,
+  [MOBILE_AUTH_EVENTS.AUTH_OAUTH_RESULT]: AuthOAuthResultSchema,
+  [MOBILE_AUTH_EVENTS.AUTH_ERROR_ALERT_SHOWN]: AuthErrorAlertShownSchema,
+  [MOBILE_AUTH_EVENTS.AUTH_EMAIL_SUBMITTED]: AuthEmailSubmittedSchema,
+  [MOBILE_AUTH_EVENTS.AUTH_POST_SIGNIN_WAIT]: AuthPostSigninWaitSchema,
+} as const;

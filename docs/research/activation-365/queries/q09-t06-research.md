@@ -80,6 +80,8 @@ FROM (
     HAVING countIf(event = 'onboarding_completed') > 0))
 GROUP BY ver ORDER BY ver
 -- result: 3.26.0 120 / 29 / 26 / 3 / 0 (121 completers with the project filter only); 3.21.0 33 / 4 / 4; 3.28.0 8 / 3 / 3;
+-- caveat (2026-11-13 re-run): via_home / via_tabs_root depend on sort order at the '/(tabs)' + '/(tabs)/(home)' timestamp tie
+-- (26, 27 or 28 on 3.26.0); the tie-aware tile form is po2d_diag_1h_via_home in fs/fs-po2d.sql (29 of 29 via Home);
 -- 3.19.0 / 3.19.1 7 each, all via the old /new route
 ```
 

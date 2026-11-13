@@ -19,6 +19,11 @@
 #
 # Each run reuses the email-code runner: UI signup, a code from the Supabase
 # admin API, the account deleted on exit.
+#
+# Build: the `e2e-simulator-paywall` EAS profile (vendor SDKs on, production
+# backend), never `e2e-simulator`, which switches RevenueCat and PostHog off so
+# the paywall cannot show. Every run writes to production analytics (PostHog
+# events, the onboarding_paywall_2026q4 exposure): owner's go-ahead first.
 set -eu
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 MAX_TRIES=${MAX_TRIES:-6}

@@ -578,6 +578,23 @@ export const AnalyticsEvent = {
   // Auth
   USER_SIGNED_IN: 'user_signed_in',
   USER_SIGNED_UP: 'user_signed_up',
+  // issue 365 T04a — auth attempts (FS-OB2a/b/c, FS-OB5); `surface` is `AUTH_SURFACE`.
+  /** An Apple/Google button was tapped, before the provider is called: {provider, surface}. */
+  AUTH_OAUTH_STARTED: 'auth_oauth_started',
+  /**
+   * How that tap ended, exactly once per `auth_oauth_started`: {provider, surface,
+   * outcome, stage, duration_ms, is_new_user, error_code}. Codes only, never messages.
+   */
+  AUTH_OAUTH_RESULT: 'auth_oauth_result',
+  /** `presentOAuthError` showed an alert: {provider, outcome, error_code}. */
+  AUTH_ERROR_ALERT_SHOWN: 'auth_error_alert_shown',
+  /** An email sign-up or sign-in form was submitted: {surface, mode}. Never the address. */
+  AUTH_EMAIL_SUBMITTED: 'auth_email_submitted',
+  /**
+   * The onboarding account step decided where to go once the session landed:
+   * {wait_ms, outcome: advanced | already_onboarded | me_error}.
+   */
+  AUTH_POST_SIGNIN_WAIT: 'auth_post_signin_wait',
   /**
    * An email confirmation code was sent from the app. `source`: `signup`,
    * `signin_unconfirmed` (sign-in to an unconfirmed account) or `resend`.

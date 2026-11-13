@@ -68,6 +68,22 @@ Step-specific `onboarding_step_completed` properties (pre-existing, unchanged): 
 
 Variant B's extra steps: frequency → `riding_frequency`; stay_on_top → `concerns`, `concerns_count`, `primary_concern` (derived via `CONCERN_PRIORITY`/`getPrimaryConcern`, biases the Reveal's lead card + paywall framing); last_service → `last_service`, `has_mileage`, `unit`; building_plan → loader, no extra props.
 
+### #365 T04a — auth events (from app 3.29.0)
+
+Current flow, not the retired experiment. Fired by the app on every sign-in surface (`surface`: `onboarding_account`, `onboarding_sign_in`, `login`, `register` = `AUTH_SURFACE` in `apps/mobile/src/config/auth.ts`). Names and Zod shapes are also in `packages/analytics/src/events.ts` (`MOBILE_AUTH_EVENTS`). Consent-gated like every app event. No email and no error message ever: `error_code` is the error's code (`ERR_REQUEST_CANCELED`, `PLAY_SERVICES_NOT_AVAILABLE`, a Supabase code), else its class name (`AuthRetryableFetchError`, `GoogleSignInInProgressError`), else `null`.
+
+| Event | When | Properties |
+|---|---|---|
+| `auth_oauth_started` | Apple/Google tapped, before the provider is called (`hooks/use-oauth-sign-in.ts`) | `provider: apple \| google`, `surface` |
+| `auth_oauth_result` | the same tap ended — exactly one per `auth_oauth_started`, double taps included | `provider`, `surface`, `outcome: success \| cancelled \| in_progress \| no_play_services \| cannot_present \| error`, `stage: sheet \| token_exchange` (`sheet` = the provider never handed back a token; `token_exchange` = the Supabase `signInWithIdToken` call was reached), `duration_ms` (tap → end), `is_new_user` (`null` unless success), `error_code` (`null` on success) |
+| `auth_error_alert_shown` | `presentOAuthError` showed an alert (`lib/oauth-error-alert.ts`). Never on `in_progress` (silent). Until T12, a cancel still alerts: FS-OB2c = alerts with `outcome = cancelled` ÷ results with `outcome = cancelled` | `provider`, `outcome`, `error_code` |
+| `auth_email_submitted` | an email form was submitted (account, onboarding sign-in, login, register) | `surface`, `mode: signup \| signin` |
+| `auth_post_signin_wait` | the onboarding account step decided where to go after the session landed (`components/onboarding/use-account-advance.ts`), once | `wait_ms` (session seen → decision), `outcome: advanced \| already_onboarded \| me_error` (the way it went: `me_error` = the server state failed to load and the step advanced anyway; `timeout` is reserved for T12's bounded wait) |
+
+`user_signed_up` / `user_signed_in` also carry `surface` from 3.29.0 (OAuth, email and the email code step); `auth_method` is unchanged.
+
+"Started, no result" (FS-OB2a) = `auth_oauth_started` − `auth_oauth_result` per `provider` × platform: the app was killed or the sheet never returned. Do not read `Application Backgrounded` on the account step as "left the app": the Google sheet backgrounds the app on Android.
+
 ### #365 T04b — onboarding navigation, resume and gate events
 
 Current (not historical). Sent from `apps/mobile/src/lib/onboarding-nav-analytics.ts`, behind the
