@@ -275,8 +275,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/types
       '@posthog/react-native-plugin':
-        specifier: ^2.4.1
-        version: 2.4.1(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
+        specifier: ^2.13.1
+        version: 2.13.1(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
       '@react-native-async-storage/async-storage':
         specifier: ^2.2.0
         version: 2.2.0(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))
@@ -425,8 +425,8 @@ importers:
         specifier: 5.0.0-preview.4
         version: 5.0.0-preview.4(react-native-css@3.0.7(@expo/metro-config@57.0.7(expo@57.0.11)(supports-color@8.1.1)(typescript@6.0.3))(lightningcss@1.30.1)(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(tailwindcss@4.3.1)
       posthog-react-native:
-        specifier: ^4.47.2
-        version: 4.47.2(f09a67acf20e1a24b3ae48bedca784b8)
+        specifier: ^4.86.0
+        version: 4.86.0(5fdffc1ba76d3671637a54db3e7d3abd)
       react:
         specifier: 19.2.3
         version: 19.2.3
@@ -3687,14 +3687,20 @@ packages:
   '@posthog/core@1.32.5':
     resolution: {integrity: sha512-Vmr6LZms7QEP1ljfTRRBVtLkeEHMrTmLECt0FXPLwUIgPwxOgvBdAYwRMWyP13WuN/XQweo1tJ9J1DxHNAF3qg==}
 
-  '@posthog/react-native-plugin@2.4.1':
-    resolution: {integrity: sha512-Oxg3KSjD/w44nYR7AsX4Ugseig6hIWfCuUR933GHjMTgwSFqd814vJ9axBpaZlwS0plpSTE7wdoReuDJNYsdmA==}
+  '@posthog/core@1.67.1':
+    resolution: {integrity: sha512-Fq8YySx3G2ggxKV/dLf5nfbQocB3/yU6TNSGIyRvVynizrIW8tZfB2HQ/13cY61PoU+cNzvKch+B7Ac+OUkORw==}
+
+  '@posthog/react-native-plugin@2.13.1':
+    resolution: {integrity: sha512-ZtH55ghSb3esO8nMEqMFJ1rc3/xyofq3U/sWKvn2OO7QGXANC2XEjDooa8WaWwPtzryAImanKGTmgs8LUAXf1A==}
     peerDependencies:
       react: 19.2.3
       react-native: '*'
 
   '@posthog/types@1.386.4':
     resolution: {integrity: sha512-UgE9+5+wkZg7yc2MpW5G32/6zYW8fAbXJkG8WGnrb4X8OKWzNa9cWeNCd82vKok+TSoRpM4qiYQFtBSpJS1dsw==}
+
+  '@posthog/types@1.424.1':
+    resolution: {integrity: sha512-p82S3QPoyewUdzLVNvGsbowUe8qds15ij/7lKXav17vccuR2bioCVaizNZw+u9WgsaY1DmEycsD1dNS5nlqjLA==}
 
   '@protobufjs/aspromise@1.1.2':
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -9669,16 +9675,18 @@ packages:
   posthog-js@1.386.8:
     resolution: {integrity: sha512-L4cJD1sleUULE7K4mZQI5wpS24NHGtNmFw1rPHruc579unVzHuooHiVDEHp/qyNnhNxtNE6alBTiVORbYnRTSw==}
 
-  posthog-react-native@4.47.2:
-    resolution: {integrity: sha512-QdwGXjyoYdogt2a5UBJUzEEi7NeUnbvWuNqmmCaU8lbeXaj+4Y2+6ayE5+3jjmoucC4rOLR6SRK5ZXtMlxLIhQ==}
+  posthog-react-native@4.86.0:
+    resolution: {integrity: sha512-gnFiVb9gTGh6gr0+zdTvkiEXFf13LdL2bbkKvUmARixgnluqOmN9rTI544O871PamFKNoY9fybQtvMda2ekNng==}
+    hasBin: true
     peerDependencies:
-      '@posthog/react-native-plugin': '>= 2.0.1'
+      '@posthog/react-native-plugin': '>= 2.12.7'
       '@react-native-async-storage/async-storage': '>=1.0.0'
       '@react-navigation/native': '>= 5.0.0'
       expo-application: '>= 4.0.0'
       expo-device: '>= 4.0.0'
       expo-file-system: '>= 13.0.0'
       expo-localization: '>= 11.0.0'
+      expo-updates: '>= 0.25.0'
       posthog-react-native-session-replay: '>= 1.6.0'
       react-native-device-info: '>= 10.0.0'
       react-native-localize: '>= 3.0.0'
@@ -9699,6 +9707,8 @@ packages:
       expo-file-system:
         optional: true
       expo-localization:
+        optional: true
+      expo-updates:
         optional: true
       posthog-react-native-session-replay:
         optional: true
@@ -15017,12 +15027,18 @@ snapshots:
     dependencies:
       '@posthog/types': 1.386.4
 
-  '@posthog/react-native-plugin@2.4.1(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)':
+  '@posthog/core@1.67.1':
+    dependencies:
+      '@posthog/types': 1.424.1
+
+  '@posthog/react-native-plugin@2.13.1(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)':
     dependencies:
       react: 19.2.3
       react-native: 0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1)
 
   '@posthog/types@1.386.4': {}
+
+  '@posthog/types@1.424.1': {}
 
   '@protobufjs/aspromise@1.1.2': {}
 
@@ -21905,17 +21921,18 @@ snapshots:
       query-selector-shadow-dom: 1.0.1
       web-vitals: 5.2.0
 
-  posthog-react-native@4.47.2(f09a67acf20e1a24b3ae48bedca784b8):
+  posthog-react-native@4.86.0(5fdffc1ba76d3671637a54db3e7d3abd):
     dependencies:
-      '@posthog/core': 1.32.5
-      '@posthog/types': 1.386.4
+      '@posthog/core': 1.67.1
+      '@posthog/types': 1.424.1
     optionalDependencies:
-      '@posthog/react-native-plugin': 2.4.1(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
+      '@posthog/react-native-plugin': 2.13.1(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
       '@react-native-async-storage/async-storage': 2.2.0(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))
       '@react-navigation/native': 7.1.33(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
       expo-application: 57.0.2(expo@57.0.11)
       expo-file-system: 57.0.2(expo@57.0.11)(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))
       expo-localization: 57.0.1(expo@57.0.11)(react@19.2.3)
+      expo-updates: 57.0.12(expo-dev-client@57.0.10(expo@57.0.11)(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1)))(expo@57.0.11)(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1)
       react-native-safe-area-context: 5.7.0(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
       react-native-svg: 15.15.4(react-native@0.86.2(patch_hash=c89fb679b65d9e4f1b91029aa77821d1470015e6b8f7fd4f8fa32b6a1460ce5e)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
 

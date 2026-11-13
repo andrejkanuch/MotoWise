@@ -326,6 +326,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     infoPlist: {
       CFBundleDisplayName: 'MotoVault',
+      // @posthog/react-native-plugin >= 2.9.2 installs a launch hook on the
+      // notification center to catch a tap that cold-launches the app, before
+      // any JS runs. Push belongs to expo-notifications; this key skips the hook
+      // and forces PostHog's own `$push_notification_opened` capture off.
+      'com.posthog.posthog.CAPTURE_PUSH_NOTIFICATION_OPENED': false,
       // Keep iPhone portrait-only. The top-level `orientation: 'default'` exists
       // solely to drop Android's screenOrientation lock for the Android 16
       // large-screen advisory; it would otherwise also unlock iPhone rotation.
