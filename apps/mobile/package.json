@@ -12,6 +12,7 @@
     "test:e2e": "sh scripts/run-maestro.sh",
     "test:e2e:onboarding": "sh scripts/run-onboarding-e2e.sh",
     "test:e2e:email-code": "sh scripts/run-onboarding-email-code-e2e.sh",
+    "test:e2e:onboarding-signin": "sh scripts/run-onboarding-signin-e2e.sh",
     "test:e2e:onboarding-paywall": "sh scripts/run-onboarding-paywall-e2e.sh",
     "test:e2e:edit-task": "sh scripts/run-edit-maintenance-task-e2e.sh",
     "test:e2e:add-bike": "E2E_FLOW=add-bike.yaml E2E_EMAIL_PREFIX=e2e-add-bike sh scripts/run-onboarding-e2e.sh",

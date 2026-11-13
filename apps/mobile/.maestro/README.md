@@ -85,6 +85,16 @@ the flows below.
   `delivered+<label>@resend.dev` test inbox (reports delivered, never bounces). The server side of
   the same contract runs in CI on every relevant PR: `scripts/e2e-email-confirmation.sh`
   (`.github/workflows/email-confirmation-e2e.yml`).
+- **`flows/onboarding-signin-unfinished-account.yaml` + `flows/onboarding-signin-onboarded-account.yaml`** —
+  returning-rider sign-in from Welcome (issue 365 T11, FS-OB1a). A confirmed account that has not
+  finished onboarding must leave "Welcome back." for Experience with the "Account ready" notice
+  (`onboarding-account-ready`, up for 4 s); an onboarded account must land on Home. Steps up to
+  Sign In live in `flows/_shared/welcome-to-sign-in.yaml`. Local stack only (the runner creates the
+  users and refuses any other `SUPABASE_URL`); simulator AutoFill Passwords off. Run via:
+  ```bash
+  SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=<local key> \
+    DEVICE=<udid> pnpm --filter @motovault/mobile test:e2e:onboarding-signin
+  ```
 - **`flows/onboarding-paywall-verify.yaml`** — onboarding paywall gate (#326), required before a
   build is promoted to production (`docs/runbooks/mobile-release.md`). Part 1 is the email-code
   signup flow; part 2 confirms the account and fails unless the RevenueCat paywall is shown where
