@@ -34,14 +34,20 @@ const signedIn: AuthGateInput = {
   isAnonOnboarding: false,
   hydration: AUTH_HYDRATION.RESOLVED,
 };
-const meNetwork = { data: { me: {} }, dataUpdatedAt: Date.now() + 1 };
+// A frozen clock: the launch time, `me`'s stamp and the age all read the same
+// instant, so a slow runner cannot turn a fetch in this launch into a cached one.
+const LAUNCH_AT = 1_800_000_000_000;
+const meNetwork = { data: { me: {} }, dataUpdatedAt: LAUNCH_AT };
 const ME_KEY = ['user', 'me'];
 
+let clock: jest.SpyInstance<number, []>;
 beforeEach(() => {
+  clock = jest.spyOn(Date, 'now').mockReturnValue(LAUNCH_AT);
   mockTrackEvent.mockClear();
-  resetOnboardingNavAnalyticsForTests();
+  resetOnboardingNavAnalyticsForTests(LAUNCH_AT);
   useOnboardingStore.getState().reset();
 });
+afterEach(() => clock.mockRestore());
 
 it('waits for the gate to settle, then fires once across re-renders', async () => {
   const { rerender } = await renderHook(
@@ -98,7 +104,7 @@ it('`me` restored from the persisted cache after the gate mounted is me_cache', 
   // As in _layout: the gate's `me` observer mounts before PersistQueryClientProvider
   // finishes its async restore, which then hydrate()s last launch's `me`.
   const previousLaunch = new QueryClient();
-  previousLaunch.setQueryData(ME_KEY, { me: {} }, { updatedAt: Date.now() - 60_000 });
+  previousLaunch.setQueryData(ME_KEY, { me: {} }, { updatedAt: LAUNCH_AT - 60_000 });
   const persisted = dehydrate(previousLaunch);
   const client = new QueryClient();
   const wrapper = ({ children }: { children: ReactNode }) =>

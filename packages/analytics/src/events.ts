@@ -17,11 +17,11 @@ export const ANALYTICS_EVENTS = {
   REGION_PAGE_VIEWED: 'region_page_viewed',
 } as const;
 
-// #365 T04b — mobile onboarding navigation, resume and gate events. Sent by
+// Issue 365 T04b — mobile onboarding navigation, resume and gate events. Sent by
 // apps/mobile (`AnalyticsEvent` in src/lib/analytics.ts; helpers in
 // src/lib/onboarding-nav-analytics.ts), not by this web client. Names and
 // property shapes are listed here as the shared catalog; schema doc:
-// docs/onboarding-ab-event-schema.md, "#365 T04b".
+// docs/onboarding-ab-event-schema.md, "issue 365 T04b".
 export const MOBILE_ONBOARDING_NAV_EVENTS = {
   ONBOARDING_BACK: 'onboarding_back',
   ONBOARDING_WELCOME_MOUNTED: 'onboarding_welcome_mounted',
