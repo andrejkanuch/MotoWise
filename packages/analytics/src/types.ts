@@ -1,6 +1,7 @@
 import type { z } from 'zod';
 import type {
   ANALYTICS_EVENTS,
+  BikeSetupSummarySchema,
   ExplorePageViewedSchema,
   FilterAppliedSchema,
   GpxDownloadAttemptedSchema,
@@ -27,6 +28,8 @@ export type SignupStartedProperties = z.infer<typeof SignupStartedSchema>;
 export type SearchPerformedProperties = z.infer<typeof SearchPerformedSchema>;
 export type ExplorePageViewedProperties = z.infer<typeof ExplorePageViewedSchema>;
 export type RegionPageViewedProperties = z.infer<typeof RegionPageViewedSchema>;
+// #365 T04c
+export type BikeSetupSummaryProperties = z.infer<typeof BikeSetupSummarySchema>;
 
 // ---------------------------------------------------------------------------
 // Event name union type
@@ -49,6 +52,8 @@ export type AnalyticsEventMap = {
   search_performed: SearchPerformedProperties;
   explore_page_viewed: ExplorePageViewedProperties;
   region_page_viewed: RegionPageViewedProperties;
+  // #365 T04c
+  bike_setup_summary: BikeSetupSummaryProperties;
 };
 
 // ---------------------------------------------------------------------------

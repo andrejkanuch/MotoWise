@@ -7,7 +7,9 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { space } from '@/theme/spacing';
 import { radius, type } from '@/theme/type';
 import { useOnboardingColors } from '../onboarding-colors';
+import { BIKE_PICKED_VIA } from './bike-setup-telemetry';
 import { PickerGroup, PickerLabel, PickerRow, PickerSearchField } from './picker-ui';
+import type { BikeSetupTelemetry } from './use-bike-setup-telemetry';
 
 type Model = MotorcycleModelsQuery['motorcycleModels'][number];
 
@@ -19,6 +21,7 @@ interface ModelPickerProps {
   selectedModel: { modelId: number; modelName: string } | null;
   onSelect: (model: { modelId: number; modelName: string }) => void;
   onDismiss: () => void;
+  telemetry: BikeSetupTelemetry;
 }
 
 export function ModelPicker({
@@ -29,6 +32,7 @@ export function ModelPicker({
   selectedModel,
   onSelect,
   onDismiss,
+  telemetry,
 }: ModelPickerProps) {
   const oc = useOnboardingColors();
   const { t } = useTranslation();
@@ -83,7 +87,10 @@ export function ModelPicker({
             </Text>
           </View>
           <Pressable
-            onPress={onDismiss}
+            onPress={() => {
+              telemetry.noteModelPicked(BIKE_PICKED_VIA.NONE);
+              onDismiss();
+            }}
             accessibilityRole="button"
             accessibilityLabel="Change model"
             style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
@@ -104,7 +111,10 @@ export function ModelPicker({
       <View style={{ gap: space.xs }}>
         <PickerSearchField
           value={query}
-          onChangeText={setQuery}
+          onChangeText={(text) => {
+            telemetry.noteModelQuery(text);
+            setQuery(text);
+          }}
           maxLength={50}
           placeholder={
             isCustomMake
@@ -129,7 +139,16 @@ export function ModelPicker({
         {!isCustomMake && !isLoading && filtered.length > 0 && (
           <PickerGroup>
             {filtered.map((m) => (
-              <PickerRow key={m.modelId} title={m.modelName} onPress={() => onSelect(m)} />
+              <PickerRow
+                key={m.modelId}
+                title={m.modelName}
+                onPress={() => {
+                  telemetry.noteModelPicked(
+                    query.trim() ? BIKE_PICKED_VIA.SEARCH : BIKE_PICKED_VIA.LIST,
+                  );
+                  onSelect(m);
+                }}
+              />
             ))}
           </PickerGroup>
         )}
@@ -141,7 +160,10 @@ export function ModelPicker({
               title={t('onboarding.v2ModelPickerUseCustom', { model: query.trim() })}
               leading={<Plus size={18} color={oc.warm2} />}
               accent
-              onPress={() => onSelect({ modelId: 0, modelName: query.trim() })}
+              onPress={() => {
+                telemetry.noteModelPicked(BIKE_PICKED_VIA.CUSTOM);
+                onSelect({ modelId: 0, modelName: query.trim() });
+              }}
             />
           </PickerGroup>
         )}

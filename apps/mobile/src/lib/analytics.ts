@@ -618,6 +618,9 @@ export const AnalyticsEvent = {
   // Activation Goal 7 — a receipt scan completed during onboarding (KTD-10 quota-exempt).
   ONBOARDING_SCAN_COMPLETED: 'receipt_scan_onboarding_completed',
   ONBOARDING_RESUMED: 'onboarding_resumed',
+  // issue 365 T04c — one per visit to the bike-setup step: dwell, search counts, how
+  // make/model were picked, models fetch time. See docs/onboarding-ab-event-schema.md.
+  BIKE_SETUP_SUMMARY: 'bike_setup_summary',
   // Onboarding A/B (2026) funnel — see docs/onboarding-ab-event-schema.md
   BIKE_ADDED: 'bike_added',
   REVEAL_VIEWED: 'reveal_viewed',

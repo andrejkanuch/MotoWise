@@ -4,6 +4,7 @@
 export { identify, reset, setUserProperties, track } from './client';
 export {
   ANALYTICS_EVENTS,
+  BikeSetupSummarySchema,
   EVENT_SCHEMAS,
   ExplorePageViewedSchema,
   FilterAppliedSchema,
@@ -22,6 +23,7 @@ export type {
   AnalyticsEventMap,
   AnalyticsEventName,
   AnalyticsUserProperties,
+  BikeSetupSummaryProperties,
   ExplorePageViewedProperties,
   FilterAppliedProperties,
   GpxDownloadAttemptedProperties,
