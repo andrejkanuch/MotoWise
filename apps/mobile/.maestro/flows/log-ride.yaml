@@ -83,6 +83,13 @@ env:
     timeout: 30000
 - assertVisible: ".*RIDE SAVED.*"
 - takeScreenshot: log-ride-summary
+# The summary is a long ScrollView (map, stats, "About this ride"): Save ride sits
+# below the fold, so scroll to it first.
+- scrollUntilVisible:
+    element:
+      text: ".*Save ride.*"
+    direction: DOWN
+    timeout: 20000
 - tapOn: ".*Save ride.*"
 - tapOn:
     text: "Not Now"
