@@ -108,7 +108,7 @@ the one extra day of data and are within binomial noise unless explained.
 | FS-PO9 | 3.26.0 **11/121** | 11/121 | identical; no tile |
 | FS-PO10 | by the first tick, real ride **before** the tick: tap **16** riders, 0 with a prior ride; data **20**, **10** without a prior ride; null trigger 10, 9 without | tap 16 (3), data 20 (12) counted "any time" | **ordered** as the plan asked: baselines of the "= 0" targets are tap 16 and data-without-prior-ride 10 |
 | FS-PO11 | 3.26.0 **2/121** (completions 10-23, 11-05) — **both rider-opened** (see below) | 2/120 | settled; regression guard only, no tile |
-| FS-PO12 | sign-in ≤ 1 h after completion all **11/292**, 3.26.0 **5/121**, 3.27.0 2/6 | 11/292, 5/120 | identical |
+| FS-PO12 | sign-in ≤ 1 h after completion all **11/292**, 3.26.0 **5/121**, 3.27.0 2/6 | 11/292, 5/120 | identical; T06 item 1 corrected tile baseline **4/292** (§10.2) |
 | FS-PO13 | onboarding step ≤ 7 d after completion all **8/292**, 3.26.0 **6/121** | 7/292, 5/120 | +1 rider relapsed in the extra day |
 | FS-PO14 | Start Ride opened day 0 with no ride **68/131 (52%)**, 3.26.0 31/49; ride started among openers 63/131 | 68/132, 30/48; 63/130 | reproduces |
 | FS-PO15 | 11 of 48 scan-starting riders reached `receipt_scan_manual_fallback` (60 d) | unknown | not fixing now; no tile |
@@ -279,3 +279,18 @@ level vs target. Outcome metrics: same-weeks comparison, then trailing 8 weeks; 
 ## 10. T06 research findings
 
 T06's answers live in [`research/t06-findings.md`](research/t06-findings.md) (written by T06; T02 only links it).
+
+### 10.1 Reminder scheduler cap (T06 item 7, issue #410; copied word for word)
+
+**Answered (doc review 2026-11-12):** no immediate burst, because imported tasks get due dates in the future; the risk is same-day clustering when
+several intervals fall due on the same anniversary. Today `sendDuePush` sends one push per task
+(`apps/api/src/modules/push-tokens/maintenance-push.service.ts:61, 125-158`), so the cap (one combined push per bike, at most one per bike per
+7 days) is built inside T07a before its deploy.
+
+### 10.2 Tile baselines and engaged return carried from T06 (read 2026-11-13)
+
+| Item | Baseline | Note |
+|---|---|---|
+| FS-PO12 (T06 item 1) | **4/292** (3.26.0 **1/121**) without the cold-start `/(auth)` flash | Replaces 11/292 in §4.2 as the T15 / T15b tile baseline; 11/292 is the as-measured form |
+| FS-PO2d (T06 item 2) | first-hour diagnosis via Home → Diagnose, 3.26.0 **26/120**; all entries 29/120 | T03b tile baseline; §4.2's 29/121 is the all-entries form with a one-rider cohort difference |
+| F14 engaged return, 100 scanned riders (T06 item 10) | d2 raw **16/100**, d2 engaged **13/100**, week-1 engaged 16/100 (**7/72** with a full week), week-1 core action 17/100 | Exp 1 context; the cohort F14 baseline stays 37/367 completers |
