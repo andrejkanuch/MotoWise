@@ -88,7 +88,7 @@
     "expo-updates": "~57.0.12",
     "expo-web-browser": "~57.0.2",
     "expo-widgets": "^57.0.8",
-    "graphql": "^16.14.2",
+    "graphql": "^17.1.0",
     "graphql-request": "^7.4.0",
     "i18next": "^26.5.12",
     "lucide-react-native": "^1.65.0",

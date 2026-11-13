@@ -25,7 +25,7 @@
     "@uiw/codemirror-theme-vscode": "^4.25.10",
     "@uiw/react-codemirror": "^4.25.10",
     "geist": "^1.7.2",
-    "graphql": "^16.14.2",
+    "graphql": "^17.1.0",
     "graphql-request": "^7.4.0",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.21.0",
