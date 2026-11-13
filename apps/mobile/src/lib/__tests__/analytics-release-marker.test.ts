@@ -300,6 +300,35 @@ describe('release marker wiring (lib/analytics.ts)', () => {
     expect(sent?.properties?.ota_update_id).toBe('embedded');
   });
 
+  // `register` persists the marker, so on the next launch the SDK enriches
+  // `Application Updated`/`Installed` from the previous launch's stored values
+  // before this launch's `register` lands. The running JS's marker must win.
+  it('overwrites a stale marker left over from the previous launch', () => {
+    launch('granted', OTA_LAUNCH);
+    const beforeSend = mockConstructorOptions.before_send as BeforeSend;
+    const sent = beforeSend({
+      event: 'Application Updated',
+      properties: {
+        $app_version: '3.30.0',
+        // Any level other than the running one.
+        activation_fix_level: ACTIVATION_FIX_LEVEL + 1,
+        ota_update_id: 'old',
+        is_embedded_launch: true,
+        runtime_version: '3.28.0',
+        e2e_run: true,
+      },
+    });
+    expect(sent?.properties).toMatchObject({
+      $app_version: '3.30.0',
+      activation_fix_level: ACTIVATION_FIX_LEVEL,
+      ota_update_id: OTA_LAUNCH.updateId,
+      is_embedded_launch: false,
+      runtime_version: OTA_LAUNCH.runtimeVersion,
+    });
+    // A marker field this launch does not set is not carried over either.
+    expect(sent?.properties).not.toHaveProperty('e2e_run');
+  });
+
   it('still drops everything before consent', () => {
     launch('undecided');
     const beforeSend = mockConstructorOptions.before_send as BeforeSend;

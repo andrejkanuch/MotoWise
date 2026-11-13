@@ -10,7 +10,7 @@ import {
   resolveLaunchConsent,
   setStoredAnalyticsConsent,
 } from './analytics-consent';
-import { buildReleaseMarker } from './analytics-release-marker';
+import { buildReleaseMarker, RELEASE_MARKER_PROPERTY } from './analytics-release-marker';
 import { vendorSdksDisabled } from './e2e-build';
 import {
   describeGraphQLError,
@@ -60,16 +60,24 @@ let analyticsEnabled = launchConsent === CONSENT_STATE.GRANTED;
  */
 export const RELEASE_MARKER: Record<string, JsonType> = buildReleaseMarker();
 
+const RELEASE_MARKER_KEYS: ReadonlySet<string> = new Set(Object.values(RELEASE_MARKER_PROPERTY));
+
 /**
  * Stamps the release marker on an outgoing event. The SDK captures
- * `Application Installed`/`Opened` as soon as its storage has loaded, which can
- * run before the `register` queued below lands, so the first open after install
- * would otherwise go out without `platform` (29% of opens did). The event's own
- * values win; they are the same once the marker is registered.
+ * `Application Installed`/`Opened`/`Updated` as soon as its storage has loaded,
+ * which can run before the `register` queued below lands. Until then an event
+ * carries either no marker (the first open after install, 29% of opens had no
+ * `platform`) or the PREVIOUS launch's marker, because `register` persists super
+ * properties. The marker always wins: it is fixed and correct for the running JS.
+ * Marker fields this launch leaves out (`e2e_run`, unknown values) are dropped
+ * rather than carried over from an earlier launch.
  */
 function withReleaseMarker(event: CaptureEvent | null): CaptureEvent | null {
   if (!event) return null;
-  return { ...event, properties: { ...RELEASE_MARKER, ...event.properties } };
+  const ownProperties = Object.fromEntries(
+    Object.entries(event.properties ?? {}).filter(([key]) => !RELEASE_MARKER_KEYS.has(key)),
+  );
+  return { ...event, properties: { ...ownProperties, ...RELEASE_MARKER } };
 }
 
 // Eagerly initialize PostHog so the instance can be passed to PostHogProvider.
