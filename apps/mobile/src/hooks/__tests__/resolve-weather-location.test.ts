@@ -9,8 +9,9 @@ jest.mock('expo-location', () => ({
   Accuracy: { Low: 1 },
 }));
 
-// react-query is imported by the hook module; stub so importing doesn't pull native deps.
+// react-query and the GraphQL client are imported by the hook module; stub so importing doesn't pull native deps.
 jest.mock('@tanstack/react-query', () => ({ useQuery: jest.fn() }));
+jest.mock('../../lib/graphql-client', () => ({ gqlFetcher: jest.fn() }));
 
 import { resolveWeatherLocation } from '../use-weather-forecast';
 

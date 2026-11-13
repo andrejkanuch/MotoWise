@@ -1,11 +1,11 @@
 /**
- * Issue 272: Open-Meteo's free endpoint is licensed for non-commercial use only,
- * so with WEATHER_ENABLED off the app must make ZERO requests to it: no fetch,
- * no react-query query, and no location prompt on the weather's behalf.
+ * Issue 272: weather stays OFF until the owner sets the Open-Meteo key on the
+ * API and flips WEATHER_ENABLED. While it is off the app must make ZERO weather
+ * requests: no fetch, no API query, no react-query query, and no location
+ * prompt on the weather's behalf.
  *
  * Uses the REAL feature-flags module (no mock), so flipping the shipped switch
- * back to `true` fails this test and forces a deliberate update alongside a
- * licensed provider.
+ * to `true` fails this test and forces a deliberate update.
  */
 
 jest.mock('expo-location', () => ({
@@ -17,6 +17,11 @@ jest.mock('expo-location', () => ({
 }));
 
 jest.mock('@tanstack/react-query', () => ({ useQuery: jest.fn() }));
+
+const mockGqlFetcher = jest.fn();
+jest.mock('../../lib/graphql-client', () => ({
+  gqlFetcher: (...args: unknown[]) => mockGqlFetcher(...args),
+}));
 
 import { useQuery } from '@tanstack/react-query';
 import * as Location from 'expo-location';
@@ -61,10 +66,12 @@ describe('weather disabled (issue 272)', () => {
     expect(Location.requestForegroundPermissionsAsync).not.toHaveBeenCalled();
     expect(Location.getForegroundPermissionsAsync).not.toHaveBeenCalled();
     expect(fetchSpy).not.toHaveBeenCalled();
+    expect(mockGqlFetcher).not.toHaveBeenCalled();
   });
 
-  it('fetchForecast refuses to call the provider', async () => {
+  it('fetchForecast refuses to request a forecast', async () => {
     await expect(fetchForecast(COORDS)).rejects.toThrow(WEATHER_DISABLED_MESSAGE);
     expect(fetchSpy).not.toHaveBeenCalled();
+    expect(mockGqlFetcher).not.toHaveBeenCalled();
   });
 });

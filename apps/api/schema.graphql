@@ -1631,6 +1631,11 @@ type Query {
   tripTemplates(after: String, filter: TripTemplateFilterInput, first: Int = 20): TripConnection!
   unreviewedReceiptScans: [UnreviewedScan!]!
   user: User!
+
+  """
+  Five-day daily forecast near a point (Discover weather strip, pre-ride check). The point is rounded to 0.1° before the provider call.
+  """
+  weatherForecast(input: WeatherForecastInput!): WeatherForecast!
 }
 
 type Quiz {
@@ -2962,4 +2967,34 @@ input WaypointInput {
   longitude: Float!
   recordedAt: String!
   speedMps: Float
+}
+
+"""One day of the forecast, in the local time zone of the point."""
+type WeatherDay {
+  """Local calendar date, YYYY-MM-DD."""
+  date: String!
+
+  """
+  Highest chance of precipitation in the day, 0-100. Null when the provider has no value.
+  """
+  precipProbability: Int
+
+  """Maximum temperature, °C."""
+  tempMax: Float!
+
+  """Minimum temperature, °C."""
+  tempMin: Float!
+
+  """WMO weather interpretation code."""
+  weatherCode: Int!
+}
+
+"""Daily weather forecast near a point."""
+type WeatherForecast {
+  days: [WeatherDay!]!
+}
+
+input WeatherForecastInput {
+  lat: Float!
+  lon: Float!
 }

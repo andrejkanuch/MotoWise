@@ -1,8 +1,7 @@
 /**
- * Pins the THROW-SITE contract the global query handler depends on: the
- * handler downgrades only a typed `UpstreamHttpError`, never a message match,
- * so a refactor back to `throw new Error(\`Open-Meteo ${status}\`)` must fail
- * here rather than silently re-open Sentry MOTO-VAULT-REACT-NATIVE-35.
+ * Pins the weather data path (issue 272): the forecast comes from the API's
+ * `weatherForecast` proxy, never from a provider called on the device. The
+ * unlicensed free Open-Meteo endpoint must not come back.
  */
 
 jest.mock('expo-location', () => ({
@@ -12,44 +11,82 @@ jest.mock('expo-location', () => ({
   Accuracy: { Low: 1 },
 }));
 
-// These tests pin the provider code kept behind the switch (issue 272), so they run
-// with weather forced ON. The real build ships it OFF; see
-// weather-disabled.test.ts for the zero-request guarantee.
+// These tests pin the enabled path, so they run with weather forced ON. The
+// real build ships it OFF; see weather-disabled.test.ts.
 jest.mock('../../config/feature-flags', () => ({ WEATHER_ENABLED: true }));
 
 // react-query is imported by the hook module; stub so importing doesn't pull native deps.
 jest.mock('@tanstack/react-query', () => ({ useQuery: jest.fn() }));
 
-import { isUpstreamHttpError, UPSTREAM_SERVICE } from '../../lib/upstream-http-error';
+const mockGqlFetcher = jest.fn();
+jest.mock('../../lib/graphql-client', () => ({
+  gqlFetcher: (...args: unknown[]) => mockGqlFetcher(...args),
+}));
+
+import { GetWeatherForecastDocument } from '@motovault/graphql';
 import { fetchForecast } from '../use-weather-forecast';
 
 const COORDS = { lat: 48.2, lon: 16.4 };
 
-function mockFetchStatus(status: number) {
-  global.fetch = jest.fn().mockResolvedValue({ ok: false, status }) as unknown as typeof fetch;
-}
+const day = (date: string, weatherCode: number, precipProbability: number | null = 10) => ({
+  date,
+  tempMax: 14.4,
+  tempMin: 6,
+  precipProbability,
+  weatherCode,
+});
+
+let fetchSpy: jest.Mock;
+
+beforeEach(() => {
+  fetchSpy = jest.fn();
+  global.fetch = fetchSpy as unknown as typeof fetch;
+});
 
 afterEach(() => {
-  jest.restoreAllMocks();
+  jest.clearAllMocks();
 });
 
 describe('fetchForecast', () => {
-  it.each([503, 400])('rejects with a typed UpstreamHttpError on HTTP %i', async (status) => {
-    mockFetchStatus(status);
+  it('reads the forecast through the API proxy and makes no direct provider request', async () => {
+    mockGqlFetcher.mockResolvedValue({ weatherForecast: { days: [day('2026-11-09', 1)] } });
 
-    // A 400 must be just as typed as a 503 — the HANDLER, not the throw site,
-    // decides which statuses are the provider's fault.
-    await expect(fetchForecast(COORDS)).rejects.toMatchObject({
-      service: UPSTREAM_SERVICE.OPEN_METEO,
-      status,
+    await fetchForecast(COORDS);
+
+    expect(mockGqlFetcher).toHaveBeenCalledWith(GetWeatherForecastDocument, {
+      input: { lat: 48.2, lon: 16.4 },
     });
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it('throws an error the global handler recognises by type, with the pinned message', async () => {
-    mockFetchStatus(503);
+  it('builds the summary from the proxied days', async () => {
+    // 2026-11-09 is a Monday; the weekend (14th, 15th) is wet.
+    mockGqlFetcher.mockResolvedValue({
+      weatherForecast: {
+        days: [
+          day('2026-11-09', 1),
+          day('2026-11-10', 2),
+          day('2026-11-11', 61, null),
+          day('2026-11-14', 0),
+          day('2026-11-15', 63),
+        ],
+      },
+    });
 
-    const error = await fetchForecast(COORDS).catch((e: unknown) => e);
-    expect(isUpstreamHttpError(error)).toBe(true);
-    expect((error as Error).message).toBe('Open-Meteo 503');
+    const summary = await fetchForecast(COORDS);
+
+    expect(summary.headline).toBe('Monday · 14°C · Dry through Tue');
+    expect(summary.isGoodWeekend).toBe(false);
+    expect(summary.days[0]).toMatchObject({ tempMax: 14.4, precipProbability: 10, label: 'Clear' });
+    expect(summary.days[2]).toMatchObject({ precipProbability: null, label: 'Rain' });
+  });
+
+  it('passes an API error through unchanged so the global handler can classify it', async () => {
+    const error = Object.assign(new Error('Weather forecast is unavailable'), {
+      response: { errors: [{ extensions: { code: 'SERVICE_UNAVAILABLE' } }] },
+    });
+    mockGqlFetcher.mockRejectedValue(error);
+
+    await expect(fetchForecast(COORDS)).rejects.toBe(error);
   });
 });

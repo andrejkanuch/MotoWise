@@ -1,26 +1,13 @@
+import { GetWeatherForecastDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { format, isSaturday, isSunday, parseISO } from 'date-fns';
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { WEATHER_ENABLED } from '../config/feature-flags';
+import { gqlFetcher } from '../lib/graphql-client';
 import { QUERY_CRITICALITY } from '../lib/query-criticality';
 import { queryKeys } from '../lib/query-keys';
-import { UPSTREAM_SERVICE, UpstreamHttpError } from '../lib/upstream-http-error';
 import { requestForegroundLocationPermission } from '../utils/location-permission';
-
-// --- Open-Meteo API types ---
-
-interface OpenMeteoDailyResponse {
-  time: string[];
-  temperature_2m_max: number[];
-  temperature_2m_min: number[];
-  precipitation_probability_max: number[];
-  weather_code: number[];
-}
-
-interface OpenMeteoResponse {
-  daily: OpenMeteoDailyResponse;
-}
 
 // --- Public types ---
 
@@ -28,7 +15,7 @@ export interface DayForecast {
   date: Date;
   tempMax: number;
   tempMin: number;
-  precipProbability: number;
+  precipProbability: number | null;
   weatherCode: number;
   label: string;
 }
@@ -134,42 +121,28 @@ function buildHeadline(days: DayForecast[]): string {
 
 // --- Fetcher ---
 
-// Open-Meteo's free endpoint is licensed for NON-COMMERCIAL use only, and
-// MotoVault sells subscriptions (issue 272). The code stays so a licensed provider
-// can replace it, but it never runs while WEATHER_ENABLED is false.
-
-const OPEN_METEO_BASE = 'https://api.open-meteo.com/v1/forecast';
-const DAILY_PARAMS =
-  'temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code';
-
-/**
- * Exported for tests: the thrown type is a contract the global query handler
- * depends on (`query-client.ts` downgrades only a typed `UpstreamHttpError`,
- * never a message match), so a refactor back to a bare `Error` must fail a
- * test rather than silently re-open Sentry MOTO-VAULT-REACT-NATIVE-35.
- */
 export const WEATHER_DISABLED_MESSAGE = 'Weather is disabled (WEATHER_ENABLED=false, issue 272)';
 
+/**
+ * Reads the forecast through the API's `weatherForecast` proxy, which holds the
+ * Open-Meteo key (issue 272). The device never calls a weather provider itself.
+ * A provider outage reaches the app as SERVICE_UNAVAILABLE, which the global
+ * query handler downgrades (`query-client.ts`).
+ */
 export async function fetchForecast(coords: Coordinates): Promise<WeatherSummary> {
-  // Second line of defence: even a caller that bypasses the hook cannot reach
-  // the unlicensed provider while the switch is off.
+  // Second line of defence: even a caller that bypasses the hook cannot fetch
+  // weather while the switch is off.
   if (!WEATHER_ENABLED) throw new Error(WEATHER_DISABLED_MESSAGE);
 
-  const url = `${OPEN_METEO_BASE}?latitude=${coords.lat}&longitude=${coords.lon}&daily=${DAILY_PARAMS}&timezone=auto&forecast_days=5`;
+  const { weatherForecast } = await gqlFetcher(GetWeatherForecastDocument, { input: coords });
 
-  const res = await fetch(url);
-  if (!res.ok) throw new UpstreamHttpError(UPSTREAM_SERVICE.OPEN_METEO, res.status);
-
-  const data: OpenMeteoResponse = await res.json();
-  const { daily } = data;
-
-  const days: DayForecast[] = daily.time.map((dateStr, i) => ({
-    date: parseISO(dateStr),
-    tempMax: daily.temperature_2m_max[i],
-    tempMin: daily.temperature_2m_min[i],
-    precipProbability: daily.precipitation_probability_max[i],
-    weatherCode: daily.weather_code[i],
-    label: weatherCodeToLabel(daily.weather_code[i]),
+  const days: DayForecast[] = weatherForecast.days.map((day) => ({
+    date: parseISO(day.date),
+    tempMax: day.tempMax,
+    tempMin: day.tempMin,
+    precipProbability: day.precipProbability,
+    weatherCode: day.weatherCode,
+    label: weatherCodeToLabel(day.weatherCode),
   }));
 
   const headline = buildHeadline(days);
@@ -229,9 +202,8 @@ function useLiveWeatherForecast(): UseWeatherResult {
     enabled: coords != null,
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
-    // Open-Meteo is a free API with no SLA and the strip renders null without
-    // it (weather-strip.tsx). Four attempts against a down provider buys
-    // nothing but battery.
+    // The strip renders null without a forecast (weather-strip.tsx). Four
+    // attempts against a down provider buy nothing but battery.
     retry: 1,
     // Decorative surface: a provider outage must neither page us nor raise a
     // modal the rider can do nothing about. Our own bugs inside the query are

@@ -1,0 +1,11 @@
+query GetWeatherForecast($input: WeatherForecastInput!) {
+  weatherForecast(input: $input) {
+    days {
+      date
+      tempMax
+      tempMin
+      precipProbability
+      weatherCode
+    }
+  }
+}

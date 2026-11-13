@@ -87,7 +87,9 @@ export function PreFlightChecklist({ motorcycleId }: PreFlightChecklistProps) {
   const weatherSubtitle = useMemo(() => {
     if (weatherLoading) return t('preFlight.loading');
     if (!todayWeather) return t('preFlight.na');
-    return `${todayWeather.label} · ${Math.round(todayWeather.tempMax)}°C · ${todayWeather.precipProbability}% ${t('preFlight.rain')}`;
+    const summary = `${todayWeather.label} · ${Math.round(todayWeather.tempMax)}°C`;
+    if (todayWeather.precipProbability == null) return summary;
+    return `${summary} · ${todayWeather.precipProbability}% ${t('preFlight.rain')}`;
   }, [todayWeather, weatherLoading, t]);
 
   const weatherStatus: 'ok' | 'warn' | 'na' = todayWeather
