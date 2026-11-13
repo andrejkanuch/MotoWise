@@ -4,12 +4,12 @@ import {
   shouldRenderAuthGroup,
   shouldRenderRestoring,
 } from '../lib/auth-hydration';
-import { resolveGateGroup, trackGateRoutedOnce } from '../lib/onboarding-nav-analytics';
+import { GATE_GROUP, resolveGateGroup, trackGateRoutedOnce } from '../lib/onboarding-nav-analytics';
 import { useAuthStore } from '../stores/auth.store';
+import { useOnboardingStore } from '../stores/onboarding.store';
 
 interface MeQueryState {
   data?: unknown;
-  isFetchedAfterMount: boolean;
   dataUpdatedAt: number;
 }
 
@@ -25,7 +25,9 @@ interface GateRoutedTrackingInput {
 /**
  * `gate_routed` once per cold start, the first time the root NavigationGate
  * settles: which group it opened and which input decided onboarding completion
- * (issue 365 T04b). Mirrors the gate's own `Stack.Protected` guards.
+ * (issue 365 T04b). Mirrors the gate's own `Stack.Protected` guards. Whenever the
+ * gate opens (tabs), the onboarding resume point is cleared, so a later
+ * `auth_session_lost` does not count a finished rider as mid-onboarding.
  */
 export function useGateRoutedTracking({
   holding,
@@ -34,7 +36,7 @@ export function useGateRoutedTracking({
   meQuery,
 }: GateRoutedTrackingInput) {
   const storeOnboardingCompleted = useAuthStore((s) => s.onboardingCompleted);
-  const { data, isFetchedAfterMount, dataUpdatedAt } = meQuery;
+  const { data, dataUpdatedAt } = meQuery;
 
   useEffect(() => {
     if (holding) return;
@@ -45,20 +47,12 @@ export function useGateRoutedTracking({
       onboarding: isAnonOnboarding || (isSignedIn && !onboardingCompleted),
       tabs: isSignedIn && onboardingCompleted,
     });
+    if (group === GATE_GROUP.TABS) useOnboardingStore.getState().clearResumePoint();
     trackGateRoutedOnce({
       group,
       storeOnboardingCompleted,
       hasMe: data !== undefined,
-      meFetchedAfterMount: isFetchedAfterMount,
       meUpdatedAt: dataUpdatedAt,
     });
-  }, [
-    holding,
-    gateInput,
-    onboardingCompleted,
-    storeOnboardingCompleted,
-    data,
-    isFetchedAfterMount,
-    dataUpdatedAt,
-  ]);
+  }, [holding, gateInput, onboardingCompleted, storeOnboardingCompleted, data, dataUpdatedAt]);
 }

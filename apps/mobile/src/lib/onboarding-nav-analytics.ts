@@ -13,7 +13,7 @@ import { consumeOnboardingButtonBack } from './onboarding-back-marker';
 // launch (`gate_routed`) and a session dropping mid-run (`auth_session_lost`).
 // Step names only — never free text, email or ids. Every event goes through
 // `trackEvent`, so it stays behind the analytics consent gate.
-// Schema: docs/onboarding-ab-event-schema.md, "#365 T04b".
+// Schema: docs/onboarding-ab-event-schema.md, "issue 365 T04b".
 // -------------------------------------------------------------------
 
 export const ONBOARDING_BACK_TRIGGER = {
@@ -76,6 +76,14 @@ const MS_PER_SECOND = 1000;
 let focused: { screen: string; at: number; stackIndex: number } | null = null;
 let backToWelcomeAt: number | null = null;
 let gateRoutedSent = false;
+/**
+ * When this JS runtime started. `me` data stamped before it was restored from the
+ * persisted query cache; at or after it, fetched in this launch. A timestamp, not
+ * `isFetchedAfterMount`: the gate's observer mounts before the async cache
+ * restore, and the restore's `hydrate()` bumps `dataUpdateCount`, so restored data
+ * would read as fetched after mount.
+ */
+let launchAt = Date.now();
 
 function isOnboardingRoute(name: string): name is OnboardingRoute {
   return Object.hasOwn(OB_STEP_NAME, name);
@@ -268,16 +276,14 @@ export interface GateRoutedInput {
   storeOnboardingCompleted: boolean;
   /** `me` data present (restored from cache or fetched). */
   hasMe: boolean;
-  /** `me` was fetched over the network after the gate mounted. */
-  meFetchedAfterMount: boolean;
-  /** `dataUpdatedAt` of `me`; 0 when there is none. */
+  /** `dataUpdatedAt` of `me`; 0 when there is none. Compared with the launch time. */
   meUpdatedAt: number;
 }
 
 export function onboardingCompletedSource(input: GateRoutedInput): OnboardingCompletedSource {
   if (input.storeOnboardingCompleted) return ONBOARDING_COMPLETED_SOURCE.LOCAL;
   if (!input.hasMe) return ONBOARDING_COMPLETED_SOURCE.NONE;
-  return input.meFetchedAfterMount
+  return input.meUpdatedAt >= launchAt
     ? ONBOARDING_COMPLETED_SOURCE.ME_NETWORK
     : ONBOARDING_COMPLETED_SOURCE.ME_CACHE;
 }
@@ -304,7 +310,9 @@ export function trackGateRoutedOnce(input: GateRoutedInput, now = Date.now()): b
  */
 export function trackAuthSessionLost(authEvent: string) {
   const { lastViewedScreen, lastCompletedScreen } = useOnboardingStore.getState();
-  // Completion resets the onboarding store, so any step on record means a run in progress.
+  // Completion resets the onboarding store, and the gate clears the resume point
+  // whenever it opens (tabs) (a rider who signed in from onboarding's sign-in
+  // step skips completion), so any step on record means a run in progress.
   const lastStep = lastViewedScreen ?? lastCompletedScreen;
   trackEvent(AnalyticsEvent.AUTH_SESSION_LOST, {
     during_onboarding: lastStep !== null,
@@ -315,8 +323,9 @@ export function trackAuthSessionLost(authEvent: string) {
   });
 }
 
-/** Test-only: a fresh JS runtime. */
-export function resetOnboardingNavAnalyticsForTests() {
+/** Test-only: a fresh JS runtime, started at `startedAt`. */
+export function resetOnboardingNavAnalyticsForTests(startedAt = Date.now()) {
+  launchAt = startedAt;
   focused = null;
   consumeOnboardingButtonBack();
   backToWelcomeAt = null;

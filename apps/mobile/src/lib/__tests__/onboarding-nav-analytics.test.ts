@@ -222,13 +222,16 @@ describe('onboarding_welcome_mounted', () => {
 });
 
 describe('gate_routed', () => {
+  // This JS runtime started 10 s before T0; `me` below is from the last launch.
+  const LAUNCH = T0 - 10_000;
   const base: GateRoutedInput = {
     group: GATE_GROUP.TABS,
     storeOnboardingCompleted: false,
     hasMe: true,
-    meFetchedAfterMount: false,
     meUpdatedAt: T0 - 90_000,
   };
+
+  beforeEach(() => resetOnboardingNavAnalyticsForTests(LAUNCH));
 
   it('fires once per cold start, with the source and the age of `me`', () => {
     expect(trackGateRoutedOnce(base, T0)).toBe(true);
@@ -242,6 +245,7 @@ describe('gate_routed', () => {
     trackGateRoutedOnce(base, T0);
     jest.isolateModules(() => {
       const fresh = require('../onboarding-nav-analytics');
+      fresh.resetOnboardingNavAnalyticsForTests(LAUNCH);
       expect(fresh.trackGateRoutedOnce(base, T0)).toBe(true);
     });
     expect(calls('gate_routed')).toHaveLength(2);
@@ -249,8 +253,10 @@ describe('gate_routed', () => {
 
   it.each([
     [{ storeOnboardingCompleted: true }, ONBOARDING_COMPLETED_SOURCE.LOCAL],
-    [{ meFetchedAfterMount: true }, ONBOARDING_COMPLETED_SOURCE.ME_NETWORK],
+    [{ meUpdatedAt: LAUNCH + 5_000 }, ONBOARDING_COMPLETED_SOURCE.ME_NETWORK],
+    [{ meUpdatedAt: LAUNCH }, ONBOARDING_COMPLETED_SOURCE.ME_NETWORK],
     [{}, ONBOARDING_COMPLETED_SOURCE.ME_CACHE],
+    [{ meUpdatedAt: LAUNCH - 1 }, ONBOARDING_COMPLETED_SOURCE.ME_CACHE],
     [{ hasMe: false, meUpdatedAt: 0 }, ONBOARDING_COMPLETED_SOURCE.NONE],
   ])('source for %o is %s', (override, source) => {
     trackGateRoutedOnce({ ...base, ...override }, T0);
@@ -278,6 +284,17 @@ describe('auth_session_lost', () => {
     trackAuthSessionLost('SIGNED_OUT');
     expect(calls('auth_session_lost')).toEqual([
       { during_onboarding: true, last_step: 'notifications', auth_event: 'SIGNED_OUT' },
+    ]);
+  });
+
+  it('signed in from the onboarding sign-in step, then signed out: not mid-onboarding', () => {
+    recordOnboardingFocus(OB_SCREEN.WELCOME, 0, T0);
+    recordOnboardingFocus(OB_SCREEN.SIGN_IN, 1, T0 + 1_000);
+    // The gate opens (tabs) for the returning rider; personalizing never runs.
+    useOnboardingStore.getState().clearResumePoint();
+    trackAuthSessionLost('SIGNED_OUT');
+    expect(calls('auth_session_lost')).toEqual([
+      { during_onboarding: false, last_step: null, auth_event: 'SIGNED_OUT' },
     ]);
   });
 
